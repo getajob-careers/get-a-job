@@ -172,6 +172,7 @@ Single index — when something feels load-bearing, it's probably in here.
 | `CLAUDE.md` | Coding conventions, branch + PR rules, commit format |
 | `ROADMAP.md` | Week-by-week sprint plan, v1/v2 cuts, risk register |
 | `.github/pull_request_template.md` | What every PR description must cover |
+| `.claude/settings.json` + `.claude/scripts/{protect-files,block-dangerous}.sh` | Project-shared Claude Code hooks — auto-format/lint on every file edit (PostToolUse), file protection on migrations/voice-rules/libraries/.env/package-lock (PreToolUse), dangerous-command blocking for rm -rf, destructive SQL, force-push, --no-verify, prod db reset (PreToolUse Bash). Per-user overrides in `.claude/settings.local.json` |
 
 ---
 

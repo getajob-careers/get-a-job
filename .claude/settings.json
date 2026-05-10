@@ -1,0 +1,39 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/scripts/protect-files.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash $CLAUDE_PROJECT_DIR/.claude/scripts/block-dangerous.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(jq -r '.tool_input.file_path // empty') && [ -n \"$file\" ] && [ -f \"$file\" ] && npx prettier --write \"$file\" 2>/dev/null || true"
+          },
+          {
+            "type": "command",
+            "command": "file=$(jq -r '.tool_input.file_path // empty') && [ -n \"$file\" ] && [ -f \"$file\" ] && npx eslint --fix \"$file\" 2>/dev/null || true"
+          }
+        ]
+      }
+    ]
+  }
+}

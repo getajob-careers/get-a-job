@@ -18,7 +18,7 @@
 
 ### MCP Servers (install in Claude Code)
 
-- [ ] **Context7 MCP** — fetches latest docs for React, Tailwind, shadcn/ui, Supabase, Deno. Reduces hallucinated APIs. Free.
+- [x] **Context7 MCP** — fetches latest docs for React, Tailwind, shadcn/ui, Supabase, Deno. Reduces hallucinated APIs. Free. _(installed 2026-05-10, user scope, HTTP transport)_
 - [ ] **Supabase MCP** — add to Claude Code for direct DB access during coding sessions.
 - [ ] **GitHub MCP** — PR creation, issue search, repo management. Use read-only mode initially.
 - [ ] **Vercel MCP** — install when you set up Vercel (next week).
@@ -28,10 +28,10 @@
 
 ### Claude Code Skills
 
-- [ ] **obra/superpowers** — multi-agent dev workflow with TDD, code review, subagent execution. 40k+ stars. Highest-leverage single skill.
-- [ ] **Anthropic official skills** — frontend-design, docx, pdf, webapp-testing, skill-creator, claude-api.
-- [ ] **ui-ux-pro-max-skill** — 50+ styles, 161 color palettes, 57 font pairings, 99 UX guidelines.
-- [ ] **Corey Haines marketing skills** — 32 skills including /copywriting, /page-cro, /email-sequence, /seo-audit. Critical for landing page.
+- [x] **obra/superpowers** — multi-agent dev workflow with TDD, code review, subagent execution. 40k+ stars. Highest-leverage single skill. _(installed 2026-05-10 from `obra/superpowers-marketplace`)_
+- [x] **Anthropic official skills** — frontend-design, docx, pdf, webapp-testing, skill-creator, claude-api. _(installed 2026-05-10 — `document-skills` + `example-skills` from `anthropics/skills`)_
+- [x] **ui-ux-pro-max-skill** — 50+ styles, 161 color palettes, 57 font pairings, 99 UX guidelines. _(installed 2026-05-10 from `nextlevelbuilder/ui-ux-pro-max-skill`)_
+- [x] **Corey Haines marketing skills** — 32 skills including /copywriting, /page-cro, /email-sequence, /seo-audit. Critical for landing page. _(installed 2026-05-10 from `coreyhaines31/marketingskills` — install slug is `marketing-skills`, marketplace alias is `marketingskills`)_
 
 ### Claude Code Hooks
 
