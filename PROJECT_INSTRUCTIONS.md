@@ -206,9 +206,9 @@ The full week-by-week is in `ROADMAP.md`. This is the working slice.
 - ✅ **Admin story browser** — `admin_stories_browse(p_user_id NULL, p_limit)` RPC + `<StoryBrowserCard />` on `/admin`. Student dropdown (with "All students") → story cards with STAR fields stacked, chips for metrics/skills/tools/tags, and `raw_source_text` side-by-side when `source='conversation'` (best-effort: latest user message before story.created_at). `extraction_notes` display deferred — column isn't persisted yet by extract-story-from-text.
 
 **Isaac (Wk 3, 2.5 days):**
-- **Mon — Story Bank Phase 2:** AddInformation Experience tab inline stories + quick-add modal
-- **Wed — Daily Action Card UI** on Home dashboard (Done / Snooze / Dismiss actions). Backend ready: POST to `generate-daily-action`, render `{ daily_action: { title, rationale, estimated_minutes, action_type, source_table, source_id, status } }`. For `reflect`, clicking Done opens Story Bank quick-add modal (the reflection IS the capture). On Dismiss: PATCH `daily_actions` row to `status='dismissed'` — calibration loop is already wired in the edge function (`generate-daily-action` queries last-7-day dismissals on each call).
-- **Fri — Daily Action calibration loop:** already wired in backend (see above). Isaac validates by triggering 3+ dismissals of a type and confirming the next pick deweights that type.
+- ✅ **Mon — Story Bank Phase 2:** AddInformation Experience tab inline stories + floating quick-add modal (PR #14, merged 2026-05-12).
+- ✅ **Wed (pulled forward to Tue) — Daily Action Card UI** on Home dashboard. `<DailyActionCard />` lazy-fetches via `generate-daily-action` edge function. Done / Snooze / Not relevant buttons; post-action collapses to thin "Done for today" line. For `reflect`, Done navigates to `/AddInformation` with `location.state.dailyAction = { id, prompt }`; AddInformation opens its quick-add modal with the prompt as `framing`, marks the daily_action done after the story saves.
+- **Fri — Daily Action calibration loop:** already wired in backend; validate by triggering 3+ dismissals of a type and confirming the next pick deweights that type.
 
 ### Wk 4 queue (May 26 – June 1)
 
