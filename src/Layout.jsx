@@ -15,7 +15,8 @@ import {
   Calendar as CalendarIcon,
   Linkedin,
   Sparkles,
-  User
+  User,
+  Briefcase
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -26,6 +27,7 @@ const NAV_ITEMS = [
   { name: "LinkedIn Optimizer", page: "LinkedinOptimizer", icon: Sparkles },
   { name: "Calendar", page: "Calendar", icon: CalendarIcon },
   { name: "Tracker", page: "Tracker", icon: ClipboardList },
+  { name: "Practicum", page: "Practicum", icon: Briefcase },
   { name: "Tasks", page: "Tasks", icon: CheckSquare },
   { name: "AI Agents", page: "Subagents", icon: Layers },
   { name: "Resources", page: "Resources", icon: BookOpen },

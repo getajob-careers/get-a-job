@@ -181,6 +181,7 @@ Single index — when something feels load-bearing, it's probably in here.
 | `20260511_daily_actions.sql` | Daily Action Card table — one row per (user_id, for_date), 8 action types, calibration-loop partial index on dismissed-by-type, RLS 4-policy |
 | `20260512_admin_chat_and_story_browsers.sql` | Admin pilot tooling — `admin_list_students()` / `admin_chat_messages()` / `admin_stories_browse()` RPCs + admin SELECT policies on conversations + chat_messages. Powers the two new admin cards |
 | `20260518_internship_finder.sql` | Strategic Internship Finder — `internship_profiles` (pitch strategy) + `companies` (global pool) + `company_targets` (per-user pipeline with pitch recommendations) + 4 new `profiles` columns (`practicum_path` / `practicum_cohort` / `practicum_status` / `current_employment_status`). Two practicum paths supported: `faculty_assigned` (finder hidden, status tracking only) vs `self_sourced` (full finder UX). LinkedIn-connection data dropped from this design due to legal risk |
+| `20260519_company_target_status_changes.sql` | Append-only audit log of `company_targets.status` transitions. Mirrors `application status_changes` pattern (trigger on `AFTER UPDATE OF status … WHEN OLD IS DISTINCT FROM NEW`, SECURITY DEFINER insert) with an added `note` column for the user's optional per-transition reflection. UI two-phase write: UPDATE status → SELECT just-inserted audit row → UPDATE its `note`. RLS: own-row SELECT + UPDATE (note edits); INSERT only via trigger; DELETE not granted |
 
 ### Docs / process
 | Path | What |
@@ -225,8 +226,7 @@ The full week-by-week is in `ROADMAP.md`. This is the working slice.
 - **Fri — Buffer.**
 
 **Isaac (Wk 4, 2.5 days):**
-- **Mon — Blocked on Eli's schema** (lands by EOD Mon). Pre-read existing edge functions; design `/Practicum` UI against the schema + matcher contract.
-- **Tue — `/Practicum` page UI** (pulled forward): kanban (exploring → outreach_sent → interview → offered → rejected → declined). Branches on `practicum_path`: self-sourced sees ranked suggestion list + "Find companies" trigger + kanban; faculty-assigned sees kanban only with the assigned company. Wire trigger button to `match-internship-companies` and re-query `company_targets` after success.
+- ✅ **Mon — `/Practicum` page UI** (built by Eli, pulled forward two slots): orchestrator at `src/pages/Practicum.jsx` branches on `profiles.practicum_path` (null → empty-state CTA to Profile / `self_sourced` → full finder UX / `faculty_assigned` → kanban-only). Components in `src/components/practicum/`: PracticumHeader, InternshipProfileStrip (collapsible read-only summary, refresh disabled until Tue), FindCompaniesCard (invokes `match-internship-companies` + invalidates query), CompanyTargetsKanban (6 columns: exploring → outreach_sent → interview → offered → rejected → declined), CompanyTargetCard, CompanyTargetDrawer (right-side Sheet with scores + pitch detail + status-change form + notes + audit timeline + Outreach Coach deeplink). Migration `20260519_company_target_status_changes.sql` lands the audit log + trigger in the same PR.
 - **Thu — Career Agent practicum prompt** + `SUGGESTED_COMPANY_TARGET_JSON` parsing.
 - **Fri — Buffer + smoke.**
 
@@ -246,9 +246,10 @@ Pulled from ROADMAP.md, scoped to your 2.5 days/week through launch.
 3. Daily Action calibration loop — dismissed-type backoff (Fri)
 
 ### Wk 4 (May 26 – June 1)
-1. ~~`match-internship-companies` edge function~~ — built by Eli (Mon, pulled forward). Frontend integrates against this contract.
-2. `/Practicum` page UI — profile + kanban + "Find companies" trigger that calls `match-internship-companies` (Tue, pulled forward from Wed)
-3. Career Agent practicum prompt + `SUGGESTED_COMPANY_TARGET_JSON` parsing (Fri)
+1. ~~`match-internship-companies` edge function~~ — built by Eli (Mon, pulled forward).
+2. ~~`/Practicum` page UI~~ — built by Eli (Mon, pulled forward two slots). Frontend integrates with the matcher + `company_target_status_changes` audit table.
+3. Career Agent practicum prompt + `SUGGESTED_COMPANY_TARGET_JSON` parsing (Fri).
+4. Polish pass on `/Practicum`: drag-drop kanban (v2 upgrade from dropdown), "Add company manually" UI for `self_added` rows.
 
 ### Wk 5 (June 2–8)
 1. Schema validator skill — reads `role_library` + `skill_library`, emits enums + ID sets as JSON (Mon)
