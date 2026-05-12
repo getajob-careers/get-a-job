@@ -88,7 +88,7 @@ Pilot is **CONFIRMED** — Reichman professor + Dr. Miller personally vouching. 
 
 ---
 
-## Edge functions (16)
+## Edge functions (17)
 
 All under `supabase/functions/<slug>/index.ts`. Each writes per-call metrics via `_shared/metrics.ts` (PR #6) and emits Langfuse traces via `_shared/openai-chat.ts` (PR #41-#44).
 
@@ -110,6 +110,7 @@ All under `supabase/functions/<slug>/index.ts`. Each writes per-call metrics via
 | `generate-tasks` | gpt-4o | Personalised weekly action plan |
 | `import-linkedin-archive` | n/a | Wk 4 LinkedIn import (zip upload + Connections.csv parser). Schema designed; awaiting Eli's archive |
 | `lookup-role-skills` | n/a | Static lookup against `role_library` + `skill_library` |
+| `match-internship-companies` | gpt-4o | **Wk 4 Internship Finder matcher.** Two-stage: deterministic rule pre-filter (stage / sector / signal / geography weights → top 30) then ONE batched LLM call scoring fit + career-compound + per-company pitch (pitched_role + pitch_rationale + skill_gaps_this_fills). UPSERT into `company_targets` respects human edits — never clobbers non-matched sources, only refreshes pitch fields if `status='exploring'` AND `notes` is null. Rate-limited 4/hr; explicit trigger from `/Practicum`. Requires `practicum_path='self_sourced'` + an existing `internship_profiles` row |
 
 **Rate limits:** all generation surfaces are gated via `serviceClient.rpc('check_rate_limit', ...)`. Defaults: 60/hour for posts/comments/outreach, lower for CV (expensive call).
 
@@ -217,15 +218,15 @@ The full week-by-week is in `ROADMAP.md`. This is the working slice.
 
 **Eli:**
 - ✅ **Mon — Internship Finder schema** (migration `20260518_internship_finder.sql`): 3 tables (`internship_profiles` + `companies` + `company_targets`) + 4 new `profiles` columns (`practicum_path` / `practicum_cohort` / `practicum_status` / `current_employment_status`). 12 RLS policies, 7 indexes, 3 `updated_at` triggers. `internship_profiles` captures the **pitch strategy** (realistic targets + pitchable roles grounded in TODAY's strengths + career-compound rationale), not just a match profile. `company_targets` carries per-company pitch recommendations (`pitched_role` / `pitch_rationale` / `skill_gaps_this_fills`) alongside two scores (`fit_score` + `career_compound_score`). Faculty-assigned vs self-sourced paths distinguished via `profiles.practicum_path`. Schema applied to prod, verified end-to-end.
+- ✅ **Mon — `match-internship-companies` edge function** (pulled forward from Isaac's Tue slot): two-stage scoring — deterministic rule pre-filter (stage / sector / signal / geography weights, 500 cap → top 30) then ONE batched gpt-4o call scoring fit + career-compound + per-company pitch (`pitched_role` + `pitch_rationale` + `skill_gaps_this_fills`). UPSERT-aware of human edits — only refreshes pitch fields if user hasn't moved status past `exploring` AND notes is null. Rate-limited 4/hr. Trigger preconditions: `practicum_path='self_sourced'` + existing `internship_profiles` row. Companies seeded separately.
 - **Tue — `generate-internship-profile` edge function**: emits 9-field `internship_profiles` row from career_roles + skill_gaps + stories. Triggered on user "Refresh internship profile" click; staleness check vs `MAX(career_roles.updated_at)`.
 - **Wed — Onboarding step** for `practicum_path` selection (faculty_assigned / self_sourced / not in practicum). Branching UX downstream.
 - **Thu — Buffer / integration test** end-to-end.
 - **Fri — Buffer.**
 
 **Isaac (Wk 4, 2.5 days):**
-- **Mon — Blocked on Eli's schema** (lands by EOD Mon). Pre-read existing edge functions; design `match-internship-companies` scoring algorithm against the planned schema.
-- **Tue — `match-internship-companies` edge function**: scores `companies` rows against active `internship_profiles`, writes top results to `company_targets` with `source='matched'`, populates `pitched_role` + `pitch_rationale` per company.
-- **Wed — `/Practicum` page UI**: kanban (exploring → outreach_sent → interview → offered → rejected → declined). Branches on `practicum_path`: self-sourced sees ranked suggestion list + kanban; faculty-assigned sees kanban only with the assigned company.
+- **Mon — Blocked on Eli's schema** (lands by EOD Mon). Pre-read existing edge functions; design `/Practicum` UI against the schema + matcher contract.
+- **Tue — `/Practicum` page UI** (pulled forward): kanban (exploring → outreach_sent → interview → offered → rejected → declined). Branches on `practicum_path`: self-sourced sees ranked suggestion list + "Find companies" trigger + kanban; faculty-assigned sees kanban only with the assigned company. Wire trigger button to `match-internship-companies` and re-query `company_targets` after success.
 - **Thu — Career Agent practicum prompt** + `SUGGESTED_COMPANY_TARGET_JSON` parsing.
 - **Fri — Buffer + smoke.**
 
@@ -245,8 +246,8 @@ Pulled from ROADMAP.md, scoped to your 2.5 days/week through launch.
 3. Daily Action calibration loop — dismissed-type backoff (Fri)
 
 ### Wk 4 (May 26 – June 1)
-1. `match-internship-companies` edge function (Mon)
-2. `/Practicum` page UI — profile + kanban (Wed)
+1. ~~`match-internship-companies` edge function~~ — built by Eli (Mon, pulled forward). Frontend integrates against this contract.
+2. `/Practicum` page UI — profile + kanban + "Find companies" trigger that calls `match-internship-companies` (Tue, pulled forward from Wed)
 3. Career Agent practicum prompt + `SUGGESTED_COMPANY_TARGET_JSON` parsing (Fri)
 
 ### Wk 5 (June 2–8)
