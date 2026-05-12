@@ -179,6 +179,7 @@ Single index — when something feels load-bearing, it's probably in here.
 | `20260506_profiles_education_institution.sql` | Education institution column |
 | `20260511_daily_actions.sql` | Daily Action Card table — one row per (user_id, for_date), 8 action types, calibration-loop partial index on dismissed-by-type, RLS 4-policy |
 | `20260512_admin_chat_and_story_browsers.sql` | Admin pilot tooling — `admin_list_students()` / `admin_chat_messages()` / `admin_stories_browse()` RPCs + admin SELECT policies on conversations + chat_messages. Powers the two new admin cards |
+| `20260518_internship_finder.sql` | Strategic Internship Finder — `internship_profiles` (pitch strategy) + `companies` (global pool) + `company_targets` (per-user pipeline with pitch recommendations) + 4 new `profiles` columns (`practicum_path` / `practicum_cohort` / `practicum_status` / `current_employment_status`). Two practicum paths supported: `faculty_assigned` (finder hidden, status tracking only) vs `self_sourced` (full finder UX). LinkedIn-connection data dropped from this design due to legal risk |
 
 ### Docs / process
 | Path | What |
@@ -208,22 +209,27 @@ The full week-by-week is in `ROADMAP.md`. This is the working slice.
 **Isaac (Wk 3, 2.5 days):**
 - ✅ **Mon — Story Bank Phase 2:** AddInformation Experience tab inline stories + floating quick-add modal (PR #14, merged 2026-05-12).
 - ✅ **Wed (pulled forward to Tue) — Daily Action Card UI** on Home dashboard. `<DailyActionCard />` lazy-fetches via `generate-daily-action` edge function. Done / Snooze / Not relevant buttons; post-action collapses to thin "Done for today" line. For `reflect`, Done navigates to `/AddInformation` with `location.state.dailyAction = { id, prompt }`; AddInformation opens its quick-add modal with the prompt as `framing`, marks the daily_action done after the story saves.
-- **Fri — Daily Action calibration loop:** already wired in backend; validate by triggering 3+ dismissals of a type and confirming the next pick deweights that type.
+- ✅ **Fri — Daily Action calibration loop:** verified end-to-end 2026-05-12. Logic in `generate-daily-action` (lines 264-271): threshold ≥3 dismissals in last 7 days → score × 0.2. Partial index `idx_daily_actions_user_type_dismissed` confirmed via EXPLAIN (Index Only Scan, cost 0.15..2.37). Test: 3 backdated dismissed `reach_out` rows → next pick switched from `reach_out` (deweighted to 7.5) to `apply` (22.5). `pick_score` persisted + `calibration_applied` in Langfuse trace metadata for debugging.
 
 ### Wk 4 queue (May 26 – June 1)
 
+**LinkedIn import + connection cross-reference: DROPPED** (legal risk re: processing third-party connection data, 2026-05-12). All 4 remaining Wk 4 tasks are Internship Finder, reordered to put the schema first (it unblocks every other task).
+
 **Eli:**
-- **Mon–Tue — LinkedIn import:** schema (`linkedin_imports` + `linkedin_connections` + `linkedin_change_events`) + zip upload edge function + Connections.csv parser (others if time)
-- **Wed — Connection cross-reference:** match user's connections against Internship Picker company list. "X connections at Atera" UI on Tracker rows
-- **Thu — Internship Finder schema:** `internship_profiles` + `companies` + `company_targets` + `faculty_practicum_companies` + `practicum_mode` onboarding toggle + `generate-internship-profile` edge function
-- **Fri:** buffer + integration test
+- ✅ **Mon — Internship Finder schema** (migration `20260518_internship_finder.sql`): 3 tables (`internship_profiles` + `companies` + `company_targets`) + 4 new `profiles` columns (`practicum_path` / `practicum_cohort` / `practicum_status` / `current_employment_status`). 12 RLS policies, 7 indexes, 3 `updated_at` triggers. `internship_profiles` captures the **pitch strategy** (realistic targets + pitchable roles grounded in TODAY's strengths + career-compound rationale), not just a match profile. `company_targets` carries per-company pitch recommendations (`pitched_role` / `pitch_rationale` / `skill_gaps_this_fills`) alongside two scores (`fit_score` + `career_compound_score`). Faculty-assigned vs self-sourced paths distinguished via `profiles.practicum_path`. Schema applied to prod, verified end-to-end.
+- **Tue — `generate-internship-profile` edge function**: emits 9-field `internship_profiles` row from career_roles + skill_gaps + stories. Triggered on user "Refresh internship profile" click; staleness check vs `MAX(career_roles.updated_at)`.
+- **Wed — Onboarding step** for `practicum_path` selection (faculty_assigned / self_sourced / not in practicum). Branching UX downstream.
+- **Thu — Buffer / integration test** end-to-end.
+- **Fri — Buffer.**
 
 **Isaac (Wk 4, 2.5 days):**
-- **Mon — `match-internship-companies` edge function** (scoring against profile)
-- **Wed — `/Practicum` page UI:** profile display + kanban pipeline (basic — exploring → outreach → interview → offered)
-- **Fri — Career Agent practicum prompt addition** + `SUGGESTED_COMPANY_TARGET_JSON` parsing
+- **Mon — Blocked on Eli's schema** (lands by EOD Mon). Pre-read existing edge functions; design `match-internship-companies` scoring algorithm against the planned schema.
+- **Tue — `match-internship-companies` edge function**: scores `companies` rows against active `internship_profiles`, writes top results to `company_targets` with `source='matched'`, populates `pitched_role` + `pitch_rationale` per company.
+- **Wed — `/Practicum` page UI**: kanban (exploring → outreach_sent → interview → offered → rejected → declined). Branches on `practicum_path`: self-sourced sees ranked suggestion list + kanban; faculty-assigned sees kanban only with the assigned company.
+- **Thu — Career Agent practicum prompt** + `SUGGESTED_COMPANY_TARGET_JSON` parsing.
+- **Fri — Buffer + smoke.**
 
-**Wk 4 risk:** Internship Finder is normally 10 days; we're fitting ~4. v1 cuts already locked: no curated companies DB seed (job-board API only), no `draft-outreach-message` (defer post-launch), no faculty-provided list (manual entries). Phase 2 polish post-launch.
+**Wk 4 v1 cuts locked:** no curated companies DB seed (job-board API only), no `draft-outreach-message` (defer post-launch), no faculty-provided list import (manual entries via SQL if a list arrives), no UNIQUE constraint on `companies` (manual dedup later if noisy), no `outreach_drafts` jsonb column (lands with `draft-outreach-message`).
 
 **Wk 4 hard dependency:** LinkedIn import depends on Eli's archive being requested in Wk 1. ~24h LinkedIn processing cooldown. If late, parser uses sample data and ships Connections-only v1.
 
