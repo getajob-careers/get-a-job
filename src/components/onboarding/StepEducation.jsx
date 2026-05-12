@@ -30,6 +30,17 @@ export default function StepEducation({ data, onChange, onNext, onBack }) {
           />
         </div>
 
+        <div>
+          <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">
+            Institution / University
+          </label>
+          <Input
+            value={data.education_institution || ""}
+            onChange={(e) => set("education_institution", e.target.value)}
+            placeholder="e.g. Reichman University, IDC Herzliya, Tel Aviv University"
+          />
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">

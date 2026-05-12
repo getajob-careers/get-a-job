@@ -51,6 +51,13 @@ export const EMPTY_PROFILE = {
   proof_signals: [],
   primary_domain: null,
   adjacent_fields: [],
+  // Education institution captured in StepEducation (added Wk 4). Drives
+  // institution-aware copy in StepPracticum (Reichman vs generic framing).
+  education_institution: "",
+  // Practicum fields captured in StepPracticum (Wk 4). path is null when
+  // user opts out; cohort is free-text and optional.
+  practicum_path: null,
+  practicum_cohort: "",
 };
 
 // Whitelist + return only the fields that actually exist on the profiles DB
@@ -63,10 +70,12 @@ export function cleanProfilePayload(data) {
     full_name, phone_number, location, linkedin_url, summary, skills,
     degree, field_of_study, education_level, gpa, honors, relevant_coursework, resume_url,
     // Extended education fields populated from CV extraction (N-O22→26)
-    education_dates, secondary_education, languages,
+    education_dates, secondary_education, languages, education_institution,
     onboarding_step, onboarding_complete,
     skill_gaps, qualification_level, overall_assessment, last_reality_check_date,
     five_year_role, proof_signals, primary_domain, adjacent_fields,
+    // Practicum (Wk 4 — StepPracticum)
+    practicum_path, practicum_cohort,
     // Survey fields (StepSurvey)
     biggest_challenge, cv_tailoring_strategy, linkedin_outreach_strategy,
     role_clarity_score, job_search_efforts,
@@ -78,10 +87,11 @@ export function cleanProfilePayload(data) {
   return {
     full_name, phone_number, location, linkedin_url, summary, skills,
     degree, field_of_study, education_level, gpa, honors, relevant_coursework, resume_url,
-    education_dates, secondary_education, languages,
+    education_dates, secondary_education, languages, education_institution,
     onboarding_step, onboarding_complete,
     skill_gaps, qualification_level, overall_assessment, last_reality_check_date,
     five_year_role, proof_signals, primary_domain, adjacent_fields,
+    practicum_path, practicum_cohort,
     biggest_challenge, cv_tailoring_strategy, linkedin_outreach_strategy,
     role_clarity_score, job_search_efforts,
     target_job_titles, target_industries, work_environment, work_type,

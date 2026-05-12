@@ -3,6 +3,7 @@ import React from "react";
 const STEPS = [
   "CV Upload",
   "Education",
+  "Practicum",
   "Experience",
   "Skills",
   "Career Direction",
