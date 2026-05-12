@@ -5,6 +5,9 @@ on:
     branches: [main]
   push:
     branches: [main]
+  # Manual dispatch — useful when investigating why automatic triggers
+  # didn't fire (post-transfer to getajob-careers/get-a-job May 12).
+  workflow_dispatch:
 
 jobs:
   test:
