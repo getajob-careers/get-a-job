@@ -11,6 +11,7 @@ import { resolveDueDate, defaultDueDateFor } from "@/lib/taskDueDate";
 import OnboardingShell from "../components/onboarding/OnboardingShell";
 import StepResumeUpload from "../components/onboarding/StepResumeUpload";
 import StepEducation from "../components/onboarding/StepEducation";
+import StepPracticum from "../components/onboarding/StepPracticum";
 import StepExperience from "../components/onboarding/StepExperience";
 import StepSkills from "../components/onboarding/StepSkills";
 import StepCareerDirection from "../components/onboarding/StepCareerDirection";
@@ -39,7 +40,12 @@ function inferExperienceType(e) {
   return "full_time";
 }
 
-// Steps: 0=CV, 1=Education, 2=Experience, 3=Skills, 4=CareerDirection, 5=Constraints, 6=Survey, 7=TierReveal
+// Steps: 0=CV, 1=Education, 2=Practicum, 3=Experience, 4=Skills, 5=CareerDirection, 6=Constraints, 7=Survey, 8=TierReveal
+//
+// Practicum (Wk 4) inserted at index 2 after Education (we have the
+// institution by then). Existing in-flight users with onboarding_step
+// stored from before the insert may see a slightly different step on
+// reload — they can navigate forward without data loss.
 export default function Onboarding() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -262,20 +268,20 @@ export default function Onboarding() {
     setSaving(false);
   };
 
-  // Step 6→7: Run the AI tier analysis
+  // Step 7→8: Run the AI tier analysis (was 6→7 pre-practicum step)
   const handleSurveyNext = async () => {
     if (generatingRoles) return;
-    setStep(7);
+    setStep(8);
     setTierRevealError(null);
     setGeneratingRoles(true);
 
     try {
-      // Persist step 7 to DB before the career analysis reads the row.
+      // Persist step 8 to DB before the career analysis reads the row.
       // skills is already a single flat array (Bug 3 fix dropped categories);
       // no merge needed.
       if (existingProfileId) {
         await supabase.from("profiles").update({
-          onboarding_step: 7,
+          onboarding_step: 8,
           skills: [...new Set(profileData.skills || [])],
         }).eq("id", existingProfileId);
       }
@@ -730,23 +736,23 @@ export default function Onboarding() {
         />
       )}
       {step === 2 && (
-        <StepExperience
-          experiences={experiences}
-          onChange={setExperiences}
+        <StepPracticum
+          data={profileData}
+          onChange={setProfileData}
           onNext={() => goTo(3)}
           onBack={() => goTo(1)}
         />
       )}
       {step === 3 && (
-        <StepSkills
-          data={profileData}
-          onChange={setProfileData}
+        <StepExperience
+          experiences={experiences}
+          onChange={setExperiences}
           onNext={() => goTo(4)}
           onBack={() => goTo(2)}
         />
       )}
       {step === 4 && (
-        <StepCareerDirection
+        <StepSkills
           data={profileData}
           onChange={setProfileData}
           onNext={() => goTo(5)}
@@ -754,23 +760,31 @@ export default function Onboarding() {
         />
       )}
       {step === 5 && (
-        <StepConstraints
+        <StepCareerDirection
           data={profileData}
           onChange={setProfileData}
-          onSubmit={() => goTo(6)}
+          onNext={() => goTo(6)}
           onBack={() => goTo(4)}
-          submitting={saving}
         />
       )}
       {step === 6 && (
+        <StepConstraints
+          data={profileData}
+          onChange={setProfileData}
+          onSubmit={() => goTo(7)}
+          onBack={() => goTo(5)}
+          submitting={saving}
+        />
+      )}
+      {step === 7 && (
         <StepSurvey
           data={profileData}
           onChange={setProfileData}
           onNext={handleSurveyNext}
-          onBack={() => goTo(5)}
+          onBack={() => goTo(6)}
         />
       )}
-      {step === 7 && (
+      {step === 8 && (
         <>
           {tierRevealError && (
             <div className="mx-auto max-w-lg mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
@@ -784,7 +798,7 @@ export default function Onboarding() {
                 <button onClick={() => { setTierRevealError(null); handleFinalise(); }} className="text-xs font-medium text-red-800 underline underline-offset-2 whitespace-nowrap">
                   Skip — initialise anyway
                 </button>
-                <button onClick={() => { setTierRevealError(null); goTo(6); }} className="text-xs font-medium text-red-800 underline underline-offset-2 whitespace-nowrap">
+                <button onClick={() => { setTierRevealError(null); goTo(7); }} className="text-xs font-medium text-red-800 underline underline-offset-2 whitespace-nowrap">
                   Go back
                 </button>
               </div>
@@ -796,7 +810,7 @@ export default function Onboarding() {
             overallAssessment={overallAssessment}
             generating={generatingRoles}
             onNext={handleFinalise}
-            onBack={() => goTo(6)}
+            onBack={() => goTo(7)}
           />
         </>
       )}
