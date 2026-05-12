@@ -1,4 +1,5 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
@@ -316,6 +317,24 @@ export default function AddInformation() {
   // before passing it through to the StorySaveCard.
   const [quickAddExperienceId, setQuickAddExperienceId] = useState("");
 
+  // Daily Action Card "reflect" handoff. When Home navigates here with
+  // location.state.dailyAction = { id, prompt }, open the quick-add modal
+  // with that prompt as `framing`, and after the story saves mark the
+  // referenced daily_actions row as done. The reflection IS the capture.
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [dailyActionCtx, setDailyActionCtx] = useState(null);
+  useEffect(() => {
+    const incoming = location.state?.dailyAction;
+    if (!incoming?.id || !incoming?.prompt) return;
+    setDailyActionCtx(incoming);
+    setQuickAddExperienceId(experiences?.[0]?.id || "");
+    setStoryModal({ experience_id: null, source: "manual_quick_add" });
+    // Clear the navigation state so a manual refresh doesn't re-open.
+    navigate(location.pathname, { replace: true, state: null });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state?.dailyAction?.id]);
+
   const handleExtractStory = async (text) => {
     try {
       const { data, error } = await supabase.functions.invoke("extract-story-from-text", {
@@ -356,6 +375,24 @@ export default function AddInformation() {
       }
       queryClient.invalidateQueries({ queryKey: ["stories"] });
       toast.success("Story saved.");
+
+      // Daily Action handoff: if this story came from a Reflect daily action,
+      // mark the daily_action row as done now that the story landed. The
+      // reflection IS the capture — completing one completes the other.
+      if (dailyActionCtx?.id) {
+        const { error: daErr } = await supabase
+          .from("daily_actions")
+          .update({ status: "done", completed_at: new Date().toISOString() })
+          .eq("id", dailyActionCtx.id);
+        if (daErr) {
+          // Soft-fail — story saved, just couldn't update the daily action.
+          console.warn("Daily action mark-done failed:", daErr.message);
+        } else {
+          queryClient.invalidateQueries({ queryKey: ["daily_action", user.id] });
+        }
+        setDailyActionCtx(null);
+      }
+
       // Close after a short delay so the user sees the success state in the card
       setTimeout(() => setStoryModal(null), 1200);
       return true;
@@ -1432,7 +1469,13 @@ export default function AddInformation() {
           experience_id directly; the quick-add path passes null and shows
           the picker first. The StorySaveCard handles the rest of the flow
           (text → extract → review → save). */}
-      <Dialog open={!!storyModal} onOpenChange={(open) => { if (!open) setStoryModal(null); }}>
+      <Dialog open={!!storyModal} onOpenChange={(open) => {
+        if (!open) {
+          setStoryModal(null);
+          // Closing without saving leaves the Reflect daily action pending.
+          setDailyActionCtx(null);
+        }
+      }}>
         <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="text-base font-semibold flex items-center gap-2">
@@ -1464,7 +1507,7 @@ export default function AddInformation() {
                 capture={{
                   text: "",
                   experience_id: storyModal?.experience_id || quickAddExperienceId,
-                  framing: "Capture a moment from your work history.",
+                  framing: dailyActionCtx?.prompt || "Capture a moment from your work history.",
                 }}
                 experienceLabel={(() => {
                   const id = storyModal?.experience_id || quickAddExperienceId;

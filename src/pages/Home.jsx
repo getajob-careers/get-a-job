@@ -9,6 +9,7 @@ import { ArrowRight, Loader2, CheckCircle2, XCircle, AlertCircle, RotateCcw } fr
 import { Button } from "@/components/ui/button";
 import SkillGapCourses from "../components/dashboard/SkillGapCourses";
 import JobMatchChecker from "../components/dashboard/JobMatchChecker";
+import DailyActionCard from "../components/dashboard/DailyActionCard";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 
 export default function Home() {
@@ -238,6 +239,9 @@ export default function Home() {
           Some data failed to load. Refresh the page to try again.
         </div>
       )}
+
+      {/* Daily Action Card — top of dashboard, one action per day */}
+      <DailyActionCard />
 
       {/* Header */}
       <div className="mb-8 flex justify-between items-start">
