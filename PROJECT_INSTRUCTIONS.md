@@ -94,7 +94,7 @@ All under `supabase/functions/<slug>/index.ts`. Each writes per-call metrics via
 
 | Slug | Model | Purpose |
 |---|---|---|
-| `ai-chat` | gpt-4o | Career Agent multi-turn chat. Emits `SUGGESTED_*_JSON` blocks (TASKS, ROADMAP_CHANGES, APPLICATION_ACTIONS, CV_GENERATION, AGENT, STORY_CAPTURE) the frontend renders as cards |
+| `ai-chat` | gpt-4o | Career Agent multi-turn chat. Emits `SUGGESTED_*_JSON` blocks (TASKS, ROADMAP_CHANGES, APPLICATION_ACTIONS, COMPANY_TARGET, CV_GENERATION, AGENT, STORY_CAPTURE) the frontend renders as cards. **Wk 4:** career_agent gained `INTERNSHIP PRACTICUM CONTEXT` (practicum_path + internship_profiles pitch strategy + company_targets pipeline) and the `SUGGESTED_COMPANY_TARGET_JSON` block (3 action shapes: `add_company_target` / `update_company_target_status` / `enrich_company`). Status updates use a two-turn confirm-then-emit rule. Server-side anti-fab: company names must appear in the last 3 user turns or current assistant reply or the action is dropped |
 | `analyze-job-match` | gpt-4o | Score a JD against user profile → `match_score` + `goal_alignment_score` + `required_seniority`. Drives tier auto-assignment |
 | `extract-proof-signals` | gpt-4o-mini | Pull proof signals (metrics, named tools, named outcomes) from free-text inputs |
 | `extract-story-from-text` | gpt-4o-mini | STAR extraction from user-pasted experience text. 3-layer anti-fabrication. Powers Story Bank |
@@ -182,6 +182,8 @@ Single index — when something feels load-bearing, it's probably in here.
 | `20260512_admin_chat_and_story_browsers.sql` | Admin pilot tooling — `admin_list_students()` / `admin_chat_messages()` / `admin_stories_browse()` RPCs + admin SELECT policies on conversations + chat_messages. Powers the two new admin cards |
 | `20260518_internship_finder.sql` | Strategic Internship Finder — `internship_profiles` (pitch strategy) + `companies` (global pool) + `company_targets` (per-user pipeline with pitch recommendations) + 4 new `profiles` columns (`practicum_path` / `practicum_cohort` / `practicum_status` / `current_employment_status`). Two practicum paths supported: `faculty_assigned` (finder hidden, status tracking only) vs `self_sourced` (full finder UX). LinkedIn-connection data dropped from this design due to legal risk |
 | `20260519_company_target_status_changes.sql` | Append-only audit log of `company_targets.status` transitions. Mirrors `application status_changes` pattern (trigger on `AFTER UPDATE OF status … WHEN OLD IS DISTINCT FROM NEW`, SECURITY DEFINER insert) with an added `note` column for the user's optional per-transition reflection. UI two-phase write: UPDATE status → SELECT just-inserted audit row → UPDATE its `note`. RLS: own-row SELECT + UPDATE (note edits); INSERT only via trigger; DELETE not granted |
+| `20260519_companies_user_managed_manual_rows.sql` | Adds two RLS policies on `companies` so authenticated users can INSERT + UPDATE rows where `source='manual'` only. JSearch / faculty_seeded rows stay admin-only. Source is pinned in WITH CHECK on both INSERT and UPDATE so users can't smuggle a different source. Required for the Career Agent's `add_company_target` (create on miss) and `enrich_company` (fill in description / sector / domain after the agent's follow-up question) actions |
+| `20260519_chat_messages_company_target_actions.sql` | Adds `suggested_company_target_actions jsonb` column to `chat_messages` and re-creates `admin_chat_messages()` RPC to surface it. The Career Agent's `SUGGESTED_COMPANY_TARGET_JSON` block persists with the message and rehydrates on conversation reload, same as the other suggested-action blocks |
 
 ### Docs / process
 | Path | What |
@@ -248,7 +250,7 @@ Pulled from ROADMAP.md, scoped to your 2.5 days/week through launch.
 ### Wk 4 (May 26 – June 1)
 1. ~~`match-internship-companies` edge function~~ — built by Eli (Mon, pulled forward).
 2. ~~`/Practicum` page UI~~ — built by Eli (Mon, pulled forward two slots). Frontend integrates with the matcher + `company_target_status_changes` audit table.
-3. Career Agent practicum prompt + `SUGGESTED_COMPANY_TARGET_JSON` parsing (Fri).
+3. ~~Career Agent practicum prompt + `SUGGESTED_COMPANY_TARGET_JSON` parsing~~ — built by Eli (Mon, pulled forward four slots). `ai-chat` career_agent now pulls internship_profile + company_targets + practicum_path into context and emits a new `SUGGESTED_COMPANY_TARGET_JSON` block with three action shapes (`add_company_target` / `update_company_target_status` / `enrich_company`). Status updates use a two-turn confirm-then-emit rule. Server-side anti-fab guard drops actions whose company name doesn't appear in recent turns. `CompanyTargetActionsCard` in ChatInterface.jsx renders each action with a single Apply button; handler does the lookup-or-create + insert/update + audit-note patch.
 4. Polish pass on `/Practicum`: drag-drop kanban (v2 upgrade from dropdown), "Add company manually" UI for `self_added` rows.
 
 ### Wk 5 (June 2–8)
