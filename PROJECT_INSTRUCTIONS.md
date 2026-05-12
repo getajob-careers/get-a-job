@@ -88,7 +88,7 @@ Pilot is **CONFIRMED** — Reichman professor + Dr. Miller personally vouching. 
 
 ---
 
-## Edge functions (17)
+## Edge functions (18)
 
 All under `supabase/functions/<slug>/index.ts`. Each writes per-call metrics via `_shared/metrics.ts` (PR #6) and emits Langfuse traces via `_shared/openai-chat.ts` (PR #41-#44).
 
@@ -100,6 +100,7 @@ All under `supabase/functions/<slug>/index.ts`. Each writes per-call metrics via
 | `extract-story-from-text` | gpt-4o-mini | STAR extraction from user-pasted experience text. 3-layer anti-fabrication. Powers Story Bank |
 | `generate-career-analysis` | gpt-4o | Tiered role recommendations (`career_roles` table) — Tier 1/2/3 with rationale |
 | `generate-daily-action` | gpt-4o-mini | **Daily Action Card** backend. Rule-based ranking (leverage × urgency × low_friction × calibration backoff) over tasks + applications + career_roles + stories, picks top-1, LLM frames only the title/rationale/estimated_minutes. Lazy generation on Home dashboard load; UNIQUE (user_id, for_date) enforces max one card per day. `pick_score` persisted for debugging |
+| `generate-internship-profile` | gpt-4o | **Wk 4 Internship Finder profile generator.** Emits the 9-field `internship_profiles` row from profile + career_roles (Tier 1 emphasised) + experiences + stories. Single batched call, strict JSON schema. Anti-fab on `pitch_strength_signals` — each emitted signal must substring-match (≥1 content word) the user's stories / experiences / skills haystack, else server-side dropped + logged. Stage-vocabulary guidance (Seed / Pre-Series A / Series A / Series B / Series C / Growth / Public) explicitly says stage is one signal, not the filter — prompt also reasons about team size + culture + intern/junior infrastructure when selecting realistic targets. UPSERT always overwrites. Writes `generated_from_career_roles_at = MAX(career_roles.updated_at)` for the staleness banner. Rate-limited 4/hr; explicit trigger from `/Practicum` |
 | `generate-job-suggestions` | gpt-4o | JSearch / Active Jobs DB → scored job suggestions for the user's roles |
 | `generate-learning-paths` | gpt-4o | Course recommendations to close skill gaps (Coursera + LinkedIn Learning affiliate links) |
 | `generate-linkedin-comment` | gpt-4o | **PR #34.** Paste a post → 3 substantive comment options grounded in user's real experience. Anti-fab: empty options + `no_fit_reason` when nothing genuine to say |
@@ -222,7 +223,7 @@ The full week-by-week is in `ROADMAP.md`. This is the working slice.
 **Eli:**
 - ✅ **Mon — Internship Finder schema** (migration `20260518_internship_finder.sql`): 3 tables (`internship_profiles` + `companies` + `company_targets`) + 4 new `profiles` columns (`practicum_path` / `practicum_cohort` / `practicum_status` / `current_employment_status`). 12 RLS policies, 7 indexes, 3 `updated_at` triggers. `internship_profiles` captures the **pitch strategy** (realistic targets + pitchable roles grounded in TODAY's strengths + career-compound rationale), not just a match profile. `company_targets` carries per-company pitch recommendations (`pitched_role` / `pitch_rationale` / `skill_gaps_this_fills`) alongside two scores (`fit_score` + `career_compound_score`). Faculty-assigned vs self-sourced paths distinguished via `profiles.practicum_path`. Schema applied to prod, verified end-to-end.
 - ✅ **Mon — `match-internship-companies` edge function** (pulled forward from Isaac's Tue slot): two-stage scoring — deterministic rule pre-filter (stage / sector / signal / geography weights, 500 cap → top 30) then ONE batched gpt-4o call scoring fit + career-compound + per-company pitch (`pitched_role` + `pitch_rationale` + `skill_gaps_this_fills`). UPSERT-aware of human edits — only refreshes pitch fields if user hasn't moved status past `exploring` AND notes is null. Rate-limited 4/hr. Trigger preconditions: `practicum_path='self_sourced'` + existing `internship_profiles` row. Companies seeded separately.
-- **Tue — `generate-internship-profile` edge function**: emits 9-field `internship_profiles` row from career_roles + skill_gaps + stories. Triggered on user "Refresh internship profile" click; staleness check vs `MAX(career_roles.updated_at)`.
+- ✅ **Tue — `generate-internship-profile` edge function** (pulled to Mon EOD): emits 9-field `internship_profiles` row from profile + career_roles + experiences + stories. Single gpt-4o call with strict JSON shape. Anti-fab grounds `pitch_strength_signals` against the user's real artefacts (≥1 content-word substring match required, else dropped + logged). Stage selection considers team size + culture + intern/junior infrastructure, not just funding stage (per Eli's design call). UPSERT always overwrites; writes `generated_from_career_roles_at = MAX(career_roles.updated_at)`. Frontend wires `handleGenerateProfile` on `/Practicum` (empty-state CTA + Refresh button) + staleness banner in `InternshipProfileStrip` when career_roles updated since last gen.
 - **Wed — Onboarding step** for `practicum_path` selection (faculty_assigned / self_sourced / not in practicum). Branching UX downstream.
 - **Thu — Buffer / integration test** end-to-end.
 - **Fri — Buffer.**

@@ -1,16 +1,32 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, RefreshCw } from "lucide-react";
+import { ChevronDown, ChevronUp, RefreshCw, AlertCircle } from "lucide-react";
 
 // Collapsible read-only summary of the user's internship_profiles row.
 // Default state: collapsed (just the targets). Expanded: pitchable
-// archetypes + skill gaps to close. Refresh button is wired to a
-// callback (parent decides what to do — for now it's disabled until
-// Eli ships generate-internship-profile Tue).
+// archetypes + skill gaps to close. Refresh button regenerates the
+// whole row via generate-internship-profile.
+//
+// Staleness banner: when generated_from_career_roles_at is older than
+// the most recent career_roles.updated_at, render a soft yellow nudge
+// so the user knows their pitch strategy may no longer reflect their
+// current roadmap.
 
-export default function InternshipProfileStrip({ profile, onRefresh, refreshDisabled }) {
+export default function InternshipProfileStrip({
+  profile,
+  onRefresh,
+  refreshDisabled,
+  refreshLoading,
+  latestCareerRolesUpdatedAt,
+}) {
   const [expanded, setExpanded] = useState(false);
 
   if (!profile) return null;
+
+  const isStale = (() => {
+    if (!latestCareerRolesUpdatedAt) return false;
+    if (!profile.generated_from_career_roles_at) return true;
+    return latestCareerRolesUpdatedAt > profile.generated_from_career_roles_at;
+  })();
 
   const targets = [
     ...(profile.realistic_company_stages || []),
@@ -19,6 +35,24 @@ export default function InternshipProfileStrip({ profile, onRefresh, refreshDisa
 
   return (
     <div className="bg-white rounded-xl border border-[#E5E5E5] mb-5 overflow-hidden">
+      {isStale && (
+        <div className="flex items-start gap-2 px-4 py-2.5 bg-amber-50 border-b border-amber-100">
+          <AlertCircle className="w-3.5 h-3.5 text-amber-700 flex-shrink-0 mt-0.5" />
+          <div className="flex-1 min-w-0">
+            <p className="text-xs text-amber-900">
+              Your career roadmap changed since this pitch strategy was generated. Refresh to keep them in sync.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={refreshDisabled}
+            className="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-medium text-amber-900 bg-white border border-amber-200 hover:bg-amber-100 disabled:bg-amber-50 disabled:text-amber-400 disabled:cursor-not-allowed rounded transition-colors flex-shrink-0"
+          >
+            {refreshLoading ? "Refreshing…" : "Refresh"}
+          </button>
+        </div>
+      )}
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
@@ -70,10 +104,10 @@ export default function InternshipProfileStrip({ profile, onRefresh, refreshDisa
               onClick={onRefresh}
               disabled={refreshDisabled}
               className="inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-medium bg-white border border-[#E5E5E5] hover:bg-[#FAFAFA] disabled:bg-[#FAFAFA] disabled:text-[#A3A3A3] disabled:cursor-not-allowed text-[#525252] rounded-md transition-colors"
-              title={refreshDisabled ? "Generator landing Tuesday" : "Regenerate profile"}
+              title="Regenerate pitch strategy"
             >
-              <RefreshCw className="w-3 h-3" />
-              Refresh
+              <RefreshCw className={`w-3 h-3 ${refreshLoading ? "animate-spin" : ""}`} />
+              {refreshLoading ? "Refreshing…" : "Refresh"}
             </button>
           </div>
         </div>

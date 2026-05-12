@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 import PracticumHeader from "@/components/practicum/PracticumHeader";
 import InternshipProfileStrip from "@/components/practicum/InternshipProfileStrip";
@@ -21,15 +22,12 @@ import {
 //   - null               → "set your path" empty state
 //   - self_sourced       → full finder UX (profile strip + find button + kanban)
 //   - faculty_assigned   → kanban only (faculty placements), no finder
-//
-// The generate-internship-profile edge function lands Tue (Eli). Until
-// then, the "Generate profile" CTA is disabled — students can still
-// view + manage faculty/manually-added targets in the kanban.
-const GENERATE_PROFILE_AVAILABLE = false;
 
 export default function Practicum() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [openTarget, setOpenTarget] = useState(null);
+  const [generatingProfile, setGeneratingProfile] = useState(false);
 
   const { data: profileRow, isLoading: profileLoading } = useQuery({
     queryKey: ["profile_practicum", user?.id],
@@ -60,6 +58,51 @@ export default function Practicum() {
     },
     enabled: !!user?.id && profileRow?.practicum_path === "self_sourced",
   });
+
+  // Latest career_roles.updated_at — drives the InternshipProfileStrip
+  // staleness banner. Compared against internship_profile.generated_from_career_roles_at;
+  // if the career roles updated after the profile was generated, we surface
+  // a "refresh" nudge.
+  const { data: latestCareerRolesUpdatedAt } = useQuery({
+    queryKey: ["career_roles_max_updated_at", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from("career_roles")
+        .select("updated_at")
+        .eq("user_id", user.id)
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      return data?.updated_at || null;
+    },
+    enabled: !!user?.id && profileRow?.practicum_path === "self_sourced",
+  });
+
+  const handleGenerateProfile = async () => {
+    if (generatingProfile) return;
+    setGeneratingProfile(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("generate-internship-profile", { body: {} });
+      if (error) {
+        const status = error?.context?.status;
+        if (status === 429) toast.error("Rate limit reached — try again in an hour.");
+        else if (status === 400) toast.error(error?.context?.error || "Complete your profile first.");
+        else toast.error("Couldn't generate the pitch strategy. Please try again.");
+        return;
+      }
+      if (!data?.internship_profile) {
+        toast.error("No profile came back.");
+        return;
+      }
+      toast.success("Pitch strategy generated.");
+      queryClient.invalidateQueries({ queryKey: ["internship_profile", user?.id] });
+    } catch {
+      toast.error("Couldn't generate the pitch strategy. Please try again.");
+    } finally {
+      setGeneratingProfile(false);
+    }
+  };
 
   const { data: targets = [], isLoading: targetsLoading } = useQuery({
     queryKey: ["company_targets", user?.id],
@@ -111,15 +154,17 @@ export default function Practicum() {
         <>
           {!internshipProfileLoading && !internshipProfile ? (
             <NoInternshipProfile
-              generateDisabled={!GENERATE_PROFILE_AVAILABLE}
-              onGenerate={() => {/* wired when generate-internship-profile lands */}}
+              generateDisabled={generatingProfile}
+              onGenerate={handleGenerateProfile}
             />
           ) : (
             <>
               <InternshipProfileStrip
                 profile={internshipProfile}
-                onRefresh={() => {/* wired when generate-internship-profile lands */}}
-                refreshDisabled={!GENERATE_PROFILE_AVAILABLE}
+                onRefresh={handleGenerateProfile}
+                refreshDisabled={generatingProfile}
+                refreshLoading={generatingProfile}
+                latestCareerRolesUpdatedAt={latestCareerRolesUpdatedAt}
               />
               <FindCompaniesCard
                 disabled={!internshipProfile}
