@@ -131,6 +131,53 @@ For add_role specifically — populate the full role analysis. The user's role c
 - action_items: array of 3–5 short, concrete next-step strings the user could take to be more qualified for this role (e.g. "Complete an SQL course on freeCodeCamp", "Build one ETL pipeline as a portfolio project"). Each action max 200 chars.
 - All these keys (except alignment_to_goal when no goal exists) should be present. The frontend uses key presence to distinguish "you provided" from "you didn't try"; missing keys fall back to empty/null.`
 
+// COMPANY_TARGET_RULES — Wk 4. Mirrors APPLICATION_ACTIONS_RULES with three
+// behavioural additions encoded in the prompt:
+//   1. Status updates MUST be asked-then-emitted across two turns. Never
+//      emit update_company_target_status on the same turn the user gave
+//      a status-change signal. Ask first ("Want me to mark X as Y?"),
+//      then emit only after the user confirms in their NEXT message.
+//   2. Adds for companies you don't have details for MUST be paired with a
+//      plain-text "tell me what they do" question. The next turn's
+//      enrich_company action carries the description back into the row.
+//   3. Anti-fab: company_name must come from the user's recent messages
+//      (same-turn or one of the last 3 user turns) — the server enforces
+//      this too, but the prompt rule keeps the LLM honest in the common
+//      case.
+const COMPANY_TARGET_RULES = `
+
+INTERNSHIP PRACTICUM ACTIONS:
+If the user explicitly asks you to add a company to their internship practicum, update a target's status, or fill in details about a company they're tracking, propose the changes at the very end of your response:
+SUGGESTED_COMPANY_TARGET_JSON:{"actions":[{"action":"add_company_target","company_name":"...","company_domain":"...","company_sector":"...","pitched_role":"...","pitch_rationale":"...","skill_gaps_this_fills":["..."],"notes":"..."}]}
+
+Three action shapes:
+
+1. {"action":"add_company_target","company_name":"Lemonade"}
+   Required: company_name
+   Optional: company_domain, company_sector, pitched_role, pitch_rationale, skill_gaps_this_fills (string array), notes
+   When the company isn't in your INTERNSHIP PRACTICUM CONTEXT and you have no details on it, you MUST ALSO write a plain-text follow-up question asking the user to describe the company ("Can you tell me a bit about what they do?"). The next turn's enrich_company action will fill in the details once the user answers.
+
+2. {"action":"update_company_target_status","match_company":"Atera","new_status":"outreach_sent","note":"DM'd Sarah Cohen"}
+   Required: match_company (must name a company from INTERNSHIP PRACTICUM CONTEXT), new_status
+   Optional: note (attaches to the status-change audit row as the user's reflection)
+   CRITICAL — ASK BEFORE EMITTING: never emit this action on the same turn the user's message hinted at a status change. Reply with a plain-text question first ("Sounds like you emailed Atera — want me to mark it as outreach sent?") and emit the block ONLY on the NEXT turn after the user confirms ("yes" / "mark it" / etc).
+
+3. {"action":"enrich_company","match_company":"Lemonade","description":"AI-powered consumer insurance, B2C","sector":"InsurTech","domain":"lemonade.com","industry":"Insurance"}
+   Required: match_company, AND at least one of description / sector / domain / industry
+   Use this on the turn AFTER the user has described a company you previously added (because you asked them to). Updates the shared companies record so the next match-internship-companies run has better metadata.
+
+Valid status values: "exploring" | "outreach_sent" | "interview" | "offered" | "rejected" | "declined"
+
+Anti-fabrication:
+- Only emit add_company_target for a company the user EXPLICITLY named in the current or recent messages. Never invent companies. If you suggest a company you've heard of, name it conversationally first and wait for the user to confirm "yes, add it" before emitting the block.
+- Only emit update_company_target_status for companies that appear in INTERNSHIP PRACTICUM CONTEXT — never propose status changes for companies they don't track.
+- pitched_role / pitch_rationale: only include if the user asked "what should I pitch?" or you have a specific signal to recommend. Otherwise omit — the matcher generates these for matched companies.
+
+Discipline:
+- Always describe what you're about to do in plain text BEFORE the JSON block.
+- One block per response. If multiple actions are warranted, prioritise the one the user most clearly requested.
+- Omit the block entirely when no practicum action was requested.`
+
 const APPLICATION_ACTIONS_RULES = `
 
 APPLICATION TRACKER ACTIONS:
@@ -597,6 +644,62 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Practicum context — only for career_agent. Pulls the user's
+    // internship_profile (pitch strategy) + company_targets (current
+    // pipeline) + practicum_path so the agent knows whether the user is
+    // in a practicum at all and what they're already tracking. Used by
+    // COMPANY_TARGET_RULES for grounding + anti-fab (must reference a
+    // company from this context for update_company_target_status).
+    if (agent === 'career_agent') {
+      const [practicumProfileRes, internshipProfileRes, companyTargetsRes] = await Promise.all([
+        supabase.from('profiles').select('practicum_path, practicum_cohort, practicum_status').eq('id', user.id).maybeSingle(),
+        supabase.from('internship_profiles').select('realistic_company_stages, realistic_sectors, pitchable_role_archetypes, pitch_strength_signals, skill_gaps_to_close').eq('user_id', user.id).maybeSingle(),
+        supabase.from('company_targets')
+          .select('id, status, source, pitched_role, companies (name, sector, stage)')
+          .eq('user_id', user.id)
+          .limit(20),
+      ])
+      const practicumProfile = practicumProfileRes.data as { practicum_path?: string; practicum_status?: string; practicum_cohort?: string } | null
+      const internshipProfile = internshipProfileRes.data as {
+        realistic_company_stages?: string[]
+        realistic_sectors?: string[]
+        pitchable_role_archetypes?: string[]
+        pitch_strength_signals?: string[]
+        skill_gaps_to_close?: string[]
+      } | null
+      const companyTargets = (companyTargetsRes.data || []) as Array<{
+        id: string; status: string; source: string; pitched_role: string | null;
+        companies: { name: string; sector: string | null; stage: string | null } | null
+      }>
+
+      const practicumPath = practicumProfile?.practicum_path || null
+      if (practicumPath || internshipProfile || companyTargets.length > 0) {
+        userContext += `\n\nINTERNSHIP PRACTICUM CONTEXT:`
+        userContext += `\n- Practicum path: ${practicumPath || 'not set'}`
+        if (practicumProfile?.practicum_status) userContext += `\n- Practicum status: ${practicumProfile.practicum_status}`
+        if (practicumProfile?.practicum_cohort) userContext += `\n- Cohort: ${practicumProfile.practicum_cohort}`
+        if (internshipProfile) {
+          const lines = [
+            internshipProfile.realistic_company_stages?.length ? `realistic stages: ${internshipProfile.realistic_company_stages.join(', ')}` : null,
+            internshipProfile.realistic_sectors?.length ? `realistic sectors: ${internshipProfile.realistic_sectors.join(', ')}` : null,
+            internshipProfile.pitchable_role_archetypes?.length ? `pitchable archetypes: ${internshipProfile.pitchable_role_archetypes.join(', ')}` : null,
+            internshipProfile.pitch_strength_signals?.length ? `strength signals: ${internshipProfile.pitch_strength_signals.slice(0, 6).join(', ')}` : null,
+            internshipProfile.skill_gaps_to_close?.length ? `skill gaps to close: ${internshipProfile.skill_gaps_to_close.slice(0, 6).join(', ')}` : null,
+          ].filter(Boolean)
+          if (lines.length > 0) userContext += `\n- Pitch strategy: ${lines.join(' | ')}`
+        }
+        if (companyTargets.length > 0) {
+          userContext += `\n- Current pipeline (do not duplicate-add, do not invent status changes for companies not on this list):`
+          for (const t of companyTargets) {
+            const name = t.companies?.name || '(unnamed)'
+            const sector = t.companies?.sector ? ` · ${t.companies.sector}` : ''
+            const stage = t.companies?.stage ? ` · ${t.companies.stage}` : ''
+            userContext += `\n  - ${name}${sector}${stage} (status: ${t.status}, source: ${t.source})`
+          }
+        }
+      }
+    }
+
     if (application_id && typeof application_id === 'string') {
       const { data: appData } = await supabase
         .from('applications')
@@ -623,7 +726,7 @@ Deno.serve(async (req) => {
     if (agent === 'resume-extractor') {
       systemPrompt = basePrompt + userContext
     } else if (agent === 'career_agent') {
-      systemPrompt = basePrompt + TASK_SUGGESTION_RULES + ROADMAP_CHANGE_RULES + APPLICATION_ACTIONS_RULES + CAREER_AGENT_REDIRECT_RULES + SCOPE_GUARD + NO_FABRICATION_GUARD + userContext
+      systemPrompt = basePrompt + TASK_SUGGESTION_RULES + ROADMAP_CHANGE_RULES + APPLICATION_ACTIONS_RULES + COMPANY_TARGET_RULES + CAREER_AGENT_REDIRECT_RULES + SCOPE_GUARD + NO_FABRICATION_GUARD + userContext
     } else if (agent === 'interview_coach') {
       systemPrompt = basePrompt + TASK_SUGGESTION_RULES + INTERVIEW_COACH_REDIRECT_RULES + SCOPE_GUARD + NO_FABRICATION_GUARD + userContext
     } else if (agent === 'skill_development_agent') {
@@ -922,6 +1025,112 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Company target actions (career_agent only). Three action shapes:
+    // add_company_target / update_company_target_status / enrich_company.
+    // Server-side anti-fab: drop any action whose company name doesn't
+    // appear in the last few user messages or the assistant's current
+    // reply (LLMs love inventing plausible Israeli startup names).
+    type CompanyTargetAction =
+      | { action: 'add_company_target'; company_name: string; company_domain?: string; company_sector?: string; pitched_role?: string; pitch_rationale?: string; skill_gaps_this_fills?: string[]; notes?: string }
+      | { action: 'update_company_target_status'; match_company: string; new_status: string; note?: string }
+      | { action: 'enrich_company'; match_company: string; description?: string; sector?: string; domain?: string; industry?: string }
+    let suggested_company_target_actions: CompanyTargetAction[] | null = null
+    const ctActionsResult = extractJsonBlock(reply, 'SUGGESTED_COMPANY_TARGET_JSON:')
+    if (ctActionsResult) {
+      reply = ctActionsResult.cleaned
+      const parsed = ctActionsResult.parsed
+      const actions = parsed && typeof parsed === 'object' && Array.isArray((parsed as any).actions)
+        ? (parsed as any).actions as Array<any>
+        : Array.isArray(parsed) ? parsed as Array<any> : null
+      if (Array.isArray(actions) && actions.length > 0) {
+        const VALID_STATUSES = new Set(['exploring', 'outreach_sent', 'interview', 'offered', 'rejected', 'declined'])
+        const VALID_ACTIONS = new Set(['add_company_target', 'update_company_target_status', 'enrich_company'])
+
+        // Anti-fab corpus: the last 3 user messages + current assistant reply.
+        // Any company name in an action must appear (case-insensitive
+        // substring) somewhere in this haystack. Prevents the model from
+        // inventing companies the user never mentioned.
+        const recentUserTurns = conversation_history
+          .filter((m: { role: string; content: string }) => m.role === 'user')
+          .slice(-3)
+          .map((m: { content: string }) => m.content)
+        const haystack = (
+          recentUserTurns.join('\n') +
+          '\n' + message +
+          '\n' + reply
+        ).toLowerCase()
+        const isGroundedCompany = (name: string): boolean => {
+          if (!name) return false
+          return haystack.includes(name.trim().toLowerCase())
+        }
+
+        const cleaned: CompanyTargetAction[] = []
+        for (const raw of actions) {
+          if (!raw || !VALID_ACTIONS.has(raw.action)) continue
+          if (raw.action === 'add_company_target') {
+            const company_name = typeof raw.company_name === 'string' ? raw.company_name.trim() : ''
+            if (!company_name) continue
+            if (!isGroundedCompany(company_name)) {
+              console.warn('[ai-chat] dropped add_company_target — name not grounded:', company_name)
+              continue
+            }
+            const skillGaps = Array.isArray(raw.skill_gaps_this_fills)
+              ? raw.skill_gaps_this_fills
+                  .filter((s: unknown) => typeof s === 'string' && s.trim().length > 0)
+                  .map((s: string) => s.trim().slice(0, 100))
+                  .slice(0, 5)
+              : []
+            cleaned.push({
+              action: 'add_company_target',
+              company_name: company_name.slice(0, 200),
+              ...(typeof raw.company_domain === 'string' && raw.company_domain.trim() && { company_domain: raw.company_domain.trim().slice(0, 200) }),
+              ...(typeof raw.company_sector === 'string' && raw.company_sector.trim() && { company_sector: raw.company_sector.trim().slice(0, 100) }),
+              ...(typeof raw.pitched_role === 'string' && raw.pitched_role.trim() && { pitched_role: raw.pitched_role.trim().slice(0, 200) }),
+              ...(typeof raw.pitch_rationale === 'string' && raw.pitch_rationale.trim() && { pitch_rationale: raw.pitch_rationale.trim().slice(0, 600) }),
+              ...(skillGaps.length > 0 && { skill_gaps_this_fills: skillGaps }),
+              ...(typeof raw.notes === 'string' && raw.notes.trim() && { notes: raw.notes.trim().slice(0, 2000) }),
+            })
+          } else if (raw.action === 'update_company_target_status') {
+            const match_company = typeof raw.match_company === 'string' ? raw.match_company.trim() : ''
+            const new_status = typeof raw.new_status === 'string' ? raw.new_status.trim() : ''
+            if (!match_company || !VALID_STATUSES.has(new_status)) continue
+            if (!isGroundedCompany(match_company)) {
+              console.warn('[ai-chat] dropped update_company_target_status — name not grounded:', match_company)
+              continue
+            }
+            cleaned.push({
+              action: 'update_company_target_status',
+              match_company: match_company.slice(0, 200),
+              new_status,
+              ...(typeof raw.note === 'string' && raw.note.trim() && { note: raw.note.trim().slice(0, 1000) }),
+            })
+          } else {
+            // enrich_company
+            const match_company = typeof raw.match_company === 'string' ? raw.match_company.trim() : ''
+            if (!match_company) continue
+            if (!isGroundedCompany(match_company)) {
+              console.warn('[ai-chat] dropped enrich_company — name not grounded:', match_company)
+              continue
+            }
+            const description = typeof raw.description === 'string' && raw.description.trim() ? raw.description.trim().slice(0, 1000) : undefined
+            const sector = typeof raw.sector === 'string' && raw.sector.trim() ? raw.sector.trim().slice(0, 100) : undefined
+            const domain = typeof raw.domain === 'string' && raw.domain.trim() ? raw.domain.trim().slice(0, 200) : undefined
+            const industry = typeof raw.industry === 'string' && raw.industry.trim() ? raw.industry.trim().slice(0, 100) : undefined
+            if (!description && !sector && !domain && !industry) continue
+            cleaned.push({
+              action: 'enrich_company',
+              match_company: match_company.slice(0, 200),
+              ...(description && { description }),
+              ...(sector && { sector }),
+              ...(domain && { domain }),
+              ...(industry && { industry }),
+            })
+          }
+        }
+        if (cleaned.length > 0) suggested_company_target_actions = cleaned
+      }
+    }
+
     // Belt-and-suspenders sweep: if any marker still survives in the reply
     // (malformed JSON that extractJsonBlock couldn't parse, or a marker with
     // no JSON at all), strip from the marker through the end of the surrounding
@@ -931,6 +1140,7 @@ Deno.serve(async (req) => {
       'SUGGESTED_ROADMAP_CHANGES_JSON:',
       'SUGGESTED_AGENT_JSON:',
       'SUGGESTED_APPLICATION_ACTIONS_JSON:',
+      'SUGGESTED_COMPANY_TARGET_JSON:',
       'SUGGESTED_CV_GENERATION_JSON:',
       'SUGGESTED_STORY_CAPTURE_JSON:',
     ]
@@ -950,6 +1160,7 @@ Deno.serve(async (req) => {
       ...(suggested_agent && { suggested_agent }),
       ...(suggested_roadmap_changes && { suggested_roadmap_changes }),
       ...(suggested_application_actions && { suggested_application_actions }),
+      ...(suggested_company_target_actions && { suggested_company_target_actions }),
       ...(suggested_cv_generation && { suggested_cv_generation }),
       ...(suggested_story_capture && { suggested_story_capture }),
     }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })

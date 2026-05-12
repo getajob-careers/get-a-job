@@ -162,6 +162,72 @@ function ApplicationActionsCard({ messageId, actions, applied, onApply }) {
   );
 }
 
+// Company target actions card — Wk 4 SUGGESTED_COMPANY_TARGET_JSON.
+// Mirrors ApplicationActionsCard's chrome (blue header, list of actions,
+// single Apply button). Action shapes: add_company_target,
+// update_company_target_status, enrich_company. Same accept-once pattern
+// — once applied, the card collapses to a confirmation chip.
+const PRACTICUM_STATUS_LABELS = {
+  exploring: "Exploring",
+  outreach_sent: "Outreach sent",
+  interview: "Interview",
+  offered: "Offered",
+  rejected: "Rejected",
+  declined: "Declined",
+};
+function CompanyTargetActionsCard({ messageId, actions, applied, onApply }) {
+  if (applied[messageId]) {
+    return (
+      <div className="ml-10 mt-2 bg-emerald-50 border border-emerald-200 rounded-xl p-4 max-w-xl">
+        <div className="flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+          <p className="text-xs font-semibold text-emerald-800">Practicum updated</p>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className="ml-10 mt-2 bg-blue-50 border border-blue-200 rounded-xl p-4 max-w-xl">
+      <div className="flex items-center gap-2 mb-3">
+        <Briefcase className="w-3.5 h-3.5 text-blue-700" />
+        <p className="text-xs font-semibold text-blue-800">Proposed Practicum Changes</p>
+      </div>
+      <ul className="space-y-2 mb-3">
+        {actions.map((a, i) => (
+          <li key={i} className="text-xs text-blue-900 leading-relaxed">
+            {a.action === "add_company_target" && (
+              <span>
+                Add <strong>{a.company_name}</strong> to your practicum
+                {a.company_sector ? ` (${a.company_sector})` : ""}
+                {a.pitched_role && <span> · pitch: {a.pitched_role}</span>}
+              </span>
+            )}
+            {a.action === "update_company_target_status" && (
+              <span>
+                Update <strong>{a.match_company}</strong>: status → {PRACTICUM_STATUS_LABELS[a.new_status] || a.new_status}
+                {a.note && <span> · note: "{a.note.slice(0, 80)}{a.note.length > 80 ? "…" : ""}"</span>}
+              </span>
+            )}
+            {a.action === "enrich_company" && (
+              <span>
+                Enrich <strong>{a.match_company}</strong> with{" "}
+                {[a.description && "description", a.sector && "sector", a.domain && "domain", a.industry && "industry"].filter(Boolean).join(", ")}
+              </span>
+            )}
+          </li>
+        ))}
+      </ul>
+      <Button
+        size="sm"
+        onClick={() => onApply(messageId, actions)}
+        className="h-7 text-xs bg-blue-700 hover:bg-blue-800 gap-1.5"
+      >
+        Apply Changes
+      </Button>
+    </div>
+  );
+}
+
 // Heuristic gate for the story-capture follow-up that fires after CV
 // generation. Returns true only when the message text plausibly contains
 // a concrete past moment — long enough, has a past-tense first-person
@@ -358,6 +424,7 @@ export default function ChatInterface({ agentName, title, description, applicati
   const [addedTaskSets, setAddedTaskSets] = useState({});
   const [appliedRoadmapSets, setAppliedRoadmapSets] = useState({});
   const [appliedAppActionSets, setAppliedAppActionSets] = useState({});
+  const [appliedCompanyTargetSets, setAppliedCompanyTargetSets] = useState({});
   // Per-message CV generation state keyed by message id:
   //   { [messageId]: { status: "idle"|"generating"|"done", cv_url?, fit_analysis?, error? } }
   // Initialised from the stored `suggestedCVGeneration.result` when a message
@@ -496,6 +563,7 @@ export default function ChatInterface({ agentName, title, description, applicati
           suggestedTasks: Array.isArray(m.suggested_tasks) && m.suggested_tasks.length > 0 ? m.suggested_tasks : null,
           suggestedRoadmapChanges: Array.isArray(m.suggested_roadmap_changes) && m.suggested_roadmap_changes.length > 0 ? m.suggested_roadmap_changes : null,
           suggestedApplicationActions: Array.isArray(m.suggested_application_actions) && m.suggested_application_actions.length > 0 ? m.suggested_application_actions : null,
+          suggestedCompanyTargetActions: Array.isArray(m.suggested_company_target_actions) && m.suggested_company_target_actions.length > 0 ? m.suggested_company_target_actions : null,
           suggestedCVGeneration: m.suggested_cv_generation || null,
           suggestedAgent: m.suggested_agent || null,
           isError: m.is_error || false,
@@ -529,6 +597,7 @@ export default function ChatInterface({ agentName, title, description, applicati
     setAddedTaskSets({});
     setAppliedRoadmapSets({});
     setAppliedAppActionSets({});
+    setAppliedCompanyTargetSets({});
     setCvGenStates({});
   };
 
@@ -538,6 +607,7 @@ export default function ChatInterface({ agentName, title, description, applicati
     setAddedTaskSets({});
     setAppliedRoadmapSets({});
     setAppliedAppActionSets({});
+    setAppliedCompanyTargetSets({});
     setCvGenStates({});
   };
 
@@ -636,6 +706,7 @@ export default function ChatInterface({ agentName, title, description, applicati
         suggested_tasks: data.suggested_tasks?.length > 0 ? data.suggested_tasks : null,
         suggested_roadmap_changes: data.suggested_roadmap_changes?.length > 0 ? data.suggested_roadmap_changes : null,
         suggested_application_actions: data.suggested_application_actions?.length > 0 ? data.suggested_application_actions : null,
+        suggested_company_target_actions: data.suggested_company_target_actions?.length > 0 ? data.suggested_company_target_actions : null,
         suggested_cv_generation: data.suggested_cv_generation || null,
         suggested_agent: data.suggested_agent || null,
       };
@@ -655,6 +726,7 @@ export default function ChatInterface({ agentName, title, description, applicati
           suggestedTasks: assistantPayload.suggested_tasks,
           suggestedRoadmapChanges: assistantPayload.suggested_roadmap_changes,
           suggestedApplicationActions: assistantPayload.suggested_application_actions,
+          suggestedCompanyTargetActions: assistantPayload.suggested_company_target_actions,
           suggestedCVGeneration: assistantPayload.suggested_cv_generation,
           suggestedAgent: assistantPayload.suggested_agent,
           // Story-capture is in-memory only for now — not persisted on
@@ -730,6 +802,7 @@ export default function ChatInterface({ agentName, title, description, applicati
         suggested_tasks: data.suggested_tasks?.length > 0 ? data.suggested_tasks : null,
         suggested_roadmap_changes: data.suggested_roadmap_changes?.length > 0 ? data.suggested_roadmap_changes : null,
         suggested_application_actions: data.suggested_application_actions?.length > 0 ? data.suggested_application_actions : null,
+        suggested_company_target_actions: data.suggested_company_target_actions?.length > 0 ? data.suggested_company_target_actions : null,
         suggested_cv_generation: data.suggested_cv_generation || null,
         suggested_agent: data.suggested_agent || null,
       };
@@ -746,6 +819,7 @@ export default function ChatInterface({ agentName, title, description, applicati
         suggestedTasks: assistantPayload.suggested_tasks,
         suggestedRoadmapChanges: assistantPayload.suggested_roadmap_changes,
         suggestedApplicationActions: assistantPayload.suggested_application_actions,
+        suggestedCompanyTargetActions: assistantPayload.suggested_company_target_actions,
         suggestedCVGeneration: assistantPayload.suggested_cv_generation,
         suggestedAgent: assistantPayload.suggested_agent,
         suggestedStoryCapture: data.suggested_story_capture || null,
@@ -981,6 +1055,155 @@ export default function ChatInterface({ agentName, title, description, applicati
     setAppliedAppActionSets((prev) => ({ ...prev, [messageId]: true }));
     queryClient.invalidateQueries({ queryKey: ["applications"] });
     toast.success("Applications updated");
+  };
+
+  // Apply handler for SUGGESTED_COMPANY_TARGET_JSON. Three action paths:
+  //
+  //   add_company_target
+  //     1. Case-insensitive lookup of company by name in `companies`.
+  //     2. If missing, INSERT with source='manual' + whatever metadata the
+  //        agent passed (sector, domain). RLS allows authenticated users
+  //        to INSERT companies only when source='manual'.
+  //     3. INSERT company_targets with source='self_added', status
+  //        'exploring', plus optional pitch fields the agent provided.
+  //        Unique (user, company) conflict → toast "already in pipeline".
+  //
+  //   update_company_target_status
+  //     1. ilike lookup on companies.name → join company_targets.
+  //     2. UPDATE status — trigger writes audit row.
+  //     3. If note provided, patch the just-inserted audit row's note column.
+  //        (Same two-phase pattern as the Drawer's status-change form.)
+  //
+  //   enrich_company
+  //     1. ilike lookup. UPDATE description/sector/domain/industry on the
+  //        matched companies row. RLS allows UPDATE only when source='manual'.
+  const handleApplyCompanyTargetActions = async (messageId, actions) => {
+    if (!user?.id || appliedCompanyTargetSets[messageId]) return;
+    let hasError = false;
+    let skippedDuplicate = 0;
+
+    for (const a of actions) {
+      if (a.action === "add_company_target") {
+        const name = String(a.company_name || "").trim();
+        if (!name) { hasError = true; continue; }
+
+        // Lookup or create the company.
+        const { data: existing, error: lookupErr } = await supabase
+          .from("companies")
+          .select("id")
+          .ilike("name", name)
+          .limit(1)
+          .maybeSingle();
+        if (lookupErr) { console.error("company lookup error:", lookupErr); hasError = true; continue; }
+
+        let companyId = existing?.id;
+        if (!companyId) {
+          const { data: created, error: createErr } = await supabase
+            .from("companies")
+            .insert({
+              name,
+              source: "manual",
+              ...(a.company_domain && { domain: a.company_domain }),
+              ...(a.company_sector && { sector: a.company_sector }),
+            })
+            .select("id")
+            .single();
+          if (createErr) { console.error("company insert error:", createErr); hasError = true; continue; }
+          companyId = created?.id;
+        }
+        if (!companyId) { hasError = true; continue; }
+
+        // Insert company_target with source='self_added'. Conflict on
+        // unique (user_id, company_id) means it's already in the pipeline
+        // — skip with a tally, not an error.
+        const { error: insertErr } = await supabase
+          .from("company_targets")
+          .insert({
+            user_id: user.id,
+            company_id: companyId,
+            source: "self_added",
+            status: "exploring",
+            ...(a.pitched_role && { pitched_role: a.pitched_role }),
+            ...(a.pitch_rationale && { pitch_rationale: a.pitch_rationale }),
+            ...(Array.isArray(a.skill_gaps_this_fills) && a.skill_gaps_this_fills.length > 0 && { skill_gaps_this_fills: a.skill_gaps_this_fills }),
+            ...(a.notes && { notes: a.notes }),
+          });
+        if (insertErr) {
+          if (insertErr.code === "23505") { skippedDuplicate++; continue; }
+          console.error("company_target insert error:", insertErr);
+          hasError = true;
+        }
+      } else if (a.action === "update_company_target_status") {
+        const matchCompany = String(a.match_company || "").trim();
+        if (!matchCompany || !a.new_status) { hasError = true; continue; }
+
+        const { data: matches, error: lookupErr } = await supabase
+          .from("company_targets")
+          .select("id, companies!inner(name)")
+          .eq("user_id", user.id)
+          .ilike("companies.name", matchCompany);
+        if (lookupErr) { console.error("company_target lookup error:", lookupErr); hasError = true; continue; }
+        if (!matches || matches.length === 0) { console.error("update_company_target_status: not found", matchCompany); hasError = true; continue; }
+        if (matches.length > 1) { console.error("update_company_target_status: ambiguous match", matchCompany); hasError = true; continue; }
+        const target = matches[0];
+
+        const { error: updateErr } = await supabase
+          .from("company_targets")
+          .update({ status: a.new_status })
+          .eq("id", target.id);
+        if (updateErr) { console.error("company_target update error:", updateErr); hasError = true; continue; }
+
+        // Patch the just-inserted audit row's note column. Trigger
+        // already fired on the UPDATE above.
+        if (a.note && a.note.trim()) {
+          const { data: latestChange } = await supabase
+            .from("company_target_status_changes")
+            .select("id")
+            .eq("target_id", target.id)
+            .order("changed_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          if (latestChange?.id) {
+            await supabase
+              .from("company_target_status_changes")
+              .update({ note: a.note.trim() })
+              .eq("id", latestChange.id);
+          }
+        }
+      } else if (a.action === "enrich_company") {
+        const matchCompany = String(a.match_company || "").trim();
+        if (!matchCompany) { hasError = true; continue; }
+
+        const patch = {};
+        if (a.description) patch.description = a.description;
+        if (a.sector) patch.sector = a.sector;
+        if (a.domain) patch.domain = a.domain;
+        if (a.industry) patch.industry = a.industry;
+        if (Object.keys(patch).length === 0) continue;
+
+        // RLS pins UPDATE to rows where source='manual'. Filter explicitly
+        // so we get a clean "no rows updated" if the company is jsearch
+        // or faculty_seeded rather than a confusing RLS deny.
+        const { error: updateErr } = await supabase
+          .from("companies")
+          .update(patch)
+          .ilike("name", matchCompany)
+          .eq("source", "manual");
+        if (updateErr) { console.error("enrich_company error:", updateErr); hasError = true; }
+      }
+    }
+
+    if (hasError) {
+      toast.error("Some practicum changes could not be applied. Please try again.");
+      return;
+    }
+    setAppliedCompanyTargetSets((prev) => ({ ...prev, [messageId]: true }));
+    queryClient.invalidateQueries({ queryKey: ["company_targets", user.id] });
+    if (skippedDuplicate > 0) {
+      toast.message(`Already in your pipeline — skipped ${skippedDuplicate}.`);
+    } else {
+      toast.success("Practicum updated");
+    }
   };
 
   const handleGenerateCV = async (messageId, proposal, templateStyle = "ats-optimized") => {
@@ -1296,6 +1519,14 @@ export default function ChatInterface({ agentName, title, description, applicati
                   actions={msg.suggestedApplicationActions}
                   applied={appliedAppActionSets}
                   onApply={handleApplyApplicationActions}
+                />
+              )}
+              {msg.suggestedCompanyTargetActions && (
+                <CompanyTargetActionsCard
+                  messageId={msg.id}
+                  actions={msg.suggestedCompanyTargetActions}
+                  applied={appliedCompanyTargetSets}
+                  onApply={handleApplyCompanyTargetActions}
                 />
               )}
               {msg.suggestedCVGeneration && msg.suggestedCVGeneration.target_role && (
