@@ -1,9 +1,11 @@
 import React, { useState } from "react";
+import { Navigate } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { createPageUrl } from "@/utils";
 
 import PracticumHeader from "@/components/practicum/PracticumHeader";
 import InternshipProfileStrip from "@/components/practicum/InternshipProfileStrip";
@@ -11,7 +13,6 @@ import FindCompaniesCard from "@/components/practicum/FindCompaniesCard";
 import CompanyTargetsKanban from "@/components/practicum/CompanyTargetsKanban";
 import CompanyTargetDrawer from "@/components/practicum/CompanyTargetDrawer";
 import {
-  NoPracticumPath,
   NoInternshipProfile,
   FacultyPlacementPending,
 } from "@/components/practicum/EmptyStates";
@@ -140,6 +141,12 @@ export default function Practicum() {
 
   const practicumPath = profileRow?.practicum_path;
 
+  // Users who answered "No" to the practicum question in onboarding shouldn't
+  // see this page at all — the nav link is also hidden in Layout.jsx.
+  if (!practicumPath) {
+    return <Navigate to={createPageUrl("Home")} replace />;
+  }
+
   return (
     <div className="p-4 lg:p-8 max-w-7xl mx-auto">
       <PracticumHeader
@@ -147,8 +154,6 @@ export default function Practicum() {
         practicumStatus={profileRow?.practicum_status}
         practicumCohort={profileRow?.practicum_cohort}
       />
-
-      {!practicumPath && <NoPracticumPath />}
 
       {practicumPath === "self_sourced" && (
         <>
