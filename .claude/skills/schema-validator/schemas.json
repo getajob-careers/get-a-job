@@ -1,7 +1,7 @@
 {
   "version": "2.0",
   "library_last_updated": "2026-05-13",
-  "generated_at": "2026-05-13T14:28:14Z",
+  "generated_at": "2026-05-13T14:43:16Z",
   "canonical_dir": "supabase/functions/_shared/libraries",
   "enums": {
     "role_families": [
@@ -319,6 +319,7 @@
       "bizops_okr_framework",
       "bizops_operational_scaling",
       "bizops_process_automation",
+      "board_management",
       "brand_identity_design",
       "brand_management",
       "budget_cost_management",
@@ -333,6 +334,7 @@
       "change_management",
       "channel_partner_management",
       "channel_sales_strategy",
+      "chaos_engineering",
       "ci_cd",
       "client_advisory",
       "client_engagement_delivery",
@@ -364,6 +366,7 @@
       "conversion_optimization_design",
       "conversion_rate_optimization",
       "copywriting",
+      "cost_optimization_finops",
       "cpa_accounting",
       "creative_strategy_performance",
       "crm_management",
@@ -418,6 +421,7 @@
       "domain_expertise",
       "ecosystem_development",
       "edge_ai_deployment",
+      "embedded_systems",
       "emotional_intelligence",
       "empathy",
       "employee_experience",
@@ -505,7 +509,9 @@
       "mlops_pipelines",
       "mobile_design",
       "model_deployment_serving",
+      "model_evaluation",
       "model_monitoring_drift",
+      "model_quantization",
       "model_training_finetuning",
       "monetization_strategy",
       "monitoring_observability",
@@ -574,6 +580,7 @@
       "release_management",
       "renewal_management",
       "requirements_gathering",
+      "research_writing",
       "retention_strategy",
       "revenue_operations",
       "revenue_recognition",
@@ -601,6 +608,7 @@
       "se_team_leadership",
       "security_best_practices",
       "security_data_analysis",
+      "security_engineering",
       "security_monitoring_detection",
       "security_policy_development",
       "security_program_leadership",
@@ -634,6 +642,7 @@
       "test_planning",
       "testing_practices",
       "threat_analysis_investigation",
+      "training_facilitation",
       "travel_logistics_coordination",
       "ui_visual_design",
       "upselling_cross_selling",
@@ -733,7 +742,7 @@
   },
   "counts": {
     "roles": 170,
-    "skills": 380,
+    "skills": 389,
     "mappings": 170
   }
 }

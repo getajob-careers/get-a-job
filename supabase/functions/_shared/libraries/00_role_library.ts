@@ -1880,7 +1880,7 @@ export const roleLibrary = {
       "required_skills": [
         "product_strategy",
         "roadmap_prioritization",
-        "customer_research",
+        "user_research",
         "cross_functional_collaboration"
       ],
       "preferred_skills": [
@@ -1968,7 +1968,7 @@ export const roleLibrary = {
       ],
       "preferred_skills": [
         "api_integrations",
-        "customer_research",
+        "user_research",
         "data_informed_decision_making",
         "cross_functional_collaboration"
       ],
@@ -7288,7 +7288,7 @@ export const roleLibrary = {
       ],
       "preferred_skills": [
         "stakeholder_management",
-        "okr_framework",
+        "bizops_okr_framework",
         "engineering_leadership",
         "code_review_practices",
         "incident_management"
@@ -7999,7 +7999,6 @@ export const roleLibrary = {
         "machine_learning"
       ],
       "preferred_skills": [
-        "fine_tuning_models",
         "model_training_finetuning",
         "model_monitoring_drift",
         "data_engineering_pipelines",
@@ -8385,8 +8384,8 @@ export const roleLibrary = {
       ],
       "preferred_skills": [
         "research_writing",
-        "experimental_design",
-        "fine_tuning_models",
+        "experimentation_framework",
+        "model_training_finetuning",
         "computer_vision",
         "model_evaluation"
       ],
@@ -8558,7 +8557,7 @@ export const roleLibrary = {
       ],
       "preferred_skills": [
         "consulting_methodology",
-        "vendor_management",
+        "vendor_procurement_management",
         "executive_presentation",
         "training_facilitation"
       ],
@@ -8647,7 +8646,7 @@ export const roleLibrary = {
         "deep_learning",
         "mlops",
         "organizational_design",
-        "vendor_management",
+        "vendor_procurement_management",
         "hiring_talent_acquisition"
       ],
       "tools": [
@@ -8728,7 +8727,7 @@ export const roleLibrary = {
         "executive_presentation"
       ],
       "preferred_skills": [
-        "vendor_management",
+        "vendor_procurement_management",
         "machine_learning",
         "ml_systems_thinking",
         "board_management"
@@ -10197,7 +10196,7 @@ export const roleLibrary = {
         "solution_design_architecture"
       ],
       "preferred_skills": [
-        "okr_framework",
+        "bizops_okr_framework",
         "performance_management",
         "stakeholder_management",
         "executive_presentation"

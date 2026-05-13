@@ -5927,6 +5927,263 @@ export const skillLibrary = {
         "problem_solving",
         "analytical_thinking"
       ]
+    },
+    {
+      "id": "board_management",
+      "name": "Board Management",
+      "category": "leadership_skill",
+      "description": "Preparing for and facilitating board meetings: agenda design, board pack production, fiduciary-quality reporting, navigating board dynamics, and managing relationships with directors and investor representatives. Distinct from general executive presentation — focuses on governance, regulatory compliance, and the specific cadence and content expected by a board.",
+      "proficiency_levels": {
+        "beginner": "Supports board meeting logistics: scheduling, materials assembly, minute-taking, action item tracking.",
+        "intermediate": "Owns board pack production end-to-end, drafts portions of CEO/CFO commentary, manages board calendars and director onboarding.",
+        "advanced": "Acts as board partner to the CEO/CFO/CISO: shapes board agenda strategically, manages individual director relationships, leads sensitive topics (compensation, succession, M&A, security incidents) with the board, and represents the company at board level."
+      },
+      "tags": [
+        "board",
+        "governance",
+        "executive",
+        "fiduciary"
+      ],
+      "common_roles": [
+        "vp_ai_chief_ai_officer",
+        "ciso_head_of_security",
+        "principal_director_consulting",
+        "head_of_revops",
+        "vp_operations",
+        "head_of_bd_head_of_partnerships",
+        "vp_business_development",
+        "senior_bd_manager_strategic_partnerships"
+      ],
+      "related_skills": [
+        "bizops_executive_communication",
+        "executive_presentation",
+        "executive_leadership",
+        "stakeholder_management"
+      ]
+    },
+    {
+      "id": "training_facilitation",
+      "name": "Training Facilitation",
+      "category": "operational_skill",
+      "description": "Designing and delivering internal training programs, workshops, and learning experiences for employees. Includes curriculum design, adult learning principles, facilitation technique, exercise design, and measuring training effectiveness. Distinct from sales enablement — applied to functional skills, tools, change initiatives, and general L&D.",
+      "proficiency_levels": {
+        "beginner": "Delivers prepared training materials in 1:1 or small-group settings; runs structured onboarding sessions following an existing curriculum.",
+        "intermediate": "Designs training programs from scratch for specific topics: defines learning objectives, builds materials, runs sessions of 10-30, gathers feedback and iterates.",
+        "advanced": "Owns an organization-wide training function: builds learning architecture, scales programs across the company, integrates with HRIS / LMS, measures business impact (adoption, retention, time-to-productivity)."
+      },
+      "tags": [
+        "training",
+        "facilitation",
+        "L&D",
+        "enablement",
+        "workshops"
+      ],
+      "common_roles": [
+        "ai_transformation_lead",
+        "ld_specialist",
+        "hr_business_partner",
+        "head_of_hr_people"
+      ],
+      "related_skills": [
+        "change_management",
+        "bizops_enablement_training",
+        "stakeholder_management",
+        "communication"
+      ]
+    },
+    {
+      "id": "security_engineering",
+      "name": "Security Engineering",
+      "category": "technical_skill",
+      "description": "Designing, building, and operating secure systems: threat modeling, secure coding practices, security architecture review, vulnerability assessment, hardening of cloud and application infrastructure, and integration of security controls into the development lifecycle. Distinct from operational security (SOC, IR) and from compliance work (GRC).",
+      "proficiency_levels": {
+        "beginner": "Applies secure coding patterns, runs SAST/SCA scans, remediates flagged vulnerabilities, follows established hardening checklists for cloud resources.",
+        "intermediate": "Performs threat modeling on new features, designs authentication/authorization controls, hardens production infrastructure (network policies, secrets management, container security), owns the security review process for service launches.",
+        "advanced": "Defines security architecture across the org, leads complex security initiatives (zero-trust rollout, supply-chain security, platform-level controls), mentors engineers on secure-by-design, partners with the CISO on roadmap."
+      },
+      "tags": [
+        "security",
+        "engineering",
+        "secure-coding",
+        "threat-modeling",
+        "appsec"
+      ],
+      "common_roles": [
+        "devops_engineer",
+        "sre_engineer",
+        "ciso_head_of_security"
+      ],
+      "related_skills": [
+        "security_best_practices",
+        "cloud_security_posture",
+        "incident_response_forensics",
+        "code_review_practices"
+      ]
+    },
+    {
+      "id": "chaos_engineering",
+      "name": "Chaos Engineering",
+      "category": "operational_skill",
+      "description": "Discipline of injecting controlled failure into production-like systems to uncover weaknesses before they cause outages: experiment design, blast-radius control, hypothesis-driven testing, tooling (Chaos Monkey / Gremlin / Litmus), and post-experiment learning loops. Practiced by mature SRE / production engineering teams.",
+      "proficiency_levels": {
+        "beginner": "Runs scheduled chaos experiments using existing tooling against staging or canary environments, documents findings.",
+        "intermediate": "Designs novel experiments to probe specific failure modes, scopes blast radius carefully, runs in production with appropriate safeguards, partners with engineering teams on remediation.",
+        "advanced": "Builds the org's chaos engineering practice: tool selection, experiment library, governance around production experimentation, integration with incident management and reliability programs."
+      },
+      "tags": [
+        "chaos",
+        "resilience",
+        "reliability",
+        "sre",
+        "experimentation"
+      ],
+      "common_roles": [
+        "sre_engineer",
+        "devops_engineer"
+      ],
+      "related_skills": [
+        "incident_management",
+        "monitoring_observability",
+        "infrastructure_as_code"
+      ]
+    },
+    {
+      "id": "cost_optimization_finops",
+      "name": "Cost Optimization & FinOps",
+      "category": "operational_skill",
+      "description": "Practice of bringing financial accountability to cloud and infrastructure spend: usage analysis, right-sizing, commitment management (reserved instances / savings plans), tagging and chargeback design, partnering with finance on forecasts, and continuous waste elimination. Distinct from AI-specific cost work (model serving cost) — applies to general cloud + SaaS + data infra spend.",
+      "proficiency_levels": {
+        "beginner": "Reads cloud billing dashboards, identifies obvious waste (idle resources, orphaned volumes), tags resources for visibility.",
+        "intermediate": "Owns the cloud cost program for a domain: tracks cost-per-workload, drives right-sizing, manages commitments, builds dashboards and unit-economics views in partnership with finance.",
+        "advanced": "Builds the company-wide FinOps practice: forecasting models, chargeback / showback architecture, engineering accountability mechanisms, vendor negotiation, and finance partnership at the VP level."
+      },
+      "tags": [
+        "finops",
+        "cost",
+        "cloud",
+        "optimization",
+        "budget"
+      ],
+      "common_roles": [
+        "devops_engineer",
+        "sre_engineer"
+      ],
+      "related_skills": [
+        "cloud_platforms",
+        "ai_cost_optimization",
+        "budget_cost_management",
+        "infrastructure_as_code"
+      ]
+    },
+    {
+      "id": "model_evaluation",
+      "name": "Model Evaluation",
+      "category": "ai_ml_core",
+      "description": "Designing and executing rigorous evaluation of ML models: choosing appropriate metrics, building evaluation datasets, slicing performance by population and edge case, comparing model variants, and detecting failure modes. Broader than LLM-specific evaluation — applies to classical ML, computer vision, recommendation systems, and structured prediction.",
+      "proficiency_levels": {
+        "beginner": "Computes standard metrics (accuracy, precision/recall, AUC, RMSE) on held-out sets, generates confusion matrices, interprets results.",
+        "intermediate": "Builds task-appropriate evaluation pipelines: chooses metrics aligned to business objective, designs sliced/stratified evaluation, identifies data-leakage and distribution-shift issues, runs A/B comparisons against incumbents.",
+        "advanced": "Defines the org's evaluation methodology: golden datasets, regression suites, bias and fairness assessment, online vs offline evaluation alignment, evaluation-driven model selection at scale."
+      },
+      "tags": [
+        "evaluation",
+        "metrics",
+        "ml",
+        "model-quality"
+      ],
+      "common_roles": [
+        "applied_ai_researcher",
+        "ai_engineer_mid",
+        "data_scientist"
+      ],
+      "related_skills": [
+        "llm_evaluation",
+        "experimentation_framework",
+        "ml_systems_thinking",
+        "machine_learning"
+      ]
+    },
+    {
+      "id": "model_quantization",
+      "name": "Model Quantization & Compression",
+      "category": "ai_ml_core",
+      "description": "Techniques for reducing the size and compute cost of trained models so they can run on resource-constrained hardware (edge devices, mobile, embedded GPUs): quantization (int8, int4, mixed precision), pruning, distillation, and operator fusion. Critical for edge AI, on-device inference, and cost-sensitive serving.",
+      "proficiency_levels": {
+        "beginner": "Applies post-training quantization using framework tools (PyTorch quantization, TensorRT, ONNX), measures size/latency/accuracy tradeoffs.",
+        "intermediate": "Designs quantization strategy for a target deployment: chooses post-training vs quantization-aware training, manages calibration sets, validates accuracy preservation, owns optimization for a specific hardware target.",
+        "advanced": "Owns model compression across the company's edge / on-device portfolio: custom kernels, mixed-strategy pipelines (quantize + prune + distill), partners with hardware engineers on co-design, evaluates novel techniques from research."
+      },
+      "tags": [
+        "quantization",
+        "compression",
+        "edge",
+        "optimization",
+        "inference"
+      ],
+      "common_roles": [
+        "cv_edge_ai_engineer",
+        "applied_ai_researcher"
+      ],
+      "related_skills": [
+        "deep_learning",
+        "model_training_finetuning",
+        "cuda_gpu_programming",
+        "ml_systems_thinking"
+      ]
+    },
+    {
+      "id": "embedded_systems",
+      "name": "Embedded Systems",
+      "category": "technical_skill",
+      "description": "Designing and programming systems where software runs directly on hardware with constrained resources: microcontroller / SoC programming, real-time operating systems, hardware-software interfaces, sensor and peripheral integration, low-level performance optimization, and power management. Critical for edge AI, autonomous systems, robotics, IoT, and defense applications.",
+      "proficiency_levels": {
+        "beginner": "Writes and debugs firmware in C/C++ for a microcontroller or embedded Linux board, uses standard peripherals (UART, SPI, I2C, GPIO), reads datasheets.",
+        "intermediate": "Owns end-to-end embedded software for a product: RTOS configuration, driver development, power optimization, OTA update mechanism, secure boot, integration with cloud back-ends.",
+        "advanced": "Architects embedded software platforms across product families: hardware-software co-design, custom toolchains, safety / regulatory compliance (automotive, medical), team leadership."
+      },
+      "tags": [
+        "embedded",
+        "firmware",
+        "hardware",
+        "real-time",
+        "iot"
+      ],
+      "common_roles": [
+        "cv_edge_ai_engineer"
+      ],
+      "related_skills": [
+        "cuda_gpu_programming",
+        "model_quantization",
+        "performance_optimization",
+        "system_design"
+      ]
+    },
+    {
+      "id": "research_writing",
+      "name": "Research Writing",
+      "category": "ai_ml_research",
+      "description": "Producing rigorous written research artifacts: academic papers (NeurIPS / ICML / CVPR), technical blog posts, internal research memos, and patent applications. Includes literature review, structured argumentation, results presentation, figure design, and the iterative review process. Distinct from the research methodology itself — focuses on communicating research to peer audiences.",
+      "proficiency_levels": {
+        "beginner": "Drafts internal research memos and team-readable summaries, structures simple results presentations.",
+        "intermediate": "Co-authors academic papers under guidance, drafts technical blog posts for an external audience, participates in peer review for internal work.",
+        "advanced": "Lead-authors papers at top-tier venues, drives the company's external research communication (papers, blog, talks), and shapes research narratives across multiple workstreams."
+      },
+      "tags": [
+        "research",
+        "writing",
+        "papers",
+        "publication",
+        "communication"
+      ],
+      "common_roles": [
+        "applied_ai_researcher"
+      ],
+      "related_skills": [
+        "applied_ai_research",
+        "technical_communication",
+        "prd_writing",
+        "user_research"
+      ]
     }
   ]
 } as const;
