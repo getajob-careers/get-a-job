@@ -1,40 +1,15 @@
 {
-  "generated_at": "2026-05-13T13:34:33Z",
+  "generated_at": "2026-05-13T13:46:19Z",
   "canonical_dir": "supabase/functions/_shared/libraries",
   "summary": {
-    "errors": 6,
-    "warnings": 140
+    "errors": 1,
+    "warnings": 162
   },
   "errors": [
     {
       "check": "role.required_skills_xref",
-      "message": "role 'product_manager' required_skills references unknown skill_id 'roadmapping_prioritization'",
-      "role_id": "product_manager"
-    },
-    {
-      "check": "role.required_skills_xref",
       "message": "role 'product_manager' required_skills references unknown skill_id 'customer_research'",
       "role_id": "product_manager"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'technical_product_manager' required_skills references unknown skill_id 'roadmapping_prioritization'",
-      "role_id": "technical_product_manager"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'product_analyst' required_skills references unknown skill_id 'sql_analysis'",
-      "role_id": "product_analyst"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'product_analyst' required_skills references unknown skill_id 'product_metrics_analysis'",
-      "role_id": "product_analyst"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'product_analyst' required_skills references unknown skill_id 'ab_testing_experimentation'",
-      "role_id": "product_analyst"
     }
   ],
   "warnings": [
@@ -436,6 +411,116 @@
       "check": "role.next_roles_xref",
       "message": "role 'sre_engineer' next_roles references unknown role_id 'platform_engineering_lead'",
       "role_id": "sre_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'ai_engineer_mid' preferred_skills references unknown skill_id 'fine_tuning_models'",
+      "role_id": "ai_engineer_mid"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'senior_ai_engineer' next_roles references unknown role_id 'ml_lead'",
+      "role_id": "senior_ai_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'mlops_engineer' preferred_skills references unknown skill_id 'kubernetes'",
+      "role_id": "mlops_engineer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'mlops_engineer' next_roles references unknown role_id 'ml_lead'",
+      "role_id": "mlops_engineer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'mlops_engineer' next_roles references unknown role_id 'platform_engineering_lead'",
+      "role_id": "mlops_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'cv_edge_ai_engineer' preferred_skills references unknown skill_id 'model_quantization'",
+      "role_id": "cv_edge_ai_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'cv_edge_ai_engineer' preferred_skills references unknown skill_id 'embedded_systems'",
+      "role_id": "cv_edge_ai_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'cv_edge_ai_engineer' preferred_skills references unknown skill_id 'cuda_programming'",
+      "role_id": "cv_edge_ai_engineer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'cv_edge_ai_engineer' next_roles references unknown role_id 'ml_lead'",
+      "role_id": "cv_edge_ai_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'applied_ai_researcher' preferred_skills references unknown skill_id 'research_writing'",
+      "role_id": "applied_ai_researcher"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'applied_ai_researcher' preferred_skills references unknown skill_id 'experimental_design'",
+      "role_id": "applied_ai_researcher"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'applied_ai_researcher' preferred_skills references unknown skill_id 'fine_tuning_models'",
+      "role_id": "applied_ai_researcher"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'applied_ai_researcher' preferred_skills references unknown skill_id 'model_evaluation'",
+      "role_id": "applied_ai_researcher"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'applied_ai_researcher' next_roles references unknown role_id 'principal_research_scientist'",
+      "role_id": "applied_ai_researcher"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'prompt_engineer' next_roles references unknown role_id 'ml_lead'",
+      "role_id": "prompt_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'ai_transformation_lead' preferred_skills references unknown skill_id 'vendor_management'",
+      "role_id": "ai_transformation_lead"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'ai_transformation_lead' preferred_skills references unknown skill_id 'training_facilitation'",
+      "role_id": "ai_transformation_lead"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'head_of_ai' preferred_skills references unknown skill_id 'vendor_management'",
+      "role_id": "head_of_ai"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'vp_ai_chief_ai_officer' preferred_skills references unknown skill_id 'vendor_management'",
+      "role_id": "vp_ai_chief_ai_officer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'vp_ai_chief_ai_officer' preferred_skills references unknown skill_id 'board_management'",
+      "role_id": "vp_ai_chief_ai_officer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'vp_ai_chief_ai_officer' next_roles references unknown role_id 'cto'",
+      "role_id": "vp_ai_chief_ai_officer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'vp_ai_chief_ai_officer' next_roles references unknown role_id 'ceo'",
+      "role_id": "vp_ai_chief_ai_officer"
     },
     {
       "check": "role.next_roles_xref",

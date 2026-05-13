@@ -69,8 +69,106 @@
       "proposed_id": "ab_testing_experimentation",
       "proposed_name": "A/B Testing & Experimentation",
       "proposed_category": "analytical_skill",
-      "note": "Pre-existing cross-ref from product_analyst.",
-      "surfaced_during": "Pre-existing"
+      "note": "Pre-existing cross-ref from product_analyst. Fixed in Batch 2 by renaming to canonical 'ab_testing'.",
+      "surfaced_during": "Pre-existing — RESOLVED Batch 2"
+    },
+    {
+      "proposed_id": "fine_tuning_models",
+      "proposed_name": "Fine-Tuning Models",
+      "proposed_category": "ai_ml_core",
+      "note": "Surfaced as duplicate of canonical model_training_finetuning. Removed during Batch 2; possible alias.",
+      "surfaced_during": "Batch 2 — RESOLVED"
+    },
+    {
+      "proposed_id": "pytorch",
+      "proposed_name": "PyTorch",
+      "proposed_category": "ai_ml_core",
+      "note": "PyTorch is a tool/framework, not a skill — moved from required_skills to tools array in Batch 2. Keep as tool, not skill.",
+      "surfaced_during": "Batch 2 — RESOLVED as tool"
+    },
+    {
+      "proposed_id": "change_management",
+      "proposed_name": "Change Management",
+      "proposed_category": "operational_skill",
+      "note": "Needed for ai_transformation_lead and other leadership-pivot roles.",
+      "surfaced_during": "Batch 2 (ai_transformation_lead)"
+    },
+    {
+      "proposed_id": "vendor_management",
+      "proposed_name": "Vendor Management",
+      "proposed_category": "operational_skill",
+      "note": "Tool / vendor evaluation skill for AI transformation, IT, finance, executive roles.",
+      "surfaced_during": "Batch 2 (ai_transformation_lead, head_of_ai, vp_ai_chief_ai_officer)"
+    },
+    {
+      "proposed_id": "training_facilitation",
+      "proposed_name": "Training Facilitation",
+      "proposed_category": "operational_skill",
+      "note": "Internal training / workshop design for ai_transformation_lead and L&D-adjacent roles.",
+      "surfaced_during": "Batch 2 (ai_transformation_lead)"
+    },
+    {
+      "proposed_id": "research_writing",
+      "proposed_name": "Research Writing",
+      "proposed_category": "ai_ml_core",
+      "note": "Academic paper / technical writing for applied AI researchers.",
+      "surfaced_during": "Batch 2 (applied_ai_researcher)"
+    },
+    {
+      "proposed_id": "experimental_design",
+      "proposed_name": "Experimental Design",
+      "proposed_category": "analytical_skill",
+      "note": "Statistical experiment design — broader than ab_testing; needed for applied AI research.",
+      "surfaced_during": "Batch 2 (applied_ai_researcher)"
+    },
+    {
+      "proposed_id": "model_evaluation",
+      "proposed_name": "Model Evaluation",
+      "proposed_category": "ai_ml_core",
+      "note": "Distinct from llm_evaluation — broader evaluation methodology for ML models.",
+      "surfaced_during": "Batch 2 (applied_ai_researcher)"
+    },
+    {
+      "proposed_id": "model_quantization",
+      "proposed_name": "Model Quantization",
+      "proposed_category": "ai_ml_core",
+      "note": "Critical for edge AI / embedded ML roles.",
+      "surfaced_during": "Batch 2 (cv_edge_ai_engineer)"
+    },
+    {
+      "proposed_id": "embedded_systems",
+      "proposed_name": "Embedded Systems",
+      "proposed_category": "technical_skill",
+      "note": "Hardware-software integration for edge AI and embedded ML.",
+      "surfaced_during": "Batch 2 (cv_edge_ai_engineer)"
+    },
+    {
+      "proposed_id": "cuda_programming",
+      "proposed_name": "CUDA Programming",
+      "proposed_category": "technical_skill",
+      "note": "GPU programming for performance-critical AI workloads.",
+      "surfaced_during": "Batch 2 (cv_edge_ai_engineer)"
+    },
+    {
+      "proposed_id": "kubernetes",
+      "proposed_name": "Kubernetes",
+      "proposed_category": "technical_skill",
+      "note": "Container orchestration — currently a tool, possibly should also be a skill for MLOps / SRE / platform engineering.",
+      "surfaced_during": "Batch 2 (mlops_engineer)"
+    },
+    {
+      "proposed_id": "board_management",
+      "proposed_name": "Board Management",
+      "proposed_category": "leadership_skill",
+      "note": "Executive board communication for VP-level and C-suite roles.",
+      "surfaced_during": "Batch 2 (vp_ai_chief_ai_officer)"
+    },
+    {
+      "proposed_id": "technical_communication",
+      "proposed_name": "Technical Communication",
+      "proposed_category": "soft_skill",
+      "note": "Distinct from customer_communication — for engineer-to-engineer and engineer-to-non-engineer technical explanation.",
+      "surfaced_during": "Batch 2 (prompt_engineer)"
     }
   ],
   "missing_role_ids": {

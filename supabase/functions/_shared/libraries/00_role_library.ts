@@ -1700,8 +1700,8 @@ export const roleLibrary = {
       "standardized_title": "Product Manager",
       "alternate_titles": [
         "PM",
-        "Digital Product Manager",
-        "Product Lead"
+        "Product Manager",
+        "Senior Associate PM"
       ],
       "role_family": "Product",
       "secondary_family": null,
@@ -1716,7 +1716,7 @@ export const roleLibrary = {
       ],
       "required_skills": [
         "product_strategy",
-        "roadmapping_prioritization",
+        "roadmap_prioritization",
         "customer_research",
         "cross_functional_collaboration"
       ],
@@ -1734,55 +1734,60 @@ export const roleLibrary = {
         "product_docs"
       ],
       "technical_depth": "Medium",
-      "customer_facing_level": "Medium_High",
+      "customer_facing_level": "High",
       "revenue_ownership": "Influence",
-      "strategic_level": "Strategic",
+      "strategic_level": "Tactical",
       "lifecycle_stage": [
-        "Discovery",
-        "Planning",
-        "Launch",
-        "Iteration"
+        "Growth",
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
-        "business_analysis",
-        "project_management",
-        "product_operations",
-        "engineering"
+        "mba_graduate",
+        "former_consultant",
+        "apm_promotion",
+        "engineer_pivot",
+        "marketing_pivot"
       ],
       "next_roles": [
         "technical_product_manager",
         "product_operations_manager"
       ],
       "similar_roles": [
+        "technical_product_manager",
+        "product_operations_manager",
+        "growth_marketing_manager",
+        "solutions_engineer"
+      ],
+      "not_to_confuse_with": [
+        "Senior Product Manager",
         "Technical Product Manager",
         "Product Owner"
       ],
-      "not_to_confuse_with": [
-        "Project Manager",
-        "Program Manager",
-        "Product Analyst",
-        "Product Operations Manager"
-      ],
       "keywords": [
         "roadmap",
-        "discovery",
         "product strategy",
-        "prioritization",
-        "user needs",
-        "requirements",
-        "product lifecycle"
-      ]
+        "user research",
+        "cross-functional",
+        "prioritization"
+      ],
+      "years_experience_typical": "3-6",
+      "market_notes": {
+        "israel": "Mid-level PM is one of the most common product roles in Israeli tech, found across virtually every B2B and consumer scale-up. Common employer base spans cyber (Wiz, Check Point, CyberArk, SentinelOne), SaaS (monday.com, Wix, JFrog, Fiverr, Gong, HiBob, AppsFlyer), AI (AI21 Labs, Run:ai, Hailo, Aidoc), FinTech (Lemonade, Payoneer, eToro, Forter, Tipalti), and consumer apps (Lightricks, Plarium, Playtika). Most Israeli PMs work close to US hours — product, design, and engineering teams are typically in Israel while users and customers are heavily US-based. Backgrounds vary widely: MBAs from Reichman / IDC / TAU / Wharton-Tel Aviv, ex-consultants from McKinsey / BCG / Bain Israel offices, and engineers / designers / data scientists pivoting to product."
+      },
+      "_research_method": "web_search"
     },
     {
       "id": "technical_product_manager",
       "standardized_title": "Technical Product Manager",
       "alternate_titles": [
-        "AI Product Manager",
-        "Platform Product Manager",
-        "Technical PM"
+        "TPM",
+        "Platform PM",
+        "Infrastructure PM",
+        "API Product Manager"
       ],
       "role_family": "Product",
-      "secondary_family": null,
+      "secondary_family": "Engineering",
       "seniority": "Senior",
       "core_purpose": "Own product direction for technically complex products by combining product judgment with strong engineering and systems understanding.",
       "core_responsibilities": [
@@ -1795,7 +1800,7 @@ export const roleLibrary = {
       "required_skills": [
         "product_strategy",
         "technical_communication",
-        "roadmapping_prioritization",
+        "roadmap_prioritization",
         "systems_thinking"
       ],
       "preferred_skills": [
@@ -1812,52 +1817,55 @@ export const roleLibrary = {
         "technical_docs"
       ],
       "technical_depth": "High",
-      "customer_facing_level": "Medium_High",
+      "customer_facing_level": "Medium",
       "revenue_ownership": "Influence",
-      "strategic_level": "Strategic",
+      "strategic_level": "Tactical",
       "lifecycle_stage": [
-        "Discovery",
-        "Planning",
-        "Launch",
-        "Iteration"
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
-        "engineering",
-        "product_management",
-        "technical_project_management"
+        "engineer_pivot",
+        "pm_with_technical_depth",
+        "8200_alumni"
       ],
       "next_roles": [
         "product_manager"
       ],
       "similar_roles": [
-        "Product Manager",
-        "Technical Project Manager"
+        "product_manager",
+        "senior_product_manager",
+        "solutions_engineering_manager",
+        "staff_engineer"
       ],
       "not_to_confuse_with": [
-        "Project Manager",
-        "Program Manager",
-        "Product Analyst"
+        "Product Manager",
+        "Engineering Manager",
+        "Technical Project Manager"
       ],
       "keywords": [
-        "technical product",
-        "platform",
-        "apis",
-        "systems",
-        "architecture",
-        "ai product",
-        "technical roadmap"
-      ]
+        "platform PM",
+        "API PM",
+        "infrastructure",
+        "developer-facing",
+        "technical product"
+      ],
+      "years_experience_typical": "5-9",
+      "market_notes": {
+        "israel": "Technical PM is common in Israeli tech given the strong technical orientation of the ecosystem — many products are infrastructure, developer tools, cyber platforms, or API-first SaaS where the buyer is a developer or architect. Heavy concentration at cyber (Wiz, Check Point, CyberArk, SentinelOne, Aqua Security, Orca, Snyk), DevTools (JFrog, Coralogix, Logz.io, Cloudinary), AI infrastructure (Run:ai, AI21 Labs, Hailo), and data platforms (WEKA, Firebolt). Often hired from senior engineers or staff engineers pivoting to product, or from PMs with strong CS / engineering backgrounds. Unit 8200 / 81 / Mamram alumni are over-represented at this level given the technical depth required."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "product_analyst",
       "standardized_title": "Product Analyst",
       "alternate_titles": [
         "Product Data Analyst",
-        "Product & BI Analyst",
-        "Growth Product Analyst"
+        "Senior Product Analyst",
+        "Growth Analyst"
       ],
       "role_family": "Product",
-      "secondary_family": null,
+      "secondary_family": "Data",
       "seniority": "Mid",
       "core_purpose": "Turn product and user data into actionable insights that improve product decisions, experiments, and performance.",
       "core_responsibilities": [
@@ -1868,9 +1876,9 @@ export const roleLibrary = {
         "Partner with product, R&D, and business teams to support data-informed decisions"
       ],
       "required_skills": [
-        "sql_analysis",
-        "product_metrics_analysis",
-        "ab_testing_experimentation",
+        "sql_advanced",
+        "product_metrics",
+        "ab_testing",
         "data_storytelling"
       ],
       "preferred_skills": [
@@ -1887,41 +1895,44 @@ export const roleLibrary = {
         "Mixpanel",
         "Amplitude"
       ],
-      "technical_depth": "Medium_High",
+      "technical_depth": "Medium",
       "customer_facing_level": "Low",
-      "revenue_ownership": "Influence",
-      "strategic_level": "Tactical_Strategic",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
       "lifecycle_stage": [
-        "Discovery",
-        "Optimization",
-        "Iteration"
+        "Growth",
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
-        "data_analysis",
-        "business_intelligence",
-        "analytics"
+        "data_analyst_pivot",
+        "engineering_pivot",
+        "mba_with_analytics"
       ],
       "next_roles": [
         "product_manager"
       ],
       "similar_roles": [
-        "Business Intelligence Analyst",
-        "Data Analyst"
+        "data_analyst",
+        "business_intelligence_analyst",
+        "associate_product_manager"
       ],
       "not_to_confuse_with": [
         "Product Manager",
-        "Product Operations Manager",
-        "Project Manager"
+        "Data Analyst"
       ],
       "keywords": [
-        "funnels",
-        "retention",
-        "ab testing",
-        "dashboards",
-        "product metrics",
-        "cohorts",
-        "user behavior"
-      ]
+        "product analytics",
+        "Mixpanel",
+        "Amplitude",
+        "experimentation",
+        "funnel analysis"
+      ],
+      "years_experience_typical": "2-5",
+      "market_notes": {
+        "israel": "Product Analyst roles cluster at consumer scale-ups (Lightricks, Plarium, Playtika), B2B SaaS (monday.com, Wix, Fiverr, Gong, HiBob), and FinTech (Lemonade, Payoneer, eToro, Tipalti) where deep user-behavior analysis directly drives product decisions. The role often fork-feeds into PM tracks for analysts who develop strong product intuition. Common tech stack: Amplitude / Mixpanel for product analytics, SQL + dbt for data modeling, Looker / Mode / Hex for dashboards, Python or R for statistical analysis. Many product analysts pair closely with one or two PMs as a partnership rather than working horizontally across the org."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "sales_development_representative",
@@ -3726,9 +3737,9 @@ export const roleLibrary = {
       "standardized_title": "Associate Product Manager",
       "alternate_titles": [
         "APM",
-        "Product Management Intern",
         "Junior Product Manager",
-        "Product Management Associate"
+        "Product Manager I",
+        "Product Associate"
       ],
       "role_family": "Product",
       "secondary_family": null,
@@ -3766,53 +3777,52 @@ export const roleLibrary = {
         "AI tools"
       ],
       "technical_depth": "Medium",
-      "customer_facing_level": "Low-Medium",
+      "customer_facing_level": "High",
       "revenue_ownership": "None",
       "strategic_level": "Execution",
       "lifecycle_stage": [
-        "Discovery",
-        "Delivery"
+        "Growth",
+        "Scale"
       ],
       "typical_backgrounds": [
-        "cs_graduate",
-        "engineering",
-        "business_analysis",
-        "customer_success",
-        "product_analyst"
+        "mba_graduate",
+        "former_consultant",
+        "engineer_pivot",
+        "designer_pivot",
+        "bootcamp_grad"
       ],
       "next_roles": [
         "product_manager",
         "product_analyst"
       ],
       "similar_roles": [
-        "Product Management Intern",
-        "Junior Product Manager"
+        "product_analyst",
+        "business_intelligence_analyst",
+        "solutions_engineer_junior"
       ],
       "not_to_confuse_with": [
         "Product Manager",
-        "Business Analyst"
+        "Product Analyst"
       ],
       "keywords": [
-        "APM",
-        "product intern",
-        "user stories",
-        "specs",
-        "discovery",
-        "engineering collaboration",
-        "AI tools",
-        "junior PM"
+        "entry-level PM",
+        "rotational PM",
+        "feature ownership",
+        "stakeholder collaboration"
       ],
       "market_notes": {
-        "israel": "APM roles are rare in the Tel Aviv high-tech market. Most companies expect at least 2 years of experience for PM entry. The most common path into product is via Customer Success, Business Analysis, or Product Analyst roles first."
-      }
+        "israel": "Associate PM roles are relatively rare in Israeli startups — most companies prefer hiring PMs at the mid level with 3+ years of prior experience. APM programs exist primarily at unicorns and large scale-ups (monday.com, Wix, JFrog, Lemonade, AppsFlyer) and at the Israeli offices of US tech giants (Google, Meta, Microsoft, Apple). Common entry paths include MBA graduates from Reichman / IDC / Tel Aviv University, ex-consultants, engineers pivoting to product, and exceptionally strong analyst hires. Strong English communication and ability to navigate US time-zone product-marketing-sales triads is critical, since most Israeli startups sell internationally."
+      },
+      "years_experience_typical": "0-2",
+      "_research_method": "knowledge"
     },
     {
       "id": "senior_product_manager",
       "standardized_title": "Senior Product Manager",
       "alternate_titles": [
         "Senior PM",
-        "Lead Product Manager (IC context)",
-        "Staff Product Manager"
+        "Lead Product Manager",
+        "Senior Product Manager"
       ],
       "role_family": "Product",
       "secondary_family": null,
@@ -3857,20 +3867,18 @@ export const roleLibrary = {
         "Salesforce",
         "Gong"
       ],
-      "technical_depth": "Medium-High",
-      "customer_facing_level": "Medium-High",
-      "revenue_ownership": "Indirect",
+      "technical_depth": "Medium",
+      "customer_facing_level": "High",
+      "revenue_ownership": "Direct",
       "strategic_level": "Strategic",
       "lifecycle_stage": [
-        "Discovery",
-        "Delivery",
-        "Growth",
-        "Strategy"
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
-        "product_manager",
-        "technical_product_manager",
-        "software_engineer"
+        "pm_promotion",
+        "external_senior_pm_hire",
+        "former_founder"
       ],
       "next_roles": [
         "group_product_manager",
@@ -3878,40 +3886,37 @@ export const roleLibrary = {
         "technical_product_manager"
       ],
       "similar_roles": [
-        "Staff Product Manager",
-        "Principal Product Manager"
+        "technical_product_manager",
+        "group_product_manager",
+        "head_of_product"
       ],
       "not_to_confuse_with": [
-        "Product Manager",
-        "Group Product Manager"
+        "Group Product Manager",
+        "Head of Product"
       ],
       "keywords": [
-        "strategy",
-        "roadmap",
-        "discovery",
-        "enterprise",
-        "stakeholder",
-        "A/B testing",
-        "launch",
-        "business case",
-        "senior PM",
-        "cross-functional",
-        "AI",
-        "cybersecurity",
-        "B2B SaaS"
-      ]
+        "strategic PM",
+        "platform PM",
+        "senior IC",
+        "complex product areas"
+      ],
+      "years_experience_typical": "6-9",
+      "market_notes": {
+        "israel": "Senior PM is a common level at scale-ups (Series B+) and unicorns where product orgs are large enough to need senior IC track distinct from people management. Strong concentration at cyber (Wiz, CyberArk, SentinelOne, Check Point), SaaS (monday.com, JFrog, Gong, HiBob, AppsFlyer, Wix), AI (AI21 Labs, Run:ai, Aidoc), and FinTech (Lemonade, Payoneer, Forter). Senior PMs typically own one major product area or platform with 1-3 PMs sometimes reporting in (in a player-coach mode). Many senior PMs in Israel have 1-2 prior cycles at scale-ups and unicorns; some are ex-founders who chose to operate rather than build again."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "group_product_manager",
       "standardized_title": "Group Product Manager",
       "alternate_titles": [
         "GPM",
-        "PM Team Lead",
-        "Lead Product Manager (people manager context)",
-        "Product Management Team Lead"
+        "Group PM",
+        "Senior Group Product Manager",
+        "Lead PM"
       ],
       "role_family": "Product",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Lead_Manager",
       "core_purpose": "Lead a team of product managers across multiple product areas, balancing hands-on product ownership with people leadership and strategic direction.",
       "core_responsibilities": [
@@ -3951,55 +3956,52 @@ export const roleLibrary = {
         "AI tools"
       ],
       "technical_depth": "Medium",
-      "customer_facing_level": "Medium-High",
-      "revenue_ownership": "Indirect",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "Direct",
       "strategic_level": "Strategic",
       "lifecycle_stage": [
-        "Strategy",
-        "Discovery",
-        "Delivery",
-        "Growth"
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
-        "senior_product_manager",
-        "product_manager"
+        "senior_pm_promotion",
+        "external_gpm_hire"
       ],
       "next_roles": [
         "head_of_product",
         "vp_product"
       ],
       "similar_roles": [
-        "PM Team Lead",
-        "Lead Product Manager"
+        "senior_product_manager",
+        "head_of_product",
+        "engineering_manager"
       ],
       "not_to_confuse_with": [
-        "Senior Product Manager",
-        "Head of Product"
+        "Head of Product",
+        "Senior PM"
       ],
       "keywords": [
-        "team lead",
-        "GPM",
-        "PM leadership",
-        "product strategy",
-        "mentoring",
-        "portfolio",
-        "roadmap",
-        "ambiguity",
-        "enterprise",
-        "cross-functional"
-      ]
+        "manager of PMs",
+        "product group",
+        "people management",
+        "multi-product"
+      ],
+      "years_experience_typical": "8-12",
+      "market_notes": {
+        "israel": "Group Product Manager emerged as a distinct level at Israeli scale-ups over the past 5-7 years — fills the gap between Senior PM and Head of Product when product orgs grow to 8-15+ PMs. Common at large scale-ups and unicorns (monday.com, Wix, JFrog, Fiverr, Wiz, CyberArk, SentinelOne, AppsFlyer, Lemonade). Often owns a product area or product line with 2-4 PMs reporting in. The role increasingly includes people management responsibilities — performance reviews, hiring, career growth — alongside continued IC work on the most strategic product decisions."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "product_operations_manager",
       "standardized_title": "Product Operations Manager",
       "alternate_titles": [
-        "Product Ops Manager",
-        "Customer Excellence Manager",
-        "Strategic PMO",
-        "Business Operations — Product"
+        "ProductOps Manager",
+        "Product Ops Lead",
+        "Senior Product Operations Manager"
       ],
       "role_family": "Product",
-      "secondary_family": null,
+      "secondary_family": "Operations",
       "seniority": "Mid",
       "core_purpose": "Enable product and go-to-market teams to operate at scale by designing processes, tracking performance, and bridging strategy with operational execution.",
       "core_responsibilities": [
@@ -4037,20 +4039,18 @@ export const roleLibrary = {
         "Excel",
         "Notion"
       ],
-      "technical_depth": "Low-Medium",
+      "technical_depth": "Medium",
       "customer_facing_level": "Low",
-      "revenue_ownership": "Indirect",
-      "strategic_level": "Execution-Strategic",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
       "lifecycle_stage": [
-        "Operations",
-        "Delivery"
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
-        "project_manager",
-        "business_analyst",
-        "strategy_operations",
-        "customer_success",
-        "consulting"
+        "pm_pivot_to_ops",
+        "biz_ops_pivot",
+        "consulting_background"
       ],
       "next_roles": [
         "senior_product_manager",
@@ -4058,27 +4058,26 @@ export const roleLibrary = {
         "head_of_product"
       ],
       "similar_roles": [
-        "Strategic PMO",
-        "Business Operations Manager",
-        "Customer Excellence Manager"
+        "product_manager",
+        "revenue_operations",
+        "head_of_product"
       ],
       "not_to_confuse_with": [
         "Product Manager",
-        "Project Manager",
-        "Business Operations Manager"
+        "Revenue Operations Manager"
       ],
       "keywords": [
-        "product ops",
-        "operations",
-        "process",
-        "KPIs",
-        "dashboards",
-        "GTM",
-        "cross-functional",
-        "PMO",
-        "strategic initiatives",
-        "scalable workflows"
-      ]
+        "ProductOps",
+        "product processes",
+        "tools",
+        "data infrastructure",
+        "cross-PM enablement"
+      ],
+      "years_experience_typical": "5-9",
+      "market_notes": {
+        "israel": "Product Operations is a relatively newer function in Israeli tech, emerging as scale-ups (Series C+) and unicorns built large product orgs that needed dedicated process and tools investment. Common at monday.com, Wix, JFrog, Wiz, CyberArk, SentinelOne, AppsFlyer, Lemonade, and at the Israeli offices of larger US companies. Often a single-person function (or 2-3 person team) that supports all PMs through better tools (Productboard, Aha, Pendo), repeatable processes (launch checklists, roadmap reviews), and centralized analytics. Career path often forks to head_of_product_ops, head_of_product, or director_product_operations."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "head_of_product",
@@ -4086,11 +4085,11 @@ export const roleLibrary = {
       "alternate_titles": [
         "VP Product",
         "Chief Product Officer",
-        "Director of Product",
-        "VP of Product Management"
+        "VP of Product Management",
+        "Director of Product"
       ],
       "role_family": "Product",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Director_Head",
       "core_purpose": "Own the entire product function — defining product vision, building the PM team, and driving product strategy that creates market-leading outcomes.",
       "core_responsibilities": [
@@ -4133,54 +4132,49 @@ export const roleLibrary = {
       ],
       "technical_depth": "Medium",
       "customer_facing_level": "High",
-      "revenue_ownership": "Indirect",
-      "strategic_level": "Executive",
+      "revenue_ownership": "Direct",
+      "strategic_level": "Strategic",
       "lifecycle_stage": [
-        "Strategy",
-        "Discovery",
-        "Delivery",
-        "Growth"
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
-        "group_product_manager",
-        "senior_product_manager",
-        "vp_product"
+        "gpm_promotion",
+        "external_vp_hire",
+        "former_founder_pivot"
       ],
       "next_roles": [
         "chief_product_officer",
         "ceo"
       ],
       "similar_roles": [
-        "VP Product",
-        "Chief Product Officer",
-        "Director of Product"
+        "vp_engineering",
+        "group_product_manager",
+        "vp_design"
       ],
       "not_to_confuse_with": [
-        "Group Product Manager",
-        "Senior Product Manager"
+        "Senior Product Manager",
+        "Group Product Manager"
       ],
       "keywords": [
-        "product vision",
-        "product strategy",
-        "team leadership",
-        "roadmap",
-        "executive",
+        "product executive",
         "head of product",
         "VP product",
-        "CPO",
-        "product org",
-        "product-market fit"
-      ]
+        "CPO"
+      ],
+      "years_experience_typical": "12-18",
+      "market_notes": {
+        "israel": "Head of Product / VP Product is a critical executive role at any product-led company past ~30 employees. Often the first product hire at very early stages (Seed) is a founding PM who eventually evolves into Head of Product. At scale-ups, the role is frequently filled by external senior hires from larger Israeli or US tech companies. Common career path includes 2-3 prior cycles at scale-ups (monday.com, Wix, JFrog, Wiz, CyberArk), unicorns, or US-headquartered companies. Strong overlap with founder profile — many Israeli VP Product hires have founded or co-founded earlier startups. Reporting line is typically to CEO; at companies with a CPO, Head of Product reports to CPO."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "data_analyst",
       "standardized_title": "Data Analyst",
       "alternate_titles": [
         "Business Analyst",
-        "BI Analyst",
-        "Product Analyst (data-focused)",
-        "Sales Data Analyst",
-        "Marketing Data Analyst"
+        "Senior Data Analyst",
+        "Analytics Analyst"
       ],
       "role_family": "Data",
       "secondary_family": null,
@@ -4226,18 +4220,17 @@ export const roleLibrary = {
       "technical_depth": "Medium",
       "customer_facing_level": "Low",
       "revenue_ownership": "None",
-      "strategic_level": "Execution-Strategic",
+      "strategic_level": "Tactical",
       "lifecycle_stage": [
-        "Insights",
-        "Optimization"
+        "Growth",
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
         "industrial_engineering",
-        "statistics",
         "economics",
-        "mathematics",
-        "cs",
-        "business"
+        "consulting_pivot",
+        "former_engineer"
       ],
       "next_roles": [
         "senior_data_analyst",
@@ -4246,40 +4239,36 @@ export const roleLibrary = {
         "data_scientist"
       ],
       "similar_roles": [
-        "Business Analyst",
-        "BI Analyst",
-        "Product Data Analyst"
+        "business_intelligence_analyst",
+        "analytics_engineer",
+        "product_analyst"
       ],
       "not_to_confuse_with": [
-        "Data Engineer",
         "Data Scientist",
-        "Product Analyst"
+        "Analytics Engineer",
+        "Business Intelligence Analyst"
       ],
       "keywords": [
         "SQL",
-        "dashboards",
-        "KPIs",
-        "analysis",
         "Tableau",
         "Looker",
-        "A/B testing",
-        "data-driven",
-        "insights",
-        "Snowflake",
-        "BigQuery",
-        "Python",
-        "storytelling",
-        "AI tools"
-      ]
+        "dashboards",
+        "ad-hoc analysis",
+        "business analytics"
+      ],
+      "years_experience_typical": "2-5",
+      "market_notes": {
+        "israel": "Data Analyst is a common entry / mid-level role across Israeli tech — found at virtually every B2B and consumer scale-up. Heavy demand at consumer companies with rich behavioral data (Lightricks, Plarium, Playtika, Gett, Moovit), SaaS scale-ups (monday.com, Wix, Fiverr, HiBob, Gong), FinTech (Lemonade, Payoneer, eToro, Forter), and cyber (Wiz, Check Point, CyberArk, SentinelOne). Many Israeli data analysts come from industrial engineering or economics programs at Technion / TAU / Reichman / Hebrew University rather than from pure data science backgrounds. Common stack: SQL + dbt + Looker / Tableau / Mode; Python or R for deeper analyses; increasingly Snowflake / BigQuery as warehouses replace Postgres for analytics."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "business_intelligence_analyst",
       "standardized_title": "Business Intelligence Analyst",
       "alternate_titles": [
         "BI Analyst",
-        "BI Developer",
-        "Data & BI Analyst",
-        "Reporting Analyst"
+        "Senior BI Analyst",
+        "BI Developer"
       ],
       "role_family": "Data",
       "secondary_family": null,
@@ -4322,17 +4311,15 @@ export const roleLibrary = {
       "technical_depth": "Medium",
       "customer_facing_level": "Low",
       "revenue_ownership": "None",
-      "strategic_level": "Execution",
+      "strategic_level": "Tactical",
       "lifecycle_stage": [
-        "Reporting",
-        "Insights"
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
-        "industrial_engineering",
-        "information_systems",
-        "statistics",
-        "economics",
-        "business"
+        "data_analyst_promotion",
+        "former_analyst_consulting",
+        "industrial_engineering"
       ],
       "next_roles": [
         "senior_data_analyst",
@@ -4340,35 +4327,33 @@ export const roleLibrary = {
         "head_of_data"
       ],
       "similar_roles": [
-        "Reporting Analyst",
-        "BI Developer"
+        "data_analyst",
+        "analytics_engineer"
       ],
       "not_to_confuse_with": [
         "Data Analyst",
-        "Analytics Engineer",
         "Data Engineer"
       ],
       "keywords": [
         "BI",
-        "dashboards",
-        "reporting",
         "Tableau",
         "Looker",
         "Power BI",
-        "data models",
-        "KPIs",
-        "source of truth",
-        "SQL",
-        "business intelligence"
-      ]
+        "executive dashboards",
+        "data modeling"
+      ],
+      "years_experience_typical": "2-5",
+      "market_notes": {
+        "israel": "Business Intelligence Analyst is most often found at larger companies (100+ employees) with structured executive reporting needs — common at monday.com, Wix, JFrog, Fiverr, Lemonade, Check Point, Amdocs, NICE Systems. At smaller scale-ups the function is usually folded into the data analyst or analytics engineer role. Common stack: Tableau or Looker dominates; Power BI mostly at the Israeli offices of Microsoft-aligned enterprises; SQL is universal; data modeling in dbt is increasingly expected for senior BI roles."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "analytics_engineer",
       "standardized_title": "Analytics Engineer",
       "alternate_titles": [
-        "Analytics Engineering",
-        "Data Analytics Engineer",
-        "BI Engineer"
+        "Senior Analytics Engineer",
+        "Data Modeling Engineer"
       ],
       "role_family": "Data",
       "secondary_family": null,
@@ -4413,16 +4398,16 @@ export const roleLibrary = {
       "technical_depth": "High",
       "customer_facing_level": "Low",
       "revenue_ownership": "None",
-      "strategic_level": "Execution",
+      "strategic_level": "Tactical",
       "lifecycle_stage": [
-        "Data Infrastructure",
-        "Insights"
+        "Growth",
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
-        "data_analyst",
-        "software_engineer",
-        "business_intelligence",
-        "industrial_engineering"
+        "data_analyst_pivot_to_engineering",
+        "data_engineer_pivot_to_modeling",
+        "former_swe_with_data_interest"
       ],
       "next_roles": [
         "senior_analytics_engineer",
@@ -4430,34 +4415,35 @@ export const roleLibrary = {
         "head_of_data"
       ],
       "similar_roles": [
-        "BI Engineer",
-        "Data Analytics Engineer"
+        "data_engineer",
+        "data_analyst",
+        "data_scientist"
       ],
       "not_to_confuse_with": [
         "Data Engineer",
-        "Data Analyst",
-        "Business Intelligence Analyst"
+        "Data Analyst"
       ],
       "keywords": [
-        "analytics engineering",
         "dbt",
         "data modeling",
-        "source of truth",
         "SQL",
-        "Snowflake",
-        "BigQuery",
-        "pipelines",
-        "data transformation",
-        "metrics"
-      ]
+        "warehouse",
+        "ELT",
+        "Snowflake"
+      ],
+      "years_experience_typical": "3-6",
+      "market_notes": {
+        "israel": "Analytics Engineering emerged as a distinct discipline in Israeli tech around 2020-2022, driven by the rise of dbt + modern data stack (Snowflake / BigQuery + Fivetran / Airbyte + dbt + Looker / Mode). Common at SaaS scale-ups with strong data culture (monday.com, Wix, JFrog, Fiverr, Gong, HiBob), FinTech (Lemonade, Forter, Tipalti, Payoneer, eToro), and at AI / consumer companies (Lightricks, Playtika, Plarium). Many analytics engineers transition from data analyst or data engineer roles; the discipline sits at the intersection. Stack is highly converged around dbt + Snowflake / BigQuery."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "data_engineer",
       "standardized_title": "Data Engineer",
       "alternate_titles": [
-        "AI Data Engineer",
+        "Senior Data Engineer",
         "Data Platform Engineer",
-        "Data Infrastructure Engineer"
+        "Big Data Engineer"
       ],
       "role_family": "Data",
       "secondary_family": null,
@@ -4505,15 +4491,16 @@ export const roleLibrary = {
       "technical_depth": "High",
       "customer_facing_level": "Low",
       "revenue_ownership": "None",
-      "strategic_level": "Execution",
+      "strategic_level": "Tactical",
       "lifecycle_stage": [
-        "Data Infrastructure"
+        "Growth",
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
-        "software_engineer",
-        "backend_engineer",
-        "data_analyst",
-        "computer_science"
+        "swe_pivot_to_data",
+        "8200_data_unit",
+        "former_backend_engineer"
       ],
       "next_roles": [
         "senior_data_engineer",
@@ -4521,41 +4508,41 @@ export const roleLibrary = {
         "head_of_data"
       ],
       "similar_roles": [
-        "AI Data Engineer",
-        "Data Platform Engineer"
+        "analytics_engineer",
+        "data_scientist",
+        "mlops_engineer",
+        "software_engineer"
       ],
       "not_to_confuse_with": [
         "Analytics Engineer",
         "Data Scientist",
-        "Backend Engineer"
+        "Data Analyst"
       ],
       "keywords": [
-        "ETL",
-        "ELT",
-        "pipelines",
+        "data pipelines",
         "Snowflake",
-        "dbt",
+        "BigQuery",
         "Airflow",
         "Spark",
-        "Python",
-        "SQL",
-        "data platform",
-        "data infrastructure",
-        "cloud",
-        "streaming",
-        "Kafka"
-      ]
+        "ELT",
+        "data infrastructure"
+      ],
+      "years_experience_typical": "3-7",
+      "market_notes": {
+        "israel": "Data Engineering is one of the highest-demand roles in Israeli tech given the data-heavy nature of cyber, AI, FinTech, and consumer SaaS. Heavy employer base at cyber (Wiz, Check Point, CyberArk, SentinelOne, Cyera, BigID, Cybereason, Aqua Security), SaaS (monday.com, Wix, JFrog, Fiverr, Gong, HiBob, AppsFlyer), FinTech (Lemonade, Payoneer, eToro, Forter, Tipalti, Pagaya), and AI scale-ups (Run:ai, AI21, Hailo, Verbit, Lightricks). Stack is generally Snowflake or BigQuery for warehouse, Airflow / Dagster / Prefect for orchestration, dbt for transformation, Kafka for streaming, Spark for big-data workloads. Many data engineers transition from software engineering with growing demand from MLOps and platform engineering teams."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "data_scientist",
       "standardized_title": "Data Scientist",
       "alternate_titles": [
-        "ML Engineer",
-        "Applied Data Scientist",
-        "Machine Learning Scientist"
+        "Senior Data Scientist",
+        "Applied Scientist",
+        "ML Data Scientist"
       ],
       "role_family": "Data",
-      "secondary_family": null,
+      "secondary_family": "AI_ML",
       "seniority": "Mid",
       "core_purpose": "Develop and deploy machine learning models and statistical solutions that create measurable business value from complex data.",
       "core_responsibilities": [
@@ -4597,19 +4584,17 @@ export const roleLibrary = {
       ],
       "technical_depth": "High",
       "customer_facing_level": "Low",
-      "revenue_ownership": "None",
-      "strategic_level": "Execution-Strategic",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Tactical",
       "lifecycle_stage": [
-        "Modeling",
-        "Insights",
-        "Optimization"
+        "Growth",
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
-        "computer_science",
-        "mathematics",
-        "statistics",
-        "physics",
-        "engineering"
+        "phd_pivot_to_industry",
+        "statistics_economics_background",
+        "former_ml_researcher"
       ],
       "next_roles": [
         "senior_data_scientist",
@@ -4617,39 +4602,36 @@ export const roleLibrary = {
         "head_of_data"
       ],
       "similar_roles": [
-        "ML Engineer",
-        "Applied Scientist",
-        "Machine Learning Scientist"
+        "data_analyst",
+        "ai_engineer_mid",
+        "applied_ai_researcher",
+        "analytics_engineer"
       ],
       "not_to_confuse_with": [
         "Data Analyst",
-        "Data Engineer",
-        "Analytics Engineer"
+        "AI Engineer",
+        "Applied AI Researcher",
+        "Data Engineer"
       ],
       "keywords": [
+        "statistical modeling",
         "machine learning",
-        "ML",
-        "models",
-        "Python",
-        "PyTorch",
-        "scikit-learn",
-        "production",
-        "A/B testing",
-        "feature engineering",
-        "deep learning",
-        "LLM",
-        "GenAI",
-        "MLOps"
-      ]
+        "experimentation",
+        "causal inference"
+      ],
+      "years_experience_typical": "3-7",
+      "market_notes": {
+        "israel": "Data Scientist roles in Israeli tech split into two distinct flavors — applied / business-oriented (closer to product analyst with statistical modeling capability) and ML / research-oriented (closer to AI Engineer / Applied Researcher). Heavy demand at AI-native companies (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One), consumer companies with rich behavioral data (Lightricks, Plarium, Playtika, Gett), B2B SaaS with strong product analytics (monday.com, Wix, Gong, Fiverr), FinTech (Lemonade, Forter, Pagaya, eToro, Tipalti), and at the Israeli AI / research labs of major tech companies (NVIDIA Israel, Intel AI, Microsoft Research Israel, IBM Research Israel). Common backgrounds: PhDs in statistics, economics, physics, or computer science from Israeli universities or international programs."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "senior_data_analyst",
       "standardized_title": "Senior Data Analyst",
       "alternate_titles": [
-        "Senior BI Analyst",
         "Lead Data Analyst",
         "Principal Data Analyst",
-        "Analytics Lead"
+        "Senior Business Analyst"
       ],
       "role_family": "Data",
       "secondary_family": null,
@@ -4693,20 +4675,18 @@ export const roleLibrary = {
         "dbt",
         "AI tools"
       ],
-      "technical_depth": "Medium-High",
+      "technical_depth": "High",
       "customer_facing_level": "Low",
-      "revenue_ownership": "None",
+      "revenue_ownership": "Influence",
       "strategic_level": "Strategic",
       "lifecycle_stage": [
-        "Insights",
-        "Optimization",
-        "Strategy"
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
-        "data_analyst",
-        "business_analyst",
-        "industrial_engineering",
-        "statistics"
+        "analyst_promotion",
+        "consulting_to_industry",
+        "former_data_scientist_pivot"
       ],
       "next_roles": [
         "head_of_data",
@@ -4714,44 +4694,37 @@ export const roleLibrary = {
         "data_scientist"
       ],
       "similar_roles": [
-        "Lead Data Analyst",
-        "Principal Analyst",
-        "Analytics Lead"
+        "data_scientist",
+        "analytics_engineer",
+        "business_intelligence_analyst",
+        "head_of_data"
       ],
       "not_to_confuse_with": [
-        "Data Analyst",
-        "Head of Data",
-        "Data Scientist"
+        "Data Scientist",
+        "Head of Data"
       ],
       "keywords": [
-        "senior analyst",
-        "SQL",
-        "Snowflake",
-        "Python",
-        "A/B testing",
-        "KPIs",
-        "deep dive",
-        "ownership",
-        "dashboards",
-        "data strategy",
-        "Tableau",
-        "Looker",
-        "GenAI tools"
-      ]
+        "senior IC analyst",
+        "cross-functional analytics",
+        "business strategy support"
+      ],
+      "years_experience_typical": "5-9",
+      "market_notes": {
+        "israel": "Senior Data Analyst is the most common senior IC analytics role in Israeli tech — sits between mid-level analyst and head_of_data. Heavy concentration at scale-ups and unicorns with mature analytics functions: monday.com, Wix, JFrog, Fiverr, Lemonade, Gong, HiBob, AppsFlyer, Wiz, Check Point. The role typically leads cross-functional analytics initiatives, owns critical business reviews, and mentors mid-level analysts. Often paired with PM or business leaders as a partnership rather than working horizontally."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "head_of_data",
       "standardized_title": "Head of Data & Analytics",
       "alternate_titles": [
-        "Head of Analytics",
-        "Director of Data",
         "VP Data",
-        "Analytics Guild Master",
-        "Head of BI",
-        "Data Team Lead"
+        "Director of Data",
+        "Head of Analytics",
+        "Chief Data Officer"
       ],
       "role_family": "Data",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Director_Head",
       "core_purpose": "Own the entire data and analytics function — defining data strategy, building the team, setting standards, and turning data into a company-wide competitive advantage.",
       "core_responsibilities": [
@@ -4793,20 +4766,18 @@ export const roleLibrary = {
         "Mixpanel",
         "AI tools"
       ],
-      "technical_depth": "Medium-High",
-      "customer_facing_level": "Low",
-      "revenue_ownership": "Indirect",
+      "technical_depth": "Medium",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "Influence",
       "strategic_level": "Strategic",
       "lifecycle_stage": [
-        "Strategy",
-        "Insights",
-        "Data Infrastructure"
+        "Scale",
+        "Mature"
       ],
       "typical_backgrounds": [
-        "senior_data_analyst",
-        "data_scientist",
-        "analytics_engineer",
-        "head_of_data"
+        "data_scientist_leadership_track",
+        "analytics_director_promotion",
+        "external_head_of_data_hire"
       ],
       "next_roles": [
         "vp_data",
@@ -4814,30 +4785,26 @@ export const roleLibrary = {
         "vp_product"
       ],
       "similar_roles": [
-        "Director of Analytics",
-        "VP Data",
-        "Analytics Lead"
+        "head_of_ai",
+        "vp_engineering",
+        "head_of_product"
       ],
       "not_to_confuse_with": [
-        "Senior Data Analyst",
-        "Data Scientist",
+        "Chief Data Officer",
+        "Head of AI",
         "VP Engineering"
       ],
       "keywords": [
-        "data strategy",
-        "analytics leadership",
-        "team building",
-        "KPIs",
-        "SQL",
-        "Snowflake",
-        "Python",
-        "data culture",
-        "experimentation",
         "head of data",
-        "director",
-        "BI",
-        "ML"
-      ]
+        "VP data",
+        "data org leader",
+        "analytics leader"
+      ],
+      "years_experience_typical": "10-15",
+      "market_notes": {
+        "israel": "Head of Data is a critical role at any data-driven Israeli company past ~50 employees — owns analytics, data engineering, and often early-stage data science / ML. Heavy concentration at scale-ups and unicorns: monday.com, Wix, JFrog, Fiverr, Lemonade, Gong, HiBob, AppsFlyer, Wiz, CyberArk, SentinelOne, Lightricks. The role frequently reports to CTO or VP Engineering at early stages, sometimes directly to CEO at data-product companies (Lemonade, Forter, Pagaya, Riskified, Tipalti). Many Israeli Head of Data hires have done 2-3 prior cycles and bring both technical depth and executive credibility — increasingly common to see candidates with PhDs plus production leadership experience."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "fpa_analyst",
@@ -7433,17 +7400,28 @@ export const roleLibrary = {
       "seniority": "Entry",
       "core_purpose": "Entry-level engineer working on AI/ML features under close guidance. Contributes to building LLM-powered applications, data pipelines, model integration, and basic ML workflows. Focus is on learning production AI engineering practices while delivering small, well-scoped components within a larger AI system.",
       "core_responsibilities": [
-        "Implement backend services and integrate LLM APIs (OpenAI, Anthropic, etc.) under senior guidance",
-        "Contribute to RAG pipelines: embedding generation, vector search, retrieval logic",
-        "Write Python code for data preparation, feature engineering, and basic model pipelines",
-        "Assist with prompt engineering and evaluation of model outputs",
-        "Help build and maintain simple ML workflows and automation scripts",
-        "Participate in code reviews, learn production engineering standards, and contribute to documentation",
-        "Debug and troubleshoot issues in AI-powered features",
-        "Explore and experiment with new AI tools and frameworks to bring ideas to the team"
+        "Build LLM-powered features under senior guidance — chain prompts, integrate APIs, evaluate outputs, ship to production",
+        "Work with embeddings and RAG systems — chunking strategies, vector store integration, retrieval-quality evaluation",
+        "Run experiments with different models, prompts, and parameters; document results and iterate based on offline + online metrics",
+        "Build data pipelines for training data preparation, evaluation set curation, and prompt-versioning workflows",
+        "Pair with senior AI engineers and ML researchers on harder problems; learn the team's tools and ML production practices",
+        "Contribute to monitoring and evaluation infrastructure — track model drift, response quality, latency, and cost"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "python_development",
+        "llm_api_integration",
+        "prompt_engineering",
+        "machine_learning_fundamentals",
+        "llm_fundamentals",
+        "git_version_control"
+      ],
+      "preferred_skills": [
+        "rag_systems",
+        "vector_databases",
+        "model_deployment_serving",
+        "data_engineering_pipelines",
+        "containerization"
+      ],
       "tools": [
         "Python",
         "OpenAI API",
@@ -7457,8 +7435,48 @@ export const roleLibrary = {
         "vector databases (Pinecone, Weaviate, Chroma)"
       ],
       "market_notes": {
-        "israel": "Direct Junior AI/ML Engineer roles at product companies are relatively rare in Israel. The most common entry paths are: (1) intensive bootcamp/training programs like Infinity Labs R&D (STEM graduates, 5-month hybrid programs with placement) or similar paid tracks that lead to junior placements at partner companies; (2) consulting firms like KPMG Associate GenAI Engineer which hire early-career engineers for client AI delivery; (3) conversion from Junior Software Engineer roles after self-study and internal project work. Candidates typically need a BSc in CS/STEM with strong GPA (80+) and psychometric scores above 680-700 for competitive programs. The market strongly prefers candidates who have built real AI projects (even side projects) over those with only coursework. Tel Aviv and Herzliya dominate; remote-first AI startups exist but rarely hire juniors remotely."
-      }
+        "israel": "Direct Junior AI/ML Engineer roles at product companies are relatively rare in Israel — most companies hire AI engineers at mid level (3+ years). Common entry paths include intensive bootcamp / training programs (Infinity Labs R&D, Microsoft Reactor, ITC), Unit 8200 / 81 alumni transitioning to civilian AI roles, and exceptional CS graduates with strong project portfolios. Strong concentration at AI-native scale-ups (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One, D-ID), AI-heavy cyber companies (Wiz, Cyera, Snyk, BigID), and the Israeli offices of major AI labs (NVIDIA AI, Intel AI, Microsoft Reactor). Stack reality: Python is universal; OpenAI / Anthropic / Google API integration is baseline; LangChain / LlamaIndex / Haystack appear at varying levels of sophistication; vector databases (Pinecone, Weaviate, Qdrant) and embeddings work are increasingly expected even at the junior level."
+      },
+      "alternate_titles": [
+        "Junior AI Engineer",
+        "Junior ML Engineer",
+        "AI/ML Engineer I",
+        "Entry-Level AI Engineer"
+      ],
+      "technical_depth": "Medium",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Execution",
+      "lifecycle_stage": [
+        "Growth",
+        "Scale"
+      ],
+      "typical_backgrounds": [
+        "computer_science",
+        "bootcamp_grad",
+        "data_science_pivot",
+        "8200_alumni"
+      ],
+      "years_experience_typical": "0-2",
+      "next_roles": [
+        "ai_engineer_mid"
+      ],
+      "similar_roles": [
+        "junior_software_engineer",
+        "data_scientist"
+      ],
+      "not_to_confuse_with": [
+        "AI Engineer Mid",
+        "Junior Data Scientist"
+      ],
+      "keywords": [
+        "LLM",
+        "RAG",
+        "prompt engineering",
+        "embeddings",
+        "entry AI"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "ai_engineer_mid",
@@ -7468,19 +7486,30 @@ export const roleLibrary = {
       "seniority": "Mid",
       "core_purpose": "Mid-level engineer who designs and builds production AI systems using LLMs, RAG pipelines, and agentic workflows. Owns features end-to-end — from problem definition through deployment and monitoring. Works closely with product and other engineers to translate business problems into AI-powered solutions that scale.",
       "core_responsibilities": [
-        "Design and build LLM-powered applications, AI agents, and RAG pipelines in production",
-        "Implement and optimize prompt engineering strategies (few-shot, chain-of-thought, tool use)",
-        "Build data pipelines for ingestion, processing, and embedding of structured and unstructured data",
-        "Integrate AI capabilities with internal APIs, services, databases, and customer-facing products",
-        "Develop evaluation frameworks and monitoring for model performance, accuracy, and cost",
-        "Collaborate with product managers and domain experts to define high-value AI use cases",
-        "Own the 'how' of AI: from idea to prototype to functional integration",
-        "Stay current with emerging LLM capabilities, agent frameworks, and AI tooling",
-        "Contribute to architectural decisions on AI infrastructure, model selection, and build-vs-buy tradeoffs",
-        "Deploy and operate AI workloads on cloud platforms (AWS, GCP, Azure, Databricks)"
+        "Design and ship LLM-powered features end-to-end — from prompt design through evaluation, deployment, and monitoring",
+        "Build production RAG systems — embedding pipelines, chunking strategies, vector retrieval, re-ranking, response generation",
+        "Run rigorous offline + online evaluations — define quality metrics, build eval datasets, track regressions across model versions",
+        "Optimize model serving for latency, cost, and throughput — caching strategies, batching, model selection trade-offs",
+        "Partner with PM and ML researchers on harder problems — when to fine-tune vs prompt, when to use smaller open models, when to retrain",
+        "Mentor junior AI engineers on prompt design, evaluation discipline, and the engineering rigor required for production AI"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "python_development",
+        "llm_api_integration",
+        "prompt_engineering",
+        "rag_systems",
+        "model_deployment_serving",
+        "llm_evaluation",
+        "vector_databases",
+        "machine_learning"
+      ],
+      "preferred_skills": [
+        "fine_tuning_models",
+        "model_training_finetuning",
+        "model_monitoring_drift",
+        "data_engineering_pipelines",
+        "ai_tool_fluency"
+      ],
       "tools": [
         "Python",
         "OpenAI/Anthropic/Bedrock APIs",
@@ -7500,8 +7529,52 @@ export const roleLibrary = {
         "Git"
       ],
       "market_notes": {
-        "israel": "This is the highest-volume AI role in the Israeli market right now. Strong demand across cybersecurity (Act Security, Jazz DLP, Winn.ai, Check Point), fintech (Papaya, FlexFactor, One Zero), enterprise SaaS (SysAid, Connecteam), and horizontal AI platforms (Unframe, Latent AI, Sett, WIDER). The title varies considerably — 'AI Engineer', 'GenAI Engineer', 'Applied AI Engineer', 'ML Engineer', 'LLM Engineer' are often interchangeable. Most roles require 2-4 years of experience with strong Python and production system experience. LLM API experience (OpenAI, Anthropic, Bedrock) is now table stakes; RAG pipeline experience is expected; agent framework experience (LangChain, LangGraph) is a strong differentiator. Israel has a higher concentration of AI engineering roles requiring cybersecurity domain knowledge than most global markets."
-      }
+        "israel": "Mid-level AI Engineer is the most in-demand AI role in Israeli tech as of 2025-2026 — virtually every B2B and consumer scale-up is building GenAI features and needs engineers who can bridge ML research and production engineering. Heavy concentration at AI-native scale-ups (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One, D-ID, Verbit, Decart), cyber companies adding AI capabilities (Wiz, Cyera, BigID, Snyk, CyberArk), SaaS scale-ups (monday.com, Wix, JFrog, Gong, HiBob), and AI agent startups (Wonderful, Band, Sett). The role typically requires 3-6 years of software engineering experience plus production AI experience; pure data scientists without strong software engineering skills usually pivot through MLOps or applied ML roles first."
+      },
+      "alternate_titles": [
+        "AI Engineer",
+        "ML Engineer",
+        "Applied AI Engineer",
+        "GenAI Engineer"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Growth",
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "ml_engineer_pivot",
+        "swe_pivot_to_ai",
+        "data_scientist_pivot",
+        "8200_alumni"
+      ],
+      "years_experience_typical": "3-6",
+      "next_roles": [
+        "senior_ai_engineer",
+        "mlops_engineer"
+      ],
+      "similar_roles": [
+        "software_engineer",
+        "data_scientist",
+        "data_engineer"
+      ],
+      "not_to_confuse_with": [
+        "Senior AI Engineer",
+        "ML Engineer",
+        "Data Scientist"
+      ],
+      "keywords": [
+        "GenAI engineer",
+        "LLM production",
+        "RAG",
+        "evaluation",
+        "applied AI"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "senior_ai_engineer",
@@ -7511,19 +7584,31 @@ export const roleLibrary = {
       "seniority": "Senior",
       "core_purpose": "Senior engineer responsible for architecting and delivering complex, production-scale AI systems. Makes core design decisions on model selection, system architecture, and engineering standards. Leads technical implementation of flagship AI features, mentors mid-level engineers, and operates across the full AI lifecycle from research to production.",
       "core_responsibilities": [
-        "Architect production-grade AI systems: LLM orchestration, agentic workflows, RAG infrastructure, vector search",
-        "Drive technical direction on model selection, prompt strategies, evaluation methodologies, and system design",
-        "Lead end-to-end delivery of major AI features from research through deployment, optimization, and maintenance",
-        "Build and deploy classification, generation, and embedding models tailored to specific business use cases",
-        "Design automated testing, evaluation, and monitoring systems to ensure model quality in production",
-        "Solve hard problems in AI reliability: hallucination mitigation, cost optimization, latency reduction, caching strategies",
-        "Mentor junior and mid-level AI engineers and contribute to engineering standards",
-        "Collaborate with product, research, and platform teams to bridge research ideas and production systems",
-        "Establish AI engineering best practices: prompt libraries, eval harnesses, observability, safety controls",
-        "Take ownership of complex, ambiguous technical challenges and drive them to working solutions"
+        "Own end-to-end AI systems with significant production impact — design, evaluation, deployment, monitoring, and continuous improvement",
+        "Make architecture decisions on model selection, serving infrastructure, and evaluation methodology that ripple across the AI team",
+        "Lead the most complex AI projects — multi-step agent workflows, custom fine-tuning, novel retrieval architectures, advanced evaluation systems",
+        "Mentor mid-level AI engineers; set the engineering quality bar for AI work; review AI PRs for both ML correctness and engineering rigor",
+        "Partner with ML researchers and applied scientists on harder problems requiring custom model development or training",
+        "Represent the AI team in cross-functional technical discussions — explain AI capabilities and limits to PM, sales, and exec teams"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "python_development",
+        "llm_api_integration",
+        "prompt_engineering",
+        "rag_systems",
+        "model_deployment_serving",
+        "llm_evaluation",
+        "model_training_finetuning",
+        "ml_systems_thinking",
+        "machine_learning"
+      ],
+      "preferred_skills": [
+        "deep_learning",
+        "model_monitoring_drift",
+        "mlops_pipelines",
+        "cross_functional_collaboration",
+        "mentoring"
+      ],
       "tools": [
         "Python",
         "PyTorch",
@@ -7543,30 +7628,83 @@ export const roleLibrary = {
         "Prometheus/Grafana"
       ],
       "market_notes": {
-        "israel": "Strong demand for Senior AI Engineers across Israeli high-tech, particularly at Series B+ startups building AI-native products. Typical experience requirement is 4-6+ years, often with MSc or PhD preferred in technical or AI-adjacent fields. The role increasingly combines deep AI systems knowledge with strong backend engineering — companies like Winn.ai and Connecteam explicitly require 6-8+ years of full-stack or backend experience plus hands-on AI expertise. Cybersecurity-focused AI startups (Jazz, Act Security, Cymphony) particularly value candidates with security domain experience or 8200/military technical backgrounds. Compensation is among the highest in Israeli tech, with equity a significant component at early-stage companies."
-      }
+        "israel": "Senior AI Engineer represents the technical backbone of Israeli AI orgs. Heavy concentration at AI-native scale-ups and unicorns (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One, D-ID, Decart, Verbit), AI-heavy cyber (Wiz, Cyera, BigID, Snyk, Astrix Security), and large product orgs at SaaS unicorns (monday.com, JFrog, Wix, Gong) where AI features drive substantial product investment. Many senior AI engineers have backgrounds combining ML research training (PhD or strong academic publications) with applied production experience; Unit 8200 / 81 / 9900 alumni are over-represented given Israel's military AI / cyber heritage."
+      },
+      "alternate_titles": [
+        "Staff AI Engineer",
+        "Principal AI Engineer",
+        "Senior ML Engineer",
+        "Senior Applied AI Engineer"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Strategic",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "ai_engineer_promotion",
+        "ml_research_pivot",
+        "phd_to_industry"
+      ],
+      "years_experience_typical": "6-10",
+      "next_roles": [
+        "ml_lead",
+        "head_of_ai",
+        "applied_ai_researcher"
+      ],
+      "similar_roles": [
+        "staff_engineer",
+        "applied_ai_researcher",
+        "mlops_engineer"
+      ],
+      "not_to_confuse_with": [
+        "Head of AI",
+        "Applied AI Researcher",
+        "MLOps Engineer"
+      ],
+      "keywords": [
+        "staff AI",
+        "principal AI",
+        "AI architecture",
+        "evaluation systems",
+        "fine-tuning"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "mlops_engineer",
       "standardized_title": "MLOps / ML Platform Engineer",
       "role_family": "AI_ML",
-      "secondary_family": null,
+      "secondary_family": "Engineering",
       "seniority": "Senior",
       "core_purpose": "Engineer focused on the infrastructure, pipelines, and tooling that turn AI models into reliable, scalable production systems. Owns the machine learning lifecycle from data and training through deployment, monitoring, and retraining. Bridges AI researchers, data engineers, and platform/DevOps teams.",
       "core_responsibilities": [
-        "Design and build end-to-end MLOps pipelines: data → training → evaluation → deployment → monitoring",
-        "Build and maintain training pipelines for large-scale AI models with experiment tracking and reproducibility",
-        "Implement and manage model registries, versioning systems, and artifact management (MLflow, W&B, DVC)",
-        "Deploy models to production: batch pipelines, real-time inference, cloud, on-prem, and edge-adjacent environments",
-        "Work with distributed systems for large-scale training and inference (Kubernetes, Ray, Spark)",
-        "Optimize workloads across CPU/GPU/memory for cost and performance efficiency",
-        "Build model monitoring systems: performance metrics, data drift, quality checks, automated retraining",
-        "Automate retraining workflows, evaluation pipelines, and deployment processes",
-        "Collaborate with AI researchers, data engineers, and DevOps/platform engineers to move models from research to production",
-        "Ensure models remain robust under changing real-world conditions with continuous evaluation pipelines"
+        "Build and maintain ML serving infrastructure — model deployment pipelines, A/B testing for model versions, canary rollouts",
+        "Own model monitoring — drift detection, performance regression alerts, evaluation pipeline scheduling, cost tracking",
+        "Build training pipeline infrastructure — feature stores, data versioning, experiment tracking, hyperparameter tuning",
+        "Partner with data engineers on production data flows feeding training and inference",
+        "Optimize inference cost and latency — GPU utilization, model quantization, serving framework selection, caching",
+        "Set the platform standards for how AI engineers ship models — opinionated tooling, CI/CD for ML, evaluation gates"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "mlops",
+        "mlops_pipelines",
+        "model_deployment_serving",
+        "model_monitoring_drift",
+        "python_development",
+        "cloud_platforms_devops",
+        "containerization",
+        "ci_cd"
+      ],
+      "preferred_skills": [
+        "machine_learning",
+        "kubernetes",
+        "data_engineering_pipelines",
+        "performance_optimization"
+      ],
       "tools": [
         "Python",
         "PyTorch",
@@ -7589,30 +7727,82 @@ export const roleLibrary = {
         "Terraform"
       ],
       "market_notes": {
-        "israel": "MLOps is emerging as a clearly distinct role from general AI/ML Engineering in Israel, with explicit titles at companies like Algolight, and embedded MLOps responsibilities at most AI-native startups. Typical experience is 3-5+ years with a mix of ML and infrastructure/DevOps backgrounds. Strong demand at companies dealing with large-scale data (satellite/geospatial like Algolight, financial modeling, healthcare AI), distributed training workloads, or real-time inference systems. Candidates with Kubernetes + Ray/Airflow experience plus strong Python and cloud platform knowledge are particularly sought after. GPU workload optimization and experience with feature stores are increasingly valued."
-      }
+        "israel": "MLOps Engineering is a critical role at AI-native scale-ups and any company with non-trivial production AI. Particularly heavy demand at Run:ai (entire business is MLOps infrastructure), Hailo, AI21 Labs, Aidoc, Verbit, Lightricks, Hour One, D-ID. Also common at SaaS scale-ups with embedded AI (monday.com, Gong, Cyera, BigID, Snyk, Wiz) and at companies building AI platforms (Decart, Solid, Granica). Common backgrounds include DevOps / Platform Engineering pivoting to ML, ML engineers pivoting to platform work, and seasoned data engineers with ML experience. Heavy use of Kubernetes, Ray, Kubeflow, Airflow, MLflow, Weights & Biases, and increasingly Modal / Anyscale-style serverless ML platforms."
+      },
+      "alternate_titles": [
+        "ML Platform Engineer",
+        "ML Infrastructure Engineer",
+        "AI Platform Engineer"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "devops_pivot_to_ml",
+        "ml_engineer_pivot_to_platform",
+        "platform_engineer_with_ml_focus"
+      ],
+      "years_experience_typical": "5-9",
+      "next_roles": [
+        "ml_lead",
+        "head_of_ai",
+        "platform_engineering_lead"
+      ],
+      "similar_roles": [
+        "devops_engineer",
+        "sre_engineer",
+        "senior_ai_engineer",
+        "data_engineer"
+      ],
+      "not_to_confuse_with": [
+        "AI Engineer",
+        "DevOps Engineer",
+        "Data Engineer"
+      ],
+      "keywords": [
+        "MLOps",
+        "ML platform",
+        "model serving",
+        "training pipelines",
+        "evaluation infrastructure"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "cv_edge_ai_engineer",
       "standardized_title": "Computer Vision / Edge AI Engineer",
       "role_family": "AI_ML",
-      "secondary_family": null,
+      "secondary_family": "Engineering",
       "seniority": "Senior",
       "core_purpose": "Specialist engineer building AI systems for computer vision, real-time inference, and deployment on edge devices. Works across the full stack — from model development to systems optimization, sensor integration, and deployment on resource-constrained hardware. Common in defense, autonomous systems, robotics, AR/VR, and physical AI applications.",
       "core_responsibilities": [
-        "Build computer vision models for detection, segmentation, tracking, and scene understanding",
-        "Design and optimize real-time AI pipelines running on edge devices (Jetson-class hardware, embedded systems)",
-        "Optimize inference pipelines for latency, memory, throughput, and power consumption",
-        "Work under real-world constraints: noise, motion, instability, limited compute, degraded sensor data",
-        "Integrate multi-sensor systems (RGB, thermal/IR, radar, lidar, depth) for fusion and ground truth transfer",
-        "Combine classical computer vision algorithms with deep learning approaches",
-        "Build pipelines for large-scale dataset generation, labeling, and synthetic data",
-        "Work with CUDA/GPU programming for performance-critical components",
-        "Take open-ended problems from concept to working prototype to deployed system",
-        "Handle full-stack problems: data → models → systems → deployment"
+        "Build computer vision models — object detection, segmentation, classification, depth estimation, OCR — for production use cases",
+        "Optimize models for edge deployment — quantization, pruning, knowledge distillation, model compression for embedded targets",
+        "Own the full CV / Edge AI stack — data annotation pipelines, training infrastructure, deployment to target hardware (GPUs, TPUs, NPUs, embedded SoCs)",
+        "Profile model performance on target hardware; iterate on architecture and quantization to meet latency / power budgets",
+        "Partner with embedded systems engineers on hardware-software co-design for edge AI products",
+        "Evaluate research developments in CV / edge AI and adapt promising approaches into production"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "computer_vision",
+        "deep_learning",
+        "edge_ai_deployment",
+        "python_development",
+        "model_training_finetuning",
+        "model_deployment_serving"
+      ],
+      "preferred_skills": [
+        "model_quantization",
+        "embedded_systems",
+        "cuda_programming",
+        "machine_learning",
+        "ml_systems_thinking"
+      ],
       "tools": [
         "Python",
         "C++",
@@ -7630,8 +7820,50 @@ export const roleLibrary = {
         "Classical CV algorithms (SIFT, SURF, optical flow)"
       ],
       "market_notes": {
-        "israel": "Israel has a uniquely strong market for CV/Edge AI engineers driven by defense applications (multiple defense primes and startups), autonomous vehicles (Mobileye and its ecosystem), drone technology (Orca AI, defense drone startups), AR/VR (multiple startups), and industrial automation. Companies like Algolight explicitly seek full-stack CV engineers who can operate across sensors, algorithms, and deployment. 8200/military technical backgrounds (especially from image/signal intelligence units) are a significant advantage. The market values engineers who combine computer vision depth with systems-level thinking and ability to work with physics-based sensor data. CUDA/GPU programming experience is a strong differentiator. Companies increasingly demand experience with real-world degraded data rather than only clean benchmarks."
-      }
+        "israel": "Computer Vision and Edge AI is a particularly strong Israeli specialty given the country's defense and automotive technology heritage. Heavy concentration at Mobileye (autonomous driving), Hailo (edge AI chips), AI21 Labs, Innoviz Technologies, Foresight Autonomous, Cellebrite, Trigo, Trax Retail, OrCam, Edgybees, Aidoc (medical imaging), and the AI / CV teams at major cyber companies (Wiz, BigID). Unit 9900 (military imaging intelligence), 8200, and 81 alumni dominate the senior talent pool. Stack typically Python + PyTorch (TensorFlow declining), with C++ / CUDA for performance-critical paths and embedded targets (NVIDIA Jetson, Hailo, Qualcomm, custom silicon)."
+      },
+      "alternate_titles": [
+        "Computer Vision Engineer",
+        "Edge AI Engineer",
+        "Embedded ML Engineer",
+        "CV Engineer"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "cv_research_to_industry",
+        "embedded_engineer_pivot",
+        "ml_engineer_specialization"
+      ],
+      "years_experience_typical": "5-10",
+      "next_roles": [
+        "ml_lead",
+        "applied_ai_researcher",
+        "head_of_ai"
+      ],
+      "similar_roles": [
+        "senior_ai_engineer",
+        "applied_ai_researcher",
+        "mlops_engineer"
+      ],
+      "not_to_confuse_with": [
+        "AI Engineer",
+        "Applied AI Researcher"
+      ],
+      "keywords": [
+        "computer vision",
+        "edge AI",
+        "embedded ML",
+        "quantization",
+        "model optimization"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "applied_ai_researcher",
@@ -7641,19 +7873,28 @@ export const roleLibrary = {
       "seniority": "Senior",
       "core_purpose": "Research-oriented engineer who owns the full lifecycle of AI projects — from problem formulation and experimentation through production deployment. Bridges academic research and applied engineering, combining deep ML methodology with production systems thinking. Works on novel problems where off-the-shelf solutions don't exist.",
       "core_responsibilities": [
-        "Own full AI project lifecycle: problem definition, research, experimentation, production deployment, monitoring",
-        "Design and build AI agents, RAG systems, and ML models across tabular, text, image, and multimodal data",
-        "Apply ML algorithms (classical and transformer-based) to solve complex real-world problems",
-        "Conduct structured experimentation: hypothesize, design, implement, and measure experiments",
-        "Extract meaningful features and uncover hidden patterns in large datasets using statistical methodologies",
-        "Develop evaluation frameworks and benchmarks to test AI capabilities before they reach production",
-        "Stay current with academic literature and emerging research; translate papers into actionable solutions",
-        "Collaborate with data engineering teams on development and deployment of AI pipelines",
-        "Monitor production performance and business impact of deployed models",
-        "Bring novel approaches and methodologies to problems where standard solutions don't work"
+        "Bridge research and production — read latest papers, identify which methods are ready for production application, prototype them",
+        "Run rigorous experiments comparing different model architectures, training approaches, or evaluation strategies",
+        "Develop novel methods for the company's specific problem domain when off-the-shelf research doesn't fit",
+        "Publish papers, give conference talks, and contribute to open-source projects that strengthen the company's research reputation",
+        "Mentor AI engineers on rigorous experimentation, evaluation methodology, and how to read research papers critically",
+        "Partner with senior product and engineering leadership on AI strategy — what's possible now, what's 6-12 months away"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "deep_learning",
+        "machine_learning",
+        "model_training_finetuning",
+        "python_development",
+        "llm_fundamentals",
+        "ml_systems_thinking"
+      ],
+      "preferred_skills": [
+        "research_writing",
+        "experimental_design",
+        "fine_tuning_models",
+        "computer_vision",
+        "model_evaluation"
+      ],
       "tools": [
         "Python",
         "PyTorch",
@@ -7670,8 +7911,51 @@ export const roleLibrary = {
         "vector databases"
       ],
       "market_notes": {
-        "israel": "Applied AI Researcher roles in Israel typically require an advanced degree (MSc preferred, PhD often preferred at larger companies) in Computer Science, AI, Statistics, or related quantitative fields. Strong demand at companies with unique data assets or complex domain problems — Motiv8AI (behavioral finance), Nanit (pediatric multimodal data), consumer engagement platforms, cybersecurity AI startups. Distinct from pure 'AI Engineer' roles in expected depth of ML methodology, comfort with ambiguity, and ability to read/apply academic research. Distinct from 'Research Scientist' (pure research) roles at labs like AI21, NVIDIA Israel, or Meta Israel in that applied researchers are expected to own end-to-end production deployment, not just publish papers. Compensation tends to be strong with meaningful equity at early-stage companies."
-      }
+        "israel": "Applied AI Research is concentrated at AI labs and AI-native scale-ups — AI21 Labs (one of the largest pure-play AI research orgs in Israel), Run:ai, Hailo, Aidoc, Lightricks, the Israeli AI research teams at NVIDIA Israel, Intel AI Israel, Microsoft Research Israel, IBM Research Israel, and increasingly large cyber companies (Wiz, Cyera). Many applied researchers have PhDs from Technion, Hebrew University, Tel Aviv University, Weizmann Institute, or top US programs. The role is distinct from pure ML research scientist roles at companies like Meta AI / Google DeepMind — applied researchers in Israel typically maintain stronger production-engineering responsibilities alongside their research work."
+      },
+      "alternate_titles": [
+        "AI Research Scientist",
+        "Applied Research Engineer",
+        "ML Research Engineer",
+        "Research Scientist"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Strategic",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "phd_to_industry",
+        "ml_engineer_research_pivot",
+        "former_academic"
+      ],
+      "years_experience_typical": "5-12",
+      "next_roles": [
+        "principal_research_scientist",
+        "head_of_ai",
+        "vp_ai_chief_ai_officer"
+      ],
+      "similar_roles": [
+        "senior_ai_engineer",
+        "cv_edge_ai_engineer",
+        "mlops_engineer"
+      ],
+      "not_to_confuse_with": [
+        "Senior AI Engineer",
+        "AI Research Scientist",
+        "Head of AI"
+      ],
+      "keywords": [
+        "AI research",
+        "applied research",
+        "ML research",
+        "paper-to-production",
+        "experimentation"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "prompt_engineer",
@@ -7681,19 +7965,26 @@ export const roleLibrary = {
       "seniority": "Mid",
       "core_purpose": "Specialist focused on designing, optimizing, and maintaining prompts for LLM-based systems, with emphasis on conversational experiences, multi-turn dialogue, and consistent AI persona. Combines linguistic craft, AI engineering fundamentals, and rapid experimentation. Works closely with PMs and engineers to deliver natural, trustworthy AI interactions.",
       "core_responsibilities": [
-        "Design multi-turn dialogue flows for text and voice agents with context awareness and memory handling",
-        "Define personalities, tone, and conversational style across products and AI agents",
-        "Create multilingual prompt strategies and reusable templates/frameworks",
-        "Apply prompt engineering techniques: few-shot learning, chain-of-thought, structured outputs, RAG integration",
-        "Test prompts with recordings, transcripts, and simulations; iterate based on real-world performance",
-        "Analyze live interactions to identify hallucinations, tone issues, dead ends, and token inefficiency",
-        "Develop and maintain prompt libraries with flows, system prompts, and version history",
-        "Partner with product managers on conversational requirements and with engineers on technical integration",
-        "Set guidelines for tone, multilingual consistency, evaluation, and testing",
-        "Support compliance and privacy standards in conversational AI design"
+        "Design and optimize prompts for production LLM applications — systematic versioning, A/B testing, evaluation harnesses",
+        "Build prompt evaluation infrastructure — golden datasets, automated quality scoring, regression detection",
+        "Develop prompt patterns and reusable templates for common task types (extraction, classification, generation, agent reasoning)",
+        "Partner with AI engineers on integrating prompts into production code — separation of prompt concerns from application logic",
+        "Document prompt strategies for the team; train other engineers and PMs on effective prompt design",
+        "Stay current on emerging prompt techniques (chain-of-thought, ReAct, multi-agent patterns) and adapt to the team's stack"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "prompt_engineering",
+        "llm_api_integration",
+        "llm_fundamentals",
+        "llm_evaluation",
+        "python_development"
+      ],
+      "preferred_skills": [
+        "rag_systems",
+        "machine_learning_fundamentals",
+        "experimentation_framework",
+        "technical_communication"
+      ],
       "tools": [
         "OpenAI/Anthropic APIs",
         "LangChain",
@@ -7705,31 +7996,77 @@ export const roleLibrary = {
         "conversation analytics tools"
       ],
       "market_notes": {
-        "israel": "Prompt Engineer is an emerging role in Israel, still relatively rare as a dedicated full-time position but growing. Found primarily at companies building conversational AI products (Sensi.AI, conversational agent startups, customer-service-focused AI companies) or at larger AI-native companies with dedicated AI UX teams. The role often attracts candidates with mixed backgrounds — linguistics, writing, UX, or junior AI engineering with strong communication skills. Some companies embed prompt engineering as part of AI Engineer roles rather than hiring a dedicated specialist. This role has one of the most accessible entry points for non-CS candidates in AI — strong writing, systematic thinking, and hands-on LLM experience can compensate for lighter engineering background. However, pure prompt engineering roles rarely survive seniority — career progression typically involves expanding into broader AI engineering or conversational design leadership."
-      }
+        "israel": "Prompt Engineering as a dedicated role emerged in Israeli tech in 2023-2024 with the GenAI wave but has been consolidating — many companies have folded the function into AI Engineer roles rather than maintaining it as a separate specialty. Dedicated Prompt Engineer roles persist primarily at conversational AI companies (Wonderful, Hi.auto, Hyro), AI-first SaaS (Gong, Anyword, Bria AI, D-ID), and at companies with heavy LLM-driven user-facing features (Lightricks, Hour One, Lemonade). The role often requires a hybrid background — engineering capability plus strong language / communication skills. Many prompt engineers come from product design, content design, technical writing, or linguistics backgrounds rather than from pure software engineering."
+      },
+      "alternate_titles": [
+        "Senior Prompt Engineer",
+        "AI Prompt Engineer",
+        "LLM Prompt Engineer",
+        "Conversational AI Designer"
+      ],
+      "technical_depth": "Medium",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Growth",
+        "Scale"
+      ],
+      "typical_backgrounds": [
+        "ai_engineer_specialization",
+        "product_designer_pivot",
+        "content_designer_pivot",
+        "linguist_pivot"
+      ],
+      "years_experience_typical": "2-6",
+      "next_roles": [
+        "senior_ai_engineer",
+        "ml_lead"
+      ],
+      "similar_roles": [
+        "ai_engineer_mid",
+        "product_manager"
+      ],
+      "not_to_confuse_with": [
+        "AI Engineer",
+        "Conversational AI Designer"
+      ],
+      "keywords": [
+        "prompt engineering",
+        "LLM prompts",
+        "prompt evaluation",
+        "chain-of-thought"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "ai_transformation_lead",
       "standardized_title": "AI Transformation Lead / AI Enablement Lead",
       "role_family": "AI_ML",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Senior",
       "core_purpose": "Cross-functional leader responsible for driving AI adoption across the business — not building AI products for customers, but enabling internal teams to work with AI. Identifies high-value internal AI use cases, leads rollouts, builds playbooks and training, and measures ROI of AI transformation efforts. Sits at the intersection of AI, operations, change management, and business strategy.",
       "core_responsibilities": [
-        "Identify, validate, and prioritize AI use cases across business functions using impact, feasibility, and data readiness criteria",
-        "Partner with business leaders to turn AI opportunities into governed, production solutions",
-        "Lead the full lifecycle of AI tool rollouts: identification, business case, procurement, integration, enablement, change management",
-        "Design AI-powered internal workflows using no-code/low-code tools (Zapier, Make, n8n) combined with LLM capabilities",
-        "Become the internal expert on AI tools: run training sessions, create guides, enable adoption across teams",
-        "Track and report on ROI and adoption of deployed AI tools; iterate based on usage data",
-        "Establish practical playbooks for responsible AI: privacy, security, model-risk, governance, escalation",
-        "Continuously evaluate emerging AI tools and platforms; recommend what the company should adopt",
-        "Work cross-functionally with operations, engineering, product, risk, legal, security, and compliance",
-        "Translate business needs into practical technology and process solutions",
-        "Define KPIs for AI impact: productivity, cycle time, quality, cost savings, decision support quality"
+        "Define AI strategy across the company — which functions can adopt AI, in what order, with what ROI expectations",
+        "Run AI adoption programs — internal training, tool selection, vendor evaluation, change management",
+        "Partner with functional leaders (Sales, Marketing, Customer Success, HR, Finance) on AI tool deployment within their teams",
+        "Build the company's AI literacy — workshops, office hours, internal documentation, AI champion programs",
+        "Measure and report on AI adoption — usage metrics, time saved, quality impact, cost ROI",
+        "Stay current on the AI tooling landscape; evaluate new vendors and bring promising tools to internal stakeholders"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "ai_strategy_roadmap",
+        "ai_tool_fluency",
+        "change_management",
+        "stakeholder_management",
+        "cross_functional_collaboration"
+      ],
+      "preferred_skills": [
+        "consulting_methodology",
+        "vendor_management",
+        "executive_presentation",
+        "training_facilitation"
+      ],
       "tools": [
         "OpenAI/Anthropic/enterprise LLM platforms",
         "Zapier",
@@ -7744,32 +8081,80 @@ export const roleLibrary = {
         "AI governance/compliance tools"
       ],
       "market_notes": {
-        "israel": "AI Transformation Lead is a rapidly growing role category in Israel, particularly at (1) regulated industries (banking/fintech like One Zero, insurance, healthcare) where responsible AI adoption requires structured change management; (2) larger SaaS/enterprise companies with significant internal operations to automate (Beamup, Sapiens, inManage); (3) consulting/agency environments (Moburst) helping clients adopt AI. Distinct from Head of AI (who builds AI products) in that this role focuses on AI-as-tool-for-the-business, not AI-as-product. Typical background includes digital transformation, product operations, program management, or management consulting, combined with genuine hands-on AI passion and experience. 5+ years of cross-functional leadership experience is common. This is an excellent target role for business-school graduates with AI fluency and change management skills — one of the most accessible senior AI-adjacent roles for non-engineers."
-      }
+        "israel": "AI Transformation Lead is a newer role that emerged in 2024-2025 as enterprises and larger Israeli companies (200+ employees) sought dedicated leadership for internal AI adoption. Distinct from Head of AI (product-focused) — this role is operations / internal-tooling focused. Most common at large Israeli tech companies (monday.com, Wix, JFrog, Amdocs, NICE Systems, Check Point), mature Israeli enterprises (Bank Hapoalim, Bank Leumi, Strauss Group, Teva), and at the Israeli offices of US enterprises. Often a former management consultant (McKinsey, BCG, Bain Israel offices), operations leader, or product manager with strong cross-functional credibility."
+      },
+      "alternate_titles": [
+        "AI Transformation Manager",
+        "Head of AI Adoption",
+        "AI Strategy Lead",
+        "Enterprise AI Lead"
+      ],
+      "technical_depth": "Medium",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Strategic",
+      "lifecycle_stage": [
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "consulting_background",
+        "operations_leader_pivot",
+        "former_pm",
+        "change_management_specialist"
+      ],
+      "years_experience_typical": "7-12",
+      "next_roles": [
+        "head_of_ai",
+        "vp_ai_chief_ai_officer"
+      ],
+      "similar_roles": [
+        "head_of_ai",
+        "head_of_business_operations",
+        "chief_of_staff"
+      ],
+      "not_to_confuse_with": [
+        "Head of AI",
+        "Chief AI Officer"
+      ],
+      "keywords": [
+        "AI adoption",
+        "AI transformation",
+        "AI literacy",
+        "tool deployment",
+        "internal AI"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "head_of_ai",
       "standardized_title": "Head of AI / AI Lead",
       "role_family": "AI_ML",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Lead_Manager",
       "core_purpose": "Senior leader who owns AI strategy and execution for a product or business unit. Manages a team of AI engineers, researchers, and MLOps specialists. Drives the AI roadmap, makes build-vs-buy decisions, and is accountable for the quality, reliability, and evolution of AI capabilities in production. Reports to CTO, VP Engineering, or CEO at smaller startups.",
       "core_responsibilities": [
-        "Own AI strategy, roadmap, and execution across the product or business unit",
-        "Lead and develop a team of AI engineers, researchers, and data scientists (typically 3-15 people)",
-        "Make principled decisions on model selection, system architecture, and build-vs-partner-vs-buy tradeoffs",
-        "Drive research and innovation across LLMs, generative AI, agents, and ML methodologies",
-        "Establish architectural foundations, tooling, and engineering practices for AI development",
-        "Take end-to-end responsibility for AI features from research through production and ongoing optimization",
-        "Collaborate with product, engineering, and business leadership to align AI investments with business priorities",
-        "Build and scale AI platforms: shared infrastructure for models, training, evaluations, and deployment",
-        "Champion responsible AI practices: safety, ethics, model monitoring, bias mitigation",
-        "Serve as technical voice for AI to customers, partners, and external stakeholders",
-        "Stay at the forefront of AI research and translate emerging capabilities into competitive advantages",
-        "Hire, mentor, and grow AI team members"
+        "Own AI / ML strategy across the company — what AI products to build, what models to use, where to invest research effort",
+        "Build and develop the AI team — hire AI engineers, ML researchers, MLOps, prompt engineers; design the team's structure",
+        "Set the technical AI bar — model selection, evaluation methodology, AI engineering quality standards",
+        "Partner with product and engineering leadership on AI-product roadmap, prioritization, and resource allocation",
+        "Represent the AI function externally — conferences, partnerships, hiring, customer technical conversations",
+        "Stay current on the rapidly-evolving AI landscape; make strategic decisions on model providers, open-source vs proprietary, build-vs-buy"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "ai_strategy_roadmap",
+        "ai_team_leadership",
+        "people_management",
+        "machine_learning",
+        "llm_fundamentals",
+        "executive_presentation"
+      ],
+      "preferred_skills": [
+        "deep_learning",
+        "mlops",
+        "organizational_design",
+        "vendor_management",
+        "hiring_talent_acquisition"
+      ],
       "tools": [
         "Python (hands-on)",
         "all major LLM APIs and frameworks",
@@ -7781,32 +8166,78 @@ export const roleLibrary = {
         "strategic planning frameworks"
       ],
       "market_notes": {
-        "israel": "Head of AI is one of the fastest-growing senior roles in Israeli tech, with strong demand at early-to-mid-stage startups where it's often the first dedicated AI leadership hire. Typical scope: 3-10 AI engineers and researchers, direct reporting to CTO or CEO at smaller companies. Compensation includes substantial equity (often 0.5-2%+ at seed/Series A). Required experience typically 7-10+ years in ML/AI engineering or research with proven leadership of technical teams. Advanced degree (MSc or PhD) is expected at most companies. This role demands a balance of hands-on depth (still writing code, reviewing architecture) and strategic thinking (roadmap, hiring, build/buy). At Israeli startups, Head of AI is frequently the most senior AI title (VP AI is rare below 100 employees). Strong markets: cybersecurity AI, financial AI, healthcare AI, agentic platforms. 8200 and military technical leadership backgrounds are common and valued."
-      }
+        "israel": "Head of AI is a critical role at any Israeli company with substantial AI investment. The role has proliferated rapidly since 2023 — virtually every Series B+ company has either hired a Head of AI or designated an internal leader for the function. Heavy concentration at AI-native companies (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One, D-ID, Verbit, Decart), cyber companies investing in AI (Wiz, Cyera, BigID, Snyk, CyberArk, SentinelOne), and large SaaS unicorns (monday.com, Wix, JFrog, Gong, HiBob). Hiring is extremely competitive — strong candidates often have a PhD + production experience + leadership chops, all of which are scarce. Many Heads of AI in Israel were former senior AI engineers at FAANG, ex-academia, or seasoned ML leaders from earlier ML scale-ups."
+      },
+      "alternate_titles": [
+        "Head of AI",
+        "Director of AI",
+        "AI Lead",
+        "Head of Machine Learning"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "High",
+      "revenue_ownership": "Direct",
+      "strategic_level": "Strategic",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "senior_ai_engineer_promotion",
+        "ml_research_leader",
+        "external_head_of_ai_hire"
+      ],
+      "years_experience_typical": "10-15",
+      "next_roles": [
+        "vp_ai_chief_ai_officer"
+      ],
+      "similar_roles": [
+        "vp_engineering",
+        "head_of_data",
+        "head_of_product"
+      ],
+      "not_to_confuse_with": [
+        "VP AI / Chief AI Officer",
+        "Senior AI Engineer",
+        "Head of Data"
+      ],
+      "keywords": [
+        "head of AI",
+        "director of AI",
+        "AI leadership",
+        "ML lead",
+        "AI strategy"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "vp_ai_chief_ai_officer",
       "standardized_title": "VP AI / Chief AI Officer",
       "role_family": "AI_ML",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "VP_Executive",
       "core_purpose": "Executive-level AI leader accountable for the entire AI function across the company — strategy, engineering, research, platform, and organizational AI adoption. Owns AI as a core business capability, drives cross-functional AI transformation, and represents AI externally to board, investors, customers, and the market. Typically found at larger AI-native companies or enterprises undergoing deep AI transformation.",
       "core_responsibilities": [
-        "Own and lead company-wide AI strategy, vision, and execution — from roadmap to real-world implementation",
-        "Manage multiple AI teams: AI engineering, AI research, MLOps, AI platform, AI transformation",
-        "Act as hands-on technical leader while operating at executive altitude — involved in tool selection, architecture, and key technical decisions",
-        "Drive AI as a product, platform, and strategic capability across the business",
-        "Manage expectations across leadership, board, and teams — communicating limitations, risks, and tradeoffs",
-        "Design and lead AI transformation services, platforms, or strategic offerings",
-        "Bridge technology, business goals, and market strategy to ensure AI delivers measurable impact",
-        "Represent the company externally: investors, partners, customers, press, conferences, thought leadership",
-        "Build and scale the AI organization: hiring executive-level AI leaders, defining org structure, setting culture",
-        "Make major build-vs-buy-vs-partner decisions on AI capabilities and platforms",
-        "Oversee AI governance, responsible AI practices, safety, and compliance at enterprise scale",
-        "Continuously translate frontier AI advancements into competitive business advantage"
+        "Own AI strategy and execution at the executive level — set the company's AI direction across products, infrastructure, and operations",
+        "Build the senior AI leadership bench — develop Head of AI, Heads of ML Research, MLOps leads",
+        "Set the AI product vision in partnership with the CPO — what AI products to build, in what order, with what ambition",
+        "Represent AI to the board, investors, and major customers — own the external narrative on AI capabilities and roadmap",
+        "Own AI budget — model costs, compute costs, vendor spend, headcount; make build-vs-buy decisions at the strategic level",
+        "Drive AI culture and literacy across the executive team and the broader org"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "ai_strategy_roadmap",
+        "ai_team_leadership",
+        "executive_leadership",
+        "organizational_design",
+        "executive_presentation"
+      ],
+      "preferred_skills": [
+        "vendor_management",
+        "machine_learning",
+        "ml_systems_thinking",
+        "board_management"
+      ],
       "tools": [
         "executive strategy frameworks",
         "board-level communication tools",
@@ -7816,32 +8247,79 @@ export const roleLibrary = {
         "external communication platforms"
       ],
       "market_notes": {
-        "israel": "VP AI and Chief AI Officer roles remain relatively rare in Israel compared to Head of AI — typically found at companies with 100+ employees, substantial AI investment, or AI as central to the product thesis. Examples of companies with this level: Nanit (Head of AI at VP-level scope), Moburst (VP of AI for agency services), Swimm (VP of Research for code AI), AI21, larger cybersecurity companies. Often the career progression is Senior AI Engineer → Head of AI → VP AI → Chief AI Officer, typically spanning 12-20+ years of AI/ML career. Required background: proven track record scaling AI teams (20+ engineers), multiple production AI systems deployed at scale, strategic business impact, ideally both IC excellence earlier in career and executive leadership experience later. Advanced degrees common (MSc/PhD). Compensation at the top of Israeli tech executive tier with significant equity. In non-product-AI companies undergoing AI transformation (banks, enterprises), the title is often 'Chief AI Officer' with stronger emphasis on transformation and governance over product development."
-      }
+        "israel": "VP AI / Chief AI Officer is found primarily at AI-native scale-ups and unicorns (AI21 Labs, Aidoc, Hailo, Run:ai, Lightricks, Verbit, Hour One) and at mature companies making AI a strategic priority (Amdocs, NICE Systems, Check Point, Cellebrite, monday.com, JFrog, Lemonade). The role is often combined with CTO at smaller companies — full Chief AI Officer titles tend to appear at companies with at least 100+ engineers and dedicated AI investment. Many Israeli VP AI / CAIO hires have done multiple prior cycles, often combining experience at major Israeli AI scale-ups with stints at FAANG AI orgs. The talent pool is very small and highly competitive."
+      },
+      "alternate_titles": [
+        "VP AI",
+        "Chief AI Officer",
+        "CAIO",
+        "VP of Artificial Intelligence"
+      ],
+      "technical_depth": "Medium",
+      "customer_facing_level": "High",
+      "revenue_ownership": "Direct",
+      "strategic_level": "Strategic",
+      "lifecycle_stage": [
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "head_of_ai_promotion",
+        "former_cto_pivot_to_ai",
+        "external_executive_hire"
+      ],
+      "years_experience_typical": "15+",
+      "next_roles": [
+        "cto",
+        "ceo"
+      ],
+      "similar_roles": [
+        "cto",
+        "vp_engineering",
+        "head_of_ai"
+      ],
+      "not_to_confuse_with": [
+        "Head of AI",
+        "CTO",
+        "Chief Data Officer"
+      ],
+      "keywords": [
+        "executive AI",
+        "VP AI",
+        "chief AI officer",
+        "AI strategy",
+        "board-level AI"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "ai_solutions_engineering_manager",
       "standardized_title": "AI Solutions Engineering Manager",
       "role_family": "AI_ML",
-      "secondary_family": null,
+      "secondary_family": "Solutions_Engineering",
       "seniority": "Senior",
       "core_purpose": "Hands-on leader managing a team of Solutions Engineers who implement AI-powered solutions for customers. Combines technical depth, customer-facing skills, and delivery operations. Owns delivery quality and customer outcomes, guides customers through complex AI transformations, and builds delivery processes and reusable assets. Sits between Engineering and Customer Success in many AI startups.",
       "core_responsibilities": [
-        "Lead, mentor, and grow a team of AI Solutions Engineers",
-        "Own delivery quality and customer outcomes across multiple concurrent implementations",
-        "Work closely with customers to understand their processes, challenges, and goals",
-        "Help design AI-driven solutions, workflows, and agent systems tailored to customer needs",
-        "Guide customers through transforming how their teams operate — not just implementing point solutions",
-        "Step into complex or strategic customer engagements and drive them to success personally",
-        "Set clear timelines, priorities, and delivery standards across projects",
-        "Build and improve delivery processes, methodologies, best practices, and reusable assets",
-        "Design internal tools, systems, and AI workflows that improve scalability and reduce manual delivery work",
-        "Identify repeatable patterns and turn them into templates, reference architectures, and automations",
-        "Act as escalation point for technical and customer-related challenges",
-        "Collaborate closely with founders, product, and engineering to influence roadmap and product direction"
+        "Manage a team of 4-8 AI Solutions Engineers covering pre-sales technical work for AI products",
+        "Own the AI SE playbook — discovery frameworks for AI use cases, demo design for LLM products, POC methodology for AI capability evaluation",
+        "Build technical credibility with prospects on AI architecture, model selection, evaluation methodology",
+        "Partner with the AI engineering team on what's feasible vs not — feed customer requirements back to product",
+        "Coach SEs on the dual skill set — strong AI / ML technical depth + customer-facing sales acumen",
+        "Run cross-functional alignment with Sales, Product, and AI Engineering on field intel and product gaps"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "people_management",
+        "process_design",
+        "technical_discovery",
+        "solution_design_architecture",
+        "llm_fundamentals",
+        "prompt_engineering"
+      ],
+      "preferred_skills": [
+        "ai_strategy_roadmap",
+        "executive_presentation",
+        "performance_management",
+        "hiring_talent_acquisition"
+      ],
       "tools": [
         "AI platforms (company-specific)",
         "LLM APIs",
@@ -7853,8 +8331,46 @@ export const roleLibrary = {
         "technical delivery tools"
       ],
       "market_notes": {
-        "israel": "AI Solutions Engineering Manager is an emerging role category in Israel, found primarily at AI-native B2B startups that sell complex AI platforms to enterprise customers. The role is distinct from traditional Solutions Engineering Manager (pure pre-sales) in that AI Solutions Engineers often do significant post-sale implementation work as well — designing AI workflows, configuring agents, building customer-specific automations. Typical background: 5-8+ years in software engineering, solutions engineering, or technical delivery, with 2+ years leading teams. Strong candidates come from solutions engineering, technical account management, technical program management, or engineering management at SaaS companies. The role requires rare combination of hands-on technical ability (can still build when needed), customer-facing maturity, operational leadership, and interest in AI. Compensation strong with typically lower equity than pure engineering leadership but with performance/delivery bonuses. As the Israeli AI market matures and more AI platforms scale, this role is projected to grow significantly. Note: this role may eventually migrate to a dedicated Solutions Engineering sector when that is built."
-      }
+        "israel": "AI Solutions Engineering Manager is an emerging specialty role at Israeli AI-native scale-ups and at companies where AI is the primary product differentiator. Most common at AI21 Labs, Aidoc, Run:ai, Verbit, Hour One, D-ID, Wonderful, Anyword, and at the AI-heavy teams within larger SaaS companies (Gong, monday.com AI initiatives). Often requires both strong AI / ML technical knowledge AND traditional SE / pre-sales leadership skills — a relatively rare combination in the talent market. Many AI SE Managers come from senior AI Engineer roles with strong customer-facing aptitude rather than from traditional SE management."
+      },
+      "alternate_titles": [
+        "AI SE Manager",
+        "AI Solutions Architect Lead",
+        "Head of AI Solutions"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "High",
+      "revenue_ownership": "Direct",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "se_manager_with_ai_specialization",
+        "ai_engineer_to_customer_facing"
+      ],
+      "years_experience_typical": "8-12",
+      "next_roles": [
+        "head_of_solutions_engineering",
+        "head_of_ai"
+      ],
+      "similar_roles": [
+        "solutions_engineering_manager",
+        "engineering_manager"
+      ],
+      "not_to_confuse_with": [
+        "Solutions Engineering Manager",
+        "Head of AI"
+      ],
+      "keywords": [
+        "AI pre-sales",
+        "AI solutions",
+        "LLM SE",
+        "AI playbook",
+        "GenAI demos"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "junior_ux_ui_designer",
@@ -10451,11 +10967,12 @@ export const roleLibrary = {
       "id": "solutions_consultant",
       "standardized_title": "Solutions Consultant",
       "alternate_titles": [
-        "Solutions Advisor",
-        "Implementation Consultant"
+        "Senior Solutions Consultant",
+        "Implementation Consultant",
+        "Technical Consultant"
       ],
       "role_family": "Solutions_Engineering",
-      "secondary_family": null,
+      "secondary_family": "Sales",
       "seniority": "Mid",
       "core_purpose": "Understand client needs, design solution proposals, support pre-sales with technical demos and POCs.",
       "core_responsibilities": [
@@ -10483,29 +11000,53 @@ export const roleLibrary = {
       "technical_depth": "High",
       "customer_facing_level": "High",
       "revenue_ownership": "Influence",
-      "strategic_level": "Execution",
-      "lifecycle_stage": [],
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
       "next_roles": [
         "senior_solutions_engineer",
         "solutions_engineering_manager"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "solutions_engineer",
+        "pre_sales_engineer",
+        "senior_solutions_engineer"
+      ],
       "keywords": [
-        "solutions consulting",
-        "pre-sales",
-        "technical demo",
-        "POC"
-      ]
+        "consulting",
+        "implementation",
+        "POC",
+        "solution design",
+        "client engagement"
+      ],
+      "years_experience_typical": "3-7",
+      "not_to_confuse_with": [
+        "Solutions Engineer",
+        "Consultant",
+        "Customer Success Manager"
+      ],
+      "typical_backgrounds": [
+        "consulting_pivot_to_se",
+        "solutions_engineer_pivot",
+        "implementation_specialist_promotion"
+      ],
+      "market_notes": {
+        "israel": "Solutions Consultant is less common than Solutions Engineer in Israeli tech — typically found at enterprise SaaS companies with longer, more consultative sales cycles. Common at Amdocs, NICE Systems, Cellebrite, SAP / Salesforce / Oracle Israel offices, and at some Israeli enterprise SaaS scale-ups (Sapiens, Earnix, Personetics, Novidea, Au10tix). Often involves implementation oversight in addition to pre-sales work, blurring into technical_account_manager territory at some companies."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "pre_sales_engineer",
       "standardized_title": "Pre-Sales Engineer",
       "alternate_titles": [
         "Sales Engineer",
-        "Presales Engineer"
+        "Solutions Engineer",
+        "Technical Sales Engineer"
       ],
       "role_family": "Solutions_Engineering",
-      "secondary_family": null,
+      "secondary_family": "Sales",
       "seniority": "Mid",
       "core_purpose": "Support sales with technical expertise, run product demos, build POCs, answer technical RFPs.",
       "core_responsibilities": [
@@ -10533,20 +11074,42 @@ export const roleLibrary = {
       "technical_depth": "High",
       "customer_facing_level": "High",
       "revenue_ownership": "Influence",
-      "strategic_level": "Execution",
-      "lifecycle_stage": [],
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Growth",
+        "Scale",
+        "Mature"
+      ],
       "next_roles": [
         "senior_solutions_engineer",
         "solutions_engineering_manager"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "solutions_engineer",
+        "solutions_consultant",
+        "senior_solutions_engineer"
+      ],
       "keywords": [
         "pre-sales",
-        "sales engineering",
-        "technical demo",
-        "POC",
-        "RFP"
-      ]
+        "technical sales",
+        "discovery",
+        "demos",
+        "POC"
+      ],
+      "years_experience_typical": "3-6",
+      "not_to_confuse_with": [
+        "Solutions Engineer",
+        "Customer Success Manager"
+      ],
+      "typical_backgrounds": [
+        "solutions_engineer_pivot",
+        "consulting_pivot",
+        "swe_to_customer_facing"
+      ],
+      "market_notes": {
+        "israel": "Pre-Sales Engineer is essentially a regional / title variation of Solutions Engineer — common at companies that distinguish the role by territory (EMEA / APAC pre-sales vs US-based SEs). Concentration matches Solutions Engineer at cyber (Wiz, Check Point, CyberArk, SentinelOne), SaaS (monday.com, JFrog, Gong, HiBob), and enterprise software (Amdocs, NICE, Cellebrite). At many Israeli companies the two titles are used interchangeably — the canonical role here is the same job with different reporting structure or regional alignment."
+      },
+      "_research_method": "knowledge"
     },
     {
       "id": "growth_analyst",
