@@ -1725,300 +1725,276 @@ export const roleSkillMapping = {
     },
     {
       "role_id": "junior_software_engineer",
-      "skills": {
-        "core": [
-          "programming_fundamentals",
-          "python_development",
-          "git_version_control",
-          "debugging",
-          "data_structures_algorithms"
-        ],
-        "secondary": [
-          "linux_fundamentals",
-          "sql",
-          "testing_practices",
-          "communication"
-        ],
-        "differentiator": [
-          "cloud_fundamentals",
-          "frontend_development",
-          "ai_tool_fluency"
-        ]
-      }
+      "core_skills": [
+        "programming_fundamentals",
+        "python_development",
+        "git_version_control",
+        "debugging",
+        "data_structures_algorithms"
+      ],
+      "secondary_skills": [
+        "linux_fundamentals",
+        "sql",
+        "testing_practices",
+        "communication"
+      ],
+      "differentiator_skills": [
+        "cloud_fundamentals",
+        "frontend_development",
+        "ai_tool_fluency"
+      ]
     },
     {
       "role_id": "software_engineer",
-      "skills": {
-        "core": [
-          "backend_development",
-          "python_development",
-          "databases",
-          "api_design",
-          "git_version_control"
-        ],
-        "secondary": [
-          "frontend_development",
-          "system_design_basics",
-          "testing_practices",
-          "cloud_fundamentals",
-          "debugging"
-        ],
-        "differentiator": [
-          "containerization",
-          "ci_cd",
-          "ai_tool_fluency",
-          "distributed_systems"
-        ]
-      }
+      "core_skills": [
+        "backend_development",
+        "python_development",
+        "databases",
+        "api_design",
+        "git_version_control"
+      ],
+      "secondary_skills": [
+        "frontend_development",
+        "system_design_basics",
+        "testing_practices",
+        "cloud_fundamentals",
+        "debugging"
+      ],
+      "differentiator_skills": [
+        "containerization",
+        "ci_cd",
+        "ai_tool_fluency",
+        "distributed_systems"
+      ]
     },
     {
       "role_id": "senior_software_engineer",
-      "skills": {
-        "core": [
-          "backend_development",
-          "system_design",
-          "distributed_systems",
-          "python_development",
-          "performance_optimization"
-        ],
-        "secondary": [
-          "api_design",
-          "mentoring",
-          "technical_leadership",
-          "cloud_platforms",
-          "databases"
-        ],
-        "differentiator": [
-          "ai_tool_fluency",
-          "code_review_practices",
-          "technical_communication",
-          "cross_team_collaboration"
-        ]
-      }
+      "core_skills": [
+        "backend_development",
+        "system_design",
+        "distributed_systems",
+        "python_development",
+        "performance_optimization"
+      ],
+      "secondary_skills": [
+        "api_design",
+        "mentoring",
+        "technical_leadership",
+        "cloud_platforms",
+        "databases"
+      ],
+      "differentiator_skills": [
+        "ai_tool_fluency",
+        "code_review_practices",
+        "technical_communication",
+        "cross_team_collaboration"
+      ]
     },
     {
       "role_id": "staff_engineer",
-      "skills": {
-        "core": [
-          "system_architecture",
-          "distributed_systems",
-          "technical_leadership",
-          "strategic_thinking",
-          "mentoring"
-        ],
-        "secondary": [
-          "backend_development",
-          "performance_optimization",
-          "cross_team_collaboration",
-          "cloud_platforms",
-          "ai_tool_fluency"
-        ],
-        "differentiator": [
-          "ai_strategy",
-          "stakeholder_management",
-          "organizational_design",
-          "executive_leadership"
-        ]
-      }
+      "core_skills": [
+        "system_architecture",
+        "distributed_systems",
+        "technical_leadership",
+        "strategic_thinking",
+        "mentoring"
+      ],
+      "secondary_skills": [
+        "backend_development",
+        "performance_optimization",
+        "cross_team_collaboration",
+        "cloud_platforms",
+        "ai_tool_fluency"
+      ],
+      "differentiator_skills": [
+        "ai_strategy",
+        "stakeholder_management",
+        "organizational_design",
+        "executive_leadership"
+      ]
     },
     {
       "role_id": "tech_lead",
-      "skills": {
-        "core": [
-          "backend_development",
-          "system_design",
-          "technical_leadership",
-          "python_development",
-          "code_review_practices"
-        ],
-        "secondary": [
-          "mentoring",
-          "ci_cd",
-          "testing_practices",
-          "cloud_platforms",
-          "agile_methodology"
-        ],
-        "differentiator": [
-          "ai_tool_fluency",
-          "hiring_talent_acquisition",
-          "cross_team_collaboration",
-          "frontend_development"
-        ]
-      }
+      "core_skills": [
+        "backend_development",
+        "system_design",
+        "technical_leadership",
+        "python_development",
+        "code_review_practices"
+      ],
+      "secondary_skills": [
+        "mentoring",
+        "ci_cd",
+        "testing_practices",
+        "cloud_platforms",
+        "agile_methodology"
+      ],
+      "differentiator_skills": [
+        "ai_tool_fluency",
+        "hiring_talent_acquisition",
+        "cross_team_collaboration",
+        "frontend_development"
+      ]
     },
     {
       "role_id": "engineering_manager",
-      "skills": {
-        "core": [
-          "people_management",
-          "technical_leadership",
-          "hiring_talent_acquisition",
-          "performance_management",
-          "agile_methodology"
-        ],
-        "secondary": [
-          "backend_development",
-          "system_design",
-          "cross_team_collaboration",
-          "ci_cd",
-          "cloud_platforms"
-        ],
-        "differentiator": [
-          "strategic_thinking",
-          "stakeholder_management",
-          "ai_tool_fluency",
-          "organizational_design"
-        ]
-      }
+      "core_skills": [
+        "people_management",
+        "technical_leadership",
+        "hiring_talent_acquisition",
+        "performance_management",
+        "agile_methodology"
+      ],
+      "secondary_skills": [
+        "backend_development",
+        "system_design",
+        "cross_team_collaboration",
+        "ci_cd",
+        "cloud_platforms"
+      ],
+      "differentiator_skills": [
+        "strategic_thinking",
+        "stakeholder_management",
+        "ai_tool_fluency",
+        "organizational_design"
+      ]
     },
     {
       "role_id": "senior_engineering_manager",
-      "skills": {
-        "core": [
-          "engineering_leadership",
-          "people_management",
-          "system_architecture",
-          "strategic_thinking",
-          "cross_team_collaboration"
-        ],
-        "secondary": [
-          "hiring_talent_acquisition",
-          "stakeholder_management",
-          "distributed_systems",
-          "cloud_platforms",
-          "process_improvement"
-        ],
-        "differentiator": [
-          "ai_strategy",
-          "organizational_design",
-          "talent_strategy",
-          "executive_leadership"
-        ]
-      }
+      "core_skills": [
+        "engineering_leadership",
+        "people_management",
+        "system_architecture",
+        "strategic_thinking",
+        "cross_team_collaboration"
+      ],
+      "secondary_skills": [
+        "hiring_talent_acquisition",
+        "stakeholder_management",
+        "distributed_systems",
+        "cloud_platforms",
+        "process_improvement"
+      ],
+      "differentiator_skills": [
+        "ai_strategy",
+        "organizational_design",
+        "talent_strategy",
+        "executive_leadership"
+      ]
     },
     {
       "role_id": "vp_engineering",
-      "skills": {
-        "core": [
-          "executive_leadership",
-          "engineering_leadership",
-          "system_architecture",
-          "strategic_thinking",
-          "talent_strategy"
-        ],
-        "secondary": [
-          "organizational_design",
-          "stakeholder_management",
-          "distributed_systems",
-          "cloud_platforms",
-          "ai_strategy"
-        ],
-        "differentiator": [
-          "domain_expertise",
-          "process_improvement",
-          "performance_optimization"
-        ]
-      }
+      "core_skills": [
+        "executive_leadership",
+        "engineering_leadership",
+        "system_architecture",
+        "strategic_thinking",
+        "talent_strategy"
+      ],
+      "secondary_skills": [
+        "organizational_design",
+        "stakeholder_management",
+        "distributed_systems",
+        "cloud_platforms",
+        "ai_strategy"
+      ],
+      "differentiator_skills": [
+        "domain_expertise",
+        "process_improvement",
+        "performance_optimization"
+      ]
     },
     {
       "role_id": "qa_engineer",
-      "skills": {
-        "core": [
-          "manual_testing",
-          "test_automation",
-          "test_planning",
-          "bug_tracking",
-          "qa_methodology"
-        ],
-        "secondary": [
-          "api_testing",
-          "analytical_thinking",
-          "attention_to_detail",
-          "communication",
-          "sql"
-        ],
-        "differentiator": [
-          "ai_tool_fluency",
-          "linux_fundamentals",
-          "agile_methodology",
-          "scripting_automation"
-        ]
-      }
+      "core_skills": [
+        "manual_testing",
+        "test_automation",
+        "test_planning",
+        "bug_tracking",
+        "qa_methodology"
+      ],
+      "secondary_skills": [
+        "api_testing",
+        "analytical_thinking",
+        "attention_to_detail",
+        "communication",
+        "sql"
+      ],
+      "differentiator_skills": [
+        "ai_tool_fluency",
+        "linux_fundamentals",
+        "agile_methodology",
+        "scripting_automation"
+      ]
     },
     {
       "role_id": "devops_engineer",
-      "skills": {
-        "core": [
-          "cloud_platforms_devops",
-          "infrastructure_as_code",
-          "ci_cd",
-          "containerization",
-          "linux_administration"
-        ],
-        "secondary": [
-          "scripting_automation",
-          "monitoring_observability",
-          "networking_fundamentals",
-          "security_best_practices",
-          "git_version_control"
-        ],
-        "differentiator": [
-          "ai_tool_fluency",
-          "distributed_systems",
-          "python_development",
-          "databases"
-        ]
-      }
+      "core_skills": [
+        "cloud_platforms_devops",
+        "infrastructure_as_code",
+        "ci_cd",
+        "containerization",
+        "linux_administration"
+      ],
+      "secondary_skills": [
+        "scripting_automation",
+        "monitoring_observability",
+        "networking_fundamentals",
+        "security_best_practices",
+        "git_version_control"
+      ],
+      "differentiator_skills": [
+        "ai_tool_fluency",
+        "distributed_systems",
+        "python_development",
+        "databases"
+      ]
     },
     {
       "role_id": "sre_engineer",
-      "skills": {
-        "core": [
-          "production_systems",
-          "monitoring_observability",
-          "incident_management",
-          "scripting_automation",
-          "linux_administration"
-        ],
-        "secondary": [
-          "distributed_systems",
-          "cloud_platforms_devops",
-          "containerization",
-          "networking_fundamentals",
-          "ci_cd"
-        ],
-        "differentiator": [
-          "ai_tool_fluency",
-          "backend_development",
-          "security_best_practices",
-          "performance_optimization"
-        ]
-      }
+      "core_skills": [
+        "production_systems",
+        "monitoring_observability",
+        "incident_management",
+        "scripting_automation",
+        "linux_administration"
+      ],
+      "secondary_skills": [
+        "distributed_systems",
+        "cloud_platforms_devops",
+        "containerization",
+        "networking_fundamentals",
+        "ci_cd"
+      ],
+      "differentiator_skills": [
+        "ai_tool_fluency",
+        "backend_development",
+        "security_best_practices",
+        "performance_optimization"
+      ]
     },
     {
       "role_id": "engineering_group_manager",
-      "skills": {
-        "core": [
-          "engineering_leadership",
-          "people_management",
-          "organizational_design",
-          "cross_team_collaboration",
-          "stakeholder_management"
-        ],
-        "secondary": [
-          "system_architecture",
-          "hiring_talent_acquisition",
-          "strategic_thinking",
-          "distributed_systems",
-          "cloud_platforms"
-        ],
-        "differentiator": [
-          "ai_strategy",
-          "talent_strategy",
-          "executive_leadership",
-          "performance_optimization"
-        ]
-      }
+      "core_skills": [
+        "engineering_leadership",
+        "people_management",
+        "organizational_design",
+        "cross_team_collaboration",
+        "stakeholder_management"
+      ],
+      "secondary_skills": [
+        "system_architecture",
+        "hiring_talent_acquisition",
+        "strategic_thinking",
+        "distributed_systems",
+        "cloud_platforms"
+      ],
+      "differentiator_skills": [
+        "ai_strategy",
+        "talent_strategy",
+        "executive_leadership",
+        "performance_optimization"
+      ]
     },
     {
       "role_id": "junior_ai_ml_engineer",
@@ -2576,7 +2552,7 @@ export const roleSkillMapping = {
           "required_proficiency": "intermediate"
         },
         {
-          "skill_id": "cross_team_collaboration",
+          "skill_id": "cross_functional_collaboration",
           "required_proficiency": "intermediate"
         }
       ],
@@ -2645,7 +2621,7 @@ export const roleSkillMapping = {
           "required_proficiency": "advanced"
         },
         {
-          "skill_id": "cross_team_collaboration",
+          "skill_id": "cross_functional_collaboration",
           "required_proficiency": "advanced"
         },
         {
@@ -2831,7 +2807,7 @@ export const roleSkillMapping = {
           "required_proficiency": "advanced"
         },
         {
-          "skill_id": "cross_team_collaboration",
+          "skill_id": "cross_functional_collaboration",
           "required_proficiency": "advanced"
         }
       ],
@@ -2912,7 +2888,7 @@ export const roleSkillMapping = {
           "required_proficiency": "intermediate"
         },
         {
-          "skill_id": "cross_team_collaboration",
+          "skill_id": "cross_functional_collaboration",
           "required_proficiency": "advanced"
         },
         {
@@ -2949,7 +2925,7 @@ export const roleSkillMapping = {
         "interaction_design",
         "adobe_creative_suite",
         "design_handoff",
-        "cross_functional_design_collaboration"
+        "cross_functional_collaboration"
       ],
       "differentiator_skills": [
         "user_research",
@@ -2966,7 +2942,7 @@ export const roleSkillMapping = {
         "ux_design_process",
         "ui_visual_design",
         "prototyping",
-        "cross_functional_design_collaboration"
+        "cross_functional_collaboration"
       ],
       "secondary_skills": [
         "user_research",
@@ -2995,7 +2971,7 @@ export const roleSkillMapping = {
         "ui_visual_design",
         "design_for_complex_systems",
         "design_stakeholder_communication",
-        "cross_functional_design_collaboration"
+        "cross_functional_collaboration"
       ],
       "secondary_skills": [
         "user_research",
@@ -3028,7 +3004,7 @@ export const roleSkillMapping = {
       ],
       "secondary_skills": [
         "ux_design_process",
-        "cross_functional_design_collaboration",
+        "cross_functional_collaboration",
         "information_architecture",
         "prototyping",
         "conversion_optimization_design"
@@ -3049,7 +3025,7 @@ export const roleSkillMapping = {
         "design_system_management",
         "figma_mastery",
         "ui_visual_design",
-        "cross_functional_design_collaboration"
+        "cross_functional_collaboration"
       ],
       "secondary_skills": [
         "interaction_design",
@@ -3075,7 +3051,7 @@ export const roleSkillMapping = {
         "ux_design_process",
         "design_critique",
         "design_stakeholder_communication",
-        "cross_functional_design_collaboration"
+        "cross_functional_collaboration"
       ],
       "secondary_skills": [
         "figma_mastery",
@@ -3102,7 +3078,7 @@ export const roleSkillMapping = {
         "design_leadership",
         "strategic_thinking",
         "design_stakeholder_communication",
-        "cross_functional_design_collaboration",
+        "cross_functional_collaboration",
         "design_critique"
       ],
       "secondary_skills": [
@@ -3137,7 +3113,7 @@ export const roleSkillMapping = {
         "web_design",
         "generative_ai_creative",
         "design_stakeholder_communication",
-        "cross_functional_design_collaboration"
+        "cross_functional_collaboration"
       ],
       "differentiator_skills": [
         "motion_design_basics",
@@ -3158,13 +3134,13 @@ export const roleSkillMapping = {
       ],
       "secondary_skills": [
         "sales_engagement_tools",
-        "market_research_bd",
+        "market_research",
         "relationship_building",
         "pipeline_management"
       ],
       "differentiator_skills": [
         "ai_powered_sales_tools",
-        "presentation_skills_bd",
+        "presentation_skills",
         "analytical_thinking"
       ]
     },
@@ -3176,14 +3152,14 @@ export const roleSkillMapping = {
         "relationship_building",
         "commercial_negotiation",
         "pipeline_management",
-        "market_research_bd"
+        "market_research"
       ],
       "secondary_skills": [
         "crm_management",
-        "presentation_skills_bd",
+        "presentation_skills",
         "lead_qualification",
         "sales_engagement_tools",
-        "cross_team_collaboration",
+        "cross_functional_collaboration",
         "communication"
       ],
       "differentiator_skills": [
@@ -3206,14 +3182,14 @@ export const roleSkillMapping = {
       "secondary_skills": [
         "joint_business_planning",
         "crm_management",
-        "presentation_skills_bd",
+        "presentation_skills",
         "pipeline_management",
-        "cross_team_collaboration",
+        "cross_functional_collaboration",
         "communication"
       ],
       "differentiator_skills": [
         "partner_enablement",
-        "market_research_bd",
+        "market_research",
         "gtm_strategy",
         "analytical_thinking",
         "channel_sales_strategy"
@@ -3234,9 +3210,9 @@ export const roleSkillMapping = {
         "joint_business_planning",
         "gtm_strategy",
         "channel_sales_strategy",
-        "presentation_skills_bd",
-        "market_research_bd",
-        "cross_team_collaboration"
+        "presentation_skills",
+        "market_research",
+        "cross_functional_collaboration"
       ],
       "differentiator_skills": [
         "partner_enablement",
@@ -3263,7 +3239,7 @@ export const roleSkillMapping = {
         "partner_enablement",
         "hiring_talent_acquisition",
         "people_management",
-        "presentation_skills_bd",
+        "presentation_skills",
         "crm_management"
       ],
       "differentiator_skills": [
@@ -3289,7 +3265,7 @@ export const roleSkillMapping = {
         "commercial_negotiation",
         "pipeline_management",
         "relationship_building",
-        "presentation_skills_bd",
+        "presentation_skills",
         "hiring_talent_acquisition",
         "people_management",
         "ecosystem_development"
@@ -3298,400 +3274,390 @@ export const roleSkillMapping = {
         "partner_enablement",
         "joint_business_planning",
         "ai_powered_sales_tools",
-        "market_research_bd"
+        "market_research"
       ]
     },
     {
       "role_id": "junior_consultant_analyst",
       "title": "Junior Consultant / Analyst",
-      "skills": {
-        "core": [
-          {
-            "skill_id": "consulting_frameworks",
-            "importance": "high"
-          },
-          {
-            "skill_id": "analytical_thinking",
-            "importance": "high"
-          },
-          {
-            "skill_id": "communication",
-            "importance": "high"
-          },
-          {
-            "skill_id": "client_engagement_delivery",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "attention_to_detail",
-            "importance": "high"
-          }
-        ],
-        "secondary": [
-          {
-            "skill_id": "executive_presentation",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "risk_compliance_consulting",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "process_improvement",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "stakeholder_management",
-            "importance": "low"
-          }
-        ],
-        "differentiator": [
-          {
-            "skill_id": "financial_due_diligence",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "digital_transformation_consulting",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "ai_tool_fluency",
-            "importance": "low"
-          }
-        ]
-      }
+      "core_skills": [
+        {
+          "skill_id": "consulting_frameworks",
+          "importance": "high"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "importance": "high"
+        },
+        {
+          "skill_id": "communication",
+          "importance": "high"
+        },
+        {
+          "skill_id": "client_engagement_delivery",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "attention_to_detail",
+          "importance": "high"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "executive_presentation",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "risk_compliance_consulting",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "process_improvement",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "low"
+        }
+      ],
+      "differentiator_skills": [
+        {
+          "skill_id": "financial_due_diligence",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "digital_transformation_consulting",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "ai_tool_fluency",
+          "importance": "low"
+        }
+      ]
     },
     {
       "role_id": "consultant",
       "title": "Consultant",
-      "skills": {
-        "core": [
-          {
-            "skill_id": "consulting_frameworks",
-            "importance": "high"
-          },
-          {
-            "skill_id": "client_engagement_delivery",
-            "importance": "high"
-          },
-          {
-            "skill_id": "client_advisory",
-            "importance": "high"
-          },
-          {
-            "skill_id": "analytical_thinking",
-            "importance": "high"
-          },
-          {
-            "skill_id": "communication",
-            "importance": "high"
-          },
-          {
-            "skill_id": "executive_presentation",
-            "importance": "medium"
-          }
-        ],
-        "secondary": [
-          {
-            "skill_id": "risk_compliance_consulting",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "process_improvement",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "stakeholder_management",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "strategic_thinking",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "proposal_development",
-            "importance": "low"
-          }
-        ],
-        "differentiator": [
-          {
-            "skill_id": "financial_due_diligence",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "digital_transformation_consulting",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "change_management",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "domain_expertise",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "ai_tool_fluency",
-            "importance": "low"
-          }
-        ]
-      }
+      "core_skills": [
+        {
+          "skill_id": "consulting_frameworks",
+          "importance": "high"
+        },
+        {
+          "skill_id": "client_engagement_delivery",
+          "importance": "high"
+        },
+        {
+          "skill_id": "client_advisory",
+          "importance": "high"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "importance": "high"
+        },
+        {
+          "skill_id": "communication",
+          "importance": "high"
+        },
+        {
+          "skill_id": "executive_presentation",
+          "importance": "medium"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "risk_compliance_consulting",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "process_improvement",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "strategic_thinking",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "proposal_development",
+          "importance": "low"
+        }
+      ],
+      "differentiator_skills": [
+        {
+          "skill_id": "financial_due_diligence",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "digital_transformation_consulting",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "change_management",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "domain_expertise",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "ai_tool_fluency",
+          "importance": "low"
+        }
+      ]
     },
     {
       "role_id": "senior_consultant",
       "title": "Senior Consultant",
-      "skills": {
-        "core": [
-          {
-            "skill_id": "client_engagement_delivery",
-            "importance": "high"
-          },
-          {
-            "skill_id": "client_advisory",
-            "importance": "high"
-          },
-          {
-            "skill_id": "consulting_frameworks",
-            "importance": "high"
-          },
-          {
-            "skill_id": "executive_presentation",
-            "importance": "high"
-          },
-          {
-            "skill_id": "stakeholder_management",
-            "importance": "high"
-          },
-          {
-            "skill_id": "proposal_development",
-            "importance": "medium"
-          }
-        ],
-        "secondary": [
-          {
-            "skill_id": "strategic_thinking",
-            "importance": "high"
-          },
-          {
-            "skill_id": "analytical_thinking",
-            "importance": "high"
-          },
-          {
-            "skill_id": "process_improvement",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "change_management",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "communication",
-            "importance": "high"
-          },
-          {
-            "skill_id": "cross_team_collaboration",
-            "importance": "medium"
-          }
-        ],
-        "differentiator": [
-          {
-            "skill_id": "risk_compliance_consulting",
-            "importance": "high"
-          },
-          {
-            "skill_id": "financial_due_diligence",
-            "importance": "high"
-          },
-          {
-            "skill_id": "digital_transformation_consulting",
-            "importance": "high"
-          },
-          {
-            "skill_id": "domain_expertise",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "ai_tool_fluency",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "leadership",
-            "importance": "medium"
-          }
-        ]
-      }
+      "core_skills": [
+        {
+          "skill_id": "client_engagement_delivery",
+          "importance": "high"
+        },
+        {
+          "skill_id": "client_advisory",
+          "importance": "high"
+        },
+        {
+          "skill_id": "consulting_frameworks",
+          "importance": "high"
+        },
+        {
+          "skill_id": "executive_presentation",
+          "importance": "high"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "high"
+        },
+        {
+          "skill_id": "proposal_development",
+          "importance": "medium"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "strategic_thinking",
+          "importance": "high"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "importance": "high"
+        },
+        {
+          "skill_id": "process_improvement",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "change_management",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "communication",
+          "importance": "high"
+        },
+        {
+          "skill_id": "cross_team_collaboration",
+          "importance": "medium"
+        }
+      ],
+      "differentiator_skills": [
+        {
+          "skill_id": "risk_compliance_consulting",
+          "importance": "high"
+        },
+        {
+          "skill_id": "financial_due_diligence",
+          "importance": "high"
+        },
+        {
+          "skill_id": "digital_transformation_consulting",
+          "importance": "high"
+        },
+        {
+          "skill_id": "domain_expertise",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "ai_tool_fluency",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "leadership",
+          "importance": "medium"
+        }
+      ]
     },
     {
       "role_id": "consulting_manager",
       "title": "Manager / Engagement Manager",
-      "skills": {
-        "core": [
-          {
-            "skill_id": "client_advisory",
-            "importance": "high"
-          },
-          {
-            "skill_id": "client_engagement_delivery",
-            "importance": "high"
-          },
-          {
-            "skill_id": "proposal_development",
-            "importance": "high"
-          },
-          {
-            "skill_id": "executive_presentation",
-            "importance": "high"
-          },
-          {
-            "skill_id": "strategic_thinking",
-            "importance": "high"
-          },
-          {
-            "skill_id": "leadership",
-            "importance": "high"
-          },
-          {
-            "skill_id": "stakeholder_management",
-            "importance": "high"
-          }
-        ],
-        "secondary": [
-          {
-            "skill_id": "consulting_frameworks",
-            "importance": "high"
-          },
-          {
-            "skill_id": "change_management",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "cross_team_collaboration",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "process_improvement",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "analytical_thinking",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "emotional_intelligence",
-            "importance": "medium"
-          }
-        ],
-        "differentiator": [
-          {
-            "skill_id": "risk_compliance_consulting",
-            "importance": "high"
-          },
-          {
-            "skill_id": "financial_due_diligence",
-            "importance": "high"
-          },
-          {
-            "skill_id": "digital_transformation_consulting",
-            "importance": "high"
-          },
-          {
-            "skill_id": "domain_expertise",
-            "importance": "high"
-          },
-          {
-            "skill_id": "ai_strategy",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "hiring_talent_acquisition",
-            "importance": "medium"
-          }
-        ]
-      }
+      "core_skills": [
+        {
+          "skill_id": "client_advisory",
+          "importance": "high"
+        },
+        {
+          "skill_id": "client_engagement_delivery",
+          "importance": "high"
+        },
+        {
+          "skill_id": "proposal_development",
+          "importance": "high"
+        },
+        {
+          "skill_id": "executive_presentation",
+          "importance": "high"
+        },
+        {
+          "skill_id": "strategic_thinking",
+          "importance": "high"
+        },
+        {
+          "skill_id": "leadership",
+          "importance": "high"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "high"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "consulting_frameworks",
+          "importance": "high"
+        },
+        {
+          "skill_id": "change_management",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "cross_team_collaboration",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "process_improvement",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "emotional_intelligence",
+          "importance": "medium"
+        }
+      ],
+      "differentiator_skills": [
+        {
+          "skill_id": "risk_compliance_consulting",
+          "importance": "high"
+        },
+        {
+          "skill_id": "financial_due_diligence",
+          "importance": "high"
+        },
+        {
+          "skill_id": "digital_transformation_consulting",
+          "importance": "high"
+        },
+        {
+          "skill_id": "domain_expertise",
+          "importance": "high"
+        },
+        {
+          "skill_id": "ai_strategy",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "hiring_talent_acquisition",
+          "importance": "medium"
+        }
+      ]
     },
     {
       "role_id": "principal_director_consulting",
       "title": "Principal / Director of Consulting",
-      "skills": {
-        "core": [
-          {
-            "skill_id": "proposal_development",
-            "importance": "high"
-          },
-          {
-            "skill_id": "client_advisory",
-            "importance": "high"
-          },
-          {
-            "skill_id": "executive_presentation",
-            "importance": "high"
-          },
-          {
-            "skill_id": "strategic_thinking",
-            "importance": "high"
-          },
-          {
-            "skill_id": "leadership",
-            "importance": "high"
-          },
-          {
-            "skill_id": "executive_leadership",
-            "importance": "high"
-          }
-        ],
-        "secondary": [
-          {
-            "skill_id": "client_engagement_delivery",
-            "importance": "high"
-          },
-          {
-            "skill_id": "consulting_frameworks",
-            "importance": "high"
-          },
-          {
-            "skill_id": "stakeholder_management",
-            "importance": "high"
-          },
-          {
-            "skill_id": "change_management",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "emotional_intelligence",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "hiring_talent_acquisition",
-            "importance": "medium"
-          }
-        ],
-        "differentiator": [
-          {
-            "skill_id": "risk_compliance_consulting",
-            "importance": "high"
-          },
-          {
-            "skill_id": "financial_due_diligence",
-            "importance": "high"
-          },
-          {
-            "skill_id": "digital_transformation_consulting",
-            "importance": "high"
-          },
-          {
-            "skill_id": "domain_expertise",
-            "importance": "high"
-          },
-          {
-            "skill_id": "ai_strategy",
-            "importance": "medium"
-          },
-          {
-            "skill_id": "gtm_strategy",
-            "importance": "medium"
-          }
-        ]
-      }
+      "core_skills": [
+        {
+          "skill_id": "proposal_development",
+          "importance": "high"
+        },
+        {
+          "skill_id": "client_advisory",
+          "importance": "high"
+        },
+        {
+          "skill_id": "executive_presentation",
+          "importance": "high"
+        },
+        {
+          "skill_id": "strategic_thinking",
+          "importance": "high"
+        },
+        {
+          "skill_id": "leadership",
+          "importance": "high"
+        },
+        {
+          "skill_id": "executive_leadership",
+          "importance": "high"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "client_engagement_delivery",
+          "importance": "high"
+        },
+        {
+          "skill_id": "consulting_frameworks",
+          "importance": "high"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "high"
+        },
+        {
+          "skill_id": "change_management",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "emotional_intelligence",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "hiring_talent_acquisition",
+          "importance": "medium"
+        }
+      ],
+      "differentiator_skills": [
+        {
+          "skill_id": "risk_compliance_consulting",
+          "importance": "high"
+        },
+        {
+          "skill_id": "financial_due_diligence",
+          "importance": "high"
+        },
+        {
+          "skill_id": "digital_transformation_consulting",
+          "importance": "high"
+        },
+        {
+          "skill_id": "domain_expertise",
+          "importance": "high"
+        },
+        {
+          "skill_id": "ai_strategy",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "gtm_strategy",
+          "importance": "medium"
+        }
+      ]
     },
     {
       "role_id": "solutions_engineer_junior",
@@ -3736,7 +3702,7 @@ export const roleSkillMapping = {
           "importance": "medium"
         },
         {
-          "skill_id": "cross_team_collaboration",
+          "skill_id": "cross_functional_collaboration",
           "importance": "medium"
         },
         {
@@ -3822,7 +3788,7 @@ export const roleSkillMapping = {
           "importance": "medium"
         },
         {
-          "skill_id": "cross_team_collaboration",
+          "skill_id": "cross_functional_collaboration",
           "importance": "medium"
         },
         {
@@ -3932,7 +3898,7 @@ export const roleSkillMapping = {
           "importance": "medium"
         },
         {
-          "skill_id": "cross_team_collaboration",
+          "skill_id": "cross_functional_collaboration",
           "importance": "medium"
         }
       ],
@@ -3984,7 +3950,7 @@ export const roleSkillMapping = {
           "importance": "critical"
         },
         {
-          "skill_id": "cross_team_collaboration",
+          "skill_id": "cross_functional_collaboration",
           "importance": "high"
         },
         {
@@ -4092,7 +4058,7 @@ export const roleSkillMapping = {
           "importance": "high"
         },
         {
-          "skill_id": "cross_team_collaboration",
+          "skill_id": "cross_functional_collaboration",
           "importance": "high"
         },
         {
@@ -4155,7 +4121,7 @@ export const roleSkillMapping = {
         {
           "skill_id": "conversion_rate_optimization",
           "importance": "critical",
-          "notes": "Primary function \u2014 owns CRO strategy and execution across digital properties"
+          "notes": "Primary function — owns CRO strategy and execution across digital properties"
         },
         {
           "skill_id": "marketing_experimentation",
@@ -4185,7 +4151,7 @@ export const roleSkillMapping = {
           "notes": "Works cross-functionally with SEO, lifecycle, product, and regional marketing teams"
         },
         {
-          "skill_id": "cross_team_collaboration",
+          "skill_id": "cross_functional_collaboration",
           "importance": "medium",
           "notes": "Coordinates experiments and initiatives across multiple teams and markets"
         },
@@ -4204,12 +4170,12 @@ export const roleSkillMapping = {
         {
           "skill_id": "ai_tool_fluency",
           "importance": "medium",
-          "notes": "Leveraging AI tools for content generation, experimentation acceleration, and funnel optimization \u2014 increasingly expected"
+          "notes": "Leveraging AI tools for content generation, experimentation acceleration, and funnel optimization — increasingly expected"
         },
         {
           "skill_id": "creative_strategy_performance",
           "importance": "medium",
-          "notes": "Understanding what makes landing pages and engagement experiences convert \u2014 creative judgment applied to CRO"
+          "notes": "Understanding what makes landing pages and engagement experiences convert — creative judgment applied to CRO"
         },
         {
           "skill_id": "campaign_analytics_attribution",
@@ -4226,7 +4192,7 @@ export const roleSkillMapping = {
         {
           "skill_id": "paid_social_advertising",
           "importance": "critical",
-          "notes": "Primary channel \u2014 Meta Ads is the most common core requirement, TikTok and LinkedIn increasingly expected"
+          "notes": "Primary channel — Meta Ads is the most common core requirement, TikTok and LinkedIn increasingly expected"
         },
         {
           "skill_id": "paid_search_advertising",
@@ -4236,7 +4202,7 @@ export const roleSkillMapping = {
         {
           "skill_id": "campaign_analytics_attribution",
           "importance": "critical",
-          "notes": "Attribution, tracking, and analytics infrastructure \u2014 GA4, MMPs, pixels, dashboards"
+          "notes": "Attribution, tracking, and analytics infrastructure — GA4, MMPs, pixels, dashboards"
         },
         {
           "skill_id": "media_planning_buying",
@@ -4266,7 +4232,7 @@ export const roleSkillMapping = {
           "notes": "Managing ad networks, DSPs, SDK networks, and platform partner relationships"
         },
         {
-          "skill_id": "cross_team_collaboration",
+          "skill_id": "cross_functional_collaboration",
           "importance": "medium",
           "notes": "Collaborates with creative, product, BI, and monetization teams"
         },
@@ -4280,12 +4246,12 @@ export const roleSkillMapping = {
         {
           "skill_id": "ai_tool_fluency",
           "importance": "medium",
-          "notes": "AI tools for creative generation, bid optimization, and campaign management \u2014 rapidly becoming standard"
+          "notes": "AI tools for creative generation, bid optimization, and campaign management — rapidly becoming standard"
         },
         {
           "skill_id": "funnel_optimization",
           "importance": "medium",
-          "notes": "Understanding full funnel from click to conversion to LTV \u2014 connects campaign metrics to business outcomes"
+          "notes": "Understanding full funnel from click to conversion to LTV — connects campaign metrics to business outcomes"
         },
         {
           "skill_id": "strategic_thinking",
@@ -4566,7 +4532,7 @@ export const roleSkillMapping = {
       ],
       "differentiator_skills": [
         "ai_tool_fluency",
-        "cross_team_collaboration"
+        "cross_functional_collaboration"
       ]
     },
     {
@@ -4637,7 +4603,7 @@ export const roleSkillMapping = {
         "strategic_thinking",
         "customer_communication",
         "delivery_execution",
-        "cross_team_collaboration"
+        "cross_functional_collaboration"
       ],
       "differentiator_skills": [
         "technical_project_delivery",
@@ -4838,12 +4804,12 @@ export const roleSkillMapping = {
       ],
       "secondary_skills": [
         "crm_management",
-        "cross_team_collaboration",
+        "cross_functional_collaboration",
         "analytical_thinking"
       ],
       "differentiator_skills": [
         "commercial_mindset",
-        "market_research_bd"
+        "market_research"
       ]
     },
     {
@@ -5096,7 +5062,7 @@ export const roleSkillMapping = {
       "secondary_skills": [
         "poc_management",
         "technical_sales_acumen",
-        "cross_team_collaboration",
+        "cross_functional_collaboration",
         "sql"
       ],
       "differentiator_skills": [

@@ -19,12 +19,28 @@ Validates the domain libraries that drive career analysis, job suggestions, task
 ## Checks
 
 - **Required fields present** on each role / skill / mapping entry
-- **Field types correct** (e.g. `alternate_titles` is `string[]`, `id` is `string`)
-- **Enum membership** (`role_family` ∈ `role_families`, `seniority` ∈ `seniority_levels`, skill `category` ∈ observed-categories set)
-- **Cross-references resolve** (skill IDs in roles exist; role IDs in `next_roles` exist; mapping role_ids and skill_ids all exist)
+- **Field types correct** (e.g. `alternate_titles` is `string[]`, `id` is `string`, `market_notes` is `{locale: string}`)
+- **Enum membership** (`role_family` ∈ `role_families`, `secondary_family` ∈ `role_families` and ≠ primary, `seniority` ∈ `seniority_levels`)
+- **Canonical enum match** — the library's declared `role_families` / `seniority_levels` must equal the validator's canonical set (single source of truth; the validator is the source). 21 families, 7 seniority levels.
+- **Cross-references resolve** (skill IDs in roles exist; role IDs in `next_roles` exist; mapping role_ids and skill_ids all exist; mapping skills can be string IDs or `{skill_id, required_proficiency}` objects — both validated)
 - **ID uniqueness** within each library
 - **ID format** (snake_case, lowercase, alphanumeric + underscore)
-- **Cross-copy consistency** (pre-consolidation: every duplicate is byte-identical to the canonical; post-consolidation: skipped)
+- **`market_notes` shape** — object with locale-string keys mapping to note-string values, never a flat string
+- **Cross-copy consistency** (skipped post-consolidation; relevant only before the move)
+
+## Primary vs secondary family — criteria
+
+Encoded in `FAMILY_ASSIGNMENT_CRITERIA` in `validate.py`. Downstream skills (role-research) read this when proposing role entries:
+
+- **`role_family`** (required) — main reporting line and core function. The role's "home."
+- **`secondary_family`** (optional, null when single-family) — significant skill overlap with another family (typically ≥30% of `required_skills` map to that family's core skills) AND the role regularly does work that crosses into that family's domain.
+
+Examples:
+- A Product Marketing Manager: `role_family: "Marketing"`, `secondary_family: "Product"` — reports into Marketing, but skill overlap with Product is substantial and the work routinely crosses (positioning, launches, PMM-PM rituals).
+- A Customer Success Operations Lead: `role_family: "Customer_Experience"`, `secondary_family: "RevOps_BizOps"` — sits in CS but does heavy systems/automation work.
+- A pure Backend Engineer: `role_family: "Engineering"`, `secondary_family: null`.
+
+Don't set `secondary_family` just because a role touches another team occasionally. The bar is "this role would be partially miscategorised if only one family applied to it."
 
 ## Usage
 
