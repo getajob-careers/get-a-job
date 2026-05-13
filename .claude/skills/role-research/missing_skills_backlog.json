@@ -1,176 +1,38 @@
 {
-  "description": "Items surfaced during role-research that should be addressed by follow-up curation. Skills go to skill-research; roles go to a future role-additions pass. Append-only during role-research batches; consolidation happens later.",
+  "description": "Items surfaced during role-research that should be addressed by follow-up curation. Skills go to skill-research; roles go to a future role-additions pass. Phase A (2026-05-13) resolved aliases, xref typos, and merges. Phase B (2026-05-13) added all 9 genuinely missing skills. missing_skills is now empty; missing_role_ids remains as a backlog for a future role-additions pass.",
   "generated_at": "2026-05-13",
-  "missing_skills": [
-    {
-      "proposed_id": "code_review",
-      "proposed_name": "Code Review",
-      "proposed_category": "technical_skill",
-      "note": "Currently mapped to code_review_practices in roles. Possibly merge or alias.",
-      "surfaced_during": "Batch 1 (engineering roles)"
-    },
-    {
-      "proposed_id": "okr_framework",
-      "proposed_name": "OKR Framework",
-      "proposed_category": "operational_skill",
-      "note": "Currently only exists as bizops_okr_framework; needed for engineering management context.",
-      "surfaced_during": "Batch 1 (engineering management)"
-    },
-    {
-      "proposed_id": "cost_optimization_finops",
-      "proposed_name": "Cost Optimization & FinOps",
-      "proposed_category": "operational_skill",
-      "note": "Cloud cost optimization for DevOps / SRE / Platform engineers.",
-      "surfaced_during": "Batch 1 (devops_engineer, sre_engineer)"
-    },
-    {
-      "proposed_id": "security_engineering",
-      "proposed_name": "Security Engineering",
-      "proposed_category": "technical_skill",
-      "note": "Application + infrastructure security engineering practices.",
-      "surfaced_during": "Batch 1 (devops_engineer, sre_engineer)"
-    },
-    {
-      "proposed_id": "chaos_engineering",
-      "proposed_name": "Chaos Engineering",
-      "proposed_category": "operational_skill",
-      "note": "Resilience testing practices for SRE / production engineering.",
-      "surfaced_during": "Batch 1 (sre_engineer)"
-    },
-    {
-      "proposed_id": "roadmapping_prioritization",
-      "proposed_name": "Roadmapping & Prioritization",
-      "proposed_category": "product_skill",
-      "note": "Pre-existing cross-ref from product_manager + technical_product_manager.",
-      "surfaced_during": "Pre-existing"
-    },
-    {
-      "proposed_id": "customer_research",
-      "proposed_name": "Customer Research",
-      "proposed_category": "product_skill",
-      "note": "Pre-existing cross-ref from product_manager.",
-      "surfaced_during": "Pre-existing"
-    },
-    {
-      "proposed_id": "sql_analysis",
-      "proposed_name": "SQL Analysis",
-      "proposed_category": "analytical_skill",
-      "note": "Pre-existing cross-ref from product_analyst.",
-      "surfaced_during": "Pre-existing"
-    },
-    {
-      "proposed_id": "product_metrics_analysis",
-      "proposed_name": "Product Metrics Analysis",
-      "proposed_category": "analytical_skill",
-      "note": "Pre-existing cross-ref from product_analyst.",
-      "surfaced_during": "Pre-existing"
-    },
-    {
-      "proposed_id": "ab_testing_experimentation",
-      "proposed_name": "A/B Testing & Experimentation",
-      "proposed_category": "analytical_skill",
-      "note": "Pre-existing cross-ref from product_analyst. Fixed in Batch 2 by renaming to canonical 'ab_testing'.",
-      "surfaced_during": "Pre-existing — RESOLVED Batch 2"
-    },
-    {
-      "proposed_id": "fine_tuning_models",
-      "proposed_name": "Fine-Tuning Models",
-      "proposed_category": "ai_ml_core",
-      "note": "Surfaced as duplicate of canonical model_training_finetuning. Removed during Batch 2; possible alias.",
-      "surfaced_during": "Batch 2 — RESOLVED"
-    },
-    {
-      "proposed_id": "pytorch",
-      "proposed_name": "PyTorch",
-      "proposed_category": "ai_ml_core",
-      "note": "PyTorch is a tool/framework, not a skill — moved from required_skills to tools array in Batch 2. Keep as tool, not skill.",
-      "surfaced_during": "Batch 2 — RESOLVED as tool"
-    },
-    {
-      "proposed_id": "change_management",
-      "proposed_name": "Change Management",
-      "proposed_category": "operational_skill",
-      "note": "Needed for ai_transformation_lead and other leadership-pivot roles.",
-      "surfaced_during": "Batch 2 (ai_transformation_lead)"
-    },
-    {
-      "proposed_id": "vendor_management",
-      "proposed_name": "Vendor Management",
-      "proposed_category": "operational_skill",
-      "note": "Tool / vendor evaluation skill for AI transformation, IT, finance, executive roles.",
-      "surfaced_during": "Batch 2 (ai_transformation_lead, head_of_ai, vp_ai_chief_ai_officer)"
-    },
-    {
-      "proposed_id": "training_facilitation",
-      "proposed_name": "Training Facilitation",
-      "proposed_category": "operational_skill",
-      "note": "Internal training / workshop design for ai_transformation_lead and L&D-adjacent roles.",
-      "surfaced_during": "Batch 2 (ai_transformation_lead)"
-    },
-    {
-      "proposed_id": "research_writing",
-      "proposed_name": "Research Writing",
-      "proposed_category": "ai_ml_core",
-      "note": "Academic paper / technical writing for applied AI researchers.",
-      "surfaced_during": "Batch 2 (applied_ai_researcher)"
-    },
-    {
-      "proposed_id": "experimental_design",
-      "proposed_name": "Experimental Design",
-      "proposed_category": "analytical_skill",
-      "note": "Statistical experiment design — broader than ab_testing; needed for applied AI research.",
-      "surfaced_during": "Batch 2 (applied_ai_researcher)"
-    },
-    {
-      "proposed_id": "model_evaluation",
-      "proposed_name": "Model Evaluation",
-      "proposed_category": "ai_ml_core",
-      "note": "Distinct from llm_evaluation — broader evaluation methodology for ML models.",
-      "surfaced_during": "Batch 2 (applied_ai_researcher)"
-    },
-    {
-      "proposed_id": "model_quantization",
-      "proposed_name": "Model Quantization",
-      "proposed_category": "ai_ml_core",
-      "note": "Critical for edge AI / embedded ML roles.",
-      "surfaced_during": "Batch 2 (cv_edge_ai_engineer)"
-    },
-    {
-      "proposed_id": "embedded_systems",
-      "proposed_name": "Embedded Systems",
-      "proposed_category": "technical_skill",
-      "note": "Hardware-software integration for edge AI and embedded ML.",
-      "surfaced_during": "Batch 2 (cv_edge_ai_engineer)"
-    },
-    {
-      "proposed_id": "cuda_programming",
-      "proposed_name": "CUDA Programming",
-      "proposed_category": "technical_skill",
-      "note": "GPU programming for performance-critical AI workloads.",
-      "surfaced_during": "Batch 2 (cv_edge_ai_engineer)"
-    },
-    {
-      "proposed_id": "kubernetes",
-      "proposed_name": "Kubernetes",
-      "proposed_category": "technical_skill",
-      "note": "Container orchestration — currently a tool, possibly should also be a skill for MLOps / SRE / platform engineering.",
-      "surfaced_during": "Batch 2 (mlops_engineer)"
-    },
-    {
-      "proposed_id": "board_management",
-      "proposed_name": "Board Management",
-      "proposed_category": "leadership_skill",
-      "note": "Executive board communication for VP-level and C-suite roles.",
-      "surfaced_during": "Batch 2 (vp_ai_chief_ai_officer)"
-    },
-    {
-      "proposed_id": "technical_communication",
-      "proposed_name": "Technical Communication",
-      "proposed_category": "soft_skill",
-      "note": "Distinct from customer_communication — for engineer-to-engineer and engineer-to-non-engineer technical explanation.",
-      "surfaced_during": "Batch 2 (prompt_engineer)"
-    }
-  ],
+  "last_updated": "2026-05-13 (Phase B complete — 9 skills added, library now 389 entries)",
+  "resolved_phase_a": {
+    "description": "Phase A triage outcomes — no new skills needed for these.",
+    "already_exist_in_canonical": [
+      {"proposed_id": "code_review", "canonical_id": "code_review_practices"},
+      {"proposed_id": "technical_communication", "canonical_id": "technical_communication", "note": "Exists but description is empty — consider backfill."},
+      {"proposed_id": "change_management", "canonical_id": "change_management"},
+      {"proposed_id": "cuda_programming", "canonical_id": "cuda_gpu_programming"},
+      {"proposed_id": "kubernetes", "canonical_id": "containerization", "note": "Skill-level concern covered by containerization (Docker + Kubernetes). Keep kubernetes as tool only."}
+    ],
+    "xref_typos_fixed_in_role_library": [
+      {"bad_xref": "customer_research", "renamed_to": "user_research", "roles_fixed": ["product_manager.required_skills", "technical_product_manager.preferred_skills"], "note": "Cleared the residual validator error (1 → 0)."},
+      {"bad_xref": "okr_framework", "renamed_to": "bizops_okr_framework", "roles_fixed": ["engineering_manager.preferred_skills", "solutions_engineering_manager.preferred_skills"]},
+      {"bad_xref": "vendor_management", "renamed_to": "vendor_procurement_management", "roles_fixed": ["ai_transformation_lead.preferred_skills", "head_of_ai.preferred_skills", "vp_ai_chief_ai_officer.preferred_skills"]},
+      {"bad_xref": "experimental_design", "renamed_to": "experimentation_framework", "roles_fixed": ["applied_ai_researcher.preferred_skills"]}
+    ]
+  },
+  "missing_skills": [],
+  "resolved_phase_b": {
+    "description": "Phase B (2026-05-13) — added 9 new skills via validator-gated apply. Library grew from 380 → 389.",
+    "added": [
+      {"id": "board_management", "category": "leadership_skill"},
+      {"id": "training_facilitation", "category": "operational_skill"},
+      {"id": "security_engineering", "category": "technical_skill"},
+      {"id": "chaos_engineering", "category": "operational_skill"},
+      {"id": "cost_optimization_finops", "category": "operational_skill"},
+      {"id": "model_evaluation", "category": "ai_ml_core"},
+      {"id": "model_quantization", "category": "ai_ml_core"},
+      {"id": "embedded_systems", "category": "technical_skill"},
+      {"id": "research_writing", "category": "ai_ml_research"}
+    ]
+  },
   "missing_role_ids": {
     "description": "Role IDs referenced in next_roles / similar_roles during research that don't exist in the library yet. Future role-additions pass should evaluate which are real gaps vs which were aspirational. Most are leadership / executive titles + senior tier roles.",
     "items": [
