@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/api/supabaseClient";
+import { useAuth } from "@/lib/AuthContext";
 import TopLoadingBar from "./components/ui/TopLoadingBar";
 import SidebarFooter from "./components/layout/SidebarFooter";
 import { createPageUrl } from "@/utils";
@@ -37,9 +40,32 @@ const NAV_ITEMS = [
 const ONBOARDING_PAGE = "Onboarding";
 
 export default function Layout({ children, currentPageName }) {
+  const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [navLoading, setNavLoading] = useState(false);
   const location = useLocation();
+
+  // Practicum nav visibility — students who answered "No" to the practicum
+  // question during onboarding have practicum_path = null and should not
+  // see /Practicum in the nav. The page itself redirects to Home for these
+  // users (see src/pages/Practicum.jsx).
+  const { data: practicumPath } = useQuery({
+    queryKey: ["profile_practicum_path", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("practicum_path")
+        .eq("id", user.id)
+        .maybeSingle();
+      return data?.practicum_path ?? null;
+    },
+    enabled: !!user?.id,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  const navItems = NAV_ITEMS.filter(
+    (item) => item.page !== "Practicum" || practicumPath != null
+  );
 
   useEffect(() => {
     setNavLoading(true);
@@ -90,7 +116,7 @@ export default function Layout({ children, currentPageName }) {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
-          {NAV_ITEMS.map((item) => {
+          {navItems.map((item) => {
             const isActive = currentPageName === item.page;
             const Icon = item.icon;
             return (

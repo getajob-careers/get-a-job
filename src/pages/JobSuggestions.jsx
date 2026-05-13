@@ -163,13 +163,17 @@ function JobCard({ job }) {
   );
 }
 
+// Profile-dimension queries (profile, experiences, certifications, projects,
+// career_roles) are cached for 30 minutes per visit. Their consumers (this
+// page, CareerRoadmap, AddInformation) invalidate on save, so a long staleTime
+// avoids redundant refetches on tab switches without serving stale data.
+const PROFILE_STALE_TIME = 30 * 60 * 1000;
+
 export default function JobSuggestions() {
   const { user } = useAuth();
-  const [jobs, setJobs] = useState([]);
-  const [genericJobs, setGenericJobs] = useState([]);
+  const queryClient = useQueryClient();
   const [loading, setLoading] = useState(false);
-  const [fromCache, setFromCache] = useState(false);
-  const [lastGenerated, setLastGenerated] = useState(null);
+  const [justGenerated, setJustGenerated] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
 
@@ -182,6 +186,7 @@ export default function JobSuggestions() {
       return data?.[0] || null;
     },
     enabled: !!user?.id,
+    staleTime: PROFILE_STALE_TIME,
   });
 
   const { data: experiences = [] } = useQuery({
@@ -193,6 +198,7 @@ export default function JobSuggestions() {
       return data || [];
     },
     enabled: !!user?.id,
+    staleTime: PROFILE_STALE_TIME,
   });
 
   const { data: certifications = [] } = useQuery({
@@ -204,6 +210,7 @@ export default function JobSuggestions() {
       return data || [];
     },
     enabled: !!user?.id,
+    staleTime: PROFILE_STALE_TIME,
   });
 
   const { data: projects = [] } = useQuery({
@@ -215,6 +222,7 @@ export default function JobSuggestions() {
       return data || [];
     },
     enabled: !!user?.id,
+    staleTime: PROFILE_STALE_TIME,
   });
 
   const stale = isAnalysisStale({ profile, experiences, certifications, projects });
@@ -233,7 +241,47 @@ export default function JobSuggestions() {
       return data || [];
     },
     enabled: !!user?.id,
+    staleTime: PROFILE_STALE_TIME,
   });
+
+  // Cached job_suggestions rows. Edge function writes to this table on
+  // force_refresh, then we invalidate this query in generateSuggestions() so
+  // it refetches the fresh rows. staleTime: Infinity prevents accidental
+  // refetches on revisits — invalidation is explicit and edge-function-driven.
+  const { data: suggestionsData } = useQuery({
+    queryKey: ["jobSuggestions", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data, error } = await supabase
+        .from("job_suggestions")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("match_score", { ascending: false });
+      if (error) throw error;
+      if (!data || data.length === 0) return null;
+
+      const live = data.filter((s) => s.suggestion_type === "live" || (s.suggestion_type !== "generic" && s.job_url));
+      const generic = data
+        .filter((s) => s.suggestion_type === "generic" || (!s.job_url && s.suggestion_type !== "live"))
+        .map((s) => ({
+          ...s,
+          why_good_fit: s.match_reason || s.description_snippet,
+          key_skills_to_highlight: s.matched_skills || [],
+          tier: (s.match_score || 0) >= 70 ? "tier_1" : "tier_2",
+        }));
+
+      return { live, generic, lastGeneratedISO: data[0].fetched_at };
+    },
+    enabled: !!user?.id,
+    staleTime: Infinity,
+  });
+
+  const jobs = suggestionsData?.live ?? [];
+  const genericJobs = suggestionsData?.generic ?? [];
+  const lastGenerated = suggestionsData?.lastGeneratedISO
+    ? new Date(suggestionsData.lastGeneratedISO).toLocaleString()
+    : null;
+  const fromCache = !justGenerated && (jobs.length > 0 || genericJobs.length > 0);
 
   // Group + sort by tier for the dropdown. Dedupe by title (some users have
   // duplicate entries across regenerations) and sort within a tier by readiness.
@@ -266,44 +314,6 @@ export default function JobSuggestions() {
     }
   }, [rolesByTier, selectedRole]);
 
-  // Auto-load cached suggestions from DB on mount
-  useEffect(() => {
-    if (!user?.id || !profile) return;
-    loadCachedSuggestions();
-  }, [user?.id, profile]);
-
-  const loadCachedSuggestions = async () => {
-    try {
-      const { data: cached, error } = await supabase
-        .from("job_suggestions")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("match_score", { ascending: false });
-
-      if (error) { console.error("Cache load error:", error); return; }
-
-      if (cached && cached.length > 0) {
-        const live = cached.filter(s => s.suggestion_type === 'live' || (s.suggestion_type !== 'generic' && s.job_url));
-        const generic = cached.filter(s => s.suggestion_type === 'generic' || (!s.job_url && s.suggestion_type !== 'live'));
-
-        // Restore generic display fields from stored columns
-        const restoredGeneric = generic.map(s => ({
-          ...s,
-          why_good_fit: s.match_reason || s.description_snippet,
-          key_skills_to_highlight: s.matched_skills || [],
-          tier: (s.match_score || 0) >= 70 ? 'tier_1' : 'tier_2',
-        }));
-
-        setJobs(live);
-        setGenericJobs(restoredGeneric);
-        setFromCache(true);
-        setLastGenerated(new Date(cached[0].fetched_at).toLocaleString());
-      }
-    } catch (err) {
-      console.error("Failed to load cached suggestions:", err);
-    }
-  };
-
   const generateSuggestions = async () => {
     setLoading(true);
     setError(null);
@@ -319,13 +329,12 @@ export default function JobSuggestions() {
 
       if (error) throw error;
 
-      setJobs(data?.suggestions || []);
-      setGenericJobs(data?.generic_suggestions || []);
-      setFromCache(false);
+      // Edge function has persisted the new suggestions to job_suggestions.
+      // Invalidate the cached query so it refetches the fresh rows; this also
+      // guarantees the new data replaces the old in the UI atomically.
+      await queryClient.invalidateQueries({ queryKey: ["jobSuggestions", user?.id] });
+      setJustGenerated(true);
       setMessage(data?.message || null);
-      if (data?.suggestions?.length > 0 || data?.generic_suggestions?.length > 0) {
-        setLastGenerated(new Date().toLocaleString());
-      }
     } catch (err) {
       console.error("Job suggestions error:", err);
       setError("Failed to load job suggestions. Please try again.");

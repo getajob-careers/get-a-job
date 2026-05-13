@@ -943,9 +943,7 @@ export default function AddInformation() {
         <TabsContent value="goals">
           <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-5">
             <p className="text-xs text-[#525252] bg-[#F5F5F5] border border-[#E5E5E5] rounded-lg px-3 py-2">
-              These fields drive tier scoring and role recommendations. Editing them retriggers
-              <code className="text-[#0A0A0A] mx-1">analyze-job-match</code>
-              the next time you save a JD on the Tracker, so the right tier reflects your latest target.
+              These fields shape your career recommendations. When you update them, your saved applications will re-score against your new direction the next time you open them.
             </p>
 
             <div>
