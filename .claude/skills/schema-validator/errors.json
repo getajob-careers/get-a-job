@@ -1,17 +1,11 @@
 {
-  "generated_at": "2026-05-13T14:28:14Z",
+  "generated_at": "2026-05-13T14:43:16Z",
   "canonical_dir": "supabase/functions/_shared/libraries",
   "summary": {
-    "errors": 1,
-    "warnings": 167
+    "errors": 0,
+    "warnings": 142
   },
-  "errors": [
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'product_manager' required_skills references unknown skill_id 'customer_research'",
-      "role_id": "product_manager"
-    }
-  ],
+  "errors": [],
   "warnings": [
     {
       "check": "skill.common_roles_xref",
@@ -136,11 +130,6 @@
       "check": "role.preferred_skills_xref",
       "message": "role 'product_manager' preferred_skills references unknown skill_id 'data_informed_decision_making'",
       "role_id": "product_manager"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'technical_product_manager' preferred_skills references unknown skill_id 'customer_research'",
-      "role_id": "technical_product_manager"
     },
     {
       "check": "role.preferred_skills_xref",
@@ -323,16 +312,6 @@
       "role_id": "head_of_hr_people"
     },
     {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'head_of_revops' preferred_skills references unknown skill_id 'board_management'",
-      "role_id": "head_of_revops"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'vp_operations' preferred_skills references unknown skill_id 'board_management'",
-      "role_id": "vp_operations"
-    },
-    {
       "check": "role.next_roles_xref",
       "message": "role 'staff_engineer' next_roles references unknown role_id 'principal_engineer'",
       "role_id": "staff_engineer"
@@ -341,11 +320,6 @@
       "check": "role.next_roles_xref",
       "message": "role 'staff_engineer' next_roles references unknown role_id 'distinguished_engineer'",
       "role_id": "staff_engineer"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'engineering_manager' preferred_skills references unknown skill_id 'okr_framework'",
-      "role_id": "engineering_manager"
     },
     {
       "check": "role.next_roles_xref",
@@ -373,16 +347,6 @@
       "role_id": "qa_engineer"
     },
     {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'devops_engineer' preferred_skills references unknown skill_id 'security_engineering'",
-      "role_id": "devops_engineer"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'devops_engineer' preferred_skills references unknown skill_id 'cost_optimization_finops'",
-      "role_id": "devops_engineer"
-    },
-    {
       "check": "role.next_roles_xref",
       "message": "role 'devops_engineer' next_roles references unknown role_id 'platform_engineer_senior'",
       "role_id": "devops_engineer"
@@ -391,21 +355,6 @@
       "check": "role.next_roles_xref",
       "message": "role 'devops_engineer' next_roles references unknown role_id 'devops_team_lead'",
       "role_id": "devops_engineer"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'sre_engineer' preferred_skills references unknown skill_id 'chaos_engineering'",
-      "role_id": "sre_engineer"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'sre_engineer' preferred_skills references unknown skill_id 'cost_optimization_finops'",
-      "role_id": "sre_engineer"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'sre_engineer' preferred_skills references unknown skill_id 'security_engineering'",
-      "role_id": "sre_engineer"
     },
     {
       "check": "role.next_roles_xref",
@@ -421,11 +370,6 @@
       "check": "role.next_roles_xref",
       "message": "role 'sre_engineer' next_roles references unknown role_id 'platform_engineering_lead'",
       "role_id": "sre_engineer"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'ai_engineer_mid' preferred_skills references unknown skill_id 'fine_tuning_models'",
-      "role_id": "ai_engineer_mid"
     },
     {
       "check": "role.next_roles_xref",
@@ -449,16 +393,6 @@
     },
     {
       "check": "role.preferred_skills_xref",
-      "message": "role 'cv_edge_ai_engineer' preferred_skills references unknown skill_id 'model_quantization'",
-      "role_id": "cv_edge_ai_engineer"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'cv_edge_ai_engineer' preferred_skills references unknown skill_id 'embedded_systems'",
-      "role_id": "cv_edge_ai_engineer"
-    },
-    {
-      "check": "role.preferred_skills_xref",
       "message": "role 'cv_edge_ai_engineer' preferred_skills references unknown skill_id 'cuda_programming'",
       "role_id": "cv_edge_ai_engineer"
     },
@@ -466,26 +400,6 @@
       "check": "role.next_roles_xref",
       "message": "role 'cv_edge_ai_engineer' next_roles references unknown role_id 'ml_lead'",
       "role_id": "cv_edge_ai_engineer"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'applied_ai_researcher' preferred_skills references unknown skill_id 'research_writing'",
-      "role_id": "applied_ai_researcher"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'applied_ai_researcher' preferred_skills references unknown skill_id 'experimental_design'",
-      "role_id": "applied_ai_researcher"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'applied_ai_researcher' preferred_skills references unknown skill_id 'fine_tuning_models'",
-      "role_id": "applied_ai_researcher"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'applied_ai_researcher' preferred_skills references unknown skill_id 'model_evaluation'",
-      "role_id": "applied_ai_researcher"
     },
     {
       "check": "role.next_roles_xref",
@@ -498,31 +412,6 @@
       "role_id": "prompt_engineer"
     },
     {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'ai_transformation_lead' preferred_skills references unknown skill_id 'vendor_management'",
-      "role_id": "ai_transformation_lead"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'ai_transformation_lead' preferred_skills references unknown skill_id 'training_facilitation'",
-      "role_id": "ai_transformation_lead"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'head_of_ai' preferred_skills references unknown skill_id 'vendor_management'",
-      "role_id": "head_of_ai"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'vp_ai_chief_ai_officer' preferred_skills references unknown skill_id 'vendor_management'",
-      "role_id": "vp_ai_chief_ai_officer"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'vp_ai_chief_ai_officer' preferred_skills references unknown skill_id 'board_management'",
-      "role_id": "vp_ai_chief_ai_officer"
-    },
-    {
       "check": "role.next_roles_xref",
       "message": "role 'vp_ai_chief_ai_officer' next_roles references unknown role_id 'cto'",
       "role_id": "vp_ai_chief_ai_officer"
@@ -533,29 +422,9 @@
       "role_id": "vp_ai_chief_ai_officer"
     },
     {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'senior_bd_manager_strategic_partnerships' preferred_skills references unknown skill_id 'board_management'",
-      "role_id": "senior_bd_manager_strategic_partnerships"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'head_of_bd_head_of_partnerships' preferred_skills references unknown skill_id 'board_management'",
-      "role_id": "head_of_bd_head_of_partnerships"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'vp_business_development' preferred_skills references unknown skill_id 'board_management'",
-      "role_id": "vp_business_development"
-    },
-    {
       "check": "role.next_roles_xref",
       "message": "role 'senior_solutions_engineer' next_roles references unknown role_id 'principal_solutions_engineer'",
       "role_id": "senior_solutions_engineer"
-    },
-    {
-      "check": "role.preferred_skills_xref",
-      "message": "role 'solutions_engineering_manager' preferred_skills references unknown skill_id 'okr_framework'",
-      "role_id": "solutions_engineering_manager"
     },
     {
       "check": "role.next_roles_xref",
