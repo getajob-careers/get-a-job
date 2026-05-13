@@ -99,9 +99,26 @@ After each batch:
 
 The skill-research follow-up reads this as its priority list. Do NOT add missing skills directly to the skill library from within role-research.
 
+## Content rules (apply to every role)
+
+1. **No salary information in `market_notes`.** Salary is a separate, future platform surface — not part of the role-library content contract. Mentioning typical ranges, bands, equity ratios, etc. is out of scope.
+
+2. **Diverse company examples across sectors.** When naming Israeli companies in `market_notes.israel`, span the actual ecosystem mix:
+   - Cybersecurity (Wiz, Check Point, CyberArk, SentinelOne, Cato Networks, Cybereason, Armis, Snyk, Orca Security)
+   - SaaS / B2B (monday.com, Wix, JFrog, Fiverr, Gong, HiBob, AppsFlyer, Cloudinary)
+   - AI / ML (AI21 Labs, Aidoc, Run:ai, Hailo)
+   - FinTech / InsurTech (Lemonade, Payoneer, eToro, Forter, Tipalti, Melio)
+   - Adapt the mix to where the role actually exists — name 4-6 employers spanning at least 2 sectors. Cyber is the single biggest engineering employer in Israel; don't underweight it.
+
+3. **`required_skills` vs `preferred_skills` is a judgment call per role.** Default rule: if the role genuinely cannot be done without the skill, it's required. If it makes the candidate stronger but isn't a baseline gate, it's preferred. Watch for these traps:
+   - Full-stack ≠ baseline for "Software Engineer" — most Israeli SWE roles are backend-leaning with frontend as nice-to-have. Don't list both `backend_development` AND `frontend_development` as required for a generic Software Engineer.
+   - Leadership-adjacent skills (mentoring, technical leadership) shift from preferred at Mid → required at Senior and above.
+   - Tool-specific skills (e.g. `figma_mastery` for a Product Designer) ARE required when the tool is universal in the industry. Otherwise preferred.
+
 ## Don't
 
-- Don't fabricate metrics, salary numbers, or company names not surfaced by research.
+- Don't fabricate metrics or company names not grounded in research or your knowledge.
+- Don't include salary or comp data (see rule 1 above).
 - Don't auto-mutate the skill library or the role-skill mapping from this skill.
 - Don't write to `_drafts/` or `drafts/` — the canonical library is the working target; validator is the gate.
 - Don't promote a role whose enrichment fails the validator. Fix the data first.

@@ -6354,10 +6354,78 @@ export const roleLibrary = {
         "linux_fundamentals",
         "sql"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "frontend_development",
+        "code_review_practices",
+        "testing_practices",
+        "cloud_fundamentals",
+        "containerization",
+        "agile_methodology"
+      ],
       "market_notes": {
-        "israel": "Strong entry pipeline in Israel through university programs, army tech units (8200, Mamram, etc.), and bootcamps. Many companies hire new grads with BSc in CS or equivalent military experience. Companies like VAST Data, XM Cyber, and Emerson actively recruit junior engineers in Tel Aviv. AI/ML bootcamp programs (fully funded, ~5 months) are emerging as an alternative entry path. GPA requirements (85+) and psychometric scores are common filters for structured programs."
-      }
+        "israel": "Entry-level hiring in Israeli tech is highly competitive — Unit 8200 / 81 / Mamram graduates dominate the talent pool, supplemented by Technion / Tel Aviv University / Reichman / IDC computer science graduates and increasingly bootcamp grads (ITC, Elevation). Most Junior SWE roles are at scale-ups and unicorns that have the bandwidth to train; small startups under 30 engineers usually skip this level. Backend-first hiring is common (Python or Node.js / TypeScript dominant), with full-stack expected at smaller orgs. Cybersecurity (Wiz, Check Point, CyberArk, SentinelOne), SaaS (monday.com, Wix, JFrog, Fiverr), and FinTech (Lemonade, Payoneer, eToro) are the largest employer segments. Many roles list 'army experience' as a soft preference and value team-fit + learning velocity over deep technical depth at this level."
+      },
+      "alternate_titles": [
+        "Entry-Level Software Engineer",
+        "Software Engineer I",
+        "Associate Software Engineer",
+        "Graduate Software Engineer"
+      ],
+      "core_responsibilities": [
+        "Pick up and ship small-to-medium features under code-review guidance, learning the team's production codebase and conventions",
+        "Write tests for new code and run through the standard PR / review / merge / deploy workflow",
+        "Fix bugs across the stack, often paired or shadowed by a more senior engineer for context",
+        "Participate in team rituals (standup, planning, retros) and ask questions actively — assumed to be in heavy learning mode",
+        "Improve internal documentation, scripts, and developer tooling as a low-risk way to build context",
+        "Pair on incident response and on-call shadowing without being primary; expected to gradually take ownership over the first year"
+      ],
+      "tools": [
+        "Python",
+        "Node.js",
+        "TypeScript",
+        "Git",
+        "PostgreSQL",
+        "AWS",
+        "Docker",
+        "Jira",
+        "Slack"
+      ],
+      "technical_depth": "Medium",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Execution",
+      "lifecycle_stage": [
+        "All"
+      ],
+      "typical_backgrounds": [
+        "computer_science",
+        "bootcamp_graduate",
+        "self_taught",
+        "unit_8200",
+        "academic_internship"
+      ],
+      "years_experience_typical": "0-2",
+      "next_roles": [
+        "software_engineer"
+      ],
+      "similar_roles": [
+        "qa_engineer",
+        "junior_ai_ml_engineer",
+        "solutions_engineer_junior"
+      ],
+      "not_to_confuse_with": [
+        "Software Engineer",
+        "Software Engineering Intern"
+      ],
+      "keywords": [
+        "entry-level",
+        "graduate",
+        "learning",
+        "shadowing",
+        "code review",
+        "pair programming"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "software_engineer",
@@ -6382,7 +6450,6 @@ export const roleLibrary = {
       ],
       "required_skills": [
         "backend_development",
-        "frontend_development",
         "system_design_basics",
         "python_development",
         "databases",
@@ -6392,10 +6459,11 @@ export const roleLibrary = {
         "cloud_fundamentals"
       ],
       "preferred_skills": [
+        "frontend_development",
         "system_architecture",
         "performance_optimization",
         "cross_functional_collaboration",
-        "code_review",
+        "code_review_practices",
         "mentoring",
         "ci_cd",
         "containerization",
@@ -6455,7 +6523,7 @@ export const roleLibrary = {
         "full-stack"
       ],
       "market_notes": {
-        "israel": "Core hiring target across Israeli startups and scale-ups. Mid-level typically means 3-5 years of experience, with the lower end (2-4 years) common at Seed/Series A startups and the higher end (4-7 years) common at scale-ups and unicorns. Python and Node.js/TypeScript dominate the backend stack in Tel Aviv; Go and Rust are growing especially in infrastructure-heavy cyber and AI companies. Full-stack capability is increasingly expected even in nominally 'backend' roles, given the small team sizes typical of Israeli startups. Cybersecurity and SaaS form the largest portion of the employer base, with significant employment also at Wix, monday.com, JFrog, Fiverr, Lemonade, and the major Israeli-headquartered unicorns. Microservices and cloud-native architecture (AWS dominant, GCP secondary) are a baseline expectation. Unit 8200 and other elite IDF tech units provide a significant talent pipeline. Salary range typically ₪25,000-45,000/month base for mid-level depending on company stage and stack."
+        "israel": "Core hiring target across Israeli startups and scale-ups. Mid-level typically means 3-5 years of experience, with the lower end (2-4 years) common at Seed/Series A startups and the higher end (4-7 years) common at scale-ups and unicorns. Python and Node.js/TypeScript dominate the backend stack in Tel Aviv; Go and Rust are growing especially in infrastructure-heavy cyber and AI companies. Strong backend capability is the baseline, with frontend skills often expected to varying degrees depending on team size — full-stack is common at smaller startups, more specialized at scale-ups. The employer base spans cybersecurity (Wiz, Check Point, CyberArk, SentinelOne, Cato Networks), SaaS (Wix, monday.com, JFrog, Fiverr), AI (AI21 Labs, Aidoc, Run:ai), and consumer/fintech (Lemonade, Payoneer, eToro) — with cyber alone employing thousands of engineers across Tel Aviv and Herzliya. Microservices and cloud-native architecture (AWS dominant, GCP secondary) are a baseline expectation. Unit 8200 and other elite IDF tech units provide a significant talent pipeline alongside computer science programs at Technion, Reichman, IDC, and Tel Aviv University."
       },
       "_research_method": "web_search"
     },
@@ -6478,10 +6546,83 @@ export const roleLibrary = {
         "cloud_platforms",
         "databases"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "frontend_development",
+        "performance_optimization",
+        "incident_management",
+        "code_review_practices",
+        "cross_functional_collaboration",
+        "mentoring",
+        "ci_cd"
+      ],
       "market_notes": {
-        "israel": "High-demand role across the Israeli market. Typical requirements are 5-8+ years of experience. Companies like Taboola, Sett, april, Apiiro, and WINN.AI hire aggressively at this level. End-to-end ownership is the consistent theme — companies expect senior engineers to ship features from design to production with full accountability. Big data experience (Kafka, Spark, distributed databases) is a strong differentiator at ad-tech and data-heavy companies. LLM/AI experience is emerging as a preferred qualification even for non-AI companies."
-      }
+        "israel": "The most common senior IC level in Israeli tech — represents the technical backbone of most engineering orgs. Salary bands have tightened post-2024 across SaaS and cyber but remain strong relative to other Israeli professions. Companies routinely hire senior SWEs after 5-8 years total experience, with 8200 / 81 grads sometimes reaching this level by 4-5 years given accelerated growth in elite units. Stack reality: Python and Node.js / TypeScript dominate, with Go and Rust appearing more in cyber infrastructure (Wiz, Aqua Security, Orca) and AI (Hailo, AI21 Labs). Heavy employers include cyber (Wiz, Check Point, CyberArk, SentinelOne, Cato Networks), SaaS (monday.com, Wix, JFrog, Fiverr, Gong, HiBob), FinTech (Lemonade, Payoneer, eToro, Forter), and AI scale-ups (Run:ai, AI21, Aidoc). Senior SWE → staff vs management is a deliberate career fork at most companies; many engineers do tech_lead as a stepping stone to either."
+      },
+      "alternate_titles": [
+        "Senior Backend Engineer",
+        "Senior Full-Stack Engineer",
+        "SWE III",
+        "Software Engineer III"
+      ],
+      "core_responsibilities": [
+        "Own and ship complex, cross-system features end-to-end — design, implementation, rollout, and post-launch monitoring",
+        "Drive technical design reviews for non-trivial changes; produce architecture documents and run engineering discussions",
+        "Lead production incident response when on-call and contribute to post-mortems that result in concrete reliability work",
+        "Mentor 1-3 mid and junior engineers via pairing, design feedback, and weekly 1:1s (without being a people manager)",
+        "Influence team-level technical direction — propose investments in tooling, infrastructure, and refactors that pay back over 2-3 quarters",
+        "Partner with PM and design on roadmap shaping — push back on scope, suggest alternatives, and surface technical risks early"
+      ],
+      "tools": [
+        "Python",
+        "Node.js",
+        "TypeScript",
+        "Go",
+        "PostgreSQL",
+        "Redis",
+        "Kafka",
+        "AWS",
+        "Kubernetes",
+        "Datadog"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "All"
+      ],
+      "typical_backgrounds": [
+        "computer_science",
+        "unit_8200",
+        "promoted_from_mid_swe",
+        "external_senior_hire"
+      ],
+      "years_experience_typical": "5-8",
+      "next_roles": [
+        "staff_engineer",
+        "tech_lead",
+        "engineering_manager"
+      ],
+      "similar_roles": [
+        "devops_engineer",
+        "sre_engineer",
+        "senior_ai_engineer",
+        "mlops_engineer"
+      ],
+      "not_to_confuse_with": [
+        "Tech Lead",
+        "Staff Engineer",
+        "Engineering Manager"
+      ],
+      "keywords": [
+        "senior IC",
+        "system design",
+        "mentoring",
+        "on-call",
+        "production reliability",
+        "architecture review"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "staff_engineer",
@@ -6502,10 +6643,78 @@ export const roleLibrary = {
         "backend_development",
         "ai_tool_fluency"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "distributed_systems",
+        "code_review_practices",
+        "executive_presentation",
+        "stakeholder_management",
+        "cross_functional_collaboration"
+      ],
       "market_notes": {
-        "israel": "Emerging as a distinct and valued role in Israeli scale-ups. Companies like Tomorrow.io and Yotpo have clear Staff Engineer positions with explicit 'force multiplier' expectations. The role requires 8-10+ years of experience and architectural mastery. AI-first development practices (integrating AI tools like Cursor and Copilot into engineering workflows) are becoming a defining requirement at companies like Tomorrow.io. Full-stack fluency — deep understanding from database internals to frontend frameworks — is expected. This role is distinct from Engineering Manager: Staff Engineers lead through technical influence, not people management."
-      }
+        "israel": "Staff / Principal levels exist primarily at scale-ups (Series C+) and unicorns where engineering orgs are large enough (50+ engineers) to need senior IC leadership distinct from people management. Heavy concentration at Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, AppsFlyer, and the major Israeli-headquartered tech companies. Smaller startups often skip this level entirely — top senior engineers become tech_lead or EM directly. Staff-level engineers are often hired externally with 10+ years experience, though internal promotion from senior_software_engineer is also common at the larger orgs. Cyber companies in particular have strong staff IC ladders given the technical depth required for cloud / runtime / SASE platforms."
+      },
+      "alternate_titles": [
+        "Principal Engineer",
+        "Principal Software Engineer",
+        "Staff Software Engineer"
+      ],
+      "core_responsibilities": [
+        "Drive technical strategy across multiple teams or platform-level initiatives — projects measured in quarters, not sprints",
+        "Make and document architectural decisions that have org-wide impact; serve as a technical reviewer for major design proposals",
+        "Identify and unblock cross-team technical issues that span ownership boundaries — the senior IC who sees the whole system",
+        "Lead deep technical mentorship of senior engineers; develop the next generation of staff-level talent",
+        "Partner with engineering leadership on technical roadmap, hiring bar, and engineering culture without managing people directly",
+        "Represent engineering externally — conference talks, technical recruiting, partner technical discussions, customer escalations"
+      ],
+      "tools": [
+        "Python",
+        "Go",
+        "Rust",
+        "Kubernetes",
+        "Terraform",
+        "AWS",
+        "GCP",
+        "PostgreSQL",
+        "Kafka",
+        "Datadog"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Strategic",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "10y_ic_track",
+        "former_em_returned_to_ic",
+        "deep_specialist"
+      ],
+      "years_experience_typical": "8-12",
+      "next_roles": [
+        "principal_engineer",
+        "distinguished_engineer",
+        "vp_engineering"
+      ],
+      "similar_roles": [
+        "tech_lead",
+        "engineering_manager"
+      ],
+      "not_to_confuse_with": [
+        "Tech Lead",
+        "Senior Engineering Manager",
+        "VP Engineering"
+      ],
+      "keywords": [
+        "principal",
+        "platform",
+        "architecture",
+        "technical strategy",
+        "cross-team impact",
+        "senior IC track"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "tech_lead",
@@ -6526,10 +6735,75 @@ export const roleLibrary = {
         "cloud_platforms",
         "ai_tool_fluency"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "code_review_practices",
+        "stakeholder_management",
+        "performance_optimization",
+        "incident_management",
+        "hiring_talent_acquisition"
+      ],
       "market_notes": {
-        "israel": "One of the most common leadership roles in Israeli tech. Companies like monday.com, Antidote Health, Eyeviation, Scala Bio, Classiq, and EyeControl all actively hire Tech Leads. The consistent expectation is hands-on coding (often 50-70% of time) combined with technical leadership. Python is the dominant backend language for this role. AI/LLM integration into developer workflows is emerging as a key requirement — Classiq, EyeControl, and Scala Bio all explicitly mention AI tool fluency. Many Tech Lead roles in Israel are in early-stage startups where the TL is the first or second senior engineering hire."
-      }
+        "israel": "Tech lead is one of the most common 'lead' positions in Israeli engineering, especially at companies that prefer flat structures or want senior ICs to manage technical scope without people-management overhead. Many Israeli scale-ups deliberately keep tech_lead and engineering_manager as parallel tracks rather than one above the other. Common at cyber companies (Wiz, Cato Networks, Aqua Security), SaaS (monday.com, JFrog, Gong, Cloudinary), FinTech (Forter, Payoneer, eToro), and AI (Run:ai, Hailo). At smaller startups (Seed to Series B), one person often fills both tech_lead AND engineering_manager responsibilities for a team of 3-6 engineers."
+      },
+      "alternate_titles": [
+        "Engineering Tech Lead",
+        "TL",
+        "Technical Lead",
+        "Lead Engineer"
+      ],
+      "core_responsibilities": [
+        "Lead a team of 4-8 engineers on technical execution — own architecture, code review bar, and engineering quality for the team's surface",
+        "Continue to write code (typically 30-50% IC time) — staying hands-on is a definitional part of the role",
+        "Plan team-level technical work alongside the engineering manager (or fill both roles when there is no separate EM)",
+        "Run technical design reviews; mentor and unblock the team on complex problems; pair with senior engineers on the hardest work",
+        "Interface with product, design, and other teams on technical scoping, dependencies, and trade-offs",
+        "Own production reliability for the team's services — on-call leadership, post-mortem facilitation, reliability investments"
+      ],
+      "tools": [
+        "Python",
+        "TypeScript",
+        "Go",
+        "PostgreSQL",
+        "Redis",
+        "AWS",
+        "Kubernetes",
+        "Datadog",
+        "Jira"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Growth",
+        "Scale"
+      ],
+      "typical_backgrounds": [
+        "senior_swe_promotion",
+        "8200_alumni",
+        "external_senior_hire"
+      ],
+      "years_experience_typical": "6-9",
+      "next_roles": [
+        "engineering_manager",
+        "staff_engineer"
+      ],
+      "similar_roles": [
+        "senior_software_engineer",
+        "engineering_manager",
+        "staff_engineer"
+      ],
+      "not_to_confuse_with": [
+        "Engineering Manager",
+        "Staff Engineer"
+      ],
+      "keywords": [
+        "hands-on lead",
+        "technical execution",
+        "team architecture",
+        "player-coach"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "engineering_manager",
@@ -6550,10 +6824,73 @@ export const roleLibrary = {
         "cloud_platforms",
         "ci_cd"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "stakeholder_management",
+        "okr_framework",
+        "engineering_leadership",
+        "code_review_practices",
+        "incident_management"
+      ],
       "market_notes": {
-        "israel": "Critical mid-management role across Israeli tech. Companies like Wenrix, GMT, and Cye actively hire Engineering Managers. The role requires a balance of technical depth and people leadership — most listings require 5-7+ years of engineering experience plus 2+ years of leadership. Hands-on capability is consistently expected: Israeli companies want managers who can review code, troubleshoot production issues, and participate in architecture discussions. Python and Java are the most common backend languages. Fintech (GMT) and cybersecurity (Cye) are major hiring sectors for this role in Israel."
-      }
+        "israel": "Engineering management in Israeli tech is often a hands-on hybrid role — many EMs do code review, attend technical design reviews, and stay close to the work. Pure 'people manager who doesn't touch code' is more common at unicorns and US-style scale-ups (Wiz, JFrog, monday.com) than at smaller startups. EM scope varies wildly: at Seed/Series A, an EM may manage 2-4 engineers; at scale-ups (Series C+), 8-12 is standard. Hiring is the single hardest part of the role in Israel — competition with Wiz, Check Point, CyberArk, SentinelOne, and US-remote roles drives salary pressure and time-to-hire. Strong EM track records often lead to lateral moves between cyber and AI companies (Run:ai, AI21, Aidoc) where engineering leadership talent is in highest demand."
+      },
+      "alternate_titles": [
+        "EM",
+        "Software Engineering Manager",
+        "Manager of Engineering"
+      ],
+      "core_responsibilities": [
+        "Manage a team of 4-10 engineers — run 1:1s, performance reviews, growth plans, hiring loops, and team development",
+        "Own team-level delivery — partner with product and design on roadmap, set quarterly OKRs, run sprint cadence",
+        "Hire — write JDs, screen, run interview loops, partner with recruiting; often a critical bottleneck in Israeli tech given competitive market",
+        "Coach individual engineers on career growth — give honest feedback, broker stretch opportunities, navigate compensation conversations",
+        "Stay technically credible — read code, attend design reviews, contribute to architecture discussions even if not writing production code daily",
+        "Represent the team upward — surface risks, lobby for resources, give and receive feedback to / from senior engineering leadership"
+      ],
+      "tools": [
+        "Jira",
+        "Lattice",
+        "Slack",
+        "Notion",
+        "Figma",
+        "Datadog",
+        "AWS"
+      ],
+      "technical_depth": "Medium",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Growth",
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "tech_lead_promotion",
+        "senior_swe_pivot",
+        "external_em_hire"
+      ],
+      "years_experience_typical": "7-12",
+      "next_roles": [
+        "senior_engineering_manager",
+        "engineering_group_manager"
+      ],
+      "similar_roles": [
+        "tech_lead",
+        "staff_engineer"
+      ],
+      "not_to_confuse_with": [
+        "Tech Lead",
+        "VP Engineering"
+      ],
+      "keywords": [
+        "people management",
+        "team delivery",
+        "hiring",
+        "1:1s",
+        "OKRs"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "senior_engineering_manager",
@@ -6574,16 +6911,76 @@ export const roleLibrary = {
         "cloud_platforms",
         "process_improvement"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "organizational_design",
+        "stakeholder_management",
+        "executive_presentation",
+        "engineering_leadership"
+      ],
       "market_notes": {
-        "israel": "Companies like Navina and SeeTrue hire at this level for leaders who manage multiple teams (typically 15-30+ engineers). Navina's Director of Engineering (Data Platform) role exemplifies the Israeli market expectation: end-to-end ownership of a critical platform domain, managing multiple teams, and serving as a key interface between engineering and the rest of the organization. Healthcare data and AI-driven products are growing sectors for this role. Experience managing managers is a hard requirement. AI-first mindset is increasingly expected — driving AI tool adoption across teams, not just personal use."
-      }
+        "israel": "Senior EM / Director of Engineering levels typically only exist at companies above ~100 engineers — common at scale-ups and unicorns (Wiz, Check Point, CyberArk, SentinelOne, monday.com, Wix, JFrog, AppsFlyer, Fiverr, Lemonade, AI21 Labs). Below that size, the engineering_manager → vp_engineering jump skips this level. Strong senior EMs in Israel often move between cyber and SaaS sectors given the transferable skill set; AI scale-ups (Run:ai, Hailo, Aidoc) are heavy recruiters in 2025-2026 as they scale engineering orgs from ~30 to ~100+ engineers."
+      },
+      "alternate_titles": [
+        "Senior EM",
+        "Director of Engineering",
+        "Senior Manager, Engineering"
+      ],
+      "core_responsibilities": [
+        "Manage 2-4 engineering managers (or tech leads), owning ~20-40 engineers indirectly across multiple teams",
+        "Set engineering strategy for the group — quarterly planning, headcount allocation, technical roadmap alignment with product strategy",
+        "Develop and grow the EMs reporting to you — coach on people management, hiring, performance, conflict resolution",
+        "Own cross-team initiatives that span ownership boundaries — platform investments, architectural migrations, cross-team reliability work",
+        "Represent the group to executive leadership (VPE, CTO, sometimes CEO) — surface risks, align on priorities, advocate for resources",
+        "Partner with senior product, design, and GTM leaders to shape multi-quarter roadmaps and ensure engineering capacity matches product ambition"
+      ],
+      "tools": [
+        "Jira",
+        "Notion",
+        "Lattice",
+        "Slack",
+        "Looker",
+        "Datadog"
+      ],
+      "technical_depth": "Medium",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Strategic",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "em_promotion",
+        "external_director_hire"
+      ],
+      "years_experience_typical": "10-15",
+      "next_roles": [
+        "engineering_group_manager",
+        "vp_engineering"
+      ],
+      "similar_roles": [
+        "engineering_manager",
+        "engineering_group_manager",
+        "head_of_data",
+        "head_of_ai"
+      ],
+      "not_to_confuse_with": [
+        "VP Engineering",
+        "Engineering Manager"
+      ],
+      "keywords": [
+        "manager of managers",
+        "engineering strategy",
+        "headcount planning",
+        "org design"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "vp_engineering",
       "standardized_title": "VP Engineering / Head of Engineering",
       "role_family": "Engineering",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "VP_Executive",
       "core_purpose": "Executive engineering leader responsible for the entire engineering organization, technology strategy, and technical vision. Leads large engineering teams (20-100+), defines the engineering roadmap aligned with company strategy, and drives major initiatives including platform modernization, AI adoption, and organizational scaling. Reports to CEO/CPO and serves as part of the executive leadership team. Combines strategic leadership with deep technical credibility.",
       "required_skills": [
@@ -6598,10 +6995,71 @@ export const roleLibrary = {
         "cloud_platforms",
         "ai_strategy"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "organizational_design",
+        "executive_presentation",
+        "strategic_thinking",
+        "engineering_leadership"
+      ],
       "market_notes": {
-        "israel": "Executive-level role with strong market signal across Israeli companies of all sizes. CrowdStrike, QEDMA, Lemonade, and multiple Israeli startups and scale-ups hire VP/Head of Engineering. Requirements typically include 10-15+ years of engineering experience with significant leadership tenure. The role spans a wide range: at startups like QEDMA (quantum computing), it involves managing 10-20 engineers and staying close to the technology; at scale-ups like Lemonade, it means leading 100+ engineers across multiple product lines. AI strategy and adoption is a consistent theme — companies expect VP Engineering to drive AI-first engineering practices. Cloud-native architecture, distributed systems, and experience scaling engineering organizations are universal requirements. In Israeli ad-tech and e-commerce, hands-on technical credibility is expected even at the VP level."
-      }
+        "israel": "VP Engineering is a critical hire for any Israeli company past ~50 engineers — often the first executive engineering leader recruited externally even when there's a strong technical founder / CTO. The Israeli VPE talent pool is competitive: many candidates have done 2-3 prior cycles at scale-ups or unicorns (Wiz, Check Point, CyberArk, monday.com, Wix, JFrog, AppsFlyer, Cellebrite). CTO + VPE split is common — CTO sets technical vision and external technical narrative; VPE owns the org, delivery, and people. At smaller companies (under ~30 engineers), the founding CTO usually holds both roles until scale forces the split. Strong VPEs frequently rotate between cyber and SaaS verticals; AI is the hottest sector for VPE hires in 2025-2026 (Run:ai, AI21, Aidoc, Hailo)."
+      },
+      "alternate_titles": [
+        "VPE",
+        "VP of Engineering",
+        "Vice President, Engineering",
+        "Head of Engineering"
+      ],
+      "core_responsibilities": [
+        "Own engineering org strategy, structure, and execution across the entire engineering function (50-500+ engineers depending on company size)",
+        "Set technology strategy and major architectural direction in partnership with CTO (where the roles are split) or as the technical executive",
+        "Build and develop the engineering leadership bench — hire, grow, and develop Senior EMs, Engineering Group Managers, and Staff/Principal engineers",
+        "Own engineering budget, headcount planning, vendor relationships, and major build-vs-buy decisions",
+        "Represent engineering at the executive table — board updates, investor conversations, cross-functional executive alignment",
+        "Set engineering culture — quality bar, on-call practices, hiring standards, performance norms, and how engineering interfaces with product and GTM"
+      ],
+      "tools": [
+        "Jira",
+        "Notion",
+        "Lattice",
+        "Looker",
+        "Slack"
+      ],
+      "technical_depth": "Medium",
+      "customer_facing_level": "High",
+      "revenue_ownership": "Direct",
+      "strategic_level": "Strategic",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "senior_em_promotion",
+        "external_vpe_hire",
+        "former_cto_repivot"
+      ],
+      "years_experience_typical": "15+",
+      "next_roles": [
+        "cto",
+        "ceo"
+      ],
+      "similar_roles": [
+        "cto",
+        "senior_engineering_manager",
+        "head_of_ai"
+      ],
+      "not_to_confuse_with": [
+        "CTO",
+        "Senior Engineering Manager"
+      ],
+      "keywords": [
+        "executive",
+        "engineering org",
+        "technology strategy",
+        "board-level",
+        "people leadership at scale"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "qa_engineer",
@@ -6622,10 +7080,80 @@ export const roleLibrary = {
         "communication",
         "ai_tool_fluency"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "api_testing",
+        "scripting_automation",
+        "performance_optimization",
+        "cross_functional_collaboration",
+        "agile_methodology"
+      ],
       "market_notes": {
-        "israel": "Active hiring across the Israeli market at all seniority levels, from entry-level (DealHub, inManage — often requiring QA course completion) through mid-level (Silverfort, Zemingo, Loox) to senior (Lemonade). Playwright is rapidly becoming the dominant automation framework, replacing Selenium. Companies like Loox and Zemingo explicitly require Playwright experience. AI tool fluency in QA workflows is becoming a differentiator — Lemonade, Loox, and Zemingo all mention leveraging AI tools. ISTQB certification is noted as an advantage but not required. Cybersecurity companies (Silverfort) need QA engineers comfortable with Windows/Linux environments and Active Directory. Web + mobile testing is common for consumer-facing companies. The shift-left testing philosophy is increasingly adopted — QA engineers are expected to engage developers in testing and automation earlier in the development cycle."
-      }
+        "israel": "QA Engineering in Israel has shifted heavily toward automation and SDET roles over the past 5 years — pure manual QA roles are rare outside legacy enterprise and large defense contractors. Strong employer base in cyber (Check Point, CyberArk, SentinelOne, Cellebrite), SaaS (monday.com, Wix, JFrog), and consumer apps (Lemonade, Lightricks, Plarium). Many QA engineers start in manual testing and transition to automation within 1-2 years; bootcamp graduates and IDF veterans (often from non-elite tech units) form a significant share of the entry-level pipeline. Stack reality: Cypress and Playwright dominate frontend automation; pytest + custom Python frameworks for backend / API; Selenium increasingly legacy."
+      },
+      "alternate_titles": [
+        "QA Automation Engineer",
+        "Test Engineer",
+        "Software Tester",
+        "SDET"
+      ],
+      "core_responsibilities": [
+        "Design and execute test plans for new features — manual exploratory + automated regression coverage",
+        "Build and maintain automated test suites at multiple levels — unit, integration, end-to-end (Cypress / Playwright / Selenium)",
+        "Triage and reproduce bugs reported by users or surfaced by monitoring; partner with developers to root-cause",
+        "Maintain test environments, fixtures, and CI test infrastructure; reduce flaky-test rate and improve test feedback loops",
+        "Partner with product on acceptance criteria and edge cases before development starts — shift-left testing influence",
+        "Contribute to release readiness — sign-off on go / no-go, run smoke testing on staging, monitor production rollouts"
+      ],
+      "tools": [
+        "Cypress",
+        "Playwright",
+        "Selenium",
+        "Postman",
+        "Jira",
+        "Python",
+        "JavaScript",
+        "AWS",
+        "Docker"
+      ],
+      "technical_depth": "Medium",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Execution",
+      "lifecycle_stage": [
+        "Growth",
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "qa_promotion",
+        "manual_qa_to_automation",
+        "bootcamp_grad",
+        "swe_pivot"
+      ],
+      "years_experience_typical": "2-5",
+      "next_roles": [
+        "senior_qa_engineer",
+        "sdet",
+        "qa_manager"
+      ],
+      "similar_roles": [
+        "junior_software_engineer",
+        "devops_engineer"
+      ],
+      "not_to_confuse_with": [
+        "Manual Tester",
+        "SDET",
+        "DevOps Engineer"
+      ],
+      "keywords": [
+        "automation",
+        "test coverage",
+        "regression",
+        "Cypress",
+        "Playwright",
+        "shift-left"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "devops_engineer",
@@ -6646,10 +7174,82 @@ export const roleLibrary = {
         "security_best_practices",
         "ai_tool_fluency"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "security_engineering",
+        "networking_fundamentals",
+        "performance_optimization",
+        "cost_optimization_finops",
+        "incident_management"
+      ],
       "market_notes": {
-        "israel": "Strong and consistent demand across the Israeli market. Companies like DualBird, Volumez, VI, CET, Infini-T, and ZeroPort actively hire DevOps engineers. AWS is the dominant cloud platform, followed by GCP and Azure. Terraform is the most common IaC tool. Kubernetes experience is increasingly expected even at mid-level. The Israeli market has a strong DevOps consulting sector (Infini-T) offering varied project exposure. AI-driven automation is emerging as a key differentiator — Volumez explicitly requires daily use of AI tools (Copilot, ChatGPT, Cursor). Junior DevOps positions exist (CET) with emphasis on code-first mindset and willingness to learn. On-prem and air-gapped deployment experience is valued in defense-adjacent companies (ZeroPort). GitOps workflows (ArgoCD) and Kubernetes-native tooling are the growth direction."
-      }
+        "israel": "DevOps / Platform Engineering is one of the highest-demand roles in Israeli tech given the cyber-heavy ecosystem and the operational complexity of cloud-native security platforms. Heavy employer base in cyber (Wiz, Check Point, CyberArk, SentinelOne, Aqua Security, Orca Security, Cato Networks), SaaS (monday.com, JFrog, Cloudinary, AppsFlyer), and AI infrastructure (Run:ai, Hailo). AWS is dominant in Israel (>70% of cloud workloads), with GCP growing in AI and data-heavy companies. Kubernetes and Terraform are baseline expectations. Unit 8200's infrastructure / networking units (especially Mamram and 81) are a major talent pipeline. Many DevOps engineers transition to SRE or Platform Engineering Lead within 3-5 years."
+      },
+      "alternate_titles": [
+        "Platform Engineer",
+        "Infrastructure Engineer",
+        "Cloud Engineer",
+        "DevOps / Cloud Engineer"
+      ],
+      "core_responsibilities": [
+        "Build and maintain cloud infrastructure (AWS / GCP) using infrastructure-as-code (Terraform / Pulumi)",
+        "Own CI/CD pipelines — GitHub Actions, GitLab CI, Jenkins, ArgoCD — and developer-experience tooling",
+        "Manage Kubernetes clusters (EKS / GKE / self-managed) — networking, RBAC, autoscaling, observability",
+        "Implement monitoring, alerting, and observability — Datadog / Grafana / Prometheus / Sentry",
+        "Partner with security on compliance, secrets management, network policies, and infrastructure-level controls",
+        "Respond to infrastructure incidents on-call; drive post-mortems and reliability improvements"
+      ],
+      "tools": [
+        "AWS",
+        "GCP",
+        "Terraform",
+        "Kubernetes",
+        "Docker",
+        "GitHub Actions",
+        "ArgoCD",
+        "Datadog",
+        "Grafana",
+        "Prometheus",
+        "Helm"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Growth",
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "swe_pivot",
+        "system_admin_promotion",
+        "8200_infrastructure_unit"
+      ],
+      "years_experience_typical": "3-6",
+      "next_roles": [
+        "sre_engineer",
+        "platform_engineer_senior",
+        "devops_team_lead"
+      ],
+      "similar_roles": [
+        "sre_engineer",
+        "software_engineer",
+        "security_analyst_soc"
+      ],
+      "not_to_confuse_with": [
+        "SRE Engineer",
+        "IT Administrator",
+        "Software Engineer"
+      ],
+      "keywords": [
+        "IaC",
+        "Kubernetes",
+        "Terraform",
+        "CI/CD",
+        "AWS",
+        "cloud infrastructure"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "sre_engineer",
@@ -6670,10 +7270,77 @@ export const roleLibrary = {
         "networking_fundamentals",
         "ai_tool_fluency"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "chaos_engineering",
+        "performance_optimization",
+        "cost_optimization_finops",
+        "security_engineering"
+      ],
       "market_notes": {
-        "israel": "Distinct and growing role in the Israeli market, separate from DevOps. Companies like Guardio, Optimove, AudioCodes, and Lemonade have dedicated SRE positions. The key differentiator from DevOps is the focus on production reliability, incident response, SLOs, and post-mortem culture rather than infrastructure provisioning. GCP is common for SRE roles alongside AWS. AI-native reliability tooling is a defining trend — Guardio explicitly seeks engineers who build AI-powered tools for alert correlation, root cause analysis, and automated incident mitigation using LLMs. On-call rotation is a standard requirement. Strong software engineering background is expected — SREs are builders, not just operators. The role requires 4+ years of experience in most Israeli companies. Cybersecurity (Guardio), marketing tech (Optimove), and insurance tech (Lemonade) are active hiring sectors for SRE in Israel."
-      }
+        "israel": "SRE as a distinct discipline (separate from DevOps) is mostly found at scale-ups and unicorns with substantial production complexity — common at cyber companies (Wiz, Check Point, CyberArk, SentinelOne), large SaaS (monday.com, JFrog, AppsFlyer), and FinTech with high availability requirements (Lemonade, Forter, eToro, Payoneer). Smaller startups typically merge DevOps and SRE responsibilities into one team. The Google SRE model is influential but adapted — Israeli SRE roles often retain more direct service ownership than the pure 'platform' SRE model. Heavy overlap with Unit 8200 infrastructure alumni; senior SREs often pivot to security_analyst or staff_engineer (platform) roles."
+      },
+      "alternate_titles": [
+        "Site Reliability Engineer",
+        "Senior SRE",
+        "Production Engineer"
+      ],
+      "core_responsibilities": [
+        "Own reliability and SLOs for production systems — define error budgets, run reliability reviews, drive reliability investments",
+        "Lead incident response for critical production issues — incident commander role, communications, post-mortems",
+        "Build and maintain observability infrastructure — metrics, logs, traces, alerting that engineers actually use",
+        "Drive capacity planning and performance work — load testing, profiling, performance optimization initiatives",
+        "Partner with engineering teams on production-readiness reviews for new services — ensure rollback, monitoring, runbooks before launch",
+        "Reduce on-call toil — automate recurring operational work, build tooling, improve developer self-service"
+      ],
+      "tools": [
+        "Kubernetes",
+        "Datadog",
+        "Grafana",
+        "Prometheus",
+        "AWS",
+        "Terraform",
+        "Python",
+        "Go",
+        "Linux",
+        "PagerDuty"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "devops_promotion",
+        "swe_with_systems_focus",
+        "8200_infrastructure"
+      ],
+      "years_experience_typical": "5-8",
+      "next_roles": [
+        "senior_sre",
+        "sre_team_lead",
+        "platform_engineering_lead"
+      ],
+      "similar_roles": [
+        "devops_engineer",
+        "senior_software_engineer",
+        "security_analyst_soc"
+      ],
+      "not_to_confuse_with": [
+        "DevOps Engineer",
+        "IT Administrator"
+      ],
+      "keywords": [
+        "reliability",
+        "SLO",
+        "on-call",
+        "incident response",
+        "observability",
+        "chaos engineering"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "engineering_group_manager",
@@ -6694,10 +7361,69 @@ export const roleLibrary = {
         "distributed_systems",
         "cloud_platforms"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "organizational_design",
+        "executive_presentation",
+        "engineering_leadership",
+        "hiring_talent_acquisition"
+      ],
       "market_notes": {
-        "israel": "Distinct role in Israeli scale-ups and growth-stage companies. Hyro's Engineering Group Manager role is the clearest example: managing 15-20 engineers, leading team leads, and driving AI product development at scale. The role requires 7+ years of engineering experience with at least 2 years managing at scale. Deep technical rooting is expected — ability to lead architecture reviews and stay close to technology without daily coding. Experience designing and operating large, scalable systems is a core requirement. Conversational AI, healthcare tech, and SaaS are active hiring sectors. Python and Node.js are the dominant technologies. The role reports to CTO/CPTO and is a key pipeline to VP Engineering."
-      }
+        "israel": "Engineering Group Manager (or 'Director of Engineering') is found at scale-ups and unicorns with ~80+ engineers (cyber: Wiz, Check Point, CyberArk, SentinelOne; SaaS: monday.com, JFrog, Wix, AppsFlyer; FinTech: Lemonade, Payoneer, eToro). At companies with simpler engineering org structures, this layer is skipped — senior_engineering_manager reports directly to VPE. The role has grown in prominence post-2023 as Israeli scale-ups have flattened org structures while still needing multi-team leaders below VP level. Often a fork point: stay on the management track toward VPE, or pivot back to a staff_engineer-equivalent IC role at a larger company."
+      },
+      "alternate_titles": [
+        "Group EM",
+        "Director of Engineering",
+        "Group Engineering Manager",
+        "Engineering Director"
+      ],
+      "core_responsibilities": [
+        "Manage 3-5 Engineering Managers (and sometimes tech_leads) across multiple teams — typically 30-60 engineers indirectly",
+        "Set engineering strategy for the group, align with product strategy, own multi-team initiatives that span ownership",
+        "Develop the bench of Engineering Managers reporting to you — coach on people management, performance, hiring, conflict resolution",
+        "Own the engineering culture, hiring bar, and performance standards across the group",
+        "Partner with senior product, design, and GTM leadership to shape multi-quarter roadmaps and capacity planning",
+        "Represent the group to VP/CTO/CEO — surface risks, advocate for resources, drive cross-functional alignment"
+      ],
+      "tools": [
+        "Jira",
+        "Notion",
+        "Lattice",
+        "Slack",
+        "Looker"
+      ],
+      "technical_depth": "Medium",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Strategic",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "senior_em_promotion",
+        "external_director_hire"
+      ],
+      "years_experience_typical": "12-18",
+      "next_roles": [
+        "vp_engineering"
+      ],
+      "similar_roles": [
+        "senior_engineering_manager",
+        "head_of_data",
+        "head_of_ai",
+        "head_of_solutions_engineering"
+      ],
+      "not_to_confuse_with": [
+        "VP Engineering",
+        "Senior Engineering Manager"
+      ],
+      "keywords": [
+        "manager of managers",
+        "group leadership",
+        "engineering org",
+        "headcount planning"
+      ],
+      "_research_method": "knowledge"
     },
     {
       "id": "junior_ai_ml_engineer",
@@ -7837,104 +8563,401 @@ export const roleLibrary = {
       "seniority": "Entry",
       "core_purpose": "Entry-level technical customer-facing role that supports the sales cycle and post-sale implementation by providing hands-on technical guidance, troubleshooting, and solution validation. Acts as the first line of technical engagement with customers, handling integrations, product configurations, and technical support escalations.",
       "required_skills": [
-        "Technical troubleshooting and debugging",
-        "API integrations and technical documentation",
-        "Customer-facing communication and relationship management",
-        "Web technologies (JavaScript, HTML, CSS) or scripting languages",
-        "SQL and database querying",
-        "Problem-solving and root cause analysis"
+        "technical_troubleshooting",
+        "api_integrations",
+        "customer_communication",
+        "sql",
+        "databases"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "scripting_automation",
+        "product_demonstration",
+        "technical_discovery",
+        "consultative_selling"
+      ],
       "market_notes": {
-        "israel": "Many Israeli companies (EasySend, WalkMe, Riskified) hire junior SEs under titles like 'Support Solutions Engineer', 'Product Experience Engineer', or 'Customer Success Engineer'. The role often blends technical support with light pre-sales. JavaScript/web proficiency is commonly required given the SaaS-heavy market. Defense/intelligence sector has its own pre-sales track with different requirements (security clearance, military background)."
-      }
+        "israel": "Junior Solutions Engineering is relatively new in Israeli tech — most SaaS and cyber companies historically hired SEs at the mid level with 3+ years of customer-facing technical experience. Recently, scale-ups like monday.com, JFrog, Gong, Wiz, and Orca Security have built junior SE pipelines, especially for global accounts where they need broader coverage. Often filled by bootcamp graduates with strong communication skills, IDF veterans from technical units with customer-facing aptitude, or transitioning Support Engineers. Concentrated in cyber (Wiz, CyberArk, Check Point, SentinelOne), SaaS (monday.com, JFrog, HiBob, Gong), and FinTech (Forter, Payoneer)."
+      },
+      "alternate_titles": [
+        "Junior Solutions Engineer",
+        "Junior Pre-Sales Engineer",
+        "Associate SE"
+      ],
+      "core_responsibilities": [
+        "Support senior SEs on technical discovery calls and demos — handle simpler customer questions and learn the product deeply",
+        "Build and maintain demo environments and proof-of-concept setups for prospects",
+        "Document technical Q&A, integration patterns, and competitive intel for the SE team's shared knowledge base",
+        "Run technical onboarding sessions for new customers in partnership with Customer Success",
+        "Triage technical questions from prospects and existing customers; escalate to engineering when needed",
+        "Shadow account executive calls to learn the commercial side of pre-sales"
+      ],
+      "tools": [
+        "Salesforce",
+        "Slack",
+        "Postman",
+        "SQL clients",
+        "Jira",
+        "Demo environments (Docker / cloud sandboxes)"
+      ],
+      "technical_depth": "Medium",
+      "customer_facing_level": "High",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Execution",
+      "lifecycle_stage": [
+        "Growth",
+        "Scale"
+      ],
+      "typical_backgrounds": [
+        "bootcamp_grad",
+        "support_engineer_pivot",
+        "cs_pivot",
+        "swe_to_customer_facing"
+      ],
+      "years_experience_typical": "0-2",
+      "next_roles": [
+        "solutions_engineer"
+      ],
+      "similar_roles": [
+        "customer_support_specialist",
+        "technical_account_manager_junior"
+      ],
+      "not_to_confuse_with": [
+        "Solutions Engineer",
+        "Sales Development Representative"
+      ],
+      "keywords": [
+        "pre-sales",
+        "junior SE",
+        "demos",
+        "POC support",
+        "technical Q&A"
+      ],
+      "_research_method": "web_search"
     },
     {
       "id": "solutions_engineer",
       "standardized_title": "Solutions Engineer",
       "role_family": "Solutions_Engineering",
-      "secondary_family": null,
+      "secondary_family": "Sales",
       "seniority": "Mid",
       "core_purpose": "Core individual contributor who owns the technical relationship with customers throughout the sales cycle and beyond. Combines deep product knowledge with consultative selling skills to translate customer business problems into technical solutions, run POCs, lead technical discovery, and drive technical wins. Often the bridge between Sales, Product, and R&D.",
       "required_skills": [
-        "Technical discovery and consultative selling",
-        "Solution design and architecture",
-        "Product demonstration and presentation skills",
-        "API and integration expertise",
-        "Customer relationship management",
-        "Project management and POC execution",
-        "Written and verbal business communication"
+        "technical_discovery",
+        "solution_design_architecture",
+        "product_demonstration",
+        "api_integrations",
+        "customer_relationship_management",
+        "consultative_selling"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "competitive_positioning",
+        "pre_sales_support",
+        "sql",
+        "executive_presentation"
+      ],
       "market_notes": {
-        "israel": "The most common SE title in the Israeli market. Companies like Lusha, Entro, Riskified, and Logz.io all hire for this profile. Israeli SEs frequently cover both pre-sale and post-sale technical engagement (unlike the US where these are often split). Hebrew + English fluency typically required. Many roles blend SE with integration engineering — hands-on API work and middleware (Zapier, Workato) are common expectations. B2B SaaS dominates, with data/observability, cybersecurity, and fintech being the most active verticals."
-      }
+        "israel": "Solutions Engineering is a high-impact role in Israeli tech — most B2B SaaS and cyber companies have a 2-5x ratio of AEs to SEs. Heavy concentration in cyber (Wiz, Check Point, CyberArk, SentinelOne, Cato Networks, Armis), SaaS (monday.com, JFrog, Gong, HiBob, Cloudinary), data infrastructure (Coralogix, Logz.io), and FinTech (Forter, Payoneer, Riskified). Many SEs work US hours given that most Israeli SaaS / cyber sells primarily into North American markets — Tel Aviv / Herzliya teams cover EMEA, with US-based teams covering NA. Common backgrounds: ex-SWEs who like customer interaction, former support engineers who built strong technical depth, and Customer Success professionals who developed a more technical specialty."
+      },
+      "alternate_titles": [
+        "Solutions Engineer",
+        "Pre-Sales Engineer",
+        "Sales Engineer",
+        "SE"
+      ],
+      "core_responsibilities": [
+        "Own technical discovery and solution design for prospects — understand their stack, requirements, and constraints",
+        "Run product demos tailored to each prospect's use case; build custom POCs when needed",
+        "Partner with Account Executives throughout the sales cycle — joint discovery calls, pricing conversations, deal strategy",
+        "Lead technical evaluation and proof-of-concept phases — define success criteria, run integrations, close technical gaps",
+        "Handle technical objections — competitive positioning, security questions, integration concerns",
+        "Hand off won deals to Customer Success / Implementation; remain on technical escalation for the first 30-90 days"
+      ],
+      "tools": [
+        "Salesforce",
+        "Slack",
+        "Demo environments",
+        "Postman",
+        "Notion",
+        "Loom",
+        "Jira"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "High",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Growth",
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "swe_pivot_to_customer_facing",
+        "ce_promotion",
+        "external_se_hire"
+      ],
+      "years_experience_typical": "3-6",
+      "next_roles": [
+        "senior_solutions_engineer",
+        "solutions_engineering_manager"
+      ],
+      "similar_roles": [
+        "solutions_consultant",
+        "technical_account_manager",
+        "pre_sales_engineer"
+      ],
+      "not_to_confuse_with": [
+        "Solutions Consultant",
+        "Customer Success Manager",
+        "Account Executive"
+      ],
+      "keywords": [
+        "pre-sales",
+        "technical discovery",
+        "POC",
+        "demos",
+        "sales engineer",
+        "deal support"
+      ],
+      "_research_method": "web_search"
     },
     {
       "id": "senior_solutions_engineer",
       "standardized_title": "Senior Solutions Engineer",
       "role_family": "Solutions_Engineering",
-      "secondary_family": null,
+      "secondary_family": "Sales",
       "seniority": "Senior",
       "core_purpose": "Seasoned technical sales professional who handles the most complex, strategic, and high-value customer engagements. Combines deep domain expertise with advanced solution architecture skills to design enterprise-grade solutions, influence product roadmaps, and serve as a trusted advisor to senior technical and executive stakeholders. Often specializes in a technical domain (data/AI, security, networking, cloud infrastructure).",
       "required_skills": [
-        "Enterprise solution architecture and design",
-        "Executive-level presentation and communication",
-        "Deep domain expertise in a technical vertical",
-        "Competitive analysis and positioning",
-        "Complex sales cycle management",
-        "Mentoring and knowledge transfer",
-        "Technical content creation (reference architectures, whitepapers)",
-        "Business value and ROI articulation"
+        "solution_design_architecture",
+        "executive_presentation",
+        "competitive_positioning",
+        "enterprise_sales",
+        "technical_discovery"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "mentoring",
+        "consultative_selling",
+        "partner_enablement",
+        "stakeholder_management"
+      ],
       "market_notes": {
-        "israel": "Senior SE roles in Israel often carry global or regional (EMEA) scope. Companies like Snowflake, Databricks, Akamai, and HPE hire senior SEs in Israel with deep domain expertise (data platforms, networking, cybersecurity, zero trust). Hebrew fluency is typically required for Israel-focused territories. Many senior SEs specialize: data/analytics, security, networking, or AI/ML. The 'trusted advisor' expectation is strong — Israeli enterprise buyers expect SEs who can go deep technically and also speak business. Travel requirements (15-30%) are common for enterprise accounts."
-      }
+        "israel": "Senior Solutions Engineering roles cluster at the larger Israeli SaaS and cyber companies — Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, AppsFlyer, Gong. The Israeli SE talent market is competitive given the volume of B2B companies; many senior SEs do multi-company stints across cyber and SaaS verticals. Strong English communication and ability to handle US executive-level technical conversations are critical hire-screen criteria. Many senior SEs eventually fork into Solutions Engineering Management or Solutions Architecture (post-sale) rather than continuing as pure pre-sales ICs at the principal level."
+      },
+      "alternate_titles": [
+        "Senior SE",
+        "Senior Pre-Sales Engineer",
+        "Staff Solutions Engineer",
+        "Lead Solutions Engineer"
+      ],
+      "core_responsibilities": [
+        "Own technical strategy for the largest, most strategic deals — enterprise customers, complex integrations, multi-product opportunities",
+        "Lead executive-level technical discussions — CTO / CISO / VPE conversations as part of the sales process",
+        "Drive competitive positioning and technical battlecards for the SE team and broader sales org",
+        "Mentor mid and junior SEs — pair on calls, review POC plans, run internal product training",
+        "Partner with Product on customer feedback loops — surface field intel that informs roadmap prioritization",
+        "Represent the company at industry events, partner conferences, and major customer summits as the senior technical voice"
+      ],
+      "tools": [
+        "Salesforce",
+        "Slack",
+        "Demo environments",
+        "Highspot",
+        "Notion",
+        "Loom"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "High",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "solutions_engineer_promotion",
+        "external_senior_se_hire"
+      ],
+      "years_experience_typical": "6-10",
+      "next_roles": [
+        "solutions_engineering_manager",
+        "principal_solutions_engineer"
+      ],
+      "similar_roles": [
+        "solutions_engineer",
+        "technical_account_manager_senior"
+      ],
+      "not_to_confuse_with": [
+        "Solutions Engineering Manager",
+        "Solutions Architect"
+      ],
+      "keywords": [
+        "senior pre-sales",
+        "enterprise SE",
+        "CTO conversations",
+        "complex POCs",
+        "competitive battlecards"
+      ],
+      "_research_method": "web_search"
     },
     {
       "id": "solutions_engineering_manager",
       "standardized_title": "Solutions Engineering Manager",
       "role_family": "Solutions_Engineering",
-      "secondary_family": null,
+      "secondary_family": "Sales",
       "seniority": "Lead_Manager",
       "core_purpose": "First-line manager who leads a team of Solutions Engineers, owning delivery quality, team development, and process excellence. Balances hands-on involvement in strategic customer engagements with people management, hiring, and methodology development. Builds repeatable processes, playbooks, and success metrics while ensuring the team delivers consistent technical wins.",
       "required_skills": [
-        "People management and team leadership",
-        "Process design and operational excellence",
-        "Technical depth sufficient to guide architectural decisions",
-        "Hiring, coaching, and performance management",
-        "KPI definition and data-driven decision making",
-        "Customer escalation management",
-        "Strategic thinking and resource planning"
+        "people_management",
+        "process_design",
+        "hiring_talent_acquisition",
+        "technical_discovery",
+        "solution_design_architecture"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "okr_framework",
+        "performance_management",
+        "stakeholder_management",
+        "executive_presentation"
+      ],
       "market_notes": {
-        "israel": "SE manager roles in Israel often combine pre-sales and post-sale team leadership — the same manager may own both the POC team and the onboarding/implementation team. Companies like Nominal, Coralogix, and mid-stage startups commonly hire for this hybrid profile. The role frequently includes hands-on customer work alongside management responsibilities, especially at companies with <200 employees. Strong process-building skills are valued because many Israeli startups are formalizing their SE function for the first time as they scale."
-      }
+        "israel": "Solutions Engineering Manager roles exist at scale-up and unicorn B2B companies with 8+ SEs — common at Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, AppsFlyer, Gong, Forter. Smaller B2B startups (under 20 SEs total) typically have one Head of SE who manages all SEs directly without intermediate managers. Many Israeli SE managers oversee dual-region teams (EMEA-based in Tel Aviv covering EMEA accounts, plus US-based reports covering NA). Strong overlap with sales leadership — many SE managers eventually fork to sales management or VP-level dual GTM roles."
+      },
+      "alternate_titles": [
+        "SE Manager",
+        "Pre-Sales Manager",
+        "Solutions Engineering Team Lead",
+        "Manager, Solutions Engineering"
+      ],
+      "core_responsibilities": [
+        "Manage a team of 4-8 Solutions Engineers — hiring, 1:1s, performance reviews, career development",
+        "Own SE team coverage, capacity planning, and deal-level prioritization across the sales pipeline",
+        "Build and own the SE playbook — discovery frameworks, demo standards, POC methodology, technical objection handling",
+        "Partner with the Sales Manager / Director on overall regional or segment strategy — joint forecasting, deal reviews",
+        "Coach SEs on technical depth AND sales acumen — the dual-skill development that distinguishes SE management from engineering management",
+        "Run cross-functional alignment with Product, Engineering, Customer Success on field intel, product gaps, and customer escalations"
+      ],
+      "tools": [
+        "Salesforce",
+        "Slack",
+        "Lattice",
+        "Highspot",
+        "Notion",
+        "Looker"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "High",
+      "revenue_ownership": "Direct",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "senior_se_promotion",
+        "external_se_manager_hire"
+      ],
+      "years_experience_typical": "8-12",
+      "next_roles": [
+        "head_of_solutions_engineering"
+      ],
+      "similar_roles": [
+        "sales_manager",
+        "engineering_manager",
+        "head_of_solutions_engineering"
+      ],
+      "not_to_confuse_with": [
+        "Head of Solutions Engineering",
+        "Sales Manager"
+      ],
+      "keywords": [
+        "SE management",
+        "pre-sales leadership",
+        "team coverage",
+        "deal prioritization",
+        "playbook"
+      ],
+      "_research_method": "web_search"
     },
     {
       "id": "head_of_solutions_engineering",
       "standardized_title": "Head of Solutions Engineering",
       "role_family": "Solutions_Engineering",
-      "secondary_family": null,
+      "secondary_family": "Sales",
       "seniority": "Director_Head",
       "core_purpose": "Senior leader who owns the entire Solutions Engineering function, setting strategy, building the team, and ensuring the SE organization drives revenue, customer success, and product influence at scale. Partners with VP Sales, CTO, and Product leadership to align technical selling with company strategy. Responsible for hiring plans, delivery methodology, commercial models, and cross-geo coordination.",
       "required_skills": [
-        "Organizational leadership and team scaling",
-        "Strategic planning and executive communication",
-        "Revenue alignment and commercial acumen",
-        "Delivery methodology and process excellence at scale",
-        "Partner and SI ecosystem management",
-        "Cross-geo team coordination",
-        "Executive customer relationship management",
-        "Budget and resource management",
-        "Technical credibility across multiple domains"
+        "organizational_design",
+        "executive_presentation",
+        "people_management",
+        "process_design",
+        "consultative_selling"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "strategic_thinking",
+        "partner_enablement",
+        "revenue_operations",
+        "stakeholder_management"
+      ],
       "market_notes": {
-        "israel": "Head of SE / VP SE roles in Israel often carry EMEA or global scope, especially at companies like Databricks, NVIDIA, and enterprise SaaS vendors with Israel R&D centers. The role frequently includes building the SE function from scratch for the Israel/EMEA region. At startups (Insait, early-stage AI companies), this role may report directly to the CEO and own the full customer delivery lifecycle including professional services. Enterprise companies expect consumption-based business model experience. Hebrew native + English fluency is standard. The role is increasingly expected to incorporate AI into delivery processes and team operations."
-      }
+        "israel": "Head of Solutions Engineering is found at scale-ups with 15+ SEs and at all unicorns — Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, AppsFlyer, Gong, Forter, Payoneer. The role often reports to CRO or VP Sales, sometimes to CEO at SE-heavy companies (cyber especially). At companies where SE plays a central role in deal qualification and product positioning, this role has executive-level influence beyond GTM — shapes product strategy and roadmap through field-intel surfacing. Career exit paths frequently include CRO, VP Sales, or moving to a startup as a co-founder or first-GTM-hire."
+      },
+      "alternate_titles": [
+        "VP Solutions Engineering",
+        "Director of Solutions Engineering",
+        "Head of Pre-Sales"
+      ],
+      "core_responsibilities": [
+        "Own the entire Solutions Engineering function — strategy, structure, hiring, performance — across regions and segments",
+        "Set the SE org's go-to-market strategy — segment-specific approaches, partner / channel strategy, technical positioning",
+        "Build the SE leadership bench — develop SE Managers, hire senior SEs, design the career ladder",
+        "Partner with the CRO / VP Sales on overall GTM strategy — joint planning, deal pursuit, account-based motion design",
+        "Represent SE to the executive team — surface field intel, advocate for product investments, own SE budget and headcount",
+        "Drive cross-functional alignment with Product, Engineering, and Customer Success on field-driven priorities"
+      ],
+      "tools": [
+        "Salesforce",
+        "Slack",
+        "Lattice",
+        "Highspot",
+        "Looker"
+      ],
+      "technical_depth": "Medium",
+      "customer_facing_level": "High",
+      "revenue_ownership": "Direct",
+      "strategic_level": "Strategic",
+      "lifecycle_stage": [
+        "Scale",
+        "Mature"
+      ],
+      "typical_backgrounds": [
+        "se_manager_promotion",
+        "external_head_of_se_hire",
+        "vp_sales_fork"
+      ],
+      "years_experience_typical": "12-18",
+      "next_roles": [
+        "cro",
+        "vp_sales",
+        "chief_customer_officer"
+      ],
+      "similar_roles": [
+        "vp_sales",
+        "engineering_group_manager",
+        "head_of_customer_success"
+      ],
+      "not_to_confuse_with": [
+        "VP Sales",
+        "CRO",
+        "VP Customer Success"
+      ],
+      "keywords": [
+        "head of pre-sales",
+        "SE leadership",
+        "GTM strategy",
+        "executive",
+        "global SE"
+      ],
+      "_research_method": "web_search"
     },
     {
       "id": "it_support_specialist",
