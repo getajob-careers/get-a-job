@@ -1247,11 +1247,12 @@ export const roleLibrary = {
       "id": "support_team_lead",
       "standardized_title": "Support Team Lead",
       "alternate_titles": [
-        "Customer Support Manager",
-        "Technical Support Manager"
+        "Support Manager (smaller orgs)",
+        "Customer Support Lead",
+        "Tier 2 Support Lead"
       ],
       "role_family": "Leadership",
-      "secondary_family": null,
+      "secondary_family": "Support",
       "seniority": "Lead_Manager",
       "core_purpose": "Lead support teams, improve support quality, and manage operational performance.",
       "core_responsibilities": [
@@ -1294,7 +1295,9 @@ export const roleLibrary = {
         "director_customer_success_operations"
       ],
       "similar_roles": [
-        "Customer Success Team Lead"
+        "customer_success_team_lead",
+        "technical_support_engineer",
+        "implementation_manager"
       ],
       "not_to_confuse_with": [
         "Customer Success Manager"
@@ -1307,17 +1310,23 @@ export const roleLibrary = {
         "escalations",
         "team performance",
         "people leadership"
-      ]
+      ],
+      "years_experience_typical": "4-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: senior support specialist or technical support engineer promotion, sometimes external support manager hire. Stack patterns: Zendesk / Intercom administration + reporting + Lattice for team management + Slack escalations. Hiring stage: common at scale-ups (Series B+) with structured customer support functions — monday.com, Wix, JFrog, HiBob, Gong, AppsFlyer, Lemonade, Fiverr, Lightricks. Manages 4-8 support specialists across tier 1 / tier 2."
+      }
     },
     {
       "id": "customer_success_team_lead",
       "standardized_title": "Customer Success Team Lead",
       "alternate_titles": [
-        "Manager, Customer Success",
-        "Customer Success Manager (people manager)"
+        "CS Team Lead",
+        "CS Manager (player-coach)",
+        "Senior CSM with team lead duties"
       ],
       "role_family": "Leadership",
-      "secondary_family": null,
+      "secondary_family": "Relationship_Growth",
       "seniority": "Lead_Manager",
       "core_purpose": "Manage a team of CSMs and improve customer retention, expansion, and team performance.",
       "core_responsibilities": [
@@ -1360,7 +1369,9 @@ export const roleLibrary = {
         "director_customer_success_operations"
       ],
       "similar_roles": [
-        "Support Team Lead"
+        "senior_customer_success_manager",
+        "director_customer_success",
+        "support_team_lead"
       ],
       "not_to_confuse_with": [
         "Director of Customer Success"
@@ -1374,16 +1385,23 @@ export const roleLibrary = {
         "playbooks",
         "team coaching",
         "manager escalation"
-      ]
+      ],
+      "years_experience_typical": "5-9",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: senior CSM promotion with people management aptitude, sometimes external CS manager hire. Stack patterns: Gainsight / Vitally / Catalyst administration + Salesforce + Lattice for team management + Slack Connect with customers. Hiring stage: common at scale-ups (Series B+) with structured CS functions — monday.com, JFrog, Wix, HiBob, Gong, AppsFlyer, Lemonade, Forter, Tipalti. Player-coach role managing 4-8 CSMs while still owning a small book of strategic accounts."
+      }
     },
     {
       "id": "director_customer_success",
       "standardized_title": "Director of Customer Success",
       "alternate_titles": [
-        "Head of Customer Success"
+        "Director of CS",
+        "Head of Customer Success",
+        "Senior Director of Customer Success"
       ],
       "role_family": "Leadership",
-      "secondary_family": null,
+      "secondary_family": "Relationship_Growth",
       "seniority": "Director_Head",
       "core_purpose": "Own the customer success function, strategy, and team structure.",
       "core_responsibilities": [
@@ -1427,7 +1445,9 @@ export const roleLibrary = {
         "vp_customer_success"
       ],
       "similar_roles": [
-        "Head of Customer Success"
+        "vp_customer_success",
+        "customer_success_team_lead",
+        "director_customer_success_operations"
       ],
       "not_to_confuse_with": [
         "Director of Customer Success Operations"
@@ -1443,7 +1463,12 @@ export const roleLibrary = {
         "function ownership",
         "team strategy",
         "manager leadership"
-      ]
+      ],
+      "years_experience_typical": "8-12",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: CS team lead / senior CSM promotion, external Director of CS hire from larger Israeli or US tech companies. Stack patterns: Gainsight / Vitally / Catalyst + Salesforce + Looker / Mode for CS analytics + Lattice for team management + executive partnership. Hiring stage: common at scale-ups (Series C+) and unicorns with substantial CS functions — monday.com, JFrog, Wix, HiBob, Gong, AppsFlyer, Lemonade, Forter, Tipalti, Cellebrite, Wiz. Manages 3-6 CS team leads / managers across segments."
+      }
     },
     {
       "id": "director_customer_success_operations",
@@ -1523,10 +1548,12 @@ export const roleLibrary = {
       "id": "vp_customer_success",
       "standardized_title": "VP Customer Success",
       "alternate_titles": [
-        "Vice President of Customer Success"
+        "VP CS",
+        "Chief Customer Officer",
+        "Head of Customer Success"
       ],
       "role_family": "Leadership",
-      "secondary_family": null,
+      "secondary_family": "Relationship_Growth",
       "seniority": "VP_Executive",
       "core_purpose": "Own the entire post-sale organization, customer outcomes, retention, and expansion strategy.",
       "core_responsibilities": [
@@ -1568,7 +1595,9 @@ export const roleLibrary = {
       ],
       "next_roles": [],
       "similar_roles": [
-        "Chief Customer Officer"
+        "director_customer_success",
+        "vp_sales",
+        "head_of_solutions_engineering"
       ],
       "not_to_confuse_with": [
         "Customer Success Team Lead"
@@ -1585,7 +1614,12 @@ export const roleLibrary = {
         "org strategy",
         "global leadership",
         "board level"
-      ]
+      ],
+      "years_experience_typical": "12-18",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: director of CS promotion, external VP CS hire from larger Israeli or US tech companies; often 2-3 prior cycles. Stack patterns: org-level CS strategy; retention / expansion / NPS metrics ownership; cross-functional partnership with VP Sales / VP Product / CRO. Hiring stage: critical hire at scale-ups (Series C+) and unicorns where post-sale revenue is a significant portion of total — monday.com, JFrog, Wix, HiBob, Gong, AppsFlyer, Lemonade, Forter, Tipalti, Cellebrite, Wiz, Check Point, CyberArk. Chief Customer Officer title increasingly used at companies that combine CS + Support + Implementation under one executive."
+      }
     },
     {
       "id": "project_manager",
@@ -5044,11 +5078,9 @@ export const roleLibrary = {
       "id": "fpa_analyst",
       "standardized_title": "FP&A Analyst",
       "alternate_titles": [
-        "Financial Planning & Analysis Analyst",
-        "Junior FP&A Analyst",
-        "Corporate FP&A Analyst",
-        "Finance Analyst",
-        "Financial Analyst"
+        "FP&A Analyst",
+        "Senior FP&A Analyst",
+        "Financial Planning Analyst"
       ],
       "role_family": "Finance",
       "secondary_family": null,
@@ -5111,9 +5143,9 @@ export const roleLibrary = {
         "finance_business_partner"
       ],
       "similar_roles": [
-        "Financial Analyst",
-        "Corporate Finance Analyst",
-        "Business Finance Analyst"
+        "senior_fpa_analyst",
+        "financial_analyst",
+        "controller"
       ],
       "not_to_confuse_with": [
         "Controller",
@@ -5133,16 +5165,20 @@ export const roleLibrary = {
         "ARR",
         "business partner",
         "management reporting"
-      ]
+      ],
+      "years_experience_typical": "2-5",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: financial analyst promotion, ex-Big 4 audit professionals (Deloitte / PwC / EY / KPMG Israel), MBA graduates with finance focus. Stack patterns: heavy Excel / Sheets modeling + NetSuite / SAP / Priority + Anaplan / Pigment for planning + Tableau / Looker for reporting + Salesforce reads. Hiring stage: common at scale-ups (Series B+) and unicorns — monday.com, Wix, JFrog, Lemonade, Payoneer, AppsFlyer, HiBob, Forter, Tipalti, Wiz, Check Point, CyberArk."
+      }
     },
     {
       "id": "senior_fpa_analyst",
       "standardized_title": "Senior FP&A Analyst",
       "alternate_titles": [
-        "Senior Financial Analyst",
-        "FP&A Manager",
-        "Finance Business Partner",
-        "FP&A Lead"
+        "Senior FP&A Manager",
+        "FP&A Lead",
+        "Strategic Finance Analyst"
       ],
       "role_family": "Finance",
       "secondary_family": null,
@@ -5208,9 +5244,9 @@ export const roleLibrary = {
         "head_of_finance"
       ],
       "similar_roles": [
-        "FP&A Manager",
-        "Finance Business Partner",
-        "Senior Financial Analyst"
+        "fpa_analyst",
+        "finance_manager",
+        "controller"
       ],
       "not_to_confuse_with": [
         "FP&A Analyst",
@@ -5231,16 +5267,20 @@ export const roleLibrary = {
         "Pigment",
         "board reporting",
         "Excel"
-      ]
+      ],
+      "years_experience_typical": "5-9",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: FP&A analyst promotion, ex-Big 4 senior associates, investment banking / corporate finance pivots. Stack patterns: deeper modeling with Anaplan / Pigment / Cube + NetSuite / SAP / Priority + Tableau / Looker + close board-deck preparation. Hiring stage: standard at scale-ups and unicorns — monday.com, JFrog, Wix, Lemonade, Payoneer, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Forter, Tipalti. Often partners with specific business units (commercial finance, R&D finance, GTM finance)."
+      }
     },
     {
       "id": "controller",
       "standardized_title": "Controller",
       "alternate_titles": [
-        "Financial Controller",
-        "Assistant Controller",
-        "Junior Controller",
-        "VP Finance (accounting-focused)"
+        "Senior Controller",
+        "Corporate Controller",
+        "Group Controller"
       ],
       "role_family": "Finance",
       "secondary_family": null,
@@ -5301,9 +5341,9 @@ export const roleLibrary = {
         "vp_finance_cfo"
       ],
       "similar_roles": [
-        "Assistant Controller",
-        "Financial Controller",
-        "Junior Controller"
+        "finance_manager",
+        "senior_fpa_analyst",
+        "vp_finance_cfo"
       ],
       "not_to_confuse_with": [
         "Finance Manager",
@@ -5326,16 +5366,17 @@ export const roleLibrary = {
         "revenue recognition"
       ],
       "market_notes": {
-        "israel": "CPA certification is mandatory in the Israeli high-tech market. Big 4 internship experience is required or strongly preferred by most companies. Priority ERP is the dominant system in Israeli companies; NetSuite is common in US-facing or international entities."
-      }
+        "israel": "Backgrounds: ex-Big 4 audit managers (Deloitte / PwC / EY / KPMG Israel), CPA-track accounting graduates with strong audit / controllership experience. Stack patterns: NetSuite / SAP / Priority for ERP + close-management tooling (Blackline, FloQast) + Israeli accounting compliance (VAT, Bituach Leumi reporting) + audit prep. Hiring stage: standard at scale-ups (Series B+) and unicorns — monday.com, JFrog, Wix, Lemonade, Payoneer, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Forter, Tipalti, Cellebrite, Amdocs, NICE Systems. CPA license heavily expected for the role."
+      },
+      "years_experience_typical": "6-12",
+      "_research_method": "knowledge"
     },
     {
       "id": "finance_manager",
       "standardized_title": "Finance Manager",
       "alternate_titles": [
         "Senior Finance Manager",
-        "Director of Finance (smaller companies)",
-        "Head of Accounting"
+        "Director of Finance (smaller orgs)"
       ],
       "role_family": "Finance",
       "secondary_family": null,
@@ -5396,9 +5437,9 @@ export const roleLibrary = {
         "head_of_finance"
       ],
       "similar_roles": [
-        "Director of Finance",
-        "Head of Accounting",
-        "Senior Finance Manager"
+        "senior_fpa_analyst",
+        "controller",
+        "vp_finance_cfo"
       ],
       "not_to_confuse_with": [
         "Controller",
@@ -5417,21 +5458,23 @@ export const roleLibrary = {
         "cash flow",
         "ERP",
         "Excel"
-      ]
+      ],
+      "years_experience_typical": "6-12",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: senior FP&A or controller promotion, ex-Big 4 senior managers, sometimes external hire from larger Israeli or US tech companies. Stack patterns: NetSuite / SAP / Priority + Anaplan / Pigment + Tableau / Looker + cross-functional business partnership. Hiring stage: standard at scale-ups (Series B+) and unicorns — monday.com, JFrog, Wix, Lemonade, Payoneer, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Forter, Tipalti. Often functions as the finance partner to a specific business unit (Engineering, GTM, Customer) or as central planning leader."
+      }
     },
     {
       "id": "vp_finance_cfo",
       "standardized_title": "VP Finance / CFO",
       "alternate_titles": [
-        "VP Finance",
         "CFO",
         "Chief Financial Officer",
-        "Head of Finance",
-        "Finance Director",
-        "Founding VP Finance"
+        "VP of Finance"
       ],
       "role_family": "Finance",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Director_Head",
       "core_purpose": "Own the company's entire financial function — setting financial strategy, leading the team, supporting fundraising, and serving as a strategic partner to the CEO and board.",
       "core_responsibilities": [
@@ -5492,10 +5535,9 @@ export const roleLibrary = {
         "board_member"
       ],
       "similar_roles": [
-        "CFO",
-        "Head of Finance",
-        "Finance Director",
-        "Founding VP Finance"
+        "finance_manager",
+        "controller",
+        "vp_operations"
       ],
       "not_to_confuse_with": [
         "Finance Manager",
@@ -5517,17 +5559,20 @@ export const roleLibrary = {
         "team leadership",
         "FP&A",
         "budgeting"
-      ]
+      ],
+      "years_experience_typical": "12-20",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: VP Finance / Controller promotion, ex-Big 4 partners, investment banking pivots, often CPA + MBA combinations. 2-3 prior cycles at scale-ups, unicorns, or US-headquartered companies. Stack patterns: executive-level financial strategy; board / investor communication; M&A scouting and execution; full ERP + planning + treasury + tax tech stack ownership. Hiring stage: critical hire at any company past ~50 employees, often before. Heavy at scale-ups and unicorns — monday.com, Wix, JFrog, Lemonade, Payoneer, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Cellebrite, Amdocs, NICE Systems. CFO is the more common title for senior hires; VP Finance often a step before CFO."
+      }
     },
     {
       "id": "hr_generalist",
       "standardized_title": "HR Generalist",
       "alternate_titles": [
-        "People & Culture Generalist",
-        "HR Coordinator",
-        "HR & Office Manager",
-        "People Operations Associate",
-        "HR Specialist"
+        "People Generalist",
+        "Senior HR Generalist",
+        "HR Business Partner (junior)"
       ],
       "role_family": "HR_People",
       "secondary_family": null,
@@ -5587,9 +5632,9 @@ export const roleLibrary = {
         "talent_acquisition_manager"
       ],
       "similar_roles": [
-        "People Ops Associate",
-        "HR Coordinator",
-        "HR & Office Manager"
+        "hr_business_partner",
+        "hr_manager",
+        "hr_operations_manager"
       ],
       "not_to_confuse_with": [
         "HR Business Partner",
@@ -5607,7 +5652,12 @@ export const roleLibrary = {
         "engagement",
         "HiBob",
         "LinkedIn"
-      ]
+      ],
+      "years_experience_typical": "2-5",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: HR coordinator promotion, organizational psychology graduates with 1-2 years experience, military officers (intelligence / HR units) transitioning. Stack patterns: HiBob / BambooHR + Greenhouse / Comeet + Lattice / 15Five for performance + Slack. Hiring stage: common at scale-ups (Series B+) and unicorns with structured people functions — monday.com, Wix, JFrog, HiBob, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Lemonade. Often manages employee relations, performance review cycles, comp / benefits administration."
+      }
     },
     {
       "id": "hr_operations_manager",
@@ -5615,11 +5665,10 @@ export const roleLibrary = {
       "alternate_titles": [
         "People Operations Manager",
         "HR Ops Manager",
-        "People Operations Specialist",
-        "HR Systems Manager"
+        "Senior HR Operations Manager"
       ],
       "role_family": "HR_People",
-      "secondary_family": null,
+      "secondary_family": "Operations",
       "seniority": "Mid",
       "core_purpose": "Own the operational backbone of the HR function — building scalable processes, managing HRIS systems, ensuring data integrity, and enabling the People team to operate efficiently at scale.",
       "core_responsibilities": [
@@ -5676,8 +5725,9 @@ export const roleLibrary = {
         "head_of_hr_people"
       ],
       "similar_roles": [
-        "People Operations Specialist",
-        "HR Systems Manager"
+        "hr_manager",
+        "hr_generalist",
+        "head_of_hr_people"
       ],
       "not_to_confuse_with": [
         "HR Generalist",
@@ -5696,17 +5746,20 @@ export const roleLibrary = {
         "employee lifecycle",
         "analytics",
         "automation"
-      ]
+      ],
+      "years_experience_typical": "4-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: HR generalist promotion with operations specialization, ex-operations professionals pivoting to people, sometimes ex-consultants. Stack patterns: HiBob / BambooHR / Workday administration + process design + automation (Zapier / Workato) + Notion for documentation. Hiring stage: common at scale-ups and unicorns with structured people-ops functions — monday.com, JFrog, Wix, HiBob, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Lemonade. The role often owns the people-tech stack and process automation alongside HR generalist duties."
+      }
     },
     {
       "id": "ld_specialist",
       "standardized_title": "L&D Specialist",
       "alternate_titles": [
+        "L&D Specialist",
         "Learning & Development Specialist",
-        "L&D Operations",
-        "Training Specialist",
-        "L&D Expert",
-        "Organizational Development Specialist"
+        "Training Specialist"
       ],
       "role_family": "HR_People",
       "secondary_family": null,
@@ -5768,9 +5821,9 @@ export const roleLibrary = {
         "head_of_hr_people"
       ],
       "similar_roles": [
-        "Training Specialist",
-        "OD Specialist",
-        "L&D Expert"
+        "hr_generalist",
+        "hr_business_partner",
+        "hr_manager"
       ],
       "not_to_confuse_with": [
         "HR Generalist",
@@ -5788,15 +5841,19 @@ export const roleLibrary = {
         "facilitation",
         "upskilling",
         "AI tools"
-      ]
+      ],
+      "years_experience_typical": "3-6",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: HR generalist promotion with L&D specialization, ex-educators / training designers pivoting to tech, organizational development backgrounds. Stack patterns: 360Learning / Docebo / Udemy Business / LinkedIn Learning + custom internal training platforms + facilitator skills. Hiring stage: most common at scale-ups (Series C+) and unicorns with mature people functions — monday.com, Wix, JFrog, Check Point, Amdocs, NICE Systems, Cellebrite, HiBob, AppsFlyer, Lemonade, CyberArk. Less common at smaller startups where L&D is folded into HR generalist roles."
+      }
     },
     {
       "id": "hr_business_partner",
       "standardized_title": "HR Business Partner",
       "alternate_titles": [
         "HRBP",
-        "People Partner",
-        "Senior HRBP",
+        "Senior HR Business Partner",
         "People Business Partner"
       ],
       "role_family": "HR_People",
@@ -5856,9 +5913,9 @@ export const roleLibrary = {
         "head_of_hr_people"
       ],
       "similar_roles": [
-        "People Partner",
-        "Senior HRBP",
-        "People Business Partner"
+        "hr_manager",
+        "head_of_hr_people",
+        "hr_generalist"
       ],
       "not_to_confuse_with": [
         "HR Generalist",
@@ -5875,7 +5932,12 @@ export const roleLibrary = {
         "employee relations",
         "workforce planning",
         "engagement"
-      ]
+      ],
+      "years_experience_typical": "5-10",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: HR generalist / manager promotion, sometimes external HRBP hire from larger Israeli or US tech companies. Stack patterns: HiBob / BambooHR + Workday + Lattice / 15Five + heavy 1:1 / coaching cadence + executive partnership. Hiring stage: standard at scale-ups (Series C+) and unicorns where business leaders need dedicated people-strategy partners — monday.com, Wix, JFrog, Wiz, Check Point, CyberArk, SentinelOne, AppsFlyer, Lemonade, AI21 Labs. Often paired with specific business functions (Engineering HRBP, GTM HRBP, Product HRBP)."
+      }
     },
     {
       "id": "compensation_benefits_specialist",
@@ -5883,12 +5945,10 @@ export const roleLibrary = {
       "alternate_titles": [
         "C&B Specialist",
         "Total Rewards Specialist",
-        "Compensation Analyst",
-        "People Analytics & C&B Specialist",
-        "FP&A Compensation Expert"
+        "Compensation Analyst"
       ],
       "role_family": "HR_People",
-      "secondary_family": null,
+      "secondary_family": "Finance",
       "seniority": "Mid",
       "core_purpose": "Design and manage competitive compensation and benefits programs that attract, retain, and motivate talent while ensuring market alignment and internal equity.",
       "core_responsibilities": [
@@ -5946,9 +6006,9 @@ export const roleLibrary = {
         "head_of_hr_people"
       ],
       "similar_roles": [
-        "Total Rewards Specialist",
-        "People Analytics Specialist",
-        "Compensation Analyst"
+        "hr_generalist",
+        "hr_manager",
+        "fpa_analyst"
       ],
       "not_to_confuse_with": [
         "HR Generalist",
@@ -5967,16 +6027,20 @@ export const roleLibrary = {
         "people analytics",
         "HRIS",
         "HiBob"
-      ]
+      ],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: HR generalist promotion with compensation specialization, finance pivots to people-side comp, ex-consultants from Mercer / Aon / Willis Towers Watson Israel offices. Stack patterns: HiBob / BambooHR + comp benchmarking platforms (Pave, Carta, Aon TCM) + heavy Excel / Sheets modeling + Workday at larger orgs. Hiring stage: common at scale-ups (Series C+) and unicorns where compensation programs need dedicated specialists — monday.com, JFrog, Wix, Wiz, Check Point, CyberArk, SentinelOne, AppsFlyer, Lemonade. Equity / RSU administration alongside cash comp design."
+      }
     },
     {
       "id": "talent_acquisition_manager",
       "standardized_title": "Talent Acquisition Manager",
       "alternate_titles": [
-        "Head of Talent Acquisition",
-        "Recruiting Manager",
         "TA Manager",
-        "Talent Acquisition Lead"
+        "Senior TA Manager",
+        "Head of Recruiting"
       ],
       "role_family": "HR_People",
       "secondary_family": null,
@@ -6035,9 +6099,9 @@ export const roleLibrary = {
         "vp_people"
       ],
       "similar_roles": [
-        "Head of Talent Acquisition",
-        "TA Lead",
-        "Recruiting Manager"
+        "talent_acquisition_specialist",
+        "head_of_hr_people",
+        "hr_manager"
       ],
       "not_to_confuse_with": [
         "HR Generalist",
@@ -6056,7 +6120,12 @@ export const roleLibrary = {
         "hiring strategy",
         "AI recruiting",
         "team management"
-      ]
+      ],
+      "years_experience_typical": "5-10",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: TA specialist promotion, agency recruiting director to in-house pivot, sometimes external TA manager hire from larger Israeli or US tech companies. Stack patterns: Greenhouse / Comeet + LinkedIn Recruiter + sourcing tools + Lattice for hiring panel coordination + heavy ATS administration. Hiring stage: critical at scale-ups and unicorns with 30+ hires per year — Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, Wix, Fiverr, HiBob, AppsFlyer, Lemonade, AI21 Labs, Aidoc, Run:ai. Often manages 4-8 recruiters across technical and commercial pipelines."
+      }
     },
     {
       "id": "hr_manager",
@@ -6064,7 +6133,7 @@ export const roleLibrary = {
       "alternate_titles": [
         "People Manager",
         "Senior HR Manager",
-        "Director of HR (smaller companies)"
+        "Director of HR (smaller orgs)"
       ],
       "role_family": "HR_People",
       "secondary_family": null,
@@ -6125,9 +6194,9 @@ export const roleLibrary = {
         "vp_people"
       ],
       "similar_roles": [
-        "Senior HR Manager",
-        "People Manager",
-        "Director of HR"
+        "hr_business_partner",
+        "head_of_hr_people",
+        "hr_operations_manager"
       ],
       "not_to_confuse_with": [
         "HR Business Partner",
@@ -6145,20 +6214,24 @@ export const roleLibrary = {
         "engagement",
         "compliance",
         "culture"
-      ]
+      ],
+      "years_experience_typical": "6-10",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: HR generalist promotion, external HR manager hire, HRBP transitioning to people-management role. Stack patterns: HiBob / BambooHR + Lattice / 15Five + Workday at larger orgs + heavy cross-functional partnership. Hiring stage: standard at scale-ups (Series B+) and unicorns — manages 3-6 HR generalists / specialists / coordinators. Heavy at monday.com, Wix, JFrog, Wiz, Check Point, CyberArk, SentinelOne, AppsFlyer, Lemonade, HiBob, Fiverr, AI21 Labs. At smaller orgs the role often combines HR generalist + manager duties."
+      }
     },
     {
       "id": "head_of_hr_people",
       "standardized_title": "Head of HR / VP People",
       "alternate_titles": [
         "VP People",
+        "VP HR",
         "Chief People Officer",
-        "Director of People",
-        "Head of People",
-        "Head of HR"
+        "Head of People"
       ],
       "role_family": "HR_People",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Director_Head",
       "core_purpose": "Own the entire people function — setting HR strategy, building the team, shaping culture, and serving as a strategic partner to the CEO and leadership on all people-related matters.",
       "core_responsibilities": [
@@ -6217,9 +6290,9 @@ export const roleLibrary = {
         "board_member"
       ],
       "similar_roles": [
-        "VP People",
-        "Chief People Officer",
-        "Director of People"
+        "hr_manager",
+        "hr_business_partner",
+        "vp_operations"
       ],
       "not_to_confuse_with": [
         "HR Manager",
@@ -6238,7 +6311,12 @@ export const roleLibrary = {
         "workforce planning",
         "compliance",
         "engagement"
-      ]
+      ],
+      "years_experience_typical": "10-18",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: HR manager / HRBP promotion, external VP People hire from larger Israeli or US tech companies; often 2-3 prior cycles. Stack patterns: org-level people strategy; comp band design; performance program design; people-analytics with HiBob / Workday + Looker / Mode. Hiring stage: critical at scale-ups (Series C+) and unicorns. Common at monday.com, Wix, JFrog, Wiz, Check Point, CyberArk, SentinelOne, AppsFlyer, Lemonade, HiBob, Fiverr, AI21 Labs, Aidoc, Run:ai. VP People / CPO title increasingly used at companies with peer-to-CFO/CTO/CRO positioning."
+      }
     },
     {
       "id": "revops_analyst",
@@ -8806,8 +8884,16 @@ export const roleLibrary = {
         "Prepare and present design drafts to internal teams and stakeholders",
         "Stay current with design trends, tools, and emerging technologies"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "figma_mastery",
+        "ui_visual_design",
+        "ux_design_process",
+        "user_research"
+      ],
+      "preferred_skills": [
+        "cross_functional_design_collaboration",
+        "design_critique"
+      ],
       "tools": [
         "Figma",
         "Adobe Creative Suite (Photoshop, Illustrator, XD)",
@@ -8817,8 +8903,19 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "1-3",
       "market_notes": {
-        "israel": "Many Israeli startups combine UX and UI into a single designer role from the junior level. Standalone 'UX-only' or 'UI-only' junior positions are rare — companies expect full-stack design capabilities even at entry level. Design agencies and studios (e.g., Zemingo) offer a strong entry path with exposure to multiple product domains."
-      }
+        "israel": "Backgrounds: graduates from Bezalel Academy / Shenkar / HIT / Reichman design programs, bootcamp graduates (ITC, Tech Career), self-taught designers with strong portfolios. Stack patterns: Figma dominant (was Sketch until ~2019, has largely shifted); Notion / FigJam for design docs; basic prototyping fluency. Hiring stage: common at consumer-facing companies (Lightricks, Wix, Lemonade, Fiverr, eToro, Plarium, Playtika) and at scale-ups investing in product design (monday.com, JFrog, Gong, HiBob, AppsFlyer). Less common at very early-stage startups (under ~20 employees) which typically hire mid-level designers directly."
+      },
+      "alternate_titles": [
+        "Junior Product Designer",
+        "UI/UX Designer (entry)",
+        "Associate Designer"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "product_designer_ux_ui",
+        "brand_marketing_designer",
+        "ux_researcher"
+      ]
     },
     {
       "id": "product_designer_ux_ui",
@@ -8838,8 +8935,18 @@ export const roleLibrary = {
         "Make data-driven design decisions using KPIs, A/B testing, and performance metrics",
         "Stay current with design trends, tools, and emerging technologies including AI-assisted design workflows"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "figma_mastery",
+        "ui_visual_design",
+        "ux_design_process",
+        "user_research",
+        "cross_functional_design_collaboration"
+      ],
+      "preferred_skills": [
+        "design_system_management",
+        "design_for_complex_systems",
+        "ai_design_tools"
+      ],
       "tools": [
         "Figma (components, auto-layout, prototyping)",
         "Adobe Creative Suite",
@@ -8850,8 +8957,19 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "3-5",
       "market_notes": {
-        "israel": "The most in-demand design role in the Israeli tech market. B2B SaaS and cybersecurity companies dominate hiring, creating strong demand for designers who can simplify complex, data-heavy systems. Proficiency in Figma is universally required. AI-assisted design workflows (Claude, Figma Make, Cursor) are increasingly listed as requirements, not just nice-to-haves. English fluency is expected, as most Israeli tech companies serve global markets."
-      }
+        "israel": "Backgrounds: junior designer promotion, design school graduates with 1-2 years experience, sometimes pivot from front-end engineering. Stack patterns: Figma dominant + FigJam for collaboration + prototyping tools (Principle, ProtoPie) + basic design-system tooling. Hiring stage: ubiquitous at consumer-facing companies (Lightricks, Wix, Lemonade, Fiverr, eToro, Plarium, Playtika, Hour One, D-ID) and at B2B SaaS investing in product design (monday.com, JFrog, Gong, HiBob, AppsFlyer, Forter, Wiz). Increasingly AI design tools (Cursor for Designers, Figma AI, Galileo) appearing in workflows."
+      },
+      "alternate_titles": [
+        "Product Designer",
+        "UX/UI Designer",
+        "Senior Product Designer (early)"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "senior_product_designer",
+        "junior_ux_ui_designer",
+        "ux_researcher"
+      ]
     },
     {
       "id": "senior_product_designer",
@@ -8872,8 +8990,19 @@ export const roleLibrary = {
         "Design for accessibility, performance, and inclusive user experiences",
         "Leverage AI tools to accelerate prototyping, research synthesis, and design-to-code workflows"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "figma_mastery",
+        "ui_visual_design",
+        "ux_design_process",
+        "user_research",
+        "design_for_complex_systems",
+        "cross_functional_design_collaboration"
+      ],
+      "preferred_skills": [
+        "design_system_management",
+        "mentoring",
+        "design_critique"
+      ],
       "tools": [
         "Figma (expert — components, variants, auto-layout, design tokens)",
         "Prototyping tools (Principle, ProtoPie, Framer)",
@@ -8885,14 +9014,25 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "5-7",
       "market_notes": {
-        "israel": "Senior Product Designers in Israel are expected to operate with high independence and full ownership of their design domain. The cybersecurity and enterprise SaaS sectors create particularly strong demand for designers experienced with data-heavy dashboards, complex workflows, and data visualization. Companies increasingly expect senior designers to leverage AI tools as part of their standard workflow."
-      }
+        "israel": "Backgrounds: product designer promotion, external senior designer hire from larger Israeli or US tech companies. Stack patterns: deep Figma + design system tooling (Token Studio, Specify, Knapsack) + cross-functional product partnership; mentorship and design-critique facilitation. Hiring stage: common at scale-ups (Series B+) and unicorns with established design teams — monday.com, Wix, JFrog, Gong, HiBob, AppsFlyer, Wiz, Fiverr, Lightricks, Lemonade, Forter, Payoneer."
+      },
+      "alternate_titles": [
+        "Staff Product Designer",
+        "Principal Designer",
+        "Lead Product Designer"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "product_designer_ux_ui",
+        "design_lead_design_manager",
+        "design_system_lead"
+      ]
     },
     {
       "id": "ux_researcher",
       "standardized_title": "UX Researcher",
       "role_family": "Design_UX",
-      "secondary_family": null,
+      "secondary_family": "Product",
       "seniority": "Mid",
       "core_purpose": "Specializes in understanding user behaviors, needs, and motivations through qualitative and quantitative research methods. Plans and conducts user research studies, synthesizes findings into actionable insights, and partners with product and design teams to ensure user-centered decision-making across the product lifecycle.",
       "core_responsibilities": [
@@ -8907,8 +9047,17 @@ export const roleLibrary = {
         "Present research findings to stakeholders at all levels of the organization",
         "Establish research processes and methodologies across the design organization"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "user_research",
+        "customer_discovery_interviews",
+        "ux_design_process",
+        "cross_functional_design_collaboration"
+      ],
+      "preferred_skills": [
+        "data_visualization_design",
+        "stakeholder_management",
+        "design_critique"
+      ],
       "tools": [
         "User research platforms (UserTesting, Maze, Lookback)",
         "Survey tools (Typeform, SurveyMonkey, Qualtrics)",
@@ -8920,14 +9069,25 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "3-5",
       "market_notes": {
-        "israel": "Standalone UX Researcher roles are relatively uncommon in the Israeli market. Most companies embed research responsibilities within the Product Designer role — designers are expected to conduct their own user research, usability testing, and data analysis. Dedicated UX Research positions tend to appear at larger companies (Wix, Monday.com, Fiverr) or in organizations with mature design teams. This creates an opportunity for research-minded designers to differentiate themselves, but candidates should expect to find fewer dedicated research openings than in the US market."
-      }
+        "israel": "Backgrounds: pivots from product design with research specialization, psychology / cognitive science / HCI graduates from Technion / TAU / Hebrew University / Reichman, sometimes academic researchers pivoting to industry. Stack patterns: Dovetail / EnjoyHQ for research repository + Lookback / UserZoom for usability sessions + Maze / UserTesting for unmoderated + Figma. Hiring stage: most common at consumer-facing companies with deep UX investment (Lightricks, Wix, Lemonade, Fiverr, eToro) and at scale-ups with mature design orgs (monday.com, JFrog, Gong, HiBob, AppsFlyer)."
+      },
+      "alternate_titles": [
+        "UX Research Lead",
+        "Senior UX Researcher",
+        "User Researcher"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "product_designer_ux_ui",
+        "product_analyst",
+        "design_lead_design_manager"
+      ]
     },
     {
       "id": "design_system_lead",
       "standardized_title": "Design System Lead",
       "role_family": "Design_UX",
-      "secondary_family": null,
+      "secondary_family": "Engineering",
       "seniority": "Lead_Manager",
       "core_purpose": "Owns the creation, governance, and evolution of the organization's design system — the shared language of components, patterns, tokens, and guidelines that ensures consistency and efficiency across all products. Works at the intersection of design and engineering, collaborating closely with developers to ensure design system adoption and scalable implementation.",
       "core_responsibilities": [
@@ -8942,8 +9102,17 @@ export const roleLibrary = {
         "Document usage guidelines, interaction patterns, and accessibility requirements",
         "Drive adoption of the design system across teams and products"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "design_system_management",
+        "figma_mastery",
+        "ui_visual_design",
+        "design_for_complex_systems",
+        "cross_functional_design_collaboration"
+      ],
+      "preferred_skills": [
+        "mentoring",
+        "stakeholder_management"
+      ],
       "tools": [
         "Figma (expert — components, variants, design tokens, auto-layout, branching)",
         "Storybook",
@@ -8955,8 +9124,19 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "5-7",
       "market_notes": {
-        "israel": "Design System Lead is an emerging standalone role in the Israeli market, primarily found at mid-to-large companies with multiple product lines (BigID, Wix, Monday.com, Check Point). At smaller startups, design system responsibilities are typically distributed across senior designers. Companies scaling from 1-2 products to multi-product suites are the primary hiring market for this role."
-      }
+        "israel": "Backgrounds: senior product designer promotion with systems specialization, sometimes pivot from front-end engineering with design sensibility. Stack patterns: Figma + design tokens / variables + Storybook + Specify / Token Studio + close partnership with front-end engineering teams. Hiring stage: typically at scale-ups (Series C+) and unicorns with substantial product surface area requiring centralized design system investment — monday.com, Wix, JFrog, AppsFlyer, Gong, Lightricks, Wiz, Lemonade, Fiverr."
+      },
+      "alternate_titles": [
+        "Design Systems Manager",
+        "Design Systems Lead",
+        "Senior Design Systems Designer"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "senior_product_designer",
+        "design_lead_design_manager",
+        "product_designer_ux_ui"
+      ]
     },
     {
       "id": "design_lead_design_manager",
@@ -8978,8 +9158,18 @@ export const roleLibrary = {
         "Advocate for user-centered design principles at the organizational level",
         "Present design strategy and outcomes to senior leadership and stakeholders"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "design_leadership",
+        "people_management",
+        "ux_design_process",
+        "stakeholder_management",
+        "cross_functional_design_collaboration"
+      ],
+      "preferred_skills": [
+        "mentoring",
+        "hiring_talent_acquisition",
+        "design_critique"
+      ],
       "tools": [
         "Figma (expert-level)",
         "Design management and collaboration tools",
@@ -8990,14 +9180,25 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "7+",
       "market_notes": {
-        "israel": "Design Lead/Manager roles in Israel are almost universally hybrid IC-manager positions — companies expect leaders to remain deeply hands-on while managing their team. Pure people-management design roles are rare outside of the largest companies. Strong market demand from B2B SaaS companies scaling their design teams. AI-augmented design workflows are increasingly expected — leaders are expected to implement AI tools that streamline the design-to-development pipeline."
-      }
+        "israel": "Backgrounds: senior product designer promotion, external design manager hire from larger Israeli or US tech companies. Stack patterns: people management on top of design tooling; design-team OKRs; design hiring and mentorship; cross-functional partnership with PM and engineering leadership. Hiring stage: standard at scale-ups (Series B+) and unicorns where design teams reach 5-15 designers — monday.com, Wix, JFrog, AppsFlyer, Gong, HiBob, Lightricks, Wiz, Lemonade, Fiverr, Plarium, Playtika."
+      },
+      "alternate_titles": [
+        "Design Manager",
+        "Senior Design Manager",
+        "Director of Design"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "head_of_design_vp_design",
+        "senior_product_designer",
+        "design_system_lead"
+      ]
     },
     {
       "id": "head_of_design_vp_design",
       "standardized_title": "Head of Design / VP Design",
       "role_family": "Design_UX",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Director_Head",
       "core_purpose": "Executive design leader who owns the end-to-end product design vision and strategy for the organization. Reports to CPO, CEO, or VP Product. Manages design leads and individual contributors, sets the quality bar, builds design culture, and ensures design is a strategic function that drives business outcomes. May also own brand expression and marketing design functions.",
       "core_responsibilities": [
@@ -9013,8 +9214,17 @@ export const roleLibrary = {
         "Present design strategy to executive leadership, board, and external stakeholders",
         "Define and maintain cross-product UX patterns, navigation, and visual style guidelines"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "design_leadership",
+        "people_management",
+        "organizational_design",
+        "executive_presentation",
+        "stakeholder_management"
+      ],
+      "preferred_skills": [
+        "mentoring",
+        "hiring_talent_acquisition"
+      ],
       "tools": [
         "Figma",
         "Design management and portfolio tools",
@@ -9025,14 +9235,25 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "10+",
       "market_notes": {
-        "israel": "Head of Design / VP Design roles in Israel typically require ownership of both product design and brand/marketing design functions. The role often reports to CPO or CEO. AI-first design vision is becoming a key requirement — leaders are expected to establish AI-forward design practices and workflows. Companies at Series B+ with 50-500 employees are the primary hiring market. The role is increasingly expected to own how the company communicates its story visually, not just how the product looks and works."
-      }
+        "israel": "Backgrounds: design manager promotion, external VP Design hire from larger Israeli or US tech companies; 2-3 prior cycles common. Stack patterns: org-level design strategy; brand + product design alignment; design hiring at scale; cross-functional executive partnership. Hiring stage: typically at scale-ups (Series C+) and unicorns where design is a strategic differentiator — monday.com, Wix, JFrog, Lightricks, Lemonade, Fiverr, Wiz (less common at cyber), Gong, HiBob. Often the design executive at companies with 15+ designers."
+      },
+      "alternate_titles": [
+        "VP Design",
+        "Chief Design Officer",
+        "Head of Design"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "design_lead_design_manager",
+        "head_of_product",
+        "vp_engineering"
+      ]
     },
     {
       "id": "brand_marketing_designer",
       "standardized_title": "Brand / Marketing Designer",
       "role_family": "Design_UX",
-      "secondary_family": null,
+      "secondary_family": "Marketing",
       "seniority": "Mid",
       "core_purpose": "Owns the visual identity and creative execution of a company's brand across marketing channels and touchpoints. Creates marketing campaigns, digital assets, sales materials, website graphics, social media content, and event branding. Combines strong visual craft with brand strategy thinking to ensure consistent, compelling brand expression that drives business goals.",
       "core_responsibilities": [
@@ -9047,8 +9268,15 @@ export const roleLibrary = {
         "Use generative AI tools to accelerate creative production and enhance output quality",
         "Contribute to video and motion design assets when needed"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "ui_visual_design",
+        "figma_mastery",
+        "cross_functional_design_collaboration"
+      ],
+      "preferred_skills": [
+        "ai_design_tools",
+        "canva_design_tools"
+      ],
       "tools": [
         "Figma",
         "Adobe Creative Suite (Photoshop, Illustrator, InDesign)",
@@ -9060,8 +9288,19 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "3-5",
       "market_notes": {
-        "israel": "Strong demand in the Israeli tech market, driven by B2B SaaS companies that need to communicate complex technical products through clear, compelling brand visuals. The role is distinct from Product Designer — it's marketing-facing rather than product-facing, with a focus on campaigns, sales materials, and brand consistency rather than product UX flows. Companies increasingly require proficiency in generative AI tools (Midjourney, Firefly) as a core competency, not just a nice-to-have. Motion design skills (After Effects) are a strong differentiator."
-      }
+        "israel": "Backgrounds: Bezalel / Shenkar / HIT graduates, agency-to-in-house pivots, freelance designers transitioning to tech. Stack patterns: Figma + Adobe Creative Suite (Illustrator, Photoshop) + Canva / Figma for marketing assets + brand-system tooling (Frontify, Brandfolder). Hiring stage: common at consumer-facing companies (Wix, Fiverr, Lemonade, Lightricks, eToro) and at B2B SaaS investing in brand differentiation (monday.com, HiBob, Gong, AppsFlyer). Often a single-person function (or 2-3 person team) supporting marketing, brand, and event design needs."
+      },
+      "alternate_titles": [
+        "Brand Designer",
+        "Marketing Designer",
+        "Visual Designer"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "product_designer_ux_ui",
+        "brand_manager",
+        "social_media_manager"
+      ]
     },
     {
       "id": "bdr_bd_associate",
@@ -9402,7 +9641,7 @@ export const roleLibrary = {
       "id": "junior_consultant_analyst",
       "standardized_title": "Junior Consultant / Analyst",
       "role_family": "Consulting",
-      "secondary_family": null,
+      "secondary_family": "Data",
       "seniority": "Entry",
       "core_purpose": "Entry-level consulting role focused on research, data analysis, and supporting senior consultants on client engagements. Analysts gather information, build models, prepare deliverables, and begin developing client-facing skills. Common entry point from Big 4 firms (Deloitte, EY, KPMG, PwC) and strategy boutiques.",
       "core_responsibilities": [
@@ -9436,8 +9675,18 @@ export const roleLibrary = {
         "audit"
       ],
       "market_notes": {
-        "israel": "Strong entry-level pipeline from Reichman, TAU, HUJI, and Technion into Big 4 firms (Deloitte, EY, KPMG, PwC) and Israeli strategy boutiques (Shaldor, Tefen, Pareto). Many roles require a BA/BSc in economics, business administration, industrial engineering, or accounting. Big 4 firms often hire cohorts annually. CPA is a strong advantage for risk/audit tracks. 2-3 year tenure is standard before first exit opportunity."
-      }
+        "israel": "Backgrounds: same as junior_consultant but with stronger quantitative / analytics specialization — industrial engineering, math, statistics, economics graduates. Stack patterns: heavy Excel modeling + SQL + Python / R basics + Tableau / Looker + research tooling. Hiring stage: McKinsey QuantumBlack Israel, BCG GAMMA, Bain Vector, plus Big 4 advisory practices and specialized analytics consultancies."
+      },
+      "alternate_titles": [
+        "Analyst (consulting)",
+        "Junior Business Analyst (consulting)"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "junior_consultant",
+        "strategy_analyst",
+        "business_analyst"
+      ]
     },
     {
       "id": "consultant",
@@ -9457,8 +9706,17 @@ export const roleLibrary = {
         "Coordinate with cross-functional teams (finance, IT, legal) to ensure engagement success",
         "Develop expertise in a consulting domain: strategy, risk & compliance, digital transformation, or M&A"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "consulting_methodology",
+        "consulting_frameworks",
+        "analytical_thinking",
+        "stakeholder_management",
+        "executive_presentation"
+      ],
+      "preferred_skills": [
+        "business_understanding",
+        "risk_compliance_consulting"
+      ],
       "tools": [
         "Microsoft Excel (advanced modeling)",
         "PowerPoint",
@@ -9479,8 +9737,19 @@ export const roleLibrary = {
         "transformation"
       ],
       "market_notes": {
-        "israel": "Mid-level consultants in Israel typically have 2-5 years of experience. Big 4 firms promote from Analyst to Consultant after 2-3 years. This is the most common exit point to tech companies — Israeli startups and scale-ups actively recruit from Big 4 consulting into operations, strategy, and product roles. M&A and financial due diligence consultants are in high demand given Israel's active tech M&A market. Hebrew and English fluency expected across all firms."
-      }
+        "israel": "Backgrounds: junior consultant promotion (2-3 years), MBA graduates entering at mid level. Stack patterns: heavy Excel + PowerPoint + research tooling + project management + client engagement. Hiring stage: standard mid-level role at MBB Israel offices (McKinsey, BCG, Bain), Big 4 consulting (Deloitte, PwC, EY, KPMG Israel), Strategy& / OC&C / L.E.K. boutiques, and digital transformation specialists (Tata Consultancy, Accenture, IBM Consulting Israel)."
+      },
+      "alternate_titles": [
+        "Senior Consultant",
+        "Mid-Level Consultant",
+        "Engagement Manager"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "junior_consultant",
+        "senior_consultant",
+        "management_consultant"
+      ]
     },
     {
       "id": "senior_consultant",
@@ -9500,8 +9769,17 @@ export const roleLibrary = {
         "Develop reusable methodologies, frameworks, and intellectual property for the practice",
         "Manage engagement economics: scope, budget, timeline, and resource allocation"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "consulting_methodology",
+        "consulting_frameworks",
+        "stakeholder_management",
+        "executive_presentation",
+        "analytical_thinking"
+      ],
+      "preferred_skills": [
+        "people_management",
+        "business_understanding"
+      ],
       "tools": [
         "Advanced financial modeling (Excel)",
         "BI and analytics tools (Tableau, Power BI)",
@@ -9522,14 +9800,25 @@ export const roleLibrary = {
         "business development"
       ],
       "market_notes": {
-        "israel": "Senior Consultants in Israel typically have 5-8 years of experience. At Big 4 firms, this maps to Senior Associate or Manager level. Strong demand for senior consultants with technology transformation expertise, particularly in AI, cloud, and cybersecurity domains. Business development capability becomes essential at this level — firms expect senior consultants to contribute to pipeline. Exit into Israeli tech as Head of Ops, Chief of Staff, or VP-level roles is common. KPMG, Deloitte, and EY Israel all have active digital transformation practices at this level."
-      }
+        "israel": "Backgrounds: consultant promotion (5-7 years total experience), sometimes external senior hire at the Big 4 / boutique tier. Stack patterns: client engagement leadership; cross-functional project management; deeper specialization in industry vertical or capability area. Hiring stage: standard tier at MBB Israel offices, Big 4 consulting practices, and boutique strategy firms. Often the level at which consultants decide between continuing to partner track or pivoting to in-house roles at Israeli tech scale-ups."
+      },
+      "alternate_titles": [
+        "Engagement Manager",
+        "Project Leader",
+        "Senior Manager (consulting)"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "consultant",
+        "consulting_manager",
+        "management_consultant"
+      ]
     },
     {
       "id": "consulting_manager",
       "standardized_title": "Manager / Engagement Manager",
       "role_family": "Consulting",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Lead_Manager",
       "core_purpose": "Manages multiple concurrent client engagements, leads teams, and drives practice growth. Engagement Managers are accountable for delivery quality across their portfolio, manage client relationships at the executive level, and play a significant role in business development and sales. They bridge the gap between delivery execution and practice strategy.",
       "core_responsibilities": [
@@ -9544,8 +9833,16 @@ export const roleLibrary = {
         "Represent the firm at industry events, conferences, and thought leadership forums",
         "Manage engagement P&L: pricing, utilization, margins, and resource planning"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "consulting_methodology",
+        "people_management",
+        "executive_presentation",
+        "stakeholder_management",
+        "process_design"
+      ],
+      "preferred_skills": [
+        "business_understanding"
+      ],
       "tools": [
         "CRM and pipeline management (Salesforce)",
         "Financial modeling and analysis tools",
@@ -9566,14 +9863,25 @@ export const roleLibrary = {
         "P&L management"
       ],
       "market_notes": {
-        "israel": "Manager / Engagement Manager level typically requires 7-10+ years of experience. At Big 4 firms in Israel, this is the Senior Manager level. Business development becomes a core competency — managers are expected to sell and deliver. Strong exit path into VP-level roles at Israeli tech companies, particularly into operations, strategy, and professional services leadership. The Israeli market's relatively small size means managers often manage both local and international client portfolios. Fluency in Hebrew and English is mandatory; additional languages are an advantage for EMEA-facing engagements."
-      }
+        "israel": "Backgrounds: senior consultant promotion (8-12 years), sometimes external hire at the boutique / Big 4 tier. Stack patterns: client portfolio leadership; engagement-level P&L; mentorship of junior consultants; business-development / proposal work. Hiring stage: partner-track role at MBB Israel offices, Big 4 advisory practices, and boutique consulting firms."
+      },
+      "alternate_titles": [
+        "Engagement Director",
+        "Principal",
+        "Senior Manager (consulting)"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "senior_consultant",
+        "principal_director_consulting",
+        "management_consultant"
+      ]
     },
     {
       "id": "principal_director_consulting",
       "standardized_title": "Principal / Director of Consulting",
       "role_family": "Consulting",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Director_Head",
       "core_purpose": "Practice leader responsible for building and growing a consulting practice or domain. Principals and Directors own P&L for their practice area, set strategic direction, develop go-to-market strategy, and manage the most complex and high-value client relationships. They are the firm's external face in their domain and drive thought leadership.",
       "core_responsibilities": [
@@ -9588,8 +9896,16 @@ export const roleLibrary = {
         "Advise client C-suite on strategic, operational, and transformation decisions",
         "Represent the firm in market positioning, analyst relations, and industry forums"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "consulting_methodology",
+        "executive_leadership",
+        "executive_relationships",
+        "people_management",
+        "organizational_design"
+      ],
+      "preferred_skills": [
+        "bizops_executive_communication"
+      ],
       "tools": [
         "CRM and enterprise sales tools (Salesforce)",
         "Financial planning and analysis tools",
@@ -9608,8 +9924,19 @@ export const roleLibrary = {
         "P&L owner"
       ],
       "market_notes": {
-        "israel": "Principal / Director level at Big 4 firms in Israel is Partner or Associate Partner. The Israeli consulting market is concentrated — a small number of firms dominate, so principals at this level typically have strong personal networks across Israel's tech and finance ecosystems. Growing demand for practice leaders with AI, cybersecurity, and digital transformation expertise. Some firms (KPMG, Deloitte) are actively building AI consulting practices in Israel, creating new Director-level opportunities. International experience and global firm network access are significant differentiators."
-      }
+        "israel": "Backgrounds: consulting manager promotion (15-20 years), sometimes external hire from another consulting firm. Stack patterns: client account ownership; new-business generation; partnership-level commercial outcomes; thought leadership and industry visibility. Hiring stage: partner / principal track at MBB Israel offices, Big 4 advisory, and boutique strategy firms. Often pivots to operating roles (CSO, COO, CEO) at Israeli tech scale-ups or to PE / VC at the senior end."
+      },
+      "alternate_titles": [
+        "Partner",
+        "Principal",
+        "Director (consulting)"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "consulting_manager",
+        "senior_consultant"
+      ],
+      "years_experience_typical": "15-20"
     },
     {
       "id": "solutions_engineer_junior",
@@ -10034,11 +10361,31 @@ export const roleLibrary = {
         "Support ticketing system operations and ensure timely resolution of requests",
         "Follow and help enforce IT security policies and best practices"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "it_infrastructure_networking",
+        "linux_fundamentals",
+        "customer_communication",
+        "it_documentation_process"
+      ],
+      "preferred_skills": [
+        "scripting_automation",
+        "networking_fundamentals"
+      ],
       "market_notes": {
-        "israel": "Very high demand across Israeli tech. Most startups (50-300 employees) have 1-2 helpdesk roles. Military IT experience (signal corps, tech units) is commonly accepted in lieu of civilian experience. Hebrew and English fluency typically required. Many listings are hybrid or on-site 2-3 days. Companies like K Health, At-Bay, Paragon, VAST Data, and WINN.AI all actively hiring. Entry point is often 0-2 years experience, making it accessible for recent graduates and post-military candidates."
-      }
+        "israel": "Backgrounds: bootcamp grads, IDF veterans from technical / signals / Mamram units, sometimes self-taught with strong project portfolios. Stack patterns: Microsoft 365 / Google Workspace + Jamf / Intune for endpoint management + Okta / OneLogin for SSO + Slack / Zoom + ticketing systems (Jira Service Management, Zendesk, Freshservice). Hiring stage: common entry-level role at scale-ups and unicorns — monday.com, Wix, JFrog, Lemonade, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Cellebrite. Often a stepping stone to it_administrator or security analyst tracks."
+      },
+      "alternate_titles": [
+        "IT Support Engineer",
+        "Junior IT Specialist",
+        "Help Desk Specialist"
+      ],
+      "years_experience_typical": "0-3",
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "it_administrator_sysadmin",
+        "customer_support_specialist",
+        "technical_support_specialist"
+      ]
     },
     {
       "id": "it_administrator_sysadmin",
@@ -10061,11 +10408,33 @@ export const roleLibrary = {
         "Manage networking fundamentals: VPN, firewalls, DNS, DHCP",
         "Automate IT processes using scripting (PowerShell, Bash, Python)"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "it_infrastructure_networking",
+        "linux_administration",
+        "saas_administration",
+        "scripting_automation",
+        "networking_fundamentals"
+      ],
+      "preferred_skills": [
+        "security_best_practices",
+        "it_security_compliance"
+      ],
       "market_notes": {
-        "israel": "Core role in Israeli startups and scale-ups. Companies like Candex, Vetric, Dream, and Papaya Global hire for this profile. Typically requires 3-5 years experience. Many Israeli companies expect the SysAdmin to also handle basic security compliance (ISO 27001, SOC 2) since dedicated GRC hires come later. Scripting skills (PowerShell, Bash) increasingly expected. Zero Trust concepts appearing in requirements. Hebrew and English fluency standard. Cloud platform familiarity (especially Azure and AWS) is becoming a baseline expectation rather than a nice-to-have."
-      }
+        "israel": "Backgrounds: IT support specialist promotion, Mamram or military IT-unit alumni, sometimes self-taught Linux administrators. Stack patterns: Microsoft 365 / Google Workspace administration + Jamf / Intune + Okta / OneLogin / Auth0 + AWS / GCP basic admin + Terraform for some infrastructure + scripting in Python / Bash. Hiring stage: common at scale-ups and unicorns — monday.com, Wix, JFrog, Lemonade, AppsFlyer, Cellebrite, Amdocs, NICE Systems. Career path forks to it_manager or pivot to devops_engineer / security_analyst."
+      },
+      "alternate_titles": [
+        "IT Administrator",
+        "SysAdmin",
+        "Senior IT Specialist",
+        "IT Engineer"
+      ],
+      "years_experience_typical": "2-6",
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "it_manager",
+        "it_support_specialist",
+        "devops_engineer"
+      ]
     },
     {
       "id": "it_manager",
@@ -10089,11 +10458,33 @@ export const roleLibrary = {
         "Work with security teams to ensure secure implementation of all IT processes",
         "Handle annual IT budget and ensure cost effectiveness"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "it_operations_leadership",
+        "people_management",
+        "it_infrastructure_networking",
+        "vendor_procurement_management",
+        "process_design"
+      ],
+      "preferred_skills": [
+        "it_security_compliance",
+        "security_best_practices",
+        "stakeholder_management"
+      ],
       "market_notes": {
-        "israel": "High demand in Israeli startups at the 50-200 employee stage where IT complexity outgrows the SysAdmin model. Companies like Bluewhite, Cye, Beamup, and eyesAtop hire for this profile. Typically requires 5-6+ years experience with strong hands-on capabilities. In Israel, the IT Manager often owns security compliance too (ISO 27001 especially common in defense-adjacent companies). BSc in Computer Science or Engineering frequently required. Budget management and vendor negotiation skills increasingly valued. AI tool evaluation and rollout emerging as a new responsibility — Beamup explicitly makes this a core part of the role."
-      }
+        "israel": "Backgrounds: IT administrator promotion, sometimes external IT manager hire. Stack patterns: Microsoft 365 / Google Workspace + Jamf / Intune at scale + Okta / OneLogin + IT service management (Jira Service Management, ServiceNow at larger orgs) + vendor management. Hiring stage: standard at scale-ups (Series B+) and unicorns — manages 3-6 IT specialists / sysadmins. Heavy at monday.com, Wix, JFrog, Wiz, Check Point, CyberArk, SentinelOne, Lemonade, HiBob, AppsFlyer, Cellebrite, Amdocs, NICE Systems."
+      },
+      "alternate_titles": [
+        "Senior IT Manager",
+        "IT Operations Manager",
+        "Director of IT"
+      ],
+      "years_experience_typical": "5-10",
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "head_of_it",
+        "it_administrator_sysadmin",
+        "security_analyst_soc"
+      ]
     },
     {
       "id": "security_analyst_soc",
@@ -10116,11 +10507,34 @@ export const roleLibrary = {
         "Support incident response activities including containment and remediation",
         "Stay current on emerging threats, attack methodologies, and CVEs"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "security_monitoring_detection",
+        "incident_response_forensics",
+        "security_data_analysis",
+        "threat_analysis_investigation",
+        "linux_administration"
+      ],
+      "preferred_skills": [
+        "scripting_automation",
+        "cloud_security_posture",
+        "security_best_practices"
+      ],
       "market_notes": {
-        "israel": "Very strong demand in the Israeli cybersecurity ecosystem. Companies like Guardio, Fireblocks, Check Point, Fortinet, Zero Networks, and GeoEdge actively hire. Unit 8200 and intelligence unit alumni are highly sought after — several listings explicitly mention this as a significant advantage. SQL proficiency is increasingly treated as a must-have, not a nice-to-have. AI/LLM tools for security analysis emerging as an expectation. Many SOC roles in Israel blend traditional monitoring with threat research and data analysis, reflecting the startup culture of wearing multiple hats. Python scripting skills expected for automation."
-      }
+        "israel": "Backgrounds: Unit 8200 / 81 / 9900 cyber unit alumni dominate — Israel's military cyber units provide a near-unique global talent pipeline; supplemented by self-taught cybersecurity professionals and CS graduates with security specialization. Stack patterns: SIEM platforms (Splunk, Sentinel, QRadar, Devo, Hunters — Israeli) + EDR (CrowdStrike, SentinelOne, Cybereason) + threat intel platforms (Recorded Future, Cybersixgill, KELA — Israeli) + scripting in Python. Hiring stage: heavy at MSSPs, cyber product companies (use their own products internally), and at any company with mature security operations — Wiz, Check Point, CyberArk, SentinelOne, Cybereason, Aqua Security, Armis, BigID, Cyberint, Cyera."
+      },
+      "alternate_titles": [
+        "Security Analyst",
+        "SOC Analyst",
+        "Tier 2 Security Analyst",
+        "Senior Security Analyst"
+      ],
+      "years_experience_typical": "2-6",
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "grc_analyst",
+        "ciso_head_of_security",
+        "incident_response_specialist"
+      ]
     },
     {
       "id": "grc_analyst",
@@ -10144,17 +10558,37 @@ export const roleLibrary = {
         "Collaborate with engineering, legal, and business teams on security requirements",
         "Prepare compliance reports and dashboards for management review"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "grc_frameworks",
+        "it_security_compliance",
+        "audit_management",
+        "risk_compliance_consulting"
+      ],
+      "preferred_skills": [
+        "stakeholder_management",
+        "security_best_practices"
+      ],
       "market_notes": {
-        "israel": "Growing rapidly in the Israeli market as startups mature and pursue enterprise customers who require SOC 2 and ISO 27001 certification. Companies like Payoneer, Upwind, Zafran, Port.io, Wix, and Cye actively hiring. Entry-level GRC roles (1-2 years) exist — Cye and Akita hire junior cybersecurity architects/GRC specialists. The role often combines compliance management with hands-on security engineering in Israeli companies. AI governance (EU AI Act, NIST AI RMF, ISO/IEC 42001) emerging as a new domain — Payoneer explicitly requires this. FedRAMP experience becoming valuable for companies targeting US federal customers. CISSP, CISM, CISA certifications valued but not always required."
-      }
+        "israel": "Backgrounds: security analyst pivots to compliance, ex-Big 4 audit professionals with security specialization, CS graduates with regulatory focus. Stack patterns: GRC platforms (Drata — Israeli, Vanta, Hyperproof, OneTrust, RSA Archer) + audit documentation tools + SOC 2 / ISO 27001 / GDPR / HIPAA evidence collection. Hiring stage: common at scale-ups and unicorns with enterprise customer compliance requirements — monday.com, JFrog, Wix, Wiz, Check Point, CyberArk, SentinelOne, Lemonade, AppsFlyer, Forter, Tipalti, Cellebrite. The Israeli GRC market is growing rapidly given the global expansion of cyber and SaaS companies into regulated industries."
+      },
+      "alternate_titles": [
+        "GRC Specialist",
+        "Security Compliance Analyst",
+        "Risk Analyst"
+      ],
+      "years_experience_typical": "2-6",
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "security_analyst_soc",
+        "ciso_head_of_security",
+        "it_manager"
+      ]
     },
     {
       "id": "head_of_it",
       "standardized_title": "Head of IT",
       "role_family": "IT_Security",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Director_Head",
       "core_purpose": "Leads the organization's entire IT function, owning strategy, operations, security posture, vendor management, and budget. Serves as the senior escalation point for IT issues and the primary internal partner for security governance. Defines the IT and internal security roadmap, builds automation-first processes, and ensures the IT environment scales with business growth. Often manages both IT staff and external vendors.",
       "core_responsibilities": [
@@ -10172,17 +10606,38 @@ export const roleLibrary = {
         "Manage customer security questionnaires and security discussions",
         "Evaluate and implement emerging technologies including AI tools and automation"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "it_operations_leadership",
+        "people_management",
+        "organizational_design",
+        "vendor_procurement_management",
+        "executive_presentation"
+      ],
+      "preferred_skills": [
+        "it_security_compliance",
+        "stakeholder_management"
+      ],
       "market_notes": {
-        "israel": "Common in Israeli companies at the 100-500 employee stage. Guardio and Bringg both hire for this profile. In many Israeli companies this is a 'one-person army' role — strategic ownership combined with hands-on execution. The role increasingly includes internal security ownership, not just IT operations. AI adoption and security governance emerging as new responsibilities. Companies expect this person to manage external IT service providers while remaining deeply hands-on. Strong communication skills and cross-functional partnership ability are critical. Experience with SOC 2 and ISO 27001 typically required."
-      }
+        "israel": "Backgrounds: IT manager promotion, external Head of IT hire from larger Israeli or US tech companies. Stack patterns: org-level IT strategy; vendor management at scale; M&A IT integration; compliance + security partnership. Hiring stage: typically at scale-ups (Series C+) and unicorns where IT operations need executive-level leadership — Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, Wix, Amdocs, NICE Systems, Cellebrite, Lemonade, AppsFlyer. Often combined with Head of Security at smaller companies."
+      },
+      "alternate_titles": [
+        "VP IT",
+        "Director of IT",
+        "CIO (smaller orgs)"
+      ],
+      "years_experience_typical": "10-15",
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "it_manager",
+        "ciso_head_of_security",
+        "vp_operations"
+      ]
     },
     {
       "id": "ciso_head_of_security",
       "standardized_title": "CISO / Head of Security",
       "role_family": "IT_Security",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "VP_Executive",
       "core_purpose": "Leads the organization's entire information security program, spanning product security, cloud infrastructure, internal IT systems, and customer-facing security initiatives. Develops security strategy, manages risk, drives compliance and certification programs, and builds a security-conscious culture. Partners with executive leadership to align security with business objectives and serves as the primary security representative for customers, auditors, and regulators.",
       "core_responsibilities": [
@@ -10201,11 +10656,34 @@ export const roleLibrary = {
         "Oversee the IT environment including endpoints, SaaS, cloud infrastructure, and identity systems",
         "Design and implement security controls for cloud and production environments"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "it_security_compliance",
+        "incident_response_forensics",
+        "organizational_design",
+        "executive_leadership",
+        "executive_presentation"
+      ],
+      "preferred_skills": [
+        "grc_frameworks",
+        "bizops_executive_communication",
+        "people_management"
+      ],
       "market_notes": {
-        "israel": "Increasingly critical role in the Israeli ecosystem as companies scale internationally and face enterprise customer security requirements. Guardio and Guardz both actively hiring CISOs. In Israeli startups, the CISO often owns IT as well as security — the role combines strategic leadership with hands-on execution. IPO preparation experience valued as more Israeli companies go public. AI security governance emerging as a new domain. The role typically requires 5-7+ years of security experience with proven leadership. CISSP, CISM certifications valued. Strong demand for candidates who can serve as the external face of security for customer trust and sales enablement."
-      }
+        "israel": "Backgrounds: Unit 8200 / 81 / 9900 senior alumni dominate; ex-CISOs at other Israeli companies; cybersecurity research veterans with operational experience. Stack patterns: executive-level security strategy; board / customer security communication; security org design across SOC + GRC + AppSec + product security teams. Hiring stage: critical hire at any company with substantial security operations — both at security product companies (running their own programs in addition to selling) and at SaaS / FinTech / consumer companies with enterprise compliance needs. Heavy at Wiz, Check Point, CyberArk, SentinelOne, Cybereason, monday.com, Wix, JFrog, Lemonade, Payoneer, eToro, Forter."
+      },
+      "alternate_titles": [
+        "CISO",
+        "Chief Information Security Officer",
+        "VP Security",
+        "Head of Security"
+      ],
+      "years_experience_typical": "12-20",
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "head_of_it",
+        "security_analyst_soc",
+        "grc_analyst"
+      ]
     },
     {
       "id": "executive_assistant",
@@ -10228,11 +10706,30 @@ export const roleLibrary = {
         "Liaise with vendors, suppliers, partners, and clients on behalf of leadership",
         "Lead ad-hoc projects and initiatives as directed by the CEO or executive team"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "administrative_operations",
+        "executive_relationships",
+        "customer_communication",
+        "stakeholder_management"
+      ],
+      "preferred_skills": [
+        "bizops_executive_communication"
+      ],
       "market_notes": {
-        "israel": "Very common role in Israeli tech companies, often combined with Office Manager responsibilities in startups under 100 employees. Companies like Alison.ai, McKinsey/Iguazio, Keshet International, and Voyantis actively hiring. Military HQ/operations experience (e.g., IDF adjutancy, unit-level operations roles) is frequently cited as an advantage and widely accepted as relevant experience. The role is often a career accelerator — several listings explicitly frame it as a path to Chief of Staff or operations leadership. Hebrew and English fluency standard. AI tool proficiency (ChatGPT, Gemini, Claude) emerging as an expectation in recent listings."
-      }
+        "israel": "Backgrounds: experienced administrative professionals, hospitality / luxury service pivots, military officer transitions to civilian executive support. Stack patterns: Google Workspace / Microsoft 365 calendaring + Slack + Notion / Confluence + Calendly / GoodTime for scheduling + travel coordination tools. Hiring stage: common at unicorns and mature scale-ups where executives need dedicated support — monday.com, Wix, JFrog, Wiz, Check Point, CyberArk, SentinelOne, Cellebrite, Amdocs, NICE Systems, Lemonade. Typically supports C-suite or VP-level executives."
+      },
+      "alternate_titles": [
+        "EA",
+        "Senior Executive Assistant",
+        "Chief of Staff (junior)"
+      ],
+      "years_experience_typical": "3-8",
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "operations_coordinator",
+        "office_manager",
+        "chief_of_staff"
+      ]
     },
     {
       "id": "office_manager",
@@ -10255,11 +10752,30 @@ export const roleLibrary = {
         "Support HR team with administrative tasks and employee welfare programs",
         "Manage office budget and negotiate with suppliers for cost efficiency"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "office_operations",
+        "administrative_operations",
+        "vendor_procurement_management",
+        "people_management"
+      ],
+      "preferred_skills": [
+        "process_design"
+      ],
       "market_notes": {
-        "israel": "Extremely high demand across Israeli tech — virtually every company with a physical office hires for this role. Companies like Rubrik, Nexxen, Voyantis, Airis Labs, and Alison.ai actively hiring. The Israeli market strongly values the 'people-person' and culture-building aspects of the role, not just logistics. Part-time (60%) positions common in smaller startups. Often combined with Executive Assistant duties in companies under 80 employees. Entry point is typically 1-2 years of experience, making it accessible post-military. In-office presence 5 days/week is standard. Hebrew and English fluency required."
-      }
+        "israel": "Backgrounds: operations coordinator promotion, hospitality management transitions, sometimes ex-military officers pivoting to civilian operations. Stack patterns: Workplace platforms (Robin, Envoy, Skedda) + Notion / Confluence + Slack + Workspace / Microsoft 365 + procurement tooling. Hiring stage: common at scale-ups and unicorns with significant office presence — monday.com, Wix, JFrog, Wiz, Check Point, CyberArk, SentinelOne, AppsFlyer, HiBob, Lemonade, Cellebrite. Often manages multiple office locations as companies expand."
+      },
+      "alternate_titles": [
+        "Senior Office Manager",
+        "Workplace Manager",
+        "Office Operations Manager"
+      ],
+      "years_experience_typical": "3-8",
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "operations_coordinator",
+        "facilities_manager",
+        "head_of_admin_ga"
+      ]
     },
     {
       "id": "operations_coordinator",
@@ -10282,17 +10798,35 @@ export const roleLibrary = {
         "Support HR processes including onboarding coordination",
         "Anticipate and resolve operational problems proactively"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "administrative_operations",
+        "office_operations",
+        "vendor_procurement_management",
+        "customer_communication"
+      ],
+      "preferred_skills": [
+        "process_design"
+      ],
       "market_notes": {
-        "israel": "Common entry-level role in Israeli companies, frequently found at larger organizations like JFrog, KPMG, and Bynet. IDF administrative and national service experience widely accepted as relevant background. The role often serves as a launching pad into office management, HR, or business operations. Typically requires 1+ years of experience. Hebrew fluency required, English reading and writing expected. Strong overlap with receptionist duties in smaller companies. ERP system familiarity (especially Priority, which is prevalent in Israel) is an advantage."
-      }
+        "israel": "Backgrounds: recent graduates, IDF veterans transitioning to civilian operations, hospitality / events professionals pivoting to tech. Stack patterns: Notion / Confluence + Slack + Google Workspace / Microsoft 365 + Asana / Monday for project work + Workplace tools (Robin, Envoy for office). Hiring stage: common at scale-ups and unicorns with structured workplace functions — monday.com, Wix, JFrog, Lemonade, Wiz, Check Point, CyberArk, SentinelOne, AppsFlyer, HiBob. Often a stepping stone to office_manager or facilities_manager."
+      },
+      "alternate_titles": [
+        "Junior Operations Coordinator",
+        "Office Operations Coordinator"
+      ],
+      "years_experience_typical": "0-2",
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "office_manager",
+        "executive_assistant",
+        "facilities_manager"
+      ]
     },
     {
       "id": "procurement_specialist",
       "standardized_title": "Procurement / Vendor Management Specialist",
       "role_family": "Admin_GA",
-      "secondary_family": null,
+      "secondary_family": "Finance",
       "seniority": "Mid",
       "core_purpose": "Manages end-to-end procurement processes including supplier sourcing, RFQ management, contract negotiation, purchase order processing, and vendor relationship management. Drives cost optimization, ensures compliance with procurement policies, and collaborates across Finance, Legal, IT, and operational teams to secure optimal commercial outcomes.",
       "core_responsibilities": [
@@ -10309,11 +10843,30 @@ export const roleLibrary = {
         "Leverage procurement tools, automation, and AI-powered insights for efficiency",
         "Support contract renewal processes and manage vendor risk"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "vendor_procurement_management",
+        "negotiation",
+        "stakeholder_management",
+        "process_design"
+      ],
+      "preferred_skills": [
+        "business_understanding"
+      ],
       "market_notes": {
-        "israel": "Growing demand in Israeli tech as companies scale and formalize purchasing. Silverfort, ThetaRay, Kaltura, Infinidat, KPMG, and XTEND all actively hiring. Typically requires 2-4 years of experience. The Israeli market distinguishes between indirect procurement (SaaS, services, facilities — common in tech companies) and direct/technical procurement (electronic components, mechanical parts — common in hardware/defense companies like XTEND). Zip/ZipHQ emerging as the dominant procurement platform in Israeli tech. Hebrew and English fluency required for global vendor management. SAP experience valued at larger organizations. AI tools for sourcing and vendor evaluation appearing in recent listings."
-      }
+        "israel": "Backgrounds: operations / finance pivots to procurement specialization, sometimes ex-supply chain professionals from CPG / retail. Stack patterns: NetSuite / SAP / Priority + procurement platforms (Coupa, SAP Ariba, Tipalti — Israeli) + heavy Excel for vendor analysis. Hiring stage: typically at scale-ups (Series C+) and unicorns with substantial vendor spend — monday.com, Wix, JFrog, Wiz, Check Point, CyberArk, SentinelOne, Cellebrite, Amdocs, NICE Systems, Lemonade."
+      },
+      "alternate_titles": [
+        "Procurement Manager",
+        "Senior Procurement Specialist",
+        "Vendor Manager"
+      ],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "office_manager",
+        "facilities_manager",
+        "vendor_procurement_management"
+      ]
     },
     {
       "id": "facilities_manager",
@@ -10336,17 +10889,35 @@ export const roleLibrary = {
         "Manage maintenance teams and subcontractors",
         "Support employee experience through facilities-related well-being initiatives"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "office_operations",
+        "vendor_procurement_management",
+        "people_management",
+        "process_design"
+      ],
+      "preferred_skills": [
+        "administrative_operations"
+      ],
       "market_notes": {
-        "israel": "Distinct role in larger Israeli organizations (500+ employees) and building management companies. Cal, CBRE, and MAX actively hiring. Licensed electrician certification (חשמלאי מוסמך/ראשי) is often mandatory — this is a regulated requirement in Israel. Experience managing buildings of 13,000+ sqm is a common baseline. Data Center infrastructure management increasingly relevant as Israeli tech companies grow their physical footprint. 24/7 availability for emergencies is standard. Hebrew fluency required; English less critical than in other tech roles. The role sits at the intersection of technical infrastructure management and HR/employee experience in some organizations (e.g., Cal positions it within the HR leadership team)."
-      }
+        "israel": "Backgrounds: office manager promotion, ex-property management professionals, hospitality industry transitions. Stack patterns: facilities management software + procurement tooling + workplace experience platforms (Robin, Envoy, Skedda) + Excel for budget management. Hiring stage: typically at scale-ups (Series C+) and unicorns with multiple office locations or large headquarters — monday.com, Wix, JFrog, Wiz, Check Point, CyberArk, SentinelOne, Amdocs, NICE Systems, Cellebrite."
+      },
+      "alternate_titles": [
+        "Senior Facilities Manager",
+        "Workplace Facilities Manager"
+      ],
+      "years_experience_typical": "5-10",
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "office_manager",
+        "head_of_admin_ga",
+        "operations_coordinator"
+      ]
     },
     {
       "id": "head_of_admin_ga",
       "standardized_title": "Head of Admin / G&A Operations Manager",
       "role_family": "Admin_GA",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Director_Head",
       "core_purpose": "Leads the organization's administrative, operational, and employee experience functions end-to-end. Owns office operations, vendor ecosystems, procurement, employee welfare programs, and cross-functional operational processes. Combines strategic leadership with hands-on execution, managing budgets, teams, and global operations. Often serves as the operational backbone that enables the company to scale.",
       "core_responsibilities": [
@@ -10364,11 +10935,32 @@ export const roleLibrary = {
         "Manage payroll interfaces, benefits administration, and compliance across jurisdictions",
         "Build operational infrastructure to support international expansion"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "administrative_operations",
+        "people_management",
+        "organizational_design",
+        "vendor_procurement_management",
+        "process_design"
+      ],
+      "preferred_skills": [
+        "executive_presentation",
+        "stakeholder_management"
+      ],
       "market_notes": {
-        "israel": "Growing role as Israeli tech companies scale past 100 employees and need consolidated G&A leadership. XTEND, Mesh Security, and Airis Labs represent the archetype. In the Israeli market, this role frequently combines office management, employee experience, procurement, and operational HR under one leader — reflecting the startup ethos of consolidated ownership. Global operations experience (managing US payroll, EOR structures, multi-country employment) increasingly valued as Israeli companies expand internationally. Experience with Deel and Remote (EOR platforms) is a strong differentiator. Typically requires 4-5+ years of experience. The role often reports to the COO, CEO, or VP HR. Hebrew and English fluency required."
-      }
+        "israel": "Backgrounds: facilities / office manager promotion, sometimes ex-COOs at smaller companies pivoting to G&A leadership at larger orgs. Stack patterns: org-level workplace strategy; multi-location office management; vendor portfolio management; G&A budget ownership. Hiring stage: typically at unicorns and mature companies with substantial G&A operations — monday.com, Wix, JFrog, Wiz, Check Point, CyberArk, SentinelOne, Cellebrite, Amdocs, NICE Systems, Lemonade."
+      },
+      "alternate_titles": [
+        "Director of Administration",
+        "Head of Workplace",
+        "VP G&A"
+      ],
+      "years_experience_typical": "10-15",
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "facilities_manager",
+        "office_manager",
+        "vp_operations"
+      ]
     },
     {
       "id": "customer_success_specialist",
@@ -10441,8 +11033,8 @@ export const roleLibrary = {
       "standardized_title": "Financial Analyst",
       "alternate_titles": [
         "Junior Financial Analyst",
-        "Corporate Finance Analyst",
-        "Business Finance Analyst"
+        "Finance Analyst",
+        "Junior FP&A Analyst"
       ],
       "role_family": "Finance",
       "secondary_family": null,
@@ -10480,7 +11072,11 @@ export const roleLibrary = {
         "fpa_analyst",
         "senior_fpa_analyst"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "fpa_analyst",
+        "senior_fpa_analyst",
+        "controller"
+      ],
       "keywords": [
         "financial analysis",
         "modeling",
@@ -10488,7 +11084,12 @@ export const roleLibrary = {
         "budget",
         "forecast",
         "variance"
-      ]
+      ],
+      "years_experience_typical": "0-3",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent finance / accounting / industrial engineering graduates from TAU / Reichman / IDC / Hebrew University, sometimes ex-Big 4 (Deloitte / PwC / EY / KPMG Israel) audit associates pivoting to industry. Stack patterns: heavy Excel / Sheets + NetSuite / SAP / Priority for ERP + Tableau / Looker for reporting + Salesforce reads for commercial data. Hiring stage: common at scale-ups and unicorns with structured finance functions — monday.com, Wix, JFrog, Lemonade, Payoneer, AppsFlyer, HiBob, Forter, Tipalti. Often a stepping stone to FP&A analyst or accountant tracks."
+      }
     },
     {
       "id": "operations_analyst",
@@ -10556,8 +11157,9 @@ export const roleLibrary = {
       "id": "hr_coordinator",
       "standardized_title": "HR Coordinator",
       "alternate_titles": [
-        "People Operations Coordinator",
-        "HR Associate"
+        "People Coordinator",
+        "Junior HR Generalist",
+        "HR Operations Coordinator"
       ],
       "role_family": "HR_People",
       "secondary_family": null,
@@ -10593,21 +11195,30 @@ export const roleLibrary = {
         "hr_generalist",
         "talent_acquisition_specialist"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "hr_assistant",
+        "hr_generalist",
+        "talent_acquisition_specialist"
+      ],
       "keywords": [
         "HR coordinator",
         "people operations",
         "onboarding",
         "HRIS"
-      ]
+      ],
+      "years_experience_typical": "1-3",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: HR assistant promotion, recent organizational psychology / business administration graduates with internship experience. Stack patterns: HiBob / BambooHR + Greenhouse / Comeet (Israeli-headquartered) + Slack + Workday for larger orgs. Hiring stage: common at scale-ups with sizable people functions — monday.com, Wix, JFrog, Wiz, Check Point, CyberArk, SentinelOne, HiBob, AppsFlyer, Lemonade, Fiverr. Often handles employee lifecycle administration, benefits coordination, onboarding logistics."
+      }
     },
     {
       "id": "talent_acquisition_specialist",
       "standardized_title": "Talent Acquisition Specialist",
       "alternate_titles": [
-        "Recruiter",
-        "Technical Recruiter",
-        "Senior Recruiter"
+        "TA Specialist",
+        "Senior Recruiter",
+        "Technical Recruiter"
       ],
       "role_family": "HR_People",
       "secondary_family": null,
@@ -10643,14 +11254,23 @@ export const roleLibrary = {
       "next_roles": [
         "talent_acquisition_manager"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "talent_acquisition_manager",
+        "recruitment_coordinator",
+        "hr_generalist"
+      ],
       "keywords": [
         "recruiting",
         "talent acquisition",
         "sourcing",
         "ATS",
         "pipeline"
-      ]
+      ],
+      "years_experience_typical": "2-5",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recruitment coordinator promotion, agency recruiter to in-house pivot, sometimes ex-developers pivoting to technical recruiting. Stack patterns: LinkedIn Recruiter + Greenhouse / Comeet / Lever + Slack channels for sourcing + AmazingHiring / SeekOut / Gem for technical sourcing. Hiring stage: critical role across the Israeli tech ecosystem given competitive talent market. Heavy at all major scale-ups and unicorns (Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, Wix, Fiverr, HiBob, Lemonade, AppsFlyer, AI21 Labs, Aidoc, Run:ai). Technical recruiting specialty pays a significant premium given the demand."
+      }
     },
     {
       "id": "marketing_assistant",
@@ -11056,8 +11676,9 @@ export const roleLibrary = {
       "id": "hr_assistant",
       "standardized_title": "HR Assistant",
       "alternate_titles": [
-        "People Ops Assistant",
-        "HR Admin"
+        "HR Coordinator",
+        "HR Associate",
+        "People Assistant"
       ],
       "role_family": "HR_People",
       "secondary_family": null,
@@ -11091,12 +11712,21 @@ export const roleLibrary = {
         "hr_coordinator",
         "hr_generalist"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "hr_coordinator",
+        "recruitment_coordinator",
+        "hr_generalist"
+      ],
       "keywords": [
         "HR",
         "administration",
         "employee support"
-      ]
+      ],
+      "years_experience_typical": "0-2",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent graduates from organizational psychology / business administration / behavioral science programs at TAU / Hebrew University / Reichman / IDC. Stack patterns: BambooHR / HiBob (Israeli-headquartered) + Greenhouse / Comeet for ATS + Slack + Notion for documentation. Hiring stage: common at scale-ups and unicorns with structured HR functions — monday.com, Wix, JFrog, Fiverr, Lemonade, AppsFlyer, HiBob (the HRIS company itself), Wiz, Check Point. Often a stepping stone to hr_generalist, recruitment_coordinator, or talent_acquisition_specialist."
+      }
     },
     {
       "id": "sales_associate",
@@ -11216,8 +11846,9 @@ export const roleLibrary = {
       "id": "recruitment_coordinator",
       "standardized_title": "Recruitment Coordinator",
       "alternate_titles": [
-        "Recruiting Coordinator",
-        "TA Coordinator"
+        "TA Coordinator",
+        "Talent Coordinator",
+        "Hiring Coordinator"
       ],
       "role_family": "HR_People",
       "secondary_family": null,
@@ -11252,13 +11883,22 @@ export const roleLibrary = {
         "talent_acquisition_specialist",
         "talent_acquisition_manager"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "talent_acquisition_specialist",
+        "hr_coordinator",
+        "hr_assistant"
+      ],
       "keywords": [
         "recruiting",
         "scheduling",
         "ATS",
         "candidate coordination"
-      ]
+      ],
+      "years_experience_typical": "1-3",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent graduates, internal HR transitions, agency-to-in-house pivots. Stack patterns: Greenhouse / Comeet (Israeli-founded) / Lever for ATS + LinkedIn Recruiter + Calendly / GoodTime for scheduling. Hiring stage: common at scale-ups with high-volume hiring needs — Wiz, Check Point, CyberArk, SentinelOne (cyber hiring is volume-heavy), monday.com, JFrog, Wix, HiBob, AppsFlyer, Lemonade, AI21 Labs. The role is especially critical given the competitive Israeli tech hiring market."
+      }
     },
     {
       "id": "business_operations_associate",
@@ -11321,7 +11961,8 @@ export const roleLibrary = {
       "id": "strategy_analyst",
       "standardized_title": "Strategy Analyst",
       "alternate_titles": [
-        "Corporate Strategy Analyst",
+        "Strategy Associate",
+        "Strategy & Operations Analyst",
         "Business Strategy Analyst"
       ],
       "role_family": "Consulting",
@@ -11360,20 +12001,30 @@ export const roleLibrary = {
         "management_consultant",
         "consulting_manager"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "junior_consultant",
+        "business_ops_analyst",
+        "strategy_ops_manager"
+      ],
       "keywords": [
         "strategy",
         "research",
         "analysis",
         "consulting"
-      ]
+      ],
+      "years_experience_typical": "1-3",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: junior consultant promotion, MBA graduates with strategy focus, top-tier business / engineering graduates. Stack patterns: Excel modeling + PowerPoint deck creation + research tooling + light SQL / Tableau for data work. Hiring stage: consulting firms (MBB Israel offices, Big 4) and in-house strategy functions at larger companies (Amdocs, NICE Systems, Cellebrite, monday.com, Wix, JFrog, Lemonade)."
+      }
     },
     {
       "id": "management_consultant",
       "standardized_title": "Management Consultant",
       "alternate_titles": [
-        "Strategy Consultant",
-        "Senior Consultant"
+        "Management Consultant",
+        "Senior Management Consultant",
+        "Strategy Consultant"
       ],
       "role_family": "Consulting",
       "secondary_family": null,
@@ -11388,14 +12039,13 @@ export const roleLibrary = {
       ],
       "required_skills": [
         "consulting_methodology",
+        "consulting_frameworks",
         "analytical_thinking",
-        "presentation_skills",
-        "stakeholder_management",
-        "strategic_thinking"
+        "executive_presentation",
+        "stakeholder_management"
       ],
       "preferred_skills": [
-        "data_analysis",
-        "financial_modeling"
+        "business_understanding"
       ],
       "tools": [
         "Excel",
@@ -11410,20 +12060,29 @@ export const roleLibrary = {
         "consulting_manager",
         "principal_director_consulting"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "senior_consultant",
+        "consultant",
+        "consulting_manager"
+      ],
       "keywords": [
         "consulting",
         "strategy",
         "client",
         "engagement"
-      ]
+      ],
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: same as consultant — the title 'management consultant' tends to be used at Big 4 advisory practices (Deloitte, PwC, EY, KPMG Israel) and at boutique firms rather than at MBB. Stack patterns: same as consultant — heavy Excel + PowerPoint + research tooling + project management. Hiring stage: Big 4 consulting practices, mid-tier consulting firms, and specialized industry consultancies."
+      }
     },
     {
       "id": "junior_consultant",
       "standardized_title": "Junior Consultant",
       "alternate_titles": [
-        "Consulting Analyst",
-        "Associate Consultant"
+        "Associate Consultant",
+        "Junior Analyst (consulting)",
+        "Business Analyst (consulting)"
       ],
       "role_family": "Consulting",
       "secondary_family": null,
@@ -11458,12 +12117,21 @@ export const roleLibrary = {
         "management_consultant",
         "strategy_analyst"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "junior_consultant_analyst",
+        "strategy_analyst",
+        "consultant"
+      ],
       "keywords": [
         "junior consulting",
         "analyst",
         "consulting"
-      ]
+      ],
+      "years_experience_typical": "0-2",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: top-tier graduates from Reichman / IDC / TAU / Hebrew University / Technion business / economics / engineering programs; MBA graduates from international programs (Wharton, INSEAD, LBS). Stack patterns: heavy Excel / PowerPoint + research tools (CapIQ, PitchBook, Statista) + structured problem-solving frameworks. Hiring stage: the Israeli offices of McKinsey, BCG, Bain, plus boutique strategy firms (Strategy&, OC&C, L.E.K., Trigo Consulting, Q-Glory); some Big 4 consulting practices (Deloitte, PwC Strategy&, EY-Parthenon, KPMG Israel). Heavy filtration — typically 1-3% acceptance rates at MBB."
+      }
     },
     {
       "id": "operations_associate",
