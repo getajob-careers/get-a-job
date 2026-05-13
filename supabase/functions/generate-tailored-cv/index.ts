@@ -7,10 +7,10 @@ import { matchRoleToLibrary, resolveSectorTheme } from '../_shared/cv-templates/
 import type { TemplateStyle, SectionKey } from '../_shared/cv-templates/types.ts'
 
 // --- Load JSON Libraries ---
-import { roleLibrary } from "./shared/libraries/00_role_library.ts";
-import { skillLibrary } from "./shared/libraries/01_skill_library.ts";
-import { proofSignalLibrary } from "./shared/libraries/02_proof_signal_library.ts";
-import { roleSkillMapping } from "./shared/libraries/04_role_skill_mapping.ts";
+import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
+import { skillLibrary } from "../_shared/libraries/01_skill_library.ts";
+import { proofSignalLibrary } from "../_shared/libraries/02_proof_signal_library.ts";
+import { roleSkillMapping } from "../_shared/libraries/04_role_skill_mapping.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",

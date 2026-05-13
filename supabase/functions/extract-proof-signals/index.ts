@@ -2,9 +2,9 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
-import { proofSignalExtractionLogic } from './shared/libraries/08_proof_signal_extraction_logic.ts'
-import { proofSignalLibrary } from './shared/libraries/02_proof_signal_library.ts'
-import { skillLibrary } from './shared/libraries/01_skill_library.ts'
+import { proofSignalExtractionLogic } from '../_shared/libraries/08_proof_signal_extraction_logic.ts'
+import { proofSignalLibrary } from '../_shared/libraries/02_proof_signal_library.ts'
+import { skillLibrary } from '../_shared/libraries/01_skill_library.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

@@ -3,10 +3,10 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
 
-import { roleLibrary } from './shared/libraries/00_role_library.ts'
-import { roleSkillMapping } from './shared/libraries/04_role_skill_mapping.ts'
-import { fitScoringLogic } from './shared/libraries/05_fit_scoring_logic.ts'
-import { tierLogic } from './shared/libraries/06_tier_logic.ts'
+import { roleLibrary } from '../_shared/libraries/00_role_library.ts'
+import { roleSkillMapping } from '../_shared/libraries/04_role_skill_mapping.ts'
+import { fitScoringLogic } from '../_shared/libraries/05_fit_scoring_logic.ts'
+import { tierLogic } from '../_shared/libraries/06_tier_logic.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',

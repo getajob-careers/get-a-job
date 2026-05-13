@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
-import { roleLibrary } from './shared/libraries/00_role_library.ts'
+import { roleLibrary } from '../_shared/libraries/00_role_library.ts'
 
 // Deterministic role-skills lookup. Used by ChatInterface's
 // handleApplyRoadmapChanges as the first fallback when the AI agent
