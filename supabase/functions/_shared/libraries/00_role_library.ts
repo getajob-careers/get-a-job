@@ -6362,10 +6362,24 @@ export const roleLibrary = {
     {
       "id": "software_engineer",
       "standardized_title": "Software Engineer",
+      "alternate_titles": [
+        "Backend Engineer",
+        "Full-Stack Engineer",
+        "Software Developer",
+        "Backend Developer"
+      ],
       "role_family": "Engineering",
       "secondary_family": null,
       "seniority": "Mid",
-      "core_purpose": "Mid-level individual contributor responsible for designing, building, and maintaining production software systems. Expected to own features end-to-end — from design through deployment — and work independently across backend, frontend, or full-stack domains. Operates within a team but with increasing autonomy on technical decisions.",
+      "core_purpose": "Mid-level individual contributor responsible for designing, building, and maintaining production software systems. Owns features end-to-end — from design through deployment — and works independently across backend, frontend, or full-stack domains. Operates within a team but with increasing autonomy on technical decisions and the expectation of mentoring more junior engineers.",
+      "core_responsibilities": [
+        "Design and ship end-to-end features across backend services, APIs, and (often) frontend, owning the full lifecycle from spec to production deployment",
+        "Write production-quality code with tests, code review, and documentation as part of the definition of done",
+        "Debug and resolve production issues across the stack, including on-call rotations or incident response in many Israeli startups",
+        "Collaborate cross-functionally with product managers, designers, and engineering peers to scope features and make trade-offs on scope and architecture",
+        "Mentor junior engineers via code review, pairing, and design feedback — informal mentoring is a standard expectation at this level",
+        "Contribute to technical decisions on libraries, services, and patterns within their team's domain; raise architectural concerns up the chain when needed"
+      ],
       "required_skills": [
         "backend_development",
         "frontend_development",
@@ -6377,10 +6391,73 @@ export const roleLibrary = {
         "git_version_control",
         "cloud_fundamentals"
       ],
-      "preferred_skills": [],
+      "preferred_skills": [
+        "system_architecture",
+        "performance_optimization",
+        "cross_functional_collaboration",
+        "code_review",
+        "mentoring",
+        "ci_cd",
+        "containerization",
+        "monitoring_observability"
+      ],
+      "tools": [
+        "Python",
+        "Node.js",
+        "TypeScript",
+        "PostgreSQL",
+        "Redis",
+        "AWS",
+        "Docker",
+        "Git",
+        "Jira",
+        "Slack"
+      ],
+      "technical_depth": "High",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Execution",
+      "lifecycle_stage": [
+        "All"
+      ],
+      "typical_backgrounds": [
+        "computer_science",
+        "bootcamp_graduate",
+        "self_taught",
+        "unit_8200",
+        "junior_engineer_promotion"
+      ],
+      "years_experience_typical": "3-5",
+      "next_roles": [
+        "senior_software_engineer",
+        "tech_lead",
+        "staff_engineer"
+      ],
+      "similar_roles": [
+        "devops_engineer",
+        "sre_engineer",
+        "ai_engineer_mid",
+        "data_engineer",
+        "analytics_engineer"
+      ],
+      "not_to_confuse_with": [
+        "Junior Software Engineer",
+        "Tech Lead",
+        "Engineering Manager"
+      ],
+      "keywords": [
+        "individual contributor",
+        "production code",
+        "feature ownership",
+        "code review",
+        "on-call",
+        "microservices",
+        "full-stack"
+      ],
       "market_notes": {
-        "israel": "Core hiring target across Israeli startups and scale-ups. Typical requirements are 3-5 years of experience with strong backend skills. Python and Node.js/TypeScript dominate the stack in Tel Aviv. Companies like Venice, Oligo, Seal Security, and Simply actively hire at this level. Full-stack capability is increasingly expected even in 'backend' roles. Cybersecurity and SaaS companies form a large portion of the employer base. Microservices architecture experience is becoming a baseline expectation."
-      }
+        "israel": "Core hiring target across Israeli startups and scale-ups. Mid-level typically means 3-5 years of experience, with the lower end (2-4 years) common at Seed/Series A startups and the higher end (4-7 years) common at scale-ups and unicorns. Python and Node.js/TypeScript dominate the backend stack in Tel Aviv; Go and Rust are growing especially in infrastructure-heavy cyber and AI companies. Full-stack capability is increasingly expected even in nominally 'backend' roles, given the small team sizes typical of Israeli startups. Cybersecurity and SaaS form the largest portion of the employer base, with significant employment also at Wix, monday.com, JFrog, Fiverr, Lemonade, and the major Israeli-headquartered unicorns. Microservices and cloud-native architecture (AWS dominant, GCP secondary) are a baseline expectation. Unit 8200 and other elite IDF tech units provide a significant talent pipeline. Salary range typically ₪25,000-45,000/month base for mid-level depending on company stage and stack."
+      },
+      "_research_method": "web_search"
     },
     {
       "id": "senior_software_engineer",

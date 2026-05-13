@@ -108,6 +108,9 @@ ROLE_OPTIONAL_KNOWN = [
     "secondary_family",            # optional, same enum as role_family. null if no secondary.
     "years_experience_typical",    # e.g. "1-3", "5-8", "10+"
     "market_notes",                # { israel?: string, us?: string, ... } — locale-extensible
+    # role-research metadata (single underscore-prefixed field, stays in the canonical
+    # library so we can see at a glance which roles have been research-grounded):
+    "_research_method",            # "web_search" | "knowledge"
 ]
 
 # Primary vs secondary family criteria (encoded for downstream skills + audits):

@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-13T11:52:30Z",
+  "generated_at": "2026-05-13T13:14:46Z",
   "canonical_dir": "supabase/functions/_shared/libraries",
   "summary": {
-    "errors": 60,
-    "warnings": 118
+    "errors": 59,
+    "warnings": 119
   },
   "errors": [
     {
@@ -11,12 +11,6 @@
       "message": "role 'junior_software_engineer' missing required field 'core_responsibilities'",
       "role_id": "junior_software_engineer",
       "index": 82
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'software_engineer' missing required field 'core_responsibilities'",
-      "role_id": "software_engineer",
-      "index": 83
     },
     {
       "check": "role.required_field",
@@ -633,6 +627,11 @@
       "check": "role.next_roles_xref",
       "message": "role 'head_of_hr_people' next_roles references unknown role_id 'board_member'",
       "role_id": "head_of_hr_people"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'software_engineer' preferred_skills references unknown skill_id 'code_review'",
+      "role_id": "software_engineer"
     },
     {
       "check": "mapping.unknown_field",

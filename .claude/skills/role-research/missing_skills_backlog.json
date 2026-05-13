@@ -1,0 +1,5 @@
+{
+  "description": "Skills referenced during role-research that don't exist in the canonical skill library yet. Read by the skill-research follow-up as its priority list. Entries are append-only during role-research; consolidation + actual skill creation happens in skill-research.",
+  "generated_at": null,
+  "missing_skills": []
+}
