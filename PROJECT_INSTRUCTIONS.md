@@ -74,7 +74,7 @@ Pilot is **CONFIRMED** — Reichman professor + Dr. Miller personally vouching. 
 - `gpt-4o` for generation surfaces (CV, posts, comments, outreach, career analysis)
 - `response_format: json_object` for any structured output
 
-**Domain libraries** (Israeli market context, ~170 roles + skills + proof signals + role-skill mappings): `supabase/functions/<slug>/shared/libraries/00_role_library.ts` etc. Each function copies the libraries it needs — keep in sync if editing. Edits require explicit cross-review by the other dev.
+**Domain libraries** (Israeli market context, ~170 roles + 180 skills + proof signals + role-skill mappings): consolidated under `supabase/functions/_shared/libraries/` (Wk 5, pre-cleanup). Each edge function imports its specific subset via `../_shared/libraries/00_role_library.ts` etc. Six functions read from this single source: `generate-career-analysis`, `generate-job-suggestions`, `generate-tasks`, `extract-proof-signals`, `generate-tailored-cv`, `lookup-role-skills`. Edits require explicit cross-review by the other dev. **First-run validator (`.claude/skills/schema-validator/`) surfaced ~1.5k errors** — the role library is currently mid-cleanup with 3 coexisting schemas (Schema A: ~72 roles with `id`/`standardized_title`; Schema B/C: ~98 roles with `role_id`/`title`/`sector`). Cleanup PR is the next Wk 5 task before adding new roles.
 
 **Tier scoring:** `src/lib/scoreApplication.js` (`tierFromScores`) mirrors `assignTierWithGoal` in `generate-career-analysis`. LLM-derived alignment uses tighter thresholds than the deterministic path.
 

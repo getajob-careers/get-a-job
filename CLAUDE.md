@@ -7,7 +7,7 @@ This is a React + Vite + Supabase career operating system for business students 
 - **Frontend:** React 18 + Vite + Tailwind + shadcn/ui + TanStack Query. Pages live in `src/pages/` and auto-register via `src/pages.config.js` (do not edit `pages.config.js` manually — files are auto-registered).
 - **Backend:** Supabase (Postgres + Auth + Edge Functions in Deno + Storage + RLS). Project ref `ilmqmodklutztuybsvwd`.
 - **Edge functions:** in `supabase/functions/<slug>/index.ts`. Deploy via `supabase functions deploy <slug> --project-ref ilmqmodklutztuybsvwd`.
-- **Domain libraries** (Israeli market context, role/skill graphs): `supabase/functions/<slug>/shared/libraries/00_role_library.ts` (170 roles), `01_skill_library.ts`, plus proof signals + role-skill mappings. Each function copies the libraries it needs — keep them in sync if editing.
+- **Domain libraries** (Israeli market context, role/skill graphs): `supabase/functions/_shared/libraries/00_role_library.ts` (170 roles), `01_skill_library.ts` (180 skills), `04_role_skill_mapping.ts`, plus 13 logic files. Consolidated to `_shared/libraries/` in Wk 5; each edge function imports its specific subset via `../_shared/libraries/X.ts`. Validate with `python3 .claude/skills/schema-validator/validate.py` after edits.
 - **Tier scoring:** `src/lib/scoreApplication.js` (`tierFromScores`) mirrors the goal-aware logic in `generate-career-analysis` (`assignTierWithGoal`). LLM-derived alignment uses tighter thresholds than the deterministic path.
 
 ## Conventions
@@ -24,7 +24,7 @@ This is a React + Vite + Supabase career operating system for business students 
 - **PRs:** open against `main`, fill out the template at `.github/pull_request_template.md`, get one approval from the other dev, squash-merge to keep `main` linear.
 - **Conflicts:** the dev who opens the PR resolves conflicts before merge.
 - **Picking up someone else's branch:** run `npm test && npm run build` before any commit. Don't trust that "it worked on their machine."
-- **Domain libraries** (`supabase/functions/*/shared/libraries/*.ts`): edits require explicit cross-review by the other dev. These libraries drive multiple edge functions and silent divergence is a real risk.
+- **Domain libraries** (`supabase/functions/_shared/libraries/*.ts`): edits require explicit cross-review by the other dev. These libraries drive 6 edge functions; the schema-validator skill at `.claude/skills/schema-validator/` catches structural drift + cross-reference breaks before they ship.
 - **`ROADMAP.md`:** keep updated. Move items between Done / In Progress / Up Next as work moves. If it's not in the roadmap, it's not happening.
 
 ## Lessons (reflection loop)

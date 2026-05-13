@@ -4,11 +4,11 @@ import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
 
 // --- Load JSON Libraries ---
-import { roleLibrary } from "./shared/libraries/00_role_library.ts";
-import { skillLibrary } from "./shared/libraries/01_skill_library.ts";
-import { proofSignalLibrary } from "./shared/libraries/02_proof_signal_library.ts";
-import { roleSkillMapping } from "./shared/libraries/04_role_skill_mapping.ts";
-import { skillTransferMap } from "./shared/libraries/15_skill_transfer_map.ts";
+import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
+import { skillLibrary } from "../_shared/libraries/01_skill_library.ts";
+import { proofSignalLibrary } from "../_shared/libraries/02_proof_signal_library.ts";
+import { roleSkillMapping } from "../_shared/libraries/04_role_skill_mapping.ts";
+import { skillTransferMap } from "../_shared/libraries/15_skill_transfer_map.ts";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
