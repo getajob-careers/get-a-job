@@ -507,12 +507,18 @@ export default function ProfileTab() {
           <Linkedin className="w-8 h-8 text-[#A3A3A3] mx-auto mb-3" />
           <p className="text-sm text-[#525252] mb-1">
             Click <strong>Generate</strong> to create LinkedIn content from your profile + Story Bank
-            {baseline ? <> (and improve on your imported baseline)</> : null}.
+            {baseline ? <>, comparing against your imported LinkedIn baseline</> : null}.
           </p>
           <p className="text-xs text-[#A3A3A3]">
             6 sections: Headline, About, Experience descriptions, Volunteering descriptions, Skills priority,
             and Honors & Awards descriptions.
           </p>
+          {!baseline && (
+            <p className="text-xs text-[#525252] mt-4 max-w-md mx-auto bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg p-3 text-left">
+              <Sparkles className="inline w-3.5 h-3.5 text-[#0A66C2] mr-1.5 -mt-0.5" />
+              <strong>Tip:</strong> Upload your LinkedIn archive above first to unlock <strong>compare-and-improve mode</strong> — the AI rewrites your actual current profile rather than writing from scratch.
+            </p>
+          )}
           <p className="text-[11px] text-[#A3A3A3] mt-3 italic">
             Generation takes ~20–30s. Story Bank entries supply real metrics; nothing is fabricated.
           </p>
@@ -531,6 +537,21 @@ export default function ProfileTab() {
 
       {content && (
         <>
+          {baseline ? (
+            <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-emerald-50 border border-emerald-100 rounded-lg">
+              <Sparkles className="w-3.5 h-3.5 text-emerald-700 flex-shrink-0" />
+              <p className="text-xs text-emerald-900">
+                <strong>Compare-and-improve mode</strong> — generated using your imported LinkedIn baseline as reference.
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg">
+              <Sparkles className="w-3.5 h-3.5 text-[#525252] flex-shrink-0" />
+              <p className="text-xs text-[#525252]">
+                Generated from your profile + Story Bank. <strong>Upload your LinkedIn archive above</strong> to enable compare-and-improve mode.
+              </p>
+            </div>
+          )}
           <p className="text-[11px] text-[#A3A3A3] mb-4">
             Total: ~{totalChars.toLocaleString()} chars across all sections. Copy each section individually
             and paste into LinkedIn's edit fields.
