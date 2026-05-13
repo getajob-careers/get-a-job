@@ -1,0 +1,117 @@
+{
+  "description": "Items surfaced during role-research that should be addressed by follow-up curation. Skills go to skill-research; roles go to a future role-additions pass. Append-only during role-research batches; consolidation happens later.",
+  "generated_at": "2026-05-13",
+  "missing_skills": [
+    {
+      "proposed_id": "code_review",
+      "proposed_name": "Code Review",
+      "proposed_category": "technical_skill",
+      "note": "Currently mapped to code_review_practices in roles. Possibly merge or alias.",
+      "surfaced_during": "Batch 1 (engineering roles)"
+    },
+    {
+      "proposed_id": "okr_framework",
+      "proposed_name": "OKR Framework",
+      "proposed_category": "operational_skill",
+      "note": "Currently only exists as bizops_okr_framework; needed for engineering management context.",
+      "surfaced_during": "Batch 1 (engineering management)"
+    },
+    {
+      "proposed_id": "cost_optimization_finops",
+      "proposed_name": "Cost Optimization & FinOps",
+      "proposed_category": "operational_skill",
+      "note": "Cloud cost optimization for DevOps / SRE / Platform engineers.",
+      "surfaced_during": "Batch 1 (devops_engineer, sre_engineer)"
+    },
+    {
+      "proposed_id": "security_engineering",
+      "proposed_name": "Security Engineering",
+      "proposed_category": "technical_skill",
+      "note": "Application + infrastructure security engineering practices.",
+      "surfaced_during": "Batch 1 (devops_engineer, sre_engineer)"
+    },
+    {
+      "proposed_id": "chaos_engineering",
+      "proposed_name": "Chaos Engineering",
+      "proposed_category": "operational_skill",
+      "note": "Resilience testing practices for SRE / production engineering.",
+      "surfaced_during": "Batch 1 (sre_engineer)"
+    },
+    {
+      "proposed_id": "roadmapping_prioritization",
+      "proposed_name": "Roadmapping & Prioritization",
+      "proposed_category": "product_skill",
+      "note": "Pre-existing cross-ref from product_manager + technical_product_manager.",
+      "surfaced_during": "Pre-existing"
+    },
+    {
+      "proposed_id": "customer_research",
+      "proposed_name": "Customer Research",
+      "proposed_category": "product_skill",
+      "note": "Pre-existing cross-ref from product_manager.",
+      "surfaced_during": "Pre-existing"
+    },
+    {
+      "proposed_id": "sql_analysis",
+      "proposed_name": "SQL Analysis",
+      "proposed_category": "analytical_skill",
+      "note": "Pre-existing cross-ref from product_analyst.",
+      "surfaced_during": "Pre-existing"
+    },
+    {
+      "proposed_id": "product_metrics_analysis",
+      "proposed_name": "Product Metrics Analysis",
+      "proposed_category": "analytical_skill",
+      "note": "Pre-existing cross-ref from product_analyst.",
+      "surfaced_during": "Pre-existing"
+    },
+    {
+      "proposed_id": "ab_testing_experimentation",
+      "proposed_name": "A/B Testing & Experimentation",
+      "proposed_category": "analytical_skill",
+      "note": "Pre-existing cross-ref from product_analyst.",
+      "surfaced_during": "Pre-existing"
+    }
+  ],
+  "missing_role_ids": {
+    "description": "Role IDs referenced in next_roles / similar_roles during research that don't exist in the library yet. Future role-additions pass should evaluate which are real gaps vs which were aspirational. Most are leadership / executive titles + senior tier roles.",
+    "items": [
+      {"proposed_id": "ceo", "family": "Leadership", "surfaced_during": "Batch 1"},
+      {"proposed_id": "cto", "family": "Leadership", "surfaced_during": "Batch 1"},
+      {"proposed_id": "cfo", "family": "Leadership", "surfaced_during": "Batch 1"},
+      {"proposed_id": "cpo", "family": "Leadership", "surfaced_during": "Batch 1"},
+      {"proposed_id": "cro", "family": "Leadership", "surfaced_during": "Batch 1"},
+      {"proposed_id": "chief_product_officer", "family": "Leadership", "surfaced_during": "Batch 1"},
+      {"proposed_id": "chief_marketing_officer", "family": "Leadership", "surfaced_during": "Batch 1"},
+      {"proposed_id": "chief_revenue_officer", "family": "Leadership", "surfaced_during": "Batch 1"},
+      {"proposed_id": "chief_customer_officer", "family": "Leadership", "surfaced_during": "Batch 1"},
+      {"proposed_id": "chief_data_officer", "family": "Leadership", "surfaced_during": "Batch 1"},
+      {"proposed_id": "vp_product", "family": "Product", "surfaced_during": "Batch 1"},
+      {"proposed_id": "vp_sales", "family": "Sales", "surfaced_during": "Batch 1"},
+      {"proposed_id": "vp_data", "family": "Data", "surfaced_during": "Batch 1"},
+      {"proposed_id": "vp_people", "family": "HR_People", "surfaced_during": "Batch 1"},
+      {"proposed_id": "head_of_finance", "family": "Finance", "surfaced_during": "Batch 1"},
+      {"proposed_id": "principal_engineer", "family": "Engineering", "surfaced_during": "Batch 1"},
+      {"proposed_id": "distinguished_engineer", "family": "Engineering", "surfaced_during": "Batch 1"},
+      {"proposed_id": "senior_qa_engineer", "family": "Engineering", "surfaced_during": "Batch 1"},
+      {"proposed_id": "sdet", "family": "Engineering", "surfaced_during": "Batch 1"},
+      {"proposed_id": "qa_manager", "family": "Engineering", "surfaced_during": "Batch 1"},
+      {"proposed_id": "platform_engineer_senior", "family": "Engineering", "surfaced_during": "Batch 1"},
+      {"proposed_id": "platform_engineering_lead", "family": "Engineering", "surfaced_during": "Batch 1"},
+      {"proposed_id": "devops_team_lead", "family": "Engineering", "surfaced_during": "Batch 1"},
+      {"proposed_id": "senior_sre", "family": "Engineering", "surfaced_during": "Batch 1"},
+      {"proposed_id": "sre_team_lead", "family": "Engineering", "surfaced_during": "Batch 1"},
+      {"proposed_id": "principal_solutions_engineer", "family": "Solutions_Engineering", "surfaced_during": "Batch 1"},
+      {"proposed_id": "senior_data_engineer", "family": "Data", "surfaced_during": "Batch 1"},
+      {"proposed_id": "senior_analytics_engineer", "family": "Data", "surfaced_during": "Batch 1"},
+      {"proposed_id": "senior_data_scientist", "family": "Data", "surfaced_during": "Batch 1"},
+      {"proposed_id": "ml_lead", "family": "AI_ML", "surfaced_during": "Batch 1"},
+      {"proposed_id": "director_revenue_operations", "family": "RevOps_BizOps", "surfaced_during": "Batch 1"},
+      {"proposed_id": "vp_sales_operations", "family": "RevOps_BizOps", "surfaced_during": "Batch 1"},
+      {"proposed_id": "director_partnerships", "family": "BD_Partnerships", "surfaced_during": "Batch 1"},
+      {"proposed_id": "director_product_operations", "family": "Operations", "surfaced_during": "Batch 1"},
+      {"proposed_id": "finance_business_partner", "family": "Finance", "surfaced_during": "Batch 1"},
+      {"proposed_id": "board_member", "family": "Leadership", "surfaced_during": "Batch 1"}
+    ]
+  }
+}

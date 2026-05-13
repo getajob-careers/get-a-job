@@ -1,113 +1,11 @@
 {
-  "generated_at": "2026-05-13T11:52:30Z",
+  "generated_at": "2026-05-13T13:34:33Z",
   "canonical_dir": "supabase/functions/_shared/libraries",
   "summary": {
-    "errors": 60,
-    "warnings": 118
+    "errors": 6,
+    "warnings": 140
   },
   "errors": [
-    {
-      "check": "role.required_field",
-      "message": "role 'junior_software_engineer' missing required field 'core_responsibilities'",
-      "role_id": "junior_software_engineer",
-      "index": 82
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'software_engineer' missing required field 'core_responsibilities'",
-      "role_id": "software_engineer",
-      "index": 83
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'senior_software_engineer' missing required field 'core_responsibilities'",
-      "role_id": "senior_software_engineer",
-      "index": 84
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'staff_engineer' missing required field 'core_responsibilities'",
-      "role_id": "staff_engineer",
-      "index": 85
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'tech_lead' missing required field 'core_responsibilities'",
-      "role_id": "tech_lead",
-      "index": 86
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'engineering_manager' missing required field 'core_responsibilities'",
-      "role_id": "engineering_manager",
-      "index": 87
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'senior_engineering_manager' missing required field 'core_responsibilities'",
-      "role_id": "senior_engineering_manager",
-      "index": 88
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'vp_engineering' missing required field 'core_responsibilities'",
-      "role_id": "vp_engineering",
-      "index": 89
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'qa_engineer' missing required field 'core_responsibilities'",
-      "role_id": "qa_engineer",
-      "index": 90
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'devops_engineer' missing required field 'core_responsibilities'",
-      "role_id": "devops_engineer",
-      "index": 91
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'sre_engineer' missing required field 'core_responsibilities'",
-      "role_id": "sre_engineer",
-      "index": 92
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'engineering_group_manager' missing required field 'core_responsibilities'",
-      "role_id": "engineering_group_manager",
-      "index": 93
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'solutions_engineer_junior' missing required field 'core_responsibilities'",
-      "role_id": "solutions_engineer_junior",
-      "index": 124
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'solutions_engineer' missing required field 'core_responsibilities'",
-      "role_id": "solutions_engineer",
-      "index": 125
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'senior_solutions_engineer' missing required field 'core_responsibilities'",
-      "role_id": "senior_solutions_engineer",
-      "index": 126
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'solutions_engineering_manager' missing required field 'core_responsibilities'",
-      "role_id": "solutions_engineering_manager",
-      "index": 127
-    },
-    {
-      "check": "role.required_field",
-      "message": "role 'head_of_solutions_engineering' missing required field 'core_responsibilities'",
-      "role_id": "head_of_solutions_engineering",
-      "index": 128
-    },
     {
       "check": "role.required_skills_xref",
       "message": "role 'product_manager' required_skills references unknown skill_id 'roadmapping_prioritization'",
@@ -137,191 +35,6 @@
       "check": "role.required_skills_xref",
       "message": "role 'product_analyst' required_skills references unknown skill_id 'ab_testing_experimentation'",
       "role_id": "product_analyst"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineer_junior' required_skills references unknown skill_id 'Technical troubleshooting and debugging'",
-      "role_id": "solutions_engineer_junior"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineer_junior' required_skills references unknown skill_id 'API integrations and technical documentation'",
-      "role_id": "solutions_engineer_junior"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineer_junior' required_skills references unknown skill_id 'Customer-facing communication and relationship management'",
-      "role_id": "solutions_engineer_junior"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineer_junior' required_skills references unknown skill_id 'Web technologies (JavaScript, HTML, CSS) or scripting languages'",
-      "role_id": "solutions_engineer_junior"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineer_junior' required_skills references unknown skill_id 'SQL and database querying'",
-      "role_id": "solutions_engineer_junior"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineer_junior' required_skills references unknown skill_id 'Problem-solving and root cause analysis'",
-      "role_id": "solutions_engineer_junior"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineer' required_skills references unknown skill_id 'Technical discovery and consultative selling'",
-      "role_id": "solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineer' required_skills references unknown skill_id 'Solution design and architecture'",
-      "role_id": "solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineer' required_skills references unknown skill_id 'Product demonstration and presentation skills'",
-      "role_id": "solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineer' required_skills references unknown skill_id 'API and integration expertise'",
-      "role_id": "solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineer' required_skills references unknown skill_id 'Customer relationship management'",
-      "role_id": "solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineer' required_skills references unknown skill_id 'Project management and POC execution'",
-      "role_id": "solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineer' required_skills references unknown skill_id 'Written and verbal business communication'",
-      "role_id": "solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'senior_solutions_engineer' required_skills references unknown skill_id 'Enterprise solution architecture and design'",
-      "role_id": "senior_solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'senior_solutions_engineer' required_skills references unknown skill_id 'Executive-level presentation and communication'",
-      "role_id": "senior_solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'senior_solutions_engineer' required_skills references unknown skill_id 'Deep domain expertise in a technical vertical'",
-      "role_id": "senior_solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'senior_solutions_engineer' required_skills references unknown skill_id 'Competitive analysis and positioning'",
-      "role_id": "senior_solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'senior_solutions_engineer' required_skills references unknown skill_id 'Complex sales cycle management'",
-      "role_id": "senior_solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'senior_solutions_engineer' required_skills references unknown skill_id 'Mentoring and knowledge transfer'",
-      "role_id": "senior_solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'senior_solutions_engineer' required_skills references unknown skill_id 'Technical content creation (reference architectures, whitepapers)'",
-      "role_id": "senior_solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'senior_solutions_engineer' required_skills references unknown skill_id 'Business value and ROI articulation'",
-      "role_id": "senior_solutions_engineer"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineering_manager' required_skills references unknown skill_id 'People management and team leadership'",
-      "role_id": "solutions_engineering_manager"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineering_manager' required_skills references unknown skill_id 'Process design and operational excellence'",
-      "role_id": "solutions_engineering_manager"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineering_manager' required_skills references unknown skill_id 'Technical depth sufficient to guide architectural decisions'",
-      "role_id": "solutions_engineering_manager"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineering_manager' required_skills references unknown skill_id 'Hiring, coaching, and performance management'",
-      "role_id": "solutions_engineering_manager"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineering_manager' required_skills references unknown skill_id 'KPI definition and data-driven decision making'",
-      "role_id": "solutions_engineering_manager"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineering_manager' required_skills references unknown skill_id 'Customer escalation management'",
-      "role_id": "solutions_engineering_manager"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'solutions_engineering_manager' required_skills references unknown skill_id 'Strategic thinking and resource planning'",
-      "role_id": "solutions_engineering_manager"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'head_of_solutions_engineering' required_skills references unknown skill_id 'Organizational leadership and team scaling'",
-      "role_id": "head_of_solutions_engineering"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'head_of_solutions_engineering' required_skills references unknown skill_id 'Strategic planning and executive communication'",
-      "role_id": "head_of_solutions_engineering"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'head_of_solutions_engineering' required_skills references unknown skill_id 'Revenue alignment and commercial acumen'",
-      "role_id": "head_of_solutions_engineering"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'head_of_solutions_engineering' required_skills references unknown skill_id 'Delivery methodology and process excellence at scale'",
-      "role_id": "head_of_solutions_engineering"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'head_of_solutions_engineering' required_skills references unknown skill_id 'Partner and SI ecosystem management'",
-      "role_id": "head_of_solutions_engineering"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'head_of_solutions_engineering' required_skills references unknown skill_id 'Cross-geo team coordination'",
-      "role_id": "head_of_solutions_engineering"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'head_of_solutions_engineering' required_skills references unknown skill_id 'Executive customer relationship management'",
-      "role_id": "head_of_solutions_engineering"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'head_of_solutions_engineering' required_skills references unknown skill_id 'Budget and resource management'",
-      "role_id": "head_of_solutions_engineering"
-    },
-    {
-      "check": "role.required_skills_xref",
-      "message": "role 'head_of_solutions_engineering' required_skills references unknown skill_id 'Technical credibility across multiple domains'",
-      "role_id": "head_of_solutions_engineering"
     }
   ],
   "warnings": [
@@ -633,6 +346,116 @@
       "check": "role.next_roles_xref",
       "message": "role 'head_of_hr_people' next_roles references unknown role_id 'board_member'",
       "role_id": "head_of_hr_people"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'staff_engineer' next_roles references unknown role_id 'principal_engineer'",
+      "role_id": "staff_engineer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'staff_engineer' next_roles references unknown role_id 'distinguished_engineer'",
+      "role_id": "staff_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'engineering_manager' preferred_skills references unknown skill_id 'okr_framework'",
+      "role_id": "engineering_manager"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'vp_engineering' next_roles references unknown role_id 'cto'",
+      "role_id": "vp_engineering"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'vp_engineering' next_roles references unknown role_id 'ceo'",
+      "role_id": "vp_engineering"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'qa_engineer' next_roles references unknown role_id 'senior_qa_engineer'",
+      "role_id": "qa_engineer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'qa_engineer' next_roles references unknown role_id 'sdet'",
+      "role_id": "qa_engineer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'qa_engineer' next_roles references unknown role_id 'qa_manager'",
+      "role_id": "qa_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'devops_engineer' preferred_skills references unknown skill_id 'security_engineering'",
+      "role_id": "devops_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'devops_engineer' preferred_skills references unknown skill_id 'cost_optimization_finops'",
+      "role_id": "devops_engineer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'devops_engineer' next_roles references unknown role_id 'platform_engineer_senior'",
+      "role_id": "devops_engineer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'devops_engineer' next_roles references unknown role_id 'devops_team_lead'",
+      "role_id": "devops_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'sre_engineer' preferred_skills references unknown skill_id 'chaos_engineering'",
+      "role_id": "sre_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'sre_engineer' preferred_skills references unknown skill_id 'cost_optimization_finops'",
+      "role_id": "sre_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'sre_engineer' preferred_skills references unknown skill_id 'security_engineering'",
+      "role_id": "sre_engineer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'sre_engineer' next_roles references unknown role_id 'senior_sre'",
+      "role_id": "sre_engineer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'sre_engineer' next_roles references unknown role_id 'sre_team_lead'",
+      "role_id": "sre_engineer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'sre_engineer' next_roles references unknown role_id 'platform_engineering_lead'",
+      "role_id": "sre_engineer"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'senior_solutions_engineer' next_roles references unknown role_id 'principal_solutions_engineer'",
+      "role_id": "senior_solutions_engineer"
+    },
+    {
+      "check": "role.preferred_skills_xref",
+      "message": "role 'solutions_engineering_manager' preferred_skills references unknown skill_id 'okr_framework'",
+      "role_id": "solutions_engineering_manager"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'head_of_solutions_engineering' next_roles references unknown role_id 'cro'",
+      "role_id": "head_of_solutions_engineering"
+    },
+    {
+      "check": "role.next_roles_xref",
+      "message": "role 'head_of_solutions_engineering' next_roles references unknown role_id 'chief_customer_officer'",
+      "role_id": "head_of_solutions_engineering"
     },
     {
       "check": "mapping.unknown_field",
