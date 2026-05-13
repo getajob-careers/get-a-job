@@ -40,10 +40,9 @@ export const roleLibrary = {
       "id": "customer_support_representative",
       "standardized_title": "Customer Support Representative",
       "alternate_titles": [
+        "CS Representative",
         "Customer Service Representative",
-        "CSR",
-        "Customer Service Associate",
-        "Customer Care Representative"
+        "Support Rep"
       ],
       "role_family": "Support",
       "secondary_family": null,
@@ -91,8 +90,8 @@ export const roleLibrary = {
         "customer_success_associate"
       ],
       "similar_roles": [
-        "Customer Support Specialist",
-        "Customer Experience Representative"
+        "customer_support_specialist",
+        "customer_experience_specialist"
       ],
       "not_to_confuse_with": [
         "Customer Success Manager",
@@ -106,15 +105,20 @@ export const roleLibrary = {
         "customer satisfaction",
         "escalation",
         "service"
-      ]
+      ],
+      "years_experience_typical": "0-2",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent graduates, bootcamp grads, IDF veterans starting in commercial-side tech; strong English a hard requirement for international product support. Stack patterns: Zendesk / Intercom / Salesforce Service Cloud + internal product wiki + Slack for escalations + knowledge-base tools. Hiring stage: common entry-level role across consumer-facing scale-ups (Lemonade, Wix, Fiverr, Lightricks, eToro) and B2B SaaS with broad customer bases (monday.com, HiBob, AppsFlyer). Often a stepping stone into customer_support_specialist, customer_onboarding_specialist, or commercial roles."
+      }
     },
     {
       "id": "customer_support_specialist",
       "standardized_title": "Customer Support Specialist",
       "alternate_titles": [
-        "Client Service Representative",
-        "B2B Support Specialist",
-        "SaaS Support Specialist"
+        "Senior Customer Support Specialist",
+        "Tier 2 Support Specialist",
+        "Customer Support Lead"
       ],
       "role_family": "Support",
       "secondary_family": null,
@@ -161,8 +165,9 @@ export const roleLibrary = {
         "customer_onboarding_specialist"
       ],
       "similar_roles": [
-        "Customer Support Representative",
-        "Technical Support Specialist"
+        "technical_support_specialist",
+        "customer_support_representative",
+        "customer_success_specialist"
       ],
       "not_to_confuse_with": [
         "Customer Success Manager",
@@ -175,18 +180,23 @@ export const roleLibrary = {
         "customer issues",
         "b2b support",
         "saas support"
-      ]
+      ],
+      "years_experience_typical": "1-4",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: support rep promotions, often the start of a deeper specialization path (technical support, CS, or product). Stack patterns: Zendesk / Intercom + product knowledge base + Slack escalation + sometimes basic SQL for troubleshooting. Hiring stage: ubiquitous mid-level support role at scale-ups and unicorns. Heavy at monday.com, Wix, Fiverr, JFrog, HiBob, Lemonade, AppsFlyer, Lightricks. Career path forks to technical_support_engineer (more technical) or customer_success_specialist (more customer-relationship)."
+      }
     },
     {
       "id": "technical_support_engineer",
       "standardized_title": "Technical Support Engineer",
       "alternate_titles": [
-        "Support Engineer",
-        "Technical Support Specialist",
-        "Customer Support Engineer"
+        "TSE",
+        "Senior Technical Support Engineer",
+        "Tier 3 Support Engineer"
       ],
       "role_family": "Support",
-      "secondary_family": null,
+      "secondary_family": "Engineering",
       "seniority": "Mid",
       "core_purpose": "Resolve complex technical issues and act as the bridge between customers and engineering.",
       "core_responsibilities": [
@@ -233,8 +243,9 @@ export const roleLibrary = {
         "sales_engineer"
       ],
       "similar_roles": [
-        "Technical Support Specialist",
-        "Support Engineer"
+        "senior_support_engineer",
+        "solutions_engineer",
+        "technical_account_manager"
       ],
       "not_to_confuse_with": [
         "Customer Success Manager",
@@ -249,18 +260,23 @@ export const roleLibrary = {
         "technical issues",
         "troubleshooting",
         "engineering escalation"
-      ]
+      ],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: technical support specialist promotion, junior SWE pivot to customer-facing, IDF technical units. Stack patterns: deep product debugging tools + API testing + reading product code + database querying + log analysis (Datadog / Sentry / Coralogix); customer-facing technical communication. Hiring stage: critical at technical / infrastructure SaaS — JFrog, Cloudinary, Coralogix, Logz.io, Snyk, Wiz, Aqua Security, AppsFlyer, monday.com. Often manages the most complex production-affecting customer issues; close partnership with engineering."
+      }
     },
     {
       "id": "senior_support_engineer",
       "standardized_title": "Senior Support Engineer",
       "alternate_titles": [
-        "Tier 2 Support Engineer",
-        "Tier 3 Support Engineer",
-        "Senior Technical Support Engineer"
+        "Senior Technical Support Engineer",
+        "Lead Support Engineer",
+        "Principal TSE"
       ],
       "role_family": "Support",
-      "secondary_family": null,
+      "secondary_family": "Engineering",
       "seniority": "Senior",
       "core_purpose": "Own complex escalations, mentor others, and resolve high-impact technical issues.",
       "core_responsibilities": [
@@ -303,7 +319,9 @@ export const roleLibrary = {
         "sales_engineer"
       ],
       "similar_roles": [
-        "Technical Support Engineer"
+        "technical_support_engineer",
+        "solutions_engineer",
+        "technical_account_manager"
       ],
       "not_to_confuse_with": [
         "VP Customer Success",
@@ -316,15 +334,19 @@ export const roleLibrary = {
         "incident response",
         "complex issues",
         "mentoring"
-      ]
+      ],
+      "years_experience_typical": "5-9",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: technical support engineer promotion, senior SWE pivot to customer-facing, sometimes external senior hires from US-based technical support orgs. Stack patterns: deepest product knowledge + ability to read and contribute to product code + escalation management + cross-team coordination. Hiring stage: typically at scale-ups and unicorns with technically complex products — JFrog, Coralogix, Wiz, Aqua Security, Snyk, Cellebrite, monday.com, AppsFlyer. Often paired with major enterprise customers as their primary technical escalation contact."
+      }
     },
     {
       "id": "customer_onboarding_specialist",
       "standardized_title": "Customer Onboarding Specialist",
       "alternate_titles": [
-        "Onboarding Specialist",
-        "Customer Onboarding Manager",
-        "Onboarding Associate"
+        "Onboarding Manager",
+        "Junior Implementation Specialist"
       ],
       "role_family": "Onboarding_Implementation",
       "secondary_family": null,
@@ -372,8 +394,9 @@ export const roleLibrary = {
         "customer_success_manager"
       ],
       "similar_roles": [
-        "Implementation Specialist",
-        "Customer Success Associate"
+        "implementation_specialist",
+        "customer_success_specialist",
+        "customer_support_specialist"
       ],
       "not_to_confuse_with": [
         "HR Onboarding Specialist"
@@ -385,18 +408,22 @@ export const roleLibrary = {
         "training",
         "time to value",
         "early adoption"
-      ]
+      ],
+      "years_experience_typical": "1-3",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: customer support promotions, recent graduates with strong organizational skills, hospitality-to-tech pivots. Stack patterns: Gainsight / Vitally + Salesforce + Notion / Confluence for onboarding playbooks + Asana / Monday for project tracking + Loom for async training. Hiring stage: common at B2B SaaS scale-ups with structured customer onboarding — monday.com, HiBob, JFrog, Gong, AppsFlyer, Wix (Studio segment), Forter, Tipalti. Often a feeder to customer_success_specialist or implementation_specialist."
+      }
     },
     {
       "id": "customer_success_associate",
       "standardized_title": "Customer Success Associate",
       "alternate_titles": [
-        "Customer Success Specialist",
-        "Junior Customer Success Manager",
-        "Client Success Associate"
+        "CS Associate",
+        "Junior Customer Success Manager"
       ],
       "role_family": "Onboarding_Implementation",
-      "secondary_family": null,
+      "secondary_family": "Relationship_Growth",
       "seniority": "Entry",
       "core_purpose": "Support customer adoption, satisfaction, and retention in an entry-level customer success capacity.",
       "core_responsibilities": [
@@ -441,8 +468,8 @@ export const roleLibrary = {
         "account_manager"
       ],
       "similar_roles": [
-        "Customer Onboarding Specialist",
-        "Customer Success Manager"
+        "customer_success_specialist",
+        "customer_onboarding_specialist"
       ],
       "not_to_confuse_with": [
         "Customer Support Representative"
@@ -454,15 +481,20 @@ export const roleLibrary = {
         "check-ins",
         "customer journey",
         "renewals"
-      ]
+      ],
+      "years_experience_typical": "0-2",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent graduates, customer support promotions, hospitality / retail-to-tech transitions; strong English (often near-native). Stack patterns: Zendesk / Intercom + Gainsight + Salesforce + Notion; lighter tooling than full CSM. Hiring stage: less common as a distinct title in Israeli tech — typically merged with customer_success_specialist. Where distinct, found at consumer-facing scale-ups with onboarding-heavy products (Lemonade, Wix, Fiverr, eToro)."
+      }
     },
     {
       "id": "implementation_specialist",
       "standardized_title": "Implementation Specialist",
       "alternate_titles": [
+        "Senior Implementation Specialist",
         "Implementation Consultant",
-        "Customer Delivery Specialist",
-        "Deployment Specialist"
+        "Onboarding Engineer"
       ],
       "role_family": "Onboarding_Implementation",
       "secondary_family": null,
@@ -510,8 +542,9 @@ export const roleLibrary = {
         "customer_success_manager"
       ],
       "similar_roles": [
-        "Customer Onboarding Specialist",
-        "Implementation Manager"
+        "implementation_manager",
+        "customer_onboarding_specialist",
+        "solutions_engineer"
       ],
       "not_to_confuse_with": [
         "Project Manager",
@@ -524,15 +557,20 @@ export const roleLibrary = {
         "requirements",
         "configuration",
         "delivery"
-      ]
+      ],
+      "years_experience_typical": "2-5",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: customer onboarding promotion, technical support pivot, consulting-to-tech transitions. Stack patterns: product configuration tools + APIs + SQL + Salesforce + Notion / Confluence for playbooks + project management. Hiring stage: common at B2B SaaS with substantial configuration / integration work — monday.com, JFrog, Gong, HiBob, AppsFlyer, Forter, Tipalti, Sapiens (insurance SaaS), AU10TIX, Earnix. Particularly heavy at FinTech / InsurTech where regulatory configuration is significant."
+      }
     },
     {
       "id": "implementation_manager",
       "standardized_title": "Implementation Manager",
       "alternate_titles": [
-        "Customer Delivery Manager",
-        "Client Implementation Manager",
-        "Delivery Manager"
+        "Senior Implementation Manager",
+        "Implementation Lead",
+        "Customer Implementation Manager"
       ],
       "role_family": "Onboarding_Implementation",
       "secondary_family": null,
@@ -581,8 +619,9 @@ export const roleLibrary = {
         "director_customer_success"
       ],
       "similar_roles": [
-        "Customer Delivery Manager",
-        "Project Manager"
+        "implementation_specialist",
+        "project_manager_customer_delivery",
+        "senior_customer_success_manager"
       ],
       "not_to_confuse_with": [
         "Customer Success Manager",
@@ -596,18 +635,23 @@ export const roleLibrary = {
         "partners",
         "requirements",
         "activation"
-      ]
+      ],
+      "years_experience_typical": "4-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: implementation specialist promotion, senior CSM with technical specialization, ex-consultants from enterprise software backgrounds. Stack patterns: heavier project management discipline + customer escalation handling + cross-team coordination across product, engineering, and CS. Hiring stage: common at B2B SaaS with complex enterprise implementations — Amdocs, NICE Systems, Cellebrite, Sapiens, Earnix, Personetics, JFrog, monday.com (enterprise), Tipalti, AU10TIX. The role often blurs with project_manager_customer_delivery at companies focused on services-delivery."
+      }
     },
     {
       "id": "project_manager_customer_delivery",
       "standardized_title": "Project Manager (Customer Delivery)",
       "alternate_titles": [
-        "Customer Deployment Project Manager",
-        "Implementation Project Manager",
-        "Customer Delivery Project Manager"
+        "Customer Delivery PM",
+        "Implementation PM",
+        "Senior Customer Delivery Manager"
       ],
       "role_family": "Onboarding_Implementation",
-      "secondary_family": null,
+      "secondary_family": "Operations",
       "seniority": "Senior",
       "core_purpose": "Coordinate complex customer deployment projects from kickoff through implementation and closure.",
       "core_responsibilities": [
@@ -652,7 +696,9 @@ export const roleLibrary = {
         "implementation_manager"
       ],
       "similar_roles": [
-        "Implementation Manager"
+        "implementation_manager",
+        "technical_project_manager",
+        "program_manager"
       ],
       "not_to_confuse_with": [
         "Customer Experience Manager",
@@ -665,15 +711,20 @@ export const roleLibrary = {
         "stakeholder management",
         "deployment",
         "project closure"
-      ]
+      ],
+      "years_experience_typical": "4-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: implementation manager promotion, traditional PM background pivoting to customer delivery, ex-consultants. Stack patterns: heavy use of Asana / Monday / Jira for project tracking + Salesforce for customer-facing visibility + Notion for playbooks. Hiring stage: most common at enterprise software companies with significant customer-delivery services components — Amdocs, NICE Systems, Cellebrite, Sapiens, Earnix, Personetics, Au10tix. Less common at PLG / self-serve SaaS where onboarding is product-led."
+      }
     },
     {
       "id": "customer_success_manager",
       "standardized_title": "Customer Success Manager",
       "alternate_titles": [
         "CSM",
-        "Client Success Manager",
-        "Customer Success Specialist"
+        "Senior Customer Success Manager (SMB tier)",
+        "Mid-Market CSM"
       ],
       "role_family": "Relationship_Growth",
       "secondary_family": null,
@@ -725,8 +776,9 @@ export const roleLibrary = {
         "customer_success_team_lead"
       ],
       "similar_roles": [
-        "Account Manager",
-        "Technical Account Manager"
+        "senior_customer_success_manager",
+        "account_manager",
+        "technical_account_manager"
       ],
       "not_to_confuse_with": [
         "Customer Support Specialist",
@@ -741,14 +793,20 @@ export const roleLibrary = {
         "stakeholder management",
         "upsell",
         "trusted advisor"
-      ]
+      ],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: customer success specialist promotion, account management pivots, ex-consultants or MBA grads. Stack patterns: Gainsight / Vitally / Catalyst for health scoring + Salesforce + Slack Connect with customers + Gong / Chorus for QBRs + Loom for async communication. Hiring stage: ubiquitous at B2B SaaS — monday.com, Wix, JFrog, Fiverr, Gong, HiBob, AppsFlyer, Lemonade, Forter, Tipalti, Cellebrite, Wiz (mid-market and SMB tiers). Most CSMs work US hours for North American account ownership."
+      }
     },
     {
       "id": "senior_customer_success_manager",
       "standardized_title": "Senior Customer Success Manager",
       "alternate_titles": [
-        "Enterprise Customer Success Manager",
-        "Strategic Customer Success Manager"
+        "Senior CSM",
+        "Strategic CSM",
+        "Enterprise Customer Success Manager"
       ],
       "role_family": "Relationship_Growth",
       "secondary_family": null,
@@ -793,8 +851,9 @@ export const roleLibrary = {
         "director_customer_success"
       ],
       "similar_roles": [
-        "Account Manager",
-        "Technical Account Manager"
+        "customer_success_manager",
+        "technical_account_manager",
+        "account_manager"
       ],
       "not_to_confuse_with": [
         "Support Engineer"
@@ -805,16 +864,23 @@ export const roleLibrary = {
         "renewals",
         "expansion",
         "executive stakeholders"
-      ]
+      ],
+      "years_experience_typical": "6-10",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: CSM promotion with strong retention / expansion track record; external senior hires from larger Israeli or US SaaS companies. Stack patterns: typical CSM tooling plus deeper account orchestration — Gainsight + Salesforce + Slack Connect + executive QBR templates + Loom + competitive intel. Hiring stage: typically owns enterprise / strategic accounts at scale-ups and unicorns. Heavy at Wiz, CyberArk, SentinelOne, Check Point, monday.com, JFrog, AppsFlyer, Gong, HiBob, Forter, Lemonade. Often a feeder to enterprise_account_executive or customer_success_management."
+      }
     },
     {
       "id": "technical_account_manager",
       "standardized_title": "Technical Account Manager",
       "alternate_titles": [
-        "TAM"
+        "TAM",
+        "Senior TAM",
+        "Strategic TAM"
       ],
       "role_family": "Relationship_Growth",
-      "secondary_family": null,
+      "secondary_family": "Solutions_Engineering",
       "seniority": "Senior",
       "core_purpose": "Combine technical expertise and account ownership to help customers succeed with complex products.",
       "core_responsibilities": [
@@ -862,8 +928,9 @@ export const roleLibrary = {
         "director_customer_success"
       ],
       "similar_roles": [
-        "Customer Success Manager",
-        "Solutions Engineer"
+        "senior_customer_success_manager",
+        "solutions_engineer",
+        "account_manager"
       ],
       "not_to_confuse_with": [
         "Account Manager",
@@ -876,14 +943,20 @@ export const roleLibrary = {
         "technical success",
         "trusted advisor",
         "proactive support"
-      ]
+      ],
+      "years_experience_typical": "4-9",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: SE pivot to post-sale, support engineer promotion, senior CSM with technical depth. Stack patterns: Salesforce + Gainsight + Slack Connect with engineering customers + deep product knowledge + access to engineering escalation paths. Hiring stage: common at technical / infrastructure SaaS where ongoing customer engineering support is critical — JFrog, Snyk, Cloudinary, Coralogix, Logz.io, Wiz, Aqua Security, monday.com (enterprise tier), Gong (technical implementations). Strong English plus customer-facing technical depth essential."
+      }
     },
     {
       "id": "account_manager",
       "standardized_title": "Account Manager",
       "alternate_titles": [
         "Strategic Account Manager",
-        "Client Account Manager"
+        "Senior Account Manager",
+        "Customer Account Manager"
       ],
       "role_family": "Relationship_Growth",
       "secondary_family": null,
@@ -931,7 +1004,9 @@ export const roleLibrary = {
         "director_customer_success"
       ],
       "similar_roles": [
-        "Customer Success Manager"
+        "customer_success_manager",
+        "senior_account_executive",
+        "technical_account_manager"
       ],
       "not_to_confuse_with": [
         "Technical Account Manager",
@@ -944,14 +1019,20 @@ export const roleLibrary = {
         "renewals",
         "revenue",
         "account growth"
-      ]
+      ],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: AE pivots to account management, CSM promotions to revenue-owning roles, sometimes external account management hires. Stack patterns: Salesforce + Gong + Gainsight + Outreach for upsell campaigns + DealHub / PandaDoc for contract work. Hiring stage: common at B2B SaaS with sizeable existing customer bases — monday.com, JFrog, Wix, Fiverr, Gong, HiBob, AppsFlyer, Cellebrite, Lemonade, Payoneer. The role distinction from CSM varies by company — some treat AM as the renewals + expansion specialist, others overlap heavily with CSM responsibilities."
+      }
     },
     {
       "id": "customer_experience_specialist",
       "standardized_title": "Customer Experience Specialist",
       "alternate_titles": [
         "CX Specialist",
-        "Customer Experience Representative"
+        "Customer Experience Coordinator",
+        "Junior CX Specialist"
       ],
       "role_family": "Customer_Experience",
       "secondary_family": null,
@@ -994,7 +1075,9 @@ export const roleLibrary = {
         "customer_success_associate"
       ],
       "similar_roles": [
-        "Customer Support Representative"
+        "customer_support_specialist",
+        "customer_success_specialist",
+        "customer_onboarding_specialist"
       ],
       "not_to_confuse_with": [
         "Customer Experience Manager"
@@ -1005,16 +1088,23 @@ export const roleLibrary = {
         "resolution speed",
         "service quality",
         "cx"
-      ]
+      ],
+      "years_experience_typical": "0-3",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent graduates, customer support promotions, hospitality / retail pivots to tech. Stack patterns: Zendesk / Intercom / Salesforce Service Cloud + Notion / Google Workspace + survey tooling (SurveyMonkey, Typeform, Qualtrics). Hiring stage: less common as a dedicated role in Israeli tech — most companies fold CX work into customer support or customer success. Where distinct, found at consumer-facing scale-ups with strong CX focus (Lemonade, Lightricks, Fiverr, Wix, eToro) and at SaaS companies with mature post-sale orgs (monday.com, HiBob, Gong)."
+      }
     },
     {
       "id": "customer_experience_manager",
       "standardized_title": "Customer Experience Manager",
       "alternate_titles": [
-        "CX Manager"
+        "Senior CX Manager",
+        "Director of Customer Experience",
+        "CX Operations Manager"
       ],
       "role_family": "Customer_Experience",
-      "secondary_family": null,
+      "secondary_family": "Operations",
       "seniority": "Senior",
       "core_purpose": "Optimize the end-to-end customer journey and improve customer loyalty through better systems and touchpoints.",
       "core_responsibilities": [
@@ -1058,7 +1148,9 @@ export const roleLibrary = {
         "director_customer_success_operations"
       ],
       "similar_roles": [
-        "Customer Experience Specialist"
+        "senior_customer_success_manager",
+        "implementation_manager",
+        "director_customer_success_operations"
       ],
       "not_to_confuse_with": [
         "Project Manager",
@@ -1071,17 +1163,22 @@ export const roleLibrary = {
         "touchpoints",
         "experience strategy",
         "loyalty"
-      ]
+      ],
+      "years_experience_typical": "5-9",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: senior customer success or support manager promotion, CX consulting pivot, sometimes operations specialist. Stack patterns: Gainsight / Vitally / Catalyst + Zendesk / Intercom + Salesforce + survey + journey-mapping tools (Smaply, UXPressia). Hiring stage: most common at consumer-facing scale-ups with mature CX functions — Lemonade, Wix, Fiverr, Lightricks, eToro, Plarium. Also appears at B2B SaaS with strong customer-centric culture (monday.com, HiBob, Gong, AppsFlyer)."
+      }
     },
     {
       "id": "sales_engineer",
       "standardized_title": "Sales Engineer",
       "alternate_titles": [
-        "Solutions Engineer",
-        "Pre-Sales Engineer"
+        "Customer-Facing Sales Engineer",
+        "Technical AE"
       ],
       "role_family": "Relationship_Growth",
-      "secondary_family": null,
+      "secondary_family": "Solutions_Engineering",
       "seniority": "Mid",
       "core_purpose": "Support the sales process by acting as the technical expert in customer conversations and solution design.",
       "core_responsibilities": [
@@ -1125,7 +1222,9 @@ export const roleLibrary = {
         "account_manager"
       ],
       "similar_roles": [
-        "Solutions Architect"
+        "solutions_engineer",
+        "account_executive",
+        "technical_account_manager"
       ],
       "not_to_confuse_with": [
         "Customer Success Manager",
@@ -1137,7 +1236,12 @@ export const roleLibrary = {
         "proposal",
         "pre sales",
         "product expert"
-      ]
+      ],
+      "years_experience_typical": "3-6",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: SWE pivots to customer-facing technical sales, support engineer promotions, SE-to-AE transitions. Stack patterns: Salesforce + technical demo environments + Postman + Notion + strong English for US customer engagement. Hiring stage: term often used interchangeably with Solutions Engineer in Israeli tech. Where distinguished, sales_engineer typically refers to a more sales-quota-owning version of the SE role — closer to a technical AE than a pure pre-sales SE. Common at cyber (Wiz, Check Point, CyberArk, SentinelOne) and B2B SaaS (JFrog, Gong, monday.com)."
+      }
     },
     {
       "id": "support_team_lead",
@@ -1345,11 +1449,12 @@ export const roleLibrary = {
       "id": "director_customer_success_operations",
       "standardized_title": "Director of Customer Success Operations",
       "alternate_titles": [
+        "Director of CS Ops",
         "Head of Customer Success Operations",
-        "CS Ops Director"
+        "Senior CS Operations Manager"
       ],
       "role_family": "Operations",
-      "secondary_family": null,
+      "secondary_family": "RevOps_BizOps",
       "seniority": "Director_Head",
       "core_purpose": "Build and scale the systems, workflows, metrics, and automation behind the post-sale organization.",
       "core_responsibilities": [
@@ -1393,7 +1498,9 @@ export const roleLibrary = {
         "vp_customer_success"
       ],
       "similar_roles": [
-        "Revenue Operations"
+        "sales_operations_manager",
+        "revops_manager",
+        "head_of_revops"
       ],
       "not_to_confuse_with": [
         "Director of Customer Success"
@@ -1405,7 +1512,12 @@ export const roleLibrary = {
         "automation",
         "customer success operations",
         "dashboards"
-      ]
+      ],
+      "years_experience_typical": "8-12",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: senior CS operations manager promotion, sales ops pivot to CS, ex-consultants with post-sale specialization. Stack patterns: Gainsight / Vitally / Catalyst administration + Salesforce + Looker / Mode for CS metrics + Zapier / Workato for automation. Hiring stage: typically at scale-ups and unicorns with ~30+ CSMs and structured CS operations — monday.com, JFrog, Wix, HiBob, Gong, AppsFlyer, Lemonade, Forter, Tipalti, Cellebrite. Reports to VP Customer Success / Chief Customer Officer or to VP RevOps."
+      }
     },
     {
       "id": "vp_customer_success",
@@ -1479,9 +1591,9 @@ export const roleLibrary = {
       "id": "project_manager",
       "standardized_title": "Project Manager",
       "alternate_titles": [
-        "Project Lead",
-        "Project Delivery Manager",
-        "Implementation Project Manager"
+        "PM (non-product)",
+        "Senior Project Manager",
+        "Operations Project Manager"
       ],
       "role_family": "Operations",
       "secondary_family": null,
@@ -1531,8 +1643,9 @@ export const roleLibrary = {
         "product_operations_manager"
       ],
       "similar_roles": [
-        "Technical Project Manager",
-        "Program Manager"
+        "technical_project_manager",
+        "program_manager",
+        "implementation_manager"
       ],
       "not_to_confuse_with": [
         "Product Manager",
@@ -1546,18 +1659,23 @@ export const roleLibrary = {
         "dependencies",
         "risks",
         "stakeholders"
-      ]
+      ],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: operations promotion, ex-consultants from McKinsey / BCG / Bain Israel, military officer transitions to civilian project management. Stack patterns: Asana / Monday / Jira for project tracking + Notion / Confluence for documentation + Excel / Sheets for status reporting + Slack for cross-team coordination. Hiring stage: common across mid-sized and larger Israeli companies in cross-functional capacity — monday.com (the company), Wix, JFrog, Amdocs, NICE Systems, Cellebrite, Lemonade. Less common at small startups (under ~30 employees) where individual PMs / EMs handle project work."
+      }
     },
     {
       "id": "technical_project_manager",
       "standardized_title": "Technical Project Manager",
       "alternate_titles": [
         "TPM",
-        "Technology Project Manager",
-        "Technical Project Owner"
+        "Senior Technical Project Manager",
+        "Engineering Program Manager"
       ],
       "role_family": "Operations",
-      "secondary_family": null,
+      "secondary_family": "Engineering",
       "seniority": "Senior",
       "core_purpose": "Lead delivery of technically complex projects by translating business goals into structured execution plans across engineering and business teams.",
       "core_responsibilities": [
@@ -1605,8 +1723,9 @@ export const roleLibrary = {
         "product_manager"
       ],
       "similar_roles": [
-        "Project Manager",
-        "Program Manager"
+        "program_manager",
+        "project_manager",
+        "engineering_manager"
       ],
       "not_to_confuse_with": [
         "Product Manager",
@@ -1619,16 +1738,20 @@ export const roleLibrary = {
         "technical dependencies",
         "implementation",
         "execution"
-      ]
+      ],
+      "years_experience_typical": "5-9",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: engineering promotion to project leadership, ex-consultants with technical specialization, former PMs with strong engineering depth. Stack patterns: Jira / Linear / Notion / Confluence / Slack + technical documentation + cross-team coordination tools. Hiring stage: most common at scale-ups and unicorns with substantial cross-team engineering work — monday.com, JFrog, Wix, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Cellebrite, Amdocs, NICE Systems. Often manages multi-team engineering initiatives, infrastructure migrations, or platform programs."
+      }
     },
     {
       "id": "program_manager",
       "standardized_title": "Program Manager",
       "alternate_titles": [
         "Senior Program Manager",
-        "Lead Program Manager",
-        "Program Lead",
-        "Technical Program Manager"
+        "Strategic Program Manager",
+        "Engineering Program Manager"
       ],
       "role_family": "Operations",
       "secondary_family": null,
@@ -1678,8 +1801,9 @@ export const roleLibrary = {
         "product_operations_manager"
       ],
       "similar_roles": [
-        "Technical Project Manager",
-        "Project Manager"
+        "technical_project_manager",
+        "project_manager",
+        "engineering_group_manager"
       ],
       "not_to_confuse_with": [
         "Product Manager",
@@ -1693,7 +1817,12 @@ export const roleLibrary = {
         "strategic initiatives",
         "dependencies",
         "cadence"
-      ]
+      ],
+      "years_experience_typical": "6-10",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: senior project manager promotion, ex-consultants with operational specialization, engineering managers pivoting to cross-functional programs. Stack patterns: Asana / Monday / Jira + Looker / Mode for program-level metrics + Notion for documentation + heavy cross-functional facilitation. Hiring stage: most common at unicorns and large scale-ups — monday.com, JFrog, Wix, AppsFlyer, Check Point, CyberArk, SentinelOne, Amdocs, NICE Systems, Cellebrite, Wiz. Often runs strategic cross-org programs (large customer migrations, compliance initiatives, M&A integration)."
+      }
     },
     {
       "id": "product_manager",
@@ -1773,7 +1902,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "3-6",
       "market_notes": {
-        "israel": "Mid-level PM is one of the most common product roles in Israeli tech, found across virtually every B2B and consumer scale-up. Common employer base spans cyber (Wiz, Check Point, CyberArk, SentinelOne), SaaS (monday.com, Wix, JFrog, Fiverr, Gong, HiBob, AppsFlyer), AI (AI21 Labs, Run:ai, Hailo, Aidoc), FinTech (Lemonade, Payoneer, eToro, Forter, Tipalti), and consumer apps (Lightricks, Plarium, Playtika). Most Israeli PMs work close to US hours — product, design, and engineering teams are typically in Israel while users and customers are heavily US-based. Backgrounds vary widely: MBAs from Reichman / IDC / TAU / Wharton-Tel Aviv, ex-consultants from McKinsey / BCG / Bain Israel offices, and engineers / designers / data scientists pivoting to product."
+        "israel": "Backgrounds: MBAs from Reichman / IDC / TAU / Wharton-TLV, ex-consultants from McKinsey / BCG / Bain Israel, APM promotions, engineer / designer / data scientist pivots. Stack patterns: Jira + Figma + Mixpanel / Amplitude for product analytics, SQL for data work, increasingly Notion + Linear for spec writing; strong English plus US time-zone availability since most Israeli startups sell internationally. Hiring stage: one of the most common product roles across every B2B and consumer scale-up. Heavy across cyber (Wiz, Check Point, CyberArk, SentinelOne), SaaS (monday.com, Wix, JFrog, Fiverr, Gong, HiBob, AppsFlyer), AI (AI21 Labs, Run:ai, Hailo, Aidoc), FinTech (Lemonade, Payoneer, eToro, Forter, Tipalti), and consumer apps (Lightricks, Plarium, Playtika)."
       },
       "_research_method": "web_search"
     },
@@ -1852,7 +1981,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "5-9",
       "market_notes": {
-        "israel": "Technical PM is common in Israeli tech given the strong technical orientation of the ecosystem — many products are infrastructure, developer tools, cyber platforms, or API-first SaaS where the buyer is a developer or architect. Heavy concentration at cyber (Wiz, Check Point, CyberArk, SentinelOne, Aqua Security, Orca, Snyk), DevTools (JFrog, Coralogix, Logz.io, Cloudinary), AI infrastructure (Run:ai, AI21 Labs, Hailo), and data platforms (WEKA, Firebolt). Often hired from senior engineers or staff engineers pivoting to product, or from PMs with strong CS / engineering backgrounds. Unit 8200 / 81 / Mamram alumni are over-represented at this level given the technical depth required."
+        "israel": "Backgrounds: senior engineers / staff engineers pivoting to product, or PMs with strong CS / engineering backgrounds. Unit 8200 / 81 / Mamram alumni over-represented given technical depth required. Stack patterns: API-first thinking, developer documentation, technical roadmap work; comfort with engineering tooling (Git, monitoring dashboards, internal CLI / SDK reviews). Hiring stage: common in infrastructure, developer tools, cyber platforms, and API-first SaaS where the buyer is a developer or architect. Heavy at cyber (Wiz, Check Point, CyberArk, SentinelOne, Aqua Security, Orca, Snyk), DevTools (JFrog, Coralogix, Logz.io, Cloudinary), AI infrastructure (Run:ai, AI21 Labs, Hailo), and data platforms (WEKA, Firebolt)."
       },
       "_research_method": "knowledge"
     },
@@ -1930,7 +2059,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "2-5",
       "market_notes": {
-        "israel": "Product Analyst roles cluster at consumer scale-ups (Lightricks, Plarium, Playtika), B2B SaaS (monday.com, Wix, Fiverr, Gong, HiBob), and FinTech (Lemonade, Payoneer, eToro, Tipalti) where deep user-behavior analysis directly drives product decisions. The role often fork-feeds into PM tracks for analysts who develop strong product intuition. Common tech stack: Amplitude / Mixpanel for product analytics, SQL + dbt for data modeling, Looker / Mode / Hex for dashboards, Python or R for statistical analysis. Many product analysts pair closely with one or two PMs as a partnership rather than working horizontally across the org."
+        "israel": "Backgrounds: data analyst pivots, engineering pivots, MBAs with analytics specialization. Often forks into PM track for analysts who develop strong product intuition. Stack patterns: Amplitude / Mixpanel for product analytics, SQL + dbt for data modeling, Looker / Mode / Hex for dashboards, Python or R for statistical analysis. Hiring stage: clusters at consumer scale-ups (Lightricks, Plarium, Playtika), B2B SaaS (monday.com, Wix, Fiverr, Gong, HiBob), and FinTech (Lemonade, Payoneer, eToro, Tipalti) where deep user-behavior analysis directly drives product decisions. Often paired closely with one or two PMs as a partnership rather than working horizontally across the org."
       },
       "_research_method": "knowledge"
     },
@@ -1940,8 +2069,8 @@ export const roleLibrary = {
       "alternate_titles": [
         "SDR",
         "Sales Development Rep",
-        "Inside Sales Representative",
-        "Outbound Sales Representative"
+        "Outbound SDR",
+        "Inbound SDR"
       ],
       "role_family": "Sales",
       "secondary_family": null,
@@ -1997,8 +2126,8 @@ export const roleLibrary = {
         "customer_success_associate"
       ],
       "similar_roles": [
-        "Business Development Representative",
-        "Inside Sales Representative"
+        "business_development_representative",
+        "sales_associate"
       ],
       "not_to_confuse_with": [
         "Account Executive",
@@ -2015,7 +2144,12 @@ export const roleLibrary = {
         "quota",
         "CRM",
         "discovery"
-      ]
+      ],
+      "years_experience_typical": "0-2",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent graduates from Reichman / IDC / TAU / Wharton-TLV business programs, IDF veterans pivoting to commercial roles, ex-military officers; English fluency at near-native level is a hard requirement. Stack patterns: Salesforce + Outreach / Salesloft + LinkedIn Sales Navigator + ZoomInfo / Lusha (Israeli-headquartered tooling popular). Hiring stage: ubiquitous entry-level commercial role across B2B SaaS and cyber. Common at scale-ups and unicorns selling into US (Wiz, Check Point, monday.com, JFrog, Gong, HiBob, AppsFlyer, Forter, Lemonade). Typically work US hours given target market. Career path forks to AE within 12-24 months."
+      }
     },
     {
       "id": "business_development_representative",
@@ -2023,10 +2157,10 @@ export const roleLibrary = {
       "alternate_titles": [
         "BDR",
         "Business Development Rep",
-        "Outbound BDR"
+        "BDR/SDR"
       ],
       "role_family": "Sales",
-      "secondary_family": null,
+      "secondary_family": "BD_Partnerships",
       "seniority": "Entry",
       "core_purpose": "Identify and create new business opportunities through strategic outbound prospecting, market research, and target account engagement.",
       "core_responsibilities": [
@@ -2079,8 +2213,8 @@ export const roleLibrary = {
         "sales_manager"
       ],
       "similar_roles": [
-        "Sales Development Representative",
-        "Inside Sales Representative"
+        "sales_development_representative",
+        "sales_associate"
       ],
       "not_to_confuse_with": [
         "Account Executive",
@@ -2096,16 +2230,20 @@ export const roleLibrary = {
         "qualification",
         "meetings booked",
         "cold outreach"
-      ]
+      ],
+      "years_experience_typical": "0-2",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: same talent pool as SDR — recent business / liberal arts graduates, IDF veterans, junior-level commercial pivots. The BDR vs SDR distinction is often nominal in Israeli companies; some use BDR for partnership outreach, SDR for direct prospecting. Stack patterns: Salesforce + Outreach / Salesloft + LinkedIn Sales Navigator + ZoomInfo / Lusha. Hiring stage: common across B2B SaaS and cyber selling internationally. Heavy at Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, Gong, HiBob, AppsFlyer, Forter, Payoneer, Riskified. US-hours work standard."
+      }
     },
     {
       "id": "account_executive",
       "standardized_title": "Account Executive",
       "alternate_titles": [
         "AE",
-        "Sales Executive",
-        "Account Manager — New Business",
-        "Inside Sales Executive"
+        "Mid-Market Account Executive",
+        "SMB Account Executive"
       ],
       "role_family": "Sales",
       "secondary_family": null,
@@ -2163,8 +2301,9 @@ export const roleLibrary = {
         "customer_success_manager"
       ],
       "similar_roles": [
-        "Sales Executive",
-        "Inside Sales Executive"
+        "senior_account_executive",
+        "sales_representative",
+        "sales_engineer"
       ],
       "not_to_confuse_with": [
         "Account Manager",
@@ -2183,16 +2322,20 @@ export const roleLibrary = {
         "SaaS sales",
         "B2B",
         "deal closing"
-      ]
+      ],
+      "years_experience_typical": "2-5",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: promoted SDRs / SRs after 2-3 years, sometimes external hires with B2B SaaS sales experience. Strong English (often near-native) for North American account ownership. Stack patterns: Salesforce + Gong + Outreach + LinkedIn Sales Navigator + ZoomInfo + DealHub / PandaDoc; increasingly Clari for forecasting. Most AEs work US hours given that Israeli SaaS / cyber sells primarily into US — Tel Aviv-based AEs cover EMEA accounts, US-based AEs cover NA. Hiring stage: ubiquitous role across B2B SaaS and cyber. Heavy at Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, Gong, HiBob, AppsFlyer, Forter, Lemonade, Tipalti, Riskified."
+      }
     },
     {
       "id": "senior_account_executive",
       "standardized_title": "Senior Account Executive",
       "alternate_titles": [
         "Senior AE",
-        "Senior Sales Executive",
-        "Mid-Market AE",
-        "Commercial AE"
+        "Strategic Account Executive",
+        "Senior Sales Representative"
       ],
       "role_family": "Sales",
       "secondary_family": null,
@@ -2251,8 +2394,9 @@ export const roleLibrary = {
         "enterprise_account_executive"
       ],
       "similar_roles": [
-        "Commercial Account Executive",
-        "Mid-Market Account Executive"
+        "account_executive",
+        "enterprise_account_executive",
+        "sales_manager"
       ],
       "not_to_confuse_with": [
         "Enterprise Account Executive",
@@ -2269,16 +2413,21 @@ export const roleLibrary = {
         "ACV",
         "C-suite",
         "revenue"
-      ]
+      ],
+      "years_experience_typical": "5-9",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: promoted AEs after 3-5 years with strong quota track record; external hires from larger Israeli or US tech companies. Stack patterns: typical AE tooling plus heavier MEDDIC / MEDDPICC discipline; deeper account planning in Salesforce / Clari; closer SE pairing. Hiring stage: typically owns larger / strategic mid-market accounts at scale-ups and unicorns. Heavy at Wiz, Check Point, CyberArk, SentinelOne, JFrog, monday.com, Gong, AppsFlyer, HiBob, Forter, Payoneer. Career path: enterprise_account_executive, sales_manager, or strategic account specialization."
+      }
     },
     {
       "id": "enterprise_account_executive",
       "standardized_title": "Enterprise Account Executive",
       "alternate_titles": [
         "Enterprise AE",
-        "Named Account Executive",
-        "Strategic Account Executive",
-        "Enterprise Sales Executive"
+        "Strategic AE",
+        "Major Account Executive",
+        "Global Account Executive"
       ],
       "role_family": "Sales",
       "secondary_family": null,
@@ -2339,8 +2488,9 @@ export const roleLibrary = {
         "sales_manager"
       ],
       "similar_roles": [
-        "Strategic Account Executive",
-        "Named Account Executive"
+        "senior_account_executive",
+        "sales_manager",
+        "channel_partner_manager"
       ],
       "not_to_confuse_with": [
         "Senior Account Executive",
@@ -2357,14 +2507,19 @@ export const roleLibrary = {
         "strategic accounts",
         "full cycle",
         "land and expand"
-      ]
+      ],
+      "years_experience_typical": "8-15",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: senior AE promotion or external enterprise sales hire; often 8-15 years of total commercial experience including time at major US / EMEA enterprise software companies. Stack patterns: heavy MEDDIC / Force Management framework discipline; complex deal-cycle management; close partnership with SE, CS, and exec sponsors. Hiring stage: enterprise sales is a strong Israeli specialty given the volume of enterprise-targeting cyber and SaaS companies. Heavy at Wiz, Check Point, CyberArk, SentinelOne, JFrog, Amdocs, NICE Systems, Cellebrite, monday.com (enterprise tier), Sapiens, Earnix."
+      }
     },
     {
       "id": "sales_manager",
       "standardized_title": "Sales Manager",
       "alternate_titles": [
-        "Sales Team Manager",
-        "Inside Sales Manager",
+        "Sales Team Lead",
+        "Manager of Sales",
         "Regional Sales Manager"
       ],
       "role_family": "Sales",
@@ -2422,8 +2577,9 @@ export const roleLibrary = {
         "vp_sales"
       ],
       "similar_roles": [
-        "Inside Sales Manager",
-        "Revenue Manager"
+        "sales_director",
+        "senior_account_executive",
+        "solutions_engineering_manager"
       ],
       "not_to_confuse_with": [
         "Sales Director",
@@ -2439,19 +2595,23 @@ export const roleLibrary = {
         "deal reviews",
         "sales manager",
         "people management"
-      ]
+      ],
+      "years_experience_typical": "5-10",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: senior AE promotion (most common), external sales manager hire from another B2B SaaS / cyber company. Stack patterns: people management on top of typical AE tooling — Lattice / 15Five for performance; Gong / Chorus for call review; Salesforce dashboards and Clari for forecasting; quarterly business reviews and pipeline reviews. Hiring stage: standard at scale-ups (Series B+) and unicorns — manages 4-8 AEs across a segment, region, or product line. Heavy at the major Israeli B2B exporters (Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, Gong, HiBob, AppsFlyer, Forter, Payoneer). Often US-hours work for managers covering NA territory."
+      }
     },
     {
       "id": "sales_director",
       "standardized_title": "Sales Director",
       "alternate_titles": [
         "Director of Sales",
-        "Head of Sales",
-        "Commercial Director",
-        "Director of Revenue"
+        "Regional Sales Director",
+        "Senior Sales Director"
       ],
       "role_family": "Sales",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Director_Head",
       "core_purpose": "Own the sales function or a significant segment of it, defining strategy, managing managers, and driving revenue growth at scale.",
       "core_responsibilities": [
@@ -2507,8 +2667,9 @@ export const roleLibrary = {
         "chief_revenue_officer"
       ],
       "similar_roles": [
-        "Head of Sales",
-        "Commercial Director"
+        "sales_manager",
+        "vp_sales",
+        "head_of_solutions_engineering"
       ],
       "not_to_confuse_with": [
         "VP Sales",
@@ -2525,19 +2686,24 @@ export const roleLibrary = {
         "GTM",
         "quota",
         "sales org"
-      ]
+      ],
+      "years_experience_typical": "10-15",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: sales manager promotion or external director hire; often 2-3 prior cycles at scale-ups or US SaaS companies. Stack patterns: manager-of-managers focus; org-design and territory planning; quarterly board reporting on commercial metrics. Hiring stage: typically at scale-ups and unicorns with ~30+ AEs across multiple regions or segments — Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, AppsFlyer, Gong, HiBob, Cellebrite, Amdocs, NICE Systems. Reports to VP Sales / CRO."
+      }
     },
     {
       "id": "vp_sales",
       "standardized_title": "VP of Sales",
       "alternate_titles": [
-        "Vice President of Sales",
-        "VP Sales",
-        "Head of Global Sales",
-        "Chief Revenue Officer"
+        "VP of Sales",
+        "Chief Revenue Officer",
+        "CRO",
+        "Head of Sales"
       ],
       "role_family": "Sales",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "VP_Executive",
       "core_purpose": "Own the entire sales organization and revenue engine, setting global strategy, building the team, and driving company-level ARR growth.",
       "core_responsibilities": [
@@ -2593,8 +2759,9 @@ export const roleLibrary = {
         "ceo"
       ],
       "similar_roles": [
-        "Chief Revenue Officer",
-        "Head of Global Sales"
+        "sales_director",
+        "head_of_solutions_engineering",
+        "vp_marketing"
       ],
       "not_to_confuse_with": [
         "Sales Director",
@@ -2611,19 +2778,23 @@ export const roleLibrary = {
         "quota",
         "scale",
         "team building"
-      ]
+      ],
+      "years_experience_typical": "12-20",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: sales director promotion or external VP Sales / CRO hire from larger Israeli or US tech companies; often 2-3 prior cycles. Stack patterns: org-level commercial strategy, ICP definition, comp plan design, forecasting discipline; board-level commercial reporting. Hiring stage: critical hire at any company past ~30 commercial headcount. Often the founding sales leader at very early-stage companies evolves into VP Sales as the org scales. At scale-ups and unicorns frequently filled by external senior hires from US-headquartered SaaS or cyber. CRO title increasingly common at companies with combined Sales + Marketing + RevOps reporting under one executive."
+      }
     },
     {
       "id": "sales_operations_manager",
       "standardized_title": "Sales Operations Manager",
       "alternate_titles": [
-        "RevOps Manager",
-        "Revenue Operations Manager",
         "Sales Ops Manager",
-        "GTM Operations Manager"
+        "Revenue Operations Manager",
+        "Senior Sales Ops"
       ],
       "role_family": "Operations",
-      "secondary_family": null,
+      "secondary_family": "RevOps_BizOps",
       "seniority": "Mid",
       "core_purpose": "Enable sales team efficiency and effectiveness through process optimization, data analysis, CRM management, and revenue systems.",
       "core_responsibilities": [
@@ -2677,8 +2848,9 @@ export const roleLibrary = {
         "vp_sales_operations"
       ],
       "similar_roles": [
-        "Revenue Operations Manager",
-        "GTM Operations Manager"
+        "revops_manager",
+        "business_ops_manager",
+        "revops_analyst"
       ],
       "not_to_confuse_with": [
         "Sales Manager",
@@ -2695,19 +2867,23 @@ export const roleLibrary = {
         "analytics",
         "sales operations",
         "reporting"
-      ]
+      ],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: sales ops analyst promotion, ex-consultants with commercial focus, sometimes former AEs or sales managers pivoting to operations. Stack patterns: Salesforce administration + CPQ tools (DealHub, Salesforce CPQ) + LeanData / Default for routing + Outreach / Salesloft for cadence + Clari / Boostup for forecasting + heavy Excel / Sheets. Hiring stage: ubiquitous at B2B SaaS and cyber scale-ups — monday.com, JFrog, Gong, HiBob, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Forter, Tipalti, Lemonade."
+      }
     },
     {
       "id": "channel_partner_manager",
       "standardized_title": "Channel Partner Manager",
       "alternate_titles": [
-        "Partner Manager",
-        "Partner Success Manager",
-        "Alliance Manager",
-        "Partnerships Manager"
+        "Channel Sales Manager",
+        "Partner Sales Manager",
+        "Channel Account Manager"
       ],
       "role_family": "Sales",
-      "secondary_family": null,
+      "secondary_family": "BD_Partnerships",
       "seniority": "Mid",
       "core_purpose": "Build and manage relationships with channel partners, resellers, and strategic alliances to drive indirect revenue growth.",
       "core_responsibilities": [
@@ -2759,8 +2935,9 @@ export const roleLibrary = {
         "vp_sales"
       ],
       "similar_roles": [
-        "Alliance Manager",
-        "Partner Success Manager"
+        "account_executive",
+        "partnerships_manager",
+        "business_development_manager"
       ],
       "not_to_confuse_with": [
         "Account Executive",
@@ -2776,16 +2953,19 @@ export const roleLibrary = {
         "joint GTM",
         "partnerships",
         "indirect sales"
-      ]
+      ],
+      "years_experience_typical": "4-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: AE pivots to indirect / partner sales, or external channel sales hires; strong understanding of partner economics + commercial discipline. Stack patterns: Salesforce + PartnerStack / Allbound / Impartner for partner relationship management; channel-specific MEDDIC variants; partner enablement content creation. Hiring stage: most common at cyber (Wiz, Check Point, CyberArk, SentinelOne, Cybereason, Aqua Security) and infrastructure SaaS (JFrog, Snyk, Wiz, Cellebrite) where channel is a major go-to-market motion. Less common at consumer-facing or product-led-growth companies."
+      }
     },
     {
       "id": "marketing_coordinator",
       "standardized_title": "Marketing Coordinator",
       "alternate_titles": [
-        "Marketing Assistant",
-        "Marketing Associate",
-        "Junior Marketing Manager",
-        "Marketing Project Coordinator"
+        "Marketing Operations Coordinator",
+        "Junior Marketing Coordinator"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -2843,8 +3023,9 @@ export const roleLibrary = {
         "content_marketing_manager"
       ],
       "similar_roles": [
-        "Marketing Associate",
-        "Marketing Assistant"
+        "marketing_manager",
+        "event_coordinator",
+        "social_media_coordinator"
       ],
       "not_to_confuse_with": [
         "Marketing Manager",
@@ -2859,15 +3040,19 @@ export const roleLibrary = {
         "Canva",
         "marketing assistant",
         "content calendar"
-      ]
+      ],
+      "years_experience_typical": "1-3",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: marketing assistant promotions or external hires with 1-3 years of B2B marketing operations experience. Stack patterns: HubSpot / Marketo administration, light Salesforce, email campaign management, Asana / Monday for project work. Hiring stage: common at scale-ups with structured marketing functions — monday.com, Wix, JFrog, Fiverr, Lemonade, AppsFlyer, Gong, HiBob. Often a stepping stone to specialist marketing roles (content, demand gen, lifecycle)."
+      }
     },
     {
       "id": "marketing_manager",
       "standardized_title": "Marketing Manager",
       "alternate_titles": [
-        "Brand Marketing Manager",
-        "Campaign Manager",
-        "Marketing Team Lead"
+        "Marketing Lead",
+        "Senior Marketing Manager"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -2926,8 +3111,9 @@ export const roleLibrary = {
         "product_marketing_manager"
       ],
       "similar_roles": [
-        "Brand Manager",
-        "Campaign Manager"
+        "product_marketing_manager",
+        "growth_marketing_manager",
+        "demand_generation_manager"
       ],
       "not_to_confuse_with": [
         "Head of Marketing",
@@ -2943,16 +3129,19 @@ export const roleLibrary = {
         "marketing strategy",
         "budget",
         "analytics"
-      ]
+      ],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: marketing coordinator promotion, external hire from another B2B / consumer scale-up; sometimes ex-consultants pivoting to marketing operations. Stack patterns: HubSpot / Marketo + Salesforce + Google Analytics + LinkedIn Ads + Google Ads + project management. Hiring stage: common at scale-ups and unicorns with structured marketing functions — monday.com, Wix, JFrog, Fiverr, Lemonade, AppsFlyer, Gong, HiBob, Cellebrite. Generalist role at smaller orgs; specializes by sub-function (product, growth, lifecycle, etc.) at larger orgs."
+      }
     },
     {
       "id": "growth_marketing_manager",
       "standardized_title": "Growth Marketing Manager",
       "alternate_titles": [
-        "Demand Generation Manager",
-        "Growth Manager",
-        "Growth Lead",
-        "Marketing Growth Manager"
+        "Growth Marketing Lead",
+        "Senior Growth Marketing Manager"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -3012,8 +3201,9 @@ export const roleLibrary = {
         "performance_marketing_manager"
       ],
       "similar_roles": [
-        "Demand Generation Manager",
-        "Growth Lead"
+        "performance_marketing_manager",
+        "lifecycle_marketing_manager",
+        "demand_generation_manager"
       ],
       "not_to_confuse_with": [
         "Performance Marketing Manager",
@@ -3031,16 +3221,20 @@ export const roleLibrary = {
         "SQL",
         "growth",
         "funnel"
-      ]
+      ],
+      "years_experience_typical": "4-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: performance marketing pivots, marketing manager promotion, sometimes analytical / engineering pivots. Stack patterns: SQL + Amplitude / Mixpanel for funnel analysis; performance ads (Google, Meta, LinkedIn); lifecycle tooling (Iterable, Customer.io, Braze); A/B testing platforms (Optimizely, VWO); Looker / Mode for reporting. Hiring stage: heavy at consumer / PLG companies (Wix, Fiverr, Lemonade, Lightricks, Plarium, Playtika, HiBob, monday.com) and AI scale-ups building consumer-facing AI products (D-ID, Hour One, Bria AI)."
+      }
     },
     {
       "id": "performance_marketing_manager",
       "standardized_title": "Performance Marketing Manager",
       "alternate_titles": [
         "Paid Media Manager",
-        "User Acquisition Manager",
-        "Media Buyer",
-        "Paid Marketing Manager"
+        "Acquisition Marketing Manager",
+        "User Acquisition Manager"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -3100,9 +3294,9 @@ export const roleLibrary = {
         "vp_marketing"
       ],
       "similar_roles": [
-        "Paid Media Manager",
-        "User Acquisition Manager",
-        "Media Buyer"
+        "growth_marketing_manager",
+        "demand_generation_manager",
+        "growth_analyst"
       ],
       "not_to_confuse_with": [
         "Growth Marketing Manager",
@@ -3120,16 +3314,20 @@ export const roleLibrary = {
         "A/B testing",
         "attribution",
         "budget"
-      ]
+      ],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: paid media specialists, growth analyst promotions, ad-agency-to-in-house pivots. Stack patterns: Google Ads + Meta Ads + LinkedIn Ads + TikTok Ads + Apple Search Ads; Appsflyer / Adjust / Singular for mobile attribution; Skai / Madgicx / Smartly for creative iteration. Hiring stage: heavy at consumer mobile companies (Lightricks, Plarium, Playtika, Moon Active, Crazy Labs, Papaya Gaming, SciPlay), AppsFlyer (the tooling provider), and consumer-facing B2C scale-ups (Lemonade, eToro, Fiverr). Strong Israeli mobile-acquisition specialty given the gaming and consumer app concentration."
+      }
     },
     {
       "id": "lifecycle_marketing_manager",
       "standardized_title": "Lifecycle Marketing Manager",
       "alternate_titles": [
-        "CRM Manager",
-        "Retention Marketing Manager",
-        "Email Marketing Manager",
-        "Customer Lifecycle Manager"
+        "CRM Marketing Manager",
+        "Customer Lifecycle Marketing Manager",
+        "Email Marketing Manager"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -3189,8 +3387,9 @@ export const roleLibrary = {
         "vp_marketing"
       ],
       "similar_roles": [
-        "CRM Manager",
-        "Retention Marketing Manager"
+        "growth_marketing_manager",
+        "marketing_manager",
+        "demand_generation_manager"
       ],
       "not_to_confuse_with": [
         "Growth Marketing Manager",
@@ -3209,18 +3408,22 @@ export const roleLibrary = {
         "HubSpot",
         "upsell",
         "NRR"
-      ]
+      ],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: email / CRM marketers, growth analysts pivoting to lifecycle, former marketing managers. Stack patterns: Iterable / Customer.io / Braze / Mailchimp / HubSpot for orchestration; Optimove (Israeli-headquartered CRM) widely used; Looker / Mode for analysis. Hiring stage: heavy at consumer companies with subscription / retention focus — Lemonade, eToro, Lightricks, Plarium, Playtika, Fiverr, Wix, monday.com. Common at FinTech (Lemonade, Tipalti, Payoneer) where lifecycle CRM directly drives retention metrics."
+      }
     },
     {
       "id": "product_marketing_manager",
       "standardized_title": "Product Marketing Manager",
       "alternate_titles": [
         "PMM",
-        "Senior Product Marketing Manager",
-        "Product Marketer"
+        "Senior Product Marketing Manager"
       ],
       "role_family": "Marketing",
-      "secondary_family": null,
+      "secondary_family": "Product",
       "seniority": "Mid",
       "core_purpose": "Bridge product and market by developing positioning, messaging, go-to-market strategy, and sales enablement for product launches and ongoing growth.",
       "core_responsibilities": [
@@ -3277,8 +3480,9 @@ export const roleLibrary = {
         "growth_marketing_manager"
       ],
       "similar_roles": [
-        "Product Marketer",
-        "Senior PMM"
+        "marketing_manager",
+        "growth_marketing_manager",
+        "product_manager"
       ],
       "not_to_confuse_with": [
         "Product Manager",
@@ -3296,16 +3500,20 @@ export const roleLibrary = {
         "value proposition",
         "PMM",
         "competitive intelligence"
-      ]
+      ],
+      "years_experience_typical": "4-9",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: marketing manager promotion, PM pivot to marketing, ex-consultants from McKinsey / BCG / Bain Israel offices, MBA graduates from Reichman / IDC. Stack patterns: HubSpot / Marketo, Salesforce, Notion for messaging frameworks, Highspot / Seismic for sales enablement, competitive intel platforms (Klue, Crayon). Hiring stage: critical role at B2B SaaS scale-ups and unicorns — monday.com, Wix, JFrog, Gong, HiBob, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Lemonade, Forter. Strong English communication for US-facing launches essential."
+      }
     },
     {
       "id": "content_marketing_manager",
       "standardized_title": "Content Marketing Manager",
       "alternate_titles": [
-        "Content Manager",
-        "Content Lead",
+        "Content Marketing Lead",
         "Senior Content Manager",
-        "Brand Content Manager"
+        "Editorial Manager"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -3365,8 +3573,9 @@ export const roleLibrary = {
         "marketing_manager"
       ],
       "similar_roles": [
-        "Content Lead",
-        "Senior Content Writer"
+        "seo_manager",
+        "marketing_manager",
+        "social_media_manager"
       ],
       "not_to_confuse_with": [
         "Product Marketing Manager",
@@ -3383,17 +3592,20 @@ export const roleLibrary = {
         "content strategy",
         "copywriting",
         "content calendar"
-      ]
+      ],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: journalism / communications pivots, technical writing backgrounds, former editors at Israeli tech publications (CTech, NoCamels, Globes English); some come from US content marketing teams. Stack patterns: WordPress / Webflow CMS, Ahrefs / Semrush / Clearscope for SEO, Notion / Google Docs for editorial workflow, Buffer / Hootsuite for distribution. Hiring stage: common at B2B SaaS and cyber companies investing in inbound — monday.com, Wix, JFrog, HiBob, Gong, AppsFlyer, Wiz, Check Point, CyberArk, Cybereason, Lemonade. Strong English writing is a hard requirement given target market."
+      }
     },
     {
       "id": "seo_manager",
       "standardized_title": "SEO Manager",
       "alternate_titles": [
         "SEO Lead",
-        "SEO Specialist",
-        "Head of SEO",
-        "Organic Growth Manager",
-        "SEO Team Lead"
+        "Senior SEO Manager",
+        "Organic Growth Manager"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -3451,8 +3663,9 @@ export const roleLibrary = {
         "vp_marketing"
       ],
       "similar_roles": [
-        "SEO Lead",
-        "Organic Growth Manager"
+        "content_marketing_manager",
+        "growth_marketing_manager",
+        "performance_marketing_manager"
       ],
       "not_to_confuse_with": [
         "Content Marketing Manager",
@@ -3470,16 +3683,20 @@ export const roleLibrary = {
         "Ahrefs",
         "crawl",
         "indexation"
-      ]
+      ],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: SEO specialists, content marketers pivoting to organic, technical SEO from web development. Stack patterns: Ahrefs + Semrush + Google Search Console + Screaming Frog; technical SEO work in Webflow / WordPress / custom CMS; Clearscope / Frase for content optimization. Hiring stage: common at scale-ups with strong inbound motion — Wix (which itself runs the largest SEO operation in Israel), monday.com, Fiverr, JFrog, HiBob, Lemonade, AppsFlyer. Programmatic SEO investment growing across B2B SaaS."
+      }
     },
     {
       "id": "social_media_manager",
       "standardized_title": "Social Media Manager",
       "alternate_titles": [
         "Social Media Lead",
-        "Community Manager",
-        "Social Content Manager",
-        "Digital Content Manager"
+        "Senior Social Media Manager",
+        "Community Manager"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -3538,8 +3755,9 @@ export const roleLibrary = {
         "growth_marketing_manager"
       ],
       "similar_roles": [
-        "Community Manager",
-        "Digital Content Manager"
+        "content_marketing_manager",
+        "brand_manager",
+        "marketing_manager"
       ],
       "not_to_confuse_with": [
         "Marketing Manager",
@@ -3556,19 +3774,23 @@ export const roleLibrary = {
         "engagement",
         "brand",
         "Canva"
-      ]
+      ],
+      "years_experience_typical": "2-5",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: promoted social media coordinator, content marketing pivot, or external hire with B2B / consumer social experience. Stack patterns: Hootsuite / Buffer / Sprout Social, Figma / Canva, platform-native analytics, increasingly AI tooling for content generation. Hiring stage: common across consumer-facing companies (Wix, Fiverr, Lemonade, Lightricks, Plarium, Playtika) and B2B SaaS investing in thought-leadership (monday.com, HiBob, Gong, AppsFlyer, Wiz). LinkedIn-heavy for B2B; Instagram / TikTok / X for consumer."
+      }
     },
     {
       "id": "head_of_marketing",
       "standardized_title": "Head of Marketing",
       "alternate_titles": [
-        "Marketing Lead",
         "Director of Marketing",
-        "VP Marketing (startup context)",
-        "Chief Marketing Officer (early stage)"
+        "VP Marketing (smaller orgs)",
+        "Senior Director of Marketing"
       ],
       "role_family": "Marketing",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Director_Head",
       "core_purpose": "Own the entire marketing function, defining strategy, building the team, and driving brand awareness, demand generation, and revenue-aligned growth.",
       "core_responsibilities": [
@@ -3624,8 +3846,9 @@ export const roleLibrary = {
         "chief_marketing_officer"
       ],
       "similar_roles": [
-        "Director of Marketing",
-        "VP Marketing (startup)"
+        "vp_marketing",
+        "head_of_product",
+        "vp_sales"
       ],
       "not_to_confuse_with": [
         "VP Marketing",
@@ -3642,18 +3865,23 @@ export const roleLibrary = {
         "KPIs",
         "head of marketing",
         "director"
-      ]
+      ],
+      "years_experience_typical": "10-15",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: senior marketing manager promotion, external Head of Marketing hire, or VP Marketing at an earlier-stage company. 2-3 prior cycles typical at scale-ups, unicorns, or US-headquartered companies. Stack patterns: cross-functional org leadership; HubSpot / Marketo + Salesforce; partnership with VP Sales / CRO on revenue alignment. Hiring stage: standard at scale-ups (Series B+); common at unicorns with VP Marketing above. Heavy at SaaS unicorns (monday.com, Wix, JFrog, Fiverr, Gong, HiBob, AppsFlyer, Lemonade) and at cyber companies investing in inbound (Check Point, CyberArk, SentinelOne)."
+      }
     },
     {
       "id": "vp_marketing",
       "standardized_title": "VP of Marketing",
       "alternate_titles": [
-        "Vice President of Marketing",
-        "VP Marketing",
-        "Chief Marketing Officer"
+        "VP of Marketing",
+        "Chief Marketing Officer",
+        "CMO"
       ],
       "role_family": "Marketing",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "VP_Executive",
       "core_purpose": "Lead the global marketing organization, owning brand, demand generation, product marketing, and growth to drive company-level revenue and market leadership.",
       "core_responsibilities": [
@@ -3710,8 +3938,9 @@ export const roleLibrary = {
         "ceo"
       ],
       "similar_roles": [
-        "Chief Marketing Officer",
-        "Global VP Marketing"
+        "head_of_marketing",
+        "vp_sales",
+        "head_of_product"
       ],
       "not_to_confuse_with": [
         "Head of Marketing",
@@ -3730,7 +3959,12 @@ export const roleLibrary = {
         "GTM",
         "scale",
         "global marketing"
-      ]
+      ],
+      "years_experience_typical": "12-20",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: head of marketing promotion or external VP / CMO hire from larger Israeli or US tech companies; 2-3 prior cycles common. Stack patterns: executive-level brand + GTM strategy; partnership with VP Sales / CRO on revenue model; board-level commercial reporting. Hiring stage: critical hire at scale-ups (Series C+) and unicorns. CMO title increasingly used at companies that want a peer to the CRO / CTO. Heavy at SaaS unicorns (monday.com, Wix, JFrog, Fiverr, Gong, HiBob, AppsFlyer, Lemonade), cyber (Check Point, CyberArk, SentinelOne, Wiz), and Israeli enterprises (Amdocs, NICE Systems, Cellebrite)."
+      }
     },
     {
       "id": "associate_product_manager",
@@ -3811,7 +4045,7 @@ export const roleLibrary = {
         "stakeholder collaboration"
       ],
       "market_notes": {
-        "israel": "Associate PM roles are relatively rare in Israeli startups — most companies prefer hiring PMs at the mid level with 3+ years of prior experience. APM programs exist primarily at unicorns and large scale-ups (monday.com, Wix, JFrog, Lemonade, AppsFlyer) and at the Israeli offices of US tech giants (Google, Meta, Microsoft, Apple). Common entry paths include MBA graduates from Reichman / IDC / Tel Aviv University, ex-consultants, engineers pivoting to product, and exceptionally strong analyst hires. Strong English communication and ability to navigate US time-zone product-marketing-sales triads is critical, since most Israeli startups sell internationally."
+        "israel": "Backgrounds: MBA graduates from Reichman / IDC / TAU / Wharton-TLV, ex-consultants from McKinsey / BCG / Bain Israel offices, engineers pivoting to product, designers pivoting to product, exceptionally strong analyst hires. Stack patterns: Jira / Figma / Mixpanel / Amplitude / SQL basics; product analytics tooling baseline; strong English + US time-zone availability essential. Hiring stage: relatively rare — most companies prefer mid-level PM hires with 3+ years prior experience. APM programs exist primarily at unicorns and large scale-ups (monday.com, Wix, JFrog, Lemonade, AppsFlyer) and Israeli offices of US tech giants (Google, Meta, Microsoft, Apple)."
       },
       "years_experience_typical": "0-2",
       "_research_method": "knowledge"
@@ -3902,7 +4136,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "6-9",
       "market_notes": {
-        "israel": "Senior PM is a common level at scale-ups (Series B+) and unicorns where product orgs are large enough to need senior IC track distinct from people management. Strong concentration at cyber (Wiz, CyberArk, SentinelOne, Check Point), SaaS (monday.com, JFrog, Gong, HiBob, AppsFlyer, Wix), AI (AI21 Labs, Run:ai, Aidoc), and FinTech (Lemonade, Payoneer, Forter). Senior PMs typically own one major product area or platform with 1-3 PMs sometimes reporting in (in a player-coach mode). Many senior PMs in Israel have 1-2 prior cycles at scale-ups and unicorns; some are ex-founders who chose to operate rather than build again."
+        "israel": "Backgrounds: PM promotion, external senior PM hire, or former founder operating rather than building. 1-2 prior cycles at scale-ups and unicorns common. Stack patterns: typical Israeli PM tooling (Jira / Figma / Mixpanel / Amplitude / SQL / Tableau) plus deeper customer-facing engagement and exec-level presentation; AI tooling fluency increasingly expected. Hiring stage: common at Series B+ scale-ups and unicorns where product orgs are large enough to need senior IC track distinct from people management. Strong concentration at cyber (Wiz, CyberArk, SentinelOne, Check Point), SaaS (monday.com, JFrog, Gong, HiBob, AppsFlyer, Wix), AI (AI21 Labs, Run:ai, Aidoc), and FinTech (Lemonade, Payoneer, Forter). Senior PMs typically own one major product area with 1-3 PMs sometimes reporting in (player-coach mode)."
       },
       "_research_method": "knowledge"
     },
@@ -3988,7 +4222,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "8-12",
       "market_notes": {
-        "israel": "Group Product Manager emerged as a distinct level at Israeli scale-ups over the past 5-7 years — fills the gap between Senior PM and Head of Product when product orgs grow to 8-15+ PMs. Common at large scale-ups and unicorns (monday.com, Wix, JFrog, Fiverr, Wiz, CyberArk, SentinelOne, AppsFlyer, Lemonade). Often owns a product area or product line with 2-4 PMs reporting in. The role increasingly includes people management responsibilities — performance reviews, hiring, career growth — alongside continued IC work on the most strategic product decisions."
+        "israel": "Backgrounds: senior PM promotion or external GPM hire; 8-12 years typical. Stack patterns: people management + IC product work on most-strategic decisions; same product tooling as senior PM plus Lattice / 1:1 cadence tooling. Hiring stage: distinct level at scale-ups since 2018-2020; fills the gap between Senior PM and Head of Product at orgs with 8-15+ PMs. Common at large scale-ups and unicorns (monday.com, Wix, JFrog, Fiverr, Wiz, CyberArk, SentinelOne, AppsFlyer, Lemonade). Usually owns a product area or product line with 2-4 PMs reporting in."
       },
       "_research_method": "knowledge"
     },
@@ -4075,7 +4309,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "5-9",
       "market_notes": {
-        "israel": "Product Operations is a relatively newer function in Israeli tech, emerging as scale-ups (Series C+) and unicorns built large product orgs that needed dedicated process and tools investment. Common at monday.com, Wix, JFrog, Wiz, CyberArk, SentinelOne, AppsFlyer, Lemonade, and at the Israeli offices of larger US companies. Often a single-person function (or 2-3 person team) that supports all PMs through better tools (Productboard, Aha, Pendo), repeatable processes (launch checklists, roadmap reviews), and centralized analytics. Career path often forks to head_of_product_ops, head_of_product, or director_product_operations."
+        "israel": "Backgrounds: PMs pivoting to ops, biz ops pivots, consulting backgrounds. Stack patterns: Productboard / Aha / Pendo for product tooling, Notion for documentation, Looker / Mode for centralized analytics, Lattice for team rituals. Hiring stage: newer function in Israeli tech, emerging at Series C+ and unicorns that built large product orgs needing dedicated process and tools investment. Common at monday.com, Wix, JFrog, Wiz, CyberArk, SentinelOne, AppsFlyer, Lemonade. Often a single-person function (or 2-3 person team) supporting all PMs. Career path forks to head_of_product_ops, head_of_product, or director_product_operations."
       },
       "_research_method": "knowledge"
     },
@@ -4164,7 +4398,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "12-18",
       "market_notes": {
-        "israel": "Head of Product / VP Product is a critical executive role at any product-led company past ~30 employees. Often the first product hire at very early stages (Seed) is a founding PM who eventually evolves into Head of Product. At scale-ups, the role is frequently filled by external senior hires from larger Israeli or US tech companies. Common career path includes 2-3 prior cycles at scale-ups (monday.com, Wix, JFrog, Wiz, CyberArk), unicorns, or US-headquartered companies. Strong overlap with founder profile — many Israeli VP Product hires have founded or co-founded earlier startups. Reporting line is typically to CEO; at companies with a CPO, Head of Product reports to CPO."
+        "israel": "Backgrounds: GPM promotion, external VP Product hire, or former founder pivoting. 2-3 prior cycles at scale-ups, unicorns, or US-headquartered companies common. Strong overlap with founder profile — many Israeli VP Product hires have founded or co-founded earlier startups. Stack patterns: executive-level product strategy work; less hands-on tooling, more board / customer / exec-team engagement. Hiring stage: critical executive role at any product-led company past ~30 employees. Often the first product hire at very early stages (Seed) — founding PM evolves into Head of Product as the org scales. At scale-ups frequently filled by external senior hires from larger Israeli or US tech companies. Reports to CEO typically; to CPO when that role exists."
       },
       "_research_method": "knowledge"
     },
@@ -4258,7 +4492,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "2-5",
       "market_notes": {
-        "israel": "Data Analyst is a common entry / mid-level role across Israeli tech — found at virtually every B2B and consumer scale-up. Heavy demand at consumer companies with rich behavioral data (Lightricks, Plarium, Playtika, Gett, Moovit), SaaS scale-ups (monday.com, Wix, Fiverr, HiBob, Gong), FinTech (Lemonade, Payoneer, eToro, Forter), and cyber (Wiz, Check Point, CyberArk, SentinelOne). Many Israeli data analysts come from industrial engineering or economics programs at Technion / TAU / Reichman / Hebrew University rather than from pure data science backgrounds. Common stack: SQL + dbt + Looker / Tableau / Mode; Python or R for deeper analyses; increasingly Snowflake / BigQuery as warehouses replace Postgres for analytics."
+        "israel": "Backgrounds: industrial engineering or economics programs at Technion / TAU / Reichman / Hebrew University; some pivot from consulting; engineers transitioning to analytics. Stack patterns: SQL + dbt + Looker / Tableau / Mode; Python or R for deeper analyses; increasingly Snowflake / BigQuery as warehouses replace Postgres for analytics. Hiring stage: common entry / mid-level role across the ecosystem — virtually every B2B and consumer scale-up. Heavy at consumer companies with rich behavioral data (Lightricks, Plarium, Playtika, Gett, Moovit), SaaS scale-ups (monday.com, Wix, Fiverr, HiBob, Gong), FinTech (Lemonade, Payoneer, eToro, Forter), and cyber (Wiz, Check Point, CyberArk, SentinelOne)."
       },
       "_research_method": "knowledge"
     },
@@ -4344,7 +4578,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "2-5",
       "market_notes": {
-        "israel": "Business Intelligence Analyst is most often found at larger companies (100+ employees) with structured executive reporting needs — common at monday.com, Wix, JFrog, Fiverr, Lemonade, Check Point, Amdocs, NICE Systems. At smaller scale-ups the function is usually folded into the data analyst or analytics engineer role. Common stack: Tableau or Looker dominates; Power BI mostly at the Israeli offices of Microsoft-aligned enterprises; SQL is universal; data modeling in dbt is increasingly expected for senior BI roles."
+        "israel": "Backgrounds: data analyst promotions, former analyst consulting, industrial engineering pivots. Stack patterns: Tableau or Looker dominates; Power BI mostly at Israeli offices of Microsoft-aligned enterprises; SQL universal; data modeling in dbt increasingly expected for senior BI roles. Hiring stage: most often at larger companies (100+ employees) with structured executive reporting needs — monday.com, Wix, JFrog, Fiverr, Lemonade, Check Point, Amdocs, NICE Systems. At smaller scale-ups the function is usually folded into the data analyst or analytics engineer role."
       },
       "_research_method": "knowledge"
     },
@@ -4433,7 +4667,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "3-6",
       "market_notes": {
-        "israel": "Analytics Engineering emerged as a distinct discipline in Israeli tech around 2020-2022, driven by the rise of dbt + modern data stack (Snowflake / BigQuery + Fivetran / Airbyte + dbt + Looker / Mode). Common at SaaS scale-ups with strong data culture (monday.com, Wix, JFrog, Fiverr, Gong, HiBob), FinTech (Lemonade, Forter, Tipalti, Payoneer, eToro), and at AI / consumer companies (Lightricks, Playtika, Plarium). Many analytics engineers transition from data analyst or data engineer roles; the discipline sits at the intersection. Stack is highly converged around dbt + Snowflake / BigQuery."
+        "israel": "Backgrounds: data analyst pivots to engineering, data engineer pivots to modeling, former SWEs with data interest. The discipline sits at the intersection of analytics and data engineering. Stack patterns: highly converged on dbt + Snowflake / BigQuery; Fivetran / Airbyte for ingestion; Looker / Mode for serving; some use of Python for testing and orchestration. Hiring stage: emerged as a distinct discipline in Israeli tech around 2020-2022, driven by dbt + modern data stack adoption. Common at SaaS scale-ups with strong data culture (monday.com, Wix, JFrog, Fiverr, Gong, HiBob), FinTech (Lemonade, Forter, Tipalti, Payoneer, eToro), and AI / consumer companies (Lightricks, Playtika, Plarium)."
       },
       "_research_method": "knowledge"
     },
@@ -4529,7 +4763,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "3-7",
       "market_notes": {
-        "israel": "Data Engineering is one of the highest-demand roles in Israeli tech given the data-heavy nature of cyber, AI, FinTech, and consumer SaaS. Heavy employer base at cyber (Wiz, Check Point, CyberArk, SentinelOne, Cyera, BigID, Cybereason, Aqua Security), SaaS (monday.com, Wix, JFrog, Fiverr, Gong, HiBob, AppsFlyer), FinTech (Lemonade, Payoneer, eToro, Forter, Tipalti, Pagaya), and AI scale-ups (Run:ai, AI21, Hailo, Verbit, Lightricks). Stack is generally Snowflake or BigQuery for warehouse, Airflow / Dagster / Prefect for orchestration, dbt for transformation, Kafka for streaming, Spark for big-data workloads. Many data engineers transition from software engineering with growing demand from MLOps and platform engineering teams."
+        "israel": "Backgrounds: SWE pivots to data; Unit 8200 data unit alumni; former backend engineers. 3-7 years typical. Stack patterns: Snowflake or BigQuery for warehouse; Airflow / Dagster / Prefect for orchestration; dbt for transformation; Kafka for streaming; Spark for big-data workloads. Hiring stage: one of the highest-demand roles given data-heavy nature of cyber, AI, FinTech, and consumer SaaS. Heavy at cyber (Wiz, Check Point, CyberArk, SentinelOne, Cyera, BigID, Cybereason, Aqua Security), SaaS (monday.com, Wix, JFrog, Fiverr, Gong, HiBob, AppsFlyer), FinTech (Lemonade, Payoneer, eToro, Forter, Tipalti, Pagaya), and AI scale-ups (Run:ai, AI21, Hailo, Verbit, Lightricks). Many data engineers transition from software engineering, with growing demand from MLOps and platform teams."
       },
       "_research_method": "knowledge"
     },
@@ -4621,7 +4855,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "3-7",
       "market_notes": {
-        "israel": "Data Scientist roles in Israeli tech split into two distinct flavors — applied / business-oriented (closer to product analyst with statistical modeling capability) and ML / research-oriented (closer to AI Engineer / Applied Researcher). Heavy demand at AI-native companies (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One), consumer companies with rich behavioral data (Lightricks, Plarium, Playtika, Gett), B2B SaaS with strong product analytics (monday.com, Wix, Gong, Fiverr), FinTech (Lemonade, Forter, Pagaya, eToro, Tipalti), and at the Israeli AI / research labs of major tech companies (NVIDIA Israel, Intel AI, Microsoft Research Israel, IBM Research Israel). Common backgrounds: PhDs in statistics, economics, physics, or computer science from Israeli universities or international programs."
+        "israel": "Backgrounds: PhDs in statistics, economics, physics, or computer science from Israeli universities or international programs. Splits into applied / business-oriented (closer to product analyst with statistical modeling) and ML / research-oriented (closer to AI Engineer / Applied Researcher). Stack patterns: Python / R / SQL universal; PyTorch / scikit-learn / statsmodels; experiment platforms; causal inference toolkits where relevant. Hiring stage: heavy demand at AI-native companies (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One), consumer companies with rich behavioral data (Lightricks, Plarium, Playtika, Gett), B2B SaaS with strong product analytics (monday.com, Wix, Gong, Fiverr), FinTech (Lemonade, Forter, Pagaya, eToro, Tipalti), and Israeli AI / research labs (NVIDIA Israel, Intel AI, Microsoft Research Israel, IBM Research Israel)."
       },
       "_research_method": "knowledge"
     },
@@ -4710,7 +4944,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "5-9",
       "market_notes": {
-        "israel": "Senior Data Analyst is the most common senior IC analytics role in Israeli tech — sits between mid-level analyst and head_of_data. Heavy concentration at scale-ups and unicorns with mature analytics functions: monday.com, Wix, JFrog, Fiverr, Lemonade, Gong, HiBob, AppsFlyer, Wiz, Check Point. The role typically leads cross-functional analytics initiatives, owns critical business reviews, and mentors mid-level analysts. Often paired with PM or business leaders as a partnership rather than working horizontally."
+        "israel": "Backgrounds: data analyst promotion, consulting-to-industry, former data scientist pivot to broader analytics. 5-9 years typical. Stack patterns: same canonical analytics tooling (SQL + dbt + Looker / Tableau / Mode + Python) plus cross-functional partnership skills and executive presentation. Hiring stage: most common senior IC analytics role — sits between mid-level analyst and head_of_data. Heavy concentration at scale-ups and unicorns with mature analytics functions: monday.com, Wix, JFrog, Fiverr, Lemonade, Gong, HiBob, AppsFlyer, Wiz, Check Point. The role typically leads cross-functional analytics initiatives, owns critical business reviews, and mentors mid-level analysts."
       },
       "_research_method": "knowledge"
     },
@@ -4802,7 +5036,7 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "10-15",
       "market_notes": {
-        "israel": "Head of Data is a critical role at any data-driven Israeli company past ~50 employees — owns analytics, data engineering, and often early-stage data science / ML. Heavy concentration at scale-ups and unicorns: monday.com, Wix, JFrog, Fiverr, Lemonade, Gong, HiBob, AppsFlyer, Wiz, CyberArk, SentinelOne, Lightricks. The role frequently reports to CTO or VP Engineering at early stages, sometimes directly to CEO at data-product companies (Lemonade, Forter, Pagaya, Riskified, Tipalti). Many Israeli Head of Data hires have done 2-3 prior cycles and bring both technical depth and executive credibility — increasingly common to see candidates with PhDs plus production leadership experience."
+        "israel": "Backgrounds: data scientist leadership track, analytics director promotion, external Head of Data hire; increasingly common to see candidates with PhDs plus production leadership experience. 10-15 years typical. Stack patterns: org-level data strategy; vendor evaluation across warehouse / ETL / BI stacks; budget ownership; cross-team partnerships with engineering and product leadership. Hiring stage: critical role at any data-driven company past ~50 employees. Heavy at scale-ups and unicorns: monday.com, Wix, JFrog, Fiverr, Lemonade, Gong, HiBob, AppsFlyer, Wiz, CyberArk, SentinelOne, Lightricks. Reports to CTO or VP Engineering at early stages, sometimes directly to CEO at data-product companies (Lemonade, Forter, Pagaya, Riskified, Tipalti)."
       },
       "_research_method": "knowledge"
     },
@@ -6010,7 +6244,7 @@ export const roleLibrary = {
       "id": "revops_analyst",
       "standardized_title": "Revenue Operations Analyst",
       "role_family": "RevOps_BizOps",
-      "secondary_family": null,
+      "secondary_family": "Data",
       "seniority": "Mid",
       "core_purpose": "Supports the revenue operations function by maintaining CRM data hygiene, building dashboards, managing lead routing, and ensuring data accuracy across the sales funnel. Acts as the operational backbone for GTM teams by identifying bottlenecks and implementing automated workflows.",
       "core_responsibilities": [
@@ -6022,8 +6256,17 @@ export const roleLibrary = {
         "Support lead routing and database hygiene as the single source of truth",
         "Drive team adoption of tools and processes through training sessions and documentation"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "sql",
+        "revenue_operations",
+        "revops_crm_administration",
+        "data_visualization_design",
+        "analytical_thinking"
+      ],
+      "preferred_skills": [
+        "sales_forecasting",
+        "cross_functional_collaboration"
+      ],
       "tools": [
         "Salesforce / HubSpot",
         "Excel / Google Sheets",
@@ -6034,8 +6277,19 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "1-3",
       "market_notes": {
-        "israel": "Growing demand in Israeli SaaS companies. Many entry-level RevOps roles are titled 'Sales Operations Analyst' or 'GTM Operations Analyst.' Salesforce and HubSpot admin skills are table stakes. SQL is increasingly expected even at junior levels."
-      }
+        "israel": "Backgrounds: revenue analyst promotion, ex-consultants pivoting to operations, sometimes senior data analysts with commercial specialization. Stack patterns: Salesforce + Looker / Mode + Clari / Boostup + CPQ (DealHub, Salesforce CPQ) + LeanData / Default + Outreach / Salesloft for cadence operations. Hiring stage: common at B2B SaaS scale-ups and unicorns — monday.com, JFrog, Gong, HiBob, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Forter, Tipalti, Lemonade, Payoneer."
+      },
+      "alternate_titles": [
+        "Senior Revenue Operations Analyst",
+        "RevOps Analyst",
+        "GTM Analyst"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "revenue_analyst",
+        "business_analyst",
+        "revops_manager"
+      ]
     },
     {
       "id": "revops_manager",
@@ -6055,8 +6309,18 @@ export const roleLibrary = {
         "Train and enable teams on implemented processes and tools",
         "Collaborate with stakeholders to review current processes and propose enhancements"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "revenue_operations",
+        "revops_crm_administration",
+        "people_management",
+        "process_design",
+        "analytical_thinking"
+      ],
+      "preferred_skills": [
+        "sales_forecasting",
+        "cross_functional_collaboration",
+        "stakeholder_management"
+      ],
       "tools": [
         "Salesforce / HubSpot",
         "CPQ tools",
@@ -6068,14 +6332,25 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "3-6",
       "market_notes": {
-        "israel": "High demand across Israeli B2B SaaS companies, especially in growth-stage startups. Role often combines Sales Ops and Marketing Ops under one umbrella. Salesforce expertise and AI-driven process implementation (AI agents, automation workflows) are increasingly listed as advantages. Companies like Cato Networks, Appcharge, and Base44 actively hire for this role in Israel."
-      }
+        "israel": "Backgrounds: revops analyst promotion, sales ops manager promotion, ex-consultants with deep commercial specialization. Stack patterns: Salesforce administration + CPQ + LeanData / Default + Outreach / Salesloft + Clari / Boostup + Looker / Mode dashboards. Hiring stage: standard at scale-ups and unicorns — monday.com, JFrog, Gong, HiBob, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Forter, Tipalti, Lemonade, Payoneer. Often manages 3-5 RevOps analysts plus Salesforce admins."
+      },
+      "alternate_titles": [
+        "Senior Revenue Operations Manager",
+        "RevOps Manager",
+        "Head of Sales Ops"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "sales_operations_manager",
+        "business_ops_manager",
+        "head_of_revops"
+      ]
     },
     {
       "id": "head_of_revops",
       "standardized_title": "Head of Revenue Operations / Senior RevOps Manager",
       "role_family": "RevOps_BizOps",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Director_Head",
       "core_purpose": "Leads the entire revenue operations function, owning the processes, data infrastructure, and insights that enable commercial teams to scale efficiently. Partners with revenue leadership on quarterly planning, headcount modeling, KPIs, and board-level reporting. Ensures operational predictability across the full customer lifecycle.",
       "core_responsibilities": [
@@ -6089,8 +6364,18 @@ export const roleLibrary = {
         "Ensure cross-functional alignment between Sales, Marketing, CS, Product, and Finance",
         "Design compensation and incentive structures in partnership with Finance and HR"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "revenue_operations",
+        "organizational_design",
+        "people_management",
+        "executive_presentation",
+        "process_design"
+      ],
+      "preferred_skills": [
+        "sales_forecasting",
+        "stakeholder_management",
+        "board_management"
+      ],
       "tools": [
         "Salesforce (advanced administration)",
         "BI tools (Tableau, Looker, Power BI)",
@@ -6102,14 +6387,25 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "6-10",
       "market_notes": {
-        "israel": "Found in growth-stage and late-stage Israeli tech companies. Some companies use 'Director of RevOps' or 'VP RevOps' depending on company size. The role increasingly requires AI fluency and experience implementing AI-driven workflows. Strong commercial acumen and ability to partner with C-suite are differentiators."
-      }
+        "israel": "Backgrounds: revops manager promotion, sales ops director promotion, ex-consultants with deep commercial specialization. Stack patterns: org-level RevOps strategy; comp plan design; territory planning; forecasting infrastructure; tech stack ownership across Salesforce / Clari / Outreach / Gong / LeanData. Hiring stage: standard at scale-ups (Series C+) and unicorns where commercial complexity demands dedicated executive RevOps leadership — monday.com, JFrog, Wiz, Check Point, CyberArk, SentinelOne, AppsFlyer, Gong, HiBob, Forter, Tipalti, Lemonade. Reports to CRO, VP Sales, or COO."
+      },
+      "alternate_titles": [
+        "VP Revenue Operations",
+        "Head of RevOps",
+        "Director of Revenue Operations"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "revops_manager",
+        "vp_operations",
+        "vp_sales"
+      ]
     },
     {
       "id": "business_analyst",
       "standardized_title": "Business Analyst",
       "role_family": "RevOps_BizOps",
-      "secondary_family": null,
+      "secondary_family": "Data",
       "seniority": "Mid",
       "core_purpose": "Transforms data into actionable insights by analyzing business performance, building dashboards, and collaborating with stakeholders to support data-driven decision-making. May specialize in Salesforce business analysis, financial modeling, or operational analytics depending on the company.",
       "core_responsibilities": [
@@ -6122,8 +6418,17 @@ export const roleLibrary = {
         "Support user acceptance testing and rollout of new tools or processes",
         "Translate business requirements into technical designs for CRM and internal systems"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "sql",
+        "data_visualization_design",
+        "analytical_thinking",
+        "stakeholder_management",
+        "business_understanding"
+      ],
+      "preferred_skills": [
+        "financial_modeling",
+        "cross_functional_collaboration"
+      ],
       "tools": [
         "Excel / Google Sheets (advanced)",
         "Power BI / Tableau / Looker",
@@ -6135,14 +6440,25 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "1-4",
       "market_notes": {
-        "israel": "Very common across Israeli tech — from fintechs (Nayax, Plus500) to gaming (Papaya, Playtika) to ad-tech. Two flavors dominate: (1) Salesforce Business Analyst focused on CRM processes and (2) Business Data Analyst focused on dashboards and reporting. SQL and BI tools are increasingly must-haves rather than nice-to-haves. Many listings accept fresh graduates with 1-2 years experience."
-      }
+        "israel": "Backgrounds: industrial engineering, economics, or finance graduates; ex-consultants from McKinsey / BCG / Bain Israel offices. Stack patterns: SQL + Excel / Sheets financial modeling + Looker / Mode + Salesforce + Notion for documentation. Hiring stage: common at scale-ups and unicorns with mature business operations — monday.com, Wix, JFrog, Lemonade, Payoneer, AppsFlyer, HiBob, Forter, Tipalti, Wiz, Check Point. Often a generalist business problem-solver supporting multiple functions."
+      },
+      "alternate_titles": [
+        "Senior Business Analyst",
+        "BizOps Analyst",
+        "Business Operations Analyst"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "business_ops_analyst",
+        "revops_analyst",
+        "operations_analyst"
+      ]
     },
     {
       "id": "business_ops_analyst",
       "standardized_title": "Business Operations Analyst",
       "role_family": "RevOps_BizOps",
-      "secondary_family": null,
+      "secondary_family": "Data",
       "seniority": "Mid",
       "core_purpose": "Supports the business operations function by handling day-to-day operational tasks, streamlining processes, and collaborating across teams. Focuses on invoicing, contract management, revenue tracking, and building automation to improve operational efficiency.",
       "core_responsibilities": [
@@ -6155,8 +6471,17 @@ export const roleLibrary = {
         "Support data tracking and reporting for operational KPIs",
         "Identify and address process gaps and underperformance"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "sql",
+        "data_visualization_design",
+        "analytical_thinking",
+        "stakeholder_management",
+        "business_understanding"
+      ],
+      "preferred_skills": [
+        "financial_modeling",
+        "cross_functional_collaboration"
+      ],
       "tools": [
         "Excel / Google Sheets (advanced)",
         "ERP systems",
@@ -6167,8 +6492,19 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "1-3",
       "market_notes": {
-        "israel": "Common in scaling fintech and SaaS companies. Often the first operations hire in a growing startup. Requires strong Excel skills and attention to detail. Companies like Candex hire for this role with 2 years experience. A good entry point for business graduates who want to move into operations leadership."
-      }
+        "israel": "Backgrounds: ex-consultants pivoting to in-house operations, former finance / strategy analysts, industrial engineering graduates. Stack patterns: heavy SQL + Excel modeling + Looker / Mode + Salesforce + Notion. Hiring stage: common at scale-ups with chief-of-staff-style functions — monday.com, JFrog, Wix, HiBob, Gong, AppsFlyer, Wiz, Lemonade. Reports typically to head of business operations, chief of staff, or CFO at smaller companies."
+      },
+      "alternate_titles": [
+        "BizOps Analyst",
+        "Senior Business Operations Analyst",
+        "Strategy Analyst"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "business_analyst",
+        "revops_analyst",
+        "operations_analyst"
+      ]
     },
     {
       "id": "business_ops_manager",
@@ -6187,8 +6523,17 @@ export const roleLibrary = {
         "Coordinate across departments to identify and implement process improvements",
         "Track operational KPIs and provide data-driven insights to leadership"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "people_management",
+        "process_design",
+        "stakeholder_management",
+        "analytical_thinking",
+        "business_understanding"
+      ],
+      "preferred_skills": [
+        "financial_modeling",
+        "cross_functional_collaboration"
+      ],
       "tools": [
         "Monday.com / Asana / Jira",
         "Excel / Google Sheets",
@@ -6200,8 +6545,19 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "3-6",
       "market_notes": {
-        "israel": "Found across Israeli tech companies from early-stage to scale-ups. Role scope varies significantly by company size — in smaller startups it can be a jack-of-all-trades role, while in larger companies it focuses on specific operational domains. Experience with OKR frameworks and cross-functional program management is increasingly expected. Companies like Daisy hire at the junior end (1-2 years) while others expect 3+ years."
-      }
+        "israel": "Backgrounds: business analyst promotion, ex-consultants with operational focus, chief-of-staff alumni. Stack patterns: heavy Notion + Looker + Salesforce + Excel + cross-functional project management. Hiring stage: common at scale-ups and unicorns with mature business operations — monday.com, JFrog, Wix, HiBob, Gong, AppsFlyer, Wiz, Lemonade, Forter. Reports to head of operations, CFO, or COO depending on org structure."
+      },
+      "alternate_titles": [
+        "BizOps Manager",
+        "Senior Business Operations Manager",
+        "Strategy & Operations Manager"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "revops_manager",
+        "strategy_ops_manager",
+        "chief_of_staff"
+      ]
     },
     {
       "id": "strategy_ops_manager",
@@ -6220,8 +6576,17 @@ export const roleLibrary = {
         "Define KPIs, track performance, and provide data-driven insights to leadership",
         "Support M&A analysis including target identification, valuation modeling, and integration planning"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "analytical_thinking",
+        "business_understanding",
+        "stakeholder_management",
+        "executive_presentation",
+        "process_design"
+      ],
+      "preferred_skills": [
+        "financial_modeling",
+        "competitive_analysis_product"
+      ],
       "tools": [
         "Excel / Google Sheets (advanced financial modeling)",
         "PowerPoint / Google Slides",
@@ -6233,14 +6598,25 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "4-8",
       "market_notes": {
-        "israel": "Common in growth-stage Israeli tech companies. Often filled by ex-consultants (McKinsey, BCG, Bain, Deloitte) or ex-investment banking professionals. Companies like Mindspace and Plus500 hire for this role. Strong financial modeling and business case development skills are differentiators. The role frequently evolves into a Chief of Staff position."
-      }
+        "israel": "Backgrounds: ex-consultants from McKinsey / BCG / Bain Israel offices, MBA graduates with strategy focus, business ops promotion. Stack patterns: heavy Excel financial modeling + Notion / Confluence + Looker / Mode + executive-level deck creation. Hiring stage: most common at unicorns and mature scale-ups with executive-strategy-team functions — monday.com, JFrog, Wix, Wiz, Check Point, CyberArk, SentinelOne, Lemonade, AppsFlyer. Reports to COO, CFO, or CEO depending on the org structure."
+      },
+      "alternate_titles": [
+        "Strategy Manager",
+        "Senior Strategy Manager",
+        "Strategy & Operations Manager"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "business_ops_manager",
+        "chief_of_staff",
+        "revops_manager"
+      ]
     },
     {
       "id": "chief_of_staff",
       "standardized_title": "Chief of Staff",
       "role_family": "RevOps_BizOps",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Senior",
       "core_purpose": "Serves as a strategic execution partner and force multiplier for the CEO or C-suite executive. Drives clarity, alignment, and accountability across the leadership team. Translates strategy into action, anticipates issues, resolves misalignment, and ensures momentum on high-priority initiatives. A highly visible role with direct exposure to company-shaping decisions.",
       "core_responsibilities": [
@@ -6254,8 +6630,17 @@ export const roleLibrary = {
         "Support annual and quarterly planning processes to drive focus and alignment",
         "Step in as an operator to unblock progress and ensure follow-through"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "executive_presentation",
+        "stakeholder_management",
+        "analytical_thinking",
+        "business_understanding",
+        "people_management"
+      ],
+      "preferred_skills": [
+        "organizational_design",
+        "executive_relationships"
+      ],
       "tools": [
         "PowerPoint / Google Slides",
         "Excel / Google Sheets (advanced)",
@@ -6267,14 +6652,25 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "5-10",
       "market_notes": {
-        "israel": "Rapidly growing role in Israeli tech, especially in scale-ups and growth-stage companies. Companies like Hello Heart, Atera, MazeBolt, and Mindspace actively hire Chiefs of Staff in Tel Aviv. Most require 5-8+ years of experience. Management consulting or investment banking background is strongly preferred (McKinsey, BCG, Bain, TASC). MBA is often required or strongly preferred. AI fluency is becoming a must-have. The role typically requires non-standard hours to align with US-based executives and 20-40% international travel."
-      }
+        "israel": "Backgrounds: ex-consultants from McKinsey / BCG / Bain Israel, former founders, senior business operations professionals. Stack patterns: executive-level communication and orchestration; lighter on specific tooling; heavy cross-functional facilitation. Hiring stage: most common at scale-ups (Series C+) and unicorns where the CEO or CTO needs dedicated operational and strategic leverage — Wiz, Check Point, monday.com, JFrog, Lemonade, AI21 Labs, Aidoc. Often a stepping stone to a more substantive operational role (VP Operations, VP People, BD leadership) or a path back to founding."
+      },
+      "alternate_titles": [
+        "Senior Chief of Staff",
+        "Chief of Staff to CEO",
+        "Chief of Staff to CTO"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "strategy_ops_manager",
+        "business_ops_manager",
+        "vp_operations"
+      ]
     },
     {
       "id": "vp_operations",
       "standardized_title": "VP / Head of Operations",
       "role_family": "RevOps_BizOps",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "VP_Executive",
       "core_purpose": "Leads the company's global operations including service delivery, customer lifecycle management, and operational excellence. Builds scalable, tech-enabled processes that support growth across regions. Manages offshore and distributed teams, defines KPIs and performance frameworks, and partners with Product and Engineering to shape the platform roadmap.",
       "core_responsibilities": [
@@ -6289,8 +6685,18 @@ export const roleLibrary = {
         "Recruit, develop, and inspire high-performing teams across operations and customer success",
         "Lead introduction of new tools, systems, and AI capabilities for operational efficiency"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "executive_leadership",
+        "organizational_design",
+        "people_management",
+        "process_design",
+        "stakeholder_management"
+      ],
+      "preferred_skills": [
+        "financial_modeling",
+        "executive_presentation",
+        "board_management"
+      ],
       "tools": [
         "CRM platforms (Salesforce, HubSpot)",
         "ERP systems",
@@ -6302,8 +6708,19 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "8-15",
       "market_notes": {
-        "israel": "Found in established Israeli tech companies with global operations. Companies like Ship4wd and Helfy hire for this role. Often requires experience managing offshore teams (Philippines, Eastern Europe, India) and comfort operating across time zones. Deep domain expertise (logistics, fintech, SaaS) is usually required. MBA is often preferred. The role increasingly requires experience with tech-enabled operations and AI-driven process improvement."
-      }
+        "israel": "Backgrounds: senior operations leader promotion, ex-COO at smaller companies, ex-consultants at the partner level pivoting to in-house leadership. Stack patterns: executive-level operational strategy; heavy cross-functional orchestration; people / process / systems alignment at scale. Hiring stage: typically at unicorns and mature companies with substantial operational complexity — Amdocs, NICE Systems, Cellebrite, Check Point, CyberArk, monday.com, Wix, JFrog, Lemonade. Often a peer to the CFO and CRO; reports to CEO."
+      },
+      "alternate_titles": [
+        "VP of Operations",
+        "Chief Operating Officer",
+        "COO"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "chief_of_staff",
+        "head_of_revops",
+        "vp_finance_cfo"
+      ]
     },
     {
       "id": "junior_software_engineer",
@@ -6330,7 +6747,7 @@ export const roleLibrary = {
         "agile_methodology"
       ],
       "market_notes": {
-        "israel": "Entry-level hiring in Israeli tech is highly competitive — Unit 8200 / 81 / Mamram graduates dominate the talent pool, supplemented by Technion / Tel Aviv University / Reichman / IDC computer science graduates and increasingly bootcamp grads (ITC, Elevation). Most Junior SWE roles are at scale-ups and unicorns that have the bandwidth to train; small startups under 30 engineers usually skip this level. Backend-first hiring is common (Python or Node.js / TypeScript dominant), with full-stack expected at smaller orgs. Cybersecurity (Wiz, Check Point, CyberArk, SentinelOne), SaaS (monday.com, Wix, JFrog, Fiverr), and FinTech (Lemonade, Payoneer, eToro) are the largest employer segments. Many roles list 'army experience' as a soft preference and value team-fit + learning velocity over deep technical depth at this level."
+        "israel": "Backgrounds: Unit 8200 / 81 / Mamram graduates, supplemented by CS programs (Technion / TAU / Reichman / IDC / Hebrew University) and increasingly bootcamp grads (ITC, Elevation). Army experience is a soft preference at most companies. Stack patterns: Python or Node.js / TypeScript dominant for backend; AWS-heavy cloud; PostgreSQL + Redis common; Docker baseline. Hiring stage: most common at scale-ups and unicorns that have bandwidth to train (monday.com, JFrog, Wix, Lemonade, AppsFlyer); smaller startups under ~30 engineers usually skip this level. Cyber (Wiz, Check Point, CyberArk, SentinelOne), SaaS, and FinTech form the largest employer segments. Team-fit and learning velocity weigh more than depth at this level."
       },
       "alternate_titles": [
         "Entry-Level Software Engineer",
@@ -6490,7 +6907,7 @@ export const roleLibrary = {
         "full-stack"
       ],
       "market_notes": {
-        "israel": "Core hiring target across Israeli startups and scale-ups. Mid-level typically means 3-5 years of experience, with the lower end (2-4 years) common at Seed/Series A startups and the higher end (4-7 years) common at scale-ups and unicorns. Python and Node.js/TypeScript dominate the backend stack in Tel Aviv; Go and Rust are growing especially in infrastructure-heavy cyber and AI companies. Strong backend capability is the baseline, with frontend skills often expected to varying degrees depending on team size — full-stack is common at smaller startups, more specialized at scale-ups. The employer base spans cybersecurity (Wiz, Check Point, CyberArk, SentinelOne, Cato Networks), SaaS (Wix, monday.com, JFrog, Fiverr), AI (AI21 Labs, Aidoc, Run:ai), and consumer/fintech (Lemonade, Payoneer, eToro) — with cyber alone employing thousands of engineers across Tel Aviv and Herzliya. Microservices and cloud-native architecture (AWS dominant, GCP secondary) are a baseline expectation. Unit 8200 and other elite IDF tech units provide a significant talent pipeline alongside computer science programs at Technion, Reichman, IDC, and Tel Aviv University."
+        "israel": "Backgrounds: CS graduates and elite IDF tech-unit alumni (Unit 8200, 81, Mamram) dominate; some bootcamp alumni reach this level after 2-3 years. Stack patterns: Python and Node.js / TypeScript dominate backend in Tel Aviv; Go and Rust growing in infrastructure-heavy cyber and AI; microservices on AWS (GCP secondary) is the baseline architecture; full-stack capability common at smaller orgs, more specialized at scale-ups. Hiring stage: core hiring target across every stage and sector. Cyber (Wiz, Check Point, CyberArk, SentinelOne, Cato Networks), SaaS (Wix, monday.com, JFrog, Fiverr), AI (AI21 Labs, Aidoc, Run:ai), and consumer/FinTech (Lemonade, Payoneer, eToro) are the largest employer segments. 3-5 years experience typical; lower end at Seed/Series A, higher end at scale-ups."
       },
       "_research_method": "web_search"
     },
@@ -6523,7 +6940,7 @@ export const roleLibrary = {
         "ci_cd"
       ],
       "market_notes": {
-        "israel": "The most common senior IC level in Israeli tech — represents the technical backbone of most engineering orgs. Salary bands have tightened post-2024 across SaaS and cyber but remain strong relative to other Israeli professions. Companies routinely hire senior SWEs after 5-8 years total experience, with 8200 / 81 grads sometimes reaching this level by 4-5 years given accelerated growth in elite units. Stack reality: Python and Node.js / TypeScript dominate, with Go and Rust appearing more in cyber infrastructure (Wiz, Aqua Security, Orca) and AI (Hailo, AI21 Labs). Heavy employers include cyber (Wiz, Check Point, CyberArk, SentinelOne, Cato Networks), SaaS (monday.com, Wix, JFrog, Fiverr, Gong, HiBob), FinTech (Lemonade, Payoneer, eToro, Forter), and AI scale-ups (Run:ai, AI21, Aidoc). Senior SWE → staff vs management is a deliberate career fork at most companies; many engineers do tech_lead as a stepping stone to either."
+        "israel": "Backgrounds: 5-8 years total experience typical, with 8200 / 81 alumni sometimes reaching this level by 4-5 years given accelerated growth in elite units. Promotion from mid-level SWE is common; external senior hires also frequent. Stack patterns: Python and Node.js / TypeScript dominant, with Go and Rust appearing more in cyber infrastructure (Wiz, Aqua Security, Orca) and AI (Hailo, AI21 Labs); production reliability work, on-call leadership, and post-mortem facilitation expected. Hiring stage: the most common senior IC level — represents the technical backbone of most engineering orgs. Heavy presence at cyber, SaaS (monday.com, Wix, JFrog, Fiverr, Gong, HiBob), FinTech (Lemonade, Payoneer, eToro, Forter), and AI scale-ups (Run:ai, AI21, Aidoc). Senior → staff vs management is a deliberate career fork; tech_lead often a stepping stone."
       },
       "alternate_titles": [
         "Senior Backend Engineer",
@@ -6618,7 +7035,7 @@ export const roleLibrary = {
         "cross_functional_collaboration"
       ],
       "market_notes": {
-        "israel": "Staff / Principal levels exist primarily at scale-ups (Series C+) and unicorns where engineering orgs are large enough (50+ engineers) to need senior IC leadership distinct from people management. Heavy concentration at Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, AppsFlyer, and the major Israeli-headquartered tech companies. Smaller startups often skip this level entirely — top senior engineers become tech_lead or EM directly. Staff-level engineers are often hired externally with 10+ years experience, though internal promotion from senior_software_engineer is also common at the larger orgs. Cyber companies in particular have strong staff IC ladders given the technical depth required for cloud / runtime / SASE platforms."
+        "israel": "Backgrounds: 10+ years experience typical; often external hire with multiple prior cycles, or internal promotion from senior IC with deep specialization. Some are former EMs returning to IC. Stack patterns: heavy depth in distributed systems, performance, and platform-level concerns; multi-team architecture work; influences technical strategy without people management. Hiring stage: exists primarily at Series C+ scale-ups and unicorns where engineering orgs are large enough (50+ engineers) to need senior IC leadership distinct from people management. Concentrated at Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, AppsFlyer, and other major Israeli-headquartered tech companies. Smaller startups often skip this level — top senior engineers become tech_lead or EM directly. Cyber companies in particular have strong staff IC ladders given cloud/runtime/SASE platform depth."
       },
       "alternate_titles": [
         "Principal Engineer",
@@ -6710,7 +7127,7 @@ export const roleLibrary = {
         "hiring_talent_acquisition"
       ],
       "market_notes": {
-        "israel": "Tech lead is one of the most common 'lead' positions in Israeli engineering, especially at companies that prefer flat structures or want senior ICs to manage technical scope without people-management overhead. Many Israeli scale-ups deliberately keep tech_lead and engineering_manager as parallel tracks rather than one above the other. Common at cyber companies (Wiz, Cato Networks, Aqua Security), SaaS (monday.com, JFrog, Gong, Cloudinary), FinTech (Forter, Payoneer, eToro), and AI (Run:ai, Hailo). At smaller startups (Seed to Series B), one person often fills both tech_lead AND engineering_manager responsibilities for a team of 3-6 engineers."
+        "israel": "Backgrounds: promoted from senior_software_engineer in most cases; sometimes external hire. 8200 alumni over-represented at scale-ups. Stack patterns: hands-on coding (typically 30-50% IC time) alongside team leadership and architectural ownership. Hiring stage: one of the most common 'lead' positions in Israeli engineering, especially at companies preferring flat structures or wanting senior ICs to manage scope without people-management overhead. Common at cyber (Wiz, Cato Networks, Aqua Security), SaaS (monday.com, JFrog, Gong, Cloudinary), FinTech (Forter, Payoneer, eToro), and AI (Run:ai, Hailo). At smaller startups (Seed-Series B), one person often fills both tech_lead and engineering_manager responsibilities for a team of 3-6 engineers."
       },
       "alternate_titles": [
         "Engineering Tech Lead",
@@ -6799,7 +7216,7 @@ export const roleLibrary = {
         "incident_management"
       ],
       "market_notes": {
-        "israel": "Engineering management in Israeli tech is often a hands-on hybrid role — many EMs do code review, attend technical design reviews, and stay close to the work. Pure 'people manager who doesn't touch code' is more common at unicorns and US-style scale-ups (Wiz, JFrog, monday.com) than at smaller startups. EM scope varies wildly: at Seed/Series A, an EM may manage 2-4 engineers; at scale-ups (Series C+), 8-12 is standard. Hiring is the single hardest part of the role in Israel — competition with Wiz, Check Point, CyberArk, SentinelOne, and US-remote roles drives salary pressure and time-to-hire. Strong EM track records often lead to lateral moves between cyber and AI companies (Run:ai, AI21, Aidoc) where engineering leadership talent is in highest demand."
+        "israel": "Backgrounds: most often promoted from tech_lead or senior SWE; external EM hires also common at scale-ups. Stack patterns: hands-on hybrid is the Israeli norm — many EMs do code review, attend technical design reviews, and stay close to the work. Pure 'people manager who doesn't touch code' more common at unicorns (Wiz, JFrog, monday.com). Hiring stage: ubiquitous from Series A upward. Scope varies: 2-4 engineers at Seed-Series A; 8-12 standard at scale-ups (Series C+). Hiring is the single hardest part of the role given local competition (Wiz, Check Point, CyberArk, SentinelOne) and US-remote pressure. Strong EMs frequently rotate between cyber and AI companies (Run:ai, AI21, Aidoc) where engineering leadership is in highest demand."
       },
       "alternate_titles": [
         "EM",
@@ -6885,7 +7302,7 @@ export const roleLibrary = {
         "engineering_leadership"
       ],
       "market_notes": {
-        "israel": "Senior EM / Director of Engineering levels typically only exist at companies above ~100 engineers — common at scale-ups and unicorns (Wiz, Check Point, CyberArk, SentinelOne, monday.com, Wix, JFrog, AppsFlyer, Fiverr, Lemonade, AI21 Labs). Below that size, the engineering_manager → vp_engineering jump skips this level. Strong senior EMs in Israel often move between cyber and SaaS sectors given the transferable skill set; AI scale-ups (Run:ai, Hailo, Aidoc) are heavy recruiters in 2025-2026 as they scale engineering orgs from ~30 to ~100+ engineers."
+        "israel": "Backgrounds: usually promoted EM with strong track record; external director hires common at unicorns. Stack patterns: less hands-on coding; more focused on org design, headcount allocation, technical-strategy alignment with product. Hiring stage: typically only exists at 100+ engineer companies — scale-ups and unicorns (Wiz, Check Point, CyberArk, SentinelOne, monday.com, Wix, JFrog, AppsFlyer, Fiverr, Lemonade, AI21 Labs). Below that size, the EM → VPE jump skips this level. Strong senior EMs frequently move between cyber and SaaS sectors given transferable skill set; AI scale-ups (Run:ai, Hailo, Aidoc) are heavy recruiters as they scale engineering orgs from ~30 to ~100+."
       },
       "alternate_titles": [
         "Senior EM",
@@ -6969,7 +7386,7 @@ export const roleLibrary = {
         "engineering_leadership"
       ],
       "market_notes": {
-        "israel": "VP Engineering is a critical hire for any Israeli company past ~50 engineers — often the first executive engineering leader recruited externally even when there's a strong technical founder / CTO. The Israeli VPE talent pool is competitive: many candidates have done 2-3 prior cycles at scale-ups or unicorns (Wiz, Check Point, CyberArk, monday.com, Wix, JFrog, AppsFlyer, Cellebrite). CTO + VPE split is common — CTO sets technical vision and external technical narrative; VPE owns the org, delivery, and people. At smaller companies (under ~30 engineers), the founding CTO usually holds both roles until scale forces the split. Strong VPEs frequently rotate between cyber and SaaS verticals; AI is the hottest sector for VPE hires in 2025-2026 (Run:ai, AI21, Aidoc, Hailo)."
+        "israel": "Backgrounds: senior EM promotion, external VPE hire, or former CTO re-pivoting; often 2-3 prior cycles at scale-ups or unicorns. Stack patterns: org-level strategy, technology vision, budget ownership, board-level engineering representation. Hiring stage: critical hire for any company past ~50 engineers — often the first executive engineering leader recruited externally even when there's a strong technical founder. CTO + VPE split is common at scale-ups (CTO sets technical vision, VPE owns the org). At smaller companies the founding CTO usually holds both roles until scale forces the split. Strong VPEs frequently rotate between cyber and SaaS verticals; AI is the hottest sector for VPE hires (Run:ai, AI21, Aidoc, Hailo)."
       },
       "alternate_titles": [
         "VPE",
@@ -7055,7 +7472,7 @@ export const roleLibrary = {
         "agile_methodology"
       ],
       "market_notes": {
-        "israel": "QA Engineering in Israel has shifted heavily toward automation and SDET roles over the past 5 years — pure manual QA roles are rare outside legacy enterprise and large defense contractors. Strong employer base in cyber (Check Point, CyberArk, SentinelOne, Cellebrite), SaaS (monday.com, Wix, JFrog), and consumer apps (Lemonade, Lightricks, Plarium). Many QA engineers start in manual testing and transition to automation within 1-2 years; bootcamp graduates and IDF veterans (often from non-elite tech units) form a significant share of the entry-level pipeline. Stack reality: Cypress and Playwright dominate frontend automation; pytest + custom Python frameworks for backend / API; Selenium increasingly legacy."
+        "israel": "Backgrounds: increasingly automation-first; bootcamp graduates and IDF veterans from non-elite tech units form a significant entry pipeline; many transition from manual QA within 1-2 years. Stack patterns: Cypress and Playwright dominate frontend automation; pytest + custom Python frameworks for backend/API testing; Selenium increasingly legacy. Hiring stage: pure manual QA roles are rare outside legacy enterprise and large defense contractors. Strong employer base at cyber (Check Point, CyberArk, SentinelOne, Cellebrite), SaaS (monday.com, Wix, JFrog), and consumer apps (Lemonade, Lightricks, Plarium). Career typically progresses to senior_qa, sdet, or qa_manager."
       },
       "alternate_titles": [
         "QA Automation Engineer",
@@ -7149,7 +7566,7 @@ export const roleLibrary = {
         "incident_management"
       ],
       "market_notes": {
-        "israel": "DevOps / Platform Engineering is one of the highest-demand roles in Israeli tech given the cyber-heavy ecosystem and the operational complexity of cloud-native security platforms. Heavy employer base in cyber (Wiz, Check Point, CyberArk, SentinelOne, Aqua Security, Orca Security, Cato Networks), SaaS (monday.com, JFrog, Cloudinary, AppsFlyer), and AI infrastructure (Run:ai, Hailo). AWS is dominant in Israel (>70% of cloud workloads), with GCP growing in AI and data-heavy companies. Kubernetes and Terraform are baseline expectations. Unit 8200's infrastructure / networking units (especially Mamram and 81) are a major talent pipeline. Many DevOps engineers transition to SRE or Platform Engineering Lead within 3-5 years."
+        "israel": "Backgrounds: software engineers pivoting to infrastructure, system admins promoting up, or Unit 8200 / Mamram infrastructure alumni. Stack patterns: AWS dominant (>70% of cloud workloads), GCP growing in AI and data-heavy companies; Kubernetes and Terraform baseline; GitHub Actions / GitLab CI / Jenkins / ArgoCD for pipelines; Datadog / Grafana / Prometheus for observability. Hiring stage: one of the highest-demand roles given the cyber-heavy ecosystem and operational complexity of cloud-native security platforms. Heavy at cyber (Wiz, Check Point, CyberArk, SentinelOne, Aqua Security, Orca Security, Cato Networks), SaaS (monday.com, JFrog, Cloudinary, AppsFlyer), and AI infrastructure (Run:ai, Hailo). Career often progresses to SRE or Platform Engineering Lead within 3-5 years."
       },
       "alternate_titles": [
         "Platform Engineer",
@@ -7244,7 +7661,7 @@ export const roleLibrary = {
         "security_engineering"
       ],
       "market_notes": {
-        "israel": "SRE as a distinct discipline (separate from DevOps) is mostly found at scale-ups and unicorns with substantial production complexity — common at cyber companies (Wiz, Check Point, CyberArk, SentinelOne), large SaaS (monday.com, JFrog, AppsFlyer), and FinTech with high availability requirements (Lemonade, Forter, eToro, Payoneer). Smaller startups typically merge DevOps and SRE responsibilities into one team. The Google SRE model is influential but adapted — Israeli SRE roles often retain more direct service ownership than the pure 'platform' SRE model. Heavy overlap with Unit 8200 infrastructure alumni; senior SREs often pivot to security_analyst or staff_engineer (platform) roles."
+        "israel": "Backgrounds: often promoted from DevOps or pivoted from SWE with systems focus; heavy overlap with Unit 8200 / 81 / Mamram infrastructure alumni. Stack patterns: Kubernetes, Datadog / Grafana / Prometheus for observability, AWS-dominant cloud, PagerDuty for on-call, Python or Go for tooling and automation. The Google SRE model is influential but adapted — Israeli SRE roles often retain more direct service ownership than pure 'platform' SRE. Hiring stage: SRE as a distinct discipline (separate from DevOps) is mostly found at scale-ups and unicorns with substantial production complexity — cyber (Wiz, Check Point, CyberArk, SentinelOne), large SaaS (monday.com, JFrog, AppsFlyer), and high-availability FinTech (Lemonade, Forter, eToro, Payoneer). Smaller startups typically merge DevOps and SRE into one team."
       },
       "alternate_titles": [
         "Site Reliability Engineer",
@@ -7335,7 +7752,7 @@ export const roleLibrary = {
         "hiring_talent_acquisition"
       ],
       "market_notes": {
-        "israel": "Engineering Group Manager (or 'Director of Engineering') is found at scale-ups and unicorns with ~80+ engineers (cyber: Wiz, Check Point, CyberArk, SentinelOne; SaaS: monday.com, JFrog, Wix, AppsFlyer; FinTech: Lemonade, Payoneer, eToro). At companies with simpler engineering org structures, this layer is skipped — senior_engineering_manager reports directly to VPE. The role has grown in prominence post-2023 as Israeli scale-ups have flattened org structures while still needing multi-team leaders below VP level. Often a fork point: stay on the management track toward VPE, or pivot back to a staff_engineer-equivalent IC role at a larger company."
+        "israel": "Backgrounds: senior EM promotion or external director hire; often 12-18 years total experience. Stack patterns: people management at scale (3-5 EMs / 30-60 engineers indirectly), cross-team initiatives, multi-quarter roadmap planning. Hiring stage: scale-ups and unicorns with ~80+ engineers — cyber (Wiz, Check Point, CyberArk, SentinelOne), SaaS (monday.com, JFrog, Wix, AppsFlyer), FinTech (Lemonade, Payoneer, eToro). At companies with simpler org structures, this layer is skipped — senior EM reports directly to VPE. Grown in prominence post-2023 as Israeli scale-ups flattened structures while still needing multi-team leaders below VP level."
       },
       "alternate_titles": [
         "Group EM",
@@ -7435,7 +7852,7 @@ export const roleLibrary = {
         "vector databases (Pinecone, Weaviate, Chroma)"
       ],
       "market_notes": {
-        "israel": "Direct Junior AI/ML Engineer roles at product companies are relatively rare in Israel — most companies hire AI engineers at mid level (3+ years). Common entry paths include intensive bootcamp / training programs (Infinity Labs R&D, Microsoft Reactor, ITC), Unit 8200 / 81 alumni transitioning to civilian AI roles, and exceptional CS graduates with strong project portfolios. Strong concentration at AI-native scale-ups (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One, D-ID), AI-heavy cyber companies (Wiz, Cyera, Snyk, BigID), and the Israeli offices of major AI labs (NVIDIA AI, Intel AI, Microsoft Reactor). Stack reality: Python is universal; OpenAI / Anthropic / Google API integration is baseline; LangChain / LlamaIndex / Haystack appear at varying levels of sophistication; vector databases (Pinecone, Weaviate, Qdrant) and embeddings work are increasingly expected even at the junior level."
+        "israel": "Backgrounds: intensive bootcamp / training programs (Infinity Labs R&D, Microsoft Reactor, ITC), Unit 8200 / 81 alumni transitioning to civilian AI, exceptional CS graduates with strong project portfolios. Stack patterns: Python universal; OpenAI / Anthropic / Google API integration baseline; LangChain / LlamaIndex / Haystack at varying levels; vector databases (Pinecone, Weaviate, Qdrant) and embeddings work increasingly expected even at the junior level. Hiring stage: direct Junior AI/ML roles at product companies are relatively rare — most companies hire AI engineers at mid level. Strong concentration at AI-native scale-ups (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One, D-ID), AI-heavy cyber (Wiz, Cyera, Snyk, BigID), and Israeli offices of major AI labs (NVIDIA AI, Intel AI, Microsoft Reactor)."
       },
       "alternate_titles": [
         "Junior AI Engineer",
@@ -7529,7 +7946,7 @@ export const roleLibrary = {
         "Git"
       ],
       "market_notes": {
-        "israel": "Mid-level AI Engineer is the most in-demand AI role in Israeli tech as of 2025-2026 — virtually every B2B and consumer scale-up is building GenAI features and needs engineers who can bridge ML research and production engineering. Heavy concentration at AI-native scale-ups (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One, D-ID, Verbit, Decart), cyber companies adding AI capabilities (Wiz, Cyera, BigID, Snyk, CyberArk), SaaS scale-ups (monday.com, Wix, JFrog, Gong, HiBob), and AI agent startups (Wonderful, Band, Sett). The role typically requires 3-6 years of software engineering experience plus production AI experience; pure data scientists without strong software engineering skills usually pivot through MLOps or applied ML roles first."
+        "israel": "Backgrounds: ML engineer pivots, SWEs pivoting into AI, data scientists with strong engineering skills; pure data scientists without strong SWE skills usually pivot through MLOps or applied ML roles first. 3-6 years typical. Stack patterns: Python + LLM APIs (OpenAI / Anthropic / Bedrock); LangChain / LlamaIndex; vector databases (Pinecone, Weaviate, Qdrant); evaluation tooling (LangSmith, Phoenix); MLflow / Weights & Biases for experiment tracking. Hiring stage: most in-demand AI role in Israeli tech as of 2025-2026 — virtually every B2B and consumer scale-up is building GenAI features. Heavy at AI-native scale-ups (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One, D-ID, Verbit, Decart), cyber adding AI (Wiz, Cyera, BigID, Snyk, CyberArk), SaaS (monday.com, Wix, JFrog, Gong, HiBob), and AI agent startups (Wonderful, Band, Sett)."
       },
       "alternate_titles": [
         "AI Engineer",
@@ -7628,7 +8045,7 @@ export const roleLibrary = {
         "Prometheus/Grafana"
       ],
       "market_notes": {
-        "israel": "Senior AI Engineer represents the technical backbone of Israeli AI orgs. Heavy concentration at AI-native scale-ups and unicorns (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One, D-ID, Decart, Verbit), AI-heavy cyber (Wiz, Cyera, BigID, Snyk, Astrix Security), and large product orgs at SaaS unicorns (monday.com, JFrog, Wix, Gong) where AI features drive substantial product investment. Many senior AI engineers have backgrounds combining ML research training (PhD or strong academic publications) with applied production experience; Unit 8200 / 81 / 9900 alumni are over-represented given Israel's military AI / cyber heritage."
+        "israel": "Backgrounds: AI engineer promotion, ML research pivots (PhD or strong academic publications), Unit 8200 / 81 / 9900 alumni over-represented given Israel's military AI / cyber heritage. Stack patterns: deep Python, PyTorch / TensorFlow, fine-tuning workflows, evaluation systems, LangGraph for agent flows, Ray / Modal for distributed compute; cross-functional fluency to explain AI capabilities to PM and exec teams. Hiring stage: technical backbone of Israeli AI orgs. Heavy at AI-native scale-ups and unicorns (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One, D-ID, Decart, Verbit), AI-heavy cyber (Wiz, Cyera, BigID, Snyk, Astrix Security), and large product orgs at SaaS unicorns (monday.com, JFrog, Wix, Gong) where AI features drive substantial product investment."
       },
       "alternate_titles": [
         "Staff AI Engineer",
@@ -7727,7 +8144,7 @@ export const roleLibrary = {
         "Terraform"
       ],
       "market_notes": {
-        "israel": "MLOps Engineering is a critical role at AI-native scale-ups and any company with non-trivial production AI. Particularly heavy demand at Run:ai (entire business is MLOps infrastructure), Hailo, AI21 Labs, Aidoc, Verbit, Lightricks, Hour One, D-ID. Also common at SaaS scale-ups with embedded AI (monday.com, Gong, Cyera, BigID, Snyk, Wiz) and at companies building AI platforms (Decart, Solid, Granica). Common backgrounds include DevOps / Platform Engineering pivoting to ML, ML engineers pivoting to platform work, and seasoned data engineers with ML experience. Heavy use of Kubernetes, Ray, Kubeflow, Airflow, MLflow, Weights & Biases, and increasingly Modal / Anyscale-style serverless ML platforms."
+        "israel": "Backgrounds: DevOps engineers pivoting to ML, ML engineers pivoting to platform work, seasoned data engineers with ML experience. Stack patterns: heavy Kubernetes, Ray, Kubeflow, Airflow, MLflow, Weights & Biases; increasingly Modal / Anyscale-style serverless ML; GPU utilization optimization; model quantization; serving framework selection. Hiring stage: critical at AI-native scale-ups and any company with non-trivial production AI. Particularly heavy demand at Run:ai (entire business is MLOps infrastructure), Hailo, AI21 Labs, Aidoc, Verbit, Lightricks, Hour One, D-ID. Also common at SaaS scale-ups with embedded AI (monday.com, Gong, Cyera, BigID, Snyk, Wiz) and at companies building AI platforms (Decart, Solid, Granica)."
       },
       "alternate_titles": [
         "ML Platform Engineer",
@@ -7820,7 +8237,7 @@ export const roleLibrary = {
         "Classical CV algorithms (SIFT, SURF, optical flow)"
       ],
       "market_notes": {
-        "israel": "Computer Vision and Edge AI is a particularly strong Israeli specialty given the country's defense and automotive technology heritage. Heavy concentration at Mobileye (autonomous driving), Hailo (edge AI chips), AI21 Labs, Innoviz Technologies, Foresight Autonomous, Cellebrite, Trigo, Trax Retail, OrCam, Edgybees, Aidoc (medical imaging), and the AI / CV teams at major cyber companies (Wiz, BigID). Unit 9900 (military imaging intelligence), 8200, and 81 alumni dominate the senior talent pool. Stack typically Python + PyTorch (TensorFlow declining), with C++ / CUDA for performance-critical paths and embedded targets (NVIDIA Jetson, Hailo, Qualcomm, custom silicon)."
+        "israel": "Backgrounds: Unit 9900 (military imaging intelligence), 8200, and 81 alumni dominate the senior talent pool; CV research transitions to industry; embedded engineers pivoting to ML. Stack patterns: Python + PyTorch (TensorFlow declining); C++ / CUDA for performance-critical paths and embedded targets (NVIDIA Jetson, Hailo, Qualcomm, custom silicon); model quantization and compression toolchains. Hiring stage: particularly strong Israeli specialty given defense and automotive tech heritage. Heavy at Mobileye (autonomous driving), Hailo (edge AI chips), Innoviz Technologies, Foresight Autonomous, Cellebrite, Trigo, Trax Retail, OrCam, Edgybees, Aidoc (medical imaging), and CV / AI teams at major cyber companies (Wiz, BigID)."
       },
       "alternate_titles": [
         "Computer Vision Engineer",
@@ -7911,7 +8328,7 @@ export const roleLibrary = {
         "vector databases"
       ],
       "market_notes": {
-        "israel": "Applied AI Research is concentrated at AI labs and AI-native scale-ups — AI21 Labs (one of the largest pure-play AI research orgs in Israel), Run:ai, Hailo, Aidoc, Lightricks, the Israeli AI research teams at NVIDIA Israel, Intel AI Israel, Microsoft Research Israel, IBM Research Israel, and increasingly large cyber companies (Wiz, Cyera). Many applied researchers have PhDs from Technion, Hebrew University, Tel Aviv University, Weizmann Institute, or top US programs. The role is distinct from pure ML research scientist roles at companies like Meta AI / Google DeepMind — applied researchers in Israel typically maintain stronger production-engineering responsibilities alongside their research work."
+        "israel": "Backgrounds: PhDs from Technion, Hebrew University, Tel Aviv University, Weizmann Institute, or top US programs; some ML engineers transitioning to research with strong publication track records. Stack patterns: PyTorch dominant; W&B / MLflow for experimentation; LaTeX + Overleaf for paper writing; HuggingFace + custom training frameworks; deep evaluation methodology work. Distinct from pure ML research scientist roles at Meta AI / Google DeepMind — applied researchers in Israel typically maintain stronger production-engineering responsibilities. Hiring stage: concentrated at AI labs and AI-native scale-ups — AI21 Labs (one of the largest pure-play AI research orgs locally), Run:ai, Hailo, Aidoc, Lightricks, plus the Israeli AI research teams at NVIDIA Israel, Intel AI Israel, Microsoft Research Israel, IBM Research Israel, and increasingly large cyber companies (Wiz, Cyera)."
       },
       "alternate_titles": [
         "AI Research Scientist",
@@ -7996,7 +8413,7 @@ export const roleLibrary = {
         "conversation analytics tools"
       ],
       "market_notes": {
-        "israel": "Prompt Engineering as a dedicated role emerged in Israeli tech in 2023-2024 with the GenAI wave but has been consolidating — many companies have folded the function into AI Engineer roles rather than maintaining it as a separate specialty. Dedicated Prompt Engineer roles persist primarily at conversational AI companies (Wonderful, Hi.auto, Hyro), AI-first SaaS (Gong, Anyword, Bria AI, D-ID), and at companies with heavy LLM-driven user-facing features (Lightricks, Hour One, Lemonade). The role often requires a hybrid background — engineering capability plus strong language / communication skills. Many prompt engineers come from product design, content design, technical writing, or linguistics backgrounds rather than from pure software engineering."
+        "israel": "Backgrounds: AI engineer specialization, product designer / content designer pivots, technical writers, linguists — hybrid engineering + language background more useful than pure SWE. Stack patterns: PromptLayer / Helicone / Langfuse for prompt versioning and evaluation; LangSmith for tracing; OpenAI / Anthropic / Google API directly; custom evaluation harnesses. Hiring stage: emerged with the 2023-2024 GenAI wave but consolidating — many companies have folded the function into AI Engineer roles rather than maintaining as separate specialty. Dedicated Prompt Engineer roles persist primarily at conversational AI companies (Wonderful, Hi.auto, Hyro), AI-first SaaS (Gong, Anyword, Bria AI, D-ID), and companies with heavy LLM-driven user-facing features (Lightricks, Hour One, Lemonade)."
       },
       "alternate_titles": [
         "Senior Prompt Engineer",
@@ -8081,7 +8498,7 @@ export const roleLibrary = {
         "AI governance/compliance tools"
       ],
       "market_notes": {
-        "israel": "AI Transformation Lead is a newer role that emerged in 2024-2025 as enterprises and larger Israeli companies (200+ employees) sought dedicated leadership for internal AI adoption. Distinct from Head of AI (product-focused) — this role is operations / internal-tooling focused. Most common at large Israeli tech companies (monday.com, Wix, JFrog, Amdocs, NICE Systems, Check Point), mature Israeli enterprises (Bank Hapoalim, Bank Leumi, Strauss Group, Teva), and at the Israeli offices of US enterprises. Often a former management consultant (McKinsey, BCG, Bain Israel offices), operations leader, or product manager with strong cross-functional credibility."
+        "israel": "Backgrounds: former management consultants (McKinsey, BCG, Bain Israel offices), operations leaders, PMs with strong cross-functional credibility. Stack patterns: AI tool evaluation frameworks; change management methodology; vendor evaluation; internal training programs; KPI definition and tracking for adoption metrics. Hiring stage: emerged in 2024-2025 as enterprises and larger Israeli companies (200+ employees) sought dedicated leadership for internal AI adoption. Distinct from Head of AI (product-focused) — this role is operations / internal-tooling focused. Most common at large Israeli tech companies (monday.com, Wix, JFrog, Amdocs, NICE Systems, Check Point), mature Israeli enterprises (Bank Hapoalim, Bank Leumi, Strauss Group, Teva), and Israeli offices of US enterprises."
       },
       "alternate_titles": [
         "AI Transformation Manager",
@@ -8166,7 +8583,7 @@ export const roleLibrary = {
         "strategic planning frameworks"
       ],
       "market_notes": {
-        "israel": "Head of AI is a critical role at any Israeli company with substantial AI investment. The role has proliferated rapidly since 2023 — virtually every Series B+ company has either hired a Head of AI or designated an internal leader for the function. Heavy concentration at AI-native companies (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One, D-ID, Verbit, Decart), cyber companies investing in AI (Wiz, Cyera, BigID, Snyk, CyberArk, SentinelOne), and large SaaS unicorns (monday.com, Wix, JFrog, Gong, HiBob). Hiring is extremely competitive — strong candidates often have a PhD + production experience + leadership chops, all of which are scarce. Many Heads of AI in Israel were former senior AI engineers at FAANG, ex-academia, or seasoned ML leaders from earlier ML scale-ups."
+        "israel": "Backgrounds: senior AI engineer promotion, ML research leader, external head of AI hire; often PhD + production experience + leadership chops combined. Many were former senior AI engineers at FAANG, ex-academia, or seasoned ML leaders from earlier ML scale-ups. Stack patterns: model selection across providers; build-vs-buy decisions; org design for AI teams; vendor management for compute / API spend. Hiring stage: critical role at any Israeli company with substantial AI investment. Role has proliferated rapidly since 2023. Heavy at AI-native companies (AI21 Labs, Aidoc, Run:ai, Hailo, Lightricks, Hour One, D-ID, Verbit, Decart), cyber investing in AI (Wiz, Cyera, BigID, Snyk, CyberArk, SentinelOne), and large SaaS unicorns (monday.com, Wix, JFrog, Gong, HiBob). Hiring is extremely competitive."
       },
       "alternate_titles": [
         "Head of AI",
@@ -8247,7 +8664,7 @@ export const roleLibrary = {
         "external communication platforms"
       ],
       "market_notes": {
-        "israel": "VP AI / Chief AI Officer is found primarily at AI-native scale-ups and unicorns (AI21 Labs, Aidoc, Hailo, Run:ai, Lightricks, Verbit, Hour One) and at mature companies making AI a strategic priority (Amdocs, NICE Systems, Check Point, Cellebrite, monday.com, JFrog, Lemonade). The role is often combined with CTO at smaller companies — full Chief AI Officer titles tend to appear at companies with at least 100+ engineers and dedicated AI investment. Many Israeli VP AI / CAIO hires have done multiple prior cycles, often combining experience at major Israeli AI scale-ups with stints at FAANG AI orgs. The talent pool is very small and highly competitive."
+        "israel": "Backgrounds: Head of AI promotion, former CTO pivoting to AI, or external executive hire with multiple prior cycles. Talent pool is very small and highly competitive — often combine experience at major Israeli AI scale-ups with stints at FAANG AI orgs. Stack patterns: executive-level AI strategy, board / investor communication on AI capabilities, budget ownership across model costs / compute / vendor spend / headcount. Hiring stage: found primarily at AI-native scale-ups and unicorns (AI21 Labs, Aidoc, Hailo, Run:ai, Lightricks, Verbit, Hour One) and at mature companies making AI a strategic priority (Amdocs, NICE Systems, Check Point, Cellebrite, monday.com, JFrog, Lemonade). Often combined with CTO at smaller companies — full Chief AI Officer titles appear at companies with 100+ engineers and dedicated AI investment."
       },
       "alternate_titles": [
         "VP AI",
@@ -8331,7 +8748,7 @@ export const roleLibrary = {
         "technical delivery tools"
       ],
       "market_notes": {
-        "israel": "AI Solutions Engineering Manager is an emerging specialty role at Israeli AI-native scale-ups and at companies where AI is the primary product differentiator. Most common at AI21 Labs, Aidoc, Run:ai, Verbit, Hour One, D-ID, Wonderful, Anyword, and at the AI-heavy teams within larger SaaS companies (Gong, monday.com AI initiatives). Often requires both strong AI / ML technical knowledge AND traditional SE / pre-sales leadership skills — a relatively rare combination in the talent market. Many AI SE Managers come from senior AI Engineer roles with strong customer-facing aptitude rather than from traditional SE management."
+        "israel": "Backgrounds: SE manager with AI specialization, or senior AI engineers transitioning to customer-facing leadership. The combination of strong AI / ML technical depth + traditional SE / pre-sales leadership is relatively rare. Stack patterns: typical SE management tooling (Salesforce, Lattice, Highspot) plus deep AI fluency for technical positioning. Hiring stage: emerging specialty role at AI-native scale-ups and companies where AI is the primary product differentiator. Most common at AI21 Labs, Aidoc, Run:ai, Verbit, Hour One, D-ID, Wonderful, Anyword, and AI-heavy teams within larger SaaS (Gong, monday.com AI initiatives)."
       },
       "alternate_titles": [
         "AI SE Manager",
@@ -8650,7 +9067,7 @@ export const roleLibrary = {
       "id": "bdr_bd_associate",
       "standardized_title": "BDR / BD Associate",
       "role_family": "BD_Partnerships",
-      "secondary_family": null,
+      "secondary_family": "Sales",
       "seniority": "Entry",
       "core_purpose": "Entry-level outbound sales development role focused on generating qualified pipeline for the sales team. Initiates contact with potential customers through cold calling, email outreach, and social selling. Qualifies inbound leads, conducts initial discovery conversations, and hands off qualified opportunities to Account Executives.",
       "core_responsibilities": [
@@ -8664,8 +9081,17 @@ export const roleLibrary = {
         "Meet or exceed activity and pipeline generation targets consistently",
         "Develop product knowledge to effectively communicate value propositions"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "outbound_prospecting",
+        "discovery_calls",
+        "customer_communication",
+        "saas_sales",
+        "analytical_thinking"
+      ],
+      "preferred_skills": [
+        "lead_qualification",
+        "presentation_skills"
+      ],
       "tools": [
         "Salesforce / HubSpot CRM",
         "Outreach / Salesloft (sales engagement)",
@@ -8676,14 +9102,26 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "0-2",
       "market_notes": {
-        "israel": "BDR roles in Israel overwhelmingly serve US-market companies, requiring fluent English and willingness to work US hours. AI-powered outbound workflows (using Claude Code, LLM APIs for personalized sequencing) are increasingly listed as requirements, not just nice-to-haves. The role is a proven entry point into tech careers for Reichman business graduates, with clear progression paths into BD management, AE roles, or partnerships."
-      }
+        "israel": "Backgrounds: recent graduates from Reichman / IDC / TAU business programs, IDF veterans pivoting to commercial roles. Stack patterns: Salesforce + Outreach + LinkedIn Sales Navigator + ZoomInfo / Lusha. Hiring stage: BD-specific titles less common than SDR in Israeli tech — often interchangeable. Where distinct, BD focuses on partnership / channel outreach rather than direct sales prospecting. Common at cyber and B2B SaaS scale-ups with partner-led GTM."
+      },
+      "alternate_titles": [
+        "BDR",
+        "BD Associate",
+        "Junior Business Development",
+        "Partnerships Associate"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "business_development_representative",
+        "sales_development_representative",
+        "partnerships_associate"
+      ]
     },
     {
       "id": "business_development_manager",
       "standardized_title": "Business Development Manager",
       "role_family": "BD_Partnerships",
-      "secondary_family": null,
+      "secondary_family": "Sales",
       "seniority": "Mid",
       "core_purpose": "Drives net-new business growth by researching, pursuing, and developing new business relationships. Manages a portfolio of prospects and early-stage partnerships, negotiates commercial terms, and works cross-functionally to deliver on revenue targets. Combines outbound hunting with relationship management and data-driven decision-making.",
       "core_responsibilities": [
@@ -8698,8 +9136,18 @@ export const roleLibrary = {
         "Lead presentations, product demos, and business review meetings",
         "Manage CRM pipeline and provide accurate forecasting and reporting"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "channel_sales_strategy",
+        "partner_relationship_management",
+        "negotiation",
+        "stakeholder_management",
+        "analytical_thinking"
+      ],
+      "preferred_skills": [
+        "go_to_market_strategy",
+        "competitive_analysis_product",
+        "executive_presentation"
+      ],
       "tools": [
         "Salesforce / HubSpot CRM",
         "LinkedIn Sales Navigator",
@@ -8710,8 +9158,19 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "2-5",
       "market_notes": {
-        "israel": "BD Manager roles in Israel span multiple industries — ad-tech, performance marketing, SaaS, cybersecurity, and fintech are the most active hiring segments. Many roles require managing global portfolios (US, Europe) and working across time zones. Data-driven decision-making and analytical skills are consistently emphasized alongside relationship-building abilities. Performance marketing and ad-tech companies often blend BD with account management responsibilities."
-      }
+        "israel": "Backgrounds: BD / sales pivots, ex-consultants, MBA graduates with commercial focus. Stack patterns: Salesforce for pipeline + partner intelligence tools + heavy use of LinkedIn for prospecting + competitive intel (Klue / Crayon). Hiring stage: common at cyber (Wiz, Check Point, CyberArk, SentinelOne, Cybereason) and B2B SaaS with channel motion (JFrog, Snyk, Cloudinary). The BD function in Israeli companies often includes strategic partnerships, OEM deals, and ecosystem development."
+      },
+      "alternate_titles": [
+        "BD Manager",
+        "Business Development Lead",
+        "Senior BD Manager"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "partnerships_manager",
+        "account_executive",
+        "channel_partner_manager"
+      ]
     },
     {
       "id": "partnerships_manager",
@@ -8733,8 +9192,17 @@ export const roleLibrary = {
         "Conduct quarterly business reviews and present performance insights to stakeholders",
         "Act as the partner advocate internally — communicating needs and feedback to product and leadership"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "partner_relationship_management",
+        "negotiation",
+        "stakeholder_management",
+        "channel_sales_strategy",
+        "go_to_market_strategy"
+      ],
+      "preferred_skills": [
+        "analytical_thinking",
+        "competitive_analysis_product"
+      ],
       "tools": [
         "Salesforce / HubSpot CRM",
         "Partner management platforms",
@@ -8745,14 +9213,24 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "3-5",
       "market_notes": {
-        "israel": "Partnerships Manager is a growing role in the Israeli market, especially in SaaS companies building channel and ecosystem strategies. The role is distinct from BD Manager — focused on managing existing partner relationships and maximizing mutual value rather than hunting net-new business. Companies in IT management (Atera), mobile gaming (Sett), affiliate marketing, and fintech are active hirers. Partner management increasingly requires technical fluency to coordinate integrations and co-selling motions."
-      }
+        "israel": "Backgrounds: senior BD / partner sales pivots, ex-consultants, account managers with strategic specialization. Stack patterns: Salesforce + PartnerStack / Impartner + Notion for partner enablement content + Asana / Monday for project work. Hiring stage: most common at cyber (Wiz, Check Point, CyberArk, SentinelOne, Cybereason, Aqua Security) and integration-heavy SaaS (JFrog, Snyk, Cloudinary, Cellebrite). Strong partnership-focused career path at companies with sizeable channel programs."
+      },
+      "alternate_titles": [
+        "Senior Partnerships Manager",
+        "Strategic Partnerships Manager"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "business_development_manager",
+        "channel_partner_manager",
+        "account_manager"
+      ]
     },
     {
       "id": "senior_bd_manager_strategic_partnerships",
       "standardized_title": "Senior BD Manager / Strategic Partnerships Manager",
       "role_family": "BD_Partnerships",
-      "secondary_family": null,
+      "secondary_family": "Sales",
       "seniority": "Senior",
       "core_purpose": "Leads high-value, complex business development and strategic partnership initiatives. Manages enterprise-level relationships, builds partner ecosystems, and drives significant revenue through strategic alliances and channel development. Operates at the intersection of business strategy, partner management, and cross-functional leadership.",
       "core_responsibilities": [
@@ -8768,8 +9246,18 @@ export const roleLibrary = {
         "Collaborate cross-functionally with product, sales, marketing, finance, and legal teams",
         "Present business cases, budget projections, and strategic recommendations to leadership"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "channel_sales_strategy",
+        "partner_relationship_management",
+        "negotiation",
+        "executive_relationships",
+        "go_to_market_strategy"
+      ],
+      "preferred_skills": [
+        "board_management",
+        "competitive_positioning",
+        "stakeholder_management"
+      ],
       "tools": [
         "Salesforce CRM",
         "LinkedIn Sales Navigator",
@@ -8781,14 +9269,25 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "5-7",
       "market_notes": {
-        "israel": "Senior BD and Strategic Partnerships roles in Israel increasingly require experience building partner ecosystems from the ground up, not just managing existing relationships. Cloud, SaaS, and cybersecurity companies are the most active hirers. The role often involves significant international travel and managing relationships across US and European markets. Companies expect a blend of strategic thinking and hands-on execution — pure strategy roles without deal-closing responsibility are rare."
-      }
+        "israel": "Backgrounds: senior BD professionals with 6-10 years experience including stints at larger Israeli or US tech companies. Stack patterns: Salesforce + executive relationship management; complex deal structuring; cross-border legal coordination (US / EMEA / APAC partnership contracts). Hiring stage: scale-ups and unicorns with substantial BD investment — Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, Cellebrite, Amdocs. Often manages OEM deals, technology partnerships, channel program design."
+      },
+      "alternate_titles": [
+        "Senior BD Manager",
+        "Strategic Partnerships Lead",
+        "Director of Strategic Partnerships"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "business_development_manager",
+        "partnerships_manager",
+        "head_of_bd_head_of_partnerships"
+      ]
     },
     {
       "id": "head_of_bd_head_of_partnerships",
       "standardized_title": "Head of BD / Head of Partnerships",
       "role_family": "BD_Partnerships",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "Director_Head",
       "core_purpose": "Owns the business development or partnerships function for the organization. Designs and executes the BD/partnership strategy, builds and leads the team, and drives significant revenue through net-new business, partner ecosystems, and strategic alliances. Reports to VP Sales, CRO, or CEO. Responsible for pipeline generation, team performance, and cross-functional GTM alignment.",
       "core_responsibilities": [
@@ -8806,8 +9305,18 @@ export const roleLibrary = {
         "Represent the company at industry events, conferences, and executive forums",
         "Own and grow referral partner channels and strategic vendor relationships"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "channel_sales_strategy",
+        "executive_relationships",
+        "negotiation",
+        "go_to_market_strategy",
+        "people_management"
+      ],
+      "preferred_skills": [
+        "organizational_design",
+        "board_management",
+        "partner_relationship_management"
+      ],
       "tools": [
         "Salesforce / HubSpot CRM",
         "Sales engagement platforms (Outreach, Salesloft)",
@@ -8819,14 +9328,25 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "7-10",
       "market_notes": {
-        "israel": "Head of BD/Partnerships roles in Israel often combine two functions that larger US companies split: SDR/BDR team leadership and strategic partnership development. Companies expect leaders who can both build the outbound engine (hire, coach, set processes) and personally drive executive-level relationships. The role is a strong stepping stone to VP-level positions or general management. Ecosystem-building experience (VC relationships, accelerator partnerships, startup community engagement) is highly valued in the Israeli market."
-      }
+        "israel": "Backgrounds: senior BD manager promotion or external VP BD / Partnerships hire from larger Israeli or US tech companies. Stack patterns: org-level BD strategy, partner program design, executive-level commercial relationships. Hiring stage: at scale-ups and unicorns with sizable partnership functions — Wiz, Check Point, CyberArk, SentinelOne, JFrog, Cellebrite, Amdocs, NICE Systems, monday.com (smaller team). Reports to CRO or CEO depending on the strategic importance of partnerships."
+      },
+      "alternate_titles": [
+        "VP Business Development",
+        "Head of Partnerships",
+        "VP Partnerships"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "vp_business_development",
+        "vp_sales",
+        "head_of_marketing"
+      ]
     },
     {
       "id": "vp_business_development",
       "standardized_title": "VP Business Development",
       "role_family": "BD_Partnerships",
-      "secondary_family": null,
+      "secondary_family": "Leadership",
       "seniority": "VP_Executive",
       "core_purpose": "Executive leader who owns the global business development, partnerships, and/or channel strategy for the organization. Defines and executes growth strategies across markets, builds and scales global partner ecosystems, and drives significant revenue impact. Reports to CEO, CRO, or President. Shapes company strategy at the executive level and represents the organization in high-stakes engagements.",
       "core_responsibilities": [
@@ -8843,8 +9363,17 @@ export const roleLibrary = {
         "Recruit and develop world-class BD and partnerships talent globally",
         "Own strategic forecasting and report to executive leadership with pipeline visibility"
       ],
-      "required_skills": [],
-      "preferred_skills": [],
+      "required_skills": [
+        "channel_sales_strategy",
+        "executive_leadership",
+        "negotiation",
+        "go_to_market_strategy",
+        "organizational_design"
+      ],
+      "preferred_skills": [
+        "board_management",
+        "executive_presentation"
+      ],
       "tools": [
         "Salesforce CRM",
         "Executive dashboards and BI tools",
@@ -8855,8 +9384,19 @@ export const roleLibrary = {
       ],
       "years_experience_typical": "10+",
       "market_notes": {
-        "israel": "VP BD roles in Israel are concentrated in growth-stage and late-stage companies (Series B+) with global ambitions. The role requires deep international experience — managing partnerships across US, European, and APAC markets. Cybersecurity, cloud infrastructure, SaaS, and defense technology companies are the primary hirers. Israeli companies increasingly expect VPs to have experience building channel programs and strategic alliances with major technology vendors (Cisco, AWS, Palo Alto Networks, etc.). Travel is typically 30-50% of the time."
-      }
+        "israel": "Backgrounds: Head of BD promotion or external VP BD hire; often 12-18 years total experience including time at major US or Israeli enterprise software companies. Stack patterns: executive-level strategic partnership work, M&A scouting and execution, OEM deal structuring. Hiring stage: typically only at unicorns and mature companies with substantial partnership economics — Check Point, CyberArk, SentinelOne, Amdocs, NICE Systems, Cellebrite, JFrog. Less common at consumer-facing or product-led-growth Israeli companies."
+      },
+      "alternate_titles": [
+        "VP BD",
+        "Chief Business Development Officer",
+        "Chief Partnerships Officer"
+      ],
+      "_research_method": "knowledge",
+      "similar_roles": [
+        "vp_sales",
+        "head_of_bd_head_of_partnerships",
+        "vp_marketing"
+      ]
     },
     {
       "id": "junior_consultant_analyst",
@@ -9092,7 +9632,7 @@ export const roleLibrary = {
         "consultative_selling"
       ],
       "market_notes": {
-        "israel": "Junior Solutions Engineering is relatively new in Israeli tech — most SaaS and cyber companies historically hired SEs at the mid level with 3+ years of customer-facing technical experience. Recently, scale-ups like monday.com, JFrog, Gong, Wiz, and Orca Security have built junior SE pipelines, especially for global accounts where they need broader coverage. Often filled by bootcamp graduates with strong communication skills, IDF veterans from technical units with customer-facing aptitude, or transitioning Support Engineers. Concentrated in cyber (Wiz, CyberArk, Check Point, SentinelOne), SaaS (monday.com, JFrog, HiBob, Gong), and FinTech (Forter, Payoneer)."
+        "israel": "Backgrounds: bootcamp graduates with strong communication skills, IDF veterans from technical units with customer-facing aptitude, or transitioning Support Engineers. Stack patterns: Salesforce, Postman, SQL clients, demo environments (Docker / cloud sandboxes), basic scripting. Hiring stage: relatively new in Israeli tech — most SaaS and cyber companies historically hired SEs at mid level with 3+ years. Recent investment in junior SE pipelines at scale-ups serving global accounts (monday.com, JFrog, Gong, Wiz, Orca Security). Concentrated in cyber (Wiz, CyberArk, Check Point, SentinelOne), SaaS (monday.com, JFrog, HiBob, Gong), and FinTech (Forter, Payoneer)."
       },
       "alternate_titles": [
         "Junior Solutions Engineer",
@@ -9172,7 +9712,7 @@ export const roleLibrary = {
         "executive_presentation"
       ],
       "market_notes": {
-        "israel": "Solutions Engineering is a high-impact role in Israeli tech — most B2B SaaS and cyber companies have a 2-5x ratio of AEs to SEs. Heavy concentration in cyber (Wiz, Check Point, CyberArk, SentinelOne, Cato Networks, Armis), SaaS (monday.com, JFrog, Gong, HiBob, Cloudinary), data infrastructure (Coralogix, Logz.io), and FinTech (Forter, Payoneer, Riskified). Many SEs work US hours given that most Israeli SaaS / cyber sells primarily into North American markets — Tel Aviv / Herzliya teams cover EMEA, with US-based teams covering NA. Common backgrounds: ex-SWEs who like customer interaction, former support engineers who built strong technical depth, and Customer Success professionals who developed a more technical specialty."
+        "israel": "Backgrounds: ex-SWEs who like customer interaction, former support engineers who built strong technical depth, Customer Success professionals who developed technical specialty; 3-6 years typical. Stack patterns: Salesforce, demo environments, Postman, Notion, Loom; strong English communication for US executive conversations. Most SEs work US hours given that Israeli SaaS / cyber sells primarily into North American markets — Tel Aviv / Herzliya teams cover EMEA, US-based teams cover NA. Hiring stage: most B2B SaaS and cyber companies have a 2-5x ratio of AEs to SEs. Heavy concentration in cyber (Wiz, Check Point, CyberArk, SentinelOne, Cato Networks, Armis), SaaS (monday.com, JFrog, Gong, HiBob, Cloudinary), data infrastructure (Coralogix, Logz.io), and FinTech (Forter, Payoneer, Riskified)."
       },
       "alternate_titles": [
         "Solutions Engineer",
@@ -9257,7 +9797,7 @@ export const roleLibrary = {
         "stakeholder_management"
       ],
       "market_notes": {
-        "israel": "Senior Solutions Engineering roles cluster at the larger Israeli SaaS and cyber companies — Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, AppsFlyer, Gong. The Israeli SE talent market is competitive given the volume of B2B companies; many senior SEs do multi-company stints across cyber and SaaS verticals. Strong English communication and ability to handle US executive-level technical conversations are critical hire-screen criteria. Many senior SEs eventually fork into Solutions Engineering Management or Solutions Architecture (post-sale) rather than continuing as pure pre-sales ICs at the principal level."
+        "israel": "Backgrounds: promoted from SE with strong customer-facing track record; external senior hires common at unicorns; many do multi-company stints across cyber and SaaS verticals. Stack patterns: Salesforce, Highspot, demo environments tailored for executive POCs; competitive battlecards; strong English plus presentation chops for US CTO / CISO / VPE conversations. Hiring stage: clusters at larger Israeli SaaS and cyber companies — Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, AppsFlyer, Gong. Many eventually fork to Solutions Engineering Management or Solutions Architecture (post-sale) rather than continuing as pure pre-sales ICs at the principal level."
       },
       "alternate_titles": [
         "Senior SE",
@@ -9336,7 +9876,7 @@ export const roleLibrary = {
         "executive_presentation"
       ],
       "market_notes": {
-        "israel": "Solutions Engineering Manager roles exist at scale-up and unicorn B2B companies with 8+ SEs — common at Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, AppsFlyer, Gong, Forter. Smaller B2B startups (under 20 SEs total) typically have one Head of SE who manages all SEs directly without intermediate managers. Many Israeli SE managers oversee dual-region teams (EMEA-based in Tel Aviv covering EMEA accounts, plus US-based reports covering NA). Strong overlap with sales leadership — many SE managers eventually fork to sales management or VP-level dual GTM roles."
+        "israel": "Backgrounds: promoted from senior SE; some external SE manager hires. Often oversees dual-region teams (EMEA-based in Tel Aviv plus US-based reports covering NA). Stack patterns: Salesforce + Lattice + Highspot + Notion for management workflow; people management + technical depth + sales acumen as the dual-skill bar. Hiring stage: scale-up and unicorn B2B companies with 8+ SEs — Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, AppsFlyer, Gong, Forter. Smaller B2B startups (under 20 SEs) typically have one Head of SE managing all SEs directly. Strong overlap with sales leadership — career often forks to sales management or VP-level dual GTM roles."
       },
       "alternate_titles": [
         "SE Manager",
@@ -9415,7 +9955,7 @@ export const roleLibrary = {
         "stakeholder_management"
       ],
       "market_notes": {
-        "israel": "Head of Solutions Engineering is found at scale-ups with 15+ SEs and at all unicorns — Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, AppsFlyer, Gong, Forter, Payoneer. The role often reports to CRO or VP Sales, sometimes to CEO at SE-heavy companies (cyber especially). At companies where SE plays a central role in deal qualification and product positioning, this role has executive-level influence beyond GTM — shapes product strategy and roadmap through field-intel surfacing. Career exit paths frequently include CRO, VP Sales, or moving to a startup as a co-founder or first-GTM-hire."
+        "israel": "Backgrounds: senior SE manager promotion, external Head of SE hire, or VP Sales fork; 12-18 years typical. Stack patterns: Salesforce + Looker for org-wide visibility; executive customer engagement; GTM strategy work alongside CRO / VP Sales. Hiring stage: scale-ups with 15+ SEs and all unicorns — Wiz, Check Point, CyberArk, SentinelOne, monday.com, JFrog, AppsFlyer, Gong, Forter, Payoneer. Reports to CRO or VP Sales in most cases; sometimes to CEO at SE-heavy companies (cyber especially). Career exit paths frequently include CRO, VP Sales, or moving to a startup as co-founder or first-GTM-hire."
       },
       "alternate_titles": [
         "VP Solutions Engineering",
@@ -9835,8 +10375,8 @@ export const roleLibrary = {
       "standardized_title": "Customer Success Specialist",
       "alternate_titles": [
         "CS Specialist",
-        "Customer Experience Specialist",
-        "Client Success Specialist"
+        "Junior Customer Success Manager",
+        "CS Associate"
       ],
       "role_family": "Relationship_Growth",
       "secondary_family": null,
@@ -9879,8 +10419,9 @@ export const roleLibrary = {
         "customer_success_manager"
       ],
       "similar_roles": [
-        "Customer Success Manager",
-        "Account Manager"
+        "customer_success_manager",
+        "customer_support_specialist",
+        "customer_onboarding_specialist"
       ],
       "keywords": [
         "customer success",
@@ -9888,7 +10429,12 @@ export const roleLibrary = {
         "adoption",
         "renewal",
         "QBR"
-      ]
+      ],
+      "years_experience_typical": "1-3",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent graduates from business / liberal arts programs, support engineer pivots, hospitality / retail-to-tech transitions; strong English (often near-native) is essential. Stack patterns: Gainsight / Vitally / Catalyst + Zendesk / Intercom + Salesforce + Notion + Gong / Chorus for call review. Hiring stage: common at B2B SaaS scale-ups serving SMB / mid-market segments — monday.com, Wix, HiBob, Gong, Lemonade, AppsFlyer. Often a stepping stone to customer_success_manager within 12-18 months."
+      }
     },
     {
       "id": "financial_analyst",
@@ -9948,11 +10494,12 @@ export const roleLibrary = {
       "id": "operations_analyst",
       "standardized_title": "Operations Analyst",
       "alternate_titles": [
-        "Business Operations Analyst",
-        "Ops Analyst"
+        "Junior Business Analyst",
+        "Operations Analyst",
+        "Business Operations Analyst"
       ],
       "role_family": "Operations",
-      "secondary_family": null,
+      "secondary_family": "Data",
       "seniority": "Entry_Mid",
       "core_purpose": "Analyze operational data, identify process improvements, support cross-functional operations.",
       "core_responsibilities": [
@@ -9987,14 +10534,23 @@ export const roleLibrary = {
         "business_ops_analyst",
         "business_ops_manager"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "business_analyst",
+        "business_ops_analyst",
+        "revops_analyst"
+      ],
       "keywords": [
         "operations",
         "analytics",
         "process",
         "dashboards",
         "reporting"
-      ]
+      ],
+      "years_experience_typical": "1-3",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: industrial engineering, economics, or analytics graduates; some are former management consultants pivoting to in-house operations. Stack patterns: SQL + Looker / Mode + Excel + Salesforce; light Python for ad-hoc data work. Hiring stage: common at scale-ups and unicorns — monday.com, Wix, JFrog, Lemonade, Payoneer, AppsFlyer, HiBob, Forter, eToro. Often the start of a Revenue Operations or Business Operations career path."
+      }
     },
     {
       "id": "hr_coordinator",
@@ -10100,8 +10656,8 @@ export const roleLibrary = {
       "id": "marketing_assistant",
       "standardized_title": "Marketing Assistant",
       "alternate_titles": [
-        "Junior Marketing Associate",
-        "Marketing Admin"
+        "Marketing Associate",
+        "Junior Marketing Assistant"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -10138,20 +10694,30 @@ export const roleLibrary = {
         "marketing_coordinator",
         "social_media_coordinator"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "marketing_coordinator",
+        "marketing_intern",
+        "social_media_coordinator"
+      ],
       "keywords": [
         "marketing",
         "social media",
         "content",
         "campaigns"
-      ]
+      ],
+      "years_experience_typical": "0-2",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent graduates from Reichman / IDC / TAU / Hebrew University; some pivot from related fields (PR, communications, journalism). Stack patterns: HubSpot / Marketo + Canva + Google Workspace + light Salesforce; some exposure to Hootsuite / Buffer for social. Hiring stage: common at scale-ups and mid-sized Israeli tech companies — monday.com, Wix, JFrog, Fiverr, Lemonade, AppsFlyer, Cellebrite. Less common at very early-stage startups (under ~30 employees) which usually hire mid-level marketing managers directly."
+      }
     },
     {
       "id": "sales_representative",
       "standardized_title": "Sales Representative",
       "alternate_titles": [
-        "SMB Sales Rep",
-        "Inside Sales Rep"
+        "Inside Sales Rep",
+        "Sales Specialist",
+        "Account Specialist"
       ],
       "role_family": "Sales",
       "secondary_family": null,
@@ -10189,20 +10755,28 @@ export const roleLibrary = {
         "account_executive",
         "senior_account_executive"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "account_executive",
+        "sales_associate"
+      ],
       "keywords": [
         "sales",
         "quota",
         "pipeline",
         "closing",
         "prospecting"
-      ]
+      ],
+      "years_experience_typical": "1-3",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: promoted SDRs ready for transactional / SMB selling, sometimes external hires with 1-3 years prior commercial experience. Stack patterns: Salesforce + Gong / Chorus for conversation intelligence + Outreach for cadence + DealHub / PandaDoc for CPQ. Hiring stage: common at SMB-focused SaaS and cyber companies — DealHub, Workiz, Cloudinary, monday.com (SMB segment), HiBob (SMB), AppsFlyer. The role is a stepping stone to account_executive within 12-18 months."
+      }
     },
     {
       "id": "brand_manager",
       "standardized_title": "Brand Manager",
       "alternate_titles": [
-        "Brand Strategy Manager",
+        "Senior Brand Manager",
         "Brand Marketing Manager"
       ],
       "role_family": "Marketing",
@@ -10238,20 +10812,29 @@ export const roleLibrary = {
       "next_roles": [
         "head_of_marketing"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "marketing_manager",
+        "social_media_manager",
+        "content_marketing_manager"
+      ],
       "keywords": [
         "brand",
         "positioning",
         "messaging",
         "brand strategy"
-      ]
+      ],
+      "years_experience_typical": "4-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: agency-to-in-house pivots, marketing manager promotion, former CPG brand managers transitioning to tech. Stack patterns: Figma / Canva / Adobe Creative Suite for brand asset oversight, Brandfolder / Frontify for brand systems, Notion for brand guidelines. Hiring stage: most common at consumer-facing scale-ups (Lemonade, Wix, Fiverr, Lightricks, Plarium, Playtika, eToro, Moovit), and at B2B SaaS investing in brand differentiation (monday.com, HiBob, Gong). Less common at cyber where brand work concentrates at the VP / CMO level."
+      }
     },
     {
       "id": "event_coordinator",
       "standardized_title": "Event Coordinator",
       "alternate_titles": [
-        "Events Associate",
-        "Marketing Events Coordinator"
+        "Junior Event Manager",
+        "Event Operations Coordinator"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -10288,20 +10871,28 @@ export const roleLibrary = {
         "event_manager",
         "marketing_coordinator"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "event_manager",
+        "marketing_coordinator"
+      ],
       "keywords": [
         "events",
         "webinars",
         "conferences",
         "event marketing"
-      ]
+      ],
+      "years_experience_typical": "1-3",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: junior marketing or hospitality / events backgrounds; some come from in-house Israeli tech events (RecruitFest, MarTech Tel Aviv, OurCrowd Summit). Stack patterns: Cvent / Bizzabo / Hopin (event platforms), Asana / Monday for project work, Salesforce for attendee tracking. Hiring stage: scale-ups and unicorns with significant event marketing investment — monday.com, JFrog, Wiz, Cellebrite, HiBob, Lemonade, AppsFlyer. Often involves heavy logistics work for international conferences (Black Hat, RSA for cyber; SaaStr, INBOUND for B2B SaaS)."
+      }
     },
     {
       "id": "partnerships_associate",
       "standardized_title": "Partnerships Associate",
       "alternate_titles": [
-        "Partner Operations Associate",
-        "Partnership Development Associate"
+        "Partnerships Coordinator",
+        "Junior Partnerships Manager"
       ],
       "role_family": "BD_Partnerships",
       "secondary_family": null,
@@ -10321,8 +10912,8 @@ export const roleLibrary = {
         "pipeline_management"
       ],
       "preferred_skills": [
-        "crm_management",
-        "cross_functional_collaboration"
+        "partner_relationship_management",
+        "outbound_prospecting"
       ],
       "tools": [
         "CRM",
@@ -10337,22 +10928,31 @@ export const roleLibrary = {
         "partnerships_manager",
         "channel_partner_manager"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "bdr_bd_associate",
+        "business_development_representative"
+      ],
       "keywords": [
         "partnerships",
         "partner management",
         "BD"
-      ]
+      ],
+      "years_experience_typical": "0-2",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent graduates with strong relationship-building skills, sometimes BD background. Stack patterns: Salesforce + PartnerStack + LinkedIn Sales Navigator + light project management. Hiring stage: less common in Israeli tech given the smaller scale of partnership functions at most companies. Most common at cyber companies with substantial channel motion (Wiz, Check Point, CyberArk, SentinelOne) and at integration-heavy SaaS (JFrog, Cloudinary, Snyk)."
+      }
     },
     {
       "id": "junior_business_analyst",
       "standardized_title": "Junior Business Analyst",
       "alternate_titles": [
-        "Business Analyst I",
-        "Business Analytics Associate"
+        "Junior BA",
+        "Business Analyst (Entry)",
+        "Operations Analyst"
       ],
       "role_family": "RevOps_BizOps",
-      "secondary_family": null,
+      "secondary_family": "Data",
       "seniority": "Entry",
       "core_purpose": "Support business analysis, gather requirements, assist with reporting and process documentation.",
       "core_responsibilities": [
@@ -10385,17 +10985,27 @@ export const roleLibrary = {
       "next_roles": [
         "business_analyst"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "business_analyst",
+        "operations_analyst",
+        "revenue_analyst"
+      ],
       "keywords": [
         "business analysis",
         "reporting",
         "requirements"
-      ]
+      ],
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: industrial engineering, economics, or analytics graduates from Reichman / IDC / TAU / Technion. Stack patterns: SQL + Excel + Looker / Mode + Salesforce + light Python. Hiring stage: common at scale-ups and unicorns with mature operations functions — monday.com, Wix, JFrog, Lemonade, AppsFlyer, HiBob, Forter, Tipalti. Often the start of a Revenue Operations or Business Operations career path."
+      }
     },
     {
       "id": "marketing_intern",
       "standardized_title": "Marketing Intern",
       "alternate_titles": [
+        "Marketing Intern",
+        "Junior Marketing Intern",
         "Marketing Trainee"
       ],
       "role_family": "Marketing",
@@ -10427,12 +11037,20 @@ export const roleLibrary = {
         "marketing_assistant",
         "marketing_coordinator"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "marketing_assistant",
+        "marketing_coordinator"
+      ],
       "keywords": [
         "marketing intern",
         "social media",
         "content"
-      ]
+      ],
+      "years_experience_typical": "0-1",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: undergraduate students at Reichman / IDC / TAU / Hebrew University / Technion, often through practicum programs (Reichman BBA practicum, IDC Honor's Program). Stack patterns: HubSpot / Marketo basics, Canva, Google Workspace, light Salesforce exposure. Hiring stage: paid internships at scale-ups (monday.com, Wix, JFrog, Lemonade, AppsFlyer) and unpaid / academic-credit at smaller startups. Often 3-6 month engagements during academic semesters or full-time summer programs."
+      }
     },
     {
       "id": "hr_assistant",
@@ -10484,8 +11102,9 @@ export const roleLibrary = {
       "id": "sales_associate",
       "standardized_title": "Sales Associate",
       "alternate_titles": [
-        "Inside Sales Associate",
-        "Junior Sales Rep"
+        "Junior Sales Associate",
+        "Sales Coordinator",
+        "Inside Sales Associate"
       ],
       "role_family": "Sales",
       "secondary_family": null,
@@ -10519,20 +11138,28 @@ export const roleLibrary = {
         "sales_representative",
         "sales_development_representative"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "sales_development_representative",
+        "business_development_representative"
+      ],
       "keywords": [
         "sales",
         "inbound",
         "CRM",
         "lead qualification"
-      ]
+      ],
+      "years_experience_typical": "0-2",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent graduates, IDF veterans, often Hebrew-speaking domestic-market roles or international entry-level pre-SDR. Stack patterns: Salesforce or HubSpot dominant; lighter tooling than SDR. Hiring stage: less common at international SaaS / cyber companies (those typically hire SDR / BDR directly). More common at domestic-market Israeli companies (insurance, banking SaaS, B2B services) and at some scale-ups in administrative / coordination capacities."
+      }
     },
     {
       "id": "social_media_coordinator",
       "standardized_title": "Social Media Coordinator",
       "alternate_titles": [
-        "Social Media Specialist",
-        "Community Coordinator"
+        "Junior Social Media Manager",
+        "Social Coordinator"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -10568,13 +11195,22 @@ export const roleLibrary = {
       "next_roles": [
         "social_media_manager"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "social_media_manager",
+        "content_marketing_manager",
+        "marketing_coordinator"
+      ],
       "keywords": [
         "social media",
         "community",
         "posts",
         "engagement"
-      ]
+      ],
+      "years_experience_typical": "0-2",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent graduates with social media side-projects, journalism / communications backgrounds. Stack patterns: native LinkedIn / Twitter / X / Instagram fluency; Hootsuite / Buffer / Sprout Social for scheduling; Canva / Figma for asset creation; Google Analytics and platform-native analytics. Hiring stage: common at consumer-facing Israeli companies (Wix, Fiverr, Lemonade, Lightricks, Plarium, Playtika), and at B2B companies investing in social / community (monday.com, HiBob, Gong, AppsFlyer)."
+      }
     },
     {
       "id": "recruitment_coordinator",
@@ -10629,7 +11265,8 @@ export const roleLibrary = {
       "standardized_title": "Business Operations Associate",
       "alternate_titles": [
         "BizOps Associate",
-        "Ops Associate"
+        "Business Operations Coordinator",
+        "Junior Operations Associate"
       ],
       "role_family": "RevOps_BizOps",
       "secondary_family": null,
@@ -10665,12 +11302,20 @@ export const roleLibrary = {
         "business_ops_analyst",
         "operations_analyst"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "operations_associate",
+        "junior_business_analyst",
+        "revenue_analyst"
+      ],
       "keywords": [
         "business operations",
         "process",
         "operations"
-      ]
+      ],
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent graduates with strong analytical and operational aptitude, sometimes ex-consultants at junior levels. Stack patterns: SQL + Excel / Sheets + Salesforce + Notion + Looker / Mode + Asana / Monday for project work. Hiring stage: common at scale-ups and unicorns with chief-of-staff-style functions — monday.com, Wix, JFrog, AppsFlyer, HiBob, Lemonade, Forter, Tipalti, Wiz. Career path forks to business_ops_analyst, revenue_analyst, or chief_of_staff."
+      }
     },
     {
       "id": "strategy_analyst",
@@ -10824,8 +11469,8 @@ export const roleLibrary = {
       "id": "operations_associate",
       "standardized_title": "Operations Associate",
       "alternate_titles": [
-        "Ops Associate",
-        "Business Ops Associate"
+        "Junior Operations Associate",
+        "Operations Coordinator"
       ],
       "role_family": "Operations",
       "secondary_family": null,
@@ -10859,19 +11504,29 @@ export const roleLibrary = {
         "operations_analyst",
         "business_operations_associate"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "operations_analyst",
+        "business_operations_associate",
+        "junior_business_analyst"
+      ],
       "keywords": [
         "operations",
         "admin",
         "coordination"
-      ]
+      ],
+      "years_experience_typical": "0-2",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: recent graduates from industrial engineering, business administration, or related programs at Reichman / IDC / TAU / Technion. Stack patterns: Excel / Google Sheets heavy + Salesforce + Notion + light SQL exposure + Looker / Mode dashboards. Hiring stage: common across scale-ups and unicorns with structured operations functions — monday.com, Wix, JFrog, Lemonade, Payoneer, AppsFlyer, Forter, HiBob. Often a generalist role at smaller orgs; specializes by function (Sales Ops, Revenue Ops, People Ops) at larger orgs."
+      }
     },
     {
       "id": "event_manager",
       "standardized_title": "Event Manager",
       "alternate_titles": [
-        "Senior Events Manager",
-        "Head of Events"
+        "Senior Event Manager",
+        "Field Marketing Manager",
+        "Event Marketing Manager"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -10906,20 +11561,29 @@ export const roleLibrary = {
       "next_roles": [
         "head_of_marketing"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "demand_generation_manager",
+        "brand_manager",
+        "event_coordinator"
+      ],
       "keywords": [
         "event",
         "events",
         "conference",
         "event manager"
-      ]
+      ],
+      "years_experience_typical": "4-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: event coordinator promotion, field marketing pivot, or hospitality / events industry transition. Stack patterns: Cvent / Bizzabo + Salesforce attribution + Splash / Hopin for digital + Asana / Monday for project work. Hiring stage: scale-ups and unicorns with substantial event marketing budgets — monday.com, JFrog, Wiz, Check Point, CyberArk, SentinelOne, Cellebrite, HiBob, Lemonade. Heavy international travel for major industry conferences."
+      }
     },
     {
       "id": "technical_support_specialist",
       "standardized_title": "Technical Support Specialist",
       "alternate_titles": [
-        "Tier 2 Support",
-        "Application Support Specialist"
+        "Junior Technical Support Engineer",
+        "Tier 2 Technical Support"
       ],
       "role_family": "Support",
       "secondary_family": null,
@@ -10955,13 +11619,22 @@ export const roleLibrary = {
       "next_roles": [
         "technical_support_engineer"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "technical_support_engineer",
+        "customer_support_specialist",
+        "solutions_engineer_junior"
+      ],
       "keywords": [
         "technical support",
         "troubleshooting",
         "T2",
         "application support"
-      ]
+      ],
+      "years_experience_typical": "1-3",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: support specialist promotion with technical aptitude, bootcamp grads with customer-facing skills, IDF veterans from technical units pivoting to commercial roles. Stack patterns: Zendesk + JIRA for escalation tracking + Postman + basic SQL + Linux fundamentals + product-specific debugging tools. Hiring stage: common at technical / API-heavy SaaS — JFrog, Cloudinary, Coralogix, Logz.io, AppsFlyer, monday.com (developer-facing surfaces), Gong. Often a stepping stone to technical_support_engineer or solutions_engineer_junior."
+      }
     },
     {
       "id": "solutions_consultant",
@@ -11033,7 +11706,7 @@ export const roleLibrary = {
         "implementation_specialist_promotion"
       ],
       "market_notes": {
-        "israel": "Solutions Consultant is less common than Solutions Engineer in Israeli tech — typically found at enterprise SaaS companies with longer, more consultative sales cycles. Common at Amdocs, NICE Systems, Cellebrite, SAP / Salesforce / Oracle Israel offices, and at some Israeli enterprise SaaS scale-ups (Sapiens, Earnix, Personetics, Novidea, Au10tix). Often involves implementation oversight in addition to pre-sales work, blurring into technical_account_manager territory at some companies."
+        "israel": "Backgrounds: consulting pivots to SE; SE pivots to more implementation-focused work; implementation specialist promotions. Stack patterns: similar to Solutions Engineer tooling but with more implementation oversight — Salesforce, Jira, Notion, demo environments, customer-specific configuration work. Hiring stage: less common than Solutions Engineer in Israeli tech — typically at enterprise SaaS companies with longer, more consultative sales cycles. Common at Amdocs, NICE Systems, Cellebrite, SAP / Salesforce / Oracle Israel offices, and at Israeli enterprise SaaS scale-ups (Sapiens, Earnix, Personetics, Novidea, AU10TIX). Often blurs into technical_account_manager territory at some companies."
       },
       "_research_method": "knowledge"
     },
@@ -11107,7 +11780,7 @@ export const roleLibrary = {
         "swe_to_customer_facing"
       ],
       "market_notes": {
-        "israel": "Pre-Sales Engineer is essentially a regional / title variation of Solutions Engineer — common at companies that distinguish the role by territory (EMEA / APAC pre-sales vs US-based SEs). Concentration matches Solutions Engineer at cyber (Wiz, Check Point, CyberArk, SentinelOne), SaaS (monday.com, JFrog, Gong, HiBob), and enterprise software (Amdocs, NICE, Cellebrite). At many Israeli companies the two titles are used interchangeably — the canonical role here is the same job with different reporting structure or regional alignment."
+        "israel": "Backgrounds: Solutions Engineer pivots (essentially the same role at many companies); consulting pivots; SWEs to customer-facing. Stack patterns: same as Solutions Engineer — Salesforce, demo environments, Postman, Notion, Loom, strong English. Hiring stage: at many Israeli companies the title is used interchangeably with Solutions Engineer — distinguished primarily by territory (EMEA / APAC pre-sales vs US-based SEs) or by reporting structure. Concentration matches Solutions Engineer at cyber (Wiz, Check Point, CyberArk, SentinelOne), SaaS (monday.com, JFrog, Gong, HiBob), and enterprise software (Amdocs, NICE, Cellebrite)."
       },
       "_research_method": "knowledge"
     },
@@ -11115,11 +11788,11 @@ export const roleLibrary = {
       "id": "growth_analyst",
       "standardized_title": "Growth Analyst",
       "alternate_titles": [
-        "Growth Data Analyst",
+        "Junior Growth Analyst",
         "Growth Marketing Analyst"
       ],
       "role_family": "Marketing",
-      "secondary_family": null,
+      "secondary_family": "Data",
       "seniority": "Entry_Mid",
       "core_purpose": "Analyze growth metrics, run experiments, identify acquisition and retention opportunities, support growth strategy.",
       "core_responsibilities": [
@@ -11154,23 +11827,33 @@ export const roleLibrary = {
         "growth_marketing_manager",
         "data_analyst"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "data_analyst",
+        "product_analyst",
+        "performance_marketing_manager"
+      ],
       "keywords": [
         "growth",
         "analytics",
         "experiments",
         "funnel"
-      ]
+      ],
+      "years_experience_typical": "1-3",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: industrial engineering, economics, or analytics graduates; some are former data analysts pivoting to growth-specific work. Stack patterns: SQL + Looker / Mode + Amplitude / Mixpanel + Excel / Sheets; Google Analytics + Facebook Ads / Google Ads + Appsflyer mobile attribution. Hiring stage: common at consumer-facing companies with rich behavioral data (Lightricks, Plarium, Playtika, Gett, Moovit), B2B SaaS investing in PLG (monday.com, Wix, Fiverr, HiBob), and FinTech (Lemonade, Payoneer, eToro). Often a stepping stone to product_analyst or performance_marketing_manager."
+      }
     },
     {
       "id": "revenue_analyst",
       "standardized_title": "Revenue Analyst",
       "alternate_titles": [
         "Revenue Operations Analyst",
-        "RevOps Analyst"
+        "Junior RevOps Analyst",
+        "GTM Analyst"
       ],
       "role_family": "RevOps_BizOps",
-      "secondary_family": null,
+      "secondary_family": "Data",
       "seniority": "Entry_Mid",
       "core_purpose": "Analyze revenue data, track pipeline metrics, support revenue forecasting, build revenue reports.",
       "core_responsibilities": [
@@ -11205,20 +11888,29 @@ export const roleLibrary = {
         "business_ops_analyst",
         "sales_operations_manager"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "revops_analyst",
+        "operations_analyst",
+        "business_analyst"
+      ],
       "keywords": [
         "revenue",
         "RevOps",
         "pipeline analytics",
         "forecasting"
-      ]
+      ],
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: industrial engineering, economics, or finance graduates; some former management consultants. Stack patterns: SQL + Salesforce administration + Looker / Mode + Excel financial modeling + Clari / Boostup for forecasting + heavy commercial reporting. Hiring stage: common at B2B SaaS and cyber scale-ups with structured RevOps functions — monday.com, JFrog, Gong, HiBob, AppsFlyer, Wiz, Forter, Tipalti, Lemonade, Payoneer."
+      }
     },
     {
       "id": "demand_generation_manager",
       "standardized_title": "Demand Generation Manager",
       "alternate_titles": [
         "Demand Gen Manager",
-        "Lead Gen Manager"
+        "Pipeline Marketing Manager",
+        "Senior Demand Generation Manager"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -11256,13 +11948,22 @@ export const roleLibrary = {
         "head_of_marketing",
         "growth_marketing_manager"
       ],
-      "similar_roles": [],
+      "similar_roles": [
+        "growth_marketing_manager",
+        "performance_marketing_manager",
+        "marketing_manager"
+      ],
       "keywords": [
         "demand gen",
         "lead generation",
         "MQL",
         "pipeline marketing"
-      ]
+      ],
+      "years_experience_typical": "4-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: B2B marketing managers, growth marketers, ABM specialists. Stack patterns: HubSpot / Marketo + Salesforce + 6sense / Demandbase for ABM + LinkedIn Ads + paid social/search + Outreach / Salesloft alignment with sales. Hiring stage: critical role at B2B SaaS and cyber scale-ups — monday.com, JFrog, Gong, HiBob, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Forter. Heavily focused on pipeline generation for enterprise / mid-market segments selling into US."
+      }
     }
   ]
 } as const;

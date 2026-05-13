@@ -115,6 +115,17 @@ The skill-research follow-up reads this as its priority list. Do NOT add missing
    - Leadership-adjacent skills (mentoring, technical leadership) shift from preferred at Mid → required at Senior and above.
    - Tool-specific skills (e.g. `figma_mastery` for a Product Designer) ARE required when the tool is universal in the industry. Otherwise preferred.
 
+4. **Frame `market_notes` as internal matcher context, not user-facing facts.** The matcher reads this prose to score role-to-user fit; users may never see it directly. Avoid declarative employer-list-as-fact framing ("Company X, Y, Z hire for this role"). Keep company names in the data — the matcher needs them as signal — but write them observationally as examples, not as authoritative employer lists.
+   - BAD: "Heavy concentration at Wiz, Check Point, CyberArk, SentinelOne..."
+   - BAD: "Companies like X hire for this role"
+   - GOOD: "Common at AI-native scale-ups and unicorns (AI21 Labs, Run:ai, Aidoc, Hailo); also appears at..."
+   - GOOD: Inline mentions as illustration rather than as a headline statement.
+
+5. **Skip Israel-vs-global comparative framing.** Don't write "less common than in US tech" or "globally this role..." — focus on what's distinctive locally and matchable. Cover three practical buckets:
+   - **Backgrounds:** typical paths into the role — IDF units (Unit 8200, 81, 9900, Mamram), universities (Technion, TAU, Reichman, IDC, Hebrew University, Weizmann), prior role pivots, common entry programs.
+   - **Stack patterns:** the tooling reality observed in Israeli companies — what the local ecosystem actually uses, including specific dominant tools and any locally-particular tilts (e.g. AWS-dominant cloud, Hebrew-language features for Israeli-domestic products).
+   - **Hiring stage:** where the role appears in the ecosystem — company stage, sector concentration, illustrative company examples woven in observationally.
+
 ## Don't
 
 - Don't fabricate metrics or company names not grounded in research or your knowledge.
