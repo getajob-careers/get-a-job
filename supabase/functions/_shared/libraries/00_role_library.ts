@@ -1,19 +1,34 @@
 export const roleLibrary = {
   "library_name": "get_a_job_role_library",
-  "version": "1.1",
-  "last_updated": "2026-04-15",
-  "description": "Standardized role taxonomy for role matching, job classification, and career path logic across post-sale, operations, and product roles.",
+  "version": "2.0",
+  "last_updated": "2026-05-13",
+  "description": "Standardized role taxonomy for role matching, job classification, and career path logic. Unified schema (v2.0): merges historical Schema A (post-sale/ops/product) + Schema B (sales/marketing/data/finance/HR) + Schema C (engineering/AI/consulting) into one shape. See docs/role_library_schema.md.",
   "role_families": [
     "Support",
     "Onboarding_Implementation",
-    "Relationship_Growth",
     "Customer_Experience",
-    "Leadership",
+    "Relationship_Growth",
+    "Sales",
+    "BD_Partnerships",
+    "Marketing",
+    "Product",
+    "Engineering",
+    "Design_UX",
+    "Data",
+    "AI_ML",
     "Operations",
-    "Product"
+    "RevOps_BizOps",
+    "Finance",
+    "HR_People",
+    "Leadership",
+    "Admin_GA",
+    "IT_Security",
+    "Solutions_Engineering",
+    "Consulting"
   ],
   "seniority_levels": [
     "Entry",
+    "Entry_Mid",
     "Mid",
     "Senior",
     "Lead_Manager",
@@ -31,6 +46,7 @@ export const roleLibrary = {
         "Customer Care Representative"
       ],
       "role_family": "Support",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Resolve basic customer inquiries and issues and maintain customer satisfaction.",
       "core_responsibilities": [
@@ -101,6 +117,7 @@ export const roleLibrary = {
         "SaaS Support Specialist"
       ],
       "role_family": "Support",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Resolve customer issues in a B2B or SaaS environment with stronger product and systems exposure.",
       "core_responsibilities": [
@@ -169,6 +186,7 @@ export const roleLibrary = {
         "Customer Support Engineer"
       ],
       "role_family": "Support",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Resolve complex technical issues and act as the bridge between customers and engineering.",
       "core_responsibilities": [
@@ -242,6 +260,7 @@ export const roleLibrary = {
         "Senior Technical Support Engineer"
       ],
       "role_family": "Support",
+      "secondary_family": null,
       "seniority": "Senior",
       "core_purpose": "Own complex escalations, mentor others, and resolve high-impact technical issues.",
       "core_responsibilities": [
@@ -308,6 +327,7 @@ export const roleLibrary = {
         "Onboarding Associate"
       ],
       "role_family": "Onboarding_Implementation",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Guide new customers through initial setup, education, and early product adoption.",
       "core_responsibilities": [
@@ -376,6 +396,7 @@ export const roleLibrary = {
         "Client Success Associate"
       ],
       "role_family": "Onboarding_Implementation",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Support customer adoption, satisfaction, and retention in an entry-level customer success capacity.",
       "core_responsibilities": [
@@ -444,6 +465,7 @@ export const roleLibrary = {
         "Deployment Specialist"
       ],
       "role_family": "Onboarding_Implementation",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Translate customer needs into working product setup, configuration, and go-live execution.",
       "core_responsibilities": [
@@ -513,6 +535,7 @@ export const roleLibrary = {
         "Delivery Manager"
       ],
       "role_family": "Onboarding_Implementation",
+      "secondary_family": null,
       "seniority": "Senior",
       "core_purpose": "Own end-to-end implementation delivery and ensure successful rollout into customer workflows.",
       "core_responsibilities": [
@@ -584,6 +607,7 @@ export const roleLibrary = {
         "Customer Delivery Project Manager"
       ],
       "role_family": "Onboarding_Implementation",
+      "secondary_family": null,
       "seniority": "Senior",
       "core_purpose": "Coordinate complex customer deployment projects from kickoff through implementation and closure.",
       "core_responsibilities": [
@@ -652,6 +676,7 @@ export const roleLibrary = {
         "Customer Success Specialist"
       ],
       "role_family": "Relationship_Growth",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Drive customer adoption, retention, and long-term value realization.",
       "core_responsibilities": [
@@ -726,6 +751,7 @@ export const roleLibrary = {
         "Strategic Customer Success Manager"
       ],
       "role_family": "Relationship_Growth",
+      "secondary_family": null,
       "seniority": "Senior",
       "core_purpose": "Own high-value accounts and lead strategic customer outcomes and retention.",
       "core_responsibilities": [
@@ -788,6 +814,7 @@ export const roleLibrary = {
         "TAM"
       ],
       "role_family": "Relationship_Growth",
+      "secondary_family": null,
       "seniority": "Senior",
       "core_purpose": "Combine technical expertise and account ownership to help customers succeed with complex products.",
       "core_responsibilities": [
@@ -859,6 +886,7 @@ export const roleLibrary = {
         "Client Account Manager"
       ],
       "role_family": "Relationship_Growth",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Maintain and grow client relationships with a stronger commercial focus.",
       "core_responsibilities": [
@@ -926,6 +954,7 @@ export const roleLibrary = {
         "Customer Experience Representative"
       ],
       "role_family": "Customer_Experience",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Support customers while helping improve experience quality across touchpoints.",
       "core_responsibilities": [
@@ -985,6 +1014,7 @@ export const roleLibrary = {
         "CX Manager"
       ],
       "role_family": "Customer_Experience",
+      "secondary_family": null,
       "seniority": "Senior",
       "core_purpose": "Optimize the end-to-end customer journey and improve customer loyalty through better systems and touchpoints.",
       "core_responsibilities": [
@@ -1051,6 +1081,7 @@ export const roleLibrary = {
         "Pre-Sales Engineer"
       ],
       "role_family": "Relationship_Growth",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Support the sales process by acting as the technical expert in customer conversations and solution design.",
       "core_responsibilities": [
@@ -1116,6 +1147,7 @@ export const roleLibrary = {
         "Technical Support Manager"
       ],
       "role_family": "Leadership",
+      "secondary_family": null,
       "seniority": "Lead_Manager",
       "core_purpose": "Lead support teams, improve support quality, and manage operational performance.",
       "core_responsibilities": [
@@ -1181,6 +1213,7 @@ export const roleLibrary = {
         "Customer Success Manager (people manager)"
       ],
       "role_family": "Leadership",
+      "secondary_family": null,
       "seniority": "Lead_Manager",
       "core_purpose": "Manage a team of CSMs and improve customer retention, expansion, and team performance.",
       "core_responsibilities": [
@@ -1246,6 +1279,7 @@ export const roleLibrary = {
         "Head of Customer Success"
       ],
       "role_family": "Leadership",
+      "secondary_family": null,
       "seniority": "Director_Head",
       "core_purpose": "Own the customer success function, strategy, and team structure.",
       "core_responsibilities": [
@@ -1315,6 +1349,7 @@ export const roleLibrary = {
         "CS Ops Director"
       ],
       "role_family": "Operations",
+      "secondary_family": null,
       "seniority": "Director_Head",
       "core_purpose": "Build and scale the systems, workflows, metrics, and automation behind the post-sale organization.",
       "core_responsibilities": [
@@ -1379,6 +1414,7 @@ export const roleLibrary = {
         "Vice President of Customer Success"
       ],
       "role_family": "Leadership",
+      "secondary_family": null,
       "seniority": "VP_Executive",
       "core_purpose": "Own the entire post-sale organization, customer outcomes, retention, and expansion strategy.",
       "core_responsibilities": [
@@ -1448,6 +1484,7 @@ export const roleLibrary = {
         "Implementation Project Manager"
       ],
       "role_family": "Operations",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Drive execution of defined projects by managing timelines, stakeholders, risks, and delivery milestones.",
       "core_responsibilities": [
@@ -1520,6 +1557,7 @@ export const roleLibrary = {
         "Technical Project Owner"
       ],
       "role_family": "Operations",
+      "secondary_family": null,
       "seniority": "Senior",
       "core_purpose": "Lead delivery of technically complex projects by translating business goals into structured execution plans across engineering and business teams.",
       "core_responsibilities": [
@@ -1593,6 +1631,7 @@ export const roleLibrary = {
         "Technical Program Manager"
       ],
       "role_family": "Operations",
+      "secondary_family": null,
       "seniority": "Senior",
       "core_purpose": "Coordinate multiple related projects or workstreams to achieve broader strategic business outcomes.",
       "core_responsibilities": [
@@ -1665,6 +1704,7 @@ export const roleLibrary = {
         "Product Lead"
       ],
       "role_family": "Product",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Define what should be built and why by aligning user needs, business goals, and product strategy.",
       "core_responsibilities": [
@@ -1742,6 +1782,7 @@ export const roleLibrary = {
         "Technical PM"
       ],
       "role_family": "Product",
+      "secondary_family": null,
       "seniority": "Senior",
       "core_purpose": "Own product direction for technically complex products by combining product judgment with strong engineering and systems understanding.",
       "core_responsibilities": [
@@ -1816,6 +1857,7 @@ export const roleLibrary = {
         "Growth Product Analyst"
       ],
       "role_family": "Product",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Turn product and user data into actionable insights that improve product decisions, experiments, and performance.",
       "core_responsibilities": [
@@ -1891,6 +1933,7 @@ export const roleLibrary = {
         "Outbound Sales Representative"
       ],
       "role_family": "Sales",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Generate and qualify leads to build the sales pipeline through outbound prospecting and inbound lead management.",
       "core_responsibilities": [
@@ -1972,6 +2015,7 @@ export const roleLibrary = {
         "Outbound BDR"
       ],
       "role_family": "Sales",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Identify and create new business opportunities through strategic outbound prospecting, market research, and target account engagement.",
       "core_responsibilities": [
@@ -2049,10 +2093,11 @@ export const roleLibrary = {
       "alternate_titles": [
         "AE",
         "Sales Executive",
-        "Account Manager \u2014 New Business",
+        "Account Manager — New Business",
         "Inside Sales Executive"
       ],
       "role_family": "Sales",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Own the full sales cycle from discovery through close, converting qualified leads into paying customers and meeting revenue targets.",
       "core_responsibilities": [
@@ -2139,6 +2184,7 @@ export const roleLibrary = {
         "Commercial AE"
       ],
       "role_family": "Sales",
+      "secondary_family": null,
       "seniority": "Senior",
       "core_purpose": "Own complex, high-value sales cycles with mid-market and enterprise accounts, driving significant revenue and shaping sales strategy.",
       "core_responsibilities": [
@@ -2224,6 +2270,7 @@ export const roleLibrary = {
         "Enterprise Sales Executive"
       ],
       "role_family": "Sales",
+      "secondary_family": null,
       "seniority": "Senior",
       "core_purpose": "Close large, complex enterprise deals with senior decision-makers across long sales cycles, driving strategic revenue growth.",
       "core_responsibilities": [
@@ -2310,6 +2357,7 @@ export const roleLibrary = {
         "Regional Sales Manager"
       ],
       "role_family": "Sales",
+      "secondary_family": null,
       "seniority": "Lead_Manager",
       "core_purpose": "Lead and develop a sales team to consistently achieve revenue targets, coaching individual sellers while managing deals and pipeline.",
       "core_responsibilities": [
@@ -2392,6 +2440,7 @@ export const roleLibrary = {
         "Director of Revenue"
       ],
       "role_family": "Sales",
+      "secondary_family": null,
       "seniority": "Director_Head",
       "core_purpose": "Own the sales function or a significant segment of it, defining strategy, managing managers, and driving revenue growth at scale.",
       "core_responsibilities": [
@@ -2477,6 +2526,7 @@ export const roleLibrary = {
         "Chief Revenue Officer"
       ],
       "role_family": "Sales",
+      "secondary_family": null,
       "seniority": "VP_Executive",
       "core_purpose": "Own the entire sales organization and revenue engine, setting global strategy, building the team, and driving company-level ARR growth.",
       "core_responsibilities": [
@@ -2562,6 +2612,7 @@ export const roleLibrary = {
         "GTM Operations Manager"
       ],
       "role_family": "Operations",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Enable sales team efficiency and effectiveness through process optimization, data analysis, CRM management, and revenue systems.",
       "core_responsibilities": [
@@ -2645,6 +2696,7 @@ export const roleLibrary = {
         "Partnerships Manager"
       ],
       "role_family": "Sales",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Build and manage relationships with channel partners, resellers, and strategic alliances to drive indirect revenue growth.",
       "core_responsibilities": [
@@ -2725,6 +2777,7 @@ export const roleLibrary = {
         "Marketing Project Coordinator"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Support marketing operations by coordinating campaigns, creating content, managing social channels, and assisting with events.",
       "core_responsibilities": [
@@ -2806,6 +2859,7 @@ export const roleLibrary = {
         "Marketing Team Lead"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Plan and execute multi-channel marketing strategies to drive brand awareness, demand generation, and business growth.",
       "core_responsibilities": [
@@ -2890,6 +2944,7 @@ export const roleLibrary = {
         "Marketing Growth Manager"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Drive measurable pipeline and revenue growth through data-driven, full-funnel marketing strategies and experimentation.",
       "core_responsibilities": [
@@ -2977,6 +3032,7 @@ export const roleLibrary = {
         "Paid Marketing Manager"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Own and optimize paid media campaigns across platforms to drive user acquisition, pipeline, and revenue at target efficiency metrics.",
       "core_responsibilities": [
@@ -3065,6 +3121,7 @@ export const roleLibrary = {
         "Customer Lifecycle Manager"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Maximize customer lifetime value through data-driven lifecycle journeys, CRM automation, and retention programs.",
       "core_responsibilities": [
@@ -3152,6 +3209,7 @@ export const roleLibrary = {
         "Product Marketer"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Bridge product and market by developing positioning, messaging, go-to-market strategy, and sales enablement for product launches and ongoing growth.",
       "core_responsibilities": [
@@ -3239,6 +3297,7 @@ export const roleLibrary = {
         "Brand Content Manager"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Drive brand awareness, SEO, and pipeline through high-quality content strategy and execution across blog, social, email, and other channels.",
       "core_responsibilities": [
@@ -3326,6 +3385,7 @@ export const roleLibrary = {
         "SEO Team Lead"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Own organic search strategy to drive scalable traffic growth through technical SEO, content optimization, and keyword strategy.",
       "core_responsibilities": [
@@ -3411,6 +3471,7 @@ export const roleLibrary = {
         "Digital Content Manager"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Build and manage brand presence across social media channels through content creation, community engagement, and influencer collaboration.",
       "core_responsibilities": [
@@ -3496,6 +3557,7 @@ export const roleLibrary = {
         "Chief Marketing Officer (early stage)"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Director_Head",
       "core_purpose": "Own the entire marketing function, defining strategy, building the team, and driving brand awareness, demand generation, and revenue-aligned growth.",
       "core_responsibilities": [
@@ -3580,6 +3642,7 @@ export const roleLibrary = {
         "Chief Marketing Officer"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "VP_Executive",
       "core_purpose": "Lead the global marketing organization, owning brand, demand generation, product marketing, and growth to drive company-level revenue and market leadership.",
       "core_responsibilities": [
@@ -3668,6 +3731,7 @@ export const roleLibrary = {
         "Product Management Associate"
       ],
       "role_family": "Product",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Learn the craft of product management by supporting PMs on discovery, spec writing, and delivery while building foundational product skills.",
       "core_responsibilities": [
@@ -3728,7 +3792,6 @@ export const roleLibrary = {
         "Product Manager",
         "Business Analyst"
       ],
-      "market_note": "APM roles are rare in the Tel Aviv high-tech market. Most companies expect at least 2 years of experience for PM entry. The most common path into product is via Customer Success, Business Analysis, or Product Analyst roles first.",
       "keywords": [
         "APM",
         "product intern",
@@ -3738,7 +3801,10 @@ export const roleLibrary = {
         "engineering collaboration",
         "AI tools",
         "junior PM"
-      ]
+      ],
+      "market_notes": {
+        "israel": "APM roles are rare in the Tel Aviv high-tech market. Most companies expect at least 2 years of experience for PM entry. The most common path into product is via Customer Success, Business Analysis, or Product Analyst roles first."
+      }
     },
     {
       "id": "senior_product_manager",
@@ -3749,8 +3815,9 @@ export const roleLibrary = {
         "Staff Product Manager"
       ],
       "role_family": "Product",
+      "secondary_family": null,
       "seniority": "Senior",
-      "core_purpose": "Own complex, high-impact product domains with full autonomy \u2014 defining strategy, driving execution, and influencing product direction across the organization.",
+      "core_purpose": "Own complex, high-impact product domains with full autonomy — defining strategy, driving execution, and influencing product direction across the organization.",
       "core_responsibilities": [
         "Own strategy, roadmap, and execution for complex product areas",
         "Lead discovery on high-ambiguity, high-impact problems",
@@ -3844,6 +3911,7 @@ export const roleLibrary = {
         "Product Management Team Lead"
       ],
       "role_family": "Product",
+      "secondary_family": null,
       "seniority": "Lead_Manager",
       "core_purpose": "Lead a team of product managers across multiple product areas, balancing hands-on product ownership with people leadership and strategic direction.",
       "core_responsibilities": [
@@ -3855,7 +3923,7 @@ export const roleLibrary = {
         "Drive competitive analysis and market intelligence to inform direction",
         "Define and maintain processes for the PM team's product lifecycle",
         "Support go-to-market efforts with clear narratives and cross-functional alignment",
-        "Operate in ambiguity \u2014 shape opportunities where requirements are not predefined"
+        "Operate in ambiguity — shape opportunities where requirements are not predefined"
       ],
       "required_skills": [
         "pm_team_leadership",
@@ -3928,9 +3996,10 @@ export const roleLibrary = {
         "Product Ops Manager",
         "Customer Excellence Manager",
         "Strategic PMO",
-        "Business Operations \u2014 Product"
+        "Business Operations — Product"
       ],
       "role_family": "Product",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Enable product and go-to-market teams to operate at scale by designing processes, tracking performance, and bridging strategy with operational execution.",
       "core_responsibilities": [
@@ -3938,7 +4007,7 @@ export const roleLibrary = {
         "Design and implement scalable processes and workflows for product and GTM teams",
         "Define and track KPIs for product initiatives and operational programs",
         "Build dashboards that provide visibility into product performance and customer outcomes",
-        "Act as an internal consultant \u2014 conduct root-cause analysis and propose solutions",
+        "Act as an internal consultant — conduct root-cause analysis and propose solutions",
         "Lead change management for new processes and tool rollouts",
         "Manage dependencies and risks across departments proactively",
         "Partner with CS, Sales, and Product teams on cross-functional programs"
@@ -4021,8 +4090,9 @@ export const roleLibrary = {
         "VP of Product Management"
       ],
       "role_family": "Product",
+      "secondary_family": null,
       "seniority": "Director_Head",
-      "core_purpose": "Own the entire product function \u2014 defining product vision, building the PM team, and driving product strategy that creates market-leading outcomes.",
+      "core_purpose": "Own the entire product function — defining product vision, building the PM team, and driving product strategy that creates market-leading outcomes.",
       "core_responsibilities": [
         "Define product vision and long-term strategy aligned with company goals",
         "Build, lead, and develop the product management organization",
@@ -4113,6 +4183,7 @@ export const roleLibrary = {
         "Marketing Data Analyst"
       ],
       "role_family": "Data",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Transform raw data into actionable insights that drive business and product decisions through analysis, dashboards, and experimentation.",
       "core_responsibilities": [
@@ -4211,6 +4282,7 @@ export const roleLibrary = {
         "Reporting Analyst"
       ],
       "role_family": "Data",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Build the reporting infrastructure and data foundation that enables data-driven decision-making across the business through dashboards, data models, and KPI frameworks.",
       "core_responsibilities": [
@@ -4299,8 +4371,9 @@ export const roleLibrary = {
         "BI Engineer"
       ],
       "role_family": "Data",
+      "secondary_family": null,
       "seniority": "Mid",
-      "core_purpose": "Build the data foundation that enables reliable analytics \u2014 designing clean, well-structured data models and pipelines that power dashboards, product decisions, and business intelligence.",
+      "core_purpose": "Build the data foundation that enables reliable analytics — designing clean, well-structured data models and pipelines that power dashboards, product decisions, and business intelligence.",
       "core_responsibilities": [
         "Transform raw complex data into clean, structured, analytics-ready datasets",
         "Design and implement data models using dbt or similar tools",
@@ -4387,6 +4460,7 @@ export const roleLibrary = {
         "Data Infrastructure Engineer"
       ],
       "role_family": "Data",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Build and maintain the data infrastructure that enables the entire organization to work with reliable, scalable, high-quality data.",
       "core_responsibilities": [
@@ -4481,6 +4555,7 @@ export const roleLibrary = {
         "Machine Learning Scientist"
       ],
       "role_family": "Data",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Develop and deploy machine learning models and statistical solutions that create measurable business value from complex data.",
       "core_responsibilities": [
@@ -4577,6 +4652,7 @@ export const roleLibrary = {
         "Analytics Lead"
       ],
       "role_family": "Data",
+      "secondary_family": null,
       "seniority": "Senior",
       "core_purpose": "Own complex analytical domains end-to-end, drive strategic data decisions across the business, and elevate data culture and practices across the organization.",
       "core_responsibilities": [
@@ -4675,8 +4751,9 @@ export const roleLibrary = {
         "Data Team Lead"
       ],
       "role_family": "Data",
+      "secondary_family": null,
       "seniority": "Director_Head",
-      "core_purpose": "Own the entire data and analytics function \u2014 defining data strategy, building the team, setting standards, and turning data into a company-wide competitive advantage.",
+      "core_purpose": "Own the entire data and analytics function — defining data strategy, building the team, setting standards, and turning data into a company-wide competitive advantage.",
       "core_responsibilities": [
         "Define and own the company's data and analytics strategy",
         "Build, lead, and develop a multidisciplinary data team (analysts, engineers, scientists)",
@@ -4773,6 +4850,7 @@ export const roleLibrary = {
         "Financial Analyst"
       ],
       "role_family": "Finance",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Support financial planning, budgeting, and forecasting processes while acting as an analytical business partner to enable data-driven decisions across the organization.",
       "core_responsibilities": [
@@ -4866,14 +4944,15 @@ export const roleLibrary = {
         "FP&A Lead"
       ],
       "role_family": "Finance",
+      "secondary_family": null,
       "seniority": "Senior",
-      "core_purpose": "Drive financial planning and analysis at a senior level \u2014 owning complex models, leading business partnerships, and providing strategic insights that shape company decisions.",
+      "core_purpose": "Drive financial planning and analysis at a senior level — owning complex models, leading business partnerships, and providing strategic insights that shape company decisions.",
       "core_responsibilities": [
         "Lead annual budgeting and rolling forecast cycles end-to-end",
         "Own complex financial models for strategic initiatives and scenario planning",
         "Deliver deep-dive BvA analysis with actionable management narratives",
         "Act as primary financial partner to senior leadership across departments",
-        "Track and analyze SaaS metrics \u2014 ARR, NDR, churn, bookings, burn rate",
+        "Track and analyze SaaS metrics — ARR, NDR, churn, bookings, burn rate",
         "Develop KPI dashboards and performance monitoring frameworks",
         "Support board and investor reporting with financial analysis",
         "Lead or mentor junior FP&A team members",
@@ -4963,8 +5042,9 @@ export const roleLibrary = {
         "VP Finance (accounting-focused)"
       ],
       "role_family": "Finance",
+      "secondary_family": null,
       "seniority": "Mid",
-      "core_purpose": "Own the accounting function \u2014 ensuring accurate financial reporting, compliance, and controls while managing the month-end close and audit processes.",
+      "core_purpose": "Own the accounting function — ensuring accurate financial reporting, compliance, and controls while managing the month-end close and audit processes.",
       "core_responsibilities": [
         "Lead monthly, quarterly, and annual close processes",
         "Prepare financial statements in accordance with US GAAP or IFRS",
@@ -5029,7 +5109,6 @@ export const roleLibrary = {
         "FP&A Analyst",
         "VP Finance"
       ],
-      "market_note": "CPA certification is mandatory in the Israeli high-tech market. Big 4 internship experience is required or strongly preferred by most companies. Priority ERP is the dominant system in Israeli companies; NetSuite is common in US-facing or international entities.",
       "keywords": [
         "CPA",
         "controller",
@@ -5044,7 +5123,10 @@ export const roleLibrary = {
         "compliance",
         "reconciliations",
         "revenue recognition"
-      ]
+      ],
+      "market_notes": {
+        "israel": "CPA certification is mandatory in the Israeli high-tech market. Big 4 internship experience is required or strongly preferred by most companies. Priority ERP is the dominant system in Israeli companies; NetSuite is common in US-facing or international entities."
+      }
     },
     {
       "id": "finance_manager",
@@ -5055,8 +5137,9 @@ export const roleLibrary = {
         "Head of Accounting"
       ],
       "role_family": "Finance",
+      "secondary_family": null,
       "seniority": "Senior",
-      "core_purpose": "Lead the company's finance function \u2014 combining accounting oversight with financial planning to support executive decision-making and business growth.",
+      "core_purpose": "Lead the company's finance function — combining accounting oversight with financial planning to support executive decision-making and business growth.",
       "core_responsibilities": [
         "Manage and oversee financial operations, reporting, and compliance",
         "Lead financial planning, budgeting, and forecasting processes",
@@ -5147,8 +5230,9 @@ export const roleLibrary = {
         "Founding VP Finance"
       ],
       "role_family": "Finance",
+      "secondary_family": null,
       "seniority": "Director_Head",
-      "core_purpose": "Own the company's entire financial function \u2014 setting financial strategy, leading the team, supporting fundraising, and serving as a strategic partner to the CEO and board.",
+      "core_purpose": "Own the company's entire financial function — setting financial strategy, leading the team, supporting fundraising, and serving as a strategic partner to the CEO and board.",
       "core_responsibilities": [
         "Own all financial operations: budgeting, forecasting, cash management, and reporting",
         "Lead financial planning and analysis across the company",
@@ -5245,8 +5329,9 @@ export const roleLibrary = {
         "HR Specialist"
       ],
       "role_family": "HR_People",
+      "secondary_family": null,
       "seniority": "Entry_Mid",
-      "core_purpose": "Support the full range of HR functions across the employee lifecycle \u2014 from recruitment and onboarding to employee relations and compliance \u2014 in a generalist capacity.",
+      "core_purpose": "Support the full range of HR functions across the employee lifecycle — from recruitment and onboarding to employee relations and compliance — in a generalist capacity.",
       "core_responsibilities": [
         "Support end-to-end recruitment processes including sourcing and interviews",
         "Manage onboarding and offboarding processes for employees",
@@ -5333,8 +5418,9 @@ export const roleLibrary = {
         "HR Systems Manager"
       ],
       "role_family": "HR_People",
+      "secondary_family": null,
       "seniority": "Mid",
-      "core_purpose": "Own the operational backbone of the HR function \u2014 building scalable processes, managing HRIS systems, ensuring data integrity, and enabling the People team to operate efficiently at scale.",
+      "core_purpose": "Own the operational backbone of the HR function — building scalable processes, managing HRIS systems, ensuring data integrity, and enabling the People team to operate efficiently at scale.",
       "core_responsibilities": [
         "Own and optimize end-to-end employee lifecycle operations",
         "Manage and maintain HRIS platforms ensuring data accuracy and automation",
@@ -5422,6 +5508,7 @@ export const roleLibrary = {
         "Organizational Development Specialist"
       ],
       "role_family": "HR_People",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Design, deliver, and manage learning and development programs that build employee capabilities, drive engagement, and support organizational growth.",
       "core_responsibilities": [
@@ -5512,12 +5599,13 @@ export const roleLibrary = {
         "People Business Partner"
       ],
       "role_family": "HR_People",
+      "secondary_family": null,
       "seniority": "Senior",
-      "core_purpose": "Serve as a strategic and operational partner to business leaders \u2014 translating people strategy into practice, coaching managers, and driving organizational effectiveness.",
+      "core_purpose": "Serve as a strategic and operational partner to business leaders — translating people strategy into practice, coaching managers, and driving organizational effectiveness.",
       "core_responsibilities": [
         "Partner with managers and leaders to support team performance and effectiveness",
         "Coach managers on people decisions including performance, compensation, and development",
-        "Lead talent management activities \u2014 development, succession, and retention",
+        "Lead talent management activities — development, succession, and retention",
         "Drive employee engagement and culture initiatives within business units",
         "Support organizational design and workforce planning",
         "Handle employee relations matters with fairness and sound judgment",
@@ -5599,6 +5687,7 @@ export const roleLibrary = {
         "FP&A Compensation Expert"
       ],
       "role_family": "HR_People",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Design and manage competitive compensation and benefits programs that attract, retain, and motivate talent while ensuring market alignment and internal equity.",
       "core_responsibilities": [
@@ -5689,8 +5778,9 @@ export const roleLibrary = {
         "Talent Acquisition Lead"
       ],
       "role_family": "HR_People",
+      "secondary_family": null,
       "seniority": "Senior",
-      "core_purpose": "Lead the talent acquisition function \u2014 building and managing recruiting teams, defining hiring strategy, and ensuring the organization attracts top talent at scale.",
+      "core_purpose": "Lead the talent acquisition function — building and managing recruiting teams, defining hiring strategy, and ensuring the organization attracts top talent at scale.",
       "core_responsibilities": [
         "Lead, coach, and develop a team of recruiters",
         "Build and execute a recruitment strategy aligned with business goals",
@@ -5776,8 +5866,9 @@ export const roleLibrary = {
         "Director of HR (smaller companies)"
       ],
       "role_family": "HR_People",
+      "secondary_family": null,
       "seniority": "Senior",
-      "core_purpose": "Own the HR function for a company or business unit \u2014 combining operational execution with strategic partnership to build a strong people foundation for growth.",
+      "core_purpose": "Own the HR function for a company or business unit — combining operational execution with strategic partnership to build a strong people foundation for growth.",
       "core_responsibilities": [
         "Own the full employee lifecycle from onboarding through offboarding",
         "Develop and implement HR policies and procedures compliant with Israeli labor law",
@@ -5866,8 +5957,9 @@ export const roleLibrary = {
         "Head of HR"
       ],
       "role_family": "HR_People",
+      "secondary_family": null,
       "seniority": "Director_Head",
-      "core_purpose": "Own the entire people function \u2014 setting HR strategy, building the team, shaping culture, and serving as a strategic partner to the CEO and leadership on all people-related matters.",
+      "core_purpose": "Own the entire people function — setting HR strategy, building the team, shaping culture, and serving as a strategic partner to the CEO and leadership on all people-related matters.",
       "core_responsibilities": [
         "Define and execute the company's people strategy aligned with business goals",
         "Build and lead the HR team across recruitment, operations, L&D, and HRBP",
@@ -5948,13 +6040,13 @@ export const roleLibrary = {
       ]
     },
     {
-      "role_id": "revops_analyst",
-      "title": "Revenue Operations Analyst",
-      "sector": "RevOps / Business Ops",
-      "seniority_level": "entry",
-      "years_experience_typical": "1-3",
-      "description": "Supports the revenue operations function by maintaining CRM data hygiene, building dashboards, managing lead routing, and ensuring data accuracy across the sales funnel. Acts as the operational backbone for GTM teams by identifying bottlenecks and implementing automated workflows.",
-      "responsibilities": [
+      "id": "revops_analyst",
+      "standardized_title": "Revenue Operations Analyst",
+      "role_family": "RevOps_BizOps",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Supports the revenue operations function by maintaining CRM data hygiene, building dashboards, managing lead routing, and ensuring data accuracy across the sales funnel. Acts as the operational backbone for GTM teams by identifying bottlenecks and implementing automated workflows.",
+      "core_responsibilities": [
         "Maintain CRM data integrity and lead-to-cash process accuracy",
         "Build and maintain dashboards tracking pipeline health, sales velocity, and North Star metrics",
         "Administer tech stack integrations between CRM and third-party tools (Gong, ZoomInfo, Clay)",
@@ -5963,7 +6055,9 @@ export const roleLibrary = {
         "Support lead routing and database hygiene as the single source of truth",
         "Drive team adoption of tools and processes through training sessions and documentation"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Salesforce / HubSpot",
         "Excel / Google Sheets",
         "Tableau / Power BI / Looker",
@@ -5971,28 +6065,19 @@ export const roleLibrary = {
         "ZoomInfo / Clay",
         "SQL"
       ],
-      "career_path": {
-        "next_roles": [
-          "revops_manager"
-        ],
-        "lateral_moves": [
-          "sales_ops_manager",
-          "data_analyst",
-          "bi_analyst"
-        ]
-      },
-      "market_notes_israel": "Growing demand in Israeli SaaS companies. Many entry-level RevOps roles are titled 'Sales Operations Analyst' or 'GTM Operations Analyst.' Salesforce and HubSpot admin skills are table stakes. SQL is increasingly expected even at junior levels.",
-      "role_family": "RevOps_BizOps",
-      "seniority": "Mid"
+      "years_experience_typical": "1-3",
+      "market_notes": {
+        "israel": "Growing demand in Israeli SaaS companies. Many entry-level RevOps roles are titled 'Sales Operations Analyst' or 'GTM Operations Analyst.' Salesforce and HubSpot admin skills are table stakes. SQL is increasingly expected even at junior levels."
+      }
     },
     {
-      "role_id": "revops_manager",
-      "title": "Revenue Operations Manager",
-      "sector": "RevOps / Business Ops",
-      "seniority_level": "mid",
-      "years_experience_typical": "3-6",
-      "description": "Owns the operational backbone for business development and account management teams \u2014 pipelines, forecasting, handoffs, and coverage models. Bridges business needs and execution by leading cross-functional projects that enhance GTM processes or introduce scalable solutions. Drives prioritization frameworks and ensures teams operate against them.",
-      "responsibilities": [
+      "id": "revops_manager",
+      "standardized_title": "Revenue Operations Manager",
+      "role_family": "RevOps_BizOps",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Owns the operational backbone for business development and account management teams — pipelines, forecasting, handoffs, and coverage models. Bridges business needs and execution by leading cross-functional projects that enhance GTM processes or introduce scalable solutions. Drives prioritization frameworks and ensures teams operate against them.",
+      "core_responsibilities": [
         "Build and maintain the commercial operating system: pipelines, forecasting, handoffs, and coverage models",
         "Lead cross-functional projects from initiation to completion ensuring timely delivery",
         "Own commercial dashboards and reporting: GMV, revenue, cohort performance, and solution-level metrics",
@@ -6003,7 +6088,9 @@ export const roleLibrary = {
         "Train and enable teams on implemented processes and tools",
         "Collaborate with stakeholders to review current processes and propose enhancements"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Salesforce / HubSpot",
         "CPQ tools",
         "Mixpanel / SensorTower",
@@ -6012,28 +6099,19 @@ export const roleLibrary = {
         "Excel / Google Sheets",
         "SQL"
       ],
-      "career_path": {
-        "next_roles": [
-          "head_of_revops"
-        ],
-        "lateral_moves": [
-          "strategy_ops_manager",
-          "business_ops_manager",
-          "sales_manager"
-        ]
-      },
-      "market_notes_israel": "High demand across Israeli B2B SaaS companies, especially in growth-stage startups. Role often combines Sales Ops and Marketing Ops under one umbrella. Salesforce expertise and AI-driven process implementation (AI agents, automation workflows) are increasingly listed as advantages. Companies like Cato Networks, Appcharge, and Base44 actively hire for this role in Israel.",
-      "role_family": "RevOps_BizOps",
-      "seniority": "Senior"
+      "years_experience_typical": "3-6",
+      "market_notes": {
+        "israel": "High demand across Israeli B2B SaaS companies, especially in growth-stage startups. Role often combines Sales Ops and Marketing Ops under one umbrella. Salesforce expertise and AI-driven process implementation (AI agents, automation workflows) are increasingly listed as advantages. Companies like Cato Networks, Appcharge, and Base44 actively hire for this role in Israel."
+      }
     },
     {
-      "role_id": "head_of_revops",
-      "title": "Head of Revenue Operations / Senior RevOps Manager",
-      "sector": "RevOps / Business Ops",
-      "seniority_level": "senior",
-      "years_experience_typical": "6-10",
-      "description": "Leads the entire revenue operations function, owning the processes, data infrastructure, and insights that enable commercial teams to scale efficiently. Partners with revenue leadership on quarterly planning, headcount modeling, KPIs, and board-level reporting. Ensures operational predictability across the full customer lifecycle.",
-      "responsibilities": [
+      "id": "head_of_revops",
+      "standardized_title": "Head of Revenue Operations / Senior RevOps Manager",
+      "role_family": "RevOps_BizOps",
+      "secondary_family": null,
+      "seniority": "Director_Head",
+      "core_purpose": "Leads the entire revenue operations function, owning the processes, data infrastructure, and insights that enable commercial teams to scale efficiently. Partners with revenue leadership on quarterly planning, headcount modeling, KPIs, and board-level reporting. Ensures operational predictability across the full customer lifecycle.",
+      "core_responsibilities": [
         "Own the end-to-end revenue operations strategy across sales, marketing, and customer success",
         "Lead quarterly and annual planning processes including headcount modeling and territory design",
         "Build and manage the commercial data infrastructure and reporting frameworks",
@@ -6044,7 +6122,9 @@ export const roleLibrary = {
         "Ensure cross-functional alignment between Sales, Marketing, CS, Product, and Finance",
         "Design compensation and incentive structures in partnership with Finance and HR"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Salesforce (advanced administration)",
         "BI tools (Tableau, Looker, Power BI)",
         "CPQ / billing platforms",
@@ -6053,27 +6133,19 @@ export const roleLibrary = {
         "SQL",
         "Monday.com / Asana / Jira"
       ],
-      "career_path": {
-        "next_roles": [
-          "vp_operations"
-        ],
-        "lateral_moves": [
-          "vp_sales",
-          "vp_finance"
-        ]
-      },
-      "market_notes_israel": "Found in growth-stage and late-stage Israeli tech companies. Some companies use 'Director of RevOps' or 'VP RevOps' depending on company size. The role increasingly requires AI fluency and experience implementing AI-driven workflows. Strong commercial acumen and ability to partner with C-suite are differentiators.",
-      "role_family": "RevOps_BizOps",
-      "seniority": "Director_Head"
+      "years_experience_typical": "6-10",
+      "market_notes": {
+        "israel": "Found in growth-stage and late-stage Israeli tech companies. Some companies use 'Director of RevOps' or 'VP RevOps' depending on company size. The role increasingly requires AI fluency and experience implementing AI-driven workflows. Strong commercial acumen and ability to partner with C-suite are differentiators."
+      }
     },
     {
-      "role_id": "business_analyst",
-      "title": "Business Analyst",
-      "sector": "RevOps / Business Ops",
-      "seniority_level": "entry-mid",
-      "years_experience_typical": "1-4",
-      "description": "Transforms data into actionable insights by analyzing business performance, building dashboards, and collaborating with stakeholders to support data-driven decision-making. May specialize in Salesforce business analysis, financial modeling, or operational analytics depending on the company.",
-      "responsibilities": [
+      "id": "business_analyst",
+      "standardized_title": "Business Analyst",
+      "role_family": "RevOps_BizOps",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Transforms data into actionable insights by analyzing business performance, building dashboards, and collaborating with stakeholders to support data-driven decision-making. May specialize in Salesforce business analysis, financial modeling, or operational analytics depending on the company.",
+      "core_responsibilities": [
         "Collect, process, and analyze data from various sources to drive business performance",
         "Design and build interactive dashboards and reports (Power BI, Tableau, Looker)",
         "Collaborate with business stakeholders to understand data needs and translate them into analytical solutions",
@@ -6083,7 +6155,9 @@ export const roleLibrary = {
         "Support user acceptance testing and rollout of new tools or processes",
         "Translate business requirements into technical designs for CRM and internal systems"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Excel / Google Sheets (advanced)",
         "Power BI / Tableau / Looker",
         "SQL",
@@ -6092,30 +6166,19 @@ export const roleLibrary = {
         "Python (advantage)",
         "ERP systems (Priority, SAP)"
       ],
-      "career_path": {
-        "next_roles": [
-          "business_ops_manager",
-          "strategy_ops_manager",
-          "revops_manager"
-        ],
-        "lateral_moves": [
-          "data_analyst",
-          "bi_analyst",
-          "product_analyst"
-        ]
-      },
-      "market_notes_israel": "Very common across Israeli tech \u2014 from fintechs (Nayax, Plus500) to gaming (Papaya, Playtika) to ad-tech. Two flavors dominate: (1) Salesforce Business Analyst focused on CRM processes and (2) Business Data Analyst focused on dashboards and reporting. SQL and BI tools are increasingly must-haves rather than nice-to-haves. Many listings accept fresh graduates with 1-2 years experience.",
-      "role_family": "RevOps_BizOps",
-      "seniority": "Mid"
+      "years_experience_typical": "1-4",
+      "market_notes": {
+        "israel": "Very common across Israeli tech — from fintechs (Nayax, Plus500) to gaming (Papaya, Playtika) to ad-tech. Two flavors dominate: (1) Salesforce Business Analyst focused on CRM processes and (2) Business Data Analyst focused on dashboards and reporting. SQL and BI tools are increasingly must-haves rather than nice-to-haves. Many listings accept fresh graduates with 1-2 years experience."
+      }
     },
     {
-      "role_id": "business_ops_analyst",
-      "title": "Business Operations Analyst",
-      "sector": "RevOps / Business Ops",
-      "seniority_level": "entry",
-      "years_experience_typical": "1-3",
-      "description": "Supports the business operations function by handling day-to-day operational tasks, streamlining processes, and collaborating across teams. Focuses on invoicing, contract management, revenue tracking, and building automation to improve operational efficiency.",
-      "responsibilities": [
+      "id": "business_ops_analyst",
+      "standardized_title": "Business Operations Analyst",
+      "role_family": "RevOps_BizOps",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Supports the business operations function by handling day-to-day operational tasks, streamlining processes, and collaborating across teams. Focuses on invoicing, contract management, revenue tracking, and building automation to improve operational efficiency.",
+      "core_responsibilities": [
         "Handle day-to-day operational tasks including customer communications and invoicing",
         "Assist in streamlining operational processes for efficiency",
         "Review client contracts and assess terms and requirements",
@@ -6125,7 +6188,9 @@ export const roleLibrary = {
         "Support data tracking and reporting for operational KPIs",
         "Identify and address process gaps and underperformance"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Excel / Google Sheets (advanced)",
         "ERP systems",
         "CRM (Salesforce / HubSpot)",
@@ -6133,28 +6198,19 @@ export const roleLibrary = {
         "Procurement platforms",
         "Monday.com / Asana"
       ],
-      "career_path": {
-        "next_roles": [
-          "business_ops_manager"
-        ],
-        "lateral_moves": [
-          "revops_analyst",
-          "business_analyst",
-          "fpa_analyst"
-        ]
-      },
-      "market_notes_israel": "Common in scaling fintech and SaaS companies. Often the first operations hire in a growing startup. Requires strong Excel skills and attention to detail. Companies like Candex hire for this role with 2 years experience. A good entry point for business graduates who want to move into operations leadership.",
-      "role_family": "RevOps_BizOps",
-      "seniority": "Mid"
+      "years_experience_typical": "1-3",
+      "market_notes": {
+        "israel": "Common in scaling fintech and SaaS companies. Often the first operations hire in a growing startup. Requires strong Excel skills and attention to detail. Companies like Candex hire for this role with 2 years experience. A good entry point for business graduates who want to move into operations leadership."
+      }
     },
     {
-      "role_id": "business_ops_manager",
-      "title": "Business Operations Manager",
-      "sector": "RevOps / Business Ops",
-      "seniority_level": "mid",
-      "years_experience_typical": "3-6",
-      "description": "Operates and scales the company's execution engine by driving cross-functional coordination, managing OKR frameworks, and ensuring company priorities translate into structured action and measurable outcomes. Owns the operational rhythm including business reviews, planning cycles, and performance tracking.",
-      "responsibilities": [
+      "id": "business_ops_manager",
+      "standardized_title": "Business Operations Manager",
+      "role_family": "RevOps_BizOps",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Operates and scales the company's execution engine by driving cross-functional coordination, managing OKR frameworks, and ensuring company priorities translate into structured action and measurable outcomes. Owns the operational rhythm including business reviews, planning cycles, and performance tracking.",
+      "core_responsibilities": [
         "Own the end-to-end OKR framework and planning cycles to align company goals with team execution",
         "Drive monthly and quarterly business reviews tracking key initiatives and outcomes",
         "Structure leadership forums and data-driven materials to support executive decision-making",
@@ -6164,7 +6220,9 @@ export const roleLibrary = {
         "Coordinate across departments to identify and implement process improvements",
         "Track operational KPIs and provide data-driven insights to leadership"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Monday.com / Asana / Jira",
         "Excel / Google Sheets",
         "Salesforce / HubSpot",
@@ -6173,29 +6231,19 @@ export const roleLibrary = {
         "Power BI / Tableau / Looker",
         "OKR platforms (Lattice, Ally.io)"
       ],
-      "career_path": {
-        "next_roles": [
-          "strategy_ops_manager",
-          "vp_operations",
-          "chief_of_staff"
-        ],
-        "lateral_moves": [
-          "revops_manager",
-          "product_ops_manager"
-        ]
-      },
-      "market_notes_israel": "Found across Israeli tech companies from early-stage to scale-ups. Role scope varies significantly by company size \u2014 in smaller startups it can be a jack-of-all-trades role, while in larger companies it focuses on specific operational domains. Experience with OKR frameworks and cross-functional program management is increasingly expected. Companies like Daisy hire at the junior end (1-2 years) while others expect 3+ years.",
-      "role_family": "RevOps_BizOps",
-      "seniority": "Senior"
+      "years_experience_typical": "3-6",
+      "market_notes": {
+        "israel": "Found across Israeli tech companies from early-stage to scale-ups. Role scope varies significantly by company size — in smaller startups it can be a jack-of-all-trades role, while in larger companies it focuses on specific operational domains. Experience with OKR frameworks and cross-functional program management is increasingly expected. Companies like Daisy hire at the junior end (1-2 years) while others expect 3+ years."
+      }
     },
     {
-      "role_id": "strategy_ops_manager",
-      "title": "Strategy & Operations Manager",
-      "sector": "RevOps / Business Ops",
-      "seniority_level": "mid-senior",
-      "years_experience_typical": "4-8",
-      "description": "Combines strategic thinking with operational execution to identify, build, and scale business initiatives. Analyzes performance of existing revenue streams, develops growth strategies, and leads cross-functional projects that drive business impact. Often serves as a bridge between executive leadership and operational teams.",
-      "responsibilities": [
+      "id": "strategy_ops_manager",
+      "standardized_title": "Strategy & Operations Manager",
+      "role_family": "RevOps_BizOps",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Combines strategic thinking with operational execution to identify, build, and scale business initiatives. Analyzes performance of existing revenue streams, develops growth strategies, and leads cross-functional projects that drive business impact. Often serves as a bridge between executive leadership and operational teams.",
+      "core_responsibilities": [
         "Identify and evaluate growth opportunities, new product ideas, and strategic initiatives",
         "Build business cases, financial models, and operational roadmaps for leadership decisions",
         "Lead development and rollout of key initiatives from pilot to full implementation",
@@ -6205,7 +6253,9 @@ export const roleLibrary = {
         "Define KPIs, track performance, and provide data-driven insights to leadership",
         "Support M&A analysis including target identification, valuation modeling, and integration planning"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Excel / Google Sheets (advanced financial modeling)",
         "PowerPoint / Google Slides",
         "SQL",
@@ -6214,29 +6264,19 @@ export const roleLibrary = {
         "Notion / Confluence",
         "Financial modeling tools"
       ],
-      "career_path": {
-        "next_roles": [
-          "chief_of_staff",
-          "vp_operations",
-          "head_of_revops"
-        ],
-        "lateral_moves": [
-          "product_manager",
-          "vp_finance"
-        ]
-      },
-      "market_notes_israel": "Common in growth-stage Israeli tech companies. Often filled by ex-consultants (McKinsey, BCG, Bain, Deloitte) or ex-investment banking professionals. Companies like Mindspace and Plus500 hire for this role. Strong financial modeling and business case development skills are differentiators. The role frequently evolves into a Chief of Staff position.",
-      "role_family": "RevOps_BizOps",
-      "seniority": "Senior"
+      "years_experience_typical": "4-8",
+      "market_notes": {
+        "israel": "Common in growth-stage Israeli tech companies. Often filled by ex-consultants (McKinsey, BCG, Bain, Deloitte) or ex-investment banking professionals. Companies like Mindspace and Plus500 hire for this role. Strong financial modeling and business case development skills are differentiators. The role frequently evolves into a Chief of Staff position."
+      }
     },
     {
-      "role_id": "chief_of_staff",
-      "title": "Chief of Staff",
-      "sector": "RevOps / Business Ops",
-      "seniority_level": "senior",
-      "years_experience_typical": "5-10",
-      "description": "Serves as a strategic execution partner and force multiplier for the CEO or C-suite executive. Drives clarity, alignment, and accountability across the leadership team. Translates strategy into action, anticipates issues, resolves misalignment, and ensures momentum on high-priority initiatives. A highly visible role with direct exposure to company-shaping decisions.",
-      "responsibilities": [
+      "id": "chief_of_staff",
+      "standardized_title": "Chief of Staff",
+      "role_family": "RevOps_BizOps",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Serves as a strategic execution partner and force multiplier for the CEO or C-suite executive. Drives clarity, alignment, and accountability across the leadership team. Translates strategy into action, anticipates issues, resolves misalignment, and ensures momentum on high-priority initiatives. A highly visible role with direct exposure to company-shaping decisions.",
+      "core_responsibilities": [
         "Serve as the CEO's trusted advisor and right hand, amplifying focus and driving execution",
         "Drive alignment and communication of priorities, decisions, and expectations across teams",
         "Own and lead cross-functional company-level initiatives from problem definition through execution",
@@ -6247,7 +6287,9 @@ export const roleLibrary = {
         "Support annual and quarterly planning processes to drive focus and alignment",
         "Step in as an operator to unblock progress and ensure follow-through"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "PowerPoint / Google Slides",
         "Excel / Google Sheets (advanced)",
         "Notion / Confluence",
@@ -6256,29 +6298,19 @@ export const roleLibrary = {
         "OKR platforms",
         "AI productivity tools"
       ],
-      "career_path": {
-        "next_roles": [
-          "vp_operations",
-          "vp_strategy",
-          "general_manager"
-        ],
-        "lateral_moves": [
-          "strategy_ops_manager",
-          "head_of_revops"
-        ]
-      },
-      "market_notes_israel": "Rapidly growing role in Israeli tech, especially in scale-ups and growth-stage companies. Companies like Hello Heart, Atera, MazeBolt, and Mindspace actively hire Chiefs of Staff in Tel Aviv. Most require 5-8+ years of experience. Management consulting or investment banking background is strongly preferred (McKinsey, BCG, Bain, TASC). MBA is often required or strongly preferred. AI fluency is becoming a must-have. The role typically requires non-standard hours to align with US-based executives and 20-40% international travel.",
-      "role_family": "RevOps_BizOps",
-      "seniority": "Senior"
+      "years_experience_typical": "5-10",
+      "market_notes": {
+        "israel": "Rapidly growing role in Israeli tech, especially in scale-ups and growth-stage companies. Companies like Hello Heart, Atera, MazeBolt, and Mindspace actively hire Chiefs of Staff in Tel Aviv. Most require 5-8+ years of experience. Management consulting or investment banking background is strongly preferred (McKinsey, BCG, Bain, TASC). MBA is often required or strongly preferred. AI fluency is becoming a must-have. The role typically requires non-standard hours to align with US-based executives and 20-40% international travel."
+      }
     },
     {
-      "role_id": "vp_operations",
-      "title": "VP / Head of Operations",
-      "sector": "RevOps / Business Ops",
-      "seniority_level": "executive",
-      "years_experience_typical": "8-15",
-      "description": "Leads the company's global operations including service delivery, customer lifecycle management, and operational excellence. Builds scalable, tech-enabled processes that support growth across regions. Manages offshore and distributed teams, defines KPIs and performance frameworks, and partners with Product and Engineering to shape the platform roadmap.",
-      "responsibilities": [
+      "id": "vp_operations",
+      "standardized_title": "VP / Head of Operations",
+      "role_family": "RevOps_BizOps",
+      "secondary_family": null,
+      "seniority": "VP_Executive",
+      "core_purpose": "Leads the company's global operations including service delivery, customer lifecycle management, and operational excellence. Builds scalable, tech-enabled processes that support growth across regions. Manages offshore and distributed teams, defines KPIs and performance frameworks, and partners with Product and Engineering to shape the platform roadmap.",
+      "core_responsibilities": [
         "Own global operations across regions ensuring reliability, accuracy, and seamless execution",
         "Build scalable processes supporting growth across multiple product lines and geographies",
         "Drive automation and implement smart workflows to reduce manual effort and improve quality",
@@ -6290,7 +6322,9 @@ export const roleLibrary = {
         "Recruit, develop, and inspire high-performing teams across operations and customer success",
         "Lead introduction of new tools, systems, and AI capabilities for operational efficiency"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "CRM platforms (Salesforce, HubSpot)",
         "ERP systems",
         "BI tools (Tableau, Power BI, Looker)",
@@ -6299,36 +6333,18 @@ export const roleLibrary = {
         "Workforce management tools",
         "AI/automation platforms"
       ],
-      "career_path": {
-        "next_roles": [
-          "coo",
-          "general_manager",
-          "ceo"
-        ],
-        "lateral_moves": [
-          "vp_customer_success",
-          "vp_finance"
-        ]
-      },
-      "market_notes_israel": "Found in established Israeli tech companies with global operations. Companies like Ship4wd and Helfy hire for this role. Often requires experience managing offshore teams (Philippines, Eastern Europe, India) and comfort operating across time zones. Deep domain expertise (logistics, fintech, SaaS) is usually required. MBA is often preferred. The role increasingly requires experience with tech-enabled operations and AI-driven process improvement.",
-      "role_family": "RevOps_BizOps",
-      "seniority": "VP_Executive"
+      "years_experience_typical": "8-15",
+      "market_notes": {
+        "israel": "Found in established Israeli tech companies with global operations. Companies like Ship4wd and Helfy hire for this role. Often requires experience managing offshore teams (Philippines, Eastern Europe, India) and comfort operating across time zones. Deep domain expertise (logistics, fintech, SaaS) is usually required. MBA is often preferred. The role increasingly requires experience with tech-enabled operations and AI-driven process improvement."
+      }
     },
     {
-      "role_id": "junior_software_engineer",
-      "title": "Junior Software Engineer",
-      "sector": "Engineering",
-      "seniority_level": "entry",
-      "description": "Entry-level software engineering role focused on learning production codebases, contributing to feature development, and building foundational engineering skills. Typically involves working under senior guidance across backend, frontend, or full-stack domains while gaining hands-on experience with real systems and development workflows.",
-      "key_responsibilities": [
-        "Contribute to feature development across backend and/or frontend systems under senior guidance",
-        "Write clean, maintainable code following team coding standards and best practices",
-        "Participate in code reviews, design discussions, and sprint ceremonies",
-        "Debug and troubleshoot issues in existing systems",
-        "Write and maintain unit and integration tests",
-        "Learn and apply development workflows including Git, CI/CD, and deployment processes",
-        "Collaborate with cross-functional team members including QA, product, and design"
-      ],
+      "id": "junior_software_engineer",
+      "standardized_title": "Junior Software Engineer",
+      "role_family": "Engineering",
+      "secondary_family": null,
+      "seniority": "Entry",
+      "core_purpose": "Entry-level software engineering role focused on learning production codebases, contributing to feature development, and building foundational engineering skills. Typically involves working under senior guidance across backend, frontend, or full-stack domains while gaining hands-on experience with real systems and development workflows.",
       "required_skills": [
         "programming_fundamentals",
         "python_development",
@@ -6338,44 +6354,18 @@ export const roleLibrary = {
         "linux_fundamentals",
         "sql"
       ],
-      "tools_technologies": [
-        "Python",
-        "JavaScript/TypeScript",
-        "Git/GitHub",
-        "Linux CLI",
-        "SQL databases",
-        "Docker (basic)",
-        "IDE (VS Code, PyCharm)"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "software_engineer"
-        ],
-        "lateral_moves": [
-          "qa_engineer",
-          "devops_engineer"
-        ]
-      },
-      "market_notes_israel": "Strong entry pipeline in Israel through university programs, army tech units (8200, Mamram, etc.), and bootcamps. Many companies hire new grads with BSc in CS or equivalent military experience. Companies like VAST Data, XM Cyber, and Emerson actively recruit junior engineers in Tel Aviv. AI/ML bootcamp programs (fully funded, ~5 months) are emerging as an alternative entry path. GPA requirements (85+) and psychometric scores are common filters for structured programs.",
-      "role_family": "Engineering",
-      "seniority": "Entry"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Strong entry pipeline in Israel through university programs, army tech units (8200, Mamram, etc.), and bootcamps. Many companies hire new grads with BSc in CS or equivalent military experience. Companies like VAST Data, XM Cyber, and Emerson actively recruit junior engineers in Tel Aviv. AI/ML bootcamp programs (fully funded, ~5 months) are emerging as an alternative entry path. GPA requirements (85+) and psychometric scores are common filters for structured programs."
+      }
     },
     {
-      "role_id": "software_engineer",
-      "title": "Software Engineer",
-      "sector": "Engineering",
-      "seniority_level": "mid",
-      "description": "Mid-level individual contributor responsible for designing, building, and maintaining production software systems. Expected to own features end-to-end \u2014 from design through deployment \u2014 and work independently across backend, frontend, or full-stack domains. Operates within a team but with increasing autonomy on technical decisions.",
-      "key_responsibilities": [
-        "Design, develop, and maintain production-grade software systems end-to-end",
-        "Own features from design through coding, testing, deployment, and monitoring",
-        "Write scalable, maintainable code following engineering best practices",
-        "Participate in architectural discussions and contribute to technical decision-making",
-        "Conduct and participate in code reviews to maintain code quality",
-        "Collaborate with product managers, designers, and other engineers to deliver solutions",
-        "Debug complex issues across systems and contribute to incident resolution",
-        "Write comprehensive tests and maintain CI/CD pipeline integrity"
-      ],
+      "id": "software_engineer",
+      "standardized_title": "Software Engineer",
+      "role_family": "Engineering",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Mid-level individual contributor responsible for designing, building, and maintaining production software systems. Expected to own features end-to-end — from design through deployment — and work independently across backend, frontend, or full-stack domains. Operates within a team but with increasing autonomy on technical decisions.",
       "required_skills": [
         "backend_development",
         "frontend_development",
@@ -6387,50 +6377,18 @@ export const roleLibrary = {
         "git_version_control",
         "cloud_fundamentals"
       ],
-      "tools_technologies": [
-        "Python",
-        "Node.js/TypeScript",
-        "React",
-        "PostgreSQL/MySQL",
-        "MongoDB",
-        "Docker",
-        "Kubernetes (basic)",
-        "AWS/GCP/Azure",
-        "Git/GitHub",
-        "CI/CD tools"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "senior_software_engineer",
-          "tech_lead"
-        ],
-        "lateral_moves": [
-          "devops_engineer",
-          "sre_engineer",
-          "data_engineer"
-        ]
-      },
-      "market_notes_israel": "Core hiring target across Israeli startups and scale-ups. Typical requirements are 3-5 years of experience with strong backend skills. Python and Node.js/TypeScript dominate the stack in Tel Aviv. Companies like Venice, Oligo, Seal Security, and Simply actively hire at this level. Full-stack capability is increasingly expected even in 'backend' roles. Cybersecurity and SaaS companies form a large portion of the employer base. Microservices architecture experience is becoming a baseline expectation.",
-      "role_family": "Engineering",
-      "seniority": "Mid"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Core hiring target across Israeli startups and scale-ups. Typical requirements are 3-5 years of experience with strong backend skills. Python and Node.js/TypeScript dominate the stack in Tel Aviv. Companies like Venice, Oligo, Seal Security, and Simply actively hire at this level. Full-stack capability is increasingly expected even in 'backend' roles. Cybersecurity and SaaS companies form a large portion of the employer base. Microservices architecture experience is becoming a baseline expectation."
+      }
     },
     {
-      "role_id": "senior_software_engineer",
-      "title": "Senior Software Engineer",
-      "sector": "Engineering",
-      "seniority_level": "senior",
-      "description": "Experienced individual contributor who drives significant technical initiatives, mentors junior engineers, and takes ownership of complex systems and features. Expected to make sound architectural decisions, lead technical discussions, and deliver high-impact work with minimal oversight. Often serves as a technical anchor within a product team.",
-      "key_responsibilities": [
-        "Lead design and implementation of complex features and systems end-to-end",
-        "Make architectural and technical decisions that affect team and product direction",
-        "Mentor junior and mid-level engineers through code reviews, pair programming, and coaching",
-        "Drive technical excellence through best practices, testing strategies, and code quality standards",
-        "Collaborate with product leadership to translate business requirements into technical solutions",
-        "Identify and resolve performance bottlenecks and scalability challenges",
-        "Lead incident response and root cause analysis for production issues",
-        "Contribute to cross-team technical initiatives and platform improvements",
-        "Evaluate and introduce new technologies, tools, and practices"
-      ],
+      "id": "senior_software_engineer",
+      "standardized_title": "Senior Software Engineer",
+      "role_family": "Engineering",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Experienced individual contributor who drives significant technical initiatives, mentors junior engineers, and takes ownership of complex systems and features. Expected to make sound architectural decisions, lead technical discussions, and deliver high-impact work with minimal oversight. Often serves as a technical anchor within a product team.",
       "required_skills": [
         "backend_development",
         "system_design",
@@ -6443,106 +6401,42 @@ export const roleLibrary = {
         "cloud_platforms",
         "databases"
       ],
-      "tools_technologies": [
-        "Python",
-        "Java/Go/TypeScript",
-        "React/Vue/Angular",
-        "PostgreSQL/MySQL",
-        "MongoDB/Redis",
-        "Kafka/RabbitMQ",
-        "Docker/Kubernetes",
-        "AWS/GCP/Azure",
-        "Terraform",
-        "CI/CD pipelines",
-        "Monitoring tools (Datadog, Prometheus, Grafana)"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "staff_engineer",
-          "tech_lead",
-          "engineering_manager"
-        ],
-        "lateral_moves": [
-          "senior_data_engineer",
-          "solutions_architect"
-        ]
-      },
-      "market_notes_israel": "High-demand role across the Israeli market. Typical requirements are 5-8+ years of experience. Companies like Taboola, Sett, april, Apiiro, and WINN.AI hire aggressively at this level. End-to-end ownership is the consistent theme \u2014 companies expect senior engineers to ship features from design to production with full accountability. Big data experience (Kafka, Spark, distributed databases) is a strong differentiator at ad-tech and data-heavy companies. LLM/AI experience is emerging as a preferred qualification even for non-AI companies.",
-      "role_family": "Engineering",
-      "seniority": "Senior"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "High-demand role across the Israeli market. Typical requirements are 5-8+ years of experience. Companies like Taboola, Sett, april, Apiiro, and WINN.AI hire aggressively at this level. End-to-end ownership is the consistent theme — companies expect senior engineers to ship features from design to production with full accountability. Big data experience (Kafka, Spark, distributed databases) is a strong differentiator at ad-tech and data-heavy companies. LLM/AI experience is emerging as a preferred qualification even for non-AI companies."
+      }
     },
     {
-      "role_id": "staff_engineer",
-      "title": "Staff Engineer",
-      "sector": "Engineering",
-      "seniority_level": "lead",
-      "description": "Principal-level individual contributor who operates at the intersection of deep technical expertise and business strategy. Defines architectural vision for product domains, solves the hardest cross-cutting technical challenges, and acts as a force multiplier \u2014 elevating the skills, velocity, and quality of engineers across the organization. Maintains hands-on involvement while providing strategic technical leadership.",
-      "key_responsibilities": [
-        "Define and drive the architectural roadmap for one or more product domains",
-        "Solve complex, cross-cutting technical challenges that span multiple teams or services",
-        "Act as a force multiplier \u2014 mentor senior engineers and tech leads, introduce engineering patterns and practices that make the organization faster",
-        "Partner with product directors and VPs to validate feasibility and translate business goals into technical strategies",
-        "Lead major technical initiatives such as platform migrations, architecture modernizations, and new system designs",
-        "Remain hands-on \u2014 code critical paths, prototype complex solutions, and set the standard for code quality",
-        "Anticipate scaling bottlenecks and design resilient distributed systems",
-        "Define and champion engineering best practices across the organization",
-        "Evaluate and drive adoption of new technologies and AI-first development practices"
-      ],
+      "id": "staff_engineer",
+      "standardized_title": "Staff Engineer",
+      "role_family": "Engineering",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Principal-level individual contributor who operates at the intersection of deep technical expertise and business strategy. Defines architectural vision for product domains, solves the hardest cross-cutting technical challenges, and acts as a force multiplier — elevating the skills, velocity, and quality of engineers across the organization. Maintains hands-on involvement while providing strategic technical leadership.",
       "required_skills": [
         "system_architecture",
         "distributed_systems",
         "technical_leadership",
         "performance_optimization",
-        "cross_team_collaboration",
+        "cross_functional_collaboration",
         "mentoring",
         "strategic_thinking",
         "cloud_platforms",
         "backend_development",
         "ai_tool_fluency"
       ],
-      "tools_technologies": [
-        "Python/Go/Java/TypeScript",
-        "React/Next.js",
-        "Kafka/gRPC/event-driven architectures",
-        "PostgreSQL/Redis/Elasticsearch",
-        "Docker/Kubernetes",
-        "AWS/GCP/Azure",
-        "Terraform/IaC",
-        "CI/CD pipelines",
-        "AI dev tools (Cursor, Copilot, Claude)",
-        "Monitoring/observability stacks"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "principal_engineer",
-          "vp_engineering"
-        ],
-        "lateral_moves": [
-          "engineering_manager",
-          "solutions_architect"
-        ]
-      },
-      "market_notes_israel": "Emerging as a distinct and valued role in Israeli scale-ups. Companies like Tomorrow.io and Yotpo have clear Staff Engineer positions with explicit 'force multiplier' expectations. The role requires 8-10+ years of experience and architectural mastery. AI-first development practices (integrating AI tools like Cursor and Copilot into engineering workflows) are becoming a defining requirement at companies like Tomorrow.io. Full-stack fluency \u2014 deep understanding from database internals to frontend frameworks \u2014 is expected. This role is distinct from Engineering Manager: Staff Engineers lead through technical influence, not people management.",
-      "role_family": "Engineering",
-      "seniority": "Senior"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Emerging as a distinct and valued role in Israeli scale-ups. Companies like Tomorrow.io and Yotpo have clear Staff Engineer positions with explicit 'force multiplier' expectations. The role requires 8-10+ years of experience and architectural mastery. AI-first development practices (integrating AI tools like Cursor and Copilot into engineering workflows) are becoming a defining requirement at companies like Tomorrow.io. Full-stack fluency — deep understanding from database internals to frontend frameworks — is expected. This role is distinct from Engineering Manager: Staff Engineers lead through technical influence, not people management."
+      }
     },
     {
-      "role_id": "tech_lead",
-      "title": "Tech Lead",
-      "sector": "Engineering",
-      "seniority_level": "lead",
-      "description": "Hands-on technical leader who combines active coding with team guidance, architectural ownership, and project leadership. Drives technical direction for a product team while remaining deeply involved in the codebase. Sets engineering standards, leads design reviews, mentors engineers, and ensures the team delivers reliable, scalable systems. Often the bridge between engineering execution and product/business needs.",
-      "key_responsibilities": [
-        "Write and review production code while setting the standard for code quality and best practices",
-        "Lead technical design \u2014 define architecture, make trade-offs, and drive projects from proposal to production",
-        "Mentor engineers through design reviews, code reviews, and pair programming",
-        "Own the technical roadmap and align engineering execution with product goals",
-        "Drive improvements in testing strategy, CI/CD, developer experience, and tooling",
-        "Collaborate with product, infrastructure, and cross-functional teams to deliver features",
-        "Make architectural decisions and guide the team through implementation and rollout",
-        "Leverage AI/LLM tooling to accelerate development and improve engineering processes",
-        "Support hiring and onboarding of new engineers"
-      ],
+      "id": "tech_lead",
+      "standardized_title": "Tech Lead",
+      "role_family": "Engineering",
+      "secondary_family": null,
+      "seniority": "Lead_Manager",
+      "core_purpose": "Hands-on technical leader who combines active coding with team guidance, architectural ownership, and project leadership. Drives technical direction for a product team while remaining deeply involved in the codebase. Sets engineering standards, leads design reviews, mentors engineers, and ensures the team delivers reliable, scalable systems. Often the bridge between engineering execution and product/business needs.",
       "required_skills": [
         "backend_development",
         "system_design",
@@ -6555,49 +6449,18 @@ export const roleLibrary = {
         "cloud_platforms",
         "ai_tool_fluency"
       ],
-      "tools_technologies": [
-        "Python",
-        "TypeScript/Node.js",
-        "React/Next.js",
-        "PostgreSQL/MySQL",
-        "Redis/Elasticsearch",
-        "Docker/Kubernetes",
-        "AWS/GCP/Azure",
-        "Git/GitHub Actions",
-        "CI/CD pipelines",
-        "AI dev tools (Cursor, Copilot, Claude Code)"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "staff_engineer",
-          "engineering_manager"
-        ],
-        "lateral_moves": [
-          "senior_software_engineer",
-          "solutions_architect"
-        ]
-      },
-      "market_notes_israel": "One of the most common leadership roles in Israeli tech. Companies like monday.com, Antidote Health, Eyeviation, Scala Bio, Classiq, and EyeControl all actively hire Tech Leads. The consistent expectation is hands-on coding (often 50-70% of time) combined with technical leadership. Python is the dominant backend language for this role. AI/LLM integration into developer workflows is emerging as a key requirement \u2014 Classiq, EyeControl, and Scala Bio all explicitly mention AI tool fluency. Many Tech Lead roles in Israel are in early-stage startups where the TL is the first or second senior engineering hire.",
-      "role_family": "Engineering",
-      "seniority": "Lead_Manager"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "One of the most common leadership roles in Israeli tech. Companies like monday.com, Antidote Health, Eyeviation, Scala Bio, Classiq, and EyeControl all actively hire Tech Leads. The consistent expectation is hands-on coding (often 50-70% of time) combined with technical leadership. Python is the dominant backend language for this role. AI/LLM integration into developer workflows is emerging as a key requirement — Classiq, EyeControl, and Scala Bio all explicitly mention AI tool fluency. Many Tech Lead roles in Israel are in early-stage startups where the TL is the first or second senior engineering hire."
+      }
     },
     {
-      "role_id": "engineering_manager",
-      "title": "Engineering Manager",
-      "sector": "Engineering",
-      "seniority_level": "manager",
-      "description": "People leader who manages a team of engineers (typically 4-10), combining technical credibility with team development, delivery ownership, and cross-functional collaboration. Responsible for hiring, mentoring, performance management, and ensuring the team delivers high-quality work on time. Stays close to the technology \u2014 reviewing code, participating in architecture discussions, and jumping in hands-on when needed.",
-      "key_responsibilities": [
-        "Lead, mentor, and grow a team of engineers, ensuring professional development and high performance",
-        "Drive delivery of complex projects \u2014 managing timelines, priorities, and cross-team dependencies",
-        "Remain hands-on with code reviews, architecture discussions, and technical problem-solving",
-        "Hire and onboard engineering talent aligned with team needs",
-        "Conduct performance reviews, set goals, and coach team members",
-        "Collaborate with product, QA, and design teams to deliver end-to-end solutions",
-        "Drive technical decisions and ensure adherence to engineering best practices and SDLC",
-        "Ensure CI/CD pipeline health, code quality standards, and deployment workflows",
-        "Foster a culture of ownership, accountability, and continuous improvement"
-      ],
+      "id": "engineering_manager",
+      "standardized_title": "Engineering Manager",
+      "role_family": "Engineering",
+      "secondary_family": null,
+      "seniority": "Lead_Manager",
+      "core_purpose": "People leader who manages a team of engineers (typically 4-10), combining technical credibility with team development, delivery ownership, and cross-functional collaboration. Responsible for hiring, mentoring, performance management, and ensuring the team delivers high-quality work on time. Stays close to the technology — reviewing code, participating in architecture discussions, and jumping in hands-on when needed.",
       "required_skills": [
         "people_management",
         "technical_leadership",
@@ -6606,107 +6469,46 @@ export const roleLibrary = {
         "hiring_talent_acquisition",
         "performance_management",
         "agile_methodology",
-        "cross_team_collaboration",
+        "cross_functional_collaboration",
         "cloud_platforms",
         "ci_cd"
       ],
-      "tools_technologies": [
-        "Python/Java/TypeScript",
-        "React/Angular",
-        "PostgreSQL/MySQL/Redis",
-        "Docker/Kubernetes",
-        "AWS/GCP/Azure",
-        "Spark/Databricks (data-heavy teams)",
-        "CI/CD pipelines",
-        "Jira/Linear",
-        "Monitoring tools"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "senior_engineering_manager",
-          "engineering_group_manager"
-        ],
-        "lateral_moves": [
-          "tech_lead",
-          "staff_engineer",
-          "product_manager"
-        ]
-      },
-      "market_notes_israel": "Critical mid-management role across Israeli tech. Companies like Wenrix, GMT, and Cye actively hire Engineering Managers. The role requires a balance of technical depth and people leadership \u2014 most listings require 5-7+ years of engineering experience plus 2+ years of leadership. Hands-on capability is consistently expected: Israeli companies want managers who can review code, troubleshoot production issues, and participate in architecture discussions. Python and Java are the most common backend languages. Fintech (GMT) and cybersecurity (Cye) are major hiring sectors for this role in Israel.",
-      "role_family": "Engineering",
-      "seniority": "Lead_Manager"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Critical mid-management role across Israeli tech. Companies like Wenrix, GMT, and Cye actively hire Engineering Managers. The role requires a balance of technical depth and people leadership — most listings require 5-7+ years of engineering experience plus 2+ years of leadership. Hands-on capability is consistently expected: Israeli companies want managers who can review code, troubleshoot production issues, and participate in architecture discussions. Python and Java are the most common backend languages. Fintech (GMT) and cybersecurity (Cye) are major hiring sectors for this role in Israel."
+      }
     },
     {
-      "role_id": "senior_engineering_manager",
-      "title": "Senior Engineering Manager / Director of Engineering",
-      "sector": "Engineering",
-      "seniority_level": "director",
-      "description": "Senior engineering leader who manages multiple teams or engineering managers, owns end-to-end engineering execution for a product domain, and drives architectural and organizational decisions at scale. Combines people leadership with technical ownership and strategic influence. Responsible for delivery quality, team scaling, process improvement, and cross-company technical initiatives.",
-      "key_responsibilities": [
-        "Lead multiple engineering teams through direct reports (engineering managers and/or team leads)",
-        "Own engineering execution, delivery quality, and operational excellence across all teams",
-        "Drive scalable engineering processes, methodologies, and best practices",
-        "Partner closely with product, AI/ML, security, and business stakeholders",
-        "Make architectural and technical decisions that balance speed, quality, and long-term maintainability",
-        "Lead capacity planning, hiring strategy, onboarding, and performance management",
-        "Translate high-level strategy into execution plans and measurable outcomes",
-        "Ensure production stability, CI/CD excellence, system reliability, and security",
-        "Foster a culture of ownership, accountability, and continuous improvement",
-        "Drive adoption of AI-first approaches to building, testing, and maintaining systems"
-      ],
+      "id": "senior_engineering_manager",
+      "standardized_title": "Senior Engineering Manager / Director of Engineering",
+      "role_family": "Engineering",
+      "secondary_family": null,
+      "seniority": "Director_Head",
+      "core_purpose": "Senior engineering leader who manages multiple teams or engineering managers, owns end-to-end engineering execution for a product domain, and drives architectural and organizational decisions at scale. Combines people leadership with technical ownership and strategic influence. Responsible for delivery quality, team scaling, process improvement, and cross-company technical initiatives.",
       "required_skills": [
         "engineering_leadership",
         "people_management",
         "system_architecture",
         "strategic_thinking",
         "hiring_talent_acquisition",
-        "cross_team_collaboration",
+        "cross_functional_collaboration",
         "stakeholder_management",
         "distributed_systems",
         "cloud_platforms",
         "process_improvement"
       ],
-      "tools_technologies": [
-        "Cloud platforms (AWS/GCP/Azure)",
-        "Kubernetes/Docker",
-        "CI/CD pipelines",
-        "Monitoring/observability stacks",
-        "Data platforms",
-        "Terraform/IaC",
-        "Agile/Scrum tooling",
-        "Engineering metrics tools"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "vp_engineering"
-        ],
-        "lateral_moves": [
-          "engineering_group_manager",
-          "head_of_product"
-        ]
-      },
-      "market_notes_israel": "Companies like Navina and SeeTrue hire at this level for leaders who manage multiple teams (typically 15-30+ engineers). Navina's Director of Engineering (Data Platform) role exemplifies the Israeli market expectation: end-to-end ownership of a critical platform domain, managing multiple teams, and serving as a key interface between engineering and the rest of the organization. Healthcare data and AI-driven products are growing sectors for this role. Experience managing managers is a hard requirement. AI-first mindset is increasingly expected \u2014 driving AI tool adoption across teams, not just personal use.",
-      "role_family": "Engineering",
-      "seniority": "Director_Head"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Companies like Navina and SeeTrue hire at this level for leaders who manage multiple teams (typically 15-30+ engineers). Navina's Director of Engineering (Data Platform) role exemplifies the Israeli market expectation: end-to-end ownership of a critical platform domain, managing multiple teams, and serving as a key interface between engineering and the rest of the organization. Healthcare data and AI-driven products are growing sectors for this role. Experience managing managers is a hard requirement. AI-first mindset is increasingly expected — driving AI tool adoption across teams, not just personal use."
+      }
     },
     {
-      "role_id": "vp_engineering",
-      "title": "VP Engineering / Head of Engineering",
-      "sector": "Engineering",
-      "seniority_level": "executive",
-      "description": "Executive engineering leader responsible for the entire engineering organization, technology strategy, and technical vision. Leads large engineering teams (20-100+), defines the engineering roadmap aligned with company strategy, and drives major initiatives including platform modernization, AI adoption, and organizational scaling. Reports to CEO/CPO and serves as part of the executive leadership team. Combines strategic leadership with deep technical credibility.",
-      "key_responsibilities": [
-        "Define and lead the long-term technology strategy and engineering roadmap",
-        "Lead and scale the entire engineering organization through senior engineering leaders",
-        "Drive major technical initiatives: platform modernization, AI adoption, architectural evolution",
-        "Translate product and business roadmaps into multi-year engineering plans",
-        "Oversee delivery across software, data, AI/ML, and infrastructure",
-        "Drive talent strategy \u2014 hiring plans, performance management, retention, and leadership development",
-        "Represent engineering at the executive level, communicating strategy, trade-offs, and progress",
-        "Ensure high standards of reliability, performance, scalability, and security",
-        "Foster engineering culture centered on technical excellence, quality, and innovation",
-        "Manage engineering budgets and resource allocation"
-      ],
+      "id": "vp_engineering",
+      "standardized_title": "VP Engineering / Head of Engineering",
+      "role_family": "Engineering",
+      "secondary_family": null,
+      "seniority": "VP_Executive",
+      "core_purpose": "Executive engineering leader responsible for the entire engineering organization, technology strategy, and technical vision. Leads large engineering teams (20-100+), defines the engineering roadmap aligned with company strategy, and drives major initiatives including platform modernization, AI adoption, and organizational scaling. Reports to CEO/CPO and serves as part of the executive leadership team. Combines strategic leadership with deep technical credibility.",
       "required_skills": [
         "executive_leadership",
         "engineering_leadership",
@@ -6719,48 +6521,18 @@ export const roleLibrary = {
         "cloud_platforms",
         "ai_strategy"
       ],
-      "tools_technologies": [
-        "Cloud platforms (AWS/GCP/Azure)",
-        "Distributed systems architectures",
-        "Kubernetes/containerization",
-        "CI/CD and DevOps practices",
-        "AI/ML platforms and workflows",
-        "Data infrastructure",
-        "Engineering productivity tools",
-        "Budget and resource planning tools"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "cto",
-          "svp_engineering"
-        ],
-        "lateral_moves": [
-          "vp_product",
-          "chief_of_staff"
-        ]
-      },
-      "market_notes_israel": "Executive-level role with strong market signal across Israeli companies of all sizes. CrowdStrike, QEDMA, Lemonade, and multiple Israeli startups and scale-ups hire VP/Head of Engineering. Requirements typically include 10-15+ years of engineering experience with significant leadership tenure. The role spans a wide range: at startups like QEDMA (quantum computing), it involves managing 10-20 engineers and staying close to the technology; at scale-ups like Lemonade, it means leading 100+ engineers across multiple product lines. AI strategy and adoption is a consistent theme \u2014 companies expect VP Engineering to drive AI-first engineering practices. Cloud-native architecture, distributed systems, and experience scaling engineering organizations are universal requirements. In Israeli ad-tech and e-commerce, hands-on technical credibility is expected even at the VP level.",
-      "role_family": "Engineering",
-      "seniority": "VP_Executive"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Executive-level role with strong market signal across Israeli companies of all sizes. CrowdStrike, QEDMA, Lemonade, and multiple Israeli startups and scale-ups hire VP/Head of Engineering. Requirements typically include 10-15+ years of engineering experience with significant leadership tenure. The role spans a wide range: at startups like QEDMA (quantum computing), it involves managing 10-20 engineers and staying close to the technology; at scale-ups like Lemonade, it means leading 100+ engineers across multiple product lines. AI strategy and adoption is a consistent theme — companies expect VP Engineering to drive AI-first engineering practices. Cloud-native architecture, distributed systems, and experience scaling engineering organizations are universal requirements. In Israeli ad-tech and e-commerce, hands-on technical credibility is expected even at the VP level."
+      }
     },
     {
-      "role_id": "qa_engineer",
-      "title": "QA Engineer",
-      "sector": "Engineering",
-      "seniority_level": "mid",
-      "description": "Quality assurance professional responsible for ensuring software quality through manual testing, test planning, automation development, and cross-functional collaboration. Designs and executes test strategies, identifies and documents defects, and works closely with developers, product managers, and designers throughout the development lifecycle. Increasingly expected to build and maintain automated test suites and leverage AI tools to improve QA workflows.",
-      "key_responsibilities": [
-        "Design and execute comprehensive test plans for new features and releases",
-        "Perform manual testing including functional, regression, exploratory, and UI/UX testing",
-        "Develop and maintain automated test suites for APIs and end-to-end scenarios",
-        "Identify, document, reproduce, and track bugs through resolution",
-        "Collaborate with developers, product managers, and designers to ensure quality throughout the SDLC",
-        "Serve as quality gatekeeper for releases \u2014 assess delivery readiness and standards compliance",
-        "Perform root cause analysis on product quality issues",
-        "Contribute to continuous improvement of QA methodologies and processes",
-        "Leverage AI tools to enhance QA workflows and testing efficiency",
-        "Maintain QA documentation including test cases, test results, and bug reports"
-      ],
+      "id": "qa_engineer",
+      "standardized_title": "QA Engineer",
+      "role_family": "Engineering",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Quality assurance professional responsible for ensuring software quality through manual testing, test planning, automation development, and cross-functional collaboration. Designs and executes test strategies, identifies and documents defects, and works closely with developers, product managers, and designers throughout the development lifecycle. Increasingly expected to build and maintain automated test suites and leverage AI tools to improve QA workflows.",
       "required_skills": [
         "manual_testing",
         "test_automation",
@@ -6773,51 +6545,18 @@ export const roleLibrary = {
         "communication",
         "ai_tool_fluency"
       ],
-      "tools_technologies": [
-        "Playwright",
-        "Cypress",
-        "Postman",
-        "Jira",
-        "Xray Test Management",
-        "TypeScript/Python (for automation)",
-        "SQL (basic)",
-        "Git",
-        "CI/CD tools",
-        "AI testing tools"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "senior_qa_engineer",
-          "qa_lead",
-          "qa_manager"
-        ],
-        "lateral_moves": [
-          "software_engineer",
-          "devops_engineer"
-        ]
-      },
-      "market_notes_israel": "Active hiring across the Israeli market at all seniority levels, from entry-level (DealHub, inManage \u2014 often requiring QA course completion) through mid-level (Silverfort, Zemingo, Loox) to senior (Lemonade). Playwright is rapidly becoming the dominant automation framework, replacing Selenium. Companies like Loox and Zemingo explicitly require Playwright experience. AI tool fluency in QA workflows is becoming a differentiator \u2014 Lemonade, Loox, and Zemingo all mention leveraging AI tools. ISTQB certification is noted as an advantage but not required. Cybersecurity companies (Silverfort) need QA engineers comfortable with Windows/Linux environments and Active Directory. Web + mobile testing is common for consumer-facing companies. The shift-left testing philosophy is increasingly adopted \u2014 QA engineers are expected to engage developers in testing and automation earlier in the development cycle.",
-      "role_family": "Engineering",
-      "seniority": "Mid"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Active hiring across the Israeli market at all seniority levels, from entry-level (DealHub, inManage — often requiring QA course completion) through mid-level (Silverfort, Zemingo, Loox) to senior (Lemonade). Playwright is rapidly becoming the dominant automation framework, replacing Selenium. Companies like Loox and Zemingo explicitly require Playwright experience. AI tool fluency in QA workflows is becoming a differentiator — Lemonade, Loox, and Zemingo all mention leveraging AI tools. ISTQB certification is noted as an advantage but not required. Cybersecurity companies (Silverfort) need QA engineers comfortable with Windows/Linux environments and Active Directory. Web + mobile testing is common for consumer-facing companies. The shift-left testing philosophy is increasingly adopted — QA engineers are expected to engage developers in testing and automation earlier in the development cycle."
+      }
     },
     {
-      "role_id": "devops_engineer",
-      "title": "DevOps Engineer",
-      "sector": "Engineering",
-      "seniority_level": "mid",
-      "description": "Infrastructure and automation specialist responsible for designing, building, and maintaining cloud infrastructure, CI/CD pipelines, and deployment systems. Owns infrastructure-as-code, container orchestration, monitoring, and operational tooling. Works closely with software engineers to enable fast, reliable, and secure software delivery. Increasingly expected to integrate AI tools into infrastructure workflows.",
-      "key_responsibilities": [
-        "Design, build, and maintain cloud infrastructure using Infrastructure as Code (Terraform, Pulumi, CloudFormation)",
-        "Build and manage CI/CD pipelines for automated testing, building, and deployment",
-        "Implement and maintain container orchestration (Docker, Kubernetes)",
-        "Set up and manage monitoring, logging, and alerting systems",
-        "Enforce cloud security best practices including IAM, networking, and access controls",
-        "Automate operational tasks using Python, Bash, or similar scripting languages",
-        "Optimize cloud resource utilization for cost efficiency and performance",
-        "Support development teams with infrastructure needs and deployment workflows",
-        "Manage multi-environment setups (development, staging, production)",
-        "Integrate AI tools into infrastructure and operational workflows"
-      ],
+      "id": "devops_engineer",
+      "standardized_title": "DevOps Engineer",
+      "role_family": "Engineering",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Infrastructure and automation specialist responsible for designing, building, and maintaining cloud infrastructure, CI/CD pipelines, and deployment systems. Owns infrastructure-as-code, container orchestration, monitoring, and operational tooling. Works closely with software engineers to enable fast, reliable, and secure software delivery. Increasingly expected to integrate AI tools into infrastructure workflows.",
       "required_skills": [
         "cloud_platforms_devops",
         "infrastructure_as_code",
@@ -6830,51 +6569,18 @@ export const roleLibrary = {
         "security_best_practices",
         "ai_tool_fluency"
       ],
-      "tools_technologies": [
-        "AWS/GCP/Azure",
-        "Terraform/Pulumi/CloudFormation",
-        "Docker",
-        "Kubernetes (EKS/GKE/AKS)",
-        "GitHub Actions/Jenkins/ArgoCD",
-        "Prometheus/Grafana/Datadog",
-        "Python/Bash",
-        "Helm",
-        "Ansible",
-        "Git"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "senior_devops_engineer",
-          "sre_engineer",
-          "platform_engineer"
-        ],
-        "lateral_moves": [
-          "software_engineer",
-          "cloud_architect"
-        ]
-      },
-      "market_notes_israel": "Strong and consistent demand across the Israeli market. Companies like DualBird, Volumez, VI, CET, Infini-T, and ZeroPort actively hire DevOps engineers. AWS is the dominant cloud platform, followed by GCP and Azure. Terraform is the most common IaC tool. Kubernetes experience is increasingly expected even at mid-level. The Israeli market has a strong DevOps consulting sector (Infini-T) offering varied project exposure. AI-driven automation is emerging as a key differentiator \u2014 Volumez explicitly requires daily use of AI tools (Copilot, ChatGPT, Cursor). Junior DevOps positions exist (CET) with emphasis on code-first mindset and willingness to learn. On-prem and air-gapped deployment experience is valued in defense-adjacent companies (ZeroPort). GitOps workflows (ArgoCD) and Kubernetes-native tooling are the growth direction.",
-      "role_family": "Engineering",
-      "seniority": "Mid"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Strong and consistent demand across the Israeli market. Companies like DualBird, Volumez, VI, CET, Infini-T, and ZeroPort actively hire DevOps engineers. AWS is the dominant cloud platform, followed by GCP and Azure. Terraform is the most common IaC tool. Kubernetes experience is increasingly expected even at mid-level. The Israeli market has a strong DevOps consulting sector (Infini-T) offering varied project exposure. AI-driven automation is emerging as a key differentiator — Volumez explicitly requires daily use of AI tools (Copilot, ChatGPT, Cursor). Junior DevOps positions exist (CET) with emphasis on code-first mindset and willingness to learn. On-prem and air-gapped deployment experience is valued in defense-adjacent companies (ZeroPort). GitOps workflows (ArgoCD) and Kubernetes-native tooling are the growth direction."
+      }
     },
     {
-      "role_id": "sre_engineer",
-      "title": "SRE Engineer",
-      "sector": "Engineering",
-      "seniority_level": "mid",
-      "description": "Site Reliability Engineer focused on ensuring the reliability, scalability, and performance of production systems. Owns observability, incident response, SLOs/SLIs, and automation of operational toil. Combines strong software engineering skills with deep systems knowledge to build tools and processes that keep production environments healthy. Works closely with engineering teams to improve deployment safety, system resilience, and mean time to recovery.",
-      "key_responsibilities": [
-        "Define SLIs and SLOs with engineering leaders \u2014 translate reliability goals into measurable objectives",
-        "Build and maintain observability infrastructure: dashboards, alerts, logging, and monitoring",
-        "Design and own on-call rotation, escalation policies, and incident response runbooks",
-        "Lead incident response and post-mortem processes \u2014 drive root cause analysis and preventive action",
-        "Automate operational toil \u2014 replace recurring manual work with intelligent automation",
-        "Improve system reliability through performance optimization, load balancing, and capacity planning",
-        "Contribute to CI/CD safety, deployment rollback mechanisms, and feature flag infrastructure",
-        "Build AI-powered reliability tools for alert correlation, root cause analysis, and automated mitigation",
-        "Collaborate with development teams to improve application reliability and implement SRE best practices",
-        "Participate in on-call rotations to support critical production incidents"
-      ],
+      "id": "sre_engineer",
+      "standardized_title": "SRE Engineer",
+      "role_family": "Engineering",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Site Reliability Engineer focused on ensuring the reliability, scalability, and performance of production systems. Owns observability, incident response, SLOs/SLIs, and automation of operational toil. Combines strong software engineering skills with deep systems knowledge to build tools and processes that keep production environments healthy. Works closely with engineering teams to improve deployment safety, system resilience, and mean time to recovery.",
       "required_skills": [
         "production_systems",
         "monitoring_observability",
@@ -6887,95 +6593,43 @@ export const roleLibrary = {
         "networking_fundamentals",
         "ai_tool_fluency"
       ],
-      "tools_technologies": [
-        "Prometheus/Grafana/Loki",
-        "Datadog",
-        "AWS/GCP/Azure",
-        "Kubernetes (GKE/EKS)",
-        "Docker",
-        "Terraform/ArgoCD",
-        "Python/Go/TypeScript/Bash",
-        "Redis/MySQL/BigQuery/ClickHouse",
-        "PagerDuty/OpsGenie",
-        "ELK Stack (Elasticsearch, Logstash, Kibana)",
-        "AI/LLM tools for automation"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "senior_sre",
-          "sre_manager",
-          "platform_engineer"
-        ],
-        "lateral_moves": [
-          "devops_engineer",
-          "software_engineer",
-          "cloud_architect"
-        ]
-      },
-      "market_notes_israel": "Distinct and growing role in the Israeli market, separate from DevOps. Companies like Guardio, Optimove, AudioCodes, and Lemonade have dedicated SRE positions. The key differentiator from DevOps is the focus on production reliability, incident response, SLOs, and post-mortem culture rather than infrastructure provisioning. GCP is common for SRE roles alongside AWS. AI-native reliability tooling is a defining trend \u2014 Guardio explicitly seeks engineers who build AI-powered tools for alert correlation, root cause analysis, and automated incident mitigation using LLMs. On-call rotation is a standard requirement. Strong software engineering background is expected \u2014 SREs are builders, not just operators. The role requires 4+ years of experience in most Israeli companies. Cybersecurity (Guardio), marketing tech (Optimove), and insurance tech (Lemonade) are active hiring sectors for SRE in Israel.",
-      "role_family": "Engineering",
-      "seniority": "Mid"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Distinct and growing role in the Israeli market, separate from DevOps. Companies like Guardio, Optimove, AudioCodes, and Lemonade have dedicated SRE positions. The key differentiator from DevOps is the focus on production reliability, incident response, SLOs, and post-mortem culture rather than infrastructure provisioning. GCP is common for SRE roles alongside AWS. AI-native reliability tooling is a defining trend — Guardio explicitly seeks engineers who build AI-powered tools for alert correlation, root cause analysis, and automated incident mitigation using LLMs. On-call rotation is a standard requirement. Strong software engineering background is expected — SREs are builders, not just operators. The role requires 4+ years of experience in most Israeli companies. Cybersecurity (Guardio), marketing tech (Optimove), and insurance tech (Lemonade) are active hiring sectors for SRE in Israel."
+      }
     },
     {
-      "role_id": "engineering_group_manager",
-      "title": "Engineering Group Manager",
-      "sector": "Engineering",
-      "seniority_level": "senior_manager",
-      "description": "Senior engineering leader who manages a group of multiple engineering teams (typically 15-25+ engineers) through team leads and engineering managers. Drives product engineering execution at scale, shapes technical vision, and builds high-performing engineering organizations. Operates at the intersection of technical leadership, people management, and product strategy. Closely partners with product leadership to execute on the engineering roadmap.",
-      "key_responsibilities": [
-        "Lead, scale, and mentor an engineering group of 15-25+ engineers across multiple teams",
-        "Manage team leads and engineering managers \u2014 develop the next generation of engineering leaders",
-        "Partner closely with product managers to define and execute the product roadmap",
-        "Drive continuous improvement of R&D processes, team structure, and engineering culture",
-        "Lead architecture reviews and stay close to the technology without necessarily coding daily",
-        "Own cross-functional collaboration and synchronization between engineering and other departments",
-        "Foster technical excellence and build a strong leadership pipeline",
-        "Drive execution, quality, and operational excellence across all teams",
-        "Design and operate large systems with emphasis on scalability, high availability, and performance",
-        "Support organizational growth through hiring strategy, team structure, and leadership development"
-      ],
+      "id": "engineering_group_manager",
+      "standardized_title": "Engineering Group Manager",
+      "role_family": "Engineering",
+      "secondary_family": null,
+      "seniority": "Director_Head",
+      "core_purpose": "Senior engineering leader who manages a group of multiple engineering teams (typically 15-25+ engineers) through team leads and engineering managers. Drives product engineering execution at scale, shapes technical vision, and builds high-performing engineering organizations. Operates at the intersection of technical leadership, people management, and product strategy. Closely partners with product leadership to execute on the engineering roadmap.",
       "required_skills": [
         "engineering_leadership",
         "people_management",
         "organizational_design",
         "system_architecture",
-        "cross_team_collaboration",
+        "cross_functional_collaboration",
         "stakeholder_management",
         "hiring_talent_acquisition",
         "strategic_thinking",
         "distributed_systems",
         "cloud_platforms"
       ],
-      "tools_technologies": [
-        "Python/Node.js",
-        "Cloud services (AWS/Azure/GCP)",
-        "Kubernetes/Docker",
-        "Distributed systems architectures",
-        "CI/CD pipelines",
-        "Engineering productivity and planning tools",
-        "Monitoring/observability platforms"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "vp_engineering",
-          "cto"
-        ],
-        "lateral_moves": [
-          "senior_engineering_manager",
-          "head_of_product"
-        ]
-      },
-      "market_notes_israel": "Distinct role in Israeli scale-ups and growth-stage companies. Hyro's Engineering Group Manager role is the clearest example: managing 15-20 engineers, leading team leads, and driving AI product development at scale. The role requires 7+ years of engineering experience with at least 2 years managing at scale. Deep technical rooting is expected \u2014 ability to lead architecture reviews and stay close to technology without daily coding. Experience designing and operating large, scalable systems is a core requirement. Conversational AI, healthcare tech, and SaaS are active hiring sectors. Python and Node.js are the dominant technologies. The role reports to CTO/CPTO and is a key pipeline to VP Engineering.",
-      "role_family": "Engineering",
-      "seniority": "Director_Head"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Distinct role in Israeli scale-ups and growth-stage companies. Hyro's Engineering Group Manager role is the clearest example: managing 15-20 engineers, leading team leads, and driving AI product development at scale. The role requires 7+ years of engineering experience with at least 2 years managing at scale. Deep technical rooting is expected — ability to lead architecture reviews and stay close to technology without daily coding. Experience designing and operating large, scalable systems is a core requirement. Conversational AI, healthcare tech, and SaaS are active hiring sectors. Python and Node.js are the dominant technologies. The role reports to CTO/CPTO and is a key pipeline to VP Engineering."
+      }
     },
     {
-      "role_id": "junior_ai_ml_engineer",
-      "role_name": "Junior AI/ML Engineer",
-      "sector": "ai_ml",
-      "seniority": "entry",
-      "description": "Entry-level engineer working on AI/ML features under close guidance. Contributes to building LLM-powered applications, data pipelines, model integration, and basic ML workflows. Focus is on learning production AI engineering practices while delivering small, well-scoped components within a larger AI system.",
-      "typical_responsibilities": [
+      "id": "junior_ai_ml_engineer",
+      "standardized_title": "Junior AI/ML Engineer",
+      "role_family": "AI_ML",
+      "secondary_family": null,
+      "seniority": "Entry",
+      "core_purpose": "Entry-level engineer working on AI/ML features under close guidance. Contributes to building LLM-powered applications, data pipelines, model integration, and basic ML workflows. Focus is on learning production AI engineering practices while delivering small, well-scoped components within a larger AI system.",
+      "core_responsibilities": [
         "Implement backend services and integrate LLM APIs (OpenAI, Anthropic, etc.) under senior guidance",
         "Contribute to RAG pipelines: embedding generation, vector search, retrieval logic",
         "Write Python code for data preparation, feature engineering, and basic model pipelines",
@@ -6985,12 +6639,9 @@ export const roleLibrary = {
         "Debug and troubleshoot issues in AI-powered features",
         "Explore and experiment with new AI tools and frameworks to bring ideas to the team"
       ],
-      "career_path_next": [
-        "ai_engineer_mid",
-        "junior_software_engineer",
-        "data_analyst"
-      ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Python",
         "OpenAI API",
         "Anthropic Claude API",
@@ -7002,16 +6653,18 @@ export const roleLibrary = {
         "REST APIs",
         "vector databases (Pinecone, Weaviate, Chroma)"
       ],
-      "market_notes_israel": "Direct Junior AI/ML Engineer roles at product companies are relatively rare in Israel. The most common entry paths are: (1) intensive bootcamp/training programs like Infinity Labs R&D (STEM graduates, 5-month hybrid programs with placement) or similar paid tracks that lead to junior placements at partner companies; (2) consulting firms like KPMG Associate GenAI Engineer which hire early-career engineers for client AI delivery; (3) conversion from Junior Software Engineer roles after self-study and internal project work. Candidates typically need a BSc in CS/STEM with strong GPA (80+) and psychometric scores above 680-700 for competitive programs. The market strongly prefers candidates who have built real AI projects (even side projects) over those with only coursework. Tel Aviv and Herzliya dominate; remote-first AI startups exist but rarely hire juniors remotely.",
-      "role_family": "AI_ML"
+      "market_notes": {
+        "israel": "Direct Junior AI/ML Engineer roles at product companies are relatively rare in Israel. The most common entry paths are: (1) intensive bootcamp/training programs like Infinity Labs R&D (STEM graduates, 5-month hybrid programs with placement) or similar paid tracks that lead to junior placements at partner companies; (2) consulting firms like KPMG Associate GenAI Engineer which hire early-career engineers for client AI delivery; (3) conversion from Junior Software Engineer roles after self-study and internal project work. Candidates typically need a BSc in CS/STEM with strong GPA (80+) and psychometric scores above 680-700 for competitive programs. The market strongly prefers candidates who have built real AI projects (even side projects) over those with only coursework. Tel Aviv and Herzliya dominate; remote-first AI startups exist but rarely hire juniors remotely."
+      }
     },
     {
-      "role_id": "ai_engineer_mid",
-      "role_name": "AI Engineer / GenAI Engineer",
-      "sector": "ai_ml",
-      "seniority": "mid",
-      "description": "Mid-level engineer who designs and builds production AI systems using LLMs, RAG pipelines, and agentic workflows. Owns features end-to-end \u2014 from problem definition through deployment and monitoring. Works closely with product and other engineers to translate business problems into AI-powered solutions that scale.",
-      "typical_responsibilities": [
+      "id": "ai_engineer_mid",
+      "standardized_title": "AI Engineer / GenAI Engineer",
+      "role_family": "AI_ML",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Mid-level engineer who designs and builds production AI systems using LLMs, RAG pipelines, and agentic workflows. Owns features end-to-end — from problem definition through deployment and monitoring. Works closely with product and other engineers to translate business problems into AI-powered solutions that scale.",
+      "core_responsibilities": [
         "Design and build LLM-powered applications, AI agents, and RAG pipelines in production",
         "Implement and optimize prompt engineering strategies (few-shot, chain-of-thought, tool use)",
         "Build data pipelines for ingestion, processing, and embedding of structured and unstructured data",
@@ -7023,12 +6676,9 @@ export const roleLibrary = {
         "Contribute to architectural decisions on AI infrastructure, model selection, and build-vs-buy tradeoffs",
         "Deploy and operate AI workloads on cloud platforms (AWS, GCP, Azure, Databricks)"
       ],
-      "career_path_next": [
-        "senior_ai_engineer",
-        "mlops_engineer",
-        "applied_ai_researcher"
-      ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Python",
         "OpenAI/Anthropic/Bedrock APIs",
         "LangChain",
@@ -7046,16 +6696,18 @@ export const roleLibrary = {
         "FastAPI",
         "Git"
       ],
-      "market_notes_israel": "This is the highest-volume AI role in the Israeli market right now. Strong demand across cybersecurity (Act Security, Jazz DLP, Winn.ai, Check Point), fintech (Papaya, FlexFactor, One Zero), enterprise SaaS (SysAid, Connecteam), and horizontal AI platforms (Unframe, Latent AI, Sett, WIDER). The title varies considerably \u2014 'AI Engineer', 'GenAI Engineer', 'Applied AI Engineer', 'ML Engineer', 'LLM Engineer' are often interchangeable. Most roles require 2-4 years of experience with strong Python and production system experience. LLM API experience (OpenAI, Anthropic, Bedrock) is now table stakes; RAG pipeline experience is expected; agent framework experience (LangChain, LangGraph) is a strong differentiator. Israel has a higher concentration of AI engineering roles requiring cybersecurity domain knowledge than most global markets.",
-      "role_family": "AI_ML"
+      "market_notes": {
+        "israel": "This is the highest-volume AI role in the Israeli market right now. Strong demand across cybersecurity (Act Security, Jazz DLP, Winn.ai, Check Point), fintech (Papaya, FlexFactor, One Zero), enterprise SaaS (SysAid, Connecteam), and horizontal AI platforms (Unframe, Latent AI, Sett, WIDER). The title varies considerably — 'AI Engineer', 'GenAI Engineer', 'Applied AI Engineer', 'ML Engineer', 'LLM Engineer' are often interchangeable. Most roles require 2-4 years of experience with strong Python and production system experience. LLM API experience (OpenAI, Anthropic, Bedrock) is now table stakes; RAG pipeline experience is expected; agent framework experience (LangChain, LangGraph) is a strong differentiator. Israel has a higher concentration of AI engineering roles requiring cybersecurity domain knowledge than most global markets."
+      }
     },
     {
-      "role_id": "senior_ai_engineer",
-      "role_name": "Senior AI Engineer",
-      "sector": "ai_ml",
-      "seniority": "senior",
-      "description": "Senior engineer responsible for architecting and delivering complex, production-scale AI systems. Makes core design decisions on model selection, system architecture, and engineering standards. Leads technical implementation of flagship AI features, mentors mid-level engineers, and operates across the full AI lifecycle from research to production.",
-      "typical_responsibilities": [
+      "id": "senior_ai_engineer",
+      "standardized_title": "Senior AI Engineer",
+      "role_family": "AI_ML",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Senior engineer responsible for architecting and delivering complex, production-scale AI systems. Makes core design decisions on model selection, system architecture, and engineering standards. Leads technical implementation of flagship AI features, mentors mid-level engineers, and operates across the full AI lifecycle from research to production.",
+      "core_responsibilities": [
         "Architect production-grade AI systems: LLM orchestration, agentic workflows, RAG infrastructure, vector search",
         "Drive technical direction on model selection, prompt strategies, evaluation methodologies, and system design",
         "Lead end-to-end delivery of major AI features from research through deployment, optimization, and maintenance",
@@ -7067,12 +6719,9 @@ export const roleLibrary = {
         "Establish AI engineering best practices: prompt libraries, eval harnesses, observability, safety controls",
         "Take ownership of complex, ambiguous technical challenges and drive them to working solutions"
       ],
-      "career_path_next": [
-        "head_of_ai",
-        "ml_platform_lead",
-        "principal_ai_engineer"
-      ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Python",
         "PyTorch",
         "TensorFlow",
@@ -7090,17 +6739,19 @@ export const roleLibrary = {
         "CI/CD pipelines",
         "Prometheus/Grafana"
       ],
-      "market_notes_israel": "Strong demand for Senior AI Engineers across Israeli high-tech, particularly at Series B+ startups building AI-native products. Typical experience requirement is 4-6+ years, often with MSc or PhD preferred in technical or AI-adjacent fields. The role increasingly combines deep AI systems knowledge with strong backend engineering \u2014 companies like Winn.ai and Connecteam explicitly require 6-8+ years of full-stack or backend experience plus hands-on AI expertise. Cybersecurity-focused AI startups (Jazz, Act Security, Cymphony) particularly value candidates with security domain experience or 8200/military technical backgrounds. Compensation is among the highest in Israeli tech, with equity a significant component at early-stage companies.",
-      "role_family": "AI_ML"
+      "market_notes": {
+        "israel": "Strong demand for Senior AI Engineers across Israeli high-tech, particularly at Series B+ startups building AI-native products. Typical experience requirement is 4-6+ years, often with MSc or PhD preferred in technical or AI-adjacent fields. The role increasingly combines deep AI systems knowledge with strong backend engineering — companies like Winn.ai and Connecteam explicitly require 6-8+ years of full-stack or backend experience plus hands-on AI expertise. Cybersecurity-focused AI startups (Jazz, Act Security, Cymphony) particularly value candidates with security domain experience or 8200/military technical backgrounds. Compensation is among the highest in Israeli tech, with equity a significant component at early-stage companies."
+      }
     },
     {
-      "role_id": "mlops_engineer",
-      "role_name": "MLOps / ML Platform Engineer",
-      "sector": "ai_ml",
-      "seniority": "mid_to_senior",
-      "description": "Engineer focused on the infrastructure, pipelines, and tooling that turn AI models into reliable, scalable production systems. Owns the machine learning lifecycle from data and training through deployment, monitoring, and retraining. Bridges AI researchers, data engineers, and platform/DevOps teams.",
-      "typical_responsibilities": [
-        "Design and build end-to-end MLOps pipelines: data \u2192 training \u2192 evaluation \u2192 deployment \u2192 monitoring",
+      "id": "mlops_engineer",
+      "standardized_title": "MLOps / ML Platform Engineer",
+      "role_family": "AI_ML",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Engineer focused on the infrastructure, pipelines, and tooling that turn AI models into reliable, scalable production systems. Owns the machine learning lifecycle from data and training through deployment, monitoring, and retraining. Bridges AI researchers, data engineers, and platform/DevOps teams.",
+      "core_responsibilities": [
+        "Design and build end-to-end MLOps pipelines: data → training → evaluation → deployment → monitoring",
         "Build and maintain training pipelines for large-scale AI models with experiment tracking and reproducibility",
         "Implement and manage model registries, versioning systems, and artifact management (MLflow, W&B, DVC)",
         "Deploy models to production: batch pipelines, real-time inference, cloud, on-prem, and edge-adjacent environments",
@@ -7111,12 +6762,9 @@ export const roleLibrary = {
         "Collaborate with AI researchers, data engineers, and DevOps/platform engineers to move models from research to production",
         "Ensure models remain robust under changing real-world conditions with continuous evaluation pipelines"
       ],
-      "career_path_next": [
-        "senior_mlops_engineer",
-        "ml_platform_lead",
-        "head_of_ai"
-      ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Python",
         "PyTorch",
         "TensorFlow",
@@ -7137,16 +6785,18 @@ export const roleLibrary = {
         "OpenTelemetry",
         "Terraform"
       ],
-      "market_notes_israel": "MLOps is emerging as a clearly distinct role from general AI/ML Engineering in Israel, with explicit titles at companies like Algolight, and embedded MLOps responsibilities at most AI-native startups. Typical experience is 3-5+ years with a mix of ML and infrastructure/DevOps backgrounds. Strong demand at companies dealing with large-scale data (satellite/geospatial like Algolight, financial modeling, healthcare AI), distributed training workloads, or real-time inference systems. Candidates with Kubernetes + Ray/Airflow experience plus strong Python and cloud platform knowledge are particularly sought after. GPU workload optimization and experience with feature stores are increasingly valued.",
-      "role_family": "AI_ML"
+      "market_notes": {
+        "israel": "MLOps is emerging as a clearly distinct role from general AI/ML Engineering in Israel, with explicit titles at companies like Algolight, and embedded MLOps responsibilities at most AI-native startups. Typical experience is 3-5+ years with a mix of ML and infrastructure/DevOps backgrounds. Strong demand at companies dealing with large-scale data (satellite/geospatial like Algolight, financial modeling, healthcare AI), distributed training workloads, or real-time inference systems. Candidates with Kubernetes + Ray/Airflow experience plus strong Python and cloud platform knowledge are particularly sought after. GPU workload optimization and experience with feature stores are increasingly valued."
+      }
     },
     {
-      "role_id": "cv_edge_ai_engineer",
-      "role_name": "Computer Vision / Edge AI Engineer",
-      "sector": "ai_ml",
-      "seniority": "mid_to_senior",
-      "description": "Specialist engineer building AI systems for computer vision, real-time inference, and deployment on edge devices. Works across the full stack \u2014 from model development to systems optimization, sensor integration, and deployment on resource-constrained hardware. Common in defense, autonomous systems, robotics, AR/VR, and physical AI applications.",
-      "typical_responsibilities": [
+      "id": "cv_edge_ai_engineer",
+      "standardized_title": "Computer Vision / Edge AI Engineer",
+      "role_family": "AI_ML",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Specialist engineer building AI systems for computer vision, real-time inference, and deployment on edge devices. Works across the full stack — from model development to systems optimization, sensor integration, and deployment on resource-constrained hardware. Common in defense, autonomous systems, robotics, AR/VR, and physical AI applications.",
+      "core_responsibilities": [
         "Build computer vision models for detection, segmentation, tracking, and scene understanding",
         "Design and optimize real-time AI pipelines running on edge devices (Jetson-class hardware, embedded systems)",
         "Optimize inference pipelines for latency, memory, throughput, and power consumption",
@@ -7156,14 +6806,11 @@ export const roleLibrary = {
         "Build pipelines for large-scale dataset generation, labeling, and synthetic data",
         "Work with CUDA/GPU programming for performance-critical components",
         "Take open-ended problems from concept to working prototype to deployed system",
-        "Handle full-stack problems: data \u2192 models \u2192 systems \u2192 deployment"
+        "Handle full-stack problems: data → models → systems → deployment"
       ],
-      "career_path_next": [
-        "senior_cv_engineer",
-        "head_of_ai",
-        "research_lead"
-      ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Python",
         "C++",
         "CUDA",
@@ -7179,16 +6826,18 @@ export const roleLibrary = {
         "Git",
         "Classical CV algorithms (SIFT, SURF, optical flow)"
       ],
-      "market_notes_israel": "Israel has a uniquely strong market for CV/Edge AI engineers driven by defense applications (multiple defense primes and startups), autonomous vehicles (Mobileye and its ecosystem), drone technology (Orca AI, defense drone startups), AR/VR (multiple startups), and industrial automation. Companies like Algolight explicitly seek full-stack CV engineers who can operate across sensors, algorithms, and deployment. 8200/military technical backgrounds (especially from image/signal intelligence units) are a significant advantage. The market values engineers who combine computer vision depth with systems-level thinking and ability to work with physics-based sensor data. CUDA/GPU programming experience is a strong differentiator. Companies increasingly demand experience with real-world degraded data rather than only clean benchmarks.",
-      "role_family": "AI_ML"
+      "market_notes": {
+        "israel": "Israel has a uniquely strong market for CV/Edge AI engineers driven by defense applications (multiple defense primes and startups), autonomous vehicles (Mobileye and its ecosystem), drone technology (Orca AI, defense drone startups), AR/VR (multiple startups), and industrial automation. Companies like Algolight explicitly seek full-stack CV engineers who can operate across sensors, algorithms, and deployment. 8200/military technical backgrounds (especially from image/signal intelligence units) are a significant advantage. The market values engineers who combine computer vision depth with systems-level thinking and ability to work with physics-based sensor data. CUDA/GPU programming experience is a strong differentiator. Companies increasingly demand experience with real-world degraded data rather than only clean benchmarks."
+      }
     },
     {
-      "role_id": "applied_ai_researcher",
-      "role_name": "Applied AI Researcher",
-      "sector": "ai_ml",
-      "seniority": "mid_to_senior",
-      "description": "Research-oriented engineer who owns the full lifecycle of AI projects \u2014 from problem formulation and experimentation through production deployment. Bridges academic research and applied engineering, combining deep ML methodology with production systems thinking. Works on novel problems where off-the-shelf solutions don't exist.",
-      "typical_responsibilities": [
+      "id": "applied_ai_researcher",
+      "standardized_title": "Applied AI Researcher",
+      "role_family": "AI_ML",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Research-oriented engineer who owns the full lifecycle of AI projects — from problem formulation and experimentation through production deployment. Bridges academic research and applied engineering, combining deep ML methodology with production systems thinking. Works on novel problems where off-the-shelf solutions don't exist.",
+      "core_responsibilities": [
         "Own full AI project lifecycle: problem definition, research, experimentation, production deployment, monitoring",
         "Design and build AI agents, RAG systems, and ML models across tabular, text, image, and multimodal data",
         "Apply ML algorithms (classical and transformer-based) to solve complex real-world problems",
@@ -7200,12 +6849,9 @@ export const roleLibrary = {
         "Monitor production performance and business impact of deployed models",
         "Bring novel approaches and methodologies to problems where standard solutions don't work"
       ],
-      "career_path_next": [
-        "senior_applied_researcher",
-        "research_lead",
-        "head_of_ai"
-      ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Python",
         "PyTorch",
         "TensorFlow",
@@ -7220,16 +6866,18 @@ export const roleLibrary = {
         "LaTeX (for papers)",
         "vector databases"
       ],
-      "market_notes_israel": "Applied AI Researcher roles in Israel typically require an advanced degree (MSc preferred, PhD often preferred at larger companies) in Computer Science, AI, Statistics, or related quantitative fields. Strong demand at companies with unique data assets or complex domain problems \u2014 Motiv8AI (behavioral finance), Nanit (pediatric multimodal data), consumer engagement platforms, cybersecurity AI startups. Distinct from pure 'AI Engineer' roles in expected depth of ML methodology, comfort with ambiguity, and ability to read/apply academic research. Distinct from 'Research Scientist' (pure research) roles at labs like AI21, NVIDIA Israel, or Meta Israel in that applied researchers are expected to own end-to-end production deployment, not just publish papers. Compensation tends to be strong with meaningful equity at early-stage companies.",
-      "role_family": "AI_ML"
+      "market_notes": {
+        "israel": "Applied AI Researcher roles in Israel typically require an advanced degree (MSc preferred, PhD often preferred at larger companies) in Computer Science, AI, Statistics, or related quantitative fields. Strong demand at companies with unique data assets or complex domain problems — Motiv8AI (behavioral finance), Nanit (pediatric multimodal data), consumer engagement platforms, cybersecurity AI startups. Distinct from pure 'AI Engineer' roles in expected depth of ML methodology, comfort with ambiguity, and ability to read/apply academic research. Distinct from 'Research Scientist' (pure research) roles at labs like AI21, NVIDIA Israel, or Meta Israel in that applied researchers are expected to own end-to-end production deployment, not just publish papers. Compensation tends to be strong with meaningful equity at early-stage companies."
+      }
     },
     {
-      "role_id": "prompt_engineer",
-      "role_name": "Prompt Engineer / Conversational AI Designer",
-      "sector": "ai_ml",
-      "seniority": "mid",
-      "description": "Specialist focused on designing, optimizing, and maintaining prompts for LLM-based systems, with emphasis on conversational experiences, multi-turn dialogue, and consistent AI persona. Combines linguistic craft, AI engineering fundamentals, and rapid experimentation. Works closely with PMs and engineers to deliver natural, trustworthy AI interactions.",
-      "typical_responsibilities": [
+      "id": "prompt_engineer",
+      "standardized_title": "Prompt Engineer / Conversational AI Designer",
+      "role_family": "AI_ML",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Specialist focused on designing, optimizing, and maintaining prompts for LLM-based systems, with emphasis on conversational experiences, multi-turn dialogue, and consistent AI persona. Combines linguistic craft, AI engineering fundamentals, and rapid experimentation. Works closely with PMs and engineers to deliver natural, trustworthy AI interactions.",
+      "core_responsibilities": [
         "Design multi-turn dialogue flows for text and voice agents with context awareness and memory handling",
         "Define personalities, tone, and conversational style across products and AI agents",
         "Create multilingual prompt strategies and reusable templates/frameworks",
@@ -7241,12 +6889,9 @@ export const roleLibrary = {
         "Set guidelines for tone, multilingual consistency, evaluation, and testing",
         "Support compliance and privacy standards in conversational AI design"
       ],
-      "career_path_next": [
-        "senior_prompt_engineer",
-        "ai_engineer_mid",
-        "conversational_ai_lead"
-      ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "OpenAI/Anthropic APIs",
         "LangChain",
         "prompt management platforms (Promptfoo, LangSmith)",
@@ -7256,16 +6901,18 @@ export const roleLibrary = {
         "evaluation frameworks",
         "conversation analytics tools"
       ],
-      "market_notes_israel": "Prompt Engineer is an emerging role in Israel, still relatively rare as a dedicated full-time position but growing. Found primarily at companies building conversational AI products (Sensi.AI, conversational agent startups, customer-service-focused AI companies) or at larger AI-native companies with dedicated AI UX teams. The role often attracts candidates with mixed backgrounds \u2014 linguistics, writing, UX, or junior AI engineering with strong communication skills. Some companies embed prompt engineering as part of AI Engineer roles rather than hiring a dedicated specialist. This role has one of the most accessible entry points for non-CS candidates in AI \u2014 strong writing, systematic thinking, and hands-on LLM experience can compensate for lighter engineering background. However, pure prompt engineering roles rarely survive seniority \u2014 career progression typically involves expanding into broader AI engineering or conversational design leadership.",
-      "role_family": "AI_ML"
+      "market_notes": {
+        "israel": "Prompt Engineer is an emerging role in Israel, still relatively rare as a dedicated full-time position but growing. Found primarily at companies building conversational AI products (Sensi.AI, conversational agent startups, customer-service-focused AI companies) or at larger AI-native companies with dedicated AI UX teams. The role often attracts candidates with mixed backgrounds — linguistics, writing, UX, or junior AI engineering with strong communication skills. Some companies embed prompt engineering as part of AI Engineer roles rather than hiring a dedicated specialist. This role has one of the most accessible entry points for non-CS candidates in AI — strong writing, systematic thinking, and hands-on LLM experience can compensate for lighter engineering background. However, pure prompt engineering roles rarely survive seniority — career progression typically involves expanding into broader AI engineering or conversational design leadership."
+      }
     },
     {
-      "role_id": "ai_transformation_lead",
-      "role_name": "AI Transformation Lead / AI Enablement Lead",
-      "sector": "ai_ml",
-      "seniority": "mid_to_senior",
-      "description": "Cross-functional leader responsible for driving AI adoption across the business \u2014 not building AI products for customers, but enabling internal teams to work with AI. Identifies high-value internal AI use cases, leads rollouts, builds playbooks and training, and measures ROI of AI transformation efforts. Sits at the intersection of AI, operations, change management, and business strategy.",
-      "typical_responsibilities": [
+      "id": "ai_transformation_lead",
+      "standardized_title": "AI Transformation Lead / AI Enablement Lead",
+      "role_family": "AI_ML",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Cross-functional leader responsible for driving AI adoption across the business — not building AI products for customers, but enabling internal teams to work with AI. Identifies high-value internal AI use cases, leads rollouts, builds playbooks and training, and measures ROI of AI transformation efforts. Sits at the intersection of AI, operations, change management, and business strategy.",
+      "core_responsibilities": [
         "Identify, validate, and prioritize AI use cases across business functions using impact, feasibility, and data readiness criteria",
         "Partner with business leaders to turn AI opportunities into governed, production solutions",
         "Lead the full lifecycle of AI tool rollouts: identification, business case, procurement, integration, enablement, change management",
@@ -7278,12 +6925,9 @@ export const roleLibrary = {
         "Translate business needs into practical technology and process solutions",
         "Define KPIs for AI impact: productivity, cycle time, quality, cost savings, decision support quality"
       ],
-      "career_path_next": [
-        "head_of_ai_transformation",
-        "chief_ai_officer",
-        "chief_of_staff"
-      ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "OpenAI/Anthropic/enterprise LLM platforms",
         "Zapier",
         "Make",
@@ -7296,16 +6940,18 @@ export const roleLibrary = {
         "documentation platforms",
         "AI governance/compliance tools"
       ],
-      "market_notes_israel": "AI Transformation Lead is a rapidly growing role category in Israel, particularly at (1) regulated industries (banking/fintech like One Zero, insurance, healthcare) where responsible AI adoption requires structured change management; (2) larger SaaS/enterprise companies with significant internal operations to automate (Beamup, Sapiens, inManage); (3) consulting/agency environments (Moburst) helping clients adopt AI. Distinct from Head of AI (who builds AI products) in that this role focuses on AI-as-tool-for-the-business, not AI-as-product. Typical background includes digital transformation, product operations, program management, or management consulting, combined with genuine hands-on AI passion and experience. 5+ years of cross-functional leadership experience is common. This is an excellent target role for business-school graduates with AI fluency and change management skills \u2014 one of the most accessible senior AI-adjacent roles for non-engineers.",
-      "role_family": "AI_ML"
+      "market_notes": {
+        "israel": "AI Transformation Lead is a rapidly growing role category in Israel, particularly at (1) regulated industries (banking/fintech like One Zero, insurance, healthcare) where responsible AI adoption requires structured change management; (2) larger SaaS/enterprise companies with significant internal operations to automate (Beamup, Sapiens, inManage); (3) consulting/agency environments (Moburst) helping clients adopt AI. Distinct from Head of AI (who builds AI products) in that this role focuses on AI-as-tool-for-the-business, not AI-as-product. Typical background includes digital transformation, product operations, program management, or management consulting, combined with genuine hands-on AI passion and experience. 5+ years of cross-functional leadership experience is common. This is an excellent target role for business-school graduates with AI fluency and change management skills — one of the most accessible senior AI-adjacent roles for non-engineers."
+      }
     },
     {
-      "role_id": "head_of_ai",
-      "role_name": "Head of AI / AI Lead",
-      "sector": "ai_ml",
-      "seniority": "lead",
-      "description": "Senior leader who owns AI strategy and execution for a product or business unit. Manages a team of AI engineers, researchers, and MLOps specialists. Drives the AI roadmap, makes build-vs-buy decisions, and is accountable for the quality, reliability, and evolution of AI capabilities in production. Reports to CTO, VP Engineering, or CEO at smaller startups.",
-      "typical_responsibilities": [
+      "id": "head_of_ai",
+      "standardized_title": "Head of AI / AI Lead",
+      "role_family": "AI_ML",
+      "secondary_family": null,
+      "seniority": "Lead_Manager",
+      "core_purpose": "Senior leader who owns AI strategy and execution for a product or business unit. Manages a team of AI engineers, researchers, and MLOps specialists. Drives the AI roadmap, makes build-vs-buy decisions, and is accountable for the quality, reliability, and evolution of AI capabilities in production. Reports to CTO, VP Engineering, or CEO at smaller startups.",
+      "core_responsibilities": [
         "Own AI strategy, roadmap, and execution across the product or business unit",
         "Lead and develop a team of AI engineers, researchers, and data scientists (typically 3-15 people)",
         "Make principled decisions on model selection, system architecture, and build-vs-partner-vs-buy tradeoffs",
@@ -7319,12 +6965,9 @@ export const roleLibrary = {
         "Stay at the forefront of AI research and translate emerging capabilities into competitive advantages",
         "Hire, mentor, and grow AI team members"
       ],
-      "career_path_next": [
-        "vp_ai",
-        "chief_ai_officer",
-        "cto"
-      ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Python (hands-on)",
         "all major LLM APIs and frameworks",
         "cloud AI platforms (AWS SageMaker, GCP Vertex, Azure ML)",
@@ -7334,21 +6977,23 @@ export const roleLibrary = {
         "Jira/Linear",
         "strategic planning frameworks"
       ],
-      "market_notes_israel": "Head of AI is one of the fastest-growing senior roles in Israeli tech, with strong demand at early-to-mid-stage startups where it's often the first dedicated AI leadership hire. Typical scope: 3-10 AI engineers and researchers, direct reporting to CTO or CEO at smaller companies. Compensation includes substantial equity (often 0.5-2%+ at seed/Series A). Required experience typically 7-10+ years in ML/AI engineering or research with proven leadership of technical teams. Advanced degree (MSc or PhD) is expected at most companies. This role demands a balance of hands-on depth (still writing code, reviewing architecture) and strategic thinking (roadmap, hiring, build/buy). At Israeli startups, Head of AI is frequently the most senior AI title (VP AI is rare below 100 employees). Strong markets: cybersecurity AI, financial AI, healthcare AI, agentic platforms. 8200 and military technical leadership backgrounds are common and valued.",
-      "role_family": "AI_ML"
+      "market_notes": {
+        "israel": "Head of AI is one of the fastest-growing senior roles in Israeli tech, with strong demand at early-to-mid-stage startups where it's often the first dedicated AI leadership hire. Typical scope: 3-10 AI engineers and researchers, direct reporting to CTO or CEO at smaller companies. Compensation includes substantial equity (often 0.5-2%+ at seed/Series A). Required experience typically 7-10+ years in ML/AI engineering or research with proven leadership of technical teams. Advanced degree (MSc or PhD) is expected at most companies. This role demands a balance of hands-on depth (still writing code, reviewing architecture) and strategic thinking (roadmap, hiring, build/buy). At Israeli startups, Head of AI is frequently the most senior AI title (VP AI is rare below 100 employees). Strong markets: cybersecurity AI, financial AI, healthcare AI, agentic platforms. 8200 and military technical leadership backgrounds are common and valued."
+      }
     },
     {
-      "role_id": "vp_ai_chief_ai_officer",
-      "role_name": "VP AI / Chief AI Officer",
-      "sector": "ai_ml",
-      "seniority": "executive",
-      "description": "Executive-level AI leader accountable for the entire AI function across the company \u2014 strategy, engineering, research, platform, and organizational AI adoption. Owns AI as a core business capability, drives cross-functional AI transformation, and represents AI externally to board, investors, customers, and the market. Typically found at larger AI-native companies or enterprises undergoing deep AI transformation.",
-      "typical_responsibilities": [
-        "Own and lead company-wide AI strategy, vision, and execution \u2014 from roadmap to real-world implementation",
+      "id": "vp_ai_chief_ai_officer",
+      "standardized_title": "VP AI / Chief AI Officer",
+      "role_family": "AI_ML",
+      "secondary_family": null,
+      "seniority": "VP_Executive",
+      "core_purpose": "Executive-level AI leader accountable for the entire AI function across the company — strategy, engineering, research, platform, and organizational AI adoption. Owns AI as a core business capability, drives cross-functional AI transformation, and represents AI externally to board, investors, customers, and the market. Typically found at larger AI-native companies or enterprises undergoing deep AI transformation.",
+      "core_responsibilities": [
+        "Own and lead company-wide AI strategy, vision, and execution — from roadmap to real-world implementation",
         "Manage multiple AI teams: AI engineering, AI research, MLOps, AI platform, AI transformation",
-        "Act as hands-on technical leader while operating at executive altitude \u2014 involved in tool selection, architecture, and key technical decisions",
+        "Act as hands-on technical leader while operating at executive altitude — involved in tool selection, architecture, and key technical decisions",
         "Drive AI as a product, platform, and strategic capability across the business",
-        "Manage expectations across leadership, board, and teams \u2014 communicating limitations, risks, and tradeoffs",
+        "Manage expectations across leadership, board, and teams — communicating limitations, risks, and tradeoffs",
         "Design and lead AI transformation services, platforms, or strategic offerings",
         "Bridge technology, business goals, and market strategy to ensure AI delivers measurable impact",
         "Represent the company externally: investors, partners, customers, press, conferences, thought leadership",
@@ -7357,13 +7002,9 @@ export const roleLibrary = {
         "Oversee AI governance, responsible AI practices, safety, and compliance at enterprise scale",
         "Continuously translate frontier AI advancements into competitive business advantage"
       ],
-      "career_path_next": [
-        "ceo",
-        "cto",
-        "board_director",
-        "ai_investor_advisor"
-      ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "executive strategy frameworks",
         "board-level communication tools",
         "AI platform overview (hands-on-adjacent)",
@@ -7371,21 +7012,23 @@ export const roleLibrary = {
         "organizational design frameworks",
         "external communication platforms"
       ],
-      "market_notes_israel": "VP AI and Chief AI Officer roles remain relatively rare in Israel compared to Head of AI \u2014 typically found at companies with 100+ employees, substantial AI investment, or AI as central to the product thesis. Examples of companies with this level: Nanit (Head of AI at VP-level scope), Moburst (VP of AI for agency services), Swimm (VP of Research for code AI), AI21, larger cybersecurity companies. Often the career progression is Senior AI Engineer \u2192 Head of AI \u2192 VP AI \u2192 Chief AI Officer, typically spanning 12-20+ years of AI/ML career. Required background: proven track record scaling AI teams (20+ engineers), multiple production AI systems deployed at scale, strategic business impact, ideally both IC excellence earlier in career and executive leadership experience later. Advanced degrees common (MSc/PhD). Compensation at the top of Israeli tech executive tier with significant equity. In non-product-AI companies undergoing AI transformation (banks, enterprises), the title is often 'Chief AI Officer' with stronger emphasis on transformation and governance over product development.",
-      "role_family": "AI_ML"
+      "market_notes": {
+        "israel": "VP AI and Chief AI Officer roles remain relatively rare in Israel compared to Head of AI — typically found at companies with 100+ employees, substantial AI investment, or AI as central to the product thesis. Examples of companies with this level: Nanit (Head of AI at VP-level scope), Moburst (VP of AI for agency services), Swimm (VP of Research for code AI), AI21, larger cybersecurity companies. Often the career progression is Senior AI Engineer → Head of AI → VP AI → Chief AI Officer, typically spanning 12-20+ years of AI/ML career. Required background: proven track record scaling AI teams (20+ engineers), multiple production AI systems deployed at scale, strategic business impact, ideally both IC excellence earlier in career and executive leadership experience later. Advanced degrees common (MSc/PhD). Compensation at the top of Israeli tech executive tier with significant equity. In non-product-AI companies undergoing AI transformation (banks, enterprises), the title is often 'Chief AI Officer' with stronger emphasis on transformation and governance over product development."
+      }
     },
     {
-      "role_id": "ai_solutions_engineering_manager",
-      "role_name": "AI Solutions Engineering Manager",
-      "sector": "ai_ml",
-      "seniority": "mid_to_senior",
-      "description": "Hands-on leader managing a team of Solutions Engineers who implement AI-powered solutions for customers. Combines technical depth, customer-facing skills, and delivery operations. Owns delivery quality and customer outcomes, guides customers through complex AI transformations, and builds delivery processes and reusable assets. Sits between Engineering and Customer Success in many AI startups.",
-      "typical_responsibilities": [
+      "id": "ai_solutions_engineering_manager",
+      "standardized_title": "AI Solutions Engineering Manager",
+      "role_family": "AI_ML",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Hands-on leader managing a team of Solutions Engineers who implement AI-powered solutions for customers. Combines technical depth, customer-facing skills, and delivery operations. Owns delivery quality and customer outcomes, guides customers through complex AI transformations, and builds delivery processes and reusable assets. Sits between Engineering and Customer Success in many AI startups.",
+      "core_responsibilities": [
         "Lead, mentor, and grow a team of AI Solutions Engineers",
         "Own delivery quality and customer outcomes across multiple concurrent implementations",
         "Work closely with customers to understand their processes, challenges, and goals",
         "Help design AI-driven solutions, workflows, and agent systems tailored to customer needs",
-        "Guide customers through transforming how their teams operate \u2014 not just implementing point solutions",
+        "Guide customers through transforming how their teams operate — not just implementing point solutions",
         "Step into complex or strategic customer engagements and drive them to success personally",
         "Set clear timelines, priorities, and delivery standards across projects",
         "Build and improve delivery processes, methodologies, best practices, and reusable assets",
@@ -7394,12 +7037,9 @@ export const roleLibrary = {
         "Act as escalation point for technical and customer-related challenges",
         "Collaborate closely with founders, product, and engineering to influence roadmap and product direction"
       ],
-      "career_path_next": [
-        "head_of_solutions_engineering",
-        "vp_customer_success",
-        "head_of_professional_services"
-      ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "AI platforms (company-specific)",
         "LLM APIs",
         "agent frameworks",
@@ -7409,17 +7049,18 @@ export const roleLibrary = {
         "documentation platforms (Notion, Confluence)",
         "technical delivery tools"
       ],
-      "market_notes_israel": "AI Solutions Engineering Manager is an emerging role category in Israel, found primarily at AI-native B2B startups that sell complex AI platforms to enterprise customers. The role is distinct from traditional Solutions Engineering Manager (pure pre-sales) in that AI Solutions Engineers often do significant post-sale implementation work as well \u2014 designing AI workflows, configuring agents, building customer-specific automations. Typical background: 5-8+ years in software engineering, solutions engineering, or technical delivery, with 2+ years leading teams. Strong candidates come from solutions engineering, technical account management, technical program management, or engineering management at SaaS companies. The role requires rare combination of hands-on technical ability (can still build when needed), customer-facing maturity, operational leadership, and interest in AI. Compensation strong with typically lower equity than pure engineering leadership but with performance/delivery bonuses. As the Israeli AI market matures and more AI platforms scale, this role is projected to grow significantly. Note: this role may eventually migrate to a dedicated Solutions Engineering sector when that is built.",
-      "role_family": "AI_ML"
+      "market_notes": {
+        "israel": "AI Solutions Engineering Manager is an emerging role category in Israel, found primarily at AI-native B2B startups that sell complex AI platforms to enterprise customers. The role is distinct from traditional Solutions Engineering Manager (pure pre-sales) in that AI Solutions Engineers often do significant post-sale implementation work as well — designing AI workflows, configuring agents, building customer-specific automations. Typical background: 5-8+ years in software engineering, solutions engineering, or technical delivery, with 2+ years leading teams. Strong candidates come from solutions engineering, technical account management, technical program management, or engineering management at SaaS companies. The role requires rare combination of hands-on technical ability (can still build when needed), customer-facing maturity, operational leadership, and interest in AI. Compensation strong with typically lower equity than pure engineering leadership but with performance/delivery bonuses. As the Israeli AI market matures and more AI platforms scale, this role is projected to grow significantly. Note: this role may eventually migrate to a dedicated Solutions Engineering sector when that is built."
+      }
     },
     {
-      "role_id": "junior_ux_ui_designer",
-      "title": "Junior UX/UI Designer",
-      "sector": "Design / UX",
-      "seniority_level": "junior",
-      "years_experience_typical": "1-3",
-      "description": "Entry-level designer responsible for creating user interfaces and supporting the UX process under guidance from senior designers. Works on wireframes, mockups, and UI components while learning to apply user-centered design principles across web and mobile products.",
-      "responsibilities": [
+      "id": "junior_ux_ui_designer",
+      "standardized_title": "Junior UX/UI Designer",
+      "role_family": "Design_UX",
+      "secondary_family": null,
+      "seniority": "Entry",
+      "core_purpose": "Entry-level designer responsible for creating user interfaces and supporting the UX process under guidance from senior designers. Works on wireframes, mockups, and UI components while learning to apply user-centered design principles across web and mobile products.",
+      "core_responsibilities": [
         "Create UI mockups and prototypes that illustrate how products function and look",
         "Design graphic elements, icons, and visual components for web and mobile products",
         "Assist with wireframing, user flows, and sitemaps",
@@ -7429,38 +7070,29 @@ export const roleLibrary = {
         "Prepare and present design drafts to internal teams and stakeholders",
         "Stay current with design trends, tools, and emerging technologies"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Figma",
         "Adobe Creative Suite (Photoshop, Illustrator, XD)",
         "InVision",
         "Miro / FigJam",
         "Basic prototyping tools"
       ],
-      "career_path": {
-        "previous_roles": [
-          "Design intern",
-          "Visual design student",
-          "Bootcamp graduate"
-        ],
-        "next_roles": [
-          "Product Designer (UX/UI)",
-          "UI Designer",
-          "Brand / Marketing Designer"
-        ]
-      },
-      "market_notes_israel": "Many Israeli startups combine UX and UI into a single designer role from the junior level. Standalone 'UX-only' or 'UI-only' junior positions are rare \u2014 companies expect full-stack design capabilities even at entry level. Design agencies and studios (e.g., Zemingo) offer a strong entry path with exposure to multiple product domains.",
-      "role_family": "Design_UX",
-      "seniority": "Entry"
+      "years_experience_typical": "1-3",
+      "market_notes": {
+        "israel": "Many Israeli startups combine UX and UI into a single designer role from the junior level. Standalone 'UX-only' or 'UI-only' junior positions are rare — companies expect full-stack design capabilities even at entry level. Design agencies and studios (e.g., Zemingo) offer a strong entry path with exposure to multiple product domains."
+      }
     },
     {
-      "role_id": "product_designer_ux_ui",
-      "title": "Product Designer (UX/UI)",
-      "sector": "Design / UX",
-      "seniority_level": "mid",
-      "years_experience_typical": "3-5",
-      "description": "Owns end-to-end design for product features and experiences, from user research and wireframing through high-fidelity UI and developer handoff. Works closely with product managers, engineers, and stakeholders to translate complex requirements into intuitive, well-crafted user experiences across web and mobile platforms.",
-      "responsibilities": [
-        "Lead the end-to-end design process for product features \u2014 research, ideation, wireframes, prototyping, visual design, usability testing, and developer handoff",
+      "id": "product_designer_ux_ui",
+      "standardized_title": "Product Designer (UX/UI)",
+      "role_family": "Design_UX",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Owns end-to-end design for product features and experiences, from user research and wireframing through high-fidelity UI and developer handoff. Works closely with product managers, engineers, and stakeholders to translate complex requirements into intuitive, well-crafted user experiences across web and mobile platforms.",
+      "core_responsibilities": [
+        "Lead the end-to-end design process for product features — research, ideation, wireframes, prototyping, visual design, usability testing, and developer handoff",
         "Collaborate cross-functionally with product managers, engineers, analysts, and customer-facing teams",
         "Translate complex workflows and data-heavy systems into clean, intuitive interfaces",
         "Conduct user research, analyze behavioral data, and gather feedback to iterate on designs",
@@ -7470,7 +7102,9 @@ export const roleLibrary = {
         "Make data-driven design decisions using KPIs, A/B testing, and performance metrics",
         "Stay current with design trends, tools, and emerging technologies including AI-assisted design workflows"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Figma (components, auto-layout, prototyping)",
         "Adobe Creative Suite",
         "Miro / FigJam",
@@ -7478,31 +7112,20 @@ export const roleLibrary = {
         "Analytics platforms (Hotjar, FullStory, Amplitude)",
         "AI-assisted design tools (Figma Make, Claude, Cursor)"
       ],
-      "career_path": {
-        "previous_roles": [
-          "Junior UX/UI Designer",
-          "UI Designer",
-          "Graphic Designer transitioning to product"
-        ],
-        "next_roles": [
-          "Senior Product Designer",
-          "Design System Lead",
-          "UX Researcher (specialization)"
-        ]
-      },
-      "market_notes_israel": "The most in-demand design role in the Israeli tech market. B2B SaaS and cybersecurity companies dominate hiring, creating strong demand for designers who can simplify complex, data-heavy systems. Proficiency in Figma is universally required. AI-assisted design workflows (Claude, Figma Make, Cursor) are increasingly listed as requirements, not just nice-to-haves. English fluency is expected, as most Israeli tech companies serve global markets.",
-      "role_family": "Design_UX",
-      "seniority": "Mid"
+      "years_experience_typical": "3-5",
+      "market_notes": {
+        "israel": "The most in-demand design role in the Israeli tech market. B2B SaaS and cybersecurity companies dominate hiring, creating strong demand for designers who can simplify complex, data-heavy systems. Proficiency in Figma is universally required. AI-assisted design workflows (Claude, Figma Make, Cursor) are increasingly listed as requirements, not just nice-to-haves. English fluency is expected, as most Israeli tech companies serve global markets."
+      }
     },
     {
-      "role_id": "senior_product_designer",
-      "title": "Senior Product Designer",
-      "sector": "Design / UX",
-      "seniority_level": "senior",
-      "years_experience_typical": "5-7",
-      "description": "Experienced product designer who owns design for significant product areas with high autonomy. Takes full accountability for design quality, drives complex projects from discovery to delivery, and influences product strategy. Mentors junior designers and contributes to design culture and processes across the organization.",
-      "responsibilities": [
-        "Own the full design lifecycle for major product areas \u2014 from discovery and research through pixel-perfect delivery",
+      "id": "senior_product_designer",
+      "standardized_title": "Senior Product Designer",
+      "role_family": "Design_UX",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Experienced product designer who owns design for significant product areas with high autonomy. Takes full accountability for design quality, drives complex projects from discovery to delivery, and influences product strategy. Mentors junior designers and contributes to design culture and processes across the organization.",
+      "core_responsibilities": [
+        "Own the full design lifecycle for major product areas — from discovery and research through pixel-perfect delivery",
         "Drive design strategy for complex, data-intensive products and enterprise workflows",
         "Lead cross-functional collaboration with product, engineering, data, and customer-facing teams",
         "Conduct and synthesize user research, usability testing, and behavioral analytics to inform design decisions",
@@ -7513,8 +7136,10 @@ export const roleLibrary = {
         "Design for accessibility, performance, and inclusive user experiences",
         "Leverage AI tools to accelerate prototyping, research synthesis, and design-to-code workflows"
       ],
-      "tools_commonly_used": [
-        "Figma (expert \u2014 components, variants, auto-layout, design tokens)",
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
+        "Figma (expert — components, variants, auto-layout, design tokens)",
         "Prototyping tools (Principle, ProtoPie, Framer)",
         "User research tools (Maze, UserTesting, Hotjar)",
         "Analytics platforms (Amplitude, Mixpanel, FullStory)",
@@ -7522,29 +7147,19 @@ export const roleLibrary = {
         "Adobe Creative Suite",
         "Basic HTML/CSS understanding"
       ],
-      "career_path": {
-        "previous_roles": [
-          "Product Designer (UX/UI)",
-          "UX Designer with 5+ years experience"
-        ],
-        "next_roles": [
-          "Design Lead / Design Manager",
-          "Design System Lead",
-          "Head of Design / VP Design (in smaller companies)"
-        ]
-      },
-      "market_notes_israel": "Senior Product Designers in Israel are expected to operate with high independence and full ownership of their design domain. The cybersecurity and enterprise SaaS sectors create particularly strong demand for designers experienced with data-heavy dashboards, complex workflows, and data visualization. Companies increasingly expect senior designers to leverage AI tools as part of their standard workflow.",
-      "role_family": "Design_UX",
-      "seniority": "Senior"
+      "years_experience_typical": "5-7",
+      "market_notes": {
+        "israel": "Senior Product Designers in Israel are expected to operate with high independence and full ownership of their design domain. The cybersecurity and enterprise SaaS sectors create particularly strong demand for designers experienced with data-heavy dashboards, complex workflows, and data visualization. Companies increasingly expect senior designers to leverage AI tools as part of their standard workflow."
+      }
     },
     {
-      "role_id": "ux_researcher",
-      "title": "UX Researcher",
-      "sector": "Design / UX",
-      "seniority_level": "mid",
-      "years_experience_typical": "3-5",
-      "description": "Specializes in understanding user behaviors, needs, and motivations through qualitative and quantitative research methods. Plans and conducts user research studies, synthesizes findings into actionable insights, and partners with product and design teams to ensure user-centered decision-making across the product lifecycle.",
-      "responsibilities": [
+      "id": "ux_researcher",
+      "standardized_title": "UX Researcher",
+      "role_family": "Design_UX",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Specializes in understanding user behaviors, needs, and motivations through qualitative and quantitative research methods. Plans and conducts user research studies, synthesizes findings into actionable insights, and partners with product and design teams to ensure user-centered decision-making across the product lifecycle.",
+      "core_responsibilities": [
         "Plan, design, and conduct user research studies using qualitative and quantitative methods",
         "Perform usability testing, user interviews, contextual inquiries, and surveys",
         "Analyze research data to identify patterns, pain points, and opportunities",
@@ -7556,7 +7171,9 @@ export const roleLibrary = {
         "Present research findings to stakeholders at all levels of the organization",
         "Establish research processes and methodologies across the design organization"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "User research platforms (UserTesting, Maze, Lookback)",
         "Survey tools (Typeform, SurveyMonkey, Qualtrics)",
         "Analytics platforms (Amplitude, Mixpanel, FullStory, Hotjar)",
@@ -7565,31 +7182,19 @@ export const roleLibrary = {
         "Data analysis tools (Excel, Google Sheets, basic SQL)",
         "Session recording tools (Hotjar, FullStory)"
       ],
-      "career_path": {
-        "previous_roles": [
-          "Junior UX Researcher",
-          "Product Designer with research focus",
-          "Academic researcher (HCI, psychology, sociology) transitioning to industry"
-        ],
-        "next_roles": [
-          "Senior UX Researcher",
-          "Research Lead / Research Manager",
-          "Head of UX Research",
-          "Product Manager (research-driven transition)"
-        ]
-      },
-      "market_notes_israel": "Standalone UX Researcher roles are relatively uncommon in the Israeli market. Most companies embed research responsibilities within the Product Designer role \u2014 designers are expected to conduct their own user research, usability testing, and data analysis. Dedicated UX Research positions tend to appear at larger companies (Wix, Monday.com, Fiverr) or in organizations with mature design teams. This creates an opportunity for research-minded designers to differentiate themselves, but candidates should expect to find fewer dedicated research openings than in the US market.",
-      "role_family": "Design_UX",
-      "seniority": "Mid"
+      "years_experience_typical": "3-5",
+      "market_notes": {
+        "israel": "Standalone UX Researcher roles are relatively uncommon in the Israeli market. Most companies embed research responsibilities within the Product Designer role — designers are expected to conduct their own user research, usability testing, and data analysis. Dedicated UX Research positions tend to appear at larger companies (Wix, Monday.com, Fiverr) or in organizations with mature design teams. This creates an opportunity for research-minded designers to differentiate themselves, but candidates should expect to find fewer dedicated research openings than in the US market."
+      }
     },
     {
-      "role_id": "design_system_lead",
-      "title": "Design System Lead",
-      "sector": "Design / UX",
-      "seniority_level": "senior",
-      "years_experience_typical": "5-7",
-      "description": "Owns the creation, governance, and evolution of the organization's design system \u2014 the shared language of components, patterns, tokens, and guidelines that ensures consistency and efficiency across all products. Works at the intersection of design and engineering, collaborating closely with developers to ensure design system adoption and scalable implementation.",
-      "responsibilities": [
+      "id": "design_system_lead",
+      "standardized_title": "Design System Lead",
+      "role_family": "Design_UX",
+      "secondary_family": null,
+      "seniority": "Lead_Manager",
+      "core_purpose": "Owns the creation, governance, and evolution of the organization's design system — the shared language of components, patterns, tokens, and guidelines that ensures consistency and efficiency across all products. Works at the intersection of design and engineering, collaborating closely with developers to ensure design system adoption and scalable implementation.",
+      "core_responsibilities": [
         "Develop and maintain a comprehensive design system including components, patterns, tokens, and documentation",
         "Define design standards, guidelines, and UX/UI patterns across products and platforms",
         "Collaborate closely with product designers, engineers, and product managers to ensure consistency",
@@ -7601,8 +7206,10 @@ export const roleLibrary = {
         "Document usage guidelines, interaction patterns, and accessibility requirements",
         "Drive adoption of the design system across teams and products"
       ],
-      "tools_commonly_used": [
-        "Figma (expert \u2014 components, variants, design tokens, auto-layout, branching)",
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
+        "Figma (expert — components, variants, design tokens, auto-layout, branching)",
         "Storybook",
         "Design token management tools (Style Dictionary, Tokens Studio)",
         "Documentation platforms (Zeroheight, Notion, Confluence)",
@@ -7610,30 +7217,19 @@ export const roleLibrary = {
         "Front-end frameworks awareness (React component structure)",
         "Accessibility testing tools"
       ],
-      "career_path": {
-        "previous_roles": [
-          "Senior Product Designer with design system experience",
-          "Product Designer with strong systems thinking",
-          "Front-end developer transitioning to design"
-        ],
-        "next_roles": [
-          "Design Lead / Design Manager",
-          "Head of Design / VP Design",
-          "Principal Designer"
-        ]
-      },
-      "market_notes_israel": "Design System Lead is an emerging standalone role in the Israeli market, primarily found at mid-to-large companies with multiple product lines (BigID, Wix, Monday.com, Check Point). At smaller startups, design system responsibilities are typically distributed across senior designers. Companies scaling from 1-2 products to multi-product suites are the primary hiring market for this role.",
-      "role_family": "Design_UX",
-      "seniority": "Lead_Manager"
+      "years_experience_typical": "5-7",
+      "market_notes": {
+        "israel": "Design System Lead is an emerging standalone role in the Israeli market, primarily found at mid-to-large companies with multiple product lines (BigID, Wix, Monday.com, Check Point). At smaller startups, design system responsibilities are typically distributed across senior designers. Companies scaling from 1-2 products to multi-product suites are the primary hiring market for this role."
+      }
     },
     {
-      "role_id": "design_lead_design_manager",
-      "title": "Design Lead / Design Manager",
-      "sector": "Design / UX",
-      "seniority_level": "senior",
-      "years_experience_typical": "7+",
-      "description": "A hybrid player-coach who leads a small-to-medium design team while remaining hands-on with high-impact design work. Balances people management, design process ownership, and individual contribution. Partners with product and engineering leadership to shape product strategy and ensure design quality across the team's output.",
-      "responsibilities": [
+      "id": "design_lead_design_manager",
+      "standardized_title": "Design Lead / Design Manager",
+      "role_family": "Design_UX",
+      "secondary_family": null,
+      "seniority": "Lead_Manager",
+      "core_purpose": "A hybrid player-coach who leads a small-to-medium design team while remaining hands-on with high-impact design work. Balances people management, design process ownership, and individual contribution. Partners with product and engineering leadership to shape product strategy and ensure design quality across the team's output.",
+      "core_responsibilities": [
         "Lead, mentor, and manage a team of product designers (typically 3-8 people)",
         "Directly own and execute major design projects as an individual contributor",
         "Partner with product management and engineering leadership to shape product strategy and define user experiences",
@@ -7646,7 +7242,9 @@ export const roleLibrary = {
         "Advocate for user-centered design principles at the organizational level",
         "Present design strategy and outcomes to senior leadership and stakeholders"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Figma (expert-level)",
         "Design management and collaboration tools",
         "Prototyping tools",
@@ -7654,35 +7252,24 @@ export const roleLibrary = {
         "AI-assisted design and development tools",
         "Project management tools (Jira, Linear, Asana)"
       ],
-      "career_path": {
-        "previous_roles": [
-          "Senior Product Designer",
-          "Design System Lead",
-          "Staff Designer / Principal Designer"
-        ],
-        "next_roles": [
-          "Head of Design / VP Design",
-          "Director of Product Design",
-          "CPO / VP Product (design-to-product leadership transition)"
-        ]
-      },
-      "market_notes_israel": "Design Lead/Manager roles in Israel are almost universally hybrid IC-manager positions \u2014 companies expect leaders to remain deeply hands-on while managing their team. Pure people-management design roles are rare outside of the largest companies. Strong market demand from B2B SaaS companies scaling their design teams. AI-augmented design workflows are increasingly expected \u2014 leaders are expected to implement AI tools that streamline the design-to-development pipeline.",
-      "role_family": "Design_UX",
-      "seniority": "Lead_Manager"
+      "years_experience_typical": "7+",
+      "market_notes": {
+        "israel": "Design Lead/Manager roles in Israel are almost universally hybrid IC-manager positions — companies expect leaders to remain deeply hands-on while managing their team. Pure people-management design roles are rare outside of the largest companies. Strong market demand from B2B SaaS companies scaling their design teams. AI-augmented design workflows are increasingly expected — leaders are expected to implement AI tools that streamline the design-to-development pipeline."
+      }
     },
     {
-      "role_id": "head_of_design_vp_design",
-      "title": "Head of Design / VP Design",
-      "sector": "Design / UX",
-      "seniority_level": "executive",
-      "years_experience_typical": "10+",
-      "description": "Executive design leader who owns the end-to-end product design vision and strategy for the organization. Reports to CPO, CEO, or VP Product. Manages design leads and individual contributors, sets the quality bar, builds design culture, and ensures design is a strategic function that drives business outcomes. May also own brand expression and marketing design functions.",
-      "responsibilities": [
+      "id": "head_of_design_vp_design",
+      "standardized_title": "Head of Design / VP Design",
+      "role_family": "Design_UX",
+      "secondary_family": null,
+      "seniority": "Director_Head",
+      "core_purpose": "Executive design leader who owns the end-to-end product design vision and strategy for the organization. Reports to CPO, CEO, or VP Product. Manages design leads and individual contributors, sets the quality bar, builds design culture, and ensures design is a strategic function that drives business outcomes. May also own brand expression and marketing design functions.",
+      "core_responsibilities": [
         "Own and drive the end-to-end product design vision across all user-facing experiences",
         "Inspire, coach, and manage a multidisciplinary design team including design leads and individual contributors",
         "Collaborate with product, engineering, and data leadership to shape product strategy",
         "Build and scale design systems, tooling, and processes for consistency, quality, and efficiency",
-        "Champion the voice of the user across the organization \u2014 combining research, UX best practices, and business context",
+        "Champion the voice of the user across the organization — combining research, UX best practices, and business context",
         "Recruit, hire, and develop top-tier design talent",
         "Elevate design as a strategic function, articulating how product experiences drive business outcomes",
         "Establish AI-forward design workflows and practices across the design organization",
@@ -7690,7 +7277,9 @@ export const roleLibrary = {
         "Present design strategy to executive leadership, board, and external stakeholders",
         "Define and maintain cross-product UX patterns, navigation, and visual style guidelines"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Figma",
         "Design management and portfolio tools",
         "Presentation tools (Keynote, Google Slides)",
@@ -7698,31 +7287,19 @@ export const roleLibrary = {
         "AI tools for design acceleration",
         "Strategic planning tools"
       ],
-      "career_path": {
-        "previous_roles": [
-          "Design Lead / Design Manager",
-          "Director of Product Design",
-          "Principal Designer / Staff Designer"
-        ],
-        "next_roles": [
-          "CPO / Chief Product Officer",
-          "VP Product",
-          "CEO / Founder (design-led company)",
-          "Design executive at larger organization"
-        ]
-      },
-      "market_notes_israel": "Head of Design / VP Design roles in Israel typically require ownership of both product design and brand/marketing design functions. The role often reports to CPO or CEO. AI-first design vision is becoming a key requirement \u2014 leaders are expected to establish AI-forward design practices and workflows. Companies at Series B+ with 50-500 employees are the primary hiring market. The role is increasingly expected to own how the company communicates its story visually, not just how the product looks and works.",
-      "role_family": "Design_UX",
-      "seniority": "Director_Head"
+      "years_experience_typical": "10+",
+      "market_notes": {
+        "israel": "Head of Design / VP Design roles in Israel typically require ownership of both product design and brand/marketing design functions. The role often reports to CPO or CEO. AI-first design vision is becoming a key requirement — leaders are expected to establish AI-forward design practices and workflows. Companies at Series B+ with 50-500 employees are the primary hiring market. The role is increasingly expected to own how the company communicates its story visually, not just how the product looks and works."
+      }
     },
     {
-      "role_id": "brand_marketing_designer",
-      "title": "Brand / Marketing Designer",
-      "sector": "Design / UX",
-      "seniority_level": "mid",
-      "years_experience_typical": "3-5",
-      "description": "Owns the visual identity and creative execution of a company's brand across marketing channels and touchpoints. Creates marketing campaigns, digital assets, sales materials, website graphics, social media content, and event branding. Combines strong visual craft with brand strategy thinking to ensure consistent, compelling brand expression that drives business goals.",
-      "responsibilities": [
+      "id": "brand_marketing_designer",
+      "standardized_title": "Brand / Marketing Designer",
+      "role_family": "Design_UX",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Owns the visual identity and creative execution of a company's brand across marketing channels and touchpoints. Creates marketing campaigns, digital assets, sales materials, website graphics, social media content, and event branding. Combines strong visual craft with brand strategy thinking to ensure consistent, compelling brand expression that drives business goals.",
+      "core_responsibilities": [
         "Define, maintain, and evolve the company's visual brand identity across all touchpoints",
         "Design marketing campaigns, digital ads, social media content, and email templates",
         "Create sales enablement materials including pitch decks, one-pagers, and presentations",
@@ -7734,41 +7311,31 @@ export const roleLibrary = {
         "Use generative AI tools to accelerate creative production and enhance output quality",
         "Contribute to video and motion design assets when needed"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Figma",
         "Adobe Creative Suite (Photoshop, Illustrator, InDesign)",
         "After Effects / Premiere Pro (basic motion design)",
-        "Generative AI tools (Midjourney, DALL\u00b7E, Adobe Firefly)",
+        "Generative AI tools (Midjourney, DALL·E, Adobe Firefly)",
         "Website builders (Webflow, Elementor)",
         "Presentation tools (Google Slides, Keynote, PowerPoint)",
         "Social media design tools (Canva for quick iterations)"
       ],
-      "career_path": {
-        "previous_roles": [
-          "Junior Graphic Designer",
-          "Visual Designer",
-          "Marketing Design intern"
-        ],
-        "next_roles": [
-          "Senior Brand Designer",
-          "Creative Lead / Art Director",
-          "Marketing Design Team Lead",
-          "Head of Brand / Creative Director"
-        ]
-      },
-      "market_notes_israel": "Strong demand in the Israeli tech market, driven by B2B SaaS companies that need to communicate complex technical products through clear, compelling brand visuals. The role is distinct from Product Designer \u2014 it's marketing-facing rather than product-facing, with a focus on campaigns, sales materials, and brand consistency rather than product UX flows. Companies increasingly require proficiency in generative AI tools (Midjourney, Firefly) as a core competency, not just a nice-to-have. Motion design skills (After Effects) are a strong differentiator.",
-      "role_family": "Design_UX",
-      "seniority": "Mid"
+      "years_experience_typical": "3-5",
+      "market_notes": {
+        "israel": "Strong demand in the Israeli tech market, driven by B2B SaaS companies that need to communicate complex technical products through clear, compelling brand visuals. The role is distinct from Product Designer — it's marketing-facing rather than product-facing, with a focus on campaigns, sales materials, and brand consistency rather than product UX flows. Companies increasingly require proficiency in generative AI tools (Midjourney, Firefly) as a core competency, not just a nice-to-have. Motion design skills (After Effects) are a strong differentiator."
+      }
     },
     {
-      "role_id": "bdr_bd_associate",
-      "title": "BDR / BD Associate",
-      "sector": "Business Development / Partnerships",
-      "seniority_level": "junior",
-      "years_experience_typical": "0-2",
-      "description": "Entry-level outbound sales development role focused on generating qualified pipeline for the sales team. Initiates contact with potential customers through cold calling, email outreach, and social selling. Qualifies inbound leads, conducts initial discovery conversations, and hands off qualified opportunities to Account Executives.",
-      "responsibilities": [
-        "Generate new business pipeline through outbound prospecting \u2014 cold calls, email sequences, and LinkedIn outreach",
+      "id": "bdr_bd_associate",
+      "standardized_title": "BDR / BD Associate",
+      "role_family": "BD_Partnerships",
+      "secondary_family": null,
+      "seniority": "Entry",
+      "core_purpose": "Entry-level outbound sales development role focused on generating qualified pipeline for the sales team. Initiates contact with potential customers through cold calling, email outreach, and social selling. Qualifies inbound leads, conducts initial discovery conversations, and hands off qualified opportunities to Account Executives.",
+      "core_responsibilities": [
+        "Generate new business pipeline through outbound prospecting — cold calls, email sequences, and LinkedIn outreach",
         "Qualify inbound leads generated by marketing and convert interest into sales-ready meetings",
         "Conduct initial discovery calls to understand prospect pain points and assess fit",
         "Research target accounts and identify key decision-makers and stakeholders",
@@ -7778,7 +7345,9 @@ export const roleLibrary = {
         "Meet or exceed activity and pipeline generation targets consistently",
         "Develop product knowledge to effectively communicate value propositions"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Salesforce / HubSpot CRM",
         "Outreach / Salesloft (sales engagement)",
         "LinkedIn Sales Navigator",
@@ -7786,34 +7355,23 @@ export const roleLibrary = {
         "AI-powered outbound tools (Claude Code, LLM-based automation)",
         "Slack / Teams (internal collaboration)"
       ],
-      "career_path": {
-        "previous_roles": [
-          "Sales intern",
-          "Customer service representative",
-          "University graduate (business, communications)"
-        ],
-        "next_roles": [
-          "Business Development Manager",
-          "Account Executive (Sales sector)",
-          "Partnerships Manager"
-        ]
-      },
-      "market_notes_israel": "BDR roles in Israel overwhelmingly serve US-market companies, requiring fluent English and willingness to work US hours. AI-powered outbound workflows (using Claude Code, LLM APIs for personalized sequencing) are increasingly listed as requirements, not just nice-to-haves. The role is a proven entry point into tech careers for Reichman business graduates, with clear progression paths into BD management, AE roles, or partnerships.",
-      "role_family": "BD_Partnerships",
-      "seniority": "Entry"
+      "years_experience_typical": "0-2",
+      "market_notes": {
+        "israel": "BDR roles in Israel overwhelmingly serve US-market companies, requiring fluent English and willingness to work US hours. AI-powered outbound workflows (using Claude Code, LLM APIs for personalized sequencing) are increasingly listed as requirements, not just nice-to-haves. The role is a proven entry point into tech careers for Reichman business graduates, with clear progression paths into BD management, AE roles, or partnerships."
+      }
     },
     {
-      "role_id": "business_development_manager",
-      "title": "Business Development Manager",
-      "sector": "Business Development / Partnerships",
-      "seniority_level": "mid",
-      "years_experience_typical": "2-5",
-      "description": "Drives net-new business growth by researching, pursuing, and developing new business relationships. Manages a portfolio of prospects and early-stage partnerships, negotiates commercial terms, and works cross-functionally to deliver on revenue targets. Combines outbound hunting with relationship management and data-driven decision-making.",
-      "responsibilities": [
+      "id": "business_development_manager",
+      "standardized_title": "Business Development Manager",
+      "role_family": "BD_Partnerships",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Drives net-new business growth by researching, pursuing, and developing new business relationships. Manages a portfolio of prospects and early-stage partnerships, negotiates commercial terms, and works cross-functionally to deliver on revenue targets. Combines outbound hunting with relationship management and data-driven decision-making.",
+      "core_responsibilities": [
         "Research, identify, and develop new business opportunities and long-term relationships",
         "Manage a revenue portfolio and achieve business development targets",
         "Negotiate commercial terms using analytical data and market intelligence",
-        "Lead the full business development cycle \u2014 from opportunity identification to deal closure",
+        "Lead the full business development cycle — from opportunity identification to deal closure",
         "Build relationships with key stakeholders and decision-makers at target organizations",
         "Advance and expand opportunities within existing relationships",
         "Conduct market research, competitive analysis, and gather customer insights",
@@ -7821,7 +7379,9 @@ export const roleLibrary = {
         "Lead presentations, product demos, and business review meetings",
         "Manage CRM pipeline and provide accurate forecasting and reporting"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Salesforce / HubSpot CRM",
         "LinkedIn Sales Navigator",
         "Excel / Google Sheets (financial modeling, ROI analysis)",
@@ -7829,30 +7389,19 @@ export const roleLibrary = {
         "Presentation tools (Google Slides, PowerPoint)",
         "Data analytics tools (Looker, Tableau)"
       ],
-      "career_path": {
-        "previous_roles": [
-          "BDR / BD Associate",
-          "Account Executive",
-          "Sales Development Representative"
-        ],
-        "next_roles": [
-          "Senior BD Manager / Strategic Partnerships Manager",
-          "Partnerships Manager",
-          "Head of BD / Head of Partnerships"
-        ]
-      },
-      "market_notes_israel": "BD Manager roles in Israel span multiple industries \u2014 ad-tech, performance marketing, SaaS, cybersecurity, and fintech are the most active hiring segments. Many roles require managing global portfolios (US, Europe) and working across time zones. Data-driven decision-making and analytical skills are consistently emphasized alongside relationship-building abilities. Performance marketing and ad-tech companies often blend BD with account management responsibilities.",
-      "role_family": "BD_Partnerships",
-      "seniority": "Mid"
+      "years_experience_typical": "2-5",
+      "market_notes": {
+        "israel": "BD Manager roles in Israel span multiple industries — ad-tech, performance marketing, SaaS, cybersecurity, and fintech are the most active hiring segments. Many roles require managing global portfolios (US, Europe) and working across time zones. Data-driven decision-making and analytical skills are consistently emphasized alongside relationship-building abilities. Performance marketing and ad-tech companies often blend BD with account management responsibilities."
+      }
     },
     {
-      "role_id": "partnerships_manager",
-      "title": "Partnerships Manager",
-      "sector": "Business Development / Partnerships",
-      "seniority_level": "mid",
-      "years_experience_typical": "3-5",
-      "description": "Manages and grows an ecosystem of partners \u2014 channel partners, technology alliances, affiliates, or strategic integrators. Owns the partner lifecycle from onboarding through ongoing relationship management, joint business planning, and revenue optimization. Acts as the voice of the partner internally and ensures mutual value creation.",
-      "responsibilities": [
+      "id": "partnerships_manager",
+      "standardized_title": "Partnerships Manager",
+      "role_family": "BD_Partnerships",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Manages and grows an ecosystem of partners — channel partners, technology alliances, affiliates, or strategic integrators. Owns the partner lifecycle from onboarding through ongoing relationship management, joint business planning, and revenue optimization. Acts as the voice of the partner internally and ensures mutual value creation.",
+      "core_responsibilities": [
         "Build and maintain strong, long-term relationships with new and existing partners",
         "Manage day-to-day partner relationships including commercial, technical, and operational aspects",
         "Develop and execute joint business plans with partners and ensure effective execution",
@@ -7863,9 +7412,11 @@ export const roleLibrary = {
         "Collaborate cross-functionally with sales, product, marketing, and engineering teams",
         "Negotiate commercial terms, contracts, and partnership agreements",
         "Conduct quarterly business reviews and present performance insights to stakeholders",
-        "Act as the partner advocate internally \u2014 communicating needs and feedback to product and leadership"
+        "Act as the partner advocate internally — communicating needs and feedback to product and leadership"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Salesforce / HubSpot CRM",
         "Partner management platforms",
         "Excel / Google Sheets (performance analysis, financial modeling)",
@@ -7873,31 +7424,19 @@ export const roleLibrary = {
         "Project management tools (Asana, Monday.com)",
         "Analytics and BI tools"
       ],
-      "career_path": {
-        "previous_roles": [
-          "BDR / BD Associate",
-          "Account Manager",
-          "Business Development Manager",
-          "Customer Success Manager"
-        ],
-        "next_roles": [
-          "Senior BD Manager / Strategic Partnerships Manager",
-          "Head of BD / Head of Partnerships",
-          "Channel Sales Manager (Sales sector)"
-        ]
-      },
-      "market_notes_israel": "Partnerships Manager is a growing role in the Israeli market, especially in SaaS companies building channel and ecosystem strategies. The role is distinct from BD Manager \u2014 focused on managing existing partner relationships and maximizing mutual value rather than hunting net-new business. Companies in IT management (Atera), mobile gaming (Sett), affiliate marketing, and fintech are active hirers. Partner management increasingly requires technical fluency to coordinate integrations and co-selling motions.",
-      "role_family": "BD_Partnerships",
-      "seniority": "Mid"
+      "years_experience_typical": "3-5",
+      "market_notes": {
+        "israel": "Partnerships Manager is a growing role in the Israeli market, especially in SaaS companies building channel and ecosystem strategies. The role is distinct from BD Manager — focused on managing existing partner relationships and maximizing mutual value rather than hunting net-new business. Companies in IT management (Atera), mobile gaming (Sett), affiliate marketing, and fintech are active hirers. Partner management increasingly requires technical fluency to coordinate integrations and co-selling motions."
+      }
     },
     {
-      "role_id": "senior_bd_manager_strategic_partnerships",
-      "title": "Senior BD Manager / Strategic Partnerships Manager",
-      "sector": "Business Development / Partnerships",
-      "seniority_level": "senior",
-      "years_experience_typical": "5-7",
-      "description": "Leads high-value, complex business development and strategic partnership initiatives. Manages enterprise-level relationships, builds partner ecosystems, and drives significant revenue through strategic alliances and channel development. Operates at the intersection of business strategy, partner management, and cross-functional leadership.",
-      "responsibilities": [
+      "id": "senior_bd_manager_strategic_partnerships",
+      "standardized_title": "Senior BD Manager / Strategic Partnerships Manager",
+      "role_family": "BD_Partnerships",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Leads high-value, complex business development and strategic partnership initiatives. Manages enterprise-level relationships, builds partner ecosystems, and drives significant revenue through strategic alliances and channel development. Operates at the intersection of business strategy, partner management, and cross-functional leadership.",
+      "core_responsibilities": [
         "Develop and manage executive-level relationships with strategic partners, enterprise clients, and ecosystem players",
         "Lead complex, multi-stakeholder deals and partnership negotiations",
         "Build and scale partner ecosystems including channel partners, technology alliances, and strategic integrators",
@@ -7910,7 +7449,9 @@ export const roleLibrary = {
         "Collaborate cross-functionally with product, sales, marketing, finance, and legal teams",
         "Present business cases, budget projections, and strategic recommendations to leadership"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Salesforce CRM",
         "LinkedIn Sales Navigator",
         "Excel / Google Sheets (advanced financial modeling)",
@@ -7919,36 +7460,25 @@ export const roleLibrary = {
         "Contract management tools",
         "Project management platforms"
       ],
-      "career_path": {
-        "previous_roles": [
-          "Business Development Manager",
-          "Partnerships Manager",
-          "Account Executive / Senior AE"
-        ],
-        "next_roles": [
-          "Head of BD / Head of Partnerships",
-          "VP Business Development",
-          "General Manager / Country Manager"
-        ]
-      },
-      "market_notes_israel": "Senior BD and Strategic Partnerships roles in Israel increasingly require experience building partner ecosystems from the ground up, not just managing existing relationships. Cloud, SaaS, and cybersecurity companies are the most active hirers. The role often involves significant international travel and managing relationships across US and European markets. Companies expect a blend of strategic thinking and hands-on execution \u2014 pure strategy roles without deal-closing responsibility are rare.",
-      "role_family": "BD_Partnerships",
-      "seniority": "Senior"
+      "years_experience_typical": "5-7",
+      "market_notes": {
+        "israel": "Senior BD and Strategic Partnerships roles in Israel increasingly require experience building partner ecosystems from the ground up, not just managing existing relationships. Cloud, SaaS, and cybersecurity companies are the most active hirers. The role often involves significant international travel and managing relationships across US and European markets. Companies expect a blend of strategic thinking and hands-on execution — pure strategy roles without deal-closing responsibility are rare."
+      }
     },
     {
-      "role_id": "head_of_bd_head_of_partnerships",
-      "title": "Head of BD / Head of Partnerships",
-      "sector": "Business Development / Partnerships",
-      "seniority_level": "senior",
-      "years_experience_typical": "7-10",
-      "description": "Owns the business development or partnerships function for the organization. Designs and executes the BD/partnership strategy, builds and leads the team, and drives significant revenue through net-new business, partner ecosystems, and strategic alliances. Reports to VP Sales, CRO, or CEO. Responsible for pipeline generation, team performance, and cross-functional GTM alignment.",
-      "responsibilities": [
+      "id": "head_of_bd_head_of_partnerships",
+      "standardized_title": "Head of BD / Head of Partnerships",
+      "role_family": "BD_Partnerships",
+      "secondary_family": null,
+      "seniority": "Director_Head",
+      "core_purpose": "Owns the business development or partnerships function for the organization. Designs and executes the BD/partnership strategy, builds and leads the team, and drives significant revenue through net-new business, partner ecosystems, and strategic alliances. Reports to VP Sales, CRO, or CEO. Responsible for pipeline generation, team performance, and cross-functional GTM alignment.",
+      "core_responsibilities": [
         "Design and execute the company's business development or partnership strategy",
         "Build, lead, and scale a high-performing BD/SDR/partnerships team",
         "Own pipeline generation targets and consistently deliver against revenue objectives",
         "Develop and manage strategic partnerships with investors, accelerators, ecosystem players, and technology vendors",
         "Personally engage in key deals and high-value strategic relationships",
-        "Establish and optimize outbound strategy \u2014 messaging, sequencing, targeting, and channels",
+        "Establish and optimize outbound strategy — messaging, sequencing, targeting, and channels",
         "Implement performance management systems, coaching frameworks, and career development paths",
         "Partner with marketing on lead scoring, campaign attribution, and demand generation alignment",
         "Drive cross-functional alignment between sales, marketing, product, and customer success",
@@ -7957,7 +7487,9 @@ export const roleLibrary = {
         "Represent the company at industry events, conferences, and executive forums",
         "Own and grow referral partner channels and strategic vendor relationships"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Salesforce / HubSpot CRM",
         "Sales engagement platforms (Outreach, Salesloft)",
         "LinkedIn Sales Navigator",
@@ -7966,31 +7498,19 @@ export const roleLibrary = {
         "AI-powered prospecting tools",
         "Revenue intelligence platforms"
       ],
-      "career_path": {
-        "previous_roles": [
-          "Senior BD Manager / Strategic Partnerships Manager",
-          "Director of Sales Development",
-          "Director of Partnerships"
-        ],
-        "next_roles": [
-          "VP Business Development",
-          "VP Sales / CRO",
-          "General Manager / Country Manager",
-          "CEO / Founder"
-        ]
-      },
-      "market_notes_israel": "Head of BD/Partnerships roles in Israel often combine two functions that larger US companies split: SDR/BDR team leadership and strategic partnership development. Companies expect leaders who can both build the outbound engine (hire, coach, set processes) and personally drive executive-level relationships. The role is a strong stepping stone to VP-level positions or general management. Ecosystem-building experience (VC relationships, accelerator partnerships, startup community engagement) is highly valued in the Israeli market.",
-      "role_family": "BD_Partnerships",
-      "seniority": "Director_Head"
+      "years_experience_typical": "7-10",
+      "market_notes": {
+        "israel": "Head of BD/Partnerships roles in Israel often combine two functions that larger US companies split: SDR/BDR team leadership and strategic partnership development. Companies expect leaders who can both build the outbound engine (hire, coach, set processes) and personally drive executive-level relationships. The role is a strong stepping stone to VP-level positions or general management. Ecosystem-building experience (VC relationships, accelerator partnerships, startup community engagement) is highly valued in the Israeli market."
+      }
     },
     {
-      "role_id": "vp_business_development",
-      "title": "VP Business Development",
-      "sector": "Business Development / Partnerships",
-      "seniority_level": "executive",
-      "years_experience_typical": "10+",
-      "description": "Executive leader who owns the global business development, partnerships, and/or channel strategy for the organization. Defines and executes growth strategies across markets, builds and scales global partner ecosystems, and drives significant revenue impact. Reports to CEO, CRO, or President. Shapes company strategy at the executive level and represents the organization in high-stakes engagements.",
-      "responsibilities": [
+      "id": "vp_business_development",
+      "standardized_title": "VP Business Development",
+      "role_family": "BD_Partnerships",
+      "secondary_family": null,
+      "seniority": "VP_Executive",
+      "core_purpose": "Executive leader who owns the global business development, partnerships, and/or channel strategy for the organization. Defines and executes growth strategies across markets, builds and scales global partner ecosystems, and drives significant revenue impact. Reports to CEO, CRO, or President. Shapes company strategy at the executive level and represents the organization in high-stakes engagements.",
+      "core_responsibilities": [
         "Define and lead global business development and partnership strategy aligned with company objectives",
         "Build and scale a global BD/partnerships organization across regions and markets",
         "Drive measurable growth in pipeline, bookings, and revenue across global markets",
@@ -8004,7 +7524,9 @@ export const roleLibrary = {
         "Recruit and develop world-class BD and partnerships talent globally",
         "Own strategic forecasting and report to executive leadership with pipeline visibility"
       ],
-      "tools_commonly_used": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Salesforce CRM",
         "Executive dashboards and BI tools",
         "Revenue intelligence platforms",
@@ -8012,31 +7534,19 @@ export const roleLibrary = {
         "Strategic planning tools",
         "Contract and deal management platforms"
       ],
-      "career_path": {
-        "previous_roles": [
-          "Head of BD / Head of Partnerships",
-          "Director of Strategic Partnerships",
-          "VP Sales (transitioning to BD focus)",
-          "Senior Director of Business Development"
-        ],
-        "next_roles": [
-          "CRO / Chief Revenue Officer",
-          "General Manager / President",
-          "CEO / Founder",
-          "Board Advisor"
-        ]
-      },
-      "market_notes_israel": "VP BD roles in Israel are concentrated in growth-stage and late-stage companies (Series B+) with global ambitions. The role requires deep international experience \u2014 managing partnerships across US, European, and APAC markets. Cybersecurity, cloud infrastructure, SaaS, and defense technology companies are the primary hirers. Israeli companies increasingly expect VPs to have experience building channel programs and strategic alliances with major technology vendors (Cisco, AWS, Palo Alto Networks, etc.). Travel is typically 30-50% of the time.",
-      "role_family": "BD_Partnerships",
-      "seniority": "VP_Executive"
+      "years_experience_typical": "10+",
+      "market_notes": {
+        "israel": "VP BD roles in Israel are concentrated in growth-stage and late-stage companies (Series B+) with global ambitions. The role requires deep international experience — managing partnerships across US, European, and APAC markets. Cybersecurity, cloud infrastructure, SaaS, and defense technology companies are the primary hirers. Israeli companies increasingly expect VPs to have experience building channel programs and strategic alliances with major technology vendors (Cisco, AWS, Palo Alto Networks, etc.). Travel is typically 30-50% of the time."
+      }
     },
     {
-      "role_id": "junior_consultant_analyst",
-      "title": "Junior Consultant / Analyst",
-      "sector": "Consulting",
-      "seniority_level": "junior",
-      "description": "Entry-level consulting role focused on research, data analysis, and supporting senior consultants on client engagements. Analysts gather information, build models, prepare deliverables, and begin developing client-facing skills. Common entry point from Big 4 firms (Deloitte, EY, KPMG, PwC) and strategy boutiques.",
-      "responsibilities": [
+      "id": "junior_consultant_analyst",
+      "standardized_title": "Junior Consultant / Analyst",
+      "role_family": "Consulting",
+      "secondary_family": null,
+      "seniority": "Entry",
+      "core_purpose": "Entry-level consulting role focused on research, data analysis, and supporting senior consultants on client engagements. Analysts gather information, build models, prepare deliverables, and begin developing client-facing skills. Common entry point from Big 4 firms (Deloitte, EY, KPMG, PwC) and strategy boutiques.",
+      "core_responsibilities": [
         "Conduct market research, competitive analysis, and industry benchmarking to support engagement deliverables",
         "Gather, clean, and analyze data from financial reports, operational systems, and interviews",
         "Prepare presentations, reports, and client-ready documentation under senior guidance",
@@ -8046,7 +7556,9 @@ export const roleLibrary = {
         "Contribute to proposal and pitch development for new engagements",
         "Document findings, maintain project files, and track action items"
       ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Microsoft Excel (advanced)",
         "PowerPoint",
         "Word",
@@ -8055,22 +7567,6 @@ export const roleLibrary = {
         "Salesforce / CRM systems",
         "Project management tools (Jira, Asana, Monday)"
       ],
-      "career_paths": {
-        "next_in_track": [
-          "consultant"
-        ],
-        "exit_opportunities": [
-          "Business Analyst",
-          "FP&A Analyst",
-          "Operations Analyst / Coordinator",
-          "Product Analyst",
-          "RevOps Analyst",
-          "Data Analyst",
-          "Customer Success Associate",
-          "HR Generalist"
-        ]
-      },
-      "market_notes_israel": "Strong entry-level pipeline from Reichman, TAU, HUJI, and Technion into Big 4 firms (Deloitte, EY, KPMG, PwC) and Israeli strategy boutiques (Shaldor, Tefen, Pareto). Many roles require a BA/BSc in economics, business administration, industrial engineering, or accounting. Big 4 firms often hire cohorts annually. CPA is a strong advantage for risk/audit tracks. 2-3 year tenure is standard before first exit opportunity.",
       "keywords": [
         "analyst",
         "junior consultant",
@@ -8080,16 +7576,18 @@ export const roleLibrary = {
         "strategy analyst",
         "audit"
       ],
-      "role_family": "Consulting",
-      "seniority": "Entry"
+      "market_notes": {
+        "israel": "Strong entry-level pipeline from Reichman, TAU, HUJI, and Technion into Big 4 firms (Deloitte, EY, KPMG, PwC) and Israeli strategy boutiques (Shaldor, Tefen, Pareto). Many roles require a BA/BSc in economics, business administration, industrial engineering, or accounting. Big 4 firms often hire cohorts annually. CPA is a strong advantage for risk/audit tracks. 2-3 year tenure is standard before first exit opportunity."
+      }
     },
     {
-      "role_id": "consultant",
-      "title": "Consultant",
-      "sector": "Consulting",
-      "seniority_level": "mid",
-      "description": "Mid-level consulting professional who owns workstreams within client engagements. Consultants lead specific analyses, manage day-to-day client interactions for their workstream, and begin developing expertise in a domain (strategy, risk, digital transformation, M&A). They translate complex problems into structured approaches and deliver actionable recommendations.",
-      "responsibilities": [
+      "id": "consultant",
+      "standardized_title": "Consultant",
+      "role_family": "Consulting",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Mid-level consulting professional who owns workstreams within client engagements. Consultants lead specific analyses, manage day-to-day client interactions for their workstream, and begin developing expertise in a domain (strategy, risk, digital transformation, M&A). They translate complex problems into structured approaches and deliver actionable recommendations.",
+      "core_responsibilities": [
         "Own and deliver complete workstreams within larger client engagements",
         "Conduct structured analyses including financial modeling, process mapping, and gap assessments",
         "Lead client interviews, workshops, and stakeholder alignment sessions",
@@ -8100,7 +7598,9 @@ export const roleLibrary = {
         "Coordinate with cross-functional teams (finance, IT, legal) to ensure engagement success",
         "Develop expertise in a consulting domain: strategy, risk & compliance, digital transformation, or M&A"
       ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Microsoft Excel (advanced modeling)",
         "PowerPoint",
         "SQL",
@@ -8110,22 +7610,6 @@ export const roleLibrary = {
         "NIST CSF / ISO 27001 / COSO frameworks",
         "Project management tools"
       ],
-      "career_paths": {
-        "next_in_track": [
-          "senior_consultant"
-        ],
-        "exit_opportunities": [
-          "Strategy & Operations Manager",
-          "Business Operations Manager",
-          "Product Manager",
-          "Finance Manager",
-          "Customer Success Manager",
-          "RevOps Manager",
-          "Chief of Staff (startup)",
-          "HRBP"
-        ]
-      },
-      "market_notes_israel": "Mid-level consultants in Israel typically have 2-5 years of experience. Big 4 firms promote from Analyst to Consultant after 2-3 years. This is the most common exit point to tech companies \u2014 Israeli startups and scale-ups actively recruit from Big 4 consulting into operations, strategy, and product roles. M&A and financial due diligence consultants are in high demand given Israel's active tech M&A market. Hebrew and English fluency expected across all firms.",
       "keywords": [
         "consultant",
         "risk management",
@@ -8135,16 +7619,18 @@ export const roleLibrary = {
         "financial consulting",
         "transformation"
       ],
-      "role_family": "Consulting",
-      "seniority": "Mid"
+      "market_notes": {
+        "israel": "Mid-level consultants in Israel typically have 2-5 years of experience. Big 4 firms promote from Analyst to Consultant after 2-3 years. This is the most common exit point to tech companies — Israeli startups and scale-ups actively recruit from Big 4 consulting into operations, strategy, and product roles. M&A and financial due diligence consultants are in high demand given Israel's active tech M&A market. Hebrew and English fluency expected across all firms."
+      }
     },
     {
-      "role_id": "senior_consultant",
-      "title": "Senior Consultant",
-      "sector": "Consulting",
-      "seniority_level": "senior",
-      "description": "Senior consulting professional who leads client engagements end-to-end, manages small teams, and serves as a trusted advisor to senior client stakeholders. Responsible for engagement scoping, delivery quality, and client relationship management. Develops deep domain expertise and begins contributing to practice development and business development.",
-      "responsibilities": [
+      "id": "senior_consultant",
+      "standardized_title": "Senior Consultant",
+      "role_family": "Consulting",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Senior consulting professional who leads client engagements end-to-end, manages small teams, and serves as a trusted advisor to senior client stakeholders. Responsible for engagement scoping, delivery quality, and client relationship management. Develops deep domain expertise and begins contributing to practice development and business development.",
+      "core_responsibilities": [
         "Lead end-to-end client engagements from scoping and proposal through delivery and closeout",
         "Manage engagement teams of 2-5 consultants and analysts",
         "Serve as primary client contact for engagement-level decisions and escalations",
@@ -8155,7 +7641,9 @@ export const roleLibrary = {
         "Develop reusable methodologies, frameworks, and intellectual property for the practice",
         "Manage engagement economics: scope, budget, timeline, and resource allocation"
       ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "Advanced financial modeling (Excel)",
         "BI and analytics tools (Tableau, Power BI)",
         "ERP systems",
@@ -8165,22 +7653,6 @@ export const roleLibrary = {
         "Presentation and documentation tools",
         "AI-powered analysis tools"
       ],
-      "career_paths": {
-        "next_in_track": [
-          "consulting_manager"
-        ],
-        "exit_opportunities": [
-          "Head of Operations",
-          "VP Strategy",
-          "Chief of Staff",
-          "Director of Product",
-          "VP Finance",
-          "Head of RevOps",
-          "Head of Business Development",
-          "Startup founder / COO"
-        ]
-      },
-      "market_notes_israel": "Senior Consultants in Israel typically have 5-8 years of experience. At Big 4 firms, this maps to Senior Associate or Manager level. Strong demand for senior consultants with technology transformation expertise, particularly in AI, cloud, and cybersecurity domains. Business development capability becomes essential at this level \u2014 firms expect senior consultants to contribute to pipeline. Exit into Israeli tech as Head of Ops, Chief of Staff, or VP-level roles is common. KPMG, Deloitte, and EY Israel all have active digital transformation practices at this level.",
       "keywords": [
         "senior consultant",
         "engagement lead",
@@ -8190,16 +7662,18 @@ export const roleLibrary = {
         "client leadership",
         "business development"
       ],
-      "role_family": "Consulting",
-      "seniority": "Senior"
+      "market_notes": {
+        "israel": "Senior Consultants in Israel typically have 5-8 years of experience. At Big 4 firms, this maps to Senior Associate or Manager level. Strong demand for senior consultants with technology transformation expertise, particularly in AI, cloud, and cybersecurity domains. Business development capability becomes essential at this level — firms expect senior consultants to contribute to pipeline. Exit into Israeli tech as Head of Ops, Chief of Staff, or VP-level roles is common. KPMG, Deloitte, and EY Israel all have active digital transformation practices at this level."
+      }
     },
     {
-      "role_id": "consulting_manager",
-      "title": "Manager / Engagement Manager",
-      "sector": "Consulting",
-      "seniority_level": "lead",
-      "description": "Manages multiple concurrent client engagements, leads teams, and drives practice growth. Engagement Managers are accountable for delivery quality across their portfolio, manage client relationships at the executive level, and play a significant role in business development and sales. They bridge the gap between delivery execution and practice strategy.",
-      "responsibilities": [
+      "id": "consulting_manager",
+      "standardized_title": "Manager / Engagement Manager",
+      "role_family": "Consulting",
+      "secondary_family": null,
+      "seniority": "Lead_Manager",
+      "core_purpose": "Manages multiple concurrent client engagements, leads teams, and drives practice growth. Engagement Managers are accountable for delivery quality across their portfolio, manage client relationships at the executive level, and play a significant role in business development and sales. They bridge the gap between delivery execution and practice strategy.",
+      "core_responsibilities": [
         "Manage portfolio of 3-5 concurrent client engagements across team members",
         "Own client relationships at the C-suite and executive leadership level",
         "Drive the full sales cycle: identify opportunities, scope engagements, negotiate contracts, close deals",
@@ -8211,7 +7685,9 @@ export const roleLibrary = {
         "Represent the firm at industry events, conferences, and thought leadership forums",
         "Manage engagement P&L: pricing, utilization, margins, and resource planning"
       ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "CRM and pipeline management (Salesforce)",
         "Financial modeling and analysis tools",
         "BI platforms (Tableau, Power BI)",
@@ -8221,21 +7697,6 @@ export const roleLibrary = {
         "Proposal and RFP response tools",
         "AI and automation tools for consulting delivery"
       ],
-      "career_paths": {
-        "next_in_track": [
-          "principal_director_consulting"
-        ],
-        "exit_opportunities": [
-          "VP Operations",
-          "COO",
-          "VP Strategy",
-          "General Manager",
-          "Head of Professional Services",
-          "Managing Director (tech company)",
-          "Startup CEO / Co-founder"
-        ]
-      },
-      "market_notes_israel": "Manager / Engagement Manager level typically requires 7-10+ years of experience. At Big 4 firms in Israel, this is the Senior Manager level. Business development becomes a core competency \u2014 managers are expected to sell and deliver. Strong exit path into VP-level roles at Israeli tech companies, particularly into operations, strategy, and professional services leadership. The Israeli market's relatively small size means managers often manage both local and international client portfolios. Fluency in Hebrew and English is mandatory; additional languages are an advantage for EMEA-facing engagements.",
       "keywords": [
         "engagement manager",
         "consulting manager",
@@ -8245,16 +7706,18 @@ export const roleLibrary = {
         "client executive",
         "P&L management"
       ],
-      "role_family": "Consulting",
-      "seniority": "Lead_Manager"
+      "market_notes": {
+        "israel": "Manager / Engagement Manager level typically requires 7-10+ years of experience. At Big 4 firms in Israel, this is the Senior Manager level. Business development becomes a core competency — managers are expected to sell and deliver. Strong exit path into VP-level roles at Israeli tech companies, particularly into operations, strategy, and professional services leadership. The Israeli market's relatively small size means managers often manage both local and international client portfolios. Fluency in Hebrew and English is mandatory; additional languages are an advantage for EMEA-facing engagements."
+      }
     },
     {
-      "role_id": "principal_director_consulting",
-      "title": "Principal / Director of Consulting",
-      "sector": "Consulting",
-      "seniority_level": "director",
-      "description": "Practice leader responsible for building and growing a consulting practice or domain. Principals and Directors own P&L for their practice area, set strategic direction, develop go-to-market strategy, and manage the most complex and high-value client relationships. They are the firm's external face in their domain and drive thought leadership.",
-      "responsibilities": [
+      "id": "principal_director_consulting",
+      "standardized_title": "Principal / Director of Consulting",
+      "role_family": "Consulting",
+      "secondary_family": null,
+      "seniority": "Director_Head",
+      "core_purpose": "Practice leader responsible for building and growing a consulting practice or domain. Principals and Directors own P&L for their practice area, set strategic direction, develop go-to-market strategy, and manage the most complex and high-value client relationships. They are the firm's external face in their domain and drive thought leadership.",
+      "core_responsibilities": [
         "Own practice-level P&L: revenue targets, margins, utilization, and growth",
         "Set strategic direction for the consulting practice or domain",
         "Develop and execute go-to-market strategy for new service offerings",
@@ -8266,7 +7729,9 @@ export const roleLibrary = {
         "Advise client C-suite on strategic, operational, and transformation decisions",
         "Represent the firm in market positioning, analyst relations, and industry forums"
       ],
-      "typical_tools": [
+      "required_skills": [],
+      "preferred_skills": [],
+      "tools": [
         "CRM and enterprise sales tools (Salesforce)",
         "Financial planning and analysis tools",
         "BI and executive dashboarding",
@@ -8274,19 +7739,6 @@ export const roleLibrary = {
         "Industry analyst platforms (Gartner, Forrester)",
         "AI strategy and governance frameworks"
       ],
-      "career_paths": {
-        "next_in_track": [],
-        "exit_opportunities": [
-          "COO",
-          "CEO",
-          "Managing Partner",
-          "Board advisor",
-          "Chief Strategy Officer",
-          "VP / SVP at enterprise tech company",
-          "Startup founder"
-        ]
-      },
-      "market_notes_israel": "Principal / Director level at Big 4 firms in Israel is Partner or Associate Partner. The Israeli consulting market is concentrated \u2014 a small number of firms dominate, so principals at this level typically have strong personal networks across Israel's tech and finance ecosystems. Growing demand for practice leaders with AI, cybersecurity, and digital transformation expertise. Some firms (KPMG, Deloitte) are actively building AI consulting practices in Israel, creating new Director-level opportunities. International experience and global firm network access are significant differentiators.",
       "keywords": [
         "principal consultant",
         "director of consulting",
@@ -8296,32 +7748,17 @@ export const roleLibrary = {
         "thought leader",
         "P&L owner"
       ],
-      "role_family": "Consulting",
-      "seniority": "Director_Head"
+      "market_notes": {
+        "israel": "Principal / Director level at Big 4 firms in Israel is Partner or Associate Partner. The Israeli consulting market is concentrated — a small number of firms dominate, so principals at this level typically have strong personal networks across Israel's tech and finance ecosystems. Growing demand for practice leaders with AI, cybersecurity, and digital transformation expertise. Some firms (KPMG, Deloitte) are actively building AI consulting practices in Israel, creating new Director-level opportunities. International experience and global firm network access are significant differentiators."
+      }
     },
     {
-      "role_id": "solutions_engineer_junior",
-      "title": "Junior Solutions Engineer",
-      "alternative_titles": [
-        "Associate Solutions Engineer",
-        "Support Solutions Engineer",
-        "Junior Pre-Sales Engineer",
-        "Technical Solutions Associate",
-        "Product Experience Engineer"
-      ],
-      "sector": "Solutions Engineering / Technical Pre-Sales",
-      "seniority_level": "junior",
-      "description": "Entry-level technical customer-facing role that supports the sales cycle and post-sale implementation by providing hands-on technical guidance, troubleshooting, and solution validation. Acts as the first line of technical engagement with customers, handling integrations, product configurations, and technical support escalations.",
-      "key_responsibilities": [
-        "Provide technical support and guidance during customer onboarding and implementation",
-        "Troubleshoot product issues, investigate logs, and resolve technical problems",
-        "Assist with API integrations and platform configurations for customers",
-        "Support proof-of-concept (POC) execution and technical validation",
-        "Create and maintain technical documentation, knowledge bases, and FAQs",
-        "Develop custom scripts and workarounds to solve customer-specific challenges",
-        "Collaborate with R&D, Product, and Support teams on issue resolution and feature requests",
-        "Deliver basic product demos and technical walkthroughs to customers"
-      ],
+      "id": "solutions_engineer_junior",
+      "standardized_title": "Junior Solutions Engineer",
+      "role_family": "Solutions_Engineering",
+      "secondary_family": null,
+      "seniority": "Entry",
+      "core_purpose": "Entry-level technical customer-facing role that supports the sales cycle and post-sale implementation by providing hands-on technical guidance, troubleshooting, and solution validation. Acts as the first line of technical engagement with customers, handling integrations, product configurations, and technical support escalations.",
       "required_skills": [
         "Technical troubleshooting and debugging",
         "API integrations and technical documentation",
@@ -8330,140 +7767,39 @@ export const roleLibrary = {
         "SQL and database querying",
         "Problem-solving and root cause analysis"
       ],
-      "common_tools": [
-        "Postman",
-        "JIRA",
-        "Developer Tools (browser)",
-        "SQL clients",
-        "Git",
-        "Zendesk/Freshdesk",
-        "Salesforce",
-        "Slack"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "Solutions Engineer",
-          "Technical Account Manager",
-          "Customer Success Engineer"
-        ],
-        "lateral_moves": [
-          "Junior Software Engineer",
-          "QA Engineer",
-          "Technical Support Lead",
-          "Product Specialist"
-        ],
-        "long_term": [
-          "Senior Solutions Engineer",
-          "Solutions Engineering Manager",
-          "Product Manager"
-        ]
-      },
-      "typical_experience": "0-3 years in a technical customer-facing role or software development",
-      "education": "Bachelor's degree in Computer Science, Information Systems, Industrial Engineering, or equivalent practical experience",
-      "market_notes_israel": "Many Israeli companies (EasySend, WalkMe, Riskified) hire junior SEs under titles like 'Support Solutions Engineer', 'Product Experience Engineer', or 'Customer Success Engineer'. The role often blends technical support with light pre-sales. JavaScript/web proficiency is commonly required given the SaaS-heavy market. Defense/intelligence sector has its own pre-sales track with different requirements (security clearance, military background).",
-      "role_family": "Solutions_Engineering",
-      "seniority": "Entry"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Many Israeli companies (EasySend, WalkMe, Riskified) hire junior SEs under titles like 'Support Solutions Engineer', 'Product Experience Engineer', or 'Customer Success Engineer'. The role often blends technical support with light pre-sales. JavaScript/web proficiency is commonly required given the SaaS-heavy market. Defense/intelligence sector has its own pre-sales track with different requirements (security clearance, military background)."
+      }
     },
     {
-      "role_id": "solutions_engineer",
-      "title": "Solutions Engineer",
-      "alternative_titles": [
-        "Pre-Sales Engineer",
-        "Sales Engineer",
-        "Technical Solutions Consultant",
-        "Solution Expert",
-        "Customer Success Engineer",
-        "Presales Engineer"
-      ],
-      "sector": "Solutions Engineering / Technical Pre-Sales",
-      "seniority_level": "mid",
-      "description": "Core individual contributor who owns the technical relationship with customers throughout the sales cycle and beyond. Combines deep product knowledge with consultative selling skills to translate customer business problems into technical solutions, run POCs, lead technical discovery, and drive technical wins. Often the bridge between Sales, Product, and R&D.",
-      "key_responsibilities": [
-        "Lead technical discovery sessions to understand customer environments, pain points, and requirements",
-        "Design and present tailored solutions that map product capabilities to customer business outcomes",
-        "Execute and manage proof-of-concept engagements and technical validations",
-        "Deliver product demos, technical workshops, and whiteboarding sessions to technical and executive audiences",
-        "Own the technical onboarding of new customers, including CRM integrations, API setups, and data workflows",
-        "Act as the technical subject matter expert during the sales cycle, supporting Account Executives",
-        "Troubleshoot complex technical issues and build custom implementations using APIs, webhooks, and middleware",
-        "Provide internal feedback to Product and Engineering based on field requirements and customer pain points",
-        "Respond to technical portions of RFIs, RFPs, and RFQs",
-        "Build and maintain relationships with technical stakeholders at customer organizations"
-      ],
+      "id": "solutions_engineer",
+      "standardized_title": "Solutions Engineer",
+      "role_family": "Solutions_Engineering",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Core individual contributor who owns the technical relationship with customers throughout the sales cycle and beyond. Combines deep product knowledge with consultative selling skills to translate customer business problems into technical solutions, run POCs, lead technical discovery, and drive technical wins. Often the bridge between Sales, Product, and R&D.",
       "required_skills": [
         "Technical discovery and consultative selling",
         "Solution design and architecture",
         "Product demonstration and presentation skills",
         "API and integration expertise",
         "Customer relationship management",
-        "Cross-functional collaboration with Sales, Product, and R&D",
         "Project management and POC execution",
         "Written and verbal business communication"
       ],
-      "common_tools": [
-        "Postman",
-        "Salesforce/HubSpot",
-        "SQL clients",
-        "Zapier/Make/Workato",
-        "JIRA",
-        "Confluence",
-        "Slack",
-        "Zoom/Teams",
-        "Git",
-        "Developer Tools"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "Senior Solutions Engineer",
-          "Solutions Engineering Manager",
-          "Technical Account Manager (Senior)"
-        ],
-        "lateral_moves": [
-          "Product Manager",
-          "Customer Success Manager (Technical)",
-          "Sales Operations Manager",
-          "Business Development Manager"
-        ],
-        "long_term": [
-          "Head of Solutions Engineering",
-          "VP Solutions Engineering",
-          "Field CTO",
-          "VP Sales"
-        ]
-      },
-      "typical_experience": "3-5 years in a customer-facing technical role (SE, pre-sales, sales engineering, TAM) or equivalent software engineering experience with customer exposure",
-      "education": "Bachelor's degree in Computer Science, Engineering, Information Systems, or equivalent practical experience",
-      "market_notes_israel": "The most common SE title in the Israeli market. Companies like Lusha, Entro, Riskified, and Logz.io all hire for this profile. Israeli SEs frequently cover both pre-sale and post-sale technical engagement (unlike the US where these are often split). Hebrew + English fluency typically required. Many roles blend SE with integration engineering \u2014 hands-on API work and middleware (Zapier, Workato) are common expectations. B2B SaaS dominates, with data/observability, cybersecurity, and fintech being the most active verticals.",
-      "role_family": "Solutions_Engineering",
-      "seniority": "Mid"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "The most common SE title in the Israeli market. Companies like Lusha, Entro, Riskified, and Logz.io all hire for this profile. Israeli SEs frequently cover both pre-sale and post-sale technical engagement (unlike the US where these are often split). Hebrew + English fluency typically required. Many roles blend SE with integration engineering — hands-on API work and middleware (Zapier, Workato) are common expectations. B2B SaaS dominates, with data/observability, cybersecurity, and fintech being the most active verticals."
+      }
     },
     {
-      "role_id": "senior_solutions_engineer",
-      "title": "Senior Solutions Engineer",
-      "alternative_titles": [
-        "Senior Pre-Sales Engineer",
-        "Senior Sales Engineer",
-        "Principal Solutions Engineer",
-        "Solutions Architect",
-        "AI Solutions Director",
-        "Senior Presales Systems Engineer"
-      ],
-      "sector": "Solutions Engineering / Technical Pre-Sales",
-      "seniority_level": "senior",
-      "description": "Seasoned technical sales professional who handles the most complex, strategic, and high-value customer engagements. Combines deep domain expertise with advanced solution architecture skills to design enterprise-grade solutions, influence product roadmaps, and serve as a trusted advisor to senior technical and executive stakeholders. Often specializes in a technical domain (data/AI, security, networking, cloud infrastructure).",
-      "key_responsibilities": [
-        "Own the technical engagement for enterprise and strategic accounts from discovery through deployment",
-        "Design end-to-end solution architectures aligned to complex customer requirements",
-        "Present technology vision and roadmap to C-level executives and senior technical leaders",
-        "Lead complex, multi-stakeholder POCs and technical evaluations against competitors",
-        "Create technical champions within customer organizations to drive deal progression",
-        "Build reusable technical assets: reference architectures, demo applications, best practices guides",
-        "Develop ROI-driven value propositions using performance metrics and business impact analysis",
-        "Mentor junior and mid-level Solutions Engineers",
-        "Represent the company at industry events, conferences, and technical workshops",
-        "Influence product roadmap by communicating field requirements and competitive insights to Product and Engineering",
-        "Articulate competitive differentiation against specific competitors in technical evaluations"
-      ],
+      "id": "senior_solutions_engineer",
+      "standardized_title": "Senior Solutions Engineer",
+      "role_family": "Solutions_Engineering",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Seasoned technical sales professional who handles the most complex, strategic, and high-value customer engagements. Combines deep domain expertise with advanced solution architecture skills to design enterprise-grade solutions, influence product roadmaps, and serve as a trusted advisor to senior technical and executive stakeholders. Often specializes in a technical domain (data/AI, security, networking, cloud infrastructure).",
       "required_skills": [
         "Enterprise solution architecture and design",
         "Executive-level presentation and communication",
@@ -8474,139 +7810,39 @@ export const roleLibrary = {
         "Technical content creation (reference architectures, whitepapers)",
         "Business value and ROI articulation"
       ],
-      "common_tools": [
-        "Postman",
-        "Salesforce",
-        "SQL/Python",
-        "Cloud consoles (AWS/GCP/Azure)",
-        "CI/CD tools",
-        "JIRA/Confluence",
-        "Presentation tools",
-        "Monitoring/observability platforms",
-        "Data platforms (Snowflake, Databricks, etc.)"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "Solutions Engineering Manager",
-          "Field CTO",
-          "Principal Solutions Architect"
-        ],
-        "lateral_moves": [
-          "Senior Product Manager",
-          "Technical Program Manager",
-          "Enterprise Account Executive",
-          "Customer Engineering Lead"
-        ],
-        "long_term": [
-          "Head of Solutions Engineering",
-          "VP Solutions Engineering",
-          "CTO",
-          "VP Sales"
-        ]
-      },
-      "typical_experience": "5-8+ years in solutions engineering, pre-sales, or technical customer-facing roles with domain specialization",
-      "education": "Bachelor's degree in Computer Science, Engineering, or related field. Master's degree or relevant certifications (cloud, security, data) are advantageous.",
-      "market_notes_israel": "Senior SE roles in Israel often carry global or regional (EMEA) scope. Companies like Snowflake, Databricks, Akamai, and HPE hire senior SEs in Israel with deep domain expertise (data platforms, networking, cybersecurity, zero trust). Hebrew fluency is typically required for Israel-focused territories. Many senior SEs specialize: data/analytics, security, networking, or AI/ML. The 'trusted advisor' expectation is strong \u2014 Israeli enterprise buyers expect SEs who can go deep technically and also speak business. Travel requirements (15-30%) are common for enterprise accounts.",
-      "role_family": "Solutions_Engineering",
-      "seniority": "Senior"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Senior SE roles in Israel often carry global or regional (EMEA) scope. Companies like Snowflake, Databricks, Akamai, and HPE hire senior SEs in Israel with deep domain expertise (data platforms, networking, cybersecurity, zero trust). Hebrew fluency is typically required for Israel-focused territories. Many senior SEs specialize: data/analytics, security, networking, or AI/ML. The 'trusted advisor' expectation is strong — Israeli enterprise buyers expect SEs who can go deep technically and also speak business. Travel requirements (15-30%) are common for enterprise accounts."
+      }
     },
     {
-      "role_id": "solutions_engineering_manager",
-      "title": "Solutions Engineering Manager",
-      "alternative_titles": [
-        "SE Team Lead",
-        "Pre-Sales Team Lead",
-        "Onboarding Team Lead",
-        "Technical Account Management Team Lead",
-        "Field Engineering Manager"
-      ],
-      "sector": "Solutions Engineering / Technical Pre-Sales",
-      "seniority_level": "manager",
-      "description": "First-line manager who leads a team of Solutions Engineers, owning delivery quality, team development, and process excellence. Balances hands-on involvement in strategic customer engagements with people management, hiring, and methodology development. Builds repeatable processes, playbooks, and success metrics while ensuring the team delivers consistent technical wins.",
-      "key_responsibilities": [
-        "Lead, mentor, and manage a team of Solutions Engineers or Technical Account Managers",
-        "Define and track team KPIs: onboarding velocity, POC win rates, customer satisfaction, adoption metrics",
-        "Step into complex or strategic customer engagements to drive them to success",
-        "Build and improve delivery processes, playbooks, and onboarding methodologies",
-        "Hire, onboard, and develop SE team members",
-        "Partner with Sales leadership to align SE resources with revenue priorities",
-        "Collaborate with Product and R&D to communicate customer needs and influence the roadmap",
-        "Establish engineering best practices and quality standards for customer deliverables",
-        "Distribute work, set priorities, and manage capacity across the team",
-        "Create a culture of ownership, accountability, and continuous improvement"
-      ],
+      "id": "solutions_engineering_manager",
+      "standardized_title": "Solutions Engineering Manager",
+      "role_family": "Solutions_Engineering",
+      "secondary_family": null,
+      "seniority": "Lead_Manager",
+      "core_purpose": "First-line manager who leads a team of Solutions Engineers, owning delivery quality, team development, and process excellence. Balances hands-on involvement in strategic customer engagements with people management, hiring, and methodology development. Builds repeatable processes, playbooks, and success metrics while ensuring the team delivers consistent technical wins.",
       "required_skills": [
         "People management and team leadership",
         "Process design and operational excellence",
         "Technical depth sufficient to guide architectural decisions",
         "Hiring, coaching, and performance management",
-        "Cross-functional collaboration with Sales, Product, and R&D",
         "KPI definition and data-driven decision making",
         "Customer escalation management",
         "Strategic thinking and resource planning"
       ],
-      "common_tools": [
-        "Salesforce",
-        "JIRA/Confluence",
-        "Slack",
-        "Google Workspace",
-        "BI/analytics dashboards",
-        "Project management tools (Asana, Monday)",
-        "HR tools"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "Head of Solutions Engineering",
-          "Senior Engineering Manager",
-          "Director of Customer Engineering"
-        ],
-        "lateral_moves": [
-          "Customer Success Director",
-          "Sales Director",
-          "Product Director",
-          "Professional Services Manager"
-        ],
-        "long_term": [
-          "VP Solutions Engineering",
-          "VP Customer Engineering",
-          "VP Sales",
-          "CTO"
-        ]
-      },
-      "typical_experience": "5-8+ years total, with 2+ years in a team lead or management role. Strong individual SE background required.",
-      "education": "Bachelor's degree in Computer Science, Engineering, or related field. MBA or relevant leadership training is advantageous.",
-      "market_notes_israel": "SE manager roles in Israel often combine pre-sales and post-sale team leadership \u2014 the same manager may own both the POC team and the onboarding/implementation team. Companies like Nominal, Coralogix, and mid-stage startups commonly hire for this hybrid profile. The role frequently includes hands-on customer work alongside management responsibilities, especially at companies with <200 employees. Strong process-building skills are valued because many Israeli startups are formalizing their SE function for the first time as they scale.",
-      "role_family": "Solutions_Engineering",
-      "seniority": "Lead_Manager"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "SE manager roles in Israel often combine pre-sales and post-sale team leadership — the same manager may own both the POC team and the onboarding/implementation team. Companies like Nominal, Coralogix, and mid-stage startups commonly hire for this hybrid profile. The role frequently includes hands-on customer work alongside management responsibilities, especially at companies with <200 employees. Strong process-building skills are valued because many Israeli startups are formalizing their SE function for the first time as they scale."
+      }
     },
     {
-      "role_id": "head_of_solutions_engineering",
-      "title": "Head of Solutions Engineering",
-      "alternative_titles": [
-        "VP Solutions Engineering",
-        "VP Pre-Sales",
-        "Director of Solutions Engineering",
-        "Head of Field Engineering",
-        "Head of Customer Engineering",
-        "VP Technical Sales"
-      ],
-      "sector": "Solutions Engineering / Technical Pre-Sales",
-      "seniority_level": "director_plus",
-      "description": "Senior leader who owns the entire Solutions Engineering function, setting strategy, building the team, and ensuring the SE organization drives revenue, customer success, and product influence at scale. Partners with VP Sales, CTO, and Product leadership to align technical selling with company strategy. Responsible for hiring plans, delivery methodology, commercial models, and cross-geo coordination.",
-      "key_responsibilities": [
-        "Define and execute the SE organization strategy aligned with company revenue and growth targets",
-        "Hire, mentor, and scale the SE team across regions and domains",
-        "Build a motivated, collaborative culture within the SE organization",
-        "Own delivery methodology: project frameworks, QA standards, launch readiness, and escalation paths",
-        "Manage commercial aspects: scoping, effort estimation, SOWs, and delivery margins",
-        "Engage with key customer executives to build and strengthen strategic partnerships",
-        "Ensure alignment with Sales, Customer Success, Partners, and Professional Services",
-        "Drive cross-geo coordination and consistency in SE practices",
-        "Influence product roadmap and prioritization through structured field feedback",
-        "Build and enable partner/SI delivery programs to extend capacity",
-        "Own key metrics: SE involvement ROI, time-to-value, POC conversion rates, customer satisfaction",
-        "Represent the company at executive level in industry events and strategic customer meetings"
-      ],
+      "id": "head_of_solutions_engineering",
+      "standardized_title": "Head of Solutions Engineering",
+      "role_family": "Solutions_Engineering",
+      "secondary_family": null,
+      "seniority": "Director_Head",
+      "core_purpose": "Senior leader who owns the entire Solutions Engineering function, setting strategy, building the team, and ensuring the SE organization drives revenue, customer success, and product influence at scale. Partners with VP Sales, CTO, and Product leadership to align technical selling with company strategy. Responsible for hiring plans, delivery methodology, commercial models, and cross-geo coordination.",
       "required_skills": [
         "Organizational leadership and team scaling",
         "Strategic planning and executive communication",
@@ -8618,47 +7854,19 @@ export const roleLibrary = {
         "Budget and resource management",
         "Technical credibility across multiple domains"
       ],
-      "common_tools": [
-        "Salesforce",
-        "BI/analytics platforms",
-        "Executive dashboards",
-        "JIRA/Confluence",
-        "Google Workspace",
-        "Presentation tools",
-        "Financial planning tools"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "CTO",
-          "VP Sales",
-          "Chief Revenue Officer",
-          "General Manager"
-        ],
-        "lateral_moves": [
-          "VP Customer Success",
-          "VP Professional Services",
-          "VP Product",
-          "VP Engineering"
-        ],
-        "long_term": [
-          "CRO",
-          "COO",
-          "CEO"
-        ]
-      },
-      "typical_experience": "8-15+ years total, with 3-5+ years leading SE or technical delivery teams",
-      "education": "Bachelor's degree in Computer Science, Engineering, or related field. MBA or executive education is common at this level.",
-      "market_notes_israel": "Head of SE / VP SE roles in Israel often carry EMEA or global scope, especially at companies like Databricks, NVIDIA, and enterprise SaaS vendors with Israel R&D centers. The role frequently includes building the SE function from scratch for the Israel/EMEA region. At startups (Insait, early-stage AI companies), this role may report directly to the CEO and own the full customer delivery lifecycle including professional services. Enterprise companies expect consumption-based business model experience. Hebrew native + English fluency is standard. The role is increasingly expected to incorporate AI into delivery processes and team operations.",
-      "role_family": "Solutions_Engineering",
-      "seniority": "Director_Head"
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Head of SE / VP SE roles in Israel often carry EMEA or global scope, especially at companies like Databricks, NVIDIA, and enterprise SaaS vendors with Israel R&D centers. The role frequently includes building the SE function from scratch for the Israel/EMEA region. At startups (Insait, early-stage AI companies), this role may report directly to the CEO and own the full customer delivery lifecycle including professional services. Enterprise companies expect consumption-based business model experience. Hebrew native + English fluency is standard. The role is increasingly expected to incorporate AI into delivery processes and team operations."
+      }
     },
     {
-      "role_id": "it_support_specialist",
-      "title": "IT Support Specialist / Helpdesk",
-      "sector": "IT / Security",
-      "seniority_level": "entry",
-      "description": "First point of contact for internal technical support, handling hardware, software, and network troubleshooting. Manages employee device setup, user account provisioning, onboarding/offboarding processes, and day-to-day IT operations. Maintains documentation and contributes to process improvements.",
-      "responsibilities": [
+      "id": "it_support_specialist",
+      "standardized_title": "IT Support Specialist / Helpdesk",
+      "role_family": "IT_Security",
+      "secondary_family": null,
+      "seniority": "Entry",
+      "core_purpose": "First point of contact for internal technical support, handling hardware, software, and network troubleshooting. Manages employee device setup, user account provisioning, onboarding/offboarding processes, and day-to-day IT operations. Maintains documentation and contributes to process improvements.",
+      "core_responsibilities": [
         "Provide first-line technical support to employees via tickets, email, chat, and in-person",
         "Troubleshoot hardware, software, network, and VPN issues across Windows and macOS",
         "Set up and configure employee devices, peripherals, and business applications",
@@ -8670,42 +7878,20 @@ export const roleLibrary = {
         "Support ticketing system operations and ensure timely resolution of requests",
         "Follow and help enforce IT security policies and best practices"
       ],
-      "tools_and_platforms": [
-        "Google Workspace",
-        "Microsoft 365",
-        "Okta / JumpCloud",
-        "Jamf / Intune / SCCM",
-        "Slack / Zoom",
-        "Jira / Confluence",
-        "Active Directory",
-        "Ticketing systems (ServiceNow, Freshdesk)",
-        "Remote support tools"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "IT Administrator / SysAdmin",
-          "Security Analyst / SOC Analyst"
-        ],
-        "lateral_moves": [
-          "Technical Support Engineer",
-          "Operations Coordinator"
-        ],
-        "long_term": [
-          "IT Manager",
-          "Head of IT"
-        ]
-      },
-      "market_notes_israel": "Very high demand across Israeli tech. Most startups (50-300 employees) have 1-2 helpdesk roles. Military IT experience (signal corps, tech units) is commonly accepted in lieu of civilian experience. Hebrew and English fluency typically required. Many listings are hybrid or on-site 2-3 days. Companies like K Health, At-Bay, Paragon, VAST Data, and WINN.AI all actively hiring. Entry point is often 0-2 years experience, making it accessible for recent graduates and post-military candidates.",
-      "role_family": "IT_Security",
-      "seniority": "Entry"
+      "required_skills": [],
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Very high demand across Israeli tech. Most startups (50-300 employees) have 1-2 helpdesk roles. Military IT experience (signal corps, tech units) is commonly accepted in lieu of civilian experience. Hebrew and English fluency typically required. Many listings are hybrid or on-site 2-3 days. Companies like K Health, At-Bay, Paragon, VAST Data, and WINN.AI all actively hiring. Entry point is often 0-2 years experience, making it accessible for recent graduates and post-military candidates."
+      }
     },
     {
-      "role_id": "it_administrator_sysadmin",
-      "title": "IT Administrator / SysAdmin",
-      "sector": "IT / Security",
-      "seniority_level": "mid",
-      "description": "Manages and maintains the organization's IT infrastructure, including identity and access management, endpoint management, SaaS administration, cloud platforms, and security compliance. Owns IT policies, procedures, and documentation. Serves as the primary IT operations owner, often as the sole or lead IT professional in startups and scale-ups.",
-      "responsibilities": [
+      "id": "it_administrator_sysadmin",
+      "standardized_title": "IT Administrator / SysAdmin",
+      "role_family": "IT_Security",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Manages and maintains the organization's IT infrastructure, including identity and access management, endpoint management, SaaS administration, cloud platforms, and security compliance. Owns IT policies, procedures, and documentation. Serves as the primary IT operations owner, often as the sole or lead IT professional in startups and scale-ups.",
+      "core_responsibilities": [
         "Administer identity and access management platforms (Okta, Entra ID, SSO/SAML/MFA)",
         "Manage endpoint devices across Windows, macOS, and Linux using MDM solutions",
         "Oversee SaaS tool administration, licenses, renewals, and vendor relationships",
@@ -8719,44 +7905,20 @@ export const roleLibrary = {
         "Manage networking fundamentals: VPN, firewalls, DNS, DHCP",
         "Automate IT processes using scripting (PowerShell, Bash, Python)"
       ],
-      "tools_and_platforms": [
-        "Okta / Entra ID / JumpCloud",
-        "Microsoft Intune / Jamf / Kandji",
-        "Microsoft 365 / Google Workspace",
-        "Azure / AWS / GCP (basic administration)",
-        "Active Directory / Azure AD",
-        "FortiGate / firewall solutions",
-        "Slack / Zoom / Jira / Confluence",
-        "ITSM tools (ServiceNow, Freshdesk)",
-        "Vanta / Drata (compliance automation)",
-        "PowerShell / Bash / Python",
-        "Snipe-IT / asset management tools"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "IT Manager",
-          "Security Analyst / SOC Analyst"
-        ],
-        "lateral_moves": [
-          "DevOps Engineer",
-          "Cloud / Infrastructure Engineer"
-        ],
-        "long_term": [
-          "Head of IT",
-          "CISO / Head of Security"
-        ]
-      },
-      "market_notes_israel": "Core role in Israeli startups and scale-ups. Companies like Candex, Vetric, Dream, and Papaya Global hire for this profile. Typically requires 3-5 years experience. Many Israeli companies expect the SysAdmin to also handle basic security compliance (ISO 27001, SOC 2) since dedicated GRC hires come later. Scripting skills (PowerShell, Bash) increasingly expected. Zero Trust concepts appearing in requirements. Hebrew and English fluency standard. Cloud platform familiarity (especially Azure and AWS) is becoming a baseline expectation rather than a nice-to-have.",
-      "role_family": "IT_Security",
-      "seniority": "Mid"
+      "required_skills": [],
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Core role in Israeli startups and scale-ups. Companies like Candex, Vetric, Dream, and Papaya Global hire for this profile. Typically requires 3-5 years experience. Many Israeli companies expect the SysAdmin to also handle basic security compliance (ISO 27001, SOC 2) since dedicated GRC hires come later. Scripting skills (PowerShell, Bash) increasingly expected. Zero Trust concepts appearing in requirements. Hebrew and English fluency standard. Cloud platform familiarity (especially Azure and AWS) is becoming a baseline expectation rather than a nice-to-have."
+      }
     },
     {
-      "role_id": "it_manager",
-      "title": "IT Manager",
-      "sector": "IT / Security",
-      "seniority_level": "mid-senior",
-      "description": "Owns and leads all IT operations in a growing organization, including infrastructure planning, security governance, endpoint management, vendor management, and budget oversight. Combines hands-on technical execution with strategic planning to support business growth. Often responsible for both IT operations and foundational security posture in mid-size companies.",
-      "responsibilities": [
+      "id": "it_manager",
+      "standardized_title": "IT Manager",
+      "role_family": "IT_Security",
+      "secondary_family": null,
+      "seniority": "Lead_Manager",
+      "core_purpose": "Owns and leads all IT operations in a growing organization, including infrastructure planning, security governance, endpoint management, vendor management, and budget oversight. Combines hands-on technical execution with strategic planning to support business growth. Often responsible for both IT operations and foundational security posture in mid-size companies.",
+      "core_responsibilities": [
         "Build, scale, and manage the company's IT infrastructure and operations",
         "Own and optimize all internal information systems and platforms",
         "Define IT processes, SLAs, and operational standards",
@@ -8771,44 +7933,20 @@ export const roleLibrary = {
         "Work with security teams to ensure secure implementation of all IT processes",
         "Handle annual IT budget and ensure cost effectiveness"
       ],
-      "tools_and_platforms": [
-        "Azure / AWS / GCP",
-        "Microsoft 365 / Google Workspace",
-        "Okta / Entra ID",
-        "Microsoft Intune / Jamf",
-        "FortiGate / firewall solutions",
-        "VPN / switches / network equipment",
-        "SIEM / NAC / security monitoring tools",
-        "Backup solutions (Metallic, Commvault)",
-        "VMware / hypervisors",
-        "HiBob / HRIS integrations",
-        "PowerShell / Bash / Python"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "Head of IT",
-          "CISO / Head of Security"
-        ],
-        "lateral_moves": [
-          "Security Operations Manager",
-          "DevOps Manager"
-        ],
-        "long_term": [
-          "VP IT / CTO",
-          "CISO"
-        ]
-      },
-      "market_notes_israel": "High demand in Israeli startups at the 50-200 employee stage where IT complexity outgrows the SysAdmin model. Companies like Bluewhite, Cye, Beamup, and eyesAtop hire for this profile. Typically requires 5-6+ years experience with strong hands-on capabilities. In Israel, the IT Manager often owns security compliance too (ISO 27001 especially common in defense-adjacent companies). BSc in Computer Science or Engineering frequently required. Budget management and vendor negotiation skills increasingly valued. AI tool evaluation and rollout emerging as a new responsibility \u2014 Beamup explicitly makes this a core part of the role.",
-      "role_family": "IT_Security",
-      "seniority": "Lead_Manager"
+      "required_skills": [],
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "High demand in Israeli startups at the 50-200 employee stage where IT complexity outgrows the SysAdmin model. Companies like Bluewhite, Cye, Beamup, and eyesAtop hire for this profile. Typically requires 5-6+ years experience with strong hands-on capabilities. In Israel, the IT Manager often owns security compliance too (ISO 27001 especially common in defense-adjacent companies). BSc in Computer Science or Engineering frequently required. Budget management and vendor negotiation skills increasingly valued. AI tool evaluation and rollout emerging as a new responsibility — Beamup explicitly makes this a core part of the role."
+      }
     },
     {
-      "role_id": "security_analyst_soc",
-      "title": "Security Analyst / SOC Analyst",
-      "sector": "IT / Security",
-      "seniority_level": "mid",
-      "description": "Investigates and responds to cybersecurity threats, performing threat analysis, incident response, and security monitoring. Analyzes attack patterns, phishing campaigns, malware behavior, and network anomalies using data analysis, OSINT, and security tooling. Develops detections, writes research reports, and collaborates with engineering teams to translate findings into product protections.",
-      "responsibilities": [
+      "id": "security_analyst_soc",
+      "standardized_title": "Security Analyst / SOC Analyst",
+      "role_family": "IT_Security",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Investigates and responds to cybersecurity threats, performing threat analysis, incident response, and security monitoring. Analyzes attack patterns, phishing campaigns, malware behavior, and network anomalies using data analysis, OSINT, and security tooling. Develops detections, writes research reports, and collaborates with engineering teams to translate findings into product protections.",
+      "core_responsibilities": [
         "Investigate security incidents and perform deep-dive forensic analysis",
         "Monitor security alerts and triage events based on severity and impact",
         "Analyze phishing campaigns, malware, social engineering, and attack infrastructure",
@@ -8822,44 +7960,20 @@ export const roleLibrary = {
         "Support incident response activities including containment and remediation",
         "Stay current on emerging threats, attack methodologies, and CVEs"
       ],
-      "tools_and_platforms": [
-        "SIEM platforms (Splunk, QRadar, Sentinel, ELK)",
-        "BigQuery / SQL / Pandas",
-        "VirusTotal / URLScan / Shodan",
-        "Burp Suite / Chrome DevTools",
-        "Python / JavaScript / Bash",
-        "OSINT tools and frameworks",
-        "CloudTrail / GuardDuty / Security Command Center",
-        "Endpoint detection platforms (CrowdStrike, SentinelOne, Defender)",
-        "Email security analysis (SMTP, SPF/DKIM/DMARC)",
-        "Ticketing / case management systems"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "Senior Security Analyst",
-          "Security Engineer",
-          "GRC Analyst"
-        ],
-        "lateral_moves": [
-          "Data Analyst",
-          "Threat Intelligence Analyst"
-        ],
-        "long_term": [
-          "Head of Security Operations",
-          "CISO / Head of Security"
-        ]
-      },
-      "market_notes_israel": "Very strong demand in the Israeli cybersecurity ecosystem. Companies like Guardio, Fireblocks, Check Point, Fortinet, Zero Networks, and GeoEdge actively hire. Unit 8200 and intelligence unit alumni are highly sought after \u2014 several listings explicitly mention this as a significant advantage. SQL proficiency is increasingly treated as a must-have, not a nice-to-have. AI/LLM tools for security analysis emerging as an expectation. Many SOC roles in Israel blend traditional monitoring with threat research and data analysis, reflecting the startup culture of wearing multiple hats. Python scripting skills expected for automation.",
-      "role_family": "IT_Security",
-      "seniority": "Mid"
+      "required_skills": [],
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Very strong demand in the Israeli cybersecurity ecosystem. Companies like Guardio, Fireblocks, Check Point, Fortinet, Zero Networks, and GeoEdge actively hire. Unit 8200 and intelligence unit alumni are highly sought after — several listings explicitly mention this as a significant advantage. SQL proficiency is increasingly treated as a must-have, not a nice-to-have. AI/LLM tools for security analysis emerging as an expectation. Many SOC roles in Israel blend traditional monitoring with threat research and data analysis, reflecting the startup culture of wearing multiple hats. Python scripting skills expected for automation."
+      }
     },
     {
-      "role_id": "grc_analyst",
-      "title": "GRC Analyst",
-      "sector": "IT / Security",
-      "seniority_level": "mid",
-      "description": "Manages governance, risk, and compliance activities to ensure organizational alignment with security frameworks and regulatory requirements. Leads audit preparation, maintains compliance documentation, conducts risk assessments, manages vendor security evaluations, and drives security awareness programs. Bridges the gap between technical security controls and business requirements.",
-      "responsibilities": [
+      "id": "grc_analyst",
+      "standardized_title": "GRC Analyst",
+      "role_family": "IT_Security",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Manages governance, risk, and compliance activities to ensure organizational alignment with security frameworks and regulatory requirements. Leads audit preparation, maintains compliance documentation, conducts risk assessments, manages vendor security evaluations, and drives security awareness programs. Bridges the gap between technical security controls and business requirements.",
+      "core_responsibilities": [
         "Manage and maintain compliance with security frameworks (SOC 2, ISO 27001, NIST CSF)",
         "Lead audit cycles including evidence collection, control testing, and remediation tracking",
         "Conduct security risk assessments and control gap analyses across departments",
@@ -8874,43 +7988,20 @@ export const roleLibrary = {
         "Collaborate with engineering, legal, and business teams on security requirements",
         "Prepare compliance reports and dashboards for management review"
       ],
-      "tools_and_platforms": [
-        "Vanta / Drata / OneTrust / Anecdotes",
-        "SOC 2 / ISO 27001 / NIST CSF / PCI-DSS frameworks",
-        "GDPR / EU AI Act compliance tools",
-        "Risk registers and control frameworks",
-        "Security questionnaire platforms",
-        "Jira / project management tools",
-        "Cloud security platforms (AWS / Azure / GCP security consoles)",
-        "Documentation tools (Confluence, SharePoint)"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "Senior GRC Analyst",
-          "Security Operations Manager",
-          "Head of Security"
-        ],
-        "lateral_moves": [
-          "Compliance Manager",
-          "Internal Auditor",
-          "Risk Manager"
-        ],
-        "long_term": [
-          "CISO / Head of Security",
-          "VP Security"
-        ]
-      },
-      "market_notes_israel": "Growing rapidly in the Israeli market as startups mature and pursue enterprise customers who require SOC 2 and ISO 27001 certification. Companies like Payoneer, Upwind, Zafran, Port.io, Wix, and Cye actively hiring. Entry-level GRC roles (1-2 years) exist \u2014 Cye and Akita hire junior cybersecurity architects/GRC specialists. The role often combines compliance management with hands-on security engineering in Israeli companies. AI governance (EU AI Act, NIST AI RMF, ISO/IEC 42001) emerging as a new domain \u2014 Payoneer explicitly requires this. FedRAMP experience becoming valuable for companies targeting US federal customers. CISSP, CISM, CISA certifications valued but not always required.",
-      "role_family": "IT_Security",
-      "seniority": "Mid"
+      "required_skills": [],
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Growing rapidly in the Israeli market as startups mature and pursue enterprise customers who require SOC 2 and ISO 27001 certification. Companies like Payoneer, Upwind, Zafran, Port.io, Wix, and Cye actively hiring. Entry-level GRC roles (1-2 years) exist — Cye and Akita hire junior cybersecurity architects/GRC specialists. The role often combines compliance management with hands-on security engineering in Israeli companies. AI governance (EU AI Act, NIST AI RMF, ISO/IEC 42001) emerging as a new domain — Payoneer explicitly requires this. FedRAMP experience becoming valuable for companies targeting US federal customers. CISSP, CISM, CISA certifications valued but not always required."
+      }
     },
     {
-      "role_id": "head_of_it",
-      "title": "Head of IT",
-      "sector": "IT / Security",
-      "seniority_level": "senior",
-      "description": "Leads the organization's entire IT function, owning strategy, operations, security posture, vendor management, and budget. Serves as the senior escalation point for IT issues and the primary internal partner for security governance. Defines the IT and internal security roadmap, builds automation-first processes, and ensures the IT environment scales with business growth. Often manages both IT staff and external vendors.",
-      "responsibilities": [
+      "id": "head_of_it",
+      "standardized_title": "Head of IT",
+      "role_family": "IT_Security",
+      "secondary_family": null,
+      "seniority": "Director_Head",
+      "core_purpose": "Leads the organization's entire IT function, owning strategy, operations, security posture, vendor management, and budget. Serves as the senior escalation point for IT issues and the primary internal partner for security governance. Defines the IT and internal security roadmap, builds automation-first processes, and ensures the IT environment scales with business growth. Often manages both IT staff and external vendors.",
+      "core_responsibilities": [
         "Own the organization's IT and internal security end-to-end: strategy, operations, and execution",
         "Define and execute the IT and security roadmap aligned with business growth",
         "Build automation-first processes and self-healing systems to reduce friction",
@@ -8925,42 +8016,20 @@ export const roleLibrary = {
         "Manage customer security questionnaires and security discussions",
         "Evaluate and implement emerging technologies including AI tools and automation"
       ],
-      "tools_and_platforms": [
-        "Okta / Entra ID / identity platforms",
-        "Google Workspace / Microsoft 365",
-        "MDM platforms (Intune, Jamf, Kandji)",
-        "Cloud platforms (AWS, GCP, Azure)",
-        "SIEM / security monitoring tools",
-        "GRC platforms (Vanta, Drata)",
-        "Firewall / VPN / network infrastructure",
-        "Budget and vendor management tools",
-        "Automation and scripting tools"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "VP IT",
-          "CISO / Head of Security"
-        ],
-        "lateral_moves": [
-          "VP Engineering",
-          "Head of Security Operations"
-        ],
-        "long_term": [
-          "CTO",
-          "CISO"
-        ]
-      },
-      "market_notes_israel": "Common in Israeli companies at the 100-500 employee stage. Guardio and Bringg both hire for this profile. In many Israeli companies this is a 'one-person army' role \u2014 strategic ownership combined with hands-on execution. The role increasingly includes internal security ownership, not just IT operations. AI adoption and security governance emerging as new responsibilities. Companies expect this person to manage external IT service providers while remaining deeply hands-on. Strong communication skills and cross-functional partnership ability are critical. Experience with SOC 2 and ISO 27001 typically required.",
-      "role_family": "IT_Security",
-      "seniority": "Director_Head"
+      "required_skills": [],
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Common in Israeli companies at the 100-500 employee stage. Guardio and Bringg both hire for this profile. In many Israeli companies this is a 'one-person army' role — strategic ownership combined with hands-on execution. The role increasingly includes internal security ownership, not just IT operations. AI adoption and security governance emerging as new responsibilities. Companies expect this person to manage external IT service providers while remaining deeply hands-on. Strong communication skills and cross-functional partnership ability are critical. Experience with SOC 2 and ISO 27001 typically required."
+      }
     },
     {
-      "role_id": "ciso_head_of_security",
-      "title": "CISO / Head of Security",
-      "sector": "IT / Security",
-      "seniority_level": "executive",
-      "description": "Leads the organization's entire information security program, spanning product security, cloud infrastructure, internal IT systems, and customer-facing security initiatives. Develops security strategy, manages risk, drives compliance and certification programs, and builds a security-conscious culture. Partners with executive leadership to align security with business objectives and serves as the primary security representative for customers, auditors, and regulators.",
-      "responsibilities": [
+      "id": "ciso_head_of_security",
+      "standardized_title": "CISO / Head of Security",
+      "role_family": "IT_Security",
+      "secondary_family": null,
+      "seniority": "VP_Executive",
+      "core_purpose": "Leads the organization's entire information security program, spanning product security, cloud infrastructure, internal IT systems, and customer-facing security initiatives. Develops security strategy, manages risk, drives compliance and certification programs, and builds a security-conscious culture. Partners with executive leadership to align security with business objectives and serves as the primary security representative for customers, auditors, and regulators.",
+      "core_responsibilities": [
         "Build, lead, and evolve the organization's information security strategy and roadmap",
         "Develop and maintain security policies, controls, and governance frameworks",
         "Own incident response program from preparedness to hands-on leadership during events",
@@ -8976,43 +8045,20 @@ export const roleLibrary = {
         "Oversee the IT environment including endpoints, SaaS, cloud infrastructure, and identity systems",
         "Design and implement security controls for cloud and production environments"
       ],
-      "tools_and_platforms": [
-        "SIEM platforms (Splunk, Sentinel, ELK)",
-        "Cloud security (AWS, GCP, Azure security consoles)",
-        "GRC platforms (Vanta, Drata, OneTrust)",
-        "Endpoint protection (CrowdStrike, SentinelOne, Defender)",
-        "Identity platforms (Okta, Entra ID)",
-        "Penetration testing and vulnerability management tools",
-        "SOC 2 / ISO 27001 / NIST / GDPR frameworks",
-        "Incident response and forensics tools",
-        "Security awareness training platforms"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "VP Security",
-          "Chief Security Officer"
-        ],
-        "lateral_moves": [
-          "VP Engineering",
-          "CTO"
-        ],
-        "long_term": [
-          "CTO",
-          "COO",
-          "Board Advisory"
-        ]
-      },
-      "market_notes_israel": "Increasingly critical role in the Israeli ecosystem as companies scale internationally and face enterprise customer security requirements. Guardio and Guardz both actively hiring CISOs. In Israeli startups, the CISO often owns IT as well as security \u2014 the role combines strategic leadership with hands-on execution. IPO preparation experience valued as more Israeli companies go public. AI security governance emerging as a new domain. The role typically requires 5-7+ years of security experience with proven leadership. CISSP, CISM certifications valued. Strong demand for candidates who can serve as the external face of security for customer trust and sales enablement.",
-      "role_family": "IT_Security",
-      "seniority": "VP_Executive"
+      "required_skills": [],
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Increasingly critical role in the Israeli ecosystem as companies scale internationally and face enterprise customer security requirements. Guardio and Guardz both actively hiring CISOs. In Israeli startups, the CISO often owns IT as well as security — the role combines strategic leadership with hands-on execution. IPO preparation experience valued as more Israeli companies go public. AI security governance emerging as a new domain. The role typically requires 5-7+ years of security experience with proven leadership. CISSP, CISM certifications valued. Strong demand for candidates who can serve as the external face of security for customer trust and sales enablement."
+      }
     },
     {
-      "role_id": "executive_assistant",
-      "title": "Executive Assistant",
-      "sector": "Admin / G&A",
-      "seniority_level": "mid",
-      "description": "Provides high-level administrative and operational support to C-level executives, managing complex calendars, coordinating travel, preparing for board and leadership meetings, and driving cross-organizational follow-ups. Serves as a strategic partner who understands business priorities and translates them into efficient scheduling and logistics. Often acts as a communication bridge between executives and internal/external stakeholders.",
-      "responsibilities": [
+      "id": "executive_assistant",
+      "standardized_title": "Executive Assistant",
+      "role_family": "Admin_GA",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Provides high-level administrative and operational support to C-level executives, managing complex calendars, coordinating travel, preparing for board and leadership meetings, and driving cross-organizational follow-ups. Serves as a strategic partner who understands business priorities and translates them into efficient scheduling and logistics. Often acts as a communication bridge between executives and internal/external stakeholders.",
+      "core_responsibilities": [
         "Manage complex executive calendars with deep understanding of organizational priorities",
         "Coordinate domestic and international travel arrangements including flights, accommodation, and logistics",
         "Prepare materials and ensure readiness for board meetings, management meetings, and client engagements",
@@ -9026,42 +8072,20 @@ export const roleLibrary = {
         "Liaise with vendors, suppliers, partners, and clients on behalf of leadership",
         "Lead ad-hoc projects and initiatives as directed by the CEO or executive team"
       ],
-      "tools_and_platforms": [
-        "Google Workspace (Calendar, Docs, Sheets, Slides)",
-        "Microsoft Office (Outlook, Word, Excel, PowerPoint)",
-        "Zoom / Teams / video conferencing",
-        "Travel management systems (Mesh, TripActions)",
-        "CRM systems (Salesforce, HubSpot)",
-        "Expense management tools",
-        "AI productivity tools (ChatGPT, Claude, Gemini)"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "Chief of Staff",
-          "Head of Admin / G&A Operations Manager"
-        ],
-        "lateral_moves": [
-          "Office Manager",
-          "Operations Coordinator",
-          "HR Operations"
-        ],
-        "long_term": [
-          "Chief of Staff",
-          "VP Operations",
-          "Head of People Operations"
-        ]
-      },
-      "market_notes_israel": "Very common role in Israeli tech companies, often combined with Office Manager responsibilities in startups under 100 employees. Companies like Alison.ai, McKinsey/Iguazio, Keshet International, and Voyantis actively hiring. Military HQ/operations experience (e.g., IDF adjutancy, unit-level operations roles) is frequently cited as an advantage and widely accepted as relevant experience. The role is often a career accelerator \u2014 several listings explicitly frame it as a path to Chief of Staff or operations leadership. Hebrew and English fluency standard. AI tool proficiency (ChatGPT, Gemini, Claude) emerging as an expectation in recent listings.",
-      "role_family": "Admin_GA",
-      "seniority": "Mid"
+      "required_skills": [],
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Very common role in Israeli tech companies, often combined with Office Manager responsibilities in startups under 100 employees. Companies like Alison.ai, McKinsey/Iguazio, Keshet International, and Voyantis actively hiring. Military HQ/operations experience (e.g., IDF adjutancy, unit-level operations roles) is frequently cited as an advantage and widely accepted as relevant experience. The role is often a career accelerator — several listings explicitly frame it as a path to Chief of Staff or operations leadership. Hebrew and English fluency standard. AI tool proficiency (ChatGPT, Gemini, Claude) emerging as an expectation in recent listings."
+      }
     },
     {
-      "role_id": "office_manager",
-      "title": "Office Manager",
-      "sector": "Admin / G&A",
-      "seniority_level": "entry-mid",
-      "description": "Oversees the daily operations of the office environment, ensuring a smooth, welcoming, and well-functioning workplace. Manages facilities, vendor relationships, supply procurement, employee experience initiatives, and front desk operations. Often serves as the cultural anchor of the office, driving employee engagement activities, company events, and onboarding logistics.",
-      "responsibilities": [
+      "id": "office_manager",
+      "standardized_title": "Office Manager",
+      "role_family": "Admin_GA",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Oversees the daily operations of the office environment, ensuring a smooth, welcoming, and well-functioning workplace. Manages facilities, vendor relationships, supply procurement, employee experience initiatives, and front desk operations. Often serves as the cultural anchor of the office, driving employee engagement activities, company events, and onboarding logistics.",
+      "core_responsibilities": [
         "Oversee daily office operations including facilities, maintenance, supplies, and cleaning",
         "Manage front desk operations: greet employees, visitors, candidates, and vendors",
         "Coordinate with vendors and service providers for catering, security, equipment, and maintenance",
@@ -9075,42 +8099,20 @@ export const roleLibrary = {
         "Support HR team with administrative tasks and employee welfare programs",
         "Manage office budget and negotiate with suppliers for cost efficiency"
       ],
-      "tools_and_platforms": [
-        "Google Workspace / Microsoft Office",
-        "Canva (presentations, internal communications)",
-        "Travel and expense management systems",
-        "Office supply and procurement platforms",
-        "HRIS systems (HiBob, BambooHR)",
-        "Event management tools",
-        "Communication platforms (Slack, Teams)"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "Head of Admin / G&A Operations Manager",
-          "Executive Assistant"
-        ],
-        "lateral_moves": [
-          "Operations Coordinator",
-          "HR Coordinator",
-          "Employee Experience Manager"
-        ],
-        "long_term": [
-          "Head of Admin / G&A Operations Manager",
-          "VP Operations",
-          "Head of People Operations"
-        ]
-      },
-      "market_notes_israel": "Extremely high demand across Israeli tech \u2014 virtually every company with a physical office hires for this role. Companies like Rubrik, Nexxen, Voyantis, Airis Labs, and Alison.ai actively hiring. The Israeli market strongly values the 'people-person' and culture-building aspects of the role, not just logistics. Part-time (60%) positions common in smaller startups. Often combined with Executive Assistant duties in companies under 80 employees. Entry point is typically 1-2 years of experience, making it accessible post-military. In-office presence 5 days/week is standard. Hebrew and English fluency required.",
-      "role_family": "Admin_GA",
-      "seniority": "Mid"
+      "required_skills": [],
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Extremely high demand across Israeli tech — virtually every company with a physical office hires for this role. Companies like Rubrik, Nexxen, Voyantis, Airis Labs, and Alison.ai actively hiring. The Israeli market strongly values the 'people-person' and culture-building aspects of the role, not just logistics. Part-time (60%) positions common in smaller startups. Often combined with Executive Assistant duties in companies under 80 employees. Entry point is typically 1-2 years of experience, making it accessible post-military. In-office presence 5 days/week is standard. Hebrew and English fluency required."
+      }
     },
     {
-      "role_id": "operations_coordinator",
-      "title": "Operations Coordinator",
-      "sector": "Admin / G&A",
-      "seniority_level": "entry",
-      "description": "Provides operational and administrative support to ensure smooth business workflows. Manages front desk duties, coordinates logistics, handles vendor relationships, supports internal processes, and assists with data entry and reporting. Serves as a cross-functional support role that keeps day-to-day operations running efficiently.",
-      "responsibilities": [
+      "id": "operations_coordinator",
+      "standardized_title": "Operations Coordinator",
+      "role_family": "Admin_GA",
+      "secondary_family": null,
+      "seniority": "Entry",
+      "core_purpose": "Provides operational and administrative support to ensure smooth business workflows. Manages front desk duties, coordinates logistics, handles vendor relationships, supports internal processes, and assists with data entry and reporting. Serves as a cross-functional support role that keeps day-to-day operations running efficiently.",
+      "core_responsibilities": [
         "Manage front desk duties including welcoming guests and handling visitors",
         "Coordinate meetings, calendars, and company events",
         "Provide administrative support to employees and management",
@@ -9124,41 +8126,20 @@ export const roleLibrary = {
         "Support HR processes including onboarding coordination",
         "Anticipate and resolve operational problems proactively"
       ],
-      "tools_and_platforms": [
-        "Google Workspace (Drive, Sheets, Docs, Gmail)",
-        "Microsoft Office (Excel, Outlook, Word)",
-        "ERP systems (Priority, NetSuite, SAP)",
-        "CRM systems (Salesforce, HubSpot)",
-        "Internal information and ticketing systems",
-        "Travel management tools"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "Office Manager",
-          "Executive Assistant",
-          "Business Operations Analyst"
-        ],
-        "lateral_moves": [
-          "HR Coordinator",
-          "Sales Operations",
-          "Customer Success Associate"
-        ],
-        "long_term": [
-          "Operations Manager",
-          "Head of Admin / G&A Operations Manager"
-        ]
-      },
-      "market_notes_israel": "Common entry-level role in Israeli companies, frequently found at larger organizations like JFrog, KPMG, and Bynet. IDF administrative and national service experience widely accepted as relevant background. The role often serves as a launching pad into office management, HR, or business operations. Typically requires 1+ years of experience. Hebrew fluency required, English reading and writing expected. Strong overlap with receptionist duties in smaller companies. ERP system familiarity (especially Priority, which is prevalent in Israel) is an advantage.",
-      "role_family": "Admin_GA",
-      "seniority": "Entry"
+      "required_skills": [],
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Common entry-level role in Israeli companies, frequently found at larger organizations like JFrog, KPMG, and Bynet. IDF administrative and national service experience widely accepted as relevant background. The role often serves as a launching pad into office management, HR, or business operations. Typically requires 1+ years of experience. Hebrew fluency required, English reading and writing expected. Strong overlap with receptionist duties in smaller companies. ERP system familiarity (especially Priority, which is prevalent in Israel) is an advantage."
+      }
     },
     {
-      "role_id": "procurement_specialist",
-      "title": "Procurement / Vendor Management Specialist",
-      "sector": "Admin / G&A",
-      "seniority_level": "mid",
-      "description": "Manages end-to-end procurement processes including supplier sourcing, RFQ management, contract negotiation, purchase order processing, and vendor relationship management. Drives cost optimization, ensures compliance with procurement policies, and collaborates across Finance, Legal, IT, and operational teams to secure optimal commercial outcomes.",
-      "responsibilities": [
+      "id": "procurement_specialist",
+      "standardized_title": "Procurement / Vendor Management Specialist",
+      "role_family": "Admin_GA",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Manages end-to-end procurement processes including supplier sourcing, RFQ management, contract negotiation, purchase order processing, and vendor relationship management. Drives cost optimization, ensures compliance with procurement policies, and collaborates across Finance, Legal, IT, and operational teams to secure optimal commercial outcomes.",
+      "core_responsibilities": [
         "Manage the full procurement lifecycle: requirements gathering, RFQs, quote analysis, and negotiations",
         "Lead contract negotiations with vendors to secure advantageous pricing and terms",
         "Identify, evaluate, and onboard new suppliers through market research and benchmarking",
@@ -9172,42 +8153,20 @@ export const roleLibrary = {
         "Leverage procurement tools, automation, and AI-powered insights for efficiency",
         "Support contract renewal processes and manage vendor risk"
       ],
-      "tools_and_platforms": [
-        "Procurement platforms (Zip/ZipHQ, Coupa)",
-        "ERP systems (NetSuite, SAP, Priority, Intacct)",
-        "Microsoft Excel (advanced: pivot tables, data analysis)",
-        "Contract management tools",
-        "Spend analytics platforms",
-        "AI-powered procurement tools",
-        "Microsoft Office / Google Workspace"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "Senior Procurement Specialist",
-          "Procurement Manager"
-        ],
-        "lateral_moves": [
-          "Finance Analyst",
-          "Operations Manager",
-          "Vendor Management"
-        ],
-        "long_term": [
-          "Head of Procurement",
-          "VP Operations",
-          "Head of Admin / G&A Operations Manager"
-        ]
-      },
-      "market_notes_israel": "Growing demand in Israeli tech as companies scale and formalize purchasing. Silverfort, ThetaRay, Kaltura, Infinidat, KPMG, and XTEND all actively hiring. Typically requires 2-4 years of experience. The Israeli market distinguishes between indirect procurement (SaaS, services, facilities \u2014 common in tech companies) and direct/technical procurement (electronic components, mechanical parts \u2014 common in hardware/defense companies like XTEND). Zip/ZipHQ emerging as the dominant procurement platform in Israeli tech. Hebrew and English fluency required for global vendor management. SAP experience valued at larger organizations. AI tools for sourcing and vendor evaluation appearing in recent listings.",
-      "role_family": "Admin_GA",
-      "seniority": "Mid"
+      "required_skills": [],
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Growing demand in Israeli tech as companies scale and formalize purchasing. Silverfort, ThetaRay, Kaltura, Infinidat, KPMG, and XTEND all actively hiring. Typically requires 2-4 years of experience. The Israeli market distinguishes between indirect procurement (SaaS, services, facilities — common in tech companies) and direct/technical procurement (electronic components, mechanical parts — common in hardware/defense companies like XTEND). Zip/ZipHQ emerging as the dominant procurement platform in Israeli tech. Hebrew and English fluency required for global vendor management. SAP experience valued at larger organizations. AI tools for sourcing and vendor evaluation appearing in recent listings."
+      }
     },
     {
-      "role_id": "facilities_manager",
-      "title": "Facilities Manager",
-      "sector": "Admin / G&A",
-      "seniority_level": "mid-senior",
-      "description": "Manages the physical infrastructure, maintenance, and operational systems of the organization's facilities. Responsible for building systems (electrical, HVAC, water, backup power), vendor management for maintenance services, safety and regulatory compliance, and ensuring the reliability and availability of critical infrastructure. Combines technical expertise with operational management.",
-      "responsibilities": [
+      "id": "facilities_manager",
+      "standardized_title": "Facilities Manager",
+      "role_family": "Admin_GA",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Manages the physical infrastructure, maintenance, and operational systems of the organization's facilities. Responsible for building systems (electrical, HVAC, water, backup power), vendor management for maintenance services, safety and regulatory compliance, and ensuring the reliability and availability of critical infrastructure. Combines technical expertise with operational management.",
+      "core_responsibilities": [
         "Manage all facility operations including maintenance, cleaning, catering, parking, and security",
         "Ensure reliability and availability of critical building systems: electrical, HVAC, water, UPS, generators",
         "Define, plan, and manage preventive and routine maintenance programs across all infrastructure",
@@ -9221,41 +8180,20 @@ export const roleLibrary = {
         "Manage maintenance teams and subcontractors",
         "Support employee experience through facilities-related well-being initiatives"
       ],
-      "tools_and_platforms": [
-        "Building Management Systems (BMS)",
-        "HVAC and electrical monitoring systems",
-        "Computerized Maintenance Management Systems (CMMS)",
-        "Safety and compliance management tools",
-        "Budget and procurement management tools",
-        "Microsoft Office / Google Workspace",
-        "Data Center infrastructure monitoring"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "Head of Facilities",
-          "Head of Admin / G&A Operations Manager"
-        ],
-        "lateral_moves": [
-          "Operations Manager",
-          "Project Manager (Construction/Infrastructure)"
-        ],
-        "long_term": [
-          "VP Operations",
-          "Head of Admin / G&A Operations Manager",
-          "COO"
-        ]
-      },
-      "market_notes_israel": "Distinct role in larger Israeli organizations (500+ employees) and building management companies. Cal, CBRE, and MAX actively hiring. Licensed electrician certification (\u05d7\u05e9\u05de\u05dc\u05d0\u05d9 \u05de\u05d5\u05e1\u05de\u05da/\u05e8\u05d0\u05e9\u05d9) is often mandatory \u2014 this is a regulated requirement in Israel. Experience managing buildings of 13,000+ sqm is a common baseline. Data Center infrastructure management increasingly relevant as Israeli tech companies grow their physical footprint. 24/7 availability for emergencies is standard. Hebrew fluency required; English less critical than in other tech roles. The role sits at the intersection of technical infrastructure management and HR/employee experience in some organizations (e.g., Cal positions it within the HR leadership team).",
-      "role_family": "Admin_GA",
-      "seniority": "Mid"
+      "required_skills": [],
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Distinct role in larger Israeli organizations (500+ employees) and building management companies. Cal, CBRE, and MAX actively hiring. Licensed electrician certification (חשמלאי מוסמך/ראשי) is often mandatory — this is a regulated requirement in Israel. Experience managing buildings of 13,000+ sqm is a common baseline. Data Center infrastructure management increasingly relevant as Israeli tech companies grow their physical footprint. 24/7 availability for emergencies is standard. Hebrew fluency required; English less critical than in other tech roles. The role sits at the intersection of technical infrastructure management and HR/employee experience in some organizations (e.g., Cal positions it within the HR leadership team)."
+      }
     },
     {
-      "role_id": "head_of_admin_ga",
-      "title": "Head of Admin / G&A Operations Manager",
-      "sector": "Admin / G&A",
-      "seniority_level": "senior",
-      "description": "Leads the organization's administrative, operational, and employee experience functions end-to-end. Owns office operations, vendor ecosystems, procurement, employee welfare programs, and cross-functional operational processes. Combines strategic leadership with hands-on execution, managing budgets, teams, and global operations. Often serves as the operational backbone that enables the company to scale.",
-      "responsibilities": [
+      "id": "head_of_admin_ga",
+      "standardized_title": "Head of Admin / G&A Operations Manager",
+      "role_family": "Admin_GA",
+      "secondary_family": null,
+      "seniority": "Director_Head",
+      "core_purpose": "Leads the organization's administrative, operational, and employee experience functions end-to-end. Owns office operations, vendor ecosystems, procurement, employee welfare programs, and cross-functional operational processes. Combines strategic leadership with hands-on execution, managing budgets, teams, and global operations. Often serves as the operational backbone that enables the company to scale.",
+      "core_responsibilities": [
         "Lead end-to-end office management, facilities, and administrative operations",
         "Own and execute annual employee welfare and experience programs",
         "Manage office and G&A budgets, including procurement and cost optimization",
@@ -9270,35 +8208,11 @@ export const roleLibrary = {
         "Manage payroll interfaces, benefits administration, and compliance across jurisdictions",
         "Build operational infrastructure to support international expansion"
       ],
-      "tools_and_platforms": [
-        "HRIS systems (HiBob, BambooHR, Workday)",
-        "ERP systems (NetSuite, Priority, SAP)",
-        "Procurement platforms (Zip, Coupa)",
-        "Payroll and benefits platforms (Deel, Remote, Papaya Global)",
-        "Equity administration (Carta)",
-        "Google Workspace / Microsoft Office",
-        "Budget management and reporting tools",
-        "Event management platforms",
-        "AI productivity and automation tools"
-      ],
-      "career_paths": {
-        "next_roles": [
-          "VP Operations",
-          "Chief of Staff"
-        ],
-        "lateral_moves": [
-          "Head of People Operations",
-          "Head of HR"
-        ],
-        "long_term": [
-          "VP Operations",
-          "COO",
-          "Chief of Staff"
-        ]
-      },
-      "market_notes_israel": "Growing role as Israeli tech companies scale past 100 employees and need consolidated G&A leadership. XTEND, Mesh Security, and Airis Labs represent the archetype. In the Israeli market, this role frequently combines office management, employee experience, procurement, and operational HR under one leader \u2014 reflecting the startup ethos of consolidated ownership. Global operations experience (managing US payroll, EOR structures, multi-country employment) increasingly valued as Israeli companies expand internationally. Experience with Deel and Remote (EOR platforms) is a strong differentiator. Typically requires 4-5+ years of experience. The role often reports to the COO, CEO, or VP HR. Hebrew and English fluency required.",
-      "role_family": "Admin_GA",
-      "seniority": "Director_Head"
+      "required_skills": [],
+      "preferred_skills": [],
+      "market_notes": {
+        "israel": "Growing role as Israeli tech companies scale past 100 employees and need consolidated G&A leadership. XTEND, Mesh Security, and Airis Labs represent the archetype. In the Israeli market, this role frequently combines office management, employee experience, procurement, and operational HR under one leader — reflecting the startup ethos of consolidated ownership. Global operations experience (managing US payroll, EOR structures, multi-country employment) increasingly valued as Israeli companies expand internationally. Experience with Deel and Remote (EOR platforms) is a strong differentiator. Typically requires 4-5+ years of experience. The role often reports to the COO, CEO, or VP HR. Hebrew and English fluency required."
+      }
     },
     {
       "id": "customer_success_specialist",
@@ -9309,6 +8223,7 @@ export const roleLibrary = {
         "Client Success Specialist"
       ],
       "role_family": "Relationship_Growth",
+      "secondary_family": null,
       "seniority": "Entry_Mid",
       "core_purpose": "Manage a portfolio of customer accounts, drive adoption and satisfaction, handle renewals and basic expansion.",
       "core_responsibilities": [
@@ -9357,8 +8272,7 @@ export const roleLibrary = {
         "adoption",
         "renewal",
         "QBR"
-      ],
-      "sector": "Post-sale / CS / Operations"
+      ]
     },
     {
       "id": "financial_analyst",
@@ -9369,6 +8283,7 @@ export const roleLibrary = {
         "Business Finance Analyst"
       ],
       "role_family": "Finance",
+      "secondary_family": null,
       "seniority": "Entry_Mid",
       "core_purpose": "Build financial models, analyze business performance, support budgeting and forecasting.",
       "core_responsibilities": [
@@ -9411,8 +8326,7 @@ export const roleLibrary = {
         "budget",
         "forecast",
         "variance"
-      ],
-      "sector": "Finance"
+      ]
     },
     {
       "id": "operations_analyst",
@@ -9422,6 +8336,7 @@ export const roleLibrary = {
         "Ops Analyst"
       ],
       "role_family": "Operations",
+      "secondary_family": null,
       "seniority": "Entry_Mid",
       "core_purpose": "Analyze operational data, identify process improvements, support cross-functional operations.",
       "core_responsibilities": [
@@ -9463,8 +8378,7 @@ export const roleLibrary = {
         "process",
         "dashboards",
         "reporting"
-      ],
-      "sector": "RevOps / Business Ops"
+      ]
     },
     {
       "id": "hr_coordinator",
@@ -9474,6 +8388,7 @@ export const roleLibrary = {
         "HR Associate"
       ],
       "role_family": "HR_People",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Coordinate HR processes, manage employee records, support recruiting and onboarding logistics.",
       "core_responsibilities": [
@@ -9512,8 +8427,7 @@ export const roleLibrary = {
         "people operations",
         "onboarding",
         "HRIS"
-      ],
-      "sector": "HR / People"
+      ]
     },
     {
       "id": "talent_acquisition_specialist",
@@ -9524,6 +8438,7 @@ export const roleLibrary = {
         "Senior Recruiter"
       ],
       "role_family": "HR_People",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Source candidates, manage recruiting pipeline, conduct screenings, coordinate interviews.",
       "core_responsibilities": [
@@ -9563,8 +8478,7 @@ export const roleLibrary = {
         "sourcing",
         "ATS",
         "pipeline"
-      ],
-      "sector": "HR / People"
+      ]
     },
     {
       "id": "marketing_assistant",
@@ -9574,6 +8488,7 @@ export const roleLibrary = {
         "Marketing Admin"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Support marketing campaigns, manage social media calendars, assist with content creation.",
       "core_responsibilities": [
@@ -9613,8 +8528,7 @@ export const roleLibrary = {
         "social media",
         "content",
         "campaigns"
-      ],
-      "sector": "Marketing"
+      ]
     },
     {
       "id": "sales_representative",
@@ -9624,6 +8538,7 @@ export const roleLibrary = {
         "Inside Sales Rep"
       ],
       "role_family": "Sales",
+      "secondary_family": null,
       "seniority": "Entry_Mid",
       "core_purpose": "Manage full sales cycle from prospecting to closing for SMB accounts.",
       "core_responsibilities": [
@@ -9665,8 +8580,7 @@ export const roleLibrary = {
         "pipeline",
         "closing",
         "prospecting"
-      ],
-      "sector": "Sales"
+      ]
     },
     {
       "id": "brand_manager",
@@ -9676,6 +8590,7 @@ export const roleLibrary = {
         "Brand Marketing Manager"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Own brand strategy, positioning, and messaging. Manage brand campaigns and ensure consistency.",
       "core_responsibilities": [
@@ -9713,8 +8628,7 @@ export const roleLibrary = {
         "positioning",
         "messaging",
         "brand strategy"
-      ],
-      "sector": "Marketing"
+      ]
     },
     {
       "id": "event_coordinator",
@@ -9724,6 +8638,7 @@ export const roleLibrary = {
         "Marketing Events Coordinator"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Entry_Mid",
       "core_purpose": "Plan and execute corporate events, conferences, webinars. Manage vendors, budgets, logistics.",
       "core_responsibilities": [
@@ -9763,8 +8678,7 @@ export const roleLibrary = {
         "webinars",
         "conferences",
         "event marketing"
-      ],
-      "sector": "Marketing"
+      ]
     },
     {
       "id": "partnerships_associate",
@@ -9774,6 +8688,7 @@ export const roleLibrary = {
         "Partnership Development Associate"
       ],
       "role_family": "BD_Partnerships",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Support partnership development, manage partner communications, track partnership metrics.",
       "core_responsibilities": [
@@ -9791,7 +8706,7 @@ export const roleLibrary = {
       ],
       "preferred_skills": [
         "crm_management",
-        "cross_team_collaboration"
+        "cross_functional_collaboration"
       ],
       "tools": [
         "CRM",
@@ -9811,8 +8726,7 @@ export const roleLibrary = {
         "partnerships",
         "partner management",
         "BD"
-      ],
-      "sector": "Business Development / Partnerships"
+      ]
     },
     {
       "id": "junior_business_analyst",
@@ -9822,6 +8736,7 @@ export const roleLibrary = {
         "Business Analytics Associate"
       ],
       "role_family": "RevOps_BizOps",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Support business analysis, gather requirements, assist with reporting and process documentation.",
       "core_responsibilities": [
@@ -9859,8 +8774,7 @@ export const roleLibrary = {
         "business analysis",
         "reporting",
         "requirements"
-      ],
-      "sector": "RevOps / Business Ops"
+      ]
     },
     {
       "id": "marketing_intern",
@@ -9869,6 +8783,7 @@ export const roleLibrary = {
         "Marketing Trainee"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Support marketing team with campaign execution, content drafting, social media posting, research tasks.",
       "core_responsibilities": [
@@ -9901,8 +8816,7 @@ export const roleLibrary = {
         "marketing intern",
         "social media",
         "content"
-      ],
-      "sector": "Marketing"
+      ]
     },
     {
       "id": "hr_assistant",
@@ -9912,6 +8826,7 @@ export const roleLibrary = {
         "HR Admin"
       ],
       "role_family": "HR_People",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Provide administrative support to HR team, manage employee files, schedule interviews, handle HR inquiries.",
       "core_responsibilities": [
@@ -9947,8 +8862,7 @@ export const roleLibrary = {
         "HR",
         "administration",
         "employee support"
-      ],
-      "sector": "HR / People"
+      ]
     },
     {
       "id": "sales_associate",
@@ -9958,6 +8872,7 @@ export const roleLibrary = {
         "Junior Sales Rep"
       ],
       "role_family": "Sales",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Support sales team, handle inbound inquiries, assist with demos, manage CRM data entry.",
       "core_responsibilities": [
@@ -9994,8 +8909,7 @@ export const roleLibrary = {
         "inbound",
         "CRM",
         "lead qualification"
-      ],
-      "sector": "Sales"
+      ]
     },
     {
       "id": "social_media_coordinator",
@@ -10005,6 +8919,7 @@ export const roleLibrary = {
         "Community Coordinator"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Execute social media calendar, create and schedule posts, monitor engagement, report on metrics.",
       "core_responsibilities": [
@@ -10043,8 +8958,7 @@ export const roleLibrary = {
         "community",
         "posts",
         "engagement"
-      ],
-      "sector": "Marketing"
+      ]
     },
     {
       "id": "recruitment_coordinator",
@@ -10054,6 +8968,7 @@ export const roleLibrary = {
         "TA Coordinator"
       ],
       "role_family": "HR_People",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Coordinate interview scheduling, manage candidate communication, maintain ATS, support recruiters.",
       "core_responsibilities": [
@@ -10091,8 +9006,7 @@ export const roleLibrary = {
         "scheduling",
         "ATS",
         "candidate coordination"
-      ],
-      "sector": "HR / People"
+      ]
     },
     {
       "id": "business_operations_associate",
@@ -10102,6 +9016,7 @@ export const roleLibrary = {
         "Ops Associate"
       ],
       "role_family": "RevOps_BizOps",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Support day-to-day business operations, maintain internal tools and processes, assist with reporting.",
       "core_responsibilities": [
@@ -10139,8 +9054,7 @@ export const roleLibrary = {
         "business operations",
         "process",
         "operations"
-      ],
-      "sector": "RevOps / Business Ops"
+      ]
     },
     {
       "id": "strategy_analyst",
@@ -10150,6 +9064,7 @@ export const roleLibrary = {
         "Business Strategy Analyst"
       ],
       "role_family": "Consulting",
+      "secondary_family": null,
       "seniority": "Entry_Mid",
       "core_purpose": "Conduct market research, build strategic analyses, support strategy development for leadership.",
       "core_responsibilities": [
@@ -10190,8 +9105,7 @@ export const roleLibrary = {
         "research",
         "analysis",
         "consulting"
-      ],
-      "sector": "Consulting"
+      ]
     },
     {
       "id": "management_consultant",
@@ -10201,6 +9115,7 @@ export const roleLibrary = {
         "Senior Consultant"
       ],
       "role_family": "Consulting",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Lead client engagements, conduct analyses, develop recommendations, present findings to stakeholders.",
       "core_responsibilities": [
@@ -10240,8 +9155,7 @@ export const roleLibrary = {
         "strategy",
         "client",
         "engagement"
-      ],
-      "sector": "Consulting"
+      ]
     },
     {
       "id": "junior_consultant",
@@ -10251,6 +9165,7 @@ export const roleLibrary = {
         "Associate Consultant"
       ],
       "role_family": "Consulting",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Support consulting engagements, conduct research, build slide decks, gather and analyze data.",
       "core_responsibilities": [
@@ -10287,8 +9202,7 @@ export const roleLibrary = {
         "junior consulting",
         "analyst",
         "consulting"
-      ],
-      "sector": "Consulting"
+      ]
     },
     {
       "id": "operations_associate",
@@ -10298,6 +9212,7 @@ export const roleLibrary = {
         "Business Ops Associate"
       ],
       "role_family": "Operations",
+      "secondary_family": null,
       "seniority": "Entry",
       "core_purpose": "Support operational workflows, maintain documentation, coordinate cross-team logistics.",
       "core_responsibilities": [
@@ -10333,8 +9248,7 @@ export const roleLibrary = {
         "operations",
         "admin",
         "coordination"
-      ],
-      "sector": "RevOps / Business Ops"
+      ]
     },
     {
       "id": "event_manager",
@@ -10344,6 +9258,7 @@ export const roleLibrary = {
         "Head of Events"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Own end-to-end event strategy and execution, manage event budgets, lead event teams, measure ROI.",
       "core_responsibilities": [
@@ -10381,8 +9296,7 @@ export const roleLibrary = {
         "events",
         "conference",
         "event manager"
-      ],
-      "sector": "Marketing"
+      ]
     },
     {
       "id": "technical_support_specialist",
@@ -10392,6 +9306,7 @@ export const roleLibrary = {
         "Application Support Specialist"
       ],
       "role_family": "Support",
+      "secondary_family": null,
       "seniority": "Entry_Mid",
       "core_purpose": "Provide technical troubleshooting and support, resolve customer technical issues, document solutions.",
       "core_responsibilities": [
@@ -10430,8 +9345,7 @@ export const roleLibrary = {
         "troubleshooting",
         "T2",
         "application support"
-      ],
-      "sector": "Post-sale / CS / Operations"
+      ]
     },
     {
       "id": "solutions_consultant",
@@ -10441,6 +9355,7 @@ export const roleLibrary = {
         "Implementation Consultant"
       ],
       "role_family": "Solutions_Engineering",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Understand client needs, design solution proposals, support pre-sales with technical demos and POCs.",
       "core_responsibilities": [
@@ -10480,8 +9395,7 @@ export const roleLibrary = {
         "pre-sales",
         "technical demo",
         "POC"
-      ],
-      "sector": "Solutions Engineering"
+      ]
     },
     {
       "id": "pre_sales_engineer",
@@ -10491,6 +9405,7 @@ export const roleLibrary = {
         "Presales Engineer"
       ],
       "role_family": "Solutions_Engineering",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Support sales with technical expertise, run product demos, build POCs, answer technical RFPs.",
       "core_responsibilities": [
@@ -10531,8 +9446,7 @@ export const roleLibrary = {
         "technical demo",
         "POC",
         "RFP"
-      ],
-      "sector": "Solutions Engineering"
+      ]
     },
     {
       "id": "growth_analyst",
@@ -10542,6 +9456,7 @@ export const roleLibrary = {
         "Growth Marketing Analyst"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Entry_Mid",
       "core_purpose": "Analyze growth metrics, run experiments, identify acquisition and retention opportunities, support growth strategy.",
       "core_responsibilities": [
@@ -10582,8 +9497,7 @@ export const roleLibrary = {
         "analytics",
         "experiments",
         "funnel"
-      ],
-      "sector": "Marketing / Data"
+      ]
     },
     {
       "id": "revenue_analyst",
@@ -10593,6 +9507,7 @@ export const roleLibrary = {
         "RevOps Analyst"
       ],
       "role_family": "RevOps_BizOps",
+      "secondary_family": null,
       "seniority": "Entry_Mid",
       "core_purpose": "Analyze revenue data, track pipeline metrics, support revenue forecasting, build revenue reports.",
       "core_responsibilities": [
@@ -10633,8 +9548,7 @@ export const roleLibrary = {
         "RevOps",
         "pipeline analytics",
         "forecasting"
-      ],
-      "sector": "RevOps / Business Ops"
+      ]
     },
     {
       "id": "demand_generation_manager",
@@ -10644,6 +9558,7 @@ export const roleLibrary = {
         "Lead Gen Manager"
       ],
       "role_family": "Marketing",
+      "secondary_family": null,
       "seniority": "Mid",
       "core_purpose": "Own demand generation strategy, manage lead gen campaigns, optimize marketing funnel, track MQL/SQL metrics.",
       "core_responsibilities": [
@@ -10684,161 +9599,7 @@ export const roleLibrary = {
         "lead generation",
         "MQL",
         "pipeline marketing"
-      ],
-      "sector": "Marketing"
-    }
-  ],
-  "classification_logic": {
-    "core_rule": "Do not classify based on title alone. Classify using responsibilities, keywords, tools, ownership signals, and seniority signals.",
-    "role_family_rules": {
-      "Support": [
-        "tickets",
-        "troubleshooting",
-        "debugging",
-        "sla",
-        "logs",
-        "escalation",
-        "support queue"
-      ],
-      "Onboarding_Implementation": [
-        "onboarding",
-        "implementation",
-        "go live",
-        "rollout",
-        "requirements gathering",
-        "setup",
-        "configuration",
-        "delivery"
-      ],
-      "Relationship_Growth": [
-        "retention",
-        "adoption",
-        "renewals",
-        "upsell",
-        "cross sell",
-        "customer health",
-        "stakeholder management"
-      ],
-      "Customer_Experience": [
-        "customer journey",
-        "nps",
-        "csat",
-        "touchpoints",
-        "experience strategy",
-        "loyalty"
-      ],
-      "Leadership": [
-        "lead team",
-        "manage team",
-        "coach",
-        "build strategy",
-        "own function",
-        "global org"
-      ],
-      "Operations": [
-        "playbooks",
-        "dashboards",
-        "health scoring",
-        "automation",
-        "process compliance",
-        "operating model",
-        "timeline",
-        "milestones",
-        "execution",
-        "delivery",
-        "dependencies",
-        "program",
-        "governance",
-        "implementation",
-        "workflow",
-        "release process",
-        "operating cadence"
-      ],
-      "Product": [
-        "roadmap",
-        "product roadmap",
-        "prioritization",
-        "feature prioritization",
-        "Discovery",
-        "product strategy",
-        "user needs",
-        "requirements",
-        "feature definition",
-        "go to market",
-        "product metrics",
-        "ab testing"
-      ]
-    },
-    "seniority_rules": {
-      "Entry": [
-        "associate",
-        "junior",
-        "0-2 years"
-      ],
-      "Mid": [
-        "2-4 years",
-        "own customers",
-        "manage tasks independently"
-      ],
-      "Senior": [
-        "5+ years",
-        "complex accounts",
-        "strategic customers",
-        "escalations"
-      ],
-      "Lead_Manager": [
-        "lead team",
-        "mentor",
-        "manager",
-        "people leadership"
-      ],
-      "Director_Head": [
-        "own function",
-        "define playbooks",
-        "build department",
-        "manage managers"
-      ],
-      "VP_Executive": [
-        "executive",
-        "global",
-        "revenue accountability",
-        "org leadership"
-      ]
-    },
-    "attribute_rules": {
-      "technical_depth_high": [
-        "api",
-        "sql",
-        "logs",
-        "debugging",
-        "integrations",
-        "kubernetes",
-        "networking"
-      ],
-      "customer_facing_high": [
-        "client meetings",
-        "customer calls",
-        "stakeholders",
-        "trusted advisor",
-        "account ownership"
-      ],
-      "revenue_direct": [
-        "renewals",
-        "upsell",
-        "cross sell",
-        "expansion",
-        "revenue growth"
-      ],
-      "strategic_high": [
-        "strategy",
-        "playbooks",
-        "operating model",
-        "customer journey",
-        "global org",
-        "roadmap",
-        "product strategy",
-        "prioritization"
       ]
     }
-  }
+  ]
 } as const;

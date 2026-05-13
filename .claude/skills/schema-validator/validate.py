@@ -104,6 +104,39 @@ ROLE_OPTIONAL_KNOWN = [
     "revenue_ownership", "strategic_level", "lifecycle_stage",
     "typical_backgrounds", "next_roles", "similar_roles",
     "not_to_confuse_with", "keywords",
+    # v2.0 additions (Wk 5 schema unification):
+    "secondary_family",            # optional, same enum as role_family. null if no secondary.
+    "years_experience_typical",    # e.g. "1-3", "5-8", "10+"
+    "market_notes",                # { israel?: string, us?: string, ... } — locale-extensible
+]
+
+# Primary vs secondary family criteria (encoded for downstream skills + audits):
+#   primary   = main reporting line and core function — the role's "home"
+#   secondary = significant skill overlap with another family (≥30% of required_skills
+#               typically map to that family's core skills) AND the role regularly
+#               does work that crosses into that family's domain.
+#               Set to null if the role doesn't meaningfully span two families.
+FAMILY_ASSIGNMENT_CRITERIA = {
+    "primary": "Main reporting line and core function. Required for every role.",
+    "secondary": "Significant skill overlap with another family (~30%+ of required_skills) "
+                 "AND regular cross-family work. Null when role is single-family.",
+}
+
+# Canonical enums (v2.0). Validator now treats these as authoritative
+# regardless of what the library's top-level arrays declare — but if
+# the library's declared arrays differ, we flag the divergence as an
+# error so the source-of-truth stays single.
+CANONICAL_ROLE_FAMILIES = [
+    "Support", "Onboarding_Implementation", "Customer_Experience", "Relationship_Growth",
+    "Sales", "BD_Partnerships", "Marketing",
+    "Product", "Engineering", "Design_UX",
+    "Data", "AI_ML",
+    "Operations", "RevOps_BizOps", "Finance",
+    "HR_People", "Leadership", "Admin_GA",
+    "IT_Security", "Solutions_Engineering", "Consulting",
+]
+CANONICAL_SENIORITY_LEVELS = [
+    "Entry", "Entry_Mid", "Mid", "Senior", "Lead_Manager", "Director_Head", "VP_Executive",
 ]
 
 SKILL_REQUIRED = ["id", "name", "category"]
@@ -130,6 +163,23 @@ def validate_role_library(role_lib: dict, report: Report) -> tuple[set[str], lis
         report.error("role_library.top_level", "missing or empty role_families top-level array")
     if not seniority_levels:
         report.error("role_library.top_level", "missing or empty seniority_levels top-level array")
+
+    # The declared top-level enums must match the canonical sets defined
+    # above. Single source of truth. Drift here is a structural problem.
+    if set(role_families) != set(CANONICAL_ROLE_FAMILIES):
+        missing = set(CANONICAL_ROLE_FAMILIES) - set(role_families)
+        extra = set(role_families) - set(CANONICAL_ROLE_FAMILIES)
+        report.error(
+            "role_library.top_level",
+            f"declared role_families differs from canonical: missing={sorted(missing)} extra={sorted(extra)}",
+        )
+    if set(seniority_levels) != set(CANONICAL_SENIORITY_LEVELS):
+        missing = set(CANONICAL_SENIORITY_LEVELS) - set(seniority_levels)
+        extra = set(seniority_levels) - set(CANONICAL_SENIORITY_LEVELS)
+        report.error(
+            "role_library.top_level",
+            f"declared seniority_levels differs from canonical: missing={sorted(missing)} extra={sorted(extra)}",
+        )
 
     roles = role_lib.get("roles") or []
     role_ids: set[str] = set()
@@ -167,6 +217,31 @@ def validate_role_library(role_lib: dict, report: Report) -> tuple[set[str], lis
                 f"role {role_id!r} has seniority {role['seniority']!r} not in seniority_levels enum",
                 **ctx,
             )
+
+        # secondary_family — optional, but if present must:
+        #   (a) be in the role_families enum, AND
+        #   (b) differ from the primary role_family.
+        if "secondary_family" in role and role["secondary_family"] is not None:
+            sf = role["secondary_family"]
+            if sf not in role_families:
+                report.error("role.secondary_family_enum",
+                             f"role {role_id!r} has secondary_family {sf!r} not in role_families enum", **ctx)
+            elif sf == role.get("role_family"):
+                report.error("role.secondary_family_distinct",
+                             f"role {role_id!r} secondary_family {sf!r} duplicates primary role_family", **ctx)
+
+        # market_notes shape — must be an object with locale keys, not a flat string.
+        if "market_notes" in role:
+            mn = role["market_notes"]
+            if not isinstance(mn, dict):
+                report.error("role.market_notes_shape",
+                             f"role {role_id!r} market_notes must be an object with locale keys (e.g. {{israel: '...', us: '...'}})",
+                             **ctx)
+            else:
+                for locale, note in mn.items():
+                    if not isinstance(locale, str) or not isinstance(note, str):
+                        report.error("role.market_notes_shape",
+                                     f"role {role_id!r} market_notes entry {locale!r} must map a locale string to a note string", **ctx)
 
         # Type checks for the array fields
         for field in ["alternate_titles", "core_responsibilities", "required_skills",
@@ -291,12 +366,27 @@ def validate_mapping(mapping: dict, role_ids: set[str], skill_ids: set[str], rep
             else:
                 seen_role_ids.add(m["role_id"])
 
+        # Skills in mapping can be either string IDs OR rich
+        # {skill_id, required_proficiency} objects. Validate both shapes.
         for field in ["core_skills", "secondary_skills", "differentiator_skills"]:
             for ref in m.get(field, []) or []:
-                if isinstance(ref, str) and ref not in skill_ids:
+                sid: str | None = None
+                if isinstance(ref, str):
+                    sid = ref
+                elif isinstance(ref, dict):
+                    sid = ref.get("skill_id")
+                    if not isinstance(sid, str) or not sid:
+                        report.error("mapping.skill_shape",
+                                     f"mapping for {role_id!r} {field} has entry missing skill_id: {ref!r}", **ctx)
+                        continue
+                else:
+                    report.error("mapping.skill_shape",
+                                 f"mapping for {role_id!r} {field} has unrecognised entry type: {type(ref).__name__}", **ctx)
+                    continue
+                if sid and sid not in skill_ids:
                     report.error(
                         "mapping.skill_xref",
-                        f"mapping for {role_id!r} {field} references unknown skill_id {ref!r}",
+                        f"mapping for {role_id!r} {field} references unknown skill_id {sid!r}",
                         **ctx,
                     )
 
