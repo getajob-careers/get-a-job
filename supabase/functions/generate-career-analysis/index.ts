@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
+import { pickPrimaryEducation, isCurrentlyStudent, formatEducationLine } from '../_shared/education-helpers.ts'
 
 // --- Load JSON Libraries ---
 import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
@@ -454,8 +455,12 @@ function rolesFamiliesFromExperiences(experiences: any[]): Set<string> {
 // gig overlapping with education, treat as still-a-student.
 function inferExperienceLevel(experiences: any[], profile: any): ExperienceLevel {
   const years = totalYearsOfExperience(experiences);
-  const edu = String(profile?.education_level || "").toLowerCase();
-  const explicitStudent = edu.includes("student") || edu.includes("in progress") || edu.includes("current");
+  // Phase B: student detection uses the education table's is_current flag
+  // on undergrad-or-above rows. Previously this read profile.education_level
+  // as a single string and looked for substrings like "student" / "in
+  // progress" — which never matched because the column held canonical
+  // enum values like "bachelors". The new check is real.
+  const explicitStudent = isCurrentlyStudent(profile?.education || []);
   if (explicitStudent || years < 3) return "early_career";
   if (years < 8) return "mid_career";
   return "senior_career";
@@ -700,7 +705,12 @@ Deno.serve(async (req) => {
     }
     const { dream_roles } = body
 
-    const { data: profiles } = await supabase.from('profiles').select('*').eq('id', user.id)
+    // Nested select pulls the user's education rows in the same round trip
+    // (Phase B refactor). inferExperienceLevel and the LLM prompt both
+    // consume the array; sanitisedProfile uses pickPrimaryEducation to
+    // surface the highest current/completed entry for the single-line
+    // education context in the prompt.
+    const { data: profiles } = await supabase.from('profiles').select('*, education(*)').eq('id', user.id)
     const { data: experiences } = await supabase.from('experiences').select('*').eq('user_id', user.id)
     const { data: projects } = await supabase.from('projects').select('*').eq('user_id', user.id)
     const { data: certifications } = await supabase.from('certifications').select('*').eq('user_id', user.id)
@@ -713,13 +723,15 @@ Deno.serve(async (req) => {
       })
     }
 
+    const primaryEdu = pickPrimaryEducation(profile.education || [])
+
     const trunc = (s: unknown, max: number) => String(s ?? '').slice(0, max);
     const sanitisedProfile = {
       full_name: trunc(profile.full_name, 100),
       skills: (profile.skills || []).slice(0, 50).map((s: unknown) => trunc(s, 60)),
-      degree: trunc(profile.degree, 100),
-      field_of_study: trunc(profile.field_of_study, 100),
-      education_level: trunc(profile.education_level, 50),
+      degree: trunc(primaryEdu?.degree_type ?? '', 100),
+      field_of_study: trunc(primaryEdu?.field_of_study ?? '', 100),
+      education_level: trunc(primaryEdu?.education_level ?? '', 50),
       summary: trunc(profile.summary, 500),
       five_year_role: trunc(profile.five_year_role, 100),
       target_job_titles: (profile.target_job_titles || []).slice(0, 10).map((t: unknown) => trunc(t, 100)),

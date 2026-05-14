@@ -53,22 +53,20 @@ export function inferExperienceType(e) {
 // [], jsonb → null/[], text → "", boolean → false). Auto-save sends the
 // payload to Postgres; getting the type wrong here makes PostgREST reject the
 // row update with "malformed array literal" or similar.
+// Education fields previously lived here (degree, field_of_study,
+// education_level, education_dates, secondary_education, gpa, honors,
+// relevant_coursework, academic_projects, education_institution).
+// Phase B (2026-05-14) moved them to the education table — see the
+// `educations` state in Onboarding.jsx and the education tab in
+// AddInformation.jsx. languages stays on profiles (person-level, not
+// tied to a specific degree).
 export const EMPTY_PROFILE = {
   full_name: "",
   phone_number: "",
   summary: "",
   linkedin_url: "",
   resume_url: "",
-  degree: "",
-  education_level: "",
-  field_of_study: "",
-  education_dates: "",
-  secondary_education: null,
   languages: [],
-  relevant_coursework: [],
-  academic_projects: [],
-  gpa: "",
-  honors: [],
   // skills is the single flat array — categories were dropped (Bug 3 fix).
   // The CV extractor and StepSkills both write directly here. The career
   // analysis edge function reads only this field; categories never had a
@@ -94,13 +92,31 @@ export const EMPTY_PROFILE = {
   proof_signals: [],
   primary_domain: null,
   adjacent_fields: [],
-  // Education institution captured in StepEducation (added Wk 4). Drives
-  // institution-aware copy in StepPracticum (Reichman vs generic framing).
-  education_institution: "",
   // Practicum fields captured in StepPracticum (Wk 4). path is null when
   // user opts out; cohort is free-text and optional.
   practicum_path: null,
   practicum_cohort: "",
+};
+
+// Empty row used when initialising the educations state in a fresh
+// onboarding session (no CV uploaded, no DB row yet). display_order=0
+// marks it as the primary entry; is_current=true defaults to "still
+// studying" which is the common case for our pilot audience.
+export const EMPTY_EDUCATION_ROW = {
+  id: undefined,           // set after first INSERT
+  institution: "",
+  education_level: "",
+  degree_type: "",
+  field_of_study: "",
+  start_date: "",
+  end_date: "",
+  is_current: true,
+  gpa: "",
+  honors: [],
+  relevant_coursework: [],
+  academic_projects: [],
+  location: "",
+  display_order: 0,
 };
 
 // Whitelist + return only the fields that actually exist on the profiles DB
@@ -108,29 +124,27 @@ export const EMPTY_PROFILE = {
 // the six skill-category arrays, academic_projects, volunteering) MUST be
 // excluded here — saveProgress otherwise hands them to PostgREST which
 // rejects the whole row with a 400.
+// Whitelist of fields that map to columns on the profiles table. Education
+// fields have moved off profiles into their own table (Phase B, 2026-05-14)
+// and are persisted through a separate education-table write path — they
+// are intentionally NOT in this list.
 export function cleanProfilePayload(data) {
   const {
-    full_name, phone_number, location, linkedin_url, summary, skills,
-    degree, field_of_study, education_level, gpa, honors, relevant_coursework, resume_url,
-    // Extended education fields populated from CV extraction (N-O22→26)
-    education_dates, secondary_education, languages, education_institution,
+    full_name, phone_number, location, linkedin_url, summary, skills, resume_url,
+    languages,
     onboarding_step, onboarding_complete,
     skill_gaps, qualification_level, overall_assessment, last_reality_check_date,
     five_year_role, proof_signals, primary_domain, adjacent_fields,
-    // Practicum (Wk 4 — StepPracticum)
     practicum_path, practicum_cohort,
-    // Survey fields (StepSurvey)
     biggest_challenge, cv_tailoring_strategy, linkedin_outreach_strategy,
     role_clarity_score, job_search_efforts,
-    // Preference fields (StepCareerDirection + StepConstraints)
     target_job_titles, target_industries, work_environment, work_type,
     employment_status, salary_expectation, available_start_date,
     open_to_lateral, open_to_outside_degree,
   } = data;
   return {
-    full_name, phone_number, location, linkedin_url, summary, skills,
-    degree, field_of_study, education_level, gpa, honors, relevant_coursework, resume_url,
-    education_dates, secondary_education, languages, education_institution,
+    full_name, phone_number, location, linkedin_url, summary, skills, resume_url,
+    languages,
     onboarding_step, onboarding_complete,
     skill_gaps, qualification_level, overall_assessment, last_reality_check_date,
     five_year_role, proof_signals, primary_domain, adjacent_fields,

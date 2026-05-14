@@ -1,6 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { startMetric, finishMetric, type Metric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
+import { pickPrimaryEducation } from '../_shared/education-helpers.ts'
 import { CV_VOICE_RULES } from '../_shared/voice-rules.ts'
 import { buildCV } from '../_shared/cv-templates/build.ts'
 import { matchRoleToLibrary, resolveSectorTheme } from '../_shared/cv-templates/sector-mapping.ts'
@@ -229,7 +230,7 @@ Deno.serve(async (req) => {
     }
 
     const [profileRes, experiencesRes, projectsRes, certificationsRes] = await Promise.all([
-      supabase.from("profiles").select("*").eq("id", user.id).single(),
+      supabase.from("profiles").select("*, education(*)").eq("id", user.id).single(),
       supabase.from("experiences").select("*").eq("user_id", user.id),
       supabase.from("projects").select("*").eq("user_id", user.id),
       supabase.from("certifications").select("*").eq("user_id", user.id),
@@ -255,7 +256,11 @@ Deno.serve(async (req) => {
     const linkedinPresent = !!String(profile.linkedin_url ?? "").trim();
     const locationPresent = !!String(profile.location ?? "").trim();
     const languagesPresent = Array.isArray(profile.languages) && profile.languages.length > 0;
-    const educationDatesPresent = !!String(profile.education_dates ?? "").trim();
+    // Phase B: education_dates now lives per-row on the education table.
+    // "Present" means at least one row has a start_date populated.
+    const educationDatesPresent = Array.isArray(profile.education) && profile.education.some(
+      (e: any) => String(e?.start_date ?? "").trim() || String(e?.end_date ?? "").trim()
+    );
     console.log("generate-tailored-cv contact-fields", JSON.stringify({
       user_id: user.id,
       phone_number: phonePresent ? "present" : "MISSING (empty in DB)",
@@ -555,34 +560,28 @@ Deno.serve(async (req) => {
         issuer: trunc(c.issuer, 100),
         date_earned: trunc(c.date_earned, 20),
       })),
-      education: {
-        // Institution is the canonical source — passed to the LLM so it
-        // can echo correctly, and overridden server-side after generation
-        // (see institution-guard block below) so the LLM can never
-        // confabulate a different name. PR #25 added profiles.education_institution
-        // because the column was missing — without it, the LLM was
-        // hallucinating an institution name on every CV gen.
-        institution: trunc(profile.education_institution, 200),
-        degree: trunc(profile.degree, 100),
-        field_of_study: trunc(profile.field_of_study, 100),
-        education_level: trunc(profile.education_level, 50),
-        gpa: trunc(profile.gpa, 10),
-        // Dates are stored as free text ("2023 - Present", "Sep 2021 - Jun
-        // 2024", etc.) — the LLM echoes this through as-is.
-        dates: trunc(profile.education_dates, 40),
-        honors: safeArray(profile.honors).slice(0, 15).map((h) => trunc(h, 200)),
-        relevant_coursework: safeArray(profile.relevant_coursework).slice(0, 20).map((c) => trunc(c, 100)),
-      },
-      // Optional pre-university / high-school entry. Users without one will
-      // see this as null and the renderer will skip the entry cleanly.
-      secondary_education: profile.secondary_education && typeof profile.secondary_education === "object"
-        ? {
-            institution: trunc((profile.secondary_education as any).institution, 200),
-            location: trunc((profile.secondary_education as any).location, 200),
-            dates: trunc((profile.secondary_education as any).dates, 40),
-            highlights: safeArray((profile.secondary_education as any).highlights).slice(0, 6).map((h) => trunc(h, 200)),
-          }
-        : null,
+      // Education entries — Phase B moved education off profiles flat
+      // columns into its own table. The LLM receives the full list so it
+      // can render all of the user's degrees (e.g. Bachelor's AND Master's,
+      // or a dual-degree pair). Primary education comes from
+      // pickPrimaryEducation; secondary entries (high school) just sort
+      // after via display_order.
+      education_list: (profile.education ?? []).map((e: any) => ({
+        institution: trunc(e?.institution ?? '', 200),
+        degree: trunc(e?.degree_type ?? '', 100),
+        field_of_study: trunc(e?.field_of_study ?? '', 100),
+        education_level: trunc(e?.education_level ?? '', 50),
+        gpa: trunc(e?.gpa ?? '', 10),
+        // Dates: free text — render the natural-language range. The
+        // renderer / LLM echoes through as-is.
+        dates: ((e?.start_date && e?.end_date) ? `${e.start_date} – ${e.end_date}`
+              : (e?.start_date ? `${e.start_date}${e?.is_current ? ' – Present' : ''}` : '')),
+        honors: safeArray(e?.honors).slice(0, 15).map((h: unknown) => trunc(h, 200)),
+        relevant_coursework: safeArray(e?.relevant_coursework).slice(0, 20).map((c: unknown) => trunc(c, 100)),
+        academic_projects: safeArray(e?.academic_projects).slice(0, 10).map((p: unknown) => trunc(p, 200)),
+        location: trunc(e?.location ?? '', 200),
+        is_current: !!e?.is_current,
+      })),
       // Rich pre-scored evidence from the onboarding analyzer. Helps the LLM
       // pick which experiences to emphasize without inventing metrics.
       proof_signals: safeArray(profile.proof_signals).slice(0, 20),
@@ -1118,31 +1117,34 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     //     value (set to empty string) on the primary entry. The renderer
     //     will show the degree without an institution line, surfacing the
     //     gap. Anti-fabrication > completeness.
-    const canonicalInstitution = String(profile.education_institution || "").trim();
-    const secondaryInstitutionLower = String(
-      (profile.secondary_education as any)?.institution || ""
-    ).trim().toLowerCase();
+    // Phase B: canonical institutions are now per-row on the education
+    // table. Build a set of known-good institution names from the user's
+    // education rows. Any LLM-produced cvData.education[].institution that
+    // doesn't match a known name is overridden with the closest match by
+    // education_level (degree pairing), or stripped if no match.
+    const primaryEdu = pickPrimaryEducation(profile.education ?? []);
+    const knownInstitutionsByLevel = new Map<string, string>();
+    for (const e of (profile.education ?? [])) {
+      if (e?.institution && e?.education_level) {
+        knownInstitutionsByLevel.set(e.education_level, e.institution);
+      }
+    }
     if (Array.isArray(cvData.education)) {
-      let primaryDone = false;
       for (const edu of cvData.education) {
-        const eduInstLower = String(edu.institution || "").trim().toLowerCase();
-        const isSecondary = secondaryInstitutionLower && eduInstLower === secondaryInstitutionLower;
-        if (isSecondary) continue; // secondary_education entry — leave it alone
-        if (primaryDone) continue; // we only override the first non-secondary entry
-        if (canonicalInstitution) {
-          if (edu.institution !== canonicalInstitution) {
-            console.log(`[CV] education institution overridden: "${edu.institution}" → "${canonicalInstitution}"`);
-            edu.institution = canonicalInstitution;
+        // Match by education_level if possible — pairs the LLM's
+        // "bachelors" entry with the bachelors-row's institution.
+        const canonical = knownInstitutionsByLevel.get(edu.education_level)
+          || primaryEdu?.institution
+          || "";
+        if (canonical) {
+          if (edu.institution !== canonical) {
+            console.log(`[CV] education institution overridden: "${edu.institution}" → "${canonical}"`);
+            edu.institution = canonical;
           }
-        } else {
-          // No source data — strip whatever the LLM produced. Renderer
-          // handles empty institution gracefully (degree-only entry).
-          if (edu.institution) {
-            console.log(`[CV] education institution stripped (no profile source): was "${edu.institution}"`);
-            edu.institution = "";
-          }
+        } else if (edu.institution) {
+          console.log(`[CV] education institution stripped (no profile source): was "${edu.institution}"`);
+          edu.institution = "";
         }
-        primaryDone = true;
       }
     }
 

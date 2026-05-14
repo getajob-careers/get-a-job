@@ -11,6 +11,7 @@ import SkillGapCourses from "../components/dashboard/SkillGapCourses";
 import JobMatchChecker from "../components/dashboard/JobMatchChecker";
 import DailyActionCard from "../components/dashboard/DailyActionCard";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
+import { pickPrimaryEducation } from "@/lib/educationPolicy";
 
 export default function Home() {
   const queryClient = useQueryClient();
@@ -22,7 +23,13 @@ export default function Home() {
   const { data: profiles = [], isLoading: loadingProfile, isFetched: profileFetched, isError: profileError } = useQuery({
     queryKey: ["userProfile", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id);
+      // Nested select pulls education in the same round trip — Phase B
+      // moved education off profiles flat columns. We pick the primary
+      // row client-side via pickPrimaryEducation.
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*, education(*)")
+        .eq("id", user.id);
       if (error) throw error;
       return data || [];
     },
@@ -90,6 +97,7 @@ export default function Home() {
   });
 
   const profile = profiles?.[0] || null;
+  const primaryEdu = pickPrimaryEducation(profile?.education || []);
   const stale = isAnalysisStale({ profile, experiences, certifications, projects });
   const isLoading = loadingProfile || loadingRoles || loadingApps;
 
@@ -321,9 +329,9 @@ export default function Home() {
           ) : (
             <p className="text-sm text-[#A3A3A3]">Not yet determined</p>
           )}
-          {profile?.field_of_study && (
+          {primaryEdu?.field_of_study && (
             <p className="text-xs text-[#A3A3A3] mt-2">
-              {profile.education_level?.replaceAll("_", " ")} · {profile.field_of_study}
+              {primaryEdu.education_level?.replaceAll("_", " ")} · {primaryEdu.field_of_study}
             </p>
           )}
         </div>

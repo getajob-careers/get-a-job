@@ -6,7 +6,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { createPageUrl } from "@/utils";
 import { Loader2 } from "lucide-react";
 import { EMPTY_PROFILE, cleanProfilePayload, ALLOWED_EXPERIENCE_TYPES, inferExperienceType } from "@/lib/onboardingPayload";
-import { normalizeEducationLevel } from "@/lib/educationPolicy";
+import { normalizeEducationLevel, parseEducationDateRange } from "@/lib/educationPolicy";
 import { resolveDueDate, defaultDueDateFor } from "@/lib/taskDueDate";
 
 import OnboardingShell from "../components/onboarding/OnboardingShell";
@@ -39,6 +39,11 @@ export default function Onboarding() {
   const [experiences, setExperiences] = useState([]);
   const [projects, setProjects] = useState([]);
   const [certifications, setCertifications] = useState([]);
+  // Education state — array of education rows for the user, matching the
+  // education table schema. Phase B (2026-05-14) moved education off the
+  // profiles flat columns into its own table. Hydrated on mount; written
+  // via UPSERT in saveProgress and on the tier-reveal transition.
+  const [educations, setEducations] = useState([]);
   const [checkingProfile, setCheckingProfile] = useState(true);
   const [existingProfileId, setExistingProfileId] = useState(null);
 
@@ -106,20 +111,41 @@ export default function Onboarding() {
       setProfileData((prev) => ({
         ...prev,
         ...p,
-        honors: p.honors || [],
         volunteering: p.volunteering || [],
       }));
       setStep(p.onboarding_step || 0);
 
-      // Hydrate experiences/projects/certifications from DB so a user resuming
-      // partway through sees and can edit their existing records. Without this,
-      // the finalization step would DELETE old records and INSERT nothing (React
-      // state started empty), silently wiping their data.
-      const [expRes, projRes, certRes] = await Promise.all([
+      // Hydrate experiences/projects/certifications/education from DB so a
+      // user resuming partway through sees and can edit their existing
+      // records. Without this, the finalization step would DELETE old
+      // records and INSERT nothing (React state started empty), silently
+      // wiping their data.
+      const [expRes, projRes, certRes, eduRes] = await Promise.all([
         supabase.from("experiences").select("*").eq("user_id", user.id),
         supabase.from("projects").select("*").eq("user_id", user.id),
         supabase.from("certifications").select("*").eq("user_id", user.id),
+        supabase.from("education").select("*").eq("user_id", user.id)
+          .order("display_order", { ascending: true, nullsLast: true })
+          .order("created_at", { ascending: true }),
       ]);
+      if (eduRes.data?.length) {
+        setEducations(eduRes.data.map((e) => ({
+          id: e.id,
+          institution: e.institution || "",
+          education_level: e.education_level || "",
+          degree_type: e.degree_type || "",
+          field_of_study: e.field_of_study || "",
+          start_date: e.start_date || "",
+          end_date: e.end_date || "",
+          is_current: e.is_current ?? false,
+          gpa: e.gpa || "",
+          honors: e.honors || [],
+          relevant_coursework: e.relevant_coursework || [],
+          academic_projects: e.academic_projects || [],
+          location: e.location || "",
+          display_order: e.display_order ?? 0,
+        })));
+      }
       if (expRes.data?.length) {
         setExperiences(expRes.data.map((e) => ({
           title: e.title || "",
@@ -170,22 +196,6 @@ export default function Onboarding() {
       location: extracted.location || prev.location,
       linkedin_url: extracted.linkedin_url || prev.linkedin_url,
       summary: extracted.summary || prev.summary,
-      degree: extracted.degree || edu.degree || prev.degree,
-      field_of_study: extracted.field_of_study || edu.field_of_study || prev.field_of_study,
-      // Primary degree institution — added to extraction in PR-1. The
-      // dead RESUME_SCHEMA (also deleted in PR-1) sometimes coaxed the
-      // LLM into returning an `education[0].institution` array form; we
-      // accept either shape defensively.
-      education_institution: extracted.institution || edu.institution || prev.education_institution,
-      education_level: normalizedLevel || prev.education_level,
-      gpa: extracted.gpa || edu.gpa || prev.gpa,
-      honors: extracted.honors || edu.honors || prev.honors || [],
-      // Academic projects (thesis, capstone, named coursework) — added to
-      // extraction in PR-1. Lands in profileData; Phase B will persist to
-      // the education table. Until then it stays in component state only.
-      academic_projects: extracted.academic_projects || prev.academic_projects || [],
-      education_dates: extracted.education_dates || prev.education_dates,
-      secondary_education: extracted.secondary_education || prev.secondary_education,
       languages: extracted.languages || prev.languages || [],
       // Single flat skills array — categories dropped in Bug 3 fix. The
       // extractor returns one combined list; StepSkills writes here too.
@@ -195,6 +205,62 @@ export default function Onboarding() {
       primary_domain: extracted.primary_domain || prev.primary_domain || null,
       adjacent_fields: extracted.adjacent_fields?.length ? extracted.adjacent_fields : prev.adjacent_fields || [],
     }));
+
+    // Education rows — write to the new education table state instead of
+    // flat profile columns (Phase B, 2026-05-14). Build a primary row from
+    // root-level extraction fields + optional secondary row from the
+    // secondary_education object.
+    const primaryEdu = {
+      id: undefined,
+      institution: extracted.institution || edu.institution || "",
+      education_level: normalizedLevel || "",
+      degree_type: extracted.degree || edu.degree || "",
+      field_of_study: extracted.field_of_study || edu.field_of_study || "",
+      start_date: parseEducationDateRange(extracted.education_dates).start,
+      end_date: parseEducationDateRange(extracted.education_dates).end,
+      is_current: parseEducationDateRange(extracted.education_dates).is_current,
+      gpa: extracted.gpa || edu.gpa || "",
+      honors: extracted.honors || edu.honors || [],
+      relevant_coursework: [],
+      academic_projects: extracted.academic_projects || [],
+      location: "",
+      display_order: 0,
+    };
+    const newEducations = [primaryEdu];
+
+    // Secondary education (high school) — silently created if the LLM
+    // returned one. Per design decision Q2, NOT shown in StepEducation
+    // (single-entry onboarding) — user can edit via AddInformation post-
+    // onboarding.
+    if (extracted.secondary_education && typeof extracted.secondary_education === "object") {
+      const sec = extracted.secondary_education;
+      const secDates = parseEducationDateRange(sec.dates);
+      newEducations.push({
+        id: undefined,
+        institution: sec.institution || "",
+        education_level: "high_school",
+        degree_type: "",
+        field_of_study: "",
+        start_date: secDates.start,
+        end_date: secDates.end,
+        is_current: false,
+        gpa: "",
+        honors: Array.isArray(sec.highlights) ? sec.highlights : [],
+        relevant_coursework: [],
+        academic_projects: [],
+        location: sec.location || "",
+        display_order: 1,
+      });
+    }
+
+    setEducations((prev) => {
+      // Preserve existing row ids when re-extracting — keeps UPSERT clean.
+      const merged = [...newEducations];
+      for (let i = 0; i < merged.length; i++) {
+        if (prev[i]?.id) merged[i].id = prev[i].id;
+      }
+      return merged;
+    });
 
     // Pre-fill experiences from resume
     const exps = extracted.experiences || extracted.experience || [];
@@ -225,6 +291,61 @@ export default function Onboarding() {
     }
   };
 
+  // Persist any education rows that have been touched. Rows with an id
+  // get UPDATEd in place; rows without an id get INSERTed and their new
+  // id is written back into local state for subsequent saves. Empty rows
+  // (no institution, no level, no degree_type) are skipped so initial
+  // blank state during onboarding doesn't write garbage. We do NOT delete
+  // rows here — only AddInformation's editor (post-onboarding) can delete.
+  const saveEducations = async () => {
+    if (!Array.isArray(educations) || educations.length === 0) return;
+    const updatedById = {};
+    for (let i = 0; i < educations.length; i++) {
+      const e = educations[i];
+      const hasContent =
+        (e.institution || "").trim() !== "" ||
+        (e.education_level || "").trim() !== "" ||
+        (e.degree_type || "").trim() !== "" ||
+        (e.field_of_study || "").trim() !== "";
+      if (!hasContent) continue;
+      const row = {
+        user_id: user.id,
+        institution: e.institution || null,
+        education_level: e.education_level || null,
+        degree_type: e.degree_type || null,
+        field_of_study: e.field_of_study || null,
+        start_date: e.start_date || null,
+        end_date: e.end_date || null,
+        is_current: !!e.is_current,
+        gpa: e.gpa || null,
+        honors: e.honors || [],
+        relevant_coursework: e.relevant_coursework || [],
+        academic_projects: e.academic_projects || [],
+        location: e.location || null,
+        display_order: e.display_order ?? i,
+      };
+      if (e.id) {
+        const { error: updErr } = await supabase
+          .from("education")
+          .update(row)
+          .eq("id", e.id)
+          .eq("user_id", user.id);
+        if (updErr) throw updErr;
+      } else {
+        const { data, error: insErr } = await supabase
+          .from("education")
+          .insert(row)
+          .select("id")
+          .single();
+        if (insErr) throw insErr;
+        if (data?.id) updatedById[i] = data.id;
+      }
+    }
+    if (Object.keys(updatedById).length > 0) {
+      setEducations((prev) => prev.map((e, i) => updatedById[i] ? { ...e, id: updatedById[i] } : e));
+    }
+  };
+
   const saveProgress = async (stepNum) => {
     // skills is a single flat array now (Bug 3 fix dropped categories).
     // Dedupe to guard against accidental duplicate adds in the UI.
@@ -234,10 +355,10 @@ export default function Onboarding() {
       skills: [...new Set(profileData.skills || [])],
     };
     const payload = cleanProfilePayload(rawPayload);
-    
+
     // Remove undefined values so we don't accidentally overwrite DB fields with null/undefined unnecessarily
     Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
-    
+
     if (existingProfileId) {
       const { error: updateError } = await supabase.from("profiles").update(payload).eq("id", existingProfileId);
       if (updateError) throw updateError;
@@ -252,6 +373,11 @@ export default function Onboarding() {
         setExistingProfileId(data[0].id);
       }
     }
+
+    // Persist education rows to the new table (Phase B). Done AFTER the
+    // profile UPSERT because the FK on education.user_id depends on the
+    // auth user existing — profiles.id and auth.users.id are 1:1.
+    await saveEducations();
   };
 
   const goTo = async (nextStep) => {
@@ -739,6 +865,8 @@ export default function Onboarding() {
         <StepEducation
           data={profileData}
           onChange={setProfileData}
+          educations={educations}
+          setEducations={setEducations}
           onNext={() => goTo(2)}
           onBack={() => goTo(0)}
         />
@@ -747,6 +875,7 @@ export default function Onboarding() {
         <StepPracticum
           data={profileData}
           onChange={setProfileData}
+          educations={educations}
           onNext={() => goTo(3)}
           onBack={() => goTo(1)}
         />

@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
+import { pickPrimaryEducation } from '../_shared/education-helpers.ts'
 
 // generate-internship-profile — Wk 4 Internship Finder profile generator.
 //
@@ -147,7 +148,7 @@ Deno.serve(async (req) => {
 
     // ── Pull user signal in parallel ──────────────────────────────────
     const [profileRes, careerRolesRes, experiencesRes, storiesRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).maybeSingle(),
+      supabase.from('profiles').select('*, education(*)').eq('id', user.id).maybeSingle(),
       supabase.from('career_roles').select('*').eq('user_id', user.id),
       supabase.from('experiences').select('id, title, company, description, start_date, end_date').eq('user_id', user.id),
       supabase.from('stories')
@@ -440,10 +441,13 @@ function buildUserContext(args: {
   if (profile) {
     lines.push('PROFILE:')
     if (profile.full_name) lines.push(`- Name: ${profile.full_name}`)
-    if (profile.degree || profile.field_of_study || profile.education_level) {
-      lines.push(`- Education: ${[profile.degree, profile.field_of_study, profile.education_level].filter(Boolean).join(' · ')}`)
+    // Phase B: education is now a nested array. Surface the primary row
+    // for the LLM prompt context.
+    const primaryEdu = pickPrimaryEducation((profile as any).education || [])
+    if (primaryEdu?.degree_type || primaryEdu?.field_of_study || primaryEdu?.education_level) {
+      lines.push(`- Education: ${[primaryEdu.degree_type, primaryEdu.field_of_study, primaryEdu.education_level].filter(Boolean).join(' · ')}`)
     }
-    if (profile.education_institution) lines.push(`- Institution: ${profile.education_institution}`)
+    if (primaryEdu?.institution) lines.push(`- Institution: ${primaryEdu.institution}`)
     if (profile.location) lines.push(`- Location: ${profile.location}`)
     if (profile.five_year_role) lines.push(`- 5-year goal: ${profile.five_year_role}`)
     if (profile.primary_domain) lines.push(`- Primary domain interest: ${profile.primary_domain}`)

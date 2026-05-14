@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
+import { pickPrimaryEducation, isCurrentlyStudent, formatEducationLine } from '../_shared/education-helpers.ts'
 
 import { roleLibrary } from '../_shared/libraries/00_role_library.ts'
 import { roleSkillMapping } from '../_shared/libraries/04_role_skill_mapping.ts'
@@ -81,9 +82,12 @@ function canonicalizeRoleTitle(raw: string): string {
 // uses, but local to this function (no shared module yet). Counts years of
 // dated experiences; education = student/in-progress short-circuits to early.
 type ExperienceLevel = 'early_career' | 'mid_career' | 'senior_career'
-function inferUserLevel(experiences: any[], educationLevel: string | null | undefined): ExperienceLevel {
-  const edu = String(educationLevel ?? '').toLowerCase()
-  if (/student|in.progress|current/.test(edu)) return 'early_career'
+// Phase B: education student-check now reads the education table's
+// is_current flag on undergrad-or-above rows (see _shared/education-helpers.ts).
+// The previous substring check on a single string column was dead code —
+// enum values like "bachelors" never contained "student" / "in progress".
+function inferUserLevel(experiences: any[], educations: any[] | null | undefined): ExperienceLevel {
+  if (isCurrentlyStudent(educations || [])) return 'early_career'
   let years = 0
   for (const e of experiences || []) {
     const startMatch = String(e?.start_date ?? '').match(/\d{4}/)
@@ -252,7 +256,7 @@ Deno.serve(async (req) => {
       : ''
 
     // 1. Fetch user data
-    const { data: profiles } = await supabase.from('profiles').select('*').eq('id', user.id)
+    const { data: profiles } = await supabase.from('profiles').select('*, education(*)').eq('id', user.id)
     const { data: experiences } = await supabase.from('experiences').select('*').eq('user_id', user.id)
     const { data: careerRoles } = await supabase
       .from('career_roles')
@@ -554,7 +558,7 @@ Deno.serve(async (req) => {
     // Compute the user's experience level once. Used in both the system
     // prompt's seniority awareness rules and the user prompt header so the
     // LLM has consistent context for the per-job seniority gap math.
-    const userLevel = inferUserLevel(experiences || [], profile.education_level)
+    const userLevel = inferUserLevel(experiences || [], profile.education || [])
 
     const systemPrompt = [
       'You are the Get-A-Job Smart Match Engine. Your job is to score live job listings against a user\'s profile and generate personalised role recommendations.',
@@ -595,7 +599,7 @@ Deno.serve(async (req) => {
 - Skills: ${JSON.stringify((profile.skills || []).slice(0, 50))}
 - Summary: ${trunc(profile.summary, 300) || 'Not provided'}
 - Experience Titles: ${JSON.stringify((experiences || []).slice(0, 10).map((e: any) => trunc(e.title, 80)))}
-- Education: ${trunc(profile.degree, 80)} in ${trunc(profile.field_of_study, 80)} (${trunc(profile.education_level, 40)})
+- Education: ${trunc(formatEducationLine(pickPrimaryEducation(profile.education || [])), 200)}
 
 LIVE JOBS TO SCORE:
 ${JSON.stringify(liveJobs.map(j => ({

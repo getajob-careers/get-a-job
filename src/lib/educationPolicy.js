@@ -142,3 +142,89 @@ export function dropdownValueForDegreeType(stored) {
   if (!stored) return "";
   return DEGREE_TYPE_VALUES.has(stored) ? stored : "other";
 }
+
+// Education-level ranking — used to pick a single "primary" row for
+// single-value display contexts (Home chip, ProfileSummary card, LLM
+// prompts that send one education line). Higher rank = "primary-er."
+//
+// Algorithm in pickPrimaryEducation:
+//   1. Among rows with is_current=true, pick the highest-ranked level.
+//   2. If no current rows, pick the highest-ranked level overall.
+//   3. If still tied (e.g. dual-degree at same level), pick by display_order
+//      ascending, then by id ascending for determinism.
+//   4. If the array is empty, return null.
+//
+// Dual-degree handling: when a user has two bachelor's at the same
+// institution with the same dates, both rank equally on level + is_current.
+// display_order acts as the user-curated tiebreaker — onboarding writes 0
+// to the primary CV-extracted row, so it wins. Either way, the chosen row
+// surfaces the same institution + level + field for display.
+const EDUCATION_LEVEL_RANK = {
+  phd: 6,
+  masters: 5,
+  bachelors: 4,
+  associate: 3,
+  bootcamp: 2,
+  self_taught: 1,
+  high_school: 0,
+};
+
+function rankOf(level) {
+  return EDUCATION_LEVEL_RANK[level] ?? -1;
+}
+
+export function pickPrimaryEducation(educations) {
+  if (!Array.isArray(educations) || educations.length === 0) return null;
+
+  // Stable sort by (is_current desc, level rank desc, display_order asc, id asc).
+  // is_current=true wins; among current, highest level wins; among same level,
+  // lowest display_order wins; final tiebreaker by id for determinism.
+  const sorted = [...educations].sort((a, b) => {
+    if ((b.is_current ? 1 : 0) !== (a.is_current ? 1 : 0)) {
+      return (b.is_current ? 1 : 0) - (a.is_current ? 1 : 0);
+    }
+    if (rankOf(a.education_level) !== rankOf(b.education_level)) {
+      return rankOf(b.education_level) - rankOf(a.education_level);
+    }
+    const ao = a.display_order ?? Number.MAX_SAFE_INTEGER;
+    const bo = b.display_order ?? Number.MAX_SAFE_INTEGER;
+    if (ao !== bo) return ao - bo;
+    return String(a.id ?? "").localeCompare(String(b.id ?? ""));
+  });
+  return sorted[0];
+}
+
+// Convenience: does the user have at least one in-progress education entry
+// at undergrad-or-above level? Replaces the dead "edu.includes('student')"
+// substring check in inferExperienceLevel/inferUserLevel — those now check
+// the education table directly.
+const STUDENT_CHECK_LEVELS = new Set(["bachelors", "masters", "phd"]);
+
+export function isCurrentlyStudent(educations) {
+  if (!Array.isArray(educations)) return false;
+  return educations.some(
+    (e) => e?.is_current === true && STUDENT_CHECK_LEVELS.has(e?.education_level)
+  );
+}
+
+// Parse free-form "YYYY - Present" / "YYYY-YYYY" date ranges that the CV
+// extractor returns into structured { start, end, is_current }. Mirrors the
+// regex used by the Phase A backfill migration so frontend and backfill
+// stay aligned. Falls back to dumping the whole string into start_date if
+// the separator isn't found — nothing is lost.
+const DATE_RANGE_SEP = /\s*[-–]\s*/;
+
+export function parseEducationDateRange(raw) {
+  const s = String(raw || "").trim();
+  if (!s) return { start: "", end: "", is_current: false };
+  if (DATE_RANGE_SEP.test(s)) {
+    const parts = s.split(DATE_RANGE_SEP);
+    const start = (parts[0] || "").trim();
+    const end = (parts[1] || "").trim();
+    const isCurrent = /present|current/i.test(end);
+    return { start, end, is_current: isCurrent };
+  }
+  // No separator — whole string is the start
+  const isCurrent = /present|current/i.test(s);
+  return { start: s, end: "", is_current: isCurrent };
+}

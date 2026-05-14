@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
+import { pickPrimaryEducation } from '../_shared/education-helpers.ts'
 import { LINKEDIN_VOICE_RULES } from '../_shared/voice-rules.ts'
 
 // generate-linkedin-content — Wk 3 LinkedIn Optimizer v1.
@@ -458,7 +459,7 @@ Deno.serve(async (req) => {
     // most users won't have imported yet (and first-time refinement requires
     // a prior generation, which is enforced below).
     const [profileRes, experiencesRes, storiesRes, baselineRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id).single(),
+      supabase.from('profiles').select('*, education(*)').eq('id', user.id).single(),
       supabase.from('experiences').select('*').eq('user_id', user.id),
       supabase.from('stories').select('*').eq('user_id', user.id),
       supabase
@@ -577,12 +578,18 @@ Deno.serve(async (req) => {
       five_year_role: trunc(profile.five_year_role, 100),
       location: trunc(profile.location, 100),
       skills: safeArr(profile.skills).slice(0, 80).map((s) => trunc(s, 60)),
-      honors: safeArr(profile.honors).slice(0, 20).map((h) => trunc(h, 200)),
-      education: {
-        degree: trunc(profile.degree, 100),
-        field_of_study: trunc(profile.field_of_study, 100),
-        education_level: trunc(profile.education_level, 50),
-      },
+      // Phase B: education + honors moved off profiles flat columns to
+      // the education table. Honors are now per-row; flatten across all
+      // entries for prompt context.
+      honors: ((profile as any).education ?? []).flatMap((e: any) => safeArr(e?.honors)).slice(0, 20).map((h) => trunc(h, 200)),
+      education: (() => {
+        const primaryEdu = pickPrimaryEducation((profile as any).education || []);
+        return {
+          degree: trunc(primaryEdu?.degree_type ?? '', 100),
+          field_of_study: trunc(primaryEdu?.field_of_study ?? '', 100),
+          education_level: trunc(primaryEdu?.education_level ?? '', 50),
+        };
+      })(),
       professional_experiences: professionalExperiences.map(buildExpForLlm),
       volunteering_experiences: volunteeringExperiences.map(buildExpForLlm),
       military_experiences: militaryExperiences.map(buildExpForLlm),

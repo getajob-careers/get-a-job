@@ -1,7 +1,13 @@
 import React from "react";
 import { User, Target, Briefcase } from "lucide-react";
+import { pickPrimaryEducation } from "@/lib/educationPolicy";
 
 export default function ProfileSummary({ profile }) {
+  // Education moved off profiles flat columns to a separate table in
+  // Phase B. Callers passing `profile` from a `.select('*, education(*)')`
+  // query get an `education` array on the profile object; we pick the
+  // primary row client-side. Defaults to empty array for safety.
+  const primaryEdu = pickPrimaryEducation(profile?.education || []);
   if (!profile) {
     return (
       <div className="bg-white rounded-xl border border-[#E5E5E5] p-6">
@@ -29,8 +35,8 @@ export default function ProfileSummary({ profile }) {
         <div>
           <p className="text-sm font-semibold text-[#0A0A0A]">{profile.full_name}</p>
           <p className="text-xs text-[#A3A3A3]">
-            {profile.field_of_study || "No field specified"} 
-            {profile.education_level ? ` / ${profile.education_level.replace("_", " ")}` : ""}
+            {primaryEdu?.field_of_study || "No field specified"}
+            {primaryEdu?.education_level ? ` / ${primaryEdu.education_level.replace("_", " ")}` : ""}
           </p>
         </div>
       </div>
