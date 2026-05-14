@@ -274,6 +274,36 @@ Pulled from ROADMAP.md, scoped to your 2.5 days/week through launch.
 
 ---
 
+## Post-pilot backlog
+
+Things deliberately deferred during the Wk 3-6 launch push. **Pilot is Aug-Nov 2026; revisit these in Dec 2026 when the v2 cut window opens.**
+
+### ⚠️ Pre-launch items (needed before Aug 2026 pilot, not post)
+
+- **Account deletion** — full delete of the `auth.users` row plus CASCADE through 12+ public tables. The existing `reset_user_data(uuid)` RPC only clears career-direction fields on `profiles` and removes derived data; it does NOT delete the auth user. Likely needed for privacy compliance (GDPR / Israeli PPL right-to-be-forgotten) before opening to 100 students. Separate design pass required — affects: auth.users, profiles (PK is auth.users.id, ON DELETE CASCADE confirmed via FK audit yesterday — but verify other FKs), Stripe future, audit logs, Langfuse traces. Decision point: hard delete vs soft delete with 30-day grace, and whether the user calls a deletion edge function or hits a dashboard-mediated flow. **To discuss before building.**
+
+### Companies — collaborative enrichment via per-user annotations
+
+**Context:** PR #22 (2026-05-14, security audit C-4) tightened the `companies` UPDATE policy so manual companies are scoped to `created_by = auth.uid()`. This blocks A-to-B tampering but also blocks the legitimate flow where student B's chat agent enriches a manual company that student A originally created (UPDATE silently no-ops via the RLS USING filter).
+
+For 100-student pilot, duplicate manual rows are cheap and the security win matters more. Long-term, the cleaner pattern is a separate `company_enrichments` table where the `companies` row stays shared/read-mostly but each user owns their own per-company annotations (`description`, `domain`, `sector`, `notes`, etc.). The chat agent merges its-own-enrichment with the base row at read time. This preserves the SELECT-everywhere property that `company_targets` depends on while allowing each user to maintain their personal view of a company.
+
+**Shape sketch:**
+```sql
+CREATE TABLE company_enrichments (
+  user_id    uuid REFERENCES auth.users(id) ON DELETE CASCADE,
+  company_id uuid REFERENCES companies(id)  ON DELETE CASCADE,
+  description text, domain text, sector text, industry text, notes text,
+  updated_at timestamptz DEFAULT now(),
+  PRIMARY KEY (user_id, company_id)
+);
+-- RLS: USING/WITH CHECK (auth.uid() = user_id) — pure per-user table
+```
+
+Frontend reads `companies` + LEFT JOIN `company_enrichments` filtered to current user; renders the enrichment value if present, falls back to the base companies row. The chat agent's UPDATE pattern becomes UPSERT against `company_enrichments` instead of editing `companies` directly. Manual-company INSERT path stays as-is (each user creates their own row, optionally enriches it).
+
+---
+
 ## How to work with Claude Code
 
 We're using Claude (Opus 4.7 in 1M-context mode) as a pair programmer in two surfaces: **Claude Code** (terminal — direct file edits, command execution, runs lint/build) and **Claude.ai** (browser — research, deep planning, prompt-writing). The patterns below are how we've actually worked in PRs #20–#47.

@@ -16,6 +16,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PasswordCard from "@/components/account/PasswordCard";
 import {
   Dialog,
   DialogContent,
@@ -719,6 +720,7 @@ export default function AddInformation() {
           <TabsTrigger value="certifications" className="text-xs">Certifications</TabsTrigger>
           <TabsTrigger value="projects" className="text-xs">Projects</TabsTrigger>
           <TabsTrigger value="experience" className="text-xs">Experience</TabsTrigger>
+          <TabsTrigger value="account" className="text-xs">Account</TabsTrigger>
         </TabsList>
 
         {/* ── Profile tab — identity, contact, summary, skills, resume ──── */}
@@ -1440,6 +1442,11 @@ export default function AddInformation() {
               </div>
             )}
           </div>
+        </TabsContent>
+
+        {/* ── Account tab ─────────────────────────────────────────────────── */}
+        <TabsContent value="account">
+          <PasswordCard />
         </TabsContent>
       </Tabs>
 
