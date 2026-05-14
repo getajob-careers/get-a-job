@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
-import { EMPTY_PROFILE, cleanProfilePayload } from '@/lib/onboardingPayload';
+import {
+  EMPTY_PROFILE,
+  cleanProfilePayload,
+  ALLOWED_EXPERIENCE_TYPES,
+  inferExperienceType,
+} from '@/lib/onboardingPayload';
 
 // These tests now exercise the REAL cleanProfilePayload + EMPTY_PROFILE
 // from src/lib/onboardingPayload.js (extracted from Onboarding.jsx as part
@@ -253,5 +258,83 @@ describe('cleanProfilePayload', () => {
     expect(result.full_name).toBe('Isaac');
     expect(result).toHaveProperty('phone_number');
     expect(result.phone_number).toBeUndefined();
+  });
+});
+
+describe('ALLOWED_EXPERIENCE_TYPES', () => {
+  it('exposes the 7 enum values that match the prompt + experiences.type column', () => {
+    expect(ALLOWED_EXPERIENCE_TYPES.size).toBe(7);
+    for (const t of ['internship', 'full_time', 'part_time', 'freelance', 'volunteer', 'leadership', 'military']) {
+      expect(ALLOWED_EXPERIENCE_TYPES.has(t)).toBe(true);
+    }
+  });
+});
+
+describe('inferExperienceType — title-keyword overrides (fire BEFORE LLM hint)', () => {
+  // Regression for the bug Eli reported: "Volunteer Educator & Mentor" got
+  // classified as part_time because the LLM affirmatively returned wrong
+  // data and we trusted it. Title-only override now wins.
+  it('overrides LLM "part_time" with "volunteer" when title contains "Volunteer"', () => {
+    expect(inferExperienceType({
+      title: 'Volunteer Educator & Mentor',
+      company: 'Heseg Tzair',
+      type: 'part_time',
+    })).toBe('volunteer');
+  });
+
+  it('overrides LLM "full_time" with "internship" when title contains "Intern"', () => {
+    expect(inferExperienceType({
+      title: 'Marketing Intern',
+      company: 'Acme Co',
+      type: 'full_time',
+    })).toBe('internship');
+  });
+
+  it('overrides LLM hint with "freelance" when title says "Freelance"', () => {
+    expect(inferExperienceType({
+      title: 'Freelance Designer',
+      company: 'Self',
+      type: 'full_time',
+    })).toBe('freelance');
+  });
+
+  it('classifies military based on company name even when LLM says full_time', () => {
+    expect(inferExperienceType({
+      title: 'Combat Soldier',
+      company: 'Nahal Brigade',
+      type: 'full_time',
+    })).toBe('military');
+  });
+
+  it('recognizes Israeli military unit names in responsibilities text', () => {
+    expect(inferExperienceType({
+      title: 'Intelligence Analyst',
+      company: 'IDF',
+      responsibilities: ['Served in Unit 8200'],
+      type: 'full_time',
+    })).toBe('military');
+  });
+
+  it('trusts the LLM hint when no title-override fires', () => {
+    expect(inferExperienceType({
+      title: 'Customer Success Specialist',
+      company: 'Guardio',
+      type: 'full_time',
+    })).toBe('full_time');
+  });
+
+  it('falls back to full_time when no hint and no keyword matches', () => {
+    expect(inferExperienceType({
+      title: 'Analyst',
+      company: 'Some Company',
+    })).toBe('full_time');
+  });
+
+  it('falls back to text-keyword inference when the LLM omits a hint', () => {
+    expect(inferExperienceType({
+      title: 'Educator',
+      company: 'Heseg Tzair',
+      responsibilities: ['volunteer work tutoring at-risk youth'],
+    })).toBe('volunteer');
   });
 });

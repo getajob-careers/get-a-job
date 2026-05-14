@@ -1,13 +1,34 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import SkillTagInput from "./SkillTagInput";
+import { DEGREE_TYPE_OPTIONS, dropdownValueForDegreeType } from "@/lib/educationPolicy";
 
 export default function StepEducation({ data, onChange, onNext, onBack }) {
   const set = (key, val) => onChange({ ...data, [key]: val });
 
   const canProceed = data.full_name?.trim() && data.education_level;
+
+  // Degree dropdown — pick which option is "selected" based on what's stored.
+  // If the stored value isn't a preset, the dropdown shows "Other" and we
+  // surface a free-text input below for editing.
+  const degreeDropdownValue = useMemo(
+    () => dropdownValueForDegreeType(data.degree),
+    [data.degree]
+  );
+  const isDegreeOther = degreeDropdownValue === "other";
+
+  const handleDegreeDropdownChange = (v) => {
+    if (v === "other") {
+      // Switching to "Other" — preserve any existing non-preset value as
+      // the starting point for the free-text input. If the user was on a
+      // preset, clear the field so they can type their custom value.
+      set("degree", isDegreeOther ? data.degree : "");
+    } else {
+      set("degree", v);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -46,7 +67,7 @@ export default function StepEducation({ data, onChange, onNext, onBack }) {
             <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">
               Education Level
             </label>
-            <Select value={data.education_level || ""} onValueChange={(v) => set("education_level", v)}>
+            <Select value={data.education_level || undefined} onValueChange={(v) => set("education_level", v)}>
               <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="high_school">High School</SelectItem>
@@ -62,13 +83,24 @@ export default function StepEducation({ data, onChange, onNext, onBack }) {
 
           <div>
             <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">
-              Degree
+              Degree Type
             </label>
-            <Input
-              value={data.degree || ""}
-              onChange={(e) => set("degree", e.target.value)}
-              placeholder="e.g. BSc, BA, MBA"
-            />
+            <Select value={degreeDropdownValue || undefined} onValueChange={handleDegreeDropdownChange}>
+              <SelectTrigger><SelectValue placeholder="Select degree type" /></SelectTrigger>
+              <SelectContent>
+                {DEGREE_TYPE_OPTIONS.map((opt) => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {isDegreeOther && (
+              <Input
+                value={data.degree || ""}
+                onChange={(e) => set("degree", e.target.value)}
+                placeholder="e.g. B.Eng., Pharm.D., specific credential"
+                className="mt-2"
+              />
+            )}
           </div>
 
           <div>

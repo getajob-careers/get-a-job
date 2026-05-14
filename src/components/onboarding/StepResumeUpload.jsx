@@ -46,87 +46,13 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Loader2, Upload, CheckCircle2, ArrowRight, Linkedin } from "lucide-react";
 
-const RESUME_SCHEMA = {
-  type: "object",
-  properties: {
-    full_name: { type: "string" },
-    email: { type: "string" },
-    phone_number: { type: "string" },
-    linkedin_url: { type: "string" },
-    summary: { type: "string" },
-    education: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          degree: { type: "string" },
-          field_of_study: { type: "string" },
-          institution: { type: "string" },
-          graduation_year: { type: "string" },
-          gpa: { type: "string" },
-          honors: { type: "array", items: { type: "string" } }
-        }
-      }
-    },
-    education_level: { 
-      type: "string", 
-      enum: ["high_school", "associate", "bachelors", "masters", "phd", "bootcamp", "self_taught"],
-      description: "Highest level of education completed"
-    },
-    experience: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          title: { type: "string" },
-          company: { type: "string" },
-          start_date: { type: "string" },
-          end_date: { type: "string" },
-          is_current: { type: "boolean" },
-          responsibilities: { type: "array", items: { type: "string" } },
-          skills_used: { type: "array", items: { type: "string" } }
-        }
-      }
-    },
-    volunteering: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          title: { type: "string" },
-          organization: { type: "string" },
-          start_date: { type: "string" },
-          end_date: { type: "string" },
-          description: { type: "string" }
-        }
-      }
-    },
-    skills: { type: "array", items: { type: "string" } },
-    projects: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          name: { type: "string" },
-          description: { type: "string" },
-          url: { type: "string" },
-          skills_demonstrated: { type: "array", items: { type: "string" } }
-        }
-      }
-    },
-    certifications: {
-      type: "array",
-      items: {
-        type: "object",
-        properties: {
-          name: { type: "string" },
-          issuer: { type: "string" },
-          date_earned: { type: "string" }
-        }
-      }
-    }
-  }
-};
+// Note: the JSON-Schema constant that previously lived here was dead code —
+// never referenced (the ai-chat call below uses a plain prose prompt, not
+// structured-output enforcement), and its shape had drifted from the live
+// prompt below (e.g. education as array vs flat fields). Deleted as part of
+// PR-1 cleanup, 2026-05-14. If we later want OpenAI structured-output
+// enforcement, the schema should be defined once on the edge function
+// side, not redundantly here.
 
 export default function StepResumeUpload({ onNext, onExtracted, profileData, onChange }) {
   const { user } = useAuth();
@@ -191,7 +117,13 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
         setCvTruncated(true);
       }
 
-      const extractionPrompt = `Extract structured information from this resume text. Return ONLY a raw JSON object (no markdown, no code blocks) with these fields: full_name, phone_number, location, linkedin_url, summary, degree, field_of_study, education_level, education_dates (string, e.g. "2023 - Present"), gpa (string, e.g. "3.7" or "85"), honors (array of strings, e.g. ["Dean's List", "Cum Laude"]), secondary_education (object with {institution, dates, location, highlights} — only if a high school OR earlier institution is mentioned, otherwise omit the field entirely), languages (array of {language, proficiency} — proficiency is one of "Native", "Fluent", "Conversational", "Basic"), skills (one flat array of every skill, tool, methodology, language, and competency you can identify in the resume — do NOT bucket into categories, just return one combined deduplicated list), experiences (array of {title, company, type, start_date, end_date, is_current, responsibilities, skills_used}), projects (array of {name, description, url, skills_demonstrated}), certifications (array of {name, issuer, date_earned}).
+      const extractionPrompt = `Extract structured information from this resume text. Return ONLY a raw JSON object (no markdown, no code blocks) with these fields: full_name, phone_number, location, linkedin_url, summary, institution, degree, field_of_study, education_level, education_dates (string, e.g. "2023 - Present"), gpa (string, e.g. "3.7" or "85"), honors (array of strings, e.g. ["Dean's List", "Cum Laude"]), academic_projects (array of strings — thesis title, capstone projects, named coursework projects. Do NOT include workplace projects), secondary_education (object with {institution, dates, location, highlights} — only if a high school OR earlier institution is mentioned, otherwise omit the field entirely), languages (array of {language, proficiency} — proficiency is one of "Native", "Fluent", "Conversational", "Basic"), skills (one flat array of every skill, tool, methodology, language, and competency you can identify in the resume — do NOT bucket into categories, just return one combined deduplicated list), experiences (array of {title, company, type, start_date, end_date, is_current, responsibilities, skills_used}), projects (array of {name, description, url, skills_demonstrated}), certifications (array of {name, issuer, date_earned}).
+
+INSTITUTION — official name of the school/university for the MOST RECENT degree, exactly as it appears on the CV (e.g. "Reichman University", "Tel Aviv University", "IDC Herzliya", "Hebrew University of Jerusalem", "Technion - Israel Institute of Technology"). Do NOT abbreviate. If multiple institutions appear, pick the one matching the most recent degree (i.e. the one in education_dates). Leave "" if no institution is named.
+
+EDUCATION_LEVEL — return EXACTLY one of these lowercase strings: "high_school" | "associate" | "bachelors" | "masters" | "phd" | "bootcamp" | "self_taught". Map credentials as follows: B.A. / B.Sc. / BA / BSc / LLB / "undergraduate" → "bachelors"; M.A. / M.Sc. / MA / MSc / MBA / J.D. / M.D. / LL.M / "graduate" → "masters"; Ph.D. / doctorate → "phd". For a degree in progress, return the level of the degree being pursued (an undergraduate currently studying returns "bachelors", not the high school they previously completed). Do NOT return free-text like "Bachelor's Degree" or "BA" — return the canonical lowercase value.
+
+ACADEMIC_PROJECTS — only items the resume itself labels as academic / coursework / thesis / capstone. Do NOT promote bullet points from job experiences into this array. Empty array if none mentioned.
 
 PROJECTS / CERTIFICATIONS — only extract real ones:
 - projects: standalone work (capstone, side project, hackathon, open source). NOT coursework. NOT job responsibilities.
