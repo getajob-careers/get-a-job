@@ -394,7 +394,9 @@ export default function Onboarding() {
       }
       if (!response.ok) {
         console.error("Career analysis: HTTP error", { status: response.status, body: data });
-        throw new Error(data?.error || data?.msg || `HTTP ${response.status}`);
+        const httpErr = new Error(data?.error || data?.msg || `HTTP ${response.status}`);
+        httpErr.status = response.status;
+        throw httpErr;
       }
       if (data?.error) {
         console.error("Career analysis: function error", { body: data });
@@ -460,8 +462,15 @@ export default function Onboarding() {
     } catch (err) {
       console.error("Career analysis error:", err?.message || err, err);
       if (!mountedRef.current) return;
-      const detail = err?.message ? ` (${err.message})` : "";
-      setTierRevealError(`Career analysis failed.${detail} Please go back and try again.`);
+      // Surface 429 as a specific rate-limit message instead of folding it
+      // into the generic failure copy. Other statuses keep the existing
+      // "Please go back and try again" framing.
+      if (err?.status === 429) {
+        setTierRevealError("You've hit the hourly limit on career analyses (10/hour). Try again in an hour.");
+      } else {
+        const detail = err?.message ? ` (${err.message})` : "";
+        setTierRevealError(`Career analysis failed.${detail} Please go back and try again.`);
+      }
     }
 
     if (!mountedRef.current) return;
