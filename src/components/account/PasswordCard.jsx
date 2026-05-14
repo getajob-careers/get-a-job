@@ -3,8 +3,10 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, KeyRound, Mail, CheckCircle2, AlertCircle, Check, Circle } from "lucide-react";
+import { Loader2, KeyRound, Mail, CheckCircle2, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
+import { getPasswordChecks, allChecksPass } from "@/lib/passwordPolicy";
+import PasswordRequirements from "@/components/account/PasswordRequirements";
 
 // Two-step password change for authenticated users, matching Supabase's
 // "Secure password change" requirement:
@@ -16,57 +18,9 @@ import { toast } from "sonner";
 // We never ask for the current password. Email possession is the second
 // factor — this defends against XSS-stolen sessions where the attacker
 // already has the current password.
-
-// Client-side mirror of the project's server-side password rules
-// (Supabase config: password_min_length=8 + password_required_characters
-// with lowercase / uppercase / digit / symbol groups). HIBP is checked
-// server-side only — we surface that as a hint, not a live check.
 //
-// IMPORTANT: the symbol set is matched via a Set lookup rather than a
-// regex character class. A previous regex-based version had a subtle bug:
-// the `+-=` substring inside the character class was interpreted as a
-// range (ASCII 43-61) which silently matched digits 0-9 as "symbols",
-// causing the frontend to green-light passwords that the server rejected.
-// See: getajob.careers password-change session, 2026-05-14.
-const MIN_LEN = 8;
-const SYMBOL_SET = new Set([
-  "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
-  "_", "+", "-", "=", "[", "]", "{", "}", ";", "'",
-  "\\", ":", "\"", "|", "<", ">", "?", ",", ".", "/",
-  "`", "~",
-]);
-
-function hasSymbol(password) {
-  for (const c of password) {
-    if (SYMBOL_SET.has(c)) return true;
-  }
-  return false;
-}
-
-function getPasswordChecks(password) {
-  return {
-    length: password.length >= MIN_LEN,
-    lowercase: /[a-z]/.test(password),
-    uppercase: /[A-Z]/.test(password),
-    digit: /\d/.test(password),
-    symbol: hasSymbol(password),
-  };
-}
-
-function allChecksPass(checks) {
-  return Object.values(checks).every(Boolean);
-}
-
-function RequirementRow({ ok, label }) {
-  const Icon = ok ? Check : Circle;
-  const color = ok ? "text-emerald-600" : "text-[#A3A3A3]";
-  return (
-    <li className={`flex items-center gap-1.5 ${color}`}>
-      <Icon className="w-3 h-3 flex-shrink-0" />
-      <span>{label}</span>
-    </li>
-  );
-}
+// Password rules + visual checklist live in passwordPolicy + PasswordRequirements
+// so the signup form shares the exact same logic. See lib/passwordPolicy.js.
 
 export default function PasswordCard() {
   const { user } = useAuth();
@@ -163,16 +117,7 @@ export default function PasswordCard() {
               className="mt-1"
               placeholder="Meets all 5 requirements below"
             />
-            <ul aria-label="Password requirements" className="text-[11px] mt-2 space-y-1">
-              <RequirementRow ok={checks.length}    label={`At least ${MIN_LEN} characters`} />
-              <RequirementRow ok={checks.lowercase} label="Lowercase letter (a–z)" />
-              <RequirementRow ok={checks.uppercase} label="Uppercase letter (A–Z)" />
-              <RequirementRow ok={checks.digit}     label="Number (0–9)" />
-              <RequirementRow ok={checks.symbol}    label="Symbol (e.g. !@#$%^&*)" />
-            </ul>
-            <p className="text-[11px] text-[#A3A3A3] mt-1.5">
-              We also check against known leaked passwords once you submit.
-            </p>
+            <PasswordRequirements checks={checks} />
           </div>
           <div>
             <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Confirm new password</label>

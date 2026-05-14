@@ -282,6 +282,16 @@ Things deliberately deferred during the Wk 3-6 launch push. **Pilot is Aug-Nov 2
 
 - **Account deletion** — full delete of the `auth.users` row plus CASCADE through 12+ public tables. The existing `reset_user_data(uuid)` RPC only clears career-direction fields on `profiles` and removes derived data; it does NOT delete the auth user. Likely needed for privacy compliance (GDPR / Israeli PPL right-to-be-forgotten) before opening to 100 students. Separate design pass required — affects: auth.users, profiles (PK is auth.users.id, ON DELETE CASCADE confirmed via FK audit yesterday — but verify other FKs), Stripe future, audit logs, Langfuse traces. Decision point: hard delete vs soft delete with 30-day grace, and whether the user calls a deletion edge function or hits a dashboard-mediated flow. **To discuss before building.**
 
+### Auth surface follow-ups (deferred during 2026-05-14 signup-hardening session)
+
+Three items deliberately scoped out of the password-policy work. Order of priority:
+
+- **Resend confirmation email** — if a user signs up but their confirmation link expires (1 hour TTL per `mailer_otp_exp`) or they delete the email by accident, today they have no in-app way to get a new one. Workaround is re-trying signup with the same email (Supabase reuses the auth.users row and sends a new link), but that's clunky. Fix: a "Resend confirmation" button on Login.jsx in signin mode when the server returns "Email not confirmed" error. Calls `supabase.auth.resend({ type: 'signup', email })`. ~30 min build.
+
+- **Custom signup-confirmation landing page** — today the email link bounces users to `site_url` (`/`) which then redirects to Onboarding. Works, but implicit and gives no "welcome, you're in" moment. A dedicated `/welcome` route that shows briefly before redirecting to onboarding would be a better first impression and lets us add cohort-specific copy later. Use Supabase's `redirectTo` in `signUp({ options: { emailRedirectTo: ... } })`. ~45 min build.
+
+- **Post-signup welcome email** — a non-transactional follow-up email sent ~1 day after confirmation, prompting users to complete onboarding if they haven't. Out of Supabase Auth scope — would use Resend + an edge function triggered by a cron or by an `auth.users` insert webhook. Worth doing once we have pilot signal on drop-off rates. ~2-3h build incl. template + scheduling.
+
 ### Companies — collaborative enrichment via per-user annotations
 
 **Context:** PR #22 (2026-05-14, security audit C-4) tightened the `companies` UPDATE policy so manual companies are scoped to `created_by = auth.uid()`. This blocks A-to-B tampering but also blocks the legitimate flow where student B's chat agent enriches a manual company that student A originally created (UPDATE silently no-ops via the RLS USING filter).
