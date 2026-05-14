@@ -8,12 +8,13 @@
  *   1. Only fire after a real fetch (profileFetched=true), not while loading
  *   2. Fire when profiles is empty (new user)
  *   3. Fire when profile.onboarding_complete is false
- *   4. NOT fire when the query errored (profileError=true) — even if data is empty.
- *      Before the fix, a network error would look like "no profile" and redirect
- *      the user to Onboarding, creating a confusing broken state.
- *
- * These tests would FAIL against the pre-fix Home.jsx (which used `isLoading`
- * instead of `isFetched` and had no `profileError` guard).
+ *   4. Fire when the profile query errored — we don't actually know if the
+ *      user has completed onboarding, so sending them to Onboarding is
+ *      safer than leaving them stuck on Home. Onboarding has its own
+ *      profile check that handles all states and bounces back to Home if
+ *      already complete. The previous "don't redirect on error" guard
+ *      masked a structural PostgREST FK bug shipped in PR-2 — every new
+ *      signup got stuck on Home silently. Fail-open is the right default.
  */
 
 import React from 'react';
@@ -116,15 +117,17 @@ describe('Home redirect guard', () => {
     });
   });
 
-  it('does NOT redirect when the profile query errors (network failure)', async () => {
+  it('redirects to /Onboarding when the profile query errors (fail-open)', async () => {
     /**
-     * CRITICAL TEST — This tests the profileError guard we added.
+     * Updated 2026-05-14: previous behaviour was "do nothing on error,"
+     * which masked the PR-2 PostgREST FK bug — every new signup got
+     * stuck on Home with no indication anything was wrong.
      *
-     * Before the fix: profileError=true → profiles=[] → redirect to /Onboarding
-     * After the fix:  profileError=true → guard fires `return` early, no redirect
-     *
-     * A network error should never send the user to Onboarding.
-     * It should render whatever it can and let the user know something went wrong.
+     * New behaviour: on profile-query error, redirect to /Onboarding.
+     * Onboarding has its own profile check (handles missing / incomplete
+     * / complete) and bounces back to Home if the user is already done.
+     * Worst case the user sees a brief flicker; best case (the common
+     * case for an unfinished user) they land where they should.
      */
     await setSupabaseMock({
       profiles:     { data: null, error: { message: 'Failed to fetch', code: 'PGRST301' } },
@@ -139,7 +142,7 @@ describe('Home redirect guard', () => {
     // Give React Query time to resolve
     await new Promise((r) => setTimeout(r, 100));
 
-    expect(mockNavigate).not.toHaveBeenCalledWith('/Onboarding');
+    expect(mockNavigate).toHaveBeenCalledWith('/Onboarding');
   });
 
   it('does NOT redirect when profile is complete', async () => {
