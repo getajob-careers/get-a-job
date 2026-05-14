@@ -23,7 +23,7 @@ const corsHeaders = {
 // for a +$31/mo cost at ~1200 calls/mo across 100 students. Latency win
 // dominates the cost trade for this user-clicked Refresh-Analysis path.
 const MODEL = 'gpt-4o'
-const RATE_LIMIT_CALLS = 5
+const RATE_LIMIT_CALLS = 10
 const RATE_LIMIT_WINDOW = 3600 // 1 hour
 
 // Fit scoring weights per fit_scoring_logic
@@ -673,12 +673,17 @@ Deno.serve(async (req) => {
       p_window_seconds: RATE_LIMIT_WINDOW,
     })
     if (!allowed) {
-      await serviceClient.rpc('log_error', {
-        p_user_id: user.id,
-        p_function_name: 'generate-career-analysis',
-        p_error_message: 'Rate limit exceeded',
-        p_error_details: null,
-      }).catch(() => {});
+      // Best-effort error logging — failure to log must not mask the 429.
+      // Supabase's PostgrestBuilder is then-able but does NOT expose .catch,
+      // so we wrap the await in try/catch instead of chaining .catch().
+      try {
+        await serviceClient.rpc('log_error', {
+          p_user_id: user.id,
+          p_function_name: 'generate-career-analysis',
+          p_error_message: 'Rate limit exceeded',
+          p_error_details: null,
+        })
+      } catch { /* swallow — logging is non-essential here */ }
       _http = 429; _err = 'rate_limit'
       return new Response(JSON.stringify({ error: 'Rate limit exceeded. Try again in an hour.' }), {
         status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },

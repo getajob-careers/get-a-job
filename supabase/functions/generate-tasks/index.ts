@@ -75,12 +75,16 @@ Deno.serve(async (req) => {
       p_window_seconds: RATE_LIMIT_WINDOW,
     })
     if (!allowed) {
-      await serviceClient.rpc('log_error', {
-        p_user_id: user.id,
-        p_function_name: 'generate-tasks',
-        p_error_message: 'Rate limit exceeded',
-        p_error_details: null,
-      }).catch(() => {});
+      // Best-effort error logging — failure to log must not mask the 429.
+      // PostgrestBuilder is then-able but does NOT expose .catch.
+      try {
+        await serviceClient.rpc('log_error', {
+          p_user_id: user.id,
+          p_function_name: 'generate-tasks',
+          p_error_message: 'Rate limit exceeded',
+          p_error_details: null,
+        })
+      } catch { /* swallow — logging is non-essential here */ }
       _http = 429; _err = 'rate_limit'
       return new Response(JSON.stringify({ error: 'Rate limit exceeded. Try again in an hour.' }), {
         status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
