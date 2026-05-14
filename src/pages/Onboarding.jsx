@@ -5,7 +5,8 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { createPageUrl } from "@/utils";
 import { Loader2 } from "lucide-react";
-import { EMPTY_PROFILE, cleanProfilePayload } from "@/lib/onboardingPayload";
+import { EMPTY_PROFILE, cleanProfilePayload, ALLOWED_EXPERIENCE_TYPES, inferExperienceType } from "@/lib/onboardingPayload";
+import { normalizeEducationLevel } from "@/lib/educationPolicy";
 import { resolveDueDate, defaultDueDateFor } from "@/lib/taskDueDate";
 
 import OnboardingShell from "../components/onboarding/OnboardingShell";
@@ -20,25 +21,8 @@ import StepSurvey from "../components/onboarding/StepSurvey";
 import StepTierReveal from "../components/onboarding/StepTierReveal";
 
 // DB chk_experiences_type allows only these values
-const ALLOWED_EXPERIENCE_TYPES = new Set([
-  "internship", "full_time", "part_time", "freelance", "volunteer", "leadership", "military",
-]);
-
-// Guess an experience type from extractor hints + free-text keywords.
-// The extractor may or may not return a type field; if not, infer from title/company.
-function inferExperienceType(e) {
-  const hinted = String(e?.type || e?.employment_type || "").toLowerCase().replace(/\s|-/g, "_");
-  if (ALLOWED_EXPERIENCE_TYPES.has(hinted)) return hinted;
-
-  const text = `${e?.title || ""} ${e?.company || ""} ${e?.description || ""} ${Array.isArray(e?.responsibilities) ? e.responsibilities.join(" ") : (e?.responsibilities || "")}`.toLowerCase();
-  if (/\b(idf|nahal|givati|golani|paratroopers|sayeret|israeli? defense forces|military service|army|soldier|officer training)\b/.test(text)) return "military";
-  if (/\b(intern|internship)\b/.test(text)) return "internship";
-  if (/\b(volunteer|volunteering|pro bono)\b/.test(text)) return "volunteer";
-  if (/\b(freelance|freelancer|self-employed|contractor|consultant)\b/.test(text)) return "freelance";
-  if (/\b(president|captain|head of club|founder|co-founder|team lead(er)?)\b/.test(text) && /\b(club|society|association|student|chapter)\b/.test(text)) return "leadership";
-  if (/\b(part.time|parttime)\b/.test(text)) return "part_time";
-  return "full_time";
-}
+// ALLOWED_EXPERIENCE_TYPES + inferExperienceType moved to
+// src/lib/onboardingPayload.js for direct unit testing. See that file.
 
 // Steps: 0=CV, 1=Education, 2=Practicum, 3=Experience, 4=Skills, 5=CareerDirection, 6=Constraints, 7=Survey, 8=TierReveal
 //
@@ -173,6 +157,12 @@ export default function Onboarding() {
   // Called from StepResumeUpload — pre-fill profile from resume extraction
   const handleResumeExtracted = (extracted) => {
     const edu = extracted.education?.[0] || {};
+    // Education level normalization defends against the LLM returning
+    // off-enum strings ("Bachelor's Degree", "BA", "Undergraduate"). The
+    // dropdown's SelectItems use the canonical enum, so an off-enum value
+    // would render blank. normalizeEducationLevel maps known variants down
+    // and returns "" for unknowns rather than silently mismapping.
+    const normalizedLevel = normalizeEducationLevel(extracted.education_level);
     setProfileData((prev) => ({
       ...prev,
       full_name: extracted.full_name || prev.full_name,
@@ -182,9 +172,18 @@ export default function Onboarding() {
       summary: extracted.summary || prev.summary,
       degree: extracted.degree || edu.degree || prev.degree,
       field_of_study: extracted.field_of_study || edu.field_of_study || prev.field_of_study,
-      education_level: extracted.education_level || prev.education_level,
+      // Primary degree institution — added to extraction in PR-1. The
+      // dead RESUME_SCHEMA (also deleted in PR-1) sometimes coaxed the
+      // LLM into returning an `education[0].institution` array form; we
+      // accept either shape defensively.
+      education_institution: extracted.institution || edu.institution || prev.education_institution,
+      education_level: normalizedLevel || prev.education_level,
       gpa: extracted.gpa || edu.gpa || prev.gpa,
       honors: extracted.honors || edu.honors || prev.honors || [],
+      // Academic projects (thesis, capstone, named coursework) — added to
+      // extraction in PR-1. Lands in profileData; Phase B will persist to
+      // the education table. Until then it stays in component state only.
+      academic_projects: extracted.academic_projects || prev.academic_projects || [],
       education_dates: extracted.education_dates || prev.education_dates,
       secondary_education: extracted.secondary_education || prev.secondary_education,
       languages: extracted.languages || prev.languages || [],

@@ -1,9 +1,52 @@
-// Pure data + pure function shared between Onboarding.jsx and the test suite.
-// Lifted out of Onboarding.jsx so the real cleanProfilePayload can be tested
-// directly instead of via a stale inline stub (audit finding U1).
+// Pure data + pure functions shared between Onboarding.jsx and the test
+// suite. Lifted out of Onboarding.jsx so the logic can be tested directly
+// instead of via a stale inline stub (audit finding U1).
 //
-// Anything imported here MUST stay React-free — no hooks, no JSX, no Supabase
-// client. The test suite runs without those.
+// Anything imported here MUST stay React-free — no hooks, no JSX, no
+// Supabase client. The test suite runs without those.
+
+// Allowed experience types — mirrors the prompt's "EXPERIENCE TYPE
+// CLASSIFICATION" rules in StepResumeUpload.jsx and the values written to
+// experiences.type column.
+export const ALLOWED_EXPERIENCE_TYPES = new Set([
+  "internship", "full_time", "part_time", "freelance", "volunteer", "leadership", "military",
+]);
+
+// Guess an experience type from extractor hints + free-text keywords.
+//
+// Order matters here. We've seen the LLM affirmatively return wrong types
+// (e.g. "Volunteer Educator & Mentor" classified as "part_time"). The
+// solution is title-keyword OVERRIDES that fire BEFORE we trust the LLM's
+// hint — title-only checks (not full text) keep false positives low while
+// catching the common cases where the title itself signals the type.
+//
+// Military uses full-text matching because the signal often lives in the
+// company name (e.g. "Nahal Brigade" / "IDF") rather than the title.
+export function inferExperienceType(e) {
+  const title = (e?.title || "").toLowerCase();
+  const text = `${e?.title || ""} ${e?.company || ""} ${e?.description || ""} ${Array.isArray(e?.responsibilities) ? e.responsibilities.join(" ") : (e?.responsibilities || "")}`.toLowerCase();
+
+  // Strong overrides — fire BEFORE trusting the LLM's hint.
+  if (/\b(idf|nahal|givati|golani|paratroopers|sayeret|israeli? defense forces|military service|combat soldier|combat medic|officer training|unit 8200|mamram|talpiot|havatzalot)\b/.test(text)) {
+    return "military";
+  }
+  if (/\bvolunteer\b/.test(title)) return "volunteer";
+  if (/\b(intern|internship)\b/.test(title)) return "internship";
+  if (/\b(freelance|freelancer|self-?employed)\b/.test(title)) return "freelance";
+
+  // Trust the LLM's hint if it's a valid enum value.
+  const hinted = String(e?.type || e?.employment_type || "").toLowerCase().replace(/\s|-/g, "_");
+  if (ALLOWED_EXPERIENCE_TYPES.has(hinted)) return hinted;
+
+  // Final fallback — weaker full-text keyword inference for cases the LLM
+  // omitted a hint entirely.
+  if (/\b(intern|internship)\b/.test(text)) return "internship";
+  if (/\b(volunteer|volunteering|pro bono)\b/.test(text)) return "volunteer";
+  if (/\b(freelance|freelancer|self-employed|contractor|consultant)\b/.test(text)) return "freelance";
+  if (/\b(president|captain|head of club|founder|co-founder|team lead(er)?)\b/.test(text) && /\b(club|society|association|student|chapter)\b/.test(text)) return "leadership";
+  if (/\b(part.time|parttime)\b/.test(text)) return "part_time";
+  return "full_time";
+}
 
 // Initial shape for the React profile state during onboarding. Field defaults
 // are deliberately the right TYPE for the corresponding DB column (text[] →
