@@ -1103,6 +1103,7 @@ export default function ChatInterface({ agentName, title, description, applicati
             .insert({
               name,
               source: "manual",
+              created_by: user.id,
               ...(a.company_domain && { domain: a.company_domain }),
               ...(a.company_sector && { sector: a.company_sector }),
             })
