@@ -1,6 +1,8 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useNavigate } from "react-router-dom";
+import { MIN_LEN, getPasswordChecks, allChecksPass } from "@/lib/passwordPolicy";
+import PasswordRequirements from "@/components/account/PasswordRequirements";
 
 // mode: "signin" | "signup" | "forgot"
 export default function Login() {
@@ -12,6 +14,11 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
   const navigate = useNavigate();
+
+  // Live password validation in signup mode only. Signin/forgot must not
+  // nag returning users about character-class rules.
+  const passwordChecks = useMemo(() => getPasswordChecks(password), [password]);
+  const signupCanSubmit = mode !== "signup" || allChecksPass(passwordChecks);
 
   const switchMode = (next) => {
     setMode(next);
@@ -132,16 +139,18 @@ export default function Login() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="w-full px-3 py-2.5 rounded-lg border border-[#E5E5E5] bg-white text-[#0A0A0A] text-sm focus:outline-none focus:ring-2 focus:ring-[#0A0A0A] focus:border-transparent transition-all"
-                placeholder="••••••••"
+                placeholder={mode === "signup" ? "Meets all 5 requirements below" : "••••••••"}
                 required
-                minLength={6}
+                minLength={mode === "signup" ? MIN_LEN : 6}
+                autoComplete={mode === "signup" ? "new-password" : "current-password"}
               />
+              {mode === "signup" && <PasswordRequirements checks={passwordChecks} />}
             </div>
           )}
 
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || !signupCanSubmit}
             className="w-full py-2.5 bg-gradient-to-r from-[#0A0A0A] to-[#1a1a2e] text-white rounded-lg text-sm font-medium hover:opacity-90 transition-all disabled:opacity-50"
           >
             {loading
