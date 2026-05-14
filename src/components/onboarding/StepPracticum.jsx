@@ -13,14 +13,37 @@ import { Briefcase, User2, X } from "lucide-react";
 // NoPracticumPath empty state.
 
 const REICHMAN_PATTERNS = [/reichman/i, /idc\s*herzliya/i, /\bidc\b/i];
+const STUDENT_LEVELS = new Set(["bachelors", "masters", "phd"]);
 
 function looksLikeReichman(institution) {
   if (!institution || typeof institution !== "string") return false;
   return REICHMAN_PATTERNS.some((re) => re.test(institution));
 }
 
-export default function StepPracticum({ data, onChange, onNext, onBack }) {
-  const isReichman = looksLikeReichman(data.education_institution || "");
+// Pick which education row to check for Reichman matching. Prefer the
+// user's current undergrad/grad row (the one driving their practicum
+// eligibility) over a completed degree or a high-school row. For a
+// dual-degree student with two current rows at Reichman, either match
+// gives the same result (both are Reichman).
+function reichmanInstitutionFromEducations(educations) {
+  if (!Array.isArray(educations)) return "";
+  const candidates = educations.filter(
+    (e) => e?.is_current === true && STUDENT_LEVELS.has(e?.education_level)
+  );
+  for (const e of candidates) {
+    if (looksLikeReichman(e.institution)) return e.institution;
+  }
+  // Fall back to any institution if no current-undergrad/grad row matches —
+  // students between degrees should still see Reichman framing if their
+  // most recent degree was at Reichman.
+  for (const e of educations) {
+    if (looksLikeReichman(e?.institution)) return e.institution;
+  }
+  return "";
+}
+
+export default function StepPracticum({ data, onChange, educations, onNext, onBack }) {
+  const isReichman = !!reichmanInstitutionFromEducations(educations);
   const path = data.practicum_path || null;
 
   const headline = isReichman

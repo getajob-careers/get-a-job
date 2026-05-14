@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import PasswordCard from "@/components/account/PasswordCard";
+import EducationTab from "@/components/profile/EducationTab";
 import {
   Dialog,
   DialogContent,
@@ -416,17 +417,9 @@ export default function AddInformation() {
     location: "",
     linkedin_url: "",
     summary: "",
-    // Education
-    education_level: "",
-    education_institution: "",
-    degree: "",
-    field_of_study: "",
-    education_dates: "",
-    gpa: "",
-    honors: [],
-    relevant_coursework: [],
+    // Education moved to its own table in Phase B — see EducationTab.
+    // languages stays on profiles (person-level, not tied to a degree).
     languages: [],
-    secondary_education: { institution: "", location: "", dates: "", highlights: [] },
     // Skills + career direction
     skills: [],
     five_year_role: "",
@@ -459,23 +452,7 @@ export default function AddInformation() {
       location: profile.location || "",
       linkedin_url: profile.linkedin_url || "",
       summary: profile.summary || "",
-      education_level: profile.education_level || "",
-      education_institution: profile.education_institution || "",
-      degree: profile.degree || "",
-      field_of_study: profile.field_of_study || "",
-      education_dates: profile.education_dates || "",
-      gpa: profile.gpa || "",
-      honors: Array.isArray(profile.honors) ? profile.honors : [],
-      relevant_coursework: Array.isArray(profile.relevant_coursework) ? profile.relevant_coursework : [],
       languages: Array.isArray(profile.languages) ? profile.languages : [],
-      secondary_education: profile.secondary_education && typeof profile.secondary_education === "object"
-        ? {
-            institution: profile.secondary_education.institution || "",
-            location: profile.secondary_education.location || "",
-            dates: profile.secondary_education.dates || "",
-            highlights: Array.isArray(profile.secondary_education.highlights) ? profile.secondary_education.highlights : [],
-          }
-        : { institution: "", location: "", dates: "", highlights: [] },
       skills: profile.skills || [],
       five_year_role: profile.five_year_role || "",
       target_job_titles: Array.isArray(profile.target_job_titles) ? profile.target_job_titles : [],
@@ -515,16 +492,6 @@ export default function AddInformation() {
 
   const saveProfile = async () => {
     setSaving(true);
-    // Normalise secondary_education: empty object → null so the CV renderer
-    // (which gates rendering on truthy institution) doesn't show an empty
-    // Education entry.
-    const se = profileForm.secondary_education || {};
-    const seHasContent = !!(
-      se.institution?.trim() ||
-      se.location?.trim() ||
-      se.dates?.trim() ||
-      (se.highlights || []).some((h) => h?.trim())
-    );
     const dbFields = {
       // Identity / contact
       full_name: profileForm.full_name,
@@ -532,17 +499,10 @@ export default function AddInformation() {
       location: profileForm.location,
       linkedin_url: profileForm.linkedin_url,
       summary: profileForm.summary || null,
-      // Education
-      education_level: profileForm.education_level,
-      education_institution: profileForm.education_institution || null,
-      degree: profileForm.degree || null,
-      field_of_study: profileForm.field_of_study,
-      education_dates: profileForm.education_dates,
-      gpa: profileForm.gpa || null,
-      honors: profileForm.honors,
-      relevant_coursework: profileForm.relevant_coursework,
+      // languages stays on profiles (person-level, not per-degree). The
+      // rest of education moved to the education table in Phase B — see
+      // EducationTab for CRUD.
       languages: profileForm.languages,
-      secondary_education: seHasContent ? se : null,
       // Skills + career direction
       skills: profileForm.skills,
       five_year_role: profileForm.five_year_role,
@@ -788,156 +748,67 @@ export default function AddInformation() {
           </div>
         </TabsContent>
 
-        {/* ── Education tab — degree, field, gpa, honors, coursework ─────── */}
+        {/* ── Education tab — multi-entry editor + languages ──────────────── */}
         <TabsContent value="education">
-          <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Education Level</label>
-                <Select value={profileForm.education_level} onValueChange={(v) => setField("education_level", v)}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Select" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="high_school">High School</SelectItem>
-                    <SelectItem value="associate">Associate Degree</SelectItem>
-                    <SelectItem value="bachelors">Bachelor&apos;s Degree</SelectItem>
-                    <SelectItem value="masters">Master&apos;s Degree</SelectItem>
-                    <SelectItem value="phd">PhD</SelectItem>
-                    <SelectItem value="bootcamp">Bootcamp</SelectItem>
-                    <SelectItem value="self_taught">Self-Taught</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Institution</label>
-                <Input value={profileForm.education_institution} onChange={(e) => setField("education_institution", e.target.value)} className="mt-1" placeholder="e.g. Reichman University" />
-              </div>
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Degree</label>
-                <Input value={profileForm.degree} onChange={(e) => setField("degree", e.target.value)} className="mt-1" placeholder="e.g. BSc, BA, MBA" />
-              </div>
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Field of Study</label>
-                <Input value={profileForm.field_of_study} onChange={(e) => setField("field_of_study", e.target.value)} className="mt-1" placeholder="e.g. Business Administration" />
-              </div>
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">GPA (optional)</label>
-                <Input value={profileForm.gpa} onChange={(e) => setField("gpa", e.target.value)} className="mt-1" placeholder="e.g. 3.7 / 4.0 or 90 / 100" />
-              </div>
-              <div className="md:col-span-2">
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Education Dates</label>
-                <Input value={profileForm.education_dates} onChange={(e) => setField("education_dates", e.target.value)} className="mt-1" placeholder="e.g. 2023 - Present" />
-              </div>
-            </div>
+          <EducationTab user={user} />
 
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">Honors / Awards</label>
-              <TagEditor
-                tags={profileForm.honors}
-                onChange={(v) => setField("honors", v)}
-                placeholder="e.g. Dean's List, President's Award"
-              />
+          {/* Languages stays on profiles (person-level, not per-degree) */}
+          <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 mt-4">
+            <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">Languages</label>
+            <div className="space-y-2">
+              {profileForm.languages.map((lang, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <Input
+                    value={lang.language || ""}
+                    onChange={(e) => {
+                      const next = [...profileForm.languages];
+                      next[i] = { ...next[i], language: e.target.value };
+                      setField("languages", next);
+                    }}
+                    placeholder="e.g. English"
+                    className="text-sm flex-1"
+                  />
+                  <Select
+                    value={lang.proficiency || undefined}
+                    onValueChange={(v) => {
+                      const next = [...profileForm.languages];
+                      next[i] = { ...next[i], proficiency: v };
+                      setField("languages", next);
+                    }}
+                  >
+                    <SelectTrigger className="text-sm w-40">
+                      <SelectValue placeholder="Proficiency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Native">Native</SelectItem>
+                      <SelectItem value="Fluent">Fluent</SelectItem>
+                      <SelectItem value="Professional">Professional</SelectItem>
+                      <SelectItem value="Conversational">Conversational</SelectItem>
+                      <SelectItem value="Basic">Basic</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      const next = profileForm.languages.filter((_, idx) => idx !== i);
+                      setField("languages", next);
+                    }}
+                  >
+                    <Trash2 className="w-4 h-4 text-[#A3A3A3] hover:text-red-500" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setField("languages", [...profileForm.languages, { language: "", proficiency: "Fluent" }])}
+                className="text-xs"
+              >
+                <Plus className="w-3.5 h-3.5 mr-1" /> Add language
+              </Button>
             </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">Relevant Coursework</label>
-              <TagEditor
-                tags={profileForm.relevant_coursework}
-                onChange={(v) => setField("relevant_coursework", v)}
-                placeholder="e.g. Marketing Strategy, Statistics for Business"
-              />
-            </div>
-
-            {/* Languages editor */}
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">Languages</label>
-              <div className="space-y-2">
-                {profileForm.languages.map((lang, i) => (
-                  <div key={i} className="flex gap-2 items-center">
-                    <Input
-                      value={lang.language || ""}
-                      onChange={(e) => {
-                        const next = [...profileForm.languages];
-                        next[i] = { ...next[i], language: e.target.value };
-                        setField("languages", next);
-                      }}
-                      placeholder="e.g. English"
-                      className="text-sm flex-1"
-                    />
-                    <Select
-                      value={lang.proficiency || ""}
-                      onValueChange={(v) => {
-                        const next = [...profileForm.languages];
-                        next[i] = { ...next[i], proficiency: v };
-                        setField("languages", next);
-                      }}
-                    >
-                      <SelectTrigger className="text-sm w-40">
-                        <SelectValue placeholder="Proficiency" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Native">Native</SelectItem>
-                        <SelectItem value="Fluent">Fluent</SelectItem>
-                        <SelectItem value="Professional">Professional</SelectItem>
-                        <SelectItem value="Conversational">Conversational</SelectItem>
-                        <SelectItem value="Basic">Basic</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const next = profileForm.languages.filter((_, idx) => idx !== i);
-                        setField("languages", next);
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 text-[#A3A3A3] hover:text-red-500" />
-                    </Button>
-                  </div>
-                ))}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setField("languages", [...profileForm.languages, { language: "", proficiency: "Fluent" }])}
-                  className="text-xs"
-                >
-                  <Plus className="w-3.5 h-3.5 mr-1" /> Add language
-                </Button>
-              </div>
-            </div>
-
-            {/* Secondary education */}
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">High School / Secondary Education (optional)</label>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <Input
-                  value={profileForm.secondary_education.institution}
-                  onChange={(e) => setField("secondary_education", { ...profileForm.secondary_education, institution: e.target.value })}
-                  placeholder="Institution name"
-                  className="text-sm"
-                />
-                <Input
-                  value={profileForm.secondary_education.dates}
-                  onChange={(e) => setField("secondary_education", { ...profileForm.secondary_education, dates: e.target.value })}
-                  placeholder="e.g. 2014 - 2018"
-                  className="text-sm"
-                />
-                <Input
-                  value={profileForm.secondary_education.location}
-                  onChange={(e) => setField("secondary_education", { ...profileForm.secondary_education, location: e.target.value })}
-                  placeholder="Location (optional)"
-                  className="text-sm md:col-span-2"
-                />
-                <Textarea
-                  value={(profileForm.secondary_education.highlights || []).join("\n")}
-                  onChange={(e) => setField("secondary_education", { ...profileForm.secondary_education, highlights: e.target.value.split("\n").map((s) => s.trim()).filter(Boolean) })}
-                  placeholder="Notable roles / activities — one per line (e.g. President of Debate Club)"
-                  rows={2}
-                  className="text-sm md:col-span-2"
-                />
-              </div>
-            </div>
-
-            <SaveProfileButton />
+            <div className="mt-4"><SaveProfileButton /></div>
           </div>
         </TabsContent>
 

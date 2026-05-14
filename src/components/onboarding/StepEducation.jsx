@@ -1,21 +1,56 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import SkillTagInput from "./SkillTagInput";
 import { DEGREE_TYPE_OPTIONS, dropdownValueForDegreeType } from "@/lib/educationPolicy";
+import { EMPTY_EDUCATION_ROW } from "@/lib/onboardingPayload";
 
-export default function StepEducation({ data, onChange, onNext, onBack }) {
-  const set = (key, val) => onChange({ ...data, [key]: val });
+// Onboarding's single-entry education form. Renders the FIRST education
+// row (display_order=0) — secondary education from CV (high school) is
+// silently created in state but not shown here, per the Phase B design
+// decision to keep onboarding scope tight. Users can add/edit multiple
+// entries on the Profile page's Education tab post-onboarding.
+//
+// Props:
+//   data             — profileData (for full_name field, which lives on profiles)
+//   onChange         — setProfileData
+//   educations       — array of education rows (Phase B education table)
+//   setEducations    — setter for the educations array
+//   onNext / onBack  — flow navigation
 
-  const canProceed = data.full_name?.trim() && data.education_level;
+export default function StepEducation({ data, onChange, educations, setEducations, onNext, onBack }) {
+  // Auto-init: if no row exists yet (fresh onboarding, no CV uploaded),
+  // seed a blank primary row so the form has something to bind against.
+  // Matches the pre-Phase-B UX where the form fields were always present.
+  useEffect(() => {
+    if (!Array.isArray(educations) || educations.length === 0) {
+      setEducations([{ ...EMPTY_EDUCATION_ROW }]);
+    }
+  }, [educations, setEducations]);
+
+  const primary = educations?.[0] || EMPTY_EDUCATION_ROW;
+
+  // Update a single field on the primary education row. Always mutates
+  // index 0 immutably. Preserves any other rows (secondary HS, etc.).
+  const setEduField = (key, val) => {
+    setEducations((prev) => {
+      const arr = Array.isArray(prev) && prev.length > 0 ? [...prev] : [{ ...EMPTY_EDUCATION_ROW }];
+      arr[0] = { ...arr[0], [key]: val };
+      return arr;
+    });
+  };
+
+  const setProfileField = (key, val) => onChange({ ...data, [key]: val });
+
+  const canProceed = data.full_name?.trim() && primary.education_level;
 
   // Degree dropdown — pick which option is "selected" based on what's stored.
   // If the stored value isn't a preset, the dropdown shows "Other" and we
   // surface a free-text input below for editing.
   const degreeDropdownValue = useMemo(
-    () => dropdownValueForDegreeType(data.degree),
-    [data.degree]
+    () => dropdownValueForDegreeType(primary.degree_type),
+    [primary.degree_type]
   );
   const isDegreeOther = degreeDropdownValue === "other";
 
@@ -24,9 +59,9 @@ export default function StepEducation({ data, onChange, onNext, onBack }) {
       // Switching to "Other" — preserve any existing non-preset value as
       // the starting point for the free-text input. If the user was on a
       // preset, clear the field so they can type their custom value.
-      set("degree", isDegreeOther ? data.degree : "");
+      setEduField("degree_type", isDegreeOther ? primary.degree_type : "");
     } else {
-      set("degree", v);
+      setEduField("degree_type", v);
     }
   };
 
@@ -46,7 +81,7 @@ export default function StepEducation({ data, onChange, onNext, onBack }) {
           </label>
           <Input
             value={data.full_name || ""}
-            onChange={(e) => set("full_name", e.target.value)}
+            onChange={(e) => setProfileField("full_name", e.target.value)}
             placeholder="Your full name"
           />
         </div>
@@ -56,8 +91,8 @@ export default function StepEducation({ data, onChange, onNext, onBack }) {
             Institution / University
           </label>
           <Input
-            value={data.education_institution || ""}
-            onChange={(e) => set("education_institution", e.target.value)}
+            value={primary.institution || ""}
+            onChange={(e) => setEduField("institution", e.target.value)}
             placeholder="e.g. Reichman University, IDC Herzliya, Tel Aviv University"
           />
         </div>
@@ -67,7 +102,7 @@ export default function StepEducation({ data, onChange, onNext, onBack }) {
             <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">
               Education Level
             </label>
-            <Select value={data.education_level || undefined} onValueChange={(v) => set("education_level", v)}>
+            <Select value={primary.education_level || undefined} onValueChange={(v) => setEduField("education_level", v)}>
               <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>
               <SelectContent>
                 <SelectItem value="high_school">High School</SelectItem>
@@ -95,8 +130,8 @@ export default function StepEducation({ data, onChange, onNext, onBack }) {
             </Select>
             {isDegreeOther && (
               <Input
-                value={data.degree || ""}
-                onChange={(e) => set("degree", e.target.value)}
+                value={primary.degree_type || ""}
+                onChange={(e) => setEduField("degree_type", e.target.value)}
                 placeholder="e.g. B.Eng., Pharm.D., specific credential"
                 className="mt-2"
               />
@@ -108,8 +143,8 @@ export default function StepEducation({ data, onChange, onNext, onBack }) {
               Field of Study / Specialization
             </label>
             <Input
-              value={data.field_of_study || ""}
-              onChange={(e) => set("field_of_study", e.target.value)}
+              value={primary.field_of_study || ""}
+              onChange={(e) => setEduField("field_of_study", e.target.value)}
               placeholder="e.g. Computer Science, Business Administration"
             />
           </div>
@@ -119,8 +154,8 @@ export default function StepEducation({ data, onChange, onNext, onBack }) {
               GPA (optional)
             </label>
             <Input
-              value={data.gpa || ""}
-              onChange={(e) => set("gpa", e.target.value)}
+              value={primary.gpa || ""}
+              onChange={(e) => setEduField("gpa", e.target.value)}
               placeholder="e.g. 3.7 / 4.0"
             />
           </div>
@@ -129,16 +164,16 @@ export default function StepEducation({ data, onChange, onNext, onBack }) {
         <SkillTagInput
           label="Relevant Coursework"
           description="List courses that are relevant to your target roles."
-          tags={data.relevant_coursework || []}
-          onChange={(v) => set("relevant_coursework", v)}
+          tags={primary.relevant_coursework || []}
+          onChange={(v) => setEduField("relevant_coursework", v)}
           placeholder="e.g. Data Structures, Financial Accounting"
         />
 
         <SkillTagInput
           label="Academic Projects"
           description="Thesis, capstone, or notable academic projects."
-          tags={data.academic_projects || []}
-          onChange={(v) => set("academic_projects", v)}
+          tags={primary.academic_projects || []}
+          onChange={(v) => setEduField("academic_projects", v)}
           placeholder="e.g. Sales Forecasting ML Model"
         />
       </div>

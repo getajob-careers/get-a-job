@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   EMPTY_PROFILE,
+  EMPTY_EDUCATION_ROW,
   cleanProfilePayload,
   ALLOWED_EXPERIENCE_TYPES,
   inferExperienceType,
@@ -17,21 +18,17 @@ describe('EMPTY_PROFILE', () => {
   // for a text[] column) makes PostgREST reject the entire row update with
   // "malformed array literal" — exactly the failure mode behind several
   // session-13 audit findings (work_environment, work_type, employment_status,
-  // biggest_challenge, honors).
+  // biggest_challenge).
   it('initialises every text[] DB column as an array', () => {
     expect(EMPTY_PROFILE.employment_status).toEqual([]);
     expect(EMPTY_PROFILE.biggest_challenge).toEqual([]);
     expect(EMPTY_PROFILE.work_environment).toEqual([]);
     expect(EMPTY_PROFILE.work_type).toEqual([]);
-    expect(EMPTY_PROFILE.honors).toEqual([]);
     expect(EMPTY_PROFILE.target_job_titles).toEqual([]);
     expect(EMPTY_PROFILE.target_industries).toEqual([]);
-    expect(EMPTY_PROFILE.relevant_coursework).toEqual([]);
   });
 
   it('initialises jsonb columns with the correct default shape', () => {
-    // null is correct for an optional jsonb column (vs "" which would error)
-    expect(EMPTY_PROFILE.secondary_education).toBeNull();
     // arrays are valid jsonb
     expect(EMPTY_PROFILE.languages).toEqual([]);
     expect(EMPTY_PROFILE.proof_signals).toEqual([]);
@@ -42,7 +39,6 @@ describe('EMPTY_PROFILE', () => {
     expect(EMPTY_PROFILE.full_name).toBe('');
     expect(EMPTY_PROFILE.phone_number).toBe('');
     expect(EMPTY_PROFILE.location).toBe('');
-    expect(EMPTY_PROFILE.education_dates).toBe('');
     expect(EMPTY_PROFILE.salary_expectation).toBe('');
     expect(EMPTY_PROFILE.cv_tailoring_strategy).toBe('');
     expect(EMPTY_PROFILE.linkedin_outreach_strategy).toBe('');
@@ -58,15 +54,28 @@ describe('EMPTY_PROFILE', () => {
     expect(EMPTY_PROFILE.primary_domain).toBeNull();
   });
 
-  it('keeps React-only state buckets as arrays even though they have no DB column', () => {
-    // academic_projects and volunteering live in React state but NOT in the
-    // profiles table. They still need array defaults because the UI may
-    // iterate them via .map / .includes. The six skill-category arrays
-    // (hard_skills, tools_software, technical_skills, analytical_skills,
-    // communication_skills, leadership_skills) were dropped in the Bug 3
-    // fix — there is now a single flat skills array.
-    expect(EMPTY_PROFILE.academic_projects).toEqual([]);
+  it('keeps volunteering as an array (React state only, no DB column)', () => {
     expect(EMPTY_PROFILE.volunteering).toEqual([]);
+  });
+
+  it('does NOT carry education fields — those moved to the education table in Phase B', () => {
+    expect(EMPTY_PROFILE).not.toHaveProperty('degree');
+    expect(EMPTY_PROFILE).not.toHaveProperty('field_of_study');
+    expect(EMPTY_PROFILE).not.toHaveProperty('education_level');
+    expect(EMPTY_PROFILE).not.toHaveProperty('education_dates');
+    expect(EMPTY_PROFILE).not.toHaveProperty('education_institution');
+    expect(EMPTY_PROFILE).not.toHaveProperty('gpa');
+    expect(EMPTY_PROFILE).not.toHaveProperty('honors');
+    expect(EMPTY_PROFILE).not.toHaveProperty('relevant_coursework');
+    expect(EMPTY_PROFILE).not.toHaveProperty('academic_projects');
+    expect(EMPTY_PROFILE).not.toHaveProperty('secondary_education');
+  });
+
+  it('keeps languages on profiles — it is person-level, not tied to a degree', () => {
+    expect(EMPTY_PROFILE.languages).toEqual([]);
+  });
+
+  it('does not carry the dropped Bug 3 skill-category arrays', () => {
     expect(EMPTY_PROFILE).not.toHaveProperty('hard_skills');
     expect(EMPTY_PROFILE).not.toHaveProperty('tools_software');
     expect(EMPTY_PROFILE).not.toHaveProperty('technical_skills');
@@ -77,6 +86,17 @@ describe('EMPTY_PROFILE', () => {
 
   it('initialises skills as a single flat array (Bug 3 categories drop)', () => {
     expect(EMPTY_PROFILE.skills).toEqual([]);
+  });
+});
+
+describe('EMPTY_EDUCATION_ROW', () => {
+  it('has the right shape for inserting a new education row', () => {
+    expect(EMPTY_EDUCATION_ROW.is_current).toBe(true);  // student default
+    expect(EMPTY_EDUCATION_ROW.display_order).toBe(0);  // primary slot
+    expect(EMPTY_EDUCATION_ROW.honors).toEqual([]);
+    expect(EMPTY_EDUCATION_ROW.relevant_coursework).toEqual([]);
+    expect(EMPTY_EDUCATION_ROW.academic_projects).toEqual([]);
+    expect(EMPTY_EDUCATION_ROW.id).toBeUndefined();     // assigned on INSERT
   });
 });
 
@@ -105,15 +125,7 @@ describe('cleanProfilePayload', () => {
     expect(result).toHaveProperty('linkedin_url');
     expect(result).toHaveProperty('summary');
 
-    // Education core + extended (from N-O22→26)
-    expect(result).toHaveProperty('degree');
-    expect(result).toHaveProperty('field_of_study');
-    expect(result).toHaveProperty('education_level');
-    expect(result).toHaveProperty('gpa');
-    expect(result).toHaveProperty('honors');
-    expect(result).toHaveProperty('relevant_coursework');
-    expect(result).toHaveProperty('education_dates');
-    expect(result).toHaveProperty('secondary_education');
+    // Languages stays on profiles (person-level)
     expect(result).toHaveProperty('languages');
 
     // Combined skills + assessment
@@ -152,15 +164,8 @@ describe('cleanProfilePayload', () => {
   });
 
   it('strips the React-only fields that have no profiles column', () => {
-    // academic_projects and volunteering live in React state but have no
-    // DB column. cleanProfilePayload must NOT pass them to PostgREST or
-    // the row update fails with "column does not exist". The six former
-    // skill categories (hard_skills, tools_software, ...) were dropped
-    // entirely in the Bug 3 fix; this test still passes legacy values to
-    // confirm they're stripped if any old caller sends them.
     const result = cleanProfilePayload({
       ...EMPTY_PROFILE,
-      academic_projects: ['Capstone Thesis'],
       volunteering: [{ title: 'Mentor' }],
       hard_skills: ['Excel'],
       tools_software: ['Figma'],
@@ -170,7 +175,6 @@ describe('cleanProfilePayload', () => {
       leadership_skills: ['Mentoring'],
     });
 
-    expect(result).not.toHaveProperty('academic_projects');
     expect(result).not.toHaveProperty('volunteering');
     expect(result).not.toHaveProperty('hard_skills');
     expect(result).not.toHaveProperty('tools_software');
@@ -178,6 +182,37 @@ describe('cleanProfilePayload', () => {
     expect(result).not.toHaveProperty('analytical_skills');
     expect(result).not.toHaveProperty('communication_skills');
     expect(result).not.toHaveProperty('leadership_skills');
+  });
+
+  it('strips education fields — they now live in the education table (Phase B)', () => {
+    // Even if a caller accidentally passes education fields (e.g. from
+    // stale state during a partial deploy), cleanProfilePayload must NOT
+    // forward them to PostgREST. The profiles flat columns still exist
+    // for now (Phase C drops them later) but we no longer write to them.
+    const result = cleanProfilePayload({
+      ...EMPTY_PROFILE,
+      degree: 'B.A.',
+      field_of_study: 'Business Administration',
+      education_level: 'bachelors',
+      education_institution: 'Reichman University',
+      education_dates: '2023 - Present',
+      gpa: '3.7',
+      honors: ['Dean\'s List'],
+      relevant_coursework: ['Marketing 101'],
+      academic_projects: ['Capstone'],
+      secondary_education: { institution: 'Some HS' },
+    });
+
+    expect(result).not.toHaveProperty('degree');
+    expect(result).not.toHaveProperty('field_of_study');
+    expect(result).not.toHaveProperty('education_level');
+    expect(result).not.toHaveProperty('education_institution');
+    expect(result).not.toHaveProperty('education_dates');
+    expect(result).not.toHaveProperty('gpa');
+    expect(result).not.toHaveProperty('honors');
+    expect(result).not.toHaveProperty('relevant_coursework');
+    expect(result).not.toHaveProperty('academic_projects');
+    expect(result).not.toHaveProperty('secondary_education');
   });
 
   it('preserves array fields without coercing them to strings', () => {
@@ -211,22 +246,21 @@ describe('cleanProfilePayload', () => {
     expect(Array.isArray(result.target_industries)).toBe(true);
     expect(Array.isArray(result.work_environment)).toBe(true);
     expect(Array.isArray(result.work_type)).toBe(true);
-    expect(Array.isArray(result.honors)).toBe(true);
     expect(Array.isArray(result.languages)).toBe(true);
-    expect(Array.isArray(result.relevant_coursework)).toBe(true);
     expect(Array.isArray(result.skills)).toBe(true);
     expect(Array.isArray(result.skill_gaps)).toBe(true);
+    // honors and relevant_coursework moved to the education table in Phase B
+    expect(result).not.toHaveProperty('honors');
+    expect(result).not.toHaveProperty('relevant_coursework');
   });
 
-  it('preserves jsonb object shapes (secondary_education)', () => {
-    const secondary = {
-      institution: 'Torah Academy of Bergen County',
-      dates: '2014 – 2018',
-      location: 'New Jersey, USA',
-      highlights: ['President of Israel Advocacy Club'],
-    };
-    const result = cleanProfilePayload({ ...EMPTY_PROFILE, secondary_education: secondary });
-    expect(result.secondary_education).toEqual(secondary);
+  it('preserves jsonb object shapes (languages — the only profile jsonb left after Phase B)', () => {
+    const languages = [
+      { language: 'English', proficiency: 'Native' },
+      { language: 'Hebrew',  proficiency: 'Fluent' },
+    ];
+    const result = cleanProfilePayload({ ...EMPTY_PROFILE, languages });
+    expect(result.languages).toEqual(languages);
   });
 
   it('preserves boolean and nullable scalar fields', () => {

@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion, type TraceContext } from '../_shared/openai-chat.ts'
+import { pickPrimaryEducation, formatEducationLine } from '../_shared/education-helpers.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -554,7 +555,7 @@ Deno.serve(async (req) => {
       ? follow_up_after : null
 
     const [profileRes, experiencesRes, careerRolesRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id),
+      supabase.from('profiles').select('*, education(*)').eq('id', user.id),
       supabase.from('experiences').select('*').eq('user_id', user.id),
       supabase.from('career_roles').select('*').eq('user_id', user.id),
     ])
@@ -562,7 +563,8 @@ Deno.serve(async (req) => {
 
     let userContext = ''
     if (profile) {
-      userContext = `\n\nUSER PROFILE:\n- Name: ${profile.full_name || 'Not provided'}\n- Skills: ${(profile.skills || []).join(', ') || 'None listed'}\n- Education: ${profile.degree || ''} in ${profile.field_of_study || ''} (${profile.education_level || ''})\n- Location: ${profile.location || 'Not provided'}\n- Summary: ${profile.summary || 'Not provided'}`
+      const eduLine = formatEducationLine(pickPrimaryEducation((profile as any).education || []))
+      userContext = `\n\nUSER PROFILE:\n- Name: ${profile.full_name || 'Not provided'}\n- Skills: ${(profile.skills || []).join(', ') || 'None listed'}\n- Education: ${eduLine}\n- Location: ${profile.location || 'Not provided'}\n- Summary: ${profile.summary || 'Not provided'}`
     }
     if (experiencesRes.data?.length) {
       // Include experience UUIDs so agents that emit story-capture or
