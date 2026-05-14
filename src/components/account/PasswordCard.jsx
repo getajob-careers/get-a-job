@@ -21,9 +21,27 @@ import { toast } from "sonner";
 // (Supabase config: password_min_length=8 + password_required_characters
 // with lowercase / uppercase / digit / symbol groups). HIBP is checked
 // server-side only — we surface that as a hint, not a live check.
+//
+// IMPORTANT: the symbol set is matched via a Set lookup rather than a
+// regex character class. A previous regex-based version had a subtle bug:
+// the `+-=` substring inside the character class was interpreted as a
+// range (ASCII 43-61) which silently matched digits 0-9 as "symbols",
+// causing the frontend to green-light passwords that the server rejected.
+// See: getajob.careers password-change session, 2026-05-14.
 const MIN_LEN = 8;
-const SYMBOL_CHARS = "!@#$%^&*()_+-=[]{};'\\:\"|<>?,./`~";
-const SYMBOL_RE = new RegExp(`[${SYMBOL_CHARS.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}]`);
+const SYMBOL_SET = new Set([
+  "!", "@", "#", "$", "%", "^", "&", "*", "(", ")",
+  "_", "+", "-", "=", "[", "]", "{", "}", ";", "'",
+  "\\", ":", "\"", "|", "<", ">", "?", ",", ".", "/",
+  "`", "~",
+]);
+
+function hasSymbol(password) {
+  for (const c of password) {
+    if (SYMBOL_SET.has(c)) return true;
+  }
+  return false;
+}
 
 function getPasswordChecks(password) {
   return {
@@ -31,7 +49,7 @@ function getPasswordChecks(password) {
     lowercase: /[a-z]/.test(password),
     uppercase: /[A-Z]/.test(password),
     digit: /\d/.test(password),
-    symbol: SYMBOL_RE.test(password),
+    symbol: hasSymbol(password),
   };
 }
 
