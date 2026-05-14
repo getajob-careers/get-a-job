@@ -96,6 +96,62 @@ describe('PasswordCard — compose-step live validation', () => {
     expect(submitButton()).toBeDisabled();
   });
 
+  // Regression for the regex-range bug: a password with lowercase +
+  // uppercase + digit + length but NO actual symbol must fail the symbol
+  // check client-side. The previous regex construction matched digits as
+  // "symbols" because `+-=` inside a character class was a range (ASCII
+  // 43-61) covering 0-9.
+  it('does not count digits as symbols (regression for +-= range bug)', () => {
+    renderCard();
+    fireEvent.change(newPasswordInput(), { target: { value: 'Aaaaaaa1' } });
+    fireEvent.change(confirmInput(), { target: { value: 'Aaaaaaa1' } });
+    expect(submitButton()).toBeDisabled();
+  });
+
+  // Each char Supabase considers a symbol should pass the symbol check
+  // when combined with the other 4 requirements.
+  it.each([
+    ['!', 'Aaaaaaa!'],
+    ['@', 'Aaaaaaa@'],
+    ['#', 'Aaaaaaa#'],
+    ['$', 'Aaaaaaa$'],
+    ['%', 'Aaaaaaa%'],
+    ['^', 'Aaaaaaa^'],
+    ['&', 'Aaaaaaa&'],
+    ['*', 'Aaaaaaa*'],
+    ['(', 'Aaaaaaa('],
+    [')', 'Aaaaaaa)'],
+    ['_', 'Aaaaaaa_'],
+    ['+', 'Aaaaaaa+'],
+    ['-', 'Aaaaaaa-'],
+    ['=', 'Aaaaaaa='],
+    ['[', 'Aaaaaaa['],
+    [']', 'Aaaaaaa]'],
+    ['{', 'Aaaaaaa{'],
+    ['}', 'Aaaaaaa}'],
+    [';', 'Aaaaaaa;'],
+    ["'", "Aaaaaaa'"],
+    ['\\', 'Aaaaaaa\\'],
+    [':', 'Aaaaaaa:'],
+    ['"', 'Aaaaaaa"'],
+    ['|', 'Aaaaaaa|'],
+    ['<', 'Aaaaaaa<'],
+    ['>', 'Aaaaaaa>'],
+    ['?', 'Aaaaaaa?'],
+    [',', 'Aaaaaaa,'],
+    ['.', 'Aaaaaaa.'],
+    ['/', 'Aaaaaaa/'],
+    ['`', 'Aaaaaaa`'],
+    ['~', 'Aaaaaaa~'],
+  ])('accepts %s as a valid symbol', (_label, password) => {
+    renderCard();
+    // Need a digit too — the password above only has uppercase + lowercase + symbol
+    const withDigit = password + '1';
+    fireEvent.change(newPasswordInput(), { target: { value: withDigit } });
+    fireEvent.change(confirmInput(), { target: { value: withDigit } });
+    expect(submitButton()).not.toBeDisabled();
+  });
+
   it('enables submit when all 5 checks pass AND passwords match', () => {
     renderCard();
     fireEvent.change(newPasswordInput(), { target: { value: STRONG_PASSWORD } });
