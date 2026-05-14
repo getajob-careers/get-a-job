@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, KeyRound, Mail, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, KeyRound, Mail, CheckCircle2, AlertCircle, Check, Circle } from "lucide-react";
 import { toast } from "sonner";
 
 // Two-step password change for authenticated users, matching Supabase's
@@ -17,12 +17,37 @@ import { toast } from "sonner";
 // factor — this defends against XSS-stolen sessions where the attacker
 // already has the current password.
 
+// Client-side mirror of the project's server-side password rules
+// (Supabase config: password_min_length=8 + password_required_characters
+// with lowercase / uppercase / digit / symbol groups). HIBP is checked
+// server-side only — we surface that as a hint, not a live check.
 const MIN_LEN = 8;
+const SYMBOL_CHARS = "!@#$%^&*()_+-=[]{};'\\:\"|<>?,./`~";
+const SYMBOL_RE = new RegExp(`[${SYMBOL_CHARS.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}]`);
 
-function validateNewPassword(password) {
-  if (!password) return "Pick a new password.";
-  if (password.length < MIN_LEN) return `At least ${MIN_LEN} characters.`;
-  return null;
+function getPasswordChecks(password) {
+  return {
+    length: password.length >= MIN_LEN,
+    lowercase: /[a-z]/.test(password),
+    uppercase: /[A-Z]/.test(password),
+    digit: /\d/.test(password),
+    symbol: SYMBOL_RE.test(password),
+  };
+}
+
+function allChecksPass(checks) {
+  return Object.values(checks).every(Boolean);
+}
+
+function RequirementRow({ ok, label }) {
+  const Icon = ok ? Check : Circle;
+  const color = ok ? "text-emerald-600" : "text-[#A3A3A3]";
+  return (
+    <li className={`flex items-center gap-1.5 ${color}`}>
+      <Icon className="w-3 h-3 flex-shrink-0" />
+      <span>{label}</span>
+    </li>
+  );
 }
 
 export default function PasswordCard() {
@@ -42,13 +67,20 @@ export default function PasswordCard() {
     setError(null);
   };
 
+  const checks = useMemo(() => getPasswordChecks(newPassword), [newPassword]);
+  const passwordsMatch = newPassword.length > 0 && newPassword === confirmPassword;
+  const canSubmitCompose = allChecksPass(checks) && passwordsMatch;
+
   const handleRequestNonce = async (e) => {
     e?.preventDefault();
     setError(null);
 
-    const validation = validateNewPassword(newPassword);
-    if (validation) { setError(validation); return; }
-    if (newPassword !== confirmPassword) { setError("Passwords don't match."); return; }
+    if (!canSubmitCompose) {
+      // Submit shouldn't be reachable when the button is disabled, but guard
+      // against keyboard form submission anyway.
+      if (!allChecksPass(checks)) { setError("Password doesn't meet all requirements yet."); return; }
+      if (!passwordsMatch) { setError("Passwords don't match."); return; }
+    }
 
     setBusy(true);
     const { error: reauthErr } = await supabase.auth.reauthenticate();
@@ -111,8 +143,18 @@ export default function PasswordCard() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               className="mt-1"
-              placeholder={`At least ${MIN_LEN} characters`}
+              placeholder="Meets all 5 requirements below"
             />
+            <ul aria-label="Password requirements" className="text-[11px] mt-2 space-y-1">
+              <RequirementRow ok={checks.length}    label={`At least ${MIN_LEN} characters`} />
+              <RequirementRow ok={checks.lowercase} label="Lowercase letter (a–z)" />
+              <RequirementRow ok={checks.uppercase} label="Uppercase letter (A–Z)" />
+              <RequirementRow ok={checks.digit}     label="Number (0–9)" />
+              <RequirementRow ok={checks.symbol}    label="Symbol (e.g. !@#$%^&*)" />
+            </ul>
+            <p className="text-[11px] text-[#A3A3A3] mt-1.5">
+              We also check against known leaked passwords once you submit.
+            </p>
           </div>
           <div>
             <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Confirm new password</label>
@@ -124,6 +166,9 @@ export default function PasswordCard() {
               className="mt-1"
               placeholder="Repeat the password above"
             />
+            {confirmPassword.length > 0 && !passwordsMatch && (
+              <p className="text-[11px] text-red-700 mt-1.5">Doesn't match the password above.</p>
+            )}
           </div>
           {error && (
             <div className="flex items-start gap-2 p-3 bg-red-50 border border-red-200 rounded-lg">
@@ -131,7 +176,11 @@ export default function PasswordCard() {
               <p className="text-xs text-red-800">{error}</p>
             </div>
           )}
-          <Button type="submit" disabled={busy} className="bg-[#0A0A0A] hover:bg-[#262626]">
+          <Button
+            type="submit"
+            disabled={busy || !canSubmitCompose}
+            className="bg-[#0A0A0A] hover:bg-[#262626]"
+          >
             {busy ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Sending code…</>
             ) : (
