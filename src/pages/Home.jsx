@@ -125,7 +125,22 @@ export default function Home() {
 
   React.useEffect(() => {
     if (!user || !profileFetched) return;
-    if (profileError) return; // don't redirect if the query failed
+    // Redirect-on-error: if the profile query failed, we don't actually
+    // know whether the user has completed onboarding or not. Sending them
+    // to Onboarding is safer than leaving them stuck on Home — Onboarding
+    // has its own profile check that handles all three states (no row /
+    // incomplete / complete) and bounces back here if they're done.
+    //
+    // Previously this guard early-returned on ANY error, which masked
+    // structural problems like the PostgREST FK-resolution bug shipped in
+    // PR-2: new signups had no profile row, the query threw, and the user
+    // got stuck on Home with no indication anything was wrong. The new
+    // behaviour fails open to Onboarding instead of failing silent.
+    if (profileError) {
+      console.error("[Home] profile query failed — redirecting to Onboarding as fallback");
+      navigate(createPageUrl("Onboarding"));
+      return;
+    }
     if (profiles?.length === 0) {
       navigate(createPageUrl("Onboarding"));
     } else if (profile && !profile.onboarding_complete) {
