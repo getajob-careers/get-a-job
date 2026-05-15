@@ -570,10 +570,10 @@ export default function Onboarding() {
         // analysis if it detects this null pattern on next visit.
         const { error: persistErr } = await supabase.from("profiles").update({
           skill_gaps: data?.skill_gaps || [],
-          qualification_level: data?.qualification_level || "",
-          overall_assessment: data?.overall_assessment || "",
+          qualification_level: data?.qualification_level || null,
+          overall_assessment: data?.overall_assessment || null,
           last_reality_check_date: new Date().toISOString(),
-          onboarding_step: 7,
+          onboarding_step: 8,
         }).eq("id", existingProfileId);
         if (persistErr) {
           console.error("[onboarding] career analysis persist failed:", persistErr, {
