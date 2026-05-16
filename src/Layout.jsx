@@ -45,23 +45,27 @@ export default function Layout({ children, currentPageName }) {
   const [navLoading, setNavLoading] = useState(false);
   const location = useLocation();
 
-  // Practicum nav visibility — students who answered "No" to the practicum
-  // question during onboarding have practicum_path = null and should not
-  // see /Practicum in the nav. The page itself redirects to Home for these
-  // users (see src/pages/Practicum.jsx).
-  const { data: practicumPath } = useQuery({
-    queryKey: ["profile_practicum_path", user?.id],
+  // Layout-chrome gating: fetches the two profile fields Layout actually
+  // cares about — onboarding_complete (drives whether the sidebar shows at
+  // all) and practicum_path (drives whether /Practicum appears in the nav).
+  // Single round trip, .maybeSingle() returns null cleanly for new signups
+  // who don't have a profile row yet.
+  const { data: profileChrome } = useQuery({
+    queryKey: ["profile_layout_chrome", user?.id],
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("practicum_path")
+        .select("practicum_path, onboarding_complete")
         .eq("id", user.id)
         .maybeSingle();
-      return data?.practicum_path ?? null;
+      return data;
     },
     enabled: !!user?.id,
     staleTime: 5 * 60 * 1000,
   });
+
+  const practicumPath = profileChrome?.practicum_path ?? null;
+  const onboardingComplete = profileChrome?.onboarding_complete === true;
 
   const navItems = NAV_ITEMS.filter(
     (item) => item.page !== "Practicum" || practicumPath != null
@@ -73,8 +77,19 @@ export default function Layout({ children, currentPageName }) {
     return () => clearTimeout(t);
   }, [location.pathname]);
 
-  // Hide sidebar on onboarding
-  if (currentPageName === ONBOARDING_PAGE) {
+  // Hide the dashboard chrome (sidebar + top-loading-bar + main shell) in
+  // any state where the user shouldn't be seeing it. Three cases:
+  //   1. The user is on the Onboarding page itself.
+  //   2. The profile query hasn't returned yet (pessimistic — prevents the
+  //      sidebar from flashing for new signups whose Home mount triggers
+  //      the redirect-bounce to /Onboarding).
+  //   3. The user has a profile but hasn't completed onboarding — they're
+  //      mid-flow and any non-Onboarding route will bounce them back to
+  //      /Onboarding via that page's redirect guards.
+  // Tradeoff: existing complete users see a ~50-100ms no-chrome window on
+  // first profile fetch each session (refresh on any page). Within session,
+  // cache (staleTime 5 min) makes subsequent visits chrome-immediate.
+  if (currentPageName === ONBOARDING_PAGE || !onboardingComplete) {
     return <>{children}</>;
   }
 
