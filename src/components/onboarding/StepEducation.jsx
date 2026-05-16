@@ -185,7 +185,7 @@ export default function StepEducation({ data, onChange, educations, setEducation
           disabled={!canProceed}
           className="bg-[#0A0A0A] hover:bg-[#262626] text-sm px-6"
         >
-          Continue to Experience
+          Continue to Practicum
         </Button>
       </div>
     </div>

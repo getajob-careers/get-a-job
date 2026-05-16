@@ -157,6 +157,9 @@ export default function Home() {
   // call per Home mount via useRef; if it fails the next mount can retry.
   // Subject to the generate-career-analysis 5/hour rate limit, but a user
   // hitting that limit on a self-heal has bigger issues.
+  const [selfHealing, setSelfHealing] = useState(false);
+  const [selfHealError, setSelfHealError] = useState(null);
+  const [selfHealRetryNonce, setSelfHealRetryNonce] = useState(0);
   const selfHealRanRef = useRef(false);
   React.useEffect(() => {
     if (!user?.id || !profile) return;
@@ -164,6 +167,16 @@ export default function Home() {
     if (!profile.onboarding_complete) return;
     if (profile.qualification_level || profile.last_reality_check_date) return;
     selfHealRanRef.current = true;
+    setSelfHealing(true);
+    setSelfHealError(null);
+
+    // 45s ceiling: if the analysis hasn't returned by then, surface a retry
+    // affordance rather than spinning forever.
+    const timeoutId = setTimeout(() => {
+      setSelfHealing(false);
+      setSelfHealError("Analysis is taking longer than expected.");
+    }, 45000);
+
     (async () => {
       try {
         console.log("[home self-heal] running career analysis for", user.id);
@@ -172,28 +185,56 @@ export default function Home() {
         });
         if (error || !data?.qualification_level) {
           console.warn("[home self-heal] career analysis returned no data:", error || "(null qualification_level)");
+          clearTimeout(timeoutId);
+          setSelfHealing(false);
+          setSelfHealError("Couldn't run your analysis.");
           return;
         }
         const { error: persistErr } = await supabase.from("profiles").update({
           qualification_level: data.qualification_level,
-          overall_assessment: data.overall_assessment || "",
+          overall_assessment: data.overall_assessment || null,
           skill_gaps: data.skill_gaps || [],
           last_reality_check_date: new Date().toISOString(),
         }).eq("id", user.id);
         if (persistErr) {
           console.warn("[home self-heal] persist failed:", persistErr);
+          clearTimeout(timeoutId);
+          setSelfHealing(false);
+          setSelfHealError("Couldn't save your analysis.");
           return;
         }
         console.log("[home self-heal] success — qualification_level:", data.qualification_level);
+        clearTimeout(timeoutId);
+        setSelfHealing(false);
         queryClient.invalidateQueries({ queryKey: ["userProfile"] });
         queryClient.invalidateQueries({ queryKey: ["careerRoles"] });
       } catch (err) {
         console.warn("[home self-heal] exception:", err);
+        clearTimeout(timeoutId);
+        setSelfHealing(false);
+        setSelfHealError("Unexpected error during analysis.");
       }
     })();
-  }, [user?.id, profile, queryClient]);
 
-  if (isLoading) {
+    return () => clearTimeout(timeoutId);
+  }, [user?.id, profile, queryClient, selfHealRetryNonce]);
+
+  const handleSelfHealRetry = () => {
+    selfHealRanRef.current = false;
+    setSelfHealError(null);
+    setSelfHealRetryNonce((n) => n + 1);
+  };
+
+  // Render-gate: hide the dashboard during any state where a redirect to
+  // Onboarding is about to fire. Without this, the dashboard renders for one
+  // frame between profileFetched=true and navigate() actually changing the
+  // route — visible as a flash of empty cards for new signups.
+  const willRedirect =
+    profileError ||
+    (profileFetched && profiles?.length === 0) ||
+    (profile && !profile.onboarding_complete);
+
+  if (isLoading || willRedirect) {
     return (
       <div className="flex items-center justify-center h-full min-h-[60vh]">
         <Loader2 className="w-5 h-5 animate-spin text-[#A3A3A3]" />
@@ -341,6 +382,21 @@ export default function Home() {
           <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-3">Qualification Level</p>
           {profile?.qualification_level ? (
             <p className="text-sm text-[#0A0A0A] font-medium leading-snug">{profile.qualification_level}</p>
+          ) : selfHealing ? (
+            <div className="flex items-center gap-2">
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#A3A3A3]" />
+              <p className="text-sm text-[#A3A3A3]">Analysing your profile…</p>
+            </div>
+          ) : selfHealError ? (
+            <div>
+              <p className="text-sm text-[#A3A3A3]">{selfHealError}</p>
+              <button
+                onClick={handleSelfHealRetry}
+                className="mt-2 text-xs font-medium text-[#0A0A0A] underline underline-offset-2"
+              >
+                Retry
+              </button>
+            </div>
           ) : (
             <p className="text-sm text-[#A3A3A3]">Not yet determined</p>
           )}

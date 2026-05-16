@@ -65,7 +65,7 @@ export default function StepConstraints({ data, onChange, onSubmit, onBack, subm
       <div className="bg-[#F5F5F5] rounded-xl p-5 border border-[#E5E5E5]">
         <h3 className="text-xs uppercase tracking-wider font-semibold text-[#525252] mb-2">What happens next</h3>
         <p className="text-sm text-[#525252] leading-relaxed">
-          After the next step, we'll run your full career analysis — classifying your qualification level, identifying your Tier 1–3 roles, and generating a personalised task list and action plan.
+          Next we'll ask a few self-assessment questions, then run your full career analysis — classifying your qualification level, identifying your Tier 1–3 roles, and generating a personalised task list and action plan.
         </p>
       </div>
 
