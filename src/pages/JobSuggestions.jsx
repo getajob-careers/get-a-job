@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { scoreApplication } from "@/lib/scoreApplication";
 import { useAuth } from "@/lib/AuthContext";
@@ -9,30 +9,34 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
   Loader2,
-  RefreshCw,
   ExternalLink,
   Briefcase,
   MapPin,
   CheckCircle2,
   PlusCircle,
-  Sparkles,
   Search,
   Target,
+  Clock,
 } from "lucide-react";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 
-// Page rebuild (2026-05-17): two sections.
-//   1. Top Picks — cached weekly, AI-scored, 5-8 cards. Refresh button.
-//   2. Browse Jobs — tier filter (T1/T2/T3), client-side keyword filter,
-//      Load More via API offset. Cards are unscored by default; "Score This
-//      Job" runs analyze-job-match on demand and replaces the card UI with
-//      the scored variant.
+// Page rebuild (PR 3 of jobs-cache rollout, 2026-05-17).
 //
-// Killed:
-//   * generate-job-suggestions (replaced by generate-top-picks + browse-jobs)
-//   * "What to Look For" generic LLM suggestions (Browse view replaces them)
-//   * Single role-dropdown picker (replaced by tier buttons that fan out
-//     across all roles in the selected tier)
+// Frontend cut over from the on-demand `browse-jobs` + `generate-top-picks`
+// edge functions to direct supabase-js queries against public.jobs (the
+// local cache populated nightly by scripts/refresh-jobs.ts).
+//
+// What changed:
+//   * Top Picks section removed — Browse + Score-on-demand is the single
+//     interaction model now.
+//   * No edge function in the read path. RLS allows authenticated SELECT
+//     on jobs. Sub-100ms queries instead of 1-2 sec via Active Jobs DB.
+//   * Keyword search uses pg_trgm index (`ilike '%kw%'` on title);
+//     tier mode uses `.or('title.ilike.%role1%,title.ilike.%role2%')`
+//     built from the user's career_roles. Keyword and tier are mutually
+//     exclusive — switching one clears the other.
+//   * Add to Tracker stores ats_source + external_id so the Tracker page
+//     can show a "may no longer be active" badge when jobs.is_active=false.
 
 const TIER_LABELS = {
   tier_1: "Tier 1 — Your Move",
@@ -41,15 +45,29 @@ const TIER_LABELS = {
 };
 const TIER_ORDER = ["tier_1", "tier_2", "tier_3"];
 const PROFILE_STALE_TIME = 30 * 60 * 1000;
-const BROWSE_STALE_TIME = 5 * 60 * 1000;
 const BROWSE_PAGE_SIZE = 20;
+const MAX_TIER_ROLES = 8;  // ILIKE OR fan-out per tier query
 
-function formatSalary(min, max) {
-  if (!min && !max) return null;
-  const fmt = (n) => Number(n).toLocaleString(undefined, { maximumFractionDigits: 0 });
-  if (min && max) return `${fmt(min)} – ${fmt(max)}`;
-  if (min) return `From ${fmt(min)}`;
-  return `Up to ${fmt(max)}`;
+const SENIORITY_LABEL = {
+  entry: "Entry",
+  mid: "Mid",
+  senior: "Senior",
+  lead: "Lead",
+  director: "Director",
+  executive: "Exec",
+};
+
+// One chip per card: years-based when parseable (covers ~60% of jobs),
+// seniority bucket otherwise.
+function experienceChipText(job) {
+  if (job.years_experience_min == null) {
+    return SENIORITY_LABEL[job.seniority] || "Mid";
+  }
+  if (job.years_experience_max != null && job.years_experience_max > job.years_experience_min) {
+    return `${job.years_experience_min}-${job.years_experience_max} yrs`;
+  }
+  if (job.years_experience_min === 0) return "0+ yrs";
+  return `${job.years_experience_min}+ yrs`;
 }
 
 function formatPostedDate(dateStr) {
@@ -59,33 +77,38 @@ function formatPostedDate(dateStr) {
   const ageDays = Math.floor((Date.now() - d.getTime()) / 86400000);
   if (ageDays <= 0) return "Today";
   if (ageDays === 1) return "Yesterday";
-  if (ageDays < 7) return `${ageDays} days ago`;
+  if (ageDays < 7) return `${ageDays}d ago`;
   if (ageDays < 30) return `${Math.floor(ageDays / 7)}w ago`;
   return d.toLocaleDateString();
 }
 
-// ─────────── Add-to-tracker helper used by both card types ───────────
+// ─────────── Add-to-tracker ───────────
 
 async function addJobToTracker({ user, queryClient, job, matchScore, matchedSkills, matchReason }) {
-  const { data: existing } = await supabase
-    .from("applications")
-    .select("id")
-    .eq("user_id", user.id)
-    .ilike("role_title", job.title)
-    .limit(1);
+  // Idempotency check — match on (ats_source, external_id) for jobs
+  // added from Browse; fall back to title-only for manual rows.
+  let dupQuery = supabase.from("applications").select("id").eq("user_id", user.id).limit(1);
+  if (job.ats_source && job.external_id) {
+    dupQuery = dupQuery.eq("ats_source", job.ats_source).eq("external_id", job.external_id);
+  } else {
+    dupQuery = dupQuery.ilike("role_title", job.title);
+  }
+  const { data: existing } = await dupQuery;
   if (existing?.length > 0) return { duplicate: true };
 
-  const jd = job.description_snippet || job.description || "";
+  const jd = job.description || "";
   const { data: inserted, error } = await supabase.from("applications").insert({
     user_id: user.id,
     role_title: job.title,
-    company: job.company || "Unknown",
+    company: job.company_name || "Unknown",
     status: "interested",
     source: "job_suggestion",
+    ats_source: job.ats_source || null,
+    external_id: job.external_id || null,
     cv_skills_emphasized: matchedSkills || [],
     job_description: jd,
-    url: job.job_url || "",
-    location: job.location || "",
+    url: job.apply_url || "",
+    location: job.location_city || job.location_raw || "",
     notes: matchReason || "",
     ...(typeof matchScore === "number" && { qualification_score: matchScore / 100 }),
   }).select("id").single();
@@ -95,110 +118,30 @@ async function addJobToTracker({ user, queryClient, job, matchScore, matchedSkil
     return { error };
   }
   queryClient.invalidateQueries({ queryKey: ["applications"] });
-  // Score in background if we have a JD and no existing match score.
   if (inserted?.id && jd && matchScore == null) {
     scoreApplication(supabase, queryClient, inserted.id, jd, user.id);
   }
   return { ok: true };
 }
 
-// ─────────── Top Picks card (always scored) ───────────
+// ─────────── Job card ───────────
 
-function TopPickCard({ job }) {
+function JobCard({ job, scoreResult, scoring, onScore }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
 
-  const score = Math.round(job.match_score || 0);
-  const scoreColor = score >= 75
-    ? "text-emerald-600 bg-emerald-50"
-    : score >= 50
-      ? "text-amber-600 bg-amber-50"
-      : "text-red-600 bg-red-50";
-  const salary = formatSalary(job.salary_min, job.salary_max);
-
-  const handleAdd = async () => {
-    setAdding(true);
-    const res = await addJobToTracker({
-      user, queryClient, job,
-      matchScore: score,
-      matchedSkills: job.matched_skills,
-      matchReason: job.match_reason,
-    });
-    setAdding(false);
-    if (res.ok || res.duplicate) setAdded(true);
-  };
-
-  return (
-    <div className="bg-white rounded-xl border border-[#E5E5E5] p-5 hover:border-[#D4D4D4] transition-all flex flex-col">
-      <div className="flex items-start justify-between gap-3 mb-3">
-        <div className="flex-1 min-w-0">
-          <h3 className="text-sm font-semibold text-[#0A0A0A]">{job.title}</h3>
-          <p className="text-sm text-[#525252] mt-0.5">{job.company}</p>
-        </div>
-        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${scoreColor}`}>
-          {score}% match
-        </span>
-      </div>
-
-      <div className="flex flex-wrap gap-3 text-xs text-[#A3A3A3] mb-3">
-        {job.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location}</span>}
-        {salary && <span>{salary}</span>}
-      </div>
-
-      {job.match_reason && (
-        <p className="text-xs text-[#525252] leading-relaxed mb-3">{job.match_reason}</p>
-      )}
-
-      {job.matched_skills?.length > 0 && (
-        <div className="mb-3">
-          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-semibold mb-1.5">Your Strengths</p>
-          <div className="flex flex-wrap gap-1.5">
-            {job.matched_skills.slice(0, 5).map((s, i) => (
-              <span key={i} className="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-xs rounded-full">{s}</span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {job.missing_skills?.length > 0 && (
-        <div className="mb-3">
-          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-semibold mb-1.5">Skill Gaps</p>
-          <div className="flex flex-wrap gap-1.5">
-            {job.missing_skills.slice(0, 5).map((s, i) => (
-              <span key={i} className="px-2 py-0.5 bg-red-50 text-red-600 text-xs rounded-full">{s}</span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      <div className="flex items-center justify-between mt-auto pt-3 border-t border-[#F5F5F5]">
-        {job.job_url ? (
-          <a href={job.job_url} target="_blank" rel="noopener noreferrer"
-             className="inline-flex items-center gap-1.5 text-xs text-[#0A66C2] hover:underline font-medium">
-            <Briefcase className="w-3.5 h-3.5" />Apply Now<ExternalLink className="w-3 h-3" />
-          </a>
-        ) : <span />}
-        <Button size="sm" onClick={handleAdd} disabled={adding || added}
-          className={added ? "bg-emerald-600 hover:bg-emerald-600 text-white" : "bg-[#0A0A0A] hover:bg-[#262626] text-white"}>
-          {adding ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Adding...</> :
-           added ? <><CheckCircle2 className="w-3 h-3 mr-1" />Added</> :
-                   <><PlusCircle className="w-3 h-3 mr-1" />Add to Tracker</>}
-        </Button>
-      </div>
-    </div>
-  );
-}
-
-// ─────────── Browse card (unscored by default; "Score This Job" upgrades it) ───────────
-
-function BrowseJobCard({ job, scoreResult, onScore, scoring }) {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [adding, setAdding] = useState(false);
-  const [added, setAdded] = useState(false);
   const posted = formatPostedDate(job.date_posted);
+  const chip = experienceChipText(job);
+  const hasDescription = Boolean(job.description && job.description.length > 50);
+
+  const scored = !!scoreResult;
+  const score = scored ? Math.round(scoreResult.match_score || 0) : null;
+  const scoreColor = score == null ? ""
+    : score >= 75 ? "text-emerald-600 bg-emerald-50"
+    : score >= 50 ? "text-amber-600 bg-amber-50"
+    : "text-red-600 bg-red-50";
 
   const handleAdd = async () => {
     setAdding(true);
@@ -212,19 +155,12 @@ function BrowseJobCard({ job, scoreResult, onScore, scoring }) {
     if (res.ok || res.duplicate) setAdded(true);
   };
 
-  const scored = !!scoreResult;
-  const score = scored ? Math.round(scoreResult.match_score || 0) : null;
-  const scoreColor = score == null ? ""
-    : score >= 75 ? "text-emerald-600 bg-emerald-50"
-    : score >= 50 ? "text-amber-600 bg-amber-50"
-    : "text-red-600 bg-red-50";
-
   return (
     <div className="bg-white rounded-xl border border-[#E5E5E5] p-5 hover:border-[#D4D4D4] transition-all flex flex-col">
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="flex-1 min-w-0">
           <h3 className="text-sm font-semibold text-[#0A0A0A]">{job.title}</h3>
-          <p className="text-sm text-[#525252] mt-0.5">{job.company}</p>
+          <p className="text-sm text-[#525252] mt-0.5">{job.company_name}</p>
         </div>
         {scored && (
           <span className={`text-xs font-semibold px-2.5 py-1 rounded-full whitespace-nowrap ${scoreColor}`}>
@@ -233,10 +169,14 @@ function BrowseJobCard({ job, scoreResult, onScore, scoring }) {
         )}
       </div>
 
-      <div className="flex flex-wrap gap-3 text-xs text-[#A3A3A3] mb-3">
-        {job.location && <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location}</span>}
-        {posted && <span>{posted}</span>}
-        {job.source && <span className="text-[10px] uppercase tracking-wider">{job.source}</span>}
+      <div className="flex flex-wrap items-center gap-2 text-xs text-[#A3A3A3] mb-3">
+        {job.location_city && (
+          <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location_city}</span>
+        )}
+        <span className="inline-flex items-center gap-1 px-1.5 py-0.5 bg-[#F5F5F5] text-[#525252] rounded">
+          {chip}
+        </span>
+        {posted && <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{posted}</span>}
       </div>
 
       {scored && scoreResult.match_reason && (
@@ -264,15 +204,18 @@ function BrowseJobCard({ job, scoreResult, onScore, scoring }) {
       )}
 
       <div className="flex items-center justify-between gap-2 mt-auto pt-3 border-t border-[#F5F5F5]">
-        {job.job_url ? (
-          <a href={job.job_url} target="_blank" rel="noopener noreferrer"
+        {job.apply_url ? (
+          <a href={job.apply_url} target="_blank" rel="noopener noreferrer"
              className="inline-flex items-center gap-1.5 text-xs text-[#0A66C2] hover:underline font-medium">
             <Briefcase className="w-3.5 h-3.5" />Apply<ExternalLink className="w-3 h-3" />
           </a>
         ) : <span />}
         <div className="flex gap-2">
           {!scored && (
-            <Button size="sm" variant="outline" onClick={onScore} disabled={scoring}
+            <Button
+              size="sm" variant="outline" onClick={onScore}
+              disabled={scoring || !hasDescription}
+              title={!hasDescription ? "Open the job posting first to see the full description" : undefined}
               className="text-xs">
               {scoring ? <><Loader2 className="w-3 h-3 mr-1 animate-spin" />Scoring...</> :
                          <><Target className="w-3 h-3 mr-1" />Score This Job</>}
@@ -292,11 +235,22 @@ function BrowseJobCard({ job, scoreResult, onScore, scoring }) {
 
 // ─────────── Page ───────────
 
+// Build a Supabase .or() string of ILIKE patterns from a list of role titles.
+// Each pattern wraps the role in %...% for substring match. Postgres tokenises
+// these against the pg_trgm GIN index on jobs.title for fast OR-of-LIKE.
+function buildTitleOrFilter(roleTitles) {
+  if (!roleTitles?.length) return null;
+  return roleTitles
+    .slice(0, MAX_TIER_ROLES)
+    .map((t) => `title.ilike.%${t.replace(/[%,]/g, " ").trim()}%`)
+    .join(",");
+}
+
 export default function JobSuggestions() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Profile + roles (for the staleness banner)
+  // Profile + roles for the staleness banner (unchanged from prior version)
   const { data: profile } = useQuery({
     queryKey: ["userProfile", user?.id],
     queryFn: async () => {
@@ -327,117 +281,145 @@ export default function JobSuggestions() {
   });
   const stale = isAnalysisStale({ profile, experiences, certifications, projects });
 
-  // ── Top Picks ─────────────────────────────────────────────────────
-  const [topPicksRefreshing, setTopPicksRefreshing] = useState(false);
-  const [topPicksError, setTopPicksError] = useState(null);
-
-  const topPicksQuery = useQuery({
-    queryKey: ["topPicks", user?.id],
+  // Career roles for the tier-mode query — grouped by tier client-side.
+  const { data: careerRoles = [] } = useQuery({
+    queryKey: ["careerRoles", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke("generate-top-picks", {
-        body: {},  // empty body — uses cache if <7 days old
-      });
-      if (error) throw error;
-      return data;
+      if (!user?.id) return [];
+      const { data } = await supabase
+        .from("career_roles")
+        .select("title, tier, readiness_score")
+        .eq("user_id", user.id);
+      return data || [];
     },
     enabled: !!user?.id,
-    staleTime: Infinity,  // explicit invalidation only
+    staleTime: PROFILE_STALE_TIME,
   });
 
-  const handleRefreshTopPicks = async () => {
-    setTopPicksRefreshing(true);
-    setTopPicksError(null);
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-top-picks", {
-        body: { force_refresh: true },
-      });
-      if (error) throw error;
-      queryClient.setQueryData(["topPicks", user?.id], data);
-    } catch (err) {
-      console.error("[top-picks] refresh failed:", err);
-      setTopPicksError("Couldn't refresh — try again in a few seconds.");
-    } finally {
-      setTopPicksRefreshing(false);
+  const rolesByTier = useMemo(() => {
+    const groups = { tier_1: [], tier_2: [], tier_3: [] };
+    for (const r of careerRoles) {
+      if (!r?.title || !groups[r.tier]) continue;
+      groups[r.tier].push(r);
     }
-  };
+    for (const t of TIER_ORDER) {
+      groups[t].sort((a, b) => (Number(b.readiness_score) || 0) - (Number(a.readiness_score) || 0));
+    }
+    return groups;
+  }, [careerRoles]);
 
-  const topPicks = topPicksQuery.data?.jobs ?? [];
-  const topPicksFromCache = !!topPicksQuery.data?.from_cache;
-  const topPicksEmptyReason = topPicksQuery.data?.empty_reason;
-
-  // ── Browse ────────────────────────────────────────────────────────
+  // ── Browse state ──────────────────────────────────────────────────
+  // Mode is exactly one of tier | keyword. Switching one clears the other.
+  const [mode, setMode] = useState("tier");          // "tier" | "keyword"
   const [selectedTier, setSelectedTier] = useState("tier_1");
-  const [keyword, setKeyword] = useState("");
-  const [scoredJobs, setScoredJobs] = useState({});  // jobId → {match_score, matched_skills, ...}
-  const [scoringIds, setScoringIds] = useState(new Set());
-  const [browseAccumulator, setBrowseAccumulator] = useState([]);  // accumulated across Load More
-  const [browseOffset, setBrowseOffset] = useState(0);
-  const [browseHasMore, setBrowseHasMore] = useState(false);
-  const [browseLoading, setBrowseLoading] = useState(false);
-  const [browseError, setBrowseError] = useState(null);
-  const [browseEmptyReason, setBrowseEmptyReason] = useState(null);
-  const [browseCountry, setBrowseCountry] = useState(null);
+  const [keyword, setKeyword] = useState("");        // what's in the input
+  const [appliedKeyword, setAppliedKeyword] = useState("");  // committed on Enter
 
-  const fetchBrowse = useCallback(async (tier, offset, append) => {
-    setBrowseLoading(true);
-    setBrowseError(null);
-    try {
-      const { data, error } = await supabase.functions.invoke("browse-jobs", {
-        body: { tier, offset, limit: BROWSE_PAGE_SIZE },
-      });
-      if (error) throw error;
-      const newJobs = data?.jobs ?? [];
-      setBrowseAccumulator((prev) => append ? [...prev, ...newJobs] : newJobs);
-      setBrowseHasMore(Boolean(data?.has_more));
-      setBrowseEmptyReason(append ? browseEmptyReason : data?.empty_reason ?? null);
-      setBrowseCountry(data?.country_code ?? null);
-    } catch (err) {
-      console.error("[browse-jobs] fetch failed:", err);
-      setBrowseError("Couldn't load jobs — try again.");
-    } finally {
-      setBrowseLoading(false);
+  const [jobs, setJobs] = useState([]);
+  const [offset, setOffset] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [emptyReason, setEmptyReason] = useState(null);  // 'no_roles' | 'no_matches' | null
+
+  const [scoredJobs, setScoredJobs] = useState({});  // id → {match_score, ...}
+  const [scoringIds, setScoringIds] = useState(new Set());
+
+  // Refs to capture the current filter version so a stale request doesn't
+  // overwrite a fresh one (e.g. user clicks T1 then T2 in quick succession).
+  const requestSeqRef = useRef(0);
+
+  // Build the query for the current mode + offset. Returns the supabase
+  // query builder (caller awaits it).
+  const buildJobsQuery = useCallback((modeArg, tier, kw, offsetArg) => {
+    let q = supabase
+      .from("jobs")
+      .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry")
+      .eq("is_il", true)
+      .eq("is_active", true)
+      .order("date_posted", { ascending: false, nullsFirst: false })
+      .range(offsetArg, offsetArg + BROWSE_PAGE_SIZE - 1);
+
+    if (modeArg === "keyword") {
+      const safe = kw.replace(/[%,]/g, " ").trim();
+      if (safe) q = q.ilike("title", `%${safe}%`);
+    } else {
+      const roles = rolesByTier[tier] || [];
+      const orFilter = buildTitleOrFilter(roles.map((r) => r.title));
+      if (!orFilter) return { _empty: "no_roles" };
+      q = q.or(orFilter);
+    }
+    return q;
+  }, [rolesByTier]);
+
+  const fetchJobs = useCallback(async ({ modeArg, tier, kw, offsetArg, append }) => {
+    const seq = ++requestSeqRef.current;
+    setLoading(true);
+    setError(null);
+
+    const built = buildJobsQuery(modeArg, tier, kw, offsetArg);
+    if (built?._empty === "no_roles") {
+      // Bail before hitting the network — happens when tier has no roles
+      if (seq !== requestSeqRef.current) return;
+      setJobs([]); setHasMore(false); setLoading(false); setEmptyReason("no_roles");
+      return;
     }
 
-  }, []);
+    const { data, error: qError } = await built;
+    if (seq !== requestSeqRef.current) return;  // a newer request superseded us
 
-  // Re-fetch when tier changes. Reset accumulator + offset + scored cache.
+    if (qError) {
+      console.error("[jobs] query failed:", qError);
+      setError("Couldn't load jobs — try again.");
+      setLoading(false);
+      return;
+    }
+
+    const rows = data || [];
+    setJobs((prev) => append ? [...prev, ...rows] : rows);
+    setHasMore(rows.length >= BROWSE_PAGE_SIZE);
+    setEmptyReason(rows.length === 0 && !append ? "no_matches" : null);
+    setLoading(false);
+  }, [buildJobsQuery]);
+
+  // Refetch whenever mode / tier / appliedKeyword changes. Reset paging.
   useEffect(() => {
     if (!user?.id) return;
-    setBrowseAccumulator([]);
-    setBrowseOffset(0);
-    setBrowseHasMore(false);
-    setBrowseEmptyReason(null);
+    setOffset(0);
     setScoredJobs({});
-    fetchBrowse(selectedTier, 0, false);
-  }, [selectedTier, user?.id, fetchBrowse]);
+    fetchJobs({ modeArg: mode, tier: selectedTier, kw: appliedKeyword, offsetArg: 0, append: false });
+  }, [user?.id, mode, selectedTier, appliedKeyword, fetchJobs]);
 
-  const handleLoadMore = () => {
-    const newOffset = browseOffset + BROWSE_PAGE_SIZE;
-    setBrowseOffset(newOffset);
-    fetchBrowse(selectedTier, newOffset, true);
+  const handleTierClick = (t) => {
+    setMode("tier");
+    setSelectedTier(t);
+    setKeyword("");
+    setAppliedKeyword("");
   };
 
-  // Client-side keyword filter — title + company substring match
-  const filteredBrowseJobs = useMemo(() => {
-    const k = keyword.trim().toLowerCase();
-    if (!k) return browseAccumulator;
-    return browseAccumulator.filter((j) =>
-      (j.title || "").toLowerCase().includes(k) ||
-      (j.company || "").toLowerCase().includes(k)
-    );
-  }, [browseAccumulator, keyword]);
+  const handleKeywordSubmit = (e) => {
+    e.preventDefault();
+    const trimmed = keyword.trim();
+    if (!trimmed) return;
+    setMode("keyword");
+    setAppliedKeyword(trimmed);
+  };
 
-  // ── Score-this-job: calls analyze-job-match for a single browse card ──
+  const handleLoadMore = () => {
+    const next = offset + BROWSE_PAGE_SIZE;
+    setOffset(next);
+    fetchJobs({ modeArg: mode, tier: selectedTier, kw: appliedKeyword, offsetArg: next, append: true });
+  };
+
+  // Score-this-job: calls analyze-job-match on demand
   const handleScoreJob = async (job) => {
     if (scoringIds.has(job.id)) return;
     setScoringIds((prev) => new Set(prev).add(job.id));
     try {
-      const { data, error } = await supabase.functions.invoke("analyze-job-match", {
+      const { data, error: scoreErr } = await supabase.functions.invoke("analyze-job-match", {
         body: { job_description: job.description, mode: "text" },
       });
-      if (error) throw error;
-      // analyze-job-match returns matched_requirements + missing_requirements
-      // (array of {requirement, ...}). Flatten for the card.
+      if (scoreErr) throw scoreErr;
       const matched = Array.isArray(data?.matched_requirements)
         ? data.matched_requirements.map((m) => m.requirement).filter(Boolean)
         : [];
@@ -456,11 +438,7 @@ export default function JobSuggestions() {
     } catch (err) {
       console.error("[score-job] failed:", err);
     } finally {
-      setScoringIds((prev) => {
-        const next = new Set(prev);
-        next.delete(job.id);
-        return next;
-      });
+      setScoringIds((prev) => { const next = new Set(prev); next.delete(job.id); return next; });
     }
   };
 
@@ -470,11 +448,11 @@ export default function JobSuggestions() {
     <div className="max-w-5xl mx-auto px-6 py-8">
       <div className="mb-8">
         <div className="flex items-center gap-2 mb-1">
-          <Sparkles className="w-5 h-5 text-[#0A0A0A]" />
-          <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">Smart Match Jobs</h1>
+          <Briefcase className="w-5 h-5 text-[#0A0A0A]" />
+          <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">Job Board</h1>
         </div>
         <p className="text-sm text-[#A3A3A3]">
-          Personalised picks at the top · browse more by tier below.
+          Live listings from top companies, updated nightly.
         </p>
         {stale && (
           <p className="text-xs text-amber-700 mt-1">
@@ -488,152 +466,103 @@ export default function JobSuggestions() {
 
       {noProfile && (
         <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 text-sm text-amber-700 mb-6">
-          Complete your onboarding first so we can find personalised job matches.
+          Complete your onboarding first so we can match jobs to your profile.
         </div>
       )}
 
-      {/* ─── Top Picks ─── */}
-      <section className="mb-12">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="text-lg font-semibold text-[#0A0A0A]">Top Picks for You</h2>
-            <p className="text-xs text-[#A3A3A3] mt-0.5">
-              {topPicksFromCache ? "Cached — refreshes weekly" : "Just generated"}
-              {topPicksQuery.data?.country_code && ` · ${topPicksQuery.data.country_code.toUpperCase()}`}
-            </p>
-          </div>
-          <Button
-            onClick={handleRefreshTopPicks}
-            disabled={topPicksRefreshing || topPicksQuery.isLoading || noProfile}
-            variant="outline"
-            size="sm">
-            {topPicksRefreshing ? (
-              <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Refreshing</>
-            ) : (
-              <><RefreshCw className="w-3.5 h-3.5 mr-1.5" />Refresh</>
-            )}
-          </Button>
+      {/* Filter bar */}
+      <div className="flex flex-wrap items-center gap-2 mb-6">
+        {TIER_ORDER.map((t) => (
+          <button
+            key={t}
+            type="button"
+            onClick={() => handleTierClick(t)}
+            className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
+              mode === "tier" && selectedTier === t
+                ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
+                : "bg-white text-[#525252] border-[#E5E5E5] hover:border-[#A3A3A3]"
+            }`}>
+            {TIER_LABELS[t]}
+          </button>
+        ))}
+        <form onSubmit={handleKeywordSubmit} className="relative flex-1 min-w-[240px] max-w-[360px] ml-auto">
+          <Search className="w-3.5 h-3.5 text-[#A3A3A3] absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none" />
+          <Input
+            value={keyword}
+            onChange={(e) => setKeyword(e.target.value)}
+            placeholder="Search titles (Enter to apply)"
+            className="text-sm pl-8"
+          />
+        </form>
+      </div>
+
+      {mode === "keyword" && appliedKeyword && (
+        <div className="flex items-center gap-2 mb-4 text-xs text-[#525252]">
+          <span>Searching &quot;{appliedKeyword}&quot;</span>
+          <button
+            type="button"
+            onClick={() => handleTierClick(selectedTier)}
+            className="text-[#0A66C2] hover:underline">
+            Back to {TIER_LABELS[selectedTier]}
+          </button>
         </div>
+      )}
 
-        {topPicksError && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-700 mb-3">
-            {topPicksError}
-          </div>
-        )}
+      {error && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-700 mb-3">
+          {error}
+        </div>
+      )}
 
-        {topPicksQuery.isLoading ? (
-          <div className="text-center py-12 bg-white rounded-xl border border-[#E5E5E5]">
-            <Loader2 className="w-6 h-6 animate-spin text-[#A3A3A3] mx-auto mb-2" />
-            <p className="text-sm text-[#525252]">Loading your top picks…</p>
-          </div>
-        ) : topPicks.length === 0 ? (
-          <div className="text-center py-10 bg-white rounded-xl border border-[#E5E5E5]">
-            <Briefcase className="w-8 h-8 text-[#A3A3A3] mx-auto mb-3" />
-            <p className="text-sm font-medium text-[#525252]">
-              {topPicksEmptyReason === "no_roles"
-                ? "Run your Career Roadmap first to get personalised picks."
-                : "No matches found right now — try refreshing."}
-            </p>
-            {topPicksEmptyReason === "no_roles" && (
+      {loading && jobs.length === 0 ? (
+        <div className="text-center py-12 bg-white rounded-xl border border-[#E5E5E5]">
+          <Loader2 className="w-6 h-6 animate-spin text-[#A3A3A3] mx-auto mb-2" />
+          <p className="text-sm text-[#525252]">Loading jobs…</p>
+        </div>
+      ) : jobs.length === 0 ? (
+        <div className="text-center py-10 bg-white rounded-xl border border-[#E5E5E5]">
+          <Briefcase className="w-8 h-8 text-[#A3A3A3] mx-auto mb-3" />
+          {emptyReason === "no_roles" ? (
+            <>
+              <p className="text-sm font-medium text-[#525252]">
+                No {TIER_LABELS[selectedTier]} roles yet — run your Career Roadmap.
+              </p>
               <Link to={createPageUrl("CareerRoadmap")} className="inline-block mt-3 text-xs text-[#0A66C2] hover:underline">
                 Go to Career Roadmap →
               </Link>
-            )}
-          </div>
-        ) : (
+            </>
+          ) : mode === "keyword" ? (
+            <p className="text-sm font-medium text-[#525252]">
+              No results for &quot;{appliedKeyword}&quot;. Try a different keyword.
+            </p>
+          ) : (
+            <p className="text-sm font-medium text-[#525252]">
+              No jobs match your {TIER_LABELS[selectedTier]} roles right now.
+            </p>
+          )}
+        </div>
+      ) : (
+        <>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {topPicks.map((job, i) => (
-              <TopPickCard key={job.id || `${job.title}-${i}`} job={job} />
+            {jobs.map((job) => (
+              <JobCard
+                key={job.id}
+                job={job}
+                scoreResult={scoredJobs[job.id]}
+                scoring={scoringIds.has(job.id)}
+                onScore={() => handleScoreJob(job)}
+              />
             ))}
           </div>
-        )}
-      </section>
-
-      {/* ─── Browse Jobs ─── */}
-      <section>
-        <h2 className="text-lg font-semibold text-[#0A0A0A] mb-4">Browse Jobs</h2>
-
-        <div className="flex flex-wrap items-center gap-2 mb-4">
-          {TIER_ORDER.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setSelectedTier(t)}
-              className={`text-xs px-3 py-1.5 rounded-full border transition-colors ${
-                selectedTier === t
-                  ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
-                  : "bg-white text-[#525252] border-[#E5E5E5] hover:border-[#A3A3A3]"
-              }`}>
-              {TIER_LABELS[t]}
-            </button>
-          ))}
-          <div className="relative flex-1 min-w-[200px] max-w-[320px] ml-auto">
-            <Search className="w-3.5 h-3.5 text-[#A3A3A3] absolute left-2.5 top-1/2 -translate-y-1/2" />
-            <Input
-              value={keyword}
-              onChange={(e) => setKeyword(e.target.value)}
-              placeholder="Filter by title or company"
-              className="text-sm pl-8"
-            />
-          </div>
-        </div>
-
-        {browseError && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-700 mb-3">
-            {browseError}
-          </div>
-        )}
-
-        {browseLoading && browseAccumulator.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl border border-[#E5E5E5]">
-            <Loader2 className="w-6 h-6 animate-spin text-[#A3A3A3] mx-auto mb-2" />
-            <p className="text-sm text-[#525252]">Loading jobs…</p>
-          </div>
-        ) : filteredBrowseJobs.length === 0 ? (
-          <div className="text-center py-10 bg-white rounded-xl border border-[#E5E5E5]">
-            <Briefcase className="w-8 h-8 text-[#A3A3A3] mx-auto mb-3" />
-            {keyword ? (
-              <p className="text-sm font-medium text-[#525252]">No matches for &quot;{keyword}&quot; in the loaded jobs.</p>
-            ) : browseEmptyReason === "no_roles_in_tier" ? (
-              <>
-                <p className="text-sm font-medium text-[#525252]">
-                  No {TIER_LABELS[selectedTier]} roles yet — run your Career Roadmap.
-                </p>
-                <Link to={createPageUrl("CareerRoadmap")} className="inline-block mt-3 text-xs text-[#0A66C2] hover:underline">
-                  Go to Career Roadmap →
-                </Link>
-              </>
-            ) : browseEmptyReason === "no_jobs_for_country" ? (
-              <p className="text-sm font-medium text-[#525252]">
-                We don&apos;t have live job data for {browseCountry?.toUpperCase() || "your country"} yet.
-              </p>
-            ) : (
-              <p className="text-sm font-medium text-[#525252]">No jobs in this tier right now.</p>
-            )}
-          </div>
-        ) : (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {filteredBrowseJobs.map((job) => (
-                <BrowseJobCard
-                  key={job.id}
-                  job={job}
-                  scoreResult={scoredJobs[job.id]}
-                  scoring={scoringIds.has(job.id)}
-                  onScore={() => handleScoreJob(job)}
-                />
-              ))}
+          {hasMore && (
+            <div className="text-center mt-6">
+              <Button onClick={handleLoadMore} disabled={loading} variant="outline" size="sm">
+                {loading ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Loading</> : "Load more"}
+              </Button>
             </div>
-            {browseHasMore && !keyword && (
-              <div className="text-center mt-6">
-                <Button onClick={handleLoadMore} disabled={browseLoading} variant="outline" size="sm">
-                  {browseLoading ? <><Loader2 className="w-3.5 h-3.5 mr-1.5 animate-spin" />Loading</> : "Load more"}
-                </Button>
-              </div>
-            )}
-          </>
-        )}
-      </section>
+          )}
+        </>
+      )}
     </div>
   );
 }

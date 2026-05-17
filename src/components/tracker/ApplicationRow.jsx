@@ -28,7 +28,7 @@ const STATUS_LABELS = {
   rejected: { label: "Rejected", className: "bg-red-50 text-red-700" },
 };
 
-export default function ApplicationRow({ app, onUpdate }) {
+export default function ApplicationRow({ app, onUpdate, listingInactive = false }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(false);
@@ -198,6 +198,11 @@ export default function ApplicationRow({ app, onUpdate }) {
           <div className="min-w-0">
             <p className="text-sm font-semibold text-[#0A0A0A] truncate">{app.role_title}</p>
             <p className="text-xs text-[#A3A3A3] mt-0.5">{app.company || "No company"}</p>
+            {listingInactive && (
+              <p className="text-[10px] text-amber-700 mt-0.5">
+                This listing may no longer be active
+              </p>
+            )}
           </div>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
