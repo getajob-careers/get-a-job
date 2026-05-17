@@ -1,6 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import posthog from "posthog-js";
 import { useAuth } from "@/lib/AuthContext";
+import { track, EVENTS } from "@/lib/analytics";
 
 // PostHog initialization + identity sync. Mounted only inside
 // AuthenticatedApp so the landing / login / reset-password pages never
@@ -67,6 +68,15 @@ export default function PostHogProvider({ children }) {
       email: user.email,
       signup_date: user.created_at,
     });
+    // Drain the signup_pending flag (set by Login.jsx after a successful
+    // signUp). Email confirmation means signup_completed can't fire from
+    // /login itself — first PostHog-identified session is here.
+    try {
+      if (localStorage.getItem("gaj.signup_pending") === "1") {
+        track(EVENTS.SIGNUP_COMPLETED, { method: "email" });
+        localStorage.removeItem("gaj.signup_pending");
+      }
+    } catch { /* localStorage unavailable */ }
     return () => {
       posthog.reset();
     };

@@ -12,6 +12,7 @@ import RoleCard from "../components/roadmap/RoleCard";
 import LearningPaths from "../components/roadmap/LearningPaths";
 import ProgressVisualization from "../components/roadmap/ProgressVisualization";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
+import { track, EVENTS } from "@/lib/analytics";
 
 const ROADMAP_MESSAGES = [
   "Searching LinkedIn & Glassdoor for real job postings…",
@@ -141,6 +142,8 @@ export default function CareerRoadmap() {
         });
 
         if (rpcError) throw rpcError;
+
+        track(EVENTS.CAREER_ANALYSIS_REFRESHED, { role_count: rolesPayload.length });
 
         // Keep the "Last updated" stamp fresh on the profile.
         // Capture errors explicitly — silent failure of this write is what

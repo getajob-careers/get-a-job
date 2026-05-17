@@ -40,6 +40,11 @@ export default function Login() {
           options: { data: { full_name: fullName } },
         });
         if (error) throw error;
+        // signup_completed PostHog event can't fire directly from /login
+        // (PostHog only loads inside AuthenticatedApp). Set a one-shot
+        // flag in localStorage that PostHogProvider drains on first
+        // identify after the user confirms their email and signs in.
+        try { localStorage.setItem("gaj.signup_pending", "1"); } catch { /* private mode */ }
         setMessage("Check your email for a confirmation link!");
       } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {

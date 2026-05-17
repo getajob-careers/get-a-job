@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 import { Search, Loader2 } from "lucide-react";
+import { track, EVENTS } from "@/lib/analytics";
 
 // Trigger card for match-internship-companies. Rate-limited 4/hr at
 // the backend; we surface 429 as a friendly toast. After success,
@@ -49,6 +50,15 @@ export default function FindCompaniesCard({ disabled, disabledReason }) {
         ? `${data.matched} companies scored — top: ${top}`
         : `${data.matched} companies scored.`;
       toast.success(summary);
+
+      // One event per "Find companies" click that produced matches.
+      // Source = "matched" since this is the matcher path; faculty_assigned
+      // and self_added would fire from a different flow if/when those
+      // surfaces exist on the page.
+      track(EVENTS.PRACTICUM_COMPANY_ADDED, {
+        source: "matched",
+        count: data.matched,
+      });
 
       queryClient.invalidateQueries({ queryKey: ["company_targets", user?.id] });
     } catch {

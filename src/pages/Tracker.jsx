@@ -13,6 +13,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
+import { track, EVENTS } from "@/lib/analytics";
 import ApplicationRow from "../components/tracker/ApplicationRow";
 import { scoreApplication } from "@/lib/scoreApplication";
 
@@ -65,6 +66,10 @@ export default function Tracker() {
       return;
     }
 
+    // No PII in the event — just source (always "manual" here, since this
+    // form is the manual-add path; auto-tracked apps from JobMatchChecker
+    // would emit a separate event if/when we instrument that flow).
+    track(EVENTS.APPLICATION_TRACKED, { source: "manual", has_jd: !!jd });
 
     setNewApp({ role_title: "", company: "", status: "interested" });
     setJobDescription("");
