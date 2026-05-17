@@ -1,4 +1,5 @@
 import React from 'react';
+import { captureException } from '@/lib/analytics';
 
 /**
  * GlobalErrorBoundary — catches any render error in the component tree below it
@@ -17,8 +18,11 @@ class GlobalErrorBoundary extends React.Component {
   }
 
   componentDidCatch(error, errorInfo) {
-    // Log to console for debugging; in Phase 5 we can send this to a Supabase Edge Function
     console.error('GlobalErrorBoundary caught an error:', error, errorInfo);
+    // Forward to PostHog. captureException is safe to call before init —
+    // it no-ops if posthog isn't loaded (e.g. error happened on /login
+    // before PostHogProvider mounted).
+    captureException(error, { componentStack: errorInfo?.componentStack });
     this.setState({ errorInfo });
   }
 
