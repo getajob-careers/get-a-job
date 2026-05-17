@@ -144,10 +144,19 @@ export async function fetchAshby(c: CompanyEntry): Promise<RawJob[]> {
 
 /**
  * Workday tenants are massive (NVIDIA: 5000+ jobs globally) — we MUST use
- * `searchText: "Israel"` to narrow server-side rather than paginating the
- * whole tenant and filtering client-side. See diagnostic from earlier:
- * unfiltered first page rarely contained any IL jobs.
+ * `searchText` to narrow server-side rather than paginating the whole
+ * tenant.
+ *
+ * Multi-query fix (round 2): the single `searchText: "Israel"` query
+ * misses multi-location postings whose `locationsText` collapses to
+ * "2 Locations" (or similar). NVIDIA's IL listings were almost entirely
+ * in that bucket — `searchText: "Tel Aviv"` surfaces them with clean
+ * "Israel, Tel Aviv" strings. Fix: run 3 queries per tenant, dedup by
+ * externalPath, return the union. ~3x request count per tenant but
+ * recall jumps from ~3 IL jobs to ~258 for NVIDIA.
  */
+const WORKDAY_SEARCH_TERMS = ["Israel", "Tel Aviv", "Herzliya"] as const;
+
 export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
   if (!c.slug) return [];
   // Slug shape: "<tenant>.wdN.myworkdayjobs.com/<site>"
@@ -158,48 +167,59 @@ export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
   const tenant = host.split(".")[0];
   const url = `https://${host}/wday/cxs/${tenant}/${site}/jobs`;
 
+  // De-dup across the 3 search terms by externalPath (or title+location
+  // for jobs missing externalPath).
+  const seen = new Set<string>();
   const collected: RawJob[] = [];
   const limit = 20;
-  for (let page = 0; page < WORKDAY_MAX_PAGES; page++) {
-    const offset = page * limit;
-    let data: any;
-    try {
-      data = await httpPostJson<any>(url, {
-        appliedFacets: {},
-        limit,
-        offset,
-        searchText: "Israel",
-      });
-    } catch (err) {
-      // Some tenants 4xx specific offsets; treat as end-of-stream.
-      break;
+
+  for (const searchText of WORKDAY_SEARCH_TERMS) {
+    for (let page = 0; page < WORKDAY_MAX_PAGES; page++) {
+      const offset = page * limit;
+      let data: any;
+      try {
+        data = await httpPostJson<any>(url, {
+          appliedFacets: {},
+          limit,
+          offset,
+          searchText,
+        });
+      } catch (err) {
+        // Some tenants 4xx specific offsets; treat as end-of-stream
+        // for THIS search term and try the next one.
+        break;
+      }
+      const postings: any[] = data?.jobPostings ?? [];
+      if (postings.length === 0) break;
+      for (const p of postings) {
+        const externalPath = String(p.externalPath ?? p.bulletFields?.[0] ?? "");
+        const dedupKey = externalPath
+          || `${String(p.title ?? "")}|${String(p.locationsText ?? "")}`;
+        if (seen.has(dedupKey)) continue;
+        seen.add(dedupKey);
+
+        const applyUrl = externalPath
+          ? `https://${host}/${site}${externalPath.startsWith("/") ? externalPath : `/${externalPath}`}`
+          : `https://${host}/${site}`;
+        collected.push({
+          external_id:      dedupKey,
+          title:            p.title ?? "",
+          // Workday list endpoint doesn't include descriptions. Fetching
+          // per job would 20x the request count — skipped in v1.
+          description_html: null,
+          location_raw:     p.locationsText ?? null,
+          structured_country: null,
+          apply_url:        applyUrl,
+          date_posted:      p.postedOn ?? null,
+          salary_min:       null,
+          salary_max:       null,
+          salary_currency:  null,
+          is_remote:        /remote/i.test(p.locationsText ?? ""),
+          raw_payload:      p,
+        });
+      }
+      if (postings.length < limit) break;
     }
-    const postings: any[] = data?.jobPostings ?? [];
-    if (postings.length === 0) break;
-    for (const p of postings) {
-      const externalPath = String(p.externalPath ?? p.bulletFields?.[0] ?? "");
-      const applyUrl = externalPath
-        ? `https://${host}/${site}${externalPath.startsWith("/") ? externalPath : `/${externalPath}`}`
-        : `https://${host}/${site}`;
-      collected.push({
-        external_id:      externalPath || String(p.title ?? "") + "|" + String(p.locationsText ?? ""),
-        title:            p.title ?? "",
-        // Workday list endpoint doesn't include descriptions. Fetching per
-        // job would 20x the request count — skipped in v1. Description
-        // field will be null for Workday jobs. Frontend handles this.
-        description_html: null,
-        location_raw:     p.locationsText ?? null,
-        structured_country: null,
-        apply_url:        applyUrl,
-        date_posted:      p.postedOn ?? null,
-        salary_min:       null,
-        salary_max:       null,
-        salary_currency:  null,
-        is_remote:        /remote/i.test(p.locationsText ?? ""),
-        raw_payload:      p,
-      });
-    }
-    if (postings.length < limit) break;
   }
   return collected;
 }
