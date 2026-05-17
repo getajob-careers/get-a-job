@@ -36,10 +36,20 @@ const CLARITY_OPTIONS = [
   { value: 5, label: "5 — Very clear" },
 ];
 
+// Canonical snake_case values for the predefined options; "Other" path
+// writes the user's free text. Stored in profiles.referral_source (text).
+const REFERRAL_OPTIONS = [
+  { value: "reichman_practicum", label: "Reichman practicum" },
+  { value: "school_whatsapp",    label: "School WhatsApp" },
+  { value: "friends",            label: "Friends" },
+  { value: "community",          label: "Community" },
+];
+
 export default function StepSurvey({ data, onChange, onNext, onBack }) {
   const [customChallenge, setCustomChallenge] = useState("");
   const [customCVStrategy, setCustomCVStrategy] = useState("");
   const [customLinkedInStrategy, setCustomLinkedInStrategy] = useState("");
+  const [customReferralSource, setCustomReferralSource] = useState("");
 
   const set = (key, val) => onChange({ ...data, [key]: val });
 
@@ -68,6 +78,7 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
 
   const isCustomCV = data.cv_tailoring_strategy && !CV_OPTIONS.some((o) => o.value === data.cv_tailoring_strategy);
   const isCustomLinkedIn = data.linkedin_outreach_strategy && !LINKEDIN_OPTIONS.some((o) => o.value === data.linkedin_outreach_strategy);
+  const isCustomReferral = data.referral_source && !REFERRAL_OPTIONS.some((o) => o.value === data.referral_source);
 
   // All survey questions are optional — no canProceed gate.
   return (
@@ -251,6 +262,47 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
             placeholder="e.g. Applied to 50+ roles, attended career fairs, updated my LinkedIn..."
             className="text-sm min-h-[80px]"
           />
+        </div>
+
+        {/* How did you hear about us — single-value, same pattern as CV / LinkedIn */}
+        <div>
+          <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2">
+            How did you hear about us?
+          </label>
+          <div className="space-y-2">
+            {REFERRAL_OPTIONS.map((o) => (
+              <button
+                key={o.value}
+                type="button"
+                onClick={() => set("referral_source", o.value)}
+                className={`w-full text-left text-sm px-4 py-3 rounded-lg border transition-colors ${
+                  data.referral_source === o.value
+                    ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
+                    : "bg-white text-[#525252] border-[#E5E5E5] hover:border-[#A3A3A3]"
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+          {isCustomReferral && (
+            <div className="mt-2 inline-flex items-center gap-1 bg-[#0A0A0A] text-white text-xs px-2.5 py-1 rounded-md">
+              Your answer: {data.referral_source}
+              <button type="button" onClick={() => set("referral_source", null)} className="hover:text-red-300">
+                <X className="w-3 h-3" />
+              </button>
+            </div>
+          )}
+          <div className="mt-2">
+            <Input
+              value={customReferralSource}
+              onChange={(e) => setCustomReferralSource(e.target.value)}
+              onBlur={() => { commitCustom("referral_source", customReferralSource); setCustomReferralSource(""); }}
+              onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitCustom("referral_source", customReferralSource); setCustomReferralSource(""); } }}
+              placeholder="Other — type your own"
+              className="text-sm"
+            />
+          </div>
         </div>
       </div>
 

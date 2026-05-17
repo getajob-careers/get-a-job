@@ -3,7 +3,39 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Check } from "lucide-react";
 import SkillTagInput from "./SkillTagInput";
+import PresetBubbleInput from "./PresetBubbleInput";
 import { matchRoles } from "@/lib/roleMatch";
+
+// Preset bubbles for the industries field — aligned with the canonical
+// spellings in the companies.industry column so the substring matcher in
+// match-internship-companies can actually fire against real seeded rows.
+// Ordered by company count in the pilot seed (Cybersecurity is the biggest
+// segment in Israeli tech; PropTech is the smallest of the high-signal ones).
+const INDUSTRY_PRESETS = [
+  "Cybersecurity",
+  "FinTech",
+  "B2B SaaS",
+  "AI/ML",
+  "InsurTech",
+  "HealthTech",
+  "HR Tech",
+  "MarTech",
+  "AdTech",
+  "Gaming",
+  "EdTech",
+  "PropTech",
+];
+
+// Preset bubbles for work environment — matches the 6 options in
+// AddInformation.jsx exactly so onboarding ↔ profile-edit don't drift.
+const WORK_ENVIRONMENT_PRESETS = [
+  "Startup",
+  "Scale-up",
+  "Corporate",
+  "Agency",
+  "Non-profit",
+  "Public Sector",
+];
 
 export default function StepCareerDirection({ data, onChange, onNext, onBack }) {
   const set = (key, val) => onChange({ ...data, [key]: val });
@@ -15,7 +47,9 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
   // so they can pick a canonical one without being forced.
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [dismissedFor, setDismissedFor] = useState(""); // raw text the user dismissed with "None of these"
+  const [highlightedIndex, setHighlightedIndex] = useState(0);
   const debounceRef = useRef(null);
+  const fiveYearWrapperRef = useRef(null);
   const [debouncedInput, setDebouncedInput] = useState(data.five_year_role || "");
 
   useEffect(() => {
@@ -30,6 +64,20 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
     () => matchRoles(debouncedInput, 5),
     [debouncedInput]
   );
+
+  // Click-outside to dismiss the dropdown (mirrors AutocompleteInput pattern).
+  useEffect(() => {
+    const onClick = (e) => {
+      if (fiveYearWrapperRef.current && !fiveYearWrapperRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  // Reset keyboard highlight whenever the suggestion list changes.
+  useEffect(() => { setHighlightedIndex(0); }, [suggestions]);
 
   // Auto-hide suggestions if the field matches exactly, is empty, or was dismissed.
   const shouldShow =
@@ -50,6 +98,22 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
     setShowSuggestions(false);
   };
 
+  const handleFiveYearKeyDown = (e) => {
+    if (!shouldShow) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setHighlightedIndex((p) => (p + 1) % suggestions.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setHighlightedIndex((p) => (p - 1 + suggestions.length) % suggestions.length);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      chooseSuggestion(suggestions[highlightedIndex]);
+    } else if (e.key === "Escape") {
+      setShowSuggestions(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div>
@@ -60,7 +124,7 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
       </div>
 
       <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-5">
-        <div>
+        <div ref={fiveYearWrapperRef} className="relative">
           <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">
             Where do you want to be in 5 years? <span className="text-red-400">*</span>
           </label>
@@ -73,40 +137,43 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
               if (e.target.value.trim() !== dismissedFor) setDismissedFor("");
             }}
             onFocus={() => setShowSuggestions(true)}
+            onKeyDown={handleFiveYearKeyDown}
             placeholder="e.g. Product Manager, Data Analyst, Marketing Manager"
           />
 
-          {/* Exact match — quiet confirmation */}
+          {/* Dropdown overlay — true autocomplete pattern */}
+          {shouldShow && (
+            <div className="absolute z-50 w-full mt-1 bg-white border border-[#E5E5E5] rounded-lg shadow-lg max-h-72 overflow-y-auto">
+              {suggestions.map((s, idx) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  onClick={() => chooseSuggestion(s)}
+                  onMouseEnter={() => setHighlightedIndex(idx)}
+                  className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                    idx === highlightedIndex
+                      ? "bg-[#F5F5F5] text-[#0A0A0A]"
+                      : "text-[#525252] hover:bg-[#FAFAFA]"
+                  }`}
+                >
+                  {s.title}
+                </button>
+              ))}
+              <button
+                type="button"
+                onClick={dismiss}
+                className="w-full text-left px-3 py-2 text-xs text-[#A3A3A3] hover:text-[#525252] border-t border-[#F0F0F0]"
+              >
+                None of these — keep &quot;{(data.five_year_role || "").trim()}&quot;
+              </button>
+            </div>
+          )}
+
+          {/* Exact match — quiet confirmation below the input */}
           {exact && (data.five_year_role || "").trim() && (
             <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-emerald-700">
               <Check className="w-3.5 h-3.5" /> Matched: {exact.title}
             </p>
-          )}
-
-          {/* Partial match — suggestion list */}
-          {shouldShow && (
-            <div className="mt-2 bg-[#F9FAFB] border border-[#E5E5E5] rounded-lg p-3">
-              <p className="text-xs text-[#525252] mb-2">Did you mean:</p>
-              <div className="space-y-1">
-                {suggestions.map((s) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => chooseSuggestion(s)}
-                    className="w-full text-left text-sm px-3 py-1.5 rounded-md border border-transparent hover:border-[#E5E5E5] hover:bg-white text-[#0A0A0A]"
-                  >
-                    {s.title}
-                  </button>
-                ))}
-                <button
-                  type="button"
-                  onClick={dismiss}
-                  className="w-full text-left text-xs px-3 py-1.5 rounded-md text-[#A3A3A3] hover:text-[#525252]"
-                >
-                  None of these — keep "{(data.five_year_role || "").trim()}"
-                </button>
-              </div>
-            </div>
           )}
         </div>
 
@@ -119,22 +186,22 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
           suggestionType="job_titles"
         />
 
-        <SkillTagInput
+        <PresetBubbleInput
           label="Target Industries"
-          description="Sectors or industries you want to work in."
+          description="Pick the industries you're aiming for. Add your own if it's not listed."
+          presets={INDUSTRY_PRESETS}
           tags={data.target_industries || []}
           onChange={(v) => set("target_industries", v)}
-          placeholder="e.g. Fintech, Healthcare, Consulting"
-          suggestionType="industries"
+          customPlaceholder="Or type another industry"
         />
 
-        <SkillTagInput
+        <PresetBubbleInput
           label="Preferred Work Environment"
           description="Select all environments you're open to working in."
+          presets={WORK_ENVIRONMENT_PRESETS}
           tags={data.work_environment || []}
           onChange={(v) => set("work_environment", v)}
-          placeholder="e.g. Startup, Corporate"
-          suggestionType="work_environment"
+          customPlaceholder="Or type another"
         />
 
         <div className="space-y-3 pt-1">

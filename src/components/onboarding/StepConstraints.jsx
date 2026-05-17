@@ -3,7 +3,12 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
 import AutocompleteInput from "./AutocompleteInput";
-import SkillTagInput from "./SkillTagInput";
+import PresetBubbleInput from "./PresetBubbleInput";
+
+// Work-arrangement preset bubbles. Exhaustive list — no custom input
+// surfaced (these four options cover every meaningful arrangement;
+// allowing free text would just create noisy variants).
+const WORK_ARRANGEMENT_PRESETS = ["Remote", "Hybrid", "On-site", "Flexible"];
 
 export default function StepConstraints({ data, onChange, onSubmit, onBack, submitting }) {
   const set = (key, val) => onChange({ ...data, [key]: val });
@@ -30,17 +35,6 @@ export default function StepConstraints({ data, onChange, onSubmit, onBack, subm
           </div>
 
           <div>
-            <SkillTagInput
-              label="Work Arrangement"
-              description="Select all arrangements you're open to."
-              tags={data.work_type || []}
-              onChange={(v) => set("work_type", v)}
-              placeholder="e.g. Remote, Hybrid"
-              suggestionType="work_arrangement"
-            />
-          </div>
-
-          <div>
             <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">Earliest Start Date</label>
             <Input
               type="date"
@@ -50,13 +44,13 @@ export default function StepConstraints({ data, onChange, onSubmit, onBack, subm
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">
-              Salary Expectation (optional)
-            </label>
-            <Input
-              value={data.salary_expectation || ""}
-              onChange={(e) => set("salary_expectation", e.target.value)}
-              placeholder="e.g. $60,000–$80,000 / year"
+            <PresetBubbleInput
+              label="Work Arrangement"
+              description="Select all arrangements you're open to."
+              presets={WORK_ARRANGEMENT_PRESETS}
+              tags={data.work_type || []}
+              onChange={(v) => set("work_type", v)}
+              allowCustom={false}
             />
           </div>
         </div>

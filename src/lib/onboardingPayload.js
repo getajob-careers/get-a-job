@@ -96,6 +96,10 @@ export const EMPTY_PROFILE = {
   // user opts out; cohort is free-text and optional.
   practicum_path: null,
   practicum_cohort: "",
+  // "How did you hear about us?" — captured in StepSurvey. Stored as a
+  // single text value: canonical snake_case for predefined options
+  // (e.g. "reichman_practicum"), or the user's free text for "Other".
+  referral_source: "",
 };
 
 // Empty row used when initialising the educations state in a fresh
@@ -137,7 +141,7 @@ export function cleanProfilePayload(data) {
     five_year_role, proof_signals, primary_domain, adjacent_fields,
     practicum_path, practicum_cohort,
     biggest_challenge, cv_tailoring_strategy, linkedin_outreach_strategy,
-    role_clarity_score, job_search_efforts,
+    role_clarity_score, job_search_efforts, referral_source,
     target_job_titles, target_industries, work_environment, work_type,
     employment_status, salary_expectation, available_start_date,
     open_to_lateral, open_to_outside_degree,
@@ -150,7 +154,7 @@ export function cleanProfilePayload(data) {
     five_year_role, proof_signals, primary_domain, adjacent_fields,
     practicum_path, practicum_cohort,
     biggest_challenge, cv_tailoring_strategy, linkedin_outreach_strategy,
-    role_clarity_score, job_search_efforts,
+    role_clarity_score, job_search_efforts, referral_source,
     target_job_titles, target_industries, work_environment, work_type,
     employment_status, salary_expectation, available_start_date,
     open_to_lateral, open_to_outside_degree,

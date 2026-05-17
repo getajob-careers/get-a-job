@@ -322,6 +322,26 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
           <h3 className="text-sm font-semibold text-[#0A0A0A]">LinkedIn Profile (optional)</h3>
         </div>
 
+        {/* Data-export instructions — visible while the user is waiting on
+            CV upload/extraction or has just finished, so the dead time gets
+            used for something they'll need later (LinkedIn Optimizer). */}
+        {(uploading || extracting || done) && (
+          <div className="mb-4 bg-[#FAFAFA] border border-[#F0F0F0] rounded-lg p-4">
+            <p className="text-xs font-semibold text-[#0A0A0A] mb-2">
+              While you wait, request your LinkedIn data export — you&apos;ll need it later for the LinkedIn Optimizer.
+            </p>
+            <ol className="list-decimal list-inside space-y-1 text-xs text-[#525252] leading-relaxed">
+              <li>Go to LinkedIn</li>
+              <li>Click your profile picture → Settings &amp; Privacy</li>
+              <li>Data Privacy → Get a copy of your data</li>
+              <li>Select the full archive → Request archive</li>
+            </ol>
+            <p className="text-xs text-[#A3A3A3] mt-2">
+              LinkedIn will email you when it&apos;s ready — this can take up to 24 hours.
+            </p>
+          </div>
+        )}
+
         {/* One-click LinkedIn connect */}
         <div className="mb-4">
           <p className="text-xs text-[#A3A3A3] mb-2">Auto-fill your details from LinkedIn.</p>
