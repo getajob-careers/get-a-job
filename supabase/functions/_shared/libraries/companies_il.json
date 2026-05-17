@@ -1,24 +1,17 @@
 {
-  "generated_at": "2026-05-15",
-  "total_companies": 418,
+  "generated_at": "2026-05-17",
+  "total_companies": 477,
   "by_ats": {
-    "greenhouse": 60,
-    "lever": 8,
-    "comeet": 54,
-    "workday": 17,
+    "unknown": 236,
+    "ashby": 30,
+    "workday": 20,
+    "comeet": 55,
+    "greenhouse": 99,
+    "lever": 10,
+    "custom": 18,
     "smartrecruiters": 7,
-    "ashby": 23,
-    "bamboohr": 0,
     "workable": 1,
-    "teamtailor": 0,
-    "recruitee": 1,
-    "jazzhr": 0,
-    "icims": 0,
-    "personio": 0,
-    "rippling": 0,
-    "successfactors": 0,
-    "custom": 16,
-    "unknown": 231
+    "recruitee": 1
   },
   "companies": [
     {
@@ -76,10 +69,10 @@
       "domain": "activefence.com",
       "careers_url": "https://www.activefence.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "D5.005",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/D5.005/positions?token=5D51D29347D2EA828D3347DBAA2EA85D522FE&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.activefence.com/careers/)"
     },
     {
       "name": "Adaptive Shield",
@@ -130,16 +123,28 @@
       "notes": "Workday tenant verified (1185 jobs); IL R&D presence in Tel Aviv (acquired Magento, Allegorithmic)"
     },
     {
+      "name": "Affirm",
+      "type": "international_il_rd",
+      "industry": "FinTech / BNPL",
+      "domain": "affirm.com",
+      "careers_url": "https://www.affirm.com/careers",
+      "ats": "greenhouse",
+      "slug": "affirm",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/affirm/jobs",
+      "verified": true,
+      "notes": "Greenhouse 172 jobs; mark_unverified for IL R&D"
+    },
+    {
       "name": "AI21 Labs",
       "type": "israeli_founded",
       "industry": "AI/ML",
       "domain": "ai21.com",
       "careers_url": "https://www.ai21.com/careers",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "E6.001",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/E6.001/positions?token=6E12946DC230276E13DE93708294637083708&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.ai21.com/careers)"
     },
     {
       "name": "Aidoc",
@@ -148,10 +153,10 @@
       "domain": "aidoc.com",
       "careers_url": "https://www.aidoc.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "B4.007",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/B4.007/positions?token=4B717931C4A012DC96E96E2A6F210112DC&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.aidoc.com/careers/)"
     },
     {
       "name": "Aim Security",
@@ -286,6 +291,30 @@
       "notes": null
     },
     {
+      "name": "Amplitude",
+      "type": "international_il_rd",
+      "industry": "Analytics",
+      "domain": "amplitude.com",
+      "careers_url": "https://amplitude.com/careers",
+      "ats": "greenhouse",
+      "slug": "amplitude",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/amplitude/jobs",
+      "verified": true,
+      "notes": "Greenhouse 67 jobs; IL presence emerging (mark_unverified)"
+    },
+    {
+      "name": "Anaplan",
+      "type": "international_il_rd",
+      "industry": "Enterprise Planning Software",
+      "domain": "anaplan.com",
+      "careers_url": "https://www.anaplan.com/company/careers/",
+      "ats": "greenhouse",
+      "slug": "anaplan",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/anaplan/jobs",
+      "verified": true,
+      "notes": "Acquired Mintigo (2019); Anaplan Israel Ltd. R&D in data science/ML; 224 jobs"
+    },
+    {
       "name": "Anchor Browser",
       "type": "israeli_founded",
       "industry": "DevTools",
@@ -334,6 +363,18 @@
       "notes": null
     },
     {
+      "name": "Anthropic",
+      "type": "international_il_rd",
+      "industry": "AI / LLM",
+      "domain": "anthropic.com",
+      "careers_url": "https://www.anthropic.com/careers",
+      "ats": "greenhouse",
+      "slug": "anthropic",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/anthropic/jobs",
+      "verified": true,
+      "notes": "Greenhouse 408 jobs; no formal IL office yet (mark_unverified)"
+    },
+    {
       "name": "AnyClip",
       "type": "israeli_founded",
       "industry": "AdTech",
@@ -346,16 +387,28 @@
       "notes": null
     },
     {
+      "name": "Anyscale",
+      "type": "international_il_rd",
+      "industry": "AI / ML Infrastructure",
+      "domain": "anyscale.com",
+      "careers_url": "https://www.anyscale.com/careers",
+      "ats": "ashby",
+      "slug": "anyscale",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/anyscale?includeCompensation=true",
+      "verified": true,
+      "notes": "Ashby verified (Ray creators); mark_unverified for IL R&D"
+    },
+    {
       "name": "Anyword",
       "type": "israeli_founded",
       "industry": "MarTech",
       "domain": "anyword.com",
       "careers_url": "https://anyword.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "30.00B",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/30.00B/positions?token=3BB12131D8EC1271D801271D8&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://anyword.com/careers/)"
     },
     {
       "name": "Anzu",
@@ -380,6 +433,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/apiiro/jobs",
       "verified": true,
       "notes": "Probed: greenhouse slug 'apiiro' returns 200"
+    },
+    {
+      "name": "Apollo.io",
+      "type": "international_il_rd",
+      "industry": "Sales Intelligence",
+      "domain": "apollo.io",
+      "careers_url": "https://www.apollo.io/careers",
+      "ats": "greenhouse",
+      "slug": "apollo",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/apollo/jobs",
+      "verified": true,
+      "notes": "Greenhouse verified; mark_unverified for IL"
     },
     {
       "name": "Apono",
@@ -412,10 +477,10 @@
       "domain": "appcharge.com",
       "careers_url": "https://www.appcharge.com/careers",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "9A.00B",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/9A.00B/positions?token=A9B4A3D35074A3D3507A9B2A6CA9BA9BA9B&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.appcharge.com/careers)"
     },
     {
       "name": "Apple",
@@ -460,10 +525,10 @@
       "domain": "aquasec.com",
       "careers_url": "https://www.aquasec.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "91.001",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/91.001/positions?token=191644966966644E194B3191644644&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.aquasec.com/careers/)"
     },
     {
       "name": "Arbe Robotics",
@@ -484,10 +549,10 @@
       "domain": "argus-sec.com",
       "careers_url": "https://argus-sec.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "A7.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/A7.004/positions?token=7A42DD81E907A444C444C403D203D200&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://argus-sec.com/careers/)"
     },
     {
       "name": "Armis",
@@ -512,6 +577,30 @@
       "api_url": null,
       "verified": false,
       "notes": null
+    },
+    {
+      "name": "ArmorCode",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity / ASPM",
+      "domain": "armorcode.com",
+      "careers_url": "https://www.armorcode.com/careers",
+      "ats": "greenhouse",
+      "slug": "armorcode",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/armorcode/jobs",
+      "verified": true,
+      "notes": "Greenhouse verified; mark_unverified for major IL presence"
+    },
+    {
+      "name": "AssemblyAI",
+      "type": "international_il_rd",
+      "industry": "AI / Speech recognition",
+      "domain": "assemblyai.com",
+      "careers_url": "https://www.assemblyai.com/careers",
+      "ats": "greenhouse",
+      "slug": "assemblyai",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/assemblyai/jobs",
+      "verified": true,
+      "notes": "Greenhouse 6 jobs; mark_unverified for IL"
     },
     {
       "name": "Astrix Security",
@@ -652,10 +741,22 @@
       "domain": "backslash.security",
       "careers_url": "https://www.backslash.security/careers",
       "ats": "comeet",
+      "slug": "98.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/98.004/positions?token=89433783C0C22503378337889419BC33782AE4&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.backslash.security/careers)"
+    },
+    {
+      "name": "Bain & Company",
+      "type": "international_il_rd",
+      "industry": "Consulting / MBB",
+      "domain": "bain.com",
+      "careers_url": "https://www.bain.com/careers/",
+      "ats": "unknown",
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "notes": "Bain Israel TLV; custom ATS \u2014 mark_unverified"
     },
     {
       "name": "Balance",
@@ -796,10 +897,10 @@
       "domain": "blinkops.com",
       "careers_url": "https://www.blinkops.com/careers",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "C7.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/C7.004/positions?token=7C42E981F101F10365C174C2E98F88F880&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.blinkops.com/careers)"
     },
     {
       "name": "Blockaid",
@@ -812,6 +913,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Comeet markers detected in HTML (sweep); slug='blockaid'"
+    },
+    {
+      "name": "Bloomberg",
+      "type": "international_il_rd",
+      "industry": "Financial Data / Media",
+      "domain": "bloomberg.com",
+      "careers_url": "https://www.bloomberg.com/careers/",
+      "ats": "workday",
+      "slug": "bloomberg",
+      "api_url": "https://bloomberg.wd1.myworkdayjobs.com/wday/cxs/bloomberg/Bloombergindustrygroup_External_Career_Site/jobs",
+      "verified": true,
+      "notes": "Bloomberg TLV engineering office (financial services + AI Research); 61 jobs on this tenant"
     },
     {
       "name": "Bluevine",
@@ -838,6 +951,30 @@
       "notes": "Workday tenant verified; IL R&D via Etraveli (and inherited from Priceline group)"
     },
     {
+      "name": "Bosch",
+      "type": "international_il_rd",
+      "industry": "Industrial / Auto / IoT",
+      "domain": "bosch.com",
+      "careers_url": "https://careers.smartrecruiters.com/BoschGroup",
+      "ats": "smartrecruiters",
+      "slug": "BoschGroup",
+      "api_url": "https://api.smartrecruiters.com/v1/companies/BoschGroup/postings?limit=10",
+      "verified": true,
+      "notes": "Bosch Israel R&D in Haifa (per careers.smartrecruiters.com/BoschGroup/israel); 4585 jobs"
+    },
+    {
+      "name": "Boston Consulting Group",
+      "type": "international_il_rd",
+      "industry": "Consulting / MBB",
+      "domain": "bcg.com",
+      "careers_url": "https://careers.bcg.com/locations/israel",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "BCG Israel TLV (since 1990); custom ATS \u2014 mark_unverified"
+    },
+    {
       "name": "Branch Money",
       "type": "israeli_founded",
       "industry": "FinTech",
@@ -860,6 +997,30 @@
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/brandlight",
       "verified": true,
       "notes": "Probed: ashby slug 'brandlight' returns 200"
+    },
+    {
+      "name": "Braze",
+      "type": "international_il_rd",
+      "industry": "Customer Engagement",
+      "domain": "braze.com",
+      "careers_url": "https://www.braze.com/company/careers",
+      "ats": "greenhouse",
+      "slug": "braze",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/braze/jobs",
+      "verified": true,
+      "notes": "226 jobs; Tel Aviv office presence (mark_unverified for full IL R&D scale)"
+    },
+    {
+      "name": "Brex",
+      "type": "international_il_rd",
+      "industry": "FinTech",
+      "domain": "brex.com",
+      "careers_url": "https://www.brex.com/careers",
+      "ats": "greenhouse",
+      "slug": "brex",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/brex/jobs",
+      "verified": true,
+      "notes": "Established R&D site in Tel Aviv (Sarona Market); 232 open roles"
     },
     {
       "name": "Bria AI",
@@ -892,10 +1053,10 @@
       "domain": "brightdata.com",
       "careers_url": "https://brightdata.com/careers",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "88.007",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/88.007/positions?token=887332A3BB119951995221C199519954438110E&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://brightdata.com/careers)"
     },
     {
       "name": "Bringg",
@@ -1023,11 +1184,11 @@
       "industry": "Cybersecurity",
       "domain": "checkpoint.com",
       "careers_url": "https://www.checkpoint.com/careers/",
-      "ats": "smartrecruiters",
-      "slug": "CheckPointSoftwareTechnologies",
-      "api_url": "https://api.smartrecruiters.com/v1/companies/CheckPointSoftwareTechnologies/postings",
-      "verified": true,
-      "notes": "Verified: SmartRecruiters API returns active postings"
+      "ats": "custom",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "SmartRecruiters slug returns 2 unrelated US jobs (cyber acquisitions in Minneapolis/Chicago, different company); Check Point uses proprietary ATS at careers.checkpoint.com/index.php?m=cpcareers (no public JSON API surface in supported list)."
     },
     {
       "name": "Checkmarx",
@@ -1048,10 +1209,10 @@
       "domain": "cheq.ai",
       "careers_url": "https://cheq.ai/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "65.005",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/65.005/positions?token=5651AF92B280102F565565205E1594205E&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://cheq.ai/careers/)"
     },
     {
       "name": "ChickP Protein",
@@ -1114,6 +1275,18 @@
       "notes": "Probed: greenhouse slug 'clear' returns 200"
     },
     {
+      "name": "Cloudflare",
+      "type": "international_il_rd",
+      "industry": "Cloud / Security / CDN",
+      "domain": "cloudflare.com",
+      "careers_url": "https://www.cloudflare.com/careers/",
+      "ats": "greenhouse",
+      "slug": "cloudflare",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/cloudflare/jobs",
+      "verified": true,
+      "notes": "Tel Aviv data center + careers; 180 jobs globally; growing IL footprint"
+    },
+    {
       "name": "Cloudinary",
       "type": "israeli_founded",
       "industry": "DevTools",
@@ -1168,10 +1341,10 @@
       "domain": "codium.ai",
       "careers_url": "https://www.codium.ai/careers",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "B8.00B",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/B8.00B/positions?token=8BB34623D1D45D8346203D1D08BB8BB&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.codium.ai/careers)"
     },
     {
       "name": "Cognata",
@@ -1204,10 +1377,10 @@
       "domain": "commbox.io",
       "careers_url": "https://www.commbox.io/careers",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "0A.001",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/0A.001/positions?token=A0146071E032804140232054607280414023205&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.commbox.io/careers)"
     },
     {
       "name": "Compete",
@@ -1246,6 +1419,18 @@
       "notes": "Probed: greenhouse slug 'connecteam' returns 200"
     },
     {
+      "name": "Continental",
+      "type": "international_il_rd",
+      "industry": "Automotive / Tier-1",
+      "domain": "continental.com",
+      "careers_url": "https://www.continental.com/en/career/",
+      "ats": "smartrecruiters",
+      "slug": "Continental",
+      "api_url": "https://api.smartrecruiters.com/v1/companies/Continental/postings?limit=10",
+      "verified": true,
+      "notes": "1233 jobs on SR; IL automotive software presence"
+    },
+    {
       "name": "Copyleaks",
       "type": "israeli_founded",
       "industry": "EdTech",
@@ -1264,10 +1449,10 @@
       "domain": "coralogix.com",
       "careers_url": "https://coralogix.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "06.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/06.004/positions?token=604241801E141E1460430200604604&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://coralogix.com/careers/)"
     },
     {
       "name": "Coro",
@@ -1276,10 +1461,22 @@
       "domain": "coro.net",
       "careers_url": "https://www.coro.net/careers",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "08.00A",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/08.00A/positions?token=80A303C28320181E2028485A485A4050181E&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.coro.net/careers)"
+    },
+    {
+      "name": "Coupa Software",
+      "type": "international_il_rd",
+      "industry": "Spend Management",
+      "domain": "coupa.com",
+      "careers_url": "https://www.coupa.com/company/careers",
+      "ats": "lever",
+      "slug": "coupa",
+      "api_url": "https://api.lever.co/v0/postings/coupa?mode=json",
+      "verified": true,
+      "notes": "101 jobs on Lever; mark_unverified for IL R&D"
     },
     {
       "name": "Crazy Labs",
@@ -1292,6 +1489,18 @@
       "api_url": null,
       "verified": false,
       "notes": null
+    },
+    {
+      "name": "Cresta",
+      "type": "international_il_rd",
+      "industry": "AI / Contact Center",
+      "domain": "cresta.com",
+      "careers_url": "https://cresta.com/careers",
+      "ats": "greenhouse",
+      "slug": "cresta",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/cresta/jobs",
+      "verified": true,
+      "notes": "118 jobs; some IL eng (mark_unverified)"
     },
     {
       "name": "Cyabra",
@@ -1384,10 +1593,10 @@
       "domain": "cycode.com",
       "careers_url": "https://cycode.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "A8.00D",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/A8.00D/positions?token=8AD340E3CBB3CBB22B445680340E22B44568&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://cycode.com/careers/)"
     },
     {
       "name": "CYE",
@@ -1480,10 +1689,10 @@
       "domain": "cynet.com",
       "careers_url": "https://www.cynet.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "33.00D",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/33.00D/positions?token=33D103133D19E8136E1D25103133D10311D25&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.cynet.com/careers/)"
     },
     {
       "name": "Cyolo",
@@ -1647,11 +1856,11 @@
       "industry": "Consulting",
       "domain": "deloitte.com",
       "careers_url": "https://www2.deloitte.com/global/en/careers/careers.html",
-      "ats": "workday",
-      "slug": "deloitte.wd1.myworkdayjobs.com/External_Career_Site",
-      "api_url": "https://deloitte.wd1.myworkdayjobs.com/wday/cxs/deloitte/External_Career_Site/jobs",
-      "verified": true,
-      "notes": "Workday tenant verified; Deloitte Israel is a separate practice but uses global Workday"
+      "ats": "custom",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Deloitte global is SuccessFactors (sf.rcm.deloitteresources.com), not a unified Workday tenant; Deloitte Israel uses proprietary careers.deloitte.co.il. Tried deloitte.wd1/wd5/wd103 with External_Career_Site, External, careers, Deloitte_Careers paths - all HTTP 422; deloitteie.wd3 is Ireland-only."
     },
     {
       "name": "Descope",
@@ -1798,6 +2007,18 @@
       "notes": "No careers_url in seed; manual check needed"
     },
     {
+      "name": "Elastic",
+      "type": "international_il_rd",
+      "industry": "Search / Observability",
+      "domain": "elastic.co",
+      "careers_url": "https://www.elastic.co/careers",
+      "ats": "greenhouse",
+      "slug": "elastic",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/elastic/jobs",
+      "verified": true,
+      "notes": "TLV R&D site (acquired Israeli startup); 88 active Tel Aviv jobs on LinkedIn; 150 global"
+    },
+    {
       "name": "Eleos Health",
       "type": "israeli_founded",
       "industry": "HealthTech",
@@ -1808,6 +2029,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/eleoshealth/jobs",
       "verified": true,
       "notes": "Probed: greenhouse slug 'eleoshealth' returns 200"
+    },
+    {
+      "name": "ElevenLabs",
+      "type": "international_il_rd",
+      "industry": "AI / Voice synthesis",
+      "domain": "elevenlabs.io",
+      "careers_url": "https://elevenlabs.io/careers",
+      "ats": "ashby",
+      "slug": "elevenlabs",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/elevenlabs?includeCompensation=true",
+      "verified": true,
+      "notes": "Ashby verified; small IL presence (mark_unverified)"
     },
     {
       "name": "Empathy",
@@ -1930,6 +2163,18 @@
       "notes": "No careers_url in seed; manual check needed"
     },
     {
+      "name": "Figma",
+      "type": "international_il_rd",
+      "industry": "Design tools / SaaS",
+      "domain": "figma.com",
+      "careers_url": "https://www.figma.com/careers/",
+      "ats": "greenhouse",
+      "slug": "figma",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/figma/jobs",
+      "verified": true,
+      "notes": "Per Calcalistech: Figma + Salesforce + HubSpot turning to Israel for AI talent; 160 jobs"
+    },
+    {
       "name": "Finout",
       "type": "israeli_founded",
       "industry": "DevTools",
@@ -1983,11 +2228,23 @@
       "industry": "Marketplace",
       "domain": "fiverr.com",
       "careers_url": "https://careers.fiverr.com/",
-      "ats": "smartrecruiters",
-      "slug": "fiverr",
-      "api_url": "https://api.smartrecruiters.com/v1/companies/fiverr/postings",
+      "ats": "comeet",
+      "slug": "60.002/positions?token=62188018812631018862C4188",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/60.002/positions?token=62188018812631018862C4188&details=true",
       "verified": true,
-      "notes": "Probed: smartrecruiters slug 'fiverr' has jobs"
+      "notes": "Comeet company_uid 60.002 + token scraped from www.comeet.com/jobs/fiverr/60.002; API returns 36 jobs with 28 in Tel Aviv-Yafo IL."
+    },
+    {
+      "name": "Fivetran",
+      "type": "international_il_rd",
+      "industry": "Data Integration",
+      "domain": "fivetran.com",
+      "careers_url": "https://www.fivetran.com/careers",
+      "ats": "greenhouse",
+      "slug": "fivetran",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/fivetran/jobs",
+      "verified": true,
+      "notes": "Greenhouse 132 jobs; mark_unverified for IL"
     },
     {
       "name": "Folloze",
@@ -2068,10 +2325,10 @@
       "domain": "frontegg.com",
       "careers_url": "https://frontegg.com/careers",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "77.009",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/77.009/positions?token=7792CD6166B3BC8344F4341166B3BC83BC83BC8&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://frontegg.com/careers)"
     },
     {
       "name": "Future Meat",
@@ -2084,6 +2341,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Reverted: alt-slug board has jobs but no Israel/Tel Aviv/company-name signal (likely false positive)"
+    },
+    {
+      "name": "Gemini",
+      "type": "international_il_rd",
+      "industry": "FinTech / Crypto Exchange",
+      "domain": "gemini.com",
+      "careers_url": "https://www.gemini.com/careers",
+      "ats": "greenhouse",
+      "slug": "gemini",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/gemini/jobs",
+      "verified": true,
+      "notes": "Greenhouse 25 jobs; emerging IL hires (mark_unverified)"
     },
     {
       "name": "GeoX",
@@ -2110,16 +2379,28 @@
       "notes": null
     },
     {
+      "name": "GitLab",
+      "type": "international_il_rd",
+      "industry": "DevOps / SaaS",
+      "domain": "gitlab.com",
+      "careers_url": "https://about.gitlab.com/jobs/",
+      "ats": "greenhouse",
+      "slug": "gitlab",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/gitlab/jobs",
+      "verified": true,
+      "notes": "Tel Aviv office at 121 Menachem Begin Rd, 53rd Fl; 180 jobs (remote-first)"
+    },
+    {
       "name": "GK8",
       "type": "israeli_founded",
       "industry": "FinTech",
       "domain": "gk8.io",
       "careers_url": "https://gk8.io/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "E8.000",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/E8.000/positions?token=8E03540470011C04FE02C6011C04FE01AA03E20&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://gk8.io/careers/)"
     },
     {
       "name": "Glassbox",
@@ -2144,6 +2425,18 @@
       "api_url": "https://api.smartrecruiters.com/v1/companies/gloat/postings",
       "verified": true,
       "notes": "Probed: smartrecruiters slug 'gloat' has jobs"
+    },
+    {
+      "name": "Goldman Sachs",
+      "type": "international_il_rd",
+      "industry": "Investment Banking",
+      "domain": "goldmansachs.com",
+      "careers_url": "https://www.goldmansachs.com/careers",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Goldman has TLV presence (small); Workday tenant requires session token (HTTP 422 on direct POST) \u2014 mark_unverified"
     },
     {
       "name": "Gong",
@@ -2224,10 +2517,10 @@
       "domain": "guesty.com",
       "careers_url": "https://www.guesty.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "10.000",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/10.000/positions?token=1030901050040401080&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.guesty.com/careers/)"
     },
     {
       "name": "Guidde",
@@ -2240,6 +2533,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/guidde/jobs",
       "verified": true,
       "notes": "Probed: greenhouse slug 'guidde' returns 200"
+    },
+    {
+      "name": "Gusto",
+      "type": "international_il_rd",
+      "industry": "HR / Payroll",
+      "domain": "gusto.com",
+      "careers_url": "https://gusto.com/about/careers",
+      "ats": "greenhouse",
+      "slug": "gusto",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/gusto/jobs",
+      "verified": true,
+      "notes": "Greenhouse 76 jobs; mark_unverified for IL"
     },
     {
       "name": "Haat",
@@ -2398,6 +2703,18 @@
       "notes": "Workday tenant verified (1359 jobs); IL via Indigo/3PAR/SimpliVity acquisitions"
     },
     {
+      "name": "HubSpot",
+      "type": "international_il_rd",
+      "industry": "Marketing / CRM SaaS",
+      "domain": "hubspot.com",
+      "careers_url": "https://www.hubspot.com/careers/jobs",
+      "ats": "greenhouse",
+      "slug": "hubspotjobs",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/hubspotjobs/jobs",
+      "verified": true,
+      "notes": "Acquired Israeli startup XFunnel (2025, first IL deal); 37 Tel Aviv jobs; 176 global"
+    },
+    {
       "name": "Hudson Rock",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -2494,6 +2811,18 @@
       "notes": null
     },
     {
+      "name": "Instacart",
+      "type": "international_il_rd",
+      "industry": "E-commerce / Grocery",
+      "domain": "instacart.com",
+      "careers_url": "https://careers.instacart.com",
+      "ats": "greenhouse",
+      "slug": "instacart",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/instacart/jobs",
+      "verified": true,
+      "notes": "Greenhouse 124 jobs; mark_unverified for IL"
+    },
+    {
       "name": "Insurights",
       "type": "israeli_founded",
       "industry": "InsurTech",
@@ -2516,6 +2845,18 @@
       "api_url": "https://intel.wd1.myworkdayjobs.com/wday/cxs/intel/External/jobs",
       "verified": false,
       "notes": "Workday tenant; ~12K employees in Israel (Kiryat Gat fab, Haifa R&D, Mobileye sibling)"
+    },
+    {
+      "name": "Intercom",
+      "type": "international_il_rd",
+      "industry": "Customer Support SaaS",
+      "domain": "intercom.com",
+      "careers_url": "https://www.intercom.com/careers",
+      "ats": "greenhouse",
+      "slug": "intercom",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/intercom/jobs",
+      "verified": true,
+      "notes": "Greenhouse 169 jobs; mark_unverified for IL R&D"
     },
     {
       "name": "Intuition Robotics",
@@ -2644,10 +2985,10 @@
       "domain": "justt.ai",
       "careers_url": "https://justt.ai/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "36.001",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/36.001/positions?token=6312526631018C41EF518C431883188C62&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://justt.ai/careers/)"
     },
     {
       "name": "K Health",
@@ -2734,6 +3075,18 @@
       "notes": "No careers_url in seed; manual check needed"
     },
     {
+      "name": "KPMG",
+      "type": "international_il_rd",
+      "industry": "Consulting / Big 4",
+      "domain": "kpmg.com",
+      "careers_url": "https://kpmg.com/il/en/careers.html",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "KPMG Somekh Chaikin Israel; custom ATS \u2014 mark_unverified"
+    },
+    {
       "name": "Lakera",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -2768,6 +3121,18 @@
       "api_url": null,
       "verified": false,
       "notes": null
+    },
+    {
+      "name": "LaunchDarkly",
+      "type": "international_il_rd",
+      "industry": "Dev tools / Feature Flags",
+      "domain": "launchdarkly.com",
+      "careers_url": "https://launchdarkly.com/careers/",
+      "ats": "greenhouse",
+      "slug": "launchdarkly",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/launchdarkly/jobs",
+      "verified": true,
+      "notes": "Greenhouse 46 jobs; mark_unverified for IL"
     },
     {
       "name": "LawGeex",
@@ -2962,6 +3327,18 @@
       "notes": null
     },
     {
+      "name": "Lyft",
+      "type": "international_il_rd",
+      "industry": "Mobility / Marketplace",
+      "domain": "lyft.com",
+      "careers_url": "https://www.lyft.com/careers",
+      "ats": "greenhouse",
+      "slug": "lyft",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/lyft/jobs",
+      "verified": true,
+      "notes": "Greenhouse 125 jobs; mark_unverified for IL"
+    },
+    {
       "name": "Magic Software",
       "type": "israeli_founded",
       "industry": "Enterprise Software",
@@ -2984,6 +3361,18 @@
       "api_url": null,
       "verified": false,
       "notes": "No careers_url in seed; manual check needed"
+    },
+    {
+      "name": "McKinsey & Company",
+      "type": "international_il_rd",
+      "industry": "Consulting / MBB",
+      "domain": "mckinsey.com",
+      "careers_url": "https://www.mckinsey.com/careers/search-jobs?cities=Tel+Aviv",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "McKinsey Israel (HaArba'a Towers TLV); custom non-public ATS \u2014 mark_unverified"
     },
     {
       "name": "MDClone",
@@ -3046,6 +3435,18 @@
       "notes": "No careers_url in seed; manual check needed"
     },
     {
+      "name": "Mercury",
+      "type": "international_il_rd",
+      "industry": "FinTech",
+      "domain": "mercury.com",
+      "careers_url": "https://mercury.com/jobs",
+      "ats": "greenhouse",
+      "slug": "mercury",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/mercury/jobs",
+      "verified": true,
+      "notes": "Greenhouse verified (54 jobs); small/emerging IL presence \u2014 mark_unverified for IL specifically"
+    },
+    {
       "name": "Mesh Payments",
       "type": "israeli_founded",
       "industry": "FinTech",
@@ -3082,6 +3483,18 @@
       "notes": "Custom careers.microsoft.com; ~3,000+ in IL (Microsoft Israel R&D Center, GitHub-IL)"
     },
     {
+      "name": "Mistral AI",
+      "type": "international_il_rd",
+      "industry": "AI / LLM",
+      "domain": "mistral.ai",
+      "careers_url": "https://mistral.ai/careers/",
+      "ats": "ashby",
+      "slug": "mistral",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/mistral?includeCompensation=true",
+      "verified": true,
+      "notes": "French LLM lab; mark_unverified for IL"
+    },
+    {
       "name": "Mitiga",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -3094,6 +3507,18 @@
       "notes": "Comeet markers detected in HTML (sweep); slug='mitiga'"
     },
     {
+      "name": "Mixpanel",
+      "type": "international_il_rd",
+      "industry": "Analytics",
+      "domain": "mixpanel.com",
+      "careers_url": "https://mixpanel.com/jobs/",
+      "ats": "greenhouse",
+      "slug": "mixpanel",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/mixpanel/jobs",
+      "verified": true,
+      "notes": "Tel Aviv office hosts product-leader meetups; 38 jobs"
+    },
+    {
       "name": "Mobileye",
       "type": "israeli_founded",
       "industry": "Automotive",
@@ -3104,6 +3529,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Custom careers.mobileye.com; no detected third-party ATS markers"
+    },
+    {
+      "name": "Moelis & Company",
+      "type": "international_il_rd",
+      "industry": "Investment Banking",
+      "domain": "moelis.com",
+      "careers_url": "https://www.moelis.com/careers/",
+      "ats": "workday",
+      "slug": "moelis",
+      "api_url": "https://moelis.wd1.myworkdayjobs.com/wday/cxs/moelis/Experienced-Hires/jobs",
+      "verified": true,
+      "notes": "Active IL roles (Investment Banking Analyst Israel intern listed); 45 jobs"
     },
     {
       "name": "monday.com",
@@ -3190,6 +3627,30 @@
       "notes": null
     },
     {
+      "name": "Nayya",
+      "type": "international_il_rd",
+      "industry": "InsureTech / HealthTech",
+      "domain": "nayya.com",
+      "careers_url": "https://nayya.com/careers/",
+      "ats": "greenhouse",
+      "slug": "nayya",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/nayya/jobs",
+      "verified": true,
+      "notes": "Greenhouse 6 jobs; Israeli founder ties (mark_unverified)"
+    },
+    {
+      "name": "New Relic",
+      "type": "international_il_rd",
+      "industry": "Observability",
+      "domain": "newrelic.com",
+      "careers_url": "https://newrelic.com/about/careers",
+      "ats": "greenhouse",
+      "slug": "newrelic",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/newrelic/jobs",
+      "verified": true,
+      "notes": "Tel Aviv office confirmed via Glassdoor + 'New Relic Israel' FB; 74 jobs"
+    },
+    {
       "name": "Next Insurance",
       "type": "israeli_founded",
       "industry": "InsurTech",
@@ -3208,10 +3669,10 @@
       "domain": "nextsilicon.com",
       "careers_url": "https://nextsilicon.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "18.007",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/18.007/positions?token=817308A2873102E1845308A308A40B8308A205C&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://nextsilicon.com/careers/)"
     },
     {
       "name": "NICE Systems",
@@ -3256,10 +3717,10 @@
       "domain": "novidea.com",
       "careers_url": "https://novidea.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "E5.00A",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/E5.00A/positions?token=5EA237C0BD41D920353A17A8353A0&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://novidea.com/careers/)"
     },
     {
       "name": "nSure.ai",
@@ -3298,6 +3759,18 @@
       "notes": "Probed: greenhouse slug 'oasissecurity' returns 200"
     },
     {
+      "name": "Okta",
+      "type": "international_il_rd",
+      "industry": "Identity / SSO",
+      "domain": "okta.com",
+      "careers_url": "https://www.okta.com/company/careers/",
+      "ats": "greenhouse",
+      "slug": "okta",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/okta/jobs",
+      "verified": true,
+      "notes": "375 jobs; acquired Atspoke/Auth0 (Israel teams)"
+    },
+    {
       "name": "Oligo Security",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -3320,6 +3793,30 @@
       "api_url": null,
       "verified": false,
       "notes": "No careers_url in seed; manual check needed"
+    },
+    {
+      "name": "OpenAI",
+      "type": "international_il_rd",
+      "industry": "AI / LLM",
+      "domain": "openai.com",
+      "careers_url": "https://openai.com/careers/",
+      "ats": "ashby",
+      "slug": "openai",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/openai?includeCompensation=true",
+      "verified": true,
+      "notes": "Tel Aviv hiring presence growing (Altman: IL 'huge role'); SSI (Sutskever) also TLV"
+    },
+    {
+      "name": "OpenTable",
+      "type": "international_il_rd",
+      "industry": "Hospitality / Booking (Booking Holdings)",
+      "domain": "opentable.com",
+      "careers_url": "https://www.opentable.com/careers",
+      "ats": "greenhouse",
+      "slug": "opentable",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/opentable/jobs",
+      "verified": true,
+      "notes": "49 jobs; part of Booking Holdings (already-in registry); mark_unverified for direct IL"
     },
     {
       "name": "Optibus",
@@ -3436,10 +3933,10 @@
       "domain": "overwolf.com",
       "careers_url": "https://www.overwolf.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "B1.001",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/B1.001/positions?token=1B16C4BD7005131B1A26F391B1&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.overwolf.com/careers/)"
     },
     {
       "name": "Ox Security",
@@ -3448,10 +3945,10 @@
       "domain": "ox.security",
       "careers_url": "https://www.ox.security/careers",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "F8.006",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/F8.006/positions?token=8F635C447B035C42CCE2CCE23D83EBA35C48F6&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.ox.security/careers)"
     },
     {
       "name": "Pagaya",
@@ -3544,10 +4041,10 @@
       "domain": "pentera.io",
       "careers_url": "https://pentera.io/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "C5.00D",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/C5.00D/positions?token=5CD1D013435289B343501D012E682E68289B&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://pentera.io/careers/)"
     },
     {
       "name": "PeopleOS",
@@ -3616,10 +4113,22 @@
       "domain": "personetics.com",
       "careers_url": "https://personetics.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "83.00A",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/83.00A/positions?token=38A11B2A9E018C60153C714A9E38A&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://personetics.com/careers/)"
+    },
+    {
+      "name": "Philips",
+      "type": "international_il_rd",
+      "industry": "MedTech / HealthTech",
+      "domain": "philips.com",
+      "careers_url": "https://www.careers.philips.com/global/en",
+      "ats": "workday",
+      "slug": "philips",
+      "api_url": "https://philips.wd3.myworkdayjobs.com/wday/cxs/philips/jobs-and-careers/jobs",
+      "verified": true,
+      "notes": "Philips Healthcare Israel R&D (Haifa, Tel Aviv); 1031 global roles"
     },
     {
       "name": "Pillar Security",
@@ -3634,16 +4143,40 @@
       "notes": "Probed: lever slug 'pillar' returns 200"
     },
     {
+      "name": "Pinecone",
+      "type": "israeli_founded",
+      "industry": "AI/ML Infrastructure",
+      "domain": "pinecone.io",
+      "careers_url": "https://www.pinecone.io/careers/",
+      "ats": "ashby",
+      "slug": "pinecone",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/pinecone?includeCompensation=true",
+      "verified": true,
+      "notes": "Israeli-founded vector DB; major Tel Aviv R&D hub per CTech ($750M val)"
+    },
+    {
+      "name": "Ping Identity",
+      "type": "international_il_rd",
+      "industry": "Identity / Cybersecurity",
+      "domain": "pingidentity.com",
+      "careers_url": "https://www.pingidentity.com/en/company/careers.html",
+      "ats": "greenhouse",
+      "slug": "pingidentity",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/pingidentity/jobs",
+      "verified": true,
+      "notes": "Greenhouse 56 jobs; IL cyber/identity ecosystem"
+    },
+    {
       "name": "Pixellot",
       "type": "israeli_founded",
       "industry": "Sports Tech",
       "domain": "pixellot.tv",
       "careers_url": "https://www.pixellot.tv/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "BA.00B",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/BA.00B/positions?token=ABB4B1D4062203155D855D8203155D815762031&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.pixellot.tv/careers/)"
     },
     {
       "name": "Plarium",
@@ -3694,6 +4227,18 @@
       "notes": null
     },
     {
+      "name": "Postman",
+      "type": "international_il_rd",
+      "industry": "Dev tools / API",
+      "domain": "postman.com",
+      "careers_url": "https://www.postman.com/company/careers/",
+      "ats": "greenhouse",
+      "slug": "postman",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/postman/jobs",
+      "verified": true,
+      "notes": "Greenhouse 117 jobs; mark_unverified for IL"
+    },
+    {
       "name": "PrettyDamnQuick",
       "type": "israeli_founded",
       "industry": "Logistics",
@@ -3740,6 +4285,18 @@
       "api_url": null,
       "verified": false,
       "notes": "No careers_url in seed; manual check needed"
+    },
+    {
+      "name": "PwC",
+      "type": "international_il_rd",
+      "industry": "Consulting / Big 4",
+      "domain": "pwc.com",
+      "careers_url": "https://www.pwc.com/gx/en/careers.html",
+      "ats": "workday",
+      "slug": "pwc",
+      "api_url": "https://pwc.wd3.myworkdayjobs.com/wday/cxs/pwc/Global_Experienced_Careers/jobs",
+      "verified": true,
+      "notes": "PwC Israel (Kesselman & Kesselman) \u2014 global Workday tenant returns 4716 jobs"
     },
     {
       "name": "Pyramid Analytics",
@@ -3820,10 +4377,10 @@
       "domain": "redefinemeat.com",
       "careers_url": "https://www.redefinemeat.com/careers",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "28.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/28.004/positions?token=82430D828B4209028B408240494430D8&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.redefinemeat.com/careers)"
     },
     {
       "name": "Redis",
@@ -3848,6 +4405,18 @@
       "api_url": null,
       "verified": false,
       "notes": null
+    },
+    {
+      "name": "Replit",
+      "type": "international_il_rd",
+      "industry": "Dev tools / AI coding",
+      "domain": "replit.com",
+      "careers_url": "https://replit.com/site/careers",
+      "ats": "ashby",
+      "slug": "replit",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/replit?includeCompensation=true",
+      "verified": true,
+      "notes": "Ashby verified; mark_unverified for IL"
     },
     {
       "name": "Resident",
@@ -3908,6 +4477,18 @@
       "api_url": null,
       "verified": false,
       "notes": null
+    },
+    {
+      "name": "Runway",
+      "type": "international_il_rd",
+      "industry": "AI / Generative video",
+      "domain": "runwayml.com",
+      "careers_url": "https://runwayml.com/careers",
+      "ats": "ashby",
+      "slug": "runway",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/runway?includeCompensation=true",
+      "verified": true,
+      "notes": "Ashby verified (mark_unverified for IL)"
     },
     {
       "name": "SafeBreach",
@@ -3994,6 +4575,18 @@
       "notes": null
     },
     {
+      "name": "Scale AI",
+      "type": "international_il_rd",
+      "industry": "AI / ML Data",
+      "domain": "scale.com",
+      "careers_url": "https://scale.com/careers",
+      "ats": "greenhouse",
+      "slug": "scaleai",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/scaleai/jobs",
+      "verified": true,
+      "notes": "Greenhouse 181 jobs; mark_unverified for IL R&D"
+    },
+    {
       "name": "ScaleOps",
       "type": "israeli_founded",
       "industry": "DevTools",
@@ -4066,6 +4659,18 @@
       "notes": "Probed: ashby slug 'sentra' returns 200"
     },
     {
+      "name": "Sentry",
+      "type": "international_il_rd",
+      "industry": "Observability / Dev tools",
+      "domain": "sentry.io",
+      "careers_url": "https://sentry.io/careers/",
+      "ats": "ashby",
+      "slug": "sentry",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/sentry?includeCompensation=true",
+      "verified": true,
+      "notes": "Ashby verified; remote+IL contractors (mark_unverified for full office)"
+    },
+    {
       "name": "Sett",
       "type": "israeli_founded",
       "industry": "MarTech",
@@ -4084,10 +4689,10 @@
       "domain": "silverfort.com",
       "careers_url": "https://www.silverfort.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "54.007",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/54.007/positions?token=45715B315B38AE22B8D051A0A457D051E61&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.silverfort.com/careers/)"
     },
     {
       "name": "SimilarWeb",
@@ -4132,10 +4737,10 @@
       "domain": "skai.io",
       "careers_url": "https://skai.io/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "22.00A",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/22.00A/positions?token=22A8A81150454CFC115022AAD2F26137A&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://skai.io/careers/)"
     },
     {
       "name": "Slice (Global Equity)",
@@ -4210,16 +4815,28 @@
       "notes": "Probed: greenhouse slug 'openweb' returns 200"
     },
     {
+      "name": "Squarespace",
+      "type": "international_il_rd",
+      "industry": "Website / SaaS",
+      "domain": "squarespace.com",
+      "careers_url": "https://www.squarespace.com/careers",
+      "ats": "greenhouse",
+      "slug": "squarespace",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/squarespace/jobs",
+      "verified": true,
+      "notes": "TLV office presence per Websitebuilderinsider; 27 jobs"
+    },
+    {
       "name": "Stampli",
       "type": "israeli_founded",
       "industry": "FinTech",
       "domain": "stampli.com",
       "careers_url": "https://www.stampli.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
+      "slug": "F6.007",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/F6.007/positions?token=6F729CADEE3EAF06F71BDC29CA22D314E5&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.stampli.com/careers/)"
     },
     {
       "name": "StarkWare",
@@ -4282,6 +4899,18 @@
       "notes": "Verified: 485 jobs via Greenhouse; small IL team"
     },
     {
+      "name": "Sumo Logic",
+      "type": "international_il_rd",
+      "industry": "Observability / SIEM",
+      "domain": "sumologic.com",
+      "careers_url": "https://www.sumologic.com/careers/",
+      "ats": "greenhouse",
+      "slug": "sumologic",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/sumologic/jobs",
+      "verified": true,
+      "notes": "45 jobs; mark_unverified for IL R&D"
+    },
+    {
       "name": "SundaySky",
       "type": "israeli_founded",
       "industry": "MarTech",
@@ -4336,10 +4965,10 @@
       "domain": "sygnia.co",
       "careers_url": "https://www.sygnia.co/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "78.00A",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/78.00A/positions?token=87A32DC3B5687A196E2A6210F43B5610F43B56&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.sygnia.co/careers/)"
     },
     {
       "name": "Syte",
@@ -4396,10 +5025,10 @@
       "domain": "tailorbrands.com",
       "careers_url": "https://www.tailorbrands.com/careers",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "94.009",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/94.009/positions?token=49916FD16FD24C89320DCB296116FD2961&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.tailorbrands.com/careers)"
     },
     {
       "name": "TailorMed",
@@ -4444,10 +5073,10 @@
       "domain": "taranis.com",
       "careers_url": "https://www.taranis.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "34.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/34.003/positions?token=43314FF14FF043314FF10CC10CC25CB866&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.taranis.com/careers/)"
     },
     {
       "name": "Tarci",
@@ -4484,6 +5113,18 @@
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/tavily",
       "verified": true,
       "notes": "Probed: ashby slug 'tavily' returns 200"
+    },
+    {
+      "name": "TCS (Tata Consultancy Services)",
+      "type": "international_il_rd",
+      "industry": "IT Services / Consulting",
+      "domain": "tcs.com",
+      "careers_url": "https://www.tcs.com/careers",
+      "ats": "greenhouse",
+      "slug": "tcs",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/tcs/jobs",
+      "verified": true,
+      "notes": "TCS Israel delivery centre (Petach Tikva)"
     },
     {
       "name": "Testim",
@@ -4546,6 +5187,18 @@
       "notes": null
     },
     {
+      "name": "Toast",
+      "type": "international_il_rd",
+      "industry": "FinTech / Restaurant POS",
+      "domain": "toasttab.com",
+      "careers_url": "https://careers.toasttab.com/",
+      "ats": "greenhouse",
+      "slug": "toast",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/toast/jobs",
+      "verified": true,
+      "notes": "Greenhouse 328 jobs; mark_unverified for IL"
+    },
+    {
       "name": "Token Security",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -4600,10 +5253,10 @@
       "domain": "traxretail.com",
       "careers_url": "https://traxretail.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "22.007",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/22.007/positions?token=22789C113844E227AC301138AC3227&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://traxretail.com/careers/)"
     },
     {
       "name": "Trigo",
@@ -4640,6 +5293,18 @@
       "api_url": null,
       "verified": false,
       "notes": null
+    },
+    {
+      "name": "Twingate",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity / Zero Trust",
+      "domain": "twingate.com",
+      "careers_url": "https://www.twingate.com/about/careers",
+      "ats": "lever",
+      "slug": "twingate",
+      "api_url": "https://api.lever.co/v0/postings/twingate?mode=json",
+      "verified": true,
+      "notes": "Lever (4 jobs); competes with IL-strong cyber market; mark_unverified for IL R&D"
     },
     {
       "name": "Tyto Care",
@@ -4760,6 +5425,18 @@
       "api_url": null,
       "verified": false,
       "notes": null
+    },
+    {
+      "name": "Veza",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity / Identity Graph",
+      "domain": "veza.com",
+      "careers_url": "https://veza.com/company/careers/",
+      "ats": "greenhouse",
+      "slug": "veza",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/veza/jobs",
+      "verified": true,
+      "notes": "32 jobs; Israeli co-founder, IL eng presence"
     },
     {
       "name": "Via",
@@ -4923,11 +5600,11 @@
       "industry": "Cybersecurity",
       "domain": "wiz.io",
       "careers_url": "https://www.wiz.io/careers",
-      "ats": "ashby",
-      "slug": "wiz",
-      "api_url": "https://api.ashbyhq.com/posting-api/job-board/wiz",
+      "ats": "greenhouse",
+      "slug": "wizinc",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/wizinc/jobs",
       "verified": true,
-      "notes": "Probed: ashby slug 'wiz' returns 200"
+      "notes": "Ashby endpoint returned 0 jobs; Wiz actually uses Greenhouse board 'wizinc' (boards.greenhouse.io/wizinc) returning 176 jobs of which 28 are Tel Aviv IL."
     },
     {
       "name": "Wonderful",
@@ -4960,10 +5637,10 @@
       "domain": "wsc-sports.com",
       "careers_url": "https://wsc-sports.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "93.007",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/93.007/positions?token=39711F3AC5AC539701CB81CB8204FE5C&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://wsc-sports.com/careers/)"
     },
     {
       "name": "Yotpo",
@@ -5020,10 +5697,10 @@
       "domain": "zeronetworks.com",
       "careers_url": "https://zeronetworks.com/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "39.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/39.00F/positions?token=93F40B9001BBD49F824FC49F824FC377A&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://zeronetworks.com/careers/)"
     },
     {
       "name": "Zesty",
@@ -5032,10 +5709,34 @@
       "domain": "zesty.co",
       "careers_url": "https://zesty.co/careers/",
       "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug=None"
+      "slug": "06.000",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/06.000/positions?token=600240001E00030003000300024001E00&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML (source: https://zesty.co/careers/)"
+    },
+    {
+      "name": "ZoomInfo",
+      "type": "international_il_rd",
+      "industry": "Sales Intelligence",
+      "domain": "zoominfo.com",
+      "careers_url": "https://www.zoominfo.com/about-zoominfo/careers",
+      "ats": "greenhouse",
+      "slug": "zoominfo",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/zoominfo/jobs",
+      "verified": true,
+      "notes": "Greenhouse 65 jobs; some IL presence via Israeli sales-tech acquisitions"
+    },
+    {
+      "name": "Zscaler",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity / Cloud",
+      "domain": "zscaler.com",
+      "careers_url": "https://www.zscaler.com/careers",
+      "ats": "greenhouse",
+      "slug": "zscaler",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/zscaler/jobs",
+      "verified": true,
+      "notes": "352 jobs; growing IL footprint via Israeli cyber acquisitions"
     }
   ]
 }
