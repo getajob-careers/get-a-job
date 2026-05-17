@@ -1,0 +1,58 @@
+# Nightly job-cache refresh.
+#
+# Runs scripts/refresh-jobs.ts, which fetches from the 115 verified
+# Israeli-hiring companies in supabase/functions/_shared/libraries/companies_il.json
+# via Greenhouse / Lever / Ashby / Workday / SmartRecruiters APIs and
+# UPSERTs Israeli jobs into public.jobs.
+#
+# Schedule: 01:00 UTC daily = 03:00 IL (winter) / 04:00 IL (summer).
+# Off-peak both ways; exact local time isn't load-bearing (no users
+# watching the run).
+#
+# Required repo secrets (Settings → Secrets and variables → Actions):
+#   - SUPABASE_URL                = https://ilmqmodklutztuybsvwd.supabase.co
+#   - SUPABASE_SERVICE_ROLE_KEY   = the project's service-role key
+#                                   (bypasses RLS — write access only here)
+#
+# Manually trigger:
+#   gh workflow run refresh-jobs.yml
+#   OR via the Actions tab → "Refresh jobs cache" → "Run workflow"
+
+name: Refresh jobs cache
+
+on:
+  schedule:
+    - cron: "0 1 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  # Cancel an in-flight run if a new one starts. Avoids overlapping runs
+  # (which would race UPSERTs harmlessly but could double the API load).
+  group: refresh-jobs
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Refresh jobs cache
+        run: npx tsx scripts/refresh-jobs.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
