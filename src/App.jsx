@@ -6,6 +6,7 @@ import { pagesConfig } from './pages.config'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import PostHogProvider from '@/lib/PostHogProvider';
 import Login from '@/pages/Login';
 import ResetPassword from '@/pages/ResetPassword';
 
@@ -34,27 +35,33 @@ const AuthenticatedApp = () => {
     return <Navigate to="/login" replace />;
   }
 
-  // Render the main app
+  // Render the main app. PostHogProvider wraps the routes (not the auth
+  // gate above) so that:
+  //   - PostHog never initializes on /login or /reset-password
+  //   - PostHog initializes once per session, after isAuthenticated flips
+  //   - Logout unmounts the provider, which resets the distinct_id
   return (
-    <Routes>
-      <Route path="/" element={
-        <LayoutWrapper currentPageName={mainPageKey}>
-          <MainPage />
-        </LayoutWrapper>
-      } />
-      {Object.entries(Pages).map(([path, Page]) => (
-        <Route
-          key={path}
-          path={`/${path}`}
-          element={
-            <LayoutWrapper currentPageName={path}>
-              <Page />
-            </LayoutWrapper>
-          }
-        />
-      ))}
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <PostHogProvider>
+      <Routes>
+        <Route path="/" element={
+          <LayoutWrapper currentPageName={mainPageKey}>
+            <MainPage />
+          </LayoutWrapper>
+        } />
+        {Object.entries(Pages).map(([path, Page]) => (
+          <Route
+            key={path}
+            path={`/${path}`}
+            element={
+              <LayoutWrapper currentPageName={path}>
+                <Page />
+              </LayoutWrapper>
+            }
+          />
+        ))}
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </PostHogProvider>
   );
 };
 
