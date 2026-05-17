@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -41,6 +41,47 @@ export default function Tracker() {
       return data || [];
     },
     enabled: !!user?.id,
+  });
+
+  // Cross-reference jobs cache for tracked rows that came from Browse Jobs
+  // (those have ats_source + external_id populated). When the matching row
+  // in public.jobs has is_active=false, surface a "may no longer be active"
+  // badge on that ApplicationRow. Manual-add rows (no ats_source) skip
+  // this query entirely.
+  const atsLinkedKeys = useMemo(() => {
+    return applications
+      .filter((a) => a.ats_source && a.external_id)
+      .map((a) => ({ ats: a.ats_source, ext: a.external_id }));
+  }, [applications]);
+
+  const { data: inactiveExternalIds = new Set() } = useQuery({
+    queryKey: ["trackedJobsActiveStatus", user?.id, atsLinkedKeys.length],
+    queryFn: async () => {
+      if (atsLinkedKeys.length === 0) return new Set();
+      const inactive = new Set();
+      // Group queries by ats_source so we can use .in() on external_id —
+      // single round trip per ATS, max 5 round trips total.
+      const byAts = atsLinkedKeys.reduce((acc, k) => {
+        (acc[k.ats] = acc[k.ats] || []).push(k.ext);
+        return acc;
+      }, {});
+      for (const [ats, ids] of Object.entries(byAts)) {
+        const { data, error } = await supabase
+          .from("jobs")
+          .select("external_id")
+          .eq("ats_source", ats)
+          .in("external_id", ids)
+          .eq("is_active", false);
+        if (error) {
+          console.warn("[tracker] inactive cross-ref failed:", error.message);
+          continue;
+        }
+        for (const j of data || []) inactive.add(`${ats}|${j.external_id}`);
+      }
+      return inactive;
+    },
+    enabled: !!user?.id && atsLinkedKeys.length > 0,
+    staleTime: 5 * 60 * 1000,
   });
 
   const handleAdd = async () => {
@@ -172,6 +213,10 @@ export default function Tracker() {
             <ApplicationRow
               key={app.id}
               app={app}
+              listingInactive={
+                Boolean(app.ats_source && app.external_id &&
+                  inactiveExternalIds.has(`${app.ats_source}|${app.external_id}`))
+              }
               onUpdate={() =>
                 queryClient.invalidateQueries({ queryKey: ["applications"] })
               }
