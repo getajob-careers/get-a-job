@@ -251,6 +251,69 @@ export async function fetchSmartRecruiters(c: CompanyEntry): Promise<RawJob[]> {
   return collected;
 }
 
+// ───── Comeet ────────────────────────────────────────────────────────
+
+/**
+ * Comeet is an Israeli ATS with strong IL adoption. The public Careers
+ * API requires BOTH a `company_uid` AND a per-company `token` — both are
+ * embedded in the careers page HTML (in `comeetvar` script blocks for
+ * WP plugin sites, or `COMEET.init({...})` calls for JS-widget sites).
+ *
+ * Because the token is per-company and not derivable, the registry
+ * stores the full ready-to-fetch URL in `api_url`. This fetcher reads
+ * that directly rather than building from a slug.
+ *
+ * Response shape: array of positions. Each position has:
+ *   - uid:           external job ID
+ *   - name:          title
+ *   - location:      structured { country, city, state, name, is_remote }
+ *   - time_updated:  ISO timestamp — used as date_posted
+ *   - details:       array of { name, value, order } HTML sections — we
+ *                    concatenate with H3 headings to produce a single
+ *                    description_html blob
+ *   - url_active_page / url_comeet_hosted_page / url_recruit_hosted_page:
+ *                    apply URLs (any one may be populated, often null;
+ *                    fall back to the company's careers_url)
+ */
+export async function fetchComeet(c: CompanyEntry): Promise<RawJob[]> {
+  if (!c.api_url) return [];
+  const data = await httpGetJson<any>(c.api_url);
+  if (!Array.isArray(data)) return [];
+  return data.map((p) => {
+    const loc = p.location || {};
+    const country = (loc.country || "").toUpperCase();
+    const locName = loc.name
+      || [loc.city, loc.state, loc.country].filter(Boolean).join(", ")
+      || null;
+    // Concatenate all `details` sections (e.g. "Description", "About this
+    // role", "Requirements") into one HTML blob with H3 headings between.
+    const descParts = Array.isArray(p.details)
+      ? p.details
+          .filter((d: any) => d && d.value)
+          .map((d: any) => `<h3>${d.name || ""}</h3>\n${d.value}`)
+          .join("\n")
+      : "";
+    return {
+      external_id:        String(p.uid || ""),
+      title:              p.name || "",
+      description_html:   descParts || null,
+      location_raw:       locName,
+      structured_country: country || null,
+      apply_url:          p.url_active_page
+                          || p.url_comeet_hosted_page
+                          || p.url_recruit_hosted_page
+                          || c.careers_url
+                          || "",
+      date_posted:        p.time_updated || null,
+      salary_min:         null,
+      salary_max:         null,
+      salary_currency:    null,
+      is_remote:          Boolean(loc.is_remote),
+      raw_payload:        p,
+    };
+  });
+}
+
 // ───── Dispatch table ────────────────────────────────────────────────
 
 export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = {
@@ -259,4 +322,5 @@ export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = 
   ashby:           fetchAshby,
   workday:         fetchWorkday,
   smartrecruiters: fetchSmartRecruiters,
+  comeet:          fetchComeet,
 };
