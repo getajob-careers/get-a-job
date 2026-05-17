@@ -235,16 +235,13 @@ function JobCard({ job, scoreResult, scoring, onScore }) {
 
 // ─────────── Page ───────────
 
-// Build a Supabase .or() string of ILIKE patterns from a list of role titles.
-// Each pattern wraps the role in %...% for substring match. Postgres tokenises
-// these against the pg_trgm GIN index on jobs.title for fast OR-of-LIKE.
-function buildTitleOrFilter(roleTitles) {
-  if (!roleTitles?.length) return null;
-  return roleTitles
-    .slice(0, MAX_TIER_ROLES)
-    .map((t) => `title.ilike.%${t.replace(/[%,]/g, " ").trim()}%`)
-    .join(",");
-}
+// pg_trgm similarity threshold for tier-mode searches. 0.3 (the default
+// for the % operator) is generous enough to catch obvious variants like
+// "Customer Success Specialist" matching "Customer Success Manager"
+// without sliding into noise. Lower → more recall, more noise. Tuned via
+// per-role diagnostic on the pilot user's tier list — see migration
+// 20260517_jobs_trgm_search_rpc.sql for the full numbers.
+const TIER_SIMILARITY_THRESHOLD = 0.3;
 
 export default function JobSuggestions() {
   const { user } = useAuth();
@@ -329,27 +326,43 @@ export default function JobSuggestions() {
   // overwrite a fresh one (e.g. user clicks T1 then T2 in quick succession).
   const requestSeqRef = useRef(0);
 
-  // Build the query for the current mode + offset. Returns the supabase
-  // query builder (caller awaits it).
+  // Build the query for the current mode + offset.
+  //
+  // Tier mode: pg_trgm RPC. Returns IL active jobs whose title is similar
+  // (>= 0.3 similarity) to ANY of the user's roles for that tier,
+  // ordered by best-match similarity DESC then date_posted DESC. The RPC
+  // dedupes a job that matches multiple roles. Required after PR #42 —
+  // direct ILIKE matching missed compound role names like "Associate
+  // Product Manager" (zero matches when "Product Manager" matches 55+).
+  //
+  // Keyword mode: direct .from('jobs').select() with ILIKE — keyword
+  // search expects literal substring intent and doesn't benefit from
+  // fuzzy matching.
   const buildJobsQuery = useCallback((modeArg, tier, kw, offsetArg) => {
-    let q = supabase
-      .from("jobs")
-      .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry")
-      .eq("is_il", true)
-      .eq("is_active", true)
-      .order("date_posted", { ascending: false, nullsFirst: false })
-      .range(offsetArg, offsetArg + BROWSE_PAGE_SIZE - 1);
-
     if (modeArg === "keyword") {
       const safe = kw.replace(/[%,]/g, " ").trim();
+      let q = supabase
+        .from("jobs")
+        .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry")
+        .eq("is_il", true)
+        .eq("is_active", true)
+        .order("date_posted", { ascending: false, nullsFirst: false })
+        .range(offsetArg, offsetArg + BROWSE_PAGE_SIZE - 1);
       if (safe) q = q.ilike("title", `%${safe}%`);
-    } else {
-      const roles = rolesByTier[tier] || [];
-      const orFilter = buildTitleOrFilter(roles.map((r) => r.title));
-      if (!orFilter) return { _empty: "no_roles" };
-      q = q.or(orFilter);
+      return q;
     }
-    return q;
+
+    // tier mode → RPC
+    const roles = (rolesByTier[tier] || []).slice(0, MAX_TIER_ROLES).map((r) => r.title);
+    if (roles.length === 0) return { _empty: "no_roles" };
+    return supabase
+      .rpc("search_jobs_by_role_titles", {
+        p_role_titles: roles,
+        p_limit: BROWSE_PAGE_SIZE,
+        p_offset: offsetArg,
+        p_similarity_threshold: TIER_SIMILARITY_THRESHOLD,
+      })
+      .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry");
   }, [rolesByTier]);
 
   const fetchJobs = useCallback(async ({ modeArg, tier, kw, offsetArg, append }) => {
