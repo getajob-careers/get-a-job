@@ -463,6 +463,11 @@ Deno.serve(async (req) => {
         title_filter: `"${titleFilter}"`,
         location_filter: `"${locationFilter}"`,
         description_type: 'text',
+        // Exclude recruitment agency postings — they're noisy for students
+        // (often vague "great opportunity for a PM!" listings with no real
+        // company name) and the upgraded paid tier now includes agency
+        // postings by default. False = ATS-sourced direct-employer jobs only.
+        agency: 'false',
       })
       const url = `https://active-jobs-db.p.rapidapi.com/active-ats-7d?${qs.toString()}`
       try {
