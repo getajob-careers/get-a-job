@@ -38,7 +38,7 @@ export function FacultyPlacementPending() {
     <EmptyShell
       icon={Building2}
       title="Your placement will appear here"
-      body="Faculty-assigned placements land in this kanban once your faculty mentor confirms them. You can still use the rest of Get A Job — CV, LinkedIn, Story Bank — while you wait."
+      body="Add the company your faculty assigned you to start tracking your placement."
     />
   );
 }
