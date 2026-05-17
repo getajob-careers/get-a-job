@@ -11,6 +11,31 @@
 import posthog from "posthog-js";
 
 /**
+ * Canonical event names. Use these constants at call sites instead of
+ * raw strings so typos surface at import time and the full event taxonomy
+ * lives in one place. Convention: snake_case, past-tense verbs.
+ *
+ * If you add a new event, add it here first.
+ */
+export const EVENTS = {
+  SIGNUP_COMPLETED:            "signup_completed",
+  ONBOARDING_STARTED:          "onboarding_started",
+  ONBOARDING_STEP_COMPLETED:   "onboarding_step_completed",
+  ONBOARDING_COMPLETED:        "onboarding_completed",
+  CV_UPLOADED:                 "cv_uploaded",
+  CAREER_ANALYSIS_REFRESHED:   "career_analysis_refreshed",
+  JOB_MATCH_CHECKED:           "job_match_checked",
+  APPLICATION_TRACKED:         "application_tracked",
+  PRACTICUM_COMPANY_ADDED:     "practicum_company_added",
+  PRACTICUM_STATUS_CHANGED:    "practicum_status_changed",
+  CHAT_MESSAGE_SENT:           "chat_message_sent",
+  // Stripe-driven — names reserved here so the convention is fixed.
+  // Call sites land once Stripe webhooks / billing UI ship.
+  SUBSCRIPTION_STARTED:        "subscription_started",
+  SUBSCRIPTION_CANCELED:       "subscription_canceled",
+};
+
+/**
  * Fire a named analytics event. Properties is a flat object — keep it
  * shallow (PostHog handles nested objects but they're harder to query).
  */

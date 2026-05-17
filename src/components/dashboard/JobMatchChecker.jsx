@@ -3,6 +3,7 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { tierFromScores } from "@/lib/scoreApplication";
+import { track, EVENTS } from "@/lib/analytics";
 
 import { Sparkles, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, Plus, FileText, Link } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -93,6 +94,12 @@ export default function JobMatchChecker() {
         recommendation: data.recommendation || "",
         source_url: data.source_url || (mode === "url" ? url : null),
       });
+      // Bucket the score the same way the score colour bar does (>=70
+      // strong, >=45 moderate, otherwise weak) so funnel charts can group
+      // without re-bucketing the raw number client-side.
+      const score = data.match_score || 0;
+      const band = score >= 70 ? "strong" : score >= 45 ? "moderate" : "weak";
+      track(EVENTS.JOB_MATCH_CHECKED, { matched_score_band: band });
       setExpanded(true);
     } catch (err) {
       console.error("Job match error:", err);

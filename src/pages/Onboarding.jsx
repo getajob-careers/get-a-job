@@ -8,6 +8,21 @@ import { Loader2 } from "lucide-react";
 import { EMPTY_PROFILE, cleanProfilePayload, ALLOWED_EXPERIENCE_TYPES, inferExperienceType } from "@/lib/onboardingPayload";
 import { normalizeEducationLevel, parseEducationDateRange } from "@/lib/educationPolicy";
 import { resolveDueDate, defaultDueDateFor } from "@/lib/taskDueDate";
+import { track, EVENTS } from "@/lib/analytics";
+
+// Step index → snake_case name for the onboarding_step_completed event
+// property. Order matches the step constant at the top of this file.
+const STEP_NAMES = [
+  "cv",
+  "education",
+  "practicum",
+  "experience",
+  "skills",
+  "career_direction",
+  "constraints",
+  "survey",
+  "tier_reveal",
+];
 
 import OnboardingShell from "../components/onboarding/OnboardingShell";
 import StepResumeUpload from "../components/onboarding/StepResumeUpload";
@@ -178,6 +193,19 @@ export default function Onboarding() {
       }
     }
     setCheckingProfile(false);
+
+    // onboarding_started — one-shot per user per device. The localStorage
+    // timestamp doubles as the start-time reference for the duration_ms
+    // property on onboarding_completed.
+    if (!profiles?.[0]?.onboarding_complete) {
+      try {
+        const flagKey = `gaj.onb_start.${user.id}`;
+        if (!localStorage.getItem(flagKey)) {
+          localStorage.setItem(flagKey, String(Date.now()));
+          track(EVENTS.ONBOARDING_STARTED, {});
+        }
+      } catch { /* localStorage unavailable */ }
+    }
   };
 
   // Called from StepResumeUpload — pre-fill profile from resume extraction
@@ -385,6 +413,13 @@ export default function Onboarding() {
     setSaving(true);
     try {
       await saveProgress(nextStep);
+      // Track forward-progress only — skips Back-button noise.
+      if (nextStep > step) {
+        track(EVENTS.ONBOARDING_STEP_COMPLETED, {
+          step_index: step,
+          step_name: STEP_NAMES[step] || `step_${step}`,
+        });
+      }
       setStep(nextStep);
     } catch (err) {
       console.error("Failed to save onboarding progress:", err);
@@ -396,6 +431,13 @@ export default function Onboarding() {
   // Step 7→8: Run the AI tier analysis (was 6→7 pre-practicum step)
   const handleSurveyNext = async () => {
     if (generatingRoles) return;
+    // Step 7 (Survey) → 8 (TierReveal) bypasses goTo, so emit the step-
+    // completed event explicitly here. Without this we'd miss "survey" in
+    // the funnel.
+    track(EVENTS.ONBOARDING_STEP_COMPLETED, {
+      step_index: 7,
+      step_name: STEP_NAMES[7],
+    });
     setStep(8);
     setTierRevealError(null);
     setGeneratingRoles(true);
@@ -805,6 +847,18 @@ export default function Onboarding() {
       setFinalising(false);
       return;
     }
+
+    // onboarding_completed — compute duration_ms from the localStorage
+    // timestamp set in checkExistingProfile when onboarding_started fired.
+    // Falls back to null if the flag was missing (resumed across devices,
+    // localStorage cleared, etc.) — better than a misleading 0.
+    try {
+      const flagKey = `gaj.onb_start.${user.id}`;
+      const startStr = localStorage.getItem(flagKey);
+      const durationMs = startStr ? Date.now() - parseInt(startStr, 10) : null;
+      track(EVENTS.ONBOARDING_COMPLETED, { duration_ms: durationMs });
+      localStorage.removeItem(flagKey);
+    } catch { /* localStorage unavailable */ }
 
     // Remove cached query data so Home fetches fresh — invalidateQueries only marks stale
     // but leaves old data visible, which can trigger the onboarding redirect guard

@@ -7,6 +7,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { ExternalLink, MessageSquare } from "lucide-react";
 import { STATUSES, STATUS_LABELS, scoreBand } from "./constants";
 import { Link } from "react-router-dom";
+import { track, EVENTS } from "@/lib/analytics";
 
 // Right-side detail panel. Sections, top-to-bottom:
 //   1. Company header (name + sector + stage + external link)
@@ -79,6 +80,10 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
           toast.error("Couldn't update status.");
           return;
         }
+        track(EVENTS.PRACTICUM_STATUS_CHANGED, {
+          old_status: target.status,
+          new_status: pendingStatus,
+        });
       }
 
       // 2. If a note was provided, patch the most recent audit row.

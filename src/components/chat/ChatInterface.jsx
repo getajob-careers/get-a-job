@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { track, EVENTS } from "@/lib/analytics";
 import { Send, Loader2, Plus, ListTodo, CheckCircle2, ArrowRight, Route, Briefcase, ChevronDown, Trash2, MessageSquare, FileText, Download, RefreshCw } from "lucide-react";
 import {
   DropdownMenu,
@@ -625,6 +626,10 @@ export default function ChatInterface({ agentName, title, description, applicati
     if (!input.trim() || sending || !user?.id) return;
     const text = input.trim();
     setInput("");
+
+    // chat_message_sent — agent_name only. We deliberately never capture
+    // the message body (PII, large, low analytical value).
+    track(EVENTS.CHAT_MESSAGE_SENT, { agent_name: agentName || "career-coach" });
 
     // 1. Ensure we have a conversation row. Create lazily on first send.
     let convoId = activeConversationId;

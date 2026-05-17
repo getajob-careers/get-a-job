@@ -40,6 +40,7 @@ function isDocxFile(file) {
 
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
+import { track, EVENTS } from "@/lib/analytics";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
@@ -242,6 +243,22 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
             }
 
             onExtracted({ ...extracted, proof_signals: proofSignals, primary_domain: primaryDomain, adjacent_fields: adjacentFields });
+            // cv_uploaded — count non-empty top-level fields as a coarse
+            // "extraction quality" signal. file_type bucketed via the same
+            // logic the upload branches use (pdf vs docx vs other).
+            const fileType = file.type === "application/pdf"
+              ? "pdf"
+              : isDocxFile(file)
+                ? "docx"
+                : "other";
+            const extractedFieldsCount = Object.values(extracted || {}).filter(
+              (v) => v !== null && v !== undefined && v !== "" &&
+                     !(Array.isArray(v) && v.length === 0)
+            ).length;
+            track(EVENTS.CV_UPLOADED, {
+              file_type: fileType,
+              extracted_fields_count: extractedFieldsCount,
+            });
             setExtracting(false);
             setDone(true);
             return;
