@@ -25,6 +25,7 @@ const STEP_NAMES = [
 ];
 
 import OnboardingShell from "../components/onboarding/OnboardingShell";
+import OnboardingTutorial from "../components/onboarding/OnboardingTutorial";
 import StepResumeUpload from "../components/onboarding/StepResumeUpload";
 import StepEducation from "../components/onboarding/StepEducation";
 import StepPracticum from "../components/onboarding/StepPracticum";
@@ -33,7 +34,6 @@ import StepSkills from "../components/onboarding/StepSkills";
 import StepCareerDirection from "../components/onboarding/StepCareerDirection";
 import StepConstraints from "../components/onboarding/StepConstraints";
 import StepSurvey from "../components/onboarding/StepSurvey";
-import StepTierReveal from "../components/onboarding/StepTierReveal";
 
 // DB chk_experiences_type allows only these values
 // ALLOWED_EXPERIENCE_TYPES + inferExperienceType moved to
@@ -62,11 +62,21 @@ export default function Onboarding() {
   const [checkingProfile, setCheckingProfile] = useState(true);
   const [existingProfileId, setExistingProfileId] = useState(null);
 
-  // Tier reveal state
+  // Tier reveal state — kept for the analysis pipeline; the visual tier-
+  // reveal page was replaced by the OnboardingTutorial in step 8.
   const [generatingRoles, setGeneratingRoles] = useState(false);
-  const [generatedRoles, setGeneratedRoles] = useState([]);
-  const [qualificationLevel, setQualificationLevel] = useState("");
-  const [overallAssessment, setOverallAssessment] = useState("");
+  // Track how many career-analysis attempts have been made this session.
+  // 0 = initial call hasn't returned yet, 1 = initial done/failed,
+  // 2 = first retry done/failed, 3 = second retry done/failed → unrecoverable.
+  // Bounded retry count per spec: 2 retries max, then continue with empty
+  // roadmap + support-email surface in the tutorial.
+  const [analysisAttempts, setAnalysisAttempts] = useState(0);
+  // True when handleFinalise has completed — gates the tutorial's
+  // "Go to platform" button. Replaces the old click-driven navigation.
+  const [setupComplete, setSetupComplete] = useState(false);
+  // True when has_seen_onboarding_tutorial=true on the profile row. The
+  // tutorial gates on this to show the "skip — I've seen this" screen.
+  const [isReturningUser, setIsReturningUser] = useState(false);
 
   const mountedRef = useRef(true);
   useEffect(() => () => { mountedRef.current = false; }, []);
@@ -81,6 +91,27 @@ export default function Onboarding() {
     if (user) checkExistingProfile();
     else setCheckingProfile(false);
   }, [user]);
+
+  // Recovery: if the user closed the browser mid-analysis and reopens at
+  // step 8 (their stored onboarding_step), nothing is running and the
+  // tutorial would sit with setupComplete=false forever. Auto-trigger
+  // handleSurveyNext to re-drive the pipeline. handleSurveyNext is safe to
+  // re-run — its experiences/projects inserts use a snapshot-and-delete-
+  // old-after-success pattern so the user's data isn't lost.
+  const recoveryFiredRef = useRef(false);
+  useEffect(() => {
+    if (recoveryFiredRef.current) return;
+    if (step !== 8) return;
+    if (checkingProfile) return;
+    if (!existingProfileId) return;
+    if (generatingRoles || finalising) return;
+    if (setupComplete) return;
+    if (analysisAttempts > 0) return; // user-triggered flow already underway
+    if (tierRevealError) return;       // user is on an error state, don't auto-loop
+    recoveryFiredRef.current = true;
+    handleSurveyNext();
+
+  }, [step, checkingProfile, existingProfileId, generatingRoles, finalising, setupComplete, analysisAttempts, tierRevealError]);
 
   // Debounced auto-save of profileData. Prevents edits being lost when the user
   // navigates away mid-typing before clicking Continue. Skips:
@@ -123,6 +154,7 @@ export default function Onboarding() {
     if (profiles?.[0]) {
       const p = profiles[0];
       setExistingProfileId(p.id);
+      setIsReturningUser(!!p.has_seen_onboarding_tutorial);
       setProfileData((prev) => ({
         ...prev,
         ...p,
@@ -428,7 +460,18 @@ export default function Onboarding() {
     setSaving(false);
   };
 
-  // Step 7→8: Run the AI tier analysis (was 6→7 pre-practicum step)
+  // Step 7→8: Run the AI tier analysis (was 6→7 pre-practicum step).
+  //
+  // PR onboarding-tutorial refactor: the visual "Your Roles" page (step 8)
+  // was replaced by the OnboardingTutorial. The pipeline is now:
+  //
+  //   1. handleSurveyNext: pre-analysis DB writes + first analysis attempt
+  //   2. On analysis success: auto-chain to handleFinalise (background)
+  //   3. handleFinalise: task generation + final writes + set setupComplete
+  //   4. User clicks "Go to platform" in tutorial → navigate to Home
+  //
+  // Retries on analysis failure use runCareerAnalysisAttempt directly so
+  // we don't re-do the pre-analysis DB inserts.
   const handleSurveyNext = async () => {
     if (generatingRoles) return;
     // Step 7 (Survey) → 8 (TierReveal) bypasses goTo, so emit the step-
@@ -441,6 +484,7 @@ export default function Onboarding() {
     setStep(8);
     setTierRevealError(null);
     setGeneratingRoles(true);
+    setAnalysisAttempts(1);
 
     try {
       // Persist step 8 to DB before the career analysis reads the row.
@@ -626,22 +670,126 @@ export default function Onboarding() {
           });
         }
       }
+
+      // Analysis succeeded — auto-chain to handleFinalise in the same async
+      // flow so the user reaches setupComplete without a manual click.
+      // handleFinalise handles its own errors via setFinaliseError, so the
+      // outer catch only fires for analysis failures.
+      if (mountedRef.current) {
+        setGeneratingRoles(false);
+        await handleFinalise();
+      }
+      return;
     } catch (err) {
       console.error("Career analysis error:", err?.message || err, err);
       if (!mountedRef.current) return;
       // Surface 429 as a specific rate-limit message instead of folding it
-      // into the generic failure copy. Other statuses keep the existing
-      // "Please go back and try again" framing.
+      // into the generic failure copy. Other statuses get retry-aware
+      // framing — see the tutorial's setupError prop computation below.
       if (err?.status === 429) {
         setTierRevealError("You've hit the hourly limit on career analyses (10/hour). Try again in an hour.");
       } else {
         const detail = err?.message ? ` (${err.message})` : "";
-        setTierRevealError(`Career analysis failed.${detail} Please go back and try again.`);
+        setTierRevealError(`Career analysis failed.${detail}`);
       }
     }
 
     if (!mountedRef.current) return;
     setGeneratingRoles(false);
+  };
+
+  // Re-run the career-analysis attempt without re-doing the pre-analysis
+  // experiences/projects/certs inserts (those already succeeded on the
+  // first attempt). Called from the tutorial's retry banner. Bounded to
+  // analysisAttempts <= 3 (initial + 2 retries) per spec; the tutorial's
+  // setupError computation surfaces the "continue to empty roadmap"
+  // affordance once the third attempt fails.
+  const runCareerAnalysisAttempt = async () => {
+    if (generatingRoles) return;
+    setTierRevealError(null);
+    setGeneratingRoles(true);
+    setAnalysisAttempts((n) => n + 1);
+    try {
+      const { data: sessionData, error: sessionError } = await supabase.auth.refreshSession();
+      const accessToken = sessionData?.session?.access_token;
+      if (sessionError || !accessToken) throw new Error("Session expired. Please log out and log back in.");
+
+      const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/generate-career-analysis`;
+      const response = await fetch(fnUrl, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+          "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
+        },
+        body: JSON.stringify({
+          dream_roles: profileData.five_year_role ? [profileData.five_year_role] : [],
+        }),
+      });
+      const responseText = await response.text();
+      let data;
+      try { data = responseText ? JSON.parse(responseText) : {}; }
+      catch { throw new Error(`HTTP ${response.status}: invalid response`); }
+      if (!response.ok) {
+        const httpErr = new Error(data?.error || data?.msg || `HTTP ${response.status}`);
+        httpErr.status = response.status;
+        throw httpErr;
+      }
+      if (data?.error) throw new Error(data.error);
+
+      const analysisRoles = data?.roles || [];
+      if (!mountedRef.current) return;
+      setGeneratedRoles(analysisRoles);
+      setQualificationLevel(data?.qualification_level || "Not determined");
+      setOverallAssessment(data?.overall_assessment || "");
+
+      if (user && analysisRoles.length > 0) {
+        const rolesPayload = analysisRoles.map((r) => ({
+          title: r.title, tier: r.tier, match_score: r.readiness_score,
+          readiness_score: r.readiness_score, goal_alignment_score: r.goal_alignment_score ?? null,
+          matched_skills: r.matched_skills || [], missing_skills: r.missing_skills || [],
+          skills_gap: r.missing_skills || [], alignment_to_goal: r.alignment_to_goal || "",
+          alignment_reason: r.alignment_reason || "", reasoning: r.reasoning || "",
+          action_items: r.action_items || [],
+        }));
+        const { error: rpcError } = await supabase.rpc("replace_career_roles", {
+          p_user_id: user.id, p_roles: rolesPayload,
+        });
+        if (rpcError) throw rpcError;
+      }
+      if (existingProfileId) {
+        await supabase.from("profiles").update({
+          skill_gaps: data?.skill_gaps || [],
+          qualification_level: data?.qualification_level || null,
+          overall_assessment: data?.overall_assessment || null,
+          last_reality_check_date: new Date().toISOString(),
+        }).eq("id", existingProfileId);
+      }
+      if (mountedRef.current) {
+        setGeneratingRoles(false);
+        await handleFinalise();
+      }
+    } catch (err) {
+      console.error("Career analysis retry error:", err?.message || err);
+      if (!mountedRef.current) return;
+      if (err?.status === 429) {
+        setTierRevealError("You've hit the hourly limit on career analyses (10/hour). Try again in an hour.");
+      } else {
+        const detail = err?.message ? ` (${err.message})` : "";
+        setTierRevealError(`Career analysis failed.${detail}`);
+      }
+      setGeneratingRoles(false);
+    }
+  };
+
+  // Continue onboarding without a successful career analysis. Used when
+  // the user has exhausted retries and chooses "Continue to platform
+  // anyway" — handleFinalise runs as normal and the user lands on Home
+  // with an empty Career Roadmap. The Home self-heal useEffect will
+  // attempt to re-run the analysis in the background on next visit.
+  const continueToEmptyRoadmap = async () => {
+    setTierRevealError(null);
+    await handleFinalise();
   };
 
   // Final step: save everything, mark complete, navigate
@@ -869,6 +1017,36 @@ export default function Onboarding() {
     queryClient.removeQueries({ queryKey: ["experiences"] });
 
     setFinalising(false);
+    // PR onboarding-tutorial: instead of navigating to Home directly, flip
+    // setupComplete and let the tutorial's "Go to platform" button drive
+    // navigation. handleTutorialEnd persists has_seen_onboarding_tutorial
+    // before navigating.
+    setSetupComplete(true);
+  };
+
+  // Called when the tutorial finishes (user clicked "Go to platform" or
+  // skipped via the returning-user gate). Persists has_seen flag, clears
+  // query cache, navigates to Home.
+  const handleTutorialEnd = async ({ skipped }) => {
+    if (existingProfileId) {
+      const { error: flagErr } = await supabase
+        .from("profiles")
+        .update({ has_seen_onboarding_tutorial: true })
+        .eq("id", existingProfileId);
+      if (flagErr) {
+        // Non-fatal — the user can still proceed. The flag is for future
+        // sessions; missing it means they see the tutorial again next time.
+        console.warn("[onboarding] could not persist has_seen_onboarding_tutorial:", flagErr.message);
+      }
+    }
+    // If the user skipped via the returning-user gate, we still need to
+    // make sure handleFinalise has run (or is running). If setupComplete
+    // is false at this point, the navigation below would land them on
+    // Home with onboarding_complete still false → bounce back to
+    // onboarding. Guard: wait for setupComplete or finalise to settle.
+    if (!setupComplete && !finalising && skipped) {
+      await handleFinalise();
+    }
     navigate(createPageUrl("Home"));
   };
 
@@ -877,6 +1055,48 @@ export default function Onboarding() {
       <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
         <Loader2 className="w-5 h-5 animate-spin text-[#A3A3A3]" />
       </div>
+    );
+  }
+
+  // Step 8 → render the OnboardingTutorial full-screen (no OnboardingShell).
+  // The tutorial handles its own finalising visuals via the useFakeProgress
+  // bar, so the old `if (finalising)` full-screen loader is suppressed here.
+  if (step === 8) {
+    // Compute setupError for the tutorial. Three states:
+    //   - null: analysis hasn't failed (or hasn't been attempted yet)
+    //   - { kind: "analysis_failed", retry }: recoverable, user can retry
+    //   - { kind: "analysis_unrecoverable", skipToEmpty }: 2 retries exhausted
+    let setupError = null;
+    if (tierRevealError) {
+      if (analysisAttempts >= 3) {
+        setupError = {
+          kind: "analysis_unrecoverable",
+          skipToEmpty: continueToEmptyRoadmap,
+        };
+      } else {
+        setupError = {
+          kind: "analysis_failed",
+          retry: runCareerAnalysisAttempt,
+        };
+      }
+    }
+    return (
+      <>
+        {finaliseError && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full px-4 py-3 bg-red-50 border border-red-200 rounded-lg shadow-sm">
+            <p className="text-sm text-red-700">{finaliseError}</p>
+            <button onClick={handleFinalise} className="mt-2 text-xs font-medium text-red-800 underline underline-offset-2">
+              Retry
+            </button>
+          </div>
+        )}
+        <OnboardingTutorial
+          isReturningUser={isReturningUser}
+          setupComplete={setupComplete}
+          setupError={setupError}
+          onTutorialEnd={handleTutorialEnd}
+        />
+      </>
     );
   }
 
@@ -975,36 +1195,7 @@ export default function Onboarding() {
           onBack={() => goTo(6)}
         />
       )}
-      {step === 8 && (
-        <>
-          {tierRevealError && (
-            <div className="mx-auto max-w-lg mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-700">
-                {tierRevealError} You can also continue without it — your roadmap will be empty for now, and you can re-run the analysis from the Career Roadmap page once you're set up.
-              </p>
-              <div className="flex gap-4 mt-2">
-                <button onClick={() => { setTierRevealError(null); handleSurveyNext(); }} className="text-xs font-medium text-red-800 underline underline-offset-2 whitespace-nowrap">
-                  Try Again
-                </button>
-                <button onClick={() => { setTierRevealError(null); handleFinalise(); }} className="text-xs font-medium text-red-800 underline underline-offset-2 whitespace-nowrap">
-                  Skip — initialise anyway
-                </button>
-                <button onClick={() => { setTierRevealError(null); goTo(7); }} className="text-xs font-medium text-red-800 underline underline-offset-2 whitespace-nowrap">
-                  Go back
-                </button>
-              </div>
-            </div>
-          )}
-          <StepTierReveal
-            roles={generatedRoles}
-            qualificationLevel={qualificationLevel}
-            overallAssessment={overallAssessment}
-            generating={generatingRoles}
-            onNext={handleFinalise}
-            onBack={() => goTo(7)}
-          />
-        </>
-      )}
+      {/* step === 8 is rendered above via OnboardingTutorial — no entry here. */}
     </OnboardingShell>
   );
 }

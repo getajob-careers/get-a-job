@@ -45,7 +45,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Upload, CheckCircle2, ArrowRight, Linkedin } from "lucide-react";
+import { Loader2, Upload, CheckCircle2, ArrowRight, Linkedin, AlertTriangle, ExternalLink } from "lucide-react";
 
 // Note: the JSON-Schema constant that previously lived here was dead code —
 // never referenced (the ai-chat call below uses a plain prose prompt, not
@@ -304,6 +304,31 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
 
   return (
     <div className="space-y-6">
+      {/* Persistent LinkedIn data-export banner — non-dismissible, visible
+          for the entire CV-upload step. LinkedIn's data export takes a few
+          hours to generate, so we surface this as early as possible so users
+          can start the request now and have it ready when they reach the
+          LinkedIn Hub features post-onboarding. */}
+      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3">
+        <AlertTriangle className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
+        <div className="flex-1">
+          <p className="text-sm font-semibold text-amber-900">
+            Request your LinkedIn data export now
+          </p>
+          <p className="text-sm text-amber-800 mt-1 leading-relaxed">
+            LinkedIn takes a few hours to prepare your data export. Request it now and you&apos;ll have it ready when you reach LinkedIn Hub features (profile optimization, posts, networking) later.
+          </p>
+          <a
+            href="https://www.linkedin.com/mypreferences/d/download-my-data"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-amber-900 underline underline-offset-2 hover:text-amber-700"
+          >
+            Request LinkedIn data export <ExternalLink className="w-3 h-3" />
+          </a>
+        </div>
+      </div>
+
       <div>
         <h2 className="text-xl font-bold text-[#0A0A0A] tracking-tight">Upload Your CV</h2>
         <p className="text-sm text-[#525252] mt-1">
@@ -339,41 +364,8 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
           <h3 className="text-sm font-semibold text-[#0A0A0A]">LinkedIn Profile (optional)</h3>
         </div>
 
-        {/* Data-export instructions — visible while the user is waiting on
-            CV upload/extraction or has just finished, so the dead time gets
-            used for something they'll need later (LinkedIn Optimizer). */}
-        {(uploading || extracting || done) && (
-          <div className="mb-4 bg-[#FAFAFA] border border-[#F0F0F0] rounded-lg p-4">
-            <p className="text-xs font-semibold text-[#0A0A0A] mb-2">
-              While you wait, request your LinkedIn data export — you&apos;ll need it later for the LinkedIn Optimizer.
-            </p>
-            <ol className="list-decimal list-inside space-y-1 text-xs text-[#525252] leading-relaxed">
-              <li>Go to LinkedIn</li>
-              <li>Click your profile picture → Settings &amp; Privacy</li>
-              <li>Data Privacy → Get a copy of your data</li>
-              <li>Select the full archive → Request archive</li>
-            </ol>
-            <p className="text-xs text-[#A3A3A3] mt-2">
-              LinkedIn will email you when it&apos;s ready — this can take up to 24 hours.
-            </p>
-          </div>
-        )}
-
-        {/* One-click LinkedIn connect */}
-        <div className="mb-4">
-          <p className="text-xs text-[#A3A3A3] mb-2">Auto-fill your details from LinkedIn.</p>
-          <Button
-            disabled
-            size="sm"
-            className="bg-[#0A66C2] opacity-50 cursor-not-allowed text-white flex items-center gap-2"
-          >
-            <Linkedin className="w-3 h-3" /> Connect with LinkedIn
-          </Button>
-          <p className="text-xs text-[#A3A3A3] mt-1.5">Coming soon — paste your LinkedIn URL below for now.</p>
-        </div>
-
-        <div className="border-t border-[#F0F0F0] pt-4">
-          <p className="text-xs text-[#A3A3A3] mb-3">Or paste your LinkedIn URL to save it to your profile.</p>
+        <div>
+          <p className="text-xs text-[#A3A3A3] mb-3">Paste your LinkedIn URL to save it to your profile.</p>
           <div className="flex gap-2">
             <Input
               value={linkedinUrl}
