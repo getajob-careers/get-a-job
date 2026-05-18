@@ -2,7 +2,7 @@
   "generated_at": "2026-05-18",
   "total_companies": 831,
   "by_ats": {
-    "unknown": 267,
+    "unknown": 264,
     "lever": 24,
     "ashby": 58,
     "comeet": 200,
@@ -15,8 +15,8 @@
     "workable": 6,
     "oracle": 1,
     "recruitee": 1,
-    "teamtailor": 1,
-    "successfactors": 1
+    "successfactors": 4,
+    "teamtailor": 1
   },
   "companies": [
     {
@@ -4573,11 +4573,11 @@
       "industry": "Chemicals / Specialty Minerals",
       "domain": "icl-group.com",
       "careers_url": "https://careers.icl-group.com/",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "NYSE/TASE-listed. CONFIRMED uses SAP SuccessFactors EU (career.successfactors.eu) with custom path 'ICLTEST3' \u2014 careers.icl-group.com HTML references successfactors.eu CSS/PDFs throughout. SuccessFactors is NOT on supported ATS list. Workday tenant probes (iclgroup.wd3, icl.wd1/3) returned HTTP_422 \u2014 not real tenants."
+      "ats": "successfactors",
+      "slug": "careers.icl-group.com",
+      "api_url": "https://careers.icl-group.com/sitemal.xml",
+      "verified": true,
+      "notes": "Verified via SAP-documented /sitemal.xml RSS feed (SAP KB 2428902). Public job-aggregator endpoint, no auth required."
     },
     {
       "name": "Iguazio",
@@ -7069,11 +7069,11 @@
       "industry": "Pharmaceutical / Consumer Health",
       "domain": "perrigo.com",
       "careers_url": "https://careers.perrigo.com/",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Uses SAP SuccessFactors (rmkcdn.successfactors.com referenced in careers page; URL pattern /go/<function>/<id>/). Not in supported list."
+      "ats": "successfactors",
+      "slug": "careers.perrigo.com",
+      "api_url": "https://careers.perrigo.com/sitemal.xml",
+      "verified": true,
+      "notes": "Verified via SAP-documented /sitemal.xml RSS feed (SAP KB 2428902). Public job-aggregator endpoint, no auth required."
     },
     {
       "name": "Personetics",
@@ -8881,11 +8881,11 @@
       "industry": "Pharmaceutical",
       "domain": "tevapharm.com",
       "careers_url": "https://careers.teva/",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Uses SAP SuccessFactors (career2.successfactors.eu, rmkcdn.successfactors.com CDN, performancemanager.successfactors.eu for internal mobility). Confirmed via tevapharm.com exit-link table. Add a SuccessFactors fetcher in a future round; Teva is the largest IL pharma and high-volume."
+      "ats": "successfactors",
+      "slug": "careers.teva",
+      "api_url": "https://careers.teva/sitemal.xml",
+      "verified": true,
+      "notes": "Verified via SAP-documented /sitemal.xml RSS feed (SAP KB 2428902). Public job-aggregator endpoint, no auth required."
     },
     {
       "name": "Texas Instruments",
