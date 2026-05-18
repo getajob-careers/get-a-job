@@ -1,5 +1,10 @@
 import React from "react";
 
+// Step 8 ("Your Roles") used to be the StepTierReveal page; it was replaced
+// by the OnboardingTutorial which renders full-screen outside this shell.
+// The shell is now only used for steps 0-7 (data-entry); step 8 reads as
+// "Almost done" if a hard reload puts the user back into the shell for any
+// reason (it shouldn't — Onboarding.jsx renders the tutorial above).
 const STEPS = [
   "CV Upload",
   "Education",
@@ -9,7 +14,7 @@ const STEPS = [
   "Career Direction",
   "Constraints",
   "Survey",
-  "Your Roles",
+  "Almost done",
 ];
 
 export default function OnboardingShell({ currentStep, children }) {
