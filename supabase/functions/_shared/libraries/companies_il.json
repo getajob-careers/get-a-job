@@ -2,20 +2,20 @@
   "generated_at": "2026-05-18",
   "total_companies": 831,
   "by_ats": {
-    "unknown": 264,
+    "unknown": 262,
     "lever": 24,
     "ashby": 58,
     "comeet": 200,
     "greenhouse": 196,
     "workday": 29,
-    "custom": 33,
+    "custom": 32,
     "eightfold": 3,
     "icims": 1,
     "smartrecruiters": 10,
-    "workable": 6,
+    "workable": 5,
+    "successfactors": 8,
     "oracle": 1,
     "recruitee": 1,
-    "successfactors": 4,
     "teamtailor": 1
   },
   "companies": [
@@ -3433,11 +3433,11 @@
       "industry": "Energy / Oil & Gas",
       "domain": "energean.com",
       "careers_url": "https://www.energean.com/careers/",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "LSE-listed Greek-headquartered with major Israel operations (Karish/Tanin). Probed Workday tenants wd1/wd3/wd103 for 'energean' \u2014 all returned HTTP_422 (not valid tenants). Probed Greenhouse/Lever/Ashby/SmartRecruiters \u2014 no real listings. Uses proprietary careers portal (403 to curl)."
+      "ats": "successfactors",
+      "slug": "careers.energean.com",
+      "api_url": "https://careers.energean.com/sitemal.xml",
+      "verified": true,
+      "notes": "Verified via SAP /sitemal.xml RSS feed (probe round). SAP-documented public job-aggregator endpoint."
     },
     {
       "name": "Enlight Renewable Energy",
@@ -3589,11 +3589,11 @@
       "industry": "Consulting",
       "domain": "ey.com",
       "careers_url": "https://www.ey.com/en_il/careers",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Enterprise \u2014 uses ey.jobs proprietary platform; no third-party ATS in supported list"
+      "ats": "successfactors",
+      "slug": "careers.ey.com",
+      "api_url": "https://careers.ey.com/sitemal.xml",
+      "verified": true,
+      "notes": "Verified via SAP /sitemal.xml RSS feed (probe round). SAP-documented public job-aggregator endpoint."
     },
     {
       "name": "EY (Ernst & Young) Israel",
@@ -3605,7 +3605,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "RE-INVESTIGATED. Already unverified. EY uses proprietary ey.jobs/ey.com career portal (SAP SuccessFactors backend). No public REST API in supported set."
+      "notes": "RE-INVESTIGATED. Already unverified. EY uses proprietary ey.jobs/ey.com career portal (SAP SuccessFactors backend). No public REST API in supported set. | Duplicate of \"EY (Ernst & Young)\" entry which was promoted to SF \u2014 consider merging in future round."
     },
     {
       "name": "F5",
@@ -6229,11 +6229,11 @@
       "industry": "Storage",
       "domain": "netapp.com",
       "careers_url": "https://careers.netapp.com/",
-      "ats": "custom",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "NEW (extra). Uses TalentBrew (tbcdn.talentbrew.com/company/27600) + SuccessFactors backend + Eightfold for assessment. No supported ATS. NetApp Israel R&D in Tel Aviv (acquired CloudJumper + LightBits-IL via SolidFire heritage)."
+      "ats": "successfactors",
+      "slug": "jobs.netapp.com",
+      "api_url": "https://jobs.netapp.com/sitemal.xml",
+      "verified": true,
+      "notes": "Verified via SAP /sitemal.xml RSS feed (probe round). SAP-documented public job-aggregator endpoint."
     },
     {
       "name": "Netflix",
@@ -7513,11 +7513,11 @@
       "industry": "QA / Software Testing Services",
       "domain": "qualitestgroup.com",
       "careers_url": "https://apply.workable.com/qualitest-1/",
-      "ats": "workable",
-      "slug": "qualitest-1",
-      "api_url": null,
-      "verified": false,
-      "notes": "Founded in Israel (Petah Tikva) 1997; ~3,000 employees globally. Although a new London corporate HQ was opened, IL remains a major hub. Uses Workable; slug 'qualitest-1' confirmed via site search. Would need Workable fetcher."
+      "ats": "successfactors",
+      "slug": "careers.qualitestgroup.com",
+      "api_url": "https://careers.qualitestgroup.com/sitemal.xml",
+      "verified": true,
+      "notes": "Verified via SAP /sitemal.xml RSS feed (probe round). SAP-documented public job-aggregator endpoint."
     },
     {
       "name": "Quantum Machines",
