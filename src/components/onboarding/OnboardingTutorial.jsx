@@ -180,7 +180,6 @@ export default function OnboardingTutorial({
 
   // ───── Tutorial render ─────
   const isFinalSlide = slideIndex === SLIDES.length - 1;
-  const showFinalisingPanel = isFinalSlide && allSlidesSeen && !setupComplete;
   const goToPlatformEnabled = allSlidesSeen && setupComplete;
   const slide = SLIDES[slideIndex];
 
@@ -197,19 +196,16 @@ export default function OnboardingTutorial({
           </p>
         </div>
 
-        {/* Progress bar — subtle during slides, taller on the finalising panel */}
-        <div className={`bg-[#F0F0F0] rounded-full overflow-hidden ${showFinalisingPanel ? "h-2" : "h-1"}`}>
+        {/* Setup progress indicator. The header pct + button state ("Finalising...")
+            already communicate setup status — no separate finalising card. */}
+        <div className="bg-[#F0F0F0] rounded-full overflow-hidden h-1">
           <div
             className="h-full bg-[#0A0A0A] transition-all duration-500 ease-out"
             style={{ width: `${setupPercent}%` }}
           />
         </div>
 
-        {/* Slide content always renders; FinalisingPanel stacks below when
-            the user reaches the last slide before setup is done. The slide
-            stays readable while setup finishes. */}
         <Slide slide={slide} />
-        {showFinalisingPanel && <FinalisingPanel percent={setupPercent} />}
 
         {/* Arrow navigation + dot indicators */}
         <div className="flex items-center justify-between">
@@ -287,19 +283,6 @@ function Slide({ slide }) {
 
 // TierQuadrantGrid lives in src/components/roadmap/TierQuadrantGrid.jsx —
 // shared with the Career Roadmap "Why these tiers" tab.
-
-function FinalisingPanel({ percent }) {
-  return (
-    <div className="bg-white border border-[#E5E5E5] rounded-2xl p-10 min-h-[280px] flex flex-col items-center justify-center text-center">
-      <Loader2 className="w-10 h-10 animate-spin text-[#525252] mb-5" />
-      <h3 className="text-lg font-bold text-[#0A0A0A] tracking-tight">Finalising your profile...</h3>
-      <p className="text-sm text-[#525252] mt-3 leading-relaxed max-w-sm">
-        Generating tasks, configuring your AI agents, and building your dashboard.
-      </p>
-      <p className="text-xs text-[#A3A3A3] mt-5 tabular-nums">{percent}% complete</p>
-    </div>
-  );
-}
 
 function FullScreenShell({ children }) {
   return (
