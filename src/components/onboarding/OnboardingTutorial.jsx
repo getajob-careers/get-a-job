@@ -8,24 +8,25 @@ import { useFakeProgress } from "@/lib/useFakeProgress";
 // Visuals are placeholder icons + descriptions until real screenshots land.
 const SLIDES = [
   {
+    // Slide 1 has a custom layout (TierQuadrantGrid below the title) — the
+    // description is rendered as the closing line BELOW the grid.
     name: "browse_jobs",
     title: "Browse Jobs",
-    description:
-      "Jobs filtered to your tier. Score any role for a personalized fit breakdown and see what's missing before you apply.",
+    description: "Score any role for a personalized fit breakdown.",
     Icon: Briefcase,
   },
   {
     name: "application_tracker",
     title: "Application Tracker",
     description:
-      "Track every application, follow-up, and interview in one place. Stage transitions, notes, and reminder dates — no more lost threads.",
+      "Track every application, follow-up, and interview in one place. Status updates, notes, and reminder dates — nothing falls through the cracks.",
     Icon: ClipboardList,
   },
   {
     name: "story_bank",
     title: "Story Bank",
     description:
-      "Capture the stories behind your experiences. Reusable across CVs, interviews, and LinkedIn posts — written once, deployed everywhere.",
+      "Capture the stories behind your experiences. Reusable across CVs, interviews, and LinkedIn posts — written once, reused everywhere.",
     Icon: BookText,
   },
   {
@@ -39,7 +40,7 @@ const SLIDES = [
     name: "cv_generation",
     title: "CV Generation",
     description:
-      "Tailored CVs per job application in seconds. AI matches your story bank against the JD and produces a one-page CV ready to send.",
+      "Tailored CVs per job application in seconds. AI matches your story bank against the job description and produces a one-page CV ready to send.",
     Icon: FileText,
   },
   {
@@ -203,12 +204,11 @@ export default function OnboardingTutorial({
           />
         </div>
 
-        {/* Slide content OR finalising panel */}
-        {showFinalisingPanel ? (
-          <FinalisingPanel percent={setupPercent} />
-        ) : (
-          <Slide slide={slide} />
-        )}
+        {/* Slide content always renders; FinalisingPanel stacks below when
+            the user reaches the last slide before setup is done. The slide
+            stays readable while setup finishes. */}
+        <Slide slide={slide} />
+        {showFinalisingPanel && <FinalisingPanel percent={setupPercent} />}
 
         {/* Arrow navigation + dot indicators */}
         <div className="flex items-center justify-between">
@@ -268,14 +268,73 @@ export default function OnboardingTutorial({
 }
 
 function Slide({ slide }) {
-  const { Icon, title, description } = slide;
+  const { Icon, title, description, name } = slide;
+  // Slide 1 (Browse Jobs) renders the tier-quadrant grid above the
+  // closing description line. Other slides render description only.
+  const isQuadrantSlide = name === "browse_jobs";
   return (
     <div className="bg-white border border-[#E5E5E5] rounded-2xl p-10 min-h-[280px] flex flex-col items-center justify-center text-center">
       <div className="w-16 h-16 rounded-full bg-[#0A0A0A] flex items-center justify-center mb-5">
         <Icon className="w-7 h-7 text-white" />
       </div>
       <h3 className="text-lg font-bold text-[#0A0A0A] tracking-tight">{title}</h3>
+      {isQuadrantSlide && <TierQuadrantGrid />}
       <p className="text-sm text-[#525252] mt-3 leading-relaxed max-w-sm">{description}</p>
+    </div>
+  );
+}
+
+/**
+ * 2x2 grid teaching tier semantics through the two axes that define them:
+ *   Y (rows): on your career path (top) vs off (bottom)
+ *   X (cols): qualified now (right) vs not yet (left)
+ *
+ * Quadrants:
+ *   Top-right  — Tier 1 (qualified + on path)   → highlighted (emerald)
+ *   Top-left   — Tier 3 (on path, not yet ready) → amber
+ *   Bottom-right — Tier 2 (qualified but off path) → muted neutral
+ *   Bottom-left  — empty (not surfaced in feed) → light gray
+ */
+function TierQuadrantGrid() {
+  return (
+    <div className="w-full max-w-xs flex items-stretch gap-2 mt-4">
+      {/* Y-axis label — vertically rotated, reads bottom-to-top */}
+      <div className="flex items-center justify-center">
+        <div
+          className="text-[10px] font-semibold uppercase tracking-wider text-[#525252] whitespace-nowrap [writing-mode:vertical-rl] rotate-180"
+        >
+          On your career path ↑
+        </div>
+      </div>
+
+      {/* Grid + X-axis label */}
+      <div className="flex-1">
+        <div className="grid grid-cols-2 gap-1.5">
+          {/* Top-left: Tier 3 — on path, not yet qualified */}
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-2.5 text-left">
+            <p className="text-[10px] font-bold text-amber-800 uppercase tracking-wider">Tier 3</p>
+            <p className="text-[11px] text-amber-700 mt-0.5">Your next role</p>
+          </div>
+          {/* Top-right: Tier 1 — qualified + on path (emphasized) */}
+          <div className="bg-emerald-100 border-2 border-emerald-500 rounded-lg p-2.5 text-left">
+            <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Tier 1</p>
+            <p className="text-[11px] text-emerald-900 mt-0.5">Your sweet spot</p>
+          </div>
+          {/* Bottom-left: not surfaced */}
+          <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg p-2.5 text-left flex items-center">
+            <p className="text-[10px] text-[#A3A3A3] italic">Not shown in feed</p>
+          </div>
+          {/* Bottom-right: Tier 2 — qualified but off path */}
+          <div className="bg-[#F5F5F5] border border-[#E5E5E5] rounded-lg p-2.5 text-left">
+            <p className="text-[10px] font-bold text-[#525252] uppercase tracking-wider">Tier 2</p>
+            <p className="text-[11px] text-[#737373] mt-0.5">A detour</p>
+          </div>
+        </div>
+        {/* X-axis label below the grid */}
+        <p className="text-[10px] font-semibold uppercase tracking-wider text-[#525252] text-center mt-1.5">
+          Qualified now →
+        </p>
+      </div>
     </div>
   );
 }
