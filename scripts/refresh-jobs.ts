@@ -27,6 +27,8 @@ import {
   classifyLocation,
   detectSeniorityFromTitle,
   finalSeniority,
+  isJunkTitle,
+  normalizeJobTitle,
   parseYearsOfExperience,
   stripHtml,
 } from "./lib/normalize.js";
@@ -121,17 +123,21 @@ async function processCompany(
   // Normalize + filter to IL only
   const ilRows: NormalizedJob[] = [];
   for (const r of raw) {
+    // Drop placeholder/junk titles (talent-network ghosts, "future
+    // opportunities" stubs, etc.) before any further processing.
+    if (isJunkTitle(r.title)) continue;
     const loc = classifyLocation(r.location_raw, r.structured_country);
     if (!loc.is_il) continue;
+    const cleanTitle = normalizeJobTitle(r.title);
     const descPlain = stripHtml(r.description_html);
     const years = parseYearsOfExperience(descPlain);
-    const titleBucket = detectSeniorityFromTitle(r.title);
+    const titleBucket = detectSeniorityFromTitle(cleanTitle);
     ilRows.push({
       ats_source:           ats,
       external_id:          r.external_id,
       company_slug:         company.slug!,
       company_name:         company.name,
-      title:                r.title,
+      title:                cleanTitle,
       description:          descPlain,
       apply_url:            r.apply_url,
       location_raw:         r.location_raw,
