@@ -6,19 +6,27 @@ import React from "react";
  *   X (cols):  qualified now (right) vs not yet (left)
  *
  * Quadrants:
- *   Top-right   — Tier 1 (qualified + on path)    → emphasized (emerald)
- *   Top-left    — Tier 3 (on path, not yet ready) → amber
- *   Bottom-right — Tier 2 (qualified but off path) → muted neutral
+ *   Top-right    — Tier 1 (qualified + on path)    → emphasized (emerald)
+ *   Top-left     — Tier 3 (on path, not yet ready) → amber
+ *   Bottom-right — Tier 2 (qualified, off path)    → muted neutral
  *   Bottom-left  — empty (not surfaced in feed)    → light gray
  *
  * Shared across the onboarding tutorial (slide 1) and the Career Roadmap
- * "Why these tiers" tab — extracted here to keep both surfaces in sync if
- * the framing ever changes.
+ * "Why these tiers" tab — single source of truth for the visual.
+ *
+ * Layout notes (refined in PR-A after Yishai testing):
+ * - Y-axis label hugs the left edge of the grid (no gap-2 visual disconnect)
+ * - Bottom-left "Not shown" matches the visual style of the other quadrants
+ *   (bold uppercase tier-name slot + body line) so it doesn't read as an
+ *   empty cell / placeholder bug
+ * - X-axis label sits on a thin border line under the grid → arrow has
+ *   something to point along
  */
 export default function TierQuadrantGrid() {
   return (
-    <div className="w-full max-w-xs flex items-stretch gap-2 mt-4">
-      <div className="flex items-center justify-center">
+    <div className="w-full max-w-xs flex items-stretch gap-1 mt-4">
+      {/* Y-axis label — hugs the grid's left edge */}
+      <div className="flex items-center justify-center pr-0.5">
         <div className="text-[10px] font-semibold uppercase tracking-wider text-[#525252] whitespace-nowrap [writing-mode:vertical-rl] rotate-180">
           On your career path ↑
         </div>
@@ -35,9 +43,10 @@ export default function TierQuadrantGrid() {
             <p className="text-[10px] font-bold text-emerald-800 uppercase tracking-wider">Tier 1</p>
             <p className="text-[11px] text-emerald-900 mt-0.5">Your sweet spot</p>
           </div>
-          {/* Bottom-left: not surfaced */}
-          <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg p-2.5 text-left flex items-center">
-            <p className="text-[10px] text-[#A3A3A3] italic">Not shown in feed</p>
+          {/* Bottom-left: not surfaced — styled to MATCH other quadrants */}
+          <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg p-2.5 text-left">
+            <p className="text-[10px] font-bold text-[#A3A3A3] uppercase tracking-wider">Not shown</p>
+            <p className="text-[11px] text-[#A3A3A3] mt-0.5">Filtered out</p>
           </div>
           {/* Bottom-right: Tier 2 — qualified but off path */}
           <div className="bg-[#F5F5F5] border border-[#E5E5E5] rounded-lg p-2.5 text-left">
@@ -45,9 +54,13 @@ export default function TierQuadrantGrid() {
             <p className="text-[11px] text-[#737373] mt-0.5">A detour</p>
           </div>
         </div>
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-[#525252] text-center mt-1.5">
-          Qualified now →
-        </p>
+        {/* X-axis label sits on a thin border so the arrow has a line to
+            point along — visually anchors it to the grid above */}
+        <div className="border-t border-[#E5E5E5] mt-1.5 pt-1">
+          <p className="text-[10px] font-semibold uppercase tracking-wider text-[#525252] text-center">
+            Qualified now →
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -1,13 +1,23 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Check, X, Wrench, Briefcase, Code, BarChart2, MessageSquare, Users } from "lucide-react";
+import { Check, X, Wrench, Briefcase, Code, BarChart2, MessageSquare, Users, ChevronDown } from "lucide-react";
 
-// Curated chip bank — 6 visual sections × 12 skills. The categories here are
-// PURELY VISUAL — they exist to help users browse and discover skills they
-// might forget to add. Every selected chip lands in a single flat
-// `profileData.skills` array. There are no separate category arrays in state
-// or DB anymore (Bug 3 fix).
+// Curated chip bank — 6 visual sections.
+//
+// Each section has:
+//   chips:    full pool of suggestions (~14 each)
+//   chipsTop: the first N rendered by default; the rest unlock via
+//             "Show more" expander. Keeps the surface scannable while
+//             still giving the user a rich pool when they want it.
+//
+// Selected skills are stored in a single flat `profileData.skills` array
+// (Bug 3 fix). The categories here serve two purposes:
+//   1. Browsing — users see grouped suggestions while choosing.
+//   2. Display grouping — the "Selected" list below groups the user's
+//      picked skills by category (lookups via `categoryForSkill()`).
+const SHOW_MORE_DEFAULT_VISIBLE = 8;
+
 const SKILL_BANK = [
   {
     key: "tools",
@@ -19,6 +29,7 @@ const SKILL_BANK = [
       "Excel", "Google Sheets", "PowerPoint", "Notion",
       "Salesforce", "HubSpot", "Slack", "Zendesk",
       "Figma", "Jira", "Asana", "Airtable",
+      "Canva", "Webflow", "Shopify", "Stripe", "Zapier",
     ],
   },
   {
@@ -31,6 +42,7 @@ const SKILL_BANK = [
       "Customer Success", "Project Management", "Product Management", "Account Management",
       "Marketing Strategy", "Sales Operations", "Financial Modeling", "Market Research",
       "UX Research", "HR Operations", "Supply Chain", "Contract Negotiation",
+      "Growth Marketing", "Brand Strategy",
     ],
   },
   {
@@ -43,6 +55,7 @@ const SKILL_BANK = [
       "Python", "JavaScript", "TypeScript", "SQL",
       "React", "Node.js", "REST APIs", "GraphQL",
       "Git", "Docker", "AWS", "Machine Learning",
+      "Pandas", "NumPy", "Matplotlib", "Jupyter",
     ],
   },
   {
@@ -55,6 +68,7 @@ const SKILL_BANK = [
       "Data Analysis", "A/B Testing", "Forecasting", "KPI Reporting",
       "Cohort Analysis", "Statistics", "Business Intelligence", "Tableau",
       "Power BI", "Looker", "Excel Modeling", "Dashboard Design",
+      "Mixpanel", "Amplitude", "Google Analytics", "SQL Querying",
     ],
   },
   {
@@ -83,12 +97,69 @@ const SKILL_BANK = [
   },
 ];
 
+// Hand-curated alias map. Applied at DISPLAY time only — original strings
+// remain in profileData.skills. The categorizer normalizes the input via
+// this map to find which bank section a skill belongs to.
+//
+// Only add entries where the canonical form is unambiguous. Don't fold
+// distinct skills together (e.g. "Marketing Analytics" stays separate from
+// "Marketing Strategy").
+const SKILL_ALIASES = {
+  // A/B Testing variants
+  "ab testing": "A/B Testing",
+  "split testing": "A/B Testing",
+  "a/b test": "A/B Testing",
+  // HubSpot — drop product suffixes
+  "hubspot crm": "HubSpot",
+  "hubspot marketing": "HubSpot",
+  // Google product names
+  "google analytics 4": "Google Analytics",
+  "ga4": "Google Analytics",
+  "looker studio": "Looker",
+  // Common Python lib variants
+  "numpy/pandas": "Pandas",
+  "matplot lib": "Matplotlib",
+  // Spreadsheet variants
+  "ms excel": "Excel",
+  "microsoft excel": "Excel",
+  "google sheet": "Google Sheets",
+  "sheets": "Google Sheets",
+  // Other common variants
+  "tableau desktop": "Tableau",
+  "power bi desktop": "Power BI",
+  "node": "Node.js",
+  "nodejs": "Node.js",
+  "rest api": "REST APIs",
+  "stat": "Statistics",
+};
+
+// Flat lookup: every bank label → its section. Memoized once.
+const ALL_BANK_LABELS = new Map();
+SKILL_BANK.forEach((section) => {
+  section.chips.forEach((chip) => {
+    ALL_BANK_LABELS.set(chip.toLowerCase(), section);
+  });
+});
+
 // Case-insensitive match for selection state — handles "python" vs "Python".
 const matches = (arr, label) => arr.some((s) => s.toLowerCase() === label.toLowerCase());
+
+// Given a free-form skill string, look up its bank section (or null for
+// custom skills). Applies the alias map first.
+function categoryForSkill(skill) {
+  const lower = skill.toLowerCase();
+  const aliased = SKILL_ALIASES[lower];
+  if (aliased) {
+    return ALL_BANK_LABELS.get(aliased.toLowerCase()) || null;
+  }
+  return ALL_BANK_LABELS.get(lower) || null;
+}
 
 export default function StepSkills({ data, onChange, onNext, onBack }) {
   const skills = Array.isArray(data.skills) ? data.skills : [];
   const [input, setInput] = useState("");
+  // Per-section "show more" expansion. Default: collapsed.
+  const [expandedSections, setExpandedSections] = useState({});
 
   const setSkills = (next) => onChange({ ...data, skills: next });
 
@@ -107,11 +178,25 @@ export default function StepSkills({ data, onChange, onNext, onBack }) {
     setInput("");
   };
 
-  // Custom skills the user typed that aren't in the bank — surfaced in the
-  // "Selected" pill list so they're visible even when no chip section
-  // contains them.
-  const allBankLabels = new Set(SKILL_BANK.flatMap((s) => s.chips.map((c) => c.toLowerCase())));
-  const customSkills = skills.filter((s) => !allBankLabels.has(s.toLowerCase()));
+  const toggleExpand = (key) => {
+    setExpandedSections((prev) => ({ ...prev, [key]: !prev[key] }));
+  };
+
+  // Group the user's selected skills by their category. Skills whose
+  // category lookup misses fall into "Custom".
+  const groupedSelected = useMemo(() => {
+    const groups = new Map();
+    // Seed with bank order so groups render in a stable sequence
+    SKILL_BANK.forEach((s) => groups.set(s.key, { section: s, items: [] }));
+    groups.set("custom", { section: { key: "custom", label: "Custom", color: "text-[#525252]", bg: "bg-[#F5F5F5]" }, items: [] });
+    skills.forEach((skill) => {
+      const section = categoryForSkill(skill);
+      const bucket = section ? section.key : "custom";
+      groups.get(bucket).items.push(skill);
+    });
+    // Drop empty groups
+    return Array.from(groups.values()).filter((g) => g.items.length > 0);
+  }, [skills]);
 
   return (
     <div className="space-y-6">
@@ -126,8 +211,8 @@ export default function StepSkills({ data, onChange, onNext, onBack }) {
         </p>
       </div>
 
-      {/* Free-text input + selected count */}
-      <div className="bg-white rounded-xl border border-[#E5E5E5] p-5 space-y-3">
+      {/* Free-text input + selected groups */}
+      <div className="bg-white rounded-xl border border-[#E5E5E5] p-5 space-y-4">
         <div className="flex gap-2">
           <Input
             value={input}
@@ -147,35 +232,42 @@ export default function StepSkills({ data, onChange, onNext, onBack }) {
         </div>
 
         {skills.length > 0 && (
-          <div>
-            <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2">
+          <div className="space-y-3">
+            <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
               Selected ({skills.length})
             </p>
-            <div className="flex flex-wrap gap-1.5">
-              {skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="inline-flex items-center gap-1 text-xs bg-[#0A0A0A] text-white px-2.5 py-1 rounded-md"
-                >
-                  {skill}
-                  {customSkills.includes(skill) && (
-                    <span className="text-[9px] uppercase tracking-wider text-[#A3A3A3] ml-0.5">custom</span>
-                  )}
-                  <button onClick={() => toggleSkill(skill)} className="hover:text-red-300" aria-label={`Remove ${skill}`}>
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
+            {groupedSelected.map(({ section, items }) => (
+              <div key={section.key}>
+                <p className={`text-[10px] uppercase tracking-wider font-semibold mb-1.5 ${section.color}`}>
+                  {section.label} ({items.length})
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {items.map((skill) => (
+                    <span
+                      key={skill}
+                      className="inline-flex items-center gap-1 text-xs bg-[#0A0A0A] text-white px-2.5 py-1 rounded-md"
+                    >
+                      {skill}
+                      <button onClick={() => toggleSkill(skill)} className="hover:text-red-300" aria-label={`Remove ${skill}`}>
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
 
-      {/* Chip bank — six visual sections */}
+      {/* Chip bank — six visual sections with show-more expander */}
       <div className="space-y-4">
         {SKILL_BANK.map((section) => {
           const Icon = section.icon;
           const sectionSelectedCount = section.chips.filter((c) => matches(skills, c)).length;
+          const isExpanded = expandedSections[section.key];
+          const visibleChips = isExpanded ? section.chips : section.chips.slice(0, SHOW_MORE_DEFAULT_VISIBLE);
+          const hasMore = section.chips.length > SHOW_MORE_DEFAULT_VISIBLE;
           return (
             <div key={section.key} className="bg-white rounded-xl border border-[#E5E5E5] p-5">
               <div className="flex items-center gap-3 mb-3">
@@ -190,7 +282,7 @@ export default function StepSkills({ data, onChange, onNext, onBack }) {
                 </div>
               </div>
               <div className="flex flex-wrap gap-1.5">
-                {section.chips.map((chip) => {
+                {visibleChips.map((chip) => {
                   const selected = matches(skills, chip);
                   return (
                     <button
@@ -209,6 +301,16 @@ export default function StepSkills({ data, onChange, onNext, onBack }) {
                   );
                 })}
               </div>
+              {hasMore && (
+                <button
+                  type="button"
+                  onClick={() => toggleExpand(section.key)}
+                  className="mt-2.5 inline-flex items-center gap-1 text-[11px] font-medium text-[#525252] hover:text-[#0A0A0A]"
+                >
+                  <ChevronDown className={`w-3 h-3 transition-transform ${isExpanded ? "rotate-180" : ""}`} />
+                  {isExpanded ? "Show fewer" : `Show ${section.chips.length - SHOW_MORE_DEFAULT_VISIBLE} more`}
+                </button>
+              )}
             </div>
           );
         })}

@@ -294,11 +294,26 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
     { value: "freelance", label: "Freelancing" },
   ];
 
+  // Pair of contradictory statuses. Checking one auto-unchecks the other —
+  // "Have a job" and "Unemployed" can't be true simultaneously. Other combos
+  // (Student + Looking, Freelancer + Looking, etc.) stay allowed.
+  const EMPLOYMENT_CONFLICTS = {
+    employed: "unemployed",
+    unemployed: "employed",
+  };
+
   const toggleEmploymentStatus = (value) => {
     const current = profileData?.employment_status || [];
-    const updated = current.includes(value)
-      ? current.filter((s) => s !== value)
-      : [...current, value];
+    const isChecking = !current.includes(value);
+    let updated;
+    if (isChecking) {
+      const conflict = EMPLOYMENT_CONFLICTS[value];
+      updated = conflict
+        ? [...current.filter((s) => s !== conflict), value]
+        : [...current, value];
+    } else {
+      updated = current.filter((s) => s !== value);
+    }
     onChange({ employment_status: updated });
   };
 
