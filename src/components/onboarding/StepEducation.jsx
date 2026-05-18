@@ -167,6 +167,7 @@ export default function StepEducation({ data, onChange, educations, setEducation
           tags={primary.relevant_coursework || []}
           onChange={(v) => setEduField("relevant_coursework", v)}
           placeholder="e.g. Data Structures, Financial Accounting"
+          suggestionType="none"
         />
 
         <SkillTagInput
@@ -175,6 +176,7 @@ export default function StepEducation({ data, onChange, educations, setEducation
           tags={primary.academic_projects || []}
           onChange={(v) => setEduField("academic_projects", v)}
           placeholder="e.g. Sales Forecasting ML Model"
+          suggestionType="none"
         />
       </div>
 
