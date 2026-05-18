@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
 import { pickPrimaryEducation, isCurrentlyStudent, formatEducationLine } from '../_shared/education-helpers.ts'
+import { resolveSkillAliases } from '../_shared/skill-aliases.ts'
 
 // --- Load JSON Libraries ---
 import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
@@ -801,10 +802,16 @@ Deno.serve(async (req) => {
         }
       }
     }
-    // Also accept stated skills that match library IDs directly
+    // Alias-aware skill resolution (Layer 1 of the D3 skill-propagation fix).
+    // Free-text labels users pick from StepSkills chips ("Python", "Figma",
+    // "HubSpot") don't snake_case into library IDs cleanly. resolveSkillAliases
+    // covers the 72 curated chips + common variants and falls through to the
+    // original snake_case match if no alias entry exists.
+    const SKILL_ID_KEYSET = new Set(SKILL_BY_ID.keys());
     for (const stated of sanitisedProfile.skills) {
-      const norm = stated.toLowerCase().replace(/[\s-]+/g, "_");
-      if (SKILL_BY_ID.has(norm)) userSkillIds.add(norm);
+      for (const sid of resolveSkillAliases(stated, SKILL_ID_KEYSET)) {
+        userSkillIds.add(sid);
+      }
     }
 
     // 1c. Infer experience level and resolve goal within that ceiling.
@@ -914,12 +921,28 @@ Deno.serve(async (req) => {
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // Aggregate skill_gaps across all selected roles
-    const allMissing = new Set<string>();
-    for (const r of selected) for (const sid of r.missing_skill_ids) allMissing.add(sid);
-    const aggregatedGaps = [...allMissing].slice(0, 8).map(skillName);
+    // Candidate skill IDs for the LLM's semantic-credit pass (Layer 2 of the
+    // D3 skill-propagation fix). Union of skill IDs required by the selected
+    // roles' core/secondary/differentiator buckets, minus the ones the user
+    // already has credited. The LLM is asked to identify which of these the
+    // user demonstrably has based on their raw stated skills + experiences —
+    // catching gaps the alias map missed (e.g. "Pandas → python_data",
+    // "Stakeholder Communication → stakeholder_management"). Capped at 80 to
+    // keep prompt size sane.
+    const candidateSkillIds = new Set<string>();
+    for (const role of selected) {
+      const mapping = MAPPING_BY_ROLE.get(role.role_id);
+      for (const b of ["core", "secondary", "differentiator"] as const) {
+        for (const sid of bucketSkillIds(mapping, b)) {
+          if (!userSkillIds.has(sid)) candidateSkillIds.add(sid);
+        }
+      }
+    }
+    const candidateSkillsForLLM = [...candidateSkillIds]
+      .slice(0, 80)
+      .map(id => ({ id, name: skillName(id) }));
 
-    // ─── PHASE 2: LLM writes explanations only ─────────────────────────
+    // ─── PHASE 2: LLM writes explanations + identifies missed skills ─────
     const rolesForLLM = selected.map(r => ({
       title: r.title,
       tier: r.tier,
@@ -955,11 +978,15 @@ Deno.serve(async (req) => {
 
 You will receive a user's profile and a set of pre-scored role recommendations with their fit scores, tiers, matched skills, and skill gaps.
 
-Your job is to write clear, helpful explanations — NOT to compute scores or assign tiers. Scores and tiers are already computed deterministically by the server.
+Your job has two parts:
+(1) Write clear, helpful reasoning + action items for each role.
+(2) Identify which CANDIDATE_SKILLS the user demonstrably has based on their stated_skills text, experiences, projects, and certifications. The deterministic matcher uses strict library-ID matching and misses semantic equivalents (e.g. user wrote "Stakeholder Communication" but the library uses "stakeholder_management"; user listed "Pandas" which implies "python_data"; user used "Monday.com" which implies "project_management"). You catch these. Return ONLY skill IDs from the CANDIDATE_SKILLS list — never invent IDs not in that list, and only credit when there's clear textual evidence.
+
+You do NOT compute scores, assign tiers, or change matched/missing skill values. The server re-scores after applying your skill credits.
 
 USER SENIORITY CONTEXT: This user is ${expLevelLabel}. Appropriate roles: ${capLabel}. The server has already filtered the pre-scored list to respect this cap, so every role in the input is safe to recommend. Do not name, suggest, or mention any role above the user's cap in your reasoning, action_items, or alignment_to_goal text — if a Tier 3 aspirational role is shown, it's already within the cap.
 
-Write in a supportive, actionable tone. Reference the user's specific experiences and skills. Do not invent facts about the user. Do not modify the titles, tiers, scores, matched_skills, or missing_skills values.`;
+Write in a supportive, actionable tone. Reference the user's specific experiences and skills. Do not invent facts about the user. Do not modify the titles, tiers, scores, matched_skills, or missing_skills values — those come from the server.`;
 
     const userPrompt = `USER PROFILE:
 - Name: ${sanitisedProfile.full_name || 'Not provided'}
@@ -993,6 +1020,9 @@ ${goalDisplay}
 PRE-SCORED ROLE RECOMMENDATIONS (do not modify title, tier, scores, or skill lists):
 ${JSON.stringify(rolesForLLM, null, 2)}
 
+CANDIDATE_SKILLS — skill IDs the user MIGHT have based on their text but the deterministic matcher missed. Decide which the user demonstrably has, based on their stated_skills, experiences, projects, and certifications. Be conservative: only credit when there's clear textual evidence (a named tool, technique, or domain in their text that maps to this skill). Do not credit a skill just because the user works in an adjacent area.
+${JSON.stringify(candidateSkillsForLLM, null, 2)}
+
 For each role listed above, write:
 1. reasoning: 2-3 sentences explaining why this user is/isn't a strong fit, referencing their specific experiences and skills. Mention both the fit score and the goal alignment score when relevant.
 2. action_items: 2-3 concrete, specific next steps to close the skill gaps
@@ -1001,11 +1031,13 @@ For each role listed above, write:
 Also write at the top level:
 - overall_assessment: 2-3 sentences summarising the user's current position and strongest signals
 - qualification_level: "Junior", "Mid-Level", or "Senior" based on their experience depth
+- additional_credited_skill_ids: array of skill IDs FROM THE CANDIDATE_SKILLS LIST ABOVE that the user demonstrably has based on their text. Empty array if none. NEVER include IDs not in CANDIDATE_SKILLS.
 
 Return JSON matching this exact structure:
 {
   "qualification_level": "string",
   "overall_assessment": "string",
+  "additional_credited_skill_ids": ["string", ...],
   "roles": [
     {
       "title": "string (copy exactly from the input)",
@@ -1021,7 +1053,7 @@ Return JSON matching this exact structure:
   ]
 }
 
-CRITICAL: Do not change any title, tier, readiness_score, goal_alignment_score, matched_skills, or missing_skills value. Copy them verbatim. You are only authoring reasoning, action_items, alignment_to_goal, overall_assessment, and qualification_level.
+CRITICAL: Do not change any title, tier, readiness_score, goal_alignment_score, matched_skills, or missing_skills value. Copy them verbatim. You are only authoring reasoning, action_items, alignment_to_goal, overall_assessment, qualification_level, and additional_credited_skill_ids.
 
 Return ONLY valid JSON.`;
 
@@ -1079,7 +1111,38 @@ Return ONLY valid JSON.`;
       });
     }
 
-    // ─── PHASE 3: Hard validation — override LLM-supplied numeric/ID fields ───
+    // ─── PHASE 3: Validate LLM credits + re-score with augmented skills ──
+    //
+    // Layer 2 of the D3 fix: the LLM may have credited additional skill IDs
+    // from CANDIDATE_SKILLS based on the user's raw text. Validate strictly
+    // (must be a known library ID AND must have been in the offered list to
+    // prevent hallucination), then re-score the same selected roles with the
+    // augmented skill set. Re-scoring can only IMPROVE scores (skill_fit is
+    // monotonic in matched-skill count), so tiers can only stay or move up.
+    const validatedCredits = new Set<string>();
+    if (Array.isArray(llmResult.additional_credited_skill_ids)) {
+      for (const sid of llmResult.additional_credited_skill_ids) {
+        if (typeof sid === "string" && candidateSkillIds.has(sid) && SKILL_BY_ID.has(sid)) {
+          validatedCredits.add(sid);
+        }
+      }
+    }
+    console.log(`[career-analysis] LLM credit pass: offered=${candidateSkillIds.size} proposed=${(llmResult.additional_credited_skill_ids || []).length} validated=${validatedCredits.size} credited=[${[...validatedCredits].join(',')}]`);
+
+    let finalSelected = selected;
+    if (validatedCredits.size > 0) {
+      const augmentedSkillIds = new Set([...userSkillIds, ...validatedCredits]);
+      finalSelected = selected.map(s =>
+        computeRoleScore(s.role_id, augmentedSkillIds, goalRoleId, experienceLevel, userHomeFamilies)
+      );
+      console.log(`[career-analysis] re-scored ${finalSelected.length} roles with ${validatedCredits.size} credits`);
+    }
+
+    // Aggregate skill_gaps from the (possibly re-scored) final set
+    const allMissing = new Set<string>();
+    for (const r of finalSelected) for (const sid of r.missing_skill_ids) allMissing.add(sid);
+    const aggregatedGaps = [...allMissing].slice(0, 8).map(skillName);
+
     const llmRolesByTitle = new Map<string, any>();
     if (Array.isArray(llmResult.roles)) {
       for (const r of llmResult.roles) {
@@ -1087,7 +1150,7 @@ Return ONLY valid JSON.`;
       }
     }
 
-    const finalRoles = selected.map(server => {
+    const finalRoles = finalSelected.map(server => {
       const llm = llmRolesByTitle.get(server.title) || {};
       return {
         title: server.title,
