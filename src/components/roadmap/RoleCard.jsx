@@ -34,6 +34,17 @@ export default function RoleCard({ role, onTrack }) {
   );
   const readiness = readinessConfig[role.tier];
 
+  // Per-role tier-scoring breakdown — the two axes that determined the tier.
+  // qualification_score = readiness_score (how qualified the user is for the role)
+  // alignment_score = goal_alignment_score (how on-path the role is to the user's goals)
+  // Both stored 0-1; render as percentage bars so the user can see WHY this
+  // role landed in its tier (e.g. Tier 2 = qualified but off-path).
+  const qualPct = rawScore != null ? Math.round(Number(rawScore) * 100) : null;
+  const alignPct = role.goal_alignment_score != null
+    ? Math.round(Number(role.goal_alignment_score) * 100)
+    : null;
+  const showBreakdown = qualPct != null || alignPct != null;
+
   return (
     <div className={cn("bg-white rounded-xl border border-[#E5E5E5] border-l-4 overflow-hidden transition-all duration-200 hover:border-[#D4D4D4] hover:shadow-sm", tier.border)}>
       <button
@@ -68,6 +79,43 @@ export default function RoleCard({ role, onTrack }) {
 
       {expanded && (
         <div className="px-5 pb-5 border-t border-[#F0F0F0] pt-4 space-y-4">
+          {/* Tier breakdown — the two scores that determined this role's tier */}
+          {showBreakdown && (
+            <div>
+              <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2">Tier breakdown</p>
+              <div className="space-y-2">
+                {qualPct != null && (
+                  <div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[#525252]">Qualification</span>
+                      <span className="text-[#0A0A0A] font-semibold tabular-nums">{qualPct}%</span>
+                    </div>
+                    <div className="h-1.5 bg-[#F0F0F0] rounded-full overflow-hidden mt-1">
+                      <div
+                        className="h-full rounded-full bg-emerald-500"
+                        style={{ width: `${qualPct}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+                {alignPct != null && (
+                  <div>
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="text-[#525252]">Goal alignment</span>
+                      <span className="text-[#0A0A0A] font-semibold tabular-nums">{alignPct}%</span>
+                    </div>
+                    <div className="h-1.5 bg-[#F0F0F0] rounded-full overflow-hidden mt-1">
+                      <div
+                        className="h-full rounded-full bg-indigo-500"
+                        style={{ width: `${alignPct}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
           {role.reasoning && (
             <div>
               <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1.5">Reasoning</p>

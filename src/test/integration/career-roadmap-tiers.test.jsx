@@ -51,11 +51,8 @@ vi.mock('@/api/supabaseClient', () => ({ supabase: {} }));
 vi.mock('../../components/roadmap/RoleCard', () => ({
   default: ({ role }) => <div data-testid={`role-${role.id}`}>{role.title}</div>,
 }));
-vi.mock('../../components/roadmap/LearningPaths', () => ({
-  default: () => <div data-testid="learning-paths" />,
-}));
-vi.mock('../../components/roadmap/ProgressVisualization', () => ({
-  default: () => <div data-testid="progress-viz" />,
+vi.mock('../../components/roadmap/TierQuadrantGrid', () => ({
+  default: () => <div data-testid="quadrant-grid" />,
 }));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -96,13 +93,14 @@ describe('CareerRoadmap tier rendering', () => {
     });
   });
 
-  it('renders each role in the correct tier section', async () => {
+  it('renders all three tier tabs + the overview content by default', async () => {
     /**
-     * MOCK_ROLES contains one role per tier. The component splits them into
-     * separate sections labelled "Tier 1", "Tier 2", "Tier 3".
-     *
-     * If the tier field were wrong (e.g., all roles mapped to tier_1 due to a
-     * bad spread), only one section would appear and the others would be absent.
+     * The page now uses a Tabs primitive: Overview | Why these tiers |
+     * Tier 1 | Tier 2 | Tier 3. The default tab is Overview. We verify
+     * (a) all three tier tabs are present in the navigation, (b) overview
+     * content renders by default. Role-title-per-tier assertions were
+     * dropped because radix Tabs unmounts inactive content; the underlying
+     * tier-mapping logic is covered by mapRoleToDbRow's unit test.
      */
     await setSupabaseMock({
       career_roles:   { data: MOCK_ROLES, error: null },
@@ -114,16 +112,13 @@ describe('CareerRoadmap tier rendering', () => {
     await renderCareerRoadmap();
 
     await waitFor(() => {
-      // Tier section headers
-      expect(screen.getByText(/Tier 1/i)).toBeInTheDocument();
-      expect(screen.getByText(/Tier 2/i)).toBeInTheDocument();
-      expect(screen.getByText(/Tier 3/i)).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Tier 1/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Tier 2/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Tier 3/i })).toBeInTheDocument();
     });
-
-    // Each role title visible in its mocked RoleCard
-    expect(screen.getByText('Junior Data Analyst')).toBeInTheDocument();
-    expect(screen.getByText('Business Intelligence Analyst')).toBeInTheDocument();
-    expect(screen.getByText('Data Engineer')).toBeInTheDocument();
+    // Overview-tab content present — there are multiple "qualification
+    // level" matches (header subtitle + tab card label), so use getAllByText.
+    expect(screen.getAllByText(/qualification level/i).length).toBeGreaterThan(0);
   });
 
   it('shows generate-roadmap prompt when no roles exist yet', async () => {
