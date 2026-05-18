@@ -157,6 +157,38 @@ export async function fetchAshby(c: CompanyEntry): Promise<RawJob[]> {
  */
 const WORKDAY_SEARCH_TERMS = ["Israel", "Tel Aviv", "Herzliya"] as const;
 
+// Workday returns `postedOn` as either an ISO timestamp (rare) or a
+// relative human string like "Posted 3 Days Ago" / "Posted 30+ Days Ago"
+// / "Posted Today" / "Posted Yesterday". Postgres `timestamp with time
+// zone` rejects the relative form and that nukes the whole UPSERT batch.
+// Parse to ISO; return null for anything ambiguous — losing freshness
+// for one row is far cheaper than dropping the whole company.
+export function parseWorkdayDate(raw: unknown): string | null {
+  if (raw == null) return null;
+  const s = String(raw).trim();
+  if (!s) return null;
+
+  const startOfTodayUtc = () => {
+    const d = new Date();
+    d.setUTCHours(0, 0, 0, 0);
+    return d;
+  };
+  const daysAgoIso = (n: number) => {
+    const d = startOfTodayUtc();
+    d.setUTCDate(d.getUTCDate() - n);
+    return d.toISOString();
+  };
+
+  if (/^Posted\s+Today$/i.test(s)) return startOfTodayUtc().toISOString();
+  if (/^Posted\s+Yesterday$/i.test(s)) return daysAgoIso(1);
+  const m = s.match(/^Posted\s+(\d+)\+?\s+Days?\s+Ago$/i);
+  if (m) return daysAgoIso(parseInt(m[1], 10));
+
+  // Fall through: some tenants do return real ISO timestamps.
+  const parsed = Date.parse(s);
+  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
+}
+
 export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
   if (!c.slug) return [];
   // Slug shape: "<tenant>.wdN.myworkdayjobs.com/<site>"
@@ -210,7 +242,7 @@ export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
           location_raw:     p.locationsText ?? null,
           structured_country: null,
           apply_url:        applyUrl,
-          date_posted:      p.postedOn ?? null,
+          date_posted:      parseWorkdayDate(p.postedOn),
           salary_min:       null,
           salary_max:       null,
           salary_currency:  null,
