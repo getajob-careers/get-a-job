@@ -2,10 +2,19 @@ import React from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { LogOut } from "lucide-react";
 
-export default function SidebarFooter() {
+// `profileFullName` (optional) — preferred name source from profiles.full_name,
+// which is populated by CV extraction during onboarding. Falls back to auth
+// metadata, then email, mirroring the previous behavior. The prop is optional
+// so this component still renders if Layout hasn't fetched the profile chrome
+// yet (mid-signup users have no profile row).
+export default function SidebarFooter({ profileFullName = null }) {
   const { user, logout } = useAuth();
 
-  const fullName = user?.user_metadata?.full_name || user?.email || "";
+  const fullName =
+    (typeof profileFullName === "string" && profileFullName.trim()) ||
+    user?.user_metadata?.full_name ||
+    user?.email ||
+    "";
   const email = user?.email || "";
   const initials = fullName
     ? fullName.split(" ").map((n) => n[0]).slice(0, 2).join("").toUpperCase()
