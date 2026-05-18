@@ -107,6 +107,26 @@ const INDUSTRY_SUGGESTIONS = [
   "Agriculture", "Farming", "Food Production", "AgriTech",
 ];
 
+// Curated honors / awards a Reichman business student is likely to list —
+// Israeli academic + military scholarships, US-typical Latin honors, and
+// society memberships seen on dual-background CVs. Order: most-common first.
+const HONORS_SUGGESTIONS = [
+  // Israeli academic + government
+  "Dean's List", "Honors Program", "President's Honors", "Academic Excellence Award",
+  "Merit Scholarship", "Israel Government Scholarship", "Heseg Foundation Scholarship",
+  "Reichman Excellence Scholarship", "Adler Scholarship", "Hila Excellence Program",
+  "Argov Fellows Program", "Honors Thesis", "Distinction in Field",
+  // Military
+  "IDF Excellence Award", "Lone Soldier Scholarship",
+  // Fellowships
+  "Birthright Excel Fellow", "Hillel Scholar",
+  // US-style Latin honors + societies
+  "Summa Cum Laude", "Magna Cum Laude", "Cum Laude", "First Class Honors", "High Distinction",
+  "Phi Beta Kappa", "Beta Gamma Sigma", "Tau Beta Pi",
+  // Class-rank distinctions
+  "Valedictorian", "Salutatorian", "Outstanding Student Award",
+];
+
 const SKILL_SUGGESTIONS = [
   // Business & Management
   "Account Management", "Accounting", "Business Analysis", "Business Development", "Business Strategy",
@@ -186,17 +206,28 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
   }, []);
 
   useEffect(() => {
+    // "none" disables autocomplete entirely — used for free-text fields like
+    // Relevant Coursework + Academic Projects where curated suggestions would
+    // be either too generic or actively misleading (e.g. showing skill names
+    // when the user is typing a course title).
+    if (suggestionType === "none") {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      return;
+    }
     if (input.trim().length > 0) {
-      const sourceList = suggestionType === "job_titles" 
-        ? JOB_TITLE_SUGGESTIONS 
+      const sourceList = suggestionType === "job_titles"
+        ? JOB_TITLE_SUGGESTIONS
         : suggestionType === "industries"
         ? INDUSTRY_SUGGESTIONS
         : suggestionType === "work_environment"
         ? WORK_ENVIRONMENT_SUGGESTIONS
         : suggestionType === "work_arrangement"
         ? WORK_ARRANGEMENT_SUGGESTIONS
+        : suggestionType === "honors"
+        ? HONORS_SUGGESTIONS
         : SKILL_SUGGESTIONS;
-      
+
       const filtered = sourceList.filter(
         (skill) =>
           skill.toLowerCase().includes(input.toLowerCase()) &&

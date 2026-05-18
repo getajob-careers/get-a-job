@@ -291,6 +291,7 @@ export default function EducationTab({ user }) {
           tags={form.honors}
           onChange={(v) => setForm({ ...form, honors: v })}
           placeholder="e.g. Dean's List, Heseg Scholarship"
+          suggestionType="honors"
         />
 
         <SkillTagInput
@@ -299,6 +300,7 @@ export default function EducationTab({ user }) {
           tags={form.relevant_coursework}
           onChange={(v) => setForm({ ...form, relevant_coursework: v })}
           placeholder="e.g. Marketing Strategy, Statistics"
+          suggestionType="none"
         />
 
         <SkillTagInput
@@ -307,6 +309,7 @@ export default function EducationTab({ user }) {
           tags={form.academic_projects}
           onChange={(v) => setForm({ ...form, academic_projects: v })}
           placeholder="e.g. Senior thesis, Capstone project"
+          suggestionType="none"
         />
 
         <Button onClick={handleSave} disabled={saving} className="bg-[#0A0A0A] hover:bg-[#262626] text-sm">
