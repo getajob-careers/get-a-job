@@ -1,20 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowRight, Briefcase, ClipboardList, BookText, Linkedin, FileText, MessageCircle, RotateCcw } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Briefcase, ClipboardList, BookText, Linkedin, FileText, MessageCircle, RotateCcw } from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics";
 import { useFakeProgress } from "@/lib/useFakeProgress";
 
-// Slide content. Each is 5-10 seconds visible; total ~45-60s.
-// Visuals are placeholder icons + descriptions until Eli captures
-// real screenshots in a follow-up PR.
+// Slide content. User navigates manually via arrow buttons — no auto-advance.
+// Visuals are placeholder icons + descriptions until real screenshots land.
 const SLIDES = [
   {
     name: "browse_jobs",
     title: "Browse Jobs",
     description:
-      "Israeli jobs filtered to your tier. Score any role for a personalized fit breakdown and see what's missing before you apply.",
+      "Jobs filtered to your tier. Score any role for a personalized fit breakdown and see what's missing before you apply.",
     Icon: Briefcase,
-    durationMs: 8000,
   },
   {
     name: "application_tracker",
@@ -22,7 +20,6 @@ const SLIDES = [
     description:
       "Track every application, follow-up, and interview in one place. Stage transitions, notes, and reminder dates — no more lost threads.",
     Icon: ClipboardList,
-    durationMs: 7000,
   },
   {
     name: "story_bank",
@@ -30,7 +27,6 @@ const SLIDES = [
     description:
       "Capture the stories behind your experiences. Reusable across CVs, interviews, and LinkedIn posts — written once, deployed everywhere.",
     Icon: BookText,
-    durationMs: 8000,
   },
   {
     name: "linkedin_hub",
@@ -38,7 +34,6 @@ const SLIDES = [
     description:
       "Optimize your profile, draft posts in your voice, and run networking outreach with AI assist. Needs your LinkedIn data export — request it now if you haven't.",
     Icon: Linkedin,
-    durationMs: 9000,
   },
   {
     name: "cv_generation",
@@ -46,7 +41,6 @@ const SLIDES = [
     description:
       "Tailored CVs per job application in seconds. AI matches your story bank against the JD and produces a one-page CV ready to send.",
     Icon: FileText,
-    durationMs: 8000,
   },
   {
     name: "chat_agents",
@@ -54,41 +48,40 @@ const SLIDES = [
     description:
       "Specialist AI agents for career strategy, application reviews, interview prep, and salary negotiation. Each one knows your full profile.",
     Icon: MessageCircle,
-    durationMs: 9000,
   },
 ];
 
-const TOTAL_TUTORIAL_MS = SLIDES.reduce((s, x) => s + x.durationMs, 0);
 // Setup work takes ~80s in the worst case (analysis 40s + finalise 40s).
 // The fake-progress bar paces itself to feel honest against that window.
 const EXPECTED_SETUP_MS = 80_000;
 
 /**
- * The onboarding tutorial that replaces the old "Your Roles" page. Plays
- * 6 auto-advancing slides while career-analysis + task-generation run
- * in the background. Exposes a "Go to platform" button that enables
- * only when (a) all slides have been seen AND (b) the parent's
- * setupComplete flag is true.
+ * Onboarding tutorial — user-paced slide carousel. Background career-analysis
+ * + task-generation run in the parent. The "Go to platform" button enables
+ * once (a) the user has reached the final slide AND (b) setupComplete is true.
+ *
+ * If analysis fails, the parent falls back to handleFinalise silently — the
+ * tutorial never surfaces an error. Home's self-heal useEffect retries the
+ * analysis on the next visit. This keeps the tutorial focused on orientation
+ * instead of mixing error UX into the platform tour.
  *
  * Props:
  *   isReturningUser  — true when has_seen_onboarding_tutorial && !onboarding_complete
  *   setupComplete    — parent flag; true once handleSurveyNext + handleFinalise are done
- *   setupError       — null OR { kind: "analysis_failed" | "analysis_unrecoverable", retry?, skipToEmpty? }
- *   onTutorialEnd    — called when the user clicks "Go to platform" OR clicks "Skip" on the gate. parent persists has_seen flag + navigates.
+ *   onTutorialEnd    — called when the user clicks "Go to platform" or "Skip" on the gate
  */
 export default function OnboardingTutorial({
   isReturningUser,
   setupComplete,
-  setupError,
   onTutorialEnd,
 }) {
-  // Returning-user gate: render the skip-or-watch screen instead of the slides
-  // until the user picks one. New users skip this gate entirely.
+  // Returning-user gate: render the skip-or-watch screen until the user picks
+  // one. New users skip this gate entirely.
   const [gateAcknowledged, setGateAcknowledged] = useState(!isReturningUser);
 
   const [slideIndex, setSlideIndex] = useState(0);
-  // True once the LAST slide has been displayed (i.e. user has "seen all slides").
-  // Doesn't require the slide to finish — reaching it counts.
+  // Flips true the first time the user lands on the last slide. Doesn't
+  // require them to dwell — reaching it is enough.
   const [allSlidesSeen, setAllSlidesSeen] = useState(false);
   const startedAtRef = useRef(Date.now());
   const startedEventRef = useRef(false);
@@ -109,6 +102,7 @@ export default function OnboardingTutorial({
   }, [gateAcknowledged, isReturningUser]);
 
   // Fire ONBOARDING_TUTORIAL_SLIDE_VIEWED once per slide (de-duped via ref).
+  // Also flip allSlidesSeen when the user reaches the last slide.
   useEffect(() => {
     if (!gateAcknowledged) return;
     const key = SLIDES[slideIndex]?.name;
@@ -118,19 +112,17 @@ export default function OnboardingTutorial({
       slide_index: slideIndex,
       slide_name: key,
     });
+    if (slideIndex >= SLIDES.length - 1) {
+      setAllSlidesSeen(true);
+    }
   }, [slideIndex, gateAcknowledged]);
 
-  // Auto-advance the slide carousel.
-  useEffect(() => {
-    if (!gateAcknowledged) return;
-    if (slideIndex >= SLIDES.length - 1) {
-      // Reached the final slide — record it but stop advancing.
-      setAllSlidesSeen(true);
-      return undefined;
-    }
-    const id = setTimeout(() => setSlideIndex((i) => i + 1), SLIDES[slideIndex].durationMs);
-    return () => clearTimeout(id);
-  }, [slideIndex, gateAcknowledged]);
+  const goPrev = () => {
+    if (slideIndex > 0) setSlideIndex((i) => i - 1);
+  };
+  const goNext = () => {
+    if (slideIndex < SLIDES.length - 1) setSlideIndex((i) => i + 1);
+  };
 
   const handleGoToPlatform = () => {
     const slidesSeen = seenSlidesRef.current.size;
@@ -144,7 +136,6 @@ export default function OnboardingTutorial({
 
   const handleSkipGate = () => {
     track(EVENTS.ONBOARDING_TUTORIAL_SKIPPED, {
-      // Skip happened before any slide rendered — slides_seen is always 0.
       reason: "returning_user_skip_gate",
     });
     onTutorialEnd({ skipped: true });
@@ -185,25 +176,15 @@ export default function OnboardingTutorial({
     );
   }
 
-  // ───── Setup-error states (analysis failed) ─────
-  // These overlay the tutorial — the slides keep playing underneath but a
-  // banner at the top surfaces the error + recovery affordances.
-  const errorBanner = renderErrorBanner(setupError);
-
-  // ───── Final-slide "Finalising" state ─────
-  // When user reaches the last slide and setup isn't done, show the
-  // prominent finalising panel instead of slide content.
+  // ───── Tutorial render ─────
   const isFinalSlide = slideIndex === SLIDES.length - 1;
   const showFinalisingPanel = isFinalSlide && allSlidesSeen && !setupComplete;
-  const goToPlatformEnabled = allSlidesSeen && setupComplete && !setupError;
-
+  const goToPlatformEnabled = allSlidesSeen && setupComplete;
   const slide = SLIDES[slideIndex];
 
   return (
     <FullScreenShell>
       <div className="w-full max-w-2xl mx-auto space-y-8">
-        {errorBanner}
-
         {/* Slide indicator + setup progress */}
         <div className="flex items-center justify-between">
           <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
@@ -214,8 +195,8 @@ export default function OnboardingTutorial({
           </p>
         </div>
 
-        {/* Progress bar — subtle during tutorial, prominent on finalising panel */}
-        <div className={`h-1 bg-[#F0F0F0] rounded-full overflow-hidden ${showFinalisingPanel ? "h-2" : ""}`}>
+        {/* Progress bar — subtle during slides, taller on the finalising panel */}
+        <div className={`bg-[#F0F0F0] rounded-full overflow-hidden ${showFinalisingPanel ? "h-2" : "h-1"}`}>
           <div
             className="h-full bg-[#0A0A0A] transition-all duration-500 ease-out"
             style={{ width: `${setupPercent}%` }}
@@ -226,115 +207,75 @@ export default function OnboardingTutorial({
         {showFinalisingPanel ? (
           <FinalisingPanel percent={setupPercent} />
         ) : (
-          <Slide
-            slideIndex={slideIndex}
-            slide={slide}
-            totalSlides={SLIDES.length}
-            onDotClick={(i) => {
-              // Manual nav allowed only to slides already seen — prevents
-              // skipping ahead before the auto-advance has reached them.
-              if (i <= slideIndex) setSlideIndex(i);
-            }}
-          />
+          <Slide slide={slide} />
         )}
 
-        {/* "Go to platform" button — visible only on the last slide */}
-        {allSlidesSeen && (
-          <div className="flex justify-center">
+        {/* Arrow navigation + dot indicators */}
+        <div className="flex items-center justify-between">
+          <Button
+            onClick={goPrev}
+            disabled={slideIndex === 0}
+            variant="outline"
+            size="sm"
+            className="flex items-center gap-1.5"
+            aria-label="Previous slide"
+          >
+            <ArrowLeft className="w-4 h-4" /> Back
+          </Button>
+
+          <div className="flex gap-1.5">
+            {SLIDES.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setSlideIndex(i)}
+                aria-label={`Go to slide ${i + 1}`}
+                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
+                  i === slideIndex
+                    ? "w-8 bg-[#0A0A0A]"
+                    : "w-1.5 bg-[#D4D4D4] hover:bg-[#525252]"
+                }`}
+              />
+            ))}
+          </div>
+
+          {isFinalSlide ? (
             <Button
               onClick={handleGoToPlatform}
               disabled={!goToPlatformEnabled}
-              className="bg-[#0A0A0A] hover:bg-[#262626] text-sm px-8 flex items-center gap-2"
+              className="bg-[#0A0A0A] hover:bg-[#262626] text-sm flex items-center gap-2"
             >
               {goToPlatformEnabled ? (
                 <>Go to platform <ArrowRight className="w-4 h-4" /></>
-              ) : setupError ? (
-                <>Finishing up...</>
               ) : (
-                <><Loader2 className="w-3 h-3 animate-spin" /> Finalising your profile...</>
+                <><Loader2 className="w-3 h-3 animate-spin" /> Finalising...</>
               )}
             </Button>
-          </div>
-        )}
+          ) : (
+            <Button
+              onClick={goNext}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-1.5"
+              aria-label="Next slide"
+            >
+              Next <ArrowRight className="w-4 h-4" />
+            </Button>
+          )}
+        </div>
       </div>
     </FullScreenShell>
   );
 }
 
-function renderErrorBanner(setupError) {
-  if (!setupError) return null;
-  if (setupError.kind === "analysis_failed") {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg">
-        <p className="text-sm text-amber-800">
-          Career analysis is taking longer than expected.{" "}
-          <button
-            onClick={setupError.retry}
-            className="font-semibold underline underline-offset-2 hover:text-amber-900"
-          >
-            Try again
-          </button>
-        </p>
-      </div>
-    );
-  }
-  if (setupError.kind === "analysis_unrecoverable") {
-    return (
-      <div className="mx-auto max-w-2xl px-4 py-3 bg-amber-50 border border-amber-200 rounded-lg space-y-1">
-        <p className="text-sm text-amber-800">
-          We couldn&apos;t generate your career analysis right now. Please email{" "}
-          <a
-            href="mailto:support@getajob.careers"
-            className="font-semibold underline underline-offset-2"
-          >
-            support@getajob.careers
-          </a>{" "}
-          and we&apos;ll fix this. You can continue using the rest of the platform — your roadmap will be empty for now.
-        </p>
-        {setupError.skipToEmpty && (
-          <button
-            onClick={setupError.skipToEmpty}
-            className="text-xs font-medium text-amber-800 underline underline-offset-2 mt-1"
-          >
-            Continue to platform anyway
-          </button>
-        )}
-      </div>
-    );
-  }
-  return null;
-}
-
-function Slide({ slideIndex, slide, totalSlides, onDotClick }) {
+function Slide({ slide }) {
   const { Icon, title, description } = slide;
   return (
-    <div className="space-y-6">
-      <div className="bg-white border border-[#E5E5E5] rounded-2xl p-10 min-h-[280px] flex flex-col items-center justify-center text-center">
-        <div className="w-16 h-16 rounded-full bg-[#0A0A0A] flex items-center justify-center mb-5">
-          <Icon className="w-7 h-7 text-white" />
-        </div>
-        <h3 className="text-lg font-bold text-[#0A0A0A] tracking-tight">{title}</h3>
-        <p className="text-sm text-[#525252] mt-3 leading-relaxed max-w-sm">{description}</p>
+    <div className="bg-white border border-[#E5E5E5] rounded-2xl p-10 min-h-[280px] flex flex-col items-center justify-center text-center">
+      <div className="w-16 h-16 rounded-full bg-[#0A0A0A] flex items-center justify-center mb-5">
+        <Icon className="w-7 h-7 text-white" />
       </div>
-
-      {/* Dot indicators */}
-      <div className="flex justify-center gap-1.5">
-        {Array.from({ length: totalSlides }, (_, i) => (
-          <button
-            key={i}
-            onClick={() => onDotClick(i)}
-            aria-label={`Go to slide ${i + 1}`}
-            disabled={i > slideIndex}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              i === slideIndex
-                ? "w-8 bg-[#0A0A0A]"
-                : i < slideIndex
-                  ? "w-1.5 bg-[#525252] cursor-pointer hover:bg-[#0A0A0A]"
-                  : "w-1.5 bg-[#E5E5E5] cursor-not-allowed"
-            }`}
-          />
-        ))}
-      </div>
+      <h3 className="text-lg font-bold text-[#0A0A0A] tracking-tight">{title}</h3>
+      <p className="text-sm text-[#525252] mt-3 leading-relaxed max-w-sm">{description}</p>
     </div>
   );
 }
@@ -370,5 +311,5 @@ function FullScreenShell({ children }) {
   );
 }
 
-// Re-export the constants for testability (slide count, expected duration).
-export { SLIDES, TOTAL_TUTORIAL_MS, EXPECTED_SETUP_MS };
+// Re-export for testability.
+export { SLIDES, EXPECTED_SETUP_MS };
