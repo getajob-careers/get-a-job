@@ -55,7 +55,7 @@ export default function Layout({ children, currentPageName }) {
     queryFn: async () => {
       const { data } = await supabase
         .from("profiles")
-        .select("practicum_path, onboarding_complete")
+        .select("practicum_path, onboarding_complete, full_name")
         .eq("id", user.id)
         .maybeSingle();
       return data;
@@ -66,6 +66,7 @@ export default function Layout({ children, currentPageName }) {
 
   const practicumPath = profileChrome?.practicum_path ?? null;
   const onboardingComplete = profileChrome?.onboarding_complete === true;
+  const profileFullName = profileChrome?.full_name ?? null;
 
   const navItems = NAV_ITEMS.filter(
     (item) => item.page !== "Practicum" || practicumPath != null
@@ -153,7 +154,7 @@ export default function Layout({ children, currentPageName }) {
           })}
         </nav>
 
-        <SidebarFooter />
+        <SidebarFooter profileFullName={profileFullName} />
       </aside>
 
       {/* Main content */}
