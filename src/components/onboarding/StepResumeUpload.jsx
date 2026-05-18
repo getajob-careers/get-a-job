@@ -45,7 +45,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
-import { Loader2, Upload, CheckCircle2, ArrowRight, Linkedin, AlertTriangle, ExternalLink } from "lucide-react";
+import { Loader2, Upload, CheckCircle2, ArrowRight, Linkedin, Info, ExternalLink } from "lucide-react";
 
 // Note: the JSON-Schema constant that previously lived here was dead code —
 // never referenced (the ai-chat call below uses a plain prose prompt, not
@@ -304,16 +304,17 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
 
   return (
     <div className="space-y-6">
-      {/* Persistent LinkedIn data-export banner — non-dismissible, visible
+      {/* Persistent LinkedIn data-export hint — non-dismissible, visible
           for the entire CV-upload step. LinkedIn's data export takes a few
           hours to generate, so we surface this as early as possible so users
           can start the request now and have it ready when they reach the
-          LinkedIn Hub features post-onboarding. */}
-      <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 flex gap-3">
-        <AlertTriangle className="w-5 h-5 text-amber-700 flex-shrink-0 mt-0.5" />
+          LinkedIn Hub features post-onboarding. Info-tone (not alert-tone)
+          because it's optional. */}
+      <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 flex gap-3">
+        <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
         <div className="flex-1">
           <p className="text-sm font-semibold text-amber-900">
-            Request your LinkedIn data export now
+            Optional but recommended — request your LinkedIn data export now
           </p>
           <p className="text-sm text-amber-800 mt-1 leading-relaxed">
             LinkedIn takes a few hours to prepare your data export. Request it now and you&apos;ll have it ready when you reach LinkedIn Hub features (profile optimization, posts, networking) later.
