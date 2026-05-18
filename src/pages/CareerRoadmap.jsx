@@ -10,7 +10,6 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import GeneratingBanner from "@/components/ui/GeneratingBanner";
 import RoleCard from "../components/roadmap/RoleCard";
-import TierQuadrantGrid from "../components/roadmap/TierQuadrantGrid";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 import { track, EVENTS } from "@/lib/analytics";
 
@@ -447,24 +446,33 @@ function WhyTab() {
           Those two scores combine into three tiers — each represents a different strategic move.
         </p>
       </div>
-      <div className="flex justify-center pt-2">
-        <TierQuadrantGrid />
-      </div>
-      <div className="pt-3 border-t border-[#F0F0F0] space-y-2 text-sm text-[#525252] leading-relaxed">
-        <p>
-          <span className="font-semibold text-emerald-700">Tier 1 (your sweet spot):</span>{" "}
-          you&apos;re qualified AND the role moves you toward your stated goals. Apply here first.
-        </p>
-        <p>
-          <span className="font-semibold text-amber-700">Tier 3 (your next role):</span>{" "}
-          on your path but you&apos;re not quite ready yet. Use these to plan skill-building.
-        </p>
-        <p>
-          <span className="font-semibold text-[#525252]">Tier 2 (a detour):</span>{" "}
-          you&apos;re qualified, but the role takes you off your stated career direction.
-          Useful as a fallback or short-term pay-the-bills option.
-        </p>
-        <p className="text-xs text-[#A3A3A3] mt-3">
+
+      <ul className="space-y-3 text-sm text-[#525252] leading-relaxed">
+        <li>
+          <span className="font-semibold text-emerald-700">Tier 1 — your sweet spot:</span>{" "}
+          qualified now AND on your goal path. Apply here first.
+        </li>
+        <li>
+          <span className="font-semibold text-[#525252]">Tier 2 — a detour:</span>{" "}
+          qualified now, but off your goal path. Useful as a fallback or short-term option.
+        </li>
+        <li>
+          <span className="font-semibold text-amber-700">Tier 3 — your next role:</span>{" "}
+          on your goal path, not qualified yet. Use these to plan skill-building.
+        </li>
+      </ul>
+
+      <div className="pt-4 border-t border-[#F0F0F0] space-y-3">
+        <div>
+          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1.5">How the analysis works</p>
+          <p className="text-sm text-[#525252] leading-relaxed">
+            Your CV, education, skills, experience, and stated 5-year goal feed into an AI analysis
+            that searches real job postings on LinkedIn and Glassdoor, scores each role on both axes,
+            and classifies it. Re-run the analysis any time your profile changes — the &quot;Refresh
+            Analysis&quot; button at the top regenerates the full roadmap in ~30-60 seconds.
+          </p>
+        </div>
+        <p className="text-xs text-[#A3A3A3]">
           Roles you&apos;re neither qualified for nor on-path for are filtered out of your feed entirely.
         </p>
       </div>

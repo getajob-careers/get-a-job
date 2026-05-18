@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 import { Loader2, ArrowRight, ArrowLeft, Briefcase, ClipboardList, BookText, Linkedin, FileText, MessageCircle, RotateCcw } from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics";
 import { useFakeProgress } from "@/lib/useFakeProgress";
-import TierQuadrantGrid from "@/components/roadmap/TierQuadrantGrid";
 
 // Slide content. User navigates manually via arrow buttons — no auto-advance.
 // Visuals are placeholder icons + descriptions until real screenshots land.
@@ -270,23 +269,45 @@ export default function OnboardingTutorial({
 
 function Slide({ slide }) {
   const { Icon, title, description, name } = slide;
-  // Slide 1 (Browse Jobs) renders the tier-quadrant grid above the
+  // Slide 1 (Browse Jobs) gets a tier-explainer bullet list above the
   // closing description line. Other slides render description only.
-  const isQuadrantSlide = name === "browse_jobs";
+  const isTierExplainerSlide = name === "browse_jobs";
   return (
     <div className="bg-white border border-[#E5E5E5] rounded-2xl p-10 min-h-[280px] flex flex-col items-center justify-center text-center">
       <div className="w-16 h-16 rounded-full bg-[#0A0A0A] flex items-center justify-center mb-5">
         <Icon className="w-7 h-7 text-white" />
       </div>
       <h3 className="text-lg font-bold text-[#0A0A0A] tracking-tight">{title}</h3>
-      {isQuadrantSlide && <TierQuadrantGrid />}
+      {isTierExplainerSlide && <TierBullets />}
       <p className="text-sm text-[#525252] mt-3 leading-relaxed max-w-sm">{description}</p>
     </div>
   );
 }
 
-// TierQuadrantGrid lives in src/components/roadmap/TierQuadrantGrid.jsx —
-// shared with the Career Roadmap "Why these tiers" tab.
+/**
+ * Tier explainer — three plain-text bullets. Replaces the original 2x2
+ * quadrant grid (the visual didn't land for testers; bullets are clearer
+ * within the slide's 5-10s read window). Same content also lives on the
+ * Career Roadmap "Why these tiers" tab.
+ */
+function TierBullets() {
+  return (
+    <ul className="mt-4 max-w-sm text-left space-y-2">
+      <li className="text-sm text-[#525252] leading-relaxed">
+        <span className="font-semibold text-emerald-700">Tier 1 — your sweet spot:</span>{" "}
+        qualified now AND on your goal path.
+      </li>
+      <li className="text-sm text-[#525252] leading-relaxed">
+        <span className="font-semibold text-[#525252]">Tier 2 — a detour:</span>{" "}
+        qualified now, but off your goal path.
+      </li>
+      <li className="text-sm text-[#525252] leading-relaxed">
+        <span className="font-semibold text-amber-700">Tier 3 — your next role:</span>{" "}
+        on your goal path, not qualified yet.
+      </li>
+    </ul>
+  );
+}
 
 function FinalisingPanel({ percent }) {
   return (
