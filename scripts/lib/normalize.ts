@@ -67,6 +67,76 @@ export interface NormalizedJob {
   raw_payload: unknown;
 }
 
+// ───── Title normalization + junk filter ─────────────────────────────
+
+// Patterns SF / Workday / Comeet feeds attach to titles that wreck
+// trigram tier matching. Strip in this order — earlier strips affect
+// later ones (e.g. ID prefix has to go before maternity suffix detection
+// on tail-only patterns).
+const RX_LOCATION_SUFFIX = /\s*\(\s*[A-Za-z'.\- ]+,\s*(?:Israel|IL)(?:,\s*\d+)?\s*\)\s*$/i;
+const RX_JOB_ID_PREFIX   = /^\s*\d{4,6}\s*-\s*/;
+const RX_MATERNITY_TAIL  = /\s*[-–—]?\s*\(?\s*(?:temporary,?\s*)?maternity[^)]*\)?\s*$/i;
+// Most trailing parentheticals after a real title are noise (city,
+// product, "Hybrid, ISR", "early talent" etc.). Strip when conservative:
+// only when the leading title still has 2+ words after the strip.
+const RX_TRAIL_PAREN_NOISE = /\s*\([^)]{1,60}\)\s*$/;
+
+/**
+ * Normalize a job title for matching. Idempotent (safe to call twice).
+ * Returns the input unchanged if no rules apply.
+ */
+export function normalizeJobTitle(input: string | null | undefined): string {
+  if (!input) return "";
+  let t = input.trim();
+  t = t.replace(RX_JOB_ID_PREFIX, "");
+  t = t.replace(RX_LOCATION_SUFFIX, "");
+  t = t.replace(RX_MATERNITY_TAIL, "");
+  // Strip a single trailing parenthetical if doing so leaves a usable
+  // multi-word title behind. Don't loop — second-level parens are rare
+  // and stripping them aggressively can wipe meaningful qualifiers
+  // (e.g. "Product Designer (UX/UI)" — that's worth keeping).
+  const stripped = t.replace(RX_TRAIL_PAREN_NOISE, "");
+  if (stripped.trim().split(/\s+/).length >= 2 && /^[A-Z]/i.test(stripped)) {
+    // Only apply if the stripped paren looks like noise — keep "(UX/UI)"
+    // style qualifiers by detecting alphanumeric-only short parens.
+    const m = t.match(RX_TRAIL_PAREN_NOISE);
+    if (m) {
+      const inner = m[0].replace(/[()\s]/g, "");
+      // Strip when the paren mentions location, product, hybrid, etc.
+      if (/(israel|hybrid|isr|herzliya|tel\s*aviv|haifa|maternity|petach|petah|kfar|sodom|sdom|shoham|early\s*talent)/i.test(inner)
+          || /^[A-Z][A-Za-z\s\-]{8,}$/.test(inner)) {
+        t = stripped;
+      }
+    }
+  }
+  return t.replace(/\s{2,}/g, " ").trim();
+}
+
+// Junk titles surface from ATS career pages that include "ghost" listings
+// for talent-network / future-opportunities / template entries. They're
+// not real jobs — filter them at the source.
+const RX_JUNK_TITLE = new RegExp(
+  [
+    "^\\s*$",
+    "^\\[?TEMPLATE\\]?",
+    "^\\s*(future\\s+opportunit|general\\s+application|talent\\s+network|career\\s+at\\s+\\w+\\s*$|join\\s+our\\s+team|didn'?t\\s+find|explore\\s+(new\\s+)?opportunit|looking\\s+for\\s+something|the\\s+role\\s+you|would\\s+love\\s+to\\s+join|\\w+\\s+has\\s+amazing\\s+openings|company\\s+page|view\\s+all\\s+jobs)",
+    "^Hailo\\s+has\\s+amazing",
+    "^WorldQuant\\s+Technology\\s+Talent",
+    "^Career\\s+at\\s+\\w+\\s*!?\\s*$",
+    "^[\\s.!?-]{0,20}$",
+  ].join("|"),
+  "i",
+);
+
+/** True when the title is a placeholder / non-job entry that should not
+ *  be cached. Apply at fetch time. */
+export function isJunkTitle(title: string | null | undefined): boolean {
+  if (!title) return true;
+  const t = title.trim();
+  if (t.length < 3) return true;
+  return RX_JUNK_TITLE.test(t);
+}
+
 // ───── Location classification ────────────────────────────────────────
 
 /**

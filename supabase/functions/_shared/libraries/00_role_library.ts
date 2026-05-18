@@ -12631,6 +12631,422 @@ export const roleLibrary = {
       "market_notes": {
         "israel": "Backgrounds: B2B marketing managers, growth marketers, ABM specialists. Stack patterns: HubSpot / Marketo + Salesforce + 6sense / Demandbase for ABM + LinkedIn Ads + paid social/search + Outreach / Salesloft alignment with sales. Hiring stage: critical role at B2B SaaS and cyber scale-ups — monday.com, JFrog, Gong, HiBob, AppsFlyer, Wiz, Check Point, CyberArk, SentinelOne, Forter. Heavily focused on pipeline generation for enterprise / mid-market segments selling into US."
       }
+    },
+    {
+      "id": "legal_counsel",
+      "standardized_title": "Legal Counsel",
+      "alternate_titles": ["In-House Counsel", "Corporate Counsel", "Commercial Counsel"],
+      "role_family": "Admin_GA",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Provide in-house legal advice across commercial contracts, regulatory compliance, and corporate matters.",
+      "core_responsibilities": [
+        "Draft, review, and negotiate commercial contracts (NDAs, MSAs, DPAs, vendor agreements)",
+        "Advise business teams on regulatory and compliance obligations",
+        "Manage outside counsel on litigation and specialized matters",
+        "Support corporate governance, financings, and M&A as needed",
+        "Build legal templates and self-serve tooling for routine work"
+      ],
+      "required_skills": ["contract_negotiation", "communication", "stakeholder_management"],
+      "preferred_skills": ["risk_compliance_consulting"],
+      "tools": ["DocuSign", "Ironclad", "Word", "Excel"],
+      "technical_depth": "Low",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [],
+      "next_roles": ["senior_legal_counsel"],
+      "similar_roles": ["compliance_counsel"],
+      "keywords": ["contracts", "legal", "counsel", "commercial agreements", "regulatory", "compliance"],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: graduates of TAU / Hebrew U / Reichman / IDC law schools, IL Bar admitted (some dual-qualified NY / CA). Often 2-4 years at IL Big-Law firms (Herzog, Meitar, Goldfarb Seligman, Arnon Tadmor-Levy, Yigal Arnon) before moving in-house. Stack patterns: DocuSign / Ironclad for contracts, Linklaters-style templates, JIRA queue for routine asks, Notion / Confluence playbooks. Hiring stage: every IL B2B SaaS / cyber scaleup at Series B+ hires in-house counsel as commercial deals scale — monday.com, JFrog, Wiz, SentinelOne, Lemonade, Fiverr, Forter, Tipalti, HiBob, Pagaya, Lightricks."
+      }
+    },
+    {
+      "id": "senior_legal_counsel",
+      "standardized_title": "Senior Legal Counsel",
+      "alternate_titles": ["Senior Commercial Counsel", "Senior Corporate Counsel", "Experienced Legal Counsel"],
+      "role_family": "Admin_GA",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Lead complex commercial / corporate legal matters, mentor junior counsel, own a specialty practice area.",
+      "core_responsibilities": [
+        "Own end-to-end legal review of strategic / high-value commercial agreements",
+        "Lead specific practice areas (e.g. employment, IP, privacy, M&A) end-to-end",
+        "Mentor and review work of more junior counsel",
+        "Represent the company in negotiations with enterprise customers and partners",
+        "Partner with executives on strategic legal decisions"
+      ],
+      "required_skills": ["contract_negotiation", "communication", "stakeholder_management"],
+      "preferred_skills": ["risk_compliance_consulting"],
+      "tools": ["DocuSign", "Ironclad", "Word", "Excel"],
+      "technical_depth": "Low",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "None",
+      "strategic_level": "Strategic",
+      "lifecycle_stage": [],
+      "next_roles": ["vp_legal"],
+      "similar_roles": ["legal_counsel", "compliance_counsel"],
+      "keywords": ["senior counsel", "in-house legal", "commercial agreements", "enterprise contracts", "M&A"],
+      "years_experience_typical": "7-12",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Senior in-house counsel at IL scaleups typically have 7-10+ years post-bar, often 3-5 years at a Big-Law firm + 3-5 years in-house at a smaller scaleup. Critical hires at IPO-track companies — these roles led the IL counsel functions at monday.com, JFrog, Wiz, SentinelOne, Lemonade pre-IPO."
+      }
+    },
+    {
+      "id": "vp_legal",
+      "standardized_title": "VP Legal",
+      "alternate_titles": ["General Counsel", "Chief Legal Officer", "CLO", "Head of Legal"],
+      "role_family": "Admin_GA",
+      "secondary_family": "Leadership",
+      "seniority": "VP_Executive",
+      "core_purpose": "Lead the legal function end-to-end: commercial, corporate, regulatory, IP, litigation, employment.",
+      "core_responsibilities": [
+        "Set legal strategy aligned with business strategy",
+        "Build and manage the in-house legal team",
+        "Own board, governance, and securities matters",
+        "Manage outside counsel relationships and legal spend",
+        "Sit on the executive team as the legal voice"
+      ],
+      "required_skills": ["contract_negotiation", "communication", "stakeholder_management"],
+      "preferred_skills": ["risk_compliance_consulting"],
+      "tools": ["DocuSign", "Ironclad", "Diligent"],
+      "technical_depth": "Low",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "None",
+      "strategic_level": "Strategic",
+      "lifecycle_stage": [],
+      "next_roles": [],
+      "similar_roles": ["senior_legal_counsel"],
+      "keywords": ["GC", "general counsel", "chief legal officer", "legal leadership", "board legal", "IPO counsel"],
+      "years_experience_typical": "12-20",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Hire at IPO-track IL companies once legal complexity outgrows a small team — typically Series C/D and beyond. Often a returning IL lawyer with US BigLaw or Wall Street experience. Holders at monday.com, JFrog, Wiz, SentinelOne, Lemonade, Fiverr historically had US capital-markets exposure given dual TASE/Nasdaq listings."
+      }
+    },
+    {
+      "id": "paralegal",
+      "standardized_title": "Paralegal",
+      "alternate_titles": ["Legal Specialist", "Legal Operations Specialist", "Insurance Litigation Paralegal"],
+      "role_family": "Admin_GA",
+      "secondary_family": null,
+      "seniority": "Entry_Mid",
+      "core_purpose": "Support in-house counsel with contract administration, due diligence, corporate housekeeping, and legal operations.",
+      "core_responsibilities": [
+        "Maintain contract repository and renewal tracker",
+        "Run routine contract intake, redlining, and execution workflow",
+        "Support due diligence (M&A, fundraising) document collection and organization",
+        "Maintain corporate records (board minutes, cap-table updates, entity registrations)",
+        "Operate legal-ops tooling (Ironclad, DocuSign, contract lifecycle management)"
+      ],
+      "required_skills": ["organization", "attention_to_detail", "communication"],
+      "preferred_skills": [],
+      "tools": ["DocuSign", "Ironclad", "Excel", "Word"],
+      "technical_depth": "Low",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Execution",
+      "lifecycle_stage": [],
+      "next_roles": ["legal_counsel"],
+      "similar_roles": ["legal_counsel"],
+      "keywords": ["paralegal", "legal operations", "contract administration", "due diligence", "corporate records"],
+      "years_experience_typical": "0-4",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: pre-law (during LLB), recent LLB grads pre-bar-articling, business-degree grads with paralegal certification. Often a stepping stone into counsel roles. Hiring stage: present at any IL scaleup with an in-house legal team (post-Series B / C)."
+      }
+    },
+    {
+      "id": "compliance_counsel",
+      "standardized_title": "Compliance Counsel",
+      "alternate_titles": ["Privacy Counsel", "Global Privacy Counsel", "Privacy & Compliance Counsel", "Regulatory Counsel"],
+      "role_family": "Admin_GA",
+      "secondary_family": "IT_Security",
+      "seniority": "Mid",
+      "core_purpose": "Own privacy, compliance, and regulatory legal matters — GDPR, CCPA, sector-specific (HIPAA, PCI, SOC2 legal pieces).",
+      "core_responsibilities": [
+        "Advise on global privacy law (GDPR, CCPA, LGPD, etc.) for product and ops",
+        "Own DPIA / vendor privacy review process",
+        "Partner with security and engineering on compliance program (SOC 2, ISO 27001)",
+        "Draft and maintain privacy policies, DPAs, internal compliance playbooks",
+        "Manage regulator engagement and audit response"
+      ],
+      "required_skills": ["communication", "stakeholder_management", "risk_compliance_consulting"],
+      "preferred_skills": ["it_security_compliance", "ai_governance_compliance"],
+      "tools": ["OneTrust", "DocuSign", "TrustArc"],
+      "technical_depth": "Low",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [],
+      "next_roles": ["senior_legal_counsel", "vp_legal"],
+      "similar_roles": ["legal_counsel"],
+      "keywords": ["privacy", "GDPR", "compliance", "DPA", "data protection", "regulatory"],
+      "years_experience_typical": "3-7",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: IL-bar admitted lawyers with EU privacy specialization (CIPP/E), sometimes ex-Big-Law privacy practice (Herzog FBC, Goldfarb Seligman). Critical role at IL companies selling B2B SaaS into EU / regulated US verticals — cyber (Wiz, SentinelOne, Forter), fintech (Lemonade, Tipalti, Pagaya), health (Aidoc, K Health)."
+      }
+    },
+    {
+      "id": "bookkeeper",
+      "standardized_title": "Bookkeeper",
+      "alternate_titles": ["AP/AR Bookkeeper", "Junior Bookkeeper", "Bookkeeper / AP Accountant", "Subsidiaries Bookkeeper"],
+      "role_family": "Finance",
+      "secondary_family": null,
+      "seniority": "Entry_Mid",
+      "core_purpose": "Run day-to-day bookkeeping: AP/AR, journal entries, reconciliations, and routine financial recordkeeping.",
+      "core_responsibilities": [
+        "Process accounts payable (vendor invoices, payments, expense reports)",
+        "Process accounts receivable (customer invoicing, collections, bank reconciliations)",
+        "Maintain general ledger and post routine journal entries",
+        "Reconcile credit card, bank, and intercompany accounts monthly",
+        "Support month-end close under direction of the controller"
+      ],
+      "required_skills": ["attention_to_detail", "organization"],
+      "preferred_skills": [],
+      "tools": ["NetSuite", "QuickBooks", "Priority", "Excel", "SAP"],
+      "technical_depth": "Low",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Execution",
+      "lifecycle_stage": [],
+      "next_roles": ["senior_bookkeeper", "financial_analyst"],
+      "similar_roles": ["payroll_accountant", "financial_analyst"],
+      "keywords": ["bookkeeping", "AP", "AR", "general ledger", "reconciliation", "month-end close", "accounts payable", "accounts receivable"],
+      "years_experience_typical": "0-4",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: IL bookkeeping certifications (Type 1/2/3 — ‎הנהלת חשבונות), economics / accounting BA graduates, often pre-CPA candidates working in industry. Stack patterns: Priority / Hashavshevet / Rivhit on the local-Hebrew accounting side, NetSuite / SAP / QuickBooks on the US-subsidiary side, frequent dual-ledger flows. Hiring stage: every IL company at Series A+ has at least one bookkeeper — high volume at HR-tech, fintech, and any company with Hebrew payroll obligations (monday.com, HiBob, Tipalti, Payoneer, Fiverr, Lemonade)."
+      }
+    },
+    {
+      "id": "senior_bookkeeper",
+      "standardized_title": "Senior Bookkeeper",
+      "alternate_titles": ["Lead Bookkeeper", "Corporate Bookkeeper", "Senior AP/AR Bookkeeper"],
+      "role_family": "Finance",
+      "secondary_family": null,
+      "seniority": "Senior",
+      "core_purpose": "Own end-to-end bookkeeping for a subsidiary or full close cycle, mentor junior bookkeepers, partner with controller on month-end.",
+      "core_responsibilities": [
+        "Own a subsidiary's full bookkeeping cycle (Israeli + US-subsidiary common)",
+        "Lead month-end and quarter-end close from the bookkeeping side",
+        "Mentor junior bookkeepers and review their work",
+        "Partner with the controller on consolidations, audit prep, and reporting",
+        "Manage payroll integration with general ledger"
+      ],
+      "required_skills": ["attention_to_detail", "organization", "communication"],
+      "preferred_skills": [],
+      "tools": ["NetSuite", "Priority", "Hashavshevet", "Excel"],
+      "technical_depth": "Low",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Execution",
+      "lifecycle_stage": [],
+      "next_roles": ["controller"],
+      "similar_roles": ["bookkeeper", "payroll_accountant"],
+      "keywords": ["senior bookkeeping", "month-end close", "consolidations", "AP", "AR", "audit prep"],
+      "years_experience_typical": "5-10",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: 5+ years bookkeeping experience, IL Type 3 bookkeeping certification, often paired with a non-CPA accounting degree. Common at mid/late-stage IL scaleups with multiple entities (US Inc + IL OpCo + EU subsidiary). Often the most knowledgeable person about the day-to-day finance ops in the company."
+      }
+    },
+    {
+      "id": "payroll_accountant",
+      "standardized_title": "Payroll Accountant",
+      "alternate_titles": ["Payroll Specialist", "Senior Payroll Accountant", "Global Payroll Accountant"],
+      "role_family": "Finance",
+      "secondary_family": "HR_People",
+      "seniority": "Mid",
+      "core_purpose": "Run payroll operations end-to-end: monthly payroll runs, statutory filings, equity withholding, multi-country payroll coordination.",
+      "core_responsibilities": [
+        "Run monthly payroll for IL employees (Bituach Leumi, income tax, pension, study fund)",
+        "Coordinate US / EU subsidiary payroll with PEO / EOR vendors (Deel, Remote, Papaya Global)",
+        "Handle equity / RSU / ESPP withholding events with payroll providers",
+        "Maintain payroll reconciliations and audit trail",
+        "Partner with HR and finance on compensation rollouts, bonuses, terminations"
+      ],
+      "required_skills": ["attention_to_detail", "organization", "communication"],
+      "preferred_skills": [],
+      "tools": ["Hilan", "Michpal", "Deel", "Papaya Global", "Excel"],
+      "technical_depth": "Low",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Execution",
+      "lifecycle_stage": [],
+      "next_roles": ["senior_bookkeeper", "controller"],
+      "similar_roles": ["bookkeeper"],
+      "keywords": ["payroll", "Bituach Leumi", "tax withholding", "RSU", "global payroll", "Hilan", "Michpal"],
+      "years_experience_typical": "3-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: IL payroll certification (Type 3 + payroll specialization), often graduates of payroll-specific courses at TAU's college extensions or via Michpal training programs. Critical role at scale-ups with global teams — Papaya Global / Deel / Remote on the EOR side; Hilan / Michpal on the IL-local side. High demand at fintech (Payoneer, Tipalti, HiBob, Tipalti), cyber (Wiz, SentinelOne), and any scaleup hiring globally."
+      }
+    },
+    {
+      "id": "ai_creative_specialist",
+      "standardized_title": "AI Creative Specialist",
+      "alternate_titles": ["AI Content Creator", "AI Creative Expert", "AI Video Creator", "Generative AI Technologist", "Visual GenAI Solutions Specialist", "AI-Native Product Builder"],
+      "role_family": "Marketing",
+      "secondary_family": "AI_ML",
+      "seniority": "Mid",
+      "core_purpose": "Produce marketing / brand / product creative using generative AI tools — text, image, video, voice — at scale.",
+      "core_responsibilities": [
+        "Build content production pipelines combining ChatGPT/Claude/Gemini + Midjourney/DALL-E + Runway/Sora/Veo + ElevenLabs",
+        "Generate marketing collateral, ad creative, social content, and product visuals using AI tooling",
+        "Maintain prompt libraries, style guides, and brand-aligned model fine-tuning recipes",
+        "Partner with brand / design / marketing teams on creative direction and AI workflow adoption",
+        "Stay current on emerging GenAI tooling and evaluate new tools for the stack"
+      ],
+      "required_skills": ["copywriting", "ai_tool_fluency"],
+      "preferred_skills": ["adobe_creative_suite", "brand_identity_design", "ai_tools_marketing"],
+      "tools": ["Midjourney", "DALL-E", "Runway", "Sora", "ElevenLabs", "ChatGPT", "Claude", "Figma AI"],
+      "technical_depth": "Medium",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Execution",
+      "lifecycle_stage": [],
+      "next_roles": ["content_marketing_manager", "growth_marketing_manager"],
+      "similar_roles": ["content_marketing_manager"],
+      "keywords": ["GenAI", "generative AI", "AI creative", "Midjourney", "Sora", "Runway", "AI video", "prompt engineering", "AI content"],
+      "years_experience_typical": "1-5",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: junior brand designers / content marketers who picked up Midjourney + Runway in 2023-25, sometimes ex-creative agency. New role category — emerged at IL companies in 2024-25 as GenAI tooling stabilized. Visible at Lightricks (their own AI products), Wix, Fiverr, AI21, monday.com brand teams, and at every Series-A-and-up startup running fast on marketing creative."
+      }
+    },
+    {
+      "id": "threat_hunter",
+      "standardized_title": "Threat Hunter",
+      "alternate_titles": ["Threat Detection Researcher", "Vulnerability Researcher", "Threat Intelligence Analyst", "Security Researcher"],
+      "role_family": "IT_Security",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Proactively hunt for adversaries, vulnerabilities, and novel attack techniques across customer environments and internal infrastructure.",
+      "core_responsibilities": [
+        "Run threat hunts across telemetry (EDR, SIEM, cloud logs) using structured hypotheses",
+        "Research novel attack techniques and reverse-engineer malware / exploits",
+        "Build detection content (Sigma, KQL, Splunk SPL) for surfaced techniques",
+        "Publish internal / external threat-intel reports and customer briefings",
+        "Partner with detection engineering on telemetry coverage gaps"
+      ],
+      "required_skills": ["threat_analysis_investigation", "security_monitoring_detection", "security_data_analysis"],
+      "preferred_skills": ["incident_response_forensics"],
+      "tools": ["Splunk", "Elastic", "Microsoft Sentinel", "CrowdStrike", "VirusTotal", "MITRE ATT&CK"],
+      "technical_depth": "High",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [],
+      "next_roles": ["security_analyst_soc", "ciso_head_of_security"],
+      "similar_roles": ["incident_response_engineer", "security_analyst_soc"],
+      "keywords": ["threat hunting", "threat detection", "threat intel", "vulnerability research", "MITRE ATT&CK", "EDR", "SIEM", "purple team"],
+      "years_experience_typical": "3-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: ex-IDF 8200 / Matzov / Mamram with offensive / defensive cyber experience; or 3-5 year SOC / DFIR pivot. Stack patterns: SIEM (Splunk / Sentinel / Chronicle) + EDR (CrowdStrike / SentinelOne / MDE) + custom hunting tools. High demand at IL cyber vendors (SentinelOne, Wiz, Cybereason, Check Point, Cato, CyberArk, Pentera, Rezilion) and MSSP / DFIR firms (Sygnia, Hub Security)."
+      }
+    },
+    {
+      "id": "devsecops_engineer",
+      "standardized_title": "DevSecOps Engineer",
+      "alternate_titles": ["DevSecOps", "Security DevOps Engineer", "Application Security Engineer", "Product Security Engineer"],
+      "role_family": "IT_Security",
+      "secondary_family": "Engineering",
+      "seniority": "Mid",
+      "core_purpose": "Embed security into the SDLC: build secure pipelines, automate vulnerability scanning, drive shift-left adoption across engineering.",
+      "core_responsibilities": [
+        "Build and maintain CI/CD security gates (SAST, DAST, SCA, secrets scanning)",
+        "Roll out and tune vulnerability scanning across repos, containers, infra-as-code",
+        "Partner with engineering teams to triage findings and improve remediation SLA",
+        "Run threat modeling on new architecture and high-risk features",
+        "Develop platform security tooling (secrets management, signing, attestation)"
+      ],
+      "required_skills": ["security_engineering", "security_best_practices"],
+      "preferred_skills": ["it_security_compliance", "cloud_security_posture"],
+      "tools": ["Snyk", "GitHub Advanced Security", "Trivy", "HashiCorp Vault", "AWS / GCP security tooling"],
+      "technical_depth": "High",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [],
+      "next_roles": ["security_analyst_soc", "ciso_head_of_security"],
+      "similar_roles": ["threat_hunter", "incident_response_engineer"],
+      "keywords": ["DevSecOps", "AppSec", "application security", "shift-left", "SAST", "DAST", "SCA", "vulnerability management", "supply chain security"],
+      "years_experience_typical": "3-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: SWE with security specialization or SRE pivot to security; many ex-8200 / cyber-unit operators going industry. Stack patterns: Snyk / Wiz / Orca / Sysdig on the scanning side; HashiCorp Vault / SOPS / Cosign on supply-chain. Strong demand at IL cyber products themselves (eat-your-own-dogfood at Snyk, Wiz, Orca, Aqua) and at every IL fintech / health scaleup with regulatory pressure (Pagaya, Lemonade, Tipalti, Aidoc)."
+      }
+    },
+    {
+      "id": "incident_response_engineer",
+      "standardized_title": "Incident Response Engineer",
+      "alternate_titles": ["Incident Response Expert", "IR Engineer", "Cyber Incident Responder", "DFIR Engineer"],
+      "role_family": "IT_Security",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Lead response to security incidents end-to-end: detection triage, containment, forensics, remediation, postmortem.",
+      "core_responsibilities": [
+        "Own incidents from initial detection through full resolution and customer comms",
+        "Run live response on endpoints / cloud (memory capture, log analysis, IOC sweeps)",
+        "Coordinate cross-functionally (legal, comms, product, IT) during major incidents",
+        "Build runbooks and tabletop exercises to mature the IR practice",
+        "Conduct postmortems and translate findings into detection / prevention improvements"
+      ],
+      "required_skills": ["incident_response_forensics", "incident_management", "communication"],
+      "preferred_skills": ["security_monitoring_detection", "threat_analysis_investigation"],
+      "tools": ["CrowdStrike", "Microsoft Sentinel", "Velociraptor", "Volatility", "Splunk", "AWS / GCP CLI"],
+      "technical_depth": "High",
+      "customer_facing_level": "Medium",
+      "revenue_ownership": "None",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [],
+      "next_roles": ["security_analyst_soc", "ciso_head_of_security"],
+      "similar_roles": ["threat_hunter", "security_analyst_soc"],
+      "keywords": ["IR", "DFIR", "incident response", "forensics", "tabletop", "postmortem", "containment", "remediation"],
+      "years_experience_typical": "3-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: ex-IDF DFIR / 8200 incident response; or 3+ years on a SOC / MDR team pivoting to consulting / vendor-side IR. High demand at IL IR firms (Sygnia, Mandiant-IL, Cybereason DFIR, Hub Security, Konfidas) and embedded IR at IL cyber vendors (SentinelOne, Wiz)."
+      }
+    },
+    {
+      "id": "sales_enablement_manager",
+      "standardized_title": "Sales Enablement Manager",
+      "alternate_titles": ["Revenue Enablement Manager", "Sales Enablement Program Manager", "GTM Enablement Manager"],
+      "role_family": "Sales",
+      "secondary_family": "RevOps_BizOps",
+      "seniority": "Mid",
+      "core_purpose": "Equip the sales org with the training, content, processes, and tooling to ramp and sell effectively.",
+      "core_responsibilities": [
+        "Build and run new-hire ramp programs (cohort onboarding, sales playbook, certifications)",
+        "Develop ongoing training on product, methodology, competitive positioning",
+        "Maintain the sales content library (pitch decks, one-pagers, battle cards, demo flows)",
+        "Partner with product marketing on launches and competitive enablement",
+        "Measure enablement impact (ramp time to first deal, ARR per rep, competitive win rate)"
+      ],
+      "required_skills": ["communication", "stakeholder_management"],
+      "preferred_skills": ["program_management", "sales_enablement"],
+      "tools": ["Highspot", "Seismic", "Gong", "Salesforce", "Slack"],
+      "technical_depth": "Low",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [],
+      "next_roles": ["head_of_revops"],
+      "similar_roles": ["sales_ops_manager", "revenue_operations_manager"],
+      "keywords": ["sales enablement", "revenue enablement", "GTM enablement", "ramp", "onboarding", "sales playbook", "battle cards"],
+      "years_experience_typical": "4-8",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: ex-AEs / SDRs / RevOps with enablement-leaning experience; or program managers from learning-and-development pivoting into commercial ops. Stack patterns: Highspot / Seismic / Showpad for content, Gong / Chorus for call review, Salesforce / HubSpot reads, MindTickle / WorkRamp for LMS. High demand at IL B2B SaaS / cyber scaleups scaling beyond 50 quota-carriers — monday.com, JFrog, Gong, HiBob, AppsFlyer, Wiz, SentinelOne, Forter, Cato."
+      }
     }
   ]
 } as const;
