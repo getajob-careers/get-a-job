@@ -294,11 +294,24 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
     { value: "freelance", label: "Freelancing" },
   ];
 
+  // Primary-job-state options are mutually exclusive: you can't simultaneously
+  // have a job, be looking for one, and be unemployed. Picking one clears the
+  // other two. Student + Freelancing stack freely on top (working student,
+  // freelancing while job-hunting are real combinations).
+  const EXCLUSIVE_EMPLOYMENT = ["looking_for_job", "employed", "unemployed"];
+
   const toggleEmploymentStatus = (value) => {
     const current = profileData?.employment_status || [];
-    const updated = current.includes(value)
-      ? current.filter((s) => s !== value)
-      : [...current, value];
+    const isOn = current.includes(value);
+    let updated;
+    if (isOn) {
+      updated = current.filter((s) => s !== value);
+    } else if (EXCLUSIVE_EMPLOYMENT.includes(value)) {
+      // Adding an exclusive status — strip any other exclusive status first.
+      updated = [...current.filter((s) => !EXCLUSIVE_EMPLOYMENT.includes(s)), value];
+    } else {
+      updated = [...current, value];
+    }
     onChange({ employment_status: updated });
   };
 

@@ -145,11 +145,23 @@ function TagEditor({ tags, onChange, placeholder }) {
 
 // Multi-select via tile buttons. For text[] columns where the values are a
 // fixed enum (employment_status, work_environment, work_type).
-function MultiSelectTiles({ options, selected, onChange }) {
+//
+// `exclusiveSubset` — optional list of values that are mutually exclusive
+// with each other (e.g. employment_status has "have a job" / "looking" /
+// "unemployed" — picking one strips the others). Values outside the subset
+// stack freely (Student + Freelancing).
+function MultiSelectTiles({ options, selected, onChange, exclusiveSubset = [] }) {
   const toggle = (val) => {
-    const set = new Set(selected);
-    if (set.has(val)) set.delete(val); else set.add(val);
-    onChange(Array.from(set));
+    const isOn = selected.includes(val);
+    let next;
+    if (isOn) {
+      next = selected.filter((s) => s !== val);
+    } else if (exclusiveSubset.includes(val)) {
+      next = [...selected.filter((s) => !exclusiveSubset.includes(s)), val];
+    } else {
+      next = [...selected, val];
+    }
+    onChange(next);
   };
   return (
     <div className="flex flex-wrap gap-2">
@@ -887,6 +899,7 @@ export default function AddInformation() {
                 options={EMPLOYMENT_STATUS_OPTIONS}
                 selected={profileForm.employment_status}
                 onChange={(v) => setField("employment_status", v)}
+                exclusiveSubset={["looking_for_job", "employed", "unemployed"]}
               />
               <p className="text-[11px] text-[#A3A3A3] mt-1">If you select &quot;Student&quot;, tier scoring caps recommendations at the level you can be hired into now.</p>
             </div>
