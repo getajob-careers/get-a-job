@@ -1,20 +1,21 @@
 {
   "generated_at": "2026-05-18",
-  "total_companies": 709,
+  "total_companies": 831,
   "by_ats": {
-    "unknown": 257,
-    "lever": 23,
-    "ashby": 51,
-    "greenhouse": 154,
+    "unknown": 267,
+    "lever": 24,
+    "ashby": 58,
+    "comeet": 200,
+    "greenhouse": 196,
     "workday": 29,
-    "comeet": 143,
     "custom": 33,
     "eightfold": 3,
     "icims": 1,
-    "smartrecruiters": 11,
-    "workable": 1,
+    "smartrecruiters": 10,
+    "workable": 6,
     "oracle": 1,
     "recruitee": 1,
+    "teamtailor": 1,
     "successfactors": 1
   },
   "companies": [
@@ -65,6 +66,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Static fetch yielded no ATS markers; no greenhouse/lever/ashby/smartrecruiters slug found via web search"
+    },
+    {
+      "name": "4M Analytics",
+      "type": "israeli_founded",
+      "industry": "Geospatial / Utility Mapping",
+      "domain": "4m-analytics.com",
+      "careers_url": "https://www.comeet.com/jobs/4Manalytics/B6.00F",
+      "ats": "comeet",
+      "slug": "B6.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/B6.00F/positions?token=6BF287AD7E1AFCD7E2F39D7E287A21BB1AFC&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 2 positions, 1 IL-tagged. Subsurface/underground utility-mapping analytics."
     },
     {
       "name": "7AI",
@@ -124,7 +137,7 @@
       "slug": "accenture.wd103.myworkdayjobs.com/AccentureCareers",
       "api_url": "https://accenture.wd103.myworkdayjobs.com/wday/cxs/accenture/AccentureCareers/jobs",
       "verified": true,
-      "notes": "Workday tenant verified (2000 jobs); large Israeli office"
+      "notes": "Slug verified. Tenant returns 2000+ jobs globally and rejects searchText='Israel' with HTTP 422 (likely the prior cron failure mode) but accepts locationCountry filter \u2014 1 IL job (Penetration Tester, Kfar Saba). Recommendation: the cron's searchText='Israel' returns 422 here while searchText='' returns 2000 jobs but no Israel-specific filter applied. Slug itself is fine; the cron may want to fall back to locationCountry facet probe when searchText 422s."
     },
     {
       "name": "ActiveFence",
@@ -196,7 +209,7 @@
       "slug": "adobe.wd5.myworkdayjobs.com/external_experienced",
       "api_url": "https://adobe.wd5.myworkdayjobs.com/wday/cxs/adobe/external_experienced/jobs",
       "verified": true,
-      "notes": "Workday tenant verified (1185 jobs); IL R&D presence in Tel Aviv (acquired Magento, Allegorithmic)"
+      "notes": "Slug verified; tenant returns 4 jobs for searchText 'Israel' with 1 explicit Israel location (Penetration Tester / Cyber Security Expert, Kfar Saba). Slug correct, 1 IL job at current snapshot."
     },
     {
       "name": "Adyen",
@@ -221,6 +234,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Proprietary defense recruiter. No public API."
+    },
+    {
+      "name": "Aerospike",
+      "type": "international_il_rd",
+      "industry": "Real-Time NoSQL Database",
+      "domain": "aerospike.com",
+      "careers_url": "https://job-boards.greenhouse.io/aerospike",
+      "ats": "greenhouse",
+      "slug": "aerospike",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/aerospike/jobs?content=true",
+      "verified": true,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" finance search (Senior Account Manager Digital Natives Tel Aviv hybrid). API confirmed 3 IL jobs (Senior Account Executive Digital Natives, Senior Account Manager Digital Natives \u2014 both Tel Aviv)."
     },
     {
       "name": "Affirm",
@@ -331,6 +356,18 @@
       "notes": "Ashby; verified, no confirmed IL R&D but accepts IL applicants"
     },
     {
+      "name": "Aiven",
+      "type": "international_il_rd",
+      "industry": "Cloud Data Infrastructure",
+      "domain": "aiven.io",
+      "careers_url": "https://job-boards.greenhouse.io/aiven36",
+      "ats": "greenhouse",
+      "slug": "aiven36",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/aiven36/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" full stack search (Senior Full Stack Engineer at Hod-Hasaron, Israel). API currently 0 IL \u2014 Hod Hasharon R&D position appears to have been filled."
+    },
+    {
       "name": "Akamai",
       "type": "international_il_rd",
       "industry": "CDN/Security",
@@ -379,6 +416,18 @@
       "notes": "$850M IL early-stage VC. Note: Lever slug 'aleph' is a DIFFERENT company (Aleph Group ad-tech, international locations Latin America/SE Asia/Europe \u2014 NOT the IL VC). Aleph VC has no public ATS."
     },
     {
+      "name": "AlgoSec",
+      "type": "israeli_founded",
+      "industry": "Cyber / Network Security",
+      "domain": "algosec.com",
+      "careers_url": "https://www.algosec.com/careers/",
+      "ats": "comeet",
+      "slug": "71.006",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/71.006/positions?token=1765D874E8C4BB05D82ECA3AA3A176&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML at comeet.com/jobs/algosec/71.006; API returned 26 positions, 5 IL-tagged. Network security policy management, Petach Tikva HQ. Distinct from 71.000 (Comeet's own / unrelated) already in registry."
+    },
+    {
       "name": "Aligned",
       "type": "israeli_founded",
       "industry": "B2B SaaS",
@@ -389,6 +438,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/aligned/jobs",
       "verified": true,
       "notes": "Probed: greenhouse slug 'aligned' returns 200"
+    },
+    {
+      "name": "AllBetter",
+      "type": "israeli_founded",
+      "industry": "Healthcare",
+      "domain": "allbetter.com",
+      "careers_url": "https://www.comeet.com/jobs/allbetter/F8.00E",
+      "ats": "comeet",
+      "slug": "F8.00E",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/F8.00E/positions?token=8FE35F447F047F01AFA50EE23F835F43EF235F4&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 1 position, 1 IL-tagged. Low headcount/openings \u2014 small company."
     },
     {
       "name": "Allot",
@@ -475,6 +536,18 @@
       "notes": "Greenhouse 67 jobs; IL presence emerging (mark_unverified)"
     },
     {
+      "name": "Amwell",
+      "type": "international_il_rd",
+      "industry": "Telehealth",
+      "domain": "business.amwell.com",
+      "careers_url": "https://job-boards.greenhouse.io/amwell",
+      "ats": "greenhouse",
+      "slug": "amwell",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/amwell/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:boards.greenhouse.io \"Ramat Gan\" search (Backend Developer Java with R&D in Ramat Gan). API currently lists 0 IL jobs (Dublin / Remote US / Colombia only). Their Ramat Gan R&D center is real but the role is filled."
+    },
+    {
       "name": "Analog Devices",
       "type": "international_il_rd",
       "industry": "Semiconductors",
@@ -521,6 +594,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/F9.00B/positions?token=9FB45DD1DF11DF113F69FB59D345DD13F61DF1&details=true",
       "verified": true,
       "notes": "Comeet UID F9.00B + token verified from comeet.com hosted page"
+    },
+    {
+      "name": "Anina Culinary Art",
+      "type": "israeli_founded",
+      "industry": "Foodtech / Upcycled Ready Meals",
+      "domain": "anina.com",
+      "careers_url": "https://anina.com/",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Rishon LeZion-based foodtech, $13M raised, ~12-18 employees. No careers page or visible ATS link from anina.com (only Our Story / Contact / FAQs / Store Locator). Hiring activity visible only on LinkedIn. Skipped."
     },
     {
       "name": "Annoto",
@@ -667,6 +752,18 @@
       "notes": "No ATS found via search"
     },
     {
+      "name": "AposHealth",
+      "type": "israeli_founded",
+      "industry": "Healthtech / Musculoskeletal Devices",
+      "domain": "aposhealth.com",
+      "careers_url": "https://www.aposhealth.com/careers/",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Israel + US/UK ops, FDA-cleared gait device for knee osteoarthritis. Careers page does not expose ATS URLs. Skipped \u2014 needs deeper inspection."
+    },
+    {
       "name": "Appcharge",
       "type": "israeli_founded",
       "industry": "Gaming",
@@ -701,6 +798,18 @@
       "api_url": null,
       "verified": false,
       "notes": "NEW. Uses Eightfold AI (app.eightfold.ai/careers?domain=appliedmaterials.com) \u2014 not one of our supported ATSs. Migrated from Taleo/PeopleSoft. AMAT Israel R&D in Rehovot + Migdal HaEmek."
+    },
+    {
+      "name": "AppLovin",
+      "type": "international_il_rd",
+      "industry": "Adtech / Mobile Marketing",
+      "domain": "applovin.com",
+      "careers_url": "https://job-boards.greenhouse.io/applovin",
+      "ats": "greenhouse",
+      "slug": "applovin",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/applovin/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Herzliya\" search (Business Development Manager eCommerce). Greenhouse board redirects to www.applovin.com/careers \u2014 they no longer host on Greenhouse. Skip."
     },
     {
       "name": "Appnext",
@@ -799,6 +908,18 @@
       "notes": "Probed: smartrecruiters slug 'armis' has jobs"
     },
     {
+      "name": "Armis Security",
+      "type": "israeli_founded",
+      "industry": "Cybersecurity / Cyber Exposure Management",
+      "domain": "armis.com",
+      "careers_url": "https://job-boards.greenhouse.io/armissecurity",
+      "ats": "greenhouse",
+      "slug": "armissecurity",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/armissecurity/jobs?content=true",
+      "verified": true,
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" product manager search; API confirmed 1 IL job (Engineering Manager - Development Platform \u2014 Tel Aviv)."
+    },
+    {
       "name": "ARMO",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -833,6 +954,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Merger of Yigal Arnon and Tadmor Levy. Top-tier IL firm. No third-party ATS. BONUS."
+    },
+    {
+      "name": "Arpeely",
+      "type": "israeli_founded",
+      "industry": "AdTech / RTB ML",
+      "domain": "arpeely.com",
+      "careers_url": "https://www.arpeely.com/joinus",
+      "ats": "comeet",
+      "slug": "57.001",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/57.001/positions?token=7512BE615F3249541D91D4415F31D4441D9EA2&details=true",
+      "verified": true,
+      "notes": "UID + token extracted from comeetvar JSON in static HTML at https://www.comeet.com/jobs/arpeely/57.001; API returned 8 positions, 8 IL-tagged. Tel Aviv-based ML/RTB ad-tech."
     },
     {
       "name": "Asana",
@@ -871,6 +1004,18 @@
       "notes": "Greenhouse 6 jobs; mark_unverified for IL"
     },
     {
+      "name": "Astera Labs",
+      "type": "international_il_rd",
+      "industry": "Semiconductors / AI Infrastructure",
+      "domain": "asteralabs.com",
+      "careers_url": "https://job-boards.greenhouse.io/asteralabs",
+      "ats": "greenhouse",
+      "slug": "asteralabs",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/asteralabs/jobs?content=true",
+      "verified": true,
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Haifa\" Greenhouse search and Israel agritech search; API confirmed 2 IL jobs (ASIC Design Student \u2014 Tel Aviv/Haifa; Chip Lead \u2014 Senior Director option)."
+    },
+    {
       "name": "Astrix Security",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -901,10 +1046,10 @@
       "domain": "at-bay.com",
       "careers_url": "https://www.at-bay.com/careers/",
       "ats": "greenhouse",
-      "slug": "atbay",
-      "api_url": "https://boards-api.greenhouse.io/v1/boards/atbay/jobs",
+      "slug": "atbayjobs",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/atbayjobs/jobs?content=true",
       "verified": true,
-      "notes": "Probed: greenhouse slug 'atbay' returns 200"
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" account executive search; board page confirmed 1 IL job (Help Desk Specialist Part Time \u2014 Tel Aviv-Yafo, Gush Dan)."
     },
     {
       "name": "Atera",
@@ -939,8 +1084,8 @@
       "ats": "workday",
       "slug": "atlassian.wd1.myworkdayjobs.com/External",
       "api_url": "https://atlassian.wd1.myworkdayjobs.com/wday/cxs/atlassian/External/jobs",
-      "verified": true,
-      "notes": "Workday tenant verified; IL via Halp/Mindville acquisition + remote"
+      "verified": false,
+      "notes": "Workday tenant returns HTTP 422 for all searchText variants and the landing page (https://atlassian.wd1.myworkdayjobs.com/External) redirects to community.workday.com/maintenance-page (HTTP 500). Tried payloads with/without searchText/Israel/locations facets \u2014 all fail. Atlassian still posts 23+ IL jobs via LinkedIn (atlassian.com/company/careers/all-jobs) but does not expose a working Workday cxs endpoint. Tenant appears to have migrated away from public Workday or kept it locked down. No supported-ATS fix found."
     },
     {
       "name": "AU10TIX",
@@ -977,6 +1122,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/augury/jobs",
       "verified": true,
       "notes": "Careers page is JS-rendered Comeet iframe. URL pattern '/careers/<job-id>/' matches Comeet. Could not extract UID+token from static HTML during 3 ops. Israeli-founded industrial IoT, HQ NYC + R&D Haifa. Worth re-attempting with headless browser."
+    },
+    {
+      "name": "AutoDS",
+      "type": "israeli_founded",
+      "industry": "E-commerce / Dropshipping Automation",
+      "domain": "autods.com",
+      "careers_url": "https://job-boards.greenhouse.io/autods",
+      "ats": "greenhouse",
+      "slug": "autods",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/autods/jobs?content=true",
+      "verified": true,
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" marketing search; API confirmed 5 IL jobs (Content Presenter YouTube&Video, Director of Partnerships, Paid Social UA Manager \u2014 all Tel Aviv hybrid)."
     },
     {
       "name": "Autofleet",
@@ -1123,6 +1280,18 @@
       "notes": "Proprietary careers portal. No public API."
     },
     {
+      "name": "Battery Ventures",
+      "type": "international_il_rd",
+      "industry": "Venture Capital / Private Equity",
+      "domain": "battery.com",
+      "careers_url": "https://job-boards.greenhouse.io/batteryventures",
+      "ats": "greenhouse",
+      "slug": "batteryventures",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/batteryventures/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" intern search (2027 Summer Investment Internship \u2014 Boston/NY/SF rather than TLV). Tel Aviv office exists per company description but API shows 0 IL jobs."
+    },
+    {
       "name": "BCG (Boston Consulting Group) Israel",
       "type": "israeli_subsidiary",
       "industry": "Consulting / MBB",
@@ -1145,6 +1314,18 @@
       "api_url": null,
       "verified": false,
       "notes": "BDO Israel \u2014 ~1600 employees, established 1983. Proprietary Hebrew careers page; no third-party ATS in supported set. BONUS."
+    },
+    {
+      "name": "Beamr",
+      "type": "israeli_founded",
+      "industry": "Video / Media Tech",
+      "domain": "beamr.com",
+      "careers_url": "https://careers.beamr.com",
+      "ats": "comeet",
+      "slug": "A9.00B",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/A9.00B/positions?token=9AB43AD9AB57039AB135643AD43AD1D011D01&details=true",
+      "verified": false,
+      "notes": "UID + token from static HTML; API returned 1 position (Serbia), 0 IL-tagged. Comeet wiring valid but currently no IL openings \u2014 fails strict 'at least 1 IL position' rule. Israeli-founded (Herzliya HQ), Nasdaq-listed; re-check later when hiring resumes in IL."
     },
     {
       "name": "BeamUp",
@@ -1315,6 +1496,18 @@
       "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.blinkops.com/careers)"
     },
     {
+      "name": "BlinkOps",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity (Automation)",
+      "domain": "blinkops.com",
+      "careers_url": "https://www.blinkops.com/careers",
+      "ats": "comeet",
+      "slug": "c7.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/c7.004/positions?token=7C42E981F101F10365C174C2E98F88F880&details=true",
+      "verified": true,
+      "notes": "Raised $50M Jul 2025. SecOps no-code automation. Comeet slug \"blinkops\", UID c7.004 + token 7C42E981F101F10365C174C2E98F88F880. Verified: 19 jobs, 8 IL."
+    },
+    {
       "name": "Block (Square)",
       "type": "international_il_rd",
       "industry": "Fintech/Payments",
@@ -1348,7 +1541,7 @@
       "slug": "bloomberg",
       "api_url": "https://bloomberg.wd1.myworkdayjobs.com/wday/cxs/bloomberg/Bloombergindustrygroup_External_Career_Site/jobs",
       "verified": true,
-      "notes": "Bloomberg TLV engineering office (financial services + AI Research); 61 jobs on this tenant"
+      "notes": "Slug verified; tenant returns 61 jobs globally (Arlington VA) and 0 IL jobs at current snapshot. Bloomberg TLV historically existed but no IL roles in this Workday tenant right now. Leave as-is."
     },
     {
       "name": "Bloomreach",
@@ -1407,8 +1600,8 @@
       "ats": "workday",
       "slug": "booking.wd3.myworkdayjobs.com/jobs",
       "api_url": "https://booking.wd3.myworkdayjobs.com/wday/cxs/booking/jobs/jobs",
-      "verified": true,
-      "notes": "Workday tenant verified; IL R&D via Etraveli (and inherited from Priceline group)"
+      "verified": false,
+      "notes": "Original slug https://booking.wd3.myworkdayjobs.com/jobs returns HTTP 401 (system credentials) and the public host redirects to community.workday.com/invalid-url. Booking Holdings (parent) is hosted under https://priceline.wd1.myworkdayjobs.com/BookingHoldings \u2014 that endpoint works (returns global jobs) but yields 0 IL jobs for searchText Israel/Tel Aviv and probably wouldn't be tagged as Booking.com specifically. Recommend marking Booking.com Workday as unsupported; their Tel Aviv ML Center hires via careers.booking.com (custom)."
     },
     {
       "name": "Bosch",
@@ -1435,6 +1628,18 @@
       "notes": "Uses careers.bcg.com proprietary system \u2014 no third-party ATS"
     },
     {
+      "name": "Bounce",
+      "type": "israeli_founded",
+      "industry": "Fintech / Debt Management",
+      "domain": "bounceai.com",
+      "careers_url": "https://careers.bounceai.com",
+      "ats": "comeet",
+      "slug": "E9.00C",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/E9.00C/positions?token=9EC45741DC40594C4F6013D81DC413D81DC4&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML at comeet.com/jobs/bounce/E9.00C; API returned 8 positions, 2 IL-tagged. Fintech revolutionizing debt management."
+    },
+    {
       "name": "Box",
       "type": "international_il_rd",
       "industry": "B2B SaaS / Storage",
@@ -1445,6 +1650,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/boxinc/jobs",
       "verified": true,
       "notes": "Greenhouse (slug=boxinc); enterprise storage"
+    },
+    {
+      "name": "BrainPOP",
+      "type": "international_il_rd",
+      "industry": "EdTech",
+      "domain": "brainpop.com",
+      "careers_url": "https://job-boards.greenhouse.io/brainpop",
+      "ats": "greenhouse",
+      "slug": "brainpop",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/brainpop/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" frontend search (Senior Full Stack Developer Tel Aviv). API currently 0 IL jobs (only NJ/NY/CA US positions)."
     },
     {
       "name": "Branch Money",
@@ -1561,10 +1778,10 @@
       "domain": "broadcom.com",
       "careers_url": "https://www.broadcom.com/company/careers",
       "ats": "workday",
-      "slug": "broadcom.wd1.myworkdayjobs.com/External_Career_Site",
-      "api_url": "https://broadcom.wd1.myworkdayjobs.com/wday/cxs/broadcom/External_Career_Site/jobs",
+      "slug": "broadcom.wd1.myworkdayjobs.com/External_Career",
+      "api_url": "https://broadcom.wd1.myworkdayjobs.com/wday/cxs/broadcom/External_Career/jobs",
       "verified": true,
-      "notes": "Workday tenant verified; absorbed VMware (IL: Carmel office) + Symantec"
+      "notes": "Old site name 'External_Career_Site' returns HTTP 404 not found. Correct site name is 'External_Career'. Probe with searchText 'Tel Aviv' returns 3 IL jobs (DFT Engineer, ASIC Verification Engineer at ISR-Tel Aviv University). Suggest updating slug to broadcom.wd1.myworkdayjobs.com/External_Career and api_url to https://broadcom.wd1.myworkdayjobs.com/wday/cxs/broadcom/External_Career/jobs."
     },
     {
       "name": "Buildots",
@@ -1747,6 +1964,30 @@
       "notes": "Comeet UID C1.00A found; token not extractable from comeet hosted page"
     },
     {
+      "name": "Cerebras Systems",
+      "type": "international_il_rd",
+      "industry": "AI Compute / Wafer-scale Chips",
+      "domain": "cerebras.ai",
+      "careers_url": "https://job-boards.greenhouse.io/cerebrassystems",
+      "ats": "greenhouse",
+      "slug": "cerebrassystems",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/cerebrassystems/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via \"job-boards.greenhouse.io\" Cyera careers search showing Cerebras as a Greenhouse user. API confirmed 0 IL jobs (Sunnyvale/Toronto/Vancouver only) \u2014 no Israel R&D presence confirmed."
+    },
+    {
+      "name": "Chainalysis",
+      "type": "international_il_rd",
+      "industry": "Blockchain Analytics / Cybersecurity",
+      "domain": "chainalysis.com",
+      "careers_url": "https://jobs.ashbyhq.com/chainalysis-careers",
+      "ats": "ashby",
+      "slug": "chainalysis-careers",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/chainalysis-careers?includeCompensation=true",
+      "verified": true,
+      "notes": "US-founded blockchain analytics firm with a substantial Tel Aviv R&D office (Hexagate team integration). Ashby API verified 200 \u2014 2 IL jobs confirmed (Senior Product Specialist Tel Aviv; Senior Software Engineer Hexagate Tel Aviv). Discovered via site:jobs.ashbyhq.com 'Tel Aviv' site search."
+    },
+    {
       "name": "ChainGuard",
       "type": "international_il_rd",
       "industry": "Cybersecurity / Open Source Supply Chain",
@@ -1927,6 +2168,18 @@
       "notes": "Probed: greenhouse slug 'clear' returns 200"
     },
     {
+      "name": "ClickHouse",
+      "type": "international_il_rd",
+      "industry": "Open-Source OLAP Database",
+      "domain": "clickhouse.com",
+      "careers_url": "https://job-boards.greenhouse.io/clickhouse",
+      "ats": "greenhouse",
+      "slug": "clickhouse",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/clickhouse/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" remote Python search (Senior Software Engineer Python and Data Ecosystem listed as eligible for remote-Israel). API currently 0 IL \u2014 they may add IL-eligible remote roles selectively."
+    },
+    {
       "name": "Cloudflare",
       "type": "international_il_rd",
       "industry": "Cloud / Security / CDN",
@@ -1997,6 +2250,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Small edtech; no public ATS found"
+    },
+    {
+      "name": "CodeValue",
+      "type": "israeli_founded",
+      "industry": "Software Consulting / IT Services",
+      "domain": "codevalue.net",
+      "careers_url": "https://www.comeet.com/jobs/codevalue/81.009",
+      "ats": "comeet",
+      "slug": "81.009",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/81.009/positions?token=1896249367AD189DD1C48ABFDD1189&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 19 positions, 19 IL-tagged. Israeli software development consultancy."
     },
     {
       "name": "CodiumAI",
@@ -2095,6 +2360,30 @@
       "notes": "compete.ai \u2014 no ATS found via search"
     },
     {
+      "name": "Compugen",
+      "type": "israeli_founded",
+      "industry": "Biotech / Computational Oncology",
+      "domain": "cgen.com",
+      "careers_url": "https://cgen.com/careers/",
+      "ats": "comeet",
+      "slug": "cgen/D9.00E",
+      "api_url": "https://www.comeet.com/jobs/cgen/D9.00E",
+      "verified": false,
+      "notes": "Comeet board confirmed via cgen.com/careers/co/israel listings. Holon HQ, San Francisco corporate office, immuno-oncology. Current snapshot returns no open Comeet listings but careers page itself shows roles. Add as unverified; expect intermittent IL roles."
+    },
+    {
+      "name": "Comunix",
+      "type": "israeli_founded",
+      "industry": "Mobile Gaming / Social",
+      "domain": "comunix.com",
+      "careers_url": "https://apply.workable.com/comunix/",
+      "ats": "workable",
+      "slug": "comunix",
+      "api_url": null,
+      "verified": false,
+      "notes": "Israeli social mobile gaming startup based in central Tel Aviv (makers of Pokerface). Founded 2019, raised $30M Series A in 2021. Uses Workable; slug 'comunix' confirmed. Would need Workable fetcher."
+    },
+    {
       "name": "Confluent",
       "type": "international_il_rd",
       "industry": "Data Infrastructure",
@@ -2179,6 +2468,18 @@
       "notes": "Comeet UID + token extracted from careers page HTML (source: https://coralogix.com/careers/)"
     },
     {
+      "name": "Corelight",
+      "type": "international_il_rd",
+      "industry": "Network Detection & Response Cybersecurity",
+      "domain": "corelight.com",
+      "careers_url": "https://job-boards.greenhouse.io/corelight",
+      "ats": "greenhouse",
+      "slug": "corelight",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/corelight/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" SDR search (Sales Engineer - Israel). API currently 0 IL \u2014 they hire periodically in Israel."
+    },
+    {
       "name": "Coro",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -2225,6 +2526,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/cresta/jobs",
       "verified": true,
       "notes": "118 jobs; some IL eng (mark_unverified)"
+    },
+    {
+      "name": "Cross River",
+      "type": "israeli_founded",
+      "industry": "Fintech / Banking",
+      "domain": "crossriver.com",
+      "careers_url": "https://www.comeet.com/jobs/crossriver/C7.00F",
+      "ats": "comeet",
+      "slug": "C7.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/C7.00F/positions?token=7CF2EDA1F3C270B1F3CF9E4647270B4647270B&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML at comeet.com/jobs/crossriver/C7.00F; API returned 15 positions, 15 IL-tagged. Banking-as-a-Service fintech with large IL R&D centre. Distinct from C7.004 already in registry."
     },
     {
       "name": "Cyabra",
@@ -2515,6 +2828,30 @@
       "notes": "Verified: 409 jobs via Greenhouse; small IL footprint via acquisitions"
     },
     {
+      "name": "Dataiku",
+      "type": "international_il_rd",
+      "industry": "Data Science / MLOps Platform",
+      "domain": "dataiku.com",
+      "careers_url": "https://job-boards.greenhouse.io/dataiku",
+      "ats": "greenhouse",
+      "slug": "dataiku",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/dataiku/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" SDR search (Senior Sales Engineer - Israel posting). API currently shows 0 IL jobs in the board snapshot."
+    },
+    {
+      "name": "Datarails",
+      "type": "international_il_rd",
+      "industry": "FinTech (FP&A)",
+      "domain": "datarails.com",
+      "careers_url": "https://www.datarails.com/careers",
+      "ats": "greenhouse",
+      "slug": "datarails",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/datarails/jobs?content=true",
+      "verified": true,
+      "notes": "Series C Jan 2026 $70M. FP&A software. Greenhouse 5 jobs, 1 IL. Also has a Comeet board (53.005, 0 jobs at time of check)."
+    },
+    {
       "name": "DealHub",
       "type": "israeli_founded",
       "industry": "B2B SaaS",
@@ -2548,7 +2885,7 @@
       "slug": "nvidia.wd5.myworkdayjobs.com/login",
       "api_url": "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/login/jobs",
       "verified": true,
-      "notes": "Detected via external link https://jobs.nvidia.com/careers: workday tenant 'nvidia'"
+      "notes": "Detected via external link https://jobs.nvidia.com/careers: workday tenant 'nvidia' | R4: agent's slug fix would duplicate another entry \u2014 skipped."
     },
     {
       "name": "Deel",
@@ -2585,6 +2922,18 @@
       "api_url": null,
       "verified": false,
       "notes": "No ATS hit"
+    },
+    {
+      "name": "DeepMind",
+      "type": "international_il_rd",
+      "industry": "AI Research",
+      "domain": "deepmind.com",
+      "careers_url": "https://job-boards.greenhouse.io/deepmind",
+      "ats": "greenhouse",
+      "slug": "deepmind",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/deepmind/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" search (Research Scientist Multimodal Generation open to Tel Aviv among other hubs). API currently shows 0 IL-only jobs but TLV is listed as an option in at least one cross-location role; mark unverified for IL primary location."
     },
     {
       "name": "Definity",
@@ -2680,7 +3029,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "GH slug 'diagnosticrobotics' shown in search but boards-api returns 404 \u2014 board may be set to internal"
+      "notes": "Already in registry (note: actual ATS appears to be Workable apply.workable.com/diagnostic-robotics \u2014 Workable not in supported list. Existing registry entry may need ATS audit)."
     },
     {
       "name": "DigitalOwl",
@@ -2743,6 +3092,18 @@
       "notes": "Comeet UID 07.003 + token verified"
     },
     {
+      "name": "DoiT International",
+      "type": "israeli_founded",
+      "industry": "Cloud Consulting / FinOps",
+      "domain": "doit-intl.com",
+      "careers_url": "https://job-boards.greenhouse.io/doitintl",
+      "ats": "greenhouse",
+      "slug": "doitintl",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/doitintl/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" full stack search (Applied AI Engineer remote in Israel; Full Stack Engineer FE-Oriented). API currently 0 IL \u2014 Israel-remote roles cycle."
+    },
+    {
       "name": "DoorDash",
       "type": "international_il_rd",
       "industry": "Food Delivery/Mobility",
@@ -2755,6 +3116,30 @@
       "notes": "NEW (extra). Greenhouse verified \u2014 468 total postings (slug is doordashusa not doordash). DoorDash IL R&D in Tel Aviv (acquired Wolt's IL team via Wolt acquisition)."
     },
     {
+      "name": "DoorLoop",
+      "type": "israeli_founded",
+      "industry": "PropTech / Property Management",
+      "domain": "doorloop.com",
+      "careers_url": "https://www.doorloop.com/careers",
+      "ats": "comeet",
+      "slug": "0A.006",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/0A.006/positions?token=A06462A1E122818321EA061E12028181E12&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML at comeet.com/jobs/doorloop/0A.006; API returned 5 positions, 2 IL-tagged. PropTech for property managers, TLV R&D."
+    },
+    {
+      "name": "DoorLoop Israel",
+      "type": "israeli_founded",
+      "industry": "Property Management Software",
+      "domain": "doorloop.com",
+      "careers_url": "https://job-boards.greenhouse.io/doorloopisrael",
+      "ats": "greenhouse",
+      "slug": "doorloopisrael",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/doorloopisrael/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:boards.greenhouse.io \"Israel\" search (DoorLoop Israel board listed). API returns 404 \u2014 board may have been retired or merged into a parent slug."
+    },
+    {
       "name": "Doral Energy",
       "type": "israeli_founded",
       "industry": "Energy / Renewables",
@@ -2765,6 +3150,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Proprietary. No public API."
+    },
+    {
+      "name": "DoubleVerify",
+      "type": "international_il_rd",
+      "industry": "Adtech / Brand Safety",
+      "domain": "doubleverify.com",
+      "careers_url": "https://job-boards.greenhouse.io/doubleverify",
+      "ats": "greenhouse",
+      "slug": "doubleverify",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/doubleverify/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" R&D engineer search (Senior AI Engineer mentions Tel Aviv R&D). API currently shows 0 IL-located jobs but the Tel Aviv R&D center is referenced in postings \u2014 mark unverified."
     },
     {
       "name": "Drata",
@@ -2801,6 +3198,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/dropbox/jobs",
       "verified": true,
       "notes": "Greenhouse; cloud storage, IL contributors"
+    },
+    {
+      "name": "Duda",
+      "type": "israeli_founded",
+      "industry": "Website Building SaaS",
+      "domain": "duda.co",
+      "careers_url": "https://job-boards.greenhouse.io/duda",
+      "ats": "greenhouse",
+      "slug": "duda",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/duda/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" enterprise sales search; company description (\"teams across US, Israel, Canada, Brazil, UK\"). API currently shows 0 IL jobs (only Brazil and US positions live)."
     },
     {
       "name": "Duolingo",
@@ -2859,8 +3268,8 @@
       "ats": "workday",
       "slug": "ebayinc.wd1.myworkdayjobs.com/jobs",
       "api_url": "https://ebayinc.wd1.myworkdayjobs.com/wday/cxs/ebayinc/jobs/jobs",
-      "verified": true,
-      "notes": "Workday tenant verified; IL R&D in Netanya (acquired Hunch, GittiGidiyor not IL but team in IL)"
+      "verified": false,
+      "notes": "Workday tenant ebayinc.wd1.myworkdayjobs.com returns 500 maintenance page and cxs endpoint returns 422. eBay has migrated to Phenom People (cdn.phenompeople.com / CareerConnectResources/EBAEBAUS) hosted at jobs.ebayinc.com \u2014 not a supported ATS. eBay still has 39+ IL jobs (Netanya, Tel Aviv) per LinkedIn but they aren't reachable via Workday API anymore. Recommend removing from Workday cron or switching to scraping jobs.ebayinc.com."
     },
     {
       "name": "ECI Telecom",
@@ -2897,6 +3306,30 @@
       "api_url": null,
       "verified": false,
       "notes": "Cooperative. Proprietary. No public API."
+    },
+    {
+      "name": "Eitan Medical",
+      "type": "israeli_founded",
+      "industry": "Medical Device / Drug Delivery",
+      "domain": "eitanmedical.com",
+      "careers_url": "https://www.comeet.com/jobs/eitanmedical/C6.00F",
+      "ats": "comeet",
+      "slug": "C6.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/C6.00F/positions?token=6CF28DAD9E220B6CFD9E220B2FA901B3C&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 10 positions, 8 IL-tagged. Drug delivery / infusion solutions; distinct from C6.001 and C6.00E already in registry."
+    },
+    {
+      "name": "Eko",
+      "type": "israeli_founded",
+      "industry": "Interactive Video Tech",
+      "domain": "eko.com",
+      "careers_url": "https://job-boards.greenhouse.io/eko",
+      "ats": "greenhouse",
+      "slug": "eko",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/eko/jobs?content=true",
+      "verified": true,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" legal counsel search (General Counsel at Eko Tel Aviv). API confirmed 1 IL job (DevOps Engineer \u2014 Tel Aviv)."
     },
     {
       "name": "El Al",
@@ -3067,6 +3500,30 @@
       "notes": "Detected greenhouse iframe slug 'tenableinc'"
     },
     {
+      "name": "eScribers",
+      "type": "international_il_rd",
+      "industry": "Legal Transcription",
+      "domain": "escribers.net",
+      "careers_url": "https://job-boards.greenhouse.io/escribers",
+      "ats": "greenhouse",
+      "slug": "escribers",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/escribers/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:boards.greenhouse.io \"Israel\" search; company description mentions Israel as one of their office locations but 0 IL jobs currently posted (US/UK roles only)."
+    },
+    {
+      "name": "esh",
+      "type": "israeli_founded",
+      "industry": "Enterprise SaaS",
+      "domain": "esh.co.il",
+      "careers_url": "https://www.comeet.com/jobs/esh/87.003",
+      "ats": "comeet",
+      "slug": "87.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/87.003/positions?token=7832D121689439B1E0C439B34953C180F06&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 1 position, 1 IL-tagged (VP Finance, Tel Aviv)."
+    },
+    {
       "name": "eToro",
       "type": "israeli_founded",
       "industry": "FinTech",
@@ -3103,6 +3560,30 @@
       "notes": "Ashby; AI search infrastructure"
     },
     {
+      "name": "Exodigo",
+      "type": "israeli_founded",
+      "industry": "Subsurface Mapping / Geophysics",
+      "domain": "exodigo.com",
+      "careers_url": "https://www.exodigo.com/open-positions",
+      "ats": "comeet",
+      "slug": "89.005",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/89.005/positions?token=98542A398504C28391E130A391E391E2614&details=true",
+      "verified": true,
+      "notes": "Series B Jul 2025 $96M at $700M valuation. AI subsurface (underground) mapping for construction/utilities/transport. Comeet UID 89.005 + token 98542A398504C28391E130A391E391E2614. Verified: 41 jobs, 11 IL."
+    },
+    {
+      "name": "ExpressVPN",
+      "type": "international_il_rd",
+      "industry": "Consumer VPN / Privacy",
+      "domain": "expressvpn.com",
+      "careers_url": "https://job-boards.greenhouse.io/expressvpn",
+      "ats": "greenhouse",
+      "slug": "expressvpn",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/expressvpn/jobs?content=true",
+      "verified": true,
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" cybersecurity search; API confirmed 5 IL jobs (AI Customer Support, Customer Success Data Lead, Head of DevOps, Head of Influencer Marketing, Head of Product Growth \u2014 all Tel Aviv)."
+    },
+    {
       "name": "EY (Ernst & Young)",
       "type": "international_il_rd",
       "industry": "Consulting",
@@ -3137,6 +3618,18 @@
       "api_url": "https://ffive.wd5.myworkdayjobs.com/wday/cxs/ffive/f5jobs/jobs",
       "verified": true,
       "notes": "NEW (extra). Workday verified \u2014 searchText=Israel returns 3 jobs (Tel Aviv: Sr TPM, Solutions Engineer Defence Sector). F5 IL R&D in Tel Aviv (acquired NGINX + Threat Stack-not-IL + Volterra)."
+    },
+    {
+      "name": "Factify",
+      "type": "international_il_rd",
+      "industry": "Document AI",
+      "domain": "factify.com",
+      "careers_url": "https://www.factify.com/careers",
+      "ats": "comeet",
+      "slug": "A9.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/A9.00F/positions?token=9AF43C9135E09AF5727306B043C93A1A&details=true",
+      "verified": false,
+      "notes": "Seed Jan 2026 $63M (mega-seed). Smart document platform replacing PDFs. Comeet UID A9.00F + token 9AF43C9135E09AF5727306B043C93A1A verified. API returns 0 current positions but board exists \u2014 early-stage hiring may be private. Industry-leading round size for an Israeli seed."
     },
     {
       "name": "Faddom",
@@ -3281,6 +3774,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Large security firm \u2014 no obvious ATS in search; uses custom careers system"
+    },
+    {
+      "name": "Foresight Automotive",
+      "type": "israeli_founded",
+      "industry": "Defense / Autonomous Vehicles / Computer Vision",
+      "domain": "foresightauto.com",
+      "careers_url": "https://www.foresightauto.com/careers/",
+      "ats": "comeet",
+      "slug": "foresightauto/13.000",
+      "api_url": "https://www.comeet.com/jobs/foresightauto/13.000",
+      "verified": false,
+      "notes": "Comeet board referenced from foresightauto.com/careers. Nasdaq-listed (FRSX), Ness Ziona HQ, dual-use civilian + defense computer vision. Current snapshot shows board live but no open positions. Add as unverified."
     },
     {
       "name": "Foresight Autonomous",
@@ -3631,6 +4136,30 @@
       "notes": "Comeet UID F2.008 found (acquired by Akamai); token not extracted"
     },
     {
+      "name": "Guardio",
+      "type": "international_il_rd",
+      "industry": "Consumer Cybersecurity",
+      "domain": "guard.io",
+      "careers_url": "https://guardio.com/careers",
+      "ats": "comeet",
+      "slug": "57.000",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/57.000/positions?token=7502BE015F0249041D01D40EA03A801D40EA0&details=true",
+      "verified": true,
+      "notes": "Raised $80M Nov 2025. Consumer anti-phishing browser protection. Comeet UID 57.000 + token 7502BE015F0249041D01D40EA03A801D40EA0. Verified: 21 jobs, all 21 in IL."
+    },
+    {
+      "name": "Guardz",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity (MSP)",
+      "domain": "guardz.com",
+      "careers_url": "https://www.guardz.com/careers",
+      "ats": "greenhouse",
+      "slug": "guardz",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/guardz/jobs?content=true",
+      "verified": true,
+      "notes": "Raised $56M Jun 2025. MSP-focused cybersecurity platform. Verified: 11 jobs, 7 IL."
+    },
+    {
       "name": "Guesty",
       "type": "israeli_founded",
       "industry": "PropTech",
@@ -3655,6 +4184,18 @@
       "notes": "Probed: greenhouse slug 'guidde' returns 200"
     },
     {
+      "name": "Guideline",
+      "type": "israeli_founded",
+      "industry": "Fintech / Retirement",
+      "domain": "guideline.com",
+      "careers_url": "https://www.comeet.com/jobs/guideline/89.009",
+      "ats": "comeet",
+      "slug": "89.009",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/89.009/positions?token=98942BF98998939361C9B39361C9B2FAD989&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML at comeet.com/jobs/guideline/89.009; API returned 17 positions, 17 IL-tagged. US-founded retirement fintech but has significant IL R&D footprint per Comeet IL tags \u2014 treat as IL R&D hub."
+    },
+    {
       "name": "Gusto",
       "type": "international_il_rd",
       "industry": "HR / Payroll",
@@ -3665,6 +4206,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/gusto/jobs",
       "verified": true,
       "notes": "Greenhouse 76 jobs; mark_unverified for IL"
+    },
+    {
+      "name": "H2Pro",
+      "type": "israeli_founded",
+      "industry": "Climatetech / Green Hydrogen",
+      "domain": "h2pro.co",
+      "careers_url": "https://www.h2pro.co/careers",
+      "ats": "comeet",
+      "slug": "h2pro/A7.001",
+      "api_url": "https://www.comeet.com/jobs/h2pro/A7.001",
+      "verified": false,
+      "notes": "Comeet board confirmed (referenced from h2pro.co/careers and Comeet job links). Current snapshot returns 'no open positions' on Comeet \u2014 board active but empty. H2Pro is one of the most well-funded IL climatetech scaleups (decoupled electrolysis, Caesarea). Add to registry as unverified=false until jobs appear; cron will catch."
     },
     {
       "name": "Haat",
@@ -3907,6 +4460,18 @@
       "notes": "NEW. Huawei uses career.huawei.com \u2014 proprietary Chinese enterprise career system (campus4_index.html). No public ATS API. Huawei Israel R&D in Tel Aviv + Hod HaSharon (acquired Toga Networks + HexaTier + Sapience)."
     },
     {
+      "name": "HUB Cyber Security",
+      "type": "israeli_founded",
+      "industry": "Cyber Security",
+      "domain": "hubsecurity.com",
+      "careers_url": "https://www.comeet.com/jobs/hub-technologies/07.00F",
+      "ats": "comeet",
+      "slug": "07.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/07.00F/positions?token=70F2A5A152D70F70F316903F8770F3169&details=true",
+      "verified": false,
+      "notes": "UID + token from static HTML; API returned valid empty array (0 positions, 0 IL). Comeet wiring confirmed but no current openings \u2014 fails strict 'at least 1 IL position' rule. Company also had public legal/financial issues; may be in wind-down."
+    },
+    {
       "name": "HubSpot",
       "type": "international_il_rd",
       "industry": "Marketing / CRM SaaS",
@@ -3943,6 +4508,30 @@
       "notes": "Comeet UID 67.007 + token verified (note: different from Huntress)"
     },
     {
+      "name": "Hypercore",
+      "type": "international_il_rd",
+      "industry": "Construction Finance",
+      "domain": "hypercore.com",
+      "careers_url": "https://jobs.ashbyhq.com/hypercore",
+      "ats": "ashby",
+      "slug": "hypercore",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/hypercore?includeCompensation=true",
+      "verified": true,
+      "notes": "Series A Feb 2026 $13.5M. Verified: 4 jobs, 2 IL."
+    },
+    {
+      "name": "Hypernative",
+      "type": "international_il_rd",
+      "industry": "Crypto / Web3 Security",
+      "domain": "hypernative.io",
+      "careers_url": "https://www.hypernative.io/careers",
+      "ats": "comeet",
+      "slug": "8A.00E",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/8A.00E/positions?token=A8E49E234C634C62A385EFE49E22A38A8E151C&details=true",
+      "verified": true,
+      "notes": "Series B Jun 2025 $40M. \"Pre-Cog\" platform for Web3 threat detection. HQ Herzliya. Comeet UID 8A.00E + token A8E49E234C634C62A385EFE49E22A38A8E151C. Verified: 17 jobs, 11 IL."
+    },
+    {
       "name": "Hyro",
       "type": "israeli_founded",
       "industry": "AI/ML",
@@ -3965,6 +4554,18 @@
       "api_url": null,
       "verified": false,
       "notes": "ALREADY IN REGISTRY (unverified). Skip \u2014 IBM uses a proprietary IBM Talent careers.ibm.com system (formerly TAM). Major IL R&D (Haifa Research Lab, Red Hat IL, Trusteer)."
+    },
+    {
+      "name": "IceCure Medical",
+      "type": "israeli_founded",
+      "industry": "Medtech / Cryoablation",
+      "domain": "icecure-medical.com",
+      "careers_url": "https://www.icecure-medical.com/company/careers/",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Netanya-based cryoablation medical device co. Careers page exists with filter UI but no detectable ATS URL \u2014 appears proprietary/WordPress. Skipped."
     },
     {
       "name": "ICL Group",
@@ -3991,16 +4592,40 @@
       "notes": "No ATS hit (acquired by McKinsey/QuantumBlack)"
     },
     {
+      "name": "Imagene AI",
+      "type": "international_il_rd",
+      "industry": "AI Pathology",
+      "domain": "imagene.ai",
+      "careers_url": "https://www.imagene.ai/careers",
+      "ats": "comeet",
+      "slug": "D7.000",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/D7.000/positions?token=7D02EE01F402710271004650177001770&details=true",
+      "verified": false,
+      "notes": "Series B Jul 2025 $23M. AI pathology. Comeet UID D7.000 + token 7D02EE01F402710271004650177001770. API returns 2 jobs, 0 currently listed as IL but company is Tel Aviv-based."
+    },
+    {
+      "name": "Imagindairy",
+      "type": "israeli_founded",
+      "industry": "Foodtech / Precision Fermentation Dairy Proteins",
+      "domain": "imagindairy.com",
+      "careers_url": "https://imagindairy.com/careers/",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Israeli precision-fermentation foodtech, world-first 100k+ liter facility, recently cleared to sell animal-free whey in Israel. Careers page uses 'Send us your CV' \u2014 no detectable ATS URLs. Skipped \u2014 open to a future pass if they add structured ATS."
+    },
+    {
       "name": "Imperva",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
       "domain": "imperva.com",
       "careers_url": "https://www.imperva.com/company/careers/",
       "ats": "workday",
-      "slug": "thales.wd3.myworkdayjobs.com/job",
-      "api_url": "https://thales.wd3.myworkdayjobs.com/wday/cxs/thales/job/jobs",
+      "slug": "thales.wd3.myworkdayjobs.com/Careers",
+      "api_url": "https://thales.wd3.myworkdayjobs.com/wday/cxs/thales/Careers/jobs",
       "verified": true,
-      "notes": "Detected via external link https://careers.thalesgroup.com/global/en/search-results?keywords=imperva: workday tenant 'thales'"
+      "notes": "Old site name 'job' returns HTTP 404 not found. Correct site name on the Thales tenant is 'Careers'. Probe with searchText 'Israel' returns 18 IL jobs at Imperva Ltd. (REHOVOT, TEL AVIV) \u2014 all clearly Imperva Israel R&D positions. Suggest updating slug to thales.wd3.myworkdayjobs.com/Careers and api_url to https://thales.wd3.myworkdayjobs.com/wday/cxs/thales/Careers/jobs."
     },
     {
       "name": "Imubit",
@@ -4013,6 +4638,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/imubit/jobs?content=true",
       "verified": true,
       "notes": "Greenhouse board verified: at least 2 jobs, IL office in Modiin-Maccabim-Reut Central District. Israeli-founded industrial AI for petrochemical process optimization."
+    },
+    {
+      "name": "Incredibuild",
+      "type": "israeli_founded",
+      "industry": "DevTools / Build Acceleration",
+      "domain": "incredibuild.com",
+      "careers_url": "https://apply.workable.com/incredibuild/",
+      "ats": "workable",
+      "slug": "incredibuild",
+      "api_url": null,
+      "verified": false,
+      "notes": "Incredibuild Software Ltd. HQ in Tel Aviv (ToHa Tower, Yigal Alon 114). Israeli-founded build acceleration / distributed compilation platform. Uses Workable \u2014 not in supported fetcher set. Would need a Workable fetcher; slug 'incredibuild' confirmed on apply.workable.com. Discovered via site:apply.workable.com 'Tel Aviv' site search."
     },
     {
       "name": "Inflection AI",
@@ -4049,6 +4686,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/52.004/positions?token=25495012A0104C012A0104C6FCBA40&details=true",
       "verified": true,
       "notes": "Comeet UID + token extracted from comeetvar JSON on https://innoviz.tech/careers-3 . API returns 20 jobs at 'Innoviz Technologies'. NYSE-listed LiDAR maker founded 2016, R&D in Rosh HaAyin."
+    },
+    {
+      "name": "Insightec",
+      "type": "israeli_founded",
+      "industry": "Medtech / MR-guided Focused Ultrasound",
+      "domain": "insightec.com",
+      "careers_url": "https://insightec.com/careers/",
+      "ats": "comeet",
+      "slug": "insightec/4A.004",
+      "api_url": "https://www.comeet.com/jobs/insightec/4A.004",
+      "verified": false,
+      "notes": "Duplicate entry note \u2014 see above; primary Insightec entry handles Comeet detection. Removed."
     },
     {
       "name": "Instacart",
@@ -4157,6 +4806,18 @@
       "api_url": "https://api.smartrecruiters.com/v1/companies/ironsource/postings",
       "verified": true,
       "notes": "SmartRecruiters; Israeli-founded ad-tech/mobile (merged with Unity)"
+    },
+    {
+      "name": "Irregular",
+      "type": "international_il_rd",
+      "industry": "AI Security",
+      "domain": "irregular.com",
+      "careers_url": "https://jobs.ashbyhq.com/irregular",
+      "ats": "ashby",
+      "slug": "irregular",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/irregular?includeCompensation=true",
+      "verified": true,
+      "notes": "Raised $80M Sep 2025. Security tools for AI models; works with Anthropic, Google, OpenAI. Verified: 8 jobs, all in IL."
     },
     {
       "name": "Iscar",
@@ -4435,6 +5096,18 @@
       "notes": "Comeet UID D7.00D found; token not extracted"
     },
     {
+      "name": "Karat",
+      "type": "international_il_rd",
+      "industry": "Technical Interviewing Platform",
+      "domain": "karat.com",
+      "careers_url": "https://job-boards.greenhouse.io/karat",
+      "ats": "greenhouse",
+      "slug": "karat",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/karat/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:boards.greenhouse.io \"Israel\" search (\"Interview Engineer (Israel)\" posting). API shows 0 current IL roles; this may be a periodically reopened Israeli engineer pool."
+    },
+    {
       "name": "KELA Targeted Cyber",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -4445,6 +5118,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/2A.004/positions?token=A2446FC1E6C512028905B44512032B45B441E6C&details=true",
       "verified": true,
       "notes": "Comeet UID 2A.004 + token verified"
+    },
+    {
+      "name": "Kela Technologies",
+      "type": "israeli_founded",
+      "industry": "Defense Tech",
+      "domain": "kelasys.com",
+      "careers_url": "https://www.comeet.com/jobs/kelatechnologies/2A.007",
+      "ats": "comeet",
+      "slug": "2A.007",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/2A.007/positions?token=A2747111E755B5F0513847114711A274711&details=true",
+      "verified": true,
+      "notes": "UID + token extracted from Comeet-hosted board at https://www.comeet.com/jobs/kelatechnologies/2A.007; API returned 27 positions, 27 IL-tagged. Distinct from 'KELA Targeted Cyber' (2A.004) already in registry \u2014 Kela Technologies is a different Israeli defense-tech startup founded 2024 by Alon Dror / Hamutal Meridor, backed by Sequoia/Lux, ~$300M raised."
     },
     {
       "name": "Keshet Media Group",
@@ -4555,6 +5240,18 @@
       "notes": "Lever slug 'kpmg' verified via search + curl 200"
     },
     {
+      "name": "KPMG Israel (Somekh Chaikin)",
+      "type": "israeli_founded",
+      "industry": "Professional Services / Consulting",
+      "domain": "kpmg.co.il",
+      "careers_url": "https://kpmg.co.il/careers",
+      "ats": "comeet",
+      "slug": "F3.007",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/F3.007/positions?token=3F713D3FDCFDC17CA3F713D3BE57EEBE5&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML at comeet.com/jobs/somekhchaikin/F3.007; API returned 44 positions, 44 IL-tagged. KPMG's Israeli member firm Somekh Chaikin \u2014 distinct from 'KPMG' (lever) already in registry, which is a separate global feed."
+    },
+    {
       "name": "Lakera",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -4661,6 +5358,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Search confused with Legato Security (different co)"
+    },
+    {
+      "name": "Lema Labs",
+      "type": "israeli_founded",
+      "industry": "Cyber / Third-Party Risk",
+      "domain": "lema.ai",
+      "careers_url": "https://www.lema.ai/careers",
+      "ats": "comeet",
+      "slug": "EA.001",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/EA.001/positions?token=AE14C274146570820A34C274C274C270AE1&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML at comeet.com/jobs/lemalabs/EA.001; API returned 6 positions, 4 IL-tagged. B2B SaaS third-party risk / cyber resilience."
     },
     {
       "name": "Lemonade",
@@ -4783,6 +5492,18 @@
       "notes": "Search confused with Linear (different co); LinearB itself no ATS hit"
     },
     {
+      "name": "Linx Security",
+      "type": "international_il_rd",
+      "industry": "Identity / Cybersecurity",
+      "domain": "linxsecurity.io",
+      "careers_url": "https://www.linxsecurity.io/careers",
+      "ats": "comeet",
+      "slug": "99.00C",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/99.00C/positions?token=99C434499C300C300C99C300C133839A84CE0&details=true",
+      "verified": true,
+      "notes": "Series B Mar 2026 $50M. Identity security platform. Comeet UID 99.00C + token 99C434499C300C300C99C300C133839A84CE0. Verified: 24 jobs, 8 IL."
+    },
+    {
       "name": "LivePerson",
       "type": "international_il_rd",
       "industry": "Conversational AI",
@@ -4829,6 +5550,30 @@
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/loom",
       "verified": true,
       "notes": "Ashby, has Tel Aviv R&D (Atlassian-owned, IL presence)"
+    },
+    {
+      "name": "Loora",
+      "type": "international_il_rd",
+      "industry": "Education AI",
+      "domain": "loora.ai",
+      "careers_url": "https://jobs.ashbyhq.com/loora",
+      "ats": "ashby",
+      "slug": "loora",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/loora?includeCompensation=true",
+      "verified": true,
+      "notes": "AI English-tutor app. Verified: 6 jobs, all 6 in IL."
+    },
+    {
+      "name": "Lumana",
+      "type": "international_il_rd",
+      "industry": "AI Video Intelligence",
+      "domain": "lumana.ai",
+      "careers_url": "https://jobs.ashbyhq.com/lumana",
+      "ats": "ashby",
+      "slug": "lumana",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/lumana?includeCompensation=true",
+      "verified": true,
+      "notes": "Raised $40M Jul 2025. Video intelligence platform using vision language models. Verified: 6 jobs, 3 IL."
     },
     {
       "name": "Lumen",
@@ -4891,6 +5636,30 @@
       "notes": "Proprietary careers portal. No public API."
     },
     {
+      "name": "Madlan",
+      "type": "israeli_founded",
+      "industry": "PropTech / Real Estate",
+      "domain": "madlan.co.il",
+      "careers_url": "https://www.madlan.co.il/blog/careers",
+      "ats": "comeet",
+      "slug": "33.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/33.00F/positions?token=33F103B33F19F81D37CFC1D3716B916B9CFC&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML at comeet.com/jobs/Madlan/33.00F; API returned 1 position, 1 IL-tagged. Israeli real estate big-data platform."
+    },
+    {
+      "name": "Magenta Medical",
+      "type": "israeli_founded",
+      "industry": "Medtech / Cardiac Catheter Pumps",
+      "domain": "magentamed.com",
+      "careers_url": "https://www.magentamed.com/careers",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Kadima, Israel HQ; ~150 employees; 8 active IL jobs per Glassdoor. Careers page uses an embedded form on magentamed.com without visible greenhouse/lever/comeet/ashby/workday hooks. Likely proprietary or a smaller ATS. Skipped \u2014 needs targeted ATS-detection pass via network inspection in browser."
+    },
+    {
       "name": "Magic Software",
       "type": "israeli_founded",
       "industry": "Enterprise Software",
@@ -4925,6 +5694,18 @@
       "api_url": null,
       "verified": false,
       "notes": "No ATS hit"
+    },
+    {
+      "name": "Matia",
+      "type": "international_il_rd",
+      "industry": "Data Management / DataOps",
+      "domain": "matia.io",
+      "careers_url": "https://jobs.ashbyhq.com/matia",
+      "ats": "ashby",
+      "slug": "matia",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/matia?includeCompensation=true",
+      "verified": true,
+      "notes": "Series A Feb 2026 $21M. Unified DataOps platform (ETL/rETL/observability/catalog). Verified: 7 jobs, 4 IL."
     },
     {
       "name": "McKinsey & Company",
@@ -5011,6 +5792,18 @@
       "notes": "No ATS hit"
     },
     {
+      "name": "MeMed",
+      "type": "israeli_founded",
+      "industry": "Healthtech / Host Immune Response Diagnostics",
+      "domain": "me-med.com",
+      "careers_url": "https://www.me-med.com/careers/",
+      "ats": "greenhouse",
+      "slug": "memed",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/memed/jobs",
+      "verified": false,
+      "notes": "Historically used Greenhouse (boards.greenhouse.io/memed) \u2014 saw job IDs 5846180002, 6274366002, 5047799002 in indexes. Board currently returns 404/inactive. MeMed is Haifa-based personalized diagnostics, real ongoing hiring activity. Add as unverified=false; may have moved boards. Alternative: monitor me-med.com/careers directly."
+    },
+    {
       "name": "Mend",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -5083,6 +5876,18 @@
       "notes": "ALREADY IN REGISTRY (unverified). Skip \u2014 Meta uses metacareers.com, a fully proprietary in-house ATS (no Workday/Greenhouse). IL R&D in Tel Aviv (Onavo + WhatsApp engineering, FAIR-IL)."
     },
     {
+      "name": "MetalBear",
+      "type": "international_il_rd",
+      "industry": "DevTools",
+      "domain": "metalbear.com",
+      "careers_url": "https://metalbear.com/careers/",
+      "ats": "comeet",
+      "slug": "8A.002",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/8A.002/positions?token=A82498E348A1F860498E3F0C3F0CA820&details=true",
+      "verified": true,
+      "notes": "Seed Sep 2025 $12.5M. Build mirrord (local-to-remote dev env). Comeet UID 8A.002 + token A82498E348A1F860498E3F0C3F0CA820. Verified: 10 jobs, 2 IL."
+    },
+    {
       "name": "Meuhedet Health Fund",
       "type": "israeli_founded",
       "industry": "Healthcare / Health Fund",
@@ -5117,6 +5922,30 @@
       "api_url": null,
       "verified": false,
       "notes": "Career page returns 404 to direct fetch \u2014 JS-rendered Hebrew portal. Migdal Holdings (my.migdal.co.il) runs proprietary stack. No supported ATS."
+    },
+    {
+      "name": "MIND",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity (Data)",
+      "domain": "mind.io",
+      "careers_url": "https://mind.io/careers",
+      "ats": "comeet",
+      "slug": "4A.00D",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/4A.00D/positions?token=A4D481B29341EE729341EE7149A481B149A149A&details=true",
+      "verified": true,
+      "notes": "Series A Jun 2025 $30M. Data security platform. Comeet slug \"mindsecurity\", UID 4A.00D + token A4D481B29341EE729341EE7149A481B149A149A. Verified: 9 jobs, 6 IL."
+    },
+    {
+      "name": "Minute Media",
+      "type": "israeli_founded",
+      "industry": "Digital Media / Sports",
+      "domain": "minutemedia.com",
+      "careers_url": "https://www.minutemedia.com/company/careers",
+      "ats": "comeet",
+      "slug": "45.00A",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/45.00A/positions?token=54A1A7225062A50FDE2F9A1FBC01FBC1528&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 3 positions, 2 IL-tagged. Sports/entertainment digital media (90min, FanSided, The Players' Tribune)."
     },
     {
       "name": "Mistral AI",
@@ -5200,7 +6029,19 @@
       "slug": "moelis",
       "api_url": "https://moelis.wd1.myworkdayjobs.com/wday/cxs/moelis/Experienced-Hires/jobs",
       "verified": true,
-      "notes": "Active IL roles (Investment Banking Analyst Israel intern listed); 45 jobs"
+      "notes": "Slug verified; tenant returns 45 jobs globally (NY, London, Houston, Riyadh, etc.) but 0 IL jobs at current snapshot. The 'Investment Banking Analyst Israel intern' that was active in the prior round has been filled/closed. Leave as-is."
+    },
+    {
+      "name": "Moloco",
+      "type": "international_il_rd",
+      "industry": "Mobile Marketing AI / Adtech",
+      "domain": "moloco.com",
+      "careers_url": "https://job-boards.greenhouse.io/moloco",
+      "ats": "greenhouse",
+      "slug": "moloco",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/moloco/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" marketing manager search; company description mentions Tel Aviv office but API + board page both show 0 active IL jobs."
     },
     {
       "name": "monday.com",
@@ -5311,6 +6152,30 @@
       "notes": "IL-founded medical imaging co (NASDAQ:NNOX). Careers page returned 404/timeout in investigation window \u2014 likely proprietary or low-volume. Worth re-checking in a future round."
     },
     {
+      "name": "Nas Company",
+      "type": "israeli_founded",
+      "industry": "Media / Creator Economy",
+      "domain": "nas.io",
+      "careers_url": "https://job-boards.greenhouse.io/nascompany",
+      "ats": "greenhouse",
+      "slug": "nascompany",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/nascompany/jobs?content=true",
+      "verified": true,
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" student search; API confirmed 1 IL job (Account Manager \u2014 Tel Aviv/Singapore/Dubai listing, requires understanding of Israeli startup landscape)."
+    },
+    {
+      "name": "Navina",
+      "type": "international_il_rd",
+      "industry": "HealthTech AI",
+      "domain": "navina.ai",
+      "careers_url": "https://www.navina.ai/careers",
+      "ats": "comeet",
+      "slug": "E6.00C",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/E6.00C/positions?token=6EC2988DD837606EC376014C43E4C376014C4&details=true",
+      "verified": true,
+      "notes": "Series C Mar 2025 $55M. AI-powered patient charts for physicians. Comeet UID E6.00C + token 6EC2988DD837606EC376014C43E4C376014C4. Verified: 28 jobs, 17 IL."
+    },
+    {
       "name": "Nayax",
       "type": "israeli_founded",
       "industry": "FinTech",
@@ -5419,6 +6284,18 @@
       "notes": "Comeet UID + token extracted from careers page HTML (source: https://nextsilicon.com/careers/)"
     },
     {
+      "name": "Nexxen",
+      "type": "israeli_founded",
+      "industry": "Adtech / DSP+SSP",
+      "domain": "nexxen.com",
+      "careers_url": "https://job-boards.greenhouse.io/nexxen",
+      "ats": "greenhouse",
+      "slug": "nexxen",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/nexxen/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" UX UI search. Greenhouse API returned 404 on api endpoint but boards.greenhouse.io/nexxen redirects to job-boards.greenhouse.io/nexxen and lists multiple Tel Aviv hybrid jobs (UX/UI Product Designer, Junior Business Development Manager, Data Engineer, BI Frontend, Office Receptionist & Admin, Senior BI Developer, Junior Sales Manager). Marked unverified due to API 404 \u2014 the slug appears live in the embed form. Worth investigating directly."
+    },
+    {
       "name": "NICE Systems",
       "type": "israeli_founded",
       "industry": "Enterprise Software",
@@ -5441,6 +6318,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Government-owned grid operator. Proprietary. No public API."
+    },
+    {
+      "name": "Noma Security",
+      "type": "international_il_rd",
+      "industry": "AI Security",
+      "domain": "noma.security",
+      "careers_url": "https://noma.security/career/",
+      "ats": "comeet",
+      "slug": "3A.005",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/3A.005/positions?token=A35477328D4001E9F146A5BDD146A28D4&details=true",
+      "verified": true,
+      "notes": "Raised $100M Jul 2025. AI agent security: discovery, supply-chain, red-teaming, runtime. Comeet UID 3A.005 + token A35477328D4001E9F146A5BDD146A28D4 (extracted from careers HTML). Verified: 14 jobs, 11 IL."
     },
     {
       "name": "Noname Security",
@@ -5479,6 +6368,18 @@
       "notes": "No ATS hit"
     },
     {
+      "name": "Novee",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity (AI Pen-testing)",
+      "domain": "novee.security",
+      "careers_url": "https://novee.security/careers/",
+      "ats": "comeet",
+      "slug": "AA.008",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/AA.008/positions?token=AA84A983FF0002AA01FF8155035483FF0&details=true",
+      "verified": true,
+      "notes": "Mega-seed Jan 2026 $51.5M. AI-based pen-testing and vulnerability assessment. Comeet UID AA.008 + token AA84A983FF0002AA01FF8155035483FF0. Verified: 8 jobs, 5 IL."
+    },
+    {
       "name": "Novidea",
       "type": "israeli_founded",
       "industry": "InsurTech",
@@ -5489,6 +6390,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/E5.00A/positions?token=5EA237C0BD41D920353A17A8353A0&details=true",
       "verified": true,
       "notes": "Comeet UID + token extracted from careers page HTML (source: https://novidea.com/careers/)"
+    },
+    {
+      "name": "NRGene",
+      "type": "israeli_founded",
+      "industry": "Biotech / Agri-Genomics",
+      "domain": "nrgene.com",
+      "careers_url": "https://nrgene.com/careers/",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Ness Ziona, TASE-listed (NRGN). Careers page lists IL/Rehovot roles directly on nrgene.com (proprietary post format like /careers/senior-bioinformatics-scientist/). No standard ATS detected. Skipped."
     },
     {
       "name": "nSure.ai",
@@ -5536,7 +6449,31 @@
       "slug": "oasissecurity",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/oasissecurity/jobs",
       "verified": true,
-      "notes": "Probed: greenhouse slug 'oasissecurity' returns 200"
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" e-commerce search (Technical Account Manager position surfaced); API confirmed 3 IL jobs (AI Engineer AAM, Engineering Team Lead AAM, Brand Designer \u2014 all Tel Aviv)."
+    },
+    {
+      "name": "Obligo",
+      "type": "israeli_founded",
+      "industry": "Proptech / Renter Fintech",
+      "domain": "myobligo.com",
+      "careers_url": "https://job-boards.greenhouse.io/obligo",
+      "ats": "greenhouse",
+      "slug": "obligo",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/obligo/jobs?content=true",
+      "verified": true,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" startup search (Full Stack Developer; R&D center in Tel Aviv). API confirmed 1 IL job (Product Manager \u2014 Tel Aviv)."
+    },
+    {
+      "name": "Octup",
+      "type": "international_il_rd",
+      "industry": "eCommerce Operations",
+      "domain": "octup.com",
+      "careers_url": "https://octup.com/careers",
+      "ats": "comeet",
+      "slug": "4A.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/4A.003/positions?token=A4347D5290CA431486290C5C5B1EC9148647D5&details=true",
+      "verified": false,
+      "notes": "Seed Jul 2025 $12M. eCommerce ops platform. Comeet UID 4A.003 + token A4347D5290CA431486290C5C5B1EC9148647D5. Board has 2 positions, none currently IL-tagged \u2014 likely small team early in hiring."
     },
     {
       "name": "Okta",
@@ -5561,6 +6498,18 @@
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/oligo",
       "verified": true,
       "notes": "Probed: ashby slug 'oligo' returns 200"
+    },
+    {
+      "name": "Oosto",
+      "type": "israeli_founded",
+      "industry": "Defense-tech / Computer Vision AI",
+      "domain": "oosto.com",
+      "careers_url": "https://oosto.com/careers/",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Formerly AnyVision. Uses HiBob (oosto.careers.hibob.com/jobs) \u2014 not in supported ATS list (greenhouse/lever/ashby/workday/smartrecruiters/comeet). Tel Aviv HQ + offices in NYC, Belfast, Singapore. Cannot integrate with current cron; recommend HiBob support if pipeline coverage matters."
     },
     {
       "name": "OPC Energy",
@@ -5597,6 +6546,18 @@
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/openai?includeCompensation=true",
       "verified": true,
       "notes": "Tel Aviv hiring presence growing (Altman: IL 'huge role'); SSI (Sutskever) also TLV"
+    },
+    {
+      "name": "OpenDor Media",
+      "type": "israeli_founded",
+      "industry": "Media / Jewish Education",
+      "domain": "opendormedia.org",
+      "careers_url": "https://opendormedia.org/careers/",
+      "ats": "comeet",
+      "slug": "79.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/79.00F/positions?token=97F427997F097F38FA55772F7B2F7B4BF8&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 6 positions, 1 IL-tagged. Jewish educational media (Unpacked / Jerusalem U)."
     },
     {
       "name": "OpenTable",
@@ -5669,6 +6630,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Search confused with Worldcoin Orb (different); orbs.com blockchain ATS not found"
+    },
+    {
+      "name": "Orca AI",
+      "type": "international_il_rd",
+      "industry": "Maritime / Autonomous",
+      "domain": "orca-ai.io",
+      "careers_url": "https://orca-ai.io/careers",
+      "ats": "comeet",
+      "slug": "86.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/86.003/positions?token=68327126833A9B13891389138934182D95683&details=true",
+      "verified": true,
+      "notes": "Series B May 2025 $72.5M. Vessel navigation / autonomous sailing AI. Comeet slug \"Orca-AI\", UID 86.003 + token 68327126833A9B13891389138934182D95683. Verified: 16 jobs, 8 IL."
     },
     {
       "name": "Orca Security",
@@ -5839,6 +6812,18 @@
       "notes": "NEW (extra). Note: registry has a Cybersixgill row pointing at paloaltonetworks.wd5/PaloAltoNetworks but I confirmed that site path is 404. PAN uses TalentBrew (tbcdn.talentbrew.com/company/47263) \u2014 proprietary portal, not Workday. Major IL R&D via Cider + Twistlock + Demisto + LightCyber + native Tel Aviv."
     },
     {
+      "name": "Pango",
+      "type": "israeli_founded",
+      "industry": "Mobility / Parking",
+      "domain": "pango.co.il",
+      "careers_url": "https://www.comeet.com/jobs/pango/59.002",
+      "ats": "comeet",
+      "slug": "59.002",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/59.002/positions?token=952413E0254895295253E295237EC53E2&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 12 positions, 12 IL-tagged. Israeli parking/mobility app, distinct from 'Port' (59.004) already in registry."
+    },
+    {
       "name": "Papaya Gaming",
       "type": "israeli_founded",
       "industry": "Gaming",
@@ -5861,6 +6846,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/papaya/jobs",
       "verified": true,
       "notes": "Probed: greenhouse slug 'papaya' returns 200"
+    },
+    {
+      "name": "Paragon",
+      "type": "israeli_founded",
+      "industry": "Defense / Cyber Intelligence",
+      "domain": "paragon.com",
+      "careers_url": "https://www.comeet.com/jobs/paragon/76.006",
+      "ats": "comeet",
+      "slug": "76.006",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/76.006/positions?token=67626C46762D3A33B02D3A204E26C4676676&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 27 positions, 27 IL-tagged. IL cyber-intelligence/spyware company (Graphite vendor, ex-Unit 8200 founders)."
     },
     {
       "name": "Parallel Wireless",
@@ -5971,6 +6968,18 @@
       "notes": "Bezeq subsidiary. Proprietary careers system tied to Bezeq Group. No public API."
     },
     {
+      "name": "Pendo",
+      "type": "international_il_rd",
+      "industry": "Product Experience SaaS",
+      "domain": "pendo.io",
+      "careers_url": "https://job-boards.greenhouse.io/pendo",
+      "ats": "greenhouse",
+      "slug": "pendo",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/pendo/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Herzliya\" search (multiple Mobile SDK and ML engineer postings near Herzliya train station). Board active with 35 roles but currently 0 IL-located jobs in the API; their TLV office is real but not actively hiring on the board today."
+    },
+    {
       "name": "Pentera",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -6079,6 +7088,18 @@
       "notes": "Comeet UID + token extracted from careers page HTML (source: https://personetics.com/careers/)"
     },
     {
+      "name": "Phantom Technologies",
+      "type": "israeli_founded",
+      "industry": "Defense-tech / Anti-Drone & RF Jamming",
+      "domain": "phantom-technologies.com",
+      "careers_url": "https://phantom-technologies.com/careers/",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Petah Tikva-based anti-drone / electronic warfare manufacturer. Careers page lists job numbers (Job No. 101, 102) as downloadable files \u2014 no standard ATS exposure. Skipped."
+    },
+    {
       "name": "PhaseV",
       "type": "israeli_founded",
       "industry": "Healthtech / Clinical AI",
@@ -6100,7 +7121,7 @@
       "slug": "philips",
       "api_url": "https://philips.wd3.myworkdayjobs.com/wday/cxs/philips/jobs-and-careers/jobs",
       "verified": true,
-      "notes": "Philips Healthcare Israel R&D (Haifa, Tel Aviv); 1031 global roles"
+      "notes": "Slug verified; tenant returns 12 jobs for searchText 'Israel' \u2014 1 in 'Israel - Home Based' (Manual Assembler clean room), plus 7 Haifa positions tagged Israel via Philips' Haifa office (Manufacturing Engineer, Product Industrialization, Software Architect, Multi Modality Clinical Education, Regulatory Affairs, Logistic & Project Lead, Production Test Tech). Effective IL count ~8 but only 1 explicit Israel country tag. Slug correct."
     },
     {
       "name": "Phoenicia Glass Works",
@@ -6125,6 +7146,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Custom Hebrew careers UI with department/role filters. CV submission via /career/career-cv-apply/. No third-party ATS in HTML. Proprietary Israeli HR system."
+    },
+    {
+      "name": "PI-Cardia",
+      "type": "israeli_founded",
+      "industry": "Medical Device / Structural Heart",
+      "domain": "pi-cardia.com",
+      "careers_url": "https://www.comeet.com/jobs/pi-cardia/A5.00B",
+      "ats": "comeet",
+      "slug": "A5.00B",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/A5.00B/positions?token=5AB1C573303B5633032D581C571C5716ACB56&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 11 positions, 10 IL-tagged. Structural heart disease medical device co founded in Israel."
     },
     {
       "name": "Pillar Security",
@@ -6271,6 +7304,30 @@
       "notes": "Comeet UID 05.004 found; token not extracted"
     },
     {
+      "name": "Pluri",
+      "type": "israeli_founded",
+      "industry": "Biotech / Cell Therapy + Cultivated Foodtech",
+      "domain": "pluri-biotech.com",
+      "careers_url": "https://pluri-biotech.com/careers/",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Formerly Pluristem Therapeutics; Haifa-based (Matam Park). Public NASDAQ. Careers URL pluri-biotech.com/careers returns 404; current career page unclear. Skipped pending careers page rediscovery."
+    },
+    {
+      "name": "Pontera",
+      "type": "israeli_founded",
+      "industry": "Fintech / Retirement",
+      "domain": "pontera.com",
+      "careers_url": "https://job-boards.greenhouse.io/pontera",
+      "ats": "greenhouse",
+      "slug": "pontera",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/pontera/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Herzliya\" search showing Junior Java Developer / Cybersecurity Engineer / Data Operator postings. Currently the Greenhouse board says \"There are no current openings\" and API returns 0 jobs \u2014 likely paused/temporary. Worth re-checking later."
+    },
+    {
       "name": "Port",
       "type": "israeli_founded",
       "industry": "DevTools",
@@ -6293,6 +7350,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/postman/jobs",
       "verified": true,
       "notes": "Greenhouse 117 jobs; mark_unverified for IL"
+    },
+    {
+      "name": "Powtoon",
+      "type": "israeli_founded",
+      "industry": "Video / Presentation SaaS",
+      "domain": "powtoon.com",
+      "careers_url": "https://apply.workable.com/powtoon/",
+      "ats": "workable",
+      "slug": "powtoon",
+      "api_url": null,
+      "verified": false,
+      "notes": "Israeli SaaS animated video/presentation platform; HQ Tel Aviv (HaArba'a 30). Founded 2011, also London office, 40M+ users globally. Uses Workable \u2014 slug 'powtoon' confirmed on apply.workable.com via site search. Would need Workable fetcher."
     },
     {
       "name": "PrettyDamnQuick",
@@ -6388,7 +7457,7 @@
       "slug": "pwc",
       "api_url": "https://pwc.wd3.myworkdayjobs.com/wday/cxs/pwc/Global_Experienced_Careers/jobs",
       "verified": true,
-      "notes": "PwC Israel (Kesselman & Kesselman) \u2014 global Workday tenant returns 4716 jobs"
+      "notes": "Slug verified; tenant returns 0 IL jobs for searchText 'Israel' and 0 for 'Tel Aviv'. The 4716 global jobs noted in registry are real but PwC Israel (Kesselman & Kesselman) does not post to the global Workday tenant \u2014 they hire via local pwc.com/il/he/careers (Hebrew). Workday tenant correct but PwC IL posts elsewhere. Leave as-is, expect ~0."
     },
     {
       "name": "Pyramid Analytics",
@@ -6403,6 +7472,30 @@
       "notes": "No ATS hit"
     },
     {
+      "name": "Qedma",
+      "type": "international_il_rd",
+      "industry": "Quantum Computing",
+      "domain": "qedma.com",
+      "careers_url": "https://www.qedma.com/careers",
+      "ats": "comeet",
+      "slug": "7A.006",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/7A.006/positions?token=A76493A344E14EC029D853B01F621F62A76&details=true",
+      "verified": true,
+      "notes": "Series A Jul 2025 $26M. Quantum error correction software. Comeet UID 7A.006 + token A76493A344E14EC029D853B01F621F62A76. Verified: 5 jobs, 3 IL."
+    },
+    {
+      "name": "Qodo",
+      "type": "international_il_rd",
+      "industry": "AI DevTools",
+      "domain": "qodo.ai",
+      "careers_url": "https://www.qodo.ai/careers/",
+      "ats": "comeet",
+      "slug": "B8.00B",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/B8.00B/positions?token=8BB34623D1D45D8346203D1D08BB8BB&details=true",
+      "verified": true,
+      "notes": "Series B Mar 2026 $70M. AI code testing/governance (formerly Codium). Comeet UID B8.00B + token 8BB34623D1D45D8346203D1D08BB8BB. Verified: 16 jobs, 9 IL."
+    },
+    {
       "name": "Qualcomm",
       "type": "international_il_rd",
       "industry": "Semiconductors",
@@ -6413,6 +7506,18 @@
       "api_url": null,
       "verified": false,
       "notes": "NEW. Uses Eightfold AI (app.eightfold.ai/careers?domain=qualcomm.com) \u2014 not one of our supported ATSs. Qualcomm has IL R&D in Haifa (acquired DesignArt + Wi-Lan teams). Eightfold has a JSON API at app.eightfold.ai/api/apply/v2/jobs but unofficial."
+    },
+    {
+      "name": "Qualitest",
+      "type": "israeli_founded",
+      "industry": "QA / Software Testing Services",
+      "domain": "qualitestgroup.com",
+      "careers_url": "https://apply.workable.com/qualitest-1/",
+      "ats": "workable",
+      "slug": "qualitest-1",
+      "api_url": null,
+      "verified": false,
+      "notes": "Founded in Israel (Petah Tikva) 1997; ~3,000 employees globally. Although a new London corporate HQ was opened, IL remains a major hub. Uses Workable; slug 'qualitest-1' confirmed via site search. Would need Workable fetcher."
     },
     {
       "name": "Quantum Machines",
@@ -6545,6 +7650,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/D3.00B/positions?token=3DB1347F6C7B63DB3DB13471AFD3DB3DB&details=true",
       "verified": true,
       "notes": "Comeet UID + token extracted from comeetvar JSON in static HTML. API returns 2 jobs at 'REE'. Nasdaq-listed modular EV platform (REE-corner). HQ Tel Aviv (Glil Yam)."
+    },
+    {
+      "name": "Reflectiz",
+      "type": "israeli_founded",
+      "industry": "Cyber / Web Security",
+      "domain": "reflectiz.com",
+      "careers_url": "https://www.comeet.com/jobs/reflectiz/CA.008",
+      "ats": "comeet",
+      "slug": "CA.008",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/CA.008/positions?token=AC84B7840B035E82058AC8564035E856402058&details=true",
+      "verified": true,
+      "notes": "Series B Oct 2025 $22M. Web third-party / supply-chain monitoring. Comeet UID CA.008 + token AC84B7840B035E82058AC8564035E856402058. Verified: 14 jobs, 4 IL."
     },
     {
       "name": "Remilk",
@@ -6715,6 +7832,18 @@
       "notes": "Ashby verified (mark_unverified for IL)"
     },
     {
+      "name": "SABON",
+      "type": "israeli_founded",
+      "industry": "Cosmetics / Personal Care Retail",
+      "domain": "sabon.co.il",
+      "careers_url": "https://sabon.teamtailor.com/",
+      "ats": "teamtailor",
+      "slug": "sabon",
+      "api_url": null,
+      "verified": false,
+      "notes": "Israeli cosmetics/body care retailer founded Tel Aviv 1997; 130+ stores in 9 countries; corporate ops still IL-based. Uses TeamTailor \u2014 not in supported fetcher set. Would need a TeamTailor fetcher. Dedicated IL location page: sabon.teamtailor.com/locations/israel."
+    },
+    {
       "name": "SafeBreach",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -6871,6 +8000,30 @@
       "notes": "Comeet UID D5.00A found; token not extracted"
     },
     {
+      "name": "Scopely",
+      "type": "international_il_rd",
+      "industry": "Gaming Studio / Mobile Games",
+      "domain": "scopely.com",
+      "careers_url": "https://job-boards.greenhouse.io/scopely",
+      "ats": "greenhouse",
+      "slug": "scopely",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/scopely/jobs?content=true",
+      "verified": true,
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" data analyst search; board page confirms 3+ IL positions open to Tel Aviv (Head of Game Design, Lead/Manager Economy and Systems Designer, Principal Systems Designer for Stumble Guys \u2014 all list IL - Tel Aviv as a location option)."
+    },
+    {
+      "name": "Seal Security",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity (OSS)",
+      "domain": "sealsecurity.ai",
+      "careers_url": "https://www.sealsecurity.ai/careers",
+      "ats": "comeet",
+      "slug": "C9.00A",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/C9.00A/positions?token=9CA4486139430F213943ABC1D5E9CA1D5E1D5E&details=true",
+      "verified": true,
+      "notes": "Series A Jul 2025 $13M. Open-source vulnerability remediation. Comeet UID C9.00A + token 9CA4486139430F213943ABC1D5E9CA1D5E1D5E. Verified: 2 jobs, 1 IL."
+    },
+    {
       "name": "SeeMetrics",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -6940,7 +8093,7 @@
       "slug": "servicenow.wd1.myworkdayjobs.com/External_Career_Site",
       "api_url": "https://servicenow.wd1.myworkdayjobs.com/wday/cxs/servicenow/External_Career_Site/jobs",
       "verified": false,
-      "notes": "NEW (extra). Workday tenant servicenow.wd1 exists (returned 422 \u2014 host valid, body issue) but couldn't crack site name in 3 ops. ServiceNow IL R&D in Petah Tikva (acquired Lightstep-not-IL + Element AI + small IL team)."
+      "notes": "Workday tenant servicenow.wd1.myworkdayjobs.com returns HTTP 422 for all payloads tested (with/without searchText/locations facets, with proper Origin/Referer headers, empty body). ServiceNow has 27+ IL jobs (Tel Aviv office) per LinkedIn but applies via careers.servicenow.com (proprietary careers portal \u2014 no public ATS detected; not Smartrecruiters/Greenhouse/Jobvite). ServiceNow Workday tenant appears either deactivated, locked-down, or rejecting cxs queries by design. No supported-ATS fix found."
     },
     {
       "name": "Sett",
@@ -6953,6 +8106,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/4A.00B/positions?token=A4B480D292C149652585CA333775CA35CA33377&details=true",
       "verified": true,
       "notes": "Comeet UID 4A.00B + token verified"
+    },
+    {
+      "name": "Shapes",
+      "type": "international_il_rd",
+      "industry": "Marketing AI",
+      "domain": "shapes.inc",
+      "careers_url": "https://jobs.ashbyhq.com/shapes",
+      "ats": "ashby",
+      "slug": "shapes",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/shapes?includeCompensation=true",
+      "verified": true,
+      "notes": "Series A Dec 2025 $15M. Verified: 7 jobs, all 7 in IL."
     },
     {
       "name": "Shift4",
@@ -7001,6 +8166,18 @@
       "api_url": null,
       "verified": false,
       "notes": "NEW. Siemens uses a proprietary jobs.siemens.com portal (likely Avature behind the scenes per industry \u2014 no SmartRecruiters/Greenhouse/Workday URLs detected). Siemens Israel via acquisitions (Mentor Graphics Hod HaSharon, Solido). Tested SmartRecruiters slug \u2014 0 returns."
+    },
+    {
+      "name": "Sight Diagnostics",
+      "type": "israeli_founded",
+      "industry": "Healthtech / AI Blood Diagnostics",
+      "domain": "sightdx.com",
+      "careers_url": "https://www.sightdx.com/careers",
+      "ats": "comeet",
+      "slug": "sight/45.006",
+      "api_url": "https://www.comeet.com/jobs/sight/45.006",
+      "verified": false,
+      "notes": "Comeet board (sight/45.006) referenced from sightdx.com and OurCrowd. ~79 employees, Tel Aviv HQ. Spark Hire Recruit (Comeet) account currently deactivated \u2014 page shows 'This Spark Hire Recruit account has been deactivated.' Add as unverified; check if they migrated to a new ATS."
     },
     {
       "name": "Silverfort",
@@ -7135,6 +8312,18 @@
       "notes": "Proprietary. No public API."
     },
     {
+      "name": "Sony Semiconductor Israel (formerly Altair)",
+      "type": "israeli_founded",
+      "industry": "Semiconductors / Cellular IoT",
+      "domain": "altairsemi.com",
+      "careers_url": "https://www.altairsemi.com/careers/",
+      "ats": "comeet",
+      "slug": "88.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/88.003/positions?token=88333123B95110644188833B9519894C9B4418&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML at comeet.com/jobs/altair-semi/88.003; API returned 5 positions, 5 IL-tagged. Cellular-IoT chips, Hod HaSharon HQ."
+    },
+    {
       "name": "Sorbet",
       "type": "israeli_founded",
       "industry": "HR Tech",
@@ -7207,6 +8396,18 @@
       "notes": "Comeet UID C6.00E + token verified"
     },
     {
+      "name": "Statement",
+      "type": "israeli_founded",
+      "industry": "Fintech / Finance Operations",
+      "domain": "statement.co",
+      "careers_url": "https://job-boards.greenhouse.io/statement",
+      "ats": "greenhouse",
+      "slug": "statement",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/statement/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io fintech Israel search (Data Integrity Analyst Tel Aviv-Yafo on-site). API URL returns 404 \u2014 slug may have been retired or moved. Worth re-checking."
+    },
+    {
       "name": "StoreDot",
       "type": "israeli_founded",
       "industry": "CleanTech",
@@ -7216,7 +8417,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "No ATS hit"
+      "notes": "Already in registry. Skipped."
     },
     {
       "name": "Stratasys",
@@ -7291,6 +8492,18 @@
       "notes": "Comeet UID 71.000 + token verified"
     },
     {
+      "name": "Sunflower",
+      "type": "israeli_founded",
+      "industry": "Gaming",
+      "domain": "sunflower.com",
+      "careers_url": "https://www.comeet.com/jobs/sunflower/AA.009",
+      "ats": "comeet",
+      "slug": "AA.009",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/AA.009/positions?token=AA94A9F3FF601FFB3FF63FF61FFB0354D&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML at comeet.com/jobs/sunflower/AA.009; API returned 18 positions, 18 IL-tagged. Israeli gaming startup, 100+ team members in IL."
+    },
+    {
       "name": "Suno",
       "type": "international_il_rd",
       "industry": "AI/ML",
@@ -7327,6 +8540,18 @@
       "notes": "No ATS hit"
     },
     {
+      "name": "Surecomp",
+      "type": "israeli_founded",
+      "industry": "Trade Finance Software",
+      "domain": "surecomp.com",
+      "careers_url": "https://surecomp.com/careers/",
+      "ats": "comeet",
+      "slug": "24.00E",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/24.00E/positions?token=42E14E610B8259E217021701D420014E6&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 13 positions, 5 IL-tagged. Trade finance fintech with IL R&D and global presence."
+    },
+    {
       "name": "Sweep",
       "type": "israeli_founded",
       "industry": "B2B SaaS",
@@ -7349,6 +8574,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/sweetsecurity/jobs",
       "verified": true,
       "notes": "Probed: greenhouse slug 'sweetsecurity' returns 200"
+    },
+    {
+      "name": "Sweetch",
+      "type": "israeli_founded",
+      "industry": "Healthtech / Digital Therapeutics / Diabetes",
+      "domain": "sweetch.com",
+      "careers_url": "https://www.sweetch.com/join-our-team",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Tel Aviv-Yafo HQ, $30M raised, AI-driven CGM platform. Careers page exists but shows no department-filtered listings publicly and no detectable ATS (greenhouse/lever/comeet/ashby) URLs. LinkedIn shows active hiring (Head of Data, R&D Team Leader). Skipped \u2014 needs deeper detection."
     },
     {
       "name": "Sygnia",
@@ -7579,6 +8816,30 @@
       "notes": "Comeet UID 61.003 confirmed via comeet.com/jobs/team8/61.003. Token not extractable from comeet.com (Spark Hire template only). Israeli-founded venture studio + portfolio. Build cyber/fintech/data companies."
     },
     {
+      "name": "Techstars Tel Aviv",
+      "type": "international_il_rd",
+      "industry": "Accelerator / Venture",
+      "domain": "techstars.com",
+      "careers_url": "https://job-boards.greenhouse.io/techstars57",
+      "ats": "greenhouse",
+      "slug": "techstars57",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/techstars57/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:boards.greenhouse.io \"Tel Aviv\" search (Analyst at Techstars Tel Aviv role). API returns 0 jobs right now; that program may post seasonally."
+    },
+    {
+      "name": "Telnyx",
+      "type": "international_il_rd",
+      "industry": "CPaaS / Telecom Infrastructure",
+      "domain": "telnyx.com",
+      "careers_url": "https://job-boards.greenhouse.io/telnyx54",
+      "ats": "greenhouse",
+      "slug": "telnyx54",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/telnyx54/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" account executive search (Account Executive - Israel Remote posting). API currently shows 0 IL jobs but the EMEA team includes Israel."
+    },
+    {
       "name": "Tempo Beverages",
       "type": "israeli_founded",
       "industry": "Food & Beverage / Beer",
@@ -7589,6 +8850,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Proprietary. Note: 'tempo' on Greenhouse/Ashby/SmartRecruiters all match unrelated US/CA companies, not Israeli Tempo Beverages. No public API."
+    },
+    {
+      "name": "Terrific",
+      "type": "israeli_founded",
+      "industry": "Social Commerce / Live Shopping",
+      "domain": "terrific.live",
+      "careers_url": "https://jobs.lever.co/terrific-innovation",
+      "ats": "lever",
+      "slug": "terrific-innovation",
+      "api_url": "https://api.lever.co/v0/postings/terrific-innovation?mode=json",
+      "verified": true,
+      "notes": "Israeli social commerce / live shopping platform, Tel Aviv-based, Arieli Capital portfolio. Lever API verified 200 \u2014 currently 1 confirmed IL job (Principal Engineer, Tel Aviv). Discovered via site:jobs.lever.co 'Ramat Gan' site search."
     },
     {
       "name": "Testim",
@@ -7625,6 +8898,18 @@
       "api_url": null,
       "verified": false,
       "notes": "NEW (extra). No Workday tenant detected (ti/txi/tii at wd1/wd5). Uses proprietary careers portal. TI Israel R&D in Herzliya (DSP R&D \u2014 historically small but ongoing)."
+    },
+    {
+      "name": "ThetaRay",
+      "type": "israeli_founded",
+      "industry": "AI / Anti-Money-Laundering",
+      "domain": "thetaray.com",
+      "careers_url": "https://www.comeet.com/jobs/thetaray/72.00F",
+      "ats": "comeet",
+      "slug": "72.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/72.00F/positions?token=27F9FC16779FC13F8EFA13F84FE27F77D&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 23 positions, 9 IL-tagged. AI-driven AML/financial-crime detection, IL HQ."
     },
     {
       "name": "TikTok",
@@ -7672,7 +8957,7 @@
       "slug": "tipaltisolutions",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/tipaltisolutions/jobs",
       "verified": true,
-      "notes": "Greenhouse slug 'tipaltisolutions' verified \u2014 42 jobs"
+      "notes": "Discovered via \"job-boards.greenhouse.io\" Tipalti DriveNets search; API confirmed 1 IL job (Data Engineer \u2014 Tel Aviv District). Slug is unusual \"tipaltisolutions\"."
     },
     {
       "name": "TipRanks",
@@ -7733,6 +9018,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/tokensecurity/jobs",
       "verified": true,
       "notes": "Probed: greenhouse slug 'tokensecurity' returns 200"
+    },
+    {
+      "name": "Tomorrow.io",
+      "type": "israeli_founded",
+      "industry": "Climate / Weather Intelligence",
+      "domain": "tomorrow.io",
+      "careers_url": "https://job-boards.greenhouse.io/tomorrow",
+      "ats": "greenhouse",
+      "slug": "tomorrow",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/tomorrow/jobs?content=true",
+      "verified": true,
+      "notes": "Series D Feb 2026 $175M. Tel Aviv HQ (21 Ha'Arba'a St). Verified: 16 jobs, 4 IL."
     },
     {
       "name": "Tonic Security",
@@ -7807,6 +9104,18 @@
       "notes": "Probed: smartrecruiters slug 'trigo' has jobs"
     },
     {
+      "name": "Triple Whale",
+      "type": "israeli_founded",
+      "industry": "E-commerce Analytics / Shopify",
+      "domain": "triplewhale.com",
+      "careers_url": "https://job-boards.greenhouse.io/triplewhale",
+      "ats": "greenhouse",
+      "slug": "triplewhale",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/triplewhale/jobs?content=true",
+      "verified": true,
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Jerusalem\" search; API confirmed 2 IL jobs (Applied Data Scientist, Data Engineer \u2014 Jerusalem hybrid)."
+    },
+    {
       "name": "Triple-C",
       "type": "israeli_founded",
       "industry": "Telecom / Business Comms",
@@ -7817,6 +9126,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Proprietary. No public API."
+    },
+    {
+      "name": "TripleTen",
+      "type": "israeli_founded",
+      "industry": "EdTech / Bootcamp",
+      "domain": "tripleten.com",
+      "careers_url": "https://www.comeet.com/jobs/tripleten/98.008",
+      "ats": "comeet",
+      "slug": "98.008",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/98.008/positions?token=89833903C282AF8044C011303C283C2819C8&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 46 positions, 3 IL-tagged. Global online tech bootcamp with IL footprint."
     },
     {
       "name": "Trullion",
@@ -7915,6 +9236,18 @@
       "notes": "No ATS hit"
     },
     {
+      "name": "Unframe",
+      "type": "israeli_founded",
+      "industry": "AI Platform / Enterprise AI",
+      "domain": "unframe.com",
+      "careers_url": "https://job-boards.greenhouse.io/unframe",
+      "ats": "greenhouse",
+      "slug": "unframe",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/unframe/jobs?content=true",
+      "verified": true,
+      "notes": "Series A Apr 2025 $30M. Israeli enterprise AI agent platform. Verified: 47 jobs, 12 IL."
+    },
+    {
       "name": "Unit",
       "type": "israeli_founded",
       "industry": "FinTech",
@@ -7932,11 +9265,11 @@
       "industry": "Gaming / 3D",
       "domain": "unity.com",
       "careers_url": "https://careers.unity.com/",
-      "ats": "smartrecruiters",
-      "slug": "unity",
-      "api_url": "https://api.smartrecruiters.com/v1/companies/unity/postings",
+      "ats": "greenhouse",
+      "slug": "unity3d",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/unity3d/jobs?content=true",
       "verified": true,
-      "notes": "SmartRecruiters; gaming engine, large Tel Aviv office post-ironSource merger"
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" Greenhouse search; API confirmed 2 IL jobs (Account Manager, Business Analyst \u2014 both Tel Aviv)."
     },
     {
       "name": "Upstream Security",
@@ -7951,6 +9284,18 @@
       "notes": "Comeet UID E4.003 + token verified"
     },
     {
+      "name": "Upwind",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity (Cloud)",
+      "domain": "upwind.io",
+      "careers_url": "https://www.upwind.io/careers",
+      "ats": "comeet",
+      "slug": "49.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/49.004/positions?token=94440DC0944094401BCC12882510&details=true",
+      "verified": true,
+      "notes": "Series B Jan 2026 $250M and Series C Mar 2026. Runtime cloud security platform. Comeet UID 49.004 + token 94440DC0944094401BCC12882510. Verified: 65 jobs, 22 IL."
+    },
+    {
       "name": "Utila",
       "type": "israeli_founded",
       "industry": "FinTech",
@@ -7961,6 +9306,30 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/D9.00F/positions?token=9DF451913BE4EF84EF858D713BE4EF804EF8&details=true",
       "verified": true,
       "notes": "Comeet UID D9.00F + token verified"
+    },
+    {
+      "name": "UVeye",
+      "type": "international_il_rd",
+      "industry": "Auto Tech (Inspection)",
+      "domain": "uveye.com",
+      "careers_url": "https://uveye.com/careers/",
+      "ats": "comeet",
+      "slug": "92.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/92.00F/positions?token=29FA7C17971797FBA179753E53E0A7C&details=true",
+      "verified": true,
+      "notes": "Raised $191M Jan 2025. Vehicle inspection systems (automotive AI). Comeet UID 92.00F + token 29FA7C17971797FBA179753E53E0A7C. Verified: 103 jobs, 12 IL."
+    },
+    {
+      "name": "Valo Health",
+      "type": "international_il_rd",
+      "industry": "Biotech / Drug Discovery",
+      "domain": "valohealth.com",
+      "careers_url": "https://job-boards.greenhouse.io/valohealth",
+      "ats": "greenhouse",
+      "slug": "valohealth",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/valohealth/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" R&D engineer / data engineer search. Company description (\"additional offices in New York, NY and Tel Aviv, Israel\"). API shows 0 IL jobs at the moment \u2014 TLV roles may be filled."
     },
     {
       "name": "Varonis",
@@ -7999,6 +9368,18 @@
       "notes": "No ATS hit"
     },
     {
+      "name": "Vectorious Medical Technologies",
+      "type": "israeli_founded",
+      "industry": "Medical Device / Heart Failure",
+      "domain": "vectoriousmedtech.com",
+      "careers_url": "https://www.comeet.com/jobs/vectoriousmedtech/68.003",
+      "ats": "comeet",
+      "slug": "68.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/68.003/positions?token=8633252325232523AB504318192904B7B&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML; API returned 5 positions, 5 IL-tagged. Implantable heart-failure sensor."
+    },
+    {
       "name": "Veeam",
       "type": "international_il_rd",
       "industry": "Backup/Storage",
@@ -8009,6 +9390,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/veeamsoftware/jobs",
       "verified": true,
       "notes": "NEW (extra). Greenhouse verified \u2014 327 total postings (0 IL listed today, but global API works). Veeam Israel R&D in Herzliya (Kasten by Veeam team)."
+    },
+    {
+      "name": "Vega",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity (Storage)",
+      "domain": "vega.io",
+      "careers_url": "https://www.vega.io/careers",
+      "ats": "comeet",
+      "slug": "C9.009",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/C9.009/positions?token=9C9447F139227241392272430ED30ED04E48&details=true",
+      "verified": true,
+      "notes": "Series B Dec 2025 $120M at $700M valuation (Feb 2026). Real-time threat investigation for enterprise storage. Comeet UID C9.009 + token 9C9447F139227241392272430ED30ED04E48. Verified: 11 jobs, 7 IL."
     },
     {
       "name": "Venn",
@@ -8093,6 +9486,18 @@
       "api_url": null,
       "verified": false,
       "notes": "IL fund-of-funds + secondary. Tiny team. No public ATS."
+    },
+    {
+      "name": "Vonage",
+      "type": "international_il_rd",
+      "industry": "CPaaS / Cloud Communications",
+      "domain": "vonage.com",
+      "careers_url": "https://job-boards.greenhouse.io/vonage",
+      "ats": "greenhouse",
+      "slug": "vonage",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/vonage/jobs?content=true",
+      "verified": false,
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" software engineer search (Software Engineering Manager Tel Aviv hybrid; AI Architect Tel Aviv). API currently shows 0 IL jobs in the board \u2014 likely just-closed roles. TLV office is real."
     },
     {
       "name": "Voodoo",
@@ -8323,6 +9728,18 @@
       "notes": "Comeet UID F6.006 + token verified"
     },
     {
+      "name": "WorldQuant",
+      "type": "international_il_rd",
+      "industry": "Quantitative Finance / HFT",
+      "domain": "worldquant.com",
+      "careers_url": "https://job-boards.greenhouse.io/worldquant",
+      "ats": "greenhouse",
+      "slug": "worldquant",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/worldquant/jobs?content=true",
+      "verified": true,
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Ramat Gan\" search; API confirmed 1 IL job (AI Software Engineer \u2014 Ramat Gan)."
+    },
+    {
       "name": "WSC Sports",
       "type": "israeli_founded",
       "industry": "Sports Tech",
@@ -8345,6 +9762,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/xai/jobs",
       "verified": true,
       "notes": "Greenhouse; Musk AI lab"
+    },
+    {
+      "name": "XTEND",
+      "type": "israeli_founded",
+      "industry": "Defense-tech / AI-driven UAS",
+      "domain": "xtend.me",
+      "careers_url": "https://www.xtend.me/working-at-xtend",
+      "ats": "comeet",
+      "slug": "xtend/85.00A",
+      "api_url": "https://www.comeet.com/jobs/xtend/85.00A",
+      "verified": false,
+      "notes": "Comeet board referenced from xtend.me/working-at-xtend and TechAviv. Current snapshot returns 'no open positions' \u2014 board active but empty. XTEND raised $70M Series B (defense drones, validated in 5 combat zones), Tel Aviv. Glassdoor shows 8 historical TLV listings. Add as unverified; cron will pick up future openings."
     },
     {
       "name": "Y.H. Dimri",
@@ -8381,6 +9810,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/yotpo/jobs",
       "verified": true,
       "notes": "Probed: greenhouse slug 'yotpo' returns 200"
+    },
+    {
+      "name": "YouLeap",
+      "type": "israeli_founded",
+      "industry": "E-Commerce Platform",
+      "domain": "youleap.io",
+      "careers_url": "https://apply.workable.com/youleap/",
+      "ats": "workable",
+      "slug": "youleap",
+      "api_url": null,
+      "verified": false,
+      "notes": "Self-described as 'largest e-commerce platform in Israel with over 2,000 clients' on Workable bio. 12+ years operating. Uses Workable; slug 'youleap' confirmed. Would need Workable fetcher."
     },
     {
       "name": "Zadara",
@@ -8491,6 +9932,18 @@
       "notes": "NYSE-listed. Probed Workday tenants 'zim' wd1/wd3 \u2014 HTTP_422 (not valid). Greenhouse/Lever/Ashby/SmartRecruiters all returned no real listings. Page Cloudflare-protected (403 curl). Uses proprietary or SAP SuccessFactors (not confirmed). No supported public API found in 3 ops."
     },
     {
+      "name": "ZIM Integrated Shipping (Comeet board)",
+      "type": "israeli_founded",
+      "industry": "Shipping / Logistics",
+      "domain": "zim.com",
+      "careers_url": "https://www.zim.com/careers",
+      "ats": "comeet",
+      "slug": "72.008",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/72.008/positions?token=2789E01638768C58768ED013C011480&details=true",
+      "verified": true,
+      "notes": "UID + token from static HTML at comeet.com/jobs/zim/72.008; API returned 75 positions, 7 IL-tagged. NOTE: registry already lists 'ZIM Integrated Shipping' with ats=unknown and no api_url \u2014 this entry provides the verified Comeet wiring. Treat as upgrade."
+    },
+    {
       "name": "ZoomInfo",
       "type": "international_il_rd",
       "industry": "Sales Intelligence",
@@ -8513,6 +9966,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/zscaler/jobs",
       "verified": true,
       "notes": "352 jobs; growing IL footprint via Israeli cyber acquisitions"
+    },
+    {
+      "name": "ZyG",
+      "type": "international_il_rd",
+      "industry": "E-commerce AI",
+      "domain": "zyg.com",
+      "careers_url": "https://www.zyg.com/careers",
+      "ats": "comeet",
+      "slug": "DA.006",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/DA.006/positions?token=AD64BDA41044BDAAD656B02B5802B584104&details=true",
+      "verified": true,
+      "notes": "Series A May 2026 $60M (+ $58M seed Mar 2026). Autonomous platform replacing marketing/ops for online brands. Comeet UID DA.006 + token AD64BDA41044BDAAD656B02B5802B584104 (extracted from careers HTML). Verified: 10 jobs, all 10 in IL."
     },
     {
       "name": "Zynga (Storemaven / IL)",
