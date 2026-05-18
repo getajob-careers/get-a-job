@@ -617,9 +617,19 @@ function computeRoleScore(
   };
 }
 
+// Only full_time and freelance experiences count toward seniority — internships,
+// military, volunteering, leadership, and academic projects are training/early
+// signals, not career-level employment. Counting them produced the Isaac bug
+// where users with only internships were tagged "Mid-Level". reinferType
+// reclassifies legacy rows where type is stored as "full_time" but the title
+// reads "intern" or "IDF".
 function inferQualificationLevel(experiences: any[]): "Junior" | "Mid-Level" | "Senior" {
-  const count = experiences.length;
-  const hasManaged = experiences.some((e: any) => e.managed_people);
+  const careerExperiences = (experiences || []).filter((e: any) => {
+    const t = reinferType(e);
+    return t === "full_time" || t === "freelance";
+  });
+  const hasManaged = careerExperiences.some((e: any) => e.managed_people);
+  const count = careerExperiences.length;
   if (hasManaged || count >= 5) return "Senior";
   if (count >= 2) return "Mid-Level";
   return "Junior";
@@ -885,10 +895,20 @@ Deno.serve(async (req) => {
 
     if (selected.length === 0) {
       _ok = true; _http = 200
+      const qualLevel = inferQualificationLevel(sanitisedExperiences);
+      // Branch copy by qualification — "build foundational skills" is patronizing
+      // (and contradictory) for a Mid-Level user; conversely, telling a Junior
+      // user their skills "didn't match the library" misdirects them. The
+      // underlying cause is usually skill-name normalization (see PR-D3) but
+      // until that lands, the message at least shouldn't contradict the
+      // qualification badge shown next to it.
+      const overall_assessment = qualLevel === "Junior"
+        ? "We couldn't find clear role matches yet — adding more skills, refining your 5-year role goal, or filling in experience details on the Profile page gives the algorithm more to work with. Then run Refresh."
+        : "We couldn't match your skill set to roles in our library. Your stated skills may not align with how our library names them — try refining your skills on the Profile page (use specific tool/method names like 'Salesforce' or 'A/B Testing'), then run Refresh.";
       return new Response(JSON.stringify({
-        qualification_level: inferQualificationLevel(sanitisedExperiences),
+        qualification_level: qualLevel,
         experience_level: experienceLevel,
-        overall_assessment: "No roles in the library currently meet the minimum fit threshold for this profile. Focus on building foundational skills and revisit after gaining more experience.",
+        overall_assessment,
         skill_gaps: [],
         roles: [],
       }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
