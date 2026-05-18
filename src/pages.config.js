@@ -63,6 +63,7 @@ import Calendar from './pages/Calendar';
 import JobSuggestions from './pages/JobSuggestions';
 import Admin from './pages/Admin';
 import LinkedinOptimizer from './pages/LinkedinOptimizer';
+import Practicum from './pages/Practicum';
 import __Layout from './Layout.jsx';
 
 
@@ -83,6 +84,7 @@ export const PAGES = {
     "JobSuggestions": JobSuggestions,
     "Admin": Admin,
     "LinkedinOptimizer": LinkedinOptimizer,
+    "Practicum": Practicum,
 }
 
 export const pagesConfig = {
