@@ -51,9 +51,6 @@ vi.mock('@/api/supabaseClient', () => ({ supabase: {} }));
 vi.mock('../../components/roadmap/RoleCard', () => ({
   default: ({ role }) => <div data-testid={`role-${role.id}`}>{role.title}</div>,
 }));
-vi.mock('../../components/roadmap/TierQuadrantGrid', () => ({
-  default: () => <div data-testid="quadrant-grid" />,
-}));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
