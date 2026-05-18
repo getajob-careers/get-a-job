@@ -13,6 +13,7 @@
 // Comeet and Recruitee are intentionally omitted for v1 (Decision #9 +
 // the deferred Comeet slug-discovery work).
 
+import { XMLParser } from "fast-xml-parser";
 import type { CompanyEntry, RawJob } from "./normalize.js";
 
 const USER_AGENT = "GetAJob-RefreshJobs/1.0 (https://getajob.example)";
@@ -366,6 +367,101 @@ export async function fetchComeet(c: CompanyEntry): Promise<RawJob[]> {
   });
 }
 
+// ───── SAP SuccessFactors ────────────────────────────────────────────
+
+/**
+ * SuccessFactors exposes a public RSS feed at `<careers-domain>/sitemal.xml`
+ * (note SAP's typo — it is `sitemal`, not `sitemap`). The feed is the
+ * mechanism SAP customers enable to push job listings to Indeed /
+ * LinkedIn / Glassdoor; it carries no auth, no key, no rate-limit, and
+ * the schema is RSS 2.0 with the Google Jobs namespace
+ * (`xmlns:g="http://base.google.com/ns/1.0"`). SAP documents it in
+ * KB 2428902 ("XML Feed for Posted Jobs"). 12-hour SF-side TTL — plenty
+ * fresh for nightly cron.
+ *
+ * The registry stores the careers domain in `slug` (e.g. `careers.teva`)
+ * for human-readability and the full URL in `api_url`.
+ */
+const SF_XML_PARSER = new XMLParser({
+  ignoreAttributes: true,
+  parseTagValue: false, // keep IDs/dates as strings — caller decides parsing
+  trimValues: true,
+});
+
+export function parseSuccessFactorsRss(xml: string): Array<{
+  external_id: string;
+  title: string;
+  description_html: string | null;
+  location_raw: string | null;
+  apply_url: string;
+  date_posted: string | null;
+  job_function: string | null;
+}> {
+  const parsed: any = SF_XML_PARSER.parse(xml);
+  const channel = parsed?.rss?.channel;
+  if (!channel) return [];
+  const items = channel.item;
+  const arr = Array.isArray(items) ? items : items ? [items] : [];
+
+  return arr.map((it: any) => {
+    // `g:id` is the RMK ID (stable, present on every item). `guid` is the
+    // RSS standard fallback when an SF tenant has the namespace stripped.
+    const externalId = String(it["g:id"] ?? it.guid ?? "");
+    return {
+      external_id:      externalId,
+      title:            typeof it.title === "string" ? it.title : "",
+      description_html: typeof it.description === "string" ? it.description : null,
+      location_raw:     typeof it["g:location"] === "string" ? it["g:location"] : null,
+      apply_url:        typeof it.link === "string" ? it.link : "",
+      // RSS `pubDate` is the standard; SF doesn't always include it, but
+      // `g:expiration_date` is consistently present so we don't lose freshness.
+      date_posted:      (typeof it.pubDate === "string" && it.pubDate)
+                          || (typeof it["g:expiration_date"] === "string" && it["g:expiration_date"])
+                          || null,
+      job_function:     typeof it["g:job_function"] === "string" ? it["g:job_function"] : null,
+    };
+  });
+}
+
+export async function fetchSuccessFactors(c: CompanyEntry): Promise<RawJob[]> {
+  if (!c.api_url) return [];
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), DEFAULT_TIMEOUT_MS);
+  let xmlText: string;
+  try {
+    const res = await fetch(c.api_url, {
+      headers: { "User-Agent": USER_AGENT, Accept: "application/xml, text/xml" },
+      signal: ac.signal,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} on ${c.api_url}`);
+    // Shared-infra (career2.successfactors.eu) silently 200s with an HTML
+    // error page when the company_id is wrong. Validate content-type.
+    const ct = res.headers.get("content-type") || "";
+    if (!/xml/i.test(ct)) {
+      throw new Error(`expected XML, got Content-Type "${ct}" on ${c.api_url}`);
+    }
+    xmlText = await res.text();
+  } finally {
+    clearTimeout(timer);
+  }
+
+  const items = parseSuccessFactorsRss(xmlText);
+  return items.map((it) => ({
+    external_id:        it.external_id,
+    title:              it.title,
+    description_html:   it.description_html,
+    location_raw:       it.location_raw,
+    structured_country: null, // location_raw carries "Israel" or ", IL"
+    apply_url:          it.apply_url,
+    date_posted:        it.date_posted,
+    salary_min:         null,
+    salary_max:         null,
+    salary_currency:    null,
+    is_remote:          /remote/i.test(it.location_raw ?? ""),
+    raw_payload:        it,
+  }));
+}
+
 // ───── Dispatch table ────────────────────────────────────────────────
 
 export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = {
@@ -375,4 +471,5 @@ export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = 
   workday:         fetchWorkday,
   smartrecruiters: fetchSmartRecruiters,
   comeet:          fetchComeet,
+  successfactors:  fetchSuccessFactors,
 };
