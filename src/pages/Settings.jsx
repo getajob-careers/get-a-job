@@ -56,7 +56,12 @@ export default function Settings() {
     navigate(createPageUrl("Onboarding"));
   };
 
-  const canConfirmDelete = deleteInput === DELETE_CONFIRM_PHRASE;
+  // Case-insensitive + whitespace-tolerant — the phrase is a deliberate
+  // consent gate, not a Shibboleth. Forcing exact capitalization just makes
+  // people type it twice; lowercasing keeps the intent (typed-phrase consent)
+  // without the friction.
+  const canConfirmDelete =
+    deleteInput.trim().toLowerCase() === DELETE_CONFIRM_PHRASE.toLowerCase();
 
   const handleDeleteAccount = async () => {
     if (!canConfirmDelete || deleteBusy) return;
