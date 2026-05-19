@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import PostHogProvider from '@/lib/PostHogProvider';
 import Login from '@/pages/Login';
 import ResetPassword from '@/pages/ResetPassword';
+import Landing from '@/pages/Landing';
 
 const { Pages, Layout, mainPage } = pagesConfig;
 const mainPageKey = mainPage ?? Object.keys(Pages)[0];
@@ -73,6 +74,12 @@ function App() {
       <QueryClientProvider client={queryClientInstance}>
         <Router>
           <Routes>
+            {/* Public surfaces — rendered OUTSIDE the auth gate and OUTSIDE
+                the dashboard Layout. Landing is auth-aware (CTAs flip based
+                on session) but doesn't redirect on auth state — same URL
+                shows for everyone. */}
+            <Route path="/" element={<Landing />} />
+            <Route path="/Landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/*" element={<AuthenticatedApp />} />

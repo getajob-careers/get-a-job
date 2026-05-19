@@ -50,6 +50,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "sonner";
+import { useAuth } from "@/lib/AuthContext";
 
 // ────────────────────────────────────────────────────────────────────────
 // Inline CSS — landing-page tokens. See file header for the dashboard-vs-
@@ -492,7 +493,7 @@ function useLandingHead() {
 // Sub-components
 // ────────────────────────────────────────────────────────────────────────
 
-function LandingNav({ onCTA }) {
+function LandingNav({ isLoggedIn, onCTA }) {
   return (
     <nav className="lp-nav">
       <div className="lp-logo">
@@ -505,14 +506,14 @@ function LandingNav({ onCTA }) {
         <a href="#timeline">7 days</a>
         <a href="#faq">FAQ</a>
         <button type="button" className="btn btn-primary" onClick={onCTA}>
-          Get an invite
+          {isLoggedIn ? "See your dashboard" : "Get an invite"}
         </button>
       </div>
     </nav>
   );
 }
 
-function Hero({ onCTA }) {
+function Hero({ isLoggedIn, onCTA }) {
   return (
     <section className="lp-hero">
       <div className="lp-hero-tag">
@@ -529,12 +530,16 @@ function Hero({ onCTA }) {
       </p>
       <div className="lp-hero-cta">
         <button type="button" className="btn btn-accent" onClick={onCTA}>
-          Upload your CV — see your roadmap <i className="ti ti-arrow-up-right" aria-hidden="true" />
+          {isLoggedIn ? (
+            <>See your dashboard <i className="ti ti-arrow-up-right" aria-hidden="true" /></>
+          ) : (
+            <>Upload your CV — see your roadmap <i className="ti ti-arrow-up-right" aria-hidden="true" /></>
+          )}
         </button>
         <a className="btn btn-ghost" href="#agents">
           See the agents
         </a>
-        <span className="lp-hero-cta-note">7-day free trial · $12/mo after</span>
+        {!isLoggedIn && <span className="lp-hero-cta-note">7-day free trial · $12/mo after</span>}
       </div>
     </section>
   );
@@ -984,7 +989,30 @@ function TimelineSection() {
   );
 }
 
-function CTASection({ atCap, onPrimary, onWaitlistSubmit, waitlistEmail, setWaitlistEmail, waitlistSubmitted }) {
+function CTASection({
+  isLoggedIn,
+  atCap,
+  onPrimary,
+  onWaitlistSubmit,
+  waitlistEmail,
+  setWaitlistEmail,
+  waitlistSubmitted,
+}) {
+  if (isLoggedIn) {
+    return (
+      <section className="lp-cta" id="join">
+        <div className="lp-cta-eyebrow">WELCOME BACK</div>
+        <h2>Welcome back. Your dashboard is ready.</h2>
+        <p>Pick up where you left off — your roadmap, applications, and Story Bank are waiting.</p>
+        <div className="lp-cta-form">
+          <button className="btn btn-accent" type="button" onClick={onPrimary} style={{ width: "100%" }}>
+            Go to your dashboard <i className="ti ti-arrow-up-right" aria-hidden="true" />
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   if (atCap) {
     return (
       <section className="lp-cta" id="join">
@@ -1120,6 +1148,12 @@ export default function Landing() {
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
 
+  // Auth-aware CTAs. During isLoadingAuth we render the logged-out version
+  // optimistically (fast perceived load for the common case); the CTA labels
+  // flip when auth resolves. Brief flicker is the trade-off — accepted.
+  const { isLoadingAuth, isAuthenticated, user } = useAuth();
+  const isLoggedIn = !isLoadingAuth && isAuthenticated && !!user;
+
   useLandingHead();
 
   // Smooth scroll for anchor links (#agents, #tools, #timeline, #faq).
@@ -1142,13 +1176,17 @@ export default function Landing() {
   }, []);
 
   const handleSignupCTA = () => {
+    if (isLoggedIn) {
+      navigate("/Home");
+      return;
+    }
     if (atCap) {
       // Scroll to the waitlist CTA section so the email form is visible.
       const cta = document.getElementById("join");
       if (cta) cta.scrollIntoView({ behavior: "smooth" });
       return;
     }
-    navigate("/Login");
+    navigate("/login");
   };
 
   const handleWaitlistSubmit = () => {
@@ -1173,8 +1211,8 @@ export default function Landing() {
     <>
       <style>{LANDING_CSS}</style>
       <div className="lp">
-        <LandingNav onCTA={handleSignupCTA} />
-        <Hero onCTA={handleSignupCTA} />
+        <LandingNav isLoggedIn={isLoggedIn} onCTA={handleSignupCTA} />
+        <Hero isLoggedIn={isLoggedIn} onCTA={handleSignupCTA} />
         <ProductMockup />
         <ExplainerSection />
         <PainSection />
@@ -1183,6 +1221,7 @@ export default function Landing() {
         <StudentsSection />
         <TimelineSection />
         <CTASection
+          isLoggedIn={isLoggedIn}
           atCap={atCap}
           onPrimary={handleSignupCTA}
           onWaitlistSubmit={handleWaitlistSubmit}

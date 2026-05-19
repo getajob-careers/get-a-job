@@ -65,7 +65,9 @@ import Admin from './pages/Admin';
 import LinkedinOptimizer from './pages/LinkedinOptimizer';
 import Practicum from './pages/Practicum';
 import Settings from './pages/Settings';
-import Landing from './pages/Landing';
+// Landing is NOT registered here — it routes at the outer App.jsx level
+// to bypass the dashboard Layout (no sidebar) and the auth gate (visible
+// to logged-out visitors). See App.jsx for the explicit /, /Landing routes.
 import __Layout from './Layout.jsx';
 
 
@@ -88,7 +90,6 @@ export const PAGES = {
     "LinkedinOptimizer": LinkedinOptimizer,
     "Practicum": Practicum,
     "Settings": Settings,
-    "Landing": Landing,
 }
 
 export const pagesConfig = {
