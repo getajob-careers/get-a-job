@@ -38,6 +38,19 @@ vi.mock('@/api/supabaseClient', () => ({
   },
 }));
 
+// Mock the Cloudflare Turnstile widget. Real widget is async (network call
+// to Cloudflare) — in tests we simulate "user solved the captcha
+// instantly" by firing onSuccess on mount. This isolates the password-
+// policy assertions below from captcha plumbing.
+vi.mock('@marsidev/react-turnstile', () => ({
+  Turnstile: ({ onSuccess }) => {
+    React.useEffect(() => {
+      onSuccess?.('test-captcha-token');
+    }, [onSuccess]);
+    return <div data-testid="turnstile-mock" />;
+  },
+}));
+
 import Login from '../../pages/Login.jsx';
 
 beforeEach(() => {
@@ -131,5 +144,24 @@ describe('Login — forgot mode', () => {
     expect(screen.queryByPlaceholderText(/••••••••/)).not.toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/meets all 5 requirements/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/password requirements/i)).not.toBeInTheDocument();
+  });
+});
+
+describe('Login — captcha gating', () => {
+  it('renders the Turnstile widget in signup mode but not signin', () => {
+    renderLogin();
+    // signin (default): no widget
+    expect(screen.queryByTestId('turnstile-mock')).not.toBeInTheDocument();
+
+    // signup: widget appears
+    switchToSignup();
+    expect(screen.getByTestId('turnstile-mock')).toBeInTheDocument();
+  });
+
+  it('hides the Turnstile widget in forgot-password mode', () => {
+    renderLogin();
+    // From signin, click "Forgot password?" — widget should NOT appear.
+    fireEvent.click(screen.getByRole('button', { name: /forgot password/i }));
+    expect(screen.queryByTestId('turnstile-mock')).not.toBeInTheDocument();
   });
 });

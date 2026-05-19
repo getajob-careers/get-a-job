@@ -1,8 +1,16 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useNavigate, useLocation } from "react-router-dom";
 import { MIN_LEN, getPasswordChecks, allChecksPass } from "@/lib/passwordPolicy";
 import PasswordRequirements from "@/components/account/PasswordRequirements";
+import { Turnstile } from "@marsidev/react-turnstile";
+
+// Cloudflare Turnstile site key. Public — ships in the frontend bundle
+// regardless. Hardcoded inline (no env var) per Eli's call. Bound to the
+// site key configured in Supabase Auth → CAPTCHA settings, which holds
+// the matching secret server-side. Both halves of the pair must match
+// for signup to succeed.
+const TURNSTILE_SITE_KEY = "0x4AAAAAADSlsvzNPw5Qejvq";
 
 // mode: "signin" | "signup" | "forgot"
 export default function Login() {
@@ -13,6 +21,13 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
+  // Turnstile state. captchaToken is fed into supabase.auth.signUp's options.
+  // It expires (~5min default), is cleared on expiry or error, and is
+  // required to enable the signup submit button. The turnstileRef lets us
+  // programmatically reset the widget after a failed signUp so the user
+  // can re-challenge without manually refreshing.
+  const [captchaToken, setCaptchaToken] = useState(null);
+  const turnstileRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -29,12 +44,17 @@ export default function Login() {
   // Live password validation in signup mode only. Signin/forgot must not
   // nag returning users about character-class rules.
   const passwordChecks = useMemo(() => getPasswordChecks(password), [password]);
-  const signupCanSubmit = mode !== "signup" || allChecksPass(passwordChecks);
+  // Submit-button gate. Signup requires BOTH password policy + captcha
+  // token. Signin and forgot are unaffected by captcha (per-IP rate
+  // limits handle failed logins fine).
+  const signupCanSubmit =
+    mode !== "signup" || (allChecksPass(passwordChecks) && !!captchaToken);
 
   const switchMode = (next) => {
     setMode(next);
     setError(null);
     setMessage(null);
+    setCaptchaToken(null);
   };
 
   const handleSubmit = async (e) => {
@@ -48,9 +68,17 @@ export default function Login() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName } },
+          options: { data: { full_name: fullName }, captchaToken },
         });
-        if (error) throw error;
+        if (error) {
+          // Token is single-use on the server side. Reset the widget so
+          // the user can re-challenge without manually clicking it,
+          // regardless of whether the failure was captcha-related or
+          // something else (email already exists, password policy, etc.).
+          setCaptchaToken(null);
+          turnstileRef.current?.reset();
+          throw error;
+        }
         // signup_completed PostHog event can't fire directly from /login
         // (PostHog only loads inside AuthenticatedApp). Set a one-shot
         // flag in localStorage that PostHogProvider drains on first
@@ -161,6 +189,22 @@ export default function Login() {
                 autoComplete={mode === "signup" ? "new-password" : "current-password"}
               />
               {mode === "signup" && <PasswordRequirements checks={passwordChecks} />}
+            </div>
+          )}
+
+          {mode === "signup" && (
+            <div className="flex w-full justify-center">
+              <Turnstile
+                ref={turnstileRef}
+                siteKey={TURNSTILE_SITE_KEY}
+                onSuccess={(token) => setCaptchaToken(token)}
+                onExpire={() => setCaptchaToken(null)}
+                onError={() => {
+                  setCaptchaToken(null);
+                  setError("Captcha challenge failed — please try again.");
+                }}
+                options={{ theme: "auto" }}
+              />
             </div>
           )}
 
