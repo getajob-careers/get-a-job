@@ -278,7 +278,7 @@ export default function Home() {
               {stale && (
                 <>
                   {" · "}
-                  <Link to={createPageUrl("CareerRoadmap")} className="text-amber-700 underline hover:text-amber-800">
+                  <Link to={createPageUrl("Roadmap")} className="text-amber-700 underline hover:text-amber-800">
                     Profile updated — refresh roadmap
                   </Link>
                 </>
