@@ -1,121 +1,139 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-05-12 (after PRs #38–#47 — Langfuse migration complete, Daily Action Card backend, admin pilot tooling, deployed live at getajob.careers)**
+**Last updated: 2026-05-19 (through PR #70 — Settings/account-deletion, Practicum bundle, skill-propagation fix, tutorial replaces "Your Roles", direct-ATS job cache rebuild, doc count corrections).**
 
 This file is the **living source of truth** for the project. Read this first, then follow cross-references for depth.
 
 **Every PR must update this file.** When the change is non-trivial — new feature, new edge function, new schema, sprint progress — append/edit the relevant section. The CLAUDE.md / ROADMAP.md / lessons.md files have one job each; this file is the index that ties them together. If you read this and something feels stale, fix it.
 
 Cross-references:
+- `DOCUMENTATION.md` — map of every doc in the repo (start here if you don't know where to look)
 - `CLAUDE.md` — coding conventions, branch + PR rules, commit format, lessons doctrine
 - `ROADMAP.md` — week-by-week sprint plan with the v1/v2 cut table
 - `tasks/lessons.md` — append-only log of "took multiple attempts" gotchas; read before non-trivial work in tier scoring, LLM prompts, edge-function deploys, role/skill libraries, onboarding
 - `README.md` — local setup + env vars
 - `docs/research/linkedin-post-performance.md` — research findings that ground every LinkedIn-related prompt
-- `docs/strategy/installation-checklist.md` + `docs/strategy/design-strategy.md` — prioritized tool/MCP/skill/API installation roadmap and the UX/sidebar/display-philosophy reference for the Wk 6 visual redesign
+- `docs/strategy/installation-checklist.md` + `docs/strategy/design-strategy.md` — installation roadmap + UX reference
 
 ---
 
 ## What this app is
 
-Get A Job is an AI-powered career operating system for **business students at Reichman University entering the Israeli tech market.** Pilot launches **June 15, 2026** (80 own-pilot users via WhatsApp groups), then a Reichman 10-student practicum in August, then the larger 100-student Reichman practicum Aug–Nov 2026.
+Get A Job is an AI-powered career operating system for **business students at Reichman University entering the Israeli tech market.** Pilot is **CONFIRMED** for Aug–Nov 2026 (100 students, Reichman professor + Dr. Miller personally vouching). Internship Company Picker is a P0 add to original scope.
 
-Target users are not generic job seekers — they are early-career business students (CS, Marketing, BD, RevOps, PM, CSM, Solutions, GTM kinds of roles, not engineering). All product decisions are anchored to that audience: reply rates, tone, role library, voice rules, framework defaults.
-
-Pilot is **CONFIRMED** — Reichman professor + Dr. Miller personally vouching. Internship Company Picker is a P0 add to original scope.
+Target users are not generic job seekers — they are early-career business students aiming at CS, Marketing, BD, RevOps, PM, CSM, Solutions, GTM-style roles (not engineering). All product decisions are anchored to that audience: reply rates, tone, role library, voice rules, framework defaults.
 
 ---
 
-## Where we are right now
+## Where we are right now (2026-05-19)
 
-**Sprint week:** Wk 3 of the June 15 launch sprint (May 19–25 per ROADMAP, but we're running ahead — Eli's slice is complete). Today is **2026-05-12**.
+**Live at `getajob.careers`** since 2026-05-12. Production stack:
+- Vercel (frontend, auto-deploy from `main`)
+- Supabase (`ilmqmodklutztuybsvwd`) for DB + Auth + Edge Functions + Storage
+- Langfuse Cloud for LLM tracing
+- PostHog Cloud (EU) for product analytics
 
-**Most recent PRs (chronological):**
+**Most recent merged work (PR #59 onward — Isaac's 6 live-test bugs + supporting PRs):**
 
 | # | Date | What |
 |---|---|---|
-| #20 | Apr 27 | refactor(prompts) — replace banned-vocab lists with positive voice rules |
-| #21 | Apr 28 | feat(cv) — template engine + sector-aware fonts + matcher hardening |
-| #22 | Apr 28 | fix(chat) — gate story-capture follow-up + CV style picker in chat |
-| #23–#29 | Apr 28 → May 4 | CV polish series (date normalization, About align, sub-header weight, conditional Experience umbrella, institution guard, dedup, per-bucket tailoring policy, ATS template, Polished one-page chrome, restored visual hierarchy) |
-| #30 | May 5 | docs(research) — `docs/research/linkedin-post-performance.md`, ~430 lines, source-of-truth referenced by all LinkedIn-related prompts |
-| #31 | May 5 | feat(linkedin) — Phase 1: hub tabs + POST_VOICE_RULES. `LinkedinOptimizer.jsx` becomes a 3-tab hub (Profile / Posts / Networking) routed via `useSearchParams` |
-| #32–#33 | May 6 | feat(linkedin) — Posts Phases 2+3: 7 post types (project / lessons / milestone / recap / observation / question / free_form) + carousel warning |
-| #34 | May 6 | feat(linkedin) — Phase 4 PR A: Networking tab — principles + Comment Coach |
-| #35 | May 6–8 | feat(linkedin) — Phase 4 PR B: Outreach Conversation Coach. 8 goals, multi-turn coaching, warm-up-vs-ask judgment |
-| #36–#37 | May 8 | docs — PROJECT_INSTRUCTIONS.md established as living source of truth + ROADMAP catch-up + PR template checkbox + post-merge cleanup |
-| #38–#39 | May 8–12 | docs(strategy) — `docs/strategy/installation-checklist.md` + `docs/strategy/design-strategy.md` + tick off completed installs (Context7 MCP, obra/superpowers, Anthropic skills, ui-ux-pro-max, Corey Haines marketing) |
-| #40 | May 12 | chore(claude) — Production hooks at `.claude/settings.json`: PostToolUse auto-format (Prettier + ESLint), PreToolUse file protection (migrations / voice-rules / libraries / .env / package-lock), PreToolUse dangerous-command blocker (rm -rf, destructive SQL, force-push, --no-verify) |
-| #41 | May 10–11 | feat(observability) — Langfuse tracing helper (`_shared/openai-chat.ts`) + extract-story-from-text canary. Pure pass-through safety; reads `LANGFUSE_*` env vars; `x-langfuse-ingestion-version: 4` header for real-time traces |
-| #42–#44 | May 11 | feat(observability) — Langfuse migration batches 2a (5 low-risk), 2b (4 LinkedIn family), 2c (3 complex: career-analysis + tailored-cv with `cv-gen-<uuid>` sessionId + ai-chat with refactored retry wrapper). **All 13 OpenAI-calling functions traced** |
-| #45 | May 12 | feat(daily-action) — Daily Action Card backend. Migration `20260511_daily_actions.sql` + `generate-daily-action` edge function. Rule-based ranking (leverage × urgency × low_friction × calibration backoff) + LLM framing only. Lazy generation on Home load; UNIQUE per (user, date) |
-| #46 | May 12 | feat(admin) — Admin chat log viewer + story browser. Migration adds `admin_list_students` / `admin_chat_messages` / `admin_stories_browse` RPCs. Two new cards on `/admin` with student dropdown, pretty-printed `suggested_*_json` blocks, raw-text-vs-STAR side-by-side |
-| #47 | May 12 | fix(deploy) — `vercel.json` SPA rewrite so deep routes (`/admin`, etc.) resolve client-side |
+| #59 | May 19 | fix(layout) — sidebar shows CV-extracted full_name from profiles, not `Test Agent` auth metadata |
+| #60 | May 19 | fix(career-analysis) — `inferQualificationLevel` excludes internships; no-roles empty-state branches copy by qualification |
+| #61 | May 19 | fix(career-analysis) — D3 skill-propagation: 170-entry alias map (`_shared/skill-aliases.ts`) + LLM semantic-credit pass. Match rate 19% → 77% (live dry-run against 10 users) |
+| #62 | May 19 | fix(profile) — `HONORS_SUGGESTIONS` autocomplete + `suggestionType="none"` for coursework/projects |
+| #63 | May 19 | fix(onboarding) — drop tutorial's FinalisingPanel; header progress + button state already convey status |
+| #64 | May 19 | fix(onboarding) — employment_status XOR (looking_for_job / employed / unemployed mutually exclusive; student + freelance stack) |
+| #65 | May 19 | fix(onboarding) — replace tutorial slide-1 quadrant grid with text bullets (Career Roadmap WhyTab keeps the grid pending design pass) |
+| #66 | May 19 | feat(settings) — `/Settings` page (Account / Onboarding / Danger zone), `delete-account` edge function, `account_deletions` audit table, `?deleted=1` toast on Login |
+| #67 | May 19 | fix(settings) — register Settings in `pages.config.js`, move access to sidebar avatar (no longer a nav item) |
+| #68 | May 19 | fix(settings) — case-insensitive delete-confirmation phrase |
+| #69 | May 19 | feat(practicum) — unified faculty + self-sourced pipeline, drag-drop kanban (`@hello-pangea/dnd`), Add-my-own-company modal, Outreach Coach prefill via `?prefillCompany=&prefillRole=` |
+| #70 | May 19 | docs — refresh stale counts in CLAUDE.md + refresh-jobs.yml header (183 roles, 387 skills, 16 .ts files, 831/~440 ATS companies) |
 
-**Currently in flight:**
-- Isaac's Wk 3 slice — Story Bank Phase 2 (Mon), Daily Action Card UI (Wed), calibration loop validation (Fri)
-- Wk 4 (Eli) up next: LinkedIn import + Internship Finder Phase 1 (LinkedIn archive zip parser, `linkedin_imports` / `linkedin_connections` / `linkedin_change_events` schema, connection cross-reference)
+**Currently in flight:** Bug #6 from Isaac's live-test list (Tracker layout) is the only deferred item — pending Isaac's screenshot. Pre-existing Tracker.jsx typecheck errors that surfaced during PR #60 may be the same root cause.
 
 ---
 
 ## Architecture at a glance
 
-**Frontend:** React 18 + Vite + Tailwind + shadcn/ui + TanStack Query + sonner (toasts). Pages in `src/pages/` auto-register via `src/pages.config.js` (do not edit `pages.config.js` manually). Routing: BrowserRouter; `createPageUrl(pageName)` from `@/utils` builds page paths.
+**Frontend:** React 18 + Vite + Tailwind + shadcn/ui + TanStack Query + sonner (toasts) + `@hello-pangea/dnd` (drag-and-drop). Pages in `src/pages/` register via `src/pages.config.js` — **the file is hand-maintained** despite its "auto-generated" docstring (PR #67 had to add `Settings` manually). Routing: BrowserRouter; `createPageUrl(pageName)` from `@/utils` builds page paths.
 
 **Backend:** Supabase. Project ref `ilmqmodklutztuybsvwd`.
-- Postgres + RLS (4-policy own-row pattern: SELECT / INSERT / UPDATE / DELETE all `(SELECT auth.uid()) = user_id`)
-- Auth (email + magic link)
-- Edge Functions in Deno (`supabase/functions/<slug>/index.ts`)
-- Storage (CV PDFs, etc.)
-- Migrations in `supabase/migrations/<YYYYMMDD>_<slug>.sql`
+- Postgres + RLS — **29 tables, all RLS-enabled.** 4-policy own-row pattern: SELECT / INSERT / UPDATE / DELETE all gate on `auth.uid() = user_id`.
+- Auth (email + password). Password change is two-step (compose → email-nonce verify) via `auth.reauthenticate()` + `updateUser({password, nonce})`.
+- Account deletion via the `delete-account` edge function: validates JWT (self-only), wipes `resumes/{user.id}/` storage folder, tombstones into `account_deletions`, then calls `auth.admin.deleteUser` (triggers 20 CASCADE FKs + 2 SET NULL on `companies.created_by` / `error_logs.user_id`).
+- Edge Functions in Deno (`supabase/functions/<slug>/index.ts`) — 18 of them.
+- Storage: `resumes` bucket (private, signed URLs).
+- Migrations in `supabase/migrations/<YYYYMMDD>_<slug>.sql`.
 
-**LLM provider:** OpenAI. Two model tiers:
-- `gpt-4o-mini` for cheap classification / extraction (Story extraction, tier scoring)
-- `gpt-4o` for generation surfaces (CV, posts, comments, outreach, career analysis)
+**LLM provider:** OpenAI.
+- `gpt-4o-mini` for cheap classification / extraction
+- `gpt-4o` for generation surfaces (CV, posts, comments, outreach, career analysis, daily action framing)
 - `response_format: json_object` for any structured output
+- All 13 OpenAI-calling functions traced via Langfuse (PR #41–#44)
 
-**Domain libraries** (Israeli market context, 170 roles + 380 skills + proof signals + role-skill mappings): consolidated under `supabase/functions/_shared/libraries/`. Two skills curate this material: `.claude/skills/schema-validator/` (read-only structural checker, source of truth for canonical enums) and `.claude/skills/role-research/` (research-grade enrichment for individual roles or family-level batches; auto-applies to the canonical library on validator pass). Each edge function imports its specific subset via `../_shared/libraries/00_role_library.ts` etc. Six functions read from this single source: `generate-career-analysis`, `generate-job-suggestions`, `generate-tasks`, `extract-proof-signals`, `generate-tailored-cv`, `lookup-role-skills`. Edits require explicit cross-review by the other dev. **Schema v2.0 (Wk 5):** unified shape across all 170 roles (id / standardized_title / role_family / `secondary_family?` / seniority / core_purpose / core_responsibilities / required_skills / preferred_skills / `years_experience_typical?` / `market_notes?: {israel?, us?, ...}`). 21 canonical `role_families`, 7 `seniority_levels`. `secondary_family` for roles with significant cross-family skill overlap (≥30% rule — see SKILL.md). Skill library similarly unified: 380 entries (180 Schema A + 217 Schema B − 17 merged collisions). Validator at `.claude/skills/schema-validator/` is the single source of truth for canonical enums + the shape contract.
+**Job source (rebuilt PR #56-ish):** Direct ATS fetching. **No more JSearch / RapidAPI / Active Jobs DB.** `scripts/refresh-jobs.ts` iterates the 831-company registry in `_shared/libraries/companies_il.json`, filters to ~440 entries with a supported ATS (Greenhouse / Lever / Ashby / Workday / SmartRecruiters / Comeet / SuccessFactors), fetches public listings, UPSERTs into `public.jobs` (currently ~3k rows). Runs nightly via GHA `refresh-jobs.yml` at 01:00 UTC. Failure threshold: GHA run fails if >20% of companies error.
 
-**Tier scoring:** `src/lib/scoreApplication.js` (`tierFromScores`) mirrors `assignTierWithGoal` in `generate-career-analysis`. LLM-derived alignment uses tighter thresholds than the deterministic path.
+**Domain libraries** (Israeli market context, **183 roles + 387 unique skill IDs**): consolidated under `supabase/functions/_shared/libraries/`. 16 `.ts` files + `companies_il.json`. Two skills curate this material: `.claude/skills/schema-validator/` (read-only structural checker) and `.claude/skills/role-research/` (research-grade enrichment). Edge functions importing from this single source: `generate-career-analysis`, `generate-tasks`, `extract-proof-signals`, `generate-tailored-cv`, `lookup-role-skills`, `match-internship-companies`, `generate-internship-profile`. **Edits require explicit cross-review by the other dev.**
 
-**Deployment (live since 2026-05-12):**
-- **Repo:** `getajob-careers/get-a-job` on GitHub (transferred from `isaac613/get-a-job` 2026-05-12)
-- **Hosting:** Vercel — auto-deploys from `main` on push
-- **Domain:** `getajob.careers` (Cloudflare DNS → Vercel)
-- **Supabase Auth URL configuration:** set to `https://getajob.careers` for magic-link redirects
-- **`vercel.json`:** SPA rewrite at the repo root so deep routes (`/admin`, `/Tracker`, etc.) resolve through React Router instead of returning 404 from Vercel's static handler (PR #47)
-- **Observability:** Langfuse Cloud (per-call LLM traces with userId filtering) + Supabase `function_metrics` table (per-call latency/cost/tokens) + Supabase edge function logs dashboard
+**Skill propagation** (PR #61): the deterministic scorer used to fail-match ~95% of user-stated skills against library IDs because of strict snake_case normalization. Layer 1 fix is `_shared/skill-aliases.ts` (170 curated entries covering all StepSkills chips + common variants). Layer 2 fix is an LLM semantic-credit pass — `generate-career-analysis` includes a CANDIDATE_SKILLS list in its prompt; the LLM returns `additional_credited_skill_ids` (validated against the offered set), and the server re-scores the selected roles with augmented skills. Match rate jumped from 19% → 77% in a dry-run against the 10 live users.
+
+**Tier scoring:** `src/lib/scoreApplication.js` (`tierFromScores`) mirrors `assignTierWithGoal` in `generate-career-analysis`. LLM-derived alignment uses tighter thresholds than the deterministic path. Qualification level (Junior / Mid-Level / Senior) is inferred from full_time + freelance experience count only — internships, military, volunteer, leadership don't count (PR #60).
+
+**Onboarding flow (9 screens):**
+| Step | Component |
+|---|---|
+| 0 | StepResumeUpload |
+| 1 | StepEducation |
+| 2 | StepPracticum |
+| 3 | StepExperience |
+| 4 | StepSkills |
+| 5 | StepCareerDirection |
+| 6 | StepConstraints |
+| 7 | StepSurvey |
+| 8 | OnboardingTutorial — 6 slides (Browse Jobs / Application Tracker / Story Bank / LinkedIn Hub / CV Generation / Chat Agents) |
+
+The tutorial **replaced** the original "Your Roles" reveal page — slides 1-6 carry the same orienting work in a paced carousel, and the platform-finalising progress bar lives in the header (not as a competing card; PR #63). Returning users (those with `profiles.has_seen_onboarding_tutorial=true`) see a skip-or-watch gate.
+
+**Sidebar:** `/Settings` is **not** a nav item. Access is via the avatar circle in `SidebarFooter` (PR #67). Logout is a separate icon next to the name+email row.
+
+**Deployment:**
+- **Repo:** `getajob-careers/get-a-job` on GitHub
+- **Frontend:** Vercel auto-deploys every PR (preview) and `main` (production)
+- **Edge functions:** NOT auto-deployed by CI. Manual via `supabase functions deploy <slug> --project-ref ilmqmodklutztuybsvwd`
+- **CI:** `.github/workflows/ci.yml` runs lint + typecheck (non-blocking — Tracker.jsx baseline) + tests + build on every PR and push to main
+- **Cron:** `.github/workflows/refresh-jobs.yml` at 01:00 UTC daily
+- **Observability:** Langfuse Cloud (per-call LLM traces with userId metadata) + Supabase `function_metrics` table (per-call latency/cost/tokens, populated by `_shared/metrics.ts`) + Supabase edge function logs dashboard
+- **Analytics:** PostHog (`src/lib/analytics.js`) — **17 events** spanning signup, 4 onboarding events, 4 tutorial events, CV upload, career analysis, job-match check, application tracking, 2 practicum events, chat, 2 subscription events
 
 ---
 
 ## Edge functions (18)
 
-All under `supabase/functions/<slug>/index.ts`. Each writes per-call metrics via `_shared/metrics.ts` (PR #6) and emits Langfuse traces via `_shared/openai-chat.ts` (PR #41-#44).
+All under `supabase/functions/<slug>/index.ts`. Each writes per-call metrics via `_shared/metrics.ts` and (where they call OpenAI) emits Langfuse traces via `_shared/openai-chat.ts`.
 
-| Slug | Model | Purpose |
-|---|---|---|
-| `ai-chat` | gpt-4o | Career Agent multi-turn chat. Emits `SUGGESTED_*_JSON` blocks (TASKS, ROADMAP_CHANGES, APPLICATION_ACTIONS, COMPANY_TARGET, CV_GENERATION, AGENT, STORY_CAPTURE) the frontend renders as cards. **Wk 4:** career_agent gained `INTERNSHIP PRACTICUM CONTEXT` (practicum_path + internship_profiles pitch strategy + company_targets pipeline) and the `SUGGESTED_COMPANY_TARGET_JSON` block (3 action shapes: `add_company_target` / `update_company_target_status` / `enrich_company`). Status updates use a two-turn confirm-then-emit rule. Server-side anti-fab: company names must appear in the last 3 user turns or current assistant reply or the action is dropped |
-| `analyze-job-match` | gpt-4o | Score a JD against user profile → `match_score` + `goal_alignment_score` + `required_seniority`. Drives tier auto-assignment |
-| `extract-proof-signals` | gpt-4o-mini | Pull proof signals (metrics, named tools, named outcomes) from free-text inputs |
-| `extract-story-from-text` | gpt-4o-mini | STAR extraction from user-pasted experience text. 3-layer anti-fabrication. Powers Story Bank |
-| `generate-career-analysis` | gpt-4o | Tiered role recommendations (`career_roles` table) — Tier 1/2/3 with rationale |
-| `generate-daily-action` | gpt-4o-mini | **Daily Action Card** backend. Rule-based ranking (leverage × urgency × low_friction × calibration backoff) over tasks + applications + career_roles + stories, picks top-1, LLM frames only the title/rationale/estimated_minutes. Lazy generation on Home dashboard load; UNIQUE (user_id, for_date) enforces max one card per day. `pick_score` persisted for debugging |
-| `generate-internship-profile` | gpt-4o | **Wk 4 Internship Finder profile generator.** Emits the 9-field `internship_profiles` row from profile + career_roles (Tier 1 emphasised) + experiences + stories. Single batched call, strict JSON schema. Anti-fab on `pitch_strength_signals` — each emitted signal must substring-match (≥1 content word) the user's stories / experiences / skills haystack, else server-side dropped + logged. Stage-vocabulary guidance (Seed / Pre-Series A / Series A / Series B / Series C / Growth / Public) explicitly says stage is one signal, not the filter — prompt also reasons about team size + culture + intern/junior infrastructure when selecting realistic targets. UPSERT always overwrites. Writes `generated_from_career_roles_at = MAX(career_roles.updated_at)` for the staleness banner. Rate-limited 4/hr; explicit trigger from `/Practicum` |
-| `generate-job-suggestions` | gpt-4o | JSearch / Active Jobs DB → scored job suggestions for the user's roles |
-| `generate-learning-paths` | gpt-4o | Course recommendations to close skill gaps (Coursera + LinkedIn Learning affiliate links) |
-| `generate-linkedin-comment` | gpt-4o | **PR #34.** Paste a post → 3 substantive comment options grounded in user's real experience. Anti-fab: empty options + `no_fit_reason` when nothing genuine to say |
-| `generate-linkedin-content` | gpt-4o | Earlier LinkedIn content function (pre-Phase-2) — likely deprecate path TBD |
-| `generate-linkedin-outreach-message` | gpt-4o | **PR #35.** Multi-turn outreach coach across 8 goals. Two modes: new conversation (insert + opener) or continue (load thread + append `new_them_reply` or `mark_as_sent` → next AI turn). Emits `warm_up_advice` for premature asks. Programmatic anti-pattern detection in post-process |
-| `generate-linkedin-post` | gpt-4o | **PR #32–33.** 7 post types (project / lessons / milestone / recap / observation / question / free_form). Per-type framework + POST_VOICE_RULES injected. Refinement mode supported (UPDATE same row) |
-| `generate-tailored-cv` | gpt-4o | CV generation with STORY BANK PRECEDENCE — verbatim metric/tool binding from `stories` table. DOCX rendering via template engine (PR #21+) |
-| `generate-tasks` | gpt-4o | Personalised weekly action plan |
-| `import-linkedin-archive` | n/a | Wk 4 LinkedIn import (zip upload + Connections.csv parser). Schema designed; awaiting Eli's archive |
-| `lookup-role-skills` | n/a | Static lookup against `role_library` + `skill_library` |
-| `match-internship-companies` | gpt-4o | **Wk 4 Internship Finder matcher.** Two-stage: deterministic rule pre-filter (stage / sector / signal / geography weights → top 30) then ONE batched LLM call scoring fit + career-compound + per-company pitch (pitched_role + pitch_rationale + skill_gaps_this_fills). UPSERT into `company_targets` respects human edits — never clobbers non-matched sources, only refreshes pitch fields if `status='exploring'` AND `notes` is null. Rate-limited 4/hr; explicit trigger from `/Practicum`. Requires `practicum_path='self_sourced'` + an existing `internship_profiles` row |
+| Slug | Model | Rate | Purpose |
+|---|---|---|---|
+| `ai-chat` | gpt-4o-mini | 30/h | Career Agent multi-turn chat. Emits `SUGGESTED_*_JSON` blocks (TASKS, ROADMAP_CHANGES, APPLICATION_ACTIONS, COMPANY_TARGET, CV_GENERATION, AGENT, STORY_CAPTURE) the frontend renders as cards |
+| `analyze-job-match` | gpt-4o-mini | 30/h | Score JD vs profile → `match_score` + `goal_alignment_score` + `required_seniority`. Retries on token exhaustion (BASE 2048 / RETRY 4096) |
+| `delete-account` | — | — | Self-service account deletion (PR #66). JWT-gated, wipes resumes/, inserts tombstone, calls `auth.admin.deleteUser` (fires CASCADEs) |
+| `extract-proof-signals` | gpt-4o | 10/h | Pull proof signals (metrics, named tools, named outcomes) from CV text. Maps to skill IDs |
+| `extract-story-from-text` | gpt-4o-mini | 60/h | STAR extraction from free-text. 3-layer anti-fabrication. Powers Story Bank |
+| `generate-career-analysis` | gpt-4o | 10/h | Tiered role recs (`career_roles`). 3-phase: alias-aware skill resolution → deterministic scoring → LLM writes reasoning + `additional_credited_skill_ids` → server re-scores. 90s timeout |
+| `generate-daily-action` | gpt-4o-mini | 60/h | Daily Action Card. Rule-based pick from tasks/apps/career_roles + LLM framing. UNIQUE per (user, for_date) |
+| `generate-internship-profile` | gpt-4o | 4/h | Internship pitch strategy from profile + career_roles + experiences + stories. Single batched call, strict JSON. Anti-fab grounds `pitch_strength_signals` against source haystack |
+| `generate-learning-paths` | gpt-4o-mini | 10/h | Course recs to close skill gaps. URL validation via Coursera API / YouTube oEmbed / trusted-domain checks |
+| `generate-linkedin-comment` | gpt-4o | 60/h | Paste a post → 3 substantive comment options. Anti-fab: empty options + `no_fit_reason` when nothing genuine to say |
+| `generate-linkedin-content` | gpt-4o | 30/h | 7-section LinkedIn profile generation (headline, about, experiences, volunteering, military, skills_priority, honors). Refinement mode supported |
+| `generate-linkedin-outreach-message` | gpt-4o | 60/h | Multi-turn outreach coach. 8 goals. Two modes: new conversation or continue thread. Anti-pattern detection in post-process |
+| `generate-linkedin-post` | gpt-4o | 60/h | 7 post types (project / lessons / milestone / recap / observation / question / free_form). Refinement mode UPDATES same row |
+| `generate-tailored-cv` | gpt-4o | 30/h | Two-pass CV: keyword extraction → story bank selection → CV authoring. DOCX render via template engine. STORY BANK PRECEDENCE for verbatim metric/tool binding |
+| `generate-tasks` | gpt-4o-mini | 10/h | Personalised tasks. Retry on truncation. Role library scoped to user's career_roles only |
+| `import-linkedin-archive` | — | 10/h | LinkedIn data-export ZIP parser (positions, education, skills, recommendations, honors, volunteering, languages). Privacy-first: ZIP never persisted, counts-only logging |
+| `lookup-role-skills` | — | — | Deterministic role → skills lookup against role library. No LLM, no rate limit |
+| `match-internship-companies` | gpt-4o | 4/h | Two-stage: rule-based pre-filter (stage / sector / signal / geography → top 30) then ONE batched LLM call scoring fit + career-compound + per-company pitch. UPSERTs into `company_targets` |
 
-**Rate limits:** all generation surfaces are gated via `serviceClient.rpc('check_rate_limit', ...)`. Defaults: 60/hour for posts/comments/outreach, lower for CV (expensive call).
-
-**Deploy:** via Supabase CLI (`supabase functions deploy <slug> --project-ref ilmqmodklutztuybsvwd`) OR via Supabase Management API multipart endpoint when CLI is unavailable. The token is stashed at `/tmp/.gaj_supabase_token` for current sessions; see `tasks/lessons.md` 2026-05-05 entry.
+**Deploy:** `supabase functions deploy <slug> --project-ref ilmqmodklutztuybsvwd`. CI does NOT auto-deploy — each change requires manual deploy after merge. The token lives at `/tmp/.gaj_supabase_token` for current sessions; see `tasks/lessons.md` 2026-05-05 entry.
 
 ---
 
@@ -127,13 +145,57 @@ All in `supabase/functions/_shared/voice-rules.ts`. Each is a long string inject
 |---|---|---|
 | `CV_VOICE_RULES` | `generate-tailored-cv` | Resume voice — concrete > generic, named outcomes, specific metrics, active voice |
 | `LINKEDIN_VOICE_RULES` | LinkedIn profile content | Headline + summary + experience bullets — same anti-fluff discipline as CV |
-| `POST_VOICE_RULES` | `generate-linkedin-post` | Hook rules, engagement-bait blacklist (no "Agree?" / "Comment YES if…"), suppressed openers ("Excited to share", "Thrilled to announce", "Humbled to") |
+| `POST_VOICE_RULES` | `generate-linkedin-post` | Hook rules, engagement-bait blacklist, suppressed openers ("Excited to share", "Thrilled to announce", "Humbled to") |
 | `COMMENT_VOICE_RULES` | `generate-linkedin-comment` | 50–150 word sweet spot, anti-platitude list, Israeli direct register |
-| `OUTREACH_VOICE_RULES` | `generate-linkedin-outreach-message` | The outreach contract (3 questions recipient asks), 50–150 word openers, ≤200 char connection notes, anti-pattern list including "I hope this finds you well" + variants, the ask-temperature principle, anti-fabrication with explicit examples |
+| `OUTREACH_VOICE_RULES` | `generate-linkedin-outreach-message` | The outreach contract, ≤200 char connection notes, anti-pattern list incl. "I hope this finds you well" variants, ask-temperature principle |
 
-**The replace-banned-vocab-with-positive-voice-rules refactor was PR #20.** Old approach (banned vocab lists) didn't work — the model would pattern-match around the banned words but keep the underlying voice. Voice-rules approach gives the model what TO write, not just what NOT to.
+**The replace-banned-vocab-with-positive-voice-rules refactor was PR #20.** Voice-rules approach gives the model what TO write, not just what NOT to. For OUTREACH specifically, the model still slips template phrases even with hard-rule injection — PR #35 added programmatic post-process detection in `sanitizeSuggestion` that surfaces warning chips into `suggestion.warnings`.
 
-**Anti-pattern detection.** For OUTREACH specifically, the model still slips template phrases ("I hope you're doing well") even with hard-rule injection — these are too high-frequency in training data. PR #35 added programmatic post-process detection in `sanitizeSuggestion` that scans for ~10 known anti-patterns and surfaces warning chips into `suggestion.warnings`. The user sees the warning above the editable text and rewrites before sending. This is a pattern worth replicating for any other surface where the model resists rule-following on common phrases.
+---
+
+## Schema (29 tables, all RLS-enabled)
+
+Full live list:
+
+```
+account_deletions          admin_users                applications
+calendar_events            career_roles               certifications
+chat_messages              companies                  company_target_status_changes
+company_targets            conversations              cv_templates
+daily_actions              education                  error_logs
+experiences                function_metrics           internship_profiles
+job_suggestions            jobs                       linkedin_optimizations
+linkedin_outreach_conversations  linkedin_posts       profiles
+projects                   rate_limits                status_changes
+stories                    tasks
+```
+
+**FKs from `auth.users`:** 22 total — 20 CASCADE (user data wipes on delete) + 2 SET NULL (`companies.created_by`, `error_logs.user_id` — both correct anonymization paths).
+
+### Recent migrations (most recent first)
+
+| Migration | Purpose |
+|---|---|
+| `20260520_account_deletions_audit.sql` | Audit table for self-service deletions (id, deleted_at, email, user_id_was). No FK to auth.users — row survives the cascade it describes. RLS on, service-role only |
+| `20260520_profiles_has_seen_onboarding_tutorial.sql` | Returning-user flag for the tutorial skip gate. NOT cleared by `reset_user_data` |
+| `20260519_chat_messages_company_target_actions.sql` | `suggested_company_target_actions jsonb` column + admin RPC update |
+| `20260519_companies_user_managed_manual_rows.sql` | RLS so users can INSERT/UPDATE `companies.source='manual'` rows only |
+| `20260519_company_target_status_changes.sql` | Audit log of kanban transitions, trigger-driven |
+| `20260518_internship_finder.sql` | 3 tables (internship_profiles + companies + company_targets) + 4 profiles cols. 12 RLS policies, 7 indexes |
+| `20260517_create_jobs_cache_table.sql` | `jobs` table — the direct-ATS scrape cache |
+| `20260517_jobs_trgm_search_rpc.sql` | pg_trgm-based fuzzy title search RPC for JobSuggestions |
+| `20260517_applications_ats_link.sql` | Link applications back to source ATS job posting |
+| `20260517_profiles_referral_source.sql` | Capture how users heard about the platform |
+| `20260514_education_table_phase_a.sql` + Phase B / FK / reset migrations | Move education off profiles flat columns into separate `education` table |
+| `20260513_companies_source_research.sql` + seed | 391-row Israeli tech market seed (`source='research'`) |
+
+### Key earlier migrations (cited often)
+
+- `20260511_daily_actions.sql` — Daily Action Card table
+- `20260506_linkedin_posts.sql` / `20260506_linkedin_outreach_conversations.sql` — Posts + Outreach Coach
+- `20260504_stories_schema.sql` — Story Bank
+- `20260504_function_metrics.sql` — Per-call edge-fn observability
+- `20260504_application_outcome_loop_schema.sql` — Application status audit
 
 ---
 
@@ -142,235 +204,117 @@ All in `supabase/functions/_shared/voice-rules.ts`. Each is a long string inject
 Single index — when something feels load-bearing, it's probably in here.
 
 ### Frontend
+
 | Path | What |
 |---|---|
-| `src/pages/LinkedinOptimizer.jsx` | LinkedIn hub. Tabs Profile / Posts / Networking via `useSearchParams` |
-| `src/components/linkedin/ProfileTab.jsx` | Original LinkedIn Optimizer body (PR #20-era) |
-| `src/components/linkedin/PostsTab.jsx` | Posts state machine (idle → compose → preview); renders `PostTypeGrid`, `PostComposeForm`, `PostPreview`, `PostsList`, `StoryBankSidebar` |
-| `src/components/linkedin/NetworkingTab.jsx` | Networking tab — Comment Coach + Outreach Coach. Strategy guide link to Resources at top (PR #35 refactor) |
-| `src/components/linkedin/posts/{PostTypeGrid,PostComposeForm,PostPreview,PostsList,StoryBankSidebar}.jsx` | Posts subcomponents |
-| `src/components/linkedin/networking/CommentCoach.jsx` | Paste post → 3 comment options. Ephemeral, no persistence |
-| `src/components/linkedin/networking/NetworkingPrinciples.jsx` | 6 principle cards + 2 colored callout banners. Lives in Resources page after PR #35 |
-| `src/components/linkedin/networking/OutreachConversationsList.jsx` | List of past outreach conversations, active first, sorted by `updated_at DESC` |
-| `src/components/linkedin/networking/OutreachComposer.jsx` | 3-screen composer: pick goal (grouped 6C) → describe target → multi-turn thread with editable bubbles + AI suggestion card |
-| `src/pages/Resources.jsx` | Accordion of guides. Supports optional `component` field on guide entries (PR #35) |
-| `src/pages/AddInformation.jsx` | The 38-column profile editor; covers 33 user-editable cols today |
+| `src/Layout.jsx` | Sidebar nav + `profile_layout_chrome` query for full_name. Settings is NOT in NAV_ITEMS — access via SidebarFooter avatar |
+| `src/components/layout/SidebarFooter.jsx` | Avatar circle = Link to /Settings (PR #67). Logout is a separate button |
+| `src/pages/Settings.jsx` | Account / Onboarding / Danger zone. Reuses PasswordCard, RPC `reset_user_data`, and the `delete-account` edge function |
+| `src/pages/Practicum.jsx` | Unified pipeline (PR #69). Both practicum_path values coexist; Add-my-own button + drag kanban + drawer for every user |
+| `src/components/practicum/CompanyTargetsKanban.jsx` | Drag-and-drop kanban via `@hello-pangea/dnd`. Optimistic mutate + rollback on error |
+| `src/components/practicum/AddOwnCompanyModal.jsx` | Two-write insert (companies + company_targets). Source values: `manual` / `self_added` |
+| `src/components/practicum/CompanyTargetDrawer.jsx` | Right-side Sheet. "Open in Outreach Coach" link prefills `?prefillCompany=&prefillRole=` |
+| `src/components/linkedin/NetworkingTab.jsx` | Reads prefill query params, strips them, jumps to new-conversation composer |
+| `src/components/linkedin/networking/OutreachComposer.jsx` | Accepts `prefillCompany` / `prefillRole` props; seeds target on mount |
+| `src/components/onboarding/OnboardingTutorial.jsx` | 6-slide carousel (Browse Jobs / Tracker / Story Bank / LinkedIn / CV / Chat Agents). Replaces the old "Your Roles" reveal |
+| `src/components/onboarding/SkillTagInput.jsx` | Multi-mode autocomplete: `skills` (default), `job_titles`, `industries`, `work_environment`, `work_arrangement`, `honors`, `none` |
+| `src/components/onboarding/StepResumeUpload.jsx` | Employment status XOR (PR #64): `looking_for_job` / `employed` / `unemployed` mutex; `student` + `freelance` stack |
 | `src/lib/scoreApplication.js` | `tierFromScores` — deterministic tier mapping; mirrors LLM-derived `assignTierWithGoal` |
-| `src/utils/index.ts` | `createPageUrl` helper for inter-page navigation |
 
-### Backend (edge functions)
+### Backend (edge functions + shared)
+
 | Path | What |
 |---|---|
+| `supabase/functions/_shared/skill-aliases.ts` | **PR #61.** 170-entry alias map. `resolveSkillAliases(label, idSet)` covers chips + variants, falls through to snake_case match |
 | `supabase/functions/_shared/voice-rules.ts` | The 5 voice-rule constants |
-| `supabase/functions/_shared/metrics.ts` | `startMetric` / `finishMetric` — per-call observability writing to `function_metrics` |
-| `supabase/functions/_shared/openai-chat.ts` | `openaiChatCompletion()` — drop-in fetch wrapper that adds Langfuse tracing as a pure pass-through (fire-and-forget via `EdgeRuntime.waitUntil`, swallows all Langfuse errors so the OpenAI call always works). Reads env vars `LANGFUSE_SECRET_KEY` / `LANGFUSE_PUBLIC_KEY` / `LANGFUSE_BASE_URL`. Sends `x-langfuse-ingestion-version: 4` header for real-time trace ingestion. **All 13 OpenAI-calling edge functions migrated** (PRs #41 / #42 / #43 / #44). `generate-tailored-cv` two-pass groups via `sessionId: cv-gen-<uuid>`; `generate-linkedin-outreach-message` multi-turn groups via `sessionId: outreach-<conversation_id>`; `ai-chat` retries trace per attempt via the refactored `fetchOpenAIWithRetry` helper |
-| `supabase/functions/_shared/post-frameworks/{types,frameworks}.ts` | 7 post-type frameworks + typed input shapes (PR #32–33) |
-| `supabase/functions/_shared/outreach-frameworks/{types,frameworks}.ts` | 8 outreach-goal frameworks + typed shapes (PR #35) |
-| `supabase/functions/_shared/cv-templates/` | CV template engine (PR #21) |
+| `supabase/functions/_shared/metrics.ts` | `startMetric` / `finishMetric` writing to `function_metrics` |
+| `supabase/functions/_shared/openai-chat.ts` | `openaiChatCompletion()` fetch wrapper with Langfuse pass-through tracing |
+| `supabase/functions/_shared/libraries/00_role_library.ts` | 183 roles, v2.0 schema. Source of truth |
+| `supabase/functions/_shared/libraries/01_skill_library.ts` | 387 unique skill IDs |
+| `supabase/functions/_shared/libraries/companies_il.json` | 831-company ATS-tagged Israeli registry. Drives `scripts/refresh-jobs.ts` |
+| `supabase/functions/delete-account/index.ts` | Self-service deletion (PR #66) |
 
-### Schema
-| Migration | Purpose |
+### Scripts
+
+| Path | What |
 |---|---|
-| `20260504_stories_schema.sql` | Story Bank — `stories` table, RLS, 4 indexes, trigger |
-| `20260504_function_metrics.sql` | Per-call observability across edge functions |
-| `20260504_application_outcome_loop_schema.sql` | `status_changes` audit table + `applications.source` / `found_via_*` / `outcome_notes` |
-| `20260504_admin_dashboard.sql` | Admin SQL views infrastructure |
-| `20260504_linkedin_optimizations.sql` | LinkedIn profile optimizations |
-| `20260506_linkedin_posts.sql` | 7-type posts table — separate `edited_text` column (per Eli's call PR #32) |
-| `20260506_linkedin_outreach_conversations.sql` | 8-goal multi-turn conversations table (PR #35) |
-| `20260506_profiles_education_institution.sql` | Education institution column |
-| `20260511_daily_actions.sql` | Daily Action Card table — one row per (user_id, for_date), 8 action types, calibration-loop partial index on dismissed-by-type, RLS 4-policy |
-| `20260512_admin_chat_and_story_browsers.sql` | Admin pilot tooling — `admin_list_students()` / `admin_chat_messages()` / `admin_stories_browse()` RPCs + admin SELECT policies on conversations + chat_messages. Powers the two new admin cards |
-| `20260518_internship_finder.sql` | Strategic Internship Finder — `internship_profiles` (pitch strategy) + `companies` (global pool) + `company_targets` (per-user pipeline with pitch recommendations) + 4 new `profiles` columns (`practicum_path` / `practicum_cohort` / `practicum_status` / `current_employment_status`). Two practicum paths supported: `faculty_assigned` (finder hidden, status tracking only) vs `self_sourced` (full finder UX). LinkedIn-connection data dropped from this design due to legal risk |
-| `20260519_company_target_status_changes.sql` | Append-only audit log of `company_targets.status` transitions. Mirrors `application status_changes` pattern (trigger on `AFTER UPDATE OF status … WHEN OLD IS DISTINCT FROM NEW`, SECURITY DEFINER insert) with an added `note` column for the user's optional per-transition reflection. UI two-phase write: UPDATE status → SELECT just-inserted audit row → UPDATE its `note`. RLS: own-row SELECT + UPDATE (note edits); INSERT only via trigger; DELETE not granted |
-| `20260519_companies_user_managed_manual_rows.sql` | Adds two RLS policies on `companies` so authenticated users can INSERT + UPDATE rows where `source='manual'` only. JSearch / faculty_seeded rows stay admin-only. Source is pinned in WITH CHECK on both INSERT and UPDATE so users can't smuggle a different source. Required for the Career Agent's `add_company_target` (create on miss) and `enrich_company` (fill in description / sector / domain after the agent's follow-up question) actions |
-| `20260519_chat_messages_company_target_actions.sql` | Adds `suggested_company_target_actions jsonb` column to `chat_messages` and re-creates `admin_chat_messages()` RPC to surface it. The Career Agent's `SUGGESTED_COMPANY_TARGET_JSON` block persists with the message and rehydrates on conversation reload, same as the other suggested-action blocks |
-| `20260513_companies_source_research.sql` | Adds `'research'` to the `companies.source` CHECK constraint vocabulary alongside `jsearch` / `manual` / `faculty_seeded`. Required for the initial 391-row Israeli tech market seed (next migration) |
-| `20260513_companies_seed_research.sql` | **Initial Israeli tech market seed — 391 companies.** Sourced from a research-pass PDF of ~530 Israeli companies + web-search verification + LLM enrichment for ~25 additions in under-represented sectors (B2B SaaS / MarTech / HR Tech / Enterprise). Foreign companies, acquired/absorbed companies, and unverifiable entries were dropped (86 total). Stage normalisation: Series D / E / F → Growth. All rows `source='research'`. Industry distribution: 113 Cybersecurity, 33 DevTools, 29 FinTech, 26 B2B SaaS, 20 AI/ML, 18 InsurTech, 14 HR Tech, 13 MarTech, 12 HealthTech, plus 21 other sectors. Stage: 123 Growth / 100 Series A / 75 Series B / 44 Public / 39 Series C / 10 Seed. **This is a general platform asset — used for job matching, career research, market understanding, company recommendations across all users, not just the practicum finder.** |
+| `scripts/refresh-jobs.ts` | Direct-ATS scrape. 831 companies → ~440 ATS-supported → ~3k jobs. Nightly cron via GHA |
+| `scripts/dry-run-skill-aliases.ts` | Offline impact-measurement against any user dump (PR #61) |
 
 ### Docs / process
+
 | Path | What |
 |---|---|
-| `docs/research/linkedin-post-performance.md` | LinkedIn research source of truth (~430 lines) — cross-validated / single-sourced / contested findings tagged. Update when pilot data contradicts |
-| `docs/strategy/installation-checklist.md` | Prioritized tool/MCP/skill/API installation roadmap (this week / pre-launch / post-launch) |
-| `docs/strategy/design-strategy.md` | UX principles, sidebar architecture, display philosophy, pre-launch checklist |
-| `tasks/lessons.md` | Append-only log of "took multiple attempts" gotchas |
+| `DOCUMENTATION.md` | Map of every doc in the repo |
 | `CLAUDE.md` | Coding conventions, branch + PR rules, commit format |
-| `ROADMAP.md` | Week-by-week sprint plan, v1/v2 cuts, risk register |
-| `.github/pull_request_template.md` | What every PR description must cover |
-| `.claude/settings.json` + `.claude/scripts/{protect-files,block-dangerous}.sh` | Project-shared Claude Code hooks — auto-format/lint on every file edit (PostToolUse), file protection on migrations/voice-rules/libraries/.env/package-lock (PreToolUse), dangerous-command blocking for rm -rf, destructive SQL, force-push, --no-verify, prod db reset (PreToolUse Bash). Per-user overrides in `.claude/settings.local.json` |
-
----
-
-## Sprint status — Wk 3 remaining + Wk 4 queue
-
-The full week-by-week is in `ROADMAP.md`. This is the working slice.
-
-### Wk 3 remaining
-
-**Eli (Thu–Fri slots):**
-- ✅ **Daily Action Card** — schema + `generate-daily-action` edge function (rule-based ranking + LLM framing; lazy generation on Home load). Migration `20260511_daily_actions.sql`. _Backend complete; Isaac builds UI._
-- ✅ **Admin chat log viewer** — `admin_chat_messages(p_user_id, p_limit)` RPC + `<ChatLogsCard />` on `/admin`. Student dropdown → grouped conversations (collapsed by default) → expandable threads with pretty-printed `suggested_*_json` blocks. Error rows show original prompt + failure response side-by-side.
-- ✅ **Admin story browser** — `admin_stories_browse(p_user_id NULL, p_limit)` RPC + `<StoryBrowserCard />` on `/admin`. Student dropdown (with "All students") → story cards with STAR fields stacked, chips for metrics/skills/tools/tags, and `raw_source_text` side-by-side when `source='conversation'` (best-effort: latest user message before story.created_at). `extraction_notes` display deferred — column isn't persisted yet by extract-story-from-text.
-
-**Isaac (Wk 3, 2.5 days):**
-- ✅ **Mon — Story Bank Phase 2:** AddInformation Experience tab inline stories + floating quick-add modal (PR #14, merged 2026-05-12).
-- ✅ **Wed (pulled forward to Tue) — Daily Action Card UI** on Home dashboard. `<DailyActionCard />` lazy-fetches via `generate-daily-action` edge function. Done / Snooze / Not relevant buttons; post-action collapses to thin "Done for today" line. For `reflect`, Done navigates to `/AddInformation` with `location.state.dailyAction = { id, prompt }`; AddInformation opens its quick-add modal with the prompt as `framing`, marks the daily_action done after the story saves.
-- ✅ **Fri — Daily Action calibration loop:** verified end-to-end 2026-05-12. Logic in `generate-daily-action` (lines 264-271): threshold ≥3 dismissals in last 7 days → score × 0.2. Partial index `idx_daily_actions_user_type_dismissed` confirmed via EXPLAIN (Index Only Scan, cost 0.15..2.37). Test: 3 backdated dismissed `reach_out` rows → next pick switched from `reach_out` (deweighted to 7.5) to `apply` (22.5). `pick_score` persisted + `calibration_applied` in Langfuse trace metadata for debugging.
-
-### Wk 4 queue (May 26 – June 1)
-
-**LinkedIn import + connection cross-reference: DROPPED** (legal risk re: processing third-party connection data, 2026-05-12). All 4 remaining Wk 4 tasks are Internship Finder, reordered to put the schema first (it unblocks every other task).
-
-**Eli:**
-- ✅ **Mon — Internship Finder schema** (migration `20260518_internship_finder.sql`): 3 tables (`internship_profiles` + `companies` + `company_targets`) + 4 new `profiles` columns (`practicum_path` / `practicum_cohort` / `practicum_status` / `current_employment_status`). 12 RLS policies, 7 indexes, 3 `updated_at` triggers. `internship_profiles` captures the **pitch strategy** (realistic targets + pitchable roles grounded in TODAY's strengths + career-compound rationale), not just a match profile. `company_targets` carries per-company pitch recommendations (`pitched_role` / `pitch_rationale` / `skill_gaps_this_fills`) alongside two scores (`fit_score` + `career_compound_score`). Faculty-assigned vs self-sourced paths distinguished via `profiles.practicum_path`. Schema applied to prod, verified end-to-end.
-- ✅ **Mon — `match-internship-companies` edge function** (pulled forward from Isaac's Tue slot): two-stage scoring — deterministic rule pre-filter (stage / sector / signal / geography weights, 500 cap → top 30) then ONE batched gpt-4o call scoring fit + career-compound + per-company pitch (`pitched_role` + `pitch_rationale` + `skill_gaps_this_fills`). UPSERT-aware of human edits — only refreshes pitch fields if user hasn't moved status past `exploring` AND notes is null. Rate-limited 4/hr. Trigger preconditions: `practicum_path='self_sourced'` + existing `internship_profiles` row. Companies seeded separately.
-- ✅ **Tue — `generate-internship-profile` edge function** (pulled to Mon EOD): emits 9-field `internship_profiles` row from profile + career_roles + experiences + stories. Single gpt-4o call with strict JSON shape. Anti-fab grounds `pitch_strength_signals` against the user's real artefacts (≥1 content-word substring match required, else dropped + logged). Stage selection considers team size + culture + intern/junior infrastructure, not just funding stage (per Eli's design call). UPSERT always overwrites; writes `generated_from_career_roles_at = MAX(career_roles.updated_at)`. Frontend wires `handleGenerateProfile` on `/Practicum` (empty-state CTA + Refresh button) + staleness banner in `InternshipProfileStrip` when career_roles updated since last gen.
-- ✅ **Mon — Onboarding step** for `practicum_path` selection (pulled forward from Wed). New `StepPracticum` component inserted at onboarding index 2 (between Education and Experience) — bumps subsequent steps by 1. Three options: faculty-assigned / self-sourced / not in practicum (null) + optional cohort text. Adapts headline + button copy by `education_institution` (Reichman students see Reichman framing; everyone else gets the generic "faculty-coordinated internship" framing). `StepEducation` gained an institution input (previously only captured via Profile editor). `OnboardingShell` STEPS array bumped 8 → 9, label row now lists Practicum between Education and Experience.
-- **Thu — Buffer / integration test** end-to-end.
-- **Fri — Buffer.**
-
-**Isaac (Wk 4, 2.5 days):**
-- ✅ **Mon — `/Practicum` page UI** (built by Eli, pulled forward two slots): orchestrator at `src/pages/Practicum.jsx` branches on `profiles.practicum_path` (null → empty-state CTA to Profile / `self_sourced` → full finder UX / `faculty_assigned` → kanban-only). Components in `src/components/practicum/`: PracticumHeader, InternshipProfileStrip (collapsible read-only summary, refresh disabled until Tue), FindCompaniesCard (invokes `match-internship-companies` + invalidates query), CompanyTargetsKanban (6 columns: exploring → outreach_sent → interview → offered → rejected → declined), CompanyTargetCard, CompanyTargetDrawer (right-side Sheet with scores + pitch detail + status-change form + notes + audit timeline + Outreach Coach deeplink). Migration `20260519_company_target_status_changes.sql` lands the audit log + trigger in the same PR.
-- **Thu — Career Agent practicum prompt** + `SUGGESTED_COMPANY_TARGET_JSON` parsing.
-- **Fri — Buffer + smoke.**
-
-**Wk 4 v1 cuts locked:** no curated companies DB seed (job-board API only), no `draft-outreach-message` (defer post-launch), no faculty-provided list import (manual entries via SQL if a list arrives), no UNIQUE constraint on `companies` (manual dedup later if noisy), no `outreach_drafts` jsonb column (lands with `draft-outreach-message`).
-
-**Wk 4 hard dependency:** LinkedIn import depends on Eli's archive being requested in Wk 1. ~24h LinkedIn processing cooldown. If late, parser uses sample data and ships Connections-only v1.
-
----
-
-## Isaac — your tasks
-
-Pulled from ROADMAP.md, scoped to your 2.5 days/week through launch.
-
-### This week (Wk 3, May 19–25 / running through May 25)
-1. Story Bank Phase 2 — AddInformation Experience tab inline stories + quick-add modal (Mon)
-2. Daily Action Card UI on Home dashboard (Done / Snooze / Dismiss) — depends on Eli landing the schema + edge function first (Wed)
-3. Daily Action calibration loop — dismissed-type backoff (Fri)
-
-### Wk 4 (May 26 – June 1)
-1. ~~`match-internship-companies` edge function~~ — built by Eli (Mon, pulled forward).
-2. ~~`/Practicum` page UI~~ — built by Eli (Mon, pulled forward two slots). Frontend integrates with the matcher + `company_target_status_changes` audit table.
-3. ~~Career Agent practicum prompt + `SUGGESTED_COMPANY_TARGET_JSON` parsing~~ — built by Eli (Mon, pulled forward four slots). `ai-chat` career_agent now pulls internship_profile + company_targets + practicum_path into context and emits a new `SUGGESTED_COMPANY_TARGET_JSON` block with three action shapes (`add_company_target` / `update_company_target_status` / `enrich_company`). Status updates use a two-turn confirm-then-emit rule. Server-side anti-fab guard drops actions whose company name doesn't appear in recent turns. `CompanyTargetActionsCard` in ChatInterface.jsx renders each action with a single Apply button; handler does the lookup-or-create + insert/update + audit-note patch.
-4. Polish pass on `/Practicum`: drag-drop kanban (v2 upgrade from dropdown), "Add company manually" UI for `self_added` rows.
-
-### Wk 5 (June 2–8)
-1. Schema validator skill — reads `role_library` + `skill_library`, emits enums + ID sets as JSON (Mon)
-2. Role library research skill — slash command, drafts to `_drafts/` (Wed)
-3. Add 30–50 business-student roles using the research skill (Fri) — BD Analyst, Solutions Engineer, RevOps, Customer Marketing, GTM Strategist, etc.
-
-### Wk 6 (June 9–15) — launch week
-1. Story Bank → Career Agent passive mention. Story Bank → LinkedIn Optimizer evidence injection (Mon)
-2. Visual redesign incremental — token migration on top 5 most-trafficked components (Home, Tracker, AddInformation, Career Agent, Onboarding). Playwright baseline as regression check (Wed)
-3. Final UI polish + responsive checks on mobile + faculty briefing materials (Fri)
-
-### Pinned reading before starting any of the above
-- `tasks/lessons.md` — read the lessons relevant to your area (LLM prompts for the role library skill, edge-function deploys for `match-internship-companies`)
-- The relevant migration if you're touching schema
-- The relevant edge function if you're calling it from new UI
-- `CLAUDE.md` — branch + PR + commit conventions
+| `ROADMAP.md` | Sprint plan, v1/v2 cuts, risk register |
+| `tasks/lessons.md` | Append-only log of "took multiple attempts" gotchas |
+| `.github/pull_request_template.md` | PR checklist + checkboxes |
+| `.claude/settings.json` + hooks | Auto-format, file protection, dangerous-command blocking |
 
 ---
 
 ## Post-pilot backlog
 
-Things deliberately deferred during the Wk 3-6 launch push. **Pilot is Aug-Nov 2026; revisit these in Dec 2026 when the v2 cut window opens.**
+Deliberately deferred. Pilot is Aug–Nov 2026; revisit in Dec 2026.
 
-### ⚠️ Pre-launch items (needed before Aug 2026 pilot, not post)
+### Done since the previous backlog snapshot
 
-- **Account deletion** — full delete of the `auth.users` row plus CASCADE through 12+ public tables. The existing `reset_user_data(uuid)` RPC only clears career-direction fields on `profiles` and removes derived data; it does NOT delete the auth user. Likely needed for privacy compliance (GDPR / Israeli PPL right-to-be-forgotten) before opening to 100 students. Separate design pass required — affects: auth.users, profiles (PK is auth.users.id, ON DELETE CASCADE confirmed via FK audit yesterday — but verify other FKs), Stripe future, audit logs, Langfuse traces. Decision point: hard delete vs soft delete with 30-day grace, and whether the user calls a deletion edge function or hits a dashboard-mediated flow. **To discuss before building.**
+- ✅ **Account deletion** — built and shipped (PR-C / #66). `delete-account` edge function + `account_deletions` audit table + typed-phrase consent gate. CASCADE coverage verified against live FKs.
 
-### Auth surface follow-ups (deferred during 2026-05-14 signup-hardening session)
+### Still pending (auth surface)
 
-Three items deliberately scoped out of the password-policy work. Order of priority:
+- **Resend confirmation email** — Login.jsx in signin mode could surface a "Resend" button when the server returns "Email not confirmed". Calls `supabase.auth.resend({type:'signup', email})`. ~30 min.
+- **Custom signup-confirmation landing page** — `/welcome` route shown briefly after the email link clicks through. Use `emailRedirectTo` on signup. ~45 min.
+- **Post-signup welcome email** — non-transactional, sent ~1 day after confirmation if onboarding isn't complete. Needs Resend + an edge function on a cron or auth webhook. ~2–3h. Wait for pilot signal on drop-off.
 
-- **Resend confirmation email** — if a user signs up but their confirmation link expires (1 hour TTL per `mailer_otp_exp`) or they delete the email by accident, today they have no in-app way to get a new one. Workaround is re-trying signup with the same email (Supabase reuses the auth.users row and sends a new link), but that's clunky. Fix: a "Resend confirmation" button on Login.jsx in signin mode when the server returns "Email not confirmed" error. Calls `supabase.auth.resend({ type: 'signup', email })`. ~30 min build.
+### Still pending (architecture)
 
-- **Custom signup-confirmation landing page** — today the email link bounces users to `site_url` (`/`) which then redirects to Onboarding. Works, but implicit and gives no "welcome, you're in" moment. A dedicated `/welcome` route that shows briefly before redirecting to onboarding would be a better first impression and lets us add cohort-specific copy later. Use Supabase's `redirectTo` in `signUp({ options: { emailRedirectTo: ... } })`. ~45 min build.
+- **`company_enrichments` table** — per-user annotations on shared `companies` rows, instead of letting users UPDATE the row directly. Cleaner long-term; current pattern (manual rows scoped to `created_by`) blocks A-to-B tampering at the cost of duplicate rows when student B's agent enriches student A's company. Acceptable for 100-student pilot. See PR #22 (2026-05-14, security audit C-4).
 
-- **Post-signup welcome email** — a non-transactional follow-up email sent ~1 day after confirmation, prompting users to complete onboarding if they haven't. Out of Supabase Auth scope — would use Resend + an edge function triggered by a cron or by an `auth.users` insert webhook. Worth doing once we have pilot signal on drop-off rates. ~2-3h build incl. template + scheduling.
+### Still pending (bugs)
 
-### Companies — collaborative enrichment via per-user annotations
-
-**Context:** PR #22 (2026-05-14, security audit C-4) tightened the `companies` UPDATE policy so manual companies are scoped to `created_by = auth.uid()`. This blocks A-to-B tampering but also blocks the legitimate flow where student B's chat agent enriches a manual company that student A originally created (UPDATE silently no-ops via the RLS USING filter).
-
-For 100-student pilot, duplicate manual rows are cheap and the security win matters more. Long-term, the cleaner pattern is a separate `company_enrichments` table where the `companies` row stays shared/read-mostly but each user owns their own per-company annotations (`description`, `domain`, `sector`, `notes`, etc.). The chat agent merges its-own-enrichment with the base row at read time. This preserves the SELECT-everywhere property that `company_targets` depends on while allowing each user to maintain their personal view of a company.
-
-**Shape sketch:**
-```sql
-CREATE TABLE company_enrichments (
-  user_id    uuid REFERENCES auth.users(id) ON DELETE CASCADE,
-  company_id uuid REFERENCES companies(id)  ON DELETE CASCADE,
-  description text, domain text, sector text, industry text, notes text,
-  updated_at timestamptz DEFAULT now(),
-  PRIMARY KEY (user_id, company_id)
-);
--- RLS: USING/WITH CHECK (auth.uid() = user_id) — pure per-user table
-```
-
-Frontend reads `companies` + LEFT JOIN `company_enrichments` filtered to current user; renders the enrichment value if present, falls back to the base companies row. The chat agent's UPDATE pattern becomes UPSERT against `company_enrichments` instead of editing `companies` directly. Manual-company INSERT path stays as-is (each user creates their own row, optionally enriches it).
+- **Tracker layout (#6 from Isaac's live-test list)** — visible typecheck errors in `Tracker.jsx` may be the root cause. Pending Isaac's screenshot.
 
 ---
 
 ## How to work with Claude Code
 
-We're using Claude (Opus 4.7 in 1M-context mode) as a pair programmer in two surfaces: **Claude Code** (terminal — direct file edits, command execution, runs lint/build) and **Claude.ai** (browser — research, deep planning, prompt-writing). The patterns below are how we've actually worked in PRs #20–#47.
+We use Claude (Opus 4.7 / 1M context) in two surfaces: **Claude Code** (terminal — direct file edits, command execution, lint/build) and **Claude.ai** (browser — research, deep planning, prompt-writing). The patterns below are how we've actually worked in PRs #20–#70.
 
-The repo now also has **production Claude Code hooks** at `.claude/settings.json` (shipped PR #40) that enforce the conventions automatically: every file edit runs Prettier + ESLint, protected paths (migrations, voice-rules, libraries, .env, package-lock) require confirmation, and dangerous bash commands (`rm -rf`, destructive SQL, `git push --force`, `--no-verify`) are blocked outright. Both Eli and Isaac inherit these when they run Claude Code in this repo — no setup needed beyond `jq` (Homebrew).
+The repo has **production Claude Code hooks** at `.claude/settings.json`: every file edit runs Prettier + ESLint, protected paths (migrations, voice-rules, libraries, .env, package-lock) require confirmation, dangerous bash commands (`rm -rf`, destructive SQL, `git push --force`, `--no-verify`) are blocked outright.
 
 ### The ask-don't-tell pattern
 
-When in doubt, Claude pauses and asks. This is non-negotiable for:
-- **Decisions that change scope** — "should I add X?" not "I added X."
-- **Decisions that lock in design** — "single-shot vs conversation thread for outreach?" not "I built the conversation thread."
-- **Risky / hard-to-reverse actions** — `git push --force`, `git reset --hard`, dropping tables, force-merging, sending public messages. Always confirm first.
-- **Anything visible to others** — pushing branches, opening PRs, posting comments. Confirm scope first.
+When in doubt, Claude pauses and asks. Non-negotiable for:
+- **Decisions that change scope** — "should I add X?" not "I added X"
+- **Decisions that lock in design** — surface options + leans before building
+- **Risky / hard-to-reverse actions** — `git push --force`, dropping tables, force-merging, sending public messages
+- **Anything visible to others** — pushing branches, opening PRs, posting comments
 
-In Eli's auto-memory: "Surface decisions for confirmation; don't lock in unilaterally even when broader scope is approved." Claude mirrors that. If you find Claude diving into a multi-file change without checking, redirect — that's the signal that the prompt was under-scoped.
+Eli's auto-memory: "Surface decisions for confirmation; don't lock in unilaterally even when broader scope is approved." If you find Claude diving into multi-file work without checking, redirect — the prompt was under-scoped.
 
-### Decision checkpoints
+### The pre-build investigation pattern (established in the D1-D4 / PR-C sequence)
 
-For non-trivial work, Claude pauses before building and surfaces numbered decisions:
+For non-trivial work, Claude surfaces a numbered investigation report before building. Standard fields:
 
-```
-Before I build, two design questions worth confirming:
+- **Existing tests** — what test coverage already exists?
+- **Regression risk** — what could break?
+- **Shared code** — what other surfaces touch this?
+- **Rollback path** — single-commit revert vs migration vs data backfill?
+- **Live-data check** — for anything touching schema, RLS, or count claims, verify against the live DB (`pg_class`, `pg_indexes`, `information_schema`, or direct `SELECT COUNT`)
 
-1. Persistence model. A: ephemeral (no DB rows, regen each time). B: one row per
-   conversation. Lean B because of decision 5A (editable bubbles).
-2. Goal-edit mid-thread. A: lock once started. B: editable. Lean B per your earlier call.
-
-If both leans are right, I'll proceed.
-```
-
-You answer "all confirmed, go" or redirect a specific decision. This pattern keeps Claude from spending 30 minutes building down a path you'd reject in 30 seconds.
-
-Use it any time you're delegating something architectural. **Don't accept "I'll figure it out as I go" from Claude on architectural calls** — that's where most rework comes from.
+Eli answers numbered options or redirects, then Claude builds. This is the explicit form of decision checkpointing.
 
 ### The full-CI-before-push rule
 
 Per `tasks/lessons.md` 2026-05-06 entry: `vite build` ≠ ESLint. CI runs `npm run lint && npm run typecheck && npm run build` — three separate gates. Before any push:
 
 ```bash
-npm run lint && npm run typecheck && npm run build
+npm run lint && npm test -- --run && npm run build
 ```
 
-The ~10s extra is cheaper than a failed CI + push-fix cycle. Typecheck is currently `continue-on-error: true` in CI (shadcn Button/Input typedef issues blocking baseline cleanup) — but lint and build are blocking gates.
-
-### Key files to read before starting
-
-When asking Claude to work in an unfamiliar area, point it at the right files:
-
-| Working on | Read first |
-|---|---|
-| LinkedIn Posts | `docs/research/linkedin-post-performance.md`, `_shared/post-frameworks/`, `_shared/voice-rules.ts` (POST_VOICE_RULES) |
-| LinkedIn Comments | `_shared/voice-rules.ts` (COMMENT_VOICE_RULES), the research doc sections 5-6 |
-| LinkedIn Outreach | `_shared/outreach-frameworks/`, `_shared/voice-rules.ts` (OUTREACH_VOICE_RULES) |
-| CV generation | `_shared/cv-templates/`, the CV polish PR series #23–#29 |
-| Tier scoring | `src/lib/scoreApplication.js`, `generate-career-analysis/index.ts`, `tasks/lessons.md` 2026-04-28 entry |
-| Edge function deploy | `tasks/lessons.md` 2026-05-05 entry |
-| Schema migrations | `supabase/migrations/` — pick a recent one matching your pattern (RLS, indexes, triggers) |
+Typecheck is currently `continue-on-error: true` in CI (shadcn Button/Input typedef issues + Tracker.jsx baseline) — lint and build are blocking.
 
 ### Commit + PR conventions
 
@@ -378,7 +322,7 @@ From `CLAUDE.md`:
 - Conventional commits: `feat(area):`, `fix(area):`, `refactor(area):`, `docs(area):`
 - Co-author trailer: `Co-Authored-By: Claude Opus 4.7 (1M context) <noreply@anthropic.com>`
 - Branch: `eli/<topic>` or `isaac/<topic>` — never push to main
-- PR template: `.github/pull_request_template.md` — fill out What & Why, Test Plan, Notes for the reviewer
+- PR template: `.github/pull_request_template.md`
 - Squash-merge to keep main linear
 - Cross-review required for `_shared/libraries/` edits
 
@@ -386,83 +330,50 @@ From `CLAUDE.md`:
 
 ## Tools / skills we use
 
-The full toolkit across both surfaces. Isaac, you have access to all of these.
+Full toolkit across both surfaces. Isaac, you have access to all of these.
 
 ### Web research (Claude.ai — deep research mode)
 
-Long-running multi-source research. Good for: industry data we don't already know, validating claims before they ground product decisions. Used for the LinkedIn post performance research that became `docs/research/linkedin-post-performance.md` (~50 tool calls, multiple cross-validation passes).
+Long-running multi-source research. Good for: industry data we don't already know, validating claims before they ground product decisions. Used for the LinkedIn post performance research that became `docs/research/linkedin-post-performance.md`.
 
-**When to use:** before building a feature whose quality depends on external claims (reply rates, format defaults, recipient-side dynamics). Save the output as a `docs/research/<topic>.md` file in the repo so prompts can ground in it.
-
-**Pattern:** Eli specifies the research scope in Claude.ai → Claude.ai produces a long-form findings doc with cross-validated / single-sourced / contested tagging → Eli pastes the doc into the repo via Claude Code → all related edge function prompts cite the doc as source.
-
-### Web search + web fetch (Claude Code in-session)
-
-For shallow lookups inside an active coding session — API docs, library version checks, "does Postgres support X." Faster than spinning up a Claude.ai research tab.
+**Pattern:** Eli specifies the research scope in Claude.ai → Claude.ai produces a long-form findings doc with cross-validated / single-sourced / contested tagging → Eli pastes the doc into the repo via Claude Code → related edge-function prompts cite it as source.
 
 ### Supabase MCP server (Claude.ai)
 
-Direct Postgres queries against the live project. Used for migration verification (`select count(*) from pg_class where relrowsecurity = true`), schema introspection, debugging RLS. When MCP isn't loaded in a session, the fallback is the Supabase Management API + a personal access token stashed at `/tmp/.gaj_supabase_token` — see `tasks/lessons.md` 2026-05-05 entry.
+Direct Postgres queries against the live project. Used heavily this session for migration verification, FK audits, table inventory. When MCP isn't loaded, the fallback is the Supabase Management API + a personal access token stashed at `/tmp/.gaj_supabase_token` — see `tasks/lessons.md` 2026-05-05 entry.
 
 ### gh CLI (Claude Code terminal)
 
-GitHub from the terminal — opening PRs, commenting on issues, listing PRs/issues, checking PR CI status. Used for every PR opened in PRs #30–#47.
-
-```bash
-gh pr create --title "..." --body "$(cat <<'EOF'
-## Summary
-...
-EOF
-)"
-gh pr view <num>
-gh pr checks <num>
-gh issue list
-```
+GitHub from the terminal — opening PRs, commenting, listing PRs/issues, checking CI status. Used for every PR opened in #20–#70.
 
 ### The prompt-writing pattern (Claude.ai → Claude Code)
 
-When Eli wants Claude Code to do something complex, the workflow is:
+When Eli wants Claude Code to do something complex:
+1. Eli describes intent in Claude.ai
+2. Claude.ai drafts a Claude Code prompt — framed as a question Claude Code should ask back, with relevant context
+3. Eli reviews + tweaks
+4. Eli pastes into Claude Code — self-contained briefing
 
-1. **Eli describes intent in Claude.ai** (broader, more permissive thinking environment)
-2. **Claude.ai drafts a Claude Code prompt** — usually framed as a question Claude Code should ask Eli back, with relevant context the prompt should include
-3. **Eli reviews + tweaks the draft** in Claude.ai
-4. **Eli pastes into Claude Code** — Claude Code now has a self-contained briefing
-
-Why: Claude.ai is better at scoping work; Claude Code is better at executing it. Splitting the job by surface gives a higher-quality prompt than typing freeform into Claude Code. Use it for any architectural call, multi-PR sequence, or "I want to build X but I'm not sure of the right shape."
-
-### The decision-checkpoint pattern (in any session)
-
-Before non-trivial work, Claude surfaces numbered decisions with options + leans (described above under "How to work with Claude Code"). This is the explicit form of ask-don't-tell.
-
-Eli has saved feedback: "Surface decisions for confirmation; don't lock in unilaterally even when broader scope is approved." If you're working with Claude and you notice it diving into multi-file work without checking architectural calls, redirect — the prompt was probably under-scoped.
+Why: Claude.ai is better at scoping; Claude Code is better at executing. Splitting the job gives a higher-quality prompt than typing freeform.
 
 ### Installed Claude Code skills + MCPs
 
-Installed in user scope on Eli's setup, available across all projects. Isaac should mirror these.
-
 | Plugin | Source | What it gives you |
 |---|---|---|
-| **superpowers** | `obra/superpowers-marketplace` | Multi-agent dev workflow — TDD, code review, subagent execution, planning, brainstorming, verification-before-completion. The most-used pack |
-| **document-skills** (Anthropic) | `anthropics/skills` (alias `anthropic-agent-skills`) | docx / pdf / pptx / xlsx authoring, frontend-design, webapp-testing, skill-creator, claude-api, theme-factory, brand-guidelines |
-| **example-skills** (Anthropic) | `anthropics/skills` | Same surface as document-skills but with the example pack |
-| **ui-ux-pro-max** | `nextlevelbuilder/ui-ux-pro-max-skill` | 50+ UI styles, 161 color palettes, 57 font pairings, 99 UX guidelines, 161 product types, 25 chart types across 10 stacks |
-| **marketing-skills** (Corey Haines) | `coreyhaines31/marketingskills` | 32 marketing skills: copywriting, page-cro, email-sequence, seo-audit, ad-creative, churn-prevention, etc. Critical for the landing page |
-| **Context7 MCP** | `https://mcp.context7.com/mcp` (HTTP transport) | Fetches latest docs for React / Tailwind / shadcn / Supabase / Deno / Langfuse — reduces hallucinated APIs |
+| **superpowers** | `obra/superpowers-marketplace` | Multi-agent dev workflow — TDD, code review, subagent execution, planning, brainstorming |
+| **document-skills** | `anthropics/skills` | docx / pdf / pptx / xlsx authoring, frontend-design, webapp-testing, skill-creator |
+| **ui-ux-pro-max** | `nextlevelbuilder/ui-ux-pro-max-skill` | 50+ UI styles, 161 color palettes, 57 font pairings, 99 UX guidelines |
+| **marketing-skills** | `coreyhaines31/marketingskills` | 32 marketing skills: copywriting, page-cro, email-sequence, seo-audit |
+| **Context7 MCP** | `https://mcp.context7.com/mcp` | Latest docs for React / Tailwind / shadcn / Supabase / Deno / Langfuse |
 
-See `docs/strategy/installation-checklist.md` for the full installation roadmap (THIS WEEK / PRE-LAUNCH / POST-LAUNCH).
-
-### Other tools worth knowing
-
-- **Claude Code's TaskCreate / TaskList** — internal task tracking within a session. Don't rely on it for cross-session memory; use ROADMAP.md for that.
-- **Slash commands / skills** — `/loop` (recurring work), `/clear` (reset session), and any project-specific skills we add. Wk 5 ships a role-library research skill (Isaac).
-- **Worktrees** — `Agent` tool with `isolation: "worktree"` runs an agent on an isolated copy of the repo. Useful for exploratory refactors that might not land. Not used much yet.
+See `docs/strategy/installation-checklist.md` for the full roadmap.
 
 ---
 
 ## Keeping this file alive
 
-**Every PR updates this file.** Adding a new edge function? Add a row to the table. Shipping a feature? Update Sprint Status. Refactor changes a key file path? Update Key Files. New convention? Add a section or update CLAUDE.md and add the cross-reference here.
+**Every non-trivial PR updates this file.** Adding a new edge function? Add a row. Shipping a feature? Update the recent-work table at the top. Refactor changes a key file path? Update Key Files. New convention? Add a section or update CLAUDE.md and cross-reference here.
 
 The PR template (`.github/pull_request_template.md`) has a checkbox for this — added in PR #36. If you read this file and something feels stale, that's the signal — fix it in your next PR.
 
-When the file gets too long (current target: <800 lines), split. The split rule: anything that has its own evolution rhythm (lessons, research, sprint plan) lives in its own file and is cross-referenced from here.
+When the file gets too long (target: <800 lines), split. The split rule: anything with its own evolution rhythm (lessons, research, sprint plan) lives in its own file and is cross-referenced from here.
