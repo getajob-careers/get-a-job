@@ -19,6 +19,7 @@ import {
   Clock,
 } from "lucide-react";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
+import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experienceLevel";
 
 // Page rebuild (PR 3 of jobs-cache rollout, 2026-05-17).
 //
@@ -276,7 +277,29 @@ export default function JobSuggestions() {
     enabled: !!user?.id,
     staleTime: PROFILE_STALE_TIME,
   });
+  // Education rows feed inferExperienceLevel via isCurrentlyStudent. Lives
+  // in its own table since Phase B (separate from profiles flat columns).
+  const { data: educations = [] } = useQuery({
+    queryKey: ["education", user?.id],
+    queryFn: async () => (await supabase.from("education").select("*").eq("user_id", user.id)).data || [],
+    enabled: !!user?.id,
+    staleTime: PROFILE_STALE_TIME,
+  });
   const stale = isAnalysisStale({ profile, experiences, certifications, projects });
+
+  // Seniority filter: derived from experiences + education using the same
+  // algorithm as generate-career-analysis. Memoised against the inputs so
+  // we don't re-derive on every render. Pre-data state (queries still
+  // resolving) is treated as early_career — most conservative bucket,
+  // matches the edge function's default when experiences is empty.
+  const experienceLevel = useMemo(
+    () => inferExperienceLevel(experiences, educations),
+    [experiences, educations],
+  );
+  const allowedSeniorities = useMemo(
+    () => allowedSenioritiesForLevel(experienceLevel),
+    [experienceLevel],
+  );
 
   // Career roles for the tier-mode query — grouped by tier client-side.
   const { data: careerRoles = [] } = useQuery({
@@ -346,6 +369,9 @@ export default function JobSuggestions() {
         .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry")
         .eq("is_il", true)
         .eq("is_active", true)
+        // Same seniority gate as the tier-mode RPC — a Junior user
+        // searching "software engineer" shouldn't see Senior SWE.
+        .in("seniority", allowedSeniorities)
         .order("date_posted", { ascending: false, nullsFirst: false })
         .range(offsetArg, offsetArg + BROWSE_PAGE_SIZE - 1);
       if (safe) q = q.ilike("title", `%${safe}%`);
@@ -361,9 +387,10 @@ export default function JobSuggestions() {
         p_limit: BROWSE_PAGE_SIZE,
         p_offset: offsetArg,
         p_similarity_threshold: TIER_SIMILARITY_THRESHOLD,
+        p_max_seniority: allowedSeniorities,
       })
       .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry");
-  }, [rolesByTier]);
+  }, [rolesByTier, allowedSeniorities]);
 
   const fetchJobs = useCallback(async ({ modeArg, tier, kw, offsetArg, append }) => {
     const seq = ++requestSeqRef.current;
