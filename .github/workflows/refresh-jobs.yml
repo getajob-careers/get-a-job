@@ -1,9 +1,10 @@
 # Nightly job-cache refresh.
 #
-# Runs scripts/refresh-jobs.ts, which fetches from the 115 verified
-# Israeli-hiring companies in supabase/functions/_shared/libraries/companies_il.json
-# via Greenhouse / Lever / Ashby / Workday / SmartRecruiters APIs and
-# UPSERTs Israeli jobs into public.jobs.
+# Runs scripts/refresh-jobs.ts, which iterates the 831-company registry at
+# supabase/functions/_shared/libraries/companies_il.json, filters down to
+# the ~440 entries with a supported ATS (Greenhouse / Lever / Ashby /
+# Workday / SmartRecruiters / Comeet / SuccessFactors), fetches their
+# public listings, and UPSERTs Israeli jobs into public.jobs.
 #
 # Schedule: 01:00 UTC daily = 03:00 IL (winter) / 04:00 IL (summer).
 # Off-peak both ways; exact local time isn't load-bearing (no users

@@ -41,7 +41,8 @@ const RATE_LIMIT_CALLS = 4
 const RATE_LIMIT_WINDOW = 3600
 
 // Pool cap: how many companies we even consider for pre-filtering. The
-// global pool will grow past 200 over time (JSearch + admin curation);
+// curated pool (companies.source IN ('research', 'manual', 'faculty_seeded'))
+// currently sits ~391 rows and grows via admin curation + student self-adds.
 // 500 is comfortable headroom without blowing up memory or input cost.
 const POOL_CAP = 500
 
