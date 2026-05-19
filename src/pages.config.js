@@ -65,6 +65,7 @@ import Admin from './pages/Admin';
 import LinkedinOptimizer from './pages/LinkedinOptimizer';
 import Practicum from './pages/Practicum';
 import Settings from './pages/Settings';
+import Landing from './pages/Landing';
 import __Layout from './Layout.jsx';
 
 
@@ -87,6 +88,7 @@ export const PAGES = {
     "LinkedinOptimizer": LinkedinOptimizer,
     "Practicum": Practicum,
     "Settings": Settings,
+    "Landing": Landing,
 }
 
 export const pagesConfig = {
