@@ -23,8 +23,10 @@ Get A Job is an AI-powered career operating system for **business students at Re
 
 **Two pilots, in this order:**
 
-1. **WhatsApp pilot — imminent.** 100 users, launching in the next few days via WhatsApp groups. Open invite via a shared invite code with a hard cap at 100. Overflow goes to a waitlist email capture. Purpose: get real signup → onboarding → first-week-use data ahead of the academic cohort.
-2. **Reichman practicum — Aug–Nov 2026, CONFIRMED.** 100 students. Professor + Dr. Miller personally vouching. The Internship Company Picker is a P0 requirement specific to this cohort.
+1. **WhatsApp pilot — imminent.** 100 users (hard cap, enforced by the invite code), launching in the next few days via WhatsApp groups. Overflow goes to a waitlist email capture. Purpose: get real signup → onboarding → first-week-use data ahead of the academic cohort.
+2. **Reichman practicum — Aug–Nov 2026, CONFIRMED.** Separate cohort. Professor + Dr. Miller personally vouching. **Exact student count TBD** — could be 10, could be 100, depends on practicum enrollment which we don't control. The cohort will get its own invite code or an extended cap on the existing one (TBD when the window opens). The Internship Company Picker is a P0 requirement specific to this cohort.
+
+The two pilots don't sum to a single planned total. WhatsApp = 100 hard. Reichman = whatever enrolls.
 
 Target users are not generic job seekers — they are early-career business students aiming at CS, Marketing, BD, RevOps, PM, CSM, Solutions, GTM-style roles (not engineering). All product decisions are anchored to that audience: reply rates, tone, role library, voice rules, framework defaults.
 
