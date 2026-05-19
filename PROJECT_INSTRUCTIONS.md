@@ -19,7 +19,7 @@ Cross-references:
 
 ## What this app is
 
-Get A Job is an AI-powered career operating system for **business students at Reichman University entering the Israeli tech market.**
+Get A Job is an AI-powered career operating system. The first pilot cohort is **business students at Reichman University entering the Israeli tech market**, but the platform is designed for any job seeker at any stage.
 
 **Two pilots, in this order:**
 
@@ -28,7 +28,9 @@ Get A Job is an AI-powered career operating system for **business students at Re
 
 The two pilots don't sum to a single planned total. WhatsApp = 100 hard. Reichman = whatever enrolls.
 
-Target users are not generic job seekers — they are early-career business students aiming at CS, Marketing, BD, RevOps, PM, CSM, Solutions, GTM-style roles (not engineering). All product decisions are anchored to that audience: reply rates, tone, role library, voice rules, framework defaults.
+Target users for the pilot are not generic job seekers — they are early-career business students aiming at CS, Marketing, BD, RevOps, PM, CSM, Solutions, GTM-style roles (not engineering). All pilot-phase product decisions are anchored to that audience: reply rates, tone, role library, voice rules, framework defaults.
+
+**These are the pilot users.** The platform architecture is not hard-coded to this audience — role libraries, skill libraries, and voice rules are extensible to other markets and career stages. Today's defaults reflect today's cohort; the structure supports adding new role/skill packs and voice variants without architectural changes.
 
 ---
 
@@ -81,7 +83,7 @@ Target users are not generic job seekers — they are early-career business stud
 
 **Job source (rebuilt PR #56-ish):** Direct ATS fetching. **No more JSearch / RapidAPI / Active Jobs DB.** `scripts/refresh-jobs.ts` iterates the 831-company registry in `_shared/libraries/companies_il.json`, filters to ~440 entries with a supported ATS (Greenhouse / Lever / Ashby / Workday / SmartRecruiters / Comeet / SuccessFactors), fetches public listings, UPSERTs into `public.jobs` (currently ~3k rows). Runs nightly via GHA `refresh-jobs.yml` at 01:00 UTC. Failure threshold: GHA run fails if >20% of companies error.
 
-**Domain libraries** (Israeli market context, **183 roles + 387 unique skill IDs**): consolidated under `supabase/functions/_shared/libraries/`. 16 `.ts` files + `companies_il.json`. Two skills curate this material: `.claude/skills/schema-validator/` (read-only structural checker) and `.claude/skills/role-research/` (research-grade enrichment). Edge functions importing from this single source: `generate-career-analysis`, `generate-tasks`, `extract-proof-signals`, `generate-tailored-cv`, `lookup-role-skills`, `match-internship-companies`, `generate-internship-profile`. **Edits require explicit cross-review by the other dev.**
+**Domain libraries** (currently curated for the Israeli tech market — the pilot audience; designed to be extensible to other markets, **183 roles + 387 unique skill IDs**): consolidated under `supabase/functions/_shared/libraries/`. 16 `.ts` files + `companies_il.json`. Two skills curate this material: `.claude/skills/schema-validator/` (read-only structural checker) and `.claude/skills/role-research/` (research-grade enrichment). Edge functions importing from this single source: `generate-career-analysis`, `generate-tasks`, `extract-proof-signals`, `generate-tailored-cv`, `lookup-role-skills`, `match-internship-companies`, `generate-internship-profile`. **Edits require explicit cross-review by the other dev.**
 
 **Skill propagation** (PR #61): the deterministic scorer used to fail-match ~95% of user-stated skills against library IDs because of strict snake_case normalization. Layer 1 fix is `_shared/skill-aliases.ts` (170 curated entries covering all StepSkills chips + common variants). Layer 2 fix is an LLM semantic-credit pass — `generate-career-analysis` includes a CANDIDATE_SKILLS list in its prompt; the LLM returns `additional_credited_skill_ids` (validated against the offered set), and the server re-scores the selected roles with augmented skills. Match rate jumped from 19% → 77% in a dry-run against the 10 live users.
 
