@@ -19,7 +19,12 @@ Cross-references:
 
 ## What this app is
 
-Get A Job is an AI-powered career operating system for **business students at Reichman University entering the Israeli tech market.** Pilot is **CONFIRMED** for Aug–Nov 2026 (100 students, Reichman professor + Dr. Miller personally vouching). Internship Company Picker is a P0 add to original scope.
+Get A Job is an AI-powered career operating system for **business students at Reichman University entering the Israeli tech market.**
+
+**Two pilots, in this order:**
+
+1. **WhatsApp pilot — imminent.** 100 users, launching in the next few days via WhatsApp groups. Open invite via a shared invite code with a hard cap at 100. Overflow goes to a waitlist email capture. Purpose: get real signup → onboarding → first-week-use data ahead of the academic cohort.
+2. **Reichman practicum — Aug–Nov 2026, CONFIRMED.** 100 students. Professor + Dr. Miller personally vouching. The Internship Company Picker is a P0 requirement specific to this cohort.
 
 Target users are not generic job seekers — they are early-career business students aiming at CS, Marketing, BD, RevOps, PM, CSM, Solutions, GTM-style roles (not engineering). All product decisions are anchored to that audience: reply rates, tone, role library, voice rules, framework defaults.
 
@@ -105,6 +110,24 @@ The tutorial **replaced** the original "Your Roles" reveal page — slides 1-6 c
 - **Cron:** `.github/workflows/refresh-jobs.yml` at 01:00 UTC daily
 - **Observability:** Langfuse Cloud (per-call LLM traces with userId metadata) + Supabase `function_metrics` table (per-call latency/cost/tokens, populated by `_shared/metrics.ts`) + Supabase edge function logs dashboard
 - **Analytics:** PostHog (`src/lib/analytics.js`) — **17 events** spanning signup, 4 onboarding events, 4 tutorial events, CV upload, career analysis, job-match check, application tracking, 2 practicum events, chat, 2 subscription events
+
+---
+
+## Business model
+
+**Subscription, no free tier.**
+
+- **7-day free trial** starts on signup. Full feature access during the trial — onboarding, career analysis, CV gen, LinkedIn, practicum, chat agents.
+- **$12/month** after the trial ends. Single price point. No discount tiers.
+- **No perpetual free plan.** Trial expiry → paywall, not a degraded free experience.
+
+**Pilot access:**
+
+- **Shared invite code** unlocks signup. Single code, gated at sign-up. Hard cap at **100 users** — once the cap is hit, the code stops working and new visitors hit a waitlist screen.
+- **Waitlist email capture** for overflow. Captures email + timestamp; we drain it manually after the WhatsApp pilot stabilizes.
+- The Reichman practicum cohort (Aug–Nov 2026) will get a separate code or extended cap — TBD when that window opens.
+
+**Subscription events instrumented** (PostHog): `SUBSCRIPTION_STARTED`, `SUBSCRIPTION_CANCELED`. Payment provider TBD (Stripe most likely); not yet wired.
 
 ---
 
