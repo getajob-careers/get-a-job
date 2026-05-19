@@ -3,8 +3,9 @@ import { Navigate } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 import { createPageUrl } from "@/utils";
 
 import PracticumHeader from "@/components/practicum/PracticumHeader";
@@ -12,23 +13,25 @@ import InternshipProfileStrip from "@/components/practicum/InternshipProfileStri
 import FindCompaniesCard from "@/components/practicum/FindCompaniesCard";
 import CompanyTargetsKanban from "@/components/practicum/CompanyTargetsKanban";
 import CompanyTargetDrawer from "@/components/practicum/CompanyTargetDrawer";
-import {
-  NoInternshipProfile,
-  FacultyPlacementPending,
-} from "@/components/practicum/EmptyStates";
+import AddOwnCompanyModal from "@/components/practicum/AddOwnCompanyModal";
+import { NoInternshipProfile } from "@/components/practicum/EmptyStates";
 
-// Practicum — Wk 4 Internship Finder page.
+// Practicum — Internship pipeline page (unified).
 //
-// Branches on profiles.practicum_path:
-//   - null               → "set your path" empty state
-//   - self_sourced       → full finder UX (profile strip + find button + kanban)
-//   - faculty_assigned   → kanban only (faculty placements), no finder
+// Single page for both practicum paths. The kanban shows every target the
+// user owns regardless of source — matched, faculty_assigned, or self_added —
+// and each card shows its origin via the source badge.
+//
+// Self-sourced features (internship profile strip + AI matcher) only render
+// when practicum_path === 'self_sourced'. The "Add my own company" button
+// is available to everyone with a practicum_path set.
 
 export default function Practicum() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [openTarget, setOpenTarget] = useState(null);
   const [generatingProfile, setGeneratingProfile] = useState(false);
+  const [addCompanyOpen, setAddCompanyOpen] = useState(false);
 
   const { data: profileRow, isLoading: profileLoading } = useQuery({
     queryKey: ["profile_practicum", user?.id],
@@ -147,6 +150,10 @@ export default function Practicum() {
     return <Navigate to={createPageUrl("Home")} replace />;
   }
 
+  const emptyMessage = practicumPath === "self_sourced"
+    ? "No companies in your pipeline yet. Generate matches above, or add a company you've found."
+    : "No placements yet. Your faculty mentor will log yours soon — or add a company you've found in the meantime.";
+
   return (
     <div className="p-4 lg:p-8 max-w-7xl mx-auto">
       <PracticumHeader
@@ -156,55 +163,60 @@ export default function Practicum() {
       />
 
       {practicumPath === "self_sourced" && (
-        <>
-          {!internshipProfileLoading && !internshipProfile ? (
-            <NoInternshipProfile
-              generateDisabled={generatingProfile}
-              onGenerate={handleGenerateProfile}
-            />
-          ) : (
-            <>
-              <InternshipProfileStrip
-                profile={internshipProfile}
-                onRefresh={handleGenerateProfile}
-                refreshDisabled={generatingProfile}
-                refreshLoading={generatingProfile}
-                latestCareerRolesUpdatedAt={latestCareerRolesUpdatedAt}
-              />
-              <FindCompaniesCard
-                disabled={!internshipProfile}
-                disabledReason={!internshipProfile ? "Generate your internship profile first." : undefined}
-              />
-            </>
-          )}
-          <KanbanOrEmpty
-            targets={targets}
-            loading={targetsLoading}
-            onCardClick={setOpenTarget}
-            emptyMessage="No companies in your pipeline yet. Click 'Find companies' above to score the pool against your strategy."
+        !internshipProfileLoading && !internshipProfile ? (
+          <NoInternshipProfile
+            generateDisabled={generatingProfile}
+            onGenerate={handleGenerateProfile}
           />
-        </>
+        ) : (
+          <>
+            <InternshipProfileStrip
+              profile={internshipProfile}
+              onRefresh={handleGenerateProfile}
+              refreshDisabled={generatingProfile}
+              refreshLoading={generatingProfile}
+              latestCareerRolesUpdatedAt={latestCareerRolesUpdatedAt}
+            />
+            <FindCompaniesCard
+              disabled={!internshipProfile}
+              disabledReason={!internshipProfile ? "Generate your internship profile first." : undefined}
+            />
+          </>
+        )
       )}
 
-      {practicumPath === "faculty_assigned" && (
-        <>
-          {!targetsLoading && targets.length === 0 ? (
-            <FacultyPlacementPending />
-          ) : (
-            <KanbanOrEmpty
-              targets={targets}
-              loading={targetsLoading}
-              onCardClick={setOpenTarget}
-              emptyMessage="Your faculty mentor hasn't logged a placement yet."
-            />
-          )}
-        </>
-      )}
+      {/* Unified pipeline header — Add button is available on every path so
+          faculty-assigned students can also self-source. */}
+      <div className="flex items-center justify-between mt-6 mb-3">
+        <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
+          Your pipeline
+        </p>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setAddCompanyOpen(true)}
+          className="gap-1.5"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          Add my own company
+        </Button>
+      </div>
+
+      <KanbanOrEmpty
+        targets={targets}
+        loading={targetsLoading}
+        onCardClick={setOpenTarget}
+        emptyMessage={emptyMessage}
+      />
 
       <CompanyTargetDrawer
         target={openTarget}
         open={!!openTarget}
         onClose={() => setOpenTarget(null)}
+      />
+      <AddOwnCompanyModal
+        open={addCompanyOpen}
+        onClose={() => setAddCompanyOpen(false)}
       />
     </div>
   );
