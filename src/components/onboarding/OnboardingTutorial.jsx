@@ -3,14 +3,15 @@ import { Button } from "@/components/ui/button";
 import { Loader2, ArrowRight, ArrowLeft, Briefcase, ClipboardList, BookText, Linkedin, FileText, MessageCircle, RotateCcw } from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics";
 import { useFakeProgress } from "@/lib/useFakeProgress";
-import TierQuadrantGrid from "@/components/roadmap/TierQuadrantGrid";
 
 // Slide content. User navigates manually via arrow buttons — no auto-advance.
 // Visuals are placeholder icons + descriptions until real screenshots land.
 const SLIDES = [
   {
-    // Slide 1 has a custom layout (TierQuadrantGrid below the title) — the
-    // description is rendered as the closing line BELOW the grid.
+    // Slide 1 has a custom layout (tier-explanation bullets between the title
+    // and the closing description). The quadrant grid that previously lived
+    // here was removed pending a design pass — text bullets land more cleanly
+    // on small screens and during the brief read.
     name: "browse_jobs",
     title: "Browse Jobs",
     description: "Score any role for a personalized fit breakdown.",
@@ -266,23 +267,26 @@ export default function OnboardingTutorial({
 
 function Slide({ slide }) {
   const { Icon, title, description, name } = slide;
-  // Slide 1 (Browse Jobs) renders the tier-quadrant grid above the
-  // closing description line. Other slides render description only.
-  const isQuadrantSlide = name === "browse_jobs";
+  // Slide 1 (Browse Jobs) gets tier-explanation bullets between the title and
+  // the closing description. Other slides render description only.
+  const isBrowseJobs = name === "browse_jobs";
   return (
     <div className="bg-white border border-[#E5E5E5] rounded-2xl p-10 min-h-[280px] flex flex-col items-center justify-center text-center">
       <div className="w-16 h-16 rounded-full bg-[#0A0A0A] flex items-center justify-center mb-5">
         <Icon className="w-7 h-7 text-white" />
       </div>
       <h3 className="text-lg font-bold text-[#0A0A0A] tracking-tight">{title}</h3>
-      {isQuadrantSlide && <TierQuadrantGrid />}
+      {isBrowseJobs && (
+        <ul className="text-left text-sm text-[#525252] mt-4 space-y-1.5 max-w-sm leading-relaxed">
+          <li><span className="font-semibold text-emerald-700">Tier 1 (your sweet spot)</span> — qualified now and on your career path. Apply here first.</li>
+          <li><span className="font-semibold text-amber-700">Tier 3 (your next role)</span> — on your path but not quite ready yet. Use to plan skill-building.</li>
+          <li><span className="font-semibold text-[#525252]">Tier 2 (a detour)</span> — qualified, but takes you off your stated direction.</li>
+        </ul>
+      )}
       <p className="text-sm text-[#525252] mt-3 leading-relaxed max-w-sm">{description}</p>
     </div>
   );
 }
-
-// TierQuadrantGrid lives in src/components/roadmap/TierQuadrantGrid.jsx —
-// shared with the Career Roadmap "Why these tiers" tab.
 
 function FullScreenShell({ children }) {
   return (
