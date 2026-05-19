@@ -5,8 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { ArrowRight, Loader2, CheckCircle2, XCircle, AlertCircle, RotateCcw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { ArrowRight, Loader2, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
 import SkillGapCourses from "../components/dashboard/SkillGapCourses";
 import JobMatchChecker from "../components/dashboard/JobMatchChecker";
 import DailyActionCard from "../components/dashboard/DailyActionCard";
@@ -17,8 +16,6 @@ export default function Home() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const [resetConfirming, setResetConfirming] = useState(false);
-  const [resetError, setResetError] = useState(null);
 
   const { data: profiles = [], isLoading: loadingProfile, isFetched: profileFetched, isError: profileError } = useQuery({
     queryKey: ["userProfile", user?.id],
@@ -250,39 +247,6 @@ export default function Home() {
   const activeApps = applications.filter((a) => !["rejected", "withdrawn", "offer", "accepted"].includes(a.status));
   const score = tier1Role?.readiness_score ?? (tier1Role?.match_percentage != null ? tier1Role.match_percentage / 100 : null);
 
-  const handleResetOnboarding = async () => {
-    if (!profile?.id) return;
-    if (!resetConfirming) {
-      setResetConfirming(true);
-      return;
-    }
-    setResetConfirming(false);
-    setResetError(null);
-    // Clear the "had roles" flag so the post-reset UI doesn't show
-    // "Refreshing skill analysis…" forever when the user genuinely
-    // intends to start over.
-    if (user?.id) {
-      try { localStorage.removeItem(`careerRoles:${user.id}:hadData`); } catch { /* ignore */ }
-    }
-    const { error: rpcError } = await supabase.rpc("reset_user_data", {
-      p_user_id: user.id,
-    });
-    if (rpcError) {
-      console.error("Failed to reset user data:", rpcError);
-      setResetError("Reset failed. Please try again.");
-      return;
-    }
-    queryClient.removeQueries({ queryKey: ["userProfile"] });
-    queryClient.removeQueries({ queryKey: ["careerRoles"] });
-    queryClient.removeQueries({ queryKey: ["tasks"] });
-    queryClient.removeQueries({ queryKey: ["applications"] });
-    queryClient.removeQueries({ queryKey: ["experiences"] });
-    queryClient.removeQueries({ queryKey: ["projects"] });
-    queryClient.removeQueries({ queryKey: ["certifications"] });
-    queryClient.removeQueries({ queryKey: ["jobSuggestions"] });
-    navigate(createPageUrl("Onboarding"));
-  };
-
   return (
     <motion.div
       className="max-w-4xl mx-auto px-6 py-8"
@@ -290,12 +254,6 @@ export default function Home() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {resetError && (
-        <div className="flex items-center gap-2 mb-6 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-700">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          {resetError}
-        </div>
-      )}
       {/* Data load error banner */}
       {(rolesError || appsError) && (
         <div className="flex items-center gap-2 mb-6 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-700">
@@ -328,37 +286,6 @@ export default function Home() {
             </p>
           )}
         </div>
-        {resetConfirming ? (
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-red-600 font-medium">This deletes all your data.</span>
-            <Button
-              variant="destructive"
-              size="sm"
-              onClick={handleResetOnboarding}
-              className="gap-1.5 bg-red-600 hover:bg-red-700"
-            >
-              <RotateCcw className="w-3 h-3" />
-              Confirm Reset
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setResetConfirming(false)}
-            >
-              Cancel
-            </Button>
-          </div>
-        ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleResetOnboarding}
-            className="gap-2 text-red-600 border-red-200 hover:bg-red-50"
-          >
-            <RotateCcw className="w-3 h-3" />
-            Reset Onboarding
-          </Button>
-        )}
       </div>
 
       {/* Overall Assessment */}
