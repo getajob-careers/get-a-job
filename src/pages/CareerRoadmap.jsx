@@ -12,6 +12,7 @@ import GeneratingBanner from "@/components/ui/GeneratingBanner";
 import RoleCard from "../components/roadmap/RoleCard";
 import TierQuadrantGrid from "../components/roadmap/TierQuadrantGrid";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
+import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experienceLevel";
 import { track, EVENTS } from "@/lib/analytics";
 
 const ROADMAP_MESSAGES = [
@@ -91,6 +92,19 @@ export default function CareerRoadmap() {
     enabled: !!user?.id,
   });
 
+  // Education feeds inferExperienceLevel via isCurrentlyStudent. Separate
+  // table since Phase B (no longer flat columns on profiles).
+  const { data: educations = [] } = useQuery({
+    queryKey: ["education", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase.from("education").select("*").eq("user_id", user.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
   const { data: certifications = [] } = useQuery({
     queryKey: ["certifications", user?.id],
     queryFn: async () => {
@@ -121,11 +135,18 @@ export default function CareerRoadmap() {
   const tier3 = roles.filter((r) => r.tier === "tier_3");
   const uncategorized = roles.filter((r) => !["tier_1", "tier_2", "tier_3"].includes(r.tier));
 
+  // Seniority filter for the Tier 1 live-jobs RPC. Same mapping as
+  // JobSuggestions — derived from experiences + education through the
+  // shared helper. Prevents a Junior user seeing Senior SWE in their
+  // roadmap overview (same bug shape as JobSuggestions).
+  const experienceLevel = inferExperienceLevel(experiences, educations);
+  const allowedSeniorities = allowedSenioritiesForLevel(experienceLevel);
+
   // Live Tier 1 job matches from public.jobs — same RPC the JobSuggestions
   // page uses, capped at 5 results for the Overview card.
   const tier1RoleTitles = tier1.map((r) => r.title).filter(Boolean);
   const { data: tier1Jobs = [], isLoading: jobsLoading } = useQuery({
-    queryKey: ["roadmap_tier1_jobs", user?.id, tier1RoleTitles.join("|")],
+    queryKey: ["roadmap_tier1_jobs", user?.id, tier1RoleTitles.join("|"), allowedSeniorities.join(",")],
     enabled: !!user?.id && tier1RoleTitles.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -134,6 +155,7 @@ export default function CareerRoadmap() {
           p_limit: OVERVIEW_TIER_JOBS_LIMIT,
           p_offset: 0,
           p_similarity_threshold: TIER_SIMILARITY_THRESHOLD,
+          p_max_seniority: allowedSeniorities,
         })
         .select("id, title, company_name, location_city, location_raw, is_remote, apply_url, seniority, date_posted");
       if (error) throw error;
