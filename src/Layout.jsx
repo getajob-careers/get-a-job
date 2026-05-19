@@ -19,8 +19,7 @@ import {
   Sparkles,
   User,
   Briefcase,
-  Target,
-  Settings as SettingsIcon
+  Target
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -36,7 +35,6 @@ const NAV_ITEMS = [
   { name: "AI Agents", page: "Subagents", icon: Layers },
   { name: "Resources", page: "Resources", icon: BookOpen },
   { name: "Profile", page: "AddInformation", icon: User },
-  { name: "Settings", page: "Settings", icon: SettingsIcon },
 ];
 
 const ONBOARDING_PAGE = "Onboarding";
@@ -156,7 +154,10 @@ export default function Layout({ children, currentPageName }) {
           })}
         </nav>
 
-        <SidebarFooter profileFullName={profileFullName} />
+        <SidebarFooter
+          profileFullName={profileFullName}
+          onNavigate={() => setSidebarOpen(false)}
+        />
       </aside>
 
       {/* Main content */}
