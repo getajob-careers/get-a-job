@@ -12,7 +12,7 @@
 
 - [ ] **Wire Helicone as OpenAI base URL** — change base_url to https://oai.helicone.ai/v1 + add Helicone-Auth header across all 15 edge functions. Gives you instant cost tracking, latency monitoring, and 20-30% savings from prompt caching. Free 100k req/mo. ONE LINE CHANGE per function.
 
-- [ ] **Wire Resend SMTP into Supabase Auth** — replaces Supabase's 2-emails-per-hour default. Without this, magic links WILL fail on launch day when 80 people sign up. Free 3k emails/mo.
+- [x] **Wire Resend SMTP into Supabase Auth** — replaces Supabase's 2-emails-per-hour default. Without this, magic links WILL fail on launch day when 80 people sign up. _(done: Custom SMTP toggle on, host `smtp.resend.com`, sender `noreply@getajob.careers`, DMARC passing. Confirmed in dashboard 2026-05-20. Pro plan ~3k/day = ~125/hr sustained.)_
 
 - [ ] **Apply to Coursera Affiliate via Impact** — takes 3-7 days for approval. Apply now so it's ready when you need it. Free to join, 15-45% commission.
 
