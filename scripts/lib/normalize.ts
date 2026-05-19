@@ -292,14 +292,48 @@ export function parseYearsOfExperience(
 }
 
 /**
- * Combine title + years signals. Years-based wins when it disagrees with
- * the title-based bucket — it's a more direct signal of required experience.
+ * Combine title + years signals. Variant B (locked 2026-05-20):
+ *
+ *   - If title classifies as senior / lead / director / executive,
+ *     TITLE WINS. A job titled "Senior X" is positioned at senior even
+ *     when the description says "3-5 years required". Recruiters set
+ *     the level via the title; the years range is often a broad band
+ *     that demotes the role unfairly when years-based logic runs first.
+ *   - If title classifies as entry, title wins. Junior-titled postings
+ *     are junior, full stop.
+ *   - If title is "mid" (no seniority keyword matched in the title),
+ *     use years.min to refine — this is where years carry real signal.
+ *
+ * Why the old logic failed (cache audit 2026-05-20):
+ *   - 294 jobs titled "Senior X" tagged as `mid` (years.min avg 4.7).
+ *   - 70 "Lead X" tagged as `mid`.
+ *   - 13 "Director X" tagged as `mid` — director was unreachable
+ *     entirely because the old function could only return entry/mid/
+ *     senior/lead from the years branch.
+ *   - 18% of the active IL cache (558 / 3,071 rows) mis-tagged.
+ *
+ * Variant B fixes 460+ of those at the cost of trusting titles more
+ * aggressively. The smaller bucket of remaining noise (e.g. "Senior
+ * Year Internship" matching `\bsenior\b`) is left for a follow-up that
+ * tightens the title regex.
  */
 export function finalSeniority(
   titleBucket: Seniority,
   years: { min: number | null; max: number | null },
 ): Seniority {
-  if (years.min === null) return titleBucket;
+  if (
+    titleBucket === "senior" ||
+    titleBucket === "lead" ||
+    titleBucket === "director" ||
+    titleBucket === "executive"
+  ) {
+    return titleBucket;
+  }
+  if (titleBucket === "entry") return "entry";
+
+  // titleBucket is "mid" — no seniority keyword in the title. Years
+  // refines when present; otherwise default to mid.
+  if (years.min === null) return "mid";
   if (years.min <= 2) return "entry";
   if (years.min < 6)  return "mid";
   if (years.min < 9)  return "senior";
