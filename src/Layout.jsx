@@ -19,7 +19,8 @@ import {
   Sparkles,
   User,
   Briefcase,
-  Target
+  Target,
+  Settings as SettingsIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,6 +36,7 @@ const NAV_ITEMS = [
   { name: "AI Agents", page: "Subagents", icon: Layers },
   { name: "Resources", page: "Resources", icon: BookOpen },
   { name: "Profile", page: "AddInformation", icon: User },
+  { name: "Settings", page: "Settings", icon: SettingsIcon },
 ];
 
 const ONBOARDING_PAGE = "Onboarding";

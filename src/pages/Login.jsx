@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { MIN_LEN, getPasswordChecks, allChecksPass } from "@/lib/passwordPolicy";
 import PasswordRequirements from "@/components/account/PasswordRequirements";
 
@@ -14,6 +14,17 @@ export default function Login() {
   const [error, setError] = useState(null);
   const [message, setMessage] = useState(null);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Show a confirmation banner after self-service deletion (Settings redirects
+  // here with ?deleted=1). Cleared on the first user keystroke so it doesn't
+  // linger forever — handleSubmit also clears it via setMessage(null).
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("deleted") === "1") {
+      setMessage("Your account has been deleted.");
+    }
+  }, [location.search]);
 
   // Live password validation in signup mode only. Signin/forgot must not
   // nag returning users about character-class rules.
