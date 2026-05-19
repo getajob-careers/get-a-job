@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useSearchParams } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import CommentCoach from "./networking/CommentCoach";
@@ -20,10 +20,37 @@ export default function NetworkingTab() {
   // with no conversation; UUID = composer loaded for that conversation.
   const [outreachView, setOutreachView] = useState(null);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [searchParams, setSearchParams] = useSearchParams();
 
-  const openConversation = (id) => setOutreachView(id);
-  const newConversation = () => setOutreachView("new");
+  // Practicum's drawer links here with ?prefillCompany=...&prefillRole=...
+  // — when those params exist, jump straight into the new-conversation
+  // composer so the user lands at the goal picker with the target context
+  // available. Strip the params after capturing so back-button or refresh
+  // doesn't keep re-triggering the jump.
+  const [prefill, setPrefill] = useState({ company: null, role: null });
+  useEffect(() => {
+    const company = searchParams.get("prefillCompany");
+    const role = searchParams.get("prefillRole");
+    if (!company && !role) return;
+    setPrefill({ company: company || null, role: role || null });
+    setOutreachView("new");
+    const next = new URLSearchParams(searchParams);
+    next.delete("prefillCompany");
+    next.delete("prefillRole");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const openConversation = (id) => {
+    setPrefill({ company: null, role: null });
+    setOutreachView(id);
+  };
+  const newConversation = () => {
+    setPrefill({ company: null, role: null });
+    setOutreachView("new");
+  };
   const backToList = () => {
+    setPrefill({ company: null, role: null });
     setOutreachView(null);
     setRefreshKey((k) => k + 1);
   };
@@ -57,6 +84,8 @@ export default function NetworkingTab() {
         ) : (
           <OutreachComposer
             conversationId={outreachView === "new" ? null : outreachView}
+            prefillCompany={prefill.company}
+            prefillRole={prefill.role}
             onBack={backToList}
             onChange={onConvoChange}
           />

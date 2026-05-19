@@ -270,10 +270,16 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
             )}
           </Section>
 
-          {/* Outreach Coach link */}
+          {/* Outreach Coach link — prefills company + pitched_role into the
+              composer's target form so the user starts at the goal picker
+              with context already filled. */}
           <div className="pt-2 border-t border-[#F0F0F0]">
             <Link
-              to="/LinkedinOptimizer?tab=networking"
+              to={`/LinkedinOptimizer?tab=networking${
+                company.name ? `&prefillCompany=${encodeURIComponent(company.name)}` : ""
+              }${
+                target.pitched_role ? `&prefillRole=${encodeURIComponent(target.pitched_role)}` : ""
+              }`}
               className="inline-flex items-center gap-1.5 text-xs text-[#1E40AF] hover:underline"
             >
               <MessageSquare className="w-3.5 h-3.5" />

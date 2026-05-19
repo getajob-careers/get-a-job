@@ -57,11 +57,27 @@ const STATE_META = {
   goal_complete: { label: "Goal complete", color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
 };
 
-export default function OutreachComposer({ conversationId, onBack, onChange }) {
-  // Local conversation state.
+export default function OutreachComposer({
+  conversationId,
+  prefillCompany = null,
+  prefillRole = null,
+  onBack,
+  onChange,
+}) {
+  // Local conversation state. Prefill (from Practicum's drawer link) seeds
+  // target.company + target.role so the user lands at the goal picker with
+  // context already filled — goal pick is independent of company/role and
+  // still required because we don't know if the contact is a recruiter vs
+  // hiring manager vs alumni.
   const [convoId, setConvoId] = useState(conversationId || null);
   const [goal, setGoal] = useState(null);
-  const [target, setTarget] = useState({ name: "", role: "", company: "", relationship: "", mutual_context: "" });
+  const [target, setTarget] = useState({
+    name: "",
+    role: prefillRole || "",
+    company: prefillCompany || "",
+    relationship: "",
+    mutual_context: "",
+  });
   const [thread, setThread] = useState([]);
   const [status, setStatus] = useState("active");
 
