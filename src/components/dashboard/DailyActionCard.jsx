@@ -90,7 +90,7 @@ export default function DailyActionCard() {
       // uses the prompt as `framing`, and marks the daily action done
       // after the story saves. Until then, the action stays pending so
       // the user can come back if they cancel.
-      navigate(createPageUrl("AddInformation"), {
+      navigate(createPageUrl("Profile"), {
         state: {
           dailyAction: {
             id: data.id,

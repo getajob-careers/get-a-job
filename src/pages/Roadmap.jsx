@@ -294,7 +294,7 @@ export default function CareerRoadmap() {
             Set up your profile first to generate a career roadmap.
           </p>
           <Link
-            to={createPageUrl("AddInformation")}
+            to={createPageUrl("Profile")}
             className="inline-flex items-center gap-2 px-4 py-2 bg-[#0A0A0A] text-white text-sm font-medium rounded-lg hover:bg-[#262626]"
           >
             Add Information
@@ -410,7 +410,7 @@ function OverviewTab({ profile, tier1Count, tier1Jobs, jobsLoading }) {
         <div className="flex items-center justify-between mb-3">
           <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Live Tier 1 matches</p>
           <Link
-            to={createPageUrl("JobSuggestions")}
+            to={createPageUrl("Jobs")}
             className="text-xs text-[#525252] hover:text-[#0A0A0A] underline underline-offset-2"
           >
             View all

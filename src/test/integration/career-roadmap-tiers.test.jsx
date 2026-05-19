@@ -64,8 +64,8 @@ async function setSupabaseMock(tableMap) {
 }
 
 async function renderCareerRoadmap() {
-  const { default: CareerRoadmap } = await import('../../pages/CareerRoadmap.jsx');
-  const Wrapper = createWrapper('/CareerRoadmap');
+  const { default: CareerRoadmap } = await import('../../pages/Roadmap.jsx');
+  const Wrapper = createWrapper('/Roadmap');
   return render(<CareerRoadmap />, { wrapper: Wrapper });
 }
 

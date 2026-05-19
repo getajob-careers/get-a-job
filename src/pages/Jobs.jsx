@@ -497,7 +497,7 @@ export default function JobSuggestions() {
         {stale && (
           <p className="text-xs text-amber-700 mt-1">
             Profile updated since last analysis ·{" "}
-            <Link to={createPageUrl("CareerRoadmap")} className="underline hover:text-amber-800">
+            <Link to={createPageUrl("Roadmap")} className="underline hover:text-amber-800">
               refresh roadmap
             </Link>
           </p>
@@ -567,7 +567,7 @@ export default function JobSuggestions() {
               <p className="text-sm font-medium text-[#525252]">
                 No {TIER_LABELS[selectedTier]} roles yet — run your Career Roadmap.
               </p>
-              <Link to={createPageUrl("CareerRoadmap")} className="inline-block mt-3 text-xs text-[#0A66C2] hover:underline">
+              <Link to={createPageUrl("Roadmap")} className="inline-block mt-3 text-xs text-[#0A66C2] hover:underline">
                 Go to Career Roadmap →
               </Link>
             </>

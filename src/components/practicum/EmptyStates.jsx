@@ -13,7 +13,7 @@ export function NoPracticumPath() {
       icon={Briefcase}
       title="Set your practicum path"
       body="The Internship Practicum is where you track your placement progress. Tell us whether your placement is faculty-assigned or self-sourced to unlock the right experience."
-      cta={{ to: createPageUrl("AddInformation"), label: "Open Profile" }}
+      cta={{ to: createPageUrl("Profile"), label: "Open Profile" }}
     />
   );
 }

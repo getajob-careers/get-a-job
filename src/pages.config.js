@@ -47,12 +47,12 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import AddInformation from './pages/AddInformation';
+import Profile from './pages/Profile';
 import CareerAgent from './pages/CareerAgent';
 import CVAgent from './pages/CVAgent';
 import InterviewCoach from './pages/InterviewCoach';
 import SkillDevelopmentAdvisor from './pages/SkillDevelopmentAdvisor';
-import CareerRoadmap from './pages/CareerRoadmap';
+import Roadmap from './pages/Roadmap';
 import Home from './pages/Home';
 import Onboarding from './pages/Onboarding';
 import Resources from './pages/Resources';
@@ -60,9 +60,9 @@ import Subagents from './pages/Subagents';
 import Tasks from './pages/Tasks';
 import Tracker from './pages/Tracker';
 import Calendar from './pages/Calendar';
-import JobSuggestions from './pages/JobSuggestions';
+import Jobs from './pages/Jobs';
 import Admin from './pages/Admin';
-import LinkedinOptimizer from './pages/LinkedinOptimizer';
+import Linkedin from './pages/Linkedin';
 import Practicum from './pages/Practicum';
 import Settings from './pages/Settings';
 // Landing is NOT registered here — it routes at the outer App.jsx level
@@ -72,12 +72,12 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "AddInformation": AddInformation,
+    "Profile": Profile,
     "CareerAgent": CareerAgent,
     "CVAgent": CVAgent,
     "InterviewCoach": InterviewCoach,
     "SkillDevelopmentAdvisor": SkillDevelopmentAdvisor,
-    "CareerRoadmap": CareerRoadmap,
+    "Roadmap": Roadmap,
     "Home": Home,
     "Onboarding": Onboarding,
     "Resources": Resources,
@@ -85,9 +85,9 @@ export const PAGES = {
     "Tasks": Tasks,
     "Tracker": Tracker,
     "Calendar": Calendar,
-    "JobSuggestions": JobSuggestions,
+    "Jobs": Jobs,
     "Admin": Admin,
-    "LinkedinOptimizer": LinkedinOptimizer,
+    "Linkedin": Linkedin,
     "Practicum": Practicum,
     "Settings": Settings,
 }
