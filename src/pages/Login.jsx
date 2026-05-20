@@ -533,7 +533,18 @@ export default function Login() {
         const { error } = await supabase.auth.signUp({
           email,
           password,
-          options: { data: { full_name: fullName }, captchaToken },
+          options: {
+            data: { full_name: fullName },
+            captchaToken,
+            // Without this, Supabase falls back to the Auth Site URL
+            // (https://getajob.careers), so users who click the confirmation
+            // link land on Landing and have to figure out how to get into the
+            // app. Sending them straight to /Onboarding picks up the fresh
+            // session via detectSessionInUrl. NOTE: /Onboarding must be in
+            // Supabase Auth → URL Configuration → Redirect URLs, otherwise
+            // Supabase rejects the value and falls back to Site URL anyway.
+            emailRedirectTo: `${window.location.origin}/Onboarding`,
+          },
         });
         if (error) {
           // Token is single-use server-side. Reset the widget so the user

@@ -1163,6 +1163,17 @@ export default function Landing() {
 
   useLandingHead();
 
+  // Auto-bounce authenticated users into the app. Without this, anyone
+  // who lands on / while logged-in (post-email-confirmation, magic-link
+  // return, fresh tab on a logged-in browser) gets stranded on the
+  // marketing page. Home routes onward to /Onboarding if onboarding isn't
+  // complete, so we only need a single hop here.
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate("/Home", { replace: true });
+    }
+  }, [isLoggedIn, navigate]);
+
   // Smooth scroll for anchor links (#agents, #tools, #timeline, #faq).
   // CSS `scroll-behavior: smooth` is set inside .lp; this is a no-op
   // fallback for old browsers that ignore it.
