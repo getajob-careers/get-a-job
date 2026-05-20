@@ -1,0 +1,216 @@
+import React, { useState } from "react";
+import { supabase } from "@/api/supabaseClient";
+import { scoreApplication } from "@/lib/scoreApplication";
+import { useAuth } from "@/lib/AuthContext";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  Loader2, ExternalLink, MapPin, CheckCircle2, PlusCircle, Target, Clock, Briefcase,
+} from "lucide-react";
+
+const SENIORITY_LABEL = {
+  entry: "Entry",
+  mid: "Mid",
+  senior: "Senior",
+  lead: "Lead",
+  director: "Director",
+  executive: "Exec",
+};
+
+function experienceChipText(job) {
+  if (job.years_experience_min == null) {
+    return SENIORITY_LABEL[job.seniority] || "Mid";
+  }
+  if (job.years_experience_max != null && job.years_experience_max > job.years_experience_min) {
+    return `${job.years_experience_min}-${job.years_experience_max} yrs`;
+  }
+  if (job.years_experience_min === 0) return "0+ yrs";
+  return `${job.years_experience_min}+ yrs`;
+}
+
+function formatPostedDate(dateStr) {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return null;
+  const ageDays = Math.floor((Date.now() - d.getTime()) / 86400000);
+  if (ageDays <= 0) return "Today";
+  if (ageDays === 1) return "Yesterday";
+  if (ageDays < 7) return `${ageDays}d ago`;
+  if (ageDays < 30) return `${Math.floor(ageDays / 7)}w ago`;
+  // >30 days → relative months for consistency (no locale-specific date strings).
+  const months = Math.floor(ageDays / 30);
+  return `${months}mo ago`;
+}
+
+// Idempotent insert into applications. Matches on (ats_source, external_id)
+// for jobs added from Browse; falls back to title-only for manual rows.
+async function addJobToTracker({ user, queryClient, job, matchScore, matchedSkills, matchReason }) {
+  let dupQuery = supabase.from("applications").select("id").eq("user_id", user.id).limit(1);
+  if (job.ats_source && job.external_id) {
+    dupQuery = dupQuery.eq("ats_source", job.ats_source).eq("external_id", job.external_id);
+  } else {
+    dupQuery = dupQuery.ilike("role_title", job.title);
+  }
+  const { data: existing } = await dupQuery;
+  if (existing?.length > 0) return { duplicate: true };
+
+  const jd = job.description || "";
+  const { data: inserted, error } = await supabase.from("applications").insert({
+    user_id: user.id,
+    role_title: job.title,
+    company: job.company_name || "Unknown",
+    status: "interested",
+    source: "job_suggestion",
+    ats_source: job.ats_source || null,
+    external_id: job.external_id || null,
+    cv_skills_emphasized: matchedSkills || [],
+    job_description: jd,
+    url: job.apply_url || "",
+    location: job.location_city || job.location_raw || "",
+    notes: matchReason || "",
+    ...(typeof matchScore === "number" && { qualification_score: matchScore / 100 }),
+  }).select("id").single();
+
+  if (error) {
+    console.error("Failed to add to tracker:", error);
+    return { error };
+  }
+  queryClient.invalidateQueries({ queryKey: ["applications"] });
+  if (inserted?.id && jd && matchScore == null) {
+    scoreApplication(supabase, queryClient, inserted.id, jd, user.id);
+  }
+  return { ok: true };
+}
+
+// `tierColor` (optional) — when provided ("green" | "gray" | "amber"), the
+// card gets a 3px accent stripe at the top in that tier's color. Set in
+// tier mode by Jobs.jsx based on the currently-selected tier. In keyword
+// mode it's null and no stripe renders.
+export default function JobCard({ job, scoreResult, scoring, onScore, tierColor }) {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [adding, setAdding] = useState(false);
+  const [added, setAdded] = useState(false);
+
+  const posted = formatPostedDate(job.date_posted);
+  const chip = experienceChipText(job);
+  const hasDescription = Boolean(job.description && job.description.length > 50);
+
+  const scored = !!scoreResult;
+  const score = scored ? Math.round(scoreResult.match_score || 0) : null;
+  // Three tiers; <50% is GRAY (not red) — a 45% match is "stretch possible",
+  // not "disaster". Red was punitive for the kinds of roles a user would
+  // want to score against. PR #92 (Jobs Direction 3) softened this.
+  const scoreClass = score == null
+    ? ""
+    : score >= 75 ? "jb-match-strong"
+    : score >= 50 ? "jb-match-medium"
+    : "jb-match-soft";
+
+  const handleAdd = async () => {
+    setAdding(true);
+    const res = await addJobToTracker({
+      user, queryClient, job,
+      matchScore: scoreResult?.match_score,
+      matchedSkills: scoreResult?.matched_skills,
+      matchReason: scoreResult?.match_reason,
+    });
+    setAdding(false);
+    if (res.ok || res.duplicate) setAdded(true);
+  };
+
+  const tierClass = tierColor ? `jb-tier-${tierColor}` : "";
+
+  return (
+    <div
+      className={`jb-job-card ${tierClass}`}
+      data-tier-color={tierColor || undefined}
+    >
+      <div className="jb-job-card-body">
+        <div className="flex items-start justify-between gap-3">
+          <div className="flex-1 min-w-0">
+            <h3 className="jb-job-card-title truncate">{job.title}</h3>
+            <p className="jb-job-card-company">{job.company_name}</p>
+          </div>
+          {scored && (
+            <span className={`jb-match-badge ${scoreClass}`}>
+              {score}% match
+            </span>
+          )}
+        </div>
+
+        <div className="jb-job-card-meta">
+          {job.location_city && (
+            <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location_city}</span>
+          )}
+          <span className="jb-job-card-meta-chip">{chip}</span>
+          {posted && (
+            <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{posted}</span>
+          )}
+        </div>
+
+        {scored && scoreResult.match_reason && (
+          <p className="text-xs text-[#52545A] leading-relaxed">{scoreResult.match_reason}</p>
+        )}
+        {scored && scoreResult.matched_skills?.length > 0 && (
+          <div>
+            <p className="jb-eyebrow mb-1.5">Your strengths</p>
+            <div className="flex flex-wrap gap-1.5">
+              {scoreResult.matched_skills.slice(0, 5).map((s, i) => (
+                <span key={i} className="jb-skill-pill jb-skill-pill-matched">{s}</span>
+              ))}
+            </div>
+          </div>
+        )}
+        {scored && scoreResult.missing_skills?.length > 0 && (
+          <div>
+            <p className="jb-eyebrow mb-1.5">Skill gaps</p>
+            <div className="flex flex-wrap gap-1.5">
+              {scoreResult.missing_skills.slice(0, 5).map((s, i) => (
+                <span key={i} className="jb-skill-pill jb-skill-pill-missing">{s}</span>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      <div className="jb-job-card-footer">
+        {job.apply_url ? (
+          <a href={job.apply_url} target="_blank" rel="noopener noreferrer" className="jb-apply-link">
+            <Briefcase className="w-3.5 h-3.5" />Apply<ExternalLink className="w-3 h-3" />
+          </a>
+        ) : <span />}
+        <div className="flex gap-2">
+          {!scored && (
+            <button
+              type="button"
+              onClick={onScore}
+              disabled={scoring || !hasDescription}
+              title={!hasDescription ? "Open the job posting first to see the full description" : undefined}
+              className="jb-btn jb-btn-outline jb-btn-sm"
+            >
+              {scoring ? (
+                <><Loader2 className="w-3 h-3 animate-spin" />Scoring…</>
+              ) : (
+                <><Target className="w-3 h-3" />Score this job</>
+              )}
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={handleAdd}
+            disabled={adding || added}
+            className={`jb-btn jb-btn-sm ${added ? "jb-btn-success" : "jb-btn-primary"}`}
+          >
+            {adding ? (
+              <><Loader2 className="w-3 h-3 animate-spin" />Adding…</>
+            ) : added ? (
+              <><CheckCircle2 className="w-3 h-3" />Added</>
+            ) : (
+              <><PlusCircle className="w-3 h-3" />Track</>
+            )}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
