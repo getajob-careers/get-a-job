@@ -39,13 +39,13 @@ export default function StoryBankSidebar({ attachedStoryId, onAttach, onDetach }
   const attached = stories.find((s) => s.id === attachedStoryId);
 
   return (
-    <div className="bg-white border border-[#E5E5E5] rounded-xl p-4 sticky top-4">
+    <div className="bg-white border border-[#DDDDDB] rounded-xl p-4 sticky top-4">
       <div className="flex items-center gap-2 mb-3">
-        <BookMarked className="w-4 h-4 text-[#525252]" />
-        <h3 className="text-sm font-semibold text-[#0A0A0A]">Attach a story</h3>
-        <span className="text-[11px] text-[#A3A3A3] ml-auto">(optional)</span>
+        <BookMarked className="w-4 h-4 text-[#52545A]" />
+        <h3 className="text-sm font-semibold text-[#0E1014]">Attach a story</h3>
+        <span className="text-[11px] text-[#9C9DA1] ml-auto">(optional)</span>
       </div>
-      <p className="text-[11px] text-[#525252] leading-snug mb-3">
+      <p className="text-[11px] text-[#52545A] leading-snug mb-3">
         Stories ground the post in real metrics and tools. The AI uses verbatim numbers from attached stories — no fabrication.
       </p>
 
@@ -65,17 +65,17 @@ export default function StoryBankSidebar({ attachedStoryId, onAttach, onDetach }
               <X className="w-3 h-3" />
             </button>
           </div>
-          <p className="text-xs text-[#0A0A0A] font-medium">{attached.title}</p>
+          <p className="text-xs text-[#0E1014] font-medium">{attached.title}</p>
         </div>
       )}
 
       {loading ? (
-        <div className="flex items-center gap-2 text-xs text-[#A3A3A3]">
+        <div className="flex items-center gap-2 text-xs text-[#9C9DA1]">
           <Loader2 className="w-3 h-3 animate-spin" />
           Loading stories…
         </div>
       ) : stories.length === 0 ? (
-        <p className="text-[11px] text-[#A3A3A3] italic">
+        <p className="text-[11px] text-[#9C9DA1] italic">
           No stories yet. Add one from the chat or via Profile → Quick add.
         </p>
       ) : (
@@ -89,12 +89,12 @@ export default function StoryBankSidebar({ attachedStoryId, onAttach, onDetach }
               className={`w-full text-left px-2.5 py-2 rounded-md border text-xs transition-colors ${
                 s.id === attachedStoryId
                   ? "border-emerald-300 bg-emerald-50 cursor-default"
-                  : "border-[#E5E5E5] bg-white hover:border-[#A3A3A3] hover:bg-[#FAFAFA]"
+                  : "border-[#DDDDDB] bg-white hover:border-[#A3A3A3] hover:bg-[#F4F4F2]"
               }`}
             >
-              <p className="font-medium text-[#0A0A0A] truncate">{s.title}</p>
+              <p className="font-medium text-[#0E1014] truncate">{s.title}</p>
               {Array.isArray(s.metrics) && s.metrics.length > 0 && (
-                <p className="text-[10px] text-[#A3A3A3] truncate mt-0.5">
+                <p className="text-[10px] text-[#9C9DA1] truncate mt-0.5">
                   Metrics: {s.metrics.slice(0, 2).join(" · ")}
                 </p>
               )}

@@ -62,7 +62,7 @@ const ESCAPE_HATCH_TYPE = {
 export default function PostTypeGrid({ onSelect }) {
   return (
     <div>
-      <p className="text-sm text-[#525252] mb-4">
+      <p className="text-sm text-[#52545A] mb-4">
         Pick a post type to start. The AI grounds each post in your profile, Story Bank, and career goals.
       </p>
       {/* Top 6 types in 3-column grid (3-3 layout). Free-form below as a
@@ -74,16 +74,16 @@ export default function PostTypeGrid({ onSelect }) {
             type="button"
             onClick={() => onSelect(id)}
             className={cn(
-              "text-left bg-white border border-[#E5E5E5] rounded-xl p-4",
-              "hover:border-[#0A0A0A] hover:shadow-sm transition-all"
+              "text-left bg-white border border-[#DDDDDB] rounded-xl p-4",
+              "hover:border-[#0E1014] hover:shadow-sm transition-all"
             )}
           >
             <div className="flex items-center gap-2 mb-2">
-              <Icon className="w-4 h-4 text-[#0A0A0A]" />
-              <h3 className="text-sm font-semibold text-[#0A0A0A]">{label}</h3>
+              <Icon className="w-4 h-4 text-[#0E1014]" />
+              <h3 className="text-sm font-semibold text-[#0E1014]">{label}</h3>
             </div>
-            <p className="text-xs text-[#525252] leading-snug mb-2">{description}</p>
-            <p className="text-[11px] text-[#A3A3A3] italic leading-snug">{saveableHint}</p>
+            <p className="text-xs text-[#52545A] leading-snug mb-2">{description}</p>
+            <p className="text-[11px] text-[#9C9DA1] italic leading-snug">{saveableHint}</p>
           </button>
         ))}
       </div>
@@ -91,17 +91,17 @@ export default function PostTypeGrid({ onSelect }) {
         type="button"
         onClick={() => onSelect(ESCAPE_HATCH_TYPE.id)}
         className={cn(
-          "w-full text-left bg-[#FAFAFA] border border-dashed border-[#E5E5E5] rounded-xl p-4",
-          "hover:border-[#0A0A0A] hover:bg-white transition-all"
+          "w-full text-left bg-[#F4F4F2] border border-dashed border-[#DDDDDB] rounded-xl p-4",
+          "hover:border-[#0E1014] hover:bg-white transition-all"
         )}
       >
         <div className="flex items-center gap-2 mb-1">
-          <ESCAPE_HATCH_TYPE.Icon className="w-4 h-4 text-[#525252]" />
-          <h3 className="text-sm font-semibold text-[#0A0A0A]">{ESCAPE_HATCH_TYPE.label}</h3>
-          <span className="text-[10px] uppercase tracking-wider text-[#A3A3A3] ml-1">escape hatch</span>
+          <ESCAPE_HATCH_TYPE.Icon className="w-4 h-4 text-[#52545A]" />
+          <h3 className="text-sm font-semibold text-[#0E1014]">{ESCAPE_HATCH_TYPE.label}</h3>
+          <span className="text-[10px] uppercase tracking-wider text-[#9C9DA1] ml-1">escape hatch</span>
         </div>
-        <p className="text-xs text-[#525252] leading-snug mb-1">{ESCAPE_HATCH_TYPE.description}</p>
-        <p className="text-[11px] text-[#A3A3A3] italic leading-snug">{ESCAPE_HATCH_TYPE.saveableHint}</p>
+        <p className="text-xs text-[#52545A] leading-snug mb-1">{ESCAPE_HATCH_TYPE.description}</p>
+        <p className="text-[11px] text-[#9C9DA1] italic leading-snug">{ESCAPE_HATCH_TYPE.saveableHint}</p>
       </button>
     </div>
   );

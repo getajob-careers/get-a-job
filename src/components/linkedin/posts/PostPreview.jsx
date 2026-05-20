@@ -121,44 +121,44 @@ export default function PostPreview({
   };
 
   const charCount = editedText.length;
-  const charClass = charCount > 2500 ? "text-amber-700" : charCount > 3000 ? "text-red-600" : "text-[#A3A3A3]";
+  const charClass = charCount > 2500 ? "text-[#B8841C]" : charCount > 3000 ? "text-red-600" : "text-[#9C9DA1]";
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <button type="button" onClick={onBack} className="inline-flex items-center gap-1 text-xs text-[#525252] hover:text-[#0A0A0A]">
+        <button type="button" onClick={onBack} className="inline-flex items-center gap-1 text-xs text-[#52545A] hover:text-[#0E1014]">
           <ArrowLeft className="w-3 h-3" />
           Back to compose
         </button>
         <div className="flex items-center gap-2">
-          {savingEdit && <span className="text-[11px] text-[#A3A3A3]">Saving…</span>}
+          {savingEdit && <span className="text-[11px] text-[#9C9DA1]">Saving…</span>}
           {savedJustNow && !savingEdit && <span className="text-[11px] text-emerald-700">Saved</span>}
         </div>
       </div>
 
       {/* Post card — subtle LinkedIn-ish styling without faking the full
           mirror. Max-width approximates a feed item. */}
-      <div className="bg-white border border-[#E5E5E5] rounded-xl shadow-sm max-w-[640px] mx-auto">
+      <div className="bg-white border border-[#DDDDDB] rounded-xl shadow-sm max-w-[640px] mx-auto">
         <div className="px-5 pt-5 pb-2">
           <div className="flex items-center justify-between mb-3">
-            <span className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Your post</span>
+            <span className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Your post</span>
             <span className={`text-[11px] ${charClass}`}>{charCount}/3000 chars</span>
           </div>
           <textarea
             value={editedText}
             onChange={(e) => setEditedText(e.target.value)}
             rows={Math.min(20, Math.max(8, editedText.split("\n").length + 2))}
-            className="w-full text-sm text-[#0A0A0A] leading-relaxed bg-transparent border-0 p-0 focus:outline-none resize-none whitespace-pre-wrap font-sans"
+            className="w-full text-sm text-[#0E1014] leading-relaxed bg-transparent border-0 p-0 focus:outline-none resize-none whitespace-pre-wrap font-sans"
           />
         </div>
-        <div className="px-5 py-3 border-t border-[#F0F0F0] bg-[#FAFAFA] rounded-b-xl flex items-center justify-between">
-          <span className="text-[11px] text-[#A3A3A3]">
+        <div className="px-5 py-3 border-t border-[#E8E8E5] bg-[#F4F4F2] rounded-b-xl flex items-center justify-between">
+          <span className="text-[11px] text-[#9C9DA1]">
             Hook (mobile-truncation preview): "{post.hook_preview.slice(0, 80)}{post.hook_preview.length > 80 ? '…' : ''}"
           </span>
           <button
             type="button"
             onClick={handleCopy}
-            className="inline-flex items-center gap-1 text-xs font-medium text-[#525252] hover:text-[#0A0A0A]"
+            className="inline-flex items-center gap-1 text-xs font-medium text-[#52545A] hover:text-[#0E1014]"
           >
             {copied ? (
               <><Check className="w-3 h-3 text-emerald-600" />Copied</>
@@ -176,7 +176,7 @@ export default function PostPreview({
           <MetaCard title="Hashtag suggestions">
             <div className="flex flex-wrap gap-1.5">
               {post.hashtag_suggestions.map((h) => (
-                <span key={h} className="text-[11px] bg-[#F5F5F5] text-[#525252] px-2 py-0.5 rounded">
+                <span key={h} className="text-[11px] bg-[#E8E8E5] text-[#52545A] px-2 py-0.5 rounded">
                   {h}
                 </span>
               ))}
@@ -189,17 +189,17 @@ export default function PostPreview({
           title="Format recommendation"
           icon={post.format_recommendation === "carousel" ? <Layers className="w-3.5 h-3.5" /> : <ImageIcon className="w-3.5 h-3.5" />}
         >
-          <p className="text-xs text-[#0A0A0A] font-medium mb-0.5 capitalize">
+          <p className="text-xs text-[#0E1014] font-medium mb-0.5 capitalize">
             {post.format_recommendation.replace("_", " + ")}
           </p>
-          <p className="text-[11px] text-[#525252] leading-snug">{post.format_reason}</p>
+          <p className="text-[11px] text-[#52545A] leading-snug">{post.format_reason}</p>
           {post.format_recommendation === "carousel" && (
             // Per Eli's call PR #33 (option B): inform, don't block. Carousels
             // underperform under 5K followers per AuthoredUp 2026 (the
             // strongest empirical finding in our LinkedIn research doc). The
             // user makes the final call but is told why image+text is
             // typically better at their follower count.
-            <div className="mt-2 px-2 py-1.5 bg-amber-50 border border-amber-200 rounded text-[11px] text-amber-900 leading-snug">
+            <div className="mt-2 px-2 py-1.5 li-banner li-banner-warning text-[11px] leading-snug">
               <strong>Better at 20K+ followers.</strong> For accounts under 5K (most early-career profiles), image + text typically outperforms carousels — the algorithm rewards lower-friction formats that drive quick reactions. Consider switching to image + text unless this carousel really fits the content.
             </div>
           )}
@@ -210,12 +210,12 @@ export default function PostPreview({
           <div className="flex items-center gap-2">
             <span className={`text-base font-bold ${
               post.saveable_score >= 8 ? "text-emerald-700"
-              : post.saveable_score >= 5 ? "text-[#0A0A0A]"
-              : "text-amber-700"
+              : post.saveable_score >= 5 ? "text-[#0E1014]"
+              : "text-[#B8841C]"
             }`}>
               {post.saveable_score}/10
             </span>
-            <span className="text-[11px] text-[#525252] leading-snug">
+            <span className="text-[11px] text-[#52545A] leading-snug">
               {post.saveable_score >= 8
                 ? "Strong saveable structure — readers likely to bookmark."
                 : post.saveable_score >= 5
@@ -227,11 +227,11 @@ export default function PostPreview({
 
         {/* Warnings */}
         {post.warnings?.length > 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+          <div className="li-banner li-banner-warning p-3">
             {post.warnings.map((w, i) => (
               <div key={i} className="flex items-start gap-1.5">
-                <AlertCircle className="w-3.5 h-3.5 text-amber-700 flex-shrink-0 mt-0.5" />
-                <p className="text-[11px] text-amber-900 leading-snug">{w}</p>
+                <AlertCircle className="w-3.5 h-3.5 text-[#B8841C] flex-shrink-0 mt-0.5" />
+                <p className="text-[11px] text-[#6B4E0F] leading-snug">{w}</p>
               </div>
             ))}
           </div>
@@ -244,37 +244,37 @@ export default function PostPreview({
           <button
             type="button"
             onClick={() => setRefineOpen(true)}
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-[#525252] hover:text-[#0A0A0A]"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-[#52545A] hover:text-[#0E1014]"
           >
             <Sparkles className="w-3 h-3" />
             Refine this post
           </button>
         ) : (
-          <div className="bg-[#F9FAFB] border border-[#E5E5E5] rounded-lg p-3">
+          <div className="bg-[#F9FAFB] border border-[#DDDDDB] rounded-lg p-3">
             <textarea
               value={refineInstruction}
               onChange={(e) => setRefineInstruction(e.target.value.slice(0, 600))}
               disabled={refining}
               placeholder="Optional: how to improve the post. e.g. 'make it shorter and punchier', 'lead with the metric not the context', 'less corporate-sounding'. Leave blank to regenerate with a different angle."
-              className="w-full text-sm border border-[#E5E5E5] rounded-md px-3 py-2 bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#0A0A0A] disabled:opacity-60"
+              className="w-full text-sm border border-[#DDDDDB] rounded-md px-3 py-2 bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#0A0A0A] disabled:opacity-60"
               rows={3}
               autoFocus
             />
             <div className="flex items-center justify-between mt-2 gap-3">
-              <span className="text-[11px] text-[#A3A3A3]">{refineInstruction.length}/600</span>
+              <span className="text-[11px] text-[#9C9DA1]">{refineInstruction.length}/600</span>
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={() => { setRefineOpen(false); setRefineError(null); setRefineInstruction(""); }}
                   disabled={refining}
-                  className="text-xs px-3 py-1.5 text-[#525252] hover:text-[#0A0A0A] disabled:opacity-60"
+                  className="text-xs px-3 py-1.5 text-[#52545A] hover:text-[#0E1014] disabled:opacity-60"
                 >
                   Cancel
                 </button>
                 <Button
                   onClick={handleRefine}
                   disabled={refining}
-                  className="bg-[#0A0A0A] hover:bg-[#262626] text-xs h-8 px-3"
+                  className="bg-[#0E1014] hover:bg-[#F87060] text-xs h-8 px-3"
                 >
                   {refining ? (
                     <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Refining…</>
@@ -299,10 +299,10 @@ export default function PostPreview({
 
 function MetaCard({ title, icon, children }) {
   return (
-    <div className="bg-white border border-[#E5E5E5] rounded-lg p-3">
+    <div className="bg-white border border-[#DDDDDB] rounded-lg p-3">
       <div className="flex items-center gap-1.5 mb-1.5">
         {icon}
-        <span className="text-[10px] uppercase tracking-wider text-[#A3A3A3] font-medium">{title}</span>
+        <span className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium">{title}</span>
       </div>
       {children}
     </div>
