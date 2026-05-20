@@ -19,23 +19,26 @@ export const STATUS_LABELS = {
   declined: "Declined",
 };
 
-// Column accent (text + dot) — kept subtle to match the rest of the app.
-export const STATUS_ACCENTS = {
-  exploring: "text-[#525252] bg-[#F5F5F5]",
-  outreach_sent: "text-[#1E40AF] bg-[#DBEAFE]",
-  interview: "text-[#7C2D12] bg-[#FED7AA]",
-  offered: "text-[#166534] bg-[#DCFCE7]",
-  rejected: "text-[#991B1B] bg-[#FEE2E2]",
-  declined: "text-[#525252] bg-[#F5F5F5]",
+// Maps each status to one of the .act-status-* tones in activityStyles.js.
+// Keeps the column accent colors in the shared Direction 3 palette instead
+// of inlining their own colors here. The .act-status-* class sets two CSS
+// variables which the .act-status-badge consumes.
+export const STATUS_TONE = {
+  exploring:     "gray",
+  outreach_sent: "info",
+  interview:     "warning",
+  offered:       "success",
+  rejected:      "error",
+  declined:      "gray",
 };
 
 // Discrete-band labels for scores — mirrors the rubric in the
 // match-internship-companies system prompt. Drawer surfaces these
 // next to the raw numeric score.
 export function scoreBand(score) {
-  if (score == null) return { label: "—", color: "text-[#A3A3A3]" };
-  if (score >= 85) return { label: "Strong", color: "text-[#166534]" };
-  if (score >= 70) return { label: "Real", color: "text-[#1E40AF]" };
-  if (score >= 50) return { label: "Stretch", color: "text-[#7C2D12]" };
-  return { label: "Weak", color: "text-[#991B1B]" };
+  if (score == null) return { label: "—", color: "text-[#9C9DA1]" };
+  if (score >= 85) return { label: "Strong", color: "text-[#1D7556]" };
+  if (score >= 70) return { label: "Real",   color: "text-[#1E4A9E]" };
+  if (score >= 50) return { label: "Stretch", color: "text-[#6B4E0F]" };
+  return { label: "Weak", color: "text-[#C84F40]" };
 }

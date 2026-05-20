@@ -7,7 +7,7 @@ import { createPageUrl } from "@/utils";
 import { Loader2 } from "lucide-react";
 import { EMPTY_PROFILE, cleanProfilePayload, ALLOWED_EXPERIENCE_TYPES, inferExperienceType } from "@/lib/onboardingPayload";
 import { normalizeEducationLevel, parseEducationDateRange } from "@/lib/educationPolicy";
-import { resolveDueDate, defaultDueDateFor } from "@/lib/taskDueDate";
+import { resolveDueDate } from "@/lib/taskDueDate";
 import { track, EVENTS } from "@/lib/analytics";
 import { ONB_CSS } from "../components/onboarding/onboardingStyles";
 
@@ -820,13 +820,17 @@ export default function Onboarding() {
         if (taskData?.tasks?.length > 0) {
           tasksToInsert = taskData.tasks.map((t) => {
             const priority = normPriority(t.priority);
+            // Only honor LLM-provided dates when they validate. resolveDueDate
+            // returns null when missing/invalid — no priority-based auto-
+            // fallback. Tasks land with null due_date and the user sets one
+            // explicitly via the Tasks-page UI when they want pressure.
             return {
               title: t.title,
               description: t.description,
               category: normCategory(t.category),
               priority,
               role_title: t.role_title || null,
-              due_date: resolveDueDate(t.due_date, priority),
+              due_date: resolveDueDate(t.due_date),
               is_complete: false,
               user_id: user.id,
             };
@@ -837,8 +841,8 @@ export default function Onboarding() {
       }
       if (tasksToInsert.length === 0) {
         tasksToInsert = [
-          { title: "Update your CV for target roles", description: "Tailor your CV based on skill gaps.", category: "cv", priority: "high", due_date: defaultDueDateFor("high"), is_complete: false, user_id: user.id },
-          { title: "Research target companies", description: "Find active job postings.", category: "application", priority: "high", due_date: defaultDueDateFor("high"), is_complete: false, user_id: user.id },
+          { title: "Update your CV for target roles", description: "Tailor your CV based on skill gaps.", category: "cv", priority: "high", is_complete: false, user_id: user.id },
+          { title: "Research target companies", description: "Find active job postings.", category: "application", priority: "high", is_complete: false, user_id: user.id },
         ];
       }
       const { data: taskInsertData, error: taskInsertError } = await supabase.from("tasks")

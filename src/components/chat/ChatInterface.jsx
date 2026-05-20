@@ -853,13 +853,16 @@ export default function ChatInterface({ agentName, title, description, applicati
   const handleAddTasks = async (messageId, task, taskIndex) => {
     if (!user?.id || addedTaskSets[messageId]?.[taskIndex]) return;
     const priority = task.priority || "medium";
+    // Only honor LLM-provided dates when they validate. resolveDueDate
+    // returns null otherwise — user sets a date via the Tasks page when
+    // they want one (no synthetic auto-assignment).
     const { error } = await supabase.from("tasks").insert({
       title: task.title,
       description: task.description || "",
       category: task.category || "application",
       priority,
       role_title: task.role_title || "",
-      due_date: resolveDueDate(task.due_date, priority),
+      due_date: resolveDueDate(task.due_date),
       user_id: user.id,
       is_complete: false,
     });

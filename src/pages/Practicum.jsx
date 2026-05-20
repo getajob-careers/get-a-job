@@ -5,7 +5,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 import { createPageUrl } from "@/utils";
 
 import PracticumHeader from "@/components/practicum/PracticumHeader";
@@ -14,7 +13,8 @@ import FindCompaniesCard from "@/components/practicum/FindCompaniesCard";
 import CompanyTargetsKanban from "@/components/practicum/CompanyTargetsKanban";
 import CompanyTargetDrawer from "@/components/practicum/CompanyTargetDrawer";
 import AddOwnCompanyModal from "@/components/practicum/AddOwnCompanyModal";
-import { NoInternshipProfile } from "@/components/practicum/EmptyStates";
+import { NoInternshipProfile, PracticumStartHere } from "@/components/practicum/EmptyStates";
+import { ACT_CSS } from "../components/activity/activityStyles";
 
 // Practicum — Internship pipeline page (unified).
 //
@@ -63,10 +63,6 @@ export default function Practicum() {
     enabled: !!user?.id && profileRow?.practicum_path === "self_sourced",
   });
 
-  // Latest career_roles.updated_at — drives the InternshipProfileStrip
-  // staleness banner. Compared against internship_profile.generated_from_career_roles_at;
-  // if the career roles updated after the profile was generated, we surface
-  // a "refresh" nudge.
   const { data: latestCareerRolesUpdatedAt } = useQuery({
     queryKey: ["career_roles_max_updated_at", user?.id],
     queryFn: async () => {
@@ -112,9 +108,6 @@ export default function Practicum() {
     queryKey: ["company_targets", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      // Server returns sorted by fit_score DESC NULLS LAST via the
-      // existing idx_company_targets_user_score index when we order
-      // explicitly — kanban then groups by status.
       const { data, error } = await supabase
         .from("company_targets")
         .select(`
@@ -136,105 +129,116 @@ export default function Practicum() {
 
   if (profileLoading) {
     return (
-      <div className="p-6 lg:p-8">
-        <Loader2 className="w-5 h-5 text-[#A3A3A3] animate-spin" />
-      </div>
+      <>
+        <style>{ACT_CSS}</style>
+        <div className="act min-h-screen flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-[#52545A]" />
+        </div>
+      </>
     );
   }
 
   const practicumPath = profileRow?.practicum_path;
 
-  // Users who answered "No" to the practicum question in onboarding shouldn't
-  // see this page at all — the nav link is also hidden in Layout.jsx.
   if (!practicumPath) {
     return <Navigate to={createPageUrl("Home")} replace />;
   }
 
-  const emptyMessage = practicumPath === "self_sourced"
-    ? "No companies in your pipeline yet. Generate matches above, or add a company you've found."
-    : "No placements yet. Your faculty mentor will log yours soon — or add a company you've found in the meantime.";
+  const showStartHere = targets.length === 0 && !targetsLoading;
 
   return (
-    <div className="p-4 lg:p-8 max-w-7xl mx-auto">
-      <PracticumHeader
-        practicumPath={practicumPath}
-        practicumStatus={profileRow?.practicum_status}
-        practicumCohort={profileRow?.practicum_cohort}
-      />
-
-      {practicumPath === "self_sourced" && (
-        !internshipProfileLoading && !internshipProfile ? (
-          <NoInternshipProfile
-            generateDisabled={generatingProfile}
-            onGenerate={handleGenerateProfile}
+    <>
+      <style>{ACT_CSS}</style>
+      <div className="act">
+        <div className="max-w-7xl mx-auto px-4 lg:px-8 py-10">
+          <PracticumHeader
+            practicumPath={practicumPath}
+            practicumStatus={profileRow?.practicum_status}
+            practicumCohort={profileRow?.practicum_cohort}
           />
-        ) : (
-          <>
-            <InternshipProfileStrip
-              profile={internshipProfile}
-              onRefresh={handleGenerateProfile}
-              refreshDisabled={generatingProfile}
-              refreshLoading={generatingProfile}
-              latestCareerRolesUpdatedAt={latestCareerRolesUpdatedAt}
-            />
-            <FindCompaniesCard
-              disabled={!internshipProfile}
-              disabledReason={!internshipProfile ? "Generate your internship profile first." : undefined}
-            />
-          </>
-        )
-      )}
 
-      {/* Unified pipeline header — Add button is available on every path so
-          faculty-assigned students can also self-source. */}
-      <div className="flex items-center justify-between mt-6 mb-3">
-        <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
-          Your pipeline
-        </p>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setAddCompanyOpen(true)}
-          className="gap-1.5"
-        >
-          <Plus className="w-3.5 h-3.5" />
-          Add my own company
-        </Button>
+          {practicumPath === "self_sourced" && (
+            !internshipProfileLoading && !internshipProfile ? (
+              <NoInternshipProfile
+                generateDisabled={generatingProfile}
+                onGenerate={handleGenerateProfile}
+              />
+            ) : (
+              <>
+                <InternshipProfileStrip
+                  profile={internshipProfile}
+                  onRefresh={handleGenerateProfile}
+                  refreshDisabled={generatingProfile}
+                  refreshLoading={generatingProfile}
+                  latestCareerRolesUpdatedAt={latestCareerRolesUpdatedAt}
+                />
+                <FindCompaniesCard
+                  disabled={!internshipProfile}
+                  disabledReason={!internshipProfile ? "Generate your internship profile first." : undefined}
+                />
+              </>
+            )
+          )}
+
+          {/* Start-here explainer — shown only when the kanban is empty.
+              Hides once the user has any target so it doesn't get in the
+              way of normal pipeline browsing. */}
+          {showStartHere && <PracticumStartHere practicumPath={practicumPath} />}
+
+          {/* Pipeline header — Add button is available on every path so
+              faculty-assigned students can also self-source. */}
+          <div className="flex items-center justify-between mt-7 mb-3">
+            <p className="act-eyebrow">Your pipeline</p>
+            <button
+              type="button"
+              onClick={() => setAddCompanyOpen(true)}
+              className="act-btn act-btn-outline act-btn-sm"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add my own company
+            </button>
+          </div>
+
+          <KanbanOrEmpty
+            targets={targets}
+            loading={targetsLoading}
+            onCardClick={setOpenTarget}
+            practicumPath={practicumPath}
+          />
+
+          <CompanyTargetDrawer
+            target={openTarget}
+            open={!!openTarget}
+            onClose={() => setOpenTarget(null)}
+          />
+          <AddOwnCompanyModal
+            open={addCompanyOpen}
+            onClose={() => setAddCompanyOpen(false)}
+          />
+        </div>
       </div>
-
-      <KanbanOrEmpty
-        targets={targets}
-        loading={targetsLoading}
-        onCardClick={setOpenTarget}
-        emptyMessage={emptyMessage}
-      />
-
-      <CompanyTargetDrawer
-        target={openTarget}
-        open={!!openTarget}
-        onClose={() => setOpenTarget(null)}
-      />
-      <AddOwnCompanyModal
-        open={addCompanyOpen}
-        onClose={() => setAddCompanyOpen(false)}
-      />
-    </div>
+    </>
   );
 }
 
-function KanbanOrEmpty({ targets, loading, onCardClick, emptyMessage }) {
+function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath }) {
   if (loading) {
     return (
-      <div className="flex items-center gap-2 text-[#A3A3A3] text-sm py-8">
+      <div className="flex items-center gap-2 text-[#9C9DA1] text-sm py-8">
         <Loader2 className="w-4 h-4 animate-spin" />
         Loading…
       </div>
     );
   }
   if (targets.length === 0) {
+    // The PracticumStartHere card above already explains the flow. This
+    // smaller note just signals the kanban itself isn't broken.
+    const note = practicumPath === "self_sourced"
+      ? "Add companies above or generate matches to populate your pipeline."
+      : "Add a company your faculty assigned or one you've found yourself.";
     return (
-      <div className="bg-white rounded-xl border border-[#E5E5E5] p-6">
-        <p className="text-sm text-[#525252]">{emptyMessage}</p>
+      <div className="act-card text-center">
+        <p className="text-sm text-[#52545A]">{note}</p>
       </div>
     );
   }
