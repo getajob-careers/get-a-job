@@ -64,7 +64,10 @@ function renderLogin() {
 }
 
 function switchToSignup() {
-  fireEvent.click(screen.getByRole('button', { name: /don't have an account/i }));
+  // Mode switch lives in the tablist at the top of the form. role="tab"
+  // keeps it distinct from the form's submit button (which also matches
+  // /sign in/i) so existing submit-button assertions still resolve uniquely.
+  fireEvent.click(screen.getByRole('tab', { name: /sign up/i }));
 }
 
 describe('Login — signin mode (default)', () => {

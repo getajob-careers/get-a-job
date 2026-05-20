@@ -1193,7 +1193,10 @@ export default function Landing() {
       if (cta) cta.scrollIntoView({ behavior: "smooth" });
       return;
     }
-    navigate("/login");
+    // Every landing-page CTA targets new users — deeplink to the signup
+    // tab so first-time visitors don't land on a sign-in form that will
+    // reject them. Login reads ?mode= via useSearchParams.
+    navigate("/login?mode=signup");
   };
 
   const handleWaitlistSubmit = () => {
