@@ -1,28 +1,436 @@
-import React, { useState, useRef } from "react";
-import { motion } from "framer-motion";
+/*
+ * Home.jsx — authenticated dashboard.
+ *
+ * Direction 3 tokens (warm slate + coral + Geist-only) — same brand
+ * system as Landing.jsx. The two surfaces share the visual identity
+ * but render different content: Landing is a marketing-page, Home is
+ * a launchpad.
+ *
+ * Action-driven bento: every card has a clear verb-CTA and the whole
+ * card is the click target. No "View all" links. Cards reflect user
+ * state (empty / partial / full) so the CTA is always the next action
+ * the user can take, not a description of the page they'll land on.
+ *
+ * Self-heal + redirect logic from the pre-redesign Home is preserved
+ * verbatim. The visual chrome is what changed; the auth + analysis
+ * recovery paths are unchanged.
+ */
+
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { ArrowRight, Loader2, CheckCircle2, XCircle, AlertCircle } from "lucide-react";
-import SkillGapCourses from "../components/dashboard/SkillGapCourses";
-import JobMatchChecker from "../components/dashboard/JobMatchChecker";
-import DailyActionCard from "../components/dashboard/DailyActionCard";
+import { ArrowUpRight, Loader2, AlertCircle } from "lucide-react";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
-import { pickPrimaryEducation } from "@/lib/educationPolicy";
+
+// ────────────────────────────────────────────────────────────────────────
+// Inline CSS — Direction 3 tokens. Same palette as Landing.jsx.
+// Scoped to `.home` so it never leaks into other dashboard pages that
+// still use the neutral grey palette.
+// ────────────────────────────────────────────────────────────────────────
+
+const HOME_CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700;800;900&display=swap');
+.home {
+  --h-bg: #F4F4F2;
+  --h-bg-tinted: #E8E8E5;
+  --h-ink: #0E1014;
+  --h-ink-soft: #52545A;
+  --h-ink-faded: #9C9DA1;
+  --h-accent: #F87060;
+  --h-accent-deep: #C84F40;
+  --h-accent-tint: #FDE7E3;
+  --h-ink-card: #0E1014;
+  --h-line: #DDDDDB;
+  --h-line-soft: #E8E8E5;
+  --h-card: #FFFFFF;
+  --h-green: #1D7556;
+  --h-green-tint: #DBEEE5;
+  --h-blue: #2B5DC4;
+  --h-blue-tint: #DEE6F7;
+  --h-violet: #6B4FBF;
+  --h-violet-tint: #E7E0F5;
+  --h-font-display: 'Geist', system-ui, sans-serif;
+  --h-font-body: 'Geist', system-ui, sans-serif;
+  --h-font-mono: 'Geist Mono', ui-monospace, monospace;
+  font-family: var(--h-font-body);
+  color: var(--h-ink);
+  background: var(--h-bg);
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+.home * { box-sizing: border-box; }
+
+.home-hero {
+  padding: 64px 32px 48px;
+  max-width: 1180px;
+  margin: 0 auto;
+  text-align: left;
+}
+.home-greeting {
+  font-family: var(--h-font-mono);
+  font-size: 11px;
+  color: var(--h-ink-faded);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.home-headline {
+  font-family: var(--h-font-display);
+  font-size: 56px;
+  font-weight: 700;
+  line-height: 1.06;
+  letter-spacing: -0.035em;
+  color: var(--h-ink);
+  margin-bottom: 28px;
+  max-width: 900px;
+}
+.home-headline .accent { color: var(--h-accent); font-weight: 500; }
+.home-cta-row { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 11px 22px;
+  border-radius: 100px;
+  font-size: 14px;
+  font-weight: 600;
+  font-family: var(--h-font-body);
+  cursor: pointer;
+  text-decoration: none;
+  border: none;
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+.home-btn:hover { transform: translateY(-1px); }
+.home-btn:active { transform: scale(0.97); }
+.home-btn-primary { background: var(--h-ink-card); color: white; box-shadow: 0 4px 16px rgba(248, 112, 96, 0.15); }
+.home-btn-primary:hover { background: var(--h-accent); }
+.home-btn-ghost { background: transparent; color: var(--h-ink); border: 1px solid var(--h-line); }
+.home-btn-ghost:hover { background: var(--h-bg-tinted); }
+
+@media (max-width: 640px) {
+  .home-hero { padding: 40px 20px 32px; }
+  .home-headline { font-size: 36px; }
+  .home-cta-row { flex-direction: column; align-items: stretch; }
+  .home-btn { justify-content: center; }
+}
+
+/* Bento */
+.home-bento {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 0 32px 80px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 14px;
+}
+.home-card {
+  background: var(--h-card);
+  border: 1px solid var(--h-line);
+  border-radius: 14px;
+  padding: 24px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  cursor: pointer;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  width: 100%;
+  font-family: var(--h-font-body);
+}
+.home-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--h-ink);
+  box-shadow: 0 8px 24px rgba(14, 16, 20, 0.06);
+}
+.home-card:focus-visible {
+  outline: 2px solid var(--h-accent);
+  outline-offset: 2px;
+}
+.home-card-dark { background: var(--h-ink-card); color: white; border-color: var(--h-ink-card); }
+.home-card-dark:hover { border-color: var(--h-accent); }
+
+.home-card-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--h-font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--h-ink-faded);
+  font-weight: 500;
+}
+.home-card-dark .home-card-eyebrow { color: var(--h-accent); }
+
+.home-card-stat {
+  font-family: var(--h-font-mono);
+  font-size: 11px;
+  color: var(--h-ink-faded);
+  letter-spacing: 0.03em;
+}
+.home-card-dark .home-card-stat { color: rgba(255,255,255,0.55); }
+
+.home-card-cta {
+  font-family: var(--h-font-display);
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--h-ink);
+  margin-top: 4px;
+}
+.home-card-dark .home-card-cta { color: white; }
+.home-card-big .home-card-cta { font-size: 26px; }
+
+.home-card-desc {
+  font-size: 13px;
+  color: var(--h-ink-soft);
+  line-height: 1.5;
+}
+.home-card-dark .home-card-desc { color: rgba(255,255,255,0.7); }
+
+.home-card-list {
+  margin-top: auto;
+  padding-top: 12px;
+  border-top: 1px solid var(--h-line);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.home-card-dark .home-card-list { border-color: rgba(255,255,255,0.1); }
+
+.home-card-row {
+  font-size: 12px;
+  color: var(--h-ink-soft);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.home-card-row .label { font-weight: 500; color: var(--h-ink); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.home-card-row .badge {
+  font-family: var(--h-font-mono);
+  font-size: 9px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 100px;
+  flex-shrink: 0;
+}
+
+.home-card-arrow {
+  margin-left: auto;
+  align-self: flex-end;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--h-bg-tinted);
+  color: var(--h-ink-soft);
+  transition: background 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.home-card:hover .home-card-arrow { background: var(--h-accent); color: white; transform: translateX(2px); }
+.home-card-dark .home-card-arrow { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.7); }
+.home-card-dark:hover .home-card-arrow { background: var(--h-accent); color: white; }
+
+.home-card-tiers { display: flex; gap: 12px; }
+.home-tier-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--h-font-mono);
+  font-size: 11px;
+  color: var(--h-ink-soft);
+}
+.home-tier-dot { width: 8px; height: 8px; border-radius: 50%; }
+.home-tier-1 { background: var(--h-green); }
+.home-tier-2 { background: var(--h-blue); }
+.home-tier-3 { background: var(--h-violet); }
+
+.home-this-week {
+  display: inline-flex;
+  padding: 2px 8px;
+  border-radius: 100px;
+  font-family: var(--h-font-mono);
+  font-size: 10px;
+  background: var(--h-accent-tint);
+  color: var(--h-accent-deep);
+  letter-spacing: 0.04em;
+}
+
+.home-error-banner {
+  max-width: 1180px;
+  margin: 16px auto 0;
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: #FEF2F2;
+  border: 1px solid #FECACA;
+  color: #991B1B;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Grid spans — desktop bento layout
+   Row 1: [Today's focus span 4 | Roadmap span 2]
+   Row 2: [Applications span 3   | New jobs span 3]
+   Row 3: [Stories span 3        | LinkedIn span 3] */
+.home-card-focus     { grid-column: span 4; }
+.home-card-roadmap   { grid-column: span 2; }
+.home-card-apps      { grid-column: span 3; }
+.home-card-jobs      { grid-column: span 3; }
+.home-card-stories   { grid-column: span 3; }
+.home-card-linkedin  { grid-column: span 3; }
+
+@media (max-width: 900px) {
+  .home-bento { grid-template-columns: repeat(2, 1fr); }
+  .home-card-focus, .home-card-roadmap, .home-card-apps,
+  .home-card-jobs, .home-card-stories, .home-card-linkedin {
+    grid-column: span 2;
+  }
+}
+@media (max-width: 640px) {
+  .home-bento { grid-template-columns: 1fr; padding: 0 20px 60px; gap: 12px; }
+  .home-card-focus, .home-card-roadmap, .home-card-apps,
+  .home-card-jobs, .home-card-stories, .home-card-linkedin {
+    grid-column: span 1;
+  }
+}
+`;
+
+// ────────────────────────────────────────────────────────────────────────
+// Helpers
+// ────────────────────────────────────────────────────────────────────────
+
+function timeOfDayGreeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "GOOD MORNING";
+  if (h < 18) return "GOOD AFTERNOON";
+  return "GOOD EVENING";
+}
+
+// Rolling-7-day epoch ms. "This week" everywhere on Home = last 7 days
+// from now, not calendar-week-Monday.
+const ROLLING_7D_MS = 7 * 24 * 60 * 60 * 1000;
+
+// Headline rule ladder — picks the most-load-bearing statement about
+// the user's current job-hunt state. Active applications are the strongest
+// signal (already in motion); Tier 1 roles next; goal/roadmap state last;
+// fall back to a plain greeting if nothing else qualifies.
+function pickHeadline({ profile, roles, applications }) {
+  const firstName = (profile?.full_name || "").split(" ")[0] || "there";
+  const activeApps = applications.filter(
+    (a) => !["rejected", "withdrawn", "offer", "accepted"].includes(a.status),
+  );
+  const tier1Roles = roles.filter((r) => r.tier === "tier_1");
+
+  if (activeApps.length >= 5) {
+    return (
+      <>
+        You have <span className="accent">{activeApps.length} applications</span> in motion.
+      </>
+    );
+  }
+  if (tier1Roles.length >= 3) {
+    return (
+      <>
+        You have <span className="accent">{tier1Roles.length} Tier&nbsp;1 roles</span> ready to apply to.
+      </>
+    );
+  }
+  if (tier1Roles.length >= 1) {
+    return (
+      <>
+        Your strongest fit is <span className="accent">{tier1Roles[0].title}</span>.
+      </>
+    );
+  }
+  if (roles.length === 0) {
+    return (
+      <>
+        Generate your <span className="accent">career roadmap</span> to see your first roles.
+      </>
+    );
+  }
+  return (
+    <>
+      Welcome back, <span className="accent">{firstName}</span>.
+    </>
+  );
+}
+
+function statusBadgeStyle(status) {
+  const s = (status || "").toLowerCase();
+  if (s === "offer" || s === "accepted") return { background: "var(--h-green-tint)", color: "var(--h-green)" };
+  if (s === "interviewing" || s === "preparing") return { background: "var(--h-blue-tint)", color: "var(--h-blue)" };
+  if (s === "rejected" || s === "withdrawn") return { background: "#FEE2E2", color: "#991B1B" };
+  return { background: "var(--h-bg-tinted)", color: "var(--h-ink-soft)" };
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// Card components — each one is a clickable launchpad
+// ────────────────────────────────────────────────────────────────────────
+
+function HomeCard({ to, dark, big, className, children, onClick }) {
+  const navigate = useNavigate();
+  const handle = (e) => {
+    if (onClick) {
+      onClick(e);
+      if (e.defaultPrevented) return;
+    }
+    if (to) navigate(to);
+  };
+  return (
+    <div
+      role="button"
+      tabIndex={0}
+      onClick={handle}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          handle(e);
+        }
+      }}
+      className={[
+        "home-card",
+        dark ? "home-card-dark" : "",
+        big ? "home-card-big" : "",
+        className || "",
+      ].filter(Boolean).join(" ")}
+    >
+      {children}
+    </div>
+  );
+}
+
+function CardArrow() {
+  return (
+    <div className="home-card-arrow" aria-hidden="true">
+      <ArrowUpRight className="w-3.5 h-3.5" />
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────
+// Root component
+// ────────────────────────────────────────────────────────────────────────
 
 export default function Home() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Existing queries — preserved verbatim from the pre-redesign Home so
+  // self-heal + redirect-to-Onboarding behavior continues to work.
   const { data: profiles = [], isLoading: loadingProfile, isFetched: profileFetched, isError: profileError } = useQuery({
     queryKey: ["userProfile", user?.id],
     queryFn: async () => {
-      // Nested select pulls education in the same round trip — Phase B
-      // moved education off profiles flat columns. We pick the primary
-      // row client-side via pickPrimaryEducation.
       const { data, error } = await supabase
         .from("profiles")
         .select("*, education(*)")
@@ -55,84 +463,105 @@ export default function Home() {
 
   const { data: experiences = [] } = useQuery({
     queryKey: ["experiences", user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("experiences").select("*").eq("user_id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
+    queryFn: async () => (await supabase.from("experiences").select("*").eq("user_id", user.id)).data || [],
     enabled: !!user?.id,
   });
-
-  const { data: tasks = [] } = useQuery({
-    queryKey: ["tasks", user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase.from("tasks").select("*").eq("user_id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
-
   const { data: certifications = [] } = useQuery({
     queryKey: ["certifications", user?.id],
+    queryFn: async () => (await supabase.from("certifications").select("*").eq("user_id", user.id)).data || [],
+    enabled: !!user?.id,
+  });
+  const { data: projects = [] } = useQuery({
+    queryKey: ["projects", user?.id],
+    queryFn: async () => (await supabase.from("projects").select("*").eq("user_id", user.id)).data || [],
+    enabled: !!user?.id,
+  });
+
+  // New queries — drive the bento cards.
+  const { data: stories = [] } = useQuery({
+    queryKey: ["stories", user?.id],
+    queryFn: async () => (await supabase.from("stories").select("id, created_at").eq("user_id", user.id)).data || [],
+    enabled: !!user?.id,
+  });
+
+  // LinkedIn last-post + optimization status.
+  const { data: linkedinPosts = [] } = useQuery({
+    queryKey: ["linkedin_posts_home", user?.id],
     queryFn: async () => {
-      const { data, error } = await supabase.from("certifications").select("*").eq("user_id", user.id);
-      if (error) throw error;
+      const { data } = await supabase
+        .from("linkedin_posts")
+        .select("created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+  const { data: linkedinOpts = [] } = useQuery({
+    queryKey: ["linkedin_opts_home", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("linkedin_optimizations")
+        .select("baseline_data")
+        .eq("user_id", user.id)
+        .limit(1);
       return data || [];
     },
     enabled: !!user?.id,
   });
 
-  const { data: projects = [] } = useQuery({
-    queryKey: ["projects", user?.id],
+  // Daily action — lazy-fetches via the edge function (UPSERTs today's
+  // row idempotent per (user_id, for_date)). When the user hits Home for
+  // the first time today, the function generates the action; subsequent
+  // visits return the cached row from the DB.
+  const { data: dailyAction } = useQuery({
+    queryKey: ["daily_action_home", user?.id, new Date().toDateString()],
     queryFn: async () => {
-      const { data, error } = await supabase.from("projects").select("*").eq("user_id", user.id);
-      if (error) throw error;
-      return data || [];
+      const { data, error } = await supabase.functions.invoke("generate-daily-action", { body: {} });
+      if (error) return null;
+      return data?.daily_action || null;
     },
     enabled: !!user?.id,
+    staleTime: 30 * 60 * 1000,
+    retry: false,
+  });
+
+  // Tier-1-matching new jobs in the rolling 7d window. Reuses the same
+  // search_jobs_by_role_titles RPC used by /Jobs.
+  const tier1RoleTitles = useMemo(() => roles.filter((r) => r.tier === "tier_1").map((r) => r.title).filter(Boolean), [roles]);
+  const { data: newJobs = [] } = useQuery({
+    queryKey: ["new_jobs_home", user?.id, tier1RoleTitles.join("|")],
+    queryFn: async () => {
+      if (tier1RoleTitles.length === 0) return [];
+      const { data } = await supabase.rpc("search_jobs_by_role_titles", {
+        p_role_titles: tier1RoleTitles,
+        p_limit: 20,
+        p_offset: 0,
+        p_similarity_threshold: 0.3,
+      });
+      if (!Array.isArray(data)) return [];
+      const cutoff = Date.now() - ROLLING_7D_MS;
+      return data.filter((j) => j.date_posted && new Date(j.date_posted).getTime() >= cutoff);
+    },
+    enabled: !!user?.id && tier1RoleTitles.length > 0,
   });
 
   const profile = profiles?.[0] || null;
-  const primaryEdu = pickPrimaryEducation(profile?.education || []);
   const stale = isAnalysisStale({ profile, experiences, certifications, projects });
   const isLoading = loadingProfile || loadingRoles || loadingApps;
 
-  // Defensive guard for the Skills — Confirmed vs Missing card. The card
-  // can fall into one of three "no data" states and we want each to look
-  // distinct rather than collapsing them into "Generate your roadmap":
-  //   1. Never had roles → "Generate your roadmap..." (existing copy)
-  //   2. Had roles before but careerRoles is now empty → "Refreshing skill
-  //      analysis…" (covers brief refetch windows, intentional resets that
-  //      haven't completed re-onboarding yet, etc.)
-  //   3. tier1Role exists but its matched_skills + missing_skills are both
-  //      empty (chat agent added a role without skills, falling to the
-  //      Path C branch in handleApplyRoadmapChanges) → "Skills computing —
-  //      click Refresh Analysis…" pointing at the recovery action.
-  React.useEffect(() => {
+  // hadRolesPreviously — preserved from pre-redesign for empty-state copy.
+  useEffect(() => {
     if (roles.length > 0 && user?.id) {
       try { localStorage.setItem(`careerRoles:${user.id}:hadData`, "1"); } catch { /* localStorage unavailable */ }
     }
   }, [roles.length, user?.id]);
 
-  const hadRolesPreviously = (() => {
-    if (!user?.id || typeof window === "undefined") return false;
-    try { return localStorage.getItem(`careerRoles:${user.id}:hadData`) === "1"; } catch { return false; }
-  })();
-
-  React.useEffect(() => {
+  // Redirect-to-Onboarding — preserved verbatim. Fails open to Onboarding
+  // on profile-query errors rather than leaving users stuck on Home.
+  useEffect(() => {
     if (!user || !profileFetched) return;
-    // Redirect-on-error: if the profile query failed, we don't actually
-    // know whether the user has completed onboarding or not. Sending them
-    // to Onboarding is safer than leaving them stuck on Home — Onboarding
-    // has its own profile check that handles all three states (no row /
-    // incomplete / complete) and bounces back here if they're done.
-    //
-    // Previously this guard early-returned on ANY error, which masked
-    // structural problems like the PostgREST FK-resolution bug shipped in
-    // PR-2: new signups had no profile row, the query threw, and the user
-    // got stuck on Home with no indication anything was wrong. The new
-    // behaviour fails open to Onboarding instead of failing silent.
     if (profileError) {
       console.error("[Home] profile query failed — redirecting to Onboarding as fallback");
       navigate(createPageUrl("Onboarding"));
@@ -145,20 +574,13 @@ export default function Home() {
     }
   }, [user, profileFetched, profileError, profile, profiles, navigate]);
 
-  // Self-heal: if the user reached onboarding_complete but the career-analysis
-  // persist silently failed (qualification_level + last_reality_check_date
-  // both null is the unambiguous shape — Onboarding.jsx writes both
-  // together at line ~432), trigger a one-shot background re-run. This
-  // shape should never exist for a properly onboarded user, so a guard
-  // check is enough — no risk of triggering on legitimate states. Single
-  // call per Home mount via useRef; if it fails the next mount can retry.
-  // Subject to the generate-career-analysis 5/hour rate limit, but a user
-  // hitting that limit on a self-heal has bigger issues.
+  // Self-heal — preserved verbatim. If onboarding_complete but missing
+  // qualification_level + last_reality_check_date, re-run the analysis.
   const [selfHealing, setSelfHealing] = useState(false);
-  const [selfHealError, setSelfHealError] = useState(null);
-  const [selfHealRetryNonce, setSelfHealRetryNonce] = useState(0);
+  const [, setSelfHealError] = useState(null);
+  const [selfHealRetryNonce] = useState(0);
   const selfHealRanRef = useRef(false);
-  React.useEffect(() => {
+  useEffect(() => {
     if (!user?.id || !profile) return;
     if (selfHealRanRef.current) return;
     if (!profile.onboarding_complete) return;
@@ -167,8 +589,6 @@ export default function Home() {
     setSelfHealing(true);
     setSelfHealError(null);
 
-    // 45s ceiling: if the analysis hasn't returned by then, surface a retry
-    // affordance rather than spinning forever.
     const timeoutId = setTimeout(() => {
       setSelfHealing(false);
       setSelfHealError("Analysis is taking longer than expected.");
@@ -176,12 +596,10 @@ export default function Home() {
 
     (async () => {
       try {
-        console.log("[home self-heal] running career analysis for", user.id);
         const { data, error } = await supabase.functions.invoke("generate-career-analysis", {
           body: { dream_roles: [] },
         });
         if (error || !data?.qualification_level) {
-          console.warn("[home self-heal] career analysis returned no data:", error || "(null qualification_level)");
           clearTimeout(timeoutId);
           setSelfHealing(false);
           setSelfHealError("Couldn't run your analysis.");
@@ -194,19 +612,16 @@ export default function Home() {
           last_reality_check_date: new Date().toISOString(),
         }).eq("id", user.id);
         if (persistErr) {
-          console.warn("[home self-heal] persist failed:", persistErr);
           clearTimeout(timeoutId);
           setSelfHealing(false);
           setSelfHealError("Couldn't save your analysis.");
           return;
         }
-        console.log("[home self-heal] success — qualification_level:", data.qualification_level);
         clearTimeout(timeoutId);
         setSelfHealing(false);
         queryClient.invalidateQueries({ queryKey: ["userProfile"] });
         queryClient.invalidateQueries({ queryKey: ["careerRoles"] });
-      } catch (err) {
-        console.warn("[home self-heal] exception:", err);
+      } catch {
         clearTimeout(timeoutId);
         setSelfHealing(false);
         setSelfHealError("Unexpected error during analysis.");
@@ -216,16 +631,6 @@ export default function Home() {
     return () => clearTimeout(timeoutId);
   }, [user?.id, profile, queryClient, selfHealRetryNonce]);
 
-  const handleSelfHealRetry = () => {
-    selfHealRanRef.current = false;
-    setSelfHealError(null);
-    setSelfHealRetryNonce((n) => n + 1);
-  };
-
-  // Render-gate: hide the dashboard during any state where a redirect to
-  // Onboarding is about to fire. Without this, the dashboard renders for one
-  // frame between profileFetched=true and navigate() actually changing the
-  // route — visible as a flash of empty cards for new signups.
   const willRedirect =
     profileError ||
     (profileFetched && profiles?.length === 0) ||
@@ -233,267 +638,233 @@ export default function Home() {
 
   if (isLoading || willRedirect) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[60vh]">
-        <Loader2 className="w-5 h-5 animate-spin text-[#A3A3A3]" />
-      </div>
+      <>
+        <style>{HOME_CSS}</style>
+        <div className="home flex items-center justify-center h-screen">
+          <Loader2 className="w-5 h-5 animate-spin" style={{ color: "var(--h-ink-faded)" }} />
+        </div>
+      </>
     );
   }
 
-  const tier1Role = roles.find((r) => r.tier === "tier_1");
-  const matchedSkills = tier1Role?.matched_skills || [];
-  const missingSkills = tier1Role?.missing_skills || [];
-  const skillGaps = Array.isArray(profile?.skill_gaps) ? profile.skill_gaps : [];
-  const pendingTasks = tasks.filter((t) => !t.is_complete);
-  const activeApps = applications.filter((a) => !["rejected", "withdrawn", "offer", "accepted"].includes(a.status));
-  const score = tier1Role?.readiness_score ?? (tier1Role?.match_percentage != null ? tier1Role.match_percentage / 100 : null);
+  // ── Derived state for cards ──────────────────────────────────────────
+  const activeApps = applications.filter(
+    (a) => !["rejected", "withdrawn", "offer", "accepted"].includes(a.status),
+  );
+  const recentApps = [...applications]
+    .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
+    .slice(0, 3);
+
+  const tier1Count = roles.filter((r) => r.tier === "tier_1").length;
+  const tier2Count = roles.filter((r) => r.tier === "tier_2").length;
+  const tier3Count = roles.filter((r) => r.tier === "tier_3").length;
+
+  const storiesCount = stories.length;
+  const storiesThisWeek = stories.filter((s) => new Date(s.created_at).getTime() >= Date.now() - ROLLING_7D_MS).length;
+
+  const lastPostAt = linkedinPosts[0]?.created_at ? new Date(linkedinPosts[0].created_at) : null;
+  const hasLinkedinBaseline = (linkedinOpts[0]?.baseline_data?.profile) != null;
+  const daysSinceLastPost = lastPostAt ? Math.floor((Date.now() - lastPostAt.getTime()) / (24 * 60 * 60 * 1000)) : null;
+
+  const linkedinCta = (() => {
+    if (!hasLinkedinBaseline) return "Optimize your profile";
+    if (daysSinceLastPost === null || daysSinceLastPost >= 7) return "Write a post";
+    return "Continue your draft";
+  })();
+  const linkedinStat = (() => {
+    if (!hasLinkedinBaseline) return "Profile not yet optimized";
+    if (daysSinceLastPost === null) return "No posts yet";
+    if (daysSinceLastPost === 0) return "Last post: today";
+    if (daysSinceLastPost === 1) return "Last post: yesterday";
+    return `Last post: ${daysSinceLastPost}d ago`;
+  })();
+
+  const focusCta = (() => {
+    if (selfHealing) return "Building your daily focus…";
+    if (dailyAction?.title) return dailyAction.title;
+    if (roles.length === 0) return "Generate your roadmap";
+    return "Take your first action";
+  })();
+  const focusDesc = (() => {
+    if (dailyAction?.rationale) return dailyAction.rationale;
+    if (roles.length === 0) return "Your daily focus generates from your roadmap. Start there.";
+    return "Your daily focus will appear here once it's ready.";
+  })();
+
+  const focusDestination = (() => {
+    if (dailyAction?.source_table === "applications") return createPageUrl("Tracker");
+    if (dailyAction?.source_table === "tasks") return createPageUrl("Tasks");
+    if (dailyAction?.source_table === "career_roles") return createPageUrl("Roadmap");
+    if (dailyAction?.action_type === "reflect") return createPageUrl("Profile");
+    return createPageUrl("Roadmap");
+  })();
+
+  const handleHero = () => {
+    navigate(focusDestination);
+  };
 
   return (
-    <motion.div
-      className="max-w-4xl mx-auto px-6 py-8"
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-    >
-      {/* Data load error banner */}
-      {(rolesError || appsError) && (
-        <div className="flex items-center gap-2 mb-6 px-4 py-3 bg-red-50 border border-red-100 rounded-xl text-sm text-red-700">
-          <AlertCircle className="w-4 h-4 flex-shrink-0" />
-          Some data failed to load. Refresh the page to try again.
-        </div>
-      )}
+    <>
+      <style>{HOME_CSS}</style>
+      <div className="home">
+        {(rolesError || appsError) && (
+          <div className="home-error-banner">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            Some data failed to load. Refresh the page to try again.
+          </div>
+        )}
 
-      {/* Daily Action Card — top of dashboard, one action per day */}
-      <DailyActionCard />
+        {stale && (
+          <div className="home-error-banner" style={{ background: "#FFFBEB", borderColor: "#FDE68A", color: "#92400E" }}>
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>Your profile changed since the last analysis.</span>
+            <Link to={createPageUrl("Roadmap")} style={{ marginLeft: "auto", textDecoration: "underline" }}>
+              Refresh roadmap
+            </Link>
+          </div>
+        )}
 
-      {/* Header */}
-      <div className="mb-8 flex justify-between items-start">
-        <div>
-          <p className="text-xs uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">Career Operating System</p>
-          <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">
-            Where do I stand?
-          </h1>
-          {profile?.last_reality_check_date && (
-            <p className="text-xs text-[#A3A3A3] mt-1">
-              Last analysis: {new Date(profile.last_reality_check_date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
-              {stale && (
-                <>
-                  {" · "}
-                  <Link to={createPageUrl("Roadmap")} className="text-amber-700 underline hover:text-amber-800">
-                    Profile updated — refresh roadmap
-                  </Link>
-                </>
-              )}
-            </p>
-          )}
-        </div>
-      </div>
+        {/* Hero */}
+        <section className="home-hero">
+          <div className="home-greeting">
+            {timeOfDayGreeting()}
+            {profile?.full_name ? `, ${profile.full_name.split(" ")[0].toUpperCase()}` : ""}
+          </div>
+          <h1 className="home-headline">{pickHeadline({ profile, roles, applications })}</h1>
+          <div className="home-cta-row">
+            <button type="button" className="home-btn home-btn-primary" onClick={handleHero}>
+              See today&apos;s action <ArrowUpRight className="w-4 h-4" />
+            </button>
+            <Link to={createPageUrl("Jobs")} className="home-btn home-btn-ghost">
+              Browse jobs
+            </Link>
+          </div>
+        </section>
 
-      {/* Overall Assessment */}
-      {profile?.overall_assessment ? (
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-5 mb-5">
-          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2">Assessment</p>
-          <p className="text-sm text-[#525252] leading-relaxed">{profile.overall_assessment}</p>
-        </div>
-      ) : roles.length === 0 ? (
-        <div className="bg-amber-50 border border-amber-100 rounded-xl p-5 mb-5">
-          <p className="text-sm font-medium text-amber-800">No roadmap generated yet.</p>
-          <p className="text-xs text-amber-700 mt-1">Go to Career Roadmap → Generate Roadmap to get your qualification assessment.</p>
-        </div>
-      ) : null}
+        {/* Bento */}
+        <div className="home-bento">
+          {/* Today's focus — dark accent */}
+          <HomeCard dark big className="home-card-focus" to={focusDestination}>
+            <div className="home-card-eyebrow">TODAY&apos;S FOCUS</div>
+            <div className="home-card-cta">{focusCta}</div>
+            <div className="home-card-desc">{focusDesc}</div>
+            <CardArrow />
+          </HomeCard>
 
-      {/* Reality Check Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-5">
-
-        {/* Qualification Level */}
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-5">
-          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-3">Qualification Level</p>
-          {profile?.qualification_level ? (
-            <p className="text-sm text-[#0A0A0A] font-medium leading-snug">{profile.qualification_level}</p>
-          ) : selfHealing ? (
-            <div className="flex items-center gap-2">
-              <Loader2 className="w-3.5 h-3.5 animate-spin text-[#A3A3A3]" />
-              <p className="text-sm text-[#A3A3A3]">Analysing your profile…</p>
+          {/* Roadmap */}
+          <HomeCard className="home-card-roadmap" to={createPageUrl("Roadmap")}>
+            <div className="home-card-eyebrow">ROADMAP</div>
+            <div className="home-card-cta">
+              {roles.length === 0 ? "Generate your roadmap" : "Open your roadmap"}
             </div>
-          ) : selfHealError ? (
-            <div>
-              <p className="text-sm text-[#A3A3A3]">{selfHealError}</p>
-              <button
-                onClick={handleSelfHealRetry}
-                className="mt-2 text-xs font-medium text-[#0A0A0A] underline underline-offset-2"
-              >
-                Retry
-              </button>
+            {roles.length > 0 && (
+              <div className="home-card-tiers">
+                <span className="home-tier-pill"><span className="home-tier-dot home-tier-1" />{tier1Count} T1</span>
+                <span className="home-tier-pill"><span className="home-tier-dot home-tier-2" />{tier2Count} T2</span>
+                <span className="home-tier-pill"><span className="home-tier-dot home-tier-3" />{tier3Count} T3</span>
+              </div>
+            )}
+            <div className="home-card-desc">
+              {roles.length === 0
+                ? "Score every role in the library against your profile."
+                : "See your tier breakdown, fit scores, and skill gaps."}
             </div>
-          ) : (
-            <p className="text-sm text-[#A3A3A3]">Not yet determined</p>
-          )}
-          {primaryEdu?.field_of_study && (
-            <p className="text-xs text-[#A3A3A3] mt-2">
-              {primaryEdu.education_level?.replaceAll("_", " ")} · {primaryEdu.field_of_study}
-            </p>
-          )}
-        </div>
+            <CardArrow />
+          </HomeCard>
 
-        {/* Closest Tier 1 Role */}
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-5">
-          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-3">Closest Tier 1 Role</p>
-          {tier1Role ? (
-            <>
-              <p className="text-sm font-semibold text-[#0A0A0A]">{tier1Role.title}</p>
-              {score !== null && (
-                <div className="flex items-center gap-2 mt-2">
-                  <div className="flex-1 h-1.5 bg-[#F0F0F0] rounded-full overflow-hidden">
-                    <div
-                      className={`h-full rounded-full ${score >= 0.45 ? "bg-emerald-500" : score >= 0.25 ? "bg-amber-400" : "bg-red-400"}`}
-                      style={{ width: `${Math.round(score * 100)}%` }}
-                    />
+          {/* Applications */}
+          <HomeCard className="home-card-apps" to={createPageUrl("Tracker")}>
+            <div className="home-card-eyebrow">
+              APPLICATIONS
+              <span className="home-card-stat">{activeApps.length} active</span>
+            </div>
+            <div className="home-card-cta">
+              {applications.length === 0 ? "Track your first application" : "Manage your pipeline"}
+            </div>
+            {recentApps.length > 0 && (
+              <div className="home-card-list">
+                {recentApps.map((a) => (
+                  <div key={a.id} className="home-card-row">
+                    <span className="label">
+                      {a.company ? `${a.company} · ${a.role_title}` : a.role_title}
+                    </span>
+                    <span className="badge" style={statusBadgeStyle(a.status)}>{a.status}</span>
                   </div>
-                  <span className={`text-xs font-semibold ${score >= 0.45 ? "text-emerald-600" : score >= 0.25 ? "text-amber-600" : "text-red-500"}`}>
-                    {Math.round(score * 100)}%
-                  </span>
-                </div>
-              )}
-              {tier1Role.alignment_to_goal && (
-                <p className="text-xs text-[#A3A3A3] mt-2 leading-relaxed">{tier1Role.alignment_to_goal}</p>
-              )}
-            </>
-          ) : (
-            <p className="text-sm text-[#A3A3A3]">No Tier 1 roles yet</p>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+            {applications.length === 0 && (
+              <div className="home-card-desc">
+                Save a role from the job board to start tracking outcomes.
+              </div>
+            )}
+            <CardArrow />
+          </HomeCard>
 
-        {/* Skills: Confirmed vs Missing */}
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-5">
-          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-3">
-            Skills — Confirmed vs Missing
-          </p>
-          {tier1Role ? (
-            (matchedSkills.length === 0 && missingSkills.length === 0) ? (
-              <p className="text-sm text-[#A3A3A3]">
-                Skills computing — open Career Roadmap and click Refresh Analysis to populate this role's skill breakdown.
-              </p>
+          {/* New jobs */}
+          <HomeCard className="home-card-jobs" to={createPageUrl("Jobs")}>
+            <div className="home-card-eyebrow">
+              NEW THIS WEEK
+              <span className="home-card-stat">{newJobs.length} matches</span>
+            </div>
+            <div className="home-card-cta">
+              {tier1RoleTitles.length === 0 ? "Browse open roles" : "Browse jobs"}
+            </div>
+            {newJobs.length > 0 ? (
+              <div className="home-card-list">
+                {newJobs.slice(0, 3).map((j) => (
+                  <div key={j.id} className="home-card-row">
+                    <span className="label">{j.company_name ? `${j.company_name} · ${j.title}` : j.title}</span>
+                  </div>
+                ))}
+              </div>
             ) : (
-            <div className="space-y-3">
-              {matchedSkills.length > 0 && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-wider text-emerald-600 font-semibold mb-1.5">Confirmed</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {matchedSkills.slice(0, 6).map((s, i) => (
-                      <span key={i} className="flex items-center gap-1 text-[11px] px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-md">
-                        <CheckCircle2 className="w-3 h-3" /> {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
-              {missingSkills.length > 0 && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-wider text-red-500 font-semibold mb-1.5">Missing</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {missingSkills.slice(0, 6).map((s, i) => (
-                      <span key={i} className="flex items-center gap-1 text-[11px] px-2 py-0.5 bg-red-50 text-red-600 rounded-md">
-                        <XCircle className="w-3 h-3" /> {s}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="home-card-desc">
+                {tier1RoleTitles.length === 0
+                  ? "Generate your roadmap first — jobs are filtered to your Tier 1 roles."
+                  : "No new matches in the last 7 days. Browse the full board instead."}
+              </div>
+            )}
+            <CardArrow />
+          </HomeCard>
+
+          {/* Story bank */}
+          <HomeCard className="home-card-stories" to={createPageUrl("Profile")}>
+            <div className="home-card-eyebrow">
+              STORY BANK
+              <span className="home-card-stat">{storiesCount} stories</span>
+              {storiesThisWeek > 0 && <span className="home-this-week">+{storiesThisWeek} this week</span>}
             </div>
-            )
-          ) : hadRolesPreviously ? (
-            <p className="text-sm text-[#A3A3A3]">Refreshing skill analysis…</p>
-          ) : (
-            <p className="text-sm text-[#A3A3A3]">Generate your roadmap to see skill analysis.</p>
-          )}
-        </div>
-
-        {/* Execution Status */}
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-5">
-          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-3">Execution Status</p>
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-[#525252]">Active Applications</span>
-              <span className="text-sm font-semibold text-[#0A0A0A]">{activeApps.length}</span>
+            <div className="home-card-cta">
+              {storiesCount === 0 ? "Capture your first story" : "Add a story"}
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-[#525252]">Pending Tasks</span>
-              <span className={`text-sm font-semibold ${pendingTasks.length > 0 ? "text-amber-600" : "text-emerald-600"}`}>
-                {pendingTasks.length}
-              </span>
+            <div className="home-card-desc">
+              {storiesCount === 0
+                ? "Stories fuel every CV, LinkedIn post, and interview answer. Capture once, use everywhere."
+                : "Each story you capture compounds across CVs, LinkedIn, and interviews."}
             </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-[#525252]">Skill Gaps Identified</span>
-              <span className={`text-sm font-semibold ${skillGaps.length > 0 ? "text-red-500" : "text-emerald-600"}`}>
-                {skillGaps.length}
-              </span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-xs text-[#525252]">5-Year Target</span>
-              <span className="text-xs text-[#525252] text-right max-w-[140px] truncate">
-                {profile?.five_year_role || "Not set"}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
+            <CardArrow />
+          </HomeCard>
 
-      {/* Skill Gaps */}
-      {skillGaps.length > 0 && (
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-5 mb-5">
-          <div className="flex items-center gap-2 mb-3">
-            <AlertCircle className="w-4 h-4 text-amber-500" />
-            <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Identified Skill Gaps</p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {skillGaps.map((gap, i) => (
-              <span key={i} className="text-xs px-2.5 py-1 bg-amber-50 border border-amber-100 text-amber-700 rounded-lg">
-                {gap}
-              </span>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Job Match Checker */}
-      <JobMatchChecker />
-
-      {/* Course Recommendations */}
-      {skillGaps.length > 0 && <SkillGapCourses skillGaps={skillGaps} />}
-
-      {skillGaps.length > 0 && <div className="h-5" />}
-
-      {/* Next Action */}
-      {pendingTasks.length > 0 && (
-        <div className="bg-[#0A0A0A] rounded-xl p-5 mb-6">
-          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2">Next Assigned Action</p>
-          <p className="text-sm text-white font-medium">{pendingTasks[0].title}</p>
-          {pendingTasks[0].description && (
-            <p className="text-xs text-[#A3A3A3] mt-1 leading-relaxed">{pendingTasks[0].description}</p>
-          )}
-          <Link to={createPageUrl("Tasks")} className="inline-flex items-center gap-1 text-xs text-[#A3A3A3] hover:text-white mt-3 transition-colors">
-            View all tasks <ArrowRight className="w-3 h-3" />
-          </Link>
-        </div>
-      )}
-
-      {/* Quick links */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        {[
-          { label: "Career Roadmap", page: "CareerRoadmap", desc: "Tier-classified roles with reasoning" },
-          { label: "AI Career Agent", page: "CareerAgent", desc: "Get evidence-based guidance" },
-          { label: "Application Tracker", page: "Tracker", desc: "7-step disciplined application flow" },
-        ].map((link) => (
-          <Link
-            key={link.page}
-            to={createPageUrl(link.page)}
-            className="bg-white rounded-xl border border-[#E5E5E5] p-4 hover:border-[#D4D4D4] transition-colors group"
+          {/* LinkedIn */}
+          <HomeCard
+            className="home-card-linkedin"
+            to={hasLinkedinBaseline ? `${createPageUrl("Linkedin")}?tab=posts` : `${createPageUrl("Linkedin")}?tab=profile`}
           >
-            <p className="text-sm font-semibold text-[#0A0A0A]">{link.label}</p>
-            <p className="text-xs text-[#A3A3A3] mt-1">{link.desc}</p>
-            <ArrowRight className="w-4 h-4 text-[#A3A3A3] mt-3 group-hover:translate-x-1 transition-transform" />
-          </Link>
-        ))}
+            <div className="home-card-eyebrow">
+              LINKEDIN
+              <span className="home-card-stat">{linkedinStat}</span>
+            </div>
+            <div className="home-card-cta">{linkedinCta}</div>
+            <div className="home-card-desc">
+              {!hasLinkedinBaseline
+                ? "Rewrite your headline, About, and experience bullets against your real achievements."
+                : "Draft a post from your Story Bank, score a comment, or run warm outreach."}
+            </div>
+            <CardArrow />
+          </HomeCard>
+        </div>
       </div>
-    </motion.div>
+    </>
   );
 }

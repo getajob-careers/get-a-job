@@ -4,6 +4,17 @@ import { useAuth } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ChatInterface from "../components/chat/ChatInterface";
+import AgentIntro from "../components/chat/AgentIntro";
+
+const CV_AGENT_CAPABILITIES = [
+  "📄 Generates a tailored CV as a downloadable PDF for any target role",
+  "🎯 Scores your fit against the job description and flags major gaps",
+  "✍️ Rewrites summaries, bullets, and experience blocks with strong action verbs",
+  "🔍 Surfaces missing ATS keywords for the target role",
+  "📎 Saves the generated CV onto the linked application in your tracker",
+];
+const CV_AGENT_HOW_TO_USE =
+  "Pick an application at the top of the page, or ask a general CV question. When you say \"generate a CV for <role>\", the agent proposes a confirm card — click Generate CV to produce the PDF.";
 
 const GENERAL_PROMPTS = [
   "Generate a tailored CV for my top Tier 1 role",
@@ -65,6 +76,11 @@ export default function CVAgent() {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
+      <AgentIntro
+        agentId="cv_agent"
+        capabilities={CV_AGENT_CAPABILITIES}
+        howToUse={CV_AGENT_HOW_TO_USE}
+      />
       <div className="px-6 py-3 border-b border-[#E5E5E5] bg-white flex items-center gap-3 shrink-0">
         <span className="text-xs font-medium text-[#525252] shrink-0">Tailoring for:</span>
         <Select value={selectedAppId} onValueChange={setSelectedAppId}>

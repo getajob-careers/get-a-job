@@ -46,12 +46,8 @@ vi.mock('@/lib/AuthContext', () => ({
 
 vi.mock('@/api/supabaseClient', () => ({ supabase: {} }));
 
-vi.mock('../../components/dashboard/SkillGapCourses', () => ({
-  default: () => <div data-testid="skill-gap-courses" />,
-}));
-vi.mock('../../components/dashboard/JobMatchChecker', () => ({
-  default: () => <div data-testid="job-match-checker" />,
-}));
+// SkillGapCourses and JobMatchChecker components are no longer rendered
+// by Home after the 2026-05-20 redesign — kept mock stubs out for now.
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -117,9 +113,11 @@ describe('Home error banners', () => {
 
     await renderHome();
 
-    // Wait for data to load
+    // Wait for the bento to render. The "Roadmap" eyebrow uniquely
+    // identifies the new Home layout — sits in every state, success or
+    // empty, so it's a stable test target.
     await waitFor(() => {
-      expect(screen.getByText('Where do I stand?')).toBeInTheDocument();
+      expect(screen.getByText('ROADMAP')).toBeInTheDocument();
     });
 
     expect(

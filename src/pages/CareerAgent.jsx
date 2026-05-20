@@ -4,6 +4,17 @@ import { useAuth } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ChatInterface from "../components/chat/ChatInterface";
+import AgentIntro from "../components/chat/AgentIntro";
+
+const CAREER_AGENT_CAPABILITIES = [
+  "🧭 Maps your qualifications to realistic target roles",
+  "🔍 Identifies gaps between where you are and where you want to be",
+  "📊 Gives honest confidence scores for each role you're targeting",
+  "✅ Updates your tracker, tasks, and profile directly",
+  "💡 Suggests next steps based on your actual data — no generic advice",
+];
+const CAREER_AGENT_HOW_TO_USE =
+  "Start by asking it to evaluate your profile or assess your fit for a specific role. Be direct — e.g. 'Am I ready for a Product Manager role?' or 'What should I focus on this week?'";
 
 const GENERAL_PROMPTS = [
   "Am I ready to apply for my Tier 1 roles?",
@@ -54,6 +65,11 @@ export default function CareerAgent() {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
+      <AgentIntro
+        agentId="career_agent"
+        capabilities={CAREER_AGENT_CAPABILITIES}
+        howToUse={CAREER_AGENT_HOW_TO_USE}
+      />
       <div className="px-6 py-3 border-b border-[#E5E5E5] bg-white flex items-center gap-3 shrink-0">
         <span className="text-xs font-medium text-[#525252] shrink-0">Discussing:</span>
         <Select value={selectedAppId} onValueChange={setSelectedAppId}>

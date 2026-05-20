@@ -4,6 +4,17 @@ import { useAuth } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import ChatInterface from "../components/chat/ChatInterface";
+import AgentIntro from "../components/chat/AgentIntro";
+
+const INTERVIEW_COACH_CAPABILITIES = [
+  "💬 Generates role-specific interview questions",
+  "🧠 Provides STAR-method answer frameworks",
+  "🔍 Identifies your weak areas for the role",
+  "📋 Creates interview prep tasks in your tracker",
+  "🎤 Can do mock interview practice with feedback",
+];
+const INTERVIEW_COACH_HOW_TO_USE =
+  "Tell it the role and company you're interviewing for. Ask for likely questions, or start a mock interview. Be specific — e.g. 'I have a Product Manager interview at Google next week'.";
 
 const SUGGESTED_PROMPTS = [
   "Generate likely interview questions for this role",
@@ -46,6 +57,11 @@ export default function InterviewCoach() {
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">
+      <AgentIntro
+        agentId="interview_coach"
+        capabilities={INTERVIEW_COACH_CAPABILITIES}
+        howToUse={INTERVIEW_COACH_HOW_TO_USE}
+      />
       <div className="px-6 py-3 border-b border-[#E5E5E5] bg-white flex items-center gap-3 shrink-0">
         <span className="text-xs font-medium text-[#525252] shrink-0">Preparing for:</span>
         <Select value={selectedAppId} onValueChange={setSelectedAppId}>
