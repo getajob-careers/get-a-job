@@ -202,6 +202,17 @@ export default function Settings() {
           </div>
         </div>
       </section>
+
+      {/* Footer-style link back to the public marketing page. /Landing (not /)
+          so Landing.jsx's auth-redirect skips it. */}
+      <div className="pt-2 text-center">
+        <a
+          href="/Landing"
+          className="text-xs text-[#A3A3A3] hover:text-[#525252] underline underline-offset-2"
+        >
+          About Get A Job
+        </a>
+      </div>
     </div>
   );
 }
