@@ -507,13 +507,22 @@ export default function Login() {
   }, [searchParams]);
 
   const passwordChecks = useMemo(() => getPasswordChecks(password), [password]);
-  const signupCanSubmit =
-    mode !== "signup" || (allChecksPass(passwordChecks) && !!captchaToken);
+  // Supabase Auth → Bot Protection is enabled, which enforces CAPTCHA on
+  // signup, signin, AND password recovery — verified by probing the live
+  // endpoints (all three return captcha_failed without a token). So
+  // captchaToken is required for every mode, not just signup. Password
+  // checks remain signup-only.
+  const canSubmit =
+    (mode !== "signup" || allChecksPass(passwordChecks)) && !!captchaToken;
 
   const switchMode = (next) => {
     setError(null);
     setMessage(null);
-    setCaptchaToken(null);
+    // Don't clear captchaToken here — the Turnstile widget stays mounted
+    // across mode switches (the widget is rendered for every mode now), so
+    // the user's already-solved token is still valid for whichever endpoint
+    // we hit next. Clearing it would force them to re-challenge for no
+    // server-side reason.
     // Drive mode via the URL — the useEffect above mirrors it into state.
     // Replace history so the back button doesn't pile up mode-switch entries.
     const params = new URLSearchParams(searchParams);
@@ -546,13 +555,7 @@ export default function Login() {
             emailRedirectTo: `${window.location.origin}/Onboarding`,
           },
         });
-        if (error) {
-          // Token is single-use server-side. Reset the widget so the user
-          // can re-challenge without a manual refresh.
-          setCaptchaToken(null);
-          turnstileRef.current?.reset();
-          throw error;
-        }
+        if (error) throw error;
         // signup_completed PostHog event can't fire directly from /login
         // (PostHog only loads inside AuthenticatedApp). One-shot flag that
         // PostHogProvider drains on first identify after email confirm.
@@ -561,15 +564,25 @@ export default function Login() {
       } else if (mode === "forgot") {
         const { error } = await supabase.auth.resetPasswordForEmail(email, {
           redirectTo: `${window.location.origin}/reset-password`,
+          captchaToken,
         });
         if (error) throw error;
         setMessage("Password reset email sent — check your inbox.");
       } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+          options: { captchaToken },
+        });
         if (error) throw error;
         navigate("/");
       }
     } catch (err) {
+      // Token is single-use server-side. Reset the widget on any auth
+      // failure so the user can re-challenge without a manual refresh.
+      // Applies to all three modes now that CAPTCHA is enforced everywhere.
+      setCaptchaToken(null);
+      turnstileRef.current?.reset();
       setError(err.message);
     } finally {
       setLoading(false);
@@ -706,25 +719,26 @@ export default function Login() {
                 </div>
               )}
 
-              {mode === "signup" && (
-                <div className="login-turnstile">
-                  <Turnstile
-                    ref={turnstileRef}
-                    siteKey={TURNSTILE_SITE_KEY}
-                    onSuccess={(token) => setCaptchaToken(token)}
-                    onExpire={() => setCaptchaToken(null)}
-                    onError={() => {
-                      setCaptchaToken(null);
-                      setError("Captcha challenge failed — please try again.");
-                    }}
-                    options={{ theme: "auto" }}
-                  />
-                </div>
-              )}
+              {/* Turnstile is required for ALL auth modes — Supabase enforces
+                  CAPTCHA on signup, signin, and recover. Rendered for every
+                  mode; captchaToken flows into each call. */}
+              <div className="login-turnstile">
+                <Turnstile
+                  ref={turnstileRef}
+                  siteKey={TURNSTILE_SITE_KEY}
+                  onSuccess={(token) => setCaptchaToken(token)}
+                  onExpire={() => setCaptchaToken(null)}
+                  onError={() => {
+                    setCaptchaToken(null);
+                    setError("Captcha challenge failed — please try again.");
+                  }}
+                  options={{ theme: "auto" }}
+                />
+              </div>
 
               <button
                 type="submit"
-                disabled={loading || !signupCanSubmit}
+                disabled={loading || !canSubmit}
                 className="login-submit"
               >
                 {submitLabel}

@@ -151,20 +151,25 @@ describe('Login — forgot mode', () => {
 });
 
 describe('Login — captcha gating', () => {
-  it('renders the Turnstile widget in signup mode but not signin', () => {
+  // Supabase Auth → Bot Protection is enabled, which enforces CAPTCHA on
+  // signup, signin, AND recover (verified by probing the live endpoints).
+  // The Turnstile widget renders for every mode so all three flows can
+  // pass a token. These tests guard against a regression that would re-
+  // gate the widget to signup-only and re-break signin (PR #91 fix).
+  it('renders the Turnstile widget in signin mode (default)', () => {
     renderLogin();
-    // signin (default): no widget
-    expect(screen.queryByTestId('turnstile-mock')).not.toBeInTheDocument();
+    expect(screen.getByTestId('turnstile-mock')).toBeInTheDocument();
+  });
 
-    // signup: widget appears
+  it('renders the Turnstile widget in signup mode', () => {
+    renderLogin();
     switchToSignup();
     expect(screen.getByTestId('turnstile-mock')).toBeInTheDocument();
   });
 
-  it('hides the Turnstile widget in forgot-password mode', () => {
+  it('renders the Turnstile widget in forgot-password mode', () => {
     renderLogin();
-    // From signin, click "Forgot password?" — widget should NOT appear.
     fireEvent.click(screen.getByRole('button', { name: /forgot password/i }));
-    expect(screen.queryByTestId('turnstile-mock')).not.toBeInTheDocument();
+    expect(screen.getByTestId('turnstile-mock')).toBeInTheDocument();
   });
 });
