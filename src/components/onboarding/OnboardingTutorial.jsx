@@ -86,6 +86,13 @@ export default function OnboardingTutorial({
   // Flips true the first time the user lands on the last slide. Doesn't
   // require them to dwell — reaching it is enough.
   const [allSlidesSeen, setAllSlidesSeen] = useState(false);
+  // True when a returning user clicks Skip on the gate BEFORE setupComplete.
+  // Renders a "Finishing setup…" view and defers onTutorialEnd until the
+  // background pipeline has set onboarding_complete=true — without this, the
+  // user would navigate to Home, hit the redirect-back-to-onboarding guard,
+  // and bounce back onto the gate ("popup stuck" symptom).
+  const [skipPending, setSkipPending] = useState(false);
+  const skipFiredRef = useRef(false);
   const startedAtRef = useRef(Date.now());
   const startedEventRef = useRef(false);
   const seenSlidesRef = useRef(new Set());
@@ -138,11 +145,57 @@ export default function OnboardingTutorial({
   };
 
   const handleSkipGate = () => {
+    // Defer until setupComplete to avoid the redirect-bounce race: navigating
+    // to Home before handleFinalise has set onboarding_complete=true sends
+    // the user back to onboarding, re-rendering the gate.
+    if (!setupComplete) {
+      setSkipPending(true);
+      return;
+    }
+    if (skipFiredRef.current) return;
+    skipFiredRef.current = true;
     track(EVENTS.ONBOARDING_TUTORIAL_SKIPPED, {
       reason: "returning_user_skip_gate",
     });
     onTutorialEnd({ skipped: true });
   };
+
+  // Fire the deferred skip the moment setupComplete flips true. Guarded by a
+  // ref so onTutorialEnd's changing identity across renders can't re-fire.
+  useEffect(() => {
+    if (!skipPending || !setupComplete || skipFiredRef.current) return;
+    skipFiredRef.current = true;
+    track(EVENTS.ONBOARDING_TUTORIAL_SKIPPED, {
+      reason: "returning_user_skip_gate",
+    });
+    onTutorialEnd({ skipped: true });
+  }, [skipPending, setupComplete, onTutorialEnd]);
+
+  // ───── Skip pending — waiting for background setup to finish ─────
+  // Reached when a returning user clicks Skip before setupComplete. We hold
+  // here until the pipeline finishes so Home doesn't bounce them back.
+  if (skipPending && !setupComplete) {
+    return (
+      <FullScreenShell>
+        <div className="max-w-md text-center space-y-6">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto text-[#525252]" />
+          <div>
+            <h2 className="text-xl font-bold text-[#0A0A0A] tracking-tight">Finishing setup…</h2>
+            <p className="text-sm text-[#525252] mt-2 leading-relaxed">
+              We&apos;re wrapping up your career analysis in the background. We&apos;ll take you to the platform as soon as it&apos;s ready.
+            </p>
+          </div>
+          <div className="bg-[#F0F0F0] rounded-full overflow-hidden h-1 max-w-xs mx-auto">
+            <div
+              className="h-full bg-[#0A0A0A] transition-all duration-500 ease-out"
+              style={{ width: `${setupPercent}%` }}
+            />
+          </div>
+          <p className="text-[11px] tracking-wider text-[#A3A3A3]">Setup {setupPercent}%</p>
+        </div>
+      </FullScreenShell>
+    );
+  }
 
   // ───── Returning-user gate ─────
   if (!gateAcknowledged) {
@@ -279,8 +332,8 @@ function Slide({ slide }) {
       {isBrowseJobs && (
         <ul className="text-left text-sm text-[#525252] mt-4 space-y-1.5 max-w-sm leading-relaxed">
           <li><span className="font-semibold text-emerald-700">Tier 1 (your sweet spot)</span> — qualified now and on your career path. Apply here first.</li>
-          <li><span className="font-semibold text-amber-700">Tier 3 (your next role)</span> — on your path but not quite ready yet. Use to plan skill-building.</li>
           <li><span className="font-semibold text-[#525252]">Tier 2 (a detour)</span> — qualified, but takes you off your stated direction.</li>
+          <li><span className="font-semibold text-amber-700">Tier 3 (your next role)</span> — on your path but not quite ready yet. Use to plan skill-building.</li>
         </ul>
       )}
       <p className="text-sm text-[#525252] mt-3 leading-relaxed max-w-sm">{description}</p>
