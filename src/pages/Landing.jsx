@@ -58,16 +58,20 @@ import { useAuth } from "@/lib/AuthContext";
 // ────────────────────────────────────────────────────────────────────────
 
 const LANDING_CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;0,9..144,700;0,9..144,800;1,9..144,400;1,9..144,600&family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700;800;900&display=swap');
 .lp {
-  --lp-bg: #FBF7F0;
-  --lp-bg-tinted: #F5EFE3;
-  --lp-ink: #1A1612;
-  --lp-ink-soft: #5C544A;
-  --lp-ink-faded: #8A8276;
-  --lp-accent: #E86833;
-  --lp-accent-deep: #B8501F;
-  --lp-accent-tint: #FBE8DD;
+  /* Direction 3 — "Bold Neutral" tokens (locked 2026-05-20).
+   * Warm slate background + electric coral accent + Geist-only typography.
+   * Distinct from the warm-cream-and-serif Claude family identity that the
+   * previous palette inherited. Home.jsx uses the same tokens. */
+  --lp-bg: #F4F4F2;
+  --lp-bg-tinted: #E8E8E5;
+  --lp-ink: #0E1014;
+  --lp-ink-soft: #52545A;
+  --lp-ink-faded: #9C9DA1;
+  --lp-accent: #F87060;
+  --lp-accent-deep: #C84F40;
+  --lp-accent-tint: #FDE7E3;
   --lp-green: #1D7556;
   --lp-green-tint: #DBEEE5;
   --lp-blue: #2B5DC4;
@@ -76,14 +80,15 @@ const LANDING_CSS = `
   --lp-violet-tint: #E7E0F5;
   --lp-amber: #B8841C;
   --lp-amber-tint: #F5E8C9;
-  --lp-ink-card: #0F0D0A;
-  --lp-line: #E4DCCC;
-  --lp-line-soft: #EFE7D5;
-  --lp-card: #FFFEF9;
+  --lp-ink-card: #0E1014;
+  --lp-line: #DDDDDB;
+  --lp-line-soft: #E8E8E5;
+  --lp-card: #FFFFFF;
   --lp-radius-sm: 8px;
   --lp-radius: 14px;
   --lp-radius-lg: 20px;
-  --lp-font-display: 'Fraunces', Georgia, serif;
+  /* Geist for display at large sizes with tight tracking. No serif anywhere. */
+  --lp-font-display: 'Geist', system-ui, sans-serif;
   --lp-font-body: 'Geist', system-ui, sans-serif;
   --lp-font-mono: 'Geist Mono', ui-monospace, monospace;
   font-family: var(--lp-font-body);
@@ -124,7 +129,9 @@ const LANDING_CSS = `
 @keyframes lp-pulse { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(2.4); opacity: 0; } }
 
 .lp-hero-title { font-family: var(--lp-font-display); font-size: 64px; font-weight: 700; line-height: 1.04; letter-spacing: -0.035em; max-width: 880px; margin-bottom: 24px; color: var(--lp-ink); }
-.lp-hero-title .accent { color: var(--lp-accent); font-style: italic; font-weight: 600; }
+/* Italic dropped with Direction 3 — Geist italics read awkward at display sizes.
+   Differentiate via accent color + slightly lighter weight instead. */
+.lp-hero-title .accent { color: var(--lp-accent); font-weight: 500; }
 .lp-hero-sub { font-size: 19px; line-height: 1.55; color: var(--lp-ink-soft); max-width: 640px; margin-bottom: 38px; font-weight: 400; }
 .lp-hero-sub strong { color: var(--lp-ink); font-weight: 600; }
 .lp-hero-cta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
