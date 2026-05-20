@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
+import { CHAT_CSS } from "./chatStyles";
 import { toast } from "sonner";
 import { createPageUrl } from "@/utils";
 import { resolveDueDate } from "@/lib/taskDueDate";
@@ -287,7 +288,7 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
       alignment === "Strong" ? "text-emerald-700"
       : alignment === "Moderate" ? "text-amber-700"
       : alignment === "Weak" ? "text-red-700"
-      : "text-[#525252]";
+      : "text-[#52545A]";
     return (
       <div className="ml-10 mt-2 bg-emerald-50 border border-emerald-200 rounded-xl p-4 max-w-xl">
         <div className="flex items-center gap-2 mb-1">
@@ -300,25 +301,25 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
         {fit_analysis && (
           <div className="mb-3 bg-white border border-emerald-100 rounded-lg px-3 py-2 text-xs space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-[#525252]">Fit</span>
+              <span className="text-[#52545A]">Fit</span>
               <span className={`font-semibold ${alignClass}`}>
                 {alignment || "—"}{pct != null ? ` · ${pct}%` : ""}
               </span>
             </div>
             {typeof tailoring?.tailoring_score === "number" && (
               <div className="flex items-center justify-between">
-                <span className="text-[#525252]">Keyword match</span>
-                <span className="font-semibold text-[#525252]">{tailoring.tailoring_score}%</span>
+                <span className="text-[#52545A]">Keyword match</span>
+                <span className="font-semibold text-[#52545A]">{tailoring.tailoring_score}%</span>
               </div>
             )}
             {Array.isArray(fit_analysis.major_gaps) && fit_analysis.major_gaps.length > 0 && (
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-[#A3A3A3] font-medium mt-1">Major gaps</p>
-                <p className="text-[11px] text-[#525252]">{fit_analysis.major_gaps.join(" · ")}</p>
+                <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mt-1">Major gaps</p>
+                <p className="text-[11px] text-[#52545A]">{fit_analysis.major_gaps.join(" · ")}</p>
               </div>
             )}
             {fit_analysis.explanation && (
-              <p className="text-[11px] text-[#525252] leading-relaxed pt-1">{fit_analysis.explanation}</p>
+              <p className="text-[11px] text-[#52545A] leading-relaxed pt-1">{fit_analysis.explanation}</p>
             )}
           </div>
         )}
@@ -622,9 +623,13 @@ export default function ChatInterface({ agentName, title, description, applicati
     }
   };
 
-  const sendMessage = async () => {
-    if (!input.trim() || sending || !user?.id) return;
-    const text = input.trim();
+  // Accepts an optional override text — used by suggested-prompt chips so
+  // a single click on a chip sends the message immediately, without having
+  // to type or press Enter. Falls back to whatever's in the input field.
+  const sendMessage = async (overrideText) => {
+    const candidate = (typeof overrideText === "string" && overrideText) || input;
+    if (!candidate.trim() || sending || !user?.id) return;
+    const text = candidate.trim();
     setInput("");
 
     // chat_message_sent — agent_name only. We deliberately never capture
@@ -1416,13 +1421,15 @@ export default function ChatInterface({ agentName, title, description, applicati
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <>
+      <style>{CHAT_CSS}</style>
+      <div className="chat flex flex-col h-full">
       {/* Header */}
-      <div className="px-6 py-4 border-b border-[#E5E5E5] bg-white flex items-center justify-between gap-3">
+      <div className="c-header">
         <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-[#0A0A0A]">{title}</h2>
+          <h2 className="c-header-title">{title}</h2>
           {description && (
-            <p className="text-xs text-[#A3A3A3] mt-0.5 truncate">{description}</p>
+            <p className="c-header-sub truncate">{description}</p>
           )}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
@@ -1451,12 +1458,12 @@ export default function ChatInterface({ agentName, title, description, applicati
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate">{c.title || "Untitled"}</p>
-                    <p className="text-[10px] text-[#A3A3A3]">{new Date(c.updated_at).toLocaleDateString()}</p>
+                    <p className="text-[10px] text-[#9C9DA1]">{new Date(c.updated_at).toLocaleDateString()}</p>
                   </div>
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); deleteConversation(c.id); }}
-                    className="p-1 rounded hover:bg-red-50 text-[#A3A3A3] hover:text-red-500 flex-shrink-0"
+                    className="p-1 rounded hover:bg-red-50 text-[#9C9DA1] hover:text-red-500 flex-shrink-0"
                     aria-label="Delete conversation"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -1471,18 +1478,18 @@ export default function ChatInterface({ agentName, title, description, applicati
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
         {loadingMessages && (
-          <div className="flex items-center justify-center py-8 text-xs text-[#A3A3A3]">
+          <div className="flex items-center justify-center py-8 text-xs text-[#9C9DA1]">
             <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> Loading conversation…
           </div>
         )}
         {!loadingMessages && messages.length === 0 && (
           <div className="text-center py-12 space-y-4">
             {introMessage ? (
-              <p className="text-sm text-[#525252] max-w-md mx-auto leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-[#52545A] max-w-md mx-auto leading-relaxed whitespace-pre-line">
                 {introMessage}
               </p>
             ) : (
-              <p className="text-sm text-[#A3A3A3]">
+              <p className="text-sm text-[#9C9DA1]">
                 Start a conversation. Ask a question about your career path.
               </p>
             )}
@@ -1491,8 +1498,10 @@ export default function ChatInterface({ agentName, title, description, applicati
                 {suggestedPrompts.map((prompt, i) => (
                   <button
                     key={i}
-                    onClick={() => setInput(prompt)}
-                    className="text-xs bg-[#F5F5F5] hover:bg-[#E5E5E5] text-[#525252] rounded-full px-3 py-1.5 transition-colors"
+                    type="button"
+                    onClick={() => sendMessage(prompt)}
+                    disabled={sending}
+                    className="c-prompt-chip"
                   >
                     {prompt}
                   </button>
@@ -1579,13 +1588,11 @@ export default function ChatInterface({ agentName, title, description, applicati
         {/* Typing indicator */}
         {sending && (
           <div className="flex gap-3">
-            <div className="h-7 w-7 rounded-lg bg-[#0A0A0A] flex items-center justify-center mt-0.5 flex-shrink-0">
-              <div className="h-1.5 w-1.5 rounded-full bg-white" />
+            <div className="c-avatar">
+              <div className="c-avatar-dot" />
             </div>
-            <div className="bg-white border border-[#E5E5E5] rounded-2xl px-4 py-2.5 flex gap-1">
-              <div className="w-2 h-2 bg-[#A3A3A3] rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-              <div className="w-2 h-2 bg-[#A3A3A3] rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-              <div className="w-2 h-2 bg-[#A3A3A3] rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+            <div className="c-typing">
+              <span /><span /><span />
             </div>
           </div>
         )}
@@ -1593,13 +1600,13 @@ export default function ChatInterface({ agentName, title, description, applicati
         <div ref={bottomRef} />
       </div>
 
-      {/* Input */}
-      <div className="px-6 py-4 border-t border-[#E5E5E5] bg-white">
+      {/* Composer */}
+      <div className="c-composer">
         {messages.length > 0 && (
           <div className="flex justify-end mb-2">
             <button
               onClick={startNewConversation}
-              className="text-xs text-[#525252] hover:text-[#0A0A0A] flex items-center gap-1 transition-colors"
+              className="text-xs text-[#52545A] hover:text-[#0E1014] flex items-center gap-1 transition-colors"
             >
               <Plus className="w-3 h-3" /> New chat
             </button>
@@ -1612,23 +1619,24 @@ export default function ChatInterface({ agentName, title, description, applicati
             onKeyDown={handleKeyDown}
             placeholder="Type your message..."
             rows={1}
-            className="flex-1 resize-none rounded-lg border border-[#E5E5E5] px-4 py-2.5 text-sm focus:outline-none focus:ring-1 focus:ring-[#0A0A0A] focus:border-[#0A0A0A] placeholder:text-[#A3A3A3]"
-            style={{ minHeight: "40px", maxHeight: "120px" }}
+            className="c-composer-input flex-1"
           />
-          <Button
-            onClick={sendMessage}
+          <button
+            type="button"
+            onClick={() => sendMessage()}
             disabled={sending || !input.trim()}
             aria-label="Send message"
-            className="bg-[#0A0A0A] hover:bg-[#262626] h-10 w-10 p-0 flex-shrink-0"
+            className="c-composer-send"
           >
             {sending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
               <Send className="w-4 h-4" />
             )}
-          </Button>
+          </button>
         </div>
       </div>
-    </div>
+      </div>
+    </>
   );
 }

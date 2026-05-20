@@ -70,10 +70,10 @@ export default function CareerAgent() {
         capabilities={CAREER_AGENT_CAPABILITIES}
         howToUse={CAREER_AGENT_HOW_TO_USE}
       />
-      <div className="px-6 py-3 border-b border-[#E5E5E5] bg-white flex items-center gap-3 shrink-0">
-        <span className="text-xs font-medium text-[#525252] shrink-0">Discussing:</span>
+      <div className="px-6 py-3 border-b border-[#DDDDDB] bg-white flex items-center gap-3 shrink-0">
+        <span className="text-xs font-medium text-[#52545A] shrink-0">Context:</span>
         <Select value={selectedAppId} onValueChange={setSelectedAppId}>
-          <SelectTrigger className="h-8 text-xs max-w-xs">
+          <SelectTrigger className="h-8 text-xs max-w-xs border-[#DDDDDB]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -97,6 +97,7 @@ export default function CareerAgent() {
           description={description}
           applicationId={selectedAppId === "general" ? null : selectedAppId}
           suggestedPrompts={suggestedPrompts}
+          introMessage="What would you like to work on?"
         />
       </div>
     </div>

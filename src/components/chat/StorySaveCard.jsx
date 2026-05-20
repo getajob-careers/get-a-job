@@ -113,19 +113,19 @@ export default function StorySaveCard({
   // PREVIEW / SAVING — editable STAR fields + arrays
   if (phase === PHASE.PREVIEW || phase === PHASE.SAVING) {
     return (
-      <div className="ml-10 mt-2 bg-violet-50 border border-violet-200 rounded-xl p-4 max-w-xl">
+      <div className="ml-10 mt-2 bg-[#E7E0F5] border border-[#C2B0E0] rounded-xl p-4 max-w-xl">
         <div className="flex items-center gap-2 mb-2">
-          <BookText className="w-3.5 h-3.5 text-violet-700" />
-          <p className="text-xs font-semibold text-violet-800">Review extracted story</p>
+          <BookText className="w-3.5 h-3.5 text-[#4E36A0]" />
+          <p className="text-xs font-semibold text-[#4E36A0]">Review extracted story</p>
         </div>
 
         {extracted?.extraction_notes && (
-          <p className="text-[11px] italic text-violet-600 mb-3">{extracted.extraction_notes}</p>
+          <p className="text-[11px] italic text-[#6B4FBF] mb-3">{extracted.extraction_notes}</p>
         )}
 
         <div className="space-y-2 mb-3 text-xs">
           <div>
-            <label className="block text-[10px] uppercase tracking-wider text-violet-500 font-medium mb-0.5">Title</label>
+            <label className="block text-[10px] uppercase tracking-wider text-[#6B4FBF] font-medium mb-0.5">Title</label>
             <Input
               value={story.title || ""}
               onChange={(e) => setStory({ ...story, title: e.target.value })}
@@ -135,10 +135,10 @@ export default function StorySaveCard({
 
           {STAR_FIELDS.map(([key, label]) => (
             <div key={key}>
-              <label className="block text-[10px] uppercase tracking-wider text-violet-500 font-medium mb-0.5">
+              <label className="block text-[10px] uppercase tracking-wider text-[#6B4FBF] font-medium mb-0.5">
                 {label}
                 {!story[key] && (
-                  <span className="text-violet-400 normal-case font-normal"> · left blank by extractor</span>
+                  <span className="text-[#9C9DA1] normal-case font-normal"> · left blank by extractor</span>
                 )}
               </label>
               <Textarea
@@ -156,7 +156,7 @@ export default function StorySaveCard({
 
           {ARRAY_FIELDS.map(([key, label]) => (
             <div key={key}>
-              <label className="block text-[10px] uppercase tracking-wider text-violet-500 font-medium mb-0.5">{label}</label>
+              <label className="block text-[10px] uppercase tracking-wider text-[#6B4FBF] font-medium mb-0.5">{label}</label>
               <Input
                 value={(story[key] || []).join(", ")}
                 onChange={(e) =>
@@ -181,7 +181,7 @@ export default function StorySaveCard({
             size="sm"
             onClick={handleSave}
             disabled={phase === PHASE.SAVING}
-            className="h-7 text-xs bg-violet-700 hover:bg-violet-800 gap-1.5"
+            className="h-7 text-xs bg-[#6B4FBF] hover:bg-[#4E36A0] gap-1.5"
           >
             {phase === PHASE.SAVING ? (
               <><Loader2 className="w-3 h-3 animate-spin" /> Saving…</>
@@ -204,16 +204,16 @@ export default function StorySaveCard({
 
   // REVIEW (default) — editable text + Extract button
   return (
-    <div className="ml-10 mt-2 bg-violet-50 border border-violet-200 rounded-xl p-4 max-w-xl">
+    <div className="ml-10 mt-2 bg-[#E7E0F5] border border-[#C2B0E0] rounded-xl p-4 max-w-xl">
       <div className="flex items-center gap-2 mb-2">
-        <BookText className="w-3.5 h-3.5 text-violet-700" />
-        <p className="text-xs font-semibold text-violet-800">
+        <BookText className="w-3.5 h-3.5 text-[#4E36A0]" />
+        <p className="text-xs font-semibold text-[#4E36A0]">
           {capture?.framing || "Save this to your Story Bank?"}
         </p>
       </div>
 
       {experienceLabel && (
-        <p className="text-[11px] text-violet-600 mb-2">
+        <p className="text-[11px] text-[#6B4FBF] mb-2">
           → Linked to: <strong>{experienceLabel}</strong>
         </p>
       )}
@@ -233,7 +233,7 @@ export default function StorySaveCard({
         size="sm"
         onClick={handleExtract}
         disabled={phase === PHASE.EXTRACTING}
-        className="h-7 text-xs bg-violet-700 hover:bg-violet-800 gap-1.5"
+        className="h-7 text-xs bg-[#6B4FBF] hover:bg-[#4E36A0] gap-1.5"
       >
         {phase === PHASE.EXTRACTING ? (
           <><Loader2 className="w-3 h-3 animate-spin" /> Extracting…</>
