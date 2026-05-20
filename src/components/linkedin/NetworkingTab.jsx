@@ -60,13 +60,13 @@ export default function NetworkingTab() {
     <div className="max-w-3xl mx-auto space-y-6">
       <Link
         to={createPageUrl("Resources")}
-        className="block bg-[#FAFAFA] hover:bg-[#F5F5F5] border border-[#E5E5E5] rounded-lg px-4 py-3 transition-colors"
+        className="block bg-[#F4F4F2] hover:bg-[#E8E8E5] border border-[#DDDDDB] rounded-lg px-4 py-3 transition-colors"
       >
         <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-[#525252] leading-snug">
-            New to LinkedIn networking? <span className="font-medium text-[#0A0A0A]">Read the strategy guide</span> — comment + reply windows, connection-request strategy, cold outreach reply rates, Israeli market context.
+          <p className="text-xs text-[#52545A] leading-snug">
+            New to LinkedIn networking? <span className="font-medium text-[#0E1014]">Read the strategy guide</span> — comment + reply windows, connection-request strategy, cold outreach reply rates, Israeli market context.
           </p>
-          <ArrowRight className="w-4 h-4 text-[#525252] flex-shrink-0" />
+          <ArrowRight className="w-4 h-4 text-[#52545A] flex-shrink-0" />
         </div>
       </Link>
 
@@ -98,7 +98,7 @@ export default function NetworkingTab() {
 function Section({ title, children }) {
   return (
     <section>
-      <h2 className="text-xs uppercase tracking-wider text-[#A3A3A3] font-medium mb-3">{title}</h2>
+      <h2 className="text-xs uppercase tracking-wider text-[#9C9DA1] font-medium mb-3">{title}</h2>
       {children}
     </section>
   );

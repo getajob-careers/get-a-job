@@ -20,7 +20,7 @@ const GOAL_LABELS = {
 const STATUS_META = {
   active: { Icon: Clock, label: "Active", color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
   completed: { Icon: CheckCircle2, label: "Completed", color: "text-blue-700 bg-blue-50 border-blue-200" },
-  archived: { Icon: Archive, label: "Archived", color: "text-[#A3A3A3] bg-[#FAFAFA] border-[#E5E5E5]" },
+  archived: { Icon: Archive, label: "Archived", color: "text-[#9C9DA1] bg-[#F4F4F2] border-[#DDDDDB]" },
 };
 
 function formatRelative(iso) {
@@ -67,16 +67,16 @@ export default function OutreachConversationsList({ onOpen, onNew, refreshKey })
   useEffect(() => { load(); }, [load, refreshKey]);
 
   return (
-    <div className="bg-white border border-[#E5E5E5] rounded-xl p-5">
+    <div className="bg-white border border-[#DDDDDB] rounded-xl p-5">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-semibold text-[#0A0A0A]">Your outreach conversations</h3>
-          <p className="text-[11px] text-[#A3A3A3] mt-0.5">Active first, most recent on top</p>
+          <h3 className="text-sm font-semibold text-[#0E1014]">Your outreach conversations</h3>
+          <p className="text-[11px] text-[#9C9DA1] mt-0.5">Active first, most recent on top</p>
         </div>
         <button
           type="button"
           onClick={onNew}
-          className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 bg-[#0A0A0A] text-white rounded-md hover:bg-[#262626]"
+          className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 bg-[#0E1014] text-white rounded-md hover:bg-[#F87060]"
         >
           <Plus className="w-3.5 h-3.5" />
           New conversation
@@ -84,7 +84,7 @@ export default function OutreachConversationsList({ onOpen, onNew, refreshKey })
       </div>
 
       {rows === null && (
-        <div className="flex items-center gap-2 text-xs text-[#A3A3A3] py-4">
+        <div className="flex items-center gap-2 text-xs text-[#9C9DA1] py-4">
           <Loader2 className="w-4 h-4 animate-spin" />
           Loading…
         </div>
@@ -93,7 +93,7 @@ export default function OutreachConversationsList({ onOpen, onNew, refreshKey })
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">{error}</div>
       )}
       {rows && rows.length === 0 && (
-        <div className="text-xs text-[#A3A3A3] italic py-3">
+        <div className="text-xs text-[#9C9DA1] italic py-3">
           No conversations yet. Click "New conversation" to start coaching your first outreach.
         </div>
       )}
@@ -117,19 +117,19 @@ function ConversationRow({ row, onOpen }) {
     <button
       type="button"
       onClick={() => onOpen(row.id)}
-      className="w-full text-left bg-[#FAFAFA] hover:bg-[#F5F5F5] border border-[#E5E5E5] rounded-lg p-3 transition-colors"
+      className="w-full text-left bg-[#F4F4F2] hover:bg-[#E8E8E5] border border-[#DDDDDB] rounded-lg p-3 transition-colors"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 mb-1">
-            <MessageSquare className="w-3.5 h-3.5 text-[#525252] flex-shrink-0" />
-            <span className="text-sm font-medium text-[#0A0A0A] truncate">{target.name || "(no name)"}</span>
+            <MessageSquare className="w-3.5 h-3.5 text-[#52545A] flex-shrink-0" />
+            <span className="text-sm font-medium text-[#0E1014] truncate">{target.name || "(no name)"}</span>
             {target.company && (
-              <span className="text-[11px] text-[#A3A3A3] truncate">— {target.company}</span>
+              <span className="text-[11px] text-[#9C9DA1] truncate">— {target.company}</span>
             )}
           </div>
-          <p className="text-[11px] text-[#525252] truncate">{goalLabel}</p>
-          <p className="text-[10px] text-[#A3A3A3] mt-0.5">
+          <p className="text-[11px] text-[#52545A] truncate">{goalLabel}</p>
+          <p className="text-[10px] text-[#9C9DA1] mt-0.5">
             {turnsCount} {turnsCount === 1 ? "turn" : "turns"} · updated {formatRelative(row.updated_at)}
           </p>
         </div>

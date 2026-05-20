@@ -62,7 +62,7 @@ export default function PostsList({ onOpen, refreshKey }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8 text-xs text-[#A3A3A3]">
+      <div className="flex items-center justify-center py-8 text-xs text-[#9C9DA1]">
         <Loader2 className="w-3 h-3 animate-spin mr-1.5" />Loading saved posts…
       </div>
     );
@@ -71,7 +71,7 @@ export default function PostsList({ onOpen, refreshKey }) {
 
   return (
     <div className="mt-8">
-      <h3 className="text-xs uppercase tracking-wider text-[#A3A3A3] font-medium mb-3">
+      <h3 className="text-xs uppercase tracking-wider text-[#9C9DA1] font-medium mb-3">
         Your saved posts ({posts.length})
       </h3>
       <div className="space-y-2">
@@ -83,29 +83,29 @@ export default function PostsList({ onOpen, refreshKey }) {
             ? `${Math.max(1, Math.floor(ageMs / 3600000))}h ago`
             : `${Math.floor(ageMs / 86400000)}d ago`;
           return (
-            <div key={p.id} className="bg-white border border-[#E5E5E5] rounded-lg p-3 group hover:border-[#A3A3A3] transition-colors">
+            <div key={p.id} className="bg-white border border-[#DDDDDB] rounded-lg p-3 group hover:border-[#A3A3A3] transition-colors">
               <div className="flex items-start gap-3">
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <Icon className="w-3.5 h-3.5 text-[#525252]" />
-                  <span className="text-[11px] font-medium text-[#525252]">{label}</span>
+                  <Icon className="w-3.5 h-3.5 text-[#52545A]" />
+                  <span className="text-[11px] font-medium text-[#52545A]">{label}</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => onOpen(p)}
                   className="flex-1 text-left min-w-0"
                 >
-                  <p className="text-xs text-[#0A0A0A] line-clamp-2 leading-snug">{text}</p>
+                  <p className="text-xs text-[#0E1014] line-clamp-2 leading-snug">{text}</p>
                   <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-[#A3A3A3]">{age}</span>
-                    {p.edited_text && <span className="text-[10px] text-[#A3A3A3]">· edited</span>}
-                    {p.story_id && <span className="text-[10px] text-[#A3A3A3]">· story-grounded</span>}
+                    <span className="text-[10px] text-[#9C9DA1]">{age}</span>
+                    {p.edited_text && <span className="text-[10px] text-[#9C9DA1]">· edited</span>}
+                    {p.story_id && <span className="text-[10px] text-[#9C9DA1]">· story-grounded</span>}
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDelete(p.id)}
                   disabled={deletingId === p.id}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-[#A3A3A3] hover:text-red-600 flex-shrink-0"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-[#9C9DA1] hover:text-red-600 flex-shrink-0"
                   title="Delete post"
                 >
                   {deletingId === p.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}

@@ -77,18 +77,18 @@ export default function CommentCoach() {
   };
 
   return (
-    <div className="bg-white border border-[#E5E5E5] rounded-xl p-5">
+    <div className="bg-white border border-[#DDDDDB] rounded-xl p-5">
       <div className="flex items-center gap-2 mb-1">
-        <MessageCircle className="w-4 h-4 text-[#0A0A0A]" />
-        <h2 className="text-base font-semibold text-[#0A0A0A]">Comment Coach</h2>
+        <MessageCircle className="w-4 h-4 text-[#0E1014]" />
+        <h2 className="text-base font-semibold text-[#0E1014]">Comment Coach</h2>
       </div>
-      <p className="text-xs text-[#525252] mb-4 leading-snug">
+      <p className="text-xs text-[#52545A] mb-4 leading-snug">
         Paste a post you want to comment on. The AI generates 3 substantive comment options grounded in your real experience — no "great post!" filler.
       </p>
 
       <div className="space-y-3">
         <div>
-          <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium block mb-1">
+          <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium block mb-1">
             The post text <span className="text-red-500">*</span>
           </label>
           <textarea
@@ -96,13 +96,13 @@ export default function CommentCoach() {
             onChange={(e) => setPostText(e.target.value.slice(0, 4000))}
             placeholder={POST_TEXT_PLACEHOLDER}
             rows={6}
-            className="w-full text-sm border border-[#E5E5E5] rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0A0A0A]"
+            className="w-full text-sm border border-[#DDDDDB] rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0A0A0A]"
           />
-          <p className="text-[10px] text-[#A3A3A3] mt-1 text-right">{postText.length}/4000</p>
+          <p className="text-[10px] text-[#9C9DA1] mt-1 text-right">{postText.length}/4000</p>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium block mb-1">
+            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium block mb-1">
               Author's name <span className="text-red-500">*</span>
             </label>
             <Input
@@ -112,8 +112,8 @@ export default function CommentCoach() {
             />
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium block mb-1">
-              Author's headline <span className="text-[#A3A3A3] normal-case font-normal">(optional)</span>
+            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium block mb-1">
+              Author's headline <span className="text-[#9C9DA1] normal-case font-normal">(optional)</span>
             </label>
             <Input
               value={authorHeadline}
@@ -136,7 +136,7 @@ export default function CommentCoach() {
               type="button"
               onClick={handleClear}
               disabled={generating}
-              className="text-xs px-3 py-1.5 text-[#525252] hover:text-[#0A0A0A] disabled:opacity-60"
+              className="text-xs px-3 py-1.5 text-[#52545A] hover:text-[#0E1014] disabled:opacity-60"
             >
               Clear
             </button>
@@ -144,7 +144,7 @@ export default function CommentCoach() {
           <Button
             onClick={handleGenerate}
             disabled={generating || !postText.trim() || !authorName.trim()}
-            className="bg-[#0A0A0A] hover:bg-[#262626] text-sm"
+            className="bg-[#0E1014] hover:bg-[#F87060] text-sm"
           >
             {generating ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating…</>
@@ -165,13 +165,13 @@ export default function CommentCoach() {
 function CommentOptions({ result }) {
   if (result.options?.length === 0 && result.no_fit_reason) {
     return (
-      <div className="mt-4 bg-amber-50 border border-amber-200 rounded-lg p-4">
+      <div className="mt-4 li-banner li-banner-warning p-4">
         <div className="flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-amber-700 flex-shrink-0 mt-0.5" />
+          <AlertCircle className="w-4 h-4 text-[#B8841C] flex-shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-amber-900 mb-1">No genuine relevance to comment on</p>
-            <p className="text-xs text-amber-800 leading-snug">{result.no_fit_reason}</p>
-            <p className="text-[11px] text-amber-700 italic mt-2 leading-snug">
+            <p className="text-sm font-semibold text-[#6B4E0F] mb-1">No genuine relevance to comment on</p>
+            <p className="text-xs text-[#6B4E0F] leading-snug">{result.no_fit_reason}</p>
+            <p className="text-[11px] text-[#B8841C] italic mt-2 leading-snug">
               Better to skip a post than fabricate a comment. Look for posts where your real experience genuinely connects — those are the comments that build your reputation.
             </p>
           </div>
@@ -181,7 +181,7 @@ function CommentOptions({ result }) {
   }
   return (
     <div className="mt-4 space-y-3">
-      <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
+      <p className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">
         Pick one, edit if you want, copy + paste into LinkedIn
       </p>
       {result.options.map((opt, i) => (
@@ -195,7 +195,7 @@ function CommentOption({ option, index }) {
   const [text, setText] = useState(option.text);
   const [copied, setCopied] = useState(false);
   const wordCount = text.split(/\s+/).filter((w) => w.length > 0).length;
-  const wordClass = wordCount < 15 ? "text-amber-700" : wordCount > 200 ? "text-amber-700" : "text-[#A3A3A3]";
+  const wordClass = wordCount < 15 ? "text-[#B8841C]" : wordCount > 200 ? "text-[#B8841C]" : "text-[#9C9DA1]";
 
   const handleCopy = async () => {
     try {
@@ -208,14 +208,14 @@ function CommentOption({ option, index }) {
   };
 
   return (
-    <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg p-3">
+    <div className="bg-[#F4F4F2] border border-[#DDDDDB] rounded-lg p-3">
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="min-w-0 flex-1">
-          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
+          <p className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">
             Option {index + 1}
           </p>
           {option.angle && (
-            <p className="text-[11px] text-[#525252] italic mt-0.5 leading-snug">{option.angle}</p>
+            <p className="text-[11px] text-[#52545A] italic mt-0.5 leading-snug">{option.angle}</p>
           )}
         </div>
         <span className={`text-[11px] flex-shrink-0 ${wordClass}`}>
@@ -226,13 +226,13 @@ function CommentOption({ option, index }) {
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={Math.min(8, Math.max(3, Math.ceil(text.length / 80)))}
-        className="w-full text-sm bg-white border border-[#E5E5E5] rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0A0A0A] resize-none"
+        className="w-full text-sm bg-white border border-[#DDDDDB] rounded-md px-3 py-2 focus:outline-none focus:ring-1 focus:ring-[#0A0A0A] resize-none"
       />
       <div className="flex justify-end mt-2">
         <button
           type="button"
           onClick={handleCopy}
-          className="inline-flex items-center gap-1 text-xs font-medium text-[#525252] hover:text-[#0A0A0A]"
+          className="inline-flex items-center gap-1 text-xs font-medium text-[#52545A] hover:text-[#0E1014]"
         >
           {copied ? (
             <><Check className="w-3 h-3 text-emerald-600" />Copied</>

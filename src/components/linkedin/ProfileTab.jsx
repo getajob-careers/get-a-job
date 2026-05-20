@@ -32,7 +32,7 @@ const LIMITS = {
 function CharCount({ value, max }) {
   const len = value?.length || 0;
   const pct = (len / max) * 100;
-  const color = pct > 100 ? "text-red-600" : pct > 90 ? "text-amber-600" : "text-[#A3A3A3]";
+  const color = pct > 100 ? "text-red-600" : pct > 90 ? "text-[#B8841C]" : "text-[#9C9DA1]";
   return <span className={`text-[11px] ${color}`}>{len} / {max}</span>;
 }
 
@@ -50,7 +50,7 @@ function CopyButton({ text }) {
   return (
     <button
       onClick={handle}
-      className="text-[11px] font-medium text-[#525252] hover:text-[#0A0A0A] inline-flex items-center gap-1"
+      className="text-[11px] font-medium text-[#52545A] hover:text-[#0E1014] inline-flex items-center gap-1"
     >
       {copied ? (
         <><Check className="w-3 h-3 text-emerald-600" /> Copied</>
@@ -63,23 +63,23 @@ function CopyButton({ text }) {
 
 function SectionCard({ title, text, max, footer, children }) {
   return (
-    <div className="bg-white rounded-xl border border-[#E5E5E5] p-5 mb-4">
+    <div className="bg-white rounded-xl border border-[#DDDDDB] p-5 mb-4">
       <div className="flex items-center justify-between mb-2 gap-3">
-        <h3 className="text-sm font-semibold text-[#0A0A0A]">{title}</h3>
+        <h3 className="text-sm font-semibold text-[#0E1014]">{title}</h3>
         <div className="flex items-center gap-3 flex-shrink-0">
           {max != null && <CharCount value={text} max={max} />}
           {text && <CopyButton text={text} />}
         </div>
       </div>
       {children}
-      {footer && <p className="text-[11px] text-[#A3A3A3] mt-2">{footer}</p>}
+      {footer && <p className="text-[11px] text-[#9C9DA1] mt-2">{footer}</p>}
     </div>
   );
 }
 
 function TextBlock({ text, placeholder }) {
-  if (!text) return <p className="text-xs text-[#A3A3A3] italic">{placeholder}</p>;
-  return <pre className="text-sm text-[#0A0A0A] whitespace-pre-wrap font-sans leading-relaxed">{text}</pre>;
+  if (!text) return <p className="text-xs text-[#9C9DA1] italic">{placeholder}</p>;
+  return <pre className="text-sm text-[#0E1014] whitespace-pre-wrap font-sans leading-relaxed">{text}</pre>;
 }
 
 // Compare-card variant: when baseline is present, show Baseline | Generated
@@ -94,28 +94,28 @@ function RefineForm({ onSubmit, onCancel, refining }) {
   const taRef = useRef(null);
   useEffect(() => { taRef.current?.focus(); }, []);
   return (
-    <div className="mt-3 p-3 bg-[#F9FAFB] border border-[#E5E5E5] rounded-lg">
+    <div className="mt-3 p-3 bg-[#F9FAFB] border border-[#DDDDDB] rounded-lg">
       <textarea
         ref={taRef}
         value={text}
         onChange={(e) => setText(e.target.value.slice(0, 600))}
         disabled={refining}
         placeholder="Optional: how to improve this section. e.g. 'focus more on product management', 'mention my military leadership', 'make it shorter'. Leave blank to regenerate with a different angle."
-        className="w-full text-sm border border-[#E5E5E5] rounded-md px-3 py-2 bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#0A0A0A] focus:border-[#0A0A0A] disabled:opacity-60"
+        className="w-full text-sm border border-[#DDDDDB] rounded-md px-3 py-2 bg-white resize-none focus:outline-none focus:ring-1 focus:ring-[#0A0A0A] focus:border-[#0E1014] disabled:opacity-60"
         rows={3}
       />
       <div className="flex items-center justify-between mt-2 gap-3">
-        <span className="text-[11px] text-[#A3A3A3]">{text.length}/600</span>
+        <span className="text-[11px] text-[#9C9DA1]">{text.length}/600</span>
         <div className="flex gap-2">
           <button
             onClick={onCancel}
             disabled={refining}
-            className="text-xs px-3 py-1.5 text-[#525252] hover:text-[#0A0A0A] disabled:opacity-60"
+            className="text-xs px-3 py-1.5 text-[#52545A] hover:text-[#0E1014] disabled:opacity-60"
           >Cancel</button>
           <Button
             onClick={() => onSubmit(text.trim())}
             disabled={refining}
-            className="bg-[#0A0A0A] hover:bg-[#262626] text-xs h-8 px-3"
+            className="bg-[#0E1014] hover:bg-[#F87060] text-xs h-8 px-3"
           >
             {refining ? (
               <><Loader2 className="w-3 h-3 mr-1.5 animate-spin" />Refining…</>
@@ -165,19 +165,19 @@ function CompareCard({ title, baseline, generated, max, footer, sectionKey, onRe
   };
 
   return (
-    <div className="bg-white rounded-xl border border-[#E5E5E5] p-5 mb-4">
+    <div className="bg-white rounded-xl border border-[#DDDDDB] p-5 mb-4">
       <div className="flex items-center justify-between mb-2 gap-3 flex-wrap">
-        <h3 className="text-sm font-semibold text-[#0A0A0A]">{title}</h3>
+        <h3 className="text-sm font-semibold text-[#0E1014]">{title}</h3>
         <div className="flex items-center gap-3 flex-shrink-0">
           {hasBoth && (
-            <div className="flex bg-[#F5F5F5] rounded-md p-0.5 text-[11px]">
+            <div className="flex bg-[#E8E8E5] rounded-md p-0.5 text-[11px]">
               <button
                 onClick={() => setTab("baseline")}
-                className={`px-2 py-0.5 rounded ${tab === "baseline" ? "bg-white text-[#0A0A0A] shadow-sm font-medium" : "text-[#A3A3A3]"}`}
+                className={`px-2 py-0.5 rounded ${tab === "baseline" ? "bg-white text-[#0E1014] shadow-sm font-medium" : "text-[#9C9DA1]"}`}
               >Baseline</button>
               <button
                 onClick={() => setTab("generated")}
-                className={`px-2 py-0.5 rounded ${tab === "generated" ? "bg-white text-[#0A0A0A] shadow-sm font-medium" : "text-[#A3A3A3]"}`}
+                className={`px-2 py-0.5 rounded ${tab === "generated" ? "bg-white text-[#0E1014] shadow-sm font-medium" : "text-[#9C9DA1]"}`}
               >Generated</button>
             </div>
           )}
@@ -186,7 +186,7 @@ function CompareCard({ title, baseline, generated, max, footer, sectionKey, onRe
           {canRefine && !refineOpen && (
             <button
               onClick={() => { setRefineOpen(true); setRefineError(null); }}
-              className="text-[11px] font-medium text-[#525252] hover:text-[#0A0A0A] inline-flex items-center gap-1"
+              className="text-[11px] font-medium text-[#52545A] hover:text-[#0E1014] inline-flex items-center gap-1"
               title="Regenerate just this section with optional guidance"
             >
               <Sparkles className="w-3 h-3" /> Refine
@@ -211,7 +211,7 @@ function CompareCard({ title, baseline, generated, max, footer, sectionKey, onRe
           <span>{refineError}</span>
         </div>
       )}
-      {footer && <p className="text-[11px] text-[#A3A3A3] mt-2">{footer}</p>}
+      {footer && <p className="text-[11px] text-[#9C9DA1] mt-2">{footer}</p>}
     </div>
   );
 }
@@ -261,12 +261,12 @@ function ArchiveUploader({ baseline, onImported }) {
   const importedAt = baseline?._meta?.imported_at;
 
   return (
-    <div className="bg-white rounded-xl border border-[#E5E5E5] p-5 mb-6">
+    <div className="bg-white rounded-xl border border-[#DDDDDB] p-5 mb-6">
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
-            <FileArchive className="w-4 h-4 text-[#525252]" />
-            <h3 className="text-sm font-semibold text-[#0A0A0A]">LinkedIn baseline</h3>
+            <FileArchive className="w-4 h-4 text-[#52545A]" />
+            <h3 className="text-sm font-semibold text-[#0E1014]">LinkedIn baseline</h3>
             {baseline && (
               <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 bg-emerald-50 text-emerald-700 rounded">
                 Imported
@@ -274,20 +274,20 @@ function ArchiveUploader({ baseline, onImported }) {
             )}
           </div>
           {baseline ? (
-            <p className="text-xs text-[#525252]">
+            <p className="text-xs text-[#52545A]">
               {counts && (
                 <>{counts.positions || 0} positions · {counts.skills || 0} skills · {counts.education || 0} education · {counts.honors || 0} honors · {counts.volunteering || 0} volunteering</>
               )}
               {importedAt && (
-                <span className="text-[#A3A3A3]"> · imported {new Date(importedAt).toLocaleDateString()}</span>
+                <span className="text-[#9C9DA1]"> · imported {new Date(importedAt).toLocaleDateString()}</span>
               )}
             </p>
           ) : (
-            <p className="text-xs text-[#525252]">
+            <p className="text-xs text-[#52545A]">
               Optional. Upload your LinkedIn data archive (ZIP) and the AI will compare-and-improve your current profile rather than writing from scratch.
             </p>
           )}
-          <p className="text-[11px] text-[#A3A3A3] mt-1.5 inline-flex items-center gap-1">
+          <p className="text-[11px] text-[#9C9DA1] mt-1.5 inline-flex items-center gap-1">
             <ShieldCheck className="w-3 h-3" />
             Your zip is parsed in-memory and never stored. Connections, messages, and ad data are skipped.
           </p>
@@ -304,7 +304,7 @@ function ArchiveUploader({ baseline, onImported }) {
             onClick={() => inputRef.current?.click()}
             disabled={uploading}
             variant={baseline ? "outline" : "default"}
-            className={baseline ? "text-sm" : "bg-[#0A66C2] hover:bg-[#004182] text-white text-sm"}
+            className={baseline ? "text-sm" : "bg-[#0E1014] hover:bg-[#F87060] text-white text-sm"}
           >
             {uploading ? (
               <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Parsing…</>
@@ -321,7 +321,7 @@ function ArchiveUploader({ baseline, onImported }) {
         </div>
       )}
       {!baseline && (
-        <p className="text-[11px] text-[#A3A3A3] mt-3">
+        <p className="text-[11px] text-[#9C9DA1] mt-3">
           To get your archive: LinkedIn → Settings → Data Privacy → Get a copy of your data → "Want something in particular?" → Profile, Positions, Skills, Education (24h wait).
         </p>
       )}
@@ -472,14 +472,14 @@ export default function ProfileTab() {
           a brief tab description + the Generate button so the action is
           visible immediately on tab switch. */}
       <div className="flex items-start justify-between mb-6 gap-4">
-        <p className="text-sm text-[#525252] max-w-2xl">
+        <p className="text-sm text-[#52545A] max-w-2xl">
           Generates LinkedIn-formatted content for 6 sections from your profile + Story Bank.
           Each section becomes copy-paste-ready for LinkedIn.
         </p>
         <Button
           onClick={handleGenerate}
           disabled={generating}
-          className="bg-[#0A0A0A] hover:bg-[#262626] text-sm flex-shrink-0"
+          className="bg-[#0E1014] hover:bg-[#F87060] text-sm flex-shrink-0"
         >
           {generating ? (
             <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating…</>
@@ -503,33 +503,33 @@ export default function ProfileTab() {
       )}
 
       {!content && !generating && !error && (
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-8 text-center">
-          <Linkedin className="w-8 h-8 text-[#A3A3A3] mx-auto mb-3" />
-          <p className="text-sm text-[#525252] mb-1">
+        <div className="bg-white rounded-xl border border-[#DDDDDB] p-8 text-center">
+          <Linkedin className="w-8 h-8 text-[#9C9DA1] mx-auto mb-3" />
+          <p className="text-sm text-[#52545A] mb-1">
             Click <strong>Generate</strong> to create LinkedIn content from your profile + Story Bank
             {baseline ? <>, comparing against your imported LinkedIn baseline</> : null}.
           </p>
-          <p className="text-xs text-[#A3A3A3]">
+          <p className="text-xs text-[#9C9DA1]">
             6 sections: Headline, About, Experience descriptions, Volunteering descriptions, Skills priority,
             and Honors & Awards descriptions.
           </p>
           {!baseline && (
-            <p className="text-xs text-[#525252] mt-4 max-w-md mx-auto bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg p-3 text-left">
-              <Sparkles className="inline w-3.5 h-3.5 text-[#0A66C2] mr-1.5 -mt-0.5" />
+            <p className="text-xs text-[#52545A] mt-4 max-w-md mx-auto bg-[#F4F4F2] border border-[#DDDDDB] rounded-lg p-3 text-left">
+              <Sparkles className="inline w-3.5 h-3.5 text-[#F87060] mr-1.5 -mt-0.5" />
               <strong>Tip:</strong> Upload your LinkedIn archive above first to unlock <strong>compare-and-improve mode</strong> — the AI rewrites your actual current profile rather than writing from scratch.
             </p>
           )}
-          <p className="text-[11px] text-[#A3A3A3] mt-3 italic">
+          <p className="text-[11px] text-[#9C9DA1] mt-3 italic">
             Generation takes ~20–30s. Story Bank entries supply real metrics; nothing is fabricated.
           </p>
         </div>
       )}
 
       {generating && (
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-8 text-center">
-          <Loader2 className="w-6 h-6 text-[#525252] mx-auto mb-3 animate-spin" />
-          <p className="text-sm text-[#525252]">Generating 6 sections — this takes 20-30 seconds.</p>
-          <p className="text-[11px] text-[#A3A3A3] mt-2">
+        <div className="bg-white rounded-xl border border-[#DDDDDB] p-8 text-center">
+          <Loader2 className="w-6 h-6 text-[#52545A] mx-auto mb-3 animate-spin" />
+          <p className="text-sm text-[#52545A]">Generating 6 sections — this takes 20-30 seconds.</p>
+          <p className="text-[11px] text-[#9C9DA1] mt-2">
             Reading your profile, experiences, and {/* approximate */}stories…
           </p>
         </div>
@@ -545,14 +545,14 @@ export default function ProfileTab() {
               </p>
             </div>
           ) : (
-            <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-[#FAFAFA] border border-[#E5E5E5] rounded-lg">
-              <Sparkles className="w-3.5 h-3.5 text-[#525252] flex-shrink-0" />
-              <p className="text-xs text-[#525252]">
+            <div className="flex items-center gap-2 mb-3 px-3 py-2 bg-[#F4F4F2] border border-[#DDDDDB] rounded-lg">
+              <Sparkles className="w-3.5 h-3.5 text-[#52545A] flex-shrink-0" />
+              <p className="text-xs text-[#52545A]">
                 Generated from your profile + Story Bank. <strong>Upload your LinkedIn archive above</strong> to enable compare-and-improve mode.
               </p>
             </div>
           )}
-          <p className="text-[11px] text-[#A3A3A3] mb-4">
+          <p className="text-[11px] text-[#9C9DA1] mb-4">
             Total: ~{totalChars.toLocaleString()} chars across all sections. Copy each section individually
             and paste into LinkedIn's edit fields.
           </p>
@@ -578,7 +578,7 @@ export default function ProfileTab() {
 
           {content.experiences?.length > 0 && (
             <div className="mt-6 mb-2">
-              <h2 className="text-xs uppercase tracking-wider text-[#A3A3A3] font-medium">
+              <h2 className="text-xs uppercase tracking-wider text-[#9C9DA1] font-medium">
                 Experience descriptions ({content.experiences.length})
               </h2>
             </div>
@@ -597,7 +597,7 @@ export default function ProfileTab() {
 
           {content.volunteering?.length > 0 && (
             <div className="mt-6 mb-2">
-              <h2 className="text-xs uppercase tracking-wider text-[#A3A3A3] font-medium">
+              <h2 className="text-xs uppercase tracking-wider text-[#9C9DA1] font-medium">
                 Volunteering descriptions ({content.volunteering.length})
               </h2>
             </div>
@@ -616,9 +616,9 @@ export default function ProfileTab() {
 
           {content.military?.length > 0 && (
             <div className="mt-6 mb-2">
-              <h2 className="text-xs uppercase tracking-wider text-[#A3A3A3] font-medium">
+              <h2 className="text-xs uppercase tracking-wider text-[#9C9DA1] font-medium">
                 Military service ({content.military.length})
-                <span className="text-[#A3A3A3] normal-case font-normal ml-1">— civilian-readable framing for recruiters</span>
+                <span className="text-[#9C9DA1] normal-case font-normal ml-1">— civilian-readable framing for recruiters</span>
               </h2>
             </div>
           )}
@@ -641,18 +641,18 @@ export default function ProfileTab() {
             footer="LinkedIn's first 3 skills get the 'Top skills' highlight. Reorder your LinkedIn skills section to match this priority."
           >
             {!content.skills_priority?.length ? (
-              <p className="text-xs text-[#A3A3A3] italic">No skills generated.</p>
+              <p className="text-xs text-[#9C9DA1] italic">No skills generated.</p>
             ) : (
               <ol className="space-y-1.5 text-sm">
                 {content.skills_priority.map((s, i) => (
                   <li key={i} className="flex items-start gap-2">
-                    <span className={`text-[11px] font-mono w-6 flex-shrink-0 ${i < 3 ? 'text-amber-700 font-semibold' : 'text-[#A3A3A3]'}`}>
+                    <span className={`text-[11px] font-mono w-6 flex-shrink-0 ${i < 3 ? 'text-[#B8841C] font-semibold' : 'text-[#9C9DA1]'}`}>
                       {i + 1}.
                     </span>
                     <div className="min-w-0">
-                      <span className={`${i < 3 ? 'font-semibold text-[#0A0A0A]' : 'text-[#525252]'}`}>{s.skill}</span>
+                      <span className={`${i < 3 ? 'font-semibold text-[#0E1014]' : 'text-[#52545A]'}`}>{s.skill}</span>
                       {s.rationale && (
-                        <p className="text-[11px] text-[#A3A3A3] leading-snug">{s.rationale}</p>
+                        <p className="text-[11px] text-[#9C9DA1] leading-snug">{s.rationale}</p>
                       )}
                     </div>
                   </li>
@@ -663,7 +663,7 @@ export default function ProfileTab() {
 
           {content.honors?.length > 0 && (
             <div className="mt-6 mb-2">
-              <h2 className="text-xs uppercase tracking-wider text-[#A3A3A3] font-medium">
+              <h2 className="text-xs uppercase tracking-wider text-[#9C9DA1] font-medium">
                 Honors & Awards ({content.honors.length})
               </h2>
             </div>
@@ -678,7 +678,7 @@ export default function ProfileTab() {
             >
               {h.description
                 ? <TextBlock text={h.description} placeholder="No description generated." />
-                : <p className="text-sm text-[#A3A3A3] italic">(blank — by design)</p>}
+                : <p className="text-sm text-[#9C9DA1] italic">(blank — by design)</p>}
             </SectionCard>
           ))}
         </>

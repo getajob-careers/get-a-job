@@ -27,7 +27,7 @@ export default function NetworkingPrinciples() {
       </div>
 
       <PrincipleCard Icon={MessageCircle} title="What makes a comment count">
-        <ul className="text-xs text-[#525252] leading-snug space-y-1.5 list-none">
+        <ul className="text-xs text-[#52545A] leading-snug space-y-1.5 list-none">
           <li>• <strong>15+ words minimum.</strong> "Great post!" / "So true!" / "100%" add nothing — research-backed signal of low effort</li>
           <li>• <strong>Reference something specific</strong> the original poster said (a phrase, a number, a claim)</li>
           <li>• <strong>Add your own concrete experience</strong> — a real number, a real example, a real counterexample</li>
@@ -36,13 +36,13 @@ export default function NetworkingPrinciples() {
       </PrincipleCard>
 
       <PrincipleCard Icon={Clock} title="Reply window matters">
-        <p className="text-xs text-[#525252] leading-snug">
+        <p className="text-xs text-[#52545A] leading-snug">
           When someone comments on your post, replying within <strong>30 minutes</strong> correlates with 64% more total comments and 2.3× more views. The first 60 minutes determine whether the post breaks out beyond your direct connections — under 500 impressions in hour 1 typically caps further reach.
         </p>
       </PrincipleCard>
 
       <PrincipleCard Icon={UserPlus} title="Connection request strategy">
-        <ul className="text-xs text-[#525252] leading-snug space-y-1.5 list-none">
+        <ul className="text-xs text-[#52545A] leading-snug space-y-1.5 list-none">
           <li>• <strong>Weekly cap:</strong> ~100 invites/week is the standard limit. Spread across 5–6 days; sending 100 in one morning gets flagged</li>
           <li>• <strong>Acceptance floor:</strong> stay above 30% acceptance rate or LinkedIn restricts your account</li>
           <li>• <strong>With note vs without — contested:</strong> personalized notes don't always lift acceptance rate, but they DO lift the post-acceptance reply rate (9.4% vs 5.4%). A short note referencing mutual context (alumni, course, shared event) is the safe default</li>
@@ -51,7 +51,7 @@ export default function NetworkingPrinciples() {
       </PrincipleCard>
 
       <PrincipleCard Icon={Users} title="Cold outreach reply rates by recipient">
-        <ul className="text-xs text-[#525252] leading-snug space-y-1.5 list-none">
+        <ul className="text-xs text-[#52545A] leading-snug space-y-1.5 list-none">
           <li>• <strong>HR / talent acquisition: ~12.1% reply rate</strong> — the highest of any recipient type. For students, DMing recruiters is higher-yield than DMing hiring managers</li>
           <li>• <strong>First-degree connections: ~16.9% reply rate</strong> — leverage existing network before going cold</li>
           <li>• <strong>LinkedIn DMs vs cold email: 10.3% vs 5.1%</strong> — LinkedIn outperforms email for reaching new people</li>
@@ -59,7 +59,7 @@ export default function NetworkingPrinciples() {
       </PrincipleCard>
 
       <PrincipleCard Icon={Eye} title="Open To Work — toggle, not the green badge">
-        <ul className="text-xs text-[#525252] leading-snug space-y-1.5 list-none">
+        <ul className="text-xs text-[#52545A] leading-snug space-y-1.5 list-none">
           <li>• <strong>The private "Open to Recruiters" toggle is uncontroversial</strong> — only LinkedIn Recruiter customers see your status. Use it.</li>
           <li>• <strong>The public green #OpenToWork badge is contested.</strong> 70% of recruiters in a LinkedIn poll view it positively, but reporting in Fortune (Sept 2024) and trade press argues it can read as desperate or trigger lowball offers in competitive markets</li>
           <li>• <strong>Trade-off, not a rule.</strong> If you're applying broadly to many roles → the public badge surfaces you to more recruiters. If you're targeting a few specific competitive roles → consider the private toggle</li>
@@ -86,10 +86,10 @@ export default function NetworkingPrinciples() {
 
 function PrincipleCard({ Icon, title, children }) {
   return (
-    <div className="bg-white border border-[#E5E5E5] rounded-xl p-4">
+    <div className="bg-white border border-[#DDDDDB] rounded-xl p-4">
       <div className="flex items-center gap-2 mb-2">
-        <Icon className="w-4 h-4 text-[#0A0A0A]" />
-        <h3 className="text-sm font-semibold text-[#0A0A0A]">{title}</h3>
+        <Icon className="w-4 h-4 text-[#0E1014]" />
+        <h3 className="text-sm font-semibold text-[#0E1014]">{title}</h3>
       </div>
       {children}
     </div>
