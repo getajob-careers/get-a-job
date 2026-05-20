@@ -581,8 +581,8 @@ export default function Login() {
 
   const asideSub =
     mode === "signup"
-      ? "Five agents share one understanding of you. Tier-scored roadmap. Built for the Israeli tech market."
-      : "Your roadmap, tracker, and agents are right where you left them.";
+      ? "One workspace that remembers your background — so you stop re-pasting your CV into a fresh chat every time."
+      : "Pick up exactly where you left off.";
 
   const submitLabel =
     loading ? "Loading..."
@@ -741,9 +741,9 @@ export default function Login() {
             <p>{asideSub}</p>
 
             <ul className="login-aside-bullets">
-              <li><BulletCheck /><span>Five agents that share one understanding of you</span></li>
-              <li><BulletCheck /><span>Tier-scored roadmap, calibrated for the Israeli tech market</span></li>
-              <li><BulletCheck /><span>Practicum-backed — designed with hiring teams</span></li>
+              <li><BulletCheck /><span>Five specialised agents: career strategy, CV, interview, LinkedIn, and skill development</span></li>
+              <li><BulletCheck /><span>Tier-scored roadmap built from your actual experience and target roles</span></li>
+              <li><BulletCheck /><span>Application tracker, prep tasks, and weekly focus — all kept in sync</span></li>
             </ul>
 
             <div className="login-aside-svg-wrap">
