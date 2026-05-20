@@ -175,13 +175,13 @@ export default function EducationTab({ user }) {
   return (
     <div className="space-y-4">
       {/* Add / Edit form */}
-      <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-4">
+      <div className="bg-white rounded-xl border border-[#DDDDDB] p-6 space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-[#0A0A0A]">
+          <h3 className="text-sm font-semibold text-[#0E1014]">
             {form.id ? "Edit Education" : "Add Education"}
           </h3>
           {form.id && (
-            <button onClick={resetForm} className="text-xs text-[#A3A3A3] hover:text-[#525252] underline">
+            <button onClick={resetForm} className="text-xs text-[#9C9DA1] hover:text-[#52545A] underline">
               Cancel edit
             </button>
           )}
@@ -189,7 +189,7 @@ export default function EducationTab({ user }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Institution</label>
+            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Institution</label>
             <Input
               value={form.institution}
               onChange={(e) => setForm({ ...form, institution: e.target.value })}
@@ -198,7 +198,7 @@ export default function EducationTab({ user }) {
             />
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Education Level</label>
+            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Education Level</label>
             <Select value={form.education_level || undefined} onValueChange={(v) => setForm({ ...form, education_level: v })}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="Select level" /></SelectTrigger>
               <SelectContent>
@@ -209,7 +209,7 @@ export default function EducationTab({ user }) {
             </Select>
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Degree Type</label>
+            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Degree Type</label>
             <Select value={degreeDropdownValue || undefined} onValueChange={handleDegreeDropdownChange}>
               <SelectTrigger className="mt-1"><SelectValue placeholder="Select degree type" /></SelectTrigger>
               <SelectContent>
@@ -228,7 +228,7 @@ export default function EducationTab({ user }) {
             )}
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Field of Study</label>
+            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Field of Study</label>
             <Input
               value={form.field_of_study}
               onChange={(e) => setForm({ ...form, field_of_study: e.target.value })}
@@ -237,7 +237,7 @@ export default function EducationTab({ user }) {
             />
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Start Date</label>
+            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Start Date</label>
             <Input
               value={form.start_date}
               onChange={(e) => setForm({ ...form, start_date: e.target.value })}
@@ -246,7 +246,7 @@ export default function EducationTab({ user }) {
             />
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">End Date</label>
+            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">End Date</label>
             <Input
               value={form.end_date}
               onChange={(e) => setForm({ ...form, end_date: e.target.value, is_current: /present|current/i.test(e.target.value) })}
@@ -255,7 +255,7 @@ export default function EducationTab({ user }) {
             />
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">GPA (optional)</label>
+            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">GPA (optional)</label>
             <Input
               value={form.gpa}
               onChange={(e) => setForm({ ...form, gpa: e.target.value })}
@@ -264,7 +264,7 @@ export default function EducationTab({ user }) {
             />
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Location (optional)</label>
+            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Location (optional)</label>
             <Input
               value={form.location}
               onChange={(e) => setForm({ ...form, location: e.target.value })}
@@ -280,7 +280,7 @@ export default function EducationTab({ user }) {
             checked={!!form.is_current}
             onCheckedChange={(v) => setForm({ ...form, is_current: !!v })}
           />
-          <Label htmlFor="is_current" className="text-xs text-[#525252] cursor-pointer">
+          <Label htmlFor="is_current" className="text-xs text-[#52545A] cursor-pointer">
             I'm currently studying for this degree
           </Label>
         </div>
@@ -312,34 +312,34 @@ export default function EducationTab({ user }) {
           suggestionType="none"
         />
 
-        <Button onClick={handleSave} disabled={saving} className="bg-[#0A0A0A] hover:bg-[#262626] text-sm">
+        <Button onClick={handleSave} disabled={saving} className="bg-[#0E1014] hover:bg-[#52545A] text-sm">
           {form.id ? <>Update Education</> : <><Plus className="w-4 h-4 mr-2" />Add Education</>}
         </Button>
       </div>
 
       {/* List of saved entries */}
       <div className="space-y-2">
-        {isLoading && <p className="text-xs text-[#A3A3A3]">Loading…</p>}
+        {isLoading && <p className="text-xs text-[#9C9DA1]">Loading…</p>}
         {!isLoading && educations.length === 0 && (
-          <div className="text-center py-6 text-xs text-[#A3A3A3]">
+          <div className="text-center py-6 text-xs text-[#9C9DA1]">
             No education entries yet — add your first one above.
           </div>
         )}
         {educations.map((e) => (
-          <div key={e.id} className="bg-white rounded-xl border border-[#E5E5E5] p-4 flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#F5F5F5] flex items-center justify-center flex-shrink-0">
-              <GraduationCap className="w-4 h-4 text-[#525252]" />
+          <div key={e.id} className="bg-white rounded-xl border border-[#DDDDDB] p-4 flex items-start gap-3">
+            <div className="w-9 h-9 rounded-lg bg-[#E8E8E5] flex items-center justify-center flex-shrink-0">
+              <GraduationCap className="w-4 h-4 text-[#52545A]" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-[#0A0A0A] truncate">
+              <p className="text-sm font-semibold text-[#0E1014] truncate">
                 {e.degree_type ? `${e.degree_type} · ` : ""}{e.field_of_study || (LEVEL_LABEL[e.education_level] || "Education")}
               </p>
-              <p className="text-xs text-[#525252] truncate">
+              <p className="text-xs text-[#52545A] truncate">
                 {e.institution || "Institution not set"}
                 {e.start_date || e.end_date ? ` · ${e.start_date || ""}${e.start_date && e.end_date ? " – " : ""}${e.end_date || (e.is_current ? "Present" : "")}` : ""}
               </p>
               {(e.honors?.length > 0 || e.relevant_coursework?.length > 0 || e.academic_projects?.length > 0) && (
-                <p className="text-[11px] text-[#A3A3A3] mt-1 truncate">
+                <p className="text-[11px] text-[#9C9DA1] mt-1 truncate">
                   {e.honors?.length > 0 && <>{e.honors.length} honor{e.honors.length === 1 ? "" : "s"} · </>}
                   {e.relevant_coursework?.length > 0 && <>{e.relevant_coursework.length} course{e.relevant_coursework.length === 1 ? "" : "s"} · </>}
                   {e.academic_projects?.length > 0 && <>{e.academic_projects.length} project{e.academic_projects.length === 1 ? "" : "s"}</>}
@@ -348,10 +348,10 @@ export default function EducationTab({ user }) {
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
               <Button variant="ghost" size="sm" onClick={() => handleEdit(e)}>
-                <Pencil className="w-3.5 h-3.5 text-[#A3A3A3]" />
+                <Pencil className="w-3.5 h-3.5 text-[#9C9DA1]" />
               </Button>
               <Button variant="ghost" size="sm" onClick={() => handleDelete(e)}>
-                <Trash2 className="w-3.5 h-3.5 text-[#A3A3A3] hover:text-red-500" />
+                <Trash2 className="w-3.5 h-3.5 text-[#9C9DA1] hover:text-red-500" />
               </Button>
             </div>
           </div>

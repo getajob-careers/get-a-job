@@ -865,7 +865,7 @@ export default function Home() {
           </HomeCard>
 
           {/* Story bank */}
-          <HomeCard className="home-card-stories" to={createPageUrl("Profile")}>
+          <HomeCard className="home-card-stories" to={createPageUrl("StoryBank")}>
             <div className="home-card-eyebrow">
               STORY BANK
               <span className="home-card-stat">{storiesCount} stories</span>

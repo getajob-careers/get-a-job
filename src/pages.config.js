@@ -65,6 +65,7 @@ import Admin from './pages/Admin';
 import Linkedin from './pages/Linkedin';
 import Practicum from './pages/Practicum';
 import Settings from './pages/Settings';
+import StoryBank from './pages/StoryBank';
 // Landing is NOT registered here — it routes at the outer App.jsx level
 // to bypass the dashboard Layout (no sidebar) and the auth gate (visible
 // to logged-out visitors). See App.jsx for the explicit /, /Landing routes.
@@ -90,6 +91,7 @@ export const PAGES = {
     "Linkedin": Linkedin,
     "Practicum": Practicum,
     "Settings": Settings,
+    "StoryBank": StoryBank,
 }
 
 export const pagesConfig = {

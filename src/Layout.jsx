@@ -25,6 +25,7 @@ import {
   GraduationCap,
   Linkedin as LinkedinIcon,
   MessageCircle,
+  BookText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -56,6 +57,7 @@ const SECTIONS = [
     items: [
       { name: "Roadmap", page: "Roadmap", icon: Map },
       { name: "Jobs", page: "Jobs", icon: Target },
+      { name: "Story Bank", page: "StoryBank", icon: BookText },
       { name: "Resources", page: "Resources", icon: BookOpen },
     ],
   },
