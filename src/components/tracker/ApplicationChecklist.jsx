@@ -64,10 +64,10 @@ export default function ApplicationChecklist({ checklist = {}, onChange }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-3">
-        <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
+        <p className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">
           Application Checklist
         </p>
-        <span className="text-[11px] text-[#A3A3A3]">
+        <span className="text-[11px] text-[#9C9DA1]">
           {completedCount}/{STEPS.length} steps
         </span>
       </div>
@@ -101,8 +101,8 @@ export default function ApplicationChecklist({ checklist = {}, onChange }) {
                 done
                   ? "bg-emerald-50 border-emerald-100"
                   : isLocked
-                  ? "bg-[#FAFAFA] border-[#F0F0F0] opacity-50"
-                  : "bg-white border-[#F0F0F0]"
+                  ? "bg-[#F4F4F2] border-[#E8E8E5] opacity-50"
+                  : "bg-white border-[#E8E8E5]"
               )}
             >
               <button
@@ -111,16 +111,16 @@ export default function ApplicationChecklist({ checklist = {}, onChange }) {
                 className="mt-0.5 flex-shrink-0"
               >
                 {isLocked ? (
-                  <Lock className="w-4 h-4 text-[#D4D4D4]" />
+                  <Lock className="w-4 h-4 text-[#9C9DA1]" />
                 ) : done ? (
                   <CheckCircle2 className="w-4 h-4 text-emerald-500" />
                 ) : (
-                  <Circle className="w-4 h-4 text-[#D4D4D4] hover:text-[#A3A3A3] transition-colors" />
+                  <Circle className="w-4 h-4 text-[#9C9DA1] hover:text-[#9C9DA1] transition-colors" />
                 )}
               </button>
               <div className="flex-1">
                 <div className="flex items-center gap-2">
-                  <p className={cn("text-xs font-semibold", done ? "text-emerald-700" : "text-[#0A0A0A]")}>
+                  <p className={cn("text-xs font-semibold", done ? "text-emerald-700" : "text-[#0E1014]")}>
                     Step {step.step} — {step.label}
                   </p>
                   {step.highlight && (
@@ -129,7 +129,7 @@ export default function ApplicationChecklist({ checklist = {}, onChange }) {
                     </span>
                   )}
                 </div>
-                <p className="text-[11px] text-[#A3A3A3] mt-0.5 leading-relaxed">{step.description}</p>
+                <p className="text-[11px] text-[#9C9DA1] mt-0.5 leading-relaxed">{step.description}</p>
               </div>
             </div>
           );

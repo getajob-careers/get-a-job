@@ -62,22 +62,22 @@ export default function ProjectsProof({ app, onUpdate }) {
 
   return (
     <div className="space-y-4">
-      <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
+      <p className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">
         Projects to Prove Skills
       </p>
 
       {projects.length === 0 ? (
-        <p className="text-xs text-[#A3A3A3] py-4 text-center">
+        <p className="text-xs text-[#9C9DA1] py-4 text-center">
           No projects yet. Add projects to build proof for missing skills.
         </p>
       ) : (
         <div className="space-y-2">
           {projects.map((project, i) => (
-            <div key={project.id ?? i} className="bg-[#FAFAFA] rounded-lg p-3">
+            <div key={project.id ?? i} className="bg-[#F4F4F2] rounded-lg p-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-[#0A0A0A]">{project.project_name}</p>
-                  <p className="text-xs text-[#A3A3A3] mt-0.5">Proves: {project.skill_proven}</p>
+                  <p className="text-sm font-medium text-[#0E1014]">{project.project_name}</p>
+                  <p className="text-xs text-[#9C9DA1] mt-0.5">Proves: {project.skill_proven}</p>
                   <Select
                     value={project.status}
                     onValueChange={(v) => handleUpdate(project.id, "status", v)}
@@ -92,7 +92,7 @@ export default function ProjectsProof({ app, onUpdate }) {
                     </SelectContent>
                   </Select>
                 </div>
-                <button onClick={() => handleRemove(project.id)} className="text-[#A3A3A3] hover:text-red-500">
+                <button onClick={() => handleRemove(project.id)} className="text-[#9C9DA1] hover:text-red-500">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -101,8 +101,8 @@ export default function ProjectsProof({ app, onUpdate }) {
         </div>
       )}
 
-      <div className="border-t border-[#E5E5E5] pt-4 space-y-3">
-        <p className="text-xs font-medium text-[#525252]">Add New Project</p>
+      <div className="border-t border-[#DDDDDB] pt-4 space-y-3">
+        <p className="text-xs font-medium text-[#52545A]">Add New Project</p>
         <Input
           placeholder="Project name (e.g., SQL Data Analysis Project)"
           value={newProject.project_name}
@@ -115,7 +115,7 @@ export default function ProjectsProof({ app, onUpdate }) {
           onChange={(e) => setNewProject({ ...newProject, skill_proven: e.target.value })}
           className="text-sm"
         />
-        <Button onClick={handleAdd} className="bg-[#0A0A0A] hover:bg-[#262626] text-sm w-full">
+        <Button onClick={handleAdd} className="bg-[#0E1014] hover:bg-[#F87060] text-sm w-full">
           <Plus className="w-4 h-4 mr-2" />
           Add Project
         </Button>

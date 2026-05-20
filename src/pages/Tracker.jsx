@@ -2,9 +2,7 @@ import React, { useState, useMemo } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Loader2, Plus, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -12,10 +10,12 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
 import { track, EVENTS } from "@/lib/analytics";
 import ApplicationRow from "../components/tracker/ApplicationRow";
 import { scoreApplication } from "@/lib/scoreApplication";
+import { TRACKER_CSS } from "../components/tracker/trackerStyles";
+
+const STATUS_FILTERS = ["all", "interested", "preparing", "applied", "interviewing", "offer", "accepted", "rejected"];
 
 export default function Tracker() {
   const queryClient = useQueryClient();
@@ -46,8 +46,7 @@ export default function Tracker() {
   // Cross-reference jobs cache for tracked rows that came from Browse Jobs
   // (those have ats_source + external_id populated). When the matching row
   // in public.jobs has is_active=false, surface a "may no longer be active"
-  // badge on that ApplicationRow. Manual-add rows (no ats_source) skip
-  // this query entirely.
+  // badge on that ApplicationRow.
   const atsLinkedKeys = useMemo(() => {
     return applications
       .filter((a) => a.ats_source && a.external_id)
@@ -59,8 +58,6 @@ export default function Tracker() {
     queryFn: async () => {
       if (atsLinkedKeys.length === 0) return new Set();
       const inactive = new Set();
-      // Group queries by ats_source so we can use .in() on external_id —
-      // single round trip per ATS, max 5 round trips total.
       const byAts = atsLinkedKeys.reduce((acc, k) => {
         (acc[k.ats] = acc[k.ats] || []).push(k.ext);
         return acc;
@@ -89,15 +86,12 @@ export default function Tracker() {
     setAddingApp(true);
     const jd = jobDescription || newApp.job_description || "";
 
-    // Tier is left unset on insert; scoreApplication fills it in from the
-    // JD-derived qualification_score. If no JD is provided, tier stays
-    // null and the row shows "Unclassified".
     const { data: inserted, error } = await supabase.from("applications").insert({
       user_id: user.id,
       role_title: newApp.role_title,
       company: newApp.company,
       status: newApp.status,
-      source: 'manual',
+      source: "manual",
       ...(jd && { job_description: jd }),
     }).select("id").single();
     if (error) {
@@ -107,9 +101,6 @@ export default function Tracker() {
       return;
     }
 
-    // No PII in the event — just source (always "manual" here, since this
-    // form is the manual-add path; auto-tracked apps from JobMatchChecker
-    // would emit a separate event if/when we instrument that flow).
     track(EVENTS.APPLICATION_TRACKED, { source: "manual", has_jd: !!jd });
 
     setNewApp({ role_title: "", company: "", status: "interested" });
@@ -127,176 +118,181 @@ export default function Tracker() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[60vh]">
-        <Loader2 className="w-5 h-5 animate-spin text-[#A3A3A3]" />
-      </div>
+      <>
+        <style>{TRACKER_CSS}</style>
+        <div className="tracker min-h-screen flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-[#52545A]" />
+        </div>
+      </>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8">
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">
-            Application Tracker
-          </h1>
-          <p className="text-sm text-[#A3A3A3] mt-1">
-            Track every role, action, and outcome.
-          </p>
-        </div>
-        <Button
-          onClick={() => setShowAdd(true)}
-          className="bg-[#0A0A0A] hover:bg-[#262626] text-sm"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Add Application
-        </Button>
-      </div>
-
-      {/* How to use guide */}
-      <div className="bg-[#0A0A0A] rounded-xl p-5 mb-6 text-white">
-        <p className="text-xs font-bold uppercase tracking-wider text-[#A3A3A3] mb-2">How to use this tracker</p>
-        <p className="text-sm text-white leading-relaxed mb-3">
-          Every application has a <strong>7-step process</strong>. Open any application and go to the <strong>"📋 Steps"</strong> tab. Work through each step before submitting — candidates who skip steps are the ones who get ignored.
-        </p>
-        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 text-[11px] text-[#A3A3A3]">
-          <div className="bg-white/5 rounded-lg px-3 py-2">
-            <p className="text-white font-semibold mb-0.5">Steps 1–2</p>
-            <p>Qualify yourself. Dissect the job description. Know the role before applying.</p>
-          </div>
-          <div className="bg-white/5 rounded-lg px-3 py-2">
-            <p className="text-white font-semibold mb-0.5">Steps 3–5</p>
-            <p>Tailor your CV, map skill evidence, and find a referral contact at the company.</p>
-          </div>
-          <div className="bg-white/5 rounded-lg px-3 py-2">
-            <p className="text-white font-semibold mb-0.5">Steps 6–7</p>
-            <p>Submit your application, then prep for the interview with STAR-format answers.</p>
-          </div>
-          <div className="bg-amber-500/20 border border-amber-500/30 rounded-lg px-3 py-2">
-            <p className="text-amber-300 font-semibold mb-0.5">⭐ Referral = your biggest edge</p>
-            <p className="text-amber-200/80">Many companies offer referral bonuses to employees when a referred candidate gets hired. They're incentivised to get you in.</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Filters */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        {["all", "interested", "preparing", "applied", "interviewing", "offer", "accepted", "rejected"].map(
-          (s) => (
+    <>
+      <style>{TRACKER_CSS}</style>
+      <div className="tracker">
+        <div className="max-w-5xl mx-auto px-6 py-10">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-4 mb-7 flex-wrap">
+            <div>
+              <p className="tk-eyebrow">Application tracker</p>
+              <h1 className="tk-h1 mt-1.5">Every role, every step, every outcome.</h1>
+              <p className="tk-sub">Track every application end-to-end. Don't lose interview prep or follow-ups in the cracks.</p>
+            </div>
             <button
-              key={s}
-              onClick={() => setFilter(s)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-medium whitespace-nowrap transition-colors ${
-                filter === s
-                  ? "bg-[#0A0A0A] text-white"
-                  : "bg-white border border-[#E5E5E5] text-[#525252] hover:bg-[#F5F5F5]"
-              }`}
+              type="button"
+              onClick={() => setShowAdd(true)}
+              className="tk-btn tk-btn-primary flex-shrink-0"
             >
-              {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
+              <Plus className="w-3.5 h-3.5" />Add application
             </button>
-          )
-        )}
-      </div>
+          </div>
 
-      {/* Applications */}
-      {filtered.length === 0 ? (
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-8 text-center">
-          <p className="text-sm text-[#525252]">
-            {applications.length === 0
-              ? "No applications yet. Add one manually or use the Career Roadmap to auto-create tracked roles."
-              : "No applications match this filter."}
-          </p>
-        </div>
-      ) : (
-        <div className="space-y-3">
-          {filtered.map((app) => (
-            <ApplicationRow
-              key={app.id}
-              app={app}
-              listingInactive={
-                Boolean(app.ats_source && app.external_id &&
-                  inactiveExternalIds.has(`${app.ats_source}|${app.external_id}`))
-              }
-              onUpdate={() =>
-                queryClient.invalidateQueries({ queryKey: ["applications"] })
-              }
-            />
-          ))}
-        </div>
-      )}
-
-      {/* Add Dialog */}
-      <Dialog open={showAdd} onOpenChange={(open) => { setShowAdd(open); if (!open) setImportError(""); }}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="text-lg font-semibold">
-              Add Application
-            </DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 py-2">
-            {importError && (
-              <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg px-3 py-2">{importError}</p>
-            )}
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
-                Role Title
-              </label>
-              <Input
-                value={newApp.role_title}
-                onChange={(e) =>
-                  setNewApp({ ...newApp, role_title: e.target.value })
-                }
-                className="mt-1"
-                placeholder="e.g. Junior Data Analyst"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
-                Company
-              </label>
-              <Input
-                value={newApp.company}
-                onChange={(e) =>
-                  setNewApp({ ...newApp, company: e.target.value })
-                }
-                className="mt-1"
-                placeholder="e.g. Google"
-              />
-            </div>
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
-                Job Description <span className="text-[#A3A3A3] normal-case font-normal">(optional — AI will use this to set the tier)</span>
-              </label>
-              <Textarea
-                value={jobDescription}
-                onChange={(e) => setJobDescription(e.target.value)}
-                placeholder="Paste the job description here..."
-                rows={5}
-                className="mt-1 text-sm"
-              />
-              {!jobDescription && !newApp.job_description && (
-                <p className="text-[11px] text-[#A3A3A3] mt-1">Without AI classification, tier will be unset. Add the role to your Career Roadmap to get tier classification.</p>
-              )}
+          {/* How-to-use card */}
+          <div className="tk-howto mb-7">
+            <p className="tk-howto-eyebrow">How to use this tracker</p>
+            <p className="tk-howto-body">
+              Every application has a <strong>7-step process</strong>. Open any application and go to the <strong>📋 Steps</strong> tab. Work through each step before submitting — candidates who skip steps are the ones who get ignored.
+            </p>
+            <div className="tk-howto-grid">
+              <div className="tk-howto-tile">
+                <p className="tk-howto-tile-head">Steps 1–2</p>
+                <p className="tk-howto-tile-body">Qualify yourself. Dissect the job description. Know the role before applying.</p>
+              </div>
+              <div className="tk-howto-tile">
+                <p className="tk-howto-tile-head">Steps 3–5</p>
+                <p className="tk-howto-tile-body">Tailor your CV, map skill evidence, and find a referral contact at the company.</p>
+              </div>
+              <div className="tk-howto-tile">
+                <p className="tk-howto-tile-head">Steps 6–7</p>
+                <p className="tk-howto-tile-body">Submit your application, then prep for the interview with STAR-format answers.</p>
+              </div>
+              <div className="tk-howto-tile tk-howto-tile-accent">
+                <p className="tk-howto-tile-head">⭐ Referral = your biggest edge</p>
+                <p className="tk-howto-tile-body">Many companies offer referral bonuses to employees when a referred candidate gets hired. They&apos;re incentivised to get you in.</p>
+              </div>
             </div>
           </div>
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowAdd(false)}
-              className="text-sm"
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleAdd}
-              disabled={addingApp || !newApp.role_title}
-              className="bg-[#0A0A0A] hover:bg-[#262626] text-sm"
-            >
-              {addingApp ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Analyzing...</> : "Add"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </div>
+
+          {/* Status filters */}
+          <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+            {STATUS_FILTERS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => setFilter(s)}
+                className="tk-filter-pill"
+                data-selected={filter === s}
+              >
+                {s === "all" ? "All" : s.charAt(0).toUpperCase() + s.slice(1)}
+              </button>
+            ))}
+          </div>
+
+          {/* Applications */}
+          {filtered.length === 0 ? (
+            <div className="tk-empty">
+              <p className="text-sm text-[#52545A]">
+                {applications.length === 0
+                  ? "No applications yet. Add one manually or use the Career Roadmap to auto-create tracked roles."
+                  : "No applications match this filter."}
+              </p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {filtered.map((app) => (
+                <ApplicationRow
+                  key={app.id}
+                  app={app}
+                  listingInactive={
+                    Boolean(app.ats_source && app.external_id &&
+                      inactiveExternalIds.has(`${app.ats_source}|${app.external_id}`))
+                  }
+                  onUpdate={() =>
+                    queryClient.invalidateQueries({ queryKey: ["applications"] })
+                  }
+                />
+              ))}
+            </div>
+          )}
+
+          {/* Add dialog */}
+          <Dialog open={showAdd} onOpenChange={(open) => { setShowAdd(open); if (!open) setImportError(""); }}>
+            <DialogContent className="bg-white border-[#DDDDDB]">
+              <DialogHeader>
+                <DialogTitle className="text-lg font-semibold text-[#0E1014]">
+                  Add application
+                </DialogTitle>
+              </DialogHeader>
+              <div className="flex flex-col gap-4 py-2">
+                {importError && (
+                  <p className="text-sm text-[#C84F40] bg-[#FDE7E3] border border-[#F87060] rounded-xl px-3 py-2">
+                    {importError}
+                  </p>
+                )}
+                <div>
+                  <label className="tk-eyebrow">Role title</label>
+                  <input
+                    value={newApp.role_title}
+                    onChange={(e) => setNewApp({ ...newApp, role_title: e.target.value })}
+                    className="tk-input mt-1.5"
+                    placeholder="e.g. Junior Data Analyst"
+                  />
+                </div>
+                <div>
+                  <label className="tk-eyebrow">Company</label>
+                  <input
+                    value={newApp.company}
+                    onChange={(e) => setNewApp({ ...newApp, company: e.target.value })}
+                    className="tk-input mt-1.5"
+                    placeholder="e.g. Google"
+                  />
+                </div>
+                <div>
+                  <label className="tk-eyebrow">
+                    Job description{" "}
+                    <span className="font-normal normal-case tracking-normal text-[#9C9DA1]">
+                      (optional — AI will use this to set the tier)
+                    </span>
+                  </label>
+                  <textarea
+                    value={jobDescription}
+                    onChange={(e) => setJobDescription(e.target.value)}
+                    placeholder="Paste the job description here..."
+                    rows={5}
+                    className="tk-input mt-1.5"
+                    style={{ resize: "vertical", minHeight: 110 }}
+                  />
+                  {!jobDescription && !newApp.job_description && (
+                    <p className="text-[11px] text-[#9C9DA1] mt-1.5">
+                      Without AI classification, tier will be unset. Add the role to your Career Roadmap to get tier classification.
+                    </p>
+                  )}
+                </div>
+              </div>
+              <DialogFooter className="gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAdd(false)}
+                  className="tk-btn tk-btn-outline"
+                >
+                  <X className="w-3.5 h-3.5" />Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleAdd}
+                  disabled={addingApp || !newApp.role_title}
+                  className="tk-btn tk-btn-primary"
+                >
+                  {addingApp ? (
+                    <><Loader2 className="w-3.5 h-3.5 animate-spin" />Analysing…</>
+                  ) : "Add"}
+                </button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      </div>
+    </>
   );
 }

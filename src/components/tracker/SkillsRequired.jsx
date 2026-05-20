@@ -60,12 +60,12 @@ export default function SkillsRequired({ app, onUpdate }) {
 
   return (
     <div className="space-y-4">
-      <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
+      <p className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">
         Skills Required for This Role
       </p>
 
       {skills.length === 0 ? (
-        <p className="text-xs text-[#A3A3A3] py-4 text-center">
+        <p className="text-xs text-[#9C9DA1] py-4 text-center">
           No skills added yet. Add skills to track your qualification gaps.
         </p>
       ) : (
@@ -74,14 +74,14 @@ export default function SkillsRequired({ app, onUpdate }) {
             const config = STATUS_CONFIG[skill.status];
             const Icon = config.icon;
             return (
-              <div key={skill.id ?? i} className="bg-[#FAFAFA] rounded-lg p-3">
+              <div key={skill.id ?? i} className="bg-[#F4F4F2] rounded-lg p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-2 flex-1">
                     <Icon className={cn("w-4 h-4 mt-0.5", config.color)} />
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#0A0A0A]">{skill.skill_name}</p>
+                      <p className="text-sm font-medium text-[#0E1014]">{skill.skill_name}</p>
                       {skill.evidence_source && (
-                        <p className="text-xs text-[#A3A3A3] mt-0.5">{skill.evidence_source}</p>
+                        <p className="text-xs text-[#9C9DA1] mt-0.5">{skill.evidence_source}</p>
                       )}
                       <Select
                         value={skill.status}
@@ -98,7 +98,7 @@ export default function SkillsRequired({ app, onUpdate }) {
                       </Select>
                     </div>
                   </div>
-                  <button onClick={() => handleRemove(skill.id)} className="text-[#A3A3A3] hover:text-red-500">
+                  <button onClick={() => handleRemove(skill.id)} className="text-[#9C9DA1] hover:text-red-500">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -108,8 +108,8 @@ export default function SkillsRequired({ app, onUpdate }) {
         </div>
       )}
 
-      <div className="border-t border-[#E5E5E5] pt-4 space-y-3">
-        <p className="text-xs font-medium text-[#525252]">Add New Skill</p>
+      <div className="border-t border-[#DDDDDB] pt-4 space-y-3">
+        <p className="text-xs font-medium text-[#52545A]">Add New Skill</p>
         <Input
           placeholder="Skill name (e.g., SQL, Python)"
           value={newSkill.skill_name}
@@ -135,7 +135,7 @@ export default function SkillsRequired({ app, onUpdate }) {
             <SelectItem value="missing">Missing</SelectItem>
           </SelectContent>
         </Select>
-        <Button onClick={handleAdd} className="bg-[#0A0A0A] hover:bg-[#262626] text-sm w-full">
+        <Button onClick={handleAdd} className="bg-[#0E1014] hover:bg-[#F87060] text-sm w-full">
           <Plus className="w-4 h-4 mr-2" />
           Add Skill
         </Button>
