@@ -285,9 +285,9 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
         <div className="onb-banner onb-banner-info flex items-start gap-3 relative pr-10">
           <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="font-semibold">Optional — request your LinkedIn data export now</p>
+            <p className="font-semibold">Get a head start on LinkedIn Hub — request your data export now</p>
             <p className="mt-1 leading-relaxed">
-              LinkedIn takes a few hours to prepare it. Request now so it&apos;s ready when you reach LinkedIn Hub features later.
+              We use it to optimise your profile, draft posts in your voice, and find warm intros at companies you target. LinkedIn takes a few hours to prepare the export.
             </p>
             <a
               href="https://www.linkedin.com/mypreferences/d/download-my-data"

@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Loader2, ArrowRight, ArrowLeft, Briefcase, ClipboardList, BookText, Linkedin, FileText, MessageCircle, RotateCcw, CheckCircle2 } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Briefcase, ClipboardList, BookText, Linkedin, FileText, MessageCircle, RotateCcw, CheckCircle2, ExternalLink } from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics";
 import { useFakeProgress } from "@/lib/useFakeProgress";
 
@@ -279,23 +279,64 @@ export default function OnboardingTutorial({
   );
 }
 
+// Tier cards on the Browse Jobs slide — explicit "what this tier means
+// for YOU" framing keyed to what the user just told us in onboarding
+// (Career Direction). Each line uses "you" / "your" language and tells
+// the user what to DO with the tier, not just what it means.
+const TIER_CARDS = [
+  {
+    number: 1,
+    name: "Sweet spot",
+    color: "green",
+    description: "Roles you're qualified for that match where you want your career to go. Apply to these first.",
+  },
+  {
+    number: 2,
+    name: "Detour",
+    color: "gray",
+    description: "Roles you're qualified for, but they'd take your career in a different direction. Good fallbacks if Tier 1 isn't hiring.",
+  },
+  {
+    number: 3,
+    name: "Growth",
+    color: "amber",
+    description: "Roles that match your direction, but you need more experience or skills first. Use these to plan what to learn next.",
+  },
+];
+
 function Slide({ slide }) {
   const { Icon, title, description, name } = slide;
   const isBrowseJobs = name === "browse_jobs";
+  const isLinkedinHub = name === "linkedin_hub";
   return (
     <div className="onb-slide">
       <div className="onb-slide-icon">
         <Icon className="w-7 h-7" />
       </div>
       <h3 className="onb-slide-title">{title}</h3>
-      {isBrowseJobs && (
-        <ul className="onb-slide-tiers">
-          <li><strong style={{ color: "#1D7556" }}>Tier 1 (your sweet spot)</strong> — qualified now and on your career path. Apply here first.</li>
-          <li><strong style={{ color: "#52545A" }}>Tier 2 (a detour)</strong> — qualified, but takes you off your stated direction.</li>
-          <li><strong style={{ color: "#B8841C" }}>Tier 3 (your next role)</strong> — on your path but not quite ready yet. Use to plan skill-building.</li>
-        </ul>
-      )}
       <p className="onb-slide-desc">{description}</p>
+      {isBrowseJobs && (
+        <div className="onb-tier-cards">
+          {TIER_CARDS.map((tier) => (
+            <div key={tier.number} className="onb-tier-card" data-tier={tier.color}>
+              <div className="onb-tier-badge">{tier.number}</div>
+              <div className="onb-tier-name">Tier {tier.number} · {tier.name}</div>
+              <p className="onb-tier-desc">{tier.description}</p>
+            </div>
+          ))}
+        </div>
+      )}
+      {isLinkedinHub && (
+        <a
+          href="https://www.linkedin.com/mypreferences/d/download-my-data"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="onb-btn onb-btn-outline"
+          style={{ marginTop: 18 }}
+        >
+          Request data export now <ExternalLink className="w-3.5 h-3.5" />
+        </a>
+      )}
     </div>
   );
 }

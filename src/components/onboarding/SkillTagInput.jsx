@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X } from "lucide-react";
-import { Input } from "@/components/ui/input";
 
 const JOB_TITLE_SUGGESTIONS = [
   // Entry-Level & Early Career
@@ -273,17 +272,20 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
     }
   };
 
+  // Tailwind arbitrary values (not .onb-* classes) so this component
+  // stays portable — used in onboarding (.onb-scoped) AND in
+  // EducationTab on the Profile page (no .onb wrapper).
   return (
     <div ref={wrapperRef} className="relative">
       {label && (
-        <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">
+        <label className="block text-[13px] font-medium text-[#0E1014] mb-1.5 tracking-[-0.005em]">
           {label}
         </label>
       )}
-      {description && <p className="text-xs text-[#A3A3A3] mb-2">{description}</p>}
-      <div className="flex gap-2 mb-2">
+      {description && <p className="text-xs text-[#9C9DA1] mb-2.5 leading-snug">{description}</p>}
+      <div className="flex gap-2 mb-2.5">
         <div className="relative flex-1">
-          <Input
+          <input
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -293,20 +295,20 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
               }
             }}
             placeholder={placeholder || "Type and press Enter"}
-            className="text-sm"
+            className="w-full px-3.5 py-2.5 rounded-[14px] border border-[#DDDDDB] bg-white text-[#0E1014] text-sm font-[Geist,system-ui,sans-serif] transition-[border-color,box-shadow] duration-150 placeholder:text-[#9C9DA1] focus:outline-none focus:border-[#0E1014] focus:shadow-[0_0_0_3px_rgba(14,16,20,0.08)]"
           />
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute z-50 w-full mt-1 bg-white border border-[#E5E5E5] rounded-lg shadow-lg max-h-64 overflow-y-auto">
+            <div className="absolute z-50 w-full mt-1 bg-white border border-[#DDDDDB] rounded-[14px] shadow-lg max-h-64 overflow-y-auto">
               {suggestions.map((skill, index) => (
                 <button
                   key={skill}
                   type="button"
                   onClick={() => add(skill)}
                   onMouseEnter={() => setSelectedIndex(index)}
-                  className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                  className={`w-full text-left px-3.5 py-2.5 text-sm transition-colors ${
                     index === selectedIndex
-                      ? "bg-[#F5F5F5] text-[#0A0A0A]"
-                      : "text-[#525252] hover:bg-[#FAFAFA]"
+                      ? "bg-[#FDE7E3] text-[#0E1014]"
+                      : "text-[#52545A] hover:bg-[#F4F4F2]"
                   }`}
                 >
                   {skill}
@@ -318,7 +320,7 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
         <button
           type="button"
           onClick={() => add()}
-          className="px-3 py-2 text-xs font-medium border border-[#E5E5E5] rounded-lg hover:bg-[#F5F5F5] transition-colors whitespace-nowrap"
+          className="px-4 py-2.5 text-sm font-semibold rounded-full border border-[#DDDDDB] text-[#0E1014] bg-transparent hover:bg-[#E8E8E5] transition-colors whitespace-nowrap"
         >
           Add
         </button>
@@ -328,10 +330,10 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
           {tags.map((tag, i) => (
             <span
               key={i}
-              className="inline-flex items-center gap-1.5 text-xs bg-[#F5F5F5] text-[#525252] px-2.5 py-1 rounded-md border border-[#E5E5E5]"
+              className="inline-flex items-center gap-1.5 text-xs bg-[#0E1014] text-white px-2.5 py-1 rounded-md"
             >
               {tag}
-              <button onClick={() => remove(tag)} className="hover:text-red-500 transition-colors">
+              <button onClick={() => remove(tag)} className="hover:text-[#F87060] transition-colors" aria-label={`Remove ${tag}`}>
                 <X className="w-3 h-3" />
               </button>
             </span>

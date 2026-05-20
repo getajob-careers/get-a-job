@@ -81,9 +81,21 @@ export default function Onboarding() {
   const [saveError, setSaveError] = useState(null);
   const [finaliseError, setFinaliseError] = useState(null);
 
+  // Run checkExistingProfile ONCE per mount. Without this ref guard, the
+  // effect re-fires whenever AuthContext re-creates the user object —
+  // which happens on every Supabase auth event including TOKEN_REFRESHED
+  // (fired on tab visibility change and ~50min token refresh). The re-run
+  // re-reads the profile; if handleFinalise has set onboarding_complete=
+  // true since the initial check, the navigate(Home) below auto-navigates
+  // out from under the user mid-tutorial. The tab-switching nav race
+  // reported after PR #87 traces here, not to the tutorial component
+  // (which has no auto-nav left).
+  const profileCheckedRef = useRef(false);
   useEffect(() => {
-    if (user) checkExistingProfile();
-    else setCheckingProfile(false);
+    if (!user) { setCheckingProfile(false); return; }
+    if (profileCheckedRef.current) return;
+    profileCheckedRef.current = true;
+    checkExistingProfile();
   }, [user]);
 
   // Recovery: if the user closed the browser mid-analysis and reopens at
