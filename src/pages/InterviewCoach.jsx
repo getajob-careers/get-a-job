@@ -16,12 +16,19 @@ const INTERVIEW_COACH_CAPABILITIES = [
 const INTERVIEW_COACH_HOW_TO_USE =
   "Tell it the role and company you're interviewing for. Ask for likely questions, or start a mock interview. Be specific — e.g. 'I have a Product Manager interview at Google next week'.";
 
-const SUGGESTED_PROMPTS = [
+const GENERAL_PROMPTS = [
+  "Help me prep for a generic Product Manager interview",
+  "What's the STAR framework, and when should I use it?",
+  "Run a mock interview with me",
+  "How should I answer 'Tell me about yourself'?",
+  "What competencies do most early-career interviews test?",
+];
+
+const APPLICATION_PROMPTS = [
   "Generate likely interview questions for this role",
   "What competencies will the interviewer test me on?",
   "Run a mock interview with me",
   "What are my weakest areas for this role?",
-  "How should I answer 'Tell me about yourself'?",
 ];
 
 export default function InterviewCoach() {
@@ -55,6 +62,8 @@ export default function InterviewCoach() {
     ? "Coaching tailored to this role, your skill gaps, and your experience."
     : "Select a role above for tailored prep, or ask general interview questions.";
 
+  const suggestedPrompts = selectedApp ? APPLICATION_PROMPTS : GENERAL_PROMPTS;
+
   return (
     <div className="h-screen flex flex-col overflow-hidden">
       <AgentIntro
@@ -62,14 +71,14 @@ export default function InterviewCoach() {
         capabilities={INTERVIEW_COACH_CAPABILITIES}
         howToUse={INTERVIEW_COACH_HOW_TO_USE}
       />
-      <div className="px-6 py-3 border-b border-[#E5E5E5] bg-white flex items-center gap-3 shrink-0">
-        <span className="text-xs font-medium text-[#525252] shrink-0">Preparing for:</span>
+      <div className="px-6 py-3 border-b border-[#DDDDDB] bg-white flex items-center gap-3 shrink-0">
+        <span className="text-xs font-medium text-[#52545A] shrink-0">Context:</span>
         <Select value={selectedAppId} onValueChange={setSelectedAppId}>
-          <SelectTrigger className="h-8 text-xs max-w-xs">
+          <SelectTrigger className="h-8 text-xs max-w-xs border-[#DDDDDB]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="general">General Interview Prep</SelectItem>
+            <SelectItem value="general">General interview prep</SelectItem>
             {applications.map((app) => (
               <SelectItem key={app.id} value={app.id}>
                 {app.role_title} at {app.company}
@@ -87,7 +96,8 @@ export default function InterviewCoach() {
           title={title}
           description={description}
           applicationId={selectedAppId === "general" ? null : selectedAppId}
-          suggestedPrompts={SUGGESTED_PROMPTS}
+          suggestedPrompts={suggestedPrompts}
+          introMessage="What would you like to work on?"
         />
       </div>
     </div>

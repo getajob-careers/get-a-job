@@ -148,16 +148,16 @@ const FunctionDisplay = ({ toolCall }) => {
 
   const statusConfig =
     {
-      pending: { icon: Clock, color: "text-[#A3A3A3]", text: "Pending" },
-      running: { icon: Loader2, color: "text-[#525252]", text: "Running...", spin: true },
-      in_progress: { icon: Loader2, color: "text-[#525252]", text: "Running...", spin: true },
+      pending: { icon: Clock, color: "text-[#9C9DA1]", text: "Pending" },
+      running: { icon: Loader2, color: "text-[#52545A]", text: "Running...", spin: true },
+      in_progress: { icon: Loader2, color: "text-[#52545A]", text: "Running...", spin: true },
       completed: isError
         ? { icon: AlertCircle, color: "text-red-500", text: "Failed" }
         : { icon: CheckCircle2, color: "text-[#059669]", text: "Done" },
       success: { icon: CheckCircle2, color: "text-[#059669]", text: "Done" },
       failed: { icon: AlertCircle, color: "text-red-500", text: "Failed" },
       error: { icon: AlertCircle, color: "text-red-500", text: "Failed" },
-    }[status] || { icon: Zap, color: "text-[#A3A3A3]", text: "" };
+    }[status] || { icon: Zap, color: "text-[#9C9DA1]", text: "" };
 
   const Icon = statusConfig.icon;
   const formattedName = name.split(".").reverse().join(" ").toLowerCase();
@@ -168,27 +168,27 @@ const FunctionDisplay = ({ toolCall }) => {
         onClick={() => setExpanded(!expanded)}
         className={cn(
           "flex items-center gap-2 px-3 py-1.5 rounded-lg border transition-all",
-          "hover:bg-[#F5F5F5]",
-          expanded ? "bg-[#F5F5F5] border-[#D4D4D4]" : "bg-white border-[#E5E5E5]"
+          "hover:bg-[#E8E8E5]",
+          expanded ? "bg-[#E8E8E5] border-[#9C9DA1]" : "bg-white border-[#DDDDDB]"
         )}
       >
         <Icon className={cn("h-3 w-3", statusConfig.color, statusConfig.spin && "animate-spin")} />
-        <span className="text-[#525252]">{formattedName}</span>
+        <span className="text-[#52545A]">{formattedName}</span>
         {statusConfig.text && (
-          <span className={cn("text-[#A3A3A3]", isError && "text-red-600")}>
+          <span className={cn("text-[#9C9DA1]", isError && "text-red-600")}>
             / {statusConfig.text}
           </span>
         )}
         {!statusConfig.spin && (toolCall.arguments_string || results) && (
-          <ChevronRight className={cn("h-3 w-3 text-[#A3A3A3] transition-transform ml-auto", expanded && "rotate-90")} />
+          <ChevronRight className={cn("h-3 w-3 text-[#9C9DA1] transition-transform ml-auto", expanded && "rotate-90")} />
         )}
       </button>
       {expanded && !statusConfig.spin && (
-        <div className="mt-1.5 ml-3 pl-3 border-l-2 border-[#E5E5E5] space-y-2">
+        <div className="mt-1.5 ml-3 pl-3 border-l-2 border-[#DDDDDB] space-y-2">
           {toolCall.arguments_string && (
             <div>
-              <div className="text-xs text-[#A3A3A3] mb-1">Parameters:</div>
-              <pre className="bg-[#F5F5F5] rounded-md p-2 text-xs text-[#525252] whitespace-pre-wrap">
+              <div className="text-xs text-[#9C9DA1] mb-1">Parameters:</div>
+              <pre className="bg-[#E8E8E5] rounded-md p-2 text-xs text-[#52545A] whitespace-pre-wrap">
                 {(() => {
                   try {
                     return JSON.stringify(JSON.parse(toolCall.arguments_string), null, 2);
@@ -201,8 +201,8 @@ const FunctionDisplay = ({ toolCall }) => {
           )}
           {parsedResults && (
             <div>
-              <div className="text-xs text-[#A3A3A3] mb-1">Result:</div>
-              <pre className="bg-[#F5F5F5] rounded-md p-2 text-xs text-[#525252] whitespace-pre-wrap max-h-48 overflow-auto">
+              <div className="text-xs text-[#9C9DA1] mb-1">Result:</div>
+              <pre className="bg-[#E8E8E5] rounded-md p-2 text-xs text-[#52545A] whitespace-pre-wrap max-h-48 overflow-auto">
                 {typeof parsedResults === "object" ? JSON.stringify(parsedResults, null, 2) : parsedResults}
               </pre>
             </div>
@@ -226,37 +226,32 @@ export default function MessageBubble({ message }) {
   return (
     <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
       {!isUser && (
-        <div className="h-7 w-7 rounded-lg bg-[#0A0A0A] flex items-center justify-center mt-0.5 flex-shrink-0">
-          <div className="h-1.5 w-1.5 rounded-full bg-white" />
+        <div className="c-avatar">
+          <div className="c-avatar-dot" />
         </div>
       )}
       <div className={cn("max-w-[85%]", isUser && "flex flex-col items-end")}>
         {message.content && (
-          <div
-            className={cn(
-              "rounded-2xl px-4 py-2.5",
-              isUser ? "bg-[#0A0A0A] text-white" : "bg-white border border-[#E5E5E5]"
-            )}
-          >
+          <div className={cn("c-bubble", isUser ? "c-bubble-user" : "c-bubble-assistant")}>
             {isUser ? (
               <p className="text-sm leading-relaxed">{message.content}</p>
             ) : (
               <ReactMarkdown
                 className="text-sm prose prose-sm prose-neutral max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
                 components={{
-                  p: ({ children }) => <p className="my-1.5 leading-relaxed text-[#525252]">{children}</p>,
-                  strong: ({ children }) => <strong className="font-semibold text-[#0A0A0A]">{children}</strong>,
+                  p: ({ children }) => <p className="my-1.5 leading-relaxed text-[#52545A]">{children}</p>,
+                  strong: ({ children }) => <strong className="font-semibold text-[#0E1014]">{children}</strong>,
                   ul: ({ children }) => <ul className="my-1.5 ml-4 list-disc">{children}</ul>,
                   ol: ({ children }) => <ol className="my-1.5 ml-4 list-decimal">{children}</ol>,
-                  li: ({ children }) => <li className="my-0.5 text-[#525252]">{children}</li>,
-                  h1: ({ children }) => <h1 className="text-base font-semibold my-2 text-[#0A0A0A]">{children}</h1>,
-                  h2: ({ children }) => <h2 className="text-sm font-semibold my-2 text-[#0A0A0A]">{children}</h2>,
-                  h3: ({ children }) => <h3 className="text-sm font-semibold my-1.5 text-[#0A0A0A]">{children}</h3>,
+                  li: ({ children }) => <li className="my-0.5 text-[#52545A]">{children}</li>,
+                  h1: ({ children }) => <h1 className="text-base font-semibold my-2 text-[#0E1014]">{children}</h1>,
+                  h2: ({ children }) => <h2 className="text-sm font-semibold my-2 text-[#0E1014]">{children}</h2>,
+                  h3: ({ children }) => <h3 className="text-sm font-semibold my-1.5 text-[#0E1014]">{children}</h3>,
                   code: ({ inline, children }) =>
                     inline ? (
-                      <code className="px-1 py-0.5 rounded bg-[#F5F5F5] text-[#525252] text-xs">{children}</code>
+                      <code className="px-1 py-0.5 rounded bg-[#E8E8E5] text-[#52545A] text-xs">{children}</code>
                     ) : (
-                      <pre className="bg-[#0A0A0A] text-gray-100 rounded-lg p-3 overflow-x-auto my-2">
+                      <pre className="bg-[#0E1014] text-gray-100 rounded-lg p-3 overflow-x-auto my-2">
                         <code>{children}</code>
                       </pre>
                     ),

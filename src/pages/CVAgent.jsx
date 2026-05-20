@@ -57,14 +57,13 @@ export default function CVAgent() {
     ? "CV tailoring scoped to this application's role and job description."
     : "Pick an application above to anchor the CV, or ask general CV questions.";
 
-  // Empty-state greeting + suggested prompts adapt to whether an application
-  // is selected. The edge function's CV_GENERATION_RULES are instructed to use
-  // the selected application directly, so a single "Generate a tailored CV"
-  // prompt is enough — the agent will fill in role + application_id from the
-  // TARGET APPLICATION block in its context.
+  // Empty-state greeting — keep it minimal; the chips below carry the verbs.
+  // When a specific application is selected, mention it so the user knows
+  // the agent is anchored. Otherwise: same generic invitation as the other
+  // app-aware agents.
   const introMessage = selectedApp
-    ? `I see you've selected ${appLabel}. Want me to generate a tailored CV for this role? Type "Generate a CV" or tap a prompt below, and I'll build it from your profile.`
-    : null;
+    ? `Tailoring for ${appLabel}. What would you like to do?`
+    : "What would you like to work on?";
   const suggestedPrompts = selectedApp
     ? [
         "Generate a tailored CV for this role",
@@ -81,10 +80,10 @@ export default function CVAgent() {
         capabilities={CV_AGENT_CAPABILITIES}
         howToUse={CV_AGENT_HOW_TO_USE}
       />
-      <div className="px-6 py-3 border-b border-[#E5E5E5] bg-white flex items-center gap-3 shrink-0">
-        <span className="text-xs font-medium text-[#525252] shrink-0">Tailoring for:</span>
+      <div className="px-6 py-3 border-b border-[#DDDDDB] bg-white flex items-center gap-3 shrink-0">
+        <span className="text-xs font-medium text-[#52545A] shrink-0">Context:</span>
         <Select value={selectedAppId} onValueChange={setSelectedAppId}>
-          <SelectTrigger className="h-8 text-xs max-w-xs">
+          <SelectTrigger className="h-8 text-xs max-w-xs border-[#DDDDDB]">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
