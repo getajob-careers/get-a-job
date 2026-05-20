@@ -19,10 +19,10 @@ import {
 //
 // Action handlers UPDATE daily_actions directly (RLS allows own-row).
 // Reflect is the exception: instead of marking done locally, it navigates
-// to AddInformation with location.state carrying the daily_action id +
-// reflection prompt. AddInformation reads that, opens its existing Story
-// Bank quick-add modal with the custom framing, and marks the daily_action
-// done after the story saves — "the reflection IS the capture."
+// to StoryBank with location.state carrying the daily_action id +
+// reflection prompt. StoryBank reads that, opens its quick-add modal
+// with the custom framing, and marks the daily_action done after the
+// story saves — "the reflection IS the capture."
 
 const REFLECTION_PROMPT =
   "What did this week teach you? Reflect on one specific moment from your work — a customer call, a tough decision, a small win — and we'll turn it into a story.";
@@ -85,12 +85,12 @@ export default function DailyActionCard() {
 
   const handleDone = async () => {
     if (data?.action_type === "reflect") {
-      // Reflect Done navigates to AddInformation with the daily action
-      // context. AddInformation opens its Story Bank quick-add modal,
-      // uses the prompt as `framing`, and marks the daily action done
-      // after the story saves. Until then, the action stays pending so
-      // the user can come back if they cancel.
-      navigate(createPageUrl("Profile"), {
+      // Reflect Done navigates to StoryBank with the daily action
+      // context. StoryBank opens its quick-add modal, uses the prompt
+      // as `framing`, and marks the daily action done after the story
+      // saves. Until then, the action stays pending so the user can
+      // come back if they cancel.
+      navigate(createPageUrl("StoryBank"), {
         state: {
           dailyAction: {
             id: data.id,

@@ -1,13 +1,10 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, Trash2, Upload, X, BookText } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+import { Loader2, Plus, Trash2, Upload, X, BookText, ExternalLink } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -15,23 +12,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import EducationTab from "@/components/profile/EducationTab";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import StorySaveCard from "@/components/chat/StorySaveCard";
+import SkillTagInput from "@/components/onboarding/SkillTagInput";
+import { PROFILE_CSS } from "@/components/profile/profileStyles";
+import { createPageUrl } from "@/utils";
 
-// ─── Enum sources ──────────────────────────────────────────────────────────
-// Mirror the values onboarding writes so AddInformation can edit them with
-// the same vocabulary. Out-of-sync values would silently break tier scoring
-// (primary_domain) and userStage derivation (employment_status,
-// qualification_level) in analyze-job-match.
+// Profile — Direction 3. Tabs URL-driven via ?tab=. Story Bank lives at
+// /StoryBank now; this page shows a summary card linking out, plus
+// inline story-count pills on each experience row.
 
-// Keys of PRIMARY_DOMAIN_TO_FAMILIES in generate-career-analysis.
 const PRIMARY_DOMAIN_OPTIONS = [
   { value: "customer_success", label: "Customer Success" },
   { value: "customer_experience", label: "Customer Experience" },
@@ -50,7 +39,6 @@ const PRIMARY_DOMAIN_OPTIONS = [
   { value: "design", label: "Design" },
 ];
 
-// inferQualificationLevel in generate-career-analysis returns one of these.
 const QUALIFICATION_LEVEL_OPTIONS = [
   { value: "Junior", label: "Junior" },
   { value: "Mid-Level", label: "Mid-Level" },
@@ -67,8 +55,6 @@ const EMPLOYMENT_STATUS_OPTIONS = [
 const WORK_ENVIRONMENT_OPTIONS = ["Startup", "Scale-up", "Corporate", "Public sector", "Non-profit", "Agency"];
 const WORK_TYPE_OPTIONS = ["Remote", "Hybrid", "On-site", "Full-time", "Part-time", "Contract", "Internship"];
 
-// Survey enums copied from StepSurvey — same values, so when the user revisits
-// the same answers in AddInformation they see their selection re-highlighted.
 const CHALLENGES = [
   "I don't know which roles to target",
   "I apply but get no responses",
@@ -101,11 +87,10 @@ const CLARITY_OPTIONS = [
   { value: 5, label: "5 — Very clear" },
 ];
 
-// ─── Reusable controls ─────────────────────────────────────────────────────
+const VALID_TABS = ["profile", "education", "goals", "self-assessment", "certifications", "projects", "experience"];
 
-// Tag editor for text[] columns (target_job_titles, honors, relevant_coursework,
-// adjacent_fields). One control encapsulates the input + chip list pattern so
-// the JSX below stays scannable.
+// ─── Reusable controls (Direction 3) ───────────────────────────────────
+
 function TagEditor({ tags, onChange, placeholder }) {
   const [val, setVal] = useState("");
   const add = () => {
@@ -119,21 +104,21 @@ function TagEditor({ tags, onChange, placeholder }) {
   return (
     <div>
       <div className="flex gap-2 mb-2">
-        <Input
+        <input
           value={val}
           onChange={(e) => setVal(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
           placeholder={placeholder || "Add and press Enter"}
-          className="text-sm"
+          className="p-input"
         />
-        <Button variant="outline" size="sm" onClick={add} className="text-xs px-3">Add</Button>
+        <button type="button" onClick={add} className="p-btn p-btn-outline p-btn-sm">Add</button>
       </div>
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {tags.map((t, i) => (
-            <span key={i} className="inline-flex items-center gap-1 text-xs bg-[#F5F5F5] text-[#525252] px-2 py-1 rounded-md border border-[#E5E5E5]">
+            <span key={i} className="p-chip">
               {t}
-              <button onClick={() => remove(t)} className="hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
+              <button onClick={() => remove(t)}><Trash2 className="w-3 h-3" /></button>
             </span>
           ))}
         </div>
@@ -142,13 +127,6 @@ function TagEditor({ tags, onChange, placeholder }) {
   );
 }
 
-// Multi-select via tile buttons. For text[] columns where the values are a
-// fixed enum (employment_status, work_environment, work_type).
-//
-// `exclusiveSubset` — optional list of values that are mutually exclusive
-// with each other (e.g. employment_status has "have a job" / "looking" /
-// "unemployed" — picking one strips the others). Values outside the subset
-// stack freely (Student + Freelancing).
 function MultiSelectTiles({ options, selected, onChange, exclusiveSubset = [] }) {
   const toggle = (val) => {
     const isOn = selected.includes(val);
@@ -167,17 +145,13 @@ function MultiSelectTiles({ options, selected, onChange, exclusiveSubset = [] })
       {options.map((opt) => {
         const value = typeof opt === "string" ? opt : opt.value;
         const label = typeof opt === "string" ? opt : opt.label;
-        const isSelected = selected.includes(value);
         return (
           <button
             key={value}
             type="button"
             onClick={() => toggle(value)}
-            className={`text-sm px-3 py-1.5 rounded-lg border transition-colors ${
-              isSelected
-                ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
-                : "bg-white text-[#525252] border-[#E5E5E5] hover:border-[#A3A3A3]"
-            }`}
+            className="p-tile"
+            data-selected={selected.includes(value)}
           >
             {label}
           </button>
@@ -187,9 +161,6 @@ function MultiSelectTiles({ options, selected, onChange, exclusiveSubset = [] })
   );
 }
 
-// Single-select via stacked buttons — for fields that StepSurvey renders this
-// way (cv_tailoring_strategy, linkedin_outreach_strategy). Custom value entry
-// supported via a free-text fallback below the options.
 function StackedRadio({ options, value, onChange }) {
   const isCustom = value && !options.some((o) => o.value === value);
   const [custom, setCustom] = useState("");
@@ -207,44 +178,55 @@ function StackedRadio({ options, value, onChange }) {
             key={o.value}
             type="button"
             onClick={() => onChange(o.value)}
-            className={`w-full text-left text-sm px-4 py-3 rounded-lg border transition-colors ${
-              value === o.value
-                ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
-                : "bg-white text-[#525252] border-[#E5E5E5] hover:border-[#A3A3A3]"
-            }`}
+            className="p-stack-option"
+            data-selected={value === o.value}
           >
             {o.label}
           </button>
         ))}
       </div>
       {isCustom && (
-        <div className="mt-2 inline-flex items-center gap-1 bg-[#0A0A0A] text-white text-xs px-2.5 py-1 rounded-md">
+        <div className="mt-2 inline-flex items-center gap-1 bg-[#0E1014] text-[#F4F4F2] text-xs px-2.5 py-1 rounded-md">
           Your answer: {value}
-          <button type="button" onClick={() => onChange(null)} className="hover:text-red-300">
+          <button type="button" onClick={() => onChange(null)} className="hover:text-[#FDE7E3]">
             <X className="w-3 h-3" />
           </button>
         </div>
       )}
       <div className="mt-2">
-        <Input
+        <input
           value={custom}
           onChange={(e) => setCustom(e.target.value)}
           onBlur={commitCustom}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitCustom(); } }}
           placeholder="Or type your own answer"
-          className="text-sm"
+          className="p-input"
         />
       </div>
     </>
   );
 }
 
-export default function AddInformation() {
+// ─── Page ───────────────────────────────────────────────────────────────
+
+export default function Profile() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = React.useRef(null);
+
+  // URL-driven tabs. Invalid ?tab values fall back to "profile" silently.
+  const tabParam = searchParams.get("tab");
+  const activeTab = VALID_TABS.includes(tabParam) ? tabParam : "profile";
+  const setTab = (t) => {
+    const next = new URLSearchParams(searchParams);
+    if (t === "profile") next.delete("tab");
+    else next.set("tab", t);
+    setSearchParams(next, { replace: true });
+  };
 
   const { data: profiles, isLoading: loadingProfile } = useQuery({
     queryKey: ["userProfile", user?.id],
@@ -293,145 +275,40 @@ export default function AddInformation() {
     initialData: [],
   });
 
-  // Story Bank Phase 2 — surface stories on the Experience tab + floating
-  // quick-add. Single query, then group client-side by experience_id (cheaper
-  // than per-experience queries). Only stories with experience_id are shown
-  // here; floating chat-captured stories without a link still exist but
-  // belong on a future stories management page.
+  // Stories — only used here for the inline story-count pill per experience
+  // and the Story Bank summary card. Create/edit/delete moved to /StoryBank.
   const { data: stories = [] } = useQuery({
     queryKey: ["stories", user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from("stories")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
+        .select("id, experience_id")
+        .eq("user_id", user.id);
       if (error) throw error;
       return data || [];
     },
     enabled: !!user?.id,
   });
 
-  const storiesByExperience = useMemo(() => {
+  const storyCountByExperience = useMemo(() => {
     const m = new Map();
     for (const s of stories) {
       if (!s.experience_id) continue;
-      if (!m.has(s.experience_id)) m.set(s.experience_id, []);
-      m.get(s.experience_id).push(s);
+      m.set(s.experience_id, (m.get(s.experience_id) || 0) + 1);
     }
     return m;
   }, [stories]);
 
-  // Story modal state — shape: { experience_id (or null for quick-add picker),
-  // source ('manual_form' | 'manual_quick_add') }. null = closed.
-  const [storyModal, setStoryModal] = useState(null);
-  // Quick-add modal needs an experience picker; tracks the user's selection
-  // before passing it through to the StorySaveCard.
-  const [quickAddExperienceId, setQuickAddExperienceId] = useState("");
-
-  // Daily Action Card "reflect" handoff. When Home navigates here with
-  // location.state.dailyAction = { id, prompt }, open the quick-add modal
-  // with that prompt as `framing`, and after the story saves mark the
-  // referenced daily_actions row as done. The reflection IS the capture.
-  const location = useLocation();
-  const navigate = useNavigate();
-  const [dailyActionCtx, setDailyActionCtx] = useState(null);
-  useEffect(() => {
-    const incoming = location.state?.dailyAction;
-    if (!incoming?.id || !incoming?.prompt) return;
-    setDailyActionCtx(incoming);
-    setQuickAddExperienceId(experiences?.[0]?.id || "");
-    setStoryModal({ experience_id: null, source: "manual_quick_add" });
-    // Clear the navigation state so a manual refresh doesn't re-open.
-    navigate(location.pathname, { replace: true, state: null });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state?.dailyAction?.id]);
-
-  const handleExtractStory = async (text) => {
-    try {
-      const { data, error } = await supabase.functions.invoke("extract-story-from-text", {
-        body: { text, source: storyModal?.source || "manual_form" },
-      });
-      if (error) {
-        console.error("Story extraction error:", error);
-        return null;
-      }
-      return data || null;
-    } catch (err) {
-      console.error("Story extraction exception:", err);
-      return null;
-    }
-  };
-
-  const handleSaveStory = async (story, capture) => {
-    if (!user?.id) return false;
-    try {
-      const { error } = await supabase.from("stories").insert({
-        user_id: user.id,
-        source: storyModal?.source || "manual_form",
-        experience_id: capture?.experience_id || null,
-        title: story.title,
-        situation: story.situation || null,
-        task: story.task || null,
-        action: story.action || null,
-        result: story.result || null,
-        metrics: Array.isArray(story.metrics) ? story.metrics : [],
-        skills_demonstrated: Array.isArray(story.skills_demonstrated) ? story.skills_demonstrated : [],
-        tools_used: Array.isArray(story.tools_used) ? story.tools_used : [],
-        relevance_tags: Array.isArray(story.relevance_tags) ? story.relevance_tags : [],
-      });
-      if (error) {
-        console.error("Story save error:", error);
-        toast.error("Could not save story. Please try again.");
-        return false;
-      }
-      queryClient.invalidateQueries({ queryKey: ["stories"] });
-      toast.success("Story saved.");
-
-      // Daily Action handoff: if this story came from a Reflect daily action,
-      // mark the daily_action row as done now that the story landed. The
-      // reflection IS the capture — completing one completes the other.
-      if (dailyActionCtx?.id) {
-        const { error: daErr } = await supabase
-          .from("daily_actions")
-          .update({ status: "done", completed_at: new Date().toISOString() })
-          .eq("id", dailyActionCtx.id);
-        if (daErr) {
-          // Soft-fail — story saved, just couldn't update the daily action.
-          console.warn("Daily action mark-done failed:", daErr.message);
-        } else {
-          queryClient.invalidateQueries({ queryKey: ["daily_action", user.id] });
-        }
-        setDailyActionCtx(null);
-      }
-
-      // Close after a short delay so the user sees the success state in the card
-      setTimeout(() => setStoryModal(null), 1200);
-      return true;
-    } catch (err) {
-      console.error("Story save exception:", err);
-      return false;
-    }
-  };
-
   const profile = profiles?.[0] || null;
 
-  // profileForm shape mirrors the columns onboarding writes to so every
-  // onboarding-collected value is editable here. New columns added to
-  // onboarding need to be added here too — the test in saveProfile that
-  // pushes the dbFields object is the source of truth for what persists.
   const [profileForm, setProfileForm] = useState({
-    // Identity / contact
     full_name: "",
     phone_number: "",
     location: "",
     linkedin_url: "",
     summary: "",
-    // Education moved to its own table in Phase B — see EducationTab.
-    // languages stays on profiles (person-level, not tied to a degree).
     languages: [],
-    // Skills + career direction
     skills: [],
     five_year_role: "",
     target_job_titles: [],
@@ -439,7 +316,6 @@ export default function AddInformation() {
     primary_domain: "",
     adjacent_fields: [],
     qualification_level: "",
-    // Preferences / constraints
     employment_status: [],
     work_environment: [],
     work_type: [],
@@ -447,7 +323,6 @@ export default function AddInformation() {
     available_start_date: "",
     open_to_lateral: false,
     open_to_outside_degree: false,
-    // Self-assessment (StepSurvey)
     biggest_challenge: [],
     cv_tailoring_strategy: "",
     linkedin_outreach_strategy: "",
@@ -455,7 +330,7 @@ export default function AddInformation() {
     job_search_efforts: "",
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (!profile) return;
     setProfileForm({
       full_name: profile.full_name || "",
@@ -504,17 +379,12 @@ export default function AddInformation() {
   const saveProfile = async () => {
     setSaving(true);
     const dbFields = {
-      // Identity / contact
       full_name: profileForm.full_name,
       phone_number: profileForm.phone_number,
       location: profileForm.location,
       linkedin_url: profileForm.linkedin_url,
       summary: profileForm.summary || null,
-      // languages stays on profiles (person-level, not per-degree). The
-      // rest of education moved to the education table in Phase B — see
-      // EducationTab for CRUD.
       languages: profileForm.languages,
-      // Skills + career direction
       skills: profileForm.skills,
       five_year_role: profileForm.five_year_role,
       target_job_titles: profileForm.target_job_titles,
@@ -522,7 +392,6 @@ export default function AddInformation() {
       primary_domain: profileForm.primary_domain || null,
       adjacent_fields: profileForm.adjacent_fields,
       qualification_level: profileForm.qualification_level || null,
-      // Preferences / constraints
       employment_status: profileForm.employment_status,
       work_environment: profileForm.work_environment,
       work_type: profileForm.work_type,
@@ -530,7 +399,6 @@ export default function AddInformation() {
       available_start_date: profileForm.available_start_date || null,
       open_to_lateral: profileForm.open_to_lateral,
       open_to_outside_degree: profileForm.open_to_outside_degree,
-      // Self-assessment
       biggest_challenge: profileForm.biggest_challenge,
       cv_tailoring_strategy: profileForm.cv_tailoring_strategy || null,
       linkedin_outreach_strategy: profileForm.linkedin_outreach_strategy || null,
@@ -577,7 +445,7 @@ export default function AddInformation() {
 
       const { data: signedData } = await supabase.storage
         .from("resumes")
-        .createSignedUrl(filePath, 315360000); // ~10 years
+        .createSignedUrl(filePath, 315360000);
 
       const resumeUrl = signedData?.signedUrl || filePath;
       await supabase.from("profiles").update({ resume_url: resumeUrl }).eq("id", user.id);
@@ -655,595 +523,669 @@ export default function AddInformation() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[60vh]">
-        <Loader2 className="w-5 h-5 animate-spin text-[#A3A3A3]" />
-      </div>
+      <>
+        <style>{PROFILE_CSS}</style>
+        <div className="profile flex items-center justify-center min-h-screen">
+          <Loader2 className="w-5 h-5 animate-spin text-[#52545A]" />
+        </div>
+      </>
     );
   }
 
-  // Save button reused at the bottom of every profile-fields tab so users
-  // don't have to navigate back to "Profile" to commit changes made on
-  // "Goals" or "Self-Assessment". All four call the same saveProfile()
-  // because saving is idempotent over the entire profileForm.
   const SaveProfileButton = () => (
-    <Button onClick={saveProfile} disabled={saving} className="bg-[#0A0A0A] hover:bg-[#262626] text-sm">
-      {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Saving...</> : "Save Profile"}
-    </Button>
+    <button type="button" onClick={saveProfile} disabled={saving} className="p-btn p-btn-primary">
+      {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving…</> : "Save profile"}
+    </button>
   );
 
   const setField = (key, val) => setProfileForm((prev) => ({ ...prev, [key]: val }));
 
+  const TABS = [
+    { id: "profile",         label: "Profile" },
+    { id: "education",       label: "Education" },
+    { id: "goals",           label: "Goals & preferences" },
+    { id: "self-assessment", label: "Self-assessment" },
+    { id: "certifications",  label: "Certifications" },
+    { id: "projects",        label: "Projects" },
+    { id: "experience",      label: "Experience" },
+  ];
+
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">Profile</h1>
-        <p className="text-sm text-[#A3A3A3] mt-1">
-          Personal info, experience, education, and skills. Every change retriggers career analysis.
-        </p>
-      </div>
-
-      <Tabs defaultValue="profile" className="space-y-6">
-        <TabsList className="bg-[#F5F5F5] w-full justify-start overflow-x-auto">
-          <TabsTrigger value="profile" className="text-xs">Profile</TabsTrigger>
-          <TabsTrigger value="education" className="text-xs">Education</TabsTrigger>
-          <TabsTrigger value="goals" className="text-xs">Goals & Preferences</TabsTrigger>
-          <TabsTrigger value="self-assessment" className="text-xs">Self-Assessment</TabsTrigger>
-          <TabsTrigger value="certifications" className="text-xs">Certifications</TabsTrigger>
-          <TabsTrigger value="projects" className="text-xs">Projects</TabsTrigger>
-          <TabsTrigger value="experience" className="text-xs">Experience</TabsTrigger>
-        </TabsList>
-
-        {/* ── Profile tab — identity, contact, summary, skills, resume ──── */}
-        <TabsContent value="profile">
-          <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Full Name</label>
-                <Input value={profileForm.full_name} onChange={(e) => setField("full_name", e.target.value)} className="mt-1" />
-              </div>
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Phone Number</label>
-                <Input value={profileForm.phone_number} onChange={(e) => setField("phone_number", e.target.value)} className="mt-1" placeholder="054-1234567 or +972 54 123 4567" />
-              </div>
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Location</label>
-                <Input value={profileForm.location} onChange={(e) => setField("location", e.target.value)} className="mt-1" placeholder="e.g. Tel Aviv, Israel" />
-              </div>
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">LinkedIn URL</label>
-                <Input value={profileForm.linkedin_url} onChange={(e) => setField("linkedin_url", e.target.value)} className="mt-1" placeholder="https://linkedin.com/in/..." />
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Professional Summary</label>
-              <Textarea
-                value={profileForm.summary}
-                onChange={(e) => setField("summary", e.target.value)}
-                className="mt-1 text-sm"
-                rows={4}
-                placeholder="2–3 sentences. The CV generator uses this as the About Me anchor."
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">Skills</label>
-              <div className="flex gap-2 mb-2">
-                <Input value={skillInput} onChange={(e) => setSkillInput(e.target.value)} onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }} placeholder="Type a skill and press Enter" className="text-sm" />
-                <Button variant="outline" size="sm" onClick={addSkill} className="text-xs px-3">Add</Button>
-              </div>
-              <div className="flex flex-wrap gap-1.5">
-                {profileForm.skills.map((s, i) => (
-                  <span key={i} className="inline-flex items-center gap-1 text-xs bg-[#F5F5F5] text-[#525252] px-2 py-1 rounded-md border border-[#E5E5E5]">
-                    {s}
-                    <button onClick={() => removeSkill(s)} className="hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
-                  </span>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">Resume</label>
-              <div className="flex items-center gap-3">
-                <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border border-[#E5E5E5] rounded-lg text-sm text-[#525252] hover:bg-[#F5F5F5] transition-colors">
-                  <Upload className="w-4 h-4" />
-                  {uploading ? "Uploading..." : "Upload Resume"}
-                  <input ref={fileInputRef} type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} />
-                </label>
-                {profile?.resume_url && <span className="text-xs text-[#059669]">Resume uploaded</span>}
-              </div>
-            </div>
-
-            <SaveProfileButton />
+    <>
+      <style>{PROFILE_CSS}</style>
+      <div className="profile">
+        <div className="max-w-4xl mx-auto px-6 py-10">
+          {/* Header */}
+          <div className="mb-7">
+            <p className="p-eyebrow">Profile</p>
+            <h1 className="p-h1 mt-1.5">Your career foundation.</h1>
+            <p className="p-sub">
+              Identity, experience, education, skills. Every change retriggers career analysis.
+            </p>
           </div>
-        </TabsContent>
 
-        {/* ── Education tab — multi-entry editor + languages ──────────────── */}
-        <TabsContent value="education">
-          <EducationTab user={user} />
+          {/* Tab pill bar */}
+          <div className="p-tabs mb-6">
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === t.id}
+                onClick={() => setTab(t.id)}
+                className="p-tab"
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
 
-          {/* Languages stays on profiles (person-level, not per-degree) */}
-          <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 mt-4">
-            <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">Languages</label>
-            <div className="space-y-2">
-              {profileForm.languages.map((lang, i) => (
-                <div key={i} className="flex gap-2 items-center">
-                  <Input
-                    value={lang.language || ""}
-                    onChange={(e) => {
-                      const next = [...profileForm.languages];
-                      next[i] = { ...next[i], language: e.target.value };
-                      setField("languages", next);
-                    }}
-                    placeholder="e.g. English"
-                    className="text-sm flex-1"
+          {/* ── Profile tab ─────────────────────────────────────────── */}
+          {activeTab === "profile" && (
+            <div className="p-card p-card-lg space-y-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="p-label">Full name</label>
+                  <input value={profileForm.full_name} onChange={(e) => setField("full_name", e.target.value)} className="p-input" />
+                </div>
+                <div>
+                  <label className="p-label">Phone number</label>
+                  <input value={profileForm.phone_number} onChange={(e) => setField("phone_number", e.target.value)} className="p-input" placeholder="054-1234567 or +972 54 123 4567" />
+                </div>
+                <div>
+                  <label className="p-label">Location</label>
+                  <input value={profileForm.location} onChange={(e) => setField("location", e.target.value)} className="p-input" placeholder="e.g. Tel Aviv, Israel" />
+                </div>
+                <div>
+                  <label className="p-label">LinkedIn URL</label>
+                  <input value={profileForm.linkedin_url} onChange={(e) => setField("linkedin_url", e.target.value)} className="p-input" placeholder="https://linkedin.com/in/..." />
+                </div>
+              </div>
+
+              <div>
+                <label className="p-label">Professional summary</label>
+                <textarea
+                  value={profileForm.summary}
+                  onChange={(e) => setField("summary", e.target.value)}
+                  className="p-input"
+                  rows={4}
+                  placeholder="2–3 sentences. The CV generator uses this as the About Me anchor."
+                />
+              </div>
+
+              <div>
+                <label className="p-label">Skills</label>
+                <div className="flex gap-2 mb-2">
+                  <input
+                    value={skillInput}
+                    onChange={(e) => setSkillInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }}
+                    placeholder="Type a skill and press Enter"
+                    className="p-input"
                   />
-                  <Select
-                    value={lang.proficiency || undefined}
-                    onValueChange={(v) => {
-                      const next = [...profileForm.languages];
-                      next[i] = { ...next[i], proficiency: v };
-                      setField("languages", next);
-                    }}
+                  <button type="button" onClick={addSkill} className="p-btn p-btn-outline p-btn-sm">Add</button>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {profileForm.skills.map((s, i) => (
+                    <span key={i} className="p-chip">
+                      {s}
+                      <button onClick={() => removeSkill(s)}><Trash2 className="w-3 h-3" /></button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Languages — person-level, used to live on Education tab.
+                  Moved up here per redesign because it sits with identity. */}
+              <div>
+                <label className="p-label">Languages</label>
+                <div className="space-y-2">
+                  {profileForm.languages.map((lang, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                      <input
+                        value={lang.language || ""}
+                        onChange={(e) => {
+                          const next = [...profileForm.languages];
+                          next[i] = { ...next[i], language: e.target.value };
+                          setField("languages", next);
+                        }}
+                        placeholder="e.g. English"
+                        className="p-input flex-1"
+                      />
+                      <Select
+                        value={lang.proficiency || undefined}
+                        onValueChange={(v) => {
+                          const next = [...profileForm.languages];
+                          next[i] = { ...next[i], proficiency: v };
+                          setField("languages", next);
+                        }}
+                      >
+                        <SelectTrigger className="text-sm w-40 border-[#DDDDDB]">
+                          <SelectValue placeholder="Proficiency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Native">Native</SelectItem>
+                          <SelectItem value="Fluent">Fluent</SelectItem>
+                          <SelectItem value="Professional">Professional</SelectItem>
+                          <SelectItem value="Conversational">Conversational</SelectItem>
+                          <SelectItem value="Basic">Basic</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const next = profileForm.languages.filter((_, idx) => idx !== i);
+                          setField("languages", next);
+                        }}
+                        className="p-btn p-btn-ghost p-btn-sm"
+                        aria-label="Remove language"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    onClick={() => setField("languages", [...profileForm.languages, { language: "", proficiency: "Fluent" }])}
+                    className="p-btn p-btn-outline p-btn-sm"
                   >
-                    <SelectTrigger className="text-sm w-40">
-                      <SelectValue placeholder="Proficiency" />
-                    </SelectTrigger>
+                    <Plus className="w-3.5 h-3.5" /> Add language
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="p-label">Resume</label>
+                <div className="flex items-center gap-3">
+                  <label className="p-btn p-btn-outline p-btn-sm cursor-pointer">
+                    <Upload className="w-3.5 h-3.5" />
+                    {uploading ? "Uploading…" : "Upload resume"}
+                    <input ref={fileInputRef} type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} />
+                  </label>
+                  {profile?.resume_url && <span className="text-xs text-[#1D7556]">Resume uploaded</span>}
+                </div>
+              </div>
+
+              <SaveProfileButton />
+            </div>
+          )}
+
+          {/* ── Education tab ───────────────────────────────────────── */}
+          {activeTab === "education" && (
+            <EducationTab user={user} />
+          )}
+
+          {/* ── Goals & preferences tab ─────────────────────────────── */}
+          {activeTab === "goals" && (
+            <div className="p-card p-card-lg space-y-5">
+              <p className="p-banner p-banner-info">
+                These fields shape your career recommendations. When you update them, your saved applications will re-score against your new direction the next time you open them.
+              </p>
+
+              <div>
+                <label className="p-label">5-year target role</label>
+                <input value={profileForm.five_year_role} onChange={(e) => setField("five_year_role", e.target.value)} className="p-input" placeholder="e.g. Product Manager, Senior Data Analyst" />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="p-label">Primary domain</label>
+                  <Select value={profileForm.primary_domain || "__none__"} onValueChange={(v) => setField("primary_domain", v === "__none__" ? "" : v)}>
+                    <SelectTrigger className="border-[#DDDDDB]"><SelectValue placeholder="Select domain" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Native">Native</SelectItem>
-                      <SelectItem value="Fluent">Fluent</SelectItem>
-                      <SelectItem value="Professional">Professional</SelectItem>
-                      <SelectItem value="Conversational">Conversational</SelectItem>
-                      <SelectItem value="Basic">Basic</SelectItem>
+                      <SelectItem value="__none__">— Not set —</SelectItem>
+                      {PRIMARY_DOMAIN_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => {
-                      const next = profileForm.languages.filter((_, idx) => idx !== i);
-                      setField("languages", next);
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4 text-[#A3A3A3] hover:text-red-500" />
-                  </Button>
+                  <p className="text-[11px] text-[#9C9DA1] mt-1">The role family that anchors your career story.</p>
                 </div>
-              ))}
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setField("languages", [...profileForm.languages, { language: "", proficiency: "Fluent" }])}
-                className="text-xs"
-              >
-                <Plus className="w-3.5 h-3.5 mr-1" /> Add language
-              </Button>
-            </div>
-            <div className="mt-4"><SaveProfileButton /></div>
-          </div>
-        </TabsContent>
-
-        {/* ── Goals & Preferences tab ─────────────────────────────────────── */}
-        <TabsContent value="goals">
-          <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-5">
-            <p className="text-xs text-[#525252] bg-[#F5F5F5] border border-[#E5E5E5] rounded-lg px-3 py-2">
-              These fields shape your career recommendations. When you update them, your saved applications will re-score against your new direction the next time you open them.
-            </p>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">5-Year Target Role</label>
-              <Input value={profileForm.five_year_role} onChange={(e) => setField("five_year_role", e.target.value)} className="mt-1" placeholder="e.g. Product Manager, Senior Data Analyst" />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Primary Domain</label>
-                <Select value={profileForm.primary_domain || "__none__"} onValueChange={(v) => setField("primary_domain", v === "__none__" ? "" : v)}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Select domain" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">— Not set —</SelectItem>
-                    {PRIMARY_DOMAIN_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-[11px] text-[#A3A3A3] mt-1">The role family that anchors your career story.</p>
-              </div>
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Qualification Level</label>
-                <Select value={profileForm.qualification_level || "__none__"} onValueChange={(v) => setField("qualification_level", v === "__none__" ? "" : v)}>
-                  <SelectTrigger className="mt-1"><SelectValue placeholder="Select level" /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="__none__">— Not set (system will infer) —</SelectItem>
-                    {QUALIFICATION_LEVEL_OPTIONS.map((o) => (
-                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                <p className="text-[11px] text-[#A3A3A3] mt-1">Controls the seniority ceiling on tier_1 recommendations.</p>
-              </div>
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">Job Titles You&apos;re Targeting Now</label>
-              <TagEditor
-                tags={profileForm.target_job_titles}
-                onChange={(v) => setField("target_job_titles", v)}
-                placeholder="e.g. Marketing Coordinator, Junior Product Analyst"
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">Target Industries</label>
-              <TagEditor
-                tags={profileForm.target_industries}
-                onChange={(v) => setField("target_industries", v)}
-                placeholder="e.g. Fintech, Healthcare, Cybersecurity"
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">Adjacent Fields</label>
-              <TagEditor
-                tags={profileForm.adjacent_fields}
-                onChange={(v) => setField("adjacent_fields", v)}
-                placeholder="Other domains relevant to your background"
-              />
-              <p className="text-[11px] text-[#A3A3A3] mt-1">Used by the roadmap to surface bridge roles between your current and target domain.</p>
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">Current Employment Status</label>
-              <MultiSelectTiles
-                options={EMPLOYMENT_STATUS_OPTIONS}
-                selected={profileForm.employment_status}
-                onChange={(v) => setField("employment_status", v)}
-                exclusiveSubset={["looking_for_job", "employed", "unemployed"]}
-              />
-              <p className="text-[11px] text-[#A3A3A3] mt-1">If you select &quot;Student&quot;, tier scoring caps recommendations at the level you can be hired into now.</p>
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">Preferred Work Environment</label>
-              <MultiSelectTiles
-                options={WORK_ENVIRONMENT_OPTIONS}
-                selected={profileForm.work_environment}
-                onChange={(v) => setField("work_environment", v)}
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">Work Arrangement</label>
-              <MultiSelectTiles
-                options={WORK_TYPE_OPTIONS}
-                selected={profileForm.work_type}
-                onChange={(v) => setField("work_type", v)}
-              />
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Salary Expectation (optional)</label>
-                <Input value={profileForm.salary_expectation} onChange={(e) => setField("salary_expectation", e.target.value)} className="mt-1" placeholder="e.g. ₪12,000 - ₪15,000 / month" />
-              </div>
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Earliest Start Date</label>
-                <Input
-                  type="date"
-                  value={profileForm.available_start_date}
-                  onChange={(e) => setField("available_start_date", e.target.value)}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-3 pt-1">
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={profileForm.open_to_lateral}
-                  onChange={(e) => setField("open_to_lateral", e.target.checked)}
-                  className="rounded"
-                />
                 <div>
-                  <p className="text-sm text-[#0A0A0A] font-medium">Open to lateral roles</p>
-                  <p className="text-xs text-[#A3A3A3]">Roles at the same level in a different function or industry.</p>
+                  <label className="p-label">Qualification level</label>
+                  <Select value={profileForm.qualification_level || "__none__"} onValueChange={(v) => setField("qualification_level", v === "__none__" ? "" : v)}>
+                    <SelectTrigger className="border-[#DDDDDB]"><SelectValue placeholder="Select level" /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__">— Not set (system will infer) —</SelectItem>
+                      {QUALIFICATION_LEVEL_OPTIONS.map((o) => (
+                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-[11px] text-[#9C9DA1] mt-1">Controls the seniority ceiling on tier_1 recommendations.</p>
                 </div>
-              </label>
-              <label className="flex items-center gap-3 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={profileForm.open_to_outside_degree}
-                  onChange={(e) => setField("open_to_outside_degree", e.target.checked)}
-                  className="rounded"
-                />
-                <div>
-                  <p className="text-sm text-[#0A0A0A] font-medium">Open to roles outside my degree field</p>
-                  <p className="text-xs text-[#A3A3A3]">e.g. a Finance major applying to Operations or Product roles.</p>
-                </div>
-              </label>
-            </div>
-
-            <SaveProfileButton />
-          </div>
-        </TabsContent>
-
-        {/* ── Self-Assessment tab — mirrors StepSurvey ────────────────────── */}
-        <TabsContent value="self-assessment">
-          <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-6">
-            <p className="text-xs text-[#525252] bg-[#F5F5F5] border border-[#E5E5E5] rounded-lg px-3 py-2">
-              The same questions from onboarding. Update any of these as your situation changes — they
-              feed the weekly task generator and the chat agents&apos; understanding of where you&apos;re stuck.
-            </p>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">
-                Biggest Job-Search Challenges
-              </label>
-              <div className="grid grid-cols-1 gap-2">
-                {CHALLENGES.map((c) => {
-                  const isSelected = profileForm.biggest_challenge.includes(c);
-                  return (
-                    <button
-                      key={c}
-                      type="button"
-                      onClick={() => {
-                        const next = isSelected
-                          ? profileForm.biggest_challenge.filter((x) => x !== c)
-                          : [...profileForm.biggest_challenge, c];
-                        setField("biggest_challenge", next);
-                      }}
-                      className={`text-left text-sm px-4 py-3 rounded-lg border transition-colors ${
-                        isSelected
-                          ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
-                          : "bg-white text-[#525252] border-[#E5E5E5] hover:border-[#A3A3A3]"
-                      }`}
-                    >
-                      {c}
-                    </button>
-                  );
-                })}
               </div>
-              {/* Custom challenge chips (free-text answers from onboarding) */}
-              {profileForm.biggest_challenge.filter((c) => !CHALLENGES.includes(c)).length > 0 && (
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {profileForm.biggest_challenge.filter((c) => !CHALLENGES.includes(c)).map((c) => (
-                    <span key={c} className="inline-flex items-center gap-1 bg-[#0A0A0A] text-white text-xs px-2.5 py-1 rounded-md">
-                      {c}
-                      <button type="button" onClick={() => setField("biggest_challenge", profileForm.biggest_challenge.filter((x) => x !== c))} className="hover:text-red-300">
-                        <X className="w-3 h-3" />
+
+              <div>
+                <label className="p-label">Job titles you&apos;re targeting now</label>
+                <TagEditor
+                  tags={profileForm.target_job_titles}
+                  onChange={(v) => setField("target_job_titles", v)}
+                  placeholder="e.g. Marketing Coordinator, Junior Product Analyst"
+                />
+              </div>
+
+              <div>
+                <label className="p-label">Target industries</label>
+                <TagEditor
+                  tags={profileForm.target_industries}
+                  onChange={(v) => setField("target_industries", v)}
+                  placeholder="e.g. Fintech, Healthcare, Cybersecurity"
+                />
+              </div>
+
+              <div>
+                <label className="p-label">Adjacent fields</label>
+                <TagEditor
+                  tags={profileForm.adjacent_fields}
+                  onChange={(v) => setField("adjacent_fields", v)}
+                  placeholder="Other domains relevant to your background"
+                />
+                <p className="text-[11px] text-[#9C9DA1] mt-1">Used by the roadmap to surface bridge roles between your current and target domain.</p>
+              </div>
+
+              <div>
+                <label className="p-label">Current employment status</label>
+                <MultiSelectTiles
+                  options={EMPLOYMENT_STATUS_OPTIONS}
+                  selected={profileForm.employment_status}
+                  onChange={(v) => setField("employment_status", v)}
+                  exclusiveSubset={["looking_for_job", "employed", "unemployed"]}
+                />
+                <p className="text-[11px] text-[#9C9DA1] mt-1">If you select &quot;Student&quot;, tier scoring caps recommendations at the level you can be hired into now.</p>
+              </div>
+
+              <div>
+                <label className="p-label">Preferred work environment</label>
+                <MultiSelectTiles
+                  options={WORK_ENVIRONMENT_OPTIONS}
+                  selected={profileForm.work_environment}
+                  onChange={(v) => setField("work_environment", v)}
+                />
+              </div>
+
+              <div>
+                <label className="p-label">Work arrangement</label>
+                <MultiSelectTiles
+                  options={WORK_TYPE_OPTIONS}
+                  selected={profileForm.work_type}
+                  onChange={(v) => setField("work_type", v)}
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="p-label">Salary expectation (optional)</label>
+                  <input value={profileForm.salary_expectation} onChange={(e) => setField("salary_expectation", e.target.value)} className="p-input" placeholder="e.g. ₪12,000 - ₪15,000 / month" />
+                </div>
+                <div>
+                  <label className="p-label">Earliest start date</label>
+                  <input
+                    type="date"
+                    value={profileForm.available_start_date}
+                    onChange={(e) => setField("available_start_date", e.target.value)}
+                    className="p-input"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-3 pt-1">
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={profileForm.open_to_lateral}
+                    onChange={(e) => setField("open_to_lateral", e.target.checked)}
+                    className="rounded"
+                  />
+                  <div>
+                    <p className="text-sm text-[#0E1014] font-medium">Open to lateral roles</p>
+                    <p className="text-xs text-[#9C9DA1]">Roles at the same level in a different function or industry.</p>
+                  </div>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={profileForm.open_to_outside_degree}
+                    onChange={(e) => setField("open_to_outside_degree", e.target.checked)}
+                    className="rounded"
+                  />
+                  <div>
+                    <p className="text-sm text-[#0E1014] font-medium">Open to roles outside my degree field</p>
+                    <p className="text-xs text-[#9C9DA1]">e.g. a Finance major applying to Operations or Product roles.</p>
+                  </div>
+                </label>
+              </div>
+
+              <SaveProfileButton />
+            </div>
+          )}
+
+          {/* ── Self-Assessment tab ─────────────────────────────────── */}
+          {activeTab === "self-assessment" && (
+            <div className="p-card p-card-lg space-y-6">
+              <p className="p-banner p-banner-info">
+                The same questions from onboarding. Update any of these as your situation changes — they
+                feed the weekly task generator and the chat agents&apos; understanding of where you&apos;re stuck.
+              </p>
+
+              <div>
+                <label className="p-label">Biggest job-search challenges</label>
+                <div className="grid grid-cols-1 gap-2">
+                  {CHALLENGES.map((c) => {
+                    const isSelected = profileForm.biggest_challenge.includes(c);
+                    return (
+                      <button
+                        key={c}
+                        type="button"
+                        onClick={() => {
+                          const next = isSelected
+                            ? profileForm.biggest_challenge.filter((x) => x !== c)
+                            : [...profileForm.biggest_challenge, c];
+                          setField("biggest_challenge", next);
+                        }}
+                        className="p-stack-option"
+                        data-selected={isSelected}
+                      >
+                        {c}
                       </button>
-                    </span>
+                    );
+                  })}
+                </div>
+                {profileForm.biggest_challenge.filter((c) => !CHALLENGES.includes(c)).length > 0 && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {profileForm.biggest_challenge.filter((c) => !CHALLENGES.includes(c)).map((c) => (
+                      <span key={c} className="inline-flex items-center gap-1 bg-[#0E1014] text-[#F4F4F2] text-xs px-2.5 py-1 rounded-md">
+                        {c}
+                        <button type="button" onClick={() => setField("biggest_challenge", profileForm.biggest_challenge.filter((x) => x !== c))} className="hover:text-[#FDE7E3]">
+                          <X className="w-3 h-3" />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="p-label">CV tailoring strategy</label>
+                <StackedRadio
+                  options={CV_OPTIONS}
+                  value={profileForm.cv_tailoring_strategy}
+                  onChange={(v) => setField("cv_tailoring_strategy", v)}
+                />
+              </div>
+
+              <div>
+                <label className="p-label">LinkedIn outreach strategy</label>
+                <StackedRadio
+                  options={LINKEDIN_OPTIONS}
+                  value={profileForm.linkedin_outreach_strategy}
+                  onChange={(v) => setField("linkedin_outreach_strategy", v)}
+                />
+              </div>
+
+              <div>
+                <label className="p-label">Role clarity (1–5)</label>
+                <div className="flex gap-2 flex-wrap">
+                  {CLARITY_OPTIONS.map((o) => (
+                    <button
+                      key={o.value}
+                      type="button"
+                      onClick={() => setField("role_clarity_score", profileForm.role_clarity_score === o.value ? null : o.value)}
+                      className="p-tile"
+                      data-selected={profileForm.role_clarity_score === o.value}
+                    >
+                      {o.label}
+                    </button>
+                  ))}
+                </div>
+                <p className="text-xs text-[#9C9DA1] mt-2">Click again to clear.</p>
+              </div>
+
+              <div>
+                <label className="p-label">Job-search efforts so far</label>
+                <textarea
+                  value={profileForm.job_search_efforts}
+                  onChange={(e) => setField("job_search_efforts", e.target.value)}
+                  placeholder="e.g. Applied to 50+ roles, attended career fairs, updated my LinkedIn..."
+                  className="p-input"
+                  rows={4}
+                />
+              </div>
+
+              <SaveProfileButton />
+            </div>
+          )}
+
+          {/* ── Certifications tab ──────────────────────────────────── */}
+          {activeTab === "certifications" && (
+            <div className="space-y-4">
+              <div className="p-card p-card-lg space-y-4">
+                <h3 className="text-sm font-semibold text-[#0E1014]">Add certification</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="p-label">Certification name</label>
+                    <input value={certForm.name} onChange={(e) => setCertForm({ ...certForm, name: e.target.value })} className="p-input" />
+                  </div>
+                  <div>
+                    <label className="p-label">Issuer</label>
+                    <input value={certForm.issuer} onChange={(e) => setCertForm({ ...certForm, issuer: e.target.value })} className="p-input" placeholder="e.g. AWS, Google" />
+                  </div>
+                </div>
+                <button type="button" onClick={addCert} className="p-btn p-btn-primary">
+                  <Plus className="w-3.5 h-3.5" />Add certification
+                </button>
+              </div>
+              {certifications.length > 0 && (
+                <div className="space-y-2">
+                  <p className="p-eyebrow">Your certifications</p>
+                  {certifications.map((c) => (
+                    <div key={c.id} className="p-card flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-[#0E1014]">{c.name}</p>
+                        <p className="text-xs text-[#9C9DA1]">{c.issuer}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const { error } = await supabase.from("certifications").delete().eq("id", c.id).eq("user_id", user.id);
+                          if (error) { toast.error("Failed to delete certification."); return; }
+                          queryClient.invalidateQueries({ queryKey: ["certifications"] });
+                          toast.success("Certification removed.");
+                        }}
+                        className="p-btn p-btn-ghost p-btn-sm"
+                        aria-label="Delete certification"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                   ))}
                 </div>
               )}
             </div>
+          )}
 
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">
-                CV Tailoring Strategy
-              </label>
-              <StackedRadio
-                options={CV_OPTIONS}
-                value={profileForm.cv_tailoring_strategy}
-                onChange={(v) => setField("cv_tailoring_strategy", v)}
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">
-                LinkedIn Outreach Strategy
-              </label>
-              <StackedRadio
-                options={LINKEDIN_OPTIONS}
-                value={profileForm.linkedin_outreach_strategy}
-                onChange={(v) => setField("linkedin_outreach_strategy", v)}
-              />
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">
-                Role Clarity (1–5)
-              </label>
-              <div className="flex gap-2 flex-wrap">
-                {CLARITY_OPTIONS.map((o) => (
-                  <button
-                    key={o.value}
-                    type="button"
-                    onClick={() => setField("role_clarity_score", profileForm.role_clarity_score === o.value ? null : o.value)}
-                    className={`text-sm px-4 py-2 rounded-lg border transition-colors ${
-                      profileForm.role_clarity_score === o.value
-                        ? "bg-[#0A0A0A] text-white border-[#0A0A0A]"
-                        : "bg-white text-[#525252] border-[#E5E5E5] hover:border-[#A3A3A3]"
-                    }`}
-                  >
-                    {o.label}
-                  </button>
-                ))}
-              </div>
-              <p className="text-xs text-[#A3A3A3] mt-2">Click again to clear.</p>
-            </div>
-
-            <div>
-              <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">
-                Job-Search Efforts So Far
-              </label>
-              <Textarea
-                value={profileForm.job_search_efforts}
-                onChange={(e) => setField("job_search_efforts", e.target.value)}
-                placeholder="e.g. Applied to 50+ roles, attended career fairs, updated my LinkedIn..."
-                className="text-sm min-h-[80px]"
-              />
-            </div>
-
-            <SaveProfileButton />
-          </div>
-        </TabsContent>
-
-        {/* ── Certifications tab (unchanged) ──────────────────────────────── */}
-        <TabsContent value="certifications">
-          <div className="space-y-4">
-            <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-4">
-              <h3 className="text-sm font-semibold text-[#0A0A0A]">Add Certification</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Certification Name</label>
-                  <Input value={certForm.name} onChange={(e) => setCertForm({ ...certForm, name: e.target.value })} className="mt-1" />
-                </div>
-                <div>
-                  <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Issuer</label>
-                  <Input value={certForm.issuer} onChange={(e) => setCertForm({ ...certForm, issuer: e.target.value })} className="mt-1" placeholder="e.g. AWS, Google" />
-                </div>
-              </div>
-              <Button onClick={addCert} className="bg-[#0A0A0A] hover:bg-[#262626] text-sm">
-                <Plus className="w-4 h-4 mr-2" />Add Certification
-              </Button>
-            </div>
-            {certifications.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="text-xs uppercase tracking-wider text-[#A3A3A3] font-medium">Your Certifications</h3>
-                {certifications.map((c) => (
-                  <div key={c.id} className="bg-white rounded-lg border border-[#E5E5E5] px-4 py-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-[#0A0A0A]">{c.name}</p>
-                      <p className="text-xs text-[#A3A3A3]">{c.issuer}</p>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={async () => { const { error } = await supabase.from("certifications").delete().eq("id", c.id).eq("user_id", user.id); if (error) { toast.error("Failed to delete certification."); return; } queryClient.invalidateQueries({ queryKey: ["certifications"] }); toast.success("Certification removed."); }}>
-                      <Trash2 className="w-4 h-4 text-[#A3A3A3] hover:text-red-500" />
-                    </Button>
+          {/* ── Projects tab ────────────────────────────────────────── */}
+          {activeTab === "projects" && (
+            <div className="space-y-4">
+              <div className="p-card p-card-lg space-y-4">
+                <h3 className="text-sm font-semibold text-[#0E1014]">Add project</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="p-label">Project name</label>
+                    <input value={projectForm.name} onChange={(e) => setProjectForm({ ...projectForm, name: e.target.value })} className="p-input" />
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-        {/* ── Projects tab (unchanged) ────────────────────────────────────── */}
-        <TabsContent value="projects">
-          <div className="space-y-4">
-            <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-4">
-              <h3 className="text-sm font-semibold text-[#0A0A0A]">Add Project</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Project Name</label>
-                  <Input value={projectForm.name} onChange={(e) => setProjectForm({ ...projectForm, name: e.target.value })} className="mt-1" />
-                </div>
-                <div>
-                  <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">URL</label>
-                  <Input value={projectForm.url} onChange={(e) => setProjectForm({ ...projectForm, url: e.target.value })} className="mt-1" placeholder="https://github.com/..." />
-                </div>
-              </div>
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Description</label>
-                <Textarea value={projectForm.description} onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })} className="mt-1" rows={3} />
-              </div>
-              <Button onClick={addProject} className="bg-[#0A0A0A] hover:bg-[#262626] text-sm">
-                <Plus className="w-4 h-4 mr-2" />Add Project
-              </Button>
-            </div>
-            {projects.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="text-xs uppercase tracking-wider text-[#A3A3A3] font-medium">Your Projects</h3>
-                {projects.map((p) => (
-                  <div key={p.id} className="bg-white rounded-lg border border-[#E5E5E5] px-4 py-3 flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-[#0A0A0A]">{p.name}</p>
-                      <p className="text-xs text-[#A3A3A3]">{p.description?.substring(0, 60)}{p.description?.length > 60 ? "..." : ""}</p>
-                    </div>
-                    <Button variant="ghost" size="sm" onClick={async () => { const { error } = await supabase.from("projects").delete().eq("id", p.id).eq("user_id", user.id); if (error) { toast.error("Failed to delete project."); return; } queryClient.invalidateQueries({ queryKey: ["projects"] }); toast.success("Project removed."); }}>
-                      <Trash2 className="w-4 h-4 text-[#A3A3A3] hover:text-red-500" />
-                    </Button>
+                  <div>
+                    <label className="p-label">URL</label>
+                    <input value={projectForm.url} onChange={(e) => setProjectForm({ ...projectForm, url: e.target.value })} className="p-input" placeholder="https://github.com/..." />
                   </div>
-                ))}
+                </div>
+                <div>
+                  <label className="p-label">Description</label>
+                  <textarea value={projectForm.description} onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })} className="p-input" rows={3} />
+                </div>
+                <button type="button" onClick={addProject} className="p-btn p-btn-primary">
+                  <Plus className="w-3.5 h-3.5" />Add project
+                </button>
               </div>
-            )}
-          </div>
-        </TabsContent>
+              {projects.length > 0 && (
+                <div className="space-y-2">
+                  <p className="p-eyebrow">Your projects</p>
+                  {projects.map((p) => (
+                    <div key={p.id} className="p-card flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-[#0E1014]">{p.name}</p>
+                        <p className="text-xs text-[#9C9DA1]">{p.description?.substring(0, 60)}{p.description?.length > 60 ? "..." : ""}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          const { error } = await supabase.from("projects").delete().eq("id", p.id).eq("user_id", user.id);
+                          if (error) { toast.error("Failed to delete project."); return; }
+                          queryClient.invalidateQueries({ queryKey: ["projects"] });
+                          toast.success("Project removed.");
+                        }}
+                        className="p-btn p-btn-ghost p-btn-sm"
+                        aria-label="Delete project"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
-        {/* ── Experience tab (unchanged) ──────────────────────────────────── */}
-        <TabsContent value="experience">
-          <div className="space-y-4">
-            <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-semibold text-[#0A0A0A]">
-                  {expForm.id ? "Edit Experience" : "Add Experience"}
-                </h3>
-                {expForm.id && (
-                  <button onClick={resetExpForm} className="text-xs text-[#A3A3A3] hover:text-[#525252] underline">
-                    Cancel edit
-                  </button>
-                )}
+          {/* ── Experience tab ──────────────────────────────────────── */}
+          {activeTab === "experience" && (
+            <div className="space-y-4">
+              {/* Story Bank summary — links to /StoryBank for full management */}
+              <div className="p-card flex items-center justify-between gap-3 flex-wrap">
+                <div className="flex items-center gap-3 min-w-0">
+                  <div className="w-8 h-8 rounded-lg bg-[#FDE7E3] flex items-center justify-center flex-shrink-0">
+                    <BookText className="w-4 h-4 text-[#C84F40]" />
+                  </div>
+                  <div className="min-w-0">
+                    <p className="text-sm font-semibold text-[#0E1014]">
+                      {stories.length === 0
+                        ? "No stories captured yet."
+                        : `${stories.length} ${stories.length === 1 ? "story" : "stories"} captured.`}
+                    </p>
+                    <p className="text-xs text-[#52545A]">
+                      Story Bank stores STAR-format moments that feed CVs, LinkedIn posts, and interview prep.
+                    </p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate(createPageUrl("StoryBank"))}
+                  className="p-btn p-btn-outline p-btn-sm flex-shrink-0"
+                >
+                  Open Story Bank<ExternalLink className="w-3.5 h-3.5" />
+                </button>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Title</label>
-                  <Input value={expForm.title} onChange={(e) => setExpForm({ ...expForm, title: e.target.value })} className="mt-1" placeholder="e.g. Sergeant First Class, Marketing Intern" />
+
+              <div className="p-card p-card-lg space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-[#0E1014]">
+                    {expForm.id ? "Edit experience" : "Add experience"}
+                  </h3>
+                  {expForm.id && (
+                    <button onClick={resetExpForm} className="text-xs text-[#9C9DA1] hover:text-[#52545A] underline">
+                      Cancel edit
+                    </button>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="p-label">Title</label>
+                    <input value={expForm.title} onChange={(e) => setExpForm({ ...expForm, title: e.target.value })} className="p-input" placeholder="e.g. Sergeant First Class, Marketing Intern" />
+                  </div>
+                  <div>
+                    <label className="p-label">Company / unit / organization</label>
+                    <input value={expForm.company} onChange={(e) => setExpForm({ ...expForm, company: e.target.value })} className="p-input" placeholder="e.g. Nahal Brigade, Google" />
+                  </div>
+                  <div>
+                    <label className="p-label">Start date</label>
+                    <input value={expForm.start_date} onChange={(e) => setExpForm({ ...expForm, start_date: e.target.value })} className="p-input" placeholder="e.g. Oct 2025 or 2020" />
+                  </div>
+                  <div>
+                    <label className="p-label">End date</label>
+                    <input
+                      value={expForm.end_date}
+                      onChange={(e) => setExpForm({ ...expForm, end_date: e.target.value, is_current: e.target.value.toLowerCase() === "present" })}
+                      className="p-input"
+                      placeholder="e.g. Jul 2025 or Present"
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Company / Unit / Organization</label>
-                  <Input value={expForm.company} onChange={(e) => setExpForm({ ...expForm, company: e.target.value })} className="mt-1" placeholder="e.g. Nahal Brigade, Google" />
+                  <label className="p-label">Type</label>
+                  <Select value={expForm.type} onValueChange={(v) => setExpForm({ ...expForm, type: v })}>
+                    <SelectTrigger className="border-[#DDDDDB]"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="internship">Internship</SelectItem>
+                      <SelectItem value="full_time">Full Time</SelectItem>
+                      <SelectItem value="part_time">Part Time</SelectItem>
+                      <SelectItem value="freelance">Freelance</SelectItem>
+                      <SelectItem value="volunteer">Volunteer</SelectItem>
+                      <SelectItem value="leadership">Leadership / Club</SelectItem>
+                      <SelectItem value="military">Military / IDF</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div>
-                  <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Start Date</label>
-                  <Input value={expForm.start_date} onChange={(e) => setExpForm({ ...expForm, start_date: e.target.value })} className="mt-1" placeholder="e.g. Oct 2025 or 2020" />
-                </div>
-                <div>
-                  <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">End Date</label>
-                  <Input
-                    value={expForm.end_date}
-                    onChange={(e) => setExpForm({ ...expForm, end_date: e.target.value, is_current: e.target.value.toLowerCase() === "present" })}
-                    className="mt-1"
-                    placeholder="e.g. Jul 2025 or Present"
+                  <label className="p-label">Responsibilities</label>
+                  <textarea
+                    value={expForm.responsibilities}
+                    onChange={(e) => setExpForm({ ...expForm, responsibilities: e.target.value })}
+                    className="p-input"
+                    rows={5}
+                    placeholder="One responsibility per line. Examples:&#10;Led a team of 5 engineers on the onboarding feature.&#10;Awarded Presidential Award for Excellence (Independence Day 2022)."
                   />
                 </div>
-              </div>
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Type</label>
-                <Select value={expForm.type} onValueChange={(v) => setExpForm({ ...expForm, type: v })}>
-                  <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="internship">Internship</SelectItem>
-                    <SelectItem value="full_time">Full Time</SelectItem>
-                    <SelectItem value="part_time">Part Time</SelectItem>
-                    <SelectItem value="freelance">Freelance</SelectItem>
-                    <SelectItem value="volunteer">Volunteer</SelectItem>
-                    <SelectItem value="leadership">Leadership / Club</SelectItem>
-                    <SelectItem value="military">Military / IDF</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Responsibilities</label>
-                <Textarea
-                  value={expForm.responsibilities}
-                  onChange={(e) => setExpForm({ ...expForm, responsibilities: e.target.value })}
-                  className="mt-1"
-                  rows={5}
-                  placeholder="One responsibility per line. Examples:&#10;Led a team of 5 engineers on the onboarding feature.&#10;Awarded Presidential Award for Excellence (Independence Day 2022)."
+                <SkillTagInput
+                  label="Skills used"
+                  description="Skills you applied in this role — feeds CV bullet generation and skill-graph matching."
+                  tags={expForm.skills_used}
+                  onChange={(v) => setExpForm({ ...expForm, skills_used: v })}
+                  placeholder="e.g. SQL, stakeholder management"
+                  suggestionType="skills"
                 />
+                <button type="button" onClick={addExperience} className="p-btn p-btn-primary">
+                  {expForm.id ? "Update experience" : <><Plus className="w-3.5 h-3.5" />Add experience</>}
+                </button>
               </div>
-              <Button onClick={addExperience} className="bg-[#0A0A0A] hover:bg-[#262626] text-sm">
-                {expForm.id ? (<>Update Experience</>) : (<><Plus className="w-4 h-4 mr-2" />Add Experience</>)}
-              </Button>
-            </div>
-            {experiences.length > 0 && (
-              <div className="space-y-2">
-                <h3 className="text-xs uppercase tracking-wider text-[#A3A3A3] font-medium">Your Experience</h3>
-                {experiences.map((e) => {
-                  const expStories = storiesByExperience.get(e.id) || [];
-                  return (
-                    <div key={e.id} className="bg-white rounded-lg border border-[#E5E5E5]">
-                      <div className="px-4 py-3 flex items-center justify-between gap-3">
+
+              {experiences.length > 0 && (
+                <div className="space-y-2">
+                  <p className="p-eyebrow">Your experience</p>
+                  {experiences.map((e) => {
+                    const count = storyCountByExperience.get(e.id) || 0;
+                    return (
+                      <div key={e.id} className="p-exp-card">
                         <div className="min-w-0 flex-1">
-                          <p className="text-sm font-medium text-[#0A0A0A] truncate">{e.title} <span className="text-[#A3A3A3]">at</span> {e.company}</p>
-                          <p className="text-xs text-[#A3A3A3]">
+                          <p className="p-exp-card-title truncate">
+                            {e.title} <span className="text-[#9C9DA1] font-normal">at</span> {e.company}
+                          </p>
+                          <p className="p-exp-card-meta">
                             {e.type?.replace("_", " ")}
                             {e.start_date ? ` · ${e.start_date}${e.end_date ? ` – ${e.end_date}` : ""}` : ""}
                           </p>
                         </div>
-                        <div className="flex items-center gap-1 flex-shrink-0">
-                          <Button
-                            variant="ghost"
-                            size="sm"
+                        <div className="flex items-center gap-2 flex-shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => navigate(`${createPageUrl("StoryBank")}?filter=experience_id=${e.id}`)}
+                            className="p-story-pill"
+                            data-has={count > 0}
+                            title={count > 0 ? "View stories in Story Bank" : "Capture a story for this experience"}
+                          >
+                            <BookText className="w-3 h-3" />
+                            {count} {count === 1 ? "story" : "stories"}
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => setExpForm({
                               id: e.id,
                               title: e.title || "",
@@ -1255,155 +1197,34 @@ export default function AddInformation() {
                               responsibilities: e.responsibilities || "",
                               skills_used: e.skills_used || [],
                             })}
-                            className="text-xs"
+                            className="p-btn p-btn-ghost p-btn-sm"
                           >
                             Edit
-                          </Button>
-                          <Button variant="ghost" size="sm" onClick={async () => { const { error } = await supabase.from("experiences").delete().eq("id", e.id).eq("user_id", user.id); if (error) { toast.error("Failed to delete experience."); return; } queryClient.invalidateQueries({ queryKey: ["experiences"] }); if (expForm.id === e.id) resetExpForm(); toast.success("Experience removed."); }}>
-                            <Trash2 className="w-4 h-4 text-[#A3A3A3] hover:text-red-500" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Stories section — collapsed list with per-story details
-                          expand. Uses native <details> for accessibility +
-                          zero JS state. Each story row is a single line
-                          (title); expanding shows the full STAR + tags. */}
-                      <div className="border-t border-[#F5F5F5] px-4 py-2.5">
-                        <div className="flex items-center justify-between gap-3 mb-1.5">
-                          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium flex items-center gap-1.5">
-                            <BookText className="w-3 h-3" />
-                            Stories ({expStories.length})
-                          </p>
+                          </button>
                           <button
                             type="button"
-                            onClick={() => {
-                              setStoryModal({ experience_id: e.id, source: "manual_form" });
+                            onClick={async () => {
+                              const { error } = await supabase.from("experiences").delete().eq("id", e.id).eq("user_id", user.id);
+                              if (error) { toast.error("Failed to delete experience."); return; }
+                              queryClient.invalidateQueries({ queryKey: ["experiences"] });
+                              if (expForm.id === e.id) resetExpForm();
+                              toast.success("Experience removed.");
                             }}
-                            className="text-[11px] font-medium text-violet-700 hover:text-violet-900"
+                            className="p-btn p-btn-ghost p-btn-sm"
+                            aria-label="Delete experience"
                           >
-                            + Add story
+                            <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
-                        {expStories.length === 0 ? (
-                          <p className="text-[11px] text-[#A3A3A3] italic">No stories yet — capture moments to ground CV gen + interview prep.</p>
-                        ) : (
-                          <div className="space-y-1">
-                            {expStories.map((s) => (
-                              <details key={s.id} className="group">
-                                <summary className="text-xs text-[#0A0A0A] cursor-pointer list-none flex items-center gap-2 py-1 hover:bg-[#FAFAFA] rounded px-1.5 -mx-1.5">
-                                  <span className="text-[#A3A3A3] group-open:rotate-90 transition-transform">▸</span>
-                                  <span className="truncate">{s.title}</span>
-                                </summary>
-                                <div className="pl-5 pr-2 py-2 text-[11px] text-[#525252] space-y-1.5">
-                                  {s.situation && <div><span className="text-[#A3A3A3] uppercase tracking-wider text-[10px]">Situation</span><br/>{s.situation}</div>}
-                                  {s.task && <div><span className="text-[#A3A3A3] uppercase tracking-wider text-[10px]">Task</span><br/>{s.task}</div>}
-                                  {s.action && <div><span className="text-[#A3A3A3] uppercase tracking-wider text-[10px]">Action</span><br/>{s.action}</div>}
-                                  {s.result && <div><span className="text-[#A3A3A3] uppercase tracking-wider text-[10px]">Result</span><br/>{s.result}</div>}
-                                  {s.metrics?.length > 0 && (
-                                    <div><span className="text-[#A3A3A3] uppercase tracking-wider text-[10px]">Metrics</span><br/>{s.metrics.join(" · ")}</div>
-                                  )}
-                                  {s.skills_demonstrated?.length > 0 && (
-                                    <div><span className="text-[#A3A3A3] uppercase tracking-wider text-[10px]">Skills</span><br/>{s.skills_demonstrated.join(", ")}</div>
-                                  )}
-                                  {s.tools_used?.length > 0 && (
-                                    <div><span className="text-[#A3A3A3] uppercase tracking-wider text-[10px]">Tools</span><br/>{s.tools_used.join(", ")}</div>
-                                  )}
-                                  <div className="text-[10px] text-[#A3A3A3] pt-1">
-                                    Captured {new Date(s.created_at).toLocaleDateString()} · source: {s.source}
-                                  </div>
-                                </div>
-                              </details>
-                            ))}
-                          </div>
-                        )}
                       </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </div>
-        </TabsContent>
-
-      </Tabs>
-
-      {/* Floating quick-add Story button — visible on every AddInformation
-          tab, opens a modal with experience picker. Per Wk 3 spec: scoped
-          to AddInformation only for v1 (CareerRoadmap could be a Wk 4+
-          surface if pilot signal warrants). Hidden when the per-experience
-          inline modal is open to avoid stacking. */}
-      {!storyModal && experiences.length > 0 && (
-        <button
-          type="button"
-          onClick={() => {
-            setQuickAddExperienceId(experiences[0]?.id || "");
-            setStoryModal({ experience_id: null, source: "manual_quick_add" });
-          }}
-          className="fixed bottom-6 right-6 bg-violet-700 hover:bg-violet-800 text-white rounded-full shadow-lg px-4 py-3 flex items-center gap-2 text-sm font-medium z-40"
-          aria-label="Add a story"
-        >
-          <BookText className="w-4 h-4" />
-          <span className="hidden sm:inline">+ Story</span>
-        </button>
-      )}
-
-      {/* Story capture modal — used by both surfaces. The inline path passes
-          experience_id directly; the quick-add path passes null and shows
-          the picker first. The StorySaveCard handles the rest of the flow
-          (text → extract → review → save). */}
-      <Dialog open={!!storyModal} onOpenChange={(open) => {
-        if (!open) {
-          setStoryModal(null);
-          // Closing without saving leaves the Reflect daily action pending.
-          setDailyActionCtx(null);
-        }
-      }}>
-        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-base font-semibold flex items-center gap-2">
-              <BookText className="w-4 h-4 text-violet-700" />
-              Add a story
-            </DialogTitle>
-          </DialogHeader>
-          <div className="pt-2">
-            {storyModal?.source === "manual_quick_add" && (
-              <div className="mb-3">
-                <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1 block">
-                  Which experience?
-                </label>
-                <Select value={quickAddExperienceId} onValueChange={setQuickAddExperienceId}>
-                  <SelectTrigger><SelectValue placeholder="Pick an experience" /></SelectTrigger>
-                  <SelectContent>
-                    {experiences.map((e) => (
-                      <SelectItem key={e.id} value={e.id}>
-                        {e.title}{e.company ? ` at ${e.company}` : ""}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            {(storyModal?.experience_id || quickAddExperienceId) && (
-              <StorySaveCard
-                key={storyModal?.experience_id || quickAddExperienceId}
-                capture={{
-                  text: "",
-                  experience_id: storyModal?.experience_id || quickAddExperienceId,
-                  framing: dailyActionCtx?.prompt || "Capture a moment from your work history.",
-                }}
-                experienceLabel={(() => {
-                  const id = storyModal?.experience_id || quickAddExperienceId;
-                  const exp = experiences.find((x) => x.id === id);
-                  return exp ? `${exp.title}${exp.company ? ` at ${exp.company}` : ""}` : null;
-                })()}
-                onExtract={handleExtractStory}
-                onSave={handleSaveStory}
-              />
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
-    </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
