@@ -26,6 +26,8 @@ export const ONB_CSS = `
   --onb-success-tint: #DBEEE5;
   --onb-warning: #B8841C;
   --onb-warning-tint: #F5E8C9;
+  --onb-info: #2B5DC4;
+  --onb-info-tint: #DEE6F7;
   --onb-radius-sm: 8px;
   --onb-radius: 14px;
   --onb-radius-lg: 20px;
@@ -98,7 +100,8 @@ export const ONB_CSS = `
 
 /* ── Banner ────────────────────────────────────────────────── */
 .onb-banner { padding: 12px 16px; border-radius: var(--onb-radius); font-size: 13.5px; line-height: 1.5; }
-.onb-banner-info { background: var(--onb-warning-tint); color: #6B4E0F; border: 1px solid #E0B850; }
+.onb-banner-info { background: var(--onb-info-tint); color: #1E4A9E; border: 1px solid #A8BFEA; }
+.onb-banner-warning { background: var(--onb-warning-tint); color: #6B4E0F; border: 1px solid #E0B850; }
 .onb-banner-success { background: var(--onb-success-tint); color: var(--onb-success); border: 1px solid #8FBDA8; }
 .onb-banner-error { background: var(--onb-accent-tint); color: var(--onb-accent-deep); border: 1px solid var(--onb-accent); }
 
