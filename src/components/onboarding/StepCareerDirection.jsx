@@ -1,52 +1,31 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Check } from "lucide-react";
+import { Check, ArrowRight } from "lucide-react";
 import SkillTagInput from "./SkillTagInput";
 import PresetBubbleInput from "./PresetBubbleInput";
 import { matchRoles } from "@/lib/roleMatch";
 
-// Preset bubbles for the industries field — aligned with the canonical
-// spellings in the companies.industry column so the substring matcher in
-// match-internship-companies can actually fire against real seeded rows.
-// Ordered by company count in the pilot seed (Cybersecurity is the biggest
-// segment in Israeli tech; PropTech is the smallest of the high-signal ones).
+// Industry presets aligned with companies.industry canonical spellings so the
+// substring matcher in match-internship-companies fires against real seeded
+// rows. Ordered by pilot-seed company count.
 const INDUSTRY_PRESETS = [
-  "Cybersecurity",
-  "FinTech",
-  "B2B SaaS",
-  "AI/ML",
-  "InsurTech",
-  "HealthTech",
-  "HR Tech",
-  "MarTech",
-  "AdTech",
-  "Gaming",
-  "EdTech",
-  "PropTech",
+  "Cybersecurity", "FinTech", "B2B SaaS", "AI/ML", "InsurTech", "HealthTech",
+  "HR Tech", "MarTech", "AdTech", "Gaming", "EdTech", "PropTech",
 ];
 
-// Preset bubbles for work environment — matches the 6 options in
-// AddInformation.jsx exactly so onboarding ↔ profile-edit don't drift.
+// Mirrors AddInformation.jsx exactly so onboarding ↔ profile-edit don't drift.
 const WORK_ENVIRONMENT_PRESETS = [
-  "Startup",
-  "Scale-up",
-  "Corporate",
-  "Agency",
-  "Non-profit",
-  "Public Sector",
+  "Startup", "Scale-up", "Corporate", "Agency", "Non-profit", "Public Sector",
 ];
 
 export default function StepCareerDirection({ data, onChange, onNext, onBack }) {
   const set = (key, val) => onChange({ ...data, [key]: val });
 
-  const canProceed = data.five_year_role?.trim();
+  const canProceed = !!data.five_year_role?.trim();
 
-  // Debounced suggestions for the 5-year role input.
-  // The user may type "product", "PM", "UX", etc. — we surface matching library titles
-  // so they can pick a canonical one without being forced.
+  // Debounced autocomplete against the 183-role library — surface canonical
+  // titles so the user can pick one without being forced.
   const [showSuggestions, setShowSuggestions] = useState(false);
-  const [dismissedFor, setDismissedFor] = useState(""); // raw text the user dismissed with "None of these"
+  const [dismissedFor, setDismissedFor] = useState("");
   const [highlightedIndex, setHighlightedIndex] = useState(0);
   const debounceRef = useRef(null);
   const fiveYearWrapperRef = useRef(null);
@@ -65,7 +44,6 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
     [debouncedInput]
   );
 
-  // Click-outside to dismiss the dropdown (mirrors AutocompleteInput pattern).
   useEffect(() => {
     const onClick = (e) => {
       if (fiveYearWrapperRef.current && !fiveYearWrapperRef.current.contains(e.target)) {
@@ -76,10 +54,8 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
     return () => document.removeEventListener("mousedown", onClick);
   }, []);
 
-  // Reset keyboard highlight whenever the suggestion list changes.
   useEffect(() => { setHighlightedIndex(0); }, [suggestions]);
 
-  // Auto-hide suggestions if the field matches exactly, is empty, or was dismissed.
   const shouldShow =
     showSuggestions &&
     !exact &&
@@ -115,45 +91,44 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <div>
-        <h2 className="text-xl font-bold text-[#0A0A0A] tracking-tight">Career Direction</h2>
-        <p className="text-sm text-[#525252] mt-1">
-          Tell us where you want your career to go. We&apos;ll separate what you qualify for now from what you&apos;re aiming for next.
+        <h1 className="onb-h1">Where do you want to go?</h1>
+        <p className="onb-sub">
+          Tell us where you want your career to head. We&apos;ll separate what you qualify for now from what you&apos;re aiming for next.
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-5">
+      <div className="space-y-5">
         <div ref={fiveYearWrapperRef} className="relative">
-          <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">
-            Where do you want to be in 5 years? <span className="text-red-400">*</span>
+          <label className="onb-label">
+            Where do you want to be in 5 years? <span className="req">*</span>
           </label>
-          <Input
+          <input
             value={data.five_year_role || ""}
             onChange={(e) => {
               set("five_year_role", e.target.value);
               setShowSuggestions(true);
-              // Clear the dismissal if user changes the text
               if (e.target.value.trim() !== dismissedFor) setDismissedFor("");
             }}
             onFocus={() => setShowSuggestions(true)}
             onKeyDown={handleFiveYearKeyDown}
             placeholder="e.g. Product Manager, Data Analyst, Marketing Manager"
+            className="onb-input"
           />
 
-          {/* Dropdown overlay — true autocomplete pattern */}
           {shouldShow && (
-            <div className="absolute z-50 w-full mt-1 bg-white border border-[#E5E5E5] rounded-lg shadow-lg max-h-72 overflow-y-auto">
+            <div className="absolute z-50 w-full mt-1 bg-white border border-[#DDDDDB] rounded-[14px] shadow-lg max-h-72 overflow-y-auto">
               {suggestions.map((s, idx) => (
                 <button
                   key={s.id}
                   type="button"
                   onClick={() => chooseSuggestion(s)}
                   onMouseEnter={() => setHighlightedIndex(idx)}
-                  className={`w-full text-left px-3 py-2 text-sm transition-colors ${
+                  className={`w-full text-left px-3.5 py-2.5 text-sm transition-colors ${
                     idx === highlightedIndex
-                      ? "bg-[#F5F5F5] text-[#0A0A0A]"
-                      : "text-[#525252] hover:bg-[#FAFAFA]"
+                      ? "bg-[#FDE7E3] text-[#0E1014]"
+                      : "text-[#52545A] hover:bg-[#F4F4F2]"
                   }`}
                 >
                   {s.title}
@@ -162,24 +137,23 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
               <button
                 type="button"
                 onClick={dismiss}
-                className="w-full text-left px-3 py-2 text-xs text-[#A3A3A3] hover:text-[#525252] border-t border-[#F0F0F0]"
+                className="w-full text-left px-3.5 py-2.5 text-xs text-[#9C9DA1] hover:text-[#52545A] border-t border-[#E8E8E5]"
               >
                 None of these — keep &quot;{(data.five_year_role || "").trim()}&quot;
               </button>
             </div>
           )}
 
-          {/* Exact match — quiet confirmation below the input */}
           {exact && (data.five_year_role || "").trim() && (
-            <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-emerald-700">
+            <p className="mt-2 inline-flex items-center gap-1.5 text-xs text-[#1D7556]">
               <Check className="w-3.5 h-3.5" /> Matched: {exact.title}
             </p>
           )}
         </div>
 
         <SkillTagInput
-          label="Job Titles That Interest You Now"
-          description="Roles you are considering applying to in the next 3–6 months."
+          label="Job titles that interest you now"
+          description="Roles you might apply to in the next 3–6 months."
           tags={data.target_job_titles || []}
           onChange={(v) => set("target_job_titles", v)}
           placeholder="e.g. Data Analyst, Marketing Coordinator"
@@ -187,7 +161,7 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
         />
 
         <PresetBubbleInput
-          label="Target Industries"
+          label="Target industries"
           description="Pick the industries you're aiming for. Add your own if it's not listed."
           presets={INDUSTRY_PRESETS}
           tags={data.target_industries || []}
@@ -196,7 +170,7 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
         />
 
         <PresetBubbleInput
-          label="Preferred Work Environment"
+          label="Preferred work environment"
           description="Select all environments you're open to working in."
           presets={WORK_ENVIRONMENT_PRESETS}
           tags={data.work_environment || []}
@@ -205,38 +179,38 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
         />
 
         <div className="space-y-3 pt-1">
-          <label className="flex items-center gap-3 cursor-pointer">
+          <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={data.open_to_lateral || false}
               onChange={(e) => set("open_to_lateral", e.target.checked)}
-              className="rounded"
+              className="rounded mt-0.5 accent-[#F87060]"
             />
             <div>
-              <p className="text-sm text-[#0A0A0A] font-medium">Open to lateral roles</p>
-              <p className="text-xs text-[#A3A3A3]">Roles at the same level in a different function or industry</p>
+              <p className="text-sm text-[#0E1014] font-medium">Open to lateral roles</p>
+              <p className="text-xs text-[#9C9DA1]">Roles at the same level in a different function or industry</p>
             </div>
           </label>
-          <label className="flex items-center gap-3 cursor-pointer">
+          <label className="flex items-start gap-3 cursor-pointer">
             <input
               type="checkbox"
               checked={data.open_to_outside_degree || false}
               onChange={(e) => set("open_to_outside_degree", e.target.checked)}
-              className="rounded"
+              className="rounded mt-0.5 accent-[#F87060]"
             />
             <div>
-              <p className="text-sm text-[#0A0A0A] font-medium">Open to roles outside my degree field</p>
-              <p className="text-xs text-[#A3A3A3]">E.g. a Finance major applying to Operations or Product roles</p>
+              <p className="text-sm text-[#0E1014] font-medium">Open to roles outside my degree field</p>
+              <p className="text-xs text-[#9C9DA1]">E.g. a Finance major applying to Operations or Product roles</p>
             </div>
           </label>
         </div>
       </div>
 
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onBack} className="text-sm">Back</Button>
-        <Button onClick={onNext} disabled={!canProceed} className="bg-[#0A0A0A] hover:bg-[#262626] text-sm px-6">
-          Continue to Constraints
-        </Button>
+      <div className="flex justify-between pt-2">
+        <button onClick={onBack} className="onb-btn onb-btn-outline">Back</button>
+        <button onClick={onNext} disabled={!canProceed} className="onb-btn onb-btn-primary onb-btn-lg">
+          Continue <ArrowRight className="w-4 h-4" />
+        </button>
       </div>
     </div>
   );
