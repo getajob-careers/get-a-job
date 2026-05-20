@@ -9,6 +9,7 @@ import { EMPTY_PROFILE, cleanProfilePayload, ALLOWED_EXPERIENCE_TYPES, inferExpe
 import { normalizeEducationLevel, parseEducationDateRange } from "@/lib/educationPolicy";
 import { resolveDueDate, defaultDueDateFor } from "@/lib/taskDueDate";
 import { track, EVENTS } from "@/lib/analytics";
+import { ONB_CSS } from "../components/onboarding/onboardingStyles";
 
 // Step index → snake_case name for the onboarding_step_completed event
 // property. Order matches the step constant at the top of this file.
@@ -958,9 +959,12 @@ export default function Onboarding() {
 
   if (checkingProfile) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#FAFAFA]">
-        <Loader2 className="w-5 h-5 animate-spin text-[#A3A3A3]" />
-      </div>
+      <>
+        <style>{ONB_CSS}</style>
+        <div className="onb min-h-screen flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-[#52545A]" />
+        </div>
+      </>
     );
   }
 
@@ -972,46 +976,55 @@ export default function Onboarding() {
   if (step === 8) {
     return (
       <>
-        {finaliseError && (
-          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full px-4 py-3 bg-red-50 border border-red-200 rounded-lg shadow-sm">
-            <p className="text-sm text-red-700">{finaliseError}</p>
-            <button onClick={handleFinalise} className="mt-2 text-xs font-medium text-red-800 underline underline-offset-2">
-              Retry
-            </button>
-          </div>
-        )}
-        <OnboardingTutorial
-          isReturningUser={isReturningUser}
-          setupComplete={setupComplete}
-          onTutorialEnd={handleTutorialEnd}
-        />
+        <style>{ONB_CSS}</style>
+        <div className="onb">
+          {finaliseError && (
+            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full">
+              <div className="onb-banner onb-banner-error">
+                <p>{finaliseError}</p>
+                <button onClick={handleFinalise} className="mt-2 text-xs font-semibold underline underline-offset-2">
+                  Retry
+                </button>
+              </div>
+            </div>
+          )}
+          <OnboardingTutorial
+            isReturningUser={isReturningUser}
+            setupComplete={setupComplete}
+            onTutorialEnd={handleTutorialEnd}
+          />
+        </div>
       </>
     );
   }
 
   if (finalising) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center gap-5 bg-[#FAFAFA]">
-        <Loader2 className="w-8 h-8 animate-spin text-[#525252]" />
-        <div className="text-center">
-          <p className="text-base font-bold text-[#0A0A0A]">Initialising your platform...</p>
-          <p className="text-sm text-[#A3A3A3] mt-1">Generating tasks, configuring agents, building your dashboard.</p>
+      <>
+        <style>{ONB_CSS}</style>
+        <div className="onb min-h-screen flex flex-col items-center justify-center gap-5">
+          <Loader2 className="w-9 h-9 animate-spin text-[#F87060]" />
+          <div className="text-center">
+            <p className="onb-h1" style={{ fontSize: 22 }}>Initialising your platform…</p>
+            <p className="onb-sub" style={{ maxWidth: 380 }}>Generating tasks, configuring agents, building your dashboard.</p>
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
+    <>
+      <style>{ONB_CSS}</style>
+      <div className="onb">
     <OnboardingShell currentStep={step}>
       {saveError && (
-        <div className="mx-auto max-w-lg mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
-          {saveError}
-        </div>
+        <div className="mb-4 onb-banner onb-banner-error">{saveError}</div>
       )}
       {finaliseError && (
-        <div className="mx-auto max-w-lg mb-4 px-4 py-3 bg-red-50 border border-red-200 rounded-lg">
-          <p className="text-sm text-red-700">{finaliseError}</p>
-          <button onClick={handleFinalise} className="mt-2 text-xs font-medium text-red-800 underline underline-offset-2">
+        <div className="mb-4 onb-banner onb-banner-error">
+          <p>{finaliseError}</p>
+          <button onClick={handleFinalise} className="mt-2 text-xs font-semibold underline underline-offset-2">
             Retry
           </button>
         </div>
@@ -1086,5 +1099,7 @@ export default function Onboarding() {
       )}
       {/* step === 8 is rendered above via OnboardingTutorial — no entry here. */}
     </OnboardingShell>
+      </div>
+    </>
   );
 }

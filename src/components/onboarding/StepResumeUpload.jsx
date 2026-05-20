@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import * as pdfjsLib from "pdfjs-dist";
 import pdfjsWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
@@ -16,13 +16,7 @@ async function extractTextFromPdf(file) {
   return text;
 }
 
-// Extract plain text from a .docx file. mammoth supports modern Word
-// documents (.docx) but NOT legacy binary .doc — those need to be saved as
-// .docx or .pdf first. The default accept attribute on the file input was
-// updated to drop .doc.
-//
-// Dynamic import: mammoth + its dependencies (jszip, xmldom) add ~510 KB to
-// the bundle. Loading on demand keeps that off the initial Vite chunk for
+// Lazy-loaded — mammoth + its deps add ~510 KB; off the initial chunk for
 // the ~50% of users who upload PDF or skip CV entirely.
 async function extractTextFromDocx(file) {
   const { default: mammoth } = await import("mammoth");
@@ -31,8 +25,6 @@ async function extractTextFromDocx(file) {
   return result.value || "";
 }
 
-// Detect a .docx by either MIME or extension — some browsers (Safari,
-// older Chrome) leave file.type empty for Office formats.
 function isDocxFile(file) {
   if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") return true;
   return /\.docx$/i.test(file.name || "");
@@ -41,19 +33,23 @@ function isDocxFile(file) {
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { track, EVENTS } from "@/lib/analytics";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Loader2, Upload, CheckCircle2, ArrowRight, Linkedin, Info, ExternalLink } from "lucide-react";
+import { Loader2, Upload, CheckCircle2, ArrowRight, Linkedin, Info, ExternalLink, X, GraduationCap, Briefcase, Search, Pause, Sparkles } from "lucide-react";
 
-// Note: the JSON-Schema constant that previously lived here was dead code —
-// never referenced (the ai-chat call below uses a plain prose prompt, not
-// structured-output enforcement), and its shape had drifted from the live
-// prompt below (e.g. education as array vs flat fields). Deleted as part of
-// PR-1 cleanup, 2026-05-14. If we later want OpenAI structured-output
-// enforcement, the schema should be defined once on the edge function
-// side, not redundantly here.
+const LI_EXPORT_DISMISS_KEY = "gaj.onb.li_export_dismissed";
+
+const EMPLOYMENT_OPTIONS = [
+  { value: "student", label: "Student", Icon: GraduationCap },
+  { value: "employed", label: "Have a job", Icon: Briefcase },
+  { value: "looking_for_job", label: "Looking for a job", Icon: Search },
+  { value: "unemployed", label: "Unemployed", Icon: Pause },
+  { value: "freelance", label: "Freelancing", Icon: Sparkles },
+];
+
+// `unemployed` is the only status that conflicts with others: it can't stack
+// with `employed` (you're one or the other) or with `looking_for_job`
+// (unemployed already implies job-search). `employed` + `looking_for_job`
+// is allowed — the "currently working, looking elsewhere" case.
+const UNEMPLOYED_CONFLICTS = ["employed", "looking_for_job"];
 
 export default function StepResumeUpload({ onNext, onExtracted, profileData, onChange }) {
   const { user } = useAuth();
@@ -64,9 +60,38 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
   const [error, setError] = useState(null);
   const [cvTruncated, setCvTruncated] = useState(false);
   const [linkedinUrl, setLinkedinUrl] = useState(profileData?.linkedin_url || "");
-  const [extractingLinkedin, setExtractingLinkedin] = useState(false);
   const [linkedinDone, setLinkedinDone] = useState(false);
+  const [showLinkedin, setShowLinkedin] = useState(!!profileData?.linkedin_url);
+  const [liExportDismissed, setLiExportDismissed] = useState(false);
+  const [dragOver, setDragOver] = useState(false);
   const inputRef = useRef();
+
+  useEffect(() => {
+    try {
+      if (localStorage.getItem(LI_EXPORT_DISMISS_KEY) === "1") setLiExportDismissed(true);
+    } catch { /* private mode */ }
+  }, []);
+
+  const dismissLiExport = () => {
+    setLiExportDismissed(true);
+    try { localStorage.setItem(LI_EXPORT_DISMISS_KEY, "1"); } catch { /* private mode */ }
+  };
+
+  const toggleEmploymentStatus = (value) => {
+    const current = profileData?.employment_status || [];
+    const isOn = current.includes(value);
+    let updated;
+    if (isOn) {
+      updated = current.filter((s) => s !== value);
+    } else if (value === "unemployed") {
+      updated = [...current.filter((s) => !UNEMPLOYED_CONFLICTS.includes(s)), value];
+    } else if (UNEMPLOYED_CONFLICTS.includes(value)) {
+      updated = [...current.filter((s) => s !== "unemployed"), value];
+    } else {
+      updated = [...current, value];
+    }
+    onChange({ employment_status: updated });
+  };
 
   const handleFile = async (file) => {
     if (!file) return;
@@ -75,34 +100,22 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
     setUploading(true);
 
     try {
-      // Upload to Supabase Storage
       const filePath = `${user.id}/${Date.now()}_${file.name}`;
       const { error: uploadError } = await supabase.storage
         .from("resumes")
         .upload(filePath, file, { upsert: true });
-
       if (uploadError) throw uploadError;
 
-      // Get a long-lived signed URL (bucket is private)
       const { data: signedData } = await supabase.storage
         .from("resumes")
         .createSignedUrl(filePath, 315360000); // ~10 years
 
-      // Save URL to local state — persisted when saveProgress runs at next step
       const resumeUrl = signedData?.signedUrl || filePath;
       onChange({ resume_url: resumeUrl });
 
       setUploading(false);
       setExtracting(true);
 
-      // Try to extract resume content via LLM. Branch by format:
-      //   .pdf  → pdfjs-dist (existing path)
-      //   .docx → mammoth (added for N-O37; previously fell through to
-      //           file.text() which read the binary as UTF-8 garbage)
-      //   legacy .doc → reject — mammoth doesn't support the old binary
-      //           format; user must save as .docx or .pdf
-      //   anything else → fall through to file.text() so plain-text uploads
-      //           still work the way they did before
       let fileText = "";
       if (file.type === "application/pdf") {
         fileText = await extractTextFromPdf(file);
@@ -114,9 +127,7 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
         fileText = await file.text();
       }
 
-      if (fileText.length > 15000) {
-        setCvTruncated(true);
-      }
+      if (fileText.length > 15000) setCvTruncated(true);
 
       const extractionPrompt = `Extract structured information from this resume text. Return ONLY a raw JSON object (no markdown, no code blocks) with these fields: full_name, phone_number, location, linkedin_url, summary, institution, degree, field_of_study, education_level, education_dates (string, e.g. "2023 - Present"), gpa (string, e.g. "3.7" or "85"), honors (array of strings, e.g. ["Dean's List", "Cum Laude"]), academic_projects (array of strings — thesis title, capstone projects, named coursework projects. Do NOT include workplace projects), secondary_education (object with {institution, dates, location, highlights} — only if a high school OR earlier institution is mentioned, otherwise omit the field entirely), languages (array of {language, proficiency} — proficiency is one of "Native", "Fluent", "Conversational", "Basic"), skills (one flat array of every skill, tool, methodology, language, and competency you can identify in the resume — do NOT bucket into categories, just return one combined deduplicated list), experiences (array of {title, company, type, start_date, end_date, is_current, responsibilities, skills_used}), projects (array of {name, description, url, skills_demonstrated}), certifications (array of {name, issuer, date_earned}).
 
@@ -190,15 +201,10 @@ When you classify an experience as military:
 Here is the resume:\n\n${fileText.slice(0, 15000)}`;
 
       const { data: extractData, error: fnError } = await supabase.functions.invoke("ai-chat", {
-        body: {
-          message: extractionPrompt,
-          agent: "resume-extractor",
-          conversation_history: [],
-        },
+        body: { message: extractionPrompt, agent: "resume-extractor", conversation_history: [] },
       });
 
       if (fnError) throw new Error(fnError.message || "Edge function error");
-
 
       const replyText = extractData?.reply || extractData?.content || extractData?.text || "";
 
@@ -206,12 +212,7 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
         const jsonMatch = replyText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           let extracted = null;
-
-          // Attempt 1: direct parse
           try { extracted = JSON.parse(jsonMatch[0]); } catch {}
-
-          // Attempt 2: only unescape if the JSON looks double-escaped
-          // (guard prevents corrupting valid JSON that contains backslashes)
           if (!extracted && /\{\s*\\"/.test(jsonMatch[0])) {
             try {
               const unescaped = jsonMatch[0]
@@ -225,7 +226,6 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
           }
 
           if (extracted) {
-            // Run proof signal extraction in parallel — non-blocking, failure is non-fatal
             let proofSignals = [];
             let primaryDomain = null;
             let adjacentFields = [];
@@ -243,22 +243,11 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
             }
 
             onExtracted({ ...extracted, proof_signals: proofSignals, primary_domain: primaryDomain, adjacent_fields: adjacentFields });
-            // cv_uploaded — count non-empty top-level fields as a coarse
-            // "extraction quality" signal. file_type bucketed via the same
-            // logic the upload branches use (pdf vs docx vs other).
-            const fileType = file.type === "application/pdf"
-              ? "pdf"
-              : isDocxFile(file)
-                ? "docx"
-                : "other";
+            const fileType = file.type === "application/pdf" ? "pdf" : isDocxFile(file) ? "docx" : "other";
             const extractedFieldsCount = Object.values(extracted || {}).filter(
-              (v) => v !== null && v !== undefined && v !== "" &&
-                     !(Array.isArray(v) && v.length === 0)
+              (v) => v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0)
             ).length;
-            track(EVENTS.CV_UPLOADED, {
-              file_type: fileType,
-              extracted_fields_count: extractedFieldsCount,
-            });
+            track(EVENTS.CV_UPLOADED, { file_type: fileType, extracted_fields_count: extractedFieldsCount });
             setExtracting(false);
             setDone(true);
             return;
@@ -266,12 +255,11 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
         }
       }
 
-      // File uploaded but extraction failed — still a success
       console.debug("Extraction fallback. Response was:", extractData);
       setExtracting(false);
       setDone(true);
       setError(`Resume uploaded successfully! However, automatic extraction wasn't possible. Please fill in your details manually.`);
-    } catch (err) { 
+    } catch (err) {
       console.error("Resume upload error:", err);
       setUploading(false);
       setExtracting(false);
@@ -286,131 +274,81 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
     setLinkedinDone(true);
   };
 
-  const employmentOptions = [
-    { value: "student", label: "Student" },
-    { value: "looking_for_job", label: "Looking for a job" },
-    { value: "employed", label: "Have a job" },
-    { value: "unemployed", label: "Unemployed" },
-    { value: "freelance", label: "Freelancing" },
-  ];
-
-  // `unemployed` is the only status that conflicts with others: it can't
-  // stack with `employed` (you're one or the other) or with `looking_for_job`
-  // (unemployed already implies job-search). `employed` + `looking_for_job`
-  // is allowed — that's the "currently working but looking elsewhere" case.
-  // `student` and `freelance` stack freely with anything.
-  const UNEMPLOYED_CONFLICTS = ["employed", "looking_for_job"];
-
-  const toggleEmploymentStatus = (value) => {
-    const current = profileData?.employment_status || [];
-    const isOn = current.includes(value);
-    let updated;
-    if (isOn) {
-      updated = current.filter((s) => s !== value);
-    } else if (value === "unemployed") {
-      // Adding unemployed — strip employed and looking_for_job.
-      updated = [...current.filter((s) => !UNEMPLOYED_CONFLICTS.includes(s)), value];
-    } else if (UNEMPLOYED_CONFLICTS.includes(value)) {
-      // Adding employed or looking_for_job — strip unemployed.
-      updated = [...current.filter((s) => s !== "unemployed"), value];
-    } else {
-      // student / freelance — stack freely.
-      updated = [...current, value];
-    }
-    onChange({ employment_status: updated });
-  };
+  const selected = new Set(profileData?.employment_status || []);
 
   return (
-    <div className="space-y-6">
-      {/* Persistent LinkedIn data-export hint — non-dismissible, visible
-          for the entire CV-upload step. LinkedIn's data export takes a few
-          hours to generate, so we surface this as early as possible so users
-          can start the request now and have it ready when they reach the
-          LinkedIn Hub features post-onboarding. Info-tone (not alert-tone)
-          because it's optional. */}
-      <div className="bg-amber-50 border border-amber-100 rounded-lg p-4 flex gap-3">
-        <Info className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
-        <div className="flex-1">
-          <p className="text-sm font-semibold text-amber-900">
-            Optional but recommended — request your LinkedIn data export now
-          </p>
-          <p className="text-sm text-amber-800 mt-1 leading-relaxed">
-            LinkedIn takes a few hours to prepare your data export. Request it now and you&apos;ll have it ready when you reach LinkedIn Hub features (profile optimization, posts, networking) later.
-          </p>
-          <a
-            href="https://www.linkedin.com/mypreferences/d/download-my-data"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 mt-2 text-sm font-medium text-amber-900 underline underline-offset-2 hover:text-amber-700"
+    <div className="space-y-7">
+      {/* Dismissible LinkedIn export reminder — surfaces early so users can
+          request the export now and have it ready when LinkedIn Hub needs it
+          a few hours later. */}
+      {!liExportDismissed && (
+        <div className="onb-banner onb-banner-info flex items-start gap-3 relative pr-10">
+          <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
+          <div className="flex-1">
+            <p className="font-semibold">Optional — request your LinkedIn data export now</p>
+            <p className="mt-1 leading-relaxed">
+              LinkedIn takes a few hours to prepare it. Request now so it&apos;s ready when you reach LinkedIn Hub features later.
+            </p>
+            <a
+              href="https://www.linkedin.com/mypreferences/d/download-my-data"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 mt-2 text-[13px] font-semibold underline underline-offset-2"
+            >
+              Request LinkedIn data export <ExternalLink className="w-3 h-3" />
+            </a>
+          </div>
+          <button
+            type="button"
+            onClick={dismissLiExport}
+            className="absolute top-2.5 right-2.5 p-1 hover:bg-black/5 rounded-md"
+            aria-label="Dismiss"
           >
-            Request LinkedIn data export <ExternalLink className="w-3 h-3" />
-          </a>
+            <X className="w-4 h-4" />
+          </button>
         </div>
-      </div>
+      )}
 
       <div>
-        <h2 className="text-xl font-bold text-[#0A0A0A] tracking-tight">Upload Your CV</h2>
-        <p className="text-sm text-[#525252] mt-1">
-          We're building a complete picture of your qualifications, experience, and career goals — so we can recommend exactly which roles you're ready for and what steps to take next.
-        </p>
-        <p className="text-sm text-[#A3A3A3] mt-2">
-          Upload your CV and we'll extract your details automatically — no manual entry needed. PDF or DOCX preferred.
+        <h1 className="onb-h1">Let&apos;s start with your CV.</h1>
+        <p className="onb-sub">
+          Drop your CV and we&apos;ll extract everything from it — no manual entry needed.
         </p>
       </div>
 
-      <div className="bg-white border border-[#E5E5E5] rounded-lg p-5">
-        <h3 className="text-sm font-semibold text-[#0A0A0A] mb-3">What's your current situation?</h3>
-        <div className="space-y-3">
-          {employmentOptions.map((option) => (
-            <div key={option.value} className="flex items-center gap-2">
-              <Checkbox
-                id={option.value}
-                checked={(profileData?.employment_status || []).includes(option.value)}
-                onCheckedChange={() => toggleEmploymentStatus(option.value)}
-              />
-              <Label htmlFor={option.value} className="text-sm text-[#525252] cursor-pointer">
-                {option.label}
-              </Label>
-            </div>
-          ))}
+      {/* Employment status — 5 visual cards. Only `unemployed` conflicts with
+          `employed` and `looking_for_job`; everything else stacks freely. */}
+      <div>
+        <label className="onb-eyebrow">Your current situation</label>
+        <div className="mt-2 grid grid-cols-2 md:grid-cols-5 gap-2.5">
+          {EMPLOYMENT_OPTIONS.map(({ value, label, Icon }) => {
+            const isSelected = selected.has(value);
+            return (
+              <button
+                key={value}
+                type="button"
+                onClick={() => toggleEmploymentStatus(value)}
+                className="onb-grid-card"
+                data-selected={isSelected}
+              >
+                <div className="onb-grid-card-icon">
+                  <Icon className="w-4 h-4" />
+                </div>
+                <span className="onb-grid-card-label">{label}</span>
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* LinkedIn Section */}
-      <div className="bg-white border border-[#E5E5E5] rounded-lg p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <Linkedin className="w-4 h-4 text-[#0A66C2]" />
-          <h3 className="text-sm font-semibold text-[#0A0A0A]">LinkedIn Profile (optional)</h3>
-        </div>
-
-        <div>
-          <p className="text-xs text-[#A3A3A3] mb-3">Paste your LinkedIn URL to save it to your profile.</p>
-          <div className="flex gap-2">
-            <Input
-              value={linkedinUrl}
-              onChange={(e) => setLinkedinUrl(e.target.value)}
-              placeholder="https://linkedin.com/in/yourname"
-              className="text-sm flex-1"
-            />
-            <Button
-              onClick={handleLinkedinExtract}
-              disabled={!linkedinUrl.trim() || linkedinDone}
-              size="sm"
-              variant="outline"
-              className="whitespace-nowrap"
-            >
-              {linkedinDone ? <CheckCircle2 className="w-3 h-3" /> : "Save"}
-            </Button>
-          </div>
-          {linkedinDone && <p className="text-xs text-emerald-600 mt-2">✓ LinkedIn URL saved</p>}
-        </div>
-      </div>
-
+      {/* Drop zone — primary action on the page */}
       <div
-        className="bg-white rounded-xl border-2 border-dashed border-[#E5E5E5] p-10 text-center cursor-pointer hover:border-[#A3A3A3] transition-colors"
-        onClick={() => inputRef.current?.click()}
-        onDragOver={(e) => e.preventDefault()}
-        onDrop={(e) => { e.preventDefault(); handleFile(e.dataTransfer.files[0]); }}
+        className="onb-dropzone"
+        data-dragover={dragOver}
+        onClick={() => !uploading && !extracting && inputRef.current?.click()}
+        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragLeave={() => setDragOver(false)}
+        onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }}
       >
         <input
           ref={inputRef}
@@ -422,66 +360,97 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
 
         {!uploading && !extracting && !done && (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-[#F5F5F5] flex items-center justify-center">
-              <Upload className="w-5 h-5 text-[#525252]" />
+            <div className="w-14 h-14 rounded-full bg-[#E8E8E5] flex items-center justify-center">
+              <Upload className="w-6 h-6 text-[#52545A]" />
             </div>
             <div>
-              <p className="text-sm font-medium text-[#0A0A0A]">Drop your CV here or click to browse</p>
-              <p className="text-xs text-[#A3A3A3] mt-1">PDF or DOCX supported</p>
+              <p className="text-base font-semibold text-[#0E1014]">Drop your CV here, or click to browse</p>
+              <p className="text-xs text-[#9C9DA1] mt-1">PDF or DOCX</p>
             </div>
           </div>
         )}
 
         {(uploading || extracting) && (
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-[#525252]" />
-            <p className="text-sm font-medium text-[#0A0A0A]">
-              {uploading ? "Uploading..." : "Extracting your details with AI..."}
+            <Loader2 className="w-8 h-8 animate-spin text-[#F87060]" />
+            <p className="text-sm font-semibold text-[#0E1014]">
+              {uploading ? "Uploading…" : "Extracting your details…"}
             </p>
-            {fileName && <p className="text-xs text-[#A3A3A3]">{fileName}</p>}
+            {fileName && <p className="text-xs text-[#9C9DA1]">{fileName}</p>}
           </div>
         )}
 
         {done && (
           <div className="flex flex-col items-center gap-3">
-            <CheckCircle2 className="w-10 h-10 text-emerald-500" />
+            <CheckCircle2 className="w-12 h-12 text-[#1D7556]" />
             <div>
-              <p className="text-sm font-semibold text-[#0A0A0A]">CV extracted successfully</p>
-              <p className="text-xs text-[#A3A3A3] mt-1">{fileName}</p>
+              <p className="text-base font-semibold text-[#0E1014]">CV extracted</p>
+              <p className="text-xs text-[#9C9DA1] mt-0.5">{fileName}</p>
             </div>
           </div>
         )}
       </div>
 
       {cvTruncated && (
-        <p className="text-sm text-amber-600 bg-amber-50 px-4 py-3 rounded-lg">
-          Your CV is long — only the first 15,000 characters were sent for extraction. Some later experience may be missing. Please review the pre-filled details and add anything that wasn't captured.
-        </p>
+        <div className="onb-banner onb-banner-info">
+          Your CV is long — only the first 15,000 characters were sent for extraction. Review the pre-filled details and add anything that wasn&apos;t captured.
+        </div>
       )}
-      {error && (
-        <p className="text-sm text-amber-600 bg-amber-50 px-4 py-3 rounded-lg">{error}</p>
+      {error && <div className="onb-banner onb-banner-info">{error}</div>}
+
+      {/* LinkedIn URL — collapsed by default; click to add. Optional. */}
+      {!showLinkedin ? (
+        <button
+          type="button"
+          onClick={() => setShowLinkedin(true)}
+          className="onb-btn onb-btn-ghost text-sm"
+          style={{ paddingLeft: 0 }}
+        >
+          <Linkedin className="w-4 h-4" /> + Add LinkedIn URL (optional)
+        </button>
+      ) : (
+        <div className="onb-card">
+          <label className="onb-label">LinkedIn URL <span className="text-[#9C9DA1] font-normal">(optional)</span></label>
+          <div className="flex gap-2">
+            <input
+              value={linkedinUrl}
+              onChange={(e) => setLinkedinUrl(e.target.value)}
+              placeholder="https://linkedin.com/in/yourname"
+              className="onb-input"
+            />
+            <button
+              type="button"
+              onClick={handleLinkedinExtract}
+              disabled={!linkedinUrl.trim() || linkedinDone}
+              className="onb-btn onb-btn-outline whitespace-nowrap"
+            >
+              {linkedinDone ? <CheckCircle2 className="w-4 h-4" /> : "Save"}
+            </button>
+          </div>
+          {linkedinDone && <p className="onb-help" style={{ color: "#1D7556" }}>✓ LinkedIn URL saved</p>}
+        </div>
       )}
 
-      <div className="flex justify-between items-center">
+      <div className="flex justify-between items-center pt-2">
         <button
           onClick={onNext}
-          className="text-xs text-[#A3A3A3] hover:text-[#525252] underline underline-offset-2 transition-colors"
+          className="text-xs text-[#9C9DA1] hover:text-[#52545A] underline underline-offset-2"
         >
-          Skip — I'll enter details manually
+          Skip — I&apos;ll enter details manually
         </button>
-        <Button
+        <button
           onClick={onNext}
           disabled={!done && !error && !linkedinDone}
-          className="bg-[#0A0A0A] hover:bg-[#262626] text-sm px-6 flex items-center gap-2"
+          className="onb-btn onb-btn-primary onb-btn-lg"
         >
           {done ? (
             <>Continue <ArrowRight className="w-4 h-4" /></>
           ) : error ? (
-            <>Continue Anyway <ArrowRight className="w-4 h-4" /></>
+            <>Continue anyway <ArrowRight className="w-4 h-4" /></>
           ) : (
-            "Upload to Continue"
+            "Upload to continue"
           )}
-        </Button>
+        </button>
       </div>
     </div>
   );

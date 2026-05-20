@@ -1,81 +1,97 @@
 import React from "react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Globe, Building2, Layers, Sparkles, ArrowRight } from "lucide-react";
 import AutocompleteInput from "./AutocompleteInput";
-import PresetBubbleInput from "./PresetBubbleInput";
 
-// Work-arrangement preset bubbles. Exhaustive list — no custom input
-// surfaced (these four options cover every meaningful arrangement;
-// allowing free text would just create noisy variants).
-const WORK_ARRANGEMENT_PRESETS = ["Remote", "Hybrid", "On-site", "Flexible"];
+// Work arrangement options — 4 visual cards instead of preset bubbles. These
+// 4 cover every meaningful arrangement; allowing free text would just create
+// noisy variants in downstream filtering.
+const WORK_ARRANGEMENTS = [
+  { value: "Remote",   label: "Remote",   Icon: Globe },
+  { value: "Hybrid",   label: "Hybrid",   Icon: Layers },
+  { value: "On-site",  label: "On-site",  Icon: Building2 },
+  { value: "Flexible", label: "Flexible", Icon: Sparkles },
+];
 
 export default function StepConstraints({ data, onChange, onSubmit, onBack, submitting }) {
   const set = (key, val) => onChange({ ...data, [key]: val });
+  const selectedArr = Array.isArray(data.work_type) ? data.work_type : [];
+  const toggleArrangement = (value) => {
+    const next = selectedArr.includes(value)
+      ? selectedArr.filter((v) => v !== value)
+      : [...selectedArr, value];
+    set("work_type", next);
+  };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-7">
       <div>
-        <h2 className="text-xl font-bold text-[#0A0A0A] tracking-tight">Constraints</h2>
-        <p className="text-sm text-[#525252] mt-1">
-          Practical filters that apply to every role recommendation. These boundaries are factored into tier classification.
+        <h1 className="onb-h1">Where and when can you work?</h1>
+        <p className="onb-sub">
+          Practical filters that apply to every role recommendation. These boundaries factor into tier classification.
         </p>
       </div>
 
-      <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-5">
+      <div className="space-y-5">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <AutocompleteInput
               label="Location"
               value={data.location || ""}
               onChange={(v) => set("location", v)}
-              placeholder="e.g. New York, NY or London, UK"
+              placeholder="e.g. Tel Aviv, New York, London"
               suggestionType="location"
             />
           </div>
 
           <div>
-            <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">Earliest Start Date</label>
-            <Input
+            <label className="onb-label">Earliest start date</label>
+            <input
               type="date"
               value={data.available_start_date || ""}
               onChange={(e) => set("available_start_date", e.target.value)}
+              className="onb-input"
             />
           </div>
+        </div>
 
-          <div className="md:col-span-2">
-            <PresetBubbleInput
-              label="Work Arrangement"
-              description="Select all arrangements you're open to."
-              presets={WORK_ARRANGEMENT_PRESETS}
-              tags={data.work_type || []}
-              onChange={(v) => set("work_type", v)}
-              allowCustom={false}
-            />
+        <div>
+          <label className="onb-label">Work arrangement</label>
+          <p className="onb-help mb-3">Select all arrangements you&apos;re open to.</p>
+          <div className="onb-grid-cards onb-grid-cards-4">
+            {WORK_ARRANGEMENTS.map(({ value, label, Icon }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => toggleArrangement(value)}
+                className="onb-grid-card"
+                data-selected={selectedArr.includes(value)}
+              >
+                <div className="onb-grid-card-icon">
+                  <Icon className="w-4 h-4" />
+                </div>
+                <span className="onb-grid-card-label">{label}</span>
+              </button>
+            ))}
           </div>
         </div>
       </div>
 
-      <div className="bg-[#F5F5F5] rounded-xl p-5 border border-[#E5E5E5]">
-        <h3 className="text-xs uppercase tracking-wider font-semibold text-[#525252] mb-2">What happens next</h3>
-        <p className="text-sm text-[#525252] leading-relaxed">
-          Next we'll ask a few self-assessment questions, then run your full career analysis — classifying your qualification level, identifying your Tier 1–3 roles, and generating a personalised task list and action plan.
+      <div className="onb-card" style={{ background: "#E8E8E5", borderColor: "#DDDDDB" }}>
+        <p className="onb-eyebrow">What happens next</p>
+        <p className="text-sm text-[#52545A] leading-relaxed mt-1.5">
+          One last step — 6 quick self-assessment questions — then we&apos;ll run your career analysis and build your roadmap. Takes about 60 seconds.
         </p>
       </div>
 
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onBack} className="text-sm">Back</Button>
-        <Button
-          onClick={onSubmit}
-          disabled={submitting}
-          className="bg-[#0A0A0A] hover:bg-[#262626] text-sm px-6"
-        >
+      <div className="flex justify-between pt-2">
+        <button onClick={onBack} className="onb-btn onb-btn-outline">Back</button>
+        <button onClick={onSubmit} disabled={submitting} className="onb-btn onb-btn-primary onb-btn-lg">
           {submitting ? (
-            <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Building Profile...</>
+            <><Loader2 className="w-4 h-4 animate-spin" />Building profile…</>
           ) : (
-            "Continue to Survey"
+            <>Continue <ArrowRight className="w-4 h-4" /></>
           )}
-        </Button>
+        </button>
       </div>
     </div>
   );
