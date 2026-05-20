@@ -1,9 +1,11 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
+import { useQuery } from "@tanstack/react-query";
 import { Loader2, Copy, Check, Linkedin, RefreshCw, AlertCircle, Upload, FileArchive, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import ProfilePreview from "./ProfilePreview";
 
 // ProfileTab — the original LinkedinOptimizer page content, now hosted as
 // the "Profile" tab inside the LinkedIn command center hub (PR #31).
@@ -337,6 +339,24 @@ export default function ProfileTab() {
   const [baseline, setBaseline] = useState(null);
   const [baselineLoading, setBaselineLoading] = useState(true);
 
+  // Fetch profile name for the social-profile mockup avatar + identity row.
+  // Best-effort — falls back to "Your name" if the profile row doesn't
+  // resolve. Cached at the same staleTime as the rest of the LinkedIn tab.
+  const { data: profileFullName } = useQuery({
+    queryKey: ["userProfileFullName", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase
+        .from("profiles")
+        .select("full_name")
+        .eq("id", user.id)
+        .maybeSingle();
+      return data?.full_name || null;
+    },
+    enabled: !!user?.id,
+    staleTime: 30 * 60 * 1000,
+  });
+
   // Hydrate the baseline + last-generated content from linkedin_optimizations
   // so the user lands on a populated page after import or after returning to
   // the tab. Both are best-effort — a failure here just means the user sees
@@ -493,6 +513,16 @@ export default function ProfileTab() {
 
       {!baselineLoading && (
         <ArchiveUploader baseline={baseline} onImported={handleImported} />
+      )}
+
+      {/* Live preview — generic social-profile mockup. Shows the user a
+          spatial sense of how their optimised content would land before
+          they paste it into LinkedIn manually. Toggle Current ↔ Optimised
+          when a baseline archive is imported. */}
+      {content && (
+        <div className="mb-6">
+          <ProfilePreview content={content} baseline={baseline} fullName={profileFullName} />
+        </div>
       )}
 
       {error && (
