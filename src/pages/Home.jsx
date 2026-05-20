@@ -63,8 +63,33 @@ const HOME_CSS = `
 }
 .home * { box-sizing: border-box; }
 
+/* Topbar strip — sits in the space above the hero greeting. Currently
+   houses the "About Get A Job" link (right-aligned). Matches the same
+   small-caps-mono style the .home-greeting uses below it. */
+.home-topbar {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 22px 32px 0;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+.home-about-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--h-font-mono);
+  font-size: 11px;
+  color: var(--h-ink-faded);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-decoration: none;
+  transition: color 0.15s ease;
+}
+.home-about-link:hover { color: var(--h-ink-soft); }
+
 .home-hero {
-  padding: 64px 32px 48px;
+  padding: 28px 32px 48px;
   max-width: 1180px;
   margin: 0 auto;
   text-align: left;
@@ -111,7 +136,8 @@ const HOME_CSS = `
 .home-btn-ghost:hover { background: var(--h-bg-tinted); }
 
 @media (max-width: 640px) {
-  .home-hero { padding: 40px 20px 32px; }
+  .home-topbar { padding: 16px 20px 0; }
+  .home-hero { padding: 18px 20px 32px; }
   .home-headline { font-size: 36px; }
   .home-cta-row { flex-direction: column; align-items: stretch; }
   .home-btn { justify-content: center; }
@@ -707,6 +733,16 @@ export default function Home() {
     <>
       <style>{HOME_CSS}</style>
       <div className="home">
+        {/* Top-right link to the public marketing page. /Landing (not /)
+            so Landing.jsx's auth-redirect skips it. Same affordance as
+            the SidebarFooter link, surfaced here because the hero had
+            unused space at the top. */}
+        <div className="home-topbar">
+          <Link to="/Landing" className="home-about-link">
+            About Get A Job
+          </Link>
+        </div>
+
         {(rolesError || appsError) && (
           <div className="home-error-banner">
             <AlertCircle className="w-4 h-4 flex-shrink-0" />
