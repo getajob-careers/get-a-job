@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Loader2, ArrowRight, ArrowLeft, Briefcase, ClipboardList, BookText, Linkedin, FileText, MessageCircle, RotateCcw, CheckCircle2, ExternalLink } from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics";
 import { useFakeProgress } from "@/lib/useFakeProgress";
+import { TIERS } from "@/lib/tierConfig";
 
 // Slide content. User navigates manually via arrow buttons — no auto-advance.
 // Visuals are placeholder icons + descriptions until real screenshots land.
@@ -279,30 +280,9 @@ export default function OnboardingTutorial({
   );
 }
 
-// Tier cards on the Browse Jobs slide — explicit "what this tier means
-// for YOU" framing keyed to what the user just told us in onboarding
-// (Career Direction). Each line uses "you" / "your" language and tells
-// the user what to DO with the tier, not just what it means.
-const TIER_CARDS = [
-  {
-    number: 1,
-    name: "Sweet spot",
-    color: "green",
-    description: "Roles you're qualified for that match where you want your career to go. Apply to these first.",
-  },
-  {
-    number: 2,
-    name: "Detour",
-    color: "gray",
-    description: "Roles you're qualified for, but they'd take your career in a different direction. Good fallbacks if Tier 1 isn't hiring.",
-  },
-  {
-    number: 3,
-    name: "Growth",
-    color: "amber",
-    description: "Roles that match your direction, but you need more experience or skills first. Use these to plan what to learn next.",
-  },
-];
+// Tier cards on the Browse Jobs slide source from @/lib/tierConfig so the
+// labels and copy can't drift from the Roadmap's TIER_CONFIG. Single source
+// of truth for tier vocabulary across onboarding + roadmap + role cards.
 
 function Slide({ slide }) {
   const { Icon, title, description, name } = slide;
@@ -317,7 +297,7 @@ function Slide({ slide }) {
       <p className="onb-slide-desc">{description}</p>
       {isBrowseJobs && (
         <div className="onb-tier-cards">
-          {TIER_CARDS.map((tier) => (
+          {TIERS.map((tier) => (
             <div key={tier.number} className="onb-tier-card" data-tier={tier.color}>
               <div className="onb-tier-badge">{tier.number}</div>
               <div className="onb-tier-name">Tier {tier.number} · {tier.name}</div>
