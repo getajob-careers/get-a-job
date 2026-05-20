@@ -60,8 +60,13 @@ const SECTIONS = [
     ],
   },
   {
+    // section id stays "pipeline" so the active-section auto-expand logic
+    // (which keys off the id) keeps working. Just the user-facing label
+    // changed from "Pipeline" to "Activity" — the word "pipeline" still
+    // appears contextually in places like the Home card and Practicum
+    // page where it reads as the right metaphor.
     id: "pipeline",
-    label: "Pipeline",
+    label: "Activity",
     icon: ClipboardList,
     items: [
       { name: "Tracker", page: "Tracker", icon: ClipboardList },

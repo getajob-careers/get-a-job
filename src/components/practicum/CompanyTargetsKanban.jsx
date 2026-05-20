@@ -1,61 +1,62 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { ChevronDown, ChevronUp } from "lucide-react";
 import CompanyTargetCard from "./CompanyTargetCard";
-import { STATUSES, STATUS_LABELS, STATUS_ACCENTS } from "./constants";
+import { STATUSES, STATUS_LABELS, STATUS_TONE } from "./constants";
 import { track, EVENTS } from "@/lib/analytics";
 
-// 6-column kanban with drag-and-drop (@hello-pangea/dnd).
-//   - Each column is a Droppable keyed by status; cards are Draggables.
-//   - Drop on a same-column slot is a no-op (we only care about status change).
-//   - Optimistic mutate: invalidate immediately after a successful UPDATE.
-//   - On error, the cache invalidation pulls the server-truth status back —
-//     the card visually snaps back to its original column.
-//   - Clicks on the card body still open the drawer; the library's drag
-//     threshold disambiguates click vs. drag automatically.
+// Desktop: 6-column drag-drop kanban (@hello-pangea/dnd).
+// Mobile (<768px): vertical accordion with one section per status; status
+//                  changes via a select dropdown inside each card. Drag-drop
+//                  is unreliable on touch screens and the accordion gives
+//                  pilot students a usable experience on their phones.
+const MOBILE_BREAKPOINT = 768;
+
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" ? window.innerWidth < MOBILE_BREAKPOINT : false,
+  );
+  useEffect(() => {
+    const onResize = () => setIsMobile(window.innerWidth < MOBILE_BREAKPOINT);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+  return isMobile;
+}
 
 export default function CompanyTargetsKanban({ targets, onCardClick }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const isMobile = useIsMobile();
 
   const byStatus = STATUSES.reduce((acc, status) => {
     acc[status] = targets.filter((t) => t.status === status);
     return acc;
   }, {});
 
-  const onDragEnd = async (result) => {
-    const { source, destination, draggableId } = result;
-    if (!destination) return;
-    if (source.droppableId === destination.droppableId) return;
-
-    const target = targets.find((t) => t.id === draggableId);
-    if (!target) return;
+  const updateStatus = async (target, newStatus, via) => {
     const oldStatus = target.status;
-    const newStatus = destination.droppableId;
+    if (oldStatus === newStatus) return;
 
-    // Optimistic — overwrite the cached array in place so the card moves
-    // before the server confirms. The mutation below either commits this
-    // optimistic state (via invalidate) or rolls back (via the same
-    // invalidate, which pulls server truth).
     queryClient.setQueryData(
       ["company_targets", user?.id],
       (prev) => Array.isArray(prev)
-        ? prev.map((t) => (t.id === draggableId ? { ...t, status: newStatus } : t))
+        ? prev.map((t) => (t.id === target.id ? { ...t, status: newStatus } : t))
         : prev,
     );
 
     const { error } = await supabase
       .from("company_targets")
       .update({ status: newStatus })
-      .eq("id", draggableId);
+      .eq("id", target.id);
 
     if (error) {
-      console.error("[kanban] drag status update failed:", error);
+      console.error("[kanban] status update failed:", error);
       toast.error("Couldn't update status. Reverted.");
-      // Refetch to roll back the optimistic mutation.
       queryClient.invalidateQueries({ queryKey: ["company_targets", user?.id] });
       return;
     }
@@ -63,19 +64,36 @@ export default function CompanyTargetsKanban({ targets, onCardClick }) {
     track(EVENTS.PRACTICUM_STATUS_CHANGED, {
       old_status: oldStatus,
       new_status: newStatus,
-      via: "drag",
+      via,
     });
 
-    // Confirm the optimistic state + pull the new status_changes audit row
-    // the trigger inserted, so the drawer's timeline stays current.
     queryClient.invalidateQueries({ queryKey: ["company_targets", user?.id] });
-    queryClient.invalidateQueries({ queryKey: ["company_target_status_changes", draggableId] });
+    queryClient.invalidateQueries({ queryKey: ["company_target_status_changes", target.id] });
   };
+
+  const onDragEnd = async (result) => {
+    const { source, destination, draggableId } = result;
+    if (!destination) return;
+    if (source.droppableId === destination.droppableId) return;
+    const target = targets.find((t) => t.id === draggableId);
+    if (!target) return;
+    await updateStatus(target, destination.droppableId, "drag");
+  };
+
+  if (isMobile) {
+    return (
+      <MobileAccordion
+        byStatus={byStatus}
+        onCardClick={onCardClick}
+        onStatusChange={(target, newStatus) => updateStatus(target, newStatus, "select")}
+      />
+    );
+  }
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
-        <div className="grid grid-cols-6 gap-3 min-w-[1100px] lg:min-w-0">
+        <div className="act-kanban-row">
           {STATUSES.map((status) => {
             const column = byStatus[status];
             return (
@@ -84,37 +102,35 @@ export default function CompanyTargetsKanban({ targets, onCardClick }) {
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`flex flex-col min-h-[200px] rounded-lg transition-colors ${
-                      snapshot.isDraggingOver ? "bg-[#FAFAFA] ring-1 ring-[#E5E5E5]" : ""
-                    }`}
+                    className={`act-kanban-col act-status-${STATUS_TONE[status]}`}
+                    data-dragover={snapshot.isDraggingOver}
                   >
-                    <div className="flex items-center justify-between mb-2 px-1">
-                      <span className={`inline-flex items-center px-2 py-0.5 text-[10px] uppercase tracking-wider font-medium rounded ${STATUS_ACCENTS[status]}`}>
-                        {STATUS_LABELS[status]}
-                      </span>
-                      <span className="text-[10px] text-[#A3A3A3] tabular-nums">{column.length}</span>
+                    <div className="act-kanban-col-head">
+                      <span className="act-status-badge">{STATUS_LABELS[status]}</span>
+                      <span className="act-kanban-col-count">{column.length}</span>
                     </div>
-                    <div className="flex-1 px-1">
-                      {column.length === 0 ? (
-                        <div className="text-[11px] text-[#A3A3A3] italic px-1 py-2">No targets here yet.</div>
-                      ) : (
-                        column.map((t, index) => (
-                          <Draggable key={t.id} draggableId={t.id} index={index}>
-                            {(dragProvided, dragSnapshot) => (
-                              <div
-                                ref={dragProvided.innerRef}
-                                {...dragProvided.draggableProps}
-                                {...dragProvided.dragHandleProps}
-                                className={dragSnapshot.isDragging ? "shadow-lg" : ""}
-                              >
-                                <CompanyTargetCard target={t} onClick={() => onCardClick(t)} />
-                              </div>
-                            )}
-                          </Draggable>
-                        ))
-                      )}
-                      {provided.placeholder}
-                    </div>
+                    {column.length === 0 ? (
+                      <div className="act-kanban-empty">No targets here yet.</div>
+                    ) : (
+                      column.map((t, index) => (
+                        <Draggable key={t.id} draggableId={t.id} index={index}>
+                          {(dragProvided, dragSnapshot) => (
+                            <div
+                              ref={dragProvided.innerRef}
+                              {...dragProvided.draggableProps}
+                              {...dragProvided.dragHandleProps}
+                              style={{
+                                ...dragProvided.draggableProps.style,
+                                boxShadow: dragSnapshot.isDragging ? "0 6px 24px rgba(14,16,20,0.18)" : undefined,
+                              }}
+                            >
+                              <CompanyTargetCard target={t} onClick={() => onCardClick(t)} />
+                            </div>
+                          )}
+                        </Draggable>
+                      ))
+                    )}
+                    {provided.placeholder}
                   </div>
                 )}
               </Droppable>
@@ -123,5 +139,76 @@ export default function CompanyTargetsKanban({ targets, onCardClick }) {
         </div>
       </div>
     </DragDropContext>
+  );
+}
+
+// ───── Mobile accordion ─────
+
+function MobileAccordion({ byStatus, onCardClick, onStatusChange }) {
+  // Default-expand "exploring" + any column that has cards. Empty columns
+  // start collapsed so the screen isn't dominated by blank sections.
+  const initialOpen = STATUSES.filter((s) => s === "exploring" || (byStatus[s]?.length || 0) > 0);
+  const [openSet, setOpenSet] = useState(new Set(initialOpen));
+
+  const toggle = (status) => {
+    setOpenSet((prev) => {
+      const next = new Set(prev);
+      if (next.has(status)) next.delete(status); else next.add(status);
+      return next;
+    });
+  };
+
+  return (
+    <div>
+      {STATUSES.map((status) => {
+        const column = byStatus[status] || [];
+        const isOpen = openSet.has(status);
+        return (
+          <div key={status} className="act-accordion-section">
+            <button type="button" onClick={() => toggle(status)} className="act-accordion-head">
+              <div className="flex items-center gap-2.5">
+                <span className={`act-status-badge act-status-${STATUS_TONE[status]}`}>
+                  {STATUS_LABELS[status]}
+                </span>
+                <span className="text-xs text-[#9C9DA1] tabular-nums">{column.length}</span>
+              </div>
+              {isOpen ? (
+                <ChevronUp className="w-4 h-4 text-[#52545A]" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-[#52545A]" />
+              )}
+            </button>
+            {isOpen && (
+              <div className="act-accordion-body">
+                {column.length === 0 ? (
+                  <p className="text-xs text-[#9C9DA1] italic py-1">No targets here yet.</p>
+                ) : (
+                  column.map((t) => (
+                    <div key={t.id}>
+                      <CompanyTargetCard target={t} onClick={() => onCardClick(t)} />
+                      {/* Inline status change — drag-drop isn't reliable on
+                          touch screens, so users move cards between stages
+                          via this select instead. */}
+                      <div className="flex items-center gap-2 mt-1.5 px-1">
+                        <span className="text-[11px] text-[#9C9DA1]">Move to:</span>
+                        <select
+                          value={t.status}
+                          onChange={(e) => onStatusChange(t, e.target.value)}
+                          className="text-[12px] text-[#0E1014] bg-white border border-[#DDDDDB] rounded-md px-2 py-1"
+                        >
+                          {STATUSES.map((s) => (
+                            <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 }
