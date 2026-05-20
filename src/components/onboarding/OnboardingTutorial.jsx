@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Loader2, ArrowRight, ArrowLeft, Briefcase, ClipboardList, BookText, Linkedin, FileText, MessageCircle, RotateCcw } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, Briefcase, ClipboardList, BookText, Linkedin, FileText, MessageCircle, RotateCcw, CheckCircle2 } from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics";
 import { useFakeProgress } from "@/lib/useFakeProgress";
 
@@ -124,40 +124,62 @@ export default function OnboardingTutorial({
     onTutorialEnd({ skipped: false });
   };
 
-  const handleSkipGate = () => {
-    if (!setupComplete) {
-      setSkipPending(true);
-      return;
-    }
+  const fireSkip = () => {
     if (skipFiredRef.current) return;
     skipFiredRef.current = true;
     track(EVENTS.ONBOARDING_TUTORIAL_SKIPPED, { reason: "returning_user_skip_gate" });
     onTutorialEnd({ skipped: true });
   };
 
-  useEffect(() => {
-    if (!skipPending || !setupComplete || skipFiredRef.current) return;
-    skipFiredRef.current = true;
-    track(EVENTS.ONBOARDING_TUTORIAL_SKIPPED, { reason: "returning_user_skip_gate" });
-    onTutorialEnd({ skipped: true });
-  }, [skipPending, setupComplete, onTutorialEnd]);
+  const handleSkipGate = () => {
+    // If setup is still running, hand off to the "Finishing setup…" view.
+    // The user clicks again from the "Setup complete" view to navigate —
+    // we never auto-navigate while they may be on another tab.
+    if (!setupComplete) {
+      setSkipPending(true);
+      return;
+    }
+    fireSkip();
+  };
 
-  // ───── Skip pending — waiting for background setup to finish ─────
-  if (skipPending && !setupComplete) {
+  // ───── Skip flow: pending (waiting for setup) → ready (explicit click) ─
+  // We never auto-fire onTutorialEnd from a useEffect — that caused the
+  // tab-switching navigation race where setupComplete flipping in the
+  // background navigated to Home without the user looking.
+  if (skipPending && !skipFiredRef.current) {
+    if (!setupComplete) {
+      // Still waiting for the background pipeline.
+      return (
+        <FullScreenShell>
+          <div className="max-w-md text-center space-y-6">
+            <Loader2 className="w-9 h-9 animate-spin mx-auto text-[#F87060]" />
+            <div>
+              <h2 className="onb-h1" style={{ fontSize: 24 }}>Finishing setup…</h2>
+              <p className="onb-sub">
+                We&apos;re wrapping up your career analysis in the background. We&apos;ll let you know as soon as it&apos;s ready.
+              </p>
+            </div>
+            <div className="onb-progress-track" style={{ maxWidth: 240, margin: "0 auto" }}>
+              <div className="onb-progress-fill" style={{ width: `${setupPercent}%` }} />
+            </div>
+            <p className="onb-eyebrow">Setup {setupPercent}%</p>
+          </div>
+        </FullScreenShell>
+      );
+    }
+    // Setup finished while user was waiting — show a "ready, click to
+    // continue" view. Explicit click only. No auto-navigation.
     return (
       <FullScreenShell>
         <div className="max-w-md text-center space-y-6">
-          <Loader2 className="w-9 h-9 animate-spin mx-auto text-[#F87060]" />
+          <CheckCircle2 className="w-12 h-12 text-[#1D7556] mx-auto" />
           <div>
-            <h2 className="onb-h1" style={{ fontSize: 24 }}>Finishing setup…</h2>
-            <p className="onb-sub">
-              We&apos;re wrapping up your career analysis in the background. We&apos;ll take you to the platform as soon as it&apos;s ready.
-            </p>
+            <h2 className="onb-h1" style={{ fontSize: 24 }}>Setup complete</h2>
+            <p className="onb-sub">Your dashboard is ready when you are.</p>
           </div>
-          <div className="onb-progress-track" style={{ maxWidth: 240, margin: "0 auto" }}>
-            <div className="onb-progress-fill" style={{ width: `${setupPercent}%` }} />
-          </div>
-          <p className="onb-eyebrow">Setup {setupPercent}%</p>
+          <button onClick={fireSkip} className="onb-btn onb-btn-primary">
+            Continue to platform <ArrowRight className="w-4 h-4" />
+          </button>
         </div>
       </FullScreenShell>
     );

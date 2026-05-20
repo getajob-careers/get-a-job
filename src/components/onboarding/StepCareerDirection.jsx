@@ -6,10 +6,15 @@ import { matchRoles } from "@/lib/roleMatch";
 
 // Industry presets aligned with companies.industry canonical spellings so the
 // substring matcher in match-internship-companies fires against real seeded
-// rows. Ordered by pilot-seed company count.
+// rows. Original 12 ordered by pilot-seed company count; 8 appended below
+// for broader coverage (e-commerce, climate, mobility, logistics, devtools,
+// salestech, foodtech, consumer apps). New entries may not seed companies
+// yet — they'll match new entries as the company library grows.
 const INDUSTRY_PRESETS = [
   "Cybersecurity", "FinTech", "B2B SaaS", "AI/ML", "InsurTech", "HealthTech",
   "HR Tech", "MarTech", "AdTech", "Gaming", "EdTech", "PropTech",
+  "E-commerce", "Climate Tech", "Mobility", "Logistics Tech",
+  "DevTools", "Sales Tech", "FoodTech", "Consumer Apps",
 ];
 
 // Mirrors AddInformation.jsx exactly so onboarding ↔ profile-edit don't drift.

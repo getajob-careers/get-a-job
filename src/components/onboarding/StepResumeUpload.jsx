@@ -392,11 +392,11 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
       </div>
 
       {cvTruncated && (
-        <div className="onb-banner onb-banner-info">
+        <div className="onb-banner onb-banner-warning">
           Your CV is long — only the first 15,000 characters were sent for extraction. Review the pre-filled details and add anything that wasn&apos;t captured.
         </div>
       )}
-      {error && <div className="onb-banner onb-banner-info">{error}</div>}
+      {error && <div className="onb-banner onb-banner-warning">{error}</div>}
 
       {/* LinkedIn URL — collapsed by default; click to add. Optional. */}
       {!showLinkedin ? (

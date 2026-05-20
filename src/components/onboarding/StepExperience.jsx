@@ -67,7 +67,7 @@ export default function StepExperience({ experiences, onChange, onNext, onBack }
       )}
 
       {experiences.length === 0 && (
-        <div className="onb-banner onb-banner-info flex items-center gap-2.5">
+        <div className="onb-banner onb-banner-warning flex items-center gap-2.5">
           <FileText className="w-4 h-4 flex-shrink-0" />
           <p>No experience extracted from your CV. Add entries manually below, or go back to upload your CV.</p>
         </div>

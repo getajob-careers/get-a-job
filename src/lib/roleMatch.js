@@ -54,8 +54,12 @@ export function matchRoles(input, limit = 5) {
     }
   }
 
-  // Pass 2 — scored whole-word substring match
-  const pattern = new RegExp(`\\b${escapeRegex(norm)}\\b`);
+  // Pass 2 — scored prefix-within-a-word match. The leading \b anchors to
+  // a word boundary so "p" matches "Product" but not "Apple"; no trailing
+  // \b so incremental typing ("p", "pr", "pro") surfaces matches before the
+  // user finishes a complete word. The minScoreFor() length-ratio threshold
+  // below still filters noise for very short inputs.
+  const pattern = new RegExp(`\\b${escapeRegex(norm)}`);
   const inputLen = norm.length;
 
   const scored = [];
