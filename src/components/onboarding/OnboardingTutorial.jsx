@@ -346,9 +346,19 @@ function FullScreenShell({ children }) {
     <div className="min-h-screen flex flex-col">
       <header className="bg-white border-b border-[#DDDDDB]">
         <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="onb-brand">
-            <span className="onb-brand-mark">getajob</span>
-            <span className="onb-brand-dot" />
+          <div className="flex items-baseline gap-4">
+            <div className="onb-brand">
+              <span className="onb-brand-mark">getajob</span>
+              <span className="onb-brand-dot" />
+            </div>
+            <a
+              href="/Landing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[#9C9DA1] hover:text-[#52545A] inline-flex items-center gap-1 transition-colors"
+            >
+              About Get A Job <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
           <p className="onb-eyebrow">Platform tour</p>
         </div>

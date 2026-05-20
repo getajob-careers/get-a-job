@@ -48,7 +48,7 @@
  */
 
 import React, { useEffect, useState } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -1152,6 +1152,7 @@ export default function Landing() {
   // tracked in the file-header KNOWN INFRASTRUCTURE GAPS block.
   const atCap = searchParams.get("cap") === "hit";
   const navigate = useNavigate();
+  const location = useLocation();
   const [waitlistEmail, setWaitlistEmail] = useState("");
   const [waitlistSubmitted, setWaitlistSubmitted] = useState(false);
 
@@ -1163,16 +1164,17 @@ export default function Landing() {
 
   useLandingHead();
 
-  // Auto-bounce authenticated users into the app. Without this, anyone
-  // who lands on / while logged-in (post-email-confirmation, magic-link
-  // return, fresh tab on a logged-in browser) gets stranded on the
-  // marketing page. Home routes onward to /Onboarding if onboarding isn't
-  // complete, so we only need a single hop here.
+  // Auto-bounce authenticated users into the app — but ONLY from /, the
+  // implicit "default" entry point (email-confirmation, magic-link return,
+  // fresh tab on a logged-in browser). /Landing is the explicit "show me
+  // the marketing page" route that always renders, so logged-in users can
+  // reach it from in-app links (Settings, sidebar, onboarding header) and
+  // navigate back via Landing's auth-aware CTAs.
   useEffect(() => {
-    if (isLoggedIn) {
+    if (isLoggedIn && location.pathname === "/") {
       navigate("/Home", { replace: true });
     }
-  }, [isLoggedIn, navigate]);
+  }, [isLoggedIn, navigate, location.pathname]);
 
   // Smooth scroll for anchor links (#agents, #tools, #timeline, #faq).
   // CSS `scroll-behavior: smooth` is set inside .lp; this is a no-op

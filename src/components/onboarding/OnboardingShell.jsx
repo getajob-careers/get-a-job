@@ -1,4 +1,5 @@
 import React from "react";
+import { ExternalLink } from "lucide-react";
 
 // Direction 3 brand tokens live on Onboarding.jsx (the parent injects the
 // shared <style> block and wraps every render branch in .onb). This shell
@@ -26,9 +27,21 @@ export default function OnboardingShell({ currentStep, children }) {
           rail; single "Step X of 8 · {label}" reads better at every width. */}
       <header className="bg-[#FFFFFF] border-b border-[#DDDDDB]">
         <div className="max-w-3xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="onb-brand">
-            <span className="onb-brand-mark">getajob</span>
-            <span className="onb-brand-dot" />
+          <div className="flex items-baseline gap-4">
+            <div className="onb-brand">
+              <span className="onb-brand-mark">getajob</span>
+              <span className="onb-brand-dot" />
+            </div>
+            {/* Opens the marketing page in a new tab so onboarding state
+                stays intact in this tab. */}
+            <a
+              href="/Landing"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-[#9C9DA1] hover:text-[#52545A] inline-flex items-center gap-1 transition-colors"
+            >
+              About Get A Job <ExternalLink className="w-3 h-3" />
+            </a>
           </div>
           <div className="text-right">
             <p className="onb-eyebrow">Step {currentStep + 1} of {total}</p>
