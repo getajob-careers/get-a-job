@@ -64,7 +64,7 @@ export default function CVManagement({ app, onUpdate }) {
   return (
     <div className="space-y-4">
       <div>
-        <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
+        <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">
           CV Version Name
         </label>
         <Input
@@ -76,7 +76,7 @@ export default function CVManagement({ app, onUpdate }) {
       </div>
 
       <div>
-        <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
+        <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">
           CV Status
         </label>
         <Select value={cvStatus} onValueChange={setCvStatus}>
@@ -93,7 +93,7 @@ export default function CVManagement({ app, onUpdate }) {
 
       {app.cv_skills_emphasized && app.cv_skills_emphasized.length > 0 && (
         <div>
-          <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">
+          <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium mb-2 block">
             Skills Emphasized
           </label>
           <div className="flex flex-wrap gap-2">
@@ -107,16 +107,16 @@ export default function CVManagement({ app, onUpdate }) {
       )}
 
       {app.cv_url && (
-        <div className="bg-[#F5F5F5] rounded-lg p-3 flex items-center justify-between">
+        <div className="bg-[#E8E8E5] rounded-lg p-3 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <FileText className="w-4 h-4 text-[#525252]" />
-            <span className="text-xs text-[#525252]">CV Generated</span>
+            <FileText className="w-4 h-4 text-[#52545A]" />
+            <span className="text-xs text-[#52545A]">CV Generated</span>
           </div>
           <a
             href={app.cv_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs text-[#0A0A0A] underline flex items-center gap-1"
+            className="text-xs text-[#0E1014] underline flex items-center gap-1"
           >
             <Download className="w-3 h-3" />
             Download (.docx)
@@ -125,7 +125,7 @@ export default function CVManagement({ app, onUpdate }) {
       )}
 
       <div>
-        <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2 block">
+        <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium mb-2 block">
           CV Style
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
@@ -134,15 +134,15 @@ export default function CVManagement({ app, onUpdate }) {
             onClick={() => setTemplateStyle("ats-optimized")}
             className={`text-left rounded-lg border p-3 transition-colors ${
               templateStyle === "ats-optimized"
-                ? "border-[#0A0A0A] bg-[#FAFAFA]"
-                : "border-[#E5E5E5] hover:border-[#A3A3A3]"
+                ? "border-[#0E1014] bg-[#F4F4F2]"
+                : "border-[#DDDDDB] hover:border-[#A3A3A3]"
             }`}
           >
             <div className="flex items-center gap-1.5 mb-1">
-              <FileSearch className="w-3.5 h-3.5 text-[#525252]" />
-              <span className="text-xs font-semibold text-[#0A0A0A]">ATS-Optimized</span>
+              <FileSearch className="w-3.5 h-3.5 text-[#52545A]" />
+              <span className="text-xs font-semibold text-[#0E1014]">ATS-Optimized</span>
             </div>
-            <p className="text-[11px] text-[#525252] leading-snug">
+            <p className="text-[11px] text-[#52545A] leading-snug">
               Best for applying through job portals and company application forms where your CV is parsed by software first.
             </p>
           </button>
@@ -151,15 +151,15 @@ export default function CVManagement({ app, onUpdate }) {
             onClick={() => setTemplateStyle("polished")}
             className={`text-left rounded-lg border p-3 transition-colors ${
               templateStyle === "polished"
-                ? "border-[#0A0A0A] bg-[#FAFAFA]"
-                : "border-[#E5E5E5] hover:border-[#A3A3A3]"
+                ? "border-[#0E1014] bg-[#F4F4F2]"
+                : "border-[#DDDDDB] hover:border-[#A3A3A3]"
             }`}
           >
             <div className="flex items-center gap-1.5 mb-1">
-              <FileCheck className="w-3.5 h-3.5 text-[#525252]" />
-              <span className="text-xs font-semibold text-[#0A0A0A]">Polished</span>
+              <FileCheck className="w-3.5 h-3.5 text-[#52545A]" />
+              <span className="text-xs font-semibold text-[#0E1014]">Polished</span>
             </div>
-            <p className="text-[11px] text-[#525252] leading-snug">
+            <p className="text-[11px] text-[#52545A] leading-snug">
               Best for sending directly to a recruiter, networking contacts, or email applications where a human reads it first.
             </p>
           </button>
@@ -182,7 +182,7 @@ export default function CVManagement({ app, onUpdate }) {
         <Button
           onClick={handleGenerateCV}
           disabled={generating}
-          className="bg-[#0A0A0A] hover:bg-[#262626] text-sm"
+          className="bg-[#0E1014] hover:bg-[#F87060] text-sm"
         >
           {generating ? (
             <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Generating...</>

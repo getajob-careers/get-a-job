@@ -74,8 +74,8 @@ export default function NetworkingReferrals({ app, onUpdate }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-2">
-        <Users className="w-4 h-4 text-[#525252]" />
-        <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
+        <Users className="w-4 h-4 text-[#52545A]" />
+        <p className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">
           Networking Contacts & Referrals
         </p>
       </div>
@@ -91,28 +91,28 @@ export default function NetworkingReferrals({ app, onUpdate }) {
       </div>
 
       {contacts.length === 0 ? (
-        <p className="text-xs text-[#A3A3A3] py-4 text-center">
+        <p className="text-xs text-[#9C9DA1] py-4 text-center">
           No contacts yet. Search LinkedIn for people at this company and start reaching out.
         </p>
       ) : (
         <div className="space-y-2">
           {contacts.map((contact, i) => (
-            <div key={contact.id ?? i} className="bg-[#FAFAFA] rounded-lg p-3">
+            <div key={contact.id ?? i} className="bg-[#F4F4F2] rounded-lg p-3">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-[#0A0A0A]">{contact.contact_name}</p>
-                  <p className="text-xs text-[#A3A3A3]">
+                  <p className="text-sm font-medium text-[#0E1014]">{contact.contact_name}</p>
+                  <p className="text-xs text-[#9C9DA1]">
                     {contact.contact_role} at {contact.contact_company}
                   </p>
                   <div className="flex items-center gap-4 mt-2">
-                    <label className="flex items-center gap-2 text-xs text-[#525252]">
+                    <label className="flex items-center gap-2 text-xs text-[#52545A]">
                       <Checkbox
                         checked={contact.outreach_sent}
                         onCheckedChange={(v) => handleUpdate(contact.id, "outreach_sent", v)}
                       />
                       Outreach Sent
                     </label>
-                    <label className="flex items-center gap-2 text-xs text-[#525252]">
+                    <label className="flex items-center gap-2 text-xs text-[#52545A]">
                       <Checkbox
                         checked={contact.referral_requested}
                         onCheckedChange={(v) => handleUpdate(contact.id, "referral_requested", v)}
@@ -134,7 +134,7 @@ export default function NetworkingReferrals({ app, onUpdate }) {
                     </SelectContent>
                   </Select>
                 </div>
-                <button onClick={() => handleRemove(contact.id)} className="text-[#A3A3A3] hover:text-red-500">
+                <button onClick={() => handleRemove(contact.id)} className="text-[#9C9DA1] hover:text-red-500">
                   <Trash2 className="w-4 h-4" />
                 </button>
               </div>
@@ -143,8 +143,8 @@ export default function NetworkingReferrals({ app, onUpdate }) {
         </div>
       )}
 
-      <div className="border-t border-[#E5E5E5] pt-4 space-y-3">
-        <p className="text-xs font-medium text-[#525252]">Add New Contact</p>
+      <div className="border-t border-[#DDDDDB] pt-4 space-y-3">
+        <p className="text-xs font-medium text-[#52545A]">Add New Contact</p>
         <Input
           placeholder="Contact name (e.g., Sarah Chen)"
           value={newContact.contact_name}
@@ -163,7 +163,7 @@ export default function NetworkingReferrals({ app, onUpdate }) {
           onChange={(e) => setNewContact({ ...newContact, contact_role: e.target.value })}
           className="text-sm"
         />
-        <Button onClick={handleAdd} className="bg-[#0A0A0A] hover:bg-[#262626] text-sm w-full">
+        <Button onClick={handleAdd} className="bg-[#0E1014] hover:bg-[#F87060] text-sm w-full">
           <Plus className="w-4 h-4 mr-2" />
           Add Contact
         </Button>

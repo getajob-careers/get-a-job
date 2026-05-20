@@ -3,13 +3,12 @@ import { supabase } from "@/api/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { scoreApplication } from "@/lib/scoreApplication";
-import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronUp, Loader2, Lock, MessageSquare, RotateCw, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import { TIER_CONFIG } from "@/lib/tierConfig";
 import CVManagement from "./CVManagement";
 import SkillsRequired from "./SkillsRequired";
 import ProjectsProof from "./ProjectsProof";
@@ -18,14 +17,17 @@ import InterviewPrep from "./InterviewPrep";
 import FollowUp from "./FollowUp";
 import ApplicationChecklist from "./ApplicationChecklist";
 
+// Status badges use the new tk-status-* token classes (defined in
+// trackerStyles.js). Each maps to a Direction 3 tint family — gray /
+// info-blue / violet / warning-amber / success-green / red.
 const STATUS_LABELS = {
-  interested: { label: "Interested", className: "bg-gray-100 text-gray-700" },
-  preparing: { label: "Preparing", className: "bg-blue-50 text-blue-700" },
-  applied: { label: "Applied", className: "bg-purple-50 text-purple-700" },
-  interviewing: { label: "Interviewing", className: "bg-amber-50 text-amber-700" },
-  offer: { label: "Offer", className: "bg-emerald-50 text-emerald-700" },
-  accepted: { label: "Accepted", className: "bg-emerald-100 text-emerald-800" },
-  rejected: { label: "Rejected", className: "bg-red-50 text-red-700" },
+  interested:   { label: "Interested",   cls: "tk-status-interested" },
+  preparing:    { label: "Preparing",    cls: "tk-status-preparing" },
+  applied:      { label: "Applied",      cls: "tk-status-applied" },
+  interviewing: { label: "Interviewing", cls: "tk-status-interviewing" },
+  offer:        { label: "Offer",        cls: "tk-status-offer" },
+  accepted:     { label: "Accepted",     cls: "tk-status-accepted" },
+  rejected:     { label: "Rejected",     cls: "tk-status-rejected" },
 };
 
 export default function ApplicationRow({ app, onUpdate, listingInactive = false }) {
@@ -34,7 +36,7 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
   const [expanded, setExpanded] = useState(false);
 
   const handleOpenCVAgent = () => {
-    navigate("/subagents?agent=cv-helper");
+    navigate("/CVAgent");
   };
   const [activeTab, setActiveTab] = useState("target");
   const [jdText, setJdText] = useState(app.job_description || "");
@@ -49,14 +51,11 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
     referralAttached !== (app.referral_attached || false);
 
   const status = STATUS_LABELS[app.status] || STATUS_LABELS.interested;
+  const tierMeta = TIER_CONFIG[app.tier]; // null when unclassified
 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [retryingScore, setRetryingScore] = useState(false);
 
-  // Tracks whether the last background scoring run permanently failed —
-  // populated by src/lib/scoreApplication.js's catch handler. Decides
-  // whether the row shows a Retry affordance vs the "Calculating tier…"
-  // spinner (which is correct only while a run is genuinely in flight).
   const scoringFailed = !!app.tier_scoring_failed_at;
   const hasJd = !!(app.job_description && app.job_description.trim());
 
@@ -65,9 +64,6 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
     if (retryingScore || !hasJd) return;
     setRetryingScore(true);
     try {
-      // scoreApplication itself clears tier_scoring_failed_at on success
-      // and re-sets it on failure, so the cache invalidation it triggers
-      // will pull the right state. We just block double-clicks here.
       await scoreApplication(supabase, queryClient, app.id, app.job_description, app.user_id);
     } finally {
       setRetryingScore(false);
@@ -80,8 +76,6 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
       setConfirmingDelete(true);
       return;
     }
-    // RLS enforces ownership; CAL2 migration's CASCADE on calendar_events
-    // FK cleans up any tied calendar entries automatically.
     const { error } = await supabase.from("applications").delete().eq("id", app.id);
     if (error) {
       console.error("Failed to delete application:", error);
@@ -111,9 +105,6 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
       return;
     }
     onUpdate();
-    // Re-score against the new JD. This is also how existing applications
-    // (added before background scoring landed) get backfilled — user pastes
-    // a JD and the score fills in ~5s later.
     if (jdText && jdText.trim()) {
       scoreApplication(supabase, queryClient, app.id, jdText, app.user_id);
     }
@@ -135,8 +126,6 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
 
   const [checklist, setChecklist] = useState(app.checklist || {});
 
-  // Re-sync local state when the row collapses, or when the app prop refreshes
-  // without the user having unsaved changes (e.g. a sub-component saves and triggers onUpdate).
   useEffect(() => {
     if (!expanded || !hasUnsavedChanges) {
       setJdText(app.job_description || "");
@@ -145,7 +134,8 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
       setReferralAttached(app.referral_attached || false);
       setChecklist(app.checklist || {});
     }
-  }, [expanded, app]);  
+
+  }, [expanded, app]);
 
   const handleChecklistChange = async (updated) => {
     const previous = checklist;
@@ -160,27 +150,30 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
     onUpdate();
   };
 
-  // Interview tab unlocks once the application reaches interviewing or later.
-  // Follow-Up tab unlocks once there's a terminal outcome to follow up on.
   const INTERVIEW_UNLOCK_STATUSES = new Set(["interviewing", "offer", "accepted", "rejected"]);
   const FOLLOWUP_UNLOCK_STATUSES = new Set(["offer", "accepted", "rejected"]);
   const interviewLocked = !INTERVIEW_UNLOCK_STATUSES.has(app.status);
   const followupLocked = !FOLLOWUP_UNLOCK_STATUSES.has(app.status);
 
   const tabs = [
-    { id: "checklist", label: "📋 Steps" },
-    { id: "target", label: "Target Role" },
-    { id: "cv", label: "CV" },
-    { id: "skills", label: "Skills" },
-    { id: "projects", label: "Projects" },
-    { id: "networking", label: "Networking" },
+    { id: "checklist",   label: "📋 Steps" },
+    { id: "target",      label: "Target role" },
+    { id: "cv",          label: "CV" },
+    { id: "skills",      label: "Skills" },
+    { id: "projects",    label: "Projects" },
+    { id: "networking",  label: "Networking" },
     { id: "application", label: "Application" },
-    { id: "interview", label: "Interview", locked: interviewLocked, unlockHint: "Move this application to 'Interviewing' to unlock interview prep." },
-    { id: "followup", label: "Follow-Up", locked: followupLocked, unlockHint: "Unlocks once the application reaches Offer, Accepted, or Rejected." },
+    { id: "interview",   label: "Interview", locked: interviewLocked, unlockHint: "Move this application to 'Interviewing' to unlock interview prep." },
+    { id: "followup",    label: "Follow-up", locked: followupLocked, unlockHint: "Unlocks once the application reaches Offer, Accepted, or Rejected." },
   ];
 
+  // Qualification score: green when strong, gray when weak. No red.
+  const qScore = app.qualification_score;
+  const qPct = qScore != null ? Math.round(qScore * 100) : null;
+  const qClass = qPct == null ? null : (qPct >= 45 ? "tk-score-strong" : "tk-score-soft");
+
   return (
-    <div className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden">
+    <div className="tk-row">
       <button
         onClick={() => {
           if (expanded && hasUnsavedChanges) {
@@ -189,39 +182,32 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
           setExpanded(!expanded);
         }}
         aria-label={expanded ? "Collapse application" : "Expand application"}
-        className="w-full px-5 py-4 flex items-center justify-between text-left"
+        className="tk-row-header"
       >
         <div className="flex items-center gap-3 min-w-0">
-          <span className={cn("text-[11px] font-semibold px-2 py-0.5 rounded-md flex-shrink-0", status.className)}>
-            {status.label}
-          </span>
+          <span className={`tk-status ${status.cls} flex-shrink-0`}>{status.label}</span>
           <div className="min-w-0">
-            <p className="text-sm font-semibold text-[#0A0A0A] truncate">{app.role_title}</p>
-            <p className="text-xs text-[#A3A3A3] mt-0.5">{app.company || "No company"}</p>
+            <p className="tk-row-title truncate">{app.role_title}</p>
+            <p className="tk-row-company">{app.company || "No company"}</p>
             {listingInactive && (
-              <p className="text-[10px] text-amber-700 mt-0.5">
+              <p className="text-[10.5px] text-[#6B4E0F] mt-1">
                 This listing may no longer be active
               </p>
             )}
           </div>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
-          {app.tier ? (
-            <span className={cn("text-[10px] font-semibold px-2 py-0.5 rounded-md uppercase",
-              app.tier === "tier_1" ? "tier-badge-1" : app.tier === "tier_2" ? "tier-badge-2" : "tier-badge-3"
-            )}>
-              {app.tier?.replace("_", " ")}
+          {tierMeta ? (
+            <span className={`tk-tier-pill tk-tier-${tierMeta.color}`}>
+              <span className="tk-tier-badge">{tierMeta.number}</span>
+              Tier {tierMeta.number}
             </span>
           ) : scoringFailed && hasJd ? (
-            // Replaces the "Calculating tier…" spinner with a single Retry
-            // affordance covering both tier + AI Confidence — they fail
-            // together (one analyze-job-match call) so showing two retry
-            // controls would just confuse users.
             <button
               type="button"
               onClick={handleRetryScore}
               disabled={retryingScore}
-              className="text-[10px] font-medium text-amber-700 hover:text-amber-800 disabled:opacity-50 inline-flex items-center gap-1"
+              className="tk-meta-retry"
               title="Background scoring failed. Click to retry."
             >
               {retryingScore
@@ -229,29 +215,25 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
                 : <><RotateCw className="w-3 h-3" />Retry scoring</>}
             </button>
           ) : hasJd ? (
-            <span className="text-[10px] text-[#A3A3A3] italic">Calculating tier…</span>
+            <span className="tk-meta-italic">Calculating tier…</span>
           ) : null}
-          {app.qualification_score !== undefined && app.qualification_score !== null ? (
-            <span className={cn("text-[11px] font-semibold",
-              app.qualification_score >= 0.45 ? "text-emerald-600" : "text-red-500"
-            )}>
-              {Math.round((app.qualification_score || 0) * 100)}%
-            </span>
+          {qPct != null ? (
+            <span className={qClass}>{qPct}%</span>
           ) : !scoringFailed && hasJd ? (
-            <span className="text-[11px] text-[#A3A3A3] italic">Calculating fit…</span>
+            <span className="tk-meta-italic">Calculating fit…</span>
           ) : null}
           {confirmingDelete ? (
             <>
               <button
                 onClick={handleDelete}
-                className="text-xs text-red-600 font-semibold hover:text-red-700"
+                className="text-xs text-[#C84F40] font-semibold hover:text-[#F87060]"
                 title="Confirm delete"
               >
                 Delete?
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); setConfirmingDelete(false); }}
-                className="text-xs text-[#A3A3A3] hover:text-[#525252]"
+                className="text-xs text-[#9C9DA1] hover:text-[#52545A]"
               >
                 Cancel
               </button>
@@ -259,23 +241,25 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
           ) : (
             <button
               onClick={handleDelete}
-              className="text-[#A3A3A3] hover:text-red-500"
+              className="text-[#9C9DA1] hover:text-[#F87060] transition-colors"
               title="Delete application"
               aria-label="Delete application"
             >
               <Trash2 className="w-4 h-4" />
             </button>
           )}
-          {expanded ? <ChevronUp className="w-4 h-4 text-[#A3A3A3]" /> : <ChevronDown className="w-4 h-4 text-[#A3A3A3]" />}
+          {expanded
+            ? <ChevronUp className="w-4 h-4 text-[#9C9DA1]" />
+            : <ChevronDown className="w-4 h-4 text-[#9C9DA1]" />}
         </div>
       </button>
 
       {expanded && (
-        <div className="border-t border-[#F0F0F0]">
-          <div className="px-5 py-3 flex items-center gap-3 border-b border-[#F0F0F0]">
-            <span className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Status</span>
+        <div className="tk-row-body">
+          <div className="tk-status-bar">
+            <span className="tk-eyebrow">Status</span>
             <Select value={app.status} onValueChange={handleStatusChange}>
-              <SelectTrigger className="h-8 w-[160px] text-xs">
+              <SelectTrigger className="h-8 w-[180px] text-xs border-[#DDDDDB]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -285,20 +269,16 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
               </SelectContent>
             </Select>
           </div>
-          <div className="flex border-b border-[#F0F0F0] overflow-x-auto">
+
+          <div className="tk-tabs">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 title={tab.locked ? tab.unlockHint : undefined}
-                className={cn(
-                  "px-4 py-2.5 text-xs font-medium transition-colors whitespace-nowrap inline-flex items-center gap-1.5",
-                  activeTab === tab.id
-                    ? "text-[#0A0A0A] border-b-2 border-[#0A0A0A]"
-                    : tab.locked
-                    ? "text-[#D4D4D4] hover:text-[#A3A3A3]"
-                    : "text-[#A3A3A3] hover:text-[#525252]"
-                )}
+                className="tk-tab"
+                data-active={activeTab === tab.id}
+                data-locked={!!tab.locked}
               >
                 {tab.locked && <Lock className="w-3 h-3" />}
                 {tab.label}
@@ -306,35 +286,33 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
             ))}
           </div>
 
-          <div className="px-5 py-4">
+          <div className="tk-tab-panel">
             {activeTab === "checklist" && (
               <ApplicationChecklist checklist={checklist} onChange={handleChecklistChange} />
             )}
 
             {activeTab === "target" && (
-              <div className="space-y-3">
-                <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
-                  Target Role Information
-                </p>
-                <div className="bg-[#FAFAFA] rounded-lg p-4 space-y-2">
-                  <div className="flex justify-between">
-                    <span className="text-xs text-[#A3A3A3]">Role</span>
-                    <span className="text-xs font-medium text-[#0A0A0A]">{app.role_title}</span>
+              <div className="flex flex-col gap-4">
+                <p className="tk-eyebrow">Target role information</p>
+                <div className="tk-card-inset">
+                  <div className="tk-tab-panel-row">
+                    <span className="tk-tab-panel-key">Role</span>
+                    <span className="tk-tab-panel-val">{app.role_title}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-xs text-[#A3A3A3]">Company</span>
-                    <span className="text-xs font-medium text-[#0A0A0A]">{app.company || "—"}</span>
+                  <div className="tk-tab-panel-row">
+                    <span className="tk-tab-panel-key">Company</span>
+                    <span className="tk-tab-panel-val">{app.company || "—"}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-xs text-[#A3A3A3]">Tier</span>
-                    {app.tier ? (
-                      <span className="text-xs font-medium text-[#0A0A0A]">{app.tier.replace("_", " ")}</span>
+                  <div className="tk-tab-panel-row">
+                    <span className="tk-tab-panel-key">Tier</span>
+                    {tierMeta ? (
+                      <span className="tk-tab-panel-val">Tier {tierMeta.number} · {tierMeta.name}</span>
                     ) : scoringFailed && hasJd ? (
                       <button
                         type="button"
                         onClick={handleRetryScore}
                         disabled={retryingScore}
-                        className="text-xs font-medium text-amber-700 hover:text-amber-800 disabled:opacity-50 inline-flex items-center gap-1"
+                        className="tk-meta-retry"
                         title="Background scoring failed. Click to retry."
                       >
                         {retryingScore
@@ -342,111 +320,107 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
                           : <><RotateCw className="w-3 h-3" />Retry scoring</>}
                       </button>
                     ) : hasJd ? (
-                      <span className="text-xs text-[#A3A3A3] italic">Calculating tier…</span>
+                      <span className="tk-meta-italic">Calculating tier…</span>
                     ) : (
-                      <span className="text-xs font-medium text-[#0A0A0A]">Unclassified</span>
+                      <span className="tk-tab-panel-val">Unclassified</span>
                     )}
                   </div>
-                  {app.qualification_score !== undefined && app.qualification_score !== null ? (
-                    <div className="flex justify-between">
-                      <span className="text-xs text-[#A3A3A3]">AI Confidence</span>
-                      <span className={cn("text-xs font-semibold",
-                        app.qualification_score >= 0.45 ? "text-emerald-600" : "text-red-500"
-                      )}>
-                        {Math.round(app.qualification_score * 100)}%
-                      </span>
+                  {qPct != null ? (
+                    <div className="tk-tab-panel-row">
+                      <span className="tk-tab-panel-key">AI confidence</span>
+                      <span className={qClass}>{qPct}%</span>
                     </div>
                   ) : !scoringFailed && hasJd ? (
-                    <div className="flex justify-between">
-                      <span className="text-xs text-[#A3A3A3]">AI Confidence</span>
-                      <span className="text-xs text-[#A3A3A3] italic">Calculating fit…</span>
+                    <div className="tk-tab-panel-row">
+                      <span className="tk-tab-panel-key">AI confidence</span>
+                      <span className="tk-meta-italic">Calculating fit…</span>
                     </div>
                   ) : null}
                 </div>
-                <div className="space-y-2">
-                  <label className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
-                    Job Description
-                  </label>
+                <div className="flex flex-col gap-2">
+                  <label className="tk-eyebrow">Job description</label>
                   <Textarea
                     value={jdText}
                     onChange={(e) => setJdText(e.target.value)}
                     placeholder="Paste the job description here..."
                     rows={6}
-                    className="text-sm"
+                    className="text-sm border-[#DDDDDB]"
                   />
                   <button
                     onClick={handleSaveJobDescription}
-                    className="text-xs text-[#0A0A0A] underline underline-offset-2"
+                    className="text-xs text-[#0E1014] underline underline-offset-2 self-start hover:text-[#F87060]"
                   >
-                    Save Job Description
+                    Save job description
                   </button>
                 </div>
               </div>
             )}
 
             {activeTab === "cv" && (
-              <div className="space-y-4">
+              <div className="flex flex-col gap-4">
                 <CVManagement app={app} onUpdate={onUpdate} />
-                <div className="border-t border-[#F0F0F0] pt-4">
+                <div className="border-t border-[#E8E8E5] pt-4">
                   <button
                     onClick={handleOpenCVAgent}
-                    className="flex items-center gap-2 text-xs font-medium text-[#2563EB] hover:text-[#1d4ed8] transition-colors"
+                    className="flex items-center gap-2 text-xs font-semibold text-[#0E1014] hover:text-[#F87060] transition-colors"
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
                     Chat with CV Agent for this role
                   </button>
-                  <p className="text-[11px] text-[#A3A3A3] mt-1">Opens a conversation pre-loaded with this application's context.</p>
+                  <p className="text-[11px] text-[#9C9DA1] mt-1">
+                    Opens a conversation pre-loaded with this application&apos;s context.
+                  </p>
                 </div>
               </div>
             )}
-            {activeTab === "skills" && <SkillsRequired app={app} onUpdate={onUpdate} />}
-            {activeTab === "projects" && <ProjectsProof app={app} onUpdate={onUpdate} />}
-            {activeTab === "networking" && <NetworkingReferrals app={app} onUpdate={onUpdate} />}
+            {activeTab === "skills"      && <SkillsRequired app={app} onUpdate={onUpdate} />}
+            {activeTab === "projects"    && <ProjectsProof app={app} onUpdate={onUpdate} />}
+            {activeTab === "networking"  && <NetworkingReferrals app={app} onUpdate={onUpdate} />}
 
             {activeTab === "application" && (
-              <div className="space-y-4">
-                <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">
-                  Application Details
-                </p>
+              <div className="flex flex-col gap-4">
+                <p className="tk-eyebrow">Application details</p>
                 <div>
-                  <label className="text-xs text-[#525252] mb-1 block">Date Applied</label>
-                  <Input
+                  <label className="text-xs text-[#52545A] mb-1.5 block">Date applied</label>
+                  <input
                     type="date"
                     value={appliedDate}
                     onChange={(e) => setAppliedDate(e.target.value)}
-                    className="text-sm"
+                    className="tk-input"
+                    style={{ maxWidth: 220 }}
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#525252] mb-1 block">CV Version Used</label>
-                  <Input
+                  <label className="text-xs text-[#52545A] mb-1.5 block">CV version used</label>
+                  <input
                     value={cvVersionUsed}
                     onChange={(e) => setCvVersionUsed(e.target.value)}
-                    placeholder="e.g., Customer Success CV - Monday"
-                    className="text-sm"
+                    placeholder="e.g. Customer Success CV — Monday"
+                    className="tk-input"
                   />
                 </div>
-                <label className="flex items-center gap-2 text-sm text-[#525252]">
+                <label className="flex items-center gap-2 text-sm text-[#52545A]">
                   <Checkbox
                     checked={referralAttached}
                     onCheckedChange={setReferralAttached}
+                    className="accent-[#F87060]"
                   />
-                  Referral Attached
+                  Referral attached
                 </label>
                 <button
                   onClick={handleSaveApplicationDetails}
-                  className="text-xs text-[#0A0A0A] underline underline-offset-2"
+                  className="text-xs text-[#0E1014] underline underline-offset-2 self-start hover:text-[#F87060]"
                 >
-                  Save Application Details
+                  Save application details
                 </button>
               </div>
             )}
 
             {activeTab === "interview" && (
               interviewLocked ? (
-                <div className="flex items-start gap-3 px-4 py-4 bg-[#FAFAFA] border border-[#F0F0F0] rounded-lg">
-                  <Lock className="w-4 h-4 text-[#A3A3A3] flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-[#525252] leading-relaxed">
+                <div className="tk-locked-notice">
+                  <Lock className="w-4 h-4 text-[#9C9DA1] flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-[#52545A] leading-relaxed">
                     Move this application to <strong>Interviewing</strong> to unlock interview prep. Jumping ahead before you have an interview scheduled just adds noise.
                   </p>
                 </div>
@@ -456,10 +430,10 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
             )}
             {activeTab === "followup" && (
               followupLocked ? (
-                <div className="flex items-start gap-3 px-4 py-4 bg-[#FAFAFA] border border-[#F0F0F0] rounded-lg">
-                  <Lock className="w-4 h-4 text-[#A3A3A3] flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-[#525252] leading-relaxed">
-                    Follow-Up unlocks once the application reaches <strong>Offer</strong>, <strong>Accepted</strong>, or <strong>Rejected</strong>. There's nothing to follow up on yet.
+                <div className="tk-locked-notice">
+                  <Lock className="w-4 h-4 text-[#9C9DA1] flex-shrink-0 mt-0.5" />
+                  <p className="text-xs text-[#52545A] leading-relaxed">
+                    Follow-up unlocks once the application reaches <strong>Offer</strong>, <strong>Accepted</strong>, or <strong>Rejected</strong>. There&apos;s nothing to follow up on yet.
                   </p>
                 </div>
               ) : (
