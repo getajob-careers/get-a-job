@@ -294,11 +294,12 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
     { value: "freelance", label: "Freelancing" },
   ];
 
-  // Primary-job-state options are mutually exclusive: you can't simultaneously
-  // have a job, be looking for one, and be unemployed. Picking one clears the
-  // other two. Student + Freelancing stack freely on top (working student,
-  // freelancing while job-hunting are real combinations).
-  const EXCLUSIVE_EMPLOYMENT = ["looking_for_job", "employed", "unemployed"];
+  // `unemployed` is the only status that conflicts with others: it can't
+  // stack with `employed` (you're one or the other) or with `looking_for_job`
+  // (unemployed already implies job-search). `employed` + `looking_for_job`
+  // is allowed — that's the "currently working but looking elsewhere" case.
+  // `student` and `freelance` stack freely with anything.
+  const UNEMPLOYED_CONFLICTS = ["employed", "looking_for_job"];
 
   const toggleEmploymentStatus = (value) => {
     const current = profileData?.employment_status || [];
@@ -306,10 +307,14 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
     let updated;
     if (isOn) {
       updated = current.filter((s) => s !== value);
-    } else if (EXCLUSIVE_EMPLOYMENT.includes(value)) {
-      // Adding an exclusive status — strip any other exclusive status first.
-      updated = [...current.filter((s) => !EXCLUSIVE_EMPLOYMENT.includes(s)), value];
+    } else if (value === "unemployed") {
+      // Adding unemployed — strip employed and looking_for_job.
+      updated = [...current.filter((s) => !UNEMPLOYED_CONFLICTS.includes(s)), value];
+    } else if (UNEMPLOYED_CONFLICTS.includes(value)) {
+      // Adding employed or looking_for_job — strip unemployed.
+      updated = [...current.filter((s) => s !== "unemployed"), value];
     } else {
+      // student / freelance — stack freely.
       updated = [...current, value];
     }
     onChange({ employment_status: updated });

@@ -126,7 +126,7 @@ export default function StepExperience({ experiences, onChange, onNext, onBack }
                   <SelectItem value="freelance">Freelance</SelectItem>
                   <SelectItem value="volunteer">Volunteer</SelectItem>
                   <SelectItem value="leadership">Leadership / Club</SelectItem>
-                  <SelectItem value="military">Military / IDF</SelectItem>
+                  <SelectItem value="military">Military service</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -43,7 +43,14 @@ export default function StepEducation({ data, onChange, educations, setEducation
 
   const setProfileField = (key, val) => onChange({ ...data, [key]: val });
 
-  const canProceed = data.full_name?.trim() && primary.education_level;
+  // Required: full_name + institution + education_level. Degree type and
+  // field of study are soft-suggested — they add fidelity to downstream
+  // role matching but aren't worth blocking onboarding over (a marketing
+  // student still wanting "Product Manager" matches without a degree_type).
+  const canProceed =
+    !!data.full_name?.trim() &&
+    !!primary.institution?.trim() &&
+    !!primary.education_level;
 
   // Degree dropdown — pick which option is "selected" based on what's stored.
   // If the stored value isn't a preset, the dropdown shows "Other" and we
@@ -77,7 +84,7 @@ export default function StepEducation({ data, onChange, educations, setEducation
       <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-5">
         <div>
           <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">
-            Full Name
+            Full Name <span className="text-red-400">*</span>
           </label>
           <Input
             value={data.full_name || ""}
@@ -88,7 +95,7 @@ export default function StepEducation({ data, onChange, educations, setEducation
 
         <div>
           <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">
-            Institution / University
+            Institution / University <span className="text-red-400">*</span>
           </label>
           <Input
             value={primary.institution || ""}
@@ -100,7 +107,7 @@ export default function StepEducation({ data, onChange, educations, setEducation
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">
-              Education Level
+              Education Level <span className="text-red-400">*</span>
             </label>
             <Select value={primary.education_level || undefined} onValueChange={(v) => setEduField("education_level", v)}>
               <SelectTrigger><SelectValue placeholder="Select level" /></SelectTrigger>

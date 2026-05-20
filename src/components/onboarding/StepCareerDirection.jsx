@@ -119,7 +119,7 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
       <div>
         <h2 className="text-xl font-bold text-[#0A0A0A] tracking-tight">Career Direction</h2>
         <p className="text-sm text-[#525252] mt-1">
-          Your answers here define the aspiration vector. The system will separate what you qualify for now from what you're aiming for.
+          Tell us where you want your career to go. We&apos;ll separate what you qualify for now from what you&apos;re aiming for next.
         </p>
       </div>
 
