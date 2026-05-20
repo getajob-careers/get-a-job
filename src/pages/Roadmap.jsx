@@ -1,19 +1,19 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Loader2, Brain, AlertCircle, RefreshCw, ArrowLeft, ArrowRight, ExternalLink, MapPin } from "lucide-react";
+import { Loader2, Brain, AlertCircle, RefreshCw, ArrowLeft, ArrowRight, ExternalLink, MapPin, Compass } from "lucide-react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import GeneratingBanner from "@/components/ui/GeneratingBanner";
 import RoleCard from "../components/roadmap/RoleCard";
 import TierQuadrantGrid from "../components/roadmap/TierQuadrantGrid";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experienceLevel";
 import { track, EVENTS } from "@/lib/analytics";
+import { TIER_CONFIG, TIER_ORDER, TIERS } from "@/lib/tierConfig";
+import { ROADMAP_CSS } from "../components/roadmap/roadmapStyles";
 
 const ROADMAP_MESSAGES = [
   "Searching LinkedIn & Glassdoor for real job postings…",
@@ -29,28 +29,17 @@ const ROADMAP_MESSAGES = [
 // value used in JobSuggestions.jsx — keep them in sync.
 const TIER_SIMILARITY_THRESHOLD = 0.3;
 const OVERVIEW_TIER_JOBS_LIMIT = 5;
+const OVERVIEW_TIER1_TITLES_PREVIEW = 3;
 
-const TAB_ORDER = ["overview", "why", "tier_1", "tier_2", "tier_3"];
-
-const TIER_CONFIG = {
-  tier_1: { label: "Tier 1 — Your Move", color: "text-emerald-700", dot: "bg-emerald-500",
-            emptyCopy: "No Tier 1 roles surfaced yet — once your roadmap regenerates, roles you're qualified for AND that fit your career path will land here." },
-  tier_2: { label: "Tier 2 — Plan B",    color: "text-amber-700",   dot: "bg-amber-500",
-            emptyCopy: "No off-path roles found — your matches are well-aligned with your stated career goals. Tier 2 lists roles you're qualified for that would be detours from your path." },
-  tier_3: { label: "Tier 3 — Work Toward", color: "text-indigo-700", dot: "bg-indigo-500",
-            emptyCopy: "No work-toward roles surfaced — either every on-path role is already in your reach, or your goals point at roles too far ahead to score meaningfully right now." },
-};
+const TAB_ORDER = ["overview", "why", ...TIER_ORDER];
 
 export default function CareerRoadmap() {
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
+  const navigate = useNavigate();   // eslint-disable-line no-unused-vars
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
   const [generating, setGenerating] = useState(false);
 
-  // Resolve the active tab from the URL. Default to overview. Reject unknown
-  // values so a stale bookmark to a now-removed tab (e.g. ?tab=learning) lands
-  // on the overview instead of a blank page.
   const tabParam = searchParams.get("tab");
   const activeTab = TAB_ORDER.includes(tabParam) ? tabParam : "overview";
   const setTab = (next) => {
@@ -92,8 +81,6 @@ export default function CareerRoadmap() {
     enabled: !!user?.id,
   });
 
-  // Education feeds inferExperienceLevel via isCurrentlyStudent. Separate
-  // table since Phase B (no longer flat columns on profiles).
   const { data: educations = [] } = useQuery({
     queryKey: ["education", user?.id],
     queryFn: async () => {
@@ -133,17 +120,26 @@ export default function CareerRoadmap() {
   const tier1 = roles.filter((r) => r.tier === "tier_1");
   const tier2 = roles.filter((r) => r.tier === "tier_2");
   const tier3 = roles.filter((r) => r.tier === "tier_3");
-  const uncategorized = roles.filter((r) => !["tier_1", "tier_2", "tier_3"].includes(r.tier));
+  const byTier = { tier_1: tier1, tier_2: tier2, tier_3: tier3 };
 
-  // Seniority filter for the Tier 1 live-jobs RPC. Same mapping as
-  // JobSuggestions — derived from experiences + education through the
-  // shared helper. Prevents a Junior user seeing Senior SWE in their
-  // roadmap overview (same bug shape as JobSuggestions).
+  // Live DB check confirmed (2026-05-20) that no role has ever landed
+  // outside tier_1/2/3 across all users — the LLM prompt enforces the
+  // enum. We dropped the visible "uncategorized" fallback section and
+  // warn here instead, so LLM drift surfaces in dev/QA logs without
+  // confusing users.
+  useEffect(() => {
+    const uncategorized = roles.filter((r) => !TIER_ORDER.includes(r.tier));
+    if (uncategorized.length > 0) {
+      console.warn("[roadmap] uncategorized roles surfaced — LLM drift?", {
+        count: uncategorized.length,
+        tiers: [...new Set(uncategorized.map((r) => r.tier))],
+      });
+    }
+  }, [roles]);
+
   const experienceLevel = inferExperienceLevel(experiences, educations);
   const allowedSeniorities = allowedSenioritiesForLevel(experienceLevel);
 
-  // Live Tier 1 job matches from public.jobs — same RPC the JobSuggestions
-  // page uses, capped at 5 results for the Overview card.
   const tier1RoleTitles = tier1.map((r) => r.title).filter(Boolean);
   const { data: tier1Jobs = [], isLoading: jobsLoading } = useQuery({
     queryKey: ["roadmap_tier1_jobs", user?.id, tier1RoleTitles.join("|"), allowedSeniorities.join(",")],
@@ -236,223 +232,276 @@ export default function CareerRoadmap() {
 
   if (isLoading || profileLoading) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[60vh]">
-        <Loader2 className="w-5 h-5 animate-spin text-[#A3A3A3]" />
-      </div>
+      <>
+        <style>{ROADMAP_CSS}</style>
+        <div className="roadmap min-h-screen flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-[#52545A]" />
+        </div>
+      </>
     );
   }
 
   if (rolesError || profileError) {
     return (
-      <div className="flex items-center justify-center h-full min-h-[60vh]">
-        <div className="flex items-center gap-2 text-sm text-red-600">
-          <AlertCircle className="w-4 h-4" />
-          Failed to load your career roadmap. Refresh the page to try again.
+      <>
+        <style>{ROADMAP_CSS}</style>
+        <div className="roadmap min-h-screen flex items-center justify-center px-6">
+          <div className="rm-banner rm-banner-error flex items-center gap-2 max-w-md">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            Failed to load your career roadmap. Refresh the page to try again.
+          </div>
         </div>
-      </div>
+      </>
     );
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-8">
-      {/* Persistent header — title, last updated, refresh button */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">Career Roadmap</h1>
-          <p className="text-sm text-[#A3A3A3] mt-1">
-            Roles classified by your current qualification level.
-          </p>
-          {profile?.last_reality_check_date && roles.length > 0 && (
-            <p className="text-xs text-[#A3A3A3] mt-1">
-              Last updated: {new Date(profile.last_reality_check_date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
-            </p>
-          )}
-        </div>
-        {profile && (
-          <Button
-            onClick={handleGenerate}
-            disabled={generating}
-            className="bg-[#0A0A0A] hover:bg-[#262626] text-sm"
-          >
-            {generating ? (
-              <><Loader2 className="w-4 h-4 mr-2 animate-spin" />Analyzing...</>
-            ) : roles.length > 0 ? (
-              <><RefreshCw className="w-4 h-4 mr-2" />Refresh Analysis</>
-            ) : (
-              <><Brain className="w-4 h-4 mr-2" />Generate Roadmap</>
+    <>
+      <style>{ROADMAP_CSS}</style>
+      <div className="roadmap">
+        <div className="max-w-5xl mx-auto px-6 py-10">
+          {/* Header */}
+          <div className="flex items-start justify-between gap-4 mb-7 flex-wrap">
+            <div>
+              <p className="rm-eyebrow">Career roadmap</p>
+              <h1 className="rm-h1 mt-1.5">Where you stand, where you&apos;re going.</h1>
+              <p className="rm-sub">Three tiers of roles tailored to your career goals.</p>
+              {profile?.last_reality_check_date && roles.length > 0 && (
+                <p className="rm-stamp">
+                  Last updated · {new Date(profile.last_reality_check_date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}
+                </p>
+              )}
+            </div>
+            {profile && (
+              <button
+                onClick={handleGenerate}
+                disabled={generating}
+                className="rm-btn rm-btn-primary flex-shrink-0"
+              >
+                {generating ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" />Analysing…</>
+                ) : roles.length > 0 ? (
+                  <><RefreshCw className="w-3.5 h-3.5" />Refresh</>
+                ) : (
+                  <><Brain className="w-3.5 h-3.5" />Generate roadmap</>
+                )}
+              </button>
             )}
-          </Button>
-        )}
-      </div>
+          </div>
 
-      {generating && <GeneratingBanner messages={ROADMAP_MESSAGES} subtitle="Generating your roadmap — this takes ~30–60 seconds" />}
-
-      {/* No-profile + no-roles empty states */}
-      {!profile && (
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-8 text-center">
-          <p className="text-sm text-[#525252] mb-4">
-            Set up your profile first to generate a career roadmap.
-          </p>
-          <Link
-            to={createPageUrl("Profile")}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-[#0A0A0A] text-white text-sm font-medium rounded-lg hover:bg-[#262626]"
-          >
-            Add Information
-          </Link>
-        </div>
-      )}
-      {roles.length === 0 && profile && (
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-8 text-center">
-          <p className="text-sm text-[#525252]">
-            No roles generated yet. Click &quot;Generate Roadmap&quot; to analyze your profile and create your tier-classified career map.
-          </p>
-        </div>
-      )}
-
-      {/* Stale-data banner */}
-      {stale && roles.length > 0 && !generating && (
-        <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4 flex items-center justify-between gap-4">
-          <p className="text-sm text-amber-800">
-            Your profile has changed since this analysis was generated. Refresh to see updated tiers.
-          </p>
-          <Button
-            onClick={handleGenerate}
-            disabled={generating}
-            size="sm"
-            className="bg-amber-600 hover:bg-amber-700 text-white text-xs flex-shrink-0"
-          >
-            <RefreshCw className="w-3 h-3 mr-1.5" />
-            Refresh now
-          </Button>
-        </div>
-      )}
-
-      {/* Tabbed content */}
-      {roles.length > 0 && (
-        <Tabs value={activeTab} onValueChange={setTab} className="w-full">
-          <TabsList className="w-full flex h-auto bg-[#F5F5F5] p-1 rounded-lg mb-6 flex-wrap">
-            <TabsTrigger value="overview" className="flex-1 min-w-[100px]">Overview</TabsTrigger>
-            <TabsTrigger value="why" className="flex-1 min-w-[120px]">Why these tiers</TabsTrigger>
-            <TabsTrigger value="tier_1" className="flex-1 min-w-[80px]">Tier 1</TabsTrigger>
-            <TabsTrigger value="tier_2" className="flex-1 min-w-[80px]">Tier 2</TabsTrigger>
-            <TabsTrigger value="tier_3" className="flex-1 min-w-[80px]">Tier 3</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview" className="space-y-5">
-            <OverviewTab
-              profile={profile}
-              tier1Count={tier1.length}
-              tier1Jobs={tier1Jobs}
-              jobsLoading={jobsLoading}
-            />
-          </TabsContent>
-
-          <TabsContent value="why" className="space-y-5">
-            <WhyTab />
-          </TabsContent>
-
-          <TabsContent value="tier_1" className="space-y-4">
-            <TierTab tier="tier_1" roles={tier1} onTabChange={setTab} />
-          </TabsContent>
-          <TabsContent value="tier_2" className="space-y-4">
-            <TierTab tier="tier_2" roles={tier2} onTabChange={setTab} />
-          </TabsContent>
-          <TabsContent value="tier_3" className="space-y-4">
-            <TierTab tier="tier_3" roles={tier3} onTabChange={setTab} />
-          </TabsContent>
-
-          {uncategorized.length > 0 && activeTab === "tier_3" && (
-            <div className="mt-8 pt-6 border-t border-[#E5E5E5]">
-              <h2 className="text-xs uppercase tracking-wider text-[#A3A3A3] font-semibold mb-3">
-                Other roles (uncategorized)
-              </h2>
-              <div className="space-y-3">
-                {uncategorized.map((role) => (
-                  <RoleCard key={role.id} role={role} />
-                ))}
-              </div>
+          {generating && (
+            <div className="mb-6">
+              <GeneratingBanner messages={ROADMAP_MESSAGES} subtitle="Generating your roadmap — this takes ~30–60 seconds" />
             </div>
           )}
-        </Tabs>
-      )}
-    </div>
+
+          {/* Empty states */}
+          {!profile && (
+            <div className="rm-card-lg rm-card text-center">
+              <Compass className="w-10 h-10 text-[#F87060] mx-auto mb-3" />
+              <h2 className="rm-h1" style={{ fontSize: 20 }}>Set up your profile first</h2>
+              <p className="rm-sub max-w-md mx-auto">We need your background before we can build your roadmap.</p>
+              <Link to={createPageUrl("Profile")} className="rm-btn rm-btn-primary mt-5 inline-flex">
+                Add information <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          )}
+          {roles.length === 0 && profile && (
+            <div className="rm-card-lg rm-card text-center">
+              <Brain className="w-10 h-10 text-[#F87060] mx-auto mb-3" />
+              <h2 className="rm-h1" style={{ fontSize: 20 }}>No roles generated yet</h2>
+              <p className="rm-sub max-w-md mx-auto">Hit &quot;Build my roadmap&quot; to analyse your profile and create your tier-classified career map.</p>
+              <button
+                onClick={handleGenerate}
+                disabled={generating}
+                className="rm-btn rm-btn-primary mt-5"
+              >
+                {generating ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" />Building…</>
+                ) : (
+                  <><Brain className="w-3.5 h-3.5" />Build my roadmap</>
+                )}
+              </button>
+            </div>
+          )}
+
+          {/* Stale banner */}
+          {stale && roles.length > 0 && !generating && (
+            <div className="rm-banner rm-banner-warning mb-6 flex items-center justify-between gap-4 flex-wrap">
+              <p>
+                Your profile has changed since this analysis was generated. Refresh to see updated tiers.
+              </p>
+              <button
+                onClick={handleGenerate}
+                disabled={generating}
+                className="rm-btn rm-btn-sm rm-btn-primary flex-shrink-0"
+              >
+                <RefreshCw className="w-3 h-3" />
+                Refresh now
+              </button>
+            </div>
+          )}
+
+          {/* Tabs */}
+          {roles.length > 0 && (
+            <>
+              <div className="rm-tabs mb-6" role="tablist" aria-label="Career roadmap sections">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === "overview"}
+                  className="rm-tab"
+                  onClick={() => setTab("overview")}
+                >
+                  Overview
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTab === "why"}
+                  className="rm-tab"
+                  onClick={() => setTab("why")}
+                >
+                  How tiers work
+                </button>
+                {TIER_ORDER.map((id) => (
+                  <button
+                    key={id}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeTab === id}
+                    className="rm-tab"
+                    onClick={() => setTab(id)}
+                  >
+                    Tier {TIER_CONFIG[id].number}
+                  </button>
+                ))}
+              </div>
+
+              {activeTab === "overview" && (
+                <OverviewTab
+                  profile={profile}
+                  tier1={tier1}
+                  tier1Jobs={tier1Jobs}
+                  jobsLoading={jobsLoading}
+                  onJumpToTier1={() => setTab("tier_1")}
+                />
+              )}
+              {activeTab === "why" && <WhyTab />}
+              {TIER_ORDER.includes(activeTab) && (
+                <TierTab tier={activeTab} roles={byTier[activeTab]} onTabChange={setTab} />
+              )}
+            </>
+          )}
+        </div>
+      </div>
+    </>
   );
 }
 
 // ───── Overview tab ─────
 
-function OverviewTab({ profile, tier1Count, tier1Jobs, jobsLoading }) {
+function OverviewTab({ profile, tier1, tier1Jobs, jobsLoading, onJumpToTier1 }) {
+  const tier1Preview = tier1.slice(0, OVERVIEW_TIER1_TITLES_PREVIEW);
+  const tier1Extra = Math.max(0, tier1.length - OVERVIEW_TIER1_TITLES_PREVIEW);
+
   return (
-    <>
+    <div className="flex flex-col gap-5">
+      {/* Qualification level — prominent, leads the page */}
+      {profile?.qualification_level && (
+        <div className="rm-card">
+          <p className="rm-eyebrow mb-2">Qualification level</p>
+          <p className="text-base font-semibold text-[#0E1014] leading-snug">
+            {profile.qualification_level}
+          </p>
+        </div>
+      )}
+
       {profile?.overall_assessment && (
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-5">
-          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2">Assessment</p>
-          <p className="text-sm text-[#525252] leading-relaxed">{profile.overall_assessment}</p>
+        <div className="rm-card">
+          <p className="rm-eyebrow mb-2">Assessment</p>
+          <p className="text-sm text-[#52545A] leading-relaxed">{profile.overall_assessment}</p>
         </div>
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-5">
-          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-3">Qualification Level</p>
-          <p className="text-sm text-[#0A0A0A] font-medium leading-snug">
-            {profile?.qualification_level || "Not yet determined"}
-          </p>
-        </div>
-        <div className="bg-white rounded-xl border border-[#E5E5E5] p-5">
-          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-3">Tier 1 Roles</p>
-          <p className="text-2xl font-bold text-[#0A0A0A] tabular-nums">{tier1Count}</p>
-          <p className="text-xs text-[#A3A3A3] mt-1">roles you&apos;re ready for now</p>
-        </div>
-      </div>
-
-      {/* Live Tier 1 job matches from public.jobs */}
-      <div className="bg-white rounded-xl border border-[#E5E5E5] p-5">
-        <div className="flex items-center justify-between mb-3">
-          <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Live Tier 1 matches</p>
-          <Link
-            to={createPageUrl("Jobs")}
-            className="text-xs text-[#525252] hover:text-[#0A0A0A] underline underline-offset-2"
-          >
-            View all
-          </Link>
-        </div>
-        {jobsLoading ? (
-          <div className="flex items-center gap-2 text-sm text-[#A3A3A3]">
-            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-            Loading matches…
+        {/* Tier 1 preview card — count + top 3 titles, jumps to tier_1 tab */}
+        <div className="rm-card rm-tier-green">
+          <div className="flex items-center justify-between mb-3">
+            <p className="rm-eyebrow">Tier 1 · Sweet spot</p>
+            <span className="rm-tier-pill">
+              <span className="rm-tier-badge" style={{ width: 16, height: 16, fontSize: 10 }}>1</span>
+              {tier1.length}
+            </span>
           </div>
-        ) : tier1Jobs.length === 0 ? (
-          <p className="text-sm text-[#A3A3A3]">No live matches found right now. Check back as new roles are crawled nightly.</p>
-        ) : (
-          <ul className="space-y-2">
-            {tier1Jobs.map((job) => (
-              <li key={job.id}>
-                <a
-                  href={job.apply_url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="flex items-start justify-between gap-3 p-3 rounded-lg hover:bg-[#FAFAFA] border border-transparent hover:border-[#E5E5E5] transition"
-                >
-                  <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-[#0A0A0A] truncate">{job.title}</p>
-                    <div className="flex items-center gap-3 mt-0.5 text-xs text-[#A3A3A3] flex-wrap">
-                      <span className="truncate">{job.company_name}</span>
-                      {(job.location_city || job.is_remote) && (
-                        <span className="flex items-center gap-1">
-                          <MapPin className="w-3 h-3" />
-                          {job.is_remote ? "Remote" : job.location_city}
-                        </span>
-                      )}
+          {tier1Preview.length === 0 ? (
+            <p className="text-sm text-[#9C9DA1]">No Tier 1 roles surfaced yet.</p>
+          ) : (
+            <ul className="flex flex-col gap-1.5 text-sm text-[#0E1014]">
+              {tier1Preview.map((r) => (
+                <li key={r.id} className="truncate">{r.title}</li>
+              ))}
+            </ul>
+          )}
+          {tier1.length > 0 && (
+            <button
+              onClick={onJumpToTier1}
+              className="mt-3 text-xs text-[#52545A] hover:text-[#0E1014] underline underline-offset-2"
+            >
+              {tier1Extra > 0 ? `View all ${tier1.length} →` : "View details →"}
+            </button>
+          )}
+        </div>
+
+        {/* Live Tier 1 job matches from public.jobs */}
+        <div className="rm-card">
+          <div className="flex items-center justify-between mb-3">
+            <p className="rm-eyebrow">Live Tier 1 matches</p>
+            <Link
+              to={createPageUrl("Jobs")}
+              className="text-xs text-[#52545A] hover:text-[#0E1014] underline underline-offset-2"
+            >
+              View all
+            </Link>
+          </div>
+          {jobsLoading ? (
+            <div className="flex items-center gap-2 text-sm text-[#9C9DA1]">
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              Loading matches…
+            </div>
+          ) : tier1Jobs.length === 0 ? (
+            <p className="text-sm text-[#9C9DA1]">No live matches right now. Check back as new roles are crawled nightly.</p>
+          ) : (
+            <ul className="flex flex-col gap-1">
+              {tier1Jobs.map((job) => (
+                <li key={job.id}>
+                  <a
+                    href={job.apply_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="rm-job-row"
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="rm-job-row-title truncate">{job.title}</p>
+                      <div className="rm-job-row-meta">
+                        <span className="truncate">{job.company_name}</span>
+                        {(job.location_city || job.is_remote) && (
+                          <span className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3" />
+                            {job.is_remote ? "Remote" : job.location_city}
+                          </span>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                  <ExternalLink className="w-3.5 h-3.5 text-[#A3A3A3] flex-shrink-0 mt-0.5" />
-                </a>
-              </li>
-            ))}
-          </ul>
-        )}
+                    <ExternalLink className="w-3.5 h-3.5 text-[#9C9DA1] flex-shrink-0 mt-0.5" />
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 }
 
@@ -460,33 +509,29 @@ function OverviewTab({ profile, tier1Count, tier1Jobs, jobsLoading }) {
 
 function WhyTab() {
   return (
-    <div className="bg-white rounded-xl border border-[#E5E5E5] p-6 space-y-5">
+    <div className="rm-card rm-card-lg flex flex-col gap-6">
       <div>
-        <h2 className="text-base font-bold text-[#0A0A0A] tracking-tight">Why these tiers</h2>
-        <p className="text-sm text-[#525252] mt-2 leading-relaxed">
-          Every role is scored on two axes: <span className="font-semibold">how qualified you are now</span>, and{" "}
-          <span className="font-semibold">how well it fits the career path you described in onboarding</span>.
-          Those two scores combine into three tiers — each represents a different strategic move.
+        <h2 className="rm-h1" style={{ fontSize: 20 }}>How tiers work</h2>
+        <p className="rm-sub mt-2">
+          Every role is scored on two axes: <span className="font-semibold text-[#0E1014]">how qualified you are now</span>{" "}
+          and <span className="font-semibold text-[#0E1014]">how well it fits the career path you described</span>.
+          The combination places each role in one of three tiers.
         </p>
       </div>
-      <div className="flex justify-center pt-2">
+      <div className="flex justify-center pt-1">
         <TierQuadrantGrid />
       </div>
-      <div className="pt-3 border-t border-[#F0F0F0] space-y-2 text-sm text-[#525252] leading-relaxed">
-        <p>
-          <span className="font-semibold text-emerald-700">Tier 1 (your sweet spot):</span>{" "}
-          you&apos;re qualified AND the role moves you toward your stated goals. Apply here first.
-        </p>
-        <p>
-          <span className="font-semibold text-amber-700">Tier 3 (your next role):</span>{" "}
-          on your path but you&apos;re not quite ready yet. Use these to plan skill-building.
-        </p>
-        <p>
-          <span className="font-semibold text-[#525252]">Tier 2 (a detour):</span>{" "}
-          you&apos;re qualified, but the role takes you off your stated career direction.
-          Useful as a fallback or short-term pay-the-bills option.
-        </p>
-        <p className="text-xs text-[#A3A3A3] mt-3">
+      <div className="border-t border-[#E8E8E5] pt-5 flex flex-col gap-3">
+        {TIERS.map((tier) => (
+          <p key={tier.id} className="text-sm text-[#52545A] leading-relaxed">
+            <span className={`rm-tier-${tier.color} inline-flex items-center gap-2 mr-2`}>
+              <span className="rm-tier-badge">{tier.number}</span>
+              <span className="font-semibold text-[#0E1014]">Tier {tier.number} · {tier.name}</span>
+            </span>
+            — {tier.description}
+          </p>
+        ))}
+        <p className="text-xs text-[#9C9DA1] mt-2">
           Roles you&apos;re neither qualified for nor on-path for are filtered out of your feed entirely.
         </p>
       </div>
@@ -498,30 +543,28 @@ function WhyTab() {
 
 function TierTab({ tier, roles, onTabChange }) {
   const cfg = TIER_CONFIG[tier];
-  const currentIdx = TAB_ORDER.indexOf(tier);
-  // Tier nav is internal to the tier-tabs subset — overview and why are
-  // skipped. The arrows cycle through tier_1 → tier_2 → tier_3.
-  const tierTabs = ["tier_1", "tier_2", "tier_3"];
-  const tierIdx = tierTabs.indexOf(tier);
-  const prevTier = tierIdx > 0 ? tierTabs[tierIdx - 1] : null;
-  const nextTier = tierIdx < tierTabs.length - 1 ? tierTabs[tierIdx + 1] : null;
-  // The currentIdx is referenced for tab-context only — kept around in case
-  // we want overall-tab arrows in the future.
-  void currentIdx;
+  const tierIdx = TIER_ORDER.indexOf(tier);
+  const prevTier = tierIdx > 0 ? TIER_ORDER[tierIdx - 1] : null;
+  const nextTier = tierIdx < TIER_ORDER.length - 1 ? TIER_ORDER[tierIdx + 1] : null;
 
   return (
-    <>
-      <div className="flex items-center gap-2">
-        <span className={`w-2 h-2 rounded-full ${cfg.dot}`} />
-        <h2 className={`text-sm uppercase tracking-wider font-semibold ${cfg.color}`}>{cfg.label}</h2>
+    <div className="flex flex-col gap-5">
+      {/* Tier header card — restates what the tier means so users can
+          re-read the framing without leaving the tab. */}
+      <div className={`rm-card rm-tier-${cfg.color} flex items-start gap-3`}>
+        <div className="rm-tier-badge mt-0.5">{cfg.number}</div>
+        <div>
+          <p className="font-semibold text-[#0E1014]">Tier {cfg.number} · {cfg.name}</p>
+          <p className="text-sm text-[#52545A] mt-1 leading-relaxed">{cfg.description}</p>
+        </div>
       </div>
 
       {roles.length === 0 ? (
-        <div className="bg-[#FAFAFA] border border-[#E5E5E5] rounded-xl p-6">
-          <p className="text-sm text-[#525252] leading-relaxed">{cfg.emptyCopy}</p>
+        <div className="rm-card text-center">
+          <p className="text-sm text-[#52545A] leading-relaxed">{cfg.emptyCopy}</p>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="flex flex-col gap-3">
           {roles.map((role) => (
             <RoleCard key={role.id} role={role} />
           ))}
@@ -529,28 +572,24 @@ function TierTab({ tier, roles, onTabChange }) {
       )}
 
       {/* Arrow nav between tier tabs */}
-      <div className="flex items-center justify-between pt-4 border-t border-[#F0F0F0]">
-        <Button
+      <div className="flex items-center justify-between pt-2 border-t border-[#E8E8E5]">
+        <button
           onClick={() => prevTier && onTabChange(prevTier)}
           disabled={!prevTier}
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-1.5"
+          className="rm-btn rm-btn-outline rm-btn-sm"
         >
-          <ArrowLeft className="w-4 h-4" />
-          {prevTier ? `Tier ${prevTier.slice(-1)}` : "Tier 1"}
-        </Button>
-        <Button
+          <ArrowLeft className="w-3.5 h-3.5" />
+          {prevTier ? `Tier ${TIER_CONFIG[prevTier].number}` : "Tier 1"}
+        </button>
+        <button
           onClick={() => nextTier && onTabChange(nextTier)}
           disabled={!nextTier}
-          variant="outline"
-          size="sm"
-          className="flex items-center gap-1.5"
+          className="rm-btn rm-btn-outline rm-btn-sm"
         >
-          {nextTier ? `Tier ${nextTier.slice(-1)}` : "Tier 3"}
-          <ArrowRight className="w-4 h-4" />
-        </Button>
+          {nextTier ? `Tier ${TIER_CONFIG[nextTier].number}` : "Tier 3"}
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
-    </>
+    </div>
   );
 }
