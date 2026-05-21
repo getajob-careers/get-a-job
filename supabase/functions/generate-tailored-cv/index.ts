@@ -50,6 +50,70 @@ type JDKeywords = {
   domain_terms: string[];
   soft_skill_keywords: string[];
 };
+// Smart JD truncation. Israeli tech JDs commonly put boilerplate
+// (company mission, DEI, benefits) BEFORE the requirements section — so a
+// naive .slice(0, N) frequently chops the highest-signal portion of the JD.
+// Strategy: detect section headings, pull the role-relevant sections
+// first ("Requirements", "Qualifications", "Responsibilities", "What you'll
+// do", "About the role"), then concatenate. If no recognizable headings are
+// found, fall back to plain truncation. English JDs only — Hebrew JDs (which
+// are less common in IL tech postings) bypass the section logic and fall
+// through to plain truncation.
+const JD_SECTION_HEADINGS = [
+  /^\s*(?:requirements?|qualifications?|what (?:you'?ll?|we) (?:need|require|expect|are looking for)|must[- ]?haves?|minimum (?:requirements?|qualifications?))\s*:?\s*$/im,
+  /^\s*(?:responsibilities|what you'?ll? do|the role|role description|your (?:role|responsibilities)|day[- ]to[- ]day|key (?:responsibilities|duties))\s*:?\s*$/im,
+  /^\s*(?:about (?:the role|this role|the position|the job)|the opportunity|the position)\s*:?\s*$/im,
+  /^\s*(?:nice[- ]to[- ]haves?|preferred (?:qualifications?|skills)|bonus (?:points|skills)|plus)\s*:?\s*$/im,
+];
+function smartTruncateJD(jd: string, maxChars: number): { text: string; mode: 'sections' | 'plain' } {
+  const raw = String(jd ?? '').trim();
+  if (raw.length <= maxChars) return { text: raw, mode: 'plain' };
+  const lines = raw.split(/\r?\n/);
+  type Section = { startLine: number; rank: number; text: string };
+  const sections: Section[] = [];
+  let currentStart = -1;
+  let currentRank = -1;
+  let currentBuf: string[] = [];
+  const flush = () => {
+    if (currentStart >= 0) {
+      sections.push({ startLine: currentStart, rank: currentRank, text: currentBuf.join('\n').trim() });
+    }
+  };
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    let hit = -1;
+    for (let r = 0; r < JD_SECTION_HEADINGS.length; r++) {
+      if (JD_SECTION_HEADINGS[r].test(line)) { hit = r; break; }
+    }
+    if (hit >= 0) {
+      flush();
+      currentStart = i;
+      currentRank = hit;
+      currentBuf = [line];
+    } else if (currentStart >= 0) {
+      currentBuf.push(line);
+    }
+  }
+  flush();
+  if (sections.length === 0) {
+    return { text: raw.slice(0, maxChars), mode: 'plain' };
+  }
+  // Sort by section rank (Requirements/Qualifications first, then
+  // Responsibilities, About, Nice-to-have) then by original document order
+  // within same rank.
+  sections.sort((a, b) => a.rank - b.rank || a.startLine - b.startLine);
+  let out = '';
+  for (const s of sections) {
+    if (out.length + s.text.length + 2 > maxChars) {
+      const remaining = maxChars - out.length - 2;
+      if (remaining > 200) out += '\n\n' + s.text.slice(0, remaining);
+      break;
+    }
+    out += (out ? '\n\n' : '') + s.text;
+  }
+  return { text: out, mode: 'sections' };
+}
+
 async function extractJDKeywords(
   jd: string,
   openaiKey: string,
@@ -84,7 +148,7 @@ async function extractJDKeywords(
 - soft_skill_keywords: 3-5 soft skill phrases (e.g. "cross-functional", "stakeholder management")
 
 JOB DESCRIPTION:
-${jd.slice(0, 6000)}`,
+${jd}`,
           },
         ],
       },
@@ -108,13 +172,43 @@ ${jd.slice(0, 6000)}`,
     const raw = data.choices?.[0]?.message?.content || "{}";
     const cleaned = raw.replace(/```json|```/g, "").trim();
     const parsed = JSON.parse(cleaned) as Partial<JDKeywords>;
-    return {
-      must_include_phrases: Array.isArray(parsed.must_include_phrases) ? parsed.must_include_phrases.slice(0, 15).map(String) : [],
-      action_verbs: Array.isArray(parsed.action_verbs) ? parsed.action_verbs.slice(0, 10).map(String) : [],
-      tools_and_platforms: Array.isArray(parsed.tools_and_platforms) ? parsed.tools_and_platforms.slice(0, 20).map(String) : [],
-      domain_terms: Array.isArray(parsed.domain_terms) ? parsed.domain_terms.slice(0, 10).map(String) : [],
-      soft_skill_keywords: Array.isArray(parsed.soft_skill_keywords) ? parsed.soft_skill_keywords.slice(0, 8).map(String) : [],
+    // Provenance filter: drop any phrase the LLM emitted that doesn't actually
+    // appear in the source JD. LLMs occasionally invent plausible-sounding
+    // keywords that aren't in the JD ("operational excellence" when the JD
+    // never used that phrase). When those reach the main CV-gen prompt as
+    // "MUST-INCLUDE PHRASES", the LLM dutifully forces them into bullets —
+    // which is keyword-injection fabrication, not tailoring. Case-insensitive
+    // substring match against the JD text; if a multi-word phrase doesn't
+    // appear, it's dropped. Single-word action_verbs and short tools are
+    // checked the same way. soft_skill_keywords get a looser pass (they're
+    // often paraphrased in JDs).
+    const jdLower = String(jd ?? '').toLowerCase();
+    const grounded = (arr: unknown, max: number, strict = true): string[] => {
+      if (!Array.isArray(arr)) return [];
+      const out: string[] = [];
+      for (const item of arr) {
+        const s = String(item).trim();
+        if (!s) continue;
+        if (strict && !jdLower.includes(s.toLowerCase())) continue;
+        out.push(s);
+        if (out.length >= max) break;
+      }
+      return out;
     };
+    const result: JDKeywords = {
+      must_include_phrases: grounded(parsed.must_include_phrases, 15),
+      action_verbs: grounded(parsed.action_verbs, 10),
+      tools_and_platforms: grounded(parsed.tools_and_platforms, 20),
+      domain_terms: grounded(parsed.domain_terms, 10),
+      soft_skill_keywords: grounded(parsed.soft_skill_keywords, 8, false),
+    };
+    const dropped = [
+      Array.isArray(parsed.must_include_phrases) ? parsed.must_include_phrases.length - result.must_include_phrases.length : 0,
+      Array.isArray(parsed.tools_and_platforms) ? parsed.tools_and_platforms.length - result.tools_and_platforms.length : 0,
+      Array.isArray(parsed.domain_terms) ? parsed.domain_terms.length - result.domain_terms.length : 0,
+    ].reduce((a, b) => a + Math.max(0, b), 0);
+    if (dropped > 0) console.log(`[CV] JD keyword provenance filter dropped ${dropped} ungrounded phrase(s)`);
+    return result;
   } catch (err) {
     console.warn("[CV] JD keyword extraction failed:", err instanceof Error ? err.message : err);
     return empty;
@@ -195,7 +289,16 @@ Deno.serve(async (req) => {
     }
     const { job_description, target_role, application_id, template_style } = body;
     const safeTargetRole = String(target_role ?? '').slice(0, 200);
-    let safeJobDescription = String(job_description ?? '').slice(0, 5000);
+    // Smart truncation: pull Requirements/Qualifications/Responsibilities
+    // sections first when the JD has detectable headings; otherwise fall
+    // back to plain .slice(). 10000 chars is roughly double the old 5000
+    // budget — affordable in the prompt because most JDs are < 8k chars in
+    // their relevant sections. The smartTruncateJD helper returns the mode
+    // so we can log which path fired for telemetry.
+    const jdInput = String(job_description ?? '');
+    const jdTrunc = smartTruncateJD(jdInput, 10000);
+    let safeJobDescription = jdTrunc.text;
+    let jdTruncMode = jdTrunc.mode;
     let targetCompany = ""; // populated from the linked application when available
     // Template style: 'ats-optimized' (default — safest parse) or 'polished'
     // (visually richer, still single-column for ATS). Validated against the
@@ -275,22 +378,46 @@ Deno.serve(async (req) => {
     // The client often omits job_description from the body (because it doesn't
     // have it); the tracker row usually does. Also capture the company so we
     // can ask the LLM to reference it in the About Me.
+    let targetRoleContext: {
+      required_seniority?: string | null;
+      tier?: string | null;
+      qualification_score?: number | null;
+      goal_alignment_score?: number | null;
+      skills_required?: unknown;
+      location?: string | null;
+    } | null = null;
     if (application_id) {
       const { data: app } = await supabase
         .from("applications")
-        .select("company, role_title, job_description, notes")
+        .select("company, role_title, job_description, notes, required_seniority, tier, qualification_score, goal_alignment_score, skills_required, location")
         .eq("id", application_id)
         .eq("user_id", user.id)
         .single();
       if (app) {
         targetCompany = String(app.company ?? '').slice(0, 200);
         if (!safeJobDescription && app.job_description) {
-          safeJobDescription = String(app.job_description).slice(0, 5000);
+          const t = smartTruncateJD(String(app.job_description), 10000);
+          safeJobDescription = t.text;
+          jdTruncMode = t.mode;
         }
         // `notes` sometimes holds the JD when the user pasted it there instead.
         if (!safeJobDescription && app.notes) {
-          safeJobDescription = String(app.notes).slice(0, 5000);
+          const t = smartTruncateJD(String(app.notes), 10000);
+          safeJobDescription = t.text;
+          jdTruncMode = t.mode;
         }
+        // Structured role-requirement signal from prior career-analysis /
+        // job-match runs. Null-tolerant: some apps have all of these, others
+        // have none. We surface whatever's present in a TARGET_ROLE_CONTEXT
+        // block so the LLM doesn't have to extract these from prose.
+        targetRoleContext = {
+          required_seniority: app.required_seniority ?? null,
+          tier: app.tier ?? null,
+          qualification_score: typeof app.qualification_score === 'number' ? app.qualification_score : null,
+          goal_alignment_score: typeof app.goal_alignment_score === 'number' ? app.goal_alignment_score : null,
+          skills_required: app.skills_required ?? null,
+          location: app.location ?? null,
+        };
       }
     }
 
@@ -489,7 +616,10 @@ Deno.serve(async (req) => {
       start_date: trunc(exp.start_date, 20),
       end_date: trunc(exp.end_date, 20),
       is_current: exp.is_current,
-      responsibilities: trunc(exp.responsibilities, 1200),
+      // Generous cap: max responsibility length in production is 534 chars
+      // (DB audit, 2026-05-21). 4000 is purely defensive — covers a 5x growth
+      // headroom without crowding the prompt budget.
+      responsibilities: trunc(exp.responsibilities, 4000),
       skills_used: safeArray(exp.skills_used).slice(0, 20).map((s) => trunc(s, 60)),
       tools_used: safeArray(exp.tools_used).slice(0, 20).map((s) => trunc(s, 60)),
       type: trunc(exp.type, 50),
@@ -554,6 +684,7 @@ Deno.serve(async (req) => {
         name: trunc(p.name, 100),
         description: trunc(p.description, 500),
         skills_demonstrated: safeArray(p.skills_demonstrated).slice(0, 20).map((s) => trunc(s, 60)),
+        url: trunc(p.url, 300),
       })),
       certifications: safeArray(certifications).slice(0, 10).map((c: any) => ({
         name: trunc(c.name, 100),
@@ -669,16 +800,16 @@ The generated CV MUST fit on exactly ONE A4 page when rendered. This is a hard c
 You must DYNAMICALLY manage content density based on how much data the user has. More experiences and sections = shorter bullets and tighter descriptions. Fewer experiences = you can be more detailed.
 
 Guidelines for fitting on one page:
-- Count the user's total number of experience entries, education entries, certifications, projects, and honors. This is their "content volume."
-- HIGH VOLUME (6+ experience entries OR 8+ total sections with content): Use 2-3 bullets per role, keep bullets to 10-12 words each, About Me should be 2-3 sentences, honors as name + year only with no descriptions.
-- MEDIUM VOLUME (3-5 experience entries, 5-7 total sections): Use 3-4 bullets per role, bullets can be 12-18 words, About Me can be 3-4 sentences, honors can have brief context.
-- LOW VOLUME (1-2 experience entries, under 5 sections): Use 4-5 bullets per role, bullets can be more detailed, About Me can be longer, include more detail in education and honors.
+- Count the user's total number of experience entries (across professional + military + volunteering + leadership) plus education entries, certifications, projects, and honors. This is their "content volume."
+- HIGH VOLUME (6+ total experience entries OR 9+ total sections with content): Use 3 bullets per professional/military role and 2 bullets per volunteering/leadership role, target 14-18 words per bullet, About Me 2-3 sentences, honors as name + year only.
+- MEDIUM VOLUME (3-5 total experience entries, 6-8 total sections): Use 3-4 bullets per professional role and 2-3 per other buckets, target 16-22 words per bullet, About Me 3 sentences, honors can carry brief context.
+- LOW VOLUME (1-2 total experience entries, under 6 sections): Use 4-5 bullets per role across all buckets, bullets can run 18-26 words when there's real substance, About Me can be longer, include richer education + honors detail.
 
-The goal is: everything the user has done should appear on the CV, but the level of detail per item scales inversely with the total amount of content. NEVER drop entries — compress them.
+Within those tiers, prefer richer professional bullets over thinning every section uniformly: the recruiter's eye lands on professional experience first. Volunteer/military/leadership bullets can be tighter (2-3 bullets, slightly shorter) without hurting the CV.
 
-If the user has many roles, prefer shorter bullets over dropping roles entirely. If the user has few roles, give each one more space.
+The goal: everything the user has done should appear on the CV; the level of detail per item scales inversely with total content volume. NEVER drop entries — compress them.
 
-NEVER generate content that would exceed approximately 45 lines of rendered text (including headings, spacing, and contact info). When in doubt, be more concise.
+NEVER generate content that would exceed approximately 55 lines of rendered text (including headings, spacing, and contact info). When in doubt, shorten the longest bullets first rather than producing thin single-line bullets everywhere — three substantive bullets beats five generic ones.
 `;
 
     const TRUTHFULNESS_RULES = `ABSOLUTE TRUTHFULNESS & PRESERVATION RULES — THESE OVERRIDE EVERY OTHER RULE:
@@ -721,6 +852,8 @@ D. What you MAY do:
     (1) METRICS VERBATIM — for each story you use, write at least one bullet under that experience that contains every entry from the story's \`metrics\` array WORD-FOR-WORD. Numbers ("12", "88%", "$1M") and units ("interviews", "first quarter") stay exactly as the story has them. The TAILORING rule about rephrasing applies to action verbs and surrounding structure — NOT to the metric figures themselves. Example: a story with metrics ["12 user research interviews", "88% adoption in first quarter"] MUST produce a bullet like "Drove 88% adoption in first quarter via 12 user research interviews with security leads" — NOT "Led product discovery to enhance enterprise adoption" (which strips both metrics).
     (2) TOOLS PRESERVED — every entry from the story's \`tools_used\` array MUST appear in the CV: ideally in the matching experience's bullet, or — if it doesn't fit naturally there — in the Skills & Tools section. Story tools are confirmed-real and must surface somewhere visible.
     (3) NO CROSS-EXPERIENCE SMEARING — story content stays attached to its \`experience_label\`. Do not sprinkle the story's adoption/metric/result language across other experiences in the CV. If you wrote a bullet referencing "88% adoption" under Experience A, do not also reference "adoption metrics" or similar paraphrases under Experience B unless Experience B has its own story or responsibilities text supporting it.
+- PROOF SIGNALS — USER DATA.proof_signals is a ranked list of pre-extracted, pre-scored evidence from the user's onboarding analysis. Each entry has a proof_signal name, mapped_skills, primary_domain, and confidence_score. When writing a professional bullet, FIRST check whether one of the proof_signals describes work the user did in that role — if so, prefer the proof_signal's evidence over rephrasing the freeform responsibilities text. Treat proof_signals as second only to Story Bank for bullet sourcing (Stories > proof_signals > responsibilities). Do NOT list proof_signal names in the output — they are inputs that ground bullets, not standalone CV content.
+- SKILLS_USED + TOOLS_USED — every experience entry in USER DATA carries skills_used[] and tools_used[] arrays alongside its responsibilities text. These are the user's confirmed skills and tools for that specific role. When writing bullets for that experience, surface specific items from these arrays whenever they fit naturally (e.g. a marketing internship with tools_used: ["HubSpot", "Google Analytics"] should mention HubSpot or Google Analytics in a bullet that describes the matching work). Any tool from tools_used that doesn't fit naturally in a bullet MUST still appear in skills.tools[] so it's visible.
 - Skills & Tools: categorize as Domain (role-specific capabilities) and Tools (software/platforms/systems). Languages do NOT go here.
 - Languages: human spoken/written languages only. Draw them from the user's skills list if language-like entries are there; draw also from language_hints[] which flags likely languages based on location. Include a proficiency level (Native | Fluent | Professional | Conversational | Basic) when the source or hint supports it, otherwise omit level.
 - Education: include every entry from USER DATA.education and — if present — USER DATA.secondary_education as a second education entry. Do not drop pre-university education.
@@ -757,6 +890,12 @@ EXAMPLES:
 
 ✅ AUTHENTIC professional bullet (good): "Owned customer relationships and drove 88% adoption in Q1 via 12 user research interviews with security leads."
 - (this is OK because the user actually did customer success work — JD keywords genuinely apply)
+
+PROJECTS — reorder by JD relevance. When USER DATA.projects is non-empty, score each project on overlap between its skills_demonstrated[] and the JD's must_include_phrases / tools_and_platforms / domain_terms. Output the top 2-3 most relevant projects first; drop the least relevant if you're tight on space. Project bullets follow the same XYZ structure as experience bullets — what was built + tools used + outcome. Include the URL when present.
+
+EDUCATION COURSEWORK — select by JD relevance. USER DATA.education_list[i].relevant_coursework[] is the user's full coursework array (up to 20 items). For the output education[i].coursework[], pick up to 5 courses ranked by overlap with the JD's domain_terms and must_include_phrases. A Finance JD should surface "Financial Modeling, Corporate Finance"; a Product JD should surface "Data Science, SQL, Product Management". Pad with breadth courses only if there's no JD-aligned coursework. NEVER invent course names.
+
+EDUCATION ACADEMIC PROJECTS — surface when JD-relevant. USER DATA.education_list[i].academic_projects[] holds thesis/capstone/coursework projects. If any align with the JD, render them in education[i].academic_projects[] (new schema field — see OUTPUT SCHEMA). One line per project, format "Project name — short description". Cap at 2 per education entry.
 
 UNIVERSAL RULES (apply to every bucket):
 - TAILORING SCORE TARGET: at least 6 of the must_include_phrases (or close variants) appear across the CV — distributed across PROFESSIONAL bullets, Skills, and About Me. The score is NOT measured on volunteering/military/leadership bullets — those should never inflate the count by absorbing keywords that don't fit.
@@ -844,7 +983,19 @@ USER DATA:
 ${JSON.stringify(userContext, null, 2)}
 
 ${safeJobDescription ? `JOB DESCRIPTION:\n${safeJobDescription}\n` : "(No job description provided — tailor using the target role and user profile only.)"}
+${targetRoleContext && Object.values(targetRoleContext).some(v => v !== null && v !== undefined && v !== '') ? `
+TARGET_ROLE_CONTEXT (pre-computed signal from this application; null fields just mean unknown — don't penalize the user for them):
+${JSON.stringify({
+  required_seniority: targetRoleContext.required_seniority,
+  tier: targetRoleContext.tier,
+  qualification_score: targetRoleContext.qualification_score,
+  goal_alignment_score: targetRoleContext.goal_alignment_score,
+  skills_required: targetRoleContext.skills_required,
+  location: targetRoleContext.location,
+}, null, 2)}
 
+Use this context to calibrate your fit_analysis honestly: a "tier_3" or "qualification_score < 40" target is genuinely a stretch role for this user, and the bullets/About Me should not overclaim. A "tier_1" with high qualification_score is a strong fit — lean into the matching experience.
+` : ''}
 TASK:
 Produce a tailored, truthful, one-page CV for this user as JSON matching the exact schema below.
 
@@ -859,19 +1010,34 @@ OUTPUT SCHEMA (JSON):
   },
   "summary": "string — FACTUAL descriptive sentences scaled to content volume per ONE PAGE RULE (high volume → 2-3 sentences; low volume → 3-5). No pronouns (he/she/his/her). No candidate-speak (no 'strong candidate', 'eager to', 'well-suited'). Describe skills and current work as facts; let content speak for fit.",
   "professional_experiences": [
-    { "title": "string — EXACT title from USER DATA", "company": "string — EXACT company from USER DATA", "dates": "string — e.g. Oct 2025 - Present", "bullets": ["concrete factual action-verb statement"] }
+    { "title": "string — EXACT title from USER DATA", "company": "string — EXACT company from USER DATA", "dates": "string — e.g. Oct 2025 - Present", "bullets": [
+      "Action verb + what the user did + concrete outcome (tool / scope / metric). 14-22 words. Anchored in a story metric or proof_signal when available.",
+      "Second bullet referencing a specific tool from tools_used or a named project — different facet of the role than bullet 1.",
+      "Third bullet describing scope, stakeholders, or impact — preferably with a quantified outcome from the source data.",
+      "Optional fourth bullet for MEDIUM/LOW volume profiles — drop in HIGH volume to keep the CV on one page."
+    ] }
   ],
   "military_experiences": [
-    { "title": "string — EXACT role/rank from USER DATA", "unit": "string — EXACT unit from USER DATA", "dates": "string", "bullets": ["civilian-readable bullet"] }
+    { "title": "string — EXACT role/rank from USER DATA", "unit": "string — EXACT unit from USER DATA", "dates": "string", "bullets": [
+      "Civilian-readable description of operational responsibility. 14-22 words.",
+      "Second bullet describing team size, mission scope, or training led.",
+      "Optional third bullet for honors / commendations earned in the role."
+    ] }
   ],
   "volunteering_experiences": [
-    { "title": "string — EXACT title from USER DATA", "organization": "string — EXACT org from USER DATA", "dates": "string", "bullets": ["what the user did"] }
+    { "title": "string — EXACT title from USER DATA", "organization": "string — EXACT org from USER DATA", "dates": "string", "bullets": [
+      "Authentic volunteer-context bullet — what was built, taught, or coordinated.",
+      "Second bullet — scope (audience size, duration, team coordinated)."
+    ] }
   ],
   "leadership_experiences": [
-    { "title": "string — EXACT title", "organization": "string — EXACT org", "dates": "string", "bullets": ["factual statement"] }
+    { "title": "string — EXACT title", "organization": "string — EXACT org", "dates": "string", "bullets": [
+      "What the user led + the concrete outcome.",
+      "Second bullet — scope, format, frequency, or impact."
+    ] }
   ],
   "education": [
-    { "degree": "string — EXACT degree/field from USER DATA", "institution": "string — EXACT institution", "dates": "string", "gpa": "string — only if explicitly in USER DATA and strong", "coursework": ["short course name", "short course name"], "activities": ["leadership role / club / notable activity — one per entry, NOT awards"] }
+    { "degree": "string — EXACT degree/field from USER DATA", "institution": "string — EXACT institution", "dates": "string", "gpa": "string — only if explicitly in USER DATA and strong", "coursework": ["short course name selected by JD relevance"], "academic_projects": ["Project name — short description, only when JD-aligned"], "activities": ["leadership role / club / notable activity — one per entry, NOT awards"] }
   ],
   "skills": {
     "domain": ["role-specific capability 1", "role-specific capability 2"],
@@ -885,10 +1051,10 @@ OUTPUT SCHEMA (JSON):
     { "name": "Award name exactly as in source", "description": "one short line of context — omit if none" }
   ],
   "certifications": [
-    { "name": "string", "issuer": "string", "date": "string" }
+    { "name": "string", "issuer": "string", "date_earned": "string — copy from USER DATA.certifications[].date_earned" }
   ],
   "projects": [
-    { "name": "string", "bullets": ["what was built and the result, factual only"] }
+    { "name": "string", "url": "string — copy from USER DATA.projects[].url when present", "bullets": ["XYZ-shaped bullet: what was built + tools used + outcome", "second bullet only when content supports it"] }
   ],
   "fit_analysis": {
     "skill_match_percentage": 0,
@@ -970,6 +1136,96 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     } catch {
       _http = 500; _err = 'json_parse'
       return json({ error: "AI returned an invalid response format. Please try again." }, 500);
+    }
+
+    // ─── Smart retry on low tailoring score ─────────────────────────────
+    // If the first pass missed too many of the JD's must-include phrases,
+    // call OpenAI a second time with the missed phrases echoed back as a
+    // retry hint. We only retry when the user has enough skill overlap with
+    // the role that incorporating more phrases is plausible — for a genuine
+    // bad-fit candidate, retrying just produces fabricated bullets.
+    //
+    // Eligibility heuristic: at least 30% of must_include_phrases overlap
+    // (case-insensitive substring) with USER DATA.skills + every experience's
+    // skills_used + tools_used. Below that, the role is genuinely a stretch
+    // and the thin-source warning UX should fire instead of an LLM retry.
+    let retryFired = false;
+    if (jdKeywords && jdKeywords.must_include_phrases.length > 0) {
+      const cvLower = JSON.stringify(cvData).toLowerCase();
+      const preliminaryMatched = jdKeywords.must_include_phrases.filter(
+        (p) => cvLower.includes(String(p).toLowerCase())
+      );
+      const preliminaryPct = preliminaryMatched.length / jdKeywords.must_include_phrases.length;
+      if (preliminaryPct < 0.5) {
+        // Build a haystack of the user's claimable skill vocabulary
+        const userSkillHaystack = [
+          ...(userContext.skills || []),
+          ...allExperiences.flatMap((e: any) => [...(e.skills_used || []), ...(e.tools_used || [])]),
+          ...((userContext.projects || []) as any[]).flatMap((p: any) => p.skills_demonstrated || []),
+        ].map((s) => String(s).toLowerCase()).join(' \n ');
+        const overlapCount = jdKeywords.must_include_phrases.filter(
+          (p) => userSkillHaystack.includes(String(p).toLowerCase())
+        ).length;
+        const overlapPct = overlapCount / jdKeywords.must_include_phrases.length;
+        if (overlapPct >= 0.3) {
+          const missed = jdKeywords.must_include_phrases.filter((p) => !cvLower.includes(String(p).toLowerCase()));
+          console.log(`[CV] Retry firing: tailoring ${Math.round(preliminaryPct*100)}% + overlap ${Math.round(overlapPct*100)}%; ${missed.length} missed phrases`);
+          const retryHint = `\n\nRETRY: The previous draft missed these phrases that genuinely describe the user's experience:\n${missed.map((p) => `- "${p}"`).join('\n')}\n\nRewrite the CV bullets, About Me, and Skills to incorporate as many of these as TRUTHFULLY apply. ABSOLUTE FACTUAL INTEGRITY rules still win — do not invent. If a missed phrase doesn't honestly describe the user's work, leave it out.`;
+          try {
+            const retryRes = await openaiChatCompletion(
+              {
+                model: MODEL,
+                messages: [
+                  { role: "system", content: systemPrompt },
+                  { role: "user", content: userPrompt + retryHint },
+                ],
+                response_format: { type: "json_object" },
+                temperature: 0.2,
+                max_tokens: 4096,
+              },
+              openaiKey,
+              {
+                traceName: 'generate-tailored-cv:pass-3-retry',
+                userId: user.id,
+                sessionId: cvSessionId,
+              },
+              { signal: AbortSignal.timeout(45000) },
+            );
+            if (retryRes.ok) {
+              const retryData = await retryRes.json();
+              m.tokensIn = (m.tokensIn ?? 0) + (retryData.usage?.prompt_tokens ?? 0)
+              m.tokensOut = (m.tokensOut ?? 0) + (retryData.usage?.completion_tokens ?? 0)
+              const retryParsed = JSON.parse(retryData.choices?.[0]?.message?.content || "{}");
+              // Only swap if retry has at least as many bullets as the original — never
+              // let a retry that lost content win.
+              const countBullets = (cv: any): number => {
+                let n = 0;
+                for (const k of ['professional_experiences','military_experiences','volunteering_experiences','leadership_experiences','projects']) {
+                  for (const e of (cv?.[k] || [])) n += Array.isArray(e?.bullets) ? e.bullets.length : 0;
+                }
+                return n;
+              };
+              const origBullets = countBullets(cvData);
+              const retryBullets = countBullets(retryParsed);
+              const retryLower = JSON.stringify(retryParsed).toLowerCase();
+              const retryMatched = jdKeywords.must_include_phrases.filter(
+                (p) => retryLower.includes(String(p).toLowerCase())
+              ).length;
+              if (retryMatched > preliminaryMatched.length && retryBullets >= origBullets - 1) {
+                console.log(`[CV] Retry win: keywords ${preliminaryMatched.length} → ${retryMatched}, bullets ${origBullets} → ${retryBullets}`);
+                cvData = retryParsed;
+                retryFired = true;
+              } else {
+                console.log(`[CV] Retry rejected: would have lost content (keywords ${preliminaryMatched.length} → ${retryMatched}, bullets ${origBullets} → ${retryBullets})`);
+              }
+            }
+          } catch (e) {
+            console.warn('[CV] Retry call failed:', e instanceof Error ? e.message : e);
+          }
+        } else {
+          console.log(`[CV] Retry skipped: user skill overlap with JD is ${Math.round(overlapPct*100)}% (< 30%) — role is a genuine stretch, not a tailoring miss`);
+        }
+      }
     }
 
     // ─── Post-process: reconcile titles + companies against source data ───
@@ -1321,23 +1577,97 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       };
     }
 
-    // Sanity-floor the fit percentage. The LLM very occasionally returns 0
-    // for a candidate who does have overlap — we floor at a low but non-zero
-    // value and recompute alignment bucket from the number. This never
-    // inflates a genuine poor fit above "Weak", it just stops misleading 0s.
+    // Honest fit percentage — no auto-floor. Previously we floored 0 → 20
+    // when the user had any data ("avoid misleading 0s"), but that LIED UP:
+    // a genuine no-fit was rendered as 20% Weak. Per the credibility audit,
+    // an honest 0 is more useful than a fabricated 20.
+    //
+    // Rebucket is tighter than before — the old 40/70 thresholds left a
+    // wide "Moderate" middle that the LLM defaults to. Bucket boundaries
+    // now match the per-band rubric documented elsewhere: 75/50/25.
     const fa = (cvData.fit_analysis || {}) as any;
     let pct = Number(fa.skill_match_percentage);
     if (!Number.isFinite(pct) || pct < 0) pct = 0;
     if (pct > 100) pct = 100;
-    // Only floor if we have any experience/skills/projects at all — keep a
-    // genuinely empty profile at 0.
-    const hasAnyData = (allExperiences.length + (userContext.skills?.length || 0) + (userContext.projects?.length || 0)) > 0;
-    if (pct === 0 && hasAnyData) pct = 20;
     fa.skill_match_percentage = Math.round(pct);
-    if (!fa.alignment || typeof fa.alignment !== "string") {
-      fa.alignment = pct >= 70 ? "Strong" : pct >= 40 ? "Moderate" : "Weak";
-    }
+    // Always recompute alignment from the numeric score so the band and the
+    // number can't disagree (LLM has previously emitted "Strong" + 45%).
+    fa.alignment = pct >= 75 ? "Strong"
+      : pct >= 50 ? "Moderate"
+      : pct >= 25 ? "Weak"
+      : "Not a match";
     cvData.fit_analysis = fa;
+
+    // ─── Bullet-source validator (quantified-token check) ─────────────
+    // Scans every emitted bullet for QUANTIFIED claims — numbers, percentages,
+    // dollar amounts, named tools/companies — and checks that the same token
+    // appears somewhere in the user's source data (responsibilities, story
+    // metrics/result/action, proof_signal supporting_evidence, profile.skills,
+    // experiences.skills_used/tools_used). Prose paraphrasing is intentionally
+    // NOT validated — the LLM rephrases bullets and exact substring matching
+    // would over-fire on legitimate rephrases. Only quantified tokens get
+    // flagged. Result is a non-blocking warning surfaced to the user in the
+    // response payload so they can review before sending; bullets are not
+    // modified or removed.
+    type UnsourcedFlag = { bucket: string; bullet: string; tokens: string[] };
+    const unsourcedBullets: UnsourcedFlag[] = [];
+    {
+      // Build the source haystack — everything in USER DATA we'd accept as
+      // grounding for a numeric or named-tool claim.
+      const sourceHaystackParts: string[] = [];
+      for (const e of allExperiences as any[]) {
+        if (e.responsibilities) sourceHaystackParts.push(String(e.responsibilities));
+        for (const s of (e.skills_used || [])) sourceHaystackParts.push(String(s));
+        for (const t of (e.tools_used || [])) sourceHaystackParts.push(String(t));
+      }
+      for (const story of storiesForLLM as any[]) {
+        for (const m of (story.metrics || [])) sourceHaystackParts.push(String(m));
+        if (story.result) sourceHaystackParts.push(String(story.result));
+        if (story.action) sourceHaystackParts.push(String(story.action));
+        for (const s of (story.skills_demonstrated || [])) sourceHaystackParts.push(String(s));
+        for (const t of (story.tools_used || [])) sourceHaystackParts.push(String(t));
+      }
+      for (const ps of safeArray(profile.proof_signals) as any[]) {
+        if (!ps) continue;
+        for (const ev of safeArray((ps as any).supporting_evidence)) sourceHaystackParts.push(String(ev));
+      }
+      for (const s of (userContext.skills || [])) sourceHaystackParts.push(String(s));
+      for (const p of (userContext.projects || []) as any[]) {
+        if (p.description) sourceHaystackParts.push(String(p.description));
+        for (const s of (p.skills_demonstrated || [])) sourceHaystackParts.push(String(s));
+      }
+      const sourceHaystack = sourceHaystackParts.join(' \n ').toLowerCase();
+      // Quantified token regex — captures numbers (incl. percentages, currency,
+      // multipliers like "3x"), and proper-noun-like tool names (CamelCase or
+      // ALLCAPS, 3+ chars). Common stopword-like CamelCase ("New York", "Tel
+      // Aviv") get excluded by length and a small blocklist.
+      const QUANT_TOKEN_RE = /\b(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?[%$€₪]?|[$€₪]\d+[KMB]?|\d+\+|\d+x|[A-Z][a-z]+(?:[A-Z][a-zA-Z]+)+|[A-Z]{3,})\b/g;
+      const TOKEN_BLOCKLIST = new Set(['Israel','Tel','Aviv','Hebrew','English','USA','UK','EU','API','CV','JD','PM','HR','CS','VIP','CEO','CFO','CTO','COO','SQL']);
+      const checkBullet = (bullet: string, bucket: string) => {
+        const text = String(bullet || '').trim();
+        if (!text) return;
+        const tokens = text.match(QUANT_TOKEN_RE) || [];
+        const unsourced: string[] = [];
+        for (const tok of tokens) {
+          if (TOKEN_BLOCKLIST.has(tok)) continue;
+          // Numeric tokens get a strict substring check; named tokens use a
+          // case-insensitive check. If a number appears in source-data text
+          // verbatim, the bullet's quantified claim is grounded.
+          const lower = tok.toLowerCase();
+          if (!sourceHaystack.includes(lower)) unsourced.push(tok);
+        }
+        if (unsourced.length > 0) unsourcedBullets.push({ bucket, bullet: text, tokens: unsourced });
+      };
+      for (const bucket of ['professional_experiences','military_experiences','volunteering_experiences','leadership_experiences','projects']) {
+        const entries = Array.isArray((cvData as any)[bucket]) ? (cvData as any)[bucket] : [];
+        for (const e of entries) {
+          for (const b of (e?.bullets || [])) checkBullet(b, bucket);
+        }
+      }
+      if (unsourcedBullets.length > 0) {
+        console.warn(`[CV] Bullet-source validator flagged ${unsourcedBullets.length} bullet(s) with unsourced quantified tokens`);
+      }
+    }
 
     // ─── Rough content length estimator + auto-trim ───
     // The LLM is told to respect the ONE PAGE RULE, but we run a cheap
@@ -1428,13 +1758,13 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       return lines;
     };
 
-    // Tightened from 48 → 42 lines on the page-fit budget. Margins moved
-    // from 500-twip (~0.35") to 1008-twip (0.7") to give the new template
-    // research-backed breathing room — that costs about 6 lines of vertical
-    // budget, which we eat by trimming bullets harder. Pilot users are
-    // students with sub-2-year experience; three strong bullets per role
-    // beats four generic ones (PR A research call).
-    const maxLines = 42;
+    // Page-fit budget raised 42 → 55 to match the actual A4 capacity at the
+    // current 0.7" margin + 9.5pt body type. Earlier 42 was tuned to leave
+    // headroom for trim-popping; the new approach trims smarter (two-tier
+    // floor + drop-entry fallback) rather than gutting every section to a
+    // single bullet. Three substantive bullets beats five generic ones —
+    // and the bullet count rules above already cap content per role.
+    const maxLines = 55;
 
     const initialEstimatedLines = estimatePageLines(cvData);
     let estimatedLines = initialEstimatedLines;
@@ -1443,18 +1773,49 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       trimFired = true;
       console.warn(`[CV] Estimated ${estimatedLines} lines (max ${maxLines}) — trimming`);
 
-      // 1. Shorten bullets in the least-prominent buckets first. Keep at
-      //    least 2 bullets per role so the experience stays legible.
-      const trimOrder = ["volunteering_experiences", "leadership_experiences", "professional_experiences", "military_experiences"];
+      // Two-tier bullet floor: professional is the recruiter's primary
+      // signal so it keeps a higher floor; other buckets trim further.
+      // Trim order is least-prominent → most-prominent so professional
+      // bullets are protected longest.
+      const PROFESSIONAL_FLOOR = 3;
+      const SECONDARY_FLOOR = 2;
+      const trimOrder = [
+        "volunteering_experiences",
+        "leadership_experiences",
+        "military_experiences",       // moved earlier — military isn't JD-tailored anyway
+        "professional_experiences",   // last — keep richest content
+      ];
       for (const bucket of trimOrder) {
         if (estimatedLines <= maxLines) break;
+        const floor = bucket === "professional_experiences"
+          ? PROFESSIONAL_FLOOR
+          : SECONDARY_FLOOR;
         const entries = (cvData[bucket] || []) as any[];
         for (const entry of entries) {
           if (estimatedLines <= maxLines) break;
-          while (Array.isArray(entry.bullets) && entry.bullets.length > 2 && estimatedLines > maxLines) {
+          while (Array.isArray(entry.bullets) && entry.bullets.length > floor && estimatedLines > maxLines) {
             entry.bullets.pop();
             estimatedLines -= 1;
           }
+        }
+      }
+
+      // If we're still over even after pop-down-to-floor across all buckets,
+      // it means the user has a lot of entries and we'd rather drop a tail
+      // volunteering / leadership entry than force the professional bullets
+      // below their floor. Drop ONE entry from each non-professional bucket
+      // (from the END — preserves the most-relevant entries which the LLM
+      // ordered first) until we're under budget. Professional entries are
+      // never dropped, only their bullet counts.
+      const entryDropOrder = ["volunteering_experiences", "leadership_experiences"];
+      for (const bucket of entryDropOrder) {
+        if (estimatedLines <= maxLines) break;
+        const entries = (cvData[bucket] || []) as any[];
+        while (estimatedLines > maxLines && entries.length > 1) {
+          const dropped = entries.pop();
+          const droppedBullets = Array.isArray(dropped?.bullets) ? dropped.bullets.length : 0;
+          estimatedLines -= (2 + droppedBullets); // title row + bullets
+          console.log(`[CV] Dropped tail entry from ${bucket}: "${dropped?.title || ''}" to fit one page`);
         }
       }
 
@@ -1582,6 +1943,20 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       stories_used,
       ...(tailoring && { tailoring }),
       ...(missing_contact_fields.length > 0 && { missing_contact_fields }),
+      // Quantified-token grounding warnings. Non-blocking; the user is shown
+      // a "review these bullets" note in the success card so they can spot
+      // any fabricated numbers before sending. Empty when every quantified
+      // token in the emitted bullets traces to source data.
+      ...(unsourcedBullets.length > 0 && { unsourced_bullets: unsourcedBullets }),
+      // JD truncation telemetry — surfaces which path fired and how many JD
+      // chars actually reached the LLM. Used by ops/admin views; the frontend
+      // generally won't render this.
+      jd_truncation: {
+        mode: jdTruncMode,
+        chars_used: safeJobDescription.length,
+        chars_input: jdInput.length,
+      },
+      retry_fired: retryFired,
     });
   } catch (error) {
     console.error("generate-tailored-cv error:", error);

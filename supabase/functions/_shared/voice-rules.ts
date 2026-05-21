@@ -57,7 +57,7 @@ THE INTERCHANGEABLE-CANDIDATE TEST:
 If you swap the user's name for any other student in the program and the bullet still makes sense unchanged, the bullet is filler. Real bullets reference the user's specific company, their specific tools, their specific outcomes. Generic bullets get cut.
 
 LENGTH:
-Aim for 8-15 words per bullet. A bullet that runs to two lines should earn it with a real metric or specific tool, not with adverbs and qualifiers.`
+Aim for 14-22 words per bullet — enough room for action verb + what was done + concrete outcome (tool, scope, stakeholder, or metric when real). Bullets shorter than 12 words usually under-describe the work and read as thin; bullets longer than 26 words are almost always padded with adverbs and should be tightened. A bullet that runs to two rendered lines should earn it with a real metric or specific tool, not with filler.`
 
 export const LINKEDIN_VOICE_RULES = `WRITING QUALITY — LINKEDIN VOICE:
 

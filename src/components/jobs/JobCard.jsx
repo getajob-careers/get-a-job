@@ -90,6 +90,11 @@ export default function JobCard({ job, scoreResult, scoring, onScore, tierColor 
   const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
+  // Collapsible JD preview. Most users scan the card; the JD is here for
+  // the few who want to verify what the score is based on before clicking
+  // Apply or Track. Workday rows have null description (per ATS scraper
+  // audit) — the toggle won't render when description is missing.
+  const [showJD, setShowJD] = useState(false);
 
   const posted = formatPostedDate(job.date_posted);
   const chip = experienceChipText(job);
@@ -169,6 +174,24 @@ export default function JobCard({ job, scoreResult, scoring, onScore, tierColor 
                 <span key={i} className="jb-skill-pill jb-skill-pill-missing">{s}</span>
               ))}
             </div>
+          </div>
+        )}
+        {hasDescription && (
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowJD((v) => !v)}
+              className="jb-eyebrow inline-flex items-center gap-1 hover:text-[#0E1014] transition-colors cursor-pointer"
+              aria-expanded={showJD}
+            >
+              {showJD ? "Hide" : "View"} job description
+              <span aria-hidden="true">{showJD ? "▲" : "▼"}</span>
+            </button>
+            {showJD && (
+              <p className="text-[11px] text-[#52545A] leading-relaxed whitespace-pre-line mt-1.5 max-h-56 overflow-y-auto pr-2">
+                {job.description}
+              </p>
+            )}
           </div>
         )}
       </div>

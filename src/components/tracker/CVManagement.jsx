@@ -1,17 +1,44 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { supabase } from "@/api/supabaseClient";
+import { useAuth } from "@/lib/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, FileText, Sparkles, Download, Save, FileSearch, FileCheck } from "lucide-react";
+import { Loader2, FileText, Sparkles, Download, Save, FileSearch, FileCheck, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 
 export default function CVManagement({ app, onUpdate }) {
+  const { user } = useAuth();
   const [cvName, setCvName] = useState(app.cv_version_name || "");
   const [cvStatus, setCvStatus] = useState(app.cv_status || "not_started");
   const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
+  // Last-generation diagnostics: unsourced bullets, fit, tailoring score.
+  // Snapshotted from the most recent generate-tailored-cv response so the
+  // user gets a credibility warning right next to the download chip.
+  const [lastResult, setLastResult] = useState(null);
+  // Thin-source check: is the user's profile substantive enough that the
+  // generator will have something real to write about? Set true when the
+  // sum of responsibilities across experiences is below 200 chars.
+  const [thinSource, setThinSource] = useState(false);
+  useEffect(() => {
+    let cancelled = false;
+    if (!user?.id) return undefined;
+    (async () => {
+      const { data } = await supabase
+        .from("experiences")
+        .select("responsibilities")
+        .eq("user_id", user.id);
+      if (cancelled) return;
+      const total = (data || []).reduce(
+        (n, e) => n + (typeof e.responsibilities === "string" ? e.responsibilities.length : 0),
+        0,
+      );
+      setThinSource(total < 200);
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
   // Template style — controls visual chrome on the generated docx. Both
   // are single-column for ATS survival; Polished adds color accents,
   // section rules, optional photo. Default to ATS-Optimized — safer for
@@ -38,6 +65,15 @@ export default function CVManagement({ app, onUpdate }) {
       toast.error("Please add a job description first in the Job Description tab");
       return;
     }
+    if (thinSource) {
+      // Confirm before burning a generation on a profile that's too thin to
+      // produce substantive bullets. The LLM will elaborate plausibly when
+      // source content is sparse; this surfaces the risk before we ship.
+      const ok = window.confirm(
+        "Your profile has limited content in the Experience section. The generated CV may include bullets the AI inferred rather than ones grounded in your actual work. Continue, or add more detail to your experiences first?\n\nClick OK to generate anyway, or Cancel to add detail first."
+      );
+      if (!ok) return;
+    }
     setGenerating(true);
     try {
       const { data, error } = await supabase.functions.invoke("generate-tailored-cv", {
@@ -51,6 +87,7 @@ export default function CVManagement({ app, onUpdate }) {
 
       if (error) throw error;
 
+      setLastResult(data || null);
       toast.success(data?.message || "CV generated successfully!");
       onUpdate(); // Refresh application data
     } catch (error) {
@@ -121,6 +158,32 @@ export default function CVManagement({ app, onUpdate }) {
             <Download className="w-3 h-3" />
             Download (.docx)
           </a>
+        </div>
+      )}
+
+      {Array.isArray(lastResult?.unsourced_bullets) && lastResult.unsourced_bullets.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-amber-700 mt-0.5 flex-shrink-0" />
+          <div className="text-xs">
+            <p className="font-semibold text-amber-900">
+              Review before sending ({lastResult.unsourced_bullets.length} {lastResult.unsourced_bullets.length === 1 ? "bullet" : "bullets"})
+            </p>
+            <p className="text-amber-900 mt-0.5 leading-relaxed">
+              Some bullets reference numbers or tools that we couldn&apos;t trace back to your profile data. Open the CV and double-check each one is accurate before sending — the AI sometimes elaborates.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {thinSource && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 flex items-start gap-2">
+          <AlertTriangle className="w-4 h-4 text-amber-700 mt-0.5 flex-shrink-0" />
+          <div className="text-xs">
+            <p className="font-semibold text-amber-900">Your profile is light on content</p>
+            <p className="text-amber-900 mt-0.5 leading-relaxed">
+              Add more detail in your Experience section before generating — without responsibilities text, the AI has to elaborate plausibly, and bullets may not reflect your actual work.
+            </p>
+          </div>
         </div>
       )}
 

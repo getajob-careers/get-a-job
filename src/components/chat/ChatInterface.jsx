@@ -273,7 +273,7 @@ function looksLikeStory(text) {
 // The parent owns the state object so it survives re-renders and can be
 // persisted to the DB.
 function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
-  const { status, cv_url, fit_analysis, application_id, tailoring, error } = state || {};
+  const { status, cv_url, fit_analysis, application_id, tailoring, unsourced_bullets, error } = state || {};
   // Template style — local to the card. Default ATS-Optimized matches the
   // tracker default and the safer-for-portals research call. User can flip
   // to Polished before clicking Generate.
@@ -288,6 +288,7 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
       alignment === "Strong" ? "text-emerald-700"
       : alignment === "Moderate" ? "text-amber-700"
       : alignment === "Weak" ? "text-red-700"
+      : alignment === "Not a match" ? "text-red-700"
       : "text-[#52545A]";
     return (
       <div className="ml-10 mt-2 bg-emerald-50 border border-emerald-200 rounded-xl p-4 max-w-xl">
@@ -321,6 +322,16 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
             {fit_analysis.explanation && (
               <p className="text-[11px] text-[#52545A] leading-relaxed pt-1">{fit_analysis.explanation}</p>
             )}
+          </div>
+        )}
+        {Array.isArray(unsourced_bullets) && unsourced_bullets.length > 0 && (
+          <div className="mb-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs">
+            <p className="text-[10px] uppercase tracking-wider text-amber-800 font-medium mb-1">
+              Review before sending ({unsourced_bullets.length} {unsourced_bullets.length === 1 ? "bullet" : "bullets"})
+            </p>
+            <p className="text-[11px] text-amber-900 leading-relaxed">
+              Some bullets reference numbers or tools that we couldn&apos;t trace back to your profile data. Open the CV and double-check each one is accurate before sending — the AI sometimes elaborates.
+            </p>
           </div>
         )}
         <a
@@ -583,6 +594,7 @@ export default function ChatInterface({ agentName, title, description, applicati
               fit_analysis: g.result.fit_analysis,
               application_id: g.result.application_id || null,
               tailoring: g.result.tailoring || null,
+              unsourced_bullets: Array.isArray(g.result.unsourced_bullets) ? g.result.unsourced_bullets : [],
             };
           }
         }
@@ -1246,6 +1258,7 @@ export default function ChatInterface({ agentName, title, description, applicati
         fit_analysis: data.fit_analysis,
         application_id: data.application_id || null,
         tailoring: data.tailoring || null,
+        unsourced_bullets: Array.isArray(data.unsourced_bullets) ? data.unsourced_bullets : [],
       };
       setCvGenStates((prev) => ({ ...prev, [messageId]: next }));
 
@@ -1258,6 +1271,7 @@ export default function ChatInterface({ agentName, title, description, applicati
           fit_analysis: data.fit_analysis,
           application_id: data.application_id,
           tailoring: data.tailoring || null,
+          unsourced_bullets: Array.isArray(data.unsourced_bullets) ? data.unsourced_bullets : [],
         },
       };
       await supabase.from("chat_messages")
