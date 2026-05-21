@@ -519,6 +519,10 @@ function renderEducation(
     if (coursework.length > 0) {
       paragraphs.push(bulletParagraph(`Relevant coursework: ${coursework.join(", ")}`))
     }
+    const academicProjects = safeArray(edu.academic_projects).map(String).filter(s => s.trim())
+    if (academicProjects.length > 0) {
+      paragraphs.push(bulletParagraph(`Academic projects: ${academicProjects.join("; ")}`))
+    }
     const seen = new Set<string>()
     activities.forEach(a => {
       const raw = String(a || "").trim()
@@ -600,7 +604,10 @@ function renderCertifications(
     const parts: string[] = []
     if (cert.name) parts.push(String(cert.name))
     if (cert.issuer) parts.push(String(cert.issuer))
-    const line = parts.join(", ") + (cert.date ? `  (${cert.date})` : "")
+    // DB column is `date_earned`; the LLM is told to emit `date_earned`; keep
+    // `cert.date` fallback in case an older cached payload still uses it.
+    const certDate = cert.date_earned || cert.date
+    const line = parts.join(", ") + (certDate ? `  (${certDate})` : "")
     if (line.trim()) paragraphs.push(bulletParagraph(line))
   })
 }
@@ -616,7 +623,10 @@ function renderProjects(
   if (projects.length === 0) return
   paragraphs.push(sectionHeading("Projects"))
   projects.forEach((proj: any, idx) => {
-    paragraphs.push(experienceEntryLine(proj.name || "", undefined, undefined, idx > 0))
+    const titleText = proj.url
+      ? `${proj.name || ""}  (${String(proj.url).trim()})`
+      : (proj.name || "")
+    paragraphs.push(experienceEntryLine(titleText, undefined, undefined, idx > 0))
     ;(proj.bullets || []).forEach((b: string) => paragraphs.push(bulletParagraph(b)))
   })
 }
