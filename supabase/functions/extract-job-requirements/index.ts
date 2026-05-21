@@ -33,7 +33,11 @@ const MODEL = "gpt-4o-mini";
 // extraction prompt or output schema changes in a way that requires reprocessing.
 // v2: expanded schema with customer_type, industry_vertical, company_stage,
 //     tech_stack, compensation, eligibility_constraints, etc.
-const EXTRACTION_SCHEMA_VERSION = 2;
+// v3: +101 new library skills + ~150 new aliases (2026-05-21 expansion) +
+//     Workday detail-page descriptions now backfilled. Forces re-extract so
+//     newly-populated descriptions get extracted and newly-aliased phrases
+//     resolve to canonical IDs.
+const EXTRACTION_SCHEMA_VERSION = 3;
 
 // Canonical vocabularies the extractor must produce. We surface these in the
 // prompt so the LLM only emits values that match our deterministic scorer.
