@@ -195,6 +195,123 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "team leadership": ["leadership"],
   "team management": ["leadership", "performance_management"],
 
+  // ── Infrastructure / DevOps (high-frequency in JD scans) ────────────────
+  "devops": ["cloud_platforms_devops"],
+  "ci/cd": ["cloud_platforms_devops"],
+  "ci cd": ["cloud_platforms_devops"],
+  "cicd": ["cloud_platforms_devops"],
+  "terraform": ["cloud_platforms_devops"],
+  "iac": ["cloud_platforms_devops"],
+  "infrastructure as code": ["cloud_platforms_devops"],
+  "ansible": ["cloud_platforms_devops"],
+  "helm": ["cloud_platforms_devops"],
+  "argocd": ["cloud_platforms_devops"],
+  "argo cd": ["cloud_platforms_devops"],
+  "gitops": ["cloud_platforms_devops"],
+  "jenkins": ["cloud_platforms_devops"],
+  "circleci": ["cloud_platforms_devops"],
+  "github actions": ["cloud_platforms_devops"],
+  "cloud infrastructure": ["cloud_platforms_devops", "cloud_platforms"],
+  "microservices": ["backend_development"],
+  "service mesh": ["cloud_platforms_devops"],
+  "istio": ["cloud_platforms_devops"],
+  "eks": ["cloud_platforms_devops", "cloud_platforms"],
+  "ecs": ["cloud_platforms_devops", "cloud_platforms"],
+  "linux": ["linux_administration", "linux_fundamentals"],
+  "linux administration": ["linux_administration"],
+  "bash": ["scripting_automation"],
+  "shell scripting": ["scripting_automation"],
+  "networking": ["networking_fundamentals", "it_infrastructure_networking"],
+
+  // ── Data engineering tools ──────────────────────────────────────────────
+  "spark": ["databases"],
+  "apache spark": ["databases"],
+  "pyspark": ["python_data", "databases"],
+  "kafka": ["api_integrations"],
+  "apache kafka": ["api_integrations"],
+  "airflow": ["workflow_automation"],
+  "apache airflow": ["workflow_automation"],
+  "snowflake": ["bi_tools", "databases"],
+  "databricks": ["bi_tools", "databases"],
+  "dbt": ["sql"],
+  "big data": ["databases"],
+  "etl": ["sql", "data_analysis"],
+  "data pipelines": ["sql", "data_analysis"],
+  "data engineering": ["sql", "databases"],
+
+  // ── ML / AI tools (frequency rising fast in IL JDs) ─────────────────────
+  "pytorch": ["machine_learning", "machine_learning_fundamentals"],
+  "tensorflow": ["machine_learning", "machine_learning_fundamentals"],
+  "scikit-learn": ["machine_learning_fundamentals"],
+  "scikit learn": ["machine_learning_fundamentals"],
+  "sklearn": ["machine_learning_fundamentals"],
+  "huggingface": ["machine_learning_fundamentals"],
+  "hugging face": ["machine_learning_fundamentals"],
+  "transformers": ["machine_learning", "natural_language_processing"],
+  "llm": ["machine_learning_fundamentals"],
+  "llms": ["machine_learning_fundamentals"],
+  "langchain": ["machine_learning_fundamentals"],
+  "openai api": ["api_integrations", "machine_learning_fundamentals"],
+  "rag": ["machine_learning", "natural_language_processing"],
+  "vector databases": ["vector_databases"],
+  "pinecone": ["vector_databases"],
+  "weaviate": ["vector_databases"],
+  "cuda": ["cuda_gpu_programming"],
+  "ai tools": ["machine_learning_fundamentals"],
+  "ai-first": ["machine_learning_fundamentals"],
+
+  // ── Programming languages still missing ─────────────────────────────────
+  "c++": ["programming_fundamentals", "backend_development"],
+  "c/c++": ["programming_fundamentals", "backend_development"],
+  "c#": ["backend_development", "programming_fundamentals"],
+  ".net": ["backend_development"],
+  "rust": ["backend_development", "programming_fundamentals"],
+  "scala": ["backend_development", "programming_fundamentals"],
+  "swift": ["programming_fundamentals"],
+  "php": ["backend_development"],
+
+  // ── Frontend frameworks still missing ───────────────────────────────────
+  "nestjs": ["backend_development"],
+  "nest.js": ["backend_development"],
+  "fastapi": ["backend_development", "api_design"],
+  "flask": ["backend_development"],
+  "django": ["backend_development"],
+
+  // ── Generic engineering practices ───────────────────────────────────────
+  "code quality": ["analytical_thinking"],
+  "performance tuning": ["analytical_thinking"],
+  "performance optimization": ["analytical_thinking"],
+  "scalability": ["analytical_thinking"],
+  "system design": ["analytical_thinking"],
+  "open source": ["git_version_control"],
+
+  // ── Business / Product domain (snake_case + variant fixes) ──────────────
+  "product_management": ["product_strategy", "product_discovery"],
+  "product management": ["product_strategy", "product_discovery"],
+  "automation": ["workflow_automation", "scripting_automation"],
+  "process automation": ["workflow_automation", "bizops_process_automation"],
+  "workflow automation": ["workflow_automation"],
+  "analytics": ["data_analysis"],
+  "data visualization": ["data_visualization_design"],
+
+  // ── Sales / GTM tools ───────────────────────────────────────────────────
+  "linkedin sales navigator": ["outbound_prospecting"],
+  "outreach.io": ["outbound_prospecting"],
+  "salesloft": ["outbound_prospecting"],
+  "gong": ["revenue_operations"],
+  "marketo": ["marketing_automation"],
+  "pardot": ["marketing_automation"],
+  "demandbase": ["marketing_automation"],
+  "6sense": ["marketing_automation"],
+
+  // ── Sales / GTM concepts ────────────────────────────────────────────────
+  "saas platforms": ["product_strategy"],
+  "saas": ["product_strategy"],
+  "b2b demand generation": ["marketing_campaign_design"],
+  "linkedin ads": ["marketing_campaign_design"],
+  "paid search": ["marketing_campaign_design"],
+  "content syndication": ["marketing_campaign_design"],
+
   // ── Generic / problem-solving (commonly typed) ───────────────────────────
   "problem solving": ["problem_solving"],
   "problem-solving": ["problem_solving"],
@@ -239,7 +356,22 @@ export function resolveSkillAliases(
     if (aliased) return aliased.filter((id) => skillIdSet.has(id));
   }
 
-  // 3. Snake-case direct ID match (existing behavior)
+  // 3. Snake-case → space normalization. JD extractors sometimes emit
+  //    snake_case labels (e.g. "product_management", "big_data") that
+  //    don't match the space-keyed alias map. Convert underscores back to
+  //    spaces and retry. Covers the most common JD-extractor failure mode
+  //    observed in the Phase 1 sample run.
+  if (norm.includes("_")) {
+    const unsnaked = norm.replace(/_+/g, " ").replace(/\s+/g, " ").trim();
+    if (unsnaked !== norm && unsnaked.length > 0) {
+      const aliased = SKILL_ALIASES[unsnaked];
+      if (aliased) return aliased.filter((id) => skillIdSet.has(id));
+    }
+  }
+
+  // 4. Snake-case direct ID match (existing behavior — preserves the
+  //    pre-alias-map matcher path so labels like "ab_testing" still
+  //    resolve without an alias entry)
   const snake = norm.replace(/[\s-]+/g, "_");
   if (skillIdSet.has(snake)) return [snake];
 
