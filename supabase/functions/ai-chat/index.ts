@@ -790,7 +790,20 @@ Deno.serve(async (req) => {
 
     let openaiResponse = await callOpenAI(BASE_MAX_TOKENS)
     if (!openaiResponse.ok) {
-      console.error('OpenAI error:', await openaiResponse.text())
+      const errBody = await openaiResponse.text()
+      console.error('OpenAI error:', errBody)
+      // Persist the OpenAI failure so we can diagnose post-hoc — the
+      // console.error logs aren't queryable from outside the Supabase
+      // dashboard UI. log_error is best-effort; failure to log must not
+      // mask the actual error response.
+      try {
+        await serviceClient.rpc('log_error', {
+          p_user_id: user.id,
+          p_function_name: 'ai-chat',
+          p_error_message: `OpenAI ${openaiResponse.status} (agent=${agent})`,
+          p_error_details: { status: openaiResponse.status, body: errBody.slice(0, 2000), agent },
+        })
+      } catch { /* swallow */ }
       _http = 502; _err = `openai_${openaiResponse.status}`
       m.modelUsed = MODEL
       return new Response(JSON.stringify({ error: 'AI service error' }), {
