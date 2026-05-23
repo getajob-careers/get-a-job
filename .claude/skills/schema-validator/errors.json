@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-05-21T14:54:32Z",
+  "generated_at": "2026-05-23T19:06:19Z",
   "canonical_dir": "supabase/functions/_shared/libraries",
   "summary": {
     "errors": 0,
-    "warnings": 284
+    "warnings": 383
   },
   "errors": [],
   "warnings": [
@@ -932,6 +932,606 @@
       "index": 489
     },
     {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'rtl_design' references unknown role_id 'chip_design_engineer' in common_roles",
+      "skill_id": "rtl_design",
+      "index": 490
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'verilog' references unknown role_id 'chip_design_engineer' in common_roles",
+      "skill_id": "verilog",
+      "index": 491
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'verilog' references unknown role_id 'verification_engineer' in common_roles",
+      "skill_id": "verilog",
+      "index": 491
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'systemverilog' references unknown role_id 'verification_engineer' in common_roles",
+      "skill_id": "systemverilog",
+      "index": 492
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'uvm_methodology' references unknown role_id 'verification_engineer' in common_roles",
+      "skill_id": "uvm_methodology",
+      "index": 493
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'specman_e' references unknown role_id 'verification_engineer' in common_roles",
+      "skill_id": "specman_e",
+      "index": 494
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'static_timing_analysis' references unknown role_id 'physical_design_engineer' in common_roles",
+      "skill_id": "static_timing_analysis",
+      "index": 495
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'drc_lvs' references unknown role_id 'physical_design_engineer' in common_roles",
+      "skill_id": "drc_lvs",
+      "index": 496
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'physical_verification' references unknown role_id 'physical_verification_engineer' in common_roles",
+      "skill_id": "physical_verification",
+      "index": 497
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'physical_design' references unknown role_id 'physical_design_engineer' in common_roles",
+      "skill_id": "physical_design",
+      "index": 498
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'place_and_route' references unknown role_id 'physical_design_engineer' in common_roles",
+      "skill_id": "place_and_route",
+      "index": 499
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'formal_verification' references unknown role_id 'verification_engineer' in common_roles",
+      "skill_id": "formal_verification",
+      "index": 500
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'dft_design_for_test' references unknown role_id 'dft_engineer' in common_roles",
+      "skill_id": "dft_design_for_test",
+      "index": 501
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'rtl2gds' references unknown role_id 'physical_design_engineer' in common_roles",
+      "skill_id": "rtl2gds",
+      "index": 502
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'soc_design' references unknown role_id 'chip_design_engineer' in common_roles",
+      "skill_id": "soc_design",
+      "index": 503
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'pcb_design' references unknown role_id 'hardware_engineer' in common_roles",
+      "skill_id": "pcb_design",
+      "index": 504
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'signal_integrity' references unknown role_id 'hardware_engineer' in common_roles",
+      "skill_id": "signal_integrity",
+      "index": 505
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'board_design' references unknown role_id 'hardware_engineer' in common_roles",
+      "skill_id": "board_design",
+      "index": 506
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'rf_engineering' references unknown role_id 'rf_engineer' in common_roles",
+      "skill_id": "rf_engineering",
+      "index": 507
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'pcie_protocol' references unknown role_id 'chip_design_engineer' in common_roles",
+      "skill_id": "pcie_protocol",
+      "index": 508
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'rdma_networking' references unknown role_id 'network_engineer' in common_roles",
+      "skill_id": "rdma_networking",
+      "index": 509
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'rdma_networking' references unknown role_id 'hpc_engineer' in common_roles",
+      "skill_id": "rdma_networking",
+      "index": 509
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'ethernet_networking' references unknown role_id 'network_engineer' in common_roles",
+      "skill_id": "ethernet_networking",
+      "index": 510
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'hpc_computing' references unknown role_id 'hpc_engineer' in common_roles",
+      "skill_id": "hpc_computing",
+      "index": 511
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'multi_threading' references unknown role_id 'backend_engineer' in common_roles",
+      "skill_id": "multi_threading",
+      "index": 512
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'multi_threading' references unknown role_id 'performance_engineer' in common_roles",
+      "skill_id": "multi_threading",
+      "index": 512
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'dpdk_networking' references unknown role_id 'network_engineer' in common_roles",
+      "skill_id": "dpdk_networking",
+      "index": 513
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'dpdk_networking' references unknown role_id 'performance_engineer' in common_roles",
+      "skill_id": "dpdk_networking",
+      "index": 513
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'ebpf_kernel' references unknown role_id 'platform_engineer' in common_roles",
+      "skill_id": "ebpf_kernel",
+      "index": 514
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'ebpf_kernel' references unknown role_id 'security_engineer' in common_roles",
+      "skill_id": "ebpf_kernel",
+      "index": 514
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'n8n_automation' references unknown role_id 'operations_manager' in common_roles",
+      "skill_id": "n8n_automation",
+      "index": 515
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'zapier_ipaas' references unknown role_id 'operations_manager' in common_roles",
+      "skill_id": "zapier_ipaas",
+      "index": 516
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'mcp_protocol' references unknown role_id 'ai_engineer' in common_roles",
+      "skill_id": "mcp_protocol",
+      "index": 517
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'claude_assistant' references unknown role_id 'any_engineer' in common_roles",
+      "skill_id": "claude_assistant",
+      "index": 518
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'openai_api' references unknown role_id 'ai_engineer' in common_roles",
+      "skill_id": "openai_api",
+      "index": 519
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'agentic_systems' references unknown role_id 'ai_engineer' in common_roles",
+      "skill_id": "agentic_systems",
+      "index": 520
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'rag_pipelines' references unknown role_id 'ai_engineer' in common_roles",
+      "skill_id": "rag_pipelines",
+      "index": 521
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'jax_framework' references unknown role_id 'ml_engineer' in common_roles",
+      "skill_id": "jax_framework",
+      "index": 522
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'crewai_framework' references unknown role_id 'ai_engineer' in common_roles",
+      "skill_id": "crewai_framework",
+      "index": 523
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'feature_engineering' references unknown role_id 'ml_engineer' in common_roles",
+      "skill_id": "feature_engineering",
+      "index": 524
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'llmops' references unknown role_id 'ml_engineer' in common_roles",
+      "skill_id": "llmops",
+      "index": 525
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'llmops' references unknown role_id 'platform_engineer' in common_roles",
+      "skill_id": "llmops",
+      "index": 525
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'threat_detection' references unknown role_id 'security_engineer' in common_roles",
+      "skill_id": "threat_detection",
+      "index": 526
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'threat_intelligence' references unknown role_id 'threat_intel_analyst' in common_roles",
+      "skill_id": "threat_intelligence",
+      "index": 528
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'endpoint_security' references unknown role_id 'security_engineer' in common_roles",
+      "skill_id": "endpoint_security",
+      "index": 529
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'sast_security' references unknown role_id 'security_engineer' in common_roles",
+      "skill_id": "sast_security",
+      "index": 530
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'dast_security' references unknown role_id 'security_engineer' in common_roles",
+      "skill_id": "dast_security",
+      "index": 531
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'devsecops_practice' references unknown role_id 'security_engineer' in common_roles",
+      "skill_id": "devsecops_practice",
+      "index": 532
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'secops_practice' references unknown role_id 'soc_analyst' in common_roles",
+      "skill_id": "secops_practice",
+      "index": 533
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'splunk_platform' references unknown role_id 'soc_analyst' in common_roles",
+      "skill_id": "splunk_platform",
+      "index": 534
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'splunk_platform' references unknown role_id 'security_engineer' in common_roles",
+      "skill_id": "splunk_platform",
+      "index": 534
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'kibana_dashboards' references unknown role_id 'sre' in common_roles",
+      "skill_id": "kibana_dashboards",
+      "index": 535
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'kibana_dashboards' references unknown role_id 'soc_analyst' in common_roles",
+      "skill_id": "kibana_dashboards",
+      "index": 535
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'elk_stack' references unknown role_id 'sre' in common_roles",
+      "skill_id": "elk_stack",
+      "index": 536
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'elk_stack' references unknown role_id 'soc_analyst' in common_roles",
+      "skill_id": "elk_stack",
+      "index": 536
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'xdr_security' references unknown role_id 'security_engineer' in common_roles",
+      "skill_id": "xdr_security",
+      "index": 537
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'dlp_data_protection' references unknown role_id 'security_engineer' in common_roles",
+      "skill_id": "dlp_data_protection",
+      "index": 538
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'casb_security' references unknown role_id 'security_engineer' in common_roles",
+      "skill_id": "casb_security",
+      "index": 539
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'cspm_security' references unknown role_id 'cloud_security_engineer' in common_roles",
+      "skill_id": "cspm_security",
+      "index": 540
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'sase_architecture' references unknown role_id 'network_security_engineer' in common_roles",
+      "skill_id": "sase_architecture",
+      "index": 541
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'vpn_secure_access' references unknown role_id 'network_security_engineer' in common_roles",
+      "skill_id": "vpn_secure_access",
+      "index": 542
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'tls_security' references unknown role_id 'security_engineer' in common_roles",
+      "skill_id": "tls_security",
+      "index": 543
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'jwt_oauth_auth' references unknown role_id 'backend_engineer' in common_roles",
+      "skill_id": "jwt_oauth_auth",
+      "index": 544
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'jwt_oauth_auth' references unknown role_id 'security_engineer' in common_roles",
+      "skill_id": "jwt_oauth_auth",
+      "index": 544
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'ips_network_security' references unknown role_id 'network_security_engineer' in common_roles",
+      "skill_id": "ips_network_security",
+      "index": 545
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'aws_s3' references unknown role_id 'backend_engineer' in common_roles",
+      "skill_id": "aws_s3",
+      "index": 546
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'aws_lambda' references unknown role_id 'backend_engineer' in common_roles",
+      "skill_id": "aws_lambda",
+      "index": 547
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'aws_sqs' references unknown role_id 'backend_engineer' in common_roles",
+      "skill_id": "aws_sqs",
+      "index": 548
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'aws_ec2' references unknown role_id 'cloud_engineer' in common_roles",
+      "skill_id": "aws_ec2",
+      "index": 549
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'aws_rds' references unknown role_id 'backend_engineer' in common_roles",
+      "skill_id": "aws_rds",
+      "index": 550
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'ms_sql_server' references unknown role_id 'backend_engineer' in common_roles",
+      "skill_id": "ms_sql_server",
+      "index": 551
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'oracle_database' references unknown role_id 'dba' in common_roles",
+      "skill_id": "oracle_database",
+      "index": 552
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'oracle_database' references unknown role_id 'backend_engineer' in common_roles",
+      "skill_id": "oracle_database",
+      "index": 552
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'neo4j_graph' references unknown role_id 'backend_engineer' in common_roles",
+      "skill_id": "neo4j_graph",
+      "index": 553
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'gerrit_review' references unknown role_id 'chip_design_engineer' in common_roles",
+      "skill_id": "gerrit_review",
+      "index": 556
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'ms_teams' references unknown role_id 'it_administrator' in common_roles",
+      "skill_id": "ms_teams",
+      "index": 558
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'ios_dev' references unknown role_id 'mobile_engineer' in common_roles",
+      "skill_id": "ios_dev",
+      "index": 560
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'android_dev' references unknown role_id 'mobile_engineer' in common_roles",
+      "skill_id": "android_dev",
+      "index": 561
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'html_css_modern' references unknown role_id 'frontend_engineer' in common_roles",
+      "skill_id": "html_css_modern",
+      "index": 562
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'json_data' references unknown role_id 'backend_engineer' in common_roles",
+      "skill_id": "json_data",
+      "index": 563
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'schema_design' references unknown role_id 'backend_engineer' in common_roles",
+      "skill_id": "schema_design",
+      "index": 566
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'performance_engineering' references unknown role_id 'performance_engineer' in common_roles",
+      "skill_id": "performance_engineering",
+      "index": 568
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'performance_engineering' references unknown role_id 'platform_engineer' in common_roles",
+      "skill_id": "performance_engineering",
+      "index": 568
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'cism_certification' references unknown role_id 'security_manager' in common_roles",
+      "skill_id": "cism_certification",
+      "index": 570
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'cisa_certification' references unknown role_id 'it_auditor' in common_roles",
+      "skill_id": "cisa_certification",
+      "index": 571
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'cisa_certification' references unknown role_id 'compliance_analyst' in common_roles",
+      "skill_id": "cisa_certification",
+      "index": 571
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'tax_compliance' references unknown role_id 'tax_manager' in common_roles",
+      "skill_id": "tax_compliance",
+      "index": 573
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'fraud_detection' references unknown role_id 'risk_analyst' in common_roles",
+      "skill_id": "fraud_detection",
+      "index": 574
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'fraud_detection' references unknown role_id 'fraud_analyst' in common_roles",
+      "skill_id": "fraud_detection",
+      "index": 574
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'financial_crime_practice' references unknown role_id 'compliance_analyst' in common_roles",
+      "skill_id": "financial_crime_practice",
+      "index": 575
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'financial_crime_practice' references unknown role_id 'aml_analyst' in common_roles",
+      "skill_id": "financial_crime_practice",
+      "index": 575
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'after_effects' references unknown role_id 'motion_designer' in common_roles",
+      "skill_id": "after_effects",
+      "index": 576
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'pytest_python_testing' references unknown role_id 'python_engineer' in common_roles",
+      "skill_id": "pytest_python_testing",
+      "index": 578
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'fintech_domain' references unknown role_id 'fintech_pm' in common_roles",
+      "skill_id": "fintech_domain",
+      "index": 579
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'ecommerce_domain' references unknown role_id 'ecommerce_pm' in common_roles",
+      "skill_id": "ecommerce_domain",
+      "index": 580
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'adtech_domain' references unknown role_id 'adtech_pm' in common_roles",
+      "skill_id": "adtech_domain",
+      "index": 581
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'b2b_saas_domain' references unknown role_id 'saas_pm' in common_roles",
+      "skill_id": "b2b_saas_domain",
+      "index": 582
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'lab_equipment_practice' references unknown role_id 'hardware_engineer' in common_roles",
+      "skill_id": "lab_equipment_practice",
+      "index": 583
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'lab_equipment_practice' references unknown role_id 'test_engineer' in common_roles",
+      "skill_id": "lab_equipment_practice",
+      "index": 583
+    },
+    {
+      "check": "skill.common_roles_xref",
+      "message": "skill 'inventory_management' references unknown role_id 'operations_manager' in common_roles",
+      "skill_id": "inventory_management",
+      "index": 584
+    },
+    {
       "check": "skill.related_skills_xref",
       "message": "skill 'talent_acquisition_recruiting' references unknown skill_id 'interviewing' in related_skills",
       "skill_id": "talent_acquisition_recruiting"
@@ -940,11 +1540,6 @@
       "check": "skill.related_skills_xref",
       "message": "skill 'employer_branding' references unknown skill_id 'content_marketing' in related_skills",
       "skill_id": "employer_branding"
-    },
-    {
-      "check": "skill.related_skills_xref",
-      "message": "skill 'c_cpp' references unknown skill_id 'performance_engineering' in related_skills",
-      "skill_id": "c_cpp"
     },
     {
       "check": "skill.related_skills_xref",

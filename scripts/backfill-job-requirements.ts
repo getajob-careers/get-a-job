@@ -42,11 +42,36 @@ const ATS_FILTER = arg("ats", "")
   .split(",")
   .map((s) => s.trim())
   .filter(Boolean);
+// Targeted re-extract: bypass the picker entirely and process just these IDs.
+// Useful for verifying behaviour on JDs known to contain a specific signal
+// without running the full backfill.
+const ID_FILTER = arg("ids", "")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 const PROGRESS_EVERY = Number(arg("progress-every", "50"));
+// Schema-version gate. When SKIP_ALREADY=true (default) the picker also
+// includes rows whose extraction_schema_version is below the target — this is
+// how a schema bump (v3 → v4) triggers re-extraction without spending on rows
+// already at the new version. Set to the current EXTRACTION_SCHEMA_VERSION in
+// the edge function so the two stay in lockstep.
+const TARGET_SCHEMA_VERSION = Number(arg("target-schema-version", "4"));
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
 async function pickJobs(): Promise<Array<{ id: string; title: string; ats_source: string }>> {
+  // ID filter bypasses the rest of the picker — used for targeted re-extract.
+  if (ID_FILTER.length > 0) {
+    const { data, error } = await supabase
+      .from("jobs")
+      .select("id, title, ats_source")
+      .in("id", ID_FILTER);
+    if (error) {
+      console.error("Query failed:", error.message);
+      process.exit(1);
+    }
+    return data ?? [];
+  }
   // Paginate — PostgREST defaults to 1000 row cap so we walk in batches.
   const PAGE = 1000;
   const all: Array<{ id: string; title: string; ats_source: string }> = [];
@@ -58,7 +83,13 @@ async function pickJobs(): Promise<Array<{ id: string; title: string; ats_source
       .eq("is_active", true)
       .order("first_seen_at", { ascending: true })
       .range(offset, offset + PAGE - 1);
-    if (SKIP_ALREADY) q = q.is("extracted_at", null);
+    if (SKIP_ALREADY) {
+      // Re-extract any row that's never been extracted OR is stuck below the
+      // target schema version. Already-at-target rows skip on the function
+      // side too (description_hash idempotency), so this gives us full
+      // resumability across an interrupted backfill.
+      q = q.or(`extracted_at.is.null,extraction_schema_version.lt.${TARGET_SCHEMA_VERSION}`);
+    }
     if (ATS_FILTER.length > 0) q = q.in("ats_source", ATS_FILTER);
     const { data, error } = await q;
     if (error) {
