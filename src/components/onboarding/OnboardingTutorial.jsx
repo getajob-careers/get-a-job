@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Loader2, ArrowRight, ArrowLeft, Briefcase, ClipboardList, BookText, Linkedin, FileText, MessageCircle, RotateCcw, CheckCircle2, ExternalLink } from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics";
 import { useFakeProgress } from "@/lib/useFakeProgress";
-import { TIERS } from "@/lib/tierConfig";
+import { TRACKS } from "@/lib/trackConfig";
 
 // Slide content. User navigates manually via arrow buttons — no auto-advance.
 // Visuals are placeholder icons + descriptions until real screenshots land.
@@ -280,9 +280,9 @@ export default function OnboardingTutorial({
   );
 }
 
-// Tier cards on the Browse Jobs slide source from @/lib/tierConfig so the
-// labels and copy can't drift from the Roadmap's TIER_CONFIG. Single source
-// of truth for tier vocabulary across onboarding + roadmap + role cards.
+// Track cards on the Browse Jobs slide source from @/lib/trackConfig so the
+// labels and copy can't drift from the Roadmap's TRACK_CONFIG. Single source
+// of truth for track vocabulary across onboarding + roadmap + role cards.
 
 function Slide({ slide }) {
   const { Icon, title, description, name } = slide;
@@ -296,12 +296,12 @@ function Slide({ slide }) {
       <h3 className="onb-slide-title">{title}</h3>
       <p className="onb-slide-desc">{description}</p>
       {isBrowseJobs && (
-        <div className="onb-tier-cards">
-          {TIERS.map((tier) => (
-            <div key={tier.number} className="onb-tier-card" data-tier={tier.color}>
-              <div className="onb-tier-badge">{tier.number}</div>
-              <div className="onb-tier-name">Tier {tier.number} · {tier.name}</div>
-              <p className="onb-tier-desc">{tier.description}</p>
+        <div className="onb-track-cards">
+          {TRACKS.map((track) => (
+            <div key={track.number} className="onb-track-card" data-track={track.color}>
+              <div className="onb-track-badge">{track.number}</div>
+              <div className="onb-track-name">Track {track.number} · {track.name}</div>
+              <p className="onb-track-desc">{track.description}</p>
             </div>
           ))}
         </div>

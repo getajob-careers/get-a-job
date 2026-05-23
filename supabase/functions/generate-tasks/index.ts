@@ -171,7 +171,7 @@ Deno.serve(async (req) => {
 
     const sanitisedRoles = (careerRoles || []).slice(0, 6).map((r: any) => ({
       title: trunc(r.title, 100),
-      tier: trunc(r.tier, 20),
+      track: trunc(r.track, 20),
       readiness_score: r.readiness_score ?? null,
       missing_skills: (r.missing_skills || []).slice(0, 10).map((s: unknown) => trunc(s, 60)),
     }))
@@ -306,7 +306,7 @@ Using the task generation logic and job search stage logic from your system prom
 Steps:
 1. Confirm the user's job_search_stage based on their tracker activity
 2. Identify the biggest blocking factor right now
-3. Identify the most urgent skill gaps relative to their Tier 1 target roles
+3. Identify the most urgent skill gaps relative to their Track 1 target roles
 4. Generate tasks that directly address the stage + gaps + behavior
 5. Assign priorities based on what is most blocking right now
 6. Apply overwhelm handling if clarity score is low or activity is low

@@ -33,11 +33,11 @@ const MODEL = 'gpt-4o'
 const RATE_LIMIT_CALLS = 4
 const RATE_LIMIT_WINDOW = 3600
 
-// Stage guidance for the prompt — NOT a tier-to-stage hardcode. Per
+// Stage guidance for the prompt — NOT a track-to-stage hardcode. Per
 // Eli's design call: stage is one signal, not the filter. The prompt
 // reasons about team size + culture + intern/junior infrastructure
 // alongside stage. A 200-person Series B with formal internship
-// programs is more realistic for a Tier 3 student than a 5-person Seed.
+// programs is more realistic for a Track 3 student than a 5-person Seed.
 const STAGE_VOCAB = [
   'Seed', 'Pre-Series A', 'Series A', 'Series B', 'Series C', 'Growth', 'Public',
 ]
@@ -55,7 +55,7 @@ const SECTOR_VOCAB = [
 interface CareerRole {
   id: string
   title: string
-  tier: string | null
+  track: string | null
   readiness_score: number | null
   goal_alignment_score: number | null
   matched_skills: string[] | null
@@ -175,9 +175,9 @@ Deno.serve(async (req) => {
     }
 
     // ── Build context block ──────────────────────────────────────────
-    const tierOneRoles = careerRoles.filter((r) => r.tier === 'tier_1')
-    const tierTwoRoles = careerRoles.filter((r) => r.tier === 'tier_2')
-    const tierThreeRoles = careerRoles.filter((r) => r.tier === 'tier_3')
+    const tierOneRoles = careerRoles.filter((r) => r.track === 'track_1')
+    const tierTwoRoles = careerRoles.filter((r) => r.track === 'track_2')
+    const tierThreeRoles = careerRoles.filter((r) => r.track === 'track_3')
 
     // Anti-fab corpus — every pitch_strength_signal the LLM emits must
     // substring-match (case-insensitive) somewhere in this haystack.
@@ -315,7 +315,7 @@ Return ONLY valid JSON in the exact shape specified.`
       pitch_anti_patterns: row.pitch_anti_patterns,
       skill_gaps_to_close: row.skill_gaps_to_close,
       career_compound_rationale: row.career_compound_rationale,
-      tier_1_role_alignment: row.tier_1_role_alignment,
+      track_1_role_alignment: row.track_1_role_alignment,
       rationale: row.rationale,
       generated_from_career_roles_at: generatedFromCareerRolesAt,
     }
@@ -365,7 +365,7 @@ Return ONLY valid JSON in the exact shape specified.`
 function buildSystemPrompt(): string {
   return `You are an internship strategy advisor for "Get A Job," a career operating system for Israeli business students (Reichman University) entering tech roles. Your job is to turn a student's profile, career roles, experiences, and stories into a PITCH STRATEGY they can use to find an internship that compounds their career.
 
-You MUST emit JSON with this exact shape — 9 substantive fields plus rationale + tier_1_role_alignment:
+You MUST emit JSON with this exact shape — 9 substantive fields plus rationale + track_1_role_alignment:
 
 {
   "realistic_company_stages": ["Series A", "Series B", ...],
@@ -376,8 +376,8 @@ You MUST emit JSON with this exact shape — 9 substantive fields plus rationale
   "pitch_strength_signals": ["competitive analysis for Strauss marketing course", "94% gross retention at Atera renewal playbook", ...],
   "pitch_anti_patterns": ["framing as Senior PM", "claiming 5+ years of SaaS experience", ...],
   "skill_gaps_to_close": ["SQL", "consumer research methodology", ...],
-  "career_compound_rationale": "1–2 sentences explaining why an internship of THIS shape now serves their Tier-1 long-term path.",
-  "tier_1_role_alignment": "1 sentence explicitly linking this internship strategy to one of their Tier-1 career roles.",
+  "career_compound_rationale": "1–2 sentences explaining why an internship of THIS shape now serves their Track-1 long-term path.",
+  "track_1_role_alignment": "1 sentence explicitly linking this internship strategy to one of their Track-1 career roles.",
   "rationale": "1–2 sentences summarising the overall strategy for the student."
 }
 
@@ -389,7 +389,7 @@ Stage is ONE signal, not the filter. Consider these together:
   • Culture — does the company hire generalists who learn on the job (good for a student) or only specialists with proven track records (bad)?
   • Hiring posture — companies that publish junior roles, run university partnerships, or attend hackathons signal openness to early-career talent.
 
-realistic_company_stages: pick 2–4 stages from this vocabulary that fit the student's tier + readiness: ${STAGE_VOCAB.join(' / ')}. Stage selection should reflect WHERE companies of this size + culture cluster, not a hardcoded tier-to-stage map.
+realistic_company_stages: pick 2–4 stages from this vocabulary that fit the student's track + readiness: ${STAGE_VOCAB.join(' / ')}. Stage selection should reflect WHERE companies of this size + culture cluster, not a hardcoded track-to-stage map.
 
 realistic_team_size_range: a single string like "20–200" capturing the band of company sizes the student should target. Drives the matcher's sizing filter.
 
@@ -412,9 +412,9 @@ CAREER COMPOUND — why this internship serves the long game.
 
 skill_gaps_to_close: 3–5 specific gaps from their career_roles missing_skills that this kind of internship could close. Concrete skills, not abstractions — "SQL" not "data fluency"; "Customer interview methodology" not "user empathy".
 
-career_compound_rationale: 1–2 sentences explaining why doing an internship of THIS shape NOW (not later, not different) compounds toward their Tier-1 path. Tie to specific Tier-1 role + specific gaps.
+career_compound_rationale: 1–2 sentences explaining why doing an internship of THIS shape NOW (not later, not different) compounds toward their Track-1 path. Tie to specific Track-1 role + specific gaps.
 
-tier_1_role_alignment: 1 sentence explicitly naming the Tier-1 role from their career_roles and stating the connection. Example: "An InsurTech B2B SaaS PM internship builds the data + customer-research skills needed for the Senior PM (FinTech) Tier-1 target."
+track_1_role_alignment: 1 sentence explicitly naming the Track-1 role from their career_roles and stating the connection. Example: "An InsurTech B2B SaaS PM internship builds the data + customer-research skills needed for the Senior PM (FinTech) Track-1 target."
 
 rationale: 1–2 sentences. The overall north star — what kind of internship are we looking for, and what's the win condition?
 
@@ -422,7 +422,7 @@ DISCIPLINE:
 - Be SPECIFIC. Generic strategy is useless — every field should be sharp enough that a stranger reading the row could identify which kind of company to target.
 - Do NOT pad arrays. If you only have 2 real pitchable archetypes, return 2. Empty filler is worse than honest sparseness.
 - Do NOT invent. If the student has no SaaS experience, do not write "SaaS sales support" as a pitchable archetype. Ground every pitch in real artefacts.
-- Match the student's tier honestly. A Tier 3 student should not get Series D unicorn-targeted strategy, but the realistic targets aren't only "tiny startup" either — consider team size + culture + junior infrastructure as the real filter.
+- Match the student's track honestly. A Track 3 student should not get Series D unicorn-targeted strategy, but the realistic targets aren't only "tiny startup" either — consider team size + culture + junior infrastructure as the real filter.
 
 Return ONLY valid JSON.`
 }
@@ -533,7 +533,7 @@ interface NormalizedProfile {
   pitch_anti_patterns: string[]
   skill_gaps_to_close: string[]
   career_compound_rationale: string | null
-  tier_1_role_alignment: string | null
+  track_1_role_alignment: string | null
   rationale: string | null
 }
 
@@ -603,7 +603,7 @@ function normalizeProfile(raw: any, haystack: string): { row: NormalizedProfile;
     pitch_anti_patterns: cleanStringArray(raw?.pitch_anti_patterns, 6, 200),
     skill_gaps_to_close: cleanStringArray(raw?.skill_gaps_to_close, 8, 100),
     career_compound_rationale: cleanString(raw?.career_compound_rationale, 500),
-    tier_1_role_alignment: cleanString(raw?.tier_1_role_alignment, 300),
+    track_1_role_alignment: cleanString(raw?.track_1_role_alignment, 300),
     rationale: cleanString(raw?.rationale, 500),
   }
 

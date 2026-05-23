@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { ChevronDown, ChevronUp, Check, X, ArrowRight } from "lucide-react";
-import { TIER_CONFIG } from "@/lib/tierConfig";
+import { TRACK_CONFIG } from "@/lib/trackConfig";
 
 // NB: `onTrack` is accepted for backward compatibility with CareerRoadmap's
 // handleTrack but no longer wired up — the "Add to Tracker" button was
@@ -8,7 +8,7 @@ import { TIER_CONFIG } from "@/lib/tierConfig";
 // role cards).
 export default function RoleCard({ role, onTrack }) { // eslint-disable-line no-unused-vars
   const [expanded, setExpanded] = useState(false);
-  const tier = TIER_CONFIG[role.tier] || TIER_CONFIG.tier_1;
+  const track = TRACK_CONFIG[role.track] || TRACK_CONFIG.track_1;
 
   // readiness_score is stored 0–1; render as percentage. Allow upstream to
   // pass match_percentage directly.
@@ -17,9 +17,9 @@ export default function RoleCard({ role, onTrack }) { // eslint-disable-line no-
     rawScore != null ? Math.round(Number(rawScore) * 100) : null
   );
 
-  // Per-role tier-scoring breakdown — the two axes that determined the tier.
+  // Per-role track-scoring breakdown — the two axes that determined the track.
   // Coral fill on the WEAKER axis draws the eye to why this role landed
-  // where it did (e.g. Tier 2 = qualification high, alignment low).
+  // where it did (e.g. Track 2 = qualification high, alignment low).
   const qualPct = rawScore != null ? Math.round(Number(rawScore) * 100) : null;
   const alignPct = role.goal_alignment_score != null
     ? Math.round(Number(role.goal_alignment_score) * 100)
@@ -35,22 +35,22 @@ export default function RoleCard({ role, onTrack }) { // eslint-disable-line no-
   const explainText = explainParts.join("\n\n");
 
   return (
-    <div className={`rm-role-card rm-tier-${tier.color}`}>
+    <div className={`rm-role-card rm-track-${track.color}`}>
       <button
         onClick={() => setExpanded(!expanded)}
         className="rm-role-card-header"
       >
         <div className="flex items-start gap-3 min-w-0">
-          <div className="rm-tier-badge mt-0.5">{tier.number}</div>
+          <div className="rm-track-badge mt-0.5">{track.number}</div>
           <div className="min-w-0">
             <p className="rm-role-card-title truncate">{role.title}</p>
             <div className="rm-role-card-meta">
               {matchPercentage != null && (
                 <span>{matchPercentage}% match</span>
               )}
-              <span className="rm-tier-pill">
-                <span className="rm-tier-badge" style={{ width: 14, height: 14, fontSize: 9 }}>{tier.number}</span>
-                {tier.name}
+              <span className="rm-track-pill">
+                <span className="rm-track-badge" style={{ width: 14, height: 14, fontSize: 9 }}>{track.number}</span>
+                {track.name}
               </span>
             </div>
           </div>
@@ -64,11 +64,11 @@ export default function RoleCard({ role, onTrack }) { // eslint-disable-line no-
 
       {expanded && (
         <div className="rm-role-card-body">
-          {/* Tier breakdown — the two scores that placed this role.
+          {/* Track breakdown — the two scores that placed this role.
               Coral fill on the weaker axis says "this is the bottleneck". */}
           {showBreakdown && (
             <div>
-              <p className="rm-eyebrow mb-2.5">Tier breakdown</p>
+              <p className="rm-eyebrow mb-2.5">Track breakdown</p>
               <div className="flex flex-col gap-3">
                 {qualPct != null && (
                   <div className="rm-bar-row">

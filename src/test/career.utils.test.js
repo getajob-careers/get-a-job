@@ -4,7 +4,7 @@ import { describe, it, expect } from 'vitest';
 function mapRoleToDbRow(r, userId) {
   return {
     title: r.title,
-    tier: r.tier,
+    track: r.track,
     match_score: r.readiness_score,
     readiness_score: r.readiness_score,
     matched_skills: r.matched_skills || [],
@@ -32,7 +32,7 @@ describe('mapRoleToDbRow', () => {
   it('maps AI role output to DB schema', () => {
     const role = {
       title: 'Data Analyst',
-      tier: 'tier_1',
+      track: 'track_1',
       readiness_score: 0.72,
       matched_skills: ['SQL', 'Python'],
       missing_skills: ['Tableau'],
@@ -42,7 +42,7 @@ describe('mapRoleToDbRow', () => {
     };
     const row = mapRoleToDbRow(role, 'user-123');
     expect(row.title).toBe('Data Analyst');
-    expect(row.tier).toBe('tier_1');
+    expect(row.track).toBe('track_1');
     expect(row.readiness_score).toBe(0.72);
     expect(row.matched_skills).toEqual(['SQL', 'Python']);
     expect(row.skills_gap).toEqual(['Tableau']);
@@ -52,7 +52,7 @@ describe('mapRoleToDbRow', () => {
   });
 
   it('defaults missing_skills and matched_skills to empty arrays', () => {
-    const row = mapRoleToDbRow({ title: 'PM', tier: 'tier_2', readiness_score: 0.4 }, 'u1');
+    const row = mapRoleToDbRow({ title: 'PM', track: 'track_2', readiness_score: 0.4 }, 'u1');
     expect(row.matched_skills).toEqual([]);
     expect(row.missing_skills).toEqual([]);
     expect(row.skills_gap).toEqual([]);

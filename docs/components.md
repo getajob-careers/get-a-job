@@ -110,7 +110,7 @@ Displays a single career role with tier badge, readiness score, skill gap summar
 
 **Props:** `profile`, `roles`, `experiences`, `courses`, `certifications`
 
-Card showing overall career readiness percentage and per-tier readiness bars. Calculated client-side from existing data.
+Card showing overall career readiness percentage and per-track readiness bars. Calculated client-side from existing data.
 
 ### `LearningPaths`
 
@@ -156,7 +156,7 @@ The onboarding wizard is managed by `src/pages/Onboarding.jsx`. Steps are 0-inde
 | `StepCareerDirection` | 4 | Target job titles, 5-year goal, target industries, work environment preferences |
 | `StepConstraints` | 5 | Location, work type, salary expectation, available start date |
 | `StepSurvey` | 6 | Additional context for AI analysis (biggest challenge, job search efforts, etc.) |
-| `StepTierReveal` | 7 | AI-generated tier analysis reveal + platform initialisation (tasks generated here) |
+| `StepTierReveal` | 7 | AI-generated track analysis reveal + platform initialisation (tasks generated here) |
 
 ### StepResumeUpload notes
 
@@ -168,7 +168,7 @@ The onboarding wizard is managed by `src/pages/Onboarding.jsx`. Steps are 0-inde
 
 This step triggers two sequential operations:
 
-1. `generate-career-analysis` Edge Function — generates tier-classified roles, writes them to `career_roles`, and updates `qualification_level`, `overall_assessment`, `skill_gaps` on the profile.
+1. `generate-career-analysis` Edge Function — generates track-classified roles, writes them to `career_roles`, and updates `qualification_level`, `overall_assessment`, `skill_gaps` on the profile.
 2. `generate-tasks` Edge Function — called inside `handleFinalise`, generates the initial weekly task plan and writes it to `tasks`.
 
 Both use the insert-before-delete pattern to avoid data loss mid-write.

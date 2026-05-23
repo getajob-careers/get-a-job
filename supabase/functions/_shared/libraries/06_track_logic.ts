@@ -1,16 +1,16 @@
-export const tierLogic = {
-  "library_name": "tier_logic",
+export const trackLogic = {
+  "library_name": "track_logic",
   "tiers": [
     {
-      "tier": 1,
+      "track": 1,
       "description": "Best immediate next move: strong enough fit now and strongest alignment to the 5-year goal"
     },
     {
-      "tier": 2,
+      "track": 2,
       "description": "Viable now, but less aligned path"
     },
     {
-      "tier": 3,
+      "track": 3,
       "description": "More aligned to the long-term goal, but usually one step ahead of current readiness"
     }
   ]

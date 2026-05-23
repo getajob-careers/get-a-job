@@ -8,7 +8,7 @@ This is a React + Vite + Supabase career operating system for business students 
 - **Backend:** Supabase (Postgres + Auth + Edge Functions in Deno + Storage + RLS). Project ref `ilmqmodklutztuybsvwd`.
 - **Edge functions:** in `supabase/functions/<slug>/index.ts`. Deploy via `supabase functions deploy <slug> --project-ref ilmqmodklutztuybsvwd`.
 - **Domain libraries** (Israeli market context, role/skill graphs): `supabase/functions/_shared/libraries/00_role_library.ts` (183 roles), `01_skill_library.ts` (387 unique skill IDs), `04_role_skill_mapping.ts`, plus 13 logic / mapping files (16 .ts total + `companies_il.json` with 831 ATS-tagged Israeli companies for the job cache). Consolidated to `_shared/libraries/` in Wk 5; each edge function imports its specific subset via `../_shared/libraries/X.ts`. Validate with `python3 .claude/skills/schema-validator/validate.py` after edits.
-- **Tier scoring:** `src/lib/scoreApplication.js` (`tierFromScores`) mirrors the goal-aware logic in `generate-career-analysis` (`assignTierWithGoal`). LLM-derived alignment uses tighter thresholds than the deterministic path.
+- **Track scoring:** `src/lib/scoreApplication.js` (`trackFromScores`) mirrors the goal-aware logic in `generate-career-analysis` (`assignTrackWithGoal`). LLM-derived alignment uses tighter thresholds than the deterministic path.
 
 ## Conventions
 
@@ -42,7 +42,7 @@ Rule for next time: actionable rule, written so future-me can follow it
 
 Keep entries to ~5 lines. The file is for me to read at the start of any session that touches the relevant area, not exhaustive documentation.
 
-Read `tasks/lessons.md` before starting non-trivial work in: tier scoring, LLM prompt engineering, edge-function deploys, role/skill library edits, onboarding flow.
+Read `tasks/lessons.md` before starting non-trivial work in: track scoring, LLM prompt engineering, edge-function deploys, role/skill library edits, onboarding flow.
 
 ## Verification before completion
 

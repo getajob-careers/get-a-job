@@ -25,7 +25,7 @@ export const onboardingInputMapping = {
       "experience.managed_people": [
         "proof_signals",
         "qualification_level",
-        "tier_logic"
+        "track_logic"
       ],
       "experience.cross_functional": [
         "proof_signals",
@@ -100,11 +100,11 @@ export const onboardingInputMapping = {
     "career_direction": {
       "userprofile.five_year_role": [
         "goal_alignment",
-        "tier_logic"
+        "track_logic"
       ],
       "userprofile.target_job_titles": [
         "goal_alignment",
-        "tier_logic"
+        "track_logic"
       ],
       "userprofile.target_industries": [
         "goal_alignment"
@@ -113,11 +113,11 @@ export const onboardingInputMapping = {
         "context"
       ],
       "userprofile.open_to_lateral": [
-        "tier_logic_modifier",
+        "track_logic_modifier",
         "goal_alignment_modifier"
       ],
       "userprofile.open_to_outside_degree": [
-        "tier_logic_modifier",
+        "track_logic_modifier",
         "goal_alignment_modifier"
       ]
     },
@@ -180,12 +180,12 @@ export const onboardingInputMapping = {
       "derived.primary_domain": [
         "domain_detection",
         "goal_alignment",
-        "tier_logic"
+        "track_logic"
       ],
       "derived.adjacent_fields": [
         "adjacent_field_detection",
         "goal_alignment",
-        "tier_logic"
+        "track_logic"
       ],
       "derived.job_search_stage": [
         "stage_awareness",

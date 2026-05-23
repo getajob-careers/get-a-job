@@ -19,7 +19,7 @@ import { createPageUrl } from "@/utils";
 import { resolveDueDate } from "@/lib/taskDueDate";
 import { scoreApplication } from "@/lib/scoreApplication";
 import {
-  validTier,
+  validTrack,
   validStatus,
   validInterviewStage,
   validateMatchedSkills,
@@ -31,10 +31,10 @@ import {
 import MessageBubble from "./MessageBubble";
 import StorySaveCard from "./StorySaveCard";
 
-const TIER_LABELS = {
-  tier_1: "Tier 1 — Your Move",
-  tier_2: "Tier 2 — Plan B",
-  tier_3: "Tier 3 — Work Toward",
+const TRACK_LABELS = {
+  track_1: "Track 1 — Your Move",
+  track_2: "Track 2 — Plan B",
+  track_3: "Track 3 — Work Toward",
 };
 
 function TaskSuggestionCard({ messageId, tasks, addedTaskSets, onAdd }) {
@@ -92,11 +92,11 @@ function RoadmapChangeCard({ messageId, changes, applied, onApply }) {
       <ul className="space-y-2 mb-3">
         {changes.map((change, i) => (
           <li key={i} className="text-xs text-indigo-700 leading-relaxed">
-            {change.action === "update_tier" && (
-              <span>Move <strong>{change.role_title}</strong> → {TIER_LABELS[change.new_tier] || change.new_tier}</span>
+            {change.action === "update_track" && (
+              <span>Move <strong>{change.role_title}</strong> → {TRACK_LABELS[change.new_track] || change.new_track}</span>
             )}
             {change.action === "add_role" && (
-              <span>Add <strong>{change.title}</strong> as {TIER_LABELS[change.tier] || change.tier}</span>
+              <span>Add <strong>{change.title}</strong> as {TRACK_LABELS[change.track] || change.track}</span>
             )}
             {change.action === "remove_role" && (
               <span>Remove <strong>{change.role_title}</strong></span>
@@ -139,14 +139,14 @@ function ApplicationActionsCard({ messageId, actions, applied, onApply }) {
         {actions.map((a, i) => (
           <li key={i} className="text-xs text-blue-900 leading-relaxed">
             {a.action === "add_application" && (
-              <span>Add <strong>{a.company}</strong> — {a.role_title} ({a.status || "interested"}{a.tier ? `, ${a.tier}` : ""})</span>
+              <span>Add <strong>{a.company}</strong> — {a.role_title} ({a.status || "interested"}{a.track ? `, ${a.track}` : ""})</span>
             )}
             {a.action === "update_application" && (
               <span>
                 Update <strong>{a.match_company}</strong> — {a.match_role_title}:
                 {a.new_status && <span> status → {a.new_status}</span>}
                 {a.new_interview_stage && <span>, stage → {a.new_interview_stage}</span>}
-                {a.new_tier && <span>, tier → {a.new_tier}</span>}
+                {a.new_track && <span>, track → {a.new_track}</span>}
                 {a.new_notes && <span>, notes updated</span>}
               </span>
             )}
@@ -903,28 +903,28 @@ export default function ChatInterface({ agentName, title, description, applicati
     const pathCRoles = [];
 
     for (const change of changes) {
-      if (change.action === "update_tier") {
-        const newTier = validTier(change.new_tier);
-        if (!newTier) { console.error("Roadmap update_tier: invalid tier", change.new_tier); hasError = true; continue; }
+      if (change.action === "update_track") {
+        const newTrack = validTrack(change.new_track);
+        if (!newTrack) { console.error("Roadmap update_track: invalid track", change.new_track); hasError = true; continue; }
         const { data: matches, error: lookupErr } = await supabase
           .from("career_roles")
           .select("id")
           .eq("user_id", user.id)
           .ilike("title", change.role_title);
-        if (lookupErr) { console.error("Roadmap update_tier lookup error:", lookupErr); hasError = true; continue; }
-        if (!matches || matches.length === 0) { console.error("Roadmap update_tier: role not found", change.role_title); hasError = true; continue; }
-        // Multi-match: update all (the user said "move PM to tier_1" — if they
+        if (lookupErr) { console.error("Roadmap update_track lookup error:", lookupErr); hasError = true; continue; }
+        if (!matches || matches.length === 0) { console.error("Roadmap update_track: role not found", change.role_title); hasError = true; continue; }
+        // Multi-match: update all (the user said "move PM to track_1" — if they
         // have two PMs, moving both is the natural intent). For remove_role
         // we're stricter because delete is irreversible.
         const ids = matches.map((m) => m.id);
         const { error } = await supabase
           .from("career_roles")
-          .update({ tier: newTier })
+          .update({ track: newTrack })
           .in("id", ids);
-        if (error) { console.error("Roadmap update_tier error:", error); hasError = true; }
+        if (error) { console.error("Roadmap update_track error:", error); hasError = true; }
       } else if (change.action === "add_role") {
-        const tier = validTier(change.tier);
-        if (!tier) { console.error("Roadmap add_role: invalid tier", change.tier); hasError = true; continue; }
+        const track = validTrack(change.track);
+        if (!track) { console.error("Roadmap add_role: invalid track", change.track); hasError = true; continue; }
 
         // Path B: use AI-proposed skills if the agent emitted them (key
         // existence check — distinguishes "agent provided 0 matches" from
@@ -950,7 +950,7 @@ export default function ChatInterface({ agentName, title, description, applicati
         const insertPayload = {
           user_id: user.id,
           title: change.title,
-          tier,
+          track,
           matched_skills,
           missing_skills,
           // skills_gap mirrors missing_skills (matches the analysis pattern)
@@ -1013,7 +1013,7 @@ export default function ChatInterface({ agentName, title, description, applicati
     for (const a of actions) {
       if (a.action === "add_application") {
         const status = validStatus(a.status) || "interested";
-        // Tier is intentionally not set from the agent's payload — it's
+        // Track is intentionally not set from the agent's payload — it's
         // derived from the JD-based qualification_score by scoreApplication.
         // If there's no JD, the row shows "Unclassified" until one is added.
         const row = {
@@ -1039,11 +1039,11 @@ export default function ChatInterface({ agentName, title, description, applicati
       } else if (a.action === "update_application") {
         const patch = {};
         const newStatus = validStatus(a.new_status);
-        const newTier = validTier(a.new_tier);
+        const newTrack = validTrack(a.new_track);
         const newStage = validInterviewStage(a.new_interview_stage);
         if (newStatus) patch.status = newStatus;
         if (newStage) patch.interview_stage = newStage;
-        if (newTier) patch.tier = newTier;
+        if (newTrack) patch.track = newTrack;
         if (a.new_notes && typeof a.new_notes === "string") patch.notes = a.new_notes;
         if (Object.keys(patch).length === 0) continue;
 

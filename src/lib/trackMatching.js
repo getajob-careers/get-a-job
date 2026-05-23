@@ -1,6 +1,6 @@
 // Auto-classify a manually-added application by matching its role_title
 // against the user's existing career_roles entries. Used by Tracker.jsx so
-// new rows pick up a tier rather than persisting as null and rendering as
+// new rows pick up a track rather than persisting as null and rendering as
 // "Unclassified" in the UI.
 //
 // Two-pass match. Both case-insensitive, both keyed off a small token set
@@ -38,35 +38,35 @@ export function matchTier(title, careerRoles) {
 
   // Pass 1 — exact normalized match.
   for (const r of careerRoles) {
-    if (!r?.title || !r?.tier) continue;
-    if (normalize(r.title) === inputNorm) return r.tier;
+    if (!r?.title || !r?.track) continue;
+    if (normalize(r.title) === inputNorm) return r.track;
   }
 
   // Pass 2 — token subset, requiring at least 2 distinct non-stopword tokens.
   if (inputTokens.length < 2) return null;
   for (const r of careerRoles) {
-    if (!r?.title || !r?.tier) continue;
+    if (!r?.title || !r?.track) continue;
     const roleTokens = tokenize(r.title);
     if (roleTokens.length < 2) continue;
     const inputSet = new Set(inputTokens);
     const roleSet = new Set(roleTokens);
     const inputSubsetOfRole = inputTokens.every((t) => roleSet.has(t));
     const roleSubsetOfInput = roleTokens.every((t) => inputSet.has(t));
-    if (inputSubsetOfRole || roleSubsetOfInput) return r.tier;
+    if (inputSubsetOfRole || roleSubsetOfInput) return r.track;
   }
 
   return null;
 }
 
-const TIER_RANK = { tier_1: 0, tier_2: 1, tier_3: 2 };
+const TRACK_RANK = { track_1: 0, track_2: 1, track_3: 2 };
 
-// Sort career_roles so the highest-tier candidate wins ties when two roles
-// match the same input. Within a tier, higher readiness wins. Used at the
+// Sort career_roles so the highest-track candidate wins ties when two roles
+// match the same input. Within a track, higher readiness wins. Used at the
 // caller boundary so matchTier itself stays a pure function.
 export function sortCareerRolesForMatching(careerRoles) {
   return [...(careerRoles || [])].sort((a, b) => {
-    const ra = TIER_RANK[a?.tier] ?? 99;
-    const rb = TIER_RANK[b?.tier] ?? 99;
+    const ra = TRACK_RANK[a?.track] ?? 99;
+    const rb = TRACK_RANK[b?.track] ?? 99;
     if (ra !== rb) return ra - rb;
     return (Number(b?.readiness_score) || 0) - (Number(a?.readiness_score) || 0);
   });

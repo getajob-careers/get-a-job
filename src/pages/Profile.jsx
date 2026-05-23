@@ -752,7 +752,7 @@ export default function Profile() {
                       ))}
                     </SelectContent>
                   </Select>
-                  <p className="text-[11px] text-[#9C9DA1] mt-1">Controls the seniority ceiling on tier_1 recommendations.</p>
+                  <p className="text-[11px] text-[#9C9DA1] mt-1">Controls the seniority ceiling on track_1 recommendations.</p>
                 </div>
               </div>
 
@@ -792,7 +792,7 @@ export default function Profile() {
                   onChange={(v) => setField("employment_status", v)}
                   exclusiveSubset={["looking_for_job", "employed", "unemployed"]}
                 />
-                <p className="text-[11px] text-[#9C9DA1] mt-1">If you select &quot;Student&quot;, tier scoring caps recommendations at the level you can be hired into now.</p>
+                <p className="text-[11px] text-[#9C9DA1] mt-1">If you select &quot;Student&quot;, track scoring caps recommendations at the level you can be hired into now.</p>
               </div>
 
               <div>

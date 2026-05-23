@@ -24,10 +24,10 @@ This roadmap's source of truth for **scheduling** is the [June 15 launch sprint]
 - **2026-05-04 — Wk 1 Day 1: Application Outcome Loop schema (PR #5).** `status_changes` audit table + trigger, `applications.source` / `found_via_*` / `outcome_notes` columns, all 3 add-paths populate `source` correctly.
 - **2026-05-04 — Wk 1 pending fix #30: education fields manual UI (PR #7).** `StepEducation` now has inputs for `education_dates`, `honors`, `languages`, `secondary_education`. All 4 round-trip cleanly to DB.
 - **2026-05-04 — Wk 1 pending fixes verified shipped via prior commits:** #31 tasks `due_date` (B4 fix from Apr 27), #35 AddInformation column coverage (PR #3 covers 33 of 38 user-editable cols).
-- **2026-04-28 — JD-based tier auto-assignment, goal-aware scoring, seniority cap.** Replaces title-based tier guesses; tier now derived from `analyze-job-match` returning `match_score` + `goal_alignment_score` + `required_seniority`. `tierFromScores` (`src/lib/scoreApplication.js`) applies thresholds + a hard tier_3 cap when role exceeds user stage.
+- **2026-04-28 — JD-based track auto-assignment, goal-aware scoring, seniority cap.** Replaces title-based track guesses; track now derived from `analyze-job-match` returning `match_score` + `goal_alignment_score` + `required_seniority`. `trackFromScores` (`src/lib/scoreApplication.js`) applies thresholds + a hard track_3 cap when role exceeds user stage.
 - **2026-04-28 — Demo for Reichman professor + Dr. Miller. Practicum pilot confirmed Aug–Nov 2026.** Zero bugs in demo. Both faculty personally vouching.
 - **2026-04-28 — Team workflow infrastructure:** ROADMAP.md, PR template, CI workflow, CLAUDE.md handoff rules.
-- **Earlier April 2026:** CV Tier 1 prompt improvements, learning-paths URL validation, ai-chat retry layer, onboarding handleFinalise clobber fix, Career Agent dropdown, demo account reset RPC.
+- **Earlier April 2026:** CV Track 1 prompt improvements, learning-paths URL validation, ai-chat retry layer, onboarding handleFinalise clobber fix, Career Agent dropdown, demo account reset RPC.
 
 ## In Progress
 
@@ -95,7 +95,7 @@ Activate when needed, not before. Total monthly recurring cost at launch: **~$13
 | **Active Jobs DB Pro (RapidAPI)** | Wk 1 Day 2 | Already in production; upgrade now | ~$25 |
 | **Coursera affiliate signup** | Wk 1 Day 3 | 3–5 day approval window | $0 |
 | **LinkedIn Learning affiliate signup** | Wk 1 Day 3 | 3–5 day approval window | $0 |
-| **OpenAI Tier 2 pre-spend** | Wk 5 | Need ~$50 of test calls to auto-promote to Tier 2 (450K TPM headroom) before launch wave hits | One-time $50 |
+| **OpenAI Track 2 pre-spend** | Wk 5 | Need ~$50 of test calls to auto-promote to Track 2 (450K TPM headroom) before launch wave hits | One-time $50 |
 | **Mailgun Free (inbound)** | Wk 4 OR skip | Only needed if LinkedIn email forwarding ships v1; defer to post-launch | $0 |
 | **Firecrawl Hobby** | **Wk 6 Day 1** | Don't activate until JD auto-fetch ships. Save $19 × 5 weeks = $95 | $19 |
 | **Langfuse Cloud Free** | Wk 5 | Free 50K observations/mo; activate when scout ships and LLM volume increases | $0 |
@@ -113,7 +113,7 @@ Activate when needed, not before. Total monthly recurring cost at launch: **~$13
 | Tue | Merge PRs #1–5 → Sentry/PostHog/Vercel signup + Vercel connect to repo (preview only) | PRs #1–5 ✓ merged |
 | Wed | **Application Outcome Loop schema** + auto-populate `source` from add-paths | ✓ shipped (PR #5) |
 | Thu | function_metrics table + emit from each edge function | ✓ shipped (PR #6) |
-| Fri | Pre-spend OpenAI to land in Tier 2 (~$50). Affiliate signups. **Request your own LinkedIn full archive (24h wait)**. Smoke test + buffer | — |
+| Fri | Pre-spend OpenAI to land in Track 2 (~$50). Affiliate signups. **Request your own LinkedIn full archive (24h wait)**. Smoke test + buffer | — |
 
 **Isaac (2.5 days)**
 
@@ -260,7 +260,7 @@ Activate when needed, not before. Total monthly recurring cost at launch: **~$13
 | Wk 4 Internship Finder runs over | High | v1 cuts already documented (no curated DB, no outreach drafting). Accept the cut. |
 | Wk 6 Streaming chat breaks existing chat | Medium | Land it Mon–Tue so Wed–Fri has rollback time. If risky, defer streaming to post-launch |
 | Visual redesign migration introduces regressions | Medium | Playwright screenshot baseline IS the regression check. If breaks > 3 components, revert + ship as post-launch |
-| OpenAI rate limits hit during launch wave | Low | Pre-spend Wk 5 lands you in Tier 2 (450K TPM). Should comfortably handle 80 users onboarding |
+| OpenAI rate limits hit during launch wave | Low | Pre-spend Wk 5 lands you in Track 2 (450K TPM). Should comfortably handle 80 users onboarding |
 | Domain DNS propagation takes >48h | Low | Buy Wk 1 Day 1 — gives 5 weeks of buffer |
 | Isaac's part-time capacity drops below 50% | Medium | Plan stays achievable — drops to 40d if Isaac is at ~25%. Cuts visual redesign + role library would absorb shortfall |
 | Sentry / PostHog instrumentation slows feature work | Low | Both are 1-line SDK installs. Real work is wiring events through; minimal dev cost |
@@ -319,7 +319,7 @@ Status: **design complete, awaiting trigger.** Eli is waiting on his own LinkedI
 
 ## Planned: Strategic Internship Finder
 
-Status: **design complete, awaiting decision on Wk 3 start.** Three-phase architecture turns "find an internship" into "find an internship that strategically closes your specific skill gaps." Differentiator vs. faculty-provided placements — students get matched against companies where the work would actually fill the gaps blocking their tier_1 roles.
+Status: **design complete, awaiting decision on Wk 3 start.** Three-phase architecture turns "find an internship" into "find an internship that strategically closes your specific skill gaps." Differentiator vs. faculty-provided placements — students get matched against companies where the work would actually fill the gaps blocking their track_1 roles.
 
 ### Design — three phases, each with its own data shape
 
@@ -385,7 +385,7 @@ Status: **design complete.** Backend is architecturally trivial (cron + LLM call
 - `pg_cron` daily schedule, staggered per user
 - Edge function `scout-find-jobs` per user: query JSearch / Active Jobs DB with last-24h filter against target_job_titles + target_industries + location
 - For each new posting (deduped against `applications`, `job_suggestions`, `scout_findings`): score using existing analyze-job-match logic
-- Threshold: tier_1 OR (tier_2 + alignment > 0.7) OR (practicum_fit > 0.7 in practicum mode)
+- Threshold: track_1 OR (track_2 + alignment > 0.7) OR (practicum_fit > 0.7 in practicum mode)
 - UPSERT into `scout_findings` table; increment `profile.scout_unread_count`
 - Reuse existing OpenAI client + function_metrics observability — no new vendors, no agent framework, just a scheduled function
 
@@ -481,7 +481,7 @@ Six consumption points (all share a `getStoriesFor({user_id, experienceIds?, jdK
 | LinkedIn Optimizer | Top 2-3 stories per experience; LinkedIn descriptions become tightened paraphrases of real stories |
 | Career Agent | Stories matching current discussion context for grounded coaching |
 | Interview Coach | Stories matching question's `skills_demonstrated` for behavioral answers |
-| `generate-career-analysis` | Top 3-5 stories per experience as context — tier scoring becomes more accurate |
+| `generate-career-analysis` | Top 3-5 stories per experience as context — track scoring becomes more accurate |
 | Internship Finder outreach drafting | Stories as evidence in cold-DM templates |
 
 ### Schema
@@ -865,7 +865,7 @@ Always returns counts, not just rates — the UI needs N to decide if a pattern 
 
 - **Individual claim minimum: 5+ data points.** Below that, no claim surfaced.
 - **Cohort claim minimum: 30+ data points.** Below that, no claim surfaced.
-- **Always show the count.** "Your tier_1 apps with referrals → 3 of 4 got interviews (75%, low N)" — N is part of the claim.
+- **Always show the count.** "Your track_1 apps with referrals → 3 of 4 got interviews (75%, low N)" — N is part of the claim.
 - **No causal claims** — just "what." Not "referrals cause higher interview rate"; just "apps with referrals → higher interview rate."
 - **Cohort comparison anonymized** — medians + ranges, never individual data. Suppress entirely if cohort has <10 active.
 

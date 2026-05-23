@@ -15,12 +15,12 @@
   --border-subtle: #F0F0F0;
   --accent-blue: #2563EB;
   --accent-blue-light: #EFF6FF;
-  --tier1-color: #059669;
-  --tier1-bg: #ECFDF5;
-  --tier2-color: #D97706;
-  --tier2-bg: #FFFBEB;
-  --tier3-color: #6366F1;
-  --tier3-bg: #EEF2FF;
+  --track1-color: #059669;
+  --track1-bg: #ECFDF5;
+  --track2-color: #D97706;
+  --track2-bg: #FFFBEB;
+  --track3-color: #6366F1;
+  --track3-bg: #EEF2FF;
   --status-success: #059669;
   --status-warning: #D97706;
   --status-error: #DC2626;
@@ -57,20 +57,20 @@ body {
   letter-spacing: -0.01em;
 }
 
-.tier-badge-1 {
-  background: var(--tier1-bg);
-  color: var(--tier1-color);
+.track-badge-1 {
+  background: var(--track1-bg);
+  color: var(--track1-color);
   border: 1px solid #D1FAE5;
 }
 
-.tier-badge-2 {
-  background: var(--tier2-bg);
-  color: var(--tier2-color);
+.track-badge-2 {
+  background: var(--track2-bg);
+  color: var(--track2-color);
   border: 1px solid #FDE68A;
 }
 
-.tier-badge-3 {
-  background: var(--tier3-bg);
-  color: var(--tier3-color);
+.track-badge-3 {
+  background: var(--track3-bg);
+  color: var(--track3-color);
   border: 1px solid #C7D2FE;
 }

@@ -1,7 +1,7 @@
 // Direction 3 tokens scoped to .jobs. Same vocabulary as .roadmap / .onb /
 // .home / .login / .lp. Inlined once at the top of Jobs.jsx and cascades
-// to JobCard. Tier accent variables (--jb-tier-accent / -tint / -border)
-// are set per-card via the .jb-tier-{green|gray|amber} modifier classes.
+// to JobCard. Track accent variables (--jb-track-accent / -tint / -border)
+// are set per-card via the .jb-track-{green|gray|amber} modifier classes.
 
 export const JOBS_CSS = `
 @import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700&display=swap');
@@ -71,17 +71,17 @@ export const JOBS_CSS = `
 .jb-search-input:focus { outline: none; border-color: var(--jb-ink); box-shadow: 0 0 0 3px rgba(14, 16, 20, 0.08); }
 .jb-search-icon { position: absolute; left: 13px; top: 50%; transform: translateY(-50%); pointer-events: none; color: var(--jb-ink-faded); }
 
-/* Tier pill — colored accent ring when selected */
-.jb-tier-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 100px; border: 1px solid var(--jb-line); background: var(--jb-card); font-family: var(--jb-font); font-size: 13px; font-weight: 500; color: var(--jb-ink-soft); cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
-.jb-tier-pill:hover:not([data-dim="true"]) { border-color: var(--jb-ink-soft); color: var(--jb-ink); }
-.jb-tier-pill[data-selected="true"] { background: var(--jb-card); color: var(--jb-ink); font-weight: 600; border-color: var(--jb-tier-accent); box-shadow: 0 0 0 2px var(--jb-tier-tint); }
-.jb-tier-pill[data-dim="true"] { opacity: 0.45; }
-.jb-tier-pill-badge { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: var(--jb-tier-accent); color: white; font-size: 10px; font-weight: 700; }
+/* Track pill — colored accent ring when selected */
+.jb-track-pill { display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 100px; border: 1px solid var(--jb-line); background: var(--jb-card); font-family: var(--jb-font); font-size: 13px; font-weight: 500; color: var(--jb-ink-soft); cursor: pointer; transition: all 0.15s ease; white-space: nowrap; }
+.jb-track-pill:hover:not([data-dim="true"]) { border-color: var(--jb-ink-soft); color: var(--jb-ink); }
+.jb-track-pill[data-selected="true"] { background: var(--jb-card); color: var(--jb-ink); font-weight: 600; border-color: var(--jb-track-accent); box-shadow: 0 0 0 2px var(--jb-track-tint); }
+.jb-track-pill[data-dim="true"] { opacity: 0.45; }
+.jb-track-pill-badge { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: var(--jb-track-accent); color: white; font-size: 10px; font-weight: 700; }
 
-/* Per-tier accent variables — match Roadmap's .rm-tier-{color} */
-.jb-tier-green { --jb-tier-accent: var(--jb-success); --jb-tier-tint: var(--jb-success-tint); }
-.jb-tier-gray  { --jb-tier-accent: var(--jb-ink-soft); --jb-tier-tint: var(--jb-bg-tinted); }
-.jb-tier-amber { --jb-tier-accent: var(--jb-warning); --jb-tier-tint: var(--jb-warning-tint); }
+/* Per-track accent variables — match Roadmap's .rm-track-{color} */
+.jb-track-green { --jb-track-accent: var(--jb-success); --jb-track-tint: var(--jb-success-tint); }
+.jb-track-gray  { --jb-track-accent: var(--jb-ink-soft); --jb-track-tint: var(--jb-bg-tinted); }
+.jb-track-amber { --jb-track-accent: var(--jb-warning); --jb-track-tint: var(--jb-warning-tint); }
 
 /* Seniority indicator chip */
 .jb-seniority-chip { display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 100px; background: var(--jb-bg-tinted); color: var(--jb-ink-soft); font-size: 12px; font-family: var(--jb-font-mono); letter-spacing: 0.02em; }
@@ -94,7 +94,7 @@ export const JOBS_CSS = `
 /* Job card */
 .jb-job-card { background: var(--jb-card); border: 1px solid var(--jb-line); border-radius: var(--jb-radius); display: flex; flex-direction: column; transition: border-color 0.15s ease, box-shadow 0.15s ease; position: relative; overflow: hidden; }
 .jb-job-card:hover { border-color: var(--jb-ink-soft); }
-.jb-job-card[data-tier-color]::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--jb-tier-accent); }
+.jb-job-card[data-track-color]::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--jb-track-accent); }
 .jb-job-card-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; flex: 1; }
 .jb-job-card-title { font-family: var(--jb-font); font-size: 15px; font-weight: 600; color: var(--jb-ink); line-height: 1.3; }
 .jb-job-card-company { font-size: 13px; color: var(--jb-ink-soft); margin-top: 2px; }
@@ -114,6 +114,6 @@ export const JOBS_CSS = `
 .jb-skill-pill-missing { background: var(--jb-warning-tint); color: #6B4E0F; border: 1px solid rgba(184, 132, 28, 0.25); }
 
 /* Apply link */
-.jb-apply-link { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--jb-ink); text-decoration: none; transition: color 0.15s ease; }
-.jb-apply-link:hover { color: var(--jb-accent); }
+.jb-see-posting-link { display: inline-flex; align-items: center; gap: 5px; font-size: 13px; font-weight: 600; color: var(--jb-ink); text-decoration: none; transition: color 0.15s ease; }
+.jb-see-posting-link:hover { color: var(--jb-accent); }
 `;

@@ -17,10 +17,10 @@ const CAREER_AGENT_HOW_TO_USE =
   "Start by asking it to evaluate your profile or assess your fit for a specific role. Be direct — e.g. 'Am I ready for a Product Manager role?' or 'What should I focus on this week?'";
 
 const GENERAL_PROMPTS = [
-  "Am I ready to apply for my Tier 1 roles?",
+  "Am I ready to apply for my Track 1 roles?",
   "What should I focus on this week?",
   "Which role should I target first and why?",
-  "What's my biggest gap blocking a Tier 1 role?",
+  "What's my biggest gap blocking a Track 1 role?",
   "Reassess my roadmap based on my current profile",
 ];
 

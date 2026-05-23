@@ -6,7 +6,7 @@ const STEPS = [
   {
     key: "qualification_confirmed",
     label: "Confirm You Qualify",
-    description: "Check the tier for this role in Career Roadmap. Focus on Tier 1 (Your Move) — your strongest matches with high goal alignment. Tier 2 (Plan B) roles are also strong fits worth applying to. Tier 3 (Work Toward) roles need more skill-building before applying — wait or close the gap first.",
+    description: "Check the track for this role in Career Roadmap. Focus on Track 1 (Your Move) — your strongest matches with high goal alignment. Track 2 (Plan B) roles are also strong fits worth applying to. Track 3 (Work Toward) roles need more skill-building before applying — wait or close the gap first.",
     step: 1,
   },
   {

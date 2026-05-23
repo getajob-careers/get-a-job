@@ -4,7 +4,7 @@
 // validate AI-emitted values against allowed lists and against the
 // user's actual profile data before writing to the DB.
 
-export const VALID_TIERS = ["tier_1", "tier_2", "tier_3"];
+export const VALID_TIERS = ["track_1", "track_2", "track_3"];
 
 // Mirrors the chk_applications_status DB CHECK constraint.
 export const VALID_STATUSES = [
@@ -20,7 +20,7 @@ export const VALID_INTERVIEW_STAGES = [
   "phone_screen", "technical", "onsite", "final_round", "reference_check",
 ];
 
-export const validTier = (t) => (VALID_TIERS.includes(t) ? t : null);
+export const validTrack = (t) => (VALID_TIERS.includes(t) ? t : null);
 export const validStatus = (s) => (VALID_STATUSES.includes(s) ? s : null);
 export const validInterviewStage = (s) =>
   (VALID_INTERVIEW_STAGES.includes(s) ? s : null);

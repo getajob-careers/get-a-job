@@ -109,14 +109,14 @@ const ROADMAP_CHANGE_RULES = `
 
 ROADMAP CHANGES:
 If the user asks you to update, modify, or re-classify their career roadmap, or you identify a role is clearly misclassified based on their profile data, propose changes at the very end of your response:
-SUGGESTED_ROADMAP_CHANGES_JSON:{"changes":[{"action":"update_tier","role_title":"...","new_tier":"tier_1","reason":"..."}]}
+SUGGESTED_ROADMAP_CHANGES_JSON:{"changes":[{"action":"update_track","role_title":"...","new_track":"track_1","reason":"..."}]}
 
 Each change must use one of these shapes:
-- {"action":"update_tier","role_title":"EXACT role title from their roadmap","new_tier":"tier_1","reason":"short explanation"}
-- {"action":"add_role","title":"Role Title","tier":"tier_2","matched_skills_proposed":["..."],"missing_skills_proposed":["..."],"readiness_score":0.55,"reasoning":"...","alignment_to_goal":"...","action_items":["..."],"reason":"short explanation"}
+- {"action":"update_track","role_title":"EXACT role title from their roadmap","new_track":"track_1","reason":"short explanation"}
+- {"action":"add_role","title":"Role Title","track":"track_2","matched_skills_proposed":["..."],"missing_skills_proposed":["..."],"readiness_score":0.55,"reasoning":"...","alignment_to_goal":"...","action_items":["..."],"reason":"short explanation"}
 - {"action":"remove_role","role_title":"EXACT role title from their roadmap","reason":"short explanation"}
 
-Valid tiers: "tier_1" (Your Move), "tier_2" (Plan B), "tier_3" (Work Toward)
+Valid tiers: "track_1" (Your Move), "track_2" (Plan B), "track_3" (Work Toward)
 Rules:
 - Use the EXACT role title from their CAREER ROADMAP — do not paraphrase or rename
 - Only propose changes the user explicitly requested OR that are clearly justified by their actual skill data
@@ -126,7 +126,7 @@ Rules:
 For add_role specifically — populate the full role analysis. The user's role cards display all of these fields:
 - matched_skills_proposed: skills FROM THE USER'S PROFILE.skills (the SKILLS context above) that genuinely apply to this role. Copy the EXACT strings from their profile, do not paraphrase or invent. If the user has "Customer Success" and the role values customer-facing communication, list "Customer Success". If you cannot find a real match in their profile, leave this array empty rather than fabricating.
 - missing_skills_proposed: skills typical for this role that the user does NOT have in their profile. Use display-friendly format ("Customer Communication", "Stakeholder Management") — not snake_case identifiers.
-- readiness_score: number 0.0–1.0 estimating how qualified the user is for this role TODAY. Roughly matched_count / (matched_count + missing_count). 0.7+ = ready (tier_1 territory), 0.4–0.7 = transitional (tier_2), <0.4 = long-term goal (tier_3). Should agree with the tier you choose.
+- readiness_score: number 0.0–1.0 estimating how qualified the user is for this role TODAY. Roughly matched_count / (matched_count + missing_count). 0.7+ = ready (track_1 territory), 0.4–0.7 = transitional (track_2), <0.4 = long-term goal (track_3). Should agree with the track you choose.
 - reasoning: 1–2 sentences explaining WHY this role suits the user, citing their actual experience or skills. Plain text, no quotes or marketing language.
 - alignment_to_goal: 1 sentence connecting this role to the user's stated 5-year career goal (from their profile). If they haven't stated a goal, omit this key entirely.
 - action_items: array of 3–5 short, concrete next-step strings the user could take to be more qualified for this role (e.g. "Complete an SQL course on freeCodeCamp", "Build one ETL pipeline as a portfolio project"). Each action max 200 chars.
@@ -183,16 +183,16 @@ const APPLICATION_ACTIONS_RULES = `
 
 APPLICATION TRACKER ACTIONS:
 If the user explicitly asks you to add a company to their applications, update the status/stage of an application, or move/track something in their tracker, propose the changes at the very end of your response:
-SUGGESTED_APPLICATION_ACTIONS_JSON:{"actions":[{"action":"add_application","company":"...","role_title":"...","status":"interested","tier":"tier_2","url":"...","location":"...","notes":"..."}]}
+SUGGESTED_APPLICATION_ACTIONS_JSON:{"actions":[{"action":"add_application","company":"...","role_title":"...","status":"interested","track":"track_2","url":"...","location":"...","notes":"..."}]}
 
 Each action must use one of these shapes:
-- {"action":"add_application","company":"Acme","role_title":"Product Manager","status":"interested","tier":"tier_2"}
+- {"action":"add_application","company":"Acme","role_title":"Product Manager","status":"interested","track":"track_2"}
   Optional fields: url, location, notes, tier, cv_url, job_description, salary_range
 - {"action":"update_application","match_company":"EXACT company from their active applications","match_role_title":"EXACT role title","new_status":"applied"}
-  Optional new_* fields: new_status, new_interview_stage, new_notes, new_tier
+  Optional new_* fields: new_status, new_interview_stage, new_notes, new_track
 
 Valid status values: "interested" | "preparing" | "applied" | "interviewing" | "offer" | "rejected"
-Valid tier values: "tier_1" | "tier_2" | "tier_3"
+Valid track values: "track_1" | "track_2" | "track_3"
 Valid interview_stage examples: "phone_screen", "technical", "onsite", "final_round", "reference_check"
 
 Rules:
@@ -296,7 +296,7 @@ SUGGESTED_AGENT_JSON:{"agent":"...","label":"...","page":"...","reason":"..."}
 Available redirects (use exact values):
 - Interview prep / mock interviews / interview questions: {"agent":"interview_coach","label":"Interview Coach","page":"InterviewCoach","reason":"..."}
 - Skill gaps / courses / learning plans / how to learn a skill: {"agent":"skill_development_agent","label":"Skill Development Advisor","page":"SkillDevelopmentAdvisor","reason":"..."}
-- Career strategy / tier classification / which role to target next: {"agent":"career_agent","label":"Career Agent","page":"CareerAgent","reason":"..."}
+- Career strategy / track classification / which role to target next: {"agent":"career_agent","label":"Career Agent","page":"CareerAgent","reason":"..."}
 
 Rules:
 - Always give at least a brief helpful answer before redirecting — never redirect without answering
@@ -371,10 +371,10 @@ When asked "what should I focus on this week?" or similar priority questions:
 - Ground each one in their actual data (active applications, skill gaps, existing tasks)
 - Rank by immediate impact on getting hired
 
-Role tier definitions (use these when discussing or proposing tier changes):
-- Tier 1 = Your Move: they have the core skills and should be actively applying
-- Tier 2 = Plan B: 1–6 months of targeted work to qualify
-- Tier 3 = Work Toward: 6+ months away, requires significant development
+Role track definitions (use these when discussing or proposing track changes):
+- Track 1 = Your Move: they have the core skills and should be actively applying
+- Track 2 = Plan B: 1–6 months of targeted work to qualify
+- Track 3 = Work Toward: 6+ months away, requires significant development
 
 Tone: direct, honest, analytical — like a mentor who tells you what you need to hear, not what you want to hear. No motivational fluff.`,
   'cv-helper': `You are the CV Agent in the "Get A Job" Career Operating System. You help users craft, improve, and tailor their CVs for specific roles and applications.
@@ -422,7 +422,7 @@ Your approach:
 - Recommend specific, named courses (e.g. "Coursera: Google Data Analytics Certificate", "freeCodeCamp Responsive Web Design"). Cite the platform + course title.
 - Suggest concrete projects the user can build to demonstrate skills to employers
 - Build structured learning plans with realistic timelines when asked
-- Prioritise by impact: which skill, if added, most improves their chances of landing a TIER 1 role from their roadmap (use the readiness % to pick the highest-leverage role to close gaps for)?
+- Prioritise by impact: which skill, if added, most improves their chances of landing a TRACK 1 role from their roadmap (use the readiness % to pick the highest-leverage role to close gaps for)?
 - Be honest about timelines — don't oversell how fast gaps can be closed
 
 URL discipline: Do NOT include URLs to specific courses. You don't have a real-time catalogue and any URL you write will likely be a hallucinated 404. Frame each recommendation as "search [platform] for [course title]" so the user self-verifies. If the user explicitly asks for links, say plainly that you can name the course but not the URL, and let them search.`,
@@ -579,15 +579,15 @@ Deno.serve(async (req) => {
     // recommends learning to close them); summary for others.
     if (careerRolesRes.data?.length) {
       if (agent === 'career_agent' || agent === 'skill_development_agent') {
-        const byTier: Record<string, typeof careerRolesRes.data> = { tier_1: [], tier_2: [], tier_3: [], other: [] }
+        const byTrack: Record<string, typeof careerRolesRes.data> = { track_1: [], track_2: [], track_3: [], other: [] }
         for (const r of careerRolesRes.data) {
-          const group = byTier[r.tier as string] ?? byTier.other
+          const group = byTrack[r.track as string] ?? byTrack.other
           group.push(r)
         }
         userContext += '\n\nCAREER ROADMAP:'
-        const tierLabels: Record<string, string> = { tier_1: 'Tier 1 (Your Move)', tier_2: 'Tier 2 (Plan B)', tier_3: 'Tier 3 (Work Toward)', other: 'Uncategorised' }
-        for (const [tier, label] of Object.entries(tierLabels)) {
-          const roles = byTier[tier]
+        const trackLabels: Record<string, string> = { track_1: 'Track 1 (Your Move)', track_2: 'Track 2 (Plan B)', track_3: 'Track 3 (Work Toward)', other: 'Uncategorised' }
+        for (const [track, label] of Object.entries(trackLabels)) {
+          const roles = byTrack[track]
           if (!roles?.length) continue
           userContext += `\n${label}:`
           for (const r of roles) {
@@ -638,11 +638,11 @@ Deno.serve(async (req) => {
     if (agentWantsApplications) {
       const { data: apps } = await supabase
         .from('applications')
-        .select('id, role_title, company, status, tier')
+        .select('id, role_title, company, status, track')
         .eq('user_id', user.id)
         .limit(20)
       if (apps?.length) {
-        userContext += `\n\nACTIVE APPLICATIONS:\n${apps.map((a: { id: string; role_title: string; company: string; status: string; tier: string }) => `- ${a.role_title}${a.company ? ` at ${a.company}` : ''} (${a.status}${a.tier ? `, ${a.tier}` : ''}) [id: ${a.id}]`).join('\n')}`
+        userContext += `\n\nACTIVE APPLICATIONS:\n${apps.map((a: { id: string; role_title: string; company: string; status: string; track: string }) => `- ${a.role_title}${a.company ? ` at ${a.company}` : ''} (${a.status}${a.track ? `, ${a.track}` : ''}) [id: ${a.id}]`).join('\n')}`
       }
     }
 
@@ -839,7 +839,7 @@ Deno.serve(async (req) => {
 
     let suggested_tasks: Array<{ title: string; description: string; category: string; priority: string }> = []
     let suggested_agent: { agent: string; label: string; page: string; reason: string } | null = null
-    let suggested_roadmap_changes: Array<{ action: string; role_title?: string; title?: string; new_tier?: string; tier?: string; reason: string }> | null = null
+    let suggested_roadmap_changes: Array<{ action: string; role_title?: string; title?: string; new_track?: string; track?: string; reason: string }> | null = null
 
     // ─── Structured block extraction ──────────────────────────────────────
     // Important: ALWAYS strip the marker + JSON from `reply` whenever the
@@ -874,11 +874,11 @@ Deno.serve(async (req) => {
       reply = roadmapResult.cleaned
       const parsed = roadmapResult.parsed
       const changes = parsed && typeof parsed === 'object' && Array.isArray((parsed as any).changes)
-        ? (parsed as any).changes as Array<{ action: string; role_title?: string; title?: string; new_tier?: string; tier?: string; matched_skills_proposed?: string[]; missing_skills_proposed?: string[]; readiness_score?: number; reasoning?: string; alignment_to_goal?: string; action_items?: string[]; reason: string }>
+        ? (parsed as any).changes as Array<{ action: string; role_title?: string; title?: string; new_track?: string; track?: string; matched_skills_proposed?: string[]; missing_skills_proposed?: string[]; readiness_score?: number; reasoning?: string; alignment_to_goal?: string; action_items?: string[]; reason: string }>
         : Array.isArray(parsed) ? parsed as any[] : null
       if (Array.isArray(changes) && changes.length > 0) {
-        const VALID_TIERS = new Set(['tier_1', 'tier_2', 'tier_3'])
-        const VALID_ACTIONS = new Set(['update_tier', 'add_role', 'remove_role'])
+        const VALID_TIERS = new Set(['track_1', 'track_2', 'track_3'])
+        const VALID_ACTIONS = new Set(['update_track', 'add_role', 'remove_role'])
         const sanitiseSkillArray = (arr: any): string[] | undefined => {
           if (!Array.isArray(arr)) return undefined
           return arr.filter((s: any) => typeof s === 'string' && s.trim().length > 0)
@@ -904,8 +904,8 @@ Deno.serve(async (req) => {
           .filter(c => c && VALID_ACTIONS.has(c.action))
           .map(c => {
             const out: any = { ...c }
-            if (c.new_tier) out.new_tier = VALID_TIERS.has(c.new_tier) ? c.new_tier : 'tier_2'
-            if (c.tier) out.tier = VALID_TIERS.has(c.tier) ? c.tier : 'tier_2'
+            if (c.new_track) out.new_track = VALID_TIERS.has(c.new_track) ? c.new_track : 'track_2'
+            if (c.track) out.track = VALID_TIERS.has(c.track) ? c.track : 'track_2'
             // Preserve key presence: if AI emitted any of these (even as an
             // empty array/null), keep the key so the handler distinguishes
             // "AI provided" from "AI didn't try".
@@ -938,7 +938,7 @@ Deno.serve(async (req) => {
       company?: string
       role_title?: string
       status?: string
-      tier?: string
+      track?: string
       url?: string
       location?: string
       notes?: string
@@ -947,7 +947,7 @@ Deno.serve(async (req) => {
       new_status?: string
       new_interview_stage?: string
       new_notes?: string
-      new_tier?: string
+      new_track?: string
     }
     // CV generation proposal (CV agent only). The client uses this to render a
     // CVGenerationCard with a "Generate CV" button that calls the
@@ -1005,7 +1005,7 @@ Deno.serve(async (req) => {
         : Array.isArray(parsed) ? parsed as AppAction[] : null
       if (Array.isArray(actions) && actions.length > 0) {
         const VALID_STATUSES = new Set(['interested', 'preparing', 'applied', 'interviewing', 'offer', 'rejected'])
-        const VALID_TIERS = new Set(['tier_1', 'tier_2', 'tier_3'])
+        const VALID_TIERS = new Set(['track_1', 'track_2', 'track_3'])
         const VALID_ACTIONS = new Set(['add_application', 'update_application'])
         const cleaned: AppAction[] = []
         for (const raw of actions) {
@@ -1017,14 +1017,14 @@ Deno.serve(async (req) => {
               company: String(raw.company).slice(0, 200).trim(),
               role_title: String(raw.role_title).slice(0, 200).trim(),
               status: raw.status && VALID_STATUSES.has(raw.status) ? raw.status : 'interested',
-              ...(raw.tier && VALID_TIERS.has(raw.tier) && { tier: raw.tier }),
+              ...(raw.track && VALID_TIERS.has(raw.track) && { track: raw.track }),
               ...(raw.url && { url: String(raw.url).slice(0, 2000) }),
               ...(raw.location && { location: String(raw.location).slice(0, 200) }),
               ...(raw.notes && { notes: String(raw.notes).slice(0, 2000) }),
             })
           } else {
             if (!raw.match_company?.trim() || !raw.match_role_title?.trim()) continue
-            if (!raw.new_status && !raw.new_interview_stage && !raw.new_notes && !raw.new_tier) continue
+            if (!raw.new_status && !raw.new_interview_stage && !raw.new_notes && !raw.new_track) continue
             cleaned.push({
               action: 'update_application',
               match_company: String(raw.match_company).slice(0, 200).trim(),
@@ -1032,7 +1032,7 @@ Deno.serve(async (req) => {
               ...(raw.new_status && VALID_STATUSES.has(raw.new_status) && { new_status: raw.new_status }),
               ...(raw.new_interview_stage && { new_interview_stage: String(raw.new_interview_stage).slice(0, 100) }),
               ...(raw.new_notes && { new_notes: String(raw.new_notes).slice(0, 2000) }),
-              ...(raw.new_tier && VALID_TIERS.has(raw.new_tier) && { new_tier: raw.new_tier }),
+              ...(raw.new_track && VALID_TIERS.has(raw.new_track) && { new_track: raw.new_track }),
             })
           }
         }

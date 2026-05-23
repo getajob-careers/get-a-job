@@ -10,7 +10,7 @@ Cross-references:
 - `DOCUMENTATION.md` — map of every doc in the repo (start here if you don't know where to look)
 - `CLAUDE.md` — coding conventions, branch + PR rules, commit format, lessons doctrine
 - `ROADMAP.md` — week-by-week sprint plan with the v1/v2 cut table
-- `tasks/lessons.md` — append-only log of "took multiple attempts" gotchas; read before non-trivial work in tier scoring, LLM prompts, edge-function deploys, role/skill libraries, onboarding
+- `tasks/lessons.md` — append-only log of "took multiple attempts" gotchas; read before non-trivial work in track scoring, LLM prompts, edge-function deploys, role/skill libraries, onboarding
 - `README.md` — local setup + env vars
 - `docs/research/linkedin-post-performance.md` — research findings that ground every LinkedIn-related prompt
 - `docs/strategy/installation-checklist.md` + `docs/strategy/design-strategy.md` — installation roadmap + UX reference
@@ -87,7 +87,7 @@ Target users for the pilot are not generic job seekers — they are early-career
 
 **Skill propagation** (PR #61): the deterministic scorer used to fail-match ~95% of user-stated skills against library IDs because of strict snake_case normalization. Layer 1 fix is `_shared/skill-aliases.ts` (170 curated entries covering all StepSkills chips + common variants). Layer 2 fix is an LLM semantic-credit pass — `generate-career-analysis` includes a CANDIDATE_SKILLS list in its prompt; the LLM returns `additional_credited_skill_ids` (validated against the offered set), and the server re-scores the selected roles with augmented skills. Match rate jumped from 19% → 77% in a dry-run against the 10 live users.
 
-**Tier scoring:** `src/lib/scoreApplication.js` (`tierFromScores`) mirrors `assignTierWithGoal` in `generate-career-analysis`. LLM-derived alignment uses tighter thresholds than the deterministic path. Qualification level (Junior / Mid-Level / Senior) is inferred from full_time + freelance experience count only — internships, military, volunteer, leadership don't count (PR #60).
+**Track scoring:** `src/lib/scoreApplication.js` (`trackFromScores`) mirrors `assignTrackWithGoal` in `generate-career-analysis`. LLM-derived alignment uses tighter thresholds than the deterministic path. Qualification level (Junior / Mid-Level / Senior) is inferred from full_time + freelance experience count only — internships, military, volunteer, leadership don't count (PR #60).
 
 **Onboarding flow (9 screens):**
 | Step | Component |
@@ -246,7 +246,7 @@ Single index — when something feels load-bearing, it's probably in here.
 | `src/components/onboarding/OnboardingTutorial.jsx` | 6-slide carousel (Browse Jobs / Tracker / Story Bank / LinkedIn / CV / Chat Agents). Replaces the old "Your Roles" reveal |
 | `src/components/onboarding/SkillTagInput.jsx` | Multi-mode autocomplete: `skills` (default), `job_titles`, `industries`, `work_environment`, `work_arrangement`, `honors`, `none` |
 | `src/components/onboarding/StepResumeUpload.jsx` | Employment status XOR (PR #64): `looking_for_job` / `employed` / `unemployed` mutex; `student` + `freelance` stack |
-| `src/lib/scoreApplication.js` | `tierFromScores` — deterministic tier mapping; mirrors LLM-derived `assignTierWithGoal` |
+| `src/lib/scoreApplication.js` | `trackFromScores` — deterministic track mapping; mirrors LLM-derived `assignTrackWithGoal` |
 
 ### Backend (edge functions + shared)
 

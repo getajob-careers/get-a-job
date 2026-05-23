@@ -70,7 +70,7 @@ export interface NormalizedJob {
 // ───── Title normalization + junk filter ─────────────────────────────
 
 // Patterns SF / Workday / Comeet feeds attach to titles that wreck
-// trigram tier matching. Strip in this order — earlier strips affect
+// trigram track matching. Strip in this order — earlier strips affect
 // later ones (e.g. ID prefix has to go before maternity suffix detection
 // on tail-only patterns).
 const RX_LOCATION_SUFFIX = /\s*\(\s*[A-Za-z'.\- ]+,\s*(?:Israel|IL)(?:,\s*\d+)?\s*\)\s*$/i;

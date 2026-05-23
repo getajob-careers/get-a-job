@@ -387,8 +387,8 @@ const LOGIN_CSS = `
 }
 `;
 
-// Tier-quadrant SVG illustration. Concentric rings = tier shells radiating
-// from the user (centre); coral dot = the tier-1 target being hit.
+// Track-quadrant SVG illustration. Concentric rings = track shells radiating
+// from the user (centre); coral dot = the track-1 target being hit.
 function TierQuadrantSVG() {
   return (
     <svg
@@ -398,26 +398,26 @@ function TierQuadrantSVG() {
       xmlns="http://www.w3.org/2000/svg"
       aria-hidden="true"
     >
-      {/* Outer ring — Tier 3 */}
+      {/* Outer ring — Track 3 */}
       <circle cx="140" cy="140" r="118" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="1" strokeDasharray="2 5" />
-      {/* Middle ring — Tier 2 */}
+      {/* Middle ring — Track 2 */}
       <circle cx="140" cy="140" r="80" fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="1" strokeDasharray="2 5" />
-      {/* Inner ring — Tier 1 */}
+      {/* Inner ring — Track 1 */}
       <circle cx="140" cy="140" r="44" fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="1" />
 
-      {/* Tier 3 nodes */}
+      {/* Track 3 nodes */}
       <circle cx="58" cy="92" r="3" fill="rgba(255,255,255,0.32)" />
       <circle cx="232" cy="182" r="3" fill="rgba(255,255,255,0.32)" />
       <circle cx="186" cy="38" r="3" fill="rgba(255,255,255,0.32)" />
       <circle cx="48" cy="206" r="3" fill="rgba(255,255,255,0.32)" />
       <circle cx="220" cy="68" r="3" fill="rgba(255,255,255,0.32)" />
 
-      {/* Tier 2 nodes */}
+      {/* Track 2 nodes */}
       <circle cx="78" cy="178" r="3.5" fill="rgba(255,255,255,0.55)" />
       <circle cx="208" cy="98" r="3.5" fill="rgba(255,255,255,0.55)" />
       <circle cx="92" cy="78" r="3.5" fill="rgba(255,255,255,0.55)" />
 
-      {/* Tier 1 nodes */}
+      {/* Track 1 nodes */}
       <circle cx="106" cy="160" r="4" fill="rgba(255,255,255,0.85)" />
       <circle cx="174" cy="118" r="4" fill="rgba(255,255,255,0.85)" />
 
@@ -431,7 +431,7 @@ function TierQuadrantSVG() {
         strokeLinecap="round"
       />
 
-      {/* Highlighted Tier 1 target with check */}
+      {/* Highlighted Track 1 target with check */}
       <g>
         <circle cx="182" cy="156" r="14" fill="none" stroke="#F87060" strokeWidth="1" strokeOpacity="0.4" />
         <circle cx="182" cy="156" r="9" fill="#F87060" />
@@ -450,9 +450,9 @@ function TierQuadrantSVG() {
       <circle cx="140" cy="140" r="5" fill="#FFFFFF" />
 
       {/* Ring labels */}
-      <text x="140" y="34" textAnchor="middle" fontFamily="Geist Mono, ui-monospace, monospace" fontSize="9" fill="rgba(255,255,255,0.4)" letterSpacing="0.1em">TIER 3</text>
-      <text x="140" y="72" textAnchor="middle" fontFamily="Geist Mono, ui-monospace, monospace" fontSize="9" fill="rgba(255,255,255,0.6)" letterSpacing="0.1em">TIER 2</text>
-      <text x="140" y="108" textAnchor="middle" fontFamily="Geist Mono, ui-monospace, monospace" fontSize="9" fill="rgba(255,255,255,0.82)" letterSpacing="0.1em">TIER 1</text>
+      <text x="140" y="34" textAnchor="middle" fontFamily="Geist Mono, ui-monospace, monospace" fontSize="9" fill="rgba(255,255,255,0.4)" letterSpacing="0.1em">TRACK 3</text>
+      <text x="140" y="72" textAnchor="middle" fontFamily="Geist Mono, ui-monospace, monospace" fontSize="9" fill="rgba(255,255,255,0.6)" letterSpacing="0.1em">TRACK 2</text>
+      <text x="140" y="108" textAnchor="middle" fontFamily="Geist Mono, ui-monospace, monospace" fontSize="9" fill="rgba(255,255,255,0.82)" letterSpacing="0.1em">TRACK 1</text>
     </svg>
   );
 }
@@ -767,7 +767,7 @@ export default function Login() {
 
             <ul className="login-aside-bullets">
               <li><BulletCheck /><span>Five specialised agents: career strategy, CV, interview, LinkedIn, and skill development</span></li>
-              <li><BulletCheck /><span>Tier-scored roadmap built from your actual experience and target roles</span></li>
+              <li><BulletCheck /><span>Track-scored roadmap built from your actual experience and target roles</span></li>
               <li><BulletCheck /><span>Application tracker, prep tasks, and weekly focus — all kept in sync</span></li>
             </ul>
 

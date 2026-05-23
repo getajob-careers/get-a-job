@@ -22,7 +22,7 @@ A job description is a wishlist — not a minimum requirement list. Companies wr
 5. Note every tool and software mentioned — that's your skills gap list
 
 **The 70% Rule:**
-If you meet 70% of the listed requirements, the role is likely within range. Below 50% = Tier 3 territory.
+If you meet 70% of the listed requirements, the role is likely within range. Below 50% = Track 3 territory.
 
 **What NOT To Do:**
 - Do not read the full description and apply immediately
@@ -125,7 +125,7 @@ If these aren't in your profile, you won't appear in searches.`,
 - Prepared answers for "Why this company?" and "Why this role?"
 
 **The 70% Rule:**
-If you meet less than 70% of the requirements, the role is likely Tier 2 or Tier 3. Apply strategically — don't waste applications on roles where you have less than 50% match.
+If you meet less than 70% of the requirements, the role is likely Track 2 or Track 3. Apply strategically — don't waste applications on roles where you have less than 50% match.
 
 **Quality Over Quantity:**
 5 well-prepared applications will outperform 50 cold applications. Every time.`,
@@ -170,7 +170,7 @@ If you meet less than 70% of the requirements, the role is likely Tier 2 or Tier
 **Step 1: Identify the Exact Gap**
 - Compare job requirements to your current skills
 - Be specific: "Python data analysis" not just "coding"
-- Prioritize gaps that appear in multiple Tier 1 roles
+- Prioritize gaps that appear in multiple Track 1 roles
 
 **Step 2: Learn the Skill**
 - Take one focused course (not five)

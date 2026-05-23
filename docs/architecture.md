@@ -85,7 +85,7 @@ src/
 └── pages.config.js                # Page registry (auto-managed, do not edit PAGES)
 
 functions/                         # Supabase Edge Functions (Deno/TypeScript)
-├── generate-career-analysis.ts    # AI career tier analysis
+├── generate-career-analysis.ts    # AI career track analysis
 ├── generate-tasks.ts              # AI weekly task plan generation
 ├── generateTailoredCV.ts          # AI CV generation + PDF upload to Storage
 ├── generateApplicationTasks.ts    # Application-specific task generation

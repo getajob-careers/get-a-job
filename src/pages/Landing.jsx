@@ -166,7 +166,7 @@ const LANDING_CSS = `
 .lp-p-roles-head .tag { font-family: var(--lp-font-mono); font-size: 10px; color: var(--lp-ink-faded); }
 .lp-p-role { display: flex; justify-content: space-between; align-items: center; padding: 7px 0; border-bottom: 1px solid rgba(229, 220, 204, 0.7); font-size: 12.5px; font-weight: 500; }
 .lp-p-role:last-child { border-bottom: none; }
-.lp-p-tier { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 100px; font-family: var(--lp-font-mono); letter-spacing: 0.02em; }
+.lp-p-track { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 100px; font-family: var(--lp-font-mono); letter-spacing: 0.02em; }
 .lp-t1 { background: var(--lp-green-tint); color: var(--lp-green); }
 .lp-t2 { background: var(--lp-blue-tint); color: var(--lp-blue); }
 .lp-t3 { background: var(--lp-violet-tint); color: var(--lp-violet); }
@@ -592,7 +592,7 @@ function ProductMockup() {
             <div className="lp-p-greeting">GOOD MORNING</div>
             <div className="lp-p-stat-row">
               <div className="lp-p-stat">
-                <div className="lbl">Tier 1 fits</div>
+                <div className="lbl">Track 1 fits</div>
                 <div className="num g">4</div>
               </div>
               <div className="lp-p-stat">
@@ -611,19 +611,19 @@ function ProductMockup() {
               </div>
               <div className="lp-p-role">
                 <span>Product Manager</span>
-                <span className="lp-p-tier lp-t1">TIER 1</span>
+                <span className="lp-p-track lp-t1">TRACK 1</span>
               </div>
               <div className="lp-p-role">
                 <span>Business Analyst</span>
-                <span className="lp-p-tier lp-t1">TIER 1</span>
+                <span className="lp-p-track lp-t1">TRACK 1</span>
               </div>
               <div className="lp-p-role">
                 <span>Growth Marketing</span>
-                <span className="lp-p-tier lp-t2">TIER 2</span>
+                <span className="lp-p-track lp-t2">TRACK 2</span>
               </div>
               <div className="lp-p-role">
                 <span>Strategy Consultant</span>
-                <span className="lp-p-tier lp-t3">TIER 3</span>
+                <span className="lp-p-track lp-t3">TRACK 3</span>
               </div>
             </div>
           </div>
@@ -687,7 +687,7 @@ function ExplainerSection() {
             </li>
             <li>
               <i className="ti ti-check" aria-hidden="true" />
-              Get a 3-tier career roadmap with roles ranked by qualification fit
+              Get a 3-track career roadmap with roles ranked by qualification fit
             </li>
             <li>
               <i className="ti ti-check" aria-hidden="true" />
@@ -805,7 +805,7 @@ function AgentsSection() {
             Maps your skill gaps against target roles. Recommends courses and projects that close them, in priority order.
           </div>
           <div className="lp-agent-quote">
-            &quot;What&apos;s the fastest way to close the SQL gap on my Tier 2 roles?&quot;
+            &quot;What&apos;s the fastest way to close the SQL gap on my Track 2 roles?&quot;
           </div>
         </div>
       </div>
@@ -857,7 +857,7 @@ function SpineSection() {
             </div>
             <h3>Three tiers, ranked by fit.</h3>
             <p>
-              183-role library. Tier 1 = ready now. Tier 2 = stretch. Tier 3 = build toward. Each ranking comes with
+              183-role library. Track 1 = ready now. Track 2 = stretch. Track 3 = build toward. Each ranking comes with
               qualification scores and a path to close the gap.
             </p>
           </div>
@@ -866,7 +866,7 @@ function SpineSection() {
               <i className="ti ti-briefcase" aria-hidden="true" style={{ fontSize: 13 }} />
               JOB LISTINGS
             </div>
-            <h3>Roles that match your tier, refreshed daily.</h3>
+            <h3>Roles that match your track, refreshed daily.</h3>
             <p>
               Browse thousands of live openings filtered to your career roadmap. Score any role against your profile in
               one click — see your fit, your gaps, your strongest stories for it.
@@ -945,7 +945,7 @@ const TIMELINE_ROWS = [
   },
   {
     day: "DAY 2",
-    action: "Browse jobs in your Tier 1 roles.",
+    action: "Browse jobs in your Track 1 roles.",
     detail: "Score the ones that catch your eye. Save the strong fits to your tracker.",
   },
   {

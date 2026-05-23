@@ -62,7 +62,7 @@ npx playwright test --headed
 | `src/test/integration/home-redirect.test.jsx` | `Home.jsx` redirect guard: redirects for new users and incomplete profiles, does NOT redirect on network error |
 | `src/test/integration/home-errors.test.jsx` | `Home.jsx` error banners: shown when `career_roles` or `applications` query fails, not shown when both succeed |
 | `src/test/integration/tasks-state.test.jsx` | `Tasks.jsx` state rendering: error screen on query failure, empty state on zero results, task titles on success |
-| `src/test/integration/career-roadmap-tiers.test.jsx` | `CareerRoadmap.jsx` tier rendering: roles appear in the correct tier section; error screen on query failure |
+| `src/test/integration/career-roadmap-tiers.test.jsx` | `CareerRoadmap.jsx` track rendering: roles appear in the correct tier section; error screen on query failure |
 
 ### Playwright — E2E Tests
 

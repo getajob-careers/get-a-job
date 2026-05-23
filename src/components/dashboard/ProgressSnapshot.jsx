@@ -1,8 +1,8 @@
 import React from "react";
 
 export default function ProgressSnapshot({ roles, applications }) {
-  const tier1Count = roles.filter((r) => r.tier === "tier_1").length;
-  const tier2Count = roles.filter((r) => r.tier === "tier_2").length;
+  const track1Count = roles.filter((r) => r.track === "track_1").length;
+  const track2Count = roles.filter((r) => r.track === "track_2").length;
   const activeApps = applications.filter(
     (a) => !["rejected", "withdrawn"].includes(a.status)
   ).length;
@@ -12,8 +12,8 @@ export default function ProgressSnapshot({ roles, applications }) {
   );
 
   const stats = [
-    { label: "Tier 1 Roles", value: tier1Count, color: "bg-emerald-500" },
-    { label: "Tier 2 Roles", value: tier2Count, color: "bg-amber-500" },
+    { label: "Track 1 Roles", value: track1Count, color: "bg-emerald-500" },
+    { label: "Track 2 Roles", value: track2Count, color: "bg-amber-500" },
     { label: "Active Applications", value: activeApps, color: "bg-blue-500" },
     { label: "Interviews", value: interviews, color: "bg-indigo-500" },
   ];
