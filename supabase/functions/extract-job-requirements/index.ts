@@ -37,7 +37,14 @@ const MODEL = "gpt-4o-mini";
 //     Workday detail-page descriptions now backfilled. Forces re-extract so
 //     newly-populated descriptions get extracted and newly-aliased phrases
 //     resolve to canonical IDs.
-const EXTRACTION_SCHEMA_VERSION = 3;
+// v4: +95 more library skills + ~200 more aliases + 10 new structured fields
+//     (req_ai_tooling, req_skill_years, on_call_expected, office_policy,
+//     notable_customers, scale_signals, il_benefits, funding_signals, track,
+//     jd_language) + 5 JSONB refinements (equity_struct, benefits_struct,
+//     travel_struct, reports_to_struct, rd_local_headcount + local_office_city).
+//     Captures the 2026 AI-tool fluency signal (45% of JDs), per-skill years
+//     gating (40%), and IL-specific comp perks (Keren Hishtalmut, Cibus).
+const EXTRACTION_SCHEMA_VERSION = 4;
 
 // Canonical vocabularies the extractor must produce. We surface these in the
 // prompt so the LLM only emits values that match our deterministic scorer.
@@ -69,6 +76,14 @@ const BENEFITS_VOCAB = [
 const SALARY_CADENCES = ['hourly', 'monthly', 'annual'];
 // ISO 4217 + ILS/NIS alias. Lowercase normalized at compare time.
 const CURRENCY_CODES = new Set(['USD', 'EUR', 'GBP', 'ILS', 'NIS']);
+// v4 vocabularies
+const ON_CALL_VOCAB = ['none', 'occasional', 'rotation_required', '24_7'];
+const TRACK_VOCAB = ['ic', 'manager', 'tech_lead', 'hybrid_player_coach'];
+const JD_LANGUAGES = ['en', 'he', 'mixed'];
+const FUNDING_ROUND_TYPES = [
+  'pre_seed', 'seed', 'series_a', 'series_b', 'series_c', 'series_d',
+  'series_e', 'late_stage', 'ipo', 'public', 'bootstrapped',
+];
 
 // Build the skill ID set once at module load.
 const SKILL_ID_SET: Set<string> = new Set(
@@ -182,6 +197,26 @@ interface ExtractionResult {
   benefits: string[];
   eligibility_constraints: Record<string, unknown> | null;
   extraction_freeform_signals: Array<{ signal: string; evidence: string; category?: string }>;
+
+  // v4 schema additions
+  req_ai_tooling: Record<string, unknown> | null;
+  req_skill_years: Array<{ skill: string; years_min: number; required: boolean }>;
+  on_call_expected: string | null;
+  office_policy: Record<string, unknown> | null;
+  notable_customers: string[];
+  scale_signals: Record<string, unknown> | null;
+  il_benefits: Record<string, unknown> | null;
+  funding_signals: Record<string, unknown> | null;
+  track: string | null;
+  direct_reports_min: number | null;
+  direct_reports_max: number | null;
+  jd_language: string | null;
+  equity_struct: Record<string, unknown> | null;
+  benefits_struct: Record<string, unknown> | null;
+  travel_struct: Record<string, unknown> | null;
+  reports_to_struct: Record<string, unknown> | null;
+  rd_local_headcount: number | null;
+  local_office_city: string | null;
 }
 
 async function extractRequirements(jd: string, jobTitle: string, openaiKey: string): Promise<ExtractionResult | null> {
@@ -297,6 +332,82 @@ EXTRACTION RULES — EXTENDED CONTEXT (v2)
     Categories (lowercase): culture | hiring_signal | comp_signal | market_position | unusual_perk | il_specific. Aim for 1-3 signals per JD when ANY of these patterns appear. Empty array only when the JD is purely generic.
 
 ═══════════════════════════════════════════════════════════════════════════
+EXTRACTION RULES — v4 SCHEMA FIELDS (NEW)
+═══════════════════════════════════════════════════════════════════════════
+
+31. req_ai_tooling — when the JD names AI-assisted developer tools as a REQUIREMENT (not just a perk).
+    Examples that should populate this field:
+    - "Proficient and heavy user of Claude Code" → required: ["claude_code"], mindset_flag: true
+    - "Use Cursor or Copilot for daily development" → required: ["cursor","github_copilot"], mindset_flag: true
+    - "AI-first engineering culture" without naming tools → required: [], mindset_flag: true
+    - JD doesn't mention AI tools at all → null
+    Shape: { "required": ["cursor","claude_code"], "nice": ["copilot"], "mindset_flag": true }
+    Canonical tool names: cursor | claude_code | github_copilot | windsurf | replit_ai | tabnine | codeium | sourcegraph_cody | jetbrains_ai. Use lowercase snake_case. The mindset_flag captures "AI-first culture" framing even when no specific tool is named.
+
+32. req_skill_years — when JD lists per-skill years requirements ("5+ years backend, 3+ years Python, 2+ years Kubernetes"). Parse each skill/years pair into an array.
+    Shape: [{ "skill": "python", "years_min": 3, "required": true }, { "skill": "kubernetes", "years_min": 2, "required": true }]
+    Use lowercase skill names. Mark required=false when phrased as nice-to-have or "preferred". Empty array when JD only states a flat overall years requirement.
+
+33. on_call_expected — explicit on-call rotation mention.
+    Values: "rotation_required" (named tier-N rotation), "24_7" (always-on), "occasional" (incident-only or "may participate occasionally"), "none" (explicit "no on-call" or clearly not on-call role).
+    null when JD doesn't mention on-call at all.
+
+34. office_policy — structured version of hybrid/remote arrangement.
+    Shape: { "days_in_office_min": 3, "days_in_office_max": 3, "mandatory": true, "full_remote": false, "days_specified": true }
+    "Hybrid — 3 days a week in TLV office, A MUST" → mandatory: true.
+    "Fully remote" → full_remote: true, days_in_office_min: 0.
+    "Hybrid (flexible)" → mandatory: false, days_specified: false.
+    null when JD doesn't describe office policy.
+
+35. notable_customers — customer/brand logos cited in the JD body (e.g. "Toyota", "NBC News", "Fortune 500 customers", "Spotify, Slack, Netflix"). Verbatim names, capped at 10. Empty array when JD doesn't name customers.
+
+36. scale_signals — quantified product/business scale claims in the JD body.
+    Shape: { "users_dau": "600M", "users_total": "750000", "data_volume": "40TB/day", "transactions": "$100B/year", "customers_count": "1600", "revenue": null }
+    Use the verbatim phrase from the JD (e.g. "600M" not 600000000). null when JD has no scale numbers.
+
+37. il_benefits — Israeli-specific compensation perks the JD names.
+    Shape: { "keren_hishtalmut": true, "meal_card": "cibus" | "10bis" | "tenbis" | null, "wellness_stipend_nis": 1000, "study_fund": true, "gym": true, "commute_subsidy": true, "meals_provided": false }
+    "Keren Hishtalmut" (Hebrew study fund) → keren_hishtalmut: true, study_fund: true. "10bis / Cibus" → meal_card. "Wellness stipend of ₪1,000" → wellness_stipend_nis: 1000.
+    null when JD has no IL-specific perks.
+
+38. funding_signals — funding/valuation context stated in JD body.
+    Shape: { "last_round_size_usd": 50000000, "last_round_type": "series_b", "total_raised_usd": 100000000, "valuation_usd": 1800000000, "notable_investors": ["Lightspeed","Menlo","Citi Ventures"] }
+    Round types: pre_seed | seed | series_a..e | late_stage | ipo | public | bootstrapped.
+    Convert "$50M" to 50000000. null when JD has no funding mention.
+
+39. track — IC vs management framing.
+    Values: ic (explicit "individual contributor role" / "hands-on engineering, no people management"), manager (explicit "manage a team of X"), tech_lead (lead engineer with limited people-mgmt), hybrid_player_coach (explicit "balance of hands-on engineering and team management"), null.
+
+40. direct_reports_min / direct_reports_max — when track is manager / hybrid, the size of the team being managed. Both null when not stated.
+
+41. jd_language — body language of the JD itself.
+    Values: en (English-only body), he (Hebrew-only body), mixed (Hebrew + English mixed within paragraphs). Check the actual body language, not just the title.
+
+═══════════════════════════════════════════════════════════════════════════
+v4 JSONB REFINEMENTS — structured versions of existing flat fields
+═══════════════════════════════════════════════════════════════════════════
+
+42. equity_struct — granular equity signal (you also still set equity_mentioned BOOLEAN above).
+    Shape: { "mentioned": true, "type": ["options","rsu","espp"], "qualifier": "meaningful" | "standard" | null, "percentage": null, "vesting_mentioned": false, "refresh_mentioned": false }
+    null when JD doesn't mention equity.
+
+43. benefits_struct — structured version of benefits (you also still populate the benefits TEXT[] above).
+    Shape: { "pto_days": 20, "retirement_match_pct": null, "parental_leave": true, "mental_health": false, "learning_budget": true, "gym_wellness": true, "meal_voucher": true, "commute_subsidy": false, "dental": true, "vision": false, "health": true }
+    Populate keys the JD names; leave others null.
+
+44. travel_struct — structured travel.
+    Shape: { "percentage_max": 25, "destinations": ["us","europe","intra_il"], "frequency": "monthly" | "quarterly" | "ad_hoc" }
+    "30% travel to US sites" → percentage_max: 30, destinations: ["us"].
+
+45. reports_to_struct — structured reports-to (you also still populate reports_to TEXT above).
+    Shape: { "title": "Head of Rental Operations", "function": "operations", "seniority": "director" | "manager" | "vp" | "cxo", "named": false }
+    "Reports directly to the VP of Engineering" → seniority: "vp", function: "engineering", named: false.
+
+46. rd_local_headcount — when JD distinguishes local R&D headcount from global ("R&D center of over 160 employees in Jerusalem" while global is 900+). Integer. null when only global is stated.
+
+47. local_office_city — primary Israeli office city when the JD specifies one (e.g. "Tel Aviv", "Jerusalem", "Herzliya"). null when no IL city.
+
+═══════════════════════════════════════════════════════════════════════════
 EXTRACTION CONFIDENCE — 5-band rubric (DO NOT DEFAULT TO 0.5)
 ═══════════════════════════════════════════════════════════════════════════
 
@@ -367,6 +478,24 @@ Return JSON matching exactly this shape (leave fields null/empty when JD doesn't
   "benefits": [],
   "eligibility_constraints": null,
   "extraction_freeform_signals": [],
+  "req_ai_tooling": null,
+  "req_skill_years": [],
+  "on_call_expected": null,
+  "office_policy": null,
+  "notable_customers": [],
+  "scale_signals": null,
+  "il_benefits": null,
+  "funding_signals": null,
+  "track": null,
+  "direct_reports_min": null,
+  "direct_reports_max": null,
+  "jd_language": "en",
+  "equity_struct": null,
+  "benefits_struct": null,
+  "travel_struct": null,
+  "reports_to_struct": null,
+  "rd_local_headcount": null,
+  "local_office_city": null,
   "extraction_confidence": 0
 }`;
 
@@ -375,7 +504,7 @@ Return JSON matching exactly this shape (leave fields null/empty when JD doesn't
       {
         model: MODEL,
         temperature: 0,
-        max_tokens: 2200,
+        max_tokens: 3000,
         response_format: { type: 'json_object' },
         messages: [
           { role: 'system', content: systemPrompt },
@@ -546,6 +675,269 @@ Return JSON matching exactly this shape (leave fields null/empty when JD doesn't
       finalYearsMax = null;
     }
 
+    // ────────────────────────────────────────────────────────────────────
+    // v4 field validation/normalization
+    // ────────────────────────────────────────────────────────────────────
+    const isObj = (v: unknown): v is Record<string, unknown> =>
+      v !== null && typeof v === 'object' && !Array.isArray(v);
+    const cleanStr = (v: unknown, maxLen: number): string | null => {
+      if (typeof v !== 'string') return null;
+      const t = v.trim().slice(0, maxLen);
+      return t.length > 0 ? t : null;
+    };
+
+    // 31. req_ai_tooling
+    const AI_TOOL_NAMES = new Set([
+      'cursor', 'claude_code', 'github_copilot', 'copilot', 'windsurf',
+      'replit_ai', 'tabnine', 'codeium', 'sourcegraph_cody', 'jetbrains_ai',
+    ]);
+    const normalizeAiToolList = (arr: unknown): string[] => {
+      if (!Array.isArray(arr)) return [];
+      const out: string[] = [];
+      for (const v of arr) {
+        if (typeof v !== 'string') continue;
+        const n = v.toLowerCase().replace(/\s+/g, '_').replace(/-/g, '_').trim();
+        const canon = n === 'copilot' ? 'github_copilot' : n;
+        if (AI_TOOL_NAMES.has(canon) && !out.includes(canon)) out.push(canon);
+        if (out.length >= 6) break;
+      }
+      return out;
+    };
+    let reqAiTooling: Record<string, unknown> | null = null;
+    if (isObj(parsed.req_ai_tooling)) {
+      const required = normalizeAiToolList(parsed.req_ai_tooling.required);
+      const nice = normalizeAiToolList(parsed.req_ai_tooling.nice);
+      const mindsetFlag = parsed.req_ai_tooling.mindset_flag === true;
+      if (required.length > 0 || nice.length > 0 || mindsetFlag) {
+        reqAiTooling = { required, nice, mindset_flag: mindsetFlag };
+      }
+    }
+
+    // 32. req_skill_years
+    const reqSkillYears = Array.isArray(parsed.req_skill_years)
+      ? parsed.req_skill_years
+          .map((s: any) => {
+            if (!s || typeof s !== 'object') return null;
+            const skill = typeof s.skill === 'string' ? s.skill.toLowerCase().replace(/\s+/g, ' ').trim().slice(0, 80) : null;
+            const yearsMinV = clampYears(s.years_min);
+            if (!skill || yearsMinV === null) return null;
+            return { skill, years_min: yearsMinV, required: s.required !== false };
+          })
+          .filter((x: any): x is { skill: string; years_min: number; required: boolean } => x !== null)
+          .slice(0, 15)
+      : [];
+
+    // 33. on_call_expected
+    const onCallExpected = typeof parsed.on_call_expected === 'string'
+      && ON_CALL_VOCAB.includes(parsed.on_call_expected.toLowerCase().trim())
+      ? parsed.on_call_expected.toLowerCase().trim()
+      : null;
+
+    // 34. office_policy
+    let officePolicy: Record<string, unknown> | null = null;
+    if (isObj(parsed.office_policy)) {
+      const dmin = clampInt(parsed.office_policy.days_in_office_min, 0, 7);
+      const dmax = clampInt(parsed.office_policy.days_in_office_max, 0, 7);
+      const mandatory = parsed.office_policy.mandatory === true;
+      const fullRemote = parsed.office_policy.full_remote === true;
+      const daysSpecified = parsed.office_policy.days_specified === true;
+      if (dmin !== null || dmax !== null || mandatory || fullRemote || daysSpecified) {
+        officePolicy = {
+          days_in_office_min: dmin,
+          days_in_office_max: dmax,
+          mandatory,
+          full_remote: fullRemote,
+          days_specified: daysSpecified,
+        };
+      }
+    }
+
+    // 35. notable_customers — verbatim names, capped
+    const notableCustomers = Array.isArray(parsed.notable_customers)
+      ? parsed.notable_customers
+          .filter((v: unknown): v is string => typeof v === 'string')
+          .map((v: string) => v.trim().slice(0, 100))
+          .filter((v: string) => v.length > 0)
+          .slice(0, 10)
+      : [];
+
+    // 36. scale_signals
+    let scaleSignals: Record<string, unknown> | null = null;
+    if (isObj(parsed.scale_signals)) {
+      const keys = ['users_dau', 'users_total', 'data_volume', 'transactions', 'customers_count', 'revenue'];
+      const out: Record<string, unknown> = {};
+      let any = false;
+      for (const k of keys) {
+        const v = parsed.scale_signals[k];
+        if (typeof v === 'string' && v.trim().length > 0) {
+          out[k] = v.trim().slice(0, 80);
+          any = true;
+        } else if (typeof v === 'number' && Number.isFinite(v)) {
+          out[k] = v;
+          any = true;
+        } else {
+          out[k] = null;
+        }
+      }
+      if (any) scaleSignals = out;
+    }
+
+    // 37. il_benefits
+    let ilBenefits: Record<string, unknown> | null = null;
+    if (isObj(parsed.il_benefits)) {
+      const mealRaw = typeof parsed.il_benefits.meal_card === 'string'
+        ? parsed.il_benefits.meal_card.toLowerCase().trim()
+        : null;
+      const mealCard = mealRaw === 'cibus' ? 'cibus'
+        : (mealRaw === '10bis' || mealRaw === 'tenbis' || mealRaw === '10-bis') ? '10bis'
+        : null;
+      const out: Record<string, unknown> = {
+        keren_hishtalmut: parsed.il_benefits.keren_hishtalmut === true,
+        meal_card: mealCard,
+        wellness_stipend_nis: clampInt(parsed.il_benefits.wellness_stipend_nis, 1, 100000),
+        study_fund: parsed.il_benefits.study_fund === true,
+        gym: parsed.il_benefits.gym === true,
+        commute_subsidy: parsed.il_benefits.commute_subsidy === true,
+        meals_provided: parsed.il_benefits.meals_provided === true,
+      };
+      const any = Object.values(out).some((v) => v === true || (typeof v === 'number' && v > 0) || (typeof v === 'string' && v.length > 0));
+      if (any) ilBenefits = out;
+    }
+
+    // 38. funding_signals
+    let fundingSignals: Record<string, unknown> | null = null;
+    if (isObj(parsed.funding_signals)) {
+      const roundType = typeof parsed.funding_signals.last_round_type === 'string'
+        && FUNDING_ROUND_TYPES.includes(parsed.funding_signals.last_round_type.toLowerCase().trim())
+        ? parsed.funding_signals.last_round_type.toLowerCase().trim()
+        : null;
+      const investors = Array.isArray(parsed.funding_signals.notable_investors)
+        ? parsed.funding_signals.notable_investors
+            .filter((v: unknown): v is string => typeof v === 'string')
+            .map((v: string) => v.trim().slice(0, 80))
+            .filter((v: string) => v.length > 0)
+            .slice(0, 10)
+        : [];
+      const out = {
+        last_round_size_usd: clampNumeric(parsed.funding_signals.last_round_size_usd, 1, 100_000_000_000),
+        last_round_type: roundType,
+        total_raised_usd: clampNumeric(parsed.funding_signals.total_raised_usd, 1, 100_000_000_000),
+        valuation_usd: clampNumeric(parsed.funding_signals.valuation_usd, 1, 10_000_000_000_000),
+        notable_investors: investors,
+      };
+      const any = Object.entries(out).some(([k, v]) => (k === 'notable_investors' ? (v as string[]).length > 0 : v !== null));
+      if (any) fundingSignals = out;
+    }
+
+    // 39. track
+    const track = typeof parsed.track === 'string'
+      && TRACK_VOCAB.includes(parsed.track.toLowerCase().trim())
+      ? parsed.track.toLowerCase().trim()
+      : null;
+
+    // 40. direct_reports_min / max
+    const directReportsMin = clampInt(parsed.direct_reports_min, 0, 1000);
+    const directReportsMax = clampInt(parsed.direct_reports_max, 0, 1000);
+
+    // 41. jd_language
+    const jdLanguage = typeof parsed.jd_language === 'string'
+      && JD_LANGUAGES.includes(parsed.jd_language.toLowerCase().trim())
+      ? parsed.jd_language.toLowerCase().trim()
+      : null;
+
+    // 42. equity_struct
+    let equityStruct: Record<string, unknown> | null = null;
+    if (isObj(parsed.equity_struct)) {
+      const equityTypes = Array.isArray(parsed.equity_struct.type)
+        ? parsed.equity_struct.type
+            .filter((v: unknown): v is string => typeof v === 'string')
+            .map((v: string) => v.toLowerCase().trim())
+            .filter((v: string) => ['options', 'rsu', 'rsus', 'espp', 'shares', 'warrants'].includes(v))
+            .slice(0, 5)
+        : [];
+      const qual = typeof parsed.equity_struct.qualifier === 'string'
+        && ['meaningful', 'standard'].includes(parsed.equity_struct.qualifier.toLowerCase().trim())
+        ? parsed.equity_struct.qualifier.toLowerCase().trim()
+        : null;
+      const pct = clampNumeric(parsed.equity_struct.percentage, 0, 100);
+      const mentioned = parsed.equity_struct.mentioned === true || equityMentioned;
+      if (mentioned || equityTypes.length > 0 || qual !== null || pct !== null) {
+        equityStruct = {
+          mentioned,
+          type: equityTypes,
+          qualifier: qual,
+          percentage: pct,
+          vesting_mentioned: parsed.equity_struct.vesting_mentioned === true,
+          refresh_mentioned: parsed.equity_struct.refresh_mentioned === true,
+        };
+      }
+    }
+
+    // 43. benefits_struct
+    let benefitsStruct: Record<string, unknown> | null = null;
+    if (isObj(parsed.benefits_struct)) {
+      const out: Record<string, unknown> = {
+        pto_days: clampInt(parsed.benefits_struct.pto_days, 0, 365),
+        retirement_match_pct: clampNumeric(parsed.benefits_struct.retirement_match_pct, 0, 100),
+        parental_leave: parsed.benefits_struct.parental_leave === true,
+        mental_health: parsed.benefits_struct.mental_health === true,
+        learning_budget: parsed.benefits_struct.learning_budget === true,
+        gym_wellness: parsed.benefits_struct.gym_wellness === true,
+        meal_voucher: parsed.benefits_struct.meal_voucher === true,
+        commute_subsidy: parsed.benefits_struct.commute_subsidy === true,
+        dental: parsed.benefits_struct.dental === true,
+        vision: parsed.benefits_struct.vision === true,
+        health: parsed.benefits_struct.health === true,
+      };
+      const any = Object.values(out).some((v) => v === true || (typeof v === 'number' && v > 0));
+      if (any) benefitsStruct = out;
+    }
+
+    // 44. travel_struct
+    let travelStruct: Record<string, unknown> | null = null;
+    if (isObj(parsed.travel_struct)) {
+      const pctMax = clampInt(parsed.travel_struct.percentage_max, 0, 100);
+      const destinations = Array.isArray(parsed.travel_struct.destinations)
+        ? parsed.travel_struct.destinations
+            .filter((v: unknown): v is string => typeof v === 'string')
+            .map((v: string) => v.toLowerCase().replace(/\s+/g, '_').trim().slice(0, 30))
+            .filter((v: string) => v.length > 0)
+            .slice(0, 10)
+        : [];
+      const freq = typeof parsed.travel_struct.frequency === 'string'
+        && ['monthly', 'quarterly', 'ad_hoc', 'weekly', 'yearly'].includes(parsed.travel_struct.frequency.toLowerCase().trim())
+        ? parsed.travel_struct.frequency.toLowerCase().trim()
+        : null;
+      if (pctMax !== null || destinations.length > 0 || freq !== null) {
+        travelStruct = { percentage_max: pctMax, destinations, frequency: freq };
+      }
+    }
+
+    // 45. reports_to_struct
+    let reportsToStruct: Record<string, unknown> | null = null;
+    if (isObj(parsed.reports_to_struct)) {
+      const seniorityVal = typeof parsed.reports_to_struct.seniority === 'string'
+        && ['manager', 'director', 'vp', 'cxo'].includes(parsed.reports_to_struct.seniority.toLowerCase().trim())
+        ? parsed.reports_to_struct.seniority.toLowerCase().trim()
+        : null;
+      const titleVal = cleanStr(parsed.reports_to_struct.title, 200);
+      const functionVal = cleanStr(parsed.reports_to_struct.function, 80);
+      if (titleVal || functionVal || seniorityVal) {
+        reportsToStruct = {
+          title: titleVal,
+          function: functionVal ? functionVal.toLowerCase().replace(/\s+/g, '_') : null,
+          seniority: seniorityVal,
+          named: parsed.reports_to_struct.named === true,
+        };
+      }
+    }
+
+    // 46. rd_local_headcount
+    const rdLocalHeadcount = clampInt(parsed.rd_local_headcount, 1, 1_000_000);
+
+    // 47. local_office_city
+    const localOfficeCity = cleanStr(parsed.local_office_city, 80);
+
     // Provenance check: numeric comp claims must substring-trace to JD. Today
     // we do a loose check — does the JD contain ANY of the digit groups in
     // salary_min/max? If not, drop the salary claims.
@@ -613,6 +1005,26 @@ Return JSON matching exactly this shape (leave fields null/empty when JD doesn't
       benefits: benefitsOut,
       eligibility_constraints: eligibility,
       extraction_freeform_signals: freeform,
+
+      // v4 fields
+      req_ai_tooling: reqAiTooling,
+      req_skill_years: reqSkillYears,
+      on_call_expected: onCallExpected,
+      office_policy: officePolicy,
+      notable_customers: notableCustomers,
+      scale_signals: scaleSignals,
+      il_benefits: ilBenefits,
+      funding_signals: fundingSignals,
+      track: track,
+      direct_reports_min: directReportsMin,
+      direct_reports_max: directReportsMax,
+      jd_language: jdLanguage,
+      equity_struct: equityStruct,
+      benefits_struct: benefitsStruct,
+      travel_struct: travelStruct,
+      reports_to_struct: reportsToStruct,
+      rd_local_headcount: rdLocalHeadcount,
+      local_office_city: localOfficeCity,
     };
   } catch (e) {
     console.error('[extract-job-requirements] LLM call failed:', e instanceof Error ? e.message : e);
@@ -819,6 +1231,26 @@ Deno.serve(async (req) => {
     benefits: extraction.benefits.length > 0 ? extraction.benefits : null,
     eligibility_constraints: extraction.eligibility_constraints,
     extraction_freeform_signals: extraction.extraction_freeform_signals.length > 0 ? extraction.extraction_freeform_signals : null,
+
+    // v4 structured fields
+    req_ai_tooling: extraction.req_ai_tooling,
+    req_skill_years: extraction.req_skill_years.length > 0 ? extraction.req_skill_years : null,
+    on_call_expected: extraction.on_call_expected,
+    office_policy: extraction.office_policy,
+    notable_customers: extraction.notable_customers.length > 0 ? extraction.notable_customers : null,
+    scale_signals: extraction.scale_signals,
+    il_benefits: extraction.il_benefits,
+    funding_signals: extraction.funding_signals,
+    track: extraction.track,
+    direct_reports_min: extraction.direct_reports_min,
+    direct_reports_max: extraction.direct_reports_max,
+    jd_language: extraction.jd_language,
+    equity_struct: extraction.equity_struct,
+    benefits_struct: extraction.benefits_struct,
+    travel_struct: extraction.travel_struct,
+    reports_to_struct: extraction.reports_to_struct,
+    rd_local_headcount: extraction.rd_local_headcount,
+    local_office_city: extraction.local_office_city,
 
     // Bookkeeping
     extraction_confidence: extraction.extraction_confidence,
