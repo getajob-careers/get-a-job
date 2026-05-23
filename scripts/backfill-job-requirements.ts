@@ -73,19 +73,44 @@ async function pickJobs(): Promise<Array<{ id: string; title: string; ats_source
   return LIMIT ? all.slice(0, LIMIT) : all;
 }
 
-async function invokeExtractor(jobId: string): Promise<any> {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/extract-job-requirements`, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${SERVICE_ROLE}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ job_id: jobId, force: !SKIP_ALREADY }),
-  });
-  if (!res.ok) {
-    return { error: `HTTP ${res.status}`, body: await res.text() };
+async function invokeExtractor(jobId: string, attempt = 1): Promise<any> {
+  // Network-layer errors (ETIMEDOUT, ECONNRESET, AbortError) used to kill the
+  // whole batch — fatal in a 3,000-job run. We catch them here and retry up
+  // to 3 times with exponential backoff, then return a soft error so the
+  // batch continues. Real HTTP errors (4xx/5xx) still propagate as
+  // { error: "HTTP N" } and count toward the batch error count.
+  const MAX_ATTEMPTS = 3;
+  try {
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/extract-job-requirements`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${SERVICE_ROLE}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ job_id: jobId, force: !SKIP_ALREADY }),
+      // 60s overall timeout — function p99 is ~30s under load, this gives
+      // 2x safety margin without holding workers indefinitely.
+      signal: AbortSignal.timeout(60000),
+    });
+    if (!res.ok) {
+      return { error: `HTTP ${res.status}`, body: await res.text() };
+    }
+    return await res.json();
+  } catch (e: any) {
+    const transient =
+      e?.name === 'AbortError' ||
+      e?.cause?.code === 'ETIMEDOUT' ||
+      e?.cause?.code === 'ECONNRESET' ||
+      e?.cause?.code === 'ENOTFOUND' ||
+      e?.cause?.code === 'EAI_AGAIN' ||
+      String(e?.message ?? '').includes('fetch failed');
+    if (transient && attempt < MAX_ATTEMPTS) {
+      const delayMs = 1000 * Math.pow(2, attempt - 1);
+      await new Promise((r) => setTimeout(r, delayMs));
+      return invokeExtractor(jobId, attempt + 1);
+    }
+    return { error: `network:${e?.cause?.code || e?.name || 'unknown'}`, body: String(e?.message ?? '') };
   }
-  return await res.json();
 }
 
 async function pMap<T, R>(items: T[], n: number, fn: (item: T, idx: number) => Promise<R>): Promise<R[]> {
