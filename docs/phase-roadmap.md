@@ -28,7 +28,7 @@ All Edge Functions share the same security pattern: user-scoped Supabase client 
 - **Status:** Live
 - **Edge Function:** `functions/generate-career-analysis.ts`
 - **Called from:** `CareerRoadmap.jsx` `handleGenerate`, `Onboarding.jsx` `handleSurveyNext`
-- **What it does:** Reads the user's profile, experiences, projects, and certifications from Supabase, then calls OpenAI to produce tier-classified role recommendations (tier_1 / tier_2 / tier_3), a qualification level, an overall assessment, and a skill gaps list. Results are written to `career_roles` and the `profiles` table.
+- **What it does:** Reads the user's profile, experiences, projects, and certifications from Supabase, then calls OpenAI to produce track-classified role recommendations (track_1 / track_2 / track_3), a qualification level, an overall assessment, and a skill gaps list. Results are written to `career_roles` and the `profiles` table.
 - **Rate limit:** 5 calls per hour per user
 - **Payload size limit:** 100 KB
 
@@ -76,7 +76,7 @@ All Edge Functions share the same security pattern: user-scoped Supabase client 
 - **Status:** Live (v4)
 - **Edge Function:** `generate-job-suggestions` (deployed separately)
 - **UI:** `src/pages/JobSuggestions.jsx`
-- **What it does:** Fetches real job listings from the Reed.co.uk API based on the user's tier_1 career role and location, then uses `gpt-4o-mini` to score each job against the user's profile. Results are cached in the `job_suggestions` table for 24 hours; subsequent page loads return cached data instantly.
+- **What it does:** Fetches real job listings from the Reed.co.uk API based on the user's track_1 career role and location, then uses `gpt-4o-mini` to score each job against the user's profile. Results are cached in the `job_suggestions` table for 24 hours; subsequent page loads return cached data instantly.
 - **Input:** User profile, career roles, experiences (auto-read from DB)
 - **Output:** Array of scored jobs with title, company, salary, location, match_score, match_reason, matched/missing skills, and direct Reed link
 - **Rate limit:** 5 calls per hour per user

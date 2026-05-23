@@ -1,15 +1,15 @@
-// Single source of truth for the tier vocabulary and color scheme.
+// Single source of truth for the track vocabulary and color scheme.
 // Used by:
 //   - src/components/onboarding/OnboardingTutorial.jsx (Browse Jobs slide cards)
 //   - src/pages/Roadmap.jsx (header pills, tab labels, empty states)
-//   - src/components/roadmap/RoleCard.jsx (tier badge, accent stripe)
-//   - src/components/roadmap/TierQuadrantGrid.jsx (2×2 explainer quadrants)
+//   - src/components/roadmap/RoleCard.jsx (track badge, accent stripe)
+//   - src/components/roadmap/TrackQuadrantGrid.jsx (2×2 explainer quadrants)
 //
 // Before this consolidation, the Roadmap, the tutorial, and the quadrant grid
-// each had their own (drifted) scheme — Tier 2 was amber in one place and
-// gray in another; Tier 3 was indigo in one place and amber in two others.
-// Pick scheme: emerald (green) for Tier 1, neutral gray for Tier 2, amber
-// for Tier 3 — matches the tutorial tier cards that shipped in PR #88.
+// each had their own (drifted) scheme — Track 2 was amber in one place and
+// gray in another; Track 3 was indigo in one place and amber in two others.
+// Pick scheme: emerald (green) for Track 1, neutral gray for Track 2, amber
+// for Track 3 — matches the tutorial track cards that shipped in PR #88.
 //
 // Why these specific colors:
 //   - emerald = "go" / qualified + on path / your strongest move
@@ -17,10 +17,10 @@
 //   - amber = "caution + work toward" / on path but not ready yet
 //
 // Coral (the brand accent) is intentionally NOT used for tiers — coral is
-// the brand signal, not a functional indicator. Using it for Tier 1 would
+// the brand signal, not a functional indicator. Using it for Track 1 would
 // muddy the brand vocabulary across the product.
 
-export const TIER_COLORS = {
+export const TRACK_COLORS = {
   green: {
     accent:      "#1D7556",
     accentSoft:  "#5FA38A",
@@ -41,29 +41,29 @@ export const TIER_COLORS = {
   },
 };
 
-export const TIER_CONFIG = {
-  tier_1: {
-    id:          "tier_1",
+export const TRACK_CONFIG = {
+  track_1: {
+    id:          "track_1",
     number:      1,
     name:        "Sweet spot",
     color:       "green",
     description:
       "Roles you're qualified for that match where you want your career to go. Apply to these first.",
     emptyCopy:
-      "No Tier 1 roles surfaced yet — once your roadmap regenerates, roles you're qualified for AND that fit your career path will land here.",
+      "No Track 1 roles surfaced yet — once your roadmap regenerates, roles you're qualified for AND that fit your career path will land here.",
   },
-  tier_2: {
-    id:          "tier_2",
+  track_2: {
+    id:          "track_2",
     number:      2,
     name:        "Detour",
     color:       "gray",
     description:
-      "Roles you're qualified for, but they'd take your career in a different direction. Good fallbacks if Tier 1 isn't hiring.",
+      "Roles you're qualified for, but they'd take your career in a different direction. Good fallbacks if Track 1 isn't hiring.",
     emptyCopy:
-      "No off-path roles found — your matches are well-aligned with your stated career goals. Tier 2 lists roles you're qualified for that would be detours from your path.",
+      "No off-path roles found — your matches are well-aligned with your stated career goals. Track 2 lists roles you're qualified for that would be detours from your path.",
   },
-  tier_3: {
-    id:          "tier_3",
+  track_3: {
+    id:          "track_3",
     number:      3,
     name:        "Growth",
     color:       "amber",
@@ -74,8 +74,8 @@ export const TIER_CONFIG = {
   },
 };
 
-export const TIER_ORDER = ["tier_1", "tier_2", "tier_3"];
+export const TRACK_ORDER = ["track_1", "track_2", "track_3"];
 
 // Convenience array form for .map() rendering — preserves the canonical
 // 1 → 2 → 3 order so callers don't need to sort.
-export const TIERS = TIER_ORDER.map((id) => TIER_CONFIG[id]);
+export const TRACKS = TRACK_ORDER.map((id) => TRACK_CONFIG[id]);

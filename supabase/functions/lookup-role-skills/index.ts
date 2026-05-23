@@ -39,14 +39,14 @@ function snakeToTitle(s: string): string {
     .join(' ')
 }
 
-// Tier suggestion based on readiness:
-//   ≥ 0.6 → tier_1 (Your Move — the user is essentially qualified)
-//   0.3-0.6 → tier_2 (Plan B — close, needs upskilling)
-//   < 0.3  → tier_3 (Work Toward — long-term goal)
+// Track suggestion based on readiness:
+//   ≥ 0.6 → track_1 (Your Move — the user is essentially qualified)
+//   0.3-0.6 → track_2 (Plan B — close, needs upskilling)
+//   < 0.3  → track_3 (Work Toward — long-term goal)
 function suggestTier(readiness: number): string {
-  if (readiness >= 0.6) return 'tier_1'
-  if (readiness >= 0.3) return 'tier_2'
-  return 'tier_3'
+  if (readiness >= 0.6) return 'track_1'
+  if (readiness >= 0.3) return 'track_2'
+  return 'track_3'
 }
 
 Deno.serve(async (req) => {

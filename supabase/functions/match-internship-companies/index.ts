@@ -67,7 +67,7 @@ interface InternshipProfile {
   pitch_anti_patterns: string[]
   skill_gaps_to_close: string[]
   career_compound_rationale: string | null
-  tier_1_role_alignment: string | null
+  track_1_role_alignment: string | null
   rationale: string | null
 }
 
@@ -240,7 +240,7 @@ Deno.serve(async (req) => {
         pitch_anti_patterns: internshipProfile.pitch_anti_patterns,
         skill_gaps_to_close: internshipProfile.skill_gaps_to_close,
         career_compound_rationale: internshipProfile.career_compound_rationale,
-        tier_1_role_alignment: internshipProfile.tier_1_role_alignment,
+        track_1_role_alignment: internshipProfile.track_1_role_alignment,
       },
       candidate_companies: preScored.map((c) => ({
         company_id: c.id,
@@ -269,8 +269,8 @@ fit_score (0-100) — how well this company matches the realistic_* targets:
   50-69   Stretch fit. Defensible but requires the student to bridge a gap. Rationale must name the strongest hook.
   0-49    Weak fit. Skip unless the candidate_companies list is thin.
 
-career_compound_score (0-100) — how much an internship at THIS specific company serves the student's long-term Tier 1 path (career_compound_rationale + tier_1_role_alignment):
-  85-100  Strong compound. The role archetypes pitchable here close named skill_gaps_to_close and align with tier_1_role_alignment.
+career_compound_score (0-100) — how much an internship at THIS specific company serves the student's long-term Track 1 path (career_compound_rationale + track_1_role_alignment):
+  85-100  Strong compound. The role archetypes pitchable here close named skill_gaps_to_close and align with track_1_role_alignment.
   70-84   Solid compound. Closes some gaps; partial alignment.
   50-69   Weak compound. Doesn't hurt the path but doesn't accelerate it.
   0-49    Anti-compound. Pulls the student sideways; rationale should name what would be lost.

@@ -81,11 +81,11 @@ async function addJobToTracker({ user, queryClient, job, matchScore, matchedSkil
   return { ok: true };
 }
 
-// `tierColor` (optional) — when provided ("green" | "gray" | "amber"), the
-// card gets a 3px accent stripe at the top in that tier's color. Set in
-// tier mode by Jobs.jsx based on the currently-selected tier. In keyword
+// `trackColor` (optional) — when provided ("green" | "gray" | "amber"), the
+// card gets a 3px accent stripe at the top in that track's color. Set in
+// track mode by Jobs.jsx based on the currently-selected track. In keyword
 // mode it's null and no stripe renders.
-export default function JobCard({ job, scoreResult, scoring, onScore, tierColor }) {
+export default function JobCard({ job, scoreResult, scoring, onScore, trackColor }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
@@ -123,12 +123,12 @@ export default function JobCard({ job, scoreResult, scoring, onScore, tierColor 
     if (res.ok || res.duplicate) setAdded(true);
   };
 
-  const tierClass = tierColor ? `jb-tier-${tierColor}` : "";
+  const trackClass = trackColor ? `jb-track-${trackColor}` : "";
 
   return (
     <div
-      className={`jb-job-card ${tierClass}`}
-      data-tier-color={tierColor || undefined}
+      className={`jb-job-card ${trackClass}`}
+      data-track-color={trackColor || undefined}
     >
       <div className="jb-job-card-body">
         <div className="flex items-start justify-between gap-3">
@@ -198,8 +198,8 @@ export default function JobCard({ job, scoreResult, scoring, onScore, tierColor 
 
       <div className="jb-job-card-footer">
         {job.apply_url ? (
-          <a href={job.apply_url} target="_blank" rel="noopener noreferrer" className="jb-apply-link">
-            <Briefcase className="w-3.5 h-3.5" />Apply<ExternalLink className="w-3 h-3" />
+          <a href={job.apply_url} target="_blank" rel="noopener noreferrer" className="jb-see-posting-link">
+            <Briefcase className="w-3.5 h-3.5" />See Job Posting<ExternalLink className="w-3 h-3" />
           </a>
         ) : <span />}
         <div className="flex gap-2">

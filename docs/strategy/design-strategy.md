@@ -8,7 +8,7 @@
 
 ## 1. The Overwhelm Problem
 
-The platform has 28 features accessible simultaneously in the active job search phase. After onboarding (resume upload → career analysis → tier reveal), users see a sidebar with 10+ pages and no priority signal. A 22-year-old Reichman business student looking for their first BD/PM/CSM role doesn't know where to start.
+The platform has 28 features accessible simultaneously in the active job search phase. After onboarding (resume upload → career analysis → track reveal), users see a sidebar with 10+ pages and no priority signal. A 22-year-old Reichman business student looking for their first BD/PM/CSM role doesn't know where to start.
 
 **The problem isn't too many features — it's no guided path through them.**
 
@@ -63,7 +63,7 @@ Home is the screen users return to every session. It's not a static dashboard �
 - **Continue where you left off** — most recent activity with resume link
 - **Application status summary** — pipeline at a glance
 - **Contextual nudges** — "You have 3 stories — enough to generate a LinkedIn post"
-- **Career roadmap summary** — Tier 1/2/3 roles
+- **Career roadmap summary** — Track 1/2/3 roles
 
 ### The daily action card is the heartbeat:
 The mental model becomes: "Open app → see what to do today → do it → explore if I want to."
@@ -88,7 +88,7 @@ Story Bank should show "12 stories captured, 8 used in CVs, 4 unused" with visua
 Every AI-generated output should render as a preview that the user can edit, refine, or regenerate before it saves. The post composer (compose → preview) and outreach coach (editable bubbles) already do this. Make it the universal pattern.
 
 ### 4.6 Contextual connections between features
-When looking at a job in the tracker, show "3 stories match this role" and "Your Tier 1 role 'BD Analyst' aligns with this JD." When writing a LinkedIn post, the Story Bank sidebar surfaces relevant stories. When on the Career page, show which applications map to which tier. Make the data connections visible.
+When looking at a job in the tracker, show "3 stories match this role" and "Your Track 1 role 'BD Analyst' aligns with this JD." When writing a LinkedIn post, the Story Bank sidebar surfaces relevant stories. When on the Career page, show which applications map to which tier. Make the data connections visible.
 
 ### 4.7 Reduce visual density
 Generous whitespace, clear section breaks, one primary action per view. If a component has more than 3 buttons visible at once, it's too dense. Most important action = filled button with primary color. Secondary actions = outline or text link.
@@ -134,7 +134,7 @@ The goal: 28 features that feel like one coherent experience, not 28 separate to
 - [ ] Sentry error tracking (free tier, React + edge functions)
 - [ ] Vercel deployment + DNS + env vars
 - [ ] In-app feedback button → feedback table
-- [ ] OpenAI Tier 2 rate limits (check/upgrade)
+- [ ] OpenAI Track 2 rate limits (check/upgrade)
 - [ ] End-to-end test with realistic Reichman student profile
 - [ ] Founders' agreement (Eli, Isaac 18%, Sammy TBD%) — before launch
 
@@ -149,7 +149,7 @@ The goal: 28 features that feel like one coherent experience, not 28 separate to
 
 ### Where Get A Job wins:
 1. **Story Bank** — no competitor has structured story capture
-2. **Career OS depth** — 3-tier roadmap with 170+ role library
+2. **Career OS depth** — 3-track roadmap with 170+ role library
 3. **Anti-fabrication** — 3-layer guards, verbatim metric binding
 4. **LinkedIn networking suite** — comment coach + outreach coach with multi-turn
 5. **Israeli market vertical** — military service, 8200 signals, local ecosystem

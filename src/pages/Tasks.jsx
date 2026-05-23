@@ -13,7 +13,7 @@ const TASK_MESSAGES = [
   "Finding companies currently hiring for your target roles…",
   "Mapping your skill gaps to actionable tasks…",
   "Generating specific course & project recommendations…",
-  "Prioritising tasks by impact on Tier 1 applications…",
+  "Prioritising tasks by impact on Track 1 applications…",
   "Almost ready — wrapping up your task list…",
 ];
 
@@ -327,7 +327,7 @@ export default function Tasks() {
                   ? "Complete your profile first."
                   : roles.length === 0
                   ? "Generate your Career Roadmap first — tasks are derived from your role gaps."
-                  : "Click \"Generate tasks\" to assign work based on your current skill gaps and Tier 1 roles."}
+                  : "Click \"Generate tasks\" to assign work based on your current skill gaps and Track 1 roles."}
               </p>
             </div>
           )}

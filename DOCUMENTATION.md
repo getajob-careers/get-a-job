@@ -6,7 +6,7 @@ If you're new to the project: read `README.md` → `PROJECT_INSTRUCTIONS.md` →
 
 ---
 
-## Tier 1 — Read these first
+## Track 1 — Read these first
 
 | Doc | When to read | What it gives you |
 |---|---|---|
@@ -17,11 +17,11 @@ If you're new to the project: read `README.md` → `PROJECT_INSTRUCTIONS.md` →
 
 ---
 
-## Tier 2 — Reference (consult as needed)
+## Track 2 — Reference (consult as needed)
 
 | Doc | When to read |
 |---|---|
-| `tasks/lessons.md` | Before tier scoring / LLM prompt / edge-fn deploy / role-skill library / onboarding work — append-only "took multiple attempts" log |
+| `tasks/lessons.md` | Before track scoring / LLM prompt / edge-fn deploy / role-skill library / onboarding work — append-only "took multiple attempts" log |
 | `docs/research/linkedin-post-performance.md` | Touching any LinkedIn surface (Posts, Comments, Outreach) — ~430 lines of source-of-truth research |
 | `docs/strategy/installation-checklist.md` | When installing new tools / MCPs / skills — prioritized roadmap |
 | `docs/strategy/design-strategy.md` | Frontend visual + UX work — sidebar architecture, display philosophy, pre-launch checklist |
@@ -29,7 +29,7 @@ If you're new to the project: read `README.md` → `PROJECT_INSTRUCTIONS.md` →
 
 ---
 
-## Tier 3 — Session history (skim only if context is needed)
+## Track 3 — Session history (skim only if context is needed)
 
 These are point-in-time snapshots, not living docs. They explain how the codebase got to its current shape but aren't authoritative on current behavior — always check the code or `PROJECT_INSTRUCTIONS.md` first.
 
@@ -44,7 +44,7 @@ These are point-in-time snapshots, not living docs. They explain how the codebas
 
 ---
 
-## Tier 4 — Code-adjacent reference
+## Track 4 — Code-adjacent reference
 
 These live in the codebase itself and are best read in context:
 
@@ -64,6 +64,6 @@ These live in the codebase itself and are best read in context:
 
 ## How to keep this map current
 
-When you add a doc, add a row here. When you delete a doc, remove the row. When a Tier 1/2 doc starts feeling stale, fix it in your next PR (don't just flag it).
+When you add a doc, add a row here. When you delete a doc, remove the row. When a Track 1/2 doc starts feeling stale, fix it in your next PR (don't just flag it).
 
-Tier 3 docs are explicitly **not** kept current — they are historical snapshots. If a Session N summary contradicts current code, the code wins.
+Track 3 docs are explicitly **not** kept current — they are historical snapshots. If a Session N summary contradicts current code, the code wins.

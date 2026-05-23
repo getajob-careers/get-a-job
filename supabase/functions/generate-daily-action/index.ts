@@ -210,9 +210,9 @@ Deno.serve(async (req) => {
         .order('updated_at', { ascending: false })
         .limit(15),
       supabase.from('career_roles')
-        .select('id, title, tier, skills_gap')
+        .select('id, title, track, skills_gap')
         .eq('user_id', user.id)
-        .eq('tier', 'tier_1')
+        .eq('track', 'track_1')
         .limit(3),
       supabase.from('stories')
         .select('id', { count: 'exact', head: true })
@@ -253,7 +253,7 @@ Deno.serve(async (req) => {
         action_type: 'update_profile',
         source_table: null,
         source_id: null,
-        context: 'You haven\'t generated a career analysis yet. Complete it to unlock tier-1 role recommendations and tailored guidance.',
+        context: 'You haven\'t generated a career analysis yet. Complete it to unlock track-1 role recommendations and tailored guidance.',
         leverage: LEVERAGE.update_profile,
         urgency: 1.0,
         low_friction: 1.2,
@@ -284,7 +284,7 @@ Deno.serve(async (req) => {
     const systemPrompt = `You are a daily-action coach for "Get A Job," a career operating system for Israeli business students entering tech roles. The product backend has already picked the single highest-leverage action for this user today based on their data. Your job is ONLY to frame that action for the user.
 
 Write three fields:
-1. title — one short imperative line (≤80 chars). The action they should do today. Specific, concrete, references the named entity if available (company, role, skill). Examples: "Follow up with Atera on your application from 5 days ago", "Capture your Guardio onboarding story for the Bank", "Open the SQL course you flagged as a Tier 1 gap".
+1. title — one short imperative line (≤80 chars). The action they should do today. Specific, concrete, references the named entity if available (company, role, skill). Examples: "Follow up with Atera on your application from 5 days ago", "Capture your Guardio onboarding story for the Bank", "Open the SQL course you flagged as a Track 1 gap".
 2. rationale — 1-2 sentences explaining why TODAY specifically. Tie the urgency to the user's actual state (days since applied, gap until interview, story count vs target, etc.). NOT generic motivation.
 3. estimated_minutes — realistic time estimate. 5 / 10 / 15 / 20 / 30 / 45 / 60. Be honest — if it's a 30-minute task, say 30, not 10.
 
@@ -497,7 +497,7 @@ function buildCandidates(args: BuildCandidatesArgs): Candidate[] {
     }
   }
 
-  // ── 3. Career roles → skill_practice for tier_1 skill gaps ──────
+  // ── 3. Career roles → skill_practice for track_1 skill gaps ──────
   for (const r of careerRoles) {
     const gaps = Array.isArray(r.skills_gap) ? r.skills_gap.slice(0, 3) : []
     if (gaps.length > 0) {
@@ -505,7 +505,7 @@ function buildCandidates(args: BuildCandidatesArgs): Candidate[] {
         action_type: 'skill_practice',
         source_table: 'career_roles',
         source_id: r.id,
-        context: `Tier-1 role: ${r.title}. Top skill gaps: ${gaps.join(', ')}. Even 20 minutes today closes the gap meaningfully.`,
+        context: `Track-1 role: ${r.title}. Top skill gaps: ${gaps.join(', ')}. Even 20 minutes today closes the gap meaningfully.`,
         leverage: LEVERAGE.skill_practice,
         urgency: 0.8,           // no hard deadline → lower urgency
         low_friction: 1.0,

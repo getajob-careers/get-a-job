@@ -265,7 +265,7 @@ const HOME_CSS = `
 .home-card-dark:hover .home-card-arrow { background: var(--h-accent); color: white; }
 
 .home-card-tiers { display: flex; gap: 12px; }
-.home-tier-pill {
+.home-track-pill {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -273,10 +273,10 @@ const HOME_CSS = `
   font-size: 11px;
   color: var(--h-ink-soft);
 }
-.home-tier-dot { width: 8px; height: 8px; border-radius: 50%; }
-.home-tier-1 { background: var(--h-green); }
-.home-tier-2 { background: var(--h-blue); }
-.home-tier-3 { background: var(--h-violet); }
+.home-track-dot { width: 8px; height: 8px; border-radius: 50%; }
+.home-track-1 { background: var(--h-green); }
+.home-track-2 { background: var(--h-blue); }
+.home-track-3 { background: var(--h-violet); }
 
 .home-this-week {
   display: inline-flex;
@@ -347,14 +347,14 @@ const ROLLING_7D_MS = 7 * 24 * 60 * 60 * 1000;
 
 // Headline rule ladder — picks the most-load-bearing statement about
 // the user's current job-hunt state. Active applications are the strongest
-// signal (already in motion); Tier 1 roles next; goal/roadmap state last;
+// signal (already in motion); Track 1 roles next; goal/roadmap state last;
 // fall back to a plain greeting if nothing else qualifies.
 function pickHeadline({ profile, roles, applications }) {
   const firstName = (profile?.full_name || "").split(" ")[0] || "there";
   const activeApps = applications.filter(
     (a) => !["rejected", "withdrawn", "offer", "accepted"].includes(a.status),
   );
-  const tier1Roles = roles.filter((r) => r.tier === "tier_1");
+  const track1Roles = roles.filter((r) => r.track === "track_1");
 
   if (activeApps.length >= 5) {
     return (
@@ -363,17 +363,17 @@ function pickHeadline({ profile, roles, applications }) {
       </>
     );
   }
-  if (tier1Roles.length >= 3) {
+  if (track1Roles.length >= 3) {
     return (
       <>
-        You have <span className="accent">{tier1Roles.length} Tier&nbsp;1 roles</span> ready to apply to.
+        You have <span className="accent">{track1Roles.length} Track&nbsp;1 roles</span> ready to apply to.
       </>
     );
   }
-  if (tier1Roles.length >= 1) {
+  if (track1Roles.length >= 1) {
     return (
       <>
-        Your strongest fit is <span className="accent">{tier1Roles[0].title}</span>.
+        Your strongest fit is <span className="accent">{track1Roles[0].title}</span>.
       </>
     );
   }
@@ -553,15 +553,15 @@ export default function Home() {
     retry: false,
   });
 
-  // Tier-1-matching new jobs in the rolling 7d window. Reuses the same
+  // Track-1-matching new jobs in the rolling 7d window. Reuses the same
   // search_jobs_by_role_titles RPC used by /Jobs.
-  const tier1RoleTitles = useMemo(() => roles.filter((r) => r.tier === "tier_1").map((r) => r.title).filter(Boolean), [roles]);
+  const track1RoleTitles = useMemo(() => roles.filter((r) => r.track === "track_1").map((r) => r.title).filter(Boolean), [roles]);
   const { data: newJobs = [] } = useQuery({
-    queryKey: ["new_jobs_home", user?.id, tier1RoleTitles.join("|")],
+    queryKey: ["new_jobs_home", user?.id, track1RoleTitles.join("|")],
     queryFn: async () => {
-      if (tier1RoleTitles.length === 0) return [];
+      if (track1RoleTitles.length === 0) return [];
       const { data } = await supabase.rpc("search_jobs_by_role_titles", {
-        p_role_titles: tier1RoleTitles,
+        p_role_titles: track1RoleTitles,
         p_limit: 20,
         p_offset: 0,
         p_similarity_threshold: 0.3,
@@ -570,7 +570,7 @@ export default function Home() {
       const cutoff = Date.now() - ROLLING_7D_MS;
       return data.filter((j) => j.date_posted && new Date(j.date_posted).getTime() >= cutoff);
     },
-    enabled: !!user?.id && tier1RoleTitles.length > 0,
+    enabled: !!user?.id && track1RoleTitles.length > 0,
   });
 
   const profile = profiles?.[0] || null;
@@ -681,9 +681,9 @@ export default function Home() {
     .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
     .slice(0, 3);
 
-  const tier1Count = roles.filter((r) => r.tier === "tier_1").length;
-  const tier2Count = roles.filter((r) => r.tier === "tier_2").length;
-  const tier3Count = roles.filter((r) => r.tier === "tier_3").length;
+  const track1Count = roles.filter((r) => r.track === "track_1").length;
+  const track2Count = roles.filter((r) => r.track === "track_2").length;
+  const track3Count = roles.filter((r) => r.track === "track_3").length;
 
   const storiesCount = stories.length;
   const storiesThisWeek = stories.filter((s) => new Date(s.created_at).getTime() >= Date.now() - ROLLING_7D_MS).length;
@@ -795,15 +795,15 @@ export default function Home() {
             </div>
             {roles.length > 0 && (
               <div className="home-card-tiers">
-                <span className="home-tier-pill"><span className="home-tier-dot home-tier-1" />{tier1Count} T1</span>
-                <span className="home-tier-pill"><span className="home-tier-dot home-tier-2" />{tier2Count} T2</span>
-                <span className="home-tier-pill"><span className="home-tier-dot home-tier-3" />{tier3Count} T3</span>
+                <span className="home-track-pill"><span className="home-track-dot home-track-1" />{track1Count} T1</span>
+                <span className="home-track-pill"><span className="home-track-dot home-track-2" />{track2Count} T2</span>
+                <span className="home-track-pill"><span className="home-track-dot home-track-3" />{track3Count} T3</span>
               </div>
             )}
             <div className="home-card-desc">
               {roles.length === 0
                 ? "Score every role in the library against your profile."
-                : "See your tier breakdown, fit scores, and skill gaps."}
+                : "See your track breakdown, fit scores, and skill gaps."}
             </div>
             <CardArrow />
           </HomeCard>
@@ -844,7 +844,7 @@ export default function Home() {
               <span className="home-card-stat">{newJobs.length} matches</span>
             </div>
             <div className="home-card-cta">
-              {tier1RoleTitles.length === 0 ? "Browse open roles" : "Browse jobs"}
+              {track1RoleTitles.length === 0 ? "Browse open roles" : "Browse jobs"}
             </div>
             {newJobs.length > 0 ? (
               <div className="home-card-list">
@@ -856,8 +856,8 @@ export default function Home() {
               </div>
             ) : (
               <div className="home-card-desc">
-                {tier1RoleTitles.length === 0
-                  ? "Generate your roadmap first — jobs are filtered to your Tier 1 roles."
+                {track1RoleTitles.length === 0
+                  ? "Generate your roadmap first — jobs are filtered to your Track 1 roles."
                   : "No new matches in the last 7 days. Browse the full board instead."}
               </div>
             )}

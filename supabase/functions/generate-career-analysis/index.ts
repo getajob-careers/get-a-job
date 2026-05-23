@@ -33,11 +33,11 @@ const WEIGHTS = { core: 0.6, secondary: 0.3, differentiator: 0.1 } as const;
 
 // Pure-fit thresholds — used only when no 5-year goal is known AND no
 // primary_domain fallback exists. 0.70 was unreachable for junior profiles
-// with sparse skill matches, so Tier 1 was never populated in the no-goal
+// with sparse skill matches, so Track 1 was never populated in the no-goal
 // path. 0.55 is calibrated against real onboarding profiles.
 const FIT_ONLY_THRESHOLDS = { t1: 0.55, t2: 0.40, t3: 0.25 } as const;
 
-// Goal-aware thresholds — tiers combine readiness (fit) AND goal alignment.
+// Goal-aware thresholds — tracks combine readiness (fit) AND goal alignment.
 //
 // T1 / T2 use the penalty-adjusted fitScore (skill overlap × seniority-gap
 // penalty × family-experience penalty) because they measure "could be hired
@@ -48,19 +48,19 @@ const FIT_ONLY_THRESHOLDS = { t1: 0.55, t2: 0.40, t3: 0.25 } as const;
 // capture aspirational roles unreachable for them. The raw skill overlap is
 // the right signal: does the user have any foundation in this role's skills
 // today, regardless of seniority gap or family distance?
-const GOAL_TIER_THRESHOLDS = {
-  tier_1_min_fit: 0.50,
-  tier_1_min_alignment: 0.60,
-  tier_2_min_fit: 0.50,
-  tier_3_min_raw_fit: 0.20,
-  tier_3_min_alignment: 0.60,
+const GOAL_TRACK_THRESHOLDS = {
+  track_1_min_fit: 0.50,
+  track_1_min_alignment: 0.60,
+  track_2_min_fit: 0.50,
+  track_3_min_raw_fit: 0.20,
+  track_3_min_alignment: 0.60,
 } as const;
 
 const MAX_T1 = 5, MAX_T2 = 5, MAX_T3 = 5;
 
-// Tier-1 seniority ceiling per experience level. "Could be hired NOW" —
-// a current student should not see Mid-level titles in Tier 1 even if the
-// skill math comes out high. Mid+ roles that are goal-aligned flow to Tier 3
+// Track-1 seniority ceiling per experience level. "Could be hired NOW" —
+// a current student should not see Mid-level titles in Track 1 even if the
+// skill math comes out high. Mid+ roles that are goal-aligned flow to Track 3
 // (aspirational) instead. Uses SENIORITY_RANK values from below:
 //   Entry=0, Entry_Mid=1, Mid=2, Senior=3, Lead/Manager=4, Director=5, VP=6
 const T1_SENIORITY_CEILING: Record<"early_career" | "mid_career" | "senior_career", number> = {
@@ -179,45 +179,45 @@ function bucketSkillIds(mapping: any, bucket: "core" | "secondary" | "differenti
   return [];
 }
 
-// Pure-fit tier — used only when the user has no 5-year goal
-function assignTierFitOnly(score: number): "tier_1" | "tier_2" | "tier_3" | null {
-  if (score >= FIT_ONLY_THRESHOLDS.t1) return "tier_1";
-  if (score >= FIT_ONLY_THRESHOLDS.t2) return "tier_2";
-  if (score >= FIT_ONLY_THRESHOLDS.t3) return "tier_3";
+// Pure-fit track — used only when the user has no 5-year goal
+function assignTrackFitOnly(score: number): "track_1" | "track_2" | "track_3" | null {
+  if (score >= FIT_ONLY_THRESHOLDS.t1) return "track_1";
+  if (score >= FIT_ONLY_THRESHOLDS.t2) return "track_2";
+  if (score >= FIT_ONLY_THRESHOLDS.t3) return "track_3";
   return null;
 }
 
-// Goal-aware tier — combines readiness (fit), alignment to the 5-year goal,
+// Goal-aware track — combines readiness (fit), alignment to the 5-year goal,
 // AND whether the role is at a seniority the user could actually be hired
-// for NOW. Mid-level roles that are goal-aligned flow to Tier 3 (aspirational)
+// for NOW. Mid-level roles that are goal-aligned flow to Track 3 (aspirational)
 // even if their adjusted fit looks high, because a student can't skip levels.
-// Tier 1 = could-hire-now + strong fit + strong goal alignment (best next move)
-// Tier 2 = could-hire-now + strong fit + weak alignment (viable but off-path)
-// Tier 3 = on-path + some baseline fit, regardless of seniority (aspirational)
-function assignTierWithGoal(
+// Track 1 = could-hire-now + strong fit + strong goal alignment (best next move)
+// Track 2 = could-hire-now + strong fit + weak alignment (viable but off-path)
+// Track 3 = on-path + some baseline fit, regardless of seniority (aspirational)
+function assignTrackWithGoal(
   fitScore: number,
   goalAlignment: number,
   roleSeniorityRank: number,
   userLevel: "early_career" | "mid_career" | "senior_career",
   rawSkillFit: number
-): "tier_1" | "tier_2" | "tier_3" | null {
-  const t = GOAL_TIER_THRESHOLDS;
+): "track_1" | "track_2" | "track_3" | null {
+  const t = GOAL_TRACK_THRESHOLDS;
   const canHireNow = roleSeniorityRank <= T1_SENIORITY_CEILING[userLevel];
 
   if (canHireNow) {
-    if (fitScore >= t.tier_1_min_fit && goalAlignment >= t.tier_1_min_alignment) return "tier_1";
+    if (fitScore >= t.track_1_min_fit && goalAlignment >= t.track_1_min_alignment) return "track_1";
     // Strong-alignment relaxation: roles that align tightly with the 5-year goal
-    // (same family or natural/stretch transfer path) qualify for Tier 1 at a
+    // (same family or natural/stretch transfer path) qualify for Track 1 at a
     // lower fit bar, because the career trajectory matters and recruiters weigh
     // "visible path to the role" nearly as much as raw readiness.
-    if (fitScore >= 0.40 && goalAlignment >= 0.70) return "tier_1";
-    if (fitScore >= t.tier_2_min_fit) return "tier_2";
+    if (fitScore >= 0.40 && goalAlignment >= 0.70) return "track_1";
+    if (fitScore >= t.track_2_min_fit) return "track_2";
   }
   // T3 uses raw skill overlap (pre-penalty) so goal-aligned aspirational
   // roles aren't crushed by the seniority + family penalties — those
   // penalties model "not ready NOW" which is exactly what T3 represents.
-  // See GOAL_TIER_THRESHOLDS comment above.
-  if (rawSkillFit >= t.tier_3_min_raw_fit && goalAlignment >= t.tier_3_min_alignment) return "tier_3";
+  // See GOAL_TRACK_THRESHOLDS comment above.
+  if (rawSkillFit >= t.track_3_min_raw_fit && goalAlignment >= t.track_3_min_alignment) return "track_3";
   return null;
 }
 
@@ -254,7 +254,7 @@ function skillName(id: string): string {
 //      input against overly-broad short titles and produces wrong results.
 //   Tiebreak by seniority_rank desc — students typically aspire to the senior
 //   version of an ambiguous family ("marketing" → Marketing Manager, not Coordinator).
-//   Returns null when best score < MIN_GOAL_RESOLUTION_SCORE so the tier system
+//   Returns null when best score < MIN_GOAL_RESOLUTION_SCORE so the track system
 //   falls back to pure-fit thresholds rather than picking a garbage role.
 const SENIORITY_RANK: Record<string, number> = {
   "Entry": 0, "entry": 0,
@@ -469,7 +469,7 @@ function inferExperienceLevel(experiences: any[], profile: any): ExperienceLevel
 
 // Canonical anchor role per primary_domain. Used when the user's typed goal
 // can't be resolved to a library role (typos, non-library titles) — we still
-// want alignment scoring to have a target so Tier 1 can populate. Pick the
+// want alignment scoring to have a target so Track 1 can populate. Pick the
 // most-central role in each domain; alignment of candidates then flows
 // through the normal transfer map / role_family / FAMILY_GROUPS cascade.
 const PRIMARY_DOMAIN_TO_ROLE_ID: Record<string, string> = {
@@ -592,9 +592,9 @@ function computeRoleScore(
   const { score: goalAlignment, reason: alignmentReason } =
     computeGoalAlignment(roleId, goalRoleId);
 
-  const tier = goalRoleId
-    ? assignTierWithGoal(fitScore, goalAlignment, roleSeniorityRank, userLevel, skillFit)
-    : assignTierFitOnly(fitScore);
+  const track = goalRoleId
+    ? assignTrackWithGoal(fitScore, goalAlignment, roleSeniorityRank, userLevel, skillFit)
+    : assignTrackFitOnly(fitScore);
 
   const matchedSkillIds = [...matchedBy.core, ...matchedBy.secondary, ...matchedBy.differentiator];
   const missingSkillIds = [...missingBy.core, ...missingBy.secondary];
@@ -607,7 +607,7 @@ function computeRoleScore(
     family_penalty: Math.round(famPenalty * 1000) / 1000,
     goal_alignment_score: Math.round(goalAlignment * 1000) / 1000,
     alignment_reason: alignmentReason,
-    tier,
+    track,
     matched_skill_ids: matchedSkillIds,
     missing_skill_ids: missingSkillIds,
     matched_skills: matchedSkillIds.map(skillName),
@@ -817,7 +817,7 @@ Deno.serve(async (req) => {
     // 1c. Infer experience level and resolve goal within that ceiling.
     // If five_year_role can't be resolved (e.g. typo), fall back to
     // primary_domain so alignment still has a target. Without this, the
-    // whole run collapses to pure-fit scoring and Tier 1 almost never
+    // whole run collapses to pure-fit scoring and Track 1 almost never
     // populates for junior profiles.
     const experienceLevel = inferExperienceLevel(experiences || [], profile);
     let goalRoleId = resolveGoalRoleId(sanitisedProfile.five_year_role, experienceLevel);
@@ -851,7 +851,7 @@ Deno.serve(async (req) => {
     const allScored = allRoles
       .filter(r => (SENIORITY_RANK[r.seniority] ?? 2) <= seniorityCap)
       .map(r => computeRoleScore(r.id || r.role_id, userSkillIds, goalRoleId, experienceLevel, userHomeFamilies))
-      .filter(r => r.mapping_exists && r.tier !== null);
+      .filter(r => r.mapping_exists && r.track !== null);
     console.log(`[career-analysis] experienceLevel=${experienceLevel} cap=${seniorityCap} homeFamilies=${[...userHomeFamilies].join(',') || 'none'} candidates=${allScored.length} (of ${allRoles.length} library roles)`);
 
     // 1e. Build candidate pool: targeted roles + strong matches
@@ -870,35 +870,35 @@ Deno.serve(async (req) => {
     };
 
     const targeted = allScored.filter(r => isTargeted(r.role_id));
-    // All three tiers are candidates. Filtering out tier_3 here meant the
+    // All three tracks are candidates. Filtering out track_3 here meant the
     // "Work Toward" column never populated unless the user explicitly typed
     // an aspirational title into target_job_titles. The MAX_T3=1 cap downstream
     // still keeps the output size small.
     const strongUntargeted = allScored
-      .filter(r => !isTargeted(r.role_id) && (r.tier === "tier_1" || r.tier === "tier_2" || r.tier === "tier_3"));
+      .filter(r => !isTargeted(r.role_id) && (r.track === "track_1" || r.track === "track_2" || r.track === "track_3"));
     const candidatePool = [...targeted, ...strongUntargeted];
 
-    // 1f. Select final set: top-N per tier with tier-appropriate sort
-    //   - Tier 1 sorted by combined score (0.5 * fit + 0.5 * alignment) — both dimensions matter
-    //   - Tier 2 sorted by fit desc — viable-now roles
-    //   - Tier 3 sorted by alignment desc — aspirational on-path roles
+    // 1f. Select final set: top-N per track with track-appropriate sort
+    //   - Track 1 sorted by combined score (0.5 * fit + 0.5 * alignment) — both dimensions matter
+    //   - Track 2 sorted by fit desc — viable-now roles
+    //   - Track 3 sorted by alignment desc — aspirational on-path roles
     const combinedT1 = (r: any) => 0.5 * r.score + 0.5 * r.goal_alignment_score;
-    const byTier = {
-      tier_1: candidatePool
-        .filter(r => r.tier === "tier_1")
+    const byTrack = {
+      track_1: candidatePool
+        .filter(r => r.track === "track_1")
         .sort((a, b) => combinedT1(b) - combinedT1(a))
         .slice(0, MAX_T1),
-      tier_2: candidatePool
-        .filter(r => r.tier === "tier_2")
+      track_2: candidatePool
+        .filter(r => r.track === "track_2")
         .sort((a, b) => b.score - a.score)
         .slice(0, MAX_T2),
-      tier_3: candidatePool
-        .filter(r => r.tier === "tier_3")
+      track_3: candidatePool
+        .filter(r => r.track === "track_3")
         .sort((a, b) => b.goal_alignment_score - a.goal_alignment_score)
         .slice(0, MAX_T3),
     };
-    const selected = [...byTier.tier_1, ...byTier.tier_2, ...byTier.tier_3];
-    console.log(`[career-analysis] selected tiers → t1=${byTier.tier_1.map(r=>`${r.title}(fit=${r.score},align=${r.goal_alignment_score})`).join('|') || '-'} | t2=${byTier.tier_2.map(r=>`${r.title}(fit=${r.score},align=${r.goal_alignment_score})`).join('|') || '-'} | t3=${byTier.tier_3.map(r=>`${r.title}(fit=${r.score},align=${r.goal_alignment_score})`).join('|') || '-'}`);
+    const selected = [...byTrack.track_1, ...byTrack.track_2, ...byTrack.track_3];
+    console.log(`[career-analysis] selected tracks → t1=${byTrack.track_1.map(r=>`${r.title}(fit=${r.score},align=${r.goal_alignment_score})`).join('|') || '-'} | t2=${byTrack.track_2.map(r=>`${r.title}(fit=${r.score},align=${r.goal_alignment_score})`).join('|') || '-'} | t3=${byTrack.track_3.map(r=>`${r.title}(fit=${r.score},align=${r.goal_alignment_score})`).join('|') || '-'}`);
 
     if (selected.length === 0) {
       _ok = true; _http = 200
@@ -945,7 +945,7 @@ Deno.serve(async (req) => {
     // ─── PHASE 2: LLM writes explanations + identifies missed skills ─────
     const rolesForLLM = selected.map(r => ({
       title: r.title,
-      tier: r.tier,
+      track: r.track,
       seniority: r.seniority,
       readiness_score: r.score,
       raw_skill_overlap: r.raw_skill_fit,
@@ -962,7 +962,7 @@ Deno.serve(async (req) => {
       ? `RESOLVED 5-YEAR GOAL ROLE (matched to library): ${goalRoleTitle}`
       : goalSource === "primary_domain"
       ? `FALLBACK ANCHOR ROLE (from primary_domain "${profile.primary_domain}"): ${goalRoleTitle}. The user's typed 5-year goal could not be matched to a library role; alignment scoring uses this domain anchor instead.`
-      : `NO 5-YEAR GOAL PROVIDED — tier assignment used fit score only.`;
+      : `NO 5-YEAR GOAL PROVIDED — track assignment used fit score only.`;
     console.log(`[career-analysis] goalSource=${goalSource} goalRoleId=${goalRoleId ?? 'null'} five_year_role="${sanitisedProfile.five_year_role}"`);
 
     const expLevelLabel = experienceLevel === 'early_career' ? 'early-career (student / 0–2 years)'
@@ -976,17 +976,17 @@ Deno.serve(async (req) => {
 
     const systemPrompt = `You are a career advisor for the "Get A Job" platform.
 
-You will receive a user's profile and a set of pre-scored role recommendations with their fit scores, tiers, matched skills, and skill gaps.
+You will receive a user's profile and a set of pre-scored role recommendations with their fit scores, tracks, matched skills, and skill gaps.
 
 Your job has two parts:
 (1) Write clear, helpful reasoning + action items for each role.
 (2) Identify which CANDIDATE_SKILLS the user demonstrably has based on their stated_skills text, experiences, projects, and certifications. The deterministic matcher uses strict library-ID matching and misses semantic equivalents (e.g. user wrote "Stakeholder Communication" but the library uses "stakeholder_management"; user listed "Pandas" which implies "python_data"; user used "Monday.com" which implies "project_management"). You catch these. Return ONLY skill IDs from the CANDIDATE_SKILLS list — never invent IDs not in that list, and only credit when there's clear textual evidence.
 
-You do NOT compute scores, assign tiers, or change matched/missing skill values. The server re-scores after applying your skill credits.
+You do NOT compute scores, assign tracks, or change matched/missing skill values. The server re-scores after applying your skill credits.
 
-USER SENIORITY CONTEXT: This user is ${expLevelLabel}. Appropriate roles: ${capLabel}. The server has already filtered the pre-scored list to respect this cap, so every role in the input is safe to recommend. Do not name, suggest, or mention any role above the user's cap in your reasoning, action_items, or alignment_to_goal text — if a Tier 3 aspirational role is shown, it's already within the cap.
+USER SENIORITY CONTEXT: This user is ${expLevelLabel}. Appropriate roles: ${capLabel}. The server has already filtered the pre-scored list to respect this cap, so every role in the input is safe to recommend. Do not name, suggest, or mention any role above the user's cap in your reasoning, action_items, or alignment_to_goal text — if a Track 3 aspirational role is shown, it's already within the cap.
 
-Write in a supportive, actionable tone. Reference the user's specific experiences and skills. Do not invent facts about the user. Do not modify the titles, tiers, scores, matched_skills, or missing_skills values — those come from the server.`;
+Write in a supportive, actionable tone. Reference the user's specific experiences and skills. Do not invent facts about the user. Do not modify the titles, tracks, scores, matched_skills, or missing_skills values — those come from the server.`;
 
     const userPrompt = `USER PROFILE:
 - Name: ${sanitisedProfile.full_name || 'Not provided'}
@@ -1005,10 +1005,10 @@ Write in a supportive, actionable tone. Reference the user's specific experience
 - Certifications: ${JSON.stringify(sanitisedCerts)}
 ${dreamRolesForPrompt.length ? `- Dream Roles: ${dreamRolesForPrompt.join(', ')}` : ''}
 
-TIER DEFINITIONS (for your reasoning — the server has already assigned tiers):
-- Tier 1: strong hirability NOW at a seniority the user could actually get + strong goal alignment — the best immediate next move
-- Tier 2: strong hirability NOW but weak goal alignment — viable but pulls from the long-term path
-- Tier 3: aspirational roles (usually one seniority step up or in a new family) that align with the 5-year goal — work toward these
+TRACK DEFINITIONS (for your reasoning — the server has already assigned tracks):
+- Track 1: strong hirability NOW at a seniority the user could actually get + strong goal alignment — the best immediate next move
+- Track 2: strong hirability NOW but weak goal alignment — viable but pulls from the long-term path
+- Track 3: aspirational roles (usually one seniority step up or in a new family) that align with the 5-year goal — work toward these
 
 SCORE INTERPRETATION:
 - readiness_score is a hirability-adjusted fit (skill overlap × seniority-gap penalty × family-experience penalty). It answers "would a recruiter consider this person for this role right now?"
@@ -1017,7 +1017,7 @@ SCORE INTERPRETATION:
 
 ${goalDisplay}
 
-PRE-SCORED ROLE RECOMMENDATIONS (do not modify title, tier, scores, or skill lists):
+PRE-SCORED ROLE RECOMMENDATIONS (do not modify title, track, scores, or skill lists):
 ${JSON.stringify(rolesForLLM, null, 2)}
 
 CANDIDATE_SKILLS — skill IDs the user MIGHT have based on their text but the deterministic matcher missed. Decide which the user demonstrably has, based on their stated_skills, experiences, projects, and certifications. Be conservative: only credit when there's clear textual evidence (a named tool, technique, or domain in their text that maps to this skill). Do not credit a skill just because the user works in an adjacent area.
@@ -1041,7 +1041,7 @@ Return JSON matching this exact structure:
   "roles": [
     {
       "title": "string (copy exactly from the input)",
-      "tier": "string (copy exactly)",
+      "track": "string (copy exactly)",
       "readiness_score": number (copy exactly),
       "goal_alignment_score": number (copy exactly),
       "matched_skills": [strings] (copy exactly),
@@ -1053,7 +1053,7 @@ Return JSON matching this exact structure:
   ]
 }
 
-CRITICAL: Do not change any title, tier, readiness_score, goal_alignment_score, matched_skills, or missing_skills value. Copy them verbatim. You are only authoring reasoning, action_items, alignment_to_goal, overall_assessment, qualification_level, and additional_credited_skill_ids.
+CRITICAL: Do not change any title, track, readiness_score, goal_alignment_score, matched_skills, or missing_skills value. Copy them verbatim. You are only authoring reasoning, action_items, alignment_to_goal, overall_assessment, qualification_level, and additional_credited_skill_ids.
 
 Return ONLY valid JSON.`;
 
@@ -1075,7 +1075,7 @@ Return ONLY valid JSON.`;
       },
       // Was 45s — observed cold-cache requests landing right at 38–42s with
       // max_tokens=4500 + 15-role payload, so 45s timed out intermittently
-      // and bubbled "Signal timed out" up to onboarding's tier reveal step.
+      // and bubbled "Signal timed out" up to onboarding's track reveal step.
       { signal: AbortSignal.timeout(90000) },
     )
 
@@ -1118,7 +1118,7 @@ Return ONLY valid JSON.`;
     // (must be a known library ID AND must have been in the offered list to
     // prevent hallucination), then re-score the same selected roles with the
     // augmented skill set. Re-scoring can only IMPROVE scores (skill_fit is
-    // monotonic in matched-skill count), so tiers can only stay or move up.
+    // monotonic in matched-skill count), so tracks can only stay or move up.
     const validatedCredits = new Set<string>();
     if (Array.isArray(llmResult.additional_credited_skill_ids)) {
       for (const sid of llmResult.additional_credited_skill_ids) {
@@ -1154,7 +1154,7 @@ Return ONLY valid JSON.`;
       const llm = llmRolesByTitle.get(server.title) || {};
       return {
         title: server.title,
-        tier: server.tier,
+        track: server.track,
         readiness_score: server.score,
         goal_alignment_score: server.goal_alignment_score,
         alignment_reason: server.alignment_reason,

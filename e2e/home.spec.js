@@ -29,7 +29,7 @@ test.describe('Home page — authenticated user', () => {
   test('renders the dashboard for a user with a complete profile', async ({ page }) => {
     /**
      * End-to-end sanity check: authenticated user with onboarding_complete=true
-     * should land on Home and see their qualification level and tier 1 role.
+     * should land on Home and see their qualification level and track 1 role.
      *
      * This test would fail if:
      * - The auth injection doesn't work (shows login page)
@@ -54,7 +54,7 @@ test.describe('Home page — authenticated user', () => {
       page.getByText('Good foundational skills with clear growth areas.')
     ).toBeVisible();
 
-    // Tier 1 role should show
+    // Track 1 role should show
     await expect(page.getByText('Junior Data Analyst')).toBeVisible();
 
     // Should NOT have navigated away to Onboarding

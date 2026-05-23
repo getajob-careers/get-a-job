@@ -27,7 +27,7 @@ export default function StepConstraints({ data, onChange, onSubmit, onBack, subm
       <div>
         <h1 className="onb-h1">Where and when can you work?</h1>
         <p className="onb-sub">
-          Practical filters that apply to every role recommendation. These boundaries factor into tier classification.
+          Practical filters that apply to every role recommendation. These boundaries factor into track classification.
         </p>
       </div>
 

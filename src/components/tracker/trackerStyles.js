@@ -106,15 +106,15 @@ export const TRACKER_CSS = `
 .tk-status-accepted    { background: var(--tk-success);     color: white; }
 .tk-status-rejected    { background: #F4D4D4; color: #8B2C2C; }
 
-/* Tier badge — uses shared TIER_CONFIG colors via inline class. */
-.tk-tier-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 100px; font-family: var(--tk-font); font-size: 12px; font-weight: 600; line-height: 1; }
-.tk-tier-badge { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; font-weight: 700; color: white; }
-.tk-tier-green .tk-tier-badge { background: var(--tk-success); }
-.tk-tier-gray  .tk-tier-badge { background: var(--tk-ink-soft); }
-.tk-tier-amber .tk-tier-badge { background: var(--tk-warning); }
-.tk-tier-green { background: var(--tk-success-tint); color: var(--tk-success); }
-.tk-tier-gray  { background: var(--tk-bg-tinted);    color: var(--tk-ink-soft); }
-.tk-tier-amber { background: var(--tk-warning-tint); color: #6B4E0F; }
+/* Track badge — uses shared TRACK_CONFIG colors via inline class. */
+.tk-track-pill { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; border-radius: 100px; font-family: var(--tk-font); font-size: 12px; font-weight: 600; line-height: 1; }
+.tk-track-badge { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; font-weight: 700; color: white; }
+.tk-track-green .tk-track-badge { background: var(--tk-success); }
+.tk-track-gray  .tk-track-badge { background: var(--tk-ink-soft); }
+.tk-track-amber .tk-track-badge { background: var(--tk-warning); }
+.tk-track-green { background: var(--tk-success-tint); color: var(--tk-success); }
+.tk-track-gray  { background: var(--tk-bg-tinted);    color: var(--tk-ink-soft); }
+.tk-track-amber { background: var(--tk-warning-tint); color: #6B4E0F; }
 
 /* Status select inside the expanded row */
 .tk-status-bar { padding: 12px 20px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--tk-line-soft); }

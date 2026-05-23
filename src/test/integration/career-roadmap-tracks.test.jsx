@@ -1,7 +1,7 @@
 /**
  * career-roadmap-tiers.test.jsx
  *
- * Tests role tier rendering and error state in CareerRoadmap.jsx.
+ * Tests role track rendering and error state in CareerRoadmap.jsx.
  *
  * WHY THESE TESTS MATTER:
  *
@@ -10,8 +10,8 @@
  *    or if they just hadn't generated a roadmap. The fix added a proper error
  *    screen. This test ensures it appears.
  *
- * 2. Tier rendering test: Each role has a `tier` field (tier_1/tier_2/tier_3).
- *    The component renders separate sections per tier. If a role ends up in the
+ * 2. Track rendering test: Each role has a `track` field (track_1/track_2/track_3).
+ *    The component renders separate sections per track. If a role ends up in the
  *    wrong section (e.g., due to a bad insert mapping), the test catches it.
  *    This is the UI counterpart of the mapRoleToDbRow unit test.
  *
@@ -51,7 +51,7 @@ vi.mock('@/api/supabaseClient', () => ({ supabase: {} }));
 vi.mock('../../components/roadmap/RoleCard', () => ({
   default: ({ role }) => <div data-testid={`role-${role.id}`}>{role.title}</div>,
 }));
-vi.mock('../../components/roadmap/TierQuadrantGrid', () => ({
+vi.mock('../../components/roadmap/TrackQuadrantGrid', () => ({
   default: () => <div data-testid="quadrant-grid" />,
 }));
 
@@ -71,7 +71,7 @@ async function renderCareerRoadmap() {
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-describe('CareerRoadmap tier rendering', () => {
+describe('CareerRoadmap track rendering', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -93,14 +93,14 @@ describe('CareerRoadmap tier rendering', () => {
     });
   });
 
-  it('renders all three tier tabs + the overview content by default', async () => {
+  it('renders all three track tabs + the overview content by default', async () => {
     /**
      * The page now uses a Tabs primitive: Overview | Why these tiers |
-     * Tier 1 | Tier 2 | Tier 3. The default tab is Overview. We verify
-     * (a) all three tier tabs are present in the navigation, (b) overview
-     * content renders by default. Role-title-per-tier assertions were
+     * Track 1 | Track 2 | Track 3. The default tab is Overview. We verify
+     * (a) all three track tabs are present in the navigation, (b) overview
+     * content renders by default. Role-title-per-track assertions were
      * dropped because radix Tabs unmounts inactive content; the underlying
-     * tier-mapping logic is covered by mapRoleToDbRow's unit test.
+     * track-mapping logic is covered by mapRoleToDbRow's unit test.
      */
     await setSupabaseMock({
       career_roles:   { data: MOCK_ROLES, error: null },
@@ -112,9 +112,9 @@ describe('CareerRoadmap tier rendering', () => {
     await renderCareerRoadmap();
 
     await waitFor(() => {
-      expect(screen.getByRole('tab', { name: /Tier 1/i })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /Tier 2/i })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /Tier 3/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Track 1/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Track 2/i })).toBeInTheDocument();
+      expect(screen.getByRole('tab', { name: /Track 3/i })).toBeInTheDocument();
     });
     // Overview-tab content present — there are multiple "qualification
     // level" matches (header subtitle + tab card label), so use getAllByText.

@@ -56,7 +56,7 @@ export const courseRecommendationLogic = {
       "when": [
         "skill requires demonstration",
         "user needs proof (portfolio/project)",
-        "gap is blocking Tier 1 readiness"
+        "gap is blocking Track 1 readiness"
       ]
     },
     "project_only": {
@@ -167,7 +167,7 @@ export const courseRecommendationLogic = {
   "selection_logic": [
     "Step 1: Identify structured skill gaps",
     "Step 2: Filter out non-structured gaps",
-    "Step 3: Check if gap blocks Tier 1 readiness",
+    "Step 3: Check if gap blocks Track 1 readiness",
     "Step 4: Determine recommendation type (course, project, or both)",
     "Step 5: Adjust based on job_search_stage",
     "Step 6: Adjust based on employment_status",

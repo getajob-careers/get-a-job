@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
-import { tierFromScores } from "@/lib/scoreApplication";
+import { trackFromScores } from "@/lib/scoreApplication";
 import { track, EVENTS } from "@/lib/analytics";
 
 import { Sparkles, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, Plus, FileText, Link } from "lucide-react";
@@ -112,8 +112,8 @@ export default function JobMatchChecker() {
     if (!result || !user?.id) return;
     setAddingToTracker(true);
     // All scoring signals were computed synchronously above, so derive the
-    // tier inline using the same goal-aware helper scoreApplication uses —
-    // no async backfill needed and no tier shift visible to the user.
+    // track inline using the same goal-aware helper scoreApplication uses —
+    // no async backfill needed and no track shift visible to the user.
     const fit = (result.match_score || 0) / 100;
     const alignment = result.goal_alignment_score == null
       ? null
@@ -123,7 +123,7 @@ export default function JobMatchChecker() {
       role_title: result.job_title || "Unknown Role",
       company: result.company || "",
       status: "interested",
-      tier: tierFromScores(fit, alignment, {
+      track: trackFromScores(fit, alignment, {
         userStage: result.user_stage,
         roleSeniority: result.required_seniority,
       }),

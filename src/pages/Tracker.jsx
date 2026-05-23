@@ -252,7 +252,7 @@ export default function Tracker() {
                   <label className="tk-eyebrow">
                     Job description{" "}
                     <span className="font-normal normal-case tracking-normal text-[#9C9DA1]">
-                      (optional — AI will use this to set the tier)
+                      (optional — AI will use this to set the track)
                     </span>
                   </label>
                   <textarea
@@ -265,7 +265,7 @@ export default function Tracker() {
                   />
                   {!jobDescription && !newApp.job_description && (
                     <p className="text-[11px] text-[#9C9DA1] mt-1.5">
-                      Without AI classification, tier will be unset. Add the role to your Career Roadmap to get tier classification.
+                      Without AI classification, track will be unset. Add the role to your Career Roadmap to get track classification.
                     </p>
                   )}
                 </div>

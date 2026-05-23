@@ -55,7 +55,7 @@ export default function ProfileSummary({ profile }) {
         <div className="flex items-start gap-3">
           <Briefcase className="w-4 h-4 text-[#A3A3A3] mt-0.5 flex-shrink-0" />
           <div>
-            <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Current Tier 1 Role</p>
+            <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Current Track 1 Role</p>
             <p className="text-sm font-medium text-[#0A0A0A] mt-0.5">
               {profile.current_tier1_role || "Not determined"}
             </p>

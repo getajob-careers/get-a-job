@@ -86,8 +86,8 @@ export default function InternshipProfileStrip({
           <ProfileSection title="Pitchable role archetypes" items={profile.pitchable_role_archetypes} />
           <ProfileSection title="Pitch strength signals" items={profile.pitch_strength_signals} />
           <ProfileSection title="Skill gaps to close" items={profile.skill_gaps_to_close} />
-          {profile.tier_1_role_alignment && (
-            <ProfileText title="Tier-1 alignment" text={profile.tier_1_role_alignment} />
+          {profile.track_1_role_alignment && (
+            <ProfileText title="Track-1 alignment" text={profile.track_1_role_alignment} />
           )}
           {profile.career_compound_rationale && (
             <ProfileText title="Career compound rationale" text={profile.career_compound_rationale} />

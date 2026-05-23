@@ -8,11 +8,11 @@ import { Loader2, Brain, AlertCircle, RefreshCw, ArrowLeft, ArrowRight, External
 import { toast } from "sonner";
 import GeneratingBanner from "@/components/ui/GeneratingBanner";
 import RoleCard from "../components/roadmap/RoleCard";
-import TierQuadrantGrid from "../components/roadmap/TierQuadrantGrid";
+import TrackQuadrantGrid from "../components/roadmap/TrackQuadrantGrid";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experienceLevel";
 import { track, EVENTS } from "@/lib/analytics";
-import { TIER_CONFIG, TIER_ORDER, TIERS } from "@/lib/tierConfig";
+import { TRACK_CONFIG, TRACK_ORDER, TRACKS } from "@/lib/trackConfig";
 import { ROADMAP_CSS } from "../components/roadmap/roadmapStyles";
 
 const ROADMAP_MESSAGES = [
@@ -25,13 +25,13 @@ const ROADMAP_MESSAGES = [
   "Almost done — finalising your roadmap…",
 ];
 
-// Trigram similarity threshold for tier-mode job-board search. Matches the
+// Trigram similarity threshold for track-mode job-board search. Matches the
 // value used in JobSuggestions.jsx — keep them in sync.
-const TIER_SIMILARITY_THRESHOLD = 0.3;
-const OVERVIEW_TIER_JOBS_LIMIT = 5;
+const TRACK_SIMILARITY_THRESHOLD = 0.3;
+const OVERVIEW_TRACK_JOBS_LIMIT = 5;
 const OVERVIEW_TIER1_TITLES_PREVIEW = 3;
 
-const TAB_ORDER = ["overview", "why", ...TIER_ORDER];
+const TAB_ORDER = ["overview", "why", ...TRACK_ORDER];
 
 export default function CareerRoadmap() {
   const queryClient = useQueryClient();
@@ -117,22 +117,22 @@ export default function CareerRoadmap() {
   const profile = profiles?.[0];
   const stale = isAnalysisStale({ profile, experiences, certifications, projects });
 
-  const tier1 = roles.filter((r) => r.tier === "tier_1");
-  const tier2 = roles.filter((r) => r.tier === "tier_2");
-  const tier3 = roles.filter((r) => r.tier === "tier_3");
-  const byTier = { tier_1: tier1, tier_2: tier2, tier_3: tier3 };
+  const track1 = roles.filter((r) => r.track === "track_1");
+  const track2 = roles.filter((r) => r.track === "track_2");
+  const track3 = roles.filter((r) => r.track === "track_3");
+  const byTrack = { track_1: track1, track_2: track2, track_3: track3 };
 
   // Live DB check confirmed (2026-05-20) that no role has ever landed
-  // outside tier_1/2/3 across all users — the LLM prompt enforces the
+  // outside track_1/2/3 across all users — the LLM prompt enforces the
   // enum. We dropped the visible "uncategorized" fallback section and
   // warn here instead, so LLM drift surfaces in dev/QA logs without
   // confusing users.
   useEffect(() => {
-    const uncategorized = roles.filter((r) => !TIER_ORDER.includes(r.tier));
+    const uncategorized = roles.filter((r) => !TRACK_ORDER.includes(r.track));
     if (uncategorized.length > 0) {
       console.warn("[roadmap] uncategorized roles surfaced — LLM drift?", {
         count: uncategorized.length,
-        tiers: [...new Set(uncategorized.map((r) => r.tier))],
+        tracks: [...new Set(uncategorized.map((r) => r.track))],
       });
     }
   }, [roles]);
@@ -140,17 +140,17 @@ export default function CareerRoadmap() {
   const experienceLevel = inferExperienceLevel(experiences, educations);
   const allowedSeniorities = allowedSenioritiesForLevel(experienceLevel);
 
-  const tier1RoleTitles = tier1.map((r) => r.title).filter(Boolean);
+  const track1RoleTitles = track1.map((r) => r.title).filter(Boolean);
   const { data: tier1Jobs = [], isLoading: jobsLoading } = useQuery({
-    queryKey: ["roadmap_tier1_jobs", user?.id, tier1RoleTitles.join("|"), allowedSeniorities.join(",")],
-    enabled: !!user?.id && tier1RoleTitles.length > 0,
+    queryKey: ["roadmap_tier1_jobs", user?.id, track1RoleTitles.join("|"), allowedSeniorities.join(",")],
+    enabled: !!user?.id && track1RoleTitles.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .rpc("search_jobs_by_role_titles", {
-          p_role_titles: tier1RoleTitles,
-          p_limit: OVERVIEW_TIER_JOBS_LIMIT,
+          p_role_titles: track1RoleTitles,
+          p_limit: OVERVIEW_TRACK_JOBS_LIMIT,
           p_offset: 0,
-          p_similarity_threshold: TIER_SIMILARITY_THRESHOLD,
+          p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
           p_max_seniority: allowedSeniorities,
         })
         .select("id, title, company_name, location_city, location_raw, is_remote, apply_url, seniority, date_posted");
@@ -184,7 +184,7 @@ export default function CareerRoadmap() {
       if (data?.roles?.length > 0) {
         const rolesPayload = data.roles.map((r) => ({
           title: r.title,
-          tier: r.tier,
+          track: r.track,
           match_score: r.readiness_score,
           readiness_score: r.readiness_score,
           goal_alignment_score: r.goal_alignment_score ?? null,
@@ -310,7 +310,7 @@ export default function CareerRoadmap() {
             <div className="rm-card-lg rm-card text-center">
               <Brain className="w-10 h-10 text-[#F87060] mx-auto mb-3" />
               <h2 className="rm-h1" style={{ fontSize: 20 }}>No roles generated yet</h2>
-              <p className="rm-sub max-w-md mx-auto">Hit &quot;Build my roadmap&quot; to analyse your profile and create your tier-classified career map.</p>
+              <p className="rm-sub max-w-md mx-auto">Hit &quot;Build my roadmap&quot; to analyse your profile and create your track-classified career map.</p>
               <button
                 onClick={handleGenerate}
                 disabled={generating}
@@ -364,7 +364,7 @@ export default function CareerRoadmap() {
                 >
                   How tiers work
                 </button>
-                {TIER_ORDER.map((id) => (
+                {TRACK_ORDER.map((id) => (
                   <button
                     key={id}
                     type="button"
@@ -373,7 +373,7 @@ export default function CareerRoadmap() {
                     className="rm-tab"
                     onClick={() => setTab(id)}
                   >
-                    Tier {TIER_CONFIG[id].number}
+                    Track {TRACK_CONFIG[id].number}
                   </button>
                 ))}
               </div>
@@ -381,15 +381,15 @@ export default function CareerRoadmap() {
               {activeTab === "overview" && (
                 <OverviewTab
                   profile={profile}
-                  tier1={tier1}
+                  track1={track1}
                   tier1Jobs={tier1Jobs}
                   jobsLoading={jobsLoading}
-                  onJumpToTier1={() => setTab("tier_1")}
+                  onJumpToTier1={() => setTab("track_1")}
                 />
               )}
               {activeTab === "why" && <WhyTab />}
-              {TIER_ORDER.includes(activeTab) && (
-                <TierTab tier={activeTab} roles={byTier[activeTab]} onTabChange={setTab} />
+              {TRACK_ORDER.includes(activeTab) && (
+                <TrackTab track={activeTab} roles={byTrack[activeTab]} onTabChange={setTab} />
               )}
             </>
           )}
@@ -401,9 +401,9 @@ export default function CareerRoadmap() {
 
 // ───── Overview tab ─────
 
-function OverviewTab({ profile, tier1, tier1Jobs, jobsLoading, onJumpToTier1 }) {
-  const tier1Preview = tier1.slice(0, OVERVIEW_TIER1_TITLES_PREVIEW);
-  const tier1Extra = Math.max(0, tier1.length - OVERVIEW_TIER1_TITLES_PREVIEW);
+function OverviewTab({ profile, track1, tier1Jobs, jobsLoading, onJumpToTier1 }) {
+  const tier1Preview = track1.slice(0, OVERVIEW_TIER1_TITLES_PREVIEW);
+  const tier1Extra = Math.max(0, track1.length - OVERVIEW_TIER1_TITLES_PREVIEW);
 
   return (
     <div className="flex flex-col gap-5">
@@ -425,17 +425,17 @@ function OverviewTab({ profile, tier1, tier1Jobs, jobsLoading, onJumpToTier1 }) 
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Tier 1 preview card — count + top 3 titles, jumps to tier_1 tab */}
-        <div className="rm-card rm-tier-green">
+        {/* Track 1 preview card — count + top 3 titles, jumps to track_1 tab */}
+        <div className="rm-card rm-track-green">
           <div className="flex items-center justify-between mb-3">
-            <p className="rm-eyebrow">Tier 1 · Sweet spot</p>
-            <span className="rm-tier-pill">
-              <span className="rm-tier-badge" style={{ width: 16, height: 16, fontSize: 10 }}>1</span>
-              {tier1.length}
+            <p className="rm-eyebrow">Track 1 · Sweet spot</p>
+            <span className="rm-track-pill">
+              <span className="rm-track-badge" style={{ width: 16, height: 16, fontSize: 10 }}>1</span>
+              {track1.length}
             </span>
           </div>
           {tier1Preview.length === 0 ? (
-            <p className="text-sm text-[#9C9DA1]">No Tier 1 roles surfaced yet.</p>
+            <p className="text-sm text-[#9C9DA1]">No Track 1 roles surfaced yet.</p>
           ) : (
             <ul className="flex flex-col gap-1.5 text-sm text-[#0E1014]">
               {tier1Preview.map((r) => (
@@ -443,20 +443,20 @@ function OverviewTab({ profile, tier1, tier1Jobs, jobsLoading, onJumpToTier1 }) 
               ))}
             </ul>
           )}
-          {tier1.length > 0 && (
+          {track1.length > 0 && (
             <button
               onClick={onJumpToTier1}
               className="mt-3 text-xs text-[#52545A] hover:text-[#0E1014] underline underline-offset-2"
             >
-              {tier1Extra > 0 ? `View all ${tier1.length} →` : "View details →"}
+              {tier1Extra > 0 ? `View all ${track1.length} →` : "View details →"}
             </button>
           )}
         </div>
 
-        {/* Live Tier 1 job matches from public.jobs */}
+        {/* Live Track 1 job matches from public.jobs */}
         <div className="rm-card">
           <div className="flex items-center justify-between mb-3">
-            <p className="rm-eyebrow">Live Tier 1 matches</p>
+            <p className="rm-eyebrow">Live Track 1 matches</p>
             <Link
               to={createPageUrl("Jobs")}
               className="text-xs text-[#52545A] hover:text-[#0E1014] underline underline-offset-2"
@@ -519,16 +519,16 @@ function WhyTab() {
         </p>
       </div>
       <div className="flex justify-center pt-1">
-        <TierQuadrantGrid />
+        <TrackQuadrantGrid />
       </div>
       <div className="border-t border-[#E8E8E5] pt-5 flex flex-col gap-3">
-        {TIERS.map((tier) => (
-          <p key={tier.id} className="text-sm text-[#52545A] leading-relaxed">
-            <span className={`rm-tier-${tier.color} inline-flex items-center gap-2 mr-2`}>
-              <span className="rm-tier-badge">{tier.number}</span>
-              <span className="font-semibold text-[#0E1014]">Tier {tier.number} · {tier.name}</span>
+        {TRACKS.map((track) => (
+          <p key={track.id} className="text-sm text-[#52545A] leading-relaxed">
+            <span className={`rm-track-${track.color} inline-flex items-center gap-2 mr-2`}>
+              <span className="rm-track-badge">{track.number}</span>
+              <span className="font-semibold text-[#0E1014]">Track {track.number} · {track.name}</span>
             </span>
-            — {tier.description}
+            — {track.description}
           </p>
         ))}
         <p className="text-xs text-[#9C9DA1] mt-2">
@@ -539,22 +539,22 @@ function WhyTab() {
   );
 }
 
-// ───── Per-tier tab ─────
+// ───── Per-track tab ─────
 
-function TierTab({ tier, roles, onTabChange }) {
-  const cfg = TIER_CONFIG[tier];
-  const tierIdx = TIER_ORDER.indexOf(tier);
-  const prevTier = tierIdx > 0 ? TIER_ORDER[tierIdx - 1] : null;
-  const nextTier = tierIdx < TIER_ORDER.length - 1 ? TIER_ORDER[tierIdx + 1] : null;
+function TrackTab({ track, roles, onTabChange }) {
+  const cfg = TRACK_CONFIG[track];
+  const trackIdx = TRACK_ORDER.indexOf(track);
+  const prevTrack = trackIdx > 0 ? TRACK_ORDER[trackIdx - 1] : null;
+  const nextTrack = trackIdx < TRACK_ORDER.length - 1 ? TRACK_ORDER[trackIdx + 1] : null;
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Tier header card — restates what the tier means so users can
+      {/* Track header card — restates what the track means so users can
           re-read the framing without leaving the tab. */}
-      <div className={`rm-card rm-tier-${cfg.color} flex items-start gap-3`}>
-        <div className="rm-tier-badge mt-0.5">{cfg.number}</div>
+      <div className={`rm-card rm-track-${cfg.color} flex items-start gap-3`}>
+        <div className="rm-track-badge mt-0.5">{cfg.number}</div>
         <div>
-          <p className="font-semibold text-[#0E1014]">Tier {cfg.number} · {cfg.name}</p>
+          <p className="font-semibold text-[#0E1014]">Track {cfg.number} · {cfg.name}</p>
           <p className="text-sm text-[#52545A] mt-1 leading-relaxed">{cfg.description}</p>
         </div>
       </div>
@@ -571,22 +571,22 @@ function TierTab({ tier, roles, onTabChange }) {
         </div>
       )}
 
-      {/* Arrow nav between tier tabs */}
+      {/* Arrow nav between track tabs */}
       <div className="flex items-center justify-between pt-2 border-t border-[#E8E8E5]">
         <button
-          onClick={() => prevTier && onTabChange(prevTier)}
-          disabled={!prevTier}
+          onClick={() => prevTrack && onTabChange(prevTrack)}
+          disabled={!prevTrack}
           className="rm-btn rm-btn-outline rm-btn-sm"
         >
           <ArrowLeft className="w-3.5 h-3.5" />
-          {prevTier ? `Tier ${TIER_CONFIG[prevTier].number}` : "Tier 1"}
+          {prevTrack ? `Track ${TRACK_CONFIG[prevTrack].number}` : "Track 1"}
         </button>
         <button
-          onClick={() => nextTier && onTabChange(nextTier)}
-          disabled={!nextTier}
+          onClick={() => nextTrack && onTabChange(nextTrack)}
+          disabled={!nextTrack}
           className="rm-btn rm-btn-outline rm-btn-sm"
         >
-          {nextTier ? `Tier ${TIER_CONFIG[nextTier].number}` : "Tier 3"}
+          {nextTrack ? `Track ${TRACK_CONFIG[nextTrack].number}` : "Track 3"}
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>

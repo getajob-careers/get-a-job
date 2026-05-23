@@ -380,7 +380,7 @@ Deno.serve(async (req) => {
     // can ask the LLM to reference it in the About Me.
     let targetRoleContext: {
       required_seniority?: string | null;
-      tier?: string | null;
+      track?: string | null;
       qualification_score?: number | null;
       goal_alignment_score?: number | null;
       skills_required?: unknown;
@@ -389,7 +389,7 @@ Deno.serve(async (req) => {
     if (application_id) {
       const { data: app } = await supabase
         .from("applications")
-        .select("company, role_title, job_description, notes, required_seniority, tier, qualification_score, goal_alignment_score, skills_required, location")
+        .select("company, role_title, job_description, notes, required_seniority, track, qualification_score, goal_alignment_score, skills_required, location")
         .eq("id", application_id)
         .eq("user_id", user.id)
         .single();
@@ -412,7 +412,7 @@ Deno.serve(async (req) => {
         // block so the LLM doesn't have to extract these from prose.
         targetRoleContext = {
           required_seniority: app.required_seniority ?? null,
-          tier: app.tier ?? null,
+          track: app.track ?? null,
           qualification_score: typeof app.qualification_score === 'number' ? app.qualification_score : null,
           goal_alignment_score: typeof app.goal_alignment_score === 'number' ? app.goal_alignment_score : null,
           skills_required: app.skills_required ?? null,
@@ -987,14 +987,14 @@ ${targetRoleContext && Object.values(targetRoleContext).some(v => v !== null && 
 TARGET_ROLE_CONTEXT (pre-computed signal from this application; null fields just mean unknown — don't penalize the user for them):
 ${JSON.stringify({
   required_seniority: targetRoleContext.required_seniority,
-  tier: targetRoleContext.tier,
+  track: targetRoleContext.track,
   qualification_score: targetRoleContext.qualification_score,
   goal_alignment_score: targetRoleContext.goal_alignment_score,
   skills_required: targetRoleContext.skills_required,
   location: targetRoleContext.location,
 }, null, 2)}
 
-Use this context to calibrate your fit_analysis honestly: a "tier_3" or "qualification_score < 40" target is genuinely a stretch role for this user, and the bullets/About Me should not overclaim. A "tier_1" with high qualification_score is a strong fit — lean into the matching experience.
+Use this context to calibrate your fit_analysis honestly: a "track_3" or "qualification_score < 40" target is genuinely a stretch role for this user, and the bullets/About Me should not overclaim. A "track_1" with high qualification_score is a strong fit — lean into the matching experience.
 ` : ''}
 TASK:
 Produce a tailored, truthful, one-page CV for this user as JSON matching the exact schema below.

@@ -17,7 +17,7 @@ const CV_AGENT_HOW_TO_USE =
   "Pick an application at the top of the page, or ask a general CV question. When you say \"generate a CV for <role>\", the agent proposes a confirm card — click Generate CV to produce the PDF.";
 
 const GENERAL_PROMPTS = [
-  "Generate a tailored CV for my top Tier 1 role",
+  "Generate a tailored CV for my top Track 1 role",
   "Rewrite my summary for a Product Manager role",
   "Turn my most recent job into 5 strong CV bullets",
   "What keywords am I missing for a Data Analyst CV?",

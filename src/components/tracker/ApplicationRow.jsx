@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { TIER_CONFIG } from "@/lib/tierConfig";
+import { TRACK_CONFIG } from "@/lib/trackConfig";
 import CVManagement from "./CVManagement";
 import SkillsRequired from "./SkillsRequired";
 import ProjectsProof from "./ProjectsProof";
@@ -51,12 +51,12 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
     referralAttached !== (app.referral_attached || false);
 
   const status = STATUS_LABELS[app.status] || STATUS_LABELS.interested;
-  const tierMeta = TIER_CONFIG[app.tier]; // null when unclassified
+  const trackMeta = TRACK_CONFIG[app.track]; // null when unclassified
 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [retryingScore, setRetryingScore] = useState(false);
 
-  const scoringFailed = !!app.tier_scoring_failed_at;
+  const scoringFailed = !!app.track_scoring_failed_at;
   const hasJd = !!(app.job_description && app.job_description.trim());
 
   const handleRetryScore = async (e) => {
@@ -197,10 +197,10 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
           </div>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
-          {tierMeta ? (
-            <span className={`tk-tier-pill tk-tier-${tierMeta.color}`}>
-              <span className="tk-tier-badge">{tierMeta.number}</span>
-              Tier {tierMeta.number}
+          {trackMeta ? (
+            <span className={`tk-track-pill tk-track-${trackMeta.color}`}>
+              <span className="tk-track-badge">{trackMeta.number}</span>
+              Track {trackMeta.number}
             </span>
           ) : scoringFailed && hasJd ? (
             <button
@@ -215,7 +215,7 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
                 : <><RotateCw className="w-3 h-3" />Retry scoring</>}
             </button>
           ) : hasJd ? (
-            <span className="tk-meta-italic">Calculating tier…</span>
+            <span className="tk-meta-italic">Calculating track…</span>
           ) : null}
           {qPct != null ? (
             <span className={qClass}>{qPct}%</span>
@@ -304,9 +304,9 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
                     <span className="tk-tab-panel-val">{app.company || "—"}</span>
                   </div>
                   <div className="tk-tab-panel-row">
-                    <span className="tk-tab-panel-key">Tier</span>
-                    {tierMeta ? (
-                      <span className="tk-tab-panel-val">Tier {tierMeta.number} · {tierMeta.name}</span>
+                    <span className="tk-tab-panel-key">Track</span>
+                    {trackMeta ? (
+                      <span className="tk-tab-panel-val">Track {trackMeta.number} · {trackMeta.name}</span>
                     ) : scoringFailed && hasJd ? (
                       <button
                         type="button"
@@ -320,7 +320,7 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
                           : <><RotateCw className="w-3 h-3" />Retry scoring</>}
                       </button>
                     ) : hasJd ? (
-                      <span className="tk-meta-italic">Calculating tier…</span>
+                      <span className="tk-meta-italic">Calculating track…</span>
                     ) : (
                       <span className="tk-tab-panel-val">Unclassified</span>
                     )}

@@ -7,7 +7,7 @@ import { createPageUrl } from "@/utils";
 import { Loader2, Briefcase, Search, RefreshCw } from "lucide-react";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experienceLevel";
-import { TIER_CONFIG, TIER_ORDER } from "@/lib/tierConfig";
+import { TRACK_CONFIG, TRACK_ORDER } from "@/lib/trackConfig";
 import JobCard from "../components/jobs/JobCard";
 import { JOBS_CSS } from "../components/jobs/jobsStyles";
 
@@ -17,26 +17,26 @@ import { JOBS_CSS } from "../components/jobs/jobsStyles";
 
 const PROFILE_STALE_TIME = 30 * 60 * 1000;
 const BROWSE_PAGE_SIZE = 20;
-const MAX_TIER_ROLES = 8;
+const MAX_TRACK_ROLES = 8;
 
-// pg_trgm similarity threshold for tier-mode searches. 0.3 catches obvious
+// pg_trgm similarity threshold for track-mode searches. 0.3 catches obvious
 // variants ("Customer Success Specialist" matching "Customer Success Manager")
 // without sliding into noise. See migration 20260517_jobs_trgm_search_rpc.sql.
-const TIER_SIMILARITY_THRESHOLD = 0.3;
+const TRACK_SIMILARITY_THRESHOLD = 0.3;
 
-// All seniorities, used when bypassing the filter for tier_3.
+// All seniorities, used when bypassing the filter for track_3.
 const ALL_SENIORITIES = ["entry", "mid", "senior", "lead", "director", "executive"];
 
-// Bypass the seniority filter for tier_3 only. Live data check (2026-05-20)
+// Bypass the seniority filter for track_3 only. Live data check (2026-05-20)
 // showed that for early_career users, the strict filter was hiding 100% of
 // "Senior Product Manager" jobs (66 listings → 0 visible) and "Senior
-// Software Engineer" (112 → 0). Tier 3 is the "growth path" tier by
+// Software Engineer" (112 → 0). Track 3 is the "growth path" track by
 // definition — roles the user isn't qualified for yet. Hiding the senior
 // roles defeats the discovery intent. Strict filter still applies to
-// tier_1 (apply-now feed), tier_2 (qualified-but-off-path), and keyword
+// track_1 (apply-now feed), track_2 (qualified-but-off-path), and keyword
 // mode — PR #76's bug stays fixed where it actually matters.
-function seniorityFilterFor(mode, tier, allowedSeniorities) {
-  if (mode === "tier" && tier === "tier_3") return ALL_SENIORITIES;
+function seniorityFilterFor(mode, track, allowedSeniorities) {
+  if (mode === "track" && track === "track_3") return ALL_SENIORITIES;
   return allowedSeniorities;
 }
 
@@ -103,7 +103,7 @@ export default function JobSuggestions() {
       if (!user?.id) return [];
       const { data } = await supabase
         .from("career_roles")
-        .select("title, tier, readiness_score")
+        .select("title, track, readiness_score")
         .eq("user_id", user.id);
       return data || [];
     },
@@ -111,13 +111,13 @@ export default function JobSuggestions() {
     staleTime: PROFILE_STALE_TIME,
   });
 
-  const rolesByTier = useMemo(() => {
-    const groups = { tier_1: [], tier_2: [], tier_3: [] };
+  const rolesByTrack = useMemo(() => {
+    const groups = { track_1: [], track_2: [], track_3: [] };
     for (const r of careerRoles) {
-      if (!r?.title || !groups[r.tier]) continue;
-      groups[r.tier].push(r);
+      if (!r?.title || !groups[r.track]) continue;
+      groups[r.track].push(r);
     }
-    for (const t of TIER_ORDER) {
+    for (const t of TRACK_ORDER) {
       groups[t].sort((a, b) => (Number(b.readiness_score) || 0) - (Number(a.readiness_score) || 0));
     }
     return groups;
@@ -126,12 +126,12 @@ export default function JobSuggestions() {
   const hasAnyRoles = careerRoles.length > 0;
 
   // ── Browse state ──────────────────────────────────────────────────
-  // Mode is exactly one of tier | keyword. Switching one clears the other.
+  // Mode is exactly one of track | keyword. Switching one clears the other.
   // Default to "keyword" for users who don't yet have career_roles so they
-  // have something usable immediately (otherwise the page lands on Tier 1
+  // have something usable immediately (otherwise the page lands on Track 1
   // and shows an empty state).
-  const [mode, setMode] = useState(hasAnyRoles ? "tier" : "keyword");
-  const [selectedTier, setSelectedTier] = useState("tier_1");
+  const [mode, setMode] = useState(hasAnyRoles ? "track" : "keyword");
+  const [selectedTrack, setSelectedTrack] = useState("track_1");
   const [keyword, setKeyword] = useState("");
   const [appliedKeyword, setAppliedKeyword] = useState("");
 
@@ -142,7 +142,7 @@ export default function JobSuggestions() {
     if (defaultedRef.current) return;
     if (careerRoles.length === 0) return;
     defaultedRef.current = true;
-    setMode("tier");
+    setMode("track");
   }, [careerRoles.length]);
 
   const [jobs, setJobs] = useState([]);
@@ -157,8 +157,8 @@ export default function JobSuggestions() {
 
   const requestSeqRef = useRef(0);
 
-  const buildJobsQuery = useCallback((modeArg, tier, kw, offsetArg) => {
-    const seniorities = seniorityFilterFor(modeArg, tier, allowedSeniorities);
+  const buildJobsQuery = useCallback((modeArg, track, kw, offsetArg) => {
+    const seniorities = seniorityFilterFor(modeArg, track, allowedSeniorities);
 
     if (modeArg === "keyword") {
       const safe = kw.replace(/[%,]/g, " ").trim();
@@ -174,26 +174,26 @@ export default function JobSuggestions() {
       return q;
     }
 
-    // tier mode → RPC
-    const roles = (rolesByTier[tier] || []).slice(0, MAX_TIER_ROLES).map((r) => r.title);
+    // track mode → RPC
+    const roles = (rolesByTrack[track] || []).slice(0, MAX_TRACK_ROLES).map((r) => r.title);
     if (roles.length === 0) return { _empty: "no_roles" };
     return supabase
       .rpc("search_jobs_by_role_titles", {
         p_role_titles: roles,
         p_limit: BROWSE_PAGE_SIZE,
         p_offset: offsetArg,
-        p_similarity_threshold: TIER_SIMILARITY_THRESHOLD,
+        p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
         p_max_seniority: seniorities,
       })
       .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry");
-  }, [rolesByTier, allowedSeniorities]);
+  }, [rolesByTrack, allowedSeniorities]);
 
-  const fetchJobs = useCallback(async ({ modeArg, tier, kw, offsetArg, append }) => {
+  const fetchJobs = useCallback(async ({ modeArg, track, kw, offsetArg, append }) => {
     const seq = ++requestSeqRef.current;
     setLoading(true);
     setError(null);
 
-    const built = buildJobsQuery(modeArg, tier, kw, offsetArg);
+    const built = buildJobsQuery(modeArg, track, kw, offsetArg);
     if (built?._empty === "no_roles") {
       if (seq !== requestSeqRef.current) return;
       setJobs([]); setHasMore(false); setLoading(false); setEmptyReason("no_roles");
@@ -221,12 +221,12 @@ export default function JobSuggestions() {
     if (!user?.id) return;
     setOffset(0);
     setScoredJobs({});
-    fetchJobs({ modeArg: mode, tier: selectedTier, kw: appliedKeyword, offsetArg: 0, append: false });
-  }, [user?.id, mode, selectedTier, appliedKeyword, fetchJobs]);
+    fetchJobs({ modeArg: mode, track: selectedTrack, kw: appliedKeyword, offsetArg: 0, append: false });
+  }, [user?.id, mode, selectedTrack, appliedKeyword, fetchJobs]);
 
-  const handleTierClick = (t) => {
-    setMode("tier");
-    setSelectedTier(t);
+  const handleTrackClick = (t) => {
+    setMode("track");
+    setSelectedTrack(t);
     setKeyword("");
     setAppliedKeyword("");
   };
@@ -242,7 +242,7 @@ export default function JobSuggestions() {
   const handleLoadMore = () => {
     const next = offset + BROWSE_PAGE_SIZE;
     setOffset(next);
-    fetchJobs({ modeArg: mode, tier: selectedTier, kw: appliedKeyword, offsetArg: next, append: true });
+    fetchJobs({ modeArg: mode, track: selectedTrack, kw: appliedKeyword, offsetArg: next, append: true });
   };
 
   const handleScoreJob = async (job) => {
@@ -276,14 +276,14 @@ export default function JobSuggestions() {
   };
 
   const noProfile = !profile;
-  const inTierMode = mode === "tier";
+  const inTrackMode = mode === "track";
   const inKeywordMode = mode === "keyword";
 
-  // Seniority indicator copy depends on mode + tier. Tier 3 explicitly tells
+  // Seniority indicator copy depends on mode + track. Track 3 explicitly tells
   // the user that all levels are shown (because the filter is bypassed) so
   // the behavior is transparent.
   const seniorityIndicator = (() => {
-    if (inTierMode && selectedTier === "tier_3") {
+    if (inTrackMode && selectedTrack === "track_3") {
       return "Showing all seniority levels — these are roles you're working toward";
     }
     return `Filtered to ${levelLabel(experienceLevel)} roles based on your experience`;
@@ -301,14 +301,14 @@ export default function JobSuggestions() {
             </p>
             <h1 className="jb-h1 mt-1.5">Real roles, refreshed nightly.</h1>
             <p className="jb-sub">
-              Israeli tech postings filtered to your level. Tier-aware browsing tied to your career roadmap.
+              Israeli tech postings filtered to your level. Track-aware browsing tied to your career roadmap.
             </p>
           </div>
 
           {/* Stale roadmap banner */}
           {stale && (
             <div className="jb-banner jb-banner-warning mb-6 flex items-center justify-between gap-4 flex-wrap">
-              <p>Your profile has changed since your last roadmap analysis. Refresh to update tier matches.</p>
+              <p>Your profile has changed since your last roadmap analysis. Refresh to update track matches.</p>
               <Link to={createPageUrl("Roadmap")} className="jb-btn jb-btn-primary jb-btn-sm flex-shrink-0">
                 <RefreshCw className="w-3 h-3" />Refresh roadmap
               </Link>
@@ -324,20 +324,20 @@ export default function JobSuggestions() {
 
           {/* Filter bar */}
           <div className="jb-filter-bar mb-3">
-            {TIER_ORDER.map((id) => {
-              const tier = TIER_CONFIG[id];
-              const selected = inTierMode && selectedTier === id;
+            {TRACK_ORDER.map((id) => {
+              const track = TRACK_CONFIG[id];
+              const selected = inTrackMode && selectedTrack === id;
               return (
                 <button
                   key={id}
                   type="button"
-                  onClick={() => handleTierClick(id)}
-                  className={`jb-tier-pill jb-tier-${tier.color}`}
+                  onClick={() => handleTrackClick(id)}
+                  className={`jb-track-pill jb-track-${track.color}`}
                   data-selected={selected}
                   data-dim={inKeywordMode}
                 >
-                  <span className="jb-tier-pill-badge">{tier.number}</span>
-                  Tier {tier.number} · {tier.name}
+                  <span className="jb-track-pill-badge">{track.number}</span>
+                  Track {track.number} · {track.name}
                 </button>
               );
             })}
@@ -358,8 +358,8 @@ export default function JobSuggestions() {
             {inKeywordMode && appliedKeyword && (
               <div className="jb-mode-notice">
                 <span>Searching &quot;{appliedKeyword}&quot;</span>
-                <button type="button" onClick={() => handleTierClick(selectedTier)}>
-                  Back to Tier {TIER_CONFIG[selectedTier].number} · {TIER_CONFIG[selectedTier].name}
+                <button type="button" onClick={() => handleTrackClick(selectedTrack)}>
+                  Back to Track {TRACK_CONFIG[selectedTrack].number} · {TRACK_CONFIG[selectedTrack].name}
                 </button>
               </div>
             )}
@@ -380,10 +380,10 @@ export default function JobSuggestions() {
               {emptyReason === "no_roles" ? (
                 <>
                   <p className="text-sm font-medium text-[#0E1014]">
-                    No Tier {TIER_CONFIG[selectedTier].number} ({TIER_CONFIG[selectedTier].name}) roles yet.
+                    No Track {TRACK_CONFIG[selectedTrack].number} ({TRACK_CONFIG[selectedTrack].name}) roles yet.
                   </p>
                   <p className="text-xs text-[#9C9DA1] mt-1.5 max-w-md mx-auto">
-                    Run your Career Roadmap to generate tier-classified roles, then come back here to browse matching jobs.
+                    Run your Career Roadmap to generate track-classified roles, then come back here to browse matching jobs.
                   </p>
                   <Link to={createPageUrl("Roadmap")} className="jb-btn jb-btn-primary jb-btn-sm mt-4">
                     Go to Career Roadmap
@@ -395,7 +395,7 @@ export default function JobSuggestions() {
                 </p>
               ) : (
                 <p className="text-sm font-medium text-[#52545A]">
-                  No jobs match your Tier {TIER_CONFIG[selectedTier].number} roles right now.
+                  No jobs match your Track {TRACK_CONFIG[selectedTrack].number} roles right now.
                 </p>
               )}
             </div>
@@ -409,7 +409,7 @@ export default function JobSuggestions() {
                     scoreResult={scoredJobs[job.id]}
                     scoring={scoringIds.has(job.id)}
                     onScore={() => handleScoreJob(job)}
-                    tierColor={inTierMode ? TIER_CONFIG[selectedTier].color : null}
+                    trackColor={inTrackMode ? TRACK_CONFIG[selectedTrack].color : null}
                   />
                 ))}
               </div>

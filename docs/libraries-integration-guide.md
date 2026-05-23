@@ -37,7 +37,7 @@ Flow: CV Upload → proof signals extracted → matched to skills via proof_sign
 LOGIC LIBRARIES (decision rules)
 03_skill_strength_logic.json (1 KB) — Scoring: strong=1.0, medium=0.6, weak=0.3, missing=0.0
 05_fit_scoring_logic.json (1.2 KB) — Weights: core 60%, secondary 30%, differentiator 10%
-06_tier_logic.json (0.4 KB) — Tier 1/2/3 definitions
+06_track_logic.json (0.4 KB) — Track 1/2/3 definitions
 07_onboarding_input_mapping.json (4.6 KB) — Maps onboarding inputs to profile fields
 08_proof_signal_extraction_logic.json (13 KB) — 18 rule sets for extracting proof signals from CV text
 09_goal_alignment_logic.json (6.9 KB) — Scores role alignment with user's 5-year goal

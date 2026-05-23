@@ -58,12 +58,12 @@ export default function Onboarding() {
   // Education state — array of education rows for the user, matching the
   // education table schema. Phase B (2026-05-14) moved education off the
   // profiles flat columns into its own table. Hydrated on mount; written
-  // via UPSERT in saveProgress and on the tier-reveal transition.
+  // via UPSERT in saveProgress and on the track-reveal transition.
   const [educations, setEducations] = useState([]);
   const [checkingProfile, setCheckingProfile] = useState(true);
   const [existingProfileId, setExistingProfileId] = useState(null);
 
-  // Tier reveal state — kept for the analysis pipeline; the visual tier-
+  // Track reveal state — kept for the analysis pipeline; the visual track-
   // reveal page was replaced by the OnboardingTutorial in step 8.
   const [generatingRoles, setGeneratingRoles] = useState(false);
   // True when handleFinalise has completed — gates the tutorial's
@@ -464,7 +464,7 @@ export default function Onboarding() {
     setSaving(false);
   };
 
-  // Step 7→8: Run the AI tier analysis (was 6→7 pre-practicum step).
+  // Step 7→8: Run the AI track analysis (was 6→7 pre-practicum step).
   //
   // PR onboarding-tutorial refactor: the visual "Your Roles" page (step 8)
   // was replaced by the OnboardingTutorial. The pipeline is now:
@@ -625,7 +625,7 @@ export default function Onboarding() {
       if (user && analysisRoles.length > 0) {
         const rolesPayload = analysisRoles.map((r) => ({
           title: r.title,
-          tier: r.tier,
+          track: r.track,
           match_score: r.readiness_score,
           readiness_score: r.readiness_score,
           goal_alignment_score: r.goal_alignment_score ?? null,
@@ -652,7 +652,7 @@ export default function Onboarding() {
         // with onboarding_complete=true but qualification_level=null +
         // last_reality_check_date=null + skill_gaps=[] (empty), the exact
         // shape this write should have populated. Don't throw on failure —
-        // the analysis is still cached in local state for the tier reveal,
+        // the analysis is still cached in local state for the track reveal,
         // and Home.jsx has a self-healing useEffect that re-runs the
         // analysis if it detects this null pattern on next visit.
         const { error: persistErr } = await supabase.from("profiles").update({

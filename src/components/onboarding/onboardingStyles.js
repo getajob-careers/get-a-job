@@ -117,27 +117,27 @@ export const ONB_CSS = `
 .onb-slide-tiers { text-align: left; margin: 14px auto 0; max-width: 420px; display: flex; flex-direction: column; gap: 8px; font-size: 13.5px; color: var(--onb-ink-soft); line-height: 1.5; }
 .onb-slide-tiers strong { font-weight: 600; }
 
-/* Tier cards on the Browse Jobs slide — 3-column grid (desktop), stacked
+/* Track cards on the Browse Jobs slide — 3-column grid (desktop), stacked
    on mobile. Each card has a colored top accent + numbered badge + name +
    one-line description. Replaces the older onb-slide-tiers <ul>. */
-.onb-tier-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 540px; margin: 16px auto 4px; text-align: left; }
+.onb-track-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 540px; margin: 16px auto 4px; text-align: left; }
 @media (max-width: 640px) {
-  .onb-tier-cards { grid-template-columns: 1fr; max-width: 420px; }
+  .onb-track-cards { grid-template-columns: 1fr; max-width: 420px; }
 }
-.onb-tier-card { background: var(--onb-card); border: 1px solid var(--onb-line); border-radius: var(--onb-radius); padding: 16px 14px 14px; position: relative; overflow: hidden; }
-.onb-tier-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
-.onb-tier-card[data-tier="green"] { border-color: rgba(29, 117, 86, 0.3); }
-.onb-tier-card[data-tier="green"]::before { background: var(--onb-success); }
-.onb-tier-card[data-tier="gray"] { border-color: var(--onb-line); }
-.onb-tier-card[data-tier="gray"]::before { background: var(--onb-ink-soft); }
-.onb-tier-card[data-tier="amber"] { border-color: rgba(184, 132, 28, 0.3); }
-.onb-tier-card[data-tier="amber"]::before { background: var(--onb-warning); }
-.onb-tier-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-family: var(--onb-font); font-size: 12px; font-weight: 700; color: white; margin-bottom: 10px; }
-.onb-tier-card[data-tier="green"] .onb-tier-badge { background: var(--onb-success); }
-.onb-tier-card[data-tier="gray"] .onb-tier-badge { background: var(--onb-ink-soft); }
-.onb-tier-card[data-tier="amber"] .onb-tier-badge { background: var(--onb-warning); }
-.onb-tier-name { font-family: var(--onb-font); font-size: 14px; font-weight: 600; color: var(--onb-ink); margin-bottom: 6px; }
-.onb-tier-desc { font-size: 12.5px; color: var(--onb-ink-soft); line-height: 1.5; margin: 0; }
+.onb-track-card { background: var(--onb-card); border: 1px solid var(--onb-line); border-radius: var(--onb-radius); padding: 16px 14px 14px; position: relative; overflow: hidden; }
+.onb-track-card::before { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 3px; }
+.onb-track-card[data-track="green"] { border-color: rgba(29, 117, 86, 0.3); }
+.onb-track-card[data-track="green"]::before { background: var(--onb-success); }
+.onb-track-card[data-track="gray"] { border-color: var(--onb-line); }
+.onb-track-card[data-track="gray"]::before { background: var(--onb-ink-soft); }
+.onb-track-card[data-track="amber"] { border-color: rgba(184, 132, 28, 0.3); }
+.onb-track-card[data-track="amber"]::before { background: var(--onb-warning); }
+.onb-track-badge { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; border-radius: 50%; font-family: var(--onb-font); font-size: 12px; font-weight: 700; color: white; margin-bottom: 10px; }
+.onb-track-card[data-track="green"] .onb-track-badge { background: var(--onb-success); }
+.onb-track-card[data-track="gray"] .onb-track-badge { background: var(--onb-ink-soft); }
+.onb-track-card[data-track="amber"] .onb-track-badge { background: var(--onb-warning); }
+.onb-track-name { font-family: var(--onb-font); font-size: 14px; font-weight: 600; color: var(--onb-ink); margin-bottom: 6px; }
+.onb-track-desc { font-size: 12.5px; color: var(--onb-ink-soft); line-height: 1.5; margin: 0; }
 
 /* ── Progress bar / step indicator ───────────────────────────── */
 .onb-progress-track { background: var(--onb-bg-tinted); border-radius: 100px; overflow: hidden; height: 6px; }

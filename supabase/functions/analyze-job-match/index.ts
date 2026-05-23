@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
     const hasGoal = !!fiveYearRole.trim()
 
     // Stage maps a profile's qualification_level + employment_status to the
-    // three career stages used by tierFromScores' seniority ceiling. Mirrors
+    // three career stages used by trackFromScores' seniority ceiling. Mirrors
     // inferExperienceLevel in generate-career-analysis (any explicit "student"
     // status forces early_career) but keys on qualification_level when no
     // experiences are passed (the LLM-based scoring path doesn't load them).
@@ -108,16 +108,16 @@ Deno.serve(async (req) => {
       if (/senior|lead|director|principal|head|staff/.test(lvl)) return "senior"
       if (/junior|entry|graduate|associate/.test(lvl)) return "early"
       if (/mid/.test(lvl)) return "mid"
-      return "early"  // default: be conservative — don't false-promote unknown profiles to tier_1
+      return "early"  // default: be conservative — don't false-promote unknown profiles to track_1
     }
     const userStage = deriveUserStage(profile)
     const yearsExp = (experiences || []).length  // proxy used in the LLM context line
 
     // When the user has a 5-year goal, ask the LLM for a goal_alignment_score
     // alongside match_score so the tracker can derive tier from BOTH signals
-    // (mirrors assignTierWithGoal in generate-career-analysis). Without this,
+    // (mirrors assignTrackWithGoal in generate-career-analysis). Without this,
     // a high-fit-but-off-path role like an SDR scored 0.75 for a Product
-    // Manager target and was wrongly assigned tier_1.
+    // Manager target and was wrongly assigned track_1.
     const goalBlock = hasGoal
       ? `\nUSER CAREER TARGET:
 - 5-year goal: ${fiveYearRole}
@@ -290,12 +290,12 @@ Return ONLY valid JSON.`
 
     // Echo user_stage so the client tier helper can apply the same seniority
     // ceiling that generate-career-analysis applies (T1_SENIORITY_CEILING).
-    // Without this, an early-career student saw Mid-level roles in tier_1
+    // Without this, an early-career student saw Mid-level roles in track_1
     // because the LLM's match_score gave them full credit on skill overlap
     // while ignoring the 4+ years experience gap.
     result.user_stage = userStage
 
-    // Diagnostic — captures all four signals that tierFromScores uses, so
+    // Diagnostic — captures all four signals that trackFromScores uses, so
     // tier mis-assignments can be attributed to specific cause:
     //   has_goal:false/null → goal alignment ignored (fit-only fallback)
     //   match_score wrong   → LLM scored topical fit incorrectly

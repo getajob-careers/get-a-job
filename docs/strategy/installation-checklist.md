@@ -85,7 +85,7 @@
 - [ ] **Founders' agreement** — Eli 65-70%, Isaac 18%, Sammy 5-8%, option pool 5-10%. 4-year vest, 1-year cliff.
 - [ ] **Israeli Ltd. entity** — 3-5K NIS setup.
 - [ ] **Supabase Pro plan** — $25/mo for daily backups.
-- [ ] **OpenAI Tier 2** — check rate limits at platform.openai.com.
+- [ ] **OpenAI Track 2** — check rate limits at platform.openai.com.
 
 ---
 

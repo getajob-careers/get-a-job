@@ -121,11 +121,11 @@ function main(): void {
   console.log(`  New matched IDs: ${totals.new} (${((totals.new / totals.skills) * 100).toFixed(1)}% hit rate)`);
   console.log(`  Net increase: ${totals.new - totals.old} skill IDs (${(((totals.new - totals.old) / Math.max(1, totals.old)) * 100).toFixed(0)}% over current)`);
 
-  // Coverage of users with zero Tier 1 today
+  // Coverage of users with zero Track 1 today
   const zeroTier1 = rows.filter(r => r.currentTier1 === 0);
   if (zeroTier1.length > 0) {
     console.log();
-    console.log(`Users with 0 Tier 1 today (${zeroTier1.length}):`);
+    console.log(`Users with 0 Track 1 today (${zeroTier1.length}):`);
     for (const r of zeroTier1) {
       console.log(`  ${r.name.padEnd(22)} ${r.oldHits} → ${r.newHits} matched IDs (+${r.delta})`);
     }

@@ -1277,8 +1277,8 @@ export const ROLE_LOOKUP = [
     "id": "senior_support_engineer",
     "title": "Senior Support Engineer",
     "alternate_titles": [
-      "Tier 2 Support Engineer",
-      "Tier 3 Support Engineer",
+      "Track 2 Support Engineer",
+      "Track 3 Support Engineer",
       "Senior Technical Support Engineer"
     ],
     "seniority": "Senior",
@@ -1447,7 +1447,7 @@ export const ROLE_LOOKUP = [
     "id": "technical_support_specialist",
     "title": "Technical Support Specialist",
     "alternate_titles": [
-      "Tier 2 Support",
+      "Track 2 Support",
       "Application Support Specialist"
     ],
     "seniority": "Entry_Mid",
