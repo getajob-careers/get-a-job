@@ -26,6 +26,9 @@ verify_jwt = false
 [functions.extract-proof-signals]
 verify_jwt = false
 
+[functions.extract-job-requirements]
+verify_jwt = false
+
 # Deployed-only (no local source yet) — still listed so future redeploys don't regress.
 [functions.generate-learning-paths]
 verify_jwt = false

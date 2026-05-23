@@ -6184,6 +6184,1430 @@ export const skillLibrary = {
         "prd_writing",
         "user_research"
       ]
+    },
+
+
+    {
+      "id": "redis",
+      "name": "Redis",
+      "category": "technical_skill",
+      "description": "In-memory data store used for caching, real-time analytics, pub/sub messaging, and session storage. Common in high-throughput backend systems.",
+      "proficiency_levels": {
+        "beginner": "Uses Redis as a basic key-value cache.",
+        "intermediate": "Designs cache invalidation strategies, uses lists/sets/sorted-sets, implements pub/sub patterns.",
+        "advanced": "Tunes Redis clusters, implements RedLock, designs sharding strategies, optimizes memory and persistence."
+      },
+      "tags": ["cache", "in-memory", "kv-store"],
+      "common_roles": ["backend_engineer", "platform_engineer"],
+      "related_skills": ["databases", "backend_development", "cloud_platforms_devops"]
+    },
+    {
+      "id": "grafana",
+      "name": "Grafana",
+      "category": "technical_skill",
+      "description": "Open-source observability dashboard for metrics, logs, and traces. Visualizes Prometheus / Loki / Tempo / Mimir data; common in production SRE workflows.",
+      "proficiency_levels": {
+        "beginner": "Reads existing dashboards.",
+        "intermediate": "Builds custom dashboards, sets up alert rules, configures data sources.",
+        "advanced": "Designs the observability stack architecture, manages multi-tenant Grafana, contributes to dashboard-as-code workflows."
+      },
+      "tags": ["observability", "dashboards", "monitoring"],
+      "common_roles": ["devops_engineer", "sre", "platform_engineer"],
+      "related_skills": ["observability_engineering", "cloud_platforms_devops"]
+    },
+    {
+      "id": "prometheus",
+      "name": "Prometheus",
+      "category": "technical_skill",
+      "description": "Open-source metrics collection and time-series database. The de-facto standard for Kubernetes-native monitoring, alerting, and SLI/SLO tracking.",
+      "proficiency_levels": {
+        "beginner": "Queries existing metrics, runs PromQL basics.",
+        "intermediate": "Instruments applications, designs metric naming, writes alerting rules.",
+        "advanced": "Manages multi-cluster Prometheus federation, designs recording rules, integrates with Thanos / Mimir for long-term storage."
+      },
+      "tags": ["metrics", "observability", "alerting"],
+      "common_roles": ["sre", "devops_engineer"],
+      "related_skills": ["observability_engineering", "grafana", "cloud_platforms_devops"]
+    },
+    {
+      "id": "elasticsearch",
+      "name": "Elasticsearch",
+      "category": "technical_skill",
+      "description": "Distributed search and analytics engine. Common for log aggregation, full-text search, and operational analytics on large datasets.",
+      "proficiency_levels": {
+        "beginner": "Runs basic searches via the REST API.",
+        "intermediate": "Designs index mappings, writes complex queries, tunes aggregations.",
+        "advanced": "Manages cluster sizing and sharding, optimizes ingestion pipelines, runs hot-warm-cold tiering and snapshot/restore."
+      },
+      "tags": ["search", "log-aggregation", "analytics"],
+      "common_roles": ["backend_engineer", "data_engineer", "sre"],
+      "related_skills": ["databases", "observability_engineering"]
+    },
+    {
+      "id": "opensearch",
+      "name": "OpenSearch",
+      "category": "technical_skill",
+      "description": "AWS-managed open-source fork of Elasticsearch. Same API and concepts; common in AWS-native search and observability stacks.",
+      "proficiency_levels": {
+        "beginner": "Uses AWS-managed OpenSearch as a black-box search service.",
+        "intermediate": "Designs indices, writes queries, configures fine-grained access control.",
+        "advanced": "Tunes cluster performance, integrates with OpenSearch Dashboards, manages alerting and security analytics use cases."
+      },
+      "tags": ["search", "aws", "observability"],
+      "common_roles": ["backend_engineer", "data_engineer"],
+      "related_skills": ["elasticsearch", "cloud_platforms"]
+    },
+    {
+      "id": "kafka",
+      "name": "Apache Kafka",
+      "category": "technical_skill",
+      "description": "Distributed event-streaming platform for high-throughput pub/sub, event sourcing, and stream processing pipelines.",
+      "proficiency_levels": {
+        "beginner": "Produces and consumes from existing topics.",
+        "intermediate": "Designs topic partitioning, configures consumer groups, integrates with Kafka Streams or Connect.",
+        "advanced": "Manages multi-broker clusters, designs schema-registry strategies, tunes throughput and exactly-once semantics."
+      },
+      "tags": ["streaming", "messaging", "event-driven"],
+      "common_roles": ["backend_engineer", "data_engineer"],
+      "related_skills": ["backend_development", "databases"]
+    },
+    {
+      "id": "rabbitmq",
+      "name": "RabbitMQ",
+      "category": "technical_skill",
+      "description": "Message broker implementing AMQP. Used for work queues, RPC patterns, and task distribution in distributed systems.",
+      "proficiency_levels": {
+        "beginner": "Publishes and consumes from existing queues.",
+        "intermediate": "Designs exchange and routing patterns, configures dead-letter queues, sets up clustering.",
+        "advanced": "Manages production RabbitMQ clusters at scale, designs high-availability topologies, tunes throughput and memory."
+      },
+      "tags": ["messaging", "queues", "amqp"],
+      "common_roles": ["backend_engineer", "platform_engineer"],
+      "related_skills": ["backend_development", "api_integrations"]
+    },
+    {
+      "id": "snowflake_warehouse",
+      "name": "Snowflake",
+      "category": "technical_skill",
+      "description": "Cloud data warehouse with separated storage and compute. Common for analytics workloads, data sharing, and large-scale ELT pipelines.",
+      "proficiency_levels": {
+        "beginner": "Runs basic SQL queries against existing tables.",
+        "intermediate": "Designs warehouses, manages roles and grants, optimizes query performance with clustering keys.",
+        "advanced": "Architects multi-account governance, optimizes cost via warehouse sizing and auto-suspend, designs data-sharing topologies."
+      },
+      "tags": ["data-warehouse", "analytics", "elt"],
+      "common_roles": ["data_engineer", "analytics_engineer"],
+      "related_skills": ["sql", "databases", "bi_tools"]
+    },
+    {
+      "id": "bigquery",
+      "name": "Google BigQuery",
+      "category": "technical_skill",
+      "description": "GCP serverless data warehouse for petabyte-scale analytics. Common in marketing analytics, ML feature engineering, and data-product pipelines.",
+      "proficiency_levels": {
+        "beginner": "Runs SQL queries against existing datasets.",
+        "intermediate": "Designs partitioned and clustered tables, writes UDFs, integrates with Dataflow and Looker.",
+        "advanced": "Architects multi-project data warehouses, optimizes slot allocation and cost, designs streaming-ingest patterns."
+      },
+      "tags": ["data-warehouse", "gcp", "analytics"],
+      "common_roles": ["data_engineer", "analytics_engineer"],
+      "related_skills": ["sql", "cloud_platforms", "bi_tools"]
+    },
+    {
+      "id": "databricks",
+      "name": "Databricks",
+      "category": "technical_skill",
+      "description": "Unified analytics and ML platform built on Apache Spark. Common for large-scale data engineering, ML training pipelines, and lakehouse architectures.",
+      "proficiency_levels": {
+        "beginner": "Runs notebooks against existing clusters.",
+        "intermediate": "Builds Spark jobs in Python or Scala, manages Delta tables, configures jobs and workflows.",
+        "advanced": "Designs lakehouse architectures, manages Unity Catalog, optimizes cluster cost, integrates with MLflow at scale."
+      },
+      "tags": ["spark", "lakehouse", "ml-platform"],
+      "common_roles": ["data_engineer", "ml_engineer"],
+      "related_skills": ["python_data", "sql", "machine_learning"]
+    },
+    {
+      "id": "spark",
+      "name": "Apache Spark",
+      "category": "technical_skill",
+      "description": "Distributed compute framework for large-scale data processing. Common in batch ETL, streaming, and ML feature pipelines.",
+      "proficiency_levels": {
+        "beginner": "Reads/writes DataFrames in PySpark.",
+        "intermediate": "Designs Spark jobs with partitioning, broadcast joins, and caching; optimizes shuffle behavior.",
+        "advanced": "Tunes Spark configuration for production workloads, designs streaming pipelines, manages cluster lifecycle."
+      },
+      "tags": ["distributed-compute", "etl", "big-data"],
+      "common_roles": ["data_engineer", "ml_engineer"],
+      "related_skills": ["python_data", "sql", "databases"]
+    },
+    {
+      "id": "airflow",
+      "name": "Apache Airflow",
+      "category": "technical_skill",
+      "description": "Workflow orchestration platform for data pipelines. Authors DAGs in Python; common in analytics-engineering and ML pipeline scheduling.",
+      "proficiency_levels": {
+        "beginner": "Reads existing DAGs.",
+        "intermediate": "Authors DAGs with custom operators, designs retry and SLA policies, integrates with external services via hooks.",
+        "advanced": "Manages multi-tenant Airflow deployments, designs scheduler scaling, contributes operators and plugins."
+      },
+      "tags": ["orchestration", "pipelines", "etl"],
+      "common_roles": ["data_engineer"],
+      "related_skills": ["python_development", "workflow_automation", "cloud_platforms_devops"]
+    },
+    {
+      "id": "datadog",
+      "name": "Datadog",
+      "category": "technical_skill",
+      "description": "Commercial observability platform covering metrics, logs, traces, APM, and security. The most common alternative to Prometheus+Grafana in scale-ups.",
+      "proficiency_levels": {
+        "beginner": "Reads existing dashboards and runs basic queries.",
+        "intermediate": "Instruments applications, configures monitors and SLOs, writes log pipelines.",
+        "advanced": "Designs platform-wide observability strategy, manages cost via index sampling, integrates Datadog with incident-management workflows."
+      },
+      "tags": ["observability", "apm", "saas"],
+      "common_roles": ["sre", "devops_engineer"],
+      "related_skills": ["observability_engineering", "incident_response_forensics"]
+    },
+    {
+      "id": "observability_engineering",
+      "name": "Observability Engineering",
+      "category": "technical_skill",
+      "description": "Designing and operating the metrics / logs / traces stack that lets engineers debug production. Includes SLI/SLO design, instrumentation strategy, alert calibration, and on-call workflow.",
+      "proficiency_levels": {
+        "beginner": "Reads dashboards and contributes to runbook documentation.",
+        "intermediate": "Instruments services, defines SLIs, designs alert rules with clear severity and ownership.",
+        "advanced": "Sets observability strategy across an org, balances cost vs signal, designs the on-call escalation policy and post-incident process."
+      },
+      "tags": ["observability", "sre", "monitoring"],
+      "common_roles": ["sre", "platform_engineer", "devops_engineer"],
+      "related_skills": ["incident_response_forensics", "cloud_platforms_devops"]
+    },
+    {
+      "id": "opentelemetry",
+      "name": "OpenTelemetry",
+      "category": "technical_skill",
+      "description": "Vendor-neutral observability framework providing standard APIs, SDKs, and conventions for metrics, traces, and logs. Increasingly the default instrumentation layer.",
+      "proficiency_levels": {
+        "beginner": "Uses auto-instrumentation for a single service.",
+        "intermediate": "Adds manual spans, configures collectors, exports to multiple backends.",
+        "advanced": "Designs org-wide instrumentation conventions, contributes upstream, runs collector at scale with custom processors."
+      },
+      "tags": ["observability", "tracing", "standard"],
+      "common_roles": ["sre", "platform_engineer"],
+      "related_skills": ["observability_engineering", "grafana"]
+    },
+    {
+      "id": "cassandra",
+      "name": "Apache Cassandra",
+      "category": "technical_skill",
+      "description": "Wide-column distributed NoSQL database for high write throughput across geographically-distributed clusters.",
+      "proficiency_levels": {
+        "beginner": "Runs CQL queries against existing tables.",
+        "intermediate": "Designs partition keys for query patterns, manages compaction strategies.",
+        "advanced": "Operates multi-datacenter clusters, tunes JVM and read-repair, designs schemas for time-series and high-write workloads."
+      },
+      "tags": ["nosql", "wide-column", "distributed"],
+      "common_roles": ["backend_engineer", "data_engineer"],
+      "related_skills": ["databases", "backend_development"]
+    },
+    {
+      "id": "clickhouse",
+      "name": "ClickHouse",
+      "category": "technical_skill",
+      "description": "Columnar OLAP database engineered for sub-second analytical queries on billions of rows. Common in observability stacks and product analytics.",
+      "proficiency_levels": {
+        "beginner": "Runs basic SQL queries.",
+        "intermediate": "Designs partitioning + ordering keys, uses materialized views, manages replicated tables.",
+        "advanced": "Operates ClickHouse clusters at scale, tunes merge tree settings, designs ingestion patterns for high cardinality data."
+      },
+      "tags": ["olap", "columnar", "analytics"],
+      "common_roles": ["data_engineer", "platform_engineer"],
+      "related_skills": ["databases", "sql"]
+    },
+    {
+      "id": "dbt",
+      "name": "dbt",
+      "category": "technical_skill",
+      "description": "Data build tool — SQL-based transformation framework that brings software-engineering practices (version control, testing, modular models) to analytics pipelines.",
+      "proficiency_levels": {
+        "beginner": "Writes simple models against existing sources.",
+        "intermediate": "Designs models with refs and tests, manages packages, uses dbt Cloud for orchestration.",
+        "advanced": "Architects multi-project dbt mesh, designs CI/CD for analytics, mentors the analytics-engineering team."
+      },
+      "tags": ["analytics-engineering", "elt", "sql"],
+      "common_roles": ["analytics_engineer", "data_engineer"],
+      "related_skills": ["sql", "bi_tools"]
+    },
+    {
+      "id": "jira",
+      "name": "Jira",
+      "category": "technical_skill",
+      "description": "Issue tracking and agile project management tool widely used in engineering organizations for sprints, backlogs, and cross-team coordination.",
+      "proficiency_levels": {
+        "beginner": "Creates and updates tickets.",
+        "intermediate": "Designs custom workflows, builds JQL queries and dashboards, manages epics and releases.",
+        "advanced": "Administers Jira at org-scale, designs project hierarchies, integrates with CI and incident tools."
+      },
+      "tags": ["project-management", "issue-tracking", "agile"],
+      "common_roles": ["product_manager", "engineering_manager"],
+      "related_skills": ["agile_practices", "workflow_automation"]
+    },
+    {
+      "id": "confluence",
+      "name": "Confluence",
+      "category": "technical_skill",
+      "description": "Atlassian knowledge-base and documentation platform. Common companion to Jira for product specs, runbooks, and team wikis.",
+      "proficiency_levels": {
+        "beginner": "Edits existing pages.",
+        "intermediate": "Designs space structures, uses templates and macros, links pages to Jira.",
+        "advanced": "Manages information architecture across the org, sets documentation standards, drives knowledge-management practice."
+      },
+      "tags": ["documentation", "knowledge-base", "wiki"],
+      "common_roles": ["product_manager", "technical_writer"],
+      "related_skills": ["technical_documentation"]
+    },
+    {
+      "id": "slack",
+      "name": "Slack",
+      "category": "technical_skill",
+      "description": "Team messaging platform. Beyond chat, includes bot integration, workflow automation, channel architecture, and integration with engineering and operations tools.",
+      "proficiency_levels": {
+        "beginner": "Uses channels and DMs.",
+        "intermediate": "Designs channel naming conventions, builds workflows with Slack apps and Zapier, integrates with PagerDuty and CI.",
+        "advanced": "Administers enterprise Slack, designs integration architectures, manages SSO and compliance."
+      },
+      "tags": ["collaboration", "messaging", "workflow"],
+      "common_roles": ["any"],
+      "related_skills": ["workflow_automation"]
+    },
+    {
+      "id": "monday_com",
+      "name": "monday.com",
+      "category": "technical_skill",
+      "description": "Work-OS platform for project tracking, CRM, and operational dashboards. Popular in Israeli companies; flexible relational data model.",
+      "proficiency_levels": {
+        "beginner": "Uses existing boards.",
+        "intermediate": "Builds custom boards with formulas and automations, designs workflows.",
+        "advanced": "Designs cross-board data architecture, integrates monday.com with external systems via API, leads monday.com adoption in an org."
+      },
+      "tags": ["project-management", "work-os", "il-popular"],
+      "common_roles": ["project_manager", "operations_manager"],
+      "related_skills": ["workflow_automation"]
+    },
+    {
+      "id": "netsuite",
+      "name": "NetSuite",
+      "category": "technical_skill",
+      "description": "Oracle's cloud ERP system covering accounting, inventory, CRM, and order management. Common in mid-market and scale-up finance operations.",
+      "proficiency_levels": {
+        "beginner": "Uses NetSuite for basic data entry.",
+        "intermediate": "Configures workflows, builds saved searches and reports, manages roles and permissions.",
+        "advanced": "Architects NetSuite implementations, designs custom records and SuiteScript automation, integrates NetSuite with external systems."
+      },
+      "tags": ["erp", "finance", "oracle"],
+      "common_roles": ["finance_operations", "controller"],
+      "related_skills": ["erp_systems", "financial_modeling"]
+    },
+    {
+      "id": "sap",
+      "name": "SAP",
+      "category": "technical_skill",
+      "description": "Enterprise resource planning suite covering finance, HR, supply chain, and operations. Common in large traditional enterprises and global rollouts.",
+      "proficiency_levels": {
+        "beginner": "Uses SAP modules for basic transactions.",
+        "intermediate": "Configures workflows in specific modules (FI/CO, MM, etc.), runs reports, manages master data.",
+        "advanced": "Architects SAP implementations, designs integration with external systems, leads SAP migrations or S/4HANA transitions."
+      },
+      "tags": ["erp", "enterprise"],
+      "common_roles": ["sap_consultant", "finance_operations"],
+      "related_skills": ["erp_systems"]
+    },
+    {
+      "id": "erp_systems",
+      "name": "ERP Systems",
+      "category": "operational_skill",
+      "description": "General competence with enterprise resource planning systems — concepts of master data, modular processes (finance, HR, procurement), workflow design, and integration patterns.",
+      "proficiency_levels": {
+        "beginner": "Knows what an ERP does and uses one module.",
+        "intermediate": "Designs cross-module workflows, manages master data, runs financial close cycles.",
+        "advanced": "Leads ERP implementations, designs integration architecture, optimizes processes across modules."
+      },
+      "tags": ["erp", "enterprise-software"],
+      "common_roles": ["finance_operations", "operations_manager"],
+      "related_skills": ["financial_modeling", "workflow_automation"]
+    },
+
+    {
+      "id": "c_cpp",
+      "name": "C / C++",
+      "category": "technical_skill",
+      "description": "Low-level systems programming languages. Common in performance-sensitive backends, embedded systems, kernel work, game engines, and high-frequency trading.",
+      "proficiency_levels": {
+        "beginner": "Reads C/C++ code, writes simple programs with stdlib.",
+        "intermediate": "Manages memory safely, uses RAII patterns, writes templates and uses STL effectively.",
+        "advanced": "Designs cache-friendly data structures, writes lock-free concurrent code, optimizes against profilers, contributes to large C++ codebases."
+      },
+      "tags": ["systems-programming", "low-level", "performance"],
+      "common_roles": ["backend_engineer", "embedded_engineer", "performance_engineer"],
+      "related_skills": ["programming_fundamentals", "performance_engineering"]
+    },
+    {
+      "id": "csharp_dotnet",
+      "name": "C# / .NET",
+      "category": "technical_skill",
+      "description": "Microsoft's general-purpose programming language and runtime. Common in enterprise backends, gaming (Unity), and Windows-stack development.",
+      "proficiency_levels": {
+        "beginner": "Reads C# code, writes simple console apps.",
+        "intermediate": "Builds ASP.NET Core services, uses Entity Framework, applies LINQ effectively.",
+        "advanced": "Designs distributed .NET architectures, optimizes performance, contributes to large enterprise codebases."
+      },
+      "tags": ["microsoft", "enterprise", "backend"],
+      "common_roles": ["backend_engineer", "enterprise_developer"],
+      "related_skills": ["programming_fundamentals", "backend_development"]
+    },
+    {
+      "id": "rust",
+      "name": "Rust",
+      "category": "technical_skill",
+      "description": "Systems programming language with memory-safety guarantees and zero-cost abstractions. Common in newer infrastructure tooling, embedded, and security-sensitive backends.",
+      "proficiency_levels": {
+        "beginner": "Reads Rust code, follows the borrow checker.",
+        "intermediate": "Writes idiomatic Rust with lifetimes and traits, uses async runtimes (tokio).",
+        "advanced": "Designs zero-allocation hot paths, writes unsafe code where justified, builds production async systems."
+      },
+      "tags": ["systems", "memory-safe", "modern"],
+      "common_roles": ["backend_engineer", "platform_engineer"],
+      "related_skills": ["programming_fundamentals", "backend_development"]
+    },
+    {
+      "id": "powershell",
+      "name": "PowerShell",
+      "category": "technical_skill",
+      "description": "Microsoft's task automation shell and scripting language. Standard for Windows server administration, Azure CLI work, and Active Directory automation.",
+      "proficiency_levels": {
+        "beginner": "Runs commands and basic scripts.",
+        "intermediate": "Writes modules with parameter validation, manages remoting and pipelines.",
+        "advanced": "Architects Windows automation at scale, contributes to DSC and idempotent deployment scripts."
+      },
+      "tags": ["scripting", "windows", "automation"],
+      "common_roles": ["it_administrator", "devops_engineer"],
+      "related_skills": ["scripting_automation", "windows_admin"]
+    },
+    {
+      "id": "perl",
+      "name": "Perl",
+      "category": "technical_skill",
+      "description": "Text-processing-strong scripting language. Still maintained in semiconductor/EDA toolchains, bioinformatics, legacy sysadmin work.",
+      "proficiency_levels": {
+        "beginner": "Reads Perl scripts, writes simple one-liners.",
+        "intermediate": "Builds CPAN-using scripts, uses regular expressions idiomatically.",
+        "advanced": "Maintains large Perl codebases, optimizes performance-critical scripts."
+      },
+      "tags": ["scripting", "legacy", "text-processing"],
+      "common_roles": ["chip_design_engineer", "sysadmin"],
+      "related_skills": ["scripting_automation"]
+    },
+    {
+      "id": "tcl",
+      "name": "Tcl",
+      "category": "technical_skill",
+      "description": "Scripting language pervasive in EDA / chip-design toolchains (Synopsys, Cadence, Mentor). Core skill for VLSI / silicon engineers.",
+      "proficiency_levels": {
+        "beginner": "Reads Tcl scripts.",
+        "intermediate": "Writes tool-flow scripts for synthesis, place-and-route, or DRC.",
+        "advanced": "Designs end-to-end EDA flows, integrates Tcl with Python and shell, mentors VLSI tooling team."
+      },
+      "tags": ["scripting", "eda", "vlsi"],
+      "common_roles": ["chip_design_engineer", "physical_design_engineer"],
+      "related_skills": ["scripting_automation"]
+    },
+    {
+      "id": "matlab",
+      "name": "MATLAB",
+      "category": "technical_skill",
+      "description": "Numerical computing environment widely used in control systems, signal processing, image analysis, and academic research.",
+      "proficiency_levels": {
+        "beginner": "Runs scripts and uses built-in functions.",
+        "intermediate": "Writes vectorized code, uses Simulink, builds simulation models.",
+        "advanced": "Designs production toolboxes, integrates MATLAB with C/C++ codegen, leads control-system development."
+      },
+      "tags": ["numerical-computing", "research", "engineering"],
+      "common_roles": ["control_engineer", "research_engineer"],
+      "related_skills": ["programming_fundamentals"]
+    },
+    {
+      "id": "r_language",
+      "name": "R",
+      "category": "technical_skill",
+      "description": "Statistical computing language with rich ecosystem for analysis and visualization. Common in academic research, biostatistics, and parts of analytics.",
+      "proficiency_levels": {
+        "beginner": "Loads data and runs simple analyses with built-in functions.",
+        "intermediate": "Uses tidyverse for data wrangling, builds ggplot2 visualizations, runs regression models.",
+        "advanced": "Builds production R packages, designs Shiny apps, optimizes performance with Rcpp."
+      },
+      "tags": ["statistics", "research", "analysis"],
+      "common_roles": ["data_scientist", "biostatistician"],
+      "related_skills": ["data_analysis"]
+    },
+    {
+      "id": "windows_admin",
+      "name": "Windows Systems Administration",
+      "category": "technical_skill",
+      "description": "Administering Windows Server, Active Directory, Group Policy, and the Microsoft-stack platform. Core skill for enterprise IT roles.",
+      "proficiency_levels": {
+        "beginner": "Manages user accounts and runs basic admin tasks.",
+        "intermediate": "Designs Group Policy, manages AD trusts, automates with PowerShell.",
+        "advanced": "Architects enterprise Windows environments, designs identity and access controls, leads OS-level security hardening."
+      },
+      "tags": ["windows", "active-directory", "enterprise-it"],
+      "common_roles": ["it_administrator", "systems_engineer"],
+      "related_skills": ["it_infrastructure_networking", "identity_access_management"]
+    },
+    {
+      "id": "macos_admin",
+      "name": "macOS Administration",
+      "category": "technical_skill",
+      "description": "Managing macOS endpoints at scale — MDM (Jamf / Kandji), Apple Business Manager, security baselines, and integration with enterprise IAM.",
+      "proficiency_levels": {
+        "beginner": "Manages a small fleet via MDM console.",
+        "intermediate": "Builds configuration profiles, automates with shell scripts, integrates with SSO and EDR.",
+        "advanced": "Architects fleet management for an org, designs zero-touch onboarding, leads endpoint security strategy."
+      },
+      "tags": ["macos", "mdm", "endpoint-management"],
+      "common_roles": ["it_administrator"],
+      "related_skills": ["endpoint_management", "identity_access_management"]
+    },
+    {
+      "id": "agile_practices",
+      "name": "Agile / Scrum / Kanban",
+      "category": "process",
+      "description": "Working knowledge of iterative software-delivery methodologies: sprint cadence, backlog grooming, retrospectives, story-pointing, and continuous improvement.",
+      "proficiency_levels": {
+        "beginner": "Participates in scrum ceremonies.",
+        "intermediate": "Facilitates sprint planning and retros, owns a backlog, coaches the team on agile practice.",
+        "advanced": "Designs agile transformation across teams, mentors scrum masters, tailors process to team and product stage."
+      },
+      "tags": ["agile", "scrum", "methodology"],
+      "common_roles": ["product_manager", "engineering_manager", "scrum_master"],
+      "related_skills": ["cross_functional_collaboration", "stakeholder_management"]
+    },
+    {
+      "id": "react_native",
+      "name": "React Native",
+      "category": "technical_skill",
+      "description": "Cross-platform mobile development framework using React. Common for shipping iOS + Android from one TypeScript codebase.",
+      "proficiency_levels": {
+        "beginner": "Builds simple screens with native components.",
+        "intermediate": "Integrates native modules, manages navigation and state, optimizes list performance.",
+        "advanced": "Architects production mobile apps, designs offline-first patterns, optimizes bundle size and startup."
+      },
+      "tags": ["mobile", "react", "cross-platform"],
+      "common_roles": ["mobile_engineer", "frontend_engineer"],
+      "related_skills": ["frontend_development"]
+    },
+    {
+      "id": "redux",
+      "name": "Redux",
+      "category": "technical_skill",
+      "description": "Predictable state-management library for React applications. Includes Redux Toolkit, RTK Query, and the broader Flux pattern.",
+      "proficiency_levels": {
+        "beginner": "Uses existing Redux stores.",
+        "intermediate": "Designs slices and selectors, uses RTK Query for server state.",
+        "advanced": "Architects state for complex apps, designs middleware, mentors on state-management decisions."
+      },
+      "tags": ["react", "state-management", "frontend"],
+      "common_roles": ["frontend_engineer"],
+      "related_skills": ["frontend_development"]
+    },
+    {
+      "id": "spring_boot",
+      "name": "Spring Boot",
+      "category": "technical_skill",
+      "description": "Java/Kotlin framework for production-ready microservices. Common in enterprise backends and high-throughput service architectures.",
+      "proficiency_levels": {
+        "beginner": "Builds simple Spring Boot apps with REST endpoints.",
+        "intermediate": "Designs services with Spring Security, JPA, and reactive patterns.",
+        "advanced": "Architects multi-service systems, tunes JVM and Spring container, leads Java-stack hiring."
+      },
+      "tags": ["java", "backend", "microservices"],
+      "common_roles": ["backend_engineer"],
+      "related_skills": ["backend_development", "api_design"]
+    },
+    {
+      "id": "playwright",
+      "name": "Playwright",
+      "category": "technical_skill",
+      "description": "Cross-browser end-to-end testing framework from Microsoft. Increasingly the default e2e tool for modern web apps, displacing Cypress and Selenium.",
+      "proficiency_levels": {
+        "beginner": "Writes simple test cases against a UI.",
+        "intermediate": "Designs fixtures, page-object patterns, and parallelization.",
+        "advanced": "Architects e2e test infrastructure, integrates with CI for visual regression and flaky-test detection."
+      },
+      "tags": ["testing", "e2e", "qa"],
+      "common_roles": ["qa_engineer", "frontend_engineer"],
+      "related_skills": ["test_automation_engineering"]
+    },
+    {
+      "id": "cursor_ai_editor",
+      "name": "Cursor (AI-Assisted IDE)",
+      "category": "technical_skill",
+      "description": "AI-first code editor with embedded LLM-assisted authoring, refactoring, and code search. Increasingly named as an expected developer tool in 2025 IL JDs.",
+      "proficiency_levels": {
+        "beginner": "Uses Cursor for completion and basic chat.",
+        "intermediate": "Uses agentic features, designs effective prompts for refactoring, integrates with existing workflows.",
+        "advanced": "Builds repo-specific rules and prompts, contributes patterns to team adoption, mentors on AI-coding practice."
+      },
+      "tags": ["ai-tools", "ide", "productivity"],
+      "common_roles": ["any_engineer"],
+      "related_skills": ["machine_learning_fundamentals"]
+    },
+    {
+      "id": "langgraph_framework",
+      "name": "LangGraph",
+      "category": "ai_ml_specialization",
+      "description": "Framework from LangChain for building stateful, multi-actor LLM applications as graphs. Common in agentic-AI architectures.",
+      "proficiency_levels": {
+        "beginner": "Builds simple LangGraph workflows with one or two nodes.",
+        "intermediate": "Designs multi-step agentic graphs with memory and human-in-the-loop.",
+        "advanced": "Architects production agent systems with LangGraph, designs reliability patterns, contributes to the ecosystem."
+      },
+      "tags": ["ai-agents", "llm", "langchain"],
+      "common_roles": ["ml_engineer", "ai_engineer"],
+      "related_skills": ["machine_learning_fundamentals", "natural_language_processing"]
+    },
+    {
+      "id": "workato_ipaas",
+      "name": "Workato",
+      "category": "technical_skill",
+      "description": "Enterprise iPaaS for workflow automation across business systems (Salesforce, NetSuite, HRIS, etc.). Common in scale-up RevOps and IT-automation roles.",
+      "proficiency_levels": {
+        "beginner": "Builds simple recipes from templates.",
+        "intermediate": "Designs error-handling, manages connections, integrates business-critical workflows.",
+        "advanced": "Architects org-wide iPaaS strategy, designs governance and monitoring of automations."
+      },
+      "tags": ["ipaas", "automation", "integration"],
+      "common_roles": ["revops_manager", "it_operations"],
+      "related_skills": ["workflow_automation", "api_integrations"]
+    },
+    {
+      "id": "okta_iam",
+      "name": "Okta / Identity SaaS",
+      "category": "IT Security",
+      "description": "Cloud identity provider (Okta, Auth0) for SSO, lifecycle management, and access governance. Common security-and-IT-foundation skill.",
+      "proficiency_levels": {
+        "beginner": "Manages users and basic SSO apps.",
+        "intermediate": "Designs lifecycle workflows, integrates SAML/OIDC apps, configures MFA and risk policies.",
+        "advanced": "Architects org-wide identity, designs zero-trust workflows, integrates Okta with IGA and IT-ops tooling."
+      },
+      "tags": ["iam", "sso", "identity"],
+      "common_roles": ["security_engineer", "it_administrator"],
+      "related_skills": ["identity_access_management"]
+    },
+    {
+      "id": "active_directory",
+      "name": "Active Directory",
+      "category": "technical_skill",
+      "description": "Microsoft's directory service for Windows-stack identity, authentication, and group policy. The backbone of most enterprise IT environments.",
+      "proficiency_levels": {
+        "beginner": "Manages users and groups.",
+        "intermediate": "Designs OU structure, Group Policy, and trust relationships.",
+        "advanced": "Architects multi-forest AD, designs migrations and hybrid Azure AD setups, leads identity-security hardening."
+      },
+      "tags": ["identity", "windows", "enterprise-it"],
+      "common_roles": ["it_administrator", "systems_engineer"],
+      "related_skills": ["identity_access_management", "windows_admin"]
+    },
+    {
+      "id": "virtualization",
+      "name": "Virtualization (VMware / Hyper-V)",
+      "category": "technical_skill",
+      "description": "Hypervisor management, VM lifecycle, resource pooling, and VDI/server-virtualization platforms. Foundational for data-center and hybrid infrastructure.",
+      "proficiency_levels": {
+        "beginner": "Creates and manages VMs.",
+        "intermediate": "Designs vSphere clusters, manages storage and networking, automates with PowerCLI.",
+        "advanced": "Architects data-center virtualization, designs DR and HA strategies, leads private-cloud transitions."
+      },
+      "tags": ["vmware", "infrastructure", "data-center"],
+      "common_roles": ["systems_engineer", "infrastructure_engineer"],
+      "related_skills": ["it_infrastructure_networking", "cloud_platforms"]
+    },
+    {
+      "id": "vmware_admin",
+      "name": "VMware",
+      "category": "technical_skill",
+      "description": "VMware product family — vSphere, NSX, vSAN, Horizon — for enterprise virtualization and software-defined data centers.",
+      "proficiency_levels": {
+        "beginner": "Uses vSphere console for routine VM ops.",
+        "intermediate": "Designs vSphere environments, manages clusters and storage, automates with PowerCLI.",
+        "advanced": "Architects SDDC environments, designs NSX networking, manages large-scale VMware operations."
+      },
+      "tags": ["vmware", "virtualization"],
+      "common_roles": ["systems_engineer"],
+      "related_skills": ["virtualization", "it_infrastructure_networking"]
+    },
+    {
+      "id": "cloudformation",
+      "name": "AWS CloudFormation",
+      "category": "technical_skill",
+      "description": "AWS's native infrastructure-as-code service. Templates declare stacks of AWS resources for deterministic provisioning.",
+      "proficiency_levels": {
+        "beginner": "Deploys existing templates.",
+        "intermediate": "Authors CloudFormation templates with parameters and mappings, integrates with CI.",
+        "advanced": "Designs cross-account stack architectures with StackSets, integrates with CDK or external IaC."
+      },
+      "tags": ["iac", "aws", "infrastructure"],
+      "common_roles": ["devops_engineer", "cloud_engineer"],
+      "related_skills": ["cloud_platforms_devops", "cloud_platforms"]
+    },
+    {
+      "id": "terragrunt",
+      "name": "Terragrunt",
+      "category": "technical_skill",
+      "description": "Thin wrapper around Terraform that adds DRY remote-state patterns, multi-account orchestration, and consistent module layouts.",
+      "proficiency_levels": {
+        "beginner": "Runs terragrunt apply on existing configs.",
+        "intermediate": "Designs Terragrunt-managed module hierarchies for multi-env infra.",
+        "advanced": "Architects cross-account Terragrunt at scale, designs CI integration, mentors infra-as-code practice."
+      },
+      "tags": ["iac", "terraform", "infrastructure"],
+      "common_roles": ["devops_engineer", "platform_engineer"],
+      "related_skills": ["cloud_platforms_devops"]
+    },
+    {
+      "id": "pulumi",
+      "name": "Pulumi",
+      "category": "technical_skill",
+      "description": "Infrastructure-as-code using general-purpose languages (TypeScript, Python, Go). Alternative to Terraform with stronger code-reuse and testing.",
+      "proficiency_levels": {
+        "beginner": "Deploys existing Pulumi programs.",
+        "intermediate": "Authors stacks with components and dependencies, integrates with CI.",
+        "advanced": "Designs cross-stack and cross-account Pulumi architectures, builds custom Pulumi components."
+      },
+      "tags": ["iac", "infrastructure", "modern"],
+      "common_roles": ["platform_engineer", "devops_engineer"],
+      "related_skills": ["cloud_platforms_devops"]
+    },
+    {
+      "id": "ansible",
+      "name": "Ansible",
+      "category": "technical_skill",
+      "description": "Agentless configuration management and automation tool using YAML playbooks. Common for server provisioning and operational automation.",
+      "proficiency_levels": {
+        "beginner": "Runs existing playbooks.",
+        "intermediate": "Writes playbooks with roles, manages inventories, uses Ansible Vault.",
+        "advanced": "Architects org-wide automation, designs custom modules, integrates with CI for compliance-as-code."
+      },
+      "tags": ["configuration-management", "automation", "infrastructure"],
+      "common_roles": ["devops_engineer", "sysadmin"],
+      "related_skills": ["cloud_platforms_devops", "scripting_automation"]
+    },
+    {
+      "id": "chef_config_mgmt",
+      "name": "Chef",
+      "category": "technical_skill",
+      "description": "Configuration management framework using Ruby DSL for declarative infrastructure. Common in legacy and large traditional environments.",
+      "proficiency_levels": {
+        "beginner": "Runs existing cookbooks.",
+        "intermediate": "Writes cookbooks and recipes, uses Test Kitchen for validation.",
+        "advanced": "Designs enterprise Chef architectures, manages Chef Server at scale."
+      },
+      "tags": ["configuration-management", "infrastructure"],
+      "common_roles": ["devops_engineer"],
+      "related_skills": ["cloud_platforms_devops"]
+    },
+    {
+      "id": "finops",
+      "name": "FinOps",
+      "category": "operational_skill",
+      "description": "Cloud financial operations — visibility, allocation, optimization, and accountability for cloud spend. Increasingly its own discipline in scale-ups.",
+      "proficiency_levels": {
+        "beginner": "Reads cloud-cost dashboards.",
+        "intermediate": "Designs cost allocation (tagging, accounts), implements rightsizing and savings-plan strategies.",
+        "advanced": "Architects org-wide FinOps practice, designs chargeback models, drives multi-million-dollar cost optimization."
+      },
+      "tags": ["cloud-cost", "operations"],
+      "common_roles": ["platform_engineer", "engineering_manager"],
+      "related_skills": ["cloud_platforms", "budget_forecasting"]
+    },
+
+    {
+      "id": "cybersecurity_general",
+      "name": "Cybersecurity (General)",
+      "category": "Cybersecurity",
+      "description": "Foundational understanding of cybersecurity principles — threat models, attack lifecycle, defense-in-depth, common controls. The umbrella skill named on most IL security JDs.",
+      "proficiency_levels": {
+        "beginner": "Understands core threat categories and basic defensive controls.",
+        "intermediate": "Designs defensive architecture for a specific domain (network, endpoint, application).",
+        "advanced": "Leads cybersecurity programs across an org, drives strategy across attack surfaces."
+      },
+      "tags": ["cybersecurity", "il-market-core"],
+      "common_roles": ["security_engineer", "security_analyst"],
+      "related_skills": ["threat_analysis_investigation", "incident_response_forensics"]
+    },
+    {
+      "id": "application_security",
+      "name": "Application Security",
+      "category": "Cybersecurity",
+      "description": "Security-engineering practice focused on shipping safe code — secure design review, SAST/DAST, threat modeling, secret management, dependency auditing.",
+      "proficiency_levels": {
+        "beginner": "Reads OWASP Top 10, runs SAST/DAST on apps.",
+        "intermediate": "Designs threat models, leads code reviews for security issues, integrates security into CI.",
+        "advanced": "Architects org-wide AppSec program, designs secure-by-default frameworks, mentors security champions."
+      },
+      "tags": ["appsec", "owasp", "secure-coding"],
+      "common_roles": ["security_engineer", "appsec_engineer"],
+      "related_skills": ["security_data_analysis", "threat_analysis_investigation"]
+    },
+    {
+      "id": "penetration_testing",
+      "name": "Penetration Testing",
+      "category": "Cybersecurity",
+      "description": "Authorized adversarial testing of systems to surface vulnerabilities. Includes web/API testing, network exploitation, and reporting findings to stakeholders.",
+      "proficiency_levels": {
+        "beginner": "Uses standard tools (Burp, nmap) on known-vulnerable labs.",
+        "intermediate": "Conducts scoped engagements end-to-end, writes professional reports.",
+        "advanced": "Leads pentest teams, designs custom tooling, conducts complex red-team operations."
+      },
+      "tags": ["pentest", "offensive-security"],
+      "common_roles": ["pentester", "red_team_engineer"],
+      "related_skills": ["offensive_security", "threat_analysis_investigation"]
+    },
+    {
+      "id": "offensive_security",
+      "name": "Offensive Security",
+      "category": "Cybersecurity",
+      "description": "Adversarial security practice — pentesting, red teaming, vulnerability research, exploit development. Common in IL given the country's strong offensive heritage.",
+      "proficiency_levels": {
+        "beginner": "Understands attacker mindset, uses common offensive tools.",
+        "intermediate": "Conducts red-team engagements, develops custom payloads, contributes vulnerabilities responsibly.",
+        "advanced": "Leads red-team programs, conducts novel research, develops exploits against well-defended targets."
+      },
+      "tags": ["red-team", "offensive", "il-heritage"],
+      "common_roles": ["red_team_engineer", "vulnerability_researcher"],
+      "related_skills": ["penetration_testing", "vulnerability_research"]
+    },
+    {
+      "id": "red_teaming",
+      "name": "Red Teaming",
+      "category": "Cybersecurity",
+      "description": "Long-form adversarial simulation against an organization's full security program. Goes beyond pentesting to test detection and response under realistic conditions.",
+      "proficiency_levels": {
+        "beginner": "Participates in red-team engagements.",
+        "intermediate": "Plans and executes scoped red-team operations including initial access, persistence, and lateral movement.",
+        "advanced": "Designs red-team programs, builds custom tradecraft, drives purple-team collaboration."
+      },
+      "tags": ["red-team", "adversarial"],
+      "common_roles": ["red_team_engineer"],
+      "related_skills": ["offensive_security", "penetration_testing"]
+    },
+    {
+      "id": "vulnerability_research",
+      "name": "Vulnerability Research",
+      "category": "Cybersecurity",
+      "description": "Discovering novel vulnerabilities in software / firmware / hardware. Includes fuzzing, reverse engineering, exploit development, and responsible disclosure.",
+      "proficiency_levels": {
+        "beginner": "Reads CVEs and reproduces known vulnerabilities.",
+        "intermediate": "Conducts fuzzing campaigns, discovers vulnerabilities in target software.",
+        "advanced": "Discovers high-impact vulnerabilities in well-hardened targets, presents research at conferences."
+      },
+      "tags": ["vulnerability-research", "research", "il-strong"],
+      "common_roles": ["vulnerability_researcher", "security_researcher"],
+      "related_skills": ["reverse_engineering", "offensive_security"]
+    },
+    {
+      "id": "reverse_engineering",
+      "name": "Reverse Engineering",
+      "category": "Cybersecurity",
+      "description": "Analyzing binaries, firmware, or protocols to understand behavior — for security research, malware analysis, or interoperability. Common skill in IL cybersecurity industry.",
+      "proficiency_levels": {
+        "beginner": "Uses disassemblers (Ghidra / IDA) on simple binaries.",
+        "intermediate": "Analyzes obfuscated code, traces complex control flow, identifies vulnerabilities or backdoors.",
+        "advanced": "Reverses hardware-level firmware, contributes to public RE tooling, leads malware-analysis teams."
+      },
+      "tags": ["reverse-engineering", "malware-analysis"],
+      "common_roles": ["malware_analyst", "vulnerability_researcher"],
+      "related_skills": ["vulnerability_research"]
+    },
+    {
+      "id": "detection_engineering",
+      "name": "Detection Engineering",
+      "category": "Cybersecurity",
+      "description": "Building detection logic — rules, queries, ML models — that surfaces attacker activity from telemetry. Bridges SOC operations with engineering practice.",
+      "proficiency_levels": {
+        "beginner": "Writes basic SIEM rules.",
+        "intermediate": "Designs detection content with MITRE ATT&CK coverage, tunes false-positive rates.",
+        "advanced": "Architects detection programs at scale, designs ML-based detections, leads SOC engineering."
+      },
+      "tags": ["detection", "soc", "siem"],
+      "common_roles": ["detection_engineer", "security_engineer"],
+      "related_skills": ["security_monitoring_detection", "siem_operations"]
+    },
+    {
+      "id": "siem_operations",
+      "name": "SIEM Operations",
+      "category": "Cybersecurity",
+      "description": "Operating security information and event management platforms — Splunk, Sentinel, Chronicle, Elastic Security — including data onboarding, rule tuning, and incident triage.",
+      "proficiency_levels": {
+        "beginner": "Runs canned queries and investigates alerts.",
+        "intermediate": "Designs data onboarding, writes correlation rules, manages content lifecycle.",
+        "advanced": "Architects SIEM programs at org scale, designs cost-aware ingestion strategies, leads SOC migrations."
+      },
+      "tags": ["siem", "soc", "operations"],
+      "common_roles": ["soc_analyst", "security_engineer"],
+      "related_skills": ["detection_engineering", "security_monitoring_detection"]
+    },
+    {
+      "id": "edr_endpoint_security",
+      "name": "EDR / Endpoint Detection & Response",
+      "category": "Cybersecurity",
+      "description": "Operating endpoint detection and response platforms (CrowdStrike, SentinelOne, MS Defender for Endpoint). Threat hunting, IOC management, response orchestration.",
+      "proficiency_levels": {
+        "beginner": "Reviews EDR alerts and runs basic investigations.",
+        "intermediate": "Tunes detection policies, runs hypothesis-driven threat hunts.",
+        "advanced": "Designs enterprise endpoint security strategy, manages large EDR deployments, integrates with SOAR."
+      },
+      "tags": ["edr", "endpoint", "il-heritage"],
+      "common_roles": ["security_engineer", "threat_hunter"],
+      "related_skills": ["endpoint_management", "detection_engineering"]
+    },
+    {
+      "id": "firewall_admin",
+      "name": "Firewall Administration",
+      "category": "Cybersecurity",
+      "description": "Designing, deploying, and operating network firewalls (Palo Alto, Check Point, Fortinet, AWS Network Firewall). Includes policy design and audit.",
+      "proficiency_levels": {
+        "beginner": "Manages rules on a single firewall.",
+        "intermediate": "Designs segmentation policies, manages multi-firewall environments, runs change-management.",
+        "advanced": "Architects enterprise firewall strategy, designs zero-trust micro-segmentation, leads network security."
+      },
+      "tags": ["network-security", "firewall"],
+      "common_roles": ["network_security_engineer"],
+      "related_skills": ["it_infrastructure_networking", "network_security"]
+    },
+    {
+      "id": "network_security",
+      "name": "Network Security",
+      "category": "Cybersecurity",
+      "description": "Securing network infrastructure — segmentation, traffic inspection, IDS/IPS, zero-trust access, DDoS protection. Network-layer defensive practice.",
+      "proficiency_levels": {
+        "beginner": "Understands network security primitives, manages basic ACLs.",
+        "intermediate": "Designs segmentation, manages IDS/IPS, runs network forensics.",
+        "advanced": "Architects zero-trust network strategy, designs SD-WAN security overlays, leads network-security teams."
+      },
+      "tags": ["network-security", "zero-trust"],
+      "common_roles": ["network_security_engineer", "security_architect"],
+      "related_skills": ["firewall_admin", "it_infrastructure_networking"]
+    },
+    {
+      "id": "cloud_security_general",
+      "name": "Cloud Security",
+      "category": "Cybersecurity",
+      "description": "Securing cloud workloads — IAM design, CSPM, workload runtime protection, cloud-native key management. The fastest-growing area of IL cybersecurity.",
+      "proficiency_levels": {
+        "beginner": "Manages IAM and runs basic CSPM scans.",
+        "intermediate": "Designs cloud security architecture across one or two cloud providers, integrates CNAPP tools.",
+        "advanced": "Architects multi-cloud security programs, leads cloud-security strategy across an org."
+      },
+      "tags": ["cloud-security", "cspm", "cnapp"],
+      "common_roles": ["cloud_security_engineer"],
+      "related_skills": ["cloud_security_posture", "cloud_platforms"]
+    },
+    {
+      "id": "information_security",
+      "name": "Information Security (General)",
+      "category": "Cybersecurity",
+      "description": "Broad InfoSec competence — data protection, identity, access control, security policy, risk management. The catch-all skill that maps to GRC and security-generalist tracks.",
+      "proficiency_levels": {
+        "beginner": "Understands CIA triad and basic security concepts.",
+        "intermediate": "Operates security controls across multiple domains, runs audits.",
+        "advanced": "Leads InfoSec programs, designs comprehensive security frameworks."
+      },
+      "tags": ["infosec", "general"],
+      "common_roles": ["security_analyst", "security_manager"],
+      "related_skills": ["security_policy_development", "risk_assessment_management"]
+    },
+    {
+      "id": "data_protection_practice",
+      "name": "Data Protection",
+      "category": "Cybersecurity",
+      "description": "Protecting data assets — DLP, encryption-at-rest and in-transit, key management, classification, retention. Bridges security and privacy compliance.",
+      "proficiency_levels": {
+        "beginner": "Implements basic DLP rules.",
+        "intermediate": "Designs data classification taxonomies, manages enterprise DLP, leads encryption rollouts.",
+        "advanced": "Architects org-wide data protection strategy, designs key-management infrastructure, leads privacy programs."
+      },
+      "tags": ["dlp", "encryption", "privacy"],
+      "common_roles": ["security_engineer", "privacy_engineer"],
+      "related_skills": ["compliance_general", "information_security"]
+    },
+    {
+      "id": "cissp_certification",
+      "name": "CISSP / Security Certifications",
+      "category": "Cybersecurity",
+      "description": "Industry-recognized security certifications (CISSP, CISM, OSCP, etc.). A credential signal commonly required for senior security roles.",
+      "proficiency_levels": {
+        "beginner": "Working toward a foundational cert (e.g. Security+).",
+        "intermediate": "Holds a mid-level cert and applies its body of knowledge in practice.",
+        "advanced": "Holds advanced certs (CISSP, OSCP) and mentors others on the corresponding domains."
+      },
+      "tags": ["certification", "credential"],
+      "common_roles": ["security_engineer", "security_manager"],
+      "related_skills": ["information_security"]
+    },
+
+    {
+      "id": "compliance_general",
+      "name": "Compliance (General)",
+      "category": "Governance & Compliance",
+      "description": "Working knowledge of regulatory compliance — interpreting requirements, designing controls, running audits, evidencing. Cuts across SOC 2 / ISO 27001 / GDPR / industry-specific frameworks.",
+      "proficiency_levels": {
+        "beginner": "Understands one or two frameworks at a working level.",
+        "intermediate": "Owns evidence collection and audit prep for specific frameworks.",
+        "advanced": "Designs compliance programs across multiple frameworks, leads enterprise audits."
+      },
+      "tags": ["compliance", "audit"],
+      "common_roles": ["compliance_analyst", "grc_manager"],
+      "related_skills": ["grc_frameworks", "security_policy_development"]
+    },
+    {
+      "id": "soc2_compliance",
+      "name": "SOC 2",
+      "category": "Governance & Compliance",
+      "description": "SOC 2 Trust Services Criteria — designing and operating controls for security, availability, processing integrity, confidentiality, and privacy. Common B2B SaaS requirement.",
+      "proficiency_levels": {
+        "beginner": "Reads SOC 2 reports.",
+        "intermediate": "Owns SOC 2 readiness for specific TSC, runs the audit cycle.",
+        "advanced": "Designs SOC 2 program at scale, manages multi-year cadence and continuous monitoring."
+      },
+      "tags": ["soc2", "compliance", "b2b-saas"],
+      "common_roles": ["compliance_analyst", "grc_manager"],
+      "related_skills": ["compliance_general", "grc_frameworks"]
+    },
+    {
+      "id": "iso_27001",
+      "name": "ISO 27001",
+      "category": "Governance & Compliance",
+      "description": "Information security management system (ISMS) certification under ISO 27001. Common requirement for enterprise sales and EU markets.",
+      "proficiency_levels": {
+        "beginner": "Knows the structure of an ISMS.",
+        "intermediate": "Maintains an existing ISMS, runs internal audits and management reviews.",
+        "advanced": "Leads ISO 27001 certification programs end-to-end, designs scope and Statement of Applicability."
+      },
+      "tags": ["iso27001", "isms", "compliance"],
+      "common_roles": ["compliance_manager"],
+      "related_skills": ["compliance_general", "grc_frameworks"]
+    },
+    {
+      "id": "gdpr_privacy",
+      "name": "GDPR / Privacy Compliance",
+      "category": "Governance & Compliance",
+      "description": "EU General Data Protection Regulation — data subject rights, lawful basis, DPIA, breach notification, processor / controller relationships. Common requirement for EU-serving products.",
+      "proficiency_levels": {
+        "beginner": "Understands GDPR principles at a working level.",
+        "intermediate": "Designs DSAR processes, runs DPIAs, manages processor agreements.",
+        "advanced": "Designs org-wide privacy programs, leads regulatory response, advises on novel processing activities."
+      },
+      "tags": ["gdpr", "privacy", "eu"],
+      "common_roles": ["privacy_officer", "compliance_manager"],
+      "related_skills": ["compliance_general", "data_protection_practice"]
+    },
+    {
+      "id": "nist_frameworks",
+      "name": "NIST Frameworks",
+      "category": "Governance & Compliance",
+      "description": "Applying NIST frameworks (CSF, 800-53, 800-171, AI RMF) to design security and risk programs. Common in US-federal-facing and high-regulation contexts.",
+      "proficiency_levels": {
+        "beginner": "Reads NIST documents and applies select controls.",
+        "intermediate": "Maps controls to NIST frameworks, runs NIST-based gap assessments.",
+        "advanced": "Designs full programs against NIST frameworks, leads federal-facing compliance work."
+      },
+      "tags": ["nist", "compliance", "federal"],
+      "common_roles": ["compliance_manager", "security_architect"],
+      "related_skills": ["compliance_general", "grc_frameworks"]
+    },
+    {
+      "id": "sdlc_practice",
+      "name": "SDLC (Software Development Lifecycle)",
+      "category": "process",
+      "description": "Working knowledge of the full software development lifecycle — requirements, design, build, test, release, maintain — and the secure-SDLC overlay.",
+      "proficiency_levels": {
+        "beginner": "Participates in SDLC ceremonies in one role.",
+        "intermediate": "Owns SDLC for a team, integrates security and quality gates.",
+        "advanced": "Designs SDLC across multiple teams, drives DORA-metric improvement."
+      },
+      "tags": ["sdlc", "process"],
+      "common_roles": ["engineering_manager", "security_engineer"],
+      "related_skills": ["agile_practices", "application_security"]
+    },
+
+    {
+      "id": "accounting_general",
+      "name": "Accounting (General)",
+      "category": "analytical_business_skill",
+      "description": "General accounting competence — chart of accounts, journal entries, accruals, financial statements, month-end close. The foundational finance-operations skill.",
+      "proficiency_levels": {
+        "beginner": "Records routine transactions and runs basic reports.",
+        "intermediate": "Owns month-end close for a function or entity, prepares financial statements.",
+        "advanced": "Designs accounting policy, leads close across multiple entities, manages external audit."
+      },
+      "tags": ["accounting", "finance"],
+      "common_roles": ["accountant", "controller"],
+      "related_skills": ["bookkeeping", "us_gaap_practice"]
+    },
+    {
+      "id": "bookkeeping",
+      "name": "Bookkeeping",
+      "category": "analytical_business_skill",
+      "description": "Recording, classifying, and reconciling routine financial transactions. The foundational accounting-operations skill.",
+      "proficiency_levels": {
+        "beginner": "Records basic transactions and reconciles bank statements.",
+        "intermediate": "Owns full-cycle bookkeeping for an entity, manages AP/AR and payroll input.",
+        "advanced": "Designs bookkeeping systems for multi-entity operations, integrates with ERP."
+      },
+      "tags": ["accounting", "operations"],
+      "common_roles": ["bookkeeper", "accountant"],
+      "related_skills": ["accounting_general"]
+    },
+    {
+      "id": "cpa_certification",
+      "name": "CPA",
+      "category": "analytical_business_skill",
+      "description": "Certified Public Accountant credential — typically required for senior controller and audit roles. Includes Israeli CPA (רואה חשבון) for IL employers.",
+      "proficiency_levels": {
+        "beginner": "Working toward CPA candidacy.",
+        "intermediate": "CPA-licensed and applying the body of knowledge.",
+        "advanced": "Senior CPA with significant audit / advisory / controller experience."
+      },
+      "tags": ["cpa", "certification", "finance"],
+      "common_roles": ["controller", "auditor"],
+      "related_skills": ["accounting_general"]
+    },
+    {
+      "id": "us_gaap_practice",
+      "name": "US GAAP",
+      "category": "analytical_business_skill",
+      "description": "US Generally Accepted Accounting Principles — revenue recognition, lease accounting, fair-value measurement, etc. Common requirement for IL companies with US operations or filings.",
+      "proficiency_levels": {
+        "beginner": "Knows the structure of US GAAP and applies core standards.",
+        "intermediate": "Owns revenue recognition or other ASC topics for an entity.",
+        "advanced": "Designs accounting policy under US GAAP, manages SOX compliance, leads IFRS-to-GAAP reconciliations."
+      },
+      "tags": ["us-gaap", "accounting", "il-us-companies"],
+      "common_roles": ["controller", "senior_accountant"],
+      "related_skills": ["accounting_general", "financial_modeling"]
+    },
+    {
+      "id": "payments_processing",
+      "name": "Payments / Payment Processing",
+      "category": "analytical_business_skill",
+      "description": "Knowledge of payment systems — card networks, ACH, wire, modern instant-payment rails — plus the operational and compliance practice (PCI, AML, chargebacks).",
+      "proficiency_levels": {
+        "beginner": "Understands payment-flow basics.",
+        "intermediate": "Designs payment integrations for specific rails, manages reconciliation.",
+        "advanced": "Architects payments platforms or compliance programs across multiple rails and jurisdictions."
+      },
+      "tags": ["payments", "fintech"],
+      "common_roles": ["payments_engineer", "fintech_product_manager"],
+      "related_skills": ["api_integrations", "compliance_general"]
+    },
+    {
+      "id": "investment_banking_skill",
+      "name": "Investment Banking",
+      "category": "analytical_business_skill",
+      "description": "Investment banking practice — M&A, capital markets, financial advisory, deal execution. Common transition path into fintech / corp-dev / venture roles.",
+      "proficiency_levels": {
+        "beginner": "Analyst-level work on transactions.",
+        "intermediate": "Associate-level — manages deal execution, builds models, leads diligence streams.",
+        "advanced": "Leads deal teams, manages client relationships at executive level."
+      },
+      "tags": ["finance", "transactions"],
+      "common_roles": ["investment_banker", "corporate_development"],
+      "related_skills": ["financial_modeling", "market_research_bd"]
+    },
+
+    {
+      "id": "consulting_practice",
+      "name": "Consulting",
+      "category": "consulting_core",
+      "description": "Strategy / management / technology consulting practice — structured problem-solving, hypothesis-driven analysis, executive presentation, project execution.",
+      "proficiency_levels": {
+        "beginner": "Analyst-level project participation.",
+        "intermediate": "Associate / consultant — owns workstreams, develops insights, presents to clients.",
+        "advanced": "Manager / principal — leads engagements, manages client relationships, mentors teams."
+      },
+      "tags": ["consulting", "strategy"],
+      "common_roles": ["consultant", "strategy_associate"],
+      "related_skills": ["analytical_thinking", "executive_presentation"]
+    },
+    {
+      "id": "business_analysis",
+      "name": "Business Analysis",
+      "category": "analytical_business_skill",
+      "description": "Translating business needs into structured requirements — process mapping, requirements elicitation, gap analysis. Bridges business stakeholders and engineering/product.",
+      "proficiency_levels": {
+        "beginner": "Documents existing processes.",
+        "intermediate": "Conducts requirements workshops, designs to-be processes, manages stakeholder sign-off.",
+        "advanced": "Leads enterprise transformation initiatives, designs analyst practice for an org."
+      },
+      "tags": ["business-analysis", "requirements"],
+      "common_roles": ["business_analyst", "product_owner"],
+      "related_skills": ["stakeholder_management", "process_design"]
+    },
+    {
+      "id": "procurement_practice",
+      "name": "Procurement",
+      "category": "operational_skill",
+      "description": "Purchasing practice — vendor sourcing, RFP management, contract negotiation, supplier relationship management. Common in scale-up operations roles.",
+      "proficiency_levels": {
+        "beginner": "Runs basic purchase orders.",
+        "intermediate": "Manages RFPs, negotiates contracts with mid-tier vendors.",
+        "advanced": "Designs procurement strategy at org scale, manages strategic supplier relationships."
+      },
+      "tags": ["procurement", "operations"],
+      "common_roles": ["procurement_manager", "operations_manager"],
+      "related_skills": ["contract_negotiation", "vendor_third_party_risk"]
+    },
+    {
+      "id": "logistics_practice",
+      "name": "Logistics",
+      "category": "operational_skill",
+      "description": "Supply-chain and logistics operations — shipping, customs, inventory, last-mile delivery. Specific to hardware / e-commerce / pharma / defense companies.",
+      "proficiency_levels": {
+        "beginner": "Manages routine shipments.",
+        "intermediate": "Designs logistics processes for specific lanes, manages 3PL relationships.",
+        "advanced": "Architects global supply-chain operations, leads logistics transformation."
+      },
+      "tags": ["logistics", "supply-chain"],
+      "common_roles": ["logistics_manager", "supply_chain_manager"],
+      "related_skills": ["operations_management"]
+    },
+    {
+      "id": "budget_management",
+      "name": "Budget Management",
+      "category": "analytical_business_skill",
+      "description": "Owning a budget — planning, tracking spend, forecasting, variance analysis, reforecast cycles. Common requirement for manager-level operations and engineering roles.",
+      "proficiency_levels": {
+        "beginner": "Tracks spend against an approved budget.",
+        "intermediate": "Builds annual budgets for a team, runs quarterly forecasts.",
+        "advanced": "Designs budget process for an org, drives strategic resource allocation."
+      },
+      "tags": ["budget", "finance-operations"],
+      "common_roles": ["engineering_manager", "operations_manager"],
+      "related_skills": ["budget_forecasting", "financial_modeling"]
+    },
+    {
+      "id": "vendor_management_practice",
+      "name": "Vendor Management",
+      "category": "operational_skill",
+      "description": "Managing third-party vendor relationships — selection, contracting, performance management, renewal. Distinct from procurement (which is the buying process) and vendor risk (which is security/compliance assessment).",
+      "proficiency_levels": {
+        "beginner": "Manages routine vendor interactions.",
+        "intermediate": "Owns vendor relationships including QBRs and renewals.",
+        "advanced": "Designs vendor management programs at org scale, leads strategic vendor portfolios."
+      },
+      "tags": ["vendor-management", "operations"],
+      "common_roles": ["operations_manager", "procurement_manager"],
+      "related_skills": ["procurement_practice", "vendor_third_party_risk"]
+    },
+    {
+      "id": "strategy_general",
+      "name": "Strategy",
+      "category": "strategic_skill",
+      "description": "Business strategy practice — market analysis, competitive positioning, strategic planning, scenario modeling. Common requirement for senior product, BD, and consulting roles.",
+      "proficiency_levels": {
+        "beginner": "Contributes to strategic analyses under direction.",
+        "intermediate": "Leads strategic workstreams, develops recommendations for senior leadership.",
+        "advanced": "Sets org-wide strategy, drives multi-year planning processes."
+      },
+      "tags": ["strategy", "planning"],
+      "common_roles": ["strategy_manager", "senior_product_manager"],
+      "related_skills": ["market_research_bd", "executive_presentation"]
+    },
+    {
+      "id": "research_practice",
+      "name": "Research (General)",
+      "category": "analytical_skill",
+      "description": "General research practice — desk research, primary research design, synthesis, structured argumentation. The umbrella skill that maps to many specialist research areas.",
+      "proficiency_levels": {
+        "beginner": "Conducts desk research and synthesizes findings.",
+        "intermediate": "Designs primary research studies, leads workstreams.",
+        "advanced": "Leads research teams, shapes research strategy for an org."
+      },
+      "tags": ["research", "analysis"],
+      "common_roles": ["analyst", "researcher"],
+      "related_skills": ["market_research", "user_research"]
+    },
+    {
+      "id": "qa_engineering",
+      "name": "QA Engineering",
+      "category": "technical_skill",
+      "description": "Software quality engineering — test design, automation, exploratory testing, release-quality processes. Distinct from test-automation tooling (which is a sub-skill).",
+      "proficiency_levels": {
+        "beginner": "Executes test cases, writes simple automated tests.",
+        "intermediate": "Designs test strategies for features, builds test automation infrastructure.",
+        "advanced": "Architects QA practice across an org, designs quality metrics and release gates."
+      },
+      "tags": ["qa", "testing"],
+      "common_roles": ["qa_engineer", "qa_lead"],
+      "related_skills": ["test_automation_engineering", "playwright"]
+    },
+    {
+      "id": "test_automation_engineering",
+      "name": "Test Automation",
+      "category": "technical_skill",
+      "description": "Building automated test suites — unit, integration, e2e, contract — and the supporting infrastructure (CI integration, parallelization, flakiness management).",
+      "proficiency_levels": {
+        "beginner": "Writes simple automated tests against existing frameworks.",
+        "intermediate": "Designs test pyramids, builds custom fixtures, integrates with CI.",
+        "advanced": "Architects org-wide test infrastructure, designs strategies for flake reduction and test-pyramid optimization."
+      },
+      "tags": ["test-automation", "qa"],
+      "common_roles": ["qa_engineer", "sdet"],
+      "related_skills": ["qa_engineering", "playwright"]
+    },
+    {
+      "id": "incident_response_general",
+      "name": "Incident Response",
+      "category": "Cybersecurity",
+      "description": "Responding to security incidents — triage, containment, eradication, recovery, post-incident analysis. Mirrors the existing forensics skill but covers the operational practice broadly.",
+      "proficiency_levels": {
+        "beginner": "Participates in incident response under guidance.",
+        "intermediate": "Leads incident response for specific incident types, owns post-incident review.",
+        "advanced": "Designs incident response programs, leads major incident response, mentors IR practice."
+      },
+      "tags": ["incident-response", "soc"],
+      "common_roles": ["incident_responder", "soc_analyst"],
+      "related_skills": ["incident_response_forensics", "detection_engineering"]
+    },
+    {
+      "id": "sre_practice",
+      "name": "Site Reliability Engineering (SRE)",
+      "category": "technical_skill",
+      "description": "Production reliability engineering — SLI/SLO design, error budgets, capacity planning, incident response, automation of toil. The Google-defined practice now standard in scale-ups.",
+      "proficiency_levels": {
+        "beginner": "Owns runbooks and runs incident response for a service.",
+        "intermediate": "Designs SLI/SLOs, automates operational tasks, owns reliability for a domain.",
+        "advanced": "Architects SRE practice across an org, designs reliability strategy, drives DORA-metric improvement."
+      },
+      "tags": ["sre", "reliability"],
+      "common_roles": ["sre", "platform_engineer"],
+      "related_skills": ["observability_engineering", "incident_response_general"]
+    },
+    {
+      "id": "platform_engineering",
+      "name": "Platform Engineering",
+      "category": "technical_skill",
+      "description": "Building internal developer platforms — golden paths, self-service tooling, paved-road frameworks. Bridges infrastructure and developer experience.",
+      "proficiency_levels": {
+        "beginner": "Maintains internal tools.",
+        "intermediate": "Designs developer-facing platforms with clear UX, integrates IaC and CI/CD.",
+        "advanced": "Architects org-wide internal platforms, drives platform strategy, treats developers as customers."
+      },
+      "tags": ["platform-engineering", "developer-experience"],
+      "common_roles": ["platform_engineer"],
+      "related_skills": ["cloud_platforms_devops", "sre_practice"]
+    },
+    {
+      "id": "data_engineering_general",
+      "name": "Data Engineering",
+      "category": "technical_skill",
+      "description": "Building and operating data infrastructure — pipelines, warehouses, lakes, streaming. Bridges software engineering and analytics.",
+      "proficiency_levels": {
+        "beginner": "Builds simple ETL pipelines.",
+        "intermediate": "Designs warehouse schemas, builds production data pipelines, manages orchestration.",
+        "advanced": "Architects org-wide data infrastructure, designs lakehouse strategies, leads data-platform teams."
+      },
+      "tags": ["data-engineering", "etl", "warehouse"],
+      "common_roles": ["data_engineer"],
+      "related_skills": ["sql", "airflow", "snowflake_warehouse"]
+    },
+    {
+      "id": "data_warehousing_practice",
+      "name": "Data Warehousing",
+      "category": "technical_skill",
+      "description": "Designing and operating data warehouses — schema design (star, snowflake, data vault), ELT patterns, performance tuning.",
+      "proficiency_levels": {
+        "beginner": "Queries existing warehouses.",
+        "intermediate": "Designs schemas, owns ELT pipelines, manages warehouse cost.",
+        "advanced": "Architects enterprise warehouse strategies, designs cross-warehouse data sharing."
+      },
+      "tags": ["data-warehouse", "schema-design"],
+      "common_roles": ["data_engineer", "analytics_engineer"],
+      "related_skills": ["snowflake_warehouse", "bigquery", "sql"]
+    },
+    {
+      "id": "etl_elt",
+      "name": "ETL / ELT",
+      "category": "technical_skill",
+      "description": "Designing and operating data movement pipelines — extract, transform, load patterns. Covers both classic ETL and modern ELT-with-warehouse patterns.",
+      "proficiency_levels": {
+        "beginner": "Builds simple data movement scripts.",
+        "intermediate": "Designs production ETL/ELT with orchestration, monitoring, and error handling.",
+        "advanced": "Architects org-wide data movement strategies, designs streaming and CDC patterns."
+      },
+      "tags": ["etl", "elt", "data-pipelines"],
+      "common_roles": ["data_engineer", "analytics_engineer"],
+      "related_skills": ["airflow", "dbt", "data_engineering_general"]
+    },
+
+    {
+      "id": "tcp_ip_networking",
+      "name": "TCP/IP Networking",
+      "category": "technical_skill",
+      "description": "Working knowledge of the TCP/IP stack — addressing, routing, protocols (HTTP, DNS, TLS), troubleshooting. The foundational network knowledge.",
+      "proficiency_levels": {
+        "beginner": "Understands the OSI layers and basic protocols.",
+        "intermediate": "Diagnoses network issues with packet captures, configures routing, manages DNS and TLS.",
+        "advanced": "Designs enterprise network architectures, optimizes performance at the protocol level."
+      },
+      "tags": ["networking", "tcp-ip", "il-iot-strong"],
+      "common_roles": ["network_engineer", "infrastructure_engineer"],
+      "related_skills": ["it_infrastructure_networking", "networking_fundamentals"]
+    },
+    {
+      "id": "dns_practice",
+      "name": "DNS",
+      "category": "technical_skill",
+      "description": "Domain Name System administration — record types, zones, propagation, modern DNS-as-security (DNSSEC, DoH, DoT). Common skill in IT and security ops.",
+      "proficiency_levels": {
+        "beginner": "Manages DNS records.",
+        "intermediate": "Designs zone topologies, manages multi-provider DNS for resilience.",
+        "advanced": "Architects enterprise DNS strategy including security overlay."
+      },
+      "tags": ["dns", "networking"],
+      "common_roles": ["network_engineer", "it_administrator"],
+      "related_skills": ["tcp_ip_networking", "it_infrastructure_networking"]
+    },
+
+    {
+      "id": "microsoft_office_suite",
+      "name": "Microsoft Office / 365 / Google Workspace",
+      "category": "technical_skill",
+      "description": "Productivity suite competence — Excel/Sheets, Word/Docs, PowerPoint/Slides, Outlook/Gmail. Foundational skill named on many business-and-operations JDs.",
+      "proficiency_levels": {
+        "beginner": "Uses basic features across the suite.",
+        "intermediate": "Builds complex spreadsheets, designs polished decks, manages collaboration features.",
+        "advanced": "Designs templates and macros for org use, integrates with workflow tools."
+      },
+      "tags": ["productivity", "office"],
+      "common_roles": ["any_business_role"],
+      "related_skills": ["excel_advanced_finance", "presentation_design"]
+    },
+
+    {
+      "id": "eda_tools",
+      "name": "EDA Tools",
+      "category": "technical_skill",
+      "description": "Electronic design automation toolchain — Synopsys / Cadence / Mentor flows for synthesis, place-and-route, simulation, DRC/LVS. Required for VLSI and physical-design roles.",
+      "proficiency_levels": {
+        "beginner": "Runs flows on existing designs.",
+        "intermediate": "Builds custom flow scripts, debugs convergence issues.",
+        "advanced": "Designs flow methodology for an org, optimizes for PPA across multiple processes."
+      },
+      "tags": ["eda", "vlsi", "il-industry"],
+      "common_roles": ["chip_design_engineer", "physical_design_engineer"],
+      "related_skills": ["tcl", "perl"]
     }
   ]
 } as const;
