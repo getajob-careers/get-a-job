@@ -1,0 +1,60 @@
+#!/usr/bin/env node
+// Regenerate src/lib/skillIdsGenerated.json from the canonical TS library.
+//
+// Run after edits to supabase/functions/_shared/libraries/01_skill_library.ts.
+// CI re-runs this in `npm run prebuild` so a stale committed file is caught
+// at build time, not in production.
+
+import { readFileSync, writeFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const ROOT = resolve(__dirname, "..");
+const SRC = resolve(ROOT, "supabase/functions/_shared/libraries/01_skill_library.ts");
+const OUT = resolve(ROOT, "src/lib/skillIdsGenerated.json");
+
+const raw = readFileSync(SRC, "utf-8");
+
+// Strip the `export const skillLibrary = ` wrapper to get pure JSON. The
+// schema validator already proves this file is parseable as JSON.
+const jsonStart = raw.indexOf("{");
+const jsonEnd = raw.lastIndexOf("}");
+if (jsonStart < 0 || jsonEnd <= jsonStart) {
+  console.error("Could not locate JSON body in", SRC);
+  process.exit(1);
+}
+const body = raw.slice(jsonStart, jsonEnd + 1);
+
+// Strip JS line comments — the validator does the same.
+const cleaned = body.replace(/^\s*\/\/.*$/gm, "");
+
+let lib;
+try {
+  lib = JSON.parse(cleaned);
+} catch (e) {
+  console.error("Parse failed:", e.message);
+  process.exit(1);
+}
+
+const items = lib.skill_library || [];
+const ids = items
+  .map((s) => s.id || s.skill_id)
+  .filter(Boolean)
+  .sort();
+
+writeFileSync(
+  OUT,
+  JSON.stringify(
+    {
+      generated_from: "supabase/functions/_shared/libraries/01_skill_library.ts",
+      generated_at: new Date().toISOString().slice(0, 10),
+      count: ids.length,
+      ids,
+    },
+    null,
+    2,
+  ) + "\n",
+);
+
+console.log(`Wrote ${ids.length} IDs to src/lib/skillIdsGenerated.json`);
