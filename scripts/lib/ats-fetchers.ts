@@ -83,6 +83,68 @@ export async function fetchGreenhouse(c: CompanyEntry): Promise<RawJob[]> {
   }));
 }
 
+// ───── Workable ──────────────────────────────────────────────────────
+//
+// Workable powers career pages at `apply.workable.com/{slug}`. The widget
+// API is public + unauthenticated — same endpoint that backs every
+// Workable customer's embedded job list.
+//
+//   GET https://apply.workable.com/api/v1/widget/accounts/{slug}?details=true
+//
+// The `?details=true` flag includes the full prose `description` inline
+// (without it, we'd need a per-job detail roundtrip). Returns active
+// postings only — no need to filter by state. Per-job fields are flat
+// (`city`/`state`/`country` are top-level, NOT nested under a `location`
+// object), and the stable ID is `shortcode`, not `id` (there is no `id`).
+//
+// Volume reality (probed 2026-05-24): of 5 seeded IL slugs (83North,
+// Comunix, Incredibuild, Powtoon, YouLeap) only Powtoon has any active
+// postings (6, all London — 0 IL). Most Workable accounts are dormant
+// or migrated away. Adapter ships for infra value + future expansion;
+// downstream filtering will drop the 0-IL companies via the standard
+// is_il=false path.
+export async function fetchWorkable(c: CompanyEntry): Promise<RawJob[]> {
+  if (!c.slug) return [];
+  const url = `https://apply.workable.com/api/v1/widget/accounts/${c.slug}?details=true`;
+  const data = await httpGetJson<{ jobs?: any[] }>(url);
+  const jobs = data.jobs ?? [];
+  return jobs.map((j) => {
+    // Build a Greenhouse-style "City, State, Country" location string from
+    // the flat fields. Used by the downstream classifier when there's no
+    // structured country code (Workable returns country NAME, not code).
+    const locParts = [j.city, j.state, j.country].filter((p) => p && p !== "");
+    const locStr = locParts.length > 0 ? locParts.join(", ") : null;
+    // Country is a full name (e.g. "Israel", "United Kingdom"). The IL
+    // classifier downstream does a /israel/i substring check, so passing
+    // the name through as structured_country lets us short-circuit the
+    // expensive city-map lookup for IL postings.
+    const country = (j.country || "").trim();
+    const structured_country = country
+      ? (/^(israel|il)$/i.test(country) ? "IL" : country)
+      : null;
+    return {
+      external_id:      String(j.shortcode ?? j.code ?? ""),
+      title:            j.title ?? "",
+      description_html: typeof j.description === "string" && j.description.trim().length > 0
+                          ? j.description
+                          : null,
+      location_raw:     locStr,
+      structured_country,
+      apply_url:        j.application_url ?? j.url ?? j.shortlink ?? "",
+      // published_on is the more meaningful "live for candidates" date;
+      // created_at is when the draft was first authored.
+      date_posted:      j.published_on ?? j.created_at ?? null,
+      // The widget response doesn't expose salary fields. Leaving null —
+      // the v4 extractor will pull salary from prose when present.
+      salary_min:       null,
+      salary_max:       null,
+      salary_currency:  null,
+      is_remote:        j.telecommuting === true || /remote/i.test(locStr ?? ""),
+      raw_payload:      j,
+    };
+  });
+}
+
 // ───── Lever ─────────────────────────────────────────────────────────
 
 export async function fetchLever(c: CompanyEntry): Promise<RawJob[]> {
@@ -472,4 +534,5 @@ export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = 
   smartrecruiters: fetchSmartRecruiters,
   comeet:          fetchComeet,
   successfactors:  fetchSuccessFactors,
+  workable:        fetchWorkable,
 };

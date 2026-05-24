@@ -97,11 +97,11 @@
       "industry": "Venture Capital",
       "domain": "83north.com",
       "careers_url": "https://apply.workable.com/83north/?lng=en",
-      "ats": "unknown",
+      "ats": "workable",
       "slug": "83north",
       "api_url": null,
-      "verified": false,
-      "notes": "IL/EU VC (formerly Greylock IL). Uses Workable (apply.workable.com/83north). Workable is NOT in the supported ATS list \u2014 mark unverified. Add a Workable fetcher in a future round if VC volume justifies (low expectation)."
+      "verified": true,
+      "notes": "Workable. IL/EU VC (formerly Greylock IL). Enabled via the Workable widget fetcher."
     },
     {
       "name": "Abnormal Security",
@@ -137,7 +137,7 @@
       "slug": "accenture.wd103.myworkdayjobs.com/AccentureCareers",
       "api_url": "https://accenture.wd103.myworkdayjobs.com/wday/cxs/accenture/AccentureCareers/jobs",
       "verified": true,
-      "notes": "Slug verified. Tenant returns 2000+ jobs globally and rejects searchText='Israel' with HTTP 422 (likely the prior cron failure mode) but accepts locationCountry filter \u2014 1 IL job (Penetration Tester, Kfar Saba). Recommendation: the cron's searchText='Israel' returns 422 here while searchText='' returns 2000 jobs but no Israel-specific filter applied. Slug itself is fine; the cron may want to fall back to locationCountry facet probe when searchText 422s."
+      "notes": "Slug verified. Tenant returns 2000+ jobs globally and rejects searchText='Israel' with HTTP 422 (likely the prior cron failure mode) but accepts locationCountry filter — 1 IL job (Penetration Tester, Kfar Saba). Recommendation: the cron's searchText='Israel' returns 422 here while searchText='' returns 2000 jobs but no Israel-specific filter applied. Slug itself is fine; the cron may want to fall back to locationCountry facet probe when searchText 422s."
     },
     {
       "name": "ActiveFence",
@@ -161,7 +161,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "ChemChina/Syngenta Group-owned. Cloudflare-protected (403 curl). Workday tenant probes (adama wd1/3) \u2014 HTTP_422 (not valid). Likely SAP SuccessFactors via parent ChemChina, but not on supported list. No verified public API."
+      "notes": "ChemChina/Syngenta Group-owned. Cloudflare-protected (403 curl). Workday tenant probes (adama wd1/3) — HTTP_422 (not valid). Likely SAP SuccessFactors via parent ChemChina, but not on supported list. No verified public API."
     },
     {
       "name": "Adaptive Shield",
@@ -197,7 +197,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Greenhouse EU board exists (job-boards.eu.greenhouse.io/addionics) \u2014 JSON API endpoint not publicly accessible via boards-api.greenhouse.io"
+      "notes": "Greenhouse EU board exists (job-boards.eu.greenhouse.io/addionics) — JSON API endpoint not publicly accessible via boards-api.greenhouse.io"
     },
     {
       "name": "Adobe",
@@ -245,7 +245,7 @@
       "slug": "aerospike",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/aerospike/jobs?content=true",
       "verified": true,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" finance search (Senior Account Manager Digital Natives Tel Aviv hybrid). API confirmed 3 IL jobs (Senior Account Executive Digital Natives, Senior Account Manager Digital Natives \u2014 both Tel Aviv)."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" finance search (Senior Account Manager Digital Natives Tel Aviv hybrid). API confirmed 3 IL jobs (Senior Account Executive Digital Natives, Senior Account Manager Digital Natives — both Tel Aviv)."
     },
     {
       "name": "Affirm",
@@ -329,7 +329,7 @@
       "slug": "77.002",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/77.002/positions?token=7722CAC16563B9003B902CAC772341E1656&details=true",
       "verified": true,
-      "notes": "Comeet UID 77.002 + token verified \u2014 API returned 200 (currently empty)"
+      "notes": "Comeet UID 77.002 + token verified — API returned 200 (currently empty)"
     },
     {
       "name": "Air Doctor",
@@ -341,7 +341,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Careers page hosted on air-dr.com; static fetch returned binary/image \u2014 likely JS SPA; no ATS detected"
+      "notes": "Careers page hosted on air-dr.com; static fetch returned binary/image — likely JS SPA; no ATS detected"
     },
     {
       "name": "Airtable",
@@ -365,7 +365,7 @@
       "slug": "aiven36",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/aiven36/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" full stack search (Senior Full Stack Engineer at Hod-Hasaron, Israel). API currently 0 IL \u2014 Hod Hasharon R&D position appears to have been filled."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" full stack search (Senior Full Stack Engineer at Hod-Hasaron, Israel). API currently 0 IL — Hod Hasharon R&D position appears to have been filled."
     },
     {
       "name": "Akamai",
@@ -413,7 +413,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "$850M IL early-stage VC. Note: Lever slug 'aleph' is a DIFFERENT company (Aleph Group ad-tech, international locations Latin America/SE Asia/Europe \u2014 NOT the IL VC). Aleph VC has no public ATS."
+      "notes": "$850M IL early-stage VC. Note: Lever slug 'aleph' is a DIFFERENT company (Aleph Group ad-tech, international locations Latin America/SE Asia/Europe — NOT the IL VC). Aleph VC has no public ATS."
     },
     {
       "name": "AlgoSec",
@@ -449,7 +449,7 @@
       "slug": "F8.00E",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/F8.00E/positions?token=8FE35F447F047F01AFA50EE23F835F43EF235F4&details=true",
       "verified": true,
-      "notes": "UID + token from static HTML; API returned 1 position, 1 IL-tagged. Low headcount/openings \u2014 small company."
+      "notes": "UID + token from static HTML; API returned 1 position, 1 IL-tagged. Low headcount/openings — small company."
     },
     {
       "name": "Allot",
@@ -461,7 +461,7 @@
       "slug": "C4.009",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/C4.009/positions?token=4C917ED1CB699217ED04C92B11217F2B11&details=true",
       "verified": true,
-      "notes": "Comeet UID C4.009 + token verified \u2014 API returns active jobs"
+      "notes": "Comeet UID C4.009 + token verified — API returns active jobs"
     },
     {
       "name": "Alony Hetz Properties & Investments",
@@ -497,7 +497,7 @@
       "slug": null,
       "api_url": "https://www.amazon.jobs/en/search.json",
       "verified": true,
-      "notes": "ALREADY IN REGISTRY (verified). Skip \u2014 no changes needed. Custom amazon.jobs search.json API (returns JSON). Includes AWS Tel Aviv + Annapurna Labs Haifa + Amazon Israel."
+      "notes": "ALREADY IN REGISTRY (verified). Skip — no changes needed. Custom amazon.jobs search.json API (returns JSON). Includes AWS Tel Aviv + Annapurna Labs Haifa + Amazon Israel."
     },
     {
       "name": "AMD",
@@ -557,7 +557,7 @@
       "slug": "analogdevices.wd1.myworkdayjobs.com/External",
       "api_url": "https://analogdevices.wd1.myworkdayjobs.com/wday/cxs/analogdevices/External/jobs",
       "verified": true,
-      "notes": "NEW (extra). Workday verified \u2014 954 total postings (0 IL with searchText=Israel, but API confirmed working). ADI Israel via Maxim Integrated acquisition (acquired Adesto + Maxim \u2014 but Maxim's Israel office in Ra'anana sold). Limited current IL presence."
+      "notes": "NEW (extra). Workday verified — 954 total postings (0 IL with searchText=Israel, but API confirmed working). ADI Israel via Maxim Integrated acquisition (acquired Adesto + Maxim — but Maxim's Israel office in Ra'anana sold). Limited current IL presence."
     },
     {
       "name": "Anaplan",
@@ -629,7 +629,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "No ATS hit; careers page is JS SPA \u2014 likely Comeet or custom but couldn't extract slug statically"
+      "notes": "No ATS hit; careers page is JS SPA — likely Comeet or custom but couldn't extract slug statically"
     },
     {
       "name": "Anthropic",
@@ -653,7 +653,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Comeet UID 91.00D found via comeet.com/jobs/anyclip URL; token not extractable from JS-rendered page \u2014 would need manual extraction"
+      "notes": "Comeet UID 91.00D found via comeet.com/jobs/anyclip URL; token not extractable from JS-rendered page — would need manual extraction"
     },
     {
       "name": "Anyscale",
@@ -737,7 +737,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Greenhouse board at boards.greenhouse.io/apono exists but boards-api.greenhouse.io/v1/boards/apono/jobs returns 404 \u2014 board may be set to internal/private mode"
+      "notes": "Greenhouse board at boards.greenhouse.io/apono exists but boards-api.greenhouse.io/v1/boards/apono/jobs returns 404 — board may be set to internal/private mode"
     },
     {
       "name": "Aporia",
@@ -761,7 +761,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Israel + US/UK ops, FDA-cleared gait device for knee osteoarthritis. Careers page does not expose ATS URLs. Skipped \u2014 needs deeper inspection."
+      "notes": "Israel + US/UK ops, FDA-cleared gait device for knee osteoarthritis. Careers page does not expose ATS URLs. Skipped — needs deeper inspection."
     },
     {
       "name": "Appcharge",
@@ -785,7 +785,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "ALREADY IN REGISTRY (unverified). Re-investigated: jobs.apple.com has a private internal API at /api/role/search but query format requires specific session/token; the public search.json endpoint at /api/v1/search returns 0 with location filter postLocation-IL (likely needs different filter token). Not a standard ATS \u2014 proprietary. IL R&D in Herzliya/Haifa (Anobit/PrimeSense)."
+      "notes": "ALREADY IN REGISTRY (unverified). Re-investigated: jobs.apple.com has a private internal API at /api/role/search but query format requires specific session/token; the public search.json endpoint at /api/v1/search returns 0 with location filter postLocation-IL (likely needs different filter token). Not a standard ATS — proprietary. IL R&D in Herzliya/Haifa (Anobit/PrimeSense)."
     },
     {
       "name": "Applied Materials",
@@ -797,7 +797,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NEW. Uses Eightfold AI (app.eightfold.ai/careers?domain=appliedmaterials.com) \u2014 not one of our supported ATSs. Migrated from Taleo/PeopleSoft. AMAT Israel R&D in Rehovot + Migdal HaEmek."
+      "notes": "NEW. Uses Eightfold AI (app.eightfold.ai/careers?domain=appliedmaterials.com) — not one of our supported ATSs. Migrated from Taleo/PeopleSoft. AMAT Israel R&D in Rehovot + Migdal HaEmek."
     },
     {
       "name": "AppLovin",
@@ -809,7 +809,7 @@
       "slug": "applovin",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/applovin/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Herzliya\" search (Business Development Manager eCommerce). Greenhouse board redirects to www.applovin.com/careers \u2014 they no longer host on Greenhouse. Skip."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Herzliya\" search (Business Development Manager eCommerce). Greenhouse board redirects to www.applovin.com/careers — they no longer host on Greenhouse. Skip."
     },
     {
       "name": "Appnext",
@@ -893,7 +893,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NEW. Uses iCIMS (earlycareers-arm.icims.com + experienced-arm.icims.com) \u2014 not one of our supported ATSs. ARM has small IL R&D office in Ra'anana (post Annapurna sibling)."
+      "notes": "NEW. Uses iCIMS (earlycareers-arm.icims.com + experienced-arm.icims.com) — not one of our supported ATSs. ARM has small IL R&D office in Ra'anana (post Annapurna sibling)."
     },
     {
       "name": "Armis",
@@ -917,7 +917,7 @@
       "slug": "armissecurity",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/armissecurity/jobs?content=true",
       "verified": true,
-      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" product manager search; API confirmed 1 IL job (Engineering Manager - Development Platform \u2014 Tel Aviv)."
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" product manager search; API confirmed 1 IL job (Engineering Manager - Development Platform — Tel Aviv)."
     },
     {
       "name": "ARMO",
@@ -1013,7 +1013,7 @@
       "slug": "asteralabs",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/asteralabs/jobs?content=true",
       "verified": true,
-      "notes": "Discovered via site:job-boards.greenhouse.io \"Haifa\" Greenhouse search and Israel agritech search; API confirmed 2 IL jobs (ASIC Design Student \u2014 Tel Aviv/Haifa; Chip Lead \u2014 Senior Director option)."
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Haifa\" Greenhouse search and Israel agritech search; API confirmed 2 IL jobs (ASIC Design Student — Tel Aviv/Haifa; Chip Lead — Senior Director option)."
     },
     {
       "name": "Astrix Security",
@@ -1049,7 +1049,7 @@
       "slug": "atbayjobs",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/atbayjobs/jobs?content=true",
       "verified": true,
-      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" account executive search; board page confirmed 1 IL job (Help Desk Specialist Part Time \u2014 Tel Aviv-Yafo, Gush Dan)."
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" account executive search; board page confirmed 1 IL job (Help Desk Specialist Part Time — Tel Aviv-Yafo, Gush Dan)."
     },
     {
       "name": "Atera",
@@ -1085,7 +1085,7 @@
       "slug": "atlassian.wd1.myworkdayjobs.com/External",
       "api_url": "https://atlassian.wd1.myworkdayjobs.com/wday/cxs/atlassian/External/jobs",
       "verified": false,
-      "notes": "Workday tenant returns HTTP 422 for all searchText variants and the landing page (https://atlassian.wd1.myworkdayjobs.com/External) redirects to community.workday.com/maintenance-page (HTTP 500). Tried payloads with/without searchText/Israel/locations facets \u2014 all fail. Atlassian still posts 23+ IL jobs via LinkedIn (atlassian.com/company/careers/all-jobs) but does not expose a working Workday cxs endpoint. Tenant appears to have migrated away from public Workday or kept it locked down. No supported-ATS fix found."
+      "notes": "Workday tenant returns HTTP 422 for all searchText variants and the landing page (https://atlassian.wd1.myworkdayjobs.com/External) redirects to community.workday.com/maintenance-page (HTTP 500). Tried payloads with/without searchText/Israel/locations facets — all fail. Atlassian still posts 23+ IL jobs via LinkedIn (atlassian.com/company/careers/all-jobs) but does not expose a working Workday cxs endpoint. Tenant appears to have migrated away from public Workday or kept it locked down. No supported-ATS fix found."
     },
     {
       "name": "AU10TIX",
@@ -1133,7 +1133,7 @@
       "slug": "autods",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/autods/jobs?content=true",
       "verified": true,
-      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" marketing search; API confirmed 5 IL jobs (Content Presenter YouTube&Video, Director of Partnerships, Paid Social UA Manager \u2014 all Tel Aviv hybrid)."
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" marketing search; API confirmed 5 IL jobs (Content Presenter YouTube&Video, Director of Partnerships, Paid Social UA Manager — all Tel Aviv hybrid)."
     },
     {
       "name": "Autofleet",
@@ -1181,7 +1181,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Azrieli.com landing page is e-commerce closure notice (2023). azrieligroup.com homepage exists. Jobs visible on drushim.co.il/jobs/search/azrieli/. No third-party ATS in supported set \u2014 uses aggregator listings."
+      "notes": "Azrieli.com landing page is e-commerce closure notice (2023). azrieligroup.com homepage exists. Jobs visible on drushim.co.il/jobs/search/azrieli/. No third-party ATS in supported set — uses aggregator listings."
     },
     {
       "name": "Backslash Security",
@@ -1229,7 +1229,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "GH EU board shown in search but boards-api returns 404 \u2014 board may have been deleted or set to internal"
+      "notes": "GH EU board shown in search but boards-api returns 404 — board may have been deleted or set to internal"
     },
     {
       "name": "Band",
@@ -1289,7 +1289,7 @@
       "slug": "batteryventures",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/batteryventures/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" intern search (2027 Summer Investment Internship \u2014 Boston/NY/SF rather than TLV). Tel Aviv office exists per company description but API shows 0 IL jobs."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" intern search (2027 Summer Investment Internship — Boston/NY/SF rather than TLV). Tel Aviv office exists per company description but API shows 0 IL jobs."
     },
     {
       "name": "BCG (Boston Consulting Group) Israel",
@@ -1313,7 +1313,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "BDO Israel \u2014 ~1600 employees, established 1983. Proprietary Hebrew careers page; no third-party ATS in supported set. BONUS."
+      "notes": "BDO Israel — ~1600 employees, established 1983. Proprietary Hebrew careers page; no third-party ATS in supported set. BONUS."
     },
     {
       "name": "Beamr",
@@ -1325,7 +1325,7 @@
       "slug": "A9.00B",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/A9.00B/positions?token=9AB43AD9AB57039AB135643AD43AD1D011D01&details=true",
       "verified": false,
-      "notes": "UID + token from static HTML; API returned 1 position (Serbia), 0 IL-tagged. Comeet wiring valid but currently no IL openings \u2014 fails strict 'at least 1 IL position' rule. Israeli-founded (Herzliya HQ), Nasdaq-listed; re-check later when hiring resumes in IL."
+      "notes": "UID + token from static HTML; API returned 1 position (Serbia), 0 IL-tagged. Comeet wiring valid but currently no IL openings — fails strict 'at least 1 IL position' rule. Israeli-founded (Herzliya HQ), Nasdaq-listed; re-check later when hiring resumes in IL."
     },
     {
       "name": "BeamUp",
@@ -1352,7 +1352,7 @@
       "notes": "Probed: greenhouse slug 'beewise' returns 200"
     },
     {
-      "name": "Bessemer Venture Partners \u2014 Israel",
+      "name": "Bessemer Venture Partners — Israel",
       "type": "israeli_subsidiary",
       "industry": "Venture Capital",
       "domain": "bvp.com",
@@ -1373,7 +1373,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "drushim.bezeq.co.il subdomain (DNS resolves but bot-blocked). Israel's incumbent telco \u2014 proprietary Hebrew careers portal, likely Niloog or in-house. No public API."
+      "notes": "drushim.bezeq.co.il subdomain (DNS resolves but bot-blocked). Israel's incumbent telco — proprietary Hebrew careers portal, likely Niloog or in-house. No public API."
     },
     {
       "name": "Bidalgo",
@@ -1481,7 +1481,7 @@
       "slug": "A5.000",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/A5.000/positions?token=5A01C2032A05A0B40010E0168027605A0&details=true",
       "verified": true,
-      "notes": "Comeet UID A5.000 + token verified; also has Lever listings (bizzabo.com) \u2014 Comeet is primary"
+      "notes": "Comeet UID A5.000 + token verified; also has Lever listings (bizzabo.com) — Comeet is primary"
     },
     {
       "name": "Blink Ops",
@@ -1517,7 +1517,7 @@
       "slug": "block",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/block/jobs",
       "verified": true,
-      "notes": "NEW (extra). Greenhouse verified \u2014 161 total postings (formerly Square; parent of Cash App + TIDAL + Tbd). Block has small IL R&D (acquired Verse + remote contractors)."
+      "notes": "NEW (extra). Greenhouse verified — 161 total postings (formerly Square; parent of Cash App + TIDAL + Tbd). Block has small IL R&D (acquired Verse + remote contractors)."
     },
     {
       "name": "Blockaid",
@@ -1601,7 +1601,7 @@
       "slug": "booking.wd3.myworkdayjobs.com/jobs",
       "api_url": "https://booking.wd3.myworkdayjobs.com/wday/cxs/booking/jobs/jobs",
       "verified": false,
-      "notes": "Original slug https://booking.wd3.myworkdayjobs.com/jobs returns HTTP 401 (system credentials) and the public host redirects to community.workday.com/invalid-url. Booking Holdings (parent) is hosted under https://priceline.wd1.myworkdayjobs.com/BookingHoldings \u2014 that endpoint works (returns global jobs) but yields 0 IL jobs for searchText Israel/Tel Aviv and probably wouldn't be tagged as Booking.com specifically. Recommend marking Booking.com Workday as unsupported; their Tel Aviv ML Center hires via careers.booking.com (custom)."
+      "notes": "Original slug https://booking.wd3.myworkdayjobs.com/jobs returns HTTP 401 (system credentials) and the public host redirects to community.workday.com/invalid-url. Booking Holdings (parent) is hosted under https://priceline.wd1.myworkdayjobs.com/BookingHoldings — that endpoint works (returns global jobs) but yields 0 IL jobs for searchText Israel/Tel Aviv and probably wouldn't be tagged as Booking.com specifically. Recommend marking Booking.com Workday as unsupported; their Tel Aviv ML Center hires via careers.booking.com (custom)."
     },
     {
       "name": "Bosch",
@@ -1613,7 +1613,7 @@
       "slug": "BoschGroup",
       "api_url": "https://api.smartrecruiters.com/v1/companies/BoschGroup/postings?limit=10",
       "verified": true,
-      "notes": "ALREADY IN REGISTRY (verified). Skip \u2014 confirmed working. Bosch Israel R&D in Haifa."
+      "notes": "ALREADY IN REGISTRY (verified). Skip — confirmed working. Bosch Israel R&D in Haifa."
     },
     {
       "name": "Boston Consulting Group",
@@ -1625,7 +1625,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Uses careers.bcg.com proprietary system \u2014 no third-party ATS"
+      "notes": "Uses careers.bcg.com proprietary system — no third-party ATS"
     },
     {
       "name": "Bounce",
@@ -1673,7 +1673,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "branchapp.com \u2014 no ATS found in search; likely custom"
+      "notes": "branchapp.com — no ATS found in search; likely custom"
     },
     {
       "name": "Brandlight",
@@ -1721,7 +1721,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "bria.ai \u2014 no ATS found via search"
+      "notes": "bria.ai — no ATS found via search"
     },
     {
       "name": "Bridgewise",
@@ -1817,7 +1817,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NASDAQ-listed (CSTE). Probed Workday wd1/wd3 'caesarstone' \u2014 HTTP_422 (not valid tenants). Greenhouse/Lever/Ashby \u2014 no real listings. Uses proprietary careers (404 curl). No public API on supported ATS."
+      "notes": "NASDAQ-listed (CSTE). Probed Workday wd1/wd3 'caesarstone' — HTTP_422 (not valid tenants). Greenhouse/Lever/Ashby — no real listings. Uses proprietary careers (404 curl). No public API on supported ATS."
     },
     {
       "name": "Calcalist",
@@ -1829,7 +1829,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Yedioth Group business newspaper. /careers blocked (403). Same parent as Ynet \u2014 internal HR, no third-party ATS."
+      "notes": "Yedioth Group business newspaper. /careers blocked (403). Same parent as Ynet — internal HR, no third-party ATS."
     },
     {
       "name": "Calendly",
@@ -1949,7 +1949,7 @@
       "slug": "C3.00F",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/C3.00F/positions?token=3CF130BF3C0B6D16DA1AA9B6D130B16DA&details=true",
       "verified": true,
-      "notes": "Comeet UID C3.00F + token verified \u2014 note case-sensitive slug 'Cellebrite' on comeet"
+      "notes": "Comeet UID C3.00F + token verified — note case-sensitive slug 'Cellebrite' on comeet"
     },
     {
       "name": "Centrical",
@@ -1973,7 +1973,7 @@
       "slug": "cerebrassystems",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/cerebrassystems/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via \"job-boards.greenhouse.io\" Cyera careers search showing Cerebras as a Greenhouse user. API confirmed 0 IL jobs (Sunnyvale/Toronto/Vancouver only) \u2014 no Israel R&D presence confirmed."
+      "notes": "Surfaced via \"job-boards.greenhouse.io\" Cyera careers search showing Cerebras as a Greenhouse user. API confirmed 0 IL jobs (Sunnyvale/Toronto/Vancouver only) — no Israel R&D presence confirmed."
     },
     {
       "name": "Chainalysis",
@@ -1985,7 +1985,7 @@
       "slug": "chainalysis-careers",
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/chainalysis-careers?includeCompensation=true",
       "verified": true,
-      "notes": "US-founded blockchain analytics firm with a substantial Tel Aviv R&D office (Hexagate team integration). Ashby API verified 200 \u2014 2 IL jobs confirmed (Senior Product Specialist Tel Aviv; Senior Software Engineer Hexagate Tel Aviv). Discovered via site:jobs.ashbyhq.com 'Tel Aviv' site search."
+      "notes": "US-founded blockchain analytics firm with a substantial Tel Aviv R&D office (Hexagate team integration). Ashby API verified 200 — 2 IL jobs confirmed (Senior Product Specialist Tel Aviv; Senior Software Engineer Hexagate Tel Aviv). Discovered via site:jobs.ashbyhq.com 'Tel Aviv' site search."
     },
     {
       "name": "ChainGuard",
@@ -1997,7 +1997,7 @@
       "slug": "chainguard",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/chainguard/jobs?content=true",
       "verified": false,
-      "notes": "Greenhouse slug confirmed valid (found Founding AE Israel role in Google index). Direct API check during this run returned no IL roles in active board; mark verified=false but slug is correct. Worth registering \u2014 they're growing IL sales team."
+      "notes": "Greenhouse slug confirmed valid (found Founding AE Israel role in Google index). Direct API check during this run returned no IL roles in active board; mark verified=false but slug is correct. Worth registering — they're growing IL sales team."
     },
     {
       "name": "Character.AI",
@@ -2081,7 +2081,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "ALREADY IN REGISTRY (unverified). Skip \u2014 Cisco's jobs.cisco.com is a proprietary Cisco Talent Acquisition system (not Workday or Greenhouse). Large IL R&D (acquired Israeli companies: Meraki/Duo/Cilium-not-IL/Epsagon)."
+      "notes": "ALREADY IN REGISTRY (unverified). Skip — Cisco's jobs.cisco.com is a proprietary Cisco Talent Acquisition system (not Workday or Greenhouse). Large IL R&D (acquired Israeli companies: Meraki/Duo/Cilium-not-IL/Epsagon)."
     },
     {
       "name": "Citrix (Cloud Software Group)",
@@ -2105,7 +2105,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Angular-rendered Hebrew careers portal (proprietary Israeli HR system, likely Niloog or Hilan). No third-party ATS host visible. As expected for IL insurance \u2014 proprietary."
+      "notes": "Angular-rendered Hebrew careers portal (proprietary Israeli HR system, likely Niloog or Hilan). No third-party ATS host visible. As expected for IL insurance — proprietary."
     },
     {
       "name": "Clalit Health Services",
@@ -2177,7 +2177,7 @@
       "slug": "clickhouse",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/clickhouse/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" remote Python search (Senior Software Engineer Python and Data Ecosystem listed as eligible for remote-Israel). API currently 0 IL \u2014 they may add IL-eligible remote roles selectively."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" remote Python search (Senior Software Engineer Python and Data Ecosystem listed as eligible for remote-Israel). API currently 0 IL — they may add IL-eligible remote roles selectively."
     },
     {
       "name": "Cloudflare",
@@ -2225,7 +2225,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Central Bottling Company. Proprietary Israeli careers portal \u2014 Coca-Cola HBC Global uses SuccessFactors but Israeli franchise (CBC) runs separately. No public API."
+      "notes": "Central Bottling Company. Proprietary Israeli careers portal — Coca-Cola HBC Global uses SuccessFactors but Israeli franchise (CBC) runs separately. No public API."
     },
     {
       "name": "Codefresh",
@@ -2237,7 +2237,7 @@
       "slug": "octopus",
       "api_url": "https://api.lever.co/v0/postings/octopus?mode=json",
       "verified": true,
-      "notes": "Acquired by Octopus Deploy (2024) \u2014 careers now on jobs.lever.co/octopus; slug 'octopus' may have IL roles"
+      "notes": "Acquired by Octopus Deploy (2024) — careers now on jobs.lever.co/octopus; slug 'octopus' may have IL roles"
     },
     {
       "name": "CodeMonkey",
@@ -2357,7 +2357,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "compete.ai \u2014 no ATS found via search"
+      "notes": "compete.ai — no ATS found via search"
     },
     {
       "name": "Compugen",
@@ -2380,8 +2380,8 @@
       "ats": "workable",
       "slug": "comunix",
       "api_url": null,
-      "verified": false,
-      "notes": "Israeli social mobile gaming startup based in central Tel Aviv (makers of Pokerface). Founded 2019, raised $30M Series A in 2021. Uses Workable; slug 'comunix' confirmed. Would need Workable fetcher."
+      "verified": true,
+      "notes": "Workable (apply.workable.com/comunix). Enabled via the Workable widget fetcher."
     },
     {
       "name": "Confluent",
@@ -2393,7 +2393,7 @@
       "slug": "confluent",
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/confluent?includeCompensation=true",
       "verified": true,
-      "notes": "NEW (extra). Ashby verified \u2014 54 jobs globally (first: Senior Software Engineer). Confluent has limited IL presence (small remote team)."
+      "notes": "NEW (extra). Ashby verified — 54 jobs globally (first: Senior Software Engineer). Confluent has limited IL presence (small remote team)."
     },
     {
       "name": "Connatix",
@@ -2405,7 +2405,7 @@
       "slug": "jwp",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/jwp/jobs",
       "verified": true,
-      "notes": "Merged with JWP \u2014 Greenhouse slug 'jwp' verified 200"
+      "notes": "Merged with JWP — Greenhouse slug 'jwp' verified 200"
     },
     {
       "name": "Connecteam",
@@ -2477,7 +2477,7 @@
       "slug": "corelight",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/corelight/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" SDR search (Sales Engineer - Israel). API currently 0 IL \u2014 they hire periodically in Israel."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" SDR search (Sales Engineer - Israel). API currently 0 IL — they hire periodically in Israel."
     },
     {
       "name": "Coro",
@@ -2597,7 +2597,7 @@
       "slug": "cybereason",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/cybereason/jobs",
       "verified": true,
-      "notes": "Already verified \u2014 re-confirmed via direct curl"
+      "notes": "Already verified — re-confirmed via direct curl"
     },
     {
       "name": "CyberInt",
@@ -2813,7 +2813,7 @@
       "slug": "databricks",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/databricks/jobs",
       "verified": true,
-      "notes": "NEW (extra). Greenhouse verified \u2014 798 total postings, 2 IL today. Databricks IL R&D in Tel Aviv (acquired Okera + native team)."
+      "notes": "NEW (extra). Greenhouse verified — 798 total postings, 2 IL today. Databricks IL R&D in Tel Aviv (acquired Okera + native team)."
     },
     {
       "name": "Datadog",
@@ -2885,7 +2885,7 @@
       "slug": "nvidia.wd5.myworkdayjobs.com/login",
       "api_url": "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/login/jobs",
       "verified": true,
-      "notes": "Detected via external link https://jobs.nvidia.com/careers: workday tenant 'nvidia' | R4: agent's slug fix would duplicate another entry \u2014 skipped."
+      "notes": "Detected via external link https://jobs.nvidia.com/careers: workday tenant 'nvidia' | R4: agent's slug fix would duplicate another entry — skipped."
     },
     {
       "name": "Deel",
@@ -2969,7 +2969,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NEW (extra). ALREADY IN REGISTRY as Dell Technologies. Workday tenant verified (dell.wd1) but External site returns total:0 \u2014 the site path may be different (Dell's main site is probably External_Career_Site or similar). Existing entry uses different slug. Re-test needed manually. Dell IL R&D from EMC Israel acquisition (RSA Beer Sheva)."
+      "notes": "NEW (extra). ALREADY IN REGISTRY as Dell Technologies. Workday tenant verified (dell.wd1) but External site returns total:0 — the site path may be different (Dell's main site is probably External_Career_Site or similar). Existing entry uses different slug. Re-test needed manually. Dell IL R&D from EMC Israel acquisition (RSA Beer Sheva)."
     },
     {
       "name": "Deloitte",
@@ -3017,7 +3017,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Uses proprietary careers.dexcel.com portal; no recognizable ATS signature in HTML. Global positions accept CV via custom webform; small volume \u2014 likely not worth a custom fetcher."
+      "notes": "Uses proprietary careers.dexcel.com portal; no recognizable ATS signature in HTML. Global positions accept CV via custom webform; small volume — likely not worth a custom fetcher."
     },
     {
       "name": "Diagnostic Robotics",
@@ -3029,7 +3029,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Already in registry (note: actual ATS appears to be Workable apply.workable.com/diagnostic-robotics \u2014 Workable not in supported list. Existing registry entry may need ATS audit)."
+      "notes": "Already in registry (note: actual ATS appears to be Workable apply.workable.com/diagnostic-robotics — Workable not in supported list. Existing registry entry may need ATS audit)."
     },
     {
       "name": "DigitalOwl",
@@ -3101,7 +3101,7 @@
       "slug": "doitintl",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/doitintl/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" full stack search (Applied AI Engineer remote in Israel; Full Stack Engineer FE-Oriented). API currently 0 IL \u2014 Israel-remote roles cycle."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" full stack search (Applied AI Engineer remote in Israel; Full Stack Engineer FE-Oriented). API currently 0 IL — Israel-remote roles cycle."
     },
     {
       "name": "DoorDash",
@@ -3113,7 +3113,7 @@
       "slug": "doordashusa",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/doordashusa/jobs",
       "verified": true,
-      "notes": "NEW (extra). Greenhouse verified \u2014 468 total postings (slug is doordashusa not doordash). DoorDash IL R&D in Tel Aviv (acquired Wolt's IL team via Wolt acquisition)."
+      "notes": "NEW (extra). Greenhouse verified — 468 total postings (slug is doordashusa not doordash). DoorDash IL R&D in Tel Aviv (acquired Wolt's IL team via Wolt acquisition)."
     },
     {
       "name": "DoorLoop",
@@ -3137,7 +3137,7 @@
       "slug": "doorloopisrael",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/doorloopisrael/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via site:boards.greenhouse.io \"Israel\" search (DoorLoop Israel board listed). API returns 404 \u2014 board may have been retired or merged into a parent slug."
+      "notes": "Surfaced via site:boards.greenhouse.io \"Israel\" search (DoorLoop Israel board listed). API returns 404 — board may have been retired or merged into a parent slug."
     },
     {
       "name": "Doral Energy",
@@ -3161,7 +3161,7 @@
       "slug": "doubleverify",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/doubleverify/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" R&D engineer search (Senior AI Engineer mentions Tel Aviv R&D). API currently shows 0 IL-located jobs but the Tel Aviv R&D center is referenced in postings \u2014 mark unverified."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" R&D engineer search (Senior AI Engineer mentions Tel Aviv R&D). API currently shows 0 IL-located jobs but the Tel Aviv R&D center is referenced in postings — mark unverified."
     },
     {
       "name": "Drata",
@@ -3233,7 +3233,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "GH slug 'dynamicyield' exists but boards-api 404 \u2014 now part of Mastercard, careers may have moved"
+      "notes": "GH slug 'dynamicyield' exists but boards-api 404 — now part of Mastercard, careers may have moved"
     },
     {
       "name": "Earnix",
@@ -3269,7 +3269,7 @@
       "slug": "ebayinc.wd1.myworkdayjobs.com/jobs",
       "api_url": "https://ebayinc.wd1.myworkdayjobs.com/wday/cxs/ebayinc/jobs/jobs",
       "verified": false,
-      "notes": "Workday tenant ebayinc.wd1.myworkdayjobs.com returns 500 maintenance page and cxs endpoint returns 422. eBay has migrated to Phenom People (cdn.phenompeople.com / CareerConnectResources/EBAEBAUS) hosted at jobs.ebayinc.com \u2014 not a supported ATS. eBay still has 39+ IL jobs (Netanya, Tel Aviv) per LinkedIn but they aren't reachable via Workday API anymore. Recommend removing from Workday cron or switching to scraping jobs.ebayinc.com."
+      "notes": "Workday tenant ebayinc.wd1.myworkdayjobs.com returns 500 maintenance page and cxs endpoint returns 422. eBay has migrated to Phenom People (cdn.phenompeople.com / CareerConnectResources/EBAEBAUS) hosted at jobs.ebayinc.com — not a supported ATS. eBay still has 39+ IL jobs (Netanya, Tel Aviv) per LinkedIn but they aren't reachable via Workday API anymore. Recommend removing from Workday cron or switching to scraping jobs.ebayinc.com."
     },
     {
       "name": "ECI Telecom",
@@ -3329,7 +3329,7 @@
       "slug": "eko",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/eko/jobs?content=true",
       "verified": true,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" legal counsel search (General Counsel at Eko Tel Aviv). API confirmed 1 IL job (DevOps Engineer \u2014 Tel Aviv)."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" legal counsel search (General Counsel at Eko Tel Aviv). API confirmed 1 IL job (DevOps Engineer — Tel Aviv)."
     },
     {
       "name": "El Al",
@@ -3581,7 +3581,7 @@
       "slug": "expressvpn",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/expressvpn/jobs?content=true",
       "verified": true,
-      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" cybersecurity search; API confirmed 5 IL jobs (AI Customer Support, Customer Success Data Lead, Head of DevOps, Head of Influencer Marketing, Head of Product Growth \u2014 all Tel Aviv)."
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" cybersecurity search; API confirmed 5 IL jobs (AI Customer Support, Customer Success Data Lead, Head of DevOps, Head of Influencer Marketing, Head of Product Growth — all Tel Aviv)."
     },
     {
       "name": "EY (Ernst & Young)",
@@ -3605,7 +3605,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "RE-INVESTIGATED. Already unverified. EY uses proprietary ey.jobs/ey.com career portal (SAP SuccessFactors backend). No public REST API in supported set. | Duplicate of \"EY (Ernst & Young)\" entry which was promoted to SF \u2014 consider merging in future round."
+      "notes": "RE-INVESTIGATED. Already unverified. EY uses proprietary ey.jobs/ey.com career portal (SAP SuccessFactors backend). No public REST API in supported set. | Duplicate of \"EY (Ernst & Young)\" entry which was promoted to SF — consider merging in future round."
     },
     {
       "name": "F5",
@@ -3617,7 +3617,7 @@
       "slug": "ffive.wd5.myworkdayjobs.com/f5jobs",
       "api_url": "https://ffive.wd5.myworkdayjobs.com/wday/cxs/ffive/f5jobs/jobs",
       "verified": true,
-      "notes": "NEW (extra). Workday verified \u2014 searchText=Israel returns 3 jobs (Tel Aviv: Sr TPM, Solutions Engineer Defence Sector). F5 IL R&D in Tel Aviv (acquired NGINX + Threat Stack-not-IL + Volterra)."
+      "notes": "NEW (extra). Workday verified — searchText=Israel returns 3 jobs (Tel Aviv: Sr TPM, Solutions Engineer Defence Sector). F5 IL R&D in Tel Aviv (acquired NGINX + Threat Stack-not-IL + Volterra)."
     },
     {
       "name": "Factify",
@@ -3629,7 +3629,7 @@
       "slug": "A9.00F",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/A9.00F/positions?token=9AF43C9135E09AF5727306B043C93A1A&details=true",
       "verified": false,
-      "notes": "Seed Jan 2026 $63M (mega-seed). Smart document platform replacing PDFs. Comeet UID A9.00F + token 9AF43C9135E09AF5727306B043C93A1A verified. API returns 0 current positions but board exists \u2014 early-stage hiring may be private. Industry-leading round size for an Israeli seed."
+      "notes": "Seed Jan 2026 $63M (mega-seed). Smart document platform replacing PDFs. Comeet UID A9.00F + token 9AF43C9135E09AF5727306B043C93A1A verified. API returns 0 current positions but board exists — early-stage hiring may be private. Industry-leading round size for an Israeli seed."
     },
     {
       "name": "Faddom",
@@ -3773,7 +3773,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Large security firm \u2014 no obvious ATS in search; uses custom careers system"
+      "notes": "Large security firm — no obvious ATS in search; uses custom careers system"
     },
     {
       "name": "Foresight Automotive",
@@ -3833,7 +3833,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NEW (extra). Fortinet uses Oracle HCM (edel.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX) \u2014 not one of our supported ATSs. Fortinet has limited IL presence (small commercial)."
+      "notes": "NEW (extra). Fortinet uses Oracle HCM (edel.fa.us2.oraclecloud.com/hcmUI/CandidateExperience/en/sites/CX) — not one of our supported ATSs. Fortinet has limited IL presence (small commercial)."
     },
     {
       "name": "Fox Group",
@@ -3881,7 +3881,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Frutarom acquired by IFF (NYSE). IFF Global runs Workday \u2014 iff.wd1.myworkdayjobs.com may exist; recommend dedicated verification pass for IFF. Not handled in this run."
+      "notes": "Frutarom acquired by IFF (NYSE). IFF Global runs Workday — iff.wd1.myworkdayjobs.com may exist; recommend dedicated verification pass for IFF. Not handled in this run."
     },
     {
       "name": "Fullpath",
@@ -4061,7 +4061,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Enterprise uses proprietary careers.goldmansachs.com \u2014 no supported ATS"
+      "notes": "Enterprise uses proprietary careers.goldmansachs.com — no supported ATS"
     },
     {
       "name": "Gong",
@@ -4193,7 +4193,7 @@
       "slug": "89.009",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/89.009/positions?token=98942BF98998939361C9B39361C9B2FAD989&details=true",
       "verified": true,
-      "notes": "UID + token from static HTML at comeet.com/jobs/guideline/89.009; API returned 17 positions, 17 IL-tagged. US-founded retirement fintech but has significant IL R&D footprint per Comeet IL tags \u2014 treat as IL R&D hub."
+      "notes": "UID + token from static HTML at comeet.com/jobs/guideline/89.009; API returned 17 positions, 17 IL-tagged. US-founded retirement fintech but has significant IL R&D footprint per Comeet IL tags — treat as IL R&D hub."
     },
     {
       "name": "Gusto",
@@ -4217,7 +4217,7 @@
       "slug": "h2pro/A7.001",
       "api_url": "https://www.comeet.com/jobs/h2pro/A7.001",
       "verified": false,
-      "notes": "Comeet board confirmed (referenced from h2pro.co/careers and Comeet job links). Current snapshot returns 'no open positions' on Comeet \u2014 board active but empty. H2Pro is one of the most well-funded IL climatetech scaleups (decoupled electrolysis, Caesarea). Add to registry as unverified=false until jobs appear; cron will catch."
+      "notes": "Comeet board confirmed (referenced from h2pro.co/careers and Comeet job links). Current snapshot returns 'no open positions' on Comeet — board active but empty. H2Pro is one of the most well-funded IL climatetech scaleups (decoupled electrolysis, Caesarea). Add to registry as unverified=false until jobs appear; cron will catch."
     },
     {
       "name": "Haat",
@@ -4373,7 +4373,7 @@
       "slug": "hivestack",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/hivestack/jobs?content=true",
       "verified": true,
-      "notes": "Greenhouse board verified, empty at time of check (0 jobs). Subsidiary of Perion (Israeli parent) \u2014 programmatic DOOH ad-tech."
+      "notes": "Greenhouse board verified, empty at time of check (0 jobs). Subsidiary of Perion (Israeli parent) — programmatic DOOH ad-tech."
     },
     {
       "name": "Honeybook",
@@ -4457,7 +4457,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NEW. Huawei uses career.huawei.com \u2014 proprietary Chinese enterprise career system (campus4_index.html). No public ATS API. Huawei Israel R&D in Tel Aviv + Hod HaSharon (acquired Toga Networks + HexaTier + Sapience)."
+      "notes": "NEW. Huawei uses career.huawei.com — proprietary Chinese enterprise career system (campus4_index.html). No public ATS API. Huawei Israel R&D in Tel Aviv + Hod HaSharon (acquired Toga Networks + HexaTier + Sapience)."
     },
     {
       "name": "HUB Cyber Security",
@@ -4469,7 +4469,7 @@
       "slug": "07.00F",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/07.00F/positions?token=70F2A5A152D70F70F316903F8770F3169&details=true",
       "verified": false,
-      "notes": "UID + token from static HTML; API returned valid empty array (0 positions, 0 IL). Comeet wiring confirmed but no current openings \u2014 fails strict 'at least 1 IL position' rule. Company also had public legal/financial issues; may be in wind-down."
+      "notes": "UID + token from static HTML; API returned valid empty array (0 positions, 0 IL). Comeet wiring confirmed but no current openings — fails strict 'at least 1 IL position' rule. Company also had public legal/financial issues; may be in wind-down."
     },
     {
       "name": "HubSpot",
@@ -4553,7 +4553,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "ALREADY IN REGISTRY (unverified). Skip \u2014 IBM uses a proprietary IBM Talent careers.ibm.com system (formerly TAM). Major IL R&D (Haifa Research Lab, Red Hat IL, Trusteer)."
+      "notes": "ALREADY IN REGISTRY (unverified). Skip — IBM uses a proprietary IBM Talent careers.ibm.com system (formerly TAM). Major IL R&D (Haifa Research Lab, Red Hat IL, Trusteer)."
     },
     {
       "name": "IceCure Medical",
@@ -4565,7 +4565,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Netanya-based cryoablation medical device co. Careers page exists with filter UI but no detectable ATS URL \u2014 appears proprietary/WordPress. Skipped."
+      "notes": "Netanya-based cryoablation medical device co. Careers page exists with filter UI but no detectable ATS URL — appears proprietary/WordPress. Skipped."
     },
     {
       "name": "ICL Group",
@@ -4613,7 +4613,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Israeli precision-fermentation foodtech, world-first 100k+ liter facility, recently cleared to sell animal-free whey in Israel. Careers page uses 'Send us your CV' \u2014 no detectable ATS URLs. Skipped \u2014 open to a future pass if they add structured ATS."
+      "notes": "Israeli precision-fermentation foodtech, world-first 100k+ liter facility, recently cleared to sell animal-free whey in Israel. Careers page uses 'Send us your CV' — no detectable ATS URLs. Skipped — open to a future pass if they add structured ATS."
     },
     {
       "name": "Imperva",
@@ -4625,7 +4625,7 @@
       "slug": "thales.wd3.myworkdayjobs.com/Careers",
       "api_url": "https://thales.wd3.myworkdayjobs.com/wday/cxs/thales/Careers/jobs",
       "verified": true,
-      "notes": "Old site name 'job' returns HTTP 404 not found. Correct site name on the Thales tenant is 'Careers'. Probe with searchText 'Israel' returns 18 IL jobs at Imperva Ltd. (REHOVOT, TEL AVIV) \u2014 all clearly Imperva Israel R&D positions. Suggest updating slug to thales.wd3.myworkdayjobs.com/Careers and api_url to https://thales.wd3.myworkdayjobs.com/wday/cxs/thales/Careers/jobs."
+      "notes": "Old site name 'job' returns HTTP 404 not found. Correct site name on the Thales tenant is 'Careers'. Probe with searchText 'Israel' returns 18 IL jobs at Imperva Ltd. (REHOVOT, TEL AVIV) — all clearly Imperva Israel R&D positions. Suggest updating slug to thales.wd3.myworkdayjobs.com/Careers and api_url to https://thales.wd3.myworkdayjobs.com/wday/cxs/thales/Careers/jobs."
     },
     {
       "name": "Imubit",
@@ -4648,8 +4648,8 @@
       "ats": "workable",
       "slug": "incredibuild",
       "api_url": null,
-      "verified": false,
-      "notes": "Incredibuild Software Ltd. HQ in Tel Aviv (ToHa Tower, Yigal Alon 114). Israeli-founded build acceleration / distributed compilation platform. Uses Workable \u2014 not in supported fetcher set. Would need a Workable fetcher; slug 'incredibuild' confirmed on apply.workable.com. Discovered via site:apply.workable.com 'Tel Aviv' site search."
+      "verified": true,
+      "notes": "Workable (apply.workable.com/incredibuild). Enabled via the Workable widget fetcher."
     },
     {
       "name": "Inflection AI",
@@ -4697,7 +4697,7 @@
       "slug": "insightec/4A.004",
       "api_url": "https://www.comeet.com/jobs/insightec/4A.004",
       "verified": false,
-      "notes": "Duplicate entry note \u2014 see above; primary Insightec entry handles Comeet detection. Removed."
+      "notes": "Duplicate entry note — see above; primary Insightec entry handles Comeet detection. Removed."
     },
     {
       "name": "Instacart",
@@ -4721,7 +4721,7 @@
       "slug": "insulet.wd5.myworkdayjobs.com/insuletcareers",
       "api_url": "https://insulet.wd5.myworkdayjobs.com/wday/cxs/insulet/insuletcareers/jobs",
       "verified": true,
-      "notes": "Workday verified \u2014 POST to /wday/cxs/insulet/insuletcareers/jobs returns 298 total jobs. Insulet is US-HQ but operates a major R&D site in Israel (former Bigfoot Biomedical IL integration). Filter by IL location in job-cache fetcher."
+      "notes": "Workday verified — POST to /wday/cxs/insulet/insuletcareers/jobs returns 298 total jobs. Insulet is US-HQ but operates a major R&D site in Israel (former Bigfoot Biomedical IL integration). Filter by IL location in job-cache fetcher."
     },
     {
       "name": "Insurights",
@@ -4853,7 +4853,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "jobs.iai.co.il is anti-bot protected (Reblaze 'kramericaindustries' JS challenge). Defense contractor \u2014 clearance-gated proprietary portal. Note: 'iai' Greenhouse slug exists but is UK's 'Applied AI Industries', not IAI. No public API."
+      "notes": "jobs.iai.co.il is anti-bot protected (Reblaze 'kramericaindustries' JS challenge). Defense contractor — clearance-gated proprietary portal. Note: 'iai' Greenhouse slug exists but is UK's 'Applied AI Industries', not IAI. No public API."
     },
     {
       "name": "Israel Discount Bank",
@@ -4865,7 +4865,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Proprietary careers portal (200 OK). Standard Israeli bank model \u2014 Niloog or in-house. No public API endpoint."
+      "notes": "Proprietary careers portal (200 OK). Standard Israeli bank model — Niloog or in-house. No public API endpoint."
     },
     {
       "name": "Israel Electric Corporation (IEC)",
@@ -4877,7 +4877,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Government-owned utility. Proprietary Hebrew careers portal \u2014 recruitment governed by state tender rules. No public API."
+      "notes": "Government-owned utility. Proprietary Hebrew careers portal — recruitment governed by state tender rules. No public API."
     },
     {
       "name": "Israel Hayom",
@@ -4913,7 +4913,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Government-owned. Proprietary Hebrew careers \u2014 bound to public-sector tender rules. No public API."
+      "notes": "Government-owned. Proprietary Hebrew careers — bound to public-sector tender rules. No public API."
     },
     {
       "name": "Israel Shipyards",
@@ -4961,7 +4961,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "GH slug 'jetty' shown in search but boards-api 404 \u2014 board may be closed"
+      "notes": "GH slug 'jetty' shown in search but boards-api 404 — board may be closed"
     },
     {
       "name": "JFrog",
@@ -4997,7 +4997,7 @@
       "slug": "jj.wd5.myworkdayjobs.com/JJ",
       "api_url": "https://jj.wd5.myworkdayjobs.com/wday/cxs/jj/JJ/jobs",
       "verified": true,
-      "notes": "NEW. Workday verified \u2014 searchText=Israel returns 22 jobs (Kibbutz Shefayim, Yokneam \u2014 Product Specialist, Digital Solutions SW Team Leader, Customer Service Rep, NPD Quality TL, Safety Specialist). J&J Israel via Carmel-J&J Yokneam + commercial."
+      "notes": "NEW. Workday verified — searchText=Israel returns 22 jobs (Kibbutz Shefayim, Yokneam — Product Specialist, Digital Solutions SW Team Leader, Customer Service Rep, NPD Quality TL, Safety Specialist). J&J Israel via Carmel-J&J Yokneam + commercial."
     },
     {
       "name": "Jones",
@@ -5009,7 +5009,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Lever URL jobs.lever.co/getjones exists in search results but API endpoint returns 404 \u2014 board may be closed or postings hidden"
+      "notes": "Lever URL jobs.lever.co/getjones exists in search results but API endpoint returns 404 — board may be closed or postings hidden"
     },
     {
       "name": "JoyTunes",
@@ -5129,7 +5129,7 @@
       "slug": "2A.007",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/2A.007/positions?token=A2747111E755B5F0513847114711A274711&details=true",
       "verified": true,
-      "notes": "UID + token extracted from Comeet-hosted board at https://www.comeet.com/jobs/kelatechnologies/2A.007; API returned 27 positions, 27 IL-tagged. Distinct from 'KELA Targeted Cyber' (2A.004) already in registry \u2014 Kela Technologies is a different Israeli defense-tech startup founded 2024 by Alon Dror / Hamutal Meridor, backed by Sequoia/Lux, ~$300M raised."
+      "notes": "UID + token extracted from Comeet-hosted board at https://www.comeet.com/jobs/kelatechnologies/2A.007; API returned 27 positions, 27 IL-tagged. Distinct from 'KELA Targeted Cyber' (2A.004) already in registry — Kela Technologies is a different Israeli defense-tech startup founded 2024 by Alon Dror / Hamutal Meridor, backed by Sequoia/Lux, ~$300M raised."
     },
     {
       "name": "Keshet Media Group",
@@ -5141,7 +5141,7 @@
       "slug": "26.009",
       "api_url": null,
       "verified": false,
-      "notes": "Comeet UID 26.009 + token extracted from HTML but Comeet API returns HTTP 400 \u2014 UID/token format atypical (numeric-prefix UID). Needs manual re-discovery."
+      "notes": "Comeet UID 26.009 + token extracted from HTML but Comeet API returns HTTP 400 — UID/token format atypical (numeric-prefix UID). Needs manual re-discovery."
     },
     {
       "name": "Keter Plastic",
@@ -5165,7 +5165,7 @@
       "slug": "kla.wd1.myworkdayjobs.com/Search",
       "api_url": "https://kla.wd1.myworkdayjobs.com/wday/cxs/kla/Search/jobs",
       "verified": true,
-      "notes": "NEW. Workday verified \u2014 searchText=Israel returns 90 jobs (Yavne KLA Israel: Logistics, Optical Integration Engineer, Electrical Technician). Major IL R&D center in Yavne."
+      "notes": "NEW. Workday verified — searchText=Israel returns 90 jobs (Yavne KLA Israel: Logistics, Optical Integration Engineer, Electrical Technician). Major IL R&D center in Yavne."
     },
     {
       "name": "Klaviyo",
@@ -5249,7 +5249,7 @@
       "slug": "F3.007",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/F3.007/positions?token=3F713D3FDCFDC17CA3F713D3BE57EEBE5&details=true",
       "verified": true,
-      "notes": "UID + token from static HTML at comeet.com/jobs/somekhchaikin/F3.007; API returned 44 positions, 44 IL-tagged. KPMG's Israeli member firm Somekh Chaikin \u2014 distinct from 'KPMG' (lever) already in registry, which is a separate global feed."
+      "notes": "UID + token from static HTML at comeet.com/jobs/somekhchaikin/F3.007; API returned 44 positions, 44 IL-tagged. KPMG's Israeli member firm Somekh Chaikin — distinct from 'KPMG' (lever) already in registry, which is a separate global feed."
     },
     {
       "name": "Lakera",
@@ -5273,7 +5273,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Search confused with Laminar Projects/H2Ok; acquired by Rubrik in 2023 \u2014 careers now on Rubrik"
+      "notes": "Search confused with Laminar Projects/H2Ok; acquired by Rubrik in 2023 — careers now on Rubrik"
     },
     {
       "name": "Lasso Security",
@@ -5657,7 +5657,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Kadima, Israel HQ; ~150 employees; 8 active IL jobs per Glassdoor. Careers page uses an embedded form on magentamed.com without visible greenhouse/lever/comeet/ashby/workday hooks. Likely proprietary or a smaller ATS. Skipped \u2014 needs targeted ATS-detection pass via network inspection in browser."
+      "notes": "Kadima, Israel HQ; ~150 employees; 8 active IL jobs per Glassdoor. Careers page uses an embedded form on magentamed.com without visible greenhouse/lever/comeet/ashby/workday hooks. Likely proprietary or a smaller ATS. Skipped — needs targeted ATS-detection pass via network inspection in browser."
     },
     {
       "name": "Magic Software",
@@ -5741,7 +5741,7 @@
       "slug": "medtronic.wd1.myworkdayjobs.com/MedtronicCareers",
       "api_url": "https://medtronic.wd1.myworkdayjobs.com/wday/cxs/medtronic/MedtronicCareers/jobs",
       "verified": true,
-      "notes": "Workday verified \u2014 POST returns 1063 jobs. Medtronic owns Mazor Robotics (IL acquisition 2018) \u2014 IL hiring continues for the spine-surgery robotics line. Filter by IL location in fetcher. BONUS DISCOVERY (not in named list)."
+      "notes": "Workday verified — POST returns 1063 jobs. Medtronic owns Mazor Robotics (IL acquisition 2018) — IL hiring continues for the spine-surgery robotics line. Filter by IL location in fetcher. BONUS DISCOVERY (not in named list)."
     },
     {
       "name": "Meitar Law Offices",
@@ -5765,7 +5765,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Government-owned national water utility. Proprietary Hebrew careers portal \u2014 public-sector tender rules. No public API."
+      "notes": "Government-owned national water utility. Proprietary Hebrew careers portal — public-sector tender rules. No public API."
     },
     {
       "name": "Melio",
@@ -5801,7 +5801,7 @@
       "slug": "memed",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/memed/jobs",
       "verified": false,
-      "notes": "Historically used Greenhouse (boards.greenhouse.io/memed) \u2014 saw job IDs 5846180002, 6274366002, 5047799002 in indexes. Board currently returns 404/inactive. MeMed is Haifa-based personalized diagnostics, real ongoing hiring activity. Add as unverified=false; may have moved boards. Alternative: monitor me-med.com/careers directly."
+      "notes": "Historically used Greenhouse (boards.greenhouse.io/memed) — saw job IDs 5846180002, 6274366002, 5047799002 in indexes. Board currently returns 404/inactive. MeMed is Haifa-based personalized diagnostics, real ongoing hiring activity. Add as unverified=false; may have moved boards. Alternative: monitor me-med.com/careers directly."
     },
     {
       "name": "Mend",
@@ -5825,7 +5825,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Hebrew portal returns 200 but pure SPA \u2014 no ATS signature in HTML. Largest IL pension manager; proprietary HR stack expected for IL insurance."
+      "notes": "Hebrew portal returns 200 but pure SPA — no ATS signature in HTML. Largest IL pension manager; proprietary HR stack expected for IL insurance."
     },
     {
       "name": "Mentessa",
@@ -5849,7 +5849,7 @@
       "slug": "mercury",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/mercury/jobs",
       "verified": true,
-      "notes": "Greenhouse verified (54 jobs); small/emerging IL presence \u2014 mark_unverified for IL specifically"
+      "notes": "Greenhouse verified (54 jobs); small/emerging IL presence — mark_unverified for IL specifically"
     },
     {
       "name": "Mesh Payments",
@@ -5873,7 +5873,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "ALREADY IN REGISTRY (unverified). Skip \u2014 Meta uses metacareers.com, a fully proprietary in-house ATS (no Workday/Greenhouse). IL R&D in Tel Aviv (Onavo + WhatsApp engineering, FAIR-IL)."
+      "notes": "ALREADY IN REGISTRY (unverified). Skip — Meta uses metacareers.com, a fully proprietary in-house ATS (no Workday/Greenhouse). IL R&D in Tel Aviv (Onavo + WhatsApp engineering, FAIR-IL)."
     },
     {
       "name": "MetalBear",
@@ -5909,7 +5909,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "ALREADY IN REGISTRY (unverified). Re-investigated: uses proprietary Microsoft Careers system (jobs.careers.microsoft.com) backed by Microsoft Cloud HR \u2014 no documented public JSON API. ~3000+ in IL (Herzliya MS Israel R&D Center, Nuance/GitHub-IL). Recommendation: leave as unverified custom; cannot crack without scraping internal _next/data routes."
+      "notes": "ALREADY IN REGISTRY (unverified). Re-investigated: uses proprietary Microsoft Careers system (jobs.careers.microsoft.com) backed by Microsoft Cloud HR — no documented public JSON API. ~3000+ in IL (Herzliya MS Israel R&D Center, Nuance/GitHub-IL). Recommendation: leave as unverified custom; cannot crack without scraping internal _next/data routes."
     },
     {
       "name": "Migdal Insurance",
@@ -5921,7 +5921,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Career page returns 404 to direct fetch \u2014 JS-rendered Hebrew portal. Migdal Holdings (my.migdal.co.il) runs proprietary stack. No supported ATS."
+      "notes": "Career page returns 404 to direct fetch — JS-rendered Hebrew portal. Migdal Holdings (my.migdal.co.il) runs proprietary stack. No supported ATS."
     },
     {
       "name": "MIND",
@@ -6149,7 +6149,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "IL-founded medical imaging co (NASDAQ:NNOX). Careers page returned 404/timeout in investigation window \u2014 likely proprietary or low-volume. Worth re-checking in a future round."
+      "notes": "IL-founded medical imaging co (NASDAQ:NNOX). Careers page returned 404/timeout in investigation window — likely proprietary or low-volume. Worth re-checking in a future round."
     },
     {
       "name": "Nas Company",
@@ -6161,7 +6161,7 @@
       "slug": "nascompany",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/nascompany/jobs?content=true",
       "verified": true,
-      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" student search; API confirmed 1 IL job (Account Manager \u2014 Tel Aviv/Singapore/Dubai listing, requires understanding of Israeli startup landscape)."
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" student search; API confirmed 1 IL job (Account Manager — Tel Aviv/Singapore/Dubai listing, requires understanding of Israeli startup landscape)."
     },
     {
       "name": "Navina",
@@ -6221,7 +6221,7 @@
       "slug": "B7.002",
       "api_url": null,
       "verified": false,
-      "notes": "Comeet widget DETECTED (links to comeet.com/jobs/netafim/B7.002). UID is B7.002 but Comeet API token NOT exposed in public careers page or iframe \u2014 server-side rendered. Direct API hit without token returns 'Token is missing' error. Cannot verify API. Manual token extraction (browser DevTools / JS execution) required \u2014 Mexichem/Orbia subsidiary."
+      "notes": "Comeet widget DETECTED (links to comeet.com/jobs/netafim/B7.002). UID is B7.002 but Comeet API token NOT exposed in public careers page or iframe — server-side rendered. Direct API hit without token returns 'Token is missing' error. Cannot verify API. Manual token extraction (browser DevTools / JS execution) required — Mexichem/Orbia subsidiary."
     },
     {
       "name": "NetApp",
@@ -6245,7 +6245,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NEW. Netflix uses Eightfold AI (netflix.eightfold.ai/careers + explore.jobs.netflix.net) \u2014 not one of our supported ATSs. Lever has a 'netflix' board but it's empty/test (0 postings). Netflix has limited IL presence (small business team, no production R&D)."
+      "notes": "NEW. Netflix uses Eightfold AI (netflix.eightfold.ai/careers + explore.jobs.netflix.net) — not one of our supported ATSs. Lever has a 'netflix' board but it's empty/test (0 postings). Netflix has limited IL presence (small business team, no production R&D)."
     },
     {
       "name": "New Relic",
@@ -6293,7 +6293,7 @@
       "slug": "nexxen",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/nexxen/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" UX UI search. Greenhouse API returned 404 on api endpoint but boards.greenhouse.io/nexxen redirects to job-boards.greenhouse.io/nexxen and lists multiple Tel Aviv hybrid jobs (UX/UI Product Designer, Junior Business Development Manager, Data Engineer, BI Frontend, Office Receptionist & Admin, Senior BI Developer, Junior Sales Manager). Marked unverified due to API 404 \u2014 the slug appears live in the embed form. Worth investigating directly."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" UX UI search. Greenhouse API returned 404 on api endpoint but boards.greenhouse.io/nexxen redirects to job-boards.greenhouse.io/nexxen and lists multiple Tel Aviv hybrid jobs (UX/UI Product Designer, Junior Business Development Manager, Data Engineer, BI Frontend, Office Receptionist & Admin, Senior BI Developer, Junior Sales Manager). Marked unverified due to API 404 — the slug appears live in the embed form. Worth investigating directly."
     },
     {
       "name": "NICE Systems",
@@ -6449,7 +6449,7 @@
       "slug": "oasissecurity",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/oasissecurity/jobs",
       "verified": true,
-      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" e-commerce search (Technical Account Manager position surfaced); API confirmed 3 IL jobs (AI Engineer AAM, Engineering Team Lead AAM, Brand Designer \u2014 all Tel Aviv)."
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" e-commerce search (Technical Account Manager position surfaced); API confirmed 3 IL jobs (AI Engineer AAM, Engineering Team Lead AAM, Brand Designer — all Tel Aviv)."
     },
     {
       "name": "Obligo",
@@ -6461,7 +6461,7 @@
       "slug": "obligo",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/obligo/jobs?content=true",
       "verified": true,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" startup search (Full Stack Developer; R&D center in Tel Aviv). API confirmed 1 IL job (Product Manager \u2014 Tel Aviv)."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" startup search (Full Stack Developer; R&D center in Tel Aviv). API confirmed 1 IL job (Product Manager — Tel Aviv)."
     },
     {
       "name": "Octup",
@@ -6473,7 +6473,7 @@
       "slug": "4A.003",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/4A.003/positions?token=A4347D5290CA431486290C5C5B1EC9148647D5&details=true",
       "verified": false,
-      "notes": "Seed Jul 2025 $12M. eCommerce ops platform. Comeet UID 4A.003 + token A4347D5290CA431486290C5C5B1EC9148647D5. Board has 2 positions, none currently IL-tagged \u2014 likely small team early in hiring."
+      "notes": "Seed Jul 2025 $12M. eCommerce ops platform. Comeet UID 4A.003 + token A4347D5290CA431486290C5C5B1EC9148647D5. Board has 2 positions, none currently IL-tagged — likely small team early in hiring."
     },
     {
       "name": "Okta",
@@ -6509,7 +6509,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Formerly AnyVision. Uses HiBob (oosto.careers.hibob.com/jobs) \u2014 not in supported ATS list (greenhouse/lever/ashby/workday/smartrecruiters/comeet). Tel Aviv HQ + offices in NYC, Belfast, Singapore. Cannot integrate with current cron; recommend HiBob support if pipeline coverage matters."
+      "notes": "Formerly AnyVision. Uses HiBob (oosto.careers.hibob.com/jobs) — not in supported ATS list (greenhouse/lever/ashby/workday/smartrecruiters/comeet). Tel Aviv HQ + offices in NYC, Belfast, Singapore. Cannot integrate with current cron; recommend HiBob support if pipeline coverage matters."
     },
     {
       "name": "OPC Energy",
@@ -6605,7 +6605,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "ALREADY IN REGISTRY (unverified). Skip \u2014 Oracle uses Oracle Recruiting Cloud (their own product); the eeho.fa.oraclecloud.com/hcmUI portal has no easy public JSON API for external. IL R&D via Ravello + NetSuite + native Oracle Israel."
+      "notes": "ALREADY IN REGISTRY (unverified). Skip — Oracle uses Oracle Recruiting Cloud (their own product); the eeho.fa.oraclecloud.com/hcmUI portal has no easy public JSON API for external. IL R&D via Ravello + NetSuite + native Oracle Israel."
     },
     {
       "name": "Orbotech",
@@ -6617,7 +6617,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Acquired by KLA in 2019 \u2014 careers now consolidated under kla.com. KLA uses Workday (kla.wd1.myworkdayjobs.com) for global hires including IL R&D. Recommend adding as separate KLA entry pointing to kla Workday tenant; will require dedicated verification pass."
+      "notes": "Acquired by KLA in 2019 — careers now consolidated under kla.com. KLA uses Workday (kla.wd1.myworkdayjobs.com) for global hires including IL R&D. Recommend adding as separate KLA entry pointing to kla Workday tenant; will require dedicated verification pass."
     },
     {
       "name": "Orbs",
@@ -6668,7 +6668,7 @@
       "notes": "No ATS hit"
     },
     {
-      "name": "Osem-Nestl\u00e9",
+      "name": "Osem-Nestlé",
       "type": "israeli_founded",
       "industry": "Food & Beverage",
       "domain": "osem-nestle.co.il",
@@ -6677,7 +6677,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Nestl\u00e9 Israel arm \u2014 Nestl\u00e9 Global runs Avature globally but Osem-Nestl\u00e9 Israel uses local proprietary careers (403 to anonymous curl). No public API on supported ATS list."
+      "notes": "Nestlé Israel arm — Nestlé Global runs Avature globally but Osem-Nestlé Israel uses local proprietary careers (403 to anonymous curl). No public API on supported ATS list."
     },
     {
       "name": "Otonomo",
@@ -6809,7 +6809,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NEW (extra). Note: registry has a Cybersixgill row pointing at paloaltonetworks.wd5/PaloAltoNetworks but I confirmed that site path is 404. PAN uses TalentBrew (tbcdn.talentbrew.com/company/47263) \u2014 proprietary portal, not Workday. Major IL R&D via Cider + Twistlock + Demisto + LightCyber + native Tel Aviv."
+      "notes": "NEW (extra). Note: registry has a Cybersixgill row pointing at paloaltonetworks.wd5/PaloAltoNetworks but I confirmed that site path is 404. PAN uses TalentBrew (tbcdn.talentbrew.com/company/47263) — proprietary portal, not Workday. Major IL R&D via Cider + Twistlock + Demisto + LightCyber + native Tel Aviv."
     },
     {
       "name": "Pango",
@@ -6833,7 +6833,7 @@
       "slug": "46.00B",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/46.00B/positions?token=64B25C264B12E112E102C0D2C0D64B25C2&details=true",
       "verified": true,
-      "notes": "Comeet UID 46.00B + token verified (also has GH 'papaya' verified 200 \u2014 Comeet is primary)"
+      "notes": "Comeet UID 46.00B + token verified (also has GH 'papaya' verified 200 — Comeet is primary)"
     },
     {
       "name": "Papaya Global",
@@ -7097,7 +7097,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Petah Tikva-based anti-drone / electronic warfare manufacturer. Careers page lists job numbers (Job No. 101, 102) as downloadable files \u2014 no standard ATS exposure. Skipped."
+      "notes": "Petah Tikva-based anti-drone / electronic warfare manufacturer. Careers page lists job numbers (Job No. 101, 102) as downloadable files — no standard ATS exposure. Skipped."
     },
     {
       "name": "PhaseV",
@@ -7121,7 +7121,7 @@
       "slug": "philips",
       "api_url": "https://philips.wd3.myworkdayjobs.com/wday/cxs/philips/jobs-and-careers/jobs",
       "verified": true,
-      "notes": "Slug verified; tenant returns 12 jobs for searchText 'Israel' \u2014 1 in 'Israel - Home Based' (Manual Assembler clean room), plus 7 Haifa positions tagged Israel via Philips' Haifa office (Manufacturing Engineer, Product Industrialization, Software Architect, Multi Modality Clinical Education, Regulatory Affairs, Logistic & Project Lead, Production Test Tech). Effective IL count ~8 but only 1 explicit Israel country tag. Slug correct."
+      "notes": "Slug verified; tenant returns 12 jobs for searchText 'Israel' — 1 in 'Israel - Home Based' (Manual Assembler clean room), plus 7 Haifa positions tagged Israel via Philips' Haifa office (Manufacturing Engineer, Product Industrialization, Software Architect, Multi Modality Clinical Education, Regulatory Affairs, Logistic & Project Lead, Production Test Tech). Effective IL count ~8 but only 1 explicit Israel country tag. Slug correct."
     },
     {
       "name": "Phoenicia Glass Works",
@@ -7205,7 +7205,7 @@
       "slug": "pinterest",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/pinterest/jobs",
       "verified": true,
-      "notes": "NEW (extra). Greenhouse verified \u2014 164 total postings (0 IL today; Pinterest acquired Tobi/Vochi but team has been wound down). Include because of historic IL R&D \u2014 filter at fetch-time."
+      "notes": "NEW (extra). Greenhouse verified — 164 total postings (0 IL today; Pinterest acquired Tobi/Vochi but team has been wound down). Include because of historic IL R&D — filter at fetch-time."
     },
     {
       "name": "Pitango Venture Capital",
@@ -7253,7 +7253,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "GH EU board 'plariumgloballtd' exists; boards-api 404 \u2014 EU jobs API not publicly accessible"
+      "notes": "GH EU board 'plariumgloballtd' exists; boards-api 404 — EU jobs API not publicly accessible"
     },
     {
       "name": "Plasan",
@@ -7325,7 +7325,7 @@
       "slug": "pontera",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/pontera/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Herzliya\" search showing Junior Java Developer / Cybersecurity Engineer / Data Operator postings. Currently the Greenhouse board says \"There are no current openings\" and API returns 0 jobs \u2014 likely paused/temporary. Worth re-checking later."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Herzliya\" search showing Junior Java Developer / Cybersecurity Engineer / Data Operator postings. Currently the Greenhouse board says \"There are no current openings\" and API returns 0 jobs — likely paused/temporary. Worth re-checking later."
     },
     {
       "name": "Port",
@@ -7360,8 +7360,8 @@
       "ats": "workable",
       "slug": "powtoon",
       "api_url": null,
-      "verified": false,
-      "notes": "Israeli SaaS animated video/presentation platform; HQ Tel Aviv (HaArba'a 30). Founded 2011, also London office, 40M+ users globally. Uses Workable \u2014 slug 'powtoon' confirmed on apply.workable.com via site search. Would need Workable fetcher."
+      "verified": true,
+      "notes": "Workable (apply.workable.com/powtoon). Enabled via the Workable widget fetcher."
     },
     {
       "name": "PrettyDamnQuick",
@@ -7433,7 +7433,7 @@
       "slug": "32.005",
       "api_url": null,
       "verified": false,
-      "notes": "Comeet UID 32.005 confirmed via comeet.com/jobs/ptc/32.005. Israeli dev center in Herzliya. NB: PTC global also uses Workday \u2014 Comeet is the IL-specific board."
+      "notes": "Comeet UID 32.005 confirmed via comeet.com/jobs/ptc/32.005. Israeli dev center in Herzliya. NB: PTC global also uses Workday — Comeet is the IL-specific board."
     },
     {
       "name": "Pure Storage",
@@ -7445,7 +7445,7 @@
       "slug": "purestorage",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/purestorage/jobs",
       "verified": true,
-      "notes": "NEW (extra). Greenhouse verified \u2014 352 total postings. Pure Storage IL R&D in Tel Aviv (acquired StorReduce-fragments + native team)."
+      "notes": "NEW (extra). Greenhouse verified — 352 total postings. Pure Storage IL R&D in Tel Aviv (acquired StorReduce-fragments + native team)."
     },
     {
       "name": "PwC",
@@ -7457,7 +7457,7 @@
       "slug": "pwc",
       "api_url": "https://pwc.wd3.myworkdayjobs.com/wday/cxs/pwc/Global_Experienced_Careers/jobs",
       "verified": true,
-      "notes": "Slug verified; tenant returns 0 IL jobs for searchText 'Israel' and 0 for 'Tel Aviv'. The 4716 global jobs noted in registry are real but PwC Israel (Kesselman & Kesselman) does not post to the global Workday tenant \u2014 they hire via local pwc.com/il/he/careers (Hebrew). Workday tenant correct but PwC IL posts elsewhere. Leave as-is, expect ~0."
+      "notes": "Slug verified; tenant returns 0 IL jobs for searchText 'Israel' and 0 for 'Tel Aviv'. The 4716 global jobs noted in registry are real but PwC Israel (Kesselman & Kesselman) does not post to the global Workday tenant — they hire via local pwc.com/il/he/careers (Hebrew). Workday tenant correct but PwC IL posts elsewhere. Leave as-is, expect ~0."
     },
     {
       "name": "Pyramid Analytics",
@@ -7505,7 +7505,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NEW. Uses Eightfold AI (app.eightfold.ai/careers?domain=qualcomm.com) \u2014 not one of our supported ATSs. Qualcomm has IL R&D in Haifa (acquired DesignArt + Wi-Lan teams). Eightfold has a JSON API at app.eightfold.ai/api/apply/v2/jobs but unofficial."
+      "notes": "NEW. Uses Eightfold AI (app.eightfold.ai/careers?domain=qualcomm.com) — not one of our supported ATSs. Qualcomm has IL R&D in Haifa (acquired DesignArt + Wi-Lan teams). Eightfold has a JSON API at app.eightfold.ai/api/apply/v2/jobs but unofficial."
     },
     {
       "name": "Qualitest",
@@ -7613,7 +7613,7 @@
       "slug": "reddit",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/reddit/jobs",
       "verified": true,
-      "notes": "NEW (extra). Greenhouse verified \u2014 155 total postings. Reddit has no formal IL R&D office but distributed remote \u2014 relevant for remote-from-Israel roles."
+      "notes": "NEW (extra). Greenhouse verified — 155 total postings. Reddit has no formal IL R&D office but distributed remote — relevant for remote-from-Israel roles."
     },
     {
       "name": "Redefine Meat",
@@ -7757,7 +7757,7 @@
       "slug": "riotgames",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/riotgames/jobs",
       "verified": true,
-      "notes": "NEW (extra). Greenhouse verified \u2014 183 total postings. Riot Games has no formal IL R&D office; included because of remote-from-Israel possibility + gaming-industry pipeline relevance."
+      "notes": "NEW (extra). Greenhouse verified — 183 total postings. Riot Games has no formal IL R&D office; included because of remote-from-Israel possibility + gaming-industry pipeline relevance."
     },
     {
       "name": "Riskified",
@@ -7805,7 +7805,7 @@
       "slug": "roblox",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/roblox/jobs",
       "verified": true,
-      "notes": "NEW (extra). Greenhouse verified \u2014 292 total postings. Roblox has limited IL presence (acquired Loom-not-IL; small remote)."
+      "notes": "NEW (extra). Greenhouse verified — 292 total postings. Roblox has limited IL presence (acquired Loom-not-IL; small remote)."
     },
     {
       "name": "Run:ai",
@@ -7841,7 +7841,7 @@
       "slug": "sabon",
       "api_url": null,
       "verified": false,
-      "notes": "Israeli cosmetics/body care retailer founded Tel Aviv 1997; 130+ stores in 9 countries; corporate ops still IL-based. Uses TeamTailor \u2014 not in supported fetcher set. Would need a TeamTailor fetcher. Dedicated IL location page: sabon.teamtailor.com/locations/israel."
+      "notes": "Israeli cosmetics/body care retailer founded Tel Aviv 1997; 130+ stores in 9 countries; corporate ops still IL-based. Uses TeamTailor — not in supported fetcher set. Would need a TeamTailor fetcher. Dedicated IL location page: sabon.teamtailor.com/locations/israel."
     },
     {
       "name": "SafeBreach",
@@ -7901,7 +7901,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NEW. Samsung uses a proprietary Korea-hosted career system; no Workday tenant exists at samsung.wd[1-5] (all 422). Samsung Israel R&D in Tel Aviv (Samsung Next + Samsung Israel R&D Center / SIRC). For IL, jobs may flow via Samsung Israel website + LinkedIn \u2014 no programmatic API."
+      "notes": "NEW. Samsung uses a proprietary Korea-hosted career system; no Workday tenant exists at samsung.wd[1-5] (all 422). Samsung Israel R&D in Tel Aviv (Samsung Next + Samsung Israel R&D Center / SIRC). For IL, jobs may flow via Samsung Israel website + LinkedIn — no programmatic API."
     },
     {
       "name": "SAP",
@@ -7913,7 +7913,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NEW. Uses SAP SuccessFactors (their own product) \u2014 career site rendered via SuccessFactors career portal; not one of our 6 supported ATSs. SAP has major IL R&D (Ra'anana, Hod HaSharon, multiple acquisitions: BackOffice, Top Tier, Sybase Israel)."
+      "notes": "NEW. Uses SAP SuccessFactors (their own product) — career site rendered via SuccessFactors career portal; not one of our 6 supported ATSs. SAP has major IL R&D (Ra'anana, Hod HaSharon, multiple acquisitions: BackOffice, Top Tier, Sybase Israel)."
     },
     {
       "name": "Sapiens",
@@ -8009,7 +8009,7 @@
       "slug": "scopely",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/scopely/jobs?content=true",
       "verified": true,
-      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" data analyst search; board page confirms 3+ IL positions open to Tel Aviv (Head of Game Design, Lead/Manager Economy and Systems Designer, Principal Systems Designer for Stumble Guys \u2014 all list IL - Tel Aviv as a location option)."
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" data analyst search; board page confirms 3+ IL positions open to Tel Aviv (Head of Game Design, Lead/Manager Economy and Systems Designer, Principal Systems Designer for Stumble Guys — all list IL - Tel Aviv as a location option)."
     },
     {
       "name": "Seal Security",
@@ -8057,7 +8057,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Uses Jobvite (jobs.jobvite.com/sentinelone/jobs) \u2014 not in supported ATS list"
+      "notes": "Uses Jobvite (jobs.jobvite.com/sentinelone/jobs) — not in supported ATS list"
     },
     {
       "name": "Sentra",
@@ -8093,7 +8093,7 @@
       "slug": "servicenow.wd1.myworkdayjobs.com/External_Career_Site",
       "api_url": "https://servicenow.wd1.myworkdayjobs.com/wday/cxs/servicenow/External_Career_Site/jobs",
       "verified": false,
-      "notes": "Workday tenant servicenow.wd1.myworkdayjobs.com returns HTTP 422 for all payloads tested (with/without searchText/locations facets, with proper Origin/Referer headers, empty body). ServiceNow has 27+ IL jobs (Tel Aviv office) per LinkedIn but applies via careers.servicenow.com (proprietary careers portal \u2014 no public ATS detected; not Smartrecruiters/Greenhouse/Jobvite). ServiceNow Workday tenant appears either deactivated, locked-down, or rejecting cxs queries by design. No supported-ATS fix found."
+      "notes": "Workday tenant servicenow.wd1.myworkdayjobs.com returns HTTP 422 for all payloads tested (with/without searchText/locations facets, with proper Origin/Referer headers, empty body). ServiceNow has 27+ IL jobs (Tel Aviv office) per LinkedIn but applies via careers.servicenow.com (proprietary careers portal — no public ATS detected; not Smartrecruiters/Greenhouse/Jobvite). ServiceNow Workday tenant appears either deactivated, locked-down, or rejecting cxs queries by design. No supported-ATS fix found."
     },
     {
       "name": "Sett",
@@ -8165,7 +8165,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NEW. Siemens uses a proprietary jobs.siemens.com portal (likely Avature behind the scenes per industry \u2014 no SmartRecruiters/Greenhouse/Workday URLs detected). Siemens Israel via acquisitions (Mentor Graphics Hod HaSharon, Solido). Tested SmartRecruiters slug \u2014 0 returns."
+      "notes": "NEW. Siemens uses a proprietary jobs.siemens.com portal (likely Avature behind the scenes per industry — no SmartRecruiters/Greenhouse/Workday URLs detected). Siemens Israel via acquisitions (Mentor Graphics Hod HaSharon, Solido). Tested SmartRecruiters slug — 0 returns."
     },
     {
       "name": "Sight Diagnostics",
@@ -8177,7 +8177,7 @@
       "slug": "sight/45.006",
       "api_url": "https://www.comeet.com/jobs/sight/45.006",
       "verified": false,
-      "notes": "Comeet board (sight/45.006) referenced from sightdx.com and OurCrowd. ~79 employees, Tel Aviv HQ. Spark Hire Recruit (Comeet) account currently deactivated \u2014 page shows 'This Spark Hire Recruit account has been deactivated.' Add as unverified; check if they migrated to a new ATS."
+      "notes": "Comeet board (sight/45.006) referenced from sightdx.com and OurCrowd. ~79 employees, Tel Aviv HQ. Spark Hire Recruit (Comeet) account currently deactivated — page shows 'This Spark Hire Recruit account has been deactivated.' Add as unverified; check if they migrated to a new ATS."
     },
     {
       "name": "Silverfort",
@@ -8273,7 +8273,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "ALREADY IN REGISTRY but I re-investigated \u2014 uses Phenom People (cdn.phenompeople.com/CareerConnectResources/pp/SNCOUS). Not one of our supported ATSs. Existing registry entry may have wrong ATS marker; recommend updating to phenom/custom."
+      "notes": "ALREADY IN REGISTRY but I re-investigated — uses Phenom People (cdn.phenompeople.com/CareerConnectResources/pp/SNCOUS). Not one of our supported ATSs. Existing registry entry may have wrong ATS marker; recommend updating to phenom/custom."
     },
     {
       "name": "Snyk",
@@ -8285,7 +8285,7 @@
       "slug": "snyk",
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/snyk?includeCompensation=true",
       "verified": true,
-      "notes": "Already verified \u2014 re-confirmed via direct curl"
+      "notes": "Already verified — re-confirmed via direct curl"
     },
     {
       "name": "Solid",
@@ -8357,7 +8357,7 @@
       "slug": "spotify",
       "api_url": "https://api.lever.co/v0/postings/spotify?mode=json",
       "verified": true,
-      "notes": "NEW (extra). Lever verified \u2014 returns active postings list. Spotify has minimal IL presence (no R&D center; small commercial)."
+      "notes": "NEW (extra). Lever verified — returns active postings list. Spotify has minimal IL presence (no R&D center; small commercial)."
     },
     {
       "name": "Squarespace",
@@ -8405,7 +8405,7 @@
       "slug": "statement",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/statement/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io fintech Israel search (Data Integrity Analyst Tel Aviv-Yafo on-site). API URL returns 404 \u2014 slug may have been retired or moved. Worth re-checking."
+      "notes": "Surfaced via site:job-boards.greenhouse.io fintech Israel search (Data Integrity Analyst Tel Aviv-Yafo on-site). API URL returns 404 — slug may have been retired or moved. Worth re-checking."
     },
     {
       "name": "StoreDot",
@@ -8441,7 +8441,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Cloudflare-protected (403 to anonymous curl on .com / 200 on strauss-group.com root). Probed Greenhouse 'strauss'/'straussgroup'/'strauss-group' and SmartRecruiters \u2014 no real listings. Uses proprietary Hebrew careers funnel; likely Niloog or in-house. No public API."
+      "notes": "Cloudflare-protected (403 to anonymous curl on .com / 200 on strauss-group.com root). Probed Greenhouse 'strauss'/'straussgroup'/'strauss-group' and SmartRecruiters — no real listings. Uses proprietary Hebrew careers funnel; likely Niloog or in-house. No public API."
     },
     {
       "name": "Stream Security",
@@ -8585,7 +8585,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Tel Aviv-Yafo HQ, $30M raised, AI-driven CGM platform. Careers page exists but shows no department-filtered listings publicly and no detectable ATS (greenhouse/lever/comeet/ashby) URLs. LinkedIn shows active hiring (Head of Data, R&D Team Leader). Skipped \u2014 needs deeper detection."
+      "notes": "Tel Aviv-Yafo HQ, $30M raised, AI-driven CGM platform. Careers page exists but shows no department-filtered listings publicly and no detectable ATS (greenhouse/lever/comeet/ashby) URLs. LinkedIn shows active hiring (Head of Data, R&D Team Leader). Skipped — needs deeper detection."
     },
     {
       "name": "Sygnia",
@@ -8861,7 +8861,7 @@
       "slug": "terrific-innovation",
       "api_url": "https://api.lever.co/v0/postings/terrific-innovation?mode=json",
       "verified": true,
-      "notes": "Israeli social commerce / live shopping platform, Tel Aviv-based, Arieli Capital portfolio. Lever API verified 200 \u2014 currently 1 confirmed IL job (Principal Engineer, Tel Aviv). Discovered via site:jobs.lever.co 'Ramat Gan' site search."
+      "notes": "Israeli social commerce / live shopping platform, Tel Aviv-based, Arieli Capital portfolio. Lever API verified 200 — currently 1 confirmed IL job (Principal Engineer, Tel Aviv). Discovered via site:jobs.lever.co 'Ramat Gan' site search."
     },
     {
       "name": "Testim",
@@ -8897,7 +8897,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NEW (extra). No Workday tenant detected (ti/txi/tii at wd1/wd5). Uses proprietary careers portal. TI Israel R&D in Herzliya (DSP R&D \u2014 historically small but ongoing)."
+      "notes": "NEW (extra). No Workday tenant detected (ti/txi/tii at wd1/wd5). Uses proprietary careers portal. TI Israel R&D in Herzliya (DSP R&D — historically small but ongoing)."
     },
     {
       "name": "ThetaRay",
@@ -8957,7 +8957,7 @@
       "slug": "tipaltisolutions",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/tipaltisolutions/jobs",
       "verified": true,
-      "notes": "Discovered via \"job-boards.greenhouse.io\" Tipalti DriveNets search; API confirmed 1 IL job (Data Engineer \u2014 Tel Aviv District). Slug is unusual \"tipaltisolutions\"."
+      "notes": "Discovered via \"job-boards.greenhouse.io\" Tipalti DriveNets search; API confirmed 1 IL job (Data Engineer — Tel Aviv District). Slug is unusual \"tipaltisolutions\"."
     },
     {
       "name": "TipRanks",
@@ -9113,7 +9113,7 @@
       "slug": "triplewhale",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/triplewhale/jobs?content=true",
       "verified": true,
-      "notes": "Discovered via site:job-boards.greenhouse.io \"Jerusalem\" search; API confirmed 2 IL jobs (Applied Data Scientist, Data Engineer \u2014 Jerusalem hybrid)."
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Jerusalem\" search; API confirmed 2 IL jobs (Applied Data Scientist, Data Engineer — Jerusalem hybrid)."
     },
     {
       "name": "Triple-C",
@@ -9221,7 +9221,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NEW. Uber uses a proprietary in-house careers system (uber.com/careers/list) \u2014 no Greenhouse/Workday/Lever. SmartRecruiters company-slug 'Uber' exists but is a stub with 1 test posting. Uber Israel R&D in Tel Aviv (acquired Otto-IL fragments + native team)."
+      "notes": "NEW. Uber uses a proprietary in-house careers system (uber.com/careers/list) — no Greenhouse/Workday/Lever. SmartRecruiters company-slug 'Uber' exists but is a stub with 1 test posting. Uber Israel R&D in Tel Aviv (acquired Otto-IL fragments + native team)."
     },
     {
       "name": "Ubeya",
@@ -9269,7 +9269,7 @@
       "slug": "unity3d",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/unity3d/jobs?content=true",
       "verified": true,
-      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" Greenhouse search; API confirmed 2 IL jobs (Account Manager, Business Analyst \u2014 both Tel Aviv)."
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" Greenhouse search; API confirmed 2 IL jobs (Account Manager, Business Analyst — both Tel Aviv)."
     },
     {
       "name": "Upstream Security",
@@ -9329,7 +9329,7 @@
       "slug": "valohealth",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/valohealth/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" R&D engineer / data engineer search. Company description (\"additional offices in New York, NY and Tel Aviv, Israel\"). API shows 0 IL jobs at the moment \u2014 TLV roles may be filled."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" R&D engineer / data engineer search. Company description (\"additional offices in New York, NY and Tel Aviv, Israel\"). API shows 0 IL jobs at the moment — TLV roles may be filled."
     },
     {
       "name": "Varonis",
@@ -9341,7 +9341,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Uses Jobvite (jobs.jobvite.com/varonis-internal) \u2014 not in supported ATS list"
+      "notes": "Uses Jobvite (jobs.jobvite.com/varonis-internal) — not in supported ATS list"
     },
     {
       "name": "Vast Data",
@@ -9389,7 +9389,7 @@
       "slug": "veeamsoftware",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/veeamsoftware/jobs",
       "verified": true,
-      "notes": "NEW (extra). Greenhouse verified \u2014 327 total postings (0 IL listed today, but global API works). Veeam Israel R&D in Herzliya (Kasten by Veeam team)."
+      "notes": "NEW (extra). Greenhouse verified — 327 total postings (0 IL listed today, but global API works). Veeam Israel R&D in Herzliya (Kasten by Veeam team)."
     },
     {
       "name": "Vega",
@@ -9497,7 +9497,7 @@
       "slug": "vonage",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/vonage/jobs?content=true",
       "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" software engineer search (Software Engineering Manager Tel Aviv hybrid; AI Architect Tel Aviv). API currently shows 0 IL jobs in the board \u2014 likely just-closed roles. TLV office is real."
+      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" software engineer search (Software Engineering Manager Tel Aviv hybrid; AI Architect Tel Aviv). API currently shows 0 IL jobs in the board — likely just-closed roles. TLV office is real."
     },
     {
       "name": "Voodoo",
@@ -9617,7 +9617,7 @@
       "slug": "wekatest",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/wekatest/jobs",
       "verified": true,
-      "notes": "GH slug 'wekatest' verified 200 (also has Comeet A4.005 \u2014 GH is the public board)"
+      "notes": "GH slug 'wekatest' verified 200 (also has Comeet A4.005 — GH is the public board)"
     },
     {
       "name": "Western Digital",
@@ -9629,7 +9629,7 @@
       "slug": "WesternDigital",
       "api_url": "https://api.smartrecruiters.com/v1/companies/WesternDigital/postings",
       "verified": true,
-      "notes": "NEW. SmartRecruiters verified \u2014 API returns 368 total postings globally (0 IL today, but API works). WD has IL R&D in Tefen + Kfar Saba (SanDisk-IL legacy + M-Systems heritage). Filter by country=il at runtime."
+      "notes": "NEW. SmartRecruiters verified — API returns 368 total postings globally (0 IL today, but API works). WD has IL R&D in Tefen + Kfar Saba (SanDisk-IL legacy + M-Systems heritage). Filter by country=il at runtime."
     },
     {
       "name": "Wiliot",
@@ -9689,7 +9689,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Uses proprietary wix.com/jobs \u2014 no supported ATS in list"
+      "notes": "Uses proprietary wix.com/jobs — no supported ATS in list"
     },
     {
       "name": "Wiz",
@@ -9737,7 +9737,7 @@
       "slug": "worldquant",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/worldquant/jobs?content=true",
       "verified": true,
-      "notes": "Discovered via site:job-boards.greenhouse.io \"Ramat Gan\" search; API confirmed 1 IL job (AI Software Engineer \u2014 Ramat Gan)."
+      "notes": "Discovered via site:job-boards.greenhouse.io \"Ramat Gan\" search; API confirmed 1 IL job (AI Software Engineer — Ramat Gan)."
     },
     {
       "name": "WSC Sports",
@@ -9773,7 +9773,7 @@
       "slug": "xtend/85.00A",
       "api_url": "https://www.comeet.com/jobs/xtend/85.00A",
       "verified": false,
-      "notes": "Comeet board referenced from xtend.me/working-at-xtend and TechAviv. Current snapshot returns 'no open positions' \u2014 board active but empty. XTEND raised $70M Series B (defense drones, validated in 5 combat zones), Tel Aviv. Glassdoor shows 8 historical TLV listings. Add as unverified; cron will pick up future openings."
+      "notes": "Comeet board referenced from xtend.me/working-at-xtend and TechAviv. Current snapshot returns 'no open positions' — board active but empty. XTEND raised $70M Series B (defense drones, validated in 5 combat zones), Tel Aviv. Glassdoor shows 8 historical TLV listings. Add as unverified; cron will pick up future openings."
     },
     {
       "name": "Y.H. Dimri",
@@ -9797,7 +9797,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Ynet is Yedioth Ahronoth's online arm. /careers 404. No public ATS \u2014 internal Yedioth Media Group HR + aggregator listings."
+      "notes": "Ynet is Yedioth Ahronoth's online arm. /careers 404. No public ATS — internal Yedioth Media Group HR + aggregator listings."
     },
     {
       "name": "Yotpo",
@@ -9820,8 +9820,8 @@
       "ats": "workable",
       "slug": "youleap",
       "api_url": null,
-      "verified": false,
-      "notes": "Self-described as 'largest e-commerce platform in Israel with over 2,000 clients' on Workable bio. 12+ years operating. Uses Workable; slug 'youleap' confirmed. Would need Workable fetcher."
+      "verified": true,
+      "notes": "Workable (apply.workable.com/youleap). Enabled via the Workable widget fetcher."
     },
     {
       "name": "Zadara",
@@ -9881,7 +9881,7 @@
       "slug": "zendesk.wd1.myworkdayjobs.com/zendesk",
       "api_url": "https://zendesk.wd1.myworkdayjobs.com/wday/cxs/zendesk/zendesk/jobs",
       "verified": true,
-      "notes": "NEW (extra). Workday verified \u2014 searchText=Israel returns 1 remote Israel Data Scientist role. Zendesk has small IL remote presence."
+      "notes": "NEW (extra). Workday verified — searchText=Israel returns 1 remote Israel Data Scientist role. Zendesk has small IL remote presence."
     },
     {
       "name": "ZenGo",
@@ -9929,7 +9929,7 @@
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "NYSE-listed. Probed Workday tenants 'zim' wd1/wd3 \u2014 HTTP_422 (not valid). Greenhouse/Lever/Ashby/SmartRecruiters all returned no real listings. Page Cloudflare-protected (403 curl). Uses proprietary or SAP SuccessFactors (not confirmed). No supported public API found in 3 ops."
+      "notes": "NYSE-listed. Probed Workday tenants 'zim' wd1/wd3 — HTTP_422 (not valid). Greenhouse/Lever/Ashby/SmartRecruiters all returned no real listings. Page Cloudflare-protected (403 curl). Uses proprietary or SAP SuccessFactors (not confirmed). No supported public API found in 3 ops."
     },
     {
       "name": "ZIM Integrated Shipping (Comeet board)",
@@ -9941,7 +9941,7 @@
       "slug": "72.008",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/72.008/positions?token=2789E01638768C58768ED013C011480&details=true",
       "verified": true,
-      "notes": "UID + token from static HTML at comeet.com/jobs/zim/72.008; API returned 75 positions, 7 IL-tagged. NOTE: registry already lists 'ZIM Integrated Shipping' with ats=unknown and no api_url \u2014 this entry provides the verified Comeet wiring. Treat as upgrade."
+      "notes": "UID + token from static HTML at comeet.com/jobs/zim/72.008; API returned 75 positions, 7 IL-tagged. NOTE: registry already lists 'ZIM Integrated Shipping' with ats=unknown and no api_url — this entry provides the verified Comeet wiring. Treat as upgrade."
     },
     {
       "name": "ZoomInfo",
