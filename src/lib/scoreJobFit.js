@@ -53,22 +53,37 @@ const WEIGHTS = {
   function_family: 0.10,
 };
 
-// All scoring constants now live in
-// supabase/functions/_shared/track-scoring-constants.ts — imported above.
-// DOMAIN_TO_FAMILIES is exported as Record<string, string[]>; we wrap each
-// family list in a Set at module load for fast .has() lookup below.
-const DOMAIN_TO_FAMILIES_SET = Object.fromEntries(
-  Object.entries(DOMAIN_TO_FAMILIES).map(([k, v]) => [k, new Set(v)]),
-);
+// IMPORTANT — historically these derived values lived at module top level:
+//   const DOMAIN_TO_FAMILIES_SET = Object.fromEntries(Object.entries(DOMAIN_TO_FAMILIES)...);
+//   const STAGE_CEILING_BY_LEVEL = { early_career: STAGE_T1_CEILING.early, ... };
+// That triggered a production TDZ ("Cannot access 'le' before initialization"
+// where `le` was the minified import of STAGE_T1_CEILING or DOMAIN_TO_FAMILIES).
+// Rollup chunks scoreJobFit.js and track-scoring-constants.ts such that
+// scoreJobFit's module-init reads the imported binding BEFORE the .ts
+// module's `export const ...` runs — TDZ. Cached helpers below defer the
+// derivation to first-call time, by which point all module bodies have
+// finished evaluating and the imports are guaranteed to be initialized.
+let __domainSetCache = null;
+function getDomainFamiliesSet() {
+  if (!__domainSetCache) {
+    __domainSetCache = Object.fromEntries(
+      Object.entries(DOMAIN_TO_FAMILIES).map(([k, v]) => [k, new Set(v)]),
+    );
+  }
+  return __domainSetCache;
+}
 
-// inferExperienceLevel returns "early_career" | "mid_career" | "senior_career";
-// the seniority-ceiling lookup keys on the compact "early|mid|senior" form
-// used in the shared constants. STAGE_CEILING_BY_LEVEL bridges the two.
-const STAGE_CEILING_BY_LEVEL = {
-  early_career: STAGE_T1_CEILING.early,
-  mid_career: STAGE_T1_CEILING.mid,
-  senior_career: STAGE_T1_CEILING.senior,
-};
+let __stageCeilingCache = null;
+function getStageCeilingByLevel() {
+  if (!__stageCeilingCache) {
+    __stageCeilingCache = {
+      early_career: STAGE_T1_CEILING.early,
+      mid_career: STAGE_T1_CEILING.mid,
+      senior_career: STAGE_T1_CEILING.senior,
+    };
+  }
+  return __stageCeilingCache;
+}
 
 // ─── Skill axis ────────────────────────────────────────────────────────
 function computeSkillAxis(userCanonical, job) {
@@ -182,7 +197,7 @@ function computeSeniorityAxis(userLevel, job) {
   const reqRank = SENIORITY_RANK[reqSen] ?? null;
   if (reqRank === null) return { score: 0.5, match: "unknown_value" };
 
-  const ceiling = STAGE_CEILING_BY_LEVEL[userLevel] ?? Infinity;
+  const ceiling = getStageCeilingByLevel()[userLevel] ?? Infinity;
 
   if (reqRank > ceiling) {
     // Above ceiling — not viable today.
@@ -201,7 +216,7 @@ function computeFunctionFamilyAxis(profile, job) {
   const fam = job?.function_family || null;
   const domain = String(profile?.primary_domain || "").toLowerCase();
   if (!fam) return { score: 0.5, match: false };
-  const userFams = DOMAIN_TO_FAMILIES_SET[domain];
+  const userFams = getDomainFamiliesSet()[domain];
   if (!userFams) return { score: 0.5, match: false };
   return userFams.has(fam)
     ? { score: 1.0, match: true }
@@ -286,7 +301,7 @@ export function scoreJobFit(input, job) {
   //   unspecified → null  job has no extracted function_family OR user
   //                       has no primary_domain — UI hides the bar
   let goal_alignment_score = null;
-  if (job?.function_family && DOMAIN_TO_FAMILIES_SET[String(profile?.primary_domain || "").toLowerCase()]) {
+  if (job?.function_family && getDomainFamiliesSet()[String(profile?.primary_domain || "").toLowerCase()]) {
     goal_alignment_score = family.match ? 1.0 : 0.35;
   }
 
