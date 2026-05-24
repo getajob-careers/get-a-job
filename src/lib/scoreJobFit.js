@@ -35,7 +35,6 @@ import {
   DOMAIN_TO_FAMILIES,
   EDUCATION_RANK,
   EXPERIENCE_LEVEL_TO_STAGE,
-  applyYearsCap,
 } from "../../supabase/functions/_shared/track-scoring-constants.ts";
 
 // Component weights — sum to 1.0. Skill dominates because it's both the
@@ -243,12 +242,6 @@ export function scoreJobFit(input, job) {
   } else {
     track = trackFromScore(fit_score);
   }
-
-  // Years hard-cap (PR-H) — recruiters auto-filter on years. A 1y user
-  // applying to a 5y-required role never gets past the ATS no matter
-  // how strong the skill overlap. The years AXIS only docks ~0.12 from
-  // fit_score, so we layer a hard track downgrade on top.
-  track = applyYearsCap(track, years.user_years, years.required_min);
 
   // Reasoning strings — short, actionable phrases the UI surfaces.
   const strengths = [];

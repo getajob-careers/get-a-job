@@ -171,8 +171,7 @@ ANALYZE the job posting against the user's profile and return a JSON object with
   "company": "string (extracted from posting)",
   "job_description": "string (brief summary of the role)",
   "match_score": number (0-100, how well the user matches THIS JOB's requirements — pure fit, ignore career trajectory),
-  "required_seniority": "Entry" | "Entry_Mid" | "Mid" | "Senior" | "Lead" (the JD's experience level — see rubric below),
-  "req_years_min": number | null (minimum years of relevant experience the JD requires — extract the LOWER bound of any "X-Y years" range, or the explicit min if stated. Null when the JD doesn't quantify),${goalSchemaLine}
+  "required_seniority": "Entry" | "Entry_Mid" | "Mid" | "Senior" | "Lead" (the JD's experience level — see rubric below),${goalSchemaLine}
   "verdict": "string (1-2 sentence overall assessment)",
   "matched_requirements": [
     { "requirement": "the requirement from the JD", "reason": "specific evidence from the user's profile that they meet it (cite their skill, experience, or education)" }
@@ -312,7 +311,6 @@ Return ONLY valid JSON.`
       match_score: result.match_score ?? null,
       goal_alignment_score: result.goal_alignment_score ?? null,
       required_seniority: result.required_seniority ?? null,
-      req_years_min: result.req_years_min ?? null,
     }))
 
     _ok = true; _http = 200
