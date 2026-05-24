@@ -154,6 +154,88 @@ export async function fetchIai(_c: CompanyEntry): Promise<RawJob[]> {
   });
 }
 
+// ───── Jooble ────────────────────────────────────────────────────────
+//
+// Jooble is a multi-source job-search API that legally re-aggregates
+// listings from Drushim, AllJobs, LinkedIn, company career sites, etc.
+// We use it as a LEGAL front door to ~87k IL listings without scraping
+// any single ToS-protected source ourselves.
+//
+//   POST https://jooble.org/api/{API_KEY}
+//   Body: { keywords, location: "Israel", page, ResultOnPage }
+//
+// Snippet is TRUNCATED (~150-250 chars) — extractor will flag
+// extraction_confidence < 0.4 and the deterministic scorer downweights
+// these rows automatically.
+
+const JOOBLE_KEYWORDS = "engineer OR developer OR manager OR analyst OR designer OR product OR data OR sales OR marketing OR operations";
+const JOOBLE_MAX_PAGES = 20;        // 20 × 50 = 1000 jobs max per refresh
+const JOOBLE_RESULTS_PER_PAGE = 50;
+
+export async function fetchJooble(_c: CompanyEntry): Promise<RawJob[]> {
+  const apiKey = (globalThis as any).process?.env?.JOOBLE_API_KEY;
+  if (!apiKey) {
+    console.warn("[jooble] JOOBLE_API_KEY not set — skipping (no jobs returned)");
+    return [];
+  }
+  const endpoint = `https://jooble.org/api/${apiKey}`;
+  const allJobs: RawJob[] = [];
+  const seenIds = new Set<string>();
+
+  for (let page = 1; page <= JOOBLE_MAX_PAGES; page++) {
+    const body = {
+      keywords: JOOBLE_KEYWORDS,
+      location: "Israel",
+      page: String(page),
+      ResultOnPage: String(JOOBLE_RESULTS_PER_PAGE),
+    };
+    let resp: { totalCount?: number; jobs?: any[] };
+    try {
+      const res = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+        signal: AbortSignal.timeout(DEFAULT_TIMEOUT_MS),
+      });
+      if (!res.ok) {
+        console.warn(`[jooble] HTTP ${res.status} on page ${page}, stopping`);
+        break;
+      }
+      resp = await res.json();
+    } catch (err: any) {
+      console.warn(`[jooble] page ${page} failed: ${err?.message || err}`);
+      break;
+    }
+    const pageJobs = resp.jobs ?? [];
+    if (pageJobs.length === 0) break;
+
+    for (const j of pageJobs) {
+      const id = String(j.id ?? "");
+      if (!id || seenIds.has(id)) continue;
+      seenIds.add(id);
+      allJobs.push({
+        external_id:      `jooble:${id}`,
+        title:            j.title ?? "",
+        description_html: typeof j.snippet === "string" && j.snippet.trim().length > 0
+                            ? j.snippet
+                            : null,
+        location_raw:     j.location ?? null,
+        structured_country: "IL",
+        apply_url:        j.link ?? "",
+        date_posted:      j.updated ?? null,
+        salary_min:       null,
+        salary_max:       null,
+        salary_currency:  null,
+        is_remote:        /remote/i.test(j.location ?? ""),
+        raw_payload:      j,
+      });
+    }
+    if (pageJobs.length < JOOBLE_RESULTS_PER_PAGE) break;
+  }
+  console.log(`[jooble] fetched ${allJobs.length} jobs across pages`);
+  return allJobs;
+}
+
 // ───── Workable ──────────────────────────────────────────────────────
 //
 // Workable powers career pages at `apply.workable.com/{slug}`. The widget
@@ -607,4 +689,5 @@ export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = 
   successfactors:  fetchSuccessFactors,
   workable:        fetchWorkable,
   iai:             fetchIai,
+  jooble:          fetchJooble,
 };
