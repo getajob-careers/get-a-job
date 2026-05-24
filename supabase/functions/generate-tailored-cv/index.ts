@@ -385,11 +385,26 @@ Deno.serve(async (req) => {
       goal_alignment_score?: number | null;
       skills_required?: unknown;
       location?: string | null;
+      // PR-F: v4-extracted structured signal from the linked jobs row
+      // (populated only when application.job_id is set + jobs row has v4
+      // fields). The LLM uses these as primary anchors instead of inferring
+      // from raw JD prose.
+      req_skills_core?: string[] | null;
+      req_skills_nice?: string[] | null;
+      req_years_min?: number | null;
+      req_years_max?: number | null;
+      req_education_levels?: string[] | null;
+      req_education_fields?: string[] | null;
+      notable_customers?: string[] | null;
+      scale_signals?: Record<string, unknown> | null;
+      funding_signals?: Record<string, unknown> | null;
+      req_ai_tooling?: Record<string, unknown> | null;
     } | null = null;
     if (application_id) {
+      // PR-F: select job_id so we can pull the linked v4-extracted row.
       const { data: app } = await supabase
         .from("applications")
-        .select("company, role_title, job_description, notes, required_seniority, track, qualification_score, goal_alignment_score, skills_required, location")
+        .select("company, role_title, job_description, notes, required_seniority, track, qualification_score, goal_alignment_score, skills_required, location, job_id")
         .eq("id", application_id)
         .eq("user_id", user.id)
         .single();
@@ -418,6 +433,35 @@ Deno.serve(async (req) => {
           skills_required: app.skills_required ?? null,
           location: app.location ?? null,
         };
+
+        // PR-F: when the application is linked to a cached job, pull the v4
+        // structured fields and overlay them onto targetRoleContext. These
+        // become the LLM's primary anchors via STRUCTURED_JOB_REQUIREMENTS.
+        if (app.job_id) {
+          const { data: jobRow } = await supabase
+            .from("jobs")
+            .select("req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_fields, req_seniority, notable_customers, scale_signals, funding_signals, req_ai_tooling")
+            .eq("id", app.job_id)
+            .maybeSingle();
+          if (jobRow) {
+            targetRoleContext = {
+              ...targetRoleContext,
+              // Don't overwrite the application's required_seniority if it was
+              // already filled by a prior scoring run; only fill from jobs if null.
+              required_seniority: targetRoleContext.required_seniority ?? (jobRow.req_seniority ?? null),
+              req_skills_core: Array.isArray(jobRow.req_skills_core) ? jobRow.req_skills_core : null,
+              req_skills_nice: Array.isArray(jobRow.req_skills_nice) ? jobRow.req_skills_nice : null,
+              req_years_min: typeof jobRow.req_years_min === 'number' ? jobRow.req_years_min : null,
+              req_years_max: typeof jobRow.req_years_max === 'number' ? jobRow.req_years_max : null,
+              req_education_levels: Array.isArray(jobRow.req_education_levels) ? jobRow.req_education_levels : null,
+              req_education_fields: Array.isArray(jobRow.req_education_fields) ? jobRow.req_education_fields : null,
+              notable_customers: Array.isArray(jobRow.notable_customers) ? jobRow.notable_customers : null,
+              scale_signals: (jobRow.scale_signals && typeof jobRow.scale_signals === 'object' && !Array.isArray(jobRow.scale_signals)) ? jobRow.scale_signals as Record<string, unknown> : null,
+              funding_signals: (jobRow.funding_signals && typeof jobRow.funding_signals === 'object' && !Array.isArray(jobRow.funding_signals)) ? jobRow.funding_signals as Record<string, unknown> : null,
+              req_ai_tooling: (jobRow.req_ai_tooling && typeof jobRow.req_ai_tooling === 'object' && !Array.isArray(jobRow.req_ai_tooling)) ? jobRow.req_ai_tooling as Record<string, unknown> : null,
+            };
+          }
+        }
       }
     }
 
@@ -669,6 +713,10 @@ Deno.serve(async (req) => {
       primary_domain: trunc(profile.primary_domain, 100),
       cv_tailoring_strategy: trunc(profile.cv_tailoring_strategy, 600),
       skills: safeArray(profile.skills).slice(0, 50).map((s) => trunc(s, 60)),
+      // PR-F: canonical skill IDs resolved at profile save time. Lets the
+      // LLM do deterministic intersection against jobs.req_skills_core
+      // rather than substring-matching free-text labels.
+      skills_canonical: safeArray((profile as any).skills_canonical).slice(0, 50),
       // Pre-bucketed experiences — the LLM MUST honor these groupings and
       // must preserve `title` and `company` verbatim from each entry.
       professional_experiences: professionalExperiences,
@@ -961,6 +1009,57 @@ RELEVANT PROOF SIGNALS (map user experiences to these signals when possible):
 ${JSON.stringify(relevantSignals, null, 2)}
 ` : `NOTE: The target role was not found in the standardized role library. Tailor strictly using the job description and the user's actual profile data.\n`;
 
+    // PR-F: when the application is linked to a v4-extracted jobs row, we
+    // have CANONICAL skill IDs the JD requires (req_skills_core / _nice)
+    // plus quantified company-context signals (notable_customers,
+    // scale_signals, funding_signals). Telling the LLM to prioritize these
+    // anchors beats keyword-substring guessing for skill emphasis +
+    // unlocks honest scale/brand-fit framing in the About Me.
+    const STRUCTURED_REQUIREMENTS_RULE = (
+      targetRoleContext && (
+        (targetRoleContext.req_skills_core && targetRoleContext.req_skills_core.length > 0) ||
+        (targetRoleContext.notable_customers && targetRoleContext.notable_customers.length > 0) ||
+        targetRoleContext.scale_signals ||
+        targetRoleContext.funding_signals
+      )
+    ) ? `STRUCTURED JOB REQUIREMENTS — PRIORITY ANCHORS
+
+When the user prompt contains a STRUCTURED_JOB_REQUIREMENTS block, treat it
+as the authoritative requirements set for skill emphasis and bullet
+prioritization. Specifically:
+
+1. req_skills_core[] holds canonical skill IDs the JD requires. For each
+   ID, check userContext.skills_canonical[] for membership. When present,
+   the user's matching experience bullets MUST surface that skill (verbatim
+   or in a recognizable form) — these are ATS-critical keywords + the
+   strongest fit signal we have. Cap the skills section's domain/tools/
+   technical buckets to favor IDs that appear in req_skills_core[] over
+   user-only skills.
+
+2. req_skills_nice[] are secondary. Include if the user has them, but never
+   force-fit and never displace req_skills_core matches.
+
+3. notable_customers[] and scale_signals{} are CONTEXT, not requirements.
+   Reference them in the About Me / summary ONLY when the user has
+   genuinely worked at comparable scale or with comparable brands —
+   otherwise stay silent. Inventing a connection breaks the
+   TRUTHFULNESS_RULES.
+
+4. funding_signals{} (last_round_size_usd, last_round_type, notable_investors)
+   informs voice calibration — early-stage seed company expects scrappy
+   builder framing; late-stage / public expects polished operator framing.
+   Don't quote the numbers in the CV.
+
+5. req_years_min / req_years_max bound how much of the user's tenure to
+   surface up-front in the About Me. If the user has 2y and req_years_min
+   is 5, don't lead with tenure — lead with proof-signal stories instead.
+
+When both STRUCTURED_JOB_REQUIREMENTS and the KEYWORD_INJECTION_BLOCK at
+the end of the user prompt are present, the structured anchors define the
+PRIORITY ORDER; the keyword block enforces ATS-substring presence. Both
+constraints must be honored.
+` : ``;
+
     const systemPrompt =
       `You are a CV Generation Engine for the "Get A Job" Career Operating System. Your job is to produce a tailored, one-page, truthful CV as JSON. The CV WILL be sent to real employers — so every word must be grounded in the user's actual data.\n\n` +
       `You are generating a TAILORED CV. The CV must be specifically customized for the target job description. Generic CVs that don't incorporate JD-specific language will be rejected.\n\n` +
@@ -969,6 +1068,7 @@ ${JSON.stringify(relevantSignals, null, 2)}
       CV_VOICE_RULES + `\n` +
       STRUCTURE_RULES + `\n` +
       TAILORING_RULES + `\n` +
+      STRUCTURED_REQUIREMENTS_RULE + `\n` +
       LIBRARY_CONTEXT + `\n` +
       `REMINDER: Truthfulness beats polish AND one-page fit is non-negotiable. If a bullet needs a metric to sound impressive but you have no metric in the source, leave it without. Do not invent. If content is overflowing, shorten bullets rather than dropping entries.
 
@@ -996,6 +1096,33 @@ ${JSON.stringify({
 
 Use this context to calibrate your fit_analysis honestly: a "track_3" or "qualification_score < 40" target is genuinely a stretch role for this user, and the bullets/About Me should not overclaim. A "track_1" with high qualification_score is a strong fit — lean into the matching experience.
 ` : ''}
+${(() => {
+  // PR-F: emit the v4-extracted structured requirements block when the
+  // linked jobs row has any of the anchor signals populated. See the
+  // STRUCTURED_REQUIREMENTS_RULE in the system prompt for how the LLM
+  // should consume it.
+  if (!targetRoleContext) return '';
+  const v4 = {
+    req_skills_core: targetRoleContext.req_skills_core,
+    req_skills_nice: targetRoleContext.req_skills_nice,
+    req_years_min: targetRoleContext.req_years_min,
+    req_years_max: targetRoleContext.req_years_max,
+    req_education_levels: targetRoleContext.req_education_levels,
+    req_education_fields: targetRoleContext.req_education_fields,
+    notable_customers: targetRoleContext.notable_customers,
+    scale_signals: targetRoleContext.scale_signals,
+    funding_signals: targetRoleContext.funding_signals,
+    req_ai_tooling: targetRoleContext.req_ai_tooling,
+  };
+  const hasAny = Object.values(v4).some((v) =>
+    v !== null && v !== undefined && !(Array.isArray(v) && v.length === 0)
+  );
+  if (!hasAny) return '';
+  return `
+STRUCTURED_JOB_REQUIREMENTS (extracted by the v4 JD extractor — these are CANONICAL anchors. See the STRUCTURED JOB REQUIREMENTS rule in the system prompt for how to use them):
+${JSON.stringify(v4, null, 2)}
+`;
+})()}
 TASK:
 Produce a tailored, truthful, one-page CV for this user as JSON matching the exact schema below.
 
