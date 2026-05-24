@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { trackFromScores } from "@/lib/scoreApplication";
 import { scoreJobFit } from "@/lib/scoreJobFit";
+import { totalYearsOfExperience } from "@/lib/experienceLevel";
 import { track, EVENTS } from "@/lib/analytics";
 
 import { Sparkles, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, Plus, FileText, Link } from "lucide-react";
@@ -129,6 +130,7 @@ export default function JobMatchChecker() {
           match_score: Math.round(r.fit_score * 100),
           goal_alignment_score: r.goal_alignment_score == null ? null : Math.round(r.goal_alignment_score * 100),
           required_seniority: ex.req_seniority || null,
+          req_years_min: typeof ex.req_years_min === "number" ? ex.req_years_min : null,
           user_stage: r.signals.user_stage,
           verdict: r.reasoning.strengths[0] || "Analysis complete.",
           matched_requirements: (r.signals.matched_skills || []).map((s) => ({ requirement: s, reason: "Matches your canonical skills" })),
@@ -150,6 +152,7 @@ export default function JobMatchChecker() {
           match_score: llmData.match_score || 0,
           goal_alignment_score: llmData.goal_alignment_score ?? null,
           required_seniority: llmData.required_seniority || null,
+          req_years_min: typeof llmData.req_years_min === "number" ? llmData.req_years_min : null,
           user_stage: llmData.user_stage || null,
           verdict: llmData.verdict || "Analysis complete.",
           matched_requirements: llmData.matched_requirements || [],
@@ -193,6 +196,10 @@ export default function JobMatchChecker() {
       track: trackFromScores(fit, alignment, {
         userStage: result.user_stage,
         roleSeniority: result.required_seniority,
+        // PR-H.2: years cap. result.req_years_min comes from the
+        // extractor (text mode) or the LLM (URL mode).
+        userYears: totalYearsOfExperience(experiences),
+        reqYearsMin: typeof result.req_years_min === "number" ? result.req_years_min : null,
       }),
       job_description: result.job_description || "",
       qualification_score: fit,

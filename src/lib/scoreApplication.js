@@ -47,7 +47,9 @@ import {
   STAGE_T1_CEILING,
   GOAL_TRACK_THRESHOLDS,
   trackFromScore,
+  applyYearsCap,
 } from "../../supabase/functions/_shared/track-scoring-constants.ts";
+import { totalYearsOfExperience } from "./experienceLevel";
 
 // Re-export trackFromScore so existing callers (test, JobMatchChecker,
 // any future consumer) can keep importing from @/lib/scoreApplication
@@ -101,7 +103,10 @@ async function writeDeterministic(supabase, applicationId, result, userId, query
 // deterministic skill_transfer matrix and gpt-4o-mini tends to pick
 // middle-of-rubric scores. See the SDR-for-PM bug for the calibration story.
 export function trackFromScores(fit, alignment, options = {}) {
-  const { userStage, roleSeniority } = options;
+  // PR-H.2: userYears + reqYearsMin added so the LLM-fallback path
+  // (analyze-job-match) applies the same years cap scoreJobFit applies.
+  // Both null on legacy callers — cap silently no-ops.
+  const { userStage, roleSeniority, userYears, reqYearsMin } = options;
   const roleRank = roleSeniority != null ? (SENIORITY_RANK[roleSeniority] ?? null) : null;
   const ceiling = userStage && STAGE_T1_CEILING[userStage] != null
     ? STAGE_T1_CEILING[userStage]
@@ -109,18 +114,23 @@ export function trackFromScores(fit, alignment, options = {}) {
   const canHireNow = roleRank == null || roleRank <= ceiling;
   const hasAlignment = alignment != null && Number.isFinite(alignment);
 
-  // Above seniority ceiling — capped at track_3 (Work Toward). Even a strong-fit
-  // Senior role for a student is aspirational, not viable today.
-  if (!canHireNow) return "track_3";
+  // Compute pre-cap track from the existing fit + alignment + seniority
+  // logic, then layer the years cap on top.
+  let track;
+  if (!canHireNow) {
+    track = "track_3";
+  } else if (!hasAlignment) {
+    track = trackFromScore(fit);
+  } else {
+    const T = GOAL_TRACK_THRESHOLDS;
+    if (fit >= T.t1_min_fit_high_alignment && alignment >= T.t1_min_alignment_high_fit) track = "track_1";
+    else if (fit >= T.t1_min_fit_relaxed && alignment >= T.t1_min_alignment_relaxed) track = "track_1";
+    else if (fit >= T.t2_min_fit) track = "track_2";
+    else if (fit >= T.t3_min_fit && alignment >= T.t3_min_alignment) track = "track_3";
+    else track = trackFromScore(fit);
+  }
 
-  if (!hasAlignment) return trackFromScore(fit);
-
-  const T = GOAL_TRACK_THRESHOLDS;
-  if (fit >= T.t1_min_fit_high_alignment && alignment >= T.t1_min_alignment_high_fit) return "track_1";
-  if (fit >= T.t1_min_fit_relaxed && alignment >= T.t1_min_alignment_relaxed) return "track_1";
-  if (fit >= T.t2_min_fit) return "track_2";
-  if (fit >= T.t3_min_fit && alignment >= T.t3_min_alignment) return "track_3";
-  return trackFromScore(fit);
+  return applyYearsCap(track, userYears, reqYearsMin);
 }
 
 // Async per-application scoring. Three paths, tried in order:
@@ -223,13 +233,20 @@ export async function scoreApplication(supabase, queryClient, applicationId, job
       : Math.max(0, Math.min(1, Number(alignmentRaw) / 100));
     const roleSeniority = data?.required_seniority || null;
     const userStage = data?.user_stage || null;
+    // PR-H.2: derive userYears from the experiences we already loaded
+    // above, and pull reqYearsMin from the LLM response (analyze-job-match
+    // extracts it as part of the requirements parse). Both feed the years
+    // cap so the LLM-fallback path's track assignment matches the
+    // deterministic path.
+    const userYears = totalYearsOfExperience(experiences);
+    const reqYearsMin = typeof data?.req_years_min === "number" ? data.req_years_min : null;
     const { error: updateError } = await supabase
       .from("applications")
       .update({
         qualification_score: fit,
         goal_alignment_score: alignment,
         required_seniority: roleSeniority,
-        track: trackFromScores(fit, alignment, { userStage, roleSeniority }),
+        track: trackFromScores(fit, alignment, { userStage, roleSeniority, userYears, reqYearsMin }),
         track_scoring_failed_at: null,
         score_source: "llm",
       })

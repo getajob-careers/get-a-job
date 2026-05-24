@@ -41,6 +41,7 @@ import {
   EDUCATION_RANK,
   EXPERIENCE_LEVEL_TO_STAGE,
   trackFromScore,
+  applyYearsCap,
 } from "../../supabase/functions/_shared/track-scoring-constants.ts";
 
 // Component weights — sum to 1.0. Skill dominates because it's both the
@@ -263,6 +264,12 @@ export function scoreJobFit(input, job) {
   } else {
     track = trackFromScore(fit_score);
   }
+
+  // Years hard-cap (PR-H.2) — recruiters auto-filter on years. The years
+  // axis only docks ~0.12 from fit_score (0.20 weight × max swing), so
+  // we layer a hard track downgrade for big gaps. Mirrors the seniority
+  // ceiling pattern. See applyYearsCap docstring for the rule.
+  track = applyYearsCap(track, years.user_years, years.required_min);
 
   // Reasoning strings — short, actionable phrases the UI surfaces.
   const strengths = [];
