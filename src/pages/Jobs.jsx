@@ -178,6 +178,18 @@ export default function JobSuggestions() {
     return out;
   }, [profile, experiences, educations, jobs]);
 
+  // PR-G fix: in track mode the tab is now an honest filter — only show
+  // jobs the deterministic scorer ALSO classifies as the selected track.
+  // Without this, the role-title trigram fetch was surfacing in-direction
+  // jobs whose specific requirements (5+y experience, React stack, etc)
+  // put the user in Track 2/3 territory, while the green Track 1 stripe
+  // implied apply-now readiness. Keyword mode is unchanged — there's no
+  // tab to honor, all matching titles surface.
+  const displayedJobs = useMemo(() => {
+    if (!inTrackMode || jobs.length === 0 || !profile) return jobs;
+    return jobs.filter((job) => scoredById[job.id]?.track === selectedTrack);
+  }, [jobs, scoredById, inTrackMode, selectedTrack, profile]);
+
   const buildJobsQuery = useCallback((modeArg, track, kw, offsetArg) => {
     const seniorities = seniorityFilterFor(modeArg, track, allowedSeniorities);
 
@@ -364,7 +376,7 @@ export default function JobSuggestions() {
               <Loader2 className="w-6 h-6 animate-spin text-[#52545A] mx-auto mb-2" />
               <p className="text-sm text-[#52545A]">Loading jobs…</p>
             </div>
-          ) : jobs.length === 0 ? (
+          ) : displayedJobs.length === 0 ? (
             <div className="jb-card text-center py-10">
               <Briefcase className="w-10 h-10 text-[#F87060] mx-auto mb-3" />
               {emptyReason === "no_roles" ? (
@@ -383,6 +395,19 @@ export default function JobSuggestions() {
                 <p className="text-sm font-medium text-[#52545A]">
                   No results for &quot;{appliedKeyword}&quot;. Try a different keyword.
                 </p>
+              ) : inTrackMode && jobs.length > 0 ? (
+                // Title-trigram fetch returned candidates but none cleared the
+                // deterministic Track filter. PR-G: this is the "9 in-direction
+                // CSMs but 0 actually Track 1 for you" case — honest signal,
+                // not a bug.
+                <>
+                  <p className="text-sm font-medium text-[#0E1014]">
+                    No Track {TRACK_CONFIG[selectedTrack].number} ({TRACK_CONFIG[selectedTrack].name}) jobs right now.
+                  </p>
+                  <p className="text-xs text-[#9C9DA1] mt-1.5 max-w-md mx-auto">
+                    {jobs.length} job{jobs.length === 1 ? "" : "s"} matched your Track {TRACK_CONFIG[selectedTrack].number} role titles, but none scored as Track {TRACK_CONFIG[selectedTrack].number} fit for your profile. Try {selectedTrack === "track_1" ? "Track 2 (Plan B) or Track 3 (Work Toward)" : selectedTrack === "track_2" ? "Track 3 (Work Toward)" : "another track"}.
+                  </p>
+                </>
               ) : (
                 <p className="text-sm font-medium text-[#52545A]">
                   No jobs match your Track {TRACK_CONFIG[selectedTrack].number} roles right now.
@@ -392,14 +417,23 @@ export default function JobSuggestions() {
           ) : (
             <>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {jobs.map((job) => (
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                    scoreResult={scoredById[job.id]}
-                    trackColor={inTrackMode ? TRACK_CONFIG[selectedTrack].color : null}
-                  />
-                ))}
+                {displayedJobs.map((job) => {
+                  // PR-G: card stripe + accent now reflect the per-job
+                  // deterministic track (scoreJobFit), not the selected tab
+                  // color. After the displayedJobs filter above they almost
+                  // always agree, but using the per-job value is what makes
+                  // keyword-mode cards still show their honest classification.
+                  const perJobTrack = scoredById[job.id]?.track;
+                  const trackColor = perJobTrack ? TRACK_CONFIG[perJobTrack]?.color : null;
+                  return (
+                    <JobCard
+                      key={job.id}
+                      job={job}
+                      scoreResult={scoredById[job.id]}
+                      trackColor={trackColor}
+                    />
+                  );
+                })}
               </div>
               {hasMore && (
                 <div className="text-center mt-6">
