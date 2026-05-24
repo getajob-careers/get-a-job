@@ -32,7 +32,16 @@
 // the field. Pre-2026-04-28 behavior was console.warn-only — silent
 // failures left rows stuck on the placeholder forever.
 
-import { scoreJobFit } from "./scoreJobFit";
+// IMPORTANT: scoreJobFit is dynamically imported inside scoreApplication's
+// async body rather than at module-init time. Reason: scoreApplication is
+// imported by JobCard (which Jobs.jsx renders) AND used in the deterministic
+// scoring path that needs scoreJobFit. scoreJobFit doesn't import
+// scoreApplication anymore (PR-112 moved trackFromScore to the shared .ts),
+// so there's no source-level cycle — but Rollup's chunking has historically
+// linearized these modules into TDZ-throwing patterns in production
+// ("Cannot access 'le' before initialization"). Dynamic import guarantees
+// scoreJobFit's module is fully evaluated before any code path touches it,
+// regardless of how Rollup chunks things.
 import {
   SENIORITY_RANK,
   STAGE_T1_CEILING,
@@ -145,6 +154,19 @@ export async function scoreApplication(supabase, queryClient, applicationId, job
     const experiences = expsRes?.data || [];
     const educations = edusRes?.data || [];
 
+    // Lazy-load scoreJobFit ONCE for whichever deterministic path fires.
+    // The dynamic import ensures Rollup chunks scoreJobFit's module
+    // separately and resolves it at call time, eliminating any chance of
+    // a circular-init TDZ between this file and scoreJobFit.
+    let scoreJobFit = null;
+    const loadScoreJobFit = async () => {
+      if (!scoreJobFit) {
+        const mod = await import("./scoreJobFit");
+        scoreJobFit = mod.scoreJobFit;
+      }
+      return scoreJobFit;
+    };
+
     // ── Path 1: linked job, run scoreJobFit directly against jobs row ──
     if (appRow?.job_id && profile) {
       const { data: jobRow } = await supabase
@@ -153,7 +175,8 @@ export async function scoreApplication(supabase, queryClient, applicationId, job
         .eq("id", appRow.job_id)
         .maybeSingle();
       if (jobRow) {
-        const result = scoreJobFit({ profile, experiences, educations }, jobRow);
+        const fn = await loadScoreJobFit();
+        const result = fn({ profile, experiences, educations }, jobRow);
         await writeDeterministic(supabase, applicationId, result, userId, queryClient);
         return;
       }
@@ -167,7 +190,8 @@ export async function scoreApplication(supabase, queryClient, applicationId, job
         });
         if (!exErr && extractResp?.extraction) {
           const syntheticJob = { id: applicationId, ...extractResp.extraction };
-          const result = scoreJobFit({ profile, experiences, educations }, syntheticJob);
+          const fn = await loadScoreJobFit();
+          const result = fn({ profile, experiences, educations }, syntheticJob);
           await writeDeterministic(supabase, applicationId, result, userId, queryClient);
           return;
         }
