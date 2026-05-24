@@ -1,5 +1,7 @@
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, Check, X, ArrowRight } from "lucide-react";
+import { ChevronDown, ChevronUp, Check, X, ArrowRight, ExternalLink } from "lucide-react";
+import { Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { TRACK_CONFIG } from "@/lib/trackConfig";
 
 // NB: `onTrack` is accepted for backward compatibility with CareerRoadmap's
@@ -149,6 +151,20 @@ export default function RoleCard({ role, onTrack }) { // eslint-disable-line no-
                 ))}
               </div>
             </div>
+          )}
+
+          {/* Bridge to the Jobs page filtered to this role title — closes
+              the "Roadmap says I'm a fit, but where are the actual jobs?"
+              loop by deep-linking into the place where specific openings
+              are scored per-posting. */}
+          {role.title && (
+            <Link
+              to={`${createPageUrl("Jobs")}?role=${encodeURIComponent(role.title)}`}
+              className="rm-jobs-link"
+            >
+              See {role.title} jobs available now
+              <ExternalLink className="w-3 h-3" />
+            </Link>
           )}
         </div>
       )}

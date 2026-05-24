@@ -265,7 +265,7 @@ export default function CareerRoadmap() {
             <div>
               <p className="rm-eyebrow">Career roadmap</p>
               <h1 className="rm-h1 mt-1.5">Where you stand, where you&apos;re going.</h1>
-              <p className="rm-sub">Three tiers of roles tailored to your career goals.</p>
+              <p className="rm-sub">Your career-direction fit, by role. For specific job openings to apply to, see <Link to={createPageUrl("Jobs")} className="underline hover:text-[#0E1014]">Jobs</Link>.</p>
               {profile?.last_reality_check_date && roles.length > 0 && (
                 <p className="rm-stamp">
                   Last updated · {new Date(profile.last_reality_check_date).toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" })}

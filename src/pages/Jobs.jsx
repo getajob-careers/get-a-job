@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Loader2, Briefcase, Search, RefreshCw } from "lucide-react";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
@@ -127,24 +127,34 @@ export default function JobSuggestions() {
   const hasAnyRoles = careerRoles.length > 0;
 
   // ── Browse state ──────────────────────────────────────────────────
+  // Deep-link support — Roadmap role cards send ?role=<title> so a user
+  // clicking "See Product Manager jobs" lands on the Jobs page already
+  // filtered to that role title via keyword search.
+  const [searchParams] = useSearchParams();
+  const linkedRole = searchParams.get("role") || "";
+
   // Mode is exactly one of track | keyword. Switching one clears the other.
   // Default to "keyword" for users who don't yet have career_roles so they
   // have something usable immediately (otherwise the page lands on Track 1
-  // and shows an empty state).
-  const [mode, setMode] = useState(hasAnyRoles ? "track" : "keyword");
+  // and shows an empty state). When ?role= is in the URL, we land in
+  // keyword mode pre-filled with that role title.
+  const [mode, setMode] = useState(linkedRole ? "keyword" : hasAnyRoles ? "track" : "keyword");
   const [selectedTrack, setSelectedTrack] = useState("track_1");
-  const [keyword, setKeyword] = useState("");
-  const [appliedKeyword, setAppliedKeyword] = useState("");
+  const [keyword, setKeyword] = useState(linkedRole);
+  const [appliedKeyword, setAppliedKeyword] = useState(linkedRole);
 
   // Flip the default once career_roles resolves, but only once (we don't
-  // want to re-flip when the user has manually switched modes).
+  // want to re-flip when the user has manually switched modes). Skip the
+  // flip when we arrived via ?role= deep link — the user explicitly asked
+  // for keyword mode.
   const defaultedRef = useRef(false);
   useEffect(() => {
     if (defaultedRef.current) return;
+    if (linkedRole) { defaultedRef.current = true; return; }
     if (careerRoles.length === 0) return;
     defaultedRef.current = true;
     setMode("track");
-  }, [careerRoles.length]);
+  }, [careerRoles.length, linkedRole]);
 
   const [jobs, setJobs] = useState([]);
   const [offset, setOffset] = useState(0);

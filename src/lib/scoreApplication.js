@@ -33,6 +33,12 @@
 // failures left rows stuck on the placeholder forever.
 
 import { scoreJobFit } from "./scoreJobFit";
+import {
+  SENIORITY_RANK,
+  STAGE_T1_CEILING,
+  FIT_ONLY_THRESHOLDS,
+  GOAL_TRACK_THRESHOLDS,
+} from "../../supabase/functions/_shared/track-scoring-constants.ts";
 
 // Persist a deterministic scoreJobFit result onto an application row.
 // Shared between the linked-job path (1) and the extracted-JD path (2).
@@ -59,39 +65,14 @@ async function writeDeterministic(supabase, applicationId, result, userId, query
 // generate-career-analysis (0.55/0.40/0.25). Exported as the inline
 // helper for JobMatchChecker too, in case alignment is missing.
 export function trackFromScore(score) {
-  if (score >= 0.55) return "track_1";
-  if (score >= 0.40) return "track_2";
-  if (score >= 0.25) return "track_3";
+  if (score >= FIT_ONLY_THRESHOLDS.t1) return "track_1";
+  if (score >= FIT_ONLY_THRESHOLDS.t2) return "track_2";
+  if (score >= FIT_ONLY_THRESHOLDS.t3) return "track_3";
   return "track_3";
 }
 
-// Seniority ceiling per career stage — mirrors T1_SENIORITY_CEILING in
-// generate-career-analysis but stricter for early_career, because the
-// LLM-based fit score doesn't apply seniorityGapPenalty (it gives full
-// credit on topical skill overlap regardless of experience gap). For an
-// early-career student a 4-years-required Mid role still scored 0.70+
-// match and landed in track_1 — wrong, since they can't be hired NOW.
-// Stricter ceiling pushes those to track_3 (Work Toward).
-const STAGE_T1_CEILING = {
-  early: 1,   // Entry + Entry_Mid only — Mid+ is "Work Toward" for a student
-  mid: 3,     // up to Mid_Senior
-  senior: 6,  // unbounded
-};
-
-const SENIORITY_RANK = {
-  Entry: 0,
-  Entry_Mid: 1,
-  Mid: 2,
-  Mid_Senior: 3,
-  Senior: 3,
-  Lead: 4,
-  Manager: 4,
-  Principal: 4,
-  Staff: 4,
-  Director: 5,
-  VP: 6,
-};
-
+// STAGE_T1_CEILING + SENIORITY_RANK now live in
+// supabase/functions/_shared/track-scoring-constants.ts (imported above).
 // Goal-aware track derivation. Combines three signals from analyze-job-match:
 //   fit             — JD skill/topic match (0-1)
 //   alignment       — how this role advances the 5-year goal (0-1, may be null)
@@ -127,10 +108,11 @@ export function trackFromScores(fit, alignment, options = {}) {
 
   if (!hasAlignment) return trackFromScore(fit);
 
-  if (fit >= 0.50 && alignment >= 0.70) return "track_1";
-  if (fit >= 0.40 && alignment >= 0.80) return "track_1";
-  if (fit >= 0.50) return "track_2";
-  if (fit >= 0.20 && alignment >= 0.60) return "track_3";
+  const T = GOAL_TRACK_THRESHOLDS;
+  if (fit >= T.t1_min_fit_high_alignment && alignment >= T.t1_min_alignment_high_fit) return "track_1";
+  if (fit >= T.t1_min_fit_relaxed && alignment >= T.t1_min_alignment_relaxed) return "track_1";
+  if (fit >= T.t2_min_fit) return "track_2";
+  if (fit >= T.t3_min_fit && alignment >= T.t3_min_alignment) return "track_3";
   return trackFromScore(fit);
 }
 

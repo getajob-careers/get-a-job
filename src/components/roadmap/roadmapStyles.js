@@ -105,6 +105,11 @@ export const ROADMAP_CSS = `
 .rm-action-item { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--rm-ink-soft); line-height: 1.5; }
 .rm-action-item svg { flex-shrink: 0; margin-top: 4px; color: var(--rm-accent); }
 
+/* Cross-page bridge to Jobs filtered by this role title — the explicit
+   answer to "Roadmap says I'm a fit, but where are the actual openings?" */
+.rm-jobs-link { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 500; color: var(--rm-accent); text-decoration: none; padding: 8px 0 4px; }
+.rm-jobs-link:hover { text-decoration: underline; }
+
 /* Live matches list */
 .rm-job-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 12px 14px; border-radius: var(--rm-radius); border: 1px solid transparent; transition: background 0.15s ease, border-color 0.15s ease; text-decoration: none; color: inherit; }
 .rm-job-row:hover { background: var(--rm-accent-tint); border-color: var(--rm-accent); }

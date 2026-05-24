@@ -35,9 +35,20 @@ const WEIGHTS = { core: 0.6, secondary: 0.3, differentiator: 0.1 } as const;
 // primary_domain fallback exists. 0.70 was unreachable for junior profiles
 // with sparse skill matches, so Track 1 was never populated in the no-goal
 // path. 0.55 is calibrated against real onboarding profiles.
-const FIT_ONLY_THRESHOLDS = { t1: 0.55, t2: 0.40, t3: 0.25 } as const;
+// Track-scoring constants — shared with src/lib/scoreJobFit.js and
+// src/lib/scoreApplication.js so the Roadmap, Jobs page, and Tracker all
+// apply the SAME ceiling values + alignment thresholds. Before PR-E the
+// Roadmap was using more permissive values, surfacing Mid-level roles in
+// Track 1 for students that the Jobs page would never show.
+import {
+  FIT_ONLY_THRESHOLDS,
+  STAGE_T1_CEILING,
+  GOAL_TRACK_THRESHOLDS as SHARED_GOAL_THRESHOLDS,
+  DOMAIN_TO_FAMILIES as SHARED_DOMAIN_TO_FAMILIES,
+} from "../_shared/track-scoring-constants.ts";
 
-// Goal-aware thresholds — tracks combine readiness (fit) AND goal alignment.
+// Goal-aware thresholds — local mirror of the shared GOAL_TRACK_THRESHOLDS
+// keyed in the original "track_N_min_*" shape this file already uses.
 //
 // T1 / T2 use the penalty-adjusted fitScore (skill overlap × seniority-gap
 // penalty × family-experience penalty) because they measure "could be hired
@@ -45,28 +56,24 @@ const FIT_ONLY_THRESHOLDS = { t1: 0.55, t2: 0.40, t3: 0.25 } as const;
 //
 // T3 ("Work Toward") uses RAW skill overlap (pre-penalty). T3 is aspirational
 // — penalising "not ready yet" by lowering fit makes the threshold meant to
-// capture aspirational roles unreachable for them. The raw skill overlap is
-// the right signal: does the user have any foundation in this role's skills
-// today, regardless of seniority gap or family distance?
+// capture aspirational roles unreachable for them.
 const GOAL_TRACK_THRESHOLDS = {
-  track_1_min_fit: 0.50,
-  track_1_min_alignment: 0.60,
-  track_2_min_fit: 0.50,
-  track_3_min_raw_fit: 0.20,
-  track_3_min_alignment: 0.60,
+  track_1_min_fit: SHARED_GOAL_THRESHOLDS.t1_min_fit_high_alignment,
+  track_1_min_alignment: SHARED_GOAL_THRESHOLDS.t1_min_alignment_high_fit,
+  track_2_min_fit: SHARED_GOAL_THRESHOLDS.t2_min_fit,
+  track_3_min_raw_fit: SHARED_GOAL_THRESHOLDS.t3_min_fit,
+  track_3_min_alignment: SHARED_GOAL_THRESHOLDS.t3_min_alignment,
 } as const;
 
 const MAX_T1 = 5, MAX_T2 = 5, MAX_T3 = 5;
 
-// Track-1 seniority ceiling per experience level. "Could be hired NOW" —
-// a current student should not see Mid-level titles in Track 1 even if the
-// skill math comes out high. Mid+ roles that are goal-aligned flow to Track 3
-// (aspirational) instead. Uses SENIORITY_RANK values from below:
-//   Entry=0, Entry_Mid=1, Mid=2, Senior=3, Lead/Manager=4, Director=5, VP=6
+// Track-1 seniority ceiling per experience level. Bridges the long-form
+// stage keys this file uses (early_career / mid_career / senior_career)
+// to the compact ones in the shared constants (early / mid / senior).
 const T1_SENIORITY_CEILING: Record<"early_career" | "mid_career" | "senior_career", number> = {
-  early_career: 2,   // Entry + Entry_Mid + Mid (e.g. Customer Success Manager for a CS specialist)
-  mid_career: 4,     // up to Lead/Manager
-  senior_career: 6,  // no ceiling
+  early_career: STAGE_T1_CEILING.early,
+  mid_career: STAGE_T1_CEILING.mid,
+  senior_career: STAGE_T1_CEILING.senior,
 };
 
 // Seniority-gap penalty applied to raw skill fit. A student with no Mid
@@ -108,25 +115,8 @@ function familyExperiencePenalty(
 }
 
 // primary_domain → role families the user has direct experience in.
-// Used by familyExperiencePenalty to decide whether a candidate role is
-// a direct-family or unrelated jump for this user.
-const PRIMARY_DOMAIN_TO_FAMILIES: Record<string, string[]> = {
-  customer_success: ["Relationship_Growth", "Customer_Experience", "Onboarding_Implementation", "Support"],
-  customer_experience: ["Customer_Experience", "Support", "Relationship_Growth"],
-  support: ["Support", "Customer_Experience"],
-  product: ["Product"],
-  product_management: ["Product"],
-  sales: ["Sales", "BD_Partnerships"],
-  marketing: ["Marketing"],
-  operations: ["Operations", "RevOps_BizOps"],
-  data: ["Data", "RevOps_BizOps"],
-  analytics: ["Data"],
-  finance: ["Finance"],
-  hr: ["HR_People", "Admin_GA"],
-  people: ["HR_People"],
-  engineering: ["Engineering", "Solutions_Engineering"],
-  design: ["Design_UX"],
-};
+// Now sourced from the shared constants file (same map the Jobs page uses).
+const PRIMARY_DOMAIN_TO_FAMILIES = SHARED_DOMAIN_TO_FAMILIES;
 
 // ─── Helpers ────────────────────────────────────────────────────────────
 const STOPWORDS = new Set([
@@ -802,15 +792,24 @@ Deno.serve(async (req) => {
         }
       }
     }
-    // Alias-aware skill resolution (Layer 1 of the D3 skill-propagation fix).
-    // Free-text labels users pick from StepSkills chips ("Python", "Figma",
-    // "HubSpot") don't snake_case into library IDs cleanly. resolveSkillAliases
-    // covers the 72 curated chips + common variants and falls through to the
-    // original snake_case match if no alias entry exists.
+    // Skill resolution. PR-E: prefer profiles.skills_canonical (resolved at
+    // save time via the same alias map) so the Roadmap sees the SAME ID set
+    // the Jobs page sees — eliminates a drift source between the two
+    // surfaces. Falls back to the in-function alias resolution loop when
+    // canonical isn't populated (legacy rows pre-PR-B / backfill races).
     const SKILL_ID_KEYSET = new Set(SKILL_BY_ID.keys());
-    for (const stated of sanitisedProfile.skills) {
-      for (const sid of resolveSkillAliases(stated, SKILL_ID_KEYSET)) {
-        userSkillIds.add(sid);
+    const canonical = Array.isArray((profile as any).skills_canonical)
+      ? (profile as any).skills_canonical as string[]
+      : null;
+    if (canonical && canonical.length > 0) {
+      for (const sid of canonical) {
+        if (SKILL_ID_KEYSET.has(sid)) userSkillIds.add(sid);
+      }
+    } else {
+      for (const stated of sanitisedProfile.skills) {
+        for (const sid of resolveSkillAliases(stated, SKILL_ID_KEYSET)) {
+          userSkillIds.add(sid);
+        }
       }
     }
 

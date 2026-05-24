@@ -29,6 +29,13 @@
 
 import { totalYearsOfExperience, inferExperienceLevel } from "./experienceLevel";
 import { trackFromScore } from "./scoreApplication";
+import {
+  SENIORITY_RANK,
+  STAGE_T1_CEILING,
+  DOMAIN_TO_FAMILIES,
+  EDUCATION_RANK,
+  EXPERIENCE_LEVEL_TO_STAGE,
+} from "../../supabase/functions/_shared/track-scoring-constants.ts";
 
 // Component weights — sum to 1.0. Skill dominates because it's both the
 // strongest signal and the one the extractor is most confident about.
@@ -40,56 +47,21 @@ const WEIGHTS = {
   function_family: 0.10,
 };
 
-// Career stage → trackFromScores' compact "early|mid|senior" form.
-const STAGE_FOR_TRACK = {
-  early_career: "early",
-  mid_career: "mid",
-  senior_career: "senior",
-};
+// All scoring constants now live in
+// supabase/functions/_shared/track-scoring-constants.ts — imported above.
+// DOMAIN_TO_FAMILIES is exported as Record<string, string[]>; we wrap each
+// family list in a Set at module load for fast .has() lookup below.
+const DOMAIN_TO_FAMILIES_SET = Object.fromEntries(
+  Object.entries(DOMAIN_TO_FAMILIES).map(([k, v]) => [k, new Set(v)]),
+);
 
-// Seniority ceiling per stage — mirrors STAGE_T1_CEILING in
-// scoreApplication.js. Above the ceiling = job is aspirational, not viable
-// today; fit gets downgraded to track_3.
-const STAGE_CEILING = {
-  early_career: 1,   // Entry + Entry_Mid only
-  mid_career: 3,     // up to Mid_Senior
-  senior_career: 6,  // unbounded
-};
-
-const SENIORITY_RANK = {
-  Entry: 0, Entry_Mid: 1, Mid: 2, Mid_Senior: 3, Senior: 3,
-  Lead: 4, Manager: 4, Principal: 4, Staff: 4,
-  Director: 5, VP: 6,
-};
-
-// Profile primary_domain → role families that count as direct family
-// experience. Mirrors PRIMARY_DOMAIN_TO_FAMILIES in generate-career-analysis.
-const DOMAIN_TO_FAMILIES = {
-  customer_success: new Set(["Relationship_Growth", "Customer_Experience", "Onboarding_Implementation", "Support"]),
-  customer_experience: new Set(["Customer_Experience", "Support", "Relationship_Growth"]),
-  support: new Set(["Support", "Customer_Experience"]),
-  product: new Set(["Product"]),
-  product_management: new Set(["Product"]),
-  sales: new Set(["Sales", "BD_Partnerships"]),
-  marketing: new Set(["Marketing"]),
-  operations: new Set(["Operations", "RevOps_BizOps"]),
-  data: new Set(["Data", "RevOps_BizOps"]),
-  analytics: new Set(["Data"]),
-  finance: new Set(["Finance"]),
-  hr: new Set(["HR_People", "Admin_GA"]),
-  people: new Set(["HR_People"]),
-  engineering: new Set(["Engineering", "Solutions_Engineering"]),
-  design: new Set(["Design_UX"]),
-};
-
-const EDUCATION_RANK = {
-  high_school: 0,
-  associate: 1,
-  bachelors: 2,
-  masters: 3,
-  phd: 4,
-  bootcamp: 1,
-  self_taught: 0,
+// inferExperienceLevel returns "early_career" | "mid_career" | "senior_career";
+// the seniority-ceiling lookup keys on the compact "early|mid|senior" form
+// used in the shared constants. STAGE_CEILING_BY_LEVEL bridges the two.
+const STAGE_CEILING_BY_LEVEL = {
+  early_career: STAGE_T1_CEILING.early,
+  mid_career: STAGE_T1_CEILING.mid,
+  senior_career: STAGE_T1_CEILING.senior,
 };
 
 // ─── Skill axis ────────────────────────────────────────────────────────
@@ -204,7 +176,7 @@ function computeSeniorityAxis(userLevel, job) {
   const reqRank = SENIORITY_RANK[reqSen] ?? null;
   if (reqRank === null) return { score: 0.5, match: "unknown_value" };
 
-  const ceiling = STAGE_CEILING[userLevel] ?? Infinity;
+  const ceiling = STAGE_CEILING_BY_LEVEL[userLevel] ?? Infinity;
 
   if (reqRank > ceiling) {
     // Above ceiling — not viable today.
@@ -223,7 +195,7 @@ function computeFunctionFamilyAxis(profile, job) {
   const fam = job?.function_family || null;
   const domain = String(profile?.primary_domain || "").toLowerCase();
   if (!fam) return { score: 0.5, match: false };
-  const userFams = DOMAIN_TO_FAMILIES[domain];
+  const userFams = DOMAIN_TO_FAMILIES_SET[domain];
   if (!userFams) return { score: 0.5, match: false };
   return userFams.has(fam)
     ? { score: 1.0, match: true }
@@ -308,7 +280,7 @@ export function scoreJobFit(input, job) {
   //   unspecified → null  job has no extracted function_family OR user
   //                       has no primary_domain — UI hides the bar
   let goal_alignment_score = null;
-  if (job?.function_family && DOMAIN_TO_FAMILIES[String(profile?.primary_domain || "").toLowerCase()]) {
+  if (job?.function_family && DOMAIN_TO_FAMILIES_SET[String(profile?.primary_domain || "").toLowerCase()]) {
     goal_alignment_score = family.match ? 1.0 : 0.35;
   }
 
@@ -329,7 +301,7 @@ export function scoreJobFit(input, job) {
       function_family_match: family.match,
       extraction_confidence: conf,
       user_level: userLevel,
-      user_stage: STAGE_FOR_TRACK[userLevel] || null,
+      user_stage: EXPERIENCE_LEVEL_TO_STAGE[userLevel] || null,
     },
     reasoning: { strengths, gaps },
   };
