@@ -28,13 +28,19 @@
 //   }
 
 import { totalYearsOfExperience, inferExperienceLevel } from "./experienceLevel";
-import { trackFromScore } from "./scoreApplication";
+// IMPORTANT: trackFromScore is imported from the shared .ts constants
+// file, NOT from ./scoreApplication. scoreApplication imports scoreJobFit
+// (PR-D), so the reverse direction created a circular module graph that
+// Rollup linearized into a TDZ ("Cannot access 'le' before initialization"
+// in production). Centralized in the .ts to keep the dependency graph
+// linear: track-scoring-constants → scoreJobFit → scoreApplication.
 import {
   SENIORITY_RANK,
   STAGE_T1_CEILING,
   DOMAIN_TO_FAMILIES,
   EDUCATION_RANK,
   EXPERIENCE_LEVEL_TO_STAGE,
+  trackFromScore,
 } from "../../supabase/functions/_shared/track-scoring-constants.ts";
 
 // Component weights — sum to 1.0. Skill dominates because it's both the
