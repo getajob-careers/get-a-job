@@ -185,10 +185,17 @@ export default function JobSuggestions() {
   // put the user in Track 2/3 territory, while the green Track 1 stripe
   // implied apply-now readiness. Keyword mode is unchanged — there's no
   // tab to honor, all matching titles surface.
+  // PR-G1 fix: derive inTrackMode INLINE from `mode` instead of reading the
+  // `const inTrackMode = mode === "track"` declared ~90 lines below. The
+  // earlier reference triggered a production TDZ (`Cannot access 'fze'…`
+  // in the minified bundle — `fze` was the lifted `inTrackMode` binding)
+  // because React calls this useMemo factory at render time, BEFORE the
+  // line that declares `inTrackMode` further down in the function body
+  // has executed. Reading `mode` directly avoids the cross-line TDZ.
   const displayedJobs = useMemo(() => {
-    if (!inTrackMode || jobs.length === 0 || !profile) return jobs;
+    if (mode !== "track" || jobs.length === 0 || !profile) return jobs;
     return jobs.filter((job) => scoredById[job.id]?.track === selectedTrack);
-  }, [jobs, scoredById, inTrackMode, selectedTrack, profile]);
+  }, [jobs, scoredById, mode, selectedTrack, profile]);
 
   const buildJobsQuery = useCallback((modeArg, track, kw, offsetArg) => {
     const seniorities = seniorityFilterFor(modeArg, track, allowedSeniorities);
