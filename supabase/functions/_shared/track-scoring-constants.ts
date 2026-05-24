@@ -68,6 +68,20 @@ export const FIT_ONLY_THRESHOLDS = {
   t3: 0.25,
 } as const;
 
+// Pure fit-only track derivation. Moved here from src/lib/scoreApplication.js
+// to break the scoreApplication ↔ scoreJobFit circular import. The cycle
+// (scoreJobFit imports trackFromScore from scoreApplication; scoreApplication
+// imports scoreJobFit) had been latent since PR-C/D. A new Vercel build
+// surfaced it as a TDZ error ("Cannot access 'le' before initialization")
+// — Rollup's module linearization changed bundle order. Centralizing the
+// helper here lets both files import without depending on each other.
+export function trackFromScore(score: number): "track_1" | "track_2" | "track_3" {
+  if (score >= FIT_ONLY_THRESHOLDS.t1) return "track_1";
+  if (score >= FIT_ONLY_THRESHOLDS.t2) return "track_2";
+  if (score >= FIT_ONLY_THRESHOLDS.t3) return "track_3";
+  return "track_3";
+}
+
 // Goal-aware Track thresholds. Stricter Jobs/scoreJobFit values win.
 // T1: fit ≥ 0.50 AND alignment ≥ 0.70
 //   OR fit ≥ 0.40 AND alignment ≥ 0.80

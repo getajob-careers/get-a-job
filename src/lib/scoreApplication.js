@@ -36,9 +36,16 @@ import { scoreJobFit } from "./scoreJobFit";
 import {
   SENIORITY_RANK,
   STAGE_T1_CEILING,
-  FIT_ONLY_THRESHOLDS,
   GOAL_TRACK_THRESHOLDS,
+  trackFromScore,
 } from "../../supabase/functions/_shared/track-scoring-constants.ts";
+
+// Re-export trackFromScore so existing callers (test, JobMatchChecker,
+// any future consumer) can keep importing from @/lib/scoreApplication
+// while the actual function lives in the shared .ts file. Breaking the
+// scoreApplication ↔ scoreJobFit import cycle was the urgent fix; the
+// re-export keeps it API-compatible.
+export { trackFromScore };
 
 // Persist a deterministic scoreJobFit result onto an application row.
 // Shared between the linked-job path (1) and the extracted-JD path (2).
@@ -60,19 +67,10 @@ async function writeDeterministic(supabase, applicationId, result, userId, query
   });
 }
 
-// Fit-only fallback — used when the user has no 5-year goal so the LLM
-// can't return alignment. Thresholds match FIT_ONLY_THRESHOLDS in
-// generate-career-analysis (0.55/0.40/0.25). Exported as the inline
-// helper for JobMatchChecker too, in case alignment is missing.
-export function trackFromScore(score) {
-  if (score >= FIT_ONLY_THRESHOLDS.t1) return "track_1";
-  if (score >= FIT_ONLY_THRESHOLDS.t2) return "track_2";
-  if (score >= FIT_ONLY_THRESHOLDS.t3) return "track_3";
-  return "track_3";
-}
-
-// STAGE_T1_CEILING + SENIORITY_RANK now live in
-// supabase/functions/_shared/track-scoring-constants.ts (imported above).
+// trackFromScore + STAGE_T1_CEILING + SENIORITY_RANK now live in
+// supabase/functions/_shared/track-scoring-constants.ts.
+// trackFromScore is re-exported above so the @/lib/scoreApplication
+// import path stays valid for callers that already use it.
 // Goal-aware track derivation. Combines three signals from analyze-job-match:
 //   fit             — JD skill/topic match (0-1)
 //   alignment       — how this role advances the 5-year goal (0-1, may be null)
