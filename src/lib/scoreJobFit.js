@@ -296,8 +296,25 @@ export function scoreJobFit(input, job) {
   if (education.match === "gap_strict") gaps.push("Degree gap (strict)");
   if (seniority.match === "above_ceiling") gaps.push("Above your seniority");
 
+  // Surface family match as goal_alignment_score so deterministic scoring
+  // can populate the same field analyze-job-match used to fill (RoleCard /
+  // Tracker UI bind to this). Semantics: "does this role advance the
+  // user's intended direction?" — primary_domain ↔ function_family is our
+  // deterministic proxy for that signal.
+  //   match=true  → 1.0   strong alignment (in-domain role)
+  //   match=false → 0.35  off-domain (job has a family, user's domain
+  //                       doesn't map to it — same penalty value used in
+  //                       the family axis of fit_score)
+  //   unspecified → null  job has no extracted function_family OR user
+  //                       has no primary_domain — UI hides the bar
+  let goal_alignment_score = null;
+  if (job?.function_family && DOMAIN_TO_FAMILIES[String(profile?.primary_domain || "").toLowerCase()]) {
+    goal_alignment_score = family.match ? 1.0 : 0.35;
+  }
+
   return {
     fit_score: Math.round(fit_score * 100) / 100,
+    goal_alignment_score,
     track,
     signals: {
       skill_match_pct: skill.skill_match_pct,

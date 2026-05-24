@@ -43,7 +43,13 @@ function formatPostedDate(dateStr) {
 
 // Idempotent insert into applications. Matches on (ats_source, external_id)
 // for jobs added from Browse; falls back to title-only for manual rows.
-async function addJobToTracker({ user, queryClient, job, matchScore, matchedSkills, matchReason }) {
+//
+// PR-D: persist the full scoreResult (fit_score + track + alignment) at
+// insert time when available, so the Tracker shows the SAME numbers the
+// Jobs page card just showed — no second LLM round-trip, no async fill-in
+// of the track column. The job_id link is set so any future re-score
+// (e.g. JD edit on the application) takes the deterministic path.
+async function addJobToTracker({ user, queryClient, job, scoreResult }) {
   let dupQuery = supabase.from("applications").select("id").eq("user_id", user.id).limit(1);
   if (job.ats_source && job.external_id) {
     dupQuery = dupQuery.eq("ats_source", job.ats_source).eq("external_id", job.external_id);
@@ -54,6 +60,9 @@ async function addJobToTracker({ user, queryClient, job, matchScore, matchedSkil
   if (existing?.length > 0) return { duplicate: true };
 
   const jd = job.description || "";
+  const hasScore = scoreResult && typeof scoreResult.fit_score === "number";
+  const matchedSkills = scoreResult?.signals?.matched_skills || [];
+  const matchReason = (scoreResult?.reasoning?.strengths || []).join(" · ");
   const { data: inserted, error } = await supabase.from("applications").insert({
     user_id: user.id,
     role_title: job.title,
@@ -62,12 +71,18 @@ async function addJobToTracker({ user, queryClient, job, matchScore, matchedSkil
     source: "job_suggestion",
     ats_source: job.ats_source || null,
     external_id: job.external_id || null,
-    cv_skills_emphasized: matchedSkills || [],
+    job_id: job.id || null,
+    cv_skills_emphasized: matchedSkills,
     job_description: jd,
     url: job.apply_url || "",
     location: job.location_city || job.location_raw || "",
-    notes: matchReason || "",
-    ...(typeof matchScore === "number" && { qualification_score: matchScore / 100 }),
+    notes: matchReason,
+    ...(hasScore && {
+      qualification_score: scoreResult.fit_score,
+      goal_alignment_score: scoreResult.goal_alignment_score ?? null,
+      track: scoreResult.track,
+      score_source: "deterministic",
+    }),
   }).select("id").single();
 
   if (error) {
@@ -75,7 +90,9 @@ async function addJobToTracker({ user, queryClient, job, matchScore, matchedSkil
     return { error };
   }
   queryClient.invalidateQueries({ queryKey: ["applications"] });
-  if (inserted?.id && jd && matchScore == null) {
+  // Only re-score from scratch when we couldn't write a deterministic result
+  // (no scoreResult was passed) AND we have a JD to feed the fallback path.
+  if (inserted?.id && jd && !hasScore) {
     scoreApplication(supabase, queryClient, inserted.id, jd, user.id);
   }
   return { ok: true };
@@ -120,12 +137,7 @@ export default function JobCard({ job, scoreResult, trackColor }) {
 
   const handleAdd = async () => {
     setAdding(true);
-    const res = await addJobToTracker({
-      user, queryClient, job,
-      matchScore: score,
-      matchedSkills,
-      matchReason: reasonText,
-    });
+    const res = await addJobToTracker({ user, queryClient, job, scoreResult });
     setAdding(false);
     if (res.ok || res.duplicate) setAdded(true);
   };

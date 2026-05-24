@@ -1084,9 +1084,45 @@ Deno.serve(async (req) => {
   } catch {
     return json({ error: 'Invalid JSON body' }, 400);
   }
-  const { job_id, force = false } = body;
+
+  // Stateless mode: caller passes raw JD text + title; we extract and return
+  // the structured fields WITHOUT writing to the jobs table. Used by
+  // scoreApplication / JobMatchChecker when scoring a pasted-in JD that has
+  // no jobs-table row to anchor against. Same extractor schema either way.
+  const { job_id, force = false, jd_text, title: stateless_title } = body;
+  const isStateless = typeof jd_text === 'string' && jd_text.length > 0;
+
+  if (isStateless) {
+    if (jd_text.length < 200) {
+      return json({ stateless: true, skipped: true, reason: 'jd_too_short', extraction: null });
+    }
+    const extraction = await extractRequirements(jd_text, stateless_title || '', OPENAI_KEY);
+    if (!extraction) {
+      return json({ stateless: true, skipped: true, reason: 'extraction_failed', extraction: null });
+    }
+    // Resolve raw skill phrases to canonical IDs server-side so the caller
+    // gets the same shape jobs.req_skills_core has. Reuses the per-row
+    // resolveSkill helper defined above.
+    const resolvedCore = new Set<string>();
+    const resolvedNice = new Set<string>();
+    for (const raw of extraction.req_skills_core_raw) {
+      resolveSkill(raw).forEach((id) => resolvedCore.add(id));
+    }
+    for (const raw of extraction.req_skills_nice_raw) {
+      resolveSkill(raw).forEach((id) => resolvedNice.add(id));
+    }
+    return json({
+      stateless: true,
+      extraction: {
+        ...extraction,
+        req_skills_core: Array.from(resolvedCore),
+        req_skills_nice: Array.from(resolvedNice),
+      },
+    });
+  }
+
   if (!job_id || typeof job_id !== 'string') {
-    return json({ error: 'job_id required' }, 400);
+    return json({ error: 'job_id or jd_text required' }, 400);
   }
 
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);

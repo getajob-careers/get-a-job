@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { trackFromScores } from "@/lib/scoreApplication";
+import { scoreJobFit } from "@/lib/scoreJobFit";
 import { track, EVENTS } from "@/lib/analytics";
 
 import { Sparkles, Loader2, CheckCircle2, XCircle, ChevronDown, ChevronUp, Plus, FileText, Link } from "lucide-react";
@@ -31,6 +32,32 @@ export default function JobMatchChecker() {
   const [addingToTracker, setAddingToTracker] = useState(false);
   const [addedToTracker, setAddedToTracker] = useState(false);
   const msgInterval = useRef(null);
+
+  // Profile context for the deterministic text-mode path (PR-D). Same
+  // fields scoreJobFit consumes on the Jobs page so the two surfaces
+  // produce the same number for the same JD.
+  const { data: profile } = useQuery({
+    queryKey: ["userProfile", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const { data } = await supabase.from("profiles").select("skills_canonical, qualification_level, primary_domain, five_year_role").eq("id", user.id).maybeSingle();
+      return data || null;
+    },
+    enabled: !!user?.id,
+    staleTime: 30 * 60 * 1000,
+  });
+  const { data: experiences = [] } = useQuery({
+    queryKey: ["experiences", user?.id],
+    queryFn: async () => (await supabase.from("experiences").select("type, start_date, end_date, is_current, title, company, responsibilities").eq("user_id", user.id)).data || [],
+    enabled: !!user?.id,
+    staleTime: 30 * 60 * 1000,
+  });
+  const { data: educations = [] } = useQuery({
+    queryKey: ["education", user?.id],
+    queryFn: async () => (await supabase.from("education").select("degree_level").eq("user_id", user.id)).data || [],
+    enabled: !!user?.id,
+    staleTime: 30 * 60 * 1000,
+  });
 
   useEffect(() => {
     if (loading) {
@@ -68,32 +95,72 @@ export default function JobMatchChecker() {
     setResult(null);
     setAddedToTracker(false);
 
-    // Call LLM job match analysis via Edge Function
     try {
-      const { data, error } = await supabase.functions.invoke("analyze-job-match", {
-        body: {
-          job_description: mode === "text" ? jobText.trim() : null,
-          job_url: mode === "url" ? url.trim() : null,
-          mode,
-        },
-      });
+      let data;
+      // PR-D: text mode runs the same extract-then-score pipeline the
+      // Jobs page uses, so a pasted JD gets the same number it would
+      // get if the same JD were already in the jobs cache. URL mode
+      // still goes through analyze-job-match for now because the
+      // extractor doesn't fetch URLs (analyze-job-match does).
+      if (mode === "text") {
+        if (!profile) {
+          setError("Profile is still loading. Try again in a moment.");
+          setLoading(false);
+          return;
+        }
+        const { data: extractResp, error: exErr } = await supabase.functions.invoke("extract-job-requirements", {
+          body: { jd_text: jobText.trim() },
+        });
+        if (exErr) throw exErr;
+        if (!extractResp?.extraction) {
+          throw new Error(extractResp?.reason === "jd_too_short" ? "Paste a longer job description (200+ chars)." : "Couldn't extract requirements from that text.");
+        }
+        const ex = extractResp.extraction;
+        const syntheticJob = {
+          id: "match-checker",
+          title: "Pasted JD",
+          ...ex,
+        };
+        const r = scoreJobFit({ profile, experiences, educations }, syntheticJob);
+        data = {
+          job_title: "Job Match Analysis",
+          company: "",
+          job_description: jobText.trim(),
+          match_score: Math.round(r.fit_score * 100),
+          goal_alignment_score: r.goal_alignment_score == null ? null : Math.round(r.goal_alignment_score * 100),
+          required_seniority: ex.req_seniority || null,
+          user_stage: r.signals.user_stage,
+          verdict: r.reasoning.strengths[0] || "Analysis complete.",
+          matched_requirements: (r.signals.matched_skills || []).map((s) => ({ requirement: s, reason: "Matches your canonical skills" })),
+          missing_requirements: (r.signals.missing_core_skills || []).map((s) => ({ requirement: s, gap: "Not in your profile yet" })),
+          recommendation: [...r.reasoning.strengths, ...r.reasoning.gaps].join(" · "),
+          source_url: null,
+          _deterministic: true,
+        };
+      } else {
+        // URL mode — legacy LLM path. Keep for now; PR-D scope is text.
+        const { data: llmData, error: llmErr } = await supabase.functions.invoke("analyze-job-match", {
+          body: { job_url: url.trim(), mode },
+        });
+        if (llmErr) throw llmErr;
+        data = {
+          job_title: llmData.job_title || "Job Match Analysis",
+          company: llmData.company || "",
+          job_description: llmData.job_description || "",
+          match_score: llmData.match_score || 0,
+          goal_alignment_score: llmData.goal_alignment_score ?? null,
+          required_seniority: llmData.required_seniority || null,
+          user_stage: llmData.user_stage || null,
+          verdict: llmData.verdict || "Analysis complete.",
+          matched_requirements: llmData.matched_requirements || [],
+          missing_requirements: llmData.missing_requirements || [],
+          recommendation: llmData.recommendation || "",
+          source_url: llmData.source_url || url,
+          _deterministic: false,
+        };
+      }
 
-      if (error) throw error;
-
-      setResult({
-        job_title: data.job_title || "Job Match Analysis",
-        company: data.company || "",
-        job_description: data.job_description || (mode === "text" ? jobText.trim() : ""),
-        match_score: data.match_score || 0,
-        goal_alignment_score: data.goal_alignment_score ?? null,
-        required_seniority: data.required_seniority || null,
-        user_stage: data.user_stage || null,
-        verdict: data.verdict || "Analysis complete.",
-        matched_requirements: data.matched_requirements || [],
-        missing_requirements: data.missing_requirements || [],
-        recommendation: data.recommendation || "",
-        source_url: data.source_url || (mode === "url" ? url : null),
-      });
+      setResult(data);
       // Bucket the score the same way the score colour bar does (>=70
       // strong, >=45 moderate, otherwise weak) so funnel charts can group
       // without re-bucketing the raw number client-side.
@@ -132,6 +199,7 @@ export default function JobMatchChecker() {
       goal_alignment_score: alignment,
       required_seniority: result.required_seniority,
       notes: result.source_url ? `Source: ${result.source_url}` : "",
+      score_source: result._deterministic ? "deterministic" : "llm",
     });
     setAddingToTracker(false);
     if (error) {

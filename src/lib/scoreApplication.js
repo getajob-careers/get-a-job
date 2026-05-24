@@ -1,9 +1,18 @@
-// Background scoring of applications via analyze-job-match.
+// Background scoring of applications.
 //
 // Fire-and-forget pattern — the caller does NOT await this function.
-// The flow is: user adds an application, it appears in Tracker
-// immediately with no AI Confidence and no track shown, and ~3-8s later
-// both fill in once analyze-job-match returns.
+//
+// PR-D rewrote the scoring flow into three paths, tried in order:
+//   1. application.job_id present → run scoreJobFit against the linked
+//      jobs row (deterministic, instant, same answer as Jobs page)
+//   2. No job_id but JD text present → call extract-job-requirements in
+//      stateless mode for v4 fields → scoreJobFit (deterministic, ~5-30s)
+//   3. Both fail → fall back to analyze-job-match LLM (legacy, ~3-8s)
+//
+// applications.score_source records which path produced the number so the
+// UI can flag the difference + ops can audit drift.
+//
+// Previously: EVERY scoring call went straight to analyze-job-match.
 //
 // Track comes from BOTH match_score (JD fit) and goal_alignment_score
 // (does this role advance the 5-year target?), mirroring the goal-aware
@@ -22,6 +31,28 @@
 // can swap "Calculating track…" for a Retry button. Successful runs clear
 // the field. Pre-2026-04-28 behavior was console.warn-only — silent
 // failures left rows stuck on the placeholder forever.
+
+import { scoreJobFit } from "./scoreJobFit";
+
+// Persist a deterministic scoreJobFit result onto an application row.
+// Shared between the linked-job path (1) and the extracted-JD path (2).
+async function writeDeterministic(supabase, applicationId, result, userId, queryClient) {
+  const { error: updateError } = await supabase
+    .from("applications")
+    .update({
+      qualification_score: result.fit_score,
+      goal_alignment_score: result.goal_alignment_score,
+      required_seniority: null,
+      track: result.track,
+      track_scoring_failed_at: null,
+      score_source: "deterministic",
+    })
+    .eq("id", applicationId);
+  if (updateError) throw updateError;
+  queryClient?.invalidateQueries({
+    queryKey: userId ? ["applications", userId] : ["applications"],
+  });
+}
 
 // Fit-only fallback — used when the user has no 5-year goal so the LLM
 // can't return alignment. Thresholds match FIT_ONLY_THRESHOLDS in
@@ -103,20 +134,79 @@ export function trackFromScores(fit, alignment, options = {}) {
   return trackFromScore(fit);
 }
 
+// Async per-application scoring. Three paths, tried in order:
+//   1. application.job_id present + linked jobs row has v4 fields →
+//      deterministic scoreJobFit (instant, free, same answer as Jobs page)
+//   2. JD text present but no job_id → call extract-job-requirements in
+//      stateless mode to get v4 fields → deterministic scoreJobFit
+//   3. (1) and (2) both fail (extractor errored, JD too short) → fall back
+//      to analyze-job-match (LLM, legacy raw-text path)
+//
+// Sets applications.score_source so the UI can flag which path produced the
+// number (deterministic vs llm) and ops can audit drift after the fact.
 export async function scoreApplication(supabase, queryClient, applicationId, jobDescription, userId) {
-  if (!applicationId || !jobDescription || typeof jobDescription !== "string" || !jobDescription.trim()) {
-    return;
-  }
+  if (!applicationId) return;
   try {
+    // Load the application + linked job (if any). The Tracker UI calls this
+    // immediately after insert, so the row exists by the time we get here.
+    const { data: appRow } = await supabase
+      .from("applications")
+      .select("id, job_id, role_title")
+      .eq("id", applicationId)
+      .maybeSingle();
+
+    // Load profile context — same shape scoreJobFit expects on the client.
+    const [profileRes, expsRes, edusRes] = await Promise.all([
+      supabase.from("profiles").select("skills_canonical, qualification_level, primary_domain").eq("id", userId).maybeSingle(),
+      supabase.from("experiences").select("type, start_date, end_date, is_current, title, company, responsibilities").eq("user_id", userId),
+      supabase.from("education").select("degree_level").eq("user_id", userId),
+    ]);
+    const profile = profileRes?.data;
+    const experiences = expsRes?.data || [];
+    const educations = edusRes?.data || [];
+
+    // ── Path 1: linked job, run scoreJobFit directly against jobs row ──
+    if (appRow?.job_id && profile) {
+      const { data: jobRow } = await supabase
+        .from("jobs")
+        .select("id, title, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence")
+        .eq("id", appRow.job_id)
+        .maybeSingle();
+      if (jobRow) {
+        const result = scoreJobFit({ profile, experiences, educations }, jobRow);
+        await writeDeterministic(supabase, applicationId, result, userId, queryClient);
+        return;
+      }
+    }
+
+    // ── Path 2: no linked job — extract requirements from pasted JD ──
+    if (jobDescription && typeof jobDescription === "string" && jobDescription.trim().length >= 200 && profile) {
+      try {
+        const { data: extractResp, error: exErr } = await supabase.functions.invoke("extract-job-requirements", {
+          body: { jd_text: jobDescription, title: appRow?.role_title || "" },
+        });
+        if (!exErr && extractResp?.extraction) {
+          const syntheticJob = { id: applicationId, ...extractResp.extraction };
+          const result = scoreJobFit({ profile, experiences, educations }, syntheticJob);
+          await writeDeterministic(supabase, applicationId, result, userId, queryClient);
+          return;
+        }
+        // Extractor returned but said skipped/failed — fall through to LLM.
+      } catch (exCatch) {
+        console.warn("[scoreApplication] stateless extractor failed:", exCatch?.message || exCatch);
+      }
+    }
+
+    // ── Path 3: LLM fallback (legacy raw-text path) ──
+    if (!jobDescription || typeof jobDescription !== "string" || !jobDescription.trim()) {
+      // No JD at all → can't score. Leave the row unscored, no failure marker.
+      return;
+    }
     const { data, error } = await supabase.functions.invoke("analyze-job-match", {
       body: { job_description: jobDescription, mode: "text" },
     });
     if (error) throw error;
     if (data?.match_score == null) {
-      // analyze-job-match returned 200 but no usable score (rare —
-      // typically means the LLM emitted unexpected JSON). Treat as
-      // failure so the user can retry rather than seeing an indefinite
-      // spinner.
       throw new Error("analyze-job-match returned no match_score");
     }
     const fit = Math.max(0, Math.min(1, Number(data.match_score) / 100));
@@ -137,6 +227,7 @@ export async function scoreApplication(supabase, queryClient, applicationId, job
         required_seniority: roleSeniority,
         track: trackFromScores(fit, alignment, { userStage, roleSeniority }),
         track_scoring_failed_at: null,
+        score_source: "llm",
       })
       .eq("id", applicationId);
     if (updateError) throw updateError;
