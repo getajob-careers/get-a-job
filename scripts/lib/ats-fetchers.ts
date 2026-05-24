@@ -371,7 +371,25 @@ export async function fetchAshby(c: CompanyEntry): Promise<RawJob[]> {
  * externalPath, return the union. ~3x request count per tenant but
  * recall jumps from ~3 IL jobs to ~258 for NVIDIA.
  */
-const WORKDAY_SEARCH_TERMS = ["Israel", "Tel Aviv", "Herzliya"] as const;
+// Workday uses server-side `searchText` to narrow before pagination.
+// A job tagged ONLY with a city not in this list would be invisible to us.
+// Expanded from the original 3 to cover every IL city with non-trivial
+// tech employer presence — surfaces jobs at NVIDIA Ra'anana, Intel Haifa,
+// Mobileye Jerusalem, Annapurna AWS Yokneam, etc. that the original 3-term
+// query missed.
+const WORKDAY_SEARCH_TERMS = [
+  "Israel",
+  "Tel Aviv",
+  "Herzliya",
+  "Ra'anana",
+  "Petah Tikva",
+  "Haifa",
+  "Be'er Sheva",
+  "Netanya",
+  "Yokneam",
+  "Jerusalem",
+  "Ramat Gan",
+] as const;
 
 // Workday returns `postedOn` as either an ISO timestamp (rare) or a
 // relative human string like "Posted 3 Days Ago" / "Posted 30+ Days Ago"
@@ -422,6 +440,8 @@ export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
   const limit = 20;
 
   for (const searchText of WORKDAY_SEARCH_TERMS) {
+    let reportedTotal: number | null = null;
+    let pagesFetched = 0;
     for (let page = 0; page < WORKDAY_MAX_PAGES; page++) {
       const offset = page * limit;
       let data: any;
@@ -438,6 +458,13 @@ export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
         break;
       }
       const postings: any[] = data?.jobPostings ?? [];
+      // Workday returns the server-side total in `total` on every response.
+      // Capture it on the first page — if total > our cap (WORKDAY_MAX_PAGES
+      // × limit = 500), we're silently truncating and need to know.
+      if (page === 0 && typeof data?.total === "number") {
+        reportedTotal = data.total;
+      }
+      pagesFetched++;
       if (postings.length === 0) break;
       for (const p of postings) {
         const externalPath = String(p.externalPath ?? p.bulletFields?.[0] ?? "");
@@ -467,6 +494,16 @@ export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
         });
       }
       if (postings.length < limit) break;
+    }
+    // Truncation alert: if Workday reported more jobs than we could fetch
+    // within WORKDAY_MAX_PAGES, log loudly so ops can raise the cap or
+    // narrow the search per tenant. Surface includes tenant + search term
+    // + reported total vs fetched count.
+    const cap = WORKDAY_MAX_PAGES * limit;
+    if (reportedTotal != null && reportedTotal > cap) {
+      console.warn(
+        `[workday] TRUNCATED — tenant=${tenant} searchText="${searchText}" total=${reportedTotal} fetched_pages=${pagesFetched} cap=${cap}. Raise WORKDAY_MAX_PAGES or add a narrower searchText.`,
+      );
     }
   }
   return collected;

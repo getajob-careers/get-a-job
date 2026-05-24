@@ -43,7 +43,10 @@ const UPSERT_BATCH_SIZE = 200;
 
 // ATSs to actually process. The registry contains comeet/recruitee/custom
 // entries we don't have fetchers for yet; skip them silently.
-const ENABLED_ATSS = new Set(["greenhouse", "lever", "ashby", "workday", "smartrecruiters", "comeet", "successfactors", "workable", "iai", "jooble"]);
+// "jooble" is intentionally excluded — the Jooble API has no IL coverage
+// (verified 2026-05: "Israel" location matched US towns in OH/IL/IN). The
+// fetcher stays in the repo in case Jooble adds IL inventory later.
+const ENABLED_ATSS = new Set(["greenhouse", "lever", "ashby", "workday", "smartrecruiters", "comeet", "successfactors", "workable", "iai"]);
 
 // ───── Types ──────────────────────────────────────────────────────────
 
