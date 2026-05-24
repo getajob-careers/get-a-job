@@ -4844,16 +4844,16 @@
       "notes": "Comeet UID 09.00A + token verified"
     },
     {
-      "name": "Israel Aerospace Industries (IAI)",
+      "name": "Israel Aerospace Industries",
       "type": "israeli_founded",
       "industry": "Defense / Aerospace",
       "domain": "iai.co.il",
       "careers_url": "https://jobs.iai.co.il/",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "jobs.iai.co.il is anti-bot protected (Reblaze 'kramericaindustries' JS challenge). Defense contractor — clearance-gated proprietary portal. Note: 'iai' Greenhouse slug exists but is UK's 'Applied AI Industries', not IAI. No public API."
+      "ats": "iai",
+      "slug": "iai",
+      "api_url": "https://jobs.iai.co.il/wp-content/themes/tyco-wp/assets/json/jobs.json",
+      "verified": true,
+      "notes": "Custom WordPress + Vue theme (tyco-wp). ~470 active Hebrew-prose listings via single JSON endpoint, no pagination, no auth. Unlocks the largest single-source IL job addition since Greenhouse. JD language: Hebrew (extractor's jd_language='he' handles)."
     },
     {
       "name": "Israel Discount Bank",

@@ -83,6 +83,77 @@ export async function fetchGreenhouse(c: CompanyEntry): Promise<RawJob[]> {
   }));
 }
 
+// ───── IAI (Israel Aerospace Industries) — custom WordPress theme ───
+//
+// IAI's careers site (jobs.iai.co.il) was originally pitched in the
+// Hunter/Niloosoft investigation but live-probing showed it's actually
+// a custom WordPress + Vue theme ("tyco-wp"). The earlier Hunter URL
+// (jobs.hunterhrms.com/IAI.co.il/) is wrong / dead. Real adapter:
+//
+//   GET https://jobs.iai.co.il/wp-content/themes/tyco-wp/assets/json/jobs.json
+//
+// Returns a JSON array of ~470 active jobs (no pagination, no auth).
+// Per-job schema uses compact 2-letter keys:
+//
+//   id  — internal numeric ID (stable dedup key)
+//   cd  — job code (used in detail URLs: ?p=jobs&jobCode={cd})
+//   tl  — title (Hebrew prose, often with English brackets/codes)
+//   dc  — description (full Hebrew prose, median 1,159 chars, max 3,525)
+//   ct  — city (Hebrew name)
+//   tp  — employment type (Hebrew label)
+//   jc  — job category (Hebrew label)
+//   oc, pr — taxonomy ID arrays (unused)
+//   ht  — "hot job" flag (unused)
+//   sn  — "senior" flag (we let the v4 extractor decide from prose)
+//
+// Salary, posted date, and years-of-experience fields are NOT exposed
+// — they live inside `dc` prose if at all, which the v4 extractor will
+// surface. Per-job apply URL: `https://jobs.iai.co.il/?p=jobs&jobCode={cd}`.
+//
+// IAI is Hebrew-only. The v4 extractor's jd_language='he' classification
+// fires correctly on these JDs (verified in the May 2026 backfill).
+// This adapter unlocks ~470 IL jobs in one shot — biggest single-source
+// addition since the original Greenhouse scrape.
+export async function fetchIai(_c: CompanyEntry): Promise<RawJob[]> {
+  // Single endpoint — the registry entry's slug is ignored. We hardcode
+  // the URL because the JSON path is unique to IAI's WordPress theme
+  // and wouldn't generalize even if other companies licensed the same
+  // theme (different cachebuster, different relative paths).
+  const url = "https://jobs.iai.co.il/wp-content/themes/tyco-wp/assets/json/jobs.json";
+  const data = await httpGetJson<any[]>(url);
+  if (!Array.isArray(data)) {
+    console.warn("[iai] unexpected response shape — expected array");
+    return [];
+  }
+  return data.map((j) => {
+    const code = j.cd || j.id;
+    return {
+      external_id:      String(j.id ?? code),
+      title:            (j.tl ?? "").toString(),
+      description_html: typeof j.dc === "string" && j.dc.trim().length > 0
+                          ? j.dc
+                          : null,
+      // Location string from the Hebrew city field. The classifier's
+      // Hebrew-city map handles the major IL cities (Tel Aviv, Herzliya,
+      // Ramat Gan, Be'er Yaakov, etc.); rare cities fall through to the
+      // /israel/i regex catch-all.
+      location_raw:     (j.ct ?? "").toString() || null,
+      // IAI is exclusively Israel — every job here is IL by construction.
+      // Pre-tag so the classifier short-circuits.
+      structured_country: "IL",
+      apply_url:        `https://jobs.iai.co.il/?p=jobs&jobCode=${encodeURIComponent(code)}`,
+      // No posted date in the JSON; the v4 extractor's "stale" heuristic
+      // falls back to first-seen-at when date_posted is null.
+      date_posted:      null,
+      salary_min:       null,
+      salary_max:       null,
+      salary_currency:  null,
+      is_remote:        false,  // IAI is defense/aerospace; remote is rare and not exposed in the feed
+      raw_payload:      j,
+    };
+  });
+}
+
 // ───── Workable ──────────────────────────────────────────────────────
 //
 // Workable powers career pages at `apply.workable.com/{slug}`. The widget
@@ -535,4 +606,5 @@ export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = 
   comeet:          fetchComeet,
   successfactors:  fetchSuccessFactors,
   workable:        fetchWorkable,
+  iai:             fetchIai,
 };

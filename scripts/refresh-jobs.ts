@@ -43,7 +43,7 @@ const UPSERT_BATCH_SIZE = 200;
 
 // ATSs to actually process. The registry contains comeet/recruitee/custom
 // entries we don't have fetchers for yet; skip them silently.
-const ENABLED_ATSS = new Set(["greenhouse", "lever", "ashby", "workday", "smartrecruiters", "comeet", "successfactors", "workable"]);
+const ENABLED_ATSS = new Set(["greenhouse", "lever", "ashby", "workday", "smartrecruiters", "comeet", "successfactors", "workable", "iai"]);
 
 // ───── Types ──────────────────────────────────────────────────────────
 
