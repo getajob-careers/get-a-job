@@ -4,7 +4,7 @@ import { scoreApplication } from "@/lib/scoreApplication";
 import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Loader2, ExternalLink, MapPin, CheckCircle2, PlusCircle, Target, Clock, Briefcase,
+  Loader2, ExternalLink, MapPin, CheckCircle2, PlusCircle, Clock, Briefcase,
 } from "lucide-react";
 
 const SENIORITY_LABEL = {
@@ -85,14 +85,14 @@ async function addJobToTracker({ user, queryClient, job, matchScore, matchedSkil
 // card gets a 3px accent stripe at the top in that track's color. Set in
 // track mode by Jobs.jsx based on the currently-selected track. In keyword
 // mode it's null and no stripe renders.
-export default function JobCard({ job, scoreResult, scoring, onScore, trackColor }) {
+export default function JobCard({ job, scoreResult, trackColor }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
   // Collapsible JD preview. Most users scan the card; the JD is here for
   // the few who want to verify what the score is based on before clicking
-  // Apply or Track. Workday rows have null description (per ATS scraper
+  // See Job Posting or Track. Workday rows have null description (per ATS scraper
   // audit) — the toggle won't render when description is missing.
   const [showJD, setShowJD] = useState(false);
 
@@ -100,9 +100,16 @@ export default function JobCard({ job, scoreResult, scoring, onScore, trackColor
   const chip = experienceChipText(job);
   const hasDescription = Boolean(job.description && job.description.length > 50);
 
+  // scoreResult shape comes from src/lib/scoreJobFit.js (PR-C):
+  //   { fit_score: 0..1, track, signals: {...}, reasoning: { strengths, gaps } }
+  // Deterministic, computed on render — no async, no button, always present
+  // when the parent passed a profile + job to score.
   const scored = !!scoreResult;
-  const score = scored ? Math.round(scoreResult.match_score || 0) : null;
-  // Three tiers; <50% is GRAY (not red) — a 45% match is "stretch possible",
+  const score = scored ? Math.round((scoreResult.fit_score ?? 0) * 100) : null;
+  const matchedSkills = scoreResult?.signals?.matched_skills || [];
+  const missingCoreSkills = scoreResult?.signals?.missing_core_skills || [];
+  const reasonText = (scoreResult?.reasoning?.strengths || []).join(" · ");
+  // Three bands; <50% is GRAY (not red) — a 45% match is "stretch possible",
   // not "disaster". Red was punitive for the kinds of roles a user would
   // want to score against. PR #92 (Jobs Direction 3) softened this.
   const scoreClass = score == null
@@ -115,9 +122,9 @@ export default function JobCard({ job, scoreResult, scoring, onScore, trackColor
     setAdding(true);
     const res = await addJobToTracker({
       user, queryClient, job,
-      matchScore: scoreResult?.match_score,
-      matchedSkills: scoreResult?.matched_skills,
-      matchReason: scoreResult?.match_reason,
+      matchScore: score,
+      matchedSkills,
+      matchReason: reasonText,
     });
     setAdding(false);
     if (res.ok || res.duplicate) setAdded(true);
@@ -153,24 +160,24 @@ export default function JobCard({ job, scoreResult, scoring, onScore, trackColor
           )}
         </div>
 
-        {scored && scoreResult.match_reason && (
-          <p className="text-xs text-[#52545A] leading-relaxed">{scoreResult.match_reason}</p>
+        {scored && reasonText && (
+          <p className="text-xs text-[#52545A] leading-relaxed">{reasonText}</p>
         )}
-        {scored && scoreResult.matched_skills?.length > 0 && (
+        {scored && matchedSkills.length > 0 && (
           <div>
             <p className="jb-eyebrow mb-1.5">Your strengths</p>
             <div className="flex flex-wrap gap-1.5">
-              {scoreResult.matched_skills.slice(0, 5).map((s, i) => (
+              {matchedSkills.slice(0, 5).map((s, i) => (
                 <span key={i} className="jb-skill-pill jb-skill-pill-matched">{s}</span>
               ))}
             </div>
           </div>
         )}
-        {scored && scoreResult.missing_skills?.length > 0 && (
+        {scored && missingCoreSkills.length > 0 && (
           <div>
             <p className="jb-eyebrow mb-1.5">Skill gaps</p>
             <div className="flex flex-wrap gap-1.5">
-              {scoreResult.missing_skills.slice(0, 5).map((s, i) => (
+              {missingCoreSkills.slice(0, 5).map((s, i) => (
                 <span key={i} className="jb-skill-pill jb-skill-pill-missing">{s}</span>
               ))}
             </div>
@@ -203,21 +210,6 @@ export default function JobCard({ job, scoreResult, scoring, onScore, trackColor
           </a>
         ) : <span />}
         <div className="flex gap-2">
-          {!scored && (
-            <button
-              type="button"
-              onClick={onScore}
-              disabled={scoring || !hasDescription}
-              title={!hasDescription ? "Open the job posting first to see the full description" : undefined}
-              className="jb-btn jb-btn-outline jb-btn-sm"
-            >
-              {scoring ? (
-                <><Loader2 className="w-3 h-3 animate-spin" />Scoring…</>
-              ) : (
-                <><Target className="w-3 h-3" />Score this job</>
-              )}
-            </button>
-          )}
           <button
             type="button"
             onClick={handleAdd}

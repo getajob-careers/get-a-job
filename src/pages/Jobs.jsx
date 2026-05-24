@@ -8,6 +8,7 @@ import { Loader2, Briefcase, Search, RefreshCw } from "lucide-react";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experienceLevel";
 import { TRACK_CONFIG, TRACK_ORDER } from "@/lib/trackConfig";
+import { scoreJobFit } from "@/lib/scoreJobFit";
 import JobCard from "../components/jobs/JobCard";
 import { JOBS_CSS } from "../components/jobs/jobsStyles";
 
@@ -152,10 +153,20 @@ export default function JobSuggestions() {
   const [error, setError] = useState(null);
   const [emptyReason, setEmptyReason] = useState(null);
 
-  const [scoredJobs, setScoredJobs] = useState({});
-  const [scoringIds, setScoringIds] = useState(new Set());
-
   const requestSeqRef = useRef(0);
+
+  // Deterministic per-job fit score, computed on every render. Keyed on the
+  // profile + experiences + educations + the jobs array so it only recomputes
+  // when one of those changes. Replaces the previous LLM-based "Score this
+  // job" button — every card now shows its fit + reasoning instantly.
+  const scoredById = useMemo(() => {
+    if (!profile || jobs.length === 0) return {};
+    const out = {};
+    for (const job of jobs) {
+      out[job.id] = scoreJobFit({ profile, experiences, educations }, job);
+    }
+    return out;
+  }, [profile, experiences, educations, jobs]);
 
   const buildJobsQuery = useCallback((modeArg, track, kw, offsetArg) => {
     const seniorities = seniorityFilterFor(modeArg, track, allowedSeniorities);
@@ -164,7 +175,7 @@ export default function JobSuggestions() {
       const safe = kw.replace(/[%,]/g, " ").trim();
       let q = supabase
         .from("jobs")
-        .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry")
+        .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence")
         .eq("is_il", true)
         .eq("is_active", true)
         .in("seniority", seniorities)
@@ -185,7 +196,7 @@ export default function JobSuggestions() {
         p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
         p_max_seniority: seniorities,
       })
-      .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry");
+      .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence");
   }, [rolesByTrack, allowedSeniorities]);
 
   const fetchJobs = useCallback(async ({ modeArg, track, kw, offsetArg, append }) => {
@@ -220,7 +231,6 @@ export default function JobSuggestions() {
   useEffect(() => {
     if (!user?.id) return;
     setOffset(0);
-    setScoredJobs({});
     fetchJobs({ modeArg: mode, track: selectedTrack, kw: appliedKeyword, offsetArg: 0, append: false });
   }, [user?.id, mode, selectedTrack, appliedKeyword, fetchJobs]);
 
@@ -243,36 +253,6 @@ export default function JobSuggestions() {
     const next = offset + BROWSE_PAGE_SIZE;
     setOffset(next);
     fetchJobs({ modeArg: mode, track: selectedTrack, kw: appliedKeyword, offsetArg: next, append: true });
-  };
-
-  const handleScoreJob = async (job) => {
-    if (scoringIds.has(job.id)) return;
-    setScoringIds((prev) => new Set(prev).add(job.id));
-    try {
-      const { data, error: scoreErr } = await supabase.functions.invoke("analyze-job-match", {
-        body: { job_description: job.description, mode: "text" },
-      });
-      if (scoreErr) throw scoreErr;
-      const matched = Array.isArray(data?.matched_requirements)
-        ? data.matched_requirements.map((m) => m.requirement).filter(Boolean)
-        : [];
-      const missing = Array.isArray(data?.missing_requirements)
-        ? data.missing_requirements.map((m) => m.requirement).filter(Boolean)
-        : [];
-      setScoredJobs((prev) => ({
-        ...prev,
-        [job.id]: {
-          match_score: data?.match_score ?? 50,
-          match_reason: data?.recommendation || data?.verdict || "",
-          matched_skills: matched,
-          missing_skills: missing,
-        },
-      }));
-    } catch (err) {
-      console.error("[score-job] failed:", err);
-    } finally {
-      setScoringIds((prev) => { const next = new Set(prev); next.delete(job.id); return next; });
-    }
   };
 
   const noProfile = !profile;
@@ -406,9 +386,7 @@ export default function JobSuggestions() {
                   <JobCard
                     key={job.id}
                     job={job}
-                    scoreResult={scoredJobs[job.id]}
-                    scoring={scoringIds.has(job.id)}
-                    onScore={() => handleScoreJob(job)}
+                    scoreResult={scoredById[job.id]}
                     trackColor={inTrackMode ? TRACK_CONFIG[selectedTrack].color : null}
                   />
                 ))}
