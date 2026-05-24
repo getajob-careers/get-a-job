@@ -101,7 +101,7 @@
       "careers_url": "https://apply.workable.com/83north/?lng=en",
       "ats": "workable",
       "slug": "83north",
-      "api_url": null,
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/83north?details=true",
       "verified": true,
       "notes": "Workable. IL/EU VC (formerly Greylock IL). Enabled via the Workable widget fetcher."
     },
@@ -1144,10 +1144,10 @@
       "domain": "autofleet.io",
       "careers_url": "https://autofleet.io/careers/",
       "ats": "workable",
-      "slug": "j",
-      "api_url": null,
-      "verified": false,
-      "notes": "Detected workable apply slug 'j' (no public API)"
+      "slug": "autofleet",
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/autofleet?details=true",
+      "verified": true,
+      "notes": "Workable widget API — slug 'autofleet' (previous 'j' was a placeholder bug)"
     },
     {
       "name": "Autotalks",
@@ -2381,7 +2381,7 @@
       "careers_url": "https://apply.workable.com/comunix/",
       "ats": "workable",
       "slug": "comunix",
-      "api_url": null,
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/comunix?details=true",
       "verified": true,
       "notes": "Workable (apply.workable.com/comunix). Enabled via the Workable widget fetcher."
     },
@@ -4649,7 +4649,7 @@
       "careers_url": "https://apply.workable.com/incredibuild/",
       "ats": "workable",
       "slug": "incredibuild",
-      "api_url": null,
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/incredibuild?details=true",
       "verified": true,
       "notes": "Workable (apply.workable.com/incredibuild). Enabled via the Workable widget fetcher."
     },
@@ -7361,7 +7361,7 @@
       "careers_url": "https://apply.workable.com/powtoon/",
       "ats": "workable",
       "slug": "powtoon",
-      "api_url": null,
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/powtoon?details=true",
       "verified": true,
       "notes": "Workable (apply.workable.com/powtoon). Enabled via the Workable widget fetcher."
     },
@@ -9821,7 +9821,7 @@
       "careers_url": "https://apply.workable.com/youleap/",
       "ats": "workable",
       "slug": "youleap",
-      "api_url": null,
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/youleap?details=true",
       "verified": true,
       "notes": "Workable (apply.workable.com/youleap). Enabled via the Workable widget fetcher."
     },
