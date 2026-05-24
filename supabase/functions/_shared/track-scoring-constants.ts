@@ -114,35 +114,3 @@ export const EDUCATION_RANK: Record<string, number> = {
   bootcamp: 1,
   self_taught: 0,
 };
-
-// ───────────────────────────────────────────────────────────────────────
-// Years-experience hard cap (PR-H).
-//
-// Recruiters auto-filter on years. A user with 1y experience applying to
-// a 5y-required role doesn't get the LLM-skill-match benefit-of-the-doubt
-// — their CV gets dropped before it's read. scoreJobFit's years AXIS only
-// docked ~0.12 from the composite (0.20 weight × max swing), which couldn't
-// overcome strong skill match. Result: 1y users seeing Mid+ roles in
-// Track 1 even when they'd be auto-filtered.
-//
-// This cap mirrors the seniority ceiling pattern — additive, applied
-// after trackFromScore, downgrade-only.
-//
-//   gap = req_years_min - user_years
-//   gap ≤ 1   →  no cap (recoverable in cover letter)
-//   gap == 2  →  cap to Track 2 (stretch, strong CV needed)
-//   gap ≥ 3   →  cap to Track 3 (recruiters will filter on years)
-//
-// Skipped when reqYearsMin is null (JD didn't specify) or userYears is
-// undefined (can't compute the gap).
-export function applyYearsCap(
-  track: string,
-  userYears: number | null | undefined,
-  reqYearsMin: number | null | undefined,
-): string {
-  if (reqYearsMin == null || userYears == null) return track;
-  const gap = reqYearsMin - userYears;
-  if (gap >= 3) return "track_3";
-  if (gap >= 2 && track === "track_1") return "track_2";
-  return track;
-}
