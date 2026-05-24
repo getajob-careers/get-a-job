@@ -16,7 +16,9 @@
     "successfactors": 8,
     "oracle": 1,
     "recruitee": 1,
-    "teamtailor": 1
+    "teamtailor": 1,
+    "jooble": 1,
+    "iai": 1
   },
   "companies": [
     {
@@ -9990,6 +9992,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/zyngacareers/jobs?content=true",
       "verified": true,
       "notes": "Greenhouse board verified: 2 confirmed Tel Aviv roles (D2C Director of Product, Data Science Manager) under Storemaven (Zynga subsidiary, Israeli founded). Take-Two/Zynga parent."
+    },
+    {
+      "name": "Jooble (IL aggregator)",
+      "type": "aggregator",
+      "industry": "Job Aggregator",
+      "domain": "jooble.org",
+      "careers_url": "https://il.jooble.org/",
+      "ats": "jooble",
+      "slug": "jooble-il",
+      "api_url": "https://jooble.org/api/{JOOBLE_API_KEY}",
+      "verified": true,
+      "notes": "Legal multi-source aggregator (Drushim/AllJobs/LinkedIn/company sites). Fetcher hits the Jooble search API with location='Israel' + tech-keyword OR-query. Requires JOOBLE_API_KEY env var. Free tier ~500 req/day; we paginate up to 1000 jobs per refresh."
     }
   ]
 }
