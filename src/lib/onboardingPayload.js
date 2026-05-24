@@ -132,6 +132,8 @@ export const EMPTY_EDUCATION_ROW = {
 // fields have moved off profiles into their own table (Phase B, 2026-05-14)
 // and are persisted through a separate education-table write path — they
 // are intentionally NOT in this list.
+import { resolveSkillList } from "./skillResolver";
+
 export function cleanProfilePayload(data) {
   const {
     full_name, phone_number, location, linkedin_url, summary, skills, resume_url,
@@ -146,8 +148,14 @@ export function cleanProfilePayload(data) {
     employment_status, salary_expectation, available_start_date,
     open_to_lateral, open_to_outside_degree,
   } = data;
+  // Resolve free-text skills to canonical skill_library IDs on every save.
+  // Deterministic, no LLM. Feeds scoreJobFit (PR-C) and surfaces unresolved
+  // phrases for alias-map growth via skills_unmapped.
+  const { canonical: skills_canonical, unmapped: skills_unmapped } =
+    resolveSkillList(Array.isArray(skills) ? skills : []);
   return {
     full_name, phone_number, location, linkedin_url, summary, skills, resume_url,
+    skills_canonical, skills_unmapped,
     languages,
     onboarding_step, onboarding_complete,
     skill_gaps, qualification_level, overall_assessment, last_reality_check_date,

@@ -12,6 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { resolveSkillList } from "@/lib/skillResolver";
 import EducationTab from "@/components/profile/EducationTab";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import { PROFILE_CSS } from "@/components/profile/profileStyles";
@@ -378,6 +379,11 @@ export default function Profile() {
 
   const saveProfile = async () => {
     setSaving(true);
+    // Resolve free-text skills to canonical IDs on save — mirrors the
+    // same path in cleanProfilePayload (used by Onboarding) so both save
+    // surfaces produce a consistent skills_canonical column for scoreJobFit.
+    const { canonical: skills_canonical, unmapped: skills_unmapped } =
+      resolveSkillList(profileForm.skills || []);
     const dbFields = {
       full_name: profileForm.full_name,
       phone_number: profileForm.phone_number,
@@ -386,6 +392,8 @@ export default function Profile() {
       summary: profileForm.summary || null,
       languages: profileForm.languages,
       skills: profileForm.skills,
+      skills_canonical,
+      skills_unmapped,
       five_year_role: profileForm.five_year_role,
       target_job_titles: profileForm.target_job_titles,
       target_industries: profileForm.target_industries,
