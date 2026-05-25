@@ -1,21 +1,27 @@
 // build.ts — single CV docx orchestrator.
 //
-// Single unified template (PR #131). Previously two styles, "polished"
-// and "ats-optimized", branched on visual chrome only. Collapsed into one
-// because the underlying structure (single column, paragraph-based, no
-// tables for body content) was already identical and both styles passed
-// ATS parsing testing equally — the visual differences (font sizes,
-// section header case, color accents) were a UX A/B that users didn't
-// actually want to choose between. The unified template uses the
-// previously-Polished sizes + Title Case headers + theme accent color.
+// Visual direction "Tracked Caps + Hairline Rules" (2026-05-25). Adopts
+// the Debra-Jenkins editorial-resume aesthetic: 28pt tracked-caps name
+// between two hairline grey rules, 13pt accent-color tracked-caps section
+// headers (no borders — generous spacing-before does the visual work),
+// bold-italic muted dates, tightened bullet indent. Sans-serif body
+// font flows from the theme (Aptos / Calibri / whatever the sector
+// theme provides). Per-sector accent colors preserved.
+//
+// History:
+//   - PR #131 collapsed prior "polished" + "ats-optimized" styles into a
+//     single template (both were single-column paragraph-based already;
+//     the chrome differences were a UX A/B users didn't want).
+//   - 2026-05-25 visual refresh: same architecture, redesigned look.
 //
 // config.style is accepted for backwards compat with any cached frontend
 // bundles but otherwise ignored — every value produces the same output.
 //
 // Single column is non-negotiable for ATS survival (EDLIGO 1,200-doc
-// benchmark + Resume Optimizer Pro 200-400 doc tests show 22-point parse-
-// fidelity gap on multi-column). All structural decisions here continue
-// to honor that constraint.
+// benchmark + Resume Optimizer Pro 200-400 doc tests + Jobscan 2026
+// 1.2M-resume confirmation: 22-point parse-fidelity gap on multi-column
+// persists in 2026). All structural decisions here continue to honor
+// that constraint.
 
 import {
   AlignmentType,
@@ -49,29 +55,35 @@ const MARGIN_TWIPS = 1008
 const PAGE_WIDTH = 11906
 const RIGHT_TAB = PAGE_WIDTH - 2 * MARGIN_TWIPS - 16
 
-// Font sizes (half-points). Tuned to research-backed ranges:
-// name 18-22pt, headers 14-16pt, body 10-12pt, dates 9-10pt.
-// Unified template uses the previously-Polished sizes — they render
-// better on screen + print and are well within ATS-friendly ranges
-// (parse fidelity testing showed identical recall to the smaller ATS
-// sizes; the size difference is purely visual).
-const SIZE_NAME_POLISHED = 48     // 24pt
-const SIZE_SECTION_POLISHED = 28  // 14pt
-const SIZE_BODY = 22           // 11pt
-const SIZE_BULLET = 20         // 10pt
-const SIZE_ENTRY_TITLE = 22    // 11pt
-const SIZE_DATE = 20           // 10pt
-const SIZE_CONTACT = 20        // 10pt
-// SIZE_SUBTITLE was 24 (12pt) — removed PR #24 along with the subtitle.
+// Font sizes (half-points). Direction A — tracked-caps editorial.
+// Name pulled up to 28pt for the framed-header treatment; sections
+// drop to 13pt because tracked caps + accent color already shout.
+const SIZE_NAME = 56            // 28pt — tracked caps name
+const SIZE_SECTION = 26         // 13pt — tracked caps section labels
+const SIZE_BODY = 22            // 11pt
+const SIZE_BULLET = 20          // 10pt
+const SIZE_ENTRY_TITLE = 22     // 11pt
+const SIZE_DATE = 20            // 10pt — bold italic muted, right-tab
+const SIZE_CONTACT = 20         // 10pt
 
+// Letter-spacing (twips). 1pt = 20 twips. The "tracked" feel comes
+// from these — without character spacing, ALL CAPS looks dense and
+// runs together.
+const SPACING_NAME_CAPS = 40    // ~2pt extra between letters
+const SPACING_SECTION_CAPS = 30 // ~1.5pt — slightly tighter than name
+
+// Colors. COLOR_MUTED for dates + subtitles; HAIRLINE for the framing
+// rules around the name (deliberately light grey, not accent, so the
+// accent color reads as one focused tone across the document).
 const COLOR_MUTED = "555555"
+const COLOR_HAIRLINE = "CCCCCC"
 
 // Spacing (twips, 1pt = 20 twips, 1.0 line = 240).
-// Section-before was 130 in the Polished branch — keeps a healthy
-// breathing-room budget while staying within one page for typical
-// profiles (8 sections × 130 = ~1.0" total).
-const SP_SECTION_BEFORE_POLISHED = 130
-const SP_SECTION_AFTER = 60
+// SP_SECTION_BEFORE bumped from 130 → 240. Direction A drops the
+// section-heading border, so the heading needs more breathing room
+// above to read as a discrete section break.
+const SP_SECTION_BEFORE = 240
+const SP_SECTION_AFTER = 80
 const SP_ENTRY_BEFORE = 80
 const SP_BULLET_AFTER = 20
 const LINE_SINGLE = 240
@@ -111,35 +123,34 @@ export async function buildCV(
   userContext: UserContext,
   config: TemplateConfig,
 ): Promise<Uint8Array> {
-  // Unified template (PR #131). Previously two styles, "polished" and
-  // "ats-optimized", branched on visual chrome (font sizes, section
-  // header casing, color accents). Both were already single-column
-  // paragraph-based (no tables for body content), so collapsing was a
-  // pure styling decision. Adopted polished's larger sizes + Title Case
-  // headers + theme accent color throughout because modern ATS parsers
-  // (Workday/Greenhouse/Lever/Jobscan 2024-2026) handle color cleanly
-  // and the polished sizes read better. config.style is accepted for
+  // Direction A — "Tracked Caps + Hairline Rules" (2026-05-25). Same
+  // unified architecture introduced in PR #131; redesigned visual layer
+  // per Eli's editorial-resume reference. config.style is accepted for
   // backwards compat with any cached frontend bundles but otherwise
   // ignored — all values produce the same output.
   const font = config.theme.font
   const accent = config.theme.accentHex
-  const sizeName = SIZE_NAME_POLISHED
-  const sizeSection = SIZE_SECTION_POLISHED
-  const sectionBefore = SP_SECTION_BEFORE_POLISHED
+  const sizeName = SIZE_NAME
+  const sizeSection = SIZE_SECTION
+  const sectionBefore = SP_SECTION_BEFORE
 
   const paragraphs: Array<Paragraph | Table> = []
 
   // ---------- Section helpers ----------
 
   const sectionHeading = (label: string): Paragraph => {
-    // Title Case + thin theme-accent bottom rule. Paragraph borders are
-    // ignored by ATS parsers and cost zero twips of vertical height.
+    // Direction A — tracked ALL CAPS in accent color, no border. The
+    // generous spacing-before (240 twips = ~12pt) does the visual
+    // section-break work that the border did previously. Removing the
+    // border + caps treatment together reads as more editorial / less
+    // template-y.
     return new Paragraph({
       spacing: { before: sectionBefore, after: SP_SECTION_AFTER },
-      border: { bottom: { color: accent, style: BorderStyle.SINGLE, size: 8, space: 2 } },
       children: [new TextRun({
-        text: toTitleCase(label),
+        text: label,
         bold: true,
+        allCaps: true,
+        characterSpacing: SPACING_SECTION_CAPS,
         size: sizeSection,
         font,
         color: accent,
@@ -152,7 +163,11 @@ export async function buildCV(
   // longer exist. Each bucket (Professional Experience / Military
   // Service / Volunteering / Leadership) emits its own sectionHeading.
 
-  // Experience-style entry: "Role, Organization" bold left, dates muted right.
+  // Experience-style entry: "Role, Organization" bold left, dates as
+  // bold italic muted text right. Italics on the date makes it read as
+  // metadata (when-it-happened) rather than competing with the role
+  // title for attention — borrowed straight from the Debra Jenkins
+  // reference's date treatment.
   const experienceEntryLine = (
     title: string, org: string | undefined, dates: string | undefined, withGap: boolean,
   ): Paragraph => {
@@ -166,6 +181,8 @@ export async function buildCV(
       children.push(new TextRun({ text: "\t", size: SIZE_ENTRY_TITLE }))
       children.push(new TextRun({
         text: String(dates).trim(),
+        bold: true,
+        italics: true,
         size: SIZE_DATE,
         color: COLOR_MUTED,
         font,
@@ -191,6 +208,8 @@ export async function buildCV(
       titleChildren.push(new TextRun({ text: "\t", size: SIZE_ENTRY_TITLE }))
       titleChildren.push(new TextRun({
         text: String(dates).trim(),
+        bold: true,
+        italics: true,
         size: SIZE_DATE,
         color: COLOR_MUTED,
         font,
@@ -211,8 +230,14 @@ export async function buildCV(
     return out
   }
 
+  // Direction A — tightened indent: start at 360 twips (0.25"), hanging
+  // at 180 twips so the wrap aligns visually under the first-line text
+  // (not under the bullet). Default round bullet retained — custom char
+  // (square/diamond) requires a Numbering definition with abstractNum,
+  // which is more architecture than the marginal visual win warrants.
   const bulletParagraph = (s: string): Paragraph => new Paragraph({
     bullet: { level: 0 },
+    indent: { start: 360, hanging: 180 },
     spacing: { before: 0, after: SP_BULLET_AFTER, line: LINE_SINGLE },
     children: [new TextRun({ text: String(s || ""), size: SIZE_BULLET, font })],
   })
@@ -275,35 +300,58 @@ export async function buildCV(
       nameText, contactBits, config.photo, font, accent, sizeName,
     ))
   } else {
-    // Single-column centered header. Matches Reichman CDO templates.
+    // Direction A — framed name header:
+    //   [hairline grey rule above]
+    //   NAME (tracked caps, black, centered)
+    //   [hairline grey rule below]
+    //   contact bits (muted small text, centered)
+    //   [thin accent rule below contact]
+    // The name itself is BLACK, not accent — the framing rules + the
+    // tracking are doing the visual work, and reserving accent for the
+    // section labels gives the document one focused color tone.
+    paragraphs.push(new Paragraph({
+      spacing: { before: 0, after: 100 },
+      border: { bottom: { color: COLOR_HAIRLINE, style: BorderStyle.SINGLE, size: 4, space: 1 } },
+      children: [new TextRun({ text: "", size: 1 })],
+    }))
     paragraphs.push(new Paragraph({
       alignment: AlignmentType.CENTER,
       spacing: { before: 0, after: 0 },
       children: [new TextRun({
         text: nameText,
         bold: true,
+        allCaps: true,
+        characterSpacing: SPACING_NAME_CAPS,
         size: sizeName,
         font,
-        color: accent,
+        color: "000000",
       })],
     }))
-    // Thin accent rule under the name.
     paragraphs.push(new Paragraph({
-      spacing: { before: 20, after: 80 },
-      border: { bottom: { color: accent, style: BorderStyle.SINGLE, size: 12, space: 1 } },
+      spacing: { before: 100, after: 100 },
+      border: { bottom: { color: COLOR_HAIRLINE, style: BorderStyle.SINGLE, size: 4, space: 1 } },
       children: [new TextRun({ text: "", size: 1 })],
     }))
     if (contactBits.length > 0) {
       paragraphs.push(new Paragraph({
         alignment: AlignmentType.CENTER,
-        spacing: { before: 0, after: 120 },
+        spacing: { before: 0, after: 60 },
         children: [new TextRun({
           text: contactBits.join("  \u00B7  "),
           size: SIZE_CONTACT,
+          color: COLOR_MUTED,
           font,
         })],
       }))
     }
+    // Single thin accent rule under the contact strip — closes the header
+    // block before the first section. This is the ONLY accent rule in the
+    // document (section headings dropped their borders).
+    paragraphs.push(new Paragraph({
+      spacing: { before: 40, after: 0 },
+      border: { bottom: { color: accent, style: BorderStyle.SINGLE, size: 6, space: 1 } },
+      children: [new TextRun({ text: "", size: 1 })],
+    }))
   }
 
   // ---------- Sections ----------
@@ -627,22 +675,44 @@ function buildPhotoHeaderTable(
     } as any)],
   })
 
+  // Direction A — photo path mirrors the no-photo header treatment:
+  // tracked-caps black name, hairline rule below (no rule above — the
+  // photo cell provides the visual anchor on the right), muted contact
+  // strip, accent rule closing the block.
   const headerLeftCell = new TableCell({
     width: { size: 75, type: WidthType.PERCENTAGE },
     children: [
       new Paragraph({
         spacing: { before: 0, after: 0 },
-        children: [new TextRun({ text: nameText, bold: true, size: sizeName, font, color: accent })],
+        children: [new TextRun({
+          text: nameText,
+          bold: true,
+          allCaps: true,
+          characterSpacing: 40,
+          size: sizeName,
+          font,
+          color: "000000",
+        })],
       }),
       new Paragraph({
-        spacing: { before: 20, after: 80 },
-        border: { bottom: { color: accent, style: BorderStyle.SINGLE, size: 12, space: 1 } },
+        spacing: { before: 100, after: 80 },
+        border: { bottom: { color: "CCCCCC", style: BorderStyle.SINGLE, size: 4, space: 1 } },
         children: [new TextRun({ text: "", size: 1 })],
       }),
       ...(contactBits.length ? [new Paragraph({
-        spacing: { before: 0, after: 0 },
-        children: [new TextRun({ text: contactBits.join("  \u00B7  "), size: SIZE_CONTACT, font })],
+        spacing: { before: 0, after: 60 },
+        children: [new TextRun({
+          text: contactBits.join("  \u00B7  "),
+          size: SIZE_CONTACT,
+          color: "555555",
+          font,
+        })],
       })] : []),
+      new Paragraph({
+        spacing: { before: 40, after: 0 },
+        border: { bottom: { color: accent, style: BorderStyle.SINGLE, size: 6, space: 1 } },
+        children: [new TextRun({ text: "", size: 1 })],
+      }),
     ],
   })
 
