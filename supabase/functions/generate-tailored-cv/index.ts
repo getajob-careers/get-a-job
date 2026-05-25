@@ -884,6 +884,61 @@ D. What you MAY do:
 11. MAY write a tailored About Me that connects the user's real experience to the target role and (when provided) the target company by name.
 `;
 
+    // ─── Dynamic About Me rules ───
+    // Two paths chosen at prompt-build time based on whether v4 grounding
+    // exists for this job AND whether the user's canonical skills overlap
+    // the job's required skills. Computed in the edge function (not the
+    // LLM) so the overlap calculation is deterministic — the LLM only
+    // has to follow the path-specific instruction.
+    const userSkillSet = new Set<string>(
+      (Array.isArray((userContext as any).skills_canonical)
+        ? ((userContext as any).skills_canonical as unknown[])
+        : []
+      ).map((s) => String(s).toLowerCase().trim()).filter(Boolean)
+    );
+    const reqCore: string[] = Array.isArray(targetRoleContext?.req_skills_core)
+      ? (targetRoleContext!.req_skills_core as string[])
+      : [];
+    const overlapIds: string[] = reqCore.filter((id) => userSkillSet.has(String(id).toLowerCase().trim()));
+
+    // Humanize at prompt-build time using the canonical library names map
+    // so the LLM receives "Customer Health Management & Retention" not
+    // "customer_health_management". Falls back to a Title-Case of the
+    // snake_case ID for any skill the library hasn't promoted yet.
+    const skillNameById: Map<string, string> = (() => {
+      const m = new Map<string, string>();
+      const items: any[] = (skillLibrary as any)?.skill_library ?? [];
+      for (const s of items) {
+        if (s?.id && s?.name) m.set(String(s.id), String(s.name));
+      }
+      return m;
+    })();
+    const titleCaseFromId = (id: string): string => id
+      .replace(/[_-]+/g, " ")
+      .trim()
+      .replace(/\b\w/g, (c) => c.toUpperCase());
+    const humanizeId = (id: string): string => skillNameById.get(id) || titleCaseFromId(id);
+    const overlapHumanized = overlapIds.map(humanizeId);
+
+    const hasV4Grounding = reqCore.length > 0;
+    const usesGroundedPath = hasV4Grounding && overlapIds.length > 0;
+
+    const ABOUT_ME_RULES = usesGroundedPath
+      ? `- About Me — GROUNDED MODE (matched skills available).
+    Matched skills (verified as both in USER DATA and required by the JD): ${JSON.stringify(overlapHumanized)}
+    Target role: "${safeTargetRole}"
+    Length: 2-3 sentences.
+    Sentence 1: reference the user's primary qualification — degree program from USER DATA.education_list[0], OR current role + company from USER DATA.professional_experiences[0] — AND name at least one matched skill from the list above using its natural-language phrasing (NOT the snake_case ID).
+    Sentence 2: connect to the target role's domain by referencing ONE of: a USER DATA-grounded fact about the role context (notable_customers entry, scale_signals entry), the function_family + req_seniority, or one more matched skill. The target company name may appear AT MOST once across the whole About Me.
+    Every concrete claim (skill, company, metric, role title) must trace to USER DATA. If a claim doesn't trace, leave it out.`
+      : `- About Me — SPARSE MODE (no v4 grounding or zero skill overlap).
+    Length: 1-2 sentences MAX. Shorter is more credible when grounding is thin — better to say less truthfully than more generically.
+    Reference exactly two profile anchors from USER DATA:
+      (a) the user's primary qualification — degree + institution from USER DATA.education_list[0], OR current role + company from USER DATA.professional_experiences[0]
+      (b) one domain or focus area they ACTUALLY have, drawn from USER DATA.skills or one of their experiences.
+    Example: "Business Administration student at Reichman University with two years of operational support experience at Heseg Foundation, focused on customer-facing roles in product and operations."
+    If you can't write 2 honestly-grounded sentences, write 1.`;
+
     const STRUCTURE_RULES = `OUTPUT STRUCTURE:
 - Produce a single JSON document (see schema below). The PDF renderer reads it verbatim.
 - Omit any section the user has no data for. Do NOT return empty arrays of placeholders.
@@ -892,7 +947,9 @@ D. What you MAY do:
     • bucket === "military"     → military_experiences[]
     • bucket === "volunteering" → volunteering_experiences[]
     • bucket === "leadership"   → leadership_experiences[]
-- About Me: variable length based on content volume (see ONE PAGE RULE above). FACTUAL style with no pronouns and no candidate-speak. The subject of every sentence is the USER (their experience, work, skills) — NOT the target company. JD domain terms, tools, and skill names ARE allowed when they describe the user's real experience ("two years building AI-powered features at a fintech startup" is OK if true). What is NEVER allowed is the company's own MISSION / TAGLINE / MARKETING / SLOGAN language. The distinction: domain / tool / skill words = OK if grounded in real user experience; company-pitch language = always wrong. The target company name may appear AT MOST once. Length 2-4 sentences depending on volume. GOOD: "Business Administration student specializing in Digital Innovation with hands-on experience in VIP customer success, operational leadership, and cross-functional coordination. Currently supporting high-value users at a cybersecurity startup while leading educational programs." GOOD: "Two years operating AI-powered customer support tools at a B2B SaaS startup, with hands-on experience deploying Salesforce and Notion integrations." BAD: "Excited to join Acme's mission to revolutionize payroll." BAD: "Aligns with the company's vision of seamless workforce solutions."
+- About Me: FACTUAL style with no pronouns and no candidate-speak. The subject of every sentence is the USER (their experience, work, skills) — NOT the target company. JD domain terms, tools, and skill names ARE allowed when they describe the user's real experience. What is NEVER allowed is the company's own MISSION / TAGLINE / MARKETING / SLOGAN language. The path-specific instruction below governs LENGTH and CONTENT — follow it exactly.
+${ABOUT_ME_RULES}
+  BAD: "Excited to join Acme's mission to revolutionize payroll." BAD: "Aligns with the company's vision of seamless workforce solutions." BAD: "Hands-on experience in customer success and process improvement." BAD: "Demonstrated ability to drive results across cross-functional teams."
 - Experience bullets: action verb + what you did. Factual, concrete. No invented metrics. PREFER the XYZ structure when the source has measurable outcomes: "Accomplished X (impact Y) by doing Z" — e.g. "Reduced ticket resolution time by 40% by building a triage workflow in Zendesk". The metric Y MUST come verbatim from the user's source data. When source has no metric, fall back to action-verb + concrete-outcome (NEVER fabricate a number to fit the XYZ shape — the truthfulness rules above always win).
 - STORY BANK PRECEDENCE: When USER DATA.stories[] contains a story whose \`experience_label\` matches one of the user's experiences AND a JD requirement, prefer the story's \`result\` + \`metrics\` + \`tools_used\` as the bullet's content over the experience's freeform \`responsibilities\` text. Stories are user-confirmed STAR records — every metric, tool, and skill there is real and verbatim. Each bullet traces to ONE source: either a single story OR a responsibility line from one experience — NEVER combine two stories into one bullet, and NEVER blend story content with imagined details. Match a story to its parent experience by \`experience_label\` ("Role at Company"); place the bullet under that experience's bucket. If a story is irrelevant to the bullet you're writing, skip it — never force-fit.
 
