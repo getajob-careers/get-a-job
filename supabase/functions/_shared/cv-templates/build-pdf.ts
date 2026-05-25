@@ -69,8 +69,11 @@ const SIZE_BULLET = 10;             // bullet text
 const SIZE_DATE = 9.5;              // right-aligned italic
 const SIZE_SUBLINE = 10;            // education institution line
 
-// Tracking
-const TRACK_SECTION = 2;            // 2pt letter spacing on section headings
+// Tracking. Note: pdf-lib has no native characterSpacing — we draw each
+// glyph at a measured x-offset and add this gap. The value is in points,
+// NOT a percentage of font size, so a 2pt gap at 11pt section text reads
+// as ~18% tracking (heavy). 1pt at 11pt = ~9% (subtle but distinct).
+const TRACK_SECTION = 1;            // ~9% of 11pt — subtle tracking
 
 // ─── Colors ─────────────────────────────────────────────────────────
 // Single unified text color (#2C3E50 dark slate). Body, entry titles,

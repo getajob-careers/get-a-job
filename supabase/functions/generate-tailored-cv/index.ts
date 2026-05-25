@@ -842,23 +842,25 @@ Deno.serve(async (req) => {
     //      to the target role / JD / company.
     //   3) Role-library context (only when a library match exists) — gives the
     //      LLM a controlled vocabulary of skills and proof signals.
-    const ONE_PAGE_RULE = `ONE PAGE RULE (HIGHEST PRIORITY — OVERRIDES ALL OTHER FORMATTING RULES):
-The generated CV MUST fit on exactly ONE A4 page when rendered. This is a hard constraint.
+    const ONE_PAGE_RULE = `CONTENT DENSITY & QUALITY:
 
-You must DYNAMICALLY manage content density based on how much data the user has. More experiences and sections = shorter bullets and tighter descriptions. Fewer experiences = you can be more detailed.
+Page-fit is now handled by the PDF renderer — it measures your output and scales typography down (within readable bounds) until it fits on one page. Your job is not to ration content for the page; your job is to write the right amount of content at the right quality, and let the renderer handle layout.
 
-Guidelines for fitting on one page:
-- Count the user's total number of experience entries (across professional + military + volunteering + leadership) plus education entries, certifications, projects, and honors. This is their "content volume."
-- HARD CAP: NO experience entry may have more than 3 bullets, regardless of volume tier. This applies to ALL buckets (professional, military, volunteering, leadership). The hard cap exists because dense one-page rendering breaks when any single role overflows; three substantive bullets beats five generic ones.
-- HIGH VOLUME (6+ total experience entries OR 9+ total sections with content): Use 3 bullets per professional/military role and 2 bullets per volunteering/leadership role, target 14-18 words per bullet, About Me 2-3 sentences, honors as name + year only. Use 3 for professional — not 2 — because professional bullets are the primary surface where JD keywords land.
-- MEDIUM VOLUME (3-5 total experience entries, 6-8 total sections): Use 3 bullets per professional role and 2 per other buckets, target 16-22 words per bullet, About Me 3 sentences, honors can carry brief context.
-- LOW VOLUME (1-2 total experience entries, under 6 sections): Use 3 bullets per role across all buckets, bullets can run 18-26 words when there's real substance, About Me can be longer, include richer education + honors detail.
+Per-experience bullet counts:
+- Professional experiences: 2-4 bullets per role. Pick the number based on richness of the source: a role with one short responsibility line gets 2 bullets; a role with multiple stories + named tools + measured outcomes gets 4.
+- Military experiences: 2-3 bullets per role.
+- Volunteering / Leadership: 1-3 bullets per role.
+- Hard ceiling: 5 bullets per experience. Beyond that the section reads as a list rather than a profile.
 
-Within those tiers, prefer richer professional bullets over thinning every section uniformly: the recruiter's eye lands on professional experience first. Volunteer/military/leadership bullets can be tighter (2-3 bullets, slightly shorter) without hurting the CV.
+Per-bullet word count (quality, not page-fit):
+- Target 14-22 words for most bullets. Bullets shorter than 12 words usually under-describe the work and read as thin. Bullets longer than 26 words are almost always padded — tighten.
+- A bullet running to two rendered lines should earn it with a real metric or specific tool, not with filler.
 
-The goal: everything the user has done should appear on the CV; the level of detail per item scales inversely with total content volume. NEVER drop entries — compress them.
+Section richness:
+- Include every experience, education entry, certification, award, and language the user has. NEVER drop entries — the renderer will shrink before anything is cut.
+- About Me density follows the path-specific rules below (3-4 sentences grounded, 1-2 sparse).
 
-NEVER generate content that would exceed approximately 55 lines of rendered text (including headings, spacing, and contact info). When in doubt, shorten the longest bullets first rather than producing thin single-line bullets everywhere — three substantive bullets beats five generic ones.
+Recruiter scan order remains: professional experience top, then education, then skills/honors. Lead with your strongest material in each bucket — chronologically AND by relevance to the JD.
 `;
 
     const TRUTHFULNESS_RULES = `ABSOLUTE TRUTHFULNESS & PRESERVATION RULES — THESE OVERRIDE EVERY OTHER RULE:
@@ -928,9 +930,10 @@ D. What you MAY do:
       ? `- About Me — GROUNDED MODE (matched skills available).
     Matched skills (verified as both in USER DATA and required by the JD): ${JSON.stringify(overlapHumanized)}
     Target role: "${safeTargetRole}"
-    Length: 2-3 sentences.
+    Length: 3-4 sentences. (Page-fit is handled by the PDF renderer; About Me density is now governed by grounding richness, not the line budget.)
     Sentence 1: reference the user's primary qualification — degree program from USER DATA.education_list[0], OR current role + company from USER DATA.professional_experiences[0] — AND name at least one matched skill from the list above using its natural-language phrasing (NOT the snake_case ID).
     Sentence 2: connect to the target role's domain by referencing ONE of: a USER DATA-grounded fact about the role context (notable_customers entry, scale_signals entry), the function_family + req_seniority, or one more matched skill. The target company name may appear AT MOST once across the whole About Me.
+    Sentence 3 (and optional 4): expand with ONE more concrete grounding — another matched skill in context, a quantified outcome from a proof_signal or story, or a specific tool the user has used. Prefer naming a story metric or a USER DATA.experiences[i].skills_used entry over generic positioning.
     Every concrete claim (skill, company, metric, role title) must trace to USER DATA. If a claim doesn't trace, leave it out.
     ANTI-FABRICATION (load-bearing — read carefully):
     Do NOT infer domains, industries, functional specialties, or career interests that are NOT supported by USER DATA. The bridge from a degree to a specialty is the part to watch — degrees alone do not grant work experience. Specifically:
@@ -1209,12 +1212,13 @@ OUTPUT SCHEMA (JSON):
     "location": "string",
     "linkedin": "string — linkedin URL or handle"
   },
-  "summary": "string — FACTUAL descriptive sentences scaled to content volume per ONE PAGE RULE (high volume → 2-3 sentences; low volume → 3-5). No pronouns (he/she/his/her). No candidate-speak (no 'strong candidate', 'eager to', 'well-suited'). Describe skills and current work as facts; let content speak for fit.",
+  "summary": "string — FACTUAL descriptive sentences. Typical 3-4 sentences (grounded path); 1-2 sentences when grounding is sparse. No pronouns (he/she/his/her). No candidate-speak (no 'strong candidate', 'eager to', 'well-suited'). Describe skills and current work as facts; let content speak for fit.",
   "professional_experiences": [
     { "title": "string — EXACT title from USER DATA", "company": "string — EXACT company from USER DATA", "dates": "string — e.g. Oct 2025 - Present", "bullets": [
       "Action verb + what the user did + concrete outcome (tool / scope / metric). 14-22 words. Anchored in a story metric or proof_signal when available.",
       "Second bullet referencing a specific tool from tools_used or a named project — different facet of the role than bullet 1.",
-      "Third bullet describing scope, stakeholders, or impact — preferably with a quantified outcome from the source data."
+      "Third bullet describing scope, stakeholders, or impact — preferably with a quantified outcome from the source data.",
+      "Optional fourth bullet when the role has rich source material (multiple stories, multiple named tools, distinct facets). 5 bullets is the hard ceiling; beyond that the section reads as a list rather than a profile."
     ] }
   ],
   "military_experiences": [
@@ -1882,11 +1886,66 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     walkAndCleanStrings(cvData);
 
     // ─── Step 2 of tailoring: validate how many JD phrases made it through ───
-    // The score is the fraction of must_include_phrases that literally appear
-    // somewhere in the generated CV text (case-insensitive). If it's below
-    // 40%, we log a warning to edge-function telemetry so we can track which
-    // JDs are hard to tailor. The score is also returned to the frontend so
-    // the UI can show a "Keyword match: X%" indicator next to the fit card.
+    // Two-step phrase match (fuzzy, recovers paraphrases):
+    //   (1) Exact substring (case-insensitive) — fast first check
+    //   (2) If (1) fails, proximity-windowed token overlap:
+    //       - tokenize the phrase, strip stopwords
+    //       - "matched" if every non-stopword token appears in the CV within
+    //         a 200-char window of an anchor occurrence
+    //       - for 1-3 token phrases: ALL tokens required
+    //       - for 4+ token phrases: allow 1 missing
+    //   Why: JD says "adoption dashboards" but LLM paraphrases to "dashboards
+    //   for adoption tracking" — exact substring misses, proximity catches.
+    //   Stopword filter prevents false-positive matches via common words
+    //   like "in" or "of". 200-char window keeps the match local (one
+    //   bullet or sub-section) rather than counting tokens scattered across
+    //   the whole CV.
+    const KEYWORD_STOPWORDS = new Set([
+      "a", "an", "the", "and", "or", "but", "in", "on", "at", "to", "for",
+      "of", "with", "by", "as", "is", "are", "be", "been", "into", "over",
+      "through", "across", "from", "up", "out", "via",
+    ]);
+    const tokenizePhrase = (s: string): string[] => {
+      return String(s).toLowerCase()
+        .split(/[\s\-_,.:;!?()\[\]\/]+/)
+        .map((t) => t.trim())
+        .filter((t) => t.length > 0 && !KEYWORD_STOPWORDS.has(t));
+    };
+    const MATCH_WINDOW = 200;
+    const phraseMatchesProximity = (phrase: string, cvLower: string): boolean => {
+      const tokens = tokenizePhrase(phrase);
+      if (tokens.length === 0) return false;
+      // 1-3 token phrases need ALL tokens; 4+ allow one missing.
+      const required = tokens.length <= 3 ? tokens.length : tokens.length - 1;
+      // Find all positions of each token in CV text.
+      const positions: number[][] = tokens.map((tok) => {
+        const out: number[] = [];
+        let idx = 0;
+        while ((idx = cvLower.indexOf(tok, idx)) !== -1) {
+          out.push(idx);
+          idx += tok.length;
+        }
+        return out;
+      });
+      const presentTokens = positions.filter((p) => p.length > 0).length;
+      if (presentTokens < required) return false;
+      // For each occurrence of each token, treat it as an anchor and count
+      // how many OTHER tokens have at least one position within ±WINDOW.
+      // If anchor + window-members ≥ required, match.
+      for (let anchorTokIdx = 0; anchorTokIdx < positions.length; anchorTokIdx++) {
+        for (const anchorPos of positions[anchorTokIdx]) {
+          let inWindow = 1; // anchor itself counts
+          for (let otherIdx = 0; otherIdx < positions.length; otherIdx++) {
+            if (otherIdx === anchorTokIdx) continue;
+            if (positions[otherIdx].some((p) => Math.abs(p - anchorPos) <= MATCH_WINDOW)) {
+              inWindow++;
+            }
+          }
+          if (inWindow >= required) return true;
+        }
+      }
+      return false;
+    };
     let tailoring = null as null | {
       tailoring_score: number;
       matched_phrases: string[];
@@ -1896,15 +1955,26 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       const cvTextLower = JSON.stringify(cvData).toLowerCase();
       const matched: string[] = [];
       const missed: string[] = [];
+      let exactCount = 0;
+      let fuzzyCount = 0;
       for (const phrase of jdKeywords.must_include_phrases) {
-        if (cvTextLower.includes(phrase.toLowerCase())) matched.push(phrase);
-        else missed.push(phrase);
+        const phraseLower = String(phrase).toLowerCase();
+        if (cvTextLower.includes(phraseLower)) {
+          matched.push(phrase);
+          exactCount++;
+        } else if (phraseMatchesProximity(phrase, cvTextLower)) {
+          matched.push(phrase);
+          fuzzyCount++;
+        } else {
+          missed.push(phrase);
+        }
       }
       const pct = matched.length / jdKeywords.must_include_phrases.length;
+      const matchBreakdown = `${exactCount} exact + ${fuzzyCount} fuzzy = ${matched.length}/${jdKeywords.must_include_phrases.length}`;
       if (pct < 0.4) {
-        console.warn(`[CV] Low tailoring score: ${Math.round(pct * 100)}% — matched: ${matched.join(" · ") || "(none)"}`);
+        console.warn(`[CV] Low tailoring score: ${Math.round(pct * 100)}% (${matchBreakdown}) — matched: ${matched.join(" · ") || "(none)"}`);
       } else {
-        console.log(`[CV] Tailoring score: ${Math.round(pct * 100)}% (${matched.length}/${jdKeywords.must_include_phrases.length})`);
+        console.log(`[CV] Tailoring score: ${Math.round(pct * 100)}% (${matchBreakdown})`);
       }
       tailoring = {
         tailoring_score: Math.round(pct * 100),
@@ -2104,25 +2174,30 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       return lines;
     };
 
-    // Page-fit budget raised 42 → 55 to match the actual A4 capacity at the
-    // current 0.7" margin + 9.5pt body type. Earlier 42 was tuned to leave
-    // headroom for trim-popping; the new approach trims smarter (two-tier
-    // floor + drop-entry fallback) rather than gutting every section to a
-    // single bullet. Three substantive bullets beats five generic ones —
-    // and the bullet count rules above already cap content per role.
-    const maxLines = 55;
+    // Page-fit is now handled by the PDF renderer (build-pdf.ts) via
+    // shrink-to-fit measure pass. The line estimator + bullet-floor trim
+    // below is a SAFETY NET against pathological LLM output (e.g. 50
+    // bullets per role), not the line of defense against typical
+    // overflow. maxLines raised 55 → 120 so this code path almost never
+    // fires for normal CVs. Drop-entry passes (former passes 2-4)
+    // removed entirely — Eli's directive is "never drop content, shrink
+    // instead." The renderer now lives up to that promise; trimming
+    // entries here would defeat its purpose.
+    const maxLines = 120;
 
     const initialEstimatedLines = estimatePageLines(cvData);
     let estimatedLines = initialEstimatedLines;
     let trimFired = false;
     if (estimatedLines > maxLines) {
       trimFired = true;
-      console.warn(`[CV] Estimated ${estimatedLines} lines (max ${maxLines}) — trimming`);
+      console.warn(`[CV] Estimated ${estimatedLines} lines (max ${maxLines}) — pathological output, trimming bullets to floor`);
 
-      // Pass 1 — bullet-floor trim (iterate OLDEST-FIRST so most-recent
-      // entries keep richest bullets). Floor differs by bucket: professional
-      // stays at 3 because that's where JD keywords land (KEYWORD_INJECTION
-      // policy in system prompt). Secondary buckets floor at 2.
+      // Bullet-floor trim — only fires when estimate exceeds the very
+      // generous maxLines=120 ceiling. Iterates entries OLDEST-FIRST so
+      // most-recent entries keep richest bullets. Floor differs by
+      // bucket: professional stays at 3 because that's where JD keywords
+      // land (KEYWORD_INJECTION policy in system prompt). Secondary
+      // buckets floor at 2.
       const PROFESSIONAL_FLOOR = 3;
       const SECONDARY_FLOOR = 2;
       const trimOrder = [
@@ -2147,65 +2222,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         }
       }
 
-      // Pass 2 — drop tail entries from volunteering + leadership. Already
-      // de-prioritized by recruiters; tail entry from each is fair game.
-      const entryDropOrder = ["volunteering_experiences", "leadership_experiences"];
-      for (const bucket of entryDropOrder) {
-        if (estimatedLines <= maxLines) break;
-        const entries = (cvData[bucket] || []) as any[];
-        while (estimatedLines > maxLines && entries.length > 1) {
-          const dropped = entries.pop();
-          const droppedBullets = Array.isArray(dropped?.bullets) ? dropped.bullets.length : 0;
-          estimatedLines -= (2 + droppedBullets); // title row + bullets
-          console.log(`[CV] Dropped tail entry from ${bucket}: "${dropped?.title || ''}" to fit one page`);
-        }
-      }
-
-      // Pass 3 — drop oldest education entry when there are >2. Most CVs
-      // need only the highest current degree + one prior (typically high
-      // school). Dropping a 3rd entry preserves the recruiter-relevant
-      // ones at the top of the list.
-      if (estimatedLines > maxLines && Array.isArray(cvData.education) && cvData.education.length > 2) {
-        while (estimatedLines > maxLines && cvData.education.length > 2) {
-          const dropped = cvData.education.pop();
-          // ~3 lines per edu entry (degree + institution + maybe coursework/activities)
-          estimatedLines -= 3;
-          console.log(`[CV] Dropped tail education entry to fit one page: "${dropped?.institution || dropped?.degree || ''}"`);
-        }
-      }
-
-      // Pass 4 — drop OLDEST professional/military entries when nothing
-      // else has freed enough space. Better to ship 3 strong jobs than
-      // 6 anorexic ones. Always preserve at least 2 entries in each
-      // bucket so the section still reads as a career, not a single role.
-      const proMilDropOrder = ["military_experiences", "professional_experiences"];
-      for (const bucket of proMilDropOrder) {
-        if (estimatedLines <= maxLines) break;
-        const entries = (cvData[bucket] || []) as any[];
-        while (estimatedLines > maxLines && entries.length > 2) {
-          const dropped = entries.pop();
-          const droppedBullets = Array.isArray(dropped?.bullets) ? dropped.bullets.length : 0;
-          estimatedLines -= (2 + droppedBullets);
-          console.log(`[CV] Dropped oldest ${bucket} entry to fit one page: "${dropped?.title || ''}" @ "${dropped?.company || dropped?.unit || ''}"`);
-        }
-      }
-
-      // 2. If still over, strip honor descriptions ("Name — description" → "Name").
-      if (estimatedLines > maxLines && Array.isArray(cvData.honors_and_awards)) {
-        cvData.honors_and_awards = cvData.honors_and_awards.map((h: any) => {
-          if (!h) return h;
-          if (typeof h === "string") {
-            const dash = h.indexOf(" \u2014 ");
-            return dash > 0 ? h.slice(0, dash) : h;
-          }
-          if (typeof h === "object") {
-            return { name: h.name };
-          }
-          return h;
-        });
-      }
-
-      // 3. Re-estimate for the log + response.
+      // Re-estimate for the log + response.
       estimatedLines = estimatePageLines(cvData);
       console.log(`[CV] Post-trim estimate: ${estimatedLines} lines`);
     }
