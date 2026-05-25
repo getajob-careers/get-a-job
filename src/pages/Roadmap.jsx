@@ -7,6 +7,7 @@ import { invalidateAfterCareerAnalysis } from "@/lib/invalidateAfterCareerAnalys
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Loader2, Brain, AlertCircle, RefreshCw, ArrowLeft, ArrowRight, ExternalLink, MapPin, Compass } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import GeneratingBanner from "@/components/ui/GeneratingBanner";
 import RoleCard from "../components/roadmap/RoleCard";
@@ -223,17 +224,6 @@ export default function CareerRoadmap() {
     }
   };
 
-  if (isLoading || profileLoading) {
-    return (
-      <>
-        <style>{ROADMAP_CSS}</style>
-        <div className="roadmap min-h-screen flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-[#52545A]" />
-        </div>
-      </>
-    );
-  }
-
   if (rolesError || profileError) {
     return (
       <>
@@ -288,8 +278,12 @@ export default function CareerRoadmap() {
             </div>
           )}
 
+          {/* Loading skeleton — replaces both the empty states and the
+              tabs/roles list while either query is in flight. */}
+          {(isLoading || profileLoading) && <RoadmapSkeleton />}
+
           {/* Empty states */}
-          {!profile && (
+          {!isLoading && !profileLoading && !profile && (
             <div className="rm-card-lg rm-card text-center">
               <Compass className="w-10 h-10 text-[#F87060] mx-auto mb-3" />
               <h2 className="rm-h1" style={{ fontSize: 20 }}>Set up your profile first</h2>
@@ -299,7 +293,7 @@ export default function CareerRoadmap() {
               </Link>
             </div>
           )}
-          {roles.length === 0 && profile && (
+          {!isLoading && !profileLoading && roles.length === 0 && profile && (
             <div className="rm-card-lg rm-card text-center">
               <Brain className="w-10 h-10 text-[#F87060] mx-auto mb-3" />
               <h2 className="rm-h1" style={{ fontSize: 20 }}>No roles generated yet</h2>
@@ -583,6 +577,43 @@ function TrackTab({ track, roles, onTabChange }) {
           <ArrowRight className="w-3.5 h-3.5" />
         </button>
       </div>
+    </div>
+  );
+}
+
+// Roadmap-body skeleton — renders in place of the tabs + roles list while
+// the careerRoles / profile queries are loading. Header stays visible
+// throughout so the page identity is stable. 3 placeholder role cards
+// mirror the typical row count above the fold.
+function RoadmapSkeleton() {
+  return (
+    <div className="flex flex-col gap-4" aria-hidden="true">
+      {/* tab bar placeholder */}
+      <div className="flex gap-2 mb-2">
+        <Skeleton className="h-9 w-24 rounded-md" />
+        <Skeleton className="h-9 w-24 rounded-md" />
+        <Skeleton className="h-9 w-24 rounded-md" />
+        <Skeleton className="h-9 w-28 rounded-md" />
+      </div>
+      {/* role card placeholders */}
+      {[0, 1, 2].map((i) => (
+        <div
+          key={i}
+          className="bg-white rounded-xl border border-[#DDDDDB] px-5 py-4 space-y-3"
+        >
+          <div className="flex items-start justify-between gap-3">
+            <Skeleton className="h-5 w-1/2" />
+            <Skeleton className="h-6 w-16 rounded-full" />
+          </div>
+          <Skeleton className="h-3 w-3/4" />
+          <Skeleton className="h-3 w-2/3" />
+          <div className="flex gap-2 pt-1">
+            <Skeleton className="h-5 w-20 rounded-full" />
+            <Skeleton className="h-5 w-24 rounded-full" />
+            <Skeleton className="h-5 w-16 rounded-full" />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

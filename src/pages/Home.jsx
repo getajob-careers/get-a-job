@@ -25,6 +25,7 @@ import { invalidateAfterCareerAnalysis } from "@/lib/invalidateAfterCareerAnalys
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ArrowUpRight, Loader2, AlertCircle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 
 // ────────────────────────────────────────────────────────────────────────
@@ -309,12 +310,12 @@ const HOME_CSS = `
    Row 1: [Today's focus span 4 | Roadmap span 2]
    Row 2: [Applications span 3   | New jobs span 3]
    Row 3: [Stories span 3        | LinkedIn span 3] */
-.home-card-focus     { grid-column: span 4; }
-.home-card-roadmap   { grid-column: span 2; }
-.home-card-apps      { grid-column: span 3; }
-.home-card-jobs      { grid-column: span 3; }
-.home-card-stories   { grid-column: span 3; }
-.home-card-linkedin  { grid-column: span 3; }
+.home-card-focus     { grid-column: span 4; min-height: 180px; }
+.home-card-roadmap   { grid-column: span 2; min-height: 180px; }
+.home-card-apps      { grid-column: span 3; min-height: 200px; }
+.home-card-jobs      { grid-column: span 3; min-height: 200px; }
+.home-card-stories   { grid-column: span 3; min-height: 150px; }
+.home-card-linkedin  { grid-column: span 3; min-height: 150px; }
 
 @media (max-width: 900px) {
   .home-bento { grid-template-columns: repeat(2, 1fr); }
@@ -656,7 +657,10 @@ export default function Home() {
     (profileFetched && !profile) ||
     (profile && !profile.onboarding_complete);
 
-  if (isLoading || willRedirect) {
+  // willRedirect short-circuits to a quiet spinner — no point painting
+  // the bento skeleton just to immediately navigate away. isLoading
+  // renders the full page skeleton so users see real geometry.
+  if (willRedirect) {
     return (
       <>
         <style>{HOME_CSS}</style>
@@ -665,6 +669,9 @@ export default function Home() {
         </div>
       </>
     );
+  }
+  if (isLoading) {
+    return <HomeSkeleton />;
   }
 
   // ── Derived state for cards ──────────────────────────────────────────
@@ -893,6 +900,84 @@ export default function Home() {
             </div>
             <CardArrow />
           </HomeCard>
+        </div>
+      </div>
+    </>
+  );
+}
+
+// Page-level skeleton — mirrors the bento grid layout pixel-equivalent.
+// Each card uses the same `home-card-*` class as the real cards so it
+// occupies the same grid cell + the new min-height CSS we just added.
+// That keeps CLS (cumulative layout shift) at zero when real data
+// arrives: the bento doesn't reflow, only the inner skeleton lines swap
+// to real content.
+function HomeSkeleton() {
+  return (
+    <>
+      <style>{HOME_CSS}</style>
+      <div className="home" aria-hidden="true">
+        <div className="home-topbar">
+          <Skeleton className="h-3 w-28" />
+        </div>
+
+        {/* Hero placeholder */}
+        <section className="home-hero">
+          <Skeleton className="h-3 w-32 mx-auto mb-4" />
+          <Skeleton className="h-8 w-2/3 max-w-2xl mx-auto mb-6" />
+          <div className="home-cta-row">
+            <Skeleton className="h-10 w-40 rounded-md" />
+            <Skeleton className="h-10 w-28 rounded-md" />
+          </div>
+        </section>
+
+        {/* Bento skeleton */}
+        <div className="home-bento">
+          <div className="home-card home-card-dark home-card-focus">
+            <Skeleton className="h-3 w-24 bg-white/20" />
+            <Skeleton className="h-5 w-2/3 bg-white/20 mt-2" />
+            <Skeleton className="h-3 w-full bg-white/20 mt-2" />
+            <Skeleton className="h-3 w-3/4 bg-white/20 mt-1" />
+          </div>
+          <div className="home-card home-card-roadmap">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-5 w-2/3 mt-2" />
+            <div className="flex gap-1.5 mt-2">
+              <Skeleton className="h-5 w-12 rounded-full" />
+              <Skeleton className="h-5 w-12 rounded-full" />
+              <Skeleton className="h-5 w-12 rounded-full" />
+            </div>
+            <Skeleton className="h-3 w-3/4 mt-2" />
+          </div>
+          <div className="home-card home-card-apps">
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="h-5 w-2/3 mt-2" />
+            <div className="space-y-2 mt-2">
+              <Skeleton className="h-3.5 w-full" />
+              <Skeleton className="h-3.5 w-full" />
+              <Skeleton className="h-3.5 w-5/6" />
+            </div>
+          </div>
+          <div className="home-card home-card-jobs">
+            <Skeleton className="h-3 w-32" />
+            <Skeleton className="h-5 w-1/2 mt-2" />
+            <div className="space-y-2 mt-2">
+              <Skeleton className="h-3.5 w-full" />
+              <Skeleton className="h-3.5 w-5/6" />
+              <Skeleton className="h-3.5 w-4/5" />
+            </div>
+          </div>
+          <div className="home-card home-card-stories">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-5 w-1/2 mt-2" />
+            <Skeleton className="h-3 w-full mt-2" />
+            <Skeleton className="h-3 w-2/3 mt-1" />
+          </div>
+          <div className="home-card home-card-linkedin">
+            <Skeleton className="h-3 w-20" />
+            <Skeleton className="h-5 w-1/2 mt-2" />
+            <Skeleton className="h-3 w-3/4 mt-2" />
+          </div>
         </div>
       </div>
     </>

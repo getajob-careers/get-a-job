@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import { Loader2, Plus, Trash2, Upload, X, BookText, ExternalLink } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
   SelectContent,
@@ -522,17 +523,6 @@ export default function Profile() {
 
   const isLoading = loadingProfile || loadingCerts || loadingProjects || loadingExp;
 
-  if (isLoading) {
-    return (
-      <>
-        <style>{PROFILE_CSS}</style>
-        <div className="profile flex items-center justify-center min-h-screen">
-          <Loader2 className="w-5 h-5 animate-spin text-[#52545A]" />
-        </div>
-      </>
-    );
-  }
-
   const SaveProfileButton = () => (
     <button type="button" onClick={saveProfile} disabled={saving} className="p-btn p-btn-primary">
       {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving…</> : "Save profile"}
@@ -581,8 +571,13 @@ export default function Profile() {
             ))}
           </div>
 
+          {/* Tab body — skeleton while profile/related queries load,
+              real content once data is in. Tab pills above stay
+              clickable + URL-stateful throughout. */}
+          {isLoading && <ProfileTabBodySkeleton />}
+
           {/* ── Profile tab ─────────────────────────────────────────── */}
-          {activeTab === "profile" && (
+          {!isLoading && activeTab === "profile" && (
             <div className="p-card p-card-lg space-y-5">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -701,12 +696,12 @@ export default function Profile() {
           )}
 
           {/* ── Education tab ───────────────────────────────────────── */}
-          {activeTab === "education" && (
+          {!isLoading && activeTab === "education" && (
             <EducationTab user={user} />
           )}
 
           {/* ── Goals & preferences tab ─────────────────────────────── */}
-          {activeTab === "goals" && (
+          {!isLoading && activeTab === "goals" && (
             <div className="p-card p-card-lg space-y-5">
               <p className="p-banner p-banner-info">
                 These fields shape your career recommendations. When you update them, your saved applications will re-score against your new direction the next time you open them.
@@ -851,7 +846,7 @@ export default function Profile() {
           )}
 
           {/* ── Self-Assessment tab ─────────────────────────────────── */}
-          {activeTab === "self-assessment" && (
+          {!isLoading && activeTab === "self-assessment" && (
             <div className="p-card p-card-lg space-y-6">
               <p className="p-banner p-banner-info">
                 The same questions from onboarding. Update any of these as your situation changes — they
@@ -947,7 +942,7 @@ export default function Profile() {
           )}
 
           {/* ── Certifications tab ──────────────────────────────────── */}
-          {activeTab === "certifications" && (
+          {!isLoading && activeTab === "certifications" && (
             <div className="space-y-4">
               <div className="p-card p-card-lg space-y-4">
                 <h3 className="text-sm font-semibold text-[#0E1014]">Add certification</h3>
@@ -995,7 +990,7 @@ export default function Profile() {
           )}
 
           {/* ── Projects tab ────────────────────────────────────────── */}
-          {activeTab === "projects" && (
+          {!isLoading && activeTab === "projects" && (
             <div className="space-y-4">
               <div className="p-card p-card-lg space-y-4">
                 <h3 className="text-sm font-semibold text-[#0E1014]">Add project</h3>
@@ -1047,7 +1042,7 @@ export default function Profile() {
           )}
 
           {/* ── Experience tab ──────────────────────────────────────── */}
-          {activeTab === "experience" && (
+          {!isLoading && activeTab === "experience" && (
             <div className="space-y-4">
               {/* Story Bank summary — links to /StoryBank for full management */}
               <div className="p-card flex items-center justify-between gap-3 flex-wrap">
@@ -1225,5 +1220,30 @@ export default function Profile() {
         </div>
       </div>
     </>
+  );
+}
+
+// Profile tab body skeleton — renders in place of the active tab's
+// form/list while profile-related queries are loading. Tab pills above
+// stay visible so the user can navigate (URL `?tab=` switches but each
+// tab will see the same skeleton until data arrives). 6 placeholder
+// input rows in a 2-column grid mirror the typical Profile / Goals /
+// Self-Assessment form shape.
+function ProfileTabBodySkeleton() {
+  return (
+    <div className="p-card p-card-lg space-y-5" aria-hidden="true">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {[0, 1, 2, 3, 4, 5].map((i) => (
+          <div key={i} className="space-y-2">
+            <Skeleton className="h-3 w-24" />
+            <Skeleton className="h-9 w-full rounded-md" />
+          </div>
+        ))}
+      </div>
+      <div className="space-y-2">
+        <Skeleton className="h-3 w-32" />
+        <Skeleton className="h-24 w-full rounded-md" />
+      </div>
+    </div>
   );
 }

@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { toast } from "sonner";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   CheckCircle2, Clock, X,
   FileText, Send, RotateCw, Mic, Dumbbell, Lightbulb, User, BookText,
@@ -174,18 +175,22 @@ export default function DailyActionCard() {
 }
 
 function SkeletonCard() {
+  // Uses the canonical shadcn Skeleton primitive so all loading
+  // placeholders across the app share the same animate-pulse cadence
+  // and color tone (instead of each component drifting on its own
+  // bg-[#F0F0F0] divs).
   return (
-    <div className="bg-white rounded-xl border border-[#E5E5E5] p-5 mb-5 animate-pulse">
+    <div className="bg-white rounded-xl border border-[#E5E5E5] p-5 mb-5">
       <div className="flex items-start gap-2 mb-3">
-        <div className="w-8 h-8 rounded-lg bg-[#F0F0F0]" />
+        <Skeleton className="w-8 h-8 rounded-lg" />
         <div className="space-y-1.5">
-          <div className="h-2 w-12 bg-[#F0F0F0] rounded" />
-          <div className="h-2 w-16 bg-[#F0F0F0] rounded" />
+          <Skeleton className="h-2 w-12" />
+          <Skeleton className="h-2 w-16" />
         </div>
       </div>
-      <div className="h-4 w-3/4 bg-[#F0F0F0] rounded mb-2" />
-      <div className="h-3 w-full bg-[#F0F0F0] rounded mb-1.5" />
-      <div className="h-3 w-2/3 bg-[#F0F0F0] rounded" />
+      <Skeleton className="h-4 w-3/4 mb-2" />
+      <Skeleton className="h-3 w-full mb-1.5" />
+      <Skeleton className="h-3 w-2/3" />
     </div>
   );
 }
