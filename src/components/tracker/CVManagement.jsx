@@ -150,7 +150,7 @@ export default function CVManagement({ app, onUpdate }) {
             className="text-xs text-[#0E1014] underline flex items-center gap-1"
           >
             <Download className="w-3 h-3" />
-            Download (.docx)
+            Download (.pdf)
           </a>
         </div>
       )}

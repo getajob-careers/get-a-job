@@ -357,7 +357,7 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
           className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-700 hover:bg-emerald-800 text-white rounded px-3 py-1.5 transition-colors"
         >
           <Download className="w-3.5 h-3.5" />
-          Download CV (.docx)
+          Download CV (.pdf)
         </a>
       </div>
     );
