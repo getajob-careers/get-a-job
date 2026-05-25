@@ -119,6 +119,10 @@ export const EMPTY_EDUCATION_ROW = {
   honors: [],
   relevant_coursework: [],
   academic_projects: [],
+  // PR onboarding-redesign: per-education skills tagged in StepRoleSkills.
+  // Same shape as experiences.skills_used. Aggregated into
+  // profiles.skills_canonical at save time by cleanProfilePayload.
+  skills_developed: [],
   location: "",
   display_order: 0,
 };
@@ -132,8 +136,14 @@ export const EMPTY_EDUCATION_ROW = {
 // fields have moved off profiles into their own table (Phase B, 2026-05-14)
 // and are persisted through a separate education-table write path — they
 // are intentionally NOT in this list.
-import { resolveSkillList } from "./skillResolver";
+import { aggregateProfileSkills } from "./skillAggregation";
 
+// `experiences`, `educations`, `projects` are NOT columns on the profiles
+// table — they live on their own tables. They're passed into
+// cleanProfilePayload only to compute the union into skills_canonical;
+// they get destructured off + dropped before returning. If you add more
+// per-object skill sources later (certifications.skills_earned, etc.),
+// thread them through here AND extend aggregateProfileSkills.
 export function cleanProfilePayload(data) {
   const {
     full_name, phone_number, location, linkedin_url, summary, skills, resume_url,
@@ -147,12 +157,22 @@ export function cleanProfilePayload(data) {
     target_job_titles, target_industries, work_environment, work_type,
     employment_status, salary_expectation, available_start_date,
     open_to_lateral, open_to_outside_degree,
+    // Per-object skill sources — used for the union, not persisted on profiles.
+    experiences, educations, projects,
   } = data;
-  // Resolve free-text skills to canonical skill_library IDs on every save.
-  // Deterministic, no LLM. Feeds scoreJobFit (PR-C) and surfaces unresolved
-  // phrases for alias-map growth via skills_unmapped.
+  // Compute skills_canonical as the UNION of:
+  //   - profile.skills (StepSkills catch-all)
+  //   - experiences[].skills_used + experiences[].tools_used (StepExperience + StepRoleSkills)
+  //   - educations[].skills_developed (StepRoleSkills)
+  //   - projects[].skills_demonstrated (CV extractor + StepRoleSkills)
+  // resolveSkillList handles canonicalization. Deterministic, no LLM.
   const { canonical: skills_canonical, unmapped: skills_unmapped } =
-    resolveSkillList(Array.isArray(skills) ? skills : []);
+    aggregateProfileSkills({
+      profileSkills: Array.isArray(skills) ? skills : [],
+      experiences,
+      educations,
+      projects,
+    });
   return {
     full_name, phone_number, location, linkedin_url, summary, skills, resume_url,
     skills_canonical, skills_unmapped,

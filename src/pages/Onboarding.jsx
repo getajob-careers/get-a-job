@@ -18,6 +18,7 @@ const STEP_NAMES = [
   "education",
   "practicum",
   "experience",
+  "role_skills",
   "skills",
   "career_direction",
   "constraints",
@@ -31,6 +32,7 @@ import StepResumeUpload from "../components/onboarding/StepResumeUpload";
 import StepEducation from "../components/onboarding/StepEducation";
 import StepPracticum from "../components/onboarding/StepPracticum";
 import StepExperience from "../components/onboarding/StepExperience";
+import StepRoleSkills from "../components/onboarding/StepRoleSkills";
 import StepSkills from "../components/onboarding/StepSkills";
 import StepCareerDirection from "../components/onboarding/StepCareerDirection";
 import StepConstraints from "../components/onboarding/StepConstraints";
@@ -40,7 +42,7 @@ import StepSurvey from "../components/onboarding/StepSurvey";
 // ALLOWED_EXPERIENCE_TYPES + inferExperienceType moved to
 // src/lib/onboardingPayload.js for direct unit testing. See that file.
 
-// Steps: 0=CV, 1=Education, 2=Practicum, 3=Experience, 4=Skills, 5=CareerDirection, 6=Constraints, 7=Survey, 8=TierReveal
+// Steps: 0=CV, 1=Education, 2=Practicum, 3=Experience, 4=RoleSkills (batched per-object tagging), 5=Skills (catch-all), 6=CareerDirection, 7=Constraints, 8=Survey, 9=TierReveal
 //
 // Practicum (Wk 4) inserted at index 2 after Education (we have the
 // institution by then). Existing in-flight users with onboarding_step
@@ -127,7 +129,7 @@ export default function Onboarding() {
     if (!existingProfileId) return;
     if (saving || finalising || generatingRoles) return;
     const handle = setTimeout(() => {
-      const payload = cleanProfilePayload({ ...profileData });
+      const payload = cleanProfilePayload({ ...profileData, experiences, educations, projects });
       // saveProgress is the single source of truth for onboarding_step;
       // letting the debounced auto-save write it too would clobber a newly
       // advanced step with whatever profileData was hydrated with on mount.
@@ -385,6 +387,7 @@ export default function Onboarding() {
         honors: e.honors || [],
         relevant_coursework: e.relevant_coursework || [],
         academic_projects: e.academic_projects || [],
+        skills_developed: e.skills_developed || [],
         location: e.location || null,
         display_order: e.display_order ?? i,
       };
@@ -415,6 +418,9 @@ export default function Onboarding() {
     // Dedupe to guard against accidental duplicate adds in the UI.
     const rawPayload = {
       ...profileData,
+      experiences,
+      educations,
+      projects,
       onboarding_step: stepNum,
       skills: [...new Set(profileData.skills || [])],
     };
@@ -496,7 +502,7 @@ export default function Onboarding() {
       // no merge needed.
       if (existingProfileId) {
         await supabase.from("profiles").update({
-          onboarding_step: 8,
+          onboarding_step: 9,
           skills: [...new Set(profileData.skills || [])],
         }).eq("id", existingProfileId);
       }
@@ -660,7 +666,7 @@ export default function Onboarding() {
           qualification_level: data?.qualification_level || null,
           overall_assessment: data?.overall_assessment || null,
           last_reality_check_date: new Date().toISOString(),
-          onboarding_step: 8,
+          onboarding_step: 9,
         }).eq("id", existingProfileId);
         if (persistErr) {
           console.error("[onboarding] career analysis persist failed:", persistErr, {
@@ -714,7 +720,7 @@ export default function Onboarding() {
     if (!targetProfileId) {
       // The user somehow reached the end without a profile row saved!
       // Attempt to save it now explicitly.
-      const rawPayload = { ...profileData, onboarding_step: 7 };
+      const rawPayload = { ...profileData, experiences, educations, projects, onboarding_step: 8 };
       const payload = cleanProfilePayload(rawPayload);
       Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
 
@@ -883,14 +889,17 @@ export default function Onboarding() {
     // Mark onboarding complete
     const finalRawPayload = {
       ...profileData,
+      experiences,
+      educations,
+      projects,
       skills: allSkills,
       onboarding_complete: true,
-      onboarding_step: 8,
+      onboarding_step: 9,
     };
     const finalPayload = cleanProfilePayload(finalRawPayload);
     Object.keys(finalPayload).forEach(key => finalPayload[key] === undefined && delete finalPayload[key]);
 
-    // handleSurveyNext (step 7) already wrote these fields from the live
+    // handleSurveyNext (step 8) already wrote these fields from the live
     // career-analysis output. profileData (the React state) is stale —
     // it never received the analysis values, so cleanProfilePayload would
     // include them as null and clobber the real values from step 7.
@@ -989,7 +998,7 @@ export default function Onboarding() {
   // failure paths, so setupComplete reliably flips true and the tutorial's
   // "Go to platform" button enables. No setupError prop — error UX moved
   // out of the tutorial; Home self-heal recovers in the background.
-  if (step === 8) {
+  if (step === 9) {
     return (
       <>
         <style>{ONB_CSS}</style>
@@ -1081,15 +1090,19 @@ export default function Onboarding() {
         />
       )}
       {step === 4 && (
-        <StepSkills
-          data={profileData}
-          onChange={setProfileData}
+        <StepRoleSkills
+          experiences={experiences}
+          setExperiences={setExperiences}
+          educations={educations}
+          setEducations={setEducations}
+          projects={projects}
+          setProjects={setProjects}
           onNext={() => goTo(5)}
           onBack={() => goTo(3)}
         />
       )}
       {step === 5 && (
-        <StepCareerDirection
+        <StepSkills
           data={profileData}
           onChange={setProfileData}
           onNext={() => goTo(6)}
@@ -1097,23 +1110,31 @@ export default function Onboarding() {
         />
       )}
       {step === 6 && (
-        <StepConstraints
+        <StepCareerDirection
           data={profileData}
           onChange={setProfileData}
-          onSubmit={() => goTo(7)}
+          onNext={() => goTo(7)}
           onBack={() => goTo(5)}
-          submitting={saving}
         />
       )}
       {step === 7 && (
+        <StepConstraints
+          data={profileData}
+          onChange={setProfileData}
+          onSubmit={() => goTo(8)}
+          onBack={() => goTo(6)}
+          submitting={saving}
+        />
+      )}
+      {step === 8 && (
         <StepSurvey
           data={profileData}
           onChange={setProfileData}
           onNext={handleSurveyNext}
-          onBack={() => goTo(6)}
+          onBack={() => goTo(7)}
         />
       )}
-      {/* step === 8 is rendered above via OnboardingTutorial — no entry here. */}
+      {/* step === 9 is rendered above via OnboardingTutorial — no entry here. */}
     </OnboardingShell>
       </div>
     </>

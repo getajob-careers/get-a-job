@@ -1,6 +1,7 @@
 import React from "react";
-import { Check, Wrench, Briefcase, Code, BarChart2, MessageSquare, Users, ArrowRight } from "lucide-react";
+import { Check, Wrench, Briefcase, Code, BarChart2, MessageSquare, Users } from "lucide-react";
 import SkillTagInput from "./SkillTagInput";
+import SkipFooter from "./SkipFooter";
 
 // Curated chip bank — 6 visual sections × 12 skills. Categories are PURELY
 // VISUAL — every selected chip lands in a single flat profileData.skills
@@ -32,11 +33,11 @@ export default function StepSkills({ data, onChange, onNext, onBack }) {
   return (
     <div className="space-y-7">
       <div>
-        <h1 className="onb-h1">Your skills.</h1>
+        <h1 className="onb-h1">Any other skills?</h1>
         <p className="onb-sub">
-          Tap any chip to add it, or search the full skill library below. Selected ones stay highlighted. Free text still works if nothing matches.
+          You've already tagged skills under each role, degree, and project. This catch-all is for anything that doesn't belong to a specific experience — broad capabilities, side learning, or things you've picked up outside work.
         </p>
-        <p className="onb-help">Only add skills you can actually demonstrate in an interview.</p>
+        <p className="onb-help">Optional. Only add skills you can actually demonstrate in an interview.</p>
       </div>
 
       {/* Library autocomplete + selected pills. SkillTagInput owns the
@@ -96,15 +97,11 @@ export default function StepSkills({ data, onChange, onNext, onBack }) {
         })}
       </div>
 
-      <div className="flex justify-between items-center pt-2">
-        <button onClick={onBack} className="onb-btn onb-btn-outline">Back</button>
-        <div className="flex items-center gap-4">
-          <span className="text-xs text-[#9C9DA1]">{skills.length} skill{skills.length !== 1 ? "s" : ""} added</span>
-          <button onClick={onNext} className="onb-btn onb-btn-primary onb-btn-lg">
-            Continue <ArrowRight className="w-4 h-4" />
-          </button>
-        </div>
-      </div>
+      <SkipFooter
+        onBack={onBack}
+        onSkip={onNext}
+        onContinue={onNext}
+      />
     </div>
   );
 }
