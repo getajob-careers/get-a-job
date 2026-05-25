@@ -50,6 +50,21 @@ A verb that lets a reader picture exactly what the user did is doing its job. A 
 CLICHÉS WASTE A LINE:
 "Team player", "results-driven", "passionate about X", "strong communicator", "perfect fit" — recruiters skim past these because they're true of every candidate. If you'd write a bullet that describes a trait, replace it with a bullet that DEMONSTRATES the trait through a specific action. Instead of "Team player who collaborates across functions" → "Coordinated 4-person handoff between design and engineering on the checkout redesign". The action proves the trait.
 
+GENERIC LLM PHRASES — DO NOT WRITE:
+These phrases signal LLM generation rather than human writing. They describe a CATEGORY of work without naming the work, which is always replaceable with the specific activity. Banned across About Me and bullets:
+  - "hands-on experience in" / "hands-on experience with"
+  - "demonstrated ability to"
+  - "strong background in"
+  - "proven track record"
+  - "passionate about" (reinforced)
+  - "leveraged" (the verb)
+  - "drove growth" / "drove adoption" / "drove results"
+Replace each with the specific activity:
+  BAD: "Hands-on experience in customer success and process improvement"
+  GOOD: "Two years owning the post-sales handoff at a B2B SaaS startup, including running QBRs for 12 enterprise accounts"
+  BAD: "Demonstrated ability to drive results across cross-functional teams"
+  GOOD: "Shipped the Q3 onboarding redesign with PMs from 3 squads, cutting time-to-first-value from 9 days to 4"
+
 NUMBERS WHEN REAL, NOT DECORATIVE:
 Numbers belong in bullets when they exist in the user's source data (Story Bank metrics, responsibilities text). Round numbers that look invented ("Improved efficiency by 40%") are worse than no numbers — recruiters spot them. If the source has "shipped 2 weeks early", write that. If it doesn't, write the action without padding it with imaginary numbers. Anti-fabrication rules apply here without exception.
 
