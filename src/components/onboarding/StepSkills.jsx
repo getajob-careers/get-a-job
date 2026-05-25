@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { Check, X, Wrench, Briefcase, Code, BarChart2, MessageSquare, Users, ArrowRight } from "lucide-react";
+import React from "react";
+import { Check, Wrench, Briefcase, Code, BarChart2, MessageSquare, Users, ArrowRight } from "lucide-react";
+import SkillTagInput from "./SkillTagInput";
 
 // Curated chip bank — 6 visual sections × 12 skills. Categories are PURELY
 // VISUAL — every selected chip lands in a single flat profileData.skills
@@ -17,7 +18,6 @@ const matches = (arr, label) => arr.some((s) => s.toLowerCase() === label.toLowe
 
 export default function StepSkills({ data, onChange, onNext, onBack }) {
   const skills = Array.isArray(data.skills) ? data.skills : [];
-  const [input, setInput] = useState("");
 
   const setSkills = (next) => onChange({ ...data, skills: next });
 
@@ -29,62 +29,27 @@ export default function StepSkills({ data, onChange, onNext, onBack }) {
     }
   };
 
-  const addCustom = () => {
-    const v = input.trim();
-    if (!v) return;
-    if (!matches(skills, v)) setSkills([...skills, v]);
-    setInput("");
-  };
-
-  const allBankLabels = new Set(SKILL_BANK.flatMap((s) => s.chips.map((c) => c.toLowerCase())));
-  const customSkills = skills.filter((s) => !allBankLabels.has(s.toLowerCase()));
-
   return (
     <div className="space-y-7">
       <div>
         <h1 className="onb-h1">Your skills.</h1>
         <p className="onb-sub">
-          Tap any skill to add it. Selected ones stay highlighted. Type below for anything not in the suggestions.
+          Tap any chip to add it, or search the full skill library below. Selected ones stay highlighted. Free text still works if nothing matches.
         </p>
         <p className="onb-help">Only add skills you can actually demonstrate in an interview.</p>
       </div>
 
-      {/* Free-text input + selected pills */}
-      <div className="onb-card space-y-3">
-        <div className="flex gap-2">
-          <input
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustom(); } }}
-            placeholder="Type a skill not in the suggestions and press Enter"
-            className="onb-input"
-          />
-          <button onClick={addCustom} disabled={!input.trim()} className="onb-btn onb-btn-outline">
-            Add
-          </button>
-        </div>
-
-        {skills.length > 0 && (
-          <div>
-            <p className="onb-eyebrow mb-2">Selected ({skills.length})</p>
-            <div className="flex flex-wrap gap-1.5">
-              {skills.map((skill) => (
-                <span
-                  key={skill}
-                  className="inline-flex items-center gap-1 text-xs bg-[#0E1014] text-white px-2.5 py-1 rounded-md"
-                >
-                  {skill}
-                  {customSkills.includes(skill) && (
-                    <span className="text-[9px] uppercase tracking-wider text-[#9C9DA1] ml-0.5">custom</span>
-                  )}
-                  <button onClick={() => toggleSkill(skill)} className="hover:text-[#F87060]" aria-label={`Remove ${skill}`}>
-                    <X className="w-3 h-3" />
-                  </button>
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
+      {/* Library autocomplete + selected pills. SkillTagInput owns the
+          tag-chip rendering. */}
+      <div className="onb-card">
+        <SkillTagInput
+          label={skills.length > 0 ? `Selected (${skills.length})` : undefined}
+          description="Search 595 standard skills or type your own."
+          tags={skills}
+          onChange={setSkills}
+          suggestionType="library_skills"
+          placeholder="Search skills, or type and press Enter to add custom"
+        />
       </div>
 
       {/* Chip bank — six visual sections, gap-6 keeps them distinct rather
