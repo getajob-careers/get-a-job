@@ -18,6 +18,17 @@
 //                         force re-extraction across the full table)
 //   --ats=greenhouse,lever scope to specific ATSs
 //   --progress-every=50   print a checkpoint every N jobs
+//   --dry-run             list picked jobs + count, exit without invoking
+//                         the extractor (use to preview a filter's scope)
+//   --filter=null-skills  picker mode: walk only jobs where extraction ran
+//                         (extraction_confidence > 0) but req_skills_core
+//                         came back null. Implies --skip-already=false
+//                         (we WANT to re-extract these). Pair with
+//                         --confidence-min to skip hopeless low-conf rows.
+//   --confidence-min=0.7  with --filter=null-skills, require this minimum
+//                         extraction_confidence. Default 0 (no floor).
+//                         0.7 = "extraction was structurally OK but missed
+//                         skills" — best ROI on re-extract.
 //
 // At ~$0.005/job and 3,187 jobs, full backfill costs ~$16 and runs ~30
 // minutes at concurrency 8.
@@ -56,6 +67,9 @@ const PROGRESS_EVERY = Number(arg("progress-every", "50"));
 // already at the new version. Set to the current EXTRACTION_SCHEMA_VERSION in
 // the edge function so the two stay in lockstep.
 const TARGET_SCHEMA_VERSION = Number(arg("target-schema-version", "4"));
+const DRY_RUN = args.includes("--dry-run");
+const FILTER = arg("filter", "");          // "" | "null-skills"
+const CONFIDENCE_MIN = Number(arg("confidence-min", "0"));
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
@@ -72,6 +86,47 @@ async function pickJobs(): Promise<Array<{ id: string; title: string; ats_source
     }
     return data ?? [];
   }
+
+  // null-skills filter: jobs that v4-extracted at non-zero confidence but
+  // got back null req_skills_core. These are the "extraction half-worked"
+  // class — the structural fields (function_family, jd_language, etc.)
+  // landed but the LLM didn't return skill IDs. Re-extracting at the SAME
+  // confidence usually succeeds because the LLM is non-deterministic at
+  // lower confidences. Always pairs with force=true (we want re-run).
+  //
+  // Confidence floor matters: re-extracting confidence<0.5 rows tends to
+  // produce another null + risks wiping OTHER populated v4 fields
+  // (notable_customers, scale_signals) since the edge function overwrites
+  // every v4 field with whatever the LLM returns. 0.7 is the safe default.
+  if (FILTER === "null-skills") {
+    const PAGE = 1000;
+    const all: Array<{ id: string; title: string; ats_source: string }> = [];
+    let offset = 0;
+    for (;;) {
+      let q = supabase
+        .from("jobs")
+        .select("id, title, ats_source")
+        .eq("is_active", true)
+        .is("req_skills_core", null)
+        .not("extraction_confidence", "is", null)
+        .gt("extraction_confidence", 0)
+        .order("extraction_confidence", { ascending: false })
+        .range(offset, offset + PAGE - 1);
+      if (CONFIDENCE_MIN > 0) q = q.gte("extraction_confidence", CONFIDENCE_MIN);
+      if (ATS_FILTER.length > 0) q = q.in("ats_source", ATS_FILTER);
+      const { data, error } = await q;
+      if (error) {
+        console.error("Query failed:", error.message);
+        process.exit(1);
+      }
+      if (!data || data.length === 0) break;
+      all.push(...data);
+      if (data.length < PAGE) break;
+      offset += PAGE;
+    }
+    return LIMIT ? all.slice(0, LIMIT) : all;
+  }
+
   // Paginate — PostgREST defaults to 1000 row cap so we walk in batches.
   const PAGE = 1000;
   const all: Array<{ id: string; title: string; ats_source: string }> = [];
@@ -104,6 +159,12 @@ async function pickJobs(): Promise<Array<{ id: string; title: string; ats_source
   return LIMIT ? all.slice(0, LIMIT) : all;
 }
 
+// For --filter=null-skills we always want force=true (the whole point is
+// to re-run extraction on rows that previously came back without skills).
+// SKIP_ALREADY's normal "skip if extracted_at not null" behaviour would
+// reject every one of these candidates.
+const FORCE_EXTRACTION = !SKIP_ALREADY || FILTER === "null-skills";
+
 async function invokeExtractor(jobId: string, attempt = 1): Promise<any> {
   // Network-layer errors (ETIMEDOUT, ECONNRESET, AbortError) used to kill the
   // whole batch — fatal in a 3,000-job run. We catch them here and retry up
@@ -118,7 +179,7 @@ async function invokeExtractor(jobId: string, attempt = 1): Promise<any> {
         Authorization: `Bearer ${SERVICE_ROLE}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ job_id: jobId, force: !SKIP_ALREADY }),
+      body: JSON.stringify({ job_id: jobId, force: FORCE_EXTRACTION }),
       // 60s overall timeout — function p99 is ~30s under load, this gives
       // 2x safety margin without holding workers indefinitely.
       signal: AbortSignal.timeout(60000),
@@ -160,11 +221,22 @@ async function pMap<T, R>(items: T[], n: number, fn: (item: T, idx: number) => P
 
 async function main() {
   const t0 = Date.now();
-  console.log(`Backfill — concurrency=${CONCURRENCY} skip-already=${SKIP_ALREADY} ats=${ATS_FILTER.join(",") || "all"} limit=${LIMIT ?? "none"}`);
+  const mode = FILTER || (SKIP_ALREADY ? "default(skip-already)" : "force-all");
+  console.log(`Backfill — mode=${mode} concurrency=${CONCURRENCY} ats=${ATS_FILTER.join(",") || "all"} limit=${LIMIT ?? "none"} confidence-min=${CONFIDENCE_MIN} dry-run=${DRY_RUN}`);
   const jobs = await pickJobs();
   console.log(`Picked ${jobs.length} jobs to process.\n`);
   if (jobs.length === 0) {
     console.log("Nothing to do.");
+    return;
+  }
+
+  if (DRY_RUN) {
+    console.log("DRY RUN — listing first 20 picks, then exiting without invoking the extractor:");
+    jobs.slice(0, 20).forEach((j, i) => {
+      console.log(`  [${String(i + 1).padStart(3)}] ${j.id}  ${j.ats_source.padEnd(16)}  ${j.title}`);
+    });
+    if (jobs.length > 20) console.log(`  … and ${jobs.length - 20} more.`);
+    console.log(`\nTotal picks: ${jobs.length}. Re-run without --dry-run to extract.`);
     return;
   }
 
