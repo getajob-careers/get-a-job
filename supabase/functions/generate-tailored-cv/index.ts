@@ -1505,6 +1505,20 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     // education rows. Any LLM-produced cvData.education[].institution that
     // doesn't match a known name is overridden with the closest match by
     // education_level (degree pairing), or stripped if no match.
+    // Token-set guard: the LLM is told to copy institution names verbatim
+    // from USER DATA, but it sometimes shortens long names ("Torah Academy
+    // of Bergen County" → "Torah Academy") for one-page CV layout. Equally,
+    // it sometimes hallucinates a plausible-looking institution. We need
+    // both:
+    //   (a) accept legitimate shortenings (LLM tokens ⊆ known tokens) AND
+    //       promote them to the canonical full name, and
+    //   (b) reject everything else (fabrication).
+    //
+    // The prior version used `primaryEdu.institution` as a bare fallback
+    // whenever `edu.education_level` didn't match, which silently rewrote
+    // every multi-entry user's second institution to their primary one
+    // (e.g. Torah Academy → Reichman) — because the LLM output schema
+    // doesn't include `education_level` so the level lookup ALWAYS missed.
     const primaryEdu = pickPrimaryEducation(profile.education ?? []);
     const knownInstitutionsByLevel = new Map<string, string>();
     for (const e of (profile.education ?? [])) {
@@ -1512,22 +1526,75 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         knownInstitutionsByLevel.set(e.education_level, e.institution);
       }
     }
+
+    // Tokenize into 2+ char alphanumeric tokens. Strips stop-words like
+    // "of" / "&" so "Torah Academy of Bergen County" → {torah, academy,
+    // bergen, county}. Word-boundary granularity prevents short fabricated
+    // names like "MIT Sloan Executive Program" from matching a user who
+    // only attended "MIT" (extra tokens "sloan"/"executive"/"program"
+    // wouldn't all be in the known set).
+    const institutionTokens = (s: unknown): Set<string> => {
+      return new Set(
+        String(s ?? "").toLowerCase()
+          .split(/[\s\-,.&\/()]+/)
+          .map((t) => t.replace(/[^a-z0-9]/g, ""))
+          .filter((t) => t.length >= 2),
+      );
+    };
+    const knownTokenSets: Array<{ institution: string; tokens: Set<string> }> = [];
+    for (const e of (profile.education ?? [])) {
+      const tokens = institutionTokens(e?.institution);
+      if (tokens.size > 0 && e?.institution) {
+        knownTokenSets.push({ institution: e.institution, tokens });
+      }
+    }
+    // Return the FULL canonical institution name if the LLM's name is a
+    // token-subset of any known institution (handles shortened LLM output
+    // and exact match). Returns null if no known institution accepts it.
+    const findKnownInstitutionFullName = (name: string): string | null => {
+      const llmTokens = institutionTokens(name);
+      if (llmTokens.size === 0) return null;
+      for (const { institution, tokens } of knownTokenSets) {
+        let allMatch = true;
+        for (const t of llmTokens) {
+          if (!tokens.has(t)) { allMatch = false; break; }
+        }
+        if (allMatch) return institution;
+      }
+      return null;
+    };
+
     if (Array.isArray(cvData.education)) {
       for (const edu of cvData.education) {
-        // Match by education_level if possible — pairs the LLM's
-        // "bachelors" entry with the bachelors-row's institution.
-        const canonical = knownInstitutionsByLevel.get(edu.education_level)
-          || primaryEdu?.institution
-          || "";
-        if (canonical) {
-          if (edu.institution !== canonical) {
-            console.log(`[CV] education institution overridden: "${edu.institution}" → "${canonical}"`);
-            edu.institution = canonical;
+        // (a) Strong path: LLM happened to include education_level AND it
+        // matches a known row → use the canonical from that row.
+        const byLevel = knownInstitutionsByLevel.get(edu.education_level);
+        if (byLevel) {
+          if (edu.institution !== byLevel) {
+            console.log(`[CV] education institution overridden (level match): "${edu.institution}" → "${byLevel}"`);
+            edu.institution = byLevel;
           }
-        } else if (edu.institution) {
-          console.log(`[CV] education institution stripped (no profile source): was "${edu.institution}"`);
-          edu.institution = "";
+          continue;
         }
+        // (b) LLM emitted blank — surface the gap, don't silently fill it
+        // with an unrelated institution.
+        if (!edu.institution) continue;
+        // (c) Token-subset match → promote shortened name to full canonical
+        // (e.g. "Torah Academy" → "Torah Academy of Bergen County"). This
+        // also no-ops on exact matches.
+        const matched = findKnownInstitutionFullName(edu.institution);
+        if (matched) {
+          if (edu.institution !== matched) {
+            console.log(`[CV] education institution promoted (token subset): "${edu.institution}" → "${matched}"`);
+            edu.institution = matched;
+          }
+          continue;
+        }
+        // (d) Doesn't match any known institution → fabrication. Fall back
+        // to primary, or strip if user has no education rows at all.
+        const fallback = primaryEdu?.institution || "";
+        console.log(`[CV] education institution overridden (fabrication catch): "${edu.institution}" → "${fallback}"`);
+        edu.institution = fallback;
       }
     }
 
