@@ -374,6 +374,7 @@ export default function Profile() {
     is_current: false,
     responsibilities: "",
     skills_used: [],
+    tools_used: [],
   });
 
   const saveProfile = async () => {
@@ -495,6 +496,7 @@ export default function Profile() {
     is_current: false,
     responsibilities: "",
     skills_used: [],
+    tools_used: [],
   });
 
   const addExperience = async () => {
@@ -1134,8 +1136,16 @@ export default function Profile() {
                   description="Skills you applied in this role — feeds CV bullet generation and skill-graph matching."
                   tags={expForm.skills_used}
                   onChange={(v) => setExpForm({ ...expForm, skills_used: v })}
-                  placeholder="e.g. SQL, stakeholder management"
-                  suggestionType="skills"
+                  placeholder="e.g. customer success, stakeholder management"
+                  suggestionType="library_skills"
+                />
+                <SkillTagInput
+                  label="Tools used"
+                  description="Software, platforms, or systems you used in this role."
+                  tags={expForm.tools_used || []}
+                  onChange={(v) => setExpForm({ ...expForm, tools_used: v })}
+                  placeholder="e.g. Excel, Python, Salesforce"
+                  suggestionType="library_skills"
                 />
                 <button type="button" onClick={addExperience} className="p-btn p-btn-primary">
                   {expForm.id ? "Update experience" : <><Plus className="w-3.5 h-3.5" />Add experience</>}
@@ -1181,6 +1191,7 @@ export default function Profile() {
                               is_current: !!e.is_current,
                               responsibilities: e.responsibilities || "",
                               skills_used: e.skills_used || [],
+                              tools_used: e.tools_used || [],
                             })}
                             className="p-btn p-btn-ghost p-btn-sm"
                           >

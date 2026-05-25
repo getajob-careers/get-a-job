@@ -14,6 +14,7 @@ const EMPTY_EXP = {
   responsibilities: "",
   managed_people: false,
   cross_functional: false,
+  skills_used: [],
   tools_used: [],
 };
 
@@ -163,10 +164,20 @@ export default function StepExperience({ experiences, onChange, onNext, onBack }
           </div>
 
           <SkillTagInput
+            label="Skills used"
+            description="Skills you applied in this role — feeds CV bullet generation and skill-graph matching."
+            tags={draft.skills_used || []}
+            onChange={(v) => set("skills_used", v)}
+            placeholder="e.g. customer success, project management"
+            suggestionType="library_skills"
+          />
+          <SkillTagInput
             label="Tools used"
+            description="Software, platforms, or systems you used."
             tags={draft.tools_used || []}
             onChange={(v) => set("tools_used", v)}
             placeholder="e.g. Excel, Python, Salesforce"
+            suggestionType="library_skills"
           />
 
           <div className="flex gap-2 pt-1">
