@@ -849,9 +849,10 @@ You must DYNAMICALLY manage content density based on how much data the user has.
 
 Guidelines for fitting on one page:
 - Count the user's total number of experience entries (across professional + military + volunteering + leadership) plus education entries, certifications, projects, and honors. This is their "content volume."
-- HIGH VOLUME (6+ total experience entries OR 9+ total sections with content): Use 3 bullets per professional/military role and 2 bullets per volunteering/leadership role, target 14-18 words per bullet, About Me 2-3 sentences, honors as name + year only.
-- MEDIUM VOLUME (3-5 total experience entries, 6-8 total sections): Use 3-4 bullets per professional role and 2-3 per other buckets, target 16-22 words per bullet, About Me 3 sentences, honors can carry brief context.
-- LOW VOLUME (1-2 total experience entries, under 6 sections): Use 4-5 bullets per role across all buckets, bullets can run 18-26 words when there's real substance, About Me can be longer, include richer education + honors detail.
+- HARD CAP: NO experience entry may have more than 3 bullets, regardless of volume tier. This applies to ALL buckets (professional, military, volunteering, leadership). The hard cap exists because dense one-page rendering breaks when any single role overflows; three substantive bullets beats five generic ones.
+- HIGH VOLUME (6+ total experience entries OR 9+ total sections with content): Use 2-3 bullets per professional/military role and 2 bullets per volunteering/leadership role, target 14-18 words per bullet, About Me 2-3 sentences, honors as name + year only.
+- MEDIUM VOLUME (3-5 total experience entries, 6-8 total sections): Use 3 bullets per professional role and 2 per other buckets, target 16-22 words per bullet, About Me 3 sentences, honors can carry brief context.
+- LOW VOLUME (1-2 total experience entries, under 6 sections): Use 3 bullets per role across all buckets, bullets can run 18-26 words when there's real substance, About Me can be longer, include richer education + honors detail.
 
 Within those tiers, prefer richer professional bullets over thinning every section uniformly: the recruiter's eye lands on professional experience first. Volunteer/military/leadership bullets can be tighter (2-3 bullets, slightly shorter) without hurting the CV.
 
@@ -930,14 +931,26 @@ D. What you MAY do:
     Length: 2-3 sentences.
     Sentence 1: reference the user's primary qualification — degree program from USER DATA.education_list[0], OR current role + company from USER DATA.professional_experiences[0] — AND name at least one matched skill from the list above using its natural-language phrasing (NOT the snake_case ID).
     Sentence 2: connect to the target role's domain by referencing ONE of: a USER DATA-grounded fact about the role context (notable_customers entry, scale_signals entry), the function_family + req_seniority, or one more matched skill. The target company name may appear AT MOST once across the whole About Me.
-    Every concrete claim (skill, company, metric, role title) must trace to USER DATA. If a claim doesn't trace, leave it out.`
+    Every concrete claim (skill, company, metric, role title) must trace to USER DATA. If a claim doesn't trace, leave it out.
+    ANTI-FABRICATION (load-bearing — read carefully):
+    Do NOT infer domains, industries, functional specialties, or career interests that are NOT explicitly in USER DATA. Specifically:
+      - A "Business Administration" degree does NOT mean the user has consulting, finance, marketing, or strategy experience. Only their actual experiences + skills count.
+      - A "Computer Science" degree does NOT mean the user has software engineering experience — only the experience rows do.
+      - The target role's domain (e.g. "fintech", "cybersecurity", "B2B SaaS") MUST NOT appear in the About Me unless one of the user's experiences was AT a company in that domain or one of the user's skills explicitly names that domain.
+      - Do NOT write "interested in X" / "exploring X" / "focused on X" unless USER DATA.summary, USER DATA.cv_tailoring_strategy, or USER DATA.primary_domain explicitly says so.
+    BAD: "Business Administration student at Reichman with consulting experience, interested in fintech." (Consulting + fintech were INFERRED, not in USER DATA.)
+    GOOD: "Business Administration student at Reichman University with two years at Heseg Foundation supporting program operations." (Every claim traces.)`
       : `- About Me — SPARSE MODE (no v4 grounding or zero skill overlap).
     Length: 1-2 sentences MAX. Shorter is more credible when grounding is thin — better to say less truthfully than more generically.
     Reference exactly two profile anchors from USER DATA:
       (a) the user's primary qualification — degree + institution from USER DATA.education_list[0], OR current role + company from USER DATA.professional_experiences[0]
       (b) one domain or focus area they ACTUALLY have, drawn from USER DATA.skills or one of their experiences.
     Example: "Business Administration student at Reichman University with two years of operational support experience at Heseg Foundation, focused on customer-facing roles in product and operations."
-    If you can't write 2 honestly-grounded sentences, write 1.`;
+    If you can't write 2 honestly-grounded sentences, write 1.
+    ANTI-FABRICATION (load-bearing — read carefully):
+    Do NOT infer domains, industries, or specialties from the user's DEGREE or the TARGET ROLE. A Business Administration degree alone does not give the user "consulting", "strategy", "finance", or "marketing" experience — only their actual experience rows + skills do. The target role's industry (e.g. "fintech", "cybersecurity") MUST NOT appear in the About Me unless one of the user's experiences was AT a company in that domain or one of their skills explicitly names that domain.
+    BAD: "Business Administration student at Reichman with consulting experience, interested in fintech." (Both inferred, not in USER DATA.)
+    GOOD: "Business Administration student at Reichman University." (1 sentence — honest beats padded.)`;
 
     const STRUCTURE_RULES = `OUTPUT STRUCTURE:
 - Produce a single JSON document (see schema below). The PDF renderer reads it verbatim.
@@ -1197,8 +1210,7 @@ OUTPUT SCHEMA (JSON):
     { "title": "string — EXACT title from USER DATA", "company": "string — EXACT company from USER DATA", "dates": "string — e.g. Oct 2025 - Present", "bullets": [
       "Action verb + what the user did + concrete outcome (tool / scope / metric). 14-22 words. Anchored in a story metric or proof_signal when available.",
       "Second bullet referencing a specific tool from tools_used or a named project — different facet of the role than bullet 1.",
-      "Third bullet describing scope, stakeholders, or impact — preferably with a quantified outcome from the source data.",
-      "Optional fourth bullet for MEDIUM/LOW volume profiles — drop in HIGH volume to keep the CV on one page."
+      "Third bullet describing scope, stakeholders, or impact — preferably with a quantified outcome from the source data."
     ] }
   ],
   "military_experiences": [
@@ -1221,7 +1233,7 @@ OUTPUT SCHEMA (JSON):
     ] }
   ],
   "education": [
-    { "degree": "string — EXACT degree/field from USER DATA", "institution": "string — EXACT institution", "dates": "string", "gpa": "string — only if explicitly in USER DATA and strong", "coursework": ["short course name selected by JD relevance"], "academic_projects": ["Project name — short description, only when JD-aligned"], "activities": ["leadership role / club / notable activity — one per entry, NOT awards"] }
+    { "degree": "string — EXACT degree level/type from USER DATA (e.g. 'Bachelor's Degree', 'Master's Degree'). Do NOT include the field of study here — that goes in field_of_study.", "field_of_study": "string — EXACT field/major from USER DATA.education_list[i].field_of_study (e.g. 'Business Administration', 'Computer Science - AI specialization'). Empty string if USER DATA has no field_of_study.", "institution": "string — EXACT institution", "dates": "string", "gpa": "string — only if explicitly in USER DATA and strong", "coursework": ["short course name selected by JD relevance"], "academic_projects": ["Project name — short description, only when JD-aligned"], "activities": ["leadership role / club / notable activity — one per entry, NOT awards"] }
   ],
   "skills": {
     "domain": ["role-specific capability 1", "role-specific capability 2"],
@@ -1783,6 +1795,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       for (const edu of cvData.education) {
         if (edu && typeof edu === "object") {
           if (edu.degree) edu.degree = toTitleCase(String(edu.degree));
+          if (edu.field_of_study) edu.field_of_study = toTitleCase(String(edu.field_of_study));
           if (edu.institution) edu.institution = toTitleCase(String(edu.institution));
         }
       }
@@ -2037,27 +2050,31 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       trimFired = true;
       console.warn(`[CV] Estimated ${estimatedLines} lines (max ${maxLines}) — trimming`);
 
-      // Two-tier bullet floor: professional is the recruiter's primary
-      // signal so it keeps a higher floor; other buckets trim further.
-      // Trim order is least-prominent → most-prominent so professional
-      // bullets are protected longest.
-      const PROFESSIONAL_FLOOR = 3;
-      const SECONDARY_FLOOR = 2;
+      // Two-pass trim:
+      //   Pass 1 — pull every bucket down to a 2-bullet floor, iterating
+      //     entries OLDEST-FIRST (= end of array, since the LLM emits
+      //     reverse-chronological) so the most-recent experience keeps its
+      //     richest bullets longest.
+      //   Pass 2 — if still over after pass 1, drop tail entries from
+      //     non-professional buckets (handled by the entryDropOrder loop
+      //     below).
+      // Recruiter scan order says the top of each section is what matters;
+      // the OLDEST entry in a section is the one a recruiter is least
+      // likely to read in detail, so it's the right place to trim first.
+      const FLOOR = 2;
       const trimOrder = [
         "volunteering_experiences",
         "leadership_experiences",
-        "military_experiences",       // moved earlier — military isn't JD-tailored anyway
+        "military_experiences",
         "professional_experiences",   // last — keep richest content
       ];
       for (const bucket of trimOrder) {
         if (estimatedLines <= maxLines) break;
-        const floor = bucket === "professional_experiences"
-          ? PROFESSIONAL_FLOOR
-          : SECONDARY_FLOOR;
         const entries = (cvData[bucket] || []) as any[];
-        for (const entry of entries) {
+        for (let i = entries.length - 1; i >= 0; i--) {
           if (estimatedLines <= maxLines) break;
-          while (Array.isArray(entry.bullets) && entry.bullets.length > floor && estimatedLines > maxLines) {
+          const entry = entries[i];
+          while (Array.isArray(entry?.bullets) && entry.bullets.length > FLOOR && estimatedLines > maxLines) {
             entry.bullets.pop();
             estimatedLines -= 1;
           }
