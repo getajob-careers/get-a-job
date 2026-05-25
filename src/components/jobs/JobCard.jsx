@@ -48,8 +48,12 @@ function formatPostedDate(dateStr) {
 // PR-D: persist the full scoreResult (fit_score + track + alignment) at
 // insert time when available, so the Tracker shows the SAME numbers the
 // Jobs page card just showed — no second LLM round-trip, no async fill-in
-// of the track column. The job_id link is set so any future re-score
-// (e.g. JD edit on the application) takes the deterministic path.
+// of the track column. (Previously also wrote a `job_id` foreign key, but
+// that column was never added to applications via migration. PostgREST
+// silently stripped it for months; a Supabase platform upgrade in May
+// 2026 started rejecting the unknown column, breaking the Track button.
+// Removed in PR #134 since no code path read it. The (ats_source,
+// external_id) pair we still write serves the same join purpose.)
 async function addJobToTracker({ user, queryClient, job, scoreResult }) {
   let dupQuery = supabase.from("applications").select("id").eq("user_id", user.id).limit(1);
   if (job.ats_source && job.external_id) {
@@ -72,7 +76,6 @@ async function addJobToTracker({ user, queryClient, job, scoreResult }) {
     source: "job_suggestion",
     ats_source: job.ats_source || null,
     external_id: job.external_id || null,
-    job_id: job.id || null,
     cv_skills_emphasized: matchedSkills,
     job_description: jd,
     url: job.apply_url || "",
