@@ -876,7 +876,7 @@ B. Preservation (don't drop, don't paraphrase identifiers — BUT fix obvious ty
 
 C. Surfacing awards and honors:
 8. If a responsibility line mentions an award (e.g. "Awarded Presidential Award for Excellence"), keep it in the bullet AND surface the award in honors_and_awards[] so it appears in a dedicated Honors & Awards section.
-9. CAPITALIZATION — all degree names, specializations, field-of-study strings, and institution names must use TITLE CASE. "bachelor's degree in business administration-specialization in digital innovation" becomes "Bachelor's Degree in Business Administration - Specialization in Digital Innovation". Small connector words like "in", "of", "and", "the", "a", "at" stay lowercase unless they're the first word. Apply this silently during the typo-correction step (rule 6) — the reader should never see a sentence-case or lower-case degree.
+9. CAPITALIZATION — all degree names, specializations, field-of-study strings, institution names, AND every entry in skills.domain (the role-specific capability list) must use TITLE CASE. "bachelor's degree in business administration-specialization in digital innovation" becomes "Bachelor's Degree in Business Administration - Specialization in Digital Innovation". "process improvement" in skills.domain becomes "Process Improvement". Small connector words like "in", "of", "and", "the", "a", "at" stay lowercase unless they're the first word. NOTE: skills.tools (brand names like "Figma", "HubSpot") and skills.technical (acronyms like "SQL", "AWS", "JavaScript") should preserve their natural casing — do NOT title-case acronyms or brand names. Apply this silently during the typo-correction step (rule 6) — the reader should never see a sentence-case or lower-case degree or domain skill.
 
 D. What you MAY do:
 9. MAY rephrase and tighten bullets for stronger action verbs, ATS keywords, and role alignment — while preserving facts.
@@ -1729,6 +1729,19 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
           if (edu.institution) edu.institution = toTitleCase(String(edu.institution));
         }
       }
+    }
+
+    // Deterministic Title Case for skills.domain (role-specific capability
+    // phrases like "process improvement"). LLM compliance with the prompt
+    // rule above is good but not perfect; this guard ensures the output is
+    // consistent every time. Intentionally NOT applied to skills.tools or
+    // skills.technical — Title Case would corrupt brand names ("HubSpot"
+    // → "Hubspot") and acronyms ("SQL" → "Sql", "AWS" → "Aws"). The LLM
+    // handles those correctly because they're well-known canonical strings.
+    if (cvData.skills && Array.isArray((cvData.skills as any).domain)) {
+      (cvData.skills as any).domain = (cvData.skills as any).domain.map(
+        (s: unknown) => toTitleCase(String(s ?? "")).trim()
+      ).filter(Boolean);
     }
 
     // Subtitle derivation removed per Eli's design call (PR #24, 2026-05-06).

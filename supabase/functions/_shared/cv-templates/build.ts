@@ -1,23 +1,21 @@
 // build.ts — single CV docx orchestrator.
 //
-// One buildCV(cvData, config) function for both ATS-Optimized and Polished
-// styles. The two styles share the same section structure, the same
-// helpers, and the same anti-fab pipeline upstream — they diverge only on
-// visual chrome (color, border rules, label case, header layout). Style is
-// a flag passed through config, not a separate file.
+// Single unified template (PR #131). Previously two styles, "polished"
+// and "ats-optimized", branched on visual chrome only. Collapsed into one
+// because the underlying structure (single column, paragraph-based, no
+// tables for body content) was already identical and both styles passed
+// ATS parsing testing equally — the visual differences (font sizes,
+// section header case, color accents) were a UX A/B that users didn't
+// actually want to choose between. The unified template uses the
+// previously-Polished sizes + Title Case headers + theme accent color.
 //
-// Why this design over per-style template files:
-// - The empirical research is unambiguous that BOTH styles must be single-
-//   column for ATS survival (EDLIGO 1,200-doc benchmark + Resume Optimizer
-//   Pro 200-400 doc tests show 22-point parse-fidelity gap). Structural
-//   differences would compromise the Polished version's ATS performance,
-//   which is non-negotiable for the pilot.
-// - The differences that DO exist (color, border rules, label case,
-//   spacing) are 1-2 lines of conditional each. Splitting into two files
-//   would duplicate the ~300 lines of structure for no benefit.
-// - Single source of truth for section ordering — when we add per-section
-//   logic later (per-section refinement, per-section regen) it lives in
-//   one place.
+// config.style is accepted for backwards compat with any cached frontend
+// bundles but otherwise ignored — every value produces the same output.
+//
+// Single column is non-negotiable for ATS survival (EDLIGO 1,200-doc
+// benchmark + Resume Optimizer Pro 200-400 doc tests show 22-point parse-
+// fidelity gap on multi-column). All structural decisions here continue
+// to honor that constraint.
 
 import {
   AlignmentType,
@@ -53,17 +51,11 @@ const RIGHT_TAB = PAGE_WIDTH - 2 * MARGIN_TWIPS - 16
 
 // Font sizes (half-points). Tuned to research-backed ranges:
 // name 18-22pt, headers 14-16pt, body 10-12pt, dates 9-10pt.
-const SIZE_NAME_ATS = 44       // 22pt
-// Polished name was 52 (26pt) — dropped to 48 (24pt) PR #28 to recover
-// vertical budget for one-page fit. Still 2pt larger than ATS so the
-// "more designed" visual differentiation is preserved; the trim came
-// from headroom that wasn't carrying its weight.
-const SIZE_NAME_POLISHED = 48  // 24pt
-// ATS section header was 24 (12pt) — bumped to 26 (13pt) PR #29 to
-// restore visual hierarchy lost in the PR #21 split. 13pt vs 11pt body
-// creates 2pt of clear hierarchy where 12pt only had 1pt; still well
-// under Polished's 14pt so the differentiation between styles holds.
-const SIZE_SECTION_ATS = 26    // 13pt
+// Unified template uses the previously-Polished sizes — they render
+// better on screen + print and are well within ATS-friendly ranges
+// (parse fidelity testing showed identical recall to the smaller ATS
+// sizes; the size difference is purely visual).
+const SIZE_NAME_POLISHED = 48     // 24pt
 const SIZE_SECTION_POLISHED = 28  // 14pt
 const SIZE_BODY = 22           // 11pt
 const SIZE_BULLET = 20         // 10pt
@@ -72,21 +64,12 @@ const SIZE_DATE = 20           // 10pt
 const SIZE_CONTACT = 20        // 10pt
 // SIZE_SUBTITLE was 24 (12pt) — removed PR #24 along with the subtitle.
 
-const COLOR_BLACK = "000000"
 const COLOR_MUTED = "555555"
 
 // Spacing (twips, 1pt = 20 twips, 1.0 line = 240).
-// ATS section-before was 100 — bumped to 160 PR #29. Eli's smoke
-// rendered ATS at 8.98" on a 10.29" page (1.31" empty bottom);
-// redistributing 60 extra twips × 8 sections = 0.33" into breathing
-// room balances the page without pushing toward overflow.
-const SP_SECTION_BEFORE_ATS = 160
-// Polished section spacing was 200 — dropped to 130 PR #28 to recover
-// ~560 twips (8 sections × 70) of vertical budget. With 8 rendered
-// sections in Eli's profile, the original 200 cost ~1.1" total which
-// pushed Polished onto a 2nd page despite same content as ATS. 130 is
-// still 30% more breathing room than ATS, preserving the "polished"
-// feel without the page-2 overflow.
+// Section-before was 130 in the Polished branch — keeps a healthy
+// breathing-room budget while staying within one page for typical
+// profiles (8 sections × 130 = ~1.0" total).
 const SP_SECTION_BEFORE_POLISHED = 130
 const SP_SECTION_AFTER = 60
 const SP_ENTRY_BEFORE = 80
@@ -128,37 +111,38 @@ export async function buildCV(
   userContext: UserContext,
   config: TemplateConfig,
 ): Promise<Uint8Array> {
-  const polished = config.style === 'polished'
+  // Unified template (PR #131). Previously two styles, "polished" and
+  // "ats-optimized", branched on visual chrome (font sizes, section
+  // header casing, color accents). Both were already single-column
+  // paragraph-based (no tables for body content), so collapsing was a
+  // pure styling decision. Adopted polished's larger sizes + Title Case
+  // headers + theme accent color throughout because modern ATS parsers
+  // (Workday/Greenhouse/Lever/Jobscan 2024-2026) handle color cleanly
+  // and the polished sizes read better. config.style is accepted for
+  // backwards compat with any cached frontend bundles but otherwise
+  // ignored — all values produce the same output.
   const font = config.theme.font
   const accent = config.theme.accentHex
-  const sizeName = polished ? SIZE_NAME_POLISHED : SIZE_NAME_ATS
-  const sizeSection = polished ? SIZE_SECTION_POLISHED : SIZE_SECTION_ATS
-  const sectionBefore = polished ? SP_SECTION_BEFORE_POLISHED : SP_SECTION_BEFORE_ATS
+  const sizeName = SIZE_NAME_POLISHED
+  const sizeSection = SIZE_SECTION_POLISHED
+  const sectionBefore = SP_SECTION_BEFORE_POLISHED
 
   const paragraphs: Array<Paragraph | Table> = []
 
   // ---------- Section helpers ----------
 
   const sectionHeading = (label: string): Paragraph => {
-    const text = polished ? toTitleCase(label) : label.toUpperCase()
-    // Both styles get a thin paragraph bottom rule — paragraph borders
-    // are ignored by ATS parsers (Workday/Greenhouse/Lever testing,
-    // Jobscan 2024) and cost zero twips of vertical height. ATS uses a
-    // muted grey BFBFBF (~0.75pt); Polished uses the theme accent color
-    // (~1pt). Restored on ATS in PR #29 — the legacy single-style
-    // template had this rule, and dropping it during PR #21 left ATS
-    // reading like raw text without visual section separation.
-    const ruleColor = polished ? accent : "BFBFBF"
-    const ruleSize = polished ? 8 : 6
+    // Title Case + thin theme-accent bottom rule. Paragraph borders are
+    // ignored by ATS parsers and cost zero twips of vertical height.
     return new Paragraph({
       spacing: { before: sectionBefore, after: SP_SECTION_AFTER },
-      border: { bottom: { color: ruleColor, style: BorderStyle.SINGLE, size: ruleSize, space: 2 } },
+      border: { bottom: { color: accent, style: BorderStyle.SINGLE, size: 8, space: 2 } },
       children: [new TextRun({
-        text,
+        text: toTitleCase(label),
         bold: true,
         size: sizeSection,
         font,
-        color: polished ? accent : COLOR_BLACK,
+        color: accent,
       })],
     })
   }
@@ -281,39 +265,34 @@ export async function buildCV(
   pushBit(header.location || userContext.location)
   pushBit(header.linkedin || userContext.linkedin_url)
 
-  // Polished + photo: 2-cell table at the top. Cell 1 = name + contact.
-  // Cell 2 = image. Even when ATS scrambles columns into linear text, the
-  // worst case is photo bytes appearing AFTER text — name and contact still
-  // parse correctly. Without a photo, fall through to the single-column header.
-  if (polished && config.photo) {
+  // Photo header: 2-cell table at the top. Cell 1 = name + contact.
+  // Cell 2 = image. Opt-in via config.photo (default off). Even when ATS
+  // scrambles columns into linear text, the worst case is photo bytes
+  // appearing AFTER text — name and contact still parse correctly.
+  // Without a photo, fall through to the single-column centered header.
+  if (config.photo) {
     paragraphs.push(buildPhotoHeaderTable(
       nameText, contactBits, config.photo, font, accent, sizeName,
     ))
   } else {
-    // Single-column header: name centered for both styles. Earlier Polished
-    // version was left-aligned for a "modernized" look, but Eli's testing
-    // showed it competed with the centered accent rule visually. Centering
-    // both keeps the same posture across styles and matches CDO templates.
-    const headerAlign = AlignmentType.CENTER
+    // Single-column centered header. Matches Reichman CDO templates.
     paragraphs.push(new Paragraph({
-      alignment: headerAlign,
+      alignment: AlignmentType.CENTER,
       spacing: { before: 0, after: 0 },
       children: [new TextRun({
         text: nameText,
         bold: true,
         size: sizeName,
         font,
-        color: polished ? accent : COLOR_BLACK,
+        color: accent,
       })],
     }))
-    // Polished: thin accent rule under the name. ATS-Optimized: no rule.
-    if (polished) {
-      paragraphs.push(new Paragraph({
-        spacing: { before: 20, after: 80 },
-        border: { bottom: { color: accent, style: BorderStyle.SINGLE, size: 12, space: 1 } },
-        children: [new TextRun({ text: "", size: 1 })],
-      }))
-    }
+    // Thin accent rule under the name.
+    paragraphs.push(new Paragraph({
+      spacing: { before: 20, after: 80 },
+      border: { bottom: { color: accent, style: BorderStyle.SINGLE, size: 12, space: 1 } },
+      children: [new TextRun({ text: "", size: 1 })],
+    }))
     if (contactBits.length > 0) {
       paragraphs.push(new Paragraph({
         alignment: headerAlign,
