@@ -3,6 +3,7 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, X } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
   DialogContent,
@@ -116,17 +117,6 @@ export default function Tracker() {
       ? applications
       : applications.filter((a) => a.status === filter);
 
-  if (isLoading) {
-    return (
-      <>
-        <style>{TRACKER_CSS}</style>
-        <div className="tracker min-h-screen flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-[#52545A]" />
-        </div>
-      </>
-    );
-  }
-
   return (
     <>
       <style>{TRACKER_CSS}</style>
@@ -190,7 +180,9 @@ export default function Tracker() {
           </div>
 
           {/* Applications */}
-          {filtered.length === 0 ? (
+          {isLoading ? (
+            <TrackerRowSkeleton />
+          ) : filtered.length === 0 ? (
             <div className="tk-empty">
               <p className="text-sm text-[#52545A]">
                 {applications.length === 0
@@ -294,5 +286,30 @@ export default function Tracker() {
         </div>
       </div>
     </>
+  );
+}
+
+// Row-list skeleton — shown in place of the applications list while the
+// applications query is loading. Renders 5 placeholder rows matching the
+// approximate height of a real ApplicationRow (no exact mirror needed
+// since rows have variable internal content; height + spacing is what
+// matters for the rest of the page not jumping when real rows land).
+function TrackerRowSkeleton() {
+  return (
+    <div className="flex flex-col gap-3" aria-hidden="true">
+      {[0, 1, 2, 3, 4].map((i) => (
+        <div
+          key={i}
+          className="bg-white rounded-lg border border-[#DDDDDB] px-4 py-3 flex items-center gap-3"
+        >
+          <Skeleton className="h-9 w-9 rounded-md flex-shrink-0" />
+          <div className="flex-1 min-w-0 space-y-2">
+            <Skeleton className="h-3.5 w-2/3" />
+            <Skeleton className="h-3 w-1/3" />
+          </div>
+          <Skeleton className="h-6 w-20 rounded-full flex-shrink-0" />
+        </div>
+      ))}
+    </div>
   );
 }
