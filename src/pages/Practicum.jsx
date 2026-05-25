@@ -4,7 +4,8 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
-import { Loader2, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { createPageUrl } from "@/utils";
 
@@ -125,12 +126,15 @@ export default function Practicum() {
   });
 
   if (profileLoading) {
+    // Path-agnostic skeleton — does NOT render practicum_path-conditional
+    // widgets (internship profile strip, find-companies card). Users
+    // without a practicum_path would otherwise see those flash before
+    // the gate below redirects them to Home. Generic header + pipeline
+    // shell only.
     return (
       <>
         <style>{ACT_CSS}</style>
-        <div className="act min-h-screen flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-[#52545A]" />
-        </div>
+        <PracticumLoadingSkeleton />
       </>
     );
   }
@@ -220,12 +224,7 @@ export default function Practicum() {
 
 function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath }) {
   if (loading) {
-    return (
-      <div className="flex items-center gap-2 text-[#9C9DA1] text-sm py-8">
-        <Loader2 className="w-4 h-4 animate-spin" />
-        Loading…
-      </div>
-    );
+    return <KanbanSkeleton />;
   }
   if (targets.length === 0) {
     // The PracticumStartHere card above already explains the flow. This
@@ -240,4 +239,50 @@ function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath }) {
     );
   }
   return <CompanyTargetsKanban targets={targets} onCardClick={onCardClick} />;
+}
+
+// Page-level skeleton — rendered ONLY when the profile query is in
+// flight. Deliberately path-agnostic: no internship-profile strip, no
+// find-companies card, no kanban — those depend on `practicum_path`
+// which we don't know yet. Header + section break + a stripped kanban
+// shell is enough to communicate "page is loading" without preempting
+// the redirect-to-Home path.
+function PracticumLoadingSkeleton() {
+  return (
+    <div className="act">
+      <div className="max-w-7xl mx-auto px-4 lg:px-8 py-10 space-y-6">
+        <div className="space-y-3">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-7 w-2/3 max-w-lg" />
+          <Skeleton className="h-3 w-1/2 max-w-md" />
+        </div>
+        <KanbanSkeleton />
+      </div>
+    </div>
+  );
+}
+
+// Kanban skeleton — 6 columns matching the hardcoded STATUSES enum in
+// src/components/practicum/constants.js. Each column has a header + 2
+// card placeholders. On mobile the real kanban becomes an accordion;
+// the skeleton's flex-wrap mirrors that adequately.
+function KanbanSkeleton() {
+  return (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3" aria-hidden="true">
+      {[0, 1, 2, 3, 4, 5].map((col) => (
+        <div key={col} className="bg-[#F4F4F2] rounded-lg p-3 space-y-2">
+          <div className="flex items-center justify-between mb-1">
+            <Skeleton className="h-3 w-16" />
+            <Skeleton className="h-4 w-5 rounded-full" />
+          </div>
+          {[0, 1].map((card) => (
+            <div key={card} className="bg-white rounded-md border border-[#DDDDDB] p-2.5 space-y-1.5">
+              <Skeleton className="h-3 w-3/4" />
+              <Skeleton className="h-2.5 w-1/2" />
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  );
 }
