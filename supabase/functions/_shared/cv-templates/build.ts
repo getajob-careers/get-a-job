@@ -119,7 +119,6 @@ interface UserContext {
   email?: string
   location?: string
   linkedin_url?: string
-  secondary_education?: { institution?: string; dates?: string; location?: string; highlights?: string[] }
 }
 
 const safeArray = (val: unknown): unknown[] => Array.isArray(val) ? val : []
@@ -336,7 +335,7 @@ export async function buildCV(
     military_service: () => renderMilitaryService(cvData, paragraphs, sectionHeading, experienceEntryLine, bulletParagraph),
     volunteering: () => renderVolunteering(cvData, paragraphs, sectionHeading, experienceEntryLine, bulletParagraph),
     leadership: () => renderLeadership(cvData, paragraphs, sectionHeading, experienceEntryLine, bulletParagraph),
-    education: () => renderEducation(cvData, userContext, paragraphs, sectionHeading, educationEntryLines, bulletParagraph),
+    education: () => renderEducation(cvData, paragraphs, sectionHeading, educationEntryLines, bulletParagraph),
     skills: () => renderSkills(cvData, paragraphs, sectionHeading, labelledLine),
     languages: () => renderLanguages(cvData, paragraphs, sectionHeading, plainLine),
     honors: () => renderHonors(cvData, paragraphs, sectionHeading, bulletParagraph),
@@ -463,30 +462,13 @@ function renderLeadership(
 
 function renderEducation(
   cvData: CvData,
-  userContext: UserContext,
   paragraphs: Array<Paragraph | Table>,
   sectionHeading: (label: string) => Paragraph,
   educationEntryLines: (title: string, subtitle: string | undefined, dates: string | undefined, withGap: boolean) => Paragraph[],
   bulletParagraph: (s: string) => Paragraph,
 ): void {
   const llmEducation = Array.isArray(cvData.education) ? cvData.education : []
-  const secondary = userContext.secondary_education
-  const normInst = (s: unknown) => String(s || "").replace(/\s+/g, " ").trim().toLowerCase()
-  const merged = [...llmEducation]
-  if (secondary?.institution) {
-    const already = merged.some(e => normInst(e.institution) === normInst(secondary.institution))
-    if (!already) {
-      merged.push({
-        institution: secondary.institution,
-        degree: "",
-        dates: secondary.dates,
-        coursework: [],
-        highlights: secondary.highlights || [],
-        _secondary_location: secondary.location,
-      })
-    }
-  }
-  if (merged.length === 0) return
+  if (llmEducation.length === 0) return
 
   paragraphs.push(sectionHeading("Education"))
   const honorsSet = new Set(
@@ -496,9 +478,9 @@ function renderEducation(
       .filter(Boolean),
   )
 
-  merged.forEach((edu: any, idx) => {
+  llmEducation.forEach((edu: any, idx) => {
     const topLine = edu.degree?.trim() ? edu.degree : edu.institution
-    const subLine = edu.degree?.trim() ? edu.institution : (edu._secondary_location || "")
+    const subLine = edu.degree?.trim() ? edu.institution : ""
     educationEntryLines(topLine || "", subLine, edu.dates, idx > 0).forEach(p => paragraphs.push(p))
     if (edu.gpa) paragraphs.push(bulletParagraph(`GPA: ${edu.gpa}`))
 
