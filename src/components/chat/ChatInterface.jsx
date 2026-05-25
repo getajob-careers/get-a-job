@@ -274,10 +274,6 @@ function looksLikeStory(text) {
 // persisted to the DB.
 function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
   const { status, cv_url, fit_analysis, application_id, tailoring, unsourced_bullets, error } = state || {};
-  // Template style — local to the card. Default ATS-Optimized matches the
-  // tracker default and the safer-for-portals research call. User can flip
-  // to Polished before clicking Generate.
-  const [templateStyle, setTemplateStyle] = useState("ats-optimized");
 
   if (status === "done" && cv_url) {
     const alignment = fit_analysis?.alignment;
@@ -307,10 +303,30 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
                 {alignment || "—"}{pct != null ? ` · ${pct}%` : ""}
               </span>
             </div>
-            {typeof tailoring?.tailoring_score === "number" && (
+            {typeof tailoring?.tailoring_score === "number" ? (
               <div className="flex items-center justify-between">
                 <span className="text-[#52545A]">Keyword match</span>
-                <span className="font-semibold text-[#52545A]">{tailoring.tailoring_score}%</span>
+                {tailoring.tailoring_score === 0 ? (
+                  // A literal 0% almost always means the LLM rephrased the JD's
+                  // key phrases instead of using them verbatim, not that the
+                  // candidate is a true no-match. Showing "0%" reads like the
+                  // CV failed; clarify what's actually being measured.
+                  <span className="font-semibold text-amber-700" title="No exact JD phrases appeared in the CV — the AI may have paraphrased them. Review bullets and rewrite to mirror JD wording for stronger ATS match.">
+                    No exact phrase matches
+                  </span>
+                ) : (
+                  <span className="font-semibold text-[#52545A]">{tailoring.tailoring_score}%</span>
+                )}
+              </div>
+            ) : (
+              // tailoring is absent when no JD was attached OR the keyword
+              // extractor returned no grounded phrases. Both are non-failure
+              // states — surface them as informational, not as a 0% score.
+              <div className="flex items-center justify-between">
+                <span className="text-[#52545A]">Keyword match</span>
+                <span className="text-[#9C9DA1] italic">
+                  {proposal?.job_description ? "No keywords extracted" : "No JD attached"}
+                </span>
               </div>
             )}
             {Array.isArray(fit_analysis.major_gaps) && fit_analysis.major_gaps.length > 0 && (
@@ -360,45 +376,12 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
           <li><span className="text-rose-600">Application:</span> <span className="text-rose-500">linked to tracked role</span></li>
         )}
       </ul>
-      <div className="mb-3">
-        <p className="text-[10px] uppercase tracking-wider text-rose-600 font-medium mb-1.5">Style</p>
-        <div className="flex gap-1.5">
-          <button
-            type="button"
-            onClick={() => setTemplateStyle("ats-optimized")}
-            disabled={status === "generating"}
-            className={`flex-1 text-left rounded border px-2.5 py-1.5 transition-colors disabled:opacity-60 ${
-              templateStyle === "ats-optimized"
-                ? "border-rose-700 bg-rose-100"
-                : "border-rose-200 bg-white hover:border-rose-400"
-            }`}
-            title="Best for applying through job portals where your CV is parsed by software first"
-          >
-            <span className="text-[11px] font-semibold text-rose-900 block">ATS-Optimized</span>
-            <span className="text-[10px] text-rose-700 leading-tight block">For job portals · parsed first</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => setTemplateStyle("polished")}
-            disabled={status === "generating"}
-            className={`flex-1 text-left rounded border px-2.5 py-1.5 transition-colors disabled:opacity-60 ${
-              templateStyle === "polished"
-                ? "border-rose-700 bg-rose-100"
-                : "border-rose-200 bg-white hover:border-rose-400"
-            }`}
-            title="Best for sending directly to a recruiter or networking contact"
-          >
-            <span className="text-[11px] font-semibold text-rose-900 block">Polished</span>
-            <span className="text-[10px] text-rose-700 leading-tight block">For direct/email · human reads</span>
-          </button>
-        </div>
-      </div>
       {error && (
         <p className="text-[11px] text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1 mb-2">{error}</p>
       )}
       <Button
         size="sm"
-        onClick={() => onGenerate(templateStyle)}
+        onClick={() => onGenerate()}
         disabled={status === "generating"}
         className="h-7 text-xs bg-rose-700 hover:bg-rose-800 gap-1.5"
       >
@@ -1232,7 +1215,7 @@ export default function ChatInterface({ agentName, title, description, applicati
     }
   };
 
-  const handleGenerateCV = async (messageId, proposal, templateStyle = "ats-optimized") => {
+  const handleGenerateCV = async (messageId, proposal) => {
     if (!user?.id || !proposal?.target_role) return;
     if (cvGenStates[messageId]?.status === "generating" || cvGenStates[messageId]?.status === "done") return;
 
@@ -1243,7 +1226,6 @@ export default function ChatInterface({ agentName, title, description, applicati
           target_role: proposal.target_role,
           application_id: proposal.application_id || null,
           job_description: proposal.job_description || null,
-          template_style: templateStyle,
         },
       });
       if (error) throw error;
@@ -1565,7 +1547,7 @@ export default function ChatInterface({ agentName, title, description, applicati
                 <CVGenerationCard
                   proposal={msg.suggestedCVGeneration}
                   state={cvGenStates[msg.id]}
-                  onGenerate={(templateStyle) => handleGenerateCV(msg.id, msg.suggestedCVGeneration, templateStyle)}
+                  onGenerate={() => handleGenerateCV(msg.id, msg.suggestedCVGeneration)}
                   appLabel={applicationsById[msg.suggestedCVGeneration.application_id] || null}
                 />
               )}
