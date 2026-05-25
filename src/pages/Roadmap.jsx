@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useProfileQuery } from "@/lib/queries/useProfile";
+import { invalidateAfterCareerAnalysis } from "@/lib/invalidateAfterCareerAnalysis";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Loader2, Brain, AlertCircle, RefreshCw, ArrowLeft, ArrowRight, ExternalLink, MapPin, Compass } from "lucide-react";
@@ -59,16 +61,7 @@ export default function CareerRoadmap() {
     enabled: !!user?.id,
   });
 
-  const { data: profiles = [], isLoading: profileLoading, isError: profileError } = useQuery({
-    queryKey: ["userProfile", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  const { data: profile, isLoading: profileLoading, isError: profileError } = useProfileQuery(user?.id);
 
   const { data: experiences = [] } = useQuery({
     queryKey: ["experiences", user?.id],
@@ -114,7 +107,6 @@ export default function CareerRoadmap() {
     enabled: !!user?.id,
   });
 
-  const profile = profiles?.[0];
   const stale = isAnalysisStale({ profile, experiences, certifications, projects });
 
   const track1 = roles.filter((r) => r.track === "track_1");
@@ -218,9 +210,10 @@ export default function CareerRoadmap() {
         }
       }
 
-      queryClient.invalidateQueries({ queryKey: ["careerRoles"] });
-      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-      queryClient.invalidateQueries({ queryKey: ["roadmap_tier1_jobs"] });
+      // Single source of truth for the post-career-analysis invalidation
+      // set. await ensures the cache is fresh before the toast fires (so
+      // any follow-on navigation sees the new data, not the old).
+      await invalidateAfterCareerAnalysis(queryClient, user.id);
       toast.success("Analysis refreshed.");
     } catch (err) {
       console.error("Roadmap generation error:", err);

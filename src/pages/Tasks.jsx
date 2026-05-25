@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useProfileQuery } from "@/lib/queries/useProfile";
 import { Loader2, Brain, CheckCircle2, Circle, AlertCircle, Trash2, Calendar as CalendarIcon, X, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import GeneratingBanner from "@/components/ui/GeneratingBanner";
@@ -73,16 +74,7 @@ export default function Tasks() {
     enabled: !!user?.id,
   });
 
-  const { data: profiles = [], isError: profileError } = useQuery({
-    queryKey: ["userProfile", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  const { data: profile, isError: profileError } = useProfileQuery(user?.id);
 
   const { data: roles = [] } = useQuery({
     queryKey: ["careerRoles", user?.id],
@@ -94,8 +86,6 @@ export default function Tasks() {
     },
     enabled: !!user?.id,
   });
-
-  const profile = profiles?.[0];
 
   const handleGenerate = async () => {
     if (!profile) return;

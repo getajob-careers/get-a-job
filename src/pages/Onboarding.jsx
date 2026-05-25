@@ -931,21 +931,18 @@ export default function Onboarding() {
       localStorage.removeItem(flagKey);
     } catch { /* localStorage unavailable */ }
 
-    // Remove cached query data so Home fetches fresh — invalidateQueries only
-    // marks stale but leaves old data visible, which can trigger the onboarding
-    // redirect guard. Critically, profile_layout_chrome is what Layout.jsx
-    // reads to decide whether to render the sidebar — without invalidating it,
-    // the user lands on Home with no nav until they hard-refresh, because
-    // Layout stays mounted across the onboarding→Home navigation and its
-    // 5-min staleTime keeps serving the pre-onboarding "onboarding_complete:
-    // false" snapshot. projects/certifications/daily_action have the same
-    // problem on a smaller scale (Home renders empty arrays until refresh).
+    // Remove cached query data so Home fetches fresh — invalidateQueries
+    // only marks stale but leaves old data visible, which can trigger the
+    // onboarding redirect guard. After PR cache-consolidation-p0, all
+    // four profile cache shapes (userProfile, profile_layout_chrome,
+    // userProfileFullName, profile_practicum) collapse to the single
+    // ["userProfile", uid] key, so one removeQueries fans out to Layout,
+    // LinkedIn ProfileTab, and Practicum without further calls.
     queryClient.removeQueries({ queryKey: ["userProfile"] });
     queryClient.removeQueries({ queryKey: ["careerRoles"] });
     queryClient.removeQueries({ queryKey: ["tasks"] });
     queryClient.removeQueries({ queryKey: ["applications"] });
     queryClient.removeQueries({ queryKey: ["experiences"] });
-    queryClient.removeQueries({ queryKey: ["profile_layout_chrome"] });
     queryClient.removeQueries({ queryKey: ["projects"] });
     queryClient.removeQueries({ queryKey: ["certifications"] });
     queryClient.removeQueries({ queryKey: ["daily_action"] });

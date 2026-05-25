@@ -3,6 +3,7 @@ import { Navigate } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useProfileQuery } from "@/lib/queries/useProfile";
 import { Loader2, Plus } from "lucide-react";
 import { toast } from "sonner";
 import { createPageUrl } from "@/utils";
@@ -33,20 +34,16 @@ export default function Practicum() {
   const [generatingProfile, setGeneratingProfile] = useState(false);
   const [addCompanyOpen, setAddCompanyOpen] = useState(false);
 
-  const { data: profileRow, isLoading: profileLoading } = useQuery({
-    queryKey: ["profile_practicum", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("practicum_path, practicum_cohort, practicum_status")
-        .eq("id", user.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id,
-  });
+  // Practicum-specific projection off the canonical profile cache. Shares
+  // a single fetch with Layout + every other profile-consuming page.
+  const { data: profileRow, isLoading: profileLoading } = useProfileQuery(
+    user?.id,
+    (p) => p ? {
+      practicum_path: p.practicum_path,
+      practicum_cohort: p.practicum_cohort,
+      practicum_status: p.practicum_status,
+    } : null,
+  );
 
   const { data: internshipProfile, isLoading: internshipProfileLoading } = useQuery({
     queryKey: ["internship_profile", user?.id],

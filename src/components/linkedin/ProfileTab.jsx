@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useProfileQuery } from "@/lib/queries/useProfile";
 import { Loader2, Copy, Check, Linkedin, RefreshCw, AlertCircle, Upload, FileArchive, ShieldCheck, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
@@ -339,23 +339,14 @@ export default function ProfileTab() {
   const [baseline, setBaseline] = useState(null);
   const [baselineLoading, setBaselineLoading] = useState(true);
 
-  // Fetch profile name for the social-profile mockup avatar + identity row.
-  // Best-effort — falls back to "Your name" if the profile row doesn't
-  // resolve. Cached at the same staleTime as the rest of the LinkedIn tab.
-  const { data: profileFullName } = useQuery({
-    queryKey: ["userProfileFullName", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data } = await supabase
-        .from("profiles")
-        .select("full_name")
-        .eq("id", user.id)
-        .maybeSingle();
-      return data?.full_name || null;
-    },
-    enabled: !!user?.id,
-    staleTime: 30 * 60 * 1000,
-  });
+  // Profile name for the social-profile mockup avatar + identity row.
+  // Reads from the canonical profile cache via a string projection;
+  // shares a single fetch with Layout + every other profile-consuming
+  // page in the app.
+  const { data: profileFullName } = useProfileQuery(
+    user?.id,
+    (p) => p?.full_name || null,
+  );
 
   // Hydrate the baseline + last-generated content from linkedin_optimizations
   // so the user lands on a populated page after import or after returning to

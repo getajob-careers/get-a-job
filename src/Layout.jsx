@@ -1,8 +1,7 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
+import { useProfileQuery } from "@/lib/queries/useProfile";
 import TopLoadingBar from "./components/ui/TopLoadingBar";
 import SidebarFooter from "./components/layout/SidebarFooter";
 import { createPageUrl } from "@/utils";
@@ -119,25 +118,17 @@ export default function Layout({ children, currentPageName }) {
   const [navLoading, setNavLoading] = useState(false);
   const location = useLocation();
 
-  // Layout-chrome gating: fetches the three profile fields Layout actually
-  // cares about — onboarding_complete (drives whether the sidebar shows at
-  // all), practicum_path (drives whether the Practicum sub-item appears),
-  // and full_name (used by SidebarFooter for the avatar initials + name).
-  // Single round trip, .maybeSingle() returns null cleanly for new signups
-  // who don't have a profile row yet.
-  const { data: profileChrome } = useQuery({
-    queryKey: ["profile_layout_chrome", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("practicum_path, onboarding_complete, full_name")
-        .eq("id", user.id)
-        .maybeSingle();
-      return data;
-    },
-    enabled: !!user?.id,
-    staleTime: 5 * 60 * 1000,
-  });
+  // Layout-chrome gating: picks the three profile fields Layout actually
+  // cares about — onboarding_complete (drives whether the sidebar shows
+  // at all), practicum_path (drives whether the Practicum sub-item
+  // appears), and full_name (used by SidebarFooter for the avatar
+  // initials + name). Backed by the canonical profile cache, so this
+  // shares a single fetch with every other page in the app.
+  const { data: profileChrome } = useProfileQuery(user?.id, (p) => ({
+    practicum_path: p?.practicum_path ?? null,
+    onboarding_complete: p?.onboarding_complete === true,
+    full_name: p?.full_name ?? null,
+  }));
 
   const practicumPath = profileChrome?.practicum_path ?? null;
   const onboardingComplete = profileChrome?.onboarding_complete === true;

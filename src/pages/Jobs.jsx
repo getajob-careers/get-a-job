@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback, useRef } from "react"
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
+import { useProfileQuery } from "@/lib/queries/useProfile";
 import { Link, useSearchParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Loader2, Briefcase, Search, RefreshCw } from "lucide-react";
@@ -53,16 +54,7 @@ export default function JobSuggestions() {
   const { user } = useAuth();
 
   // Profile + roles for the staleness banner + seniority inference
-  const { data: profile } = useQuery({
-    queryKey: ["userProfile", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data } = await supabase.from("profiles").select("*").eq("id", user.id);
-      return data?.[0] || null;
-    },
-    enabled: !!user?.id,
-    staleTime: PROFILE_STALE_TIME,
-  });
+  const { data: profile } = useProfileQuery(user?.id);
   const { data: experiences = [] } = useQuery({
     queryKey: ["experiences", user?.id],
     queryFn: async () => (await supabase.from("experiences").select("*").eq("user_id", user.id)).data || [],

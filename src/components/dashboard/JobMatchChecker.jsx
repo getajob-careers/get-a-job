@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useProfileQuery } from "@/lib/queries/useProfile";
 import { trackFromScores } from "@/lib/scoreApplication";
 import { scoreJobFit } from "@/lib/scoreJobFit";
 import { totalYearsOfExperience } from "@/lib/experienceLevel";
@@ -36,17 +37,16 @@ export default function JobMatchChecker() {
 
   // Profile context for the deterministic text-mode path (PR-D). Same
   // fields scoreJobFit consumes on the Jobs page so the two surfaces
-  // produce the same number for the same JD.
-  const { data: profile } = useQuery({
-    queryKey: ["userProfile", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data } = await supabase.from("profiles").select("skills_canonical, qualification_level, primary_domain, five_year_role").eq("id", user.id).maybeSingle();
-      return data || null;
-    },
-    enabled: !!user?.id,
-    staleTime: 30 * 60 * 1000,
-  });
+  // produce the same number for the same JD. Reads the canonical
+  // profile cache via a 4-field projection — the previous narrow-column
+  // fetch under the ["userProfile"] key was creating a cache-shape race
+  // with the other consumers using the same key with `.select("*")`.
+  const { data: profile } = useProfileQuery(user?.id, (p) => p ? {
+    skills_canonical: p.skills_canonical,
+    qualification_level: p.qualification_level,
+    primary_domain: p.primary_domain,
+    five_year_role: p.five_year_role,
+  } : null);
   const { data: experiences = [] } = useQuery({
     queryKey: ["experiences", user?.id],
     queryFn: async () => (await supabase.from("experiences").select("type, start_date, end_date, is_current, title, company, responsibilities").eq("user_id", user.id)).data || [],
