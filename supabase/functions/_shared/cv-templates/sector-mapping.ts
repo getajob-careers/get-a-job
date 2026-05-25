@@ -211,6 +211,25 @@ export function matchRoleToLibrary(
     }
   }
 
+  // Strategy 7 — prefix match. Handles titles with team/scope/qualifier
+  // suffixes that don't match the canonical exactly:
+  //   "Customer Success Specialist – VIP Team" → "Customer Success Specialist"
+  //   "Marketing Coordinator – Growth Team"   → "Marketing Coordinator"
+  // Walks longest-first so the most specific role wins. Gated by ≥2
+  // tokens after seniority+paren stripping to prevent "PM" → matching
+  // any role starting with "PM". Mirrors the client-side helper at
+  // src/lib/roleSkillsLookup.js — keep the two in sync.
+  const tokens = noSeniority.split(/\s+/).filter(Boolean)
+  if (tokens.length >= 2) {
+    for (let len = tokens.length - 1; len >= 2; len--) {
+      const prefix = tokens.slice(0, len).join(' ')
+      const m7t = matchTitle(prefix)
+      if (m7t) return { role: m7t, via: 'title_prefix' }
+      const m7a = matchAlternate(prefix)
+      if (m7a) return { role: m7a, via: 'alternate_prefix' }
+    }
+  }
+
   return null
 }
 
