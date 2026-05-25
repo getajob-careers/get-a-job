@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
+import { pickPrimaryEducation, formatEducationLine } from '../_shared/education-helpers.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -222,9 +223,11 @@ Deno.serve(async (req) => {
     const skill_gaps = Array.isArray(body.skill_gaps) ? body.skill_gaps : undefined
     const target_roles = Array.isArray(body.target_roles) ? body.target_roles : undefined
 
-    // Fetch user data for context
+    // Fetch user data for context. Phase B: education lives on its own table,
+    // pulled via PostgREST nested embed and reduced to a single primary row
+    // for prompt context.
     const [{ data: profiles }, { data: careerRoles }] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', user.id),
+      supabase.from('profiles').select('*, education(*)').eq('id', user.id),
       supabase.from('career_roles').select('*').eq('user_id', user.id),
     ])
 
@@ -253,7 +256,7 @@ USER CONTEXT:
 - Current Skills: ${JSON.stringify(profileSkills)}
 - Skill Gaps: ${JSON.stringify(safeGaps)}
 - Target Roles: ${safeRoles.join(', ') || 'General career development'}
-- Education: ${trunc(profile?.degree, 100)} in ${trunc(profile?.field_of_study, 100)}
+- Education: ${formatEducationLine(pickPrimaryEducation((profile as any)?.education))}
 
 TASK: Generate learning paths to help close the user's skill gaps and prepare for their target roles.
 

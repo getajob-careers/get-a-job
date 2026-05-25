@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
+import { pickPrimaryEducation, formatEducationLine } from '../_shared/education-helpers.ts'
 
 // Source-controlled in commit fixing H1-H4. The deployed function previously
 // existed only in the dashboard — this file imports it back into the repo
@@ -85,7 +86,9 @@ Deno.serve(async (req) => {
       })
     }
 
-    const { data: profiles } = await supabase.from('profiles').select('*').eq('id', user.id)
+    // Phase B: education lives on its own table — pulled via PostgREST
+    // nested embed and reduced to a single primary row for prompt context.
+    const { data: profiles } = await supabase.from('profiles').select('*, education(*)').eq('id', user.id)
     const { data: experiences } = await supabase.from('experiences').select('*').eq('user_id', user.id)
     const profile = profiles?.[0]
 
@@ -163,7 +166,7 @@ ${job_description}
 USER PROFILE:
 - Skills: ${userSkills || 'Not provided'}
 - Experience: ${expSummary || 'Not provided'}
-- Education: ${profile?.degree || ''} in ${profile?.field_of_study || ''}
+- Education: ${formatEducationLine(pickPrimaryEducation((profile as any)?.education))}
 - Summary: ${profile?.summary || 'Not provided'}${goalBlock}
 ANALYZE the job posting against the user's profile and return a JSON object with EXACTLY this schema:
 {
