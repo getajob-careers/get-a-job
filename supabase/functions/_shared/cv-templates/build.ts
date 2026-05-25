@@ -295,7 +295,7 @@ export async function buildCV(
     }))
     if (contactBits.length > 0) {
       paragraphs.push(new Paragraph({
-        alignment: headerAlign,
+        alignment: AlignmentType.CENTER,
         spacing: { before: 0, after: 120 },
         children: [new TextRun({
           text: contactBits.join("  \u00B7  "),
