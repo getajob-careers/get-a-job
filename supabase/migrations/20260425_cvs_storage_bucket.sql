@@ -10,9 +10,9 @@ INSERT INTO storage.buckets (id, name, public)
 VALUES ('cvs', 'cvs', false)
 ON CONFLICT (id) DO NOTHING;
 
--- Widen the MIME whitelist to accept .docx (primary output format) and
--- .doc for legacy Word. PDF stays in the list so any older CVs already in
--- storage remain downloadable.
+-- MIME whitelist: PDF (current primary output format from
+-- generate-tailored-cv), DOCX (prior primary, kept for older CVs already
+-- in storage that users may still download), DOC (legacy Word fallback).
 UPDATE storage.buckets
 SET allowed_mime_types = ARRAY[
   'application/pdf',

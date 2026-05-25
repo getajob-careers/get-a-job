@@ -3,7 +3,7 @@ import { startMetric, finishMetric, type Metric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
 import { pickPrimaryEducation } from '../_shared/education-helpers.ts'
 import { CV_VOICE_RULES } from '../_shared/voice-rules.ts'
-import { buildCV } from '../_shared/cv-templates/build.ts'
+import { buildCvPdf } from '../_shared/cv-templates/build-pdf.ts'
 import { matchRoleToLibrary, resolveSectorTheme } from '../_shared/cv-templates/sector-mapping.ts'
 import type { TemplateStyle, SectionKey } from '../_shared/cv-templates/types.ts'
 
@@ -2176,20 +2176,23 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     const sectorResolution = resolveSectorTheme(safeTargetRole, roleLibrary as any, profile as any)
     console.log(`[CV] sector theme: ${sectorResolution.theme.label} (${sectorResolution.source})`)
 
-    const docBytes = await buildCV(cvData, userContext as any, {
+    // CV now renders as PDF via pdf-lib (build-pdf.ts). DOCX renderer
+    // (build.ts) remains in the codebase as a fallback but is no longer
+    // wired in — see PR / commit message for the rationale.
+    const cvBytes = await buildCvPdf(cvData, userContext as any, {
       style: safeTemplateStyle,
       theme: sectorResolution.theme,
       sectionOrder,
-      photo: null, // PR B wires this up
+      photo: null, // photo embedding still pending — renderer ignores when null
     })
 
     const safeRole = safeTargetRole.replace(/[^a-zA-Z0-9_\-]/g, "_");
-    const fileName = `${user.id}/${safeRole}_CV_${Date.now()}.docx`;
-    const DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
+    const fileName = `${user.id}/${safeRole}_CV_${Date.now()}.pdf`;
+    const PDF_MIME = "application/pdf";
 
     const { error: uploadError } = await serviceClient.storage
       .from("cvs")
-      .upload(fileName, docBytes, { contentType: DOCX_MIME, upsert: true });
+      .upload(fileName, cvBytes, { contentType: PDF_MIME, upsert: true });
 
     if (uploadError) {
       _http = 500; _err = 'upload'
