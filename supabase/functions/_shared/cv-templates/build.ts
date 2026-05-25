@@ -458,9 +458,19 @@ function renderEducation(
   )
 
   llmEducation.forEach((edu: any, idx) => {
-    const topLine = edu.degree?.trim() ? edu.degree : edu.institution
-    const subLine = edu.degree?.trim() ? edu.institution : ""
-    educationEntryLines(topLine || "", subLine, edu.dates, idx > 0).forEach(p => paragraphs.push(p))
+    const degree = String(edu.degree || "").trim()
+    const field = String(edu.field_of_study || "").trim()
+    const institution = String(edu.institution || "").trim()
+    // Top line composes degree + field when both present ("Bachelor's Degree
+    // in Business Administration"); falls back to just degree, just field,
+    // or institution-as-headline depending on what's available.
+    let topLine = ""
+    if (degree && field) topLine = `${degree} in ${field}`
+    else if (degree) topLine = degree
+    else if (field) topLine = field
+    else topLine = institution
+    const subLine = (degree || field) ? institution : ""
+    educationEntryLines(topLine, subLine, edu.dates, idx > 0).forEach(p => paragraphs.push(p))
     if (edu.gpa) paragraphs.push(bulletParagraph(`GPA: ${edu.gpa}`))
 
     let coursework = safeArray(edu.coursework || edu.relevant_coursework).map(String)

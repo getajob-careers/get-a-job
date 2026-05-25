@@ -51,14 +51,17 @@ CLICHÉS WASTE A LINE:
 "Team player", "results-driven", "passionate about X", "strong communicator", "perfect fit" — recruiters skim past these because they're true of every candidate. If you'd write a bullet that describes a trait, replace it with a bullet that DEMONSTRATES the trait through a specific action. Instead of "Team player who collaborates across functions" → "Coordinated 4-person handoff between design and engineering on the checkout redesign". The action proves the trait.
 
 GENERIC LLM PHRASES — DO NOT WRITE:
-These phrases signal LLM generation rather than human writing. They describe a CATEGORY of work without naming the work, which is always replaceable with the specific activity. Banned across About Me and bullets:
+These phrases signal LLM generation rather than human writing. They describe a CATEGORY of work without naming the work, which is always replaceable with the specific activity. The list below is illustrative, not exhaustive — the underlying principle is "any verb or phrase that names a category instead of a specific action is banned." If you find yourself reaching for a verb that sounds polished but doesn't picture a concrete action, REPLACE IT with the specific activity. Banned across About Me and bullets:
   - "hands-on experience in" / "hands-on experience with"
   - "demonstrated ability to"
   - "strong background in"
   - "proven track record"
   - "passionate about" (reinforced)
-  - "leveraged" (the verb)
+  - "leveraged" / "leverage" (the verb in any tense)
+  - "utilized" / "utilize" / "utilizing" — structurally identical to "leveraged"; same ban
+  - "employed" (as a transitive verb meaning "used") / "made use of"
   - "drove growth" / "drove adoption" / "drove results"
+  - "spearheaded" / "orchestrated" / "facilitated" (when not naming a real action)
 Replace each with the specific activity:
   BAD: "Hands-on experience in customer success and process improvement"
   GOOD: "Two years owning the post-sales handoff at a B2B SaaS startup, including running QBRs for 12 enterprise accounts"
