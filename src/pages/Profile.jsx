@@ -12,7 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { resolveSkillList } from "@/lib/skillResolver";
+import { aggregateProfileSkills } from "@/lib/skillAggregation";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import EducationTab from "@/components/profile/EducationTab";
 import { PROFILE_CSS } from "@/components/profile/profileStyles";
@@ -379,11 +379,23 @@ export default function Profile() {
 
   const saveProfile = async () => {
     setSaving(true);
-    // Resolve free-text skills to canonical IDs on save — mirrors the
-    // same path in cleanProfilePayload (used by Onboarding) so both save
-    // surfaces produce a consistent skills_canonical column for scoreJobFit.
+    // Aggregate skills_canonical from EVERY source: catch-all profile.skills,
+    // per-experience skills_used + tools_used, per-education skills_developed,
+    // per-project skills_demonstrated. Same union as Onboarding's
+    // cleanProfilePayload so both surfaces produce consistent IDs for
+    // scoreJobFit. Per-object edits (addExperience, EducationTab save, etc.)
+    // don't auto-recompute today — stale until next saveProfile or page reload.
+    // Acceptable v1 limitation; if it bites, add a small recomputeSkillsCanonical
+    // helper called after each per-object write.
+    const { data: educationsRows } = await supabase
+      .from("education").select("skills_developed").eq("user_id", user.id);
     const { canonical: skills_canonical, unmapped: skills_unmapped } =
-      resolveSkillList(profileForm.skills || []);
+      aggregateProfileSkills({
+        profileSkills: profileForm.skills || [],
+        experiences: experiences || [],
+        educations: educationsRows || [],
+        projects: projects || [],
+      });
     const dbFields = {
       full_name: profileForm.full_name,
       phone_number: profileForm.phone_number,
