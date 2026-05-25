@@ -3,14 +3,20 @@ import { ExternalLink } from "lucide-react";
 
 // Direction 3 brand tokens live on Onboarding.jsx (the parent injects the
 // shared <style> block and wraps every render branch in .onb). This shell
-// just lays out the chrome for steps 0-7 (data entry); step 8 renders the
+// just lays out the chrome for steps 0-8 (data entry); step 9 renders the
 // tutorial outside this shell.
+//
+// STEPS array MUST stay in lockstep with the render block in
+// Onboarding.jsx — every step from 0 to STEPS.length-1 needs a label
+// here or the shell shows a blank header. Lesson 2026-05-25: when
+// renumbering, grep this array too — easy to miss alongside DB writes.
 const STEPS = [
   "CV upload",
   "Education",
   "Practicum",
   "Experience",
-  "Skills",
+  "Role skills",      // index 4 — added in PR #136 (StepRoleSkills)
+  "Other skills",     // index 5 — was "Skills"; renamed to match the page's "Any other skills?" framing
   "Career direction",
   "Constraints",
   "Reality check",
