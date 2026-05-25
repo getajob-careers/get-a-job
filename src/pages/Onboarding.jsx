@@ -995,7 +995,7 @@ export default function Onboarding() {
     );
   }
 
-  // Step 8 → render the OnboardingTutorial full-screen (no OnboardingShell).
+  // Step 9 → render the OnboardingTutorial full-screen (no OnboardingShell).
   // handleSurveyNext now chains to handleFinalise on BOTH success and
   // failure paths, so setupComplete reliably flips true and the tutorial's
   // "Go to platform" button enables. No setupError prop — error UX moved
