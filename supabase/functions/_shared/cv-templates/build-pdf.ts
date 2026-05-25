@@ -1,37 +1,32 @@
-// build-pdf.ts — PDF CV renderer. Replaces build.ts (DOCX) as the
-// default output for generate-tailored-cv. Direction A visual treatment
-// preserved (tracked-caps name framed by hairline rules, accent-color
-// tracked-caps section labels, bold-italic muted dates, hanging-indent
-// bullets), now on cream-tinted A4-equivalent (US Letter) pages.
+// build-pdf.ts — PDF CV renderer with measure-then-shrink-to-fit.
 //
-// Why PDF over DOCX:
-//   1. Per-character text measurement (font.widthOfTextAtSize) lets us
-//      do precise alignment + future measure-render-shrink loop for true
-//      1-page enforcement. The DOCX estimator can't see actual layout.
-//   2. PDF is universal; Israeli HR can still open it; US tech expects it.
-//   3. Single render path (no DOCX→PDF conversion variance).
+// Two-pass strategy (the core PDF win over DOCX): render once in a
+// MEASURE pass that decrements the y cursor without drawing anything,
+// compute usedHeight, derive a scale factor = available / used,
+// re-render in a DRAW pass with all sizes + spacing multiplied by
+// that scale. Result: content always fits 1 page, sections are NEVER
+// dropped. Floor scale at 0.7 so body stays around 7.7pt minimum
+// (still readable; below that the CV reads as visibly compressed).
+//
+// The DOCX renderer (build.ts) couldn't do this — Word handles flow
+// layout itself and the edge function could only estimate line counts.
+// pdf-lib gives us font.widthOfTextAtSize for true text measurement,
+// so we know exactly how tall the document will be at any size.
+//
+// Visual treatment ("Direction A"): tracked-caps black name framed
+// by hairline grey rules, muted contact strip closed by an accent
+// hairline, tracked-caps accent-color section labels with no border,
+// bold-italic muted dates right-aligned, hanging-indent bullets.
+// Cream background (#F9F5EC) covering the full page.
 //
 // ATS-safety preserved: single column, paragraph-equivalent text flow,
-// no tables for body content, text-selectable (not flattened to image).
-// Cream background is purely visual — ATS parsers ignore it.
+// no tables for body content, text-selectable.
 //
-// Build invariants (mirror build.ts):
-//   - config.sectionOrder drives rendering order
-//   - header always first, photo path opt-in via config.photo
-//   - all 11 section types supported with same data shape as DOCX renderer
-//   - per-sector accent color from config.theme.accentHex
-//
-// Limitations (deliberate for first cut):
-//   - Standard Helvetica family (no custom font embedding). The
-//     theme.font value is accepted but not honored — Helvetica is what
-//     ships. Custom-font path is a follow-up (requires fontkit + TTF
-//     bytes per sector theme).
-//   - No measure-render-shrink overflow loop yet. The existing post-LLM
-//     trim in generate-tailored-cv/index.ts is still the line of defense
-//     against overflow; this renderer just lays out what it's given.
-//   - Photo header path stubbed (returns the same name+contact block
-//     when photo is null). Real photo embedding via embedJpg/embedPng is
-//     a follow-up.
+// Limitations (deliberate, follow-ups):
+//   - Standard Helvetica family. config.theme.font is accepted but
+//     not honored. Custom-font path needs @pdf-lib/fontkit + TTF bytes.
+//   - Photo header path stubbed (renderer ignores when null).
+//   - No margin-reduction fallback when scale would go below 0.7.
 
 import {
   PDFDocument,
@@ -48,34 +43,44 @@ const PAGE_W = 612;            // 8.5"
 const PAGE_H = 792;            // 11"
 const MARGIN = 50;             // ~0.7"
 const CONTENT_W = PAGE_W - 2 * MARGIN;
+const CONTENT_H = PAGE_H - 2 * MARGIN;
 
-// ─── Typography (POC v2 sizes, validated visually) ──────────────────
+// ─── Default typography (multiplied by ctx.scale at draw time) ─────
 const SIZE_NAME = 28;
 const SIZE_SECTION = 14;
-const SIZE_BODY = 11;          // body / job title / entry-title / coursework
-const SIZE_BULLET = 11;        // bullet text — matches body for read comfort
-const SIZE_DATE = 10.5;        // bold-italic muted
-const SIZE_CONTACT = 10;       // muted strip below name
-const SIZE_SUBLINE = 10.5;     // education institution line, etc.
+const SIZE_BODY = 11;
+const SIZE_BULLET = 11;
+const SIZE_DATE = 10.5;
+const SIZE_CONTACT = 10;
+const SIZE_SUBLINE = 10.5;
 
-// ─── Tracking (per-character letter spacing) ────────────────────────
-const TRACK_NAME = 2;          // ~2pt — fits ~12-15-char names
-const TRACK_SECTION = 1.5;     // ~1.5pt — section labels
+// Letter spacing for tracked caps (also multiplied by ctx.scale).
+const TRACK_NAME = 2;
+const TRACK_SECTION = 1.5;
 
 // ─── Colors ─────────────────────────────────────────────────────────
 const COLOR_BLACK = rgb(0, 0, 0);
-const COLOR_HAIRLINE = rgb(0.8, 0.8, 0.8);   // #CCCCCC
-const COLOR_MUTED = rgb(0.33, 0.33, 0.33);   // #555555
+const COLOR_HAIRLINE = rgb(0.8, 0.8, 0.8);    // #CCCCCC
+const COLOR_MUTED = rgb(0.33, 0.33, 0.33);    // #555555
 const COLOR_CREAM = rgb(0.976, 0.961, 0.925); // #F9F5EC warm cream
 const COLOR_BULLET_DOT = rgb(0.3, 0.3, 0.3);
 
-// ─── Line metrics (scaled to 11pt body) ─────────────────────────────
-const LH_BODY = 13;            // 11pt × 1.18 — line gap for prose wraps
+// ─── Line metrics (scaled with ctx.scale) ──────────────────────────
+const LH_BODY = 13;            // 11pt × 1.18 — wrap line gap
 const LH_BULLET_GAP = 16;      // 11pt × 1.45 — gap between bullets
-const SP_SECTION_BEFORE = 22;  // generous breathing room above section heading
-const SP_SECTION_AFTER = 16;   // space after heading before first entry
+const SP_SECTION_BEFORE = 22;  // breathing room above section heading
+const SP_SECTION_AFTER = 16;   // after heading before first entry
 const SP_ENTRY_BEFORE = 12;    // gap between siblings within a section
-const SP_AFTER_HEADER = 22;    // after the contact + accent rule
+const SP_AFTER_HEADER = 22;    // after contact + accent rule
+
+// ─── Shrink-to-fit bounds ───────────────────────────────────────────
+// SCALE_MIN deliberately low — Eli's directive is "fit everything, never
+// drop content." At 0.55 body becomes 6.05pt which is small but still
+// printable; at SCALE_WARN below we log a warning so unusually dense
+// profiles surface in telemetry without failing.
+const SCALE_MIN = 0.55;
+const SCALE_MAX = 1.0;
+const SCALE_WARN = 0.70;       // body < 7.7pt — borderline; flag in logs
 
 // ─── CV data shape (mirrors build.ts CvData) ───────────────────────
 interface CvData {
@@ -130,27 +135,6 @@ function hexToRgb(hex: string) {
   );
 }
 
-// pdf-lib has no native characterSpacing — simulate by drawing each
-// glyph at a measured x-offset. Acceptable for short tracked strings
-// (the name + section headings).
-function drawTracked(
-  page: PDFPage, text: string,
-  opts: { x: number; y: number; size: number; font: PDFFont; color: any; tracking: number },
-): number {
-  let cursor = opts.x;
-  for (const ch of text) {
-    page.drawText(ch, { x: cursor, y: opts.y, size: opts.size, font: opts.font, color: opts.color });
-    cursor += opts.font.widthOfTextAtSize(ch, opts.size) + opts.tracking;
-  }
-  return cursor;
-}
-function measureTracked(text: string, font: PDFFont, size: number, tracking: number): number {
-  let w = 0;
-  for (const ch of text) w += font.widthOfTextAtSize(ch, size) + tracking;
-  return Math.max(0, w - tracking);
-}
-
-// Greedy word-wrap. Returns array of lines that all fit within maxWidth.
 function wrap(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
   const words = String(text || "").split(/\s+/).filter(Boolean);
   if (words.length === 0) return [];
@@ -169,7 +153,7 @@ function wrap(text: string, font: PDFFont, size: number, maxWidth: number): stri
   return lines;
 }
 
-// ─── Rendering primitives ───────────────────────────────────────────
+// ─── Rendering context ──────────────────────────────────────────────
 interface Fonts {
   regular: PDFFont;
   bold: PDFFont;
@@ -180,11 +164,48 @@ interface Ctx {
   page: PDFPage;
   fonts: Fonts;
   accent: any;
-  y: number;             // cursor (mutable across renderers — by convention each renderer reads + writes)
+  y: number;
+  // false = measure pass (skip every draw, just decrement y)
+  // true  = real render pass (draw at scaled sizes)
+  draw: boolean;
+  // 1.0 = default sizes. Computed after the measure pass:
+  // scale = clamp(SCALE_MIN, SCALE_MAX, CONTENT_H / usedHeight).
+  scale: number;
 }
 
-function drawHairline(page: PDFPage, y: number, color = COLOR_HAIRLINE, thickness = 0.5) {
-  page.drawLine({
+// Apply ctx.scale to any base value (font size, line height, tracking).
+function s(ctx: Ctx, base: number): number {
+  return base * ctx.scale;
+}
+
+// pdf-lib has no native characterSpacing — simulate by drawing each
+// glyph at a measured x-offset. Acceptable for short tracked strings
+// (the name + section headings). When ctx.draw is false, just walks
+// the string to advance y/x without rendering.
+function drawTracked(
+  ctx: Ctx, text: string,
+  opts: { x: number; y: number; size: number; font: PDFFont; color: any; tracking: number },
+): number {
+  let cursor = opts.x;
+  for (const ch of text) {
+    if (ctx.draw) {
+      ctx.page.drawText(ch, {
+        x: cursor, y: opts.y, size: opts.size, font: opts.font, color: opts.color,
+      });
+    }
+    cursor += opts.font.widthOfTextAtSize(ch, opts.size) + opts.tracking;
+  }
+  return cursor;
+}
+function measureTracked(text: string, font: PDFFont, size: number, tracking: number): number {
+  let w = 0;
+  for (const ch of text) w += font.widthOfTextAtSize(ch, size) + tracking;
+  return Math.max(0, w - tracking);
+}
+
+function drawHairline(ctx: Ctx, y: number, color = COLOR_HAIRLINE, thickness = 0.5) {
+  if (!ctx.draw) return;
+  ctx.page.drawLine({
     start: { x: MARGIN, y },
     end: { x: PAGE_W - MARGIN, y },
     thickness,
@@ -193,109 +214,134 @@ function drawHairline(page: PDFPage, y: number, color = COLOR_HAIRLINE, thicknes
 }
 
 function drawSectionHeading(ctx: Ctx, label: string) {
-  ctx.y -= SP_SECTION_BEFORE;
-  drawTracked(ctx.page, label.toUpperCase(), {
-    x: MARGIN, y: ctx.y, size: SIZE_SECTION, font: ctx.fonts.bold,
-    color: ctx.accent, tracking: TRACK_SECTION,
+  ctx.y -= s(ctx, SP_SECTION_BEFORE);
+  drawTracked(ctx, label.toUpperCase(), {
+    x: MARGIN, y: ctx.y,
+    size: s(ctx, SIZE_SECTION), font: ctx.fonts.bold,
+    color: ctx.accent, tracking: s(ctx, TRACK_SECTION),
   });
-  ctx.y -= SP_SECTION_AFTER;
+  ctx.y -= s(ctx, SP_SECTION_AFTER);
 }
 
-// Title-left / date-right line shared by all experience-style entries
-// (professional/military/volunteering/leadership/projects, also education).
 function drawEntryTitleLine(
   ctx: Ctx, titleLeft: string, dateRight: string | undefined, isFirst: boolean,
 ) {
-  if (!isFirst) ctx.y -= SP_ENTRY_BEFORE;
-  ctx.page.drawText(titleLeft, {
-    x: MARGIN, y: ctx.y, size: SIZE_BODY, font: ctx.fonts.bold, color: COLOR_BLACK,
-  });
+  if (!isFirst) ctx.y -= s(ctx, SP_ENTRY_BEFORE);
+  if (ctx.draw) {
+    ctx.page.drawText(titleLeft, {
+      x: MARGIN, y: ctx.y,
+      size: s(ctx, SIZE_BODY), font: ctx.fonts.bold, color: COLOR_BLACK,
+    });
+  }
   const date = trim(dateRight);
   if (date) {
-    const dateW = ctx.fonts.boldItalic.widthOfTextAtSize(date, SIZE_DATE);
-    ctx.page.drawText(date, {
-      x: PAGE_W - MARGIN - dateW, y: ctx.y,
-      size: SIZE_DATE, font: ctx.fonts.boldItalic, color: COLOR_MUTED,
-    });
+    const dateSize = s(ctx, SIZE_DATE);
+    const dateW = ctx.fonts.boldItalic.widthOfTextAtSize(date, dateSize);
+    if (ctx.draw) {
+      ctx.page.drawText(date, {
+        x: PAGE_W - MARGIN - dateW, y: ctx.y,
+        size: dateSize, font: ctx.fonts.boldItalic, color: COLOR_MUTED,
+      });
+    }
   }
 }
 
-// Secondary line under an entry title (e.g. "Reichman University" under a
-// degree line). Muted color, body size, no tab stops.
 function drawSubLine(ctx: Ctx, text: string) {
   if (!text) return;
-  ctx.y -= LH_BODY;
-  ctx.page.drawText(text, {
-    x: MARGIN, y: ctx.y, size: SIZE_SUBLINE, font: ctx.fonts.regular, color: COLOR_MUTED,
-  });
+  ctx.y -= s(ctx, LH_BODY);
+  if (ctx.draw) {
+    ctx.page.drawText(text, {
+      x: MARGIN, y: ctx.y,
+      size: s(ctx, SIZE_SUBLINE), font: ctx.fonts.regular, color: COLOR_MUTED,
+    });
+  }
 }
 
 function drawBullet(ctx: Ctx, text: string) {
   if (!text) return;
-  ctx.y -= LH_BULLET_GAP;
+  ctx.y -= s(ctx, LH_BULLET_GAP);
   const bulletIndent = 18;
   const textWidth = CONTENT_W - bulletIndent;
-  ctx.page.drawText("\u2022", {
-    x: MARGIN + 4, y: ctx.y, size: SIZE_BULLET, font: ctx.fonts.regular, color: COLOR_BULLET_DOT,
-  });
-  const lines = wrap(text, ctx.fonts.regular, SIZE_BULLET, textWidth);
+  const bulletSize = s(ctx, SIZE_BULLET);
+  if (ctx.draw) {
+    ctx.page.drawText("\u2022", {
+      x: MARGIN + 4, y: ctx.y,
+      size: bulletSize, font: ctx.fonts.regular, color: COLOR_BULLET_DOT,
+    });
+  }
+  const lines = wrap(text, ctx.fonts.regular, bulletSize, textWidth);
   for (let i = 0; i < lines.length; i++) {
-    if (i > 0) ctx.y -= LH_BODY;
-    ctx.page.drawText(lines[i], {
-      x: MARGIN + bulletIndent, y: ctx.y,
-      size: SIZE_BULLET, font: ctx.fonts.regular, color: COLOR_BLACK,
-    });
+    if (i > 0) ctx.y -= s(ctx, LH_BODY);
+    if (ctx.draw) {
+      ctx.page.drawText(lines[i], {
+        x: MARGIN + bulletIndent, y: ctx.y,
+        size: bulletSize, font: ctx.fonts.regular, color: COLOR_BLACK,
+      });
+    }
   }
 }
 
-// Labelled line for the Skills section: "Domain: a, b, c"
 function drawLabelledLine(ctx: Ctx, label: string, items: string[]) {
-  const value = (items || []).map((s) => trim(s)).filter(Boolean).join(", ");
+  const value = (items || []).map(trim).filter(Boolean).join(", ");
   if (!value) return;
-  ctx.y -= LH_BULLET_GAP;
+  ctx.y -= s(ctx, LH_BULLET_GAP);
+  const bulletSize = s(ctx, SIZE_BULLET);
   const labelText = `${label}: `;
-  const labelW = ctx.fonts.bold.widthOfTextAtSize(labelText, SIZE_BULLET);
-  ctx.page.drawText(labelText, {
-    x: MARGIN, y: ctx.y, size: SIZE_BULLET, font: ctx.fonts.bold, color: COLOR_BLACK,
-  });
-  // Wrap value across multiple lines if needed
-  const valueLines = wrap(value, ctx.fonts.regular, SIZE_BULLET, CONTENT_W - labelW);
-  if (valueLines.length === 0) return;
-  ctx.page.drawText(valueLines[0], {
-    x: MARGIN + labelW, y: ctx.y, size: SIZE_BULLET, font: ctx.fonts.regular, color: COLOR_BLACK,
-  });
-  for (let i = 1; i < valueLines.length; i++) {
-    ctx.y -= LH_BODY;
-    ctx.page.drawText(valueLines[i], {
-      x: MARGIN, y: ctx.y, size: SIZE_BULLET, font: ctx.fonts.regular, color: COLOR_BLACK,
+  const labelW = ctx.fonts.bold.widthOfTextAtSize(labelText, bulletSize);
+  if (ctx.draw) {
+    ctx.page.drawText(labelText, {
+      x: MARGIN, y: ctx.y,
+      size: bulletSize, font: ctx.fonts.bold, color: COLOR_BLACK,
     });
+  }
+  const valueLines = wrap(value, ctx.fonts.regular, bulletSize, CONTENT_W - labelW);
+  if (valueLines.length === 0) return;
+  if (ctx.draw) {
+    ctx.page.drawText(valueLines[0], {
+      x: MARGIN + labelW, y: ctx.y,
+      size: bulletSize, font: ctx.fonts.regular, color: COLOR_BLACK,
+    });
+  }
+  for (let i = 1; i < valueLines.length; i++) {
+    ctx.y -= s(ctx, LH_BODY);
+    if (ctx.draw) {
+      ctx.page.drawText(valueLines[i], {
+        x: MARGIN, y: ctx.y,
+        size: bulletSize, font: ctx.fonts.regular, color: COLOR_BLACK,
+      });
+    }
   }
 }
 
-// Plain body line (used by Languages).
 function drawPlainLine(ctx: Ctx, text: string) {
   if (!text) return;
-  ctx.y -= LH_BULLET_GAP;
-  const lines = wrap(text, ctx.fonts.regular, SIZE_BULLET, CONTENT_W);
+  ctx.y -= s(ctx, LH_BULLET_GAP);
+  const bulletSize = s(ctx, SIZE_BULLET);
+  const lines = wrap(text, ctx.fonts.regular, bulletSize, CONTENT_W);
   for (let i = 0; i < lines.length; i++) {
-    if (i > 0) ctx.y -= LH_BODY;
-    ctx.page.drawText(lines[i], {
-      x: MARGIN, y: ctx.y, size: SIZE_BULLET, font: ctx.fonts.regular, color: COLOR_BLACK,
-    });
+    if (i > 0) ctx.y -= s(ctx, LH_BODY);
+    if (ctx.draw) {
+      ctx.page.drawText(lines[i], {
+        x: MARGIN, y: ctx.y,
+        size: bulletSize, font: ctx.fonts.regular, color: COLOR_BLACK,
+      });
+    }
   }
 }
 
-// Body paragraph (About Me). Left-aligned ragged-right, slightly looser
-// line-height than bullets for prose comfort.
 function drawBodyParagraph(ctx: Ctx, text: string) {
   if (!text) return;
-  ctx.y -= LH_BULLET_GAP;
-  const lines = wrap(text, ctx.fonts.regular, SIZE_BODY, CONTENT_W);
+  ctx.y -= s(ctx, LH_BULLET_GAP);
+  const bodySize = s(ctx, SIZE_BODY);
+  const lines = wrap(text, ctx.fonts.regular, bodySize, CONTENT_W);
   for (let i = 0; i < lines.length; i++) {
-    if (i > 0) ctx.y -= LH_BODY;
-    ctx.page.drawText(lines[i], {
-      x: MARGIN, y: ctx.y, size: SIZE_BODY, font: ctx.fonts.regular, color: COLOR_BLACK,
-    });
+    if (i > 0) ctx.y -= s(ctx, LH_BODY);
+    if (ctx.draw) {
+      ctx.page.drawText(lines[i], {
+        x: MARGIN, y: ctx.y,
+        size: bodySize, font: ctx.fonts.regular, color: COLOR_BLACK,
+      });
+    }
   }
 }
 
@@ -308,41 +354,46 @@ function renderHeader(ctx: Ctx, cvData: CvData, userContext: UserContext) {
     cvData.header?.email || userContext.email,
     cvData.header?.location || userContext.location,
     cvData.header?.linkedin || userContext.linkedin_url,
-  ].map((s) => trim(s)).filter(Boolean);
+  ].map((v) => trim(v)).filter(Boolean);
 
   // Hairline above
-  drawHairline(ctx.page, ctx.y);
-  ctx.y -= 4;
+  drawHairline(ctx, ctx.y);
+  ctx.y -= s(ctx, 4);
 
   // Name (tracked caps, centered, black)
-  ctx.y -= SIZE_NAME;
-  const nameW = measureTracked(name, ctx.fonts.bold, SIZE_NAME, TRACK_NAME);
+  const nameSize = s(ctx, SIZE_NAME);
+  const nameTrack = s(ctx, TRACK_NAME);
+  ctx.y -= nameSize;
+  const nameW = measureTracked(name, ctx.fonts.bold, nameSize, nameTrack);
   const nameX = MARGIN + (CONTENT_W - nameW) / 2;
-  drawTracked(ctx.page, name, {
-    x: nameX, y: ctx.y, size: SIZE_NAME, font: ctx.fonts.bold,
-    color: COLOR_BLACK, tracking: TRACK_NAME,
+  drawTracked(ctx, name, {
+    x: nameX, y: ctx.y, size: nameSize, font: ctx.fonts.bold,
+    color: COLOR_BLACK, tracking: nameTrack,
   });
 
   // Hairline below
-  ctx.y -= 8;
-  drawHairline(ctx.page, ctx.y);
+  ctx.y -= s(ctx, 8);
+  drawHairline(ctx, ctx.y);
 
   // Contact strip
   if (contactBits.length > 0) {
-    ctx.y -= 14;
+    ctx.y -= s(ctx, 14);
     const contact = contactBits.join("  \u00B7  ");
-    const contactW = ctx.fonts.regular.widthOfTextAtSize(contact, SIZE_CONTACT);
-    ctx.page.drawText(contact, {
-      x: MARGIN + (CONTENT_W - contactW) / 2, y: ctx.y,
-      size: SIZE_CONTACT, font: ctx.fonts.regular, color: COLOR_MUTED,
-    });
+    const contactSize = s(ctx, SIZE_CONTACT);
+    const contactW = ctx.fonts.regular.widthOfTextAtSize(contact, contactSize);
+    if (ctx.draw) {
+      ctx.page.drawText(contact, {
+        x: MARGIN + (CONTENT_W - contactW) / 2, y: ctx.y,
+        size: contactSize, font: ctx.fonts.regular, color: COLOR_MUTED,
+      });
+    }
   }
 
   // Accent rule (closes header)
-  ctx.y -= 8;
-  drawHairline(ctx.page, ctx.y, ctx.accent, 0.75);
+  ctx.y -= s(ctx, 8);
+  drawHairline(ctx, ctx.y, ctx.accent, 0.75);
 
-  ctx.y -= SP_AFTER_HEADER;
+  ctx.y -= s(ctx, SP_AFTER_HEADER);
 }
 
 // ─── Per-section renderers ──────────────────────────────────────────
@@ -398,12 +449,10 @@ function renderEducation(ctx: Ctx, cvData: CvData) {
   if (list.length === 0) return;
   drawSectionHeading(ctx, "Education");
 
-  // Build a set of normalized honor names so coursework/activities that
-  // duplicate an honor get suppressed (mirrors build.ts honorsSet dedup).
   const honorsSet = new Set(
     safeArray(cvData.honors_and_awards)
       .map((h: any) => (h && typeof h === "object") ? trim(h.name) : trim(h))
-      .map((s) => s.replace(/\s+/g, " ").toLowerCase())
+      .map((str) => str.replace(/\s+/g, " ").toLowerCase())
       .filter(Boolean),
   );
 
@@ -442,30 +491,60 @@ function renderEducation(ctx: Ctx, cvData: CvData) {
 
 function renderSkills(ctx: Ctx, cvData: CvData) {
   const sk = cvData.skills || {};
-  const hasAny = (sk.domain?.length || sk.tools?.length || sk.technical?.length);
-  if (!hasAny) return;
+  if (!(sk.domain?.length || sk.tools?.length || sk.technical?.length)) return;
   drawSectionHeading(ctx, "Skills & Tools");
   if (sk.domain?.length) drawLabelledLine(ctx, "Domain", sk.domain);
   if (sk.tools?.length) drawLabelledLine(ctx, "Tools", sk.tools);
   if (sk.technical?.length) drawLabelledLine(ctx, "Technical", sk.technical);
 }
 
+// Languages — defensively reshape data:
+//   - array of objects: standard {language, proficiency} → "English (Native)"
+//   - array of strings: take as-is, but split on "·" or ", " if a single
+//     item smuggles multiple languages (defensive against LLM output that
+//     pre-joined them without a separator)
+//   - single string: same defensive split
+// Render with mid-dot ("  ·  ") as separator instead of comma — cleaner
+// when language names contain commas (e.g. "English, US (Native)") AND
+// guaranteed visible even if some upstream stripped commas.
 function renderLanguages(ctx: Ctx, cvData: CvData) {
-  let lines: string[] = [];
+  let rawItems: any[] = [];
   if (Array.isArray(cvData.languages)) {
-    lines = cvData.languages.map((l: any) => {
-      if (!l) return "";
-      if (typeof l === "string") return l;
-      const lang = trim(l.language || l.name);
-      const level = trim(l.proficiency || l.level);
-      return lang && level ? `${lang} (${level})` : lang;
-    }).filter(Boolean);
+    rawItems = cvData.languages;
+  } else if (typeof cvData.languages === "string") {
+    rawItems = [cvData.languages];
   } else if (Array.isArray(cvData.skills?.languages)) {
-    lines = cvData.skills!.languages!.map((s: any) => trim(s)).filter(Boolean);
+    rawItems = cvData.skills!.languages!;
   }
-  if (lines.length === 0) return;
+
+  // Normalize each item to a display string.
+  const formatted: string[] = [];
+  for (const item of rawItems) {
+    if (!item) continue;
+    if (typeof item === "string") {
+      // Split on common multi-language separators in case the LLM
+      // packed multiple into one string. The `(?<=\))\s*(?=[A-Z])`
+      // alternative handles the no-separator case we hit in production
+      // (e.g. "English (Native)Hebrew (Fluent)" — closing paren
+      // directly against the next capital letter).
+      const splits = item
+        .split(/\s*[·,•|]\s*|(?<=\))\s*(?=[A-Z])/g)
+        .map(trim)
+        .filter(Boolean);
+      formatted.push(...splits);
+      continue;
+    }
+    const lang = trim(item.language || item.name);
+    const level = trim(item.proficiency || item.level);
+    if (!lang) continue;
+    formatted.push(level ? `${lang} (${level})` : lang);
+  }
+
+  if (formatted.length === 0) return;
   drawSectionHeading(ctx, "Languages");
-  drawPlainLine(ctx, lines.join(", "));
+  // Mid-dot separator — visually unambiguous and survives any prior
+  // comma-stripping in upstream data.
+  drawPlainLine(ctx, formatted.join("  \u00B7  "));
 }
 
 function renderHonors(ctx: Ctx, cvData: CvData) {
@@ -508,35 +587,8 @@ function renderProjects(ctx: Ctx, cvData: CvData) {
   });
 }
 
-// ─── Main entry point ───────────────────────────────────────────────
-export async function buildCvPdf(
-  cvData: CvData,
-  userContext: UserContext,
-  config: TemplateConfig,
-): Promise<Uint8Array> {
-  const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
-
-  // Cream background — drawn first so all text renders on top.
-  page.drawRectangle({
-    x: 0, y: 0, width: PAGE_W, height: PAGE_H,
-    color: COLOR_CREAM,
-  });
-
-  const fonts: Fonts = {
-    regular: await pdfDoc.embedFont(StandardFonts.Helvetica),
-    bold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
-    italic: await pdfDoc.embedFont(StandardFonts.HelveticaOblique),
-    boldItalic: await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique),
-  };
-
-  const accent = hexToRgb(config.theme.accentHex || "4A6B5D");
-  const ctx: Ctx = { page, fonts, accent, y: PAGE_H - MARGIN };
-
-  renderHeader(ctx, cvData, userContext);
-
-  // Dispatch by config.sectionOrder. Empty sections short-circuit
-  // inside their own renderer — no extra "is empty?" check needed here.
+// ─── Render-all helper (runs both measure + draw passes) ────────────
+function renderAllSections(ctx: Ctx, cvData: CvData, sectionOrder: SectionKey[]) {
   const dispatch: Record<SectionKey, () => void> = {
     about: () => renderAbout(ctx, cvData),
     professional_experience: () => renderProfessionalExperience(ctx, cvData),
@@ -550,9 +602,69 @@ export async function buildCvPdf(
     certifications: () => renderCertifications(ctx, cvData),
     projects: () => renderProjects(ctx, cvData),
   };
-  for (const key of config.sectionOrder) {
+  for (const key of sectionOrder) {
     dispatch[key]?.();
   }
+}
+
+// ─── Main entry point ───────────────────────────────────────────────
+export async function buildCvPdf(
+  cvData: CvData,
+  userContext: UserContext,
+  config: TemplateConfig,
+): Promise<Uint8Array> {
+  const pdfDoc = await PDFDocument.create();
+  const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
+
+  const fonts: Fonts = {
+    regular: await pdfDoc.embedFont(StandardFonts.Helvetica),
+    bold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
+    italic: await pdfDoc.embedFont(StandardFonts.HelveticaOblique),
+    boldItalic: await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique),
+  };
+
+  const accent = hexToRgb(config.theme.accentHex || "4A6B5D");
+
+  // ─── Pass 1: MEASURE ───
+  // Walk every renderer with draw=false to compute the total y consumed
+  // at full size. The same code path that will actually draw later, just
+  // gated. No drawing happens on this pass — we only need ctx.y at the end.
+  const measureCtx: Ctx = {
+    page, fonts, accent,
+    y: PAGE_H - MARGIN,
+    draw: false,
+    scale: SCALE_MAX,
+  };
+  renderHeader(measureCtx, cvData, userContext);
+  renderAllSections(measureCtx, cvData, config.sectionOrder);
+  const usedHeight = (PAGE_H - MARGIN) - measureCtx.y;
+
+  // Compute scale: how much we'd need to shrink to fit within CONTENT_H.
+  // Clamp to [SCALE_MIN, SCALE_MAX]. Below SCALE_MIN we accept overflow
+  // rather than ship microscopic type (rare in practice — would need a
+  // ~2x-overflow profile).
+  let scale = SCALE_MAX;
+  if (usedHeight > CONTENT_H) {
+    scale = Math.max(SCALE_MIN, CONTENT_H / usedHeight);
+  }
+  const fits = (usedHeight * scale) <= CONTENT_H + 0.5; // 0.5pt slop
+  const tag = scale < SCALE_WARN ? "[CV-PDF][WARN]" : "[CV-PDF]";
+  console.log(`${tag} measure pass: used ${usedHeight.toFixed(1)}pt of ${CONTENT_H}pt available → scale ${scale.toFixed(3)} (fits: ${fits})`);
+
+  // ─── Pass 2: DRAW ───
+  // Cream background first, then real render at computed scale.
+  page.drawRectangle({
+    x: 0, y: 0, width: PAGE_W, height: PAGE_H,
+    color: COLOR_CREAM,
+  });
+  const drawCtx: Ctx = {
+    page, fonts, accent,
+    y: PAGE_H - MARGIN,
+    draw: true,
+    scale,
+  };
+  renderHeader(drawCtx, cvData, userContext);
+  renderAllSections(drawCtx, cvData, config.sectionOrder);
 
   return await pdfDoc.save();
 }

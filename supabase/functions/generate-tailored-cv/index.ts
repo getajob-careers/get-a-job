@@ -1826,6 +1826,61 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     // it now); LLM schema no longer requests it; line estimator no longer
     // counts it.
 
+    // ─── Banned-verb post-LLM strip ───
+    // The CV_VOICE_RULES ban list in voice-rules.ts catches most cases,
+    // but the LLM keeps slipping verbs like "Utilized TypeScript". Backstop
+    // with a deterministic word-substitution pass that preserves
+    // capitalization. Walks every string field in cvData recursively.
+    // Replacement targets the verbs (any tense): leveraged / utilized /
+    // employed (as transitive) / made use of / spearheaded / orchestrated.
+    // Replaced with neutral verbs ("used", "led") that read as plain English
+    // and don't trigger the "LLM-written" tell. Excludes "employed" in the
+    // "hired" sense by NOT replacing standalone "employed" — only the
+    // transitive-verb usages "employed X" / "made use of X" / "utilized X".
+    const BANNED_VERB_REPLACEMENTS: Array<[RegExp, (m: string) => string]> = [
+      // utilized / utilizes / utilize / utilizing → used / uses / use / using
+      [/\b(U|u)tilized\b/g, (m) => m[0] === "U" ? "Used" : "used"],
+      [/\b(U|u)tilizes\b/g, (m) => m[0] === "U" ? "Uses" : "uses"],
+      [/\b(U|u)tilize\b/g, (m) => m[0] === "U" ? "Use" : "use"],
+      [/\b(U|u)tilizing\b/g, (m) => m[0] === "U" ? "Using" : "using"],
+      // leveraged / leverages / leverage / leveraging → used / uses / use / using
+      [/\b(L|l)everaged\b/g, (m) => m[0] === "L" ? "Used" : "used"],
+      [/\b(L|l)everages\b/g, (m) => m[0] === "L" ? "Uses" : "uses"],
+      [/\b(L|l)everage\b/g, (m) => m[0] === "L" ? "Use" : "use"],
+      [/\b(L|l)everaging\b/g, (m) => m[0] === "L" ? "Using" : "using"],
+      // made use of → used (less common but a known LLM tell)
+      [/\b(M|m)ade use of\b/g, (m) => m[0] === "M" ? "Used" : "used"],
+      // spearheaded → led (preserves the leadership flavor)
+      [/\b(S|s)pearheaded\b/g, (m) => m[0] === "S" ? "Led" : "led"],
+      [/\b(S|s)pearheading\b/g, (m) => m[0] === "S" ? "Leading" : "leading"],
+      [/\b(S|s)pearhead\b/g, (m) => m[0] === "S" ? "Lead" : "lead"],
+      // orchestrated → led (same logic)
+      [/\b(O|o)rchestrated\b/g, (m) => m[0] === "O" ? "Led" : "led"],
+      [/\b(O|o)rchestrating\b/g, (m) => m[0] === "O" ? "Leading" : "leading"],
+      [/\b(O|o)rchestrate\b/g, (m) => m[0] === "O" ? "Lead" : "lead"],
+    ];
+    const deBanish = (text: string): string => {
+      let out = text;
+      for (const [re, fn] of BANNED_VERB_REPLACEMENTS) {
+        out = out.replace(re, fn);
+      }
+      return out;
+    };
+    const walkAndCleanStrings = (obj: any): any => {
+      if (obj == null) return obj;
+      if (typeof obj === "string") return deBanish(obj);
+      if (Array.isArray(obj)) {
+        for (let i = 0; i < obj.length; i++) obj[i] = walkAndCleanStrings(obj[i]);
+        return obj;
+      }
+      if (typeof obj === "object") {
+        for (const k of Object.keys(obj)) obj[k] = walkAndCleanStrings(obj[k]);
+        return obj;
+      }
+      return obj;
+    };
+    walkAndCleanStrings(cvData);
+
     // ─── Step 2 of tailoring: validate how many JD phrases made it through ───
     // The score is the fraction of must_include_phrases that literally appear
     // somewhere in the generated CV text (case-insensitive). If it's below
