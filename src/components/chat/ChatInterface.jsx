@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { track, EVENTS } from "@/lib/analytics";
 import { Send, Loader2, Plus, ListTodo, CheckCircle2, ArrowRight, Route, Briefcase, ChevronDown, Trash2, MessageSquare, FileText, Download, RefreshCw } from "lucide-react";
+import { triggerBlobDownload, filenameFromSignedUrl } from "@/lib/downloadFile";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -350,15 +351,20 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
             </p>
           </div>
         )}
-        <a
-          href={cv_url}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          type="button"
+          onClick={async () => {
+            try {
+              await triggerBlobDownload(cv_url, filenameFromSignedUrl(cv_url));
+            } catch (err) {
+              toast.error(`Download failed: ${err?.message || "unknown error"}`);
+            }
+          }}
           className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-700 hover:bg-emerald-800 text-white rounded px-3 py-1.5 transition-colors"
         >
           <Download className="w-3.5 h-3.5" />
           Download CV (.pdf)
-        </a>
+        </button>
       </div>
     );
   }

@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, FileText, Sparkles, Download, Save, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
+import { triggerBlobDownload, filenameFromSignedUrl } from "@/lib/downloadFile";
 
 export default function CVManagement({ app, onUpdate }) {
   const { user } = useAuth();
@@ -143,15 +144,20 @@ export default function CVManagement({ app, onUpdate }) {
             <FileText className="w-4 h-4 text-[#52545A]" />
             <span className="text-xs text-[#52545A]">CV Generated</span>
           </div>
-          <a
-            href={app.cv_url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="text-xs text-[#0E1014] underline flex items-center gap-1"
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await triggerBlobDownload(app.cv_url, filenameFromSignedUrl(app.cv_url));
+              } catch (err) {
+                toast.error(`Download failed: ${err?.message || "unknown error"}`);
+              }
+            }}
+            className="text-xs text-[#0E1014] underline flex items-center gap-1 cursor-pointer"
           >
             <Download className="w-3 h-3" />
             Download (.pdf)
-          </a>
+          </button>
         </div>
       )}
 
