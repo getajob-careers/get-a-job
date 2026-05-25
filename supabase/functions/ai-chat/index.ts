@@ -576,9 +576,10 @@ Deno.serve(async (req) => {
 
     // Build career roles context — detailed for the agents that need to
     // reason about gaps (career_agent picks priorities, skill_development_agent
-    // recommends learning to close them); summary for others.
+    // recommends learning to close them, interview_coach prepares answers
+    // grounded in skill gaps + readiness); summary for others.
     if (careerRolesRes.data?.length) {
-      if (agent === 'career_agent' || agent === 'skill_development_agent') {
+      if (agent === 'career_agent' || agent === 'skill_development_agent' || agent === 'interview_coach') {
         const byTrack: Record<string, typeof careerRolesRes.data> = { track_1: [], track_2: [], track_3: [], other: [] }
         for (const r of careerRolesRes.data) {
           const group = byTrack[r.track as string] ?? byTrack.other
