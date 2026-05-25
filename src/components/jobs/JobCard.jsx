@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { scoreApplication } from "@/lib/scoreApplication";
+import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import {
@@ -180,7 +181,7 @@ export default function JobCard({ job, scoreResult, trackColor }) {
             <p className="jb-eyebrow mb-1.5">Your strengths</p>
             <div className="flex flex-wrap gap-1.5">
               {matchedSkills.slice(0, 5).map((s, i) => (
-                <span key={i} className="jb-skill-pill jb-skill-pill-matched">{s}</span>
+                <span key={i} className="jb-skill-pill jb-skill-pill-matched">{humanizeSkillId(s)}</span>
               ))}
             </div>
           </div>
@@ -190,7 +191,7 @@ export default function JobCard({ job, scoreResult, trackColor }) {
             <p className="jb-eyebrow mb-1.5">Skill gaps</p>
             <div className="flex flex-wrap gap-1.5">
               {missingCoreSkills.slice(0, 5).map((s, i) => (
-                <span key={i} className="jb-skill-pill jb-skill-pill-missing">{s}</span>
+                <span key={i} className="jb-skill-pill jb-skill-pill-missing">{humanizeSkillId(s)}</span>
               ))}
             </div>
           </div>

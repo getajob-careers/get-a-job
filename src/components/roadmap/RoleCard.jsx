@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Check, X, ArrowRight, ExternalLink } from "luci
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { TRACK_CONFIG } from "@/lib/trackConfig";
+import { humanizeSkillId } from "@/lib/humanizeSkillId";
 
 // NB: `onTrack` is accepted for backward compatibility with CareerRoadmap's
 // handleTrack but no longer wired up — the "Add to Tracker" button was
@@ -119,7 +120,7 @@ export default function RoleCard({ role, onTrack }) { // eslint-disable-line no-
               <div className="flex flex-wrap gap-1.5">
                 {role.matched_skills.map((s, i) => (
                   <span key={i} className="rm-skill-pill rm-skill-pill-matched">
-                    <Check className="w-3 h-3" />{s}
+                    <Check className="w-3 h-3" />{humanizeSkillId(s)}
                   </span>
                 ))}
               </div>
@@ -132,7 +133,7 @@ export default function RoleCard({ role, onTrack }) { // eslint-disable-line no-
               <div className="flex flex-wrap gap-1.5">
                 {role.missing_skills.map((s, i) => (
                   <span key={i} className="rm-skill-pill rm-skill-pill-missing">
-                    <X className="w-3 h-3" />{s}
+                    <X className="w-3 h-3" />{humanizeSkillId(s)}
                   </span>
                 ))}
               </div>
