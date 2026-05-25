@@ -101,15 +101,16 @@ export default function Onboarding() {
   }, [user]);
 
   // Recovery: if the user closed the browser mid-analysis and reopens at
-  // step 8 (their stored onboarding_step), nothing is running and the
-  // tutorial would sit with setupComplete=false forever. Auto-trigger
-  // handleSurveyNext to re-drive the pipeline. handleSurveyNext is safe to
-  // re-run — its experiences/projects inserts use a snapshot-and-delete-
-  // old-after-success pattern so the user's data isn't lost.
+  // step 9 (their stored onboarding_step — TierReveal), nothing is running
+  // and the tutorial would sit with setupComplete=false forever.
+  // Auto-trigger handleSurveyNext to re-drive the pipeline.
+  // handleSurveyNext is safe to re-run — its experiences/projects inserts
+  // use a snapshot-and-delete-old-after-success pattern so the user's
+  // data isn't lost.
   const recoveryFiredRef = useRef(false);
   useEffect(() => {
     if (recoveryFiredRef.current) return;
-    if (step !== 8) return;
+    if (step !== 9) return;
     if (checkingProfile) return;
     if (!existingProfileId) return;
     if (generatingRoles || finalising) return;
@@ -486,18 +487,19 @@ export default function Onboarding() {
   // self-heal useEffect retries the analysis on next visit.
   const handleSurveyNext = async () => {
     if (generatingRoles) return;
-    // Step 7 (Survey) → 8 (TierReveal) bypasses goTo, so emit the step-
+    // Step 8 (Survey) → 9 (TierReveal) bypasses goTo, so emit the step-
     // completed event explicitly here. Without this we'd miss "survey" in
-    // the funnel.
+    // the funnel. Step indices shifted +1 in PR #136 (StepRoleSkills
+    // inserted at index 4) — Survey is now index 8, TierReveal index 9.
     track(EVENTS.ONBOARDING_STEP_COMPLETED, {
-      step_index: 7,
-      step_name: STEP_NAMES[7],
+      step_index: 8,
+      step_name: STEP_NAMES[8],
     });
-    setStep(8);
+    setStep(9);
     setGeneratingRoles(true);
 
     try {
-      // Persist step 8 to DB before the career analysis reads the row.
+      // Persist step 9 to DB before the career analysis reads the row.
       // skills is already a single flat array (Bug 3 fix dropped categories);
       // no merge needed.
       if (existingProfileId) {
