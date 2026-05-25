@@ -1,23 +1,29 @@
 import React, { useState, useMemo } from "react";
-import { Briefcase, GraduationCap, FolderGit2, ChevronDown, ChevronUp, CheckCircle2 } from "lucide-react";
+import { Briefcase, GraduationCap, FolderGit2, ChevronDown, ChevronUp, CheckCircle2, Sparkles, Plus } from "lucide-react";
 import SkillTagInput from "./SkillTagInput";
+import SkillChipBank from "./SkillChipBank";
 import SkipFooter from "./SkipFooter";
+import { matchesSkill } from "./skillBank";
+import { suggestSkillsForTitle } from "@/lib/roleSkillsLookup";
+import { humanizeSkillId } from "@/lib/humanizeSkillId";
 
-// Batched per-object skill tagging — one scrollable screen with
-// collapsible cards. Per experience (skills_used), per education
-// (skills_developed), per project (skills_demonstrated). Card expands
-// automatically when the corresponding array is empty AND there's
-// content the user could tag against (responsibilities text, degree
-// program, project description). Cards with skills already tagged
-// stay collapsed and show their chip count in the header.
+// Per-experience/education/project skill tagging — one scrollable screen
+// with collapsible cards. Each card carries the full SKILL_BANK (6
+// categories × 18 chips) for one-tap tagging, a SkillTagInput for
+// searching the full 595-skill library, and (for experiences only) a
+// role-library suggestion section that pre-fills common skills for the
+// matched role title.
 //
-// Pre-suggestions: experiences[].skills_used and
-// projects[].skills_demonstrated come pre-populated when the CV
-// extractor runs (StepResumeUpload.jsx:154 + extraction schema).
-// Education has no extractor pre-fill in v1 — user fills manually.
+// Accordion behavior: ONE card expanded at a time. First card expanded
+// by default. Clicking another card collapses the current and opens the
+// new one. State writes happen on every chip click / input change —
+// collapsing doesn't lose anything.
 //
-// Skippable per the onboarding redesign — empty arrays persist as
-// `[]`, downstream union just collects from other sources.
+// Suggestions come from src/lib/roleSkillsLookup.js → 183-role mirror
+// generated from 00_role_library.ts + 04_role_skill_mapping.ts.
+// Honest framing: "Common skills for [matched role] — tap to add" with
+// the matched canonical role title shown so the user can dismiss if it
+// doesn't fit.
 
 function formatDateRange(start, end, isCurrent) {
   const s = (start || "").trim();
@@ -56,59 +62,119 @@ function CardHeader({ icon: Icon, title, subtitle, chipCount, expanded, onClick 
   );
 }
 
+// Role-library suggestion section — only rendered for experience cards
+// where the title matched the canonical role library. Pre-suggested
+// skills appear as dashed-outline chips with a "+" prefix. Tapping
+// adds the skill (canonical display name) to the card's skills_used
+// array and removes the chip from the suggestion list.
+function RoleSuggestions({ suggestion, currentSkills, onAccept }) {
+  const remainingIds = useMemo(() => {
+    if (!suggestion) return [];
+    const currentSet = new Set((currentSkills || []).map((s) => String(s).toLowerCase().trim()));
+    return suggestion.skillIds.filter((id) => {
+      const display = humanizeSkillId(id);
+      return !currentSet.has(String(display).toLowerCase().trim()) && !currentSet.has(id.toLowerCase());
+    });
+  }, [suggestion, currentSkills]);
+
+  if (!suggestion || remainingIds.length === 0) return null;
+
+  return (
+    <div className="rounded-lg border border-dashed border-[#A3A3A3] bg-[#FAFAF8] p-3">
+      <div className="flex items-center gap-2 mb-2">
+        <Sparkles className="w-3.5 h-3.5 text-[#52545A]" />
+        <p className="text-xs font-semibold text-[#0E1014]">
+          Common skills for <span className="text-[#52545A]">{suggestion.roleTitle}</span>
+        </p>
+      </div>
+      <p className="text-[11px] text-[#9C9DA1] mb-2.5 leading-snug">
+        Tap any that apply to your role — they'll be added to your tagged skills.
+      </p>
+      <div className="flex flex-wrap gap-1.5">
+        {remainingIds.map((id) => {
+          const display = humanizeSkillId(id);
+          return (
+            <button
+              key={id}
+              type="button"
+              onClick={() => onAccept(display)}
+              className="inline-flex items-center gap-1 text-xs bg-white text-[#52545A] px-2.5 py-1 rounded-full border border-dashed border-[#A3A3A3] hover:border-[#0E1014] hover:text-[#0E1014] transition-colors"
+            >
+              <Plus className="w-3 h-3" />
+              {display}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 export default function StepRoleSkills({ experiences, setExperiences, educations, setEducations, projects, setProjects, onNext, onBack }) {
   const expList = Array.isArray(experiences) ? experiences : [];
   const eduList = Array.isArray(educations) ? educations : [];
   const projList = Array.isArray(projects) ? projects : [];
 
-  // Auto-expand rule (per Eli's decision):
-  //   - Expand if skills array is empty AND the object has content to anchor on
-  //   - Collapse if already tagged
-  // "Content to anchor on":
-  //   - Experience: responsibilities text or title (always has title)
-  //   - Education: institution or degree present
-  //   - Project: description or name
-  const initialExpanded = useMemo(() => {
-    const m = {};
-    expList.forEach((e, i) => {
-      const tagged = (e?.skills_used || []).length > 0;
-      const hasContent = (e?.responsibilities || "").trim().length > 0 || (e?.title || "").trim().length > 0;
-      m[`exp_${i}`] = !tagged && hasContent;
-    });
-    eduList.forEach((e, i) => {
-      const tagged = (e?.skills_developed || []).length > 0;
-      const hasContent = (e?.institution || "").trim().length > 0 || (e?.degree_type || "").trim().length > 0;
-      m[`edu_${i}`] = !tagged && hasContent;
-    });
-    projList.forEach((p, i) => {
-      const tagged = (p?.skills_demonstrated || []).length > 0;
-      const hasContent = (p?.description || "").trim().length > 0 || (p?.name || "").trim().length > 0;
-      m[`proj_${i}`] = !tagged && hasContent;
-    });
-    return m;
+  // Precompute role-library suggestions for each experience once. The
+  // user's title doesn't change while on this screen, so no need to
+  // recompute on every render or expand.
+  const expSuggestions = useMemo(
+    () => expList.map((e) => suggestSkillsForTitle(e?.title)),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);  // compute once on mount — user-driven toggles take over after
+    [],
+  );
 
-  const [expanded, setExpanded] = useState(initialExpanded);
-  const toggle = (key) => setExpanded((m) => ({ ...m, [key]: !m[key] }));
+  // Build the ordered list of card keys so the accordion default + key
+  // computation are deterministic. Experiences first, then education,
+  // then projects (Eli's Q3 order).
+  const orderedKeys = useMemo(() => {
+    const keys = [];
+    expList.forEach((_, i) => keys.push(`exp_${i}`));
+    eduList.forEach((_, i) => keys.push(`edu_${i}`));
+    projList.forEach((_, i) => keys.push(`proj_${i}`));
+    return keys;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Accordion state — single string for the currently-expanded key.
+  // null = all collapsed. Default = first card (or null if no cards).
+  const [expandedKey, setExpandedKey] = useState(orderedKeys[0] ?? null);
+  const handleToggle = (key) => setExpandedKey((prev) => (prev === key ? null : key));
 
   const updateExpSkills = (i, next) => {
     setExperiences((prev) => prev.map((e, idx) => idx === i ? { ...e, skills_used: next } : e));
   };
+  const toggleExpSkill = (i, label) => {
+    const current = expList[i]?.skills_used || [];
+    const next = matchesSkill(current, label)
+      ? current.filter((s) => String(s).toLowerCase() !== String(label).toLowerCase())
+      : [...current, label];
+    updateExpSkills(i, next);
+  };
+
   const updateEduSkills = (i, next) => {
     setEducations((prev) => prev.map((e, idx) => idx === i ? { ...e, skills_developed: next } : e));
   };
+  const toggleEduSkill = (i, label) => {
+    const current = eduList[i]?.skills_developed || [];
+    const next = matchesSkill(current, label)
+      ? current.filter((s) => String(s).toLowerCase() !== String(label).toLowerCase())
+      : [...current, label];
+    updateEduSkills(i, next);
+  };
+
   const updateProjSkills = (i, next) => {
     setProjects((prev) => prev.map((p, idx) => idx === i ? { ...p, skills_demonstrated: next } : p));
   };
-
-  const handleSkip = () => {
-    // Persist current state as-is. Empty arrays stay empty (not null);
-    // skipping ≠ erasing. The downstream union just collects what's there.
-    onNext();
+  const toggleProjSkill = (i, label) => {
+    const current = projList[i]?.skills_demonstrated || [];
+    const next = matchesSkill(current, label)
+      ? current.filter((s) => String(s).toLowerCase() !== String(label).toLowerCase())
+      : [...current, label];
+    updateProjSkills(i, next);
   };
 
-  const totalCards = expList.length + eduList.length + projList.length;
+  const totalCards = orderedKeys.length;
 
   return (
     <div className="space-y-7">
@@ -116,7 +182,7 @@ export default function StepRoleSkills({ experiences, setExperiences, educations
         <h1 className="onb-h1">Skills you used in each role.</h1>
         <p className="onb-sub">
           For each experience, degree, and project, confirm or add the skills you applied.
-          We pre-filled what your CV mentions — your edits make the matching sharper.
+          We pre-suggested likely skills where we could match your role to common patterns.
         </p>
         <p className="onb-help">
           Powers job-fit scoring + CV bullet generation per role. Optional but worth 60 seconds.
@@ -132,7 +198,9 @@ export default function StepRoleSkills({ experiences, setExperiences, educations
           {/* Experiences — first per Eli's decision (Q3) */}
           {expList.map((e, i) => {
             const key = `exp_${i}`;
-            const tagged = (e?.skills_used || []).length;
+            const expanded = expandedKey === key;
+            const skills = e?.skills_used || [];
+            const tagged = skills.length;
             const subtitle = [e?.company, formatDateRange(e?.start_date, e?.end_date, e?.is_current)].filter(Boolean).join(" · ");
             return (
               <div key={key} className="onb-card">
@@ -141,29 +209,46 @@ export default function StepRoleSkills({ experiences, setExperiences, educations
                   title={e?.title || "(Untitled role)"}
                   subtitle={subtitle}
                   chipCount={tagged}
-                  expanded={expanded[key]}
-                  onClick={() => toggle(key)}
+                  expanded={expanded}
+                  onClick={() => handleToggle(key)}
                 />
-                {expanded[key] && (
-                  <div className="mt-4 pt-4 border-t border-[#E8E8E5]">
+                {expanded && (
+                  <div className="mt-4 pt-4 border-t border-[#E8E8E5] space-y-4">
+                    {expSuggestions[i] && (
+                      <RoleSuggestions
+                        suggestion={expSuggestions[i]}
+                        currentSkills={skills}
+                        onAccept={(label) => toggleExpSkill(i, label)}
+                      />
+                    )}
                     <SkillTagInput
                       label="Skills used in this role"
-                      description={e?.responsibilities ? "Based on your responsibilities, we suggested likely skills. Confirm, add, or remove." : "Search the skill library or type a custom skill."}
-                      tags={e?.skills_used || []}
+                      description="Search the library or type a custom skill."
+                      tags={skills}
                       onChange={(next) => updateExpSkills(i, next)}
-                      placeholder="Search 595 skills or type a custom one"
+                      placeholder="Search 595 skills"
                       suggestionType="library_skills"
                     />
+                    <div>
+                      <p className="onb-eyebrow mb-2">Or pick from the skill bank:</p>
+                      <SkillChipBank
+                        selected={skills}
+                        onToggle={(label) => toggleExpSkill(i, label)}
+                        compact
+                      />
+                    </div>
                   </div>
                 )}
               </div>
             );
           })}
 
-          {/* Education — second */}
+          {/* Education — second. Role-library suggestions skipped per Eli's Q3. */}
           {eduList.map((e, i) => {
             const key = `edu_${i}`;
-            const tagged = (e?.skills_developed || []).length;
+            const expanded = expandedKey === key;
+            const skills = e?.skills_developed || [];
+            const tagged = skills.length;
             const title = [e?.degree_type, e?.field_of_study && `in ${e.field_of_study}`].filter(Boolean).join(" ") || (e?.institution || "(Education)");
             const subtitle = [e?.institution, formatDateRange(e?.start_date, e?.end_date, e?.is_current)].filter(Boolean).join(" · ");
             return (
@@ -173,29 +258,39 @@ export default function StepRoleSkills({ experiences, setExperiences, educations
                   title={title}
                   subtitle={subtitle}
                   chipCount={tagged}
-                  expanded={expanded[key]}
-                  onClick={() => toggle(key)}
+                  expanded={expanded}
+                  onClick={() => handleToggle(key)}
                 />
-                {expanded[key] && (
-                  <div className="mt-4 pt-4 border-t border-[#E8E8E5]">
+                {expanded && (
+                  <div className="mt-4 pt-4 border-t border-[#E8E8E5] space-y-4">
                     <SkillTagInput
                       label="Skills developed during this education"
-                      description="What did you learn or get good at? Programs, methods, fields, or specific tools — search the library or type custom."
-                      tags={e?.skills_developed || []}
+                      description="Programs, methods, fields, or specific tools — search the library or type custom."
+                      tags={skills}
                       onChange={(next) => updateEduSkills(i, next)}
                       placeholder="e.g. financial modeling, market research"
                       suggestionType="library_skills"
                     />
+                    <div>
+                      <p className="onb-eyebrow mb-2">Or pick from the skill bank:</p>
+                      <SkillChipBank
+                        selected={skills}
+                        onToggle={(label) => toggleEduSkill(i, label)}
+                        compact
+                      />
+                    </div>
                   </div>
                 )}
               </div>
             );
           })}
 
-          {/* Projects — third */}
+          {/* Projects — third. No role-library lookup; project name doesn't map. */}
           {projList.map((p, i) => {
             const key = `proj_${i}`;
-            const tagged = (p?.skills_demonstrated || []).length;
+            const expanded = expandedKey === key;
+            const skills = p?.skills_demonstrated || [];
+            const tagged = skills.length;
             const subtitle = p?.description ? p.description.slice(0, 80) + (p.description.length > 80 ? "…" : "") : "";
             return (
               <div key={key} className="onb-card">
@@ -204,19 +299,27 @@ export default function StepRoleSkills({ experiences, setExperiences, educations
                   title={p?.name || "(Untitled project)"}
                   subtitle={subtitle}
                   chipCount={tagged}
-                  expanded={expanded[key]}
-                  onClick={() => toggle(key)}
+                  expanded={expanded}
+                  onClick={() => handleToggle(key)}
                 />
-                {expanded[key] && (
-                  <div className="mt-4 pt-4 border-t border-[#E8E8E5]">
+                {expanded && (
+                  <div className="mt-4 pt-4 border-t border-[#E8E8E5] space-y-4">
                     <SkillTagInput
                       label="Skills demonstrated in this project"
                       description="Tools, techniques, or domains you used to build this."
-                      tags={p?.skills_demonstrated || []}
+                      tags={skills}
                       onChange={(next) => updateProjSkills(i, next)}
-                      placeholder="Search 595 skills or type custom"
+                      placeholder="Search 595 skills"
                       suggestionType="library_skills"
                     />
+                    <div>
+                      <p className="onb-eyebrow mb-2">Or pick from the skill bank:</p>
+                      <SkillChipBank
+                        selected={skills}
+                        onToggle={(label) => toggleProjSkill(i, label)}
+                        compact
+                      />
+                    </div>
                   </div>
                 )}
               </div>
@@ -227,7 +330,7 @@ export default function StepRoleSkills({ experiences, setExperiences, educations
 
       <SkipFooter
         onBack={onBack}
-        onSkip={handleSkip}
+        onSkip={onNext}
         onContinue={onNext}
       />
     </div>

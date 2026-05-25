@@ -1,0 +1,5022 @@
+{
+  "generated_from": [
+    "supabase/functions/_shared/libraries/00_role_library.ts",
+    "supabase/functions/_shared/libraries/04_role_skill_mapping.ts"
+  ],
+  "generated_at": "2026-05-25",
+  "count": 183,
+  "with_skill_mapping": 170,
+  "roles": [
+    {
+      "id": "customer_support_representative",
+      "title": "Customer Support Representative",
+      "alternate_titles": [
+        "CS Representative",
+        "Customer Service Representative",
+        "Support Rep"
+      ],
+      "core_skills": [
+        "customer_communication",
+        "problem_solving",
+        "customer_support_operations"
+      ],
+      "secondary_skills": [
+        "crm_management",
+        "customer_orientation",
+        "organization"
+      ]
+    },
+    {
+      "id": "customer_support_specialist",
+      "title": "Customer Support Specialist",
+      "alternate_titles": [
+        "Senior Customer Support Specialist",
+        "Tier 2 Support Specialist",
+        "Customer Support Lead"
+      ],
+      "core_skills": [
+        "customer_communication",
+        "customer_support_operations",
+        "problem_solving",
+        "customer_orientation"
+      ],
+      "secondary_skills": [
+        "crm_management",
+        "technical_troubleshooting",
+        "escalation_handling"
+      ]
+    },
+    {
+      "id": "technical_support_engineer",
+      "title": "Technical Support Engineer",
+      "alternate_titles": [
+        "TSE",
+        "Senior Technical Support Engineer",
+        "Tier 3 Support Engineer"
+      ],
+      "core_skills": [
+        "technical_troubleshooting",
+        "debugging",
+        "problem_solving",
+        "customer_communication"
+      ],
+      "secondary_skills": [
+        "technical_communication",
+        "api_integrations",
+        "technical_documentation",
+        "analytical_thinking"
+      ]
+    },
+    {
+      "id": "senior_support_engineer",
+      "title": "Senior Support Engineer",
+      "alternate_titles": [
+        "Senior Technical Support Engineer",
+        "Lead Support Engineer",
+        "Principal TSE"
+      ],
+      "core_skills": [
+        "advanced_debugging",
+        "incident_management",
+        "technical_leadership",
+        "technical_troubleshooting"
+      ],
+      "secondary_skills": [
+        "technical_documentation",
+        "api_integrations",
+        "cloud_tools",
+        "analytical_thinking"
+      ]
+    },
+    {
+      "id": "customer_onboarding_specialist",
+      "title": "Customer Onboarding Specialist",
+      "alternate_titles": [
+        "Onboarding Manager",
+        "Junior Implementation Specialist"
+      ],
+      "core_skills": [
+        "onboarding_training",
+        "customer_communication",
+        "product_knowledge",
+        "product_adoption"
+      ],
+      "secondary_skills": [
+        "project_management",
+        "customer_orientation",
+        "organization"
+      ]
+    },
+    {
+      "id": "customer_success_associate",
+      "title": "Customer Success Associate",
+      "alternate_titles": [
+        "CS Associate",
+        "Junior Customer Success Manager"
+      ],
+      "core_skills": [
+        "customer_communication",
+        "relationship_building",
+        "product_adoption",
+        "onboarding_training"
+      ],
+      "secondary_skills": [
+        "customer_retention",
+        "crm_management",
+        "customer_health_monitoring"
+      ]
+    },
+    {
+      "id": "implementation_specialist",
+      "title": "Implementation Specialist",
+      "alternate_titles": [
+        "Senior Implementation Specialist",
+        "Implementation Consultant",
+        "Onboarding Engineer"
+      ],
+      "core_skills": [
+        "implementation_management",
+        "project_management",
+        "requirements_gathering",
+        "customer_communication"
+      ],
+      "secondary_skills": [
+        "api_integrations",
+        "workflow_design",
+        "problem_solving",
+        "stakeholder_management"
+      ]
+    },
+    {
+      "id": "implementation_manager",
+      "title": "Implementation Manager",
+      "alternate_titles": [
+        "Senior Implementation Manager",
+        "Implementation Lead",
+        "Customer Implementation Manager"
+      ],
+      "core_skills": [
+        "implementation_management",
+        "project_management",
+        "stakeholder_management",
+        "delivery_execution"
+      ],
+      "secondary_skills": [
+        "partner_management",
+        "api_integrations",
+        "customer_communication",
+        "problem_solving"
+      ]
+    },
+    {
+      "id": "project_manager_customer_delivery",
+      "title": "Project Manager (Customer Delivery)",
+      "alternate_titles": [
+        "Customer Delivery PM",
+        "Implementation PM",
+        "Senior Customer Delivery Manager"
+      ],
+      "core_skills": [
+        "project_management",
+        "stakeholder_management",
+        "risk_management",
+        "customer_communication"
+      ],
+      "secondary_skills": [
+        "implementation_management",
+        "delivery_execution",
+        "process_improvement",
+        "analytical_thinking"
+      ]
+    },
+    {
+      "id": "customer_success_manager",
+      "title": "Customer Success Manager",
+      "alternate_titles": [
+        "CSM",
+        "Senior Customer Success Manager (SMB tier)",
+        "Mid-Market CSM"
+      ],
+      "core_skills": [
+        "customer_relationship_management",
+        "customer_communication",
+        "customer_retention",
+        "product_adoption",
+        "stakeholder_management"
+      ],
+      "secondary_skills": [
+        "renewal_management",
+        "customer_health_monitoring",
+        "data_analysis",
+        "sales_collaboration"
+      ]
+    },
+    {
+      "id": "senior_customer_success_manager",
+      "title": "Senior Customer Success Manager",
+      "alternate_titles": [
+        "Senior CSM",
+        "Strategic CSM",
+        "Enterprise Customer Success Manager"
+      ],
+      "core_skills": [
+        "executive_relationships",
+        "retention_strategy",
+        "customer_health_management",
+        "commercial_mindset"
+      ],
+      "secondary_skills": [
+        "customer_relationship_management",
+        "stakeholder_management",
+        "renewal_management",
+        "customer_communication"
+      ]
+    },
+    {
+      "id": "technical_account_manager",
+      "title": "Technical Account Manager",
+      "alternate_titles": [
+        "TAM",
+        "Senior TAM",
+        "Strategic TAM"
+      ],
+      "core_skills": [
+        "technical_problem_solving",
+        "customer_relationship_management",
+        "business_understanding",
+        "technical_communication"
+      ],
+      "secondary_skills": [
+        "api_integrations",
+        "technical_troubleshooting",
+        "implementation_management",
+        "value_realization"
+      ]
+    },
+    {
+      "id": "account_manager",
+      "title": "Account Manager",
+      "alternate_titles": [
+        "Strategic Account Manager",
+        "Senior Account Manager",
+        "Customer Account Manager"
+      ],
+      "core_skills": [
+        "account_management",
+        "customer_relationship_management",
+        "upselling_cross_selling",
+        "negotiation"
+      ],
+      "secondary_skills": [
+        "customer_communication",
+        "renewal_management",
+        "stakeholder_management",
+        "crm_management"
+      ]
+    },
+    {
+      "id": "customer_experience_specialist",
+      "title": "Customer Experience Specialist",
+      "alternate_titles": [
+        "CX Specialist",
+        "Customer Experience Coordinator",
+        "Junior CX Specialist"
+      ],
+      "core_skills": [
+        "customer_communication",
+        "customer_orientation",
+        "customer_support_operations",
+        "problem_solving"
+      ],
+      "secondary_skills": [
+        "escalation_handling",
+        "process_improvement",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "customer_experience_manager",
+      "title": "Customer Experience Manager",
+      "alternate_titles": [
+        "Senior CX Manager",
+        "Director of Customer Experience",
+        "CX Operations Manager"
+      ],
+      "core_skills": [
+        "customer_journey_management",
+        "data_analysis",
+        "cross_functional_collaboration",
+        "customer_communication"
+      ],
+      "secondary_skills": [
+        "process_design",
+        "process_improvement",
+        "customer_advocacy",
+        "project_management"
+      ]
+    },
+    {
+      "id": "sales_engineer",
+      "title": "Sales Engineer",
+      "alternate_titles": [
+        "Customer-Facing Sales Engineer",
+        "Technical AE"
+      ],
+      "core_skills": [
+        "presentation_skills",
+        "technical_explanation",
+        "customer_discovery",
+        "product_knowledge"
+      ],
+      "secondary_skills": [
+        "technical_communication",
+        "pre_sales_support",
+        "api_integrations",
+        "crm_management"
+      ]
+    },
+    {
+      "id": "support_team_lead",
+      "title": "Support Team Lead",
+      "alternate_titles": [
+        "Support Manager (smaller orgs)",
+        "Customer Support Lead",
+        "Tier 2 Support Lead"
+      ],
+      "core_skills": [
+        "people_management",
+        "customer_support_operations",
+        "coaching",
+        "incident_management"
+      ],
+      "secondary_skills": [
+        "problem_solving",
+        "technical_documentation",
+        "customer_success_metrics",
+        "process_improvement"
+      ]
+    },
+    {
+      "id": "customer_success_team_lead",
+      "title": "Customer Success Team Lead",
+      "alternate_titles": [
+        "CS Team Lead",
+        "CS Manager (player-coach)",
+        "Senior CSM with team lead duties"
+      ],
+      "core_skills": [
+        "people_management",
+        "coaching",
+        "customer_success_metrics",
+        "customer_retention"
+      ],
+      "secondary_skills": [
+        "renewal_management",
+        "expansion_strategy",
+        "customer_health_monitoring",
+        "customer_relationship_management"
+      ]
+    },
+    {
+      "id": "director_customer_success",
+      "title": "Director of Customer Success",
+      "alternate_titles": [
+        "Director of CS",
+        "Head of Customer Success",
+        "Senior Director of Customer Success"
+      ],
+      "core_skills": [
+        "leadership",
+        "customer_success_strategy",
+        "cross_functional_alignment",
+        "operational_management"
+      ],
+      "secondary_skills": [
+        "retention_strategy",
+        "expansion_strategy",
+        "customer_success_metrics",
+        "organizational_design"
+      ]
+    },
+    {
+      "id": "director_customer_success_operations",
+      "title": "Director of Customer Success Operations",
+      "alternate_titles": [
+        "Director of CS Ops",
+        "Head of Customer Success Operations",
+        "Senior CS Operations Manager"
+      ],
+      "core_skills": [
+        "process_design",
+        "systems_thinking",
+        "data_analysis",
+        "salesforce"
+      ],
+      "secondary_skills": [
+        "crm_management",
+        "process_improvement",
+        "operational_management",
+        "project_management"
+      ]
+    },
+    {
+      "id": "vp_customer_success",
+      "title": "VP Customer Success",
+      "alternate_titles": [
+        "VP CS",
+        "Chief Customer Officer",
+        "Head of Customer Success"
+      ],
+      "core_skills": [
+        "executive_leadership",
+        "retention_strategy",
+        "organizational_design",
+        "cross_functional_exec_presence"
+      ],
+      "secondary_skills": [
+        "customer_success_strategy",
+        "cross_functional_alignment",
+        "leadership",
+        "operational_management"
+      ]
+    },
+    {
+      "id": "project_manager",
+      "title": "Project Manager",
+      "alternate_titles": [
+        "PM (non-product)",
+        "Senior Project Manager",
+        "Operations Project Manager"
+      ],
+      "core_skills": [
+        "project_management",
+        "stakeholder_management",
+        "risk_management",
+        "cross_functional_collaboration",
+        "communication"
+      ],
+      "secondary_skills": [
+        "customer_communication",
+        "process_improvement",
+        "agile_methodology",
+        "delivery_execution",
+        "attention_to_detail"
+      ]
+    },
+    {
+      "id": "technical_project_manager",
+      "title": "Technical Project Manager",
+      "alternate_titles": [
+        "TPM",
+        "Senior Technical Project Manager",
+        "Engineering Program Manager"
+      ],
+      "core_skills": [
+        "project_management",
+        "technical_project_delivery",
+        "stakeholder_management",
+        "risk_management",
+        "cross_functional_collaboration"
+      ],
+      "secondary_skills": [
+        "technical_communication",
+        "requirements_gathering",
+        "agile_methodology",
+        "delivery_execution",
+        "process_improvement"
+      ]
+    },
+    {
+      "id": "program_manager",
+      "title": "Program Manager",
+      "alternate_titles": [
+        "Senior Program Manager",
+        "Strategic Program Manager",
+        "Engineering Program Manager"
+      ],
+      "core_skills": [
+        "program_management",
+        "project_management",
+        "stakeholder_management",
+        "cross_functional_collaboration",
+        "leadership"
+      ],
+      "secondary_skills": [
+        "risk_management",
+        "strategic_thinking",
+        "customer_communication",
+        "delivery_execution",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "product_manager",
+      "title": "Product Manager",
+      "alternate_titles": [
+        "PM",
+        "Product Manager",
+        "Senior Associate PM"
+      ],
+      "core_skills": [
+        "roadmap_prioritization",
+        "product_discovery",
+        "prd_writing",
+        "product_lifecycle_management",
+        "product_metrics",
+        "cross_functional_collaboration"
+      ],
+      "secondary_skills": [
+        "agile_scrum",
+        "ux_product_design_sense",
+        "customer_discovery_interviews",
+        "data_analysis",
+        "ai_product_management"
+      ]
+    },
+    {
+      "id": "technical_product_manager",
+      "title": "Technical Product Manager",
+      "alternate_titles": [
+        "TPM",
+        "Platform PM",
+        "Infrastructure PM",
+        "API Product Manager"
+      ],
+      "core_skills": [
+        "technical_product_management",
+        "prd_writing",
+        "agile_scrum",
+        "product_lifecycle_management",
+        "cross_functional_collaboration"
+      ],
+      "secondary_skills": [
+        "api_integrations",
+        "ai_product_management",
+        "technical_communication",
+        "product_metrics",
+        "delivery_execution"
+      ]
+    },
+    {
+      "id": "product_analyst",
+      "title": "Product Analyst",
+      "alternate_titles": [
+        "Product Data Analyst",
+        "Senior Product Analyst",
+        "Growth Analyst"
+      ],
+      "core_skills": [
+        "data_analysis",
+        "sql",
+        "user_behavior_analysis",
+        "product_metrics",
+        "ab_testing",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "dashboarding",
+        "cross_functional_collaboration",
+        "product_discovery",
+        "presentation_skills",
+        "ai_tools_marketing"
+      ]
+    },
+    {
+      "id": "sales_development_representative",
+      "title": "Sales Development Representative",
+      "alternate_titles": [
+        "SDR",
+        "Sales Development Rep",
+        "Outbound SDR",
+        "Inbound SDR"
+      ],
+      "core_skills": [
+        "outbound_prospecting",
+        "lead_qualification",
+        "cold_calling",
+        "customer_communication",
+        "organization"
+      ],
+      "secondary_skills": [
+        "linkedin_outreach",
+        "crm_management",
+        "objection_handling",
+        "sales_tools_proficiency"
+      ]
+    },
+    {
+      "id": "business_development_representative",
+      "title": "Business Development Representative",
+      "alternate_titles": [
+        "BDR",
+        "Business Development Rep",
+        "BDR/SDR"
+      ],
+      "core_skills": [
+        "outbound_prospecting",
+        "lead_qualification",
+        "linkedin_outreach",
+        "customer_communication",
+        "organization"
+      ],
+      "secondary_skills": [
+        "cold_calling",
+        "crm_management",
+        "sales_tools_proficiency",
+        "market_research"
+      ]
+    },
+    {
+      "id": "account_executive",
+      "title": "Account Executive",
+      "alternate_titles": [
+        "AE",
+        "Mid-Market Account Executive",
+        "SMB Account Executive"
+      ],
+      "core_skills": [
+        "discovery_calls",
+        "consultative_selling",
+        "deal_closing",
+        "pipeline_management",
+        "quota_attainment"
+      ],
+      "secondary_skills": [
+        "crm_management",
+        "sales_tools_proficiency",
+        "objection_handling",
+        "customer_communication",
+        "outbound_prospecting"
+      ]
+    },
+    {
+      "id": "senior_account_executive",
+      "title": "Senior Account Executive",
+      "alternate_titles": [
+        "Senior AE",
+        "Strategic Account Executive",
+        "Senior Sales Representative"
+      ],
+      "core_skills": [
+        "enterprise_sales",
+        "consultative_selling",
+        "deal_closing",
+        "pipeline_management",
+        "quota_attainment",
+        "stakeholder_management"
+      ],
+      "secondary_skills": [
+        "negotiation",
+        "sales_forecasting",
+        "outbound_prospecting",
+        "crm_management",
+        "customer_communication"
+      ]
+    },
+    {
+      "id": "enterprise_account_executive",
+      "title": "Enterprise Account Executive",
+      "alternate_titles": [
+        "Enterprise AE",
+        "Strategic AE",
+        "Major Account Executive",
+        "Global Account Executive"
+      ],
+      "core_skills": [
+        "enterprise_sales",
+        "consultative_selling",
+        "deal_closing",
+        "executive_relationships",
+        "stakeholder_management",
+        "negotiation"
+      ],
+      "secondary_skills": [
+        "pipeline_management",
+        "sales_forecasting",
+        "outbound_prospecting",
+        "crm_management",
+        "business_understanding"
+      ]
+    },
+    {
+      "id": "sales_manager",
+      "title": "Sales Manager",
+      "alternate_titles": [
+        "Sales Team Lead",
+        "Manager of Sales",
+        "Regional Sales Manager"
+      ],
+      "core_skills": [
+        "sales_team_leadership",
+        "pipeline_management",
+        "coaching",
+        "sales_forecasting",
+        "people_management"
+      ],
+      "secondary_skills": [
+        "consultative_selling",
+        "crm_management",
+        "cross_functional_collaboration",
+        "negotiation",
+        "customer_communication"
+      ]
+    },
+    {
+      "id": "sales_director",
+      "title": "Sales Director",
+      "alternate_titles": [
+        "Director of Sales",
+        "Regional Sales Director",
+        "Senior Sales Director"
+      ],
+      "core_skills": [
+        "sales_team_leadership",
+        "sales_forecasting",
+        "go_to_market_strategy",
+        "people_management",
+        "enterprise_sales"
+      ],
+      "secondary_skills": [
+        "stakeholder_management",
+        "negotiation",
+        "cross_functional_alignment",
+        "crm_management",
+        "executive_relationships"
+      ]
+    },
+    {
+      "id": "vp_sales",
+      "title": "VP of Sales",
+      "alternate_titles": [
+        "VP of Sales",
+        "Chief Revenue Officer",
+        "CRO",
+        "Head of Sales"
+      ],
+      "core_skills": [
+        "sales_team_leadership",
+        "go_to_market_strategy",
+        "sales_forecasting",
+        "executive_leadership",
+        "people_management",
+        "commercial_mindset"
+      ],
+      "secondary_skills": [
+        "enterprise_sales",
+        "organizational_design",
+        "channel_partner_management",
+        "expansion_strategy",
+        "cross_functional_exec_presence"
+      ]
+    },
+    {
+      "id": "sales_operations_manager",
+      "title": "Sales Operations Manager",
+      "alternate_titles": [
+        "Sales Ops Manager",
+        "Revenue Operations Manager",
+        "Senior Sales Ops"
+      ],
+      "core_skills": [
+        "revenue_operations",
+        "crm_management",
+        "data_analysis",
+        "process_improvement",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "sql",
+        "dashboarding",
+        "cross_functional_collaboration",
+        "systems_thinking",
+        "marketing_analytics"
+      ]
+    },
+    {
+      "id": "channel_partner_manager",
+      "title": "Channel Partner Manager",
+      "alternate_titles": [
+        "Channel Sales Manager",
+        "Partner Sales Manager",
+        "Channel Account Manager"
+      ],
+      "core_skills": [
+        "channel_partner_management",
+        "relationship_building",
+        "negotiation",
+        "stakeholder_management",
+        "pipeline_management"
+      ],
+      "secondary_skills": [
+        "go_to_market_strategy",
+        "crm_management",
+        "cross_functional_collaboration",
+        "customer_communication",
+        "sales_enablement"
+      ]
+    },
+    {
+      "id": "marketing_coordinator",
+      "title": "Marketing Coordinator",
+      "alternate_titles": [
+        "Marketing Operations Coordinator",
+        "Junior Marketing Coordinator"
+      ],
+      "core_skills": [
+        "content_strategy",
+        "social_media_management",
+        "copywriting",
+        "organization",
+        "marketing_analytics"
+      ],
+      "secondary_skills": [
+        "canva_design_tools",
+        "ai_tools_marketing",
+        "event_marketing",
+        "customer_communication"
+      ]
+    },
+    {
+      "id": "marketing_manager",
+      "title": "Marketing Manager",
+      "alternate_titles": [
+        "Marketing Lead",
+        "Senior Marketing Manager"
+      ],
+      "core_skills": [
+        "demand_generation",
+        "content_strategy",
+        "marketing_analytics",
+        "project_management",
+        "cross_functional_collaboration"
+      ],
+      "secondary_skills": [
+        "b2b_marketing",
+        "performance_marketing",
+        "brand_management",
+        "ai_tools_marketing",
+        "event_marketing"
+      ]
+    },
+    {
+      "id": "growth_marketing_manager",
+      "title": "Growth Marketing Manager",
+      "alternate_titles": [
+        "Growth Marketing Lead",
+        "Senior Growth Marketing Manager"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "conversion_rate_optimization",
+          "importance": "critical",
+          "notes": "Primary function — owns CRO strategy and execution across digital properties"
+        },
+        {
+          "skill_id": "marketing_experimentation",
+          "importance": "critical",
+          "notes": "Designs and runs structured A/B testing programs with statistical rigor"
+        },
+        {
+          "skill_id": "funnel_optimization",
+          "importance": "critical",
+          "notes": "Analyzes and optimizes user journeys from acquisition through activation and conversion"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "importance": "high",
+          "notes": "Data interpretation, hypothesis development, and evidence-based decision making"
+        },
+        {
+          "skill_id": "engagement_personalization_tools",
+          "importance": "high",
+          "notes": "Manages chatbots, pop-ups, overlays, product tours, and personalization engines"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "medium",
+          "notes": "Works cross-functionally with SEO, lifecycle, product, and regional marketing teams"
+        },
+        {
+          "skill_id": "cross_functional_collaboration",
+          "importance": "medium",
+          "notes": "Coordinates experiments and initiatives across multiple teams and markets"
+        },
+        {
+          "skill_id": "communication",
+          "importance": "medium",
+          "notes": "Communicates experiment results, growth insights, and strategic recommendations"
+        },
+        {
+          "skill_id": "strategic_thinking",
+          "importance": "medium",
+          "notes": "Prioritizes experimentation roadmap and balances speed, quality, and impact"
+        }
+      ]
+    },
+    {
+      "id": "performance_marketing_manager",
+      "title": "Performance Marketing Manager",
+      "alternate_titles": [
+        "Paid Media Manager",
+        "Acquisition Marketing Manager",
+        "User Acquisition Manager"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "paid_social_advertising",
+          "importance": "critical",
+          "notes": "Primary channel — Meta Ads is the most common core requirement, TikTok and LinkedIn increasingly expected"
+        },
+        {
+          "skill_id": "paid_search_advertising",
+          "importance": "critical",
+          "notes": "Google Ads (Search, UAC, Display) is the second core platform across nearly all listings"
+        },
+        {
+          "skill_id": "campaign_analytics_attribution",
+          "importance": "critical",
+          "notes": "Attribution, tracking, and analytics infrastructure — GA4, MMPs, pixels, dashboards"
+        },
+        {
+          "skill_id": "media_planning_buying",
+          "importance": "high",
+          "notes": "Budget ownership, media plan development, spend allocation across channels"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "importance": "high",
+          "notes": "Data analysis, performance interpretation, and optimization decision-making"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "creative_strategy_performance",
+          "importance": "high",
+          "notes": "Briefing creatives, testing ad variants, and scaling winning creative concepts"
+        },
+        {
+          "skill_id": "marketing_experimentation",
+          "importance": "medium",
+          "notes": "Structured A/B testing of creatives, audiences, bidding strategies, and landing pages"
+        },
+        {
+          "skill_id": "user_acquisition_partnerships",
+          "importance": "medium",
+          "notes": "Managing ad networks, DSPs, SDK networks, and platform partner relationships"
+        },
+        {
+          "skill_id": "cross_functional_collaboration",
+          "importance": "medium",
+          "notes": "Collaborates with creative, product, BI, and monetization teams"
+        },
+        {
+          "skill_id": "communication",
+          "importance": "medium",
+          "notes": "Reporting to leadership, presenting performance insights, working with partners"
+        }
+      ]
+    },
+    {
+      "id": "lifecycle_marketing_manager",
+      "title": "Lifecycle Marketing Manager",
+      "alternate_titles": [
+        "CRM Marketing Manager",
+        "Customer Lifecycle Marketing Manager",
+        "Email Marketing Manager"
+      ],
+      "core_skills": [
+        "lifecycle_marketing",
+        "marketing_automation",
+        "data_analysis",
+        "ab_testing_marketing",
+        "customer_retention"
+      ],
+      "secondary_skills": [
+        "marketing_analytics",
+        "sql",
+        "ai_tools_marketing",
+        "product_adoption",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "product_marketing_manager",
+      "title": "Product Marketing Manager",
+      "alternate_titles": [
+        "PMM",
+        "Senior Product Marketing Manager"
+      ],
+      "core_skills": [
+        "product_positioning",
+        "go_to_market_strategy",
+        "market_research",
+        "sales_enablement",
+        "copywriting"
+      ],
+      "secondary_skills": [
+        "content_strategy",
+        "b2b_marketing",
+        "ai_tools_marketing",
+        "analytical_thinking",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "content_marketing_manager",
+      "title": "Content Marketing Manager",
+      "alternate_titles": [
+        "Content Marketing Lead",
+        "Senior Content Manager",
+        "Editorial Manager"
+      ],
+      "core_skills": [
+        "content_strategy",
+        "copywriting",
+        "seo_management",
+        "project_management",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "ai_tools_marketing",
+        "b2b_marketing",
+        "social_media_management",
+        "marketing_analytics"
+      ]
+    },
+    {
+      "id": "seo_manager",
+      "title": "SEO Manager",
+      "alternate_titles": [
+        "SEO Lead",
+        "Senior SEO Manager",
+        "Organic Growth Manager"
+      ],
+      "core_skills": [
+        "seo_management",
+        "content_strategy",
+        "data_analysis",
+        "analytical_thinking",
+        "marketing_analytics"
+      ],
+      "secondary_skills": [
+        "ai_tools_marketing",
+        "sql",
+        "cross_functional_collaboration",
+        "technical_communication",
+        "dashboarding"
+      ]
+    },
+    {
+      "id": "social_media_manager",
+      "title": "Social Media Manager",
+      "alternate_titles": [
+        "Social Media Lead",
+        "Senior Social Media Manager",
+        "Community Manager"
+      ],
+      "core_skills": [
+        "social_media_management",
+        "content_strategy",
+        "copywriting",
+        "community_management",
+        "organization"
+      ],
+      "secondary_skills": [
+        "canva_design_tools",
+        "ai_tools_marketing",
+        "influencer_marketing",
+        "marketing_analytics"
+      ]
+    },
+    {
+      "id": "head_of_marketing",
+      "title": "Head of Marketing",
+      "alternate_titles": [
+        "Director of Marketing",
+        "VP Marketing (smaller orgs)",
+        "Senior Director of Marketing"
+      ],
+      "core_skills": [
+        "go_to_market_strategy",
+        "brand_management",
+        "demand_generation",
+        "people_management",
+        "marketing_analytics"
+      ],
+      "secondary_skills": [
+        "performance_marketing",
+        "product_positioning",
+        "b2b_marketing",
+        "cross_functional_alignment",
+        "ai_tools_marketing"
+      ]
+    },
+    {
+      "id": "vp_marketing",
+      "title": "VP of Marketing",
+      "alternate_titles": [
+        "VP of Marketing",
+        "Chief Marketing Officer",
+        "CMO"
+      ],
+      "core_skills": [
+        "go_to_market_strategy",
+        "brand_management",
+        "demand_generation",
+        "executive_leadership",
+        "people_management",
+        "organizational_design"
+      ],
+      "secondary_skills": [
+        "marketing_analytics",
+        "performance_marketing",
+        "product_positioning",
+        "cross_functional_exec_presence",
+        "ai_tools_marketing"
+      ]
+    },
+    {
+      "id": "associate_product_manager",
+      "title": "Associate Product Manager",
+      "alternate_titles": [
+        "APM",
+        "Junior Product Manager",
+        "Product Manager I",
+        "Product Associate"
+      ],
+      "core_skills": [
+        "analytical_thinking",
+        "technical_communication",
+        "cross_functional_collaboration",
+        "problem_solving",
+        "organization"
+      ],
+      "secondary_skills": [
+        "prd_writing",
+        "agile_scrum",
+        "ux_product_design_sense",
+        "customer_discovery_interviews",
+        "ai_product_thinking"
+      ]
+    },
+    {
+      "id": "senior_product_manager",
+      "title": "Senior Product Manager",
+      "alternate_titles": [
+        "Senior PM",
+        "Lead Product Manager",
+        "Senior Product Manager"
+      ],
+      "core_skills": [
+        "roadmap_prioritization",
+        "product_strategy",
+        "product_discovery",
+        "prd_writing",
+        "product_metrics",
+        "stakeholder_management"
+      ],
+      "secondary_skills": [
+        "ai_product_management",
+        "competitive_analysis_product",
+        "go_to_market_product",
+        "customer_discovery_interviews",
+        "analytical_thinking",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "group_product_manager",
+      "title": "Group Product Manager",
+      "alternate_titles": [
+        "GPM",
+        "Group PM",
+        "Senior Group Product Manager",
+        "Lead PM"
+      ],
+      "core_skills": [
+        "pm_team_leadership",
+        "product_strategy",
+        "roadmap_prioritization",
+        "people_management",
+        "stakeholder_management"
+      ],
+      "secondary_skills": [
+        "coaching",
+        "product_discovery",
+        "ai_product_management",
+        "competitive_analysis_product",
+        "cross_functional_alignment"
+      ]
+    },
+    {
+      "id": "product_operations_manager",
+      "title": "Product Operations Manager",
+      "alternate_titles": [
+        "ProductOps Manager",
+        "Product Ops Lead",
+        "Senior Product Operations Manager"
+      ],
+      "core_skills": [
+        "product_operations",
+        "process_improvement",
+        "cross_functional_collaboration",
+        "analytical_thinking",
+        "stakeholder_management"
+      ],
+      "secondary_skills": [
+        "data_analysis",
+        "dashboarding",
+        "delivery_execution",
+        "project_management",
+        "systems_thinking"
+      ]
+    },
+    {
+      "id": "head_of_product",
+      "title": "Head of Product",
+      "alternate_titles": [
+        "VP Product",
+        "Chief Product Officer",
+        "VP of Product Management",
+        "Director of Product"
+      ],
+      "core_skills": [
+        "product_strategy",
+        "pm_team_leadership",
+        "people_management",
+        "roadmap_prioritization",
+        "stakeholder_management",
+        "product_discovery"
+      ],
+      "secondary_skills": [
+        "go_to_market_product",
+        "ai_product_management",
+        "competitive_analysis_product",
+        "organizational_design",
+        "executive_leadership"
+      ]
+    },
+    {
+      "id": "data_analyst",
+      "title": "Data Analyst",
+      "alternate_titles": [
+        "Business Analyst",
+        "Senior Data Analyst",
+        "Analytics Analyst"
+      ],
+      "core_skills": [
+        "sql_advanced",
+        "data_analysis",
+        "bi_tools",
+        "analytical_thinking",
+        "data_storytelling"
+      ],
+      "secondary_skills": [
+        "python_data",
+        "statistical_analysis",
+        "experimentation_framework",
+        "product_analytics_expertise",
+        "data_modeling"
+      ]
+    },
+    {
+      "id": "business_intelligence_analyst",
+      "title": "Business Intelligence Analyst",
+      "alternate_titles": [
+        "BI Analyst",
+        "Senior BI Analyst",
+        "BI Developer"
+      ],
+      "core_skills": [
+        "sql_advanced",
+        "bi_tools",
+        "data_modeling",
+        "data_analysis",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "python_data",
+        "cloud_data_platforms",
+        "data_storytelling",
+        "cross_functional_collaboration",
+        "dashboarding"
+      ]
+    },
+    {
+      "id": "analytics_engineer",
+      "title": "Analytics Engineer",
+      "alternate_titles": [
+        "Senior Analytics Engineer",
+        "Data Modeling Engineer"
+      ],
+      "core_skills": [
+        "sql_advanced",
+        "data_modeling",
+        "data_engineering_pipelines",
+        "cloud_data_platforms",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "python_data",
+        "bi_tools",
+        "data_analysis",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "data_engineer",
+      "title": "Data Engineer",
+      "alternate_titles": [
+        "Senior Data Engineer",
+        "Data Platform Engineer",
+        "Big Data Engineer"
+      ],
+      "core_skills": [
+        "data_engineering_pipelines",
+        "sql_advanced",
+        "python_data",
+        "cloud_data_platforms",
+        "data_modeling"
+      ],
+      "secondary_skills": [
+        "cloud_tools",
+        "analytical_thinking",
+        "cross_functional_collaboration",
+        "api_integrations"
+      ]
+    },
+    {
+      "id": "data_scientist",
+      "title": "Data Scientist",
+      "alternate_titles": [
+        "Senior Data Scientist",
+        "Applied Scientist",
+        "ML Data Scientist"
+      ],
+      "core_skills": [
+        "machine_learning",
+        "python_data",
+        "sql_advanced",
+        "statistical_analysis",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "deep_learning",
+        "mlops",
+        "cloud_data_platforms",
+        "experimentation_framework",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "senior_data_analyst",
+      "title": "Senior Data Analyst",
+      "alternate_titles": [
+        "Lead Data Analyst",
+        "Principal Data Analyst",
+        "Senior Business Analyst"
+      ],
+      "core_skills": [
+        "sql_advanced",
+        "data_analysis",
+        "statistical_analysis",
+        "bi_tools",
+        "data_storytelling",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "python_data",
+        "experimentation_framework",
+        "product_analytics_expertise",
+        "cloud_data_platforms",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "head_of_data",
+      "title": "Head of Data & Analytics",
+      "alternate_titles": [
+        "VP Data",
+        "Director of Data",
+        "Head of Analytics",
+        "Chief Data Officer"
+      ],
+      "core_skills": [
+        "data_team_leadership",
+        "data_analysis",
+        "sql_advanced",
+        "people_management",
+        "data_storytelling",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "python_data",
+        "bi_tools",
+        "cloud_data_platforms",
+        "experimentation_framework",
+        "cross_functional_alignment"
+      ]
+    },
+    {
+      "id": "fpa_analyst",
+      "title": "FP&A Analyst",
+      "alternate_titles": [
+        "FP&A Analyst",
+        "Senior FP&A Analyst",
+        "Financial Planning Analyst"
+      ],
+      "core_skills": [
+        "budget_forecasting",
+        "financial_modeling",
+        "bva_analysis",
+        "excel_advanced_finance",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "saas_finance_metrics",
+        "finance_business_partnering",
+        "erp_systems_finance",
+        "epm_planning_tools",
+        "presentation_skills"
+      ]
+    },
+    {
+      "id": "senior_fpa_analyst",
+      "title": "Senior FP&A Analyst",
+      "alternate_titles": [
+        "Senior FP&A Manager",
+        "FP&A Lead",
+        "Strategic Finance Analyst"
+      ],
+      "core_skills": [
+        "budget_forecasting",
+        "financial_modeling",
+        "bva_analysis",
+        "excel_advanced_finance",
+        "finance_business_partnering",
+        "saas_finance_metrics"
+      ],
+      "secondary_skills": [
+        "erp_systems_finance",
+        "epm_planning_tools",
+        "stakeholder_management",
+        "presentation_skills",
+        "investor_relations_finance"
+      ]
+    },
+    {
+      "id": "controller",
+      "title": "Controller",
+      "alternate_titles": [
+        "Senior Controller",
+        "Corporate Controller",
+        "Group Controller"
+      ],
+      "core_skills": [
+        "cpa_accounting",
+        "financial_reporting",
+        "gaap_ifrs",
+        "audit_management",
+        "erp_systems_finance",
+        "excel_advanced_finance"
+      ],
+      "secondary_skills": [
+        "revenue_recognition",
+        "cash_flow_management",
+        "budget_forecasting",
+        "bva_analysis",
+        "process_improvement"
+      ]
+    },
+    {
+      "id": "finance_manager",
+      "title": "Finance Manager",
+      "alternate_titles": [
+        "Senior Finance Manager",
+        "Director of Finance (smaller orgs)"
+      ],
+      "core_skills": [
+        "financial_reporting",
+        "budget_forecasting",
+        "financial_modeling",
+        "cpa_accounting",
+        "gaap_ifrs",
+        "people_management"
+      ],
+      "secondary_skills": [
+        "cash_flow_management",
+        "erp_systems_finance",
+        "finance_business_partnering",
+        "audit_management",
+        "stakeholder_management"
+      ]
+    },
+    {
+      "id": "vp_finance_cfo",
+      "title": "VP Finance / CFO",
+      "alternate_titles": [
+        "CFO",
+        "Chief Financial Officer",
+        "VP of Finance"
+      ],
+      "core_skills": [
+        "financial_modeling",
+        "budget_forecasting",
+        "investor_relations_finance",
+        "saas_finance_metrics",
+        "people_management",
+        "financial_reporting"
+      ],
+      "secondary_skills": [
+        "cpa_accounting",
+        "gaap_ifrs",
+        "cash_flow_management",
+        "executive_leadership",
+        "finance_business_partnering",
+        "stakeholder_management"
+      ]
+    },
+    {
+      "id": "hr_generalist",
+      "title": "HR Generalist",
+      "alternate_titles": [
+        "People Generalist",
+        "Senior HR Generalist",
+        "HR Business Partner (junior)"
+      ],
+      "core_skills": [
+        "employee_lifecycle_management",
+        "talent_acquisition_recruiting",
+        "israeli_labor_law",
+        "cross_functional_collaboration",
+        "organization"
+      ],
+      "secondary_skills": [
+        "hris_management",
+        "employee_experience",
+        "performance_management",
+        "analytical_thinking"
+      ]
+    },
+    {
+      "id": "hr_operations_manager",
+      "title": "HR Operations Manager",
+      "alternate_titles": [
+        "People Operations Manager",
+        "HR Ops Manager",
+        "Senior HR Operations Manager"
+      ],
+      "core_skills": [
+        "hris_management",
+        "employee_lifecycle_management",
+        "hr_data_analytics",
+        "process_improvement",
+        "israeli_labor_law"
+      ],
+      "secondary_skills": [
+        "analytical_thinking",
+        "cross_functional_collaboration",
+        "organizational_development",
+        "bi_tools"
+      ]
+    },
+    {
+      "id": "ld_specialist",
+      "title": "L&D Specialist",
+      "alternate_titles": [
+        "L&D Specialist",
+        "Learning & Development Specialist",
+        "Training Specialist"
+      ],
+      "core_skills": [
+        "learning_development",
+        "organizational_development",
+        "program_management",
+        "cross_functional_collaboration",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "hr_data_analytics",
+        "stakeholder_management",
+        "employee_experience",
+        "presentation_skills"
+      ]
+    },
+    {
+      "id": "hr_business_partner",
+      "title": "HR Business Partner",
+      "alternate_titles": [
+        "HRBP",
+        "Senior HR Business Partner",
+        "People Business Partner"
+      ],
+      "core_skills": [
+        "hr_business_partnering",
+        "performance_management",
+        "organizational_development",
+        "stakeholder_management",
+        "coaching"
+      ],
+      "secondary_skills": [
+        "employee_lifecycle_management",
+        "hr_data_analytics",
+        "talent_acquisition_recruiting",
+        "learning_development"
+      ]
+    },
+    {
+      "id": "compensation_benefits_specialist",
+      "title": "Compensation & Benefits Specialist",
+      "alternate_titles": [
+        "C&B Specialist",
+        "Total Rewards Specialist",
+        "Compensation Analyst"
+      ],
+      "core_skills": [
+        "compensation_benefits",
+        "hr_data_analytics",
+        "analytical_thinking",
+        "excel_advanced_finance",
+        "stakeholder_management"
+      ],
+      "secondary_skills": [
+        "hris_management",
+        "financial_modeling",
+        "bi_tools",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "talent_acquisition_manager",
+      "title": "Talent Acquisition Manager",
+      "alternate_titles": [
+        "TA Manager",
+        "Senior TA Manager",
+        "Head of Recruiting"
+      ],
+      "core_skills": [
+        "talent_acquisition_recruiting",
+        "employer_branding",
+        "people_management",
+        "stakeholder_management",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "hr_data_analytics",
+        "cross_functional_collaboration",
+        "organizational_development",
+        "coaching"
+      ]
+    },
+    {
+      "id": "hr_manager",
+      "title": "HR Manager",
+      "alternate_titles": [
+        "People Manager",
+        "Senior HR Manager",
+        "Director of HR (smaller orgs)"
+      ],
+      "core_skills": [
+        "hr_business_partnering",
+        "employee_lifecycle_management",
+        "talent_acquisition_recruiting",
+        "israeli_labor_law",
+        "people_management"
+      ],
+      "secondary_skills": [
+        "hris_management",
+        "compensation_benefits",
+        "learning_development",
+        "hr_data_analytics",
+        "organizational_development"
+      ]
+    },
+    {
+      "id": "head_of_hr_people",
+      "title": "Head of HR / VP People",
+      "alternate_titles": [
+        "VP People",
+        "VP HR",
+        "Chief People Officer",
+        "Head of People"
+      ],
+      "core_skills": [
+        "hr_business_partnering",
+        "people_management",
+        "organizational_development",
+        "talent_acquisition_recruiting",
+        "stakeholder_management"
+      ],
+      "secondary_skills": [
+        "compensation_benefits",
+        "hr_data_analytics",
+        "learning_development",
+        "israeli_labor_law",
+        "executive_leadership"
+      ]
+    },
+    {
+      "id": "revops_analyst",
+      "title": "Revenue Operations Analyst",
+      "alternate_titles": [
+        "Senior Revenue Operations Analyst",
+        "RevOps Analyst",
+        "GTM Analyst"
+      ],
+      "core_skills": [
+        "revops_crm_administration",
+        "revops_commercial_analytics",
+        "data_analysis",
+        "excel_advanced_finance",
+        "sql"
+      ],
+      "secondary_skills": [
+        "revops_pipeline_management",
+        "revops_tech_stack_integration",
+        "dashboarding",
+        "bizops_process_automation",
+        "technical_communication"
+      ]
+    },
+    {
+      "id": "revops_manager",
+      "title": "Revenue Operations Manager",
+      "alternate_titles": [
+        "Senior Revenue Operations Manager",
+        "RevOps Manager",
+        "Head of Sales Ops"
+      ],
+      "core_skills": [
+        "revops_crm_administration",
+        "revops_pipeline_management",
+        "revops_gtm_process_design",
+        "revops_commercial_analytics",
+        "bizops_cross_functional_execution"
+      ],
+      "secondary_skills": [
+        "revops_tech_stack_integration",
+        "bizops_process_automation",
+        "bizops_enablement_training",
+        "data_analysis",
+        "project_management",
+        "stakeholder_management"
+      ]
+    },
+    {
+      "id": "head_of_revops",
+      "title": "Head of Revenue Operations / Senior RevOps Manager",
+      "alternate_titles": [
+        "VP Revenue Operations",
+        "Head of RevOps",
+        "Director of Revenue Operations"
+      ],
+      "core_skills": [
+        "revops_pipeline_management",
+        "revops_gtm_process_design",
+        "revops_commercial_analytics",
+        "bizops_cross_functional_execution",
+        "bizops_executive_communication",
+        "leadership"
+      ],
+      "secondary_skills": [
+        "revops_crm_administration",
+        "revops_tech_stack_integration",
+        "bizops_business_case_development",
+        "bizops_operational_scaling",
+        "bizops_okr_framework",
+        "strategic_thinking"
+      ]
+    },
+    {
+      "id": "business_analyst",
+      "title": "Business Analyst",
+      "alternate_titles": [
+        "Senior Business Analyst",
+        "BizOps Analyst",
+        "Business Operations Analyst"
+      ],
+      "core_skills": [
+        "data_analysis",
+        "excel_advanced_finance",
+        "dashboarding",
+        "technical_communication",
+        "revops_commercial_analytics"
+      ],
+      "secondary_skills": [
+        "sql",
+        "bi_tools",
+        "revops_crm_administration",
+        "requirements_gathering",
+        "problem_solving"
+      ]
+    },
+    {
+      "id": "business_ops_analyst",
+      "title": "Business Operations Analyst",
+      "alternate_titles": [
+        "BizOps Analyst",
+        "Senior Business Operations Analyst",
+        "Strategy Analyst"
+      ],
+      "core_skills": [
+        "excel_advanced_finance",
+        "technical_communication",
+        "attention_to_detail",
+        "process_improvement",
+        "data_analysis"
+      ],
+      "secondary_skills": [
+        "revops_crm_administration",
+        "project_management",
+        "problem_solving",
+        "bizops_process_automation",
+        "saas_finance_metrics"
+      ]
+    },
+    {
+      "id": "business_ops_manager",
+      "title": "Business Operations Manager",
+      "alternate_titles": [
+        "BizOps Manager",
+        "Senior Business Operations Manager",
+        "Strategy & Operations Manager"
+      ],
+      "core_skills": [
+        "bizops_cross_functional_execution",
+        "bizops_okr_framework",
+        "project_management",
+        "process_improvement",
+        "stakeholder_management"
+      ],
+      "secondary_skills": [
+        "bizops_executive_operating_rhythm",
+        "bizops_process_automation",
+        "data_analysis",
+        "bizops_enablement_training",
+        "technical_communication",
+        "problem_solving"
+      ]
+    },
+    {
+      "id": "strategy_ops_manager",
+      "title": "Strategy & Operations Manager",
+      "alternate_titles": [
+        "Strategy Manager",
+        "Senior Strategy Manager",
+        "Strategy & Operations Manager"
+      ],
+      "core_skills": [
+        "bizops_business_case_development",
+        "bizops_cross_functional_execution",
+        "strategic_thinking",
+        "data_analysis",
+        "bizops_executive_communication"
+      ],
+      "secondary_skills": [
+        "bizops_okr_framework",
+        "revops_commercial_analytics",
+        "project_management",
+        "stakeholder_management",
+        "saas_finance_metrics",
+        "excel_advanced_finance"
+      ]
+    },
+    {
+      "id": "chief_of_staff",
+      "title": "Chief of Staff",
+      "alternate_titles": [
+        "Senior Chief of Staff",
+        "Chief of Staff to CEO",
+        "Chief of Staff to CTO"
+      ],
+      "core_skills": [
+        "bizops_executive_communication",
+        "bizops_executive_operating_rhythm",
+        "bizops_cross_functional_execution",
+        "strategic_thinking",
+        "stakeholder_management"
+      ],
+      "secondary_skills": [
+        "bizops_business_case_development",
+        "bizops_okr_framework",
+        "project_management",
+        "technical_communication",
+        "leadership",
+        "emotional_intelligence"
+      ]
+    },
+    {
+      "id": "vp_operations",
+      "title": "VP / Head of Operations",
+      "alternate_titles": [
+        "VP of Operations",
+        "Chief Operating Officer",
+        "COO"
+      ],
+      "core_skills": [
+        "bizops_operational_scaling",
+        "leadership",
+        "bizops_cross_functional_execution",
+        "bizops_executive_communication",
+        "strategic_thinking"
+      ],
+      "secondary_skills": [
+        "bizops_executive_operating_rhythm",
+        "bizops_okr_framework",
+        "bizops_business_case_development",
+        "bizops_process_automation",
+        "customer_journey_management",
+        "saas_finance_metrics"
+      ]
+    },
+    {
+      "id": "junior_software_engineer",
+      "title": "Junior Software Engineer",
+      "alternate_titles": [
+        "Entry-Level Software Engineer",
+        "Software Engineer I",
+        "Associate Software Engineer",
+        "Graduate Software Engineer"
+      ],
+      "core_skills": [
+        "programming_fundamentals",
+        "python_development",
+        "git_version_control",
+        "debugging",
+        "data_structures_algorithms"
+      ],
+      "secondary_skills": [
+        "linux_fundamentals",
+        "sql",
+        "testing_practices",
+        "communication"
+      ]
+    },
+    {
+      "id": "software_engineer",
+      "title": "Software Engineer",
+      "alternate_titles": [
+        "Backend Engineer",
+        "Full-Stack Engineer",
+        "Software Developer",
+        "Backend Developer"
+      ],
+      "core_skills": [
+        "backend_development",
+        "python_development",
+        "databases",
+        "api_design",
+        "git_version_control"
+      ],
+      "secondary_skills": [
+        "frontend_development",
+        "system_design_basics",
+        "testing_practices",
+        "cloud_fundamentals",
+        "debugging"
+      ]
+    },
+    {
+      "id": "senior_software_engineer",
+      "title": "Senior Software Engineer",
+      "alternate_titles": [
+        "Senior Backend Engineer",
+        "Senior Full-Stack Engineer",
+        "SWE III",
+        "Software Engineer III"
+      ],
+      "core_skills": [
+        "backend_development",
+        "system_design",
+        "distributed_systems",
+        "python_development",
+        "performance_optimization"
+      ],
+      "secondary_skills": [
+        "api_design",
+        "mentoring",
+        "technical_leadership",
+        "cloud_platforms",
+        "databases"
+      ]
+    },
+    {
+      "id": "staff_engineer",
+      "title": "Staff Engineer",
+      "alternate_titles": [
+        "Principal Engineer",
+        "Principal Software Engineer",
+        "Staff Software Engineer"
+      ],
+      "core_skills": [
+        "system_architecture",
+        "distributed_systems",
+        "technical_leadership",
+        "strategic_thinking",
+        "mentoring"
+      ],
+      "secondary_skills": [
+        "backend_development",
+        "performance_optimization",
+        "cross_team_collaboration",
+        "cloud_platforms",
+        "ai_tool_fluency"
+      ]
+    },
+    {
+      "id": "tech_lead",
+      "title": "Tech Lead",
+      "alternate_titles": [
+        "Engineering Tech Lead",
+        "TL",
+        "Technical Lead",
+        "Lead Engineer"
+      ],
+      "core_skills": [
+        "backend_development",
+        "system_design",
+        "technical_leadership",
+        "python_development",
+        "code_review_practices"
+      ],
+      "secondary_skills": [
+        "mentoring",
+        "ci_cd",
+        "testing_practices",
+        "cloud_platforms",
+        "agile_methodology"
+      ]
+    },
+    {
+      "id": "engineering_manager",
+      "title": "Engineering Manager",
+      "alternate_titles": [
+        "EM",
+        "Software Engineering Manager",
+        "Manager of Engineering"
+      ],
+      "core_skills": [
+        "people_management",
+        "technical_leadership",
+        "hiring_talent_acquisition",
+        "performance_management",
+        "agile_methodology"
+      ],
+      "secondary_skills": [
+        "backend_development",
+        "system_design",
+        "cross_team_collaboration",
+        "ci_cd",
+        "cloud_platforms"
+      ]
+    },
+    {
+      "id": "senior_engineering_manager",
+      "title": "Senior Engineering Manager / Director of Engineering",
+      "alternate_titles": [
+        "Senior EM",
+        "Director of Engineering",
+        "Senior Manager, Engineering"
+      ],
+      "core_skills": [
+        "engineering_leadership",
+        "people_management",
+        "system_architecture",
+        "strategic_thinking",
+        "cross_team_collaboration"
+      ],
+      "secondary_skills": [
+        "hiring_talent_acquisition",
+        "stakeholder_management",
+        "distributed_systems",
+        "cloud_platforms",
+        "process_improvement"
+      ]
+    },
+    {
+      "id": "vp_engineering",
+      "title": "VP Engineering / Head of Engineering",
+      "alternate_titles": [
+        "VPE",
+        "VP of Engineering",
+        "Vice President, Engineering",
+        "Head of Engineering"
+      ],
+      "core_skills": [
+        "executive_leadership",
+        "engineering_leadership",
+        "system_architecture",
+        "strategic_thinking",
+        "talent_strategy"
+      ],
+      "secondary_skills": [
+        "organizational_design",
+        "stakeholder_management",
+        "distributed_systems",
+        "cloud_platforms",
+        "ai_strategy"
+      ]
+    },
+    {
+      "id": "qa_engineer",
+      "title": "QA Engineer",
+      "alternate_titles": [
+        "QA Automation Engineer",
+        "Test Engineer",
+        "Software Tester",
+        "SDET"
+      ],
+      "core_skills": [
+        "manual_testing",
+        "test_automation",
+        "test_planning",
+        "bug_tracking",
+        "qa_methodology"
+      ],
+      "secondary_skills": [
+        "api_testing",
+        "analytical_thinking",
+        "attention_to_detail",
+        "communication",
+        "sql"
+      ]
+    },
+    {
+      "id": "devops_engineer",
+      "title": "DevOps Engineer",
+      "alternate_titles": [
+        "Platform Engineer",
+        "Infrastructure Engineer",
+        "Cloud Engineer",
+        "DevOps / Cloud Engineer"
+      ],
+      "core_skills": [
+        "cloud_platforms_devops",
+        "infrastructure_as_code",
+        "ci_cd",
+        "containerization",
+        "linux_administration"
+      ],
+      "secondary_skills": [
+        "scripting_automation",
+        "monitoring_observability",
+        "networking_fundamentals",
+        "security_best_practices",
+        "git_version_control"
+      ]
+    },
+    {
+      "id": "sre_engineer",
+      "title": "SRE Engineer",
+      "alternate_titles": [
+        "Site Reliability Engineer",
+        "Senior SRE",
+        "Production Engineer"
+      ],
+      "core_skills": [
+        "production_systems",
+        "monitoring_observability",
+        "incident_management",
+        "scripting_automation",
+        "linux_administration"
+      ],
+      "secondary_skills": [
+        "distributed_systems",
+        "cloud_platforms_devops",
+        "containerization",
+        "networking_fundamentals",
+        "ci_cd"
+      ]
+    },
+    {
+      "id": "engineering_group_manager",
+      "title": "Engineering Group Manager",
+      "alternate_titles": [
+        "Group EM",
+        "Director of Engineering",
+        "Group Engineering Manager",
+        "Engineering Director"
+      ],
+      "core_skills": [
+        "engineering_leadership",
+        "people_management",
+        "organizational_design",
+        "cross_team_collaboration",
+        "stakeholder_management"
+      ],
+      "secondary_skills": [
+        "system_architecture",
+        "hiring_talent_acquisition",
+        "strategic_thinking",
+        "distributed_systems",
+        "cloud_platforms"
+      ]
+    },
+    {
+      "id": "junior_ai_ml_engineer",
+      "title": "Junior AI/ML Engineer",
+      "alternate_titles": [
+        "Junior AI Engineer",
+        "Junior ML Engineer",
+        "AI/ML Engineer I",
+        "Entry-Level AI Engineer"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "python_development",
+          "required_proficiency": "beginner"
+        },
+        {
+          "skill_id": "llm_api_integration",
+          "required_proficiency": "beginner"
+        },
+        {
+          "skill_id": "prompt_engineering",
+          "required_proficiency": "beginner"
+        },
+        {
+          "skill_id": "machine_learning_fundamentals",
+          "required_proficiency": "beginner"
+        },
+        {
+          "skill_id": "llm_fundamentals",
+          "required_proficiency": "beginner"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "required_proficiency": "beginner"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "rag_systems",
+          "required_proficiency": "beginner"
+        },
+        {
+          "skill_id": "vector_databases",
+          "required_proficiency": "beginner"
+        },
+        {
+          "skill_id": "git_version_control",
+          "required_proficiency": "beginner"
+        },
+        {
+          "skill_id": "api_design",
+          "required_proficiency": "beginner"
+        },
+        {
+          "skill_id": "debugging",
+          "required_proficiency": "beginner"
+        },
+        {
+          "skill_id": "communication",
+          "required_proficiency": "beginner"
+        }
+      ]
+    },
+    {
+      "id": "ai_engineer_mid",
+      "title": "AI Engineer / GenAI Engineer",
+      "alternate_titles": [
+        "AI Engineer",
+        "ML Engineer",
+        "Applied AI Engineer",
+        "GenAI Engineer"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "python_development",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "llm_api_integration",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "prompt_engineering",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "rag_systems",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "ai_agent_development",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "vector_databases",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "ml_systems_thinking",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "backend_development",
+          "required_proficiency": "intermediate"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "llm_evaluation",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "model_deployment_serving",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "cloud_platforms",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "api_design",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "databases",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "machine_learning_fundamentals",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "debugging",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "ai_product_thinking",
+          "required_proficiency": "intermediate"
+        }
+      ]
+    },
+    {
+      "id": "senior_ai_engineer",
+      "title": "Senior AI Engineer",
+      "alternate_titles": [
+        "Staff AI Engineer",
+        "Principal AI Engineer",
+        "Senior ML Engineer",
+        "Senior Applied AI Engineer"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "python_development",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "llm_api_integration",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_agent_development",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "rag_systems",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ml_systems_thinking",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "system_design",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "llm_evaluation",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "backend_development",
+          "required_proficiency": "advanced"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "model_deployment_serving",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_safety_responsible_ai",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "model_training_finetuning",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "deep_learning",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "ai_cost_optimization",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "mentoring",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "technical_leadership",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "performance_optimization",
+          "required_proficiency": "advanced"
+        }
+      ]
+    },
+    {
+      "id": "mlops_engineer",
+      "title": "MLOps / ML Platform Engineer",
+      "alternate_titles": [
+        "ML Platform Engineer",
+        "ML Infrastructure Engineer",
+        "AI Platform Engineer"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "python_development",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "mlops_pipelines",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "model_deployment_serving",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "model_monitoring_drift",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "containerization",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "cloud_platforms",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ci_cd",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_experiment_tracking",
+          "required_proficiency": "advanced"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "distributed_training",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "data_pipeline_ml",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "deep_learning",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "monitoring_observability",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "system_design",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "ml_systems_thinking",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "scripting_automation",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "performance_optimization",
+          "required_proficiency": "advanced"
+        }
+      ]
+    },
+    {
+      "id": "cv_edge_ai_engineer",
+      "title": "Computer Vision / Edge AI Engineer",
+      "alternate_titles": [
+        "Computer Vision Engineer",
+        "Edge AI Engineer",
+        "Embedded ML Engineer",
+        "CV Engineer"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "python_development",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "computer_vision",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "deep_learning",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "edge_ai_deployment",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ml_systems_thinking",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "performance_optimization",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "debugging",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "required_proficiency": "advanced"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "model_training_finetuning",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "model_deployment_serving",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "linux_administration",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "system_design",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "machine_learning_fundamentals",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "data_pipeline_ml",
+          "required_proficiency": "intermediate"
+        }
+      ]
+    },
+    {
+      "id": "applied_ai_researcher",
+      "title": "Applied AI Researcher",
+      "alternate_titles": [
+        "AI Research Scientist",
+        "Applied Research Engineer",
+        "ML Research Engineer",
+        "Research Scientist"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "python_development",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "applied_ai_research",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "machine_learning_fundamentals",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "deep_learning",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "model_training_finetuning",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ml_systems_thinking",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "llm_evaluation",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "required_proficiency": "advanced"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "ai_agent_development",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "rag_systems",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "model_deployment_serving",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "ai_experiment_tracking",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "llm_fundamentals",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "communication",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "technical_communication",
+          "required_proficiency": "advanced"
+        }
+      ]
+    },
+    {
+      "id": "prompt_engineer",
+      "title": "Prompt Engineer / Conversational AI Designer",
+      "alternate_titles": [
+        "Senior Prompt Engineer",
+        "AI Prompt Engineer",
+        "LLM Prompt Engineer",
+        "Conversational AI Designer"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "prompt_engineering",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "conversational_ai_design",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "llm_api_integration",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "llm_fundamentals",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "llm_evaluation",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "ai_product_thinking",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "communication",
+          "required_proficiency": "advanced"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "python_development",
+          "required_proficiency": "beginner"
+        },
+        {
+          "skill_id": "rag_systems",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "ai_safety_responsible_ai",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "attention_to_detail",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "cross_functional_collaboration",
+          "required_proficiency": "intermediate"
+        }
+      ]
+    },
+    {
+      "id": "ai_transformation_lead",
+      "title": "AI Transformation Lead / AI Enablement Lead",
+      "alternate_titles": [
+        "AI Transformation Manager",
+        "Head of AI Adoption",
+        "AI Strategy Lead",
+        "Enterprise AI Lead"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "ai_transformation_change_mgmt",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_product_thinking",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "no_code_ai_automation",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "llm_api_integration",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "prompt_engineering",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "change_management",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "communication",
+          "required_proficiency": "advanced"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "ai_governance_compliance",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "ai_agent_development",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "process_improvement",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "cross_functional_collaboration",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "strategic_thinking",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "ai_tool_fluency",
+          "required_proficiency": "advanced"
+        }
+      ]
+    },
+    {
+      "id": "head_of_ai",
+      "title": "Head of AI / AI Lead",
+      "alternate_titles": [
+        "Head of AI",
+        "Director of AI",
+        "AI Lead",
+        "Head of Machine Learning"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "ai_team_leadership",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_strategy_roadmap",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ml_systems_thinking",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "python_development",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_hiring_talent",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "people_management",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "technical_leadership",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "required_proficiency": "advanced"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "applied_ai_research",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_agent_development",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_product_thinking",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "system_design",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_safety_responsible_ai",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "mentoring",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "mlops_pipelines",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "strategic_thinking",
+          "required_proficiency": "advanced"
+        }
+      ]
+    },
+    {
+      "id": "vp_ai_chief_ai_officer",
+      "title": "VP AI / Chief AI Officer",
+      "alternate_titles": [
+        "VP AI",
+        "Chief AI Officer",
+        "CAIO",
+        "VP of Artificial Intelligence"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "executive_leadership",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_strategy_roadmap",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_team_leadership",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "engineering_leadership",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "strategic_thinking",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_hiring_talent",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_product_thinking",
+          "required_proficiency": "advanced"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "ml_systems_thinking",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_governance_compliance",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_transformation_change_mgmt",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_safety_responsible_ai",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "communication",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_strategy",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "change_management",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "cross_functional_collaboration",
+          "required_proficiency": "advanced"
+        }
+      ]
+    },
+    {
+      "id": "ai_solutions_engineering_manager",
+      "title": "AI Solutions Engineering Manager",
+      "alternate_titles": [
+        "AI SE Manager",
+        "AI Solutions Architect Lead",
+        "Head of AI Solutions"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "customer_facing_ai_delivery",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_product_thinking",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "people_management",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_agent_development",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "llm_api_integration",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "technical_leadership",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "communication",
+          "required_proficiency": "advanced"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "python_development",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "process_improvement",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "project_management",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "mentoring",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "ai_transformation_change_mgmt",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "prompt_engineering",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "cross_functional_collaboration",
+          "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "strategic_thinking",
+          "required_proficiency": "intermediate"
+        }
+      ]
+    },
+    {
+      "id": "junior_ux_ui_designer",
+      "title": "Junior UX/UI Designer",
+      "alternate_titles": [
+        "Junior Product Designer",
+        "UI/UX Designer (entry)",
+        "Associate Designer"
+      ],
+      "core_skills": [
+        "figma_mastery",
+        "ui_visual_design",
+        "wireframing",
+        "ux_design_process"
+      ],
+      "secondary_skills": [
+        "prototyping",
+        "interaction_design",
+        "adobe_creative_suite",
+        "design_handoff",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "product_designer_ux_ui",
+      "title": "Product Designer (UX/UI)",
+      "alternate_titles": [
+        "Product Designer",
+        "UX/UI Designer",
+        "Senior Product Designer (early)"
+      ],
+      "core_skills": [
+        "figma_mastery",
+        "ux_design_process",
+        "ui_visual_design",
+        "prototyping",
+        "cross_functional_collaboration"
+      ],
+      "secondary_skills": [
+        "user_research",
+        "interaction_design",
+        "information_architecture",
+        "design_system_management",
+        "design_handoff",
+        "usability_testing",
+        "design_stakeholder_communication"
+      ]
+    },
+    {
+      "id": "senior_product_designer",
+      "title": "Senior Product Designer",
+      "alternate_titles": [
+        "Staff Product Designer",
+        "Principal Designer",
+        "Lead Product Designer"
+      ],
+      "core_skills": [
+        "figma_mastery",
+        "ux_design_process",
+        "ui_visual_design",
+        "design_for_complex_systems",
+        "design_stakeholder_communication",
+        "cross_functional_collaboration"
+      ],
+      "secondary_skills": [
+        "user_research",
+        "prototyping",
+        "design_system_management",
+        "interaction_design",
+        "information_architecture",
+        "design_critique",
+        "design_handoff",
+        "usability_testing"
+      ]
+    },
+    {
+      "id": "ux_researcher",
+      "title": "UX Researcher",
+      "alternate_titles": [
+        "UX Research Lead",
+        "Senior UX Researcher",
+        "User Researcher"
+      ],
+      "core_skills": [
+        "user_research",
+        "usability_testing",
+        "design_stakeholder_communication",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "ux_design_process",
+        "cross_functional_collaboration",
+        "information_architecture",
+        "prototyping",
+        "conversion_optimization_design"
+      ]
+    },
+    {
+      "id": "design_system_lead",
+      "title": "Design System Lead",
+      "alternate_titles": [
+        "Design Systems Manager",
+        "Design Systems Lead",
+        "Senior Design Systems Designer"
+      ],
+      "core_skills": [
+        "design_system_management",
+        "figma_mastery",
+        "ui_visual_design",
+        "cross_functional_collaboration"
+      ],
+      "secondary_skills": [
+        "interaction_design",
+        "design_critique",
+        "design_handoff",
+        "design_stakeholder_communication",
+        "accessibility_design",
+        "ux_design_process"
+      ]
+    },
+    {
+      "id": "design_lead_design_manager",
+      "title": "Design Lead / Design Manager",
+      "alternate_titles": [
+        "Design Manager",
+        "Senior Design Manager",
+        "Director of Design"
+      ],
+      "core_skills": [
+        "design_leadership",
+        "ux_design_process",
+        "design_critique",
+        "design_stakeholder_communication",
+        "cross_functional_collaboration"
+      ],
+      "secondary_skills": [
+        "figma_mastery",
+        "ui_visual_design",
+        "design_system_management",
+        "user_research",
+        "design_for_complex_systems",
+        "design_handoff",
+        "hiring_talent_acquisition"
+      ]
+    },
+    {
+      "id": "head_of_design_vp_design",
+      "title": "Head of Design / VP Design",
+      "alternate_titles": [
+        "VP Design",
+        "Chief Design Officer",
+        "Head of Design"
+      ],
+      "core_skills": [
+        "design_leadership",
+        "strategic_thinking",
+        "design_stakeholder_communication",
+        "cross_functional_collaboration",
+        "design_critique"
+      ],
+      "secondary_skills": [
+        "ux_design_process",
+        "design_system_management",
+        "brand_identity_design",
+        "hiring_talent_acquisition",
+        "ui_visual_design",
+        "user_research",
+        "executive_leadership"
+      ]
+    },
+    {
+      "id": "brand_marketing_designer",
+      "title": "Brand / Marketing Designer",
+      "alternate_titles": [
+        "Brand Designer",
+        "Marketing Designer",
+        "Visual Designer"
+      ],
+      "core_skills": [
+        "brand_identity_design",
+        "marketing_campaign_design",
+        "ui_visual_design",
+        "adobe_creative_suite"
+      ],
+      "secondary_skills": [
+        "figma_mastery",
+        "presentation_design",
+        "web_design",
+        "generative_ai_creative",
+        "design_stakeholder_communication",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "bdr_bd_associate",
+      "title": "BDR / BD Associate",
+      "alternate_titles": [
+        "BDR",
+        "BD Associate",
+        "Junior Business Development",
+        "Partnerships Associate"
+      ],
+      "core_skills": [
+        "outbound_prospecting",
+        "lead_qualification",
+        "crm_management",
+        "communication"
+      ],
+      "secondary_skills": [
+        "sales_engagement_tools",
+        "market_research",
+        "relationship_building",
+        "pipeline_management"
+      ]
+    },
+    {
+      "id": "business_development_manager",
+      "title": "Business Development Manager",
+      "alternate_titles": [
+        "BD Manager",
+        "Business Development Lead",
+        "Senior BD Manager"
+      ],
+      "core_skills": [
+        "outbound_prospecting",
+        "relationship_building",
+        "commercial_negotiation",
+        "pipeline_management",
+        "market_research"
+      ],
+      "secondary_skills": [
+        "crm_management",
+        "presentation_skills",
+        "lead_qualification",
+        "sales_engagement_tools",
+        "cross_functional_collaboration",
+        "communication"
+      ]
+    },
+    {
+      "id": "partnerships_manager",
+      "title": "Partnerships Manager",
+      "alternate_titles": [
+        "Senior Partnerships Manager",
+        "Strategic Partnerships Manager"
+      ],
+      "core_skills": [
+        "partner_relationship_management",
+        "partnership_development",
+        "relationship_building",
+        "commercial_negotiation"
+      ],
+      "secondary_skills": [
+        "joint_business_planning",
+        "crm_management",
+        "presentation_skills",
+        "pipeline_management",
+        "cross_functional_collaboration",
+        "communication"
+      ]
+    },
+    {
+      "id": "senior_bd_manager_strategic_partnerships",
+      "title": "Senior BD Manager / Strategic Partnerships Manager",
+      "alternate_titles": [
+        "Senior BD Manager",
+        "Strategic Partnerships Lead",
+        "Director of Strategic Partnerships"
+      ],
+      "core_skills": [
+        "partnership_development",
+        "commercial_negotiation",
+        "relationship_building",
+        "pipeline_management",
+        "strategic_thinking"
+      ],
+      "secondary_skills": [
+        "partner_relationship_management",
+        "joint_business_planning",
+        "gtm_strategy",
+        "channel_sales_strategy",
+        "presentation_skills",
+        "market_research",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "head_of_bd_head_of_partnerships",
+      "title": "Head of BD / Head of Partnerships",
+      "alternate_titles": [
+        "VP Business Development",
+        "Head of Partnerships",
+        "VP Partnerships"
+      ],
+      "core_skills": [
+        "bd_team_leadership",
+        "pipeline_management",
+        "partnership_development",
+        "strategic_thinking",
+        "relationship_building"
+      ],
+      "secondary_skills": [
+        "outbound_prospecting",
+        "commercial_negotiation",
+        "gtm_strategy",
+        "partner_enablement",
+        "hiring_talent_acquisition",
+        "people_management",
+        "presentation_skills",
+        "crm_management"
+      ]
+    },
+    {
+      "id": "vp_business_development",
+      "title": "VP Business Development",
+      "alternate_titles": [
+        "VP BD",
+        "Chief Business Development Officer",
+        "Chief Partnerships Officer"
+      ],
+      "core_skills": [
+        "strategic_thinking",
+        "executive_leadership",
+        "partnership_development",
+        "bd_team_leadership",
+        "gtm_strategy"
+      ],
+      "secondary_skills": [
+        "channel_sales_strategy",
+        "commercial_negotiation",
+        "pipeline_management",
+        "relationship_building",
+        "presentation_skills",
+        "hiring_talent_acquisition",
+        "people_management",
+        "ecosystem_development"
+      ]
+    },
+    {
+      "id": "junior_consultant_analyst",
+      "title": "Junior Consultant / Analyst",
+      "alternate_titles": [
+        "Analyst (consulting)",
+        "Junior Business Analyst (consulting)"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "consulting_frameworks",
+          "importance": "high"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "importance": "high"
+        },
+        {
+          "skill_id": "communication",
+          "importance": "high"
+        },
+        {
+          "skill_id": "client_engagement_delivery",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "attention_to_detail",
+          "importance": "high"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "executive_presentation",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "risk_compliance_consulting",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "process_improvement",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "low"
+        }
+      ]
+    },
+    {
+      "id": "consultant",
+      "title": "Consultant",
+      "alternate_titles": [
+        "Senior Consultant",
+        "Mid-Level Consultant",
+        "Engagement Manager"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "consulting_frameworks",
+          "importance": "high"
+        },
+        {
+          "skill_id": "client_engagement_delivery",
+          "importance": "high"
+        },
+        {
+          "skill_id": "client_advisory",
+          "importance": "high"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "importance": "high"
+        },
+        {
+          "skill_id": "communication",
+          "importance": "high"
+        },
+        {
+          "skill_id": "executive_presentation",
+          "importance": "medium"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "risk_compliance_consulting",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "process_improvement",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "strategic_thinking",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "proposal_development",
+          "importance": "low"
+        }
+      ]
+    },
+    {
+      "id": "senior_consultant",
+      "title": "Senior Consultant",
+      "alternate_titles": [
+        "Engagement Manager",
+        "Project Leader",
+        "Senior Manager (consulting)"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "client_engagement_delivery",
+          "importance": "high"
+        },
+        {
+          "skill_id": "client_advisory",
+          "importance": "high"
+        },
+        {
+          "skill_id": "consulting_frameworks",
+          "importance": "high"
+        },
+        {
+          "skill_id": "executive_presentation",
+          "importance": "high"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "high"
+        },
+        {
+          "skill_id": "proposal_development",
+          "importance": "medium"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "strategic_thinking",
+          "importance": "high"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "importance": "high"
+        },
+        {
+          "skill_id": "process_improvement",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "change_management",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "communication",
+          "importance": "high"
+        },
+        {
+          "skill_id": "cross_team_collaboration",
+          "importance": "medium"
+        }
+      ]
+    },
+    {
+      "id": "consulting_manager",
+      "title": "Manager / Engagement Manager",
+      "alternate_titles": [
+        "Engagement Director",
+        "Principal",
+        "Senior Manager (consulting)"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "client_advisory",
+          "importance": "high"
+        },
+        {
+          "skill_id": "client_engagement_delivery",
+          "importance": "high"
+        },
+        {
+          "skill_id": "proposal_development",
+          "importance": "high"
+        },
+        {
+          "skill_id": "executive_presentation",
+          "importance": "high"
+        },
+        {
+          "skill_id": "strategic_thinking",
+          "importance": "high"
+        },
+        {
+          "skill_id": "leadership",
+          "importance": "high"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "high"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "consulting_frameworks",
+          "importance": "high"
+        },
+        {
+          "skill_id": "change_management",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "cross_team_collaboration",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "process_improvement",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "emotional_intelligence",
+          "importance": "medium"
+        }
+      ]
+    },
+    {
+      "id": "principal_director_consulting",
+      "title": "Principal / Director of Consulting",
+      "alternate_titles": [
+        "Partner",
+        "Principal",
+        "Director (consulting)"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "proposal_development",
+          "importance": "high"
+        },
+        {
+          "skill_id": "client_advisory",
+          "importance": "high"
+        },
+        {
+          "skill_id": "executive_presentation",
+          "importance": "high"
+        },
+        {
+          "skill_id": "strategic_thinking",
+          "importance": "high"
+        },
+        {
+          "skill_id": "leadership",
+          "importance": "high"
+        },
+        {
+          "skill_id": "executive_leadership",
+          "importance": "high"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "client_engagement_delivery",
+          "importance": "high"
+        },
+        {
+          "skill_id": "consulting_frameworks",
+          "importance": "high"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "high"
+        },
+        {
+          "skill_id": "change_management",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "emotional_intelligence",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "hiring_talent_acquisition",
+          "importance": "medium"
+        }
+      ]
+    },
+    {
+      "id": "solutions_engineer_junior",
+      "title": "Junior Solutions Engineer",
+      "alternate_titles": [
+        "Junior Solutions Engineer",
+        "Junior Pre-Sales Engineer",
+        "Associate SE"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "debugging",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "sql",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "api_design",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "communication",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "customer_technical_relationship",
+          "importance": "high"
+        },
+        {
+          "skill_id": "technical_onboarding_implementation",
+          "importance": "high"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "technical_discovery",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "product_demonstration",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "technical_content_creation",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "cross_functional_collaboration",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "integration_middleware",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "importance": "medium"
+        }
+      ]
+    },
+    {
+      "id": "solutions_engineer",
+      "title": "Solutions Engineer",
+      "alternate_titles": [
+        "Solutions Engineer",
+        "Pre-Sales Engineer",
+        "Sales Engineer",
+        "SE"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "technical_discovery",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "solution_design_architecture",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "product_demonstration",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "poc_management",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "customer_technical_relationship",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "api_design",
+          "importance": "high"
+        },
+        {
+          "skill_id": "communication",
+          "importance": "high"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "technical_onboarding_implementation",
+          "importance": "high"
+        },
+        {
+          "skill_id": "integration_middleware",
+          "importance": "high"
+        },
+        {
+          "skill_id": "technical_sales_acumen",
+          "importance": "high"
+        },
+        {
+          "skill_id": "sql",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "competitive_positioning",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "cross_functional_collaboration",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "rfp_response",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "debugging",
+          "importance": "medium"
+        }
+      ]
+    },
+    {
+      "id": "senior_solutions_engineer",
+      "title": "Senior Solutions Engineer",
+      "alternate_titles": [
+        "Senior SE",
+        "Senior Pre-Sales Engineer",
+        "Staff Solutions Engineer",
+        "Lead Solutions Engineer"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "solution_design_architecture",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "product_demonstration",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "customer_technical_relationship",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "technical_sales_acumen",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "competitive_positioning",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "technical_discovery",
+          "importance": "high"
+        },
+        {
+          "skill_id": "poc_management",
+          "importance": "high"
+        },
+        {
+          "skill_id": "domain_expertise",
+          "importance": "high"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "executive_presentation",
+          "importance": "high"
+        },
+        {
+          "skill_id": "technical_content_creation",
+          "importance": "high"
+        },
+        {
+          "skill_id": "rfp_response",
+          "importance": "high"
+        },
+        {
+          "skill_id": "cloud_platforms",
+          "importance": "high"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "high"
+        },
+        {
+          "skill_id": "strategic_thinking",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "api_design",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "integration_middleware",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "cross_functional_collaboration",
+          "importance": "medium"
+        }
+      ]
+    },
+    {
+      "id": "solutions_engineering_manager",
+      "title": "Solutions Engineering Manager",
+      "alternate_titles": [
+        "SE Manager",
+        "Pre-Sales Manager",
+        "Solutions Engineering Team Lead",
+        "Manager, Solutions Engineering"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "se_team_leadership",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "delivery_methodology",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "customer_technical_relationship",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "cross_functional_collaboration",
+          "importance": "high"
+        },
+        {
+          "skill_id": "communication",
+          "importance": "high"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "high"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "solution_design_architecture",
+          "importance": "high"
+        },
+        {
+          "skill_id": "technical_sales_acumen",
+          "importance": "high"
+        },
+        {
+          "skill_id": "poc_management",
+          "importance": "high"
+        },
+        {
+          "skill_id": "technical_discovery",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "technical_onboarding_implementation",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "product_demonstration",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "analytical_thinking",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "hiring_talent_acquisition",
+          "importance": "medium"
+        }
+      ]
+    },
+    {
+      "id": "head_of_solutions_engineering",
+      "title": "Head of Solutions Engineering",
+      "alternate_titles": [
+        "VP Solutions Engineering",
+        "Director of Solutions Engineering",
+        "Head of Pre-Sales"
+      ],
+      "core_skills": [
+        {
+          "skill_id": "se_team_leadership",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "delivery_methodology",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "executive_leadership",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "strategic_thinking",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "technical_sales_acumen",
+          "importance": "critical"
+        },
+        {
+          "skill_id": "stakeholder_management",
+          "importance": "high"
+        }
+      ],
+      "secondary_skills": [
+        {
+          "skill_id": "customer_technical_relationship",
+          "importance": "high"
+        },
+        {
+          "skill_id": "cross_functional_collaboration",
+          "importance": "high"
+        },
+        {
+          "skill_id": "hiring_talent_acquisition",
+          "importance": "high"
+        },
+        {
+          "skill_id": "executive_presentation",
+          "importance": "high"
+        },
+        {
+          "skill_id": "competitive_positioning",
+          "importance": "high"
+        },
+        {
+          "skill_id": "domain_expertise",
+          "importance": "high"
+        },
+        {
+          "skill_id": "solution_design_architecture",
+          "importance": "medium"
+        },
+        {
+          "skill_id": "gtm_strategy",
+          "importance": "medium"
+        }
+      ]
+    },
+    {
+      "id": "it_support_specialist",
+      "title": "IT Support Specialist / Helpdesk",
+      "alternate_titles": [
+        "IT Support Engineer",
+        "Junior IT Specialist",
+        "Help Desk Specialist"
+      ],
+      "core_skills": [
+        "helpdesk_support",
+        "endpoint_management",
+        "employee_lifecycle_it",
+        "communication"
+      ],
+      "secondary_skills": [
+        "identity_access_management",
+        "it_documentation_process",
+        "it_infrastructure_networking"
+      ]
+    },
+    {
+      "id": "it_administrator_sysadmin",
+      "title": "IT Administrator / SysAdmin",
+      "alternate_titles": [
+        "IT Administrator",
+        "SysAdmin",
+        "Senior IT Specialist",
+        "IT Engineer"
+      ],
+      "core_skills": [
+        "identity_access_management",
+        "endpoint_management",
+        "saas_administration",
+        "it_infrastructure_networking",
+        "employee_lifecycle_it"
+      ],
+      "secondary_skills": [
+        "it_security_compliance",
+        "it_documentation_process",
+        "scripting_automation",
+        "helpdesk_support",
+        "cloud_security_posture"
+      ]
+    },
+    {
+      "id": "it_manager",
+      "title": "IT Manager",
+      "alternate_titles": [
+        "Senior IT Manager",
+        "IT Operations Manager",
+        "Director of IT"
+      ],
+      "core_skills": [
+        "it_operations_leadership",
+        "it_infrastructure_networking",
+        "identity_access_management",
+        "it_security_compliance",
+        "endpoint_management"
+      ],
+      "secondary_skills": [
+        "saas_administration",
+        "business_continuity_dr",
+        "cloud_security_posture",
+        "employee_lifecycle_it",
+        "scripting_automation",
+        "leadership"
+      ]
+    },
+    {
+      "id": "security_analyst_soc",
+      "title": "Security Analyst / SOC Analyst",
+      "alternate_titles": [
+        "Security Analyst",
+        "SOC Analyst",
+        "Tier 2 Security Analyst",
+        "Senior Security Analyst"
+      ],
+      "core_skills": [
+        "threat_analysis_investigation",
+        "security_monitoring_detection",
+        "incident_response_forensics",
+        "security_data_analysis"
+      ],
+      "secondary_skills": [
+        "scripting_automation",
+        "communication",
+        "analytical_thinking",
+        "cloud_security_posture"
+      ]
+    },
+    {
+      "id": "grc_analyst",
+      "title": "GRC Analyst",
+      "alternate_titles": [
+        "GRC Specialist",
+        "Security Compliance Analyst",
+        "Risk Analyst"
+      ],
+      "core_skills": [
+        "grc_frameworks",
+        "risk_assessment_management",
+        "vendor_third_party_risk",
+        "security_policy_development"
+      ],
+      "secondary_skills": [
+        "it_security_compliance",
+        "communication",
+        "analytical_thinking",
+        "stakeholder_management"
+      ]
+    },
+    {
+      "id": "head_of_it",
+      "title": "Head of IT",
+      "alternate_titles": [
+        "VP IT",
+        "Director of IT",
+        "CIO (smaller orgs)"
+      ],
+      "core_skills": [
+        "it_operations_leadership",
+        "security_program_leadership",
+        "it_security_compliance",
+        "identity_access_management",
+        "it_infrastructure_networking"
+      ],
+      "secondary_skills": [
+        "grc_frameworks",
+        "cloud_security_posture",
+        "business_continuity_dr",
+        "incident_response_forensics",
+        "leadership",
+        "stakeholder_management",
+        "strategic_thinking"
+      ]
+    },
+    {
+      "id": "ciso_head_of_security",
+      "title": "CISO / Head of Security",
+      "alternate_titles": [
+        "CISO",
+        "Chief Information Security Officer",
+        "VP Security",
+        "Head of Security"
+      ],
+      "core_skills": [
+        "security_program_leadership",
+        "incident_response_forensics",
+        "grc_frameworks",
+        "risk_assessment_management",
+        "cloud_security_posture"
+      ],
+      "secondary_skills": [
+        "it_operations_leadership",
+        "security_monitoring_detection",
+        "security_policy_development",
+        "vendor_third_party_risk",
+        "executive_leadership",
+        "leadership",
+        "stakeholder_management"
+      ]
+    },
+    {
+      "id": "executive_assistant",
+      "title": "Executive Assistant",
+      "alternate_titles": [
+        "EA",
+        "Senior Executive Assistant",
+        "Chief of Staff (junior)"
+      ],
+      "core_skills": [
+        "executive_support",
+        "travel_logistics_coordination",
+        "communication",
+        "administrative_operations"
+      ],
+      "secondary_skills": [
+        "office_operations",
+        "stakeholder_management",
+        "attention_to_detail"
+      ]
+    },
+    {
+      "id": "office_manager",
+      "title": "Office Manager",
+      "alternate_titles": [
+        "Senior Office Manager",
+        "Workplace Manager",
+        "Office Operations Manager"
+      ],
+      "core_skills": [
+        "office_operations",
+        "employee_experience_welfare",
+        "vendor_procurement_management",
+        "communication"
+      ],
+      "secondary_skills": [
+        "onboarding_offboarding_ops",
+        "budget_cost_management",
+        "travel_logistics_coordination",
+        "administrative_operations"
+      ]
+    },
+    {
+      "id": "operations_coordinator",
+      "title": "Operations Coordinator",
+      "alternate_titles": [
+        "Junior Operations Coordinator",
+        "Office Operations Coordinator"
+      ],
+      "core_skills": [
+        "administrative_operations",
+        "office_operations",
+        "communication"
+      ],
+      "secondary_skills": [
+        "travel_logistics_coordination",
+        "attention_to_detail",
+        "vendor_procurement_management"
+      ]
+    },
+    {
+      "id": "procurement_specialist",
+      "title": "Procurement / Vendor Management Specialist",
+      "alternate_titles": [
+        "Procurement Manager",
+        "Senior Procurement Specialist",
+        "Vendor Manager"
+      ],
+      "core_skills": [
+        "vendor_procurement_management",
+        "contract_negotiation",
+        "budget_cost_management",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "administrative_operations",
+        "stakeholder_management",
+        "communication",
+        "attention_to_detail"
+      ]
+    },
+    {
+      "id": "facilities_manager",
+      "title": "Facilities Manager",
+      "alternate_titles": [
+        "Senior Facilities Manager",
+        "Workplace Facilities Manager"
+      ],
+      "core_skills": [
+        "facilities_infrastructure",
+        "vendor_procurement_management",
+        "budget_cost_management"
+      ],
+      "secondary_skills": [
+        "office_operations",
+        "leadership",
+        "communication",
+        "administrative_operations"
+      ]
+    },
+    {
+      "id": "head_of_admin_ga",
+      "title": "Head of Admin / G&A Operations Manager",
+      "alternate_titles": [
+        "Director of Administration",
+        "Head of Workplace",
+        "VP G&A"
+      ],
+      "core_skills": [
+        "office_operations",
+        "employee_experience_welfare",
+        "vendor_procurement_management",
+        "budget_cost_management",
+        "leadership"
+      ],
+      "secondary_skills": [
+        "onboarding_offboarding_ops",
+        "global_operations_compliance",
+        "contract_negotiation",
+        "executive_support",
+        "stakeholder_management",
+        "strategic_thinking"
+      ]
+    },
+    {
+      "id": "customer_success_specialist",
+      "title": "Customer Success Specialist",
+      "alternate_titles": [
+        "CS Specialist",
+        "Junior Customer Success Manager",
+        "CS Associate"
+      ],
+      "core_skills": [
+        "customer_communication",
+        "customer_relationship_management",
+        "product_adoption",
+        "onboarding_strategy",
+        "customer_retention"
+      ],
+      "secondary_skills": [
+        "crm_management",
+        "stakeholder_management",
+        "data_analysis",
+        "problem_solving"
+      ]
+    },
+    {
+      "id": "financial_analyst",
+      "title": "Financial Analyst",
+      "alternate_titles": [
+        "Junior Financial Analyst",
+        "Finance Analyst",
+        "Junior FP&A Analyst"
+      ],
+      "core_skills": [
+        "financial_modeling",
+        "excel_advanced_finance",
+        "data_analysis",
+        "budget_forecasting",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "bva_analysis",
+        "bi_tools",
+        "financial_reporting",
+        "presentation_skills"
+      ]
+    },
+    {
+      "id": "operations_analyst",
+      "title": "Operations Analyst",
+      "alternate_titles": [
+        "Junior Business Analyst",
+        "Operations Analyst",
+        "Business Operations Analyst"
+      ],
+      "core_skills": [
+        "data_analysis",
+        "excel_advanced_finance",
+        "process_improvement",
+        "analytical_thinking",
+        "attention_to_detail"
+      ],
+      "secondary_skills": [
+        "sql",
+        "dashboarding",
+        "requirements_gathering",
+        "problem_solving"
+      ]
+    },
+    {
+      "id": "hr_coordinator",
+      "title": "HR Coordinator",
+      "alternate_titles": [
+        "People Coordinator",
+        "Junior HR Generalist",
+        "HR Operations Coordinator"
+      ],
+      "core_skills": [
+        "employee_lifecycle_management",
+        "organization",
+        "cross_functional_collaboration",
+        "attention_to_detail"
+      ],
+      "secondary_skills": [
+        "hris_management",
+        "talent_acquisition_recruiting",
+        "customer_communication",
+        "problem_solving"
+      ]
+    },
+    {
+      "id": "talent_acquisition_specialist",
+      "title": "Talent Acquisition Specialist",
+      "alternate_titles": [
+        "TA Specialist",
+        "Senior Recruiter",
+        "Technical Recruiter"
+      ],
+      "core_skills": [
+        "talent_acquisition_recruiting",
+        "stakeholder_management",
+        "customer_communication",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "employer_branding",
+        "hr_data_analytics",
+        "organization",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "marketing_assistant",
+      "title": "Marketing Assistant",
+      "alternate_titles": [
+        "Marketing Associate",
+        "Junior Marketing Assistant"
+      ],
+      "core_skills": [
+        "social_media_management",
+        "content_strategy",
+        "copywriting",
+        "organization"
+      ],
+      "secondary_skills": [
+        "canva_design_tools",
+        "marketing_analytics",
+        "ai_tools_marketing"
+      ]
+    },
+    {
+      "id": "sales_representative",
+      "title": "Sales Representative",
+      "alternate_titles": [
+        "Inside Sales Rep",
+        "Sales Specialist",
+        "Account Specialist"
+      ],
+      "core_skills": [
+        "outbound_prospecting",
+        "consultative_selling",
+        "customer_communication",
+        "pipeline_management",
+        "crm_management"
+      ],
+      "secondary_skills": [
+        "objection_handling",
+        "discovery_calls",
+        "sales_tools_proficiency",
+        "analytical_thinking"
+      ]
+    },
+    {
+      "id": "brand_manager",
+      "title": "Brand Manager",
+      "alternate_titles": [
+        "Senior Brand Manager",
+        "Brand Marketing Manager"
+      ],
+      "core_skills": [
+        "content_strategy",
+        "marketing_analytics",
+        "cross_functional_collaboration",
+        "project_management"
+      ],
+      "secondary_skills": [
+        "copywriting",
+        "b2b_marketing",
+        "ai_tools_marketing"
+      ]
+    },
+    {
+      "id": "event_coordinator",
+      "title": "Event Coordinator",
+      "alternate_titles": [
+        "Junior Event Manager",
+        "Event Operations Coordinator"
+      ],
+      "core_skills": [
+        "event_marketing",
+        "organization",
+        "project_management",
+        "customer_communication"
+      ],
+      "secondary_skills": [
+        "marketing_analytics",
+        "cross_functional_collaboration",
+        "copywriting"
+      ]
+    },
+    {
+      "id": "partnerships_associate",
+      "title": "Partnerships Associate",
+      "alternate_titles": [
+        "Partnerships Coordinator",
+        "Junior Partnerships Manager"
+      ],
+      "core_skills": [
+        "relationship_building",
+        "customer_communication",
+        "organization",
+        "pipeline_management"
+      ],
+      "secondary_skills": [
+        "crm_management",
+        "cross_functional_collaboration",
+        "analytical_thinking"
+      ]
+    },
+    {
+      "id": "junior_business_analyst",
+      "title": "Junior Business Analyst",
+      "alternate_titles": [
+        "Junior BA",
+        "Business Analyst (Entry)",
+        "Operations Analyst"
+      ],
+      "core_skills": [
+        "data_analysis",
+        "excel_advanced_finance",
+        "requirements_gathering",
+        "attention_to_detail"
+      ],
+      "secondary_skills": [
+        "sql",
+        "dashboarding",
+        "technical_communication",
+        "problem_solving"
+      ]
+    },
+    {
+      "id": "marketing_intern",
+      "title": "Marketing Intern",
+      "alternate_titles": [
+        "Marketing Intern",
+        "Junior Marketing Intern",
+        "Marketing Trainee"
+      ],
+      "core_skills": [
+        "copywriting",
+        "social_media_management",
+        "organization"
+      ],
+      "secondary_skills": [
+        "canva_design_tools",
+        "content_strategy"
+      ]
+    },
+    {
+      "id": "hr_assistant",
+      "title": "HR Assistant",
+      "alternate_titles": [
+        "HR Coordinator",
+        "HR Associate",
+        "People Assistant"
+      ],
+      "core_skills": [
+        "organization",
+        "attention_to_detail",
+        "customer_communication"
+      ],
+      "secondary_skills": [
+        "hris_management",
+        "employee_lifecycle_management"
+      ]
+    },
+    {
+      "id": "sales_associate",
+      "title": "Sales Associate",
+      "alternate_titles": [
+        "Junior Sales Associate",
+        "Sales Coordinator",
+        "Inside Sales Associate"
+      ],
+      "core_skills": [
+        "customer_communication",
+        "crm_management",
+        "organization"
+      ],
+      "secondary_skills": [
+        "lead_qualification",
+        "sales_tools_proficiency",
+        "analytical_thinking"
+      ]
+    },
+    {
+      "id": "social_media_coordinator",
+      "title": "Social Media Coordinator",
+      "alternate_titles": [
+        "Junior Social Media Manager",
+        "Social Coordinator"
+      ],
+      "core_skills": [
+        "social_media_management",
+        "content_strategy",
+        "copywriting",
+        "organization"
+      ],
+      "secondary_skills": [
+        "canva_design_tools",
+        "community_management",
+        "marketing_analytics"
+      ]
+    },
+    {
+      "id": "recruitment_coordinator",
+      "title": "Recruitment Coordinator",
+      "alternate_titles": [
+        "TA Coordinator",
+        "Talent Coordinator",
+        "Hiring Coordinator"
+      ],
+      "core_skills": [
+        "organization",
+        "customer_communication",
+        "attention_to_detail"
+      ],
+      "secondary_skills": [
+        "talent_acquisition_recruiting",
+        "cross_functional_collaboration",
+        "employee_lifecycle_management"
+      ]
+    },
+    {
+      "id": "business_operations_associate",
+      "title": "Business Operations Associate",
+      "alternate_titles": [
+        "BizOps Associate",
+        "Business Operations Coordinator",
+        "Junior Operations Associate"
+      ],
+      "core_skills": [
+        "organization",
+        "attention_to_detail",
+        "process_improvement",
+        "data_analysis"
+      ],
+      "secondary_skills": [
+        "excel_advanced_finance",
+        "cross_functional_collaboration",
+        "problem_solving"
+      ]
+    },
+    {
+      "id": "strategy_analyst",
+      "title": "Strategy Analyst",
+      "alternate_titles": [
+        "Strategy Associate",
+        "Strategy & Operations Analyst",
+        "Business Strategy Analyst"
+      ],
+      "core_skills": [
+        "analytical_thinking",
+        "data_analysis",
+        "excel_advanced_finance",
+        "presentation_skills",
+        "strategic_thinking"
+      ],
+      "secondary_skills": [
+        "consulting_methodology",
+        "financial_modeling",
+        "requirements_gathering",
+        "cross_functional_collaboration"
+      ]
+    },
+    {
+      "id": "management_consultant",
+      "title": "Management Consultant",
+      "alternate_titles": [
+        "Management Consultant",
+        "Senior Management Consultant",
+        "Strategy Consultant"
+      ],
+      "core_skills": [
+        "consulting_methodology",
+        "analytical_thinking",
+        "presentation_skills",
+        "stakeholder_management",
+        "strategic_thinking"
+      ],
+      "secondary_skills": [
+        "data_analysis",
+        "financial_modeling",
+        "cross_functional_collaboration",
+        "problem_solving"
+      ]
+    },
+    {
+      "id": "junior_consultant",
+      "title": "Junior Consultant",
+      "alternate_titles": [
+        "Associate Consultant",
+        "Junior Analyst (consulting)",
+        "Business Analyst (consulting)"
+      ],
+      "core_skills": [
+        "analytical_thinking",
+        "excel_advanced_finance",
+        "presentation_skills",
+        "attention_to_detail"
+      ],
+      "secondary_skills": [
+        "consulting_methodology",
+        "data_analysis",
+        "requirements_gathering"
+      ]
+    },
+    {
+      "id": "operations_associate",
+      "title": "Operations Associate",
+      "alternate_titles": [
+        "Junior Operations Associate",
+        "Operations Coordinator"
+      ],
+      "core_skills": [
+        "organization",
+        "attention_to_detail",
+        "cross_functional_collaboration"
+      ],
+      "secondary_skills": [
+        "process_improvement",
+        "data_analysis",
+        "customer_communication"
+      ]
+    },
+    {
+      "id": "event_manager",
+      "title": "Event Manager",
+      "alternate_titles": [
+        "Senior Event Manager",
+        "Field Marketing Manager",
+        "Event Marketing Manager"
+      ],
+      "core_skills": [
+        "event_marketing",
+        "project_management",
+        "cross_functional_collaboration",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "marketing_analytics",
+        "stakeholder_management",
+        "content_strategy"
+      ]
+    },
+    {
+      "id": "technical_support_specialist",
+      "title": "Technical Support Specialist",
+      "alternate_titles": [
+        "Junior Technical Support Engineer",
+        "Tier 2 Technical Support"
+      ],
+      "core_skills": [
+        "technical_troubleshooting",
+        "customer_communication",
+        "problem_solving",
+        "technical_communication"
+      ],
+      "secondary_skills": [
+        "debugging",
+        "api_integrations",
+        "technical_documentation",
+        "analytical_thinking"
+      ]
+    },
+    {
+      "id": "solutions_consultant",
+      "title": "Solutions Consultant",
+      "alternate_titles": [
+        "Senior Solutions Consultant",
+        "Implementation Consultant",
+        "Technical Consultant"
+      ],
+      "core_skills": [
+        "technical_discovery",
+        "solution_design_architecture",
+        "product_demonstration",
+        "customer_technical_relationship",
+        "communication"
+      ],
+      "secondary_skills": [
+        "poc_management",
+        "technical_sales_acumen",
+        "cross_functional_collaboration",
+        "sql"
+      ]
+    },
+    {
+      "id": "pre_sales_engineer",
+      "title": "Pre-Sales Engineer",
+      "alternate_titles": [
+        "Sales Engineer",
+        "Solutions Engineer",
+        "Technical Sales Engineer"
+      ],
+      "core_skills": [
+        "technical_discovery",
+        "product_demonstration",
+        "poc_management",
+        "technical_sales_acumen",
+        "api_design"
+      ],
+      "secondary_skills": [
+        "solution_design_architecture",
+        "rfp_response",
+        "sql",
+        "debugging"
+      ]
+    },
+    {
+      "id": "growth_analyst",
+      "title": "Growth Analyst",
+      "alternate_titles": [
+        "Junior Growth Analyst",
+        "Growth Marketing Analyst"
+      ],
+      "core_skills": [
+        "data_analysis",
+        "analytical_thinking",
+        "marketing_experimentation",
+        "funnel_optimization",
+        "marketing_analytics"
+      ],
+      "secondary_skills": [
+        "sql",
+        "dashboarding",
+        "conversion_rate_optimization"
+      ]
+    },
+    {
+      "id": "revenue_analyst",
+      "title": "Revenue Analyst",
+      "alternate_titles": [
+        "Revenue Operations Analyst",
+        "Junior RevOps Analyst",
+        "GTM Analyst"
+      ],
+      "core_skills": [
+        "data_analysis",
+        "excel_advanced_finance",
+        "analytical_thinking",
+        "saas_finance_metrics",
+        "revops_commercial_analytics"
+      ],
+      "secondary_skills": [
+        "sql",
+        "dashboarding",
+        "budget_forecasting",
+        "revops_crm_administration"
+      ]
+    },
+    {
+      "id": "demand_generation_manager",
+      "title": "Demand Generation Manager",
+      "alternate_titles": [
+        "Demand Gen Manager",
+        "Pipeline Marketing Manager",
+        "Senior Demand Generation Manager"
+      ],
+      "core_skills": [
+        "demand_generation",
+        "marketing_analytics",
+        "performance_marketing",
+        "cross_functional_collaboration",
+        "analytical_thinking"
+      ],
+      "secondary_skills": [
+        "marketing_automation",
+        "b2b_marketing",
+        "content_strategy",
+        "project_management"
+      ]
+    },
+    {
+      "id": "legal_counsel",
+      "title": "Legal Counsel",
+      "alternate_titles": [
+        "In-House Counsel",
+        "Corporate Counsel",
+        "Commercial Counsel"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "senior_legal_counsel",
+      "title": "Senior Legal Counsel",
+      "alternate_titles": [
+        "Senior Commercial Counsel",
+        "Senior Corporate Counsel",
+        "Experienced Legal Counsel"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "vp_legal",
+      "title": "VP Legal",
+      "alternate_titles": [
+        "General Counsel",
+        "Chief Legal Officer",
+        "CLO",
+        "Head of Legal"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "paralegal",
+      "title": "Paralegal",
+      "alternate_titles": [
+        "Legal Specialist",
+        "Legal Operations Specialist",
+        "Insurance Litigation Paralegal"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "compliance_counsel",
+      "title": "Compliance Counsel",
+      "alternate_titles": [
+        "Privacy Counsel",
+        "Global Privacy Counsel",
+        "Privacy & Compliance Counsel",
+        "Regulatory Counsel"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "bookkeeper",
+      "title": "Bookkeeper",
+      "alternate_titles": [
+        "AP/AR Bookkeeper",
+        "Junior Bookkeeper",
+        "Bookkeeper / AP Accountant",
+        "Subsidiaries Bookkeeper"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "senior_bookkeeper",
+      "title": "Senior Bookkeeper",
+      "alternate_titles": [
+        "Lead Bookkeeper",
+        "Corporate Bookkeeper",
+        "Senior AP/AR Bookkeeper"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "payroll_accountant",
+      "title": "Payroll Accountant",
+      "alternate_titles": [
+        "Payroll Specialist",
+        "Senior Payroll Accountant",
+        "Global Payroll Accountant"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "ai_creative_specialist",
+      "title": "AI Creative Specialist",
+      "alternate_titles": [
+        "AI Content Creator",
+        "AI Creative Expert",
+        "AI Video Creator",
+        "Generative AI Technologist",
+        "Visual GenAI Solutions Specialist",
+        "AI-Native Product Builder"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "threat_hunter",
+      "title": "Threat Hunter",
+      "alternate_titles": [
+        "Threat Detection Researcher",
+        "Vulnerability Researcher",
+        "Threat Intelligence Analyst",
+        "Security Researcher"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "devsecops_engineer",
+      "title": "DevSecOps Engineer",
+      "alternate_titles": [
+        "DevSecOps",
+        "Security DevOps Engineer",
+        "Application Security Engineer",
+        "Product Security Engineer"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "incident_response_engineer",
+      "title": "Incident Response Engineer",
+      "alternate_titles": [
+        "Incident Response Expert",
+        "IR Engineer",
+        "Cyber Incident Responder",
+        "DFIR Engineer"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "sales_enablement_manager",
+      "title": "Sales Enablement Manager",
+      "alternate_titles": [
+        "Revenue Enablement Manager",
+        "Sales Enablement Program Manager",
+        "GTM Enablement Manager"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    }
+  ]
+}
