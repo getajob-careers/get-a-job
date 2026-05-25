@@ -13,8 +13,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { resolveSkillList } from "@/lib/skillResolver";
-import EducationTab from "@/components/profile/EducationTab";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
+import EducationTab from "@/components/profile/EducationTab";
 import { PROFILE_CSS } from "@/components/profile/profileStyles";
 import { createPageUrl } from "@/utils";
 
@@ -362,7 +362,6 @@ export default function Profile() {
     });
   }, [profile]);
 
-  const [skillInput, setSkillInput] = useState("");
   const [certForm, setCertForm] = useState({ name: "", issuer: "" });
   const [projectForm, setProjectForm] = useState({ name: "", description: "", skills_demonstrated: [], url: "" });
   const [expForm, setExpForm] = useState({
@@ -425,17 +424,6 @@ export default function Profile() {
     queryClient.invalidateQueries({ queryKey: ["userProfile"] });
     toast.success("Profile saved.");
     setSaving(false);
-  };
-
-  const addSkill = () => {
-    if (skillInput.trim() && !profileForm.skills.includes(skillInput.trim())) {
-      setProfileForm({ ...profileForm, skills: [...profileForm.skills, skillInput.trim()] });
-      setSkillInput("");
-    }
-  };
-
-  const removeSkill = (skill) => {
-    setProfileForm({ ...profileForm, skills: profileForm.skills.filter((s) => s !== skill) });
   };
 
   const handleResumeUpload = async (e) => {
@@ -622,25 +610,14 @@ export default function Profile() {
               </div>
 
               <div>
-                <label className="p-label">Skills</label>
-                <div className="flex gap-2 mb-2">
-                  <input
-                    value={skillInput}
-                    onChange={(e) => setSkillInput(e.target.value)}
-                    onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addSkill(); } }}
-                    placeholder="Type a skill and press Enter"
-                    className="p-input"
-                  />
-                  <button type="button" onClick={addSkill} className="p-btn p-btn-outline p-btn-sm">Add</button>
-                </div>
-                <div className="flex flex-wrap gap-1.5">
-                  {profileForm.skills.map((s, i) => (
-                    <span key={i} className="p-chip">
-                      {s}
-                      <button onClick={() => removeSkill(s)}><Trash2 className="w-3 h-3" /></button>
-                    </span>
-                  ))}
-                </div>
+                <SkillTagInput
+                  label="Skills"
+                  description="Search 595 standard skills or type your own."
+                  tags={profileForm.skills}
+                  onChange={(next) => setProfileForm({ ...profileForm, skills: next })}
+                  suggestionType="library_skills"
+                  placeholder="Search skills, or type and press Enter to add custom"
+                />
               </div>
 
               {/* Languages — person-level, used to live on Education tab.

@@ -1,5 +1,11 @@
 import React, { useState, useRef, useEffect } from "react";
 import { X } from "lucide-react";
+import skillIdsData from "@/lib/skillIdsGenerated.json";
+
+// 595 canonical library skills with full display names. Generated from
+// supabase/functions/_shared/libraries/01_skill_library.ts by
+// scripts/regen-skill-ids.mjs. Used by `suggestionType="library_skills"`.
+const LIBRARY_SKILL_NAMES = Object.values(skillIdsData.names ?? {}).sort();
 
 const JOB_TITLE_SUGGESTIONS = [
   // Entry-Level & Early Career
@@ -225,12 +231,19 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
         ? WORK_ARRANGEMENT_SUGGESTIONS
         : suggestionType === "honors"
         ? HONORS_SUGGESTIONS
+        : suggestionType === "library_skills"
+        ? LIBRARY_SKILL_NAMES
         : SKILL_SUGGESTIONS;
 
+      // Case-insensitive dedup — matches the matches() helper in StepSkills.
+      // Prevents "Python" + "python" from coexisting and means a chip stops
+      // appearing in suggestions once it's already in tags regardless of case.
+      const lowerTags = new Set(tags.map((t) => String(t).toLowerCase()));
+      const lowerInput = input.toLowerCase();
       const filtered = sourceList.filter(
         (skill) =>
-          skill.toLowerCase().includes(input.toLowerCase()) &&
-          !tags.includes(skill)
+          skill.toLowerCase().includes(lowerInput) &&
+          !lowerTags.has(skill.toLowerCase())
       ).slice(0, 8);
       setSuggestions(filtered);
       setShowSuggestions(filtered.length > 0);
@@ -243,7 +256,10 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
 
   const add = (skill = input.trim()) => {
     const val = skill.trim();
-    if (val && !tags.includes(val)) {
+    if (!val) return;
+    // Case-insensitive dedup — avoids "Python" + "python" living side by side.
+    const lowerTags = new Set(tags.map((t) => String(t).toLowerCase()));
+    if (!lowerTags.has(val.toLowerCase())) {
       onChange([...tags, val]);
     }
     setInput("");
