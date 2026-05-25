@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Loader2, FileText, Sparkles, Download, Save, FileSearch, FileCheck, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { humanizeSkillId } from "@/lib/humanizeSkillId";
 
 export default function CVManagement({ app, onUpdate }) {
   const { user } = useAuth();
@@ -136,7 +137,7 @@ export default function CVManagement({ app, onUpdate }) {
           <div className="flex flex-wrap gap-2">
             {app.cv_skills_emphasized.map((skill, i) => (
               <Badge key={i} variant="outline" className="text-xs">
-                {skill}
+                {humanizeSkillId(skill)}
               </Badge>
             ))}
           </div>
