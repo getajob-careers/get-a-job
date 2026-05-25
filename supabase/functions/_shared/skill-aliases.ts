@@ -867,6 +867,46 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "emotional intelligence": ["emotional_intelligence"],
   "empathy": ["empathy"],
   "adaptability": ["empathy"],
+
+  // ── Onboarding preset chips (StepSkills.jsx) ─────────────────────────────
+  // Every chip the user can click MUST resolve to a library ID. 18 of the
+  // 27 previously-unresolved chips alias to an existing canonical ID;
+  // the remaining 9 got dedicated library entries (notion_workspace,
+  // loom_async_video, supply_chain_management, pricing_strategy,
+  // time_series_analysis, conflict_de_escalation, speech_writing,
+  // strategic_planning, resource_allocation, talent_development).
+  "airtable": ["databases"],
+  "looker studio": ["bi_tools"],
+  "linear": ["project_management"],
+  "webflow": ["web_design"],
+  "go-to-market": ["gtm_strategy"],
+  "linux/bash": ["scripting_automation"],
+  "regression analysis": ["statistical_analysis"],
+  "causal inference": ["experimentation_framework"],
+  "mixed methods research": ["research_practice"],
+  "survey design": ["user_research"],
+  "financial forecasting": ["budget_forecasting"],
+  "internal memos": ["communication"],
+  "customer calls": ["customer_communication"],
+  "workshop facilitation": ["training_facilitation"],
+  "cross-team negotiation": ["cross_functional_collaboration"],
+  "org design": ["organizational_design"],
+  "career coaching": ["coaching"],
+  // The remaining 10 chips have dedicated library entries — aliasing both
+  // the natural-language label AND the snake_case ID covers user input
+  // and any v4-extractor JD output that already uses the canonical form.
+  "notion": ["notion_workspace"],
+  "loom": ["loom_async_video"],
+  "supply chain": ["supply_chain_management"],
+  "pricing strategy": ["pricing_strategy"],
+  "time-series analysis": ["time_series_analysis"],
+  "time series analysis": ["time_series_analysis"],
+  "conflict de-escalation": ["conflict_de_escalation"],
+  "conflict de escalation": ["conflict_de_escalation"],
+  "speech writing": ["speech_writing"],
+  "strategic planning": ["strategic_planning"],
+  "resource allocation": ["resource_allocation"],
+  "talent development": ["talent_development"],
 };
 
 // Resolve a free-text skill label to library skill IDs.
