@@ -20,6 +20,8 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useProfileQuery } from "@/lib/queries/useProfile";
+import { invalidateAfterCareerAnalysis } from "@/lib/invalidateAfterCareerAnalysis";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ArrowUpRight, Loader2, AlertCircle } from "lucide-react";
@@ -452,20 +454,11 @@ export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Existing queries — preserved verbatim from the pre-redesign Home so
-  // self-heal + redirect-to-Onboarding behavior continues to work.
-  const { data: profiles = [], isLoading: loadingProfile, isFetched: profileFetched, isError: profileError } = useQuery({
-    queryKey: ["userProfile", user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*, education(*)")
-        .eq("id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  // Canonical profile cache — shared with Layout, Profile, Roadmap,
+  // Jobs, Tasks, ChatInterface, JobMatchChecker, Practicum, and
+  // LinkedIn ProfileTab. Returns the full row as a single object (or
+  // null when no row exists).
+  const { data: profile, isLoading: loadingProfile, isFetched: profileFetched, isError: profileError } = useProfileQuery(user?.id);
 
   const { data: roles = [], isLoading: loadingRoles, isError: rolesError } = useQuery({
     queryKey: ["careerRoles", user?.id],
@@ -573,7 +566,6 @@ export default function Home() {
     enabled: !!user?.id && track1RoleTitles.length > 0,
   });
 
-  const profile = profiles?.[0] || null;
   const stale = isAnalysisStale({ profile, experiences, certifications, projects });
   const isLoading = loadingProfile || loadingRoles || loadingApps;
 
@@ -593,12 +585,12 @@ export default function Home() {
       navigate(createPageUrl("Onboarding"));
       return;
     }
-    if (profiles?.length === 0) {
+    if (profileFetched && !profile) {
       navigate(createPageUrl("Onboarding"));
     } else if (profile && !profile.onboarding_complete) {
       navigate(createPageUrl("Onboarding"));
     }
-  }, [user, profileFetched, profileError, profile, profiles, navigate]);
+  }, [user, profileFetched, profileError, profile, navigate]);
 
   // Self-heal — preserved verbatim. If onboarding_complete but missing
   // qualification_level + last_reality_check_date, re-run the analysis.
@@ -645,8 +637,10 @@ export default function Home() {
         }
         clearTimeout(timeoutId);
         setSelfHealing(false);
-        queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-        queryClient.invalidateQueries({ queryKey: ["careerRoles"] });
+        // Single source of truth for the post-career-analysis invalidation
+        // set — fans out across all profile/roles/applications/tasks/jobs
+        // caches that derive from the new career_roles + updated profile.
+        await invalidateAfterCareerAnalysis(queryClient, user.id);
       } catch {
         clearTimeout(timeoutId);
         setSelfHealing(false);
@@ -659,7 +653,7 @@ export default function Home() {
 
   const willRedirect =
     profileError ||
-    (profileFetched && profiles?.length === 0) ||
+    (profileFetched && !profile) ||
     (profile && !profile.onboarding_complete);
 
   if (isLoading || willRedirect) {

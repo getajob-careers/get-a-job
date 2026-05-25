@@ -9,8 +9,26 @@ import { vi } from 'vitest';
  */
 export function createChain(response = { data: [], error: null }) {
   const pending = Promise.resolve(response);
-  const chain = {};
 
+  // For `.maybeSingle()` / `.single()`, Supabase returns the first row of
+  // the result as an object (not an array). Tests that supply array-shape
+  // `data: [row]` should still work when callers invoke maybeSingle() —
+  // unwrap the array into its first element on the singleton chain.
+  function unwrap(resp) {
+    if (!resp) return resp;
+    if (Array.isArray(resp.data)) {
+      return { ...resp, data: resp.data[0] ?? null };
+    }
+    return resp;
+  }
+  const singletonPending = Promise.resolve(unwrap(response));
+  const singletonChain = {
+    then:    singletonPending.then.bind(singletonPending),
+    catch:   singletonPending.catch.bind(singletonPending),
+    finally: singletonPending.finally.bind(singletonPending),
+  };
+
+  const chain = {};
   Object.assign(chain, {
     select: vi.fn().mockReturnValue(chain),
     eq:     vi.fn().mockReturnValue(chain),
@@ -18,7 +36,8 @@ export function createChain(response = { data: [], error: null }) {
     in:     vi.fn().mockReturnValue(chain),
     order:  vi.fn().mockReturnValue(chain),
     limit:  vi.fn().mockReturnValue(chain),
-    single: vi.fn().mockReturnValue(chain),
+    single:      vi.fn().mockReturnValue(singletonChain),
+    maybeSingle: vi.fn().mockReturnValue(singletonChain),
     update: vi.fn().mockReturnValue(chain),
     insert: vi.fn().mockReturnValue(chain),
     delete: vi.fn().mockReturnValue(chain),

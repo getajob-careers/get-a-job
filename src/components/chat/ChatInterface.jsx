@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useProfileQuery } from "@/lib/queries/useProfile";
 import { track, EVENTS } from "@/lib/analytics";
 import { Send, Loader2, Plus, ListTodo, CheckCircle2, ArrowRight, Route, Briefcase, ChevronDown, Trash2, MessageSquare, FileText, Download, RefreshCw } from "lucide-react";
 import { triggerBlobDownload, filenameFromSignedUrl } from "@/lib/downloadFile";
@@ -472,22 +473,10 @@ export default function ChatInterface({ agentName, title, description, applicati
     return m;
   }, [experiences]);
 
-  // Profile query — same key as Home.jsx so the cache is shared. We only
-  // read profile.skills here, used to validate AI-proposed matched_skills
-  // in handleApplyRoadmapChanges (anti-fabrication guard).
-  const { data: profile = null } = useQuery({
-    queryKey: ["userProfile", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return null;
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id);
-      if (error) throw error;
-      return data?.[0] || null;
-    },
-    enabled: !!user?.id,
-  });
+  // Profile query — uses the canonical cache. We only read profile.skills
+  // here, to validate AI-proposed matched_skills in
+  // handleApplyRoadmapChanges (anti-fabrication guard).
+  const { data: profile = null } = useProfileQuery(user?.id);
   const applicationsById = React.useMemo(() => {
     const m = {};
     for (const a of applications) {

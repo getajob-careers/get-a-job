@@ -4,6 +4,7 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useProfileQuery } from "@/lib/queries/useProfile";
 import { Loader2, Plus, Trash2, Upload, X, BookText, ExternalLink } from "lucide-react";
 import {
   Select,
@@ -229,16 +230,7 @@ export default function Profile() {
     setSearchParams(next, { replace: true });
   };
 
-  const { data: profiles, isLoading: loadingProfile } = useQuery({
-    queryKey: ["userProfile", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase.from("profiles").select("*").eq("id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  const { data: profile, isLoading: loadingProfile } = useProfileQuery(user?.id);
 
   const { data: certifications, isLoading: loadingCerts } = useQuery({
     queryKey: ["certifications", user?.id],
@@ -301,7 +293,6 @@ export default function Profile() {
     return m;
   }, [stories]);
 
-  const profile = profiles?.[0] || null;
 
   const [profileForm, setProfileForm] = useState({
     full_name: "",
