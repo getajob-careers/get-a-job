@@ -435,10 +435,16 @@ export default function Onboarding() {
       const { error: updateError } = await supabase.from("profiles").update(payload).eq("id", existingProfileId);
       if (updateError) throw updateError;
     } else {
+      // Stamp invite_code + cohort_label from user_metadata at first
+      // profile insert (set during auth.signUp in Login.jsx). Null-
+      // tolerant: users who signed up before the pilot gate landed
+      // have no metadata fields → both stay null. Backwards-compatible.
       const { data, error } = await supabase.from("profiles").insert({
         id: user.id,
         ...payload,
         full_name: profileData.full_name || user.user_metadata?.full_name || "User",
+        invite_code: user.user_metadata?.invite_code ?? null,
+        cohort_label: user.user_metadata?.cohort_label ?? null,
       }).select();
       if (error) throw error;
       if (data?.[0]) {
@@ -737,10 +743,15 @@ export default function Onboarding() {
       const payload = cleanProfilePayload(rawPayload);
       Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
 
+      // Same cohort-stamp pattern as the primary insert site above —
+      // this is the defensive finalise-fallback path that runs only
+      // when the per-step saveProfile didn't land a profile row.
       const { data, error } = await supabase.from("profiles").insert({
         id: user.id,
         ...payload,
         full_name: profileData.full_name || user.user_metadata?.full_name || "User",
+        invite_code: user.user_metadata?.invite_code ?? null,
+        cohort_label: user.user_metadata?.cohort_label ?? null,
       }).select();
 
       if (error || !data?.[0]) {
