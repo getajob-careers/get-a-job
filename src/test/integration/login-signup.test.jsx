@@ -109,6 +109,10 @@ describe('Login — signup mode', () => {
     switchToSignup();
     fireEvent.change(screen.getByPlaceholderText(/john doe/i), { target: { value: 'Jane Doe' } });
     fireEvent.change(screen.getByPlaceholderText(/you@example/i), { target: { value: 'u@x.com' } });
+    // Pilot gate (Aug-Nov 2026) added a required invite-code field on
+    // signup. canSubmit now also requires inviteCode.trim() non-empty.
+    // Fill it so this test continues to isolate the password-strength gate.
+    fireEvent.change(screen.getByPlaceholderText(/from your invitation/i), { target: { value: 'TEST-CODE' } });
 
     const submitBtn = screen.getByRole('button', { name: /create account/i });
     const pwInput = screen.getByPlaceholderText(/meets all 5 requirements/i);

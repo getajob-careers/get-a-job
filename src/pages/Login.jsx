@@ -471,6 +471,14 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  // Pilot gate (Aug-Nov 2026 100-student cohort). Invite code is
+  // visible on signup only. On submit, the RPC atomically validates +
+  // increments current_uses. Invalid → flip to waitlistMode (inline,
+  // not a separate route). Valid → proceed with auth.signUp + pass
+  // invite_code + cohort_label through user_metadata for stamping
+  // onto profiles at first-profile-insert in Onboarding.
+  const [inviteCode, setInviteCode] = useState("");
+  const [waitlistMode, setWaitlistMode] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   // URL-driven mode. Lets Landing CTAs deeplink straight to signup via
   // ?mode=signup, and lets users bookmark / share / refresh the right form.
@@ -513,11 +521,17 @@ export default function Login() {
   // captchaToken is required for every mode, not just signup. Password
   // checks remain signup-only.
   const canSubmit =
-    (mode !== "signup" || allChecksPass(passwordChecks)) && !!captchaToken;
+    (mode !== "signup" || (allChecksPass(passwordChecks) && !!inviteCode.trim())) &&
+    !!captchaToken;
 
   const switchMode = (next) => {
     setError(null);
     setMessage(null);
+    // Leaving signup → clear waitlistMode so a future visit to signup
+    // starts fresh. Without this, a user who tried an invalid code,
+    // got bumped to waitlist, then clicked Sign in would see the
+    // waitlist form again the next time they returned to the signup tab.
+    if (next !== "signup") setWaitlistMode(false);
     // Don't clear captchaToken here — the Turnstile widget stays mounted
     // across mode switches (the widget is rendered for every mode now), so
     // the user's already-solved token is still valid for whichever endpoint
@@ -539,11 +553,36 @@ export default function Login() {
 
     try {
       if (mode === "signup") {
+        // Pilot gate: redeem the invite code BEFORE calling auth.signUp.
+        // Atomic UPDATE...RETURNING in the RPC handles the race-on-last-
+        // slot case. Generic rejection message — no info leak about
+        // whether the code is unknown / inactive / exhausted.
+        const { data: redeemResult, error: redeemError } = await supabase
+          .rpc("redeem_invite_code", { p_code: inviteCode.trim() });
+        if (redeemError) throw new Error(redeemError.message || "Could not validate invite code");
+        if (!redeemResult?.valid) {
+          // Flip to inline waitlist mode. captchaToken is still valid
+          // (Turnstile token can be reused within its TTL on any endpoint),
+          // user keeps email pre-filled. No separate route.
+          setWaitlistMode(true);
+          setError("Invalid invite code. If you don't have one, join the waitlist below — we'll email you when a spot opens.");
+          setLoading(false);
+          return;
+        }
+
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: { full_name: fullName },
+            // user_metadata: invite_code + cohort_label travel through
+            // auth.signUp → email confirmation → /Onboarding session →
+            // first profile insert, where they're stamped onto the
+            // profiles row. See Onboarding.jsx for the stamping site.
+            data: {
+              full_name: fullName,
+              invite_code: inviteCode.trim(),
+              cohort_label: redeemResult.cohort_label,
+            },
             captchaToken,
             // Without this, Supabase falls back to the Auth Site URL
             // (https://getajob.careers), so users who click the confirmation
@@ -589,8 +628,41 @@ export default function Login() {
     }
   };
 
+  // Waitlist submit handler — fired from the inline waitlist form
+  // that replaces the signup form after a failed invite-code redeem.
+  // Lightweight: just inserts the email into waitlist_signups. Unique
+  // constraint catches duplicates → friendly "already on the list"
+  // message. No auth involved.
+  const handleWaitlistSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setMessage(null);
+    try {
+      const { error } = await supabase
+        .from("waitlist_signups")
+        .insert({ email: email.trim().toLowerCase() });
+      if (error) {
+        // PostgREST surfaces unique-violation as status 409. The
+        // friendlier code-23505 is what gets returned via the JS
+        // client. Both paths land here — show the same message.
+        if (error.code === "23505" || error.message?.toLowerCase().includes("unique")) {
+          setMessage("You're already on the waitlist — we'll email you when a spot opens.");
+          setLoading(false);
+          return;
+        }
+        throw error;
+      }
+      setMessage("Thanks — we'll email you when a spot opens.");
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const headline =
-    mode === "signup" ? "Create your account"
+    mode === "signup" ? (waitlistMode ? "Join the waitlist" : "Create your account")
     : mode === "forgot" ? "Reset your password"
     : "Welcome back";
 
@@ -661,6 +733,41 @@ export default function Login() {
               </div>
             )}
 
+            {/* Waitlist mode: minimal inline form (email only). Replaces
+                the signup form after a failed invite-code redeem. Same
+                visual chrome as the signup form so the flip feels like
+                a content change, not a page change. */}
+            {mode === "signup" && waitlistMode ? (
+              <form onSubmit={handleWaitlistSubmit} className="login-form">
+                <div className="login-field">
+                  <label className="login-label" htmlFor="waitlist-email">Email</label>
+                  <input
+                    id="waitlist-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="login-input"
+                    placeholder="you@example.com"
+                    required
+                  />
+                </div>
+                <button
+                  type="submit"
+                  disabled={loading || !email.trim()}
+                  className="login-submit"
+                >
+                  {loading ? "Loading..." : "Join the waitlist"}
+                </button>
+                <div className="login-back">
+                  <button
+                    type="button"
+                    onClick={() => { setWaitlistMode(false); setError(null); setMessage(null); }}
+                  >
+                    Back — I have an invite code
+                  </button>
+                </div>
+              </form>
+            ) : (
             <form onSubmit={handleSubmit} className="login-form">
               {mode === "signup" && (
                 <div className="login-field">
@@ -689,6 +796,23 @@ export default function Login() {
                   required
                 />
               </div>
+
+              {mode === "signup" && (
+                <div className="login-field">
+                  <label className="login-label" htmlFor="login-invite">Invite code</label>
+                  <input
+                    id="login-invite"
+                    type="text"
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value)}
+                    className="login-input"
+                    placeholder="From your invitation email or WhatsApp"
+                    autoCapitalize="characters"
+                    autoComplete="off"
+                    required
+                  />
+                </div>
+              )}
 
               {mode !== "forgot" && (
                 <div className="login-field">
@@ -744,6 +868,7 @@ export default function Login() {
                 {submitLabel}
               </button>
             </form>
+            )}
 
             {mode === "forgot" && (
               <div className="login-back">
