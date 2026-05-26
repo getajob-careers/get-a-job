@@ -629,8 +629,13 @@ export default function Onboarding() {
       const analysisRoles = data?.roles || [];
       if (!mountedRef.current) return;
 
-      // Atomically replace career roles using a DB transaction via RPC
-      if (user && analysisRoles.length > 0) {
+      // Cached path: onboarding never expects this (first run for the
+      // user), but defensively no-op if the server hits cache for some
+      // reason — career_roles for these inputs is already in DB.
+      if (data?.cached) {
+        console.warn("[onboarding] unexpected cached:true on first analysis run — skipping RPC");
+      } else if (user && analysisRoles.length > 0) {
+        // Atomically replace career roles using a DB transaction via RPC
         const rolesPayload = analysisRoles.map((r) => ({
           title: r.title,
           track: r.track,
@@ -649,6 +654,11 @@ export default function Onboarding() {
         const { error: rpcError } = await supabase.rpc("replace_career_roles", {
           p_user_id: user.id,
           p_roles: rolesPayload,
+          // Edge function returns the hash of inputs that drove this analysis.
+          // Forwarded so the RPC writes function_cache atomically with the
+          // career_roles rows, letting subsequent calls (Home, Refresh) skip
+          // regeneration when inputs haven't changed. See PR B.
+          p_input_hash: data?.input_hash || null,
         });
 
         if (rpcError) throw rpcError;

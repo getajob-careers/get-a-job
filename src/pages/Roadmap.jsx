@@ -168,13 +168,26 @@ export default function CareerRoadmap() {
           "Content-Type": "application/json",
           "apikey": import.meta.env.VITE_SUPABASE_ANON_KEY,
         },
-        body: JSON.stringify({ dream_roles: profile?.five_year_role ? [profile.five_year_role] : [] }),
+        // force:true bypasses the input-hash cache so the Refresh button
+        // always regenerates. Cache check only kicks in for automatic /
+        // background recompute paths (none today; reserved for future).
+        body: JSON.stringify({
+          dream_roles: profile?.five_year_role ? [profile.five_year_role] : [],
+          force: true,
+        }),
       });
       const data = await response.json();
       if (!response.ok) throw new Error(data?.error || data?.msg || `HTTP ${response.status}`);
       if (data?.error) throw new Error(data.error);
 
-      if (data?.roles?.length > 0) {
+      // cached:true should be impossible here because we sent force:true,
+      // but defensively handle it: skip the writes + invalidations and
+      // treat as a successful no-op. (Logging because it'd indicate a
+      // server-side bug.)
+      if (data?.cached) {
+        console.warn("[career-roadmap] unexpected cached:true on force-refresh — skipping rewrite");
+        track(EVENTS.CAREER_ANALYSIS_REFRESHED, { role_count: 0, cached: true });
+      } else if (data?.roles?.length > 0) {
         const rolesPayload = data.roles.map((r) => ({
           title: r.title,
           track: r.track,
@@ -192,9 +205,13 @@ export default function CareerRoadmap() {
         const { error: rpcError } = await supabase.rpc("replace_career_roles", {
           p_user_id: user.id,
           p_roles: rolesPayload,
+          // Forwarded from the edge function; written to function_cache
+          // atomically with the career_roles rows so a future call with
+          // the same inputs can short-circuit. See PR B.
+          p_input_hash: data?.input_hash || null,
         });
         if (rpcError) throw rpcError;
-        track(EVENTS.CAREER_ANALYSIS_REFRESHED, { role_count: rolesPayload.length });
+        track(EVENTS.CAREER_ANALYSIS_REFRESHED, { role_count: rolesPayload.length, cached: false });
 
         const { error: persistErr } = await supabase
           .from("profiles")

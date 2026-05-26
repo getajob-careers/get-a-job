@@ -615,8 +615,14 @@ export default function Home() {
 
     (async () => {
       try {
+        // Self-heal exists because a prior run's persist step failed and
+        // left profile.qualification_level=null. We MUST bypass the input-
+        // hash cache here — if inputs are unchanged since that failed run,
+        // the cache would return cached:true with no qualification_level,
+        // leaving the null state unrepaired. force:true guarantees a fresh
+        // response shape with all the fields we need to persist.
         const { data, error } = await supabase.functions.invoke("generate-career-analysis", {
-          body: { dream_roles: [] },
+          body: { dream_roles: [], force: true },
         });
         if (error || !data?.qualification_level) {
           clearTimeout(timeoutId);

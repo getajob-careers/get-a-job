@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
+import { sha256Hex } from '../_shared/content-hash.ts'
 import { pickPrimaryEducation, isCurrentlyStudent, formatEducationLine } from '../_shared/education-helpers.ts'
 import { resolveSkillAliases } from '../_shared/skill-aliases.ts'
 
@@ -27,6 +28,13 @@ const corsHeaders = {
 const MODEL = 'gpt-4o'
 const RATE_LIMIT_CALLS = 10
 const RATE_LIMIT_WINDOW = 3600 // 1 hour
+
+// Cache TTL ceiling. Even when the user's input hash is unchanged, force
+// a regen after this window so library / prompt / scoring-formula updates
+// in code reach users without manual invalidation. 7 days = roughly one
+// platform-update cycle; cheap enough at 100-student pilot scale (~14 LLM
+// calls / week worst case for a fully-cached cohort).
+const CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000
 
 // Fit scoring weights per fit_scoring_logic
 const WEIGHTS = { core: 0.6, secondary: 0.3, differentiator: 0.1 } as const;
@@ -766,6 +774,53 @@ Deno.serve(async (req) => {
       ? sanitisedDreamRoles
       : (profile.five_year_role ? [trunc(profile.five_year_role, 100)] : []);
 
+    // ─── Change-detection cache ────────────────────────────────────────
+    // Hash the sanitised LLM inputs (same data that ends up in the prompt)
+    // and short-circuit when the hash matches function_cache + the cached
+    // marker is within TTL. Frontend receives `cached: true` and skips its
+    // replace_career_roles RPC + cache invalidations — the existing
+    // career_roles rows are already current for these inputs.
+    //
+    // Forced bypass: caller passes `force: true` in the body. The Refresh
+    // Analysis button wires this so users can re-run on demand.
+    //
+    // Fail-open: any read error against function_cache (RLS misconfig,
+    // table missing during a migration race, etc.) falls through to full
+    // regeneration. Cache is a perf optimisation, not a correctness
+    // guarantee — never block the function on its absence.
+    const forceRefresh = body?.force === true
+    const inputHashPayload = {
+      profile: sanitisedProfile,
+      experiences: sanitisedExperiences,
+      projects: sanitisedProjects,
+      certifications: sanitisedCerts,
+      dream_roles: sanitisedDreamRoles,
+    }
+    const inputHash = await sha256Hex(inputHashPayload)
+
+    if (!forceRefresh) {
+      try {
+        const { data: cacheRow } = await serviceClient
+          .from('function_cache')
+          .select('input_hash, cached_at')
+          .eq('user_id', user.id)
+          .eq('function_name', 'generate-career-analysis')
+          .maybeSingle()
+        if (cacheRow && cacheRow.input_hash === inputHash) {
+          const cachedAt = new Date(cacheRow.cached_at).getTime()
+          if (Date.now() - cachedAt < CACHE_TTL_MS) {
+            _ok = true; _http = 200
+            return new Response(JSON.stringify({ cached: true, input_hash: inputHash }), {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
+          }
+        }
+      } catch (err) {
+        // Fail-open. Log and continue to regeneration.
+        console.warn('[generate-career-analysis] cache read failed (non-fatal):', (err as Error)?.message)
+      }
+    }
+
     // ─── PHASE 1: Deterministic scoring ────────────────────────────────
 
     // 1a. Build profile text for proof signal matching
@@ -1177,6 +1232,11 @@ Return ONLY valid JSON.`;
         : "",
       skill_gaps: aggregatedGaps,
       roles: finalRoles,
+      // Pass the input fingerprint back so the frontend forwards it to
+      // replace_career_roles, which writes it to function_cache atomically
+      // with the career_roles content. See content-hash.ts + migration
+      // 20260526_function_cache.sql.
+      input_hash: inputHash,
     };
 
     _ok = true; _http = 200
