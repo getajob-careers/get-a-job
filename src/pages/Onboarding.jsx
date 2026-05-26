@@ -8,6 +8,7 @@ import { Loader2 } from "lucide-react";
 import { EMPTY_PROFILE, cleanProfilePayload, ALLOWED_EXPERIENCE_TYPES, inferExperienceType } from "@/lib/onboardingPayload";
 import { normalizeEducationLevel, parseEducationDateRange } from "@/lib/educationPolicy";
 import { resolveDueDate } from "@/lib/taskDueDate";
+import { ONBOARDING_FALLBACK_TASKS } from "@/lib/onboardingFallbackTasks";
 import { track, EVENTS } from "@/lib/analytics";
 import { ONB_CSS } from "../components/onboarding/onboardingStyles";
 
@@ -822,52 +823,70 @@ export default function Onboarding() {
         insertedIds.cert = (data || []).map((r) => r.id);
       }
 
-      // Generate personalized tasks via Edge Function
-      let tasksToInsert = [];
-      // Map the edge function's richer taxonomy → the DB's chk constraints
-      // (chk_tasks_priority: low|medium|high · chk_tasks_category: application|project|networking|skill|cv)
-      const PRIORITY_MAP = { urgent_now: "high", this_week: "medium", longer_term: "low", high: "high", medium: "medium", low: "low" };
-      const CATEGORY_MAP = { application: "application", cv: "cv", skill: "skill", project: "project", networking: "networking", interview_prep: "application", clarity_positioning: "application" };
-      const normPriority = (p) => PRIORITY_MAP[p] || "medium";
-      const normCategory = (c) => CATEGORY_MAP[c] || "application";
-      try {
-        const { data: taskData, error: taskInvokeError } = await supabase.functions.invoke("generate-tasks", {
-          body: { context: "onboarding initial tasks" },
-        });
-        if (taskInvokeError) throw taskInvokeError;
-        if (taskData?.tasks?.length > 0) {
-          tasksToInsert = taskData.tasks.map((t) => {
-            const priority = normPriority(t.priority);
-            // Only honor LLM-provided dates when they validate. resolveDueDate
-            // returns null when missing/invalid — no priority-based auto-
-            // fallback. Tasks land with null due_date and the user sets one
-            // explicitly via the Tasks-page UI when they want pressure.
-            return {
-              title: t.title,
-              description: t.description,
-              category: normCategory(t.category),
-              priority,
-              role_title: t.role_title || null,
-              due_date: resolveDueDate(t.due_date),
-              is_complete: false,
-              user_id: user.id,
-            };
+      // Generate personalized tasks in the BACKGROUND — don't block
+      // onboarding completion. Saves ~20s of perceived latency before the
+      // track reveal screen. Tasks land in the DB ~10-20s after navigation;
+      // by the time the user clicks through to the Tasks page (typically
+      // after exploring Roadmap first) they're already there.
+      //
+      // Failure layers:
+      // 1. Server: openaiChatCompletionWithRetry retries 3x with exp
+      //    backoff on transient errors (PR R1).
+      // 2. Client: this .catch inserts the 2 ONBOARDING_FALLBACK_TASKS so
+      //    the user never lands with an empty Tasks page. Tasks page
+      //    detects all-fallback state via allTasksAreOnboardingFallback
+      //    and surfaces a "Generate personalized tasks" banner the user
+      //    can click to upgrade to real LLM-generated tasks.
+      // 3. Browser closes mid-flight: neither path runs. Tasks page's
+      //    empty-state still surfaces the same banner.
+      //
+      // No `insertedIds.task` push — the outer-catch rollback is for
+      // synchronous onboarding failures. Anything inserted async after
+      // onboarding finalises is out of rollback scope; the Layer-2 banner
+      // is the safety net for any orphan outcomes.
+      (async () => {
+        try {
+          const PRIORITY_MAP = { urgent_now: "high", this_week: "medium", longer_term: "low", high: "high", medium: "medium", low: "low" };
+          const CATEGORY_MAP = { application: "application", cv: "cv", skill: "skill", project: "project", networking: "networking", interview_prep: "application", clarity_positioning: "application" };
+          const normPriority = (p) => PRIORITY_MAP[p] || "medium";
+          const normCategory = (c) => CATEGORY_MAP[c] || "application";
+
+          const { data: taskData, error: taskInvokeError } = await supabase.functions.invoke("generate-tasks", {
+            body: { context: "onboarding initial tasks" },
           });
+          if (taskInvokeError) throw taskInvokeError;
+          const aiTasks = (taskData?.tasks || []).map((t) => ({
+            title: t.title,
+            description: t.description,
+            category: normCategory(t.category),
+            priority: normPriority(t.priority),
+            role_title: t.role_title || null,
+            due_date: resolveDueDate(t.due_date),
+            is_complete: false,
+            user_id: user.id,
+          }));
+          if (aiTasks.length === 0) throw new Error("generate-tasks returned no tasks");
+          const { error: insertErr } = await supabase.from("tasks").insert(aiTasks);
+          if (insertErr) throw insertErr;
+          queryClient.invalidateQueries({ queryKey: ["tasks"] });
+        } catch (err) {
+          console.error("Background onboarding task generation failed:", err);
+          try {
+            await supabase.from("tasks").insert(
+              ONBOARDING_FALLBACK_TASKS.map((t) => ({
+                ...t,
+                is_complete: false,
+                user_id: user.id,
+              })),
+            );
+            queryClient.invalidateQueries({ queryKey: ["tasks"] });
+          } catch (fallbackErr) {
+            // Both AI and fallback insert failed. Tasks page's empty-state
+            // banner is the final recovery — user clicks Generate, gets tasks.
+            console.error("Onboarding fallback task insert also failed:", fallbackErr);
+          }
         }
-      } catch (err) {
-        console.error("Task generation error during onboarding:", err);
-      }
-      if (tasksToInsert.length === 0) {
-        tasksToInsert = [
-          { title: "Update your CV for target roles", description: "Tailor your CV based on skill gaps.", category: "cv", priority: "high", is_complete: false, user_id: user.id },
-          { title: "Research target companies", description: "Find active job postings.", category: "application", priority: "high", is_complete: false, user_id: user.id },
-        ];
-      }
-      const { data: taskInsertData, error: taskInsertError } = await supabase.from("tasks")
-        .insert(tasksToInsert)
-        .select("id");
-      if (taskInsertError) throw taskInsertError;
-      insertedIds.task = (taskInsertData || []).map((r) => r.id);
+      })();
 
     } catch (err) {
       console.error("Error saving onboarding data:", err);

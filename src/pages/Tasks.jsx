@@ -7,6 +7,7 @@ import { Loader2, Brain, CheckCircle2, Circle, AlertCircle, Trash2, Calendar as 
 import { toast } from "sonner";
 import GeneratingBanner from "@/components/ui/GeneratingBanner";
 import { resolveDueDate, validateDueDate } from "@/lib/taskDueDate";
+import { allTasksAreOnboardingFallback } from "@/lib/onboardingFallbackTasks";
 import { ACT_CSS } from "../components/activity/activityStyles";
 
 const TASK_MESSAGES = [
@@ -287,6 +288,21 @@ export default function Tasks() {
               <span>{generateError}</span>
               <button onClick={handleGenerate} className="act-btn act-btn-sm act-btn-primary">
                 <RefreshCw className="w-3 h-3" />Try again
+              </button>
+            </div>
+          )}
+
+          {/* Regenerate banner — detects the post-onboarding fallback state.
+              When onboarding's background generate-tasks fails (or the user
+              closed the tab mid-flight), we either land empty or with two
+              generic fallback tasks. This banner offers a one-click upgrade
+              to real LLM-generated tasks. handleGenerate's delete-then-insert
+              flow handles the replacement atomically. See PR C. */}
+          {profile?.onboarding_complete && !generating && allTasksAreOnboardingFallback(tasks) && (
+            <div className="act-banner mb-6 flex items-center justify-between gap-3 flex-wrap">
+              <span>Your tasks haven't been personalised yet — these are placeholders.</span>
+              <button onClick={handleGenerate} className="act-btn act-btn-sm act-btn-primary">
+                <Brain className="w-3.5 h-3.5" />Generate personalised tasks
               </button>
             </div>
           )}
