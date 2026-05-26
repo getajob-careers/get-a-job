@@ -1,10 +1,19 @@
 import React, { useState, useRef, useEffect } from "react";
-import * as pdfjsLib from "pdfjs-dist";
-import pdfjsWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
-pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerUrl;
-
+// pdfjs is lazy-loaded inside the function below — the lib + worker URL
+// pull ~356KB gzip onto the main chunk otherwise, paid by EVERY user
+// regardless of whether they ever upload a PDF resume. Onboarding is
+// eager (per PR F decision), so this is the largest single saving on
+// the main bundle path.
 async function extractTextFromPdf(file) {
+  // pdfjs-dist exposes named exports (no default); use the namespace
+  // object directly. The worker URL module's default export is the
+  // resolved URL string from Vite's ?url asset import.
+  const [pdfjsLib, pdfjsWorkerModule] = await Promise.all([
+    import("pdfjs-dist"),
+    import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
+  ]);
+  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerModule.default;
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
   let text = "";

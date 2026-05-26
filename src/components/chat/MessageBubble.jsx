@@ -3,9 +3,14 @@ import ReactMarkdown from "react-markdown";
 import { cn } from "@/lib/utils";
 import { Zap, CheckCircle2, AlertCircle, Loader2, ChevronRight, Clock, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { jsPDF } from "jspdf";
 
-const downloadAsPDF = (content) => {
+// jsPDF (+ its peer html2canvas pulled transitively) is ~50KB gzip and
+// only fires when a user clicks "Download CV as PDF" on an AI message
+// that rendered a CV. Lazy-loading keeps it off the main chunk; first
+// click on the button incurs a ~100-300ms fetch on cold cache, then
+// cached for subsequent uses.
+const downloadAsPDF = async (content) => {
+  const { jsPDF } = await import("jspdf");
   const doc = new jsPDF({ unit: "mm", format: "a4" });
   const pageWidth = doc.internal.pageSize.getWidth();
   const margin = 20;
@@ -222,6 +227,16 @@ const isCV = (content) => content && (
 export default function MessageBubble({ message }) {
   const isUser = message.role === "user";
   const showDownload = !isUser && isCV(message.content || "");
+  // Disable the Download button briefly while jsPDF lazy-fetches + renders.
+  // First click pays a ~200–500ms chunk fetch on cold cache; subsequent
+  // clicks are instant. Prevents double-fire if a user clicks twice.
+  const [downloading, setDownloading] = useState(false);
+  const handleDownload = async () => {
+    if (downloading) return;
+    setDownloading(true);
+    try { await downloadAsPDF(message.content); }
+    finally { setDownloading(false); }
+  };
 
   return (
     <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
@@ -267,11 +282,16 @@ export default function MessageBubble({ message }) {
             <Button
               size="sm"
               variant="outline"
-              onClick={() => downloadAsPDF(message.content)}
+              onClick={handleDownload}
+              disabled={downloading}
               className="text-xs gap-1.5"
             >
-              <Download className="w-3.5 h-3.5" />
-              Download CV as PDF
+              {downloading ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Download className="w-3.5 h-3.5" />
+              )}
+              {downloading ? "Preparing PDF…" : "Download CV as PDF"}
             </Button>
           </div>
         )}

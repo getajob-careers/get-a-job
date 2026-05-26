@@ -27,6 +27,7 @@ import { createPageUrl } from "@/utils";
 import { ArrowUpRight, Loader2, AlertCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
+import { withDbTimeout } from "@/lib/withDbTimeout";
 
 // ────────────────────────────────────────────────────────────────────────
 // Inline CSS — Direction 3 tokens. Same palette as Landing.jsx.
@@ -461,23 +462,30 @@ export default function Home() {
   // null when no row exists).
   const { data: profile, isLoading: loadingProfile, isFetched: profileFetched, isError: profileError } = useProfileQuery(user?.id);
 
+  // Direct DB queries get wrapped in withDbTimeout (30s) — guards
+  // against a hung Supabase REST call leaving Home stuck on the skeleton
+  // indefinitely. Profile + roles + applications gate `isLoading`; if any
+  // of them hangs, the user can't escape the skeleton. The wrapper
+  // surfaces hung queries as normal React Query errors at 30s instead
+  // of an infinite wait. Edge function invocations (daily_action) are
+  // NOT wrapped — they legitimately run 40s+ in some paths.
   const { data: roles = [], isLoading: loadingRoles, isError: rolesError } = useQuery({
     queryKey: ["careerRoles", user?.id],
-    queryFn: async () => {
+    queryFn: withDbTimeout(async () => {
       const { data, error } = await supabase.from("career_roles").select("*").eq("user_id", user.id);
       if (error) throw error;
       return data || [];
-    },
+    }, "career_roles"),
     enabled: !!user?.id,
   });
 
   const { data: applications = [], isLoading: loadingApps, isError: appsError } = useQuery({
     queryKey: ["applications", user?.id],
-    queryFn: async () => {
+    queryFn: withDbTimeout(async () => {
       const { data, error } = await supabase.from("applications").select("*").eq("user_id", user.id);
       if (error) throw error;
       return data || [];
-    },
+    }, "applications"),
     enabled: !!user?.id,
   });
 
@@ -549,13 +557,24 @@ export default function Home() {
 
   // Track-1-matching new jobs in the rolling 7d window. Reuses the same
   // search_jobs_by_role_titles RPC used by /Jobs.
-  const track1RoleTitles = useMemo(() => roles.filter((r) => r.track === "track_1").map((r) => r.title).filter(Boolean), [roles]);
+  //
+  // Pre-PR-F: this query was gated on `track1RoleTitles` derived from
+  // the `roles` query — creating a waterfall (jobs couldn't start until
+  // roles finished). Now: fetch the track-1 titles inline (narrow select,
+  // titles only) so this query fires in parallel with `roles` on user.id
+  // resolution. Saves ~300-500ms on Home first paint.
   const { data: newJobs = [] } = useQuery({
-    queryKey: ["new_jobs_home", user?.id, track1RoleTitles.join("|")],
+    queryKey: ["new_jobs_home", user?.id],
     queryFn: async () => {
-      if (track1RoleTitles.length === 0) return [];
+      const { data: rolesData } = await supabase
+        .from("career_roles")
+        .select("title")
+        .eq("user_id", user.id)
+        .eq("track", "track_1");
+      const titles = (rolesData || []).map((r) => r.title).filter(Boolean);
+      if (titles.length === 0) return [];
       const { data } = await supabase.rpc("search_jobs_by_role_titles", {
-        p_role_titles: track1RoleTitles,
+        p_role_titles: titles,
         p_limit: 20,
         p_offset: 0,
         p_similarity_threshold: 0.3,
@@ -564,7 +583,7 @@ export default function Home() {
       const cutoff = Date.now() - ROLLING_7D_MS;
       return data.filter((j) => j.date_posted && new Date(j.date_posted).getTime() >= cutoff);
     },
-    enabled: !!user?.id && track1RoleTitles.length > 0,
+    enabled: !!user?.id,
   });
 
   const stale = isAnalysisStale({ profile, experiences, certifications, projects });
@@ -663,6 +682,24 @@ export default function Home() {
     (profileFetched && !profile) ||
     (profile && !profile.onboarding_complete);
 
+  // ── Derived state for cards ──────────────────────────────────────────
+  // Memoised so the filter+sort doesn't run on every parent re-render
+  // (Layout chrome state changes, sidebar collapses, etc.). Cheap as
+  // each pass is, with up to ~50 applications it accumulates.
+  // Computed before the early returns so the hook order stays stable
+  // (rules-of-hooks). The values are unused when willRedirect or
+  // isLoading short-circuit below — the memo cost is negligible.
+  const activeApps = useMemo(
+    () => applications.filter((a) => !["rejected", "withdrawn", "offer", "accepted"].includes(a.status)),
+    [applications],
+  );
+  const recentApps = useMemo(
+    () => [...applications]
+      .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
+      .slice(0, 3),
+    [applications],
+  );
+
   // willRedirect short-circuits to a quiet spinner — no point painting
   // the bento skeleton just to immediately navigate away. isLoading
   // renders the full page skeleton so users see real geometry.
@@ -679,14 +716,6 @@ export default function Home() {
   if (isLoading) {
     return <HomeSkeleton />;
   }
-
-  // ── Derived state for cards ──────────────────────────────────────────
-  const activeApps = applications.filter(
-    (a) => !["rejected", "withdrawn", "offer", "accepted"].includes(a.status),
-  );
-  const recentApps = [...applications]
-    .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
-    .slice(0, 3);
 
   const track1Count = roles.filter((r) => r.track === "track_1").length;
   const track2Count = roles.filter((r) => r.track === "track_2").length;
@@ -851,7 +880,13 @@ export default function Home() {
               <span className="home-card-stat">{newJobs.length} matches</span>
             </div>
             <div className="home-card-cta">
-              {track1RoleTitles.length === 0 ? "Browse open roles" : "Browse jobs"}
+              {/* "no track-1 yet" copy mirrors the pre-PR-F branch that
+                  inspected track1RoleTitles directly. Now we derive the
+                  state from in-memory `roles` (kept by the existing
+                  `roles` query) — same outcome, no waterfall. */}
+              {roles.filter((r) => r.track === "track_1" && r.title).length === 0
+                ? "Browse open roles"
+                : "Browse jobs"}
             </div>
             {newJobs.length > 0 ? (
               <div className="home-card-list">
@@ -863,7 +898,7 @@ export default function Home() {
               </div>
             ) : (
               <div className="home-card-desc">
-                {track1RoleTitles.length === 0
+                {roles.filter((r) => r.track === "track_1" && r.title).length === 0
                   ? "Generate your roadmap first — jobs are filtered to your Track 1 roles."
                   : "No new matches in the last 7 days. Browse the full board instead."}
               </div>

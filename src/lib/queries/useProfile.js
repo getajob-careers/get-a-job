@@ -45,6 +45,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/api/supabaseClient";
+import { withDbTimeout } from "@/lib/withDbTimeout";
 
 // Canonical query key. Always use this — never hand-roll the array
 // shape, since drift is what got us here.
@@ -73,10 +74,15 @@ export async function fetchFullProfile(userId) {
  *   or useCallback over inline lambdas if you care about render churn.
  *   For 3-field plucks the per-render recompute cost is negligible.
  */
+// Wrapped at module level so every caller of useProfileQuery gets the
+// 30s timeout for free. The wrapped fn is stable across renders, so
+// React Query's reference-equality checks on queryFn still work.
+const fetchFullProfileWithTimeout = withDbTimeout(fetchFullProfile, "profiles");
+
 export function useProfileQuery(userId, select) {
   return useQuery({
     queryKey: profileQueryKey(userId),
-    queryFn: () => fetchFullProfile(userId),
+    queryFn: () => fetchFullProfileWithTimeout(userId),
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
     select,
