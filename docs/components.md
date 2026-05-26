@@ -1,214 +1,112 @@
-# Components
+# Component Documentation
 
-Key components, their purpose, and what props they accept.
+Key components, their purpose, and what props they accept across the application.
 
 ---
 
-## Pages
+## Active Views and Pages
 
-Pages live in `src/pages/` and are registered in `src/pages.config.js`. They are wrapped by `Layout.jsx` automatically.
+Pages in `src/pages/` are registered in `src/pages.config.js` and wrapped by `Layout.jsx` automatically (with the exception of auth-bypass pages like `Landing`, `Login`, and `ResetPassword`).
 
 | Page | Route | Purpose |
 |------|-------|---------|
-| `Home` | `/Home` | Dashboard — qualification level, tier 1 role, skill match, execution stats |
-| `CareerRoadmap` | `/CareerRoadmap` | Tier-classified role list + progress visualisation + learning paths |
-| `Tracker` | `/Tracker` | Application tracker with 7-step workflow per application |
-| `Calendar` | `/Calendar` | Interview and deadline calendar |
-| `Tasks` | `/Tasks` | AI-generated weekly action item list with category filter |
-| `Subagents` | `/Subagents` | AI subagent selector (CV Agent, Interview Coach, etc.) |
-| `CareerAgent` | `/CareerAgent` | Direct chat with the Career Coach agent |
-| `Resources` | `/Resources` | Static accordion guides on job searching |
-| `AddInformation` | `/AddInformation` | Add/edit experiences, certifications, projects |
-| `JobSuggestions` | `/JobSuggestions` | Job board suggestions |
-| `Onboarding` | `/Onboarding` | Multi-step profile setup wizard (8 steps) |
-| `Login` | `/login` | Email/password auth |
+| `Home` | `/Home` | User dashboard — showing qualification levels, Track 1 primary roles, missing skill metrics, and execution cards. |
+| `Landing` | `/` or `/Landing` | High-converting portal landing page for visitors (auth-bypass). |
+| `Jobs` | `/Jobs` | Search listings from direct-ATS scraping, showing match/fit scores computed via local/LLM algorithms. |
+| `Roadmap` | `/Roadmap` | Track-classified role list (`track_1` / `track_2` / `track_3` in a 3-track quadrant view) + learning paths. |
+| `Tracker` | `/Tracker` | Collapsible cards for job applications, expanding into 9 detailed workflow tabs. |
+| `Calendar` | `/Calendar` | Interview and application deadlines calendar scheduler. |
+| `Tasks` | `/Tasks` | Weekly task planner with category filters and AI regeneration triggers. |
+| `Profile` | `/Profile` | Interactive, drag-and-drop and inline editor for education, work experience, certifications, and portfolio projects. |
+| `StoryBank` | `/StoryBank` | STAR method portfolio builder for converting experiences into structured metrics narratives. |
+| `Linkedin` | `/Linkedin` | LinkedIn hub featuring post draft generators, outreach draft coaches, and comments optimizers. |
+| `Practicum` | `/Practicum` | Faculty and self-sourced internship placement pipeline using a drag-and-drop Kanban interface. |
+| `Subagents` | `/Subagents` | Roster dashboard for choosing specialized AI subagents (Interview Coach, CV Agent, etc.). |
+| `CareerAgent` | `/CareerAgent` | Direct messaging with the general-purpose Career Coach AI agent. |
+| `CVAgent` | `/CVAgent` | Chat with the dedicated AI CV Tailoring subagent. |
+| `InterviewCoach` | `/InterviewCoach` | Chat with the specialized Interview Preparation subagent. |
+| `SkillDevelopmentAdvisor` | `/SkillDevelopmentAdvisor` | Chat with the dedicated Skill Gaps and learning path AI advisor. |
+| `Onboarding` | `/Onboarding` | Multi-step interactive wizard completing profile setups. |
+| `Login` | `/login` | Email/password sign-in and sign-up form. |
+| `ResetPassword` | `/reset-password` | Two-step password recovery workflow. |
+| `Settings` | `/Settings` | User configuration settings, password changes, data resets, and account deletions. |
+| `Admin` | `/Admin` | Administrative portal for checking observability costs, metrics, and chat log audits. |
 
 ---
 
-## Layout
+## Layout Components
 
 ### `Layout.jsx`
-
-The persistent sidebar wrapper rendered around every page except Onboarding.
-
-- Sidebar with nav links defined in `NAV_ITEMS`
-- Mobile hamburger menu with overlay
-- `TopLoadingBar` that fires on route change
-- Hides itself entirely on the Onboarding page
-
-**Props:** `children`, `currentPageName` (string — used to highlight active nav item)
+The persistent layout container rendered around every view except `Onboarding`, `Landing`, `Login`, and `ResetPassword`.
+- Persistent sidebar with main navigation routes.
+- Renders user full name directly from cached `profiles` details.
+- Hides the sidebar on mobile views, replacing it with an overlay hamburger drawer.
 
 ---
 
-## Tracker Components
+## Application Tracker Components
 
-The Application Tracker is the most complex feature. An `ApplicationRow` expands into 9 tabs.
+The **Tracker** page uses collapsible application rows which expand to reveal 9 custom workflows.
 
 ### `ApplicationRow`
-
-**Props:** `app` (application row object), `onUpdate` (callback to invalidate React Query cache)
-
-Renders a collapsible row. Tabs:
+Collapsible application details container.
+- **Props:** `app` (application row data object), `onUpdate` (callback to invalidate TanStack Query cache).
 
 | Tab | Component | Purpose |
 |-----|-----------|---------|
-| Steps | `ApplicationChecklist` | 7-step checklist |
-| Target Role | inline | Role info + job description textarea |
-| CV | `CVManagement` | CV name, status, AI generation |
-| Skills | `SkillsRequired` | Skill gap tracking for the role |
-| Projects | `ProjectsProof` | Projects linked to skill gaps |
-| Networking | `NetworkingReferrals` | Contact tracking for referrals |
-| Application | inline | Applied date, CV version, referral checkbox |
-| Interview | `InterviewPrep` | Interview notes and prep |
-| Follow-Up | `FollowUp` | Post-interview follow-up tracking |
-
-### `CVManagement`
-
-**Props:** `app`, `onUpdate`
-
-Manages CV version name and status. The "Generate CV" button calls the `generateTailoredCV` Edge Function with `target_role`, `job_description`, and `application_id`. On success, the `cv_url` and `cv_status` fields on the application row are updated, and a signed download URL is returned.
-
-### `NetworkingReferrals`
-
-**Props:** `app`, `onUpdate`
-
-CRUD for networking contacts tied to an application. Saves to `applications.networking_contacts` (jsonb).
-
-### `ProjectsProof`
-
-**Props:** `app`, `onUpdate`
-
-CRUD for projects that prove skills required by the application. Saves to `applications.projects_proof` (jsonb).
+| Steps | `ApplicationChecklist` | 7-step checklist of milestones. |
+| Target Role | Inline | Job details editor + Job Description text area. |
+| CV | `CVManagement` | CV name, draft status, and button to trigger `generate-tailored-cv`. |
+| Skills | `SkillsRequired` | Compares required JD skills against user skills. |
+| Projects | `ProjectsProof` | CRUD list to bind user portfolio projects as proof for required skills. |
+| Networking | `NetworkingReferrals` | Referrals contact lists saved to JSONB columns. |
+| Application | Inline | Triggers applied date, CV version used, and referral checkboxes. |
+| Interview | `InterviewPrep` | Interview questions and preparation notes. |
+| Follow-Up | `FollowUp` | Follow-up tracking dates and reminders. |
 
 ---
 
-## Dashboard Components
+## Practicum / Kanban Components
 
-### `JobMatchChecker`
+### `CompanyTargetsKanban`
+Renders target internship applications across five workflow columns (`Wishlist`, `Contacted`, `Interviewing`, `Placed`, `Rejected`) using drag-and-drop.
+- Utilizes `@hello-pangea/dnd` for smooth reordering.
+- Employs optimistic React Query mutations and automatic cache rollbacks if database writes fail.
 
-**Props:** `profile`, `experiences`
-
-Returns match score and skill analysis based on a pasted job description or URL. Calls the `analyze-job-match` Edge Function.
-
-### `SkillGapCourses`
-
-**Props:** `skillGaps` (string[])
-
-Displays course recommendations for identified skill gaps by calling the `generate-learning-paths` Edge Function.
+### `CompanyTargetDrawer`
+Sliding Sheet sidebar presenting internship details. Includes an **"Open in Outreach Coach"** trigger that seeds outreach query parameters (`?prefillCompany=&prefillRole=`) to the LinkedIn page.
 
 ---
 
-## Roadmap Components
+## Story Bank Components
 
-### `RoleCard`
-
-**Props:** `role` (career_roles row), `onTrack` (callback)
-
-Displays a single career role with tier badge, readiness score, skill gap summary, and a "Track This Role" button that creates an application entry.
-
-### `ProgressVisualization`
-
-**Props:** `profile`, `roles`, `experiences`, `courses`, `certifications`
-
-Card showing overall career readiness percentage and per-track readiness bars. Calculated client-side from existing data.
-
-### `LearningPaths`
-
-**Props:** `skillGaps` (string[]), `targetRole` (string)
-
-Displays a learning path for closing skill gaps. Calls the `generate-learning-paths` Edge Function.
+### `StoryEditor`
+Form interface for editing STAR narratives (Situation, Task, Action, Result) with an active AI reviewer button that verifies metric outcomes and extracts demonstrated skills.
 
 ---
 
-## Chat Components
+## Onboarding Wizard Components (`src/components/onboarding/`)
 
-### `ChatInterface`
+The onboarding wizard is a 9-step wizard (0-indexed). It tracks local wizard state and upserts details to `profiles` and child tables (such as `education` and `experiences`) using the `cleanProfilePayload` method to filter client-only variables.
 
-**Props:** `agentName`, `title`, `description`
-
-Reusable chat UI with message history, typing indicator, and send button. Calls the `ai-chat` Edge Function via `supabase.functions.invoke`. The full conversation history including the current user message is captured before the API call — the `updatedMessages` array is built from state before `setMessages` is called, so the Edge Function always receives the complete and current history.
-
-```js
-const userMsg = { role: "user", content: text };
-const updatedMessages = [...messages, userMsg];
-setMessages(updatedMessages);
-// updatedMessages (not messages) is sent to the Edge Function
-```
-
-### `MessageBubble`
-
-**Props:** `message` (object with `role`, `content`)
-
-Renders a single chat message. Supports markdown via `react-markdown`. If the message content looks like a CV (contains specific headings), shows a "Download CV as PDF" button using `jsPDF`.
-
----
-
-## Onboarding Components
-
-The onboarding wizard is managed by `src/pages/Onboarding.jsx`. Steps are 0-indexed. Each step is a separate component in `src/components/onboarding/`.
-
-| Component | Step | Collects |
-|-----------|------|---------|
-| `StepResumeUpload` | 0 | CV file upload (parsed via `ai-chat`), LinkedIn URL, employment status |
-| `StepEducation` | 1 | Degree, field of study, GPA, relevant coursework |
-| `StepExperience` | 2 | Work history entries |
-| `StepSkills` | 3 | Skills categorised by type (hard, tools, technical, analytical, communication, leadership) |
-| `StepCareerDirection` | 4 | Target job titles, 5-year goal, target industries, work environment preferences |
-| `StepConstraints` | 5 | Location, work type, salary expectation, available start date |
-| `StepSurvey` | 6 | Additional context for AI analysis (biggest challenge, job search efforts, etc.) |
-| `StepTierReveal` | 7 | AI-generated track analysis reveal + platform initialisation (tasks generated here) |
-
-### StepResumeUpload notes
-
-- The CV upload parses the file and sends it to the `ai-chat` Edge Function to extract structured profile data, which pre-fills subsequent steps.
-- The "Connect with LinkedIn" button is intentionally non-functional. The UI is preserved for a future LinkedIn OAuth integration.
-- JSON extraction from the AI response uses a guarded two-attempt parse: direct parse first, then a double-escape unescape only if the JSON looks double-escaped (detected by `/\{\s*\\"/.test(...)`).
-
-### StepTierReveal notes
-
-This step triggers two sequential operations:
-
-1. `generate-career-analysis` Edge Function — generates track-classified roles, writes them to `career_roles`, and updates `qualification_level`, `overall_assessment`, `skill_gaps` on the profile.
-2. `generate-tasks` Edge Function — called inside `handleFinalise`, generates the initial weekly task plan and writes it to `tasks`.
-
-Both use the insert-before-delete pattern to avoid data loss mid-write.
-
-### `OnboardingShell`
-
-Wrapper component providing the progress bar and step navigation chrome. Step components render inside it.
+| Component | Step | Focus / Inputs |
+|-----------|------|----------------|
+| `StepResumeUpload` | 0 | Parser for PDF uploads, extracting profile structures using `ai-chat`. |
+| `StepEducation` | 1 | Academic degrees, institution names, GPAs, and modules. |
+| `StepPracticum` | 2 | Faculty-provided vs self-sourced placement track choice. |
+| `StepExperience` | 3 | Historical employment, internship, and military positions. |
+| `StepSkills` | 4 | Categorized skills inputs using autocomplete inputs. |
+| `StepCareerDirection`| 5 | Stated five-year roles, preferred environments, and GTM scopes. |
+| `StepConstraints` | 6 | Desired locations, salary ranges, and start dates. |
+| `StepSurvey` | 7 | Qualitative challenges and job search effort contexts. |
+| `OnboardingTutorial` | 8 | Paced 6-slide overview carousels displaying tool walkthroughs (skip gate included). |
 
 ---
 
 ## UI Components (`src/components/ui/`)
 
-These are **shadcn/ui** components — generated wrappers around Radix UI primitives. Do not edit them manually. To add a new shadcn component:
-
+Pre-configured shadcn/ui components wrapper built on Radix UI headless structures. Styled with Vanilla Tailwind classes. Do not modify these files manually; generate additions via:
 ```bash
 npx shadcn@latest add [component-name]
 ```
-
-Key components in use: `Button`, `Input`, `Textarea`, `Select`, `Dialog`, `Card`, `Badge`, `Checkbox`, `Progress`, `Tabs`.
-
----
-
-## GlobalErrorBoundary
-
-`src/components/GlobalErrorBoundary.jsx` wraps the entire app in `main.jsx`. Catches unhandled React render errors and shows a fallback UI with an error message. Logs to `console.error`.
-
----
-
-## Error State Conventions
-
-Pages must distinguish between three distinct states and render each differently:
-
-| State | Cause | Correct UI |
-|-------|-------|------------|
-| Loading | Query in flight | Spinner / skeleton |
-| Error | Query threw (network failure, server error) | Full error screen or banner with "Refresh" prompt |
-| Empty | Query succeeded, returned zero rows | Empty state prompt (e.g., "Generate your roadmap to get started") |
-
-**Never render an empty state when `isError` is true.** The following pages implement this correctly:
-
-- `Home.jsx` — shows a red banner if `career_roles` or `applications` query fails
-- `Tasks.jsx` — shows a full error screen (not the empty state) if the tasks query fails
-- `CareerRoadmap.jsx` — shows a full error screen if the roles query fails
+Key components: `Button`, `Dialog`, `Progress`, `Input`, `Textarea`, `Tabs`, `Card`, `Checkbox`, `Badge`.
