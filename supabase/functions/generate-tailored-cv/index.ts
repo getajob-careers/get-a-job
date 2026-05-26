@@ -401,13 +401,21 @@ Deno.serve(async (req) => {
       req_ai_tooling?: Record<string, unknown> | null;
     } | null = null;
     if (application_id) {
-      // PR-F: select job_id so we can pull the linked v4-extracted row.
-      const { data: app } = await supabase
+      // Pull the application + its v4 requirements snapshot. The snapshot
+      // is the canonical source of structured grounding now — pre-PR
+      // 2026-05-26 we tried to join via applications.job_id, but that
+      // column never existed; the SELECT failed silently and every CV
+      // shipped without v4 grounding (sparse About Me path always fired).
+      // See migration 20260526_applications_req_snapshot.sql.
+      const { data: app, error: appErr } = await supabase
         .from("applications")
-        .select("company, role_title, job_description, notes, required_seniority, track, qualification_score, goal_alignment_score, skills_required, location, job_id")
+        .select("company, role_title, job_description, notes, required_seniority, track, qualification_score, goal_alignment_score, skills_required, location, ats_source, external_id, req_snapshot")
         .eq("id", application_id)
         .eq("user_id", user.id)
         .single();
+      if (appErr) {
+        console.warn("[CV] application fetch failed:", appErr.message);
+      }
       if (app) {
         targetCompany = String(app.company ?? '').slice(0, 200);
         if (!safeJobDescription && app.job_description) {
@@ -434,33 +442,104 @@ Deno.serve(async (req) => {
           location: app.location ?? null,
         };
 
-        // PR-F: when the application is linked to a cached job, pull the v4
-        // structured fields and overlay them onto targetRoleContext. These
-        // become the LLM's primary anchors via STRUCTURED_JOB_REQUIREMENTS.
-        if (app.job_id) {
+        // v4 grounding via the application's req_snapshot. Three-stage
+        // lookup chain — each stage runs only if the prior stage missed:
+        //
+        // STAGE 1 — read app.req_snapshot directly. This is the steady-
+        //   state path. The snapshot was populated either by the
+        //   2026-05-26 backfill migration (Browse-add applications with a
+        //   live matching jobs row) or by a prior CV-gen stage 2/3 below.
+        // STAGE 2 — if no snapshot but the app has (ats_source, external_id),
+        //   join jobs by that pair. If hit, persist to req_snapshot so the
+        //   next gen skips this step. Handles Browse-add apps whose job
+        //   row was created AFTER the application was added.
+        // STAGE 3 — if still no snapshot AND we have a substantive JD,
+        //   call extract-job-requirements in stateless mode against the
+        //   JD itself. Pays the ~5-10s LLM cost once per application;
+        //   persists to req_snapshot so subsequent regenerations are
+        //   instant. Covers manual-add applications + Browse-add apps
+        //   where the linked job row has since been deleted.
+        //
+        // If all three miss, targetRoleContext stays sparse and the
+        // About Me sparse path fires — same as today's broken behavior,
+        // but now an honest "no JD grounding available" outcome rather
+        // than a silent SELECT failure masquerading as it.
+        let v4Source: Record<string, unknown> | null = null;
+        const isJsonObject = (v: unknown): v is Record<string, unknown> =>
+          !!v && typeof v === 'object' && !Array.isArray(v);
+
+        // STAGE 1 — existing snapshot on the application.
+        if (isJsonObject(app.req_snapshot)) {
+          v4Source = app.req_snapshot;
+          console.log("[CV] v4 grounding: stage 1 — req_snapshot on application");
+        }
+
+        // STAGE 2 — try the jobs join via ATS link.
+        if (!v4Source && app.ats_source && app.external_id) {
           const { data: jobRow } = await supabase
             .from("jobs")
             .select("req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_fields, req_seniority, notable_customers, scale_signals, funding_signals, req_ai_tooling")
-            .eq("id", app.job_id)
+            .eq("ats_source", app.ats_source)
+            .eq("external_id", app.external_id)
             .maybeSingle();
-          if (jobRow) {
-            targetRoleContext = {
-              ...targetRoleContext,
-              // Don't overwrite the application's required_seniority if it was
-              // already filled by a prior scoring run; only fill from jobs if null.
-              required_seniority: targetRoleContext.required_seniority ?? (jobRow.req_seniority ?? null),
-              req_skills_core: Array.isArray(jobRow.req_skills_core) ? jobRow.req_skills_core : null,
-              req_skills_nice: Array.isArray(jobRow.req_skills_nice) ? jobRow.req_skills_nice : null,
-              req_years_min: typeof jobRow.req_years_min === 'number' ? jobRow.req_years_min : null,
-              req_years_max: typeof jobRow.req_years_max === 'number' ? jobRow.req_years_max : null,
-              req_education_levels: Array.isArray(jobRow.req_education_levels) ? jobRow.req_education_levels : null,
-              req_education_fields: Array.isArray(jobRow.req_education_fields) ? jobRow.req_education_fields : null,
-              notable_customers: Array.isArray(jobRow.notable_customers) ? jobRow.notable_customers : null,
-              scale_signals: (jobRow.scale_signals && typeof jobRow.scale_signals === 'object' && !Array.isArray(jobRow.scale_signals)) ? jobRow.scale_signals as Record<string, unknown> : null,
-              funding_signals: (jobRow.funding_signals && typeof jobRow.funding_signals === 'object' && !Array.isArray(jobRow.funding_signals)) ? jobRow.funding_signals as Record<string, unknown> : null,
-              req_ai_tooling: (jobRow.req_ai_tooling && typeof jobRow.req_ai_tooling === 'object' && !Array.isArray(jobRow.req_ai_tooling)) ? jobRow.req_ai_tooling as Record<string, unknown> : null,
-            };
+          if (jobRow && (
+            (Array.isArray(jobRow.req_skills_core) && jobRow.req_skills_core.length > 0) ||
+            (Array.isArray(jobRow.req_skills_nice) && jobRow.req_skills_nice.length > 0) ||
+            jobRow.scale_signals || jobRow.funding_signals
+          )) {
+            v4Source = jobRow as unknown as Record<string, unknown>;
+            console.log("[CV] v4 grounding: stage 2 — jobs join by (ats_source, external_id)");
+            // Persist the snapshot back to the application so stage 1
+            // wins on the next regen. Fire-and-forget — a write failure
+            // here just means we'll re-do stage 2 next time.
+            void supabase.from("applications").update({ req_snapshot: jobRow }).eq("id", application_id).then(({ error }) => {
+              if (error) console.warn("[CV] snapshot persist (stage 2) failed:", error.message);
+            });
           }
+        }
+
+        // STAGE 3 — stateless extraction from the JD text. Costs ~5-10s
+        // LLM latency but only on first CV for this application. Uses
+        // the extract-job-requirements edge function's stateless mode
+        // (jd_text param). Same extractor + same schema as the jobs-
+        // table extraction — output is shape-compatible with stages 1+2.
+        if (!v4Source && safeJobDescription && safeJobDescription.length >= 200) {
+          try {
+            const extractRes = await supabase.functions.invoke("extract-job-requirements", {
+              body: { jd_text: safeJobDescription, title: app.role_title || safeTargetRole },
+            });
+            const extraction = (extractRes.data as { extraction?: Record<string, unknown> } | undefined)?.extraction;
+            if (extraction && (
+              (Array.isArray(extraction.req_skills_core) && (extraction.req_skills_core as unknown[]).length > 0) ||
+              (Array.isArray(extraction.req_skills_nice) && (extraction.req_skills_nice as unknown[]).length > 0)
+            )) {
+              v4Source = extraction;
+              console.log("[CV] v4 grounding: stage 3 — stateless extraction from JD");
+              void supabase.from("applications").update({ req_snapshot: extraction }).eq("id", application_id).then(({ error }) => {
+                if (error) console.warn("[CV] snapshot persist (stage 3) failed:", error.message);
+              });
+            }
+          } catch (e) {
+            console.warn("[CV] stateless extraction failed:", e instanceof Error ? e.message : String(e));
+          }
+        }
+
+        // Project v4Source onto targetRoleContext if any stage succeeded.
+        if (v4Source) {
+          targetRoleContext = {
+            ...targetRoleContext,
+            required_seniority: targetRoleContext.required_seniority ?? ((v4Source.req_seniority as string | null | undefined) ?? null),
+            req_skills_core: Array.isArray(v4Source.req_skills_core) ? (v4Source.req_skills_core as string[]) : null,
+            req_skills_nice: Array.isArray(v4Source.req_skills_nice) ? (v4Source.req_skills_nice as string[]) : null,
+            req_years_min: typeof v4Source.req_years_min === 'number' ? v4Source.req_years_min : null,
+            req_years_max: typeof v4Source.req_years_max === 'number' ? v4Source.req_years_max : null,
+            req_education_levels: Array.isArray(v4Source.req_education_levels) ? (v4Source.req_education_levels as string[]) : null,
+            req_education_fields: Array.isArray(v4Source.req_education_fields) ? (v4Source.req_education_fields as string[]) : null,
+            notable_customers: Array.isArray(v4Source.notable_customers) ? (v4Source.notable_customers as string[]) : null,
+            scale_signals: isJsonObject(v4Source.scale_signals) ? v4Source.scale_signals : null,
+            funding_signals: isJsonObject(v4Source.funding_signals) ? v4Source.funding_signals : null,
+            req_ai_tooling: isJsonObject(v4Source.req_ai_tooling) ? v4Source.req_ai_tooling : null,
+          };
         }
       }
     }
@@ -970,7 +1049,12 @@ D. What you MAY do:
 - About Me: FACTUAL style with no pronouns and no candidate-speak. The subject of every sentence is the USER (their experience, work, skills) — NOT the target company. JD domain terms, tools, and skill names ARE allowed when they describe the user's real experience. What is NEVER allowed is the company's own MISSION / TAGLINE / MARKETING / SLOGAN language. The path-specific instruction below governs LENGTH and CONTENT — follow it exactly.
 ${ABOUT_ME_RULES}
   BAD: "Excited to join Acme's mission to revolutionize payroll." BAD: "Aligns with the company's vision of seamless workforce solutions." BAD: "Hands-on experience in customer success and process improvement." BAD: "Demonstrated ability to drive results across cross-functional teams."
-- Experience bullets: action verb + what you did. Factual, concrete. No invented metrics. PREFER the XYZ structure when the source has measurable outcomes: "Accomplished X (impact Y) by doing Z" — e.g. "Reduced ticket resolution time by 40% by building a triage workflow in Zendesk". The metric Y MUST come verbatim from the user's source data. When source has no metric, fall back to action-verb + concrete-outcome (NEVER fabricate a number to fit the XYZ shape — the truthfulness rules above always win).
+- Experience bullets: lead with the ACHIEVEMENT, OUTCOME, or ACTION — never with a tool or instrument. Tools belong mid-sentence as the means, never as the subject of the bullet. PREFER the XYZ structure when the source has measurable outcomes: "Accomplished X (impact Y) by doing Z" — e.g. "Reduced ticket resolution time by 40% by building a triage workflow in Zendesk". The metric Y MUST come verbatim from the user's source data. When source has no metric, fall back to action-verb + concrete-outcome — but still NEVER start with a tool name (NEVER fabricate a number to fit the XYZ shape either — the truthfulness rules above always win).
+  BAD (tool-first): "Used HubSpot to track customer health and renewal risk." → flat, instrumentation-first.
+  BAD (tool-first): "Utilized Notion to manage scholarship registration pipeline." → tool name as subject.
+  GOOD (outcome-first): "Drove a 15-point lift in renewal rate by rebuilding the health dashboard in HubSpot." → outcome leads, tool supports.
+  GOOD (action-first, no metric): "Owned the scholarship registration pipeline end-to-end for 200 students, coordinating intake through Notion." → action leads, tool supports.
+  When the verb you want to use is "Used" / "Utilized" / "Leveraged" / "Employed" — STOP and rewrite. Those verbs are a tell that the bullet is starting at the wrong place. Replace with the action the tool enabled.
 - STORY BANK PRECEDENCE: When USER DATA.stories[] contains a story whose \`experience_label\` matches one of the user's experiences AND a JD requirement, prefer the story's \`result\` + \`metrics\` + \`tools_used\` as the bullet's content over the experience's freeform \`responsibilities\` text. Stories are user-confirmed STAR records — every metric, tool, and skill there is real and verbatim. Each bullet traces to ONE source: either a single story OR a responsibility line from one experience — NEVER combine two stories into one bullet, and NEVER blend story content with imagined details. Match a story to its parent experience by \`experience_label\` ("Role at Company"); place the bullet under that experience's bucket. If a story is irrelevant to the bullet you're writing, skip it — never force-fit.
 
   STORY BANK BINDING (mandatory for each matched story):

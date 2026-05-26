@@ -275,7 +275,7 @@ function looksLikeStory(text) {
 // The parent owns the state object so it survives re-renders and can be
 // persisted to the DB.
 function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
-  const { status, cv_url, fit_analysis, application_id, tailoring, unsourced_bullets, error } = state || {};
+  const { status, cv_url, fit_analysis, application_id, unsourced_bullets, error } = state || {};
 
   if (status === "done" && cv_url) {
     const alignment = fit_analysis?.alignment;
@@ -305,32 +305,12 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
                 {alignment || "—"}{pct != null ? ` · ${pct}%` : ""}
               </span>
             </div>
-            {typeof tailoring?.tailoring_score === "number" ? (
-              <div className="flex items-center justify-between">
-                <span className="text-[#52545A]">Keyword match</span>
-                {tailoring.tailoring_score === 0 ? (
-                  // A literal 0% almost always means the LLM rephrased the JD's
-                  // key phrases instead of using them verbatim, not that the
-                  // candidate is a true no-match. Showing "0%" reads like the
-                  // CV failed; clarify what's actually being measured.
-                  <span className="font-semibold text-amber-700" title="No exact JD phrases appeared in the CV — the AI may have paraphrased them. Review bullets and rewrite to mirror JD wording for stronger ATS match.">
-                    No exact phrase matches
-                  </span>
-                ) : (
-                  <span className="font-semibold text-[#52545A]">{tailoring.tailoring_score}%</span>
-                )}
-              </div>
-            ) : (
-              // tailoring is absent when no JD was attached OR the keyword
-              // extractor returned no grounded phrases. Both are non-failure
-              // states — surface them as informational, not as a 0% score.
-              <div className="flex items-center justify-between">
-                <span className="text-[#52545A]">Keyword match</span>
-                <span className="text-[#9C9DA1] italic">
-                  {proposal?.job_description ? "No keywords extracted" : "No JD attached"}
-                </span>
-              </div>
-            )}
+            {/* Keyword-match stat removed 2026-05-26 — it surfaced an
+                unactionable algorithm artifact (the in-CV substring count
+                of must_include_phrases) and the "No exact phrase matches"
+                copy read as a failure label even when the CV was strong.
+                Backend still computes + logs the score for telemetry —
+                see [CV] Tailoring score: ... in edge function logs. */}
             {Array.isArray(fit_analysis.major_gaps) && fit_analysis.major_gaps.length > 0 && (
               <div>
                 <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mt-1">Major gaps</p>
