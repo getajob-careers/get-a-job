@@ -42,7 +42,7 @@ Rule for next time: actionable rule, written so future-me can follow it
 
 Keep entries to ~5 lines. The file is for me to read at the start of any session that touches the relevant area, not exhaustive documentation.
 
-Read `tasks/lessons.md` before starting non-trivial work in: track scoring, LLM prompt engineering, edge-function deploys, role/skill library edits, onboarding flow.
+Read `tasks/lessons.md` before starting non-trivial work in: track scoring, LLM prompt engineering, edge-function deploys, role/skill library edits, onboarding flow, chat streaming, or any change that raises concurrent OpenAI fan-out (streaming/parallelization/prefetch).
 
 ## Verification before completion
 

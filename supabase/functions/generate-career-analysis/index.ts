@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
-import { openaiChatCompletion } from '../_shared/openai-chat.ts'
+import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
 import { pickPrimaryEducation, isCurrentlyStudent, formatEducationLine } from '../_shared/education-helpers.ts'
 import { resolveSkillAliases } from '../_shared/skill-aliases.ts'
 
@@ -1056,7 +1056,7 @@ CRITICAL: Do not change any title, track, readiness_score, goal_alignment_score,
 
 Return ONLY valid JSON.`;
 
-    const openaiResponse = await openaiChatCompletion(
+    const openaiResponse = await openaiChatCompletionWithRetry(
       {
         model: MODEL,
         messages: [

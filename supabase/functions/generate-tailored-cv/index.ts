@@ -1,6 +1,6 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { startMetric, finishMetric, type Metric } from '../_shared/metrics.ts'
-import { openaiChatCompletion } from '../_shared/openai-chat.ts'
+import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
 import { pickPrimaryEducation } from '../_shared/education-helpers.ts'
 import { CV_VOICE_RULES } from '../_shared/voice-rules.ts'
 import { buildCvPdf } from '../_shared/cv-templates/build-pdf.ts'
@@ -125,7 +125,7 @@ async function extractJDKeywords(
     domain_terms: [], soft_skill_keywords: [],
   };
   try {
-    const response = await openaiChatCompletion(
+    const response = await openaiChatCompletionWithRetry(
       {
         model: MODEL,
         temperature: 0,
@@ -1379,7 +1379,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     console.log("[CV] Keywords extracted:", JSON.stringify(jdKeywords?.must_include_phrases?.slice(0, 5) || []));
     console.log("[CV] Injection block length:", KEYWORD_INJECTION_BLOCK.length);
 
-    const openaiRes = await openaiChatCompletion(
+    const openaiRes = await openaiChatCompletionWithRetry(
       {
         model: MODEL,
         messages: [
@@ -1460,7 +1460,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
           console.log(`[CV] Retry firing: tailoring ${Math.round(preliminaryPct*100)}% + overlap ${Math.round(overlapPct*100)}%; ${missed.length} missed phrases`);
           const retryHint = `\n\nRETRY: The previous draft missed these phrases that genuinely describe the user's experience:\n${missed.map((p) => `- "${p}"`).join('\n')}\n\nRewrite the CV bullets, About Me, and Skills to incorporate as many of these as TRUTHFULLY apply. ABSOLUTE FACTUAL INTEGRITY rules still win — do not invent. If a missed phrase doesn't honestly describe the user's work, leave it out.`;
           try {
-            const retryRes = await openaiChatCompletion(
+            const retryRes = await openaiChatCompletionWithRetry(
               {
                 model: MODEL,
                 messages: [
