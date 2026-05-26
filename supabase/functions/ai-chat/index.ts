@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
-import { openaiChatCompletion, openaiStreamingResponse, type TraceContext } from '../_shared/openai-chat.ts'
+import { openaiChatCompletion, type TraceContext } from '../_shared/openai-chat.ts'
 import { pickPrimaryEducation, formatEducationLine } from '../_shared/education-helpers.ts'
 
 const corsHeaders = {
@@ -564,10 +564,6 @@ Deno.serve(async (req) => {
   let _ok = false
   let _http = 500
   let _err: string | null = null
-  // Streaming branch finalizes its own metric inside onComplete (after the
-  // SSE stream closes with real token counts). When that path is taken we
-  // skip the outer finally's finishMetric to avoid a double-insert.
-  let metricFinalizedInStream = false
 
   try {
     const openaiKey = Deno.env.get('OPENAI_API_KEY')
@@ -836,77 +832,42 @@ Deno.serve(async (req) => {
       { role: 'user', content: message },
     ]
 
-    // temperature 0.4 + max_tokens 4096. Lower temp keeps SUGGESTED_*_JSON
-    // markers + field names verbatim so the frontend's extractJsonBlock
-    // parser doesn't miss them. 4096 was the retry cap under the previous
-    // 2048-then-retry-at-4096 scheme — folded into the base because
-    // streaming makes mid-flight truncation retries either flush already-
-    // streamed tokens (bad UX) or require a continuation protocol the
-    // client doesn't need. Single high cap is cheaper net (most chat
-    // turns don't fill 4096) and dramatically simpler.
-    const BASE_MAX_TOKENS = 4096
+    // temperature 0.4 + max_tokens 2048 (was 0.7 / 1024). Lower temp keeps
+    // SUGGESTED_*_JSON markers + field names verbatim so the frontend's
+    // extractJsonBlock parser doesn't miss them. Higher token cap stops the
+    // CV agent's structured block from being truncated mid-emit, which was
+    // causing the "Generate CV" button to never appear (A1/A2/A3 from the
+    // session-13 audit). Aligned with generate-career-analysis (temp 0.4)
+    // and generate-tasks (max 2048).
+    //
+    // Truncation retry: if 2048 STILL isn't enough (chat reply + multiple
+    // structured blocks), one retry at 4096. Unlike analyze-job-match /
+    // generate-tasks (where truncation = unparseable JSON = fatal error),
+    // ai-chat tolerates truncation gracefully — even a partially-truncated
+    // reply is more useful to the student than a 502. So if retry also
+    // truncates, we still return what we got and let extractJsonBlock
+    // best-effort the markers.
+    const BASE_MAX_TOKENS = 2048
+    const RETRY_MAX_TOKENS = 4096
 
-    const openaiPayload: Record<string, unknown> = {
-      model: MODEL,
-      messages,
-      temperature: 0.4,
-      max_tokens: BASE_MAX_TOKENS,
-    }
-    const openaiTraceCtx: TraceContext = {
-      traceName: 'ai-chat',
-      userId: user.id,
-      metadata: {
-        agent,
-        has_application_link: !!application_id,
-        follow_up_after: follow_up_after || null,
-        max_tokens: BASE_MAX_TOKENS,
-      },
-    }
-    m.modelUsed = MODEL
-
-    // Honour Accept: text/event-stream when present. The client's streaming
-    // helper sets this header; supabase.functions.invoke does not, so older
-    // callers (buffered fallback, server-to-server invocations) still get
-    // JSON. Two-way safe.
-    const wantsStream = (req.headers.get('accept') || '').toLowerCase().includes('text/event-stream')
-
-    if (wantsStream) {
-      _ok = true; _http = 200
-      // openaiStreamingResponse handles the OpenAI fetch + SSE pipe + final
-      // event + Langfuse trace. The onComplete callback runs after the
-      // stream closes: it sets the real token counts on the metric and
-      // returns the processed payload that becomes the `final` SSE event.
-      // We mark `metricFinalizedInStream = true` so the outer finally block
-      // skips its own finishMetric — onComplete's call already fired.
-      metricFinalizedInStream = true
-      return openaiStreamingResponse({
-        payload: openaiPayload,
-        apiKey: openaiKey,
-        traceCtx: openaiTraceCtx,
-        extraHeaders: corsHeaders,
-        onComplete: async (fullText, usage) => {
-          m.tokensIn = usage?.prompt_tokens ?? 0
-          m.tokensOut = usage?.completion_tokens ?? 0
-          finishMetric(m, { ok: true, httpStatus: 200, errorCode: null })
-          return buildAiChatResponse(fullText, conversation_history, message, agent)
+    async function callOpenAI(maxTokens: number) {
+      return await fetchOpenAIWithRetry(
+        { model: MODEL, messages, temperature: 0.4, max_tokens: maxTokens },
+        openaiKey,
+        {
+          traceName: 'ai-chat',
+          userId: user.id,
+          metadata: {
+            agent,
+            has_application_link: !!application_id,
+            follow_up_after: follow_up_after || null,
+            max_tokens: maxTokens,
+          },
         },
-      })
+      )
     }
 
-    // Buffered path — used by supabase.functions.invoke callers and by the
-    // client when the streaming feature flag is off. fetchOpenAIWithRetry
-    // gives one retry on transient errors (408/429/5xx) before falling
-    // through to the error response.
-    let openaiResponse: Response
-    try {
-      openaiResponse = await fetchOpenAIWithRetry(openaiPayload, openaiKey, openaiTraceCtx)
-    } catch (err) {
-      console.error('[ai-chat] OpenAI fetch error:', (err as Error)?.message || err)
-      _http = 502; _err = 'openai_fetch'
-      return new Response(JSON.stringify({ error: 'AI service error' }), {
-        status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
+    let openaiResponse = await callOpenAI(BASE_MAX_TOKENS)
     if (!openaiResponse.ok) {
       const errBody = await openaiResponse.text()
       console.error('OpenAI error:', errBody)
@@ -923,55 +884,37 @@ Deno.serve(async (req) => {
         })
       } catch { /* swallow */ }
       _http = 502; _err = `openai_${openaiResponse.status}`
+      m.modelUsed = MODEL
       return new Response(JSON.stringify({ error: 'AI service error' }), {
         status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    const completion = await openaiResponse.json()
+    let completion = await openaiResponse.json()
+    let finishReason: string | undefined = completion.choices?.[0]?.finish_reason
+    // Track usage additively across initial + retry. Both calls bill, so
+    // the metric should reflect total consumption, not just the last response.
+    m.modelUsed = MODEL
     m.tokensIn = completion.usage?.prompt_tokens ?? 0
     m.tokensOut = completion.usage?.completion_tokens ?? 0
 
-    const rawReply: string = completion.choices?.[0]?.message?.content || ''
-    const responsePayload = buildAiChatResponse(rawReply, conversation_history, message, agent)
-
-    _ok = true; _http = 200
-    return new Response(JSON.stringify(responsePayload), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
-
-  } catch (error) {
-    console.error('ai-chat error:', error)
-    _http = 500; _err = 'unhandled'
-    return new Response(JSON.stringify({ error: (error as Error).message }), {
-      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
-  } finally {
-    if (!metricFinalizedInStream) {
-      finishMetric(m, { ok: _ok, httpStatus: _http, errorCode: _err })
+    if (finishReason === 'length') {
+      console.warn(`[ai-chat] truncation detected at max_tokens=${BASE_MAX_TOKENS}, retrying at ${RETRY_MAX_TOKENS}`)
+      const retryResponse = await callOpenAI(RETRY_MAX_TOKENS)
+      if (retryResponse.ok) {
+        completion = await retryResponse.json()
+        finishReason = completion.choices?.[0]?.finish_reason
+        m.tokensIn = (m.tokensIn ?? 0) + (completion.usage?.prompt_tokens ?? 0)
+        m.tokensOut = (m.tokensOut ?? 0) + (completion.usage?.completion_tokens ?? 0)
+        if (finishReason === 'length') {
+          console.warn(`[ai-chat] still truncated at max_tokens=${RETRY_MAX_TOKENS}; returning best-effort response`)
+        }
+      } else {
+        console.warn(`[ai-chat] retry failed: ${retryResponse.status}; falling back to original truncated reply`)
+      }
     }
-  }
-})
 
-// ────────────────────────────────────────────────────────────────────────
-// buildAiChatResponse — process the accumulated assistant reply into the
-// final JSON payload sent to the client (cleaned reply text + all
-// suggested_* structured blocks). Pure function: same input → same
-// output. Used by both the streaming branch (after OpenAI's SSE stream
-// closes) and the buffered branch (after parsing the JSON response).
-//
-// Extracts up to 7 different SUGGESTED_*_JSON blocks from the reply,
-// validates each shape, and strips marker+JSON from the user-visible
-// reply text. Belt-and-suspenders sweep at the end drops any marker
-// that survived (malformed JSON the extractor couldn't parse) so the
-// user never sees raw `SUGGESTED_*_JSON:` strings.
-function buildAiChatResponse(
-  rawReply: string,
-  conversation_history: Array<{ role: string; content: string }>,
-  message: string,
-  agent: string,
-): Record<string, unknown> {
-  let reply: string = rawReply || 'Sorry, I could not generate a response.'
+    let reply: string = completion.choices?.[0]?.message?.content || 'Sorry, I could not generate a response.'
 
     let suggested_tasks: Array<{ title: string; description: string; category: string; priority: string }> = []
     let suggested_agent: { agent: string; label: string; page: string; reason: string } | null = null
@@ -1303,15 +1246,26 @@ function buildAiChatResponse(
       reply = reply.slice(0, idx).replace(/\n+\s*$/, '').trim()
     }
 
-  return {
-    reply,
-    agent,
-    ...(suggested_tasks.length > 0 && { suggested_tasks }),
-    ...(suggested_agent && { suggested_agent }),
-    ...(suggested_roadmap_changes && { suggested_roadmap_changes }),
-    ...(suggested_application_actions && { suggested_application_actions }),
-    ...(suggested_company_target_actions && { suggested_company_target_actions }),
-    ...(suggested_cv_generation && { suggested_cv_generation }),
-    ...(suggested_story_capture && { suggested_story_capture }),
+    _ok = true; _http = 200
+    return new Response(JSON.stringify({
+      reply,
+      agent,
+      ...(suggested_tasks.length > 0 && { suggested_tasks }),
+      ...(suggested_agent && { suggested_agent }),
+      ...(suggested_roadmap_changes && { suggested_roadmap_changes }),
+      ...(suggested_application_actions && { suggested_application_actions }),
+      ...(suggested_company_target_actions && { suggested_company_target_actions }),
+      ...(suggested_cv_generation && { suggested_cv_generation }),
+      ...(suggested_story_capture && { suggested_story_capture }),
+    }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+
+  } catch (error) {
+    console.error('ai-chat error:', error)
+    _http = 500; _err = 'unhandled'
+    return new Response(JSON.stringify({ error: error.message }), {
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
+  } finally {
+    finishMetric(m, { ok: _ok, httpStatus: _http, errorCode: _err })
   }
-}
+})
