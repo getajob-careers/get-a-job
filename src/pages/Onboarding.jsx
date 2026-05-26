@@ -449,6 +449,17 @@ export default function Onboarding() {
       if (error) throw error;
       if (data?.[0]) {
         setExistingProfileId(data[0].id);
+        // Fire-and-forget welcome email on the FIRST successful profile
+        // insert. Idempotent server-side via Resend Idempotency-Key
+        // (welcome:<user_id>) — even if the user reloads mid-onboarding
+        // and saveProfile runs again, the second call would only fire
+        // if a profile DIDN'T exist (because of the existingProfileId
+        // branch above), so this naturally fires once per user.
+        // Failure is non-fatal and logged in edge function metrics.
+        supabase.functions.invoke("send-welcome-email", { body: {} })
+          .catch((emailErr) => {
+            console.warn("[onboarding] welcome email failed (non-fatal):", emailErr);
+          });
       }
     }
 
@@ -753,6 +764,17 @@ export default function Onboarding() {
         invite_code: user.user_metadata?.invite_code ?? null,
         cohort_label: user.user_metadata?.cohort_label ?? null,
       }).select();
+
+      if (!error && data?.[0]) {
+        // First profile row created via the finalise fallback. Same
+        // fire-and-forget welcome email pattern as the primary path.
+        // Resend idempotency key prevents double-sends if both paths
+        // somehow fire for the same user.
+        supabase.functions.invoke("send-welcome-email", { body: {} })
+          .catch((emailErr) => {
+            console.warn("[onboarding] welcome email failed (non-fatal):", emailErr);
+          });
+      }
 
       if (error || !data?.[0]) {
         console.error("Critical error saving profile on finalise:", error);

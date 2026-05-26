@@ -639,9 +639,10 @@ export default function Login() {
     setError(null);
     setMessage(null);
     try {
+      const normalizedEmail = email.trim().toLowerCase();
       const { error } = await supabase
         .from("waitlist_signups")
-        .insert({ email: email.trim().toLowerCase() });
+        .insert({ email: normalizedEmail });
       if (error) {
         // PostgREST surfaces unique-violation as status 409. The
         // friendlier code-23505 is what gets returned via the JS
@@ -653,6 +654,17 @@ export default function Login() {
         }
         throw error;
       }
+      // Fire-and-forget waitlist confirmation email. Server-side
+      // idempotency keyed on email (24h) means dupe clicks or rapid
+      // retries from the same email don't double-send. Failure is
+      // logged in edge function metrics — the user already saw the
+      // "thanks" message; missing the confirmation email is acceptable
+      // degradation.
+      supabase.functions.invoke("send-waitlist-email", {
+        body: { email: normalizedEmail },
+      }).catch((emailErr) => {
+        console.warn("[waitlist] confirmation email failed (non-fatal):", emailErr);
+      });
       setMessage("Thanks — we'll email you when a spot opens.");
     } catch (err) {
       setError(err.message);

@@ -1,0 +1,92 @@
+// send-email.ts — Resend REST API wrapper. Used by the two
+// transactional-email edge functions (send-welcome-email,
+// send-waitlist-email).
+//
+// Why raw HTTP, not @resend/sdk: the SDK adds a dependency we don't
+// otherwise need + a small Deno cold-start cost. Resend's REST API
+// is stable and the request shape is dead simple. Matches the
+// pattern in _shared/openai-chat.ts (raw fetch to OpenAI rather
+// than the @openai/openai SDK).
+//
+// Required env var:
+//   RESEND_API_KEY — distinct from the Resend SMTP credentials used
+//                    by Supabase Auth's custom SMTP integration.
+//                    Set via Supabase Dashboard → Project Settings →
+//                    Edge Functions → Secrets.
+//
+// If RESEND_API_KEY is missing the helper returns
+// { ok: false, status: 500, error: 'email-disabled' } without
+// throwing — callers can fire-and-forget without a crash, and the
+// missing-key state surfaces in edge function logs without blocking
+// the user-facing flow that called us.
+
+const RESEND_ENDPOINT = 'https://api.resend.com/emails'
+
+export interface SendEmailArgs {
+  to: string                  // single recipient (we don't batch for now)
+  from: string                // e.g. "Get A Job <noreply@getajob.careers>"
+  subject: string
+  text: string                // plain-text body
+  // html is optional — text-only is fine for transactional. If we add
+  // html later, Resend renders the multipart/alternative for us.
+  html?: string
+  // Idempotency key — if Resend sees a duplicate within 24h it returns
+  // the same email id instead of sending again. Use for client retries.
+  idempotencyKey?: string
+  // Reply-to override. Default unset — replies go to `from`. Setting
+  // this routes replies somewhere monitored (e.g. eli@getajob.careers)
+  // when `from` is a noreply address.
+  replyTo?: string
+}
+
+export interface SendEmailResult {
+  ok: boolean
+  id?: string                 // Resend's email id on success
+  status?: number
+  error?: string
+}
+
+export async function sendEmail(args: SendEmailArgs): Promise<SendEmailResult> {
+  const apiKey = Deno.env.get('RESEND_API_KEY')
+  if (!apiKey) {
+    console.warn('[send-email] RESEND_API_KEY not configured — skipping send')
+    return { ok: false, status: 500, error: 'email-disabled' }
+  }
+
+  const body: Record<string, unknown> = {
+    from: args.from,
+    to: [args.to],
+    subject: args.subject,
+    text: args.text,
+  }
+  if (args.html) body.html = args.html
+  if (args.replyTo) body.reply_to = args.replyTo
+
+  try {
+    const headers: Record<string, string> = {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    }
+    if (args.idempotencyKey) headers['Idempotency-Key'] = args.idempotencyKey
+
+    const res = await fetch(RESEND_ENDPOINT, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(10_000),
+    })
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => '<no body>')
+      console.error(`[send-email] Resend ${res.status}:`, errText.slice(0, 300))
+      return { ok: false, status: res.status, error: errText.slice(0, 200) }
+    }
+
+    const data = await res.json().catch(() => ({}))
+    return { ok: true, id: data?.id, status: 200 }
+  } catch (err) {
+    const msg = (err as Error)?.message || String(err)
+    console.error('[send-email] fetch failed:', msg)
+    return { ok: false, status: 500, error: msg.slice(0, 200) }
+  }
+}
