@@ -1,11 +1,24 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
+import { callAiChat } from "@/api/aiChatStream";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import { track, EVENTS } from "@/lib/analytics";
-import { Send, Loader2, Plus, ListTodo, CheckCircle2, ArrowRight, Route, Briefcase, ChevronDown, Trash2, MessageSquare, FileText, Download, RefreshCw } from "lucide-react";
+import { Send, Loader2, Plus, ListTodo, CheckCircle2, ArrowRight, Route, Briefcase, ChevronDown, Trash2, MessageSquare, FileText, Download, RefreshCw, Square } from "lucide-react";
+
+// Trim the user-visible content of a streaming assistant message when the
+// LLM has begun emitting a SUGGESTED_*_JSON block. By design those blocks
+// are always at the END of the response, so as soon as we see the prefix
+// we truncate display at that index. The final SSE event replaces this
+// with the server-stripped reply anyway; this only protects mid-stream
+// display from showing raw marker strings to the user.
+function stripStreamingMarkers(text) {
+  const idx = text.indexOf("SUGGESTED_");
+  if (idx === -1) return text;
+  return text.slice(0, idx).trimEnd();
+}
 import { triggerBlobDownload, filenameFromSignedUrl } from "@/lib/downloadFile";
 import {
   DropdownMenu,
@@ -404,6 +417,14 @@ export default function ChatInterface({ agentName, title, description, applicati
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
+  // Tracks the id of the in-progress streamed assistant bubble. When set,
+  // the typing-dots indicator is hidden (the bubble itself shows progress).
+  // Cleared when the stream finalizes or errors.
+  const [streamingMessageId, setStreamingMessageId] = useState(null);
+  // Holds the AbortController for the in-flight stream. The Stop button
+  // calls .abort() on it; we null it back out in the streaming flow's
+  // finally clause.
+  const streamAbortRef = useRef(null);
   const [addedTaskSets, setAddedTaskSets] = useState({});
   const [appliedRoadmapSets, setAppliedRoadmapSets] = useState({});
   const [appliedAppActionSets, setAppliedAppActionSets] = useState({});
@@ -652,70 +673,65 @@ export default function ChatInterface({ agentName, title, description, applicati
       setMessages((prev) => prev.map((m) => m.id === userMsgLocalId ? { ...m, id: inserted.id } : m));
     }
 
-    // 3. Call AI
-    try {
-      const invokeBody = {
-        message: text,
-        agent: agentName || "career-coach",
-        conversation_history: updatedMessages.slice(-20).filter((m) => m.role !== "system"),
-        ...(applicationId && { application_id: applicationId }),
-      };
-      let { data, error } = await supabase.functions.invoke("ai-chat", { body: invokeBody });
+    // 3. Call AI (streams when feature flag on; buffered fallback otherwise)
+    const invokeBody = {
+      message: text,
+      agent: agentName || "career-coach",
+      conversation_history: updatedMessages.slice(-20).filter((m) => m.role !== "system"),
+      ...(applicationId && { application_id: applicationId }),
+    };
+    const controller = new AbortController();
+    streamAbortRef.current = controller;
 
-      // 401 from the edge function = expired JWT (auth.getUser returned no user).
-      // Try one auth.refreshSession + retry before surfacing the error — the
-      // root cause is auth, not connectivity, and the supabase-js client
-      // automatically uses the refreshed token on the next call. If refresh
-      // fails or retry still 401s, fall through to the catch with a flag so
-      // the user sees "session expired" instead of misleading "AI unavailable."
-      if (error?.context?.status === 401) {
-        const { error: refreshErr } = await supabase.auth.refreshSession();
-        if (!refreshErr) {
-          ({ data, error } = await supabase.functions.invoke("ai-chat", { body: invokeBody }));
-        }
-      }
+    // Tracks the local placeholder message that holds streamed tokens.
+    // Created lazily on the first onToken — keeps the typing-dots
+    // indicator visible during the pre-first-token latency window.
+    // streamRawRef holds the accumulated raw text (pre-marker-strip) so
+    // each new token appends to the full text, not the truncated display.
+    let streamLocalId = null;
+    let streamRaw = "";
+    let aborted = false;
 
-      if (error) throw error;
-      if (!data?.reply) throw new Error("The AI returned an empty response.");
-
-      const assistantContent = data.reply;
+    const persistFinalMessage = async (final) => {
+      const reply = final?.reply || "";
       const assistantPayload = {
         conversation_id: convoId,
         role: "assistant",
-        content: assistantContent,
-        suggested_tasks: data.suggested_tasks?.length > 0 ? data.suggested_tasks : null,
-        suggested_roadmap_changes: data.suggested_roadmap_changes?.length > 0 ? data.suggested_roadmap_changes : null,
-        suggested_application_actions: data.suggested_application_actions?.length > 0 ? data.suggested_application_actions : null,
-        suggested_company_target_actions: data.suggested_company_target_actions?.length > 0 ? data.suggested_company_target_actions : null,
-        suggested_cv_generation: data.suggested_cv_generation || null,
-        suggested_agent: data.suggested_agent || null,
+        content: reply,
+        suggested_tasks: final?.suggested_tasks?.length > 0 ? final.suggested_tasks : null,
+        suggested_roadmap_changes: final?.suggested_roadmap_changes?.length > 0 ? final.suggested_roadmap_changes : null,
+        suggested_application_actions: final?.suggested_application_actions?.length > 0 ? final.suggested_application_actions : null,
+        suggested_company_target_actions: final?.suggested_company_target_actions?.length > 0 ? final.suggested_company_target_actions : null,
+        suggested_cv_generation: final?.suggested_cv_generation || null,
+        suggested_agent: final?.suggested_agent || null,
       };
-
       const { data: savedAssistant } = await supabase
         .from("chat_messages")
         .insert(assistantPayload)
         .select("id")
         .single();
-
-      setMessages((prev) => [
-        ...prev,
-        {
-          id: savedAssistant?.id || crypto.randomUUID(),
-          role: "assistant",
-          content: assistantContent,
-          suggestedTasks: assistantPayload.suggested_tasks,
-          suggestedRoadmapChanges: assistantPayload.suggested_roadmap_changes,
-          suggestedApplicationActions: assistantPayload.suggested_application_actions,
-          suggestedCompanyTargetActions: assistantPayload.suggested_company_target_actions,
-          suggestedCVGeneration: assistantPayload.suggested_cv_generation,
-          suggestedAgent: assistantPayload.suggested_agent,
-          // Story-capture is in-memory only for now — not persisted on
-          // chat_messages. Reload hides the card; user can re-trigger by
-          // continuing the conversation. Day 4 doesn't require persistence.
-          suggestedStoryCapture: data.suggested_story_capture || null,
-        },
-      ]);
-
+      const finalId = savedAssistant?.id || streamLocalId || crypto.randomUUID();
+      const finalMsg = {
+        id: finalId,
+        role: "assistant",
+        content: reply,
+        suggestedTasks: assistantPayload.suggested_tasks,
+        suggestedRoadmapChanges: assistantPayload.suggested_roadmap_changes,
+        suggestedApplicationActions: assistantPayload.suggested_application_actions,
+        suggestedCompanyTargetActions: assistantPayload.suggested_company_target_actions,
+        suggestedCVGeneration: assistantPayload.suggested_cv_generation,
+        suggestedAgent: assistantPayload.suggested_agent,
+        // Story-capture is in-memory only for now — not persisted on
+        // chat_messages. Reload hides the card; user can re-trigger by
+        // continuing the conversation. Day 4 doesn't require persistence.
+        suggestedStoryCapture: final?.suggested_story_capture || null,
+      };
+      setMessages((prev) => {
+        if (streamLocalId && prev.some((m) => m.id === streamLocalId)) {
+          return prev.map((m) => (m.id === streamLocalId ? finalMsg : m));
+        }
+        return [...prev, finalMsg];
+      });
       // 4. Touch conversation updated_at + set title if this was the very first send
       const patch = { updated_at: new Date().toISOString() };
       if (convoIsNew) patch.title = text.slice(0, 60);
@@ -724,31 +740,106 @@ export default function ChatInterface({ agentName, title, description, applicati
         prev.map((c) => c.id === convoId ? { ...c, ...patch } : c)
             .sort((a, b) => new Date(b.updated_at) - new Date(a.updated_at))
       );
-    } catch (err) {
-      console.error("Chat error:", err);
-      // Session expired = refresh+retry above already failed. Suppress the
-      // Retry button (userMessageText: null) — re-sending with the same
-      // expired auth won't help. User must sign in again.
-      const sessionExpired = err?.context?.status === 401;
-      const errMsg = {
-        role: "assistant",
-        content: sessionExpired
-          ? "Your session expired. Please sign out and sign in again to continue."
-          : "I couldn't reach the AI service. This is usually temporary — tap Retry to try again.",
-        id: crypto.randomUUID(),
-        isError: true,
-        userMessageText: sessionExpired ? null : text,
-      };
-      setMessages((prev) => [...prev, errMsg]);
-      await supabase.from("chat_messages").insert({
-        conversation_id: convoId,
-        role: "assistant",
-        content: errMsg.content,
-        is_error: true,
-        original_user_message: text,
+    };
+
+    const handleToken = (delta) => {
+      if (aborted) return;
+      streamRaw += delta;
+      const display = stripStreamingMarkers(streamRaw);
+      if (!streamLocalId) {
+        streamLocalId = crypto.randomUUID();
+        setStreamingMessageId(streamLocalId);
+        setMessages((prev) => [
+          ...prev,
+          { id: streamLocalId, role: "assistant", content: display, isStreaming: true },
+        ]);
+      } else {
+        setMessages((prev) => prev.map((m) => (m.id === streamLocalId ? { ...m, content: display } : m)));
+      }
+    };
+
+    const runStream = (body) =>
+      callAiChat(body, {
+        signal: controller.signal,
+        onToken: handleToken,
+        onFinal: persistFinalMessage,
       });
+
+    try {
+      try {
+        await runStream(invokeBody);
+      } catch (firstErr) {
+        // 401 from the edge function = expired JWT (auth.getUser returned no user).
+        // Try one auth.refreshSession + retry before surfacing the error — the
+        // root cause is auth, not connectivity, and supabase-js automatically
+        // uses the refreshed token on the next call. If refresh fails or retry
+        // still 401s, fall through to the catch with a flag so the user sees
+        // "session expired" instead of misleading "AI unavailable."
+        const isAuthExpired = firstErr?.status === 401 || firstErr?.context?.status === 401;
+        if (!isAuthExpired) throw firstErr;
+        const { error: refreshErr } = await supabase.auth.refreshSession();
+        if (refreshErr) throw firstErr;
+        // Reset stream state in case some tokens leaked through (shouldn't —
+        // 401 fires before OpenAI is called server-side — but be defensive).
+        if (streamLocalId) {
+          setMessages((prev) => prev.filter((m) => m.id !== streamLocalId));
+          streamLocalId = null;
+          streamRaw = "";
+        }
+        setStreamingMessageId(null);
+        await runStream(invokeBody);
+      }
+    } catch (err) {
+      if (err?.name === "AbortError") {
+        // User clicked Stop. Mark the in-flight bubble as final (clears the
+        // streaming flag so any caret/animation stops) and persist what we
+        // streamed. No error message, no retry button — abort is intentional.
+        aborted = true;
+        if (streamLocalId) {
+          const stoppedContent = stripStreamingMarkers(streamRaw) || "(stopped)";
+          setMessages((prev) =>
+            prev.map((m) => (m.id === streamLocalId ? { ...m, content: stoppedContent, isStreaming: false } : m))
+          );
+          try {
+            await supabase.from("chat_messages").insert({
+              conversation_id: convoId,
+              role: "assistant",
+              content: stoppedContent,
+            });
+          } catch { /* swallow — best-effort persist */ }
+        }
+      } else {
+        console.error("Chat error:", err);
+        // Drop any partial streaming bubble — the error message replaces it.
+        if (streamLocalId) {
+          setMessages((prev) => prev.filter((m) => m.id !== streamLocalId));
+        }
+        const sessionExpired = err?.status === 401 || err?.context?.status === 401;
+        const errMsg = {
+          role: "assistant",
+          content: sessionExpired
+            ? "Your session expired. Please sign out and sign in again to continue."
+            : "I couldn't reach the AI service. This is usually temporary — tap Retry to try again.",
+          id: crypto.randomUUID(),
+          isError: true,
+          userMessageText: sessionExpired ? null : text,
+        };
+        setMessages((prev) => [...prev, errMsg]);
+        try {
+          await supabase.from("chat_messages").insert({
+            conversation_id: convoId,
+            role: "assistant",
+            content: errMsg.content,
+            is_error: true,
+            original_user_message: text,
+          });
+        } catch { /* swallow */ }
+      }
+    } finally {
+      streamAbortRef.current = null;
+      setStreamingMessageId(null);
+      setSending(false);
     }
-    setSending(false);
   };
 
   // Re-invoke ai-chat with the same user text after a failure. Mirrors the
@@ -760,69 +851,128 @@ export default function ChatInterface({ agentName, title, description, applicati
     if (sending || !user?.id || !activeConversationId || !userText) return;
     setMessages((prev) => prev.filter((m) => m.id !== errorMessageId));
     setSending(true);
-    try {
-      const historyForCall = messages
-        .filter((m) => m.id !== errorMessageId && m.role !== "system")
-        .slice(-20);
-      const { data, error } = await supabase.functions.invoke("ai-chat", {
-        body: {
-          message: userText,
-          agent: agentName || "career-coach",
-          conversation_history: historyForCall,
-          ...(applicationId && { application_id: applicationId }),
-        },
-      });
-      if (error) throw error;
-      if (!data?.reply) throw new Error("The AI returned an empty response.");
 
+    const historyForCall = messages
+      .filter((m) => m.id !== errorMessageId && m.role !== "system")
+      .slice(-20);
+    const invokeBody = {
+      message: userText,
+      agent: agentName || "career-coach",
+      conversation_history: historyForCall,
+      ...(applicationId && { application_id: applicationId }),
+    };
+    const controller = new AbortController();
+    streamAbortRef.current = controller;
+
+    let streamLocalId = null;
+    let streamRaw = "";
+    let aborted = false;
+
+    const persistFinalMessage = async (final) => {
+      const reply = final?.reply || "";
       const assistantPayload = {
         conversation_id: activeConversationId,
         role: "assistant",
-        content: data.reply,
-        suggested_tasks: data.suggested_tasks?.length > 0 ? data.suggested_tasks : null,
-        suggested_roadmap_changes: data.suggested_roadmap_changes?.length > 0 ? data.suggested_roadmap_changes : null,
-        suggested_application_actions: data.suggested_application_actions?.length > 0 ? data.suggested_application_actions : null,
-        suggested_company_target_actions: data.suggested_company_target_actions?.length > 0 ? data.suggested_company_target_actions : null,
-        suggested_cv_generation: data.suggested_cv_generation || null,
-        suggested_agent: data.suggested_agent || null,
+        content: reply,
+        suggested_tasks: final?.suggested_tasks?.length > 0 ? final.suggested_tasks : null,
+        suggested_roadmap_changes: final?.suggested_roadmap_changes?.length > 0 ? final.suggested_roadmap_changes : null,
+        suggested_application_actions: final?.suggested_application_actions?.length > 0 ? final.suggested_application_actions : null,
+        suggested_company_target_actions: final?.suggested_company_target_actions?.length > 0 ? final.suggested_company_target_actions : null,
+        suggested_cv_generation: final?.suggested_cv_generation || null,
+        suggested_agent: final?.suggested_agent || null,
       };
       const { data: savedAssistant } = await supabase
         .from("chat_messages")
         .insert(assistantPayload)
         .select("id")
         .single();
-
-      setMessages((prev) => [...prev, {
-        id: savedAssistant?.id || crypto.randomUUID(),
+      const finalId = savedAssistant?.id || streamLocalId || crypto.randomUUID();
+      const finalMsg = {
+        id: finalId,
         role: "assistant",
-        content: data.reply,
+        content: reply,
         suggestedTasks: assistantPayload.suggested_tasks,
         suggestedRoadmapChanges: assistantPayload.suggested_roadmap_changes,
         suggestedApplicationActions: assistantPayload.suggested_application_actions,
         suggestedCompanyTargetActions: assistantPayload.suggested_company_target_actions,
         suggestedCVGeneration: assistantPayload.suggested_cv_generation,
         suggestedAgent: assistantPayload.suggested_agent,
-        suggestedStoryCapture: data.suggested_story_capture || null,
-      }]);
-    } catch (err) {
-      console.error("Chat retry error:", err);
-      const errMsg = {
-        role: "assistant",
-        content: "Still couldn't reach the AI. Please check your connection and try again.",
-        id: crypto.randomUUID(),
-        isError: true,
-        userMessageText: userText,
+        suggestedStoryCapture: final?.suggested_story_capture || null,
       };
-      setMessages((prev) => [...prev, errMsg]);
-      await supabase.from("chat_messages").insert({
-        conversation_id: activeConversationId,
-        role: "assistant",
-        content: errMsg.content,
-        is_error: true,
-        original_user_message: userText,
+      setMessages((prev) => {
+        if (streamLocalId && prev.some((m) => m.id === streamLocalId)) {
+          return prev.map((m) => (m.id === streamLocalId ? finalMsg : m));
+        }
+        return [...prev, finalMsg];
       });
+    };
+
+    const handleToken = (delta) => {
+      if (aborted) return;
+      streamRaw += delta;
+      const display = stripStreamingMarkers(streamRaw);
+      if (!streamLocalId) {
+        streamLocalId = crypto.randomUUID();
+        setStreamingMessageId(streamLocalId);
+        setMessages((prev) => [
+          ...prev,
+          { id: streamLocalId, role: "assistant", content: display, isStreaming: true },
+        ]);
+      } else {
+        setMessages((prev) => prev.map((m) => (m.id === streamLocalId ? { ...m, content: display } : m)));
+      }
+    };
+
+    try {
+      await callAiChat(invokeBody, {
+        signal: controller.signal,
+        onToken: handleToken,
+        onFinal: persistFinalMessage,
+      });
+    } catch (err) {
+      if (err?.name === "AbortError") {
+        aborted = true;
+        if (streamLocalId) {
+          const stoppedContent = stripStreamingMarkers(streamRaw) || "(stopped)";
+          setMessages((prev) =>
+            prev.map((m) => (m.id === streamLocalId ? { ...m, content: stoppedContent, isStreaming: false } : m))
+          );
+          try {
+            await supabase.from("chat_messages").insert({
+              conversation_id: activeConversationId,
+              role: "assistant",
+              content: stoppedContent,
+            });
+          } catch { /* swallow */ }
+        }
+      } else {
+        console.error("Chat retry error:", err);
+        if (streamLocalId) {
+          setMessages((prev) => prev.filter((m) => m.id !== streamLocalId));
+        }
+        const errMsg = {
+          role: "assistant",
+          content: "Still couldn't reach the AI. Please check your connection and try again.",
+          id: crypto.randomUUID(),
+          isError: true,
+          userMessageText: userText,
+        };
+        setMessages((prev) => [...prev, errMsg]);
+        try {
+          await supabase.from("chat_messages").insert({
+            conversation_id: activeConversationId,
+            role: "assistant",
+            content: errMsg.content,
+            is_error: true,
+            original_user_message: userText,
+          });
+        } catch { /* swallow */ }
+      }
+    } finally {
+      streamAbortRef.current = null;
+      setStreamingMessageId(null);
+      setSending(false);
     }
-    setSending(false);
   };
 
   const handleAddTasks = async (messageId, task, taskIndex) => {
@@ -1278,33 +1428,61 @@ export default function ChatInterface({ agentName, title, description, applicati
           const historyForFollowUp = messages
             .filter((m) => m.role !== "system")
             .slice(-20);
-          const { data: followData, error: followError } = await supabase.functions.invoke("ai-chat", {
-            body: {
-              message: "[CV ready]",
-              agent: agentName || "career-coach",
-              conversation_history: historyForFollowUp,
-              follow_up_after: "cv_generation",
-              ...(applicationId && { application_id: applicationId }),
-            },
-          });
-          if (!followError && followData?.reply) {
+          // Stream the follow-up too — same UX as the main chat call.
+          // No abort controller: the follow-up is short and runs after the
+          // user has already moved on from the CV-gen action.
+          let followLocalId = null;
+          let followRaw = "";
+          const handleFollowToken = (delta) => {
+            followRaw += delta;
+            const display = stripStreamingMarkers(followRaw);
+            if (!followLocalId) {
+              followLocalId = crypto.randomUUID();
+              setMessages((prev) => [
+                ...prev,
+                { id: followLocalId, role: "assistant", content: display, isStreaming: true },
+              ]);
+            } else {
+              setMessages((prev) => prev.map((m) => (m.id === followLocalId ? { ...m, content: display } : m)));
+            }
+          };
+          const handleFollowFinal = async (final) => {
+            const reply = final?.reply || "";
+            if (!reply) return;
             const followPayload = {
               conversation_id: conversationId,
               role: "assistant",
-              content: followData.reply,
+              content: reply,
             };
             const { data: savedFollow } = await supabase
               .from("chat_messages")
               .insert(followPayload)
               .select("id")
               .single();
-            setMessages((prev) => [...prev, {
-              id: savedFollow?.id || crypto.randomUUID(),
+            const finalId = savedFollow?.id || followLocalId || crypto.randomUUID();
+            const finalMsg = {
+              id: finalId,
               role: "assistant",
-              content: followData.reply,
-              suggestedStoryCapture: followData.suggested_story_capture || null,
-            }]);
-          }
+              content: reply,
+              suggestedStoryCapture: final?.suggested_story_capture || null,
+            };
+            setMessages((prev) => {
+              if (followLocalId && prev.some((m) => m.id === followLocalId)) {
+                return prev.map((m) => (m.id === followLocalId ? finalMsg : m));
+              }
+              return [...prev, finalMsg];
+            });
+          };
+          await callAiChat(
+            {
+              message: "[CV ready]",
+              agent: agentName || "career-coach",
+              conversation_history: historyForFollowUp,
+              follow_up_after: "cv_generation",
+              ...(applicationId && { application_id: applicationId }),
+            },
+            { onToken: handleFollowToken, onFinal: handleFollowFinal },
+          );
         }
       } catch (followUpErr) {
         // Don't surface to the user — CV gen already succeeded; missed
@@ -1556,8 +1734,10 @@ export default function ChatInterface({ agentName, title, description, applicati
             </React.Fragment>
           ))}
 
-        {/* Typing indicator */}
-        {sending && (
+        {/* Typing indicator — shown during the pre-first-token wait. Once
+            streaming begins, the in-flight bubble itself signals progress so
+            we drop the dots to avoid dual indicators. */}
+        {sending && !streamingMessageId && (
           <div className="flex gap-3">
             <div className="c-avatar">
               <div className="c-avatar-dot" />
@@ -1592,19 +1772,33 @@ export default function ChatInterface({ agentName, title, description, applicati
             rows={1}
             className="c-composer-input flex-1"
           />
-          <button
-            type="button"
-            onClick={() => sendMessage()}
-            disabled={sending || !input.trim()}
-            aria-label="Send message"
-            className="c-composer-send"
-          >
-            {sending ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
-            ) : (
-              <Send className="w-4 h-4" />
-            )}
-          </button>
+          {sending && streamAbortRef.current ? (
+            // While a stream is in flight, the send button becomes Stop.
+            // Pre-first-token (controller not yet attached or already null)
+            // we fall through to the disabled-send state below.
+            <button
+              type="button"
+              onClick={() => streamAbortRef.current?.abort()}
+              aria-label="Stop generating"
+              className="c-composer-send"
+            >
+              <Square className="w-3.5 h-3.5 fill-current" />
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => sendMessage()}
+              disabled={sending || !input.trim()}
+              aria-label="Send message"
+              className="c-composer-send"
+            >
+              {sending ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+            </button>
+          )}
         </div>
       </div>
       </div>
