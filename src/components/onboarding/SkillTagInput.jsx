@@ -112,24 +112,22 @@ const INDUSTRY_SUGGESTIONS = [
   "Agriculture", "Farming", "Food Production", "AgriTech",
 ];
 
-// Curated honors / awards a Reichman business student is likely to list —
-// Israeli academic + military scholarships, US-typical Latin honors, and
-// society memberships seen on dual-background CVs. Order: most-common first.
+// Curated honors / awards suggestions — universal academic distinctions
+// + common societies. Earlier versions of this list leaned heavily on
+// Israeli academic + military scholarships (Heseg, IDF Excellence,
+// Reichman Excellence, Lone Soldier, etc.); those were removed when the
+// platform copy was generalized away from a single country/school.
+// Users with cohort-specific honors can still type them in as free text;
+// this list is purely autocomplete acceleration.
 const HONORS_SUGGESTIONS = [
-  // Israeli academic + government
+  // Generic academic distinctions
   "Dean's List", "Honors Program", "President's Honors", "Academic Excellence Award",
-  "Merit Scholarship", "Israel Government Scholarship", "Heseg Foundation Scholarship",
-  "Reichman Excellence Scholarship", "Adler Scholarship", "Hila Excellence Program",
-  "Argov Fellows Program", "Honors Thesis", "Distinction in Field",
-  // Military
-  "IDF Excellence Award", "Lone Soldier Scholarship",
-  // Fellowships
-  "Birthright Excel Fellow", "Hillel Scholar",
-  // US-style Latin honors + societies
+  "Merit Scholarship", "Honors Thesis", "Distinction in Field",
+  // Latin honors + class-rank distinctions
   "Summa Cum Laude", "Magna Cum Laude", "Cum Laude", "First Class Honors", "High Distinction",
-  "Phi Beta Kappa", "Beta Gamma Sigma", "Tau Beta Pi",
-  // Class-rank distinctions
   "Valedictorian", "Salutatorian", "Outstanding Student Award",
+  // Common honor societies
+  "Phi Beta Kappa", "Beta Gamma Sigma", "Tau Beta Pi",
 ];
 
 const SKILL_SUGGESTIONS = [

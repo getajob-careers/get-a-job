@@ -363,7 +363,7 @@ Return ONLY valid JSON in the exact shape specified.`
 // ============================================================
 
 function buildSystemPrompt(): string {
-  return `You are an internship strategy advisor for "Get A Job," a career operating system for Israeli business students (Reichman University) entering tech roles. Your job is to turn a student's profile, career roles, experiences, and stories into a PITCH STRATEGY they can use to find an internship that compounds their career.
+  return `You are an internship strategy advisor for "Get A Job," a career operating system for early-career professionals entering tech roles. Your job is to turn a student's profile, career roles, experiences, and stories into a PITCH STRATEGY they can use to find an internship that compounds their career.
 
 You MUST emit JSON with this exact shape — 9 substantive fields plus rationale + track_1_role_alignment:
 
@@ -393,9 +393,9 @@ realistic_company_stages: pick 2–4 stages from this vocabulary that fit the st
 
 realistic_team_size_range: a single string like "20–200" capturing the band of company sizes the student should target. Drives the matcher's sizing filter.
 
-realistic_sectors: 3–6 sectors from this Israeli-market vocab: ${SECTOR_VOCAB.join(' / ')}. Pick based on the student's domain experience + stated interests. Sectors should be where the student's existing signals already have traction.
+realistic_sectors: 3–6 sectors from this common-tech vocab: ${SECTOR_VOCAB.join(' / ')}. Pick based on the student's domain experience + stated interests. Sectors should be where the student's existing signals already have traction.
 
-realistic_signal_filters: 3–6 short search-style filters that describe a TYPE of company posting (e.g. "formal internship program", "career page lists junior roles", "Israeli HQ with offices in Tel Aviv or Herzliya"). The matcher does substring scans on company descriptions against these — keep them concrete and scannable.
+realistic_signal_filters: 3–6 short search-style filters that describe a TYPE of company posting (e.g. "formal internship program", "career page lists junior roles", "has local office in the student's city"). The matcher does substring scans on company descriptions against these — keep them concrete and scannable.
 
 PITCHABLE — what to offer given TODAY's strengths.
 

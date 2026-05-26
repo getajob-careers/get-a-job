@@ -114,7 +114,7 @@ OUTPUT — return EXACTLY this JSON shape:
 {
   "suggested_text": "string — the message text the user should send (after possibly editing). Length depends on turn_type — see framework for the goal.",
   "turn_type": "opener | follow_up_after_silence | next_response | connection_request_note",
-  "angle": "string — 1 short line describing the angle (e.g. 'warm opener referencing the Reichman alumni connection', 'soft follow-up after 5 days of silence')",
+  "angle": "string — 1 short line describing the angle (e.g. 'warm opener referencing the shared alumni connection', 'soft follow-up after 5 days of silence')",
   "warm_up_advice": "string — when the user is pushing for an ask their thread state isn't ready for, explain why + what to send first. Empty string when no warm-up advice is needed (most turns).",
   "conversation_state": "cold_open | warming_up | rapport_built | making_the_ask | awaiting_reply | goal_complete",
   "warnings": ["array of string — caveats the user should consider (e.g. timing tip, length warning, OTW reminder). Often empty."]

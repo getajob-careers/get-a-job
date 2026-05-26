@@ -590,7 +590,7 @@ export default function Profile() {
                 </div>
                 <div>
                   <label className="p-label">Location</label>
-                  <input value={profileForm.location} onChange={(e) => setField("location", e.target.value)} className="p-input" placeholder="e.g. Tel Aviv, Israel" />
+                  <input value={profileForm.location} onChange={(e) => setField("location", e.target.value)} className="p-input" placeholder="e.g. Berlin, Germany" />
                 </div>
                 <div>
                   <label className="p-label">LinkedIn URL</label>
@@ -1115,7 +1115,7 @@ export default function Profile() {
                       <SelectItem value="freelance">Freelance</SelectItem>
                       <SelectItem value="volunteer">Volunteer</SelectItem>
                       <SelectItem value="leadership">Leadership / Club</SelectItem>
-                      <SelectItem value="military">Military / IDF</SelectItem>
+                      <SelectItem value="military">Military Service</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

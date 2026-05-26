@@ -2,44 +2,46 @@ import React from "react";
 import { Briefcase, User2, X, ArrowRight } from "lucide-react";
 
 // Onboarding practicum step — captures profiles.practicum_path +
-// practicum_cohort. Adapts copy by institution: Reichman students see
-// Reichman framing; everyone else sees generic faculty-internship framing
-// (same answer space, same DB fields). "No" leaves practicum_path = null,
-// which makes /Practicum render the NoPracticumPath empty state.
+// practicum_cohort. The institution-detection regex remains as a future
+// hook for cohort-specific framing, but copy is generic across both
+// branches today (universal language; we used to surface school-specific
+// copy when the detection matched, which leaked branding).
+//
+// "No" leaves practicum_path = null, which makes /Practicum render the
+// NoPracticumPath empty state.
 
-const REICHMAN_PATTERNS = [/reichman/i, /idc\s*herzliya/i, /\bidc\b/i];
+const INTERNSHIP_PROGRAM_PATTERNS = [/reichman/i, /idc\s*herzliya/i, /\bidc\b/i];
 const STUDENT_LEVELS = new Set(["bachelors", "masters", "phd"]);
 
-function looksLikeReichman(institution) {
+function looksLikeKnownInternshipProgram(institution) {
   if (!institution || typeof institution !== "string") return false;
-  return REICHMAN_PATTERNS.some((re) => re.test(institution));
+  return INTERNSHIP_PROGRAM_PATTERNS.some((re) => re.test(institution));
 }
 
-function reichmanInstitutionFromEducations(educations) {
+function knownInternshipProgramFromEducations(educations) {
   if (!Array.isArray(educations)) return "";
   const candidates = educations.filter(
     (e) => e?.is_current === true && STUDENT_LEVELS.has(e?.education_level)
   );
   for (const e of candidates) {
-    if (looksLikeReichman(e.institution)) return e.institution;
+    if (looksLikeKnownInternshipProgram(e.institution)) return e.institution;
   }
   for (const e of educations) {
-    if (looksLikeReichman(e?.institution)) return e.institution;
+    if (looksLikeKnownInternshipProgram(e?.institution)) return e.institution;
   }
   return "";
 }
 
 export default function StepPracticum({ data, onChange, educations, onNext, onBack }) {
-  const isReichman = !!reichmanInstitutionFromEducations(educations);
+  // Detection retained but unused for copy variation today — both branches
+  // get the same generic phrasing. Kept around for a future cohort-aware
+  // surface that doesn't leak school branding into shared UX.
+  const isKnownInternshipProgram = !!knownInternshipProgramFromEducations(educations);
+  void isKnownInternshipProgram;
   const path = data.practicum_path || null;
 
-  const headline = isReichman
-    ? "Are you part of the Reichman practicum?"
-    : "Are you part of a faculty-coordinated internship?";
-
-  const description = isReichman
-    ? "The Reichman practicum runs Aug–Nov. We'll tailor the Internship Finder to your placement track."
-    : "Some universities and programs coordinate internships through faculty. Let us know so we can tailor the Internship Finder.";
+  const headline = "Are you part of an internship program?";
+  const description = "Some universities and programs coordinate internships through faculty. Let us know so we can tailor the Internship Finder.";
 
   const setPath = (next) => {
     const newPath = next === path ? null : next;
@@ -60,14 +62,14 @@ export default function StepPracticum({ data, onChange, educations, onNext, onBa
       <div className="space-y-2.5">
         <OptionCard
           icon={Briefcase}
-          title={isReichman ? "Yes — faculty-assigned placement" : "Yes — placement arranged by faculty"}
+          title="Yes — placement arranged by faculty"
           description="My faculty mentor coordinates the internship; the company has been (or will be) assigned."
           selected={path === "faculty_assigned"}
           onClick={() => setPath("faculty_assigned")}
         />
         <OptionCard
           icon={User2}
-          title={isReichman ? "Yes — I'll find my own (self-sourced)" : "Yes — I find my own internship"}
+          title="Yes — I find my own internship"
           description="I'm responsible for sourcing and pitching the company myself."
           selected={path === "self_sourced"}
           onClick={() => setPath("self_sourced")}
@@ -88,7 +90,7 @@ export default function StepPracticum({ data, onChange, educations, onNext, onBa
             type="text"
             value={data.practicum_cohort || ""}
             onChange={(e) => onChange({ ...data, practicum_cohort: e.target.value })}
-            placeholder={isReichman ? "e.g. Aug-Nov 2026" : "e.g. Spring 2026"}
+            placeholder="e.g. Spring 2026"
             className="onb-input"
           />
           <p className="onb-help">

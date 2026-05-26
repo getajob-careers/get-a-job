@@ -38,7 +38,7 @@ OPENER STRUCTURE (50-150 words, OR ≤200 chars if it's a connection-request not
 4. Closing — explicit, low-friction ask: "Open to a quick chat?" or "Happy to send my resume if there's a fit."
 
 EXAMPLES:
-- Good: "Hi Sarah — I'm a Reichman BBA student finishing in June, targeting CS roles in Israeli B2B SaaS. I saw Guardio is hiring for Customer Success Specialist; I built a Slack bot during my internship at Atera that auto-flagged stuck deals and saved my CS team 8 hours/week. Open to a quick chat about whether the role might be a fit?"
+- Good: "Hi Sarah — I'm a final-year business student graduating in June, targeting Customer Success roles in B2B SaaS. I saw your company is hiring for Customer Success Specialist; I built a Slack bot during my last internship that auto-flagged stuck deals and saved the CS team 8 hours/week. Open to a quick chat about whether the role might be a fit?"
 - Bad: "Hi Sarah, I hope this finds you well. I came across your profile and was very impressed by your background. I would love to connect and learn more about opportunities at your company."
 
 ASK TIMING:
@@ -65,8 +65,8 @@ OPENER STRUCTURE (50-150 words):
 4. Closing — soft ask. "Would love 15 minutes to learn how your team thinks about [specific thing]" beats "Are you hiring?" Hiring managers are more responsive to learning conversations than to direct asks (it's about how their job works, not coyness).
 
 EXAMPLES:
-- Good: "Hi Yossi — I'm finishing my BBA at Reichman this June. Read your post last week on how Atera is rethinking onboarding for SMB CS — really sharp framing on the 'time-to-value vs feature breadth' trade-off. I spent my internship at Wix CS shadowing the renewal cohort and built a Slack bot that flagged stuck deals; I'd love to learn how your team thinks about the same problem at Atera scale. Open to 15 minutes in the next two weeks?"
-- Bad: "Hi Yossi, I noticed Atera is hiring and I would love to be considered. Please find my resume attached. Thank you for your time."
+- Good: "Hi Daniel — I'm finishing my undergrad business degree this June. Read your post last week on how your team is rethinking onboarding for SMB CS — really sharp framing on the 'time-to-value vs feature breadth' trade-off. I spent my last internship in CS shadowing the renewal cohort and built a Slack bot that flagged stuck deals; I'd love to learn how your team thinks about the same problem at your scale. Open to 15 minutes in the next two weeks?"
+- Bad: "Hi Daniel, I noticed your company is hiring and I would love to be considered. Please find my resume attached. Thank you for your time."
 
 ASK TIMING:
 The ask is implicit in the first message — a "learning conversation" framing, not a "job please" framing. After the call, if it goes well, the explicit "I'd love to be considered for X role" can come.
@@ -82,19 +82,19 @@ Hiring manager replied with: (a) a yes to the call, (b) a no with a referral to 
 RECIPIENT REGISTER:
 Peer-to-peer respect, not job-seeker desperate. The user is asking for the manager's TIME, which is the manager's most expensive resource. The message must visibly justify the spend.`
 
-export const MESSAGE_ALUMNI_FRAMEWORK = `OUTREACH GOAL — MESSAGE A REICHMAN ALUMNI:
+export const MESSAGE_ALUMNI_FRAMEWORK = `OUTREACH GOAL — MESSAGE AN ALUM FROM YOUR SCHOOL:
 
-The user is reaching out to someone who went to Reichman (BBA, MBA, Adelson, etc.) — a fellow alum. ALUMNI RESPOND AT VERY HIGH RATES because the shared affiliation is real social capital; a good Israeli professional culture norm is to help fellow alumni. Don't squander this by being vague.
+The user is reaching out to a fellow alum from their school or program. ALUMNI RESPOND AT VERY HIGH RATES because the shared affiliation is real social capital — a strong professional norm in most cultures is to help fellow alumni. Don't squander this by being vague.
 
 OPENER STRUCTURE (50-150 words, OR ≤200 chars connection note):
-1. First sentence — lead with the alumni connection. "Fellow Reichman BBA grad here — finishing this June, you're class of 2018." This activates the social capital up front.
+1. First sentence — lead with the alumni connection. "Fellow [school] grad here — finishing this June, you're class of 2018." This activates the social capital up front.
 2. Second sentence — what they're doing now that's relevant + the specific reason you're reaching out. Be concrete.
 3. Third sentence — what you specifically want from them. Alumni want to help but don't know HOW unless you tell them.
 4. Closing — explicit, easy-to-say-yes ask. "Open to a 20-min coffee?" "Happy to send a few specific questions you can answer async if easier."
 
 EXAMPLES:
-- Good: "Hi Maya — fellow Reichman BBA, I'm finishing this June. Saw you've been at Verbit for 3 years now in CS, and that's exactly the path I'm targeting (Israeli B2B SaaS, CS function). Would love 20 minutes to ask how you decided between the offers you had post-Reichman and what you'd tell your final-year self. Easiest for you in person, async, or a quick call?"
-- Bad: "Hi Maya, I noticed you went to Reichman. I would love to connect and pick your brain about your career."
+- Good: "Hi Maya — fellow alum from your program, I'm finishing this June. Saw you've been at your current company for 3 years now in CS, and that's exactly the path I'm targeting (B2B SaaS, CS function). Would love 20 minutes to ask how you decided between the offers you had post-grad and what you'd tell your final-year self. Easiest for you in person, async, or a quick call?"
+- Bad: "Hi Maya, I noticed you went to my school. I would love to connect and pick your brain about your career."
 
 ASK TIMING:
 The ask is in the first message — alumni outreach without an ask reads as "what does this person want from me?" and creates anxiety. A clear, small, specific ask up front is the gift.
@@ -108,7 +108,7 @@ GOAL_COMPLETE SIGNAL:
 Alum replied with a yes to the meeting, async answers, or a referral to another more relevant alum. All three close the loop.
 
 RECIPIENT REGISTER:
-Warm, specific, peer-to-peer. The shared Reichman affiliation lets the user skip "I hope this finds you well" — the connection is already there. Israeli LinkedIn norms skew direct; don't soften with American hedging.`
+Warm, specific, peer-to-peer. The shared school affiliation lets the user skip "I hope this finds you well" — the connection is already there. Match the directness of the alum's LinkedIn presence; don't over-hedge.`
 
 export const REQUEST_INFORMATIONAL_INTERVIEW_FRAMEWORK = `OUTREACH GOAL — REQUEST AN INFORMATIONAL INTERVIEW:
 
@@ -121,7 +121,7 @@ OPENER STRUCTURE (50-150 words):
 4. Closing — explicit ask for time. 20-30 minutes is the standard. Phone or async are both fine — offer flexibility.
 
 EXAMPLES:
-- Good: "Hi David — I'm a Reichman BBA student trying to decide between Customer Success and Product Marketing for my first role. Saw you spent 3 years in CS at Monday.com before moving to PMM at Riskified — you're the rare person who's actually done both. Would love 25 minutes to ask: what surprised you about PMM coming from CS? What does the day-to-day actually look like? What would have made the move easier? Happy to do this async over voice notes if a call is hard to fit in."
+- Good: "Hi David — I'm a final-year business student trying to decide between Customer Success and Product Marketing for my first role. Saw you spent 3 years in CS before moving to PMM at your current company — you're the rare person who's actually done both. Would love 25 minutes to ask: what surprised you about PMM coming from CS? What does the day-to-day actually look like? What would have made the move easier? Happy to do this async over voice notes if a call is hard to fit in."
 - Bad: "Hi David, I would love to learn more about your career path. Are you free for a coffee?"
 
 ASK TIMING:
@@ -149,7 +149,7 @@ OPENER STRUCTURE (50-150 words):
 4. Closing — appropriate next-step. If interview: "Looking forward to hearing about next steps" + restate specific interest. If informational: "I'll keep you posted on what I decide" or "Definitely open to staying in touch."
 
 EXAMPLES:
-- Good: "Hi Maya — really appreciated the 25 minutes today. Your point about CS being the function where 'you learn what the customer's job actually is' before moving into product is reframing how I'm thinking about the next 2 years. I'm going to reach out to Yossi at Atera next week (the alum you mentioned) — thanks for the warm intro offer. If a CS slot opens up at Verbit in Q3, would love to be on your radar."
+- Good: "Hi Maya — really appreciated the 25 minutes today. Your point about CS being the function where 'you learn what the customer's job actually is' before moving into product is reframing how I'm thinking about the next 2 years. I'm going to reach out to Daniel next week (the alum you mentioned) — thanks for the warm intro offer. If a CS slot opens up on your team in Q3, would love to be on your radar."
 - Bad: "Hi Maya, thank you so much for taking the time to chat with me yesterday. I really enjoyed our conversation and learned a lot. I would love to stay in touch."
 
 ASK TIMING:
@@ -164,7 +164,7 @@ GOAL_COMPLETE SIGNAL:
 Thank-you sent, conversation closed. Goal_complete the moment the message goes out — there's no required reply for the goal to count as achieved. If they reply, that's a bonus.
 
 RECIPIENT REGISTER:
-Warm, specific, brief. This is the message that builds long-term reputation. Israeli professional culture rewards this; American hedging ("I just wanted to") undercuts it.`
+Warm, specific, brief. This is the message that builds long-term reputation. Hedging ("I just wanted to") undercuts it.`
 
 export const RECONNECT_DORMANT_FRAMEWORK = `OUTREACH GOAL — RECONNECT WITH A DORMANT CONNECTION:
 
@@ -177,8 +177,8 @@ OPENER STRUCTURE (50-100 words, lighter than other goals):
 4. Closing — leave it open. NO ask. NO meeting request. NO "would love to catch up sometime" (which translates to "I want something").
 
 EXAMPLES:
-- Good: "Hey Yael — feels like ages since the marketing strategy group at Reichman. Saw your post about moving to Riskified for the PMM role last month — congrats. Last I knew you were torn between staying at Wix and trying B2B SaaS, so it sounds like the call landed. How's the first 90 days going?"
-- Bad: "Hi Yael, I hope this finds you well. It's been a while! I was wondering if you might be able to introduce me to someone at Riskified — I'm looking at PMM roles."
+- Good: "Hey Maya — feels like ages since the marketing strategy group. Saw your post about moving into the new PMM role last month — congrats. Last I knew you were torn between staying put and trying B2B SaaS, so it sounds like the call landed. How's the first 90 days going?"
+- Bad: "Hi Maya, I hope this finds you well. It's been a while! I was wondering if you might be able to introduce me to someone at your company — I'm looking at PMM roles."
 
 ASK TIMING — CRITICAL:
 The ask is NEVER in the first reconnection message. If the user wants to ask for something (referral, intro, advice), the AI should EXPLICITLY coach: "Send this opener first. Wait for a real reply. Then in turn 2 or 3, once they've engaged, you can bring up what you need." This is the load-bearing rule of this goal.
@@ -193,7 +193,7 @@ For pure reconnection (no further ask): goal_complete the moment they reply with
 If the conversation evolved into an ask (intro, referral, etc.) and the ask was answered: goal_complete when the ask is handled.
 
 RECIPIENT REGISTER:
-Warm, low-pressure, peer-to-peer. The user is rebuilding a relationship, not extracting a favor. Israeli norms strongly reward this kind of un-transactional reconnection — the people who do it well are the ones who get help later.`
+Warm, low-pressure, peer-to-peer. The user is rebuilding a relationship, not extracting a favor. Un-transactional reconnection compounds over time — the people who do it well are the ones who get help later.`
 
 export const ASK_FOR_REFERRAL_FRAMEWORK = `OUTREACH GOAL — ASK FOR A REFERRAL:
 
@@ -208,7 +208,7 @@ DO NOT ask in turn 1. Reconnect first. Make the ask in turn 2 or 3 only after th
 OPENER STRUCTURE (50-150 words):
 
 PATH A (direct ask):
-1. Opening — name the relationship + specific reason to ask them. "You knew my work at Atera better than anyone."
+1. Opening — name the relationship + specific reason to ask them. "You knew my work on the renewal-cohort project better than anyone."
 2. The role — specific role title + req link if available + company.
 3. Why you're a fit — 2-3 specific signals tied to the role. Not your full resume.
 4. The ask — clean and explicit. "Would you be open to referring me?" + offer of materials. "Happy to send the tailored resume + a 1-pager on why this fit makes sense."
@@ -217,7 +217,7 @@ PATH B (warm-up first — see RECONNECT_DORMANT_FRAMEWORK):
 First message is reconnection only. The ask goes in turn 2 or 3.
 
 EXAMPLES (Path A):
-- Good: "Hi Sarah — saw Verbit posted the Customer Success Specialist role yesterday (req here: [link]). You managed me at Atera CS for 8 months and saw the renewal-cohort work directly — would you be open to referring me? Happy to send the tailored resume + a 1-page brief on why I think the fit makes sense given Verbit's ICP shift toward enterprise."
+- Good: "Hi Sarah — saw your company posted the Customer Success Specialist role yesterday (req here: [link]). You managed me in CS for 8 months and saw the renewal-cohort work directly — would you be open to referring me? Happy to send the tailored resume + a 1-page brief on why I think the fit makes sense given the team's ICP shift toward enterprise."
 - Bad (Path B violation): "Hey, long time no speak! I saw a role at your company and was wondering if you'd be willing to refer me?"
 
 ASK TIMING:
@@ -239,14 +239,14 @@ export const ASK_FOR_RECOMMENDATION_FRAMEWORK = `OUTREACH GOAL — ASK FOR A LIN
 The user wants a LinkedIn recommendation from someone they worked with — former manager, professor, mentor, internship lead. THIS IS A REAL ASK — writing a thoughtful recommendation takes 30+ minutes. The framework's job is to make it as easy as possible for the recommender to say yes.
 
 OPENER STRUCTURE (50-150 words):
-1. First sentence — name the relationship clearly. "You managed me during my Atera internship in 2025." This grounds them.
+1. First sentence — name the relationship clearly. "You managed me during my internship at your company in 2025." This grounds them.
 2. Second sentence — why now. The user is preparing for the job search, applying to a specific role, refreshing their profile pre-graduation. Concrete.
 3. Third sentence — THE LIFT-REDUCTION OFFER. This is the load-bearing part: offer to send 2-3 specific things you'd love them to highlight, OR a draft they can edit, OR specific examples they can pick from. Recommendations get written when the lift is low; they don't get written when the recommender has to start from blank.
 4. Closing — explicit timeline + easy out. "No rush, anytime in the next 3 weeks would be wonderful — and totally fine if your bandwidth doesn't allow, no pressure at all."
 
 EXAMPLES:
-- Good: "Hi Yossi — you managed me during my CS internship at Atera last summer. I'm starting my job search in earnest now ahead of June graduation, and a LinkedIn recommendation from you would mean a lot. Happy to make this as low-lift as possible — I can send you 3 specific moments from the internship I'd love you to reference (the renewal-cohort work, the Slack bot for stuck deals, the customer-call shadowing project), or send a draft you can edit. No rush — anytime in the next 3 weeks works, and totally fine if bandwidth is tight."
-- Bad: "Hi Yossi, would you be willing to write me a LinkedIn recommendation? It would mean so much to me."
+- Good: "Hi Daniel — you managed me during my CS internship last summer. I'm starting my job search in earnest now ahead of June graduation, and a LinkedIn recommendation from you would mean a lot. Happy to make this as low-lift as possible — I can send you 3 specific moments from the internship I'd love you to reference (the renewal-cohort work, the Slack bot for stuck deals, the customer-call shadowing project), or send a draft you can edit. No rush — anytime in the next 3 weeks works, and totally fine if bandwidth is tight."
+- Bad: "Hi Daniel, would you be willing to write me a LinkedIn recommendation? It would mean so much to me."
 
 ASK TIMING:
 Recommendations should be asked AFTER a working relationship is well-established. The timing question is about WHEN in the user's career, not WHEN in this conversation. In-conversation, the ask is in turn 1.

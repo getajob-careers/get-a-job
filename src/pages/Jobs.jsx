@@ -302,7 +302,7 @@ export default function JobSuggestions() {
             </p>
             <h1 className="jb-h1 mt-1.5">Real roles, refreshed nightly.</h1>
             <p className="jb-sub">
-              Israeli tech postings filtered to your level. Track-aware browsing tied to your career roadmap.
+              Live tech postings filtered to your level. Track-aware browsing tied to your career roadmap.
             </p>
           </div>
 

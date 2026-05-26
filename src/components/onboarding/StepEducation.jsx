@@ -96,7 +96,7 @@ export default function StepEducation({ data, onChange, educations, setEducation
             type="text"
             value={primary.institution || ""}
             onChange={(e) => setEduField("institution", e.target.value)}
-            placeholder="e.g. Reichman University, Tel Aviv University"
+            placeholder="e.g. Stanford University, University of Toronto"
             className="onb-input"
           />
         </div>
