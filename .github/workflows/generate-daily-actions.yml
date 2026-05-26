@@ -1,0 +1,56 @@
+# Nightly daily-action precompute.
+#
+# Runs scripts/generate-daily-actions.ts, which iterates every user with
+# profile.onboarding_complete=true and invokes cron-generate-daily-action
+# once per user. Pre-computes today's daily_actions row before users
+# wake up so the Home Daily Action card loads in ~50ms instead of
+# blocking on an 8–25s LLM call.
+#
+# Schedule: 04:00 UTC daily = 06:00 IL (winter) / 07:00 IL (summer).
+# Right as users start their day. Staggered from the 01:00 UTC jobs
+# refresh so the two cron jobs don't compete for OpenAI / DB capacity.
+#
+# Idempotency: cron-generate-daily-action short-circuits if today's row
+# exists. Safe to manually re-trigger via workflow_dispatch.
+#
+# Required repo secrets (same as refresh-jobs.yml):
+#   - SUPABASE_URL                = https://ilmqmodklutztuybsvwd.supabase.co
+#   - SUPABASE_SERVICE_ROLE_KEY   = the project's service-role key
+#
+# Manually trigger:
+#   gh workflow run generate-daily-actions.yml
+#   OR via the Actions tab → "Generate daily actions" → "Run workflow"
+
+name: Generate daily actions
+
+on:
+  schedule:
+    - cron: "0 4 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  run:
+    name: Generate daily actions for all active users
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run daily-action precompute
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        run: npx tsx scripts/generate-daily-actions.ts
