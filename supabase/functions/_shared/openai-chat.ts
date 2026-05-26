@@ -57,6 +57,92 @@ interface OpenAIChatOptions {
   signal?: AbortSignal
 }
 
+interface OpenAIChatWithRetryOptions extends OpenAIChatOptions {
+  // Max retry attempts on transient errors (default 3). Total HTTP attempts
+  // is retries + 1.
+  retries?: number
+  // Base exponential-backoff delay (default 1000ms). Wait = base * 2^attempt
+  // up to maxBackoffMs. Jitter (0–500ms) added to avoid thundering-herd.
+  baseBackoffMs?: number
+  // Backoff ceiling (default 8000ms).
+  maxBackoffMs?: number
+}
+
+// HTTP statuses worth retrying. 408 = request timeout, 429 = rate limit,
+// 5xx = transient server errors.
+const RETRYABLE_STATUSES = new Set([408, 429, 500, 502, 503, 504])
+
+// openaiChatCompletion + exponential-backoff retry on transient errors.
+// Honors the `Retry-After` header on 429s (capped at 30s to keep edge
+// functions under the 150s platform timeout). Use this from any function
+// that makes 2+ sequential OpenAI calls or runs during fan-out windows
+// (onboarding, post-CV-gen story capture) — the default budget protects
+// against ~7-8s rate-limit windows.
+//
+// Rationale: PR #156 retrospective showed that streaming chat raised
+// instantaneous concurrent OpenAI usage, and non-streaming functions with
+// only 1 retry (1.2s budget) cascade-500'd under sustained rate-limits.
+// See tasks/lessons.md 2026-05-26 entries.
+export async function openaiChatCompletionWithRetry(
+  payload: Record<string, unknown>,
+  apiKey: string,
+  traceCtx: TraceContext,
+  options: OpenAIChatWithRetryOptions = {},
+): Promise<Response> {
+  const {
+    retries = 3,
+    baseBackoffMs = 1000,
+    maxBackoffMs = 8000,
+    signal,
+  } = options
+
+  let lastResponse: Response | null = null
+  let lastError: Error | null = null
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      const res = await openaiChatCompletion(payload, apiKey, traceCtx, { signal })
+      // Success or non-retryable failure — return immediately. The caller
+      // sees the same Response shape as openaiChatCompletion would have
+      // returned, regardless of how many retries happened internally.
+      if (res.ok || !RETRYABLE_STATUSES.has(res.status)) return res
+      lastResponse = res
+      console.warn(`[openai-retry] HTTP ${res.status} on attempt ${attempt + 1}/${retries + 1} (trace=${traceCtx.traceName})`)
+    } catch (err) {
+      if ((err as Error)?.name === 'AbortError') throw err
+      lastError = err instanceof Error ? err : new Error(String(err))
+      lastResponse = null
+      console.warn(`[openai-retry] fetch error on attempt ${attempt + 1}/${retries + 1} (trace=${traceCtx.traceName}):`, lastError.message)
+    }
+
+    if (attempt >= retries) break
+
+    // Compute backoff. Honor Retry-After on 429s up to a 30s cap so a
+    // bad upstream signal can't keep the function alive past the edge
+    // platform timeout. Falls back to exponential otherwise.
+    let waitMs = Math.min(baseBackoffMs * Math.pow(2, attempt), maxBackoffMs)
+    if (lastResponse && lastResponse.status === 429) {
+      const retryAfter = lastResponse.headers.get('retry-after')
+      if (retryAfter) {
+        const seconds = Number(retryAfter)
+        if (!Number.isNaN(seconds) && seconds > 0) {
+          waitMs = Math.min(seconds * 1000, 30_000)
+        }
+      }
+    }
+    // Jitter — 0 to 500ms — prevents synchronized retries across concurrent
+    // edge function invocations from re-creating the same rate-limit wave.
+    waitMs += Math.random() * 500
+    await new Promise((resolve) => setTimeout(resolve, waitMs))
+  }
+
+  // Exhausted. Return the last Response if we have one (so the caller's
+  // existing error path handles HTTP semantics). Otherwise throw the
+  // last network error.
+  if (lastResponse) return lastResponse
+  throw lastError ?? new Error('OpenAI fetch failed after retries (no response)')
+}
+
 // Drop-in replacement for the inline
 //   await fetch('https://api.openai.com/v1/chat/completions', { ... })
 // pattern. Returns the same Response object the caller would have gotten,

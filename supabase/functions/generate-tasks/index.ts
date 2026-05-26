@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
-import { openaiChatCompletion } from '../_shared/openai-chat.ts'
+import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
 
 // --- Load JSON Libraries ---
 import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
@@ -339,7 +339,7 @@ Return ONLY valid JSON. Generate 5-8 tasks unless overwhelm signals are present,
     const RETRY_MAX_TOKENS = 4096
 
     async function callOpenAI(maxTokens: number) {
-      return await openaiChatCompletion(
+      return await openaiChatCompletionWithRetry(
         {
           model: MODEL,
           messages: [

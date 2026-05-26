@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
-import { openaiChatCompletion } from '../_shared/openai-chat.ts'
+import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
 import { proofSignalExtractionLogic } from '../_shared/libraries/08_proof_signal_extraction_logic.ts'
 import { proofSignalLibrary } from '../_shared/libraries/02_proof_signal_library.ts'
 import { skillLibrary } from '../_shared/libraries/01_skill_library.ts'
@@ -154,7 +154,7 @@ Deno.serve(async (req) => {
       })
     }
 
-    const openaiResponse = await openaiChatCompletion(
+    const openaiResponse = await openaiChatCompletionWithRetry(
       {
         model: MODEL,
         messages: [
