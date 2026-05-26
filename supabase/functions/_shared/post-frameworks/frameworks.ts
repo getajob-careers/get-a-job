@@ -49,7 +49,7 @@ The user finished something (course, role, project, book, event) and is sharing 
 HOOK (first 140 chars):
 Name the source AND give a teaser of what's at stake. The reader should know what experience the lessons came from in the first sentence.
 - Good: "5 lessons from running my first user research study at Guardio — including the one that changed how I write interview scripts."
-- Good: "I just finished Reichman's Customer Discovery course. Here are the 4 things I'm taking back to my internship."
+- Good: "I just finished my Customer Discovery course. Here are the 4 things I'm taking back to my internship."
 - Bad: "Some lessons I learned recently."
 - Bad: "Reflections on customer discovery."
 
@@ -76,7 +76,7 @@ The user is sharing news: internship offer, role start, certification, graduatio
 HOOK (first 140 chars):
 Name the specific milestone with concrete detail, NOT generic excitement.
 - Good: "Just signed my offer — joining Guardio as a Customer Success Specialist starting October."
-- Good: "Walked the stage today. Bachelor's in Business Administration from Reichman, specialization in Digital Innovation."
+- Good: "Walked the stage today. Bachelor's in Business Administration, specialization in Digital Innovation."
 - Good: "Today's my first day at Atera. Spent the morning reading the renewal playbook our CS lead wrote — already learning."
 - Bad: "Excited to share that I've accepted a new role!"
 - Bad: "Thrilled to announce that I'm graduating today."
@@ -110,9 +110,9 @@ The user participated in an event (hackathon, conference, competition, workshop,
 
 HOOK (first 140 chars):
 Anchor on the specific outcome of the event, not "I attended X." Lead with what was built, what was won, who you presented to, what you walked away with concretely.
-- Good: "Won 1st place at the Reichman AI Hackathon this weekend — built a Hebrew-English code-switching translator with two friends in 26 hours."
-- Good: "Presented our customer-discovery findings to the CMO of Strauss as part of Reichman's marketing strategy course final."
-- Bad: "Excited to share that I attended the Reichman Hackathon this past weekend!"
+- Good: "Won 1st place at the TechCrunch Disrupt Hackathon this weekend — built a multilingual code-switching translator with two friends in 26 hours."
+- Good: "Presented our customer-discovery findings to a regional CMO as part of my marketing strategy course final."
+- Bad: "Excited to share that I attended the Hackathon this past weekend!"
 - Bad: "Last week was an amazing experience..."
 
 BODY STRUCTURE (1,200-2,500 chars; recaps can run shorter, 800-1,500, since they're news-shaped):
@@ -123,7 +123,7 @@ BODY STRUCTURE (1,200-2,500 chars; recaps can run shorter, 800-1,500, since they
 5. Optional close: the key_lesson if provided, OR what's next, OR an open invitation to anyone who's done something similar.
 
 HASHTAGS (3-5 at end):
-Event-specific hashtag if known (e.g. "#ReichmanHackathon"), plus topic/function tags. Skip generic.
+Event-specific hashtag if known (e.g. "#TechCrunchHackathon"), plus topic/function tags. Skip generic.
 
 FORMAT RECOMMENDATION:
 'image_text' is the strong default — group photos, demo screenshots, prize/award photos, presentation slides. Recaps without an image significantly underperform.

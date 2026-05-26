@@ -98,7 +98,7 @@ The leading ~60 characters get the most recruiter attention (eye-tracking data s
 
 For working professionals: <Current or aspirational role> | <Domain expertise> | <Concrete proof>. Example: "Customer Success Specialist at Guardio | Enterprise adoption | Drove 88% adoption in Q1 via 12 user research interviews".
 
-For students without a current professional role: <Study area> Student at <University> | Aspiring <Target Role> | <Specific skill or proof>. "Aspiring [Role]" is acceptable in the headline for students in a way it isn't for mid-career — students should signal direction. Example: "Business Administration Student at Reichman University | Aspiring Product Manager | Customer success metrics from internship at Guardio".
+For students without a current professional role: <Study area> Student at <University> | Aspiring <Target Role> | <Specific skill or proof>. "Aspiring [Role]" is acceptable in the headline for students in a way it isn't for mid-career — students should signal direction. Example: "Business Administration Student at State University | Aspiring Product Manager | Customer success metrics from a B2B SaaS internship".
 
 Every pillar should be a verifiable fact, not a slogan. Mobile preview shows even less than desktop — front-load.
 
@@ -234,8 +234,8 @@ ANTI-FABRICATION:
 - Numbers, projects, tools you mention must come from the user's real profile/experiences. Same discipline as posts.
 - If the user has nothing relevant to add to a particular post, the right move is to NOT comment, not to fabricate relevance.
 
-ISRAELI MARKET NOTE:
-Cross-cultural courtesy applies here too — Israeli LinkedIn users tend to comment more directly and conversationally than US norms. Don't soften the comment with excessive American hedging ("just my two cents", "happy to be wrong"). Direct + specific is the safer register for our pilot's audience.`
+REGISTER NOTE:
+Match the recipient's likely register. In direct/conversational LinkedIn cultures, soft hedging ("just my two cents", "happy to be wrong") reads as low-confidence; in those contexts, direct + specific is the safer register. In more formal markets, mild softening can read as polite. Calibrate to the recipient's posts and tone, not a default.`
 
 // OUTREACH_VOICE_RULES — for LinkedIn DM outreach (PR #35). Fundamentally
 // different from posts and comments: 1:1 communication where the
@@ -274,7 +274,7 @@ ANTI-PATTERNS — these kill outreach reply rates:
 - Any sentence that could be in a template — assume the recipient has seen 50 versions of it
 
 WARMTH > FORMALITY:
-Israeli LinkedIn users (our pilot's primary audience) skew direct and conversational. American formality reads as cold or robotic. Match the recipient's likely register: an alumni with a casual headline gets a casual opener; a VP at a multinational gets a slightly warmer-but-still-professional tone. Never go full-corporate ("Dear Mr. Smith, I am writing to inquire...").
+Match the recipient's likely register. An alumnus with a casual headline gets a casual opener; a VP at a multinational gets a slightly warmer-but-still-professional tone. In direct LinkedIn cultures, corporate formality reads as cold or robotic; in more formal cultures, casualness can read as flippant. Calibrate to the recipient's own tone. Never default to full-corporate ("Dear Mr. Smith, I am writing to inquire...").
 
 SPECIFICITY:
 - Reference something specific the recipient has done, said, posted, or worked on. Not their job title.

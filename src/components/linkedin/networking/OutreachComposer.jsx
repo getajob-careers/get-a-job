@@ -34,7 +34,7 @@ const GOAL_GROUPS = [
   {
     label: "Network",
     goals: [
-      { value: "message_alumni", title: "Message an alumni", hint: "Reichman alumni — shared affiliation activates social capital; specific ask wanted" },
+      { value: "message_alumni", title: "Message an alumni", hint: "Shared school affiliation activates social capital; specific ask wanted" },
       { value: "request_informational_interview", title: "Request an informational interview", hint: "20-30 min learning conversation; come with 2-3 specific questions" },
       { value: "reconnect_dormant", title: "Reconnect with a dormant connection", hint: "No ask in turn 1. Pure reconnection; ask comes later if needed" },
     ],
@@ -397,7 +397,7 @@ function TargetForm({ goal, target, setTarget, onBack, onSubmit, generating }) {
         <Input
           value={target.relationship || ""}
           onChange={update("relationship")}
-          placeholder='e.g. "alumni from Reichman BBA 2020", "former colleague at Wix", "cold — found via LinkedIn search"'
+          placeholder='e.g. "alumni from my undergrad program", "former colleague", "cold — found via LinkedIn search"'
         />
       </div>
       <div>

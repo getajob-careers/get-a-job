@@ -174,7 +174,7 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
             </SelectContent>
           </Select>
         </Field>
-        <Field label="The specific thing" required hint="e.g. 'Customer Success Specialist offer at Guardio' or 'Bachelor's in Business Administration from Reichman'. Specific beats generic.">
+        <Field label="The specific thing" required hint="e.g. 'Customer Success Specialist offer at Acme' or 'Bachelor's in Business Administration from State University'. Specific beats generic.">
           <Input value={inputs.the_thing || ""} onChange={(e) => set("the_thing", e.target.value)} placeholder="What just happened" />
         </Field>
         <div>
@@ -232,7 +232,7 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
     return (
       <FormShell postType={postType} onBack={onBack} onGenerate={onGenerate} generating={generating} canSubmit={canSubmit}>
         <Field label="Event name" required>
-          <Input value={inputs.event_name || ""} onChange={(e) => set("event_name", e.target.value)} placeholder="e.g. Reichman AI Hackathon 2026" />
+          <Input value={inputs.event_name || ""} onChange={(e) => set("event_name", e.target.value)} placeholder="e.g. TechCrunch Disrupt 2026" />
         </Field>
         <Field label="What you did at the event" required hint="e.g. 'Team lead', 'Backend dev', 'Pitch presenter', 'Volunteer organizer'">
           <Input value={inputs.role_played || ""} onChange={(e) => set("role_played", e.target.value)} placeholder="Your role" />

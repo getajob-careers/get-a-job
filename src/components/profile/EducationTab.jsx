@@ -194,7 +194,7 @@ export default function EducationTab({ user }) {
               value={form.institution}
               onChange={(e) => setForm({ ...form, institution: e.target.value })}
               className="mt-1"
-              placeholder="e.g. Reichman University"
+              placeholder="e.g. Stanford University"
             />
           </div>
           <div>
@@ -269,7 +269,7 @@ export default function EducationTab({ user }) {
               value={form.location}
               onChange={(e) => setForm({ ...form, location: e.target.value })}
               className="mt-1"
-              placeholder="e.g. Herzliya, Israel"
+              placeholder="e.g. Boston, MA"
             />
           </div>
         </div>

@@ -1,12 +1,14 @@
 import React from "react";
-import { TrendingUp, MessageCircle, Users, UserPlus, Eye, Clock, AlertCircle } from "lucide-react";
+import { TrendingUp, MessageCircle, Users, UserPlus, Eye, Clock } from "lucide-react";
 
 // Static educational content for the Networking tab. All claims grounded
 // in docs/research/linkedin-post-performance.md sections 5+6. Hardcoded
 // (no LLM calls) — this is reference content that doesn't change per-user.
 //
-// Per Eli's call PR #34 (option 9C): inline Israeli-specific tips where
-// research has them; skip a generic "data is global" disclaimer.
+// Prior versions of this file inlined Israeli-market-specific tips
+// (workweek timing, Hebrew vs English, comment register). Removed when
+// the platform copy was generalized — the universal LinkedIn principles
+// below are the more durable signal.
 
 export default function NetworkingPrinciples() {
   return (
@@ -66,20 +68,6 @@ export default function NetworkingPrinciples() {
         </ul>
       </PrincipleCard>
 
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
-        <div className="flex items-start gap-2">
-          <AlertCircle className="w-4 h-4 text-blue-700 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-sm font-semibold text-blue-900">Israeli market — where the data is thin</h3>
-            <ul className="text-xs text-blue-800 leading-snug mt-2 space-y-1 list-none">
-              <li>• <strong>Workweek:</strong> Sunday–Thursday. Tuesday + Wednesday during work hours align with Israeli mid-week peak engagement</li>
-              <li>• <strong>Hebrew vs English:</strong> Israeli tech companies often request English even for Israel-based roles. English profiles + posts work for our pilot's target sector</li>
-              <li>• <strong>Comment register:</strong> Israeli LinkedIn users tend to comment more directly than US norms. Don't soften with American hedging ("just my two cents", "happy to be wrong")</li>
-              <li>• <strong>Open gaps:</strong> no Israel-specific posting-time data, no Hebrew-vs-English engagement comparison, no Israeli-tech-sector study. Pilot data should fill these in</li>
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

@@ -37,7 +37,9 @@ const CLARITY_OPTIONS = [
 ];
 
 const REFERRAL_OPTIONS = [
-  { value: "reichman_practicum", label: "Reichman practicum" },
+  // Value strings are stable identifiers stored in profiles — don't rename
+  // without a migration. Only the human-facing labels change here.
+  { value: "reichman_practicum", label: "Faculty internship program" },
   { value: "school_whatsapp",    label: "School WhatsApp" },
   { value: "friends",            label: "Friends" },
   { value: "community",          label: "Community" },

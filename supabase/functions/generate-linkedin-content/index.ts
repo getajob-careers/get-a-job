@@ -86,13 +86,13 @@ ABSOLUTE FABRICATION RULES — these override every other consideration:
 
 4. Each bullet traces to ONE source — either a single story OR a responsibility line from one experience. NEVER combine two stories into one bullet.
 
-5. For honors descriptions: if the user provided no detail beyond the award name, you MUST set the description field to an EMPTY STRING. Do NOT write inferred descriptions like "Recognition for academic and leadership potential" or "Awarded for exceptional performance" when the user's data doesn't explicitly state the awarding reason. Empty string is correct and honest. Only write a description if the user's source data contains the specific awarding context (e.g. their experiences responsibilities text mentions what they did to receive it, or the award name itself is fully self-describing like "1st Place — Israeli National Math Olympiad 2022"). When in doubt, leave empty.
+5. For honors descriptions: if the user provided no detail beyond the award name, you MUST set the description field to an EMPTY STRING. Do NOT write inferred descriptions like "Recognition for academic and leadership potential" or "Awarded for exceptional performance" when the user's data doesn't explicitly state the awarding reason. Empty string is correct and honest. Only write a description if the user's source data contains the specific awarding context (e.g. their experiences responsibilities text mentions what they did to receive it, or the award name itself is fully self-describing like "1st Place — National Math Olympiad 2022"). When in doubt, leave empty.
 
 ${LINKEDIN_VOICE_RULES}
 
-MILITARY SERVICE — for the user's military_experiences (Israeli IDF service is core to most pilot students' profiles, recruiters look for it):
+MILITARY SERVICE — for the user's military_experiences (recruiters in markets with conscription look for it; recruiters elsewhere read it as leadership / operations experience):
 - Same per-experience description format as professional experiences (bullet list, ≤2000 chars).
-- PRESERVE unit names and ranks verbatim (e.g. "Combat Soldier, Nahal Brigade"; "Sergeant, Unit 8200").
+- PRESERVE unit names and ranks verbatim as they appear in the source data.
 - PHRASE bullets in CIVILIAN-READABLE language. Recruiters reading civilian roles need to map military experience to transferable skills. Example: "Led a 12-person team through high-pressure operational deployments" not "Conducted 47 patrol operations in Sector 7".
 - Do NOT invent military details (ranks, dates, awards, unit specifics) not present in source data — anti-fab rules apply identically.
 

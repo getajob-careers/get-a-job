@@ -34,12 +34,15 @@ const LOCATION_SUGGESTIONS = [
   // Canada
   "Toronto, Canada", "Vancouver, Canada", "Montreal, Canada", "Calgary, Canada",
   "Ottawa, Canada", "Remote (Canada)",
-  
-  // Israel
-  "Tel Aviv", "Jerusalem", "Haifa", "Be'er Sheva", "Rishon LeZion", "Petah Tikva",
-  "Ashdod", "Netanya", "Holon", "Bnei Brak", "Ramat Gan", "Rehovot", "Bat Yam",
-  "Herzliya", "Kfar Saba", "Ra'anana", "Modi'in", "Lod", "Ramla", "Eilat",
-  "Caesarea", "Yokneam", "Nazareth", "Acre", "Ashkelon", "Remote (Israel)",
+
+  // Israel — top hubs, formatted with country suffix to match the
+  // pattern of every other region in this list. The full 26-city
+  // enumeration that used to live here was disproportionate to the
+  // ~5-10 cities per other country and broadcast a single-country
+  // affiliation; trimmed to the tech-hub cluster + remote.
+  "Tel Aviv, Israel", "Jerusalem, Israel", "Haifa, Israel", "Herzliya, Israel",
+  "Ra'anana, Israel", "Ramat Gan, Israel", "Be'er Sheva, Israel",
+  "Netanya, Israel", "Modi'in, Israel", "Remote (Israel)",
 
   // Other
   "Remote (Global)", "Willing to Relocate",

@@ -778,7 +778,7 @@ Deno.serve(async (req) => {
       // Only infer when the profile has zero languages stored — otherwise
       // inference could contradict explicit user data.
       if (/\b(israel|tel aviv|jerusalem|haifa|herzliya|ramat|netanya|rehovot|beer sheva|be'?er sheva|eilat|ashdod|petah tikva)\b/.test(locationHint)) {
-        inferredLanguages.push("Hebrew (likely fluent — candidate is based in Israel; proficiency should be inferred conservatively)");
+        inferredLanguages.push("Hebrew (likely fluent based on candidate's location; proficiency should be inferred conservatively)");
       }
     }
 
@@ -1024,19 +1024,19 @@ D. What you MAY do:
       - one of the user's skills, skills_canonical, or tools_used names that domain, OR
       - one of the user's projects or proof_signals references that domain.
     If none of those hold, leave the industry out.
-    BAD: "Business Administration student at Reichman with consulting experience, interested in fintech." (Consulting + fintech were INFERRED — neither traces to an experience, skill, or project.)
-    GOOD: "Business Administration student at Reichman with two years at Heseg Foundation supporting program operations, focused on B2B SaaS customer success (skills include enterprise account management and Salesforce)." (B2B SaaS + CS terms trace to skills + experience.)`
+    BAD: "Business Administration student at State University with consulting experience, interested in fintech." (Consulting + fintech were INFERRED — neither traces to an experience, skill, or project.)
+    GOOD: "Business Administration student at State University with two years at the Civic Scholars Foundation supporting program operations, focused on B2B SaaS customer success (skills include enterprise account management and Salesforce)." (B2B SaaS + CS terms trace to skills + experience.)`
       : `- About Me — SPARSE MODE (no v4 grounding or zero skill overlap).
     Length: 1-2 sentences MAX. Shorter is more credible when grounding is thin — better to say less truthfully than more generically.
     Reference exactly two profile anchors from USER DATA:
       (a) the user's primary qualification — degree + institution from USER DATA.education_list[0], OR current role + company from USER DATA.professional_experiences[0]
       (b) one domain or focus area they ACTUALLY have, drawn from USER DATA.skills or one of their experiences.
-    Example: "Business Administration student at Reichman University with two years of operational support experience at Heseg Foundation, focused on customer-facing roles in product and operations."
+    Example: "Business Administration student at State University with two years of operational support experience at the Civic Scholars Foundation, focused on customer-facing roles in product and operations."
     If you can't write 2 honestly-grounded sentences, write 1.
     ANTI-FABRICATION (load-bearing — read carefully):
     Do NOT infer domains, industries, or specialties from the user's DEGREE or the TARGET ROLE alone. A Business Administration degree alone does not give the user "consulting", "strategy", "finance", or "marketing" experience — only their actual experience rows + skills + tools_used do. The target role's industry (e.g. "fintech", "cybersecurity") IS safe to reference when the user has experience at a company in that domain OR their skills/tools_used/projects name that domain. If neither holds, leave the industry out.
-    BAD: "Business Administration student at Reichman with consulting experience, interested in fintech." (Both inferred — neither traces.)
-    GOOD: "Business Administration student at Reichman University." (1 sentence — honest beats padded.)`;
+    BAD: "Business Administration student at State University with consulting experience, interested in fintech." (Both inferred — neither traces.)
+    GOOD: "Business Administration student at State University." (1 sentence — honest beats padded.)`;
 
     const STRUCTURE_RULES = `OUTPUT STRUCTURE:
 - Produce a single JSON document (see schema below). The PDF renderer reads it verbatim.

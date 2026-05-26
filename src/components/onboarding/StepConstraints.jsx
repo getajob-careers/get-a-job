@@ -38,7 +38,7 @@ export default function StepConstraints({ data, onChange, onSubmit, onBack, subm
               label="Location"
               value={data.location || ""}
               onChange={(v) => set("location", v)}
-              placeholder="e.g. Tel Aviv, New York, London"
+              placeholder="e.g. New York, London, Berlin"
               suggestionType="location"
             />
           </div>

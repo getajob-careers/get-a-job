@@ -64,7 +64,7 @@ export default function NetworkingTab() {
       >
         <div className="flex items-center justify-between gap-3">
           <p className="text-xs text-[#52545A] leading-snug">
-            New to LinkedIn networking? <span className="font-medium text-[#0E1014]">Read the strategy guide</span> — comment + reply windows, connection-request strategy, cold outreach reply rates, Israeli market context.
+            New to LinkedIn networking? <span className="font-medium text-[#0E1014]">Read the strategy guide</span> — comment + reply windows, connection-request strategy, cold outreach reply rates.
           </p>
           <ArrowRight className="w-4 h-4 text-[#52545A] flex-shrink-0" />
         </div>

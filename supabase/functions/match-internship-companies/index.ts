@@ -257,7 +257,7 @@ Deno.serve(async (req) => {
       })),
     }
 
-    const systemPrompt = `You are an internship strategy advisor for "Get A Job," a career operating system for Israeli business students (Reichman University) entering tech roles. The student has a PITCH STRATEGY (internship_profile) describing what KINDS of companies are realistic for them, what role archetypes they can pitch given today's strengths, and how this internship serves their long-term career.
+    const systemPrompt = `You are an internship strategy advisor for "Get A Job," a career operating system for early-career professionals entering tech roles. The student has a PITCH STRATEGY (internship_profile) describing what KINDS of companies are realistic for them, what role archetypes they can pitch given today's strengths, and how this internship serves their long-term career.
 
 You will score CANDIDATE COMPANIES against this strategy. Return TWO scores per company and a specific pitch recommendation.
 
