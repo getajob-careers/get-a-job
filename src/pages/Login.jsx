@@ -679,7 +679,7 @@ export default function Login() {
     : "Welcome back";
 
   const subcopy =
-    mode === "signup" ? "Free during the pilot. No credit card, no spam."
+    mode === "signup" ? "Invite required. Paste your code below to get started."
     : mode === "forgot" ? "Enter your email and we'll send a reset link."
     : "";
 

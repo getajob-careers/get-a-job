@@ -402,10 +402,6 @@ const FAQ_ITEMS = [
     a: "OpenAI's most capable models. Every output has anti-fabrication safeguards — the CV agent literally cannot invent a metric or accomplishment. If your Story Bank doesn't have it, the CV doesn't either.",
   },
   {
-    q: "How much does it cost after the trial?",
-    a: "$12/month. Full access to all four agents and every tool. No free tier, no feature-gating, no upsells.",
-  },
-  {
     q: "What if the agents get something wrong?",
     a: "They will, sometimes — that's the honest answer. Every output is editable. Every tailored CV gets a review pass before you send it. The agents are augmenting your judgment, not replacing it.",
   },
@@ -546,7 +542,7 @@ function Hero({ isLoggedIn, onCTA }) {
         <a className="btn btn-ghost" href="#agents">
           See the agents
         </a>
-        {!isLoggedIn && <span className="lp-hero-cta-note">7-day free trial · $12/mo after</span>}
+        {!isLoggedIn && <span className="lp-hero-cta-note">Invite required — pilot cohort, Aug–Nov 2026</span>}
       </div>
     </section>
   );
@@ -1075,8 +1071,7 @@ function CTASection({
       <div className="lp-cta-eyebrow">PILOT ACCESS</div>
       <h2>100 invites in this wave. First come, first served.</h2>
       <p>
-        Sign up takes 60 seconds. Upload your CV and your career roadmap is ready before you finish your coffee. Seven
-        days free, then $12/month — cancel any time from your Settings page.
+        Sign up takes 60 seconds. Upload your CV and your career roadmap is ready before you finish your coffee.
       </p>
       <div className="lp-cta-form">
         <button className="btn btn-accent" type="button" onClick={onPrimary} style={{ width: "100%" }}>
@@ -1086,15 +1081,15 @@ function CTASection({
       <div className="lp-cta-meta">
         <span>
           <i className="ti ti-check" aria-hidden="true" />
-          7-day free trial
+          Invite required
         </span>
         <span>
           <i className="ti ti-check" aria-hidden="true" />
-          $12/mo after
+          100-student cohort
         </span>
         <span>
           <i className="ti ti-check" aria-hidden="true" />
-          Cancel anytime
+          Replies go to Eli
         </span>
       </div>
     </section>

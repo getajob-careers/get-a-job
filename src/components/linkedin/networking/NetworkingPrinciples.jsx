@@ -46,7 +46,6 @@ export default function NetworkingPrinciples() {
           <li>• <strong>Weekly cap:</strong> ~100 invites/week is the standard limit. Spread across 5–6 days; sending 100 in one morning gets flagged</li>
           <li>• <strong>Acceptance floor:</strong> stay above 30% acceptance rate or LinkedIn restricts your account</li>
           <li>• <strong>With note vs without — contested:</strong> personalized notes don't always lift acceptance rate, but they DO lift the post-acceptance reply rate (9.4% vs 5.4%). A short note referencing mutual context (alumni, course, shared event) is the safe default</li>
-          <li>• <strong>Free LinkedIn track: </strong> only 5 personalized note invites per month. Premium lifts this</li>
         </ul>
       </PrincipleCard>
 
