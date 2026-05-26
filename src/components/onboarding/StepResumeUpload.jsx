@@ -209,9 +209,27 @@ When you classify an experience as military:
 
 Here is the resume:\n\n${fileText.slice(0, 15000)}`;
 
-      const { data: extractData, error: fnError } = await supabase.functions.invoke("ai-chat", {
+      // Fire both edge function calls in parallel — extract-proof-signals
+      // doesn't depend on ai-chat's output (both consume the same
+      // fileText slice). Sequential was 10–20s combined; parallel is
+      // max(~5–10s) = ~5–10s. ~50% perceived-latency cut on the
+      // resume-upload step of onboarding.
+      //
+      // proof-signals .catch() handler swallows errors to null because
+      // we already treat its failure as non-fatal (existing semantics).
+      // Without this, if ai-chat throws before we await proof-signals,
+      // its promise becomes an unhandled rejection and logs noisily.
+      const extractPromise = supabase.functions.invoke("ai-chat", {
         body: { message: extractionPrompt, agent: "resume-extractor", conversation_history: [] },
       });
+      const proofSignalsPromise = supabase.functions
+        .invoke("extract-proof-signals", { body: { cv_text: fileText.slice(0, 15000) } })
+        .catch((err) => {
+          console.debug("Proof signal extraction failed (non-fatal):", err);
+          return { data: null };
+        });
+
+      const { data: extractData, error: fnError } = await extractPromise;
 
       if (fnError) throw new Error(fnError.message || "Edge function error");
 
@@ -235,20 +253,18 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
           }
 
           if (extracted) {
+            // Await the in-flight proof-signals promise. Already running
+            // in parallel since the start of the upload — this is just
+            // waiting for whatever's left. The .catch() above ensures
+            // any error already resolved to { data: null }.
             let proofSignals = [];
             let primaryDomain = null;
             let adjacentFields = [];
-            try {
-              const { data: psData } = await supabase.functions.invoke("extract-proof-signals", {
-                body: { cv_text: fileText.slice(0, 15000) },
-              });
-              if (psData?.proof_signals?.length) {
-                proofSignals = psData.proof_signals;
-                primaryDomain = psData.primary_domain || null;
-                adjacentFields = psData.adjacent_fields || [];
-              }
-            } catch (psErr) {
-              console.debug("Proof signal extraction failed (non-fatal):", psErr);
+            const { data: psData } = await proofSignalsPromise;
+            if (psData?.proof_signals?.length) {
+              proofSignals = psData.proof_signals;
+              primaryDomain = psData.primary_domain || null;
+              adjacentFields = psData.adjacent_fields || [];
             }
 
             onExtracted({ ...extracted, proof_signals: proofSignals, primary_domain: primaryDomain, adjacent_fields: adjacentFields });
