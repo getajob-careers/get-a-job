@@ -5,8 +5,9 @@
 //     cream tracked-caps name + muted-cream contact strip
 //   - Cream page background (#F9F5EC) below the banner
 //   - 11pt UPPERCASE section headings in slate (#2C3E50) with 2pt
-//     tracking, each followed by a short 40pt slate underline (same
-//     color as heading) — visual rhythm without heavy borders
+//     tracking, each followed by a full-content-width 1.5pt slate
+//     underline (same color as heading) — visual rhythm without
+//     heavy borders
 //   - Job entries: bold slate title left, italic slate dates right-aligned
 //   - Bullets: 10pt slate body, hanging indent
 //   - All text on the page (titles, dates, bullets, sub-lines, section
@@ -93,8 +94,8 @@ const LH_BULLET_GAP = 14;           // 10pt × 1.4 between bullets
 const SP_SECTION_BEFORE = 28;       // above section heading — bumped 20→28 for breathing room
 const SP_AFTER_ACCENT_LINE = 12;    // after the accent line — bumped 10→12
 const SP_ENTRY_BEFORE = 14;         // between sibling entries — bumped 10→14
-const ACCENT_LINE_W = 40;           // short accent underline below section heading
-const ACCENT_LINE_OFFSET = 5;       // gap between heading baseline and accent line
+const SECTION_LINE_OFFSET = 6;      // gap (pt) between heading baseline and the full-width underline
+const SECTION_LINE_THICKNESS = 1.5; // pt
 
 // ─── Shrink-to-fit bounds ───────────────────────────────────────────
 const SCALE_MIN = 0.55;
@@ -216,7 +217,7 @@ function measureTracked(text: string, font: PDFFont, size: number, tracking: num
   return Math.max(0, w - tracking);
 }
 
-// Section heading: 11pt tracked UPPERCASE in slate, with a 40pt accent
+// Section heading: 11pt tracked UPPERCASE in slate, with a full-width
 // line underneath. The accent line is the only sector-tinted element on
 // the page (besides the per-CV banner top stripe if added later).
 function drawSectionHeading(ctx: Ctx, label: string) {
@@ -228,17 +229,17 @@ function drawSectionHeading(ctx: Ctx, label: string) {
     size: headSize, font: ctx.fonts.bold,
     color: COLOR_TEXT, tracking: headTrack,
   });
-  // Short underline under the heading — drawn in the same slate color as
-  // the heading text (NOT the per-sector accent) so the line treatment
-  // reads consistently across all sector themes. The per-sector accent
-  // is currently unused in the render; reserved for future use (e.g. a
-  // photo border, or a banner top stripe).
-  const lineY = ctx.y - s(ctx, ACCENT_LINE_OFFSET);
+  // Full-width hairline underline under the heading, drawn in the same
+  // slate color as the heading text (NOT the per-sector accent) so the
+  // line treatment reads consistently across all sector themes. Spans
+  // the entire content width edge-to-edge. The per-sector accent is
+  // currently unused in the render; reserved for future use.
+  const lineY = ctx.y - s(ctx, SECTION_LINE_OFFSET);
   if (ctx.draw) {
     ctx.page.drawLine({
       start: { x: MARGIN_SIDE, y: lineY },
-      end: { x: MARGIN_SIDE + s(ctx, ACCENT_LINE_W), y: lineY },
-      thickness: 1.5,
+      end: { x: PAGE_W - MARGIN_SIDE, y: lineY },
+      thickness: SECTION_LINE_THICKNESS,
       color: COLOR_TEXT,
     });
   }
