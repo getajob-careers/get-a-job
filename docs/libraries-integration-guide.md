@@ -1,82 +1,74 @@
-GET A JOB — Full Library & Integration Guide for Developer
+# Domain and Logic Libraries Integration Guide
 
-AGENT PROMPTS — functions/agent-prompts/ (4 files, ~57 KB total)
-career_agent_system_prompt.md (12 KB) — Career Agent, tiered role recommendations + goal alignment
-application_cv_success_agent_system_prompt.md (16 KB) — CV tailoring + application tasks
-interview_coach_system_prompt.md (15 KB) — Interview Coach agent
-skill_development_agent_system_prompt.md (14 KB) — Skill Development Advisor
-⚠️ None of these are wired yet. Edge functions currently use inline system prompts. To load them:
-Deno.readTextFile(new URL("../agent-prompts/<file>.md", import.meta.url))
+Detailed guide to the static domain data, business logic rules, and tone systems that drive the Get A Job career platform.
 
-CORE DOMAIN LIBRARIES — functions/data/ (source of truth)
-00_role_library.json (382 KB)
-→ 142 roles | Root key: roles
-→ Each role: id, standardized_title, alternate_titles, role_family, seniority, core_purpose, core_responsibilities, required_skills
-01_skill_library.json (286 KB)
-→ 397 skills | Root key: skill_library
-→ Each skill: id, name, category, tags, common_roles, related_skills
-02_proof_signal_library.json (227 KB)
-→ 598 proof signals | Root key: proof_signal_library
-→ Each signal: id, description, tags, maps_to_skills, strength_level
-04_role_skill_mapping.json (122 KB)
-→ 142 mappings (1 per role) | Root key: role_skill_mapping
-→ Each mapping: role_id, core_skills, secondary_skills, differentiator_skills
-⚠️ Some entries use flat arrays (core_skills: ["id"]), others use nested objects (skills: {core: [{skill_id: "..."}]}). Parsers must handle both.
-15_skill_transfer_map.json (862 KB)
-→ 1,707 transfer pairs | Root key: transfers
-→ Each: s (source role), t (target role), score, type (natural/stretch/pivot), gap_d, sen_gap, shared, gaps
+---
 
-HOW THEY CONNECT (relational graph)
-04_role_skill_mapping.role_id ↔ 00_role_library.roles[].id
-04_role_skill_mapping.*_skills[] ↔ 01_skill_library.skill_library[].id
-02_proof_signal_library.maps_to_skills[] ↔ 01_skill_library.skill_library[].id
-15_skill_transfer_map.transfers[].s and .t ↔ 00_role_library.roles[].id
-15_skill_transfer_map.transfers[].shared[] and .gaps[] ↔ 01_skill_library.skill_library[].id
-Flow: CV Upload → proof signals extracted → matched to skills via proof_signal_library → scored against target role via role_skill_mapping → fit score + tier assignment
+## Core Core Domain Libraries
 
-LOGIC LIBRARIES (decision rules)
-03_skill_strength_logic.json (1 KB) — Scoring: strong=1.0, medium=0.6, weak=0.3, missing=0.0
-05_fit_scoring_logic.json (1.2 KB) — Weights: core 60%, secondary 30%, differentiator 10%
-06_track_logic.json (0.4 KB) — Track 1/2/3 definitions
-07_onboarding_input_mapping.json (4.6 KB) — Maps onboarding inputs to profile fields
-08_proof_signal_extraction_logic.json (13 KB) — 18 rule sets for extracting proof signals from CV text
-09_goal_alignment_logic.json (6.9 KB) — Scores role alignment with user's 5-year goal
-010_agent_decision_logic.json (5.8 KB) — Final tier assignment combining readiness + goal alignment
-011_task_generation_logic.json (5.5 KB) — Stage-aware personalized task generation
-012_course_recommendation_logic.json (5.3 KB) — When to recommend courses vs projects vs both
-013_job_search_stage_logic.json (6.1 KB) — Detects which of 7 job search stages user is in
-Market context:
-14_location_context_israel.json (12 KB) — Israel market norms (CV format, military service, hiring cycles, salary). Loaded conditionally when profile.location is Israel.
+These libraries act as the static, standardized source of truth for career taxonomy, skills categorization, and proof mappings. They live under `supabase/functions/_shared/libraries/` as TypeScript modules (`.ts` files containing typed ES module exports), plus `companies_il.json`.
 
-EDGE FUNCTION → LIBRARY MAP (what loads what)
-generate-career-analysis.ts → loads 00, 04, 05, 06, 09, 010 | Agent prompt: career_agent (not wired yet)
-generateTailoredCV.ts → loads 00, 01, 02, 04 (scoped per-role now) | Agent prompt: application_cv_success (not wired yet)
-generate-tasks.ts → loads 00, 04, 011, 012, 013 | No agent prompt
-generateApplicationTasks.ts → loads nothing (template-based) | No agent prompt
+| File | Size | Purpose |
+|------|------|---------|
+| `00_role_library.ts` | 568 KB | Standard registry of **183 career roles** (Junior/Mid/Senior) with canonical titles, alternate titles, standardized role family groupings, and required core responsibilities. |
+| `01_skill_library.ts` | 445 KB | Directory of **387 skill IDs** complete with standardized names, categories, tags, and mapping links back to common roles. |
+| `02_proof_signal_library.ts`| 249 KB | Standard maps linking **proof signals** (e.g., specific achievements, metrics, tool usage) to library skill IDs, defining extraction strength weights. |
+| `04_role_skill_mapping.ts` | 142 KB | Explicit mappings defining the exact core, secondary, and differentiator skills required for all 183 roles. |
+| `15_skill_transfer_map.ts` | 956 KB | Direct maps defining **1,707 transfer pairs** which evaluate pivot ease (natural, stretch, pivot) between source and target roles. |
+| `companies_il.json` | 392 KB | Standard seed of **831 Israeli tech companies** labeled with ATS integrations (Greenhouse, Workday, Lever, etc.) driving direct-ATS job scrapes. |
 
-NOT YET WIRED TO ANY EDGE FUNCTION
+---
 
-03_skill_strength_logic.json
-07_onboarding_input_mapping.json
-08_proof_signal_extraction_logic.json
-14_location_context_israel.json
-15_skill_transfer_map.json
-All 4 agent prompt markdown files
+## Logic and Decision Libraries
 
+These modules encode the procedural algorithms, weights, and scoring rules for job suitability matching, task planning, and cohort placement.
 
-5 CRITICAL INTEGRATION NOTES
+| File | Size | Purpose |
+|------|------|---------|
+| `03_skill_strength_logic.ts` | 1.1 KB | Computes skill strength weights based on proof evidence (Strong = 1.0, Medium = 0.6, Weak = 0.3, Missing = 0.0). |
+| `05_fit_scoring_logic.ts` | 1.2 KB | Job fit algorithm weighting core skills at 60%, secondary skills at 30%, and differentiators at 10%. |
+| `06_track_logic.ts` | 0.4 KB | Defines computed match threshold cutoffs for Track 1, Track 2, and Track 3 placement. |
+| `07_onboarding_input_mapping.ts`| 4.9 KB | Normalizes custom wizard inputs to standard profile settings and database column schemas. |
+| `08_proof_signal_extraction_logic.ts`| 14 KB | 18 rulesets for parsing raw CV texts to identify genuine proof signals. |
+| `09_goal_alignment_logic.ts` | 7.2 KB | Multi-level algorithms matching and scoring career goals against user's stated 5-year visions. |
+| `010_agent_decision_logic.ts`| 6.2 KB | Dynamic matrix evaluating both readiness scores and goal alignments to assign final tracks. |
+| `011_task_generation_logic.ts` | 5.9 KB | Generates weekly tasks lists based on current job search stages. |
+| `012_course_recommendation_logic.ts`| 5.6 KB | Evaluates skill gap severity to trigger appropriate project assignments, course recommendations, or both. |
+| `013_job_search_stage_logic.ts` | 6.4 KB | Computes which of the 7 job search milestones a user has completed to tailor action planner recommendations. |
+| `14_location_context_israel.ts` | 13 KB | Stores Israel-specific market norms (military service alignments, standard salary metrics, and local tech hubs). |
 
-LIBRARY SCOPING IS REQUIRED — Never dump full library JSON into a system prompt. Do deterministic lookups for the target role's data only. The generateTailoredCV refactor shows the pattern.
-MAPPING SCHEMA INCONSISTENCY — 04_role_skill_mapping has two formats: flat arrays (core_skills: ["skill_id"]) and nested objects (skills: {core: [{skill_id: "..."}]}). All parsers must handle both.
-SKILL ID NAMING DRIFT — Some IDs are sector-scoped (e.g., excel_advanced_finance), others generic (sql). Always verify all referenced skill IDs exist in 01_skill_library.json before merging.
-FILE SIZE LIMITS — 15_skill_transfer_map.json is 862 KB, close to the Supabase edge function 2MB limit. Consider lazy-loading or DB-backed storage if multiple functions need it.
-AGENT PROMPTS NOT WIRED — The 4 markdown system prompts exist but aren't loaded by any edge function yet. Load with: Deno.readTextFile(new URL("../agent-prompts/<file>.md", import.meta.url))
+---
 
+## Core Tone and Voice Rules
 
-REMAINING TECHNICAL TASKS
+These live under `supabase/functions/_shared/voice-rules.ts`. They represent absolute prompts grounding the tone, structures, and vocabularies of generated materials.
 
-Wire 4 agent system prompts into 4 chat agents in the UI
-Test all 3 edge functions end-to-end with a real CV
-Build the CV extraction prompt (LLM reads uploaded CV → structured proof signals)
-Merge agent-prompts branch into main
-End-to-end QA with a test user
+| Constant | Scope | Core Rule |
+|----------|-------|-----------|
+| `CV_VOICE_RULES` | Tailored CVs | Active verbs, metrics-driven outcomes, strictly no generic fluff adjectives. |
+| `LINKEDIN_VOICE_RULES`| Profile Copy | Headline/Summary copy optimizing for concrete accomplishments, suppressing standard corporate jargon. |
+| `POST_VOICE_RULES` | LinkedIn Posts | Suppresses common opening clickbaits ("Excited to share", "Thrilled to announce"). Emphasizes lessons learned. |
+| `COMMENT_VOICE_RULES`| LinkedIn Comments| Direct, professional, 50–150 word Israeli style commentaries expressing genuine technical substance. |
+| `OUTREACH_VOICE_RULES`| Networking Messages| Strict character limit guides (≤200 char notes), suppresses standard clichés ("I hope this finds you well"). |
+
+---
+
+## Integration Relational Graph
+
+```
+[02_proof_signal_library] ──(maps proof signals)──> [01_skill_library]
+                                                            ▲
+                                                     (specifies skills)
+                                                            │
+[00_role_library] <──(links roles)──> [04_role_skill_mapping]
+        │
+ (pivot matching)
+        ▼
+[15_skill_transfer_map]
+```
+
+### Critical Flow
+1. **Resume Upload**: `extract-proof-signals` extracts metric structures.
+2. **Skill Resolution**: Extracted matches are resolved against `_shared/skill-aliases.ts` to standard skill IDs in `01_skill_library`.
+3. **Scoring**: `generate-career-analysis` matches resolved skills vs `04_role_skill_mapping` and processes through `05_fit_scoring_logic` and `09_goal_alignment_logic`.
+4. **Track Assignment**: Final tracks (`track_1`/`track_2`/`track_3`) are computed via `010_agent_decision_logic`, saving outputs to the `career_roles` table.

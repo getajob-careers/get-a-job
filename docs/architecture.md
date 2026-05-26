@@ -20,10 +20,12 @@ Get-a-Job is a single-page React application. All persistent data is stored in S
 | Animations | Framer Motion |
 | Forms | React Hook Form + Zod |
 | Notifications | Sonner (toast) |
-| PDF generation | jsPDF (client-side in browser; also used in Edge Functions via npm:jspdf) |
+| PDF generation | jsPDF (client-side in browser; also used in Edge Functions via DOCX templates) |
 | Charts | Recharts |
 | Drag and drop | @hello-pangea/dnd |
 | Payments | Stripe (installed, not yet wired) |
+| Observability | Langfuse Cloud (LLM Tracing) + Supabase `function_metrics` table |
+| Analytics | PostHog Cloud (EU) |
 | Testing | Vitest + Testing Library (unit/integration), Playwright (E2E) |
 | Build / Lint | Vite 6, ESLint 9, TypeScript (type-checking only) |
 
@@ -36,66 +38,90 @@ src/
 ├── api/
 │   └── supabaseClient.js         # Supabase client initialisation (anon key)
 ├── components/
+│   ├── activity/                 # Daily activity dashboard components
 │   ├── calendar/                 # Calendar event UI
-│   ├── chat/                     # ChatInterface + MessageBubble
+│   ├── chat/                     # ChatInterface, MessageBubble, AgentIntro
 │   ├── dashboard/                # JobMatchChecker, SkillGapCourses widgets
+│   ├── jobs/                     # JobCard and job search cards
 │   ├── layout/                   # SidebarFooter
-│   ├── onboarding/               # Multi-step onboarding form components (8 steps)
-│   ├── roadmap/                  # RoleCard, ProgressVisualization, LearningPaths
+│   ├── linkedin/                 # ProfilePreview, PostImageUpload, OutreachComposer
+│   ├── onboarding/               # Multi-step onboarding components (9 steps)
+│   ├── roadmap/                  # TrackQuadrantGrid, ProgressVisualization, LearningPaths
+│   ├── storyBank/                # StoryCard, StoryEditor
 │   ├── subagents/                # AI subagent selector UI
 │   ├── tracker/                  # ApplicationRow and all tracker sub-tabs
-│   └── ui/                       # shadcn/ui component library (do not edit manually)
+│   └── ui/                       # shadcn/ui component library
 ├── hooks/                        # Custom React hooks
 ├── lib/
 │   ├── AuthContext.jsx            # Supabase auth state (useAuth hook)
 │   ├── database.types.ts          # Auto-generated Supabase TypeScript types
 │   ├── PageNotFound.jsx
 │   ├── query-client.js            # TanStack Query client instance
+│   ├── scoreJobFit.js             # Client-side job fit calculation
+│   ├── trackConfig.js             # Configurations for Track 1/2/3
 │   └── utils.js                   # cn() utility (clsx + tailwind-merge)
 ├── pages/
-│   ├── AddInformation.jsx
-│   ├── Calendar.jsx
-│   ├── CareerAgent.jsx
-│   ├── CareerRoadmap.jsx
-│   ├── Home.jsx
-│   ├── JobSuggestions.jsx
-│   ├── Login.jsx
-│   ├── Onboarding.jsx
-│   ├── Resources.jsx
-│   ├── Subagents.jsx
-│   ├── Tasks.jsx
-│   └── Tracker.jsx
+│   ├── Admin.jsx                  # Database and metrics admin console
+│   ├── Calendar.jsx               # Applications scheduling calendar
+│   ├── CareerAgent.jsx            # General Career Coach Agent chat
+│   ├── CVAgent.jsx                # Dedicated CV tailoring chat
+│   ├── Home.jsx                   # User dashboard / execution statistics
+│   ├── InterviewCoach.jsx         # Dedicated Interview Prep coach chat
+│   ├── Jobs.jsx                   # Job search and score listings
+│   ├── Landing.jsx                # High-converting landing page
+│   ├── Linkedin.jsx               # LinkedIn Outreach, post, comment optimizer
+│   ├── Login.jsx                  # Auth login/signup entry
+│   ├── Onboarding.jsx             # Onboarding wizard shell
+│   ├── Practicum.jsx              # Faculty + self-sourced internship tracker
+│   ├── Profile.jsx                # Profile, experience, education, resume editor
+│   ├── ResetPassword.jsx          # Auth password reset
+│   ├── Resources.jsx              #accordion job search guides
+│   ├── Roadmap.jsx                # Track-classified role recommendations
+│   ├── Settings.jsx               # Preferences, account deletion, user data reset
+│   ├── SkillDevelopmentAdvisor.jsx# Dedicated skill gaps advisor chat
+│   ├── StoryBank.jsx              # STAR method story generator & reviewer
+│   ├── Subagents.jsx              # AI Subagent roster page
+│   ├── Tasks.jsx                  # AI-generated weekly task planner
+│   └── Tracker.jsx                # Collapsible application tracking cards
 ├── test/                          # Vitest unit and integration tests
 │   ├── mockSupabase.js
 │   ├── testUtils.jsx
 │   ├── setup.js
-│   ├── onboarding.utils.test.js
-│   ├── career.utils.test.js
-│   ├── resume.extraction.test.js
 │   └── integration/
-│       ├── home-redirect.test.jsx
-│       ├── home-errors.test.jsx
-│       ├── tasks-state.test.jsx
-│       └── career-roadmap-tiers.test.jsx
 ├── utils/
 │   └── index.js                   # createPageUrl() helper
-├── App.jsx                        # Root — auth routing + toasters
+├── App.jsx                        # Root — auth routing + trial paywalls
 ├── Layout.jsx                     # Sidebar navigation + mobile header
 ├── main.jsx                       # Entry point — GlobalErrorBoundary wrapper
-└── pages.config.js                # Page registry (auto-managed, do not edit PAGES)
+└── pages.config.js                # Page registry (manually maintained)
 
-functions/                         # Supabase Edge Functions (Deno/TypeScript)
-├── generate-career-analysis.ts    # AI career track analysis
-├── generate-tasks.ts              # AI weekly task plan generation
-├── generateTailoredCV.ts          # AI CV generation + PDF upload to Storage
-├── generateApplicationTasks.ts    # Application-specific task generation
-└── getLinkedinProfile.ts          # LinkedIn profile fetching (stub)
+supabase/                          # Supabase project folder
+├── functions/                     # Supabase Edge Functions (Deno/TypeScript)
+│   ├── _shared/                   # Shared types, libraries, metrics, and prompts
+│   │   ├── libraries/             # 00_role_library.ts, 01_skill_library.ts, etc.
+│   │   ├── metrics.ts             # Performance tracing metrics
+│   │   └── voice-rules.ts         # Multi-surface tone and vocabulary rules
+│   ├── ai-chat/                   # General multi-turn career chat
+│   ├── analyze-job-match/         # JD vs profile match calculator
+│   ├── delete-account/            # JWT-gated profile and files cascade deletion
+│   ├── extract-proof-signals/     # Extraction of metrics and skill signals from CVs
+│   ├── extract-story-from-text/   # STAR method portfolio builder
+│   ├── generate-career-analysis/  # Core track-based role analysis
+│   ├── generate-daily-action/     # Logic picks for daily tasks cards
+│   ├── generate-internship-profile/ # Pitch generator for practicum students
+│   ├── generate-learning-paths/   # Skill gap course recommendations
+│   ├── generate-linkedin-comment/ # Substantive comment option builder
+│   ├── generate-linkedin-content/ # Standard profile copy optimization
+│   ├── generate-linkedin-outreach-message/ # Multi-goal message draft coach
+│   ├── generate-linkedin-post/    # Post composer (projects/lessons/observations)
+│   ├── generate-tailored-cv/      # DOCX-rendered CV tailoring
+│   ├── generate-tasks/            # Custom weekly task generators
+│   ├── import-linkedin-archive/   # ZIP archive positions and experiences parser
+│   ├── lookup-role-skills/        # Deterministic role-to-skills maps
+│   └── match-internship-companies/# Practicum company compatibility analyzer
+└── migrations/                    # SQL Database migrations history
 
 e2e/                               # Playwright E2E tests
-├── home.spec.js
-├── tasks.spec.js
-└── helpers/
-    └── mockSupabase.js
 ```
 
 ---
@@ -124,11 +150,12 @@ User triggers AI action (generate roadmap, generate CV, etc.)
 React component calls supabase.functions.invoke(functionName, { body })
     with the user's session Authorization header forwarded automatically
     ↓
-Supabase Edge Function (Deno/TypeScript in functions/)
+Supabase Edge Function (Deno/TypeScript in supabase/functions/)
     ├── Authenticates user via user-scoped Supabase client (anon key + Authorization header)
-    ├── Checks rate limit via service client RPC
+    ├── Checks rate limit via service client RPC against rate_limits table
     ├── Reads user data from Supabase (profiles, experiences, etc.) via user-scoped client
-    ├── Calls OpenAI API (gpt-4o-mini)
+    ├── Calls OpenAI API (gpt-4o / gpt-4o-mini) with custom prompt and voice rules
+    ├── Traces performance and usage tokens via Langfuse
     └── Writes results to Supabase and/or returns JSON to the browser
     ↓
 React component handles response → updates DB → React Query invalidation → re-render
@@ -162,7 +189,7 @@ Pages are registered in `src/pages.config.js`. This file is manually maintained.
 
 1. Create `src/pages/YourPage.jsx`
 2. Import and add it to `PAGES` in `pages.config.js`
-3. Add a nav item to `Layout.jsx` if it needs sidebar navigation
+3. Add a nav item to `Layout.jsx` if it needs sidebar navigation (accessible views not in Sidebar go to respective pages directly)
 
 ---
 

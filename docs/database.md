@@ -1,6 +1,6 @@
-# Database
+# Database Documentation
 
-Supabase (PostgreSQL) is the sole data store. All tables have Row Level Security (RLS) enabled — every query is scoped to the authenticated user's `id`.
+Supabase (PostgreSQL) is the sole data store. All 29 tables have Row Level Security (RLS) enabled — every query is scoped to the authenticated user's `id`.
 
 ---
 
@@ -16,225 +16,177 @@ Do not edit `database.types.ts` by hand.
 
 ---
 
-## Tables
+## Complete Table Directory (29 Tables)
+
+The active database contains the following 29 tables, all under the `public` schema and protected by Row Level Security (RLS) policies:
+
+1. **`account_deletions`** — Audit log of self-service account deletions (retains tombstone metadata).
+2. **`admin_users`** — Configures administrative roles and control access.
+3. **`applications`** — Tracks job applications, milestones, custom CVs, and checklists.
+4. **`calendar_events`** — Chronological calendar deadlines and scheduling logs.
+5. **`career_roles`** — AI-generated and track-classified role recommendations.
+6. **`certifications`** — Academic or professional user profile certifications.
+7. **`chat_messages`** — History of multi-turn messaging records with AI agents.
+8. **`companies`** — Standard seed and self-added company repository.
+9. **`company_target_status_changes`** — Transitions log for tracking kanban movements.
+10. **`company_targets`** — User-specific target internship list.
+11. **`conversations`** — Thread grouping identifiers for messaging channels.
+12. **`cv_templates`** — Definitions and file styling layouts for CV builders.
+13. **`daily_actions`** — Action items displayed on the Daily Action Card widget.
+14. **`education`** — Separate table storing university coursework, institution, and GPA details.
+15. **`error_logs`** — Audit table tracing backend and Edge Function error metrics.
+16. **`experiences`** — Work, military, and leadership positions.
+17. **`function_metrics`** — Tracks execution latency, tokens, and billing costs for Deno APIs.
+18. **`internship_profiles`** — Alignment strategies for faculty practicum programs.
+19. **`job_suggestions`** — Scored job suggestions cache (refreshed daily).
+20. **`jobs`** — Scrape cache of current tech jobs from supported ATS interfaces.
+21. **`linkedin_optimizations`** — Copywriting prompts and optimizations for profiles.
+22. **`linkedin_outreach_conversations`** — Outreach messaging threads.
+23. **`linkedin_posts`** — Generated posts draft archive.
+24. **`profiles`** — Consolidated user settings, status, onboarding milestones.
+25. **`projects`** — Academic / personal proof portfolio details.
+26. **`rate_limits`** — User-scoped rate controllers for Edge Function endpoints.
+27. **`status_changes`** — Chronological status records for applications.
+28. **`stories`** — Portfolio STAR method narratives.
+29. **`tasks`** — General task management entries.
+
+---
+
+## Core Table Schemas
 
 ### `profiles`
-
-One row per user. Created by the onboarding flow on first save. The `id` field is the Supabase Auth `user.id` (UUID).
+One row per user. Created by the onboarding flow. The `id` matches Supabase Auth's `user.id` (UUID).
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | Primary key = auth user ID |
-| `full_name` | text | |
+| `full_name` | text | Displays user profile names |
 | `phone_number` | text | |
 | `linkedin_url` | text | |
-| `location` | text | |
-| `education_level` | text | e.g. `bachelor`, `master` |
-| `degree` | text | e.g. `BSc Computer Science` |
-| `field_of_study` | text | |
-| `gpa` | text | Stored as text to allow formats like `3.8/4.0` |
-| `honors` | text[] | |
-| `relevant_coursework` | text[] | |
-| `resume_url` | text | URL to uploaded resume file |
-| `skills` | text[] | Consolidated skills array (merged from all skill category fields at finalise) |
-| `summary` | text | Professional summary |
-| `onboarding_step` | int | Last completed step (0–7) |
-| `onboarding_complete` | boolean | Set to true when `handleFinalise` succeeds |
-| `skill_gaps` | text[] | Set by `generate-career-analysis` Edge Function |
-| `qualification_level` | text | e.g. `Junior`, `Mid-Level` — set by `generate-career-analysis` |
-| `overall_assessment` | text | 2–3 sentence AI assessment — set by `generate-career-analysis` |
-| `last_reality_check_date` | timestamptz | Timestamp of last career analysis run (migration 20260426) |
-| `five_year_role` | text | User's stated 5-year goal (stored in local state only, not persisted to profiles) |
-| `created_at` | timestamptz | |
-| `updated_at` | timestamptz | |
+| `location` | text | User-entered geography |
+| `resume_url` | text | Signed URL of uploaded PDF resume file |
+| `skills` | text[] | User skills array |
+| `summary` | text | AI-generated professional summary |
+| `onboarding_step` | int | Wizard completion index (0–8) |
+| `onboarding_complete` | boolean | Set to true when tutorial is finished |
+| `skill_gaps` | text[] | Identified deficiencies vs target tracks |
+| `qualification_level` | text | Junior \| Mid-Level \| Senior (calculated from full_time + freelance) |
+| `overall_assessment` | text | 2–3 sentence AI performance critique |
+| `last_reality_check_date` | timestamptz | Date of last career track calculations |
+| `has_seen_onboarding_tutorial` | boolean | Returns skip-state for onboarding carousels |
+| `referral_source` | text | Captures channel of acquisition |
 
-> **Note on `cleanProfilePayload`**: `Onboarding.jsx` maintains many local state fields (e.g. `hard_skills`, `tools_software`, `five_year_role`, `employment_status`) that only exist in the wizard's local state, not in the `profiles` DB schema. The `cleanProfilePayload` function strips these before every `profiles` upsert. If you add a new field to the `profiles` table, you must also add it to `cleanProfilePayload`.
+---
+
+### `education`
+Separate table for academic credentials (FK linked to `profiles`).
+
+| Column | Type | Notes |
+|--------|------|-------|
+| `id` | uuid | Primary key |
+| `user_id` | uuid | FK → profiles.id (CASCADE) |
+| `institution` | text | School name |
+| `degree` | text | e.g. BSc, BA |
+| `field_of_study` | text | e.g. Computer Science |
+| `gpa` | text | Stored as text to handle formats like 3.8/4.0 |
+| `relevant_coursework` | text[] | Academic modules list |
+| `skills_developed` | text[] | Core competencies acquired |
+| `start_date` | date | |
+| `end_date` | date | |
 
 ---
 
 ### `applications`
-
 One row per job application tracked by a user.
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | Primary key |
 | `user_id` | uuid | FK → auth.users |
-| `role_title` | text | Required |
+| `role_title` | text | |
 | `company` | text | |
 | `status` | text | `interested` \| `preparing` \| `applied` \| `interviewing` \| `offer` \| `rejected` |
-| `tier` | text | `track_1` \| `track_2` \| `track_3` |
-| `job_description` | text | Pasted JD text |
-| `url` | text | Job posting URL |
+| `track` | text | `track_1` \| `track_2` \| `track_3` (renamed from tier) |
+| `track_scoring_failed_at` | timestamptz| Error timestamp for retry calculations |
+| `job_description` | text | Source JD text |
+| `url` | text | |
 | `location` | text | |
-| `salary_range` | text | |
-| `cv_version_name` | text | Name of the CV version used |
+| `cv_url` | text | Tailored CV PDF link (Supabase Storage signed URL) |
 | `cv_status` | text | `not_started` \| `draft` \| `ready` |
-| `cv_url` | text | Signed URL to generated CV PDF (set by `generateTailoredCV` Edge Function) |
-| `cv_skills_emphasized` | text[] | Skills highlighted in the generated CV |
-| `interview_stage` | text | |
-| `notes` | text | |
-| `applied_date` | date | |
-| `referral_attached` | boolean | |
-| `cv_version_used` | text | |
-| `checklist` | jsonb | 7-step checklist state |
-| `networking_contacts` | jsonb | Array of contact objects |
-| `projects_proof` | jsonb | Array of project objects |
-| `qualification_score` | float | 0–1 |
-| `created_at` | timestamptz | |
-| `updated_at` | timestamptz | |
-
-> The `generateTailoredCV` Edge Function creates or updates an `applications` row. If `application_id` is provided in the request body, it updates the existing row. If not, it inserts a new row with `status: 'interested'`.
+| `ats_link` | text | Links to internal company tracking tools |
+| `checklist` | jsonb | Complete 7-step tracker tasks |
+| `networking_contacts` | jsonb | Array of linked network contacts |
+| `projects_proof` | jsonb | Linked proof items from `projects` |
+| `qualification_score` | float | Float 0–1 computed score |
+| `score_source` | text | `deterministic` \| `llm_enhanced` |
 
 ---
 
 ### `career_roles`
-
-Roles generated by the `generate-career-analysis` Edge Function for a user's career roadmap. Each row is a potential job role classified into a tier.
-
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid | Primary key |
-| `user_id` | uuid | FK → auth.users |
-| `title` | text | Role title |
-| `tier` | text | `track_1` \| `track_2` \| `track_3` |
-| `match_score` | float | Alias for `readiness_score` (both are set to the same value) |
-| `readiness_score` | float | 0.0–1.0 — tier thresholds: >0.6 = track_1, 0.3–0.6 = track_2, <0.3 = track_3 |
-| `matched_skills` | text[] | Confirmed matching skills from user profile |
-| `missing_skills` | text[] | Skills the user needs to acquire |
-| `skills_gap` | text[] | Alias for `missing_skills` (both are set to the same value) |
-| `alignment_to_goal` | text | Narrative explanation of fit |
-| `created_at` | timestamptz | |
-
-> Rows in this table are always replaced as a set, never updated individually. See the insert-before-delete pattern below.
-
----
-
-### `experiences`
-
-Work experience entries for the user's profile.
+Classified recommendations generated during career analysis.
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | Primary key |
 | `user_id` | uuid | FK → auth.users |
-| `title` | text | Job title |
-| `company` | text | |
-| `start_date` | date | |
-| `end_date` | date | Null if current role |
-| `is_current` | boolean | |
-| `location` | text | |
-| `responsibilities` | text[] | |
-| `skills_used` | text[] | |
-| `tools_used` | text[] | |
-| `created_at` | timestamptz | |
+| `title` | text | Canonical title from standard libraries |
+| `track` | text | `track_1` \| `track_2` \| `track_3` |
+| `readiness_score` | float | 0.0–1.0 score threshold (>0.6 track_1, 0.3-0.6 track_2) |
+| `matched_skills` | text[] | Skills found in user's profile |
+| `missing_skills` | text[] | Gap skills required for this role |
+| `alignment_to_goal` | text | AI reasoning text detailing path alignment |
 
 ---
 
-### `certifications`
+### `stories`
+STAR method stories from the Story Bank.
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | Primary key |
 | `user_id` | uuid | FK → auth.users |
-| `name` | text | Certification name |
-| `issuer` | text | |
-| `date_earned` | date | |
-| `created_at` | timestamptz | |
+| `title` | text | STAR title |
+| `situation` | text | STAR Context |
+| `task` | text | Goal/problem |
+| `action` | text | User activities |
+| `result` | text | Concrete metric outcomes |
+| `skills_demonstrated` | text[] | Linked skills |
+| `is_verified` | boolean | Set when parsed through the AI reviewer |
 
 ---
 
-### `projects`
-
-Portfolio/proof-of-work projects on the user's profile.
+### `company_targets`
+Target internship pipeline tracker rows.
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | Primary key |
 | `user_id` | uuid | FK → auth.users |
-| `name` | text | |
-| `description` | text | |
-| `skills_demonstrated` | text[] | |
-| `url` | text | Link to project |
-| `created_at` | timestamptz | |
-
----
-
-### `tasks`
-
-Action items generated by the `generate-tasks` Edge Function. Can also be created manually.
-
-| Column | Type | Notes |
-|--------|------|-------|
-| `id` | uuid | Primary key |
-| `user_id` | uuid | FK → auth.users |
-| `title` | text | Required |
-| `description` | text | |
-| `category` | text | `application` \| `cv` \| `skill` \| `project` \| `networking` |
-| `priority` | text | `low` \| `medium` \| `high` |
-| `due_date` | date | |
-| `is_complete` | boolean | |
-| `role_title` | text | Associated role if applicable |
-| `created_at` | timestamptz | |
-| `updated_at` | timestamptz | |
-
----
-
-## Tables Pending Creation
-
-| Table | Referenced In | Status |
-|-------|--------------|--------|
-| `calendar_events` | `Calendar.jsx` | Not yet created — queries fail gracefully with empty fallback |
-| `agent_conversations` | `Subagents.jsx` | Not yet created — conversation history is not persisted |
+| `company_id` | uuid | FK → companies.id |
+| `status` | text | `wishlist` \| `contacted` \| `interviewing` \| `placed` \| `rejected` |
+| `pitch_strategy` | text | Custom pitch rationale |
+| `track_1_role_alignment`| text | Target track role relationship details |
 
 ---
 
 ## Insert-Before-Delete Pattern
 
-When replacing a full set of rows for a user (career roles, tasks, experiences), the app always follows this sequence:
+When replacing user-scoped rows during batch creations (experiences, roadmaps, tasks), the app enforces the **Insert-Before-Delete** pattern to guarantee transaction safety:
 
-1. Fetch the IDs of all existing rows for the user
-2. Insert the new rows
-3. Delete the old rows by their fetched IDs (only if step 2 succeeded)
-
-This prevents data loss if the process fails mid-way. If you delete first and the insert fails, the user ends up with no data.
+1. Fetch IDs of the existing rows.
+2. Insert new rows in a batch, throwing an error if it fails (the original rows are left untouched).
+3. Delete the old rows by their fetched IDs only after step 2 succeeds.
 
 **Where this pattern is used:**
-
-- `Onboarding.jsx` `handleFinalise` — experiences, projects, certifications, tasks
-- `Onboarding.jsx` `handleSurveyNext` — career_roles
-- `CareerRoadmap.jsx` `handleGenerate` — career_roles (with rollback: if the delete step fails, the newly inserted rows are also deleted to avoid duplicates)
-- `Tasks.jsx` `handleGenerate` — tasks
-
-Example from `Onboarding.jsx`:
-
-```js
-// 1. Fetch existing IDs
-const { data: existingRoles } = await supabase
-  .from('career_roles')
-  .select('id')
-  .eq('user_id', user.id);
-
-const existingIds = existingRoles?.map((r) => r.id) || [];
-
-// 2. Insert new rows (throw on error — do NOT proceed to delete)
-const { error: insertError } = await supabase
-  .from('career_roles')
-  .insert(newRoles);
-
-if (insertError) throw insertError;
-
-// 3. Delete old rows only after insert succeeded
-if (existingIds.length > 0) {
-  await supabase.from('career_roles').delete().in('id', existingIds);
-}
-```
+- `Onboarding.jsx` `handleFinalise` — batch writes for `experiences`, `projects`, `certifications`, and `tasks`.
+- `Roadmap.jsx` `handleGenerate` — batch replaces `career_roles` with rollback on failure.
+- `Tasks.jsx` `handleGenerate` — regenerates the weekly `tasks` set.
 
 ---
 
 ## RLS Policy Pattern
 
-All tables use the same RLS pattern:
+All tables enforce Row Level Security policies. The standard RLS policy template is structured as follows:
 
 ```sql
 -- SELECT: users can only read their own rows
@@ -245,7 +197,7 @@ CREATE POLICY "Users can view own data" ON table_name
 CREATE POLICY "Users can insert own data" ON table_name
   FOR INSERT WITH CHECK (auth.uid() = user_id);
 
--- UPDATE / DELETE: same pattern
+-- UPDATE / DELETE: restricts edits to owned user rows
 CREATE POLICY "Users can update own data" ON table_name
   FOR UPDATE USING (auth.uid() = user_id);
 
@@ -253,10 +205,10 @@ CREATE POLICY "Users can delete own data" ON table_name
   FOR DELETE USING (auth.uid() = user_id);
 ```
 
-For `profiles`, the primary key column is named `id` (not `user_id`), and it equals `auth.uid()` directly.
+For `profiles`, the primary key column is named `id` (matching `auth.uid()` directly). For administrative auditing tables like `account_deletions` and `function_metrics`, RLS restricts access to `service-role` executions only.
 
 ---
 
 ## Supabase Storage
 
-The `cvs` bucket stores generated CV PDFs. Files are stored under `{user_id}/{role_title}_CV_{timestamp}.pdf`. The `generateTailoredCV` Edge Function uploads to this bucket using the service client (bypassing RLS) and returns a signed URL with a 1-year expiry.
+The **`resumes`** bucket is private, storing CV PDFs under `{user_id}/{role_title}_CV_{timestamp}.pdf`. Tailored CV PDFs are written by Deno edge functions using service role credentials to bypass local RLS, returning secure, signed URLs expiring after 1 year.
