@@ -38,7 +38,7 @@ function buildBody(fullName: string, cohortLabel: string | null): string {
   const cohort = cohortLabel === 'practicum_reichman'
     ? "You're in the Reichman practicum cohort."
     : cohortLabel === 'pilot_whatsapp'
-      ? "You're part of the Aug-Nov 2026 pilot cohort (100 students)."
+      ? "You're part of our one-month pilot."
       : cohortLabel === 'employee'
         ? "You're on the team account."
         : cohortLabel === 'handpicked'
