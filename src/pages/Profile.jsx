@@ -312,7 +312,6 @@ export default function Profile() {
     employment_status: [],
     work_environment: [],
     work_type: [],
-    salary_expectation: "",
     available_start_date: "",
     open_to_lateral: false,
     open_to_outside_degree: false,
@@ -342,7 +341,6 @@ export default function Profile() {
       employment_status: Array.isArray(profile.employment_status) ? profile.employment_status : [],
       work_environment: Array.isArray(profile.work_environment) ? profile.work_environment : [],
       work_type: Array.isArray(profile.work_type) ? profile.work_type : [],
-      salary_expectation: profile.salary_expectation || "",
       available_start_date: profile.available_start_date || "",
       open_to_lateral: !!profile.open_to_lateral,
       open_to_outside_degree: !!profile.open_to_outside_degree,
@@ -407,7 +405,6 @@ export default function Profile() {
       employment_status: profileForm.employment_status,
       work_environment: profileForm.work_environment,
       work_type: profileForm.work_type,
-      salary_expectation: profileForm.salary_expectation || null,
       available_start_date: profileForm.available_start_date || null,
       open_to_lateral: profileForm.open_to_lateral,
       open_to_outside_degree: profileForm.open_to_outside_degree,
@@ -798,20 +795,14 @@ export default function Profile() {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="p-label">Salary expectation (optional)</label>
-                  <input value={profileForm.salary_expectation} onChange={(e) => setField("salary_expectation", e.target.value)} className="p-input" placeholder="e.g. ₪12,000 - ₪15,000 / month" />
-                </div>
-                <div>
-                  <label className="p-label">Earliest start date</label>
-                  <input
-                    type="date"
-                    value={profileForm.available_start_date}
-                    onChange={(e) => setField("available_start_date", e.target.value)}
-                    className="p-input"
-                  />
-                </div>
+              <div>
+                <label className="p-label">Earliest start date</label>
+                <input
+                  type="date"
+                  value={profileForm.available_start_date}
+                  onChange={(e) => setField("available_start_date", e.target.value)}
+                  className="p-input"
+                />
               </div>
 
               <div className="space-y-3 pt-1">
@@ -1084,11 +1075,11 @@ export default function Profile() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
                     <label className="p-label">Title</label>
-                    <input value={expForm.title} onChange={(e) => setExpForm({ ...expForm, title: e.target.value })} className="p-input" placeholder="e.g. Sergeant First Class, Marketing Intern" />
+                    <input value={expForm.title} onChange={(e) => setExpForm({ ...expForm, title: e.target.value })} className="p-input" placeholder="e.g. Team Lead, Marketing Intern" />
                   </div>
                   <div>
-                    <label className="p-label">Company / unit / organization</label>
-                    <input value={expForm.company} onChange={(e) => setExpForm({ ...expForm, company: e.target.value })} className="p-input" placeholder="e.g. Nahal Brigade, Google" />
+                    <label className="p-label">Company / organization</label>
+                    <input value={expForm.company} onChange={(e) => setExpForm({ ...expForm, company: e.target.value })} className="p-input" placeholder="e.g. Acme Corp, Google" />
                   </div>
                   <div>
                     <label className="p-label">Start date</label>
@@ -1126,7 +1117,7 @@ export default function Profile() {
                     onChange={(e) => setExpForm({ ...expForm, responsibilities: e.target.value })}
                     className="p-input"
                     rows={5}
-                    placeholder="One responsibility per line. Examples:&#10;Led a team of 5 engineers on the onboarding feature.&#10;Awarded Presidential Award for Excellence (Independence Day 2022)."
+                    placeholder="One responsibility per line. Examples:&#10;Led a team of 5 engineers on the onboarding feature.&#10;Awarded Employee of the Quarter (Q3 2024)."
                   />
                 </div>
                 <SkillTagInput

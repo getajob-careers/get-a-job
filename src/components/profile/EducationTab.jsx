@@ -290,7 +290,7 @@ export default function EducationTab({ user }) {
           description="Scholarships, Dean's List, named awards earned during this degree."
           tags={form.honors}
           onChange={(v) => setForm({ ...form, honors: v })}
-          placeholder="e.g. Dean's List, Heseg Scholarship"
+          placeholder="e.g. Dean's List, Merit Scholarship"
           suggestionType="honors"
         />
 
