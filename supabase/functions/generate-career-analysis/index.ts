@@ -367,12 +367,14 @@ function yearFromDate(s: unknown): number | null {
 }
 
 // Count only career-building employment toward experience years. Military,
-// volunteer, student-leadership, AND part-time roles don't make someone a
-// mid-career professional — a Reichman undergrad with 2 years Nahal + 2 years
-// Heseg volunteering + 1 year part-time is still early-career. Part-time is
-// excluded because students commonly hold part-time jobs during school that
-// shouldn't collapse them out of the early-career seniority cap.
-const CAREER_COUNTABLE_TYPES = new Set(["internship", "full_time", "freelance"]);
+// volunteer, and student-leadership roles don't make someone a mid-career
+// professional. Part-time IS counted as of 2026-05-27 — the old rationale
+// (students hold part-time school jobs) was over-fitted. The seniority
+// ceiling already prevents juniors from being shown Mid+ roles in Track 1,
+// so years calc doesn't need to gatekeep too. Real users with target-domain
+// part-time roles were getting zero years credit, dropping fit_score on
+// otherwise-qualifying jobs. Stays aligned with src/lib/experienceLevel.js.
+const CAREER_COUNTABLE_TYPES = new Set(["internship", "full_time", "freelance", "part_time"]);
 
 // Re-infer experience type from title/company/responsibilities, used when the
 // stored type is missing or obviously wrong (e.g. legacy rows from before the
@@ -485,6 +487,37 @@ const PRIMARY_DOMAIN_TO_ROLE_ID: Record<string, string> = {
   engineering: "software_engineer",
   design: "product_designer_ux_ui",
   support: "customer_support_specialist",
+};
+
+// Reverse direction: role_family → primary_domain. Used to update
+// profiles.primary_domain based on the user's stated five_year_role goal
+// (resolved to a role library entry → role_family → domain). CV extraction
+// can't see the stated goal (runs at CV-upload step, before career direction
+// is captured) so it locks users into their CURRENT-job domain. This map
+// lets career-analysis correct that mid-flight: the user's stated direction
+// becomes the canonical anchor for scoreJobFit + Roadmap family scoring.
+// Picks the most-specific domain per family. Leadership / Consulting are
+// intentionally absent — too generic to anchor a domain on.
+const FAMILY_TO_PRIMARY_DOMAIN: Record<string, string> = {
+  Support: "customer_success",
+  Onboarding_Implementation: "customer_success",
+  Customer_Experience: "customer_success",
+  Relationship_Growth: "customer_success",
+  Sales: "sales",
+  BD_Partnerships: "sales",
+  Marketing: "marketing",
+  Product: "product_management",
+  Engineering: "engineering",
+  Solutions_Engineering: "engineering",
+  IT_Security: "engineering",
+  Design_UX: "design",
+  Data: "data",
+  AI_ML: "data",
+  Operations: "operations",
+  RevOps_BizOps: "operations",
+  Finance: "finance",
+  HR_People: "hr",
+  Admin_GA: "hr",
 };
 
 // Broad role family groups — for low-alignment "related but not adjacent" fallback.
@@ -1222,6 +1255,49 @@ Return ONLY valid JSON.`;
       };
     });
 
+    // Direction-aligned primary_domain. extract-proof-signals (which sets
+    // primary_domain at CV-upload time) only sees the CV — never the user's
+    // stated five_year_role. For most pilot users (students breaking into
+    // new fields) this means primary_domain reflects their CURRENT job, not
+    // their TARGET direction. That penalizes target-domain jobs through
+    // scoreJobFit's family axis (0.35 vs 1.0 → ~0.065 swing on composite,
+    // enough to flip Track 1 → Track 2 on borderline jobs).
+    //
+    // Fix: career-analysis is the canonical "what direction is this user
+    // going?" computation. Once we've resolved their goal role from
+    // five_year_role, derive primary_domain from the role's role_family
+    // and persist via service_role. Skipped silently when goal can't be
+    // resolved or family doesn't map — keep existing primary_domain in
+    // those cases (better than nulling it out).
+    let resolvedPrimaryDomain: string | null = null;
+    if (goalRoleId) {
+      const goalRole = ROLE_BY_ID.get(goalRoleId);
+      const family = goalRole?.role_family ?? null;
+      const mapped = family ? FAMILY_TO_PRIMARY_DOMAIN[family] : null;
+      if (mapped && mapped !== (profile as any).primary_domain) {
+        resolvedPrimaryDomain = mapped;
+        try {
+          const serviceClient = createClient(
+            Deno.env.get('SUPABASE_URL') ?? '',
+            Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+          );
+          const { error: domainErr } = await serviceClient
+            .from('profiles')
+            .update({ primary_domain: mapped })
+            .eq('id', user.id);
+          if (domainErr) {
+            console.warn('[career-analysis] primary_domain update failed (non-fatal):', domainErr.message);
+            resolvedPrimaryDomain = null;  // don't claim success in response
+          } else {
+            console.log(`[career-analysis] primary_domain: "${(profile as any).primary_domain ?? 'null'}" → "${mapped}" (from five_year_role="${sanitisedProfile.five_year_role}" → role_family="${family}")`);
+          }
+        } catch (err) {
+          console.warn('[career-analysis] primary_domain update threw (non-fatal):', (err as Error)?.message);
+          resolvedPrimaryDomain = null;
+        }
+      }
+    }
+
     const response = {
       qualification_level: ["Junior", "Mid-Level", "Senior"].includes(llmResult.qualification_level)
         ? llmResult.qualification_level
@@ -1232,6 +1308,10 @@ Return ONLY valid JSON.`;
         : "",
       skill_gaps: aggregatedGaps,
       roles: finalRoles,
+      // null when no change applied. Frontend can use this to invalidate
+      // the userProfile cache so scoreJobFit sees the new domain on next
+      // render. Existing invalidateAfterCareerAnalysis already covers it.
+      primary_domain: resolvedPrimaryDomain,
       // Pass the input fingerprint back so the frontend forwards it to
       // replace_career_roles, which writes it to function_cache atomically
       // with the career_roles content. See content-hash.ts + migration

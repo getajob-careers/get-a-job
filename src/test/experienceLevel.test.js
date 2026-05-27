@@ -82,6 +82,14 @@ describe("totalYearsOfExperience", () => {
     ).toBe(2);
   });
 
+  it("counts part_time (added 2026-05-27 — seniority ceiling already gates juniors from Mid+ roles)", () => {
+    expect(
+      totalYearsOfExperience([
+        { type: "part_time", title: "CSM", start_date: "2024", end_date: "2026" },
+      ]),
+    ).toBe(2);
+  });
+
   it("ignores rows without parseable start_date", () => {
     expect(totalYearsOfExperience([{ type: "full_time", title: "Junk", start_date: "" }])).toBe(0);
   });

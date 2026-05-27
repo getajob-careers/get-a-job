@@ -17,7 +17,14 @@ import { isCurrentlyStudent } from "@/lib/educationPolicy";
 
 // Career-countable experience types. Military, volunteering, leadership
 // (student clubs etc.), academic projects do NOT count toward seniority.
-const CAREER_COUNTABLE_TYPES = new Set(["internship", "full_time", "freelance"]);
+// Part-time IS counted as of 2026-05-27: the prior rationale ("students hold
+// part-time school jobs that shouldn't push them out of early-career") was
+// over-fitted — the seniority ceiling already prevents juniors from seeing
+// Mid+ roles in Track 1, so years calc doesn't need to gatekeep too. Real
+// users with target-domain part-time roles (e.g. a CSM-aspirant doing
+// part-time CS work) were getting zero credit, dropping their fit_score
+// composite enough to fail Track 1 on otherwise-qualifying jobs.
+const CAREER_COUNTABLE_TYPES = new Set(["internship", "full_time", "freelance", "part_time"]);
 
 // Pull a 4-digit year from a date string. Returns null when nothing matches.
 function yearFromDate(s) {
