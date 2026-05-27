@@ -23,7 +23,7 @@ const ROADMAP_MESSAGES = [
   "Matching your skills to market requirements…",
   "Calculating skill match scores per role…",
   "Identifying your skill gaps…",
-  "Classifying roles into tiers…",
+  "Classifying roles into tracks…",
   "Ranking roles by readiness & alignment…",
   "Almost done — finalising your roadmap…",
 ];
@@ -335,7 +335,7 @@ export default function CareerRoadmap() {
           {stale && roles.length > 0 && !generating && (
             <div className="rm-banner rm-banner-warning mb-6 flex items-center justify-between gap-4 flex-wrap">
               <p>
-                Your profile has changed since this analysis was generated. Refresh to see updated tiers.
+                Your profile has changed since this analysis was generated. Refresh to see updated tracks.
               </p>
               <button
                 onClick={handleGenerate}
@@ -368,7 +368,7 @@ export default function CareerRoadmap() {
                   className="rm-tab"
                   onClick={() => setTab("why")}
                 >
-                  How tiers work
+                  How tracks work
                 </button>
                 {TRACK_ORDER.map((id) => (
                   <button
@@ -511,17 +511,17 @@ function OverviewTab({ profile, track1, tier1Jobs, jobsLoading, onJumpToTier1 })
   );
 }
 
-// ───── Why these tiers tab ─────
+// ───── How tracks work tab ─────
 
 function WhyTab() {
   return (
     <div className="rm-card rm-card-lg flex flex-col gap-6">
       <div>
-        <h2 className="rm-h1" style={{ fontSize: 20 }}>How tiers work</h2>
+        <h2 className="rm-h1" style={{ fontSize: 20 }}>How tracks work</h2>
         <p className="rm-sub mt-2">
           Every role is scored on two axes: <span className="font-semibold text-[#0E1014]">how qualified you are now</span>{" "}
           and <span className="font-semibold text-[#0E1014]">how well it fits the career path you described</span>.
-          The combination places each role in one of three tiers.
+          The combination places each role in one of three tracks.
         </p>
       </div>
       <div className="flex justify-center pt-1">

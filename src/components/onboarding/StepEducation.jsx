@@ -44,13 +44,36 @@ export default function StepEducation({ data, onChange, educations, setEducation
 
   const setProfileField = (key, val) => onChange({ ...data, [key]: val });
 
-  // Required: full_name + institution + education_level. Degree type + field
-  // are soft-suggested — useful for downstream matching but not worth
-  // blocking onboarding over (PR-1, bug #2).
+  // Bidirectional end_date ↔ is_current sync. Typing "Present"/"Current" in
+  // the end_date input checks is_current; checking the box clears end_date.
+  // Matches Profile EducationTab UX.
+  const setEndDate = (val) => {
+    setEducations((prev) => {
+      const arr = Array.isArray(prev) && prev.length > 0 ? [...prev] : [{ ...EMPTY_EDUCATION_ROW }];
+      arr[0] = { ...arr[0], end_date: val, is_current: /present|current/i.test(val) };
+      return arr;
+    });
+  };
+  const setIsCurrent = (val) => {
+    setEducations((prev) => {
+      const arr = Array.isArray(prev) && prev.length > 0 ? [...prev] : [{ ...EMPTY_EDUCATION_ROW }];
+      arr[0] = { ...arr[0], is_current: !!val, ...(val && { end_date: "" }) };
+      return arr;
+    });
+  };
+
+  // Required: full_name + institution + level + field_of_study + start_date
+  // + (end_date OR is_current). Degree type stays soft (useful for matching
+  // but not worth blocking on).
+  const hasEndOrCurrent = !!primary.is_current || !!primary.end_date?.trim();
+  const dateError = !!primary.start_date?.trim() && !hasEndOrCurrent;
   const canProceed =
     !!data.full_name?.trim() &&
     !!primary.institution?.trim() &&
-    !!primary.education_level;
+    !!primary.education_level &&
+    !!primary.field_of_study?.trim() &&
+    !!primary.start_date?.trim() &&
+    hasEndOrCurrent;
 
   const degreeDropdownValue = useMemo(
     () => dropdownValueForDegreeType(primary.degree_type),
@@ -160,12 +183,35 @@ export default function StepEducation({ data, onChange, educations, setEducation
           </div>
 
           <div>
-            <label className="onb-label">Field of study</label>
+            <label className="onb-label">Field of study <span className="req">*</span></label>
             <input
               type="text"
               value={primary.field_of_study || ""}
               onChange={(e) => setEduField("field_of_study", e.target.value)}
               placeholder="e.g. Computer Science, Business"
+              className="onb-input"
+            />
+          </div>
+
+          <div>
+            <label className="onb-label">Start date <span className="req">*</span></label>
+            <input
+              type="text"
+              value={primary.start_date || ""}
+              onChange={(e) => setEduField("start_date", e.target.value)}
+              placeholder="e.g. September 2023, 2023"
+              className="onb-input"
+            />
+          </div>
+
+          <div>
+            <label className="onb-label">End date {!primary.is_current && <span className="req">*</span>}</label>
+            <input
+              type="text"
+              value={primary.end_date || ""}
+              onChange={(e) => setEndDate(e.target.value)}
+              disabled={!!primary.is_current}
+              placeholder='e.g. May 2025, "Present"'
               className="onb-input"
             />
           </div>
@@ -180,6 +226,19 @@ export default function StepEducation({ data, onChange, educations, setEducation
               className="onb-input"
             />
           </div>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            type="checkbox"
+            id="onb-edu-is-current"
+            checked={!!primary.is_current}
+            onChange={(e) => setIsCurrent(e.target.checked)}
+            className="cursor-pointer"
+          />
+          <label htmlFor="onb-edu-is-current" className="text-xs text-[#52545A] cursor-pointer">
+            I'm currently studying for this degree
+          </label>
         </div>
 
         <SkillTagInput
@@ -200,6 +259,12 @@ export default function StepEducation({ data, onChange, educations, setEducation
           suggestionType="none"
         />
       </div>
+
+      {dateError && (
+        <p className="text-xs text-[#C84F40]">
+          Enter an end date or check &ldquo;I&apos;m currently studying&rdquo;
+        </p>
+      )}
 
       <div className="flex justify-between pt-2">
         <button onClick={onBack} className="onb-btn onb-btn-outline">Back</button>

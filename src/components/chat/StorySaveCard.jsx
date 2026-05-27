@@ -222,7 +222,7 @@ export default function StorySaveCard({
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={4}
-        className="text-xs resize-none mb-2"
+        className="text-xs resize-none mb-2 bg-white border-[#C2B0E0] focus-visible:ring-[#6B4FBF]"
       />
 
       {extractError && (
