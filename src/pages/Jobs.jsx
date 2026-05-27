@@ -209,6 +209,7 @@ export default function JobSuggestions() {
     // track mode → RPC
     const roles = (rolesByTrack[track] || []).slice(0, MAX_TRACK_ROLES).map((r) => r.title);
     if (roles.length === 0) return { _empty: "no_roles" };
+    const workTypes = Array.isArray(profile?.work_type) ? profile.work_type : [];
     return supabase
       .rpc("search_jobs_by_role_titles", {
         p_role_titles: roles,
@@ -216,9 +217,10 @@ export default function JobSuggestions() {
         p_offset: offsetArg,
         p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
         p_max_seniority: seniorities,
+        p_work_types: workTypes.length > 0 ? workTypes : null,
       })
       .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence");
-  }, [rolesByTrack, allowedSeniorities]);
+  }, [rolesByTrack, allowedSeniorities, profile]);
 
   const fetchJobs = useCallback(async ({ modeArg, track, kw, offsetArg, append }) => {
     const seq = ++requestSeqRef.current;
