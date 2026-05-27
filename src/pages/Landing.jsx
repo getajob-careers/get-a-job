@@ -120,13 +120,6 @@ const LANDING_CSS = `
 .lp .btn-ghost:hover { background: var(--lp-bg-tinted); }
 
 .lp-hero { padding: 60px 40px 40px; max-width: 1180px; margin: 0 auto; }
-.lp-hero-tag { display: inline-flex; align-items: center; gap: 8px; font-family: var(--lp-font-mono); font-size: 12px; font-weight: 500; color: var(--lp-ink-soft); padding: 5px 12px; border: 1px solid var(--lp-line); border-radius: 100px; background: var(--lp-card); margin-bottom: 26px; letter-spacing: 0.02em; }
-.lp-hero-tag .pulse { width: 6px; height: 6px; border-radius: 50%; background: var(--lp-green); position: relative; }
-.lp-hero-tag .pulse::after { content: ''; position: absolute; inset: -3px; border-radius: 50%; background: var(--lp-green); opacity: 0.4; animation: lp-pulse 2s ease-out infinite; }
-@media (prefers-reduced-motion: reduce) {
-  .lp-hero-tag .pulse::after { animation: none; }
-}
-@keyframes lp-pulse { 0% { transform: scale(1); opacity: 0.4; } 100% { transform: scale(2.4); opacity: 0; } }
 
 .lp-hero-title { font-family: var(--lp-font-display); font-size: 64px; font-weight: 700; line-height: 1.04; letter-spacing: -0.035em; max-width: 880px; margin-bottom: 24px; color: var(--lp-ink); }
 /* Italic dropped with Direction 3 — Geist italics read awkward at display sizes.
@@ -135,7 +128,6 @@ const LANDING_CSS = `
 .lp-hero-sub { font-size: 19px; line-height: 1.55; color: var(--lp-ink-soft); max-width: 640px; margin-bottom: 38px; font-weight: 400; }
 .lp-hero-sub strong { color: var(--lp-ink); font-weight: 600; }
 .lp-hero-cta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-.lp-hero-cta-note { font-size: 13px; color: var(--lp-ink-faded); margin-left: 4px; }
 
 .lp-product { max-width: 1100px; margin: 60px auto 0; padding: 0 40px; }
 .lp-product-frame { background: var(--lp-ink-card); border-radius: var(--lp-radius-lg); padding: 14px; position: relative; box-shadow: 0 30px 80px -20px rgba(26, 22, 18, 0.25), 0 8px 24px rgba(232, 104, 51, 0.06); }
@@ -402,10 +394,6 @@ const FAQ_ITEMS = [
     a: "OpenAI's most capable models. Every output has anti-fabrication safeguards — the CV agent literally cannot invent a metric or accomplishment. If your Story Bank doesn't have it, the CV doesn't either.",
   },
   {
-    q: "How much does it cost after the trial?",
-    a: "$12/month. Full access to all four agents and every tool. No free tier, no feature-gating, no upsells.",
-  },
-  {
     q: "What if the agents get something wrong?",
     a: "They will, sometimes — that's the honest answer. Every output is editable. Every tailored CV gets a review pass before you send it. The agents are augmenting your judgment, not replacing it.",
   },
@@ -523,10 +511,6 @@ function LandingNav({ isLoggedIn, onCTA }) {
 function Hero({ isLoggedIn, onCTA }) {
   return (
     <section className="lp-hero">
-      <div className="lp-hero-tag">
-        <span className="pulse" />
-        Pilot now open — 100 invites in this wave
-      </div>
       <h1 className="lp-hero-title">
         Your career is too important for <span className="accent">copy-paste prompts.</span>
       </h1>
@@ -546,7 +530,6 @@ function Hero({ isLoggedIn, onCTA }) {
         <a className="btn btn-ghost" href="#agents">
           See the agents
         </a>
-        {!isLoggedIn && <span className="lp-hero-cta-note">7-day free trial · $12/mo after</span>}
       </div>
     </section>
   );
@@ -1075,8 +1058,7 @@ function CTASection({
       <div className="lp-cta-eyebrow">PILOT ACCESS</div>
       <h2>100 invites in this wave. First come, first served.</h2>
       <p>
-        Sign up takes 60 seconds. Upload your CV and your career roadmap is ready before you finish your coffee. Seven
-        days free, then $12/month — cancel any time from your Settings page.
+        Sign up takes 60 seconds. Upload your CV and your career roadmap is ready before you finish your coffee.
       </p>
       <div className="lp-cta-form">
         <button className="btn btn-accent" type="button" onClick={onPrimary} style={{ width: "100%" }}>
@@ -1084,14 +1066,6 @@ function CTASection({
         </button>
       </div>
       <div className="lp-cta-meta">
-        <span>
-          <i className="ti ti-check" aria-hidden="true" />
-          7-day free trial
-        </span>
-        <span>
-          <i className="ti ti-check" aria-hidden="true" />
-          $12/mo after
-        </span>
         <span>
           <i className="ti ti-check" aria-hidden="true" />
           Cancel anytime
