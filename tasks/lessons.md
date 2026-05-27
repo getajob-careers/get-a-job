@@ -53,3 +53,10 @@ Trigger: PR #156 deploy window. Eli reported generate-tailored-cv returning 500.
 What I did wrong: when shipping PR #156's streaming chat, didn't reason about the concurrent-OpenAI-load shape of the whole project. Streaming doesn't make any single OpenAI call longer, but it does keep the per-user perceived-latency low enough that users send messages faster — increasing instantaneous concurrent OpenAI usage. Other functions (generate-tailored-cv has 2–3 sequential OpenAI calls, no streaming) inherit that concurrent pressure. The function's `fetchOpenAIWithRetry` has `retries = 1` — fine for one bad token, useless when the project is sustained-throttled.
 Rule for next time: any change that increases concurrent OpenAI throughput (streaming, parallelization, prefetch) needs a paired audit of every NON-streaming function's retry budget. The pattern in `_shared/openai-chat.ts` callers: `retries = 1, backoffMs = 1200` — that survives a 1-second blip, not a 10-second rate-limit window. Either (a) bump `retries` to 2-3 with exponential backoff for functions that make 2+ sequential calls (CV gen, career analysis), or (b) gate the new high-concurrency feature behind a flag so impact is observable before fan-out. Symptom to look for: execution_time well above p95 followed by 500 — means it tried, retried, and gave up; the function isn't broken, the upstream is rate-limiting.
 ---
+
+---
+2026-05-27 — branch BEFORE committing, not after
+Trigger: ran `git commit` while on local `main` instead of a feature branch; recovered by branching off the commit then `git reset --hard origin/main`.
+What I did wrong: the commit message was ready and I went straight to `git commit` without re-running `git checkout -b <branch>` first. Lost the sequence: branch → stage → commit → push.
+Rule for next time: when starting a PR, FIRST run `git checkout -b eli/<topic>` BEFORE staging or committing. Make it the literal first git command of any PR workflow, not the second.
+---
