@@ -457,7 +457,7 @@ export default function Home() {
   const { user } = useAuth();
 
   // Canonical profile cache — shared with Layout, Profile, Roadmap,
-  // Jobs, Tasks, ChatInterface, JobMatchChecker, Practicum, and
+  // Jobs, Tasks, ChatInterface, JobMatchChecker, Internship, and
   // LinkedIn ProfileTab. Returns the full row as a single object (or
   // null when no row exists).
   const { data: profile, isLoading: loadingProfile, isFetched: profileFetched, isError: profileError } = useProfileQuery(user?.id);

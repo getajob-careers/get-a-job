@@ -17,7 +17,7 @@ import { ONB_CSS } from "../components/onboarding/onboardingStyles";
 const STEP_NAMES = [
   "cv",
   "education",
-  "practicum",
+  "internship",
   "experience",
   "role_skills",
   "skills",
@@ -31,7 +31,7 @@ import OnboardingShell from "../components/onboarding/OnboardingShell";
 import OnboardingTutorial from "../components/onboarding/OnboardingTutorial";
 import StepResumeUpload from "../components/onboarding/StepResumeUpload";
 import StepEducation from "../components/onboarding/StepEducation";
-import StepPracticum from "../components/onboarding/StepPracticum";
+import StepInternship from "../components/onboarding/StepInternship";
 import StepExperience from "../components/onboarding/StepExperience";
 import StepRoleSkills from "../components/onboarding/StepRoleSkills";
 import StepSkills from "../components/onboarding/StepSkills";
@@ -43,12 +43,12 @@ import StepSurvey from "../components/onboarding/StepSurvey";
 // ALLOWED_EXPERIENCE_TYPES + inferExperienceType moved to
 // src/lib/onboardingPayload.js for direct unit testing. See that file.
 
-// Steps: 0=CV, 1=Education, 2=Practicum, 3=Experience, 4=RoleSkills (batched per-object tagging), 5=Skills (catch-all), 6=CareerDirection, 7=Constraints, 8=Survey, 9=TierReveal
+// Steps: 0=CV, 1=Education, 2=Internship, 3=Experience, 4=RoleSkills (batched per-object tagging), 5=Skills (catch-all), 6=CareerDirection, 7=Constraints, 8=Survey, 9=TierReveal
 //
-// Practicum (Wk 4) inserted at index 2 after Education (we have the
-// institution by then). Existing in-flight users with onboarding_step
-// stored from before the insert may see a slightly different step on
-// reload — they can navigate forward without data loss.
+// Internship step (Wk 4) inserted at index 2 after Education (we have
+// the institution by then). Existing in-flight users with
+// onboarding_step stored from before the insert may see a slightly
+// different step on reload — they can navigate forward without data loss.
 export default function Onboarding() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -489,7 +489,7 @@ export default function Onboarding() {
     setSaving(false);
   };
 
-  // Step 7→8: Run the AI track analysis (was 6→7 pre-practicum step).
+  // Step 7→8: Run the AI track analysis (was 6→7 pre-internship step).
   //
   // PR onboarding-tutorial refactor: the visual "Your Roles" page (step 8)
   // was replaced by the OnboardingTutorial. The pipeline is now:
@@ -999,7 +999,7 @@ export default function Onboarding() {
     // four profile cache shapes (userProfile, profile_layout_chrome,
     // userProfileFullName, profile_practicum) collapse to the single
     // ["userProfile", uid] key, so one removeQueries fans out to Layout,
-    // LinkedIn ProfileTab, and Practicum without further calls.
+    // LinkedIn ProfileTab, and Internship without further calls.
     queryClient.removeQueries({ queryKey: ["userProfile"] });
     queryClient.removeQueries({ queryKey: ["careerRoles"] });
     queryClient.removeQueries({ queryKey: ["tasks"] });
@@ -1134,7 +1134,7 @@ export default function Onboarding() {
         />
       )}
       {step === 2 && (
-        <StepPracticum
+        <StepInternship
           data={profileData}
           onChange={setProfileData}
           educations={educations}

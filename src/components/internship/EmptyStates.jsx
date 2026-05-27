@@ -7,12 +7,12 @@ import { Briefcase, FileText, Building2, ArrowRight, Compass, Send } from "lucid
 // conditional render readable. Layout matches the design-strategy
 // "friendly empty state with explicit CTA" pattern.
 
-export function NoPracticumPath() {
+export function NoInternshipPath() {
   return (
     <EmptyShell
       icon={Briefcase}
-      title="Set your practicum path"
-      body="The Internship Practicum is where you track your placement progress. Tell us whether your placement is faculty-assigned or self-sourced to unlock the right experience."
+      title="Set your internship path"
+      body="The Internship page is where you track your placement progress. Tell us whether your placement is faculty-assigned or self-sourced to unlock the right experience."
       cta={{ to: createPageUrl("Profile"), label: "Open Profile" }}
     />
   );
@@ -23,7 +23,7 @@ export function NoInternshipProfile({ onGenerate, generateDisabled }) {
     <EmptyShell
       icon={FileText}
       title="Generate your internship profile first"
-      body="Your internship profile captures the pitch strategy we use to match companies — realistic targets, role archetypes you can pitch today, and how this practicum compounds your long-term career."
+      body="Your internship profile captures the pitch strategy we use to match companies — realistic targets, role archetypes you can pitch today, and how this internship compounds your long-term career."
       cta={
         generateDisabled
           ? { disabled: true, label: "Generator landing Tuesday" }
@@ -46,11 +46,11 @@ export function FacultyPlacementPending() {
 // 3-step "start here" card for new self-sourced users with no targets yet.
 // Sits above the empty kanban so the workflow is obvious — disappears once
 // any company target exists.
-export function PracticumStartHere({ practicumPath }) {
+export function InternshipStartHere({ practicumPath }) {
   const isSelfSourced = practicumPath === "self_sourced";
   const steps = isSelfSourced
     ? [
-        { Icon: FileText, label: "Generate your internship profile", desc: "Captures your pitch strategy — realistic targets, role archetypes, the practicum's long-term compound." },
+        { Icon: FileText, label: "Generate your internship profile", desc: "Captures your pitch strategy — realistic targets, role archetypes, the internship's long-term compound." },
         { Icon: Compass,  label: "Find matching companies",         desc: "We rank companies against your profile and surface the strongest fits." },
         { Icon: Send,     label: "Track your outreach",              desc: "Drag matched companies into your pipeline. Move them through Exploring → Outreach → Interview → Offered." },
       ]

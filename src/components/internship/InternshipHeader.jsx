@@ -12,10 +12,10 @@ const PATH_LABELS = {
   faculty_assigned: "Faculty-assigned",
 };
 
-export default function PracticumHeader({ practicumPath, practicumStatus, practicumCohort }) {
+export default function InternshipHeader({ practicumPath, practicumStatus, practicumCohort }) {
   return (
     <header className="mb-7">
-      <p className="act-eyebrow">Practicum</p>
+      <p className="act-eyebrow">Internship</p>
       <h1 className="act-h1 mt-1.5">Track your internship pipeline.</h1>
       <div className="flex items-center gap-2 mt-3 flex-wrap">
         {practicumPath && (

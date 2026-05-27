@@ -72,7 +72,7 @@ export const ONB_CSS = `
 .onb-input::placeholder { color: var(--onb-ink-faded); }
 .onb-input:focus { outline: none; border-color: var(--onb-ink); box-shadow: 0 0 0 3px rgba(14, 16, 20, 0.08); }
 
-/* ── OptionCard (one wide selectable row, used by Practicum) ───── */
+/* ── OptionCard (one wide selectable row, used by Internship step) ───── */
 .onb-option-card { display: flex; align-items: flex-start; gap: 14px; width: 100%; padding: 16px 18px; background: var(--onb-card); border: 1px solid var(--onb-line); border-radius: var(--onb-radius); cursor: pointer; transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease; text-align: left; font-family: var(--onb-font); }
 .onb-option-card:hover { border-color: var(--onb-ink-soft); }
 .onb-option-card[data-selected="true"] { border-color: var(--onb-accent); box-shadow: 0 0 0 3px var(--onb-accent-tint); }

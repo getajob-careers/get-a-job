@@ -1,14 +1,15 @@
 import React from "react";
 import { Briefcase, User2, X, ArrowRight } from "lucide-react";
 
-// Onboarding practicum step — captures profiles.practicum_path +
-// practicum_cohort. The institution-detection regex remains as a future
-// hook for cohort-specific framing, but copy is generic across both
-// branches today (universal language; we used to surface school-specific
-// copy when the detection matched, which leaked branding).
+// Onboarding internship step — captures profiles.practicum_path +
+// practicum_cohort (DB column names kept; see CLAUDE.md). The
+// institution-detection regex remains as a future hook for cohort-
+// specific framing, but copy is generic across both branches today
+// (universal language; we used to surface school-specific copy when the
+// detection matched, which leaked branding).
 //
-// "No" leaves practicum_path = null, which makes /Practicum render the
-// NoPracticumPath empty state.
+// "No" leaves practicum_path = null, which makes /Internship redirect
+// home (the page guards on practicum_path before rendering).
 
 const INTERNSHIP_PROGRAM_PATTERNS = [/reichman/i, /idc\s*herzliya/i, /\bidc\b/i];
 const STUDENT_LEVELS = new Set(["bachelors", "masters", "phd"]);
@@ -32,7 +33,7 @@ function knownInternshipProgramFromEducations(educations) {
   return "";
 }
 
-export default function StepPracticum({ data, onChange, educations, onNext, onBack }) {
+export default function StepInternship({ data, onChange, educations, onNext, onBack }) {
   // Detection retained but unused for copy variation today — both branches
   // get the same generic phrasing. Kept around for a future cohort-aware
   // surface that doesn't leak school branding into shared UX.
@@ -76,7 +77,7 @@ export default function StepPracticum({ data, onChange, educations, onNext, onBa
         />
         <OptionCard
           icon={X}
-          title="No, I'm not in a practicum"
+          title="No, I'm not in an internship program"
           description="Skip this — Get A Job will still help with everything else (CV, LinkedIn, applications, stories)."
           selected={path === null && data.practicum_path !== undefined}
           onClick={() => setPath(null)}

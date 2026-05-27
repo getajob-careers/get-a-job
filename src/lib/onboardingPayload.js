@@ -92,8 +92,9 @@ export const EMPTY_PROFILE = {
   proof_signals: [],
   primary_domain: null,
   adjacent_fields: [],
-  // Practicum fields captured in StepPracticum (Wk 4). path is null when
-  // user opts out; cohort is free-text and optional.
+  // Internship fields captured in StepInternship (Wk 4). DB column names
+  // kept (practicum_path, practicum_cohort) — see CLAUDE.md. path is null
+  // when user opts out; cohort is free-text and optional.
   practicum_path: null,
   practicum_cohort: "",
   // "How did you hear about us?" — captured in StepSurvey. Stored as a

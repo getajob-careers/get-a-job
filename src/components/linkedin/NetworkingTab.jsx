@@ -22,7 +22,7 @@ export default function NetworkingTab() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Practicum's drawer links here with ?prefillCompany=...&prefillRole=...
+  // Internship's drawer links here with ?prefillCompany=...&prefillRole=...
   // — when those params exist, jump straight into the new-conversation
   // composer so the user lands at the goal picker with the target context
   // available. Strip the params after capturing so back-button or refresh

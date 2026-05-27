@@ -63,7 +63,7 @@ import Calendar from './pages/Calendar';
 import Jobs from './pages/Jobs';
 import Admin from './pages/Admin';
 import Linkedin from './pages/Linkedin';
-import Practicum from './pages/Practicum';
+import Internship from './pages/Internship';
 import Settings from './pages/Settings';
 import StoryBank from './pages/StoryBank';
 // Landing is NOT registered here — it routes at the outer App.jsx level
@@ -89,7 +89,7 @@ export const PAGES = {
     "Jobs": Jobs,
     "Admin": Admin,
     "Linkedin": Linkedin,
-    "Practicum": Practicum,
+    "Internship": Internship,
     "Settings": Settings,
     "StoryBank": StoryBank,
 }

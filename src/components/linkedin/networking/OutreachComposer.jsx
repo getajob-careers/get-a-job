@@ -64,7 +64,7 @@ export default function OutreachComposer({
   onBack,
   onChange,
 }) {
-  // Local conversation state. Prefill (from Practicum's drawer link) seeds
+  // Local conversation state. Prefill (from Internship's drawer link) seeds
   // target.company + target.role so the user lands at the goal picker with
   // context already filled — goal pick is independent of company/role and
   // still required because we don't know if the contact is a recruiter vs

@@ -185,7 +185,7 @@ function CompanyTargetActionsCard({ messageId, actions, applied, onApply }) {
       <div className="ml-10 mt-2 bg-emerald-50 border border-emerald-200 rounded-xl p-4 max-w-xl">
         <div className="flex items-center gap-2">
           <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <p className="text-xs font-semibold text-emerald-800">Practicum updated</p>
+          <p className="text-xs font-semibold text-emerald-800">Internship updated</p>
         </div>
       </div>
     );
@@ -194,14 +194,14 @@ function CompanyTargetActionsCard({ messageId, actions, applied, onApply }) {
     <div className="ml-10 mt-2 bg-blue-50 border border-blue-200 rounded-xl p-4 max-w-xl">
       <div className="flex items-center gap-2 mb-3">
         <Briefcase className="w-3.5 h-3.5 text-blue-700" />
-        <p className="text-xs font-semibold text-blue-800">Proposed Practicum Changes</p>
+        <p className="text-xs font-semibold text-blue-800">Proposed Internship Changes</p>
       </div>
       <ul className="space-y-2 mb-3">
         {actions.map((a, i) => (
           <li key={i} className="text-xs text-blue-900 leading-relaxed">
             {a.action === "add_company_target" && (
               <span>
-                Add <strong>{a.company_name}</strong> to your practicum
+                Add <strong>{a.company_name}</strong> to your internship pipeline
                 {a.company_sector ? ` (${a.company_sector})` : ""}
                 {a.pitched_role && <span> · pitch: {a.pitched_role}</span>}
               </span>
@@ -1178,7 +1178,7 @@ export default function ChatInterface({ agentName, title, description, applicati
     }
 
     if (hasError) {
-      toast.error("Some practicum changes could not be applied. Please try again.");
+      toast.error("Some internship changes could not be applied. Please try again.");
       return;
     }
     setAppliedCompanyTargetSets((prev) => ({ ...prev, [messageId]: true }));
@@ -1186,7 +1186,7 @@ export default function ChatInterface({ agentName, title, description, applicati
     if (skippedDuplicate > 0) {
       toast.message(`Already in your pipeline — skipped ${skippedDuplicate}.`);
     } else {
-      toast.success("Practicum updated");
+      toast.success("Internship updated");
     }
   };
 
