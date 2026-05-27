@@ -55,7 +55,7 @@ const WORK_ENVIRONMENT_SUGGESTIONS = [
 const WORK_ARRANGEMENT_SUGGESTIONS = [
   "Remote",
   "Hybrid",
-  "On-Site",
+  "On-site",
   "Flexible",
 ];
 

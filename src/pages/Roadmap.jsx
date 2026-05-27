@@ -134,8 +134,9 @@ export default function CareerRoadmap() {
   const allowedSeniorities = allowedSenioritiesForLevel(experienceLevel);
 
   const track1RoleTitles = track1.map((r) => r.title).filter(Boolean);
+  const profileWorkTypes = Array.isArray(profile?.work_type) ? profile.work_type : [];
   const { data: tier1Jobs = [], isLoading: jobsLoading } = useQuery({
-    queryKey: ["roadmap_tier1_jobs", user?.id, track1RoleTitles.join("|"), allowedSeniorities.join(",")],
+    queryKey: ["roadmap_tier1_jobs", user?.id, track1RoleTitles.join("|"), allowedSeniorities.join(","), profileWorkTypes.join(",")],
     enabled: !!user?.id && track1RoleTitles.length > 0,
     queryFn: async () => {
       const { data, error } = await supabase
@@ -145,6 +146,7 @@ export default function CareerRoadmap() {
           p_offset: 0,
           p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
           p_max_seniority: allowedSeniorities,
+          p_work_types: profileWorkTypes.length > 0 ? profileWorkTypes : null,
         })
         .select("id, title, company_name, location_city, location_raw, is_remote, apply_url, seniority, date_posted");
       if (error) throw error;
