@@ -32,7 +32,7 @@
  *   • Timeline Day 6 = outreach.
  *   • No social proof claims (no pseudo-quotes, no name credits).
  *   • Pain card #1 broadened from "ChatGPT" to "AI tools that don't know you".
- *   • Students section keeps practicum/internship framing, drops Reichman.
+ *   • Students section keeps internship framing, drops Reichman.
  *   • FAQ data answer: explicit 30-day OpenAI retention statement.
  *
  * ─── KNOWN INFRASTRUCTURE GAPS (follow-up PRs) ──────────────────────────
@@ -888,7 +888,7 @@ function StudentsSection() {
     <section className="lp-students">
       <div className="lp-students-head">
         <div className="lp-section-eyebrow">IF YOU&apos;RE IN A PROGRAM</div>
-        <h2>Built for the in-between — when you&apos;re still in a practicum or internship program but already looking.</h2>
+        <h2>Built for the in-between — when you&apos;re still in an internship program but already looking.</h2>
       </div>
       <div className="lp-students-grid">
         <div className="lp-student-card">

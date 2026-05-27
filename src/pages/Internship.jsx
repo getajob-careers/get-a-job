@@ -9,33 +9,34 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { createPageUrl } from "@/utils";
 
-import PracticumHeader from "@/components/practicum/PracticumHeader";
-import InternshipProfileStrip from "@/components/practicum/InternshipProfileStrip";
-import FindCompaniesCard from "@/components/practicum/FindCompaniesCard";
-import CompanyTargetsKanban from "@/components/practicum/CompanyTargetsKanban";
-import CompanyTargetDrawer from "@/components/practicum/CompanyTargetDrawer";
-import AddOwnCompanyModal from "@/components/practicum/AddOwnCompanyModal";
-import { NoInternshipProfile, PracticumStartHere } from "@/components/practicum/EmptyStates";
+import InternshipHeader from "@/components/internship/InternshipHeader";
+import InternshipProfileStrip from "@/components/internship/InternshipProfileStrip";
+import FindCompaniesCard from "@/components/internship/FindCompaniesCard";
+import CompanyTargetsKanban from "@/components/internship/CompanyTargetsKanban";
+import CompanyTargetDrawer from "@/components/internship/CompanyTargetDrawer";
+import AddOwnCompanyModal from "@/components/internship/AddOwnCompanyModal";
+import { NoInternshipProfile, InternshipStartHere } from "@/components/internship/EmptyStates";
 import { ACT_CSS } from "../components/activity/activityStyles";
 
-// Practicum — Internship pipeline page (unified).
+// Internship pipeline page (unified).
 //
-// Single page for both practicum paths. The kanban shows every target the
+// Single page for both internship paths. The kanban shows every target the
 // user owns regardless of source — matched, faculty_assigned, or self_added —
 // and each card shows its origin via the source badge.
 //
 // Self-sourced features (internship profile strip + AI matcher) only render
 // when practicum_path === 'self_sourced'. The "Add my own company" button
-// is available to everyone with a practicum_path set.
+// is available to everyone with a practicum_path set. (DB column name kept
+// as practicum_path — internal identifier, not user-facing.)
 
-export default function Practicum() {
+export default function Internship() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [openTarget, setOpenTarget] = useState(null);
   const [generatingProfile, setGeneratingProfile] = useState(false);
   const [addCompanyOpen, setAddCompanyOpen] = useState(false);
 
-  // Practicum-specific projection off the canonical profile cache. Shares
+  // Internship-specific projection off the canonical profile cache. Shares
   // a single fetch with Layout + every other profile-consuming page.
   const { data: profileRow, isLoading: profileLoading } = useProfileQuery(
     user?.id,
@@ -134,7 +135,7 @@ export default function Practicum() {
     return (
       <>
         <style>{ACT_CSS}</style>
-        <PracticumLoadingSkeleton />
+        <InternshipLoadingSkeleton />
       </>
     );
   }
@@ -152,7 +153,7 @@ export default function Practicum() {
       <style>{ACT_CSS}</style>
       <div className="act">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-10">
-          <PracticumHeader
+          <InternshipHeader
             practicumPath={practicumPath}
             practicumStatus={profileRow?.practicum_status}
             practicumCohort={profileRow?.practicum_cohort}
@@ -184,7 +185,7 @@ export default function Practicum() {
           {/* Start-here explainer — shown only when the kanban is empty.
               Hides once the user has any target so it doesn't get in the
               way of normal pipeline browsing. */}
-          {showStartHere && <PracticumStartHere practicumPath={practicumPath} />}
+          {showStartHere && <InternshipStartHere practicumPath={practicumPath} />}
 
           {/* Pipeline header — Add button is available on every path so
               faculty-assigned students can also self-source. */}
@@ -227,7 +228,7 @@ function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath }) {
     return <KanbanSkeleton />;
   }
   if (targets.length === 0) {
-    // The PracticumStartHere card above already explains the flow. This
+    // The InternshipStartHere card above already explains the flow. This
     // smaller note just signals the kanban itself isn't broken.
     const note = practicumPath === "self_sourced"
       ? "Add companies above or generate matches to populate your pipeline."
@@ -247,7 +248,7 @@ function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath }) {
 // which we don't know yet. Header + section break + a stripped kanban
 // shell is enough to communicate "page is loading" without preempting
 // the redirect-to-Home path.
-function PracticumLoadingSkeleton() {
+function InternshipLoadingSkeleton() {
   return (
     <div className="act">
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-10 space-y-6">
@@ -263,7 +264,7 @@ function PracticumLoadingSkeleton() {
 }
 
 // Kanban skeleton — 6 columns matching the hardcoded STATUSES enum in
-// src/components/practicum/constants.js. Each column has a header + 2
+// src/components/internship/constants.js. Each column has a header + 2
 // card placeholders. On mobile the real kanban becomes an accordion;
 // the skeleton's flex-wrap mirrors that adequately.
 function KanbanSkeleton() {

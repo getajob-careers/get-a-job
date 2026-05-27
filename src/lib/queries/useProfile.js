@@ -7,7 +7,7 @@
 //                                        vs object vs narrow-columns)
 //   - ["profile_layout_chrome", uid]    (Layout sidebar)
 //   - ["userProfileFullName", uid]      (linkedin ProfileTab)
-//   - ["profile_practicum", uid]        (Practicum page)
+//   - ["profile_practicum", uid]        (Internship page — cache key kept tied to DB column name practicum_path)
 //
 // Three latent problems:
 //   1. The 4 caches diverged on profile save — only `userProfile` was

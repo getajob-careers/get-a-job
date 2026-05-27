@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 
-// "Add my own company" — lets practicum students (any path) drop a company
+// "Add my own company" — lets internship students (any path) drop a company
 // they found into their pipeline. Two-write flow:
 //   1. INSERT into companies with source='manual', created_by=user.id
 //   2. INSERT into company_targets pointing at that new company row with

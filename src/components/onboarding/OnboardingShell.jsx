@@ -13,7 +13,7 @@ import { ExternalLink } from "lucide-react";
 const STEPS = [
   "CV upload",
   "Education",
-  "Practicum",
+  "Internship",
   "Experience",
   "Role skills",      // index 4 — added in PR #136 (StepRoleSkills)
   "Other skills",     // index 5 — was "Skills"; renamed to match the page's "Any other skills?" framing

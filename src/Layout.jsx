@@ -28,21 +28,21 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Sidebar information architecture — 5 top-level sections + footer.
+// Sidebar information architecture — top-level sections + footer.
 // Sections with `items` are collapsible groups; sections with a direct
 // `page` route are single-link entries. The active section auto-expands
 // based on currentPageName so the user always sees the relevant
 // sub-items without manual clicking.
 //
-// Practicum is conditionally rendered inside the Pipeline section based
-// on profiles.practicum_path — same gate as before, just moved one level
-// deeper in the structure.
+// Internship is conditionally inserted as a top-level section between
+// Activity and LinkedIn based on profiles.practicum_path (DB column name
+// kept — see CLAUDE.md). Only renders when the user has chosen a path.
 //
 // Subagents (the legacy router page) is intentionally NOT linked from
 // here. The 4 agent pages it routed to are now top-level under Chat.
 // The Subagents file stays registered as an orphan in pages.config.js;
 // it can be deleted in a separate cleanup PR.
-const SECTIONS = [
+const BASE_SECTIONS = [
   {
     id: "home",
     label: "Home",
@@ -63,9 +63,7 @@ const SECTIONS = [
   {
     // section id stays "pipeline" so the active-section auto-expand logic
     // (which keys off the id) keeps working. Just the user-facing label
-    // changed from "Pipeline" to "Activity" — the word "pipeline" still
-    // appears contextually in places like the Home card and Practicum
-    // page where it reads as the right metaphor.
+    // changed from "Pipeline" to "Activity".
     id: "pipeline",
     label: "Activity",
     icon: ClipboardList,
@@ -73,7 +71,6 @@ const SECTIONS = [
       { name: "Tracker", page: "Tracker", icon: ClipboardList },
       { name: "Calendar", page: "Calendar", icon: CalendarIcon },
       { name: "Tasks", page: "Tasks", icon: CheckSquare },
-      // Practicum is appended at runtime when profiles.practicum_path is set.
     ],
   },
   {
@@ -101,6 +98,13 @@ const SECTIONS = [
   },
 ];
 
+const INTERNSHIP_SECTION = {
+  id: "internship",
+  label: "Internship",
+  icon: Briefcase,
+  page: "Internship",
+};
+
 const ONBOARDING_PAGE = "Onboarding";
 
 // Section is "active" if currentPageName matches its direct `page` OR any of its `items[].page`.
@@ -120,10 +124,11 @@ export default function Layout({ children, currentPageName }) {
 
   // Layout-chrome gating: picks the three profile fields Layout actually
   // cares about — onboarding_complete (drives whether the sidebar shows
-  // at all), practicum_path (drives whether the Practicum sub-item
-  // appears), and full_name (used by SidebarFooter for the avatar
-  // initials + name). Backed by the canonical profile cache, so this
-  // shares a single fetch with every other page in the app.
+  // at all), practicum_path (drives whether the Internship section
+  // appears — DB column name kept as practicum_path), and full_name
+  // (used by SidebarFooter for the avatar initials + name). Backed by
+  // the canonical profile cache, so this shares a single fetch with
+  // every other page in the app.
   const { data: profileChrome } = useProfileQuery(user?.id, (p) => ({
     practicum_path: p?.practicum_path ?? null,
     onboarding_complete: p?.onboarding_complete === true,
@@ -134,14 +139,18 @@ export default function Layout({ children, currentPageName }) {
   const onboardingComplete = profileChrome?.onboarding_complete === true;
   const profileFullName = profileChrome?.full_name ?? null;
 
-  // Conditional Practicum sub-item inside the Pipeline section.
+  // Conditional Internship top-level section, inserted between Activity
+  // (pipeline) and LinkedIn. Only rendered when the user has chosen an
+  // internship path on Profile.
   const sections = useMemo(() => {
-    if (practicumPath == null) return SECTIONS;
-    return SECTIONS.map((s) =>
-      s.id === "pipeline"
-        ? { ...s, items: [...s.items, { name: "Practicum", page: "Practicum", icon: Briefcase }] }
-        : s,
-    );
+    if (practicumPath == null) return BASE_SECTIONS;
+    const pipelineIdx = BASE_SECTIONS.findIndex((s) => s.id === "pipeline");
+    const insertAt = pipelineIdx >= 0 ? pipelineIdx + 1 : BASE_SECTIONS.length;
+    return [
+      ...BASE_SECTIONS.slice(0, insertAt),
+      INTERNSHIP_SECTION,
+      ...BASE_SECTIONS.slice(insertAt),
+    ];
   }, [practicumPath]);
 
   const activeSectionId = findActiveSectionId(sections, currentPageName);

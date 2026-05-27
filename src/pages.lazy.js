@@ -31,7 +31,7 @@ const Home = lazy(() => import("./pages/Home"));
 const InterviewCoach = lazy(() => import("./pages/InterviewCoach"));
 const Jobs = lazy(() => import("./pages/Jobs"));
 const Linkedin = lazy(() => import("./pages/Linkedin"));
-const Practicum = lazy(() => import("./pages/Practicum"));
+const Internship = lazy(() => import("./pages/Internship"));
 const Profile = lazy(() => import("./pages/Profile"));
 const Resources = lazy(() => import("./pages/Resources"));
 const Roadmap = lazy(() => import("./pages/Roadmap"));
@@ -55,9 +55,9 @@ export const LAZY_PAGES = {
   Home,
   InterviewCoach,
   Jobs,
+  Internship,
   Linkedin,
   Onboarding,
-  Practicum,
   Profile,
   Resources,
   Roadmap,

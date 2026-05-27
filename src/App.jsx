@@ -68,6 +68,10 @@ const AuthenticatedApp = () => {
                 <MainPage />
               </LayoutWrapper>
             } />
+            {/* Legacy redirect: /Practicum → /Internship. The page was
+                renamed but old WhatsApp / email links may still hit the
+                old URL. Drop after a few weeks if logs show no traffic. */}
+            <Route path="/Practicum" element={<Navigate to="/Internship" replace />} />
             {Object.entries(LAZY_PAGES).map(([path, Page]) => (
               <Route
                 key={path}

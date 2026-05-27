@@ -1,6 +1,6 @@
 // Direction 3 tokens scoped to .act. Same vocabulary as .roadmap / .jobs /
 // .onb / .home / .login / .lp. Inlined once at the top of each Activity
-// page (Calendar / Tasks / Practicum) and cascades to their sub-components.
+// page (Calendar / Tasks / Internship) and cascades to their sub-components.
 // Tracker is on its own redesign cadence (PR-B) and doesn't use .act yet.
 
 export const ACT_CSS = `
@@ -106,7 +106,7 @@ export const ACT_CSS = `
 .act-day-cell-num { font-size: 12px; font-weight: 600; }
 .act-day-cell[data-today="true"] .act-day-cell-num { color: var(--act-accent); }
 
-/* Status accent variables — Practicum kanban column header chips */
+/* Status accent variables — Internship kanban column header chips */
 .act-status-gray   { --act-status-fg: var(--act-ink-soft); --act-status-bg: var(--act-bg-tinted); }
 .act-status-info   { --act-status-fg: #1E4A9E; --act-status-bg: var(--act-info-tint); }
 .act-status-warning { --act-status-fg: #6B4E0F; --act-status-bg: var(--act-warning-tint); }
@@ -120,7 +120,7 @@ export const ACT_CSS = `
   background: var(--act-status-bg, var(--act-bg-tinted));
 }
 
-/* Practicum kanban — desktop 6-col grid wrapped in horizontal scroll */
+/* Internship kanban — desktop 6-col grid wrapped in horizontal scroll */
 .act-kanban-row { display: grid; grid-template-columns: repeat(6, minmax(220px, 1fr)); gap: 12px; min-width: 1100px; }
 .act-kanban-col { display: flex; flex-direction: column; gap: 8px; padding: 12px; border-radius: var(--act-radius); background: var(--act-bg-tinted); min-height: 200px; transition: background 0.15s ease; }
 .act-kanban-col[data-dragover="true"] { background: var(--act-accent-tint); box-shadow: inset 0 0 0 2px var(--act-accent); }
@@ -128,7 +128,7 @@ export const ACT_CSS = `
 .act-kanban-col-count { font-family: var(--act-font-mono); font-size: 11px; color: var(--act-ink-faded); font-variant-numeric: tabular-nums; }
 .act-kanban-empty { font-size: 12px; color: var(--act-ink-faded); font-style: italic; padding: 8px 4px; }
 
-/* Practicum mobile accordion — replaces drag-drop on <768px */
+/* Internship mobile accordion — replaces drag-drop on <768px */
 .act-accordion-section { background: var(--act-card); border: 1px solid var(--act-line); border-radius: var(--act-radius); margin-bottom: 10px; overflow: hidden; }
 .act-accordion-head { width: 100%; display: flex; align-items: center; justify-content: space-between; padding: 14px 16px; background: transparent; border: 0; cursor: pointer; font-family: var(--act-font); }
 .act-accordion-head:hover { background: var(--act-bg-tinted); }

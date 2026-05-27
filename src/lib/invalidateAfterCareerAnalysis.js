@@ -32,7 +32,7 @@ export async function invalidateAfterCareerAnalysis(queryClient, userId) {
   await Promise.all([
     // profiles — both the canonical key + (future-proof) any unique
     // narrow-column keys still in the codebase. The canonical key
-    // covers Layout, Practicum, LinkedIn ProfileTab via select after
+    // covers Layout, Internship, LinkedIn ProfileTab via select after
     // PR #cache-consolidation-p0, but if a new narrow key sneaks in
     // before this list catches up, the unique invalidations below are
     // a no-op safety net.
