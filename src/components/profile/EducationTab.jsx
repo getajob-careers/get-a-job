@@ -83,8 +83,24 @@ export default function EducationTab({ user }) {
   };
 
   const handleSave = async () => {
-    if (!form.institution.trim() && !form.education_level && !form.degree_type) {
-      toast.error("Add at least an institution or level before saving.");
+    if (!form.institution.trim()) {
+      toast.error("Add an institution before saving.");
+      return;
+    }
+    if (!form.education_level) {
+      toast.error("Pick an education level before saving.");
+      return;
+    }
+    if (!form.field_of_study.trim()) {
+      toast.error("Add a field of study before saving.");
+      return;
+    }
+    if (!form.start_date.trim()) {
+      toast.error("Add a start date before saving.");
+      return;
+    }
+    if (!form.is_current && !form.end_date.trim()) {
+      toast.error("Enter an end date or check \"I'm currently studying\"");
       return;
     }
     setSaving(true);
@@ -250,6 +266,7 @@ export default function EducationTab({ user }) {
             <Input
               value={form.end_date}
               onChange={(e) => setForm({ ...form, end_date: e.target.value, is_current: /present|current/i.test(e.target.value) })}
+              disabled={!!form.is_current}
               className="mt-1"
               placeholder='e.g. May 2025, "Present"'
             />
@@ -278,7 +295,9 @@ export default function EducationTab({ user }) {
           <Checkbox
             id="is_current"
             checked={!!form.is_current}
-            onCheckedChange={(v) => setForm({ ...form, is_current: !!v })}
+            onCheckedChange={(v) =>
+              setForm({ ...form, is_current: !!v, ...(v && { end_date: "" }) })
+            }
           />
           <Label htmlFor="is_current" className="text-xs text-[#52545A] cursor-pointer">
             I'm currently studying for this degree
