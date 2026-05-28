@@ -189,6 +189,65 @@ export default function JobSuggestions() {
     return jobs.filter((job) => scoredById[job.id]?.track === selectedTrack);
   }, [jobs, scoredById, mode, selectedTrack, profile]);
 
+  // ?debug=1 — dump per-job scoreJobFit verdicts to console so we can
+  // compare against the SQL simulation. Helps diagnose "expected N Track
+  // 1 jobs, only seeing M" — usually narrows to either a request-shape
+  // mismatch (different jobs returned than expected) or a scoreJobFit
+  // divergence between JS and the SQL replica. Behind a URL flag so it
+  // doesn't add console noise in normal use. Drop once the diagnostic
+  // is no longer needed.
+  useEffect(() => {
+    if (searchParams.get("debug") !== "1") return;
+    if (mode !== "track") return;
+    if (!profile || jobs.length === 0) return;
+    const rows = jobs.map((j) => {
+      const s = scoredById[j.id] || {};
+      const sig = s.signals || {};
+      const limiter = (() => {
+        if (sig.seniority_match === "above_ceiling") return "sen_cap";
+        const gap = (sig.years_required_min ?? null) !== null && (sig.years_user ?? null) !== null
+          ? sig.years_required_min - sig.years_user
+          : null;
+        if (gap !== null && gap >= 3) return "years_cap_T3";
+        if (s.track === "track_2" && gap === 2) return "years_cap_T1_to_T2";
+        if (s.track !== "track_1") {
+          if (sig.function_family_match === false) return "family";
+          if (sig.years_status === "below") return "years_axis";
+          if ((sig.skill_match_pct ?? 100) < 50) return "skill";
+          return "composite_low";
+        }
+        return null;
+      })();
+      return {
+        title: j.title,
+        company: j.company_name,
+        is_remote: j.is_remote,
+        req_seniority: j.req_seniority,
+        req_years_min: j.req_years_min,
+        function_family: j.function_family,
+        fit: s.fit_score ?? null,
+        track: s.track ?? null,
+        skill_pct: sig.skill_match_pct ?? null,
+        years_status: sig.years_status ?? null,
+        sen_match: sig.seniority_match ?? null,
+        fam_match: sig.function_family_match ?? null,
+        limiter,
+      };
+    });
+    /* eslint-disable no-console */
+    console.groupCollapsed(
+      `[debug] Jobs ${selectedTrack} — ${rows.length} candidates, ${
+        rows.filter((r) => r.track === selectedTrack).length
+      } pass filter`,
+    );
+    console.table(rows);
+    console.log("profile.primary_domain:", profile?.primary_domain ?? null);
+    console.log("profile.work_type:", profile?.work_type ?? null);
+    console.log("userYears (totalYearsOfExperience):", rows[0]?.years_status ? "see signals.years_user" : "n/a");
+    console.groupEnd();
+    /* eslint-enable no-console */
+  }, [searchParams, mode, selectedTrack, profile, jobs, scoredById]);
+
   const buildJobsQuery = useCallback((modeArg, track, kw, offsetArg) => {
     const seniorities = seniorityFilterFor(modeArg, track, allowedSeniorities);
 
