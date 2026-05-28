@@ -4,6 +4,7 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
+import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { track, EVENTS } from "@/lib/analytics";
 import { Send, Loader2, Plus, ListTodo, CheckCircle2, ArrowRight, Route, Briefcase, ChevronDown, Trash2, MessageSquare, FileText, Download, RefreshCw } from "lucide-react";
 import { triggerBlobDownload, filenameFromSignedUrl } from "@/lib/downloadFile";
@@ -431,20 +432,11 @@ export default function ChatInterface({ agentName, title, description, applicati
   });
 
   // For StorySaveCard's experience chip when the agent links a captured
-  // story to one of the user's experience rows by UUID.
-  const { data: experiences = [] } = useQuery({
-    queryKey: ["experiences", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from("experiences")
-        .select("id, title, company")
-        .eq("user_id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  // story to one of the user's experience rows by UUID. Routes through
+  // useExperiencesQuery so this narrow consumer no longer pollutes the
+  // shared cache with a 3-column projection — see useExperiences.js
+  // header for the Eli incident retro.
+  const { data: experiences = [] } = useExperiencesQuery(user?.id);
   const experiencesById = React.useMemo(() => {
     const m = {};
     for (const e of experiences) {

@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
+import { useEducationQuery } from "@/lib/queries/useEducation";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -51,20 +52,7 @@ export default function EducationTab({ user }) {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
 
-  const { data: educations = [], isLoading } = useQuery({
-    queryKey: ["education", user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("education")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("display_order", { ascending: true, nullsLast: true })
-        .order("created_at", { ascending: true });
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  const { data: educations = [], isLoading } = useEducationQuery(user?.id);
 
   const resetForm = () => setForm(EMPTY_FORM);
 

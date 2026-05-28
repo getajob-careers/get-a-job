@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
+import { useExperiencesQuery } from "@/lib/queries/useExperiences";
+import { useEducationQuery } from "@/lib/queries/useEducation";
 import { trackFromScores } from "@/lib/scoreApplication";
 import { scoreJobFit } from "@/lib/scoreJobFit";
 import { totalYearsOfExperience } from "@/lib/experienceLevel";
@@ -47,18 +49,12 @@ export default function JobMatchChecker() {
     primary_domain: p.primary_domain,
     five_year_role: p.five_year_role,
   } : null);
-  const { data: experiences = [] } = useQuery({
-    queryKey: ["experiences", user?.id],
-    queryFn: async () => (await supabase.from("experiences").select("type, start_date, end_date, is_current, title, company, responsibilities").eq("user_id", user.id)).data || [],
-    enabled: !!user?.id,
-    staleTime: 30 * 60 * 1000,
-  });
-  const { data: educations = [] } = useQuery({
-    queryKey: ["education", user?.id],
-    queryFn: async () => (await supabase.from("education").select("degree_level").eq("user_id", user.id)).data || [],
-    enabled: !!user?.id,
-    staleTime: 30 * 60 * 1000,
-  });
+  // PR cache-pollution-fix: route through useExperiencesQuery / useEducationQuery
+  // so the cache stays full-row; this consumer used to fetch narrow projections
+  // (7 cols + 1 col) which polluted other surfaces sharing the same queryKey.
+  // See useExperiences.js header for the Eli incident retro.
+  const { data: experiences = [] } = useExperiencesQuery(user?.id);
+  const { data: educations = [] } = useEducationQuery(user?.id);
 
   useEffect(() => {
     if (loading) {
