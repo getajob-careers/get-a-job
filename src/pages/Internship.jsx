@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Navigate } from "react-router-dom";
+import { Navigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -15,19 +15,30 @@ import FindCompaniesCard from "@/components/internship/FindCompaniesCard";
 import CompanyTargetsKanban from "@/components/internship/CompanyTargetsKanban";
 import CompanyTargetDrawer from "@/components/internship/CompanyTargetDrawer";
 import AddOwnCompanyModal from "@/components/internship/AddOwnCompanyModal";
-import { NoInternshipProfile, InternshipStartHere } from "@/components/internship/EmptyStates";
+import { InternshipStartHere } from "@/components/internship/EmptyStates";
+import CompanyBrowsePanel from "@/components/internship/browse/CompanyBrowsePanel";
+import { BROWSE_CSS } from "@/components/internship/browse/browseStyles";
 import { ACT_CSS } from "../components/activity/activityStyles";
 
-// Internship pipeline page (unified).
+// Internship page — Browse + Pipeline tabs (PR2 redesign).
 //
-// Single page for both internship paths. The kanban shows every target the
-// user owns regardless of source — matched, faculty_assigned, or self_added —
-// and each card shows its origin via the source badge.
+// Browse (default): scrollable catalog of all 819 companies. Display-
+// only cards; click is a no-op until PR3 wires the detail drawer.
+// Pipeline: existing kanban of company_targets the student owns.
 //
-// Self-sourced features (internship profile strip + AI matcher) only render
-// when practicum_path === 'self_sourced'. The "Add my own company" button
-// is available to everyone with a practicum_path set. (DB column name kept
-// as practicum_path — internal identifier, not user-facing.)
+// The matcher (generate-internship-profile + FindCompaniesCard) stays
+// self_sourced-only. Faculty-assigned users see Browse + their existing
+// kanban + the Add-my-own-company button — no profile-strip, no matcher.
+//
+// Gate removed (PR2): users no longer have to generate an internship
+// profile before browsing. The pitch strategy still feeds the per-card
+// fit score; without it, scores show "—" and a nudge banner sits above
+// the grid.
+
+const TABS = [
+  { id: "browse",   label: "Browse" },
+  { id: "pipeline", label: "Pipeline" },
+];
 
 export default function Internship() {
   const { user } = useAuth();
@@ -35,9 +46,9 @@ export default function Internship() {
   const [openTarget, setOpenTarget] = useState(null);
   const [generatingProfile, setGeneratingProfile] = useState(false);
   const [addCompanyOpen, setAddCompanyOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const activeTab = TABS.find((t) => t.id === searchParams.get("tab"))?.id || "browse";
 
-  // Internship-specific projection off the canonical profile cache. Shares
-  // a single fetch with Layout + every other profile-consuming page.
   const { data: profileRow, isLoading: profileLoading } = useProfileQuery(
     user?.id,
     (p) => p ? {
@@ -46,6 +57,8 @@ export default function Internship() {
       practicum_status: p.practicum_status,
     } : null,
   );
+
+  const isSelfSourced = profileRow?.practicum_path === "self_sourced";
 
   const { data: internshipProfile, isLoading: internshipProfileLoading } = useQuery({
     queryKey: ["internship_profile", user?.id],
@@ -59,7 +72,7 @@ export default function Internship() {
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id && profileRow?.practicum_path === "self_sourced",
+    enabled: !!user?.id && isSelfSourced,
   });
 
   const { data: latestCareerRolesUpdatedAt } = useQuery({
@@ -75,7 +88,7 @@ export default function Internship() {
         .maybeSingle();
       return data?.updated_at || null;
     },
-    enabled: !!user?.id && profileRow?.practicum_path === "self_sourced",
+    enabled: !!user?.id && isSelfSourced,
   });
 
   const handleGenerateProfile = async () => {
@@ -127,30 +140,32 @@ export default function Internship() {
   });
 
   if (profileLoading) {
-    // Path-agnostic skeleton — does NOT render practicum_path-conditional
-    // widgets (internship profile strip, find-companies card). Users
-    // without a practicum_path would otherwise see those flash before
-    // the gate below redirects them to Home. Generic header + pipeline
-    // shell only.
     return (
       <>
-        <style>{ACT_CSS}</style>
+        <style>{ACT_CSS}{BROWSE_CSS}</style>
         <InternshipLoadingSkeleton />
       </>
     );
   }
 
   const practicumPath = profileRow?.practicum_path;
-
   if (!practicumPath) {
     return <Navigate to={createPageUrl("Home")} replace />;
   }
+
+  const setTab = (tabId) => {
+    setSearchParams((sp) => {
+      const next = new URLSearchParams(sp);
+      next.set("tab", tabId);
+      return next;
+    });
+  };
 
   const showStartHere = targets.length === 0 && !targetsLoading;
 
   return (
     <>
-      <style>{ACT_CSS}</style>
+      <style>{ACT_CSS}{BROWSE_CSS}</style>
       <div className="act">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-10">
           <InternshipHeader
@@ -159,54 +174,71 @@ export default function Internship() {
             practicumCohort={profileRow?.practicum_cohort}
           />
 
-          {practicumPath === "self_sourced" && (
-            !internshipProfileLoading && !internshipProfile ? (
-              <NoInternshipProfile
-                generateDisabled={generatingProfile}
-                onGenerate={handleGenerateProfile}
-              />
-            ) : (
-              <>
-                <InternshipProfileStrip
-                  profile={internshipProfile}
-                  onRefresh={handleGenerateProfile}
-                  refreshDisabled={generatingProfile}
-                  refreshLoading={generatingProfile}
-                  latestCareerRolesUpdatedAt={latestCareerRolesUpdatedAt}
-                />
-                <FindCompaniesCard
-                  disabled={!internshipProfile}
-                  disabledReason={!internshipProfile ? "Generate your internship profile first." : undefined}
-                />
-              </>
-            )
-          )}
-
-          {/* Start-here explainer — shown only when the kanban is empty.
-              Hides once the user has any target so it doesn't get in the
-              way of normal pipeline browsing. */}
-          {showStartHere && <InternshipStartHere practicumPath={practicumPath} />}
-
-          {/* Pipeline header — Add button is available on every path so
-              faculty-assigned students can also self-source. */}
-          <div className="flex items-center justify-between mt-7 mb-3">
-            <p className="act-eyebrow">Your pipeline</p>
-            <button
-              type="button"
-              onClick={() => setAddCompanyOpen(true)}
-              className="act-btn act-btn-outline act-btn-sm"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              Add my own company
-            </button>
+          {/* Tab pill bar — Browse (default) | Pipeline */}
+          <div className="p-tabs mt-6 mb-2" role="tablist" style={{ display: "flex", gap: 6 }}>
+            {TABS.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === t.id}
+                onClick={() => setTab(t.id)}
+                className="act-pill"
+                data-selected={activeTab === t.id ? "true" : "false"}
+              >
+                {t.label}
+              </button>
+            ))}
           </div>
 
-          <KanbanOrEmpty
-            targets={targets}
-            loading={targetsLoading}
-            onCardClick={setOpenTarget}
-            practicumPath={practicumPath}
-          />
+          {activeTab === "browse" && <CompanyBrowsePanel />}
+
+          {activeTab === "pipeline" && (
+            <>
+              {isSelfSourced && (
+                <>
+                  {!internshipProfileLoading && internshipProfile && (
+                    <InternshipProfileStrip
+                      profile={internshipProfile}
+                      onRefresh={handleGenerateProfile}
+                      refreshDisabled={generatingProfile}
+                      refreshLoading={generatingProfile}
+                      latestCareerRolesUpdatedAt={latestCareerRolesUpdatedAt}
+                    />
+                  )}
+                  <FindCompaniesCard
+                    disabled={!internshipProfile || generatingProfile}
+                    disabledReason={
+                      !internshipProfile
+                        ? "Generate your pitch profile first."
+                        : undefined
+                    }
+                  />
+                </>
+              )}
+
+              {showStartHere && <InternshipStartHere practicumPath={practicumPath} />}
+
+              <div className="flex items-center justify-between mt-7 mb-3">
+                <p className="act-eyebrow">Your pipeline</p>
+                <button
+                  type="button"
+                  onClick={() => setAddCompanyOpen(true)}
+                  className="act-btn act-btn-outline act-btn-sm"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  Add my own company
+                </button>
+              </div>
+
+              <KanbanOrEmpty
+                targets={targets}
+                loading={targetsLoading}
+                onCardClick={setOpenTarget}
+                practicumPath={practicumPath}
+              />
+            </>
+          )}
 
           <CompanyTargetDrawer
             target={openTarget}
@@ -228,8 +260,6 @@ function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath }) {
     return <KanbanSkeleton />;
   }
   if (targets.length === 0) {
-    // The InternshipStartHere card above already explains the flow. This
-    // smaller note just signals the kanban itself isn't broken.
     const note = practicumPath === "self_sourced"
       ? "Add companies above or generate matches to populate your pipeline."
       : "Add a company your faculty assigned or one you've found yourself.";
@@ -242,12 +272,6 @@ function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath }) {
   return <CompanyTargetsKanban targets={targets} onCardClick={onCardClick} />;
 }
 
-// Page-level skeleton — rendered ONLY when the profile query is in
-// flight. Deliberately path-agnostic: no internship-profile strip, no
-// find-companies card, no kanban — those depend on `practicum_path`
-// which we don't know yet. Header + section break + a stripped kanban
-// shell is enough to communicate "page is loading" without preempting
-// the redirect-to-Home path.
 function InternshipLoadingSkeleton() {
   return (
     <div className="act">
@@ -263,10 +287,6 @@ function InternshipLoadingSkeleton() {
   );
 }
 
-// Kanban skeleton — 6 columns matching the hardcoded STATUSES enum in
-// src/components/internship/constants.js. Each column has a header + 2
-// card placeholders. On mobile the real kanban becomes an accordion;
-// the skeleton's flex-wrap mirrors that adequately.
 function KanbanSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3" aria-hidden="true">

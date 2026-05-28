@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
+import { ruleScore } from '../_shared/internship-rule-score.ts'
 
 // match-internship-companies — Wk 4 Strategic Internship Finder matcher.
 //
@@ -49,12 +50,9 @@ const POOL_CAP = 500
 // Top-N from rule pre-filter → LLM scoring batch.
 const LLM_BATCH_SIZE = 30
 
-// Rule-pre-filter weights. Transparent so we can tune from pilot signal.
-const W_STAGE = 30
-const W_SECTOR = 25
-const W_SIGNAL = 15
-const W_GEO = 10
-const W_BASE = 5      // every authenticated, non-null company gets a floor
+// Rule-pre-filter weights live in _shared/internship-rule-score.ts —
+// imported by both this edge function and the React browse page so the
+// two surfaces can never drift. Touch the weights there.
 
 interface InternshipProfile {
   user_id: string
@@ -510,72 +508,9 @@ Return ONLY valid JSON.`
 // Stage 1: rule-based pre-filter scoring
 // ============================================================
 //
-// Cheap, deterministic, transparent. Goal is NOT to be the final score
-// — it's to narrow 500 → 30 so the LLM stage stays cheap. Bias toward
-// recall over precision: a borderline company should pass through to
-// LLM review, not get filtered out by a brittle keyword match.
-
-function ruleScore(company: Company, profile: InternshipProfile): number {
-  let score = W_BASE  // floor — every company gets baseline so a profile
-                      // with empty arrays still produces SOME ranking signal.
-
-  // Stage match. Exact case-insensitive contains is fine — we control
-  // the realistic_company_stages vocabulary in generate-internship-profile.
-  if (company.stage && profile.realistic_company_stages.length > 0) {
-    const cStage = company.stage.toLowerCase()
-    if (profile.realistic_company_stages.some((s) => s.toLowerCase() === cStage)) {
-      score += W_STAGE
-    }
-  }
-
-  // Sector match — check both `sector` and `industry` since not every
-  // company row will have both populated.
-  if (profile.realistic_sectors.length > 0) {
-    const haystacks = [company.sector, company.industry]
-      .filter(Boolean)
-      .map((s) => (s as string).toLowerCase())
-    if (haystacks.length > 0) {
-      const hit = profile.realistic_sectors.some((s) =>
-        haystacks.some((h) => h.includes(s.toLowerCase()) || s.toLowerCase().includes(h))
-      )
-      if (hit) score += W_SECTOR
-    }
-  }
-
-  // Signal filter match. Substring scan over name + description +
-  // industry. These are heuristics the LLM produced — keep matching loose.
-  if (profile.realistic_signal_filters.length > 0) {
-    const haystack = [
-      company.name,
-      company.description,
-      company.industry,
-      company.sector,
-    ]
-      .filter(Boolean)
-      .map((s) => (s as string).toLowerCase())
-      .join(' | ')
-    if (haystack) {
-      const hits = profile.realistic_signal_filters.filter((sig) =>
-        haystack.includes(sig.toLowerCase())
-      ).length
-      // Up to W_SIGNAL points total — one hit gets most of it, more
-      // hits get incrementally more but capped.
-      score += Math.min(W_SIGNAL, hits * (W_SIGNAL / 2))
-    }
-  }
-
-  // Geography. Default-favour Israel + remote-friendly. Soft signal —
-  // it's a tilt, not a filter.
-  if (company.hq_country) {
-    const country = company.hq_country.toLowerCase()
-    if (country === 'israel' || country === 'il') score += W_GEO
-    else if (country === 'united states' || country === 'usa' || country === 'us') {
-      score += W_GEO / 2  // many Israeli students target US-HQ companies with TLV offices
-    }
-  }
-
-  return score
-}
+// `ruleScore` is imported from _shared/internship-rule-score.ts — same
+// function the browse page calls so the pre-filter and the per-card
+// chip never disagree. See that file for weights and rationale.
 
 // ============================================================
 // LLM output normalisation
