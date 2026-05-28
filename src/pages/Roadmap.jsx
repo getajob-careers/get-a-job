@@ -3,6 +3,8 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
+import { useExperiencesQuery } from "@/lib/queries/useExperiences";
+import { useEducationQuery } from "@/lib/queries/useEducation";
 import { invalidateAfterCareerAnalysis } from "@/lib/invalidateAfterCareerAnalysis";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -64,27 +66,8 @@ export default function CareerRoadmap() {
 
   const { data: profile, isLoading: profileLoading, isError: profileError } = useProfileQuery(user?.id);
 
-  const { data: experiences = [] } = useQuery({
-    queryKey: ["experiences", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase.from("experiences").select("*").eq("user_id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
-
-  const { data: educations = [] } = useQuery({
-    queryKey: ["education", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase.from("education").select("*").eq("user_id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  const { data: experiences = [] } = useExperiencesQuery(user?.id);
+  const { data: educations = [] } = useEducationQuery(user?.id);
 
   const { data: certifications = [] } = useQuery({
     queryKey: ["certifications", user?.id],

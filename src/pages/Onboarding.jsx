@@ -149,7 +149,19 @@ export default function Onboarding() {
     }, 800);
     return () => clearTimeout(handle);
      
-  }, [profileData, existingProfileId, checkingProfile, saving, finalising, generatingRoles]);
+    // 2026-05-28 Eli-incident fix: experiences/educations/projects MUST be
+    // in the dep array. Previously the closure captured these state arrays
+    // when the effect ran AFTER profileData hydrated, but BEFORE
+    // checkExistingProfile's parallel queries had setExperiences/etc.
+    // → the 800ms timer fired with empty arrays → cleanProfilePayload
+    // produced a skills_canonical computed from JUST profile.skills →
+    // clobbered the existing rich canonical set. Adding these as deps
+    // re-schedules the timer (cleanup cancels stale ones) whenever
+    // hydration completes for any source, so the last save always sees
+    // complete data. Cache pollution on ["experiences", uid] was the
+    // primary cause for Eli, but this race could still bite anyone who
+    // edits profileData during onboarding hydration.
+  }, [profileData, experiences, educations, projects, existingProfileId, checkingProfile, saving, finalising, generatingRoles]);
 
   const checkExistingProfile = async () => {
     if (!user) { setCheckingProfile(false); return; }

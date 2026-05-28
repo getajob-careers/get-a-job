@@ -21,6 +21,7 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
+import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { invalidateAfterCareerAnalysis } from "@/lib/invalidateAfterCareerAnalysis";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -489,11 +490,7 @@ export default function Home() {
     enabled: !!user?.id,
   });
 
-  const { data: experiences = [] } = useQuery({
-    queryKey: ["experiences", user?.id],
-    queryFn: async () => (await supabase.from("experiences").select("*").eq("user_id", user.id)).data || [],
-    enabled: !!user?.id,
-  });
+  const { data: experiences = [] } = useExperiencesQuery(user?.id);
   const { data: certifications = [] } = useQuery({
     queryKey: ["certifications", user?.id],
     queryFn: async () => (await supabase.from("certifications").select("*").eq("user_id", user.id)).data || [],

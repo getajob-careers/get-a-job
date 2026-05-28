@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { aggregateProfileSkills } from "@/lib/skillAggregation";
+import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import EducationTab from "@/components/profile/EducationTab";
 import { PROFILE_CSS } from "@/components/profile/profileStyles";
@@ -257,17 +258,7 @@ export default function Profile() {
     initialData: [],
   });
 
-  const { data: experiences, isLoading: loadingExp } = useQuery({
-    queryKey: ["experiences", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase.from("experiences").select("*").eq("user_id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-    initialData: [],
-  });
+  const { data: experiences = [], isLoading: loadingExp } = useExperiencesQuery(user?.id);
 
   // Stories — only used here for the inline story-count pill per experience
   // and the Story Bank summary card. Create/edit/delete moved to /StoryBank.
@@ -373,10 +364,9 @@ export default function Profile() {
     // per-experience skills_used + tools_used, per-education skills_developed,
     // per-project skills_demonstrated. Same union as Onboarding's
     // cleanProfilePayload so both surfaces produce consistent IDs for
-    // scoreJobFit. Per-object edits (addExperience, EducationTab save, etc.)
-    // don't auto-recompute today — stale until next saveProfile or page reload.
-    // Acceptable v1 limitation; if it bites, add a small recomputeSkillsCanonical
-    // helper called after each per-object write.
+    // scoreJobFit. addExperience also recomputes skills_canonical
+    // independently (2026-05-28 Eli-incident fix). EducationTab and
+    // addProject still rely on next saveProfile to roll up.
     const { data: educationsRows } = await supabase
       .from("education").select("skills_developed").eq("user_id", user.id);
     const { canonical: skills_canonical, unmapped: skills_unmapped } =
@@ -515,6 +505,40 @@ export default function Profile() {
     const wasEdit = Boolean(id);
     resetExpForm();
     queryClient.invalidateQueries({ queryKey: ["experiences"] });
+
+    // 2026-05-28 Eli-incident fix: per-experience edits MUST recompute
+    // profiles.skills_canonical immediately. Previously this only happened
+    // on saveProfile, so users editing skills_used / tools_used per
+    // experience would see their canonical set go stale until the next
+    // explicit save. If the cache then got poisoned by a narrow projection
+    // (pre-PR #176) and saveProfile fired with stale row data,
+    // skills_canonical collapsed to just the catch-all profile.skills set.
+    // Aggregate from FRESH DB rows, not cache, to avoid any race.
+    try {
+      const [{ data: freshExperiences }, { data: freshEducations }] = await Promise.all([
+        supabase.from("experiences").select("*").eq("user_id", user.id),
+        supabase.from("education").select("skills_developed").eq("user_id", user.id),
+      ]);
+      const { canonical: skills_canonical, unmapped: skills_unmapped } =
+        aggregateProfileSkills({
+          profileSkills: profileForm.skills || [],
+          experiences: freshExperiences || [],
+          educations: freshEducations || [],
+          projects: projects || [],
+        });
+      const { error: profUpdateError } = await supabase
+        .from("profiles")
+        .update({ skills_canonical, skills_unmapped })
+        .eq("id", user.id);
+      if (profUpdateError) {
+        console.error("Failed to recompute skills_canonical after experience save:", profUpdateError);
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+      }
+    } catch (recomputeErr) {
+      console.error("skills_canonical recomputation threw:", recomputeErr);
+    }
+
     toast.success(wasEdit ? "Experience updated." : "Experience added.");
   };
 

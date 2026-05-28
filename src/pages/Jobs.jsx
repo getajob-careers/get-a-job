@@ -3,6 +3,8 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
+import { useExperiencesQuery } from "@/lib/queries/useExperiences";
+import { useEducationQuery } from "@/lib/queries/useEducation";
 import { Link, useSearchParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Loader2, Briefcase, Search, RefreshCw } from "lucide-react";
@@ -55,12 +57,7 @@ export default function JobSuggestions() {
 
   // Profile + roles for the staleness banner + seniority inference
   const { data: profile } = useProfileQuery(user?.id);
-  const { data: experiences = [] } = useQuery({
-    queryKey: ["experiences", user?.id],
-    queryFn: async () => (await supabase.from("experiences").select("*").eq("user_id", user.id)).data || [],
-    enabled: !!user?.id,
-    staleTime: PROFILE_STALE_TIME,
-  });
+  const { data: experiences = [] } = useExperiencesQuery(user?.id);
   const { data: certifications = [] } = useQuery({
     queryKey: ["certifications", user?.id],
     queryFn: async () => (await supabase.from("certifications").select("*").eq("user_id", user.id)).data || [],
@@ -73,12 +70,7 @@ export default function JobSuggestions() {
     enabled: !!user?.id,
     staleTime: PROFILE_STALE_TIME,
   });
-  const { data: educations = [] } = useQuery({
-    queryKey: ["education", user?.id],
-    queryFn: async () => (await supabase.from("education").select("*").eq("user_id", user.id)).data || [],
-    enabled: !!user?.id,
-    staleTime: PROFILE_STALE_TIME,
-  });
+  const { data: educations = [] } = useEducationQuery(user?.id);
   const stale = isAnalysisStale({ profile, experiences, certifications, projects });
 
   const experienceLevel = useMemo(
