@@ -12,6 +12,7 @@ export default function CompanyBrowseGrid({
   page,
   pageSize,
   onLoadMore,
+  onCardClick,
 }) {
   const total = companies.length;
   const visibleCount = Math.min(page * pageSize, total);
@@ -39,6 +40,7 @@ export default function CompanyBrowseGrid({
             company={c}
             score={scoresById.get(c.id)}
             suggestedRole={suggestedRole}
+            onClick={onCardClick}
           />
         ))}
       </div>
