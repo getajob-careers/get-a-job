@@ -3,7 +3,7 @@ import { supabase } from "@/api/supabaseClient";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { ExternalLink, MessageSquare } from "lucide-react";
 import { STATUSES, STATUS_LABELS } from "./constants";
 import { Link } from "react-router-dom";
@@ -158,9 +158,12 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <div className="space-y-6 pt-2">
-          {/* Header */}
+          {/* Header — h2 is also the Radix DialogTitle so screen readers
+              announce the company name when the drawer opens. */}
           <div>
-            <h2 className="text-lg font-semibold text-[#0E1014] mb-1">{company.name || "Unnamed company"}</h2>
+            <SheetTitle asChild>
+              <h2 className="text-lg font-semibold text-[#0E1014] mb-1">{company.name || "Unnamed company"}</h2>
+            </SheetTitle>
             <p className="text-sm text-[#52545A]">
               {[company.sector, company.stage, company.hq_city].filter(Boolean).join(" · ") || "No company metadata yet."}
             </p>
