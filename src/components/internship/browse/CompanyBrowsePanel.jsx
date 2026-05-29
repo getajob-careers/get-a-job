@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
@@ -10,6 +10,7 @@ import { ruleScore } from "@/lib/internshipRuleScore";
 import { applyFilters } from "./applyFilters";
 import CompanyBrowseFilters from "./CompanyBrowseFilters";
 import CompanyBrowseGrid from "./CompanyBrowseGrid";
+import CompanyDetailDrawer from "./CompanyDetailDrawer";
 
 const PAGE_SIZE = 50;
 
@@ -98,6 +99,27 @@ export default function CompanyBrowsePanel() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
+  // Drawer state — URL-driven so back button closes the drawer, links
+  // are shareable, deep-links auto-open the drawer on page load.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const openCompanyId = searchParams.get("company");
+  const openCompany = openCompanyId ? companies.find((c) => c.id === openCompanyId) ?? null : null;
+
+  const openDrawer = (c) => {
+    setSearchParams((sp) => {
+      const next = new URLSearchParams(sp);
+      next.set("company", c.id);
+      return next;
+    });
+  };
+  const closeDrawer = () => {
+    setSearchParams((sp) => {
+      const next = new URLSearchParams(sp);
+      next.delete("company");
+      return next;
+    });
+  };
+
   // Reset pagination whenever filters / search change so the user
   // doesn't end up scrolled past the new shorter result set.
   useEffect(() => {
@@ -157,6 +179,13 @@ export default function CompanyBrowsePanel() {
         page={page}
         pageSize={PAGE_SIZE}
         onLoadMore={() => setPage((p) => p + 1)}
+        onCardClick={openDrawer}
+      />
+
+      <CompanyDetailDrawer
+        company={openCompany}
+        open={!!openCompany}
+        onClose={closeDrawer}
       />
     </>
   );

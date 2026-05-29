@@ -3,6 +3,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
 import { ruleScore } from '../_shared/internship-rule-score.ts'
+import {
+  buildSystemPrompt,
+  buildUserPrompt,
+  normalizeScoredCompany as sharedNormalizeScoredCompany,
+  type ScoredPitch,
+} from '../_shared/internship-pitch.ts'
 
 // match-internship-companies — Wk 4 Strategic Internship Finder matcher.
 //
@@ -86,15 +92,12 @@ interface PreScoredCompany extends Company {
   rule_score: number
 }
 
-interface LlmScoredCompany {
-  company_id: string
-  fit_score: number
-  career_compound_score: number
-  fit_rationale: string
-  pitched_role: string
-  pitch_rationale: string
-  skill_gaps_this_fills: string[]
-}
+// LlmScoredCompany kept as a name-stable alias of the shared ScoredPitch
+// (which now includes `who_to_contact`). Existing call sites in this
+// file destructure only the fields they need, so the extra field passes
+// through harmlessly without DB schema changes — company_targets table
+// doesn't have a who_to_contact column today (deferred to PR5).
+type LlmScoredCompany = ScoredPitch
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -255,57 +258,14 @@ Deno.serve(async (req) => {
       })),
     }
 
-    const systemPrompt = `You are an internship strategy advisor for "Get A Job," a career operating system for early-career professionals entering tech roles. The student has a PITCH STRATEGY (internship_profile) describing what KINDS of companies are realistic for them, what role archetypes they can pitch given today's strengths, and how this internship serves their long-term career.
-
-You will score CANDIDATE COMPANIES against this strategy. Return TWO scores per company and a specific pitch recommendation.
-
-SCORING RUBRIC — use these discrete bands, do not hedge in the middle.
-
-fit_score (0-100) — how well this company matches the realistic_* targets:
-  85-100  Obvious fit. Multiple strong matches on stage / sector / signals. Student walks in with a clear story.
-  70-84   Real fit with one or two caveats. Worth pitching; rationale should name the caveat.
-  50-69   Stretch fit. Defensible but requires the student to bridge a gap. Rationale must name the strongest hook.
-  0-49    Weak fit. Skip unless the candidate_companies list is thin.
-
-career_compound_score (0-100) — how much an internship at THIS specific company serves the student's long-term Track 1 path (career_compound_rationale + track_1_role_alignment):
-  85-100  Strong compound. The role archetypes pitchable here close named skill_gaps_to_close and align with track_1_role_alignment.
-  70-84   Solid compound. Closes some gaps; partial alignment.
-  50-69   Weak compound. Doesn't hurt the path but doesn't accelerate it.
-  0-49    Anti-compound. Pulls the student sideways; rationale should name what would be lost.
-
-RULES:
-- Do not output any score in the 60-65 hedge band unless you can name the specific signal that makes it borderline. Force yourself to commit.
-- A company can have fit_score 85 and career_compound_score 55 (great fit, weak long-term move) — these are independent. Score them independently.
-- pitched_role must be GROUNDED in pitch_strength_signals — the student's actual current strengths, not aspirations. "User research support for the CS team" not "Senior PM". Reference specific signals when possible.
-- pitch_rationale: 1-2 sentences. WHY this role at THIS company given the student's signals. Concrete, not generic.
-- skill_gaps_this_fills: pick 1-3 items from internship_profile.skill_gaps_to_close that this specific company + role would actually close. Empty array if none.
-- fit_rationale: 1 sentence naming the primary signal driving the fit_score (the hook OR the caveat).
-- Honour pitch_anti_patterns — if a company would push the student into one of those patterns, that's a fit caveat or career_compound hit.
-
-Output ONLY valid JSON in this exact shape:
-{
-  "scored": [
-    {
-      "company_id": "<uuid from input>",
-      "fit_score": <number 0-100>,
-      "career_compound_score": <number 0-100>,
-      "fit_rationale": "<string>",
-      "pitched_role": "<string>",
-      "pitch_rationale": "<string>",
-      "skill_gaps_this_fills": ["<string>", ...]
-    },
-    ...
-  ]
-}
-
-One object per input company. Same order is fine but not required — we match by company_id.`
-
-    const userPrompt = `Score the candidate companies for this student.
-
-INPUT:
-${JSON.stringify(llmInput, null, 2)}
-
-Return ONLY valid JSON.`
+    // Pitch prompt + parser lives in _shared/internship-pitch.ts — same
+    // strings the new drawer (generate-internship-pitch) calls so the
+    // batched top-30 and the single-company drawer pitch can never
+    // disagree. PR4 extracted these unchanged (byte-identity tests at
+    // _shared/internship-pitch.test.ts lock the matcher's prompt
+    // behavior in place across the refactor).
+    const systemPrompt = buildSystemPrompt({ includeWhoToContact: true })
+    const userPrompt = buildUserPrompt(llmInput)
 
     const sessionId = `match-internship-${user.id}-${Date.now()}`
     const openaiResponse = await openaiChatCompletion(
@@ -363,7 +323,7 @@ Return ONLY valid JSON.`
     const rawScored = Array.isArray(parsed?.scored) ? parsed.scored : []
     const scored: LlmScoredCompany[] = []
     for (const r of rawScored) {
-      const norm = normalizeScoredCompany(r, validCompanyIds)
+      const norm = sharedNormalizeScoredCompany(r, validCompanyIds)
       if (norm) scored.push(norm)
     }
 
@@ -513,55 +473,7 @@ Return ONLY valid JSON.`
 // chip never disagree. See that file for weights and rationale.
 
 // ============================================================
-// LLM output normalisation
+// LLM output normalisation — imported from _shared/internship-pitch.ts.
+// Same anti-fab guard, score-clamp, and field caps the drawer's
+// generate-internship-pitch function uses. See that module for tests.
 // ============================================================
-//
-// Defensive parsing — never trust LLM output shape. Reject any company
-// not in the input set (anti-fab guard), clamp scores into 0-100, cap
-// string lengths, validate array shape.
-
-function normalizeScoredCompany(
-  raw: any,
-  validIds: Set<string>,
-): LlmScoredCompany | null {
-  if (!raw || typeof raw !== 'object') return null
-  const company_id = typeof raw.company_id === 'string' ? raw.company_id : null
-  if (!company_id || !validIds.has(company_id)) return null
-
-  const fit_score = clampScore(raw.fit_score)
-  const career_compound_score = clampScore(raw.career_compound_score)
-  if (fit_score === null || career_compound_score === null) return null
-
-  const fit_rationale = typeof raw.fit_rationale === 'string'
-    ? raw.fit_rationale.trim().slice(0, 500) : ''
-  const pitched_role = typeof raw.pitched_role === 'string'
-    ? raw.pitched_role.trim().slice(0, 200) : ''
-  const pitch_rationale = typeof raw.pitch_rationale === 'string'
-    ? raw.pitch_rationale.trim().slice(0, 600) : ''
-
-  if (!fit_rationale || !pitched_role || !pitch_rationale) return null
-
-  const skill_gaps_this_fills = Array.isArray(raw.skill_gaps_this_fills)
-    ? raw.skill_gaps_this_fills
-        .filter((g: unknown) => typeof g === 'string' && g.trim().length > 0)
-        .map((g: string) => g.trim().slice(0, 100))
-        .slice(0, 5)
-    : []
-
-  return {
-    company_id,
-    fit_score,
-    career_compound_score,
-    fit_rationale,
-    pitched_role,
-    pitch_rationale,
-    skill_gaps_this_fills,
-  }
-}
-
-function clampScore(v: unknown): number | null {
-  if (typeof v !== 'number' || !Number.isFinite(v)) return null
-  if (v < 0) return 0
-  if (v > 100) return 100
-  return Math.round(v * 100) / 100
-}

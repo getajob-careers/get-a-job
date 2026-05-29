@@ -25,9 +25,14 @@ export const BROWSE_CSS = `
 @media (min-width: 760px) { .brz-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (min-width: 1100px) { .brz-grid { grid-template-columns: repeat(3, 1fr); gap: 14px; } }
 
-/* Browse card */
-.brz-card { background: var(--act-card); border: 1px solid var(--act-line); border-radius: var(--act-radius); padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.15s ease; min-height: 220px; }
+/* Browse card. Rendered as a <button> on the browse panel so the whole
+   card is one click target — reset button defaults (no system styling,
+   left-aligned, inherit color, pointer cursor, text-align left). */
+.brz-card { background: var(--act-card); border: 1px solid var(--act-line); border-radius: var(--act-radius); padding: 18px; display: flex; flex-direction: column; gap: 10px; transition: border-color 0.15s ease, transform 0.15s ease; min-height: 220px; text-align: left; color: inherit; font: inherit; width: 100%; }
 .brz-card:hover { border-color: var(--act-accent); }
+.brz-card-clickable { cursor: pointer; }
+.brz-card-clickable:focus-visible { outline: 2px solid var(--act-accent); outline-offset: 2px; }
+.brz-card-clickable:active { transform: scale(0.998); }
 .brz-card-eyebrow { display: flex; align-items: center; gap: 8px; min-height: 16px; }
 .brz-card-origin { font-family: var(--act-font-mono); font-size: 10.5px; color: var(--act-ink-faded); letter-spacing: 0.08em; text-transform: uppercase; }
 .brz-card-live { font-family: var(--act-font-mono); font-size: 10px; font-weight: 600; color: var(--act-accent-deep); letter-spacing: 0.08em; text-transform: uppercase; padding: 2px 8px; background: var(--act-accent-tint); border-radius: 100px; }

@@ -2,15 +2,15 @@ import React from "react";
 import { ORIGIN_FILTERS } from "./filterConfig";
 import { scoreTier } from "@/lib/internshipRuleScore";
 
-// Display-only browse card (PR2). Click is a no-op — the detail drawer
-// arrives in PR3. Degrades cleanly on the 428 source='registry' rows
-// that have NULL description/stage/size/sector: show only what exists,
-// no placeholder text except for description.
+// Browse card. Click opens CompanyDetailDrawer (PR4 wiring). Card is
+// a <button> for accessibility; onClick goes up to the Panel which
+// owns drawer state. Degrades cleanly on rows with NULL fields.
 //
 // Score chip styling per spec D5: ≥70 coral solid, 40-69 warm-slate
 // outline, <40 muted, null='—' dashed outline (no internship_profile).
-// Suggested role chip is the student's own target (consistent across
-// all cards on the page — pitch arrives in PR3).
+// Note: the chip score is rule_score (cheap, deterministic); the
+// drawer surfaces the LLM combined score. Reconcile in the rule-score
+// "doesn't differentiate" fix (deferred per P1).
 
 const ORIGIN_LABEL_BY_ID = new Map(ORIGIN_FILTERS.map((o) => [o.id, o.label]));
 
@@ -40,14 +40,19 @@ function ScoreChip({ score }) {
   );
 }
 
-export default function CompanyBrowseCard({ company, score, suggestedRole }) {
+export default function CompanyBrowseCard({ company, score, suggestedRole, onClick }) {
   const originLabel = ORIGIN_LABEL_BY_ID.get(company.origin);
   const hasLiveJobs = company.verified === true && company.ats && company.ats !== "unknown";
   const sectorOrIndustry = company.sector || company.industry;
   const location = formatLocation(company.hq_city, company.hq_country);
 
   return (
-    <article className="brz-card">
+    <button
+      type="button"
+      onClick={() => onClick?.(company)}
+      className="brz-card brz-card-clickable"
+      aria-label={`Open ${company.name} details`}
+    >
       <div className="brz-card-eyebrow">
         {originLabel && <span className="brz-card-origin">{originLabel}</span>}
         {hasLiveJobs && <span className="brz-card-live" aria-label="Has live job postings">Live jobs</span>}
@@ -71,6 +76,6 @@ export default function CompanyBrowseCard({ company, score, suggestedRole }) {
           </span>
         )}
       </div>
-    </article>
+    </button>
   );
 }
