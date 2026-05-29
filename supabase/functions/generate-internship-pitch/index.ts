@@ -4,10 +4,11 @@ import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
 import { sha256Hex } from '../_shared/content-hash.ts'
 import {
-  buildSystemPrompt,
+  PITCH_SYSTEM_PROMPT,
   buildUserPrompt,
-  normalizeScoredCompany,
+  normalizeScoredPitch,
   type ScoredPitch,
+  PITCH_PROMPT_VERSION,
 } from '../_shared/internship-pitch.ts'
 
 // generate-internship-pitch — single-company pitch generator for the
@@ -75,6 +76,17 @@ interface CacheInputs {
     stage: string
     description: string
   }
+  // PR8 additions:
+  //   preset_pitched_role  — Pipeline drawer passes the matcher's role
+  //     so the prose is grounded against THAT role; Browse drawer
+  //     omits it, letting the model choose. Differing role hints
+  //     produce distinct cache rows (correct — they're different
+  //     asks).
+  //   prompt_version       — bumped when PITCH_SYSTEM_PROMPT shifts in
+  //     a way that should refresh cached pitches. PR8 bumps to 2,
+  //     lazily invalidating PR4-7 cache entries on next access.
+  preset_pitched_role: string
+  prompt_version: number
   model: string
 }
 
@@ -89,6 +101,7 @@ function buildCacheInputs(
   experiences: Array<Record<string, unknown>>,
   internshipProfile: Record<string, unknown>,
   company: Record<string, unknown>,
+  presetPitchedRole: string,
 ): CacheInputs {
   return {
     profile: {
@@ -118,6 +131,8 @@ function buildCacheInputs(
       stage:       trunc(company.stage, 60),
       description: trunc(company.description, 400),
     },
+    preset_pitched_role: trunc(presetPitchedRole, 200),
+    prompt_version: PITCH_PROMPT_VERSION,
     model: MODEL,
   }
 }
@@ -166,7 +181,7 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
     )
 
-    let body: { company_id?: string; force?: boolean } = {}
+    let body: { company_id?: string; force?: boolean; pitched_role?: string } = {}
     try {
       body = await req.json()
     } catch {
@@ -174,6 +189,15 @@ Deno.serve(async (req) => {
     }
     const companyId = body.company_id
     const force = body.force === true
+    // PR8: optional pitched_role hint from the Pipeline drawer. When the
+    // user opens a matched row, the matcher's chosen role is passed
+    // through so the prose is grounded against that exact role. Browse
+    // omits it; the model picks freely. Trim + cap to match the
+    // matcher's pitched_role field; reject pathological strings rather
+    // than truncating silently into surprise prose.
+    const presetPitchedRole = typeof body.pitched_role === 'string'
+      ? body.pitched_role.trim().slice(0, 200)
+      : ''
     if (!companyId || typeof companyId !== 'string') {
       _http = 400; _err = 'no_company_id'
       return new Response(JSON.stringify({ error: 'company_id required.' }), {
@@ -228,6 +252,7 @@ Deno.serve(async (req) => {
       experiences as Array<Record<string, unknown>>,
       internshipProfile as Record<string, unknown>,
       company as Record<string, unknown>,
+      presetPitchedRole,
     )
     const inputHash = await sha256Hex(cacheInputs)
 
@@ -268,9 +293,10 @@ Deno.serve(async (req) => {
     }
 
     // ── LLM call ─────────────────────────────────────────────────────
-    // Shared prompt builder — same strings the matcher uses, plus the
-    // PR4 who_to_contact extension. One company per request, wrapped in
-    // a "scored" array to match the schema the parser expects.
+    // PR8: single-company prose generator. preset_pitched_role is
+    // threaded into the LLM input when the Pipeline drawer passes one;
+    // omitted (empty string) when called from Browse. The PITCH prompt
+    // reads it and either echoes the role verbatim or picks its own.
     const ip = internshipProfile as Record<string, unknown>
     const llmInput = {
       internship_profile: {
@@ -285,6 +311,7 @@ Deno.serve(async (req) => {
         career_compound_rationale: ip.career_compound_rationale,
         track_1_role_alignment:    ip.track_1_role_alignment,
       },
+      preset_pitched_role: presetPitchedRole || null,
       candidate_companies: [{
         company_id:           company.id,
         name:                 company.name,
@@ -300,7 +327,7 @@ Deno.serve(async (req) => {
       }],
     }
 
-    const systemPrompt = buildSystemPrompt({ includeWhoToContact: true })
+    const systemPrompt = PITCH_SYSTEM_PROMPT
     const userPrompt = buildUserPrompt(llmInput)
 
     const sessionId = `internship-pitch-${user.id}-${Date.now()}`
@@ -352,7 +379,7 @@ Deno.serve(async (req) => {
     }
 
     const raw = Array.isArray(parsed.scored) ? parsed.scored[0] : null
-    const pitch: ScoredPitch | null = normalizeScoredCompany(raw, new Set([companyId]))
+    const pitch: ScoredPitch | null = normalizeScoredPitch(raw, new Set([companyId]))
     if (!pitch) {
       _http = 502; _err = 'no_valid_pitch'
       return new Response(JSON.stringify({ error: 'AI returned no valid pitch. Please try again.' }), {

@@ -65,17 +65,50 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
     enabled: open && !!target?.id,
   });
 
+  // PR8: pitch prose now lives in generate-internship-pitch + the
+  // internship_pitches cache, same pattern Browse uses. We pass
+  // target.pitched_role as a hint so the prose is grounded against the
+  // matcher's chosen role (the hint folds into the cache input_hash,
+  // so distinct roles produce distinct cache entries). First open of an
+  // existing row is one cache miss; subsequent opens are cached.
+  const companyIdForPitch = target?.companies?.id ?? null;
+  const pitchQuery = useQuery({
+    queryKey: ["internship_pitch", user?.id, companyIdForPitch, target?.pitched_role ?? null],
+    queryFn: async () => {
+      const { data, error } = await supabase.functions.invoke(
+        "generate-internship-pitch",
+        {
+          body: {
+            company_id: companyIdForPitch,
+            pitched_role: target?.pitched_role || undefined,
+          },
+        },
+      );
+      if (error) {
+        const status = error?.context?.status;
+        if (status === 400) throw new Error(error?.context?.error || "Pitch profile missing.");
+        if (status === 429) throw new Error("Rate limit reached — try again in a few minutes.");
+        throw new Error("Couldn't generate the pitch. Please try again.");
+      }
+      return data?.pitch ?? null;
+    },
+    enabled: open && !!user?.id && !!companyIdForPitch && target?.source === "matched",
+    staleTime: 30 * 60 * 1000,
+    retry: false,
+  });
+
   if (!target) return null;
 
   const company = target.companies || {};
   const score = target.match_score;
   const band = bandForLlmScore(score);
   const showBand = target.source === "matched" && score != null;
-  const hasPitch =
-    !!target.pitched_role ||
-    !!target.pitch_rationale ||
-    (Array.isArray(target.who_to_contact) && target.who_to_contact.length > 0) ||
-    (Array.isArray(target.skill_gaps_this_fills) && target.skill_gaps_this_fills.length > 0);
+  // PitchSection consumes: pitched_role (from row, always present for
+  // matched rows post-PR8), plus prose fetched on-demand. Loading
+  // state surfaces via pitchQuery.isLoading; PitchSection renders its
+  // own skeleton then.
+  const pitchForSection = pitchQuery.data ?? (target.pitched_role ? { pitched_role: target.pitched_role } : null);
+  const showPitchSection = target.source === "matched" && (!!target.pitched_role || pitchQuery.isLoading);
 
   const handleSaveStatus = async () => {
     if (pendingStatus === target.status && !pendingNote.trim()) {
@@ -190,10 +223,15 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
             </Section>
           )}
 
-          {/* Pitch — shared with browse drawer */}
-          {hasPitch && (
+          {/* Pitch — fetched on demand via generate-internship-pitch
+              (PR8). Same shared PitchSection Browse uses. */}
+          {showPitchSection && (
             <Section title="Your pitch">
-              <PitchSection pitch={target} />
+              <PitchSection
+                pitch={pitchForSection}
+                loading={pitchQuery.isLoading}
+                error={pitchQuery.error}
+              />
             </Section>
           )}
 

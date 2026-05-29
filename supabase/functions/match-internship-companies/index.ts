@@ -4,10 +4,10 @@ import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
 import { ruleScore } from '../_shared/internship-rule-score.ts'
 import {
-  buildSystemPrompt,
+  MATCHER_SYSTEM_PROMPT,
   buildUserPrompt,
-  normalizeScoredCompany as sharedNormalizeScoredCompany,
-  type ScoredPitch,
+  normalizeScoredMatch as sharedNormalizeScoredMatch,
+  type ScoredMatch,
 } from '../_shared/internship-pitch.ts'
 
 // match-internship-companies — Wk 4 Strategic Internship Finder matcher.
@@ -104,11 +104,12 @@ interface PreScoredCompany extends Company {
   rule_score: number
 }
 
-// LlmScoredCompany kept as a name-stable alias of the shared ScoredPitch.
-// PR6 collapsed the two-score model into a single match_score; the alias
-// continues to forward whatever the shared module exports. Call sites in
-// this file destructure only the fields they actually persist.
-type LlmScoredCompany = ScoredPitch
+// LlmScoredCompany aliases ScoredMatch (PR8). The matcher emits a
+// narrow shape now — match_score + match_rationale + pitched_role —
+// and the verbose prose (pitch_rationale, skill_gaps_this_fills,
+// who_to_contact) moves to generate-internship-pitch, called by the
+// Pipeline drawer on demand with this pitched_role as a hint.
+type LlmScoredCompany = ScoredMatch
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -269,13 +270,15 @@ Deno.serve(async (req) => {
       })),
     }
 
-    // Pitch prompt + parser lives in _shared/internship-pitch.ts — same
-    // strings the new drawer (generate-internship-pitch) calls so the
-    // batched top-30 and the single-company drawer pitch can never
-    // disagree. PR4 extracted these unchanged (byte-identity tests at
-    // _shared/internship-pitch.test.ts lock the matcher's prompt
-    // behavior in place across the refactor).
-    const systemPrompt = buildSystemPrompt({ includeWhoToContact: true })
+    // PR8: matcher uses the dedicated MATCHER_SYSTEM_PROMPT (score +
+    // match_rationale + pitched_role only). Prose was moved to
+    // generate-internship-pitch, called on demand by the Pipeline
+    // drawer with this pitched_role as a hint. Output dropped from
+    // ~5,400 → ~2,100 tokens — cap pressure is gone permanently.
+    // max_tokens stays at 6000 (per Eli): a tight cap above expected
+    // output is the exact failure we're removing; the cap costs
+    // nothing when unused.
+    const systemPrompt = MATCHER_SYSTEM_PROMPT
     const userPrompt = buildUserPrompt(llmInput)
 
     const sessionId = `match-internship-${user.id}-${Date.now()}`
@@ -287,12 +290,6 @@ Deno.serve(async (req) => {
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.3,
-        // PR7 hotfix: bumped 4000 → 6000. PR6's rubric is slightly
-        // more verbose per band, which pushed gpt-4o to write longer
-        // match_rationale strings — at 30 companies that capped out
-        // exactly at 4000 tokens and truncated mid-JSON (function
-        // metrics caught it: tokens_out=4000, error_code=json_parse).
-        // 6000 leaves comfortable headroom; cost delta is ~$0.02/run.
         max_tokens: 6000,
         response_format: { type: 'json_object' },
       },
@@ -340,7 +337,7 @@ Deno.serve(async (req) => {
     const rawScored = Array.isArray(parsed?.scored) ? parsed.scored : []
     const scored: LlmScoredCompany[] = []
     for (const r of rawScored) {
-      const norm = sharedNormalizeScoredCompany(r, validCompanyIds)
+      const norm = sharedNormalizeScoredMatch(r, validCompanyIds)
       if (norm) scored.push(norm)
     }
 
@@ -399,6 +396,12 @@ Deno.serve(async (req) => {
       const existing = existingByCompanyId.get(s.company_id)
 
       if (!existing) {
+        // PR8: write only score + 1-line rationale + pitched_role. The
+        // prose columns (pitch_rationale / skill_gaps_this_fills /
+        // who_to_contact) are now generated on-demand by the Pipeline
+        // drawer via generate-internship-pitch using pitched_role as a
+        // hint. Columns remain nullable on company_targets — they're
+        // deprecated, dropped in a follow-up PR after a week of green.
         const { error } = await supabase
           .from('company_targets')
           .insert({
@@ -408,9 +411,6 @@ Deno.serve(async (req) => {
             match_score: s.match_score,
             match_rationale: s.match_rationale,
             pitched_role: s.pitched_role,
-            pitch_rationale: s.pitch_rationale,
-            skill_gaps_this_fills: s.skill_gaps_this_fills,
-            who_to_contact: s.who_to_contact,
             status: 'exploring',
           })
         if (error) {
@@ -430,8 +430,12 @@ Deno.serve(async (req) => {
         continue
       }
 
-      // Matched row: always refresh AI signal (scores + fit_rationale).
-      // Only refresh pitch fields if user hasn't invested.
+      // Matched row: always refresh AI signal (scores + match_rationale).
+      // Only refresh pitched_role if user hasn't invested in the row —
+      // once they've moved it past 'exploring' or written notes, their
+      // pitch direction is theirs. PR8: pitch prose moved to the on-
+      // demand drawer; the matcher no longer touches the deprecated
+      // pitch_rationale/skill_gaps/who_to_contact columns.
       const userInvested = existing.status !== 'exploring' || (existing.notes && existing.notes.trim().length > 0)
 
       const patch: Record<string, unknown> = {
@@ -440,9 +444,6 @@ Deno.serve(async (req) => {
       }
       if (!userInvested) {
         patch.pitched_role = s.pitched_role
-        patch.pitch_rationale = s.pitch_rationale
-        patch.skill_gaps_this_fills = s.skill_gaps_this_fills
-        patch.who_to_contact = s.who_to_contact
       }
 
       const { error } = await supabase
