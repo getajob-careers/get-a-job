@@ -16,7 +16,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createPageUrl } from "@/utils";
 import { ORIGIN_FILTERS } from "./filterConfig";
-import { combinedScore, bandForLlmScore, BAND_LABELS } from "./scoreHelpers";
+import { bandForLlmScore, BAND_LABELS } from "./scoreHelpers";
 import PitchSection from "../PitchSection";
 
 // Browse-side detail drawer. Sections:
@@ -90,7 +90,7 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
   const location = formatLocation(company.hq_city, company.hq_country);
   const sectorOrIndustry = company.sector || company.industry;
   const pitch = pitchQuery.data;
-  const score = combinedScore(pitch);
+  const score = pitch?.match_score ?? null;
   const band = bandForLlmScore(score);
 
   const handleRefresh = async () => {
@@ -192,8 +192,8 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
 
           <Section title="Match">
             <BandTile band={band} loading={pitchQuery.isLoading} />
-            {pitch?.fit_rationale && (
-              <p className="text-xs text-[#52545A] leading-relaxed mt-2">{pitch.fit_rationale}</p>
+            {pitch?.match_rationale && (
+              <p className="text-xs text-[#52545A] leading-relaxed mt-2">{pitch.match_rationale}</p>
             )}
           </Section>
 

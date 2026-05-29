@@ -10,7 +10,6 @@ import { Link } from "react-router-dom";
 import { track, EVENTS } from "@/lib/analytics";
 import { createPageUrl } from "@/utils";
 import {
-  combinedScore,
   bandForLlmScore,
   BAND_LABELS,
 } from "./browse/scoreHelpers";
@@ -69,7 +68,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
   if (!target) return null;
 
   const company = target.companies || {};
-  const score = combinedScore(target);
+  const score = target.match_score;
   const band = bandForLlmScore(score);
   const showBand = target.source === "matched" && score != null;
   const hasPitch =
@@ -182,8 +181,8 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
           {showBand && (
             <Section title="Match">
               <BandTile band={band} />
-              {target.fit_rationale && (
-                <p className="text-xs text-[#52545A] leading-relaxed mt-2">{target.fit_rationale}</p>
+              {target.match_rationale && (
+                <p className="text-xs text-[#52545A] leading-relaxed mt-2">{target.match_rationale}</p>
               )}
             </Section>
           )}

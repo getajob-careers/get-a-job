@@ -123,8 +123,8 @@ export default function Internship() {
       const { data, error } = await supabase
         .from("company_targets")
         .select(`
-          id, status, source, fit_score, career_compound_score,
-          fit_rationale, pitched_role, pitch_rationale, skill_gaps_this_fills,
+          id, status, source, match_score, match_rationale,
+          pitched_role, pitch_rationale, skill_gaps_this_fills,
           who_to_contact,
           notes, created_at, updated_at,
           companies (
@@ -133,7 +133,7 @@ export default function Internship() {
           )
         `)
         .eq("user_id", user.id)
-        .order("fit_score", { ascending: false, nullsFirst: false });
+        .order("match_score", { ascending: false, nullsFirst: false });
       if (error) throw error;
       return data || [];
     },

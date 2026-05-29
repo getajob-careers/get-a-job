@@ -3,9 +3,17 @@
 // supabaseClient.js (which throws at module load when
 // VITE_SUPABASE_URL isn't set — CI has no .env.local).
 //
-// PR5 (score-display unification): all internship surfaces now show
-// High / Med / Low bands instead of raw numbers. Two scales, two
-// threshold sets:
+// Score history:
+//   - PR4 introduced the matcher's two-score model (fit + career_compound)
+//     and a `combinedScore` average helper used by the drawers + cards.
+//   - PR5 collapsed the UI to a single High/Med/Low band derived from
+//     that combined value, no raw numbers shown.
+//   - PR6 collapsed the underlying *data* model too: one match_score
+//     instead of two. `combinedScore` is gone; surfaces read
+//     `target.match_score` / `pitch.match_score` directly and feed it
+//     to bandForLlmScore.
+//
+// Two scales, two threshold sets:
 //
 //   RULE-BASED SCORE (5-85 range, used by browse cards)
 //     - Floor 5 (W_BASE)
@@ -15,10 +23,10 @@
 //     - Signal match: 0-15 (capped)
 //     - Realistic max: ~85 for a perfect-fit IL company
 //
-//   LLM-BASED SCORE (0-100 range, used by drawer combined + kanban)
+//   LLM-BASED SCORE (0-100 range, used by drawer + kanban)
 //     - Rubric from the matcher prompt:
 //         85+ obvious / 70+ real / 50+ stretch / 0-49 weak
-//     - Combined = round((fit + career_compound) / 2)
+//     - One score per company, absorbing both axes (post-PR6).
 //
 // The thresholds intentionally diverge — rule_score can't reliably
 // reach 70+ without all four signals aligning, while LLM scores spread
@@ -26,20 +34,6 @@
 // one needs 60 and the other needs 70 is the whole point of the band
 // abstraction: students see a consistent judgment ("High"), the model
 // underneath uses scale-appropriate cutoffs.
-
-/**
- * Average of fit_score + career_compound_score, rounded half-up.
- * Returns null when either score is missing or non-numeric.
- * Simple average per PR4 P1 — weighted scheme deferred until pilot
- * signal tells us if it matters.
- */
-export function combinedScore(pitch) {
-  if (!pitch) return null;
-  const f = Number(pitch.fit_score);
-  const c = Number(pitch.career_compound_score);
-  if (!Number.isFinite(f) || !Number.isFinite(c)) return null;
-  return Math.round((f + c) / 2);
-}
 
 /** High/Med/Low band labels — the only strings the UI should display. */
 export const BAND_LABELS = {
@@ -68,9 +62,9 @@ export const RULE_BAND_THRESHOLDS = {
 
 /** LLM-score band cutoffs for browse drawer + kanban surfaces. Scale 0-100. */
 export const LLM_BAND_THRESHOLDS = {
-  high: 70,   // matcher rubric: "Real fit" or "Obvious fit"
-  med:  50,   // matcher rubric: "Stretch fit"
-  // <50 → matcher rubric "Weak fit" → Low
+  high: 70,   // matcher rubric: "Real match" or "Obvious match"
+  med:  50,   // matcher rubric: "Stretch match"
+  // <50 → matcher rubric "Weak match" → Low
 };
 
 // ─── Band classifiers ────────────────────────────────────────────────
@@ -89,32 +83,13 @@ export function bandForRuleScore(s) {
 }
 
 /**
- * Band for an LLM-based score (drawer combined, kanban card + drawer).
- * Same return shape as bandForRuleScore. Uses the matcher rubric
- * thresholds (see top-of-file table) — these are NOT the same as the
- * rule-score cutoffs; both scales are calibrated to "High = aligned,
- * Med = stretch, Low = weak" but the underlying numbers differ.
+ * Band for an LLM-based score (drawer + kanban card/drawer). Consumes
+ * the persisted match_score directly. Same return shape as
+ * bandForRuleScore.
  */
 export function bandForLlmScore(s) {
   if (s == null || Number.isNaN(s)) return "none";
   if (s >= LLM_BAND_THRESHOLDS.high) return "high";
   if (s >= LLM_BAND_THRESHOLDS.med) return "med";
   return "low";
-}
-
-// ─── Deprecated PR4 helpers — kept as thin shims so unrelated code
-//     doesn't break, but new surfaces should use bandForLlmScore /
-//     bandForRuleScore directly. Numbers are computed but no longer
-//     displayed per the PR5 user spec.
-
-/**
- * @deprecated Use bandForLlmScore instead. Kept for legacy import
- *   sites until they migrate.
- */
-export function scoreTier(s) {
-  const b = bandForLlmScore(s);
-  if (b === "high") return "strong";
-  if (b === "med")  return "soft";
-  if (b === "low")  return "weak";
-  return "none";
 }
