@@ -11,6 +11,8 @@ import {
   isCredibleHost,
   isCredibleFor,
   extractJsonObject,
+  sizeBucketForCount,
+  hasTicker,
   ALLOWED_STAGES,
   ALLOWED_SIZES,
 } from "./enrichmentValidation";
@@ -182,6 +184,75 @@ describe("isCredibleFor — host equals stored domain → credible", () => {
   });
 });
 
+describe("sizeBucketForCount — round-3 fix 1 (size by construction)", () => {
+  it("maps boundary values to the canonical bucket", () => {
+    expect(sizeBucketForCount(1)).toBe("1-50");
+    expect(sizeBucketForCount(50)).toBe("1-50");
+    expect(sizeBucketForCount(51)).toBe("50-100");
+    expect(sizeBucketForCount(100)).toBe("50-100");
+    expect(sizeBucketForCount(101)).toBe("100-200");
+    expect(sizeBucketForCount(200)).toBe("100-200");
+    expect(sizeBucketForCount(201)).toBe("200-500");
+    expect(sizeBucketForCount(500)).toBe("200-500");
+    expect(sizeBucketForCount(501)).toBe("500-1000");
+    expect(sizeBucketForCount(1000)).toBe("500-1000");
+    expect(sizeBucketForCount(1001)).toBe("1000-5000");
+    expect(sizeBucketForCount(5000)).toBe("1000-5000");
+    expect(sizeBucketForCount(5001)).toBe("5000+");
+  });
+  it("fixes the Continental round-2 fail (78000 → 5000+, not 50-100)", () => {
+    expect(sizeBucketForCount(78000)).toBe("5000+");
+  });
+  it("handles Magenta-style precise counts", () => {
+    expect(sizeBucketForCount(120)).toBe("100-200");
+    expect(sizeBucketForCount(78)).toBe("50-100");
+  });
+  it("returns null for nullish, NaN, negative, or non-number", () => {
+    expect(sizeBucketForCount(null)).toBeNull();
+    expect(sizeBucketForCount(undefined)).toBeNull();
+    expect(sizeBucketForCount(NaN)).toBeNull();
+    expect(sizeBucketForCount(0)).toBeNull();
+    expect(sizeBucketForCount(-5)).toBeNull();
+    expect(sizeBucketForCount("100")).toBeNull();
+    expect(sizeBucketForCount(Infinity)).toBeNull();
+  });
+});
+
+describe("hasTicker — round-3 fix 2 (Public requires ticker)", () => {
+  it("detects NASDAQ tickers in any common format", () => {
+    expect(hasTicker(["The company went public on NASDAQ in 2017 under OKTA"])).toBe(true);
+    expect(hasTicker(["NASDAQ: OKTA"])).toBe(true);
+    expect(hasTicker(["(NASDAQ:AFRM)"])).toBe(true);
+    expect(hasTicker(["nasdaq okta"])).toBe(true);
+  });
+  it("detects NYSE / TASE / LSE tickers", () => {
+    expect(hasTicker(["NYSE: NET"])).toBe(true);
+    expect(hasTicker(["TASE: BEZQ"])).toBe(true);
+    expect(hasTicker(["LSE: HSBA"])).toBe(true);
+    expect(hasTicker(["TSX: SHOP"])).toBe(true);
+  });
+  it("rejects xAI-style 'acquired X' snippet (the round-2 fail)", () => {
+    // No exchange code → no ticker
+    expect(hasTicker(["xAI acquired X (formerly Twitter) in an all-stock deal valued at $33 billion"])).toBe(false);
+  });
+  it("rejects Pelephone-style 'wholly owned subsidiary' (NOT public)", () => {
+    expect(hasTicker(["Pelephone became a wholly owned subsidiary of Bezeq, Israel's largest telecommunications corporation."])).toBe(false);
+  });
+  it("rejects BDO-style 'part of an international network' (NOT public)", () => {
+    expect(hasTicker(["BDO ISRAEL is also part of the greater international BDO network which ranks worldwide as a pioneer."])).toBe(false);
+  });
+  it("scans across all snippets in the array (description may carry the ticker even if stage doesn't)", () => {
+    expect(hasTicker([
+      "Okta is an American identity management company headquartered in San Francisco.",
+      "Founded in 2009 by Todd McKinnon.",
+      "The company went public on NASDAQ in 2017 under OKTA",
+    ])).toBe(true);
+  });
+  it("ignores null / non-string entries", () => {
+    expect(hasTicker([null, undefined, "", "no ticker here"])).toBe(false);
+  });
+});
+
 describe("extractJsonObject — Fix B (stock-widget stripper)", () => {
   it("returns the JSON object unchanged when input is already clean", () => {
     expect(extractJsonObject('{"a":1}')).toBe('{"a":1}');
@@ -202,5 +273,16 @@ describe("extractJsonObject — Fix B (stock-widget stripper)", () => {
   });
   it("handles nested braces by taking outermost from first '{' to last '}'", () => {
     expect(extractJsonObject('{"a":{"b":1}}')).toBe('{"a":{"b":1}}');
+  });
+  it("round-3 fix: handles Hypernative case — JSON followed by trailing markdown with another '}'", () => {
+    // Round 2 grabbed first-{ to last-} blindly and produced unparseable
+    // garbage. Round 3 walks back through each '}' until JSON.parse
+    // succeeds.
+    const raw = '{"a":1,"b":{"c":2}}\n\nHere is some commentary: }';
+    expect(extractJsonObject(raw)).toBe('{"a":1,"b":{"c":2}}');
+  });
+  it("round-3 fix: handles multiple trailing braces in commentary", () => {
+    const raw = '{"x":1}\n\nNote that }} or } may appear in commentary.';
+    expect(extractJsonObject(raw)).toBe('{"x":1}');
   });
 });

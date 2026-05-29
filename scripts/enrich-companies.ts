@@ -48,11 +48,12 @@ import {
   snippetMatchesCompany,
   validateFoundedYear,
   validateStage,
-  validateSize,
   validateString,
   validateUrl,
   isCredibleFor,
   extractJsonObject,
+  sizeBucketForCount,
+  hasTicker,
 } from "./lib/enrichmentValidation.js";
 
 // ─── config ──────────────────────────────────────────────────────────
@@ -87,7 +88,7 @@ For each company, use the web_search tool to find specific facts. Output VALID J
   "description": { "value": "<≤350-char one-paragraph description OR null>", "source_url": "<url OR null>", "source_snippet": "<≤200-char excerpt from the source that supports this OR null>" },
   "founded_year": { "value": <integer year OR null>, "source_url": "<url OR null>", "source_snippet": null },
   "stage": { "value": "<one of: Seed | Series A | Series B | Series C | Growth | Public OR null>", "source_url": "<url OR null>", "source_snippet": "<≤200-char excerpt OR null>" },
-  "employee_count_range": { "value": "<EXACTLY one of: 1-50 | 50-100 | 50-200 | 100-200 | 200-500 | 500-1000 | 1000-5000 | 5000+ OR null>", "source_url": "<url OR null>", "source_snippet": null },
+  "employee_count_range": { "value": <integer headcount stated by the source, OR null>, "source_url": "<url OR null>", "source_snippet": "<≤200-char excerpt containing the headcount number OR null>" },
   "hq_city": { "value": "<single city name OR null>", "source_url": "<url OR null>", "source_snippet": null },
   "hq_country": { "value": "<country name in English OR null>", "source_url": "<url OR null>", "source_snippet": null }
 }
@@ -96,8 +97,8 @@ CRITICAL RULES:
 - If a fact is not stated by a credible source, set value=null AND source_url=null. Do NOT guess.
 - Every source_url MUST be a real URL returned by your web search. Never invent URLs.
 - source_snippet must contain text that mentions the company name OR its domain — this is verified post-hoc; if it doesn't, the fact will be dropped.
-- For 'stage': "Public" ONLY if the company is currently publicly traded (mention the ticker in source_snippet if so). "Growth" for late-stage private with $50M+ raised. Use Series letter for earlier rounds. Acquired-and-now-private companies that were once public → still "Public" if currently delisted is unclear; otherwise their latest known stage.
-- For 'employee_count_range': pick the bucket that contains the source's stated headcount. If sources give "approximately 120 employees", that's "100-200". If only "more than 50" with no upper bound, leave null.
+- For 'stage': "Public" REQUIRES an explicit exchange:ticker string in one of your snippets (e.g. "NASDAQ: AFRM", "NYSE: NET", "TASE: BEZQ"). If you can't surface a ticker, the company is not Public — use "Growth" for late-stage private with $50M+ raised, or the appropriate Series letter for earlier rounds. Subsidiaries of public parents are NOT themselves public — judge the entity at the stored domain.
+- For 'employee_count_range': return the raw integer headcount stated by the source (e.g. 78000 for "around 78,000 people"). The bucket is computed in post-processing — do NOT return a bucket string. If no source states a specific headcount number (only "200+" or "Mid-size"), leave value=null.
 - For 'hq_city' / 'hq_country': use the company's PRIMARY HQ. If listed dual ("Tel Aviv / New York"), pick the one most often cited as HQ; if genuinely 50/50, prefer the one matching the company's origin.
 - Prefer credible sources: Crunchbase, Pitchbook, Wikipedia, the company's own about/careers page, established business press (TechCrunch, Reuters, Bloomberg, CTech, Globes, Times of Israel). Avoid SEO aggregators and unverified directories.
 - Output ONLY the JSON object. No markdown, no commentary.`;
@@ -181,6 +182,7 @@ interface EnrichResult {
 
 function validateFact(
   field: FieldName, raw: FactRaw, company: CompanyRow,
+  ctx: { tickerInResponse: boolean },
 ): { ok: true; clean: FactClean } | { ok: false; reason: string } {
   if (!raw || typeof raw !== "object") return { ok: false, reason: "fact_missing" };
   const url = validateUrl(raw.source_url);
@@ -190,8 +192,22 @@ function validateFact(
   switch (field) {
     case "description":          value = validateString(raw.value, 350); break;
     case "founded_year":         value = validateFoundedYear(raw.value); break;
-    case "stage":                value = validateStage(raw.value); break;
-    case "employee_count_range": value = validateSize(raw.value); break;
+    case "stage":
+      value = validateStage(raw.value);
+      // Round-3 fix 2: stage='Public' requires an explicit exchange:ticker
+      // somewhere in the response. Kills xAI/BDO/Pelephone/Tara/DeepMind
+      // hallucinated-Public errors without affecting genuinely-traded
+      // companies (Affirm/Pinterest/Okta have NASDAQ:* in their snippets).
+      if (value === "Public" && !ctx.tickerInResponse) {
+        return { ok: false, reason: "public_without_ticker" };
+      }
+      break;
+    case "employee_count_range":
+      // Round-3 fix 1: prompt now asks for the raw integer headcount.
+      // We map deterministically to bucket — mini's bucket-judgment
+      // step is what got Continental wrong by 3 orders of magnitude.
+      value = sizeBucketForCount(raw.value);
+      break;
     case "hq_city":              value = validateString(raw.value, 80); break;
     case "hq_country":           value = validateString(raw.value, 60); break;
   }
@@ -307,13 +323,26 @@ async function enrichOne(
     return { ...base, status: "parse_error", error: (err as Error).message, raw_json, elapsed_ms: Date.now() - t0 };
   }
 
+  // Scan every snippet in the response ONCE for an exchange:ticker
+  // pattern. The result is reused for each field's validateFact call
+  // (the stage check needs it, others ignore it). Detecting in a
+  // pre-pass is cheaper + more robust than scanning per-field.
+  const allSnippets: string[] = [];
+  for (const f of FIELDS) {
+    const fact = parsed[f];
+    if (fact && typeof (fact as { source_snippet?: unknown }).source_snippet === "string") {
+      allSnippets.push((fact as { source_snippet: string }).source_snippet);
+    }
+  }
+  const ctx = { tickerInResponse: hasTicker(allSnippets) };
+
   for (const field of FIELDS) {
     const fact = parsed[field];
     // Don't overwrite curated values — NULL-only fill rule.
     if ((company as Record<string, unknown>)[field] != null) continue;
     if (!fact || (fact.value == null && fact.source_url == null)) continue; // genuine null
 
-    const res = validateFact(field, fact, company);
+    const res = validateFact(field, fact, company, ctx);
     if (res.ok) {
       base.patch[field] = res.clean.value;
       base.sources[field] = res.clean.source_snippet
@@ -410,19 +439,31 @@ async function persistResult(supabase: SupabaseClient, model: string, result: En
 
 // ─── review file ─────────────────────────────────────────────────────
 
-function pickReviewSample(results: EnrichResult[], n: number): EnrichResult[] {
-  // Deterministic stratified sample:
-  //   - Every result with not_credible_fields > 0 (audit risky ones, per E7)
-  //   - Pad with N random ok results, sorted by company name
-  const flagged = results.filter((r) => r.not_credible_fields.length > 0 || r.rejected.length > 0);
-  const others = results.filter((r) => !flagged.includes(r));
+function pickReviewSample(results: EnrichResult[], n: number, mustInclude: Set<string>): EnrichResult[] {
+  // If the whole run fits in the sample (e.g. dry-runs with --limit=20),
+  // show everything — round-2 hid Y.H. Dimri because 21 > 20.
+  if (results.length <= n) {
+    return [...results].sort((a, b) => a.company_name.localeCompare(b.company_name));
+  }
+
+  // Force-included UUIDs (e.g. --include obscure spot-checks) always
+  // appear regardless of the random stride.
+  const forced = results.filter((r) => mustInclude.has(r.company_id));
+  // Flagged rows next — non-credible sources or rejected facts get
+  // audit priority (per E7).
+  const flagged = results.filter(
+    (r) => !forced.includes(r) && (r.not_credible_fields.length > 0 || r.rejected.length > 0),
+  );
+  const others = results.filter((r) => !forced.includes(r) && !flagged.includes(r));
   const sortedOthers = [...others].sort((a, b) => a.company_name.localeCompare(b.company_name));
-  const stride = Math.max(1, Math.floor(sortedOthers.length / n));
+
+  const remaining = Math.max(0, n - forced.length - flagged.length);
+  const stride = Math.max(1, Math.floor(sortedOthers.length / Math.max(1, remaining)));
   const sampled: EnrichResult[] = [];
-  for (let i = 0; i < sortedOthers.length && sampled.length < n - flagged.length; i += stride) {
+  for (let i = 0; i < sortedOthers.length && sampled.length < remaining; i += stride) {
     sampled.push(sortedOthers[i]);
   }
-  return [...flagged, ...sampled].slice(0, Math.max(n, flagged.length));
+  return [...forced, ...flagged, ...sampled];
 }
 
 function renderReview(results: EnrichResult[], sample: EnrichResult[], summary: Record<string, unknown>): string {
@@ -593,8 +634,10 @@ async function main() {
   console.log("=".repeat(72));
   for (const [k, v] of Object.entries(summary)) console.log(`${k.padEnd(28)}: ${v}`);
 
-  // Review file (always written)
-  const sample = pickReviewSample(results, REVIEW_SAMPLE_SIZE);
+  // Review file (always written). --include + --only UUIDs are force-
+  // displayed so spot-checks can't be squeezed out of the sample.
+  const mustInclude = new Set([...(opts.only ?? []), ...(opts.include ?? [])]);
+  const sample = pickReviewSample(results, REVIEW_SAMPLE_SIZE, mustInclude);
   const path = reviewPath();
   mkdirSync(dirname(path), { recursive: true });
   writeFileSync(path, renderReview(results, sample, summary as Record<string, unknown>), "utf8");

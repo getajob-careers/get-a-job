@@ -236,22 +236,104 @@ export function isCredibleFor(url: string | null, companyDomain: string | null):
 }
 
 /**
- * Strip everything before the first '{' and after the last '}' so a
- * stock-quote widget / markdown preamble / trailing commentary mini
- * prepends to its JSON output doesn't poison JSON.parse. Returns the
- * extracted candidate string, or null if no brace pair is found.
+ * Pull a parseable JSON object out of free-form LLM output. Handles
+ * three shapes seen in the wild:
+ *   1. clean JSON
+ *   2. JSON wrapped in ```json ... ``` fences
+ *   3. JSON followed by trailing markdown commentary that itself
+ *      contains '{' or '}' chars (the Hypernative round-2 failure mode)
  *
- * This is the fix for the 4 ticker-company parse errors (Accenture,
- * Adobe, Affirm, Akamai) seen in dry-run round 1, where web_search's
- * stock-quote widget prefixed the JSON.
+ * Round 2 used `text.slice(first, lastIndexOf('}') + 1)`. That grabbed
+ * trailing chatter when the LLM's commentary contained another '}',
+ * which then choked JSON.parse with "Unexpected non-whitespace
+ * character after JSON". Round 3 fix: walk backward through every
+ * candidate '}' from the end, try to parse `text[first..i+1]`, and
+ * return the first slice that parses. The longest valid prefix wins.
+ *
+ * Returns null if no parseable substring is found.
  */
 export function extractJsonObject(raw: string): string | null {
   if (typeof raw !== "string") return null;
-  // Strip ```json ... ``` fences first.
   const fenced = raw.match(/```(?:json)?\s*([\s\S]+?)```/);
   const text = fenced ? fenced[1] : raw;
   const first = text.indexOf("{");
-  const last = text.lastIndexOf("}");
-  if (first < 0 || last <= first) return null;
-  return text.slice(first, last + 1);
+  if (first < 0) return null;
+  for (let i = text.length - 1; i >= first; i--) {
+    if (text[i] !== "}") continue;
+    const candidate = text.slice(first, i + 1);
+    try {
+      JSON.parse(candidate);
+      return candidate;
+    } catch {
+      // keep walking back to the next '}'
+    }
+  }
+  return null;
+}
+
+// ─── Round-3 fix 1 (SIZE): deterministic bucket mapping ──────────────
+//
+// Round 2 let mini pick the bucket string from the allowed vocab.
+// Result: Continental got "50-100" despite the cited source literally
+// reading "around 78,000 people" — mini extracts the right NUMBER but
+// fails the bucket-mapping step. Solution: ask for an integer headcount
+// in the prompt, map to bucket in code. Determinism by construction.
+
+/**
+ * Map a raw employee count to one of the canonical DB size buckets.
+ * Returns null for negative / NaN / non-numeric inputs.
+ *
+ * Buckets are non-overlapping inside this function — we pick the
+ * canonical bucket containing the number. The 8 existing DB strings
+ * include some historical dual ranges (50-100 vs 50-200, 100-200);
+ * picking the tighter one keeps the data consistent across reruns.
+ *
+ * Boundary semantics: '50-100' covers 50..100 inclusive; '100-200'
+ * covers 101..200; etc. (Tighter than typical "50-100 = 50-99". DB
+ * already uses overlapping strings; tight semantics here is what gives
+ * us a deterministic function.)
+ */
+export function sizeBucketForCount(n: unknown): string | null {
+  if (typeof n !== "number" || !Number.isFinite(n) || n < 1) return null;
+  const c = Math.floor(n);
+  if (c <= 50) return "1-50";
+  if (c <= 100) return "50-100";
+  if (c <= 200) return "100-200";
+  if (c <= 500) return "200-500";
+  if (c <= 1000) return "500-1000";
+  if (c <= 5000) return "1000-5000";
+  return "5000+";
+}
+
+// ─── Round-3 fix 2 (STAGE): ticker-required Public check ─────────────
+//
+// Round 2 had mini calling Pelephone, Tara, BDO Israel, xAI, and
+// DeepMind "Public" — all of which are private or subsidiaries of
+// public parents. Fix: stage='Public' is only allowed if an actual
+// stock-exchange ticker is mentioned somewhere in the response. No
+// ticker → reject Public → NULL.
+//
+// Detector is conservative: looks for explicit exchange-prefixed
+// tickers (NASDAQ:FOO, NYSE: BAR, (TASE: BAZ), etc.). False negatives
+// are acceptable — they manifest as NULL rather than fabrication.
+
+const TICKER_REGEX = new RegExp(
+  // exchange code + separator + 1-6 uppercase ticker chars
+  "\\b(NASDAQ|NYSE|TASE|LSE|FSE|FRA|TSX|TSXV|ASX|HKG|TYO|SHE|SSE|SHA|AMEX|OTCMKTS|OTC|BATS|NYSEARCA|NYSEMKT|NYSEAMERICAN|EURONEXT|XETRA)" +
+  "\\s*[:.\\s]\\s*([A-Z][A-Z0-9.\\-]{0,5})\\b",
+  "i",
+);
+
+/**
+ * True iff any of the supplied snippets contains an explicit
+ * exchange:ticker pattern. Pass every snippet from a single
+ * response (description, stage, etc.) — mini may put the ticker in
+ * any of them.
+ */
+export function hasTicker(snippets: Array<string | null | undefined>): boolean {
+  for (const s of snippets) {
+    if (typeof s !== "string" || !s) continue;
+    if (TICKER_REGEX.test(s)) return true;
+  }
+  return false;
 }
