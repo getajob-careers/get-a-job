@@ -36,9 +36,14 @@ import { ACT_CSS } from "../components/activity/activityStyles";
 // the grid.
 
 const TABS = [
-  { id: "browse",   label: "Browse" },
   { id: "pipeline", label: "Pipeline" },
+  { id: "browse",   label: "Browse" },
 ];
+
+// PR7: default tab → Pipeline. The pipeline IS the user's working set;
+// browse is for exploration. Explicit ?tab=browse still wins so
+// "Browse all companies" links and deep links land on Browse.
+const DEFAULT_TAB = "pipeline";
 
 export default function Internship() {
   const { user } = useAuth();
@@ -47,7 +52,7 @@ export default function Internship() {
   const [generatingProfile, setGeneratingProfile] = useState(false);
   const [addCompanyOpen, setAddCompanyOpen] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
-  const activeTab = TABS.find((t) => t.id === searchParams.get("tab"))?.id || "browse";
+  const activeTab = TABS.find((t) => t.id === searchParams.get("tab"))?.id || DEFAULT_TAB;
 
   const { data: profileRow, isLoading: profileLoading } = useProfileQuery(
     user?.id,
@@ -237,6 +242,7 @@ export default function Internship() {
                 loading={targetsLoading}
                 onCardClick={setOpenTarget}
                 practicumPath={practicumPath}
+                onSetTab={setTab}
               />
             </>
           )}
@@ -256,17 +262,34 @@ export default function Internship() {
   );
 }
 
-function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath }) {
+function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath, onSetTab }) {
   if (loading) {
     return <KanbanSkeleton />;
   }
   if (targets.length === 0) {
-    const note = practicumPath === "self_sourced"
-      ? "Add companies above or generate matches to populate your pipeline."
-      : "Add a company your faculty assigned or one you've found yourself.";
+    // PR7: Pipeline is now the default tab. A brand-new user with an
+    // empty pipeline shouldn't see a blank kanban — lead with the
+    // "Find companies" action (the FindCompaniesCard rendered above
+    // for self-sourced users covers this for that path), and always
+    // offer a Browse jump for users who'd rather explore first.
+    const isSelfSourced = practicumPath === "self_sourced";
+    const headline = isSelfSourced
+      ? "Your pipeline is empty."
+      : "No companies in your pipeline yet.";
+    const subhead = isSelfSourced
+      ? "Run Find companies above to populate it with strong matches, or browse the catalog to add companies yourself."
+      : "Add a company your faculty assigned, or browse the catalog to add one you've found.";
     return (
-      <div className="act-card text-center">
-        <p className="text-sm text-[#52545A]">{note}</p>
+      <div className="act-card text-center py-8">
+        <p className="text-sm font-medium text-[#0E1014] mb-1">{headline}</p>
+        <p className="text-xs text-[#52545A] mb-4 max-w-md mx-auto leading-relaxed">{subhead}</p>
+        <button
+          type="button"
+          onClick={() => onSetTab?.("browse")}
+          className="act-btn act-btn-outline act-btn-sm"
+        >
+          Browse all companies
+        </button>
       </div>
     );
   }

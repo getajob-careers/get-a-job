@@ -56,6 +56,18 @@ const POOL_CAP = 500
 // Top-N from rule pre-filter → LLM scoring batch.
 const LLM_BATCH_SIZE = 30
 
+// PR7: pipeline UPSERT filter. The matcher scores all 30 LLM-prefiltered
+// candidates, but only adds High-band matches to the user's pipeline so
+// "Pipeline" stays a clean go-pursue list. Medium / Low scored rows live
+// on Browse — visible but not in the kanban.
+// Threshold mirrors LLM_BAND_THRESHOLDS.high in scoreHelpers.js (70).
+const PIPELINE_MATCH_THRESHOLD = 70
+
+// Safety floor: if fewer than this many High matches come back (narrow
+// or weak profile), upsert the top N by score anyway so the pipeline is
+// never empty after a Find run.
+const PIPELINE_FLOOR = 5
+
 // Rule-pre-filter weights live in _shared/internship-rule-score.ts —
 // imported by both this edge function and the React browse page so the
 // two surfaces can never drift. Touch the weights there.
@@ -275,7 +287,13 @@ Deno.serve(async (req) => {
           { role: 'user', content: userPrompt },
         ],
         temperature: 0.3,
-        max_tokens: 4000,
+        // PR7 hotfix: bumped 4000 → 6000. PR6's rubric is slightly
+        // more verbose per band, which pushed gpt-4o to write longer
+        // match_rationale strings — at 30 companies that capped out
+        // exactly at 4000 tokens and truncated mid-JSON (function
+        // metrics caught it: tokens_out=4000, error_code=json_parse).
+        // 6000 leaves comfortable headroom; cost delta is ~$0.02/run.
+        max_tokens: 6000,
         response_format: { type: 'json_object' },
       },
       openaiKey,
@@ -333,11 +351,29 @@ Deno.serve(async (req) => {
       })
     }
 
+    // ── Pipeline filter (PR7) ──────────────────────────────────────────
+    // Pipeline is meant to be a clean "go pursue these" list, not a
+    // dump of every scored company. We UPSERT only High-band matches
+    // (match_score >= PIPELINE_MATCH_THRESHOLD). When a profile is
+    // narrow or weak and not enough High matches come back, the safety
+    // floor pulls in the top PIPELINE_FLOOR by score so a new user
+    // never lands on an empty kanban after clicking Find. Medium/Low
+    // companies are still visible on Browse.
+    //
+    // FUTURE RUNS ONLY: this is a write filter, not a sweep. Existing
+    // Medium/Low rows in someone's pipeline from prior runs are the
+    // user's to manage — they stay. The for-loop below never deletes.
+    const sortedByScore = [...scored].sort((a, b) => b.match_score - a.match_score)
+    const highBand = sortedByScore.filter((s) => s.match_score >= PIPELINE_MATCH_THRESHOLD)
+    const toUpsert: LlmScoredCompany[] =
+      highBand.length >= PIPELINE_FLOOR ? highBand : sortedByScore.slice(0, PIPELINE_FLOOR)
+    const upsertIds = new Set(toUpsert.map((s) => s.company_id))
+
     // ── Pull existing matched rows to decide per-row update semantics ──
     // Only need rows for the (user, scored company_ids) we're about to
     // UPSERT. Service client is fine — RLS would block reads of other
     // sources by accident; this is per-user-scoped read of own rows.
-    const scoredIds = scored.map((s) => s.company_id)
+    const scoredIds = toUpsert.map((s) => s.company_id)
     const { data: existingRows } = await supabase
       .from('company_targets')
       .select('id, company_id, source, status, notes')
@@ -357,8 +393,9 @@ Deno.serve(async (req) => {
     let refreshed = 0
     let skipped_user_owned = 0
     let failures = 0
+    const scoredButFiltered = scored.length - toUpsert.length
 
-    for (const s of scored) {
+    for (const s of toUpsert) {
       const existing = existingByCompanyId.get(s.company_id)
 
       if (!existing) {
@@ -425,8 +462,10 @@ Deno.serve(async (req) => {
     // ── Build response summary ─────────────────────────────────────────
     // Frontend re-queries company_targets for the canonical kanban view.
     // This summary is for the trigger UI: "Matched 27 companies, here
-    // are your top 5".
-    const topTargets = scored
+    // are your top 5". `matched` = total LLM-scored; `added_to_pipeline`
+    // = how many actually UPSERTed after the High-band filter; the
+    // rest stay visible on Browse with no pipeline row created.
+    const topTargets = sortedByScore
       .map((s) => {
         const company = preScored.find((c) => c.id === s.company_id)
         return {
@@ -434,14 +473,16 @@ Deno.serve(async (req) => {
           name: company?.name || null,
           match_score: s.match_score,
           pitched_role: s.pitched_role,
+          in_pipeline: upsertIds.has(s.company_id),
         }
       })
-      .sort((a, b) => b.match_score - a.match_score)
       .slice(0, 5)
 
     _ok = true; _http = 200
     return new Response(JSON.stringify({
       matched: scored.length,
+      added_to_pipeline: toUpsert.length,
+      filtered_out: scoredButFiltered,
       inserted,
       refreshed,
       skipped_user_owned,
