@@ -28,33 +28,73 @@ export const ALLOWED_SIZES = [
 // Domains we treat as "credible" for the steer-toward-credible-sources
 // heuristic. Not an allowlist — facts cited only on a non-credible
 // source still save, but the row gets flagged in the review file.
+//
+// PR3 dry-run round 2: expanded generously after the first run flagged
+// 13/20 rows because Forbes, CB Insights, growjo, the company's own
+// about page etc. were missing. Plus a separate rule in `isCredibleFor`:
+// if the source URL host equals the company's stored domain, that's
+// the most credible source of all — self-described on their own site.
+// The flag should now only fire on the genuine long-tail of sketchy
+// aggregators (craft.co, employbl.com, leadiq, etc.).
 export const CREDIBLE_HOSTS = new Set([
+  // Curated data sources
   "crunchbase.com",
   "pitchbook.com",
   "sec.gov",
   "wikipedia.org",
   "en.wikipedia.org",
+  // Major business press
+  "forbes.com",
+  "fortune.com",
+  "bloomberg.com",
+  "reuters.com",
+  "wsj.com",
+  "ft.com",
+  "businessinsider.com",
+  "cnbc.com",
+  "techcrunch.com",
+  "theverge.com",
+  "wired.com",
+  "axios.com",
+  "fastcompany.com",
+  // Specialist business databases (not curated like Crunchbase but acceptable)
+  "cbinsights.com",
+  "growjo.com",
+  "themuse.com",
+  "builtin.com",
+  "builtinnyc.com",
+  "builtinsf.com",
+  "owler.com",
+  "dnb.com",
+  "duns100.co.il",
+  "marketscreener.com",
+  "stockanalysis.com",
+  "stockanalysis.org",
+  // Israel-specific business press + startup directories
   "calcalistech.com",
   "calcalist.co.il",
-  "en.globes.co.il",
+  "ctech.tech",
   "globes.co.il",
-  "techcrunch.com",
-  "reuters.com",
-  "bloomberg.com",
-  "jpost.com",
+  "en.globes.co.il",
   "ynetnews.com",
   "ynet.co.il",
+  "jpost.com",
   "timesofisrael.com",
+  "nocamels.com",
+  "geektime.com",
+  "geektime.co.il",
   "finder.startupnationcentral.org",
   "startupnationcentral.org",
   "fiercebiotech.com",
-  "nocamels.com",
-  "ctech.tech",
+  "fiercehealthcare.com",
+  // Verticals: medical / pharma / defense
+  "medtechinnovator.com",
+  "thedefensepost.com",
+  "israeldefense.co.il",
+  "biospace.com",
+  // Professional profiles (last resort — facts here are user-submitted but
+  // still verifiable)
   "linkedin.com",
-  "duns100.co.il",
-  "dnb.com",
-  "marketscreener.com",
-  "stockanalysis.com",
 ]);
 
 // ─── normalizers ─────────────────────────────────────────────────────
@@ -174,4 +214,44 @@ export function isCredibleHost(url: string | null): boolean {
     if (host.endsWith("." + cred)) return true;
   }
   return false;
+}
+
+/**
+ * Credibility check that ALSO accepts the company's own domain as
+ * credible — a company describing itself on its own about page is the
+ * most authoritative source for description / hq / founded year. Use
+ * this from validateFact; isCredibleHost remains the static-host check.
+ */
+export function isCredibleFor(url: string | null, companyDomain: string | null): boolean {
+  if (isCredibleHost(url)) return true;
+  const host = hostFromUrl(url);
+  const stored = normalizeDomain(companyDomain);
+  if (!host || !stored) return false;
+  // Exact host match OR host ends with '.<stored>' to catch
+  // 'careers.acme.com' / 'about.acme.com'. Stored is already normalized
+  // (no www, no protocol).
+  if (host === stored) return true;
+  if (host.endsWith("." + stored)) return true;
+  return false;
+}
+
+/**
+ * Strip everything before the first '{' and after the last '}' so a
+ * stock-quote widget / markdown preamble / trailing commentary mini
+ * prepends to its JSON output doesn't poison JSON.parse. Returns the
+ * extracted candidate string, or null if no brace pair is found.
+ *
+ * This is the fix for the 4 ticker-company parse errors (Accenture,
+ * Adobe, Affirm, Akamai) seen in dry-run round 1, where web_search's
+ * stock-quote widget prefixed the JSON.
+ */
+export function extractJsonObject(raw: string): string | null {
+  if (typeof raw !== "string") return null;
+  // Strip ```json ... ``` fences first.
+  const fenced = raw.match(/```(?:json)?\s*([\s\S]+?)```/);
+  const text = fenced ? fenced[1] : raw;
+  const first = text.indexOf("{");
+  const last = text.lastIndexOf("}");
+  if (first < 0 || last <= first) return null;
+  return text.slice(first, last + 1);
 }

@@ -9,6 +9,8 @@ import {
   validateString,
   validateUrl,
   isCredibleHost,
+  isCredibleFor,
+  extractJsonObject,
   ALLOWED_STAGES,
   ALLOWED_SIZES,
 } from "./enrichmentValidation";
@@ -148,5 +150,57 @@ describe("isCredibleHost", () => {
   it("rejects random aggregators", () => {
     expect(isCredibleHost("https://random-blog.example.com")).toBe(false);
     expect(isCredibleHost("https://leadiq.com/c/foo")).toBe(false);
+  });
+  it("accepts Forbes / CB Insights / Growjo / The Muse / Built In after round-2 expansion", () => {
+    expect(isCredibleHost("https://forbes.com/companies/x")).toBe(true);
+    expect(isCredibleHost("https://www.cbinsights.com/company/x")).toBe(true);
+    expect(isCredibleHost("https://growjo.com/company/x")).toBe(true);
+    expect(isCredibleHost("https://www.themuse.com/profiles/x")).toBe(true);
+    expect(isCredibleHost("https://builtin.com/x")).toBe(true);
+  });
+});
+
+describe("isCredibleFor — host equals stored domain → credible", () => {
+  it("accepts when source URL host equals the stored domain", () => {
+    expect(isCredibleFor("https://acme.com/about", "acme.com")).toBe(true);
+  });
+  it("accepts when source URL host is a subdomain of stored domain", () => {
+    expect(isCredibleFor("https://about.acme.com/team", "acme.com")).toBe(true);
+    expect(isCredibleFor("https://careers.acme.com/openings", "www.acme.com")).toBe(true);
+  });
+  it("normalizes the stored domain (www stripped, lowercased)", () => {
+    expect(isCredibleFor("https://acme.com/x", "WWW.Acme.COM")).toBe(true);
+  });
+  it("falls back to the curated host list when domains don't match", () => {
+    expect(isCredibleFor("https://forbes.com/companies/acme", "acme.com")).toBe(true);
+  });
+  it("rejects when host neither matches stored domain nor curated list", () => {
+    expect(isCredibleFor("https://random-blog.example.com/acme", "acme.com")).toBe(false);
+  });
+  it("rejects when company has no stored domain and host is uncurated", () => {
+    expect(isCredibleFor("https://random-blog.example.com/acme", null)).toBe(false);
+  });
+});
+
+describe("extractJsonObject — Fix B (stock-widget stripper)", () => {
+  it("returns the JSON object unchanged when input is already clean", () => {
+    expect(extractJsonObject('{"a":1}')).toBe('{"a":1}');
+  });
+  it("strips a stock-widget markdown preamble (Accenture/Adobe/etc. case)", () => {
+    const raw = '## Stock market information for Accenture plc (ACN)\n- Price 178 USD\n\n{"description":{"value":"..."}}';
+    expect(extractJsonObject(raw)).toBe('{"description":{"value":"..."}}');
+  });
+  it("strips ```json fences", () => {
+    expect(extractJsonObject("```json\n{\"a\":1}\n```")).toBe('{"a":1}');
+  });
+  it("strips trailing commentary after the JSON", () => {
+    expect(extractJsonObject('{"a":1}\n\nHope that helps!')).toBe('{"a":1}');
+  });
+  it("returns null when no braces are present at all", () => {
+    expect(extractJsonObject("hello no JSON here")).toBeNull();
+    expect(extractJsonObject("")).toBeNull();
+  });
+  it("handles nested braces by taking outermost from first '{' to last '}'", () => {
+    expect(extractJsonObject('{"a":{"b":1}}')).toBe('{"a":{"b":1}}');
   });
 });

@@ -24,8 +24,12 @@
 //
 // Flags:
 //   --dry-run         Do NOT write to DB; still hits OpenAI; writes review file.
-//   --limit=N         Process first N matching rows.
-//   --only=id1,id2    Process only these company UUIDs (overrides --limit).
+//   --limit=N         Deterministic-random spread of N rows (fnv1a(id) order).
+//                     Stable across reruns — same rows surface every time.
+//   --include=id1,id2 Force-include these UUIDs alongside the random spread.
+//                     Useful for forcing obscure spot-checks into the sample.
+//   --only=id1,id2    Process ONLY these company UUIDs (overrides --limit
+//                     and --include). For single-row repair runs.
 //   --filter=registry|all  Target set. Default 'registry'. 'all' = every
 //                          row missing enriched_at.
 //   --model=NAME      Override default model (gpt-4o-mini).
@@ -41,16 +45,14 @@ import { createClient, SupabaseClient } from "@supabase/supabase-js";
 import OpenAI from "openai";
 
 import {
-  ALLOWED_STAGES,
-  ALLOWED_SIZES,
   snippetMatchesCompany,
   validateFoundedYear,
   validateStage,
   validateSize,
   validateString,
   validateUrl,
-  isCredibleHost,
-  normalizeDomain,
+  isCredibleFor,
+  extractJsonObject,
 } from "./lib/enrichmentValidation.js";
 
 // ─── config ──────────────────────────────────────────────────────────
@@ -196,25 +198,30 @@ function validateFact(
   if (value == null) return { ok: false, reason: "value_invalid" };
 
   const snippet = typeof raw.source_snippet === "string" ? raw.source_snippet.trim() : "";
-  // Same-name-confusion guard: snippet (if present) must mention name or domain.
-  // If snippet absent and field requires one, that's its own reject.
+
+  // Fix A (PR3 dry-run round 2): the snippet-must-mention-company guard
+  // only runs for `description` (our entity anchor — 200+ chars of context
+  // should always restate the company name) and `stage` (event-style
+  // snippets like "raised Series C" benefit from grounding). For the 4
+  // atomic fields the snippet is usually too short to also restate the
+  // company name (mini honestly cites "Founded in 2018" excerpts), and
+  // the same-name-confusion protection is left to the prompt-level rule
+  // + the host-equals-stored-domain credibility signal.
   if (SNIPPET_FIELDS.has(field)) {
     if (!snippet) return { ok: false, reason: "snippet_required_missing" };
     if (!snippetMatchesCompany(snippet, company.name, company.domain)) {
       return { ok: false, reason: "snippet_does_not_mention_company" };
     }
-  } else if (snippet) {
-    // Optional snippet — if present, still must validate.
-    if (!snippetMatchesCompany(snippet, company.name, company.domain)) {
-      return { ok: false, reason: "snippet_does_not_mention_company" };
-    }
   }
+  // No snippet check for founded_year/employee_count_range/hq_city/hq_country.
+  // Save whatever snippet mini returned for the audit display, but don't
+  // gate on it.
   return {
     ok: true,
     clean: {
       value, source_url: url,
       source_snippet: snippet ? snippet.slice(0, 200) : null,
-      credible: isCredibleHost(url),
+      credible: isCredibleFor(url, company.domain),
     },
   };
 }
@@ -260,12 +267,18 @@ async function enrichOne(
     raw_json = "";
   }
 
-  // Strip ``` fences if mini decides to wrap.
-  const fenced = raw_json.match(/```(?:json)?\s*([\s\S]+?)```/);
-  if (fenced) raw_json = fenced[1];
+  // Fix B (PR3 dry-run round 2): web_search auto-prepends a stock-quote
+  // widget for any company with a ticker (Accenture, Adobe, Affirm,
+  // Akamai all hit this). Strip everything before the first '{' and
+  // after the last '}' before JSON.parse. Also handles ``` fences and
+  // any other commentary mini may have prepended/appended.
+  const candidate = extractJsonObject(raw_json);
+  if (!candidate) {
+    return { ...base, status: "parse_error", error: "no_json_braces_found", raw_json, elapsed_ms: Date.now() - t0 };
+  }
 
   let parsed: Record<string, FactRaw>;
-  try { parsed = JSON.parse(raw_json); }
+  try { parsed = JSON.parse(candidate); }
   catch (err) {
     return { ...base, status: "parse_error", error: (err as Error).message, raw_json, elapsed_ms: Date.now() - t0 };
   }
@@ -297,19 +310,67 @@ async function enrichOne(
 
 // ─── DB helpers ──────────────────────────────────────────────────────
 
+/**
+ * Deterministic 32-bit hash of a string. Used so re-runs sample the
+ * same rows + ordering — reviewable spot-checks shouldn't change
+ * between runs unless the underlying set does.
+ */
+function fnv1a(s: string): number {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = (h * 0x01000193) >>> 0;
+  }
+  return h >>> 0;
+}
+
 async function loadTargets(
-  supabase: SupabaseClient, opts: { filter: string; limit: number | null; only: string[] | null },
+  supabase: SupabaseClient,
+  opts: { filter: string; limit: number | null; only: string[] | null; include: string[] | null },
 ): Promise<CompanyRow[]> {
+  // --only short-circuit: exact set, no random spread.
+  if (opts.only && opts.only.length > 0) {
+    const { data, error } = await supabase.from("companies")
+      .select("id,name,domain,industry,origin,description,founded_year,stage,employee_count_range,hq_city,hq_country,enriched_at")
+      .in("id", opts.only);
+    if (error) throw new Error(`failed to load targets: ${error.message}`);
+    return (data ?? []) as CompanyRow[];
+  }
+
+  // Default: pull every candidate (enriched_at IS NULL, source-filtered),
+  // then take a deterministic-random spread client-side if --limit is set.
+  // No SQL ORDER BY random() — random per-call would defeat the
+  // sample-stability goal.
   let q = supabase.from("companies")
     .select("id,name,domain,industry,origin,description,founded_year,stage,employee_count_range,hq_city,hq_country,enriched_at")
     .is("enriched_at", null);
   if (opts.filter === "registry") q = q.eq("source", "registry");
-  if (opts.only && opts.only.length > 0) q = q.in("id", opts.only);
-  q = q.order("name", { ascending: true });
-  if (opts.limit) q = q.limit(opts.limit);
   const { data, error } = await q;
   if (error) throw new Error(`failed to load targets: ${error.message}`);
-  return (data ?? []) as CompanyRow[];
+  let rows = (data ?? []) as CompanyRow[];
+
+  if (opts.limit && rows.length > opts.limit) {
+    // Sort by fnv1a(id) so the same rows surface every run, but with a
+    // uniform spread across the alphabet (Fix D — round 1's
+    // alphabetical-first slice meant Magenta + Y.H. Dimri never appeared).
+    rows = [...rows]
+      .sort((a, b) => fnv1a(a.id) - fnv1a(b.id))
+      .slice(0, opts.limit);
+  }
+
+  // --include: append force-included rows (e.g. obscure spot-checks)
+  // regardless of the random slice. De-dupe by id.
+  if (opts.include && opts.include.length > 0) {
+    const haveIds = new Set(rows.map((r) => r.id));
+    const missing = opts.include.filter((id) => !haveIds.has(id));
+    if (missing.length > 0) {
+      const { data: extra } = await supabase.from("companies")
+        .select("id,name,domain,industry,origin,description,founded_year,stage,employee_count_range,hq_city,hq_country,enriched_at")
+        .in("id", missing);
+      rows = [...rows, ...((extra ?? []) as CompanyRow[])];
+    }
+  }
+  return rows;
 }
 
 async function persistResult(supabase: SupabaseClient, model: string, result: EnrichResult): Promise<string | null> {
@@ -411,6 +472,7 @@ function parseArgs() {
     dryRun: has("--dry-run"),
     limit: opt("--limit=") ? parseInt(opt("--limit=") as string, 10) : null,
     only: opt("--only=") ? (opt("--only=") as string).split(",").map((x) => x.trim()).filter(Boolean) : null,
+    include: opt("--include=") ? (opt("--include=") as string).split(",").map((x) => x.trim()).filter(Boolean) : null,
     filter: opt("--filter=") ?? "registry",
     model: opt("--model=") ?? DEFAULT_MODEL,
     concurrency: opt("--concurrency=") ? parseInt(opt("--concurrency=") as string, 10) : DEFAULT_CONCURRENCY,
@@ -432,7 +494,7 @@ async function main() {
   const openai = new OpenAI({ apiKey: openaiKey });
 
   const targets = await loadTargets(supabase, opts);
-  console.log(`Targets: ${targets.length} (filter=${opts.filter}, limit=${opts.limit ?? "—"}, only=${opts.only?.length ?? 0})`);
+  console.log(`Targets: ${targets.length} (filter=${opts.filter}, limit=${opts.limit ?? "—"}, only=${opts.only?.length ?? 0}, include=${opts.include?.length ?? 0})`);
   console.log(`Model: ${opts.model} · concurrency: ${opts.concurrency} · ${opts.dryRun ? "DRY RUN (no DB writes)" : "LIVE"}`);
 
   const perCallEst = PER_CALL_COST[opts.model] ?? 0.03;

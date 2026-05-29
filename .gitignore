@@ -33,3 +33,7 @@ supabase/.branches/
 *.sw?
 
 .env
+
+# Transient dry-run output from scripts/enrich-companies.ts. Changes
+# every run; not for commit.
+tasks/companies-enrichment-review.md
