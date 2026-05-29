@@ -32,13 +32,7 @@ export const STATUS_TONE = {
   declined:      "gray",
 };
 
-// Discrete-band labels for scores — mirrors the rubric in the
-// match-internship-companies system prompt. Drawer surfaces these
-// next to the raw numeric score.
-export function scoreBand(score) {
-  if (score == null) return { label: "—", color: "text-[#9C9DA1]" };
-  if (score >= 85) return { label: "Strong", color: "text-[#1D7556]" };
-  if (score >= 70) return { label: "Real",   color: "text-[#1E4A9E]" };
-  if (score >= 50) return { label: "Stretch", color: "text-[#6B4E0F]" };
-  return { label: "Weak", color: "text-[#C84F40]" };
-}
+// Score-band display moved to ./browse/scoreHelpers.js per PR5 — surfaces
+// now show single High/Med/Low bands instead of the old 4-band Strong/
+// Real/Stretch/Weak rubric paired with raw numbers. Import bandForLlmScore
+// (or bandForRuleScore) + BAND_LABELS from there.

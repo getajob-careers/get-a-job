@@ -8,7 +8,6 @@ import CompanyBrowseCard from "./CompanyBrowseCard";
 export default function CompanyBrowseGrid({
   companies,
   scoresById,
-  suggestedRole,
   page,
   pageSize,
   onLoadMore,
@@ -39,7 +38,6 @@ export default function CompanyBrowseGrid({
             key={c.id}
             company={c}
             score={scoresById.get(c.id)}
-            suggestedRole={suggestedRole}
             onClick={onCardClick}
           />
         ))}

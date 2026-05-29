@@ -16,23 +16,16 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createPageUrl } from "@/utils";
 import { ORIGIN_FILTERS } from "./filterConfig";
-import { combinedScore, scoreTier } from "./scoreHelpers";
+import { combinedScore, bandForLlmScore, BAND_LABELS } from "./scoreHelpers";
+import PitchSection from "../PitchSection";
 
-// Browse-side detail drawer (PR4). Click a card on /Internship → this
-// opens. Sections, top-to-bottom:
+// Browse-side detail drawer. Sections:
 //   1. Header (name · sector · stage · location · external link)
-//   2. Combined match score (simple average of fit + career_compound)
-//      — known deferral: card chip shows rule_score, drawer shows LLM
-//      combined; reconcile when the rule_score "scores don't
-//      differentiate" bug gets fixed.
-//   3. Pitch section (Role · Your angle · Who to contact · gaps chips)
-//      with skeleton while the edge function generates.
-//   4. Outreach Coach button (prefilled with company + pitched_role).
-//   5. Add-to-pipeline button (INSERT company_targets, toast on
-//      success, button flips to "Already in your pipeline").
-//
-// NEW companies (not yet in user's pipeline): NO status/notes/timeline.
-// Those are kanban concerns and live in CompanyTargetDrawer.
+//   2. Combined match band (PR5: band label only, no number)
+//   3. PitchSection (shared with kanban drawer): Role / Your angle /
+//      Who to contact / Closes these gaps
+//   4. Add-to-pipeline button
+//   5. Draft outreach button (route Linkedin per PR #80 rename)
 
 const ORIGIN_LABEL_BY_ID = new Map(ORIGIN_FILTERS.map((o) => [o.id, o.label]));
 
@@ -41,18 +34,12 @@ function formatLocation(city, country) {
   return city || country || null;
 }
 
-// combinedScore + scoreTier moved to ./scoreHelpers — see import above.
-// Tests live in scoreHelpers.test.js so they don't transitively
-// import this file (and thus supabaseClient).
-
 export default function CompanyDetailDrawer({ company, open, onClose }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [refreshing, setRefreshing] = useState(false);
   const [adding, setAdding] = useState(false);
 
-  // Is this company already in the user's pipeline? Used to flip the
-  // Add-to-pipeline button (P7).
   const { data: existingTarget } = useQuery({
     queryKey: ["company_target_for_company", user?.id, company?.id],
     queryFn: async () => {
@@ -69,7 +56,6 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
   });
   const alreadyInPipeline = !!existingTarget;
 
-  // Pitch — on-demand, cached. Skipped until drawer opens.
   const pitchQuery = useQuery({
     queryKey: ["internship_pitch", user?.id, company?.id],
     queryFn: async () => {
@@ -93,7 +79,6 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
     retry: false,
   });
 
-  // Reset transient UI state when the drawer swaps companies.
   useEffect(() => {
     setRefreshing(false);
     setAdding(false);
@@ -106,7 +91,7 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
   const sectorOrIndustry = company.sector || company.industry;
   const pitch = pitchQuery.data;
   const score = combinedScore(pitch);
-  const tier = scoreTier(score);
+  const band = bandForLlmScore(score);
 
   const handleRefresh = async () => {
     if (refreshing) return;
@@ -144,6 +129,9 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
         ...(Array.isArray(pitch?.skill_gaps_this_fills) && pitch.skill_gaps_this_fills.length > 0
           ? { skill_gaps_this_fills: pitch.skill_gaps_this_fills }
           : {}),
+        ...(Array.isArray(pitch?.who_to_contact) && pitch.who_to_contact.length > 0
+          ? { who_to_contact: pitch.who_to_contact }
+          : {}),
       });
       if (error) {
         if (error.code === "23505") {
@@ -163,7 +151,7 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
   };
 
   const outreachUrl =
-    createPageUrl("LinkedinOptimizer") +
+    createPageUrl("Linkedin") +
     `?tab=networking${
       company.name ? `&prefillCompany=${encodeURIComponent(company.name)}` : ""
     }${
@@ -174,7 +162,6 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <div className="space-y-6 pt-2">
-          {/* Header */}
           <div>
             {originLabel && (
               <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mb-1">
@@ -203,15 +190,13 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
             )}
           </div>
 
-          {/* Combined match score */}
           <Section title="Match">
-            <ScoreTile score={score} tier={tier} loading={pitchQuery.isLoading} />
+            <BandTile band={band} loading={pitchQuery.isLoading} />
             {pitch?.fit_rationale && (
               <p className="text-xs text-[#52545A] leading-relaxed mt-2">{pitch.fit_rationale}</p>
             )}
           </Section>
 
-          {/* Pitch */}
           <Section
             title="Your pitch"
             action={
@@ -229,48 +214,13 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
               ) : null
             }
           >
-            {pitchQuery.isLoading ? (
-              <PitchSkeleton />
-            ) : pitchQuery.error ? (
-              <p className="text-xs text-[#C84F40]">{pitchQuery.error.message}</p>
-            ) : !pitch ? (
-              <p className="text-xs text-[#9C9DA1]">No pitch available.</p>
-            ) : (
-              <>
-                <SubSection label="Role to pitch">
-                  <p className="text-sm font-medium text-[#0E1014]">{pitch.pitched_role}</p>
-                </SubSection>
-                {pitch.pitch_rationale && (
-                  <SubSection label="Your angle">
-                    <p className="text-xs text-[#52545A] leading-relaxed">{pitch.pitch_rationale}</p>
-                  </SubSection>
-                )}
-                {Array.isArray(pitch.who_to_contact) && pitch.who_to_contact.length > 0 && (
-                  <SubSection label="Who to contact">
-                    <p className="text-xs text-[#52545A] leading-relaxed">
-                      {pitch.who_to_contact.join(" · ")}
-                    </p>
-                  </SubSection>
-                )}
-                {Array.isArray(pitch.skill_gaps_this_fills) && pitch.skill_gaps_this_fills.length > 0 && (
-                  <SubSection label="Closes these gaps">
-                    <div className="flex flex-wrap gap-1.5">
-                      {pitch.skill_gaps_this_fills.map((g, i) => (
-                        <span
-                          key={i}
-                          className="inline-flex items-center px-2 py-0.5 text-xs text-[#52545A] bg-[#F4F4F2] border border-[#DDDDDB] rounded"
-                        >
-                          {g}
-                        </span>
-                      ))}
-                    </div>
-                  </SubSection>
-                )}
-              </>
-            )}
+            <PitchSection
+              pitch={pitch}
+              loading={pitchQuery.isLoading}
+              error={pitchQuery.error}
+            />
           </Section>
 
-          {/* Actions */}
           <div className="pt-2 border-t border-[#DDDDDB] space-y-2">
             <button
               type="button"
@@ -318,52 +268,26 @@ function Section({ title, action, children }) {
   );
 }
 
-function SubSection({ label, children }) {
-  return (
-    <div className="mb-3 last:mb-0">
-      <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mb-1">{label}</p>
-      {children}
-    </div>
-  );
-}
-
-function ScoreTile({ score, tier, loading }) {
+// Band tile — High / Med / Low only, no number. Coral for High, slate
+// for Med, faded for Low; dashed-border placeholder while loading or
+// when the pitch hasn't generated yet.
+function BandTile({ band, loading }) {
   if (loading) {
     return (
       <div className="bg-[#F4F4F2] rounded-md p-3 border border-[#DDDDDB]">
-        <Skeleton className="h-7 w-12" />
+        <Skeleton className="h-7 w-24" />
       </div>
     );
   }
-  const tierLabel =
-    tier === "strong" ? "Strong fit" :
-    tier === "soft"   ? "Real fit" :
-    tier === "weak"   ? "Stretch fit" :
-    "—";
-  const valueColor =
-    tier === "strong" ? "#F87060" :
-    tier === "soft"   ? "#0E1014" :
-    "#9C9DA1";
+  const label = BAND_LABELS[band];
+  const color =
+    band === "high" ? "#F87060" :
+    band === "med"  ? "#0E1014" :
+                      "#9C9DA1";
   return (
     <div className="bg-[#F4F4F2] rounded-md p-3 border border-[#DDDDDB]">
-      <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mb-1">Combined</p>
-      <div className="flex items-baseline gap-2">
-        <span className="text-2xl font-semibold" style={{ color: valueColor }}>
-          {score ?? "—"}
-        </span>
-        <span className="text-[11px] font-medium text-[#52545A]">{tierLabel}</span>
-      </div>
-    </div>
-  );
-}
-
-function PitchSkeleton() {
-  return (
-    <div aria-hidden="true" className="space-y-3">
-      <Skeleton className="h-4 w-1/3" />
-      <Skeleton className="h-3 w-full" />
-      <Skeleton className="h-3 w-5/6" />
-      <Skeleton className="h-3 w-1/4" />
+      <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mb-1">Match</p>
+      <span className="text-2xl font-semibold" style={{ color }}>{label}</span>
     </div>
   );
 }

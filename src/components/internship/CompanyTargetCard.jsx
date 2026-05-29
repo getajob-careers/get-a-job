@@ -1,8 +1,16 @@
 import React from "react";
-import { scoreBand } from "./constants";
+import {
+  combinedScore,
+  bandForLlmScore,
+  BAND_LABELS_SHORT,
+} from "./browse/scoreHelpers";
 
-// Single kanban card — compact: company name + source badge + dual
-// scores. Click anywhere on the card opens the drawer for full detail.
+// Single kanban card. Click anywhere opens CompanyTargetDrawer.
+//
+// PR5: scores collapse to a single High/Med/Low band derived from the
+// LLM combined score (round((fit + career_compound) / 2)). No raw
+// numbers shown anywhere. Pitched role chip stays — it's real
+// per-company signal from the matcher's LLM stage.
 
 const SOURCE_LABELS = {
   matched: "Matched",
@@ -15,11 +23,19 @@ const SOURCE_TONE = {
   self_added:       "gray",
 };
 
+const BAND_TEXT_COLOR = {
+  high: "text-[#1D7556]",
+  med:  "text-[#6B4E0F]",
+  low:  "text-[#C84F40]",
+  none: "text-[#9C9DA1]",
+};
+
 export default function CompanyTargetCard({ target, onClick }) {
   const company = target.companies || {};
-  const fit = scoreBand(target.fit_score);
-  const compound = scoreBand(target.career_compound_score);
-  const showScores = target.source === "matched" && target.fit_score != null;
+  // Compute combined from the persisted fit + compound; band the result.
+  const score = combinedScore(target);
+  const band = bandForLlmScore(score);
+  const showBand = target.source === "matched" && score != null;
   const sourceTone = SOURCE_TONE[target.source] || "gray";
 
   return (
@@ -43,15 +59,13 @@ export default function CompanyTargetCard({ target, onClick }) {
         </p>
       )}
 
-      {showScores && (
+      {showBand && (
         <div className="act-target-card-scores">
           <div>
-            <span className="text-[#9C9DA1]">Fit </span>
-            <span className={`font-medium ${fit.color}`}>{Math.round(target.fit_score)}</span>
-          </div>
-          <div>
-            <span className="text-[#9C9DA1]">Compound </span>
-            <span className={`font-medium ${compound.color}`}>{Math.round(target.career_compound_score)}</span>
+            <span className="text-[#9C9DA1]">Match </span>
+            <span className={`font-medium ${BAND_TEXT_COLOR[band]}`}>
+              {BAND_LABELS_SHORT[band]}
+            </span>
           </div>
         </div>
       )}

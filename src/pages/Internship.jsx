@@ -125,6 +125,7 @@ export default function Internship() {
         .select(`
           id, status, source, fit_score, career_compound_score,
           fit_rationale, pitched_role, pitch_rationale, skill_gaps_this_fills,
+          who_to_contact,
           notes, created_at, updated_at,
           companies (
             id, name, domain, description, industry, sector, stage,
