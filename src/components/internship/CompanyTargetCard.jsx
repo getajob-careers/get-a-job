@@ -1,16 +1,16 @@
 import React from "react";
 import {
-  combinedScore,
   bandForLlmScore,
   BAND_LABELS_SHORT,
 } from "./browse/scoreHelpers";
 
 // Single kanban card. Click anywhere opens CompanyTargetDrawer.
 //
-// PR5: scores collapse to a single High/Med/Low band derived from the
-// LLM combined score (round((fit + career_compound) / 2)). No raw
-// numbers shown anywhere. Pitched role chip stays — it's real
-// per-company signal from the matcher's LLM stage.
+// PR5 collapsed the kanban UI to a single High/Med/Low band derived
+// from the (then) combined fit + career_compound average. PR6 collapsed
+// the underlying data model to a single match_score, so the card now
+// reads target.match_score directly. No raw numbers shown anywhere.
+// Pitched role chip stays — it's real per-company signal from the LLM.
 
 const SOURCE_LABELS = {
   matched: "Matched",
@@ -32,8 +32,7 @@ const BAND_TEXT_COLOR = {
 
 export default function CompanyTargetCard({ target, onClick }) {
   const company = target.companies || {};
-  // Compute combined from the persisted fit + compound; band the result.
-  const score = combinedScore(target);
+  const score = target.match_score;
   const band = bandForLlmScore(score);
   const showBand = target.source === "matched" && score != null;
   const sourceTone = SOURCE_TONE[target.source] || "gray";

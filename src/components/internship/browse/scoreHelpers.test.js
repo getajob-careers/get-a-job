@@ -1,7 +1,5 @@
 import { describe, it, expect } from "vitest";
 import {
-  combinedScore,
-  scoreTier,
   bandForRuleScore,
   bandForLlmScore,
   RULE_BAND_THRESHOLDS,
@@ -10,32 +8,7 @@ import {
   BAND_LABELS_SHORT,
 } from "./scoreHelpers";
 
-describe("combinedScore", () => {
-  it("averages fit + career_compound, rounding half-up", () => {
-    expect(combinedScore({ fit_score: 80, career_compound_score: 60 })).toBe(70);
-    expect(combinedScore({ fit_score: 85, career_compound_score: 55 })).toBe(70);
-    expect(combinedScore({ fit_score: 91, career_compound_score: 90 })).toBe(91);
-  });
-
-  it("returns null when pitch is null/undefined", () => {
-    expect(combinedScore(null)).toBeNull();
-    expect(combinedScore(undefined)).toBeNull();
-  });
-
-  it("returns null when either score is missing / non-numeric", () => {
-    expect(combinedScore({ fit_score: 80 })).toBeNull();
-    expect(combinedScore({ career_compound_score: 60 })).toBeNull();
-    expect(combinedScore({ fit_score: NaN, career_compound_score: 70 })).toBeNull();
-  });
-
-  it("handles edge cases at the score bounds (0, 100)", () => {
-    expect(combinedScore({ fit_score: 0, career_compound_score: 0 })).toBe(0);
-    expect(combinedScore({ fit_score: 100, career_compound_score: 100 })).toBe(100);
-    expect(combinedScore({ fit_score: 100, career_compound_score: 0 })).toBe(50);
-  });
-});
-
-describe("bandForLlmScore — drawer combined + kanban surfaces (0-100 scale)", () => {
+describe("bandForLlmScore — drawer + kanban surfaces (0-100 scale)", () => {
   it("classifies at the configured thresholds", () => {
     expect(bandForLlmScore(100)).toBe("high");
     expect(bandForLlmScore(85)).toBe("high");
@@ -47,7 +20,7 @@ describe("bandForLlmScore — drawer combined + kanban surfaces (0-100 scale)", 
   });
 
   it("maps the matcher rubric correctly: 85+ obvious → High, 70+ real → High, 50-69 stretch → Med, <50 weak → Low", () => {
-    // From _shared/internship-pitch.ts rubric:
+    // From _shared/internship-pitch.ts rubric (PR6 single-score):
     expect(bandForLlmScore(95)).toBe("high"); // obvious
     expect(bandForLlmScore(75)).toBe("high"); // real
     expect(bandForLlmScore(60)).toBe("med");  // stretch
@@ -107,14 +80,5 @@ describe("BAND_LABELS expose UI-ready strings", () => {
     expect(BAND_LABELS_SHORT.med).toBe("Med");
     expect(BAND_LABELS_SHORT.low).toBe("Low");
     expect(BAND_LABELS_SHORT.none).toBe("—");
-  });
-});
-
-describe("scoreTier — deprecated PR4 helper, kept as shim", () => {
-  it("maps to the new band names: strong / soft / weak / none", () => {
-    expect(scoreTier(85)).toBe("strong");
-    expect(scoreTier(60)).toBe("soft");
-    expect(scoreTier(30)).toBe("weak");
-    expect(scoreTier(null)).toBe("none");
   });
 });

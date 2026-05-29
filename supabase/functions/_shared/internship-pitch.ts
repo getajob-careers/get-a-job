@@ -15,49 +15,48 @@
 // PR5.
 
 // ============================================================
-// System prompt. PR5 rewrites this from third-person to second-person:
-// rationales now address the student as "you / your" so the drawer
-// reads like personal advice ("your CS experience at Guardio…") instead
-// of third-person commentary ("the student has CS experience"). The
-// prompt-identity gate in _shared/internship-pitch.test.ts is updated
-// in the same commit — any future drift must update the test alongside.
+// System prompt. Voice (second person) was set in PR5. PR6 collapses
+// the two-score model (fit_score + career_compound_score) into a single
+// match_score: investigation against the live data showed the two
+// scores were redundant in practice (100% identical for one user, 67%
+// for the other), and PR5's UI already shows only a single band derived
+// from the average. The new rubric absorbs BOTH axes into one judgment;
+// the career-compound framing now lives in the prose (pitch_rationale +
+// skill_gaps_this_fills) where it can be qualitative rather than a
+// duplicate number. The anti-hedge rule and discrete bands are kept
+// intact — the matcher already produces real spread (High/Med/Low),
+// and the band UI maps cleanly onto 50/70/85/100. The prompt-identity
+// gate in _shared/internship-pitch.test.ts is updated in the same
+// commit — any future drift must update the test alongside.
 // ============================================================
 
 export const PITCH_SYSTEM_PROMPT_BASE = `You are an internship strategy advisor for "Get A Job," a career operating system for early-career professionals entering tech roles. You are writing for the student themselves — every rationale you output must address them in the second person ("your", "you"), never the third person ("the student", "their", "they"). Their PITCH STRATEGY (internship_profile) describes what KINDS of companies are realistic for them, what role archetypes they can pitch given today's strengths, and how this internship serves their long-term career.
 
-You will score CANDIDATE COMPANIES against this strategy. Return TWO scores per company and a specific pitch recommendation, written as if speaking directly to the student.
+You will score CANDIDATE COMPANIES against this strategy. Return ONE score per company and a specific pitch recommendation, written as if speaking directly to the student.
 
 SCORING RUBRIC — use these discrete bands, do not hedge in the middle.
 
-fit_score (0-100) — how well this company matches your realistic_* targets:
-  85-100  Obvious fit. Multiple strong matches on stage / sector / signals. You walk in with a clear story.
-  70-84   Real fit with one or two caveats. Worth pitching; rationale should name the caveat.
-  50-69   Stretch fit. Defensible but requires you to bridge a gap. Rationale must name the strongest hook.
-  0-49    Weak fit. Skip unless the candidate_companies list is thin.
-
-career_compound_score (0-100) — how much an internship at THIS specific company serves your long-term Track 1 path (career_compound_rationale + track_1_role_alignment):
-  85-100  Strong compound. The role archetypes pitchable here close named skill_gaps_to_close and align with track_1_role_alignment.
-  70-84   Solid compound. Closes some gaps; partial alignment.
-  50-69   Weak compound. Doesn't hurt the path but doesn't accelerate it.
-  0-49    Anti-compound. Pulls you sideways; rationale should name what would be lost.
+match_score (0-100) — a single honest match score that absorbs BOTH axes: how well this company matches your realistic_* targets AND how much an internship here serves your long-term Track 1 path (career_compound_rationale + track_1_role_alignment). A great match is strong on BOTH; a weak match is weak on EITHER.
+  85-100  Obvious match. Multiple strong matches on stage / sector / signals AND the role archetypes pitchable here close named skill_gaps_to_close and align with track_1_role_alignment. You walk in with a clear story AND it materially compounds toward Track 1.
+  70-84   Real match. Strong on one axis with one or two caveats on the other — worth pitching; rationale should name the caveat (fit caveat OR career-compound caveat).
+  50-69   Stretch match. Defensible but requires you to bridge a gap on either the fit axis OR the long-term axis. Rationale must name the strongest hook AND the stretch.
+  0-49    Weak match. Skip unless the candidate_companies list is thin. Either a weak fit, anti-compound (pulls you sideways), or both.
 
 RULES:
 - Do not output any score in the 60-65 hedge band unless you can name the specific signal that makes it borderline. Force yourself to commit.
-- A company can have fit_score 85 and career_compound_score 55 (great fit, weak long-term move) — these are independent. Score them independently.
 - pitched_role must be GROUNDED in pitch_strength_signals — your actual current strengths, not aspirations. "User research support for the CS team" not "Senior PM". Reference specific signals when possible.
 - pitch_rationale: 1-2 sentences in second person. WHY this role at THIS company given your signals. Concrete, not generic. Write "Your VIP CS experience at Guardio positions you to…", never "the student has CS experience".
 - skill_gaps_this_fills: pick 1-3 items from internship_profile.skill_gaps_to_close that this specific company + role would actually close. Empty array if none.
-- fit_rationale: 1 sentence in second person naming the primary signal driving the fit_score (the hook OR the caveat).
-- Honour pitch_anti_patterns — if a company would push you into one of those patterns, that's a fit caveat or career_compound hit.
+- match_rationale: 1 sentence in second person naming the primary signal driving the match_score — the strongest hook OR the weakest caveat, whichever determines the band.
+- Honour pitch_anti_patterns — if a company would push you into one of those patterns, that's a match caveat.
 
 Output ONLY valid JSON in this exact shape:
 {
   "scored": [
     {
       "company_id": "<uuid from input>",
-      "fit_score": <number 0-100>,
-      "career_compound_score": <number 0-100>,
-      "fit_rationale": "<string>",
+      "match_score": <number 0-100>,
+      "match_rationale": "<string>",
       "pitched_role": "<string>",
       "pitch_rationale": "<string>",
       "skill_gaps_this_fills": ["<string>", ...]
@@ -105,9 +104,8 @@ Return ONLY valid JSON.`;
 
 export interface ScoredPitch {
   company_id: string;
-  fit_score: number;
-  career_compound_score: number;
-  fit_rationale: string;
+  match_score: number;
+  match_rationale: string;
   pitched_role: string;
   pitch_rationale: string;
   skill_gaps_this_fills: string[];
@@ -130,18 +128,17 @@ export function normalizeScoredCompany(
   const company_id = typeof r.company_id === "string" ? r.company_id : null;
   if (!company_id || !validIds.has(company_id)) return null;
 
-  const fit_score = clampScore(r.fit_score);
-  const career_compound_score = clampScore(r.career_compound_score);
-  if (fit_score === null || career_compound_score === null) return null;
+  const match_score = clampScore(r.match_score);
+  if (match_score === null) return null;
 
-  const fit_rationale = typeof r.fit_rationale === "string"
-    ? r.fit_rationale.trim().slice(0, 500) : "";
+  const match_rationale = typeof r.match_rationale === "string"
+    ? r.match_rationale.trim().slice(0, 500) : "";
   const pitched_role = typeof r.pitched_role === "string"
     ? r.pitched_role.trim().slice(0, 200) : "";
   const pitch_rationale = typeof r.pitch_rationale === "string"
     ? r.pitch_rationale.trim().slice(0, 600) : "";
 
-  if (!fit_rationale || !pitched_role || !pitch_rationale) return null;
+  if (!match_rationale || !pitched_role || !pitch_rationale) return null;
 
   const skill_gaps_this_fills = Array.isArray(r.skill_gaps_this_fills)
     ? r.skill_gaps_this_fills
@@ -162,9 +159,8 @@ export function normalizeScoredCompany(
 
   return {
     company_id,
-    fit_score,
-    career_compound_score,
-    fit_rationale,
+    match_score,
+    match_rationale,
     pitched_role,
     pitch_rationale,
     skill_gaps_this_fills,

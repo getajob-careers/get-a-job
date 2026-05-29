@@ -92,11 +92,10 @@ interface PreScoredCompany extends Company {
   rule_score: number
 }
 
-// LlmScoredCompany kept as a name-stable alias of the shared ScoredPitch
-// (which now includes `who_to_contact`). Existing call sites in this
-// file destructure only the fields they need, so the extra field passes
-// through harmlessly without DB schema changes — company_targets table
-// doesn't have a who_to_contact column today (deferred to PR5).
+// LlmScoredCompany kept as a name-stable alias of the shared ScoredPitch.
+// PR6 collapsed the two-score model into a single match_score; the alias
+// continues to forward whatever the shared module exports. Call sites in
+// this file destructure only the fields they actually persist.
 type LlmScoredCompany = ScoredPitch
 
 Deno.serve(async (req) => {
@@ -369,9 +368,8 @@ Deno.serve(async (req) => {
             user_id: user.id,
             company_id: s.company_id,
             source: 'matched',
-            fit_score: s.fit_score,
-            career_compound_score: s.career_compound_score,
-            fit_rationale: s.fit_rationale,
+            match_score: s.match_score,
+            match_rationale: s.match_rationale,
             pitched_role: s.pitched_role,
             pitch_rationale: s.pitch_rationale,
             skill_gaps_this_fills: s.skill_gaps_this_fills,
@@ -400,9 +398,8 @@ Deno.serve(async (req) => {
       const userInvested = existing.status !== 'exploring' || (existing.notes && existing.notes.trim().length > 0)
 
       const patch: Record<string, unknown> = {
-        fit_score: s.fit_score,
-        career_compound_score: s.career_compound_score,
-        fit_rationale: s.fit_rationale,
+        match_score: s.match_score,
+        match_rationale: s.match_rationale,
       }
       if (!userInvested) {
         patch.pitched_role = s.pitched_role
@@ -435,12 +432,11 @@ Deno.serve(async (req) => {
         return {
           company_id: s.company_id,
           name: company?.name || null,
-          fit_score: s.fit_score,
-          career_compound_score: s.career_compound_score,
+          match_score: s.match_score,
           pitched_role: s.pitched_role,
         }
       })
-      .sort((a, b) => b.fit_score - a.fit_score)
+      .sort((a, b) => b.match_score - a.match_score)
       .slice(0, 5)
 
     _ok = true; _http = 200
