@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { combinedScore, scoreTier } from "./CompanyDetailDrawer";
+import { combinedScore, scoreTier } from "./scoreHelpers";
 
 describe("combinedScore", () => {
   it("averages fit + career_compound, rounding half-up", () => {

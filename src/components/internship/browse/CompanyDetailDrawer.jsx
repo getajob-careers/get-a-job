@@ -16,6 +16,7 @@ import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createPageUrl } from "@/utils";
 import { ORIGIN_FILTERS } from "./filterConfig";
+import { combinedScore, scoreTier } from "./scoreHelpers";
 
 // Browse-side detail drawer (PR4). Click a card on /Internship → this
 // opens. Sections, top-to-bottom:
@@ -40,20 +41,9 @@ function formatLocation(city, country) {
   return city || country || null;
 }
 
-export function combinedScore(pitch) {
-  if (!pitch) return null;
-  const f = Number(pitch.fit_score);
-  const c = Number(pitch.career_compound_score);
-  if (!Number.isFinite(f) || !Number.isFinite(c)) return null;
-  return Math.round((f + c) / 2);
-}
-
-export function scoreTier(s) {
-  if (s == null || Number.isNaN(s)) return "none";
-  if (s >= 70) return "strong";
-  if (s >= 40) return "soft";
-  return "weak";
-}
+// combinedScore + scoreTier moved to ./scoreHelpers — see import above.
+// Tests live in scoreHelpers.test.js so they don't transitively
+// import this file (and thus supabaseClient).
 
 export default function CompanyDetailDrawer({ company, open, onClose }) {
   const { user } = useAuth();
