@@ -249,7 +249,31 @@ async function enrichOne(
       ],
     });
   } catch (err) {
-    return { ...base, status: "openai_error", error: (err as Error).message, elapsed_ms: Date.now() - t0 };
+    // Round-2 diagnostic: when the SDK throws (APIConnectionError, 401,
+    // 429, 5xx, etc.) its default .message is just "Connection error."
+    // which doesn't tell us whether it's network, auth, rate limit, or
+    // a malformed-request rejection. Pull every available field off the
+    // SDK error object so the next dry-run actually tells us what's
+    // wrong without needing a third re-run.
+    const e = err as Error & {
+      status?: number; code?: string; type?: string; param?: string;
+      request_id?: string; headers?: Record<string, string>;
+      cause?: unknown;
+    };
+    const cause = e.cause;
+    const causeStr = cause instanceof Error
+      ? `${cause.name}: ${cause.message}${(cause as Error & { code?: string }).code ? ` [${(cause as Error & { code?: string }).code}]` : ""}`
+      : cause != null ? String(cause) : null;
+    const detail = [
+      e.constructor?.name ?? "Error",
+      e.message || "(no message)",
+      e.status ? `status=${e.status}` : null,
+      e.code ? `code=${e.code}` : null,
+      e.type ? `type=${e.type}` : null,
+      e.request_id ? `req=${e.request_id}` : null,
+      causeStr ? `cause={${causeStr}}` : null,
+    ].filter(Boolean).join(" · ");
+    return { ...base, status: "openai_error", error: detail, elapsed_ms: Date.now() - t0 };
   }
 
   // The Responses API returns response.output_text (string) for plain
