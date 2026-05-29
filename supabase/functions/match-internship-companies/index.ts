@@ -375,6 +375,7 @@ Deno.serve(async (req) => {
             pitched_role: s.pitched_role,
             pitch_rationale: s.pitch_rationale,
             skill_gaps_this_fills: s.skill_gaps_this_fills,
+            who_to_contact: s.who_to_contact,
             status: 'exploring',
           })
         if (error) {
@@ -407,6 +408,7 @@ Deno.serve(async (req) => {
         patch.pitched_role = s.pitched_role
         patch.pitch_rationale = s.pitch_rationale
         patch.skill_gaps_this_fills = s.skill_gaps_this_fills
+        patch.who_to_contact = s.who_to_contact
       }
 
       const { error } = await supabase

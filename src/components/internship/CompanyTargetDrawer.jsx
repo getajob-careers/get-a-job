@@ -5,14 +5,24 @@ import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
 import { ExternalLink, MessageSquare } from "lucide-react";
-import { STATUSES, STATUS_LABELS, scoreBand } from "./constants";
+import { STATUSES, STATUS_LABELS } from "./constants";
 import { Link } from "react-router-dom";
 import { track, EVENTS } from "@/lib/analytics";
+import { createPageUrl } from "@/utils";
+import {
+  combinedScore,
+  bandForLlmScore,
+  BAND_LABELS,
+} from "./browse/scoreHelpers";
+import PitchSection from "./PitchSection";
 
 // Right-side detail panel. Sections, top-to-bottom:
 //   1. Company header (name + sector + stage + external link)
-//   2. Scores (fit + career_compound) with discrete-band labels + rationale
-//   3. Pitch recommendation (pitched_role + pitch_rationale + skill_gaps_this_fills)
+//   2. Match — single combined band tile (PR5: replaces fit + compound
+//      two-tile layout; one judgment instead of two numbers) + rationale
+//   3. Pitch — <PitchSection> shared with the browse drawer so the
+//      Role / Angle / Who-to-contact / Gaps copy and layout stay in lock
+//      step across surfaces
 //   4. Status change form (Select + optional note textarea + Save)
 //   5. Notes (general notes textarea — auto-save on blur)
 //   6. Timeline of status_changes (newest first)
@@ -59,9 +69,14 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
   if (!target) return null;
 
   const company = target.companies || {};
-  const fit = scoreBand(target.fit_score);
-  const compound = scoreBand(target.career_compound_score);
-  const showScores = target.source === "matched" && target.fit_score != null;
+  const score = combinedScore(target);
+  const band = bandForLlmScore(score);
+  const showBand = target.source === "matched" && score != null;
+  const hasPitch =
+    !!target.pitched_role ||
+    !!target.pitch_rationale ||
+    (Array.isArray(target.who_to_contact) && target.who_to_contact.length > 0) ||
+    (Array.isArray(target.skill_gaps_this_fills) && target.skill_gaps_this_fills.length > 0);
 
   const handleSaveStatus = async () => {
     if (pendingStatus === target.status && !pendingNote.trim()) {
@@ -132,14 +147,22 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
     }
   };
 
+  const outreachUrl =
+    createPageUrl("Linkedin") +
+    `?tab=networking${
+      company.name ? `&prefillCompany=${encodeURIComponent(company.name)}` : ""
+    }${
+      target.pitched_role ? `&prefillRole=${encodeURIComponent(target.pitched_role)}` : ""
+    }`;
+
   return (
     <Sheet open={open} onOpenChange={(v) => !v && onClose()}>
       <SheetContent className="w-full sm:max-w-md overflow-y-auto">
         <div className="space-y-6 pt-2">
           {/* Header */}
           <div>
-            <h2 className="text-lg font-semibold text-[#0A0A0A] mb-1">{company.name || "Unnamed company"}</h2>
-            <p className="text-sm text-[#525252]">
+            <h2 className="text-lg font-semibold text-[#0E1014] mb-1">{company.name || "Unnamed company"}</h2>
+            <p className="text-sm text-[#52545A]">
               {[company.sector, company.stage, company.hq_city].filter(Boolean).join(" · ") || "No company metadata yet."}
             </p>
             {company.domain && (
@@ -147,7 +170,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
                 href={`https://${company.domain.replace(/^https?:\/\//, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-[#1E40AF] hover:underline mt-1.5"
+                className="inline-flex items-center gap-1 text-xs text-[#2B5DC4] hover:underline mt-1.5"
               >
                 {company.domain}
                 <ExternalLink className="w-3 h-3" />
@@ -155,38 +178,20 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
             )}
           </div>
 
-          {/* Scores */}
-          {showScores && (
+          {/* Match — single combined band tile (PR5) */}
+          {showBand && (
             <Section title="Match">
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <ScoreTile label="Fit" score={target.fit_score} band={fit} />
-                <ScoreTile label="Career compound" score={target.career_compound_score} band={compound} />
-              </div>
+              <BandTile band={band} />
               {target.fit_rationale && (
-                <p className="text-xs text-[#525252] leading-relaxed">{target.fit_rationale}</p>
+                <p className="text-xs text-[#52545A] leading-relaxed mt-2">{target.fit_rationale}</p>
               )}
             </Section>
           )}
 
-          {/* Pitch recommendation */}
-          {target.pitched_role && (
-            <Section title="What to pitch">
-              <p className="text-sm font-medium text-[#0A0A0A] mb-1.5">{target.pitched_role}</p>
-              {target.pitch_rationale && (
-                <p className="text-xs text-[#525252] leading-relaxed mb-3">{target.pitch_rationale}</p>
-              )}
-              {Array.isArray(target.skill_gaps_this_fills) && target.skill_gaps_this_fills.length > 0 && (
-                <div>
-                  <p className="text-[10px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1.5">Closes these gaps</p>
-                  <div className="flex flex-wrap gap-1.5">
-                    {target.skill_gaps_this_fills.map((g, idx) => (
-                      <span key={idx} className="inline-flex items-center px-2 py-0.5 text-xs text-[#525252] bg-[#FAFAFA] border border-[#F0F0F0] rounded">
-                        {g}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-              )}
+          {/* Pitch — shared with browse drawer */}
+          {hasPitch && (
+            <Section title="Your pitch">
+              <PitchSection pitch={target} />
             </Section>
           )}
 
@@ -195,7 +200,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
             <select
               value={pendingStatus}
               onChange={(e) => setPendingStatus(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-white border border-[#E5E5E5] rounded-md focus:outline-none focus:border-[#0A0A0A] mb-2"
+              className="w-full px-3 py-2 text-sm bg-white border border-[#DDDDDB] rounded-md focus:outline-none focus:border-[#0E1014] mb-2"
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>{STATUS_LABELS[s]}</option>
@@ -207,14 +212,14 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
                 onChange={(e) => setPendingNote(e.target.value)}
                 placeholder="Optional: what happened? (e.g. 'Reached out via Sarah Cohen, intro to PM team')"
                 rows={3}
-                className="w-full px-3 py-2 text-sm bg-white border border-[#E5E5E5] rounded-md focus:outline-none focus:border-[#0A0A0A] mb-2 resize-none"
+                className="w-full px-3 py-2 text-sm bg-white border border-[#DDDDDB] rounded-md focus:outline-none focus:border-[#0E1014] mb-2 resize-none"
               />
             )}
             <button
               type="button"
               onClick={handleSaveStatus}
               disabled={savingStatus || (pendingStatus === target.status && !pendingNote.trim())}
-              className="inline-flex items-center px-3 py-1.5 text-xs font-medium bg-[#0A0A0A] hover:bg-[#262626] disabled:bg-[#E5E5E5] disabled:text-[#A3A3A3] disabled:cursor-not-allowed text-white rounded-md transition-colors"
+              className="inline-flex items-center px-3 py-1.5 text-xs font-medium bg-[#0E1014] hover:bg-[#262626] disabled:bg-[#DDDDDB] disabled:text-[#9C9DA1] disabled:cursor-not-allowed text-white rounded-md transition-colors"
             >
               {savingStatus ? "Saving…" : "Save status"}
             </button>
@@ -228,40 +233,40 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
               onBlur={handleSaveNotes}
               placeholder="Anything you want to remember about this company — research, contacts, reminders…"
               rows={4}
-              className="w-full px-3 py-2 text-sm bg-white border border-[#E5E5E5] rounded-md focus:outline-none focus:border-[#0A0A0A] resize-none"
+              className="w-full px-3 py-2 text-sm bg-white border border-[#DDDDDB] rounded-md focus:outline-none focus:border-[#0E1014] resize-none"
             />
-            {savingNotes && <p className="text-[10px] text-[#A3A3A3] mt-1">Saving…</p>}
+            {savingNotes && <p className="text-[10px] text-[#9C9DA1] mt-1">Saving…</p>}
           </Section>
 
           {/* Timeline */}
           <Section title="Timeline">
             {timeline.length === 0 ? (
-              <p className="text-xs text-[#A3A3A3] italic">No transitions yet.</p>
+              <p className="text-xs text-[#9C9DA1] italic">No transitions yet.</p>
             ) : (
               <ol className="space-y-3">
                 {timeline.map((change) => (
                   <li key={change.id} className="flex gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#0A0A0A] mt-1.5 flex-shrink-0" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-[#0E1014] mt-1.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-[#0A0A0A]">
+                      <p className="text-xs text-[#0E1014]">
                         {change.old_status ? (
                           <>
-                            <span className="text-[#A3A3A3]">{STATUS_LABELS[change.old_status] || change.old_status}</span>
-                            <span className="text-[#A3A3A3]"> → </span>
+                            <span className="text-[#9C9DA1]">{STATUS_LABELS[change.old_status] || change.old_status}</span>
+                            <span className="text-[#9C9DA1]"> → </span>
                             <span className="font-medium">{STATUS_LABELS[change.new_status] || change.new_status}</span>
                           </>
                         ) : (
                           <span className="font-medium">{STATUS_LABELS[change.new_status] || change.new_status}</span>
                         )}
                       </p>
-                      <p className="text-[10px] text-[#A3A3A3] mt-0.5">
+                      <p className="text-[10px] text-[#9C9DA1] mt-0.5">
                         {new Date(change.changed_at).toLocaleString(undefined, {
                           dateStyle: "medium",
                           timeStyle: "short",
                         })}
                       </p>
                       {change.note && (
-                        <p className="text-xs text-[#525252] mt-1.5 leading-relaxed">{change.note}</p>
+                        <p className="text-xs text-[#52545A] mt-1.5 leading-relaxed">{change.note}</p>
                       )}
                     </div>
                   </li>
@@ -272,15 +277,12 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
 
           {/* Outreach Coach link — prefills company + pitched_role into the
               composer's target form so the user starts at the goal picker
-              with context already filled. */}
-          <div className="pt-2 border-t border-[#F0F0F0]">
+              with context already filled. Route is /Linkedin per PR #80
+              rename (LinkedinOptimizer → Linkedin). */}
+          <div className="pt-2 border-t border-[#DDDDDB]">
             <Link
-              to={`/LinkedinOptimizer?tab=networking${
-                company.name ? `&prefillCompany=${encodeURIComponent(company.name)}` : ""
-              }${
-                target.pitched_role ? `&prefillRole=${encodeURIComponent(target.pitched_role)}` : ""
-              }`}
-              className="inline-flex items-center gap-1.5 text-xs text-[#1E40AF] hover:underline"
+              to={outreachUrl}
+              className="inline-flex items-center gap-1.5 text-xs text-[#2B5DC4] hover:underline"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               Open in Outreach Coach
@@ -295,20 +297,25 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
 function Section({ title, children }) {
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-2">{title}</p>
+      <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mb-2">{title}</p>
       {children}
     </div>
   );
 }
 
-function ScoreTile({ label, score, band }) {
+// Band tile — coral for High, slate for Med, faded for Low. Mirrors the
+// browse drawer's BandTile so the same band reads the same on both
+// surfaces (no number anywhere per PR5).
+function BandTile({ band }) {
+  const label = BAND_LABELS[band];
+  const color =
+    band === "high" ? "#F87060" :
+    band === "med"  ? "#0E1014" :
+                      "#9C9DA1";
   return (
-    <div className="bg-[#FAFAFA] rounded-md p-3 border border-[#F0F0F0]">
-      <p className="text-[10px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">{label}</p>
-      <div className="flex items-baseline gap-1.5">
-        <span className="text-xl font-semibold text-[#0A0A0A]">{Math.round(score)}</span>
-        <span className={`text-[11px] font-medium ${band.color}`}>{band.label}</span>
-      </div>
+    <div className="bg-[#F4F4F2] rounded-md p-3 border border-[#DDDDDB]">
+      <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mb-1">Match</p>
+      <span className="text-2xl font-semibold" style={{ color }}>{label}</span>
     </div>
   );
 }

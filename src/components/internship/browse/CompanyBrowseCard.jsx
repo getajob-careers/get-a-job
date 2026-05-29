@@ -1,16 +1,15 @@
 import React from "react";
 import { ORIGIN_FILTERS } from "./filterConfig";
-import { scoreTier } from "@/lib/internshipRuleScore";
+import { bandForRuleScore, BAND_LABELS_SHORT } from "./scoreHelpers";
 
-// Browse card. Click opens CompanyDetailDrawer (PR4 wiring). Card is
-// a <button> for accessibility; onClick goes up to the Panel which
-// owns drawer state. Degrades cleanly on rows with NULL fields.
+// Browse card. Click opens CompanyDetailDrawer. Card is a <button> for
+// accessibility; onClick goes up to the Panel which owns drawer state.
+// Degrades cleanly on rows with NULL fields.
 //
-// Score chip styling per spec D5: ≥70 coral solid, 40-69 warm-slate
-// outline, <40 muted, null='—' dashed outline (no internship_profile).
-// Note: the chip score is rule_score (cheap, deterministic); the
-// drawer surfaces the LLM combined score. Reconcile in the rule-score
-// "doesn't differentiate" fix (deferred per P1).
+// PR5: chip shows a High/Med/Low BAND (no number). Score still
+// computed internally for sorting; just not displayed. Role chip
+// dropped — it was target_job_titles[0], identical on every card and
+// added no per-company signal.
 
 const ORIGIN_LABEL_BY_ID = new Map(ORIGIN_FILTERS.map((o) => [o.id, o.label]));
 
@@ -20,27 +19,26 @@ function formatLocation(city, country) {
 }
 
 function ScoreChip({ score }) {
-  const tier = scoreTier(score);
-  if (tier === "none") {
-    return (
-      <span className="brz-score brz-score-none" aria-label="No fit score (generate your pitch profile)">
-        <span className="brz-score-label">Fit</span>
-        —
-      </span>
-    );
-  }
-  const cls = tier === "strong" ? "brz-score brz-score-strong"
-            : tier === "soft"   ? "brz-score brz-score-soft"
-                                : "brz-score brz-score-weak";
+  const band = bandForRuleScore(score);
+  const label = BAND_LABELS_SHORT[band];
+  const cls =
+    band === "high" ? "brz-score brz-score-strong" :
+    band === "med"  ? "brz-score brz-score-soft" :
+    band === "low"  ? "brz-score brz-score-weak" :
+                      "brz-score brz-score-none";
+  const aria =
+    band === "none"
+      ? "No match band (generate your pitch profile)"
+      : `Match band: ${label}`;
   return (
-    <span className={cls} aria-label={`Fit score ${Math.round(score)} of 100`}>
-      <span className="brz-score-label">Fit</span>
-      {Math.round(score)}
+    <span className={cls} aria-label={aria}>
+      <span className="brz-score-label">Match</span>
+      {label}
     </span>
   );
 }
 
-export default function CompanyBrowseCard({ company, score, suggestedRole, onClick }) {
+export default function CompanyBrowseCard({ company, score, onClick }) {
   const originLabel = ORIGIN_LABEL_BY_ID.get(company.origin);
   const hasLiveJobs = company.verified === true && company.ats && company.ats !== "unknown";
   const sectorOrIndustry = company.sector || company.industry;
@@ -70,11 +68,6 @@ export default function CompanyBrowseCard({ company, score, suggestedRole, onCli
       )}
       <div className="brz-card-footer">
         <ScoreChip score={score} />
-        {suggestedRole && (
-          <span className="brz-role" title={`Suggested role: ${suggestedRole}`}>
-            {suggestedRole}
-          </span>
-        )}
       </div>
     </button>
   );

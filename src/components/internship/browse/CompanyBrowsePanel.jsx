@@ -54,13 +54,7 @@ export default function CompanyBrowsePanel() {
   // Per-observer narrow projection from the canonical profile cache —
   // doesn't pollute the userProfile queryKey (PR #178 pattern).
   const { data: profileBits } = useProfileQuery(user?.id, (p) =>
-    p
-      ? {
-          target_job_titles: Array.isArray(p.target_job_titles) ? p.target_job_titles : [],
-          five_year_role: p.five_year_role || null,
-          practicum_path: p.practicum_path || null,
-        }
-      : null,
+    p ? { practicum_path: p.practicum_path || null } : null,
   );
 
   const { data: internshipProfile, isLoading: ipLoading } = useQuery({
@@ -90,10 +84,10 @@ export default function CompanyBrowsePanel() {
     return map;
   }, [companies, internshipProfile]);
 
-  const suggestedRole =
-    profileBits?.target_job_titles?.[0] ||
-    profileBits?.five_year_role ||
-    "Internship";
+  // PR5: suggestedRole removed — was target_job_titles[0], identical
+  // on every browse card and added no per-company signal. The drawer's
+  // pitched_role (per-company, from generate-internship-pitch) carries
+  // the real signal.
 
   const [filters, setFilters] = useState(emptyFilterState);
   const [search, setSearch] = useState("");
@@ -175,7 +169,6 @@ export default function CompanyBrowsePanel() {
       <CompanyBrowseGrid
         companies={filtered}
         scoresById={scoresById}
-        suggestedRole={suggestedRole}
         page={page}
         pageSize={PAGE_SIZE}
         onLoadMore={() => setPage((p) => p + 1)}
