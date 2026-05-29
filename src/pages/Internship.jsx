@@ -129,8 +129,7 @@ export default function Internship() {
         .from("company_targets")
         .select(`
           id, status, source, match_score, match_rationale,
-          pitched_role, pitch_rationale, skill_gaps_this_fills,
-          who_to_contact,
+          pitched_role,
           notes, created_at, updated_at,
           companies (
             id, name, domain, description, industry, sector, stage,
