@@ -400,11 +400,24 @@ realistic_signal_filters: 3–6 short search-style filters that describe a TYPE 
 
 PITCHABLE — what to offer given TODAY's strengths.
 
-pitchable_role_archetypes: 3–5 short role descriptions the student could realistically pitch, each one a BRIDGE rung toward a HIGH-alignment Track-1 target from the TARGET ANCHOR section. The archetypes must:
-  - Steer toward goals: prefer archetypes that bridge toward the highest-alignment goal_aligned_targets (e.g., for a student whose Track-1 has Product Operations Manager 0.9 + APM 0.7 + CSM 0.7, lead with Product-Ops / Product-Analyst archetypes; CSM-adjacent archetypes are valid only when no product surface area is reachable).
-  - Be entry/junior rung: "Associate Product Analyst", "Product Operations Coordinator", "Junior PM rotating across customer-facing teams". NOT "Senior PM", NOT "Head of Growth", NOT the senior target role itself.
-  - Be grounded: each archetype must be reachable from the student's actual pitch_strength_signals — never invent target-domain experience the student doesn't have. A CS-experience student bridging into product is fine ("Customer Insights Coordinator (Product team)"); a CS-experience student claiming "Senior PM" is not.
-  - Be directional, not backward: do NOT default to roles purely in the student's current domain that don't bridge toward any goal_aligned_target. If the student has CS experience and a Product goal, a pure-CS archetype is a backward step, not an internship.
+pitchable_role_archetypes: 1–3 short FUNCTION names the student could realistically propose to intern in — these are areas/functions, NOT manufactured job titles. PR10 grain: function-level, "<X> internship" reading naturally. The matcher's pitched_role rule will pull from these. Apply these extraction rules:
+
+  DEFAULT — use the user's primary_domain, humanized (product_management → "Product Management", customer_success → "Customer Success", sales → "Sales", marketing → "Marketing", data → "Data", engineering → "Engineering", design → "Design", operations → "Operations", finance → "Finance", hr → "People").
+
+  REFINE ONLY IF a highest-alignment goal_aligned_target title contains a SUB-FUNCTION MODIFIER more specific than the bare domain (e.g. "Growth" within Marketing, "Operations" within Product, "Brand" within Marketing, "Analytics" within Data). Then the archetype is "<modifier> <domain>".
+    - Top target "Growth Marketing Manager"     → ["Growth Marketing"]
+    - Top target "Product Operations Manager"   → ["Product Operations"]
+    - Top target "Data Analytics Manager"       → ["Data Analytics"]
+    - Top target "Brand Marketing Director"     → ["Brand Marketing"]
+
+  DO NOT REFINE when the qualifier is seniority OR market-segment OR a vanilla job-title pattern.
+    - "Senior Software Engineer"     → ["Engineering"]
+    - "Enterprise Account Executive" → ["Sales"]
+    - "Senior Product Manager"       → ["Product Management"]
+
+  Output examples: "Product Operations", "Growth Marketing", "Sales", "Engineering". NOT "Junior X Coordinator", NOT "Senior X", NOT "Customer Success Support Specialist".
+
+  Multiple archetypes are allowed (1–3) only when distinct sub-functions exist for the same student — e.g. ["Product Operations", "Product Analysis"] for a Product student whose Track-1 spans both. Most users will have 1 archetype.
 
 pitch_strength_signals: 4–8 SPECIFIC signals the student can point to in an outreach message. Each signal MUST reference real artefacts from their stories / experiences / skills — named projects, named tools, named outcomes, named companies. NEVER fabricate metrics. NEVER write generic skills ("strong analytical thinking") — that's fluff, not a signal.
 
