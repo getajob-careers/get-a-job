@@ -267,18 +267,19 @@ export const PROPOSE_INTERNSHIP_FRAMEWORK = `OUTREACH GOAL — PROPOSE AN INTERN
 The user is proposing themselves for an UNPOSTED internship in a specific function at a company — not applying to a listed req, not asking "are you hiring." The recipient is the function's leader (Head of Product, Head of Marketing, etc.) — someone who could actually host an intern in that function. This is high-leverage but high-bar: the message must be value-forward and respect that the recipient isn't in recruiting mode.
 
 OPENER STRUCTURE (60-150 words):
-1. Who you are — student status + the function you want to intern in. State both up front so the recipient knows in 5 seconds what this DM is about. If user_data.in_practicum is true, you MAY reference the program as a credibility lever ("part of my university's internship program, which places students in a structured internship"). If user_data.in_practicum is false, do NOT mention any program — claiming program backing the user doesn't have is fabrication.
+1. Who you are — student status + the function you want to intern in. State both up front so the recipient knows in 5 seconds what this DM is about. If user_data.in_practicum is true, you MAY reference program ENROLLMENT as a credibility lever — exact phrasing: "part of my university's internship program" (or close paraphrase). Do NOT add "which places students in a structured internship" or any other placement claim — enrollment is what's verified by the gate; placement varies by sub-type and over-reaches for self-sourcing students. Use the SAME phrasing regardless of sub-type. If user_data.in_practicum is false, do NOT mention any program — claiming program enrollment the user doesn't have is fabrication.
 2. The bridge — name a specific current signal from the user's real experience that connects to the target function. Pattern: "Your <real current signal> gives you a credible angle into <target function surface area>." Do NOT invent target-domain experience.
 3. The value — one specific contribution the user can credibly deliver FROM THEIR REAL VANTAGE in the next 2-3 months. The contribution must be something the user can actually do given what they currently know and have access to — NOT something that implies target-domain expertise they don't have. A CS-experience student bridging into product could "map recurring CS escalations to product gaps" (their real vantage) — NOT "own the onboarding workflow redesign" (that requires product-domain expertise). The phrasing should be "what I can do from where I stand," not "a workflow I'd own."
 4. The ask — explicit, soft: "Would you be open to a 20-minute conversation about whether a <function> internship at <company> could work for the summer?" Or: "I'd love to propose a specific project — can I send you a one-pager?"
 
-EXAMPLES (assume user_data.in_practicum = true):
+EXAMPLES (assume user_data.in_practicum = true — same phrasing for BOTH self_sourced and faculty_assigned sub-types):
 - Good: "Hi Daniel — final-year business student, part of my university's internship program, targeting a Product Operations internship for the summer. Currently a CSM at a cybersecurity startup, so I see the friction between customer signal and product roadmap from the customer side every day. I'd love to propose a 10-week project mapping recurring CS escalations to product gaps for your team — would you be open to a 20-minute conversation about whether that could fit?"
-- Bad: "Hi Daniel — are you hiring product interns? I'd be a great fit for your team."
+- Bad (over-claims placement): "Hi Daniel — part of my university's program which places students in structured internships…" (enrollment is verified; placement isn't)
+- Bad (job-app framing): "Hi Daniel — are you hiring product interns? I'd be a great fit for your team."
 
 EXAMPLES (assume user_data.in_practicum = false):
 - Good: "Hi Daniel — final-year business student graduating in June, targeting a Product Operations internship for the summer. Currently a CSM at a cybersecurity startup, so I see the friction between customer signal and product roadmap from the customer side every day. I'd love to propose a 10-week project mapping recurring CS escalations to product gaps for your team — open to a 20-minute conversation?"
-- Bad (fabricates program): "Hi Daniel — part of my university's structured internship program…" (when user is NOT in a practicum)
+- Bad (fabricates program): "Hi Daniel — part of my university's internship program…" (when user is NOT enrolled in one)
 - Bad (job-app framing): "Hi Daniel — are you hiring product interns?"
 
 ANTI-FAB (CRITICAL):
