@@ -9,6 +9,7 @@ import {
   normalizeScoredMatch as sharedNormalizeScoredMatch,
   type ScoredMatch,
 } from '../_shared/internship-pitch.ts'
+import { buildTargetContext } from '../_shared/internship-target.ts'
 
 // match-internship-companies — Wk 4 Strategic Internship Finder matcher.
 //
@@ -170,15 +171,24 @@ Deno.serve(async (req) => {
     }
 
     // ── Preconditions: practicum_path + internship_profile must exist ──
-    const [profileRes, internshipProfileRes] = await Promise.all([
+    // PR9: also pull profile.five_year_role + primary_domain + the user's
+    // career_roles (Track-1, alignment-DESC). buildTargetContext rolls
+    // these into the target_context block the matcher prompt anchors
+    // pitched_role on. Without it the matcher only sees the upstream-
+    // generated internship_profile, which is too narrow a signal for
+    // bridge selection.
+    const [profileRes, internshipProfileRes, careerRolesRes] = await Promise.all([
       supabase.from('profiles')
-        .select('practicum_path')
+        .select('practicum_path, five_year_role, primary_domain')
         .eq('id', user.id)
         .maybeSingle(),
       supabase.from('internship_profiles')
         .select('*')
         .eq('user_id', user.id)
         .maybeSingle(),
+      supabase.from('career_roles')
+        .select('title, track, goal_alignment_score')
+        .eq('user_id', user.id),
     ])
 
     const practicumPath = profileRes.data?.practicum_path as string | null | undefined
@@ -242,7 +252,15 @@ Deno.serve(async (req) => {
       .slice(0, LLM_BATCH_SIZE)
 
     // ── Stage 2: batched LLM scoring ───────────────────────────────────
+    // PR9: target_context block built from profile + career_roles via
+    // shared helper. goal_aligned_targets is the steering signal the
+    // matcher anchors pitched_role on.
+    const targetContext = buildTargetContext(
+      profileRes.data ?? null,
+      (careerRolesRes.data ?? []) as any[],
+    )
     const llmInput = {
+      target_context: targetContext,
       internship_profile: {
         realistic_company_stages: internshipProfile.realistic_company_stages,
         realistic_team_size_range: internshipProfile.realistic_team_size_range,
