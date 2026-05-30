@@ -159,16 +159,24 @@ RULES:
 - Honour pitch_anti_patterns — if a company would push you into one of those patterns, that's a match caveat.
 
 ADDITIONAL FIELD (output it on the scored company):
-- who_to_contact: array of 1-2 role-level titles to contact at this company who could actually say YES to hosting an intern in the PITCHED FUNCTION. The contacts MUST match the function in pitched_role — NOT the student's current domain.
-  - If pitched_role is in Product (e.g. "Product Operations internship", "Product Management internship"): contacts are Product leadership — "Head of Product", "VP Product", "Product Operations Lead", "Senior PM". NOT "Customer Success team lead".
-  - If pitched_role is in Customer Success: contacts are CS leadership — "Head of Customer Success", "CS team lead".
-  - If pitched_role is in Marketing: contacts are Marketing leadership — "Head of Marketing", "Growth lead", "Brand lead".
-  - If pitched_role is in Sales: contacts are Sales leadership — "Head of Sales", "VP Sales", "Sales Manager".
-  - If pitched_role is in Engineering: contacts are Engineering leadership — "Engineering Manager", "VP Engineering", "Tech Lead".
-  - General rule: the contact is the function's hiring manager / department head — someone who owns the team the intern would join.
-  - "Recruiter" is allowed only as a SECONDARY contact (second slot), never primary. A recruiter can route the intro but isn't who decides on an unposted intern slot.
-  - NEVER invent person names. NEVER claim seniority you can't ground (don't say "VP" unless the source materials reference one).
-  - 1-2 entries (prefer 1 if there's a clear function lead). Empty array only if you genuinely can't name a plausible function-anchored role.
+- who_to_contact: array of 1-2 role-level titles to contact at this company who could actually say YES to hosting an intern in the PITCHED FUNCTION.
+
+  EVERY entry — primary AND secondary — must own/lead or could host an intern in the PITCHED function. Do NOT include leaders of the student's CURRENT domain (or any other off-target function) as a secondary "just in case" — they have no authority over the pitched role and routing outreach to them is a misroute. A wrong-department leader is worse than no second contact.
+
+  Per-function guidance for primary + secondary slots:
+  - If pitched_role is in Product (e.g. "Product Operations internship", "Product Management internship"): both slots from Product leadership — "Head of Product", "VP Product", "Product Operations Lead", "Senior PM". NOT "Head of Customer Success" or "CS team lead" even as a secondary.
+  - If pitched_role is in Customer Success: both slots from CS leadership — "Head of Customer Success", "CS team lead", "VP Customer Success".
+  - If pitched_role is in Marketing: both slots from Marketing leadership — "Head of Marketing", "Growth lead", "Brand lead", "Marketing Operations Lead".
+  - If pitched_role is in Sales: both slots from Sales leadership — "Head of Sales", "VP Sales", "Sales Manager", "Sales Director".
+  - If pitched_role is in Engineering: both slots from Engineering leadership — "Engineering Manager", "VP Engineering", "Tech Lead", "Director of Engineering".
+
+  Secondary-slot rule:
+  - The secondary can be: (a) another function leader who owns the same pitched function (e.g. for a Product Operations pitch: "Head of Product" + "Product Operations Lead"), OR (b) a generic "Recruiter" who can route the intro. NOTHING ELSE.
+  - "Recruiter" is allowed ONLY as a secondary, never primary. A recruiter can route; they aren't who decides on an unposted intern slot.
+  - "Head of <user's-current-domain>" is FORBIDDEN as a secondary when the pitched function is a different domain (this is the PR11 leak fix — Product pitches were getting "Head of CS" as secondary).
+
+  NEVER invent person names. NEVER claim seniority you can't ground (don't say "VP" unless the source materials reference one).
+  1-2 entries (prefer 1 if there's a clear function lead). Empty array only if you genuinely can't name a plausible function-anchored role.
 
 Output ONLY valid JSON in this exact shape:
 {
@@ -215,16 +223,25 @@ describe("PITCH prompt identity gate — must match the pinned PR9 prompt byte-f
     // PR10 fix for the Aligned-card bug — the rule must explicitly
     // forbid CS-default contacts on Product pitches and instead
     // require contacts that match the pitched function.
-    expect(PITCH_SYSTEM_PROMPT).toContain("MUST match the function in pitched_role");
-    expect(PITCH_SYSTEM_PROMPT).toContain("NOT the student's current domain");
     expect(PITCH_SYSTEM_PROMPT).toContain("Recruiter");
     expect(PITCH_SYSTEM_PROMPT).toContain("never primary");
+  });
+
+  it("PR11 invariant: EVERY who_to_contact slot must own the pitched function (no current-domain secondary)", () => {
+    // PR11 tightens the rule — the primary was correctly function-
+    // anchored under PR10, but the secondary drifted to the user's
+    // current-domain leader as a "just in case". The new rule forbids
+    // that explicitly.
+    expect(PITCH_SYSTEM_PROMPT).toContain("EVERY entry");
+    expect(PITCH_SYSTEM_PROMPT).toContain("primary AND secondary");
+    expect(PITCH_SYSTEM_PROMPT).toContain("FORBIDDEN as a secondary");
+    expect(PITCH_SYSTEM_PROMPT).toContain("Secondary-slot rule");
   });
 });
 
 describe("PITCH_PROMPT_VERSION — folded into the pitch cache key", () => {
-  it("is currently 4 (PR10 bumps for function-grain pitched_role + function-anchored who_to_contact)", () => {
-    expect(PITCH_PROMPT_VERSION).toBe(4);
+  it("is currently 5 (PR11 bumps for who_to_contact secondary-slot anchor)", () => {
+    expect(PITCH_PROMPT_VERSION).toBe(5);
   });
 });
 
