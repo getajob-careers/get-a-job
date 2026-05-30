@@ -467,58 +467,13 @@ function inferExperienceLevel(experiences: any[], profile: any): ExperienceLevel
   return "senior_career";
 }
 
-// Canonical anchor role per primary_domain. Used when the user's typed goal
-// can't be resolved to a library role (typos, non-library titles) — we still
-// want alignment scoring to have a target so Track 1 can populate. Pick the
-// most-central role in each domain; alignment of candidates then flows
-// through the normal transfer map / role_family / FAMILY_GROUPS cascade.
-const PRIMARY_DOMAIN_TO_ROLE_ID: Record<string, string> = {
-  customer_success: "customer_success_manager",
-  product: "product_manager",
-  product_management: "product_manager",
-  sales: "account_executive",
-  marketing: "marketing_manager",
-  operations: "business_analyst",
-  data: "data_analyst",
-  analytics: "data_analyst",
-  finance: "financial_analyst",
-  hr: "hr_business_partner",
-  people: "hr_business_partner",
-  engineering: "software_engineer",
-  design: "product_designer_ux_ui",
-  support: "customer_support_specialist",
-};
-
-// Reverse direction: role_family → primary_domain. Used to update
-// profiles.primary_domain based on the user's stated five_year_role goal
-// (resolved to a role library entry → role_family → domain). CV extraction
-// can't see the stated goal (runs at CV-upload step, before career direction
-// is captured) so it locks users into their CURRENT-job domain. This map
-// lets career-analysis correct that mid-flight: the user's stated direction
-// becomes the canonical anchor for scoreJobFit + Roadmap family scoring.
-// Picks the most-specific domain per family. Leadership / Consulting are
-// intentionally absent — too generic to anchor a domain on.
-const FAMILY_TO_PRIMARY_DOMAIN: Record<string, string> = {
-  Support: "customer_success",
-  Onboarding_Implementation: "customer_success",
-  Customer_Experience: "customer_success",
-  Relationship_Growth: "customer_success",
-  Sales: "sales",
-  BD_Partnerships: "sales",
-  Marketing: "marketing",
-  Product: "product_management",
-  Engineering: "engineering",
-  Solutions_Engineering: "engineering",
-  IT_Security: "engineering",
-  Design_UX: "design",
-  Data: "data",
-  AI_ML: "data",
-  Operations: "operations",
-  RevOps_BizOps: "operations",
-  Finance: "finance",
-  HR_People: "hr",
-  Admin_GA: "hr",
-};
+// Canonical maps moved to _shared/internship-target.ts (PR9) so the
+// internship-flow consumers (generate-internship-profile + matcher)
+// can reuse them without duplicating. Behavioral identity preserved.
+import {
+  PRIMARY_DOMAIN_TO_ROLE_ID,
+  FAMILY_TO_PRIMARY_DOMAIN,
+} from "../_shared/internship-target.ts";
 
 // Broad role family groups — for low-alignment "related but not adjacent" fallback.
 // Only used when no transfer path and no family match exist.

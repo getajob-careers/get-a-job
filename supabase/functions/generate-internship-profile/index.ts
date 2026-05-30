@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
 import { pickPrimaryEducation } from '../_shared/education-helpers.ts'
+import { buildTargetContext } from '../_shared/internship-target.ts'
 
 // generate-internship-profile — Wk 4 Internship Finder profile generator.
 //
@@ -399,7 +400,11 @@ realistic_signal_filters: 3–6 short search-style filters that describe a TYPE 
 
 PITCHABLE — what to offer given TODAY's strengths.
 
-pitchable_role_archetypes: 3–5 short role descriptions the student could realistically pitch. Examples: "User research support for the product team", "Sales ops analyst supporting the BDR team", "Junior PM rotating across customer-facing teams". NOT "Senior PM", NOT "Head of Growth". Match the student's current level.
+pitchable_role_archetypes: 3–5 short role descriptions the student could realistically pitch, each one a BRIDGE rung toward a HIGH-alignment Track-1 target from the TARGET ANCHOR section. The archetypes must:
+  - Steer toward goals: prefer archetypes that bridge toward the highest-alignment goal_aligned_targets (e.g., for a student whose Track-1 has Product Operations Manager 0.9 + APM 0.7 + CSM 0.7, lead with Product-Ops / Product-Analyst archetypes; CSM-adjacent archetypes are valid only when no product surface area is reachable).
+  - Be entry/junior rung: "Associate Product Analyst", "Product Operations Coordinator", "Junior PM rotating across customer-facing teams". NOT "Senior PM", NOT "Head of Growth", NOT the senior target role itself.
+  - Be grounded: each archetype must be reachable from the student's actual pitch_strength_signals — never invent target-domain experience the student doesn't have. A CS-experience student bridging into product is fine ("Customer Insights Coordinator (Product team)"); a CS-experience student claiming "Senior PM" is not.
+  - Be directional, not backward: do NOT default to roles purely in the student's current domain that don't bridge toward any goal_aligned_target. If the student has CS experience and a Product goal, a pure-CS archetype is a backward step, not an internship.
 
 pitch_strength_signals: 4–8 SPECIFIC signals the student can point to in an outreach message. Each signal MUST reference real artefacts from their stories / experiences / skills — named projects, named tools, named outcomes, named companies. NEVER fabricate metrics. NEVER write generic skills ("strong analytical thinking") — that's fluff, not a signal.
 
@@ -414,7 +419,7 @@ skill_gaps_to_close: 3–5 specific gaps from their career_roles missing_skills 
 
 career_compound_rationale: 1–2 sentences explaining why doing an internship of THIS shape NOW (not later, not different) compounds toward their Track-1 path. Tie to specific Track-1 role + specific gaps.
 
-track_1_role_alignment: 1 sentence explicitly naming the Track-1 role from their career_roles and stating the connection. Example: "An InsurTech B2B SaaS PM internship builds the data + customer-research skills needed for the Senior PM (FinTech) Track-1 target."
+track_1_role_alignment: 1 sentence explicitly naming the HIGHEST-alignment goal_aligned_target from the TARGET ANCHOR section (not just any Track-1 role) and stating the connection. The named target MUST be the highest-alignment entry where the strategy actually bridges toward it; if you have to fall back to a lower-alignment Track-1 entry, name it and say why (e.g., "no realistic bridge to Product Ops Manager from current strengths in this market"). Example: "An InsurTech B2B SaaS Product-Ops internship builds the data + customer-research skills needed for the Product Operations Manager (0.9) Track-1 target."
 
 rationale: 1–2 sentences. The overall north star — what kind of internship are we looking for, and what's the win condition?
 
@@ -439,6 +444,24 @@ function buildUserContext(args: {
   const lines: string[] = []
 
   if (profile) {
+    // PR9: TARGET ANCHOR sits at the TOP of the prompt context — it's
+    // the steering signal for pitchable_role_archetypes, not background.
+    // The matcher sees the same target_context (built by the same
+    // shared helper) so the two surfaces never drift.
+    const targetCtx = buildTargetContext(profile as any, args.tierOneRoles as any[])
+    lines.push('TARGET ANCHOR (the steering signal for pitchable_role_archetypes — anchor the archetypes here, not on current job):')
+    if (targetCtx.five_year_role) lines.push(`- 5-year goal (context): ${targetCtx.five_year_role}`)
+    if (targetCtx.primary_domain) lines.push(`- Primary domain (context): ${targetCtx.primary_domain}`)
+    if (targetCtx.goal_aligned_targets.length > 0) {
+      lines.push(`- Goal-aligned Track-1 targets (STEERING — highest alignment first):`)
+      for (const t of targetCtx.goal_aligned_targets) {
+        lines.push(`    • ${t.title} (alignment ${t.alignment.toFixed(2)})`)
+      }
+    } else if (targetCtx.anchor_role_title) {
+      lines.push(`- Fallback anchor role (no Track-1 yet): ${targetCtx.anchor_role_title}`)
+    }
+    lines.push('')
+
     lines.push('PROFILE:')
     if (profile.full_name) lines.push(`- Name: ${profile.full_name}`)
     // Phase B: education is now a nested array. Surface the primary row
@@ -449,8 +472,6 @@ function buildUserContext(args: {
     }
     if (primaryEdu?.institution) lines.push(`- Institution: ${primaryEdu.institution}`)
     if (profile.location) lines.push(`- Location: ${profile.location}`)
-    if (profile.five_year_role) lines.push(`- 5-year goal: ${profile.five_year_role}`)
-    if (profile.primary_domain) lines.push(`- Primary domain interest: ${profile.primary_domain}`)
     if (profile.qualification_level) lines.push(`- Qualification level: ${profile.qualification_level}`)
     if (Array.isArray(profile.employment_status) && profile.employment_status.length > 0) {
       lines.push(`- Life status: ${profile.employment_status.join(', ')}`)

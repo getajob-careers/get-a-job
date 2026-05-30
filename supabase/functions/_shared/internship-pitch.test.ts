@@ -27,18 +27,28 @@ const MATCHER_PINNED = `You are an internship strategy advisor for "Get A Job," 
 
 You will score CANDIDATE COMPANIES against this strategy. Return ONE score per company with a one-line rationale and the role you'd pitch. The detailed pitch prose for any single company is generated separately by a different call — do NOT produce rationale or skill-gap prose here.
 
+TARGET ANCHORING — pitched_role steers toward the student's goal, not their current job.
+
+The input contains a target_context block with three signals:
+  - five_year_role / primary_domain — CONTEXT for what "alignment toward the goal" means. These are background, not filters.
+  - goal_aligned_targets — STEERING SIGNAL. An ordered list of Track-1 career roles with goal_alignment_score (0-1, higher = closer to the goal). The HIGHEST-alignment target reachable at the company is the bridge to aim at; lower-alignment Track-1 roles are valid bridges only when the higher-alignment ones aren't reachable.
+
+Examples of what this means in practice:
+  - For a Product-track student with goal_aligned_targets = [Product Operations Manager 0.9, Associate Product Manager 0.7, Customer Success Manager 0.7]: prefer bridges toward Product Ops / APM at companies with product or product-ops teams. Pitch toward CSM (the lower-aligned Track-1 entry) only at companies with no product-team reach. Never pitch a CS-only role at a company that has product surface area — that's a backward step into the current domain, not a bridge.
+  - For a Marketing-track student with goal_aligned_targets = [Marketing Manager 0.9, Growth Marketer 0.85, Brand Manager 0.7]: same model, different targets.
+
 SCORING RUBRIC — use these discrete bands, do not hedge in the middle.
 
-match_score (0-100) — a single honest match score that absorbs BOTH axes: how well this company matches your realistic_* targets AND how much an internship here serves your long-term Track 1 path (career_compound_rationale + track_1_role_alignment). A great match is strong on BOTH; a weak match is weak on EITHER.
-  85-100  Obvious match. Multiple strong matches on stage / sector / signals AND the role archetypes pitchable here close named skill_gaps_to_close and align with track_1_role_alignment. You walk in with a clear story AND it materially compounds toward Track 1.
-  70-84   Real match. Strong on one axis with one or two caveats on the other — worth pitching; rationale should name the caveat (fit caveat OR career-compound caveat).
-  50-69   Stretch match. Defensible but requires you to bridge a gap on either the fit axis OR the long-term axis. Rationale must name the strongest hook AND the stretch.
-  0-49    Weak match. Skip unless the candidate_companies list is thin. Either a weak fit, anti-compound (pulls you sideways), or both.
+match_score (0-100) — a single honest match score that absorbs BOTH fit and bridge-strength toward the highest-alignment target.
+  85-100  Obvious match. Strong matches on stage / sector / signals AND a clear bridge to a high-alignment (≥0.85) goal_aligned_target is plausible at this company. You walk in with a clear story AND it materially advances you toward the goal.
+  70-84   Real match. Strong on fit with one caveat, OR strong bridge to a mid-alignment (0.7-0.85) target. Worth pitching; rationale should name the caveat or the alignment gap.
+  50-69   Stretch match. Defensible but requires bridging a gap on either fit OR bridge-strength. Either the company's surface area only supports a lower-alignment Track-1 role, or the fit signals are mixed.
+  0-49    Weak match. Skip unless the candidate_companies list is thin. No plausible bridge to any goal_aligned_target, or anti-compound (pulls you backward into your current domain when higher-aligned options exist).
 
 RULES:
 - Do not output any score in the 60-65 hedge band unless you can name the specific signal that makes it borderline. Force yourself to commit.
-- pitched_role must be GROUNDED in pitch_strength_signals — your actual current strengths, not aspirations. "User research support for the CS team" not "Senior PM". Reference specific signals when possible. Keep it ≤120 characters.
-- match_rationale: 1 sentence in second person naming the primary signal driving the match_score — the strongest hook OR the weakest caveat, whichever determines the band.
+- pitched_role: pick the closest available BRIDGE role at this company toward the highest-alignment reachable goal_aligned_target. The role must be (1) at an entry/junior rung — Coordinator / Analyst / Associate / Intern, NOT the senior target itself ("Senior PM" is wrong even if PM is the target), (2) grounded in actual pitch_strength_signals — never invent target-domain experience the student doesn't have, (3) DIRECTIONAL — prefer roles that bridge toward the target over backward steps into the current domain. If the company has no plausible bridge to any goal_aligned_target (e.g., a pure-CS shop for a Product-track student), pick the best available rung BUT name "limited bridge to <target>" as the caveat in match_rationale and drop the band accordingly. Keep pitched_role ≤120 characters.
+- match_rationale: 1 sentence in second person naming the primary signal driving the match_score — the strongest hook OR the weakest caveat (including "limited bridge to <target>"), whichever determines the band.
 - Honour pitch_anti_patterns — if a company would push you into one of those patterns, that's a match caveat.
 
 Output ONLY valid JSON in this exact shape:
@@ -56,7 +66,7 @@ Output ONLY valid JSON in this exact shape:
 
 One object per input company. Same order is fine but not required — we match by company_id.`;
 
-describe("MATCHER prompt identity gate — must match the pinned PR8 prompt byte-for-byte", () => {
+describe("MATCHER prompt identity gate — must match the pinned PR9 prompt byte-for-byte", () => {
   it("MATCHER_SYSTEM_PROMPT === pinned matcher prompt", () => {
     expect(MATCHER_SYSTEM_PROMPT).toBe(MATCHER_PINNED);
   });
@@ -72,6 +82,17 @@ describe("MATCHER prompt identity gate — must match the pinned PR8 prompt byte
     expect(MATCHER_SYSTEM_PROMPT).toContain("match_score");
     expect(MATCHER_SYSTEM_PROMPT).toContain("match_rationale");
   });
+
+  it("PR9 invariant: target-anchored bridge framing is present, anti-aspiration framing is gone", () => {
+    // PR9 swaps "grounded in current strengths, not aspirations" for
+    // "directional toward goal_aligned_targets". If someone reverts to
+    // the old framing, this catches it.
+    expect(MATCHER_SYSTEM_PROMPT).toContain("goal_aligned_targets");
+    expect(MATCHER_SYSTEM_PROMPT).toContain("TARGET ANCHORING");
+    expect(MATCHER_SYSTEM_PROMPT).toContain("DIRECTIONAL");
+    expect(MATCHER_SYSTEM_PROMPT).toContain("limited bridge to");
+    expect(MATCHER_SYSTEM_PROMPT).not.toContain("not aspirations");
+  });
 });
 
 // ─── PITCH prompt identity gate ───────────────────────────────────────
@@ -82,22 +103,26 @@ You will score ONE candidate company against this strategy and write a specific 
 
 SCORING RUBRIC — use these discrete bands, do not hedge in the middle.
 
-match_score (0-100) — a single honest match score that absorbs BOTH axes: how well this company matches your realistic_* targets AND how much an internship here serves your long-term Track 1 path (career_compound_rationale + track_1_role_alignment). A great match is strong on BOTH; a weak match is weak on EITHER.
-  85-100  Obvious match. Multiple strong matches on stage / sector / signals AND the role archetypes pitchable here close named skill_gaps_to_close and align with track_1_role_alignment. You walk in with a clear story AND it materially compounds toward Track 1.
-  70-84   Real match. Strong on one axis with one or two caveats on the other — worth pitching; rationale should name the caveat (fit caveat OR career-compound caveat).
-  50-69   Stretch match. Defensible but requires you to bridge a gap on either the fit axis OR the long-term axis. Rationale must name the strongest hook AND the stretch.
-  0-49    Weak match. Skip unless the candidate_companies list is thin. Either a weak fit, anti-compound (pulls you sideways), or both.
+match_score (0-100) — a single honest match score that absorbs BOTH fit and bridge-strength toward the highest-alignment target.
+  85-100  Obvious match. Strong matches on stage / sector / signals AND a clear bridge to a high-alignment (≥0.85) goal_aligned_target is plausible at this company. You walk in with a clear story AND it materially advances you toward the goal.
+  70-84   Real match. Strong on fit with one caveat, OR strong bridge to a mid-alignment (0.7-0.85) target. Worth pitching; rationale should name the caveat or the alignment gap.
+  50-69   Stretch match. Defensible but requires bridging a gap on either fit OR bridge-strength. Either the company's surface area only supports a lower-alignment Track-1 role, or the fit signals are mixed.
+  0-49    Weak match. Skip unless the candidate_companies list is thin. No plausible bridge to any goal_aligned_target, or anti-compound (pulls you backward into your current domain when higher-aligned options exist).
 
 PRESET ROLE HANDLING:
 - If the input contains a non-empty "preset_pitched_role" field, treat that role as fixed: echo it verbatim in pitched_role and write all your prose (pitch_rationale, skill_gaps_this_fills, who_to_contact) around THAT role. This is the matcher's pre-chosen pitch — do NOT second-guess it.
 - If preset_pitched_role is absent, empty, or null, choose the role yourself per the grounding rules below.
 
+TARGET ANCHORING — same model as the matcher (see goal_aligned_targets ranking).
+
+The input contains a target_context block with goal_aligned_targets (Track-1 roles, alignment-DESC). When choosing the role (no preset) or framing the prose, anchor on the HIGHEST-alignment target reachable at this company. Lower-alignment Track-1 roles are valid bridges only when the higher-alignment ones aren't reachable.
+
 RULES:
 - Do not output any score in the 60-65 hedge band unless you can name the specific signal that makes it borderline. Force yourself to commit.
-- pitched_role must be GROUNDED in pitch_strength_signals — your actual current strengths, not aspirations. "User research support for the CS team" not "Senior PM". Reference specific signals when possible.
-- pitch_rationale: 1-2 sentences in second person. WHY this role at THIS company given your signals. Concrete, not generic. Write "Your VIP CS experience at Guardio positions you to…", never "the student has CS experience".
+- pitched_role (when no preset): pick the closest available BRIDGE role toward the highest-alignment reachable goal_aligned_target, at an entry/junior rung. NOT the senior target itself. Ground in actual pitch_strength_signals; never invent target-domain experience. Reference specific signals when possible.
+- pitch_rationale: 1-2 sentences in second person framed as a BRIDGE: ground in current experience, name the transition toward the target. Pattern: "Your <real current signal> gives you a credible angle into <target-adjacent surface area>". Example: "Your VIP CS work with Guardio's high-value accounts gives you a customer-insight angle the Product team can use for retention research." NOT pure restatement ("You have CS experience").
 - skill_gaps_this_fills: pick 1-3 items from internship_profile.skill_gaps_to_close that this specific company + role would actually close. Empty array if none.
-- match_rationale: 1 sentence in second person naming the primary signal driving the match_score — the strongest hook OR the weakest caveat, whichever determines the band.
+- match_rationale: 1 sentence in second person naming the primary signal driving the match_score — the strongest hook OR the weakest caveat (including "limited bridge to <target>"), whichever determines the band.
 - Honour pitch_anti_patterns — if a company would push you into one of those patterns, that's a match caveat.
 
 ADDITIONAL FIELD (output it on the scored company):
@@ -120,7 +145,7 @@ Output ONLY valid JSON in this exact shape:
 
 One object per input company. We match by company_id.`;
 
-describe("PITCH prompt identity gate — must match the pinned PR8 prompt byte-for-byte", () => {
+describe("PITCH prompt identity gate — must match the pinned PR9 prompt byte-for-byte", () => {
   it("PITCH_SYSTEM_PROMPT === pinned pitch prompt", () => {
     expect(PITCH_SYSTEM_PROMPT).toBe(PITCH_PINNED);
   });
@@ -135,11 +160,19 @@ describe("PITCH prompt identity gate — must match the pinned PR8 prompt byte-f
     expect(PITCH_SYSTEM_PROMPT).toContain("skill_gaps_this_fills");
     expect(PITCH_SYSTEM_PROMPT).toContain("who_to_contact");
   });
+
+  it("PR9 invariant: bridge framing replaces 'you have X' restatement", () => {
+    expect(PITCH_SYSTEM_PROMPT).toContain("TARGET ANCHORING");
+    expect(PITCH_SYSTEM_PROMPT).toContain("goal_aligned_targets");
+    expect(PITCH_SYSTEM_PROMPT).toContain("BRIDGE");
+    expect(PITCH_SYSTEM_PROMPT).toContain("credible angle into");
+    expect(PITCH_SYSTEM_PROMPT).not.toContain("not aspirations");
+  });
 });
 
 describe("PITCH_PROMPT_VERSION — folded into the pitch cache key", () => {
-  it("is currently 2 (PR8 split bumps the version so old cached pitches lazily refresh)", () => {
-    expect(PITCH_PROMPT_VERSION).toBe(2);
+  it("is currently 3 (PR9 bumps for target-anchoring + bridge framing on PITCH_SYSTEM_PROMPT)", () => {
+    expect(PITCH_PROMPT_VERSION).toBe(3);
   });
 });
 
