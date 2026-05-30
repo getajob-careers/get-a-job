@@ -24,6 +24,12 @@ import { GOAL_LABELS } from "./OutreachConversationsList";
 
 const GOAL_GROUPS = [
   {
+    label: "Internship",
+    goals: [
+      { value: "propose_internship", title: "Propose an internship", hint: "For an UNPOSTED internship in a target function. Value-forward proposal to the function lead, not 'are you hiring?'" },
+    ],
+  },
+  {
     label: "Job search",
     goals: [
       { value: "message_recruiter", title: "Message a recruiter", hint: "Highest-reply-rate target (~12%) — direct ask in turn 1 is appropriate" },
@@ -60,22 +66,27 @@ const STATE_META = {
 export default function OutreachComposer({
   conversationId,
   prefillCompany = null,
-  prefillRole = null,
+  prefillFunction = null,
+  prefillContact = null,
+  prefillGoal = null,
   onBack,
   onChange,
 }) {
-  // Local conversation state. Prefill (from Internship's drawer link) seeds
-  // target.company + target.role so the user lands at the goal picker with
-  // context already filled — goal pick is independent of company/role and
-  // still required because we don't know if the contact is a recruiter vs
-  // hiring manager vs alumni.
+  // Local conversation state. PR13: prefillGoal (from /Internship cards
+  // with goal=propose_internship in the URL) skips the picker; the
+  // target form lands with company + role (= contact's function title,
+  // e.g. "Head of Product") seeded. Function name itself ("Product
+  // Operations") is held in target.relationship as bridge context the
+  // AI can read for the opener — keeps the function close at hand
+  // without inventing a new target field. target.name stays empty for
+  // the user to fill in after finding the person.
   const [convoId, setConvoId] = useState(conversationId || null);
-  const [goal, setGoal] = useState(null);
+  const [goal, setGoal] = useState(prefillGoal || null);
   const [target, setTarget] = useState({
     name: "",
-    role: prefillRole || "",
+    role: prefillContact || "",
     company: prefillCompany || "",
-    relationship: "",
+    relationship: prefillFunction ? `Proposing a ${prefillFunction} internship` : "",
     mutual_context: "",
   });
   const [thread, setThread] = useState([]);

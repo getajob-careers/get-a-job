@@ -329,6 +329,14 @@ Deno.serve(async (req) => {
       primary_domain: trunc(profile.primary_domain, 100),
       target_job_titles: safeArr(profile.target_job_titles).slice(0, 10).map((t) => trunc(t, 100)),
       qualification_level: trunc(profile.qualification_level, 50),
+      // PR13: gate for the propose_internship framework's program-backed
+      // credibility lever. true when the user picked "Yes — placement
+      // arranged by faculty" OR "Yes — I find my own internship" in
+      // onboarding's StepInternship (both sub-types qualify; null means
+      // "No, I'm not in an internship program"). The framework instructs
+      // the model to only reference the program when this is true —
+      // asserting program backing the user doesn't have is fabrication.
+      in_practicum: !!profile.practicum_path,
       recent_experiences: (experiencesRes.data || []).slice(0, 5).map((e: any) => ({
         title: trunc(e.title, 200),
         company: trunc(e.company, 200),

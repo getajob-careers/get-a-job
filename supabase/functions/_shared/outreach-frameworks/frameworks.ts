@@ -262,6 +262,47 @@ Recommender replied with: (a) a yes + accepted the lift-reduction offer (will us
 RECIPIENT REGISTER:
 Grateful, low-pressure, easy-to-say-yes-to. The recommender is doing the user a real favor; the message must acknowledge that without groveling.`
 
+export const PROPOSE_INTERNSHIP_FRAMEWORK = `OUTREACH GOAL — PROPOSE AN INTERNSHIP IN A TARGET FUNCTION:
+
+The user is proposing themselves for an UNPOSTED internship in a specific function at a company — not applying to a listed req, not asking "are you hiring." The recipient is the function's leader (Head of Product, Head of Marketing, etc.) — someone who could actually host an intern in that function. This is high-leverage but high-bar: the message must be value-forward and respect that the recipient isn't in recruiting mode.
+
+OPENER STRUCTURE (60-150 words):
+1. Who you are — student status + the function you want to intern in. State both up front so the recipient knows in 5 seconds what this DM is about. If user_data.in_practicum is true, you MAY reference the program as a credibility lever ("part of my university's internship program, which places students in a structured internship"). If user_data.in_practicum is false, do NOT mention any program — claiming program backing the user doesn't have is fabrication.
+2. The bridge — name a specific current signal from the user's real experience that connects to the target function. Pattern: "Your <real current signal> gives you a credible angle into <target function surface area>." Do NOT invent target-domain experience.
+3. The value — one specific contribution the user can credibly deliver FROM THEIR REAL VANTAGE in the next 2-3 months. The contribution must be something the user can actually do given what they currently know and have access to — NOT something that implies target-domain expertise they don't have. A CS-experience student bridging into product could "map recurring CS escalations to product gaps" (their real vantage) — NOT "own the onboarding workflow redesign" (that requires product-domain expertise). The phrasing should be "what I can do from where I stand," not "a workflow I'd own."
+4. The ask — explicit, soft: "Would you be open to a 20-minute conversation about whether a <function> internship at <company> could work for the summer?" Or: "I'd love to propose a specific project — can I send you a one-pager?"
+
+EXAMPLES (assume user_data.in_practicum = true):
+- Good: "Hi Daniel — final-year business student, part of my university's internship program, targeting a Product Operations internship for the summer. Currently a CSM at a cybersecurity startup, so I see the friction between customer signal and product roadmap from the customer side every day. I'd love to propose a 10-week project mapping recurring CS escalations to product gaps for your team — would you be open to a 20-minute conversation about whether that could fit?"
+- Bad: "Hi Daniel — are you hiring product interns? I'd be a great fit for your team."
+
+EXAMPLES (assume user_data.in_practicum = false):
+- Good: "Hi Daniel — final-year business student graduating in June, targeting a Product Operations internship for the summer. Currently a CSM at a cybersecurity startup, so I see the friction between customer signal and product roadmap from the customer side every day. I'd love to propose a 10-week project mapping recurring CS escalations to product gaps for your team — open to a 20-minute conversation?"
+- Bad (fabricates program): "Hi Daniel — part of my university's structured internship program…" (when user is NOT in a practicum)
+- Bad (job-app framing): "Hi Daniel — are you hiring product interns?"
+
+ANTI-FAB (CRITICAL):
+- The pitched function is what the user is BRIDGING TOWARD, not what they already do. Don't invent target-domain experience. A CS-experience student bridging into product writes "customer-side perspective" not "previous Product Ops work."
+- The senior version of the function ("Senior PM", "Director of Product Operations") is NOT what the user is proposing — that's the long-term goal, not the internship. Coach the user to entry-rung framing.
+- The value/contribution must be grounded in the user's REAL vantage. A CS-experience student bridging into product can "share patterns from customer escalations" — they CANNOT "own product roadmap planning" or "redesign the onboarding flow."
+- Program backing is GATED: only available when user_data.in_practicum is true. Never assert it when false.
+
+ASK TIMING:
+The ask is in the first message — internships need clarity early. But framed as "propose a project / function focus" not "give me a job." A learning-conversation framing ("can we talk about whether this could work") beats a direct ask ("will you hire me as an intern").
+
+WARM-UP ADVICE TRIGGERS:
+- Opener treats this as a posted-req application ("Are you hiring interns?") → coach to proposal framing
+- No specific bridge from real experience → coach to add one
+- Asks for senior-target role ("PM internship" when target is "Product Operations") → coach to entry-rung function
+- "Value to add" is generic ("happy to help anywhere") or implies target-domain expertise the user doesn't have ("I'd own your roadmap") → coach to a specific contribution grounded in real vantage
+- References a practicum program when user_data.in_practicum is false → coach to remove the program claim
+
+GOAL_COMPLETE SIGNAL:
+Recipient replied with: (a) yes to a call + scheduling, (b) yes but routed to another function leader who'd be a better host, (c) no with explanation + offer to keep on file, or (d) routed user to a formal internship program if one exists. All four close the loop.
+
+RECIPIENT REGISTER:
+Peer-to-peer respect, value-forward. The recipient is being asked to host an intern in an unposted slot — that's a real ask of their time and headcount. The message must implicitly acknowledge that.`
+
 // Lookup map used by the edge function — maps goal type to its framework string.
 export const FRAMEWORK_BY_GOAL: Record<string, string> = {
   message_recruiter: MESSAGE_RECRUITER_FRAMEWORK,
@@ -272,4 +313,5 @@ export const FRAMEWORK_BY_GOAL: Record<string, string> = {
   reconnect_dormant: RECONNECT_DORMANT_FRAMEWORK,
   ask_for_referral: ASK_FOR_REFERRAL_FRAMEWORK,
   ask_for_recommendation: ASK_FOR_RECOMMENDATION_FRAMEWORK,
+  propose_internship: PROPOSE_INTERNSHIP_FRAMEWORK,
 }

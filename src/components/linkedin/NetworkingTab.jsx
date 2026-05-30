@@ -22,35 +22,47 @@ export default function NetworkingTab() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Internship's drawer links here with ?prefillCompany=...&prefillRole=...
-  // — when those params exist, jump straight into the new-conversation
-  // composer so the user lands at the goal picker with the target context
-  // available. Strip the params after capturing so back-button or refresh
-  // doesn't keep re-triggering the jump.
-  const [prefill, setPrefill] = useState({ company: null, role: null });
+  // Internship's drawer deep-links here with:
+  //   ?tab=networking&goal=propose_internship&prefillCompany=<co>
+  //     &prefillFunction=<func>&prefillContact=<who_to_contact[0]>
+  // PR13: goal in the URL is pre-picked → composer skips the picker
+  // and lands at describe_target with company + contact role +
+  // function-as-relationship seeded. Strip the params after capturing
+  // so back/refresh doesn't keep re-triggering the jump.
+  const [prefill, setPrefill] = useState({ company: null, function: null, contact: null, goal: null });
   useEffect(() => {
     const company = searchParams.get("prefillCompany");
-    const role = searchParams.get("prefillRole");
-    if (!company && !role) return;
-    setPrefill({ company: company || null, role: role || null });
+    const fn = searchParams.get("prefillFunction");
+    const contact = searchParams.get("prefillContact");
+    const goalParam = searchParams.get("goal");
+    if (!company && !fn && !contact && !goalParam) return;
+    setPrefill({
+      company: company || null,
+      function: fn || null,
+      contact: contact || null,
+      goal: goalParam || null,
+    });
     setOutreachView("new");
     const next = new URLSearchParams(searchParams);
     next.delete("prefillCompany");
-    next.delete("prefillRole");
+    next.delete("prefillFunction");
+    next.delete("prefillContact");
+    next.delete("goal");
     setSearchParams(next, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const clearPrefill = () => setPrefill({ company: null, function: null, contact: null, goal: null });
   const openConversation = (id) => {
-    setPrefill({ company: null, role: null });
+    clearPrefill();
     setOutreachView(id);
   };
   const newConversation = () => {
-    setPrefill({ company: null, role: null });
+    clearPrefill();
     setOutreachView("new");
   };
   const backToList = () => {
-    setPrefill({ company: null, role: null });
+    clearPrefill();
     setOutreachView(null);
     setRefreshKey((k) => k + 1);
   };
@@ -70,10 +82,9 @@ export default function NetworkingTab() {
         </div>
       </Link>
 
-      <Section title="Comment Coach">
-        <CommentCoach />
-      </Section>
-
+      {/* PR13: Outreach Coach surfaced first — it's the action the
+          internship flow drives to. Comment Coach (still high-leverage
+          per research) sits below as a discovery surface. */}
       <Section title="Outreach Coach">
         {outreachView === null ? (
           <OutreachConversationsList
@@ -85,11 +96,17 @@ export default function NetworkingTab() {
           <OutreachComposer
             conversationId={outreachView === "new" ? null : outreachView}
             prefillCompany={prefill.company}
-            prefillRole={prefill.role}
+            prefillFunction={prefill.function}
+            prefillContact={prefill.contact}
+            prefillGoal={prefill.goal}
             onBack={backToList}
             onChange={onConvoChange}
           />
         )}
+      </Section>
+
+      <Section title="Comment Coach">
+        <CommentCoach />
       </Section>
     </div>
   );
