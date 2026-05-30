@@ -206,10 +206,15 @@ Deno.serve(async (req) => {
     }
     const haystack = groundingCorpus.filter(Boolean).join(' | ').toLowerCase()
 
-    // Latest career_roles.updated_at for staleness checks.
+    // Latest career_roles.created_at for staleness checks. career_roles
+    // has no updated_at column — rows are replaced wholesale on each
+    // career-analysis run, so the newest row's created_at IS the
+    // last-analysis time. PR12 fix: this previously read r.updated_at
+    // which was always undefined, so the reducer always returned null
+    // and the banner read NULL → permanently stale.
     const generatedFromCareerRolesAt = careerRoles.reduce<string | null>((max, r) => {
-      if (!r.updated_at) return max
-      if (!max || r.updated_at > max) return r.updated_at
+      if (!r.created_at) return max
+      if (!max || r.created_at > max) return r.created_at
       return max
     }, null)
 
