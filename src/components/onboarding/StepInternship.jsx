@@ -41,8 +41,8 @@ export default function StepInternship({ data, onChange, educations, onNext, onB
   void isKnownInternshipProgram;
   const path = data.practicum_path || null;
 
-  const headline = "Are you part of an internship program?";
-  const description = "Some universities and programs coordinate internships through faculty. Let us know so we can tailor the Internship Finder.";
+  const headline = "Are you enrolled in your school's internship program?";
+  const description = "Some universities run an internship program — faculty-coordinated placements or student-sourced under program oversight. A \"yes\" here lets the Internship Finder reference your program enrollment in outreach. Pick \"no\" if your school doesn't have one or you're not enrolled.";
 
   const setPath = (next) => {
     const newPath = next === path ? null : next;
@@ -63,21 +63,21 @@ export default function StepInternship({ data, onChange, educations, onNext, onB
       <div className="space-y-2.5">
         <OptionCard
           icon={Briefcase}
-          title="Yes — placement arranged by faculty"
-          description="My faculty mentor coordinates the internship; the company has been (or will be) assigned."
+          title="Yes — enrolled, placement arranged by faculty"
+          description="I'm in my school's internship program. My faculty mentor coordinates the placement; the company is (or will be) assigned by them."
           selected={path === "faculty_assigned"}
           onClick={() => setPath("faculty_assigned")}
         />
         <OptionCard
           icon={User2}
-          title="Yes — I find my own internship"
-          description="I'm responsible for sourcing and pitching the company myself."
+          title="Yes — enrolled, I source my own placement"
+          description="I'm in my school's internship program, and I'm responsible for sourcing and pitching the company myself (under program oversight)."
           selected={path === "self_sourced"}
           onClick={() => setPath("self_sourced")}
         />
         <OptionCard
           icon={X}
-          title="No, I'm not in an internship program"
+          title="No, I'm not enrolled in an internship program"
           description="Skip this — Get A Job will still help with everything else (CV, LinkedIn, applications, stories)."
           selected={path === null && data.practicum_path !== undefined}
           onClick={() => setPath(null)}

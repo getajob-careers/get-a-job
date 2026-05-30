@@ -9,8 +9,12 @@
 // linkedin_outreach_conversations table. The thread + status update on
 // each turn; the goal is editable mid-thread per design decision 1A.
 
-// 8 outreach goals locked in the migration CHECK constraint. Adding a
+// 9 outreach goals locked in the migration CHECK constraint. Adding a
 // goal later requires DROP/ADD CONSTRAINT in a new migration.
+//   propose_internship (PR13): student proposing themselves for an
+//   unposted internship in a target function — deep-linked from
+//   /Internship cards. Gated by profiles.practicum_path IS NOT NULL
+//   for the "program-backed" credibility lever in the opener.
 export type OutreachGoal =
   | 'message_recruiter'
   | 'message_hiring_manager'
@@ -20,10 +24,13 @@ export type OutreachGoal =
   | 'reconnect_dormant'
   | 'ask_for_referral'
   | 'ask_for_recommendation'
+  | 'propose_internship'
 
-// Grouped goal picker per design decision 6C — three groups with goals
-// nested. The frontend renders this grouping; the LLM doesn't see it.
-export type GoalGroup = 'job_search' | 'network' | 'closing_the_loop'
+// Grouped goal picker per design decision 6C. The frontend renders this
+// grouping; the LLM doesn't see it.
+//   internship (PR13): own group for the propose_internship goal —
+//   first-class motion since the matcher feature exists to drive it.
+export type GoalGroup = 'job_search' | 'network' | 'closing_the_loop' | 'internship'
 
 export interface TargetPerson {
   // Required — the person's actual name (the AI uses it in the opener).

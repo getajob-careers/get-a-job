@@ -15,6 +15,7 @@ const GOAL_LABELS = {
   reconnect_dormant: "Reconnect (dormant)",
   ask_for_referral: "Ask for a referral",
   ask_for_recommendation: "Ask for a recommendation",
+  propose_internship: "Propose an internship",
 };
 
 const STATUS_META = {

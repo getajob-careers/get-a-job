@@ -179,12 +179,21 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
     }
   };
 
+  // PR13: deep-link into the Outreach Coach's propose_internship goal,
+  // picker skipped. Function = pitched_role with the " internship"
+  // suffix stripped (the goal already implies internship framing).
+  // Contact = the function leader the pitch identified — seeds the
+  // composer's target.role so the user only has to add a person name.
+  const pitchedFunction = (target.pitched_role || "").replace(/\s+internship\s*$/i, "").trim();
+  const pitchContact = Array.isArray(pitchQuery.data?.who_to_contact) ? pitchQuery.data.who_to_contact[0] : null;
   const outreachUrl =
     createPageUrl("Linkedin") +
-    `?tab=networking${
+    `?tab=networking&goal=propose_internship${
       company.name ? `&prefillCompany=${encodeURIComponent(company.name)}` : ""
     }${
-      target.pitched_role ? `&prefillRole=${encodeURIComponent(target.pitched_role)}` : ""
+      pitchedFunction ? `&prefillFunction=${encodeURIComponent(pitchedFunction)}` : ""
+    }${
+      pitchContact ? `&prefillContact=${encodeURIComponent(pitchContact)}` : ""
     }`;
 
   return (

@@ -150,12 +150,19 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
     }
   };
 
+  // PR13: deep-link to the Outreach Coach's propose_internship goal,
+  // picker skipped. Function = pitched_role minus " internship"
+  // suffix; contact = the function leader from the pitch.
+  const pitchedFunction = (pitch?.pitched_role || "").replace(/\s+internship\s*$/i, "").trim();
+  const pitchContact = Array.isArray(pitch?.who_to_contact) ? pitch.who_to_contact[0] : null;
   const outreachUrl =
     createPageUrl("Linkedin") +
-    `?tab=networking${
+    `?tab=networking&goal=propose_internship${
       company.name ? `&prefillCompany=${encodeURIComponent(company.name)}` : ""
     }${
-      pitch?.pitched_role ? `&prefillRole=${encodeURIComponent(pitch.pitched_role)}` : ""
+      pitchedFunction ? `&prefillFunction=${encodeURIComponent(pitchedFunction)}` : ""
+    }${
+      pitchContact ? `&prefillContact=${encodeURIComponent(pitchContact)}` : ""
     }`;
 
   return (
