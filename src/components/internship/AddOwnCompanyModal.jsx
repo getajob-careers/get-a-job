@@ -4,7 +4,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -102,10 +102,12 @@ export default function AddOwnCompanyModal({ open, onClose }) {
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Add a company</DialogTitle>
+          <DialogDescription asChild>
+            <p className="text-xs text-[#525252] -mt-2 mb-3">
+              Drop in any company you've found. It lands in your pipeline as &quot;Exploring&quot; — drag it through the stages as you go.
+            </p>
+          </DialogDescription>
         </DialogHeader>
-        <p className="text-xs text-[#525252] -mt-2 mb-3">
-          Drop in any company you've found. It lands in your pipeline as &quot;Exploring&quot; — drag it through the stages as you go.
-        </p>
 
         <div className="space-y-3">
           <Field label="Company name" required>

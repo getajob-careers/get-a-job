@@ -80,18 +80,22 @@ export default function Internship() {
     enabled: !!user?.id && isSelfSourced,
   });
 
+  // career_roles has no updated_at column — rows are replaced wholesale on
+  // each career-analysis run, so the newest row's created_at IS the
+  // last-analysis time. Querying updated_at returned 400 on every page
+  // load (PR11 fix).
   const { data: latestCareerRolesUpdatedAt } = useQuery({
-    queryKey: ["career_roles_max_updated_at", user?.id],
+    queryKey: ["career_roles_latest_created_at", user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       const { data } = await supabase
         .from("career_roles")
-        .select("updated_at")
+        .select("created_at")
         .eq("user_id", user.id)
-        .order("updated_at", { ascending: false })
+        .order("created_at", { ascending: false })
         .limit(1)
         .maybeSingle();
-      return data?.updated_at || null;
+      return data?.created_at || null;
     },
     enabled: !!user?.id && isSelfSourced,
   });

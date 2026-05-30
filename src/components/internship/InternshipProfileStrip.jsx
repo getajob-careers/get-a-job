@@ -7,9 +7,10 @@ import { ChevronDown, ChevronUp, RefreshCw, AlertCircle } from "lucide-react";
 // whole row via generate-internship-profile.
 //
 // Staleness banner: when generated_from_career_roles_at is older than
-// the most recent career_roles.updated_at, render a soft yellow nudge
-// so the user knows their pitch strategy may no longer reflect their
-// current roadmap.
+// the most recent career_roles.created_at (career_roles rows are
+// replaced wholesale each analysis run — there's no updated_at
+// column), render a soft yellow nudge so the user knows their pitch
+// strategy may no longer reflect their current roadmap.
 
 export default function InternshipProfileStrip({
   profile,

@@ -12,7 +12,7 @@ import {
   RefreshCw,
   Loader2,
 } from "lucide-react";
-import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { createPageUrl } from "@/utils";
 import { ORIGIN_FILTERS } from "./filterConfig";
@@ -171,11 +171,13 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
             <SheetTitle asChild>
               <h2 className="text-lg font-semibold text-[#0E1014] mb-1">{company.name}</h2>
             </SheetTitle>
-            <p className="text-sm text-[#52545A]">
-              {[sectorOrIndustry, company.stage, company.employee_count_range, location]
-                .filter(Boolean)
-                .join(" · ")}
-            </p>
+            <SheetDescription asChild>
+              <p className="text-sm text-[#52545A]">
+                {[sectorOrIndustry, company.stage, company.employee_count_range, location]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </p>
+            </SheetDescription>
             {company.domain && (
               <a
                 href={`https://${company.domain.replace(/^https?:\/\//, "")}`}
