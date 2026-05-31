@@ -3,6 +3,7 @@ import { supabase } from "@/api/supabaseClient";
 import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { scoreApplication } from "@/lib/scoreApplication";
+import { stripHtml } from "../../../scripts/lib/normalize.ts";
 import { ChevronDown, ChevronUp, Loader2, Lock, MessageSquare, RotateCw, Trash2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -98,15 +99,22 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
   };
 
   const handleSaveJobDescription = async () => {
-    const { error } = await supabase.from("applications").update({ job_description: jdText }).eq("id", app.id);
+    // Strip HTML at the paste-write boundary. Pasted JDs often carry
+    // Word/Confluence markup; storing it raw makes the textarea show
+    // tags-as-text on re-render and inflates LLM token budgets downstream.
+    const cleanedJd = stripHtml(jdText) || "";
+    const { error } = await supabase.from("applications").update({ job_description: cleanedJd }).eq("id", app.id);
     if (error) {
       console.error("Failed to save job description:", error);
       toast.error("Failed to save job description. Please try again.");
       return;
     }
+    // Reflect the cleaned text back into local state so the textarea
+    // re-renders without the raw HTML after save.
+    if (cleanedJd !== jdText) setJdText(cleanedJd);
     onUpdate();
-    if (jdText && jdText.trim()) {
-      scoreApplication(supabase, queryClient, app.id, jdText, app.user_id);
+    if (cleanedJd && cleanedJd.trim()) {
+      scoreApplication(supabase, queryClient, app.id, cleanedJd, app.user_id);
     }
   };
 

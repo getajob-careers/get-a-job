@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
 import { pickPrimaryEducation, formatEducationLine } from '../_shared/education-helpers.ts'
+import { stripHtml } from '../_shared/strip-html.ts'
 
 // Source-controlled in commit fixing H1-H4. The deployed function previously
 // existed only in the dashboard — this file imports it back into the repo
@@ -67,7 +68,12 @@ Deno.serve(async (req) => {
     }
     m.userId = user.id
 
-    const { job_description, job_url, mode } = await req.json()
+    const rawBody = await req.json()
+    // Defensive HTML strip at LLM-input boundary. Ingestion + user-paste
+    // sites should already clean, but a stale dirty row or a new write
+    // path that forgets to call stripHtml shouldn't reach the model.
+    const job_description = stripHtml(typeof rawBody?.job_description === 'string' ? rawBody.job_description : null)
+    const { job_url, mode } = rawBody
 
     if (!job_description && !job_url) {
       _http = 400; _err = 'missing_input'

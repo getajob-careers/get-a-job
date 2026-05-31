@@ -14,6 +14,7 @@ import {
 import { track, EVENTS } from "@/lib/analytics";
 import ApplicationRow from "../components/tracker/ApplicationRow";
 import { scoreApplication } from "@/lib/scoreApplication";
+import { stripHtml } from "../../scripts/lib/normalize.ts";
 import { TRACKER_CSS } from "../components/tracker/trackerStyles";
 
 const STATUS_FILTERS = ["all", "interested", "preparing", "applied", "interviewing", "offer", "accepted", "rejected"];
@@ -85,7 +86,10 @@ export default function Tracker() {
   const handleAdd = async () => {
     if (!newApp.role_title) return;
     setAddingApp(true);
-    const jd = jobDescription || newApp.job_description || "";
+    // Strip HTML at the paste-write boundary. Pasted JDs often carry
+    // Word/Confluence markup; storing it raw makes the textarea show
+    // tags-as-text on next render and inflates LLM token budgets.
+    const jd = stripHtml(jobDescription || newApp.job_description || "") || "";
 
     const { data: inserted, error } = await supabase.from("applications").insert({
       user_id: user.id,

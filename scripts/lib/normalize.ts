@@ -348,20 +348,23 @@ export function finalSeniority(
  * dangerous tags. Good enough for storing job descriptions in plain-text
  * form. ~50 KB of HTML → ~5-15 KB of plain text typically.
  */
+// PARITY CONTRACT: this function is byte-mirrored in
+// supabase/functions/_shared/strip-html.ts (Deno can't import this Node
+// file). Any change here MUST be replicated there. src/test/stripHtmlParity.test.js
+// asserts identical output across a fixed corpus and will fail CI on drift.
 export function stripHtml(input: string | null): string | null {
   if (input == null) return null;
   return input
-    // Drop scripts/styles wholesale before tag stripping (their contents
-    // are JS/CSS, not human text)
-    .replace(/<(script|style)[^>]*>[\s\S]*?<\/(?:script|style)>/gi, " ")
-    // Convert <br> and block-level closing tags to newlines for readability
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|li|h[1-6]|tr)>/gi, "\n")
-    // Strip all remaining tags
-    .replace(/<[^>]*>/g, " ")
-    // Decode the entities that show up in 99% of job HTML
+    // STEP 1 (load-bearing): decode entities FIRST. Greenhouse + SAP
+    // SuccessFactors return HTML that's been ENCODED for transport
+    // (`&lt;p&gt;...&lt;/p&gt;`). If we leave entity-decode at the end
+    // (the original ordering), the tag-strip regexes below see no
+    // literal `<` and pass through — then the decode at step 5 turns
+    // `&lt;p&gt;` into real `<p>` tags in the output, leaving the
+    // sanitizer's caller with a string FULL of HTML. Live audit on
+    // 2026-05-31 showed greenhouse 1147/1147 + SF 299/301 dirty in
+    // jobs.description; that bug is here, not at the call site.
     .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
     .replace(/&quot;/g, '"')
@@ -370,12 +373,42 @@ export function stripHtml(input: string | null): string | null {
     .replace(/&hellip;/g, "…")
     .replace(/&mdash;/g, "—")
     .replace(/&ndash;/g, "–")
-    // Numeric entities (covers most stragglers)
     .replace(/&#(\d+);/g, (_, n: string) => {
       const code = parseInt(n, 10);
       return code > 0 && code < 0x10000 ? String.fromCharCode(code) : " ";
     })
-    // Collapse whitespace runs (but keep paragraph breaks readable)
+    // &amp; is decoded LAST in the first pass so we don't double-decode
+    // already-decoded `&...;` sequences mid-stream. Step 5 mops up any
+    // entities embedded in plaintext content that survived tag-strip
+    // (e.g. `&copy;` inside paragraph text); &amp; goes there.
+    // STEP 2: drop scripts/styles wholesale before tag stripping (their
+    // contents are JS/CSS, not human text)
+    .replace(/<(script|style)[^>]*>[\s\S]*?<\/(?:script|style)>/gi, " ")
+    // STEP 3: convert <br> and block-level closing tags to newlines for readability
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(p|div|li|h[1-6]|tr)>/gi, "\n")
+    // STEP 4: strip all remaining tags (including data-* attributes via
+    // the catch-all)
+    .replace(/<[^>]*>/g, " ")
+    // STEP 5: decode the entities that appear inside plaintext content
+    // (after tags are gone). Also catches anything that was originally
+    // double-encoded (&amp;lt; → &lt; after step 1 → < here, no tag to
+    // strip but at least the entity is resolved).
+    .replace(/&amp;/g, "&")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&apos;/g, "'")
+    .replace(/&hellip;/g, "…")
+    .replace(/&mdash;/g, "—")
+    .replace(/&ndash;/g, "–")
+    .replace(/&#(\d+);/g, (_, n: string) => {
+      const code = parseInt(n, 10);
+      return code > 0 && code < 0x10000 ? String.fromCharCode(code) : " ";
+    })
+    // STEP 6: collapse whitespace runs (but keep paragraph breaks readable)
     .replace(/[ \t]+/g, " ")
     .replace(/\n{3,}/g, "\n\n")
     .trim();

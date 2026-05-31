@@ -3,6 +3,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion, type TraceContext } from '../_shared/openai-chat.ts'
 import { pickPrimaryEducation, formatEducationLine } from '../_shared/education-helpers.ts'
+import { stripHtml } from '../_shared/strip-html.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -792,7 +793,12 @@ Deno.serve(async (req) => {
         // block without confusion. Key name matches the field name the client
         // forwards to generate-tailored-cv.
         userContext += `\n\nTARGET APPLICATION (use this exact application_id in any CV or application actions — the user has already selected this via the dropdown; do NOT ask which role):\n- application_id: ${application_id}\n- Role: ${appData.role_title}\n- Company: ${appData.company || '(not set)'}\n- Status: ${appData.status}`
-        if (appData.job_description) userContext += `\n- Job Description:\n${String(appData.job_description).slice(0, 2000)}`
+        // Defensive HTML strip — legacy applications.job_description rows
+        // may hold raw HTML from pre-fix user pastes. Pass to LLM cleaned.
+        if (appData.job_description) {
+          const cleanedJd = stripHtml(String(appData.job_description)) ?? ''
+          if (cleanedJd) userContext += `\n- Job Description:\n${cleanedJd.slice(0, 2000)}`
+        }
         if (Array.isArray(appData.skills_required) && appData.skills_required.length > 0) {
           const proven = appData.skills_required.filter((s: { status: string }) => s.status === 'proven')
           const gaps = appData.skills_required.filter((s: { status: string }) => s.status === 'missing' || s.status === 'partial')

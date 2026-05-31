@@ -3,6 +3,7 @@ import { startMetric, finishMetric, type Metric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
 import { pickPrimaryEducation } from '../_shared/education-helpers.ts'
 import { CV_VOICE_RULES } from '../_shared/voice-rules.ts'
+import { stripHtml } from '../_shared/strip-html.ts'
 import { buildCvPdf } from '../_shared/cv-templates/build-pdf.ts'
 import { matchRoleToLibrary, resolveSectorTheme } from '../_shared/cv-templates/sector-mapping.ts'
 import type { TemplateStyle, SectionKey } from '../_shared/cv-templates/types.ts'
@@ -295,7 +296,9 @@ Deno.serve(async (req) => {
     // budget — affordable in the prompt because most JDs are < 8k chars in
     // their relevant sections. The smartTruncateJD helper returns the mode
     // so we can log which path fired for telemetry.
-    const jdInput = String(job_description ?? '');
+    // Defensive HTML strip — see _shared/strip-html.ts. Catches dirty
+    // legacy rows + any write path that forgets to clean.
+    const jdInput = stripHtml(String(job_description ?? '')) ?? '';
     const jdTrunc = smartTruncateJD(jdInput, 10000);
     let safeJobDescription = jdTrunc.text;
     let jdTruncMode = jdTrunc.mode;
@@ -419,7 +422,10 @@ Deno.serve(async (req) => {
       if (app) {
         targetCompany = String(app.company ?? '').slice(0, 200);
         if (!safeJobDescription && app.job_description) {
-          const t = smartTruncateJD(String(app.job_description), 10000);
+          // Defensive strip on fallback path too — legacy applications.job_description
+          // rows can hold raw HTML from pre-fix user pastes.
+          const cleaned = stripHtml(String(app.job_description)) ?? '';
+          const t = smartTruncateJD(cleaned, 10000);
           safeJobDescription = t.text;
           jdTruncMode = t.mode;
         }
