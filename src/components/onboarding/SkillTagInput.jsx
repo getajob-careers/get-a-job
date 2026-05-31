@@ -130,68 +130,25 @@ const HONORS_SUGGESTIONS = [
   "Phi Beta Kappa", "Beta Gamma Sigma", "Tau Beta Pi",
 ];
 
-const SKILL_SUGGESTIONS = [
-  // Business & Management
-  "Account Management", "Accounting", "Business Analysis", "Business Development", "Business Strategy",
-  "Change Management", "Client Relations", "Consulting", "Contract Negotiation", "Corporate Strategy",
-  "Customer Success", "Entrepreneurship", "Financial Analysis", "Financial Modeling", "Financial Planning",
-  "Forecasting", "Fundraising", "Investment Analysis", "Lean Management", "Market Analysis",
-  "Market Research", "Mergers & Acquisitions", "Operations Management", "Partnership Development",
-  "Process Improvement", "Product Management", "Product Strategy", "Program Management", "Project Management",
-  "Risk Management", "Sales Strategy", "Strategic Planning", "Supply Chain Management", "Vendor Management",
-  
-  // Marketing & Sales
-  "B2B Marketing", "B2C Marketing", "Brand Management", "Brand Strategy", "Campaign Management",
-  "Content Marketing", "Content Strategy", "Conversion Optimization", "Copywriting", "Customer Acquisition",
-  "Digital Marketing", "Email Marketing", "Event Planning", "Go-to-Market Strategy", "Growth Marketing",
-  "Influencer Marketing", "Lead Generation", "Marketing Analytics", "Marketing Automation", "Marketing Strategy",
-  "Performance Marketing", "Product Marketing", "Public Relations", "Sales", "Sales Operations",
-  "SEO", "SEM", "Social Media Marketing", "Video Marketing",
-  
-  // Technical Skills
-  "API Development", "API Integration", "Algorithms", "Android Development", "Artificial Intelligence",
-  "Automation", "Backend Development", "Blockchain", "C++", "C#", "Cloud Architecture", "Cloud Computing",
-  "Computer Vision", "Cryptography", "Cybersecurity", "Data Engineering", "Data Mining", "Data Modeling",
-  "Data Science", "Database Design", "Deep Learning", "DevOps", "Distributed Systems", "Docker",
-  "Embedded Systems", "ETL", "Frontend Development", "Full Stack Development", "Go", "iOS Development",
-  "Java", "JavaScript", "Kotlin", "Kubernetes", "Machine Learning", "Microservices", "Mobile Development",
-  "Natural Language Processing", "Network Security", "Node.js", "Python", "React", "React Native",
-  "Ruby", "Rust", "Scala", "Software Architecture", "Software Engineering", "SQL", "Swift",
-  "System Design", "TypeScript", "UI Development", "Version Control", "Web Development",
-  
-  // Data & Analytics
-  "A/B Testing", "Big Data", "Business Intelligence", "Cohort Analysis", "Data Analysis", "Data Visualization",
-  "Econometrics", "Excel", "Experimental Design", "Google Analytics", "Predictive Modeling", "Quantitative Analysis",
-  "R", "Regression Analysis", "Statistical Analysis", "Statistical Modeling", "Tableau", "Time Series Analysis",
-  
-  // Tools & Software
-  "Adobe Creative Suite", "Adobe Photoshop", "Adobe Illustrator", "Airtable", "Asana", "AutoCAD", "AWS",
-  "Azure", "Canva", "ClickUp", "Confluence", "CRM Software", "Figma", "GitHub", "Google Cloud Platform",
-  "Google Sheets", "HubSpot", "Jira", "Looker", "Monday.com", "Notion", "Power BI", "PowerPoint",
-  "Salesforce", "SAP", "Shopify", "Sketch", "Slack", "Snowflake", "Stripe", "Trello", "WordPress", "Zapier",
-  
-  // Design & Creative
-  "3D Modeling", "Animation", "Brand Design", "Graphic Design", "Illustration", "Interaction Design",
-  "Motion Graphics", "Prototyping", "UI Design", "UX Design", "UX Research", "User Research",
-  "Video Editing", "Visual Design", "Web Design", "Wireframing",
-  
-  // Communication & Soft Skills
-  "Coaching", "Collaboration", "Conflict Resolution", "Cross-functional Collaboration", "Decision Making",
-  "Facilitation", "Interpersonal Skills", "Leadership", "Mentoring", "Negotiation", "Networking",
-  "Organizational Skills", "Presentation Skills", "Problem Solving", "Public Speaking", "Relationship Building",
-  "Stakeholder Management", "Team Building", "Team Leadership", "Team Management", "Technical Writing",
-  "Time Management", "Training", "Written Communication",
-  
-  // Domain-Specific
-  "Agile Methodology", "Bookkeeping", "Clinical Research", "Compliance", "Contract Law", "Copyright Law",
-  "Corporate Law", "Critical Thinking", "Customer Service", "Data Privacy", "Financial Reporting", "GDPR",
-  "Healthcare Administration", "HR Management", "Intellectual Property", "Legal Research", "Payroll",
-  "Policy Development", "Quality Assurance", "Recruitment", "Regulatory Compliance", "Research",
-  "Root Cause Analysis", "Scrum", "Six Sigma", "Tax Preparation", "Teaching", "Technical Support",
-  "Test Automation", "UX Writing", "User Acceptance Testing",
-];
+// Phase 0a (Skills Coherence): the prior 240-item curated SKILL_SUGGESTIONS
+// list was REMOVED. 94/240 (39%) of its entries didn't resolve to canonical
+// skill IDs, and it was the silent default for `suggestionType="skills"` —
+// callers that defaulted to it silently minted unmapped skills that
+// scoreJobFit / CV-gen / internship-matcher couldn't see.
+//
+// New default suggestion source is `library_skills` (LIBRARY_SKILL_NAMES)
+// — sourced from skillIdsGenerated.json's 595 canonical names. Every
+// suggestion is guaranteed to resolve to a skill_id.
+//
+// If you ever need a hand-curated subset surfaced, add it as a NEW
+// suggestionType key (don't bring this list back) AND audit it via the
+// canonical resolver: every entry must resolve or it shouldn't be
+// suggested.
 
-export default function SkillTagInput({ label, description, tags, onChange, placeholder, suggestionType = "skills" }) {
+// Default is "library_skills" — the canonical-resolving source. The old
+// default "skills" pointed at a curated list with 39% unresolvable
+// labels; that list and the "skills" default were removed in Phase 0a.
+export default function SkillTagInput({ label, description, tags, onChange, placeholder, suggestionType = "library_skills" }) {
   const [input, setInput] = useState("");
   const [suggestions, setSuggestions] = useState([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -229,9 +186,7 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
         ? WORK_ARRANGEMENT_SUGGESTIONS
         : suggestionType === "honors"
         ? HONORS_SUGGESTIONS
-        : suggestionType === "library_skills"
-        ? LIBRARY_SKILL_NAMES
-        : SKILL_SUGGESTIONS;
+        : LIBRARY_SKILL_NAMES;
 
       // Case-insensitive dedup — matches the matches() helper in StepSkills.
       // Prevents "Python" + "python" from coexisting and means a chip stops

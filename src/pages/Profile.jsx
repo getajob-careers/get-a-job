@@ -16,6 +16,7 @@ import {
 } from "@/components/ui/select";
 import { aggregateProfileSkills } from "@/lib/skillAggregation";
 import { recomputeProfileSkillsCanonical } from "@/lib/recomputeProfileSkillsCanonical";
+import { suggestSkillsFromUnmapped } from "@/lib/suggestSkillFromUnmapped";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import EducationTab from "@/components/profile/EducationTab";
@@ -628,6 +629,12 @@ export default function Profile() {
                   placeholder="Search skills, or type and press Enter to add custom"
                 />
               </div>
+
+              <UnmappedSkillsSection
+                profile={profile}
+                profileForm={profileForm}
+                setProfileForm={setProfileForm}
+              />
 
               {/* Languages — person-level, used to live on Education tab.
                   Moved up here per redesign because it sits with identity. */}
@@ -1246,6 +1253,99 @@ function ProfileTabBodySkeleton() {
       <div className="space-y-2">
         <Skeleton className="h-3 w-32" />
         <Skeleton className="h-24 w-full rounded-md" />
+      </div>
+    </div>
+  );
+}
+
+// Phase 0a — surface profiles.skills_unmapped for user remediation.
+// Until this PR, unmapped skills were write-only debug telemetry — users
+// had no way to see or fix labels the matcher couldn't recognise.
+// Renders the section ONLY when there's at least one unmapped label that
+// also lives in profileForm.skills (the catch-all). Per-entity unmapped
+// (e.g. an experience.skills_used label) is out of scope for 0a — those
+// need to be edited on the source entry. Tone: quiet, not alarming.
+function UnmappedSkillsSection({ profile, profileForm, setProfileForm }) {
+  const persistedUnmapped = Array.isArray(profile?.skills_unmapped) ? profile.skills_unmapped : [];
+  const profileSkillsLower = useMemo(
+    () => new Set((profileForm.skills || []).map((s) => String(s).toLowerCase().trim())),
+    [profileForm.skills],
+  );
+  // Only show unmapped labels that are present in the user's catch-all
+  // skills array (where this UI can actually fix them via setProfileForm).
+  // The persisted skills_unmapped column unions all sources, so per-entity
+  // labels appear there too — but editing those requires going to the
+  // experience/education/project row.
+  const fixable = useMemo(
+    () => persistedUnmapped.filter((u) => profileSkillsLower.has(String(u).toLowerCase().trim())),
+    [persistedUnmapped, profileSkillsLower],
+  );
+
+  if (fixable.length === 0) return null;
+
+  const replaceLabel = (oldLabel, newLabel) => {
+    const oldLower = String(oldLabel).toLowerCase().trim();
+    const next = (profileForm.skills || []).map((s) =>
+      String(s).toLowerCase().trim() === oldLower ? newLabel : s,
+    );
+    setProfileForm({ ...profileForm, skills: next });
+  };
+
+  const removeLabel = (label) => {
+    const lower = String(label).toLowerCase().trim();
+    const next = (profileForm.skills || []).filter(
+      (s) => String(s).toLowerCase().trim() !== lower,
+    );
+    setProfileForm({ ...profileForm, skills: next });
+  };
+
+  return (
+    <div className="bg-[#FAFAF8] border border-[#E8E8E5] rounded-md p-4">
+      <p className="text-xs font-medium text-[#0E1014] mb-1">
+        Skills we couldn't match ({fixable.length})
+      </p>
+      <p className="text-[11px] text-[#9C9DA1] mb-3 leading-relaxed">
+        These labels are in your skills but don't match a standard skill — so
+        they won't count for job matching or CV tailoring. Pick a suggestion
+        to replace, or remove. Changes save when you save the profile.
+      </p>
+      <div className="space-y-2">
+        {fixable.map((label) => {
+          const suggestions = suggestSkillsFromUnmapped(label);
+          return (
+            <div key={label} className="bg-white border border-[#DDDDDB] rounded-md px-3 py-2">
+              <div className="flex items-start justify-between gap-3 flex-wrap">
+                <span className="text-xs text-[#0E1014] font-medium">{label}</span>
+                <button
+                  type="button"
+                  onClick={() => removeLabel(label)}
+                  className="text-[11px] text-[#9C9DA1] hover:text-[#C84F40] transition-colors"
+                >
+                  Remove
+                </button>
+              </div>
+              {suggestions.length > 0 ? (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  <span className="text-[11px] text-[#9C9DA1] self-center">Did you mean:</span>
+                  {suggestions.map((s) => (
+                    <button
+                      key={s.name}
+                      type="button"
+                      onClick={() => replaceLabel(label, s.name)}
+                      className="text-[11px] px-2 py-0.5 rounded-full border border-[#DDDDDB] text-[#52545A] hover:border-[#0E1014] hover:text-[#0E1014] transition-colors"
+                    >
+                      {s.name}
+                    </button>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-1 text-[11px] text-[#9C9DA1] italic">
+                  No close match in the standard library — remove or leave as-is.
+                </p>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

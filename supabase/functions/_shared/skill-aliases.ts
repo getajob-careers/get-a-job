@@ -907,6 +907,52 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "strategic planning": ["strategic_planning"],
   "resource allocation": ["resource_allocation"],
   "talent development": ["talent_development"],
+
+  // ── Phase 0a (Skills Coherence) — live-unmapped recovery ─────────────────
+  // Aliases for labels found unmapped in real user data (2026-05-31 audit).
+  // Each target canonical was confirmed present in skillIdsGenerated.json
+  // before adding here. Pure free-text catches; SkillChipBank chips are
+  // already 100% resolvable. Tested in src/test/skillResolver.test.js.
+
+  // Compound category labels seen on 13 of 21 profiles (from older
+  // onboarding writes or resume extraction). Mapped to the closest single
+  // or multi-canonical equivalent.
+  "customer experience & retention": ["customer_health_management", "customer_retention"],
+  "customer experience and retention": ["customer_health_management", "customer_retention"],
+  "user-facing operations": ["customer_support_operations"],
+  "user facing operations": ["customer_support_operations"],
+  "stakeholder coordination": ["stakeholder_management"],
+  "program & project execution": ["program_management", "project_management"],
+  "program and project execution": ["program_management", "project_management"],
+  "leadership & team management": ["leadership"],
+  "leadership and team management": ["leadership"],
+
+  // Customer-success variants surfaced by recent user data.
+  "customer onboarding strategy": ["onboarding_training"],
+  "customer relations": ["customer_relationship_management"],
+  "customer relationship managment": ["customer_relationship_management"], // common typo
+  "team collaboration": ["cross_functional_collaboration"],
+
+  // Excel-skill variants.
+  "excel pivot tables": ["excel_advanced_finance"],
+  "pivot tables": ["excel_advanced_finance"],
+
+  // Stats variant.
+  "basic statistical data analysis": ["statistical_analysis"],
+
+  // Modern AI tooling labels — canonicals already exist in the library
+  // but the natural-language forms weren't aliased. Catches user-typed
+  // free-text from active Claude/agentic-AI users.
+  "agentic ai systems": ["agentic_systems"],
+  "claude / claude code": ["claude_assistant"],
+  "claude": ["claude_assistant"],
+  "claude code": ["claude_assistant"],
+  "no-code / low-code ai automation": ["no_code_ai_automation"],
+  "no-code ai automation": ["no_code_ai_automation"],
+  "low-code ai automation": ["no_code_ai_automation"],
+
+  // Operations / logistics variant.
+  "operational logistics": ["logistics_practice"],
 };
 
 // Resolve a free-text skill label to library skill IDs.

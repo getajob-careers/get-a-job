@@ -98,7 +98,16 @@ Deno.serve(async (req) => {
     const { data: experiences } = await supabase.from('experiences').select('*').eq('user_id', user.id)
     const profile = profiles?.[0]
 
-    const userSkills = (profile?.skills || []).join(', ')
+    // Phase 0a: prompt grounds on the canonical signal scoreJobFit uses,
+    // not the raw catch-all. Humanize skill_ids (snake_case → Title Case)
+    // for prompt readability, and append still-unmapped raw labels so the
+    // LLM doesn't lose the user's real-but-unrecognised skills. Order:
+    // canonical first (resolved truth), unmapped second (best-effort).
+    const humanizeSkillId = (id: string): string =>
+      String(id).replace(/[_-]+/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+    const canonicalLabels = (profile?.skills_canonical || []).map(humanizeSkillId)
+    const unmappedLabels = (profile?.skills_unmapped || []).map((s: string) => String(s))
+    const userSkills = [...canonicalLabels, ...unmappedLabels].join(', ')
     const expSummary = (experiences || []).map((e: any) => `${e.title} at ${e.company}`).join(', ')
     const fiveYearRole = profile?.five_year_role || ''
     const primaryDomain = profile?.primary_domain || ''
