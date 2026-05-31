@@ -314,10 +314,29 @@ Deno.serve(async (req) => {
     }
 
     // Fetch user data for grounding (same shape as generate-linkedin-comment).
-    const [profileRes, experiencesRes, storiesRes] = await Promise.all([
+    // For propose_internship goals, ALSO fetch the matcher's rationale for
+    // this specific company so the framework can ground the "why-them" line
+    // in a real fact (e.g. "secrets management platform", "B2B SaaS focus")
+    // instead of fabricating praise. RLS on company_targets restricts the
+    // SELECT to this user's own rows; missing match → graceful skip and the
+    // framework instructs the LLM to omit the grounded line.
+    const wantsCompanyRationale =
+      activeGoal === 'propose_internship' &&
+      typeof activeTarget?.company === 'string' &&
+      activeTarget.company.trim().length > 0
+    const [profileRes, experiencesRes, storiesRes, companyTargetRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase.from('experiences').select('*').eq('user_id', user.id).order('start_date', { ascending: false }).limit(5),
       supabase.from('stories').select('id, title, action, result, metrics, skills_demonstrated, tools_used').eq('user_id', user.id).order('created_at', { ascending: false }).limit(8),
+      wantsCompanyRationale
+        ? supabase
+            .from('company_targets')
+            .select('match_rationale, pitched_role, companies!inner(name)')
+            .eq('user_id', user.id)
+            .ilike('companies.name', activeTarget.company.trim())
+            .limit(1)
+            .maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
     ])
     const profile = profileRes.data
     if (!profile) {
@@ -347,6 +366,13 @@ Deno.serve(async (req) => {
       // self-sourcing students. sub-type is a data dimension for
       // analysis, not a behavior switch.
       in_practicum: !!profile.practicum_path,
+      // PROPOSE_INTERNSHIP_FRAMEWORK reads this to ground the why-them
+      // line in a real, factual signal about the company (what the matcher
+      // identified as the strong fit). Null when no matching row — the
+      // framework instructs the LLM to skip the grounded line rather than
+      // fabricate. Capped because rationales tend to be one or two
+      // sentences already.
+      company_match_rationale: trunc(companyTargetRes?.data?.match_rationale, 400) || null,
       recent_experiences: (experiencesRes.data || []).slice(0, 5).map((e: any) => ({
         title: trunc(e.title, 200),
         company: trunc(e.company, 200),
@@ -530,6 +556,35 @@ function sanitizeSuggestion(raw: unknown): OutreachSuggestion {
     { match: 'trust this finds you well', warn: '"Trust this finds you well" is template phrasing — consider replacing.' },
     { match: 'pick your brain', warn: '"Pick your brain" is overused outreach phrasing — consider naming a specific question instead.' },
     { match: 'i came across your profile', warn: '"I came across your profile" is template phrasing — consider opening with the specific reason instead.' },
+    // Fit-strength hedges — must NEVER appear in a message TO a contact.
+    // The matcher's internal rationale string sometimes contains these
+    // ("moderate bridge", "may require adaptation") and the LLM has
+    // historically echoed them verbatim. The user must never pre-grade
+    // their own fit to the recipient; the recipient decides strength.
+    // Substring match is case-insensitive (lower checked above).
+    { match: 'moderate bridge', warn: '"moderate bridge" pre-grades your own fit to the contact — strip it; let the recipient judge strength.' },
+    { match: 'strong bridge', warn: '"strong bridge" pre-grades your own fit to the contact — state the connection without grading it.' },
+    { match: 'partial bridge', warn: '"partial bridge" pre-grades your own fit — strip the hedge.' },
+    { match: 'tenuous bridge', warn: '"tenuous bridge" pre-grades your own fit downward — strip and let the recipient judge.' },
+    { match: 'weak bridge', warn: '"weak bridge" pre-grades your own fit downward — strip the hedge.' },
+    { match: 'loose bridge', warn: '"loose bridge" pre-grades your own fit — strip the hedge.' },
+    { match: 'moderate fit', warn: '"moderate fit" pre-grades your own fit to the contact — strip it.' },
+    { match: 'stretch fit', warn: '"stretch fit" pre-grades your own fit downward — strip the hedge.' },
+    { match: 'stretch role', warn: '"stretch role" pre-grades your own fit downward — strip the hedge.' },
+    { match: 'may require adaptation', warn: '"may require adaptation" is internal matcher hedge language leaking into the message — strip it.' },
+    { match: 'may require additional adaptation', warn: '"may require additional adaptation" is internal matcher hedge — strip it.' },
+    { match: 'might require adaptation', warn: '"might require adaptation" is internal matcher hedge — strip it.' },
+    { match: 'would require adaptation', warn: '"would require adaptation" is internal matcher hedge — strip it.' },
+    { match: 'would require additional adaptation', warn: '"would require additional adaptation" is internal matcher hedge — strip it.' },
+    { match: 'requires adaptation', warn: '"requires adaptation" is internal matcher hedge — strip it.' },
+    { match: 'requires additional adaptation', warn: '"requires additional adaptation" is internal matcher hedge — strip it.' },
+    // Filler payload — "insights" / "actionable insights" as the
+    // contribution itself (not as a form OF something concrete). Forces
+    // the user to name the object the work is about (the recurring
+    // problem, process, workflow, dataset).
+    { match: 'actionable insights', warn: '"actionable insights" is filler as a contribution payload — name the concrete object (process, workflow, dataset, recurring problem) the work is about.' },
+    { match: 'valuable insights', warn: '"valuable insights" is filler as a contribution payload — name what the insights are ABOUT.' },
+    { match: 'key learnings', warn: '"key learnings" is filler as a contribution payload — name the concrete object the learnings come from.' },
   ]
   const programmaticWarnings: string[] = []
   for (const { match, warn } of antiPatterns) {
