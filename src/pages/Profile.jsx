@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { aggregateProfileSkills } from "@/lib/skillAggregation";
+import { recomputeProfileSkillsCanonical } from "@/lib/recomputeProfileSkillsCanonical";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import EducationTab from "@/components/profile/EducationTab";
@@ -363,18 +364,24 @@ export default function Profile() {
     // Aggregate skills_canonical from EVERY source: catch-all profile.skills,
     // per-experience skills_used + tools_used, per-education skills_developed,
     // per-project skills_demonstrated. Same union as Onboarding's
-    // cleanProfilePayload so both surfaces produce consistent IDs for
-    // scoreJobFit. addExperience also recomputes skills_canonical
-    // independently (2026-05-28 Eli-incident fix). EducationTab and
-    // addProject still rely on next saveProfile to roll up.
-    const { data: educationsRows } = await supabase
-      .from("education").select("skills_developed").eq("user_id", user.id);
+    // cleanProfilePayload.
+    //
+    // Fetch ALL FOUR sources fresh from the DB — PR #178 incident pattern.
+    // Cached React state can be stale (narrow-projection cache pollution),
+    // and aggregating from stale rows silently collapses canonical. We
+    // already have profileForm.skills in memory (about to be written in
+    // the same UPDATE), so that's the only source not re-fetched.
+    const [{ data: freshExperiences }, { data: freshEducations }, { data: freshProjects }] = await Promise.all([
+      supabase.from("experiences").select("skills_used, tools_used").eq("user_id", user.id),
+      supabase.from("education").select("skills_developed").eq("user_id", user.id),
+      supabase.from("projects").select("skills_demonstrated").eq("user_id", user.id),
+    ]);
     const { canonical: skills_canonical, unmapped: skills_unmapped } =
       aggregateProfileSkills({
         profileSkills: profileForm.skills || [],
-        experiences: experiences || [],
-        educations: educationsRows || [],
-        projects: projects || [],
+        experiences: freshExperiences || [],
+        educations: freshEducations || [],
+        projects: freshProjects || [],
       });
     const dbFields = {
       full_name: profileForm.full_name,
@@ -507,36 +514,17 @@ export default function Profile() {
     queryClient.invalidateQueries({ queryKey: ["experiences"] });
 
     // 2026-05-28 Eli-incident fix: per-experience edits MUST recompute
-    // profiles.skills_canonical immediately. Previously this only happened
-    // on saveProfile, so users editing skills_used / tools_used per
-    // experience would see their canonical set go stale until the next
-    // explicit save. If the cache then got poisoned by a narrow projection
-    // (pre-PR #176) and saveProfile fired with stale row data,
-    // skills_canonical collapsed to just the catch-all profile.skills set.
-    // Aggregate from FRESH DB rows, not cache, to avoid any race.
-    try {
-      const [{ data: freshExperiences }, { data: freshEducations }] = await Promise.all([
-        supabase.from("experiences").select("*").eq("user_id", user.id),
-        supabase.from("education").select("skills_developed").eq("user_id", user.id),
-      ]);
-      const { canonical: skills_canonical, unmapped: skills_unmapped } =
-        aggregateProfileSkills({
-          profileSkills: profileForm.skills || [],
-          experiences: freshExperiences || [],
-          educations: freshEducations || [],
-          projects: projects || [],
-        });
-      const { error: profUpdateError } = await supabase
-        .from("profiles")
-        .update({ skills_canonical, skills_unmapped })
-        .eq("id", user.id);
-      if (profUpdateError) {
-        console.error("Failed to recompute skills_canonical after experience save:", profUpdateError);
-      } else {
-        queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-      }
-    } catch (recomputeErr) {
-      console.error("skills_canonical recomputation threw:", recomputeErr);
+    // profiles.skills_canonical immediately so users editing skills_used /
+    // tools_used per experience don't see their canonical set go stale
+    // until the next explicit save. Shared helper fetches all 4 sources
+    // FRESH from the DB — never reuse cached React state (which can be
+    // a narrow projection per PR #178 pattern). Same helper is used by
+    // EducationTab.handleSave.
+    const recompute = await recomputeProfileSkillsCanonical(supabase, user.id);
+    if (!recompute.ok) {
+      console.error("Failed to recompute skills_canonical after experience save:", recompute.error);
+    } else {
+      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
     }
 
     toast.success(wasEdit ? "Experience updated." : "Experience added.");

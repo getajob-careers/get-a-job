@@ -11,6 +11,7 @@ import { Plus, Pencil, Trash2, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import { DEGREE_TYPE_OPTIONS, dropdownValueForDegreeType, EDUCATION_LEVELS } from "@/lib/educationPolicy";
+import { recomputeProfileSkillsCanonical } from "@/lib/recomputeProfileSkillsCanonical";
 
 // Multi-entry education editor for the AddInformation Profile page.
 // Mirrors the Experience-tab pattern: an add/edit form at the top, a list
@@ -34,6 +35,7 @@ const EMPTY_FORM = {
   honors: [],
   relevant_coursework: [],
   academic_projects: [],
+  skills_developed: [],
   location: "",
 };
 
@@ -112,6 +114,7 @@ export default function EducationTab({ user }) {
         honors: form.honors || [],
         relevant_coursework: form.relevant_coursework || [],
         academic_projects: form.academic_projects || [],
+        skills_developed: form.skills_developed || [],
         location: form.location || null,
         ...(nextDisplayOrder !== undefined && { display_order: nextDisplayOrder }),
       };
@@ -133,6 +136,15 @@ export default function EducationTab({ user }) {
       // Also invalidate any cached profile queries that include nested
       // education (Home, ProfileSummary, edge function callers).
       queryClient.invalidateQueries({ queryKey: ["userProfile", user.id] });
+
+      // skills_developed changes affect profiles.skills_canonical. Recompute
+      // from FRESH DB rows (all 4 sources) per the PR #178 incident pattern —
+      // don't reuse cached React state.
+      const recompute = await recomputeProfileSkillsCanonical(supabase, user.id);
+      if (!recompute.ok) {
+        console.error("Failed to recompute skills_canonical after education save:", recompute.error);
+      }
+
       resetForm();
     } catch (e) {
       console.error("Education save error:", e);
@@ -156,6 +168,7 @@ export default function EducationTab({ user }) {
       honors: e.honors || [],
       relevant_coursework: e.relevant_coursework || [],
       academic_projects: e.academic_projects || [],
+      skills_developed: e.skills_developed || [],
       location: e.location || "",
     });
     // Scroll to top of tab so the form is visible
@@ -319,6 +332,15 @@ export default function EducationTab({ user }) {
           suggestionType="none"
         />
 
+        <SkillTagInput
+          label="Skills Developed"
+          description="Programs, methods, fields, or tools you developed during this degree — search the library or type custom."
+          tags={form.skills_developed}
+          onChange={(v) => setForm({ ...form, skills_developed: v })}
+          placeholder="e.g. financial modeling, market research"
+          suggestionType="library_skills"
+        />
+
         <Button onClick={handleSave} disabled={saving} className="bg-[#0E1014] hover:bg-[#52545A] text-sm">
           {form.id ? <>Update Education</> : <><Plus className="w-4 h-4 mr-2" />Add Education</>}
         </Button>
@@ -345,11 +367,12 @@ export default function EducationTab({ user }) {
                 {e.institution || "Institution not set"}
                 {e.start_date || e.end_date ? ` · ${e.start_date || ""}${e.start_date && e.end_date ? " – " : ""}${e.end_date || (e.is_current ? "Present" : "")}` : ""}
               </p>
-              {(e.honors?.length > 0 || e.relevant_coursework?.length > 0 || e.academic_projects?.length > 0) && (
+              {(e.honors?.length > 0 || e.relevant_coursework?.length > 0 || e.academic_projects?.length > 0 || e.skills_developed?.length > 0) && (
                 <p className="text-[11px] text-[#9C9DA1] mt-1 truncate">
                   {e.honors?.length > 0 && <>{e.honors.length} honor{e.honors.length === 1 ? "" : "s"} · </>}
                   {e.relevant_coursework?.length > 0 && <>{e.relevant_coursework.length} course{e.relevant_coursework.length === 1 ? "" : "s"} · </>}
-                  {e.academic_projects?.length > 0 && <>{e.academic_projects.length} project{e.academic_projects.length === 1 ? "" : "s"}</>}
+                  {e.academic_projects?.length > 0 && <>{e.academic_projects.length} project{e.academic_projects.length === 1 ? "" : "s"} · </>}
+                  {e.skills_developed?.length > 0 && <>{e.skills_developed.length} skill{e.skills_developed.length === 1 ? "" : "s"}</>}
                 </p>
               )}
             </div>
