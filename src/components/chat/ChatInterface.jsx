@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { createPageUrl } from "@/utils";
 import { resolveDueDate } from "@/lib/taskDueDate";
 import { scoreApplication } from "@/lib/scoreApplication";
+import { stripHtml } from "../../../scripts/lib/normalize.ts";
 import {
   validTrack,
   validStatus,
@@ -975,7 +976,10 @@ export default function ChatInterface({ agentName, title, description, applicati
           ...(a.url && { url: a.url }),
           ...(a.location && { location: a.location }),
           ...(a.notes && { notes: a.notes }),
-          ...(a.job_description && { job_description: a.job_description }),
+          // Chat-agent-supplied JDs can include markup from pasted sources.
+          // Strip at the write boundary so the textarea on next Tracker
+          // open + every downstream LLM call sees clean text.
+          ...(a.job_description && { job_description: stripHtml(a.job_description) || a.job_description }),
           // Auto-set applied_date so the Calendar surfaces it (parallel to
           // the B4 fix on tasks). Only fires when the agent's add request
           // is for an already-applied role.
@@ -984,7 +988,8 @@ export default function ChatInterface({ agentName, title, description, applicati
         const { data: inserted, error } = await supabase.from("applications").insert(row).select("id").single();
         if (error) { console.error("add_application error:", error); hasError = true; continue; }
         if (inserted?.id && a.job_description) {
-          scoreApplication(supabase, queryClient, inserted.id, a.job_description, user.id);
+          const cleanedJd = stripHtml(a.job_description) || a.job_description;
+          scoreApplication(supabase, queryClient, inserted.id, cleanedJd, user.id);
         }
       } else if (a.action === "update_application") {
         const patch = {};
@@ -1192,7 +1197,9 @@ export default function ChatInterface({ agentName, title, description, applicati
         body: {
           target_role: proposal.target_role,
           application_id: proposal.application_id || null,
-          job_description: proposal.job_description || null,
+          // Strip HTML defensively — chat-agent-emitted CV proposals can
+          // carry the user's pasted JD verbatim. Server-side strips too.
+          job_description: proposal.job_description ? (stripHtml(proposal.job_description) || proposal.job_description) : null,
         },
       });
       if (error) throw error;

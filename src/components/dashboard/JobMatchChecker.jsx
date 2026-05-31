@@ -7,6 +7,7 @@ import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { useEducationQuery } from "@/lib/queries/useEducation";
 import { trackFromScores } from "@/lib/scoreApplication";
 import { scoreJobFit } from "@/lib/scoreJobFit";
+import { stripHtml } from "../../../scripts/lib/normalize.ts";
 import { totalYearsOfExperience } from "@/lib/experienceLevel";
 import { track, EVENTS } from "@/lib/analytics";
 
@@ -105,8 +106,12 @@ export default function JobMatchChecker() {
           setLoading(false);
           return;
         }
+        // Strip HTML at the paste boundary — users often paste rich-text
+        // JDs that carry Word/Confluence markup. Cleaned once here, used
+        // both in the extractor call and in the local display below.
+        const cleanedJd = (stripHtml(jobText) || "").trim();
         const { data: extractResp, error: exErr } = await supabase.functions.invoke("extract-job-requirements", {
-          body: { jd_text: jobText.trim() },
+          body: { jd_text: cleanedJd },
         });
         if (exErr) throw exErr;
         if (!extractResp?.extraction) {
@@ -122,7 +127,7 @@ export default function JobMatchChecker() {
         data = {
           job_title: "Job Match Analysis",
           company: "",
-          job_description: jobText.trim(),
+          job_description: cleanedJd,
           match_score: Math.round(r.fit_score * 100),
           goal_alignment_score: r.goal_alignment_score == null ? null : Math.round(r.goal_alignment_score * 100),
           required_seniority: ex.req_seniority || null,

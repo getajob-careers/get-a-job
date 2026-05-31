@@ -14,6 +14,7 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { openaiChatCompletion } from '../_shared/openai-chat.ts';
+import { stripHtml } from '../_shared/strip-html.ts';
 import { SKILL_ALIASES } from '../_shared/skill-aliases.ts';
 import { skillLibrary } from "../_shared/libraries/01_skill_library.ts";
 import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
@@ -1089,7 +1090,11 @@ Deno.serve(async (req) => {
   // the structured fields WITHOUT writing to the jobs table. Used by
   // scoreApplication / JobMatchChecker when scoring a pasted-in JD that has
   // no jobs-table row to anchor against. Same extractor schema either way.
-  const { job_id, force = false, jd_text, title: stateless_title } = body;
+  const { job_id, force = false, jd_text: jdTextRaw, title: stateless_title } = body;
+  // Defensive HTML strip at LLM-input boundary. Ingestion + user-paste
+  // sites clean first; this catches anything that slips through (stale
+  // dirty row, future write path that forgets to strip).
+  const jd_text = stripHtml(typeof jdTextRaw === 'string' ? jdTextRaw : null);
   const isStateless = typeof jd_text === 'string' && jd_text.length > 0;
 
   if (isStateless) {
@@ -1165,7 +1170,13 @@ Deno.serve(async (req) => {
     return json({ job_id, skipped: true, reason: 'already_extracted_unchanged' });
   }
 
-  const extraction = await extractRequirements(job.description, job.title || '', OPENAI_KEY);
+  // Defensive strip — until the backfill cleans existing dirty rows (the
+  // greenhouse + SF entity-decode-after-tag-strip bug fixed in this PR
+  // means 1,749 rows still hold encoded HTML), the extractor would
+  // otherwise feed `&lt;p&gt;` to the LLM and waste tokens. New nightly
+  // cron writes will be clean post-fix; this catches the legacy backlog.
+  const cleanDescription = stripHtml(job.description) ?? '';
+  const extraction = await extractRequirements(cleanDescription, job.title || '', OPENAI_KEY);
   if (!extraction) {
     // LLM call failed entirely. Don't half-write the row; leave it so the next
     // run picks it up. Return non-error 200 so batch runners don't abort.
