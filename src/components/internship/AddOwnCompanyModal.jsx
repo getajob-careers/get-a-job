@@ -8,16 +8,31 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { pickReusableCompany, isDuplicateKeyError } from "@/lib/addOwnCompanyHelpers";
 
 // "Add my own company" — lets internship students (any path) drop a company
-// they found into their pipeline. Two-write flow:
-//   1. INSERT into companies with source='manual', created_by=user.id
-//   2. INSERT into company_targets pointing at that new company row with
-//      source='self_added', status='exploring'.
+// they found into their pipeline. Three-step flow:
+//   1. LOOKUP companies on case-insensitive name (+ domain when provided)
+//      ORDER BY canonical-source preference. If a row exists, REUSE its id —
+//      otherwise the user gets a silent duplicate row and a duplicate
+//      kanban card (the pre-fix bug).
+//   2. If no match, INSERT a new companies row (source='manual',
+//      created_by=user.id). Otherwise skip — reuse only, never edit.
+//   3. INSERT into company_targets with source='self_added',
+//      status='exploring'. UNIQUE (user_id, company_id) on this table
+//      catches the "already in this user's pipeline" case (23505) →
+//      tailored toast.
 //
-// Schema reference (verified against live DB before build):
-//   companies.source CHECK: jsearch | manual | faculty_seeded | research
+// Orphan rollback: if step 3 fails on the INSERT path (not the reuse
+// path) we delete the just-inserted companies row so a step-1 success
+// doesn't leak when step 3 dies. Reuse path has nothing to roll back —
+// the registry row was already there.
+//
+// Schema reference (verified live 2026-05-31):
+//   companies.source values present: registry (428) | research (391) | manual (1)
+//   companies SELECT RLS: any authenticated user may read all rows
 //   company_targets.source CHECK: matched | faculty_assigned | self_added
+//   company_targets UNIQUE (user_id, company_id) IS live (migration comment is stale)
 //
 // Notes go on company_targets.notes — user-specific. companies.description
 // is intentionally NOT set from this form; the user's notes belong to their
@@ -52,39 +67,89 @@ export default function AddOwnCompanyModal({ open, onClose }) {
       toast.error("Not signed in.");
       return;
     }
+    const trimmedDomain = domain.trim();
     setSubmitting(true);
     try {
-      const { data: company, error: companyErr } = await supabase
+      // ── Step 1: lookup-or-create on companies ──────────────────────
+      // Case-insensitive name match; require a domain match too when one
+      // was provided. ORDER BY canonical-source preference mirrors
+      // pickReusableCompany so SQL LIMIT(1) returns the same row the
+      // helper would pick. ilike with no wildcards == case-insensitive
+      // equality in PostgREST.
+      let lookupQuery = supabase
         .from("companies")
-        .insert({
-          name: trimmedName,
-          domain: domain.trim() || null,
-          industry: industry.trim() || null,
-          source: "manual",
-          created_by: user.id,
-        })
-        .select("id")
-        .single();
-
-      if (companyErr || !company?.id) {
-        console.error("[add-own-company] companies insert failed:", companyErr);
-        toast.error("Couldn't save the company. Please try again.");
+        .select("id, name, domain, source, created_at")
+        .ilike("name", trimmedName);
+      if (trimmedDomain) lookupQuery = lookupQuery.ilike("domain", trimmedDomain);
+      const { data: lookupRows, error: lookupErr } = await lookupQuery;
+      if (lookupErr) {
+        console.error("[add-own-company] companies lookup failed:", lookupErr);
+        toast.error("Couldn't check existing companies. Please try again.");
         return;
       }
 
+      const reusable = pickReusableCompany(lookupRows);
+      let companyId = reusable?.id ?? null;
+      const didCreate = !reusable;
+
+      if (!reusable) {
+        const { data: created, error: companyErr } = await supabase
+          .from("companies")
+          .insert({
+            name: trimmedName,
+            domain: trimmedDomain || null,
+            industry: industry.trim() || null,
+            source: "manual",
+            created_by: user.id,
+          })
+          .select("id")
+          .single();
+
+        if (companyErr || !created?.id) {
+          console.error("[add-own-company] companies insert failed:", companyErr);
+          toast.error("Couldn't save the company. Please try again.");
+          return;
+        }
+        companyId = created.id;
+      }
+
+      // ── Step 2: insert into company_targets ────────────────────────
+      // UNIQUE (user_id, company_id) catches the reuse-of-an-already-pipelined
+      // company case (Postgres 23505) — toast specifically rather than the
+      // generic "couldn't add" message.
       const { error: targetErr } = await supabase
         .from("company_targets")
         .insert({
           user_id: user.id,
-          company_id: company.id,
+          company_id: companyId,
           source: "self_added",
           status: "exploring",
           notes: notes.trim() || null,
         });
 
       if (targetErr) {
-        console.error("[add-own-company] company_targets insert failed:", targetErr);
-        toast.error("Saved the company, but couldn't add it to your pipeline. Try refreshing.");
+        if (isDuplicateKeyError(targetErr)) {
+          toast.error(`${trimmedName} is already in your pipeline.`);
+        } else {
+          console.error("[add-own-company] company_targets insert failed:", targetErr);
+          toast.error("Couldn't add it to your pipeline. Please try again.");
+        }
+        // Orphan rollback — only when we created a fresh companies row.
+        // On the reuse path the registry row was already there; don't
+        // touch it. RLS scopes the DELETE to created_by = user.id +
+        // source = 'manual', so even a broken reuse path can't nuke a
+        // canonical row.
+        if (didCreate && companyId) {
+          const { error: rollbackErr } = await supabase
+            .from("companies")
+            .delete()
+            .eq("id", companyId)
+            .eq("created_by", user.id)
+            .eq("source", "manual");
+          if (rollbackErr) {
+            console.error("[add-own-company] orphan companies rollback failed:", rollbackErr);
+          }
+        }
         return;
       }
 
