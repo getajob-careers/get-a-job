@@ -264,45 +264,87 @@ Grateful, low-pressure, easy-to-say-yes-to. The recommender is doing the user a 
 
 export const PROPOSE_INTERNSHIP_FRAMEWORK = `OUTREACH GOAL — PROPOSE AN INTERNSHIP IN A TARGET FUNCTION:
 
-The user is proposing themselves for an UNPOSTED internship in a specific function at a company — not applying to a listed req, not asking "are you hiring." The recipient is the function's leader (Head of Product, Head of Marketing, etc.) — someone who could actually host an intern in that function. This is high-leverage but high-bar: the message must be value-forward and respect that the recipient isn't in recruiting mode.
+The user is proposing themselves for an UNPOSTED internship in a specific function at a company — not applying to a listed req, not asking "are you hiring." Recipient is the function's leader. High-leverage, high-bar: value-forward, respect that they aren't in recruiting mode.
 
-OPENER STRUCTURE (60-150 words):
-1. Who you are — student status + the function you want to intern in. State both up front so the recipient knows in 5 seconds what this DM is about. If user_data.in_practicum is true, you MAY reference program ENROLLMENT as a credibility lever — exact phrasing: "part of my university's internship program" (or close paraphrase). Do NOT add "which places students in a structured internship" or any other placement claim — enrollment is what's verified by the gate; placement varies by sub-type and over-reaches for self-sourcing students. Use the SAME phrasing regardless of sub-type. If user_data.in_practicum is false, do NOT mention any program — claiming program enrollment the user doesn't have is fabrication.
-2. The bridge — name a specific current signal from the user's real experience that connects to the target function. Pattern: "Your <real current signal> gives you a credible angle into <target function surface area>." Do NOT invent target-domain experience.
-3. The value — one specific contribution the user can credibly deliver FROM THEIR REAL VANTAGE in the next 2-3 months. The contribution must be something the user can actually do given what they currently know and have access to — NOT something that implies target-domain expertise they don't have. A CS-experience student bridging into product could "map recurring CS escalations to product gaps" (their real vantage) — NOT "own the onboarding workflow redesign" (that requires product-domain expertise). The phrasing should be "what I can do from where I stand," not "a workflow I'd own."
-4. The ask — explicit, soft: "Would you be open to a 20-minute conversation about whether a <function> internship at <company> could work for the summer?" Or: "I'd love to propose a specific project — can I send you a one-pager?"
+LENGTH + DENSITY (HARD):
+- Target 60-80 words. Hard cap 110.
+- Short sentences. One idea per sentence. NO sentences that stack multiple qualifiers ("final-year business student, part of my university's internship program, targeting X internship for the summer" — that's three qualifiers in one clause, BANNED).
+- Skimmable: a recipient should know in 5 seconds what this is and what's being asked.
+- Cut every word that doesn't earn its place. If a beat is generic, delete it.
 
-EXAMPLES (assume user_data.in_practicum = true — same phrasing for BOTH self_sourced and faculty_assigned sub-types):
-- Good: "Hi Daniel — final-year business student, part of my university's internship program, targeting a Product Operations internship for the summer. Currently a CSM at a cybersecurity startup, so I see the friction between customer signal and product roadmap from the customer side every day. I'd love to propose a 10-week project mapping recurring CS escalations to product gaps for your team — would you be open to a 20-minute conversation about whether that could fit?"
-- Bad (over-claims placement): "Hi Daniel — part of my university's program which places students in structured internships…" (enrollment is verified; placement isn't)
-- Bad (job-app framing): "Hi Daniel — are you hiring product interns? I'd be a great fit for your team."
+FOUR BEATS, EACH ITS OWN SHORT SENTENCE:
 
-EXAMPLES (assume user_data.in_practicum = false):
-- Good: "Hi Daniel — final-year business student graduating in June, targeting a Product Operations internship for the summer. Currently a CSM at a cybersecurity startup, so I see the friction between customer signal and product roadmap from the customer side every day. I'd love to propose a 10-week project mapping recurring CS escalations to product gaps for your team — open to a 20-minute conversation?"
-- Bad (fabricates program): "Hi Daniel — part of my university's internship program…" (when user is NOT enrolled in one)
-- Bad (job-app framing): "Hi Daniel — are you hiring product interns?"
+1. WHO + WHAT (one short sentence, max ~16 words). Compress to a single clause but keep a subject — start with "I'm <student status>, targeting a <function> internship at <Company>." NEVER drop the subject ("Business administration student, targeting…" reads like a headline, not a message). Program enrollment is NOT in this sentence — if you include it at all, it goes in beat 2 or 4, never stacked here.
+
+2. WHY-THEM — grounded, factual, one short sentence (max ~18 words). This is a SWAP for filler praise, not an add. Use ONLY if user_data.company_match_rationale is present and non-null.
+   CRITICAL — what to extract: user_data.company_match_rationale is an INTERNAL matcher note. It mixes (a) a grounded company fact about what the company DOES (e.g. "secrets management platform", "B2B SaaS focus", "cyber risk management platform") with (b) the matcher's internal hedge about how strong the user's fit is (e.g. "provides a moderate bridge to Product Operations", "may require additional adaptation", "strong bridge", "tenuous match"). Extract ONLY (a). Reproduce (b) NEVER.
+   Pattern: "Your <specific company fact, paraphrased> connects directly to <user's real vantage>."
+   - Paraphrase the company fact in your own words; do NOT quote the internal rationale verbatim.
+   - State the connection POSITIVELY and let the recipient judge strength. The user must NEVER pre-grade their own fit to the contact as moderate / partial / a stretch / requiring adaptation. The recipient is the one who decides if there's a fit; this beat just presents the connection.
+   - BANNED in this beat (and anywhere in the message): "moderate bridge" / "strong bridge" / "partial bridge" / "tenuous bridge" / "weak bridge" / "moderate fit" / "stretch fit" / "stretch role" / "may require adaptation" / "would require additional adaptation" / any phrase that grades the user's fit-strength to this company. If user_data.company_match_rationale contains these, IGNORE them and extract only the grounded company fact.
+   - State the connection factually. No praise, no enthusiasm, no opinion words.
+   - If user_data.company_match_rationale is null OR contains no extractable grounded fact (only hedge language), OMIT this beat entirely. Do NOT substitute generic praise. The message ships with three beats, not four.
+
+3. CONTRIBUTION — one short sentence (max ~24 words). ONE scoped project that fits the PITCHED FUNCTION:
+   - Product Operations → process / tooling / data / enablement (NOT "product strategy", NOT "UX")
+   - Product Marketing → positioning research / messaging tests / competitive teardowns
+   - Customer Success Ops → onboarding artifacts / health-score signals / playbook drafts
+   - Growth → channel tests / funnel instrumentation / experiment write-ups
+   REGISTER (CRITICAL): this is a cold contact. The user does NOT have the internship yet and does NOT have access to internal data. The contribution must read as a TENTATIVE OFFER to explore in the call, NOT a decree of what they'll do. Use suggestive scaffolding that doesn't sound eager: "if it'd be useful, one thing I could dig into is…" / "one area I could look at is…" / "happy to scope a small project around…". Avoid "I'd love to" — reads a touch eager to a cold contact. Keep the project specific and give a SENSE of scope ("a small project", "a short look", "a starter pass") — but do NOT announce a fixed timeline ("over 8 weeks", "a 10-week project") as if it's decided. The 20-minute call in beat 4 is where the project gets shaped; this beat seeds it, doesn't pre-commit it.
+   CONCRETENESS (CRITICAL): the contribution must name a concrete, function-specific OBJECT — a recurring problem, a process, a workflow, a dataset, a playbook, a teardown, a metric. "Insights" / "actionable insights" / "valuable insights to enhance X" / "key learnings" is NOT a contribution; it's filler. BANNED as the payload of beat 3. If the only thing the contribution offers is "insights", rewrite it to name what the insights are ABOUT (the recurring escalations themselves, the activation funnel, the onboarding sequence, etc.).
+   Ground it in the user's REAL vantage. Pattern: "If it'd be useful, one thing I could dig into is <specific concrete object + what's done with it>, drawing on <one real-vantage signal>." Do NOT propose anything that requires target-domain expertise the user doesn't have. If their typed contribution over-reaches ("redesign onboarding", "own the roadmap"), pull it back to a deliverable they can credibly seed FROM where they stand ("a starter pass at mapping recurring CS escalations to product-ops gaps", "a short write-up on activation friction patterns I've seen").
+
+4. ASK — one short sentence (max ~18 words). Soft, specific. The call carries the contribution — it's where you'd figure out together whether the project fits. Pattern: "Open to a 20-minute conversation to see if that's a fit?" / "Worth a 20-minute call to talk it through?" — pick ONE, not both. Avoid "can I send a one-pager?" unless the user explicitly asks for it; the call is the better next step for an unposted internship.
+
+PROGRAM ENROLLMENT (GATED, MANDATORY WHEN GATE IS TRUE):
+- If user_data.in_practicum is true, you MUST include "part of my university's internship program" (or close paraphrase) in EVERY propose_internship opener. It's the credibility anchor. Place it in beat 4 (preferred, as part of the wrap before the ask) OR beat 1's tail — never stacked into beat 1 alongside "student" + "targeting X" (that's the BANNED qualifier stack).
+- If user_data.in_practicum is false, do NOT mention any program. Claiming enrollment the user doesn't have is fabrication.
+- Do not add "which places students in structured internships" or any other placement claim — enrollment is what the gate verifies; placement isn't.
+
+BANNED PHRASES (auto-cut, no exceptions):
+- Praise/enthusiasm: "I admire" / "I'm impressed by" / "your impressive" / "innovative approach" / "exciting work" / "cutting-edge"
+- Fit-strength hedges (NEVER reproduce from match_rationale or invent): "moderate bridge" / "strong bridge" / "partial bridge" / "tenuous bridge" / "weak bridge" / "moderate fit" / "stretch fit" / "stretch role" / "may require adaptation" / "would require additional adaptation" / any user-side grading of their own fit.
+- Filler payload words as the contribution: bare "insights" / "actionable insights" / "valuable insights" / "key learnings" — these must be replaced with the concrete object the work is about (recurring problem / process / workflow / dataset / playbook).
+- Any sentence whose function is enthusiasm rather than information.
+- Any praise of the recipient or company. Why-them is a factual connection, not a compliment.
+
+GOOD vs BAD (user_data.in_practicum = true, company_match_rationale = "Akeyless's secrets management platform aligns with your cybersecurity experience, providing a strong bridge to a Product Operations internship.", pitched function = Product Operations):
+
+GOOD (~85 words):
+"Hi Daniel — I'm a final-year business student targeting a Product Operations internship at Akeyless for the summer. Your secrets-management platform sits squarely in cybersecurity, which is where I work today as a CSM at a security startup. If it'd be useful, one thing I could dig into is a starter pass at mapping recurring customer escalations to product-ops gaps. Part of my university's internship program — open to a 20-minute call to see if that could be a fit?"
+
+BAD — credential stack + praise + over-reach + no grounded why-them (148 words):
+"Hi Daniel — I'm a final-year business student at Reichman University, part of my university's structured internship program, targeting a Product Operations internship at Akeyless for the summer of 2026. I'm extremely impressed by Akeyless's innovative approach to secrets management and your cutting-edge platform really resonates with my passion for cybersecurity. As a CSM at a security startup, I've developed deep expertise across product strategy, UX design, and customer onboarding workflows that I believe would let me hit the ground running and own the redesign of your customer onboarding flow end-to-end. Would you be open to a 20-minute conversation, or alternatively I could send you a detailed one-pager outlining the project?"
+(Failures: stacked qualifiers in beat 1; praise instead of grounded why-them; over-claims expertise the student doesn't have; proposes "own redesign end-to-end" which is target-domain; double-ask; over-length.)
 
 ANTI-FAB (CRITICAL):
-- The pitched function is what the user is BRIDGING TOWARD, not what they already do. Don't invent target-domain experience. A CS-experience student bridging into product writes "customer-side perspective" not "previous Product Ops work."
-- The senior version of the function ("Senior PM", "Director of Product Operations") is NOT what the user is proposing — that's the long-term goal, not the internship. Coach the user to entry-rung framing.
-- The value/contribution must be grounded in the user's REAL vantage. A CS-experience student bridging into product can "share patterns from customer escalations" — they CANNOT "own product roadmap planning" or "redesign the onboarding flow."
-- Program backing is GATED: only available when user_data.in_practicum is true. Never assert it when false.
+- The pitched function is what the user is BRIDGING TOWARD, not what they already do. Don't invent target-domain experience.
+- The senior version of the function ("Senior PM", "Director of Product Operations") is NOT what's proposed — that's long-term goal, not the internship.
+- Beat 3 must be deliverable from the user's REAL vantage. CS-experience student bridging into product can "share patterns from customer escalations"; they CANNOT "own product roadmap" or "redesign the onboarding flow."
+- Beat 2 must come from user_data.company_match_rationale or be omitted. NEVER fabricate a company fact, NEVER substitute generic praise.
+- Program backing is GATED on user_data.in_practicum = true.
 
 ASK TIMING:
-The ask is in the first message — internships need clarity early. But framed as "propose a project / function focus" not "give me a job." A learning-conversation framing ("can we talk about whether this could work") beats a direct ask ("will you hire me as an intern").
+The ask is in the first message — internships need clarity early. Framed as "propose a project / function focus," never "give me a job." Learning-conversation framing beats direct hire ask.
 
 WARM-UP ADVICE TRIGGERS:
-- Opener treats this as a posted-req application ("Are you hiring interns?") → coach to proposal framing
-- No specific bridge from real experience → coach to add one
-- Asks for senior-target role ("PM internship" when target is "Product Operations") → coach to entry-rung function
-- "Value to add" is generic ("happy to help anywhere") or implies target-domain expertise the user doesn't have ("I'd own your roadmap") → coach to a specific contribution grounded in real vantage
-- References a practicum program when user_data.in_practicum is false → coach to remove the program claim
+- Opener over 110 words or contains stacked qualifiers in beat 1 → coach to tightening
+- Beat 1 drops the subject ("Business administration student, targeting…") → coach to restore "I'm a…"
+- Contains any BANNED phrase → coach to remove and replace with factual line or omit
+- Beat 2 (why-them) is generic praise or fabricated → coach to ground in company_match_rationale or omit
+- Beat 2 reproduces fit-strength hedges from match_rationale ("moderate bridge", "may require adaptation", "stretch") → coach to extract only the grounded company fact; the user must never pre-grade their own fit to the contact
+- Beat 3 implies target-domain expertise ("own the roadmap", "redesign X") → coach to deliverable from real vantage
+- Beat 3 reads as a decree ("I'd spend 8 weeks doing X", "I will deliver Y by Z") rather than a tentative offer to explore in the call → coach to suggestive scaffolding ("if it'd be useful, one thing I could dig into is…") and drop fixed timelines unless the call has happened
+- Beat 3 payload is bare "insights" / "actionable insights" / "key learnings" → coach to name the concrete object the work is about
+- Opener omits "part of my university's internship program" when user_data.in_practicum is true → coach to add it (beat 4 preferred, never stacked into beat 1)
+- Posted-req framing ("Are you hiring interns?") → coach to proposal framing
+- References program when user_data.in_practicum is false → coach to remove
 
 GOAL_COMPLETE SIGNAL:
-Recipient replied with: (a) yes to a call + scheduling, (b) yes but routed to another function leader who'd be a better host, (c) no with explanation + offer to keep on file, or (d) routed user to a formal internship program if one exists. All four close the loop.
+Recipient replied with: (a) yes to a call + scheduling, (b) yes but routed to another function leader, (c) no with explanation + keep-on-file, (d) routed to a formal program. All four close the loop.
 
 RECIPIENT REGISTER:
-Peer-to-peer respect, value-forward. The recipient is being asked to host an intern in an unposted slot — that's a real ask of their time and headcount. The message must implicitly acknowledge that.`
+Peer-to-peer respect, value-forward. Recipient is being asked to host an intern in an unposted slot — a real ask of their time and headcount. The brevity itself is the acknowledgement.`
 
 // Lookup map used by the edge function — maps goal type to its framework string.
 export const FRAMEWORK_BY_GOAL: Record<string, string> = {
