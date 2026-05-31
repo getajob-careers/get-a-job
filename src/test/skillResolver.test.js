@@ -119,8 +119,13 @@ describe("Phase 0a alias additions (live-unmapped recovery)", () => {
     expect(resolveSkill("leadership and team management")).toContain("leadership");
   });
 
-  it("customer onboarding strategy → onboarding_training", () => {
-    expect(resolveSkill("customer onboarding strategy")).toContain("onboarding_training");
+  // NOTE: PR #199 originally aliased this to onboarding_training. The
+  // Phase 0a-followup audit found onboarding_strategy ("Customer
+  // Onboarding Strategy") is the more-specific correct canonical;
+  // alignment fixed in this PR. The realigned test lives in the
+  // "Phase 0a-followup: customer-onboarding alignment fix" block.
+  it("customer onboarding strategy → onboarding_strategy (post-realignment)", () => {
+    expect(resolveSkill("customer onboarding strategy")).toContain("onboarding_strategy");
   });
 
   it("customer relations + common typo → customer_relationship_management", () => {
@@ -157,5 +162,208 @@ describe("Phase 0a alias additions (live-unmapped recovery)", () => {
 
   it("operational logistics → logistics_practice", () => {
     expect(resolveSkill("operational logistics")).toContain("logistics_practice");
+  });
+});
+
+describe("Phase 0a-followup: customer-onboarding alignment fix", () => {
+  it("customer onboarding strategy → onboarding_strategy (was onboarding_training in PR #199)", () => {
+    // The more-specific canonical "Customer Onboarding Strategy" is the
+    // correct target. Both customer-onboarding phrasings should align
+    // on it rather than fragmenting across canonicals.
+    expect(resolveSkill("customer onboarding strategy")).toContain("onboarding_strategy");
+  });
+  it("customer onboarding → onboarding_strategy (paired with the strategy phrasing)", () => {
+    expect(resolveSkill("customer onboarding")).toContain("onboarding_strategy");
+  });
+});
+
+describe("Phase 0a-followup: role-coverage alias expansion (72 entries)", () => {
+  // Sales / SDR / AE
+  it("lead gen + lead generation + pipeline generation → demand_generation", () => {
+    expect(resolveSkill("lead gen")).toContain("demand_generation");
+    expect(resolveSkill("lead generation")).toContain("demand_generation");
+    expect(resolveSkill("pipeline generation")).toContain("demand_generation");
+  });
+  it("cold outreach + cold calling → cold_calling", () => {
+    expect(resolveSkill("cold outreach")).toContain("cold_calling");
+    expect(resolveSkill("cold calling")).toContain("cold_calling");
+  });
+  it("cold email → sales_engagement_tools (activity→tooling, flagged for review)", () => {
+    expect(resolveSkill("cold email")).toContain("sales_engagement_tools");
+  });
+  it("pipeline management → pipeline_management", () => {
+    expect(resolveSkill("pipeline management")).toContain("pipeline_management");
+  });
+  it("quota + quota attainment → quota_attainment", () => {
+    expect(resolveSkill("quota")).toContain("quota_attainment");
+    expect(resolveSkill("quota attainment")).toContain("quota_attainment");
+  });
+  it("prospecting + outbound prospecting → outbound_prospecting", () => {
+    expect(resolveSkill("prospecting")).toContain("outbound_prospecting");
+    expect(resolveSkill("outbound prospecting")).toContain("outbound_prospecting");
+  });
+  it("discovery calls → discovery_calls", () => {
+    expect(resolveSkill("discovery calls")).toContain("discovery_calls");
+  });
+  it("objection handling → objection_handling", () => {
+    expect(resolveSkill("objection handling")).toContain("objection_handling");
+  });
+  it("closing → deal_closing (kept in bucket 1 per locked decision)", () => {
+    expect(resolveSkill("closing")).toContain("deal_closing");
+  });
+  it("negotiating → negotiation", () => {
+    expect(resolveSkill("negotiating")).toContain("negotiation");
+  });
+  it("upselling / cross-selling family → upselling_cross_selling", () => {
+    expect(resolveSkill("upselling")).toContain("upselling_cross_selling");
+    expect(resolveSkill("cross-selling")).toContain("upselling_cross_selling");
+    expect(resolveSkill("cross sell")).toContain("upselling_cross_selling");
+    expect(resolveSkill("up sell")).toContain("upselling_cross_selling");
+  });
+  it("account planning → account_management", () => {
+    expect(resolveSkill("account planning")).toContain("account_management");
+  });
+
+  // Sales tooling
+  it("CRM admin variants → revops_crm_administration", () => {
+    expect(resolveSkill("salesforce admin")).toContain("revops_crm_administration");
+    expect(resolveSkill("hubspot admin")).toContain("revops_crm_administration");
+    expect(resolveSkill("crm hygiene")).toContain("revops_crm_administration");
+  });
+  it("salesforce reporting → salesforce", () => {
+    expect(resolveSkill("salesforce reporting")).toContain("salesforce");
+  });
+
+  // CS
+  it("renewal management → renewal_management", () => {
+    expect(resolveSkill("renewal management")).toContain("renewal_management");
+  });
+  it("churn reduction → customer_retention", () => {
+    expect(resolveSkill("churn reduction")).toContain("customer_retention");
+  });
+  it("health scoring → customer_health_management", () => {
+    expect(resolveSkill("health scoring")).toContain("customer_health_management");
+  });
+  it("customer training → bizops_enablement_training", () => {
+    expect(resolveSkill("customer training")).toContain("bizops_enablement_training");
+  });
+  it("time to value → value_realization", () => {
+    expect(resolveSkill("time to value")).toContain("value_realization");
+  });
+
+  // PM / Product
+  it("okrs → bizops_okr_framework", () => {
+    expect(resolveSkill("okrs")).toContain("bizops_okr_framework");
+  });
+  it("product discovery → product_discovery", () => {
+    expect(resolveSkill("product discovery")).toContain("product_discovery");
+  });
+  it("product strategy → product_strategy", () => {
+    expect(resolveSkill("product strategy")).toContain("product_strategy");
+  });
+  it("roadmap / roadmapping / prioritization → roadmap_prioritization", () => {
+    expect(resolveSkill("roadmap")).toContain("roadmap_prioritization");
+    expect(resolveSkill("roadmapping")).toContain("roadmap_prioritization");
+    expect(resolveSkill("prioritization")).toContain("roadmap_prioritization");
+  });
+  it("user interviews → customer_discovery_interviews", () => {
+    expect(resolveSkill("user interviews")).toContain("customer_discovery_interviews");
+  });
+  it("metrics design → product_metrics", () => {
+    expect(resolveSkill("metrics design")).toContain("product_metrics");
+  });
+  it("feature specs → feature_definition", () => {
+    expect(resolveSkill("feature specs")).toContain("feature_definition");
+  });
+  it("prd / product requirements document → prd_writing", () => {
+    expect(resolveSkill("prd")).toContain("prd_writing");
+    expect(resolveSkill("product requirements document")).toContain("prd_writing");
+  });
+
+  // RevOps
+  // (Note: "lead scoring" alias dropped during cross-review — it's a
+  // distinct downstream qualification skill, queued for the bucket-2
+  // curation task as a candidate for its own canonical.)
+  it("attribution → campaign_analytics_attribution", () => {
+    expect(resolveSkill("attribution")).toContain("campaign_analytics_attribution");
+  });
+  it("funnel analysis → funnel_optimization", () => {
+    expect(resolveSkill("funnel analysis")).toContain("funnel_optimization");
+  });
+  it("go-to-market ops + gtm ops → revops_gtm_process_design", () => {
+    expect(resolveSkill("go-to-market ops")).toContain("revops_gtm_process_design");
+    expect(resolveSkill("gtm ops")).toContain("revops_gtm_process_design");
+  });
+  it("compensation planning → compensation_design", () => {
+    expect(resolveSkill("compensation planning")).toContain("compensation_design");
+  });
+
+  // Marketing / Growth
+  it("seo → seo_management", () => {
+    expect(resolveSkill("seo")).toContain("seo_management");
+  });
+  it("sem + ppc → paid_search_advertising", () => {
+    expect(resolveSkill("sem")).toContain("paid_search_advertising");
+    expect(resolveSkill("ppc")).toContain("paid_search_advertising");
+  });
+  it("paid social → paid_social_advertising", () => {
+    expect(resolveSkill("paid social")).toContain("paid_social_advertising");
+  });
+  it("email marketing + drip campaigns → marketing_automation", () => {
+    expect(resolveSkill("email marketing")).toContain("marketing_automation");
+    expect(resolveSkill("drip campaigns")).toContain("marketing_automation");
+  });
+  it("lifecycle marketing → lifecycle_marketing", () => {
+    expect(resolveSkill("lifecycle marketing")).toContain("lifecycle_marketing");
+  });
+  it("content marketing + content strategy → content_strategy", () => {
+    expect(resolveSkill("content marketing")).toContain("content_strategy");
+    expect(resolveSkill("content strategy")).toContain("content_strategy");
+  });
+  it("brand strategy → brand_management", () => {
+    expect(resolveSkill("brand strategy")).toContain("brand_management");
+  });
+  it("growth experimentation → marketing_experimentation", () => {
+    expect(resolveSkill("growth experimentation")).toContain("marketing_experimentation");
+  });
+  it("conversion rate optimization + cro → conversion_rate_optimization", () => {
+    expect(resolveSkill("conversion rate optimization")).toContain("conversion_rate_optimization");
+    expect(resolveSkill("cro")).toContain("conversion_rate_optimization");
+  });
+  it("landing pages → web_design", () => {
+    expect(resolveSkill("landing pages")).toContain("web_design");
+  });
+  it("event marketing → event_marketing", () => {
+    expect(resolveSkill("event marketing")).toContain("event_marketing");
+  });
+
+  // BD / Partnerships
+  it("partnership development → partnership_development", () => {
+    expect(resolveSkill("partnership development")).toContain("partnership_development");
+  });
+  it("channel sales + alliance management → channel_sales_strategy", () => {
+    expect(resolveSkill("channel sales")).toContain("channel_sales_strategy");
+    expect(resolveSkill("alliance management")).toContain("channel_sales_strategy");
+  });
+  it("reseller management → channel_partner_management", () => {
+    expect(resolveSkill("reseller management")).toContain("channel_partner_management");
+  });
+  it("co-selling → joint_business_planning", () => {
+    expect(resolveSkill("co-selling")).toContain("joint_business_planning");
+  });
+
+  // Ops + Recruiting
+  it("dashboarding → dashboarding", () => {
+    expect(resolveSkill("dashboarding")).toContain("dashboarding");
+  });
+  it("sourcing + candidate sourcing → talent_acquisition_recruiting", () => {
+    expect(resolveSkill("sourcing")).toContain("talent_acquisition_recruiting");
+    expect(resolveSkill("candidate sourcing")).toContain("talent_acquisition_recruiting");
+  });
+  it("employer branding → employer_branding", () => {
+    expect(resolveSkill("employer branding")).toContain("employer_branding");
+  });
+  it("hr analytics → hr_data_analytics", () => {
+    expect(resolveSkill("hr analytics")).toContain("hr_data_analytics");
   });
 });
