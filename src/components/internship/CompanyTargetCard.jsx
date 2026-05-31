@@ -37,10 +37,24 @@ export default function CompanyTargetCard({ target, onClick }) {
   const showBand = target.source === "matched" && score != null;
   const sourceTone = SOURCE_TONE[target.source] || "gray";
 
+  // role="button" on a div (not a native <button>) so @hello-pangea/dnd's
+  // interactive-element-blocking guard doesn't refuse to start the drag.
+  // Native <button> children of a Draggable swallow pointer-down before
+  // the DnD lib registers the drag intent; div + role="button" keeps the
+  // a11y semantics + click semantics while leaving DnD free to take over.
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClick?.(e);
+    }
+  };
+
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       className="act-target-card mb-2"
     >
       <div className="act-target-card-row">
@@ -72,6 +86,6 @@ export default function CompanyTargetCard({ target, onClick }) {
       {target.pitched_role && (
         <p className="act-target-card-pitch line-clamp-2">{target.pitched_role}</p>
       )}
-    </button>
+    </div>
   );
 }

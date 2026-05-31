@@ -4,7 +4,17 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
-import { ExternalLink, MessageSquare } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { ExternalLink, MessageSquare, Trash2 } from "lucide-react";
 import { STATUSES, STATUS_LABELS } from "./constants";
 import { Link } from "react-router-dom";
 import { track, EVENTS } from "@/lib/analytics";
@@ -14,6 +24,7 @@ import {
   BAND_LABELS,
 } from "./browse/scoreHelpers";
 import PitchSection from "./PitchSection";
+import { filterOutTarget } from "@/lib/companyTargetsCacheHelpers";
 
 // Right-side detail panel. Sections, top-to-bottom:
 //   1. Company header (name + sector + stage + external link)
@@ -41,6 +52,9 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
 
   const [notes, setNotes] = useState(target?.notes || "");
   const [savingNotes, setSavingNotes] = useState(false);
+
+  const [removeOpen, setRemoveOpen] = useState(false);
+  const [removing, setRemoving] = useState(false);
 
   useEffect(() => {
     if (target) {
@@ -159,6 +173,50 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
     } finally {
       setSavingStatus(false);
     }
+  };
+
+  // Hard-delete + optimistic cache filter. Mirrors the updateStatus
+  // pattern in CompanyTargetsKanban (PR #69): setQueryData → filter out
+  // the row → DELETE → on error invalidate to refetch from server. RLS
+  // restricts DELETE to the user's own rows; ON DELETE CASCADE on
+  // company_target_status_changes.target_id cleans the audit history.
+  // For source='matched' rows the matcher is idempotent and may re-add
+  // the company on the next "Find companies" run — surfaced in the
+  // confirmation copy.
+  const handleRemove = async () => {
+    if (!target?.id || !user?.id) return;
+    setRemoving(true);
+
+    queryClient.setQueryData(
+      ["company_targets", user.id],
+      (prev) => filterOutTarget(prev, target.id),
+    );
+
+    const { error } = await supabase
+      .from("company_targets")
+      .delete()
+      .eq("id", target.id);
+
+    if (error) {
+      console.error("[drawer] remove failed:", error);
+      toast.error("Couldn't remove from pipeline. Reverted.");
+      queryClient.invalidateQueries({ queryKey: ["company_targets", user.id] });
+      setRemoving(false);
+      setRemoveOpen(false);
+      return;
+    }
+
+    track(EVENTS.PRACTICUM_STATUS_CHANGED, {
+      old_status: target.status,
+      new_status: "removed",
+      via: "drawer_remove",
+    });
+
+    queryClient.invalidateQueries({ queryKey: ["company_targets", user.id] });
+    toast.success("Removed from pipeline.");
+    setRemoving(false);
+    setRemoveOpen(false);
+    onClose?.();
   };
 
   const handleSaveNotes = async () => {
@@ -326,11 +384,10 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
             )}
           </Section>
 
-          {/* Outreach Coach link — prefills company + pitched_role into the
-              composer's target form so the user starts at the goal picker
-              with context already filled. Route is /Linkedin per PR #80
-              rename (LinkedinOptimizer → Linkedin). */}
-          <div className="pt-2 border-t border-[#DDDDDB]">
+          {/* Footer — Outreach link (left) + Remove (right). Remove is
+              styled as a destructive secondary, never the primary action;
+              the primary spend on this drawer is status moves + outreach. */}
+          <div className="pt-2 border-t border-[#DDDDDB] flex items-center justify-between gap-3">
             <Link
               to={outreachUrl}
               className="inline-flex items-center gap-1.5 text-xs text-[#2B5DC4] hover:underline"
@@ -338,9 +395,40 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
               <MessageSquare className="w-3.5 h-3.5" />
               Open in Outreach Coach
             </Link>
+            <button
+              type="button"
+              onClick={() => setRemoveOpen(true)}
+              className="inline-flex items-center gap-1.5 text-xs text-[#9C9DA1] hover:text-[#C84F40] transition-colors"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              Remove from pipeline
+            </button>
           </div>
         </div>
       </SheetContent>
+
+      <AlertDialog open={removeOpen} onOpenChange={setRemoveOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove {company.name || "this company"} from your pipeline?</AlertDialogTitle>
+            <AlertDialogDescription>
+              {target.source === "matched"
+                ? "If you run Find companies again, it may come back with a fresh evaluation."
+                : "You can add it back manually later."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={removing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handleRemove(); }}
+              disabled={removing}
+              className="bg-[#C84F40] hover:bg-[#B04030] focus:ring-[#C84F40] text-white"
+            >
+              {removing ? "Removing…" : "Remove"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Sheet>
   );
 }
