@@ -81,3 +81,81 @@ describe("resolveSkillList", () => {
     expect(a.canonical).toEqual(b.canonical);
   });
 });
+
+describe("Phase 0a alias additions (live-unmapped recovery)", () => {
+  // One case per alias added in this PR. Each asserts the new key resolves
+  // to the expected canonical target so the alias map can't silently drift.
+  // Targets were confirmed present in skillIdsGenerated.json before adding.
+
+  it("customer experience & retention → customer_health_management + customer_retention", () => {
+    expect(resolveSkill("customer experience & retention")).toEqual(
+      expect.arrayContaining(["customer_health_management", "customer_retention"]),
+    );
+    expect(resolveSkill("customer experience and retention")).toEqual(
+      expect.arrayContaining(["customer_health_management", "customer_retention"]),
+    );
+  });
+
+  it("user-facing operations → customer_support_operations", () => {
+    expect(resolveSkill("user-facing operations")).toContain("customer_support_operations");
+    expect(resolveSkill("user facing operations")).toContain("customer_support_operations");
+  });
+
+  it("stakeholder coordination → stakeholder_management", () => {
+    expect(resolveSkill("stakeholder coordination")).toContain("stakeholder_management");
+  });
+
+  it("program & project execution → program_management + project_management", () => {
+    expect(resolveSkill("program & project execution")).toEqual(
+      expect.arrayContaining(["program_management", "project_management"]),
+    );
+    expect(resolveSkill("program and project execution")).toEqual(
+      expect.arrayContaining(["program_management", "project_management"]),
+    );
+  });
+
+  it("leadership & team management → leadership", () => {
+    expect(resolveSkill("leadership & team management")).toContain("leadership");
+    expect(resolveSkill("leadership and team management")).toContain("leadership");
+  });
+
+  it("customer onboarding strategy → onboarding_training", () => {
+    expect(resolveSkill("customer onboarding strategy")).toContain("onboarding_training");
+  });
+
+  it("customer relations + common typo → customer_relationship_management", () => {
+    expect(resolveSkill("customer relations")).toContain("customer_relationship_management");
+    expect(resolveSkill("customer relationship managment")).toContain("customer_relationship_management");
+  });
+
+  it("team collaboration → cross_functional_collaboration", () => {
+    expect(resolveSkill("team collaboration")).toContain("cross_functional_collaboration");
+  });
+
+  it("excel pivot tables + pivot tables → excel_advanced_finance", () => {
+    expect(resolveSkill("excel pivot tables")).toContain("excel_advanced_finance");
+    expect(resolveSkill("pivot tables")).toContain("excel_advanced_finance");
+  });
+
+  it("basic statistical data analysis → statistical_analysis", () => {
+    expect(resolveSkill("basic statistical data analysis")).toContain("statistical_analysis");
+  });
+
+  it("intentionally-unmapped traits remain unresolved", () => {
+    // Per Phase 0a decision: traits aren't skills. Leave them in
+    // skills_unmapped rather than forcing a bad canonical mapping.
+    expect(resolveSkill("team player")).toEqual([]);
+    expect(resolveSkill("continuous learner")).toEqual([]);
+  });
+
+  it("modern AI tooling labels → existing canonicals", () => {
+    expect(resolveSkill("agentic ai systems")).toContain("agentic_systems");
+    expect(resolveSkill("claude / claude code")).toContain("claude_assistant");
+    expect(resolveSkill("claude")).toContain("claude_assistant");
+    expect(resolveSkill("no-code / low-code ai automation")).toContain("no_code_ai_automation");
+  });
+
+  it("operational logistics → logistics_practice", () => {
+    expect(resolveSkill("operational logistics")).toContain("logistics_practice");
+  });
+});
