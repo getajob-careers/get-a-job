@@ -51,6 +51,12 @@ const MODEL = 'gpt-4o'
 const RATE_LIMIT_CALLS = 60
 const RATE_LIMIT_WINDOW = 3600
 
+// Runtime allowlist for body.goal. Must stay in sync with the
+// OutreachGoal union in _shared/outreach-frameworks/types.ts AND the
+// CHECK constraint on linkedin_outreach_conversations.goal — TypeScript
+// type-checks the union but the runtime validation is THIS literal
+// array. Adding a goal touches three places: union, CHECK constraint,
+// and this list.
 const VALID_GOALS: ReadonlyArray<OutreachGoal> = [
   'message_recruiter',
   'message_hiring_manager',
@@ -60,6 +66,7 @@ const VALID_GOALS: ReadonlyArray<OutreachGoal> = [
   'reconnect_dormant',
   'ask_for_referral',
   'ask_for_recommendation',
+  'propose_internship',
 ]
 
 const MAX_NAME = 200
