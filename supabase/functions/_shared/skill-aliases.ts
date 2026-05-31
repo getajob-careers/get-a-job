@@ -928,7 +928,12 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "leadership and team management": ["leadership"],
 
   // Customer-success variants surfaced by recent user data.
-  "customer onboarding strategy": ["onboarding_training"],
+  // (Phase 0a alias for "customer onboarding strategy" originally
+  // pointed at onboarding_training; Phase 0a-followup audit found the
+  // more-specific canonical onboarding_strategy ("Customer Onboarding
+  // Strategy") is the correct target — both customer-onboarding
+  // phrasings now align on onboarding_strategy.)
+  "customer onboarding strategy": ["onboarding_strategy"],
   "customer relations": ["customer_relationship_management"],
   "customer relationship managment": ["customer_relationship_management"], // common typo
   "team collaboration": ["cross_functional_collaboration"],
@@ -953,6 +958,109 @@ export const SKILL_ALIASES: Record<string, string[]> = {
 
   // Operations / logistics variant.
   "operational logistics": ["logistics_practice"],
+
+  // ── Phase 0a-followup (role-coverage alias expansion) ────────────────────
+  // 72 aliases recovering common job-relevant phrasings that the
+  // pre-pilot role-coverage audit found unresolved. Every target
+  // canonical was confirmed present in skillIdsGenerated.json before
+  // adding. Zero collisions with existing entries (including the
+  // 24 additions from Phase 0a). Pure additive — same pattern as #199.
+  //
+  // Net effect is bidirectional: the JD extractor uses this same alias
+  // map, so JDs saying "SEO" / "PRD" / "OKRs" / "lead gen" — which
+  // weren't resolving either — now land in canonical alongside user
+  // free-text. Suppresses the zero-demand drift on canonicals like
+  // seo_management, prd_writing, quota_attainment, etc.
+  //
+  // Tested in src/test/skillResolver.test.js — one case per alias.
+
+  // Sales / SDR / AE — pipeline + activity terminology
+  "lead gen": ["demand_generation"],
+  "lead generation": ["demand_generation"],
+  "pipeline generation": ["demand_generation"],
+  "cold outreach": ["cold_calling"],
+  "cold calling": ["cold_calling"],
+  "cold email": ["sales_engagement_tools"],
+  "pipeline management": ["pipeline_management"],
+  "quota attainment": ["quota_attainment"],
+  "quota": ["quota_attainment"],
+  "prospecting": ["outbound_prospecting"],
+  "outbound prospecting": ["outbound_prospecting"],
+  "discovery calls": ["discovery_calls"],
+  "objection handling": ["objection_handling"],
+  "closing": ["deal_closing"],
+  "negotiating": ["negotiation"],
+  "upselling": ["upselling_cross_selling"],
+  "cross-selling": ["upselling_cross_selling"],
+  "cross sell": ["upselling_cross_selling"],
+  "up sell": ["upselling_cross_selling"],
+  "account planning": ["account_management"],
+
+  // Sales tooling — CRM admin variants.
+  "salesforce admin": ["revops_crm_administration"],
+  "salesforce reporting": ["salesforce"],
+  "hubspot admin": ["revops_crm_administration"],
+  "crm hygiene": ["revops_crm_administration"],
+
+  // Customer Success — common phrasings.
+  "renewal management": ["renewal_management"],
+  "churn reduction": ["customer_retention"],
+  "health scoring": ["customer_health_management"],
+  "customer onboarding": ["onboarding_strategy"],
+  "customer training": ["bizops_enablement_training"],
+  "time to value": ["value_realization"],
+
+  // PM / Product — framework + artifact terms.
+  "okrs": ["bizops_okr_framework"],
+  "product discovery": ["product_discovery"],
+  "product strategy": ["product_strategy"],
+  "roadmap": ["roadmap_prioritization"],
+  "roadmapping": ["roadmap_prioritization"],
+  "prioritization": ["roadmap_prioritization"],
+  "user interviews": ["customer_discovery_interviews"],
+  "metrics design": ["product_metrics"],
+  "feature specs": ["feature_definition"],
+  "prd": ["prd_writing"],
+  "product requirements document": ["prd_writing"],
+
+  // RevOps — attribution, funnel, GTM.
+  "lead scoring": ["demand_generation"],
+  "attribution": ["campaign_analytics_attribution"],
+  "funnel analysis": ["funnel_optimization"],
+  "go-to-market ops": ["revops_gtm_process_design"],
+  "gtm ops": ["revops_gtm_process_design"],
+  "compensation planning": ["compensation_design"],
+
+  // Marketing / Growth — channel + tactic terms.
+  "seo": ["seo_management"],
+  "sem": ["paid_search_advertising"],
+  "ppc": ["paid_search_advertising"],
+  "paid social": ["paid_social_advertising"],
+  "email marketing": ["marketing_automation"],
+  "drip campaigns": ["marketing_automation"],
+  "lifecycle marketing": ["lifecycle_marketing"],
+  "content marketing": ["content_strategy"],
+  "content strategy": ["content_strategy"],
+  "brand strategy": ["brand_management"],
+  "growth experimentation": ["marketing_experimentation"],
+  "conversion rate optimization": ["conversion_rate_optimization"],
+  "cro": ["conversion_rate_optimization"],
+  "landing pages": ["web_design"],
+  "event marketing": ["event_marketing"],
+
+  // BD / Partnerships.
+  "partnership development": ["partnership_development"],
+  "channel sales": ["channel_sales_strategy"],
+  "reseller management": ["channel_partner_management"],
+  "alliance management": ["channel_sales_strategy"],
+  "co-selling": ["joint_business_planning"],
+
+  // Ops + Recruiting helpers.
+  "dashboarding": ["dashboarding"],
+  "sourcing": ["talent_acquisition_recruiting"],
+  "candidate sourcing": ["talent_acquisition_recruiting"],
+  "employer branding": ["employer_branding"],
+  "hr analytics": ["hr_data_analytics"],
 };
 
 // Resolve a free-text skill label to library skill IDs.
