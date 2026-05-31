@@ -1024,7 +1024,10 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "product requirements document": ["prd_writing"],
 
   // RevOps — attribution, funnel, GTM.
-  "lead scoring": ["demand_generation"],
+  // (Note: "lead scoring" was dropped from this batch during cross-review
+  // — it's a distinct downstream MQL→SQL qualification skill that
+  // warrants its own canonical, not collapsing into demand_generation.
+  // Moved to the bucket-2 curation task.)
   "attribution": ["campaign_analytics_attribution"],
   "funnel analysis": ["funnel_optimization"],
   "go-to-market ops": ["revops_gtm_process_design"],

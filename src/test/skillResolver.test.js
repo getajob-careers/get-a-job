@@ -281,9 +281,9 @@ describe("Phase 0a-followup: role-coverage alias expansion (72 entries)", () => 
   });
 
   // RevOps
-  it("lead scoring → demand_generation (flagged for review)", () => {
-    expect(resolveSkill("lead scoring")).toContain("demand_generation");
-  });
+  // (Note: "lead scoring" alias dropped during cross-review — it's a
+  // distinct downstream qualification skill, queued for the bucket-2
+  // curation task as a candidate for its own canonical.)
   it("attribution → campaign_analytics_attribution", () => {
     expect(resolveSkill("attribution")).toContain("campaign_analytics_attribution");
   });
