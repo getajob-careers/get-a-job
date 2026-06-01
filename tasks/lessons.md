@@ -65,3 +65,8 @@ Trigger: ran `git commit` while on local `main` instead of a feature branch; rec
 What I did wrong: the commit message was ready and I went straight to `git commit` without re-running `git checkout -b <branch>` first. Lost the sequence: branch → stage → commit → push.
 Rule for next time: when starting a PR, FIRST run `git checkout -b eli/<topic>` BEFORE staging or committing. Make it the literal first git command of any PR workflow, not the second.
 ---
+2026-06-01 — refining an alias's canonical target requires DELETING the old entry, not adding a new one alongside
+Trigger: PR #202 cleaned up 44 duplicate keys in skill-aliases.ts that PR #100/#102 introduced. Each duplicate was an old generic alias (e.g. "html" → frontend_development) shadowed by a new specific alias (e.g. "html" → html_css_modern). The old entries had been dead-code via JS last-wins for weeks; nobody noticed because typecheck-red is normalized noise.
+What I did wrong: not me directly — but the same trap is easy to fall into. The pattern was "I'm adding a more specific alias, the new one is what I want, the old one is harmless." It is NOT harmless: typecheck breaks, and any future tool that reads the literal entries (linters, alias-explorers, the export itself in --strict mode) sees ambiguous input.
+Rule for next time: when refining an alias to a more specific canonical, ALWAYS delete the prior entry in the same commit. Don't just append a new one and rely on last-wins. The cheap discipline is a grep before adding: `grep -n '"<key>":' skill-aliases.ts` — if there's a hit, edit it in place rather than appending below.
+---
