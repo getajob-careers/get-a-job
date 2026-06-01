@@ -4,20 +4,21 @@
 // aggregateProfileSkills collapsed skills_canonical (Eli's experiences
 // cache was poisoned by a narrow projection → narrow rows had no
 // skills_used → saveProfile aggregated empty arrays → canonical dropped
-// 64 → 7). Every recompute path must therefore fetch ALL FOUR sources
-// fresh from the DB rather than reuse cached React state.
+// 64 → 7). Every recompute path must therefore fetch sources fresh from
+// the DB rather than reuse cached React state.
 //
-// Sources unioned (mirrors skillAggregation.collectAllSkillLabels):
-//   1. profiles.skills            (catch-all from StepSkills)
-//   2. experiences.skills_used + .tools_used
-//   3. education.skills_developed
-//   4. projects.skills_demonstrated
+// P1.3 read switch: single read against entity_spine (the federation
+// VIEW from P1.0). Each spine row carries the unified `skills` column;
+// the VIEW has security_invoker=true so RLS filters to the calling user.
+// Lossless vs the legacy 4-query path — P1.1 backfill made
+// entity.skills the union of every legacy column, so the aggregate is
+// byte-identical to the pre-switch result.
 //
 // Call after any per-table save that affects one of those columns:
-//   - EducationTab.handleSave        (education.skills_developed)
-//   - Profile.addExperience          (experiences.skills_used/tools_used)
+//   - EducationTab.handleSave        (education.skills)
+//   - Profile.addExperience          (experiences.skills)
 //   - Profile.saveProfile            (profiles.skills + everything else)
-//   - Future: Projects add/edit      (projects.skills_demonstrated)
+//   - Future: Projects add/edit      (projects.skills)
 //
 // Returns { ok, canonical, unmapped, error }. Caller invalidates the
 // userProfile query on ok=true.
@@ -32,24 +33,21 @@ export async function recomputeProfileSkillsCanonical(supabase, userId) {
   try {
     const [
       { data: profileRow, error: profErr },
-      { data: experiences, error: expErr },
-      { data: educations, error: eduErr },
-      { data: projects, error: projErr },
+      { data: spineRows, error: spineErr },
     ] = await Promise.all([
       supabase.from("profiles").select("skills").eq("id", userId).maybeSingle(),
-      supabase.from("experiences").select("skills_used, tools_used").eq("user_id", userId),
-      supabase.from("education").select("skills_developed").eq("user_id", userId),
-      supabase.from("projects").select("skills_demonstrated").eq("user_id", userId),
+      // Single federated read across experiences + education + projects +
+      // certifications. entity_spine is a security_invoker VIEW so RLS
+      // on the underlying tables applies; user_id filter remains.
+      supabase.from("entity_spine").select("skills").eq("user_id", userId),
     ]);
 
-    const fetchErr = profErr || expErr || eduErr || projErr;
+    const fetchErr = profErr || spineErr;
     if (fetchErr) return { ok: false, error: fetchErr };
 
     const { canonical, unmapped } = aggregateProfileSkills({
       profileSkills: Array.isArray(profileRow?.skills) ? profileRow.skills : [],
-      experiences: experiences || [],
-      educations: educations || [],
-      projects: projects || [],
+      entitySpine: spineRows || [],
     });
 
     const { error: updErr } = await supabase

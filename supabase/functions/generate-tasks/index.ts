@@ -150,18 +150,19 @@ Deno.serve(async (req) => {
       location: trunc(profile?.location, 100),
     }
 
+    // P1.3 read switch — unified `skills` column.
     const sanitisedExperiences = (experiences || []).slice(0, 10).map((e: any) => ({
       title: trunc(e.title, 100),
       company: trunc(e.company, 100),
       responsibilities: trunc(e.responsibilities, 300),
-      skills_used: (e.skills_used || []).slice(0, 20).map((s: unknown) => trunc(s, 60)),
+      skills: (e.skills || []).slice(0, 30).map((s: unknown) => trunc(s, 60)),
       type: trunc(e.type, 50),
     }))
 
     const sanitisedProjects = (projects || []).slice(0, 10).map((p: any) => ({
       name: trunc(p.name, 100),
       description: trunc(p.description, 200),
-      skills_demonstrated: (p.skills_demonstrated || []).slice(0, 10).map((s: unknown) => trunc(s, 60)),
+      skills: (p.skills || []).slice(0, 10).map((s: unknown) => trunc(s, 60)),
     }))
 
     const sanitisedCerts = (certifications || []).slice(0, 10).map((c: any) => ({
