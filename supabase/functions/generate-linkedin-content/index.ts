@@ -526,8 +526,9 @@ Deno.serve(async (req) => {
         end_date: trunc(e.end_date, 50),
         is_current: !!e.is_current,
         responsibilities: trunc(e.responsibilities, 1200),
-        skills_used: safeArr(e.skills_used).slice(0, 20).map((s) => trunc(s, 60)),
-        tools_used: safeArr(e.tools_used).slice(0, 20).map((s) => trunc(s, 60)),
+        // P1.3 read switch: unified skills column (P1.1 backfilled as
+        // the union of legacy skills_used + tools_used).
+        skills: safeArr(e.skills).slice(0, 40).map((s) => trunc(s, 60)),
         stories,
       }
     }

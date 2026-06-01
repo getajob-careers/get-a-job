@@ -58,7 +58,7 @@ interface CacheInputs {
   experiences: Array<{
     title: string
     company: string
-    skills_used: string[]
+    skills: string[]
   }>
   internship_profile: {
     pitch_strength_signals: string[]
@@ -111,9 +111,9 @@ function buildCacheInputs(
       summary:           trunc(profile.summary, 500),
     },
     experiences: (experiences || []).slice(0, 5).map((e) => ({
-      title:       trunc(e.title, 120),
-      company:     trunc(e.company, 120),
-      skills_used: arr(e.skills_used, 10, 60),
+      title:   trunc(e.title, 120),
+      company: trunc(e.company, 120),
+      skills:  arr(e.skills, 20, 60),
     })),
     internship_profile: {
       pitch_strength_signals:     arr(internshipProfile.pitch_strength_signals, 12, 120),
@@ -216,7 +216,7 @@ Deno.serve(async (req) => {
         .eq('id', user.id)
         .maybeSingle(),
       supabase.from('experiences')
-        .select('title, company, skills_used')
+        .select('title, company, skills')
         .eq('user_id', user.id),
       supabase.from('internship_profiles')
         .select('pitch_strength_signals, pitchable_role_archetypes, skill_gaps_to_close, career_compound_rationale, track_1_role_alignment, pitch_anti_patterns, realistic_company_stages, realistic_sectors, realistic_signal_filters, realistic_team_size_range')

@@ -14,16 +14,21 @@ import { resolveSkillList } from "./skillResolver";
 
 /**
  * Walk every domain object that carries a skill array and collect
- * every label. Order:
+ * every label. Sources unioned:
  *   1. profile.skills (catch-all from StepSkills)
- *   2. experiences[].skills_used + experiences[].tools_used
- *   3. educations[].skills_developed
- *   4. projects[].skills_demonstrated
+ *   2. each entity row's unified `skills` column (experiences,
+ *      educations, projects, certifications). The P1.1 backfill
+ *      already merged legacy skills_used + tools_used into
+ *      experiences.skills, skills_developed into education.skills,
+ *      and skills_demonstrated into projects.skills — so reading
+ *      the unified column matches the legacy union exactly.
  *
+ * Accepts either a flat array of entity rows under each key or an
+ * `entitySpine` array of mixed rows (preferred path — single DB read).
  * Returns the raw labels deduplicated by case-insensitive comparison.
  * Pass the result to resolveSkillList() to get the canonical ID set.
  */
-export function collectAllSkillLabels({ profileSkills, experiences, educations, projects }) {
+export function collectAllSkillLabels({ profileSkills, experiences, educations, projects, certifications, entitySpine } = {}) {
   const out = new Set();
   const addAll = (arr) => {
     if (!Array.isArray(arr)) return;
@@ -36,24 +41,19 @@ export function collectAllSkillLabels({ profileSkills, experiences, educations, 
 
   addAll(profileSkills);
 
-  if (Array.isArray(experiences)) {
-    for (const e of experiences) {
-      addAll(e?.skills_used);
-      addAll(e?.tools_used);
-    }
+  // Preferred path: a single array of spine rows. Each row has a
+  // `skills` array regardless of entity_type. One DB read for callers.
+  if (Array.isArray(entitySpine)) {
+    for (const r of entitySpine) addAll(r?.skills);
   }
 
-  if (Array.isArray(educations)) {
-    for (const e of educations) {
-      addAll(e?.skills_developed);
-    }
-  }
-
-  if (Array.isArray(projects)) {
-    for (const p of projects) {
-      addAll(p?.skills_demonstrated);
-    }
-  }
+  // Per-entity arrays — still supported for callers that already have
+  // the per-table rows in memory (Onboarding.jsx + onboardingPayload).
+  // The unified `skills` field is the source of truth on every entity.
+  if (Array.isArray(experiences)) for (const e of experiences) addAll(e?.skills);
+  if (Array.isArray(educations))  for (const e of educations)  addAll(e?.skills);
+  if (Array.isArray(projects))    for (const p of projects)    addAll(p?.skills);
+  if (Array.isArray(certifications)) for (const c of certifications) addAll(c?.skills);
 
   // Case-insensitive dedup. Same approach as SkillTagInput's add() guard:
   // collapse to lowercased keys, then re-emit the first-seen original casing.
@@ -75,7 +75,7 @@ export function collectAllSkillLabels({ profileSkills, experiences, educations, 
  * resolveSkillList(). Both Onboarding's cleanProfilePayload and
  * Profile's saveProfile call this.
  */
-export function aggregateProfileSkills({ profileSkills, experiences, educations, projects }) {
-  const labels = collectAllSkillLabels({ profileSkills, experiences, educations, projects });
+export function aggregateProfileSkills({ profileSkills, experiences, educations, projects, certifications, entitySpine } = {}) {
+  const labels = collectAllSkillLabels({ profileSkills, experiences, educations, projects, certifications, entitySpine });
   return resolveSkillList(labels);
 }

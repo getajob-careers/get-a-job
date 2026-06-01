@@ -738,12 +738,15 @@ Deno.serve(async (req) => {
       open_to_lateral: profile.open_to_lateral ?? false,
       open_to_outside_degree: profile.open_to_outside_degree ?? false,
     };
+    // P1.3 read switch: experiences.skills + projects.skills are the
+    // unified columns (P1.1 backfilled them as the union of legacy
+    // skills_used + tools_used / skills_demonstrated). The legacy
+    // columns still exist until P1.4 but aren't read here.
     const sanitisedExperiences = (experiences || []).slice(0, 10).map((e: any) => ({
       title: trunc(e.title, 100),
       company: trunc(e.company, 100),
       responsibilities: trunc(e.responsibilities, 300),
-      skills_used: (e.skills_used || []).slice(0, 20).map((s: unknown) => trunc(s, 60)),
-      tools_used: (e.tools_used || []).slice(0, 20).map((s: unknown) => trunc(s, 60)),
+      skills: (e.skills || []).slice(0, 40).map((s: unknown) => trunc(s, 60)),
       managed_people: e.managed_people ?? false,
       cross_functional: e.cross_functional ?? false,
       type: trunc(e.type, 50),
@@ -751,7 +754,7 @@ Deno.serve(async (req) => {
     const sanitisedProjects = (projects || []).slice(0, 10).map((p: any) => ({
       name: trunc(p.name, 100),
       description: trunc(p.description, 300),
-      skills_demonstrated: (p.skills_demonstrated || []).slice(0, 20).map((s: unknown) => trunc(s, 60)),
+      skills: (p.skills || []).slice(0, 20).map((s: unknown) => trunc(s, 60)),
     }));
     const sanitisedCerts = (certifications || []).slice(0, 10).map((c: any) => ({
       name: trunc(c.name, 100),
@@ -819,8 +822,8 @@ Deno.serve(async (req) => {
       sanitisedProfile.field_of_study,
       sanitisedProfile.education_level,
       sanitisedProfile.skills.join(" "),
-      ...sanitisedExperiences.map(e => `${e.title} at ${e.company}. ${e.responsibilities} ${(e.skills_used || []).join(" ")} ${(e.tools_used || []).join(" ")}`),
-      ...sanitisedProjects.map(p => `${p.name}. ${p.description} ${(p.skills_demonstrated || []).join(" ")}`),
+      ...sanitisedExperiences.map(e => `${e.title} at ${e.company}. ${e.responsibilities} ${(e.skills || []).join(" ")}`),
+      ...sanitisedProjects.map(p => `${p.name}. ${p.description} ${(p.skills || []).join(" ")}`),
       ...sanitisedCerts.map(c => `${c.name} ${c.issuer}`),
       sanitisedProfile.target_job_titles.join(" "),
     ];

@@ -138,6 +138,7 @@ export const EMPTY_EDUCATION_ROW = {
 // and are persisted through a separate education-table write path — they
 // are intentionally NOT in this list.
 import { aggregateProfileSkills } from "./skillAggregation";
+import { withUnifiedSkills } from "./unifiedSkills";
 
 // `experiences`, `educations`, `projects` are NOT columns on the profiles
 // table — they live on their own tables. They're passed into
@@ -161,18 +162,21 @@ export function cleanProfilePayload(data) {
     // Per-object skill sources — used for the union, not persisted on profiles.
     experiences, educations, projects,
   } = data;
-  // Compute skills_canonical as the UNION of:
-  //   - profile.skills (StepSkills catch-all)
-  //   - experiences[].skills_used + experiences[].tools_used (StepExperience + StepRoleSkills)
-  //   - educations[].skills_developed (StepRoleSkills)
-  //   - projects[].skills_demonstrated (CV extractor + StepRoleSkills)
+  // Compute skills_canonical from the unified `skills` column on every
+  // entity. The in-memory React state for experiences/educations/projects
+  // still carries the legacy column names (skills_used / tools_used /
+  // skills_developed / skills_demonstrated), so we materialize the
+  // unified `skills` field via withUnifiedSkills before aggregating.
   // resolveSkillList handles canonicalization. Deterministic, no LLM.
+  const expWithUnified = Array.isArray(experiences) ? experiences.map((e) => withUnifiedSkills(e, "experience")) : [];
+  const eduWithUnified = Array.isArray(educations)  ? educations.map((e) => withUnifiedSkills(e, "education"))    : [];
+  const projWithUnified = Array.isArray(projects)   ? projects.map((p) => withUnifiedSkills(p, "project"))        : [];
   const { canonical: skills_canonical, unmapped: skills_unmapped } =
     aggregateProfileSkills({
       profileSkills: Array.isArray(skills) ? skills : [],
-      experiences,
-      educations,
-      projects,
+      experiences: expWithUnified,
+      educations: eduWithUnified,
+      projects: projWithUnified,
     });
   return {
     full_name, phone_number, location, linkedin_url, summary, skills, resume_url,

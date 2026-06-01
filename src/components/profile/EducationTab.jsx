@@ -169,7 +169,9 @@ export default function EducationTab({ user }) {
       honors: e.honors || [],
       relevant_coursework: e.relevant_coursework || [],
       academic_projects: e.academic_projects || [],
-      skills_developed: e.skills_developed || [],
+      // P1.3 read switch: prefer the unified `skills` column; fall back
+      // to legacy until P1.4 drops it.
+      skills_developed: e.skills || e.skills_developed || [],
       location: e.location || "",
     });
     // Scroll to top of tab so the form is visible
@@ -368,12 +370,15 @@ export default function EducationTab({ user }) {
                 {e.institution || "Institution not set"}
                 {e.start_date || e.end_date ? ` · ${e.start_date || ""}${e.start_date && e.end_date ? " – " : ""}${e.end_date || (e.is_current ? "Present" : "")}` : ""}
               </p>
-              {(e.honors?.length > 0 || e.relevant_coursework?.length > 0 || e.academic_projects?.length > 0 || e.skills_developed?.length > 0) && (
+              {(e.honors?.length > 0 || e.relevant_coursework?.length > 0 || e.academic_projects?.length > 0 || (e.skills?.length || e.skills_developed?.length) > 0) && (
                 <p className="text-[11px] text-[#9C9DA1] mt-1 truncate">
                   {e.honors?.length > 0 && <>{e.honors.length} honor{e.honors.length === 1 ? "" : "s"} · </>}
                   {e.relevant_coursework?.length > 0 && <>{e.relevant_coursework.length} course{e.relevant_coursework.length === 1 ? "" : "s"} · </>}
                   {e.academic_projects?.length > 0 && <>{e.academic_projects.length} project{e.academic_projects.length === 1 ? "" : "s"} · </>}
-                  {e.skills_developed?.length > 0 && <>{e.skills_developed.length} skill{e.skills_developed.length === 1 ? "" : "s"}</>}
+                  {(() => {
+                    const n = e.skills?.length || e.skills_developed?.length || 0;
+                    return n > 0 ? <>{n} skill{n === 1 ? "" : "s"}</> : null;
+                  })()}
                 </p>
               )}
             </div>

@@ -363,27 +363,19 @@ export default function Profile() {
 
   const saveProfile = async () => {
     setSaving(true);
-    // Aggregate skills_canonical from EVERY source: catch-all profile.skills,
-    // per-experience skills_used + tools_used, per-education skills_developed,
-    // per-project skills_demonstrated. Same union as Onboarding's
-    // cleanProfilePayload.
-    //
-    // Fetch ALL FOUR sources fresh from the DB — PR #178 incident pattern.
-    // Cached React state can be stale (narrow-projection cache pollution),
-    // and aggregating from stale rows silently collapses canonical. We
-    // already have profileForm.skills in memory (about to be written in
-    // the same UPDATE), so that's the only source not re-fetched.
-    const [{ data: freshExperiences }, { data: freshEducations }, { data: freshProjects }] = await Promise.all([
-      supabase.from("experiences").select("skills_used, tools_used").eq("user_id", user.id),
-      supabase.from("education").select("skills_developed").eq("user_id", user.id),
-      supabase.from("projects").select("skills_demonstrated").eq("user_id", user.id),
-    ]);
+    // P1.3 read switch: single read against entity_spine (federation VIEW
+    // with security_invoker preserving RLS) — replaces the 3 separate
+    // entity queries. The spine surfaces each row's unified `skills`
+    // column. Same PR #178 freshness pattern: re-fetch from DB rather
+    // than use cached React state to dodge narrow-projection pollution.
+    const { data: freshSpineRows } = await supabase
+      .from("entity_spine")
+      .select("skills")
+      .eq("user_id", user.id);
     const { canonical: skills_canonical, unmapped: skills_unmapped } =
       aggregateProfileSkills({
         profileSkills: profileForm.skills || [],
-        experiences: freshExperiences || [],
-        educations: freshEducations || [],
-        projects: freshProjects || [],
+        entitySpine: freshSpineRows || [],
       });
     const dbFields = {
       full_name: profileForm.full_name,
