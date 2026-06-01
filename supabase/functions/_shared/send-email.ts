@@ -15,10 +15,10 @@
 //                    Edge Functions → Secrets.
 //
 // If RESEND_API_KEY is missing the helper returns
-// { ok: false, status: 500, error: 'email-disabled' } without
-// throwing — callers can fire-and-forget without a crash, and the
-// missing-key state surfaces in edge function logs without blocking
-// the user-facing flow that called us.
+// { ok: false, status: 500, error: 'RESEND_API_KEY_missing — ...' }
+// without throwing — callers can fire-and-forget without a crash,
+// and the missing-key state is self-describing in both the function
+// logs and the response body.
 
 const RESEND_ENDPOINT = 'https://api.resend.com/emails'
 
@@ -50,7 +50,7 @@ export async function sendEmail(args: SendEmailArgs): Promise<SendEmailResult> {
   const apiKey = Deno.env.get('RESEND_API_KEY')
   if (!apiKey) {
     console.warn('[send-email] RESEND_API_KEY not configured — skipping send')
-    return { ok: false, status: 500, error: 'email-disabled' }
+    return { ok: false, status: 500, error: 'RESEND_API_KEY_missing — set it in Supabase Dashboard → Project Settings → Edge Functions → Secrets' }
   }
 
   const body: Record<string, unknown> = {

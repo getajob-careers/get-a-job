@@ -83,7 +83,19 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } },
     )
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
+    // Defensive: supabase-js getUser() can return data:null (or reject)
+    // on transient auth/network failures. Nested-destructuring user out
+    // of data would throw TypeError → outer catch → opaque 500. Turn any
+    // failure into a clean 401 so callers can retry deterministically.
+    let user: { id: string; email?: string; user_metadata?: Record<string, unknown> } | null = null
+    let userError: unknown = null
+    try {
+      const res = await supabase.auth.getUser()
+      user = (res.data?.user ?? null) as typeof user
+      userError = res.error
+    } catch (e) {
+      userError = e
+    }
     if (userError || !user) {
       _http = 401; _err = 'auth'
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
@@ -132,8 +144,20 @@ Deno.serve(async (req) => {
 
     if (!result.ok) {
       _http = result.status ?? 500
-      _err = 'send_failed'
-      return new Response(JSON.stringify({ error: result.error ?? 'Send failed' }), {
+      _err = `send_failed:${result.error?.slice(0, 80) ?? 'unknown'}`
+      // Provider error reaches both logs (above, in send-email.ts) and the
+      // response body so the frontend / curl smoke can see what failed
+      // without needing dashboard access.
+      console.error('[send-welcome-email] sendEmail failed:', {
+        status: result.status,
+        error: result.error,
+        from: FROM,
+        to_domain: user.email.split('@')[1],
+      })
+      return new Response(JSON.stringify({
+        error: result.error ?? 'Send failed',
+        provider_status: result.status,
+      }), {
         status: result.status ?? 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -143,9 +167,21 @@ Deno.serve(async (req) => {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (err: unknown) {
-    console.error('[send-welcome-email] unhandled:', (err as Error)?.message)
-    _http = 500; _err = 'unhandled'
-    return new Response(JSON.stringify({ error: 'An unexpected error occurred.' }), {
+    // Surface the real error message + stack so the cause is visible from
+    // both the function logs and the response body. Previously this
+    // returned a generic 'An unexpected error occurred' which made cold-
+    // start / config issues undebuggable from the client side.
+    const e = err as Error
+    console.error('[send-welcome-email] unhandled:', {
+      message: e?.message,
+      name: e?.name,
+      stack: e?.stack?.split('\n').slice(0, 5).join(' | '),
+    })
+    _http = 500; _err = `unhandled:${e?.message?.slice(0, 80) ?? 'unknown'}`
+    return new Response(JSON.stringify({
+      error: e?.message ?? 'An unexpected error occurred.',
+      error_name: e?.name,
+    }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } finally {
