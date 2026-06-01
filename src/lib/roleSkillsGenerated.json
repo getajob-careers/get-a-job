@@ -3,9 +3,9 @@
     "supabase/functions/_shared/libraries/00_role_library.ts",
     "supabase/functions/_shared/libraries/04_role_skill_mapping.ts"
   ],
-  "generated_at": "2026-05-25",
-  "count": 183,
-  "with_skill_mapping": 170,
+  "generated_at": "2026-06-01",
+  "count": 185,
+  "with_skill_mapping": 172,
   "roles": [
     {
       "id": "customer_support_representative",
@@ -93,7 +93,8 @@
       "title": "Customer Onboarding Specialist",
       "alternate_titles": [
         "Onboarding Manager",
-        "Junior Implementation Specialist"
+        "Junior Implementation Specialist",
+        "Onboarding Specialist"
       ],
       "core_skills": [
         "onboarding_training",
@@ -217,7 +218,8 @@
       "alternate_titles": [
         "Senior CSM",
         "Strategic CSM",
-        "Enterprise Customer Success Manager"
+        "Enterprise Customer Success Manager",
+        "Strategic Customer Success Manager"
       ],
       "core_skills": [
         "executive_relationships",
@@ -362,7 +364,8 @@
       "alternate_titles": [
         "CS Team Lead",
         "CS Manager (player-coach)",
-        "Senior CSM with team lead duties"
+        "Senior CSM with team lead duties",
+        "Customer Success Lead"
       ],
       "core_skills": [
         "people_management",
@@ -515,7 +518,9 @@
       "alternate_titles": [
         "PM",
         "Product Manager",
-        "Senior Associate PM"
+        "Senior Associate PM",
+        "Product Owner",
+        "Growth Product Manager"
       ],
       "core_skills": [
         "roadmap_prioritization",
@@ -775,7 +780,8 @@
       "alternate_titles": [
         "Sales Ops Manager",
         "Revenue Operations Manager",
-        "Senior Sales Ops"
+        "Senior Sales Ops",
+        "Sales Operations Analyst"
       ],
       "core_skills": [
         "revenue_operations",
@@ -798,7 +804,8 @@
       "alternate_titles": [
         "Channel Sales Manager",
         "Partner Sales Manager",
-        "Channel Account Manager"
+        "Channel Account Manager",
+        "Channel Partnerships Manager"
       ],
       "core_skills": [
         "channel_partner_management",
@@ -841,7 +848,8 @@
       "title": "Marketing Manager",
       "alternate_titles": [
         "Marketing Lead",
-        "Senior Marketing Manager"
+        "Senior Marketing Manager",
+        "Digital Marketing Manager"
       ],
       "core_skills": [
         "demand_generation",
@@ -863,7 +871,8 @@
       "title": "Growth Marketing Manager",
       "alternate_titles": [
         "Growth Marketing Lead",
-        "Senior Growth Marketing Manager"
+        "Senior Growth Marketing Manager",
+        "Growth Lead"
       ],
       "core_skills": [
         {
@@ -1216,7 +1225,8 @@
       "alternate_titles": [
         "ProductOps Manager",
         "Product Ops Lead",
-        "Senior Product Operations Manager"
+        "Senior Product Operations Manager",
+        "Product Operations Specialist"
       ],
       "core_skills": [
         "product_operations",
@@ -1865,7 +1875,8 @@
       "alternate_titles": [
         "Strategy Manager",
         "Senior Strategy Manager",
-        "Strategy & Operations Manager"
+        "Strategy & Operations Manager",
+        "Strategy Operations Manager"
       ],
       "core_skills": [
         "bizops_business_case_development",
@@ -4346,7 +4357,8 @@
       "alternate_titles": [
         "Junior Business Analyst",
         "Operations Analyst",
-        "Business Operations Analyst"
+        "Business Operations Analyst",
+        "Operations Manager"
       ],
       "core_skills": [
         "data_analysis",
@@ -4389,7 +4401,8 @@
       "alternate_titles": [
         "TA Specialist",
         "Senior Recruiter",
-        "Technical Recruiter"
+        "Technical Recruiter",
+        "Recruiter"
       ],
       "core_skills": [
         "talent_acquisition_recruiting",
@@ -4429,7 +4442,8 @@
       "alternate_titles": [
         "Inside Sales Rep",
         "Sales Specialist",
-        "Account Specialist"
+        "Account Specialist",
+        "Inside Sales Representative"
       ],
       "core_skills": [
         "outbound_prospecting",
@@ -4807,7 +4821,8 @@
       "title": "Growth Analyst",
       "alternate_titles": [
         "Junior Growth Analyst",
-        "Growth Marketing Analyst"
+        "Growth Marketing Analyst",
+        "Growth Associate"
       ],
       "core_skills": [
         "data_analysis",
@@ -5017,6 +5032,53 @@
       ],
       "core_skills": [],
       "secondary_skills": []
+    },
+    {
+      "id": "customer_success_operations",
+      "title": "Customer Success Operations Manager",
+      "alternate_titles": [
+        "CS Operations Manager",
+        "CS Ops Manager",
+        "Customer Success Operations",
+        "Senior CS Operations Manager (manager-level)"
+      ],
+      "core_skills": [
+        "revenue_operations",
+        "customer_health_management",
+        "customer_retention",
+        "data_analysis",
+        "process_improvement"
+      ],
+      "secondary_skills": [
+        "crm_management",
+        "dashboarding",
+        "customer_success_metrics",
+        "analytical_thinking",
+        "sql"
+      ]
+    },
+    {
+      "id": "renewals_manager",
+      "title": "Renewals Manager",
+      "alternate_titles": [
+        "Customer Renewals Manager",
+        "Renewals Specialist (senior)",
+        "Retention Manager"
+      ],
+      "core_skills": [
+        "renewal_management",
+        "quota_attainment",
+        "account_management",
+        "customer_retention",
+        "customer_relationship_management"
+      ],
+      "secondary_skills": [
+        "upselling_cross_selling",
+        "pipeline_management",
+        "negotiation",
+        "crm_management",
+        "customer_communication"
+      ]
     }
   ]
 }

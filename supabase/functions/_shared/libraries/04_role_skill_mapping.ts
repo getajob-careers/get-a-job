@@ -5153,6 +5153,52 @@ export const roleSkillMapping = {
         "product_positioning",
         "campaign_analytics_attribution"
       ]
+    },
+    {
+      "role_id": "customer_success_operations",
+      "research_status": "mapped_v1_confident",
+      "core_skills": [
+        "revenue_operations",
+        "customer_health_management",
+        "customer_retention",
+        "data_analysis",
+        "process_improvement"
+      ],
+      "secondary_skills": [
+        "crm_management",
+        "dashboarding",
+        "customer_success_metrics",
+        "analytical_thinking",
+        "sql"
+      ],
+      "differentiator_skills": [
+        "customer_health_monitoring",
+        "salesforce",
+        "systems_thinking"
+      ]
+    },
+    {
+      "role_id": "renewals_manager",
+      "research_status": "mapped_v1_confident",
+      "core_skills": [
+        "renewal_management",
+        "quota_attainment",
+        "account_management",
+        "customer_retention",
+        "customer_relationship_management"
+      ],
+      "secondary_skills": [
+        "upselling_cross_selling",
+        "pipeline_management",
+        "negotiation",
+        "crm_management",
+        "customer_communication"
+      ],
+      "differentiator_skills": [
+        "commercial_negotiation",
+        "sales_forecasting",
+        "customer_health_management"
+      ]
     }
   ]
 } as const;
