@@ -346,7 +346,8 @@ export const roleLibrary = {
       "standardized_title": "Customer Onboarding Specialist",
       "alternate_titles": [
         "Onboarding Manager",
-        "Junior Implementation Specialist"
+        "Junior Implementation Specialist",
+        "Onboarding Specialist"
       ],
       "role_family": "Onboarding_Implementation",
       "secondary_family": null,
@@ -806,7 +807,8 @@ export const roleLibrary = {
       "alternate_titles": [
         "Senior CSM",
         "Strategic CSM",
-        "Enterprise Customer Success Manager"
+        "Enterprise Customer Success Manager",
+        "Strategic Customer Success Manager"
       ],
       "role_family": "Relationship_Growth",
       "secondary_family": null,
@@ -1323,7 +1325,8 @@ export const roleLibrary = {
       "alternate_titles": [
         "CS Team Lead",
         "CS Manager (player-coach)",
-        "Senior CSM with team lead duties"
+        "Senior CSM with team lead duties",
+        "Customer Success Lead"
       ],
       "role_family": "Leadership",
       "secondary_family": "Relationship_Growth",
@@ -1864,7 +1867,9 @@ export const roleLibrary = {
       "alternate_titles": [
         "PM",
         "Product Manager",
-        "Senior Associate PM"
+        "Senior Associate PM",
+        "Product Owner",
+        "Growth Product Manager"
       ],
       "role_family": "Product",
       "secondary_family": null,
@@ -2825,7 +2830,8 @@ export const roleLibrary = {
       "alternate_titles": [
         "Sales Ops Manager",
         "Revenue Operations Manager",
-        "Senior Sales Ops"
+        "Senior Sales Ops",
+        "Sales Operations Analyst"
       ],
       "role_family": "Operations",
       "secondary_family": "RevOps_BizOps",
@@ -2914,7 +2920,8 @@ export const roleLibrary = {
       "alternate_titles": [
         "Channel Sales Manager",
         "Partner Sales Manager",
-        "Channel Account Manager"
+        "Channel Account Manager",
+        "Channel Partnerships Manager"
       ],
       "role_family": "Sales",
       "secondary_family": "BD_Partnerships",
@@ -3086,7 +3093,8 @@ export const roleLibrary = {
       "standardized_title": "Marketing Manager",
       "alternate_titles": [
         "Marketing Lead",
-        "Senior Marketing Manager"
+        "Senior Marketing Manager",
+        "Digital Marketing Manager"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -3175,7 +3183,8 @@ export const roleLibrary = {
       "standardized_title": "Growth Marketing Manager",
       "alternate_titles": [
         "Growth Marketing Lead",
-        "Senior Growth Marketing Manager"
+        "Senior Growth Marketing Manager",
+        "Growth Lead"
       ],
       "role_family": "Marketing",
       "secondary_family": null,
@@ -4266,7 +4275,8 @@ export const roleLibrary = {
       "alternate_titles": [
         "ProductOps Manager",
         "Product Ops Lead",
-        "Senior Product Operations Manager"
+        "Senior Product Operations Manager",
+        "Product Operations Specialist"
       ],
       "role_family": "Product",
       "secondary_family": "Operations",
@@ -6681,7 +6691,8 @@ export const roleLibrary = {
       "alternate_titles": [
         "Strategy Manager",
         "Senior Strategy Manager",
-        "Strategy & Operations Manager"
+        "Strategy & Operations Manager",
+        "Strategy Operations Manager"
       ],
       "_research_method": "knowledge",
       "similar_roles": [
@@ -11096,7 +11107,8 @@ export const roleLibrary = {
       "alternate_titles": [
         "Junior Business Analyst",
         "Operations Analyst",
-        "Business Operations Analyst"
+        "Business Operations Analyst",
+        "Operations Manager"
       ],
       "role_family": "Operations",
       "secondary_family": "Data",
@@ -11217,7 +11229,8 @@ export const roleLibrary = {
       "alternate_titles": [
         "TA Specialist",
         "Senior Recruiter",
-        "Technical Recruiter"
+        "Technical Recruiter",
+        "Recruiter"
       ],
       "role_family": "HR_People",
       "secondary_family": null,
@@ -11336,7 +11349,8 @@ export const roleLibrary = {
       "alternate_titles": [
         "Inside Sales Rep",
         "Sales Specialist",
-        "Account Specialist"
+        "Account Specialist",
+        "Inside Sales Representative"
       ],
       "role_family": "Sales",
       "secondary_family": null,
@@ -12456,7 +12470,8 @@ export const roleLibrary = {
       "standardized_title": "Growth Analyst",
       "alternate_titles": [
         "Junior Growth Analyst",
-        "Growth Marketing Analyst"
+        "Growth Marketing Analyst",
+        "Growth Associate"
       ],
       "role_family": "Marketing",
       "secondary_family": "Data",
@@ -13046,6 +13061,160 @@ export const roleLibrary = {
       "_research_method": "knowledge",
       "market_notes": {
         "israel": "Backgrounds: ex-AEs / SDRs / RevOps with enablement-leaning experience; or program managers from learning-and-development pivoting into commercial ops. Stack patterns: Highspot / Seismic / Showpad for content, Gong / Chorus for call review, Salesforce / HubSpot reads, MindTickle / WorkRamp for LMS. High demand at IL B2B SaaS / cyber scaleups scaling beyond 50 quota-carriers — monday.com, JFrog, Gong, HiBob, AppsFlyer, Wiz, SentinelOne, Forter, Cato."
+      }
+    },
+    {
+      "id": "customer_success_operations",
+      "standardized_title": "Customer Success Operations Manager",
+      "alternate_titles": [
+        "CS Operations Manager",
+        "CS Ops Manager",
+        "Customer Success Operations",
+        "Senior CS Operations Manager (manager-level)"
+      ],
+      "role_family": "Operations",
+      "secondary_family": "RevOps_BizOps",
+      "seniority": "Mid",
+      "core_purpose": "Own the systems, workflows, dashboards, and automation that let the post-sale organization scale. Sits below the director and above analysts — builds and maintains health scores, playbooks, CS tooling configuration, and reporting.",
+      "core_responsibilities": [
+        "Maintain customer health scoring models and churn signals",
+        "Build and own CS dashboards covering renewals, expansion, and adoption",
+        "Administer Gainsight / Vitally / Catalyst and integrate with Salesforce",
+        "Standardize CSM playbooks, SLAs, and stage gates",
+        "Run weekly CS-leadership reporting and ad-hoc analyses for QBRs"
+      ],
+      "required_skills": [
+        "revenue_operations",
+        "customer_health_management",
+        "data_analysis",
+        "process_improvement"
+      ],
+      "preferred_skills": [
+        "crm_management",
+        "dashboarding",
+        "customer_success_metrics",
+        "sql"
+      ],
+      "tools": [
+        "Salesforce",
+        "Gainsight / Vitally / Catalyst",
+        "Looker / Mode / Tableau",
+        "Zapier / Workato"
+      ],
+      "technical_depth": "Medium",
+      "customer_facing_level": "Low",
+      "revenue_ownership": "Influence",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Operations"
+      ],
+      "typical_backgrounds": [
+        "customer_success_associate",
+        "revops_analyst",
+        "business_ops_analyst"
+      ],
+      "next_roles": [
+        "director_customer_success_operations"
+      ],
+      "similar_roles": [
+        "director_customer_success_operations",
+        "revops_manager",
+        "sales_operations_manager"
+      ],
+      "not_to_confuse_with": [
+        "Customer Success Manager",
+        "Director of Customer Success Operations"
+      ],
+      "keywords": [
+        "customer success operations",
+        "cs ops",
+        "health scoring",
+        "playbooks",
+        "gainsight admin",
+        "renewals dashboard"
+      ],
+      "years_experience_typical": "3-6",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: CS associate or CSM with operations leanings; revops or business ops pivot to CS; ex-consultants with post-sale specialization. Stack patterns: Gainsight / Vitally / Catalyst administration + Salesforce + Looker / Mode for CS metrics + Zapier / Workato for automation. Hiring stage: B2B SaaS scale-ups with 10–30 CSMs and a CS-ops function below a director — monday.com, JFrog, HiBob, Gong, AppsFlyer, Lemonade, Forter, Tipalti."
+      }
+    },
+    {
+      "id": "renewals_manager",
+      "standardized_title": "Renewals Manager",
+      "alternate_titles": [
+        "Customer Renewals Manager",
+        "Renewals Specialist (senior)",
+        "Retention Manager"
+      ],
+      "role_family": "Relationship_Growth",
+      "secondary_family": "Sales",
+      "seniority": "Mid",
+      "core_purpose": "Own the contractual renewal motion for a book of customer accounts. Forecast and close renewals, negotiate pricing and terms, partner with CSMs on at-risk accounts, and capture expansion alongside renewal.",
+      "core_responsibilities": [
+        "Forecast and close renewals against quota for an account portfolio",
+        "Negotiate renewal pricing, terms, and multi-year commitments",
+        "Partner with CSMs on at-risk accounts and save plays",
+        "Identify and surface expansion / upsell signals alongside renewal",
+        "Maintain renewal pipeline hygiene in CRM and renewal-management tooling"
+      ],
+      "required_skills": [
+        "renewal_management",
+        "account_management",
+        "customer_retention",
+        "customer_relationship_management"
+      ],
+      "preferred_skills": [
+        "upselling_cross_selling",
+        "negotiation",
+        "pipeline_management",
+        "crm_management"
+      ],
+      "tools": [
+        "Salesforce",
+        "Gainsight",
+        "DealHub / PandaDoc",
+        "Outreach / Salesloft"
+      ],
+      "technical_depth": "Low",
+      "customer_facing_level": "High",
+      "revenue_ownership": "Direct",
+      "strategic_level": "Tactical",
+      "lifecycle_stage": [
+        "Retention",
+        "Expansion"
+      ],
+      "typical_backgrounds": [
+        "customer_success_associate",
+        "account_manager",
+        "sales_representative"
+      ],
+      "next_roles": [
+        "senior_customer_success_manager",
+        "account_manager",
+        "sales_manager"
+      ],
+      "similar_roles": [
+        "account_manager",
+        "customer_success_manager"
+      ],
+      "not_to_confuse_with": [
+        "Customer Success Manager",
+        "Account Executive"
+      ],
+      "keywords": [
+        "renewals",
+        "retention",
+        "quota",
+        "churn",
+        "save plays",
+        "upsell",
+        "multi-year"
+      ],
+      "years_experience_typical": "3-6",
+      "_research_method": "knowledge",
+      "market_notes": {
+        "israel": "Backgrounds: CSM promotion to revenue-owning roles, AE pivots into post-sale renewals, sometimes external account-management hires. Stack patterns: Salesforce + Gainsight + DealHub / PandaDoc for contracts + Outreach / Salesloft for renewal cadences. Hiring stage: B2B SaaS with sizeable existing customer bases that have split renewal ownership from CSM — monday.com, JFrog, HiBob, AppsFlyer, Gong, Lemonade, Payoneer, Cellebrite."
       }
     }
   ]
