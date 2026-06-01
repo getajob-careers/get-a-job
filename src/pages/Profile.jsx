@@ -1113,6 +1113,7 @@ export default function Profile() {
                       <SelectItem value="full_time">Full Time</SelectItem>
                       <SelectItem value="part_time">Part Time</SelectItem>
                       <SelectItem value="freelance">Freelance</SelectItem>
+                      <SelectItem value="founder">Founder / Self-employed</SelectItem>
                       <SelectItem value="volunteer">Volunteer</SelectItem>
                       <SelectItem value="leadership">Leadership / Club</SelectItem>
                       <SelectItem value="military">Military Service</SelectItem>

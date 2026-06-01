@@ -9,7 +9,7 @@
 // CLASSIFICATION" rules in StepResumeUpload.jsx and the values written to
 // experiences.type column.
 export const ALLOWED_EXPERIENCE_TYPES = new Set([
-  "internship", "full_time", "part_time", "freelance", "volunteer", "leadership", "military",
+  "internship", "full_time", "part_time", "freelance", "volunteer", "leadership", "military", "founder",
 ]);
 
 // Guess an experience type from extractor hints + free-text keywords.
@@ -32,7 +32,12 @@ export function inferExperienceType(e) {
   }
   if (/\bvolunteer\b/.test(title)) return "volunteer";
   if (/\b(intern|internship)\b/.test(title)) return "internship";
-  if (/\b(freelance|freelancer|self-?employed)\b/.test(title)) return "freelance";
+  // Founder / self-employed override: fires BEFORE the freelance check so
+  // "Founder" / "CEO" titles don't get caught by the broader self-employed
+  // → freelance rule. Title-only to avoid matching "Co-founder of [student
+  // club]", which the leadership branch handles further down.
+  if (/\b(founder|co-?founder|ceo|self-?employed)\b/.test(title)) return "founder";
+  if (/\b(freelance|freelancer)\b/.test(title)) return "freelance";
 
   // Trust the LLM's hint if it's a valid enum value.
   const hinted = String(e?.type || e?.employment_type || "").toLowerCase().replace(/\s|-/g, "_");

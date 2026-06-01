@@ -24,7 +24,14 @@ import { isCurrentlyStudent } from "@/lib/educationPolicy";
 // users with target-domain part-time roles (e.g. a CSM-aspirant doing
 // part-time CS work) were getting zero credit, dropping their fit_score
 // composite enough to fail Track 1 on otherwise-qualifying jobs.
-const CAREER_COUNTABLE_TYPES = new Set(["internship", "full_time", "freelance", "part_time"]);
+const CAREER_COUNTABLE_TYPES = new Set(["internship", "full_time", "freelance", "part_time", "founder"]);
+
+// Narrower set used by inferQualificationLevel — internships are training,
+// not qualifying career work (the "PR #60 line"). Volunteer / military /
+// leadership stay out for the same reason. Founder is included: real work
+// of any commitment counts toward qualification, with depth handled by
+// duration rather than type-discount.
+const QUAL_COUNTABLE_TYPES = new Set(["full_time", "part_time", "freelance", "founder"]);
 
 // Pull a 4-digit year from a date string. Returns null when nothing matches.
 function yearFromDate(s) {
@@ -59,6 +66,10 @@ export function reinferType(exp) {
     /\b(club|society|association|student|chapter)\b/.test(text)
   )
     return "leadership";
+  // Real-company founders / self-employed (not student-club leadership,
+  // which the check above catches first). Keeps "Founder of X" as
+  // qual-countable instead of misclassifying it as full_time or leadership.
+  if (/\b(founder|co-?founder|self-?employed|ceo)\b/.test(text)) return "founder";
 
   return stored || "full_time";
 }
@@ -97,6 +108,64 @@ export function inferExperienceLevel(experiences, educations) {
   if (explicitStudent || years < 3) return "early_career";
   if (years < 8) return "mid_career";
   return "senior_career";
+}
+
+// Qualification level (Junior / Mid-Level / Senior) — used by the
+// career-analysis edge function for prompt context. DIFFERENT axis from
+// inferExperienceLevel:
+//   * inferExperienceLevel uses CAREER_COUNTABLE_TYPES (includes
+//     internship) and gates the years-tier used for jobs.seniority
+//     filtering. Has an isCurrentlyStudent shortcut.
+//   * inferQualificationLevel uses QUAL_COUNTABLE_TYPES (excludes
+//     internship; the "PR #60 line" — internships are training, not
+//     qualifying career work). NO student shortcut on purpose: a
+//     currently-enrolled student with 4 years of full_time work
+//     should read as Mid-Level by duration.
+//
+// Thresholds (3 / 8 years) are intentionally identical to
+// inferExperienceLevel so the two functions stay aligned at the
+// year-range level — divergence comes from the countable-set difference.
+//
+// managed_people bumps the duration-derived level up exactly one tier
+// (Junior→Mid-Level, Mid-Level→Senior, Senior stays), and only when the
+// row that carries managed_people=true has ≥1 year of parseable
+// duration. A 0-year managed row bumps nobody.
+//
+// Known limitation (not addressed this PR): per-row spans are summed
+// naively, so two concurrent roles double-count. Depth/overlap will be
+// addressed in a follow-up.
+//
+// ⚠️ DRIFT WARNING — duplicate logic lives in
+// supabase/functions/generate-career-analysis/index.ts inferQualificationLevel().
+// The drift test in src/test/experienceLevel.test.js covers both.
+export function inferQualificationLevel(experiences) {
+  const now = new Date().getFullYear();
+  let years = 0;
+  let hasManagedWithDuration = false;
+  for (const exp of experiences || []) {
+    const t = reinferType(exp);
+    if (!QUAL_COUNTABLE_TYPES.has(t)) continue;
+    const start = yearFromDate(exp.start_date);
+    if (start === null) continue;
+    const endRaw = String(exp.end_date ?? "").toLowerCase();
+    const isCurrent =
+      exp.is_current || !endRaw || endRaw.includes("present") || endRaw.includes("current");
+    const end = isCurrent ? now : yearFromDate(exp.end_date) ?? now;
+    const dur = Math.max(0, end - start);
+    years += dur;
+    if (exp.managed_people && dur >= 1) hasManagedWithDuration = true;
+  }
+  // Duration-derived base level.
+  let base;
+  if (years >= 8) base = "Senior";
+  else if (years >= 3) base = "Mid-Level";
+  else base = "Junior";
+  // managed_people bumps exactly one tier (cap at Senior).
+  if (hasManagedWithDuration) {
+    if (base === "Junior") return "Mid-Level";
+    if (base === "Mid-Level") return "Senior";
+  }
+  return base;
 }
 
 // Allowed jobs.seniority values per experienceLevel. Locked in 2026-05-20:

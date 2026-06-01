@@ -374,7 +374,14 @@ function yearFromDate(s: unknown): number | null {
 // so years calc doesn't need to gatekeep too. Real users with target-domain
 // part-time roles were getting zero years credit, dropping fit_score on
 // otherwise-qualifying jobs. Stays aligned with src/lib/experienceLevel.js.
-const CAREER_COUNTABLE_TYPES = new Set(["internship", "full_time", "freelance", "part_time"]);
+const CAREER_COUNTABLE_TYPES = new Set(["internship", "full_time", "freelance", "part_time", "founder"]);
+
+// Narrower set used by inferQualificationLevel — internships excluded
+// because they're training, not qualifying career work (the "PR #60 line").
+// Volunteer / military / leadership stay out for the same reason. Founder
+// is included: real work of any commitment counts toward qualification.
+// Mirrors src/lib/experienceLevel.js QUAL_COUNTABLE_TYPES.
+const QUAL_COUNTABLE_TYPES = new Set(["full_time", "part_time", "freelance", "founder"]);
 
 // Re-infer experience type from title/company/responsibilities, used when the
 // stored type is missing or obviously wrong (e.g. legacy rows from before the
@@ -389,6 +396,9 @@ function reinferType(exp: any): string {
   if (/\b(intern|internship)\b/.test(text)) return "internship";
   if (/\b(freelance|freelancer|self-employed|contractor|consultant)\b/.test(text)) return "freelance";
   if (/\b(president|captain|chair|founder|co-founder|team lead(er)?)\b/.test(text) && /\b(club|society|association|student|chapter)\b/.test(text)) return "leadership";
+  // Real-company founders / self-employed (the leadership branch above
+  // catches student-club founders first via the club/society guard).
+  if (/\b(founder|co-?founder|self-?employed|ceo)\b/.test(text)) return "founder";
 
   return stored || "full_time";
 }
@@ -604,22 +614,56 @@ function computeRoleScore(
   };
 }
 
-// Only full_time and freelance experiences count toward seniority — internships,
-// military, volunteering, leadership, and academic projects are training/early
-// signals, not career-level employment. Counting them produced the Isaac bug
-// where users with only internships were tagged "Mid-Level". reinferType
-// reclassifies legacy rows where type is stored as "full_time" but the title
-// reads "intern" or "IDF".
+// Duration-based qualification level. Uses QUAL_COUNTABLE_TYPES (excludes
+// internship — the "PR #60 line"; internships are training, not qualifying
+// career work). Volunteer / military / leadership stay out too.
+//
+// Different axis from inferExperienceLevel (the years-tier):
+//   * inferExperienceLevel uses CAREER_COUNTABLE_TYPES (incl. internship)
+//     and has an isCurrentlyStudent → early_career shortcut.
+//   * inferQualificationLevel uses QUAL_COUNTABLE_TYPES (excl. internship)
+//     and has NO student override on purpose — a currently-enrolled
+//     student with 4 years of full_time work should read Mid-Level by
+//     duration.
+//
+// Thresholds (3 / 8) match inferExperienceLevel so the two stay aligned.
+//
+// managed_people bumps the duration-derived level up exactly one tier
+// (Junior→Mid-Level, Mid-Level→Senior, Senior stays), and only when the
+// row carrying managed_people=true has ≥1 year of parseable duration.
+// A 0-year managed row bumps nobody.
+//
+// Known limitation: per-row spans are summed naively, so two concurrent
+// roles double-count. Depth/overlap handling is a follow-up.
+//
+// ⚠️ DRIFT WARNING — duplicate logic lives in
+// src/lib/experienceLevel.js inferQualificationLevel(). The drift test
+// in src/test/experienceLevel.test.js covers both.
 function inferQualificationLevel(experiences: any[]): "Junior" | "Mid-Level" | "Senior" {
-  const careerExperiences = (experiences || []).filter((e: any) => {
-    const t = reinferType(e);
-    return t === "full_time" || t === "freelance";
-  });
-  const hasManaged = careerExperiences.some((e: any) => e.managed_people);
-  const count = careerExperiences.length;
-  if (hasManaged || count >= 5) return "Senior";
-  if (count >= 2) return "Mid-Level";
-  return "Junior";
+  const now = new Date().getFullYear();
+  let years = 0;
+  let hasManagedWithDuration = false;
+  for (const exp of experiences || []) {
+    const t = reinferType(exp);
+    if (!QUAL_COUNTABLE_TYPES.has(t)) continue;
+    const start = yearFromDate(exp.start_date);
+    if (start === null) continue;
+    const endRaw = String(exp.end_date ?? "").toLowerCase();
+    const isCurrent = exp.is_current || !endRaw || endRaw.includes("present") || endRaw.includes("current");
+    const end = isCurrent ? now : (yearFromDate(exp.end_date) ?? now);
+    const dur = Math.max(0, end - start);
+    years += dur;
+    if (exp.managed_people && dur >= 1) hasManagedWithDuration = true;
+  }
+  let base: "Junior" | "Mid-Level" | "Senior";
+  if (years >= 8) base = "Senior";
+  else if (years >= 3) base = "Mid-Level";
+  else base = "Junior";
+  if (hasManagedWithDuration) {
+    if (base === "Junior") return "Mid-Level";
+    if (base === "Mid-Level") return "Senior";
+  }
+  return base;
 }
 
 Deno.serve(async (req) => {

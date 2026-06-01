@@ -296,11 +296,57 @@ describe('cleanProfilePayload', () => {
 });
 
 describe('ALLOWED_EXPERIENCE_TYPES', () => {
-  it('exposes the 7 enum values that match the prompt + experiences.type column', () => {
-    expect(ALLOWED_EXPERIENCE_TYPES.size).toBe(7);
-    for (const t of ['internship', 'full_time', 'part_time', 'freelance', 'volunteer', 'leadership', 'military']) {
+  it('exposes the 8 enum values that match the prompt + experiences.type column', () => {
+    expect(ALLOWED_EXPERIENCE_TYPES.size).toBe(8);
+    for (const t of ['internship', 'full_time', 'part_time', 'freelance', 'volunteer', 'leadership', 'military', 'founder']) {
       expect(ALLOWED_EXPERIENCE_TYPES.has(t)).toBe(true);
     }
+  });
+});
+
+describe('inferExperienceType — founder / self-employed override', () => {
+  // Regression for the case where "Founder @ Get a Job" was classified as
+  // freelance. Title-only override now wins, and fires BEFORE the broader
+  // freelance check so "Founder" / "CEO" titles don't get caught by the
+  // self-employed → freelance rule.
+  it('classifies a real-company founder as "founder"', () => {
+    expect(inferExperienceType({
+      title: 'Founder',
+      company: 'Get a Job',
+      type: 'freelance',
+    })).toBe('founder');
+  });
+
+  it('classifies CEO as "founder"', () => {
+    expect(inferExperienceType({
+      title: 'CEO',
+      company: 'My Startup',
+    })).toBe('founder');
+  });
+
+  it('classifies "Co-founder" with hyphen as "founder"', () => {
+    expect(inferExperienceType({
+      title: 'Co-founder',
+      company: 'Acme',
+    })).toBe('founder');
+  });
+
+  it('classifies "self-employed" title as "founder"', () => {
+    expect(inferExperienceType({
+      title: 'Self-employed Consultant',
+      company: '',
+    })).toBe('founder');
+  });
+
+  it('still routes student-club founders to leadership (text-fallback branch)', () => {
+    // No title-only hit on "founder" here — title is "President" — so the
+    // late-stage leadership check (founder + club/society/student/chapter)
+    // wins. Guards against regressing student-club leadership detection.
+    expect(inferExperienceType({
+      title: 'President',
+      company: 'Reichman Entrepreneurs Society',
+      responsibilities: 'Co-founder of the student chapter',
+    })).toBe('leadership');
   });
 });
 
