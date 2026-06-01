@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import { DEGREE_TYPE_OPTIONS, dropdownValueForDegreeType, EDUCATION_LEVELS } from "@/lib/educationPolicy";
 import { recomputeProfileSkillsCanonical } from "@/lib/recomputeProfileSkillsCanonical";
+import CertificationsSection from "./CertificationsSection";
 
 // Multi-entry education editor for the AddInformation Profile page.
 // Mirrors the Experience-tab pattern: an add/edit form at the top, a list
@@ -357,6 +358,12 @@ export default function EducationTab({ user }) {
           </div>
         )}
         {educations.map((e) => (
+          // NOTE: not yet using EntityCard here — education rows have
+          // richer subtitle composition (degree_type, field_of_study,
+          // institution, dates) and a different meta-line shape
+          // (honors / coursework / projects / skills counts). PR 3 or a
+          // follow-up cleanup can lift these into EntityCard once
+          // courses are in place and the shared shape is concrete.
           <div key={e.id} className="bg-white rounded-xl border border-[#DDDDDB] p-4 flex items-start gap-3">
             <div className="w-9 h-9 rounded-lg bg-[#E8E8E5] flex items-center justify-center flex-shrink-0">
               <GraduationCap className="w-4 h-4 text-[#52545A]" />
@@ -391,6 +398,19 @@ export default function EducationTab({ user }) {
             </div>
           </div>
         ))}
+      </div>
+
+      {/* Certifications — rendered under the Education tab per PR 2 of
+          the entity IA. The standalone Certifications tab is removed
+          (its URL redirects here). */}
+      <div className="pt-6 border-t border-[#DDDDDB] space-y-3">
+        <div>
+          <h2 className="text-sm font-semibold text-[#0E1014]">Certifications</h2>
+          <p className="text-xs text-[#9C9DA1] mt-0.5">
+            Industry certs, course completions, in-progress credentials. Skills you tag here count toward your profile.
+          </p>
+        </div>
+        <CertificationsSection user={user} />
       </div>
     </div>
   );

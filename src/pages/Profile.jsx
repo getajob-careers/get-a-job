@@ -93,7 +93,7 @@ const CLARITY_OPTIONS = [
   { value: 5, label: "5 — Very clear" },
 ];
 
-const VALID_TABS = ["profile", "education", "goals", "self-assessment", "certifications", "projects", "experience"];
+const VALID_TABS = ["profile", "education", "goals", "self-assessment", "projects", "experience"];
 
 // ─── Reusable controls (Direction 3) ───────────────────────────────────
 
@@ -233,20 +233,19 @@ export default function Profile() {
     else next.set("tab", t);
     setSearchParams(next, { replace: true });
   };
+  // Backward compat: ?tab=certifications was a top-level tab in PR pre-
+  // entity-IA-2. Certifications now live under Education. Use replace:
+  // true so the back button doesn't loop the old URL.
+  React.useEffect(() => {
+    if (tabParam === "certifications") {
+      const next = new URLSearchParams(searchParams);
+      next.set("tab", "education");
+      setSearchParams(next, { replace: true });
+    }
+  }, [tabParam, searchParams, setSearchParams]);
 
   const { data: profile, isLoading: loadingProfile } = useProfileQuery(user?.id);
 
-  const { data: certifications, isLoading: loadingCerts } = useQuery({
-    queryKey: ["certifications", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase.from("certifications").select("*").eq("user_id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-    initialData: [],
-  });
 
   const { data: projects, isLoading: loadingProjects } = useQuery({
     queryKey: ["projects", user?.id],
@@ -345,7 +344,6 @@ export default function Profile() {
     });
   }, [profile]);
 
-  const [certForm, setCertForm] = useState({ name: "", issuer: "" });
   const [projectForm, setProjectForm] = useState({ name: "", description: "", skills: [], url: "" });
   const [expForm, setExpForm] = useState({
     id: null,
@@ -446,23 +444,6 @@ export default function Profile() {
     setUploading(false);
   };
 
-  const addCert = async () => {
-    if (!certForm.name) return;
-    const { error } = await supabase.from("certifications").insert({
-      name: certForm.name,
-      issuer: certForm.issuer,
-      user_id: user.id,
-    });
-    if (error) {
-      console.error("Failed to add certification:", error);
-      toast.error("Failed to add certification: " + error.message);
-      return;
-    }
-    setCertForm({ name: "", issuer: "" });
-    queryClient.invalidateQueries({ queryKey: ["certifications"] });
-    toast.success("Certification added.");
-  };
-
   const addProject = async () => {
     if (!projectForm.name) return;
     const { error } = await supabase.from("projects").insert({ ...projectForm, user_id: user.id });
@@ -521,7 +502,7 @@ export default function Profile() {
     toast.success(wasEdit ? "Experience updated." : "Experience added.");
   };
 
-  const isLoading = loadingProfile || loadingCerts || loadingProjects || loadingExp;
+  const isLoading = loadingProfile || loadingProjects || loadingExp;
 
   const SaveProfileButton = () => (
     <button type="button" onClick={saveProfile} disabled={saving} className="p-btn p-btn-primary">
@@ -536,7 +517,6 @@ export default function Profile() {
     { id: "education",       label: "Education" },
     { id: "goals",           label: "Goals & preferences" },
     { id: "self-assessment", label: "Self-assessment" },
-    { id: "certifications",  label: "Certifications" },
     { id: "projects",        label: "Projects" },
     { id: "experience",      label: "Experience" },
   ];
@@ -941,53 +921,10 @@ export default function Profile() {
             </div>
           )}
 
-          {/* ── Certifications tab ──────────────────────────────────── */}
-          {!isLoading && activeTab === "certifications" && (
-            <div className="space-y-4">
-              <div className="p-card p-card-lg space-y-4">
-                <h3 className="text-sm font-semibold text-[#0E1014]">Add certification</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="p-label">Certification name</label>
-                    <input value={certForm.name} onChange={(e) => setCertForm({ ...certForm, name: e.target.value })} className="p-input" />
-                  </div>
-                  <div>
-                    <label className="p-label">Issuer</label>
-                    <input value={certForm.issuer} onChange={(e) => setCertForm({ ...certForm, issuer: e.target.value })} className="p-input" placeholder="e.g. AWS, Google" />
-                  </div>
-                </div>
-                <button type="button" onClick={addCert} className="p-btn p-btn-primary">
-                  <Plus className="w-3.5 h-3.5" />Add certification
-                </button>
-              </div>
-              {certifications.length > 0 && (
-                <div className="space-y-2">
-                  <p className="p-eyebrow">Your certifications</p>
-                  {certifications.map((c) => (
-                    <div key={c.id} className="p-card flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-[#0E1014]">{c.name}</p>
-                        <p className="text-xs text-[#9C9DA1]">{c.issuer}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const { error } = await supabase.from("certifications").delete().eq("id", c.id).eq("user_id", user.id);
-                          if (error) { toast.error("Failed to delete certification."); return; }
-                          queryClient.invalidateQueries({ queryKey: ["certifications"] });
-                          toast.success("Certification removed.");
-                        }}
-                        className="p-btn p-btn-ghost p-btn-sm"
-                        aria-label="Delete certification"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
+          {/* Certifications now render under the Education tab via
+              CertificationsSection (PR 2 of the entity IA). The old
+              standalone certifications tab + URL redirect to ?tab=education
+              above. */}
 
           {/* ── Projects tab ────────────────────────────────────────── */}
           {!isLoading && activeTab === "projects" && (
