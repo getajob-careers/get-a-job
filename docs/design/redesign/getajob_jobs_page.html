@@ -1,0 +1,142 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@500;600;700;800&display=swap">
+<h2 class="sr-only">A Get A Job Jobs page mockup: a search bar, track/seniority/work-type filters, and a list of matched job cards with match scores, work type, seniority, and apply/track actions.</h2>
+<style>
+.gajx *{box-sizing:border-box}
+.gajx{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#211D18}
+.slab{font-family:'Rokkitt',Georgia,serif}
+.gajnav{display:flex;align-items:center;gap:8px;font-family:'Rokkitt',Georgia,serif;font-size:15px;font-weight:500;color:#857F74;padding:5px 0;cursor:pointer}
+.gajnav.on{color:#211D18;font-weight:700}
+.fpill{font-family:'Rokkitt',Georgia,serif;font-size:12px;font-weight:600;color:#5A5247;background:#F3ECE0;border-radius:999px;padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.jchip{font-size:10.5px;color:#7A746A;background:#F1EFE8;border-radius:6px;padding:2px 7px}
+.jcard{background:#fff;border:1px solid #F0E7D8;border-radius:14px;padding:13px 14px;transition:transform .16s ease,border-color .16s}
+.jcard:hover{transform:translateY(-2px);border-color:#E0D6C4}
+.gajbtn{border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:transform .12s,background .15s;font-family:'Rokkitt',Georgia,serif;font-weight:600}
+.gajbtn:active{transform:scale(.95)}
+</style>
+<div class="gajx">
+<div style="background:#E79B7D;padding:13px;border-radius:26px">
+ <div style="display:flex;background:#fff;border-radius:18px;overflow:hidden">
+
+  <div style="width:150px;flex:0 0 150px;background:#EFE7DB;padding:20px 16px;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div style="display:grid;grid-template-columns:repeat(2,7px);gap:3px">
+        <span style="width:7px;height:7px;border-radius:50%;background:#EF5A41"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#EFB23E"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#54B5A2"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#211D18"></span>
+      </div>
+      <span class="slab" style="font-size:17px;font-weight:700">Get A Job</span>
+    </div>
+    <div style="text-align:center;margin-top:26px">
+      <div style="width:54px;height:54px;border-radius:50%;background:#F0A98E;display:flex;align-items:center;justify-content:center;margin:0 auto"><span class="slab" style="color:#fff;font-size:22px;font-weight:700">E</span></div>
+      <div class="slab" style="font-size:16px;font-weight:700;margin-top:10px">Eli Englard</div>
+      <div style="font-size:11.5px;color:#928C80">Aspiring PM</div>
+    </div>
+    <div style="margin-top:26px;display:flex;flex-direction:column;gap:3px">
+      <div class="gajnav"><i class="ti ti-home" style="font-size:17px" aria-hidden="true"></i>Home</div>
+      <div class="gajnav"><i class="ti ti-route" style="font-size:17px" aria-hidden="true"></i>Roadmap</div>
+      <div class="gajnav on"><i class="ti ti-briefcase" style="font-size:17px" aria-hidden="true"></i>Jobs<span style="width:6px;height:6px;border-radius:50%;background:#EF5A41;margin-left:auto"></span></div>
+      <div class="gajnav"><i class="ti ti-layout-kanban" style="font-size:17px" aria-hidden="true"></i>Tracker</div>
+      <div class="gajnav"><i class="ti ti-brand-linkedin" style="font-size:17px" aria-hidden="true"></i>LinkedIn</div>
+      <div class="gajnav"><i class="ti ti-message-2" style="font-size:17px" aria-hidden="true"></i>Chat</div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:9px;color:#928C80">
+      <span style="width:26px;height:26px;border-radius:50%;background:#211D18;display:flex;align-items:center;justify-content:center"><i class="ti ti-logout" style="font-size:14px;color:#fff" aria-hidden="true"></i></span>
+      <span style="font-size:13px">Log out</span>
+    </div>
+  </div>
+
+  <div style="flex:1;min-width:0;padding:22px 22px 24px">
+
+    <div class="slab" style="font-size:27px;font-weight:800;letter-spacing:-.01em">Jobs</div>
+    <div style="font-size:12.5px;color:#928C80;margin-top:2px">Live roles from real company career pages, scored against your tracks.</div>
+
+    <div style="background:#fff;border:1px solid #F0E7D8;border-radius:13px;margin-top:16px;padding:9px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 6px 18px rgba(40,25,10,.05)">
+      <i class="ti ti-search" style="font-size:17px;color:#B4ADA1" aria-hidden="true"></i>
+      <span style="flex:1;font-size:13px;color:#A39B8D">Search a role or company…</span>
+    </div>
+    <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px">
+      <span class="fpill" style="background:#FCE6DF;color:#C7461F">Track 1<i class="ti ti-chevron-down" style="font-size:13px" aria-hidden="true"></i></span>
+      <span class="fpill">Junior<i class="ti ti-chevron-down" style="font-size:13px" aria-hidden="true"></i></span>
+      <span class="fpill">Any location<i class="ti ti-chevron-down" style="font-size:13px" aria-hidden="true"></i></span>
+      <span class="fpill">Best match<i class="ti ti-chevron-down" style="font-size:13px" aria-hidden="true"></i></span>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px">
+      <span class="slab" style="font-size:14px;font-weight:700">21 roles on Track 1</span>
+      <span style="font-size:11px;color:#928C80">updated this morning</span>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:11px;margin-top:11px">
+
+      <div class="jcard">
+        <div style="display:flex;gap:11px">
+          <div style="width:40px;height:40px;border-radius:9px;background:#FCE6DF;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><span class="slab" style="font-size:17px;font-weight:700;color:#C7461F">M</span></div>
+          <div style="flex:1;min-width:0">
+            <div class="slab" style="font-size:14px;font-weight:700;line-height:1.2">Associate Product Manager</div>
+            <div style="font-size:11.5px;color:#928C80">Monday.com · Tel Aviv</div>
+            <div style="display:flex;gap:6px;margin-top:6px"><span class="jchip">Hybrid</span><span class="jchip">Junior</span><span class="jchip">2d ago</span></div>
+          </div>
+          <span style="flex:0 0 auto;font-size:12px;font-weight:700;color:#C7461F;background:#FCE6DF;border-radius:999px;padding:4px 10px;height:fit-content" class="slab">92%</span>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:11px">
+          <button class="gajbtn" id="trackBtn" style="background:#F3ECE0;color:#6B655B;font-size:12px;border-radius:999px;padding:6px 13px"><i class="ti ti-plus" style="font-size:14px" aria-hidden="true"></i>Track</button>
+          <button class="gajbtn" style="background:#EF5A41;color:#fff;font-size:12px;border-radius:999px;padding:6px 13px">Apply<i class="ti ti-external-link" style="font-size:13px" aria-hidden="true"></i></button>
+        </div>
+      </div>
+
+      <div class="jcard">
+        <div style="display:flex;gap:11px">
+          <div style="width:40px;height:40px;border-radius:9px;background:#DBEEE8;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><span class="slab" style="font-size:17px;font-weight:700;color:#2E7C6B">R</span></div>
+          <div style="flex:1;min-width:0">
+            <div class="slab" style="font-size:14px;font-weight:700;line-height:1.2">Product Operations</div>
+            <div style="font-size:11.5px;color:#928C80">Riverside · Remote</div>
+            <div style="display:flex;gap:6px;margin-top:6px"><span class="jchip">Remote</span><span class="jchip">Junior</span><span class="jchip">4d ago</span></div>
+          </div>
+          <span style="flex:0 0 auto;font-size:12px;font-weight:700;color:#2E7C6B;background:#DBEEE8;border-radius:999px;padding:4px 10px;height:fit-content" class="slab">78%</span>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:11px">
+          <button class="gajbtn" style="background:#F3ECE0;color:#6B655B;font-size:12px;border-radius:999px;padding:6px 13px"><i class="ti ti-plus" style="font-size:14px" aria-hidden="true"></i>Track</button>
+          <button class="gajbtn" style="background:#EF5A41;color:#fff;font-size:12px;border-radius:999px;padding:6px 13px">Apply<i class="ti ti-external-link" style="font-size:13px" aria-hidden="true"></i></button>
+        </div>
+      </div>
+
+      <div class="jcard">
+        <div style="display:flex;gap:11px">
+          <div style="width:40px;height:40px;border-radius:9px;background:#DBEEE8;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><span class="slab" style="font-size:17px;font-weight:700;color:#2E7C6B">L</span></div>
+          <div style="flex:1;min-width:0">
+            <div class="slab" style="font-size:14px;font-weight:700;line-height:1.2">Associate PM, Growth</div>
+            <div style="font-size:11.5px;color:#928C80">Lemonade · Tel Aviv</div>
+            <div style="display:flex;gap:6px;margin-top:6px"><span class="jchip">Hybrid</span><span class="jchip">Junior</span><span class="jchip">1w ago</span></div>
+          </div>
+          <span style="flex:0 0 auto;font-size:12px;font-weight:700;color:#2E7C6B;background:#DBEEE8;border-radius:999px;padding:4px 10px;height:fit-content" class="slab">71%</span>
+        </div>
+        <div style="display:flex;justify-content:flex-end;gap:8px;margin-top:11px">
+          <button class="gajbtn" style="background:#F3ECE0;color:#6B655B;font-size:12px;border-radius:999px;padding:6px 13px"><i class="ti ti-plus" style="font-size:14px" aria-hidden="true"></i>Track</button>
+          <button class="gajbtn" style="background:#EF5A41;color:#fff;font-size:12px;border-radius:999px;padding:6px 13px">Apply<i class="ti ti-external-link" style="font-size:13px" aria-hidden="true"></i></button>
+        </div>
+      </div>
+
+      <div class="jcard" style="opacity:.6">
+        <div style="display:flex;gap:11px">
+          <div style="width:40px;height:40px;border-radius:9px;background:#F1EFE8;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><span class="slab" style="font-size:17px;font-weight:700;color:#928C80">W</span></div>
+          <div style="flex:1;min-width:0">
+            <div class="slab" style="font-size:14px;font-weight:700;line-height:1.2">Project Coordinator</div>
+            <div style="font-size:11.5px;color:#928C80">Wix · Tel Aviv</div>
+            <div style="display:flex;gap:6px;margin-top:6px"><span class="jchip">On-site</span><span class="jchip">Junior</span></div>
+          </div>
+          <span style="flex:0 0 auto;font-size:12px;font-weight:700;color:#928C80;background:#F1EFE8;border-radius:999px;padding:4px 10px;height:fit-content" class="slab">44%</span>
+        </div>
+        <div style="font-size:10.5px;color:#A39B8D;margin-top:8px">Low fit — shown because you searched, not recommended.</div>
+      </div>
+
+    </div>
+
+  </div>
+ </div>
+</div>
+</div>
+<script>
+(function(){var b=document.getElementById('trackBtn');if(b){b.addEventListener('click',function(){b.style.background='#54B5A2';b.style.color='#fff';b.innerHTML='<i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i>Tracked';});}})();
+</script>

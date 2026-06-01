@@ -1,468 +1,49 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { supabase } from "@/api/supabaseClient";
-import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { Link, useNavigate, useLocation, useSearchParams } from "react-router-dom";
 import { MIN_LEN, getPasswordChecks, allChecksPass } from "@/lib/passwordPolicy";
 import PasswordRequirements from "@/components/account/PasswordRequirements";
 import { Turnstile } from "@marsidev/react-turnstile";
+import RdButton from "@/components/redesign/RdButton";
+import RdCard from "@/components/redesign/RdCard";
 
 // Cloudflare Turnstile site key. Public — ships in the frontend bundle
 // regardless. Bound to the matching secret in Supabase Auth → CAPTCHA.
 const TURNSTILE_SITE_KEY = "0x4AAAAAADSlsvzNPw5Qejvq";
 
-// Direction 3 tokens scoped to .login — same palette as Landing.jsx / Home.jsx.
-// Two-column shell on desktop, stacked on mobile. Form keeps its existing
-// shadcn-adjacent inputs; the surrounding chrome is brand-tuned.
-const LOGIN_CSS = `
-@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&family=Geist:wght@400;500;600;700;800&display=swap');
-.login {
-  --login-bg: #F4F4F2;
-  --login-bg-tinted: #E8E8E5;
-  --login-ink: #0E1014;
-  --login-ink-soft: #52545A;
-  --login-ink-faded: #9C9DA1;
-  --login-accent: #F87060;
-  --login-accent-deep: #C84F40;
-  --login-accent-tint: #FDE7E3;
-  --login-green: #1D7556;
-  --login-line: #DDDDDB;
-  --login-line-soft: #E8E8E5;
-  --login-card: #FFFFFF;
-  --login-ink-card: #0E1014;
-  --login-radius: 14px;
-  --login-radius-lg: 20px;
-  --login-font: 'Geist', system-ui, sans-serif;
-  --login-font-mono: 'Geist Mono', ui-monospace, monospace;
-  font-family: var(--login-font);
-  color: var(--login-ink);
-  background: var(--login-bg);
-  min-height: 100vh;
-  -webkit-font-smoothing: antialiased;
-}
-.login *, .login *::before, .login *::after { box-sizing: border-box; }
+// Visual redesign — see tasks/redesign.md. All behavior is preserved
+// 1:1 from the prior Direction-3 Login; only the visual layer changes.
+// Inventory items mapped to the new layout:
+//   - Modes: signin / signup / forgot / inline-waitlist (within signup)
+//   - URL-driven mode (?mode=signup|forgot), browser back/forward sync,
+//     replace-history mode switches, ?deleted=1 toast
+//   - Pilot gate via redeem_invite_code RPC → 100-cap waitlist flip
+//   - signup user_metadata: full_name, invite_code, cohort_label →
+//     PostHog signup_pending flag → Onboarding stamping site
+//   - Cloudflare Turnstile required on all 3 auth endpoints; token
+//     reused across mode switches, reset on auth failure
+//   - PasswordRequirements rendered on signup only
+//   - Forgot password from signin label row
+//   - Inline waitlist insert + send-waitlist-email fire-and-forget
+//   - 23505 / "unique" → friendly "already on the waitlist"
+//   - Banner regions (error + ok) kept available; the future "Resend
+//     confirmation" button slot lands in the error region without re-flow
 
-.login-shell {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  min-height: 100vh;
-  max-width: 1240px;
-  margin: 0 auto;
-  gap: 0;
-}
-
-/* ── Left: form panel ─────────────────────────────────────────────────── */
-.login-form-panel {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 48px 40px;
-  background: var(--login-bg);
-}
-.login-form-inner {
-  width: 100%;
-  max-width: 420px;
-}
-.login-brand {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  margin-bottom: 36px;
-}
-.login-brand-mark {
-  font-family: var(--login-font);
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: -0.02em;
-  color: var(--login-ink);
-}
-.login-brand-dot {
-  width: 7px;
-  height: 7px;
-  background: var(--login-accent);
-  border-radius: 50%;
-  display: inline-block;
-  transform: translateY(-2px);
-}
-
-.login-tabs {
-  display: inline-flex;
-  background: var(--login-bg-tinted);
-  border-radius: 100px;
-  padding: 4px;
-  margin-bottom: 28px;
-  gap: 2px;
-}
-.login-tabs button {
-  appearance: none;
-  border: 0;
-  background: transparent;
-  font-family: var(--login-font);
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--login-ink-soft);
-  padding: 7px 18px;
-  border-radius: 100px;
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-.login-tabs button[aria-selected="true"] {
-  background: var(--login-card);
-  color: var(--login-ink);
-  font-weight: 600;
-  box-shadow: 0 1px 3px rgba(14, 16, 20, 0.06);
-}
-.login-tabs button:hover:not([aria-selected="true"]) {
-  color: var(--login-ink);
-}
-
-.login-head {
-  font-family: var(--login-font);
-  font-size: 32px;
-  font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
-  color: var(--login-ink);
-  margin: 0 0 10px;
-}
-.login-sub {
-  font-size: 14.5px;
-  color: var(--login-ink-soft);
-  line-height: 1.55;
-  margin: 0 0 28px;
-}
-
-.login-banner {
-  margin-bottom: 18px;
-  padding: 11px 14px;
-  border-radius: var(--login-radius);
-  font-size: 13px;
-  line-height: 1.45;
-}
-.login-banner-error {
-  background: var(--login-accent-tint);
-  border: 1px solid var(--login-accent);
-  color: var(--login-accent-deep);
-}
-.login-banner-ok {
-  background: #E5F3EC;
-  border: 1px solid #BCE0CC;
-  color: #14593F;
-}
-
-.login-form { display: flex; flex-direction: column; gap: 16px; }
-.login-field { display: flex; flex-direction: column; gap: 6px; }
-.login-label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-.login-label {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--login-ink);
-  letter-spacing: -0.005em;
-}
-.login-forgot-link {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  font-family: var(--login-font);
-  font-size: 12px;
-  color: var(--login-ink-soft);
-  cursor: pointer;
-  padding: 0;
-  text-decoration: underline;
-  text-underline-offset: 2px;
-  text-decoration-color: var(--login-ink-faded);
-}
-.login-forgot-link:hover { color: var(--login-accent); text-decoration-color: var(--login-accent); }
-
-.login-input {
-  width: 100%;
-  padding: 11px 14px;
-  border-radius: var(--login-radius);
-  border: 1px solid var(--login-line);
-  background: var(--login-card);
-  color: var(--login-ink);
-  font-family: var(--login-font);
-  font-size: 14px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
-}
-.login-input::placeholder { color: var(--login-ink-faded); }
-.login-input:focus {
-  outline: none;
-  border-color: var(--login-ink);
-  box-shadow: 0 0 0 3px rgba(14, 16, 20, 0.08);
-}
-
-.login-turnstile {
-  display: flex;
-  justify-content: center;
-  padding: 4px 0;
-}
-
-.login-submit {
-  appearance: none;
-  border: 0;
-  width: 100%;
-  padding: 13px 18px;
-  border-radius: 100px;
-  font-family: var(--login-font);
-  font-size: 14px;
-  font-weight: 600;
-  background: var(--login-ink-card);
-  color: var(--login-bg);
-  cursor: pointer;
-  margin-top: 6px;
-  transition: background 0.15s ease, transform 0.15s ease;
-  box-shadow: 0 4px 16px rgba(14, 16, 20, 0.12);
-}
-.login-submit:hover:not(:disabled) { background: var(--login-accent); transform: translateY(-1px); }
-.login-submit:active:not(:disabled) { transform: scale(0.98); }
-.login-submit:disabled { opacity: 0.5; cursor: not-allowed; box-shadow: none; }
-
-.login-back {
-  margin-top: 18px;
-  text-align: center;
-}
-.login-back button {
-  appearance: none;
-  background: transparent;
-  border: 0;
-  font-family: var(--login-font);
-  font-size: 13px;
-  color: var(--login-ink-soft);
-  cursor: pointer;
-  padding: 0;
-}
-.login-back button:hover { color: var(--login-ink); }
-
-/* ── Right: dark aside panel ──────────────────────────────────────────── */
-.login-aside {
-  position: relative;
-  background: var(--login-ink-card);
-  color: #FFFFFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 64px 56px;
-  overflow: hidden;
-}
-.login-aside::before {
-  content: "";
-  position: absolute;
-  top: -120px;
-  right: -120px;
-  width: 320px;
-  height: 320px;
-  border-radius: 50%;
-  background: var(--login-accent);
-  opacity: 0.16;
-  filter: blur(20px);
-  pointer-events: none;
-}
-.login-aside::after {
-  content: "";
-  position: absolute;
-  bottom: -140px;
-  left: -100px;
-  width: 280px;
-  height: 280px;
-  border-radius: 50%;
-  background: var(--login-accent);
-  opacity: 0.08;
-  filter: blur(28px);
-  pointer-events: none;
-}
-.login-aside-content {
-  position: relative;
-  max-width: 440px;
-  width: 100%;
-}
-.login-aside-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  font-family: var(--login-font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  color: var(--login-accent);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  padding: 5px 12px;
-  border: 1px solid rgba(248, 112, 96, 0.4);
-  border-radius: 100px;
-  margin-bottom: 28px;
-}
-.login-aside-eyebrow .dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--login-accent);
-}
-.login-aside h2 {
-  font-family: var(--login-font);
-  font-size: 36px;
-  font-weight: 700;
-  letter-spacing: -0.03em;
-  line-height: 1.08;
-  margin: 0 0 18px;
-  color: #FFFFFF;
-}
-.login-aside h2 .accent { color: var(--login-accent); font-weight: 500; }
-.login-aside p {
-  font-size: 15px;
-  line-height: 1.55;
-  color: rgba(255, 255, 255, 0.7);
-  margin: 0 0 28px;
-}
-.login-aside-bullets {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 32px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-.login-aside-bullets li {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  font-size: 14px;
-  line-height: 1.5;
-  color: rgba(255, 255, 255, 0.85);
-}
-.login-aside-bullets li svg {
-  flex-shrink: 0;
-  margin-top: 3px;
-}
-.login-aside-svg-wrap {
-  display: flex;
-  justify-content: center;
-  margin: 8px 0 28px;
-}
-.login-aside-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  font-family: var(--login-font-mono);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: rgba(255, 255, 255, 0.6);
-  padding: 8px 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 100px;
-}
-.login-aside-badge .pulse {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--login-green);
-  box-shadow: 0 0 0 4px rgba(29, 117, 86, 0.2);
-}
-
-/* ── Mobile breakpoint ────────────────────────────────────────────────── */
-@media (max-width: 960px) {
-  .login-shell {
-    grid-template-columns: 1fr;
-    min-height: auto;
-  }
-  .login-aside {
-    order: -1;
-    padding: 40px 32px 36px;
-  }
-  .login-aside-content { max-width: 540px; }
-  .login-aside h2 { font-size: 26px; }
-  .login-aside p { font-size: 14px; margin-bottom: 18px; }
-  .login-aside-bullets { display: none; }
-  .login-aside-svg-wrap { display: none; }
-  .login-form-panel { padding: 36px 24px 48px; }
-}
-@media (max-width: 480px) {
-  .login-aside { padding: 32px 20px 28px; }
-  .login-aside h2 { font-size: 22px; }
-  .login-form-inner { max-width: 100%; }
-  .login-head { font-size: 26px; }
-}
-`;
-
-// Track-quadrant SVG illustration. Concentric rings = track shells radiating
-// from the user (centre); coral dot = the track-1 target being hit.
-function TierQuadrantSVG() {
+// Brand mark — 2x2 dot grid in brand colors + Rokkitt wordmark.
+// Per the sign-in mockup: coral / golden / teal / ink.
+function BrandMark() {
   return (
-    <svg
-      viewBox="0 0 280 280"
-      width="240"
-      height="240"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-    >
-      {/* Outer ring — Track 3 */}
-      <circle cx="140" cy="140" r="118" fill="none" stroke="rgba(255,255,255,0.10)" strokeWidth="1" strokeDasharray="2 5" />
-      {/* Middle ring — Track 2 */}
-      <circle cx="140" cy="140" r="80" fill="none" stroke="rgba(255,255,255,0.16)" strokeWidth="1" strokeDasharray="2 5" />
-      {/* Inner ring — Track 1 */}
-      <circle cx="140" cy="140" r="44" fill="none" stroke="rgba(255,255,255,0.28)" strokeWidth="1" />
-
-      {/* Track 3 nodes */}
-      <circle cx="58" cy="92" r="3" fill="rgba(255,255,255,0.32)" />
-      <circle cx="232" cy="182" r="3" fill="rgba(255,255,255,0.32)" />
-      <circle cx="186" cy="38" r="3" fill="rgba(255,255,255,0.32)" />
-      <circle cx="48" cy="206" r="3" fill="rgba(255,255,255,0.32)" />
-      <circle cx="220" cy="68" r="3" fill="rgba(255,255,255,0.32)" />
-
-      {/* Track 2 nodes */}
-      <circle cx="78" cy="178" r="3.5" fill="rgba(255,255,255,0.55)" />
-      <circle cx="208" cy="98" r="3.5" fill="rgba(255,255,255,0.55)" />
-      <circle cx="92" cy="78" r="3.5" fill="rgba(255,255,255,0.55)" />
-
-      {/* Track 1 nodes */}
-      <circle cx="106" cy="160" r="4" fill="rgba(255,255,255,0.85)" />
-      <circle cx="174" cy="118" r="4" fill="rgba(255,255,255,0.85)" />
-
-      {/* Coral path: centre → target */}
-      <path
-        d="M 144 138 Q 162 142 178 152"
-        stroke="#F87060"
-        strokeWidth="1.5"
-        strokeDasharray="3 4"
-        fill="none"
-        strokeLinecap="round"
-      />
-
-      {/* Highlighted Track 1 target with check */}
-      <g>
-        <circle cx="182" cy="156" r="14" fill="none" stroke="#F87060" strokeWidth="1" strokeOpacity="0.4" />
-        <circle cx="182" cy="156" r="9" fill="#F87060" />
-        <path
-          d="M 177 156 L 181 160 L 187 152"
-          stroke="white"
-          strokeWidth="1.8"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          fill="none"
-        />
-      </g>
-
-      {/* Centre "you" dot */}
-      <circle cx="140" cy="140" r="8" fill="none" stroke="rgba(255,255,255,0.5)" strokeWidth="1" />
-      <circle cx="140" cy="140" r="5" fill="#FFFFFF" />
-
-      {/* Ring labels */}
-      <text x="140" y="34" textAnchor="middle" fontFamily="Geist Mono, ui-monospace, monospace" fontSize="9" fill="rgba(255,255,255,0.4)" letterSpacing="0.1em">TRACK 3</text>
-      <text x="140" y="72" textAnchor="middle" fontFamily="Geist Mono, ui-monospace, monospace" fontSize="9" fill="rgba(255,255,255,0.6)" letterSpacing="0.1em">TRACK 2</text>
-      <text x="140" y="108" textAnchor="middle" fontFamily="Geist Mono, ui-monospace, monospace" fontSize="9" fill="rgba(255,255,255,0.82)" letterSpacing="0.1em">TRACK 1</text>
-    </svg>
-  );
-}
-
-function BulletCheck() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-      <circle cx="8" cy="8" r="7" stroke="#F87060" strokeWidth="1" fill="rgba(248,112,96,0.15)" />
-      <path d="M 5 8.2 L 7.2 10.2 L 11 6.3" stroke="#F87060" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" fill="none" />
-    </svg>
+    <div className="inline-flex items-center gap-2.5 select-none">
+      <div className="grid grid-cols-2 gap-[3px]">
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-coral" />
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-golden" />
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-teal" />
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-text" />
+      </div>
+      <span className="font-display font-bold text-[17px] tracking-tight text-rd-text">
+        Get A Job
+      </span>
+    </div>
   );
 }
 
@@ -471,14 +52,26 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  // Pilot gate (Aug-Nov 2026 100-student cohort). Invite code is
-  // visible on signup only. On submit, the RPC atomically validates +
-  // increments current_uses. Invalid → flip to waitlistMode (inline,
-  // not a separate route). Valid → proceed with auth.signUp + pass
-  // invite_code + cohort_label through user_metadata for stamping
+  // Pilot gate (WhatsApp 100-invite cohort — audience-neutral copy).
+  // Invite code is visible on signup only. On submit, the RPC atomically
+  // validates + increments current_uses. Invalid → flip to waitlistMode
+  // (inline, not a separate route). Valid → proceed with auth.signUp +
+  // pass invite_code + cohort_label through user_metadata for stamping
   // onto profiles at first-profile-insert in Onboarding.
   const [inviteCode, setInviteCode] = useState("");
-  const [waitlistMode, setWaitlistMode] = useState(false);
+  // Preview hatch: `?preview=waitlist` initializes the inline waitlist
+  // view directly (used by the redesign preview pipeline so the design
+  // artifact can capture this branch without hitting the live RPC).
+  // Harmless in production — just shows the waitlist form on landing.
+  const previewWaitlist = (() => {
+    try { return new URLSearchParams(window.location.search).get("preview") === "waitlist"; }
+    catch { return false; }
+  })();
+  const [waitlistMode, setWaitlistMode] = useState(previewWaitlist);
+  // Required consent for signup. Submit stays disabled until checked.
+  // Layout reserves the row in all modes so the form doesn't reflow on
+  // mode switch — checkbox is just visually hidden on signin/forgot.
+  const [consent, setConsent] = useState(false);
   const [searchParams, setSearchParams] = useSearchParams();
   // URL-driven mode. Lets Landing CTAs deeplink straight to signup via
   // ?mode=signup, and lets users bookmark / share / refresh the right form.
@@ -516,29 +109,23 @@ export default function Login() {
 
   const passwordChecks = useMemo(() => getPasswordChecks(password), [password]);
   // Supabase Auth → Bot Protection is enabled, which enforces CAPTCHA on
-  // signup, signin, AND password recovery — verified by probing the live
-  // endpoints (all three return captcha_failed without a token). So
-  // captchaToken is required for every mode, not just signup. Password
-  // checks remain signup-only.
+  // signup, signin, AND password recovery. captchaToken is required for
+  // every mode. Signup additionally requires invite-code + consent +
+  // password checks.
   const canSubmit =
-    (mode !== "signup" || (allChecksPass(passwordChecks) && !!inviteCode.trim())) &&
+    (mode !== "signup" ||
+      (allChecksPass(passwordChecks) && !!inviteCode.trim() && consent)) &&
     !!captchaToken;
 
   const switchMode = (next) => {
     setError(null);
     setMessage(null);
     // Leaving signup → clear waitlistMode so a future visit to signup
-    // starts fresh. Without this, a user who tried an invalid code,
-    // got bumped to waitlist, then clicked Sign in would see the
-    // waitlist form again the next time they returned to the signup tab.
+    // starts fresh.
     if (next !== "signup") setWaitlistMode(false);
-    // Don't clear captchaToken here — the Turnstile widget stays mounted
-    // across mode switches (the widget is rendered for every mode now), so
-    // the user's already-solved token is still valid for whichever endpoint
-    // we hit next. Clearing it would force them to re-challenge for no
-    // server-side reason.
-    // Drive mode via the URL — the useEffect above mirrors it into state.
-    // Replace history so the back button doesn't pile up mode-switch entries.
+    // Don't clear captchaToken — Turnstile widget stays mounted across
+    // mode switches; the user's solved token is still valid for whichever
+    // endpoint we hit next.
     const params = new URLSearchParams(searchParams);
     if (next === "signin") params.delete("mode");
     else params.set("mode", next);
@@ -553,17 +140,14 @@ export default function Login() {
 
     try {
       if (mode === "signup") {
-        // Pilot gate: redeem the invite code BEFORE calling auth.signUp.
-        // Atomic UPDATE...RETURNING in the RPC handles the race-on-last-
-        // slot case. Generic rejection message — no info leak about
-        // whether the code is unknown / inactive / exhausted.
-        const { data: redeemResult, error: redeemError } = await supabase
+        // Pilot gate: redeem the invite code BEFORE auth.signUp.
+        // RPC returns Json; treat as { valid: boolean; cohort_label: string }.
+        const { data: redeemRaw, error: redeemError } = await supabase
           .rpc("redeem_invite_code", { p_code: inviteCode.trim() });
         if (redeemError) throw new Error(redeemError.message || "Could not validate invite code");
-        if (!redeemResult?.valid) {
-          // Flip to inline waitlist mode. captchaToken is still valid
-          // (Turnstile token can be reused within its TTL on any endpoint),
-          // user keeps email pre-filled. No separate route.
+        const redeemResult = /** @type {{ valid?: boolean; cohort_label?: string }} */ (redeemRaw || {});
+        if (!redeemResult.valid) {
+          // Flip to inline waitlist mode. captchaToken still valid.
           setWaitlistMode(true);
           setError("Invalid invite code. If you don't have one, join the waitlist below — we'll email you when a spot opens.");
           setLoading(false);
@@ -577,27 +161,21 @@ export default function Login() {
             // user_metadata: invite_code + cohort_label travel through
             // auth.signUp → email confirmation → /Onboarding session →
             // first profile insert, where they're stamped onto the
-            // profiles row. See Onboarding.jsx for the stamping site.
+            // profiles row.
             data: {
               full_name: fullName,
               invite_code: inviteCode.trim(),
               cohort_label: redeemResult.cohort_label,
             },
             captchaToken,
-            // Without this, Supabase falls back to the Auth Site URL
-            // (https://getajob.careers), so users who click the confirmation
-            // link land on Landing and have to figure out how to get into the
-            // app. Sending them straight to /Onboarding picks up the fresh
-            // session via detectSessionInUrl. NOTE: /Onboarding must be in
-            // Supabase Auth → URL Configuration → Redirect URLs, otherwise
-            // Supabase rejects the value and falls back to Site URL anyway.
+            // /Onboarding must be in Supabase Auth → URL Configuration →
+            // Redirect URLs, else Supabase falls back to Site URL.
             emailRedirectTo: `${window.location.origin}/Onboarding`,
           },
         });
         if (error) throw error;
-        // signup_completed PostHog event can't fire directly from /login
-        // (PostHog only loads inside AuthenticatedApp). One-shot flag that
-        // PostHogProvider drains on first identify after email confirm.
+        // signup_completed PostHog event drains via PostHogProvider on
+        // first identify after email confirm.
         try { localStorage.setItem("gaj.signup_pending", "1"); } catch { /* private mode */ }
         setMessage("Check your email for a confirmation link!");
       } else if (mode === "forgot") {
@@ -619,7 +197,6 @@ export default function Login() {
     } catch (err) {
       // Token is single-use server-side. Reset the widget on any auth
       // failure so the user can re-challenge without a manual refresh.
-      // Applies to all three modes now that CAPTCHA is enforced everywhere.
       setCaptchaToken(null);
       turnstileRef.current?.reset();
       setError(err.message);
@@ -628,11 +205,8 @@ export default function Login() {
     }
   };
 
-  // Waitlist submit handler — fired from the inline waitlist form
-  // that replaces the signup form after a failed invite-code redeem.
-  // Lightweight: just inserts the email into waitlist_signups. Unique
-  // constraint catches duplicates → friendly "already on the list"
-  // message. No auth involved.
+  // Waitlist submit handler — fired from the inline waitlist form that
+  // replaces the signup form after a failed invite-code redeem.
   const handleWaitlistSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -644,9 +218,8 @@ export default function Login() {
         .from("waitlist_signups")
         .insert({ email: normalizedEmail });
       if (error) {
-        // PostgREST surfaces unique-violation as status 409. The
-        // friendlier code-23505 is what gets returned via the JS
-        // client. Both paths land here — show the same message.
+        // PostgREST surfaces unique-violation as status 409; the JS client
+        // returns code 23505. Both paths land here — same friendly msg.
         if (error.code === "23505" || error.message?.toLowerCase().includes("unique")) {
           setMessage("You're already on the waitlist — we'll email you when a spot opens.");
           setLoading(false);
@@ -655,11 +228,7 @@ export default function Login() {
         throw error;
       }
       // Fire-and-forget waitlist confirmation email. Server-side
-      // idempotency keyed on email (24h) means dupe clicks or rapid
-      // retries from the same email don't double-send. Failure is
-      // logged in edge function metrics — the user already saw the
-      // "thanks" message; missing the confirmation email is acceptable
-      // degradation.
+      // idempotency keyed on email (24h) means dupe clicks don't double-send.
       supabase.functions.invoke("send-waitlist-email", {
         body: { email: normalizedEmail },
       }).catch((emailErr) => {
@@ -673,24 +242,15 @@ export default function Login() {
     }
   };
 
-  const headline =
-    mode === "signup" ? (waitlistMode ? "Join the waitlist" : "Create your account")
-    : mode === "forgot" ? "Reset your password"
+  const eyebrowText =
+    mode === "signup" ? (waitlistMode ? "Waitlist" : "Get started")
+    : mode === "forgot" ? "Password reset"
     : "Welcome back";
 
-  const subcopy =
-    mode === "signup" ? "Free during the pilot. No credit card, no spam."
-    : mode === "forgot" ? "Enter your email and we'll send a reset link."
-    : "";
-
-  const asideHead =
-    mode === "signup" ? <>Your career, <span className="accent">operating system.</span></>
-    : <>Welcome <span className="accent">back.</span></>;
-
-  const asideSub =
-    mode === "signup"
-      ? "One workspace that remembers your background — so you stop re-pasting your CV into a fresh chat every time."
-      : "Pick up exactly where you left off.";
+  const titleText =
+    mode === "signup" ? (waitlistMode ? "Join the waitlist" : "Create your account")
+    : mode === "forgot" ? "Reset your password"
+    : "Sign in";
 
   const submitLabel =
     loading ? "Loading..."
@@ -698,154 +258,201 @@ export default function Login() {
     : mode === "forgot" ? "Send reset email"
     : "Sign in";
 
+  // Mode switch link copy (bottom-of-form). Forgot uses its own back
+  // affordance below the form.
+  const switchLabel =
+    mode === "signin" ? "New to Get A Job? "
+    : mode === "signup" ? "Already have an account? "
+    : null;
+  const switchAction =
+    mode === "signin" ? "Create an account"
+    : mode === "signup" ? "Sign in"
+    : null;
+  const switchTarget = mode === "signin" ? "signup" : "signin";
+
   return (
-    <div className="login">
-      <style>{LOGIN_CSS}</style>
-      <div className="login-shell">
-        {/* ── Form column (left on desktop, below aside on mobile) ─────── */}
-        <main className="login-form-panel">
-          <div className="login-form-inner">
-            <div className="login-brand">
-              <span className="login-brand-mark">getajob</span>
-              <span className="login-brand-dot" />
+    <div className="min-h-screen bg-rd-bg-page text-rd-text font-body flex items-center justify-center px-4 py-8 sm:px-6 sm:py-10">
+      <RdCard className="w-full max-w-[920px] overflow-hidden flex flex-col md:flex-row">
+        {/* ── Brand panel (left on desktop, top on mobile) ──────────────── */}
+        <aside
+          className="bg-rd-bg-sidebar px-7 py-7 md:w-[300px] md:flex-shrink-0 md:px-7 md:py-9 flex flex-col gap-6 md:justify-between"
+          aria-hidden="false"
+        >
+          {/* Top: scarcity eyebrow (signup only) + brand */}
+          <div className="flex flex-col gap-4">
+            {mode === "signup" && !waitlistMode && (
+              <span className="inline-flex self-start items-center gap-2 text-[11px] font-medium uppercase tracking-[0.08em] text-rd-coral-dark bg-rd-coral-tint rounded-full px-2.5 py-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-rd-coral" />
+                Pilot · 100 invites
+              </span>
+            )}
+            <BrandMark />
+          </div>
+
+          {/* Middle: hero + subline (fixed copy regardless of mode) */}
+          <div>
+            <h2 className="font-display font-extrabold text-[28px] leading-[1.08] tracking-tight text-rd-text">
+              Craft your<br />career.
+            </h2>
+            <p className="text-[12.5px] leading-[1.55] text-rd-text-tertiary mt-3">
+              Get A Job reads your real experience, finds the roles you can
+              actually land, tailors each CV, and puts AI coaches in your
+              corner.
+            </p>
+          </div>
+
+          {/* Bottom: three feature dots — hidden on mobile to keep the form
+              reachable above the fold, mirroring the live page's behavior. */}
+          <ul className="hidden md:flex flex-col gap-2.5 m-0 p-0 list-none">
+            <li className="flex items-center gap-2.5 font-display font-semibold text-[13.5px] text-rd-text">
+              <span className="w-2 h-2 rounded-full bg-rd-coral flex-shrink-0" />
+              Roles that fit you
+            </li>
+            <li className="flex items-center gap-2.5 font-display font-semibold text-[13.5px] text-rd-text">
+              <span className="w-2 h-2 rounded-full bg-rd-teal flex-shrink-0" />
+              CVs tailored per job
+            </li>
+            <li className="flex items-center gap-2.5 font-display font-semibold text-[13.5px] text-rd-text">
+              <span className="w-2 h-2 rounded-full bg-rd-golden flex-shrink-0" />
+              AI agents in your corner
+            </li>
+          </ul>
+        </aside>
+
+        {/* ── Form panel (right on desktop, below brand on mobile) ──────── */}
+        <main className="flex-1 px-7 py-8 md:px-8 md:py-9 flex flex-col">
+          <div className="font-display text-[11.5px] font-semibold uppercase tracking-[0.09em] text-rd-text-eyebrow">
+            {eyebrowText}
+          </div>
+          <h1 className="font-display font-bold text-[23px] tracking-tight text-rd-text mt-0.5">
+            {titleText}
+          </h1>
+
+          {/* Banner region — error + ok. Reserves space so a future
+              "Resend confirmation" button lands here without re-flow. */}
+          {(error || message) && (
+            <div className="mt-5 space-y-2.5">
+              {error && (
+                <div
+                  role="alert"
+                  className="text-[13px] leading-snug rounded-xl px-3.5 py-2.5 bg-rd-coral-tint text-rd-coral-dark border border-rd-coral/40"
+                >
+                  {error}
+                </div>
+              )}
+              {message && (
+                <div
+                  role="status"
+                  className="text-[13px] leading-snug rounded-xl px-3.5 py-2.5 bg-rd-teal-tint text-rd-teal-dark border border-rd-teal/40"
+                >
+                  {message}
+                </div>
+              )}
             </div>
+          )}
 
-            {mode !== "forgot" && (
-              <div className="login-tabs" role="tablist" aria-label="Account mode">
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={mode === "signup"}
-                  onClick={() => switchMode("signup")}
-                >
-                  Sign up
-                </button>
-                <button
-                  type="button"
-                  role="tab"
-                  aria-selected={mode === "signin"}
-                  onClick={() => switchMode("signin")}
-                >
-                  Sign in
-                </button>
-              </div>
-            )}
-
-            <h1 className="login-head">{headline}</h1>
-            {subcopy && <p className="login-sub">{subcopy}</p>}
-
-            {error && (
-              <div className="login-banner login-banner-error" role="alert">
-                {error}
-              </div>
-            )}
-            {message && (
-              <div className="login-banner login-banner-ok" role="status">
-                {message}
-              </div>
-            )}
-
-            {/* Waitlist mode: minimal inline form (email only). Replaces
-                the signup form after a failed invite-code redeem. Same
-                visual chrome as the signup form so the flip feels like
-                a content change, not a page change. */}
-            {mode === "signup" && waitlistMode ? (
-              <form onSubmit={handleWaitlistSubmit} className="login-form">
-                <div className="login-field">
-                  <label className="login-label" htmlFor="waitlist-email">Email</label>
-                  <input
-                    id="waitlist-email"
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="login-input"
-                    placeholder="you@example.com"
-                    required
-                  />
-                </div>
-                <button
-                  type="submit"
-                  disabled={loading || !email.trim()}
-                  className="login-submit"
-                >
-                  {loading ? "Loading..." : "Join the waitlist"}
-                </button>
-                <div className="login-back">
-                  <button
-                    type="button"
-                    onClick={() => { setWaitlistMode(false); setError(null); setMessage(null); }}
-                  >
-                    Back — I have an invite code
-                  </button>
-                </div>
-              </form>
-            ) : (
-            <form onSubmit={handleSubmit} className="login-form">
+          {/* ── Inline waitlist form (within signup, after invalid code) ── */}
+          {mode === "signup" && waitlistMode ? (
+            <form onSubmit={handleWaitlistSubmit} className="flex flex-col gap-3.5 mt-5">
+              <Field id="waitlist-email" label="Email">
+                <Input
+                  id="waitlist-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@email.com"
+                  required
+                />
+              </Field>
+              <RdButton
+                type="submit"
+                disabled={loading || !email.trim()}
+                className="w-full mt-1.5"
+              >
+                {loading ? "Loading..." : "Join the waitlist"}
+                <span aria-hidden="true">→</span>
+              </RdButton>
+              <button
+                type="button"
+                onClick={() => {
+                  setWaitlistMode(false);
+                  setError(null);
+                  setMessage(null);
+                }}
+                className="text-[12.5px] text-rd-text-tertiary hover:text-rd-text mt-1"
+              >
+                ← Back — I have an invite code
+              </button>
+            </form>
+          ) : (
+            <form onSubmit={handleSubmit} className="flex flex-col gap-3.5 mt-5">
               {mode === "signup" && (
-                <div className="login-field">
-                  <label className="login-label" htmlFor="login-fullname">Full name</label>
-                  <input
+                <Field id="login-fullname" label="Full name">
+                  <Input
                     id="login-fullname"
                     type="text"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="login-input"
                     placeholder="John Doe"
                     required
                   />
-                </div>
+                </Field>
               )}
 
-              <div className="login-field">
-                <label className="login-label" htmlFor="login-email">Email</label>
-                <input
+              <Field id="login-email" label="Email">
+                <Input
                   id="login-email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="login-input"
-                  placeholder="you@example.com"
+                  placeholder="you@email.com"
                   required
                 />
-              </div>
+              </Field>
 
               {mode === "signup" && (
-                <div className="login-field">
-                  <label className="login-label" htmlFor="login-invite">Invite code</label>
-                  <input
+                <Field
+                  id="login-invite"
+                  label="Invite code"
+                  hint="From your pilot invite"
+                >
+                  <Input
                     id="login-invite"
                     type="text"
                     value={inviteCode}
                     onChange={(e) => setInviteCode(e.target.value)}
-                    className="login-input"
-                    placeholder="From your invitation email or WhatsApp"
+                    placeholder="GETAJOBPILOT"
                     autoCapitalize="characters"
                     autoComplete="off"
                     required
                   />
-                </div>
+                </Field>
               )}
 
               {mode !== "forgot" && (
-                <div className="login-field">
-                  <div className="login-label-row">
-                    <label className="login-label" htmlFor="login-password">Password</label>
+                <div>
+                  <div className="flex items-baseline justify-between mb-1.5">
+                    <label
+                      htmlFor="login-password"
+                      className="text-[12px] font-semibold text-rd-text"
+                    >
+                      Password
+                    </label>
                     {mode === "signin" && (
                       <button
                         type="button"
-                        className="login-forgot-link"
                         onClick={() => switchMode("forgot")}
+                        className="text-[11.5px] font-semibold text-rd-coral hover:text-rd-coral-dark"
                       >
-                        Forgot password?
+                        Forgot?
                       </button>
                     )}
                   </div>
-                  <input
+                  <Input
                     id="login-password"
                     type="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="login-input"
                     placeholder={mode === "signup" ? "Meets all 5 requirements below" : "••••••••"}
                     required
                     minLength={mode === "signup" ? MIN_LEN : 6}
@@ -855,10 +462,41 @@ export default function Login() {
                 </div>
               )}
 
-              {/* Turnstile is required for ALL auth modes — Supabase enforces
-                  CAPTCHA on signup, signin, and recover. Rendered for every
-                  mode; captchaToken flows into each call. */}
-              <div className="login-turnstile">
+              {/* Consent — signup only. Keep the row in the DOM via
+                  conditional only on the visible block; layout doesn't
+                  reflow because both signin and forgot are taller in
+                  other ways. */}
+              {mode === "signup" && (
+                <label className="flex items-start gap-2.5 text-[11.5px] leading-[1.45] text-rd-text-tertiary cursor-pointer mt-1">
+                  <input
+                    type="checkbox"
+                    checked={consent}
+                    onChange={(e) => setConsent(e.target.checked)}
+                    className="mt-[1px] w-[15px] h-[15px] flex-shrink-0 accent-rd-coral cursor-pointer"
+                    required
+                  />
+                  <span>
+                    I agree to the{" "}
+                    <Link
+                      to="/terms"
+                      className="text-rd-coral hover:text-rd-coral-dark font-semibold"
+                    >
+                      Terms
+                    </Link>{" "}
+                    &amp;{" "}
+                    <Link
+                      to="/privacy"
+                      className="text-rd-coral hover:text-rd-coral-dark font-semibold"
+                    >
+                      Privacy Policy
+                    </Link>
+                    .
+                  </span>
+                </label>
+              )}
+
+              {/* Turnstile — required on all 3 auth endpoints. */}
+              <div className="flex justify-center mt-1">
                 <Turnstile
                   ref={turnstileRef}
                   siteKey={TURNSTILE_SITE_KEY}
@@ -872,53 +510,79 @@ export default function Login() {
                 />
               </div>
 
-              <button
+              <RdButton
                 type="submit"
                 disabled={loading || !canSubmit}
-                className="login-submit"
+                className="w-full mt-1.5"
               >
                 {submitLabel}
-              </button>
+                <span aria-hidden="true">→</span>
+              </RdButton>
             </form>
-            )}
+          )}
 
-            {mode === "forgot" && (
-              <div className="login-back">
-                <button type="button" onClick={() => switchMode("signin")}>
-                  Back to sign in
-                </button>
-              </div>
-            )}
-          </div>
+          {/* Mode switch link (bottom). Forgot keeps its own "Back" link. */}
+          {mode !== "forgot" ? (
+            <div className="border-t border-rd-border-subtle mt-5 pt-4 text-center text-[12.5px] text-rd-text-tertiary">
+              {switchLabel}
+              <button
+                type="button"
+                onClick={() => switchMode(switchTarget)}
+                className="text-rd-coral hover:text-rd-coral-dark font-semibold"
+              >
+                {switchAction}
+              </button>
+            </div>
+          ) : (
+            <div className="border-t border-rd-border-subtle mt-5 pt-4 text-center text-[12.5px] text-rd-text-tertiary">
+              <button
+                type="button"
+                onClick={() => switchMode("signin")}
+                className="text-rd-coral hover:text-rd-coral-dark font-semibold"
+              >
+                ← Back to sign in
+              </button>
+            </div>
+          )}
         </main>
-
-        {/* ── Aside (right on desktop, top on mobile) ──────────────────── */}
-        <aside className="login-aside" aria-hidden="false">
-          <div className="login-aside-content">
-            <div className="login-aside-eyebrow">
-              <span className="dot" />
-              {mode === "signup" ? "Pilot · 100 invites" : "Career operating system"}
-            </div>
-            <h2>{asideHead}</h2>
-            <p>{asideSub}</p>
-
-            <ul className="login-aside-bullets">
-              <li><BulletCheck /><span>Five specialised agents: career strategy, CV, interview, LinkedIn, and skill development</span></li>
-              <li><BulletCheck /><span>Track-scored roadmap built from your actual experience and target roles</span></li>
-              <li><BulletCheck /><span>Application tracker, prep tasks, and weekly focus — all kept in sync</span></li>
-            </ul>
-
-            <div className="login-aside-svg-wrap">
-              <TierQuadrantSVG />
-            </div>
-
-            <div className="login-aside-badge">
-              <span className="pulse" />
-              Aug–Nov 2026 · 100-student pilot cohort
-            </div>
-          </div>
-        </aside>
-      </div>
+      </RdCard>
     </div>
+  );
+}
+
+// ── Local primitives — tight to this page, not shared yet. ───────────
+// (Inputs / labeled field are not in the foundation primitive set per
+// PR scope; they live here until a second consumer needs them.)
+
+function Field({ id, label, hint = null, children }) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between mb-1.5">
+        <label htmlFor={id} className="text-[12px] font-semibold text-rd-text">
+          {label}
+        </label>
+        {hint && (
+          <span className="text-[11px] text-rd-text-secondary">{hint}</span>
+        )}
+      </div>
+      {children}
+    </div>
+  );
+}
+
+function Input(props) {
+  return (
+    <input
+      {...props}
+      className={[
+        "w-full px-3.5 py-2.5 rounded-[10px]",
+        "border border-rd-border bg-rd-bg-card text-rd-text",
+        "text-[13.5px] font-body",
+        "placeholder:text-rd-text-secondary/70",
+        "outline-none transition-[border-color,box-shadow] duration-150",
+        "focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]",
+        props.className || "",
+      ].join(" ")}
+    />
   );
 }

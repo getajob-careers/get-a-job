@@ -10,6 +10,33 @@ module.exports = {
   			sm: 'calc(var(--radius) - 4px)'
   		},
   		colors: {
+  			// Redesign palette — additive. Consumed via bg-rd-coral,
+  			// text-rd-text, border-rd-border, etc. See tasks/redesign.md.
+  			// CSS variables live in src/styles/redesignTokens.css; existing
+  			// pages don't read these classes until they opt in.
+  			rd: {
+  				'bg-page': 'var(--rd-bg-page)',
+  				'bg-card': 'var(--rd-bg-card)',
+  				'bg-sidebar': 'var(--rd-bg-sidebar)',
+  				'bg-soft': 'var(--rd-bg-soft)',
+  				border: 'var(--rd-border)',
+  				'border-subtle': 'var(--rd-border-subtle)',
+  				'border-hover': 'var(--rd-border-hover)',
+  				text: 'var(--rd-text)',
+  				'text-secondary': 'var(--rd-text-secondary)',
+  				'text-tertiary': 'var(--rd-text-tertiary)',
+  				'text-eyebrow': 'var(--rd-text-eyebrow)',
+  				coral: 'var(--rd-coral)',
+  				'coral-dark': 'var(--rd-coral-dark)',
+  				'coral-tint': 'var(--rd-coral-tint)',
+  				teal: 'var(--rd-teal)',
+  				'teal-dark': 'var(--rd-teal-dark)',
+  				'teal-tint': 'var(--rd-teal-tint)',
+  				golden: 'var(--rd-golden)',
+  				'golden-dark': 'var(--rd-golden-dark)',
+  				'golden-tint': 'var(--rd-golden-tint)',
+  				peach: 'var(--rd-peach)',
+  			},
   			background: 'hsl(var(--background))',
   			foreground: 'hsl(var(--foreground))',
   			card: {
@@ -60,6 +87,15 @@ module.exports = {
   				border: 'hsl(var(--sidebar-border))',
   				ring: 'hsl(var(--sidebar-ring))'
   			}
+  		},
+  		fontFamily: {
+  			// Redesign display font — Rokkitt slab serif for headings.
+  			// Body keeps the platform default (system stack). Loaded via
+  			// <link> in index.html.
+  			display: ['Rokkitt', 'Georgia', 'serif'],
+  		},
+  		boxShadow: {
+  			rd: 'var(--rd-shadow)',
   		},
   		keyframes: {
   			'accordion-down': {

@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Get A Job — Sign in (redesign mockup)</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@500;600;700;800&display=swap">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#211D18;background:#FAF6F0;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px}
+  .slab{font-family:'Rokkitt',Georgia,serif}
+  label{display:block;font-size:12px;font-weight:600;color:#211D18;margin-bottom:6px}
+  .card{display:flex;width:600px;max-width:100%;background:#fff;border-radius:22px;overflow:hidden;box-shadow:0 10px 28px rgba(40,25,10,.07);border:1px solid #F0E7D8}
+  .brand{width:240px;flex:0 0 240px;background:#EFE7DB;padding:26px 22px;display:flex;flex-direction:column;justify-content:space-between}
+  .logo-dots{display:grid;grid-template-columns:repeat(2,7px);gap:3px}
+  .logo-dots span{width:7px;height:7px;border-radius:50%}
+  .hero{font-size:28px;font-weight:800;line-height:1.08;letter-spacing:-.01em}
+  .subline{font-size:12.5px;color:#857F74;line-height:1.55;margin-top:12px}
+  .feat{display:flex;align-items:center;gap:9px;font-family:'Rokkitt',Georgia,serif;font-size:13.5px;font-weight:600;color:#211D18;margin-top:11px}
+  .feat .dot{width:8px;height:8px;border-radius:50%;flex:0 0 auto}
+  .form{flex:1;padding:30px 28px;display:flex;flex-direction:column}
+  .eyebrow{font-size:11.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:#A38E6F}
+  .title{font-size:23px;font-weight:700;margin-top:3px}
+  .in{width:100%;padding:11px 13px;border:1px solid #F0E7D8;border-radius:10px;background:#fff;font-size:13.5px;color:#211D18;font-family:inherit;outline:none;transition:border-color .14s,box-shadow .14s}
+  .in::placeholder{color:#BBB3A6}
+  .in:focus{border-color:#EF5A41;box-shadow:0 0 0 3px #FCE6DF}
+  .cta{width:100%;border:none;cursor:pointer;background:#EF5A41;color:#fff;border-radius:999px;padding:12px;font-family:'Rokkitt',Georgia,serif;font-size:15px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;transition:background .15s,transform .1s}
+  .cta:hover{background:#C7461F}
+  .cta:active{transform:scale(.98)}
+  .lnk{color:#EF5A41;font-weight:600;cursor:pointer;text-decoration:none}
+  .lnk:hover{color:#C7461F}
+  .turnstile{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:14px;font-size:11px;color:#928C80}
+  .switch{border-top:1px solid #EDE7DD;margin-top:18px;padding-top:16px;text-align:center;font-size:12.5px;color:#857F74}
+  @media(max-width:540px){.card{flex-direction:column}.brand{width:100%;flex:none}}
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">
+      <div style="display:flex;align-items:center;gap:9px">
+        <div class="logo-dots">
+          <span style="background:#EF5A41"></span>
+          <span style="background:#EFB23E"></span>
+          <span style="background:#54B5A2"></span>
+          <span style="background:#211D18"></span>
+        </div>
+        <span class="slab" style="font-size:17px;font-weight:700">Get A Job</span>
+      </div>
+      <div>
+        <div class="slab hero">Craft your<br>career.</div>
+        <div class="subline">Get A Job reads your real experience, finds the roles you can actually land, tailors each CV, and puts AI coaches in your corner.</div>
+      </div>
+      <div>
+        <div class="feat"><span class="dot" style="background:#EF5A41"></span>Roles that fit you</div>
+        <div class="feat"><span class="dot" style="background:#54B5A2"></span>CVs tailored per job</div>
+        <div class="feat"><span class="dot" style="background:#EFB23E"></span>AI agents in your corner</div>
+      </div>
+    </div>
+
+    <div class="form">
+      <div id="eyebrow" class="slab eyebrow">Welcome back</div>
+      <div id="title" class="slab title">Sign in</div>
+
+      <div style="margin-top:20px">
+        <label for="em">Email</label>
+        <input id="em" class="in" type="email" placeholder="you@email.com">
+      </div>
+
+      <div style="margin-top:14px">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <label for="pw" style="margin-bottom:6px">Password</label>
+          <span id="forgot" class="lnk" style="font-size:11.5px">Forgot?</span>
+        </div>
+        <input id="pw" class="in" type="password" placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;">
+      </div>
+
+      <div id="invite-row" style="margin-top:14px;display:none">
+        <div style="display:flex;justify-content:space-between;align-items:baseline">
+          <label for="iv" style="margin-bottom:6px">Invite code</label>
+          <span style="font-size:11px;color:#928C80">From your pilot invite</span>
+        </div>
+        <input id="iv" class="in" type="text" placeholder="GETAJOBPILOT">
+      </div>
+
+      <label id="consent-row" style="display:none;margin-top:14px;font-weight:400;align-items:flex-start;gap:8px;font-size:11.5px;color:#857F74;line-height:1.45;cursor:pointer">
+        <input type="checkbox" style="margin-top:1px;accent-color:#EF5A41;width:15px;height:15px;flex:0 0 auto">
+        <span>I agree to the <span class="lnk" style="font-size:11.5px">Terms</span> &amp; <span class="lnk" style="font-size:11.5px">Privacy Policy</span>.</span>
+      </label>
+
+      <button id="cta" class="cta" style="margin-top:20px">Sign in<span aria-hidden="true">&rarr;</span></button>
+
+      <div class="turnstile"><span aria-hidden="true">&#128274;</span>Protected by Cloudflare Turnstile</div>
+
+      <div class="switch">
+        <span id="switch-label">New to Get A Job? </span><span id="switch" class="lnk">Create an account</span>
+      </div>
+    </div>
+  </div>
+
+<script>
+(function(){
+  var mode='signin';
+  var eyebrow=document.getElementById('eyebrow'),title=document.getElementById('title'),
+      invite=document.getElementById('invite-row'),consent=document.getElementById('consent-row'),
+      forgot=document.getElementById('forgot'),cta=document.getElementById('cta'),
+      sl=document.getElementById('switch-label'),sw=document.getElementById('switch');
+  function render(){
+    if(mode==='signin'){
+      eyebrow.textContent='Welcome back';title.textContent='Sign in';
+      invite.style.display='none';consent.style.display='none';forgot.style.display='';
+      cta.innerHTML='Sign in<span aria-hidden="true">&rarr;</span>';
+      sl.textContent='New to Get A Job? ';sw.textContent='Create an account';
+    }else{
+      eyebrow.textContent='Get started';title.textContent='Create your account';
+      invite.style.display='';consent.style.display='flex';forgot.style.display='none';
+      cta.innerHTML='Create account<span aria-hidden="true">&rarr;</span>';
+      sl.textContent='Already have an account? ';sw.textContent='Sign in';
+    }
+  }
+  sw.addEventListener('click',function(){mode=(mode==='signin')?'signup':'signin';render();});
+})();
+</script>
+</body>
+</html>

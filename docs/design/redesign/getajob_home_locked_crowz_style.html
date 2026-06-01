@@ -1,0 +1,150 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@500;600;700;800&display=swap">
+<h2 class="sr-only">The locked Get A Job home dashboard in the Crowz visual language: cream sidebar, slab-serif headings, career stats, a clean cream focus card with no accent line, a matches chart, top matched roles, and career tracks.</h2>
+<style>
+.gajx *{box-sizing:border-box}
+.gajx{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#211D18}
+.slab{font-family:'Rokkitt',Georgia,serif}
+.gajc{background:#fff;border-radius:18px;box-shadow:0 10px 28px rgba(40,25,10,.07);transition:transform .16s ease}
+.gajc.lift:hover{transform:translateY(-3px)}
+.gajnav{display:flex;align-items:center;gap:8px;font-family:'Rokkitt',Georgia,serif;font-size:15px;font-weight:500;color:#857F74;padding:5px 0;cursor:pointer}
+.gajnav.on{color:#211D18;font-weight:700}
+.gajbtn{border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,background .15s}
+.gajbtn:active{transform:scale(.94)}
+.gajrow{display:flex;align-items:center;gap:10px;padding:8px 6px;border-radius:12px;transition:background .14s}
+.gajrow:hover{background:#FAF6F0}
+</style>
+<div class="gajx">
+<div style="background:#E79B7D;padding:13px;border-radius:26px">
+ <div style="display:flex;background:#fff;border-radius:18px;overflow:hidden">
+
+  <div style="width:150px;flex:0 0 150px;background:#EFE7DB;padding:20px 16px;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div style="display:grid;grid-template-columns:repeat(2,7px);gap:3px">
+        <span style="width:7px;height:7px;border-radius:50%;background:#EF5A41"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#EFB23E"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#54B5A2"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#211D18"></span>
+      </div>
+      <span class="slab" style="font-size:17px;font-weight:700">Get A Job</span>
+    </div>
+    <div style="text-align:center;margin-top:26px">
+      <div style="width:54px;height:54px;border-radius:50%;background:#F0A98E;display:flex;align-items:center;justify-content:center;margin:0 auto"><span class="slab" style="color:#fff;font-size:22px;font-weight:700">E</span></div>
+      <div class="slab" style="font-size:16px;font-weight:700;margin-top:10px">Eli Englard</div>
+      <div style="font-size:11.5px;color:#928C80">Aspiring PM</div>
+    </div>
+    <div style="margin-top:26px;display:flex;flex-direction:column;gap:3px">
+      <div class="gajnav on"><i class="ti ti-home" style="font-size:17px" aria-hidden="true"></i>Home<span style="width:6px;height:6px;border-radius:50%;background:#EF5A41;margin-left:auto"></span></div>
+      <div class="gajnav"><i class="ti ti-route" style="font-size:17px" aria-hidden="true"></i>Roadmap</div>
+      <div class="gajnav"><i class="ti ti-briefcase" style="font-size:17px" aria-hidden="true"></i>Jobs</div>
+      <div class="gajnav"><i class="ti ti-layout-kanban" style="font-size:17px" aria-hidden="true"></i>Tracker</div>
+      <div class="gajnav"><i class="ti ti-brand-linkedin" style="font-size:17px" aria-hidden="true"></i>LinkedIn</div>
+      <div class="gajnav"><i class="ti ti-message-2" style="font-size:17px" aria-hidden="true"></i>Chat</div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:9px;color:#928C80">
+      <span style="width:26px;height:26px;border-radius:50%;background:#211D18;display:flex;align-items:center;justify-content:center"><i class="ti ti-logout" style="font-size:14px;color:#fff" aria-hidden="true"></i></span>
+      <span style="font-size:13px">Log out</span>
+    </div>
+  </div>
+
+  <div style="flex:1;min-width:0;padding:22px 22px 24px">
+
+    <div style="display:flex;align-items:center;justify-content:space-between">
+      <div class="slab" style="font-size:27px;font-weight:800;letter-spacing:-.01em">Good afternoon, Eli</div>
+      <div style="display:flex;gap:8px">
+        <span style="position:relative;width:30px;height:30px;border-radius:50%;background:#F3ECE0;display:flex;align-items:center;justify-content:center"><i class="ti ti-bell" style="font-size:16px;color:#6B655B" aria-hidden="true"></i><span style="position:absolute;top:4px;right:5px;width:7px;height:7px;border-radius:50%;background:#EF5A41"></span></span>
+        <span style="width:30px;height:30px;border-radius:50%;background:#F3ECE0;display:flex;align-items:center;justify-content:center"><i class="ti ti-settings" style="font-size:16px;color:#6B655B" aria-hidden="true"></i></span>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:14px;margin-top:20px">
+      <div style="flex:1;min-width:0;border-bottom:1.5px solid #EDE7DD;padding-bottom:8px">
+        <div style="display:flex;align-items:center;gap:7px"><span style="font-size:12px;color:#928C80">Live matches</span><span style="width:16px;height:16px;border-radius:50%;background:#54B5A2;display:flex;align-items:center;justify-content:center"><i class="ti ti-arrow-up" style="font-size:11px;color:#fff" aria-hidden="true"></i></span></div>
+        <div class="slab" style="font-size:28px;font-weight:800;margin-top:4px">21</div>
+      </div>
+      <div style="flex:1;min-width:0;border-bottom:1.5px solid #EDE7DD;padding-bottom:8px">
+        <div style="display:flex;align-items:center;gap:7px"><span style="font-size:12px;color:#928C80">In pipeline</span><span style="width:16px;height:16px;border-radius:50%;background:#54B5A2;display:flex;align-items:center;justify-content:center"><i class="ti ti-arrow-up" style="font-size:11px;color:#fff" aria-hidden="true"></i></span></div>
+        <div class="slab" style="font-size:28px;font-weight:800;margin-top:4px">7</div>
+      </div>
+      <div style="flex:1;min-width:0;border-bottom:1.5px solid #EDE7DD;padding-bottom:8px">
+        <div style="display:flex;align-items:center;gap:7px"><span style="font-size:12px;color:#928C80">Interviews</span><span style="width:16px;height:16px;border-radius:50%;background:#EFB23E;display:flex;align-items:center;justify-content:center"><i class="ti ti-arrow-up" style="font-size:11px;color:#fff" aria-hidden="true"></i></span></div>
+        <div class="slab" style="font-size:28px;font-weight:800;margin-top:4px">1</div>
+      </div>
+    </div>
+
+    <div class="gajc lift" style="background:#F3ECE0;box-shadow:none;margin-top:18px;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;gap:14px">
+      <div style="min-width:0">
+        <div style="font-size:11px;color:#A38E6F;font-weight:500">today's focus · picked by your agent</div>
+        <div class="slab" style="font-size:18px;font-weight:700;margin-top:5px;line-height:1.2">Reach out to the PM lead at <span style="color:#C7461F">Monday.com</span></div>
+        <div style="font-size:12px;color:#8C8478;margin-top:5px">Your strongest open match — and the role went live two days ago.</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px">
+        <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true"><circle cx="23" cy="23" r="20" fill="none" stroke="#54B5A2" stroke-width="4" stroke-dasharray="70 200" stroke-linecap="round" transform="rotate(-90 23 23)"/><circle cx="23" cy="23" r="14" fill="none" stroke="#EFB23E" stroke-width="4" stroke-dasharray="40 200" stroke-linecap="round" transform="rotate(40 23 23)"/></svg>
+        <button class="gajbtn" id="focusBtn" style="width:50px;height:50px;border-radius:50%;background:#EF5A41" aria-label="Start"><i class="ti ti-arrow-right" style="font-size:22px;color:#fff" aria-hidden="true"></i></button>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:14px;margin-top:16px">
+      <div class="gajc lift" style="flex:1.45;min-width:0;padding:16px 16px 10px">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <span class="slab" style="font-size:16px;font-weight:700">Job matches this week</span>
+          <span style="font-size:11px;color:#8C8478;border:1px solid #EDE7DD;border-radius:999px;padding:3px 9px">26–31 May</span>
+        </div>
+        <svg viewBox="0 0 300 132" width="100%" height="118" style="margin-top:8px" aria-hidden="true">
+          <path d="M10,84 C35,60 46,54 62,58 C82,63 90,80 112,92 C132,103 142,100 152,86 C167,66 176,46 190,46 C208,46 216,64 236,68 C256,72 272,54 292,44 L292,124 L10,124 Z" fill="#FBEBC9"/>
+          <path d="M10,84 C35,60 46,54 62,58 C82,63 90,80 112,92 C132,103 142,100 152,86 C167,66 176,46 190,46 C208,46 216,64 236,68 C256,72 272,54 292,44" fill="none" stroke="#EFB23E" stroke-width="3.5" stroke-linecap="round"/>
+          <circle cx="190" cy="46" r="5.5" fill="#EFB23E" stroke="#fff" stroke-width="2.5"/>
+          <g><rect x="150" y="14" width="80" height="26" rx="8" fill="#fff" stroke="#F0E7D8"/><text x="190" y="31" text-anchor="middle" font-family="Rokkitt,serif" font-weight="700" font-size="13" fill="#211D18">21 new matches</text></g>
+          <g font-family="system-ui" font-size="9" fill="#B4ADA1" text-anchor="middle"><text x="35" y="128">Mon</text><text x="80" y="128">Tue</text><text x="125" y="128">Wed</text><text x="170" y="128">Thu</text><text x="215" y="128">Fri</text><text x="260" y="128">Sat</text></g>
+        </svg>
+      </div>
+
+      <div class="gajc lift" style="flex:1;min-width:0;padding:16px 16px">
+        <span class="slab" style="font-size:16px;font-weight:700">Top matched roles</span>
+        <div style="margin-top:8px;display:flex;flex-direction:column;gap:2px">
+          <div class="gajrow"><span style="width:30px;height:30px;border-radius:50%;background:#FCE6DF;display:flex;align-items:center;justify-content:center"><span class="slab" style="font-size:13px;font-weight:700;color:#C7461F">M</span></span><div style="flex:1;min-width:0"><div class="slab" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Associate PM</div><div style="font-size:10.5px;color:#928C80">Monday.com</div></div><span class="slab" style="font-size:14px;font-weight:800">92%</span></div>
+          <div class="gajrow"><span style="width:30px;height:30px;border-radius:50%;background:#DBEEE8;display:flex;align-items:center;justify-content:center"><span class="slab" style="font-size:13px;font-weight:700;color:#2E7C6B">R</span></span><div style="flex:1;min-width:0"><div class="slab" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Product Ops</div><div style="font-size:10.5px;color:#928C80">Riverside</div></div><span class="slab" style="font-size:14px;font-weight:800">78%</span></div>
+          <div class="gajrow"><span style="width:30px;height:30px;border-radius:50%;background:#FBEBC9;display:flex;align-items:center;justify-content:center"><span class="slab" style="font-size:13px;font-weight:700;color:#9A6B0E">F</span></span><div style="flex:1;min-width:0"><div class="slab" style="font-size:13px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">BizOps Analyst</div><div style="font-size:10.5px;color:#928C80">Fireblocks</div></div><span class="slab" style="font-size:14px;font-weight:800">71%</span></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:4px;margin-top:8px;font-size:12px;color:#C7461F;font-weight:500">View all jobs<i class="ti ti-chevron-right" style="font-size:14px" aria-hidden="true"></i></div>
+      </div>
+    </div>
+
+    <div style="background:#DBEEE8;border-radius:20px;margin-top:16px;padding:16px 18px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <span class="slab" style="font-size:16px;font-weight:700">Your tracks, ranked by fit</span>
+        <span style="font-size:11px;color:#5C8478">updated today</span>
+      </div>
+      <div style="display:flex;gap:11px">
+        <div class="gajc lift" style="flex:1;min-width:0;padding:13px 13px">
+          <span style="width:30px;height:30px;border-radius:50%;background:#EF5A41;display:flex;align-items:center;justify-content:center"><i class="ti ti-rocket" style="font-size:16px;color:#fff" aria-hidden="true"></i></span>
+          <div class="slab" style="font-size:13px;font-weight:700;margin-top:9px">Product</div>
+          <div style="font-size:10.5px;color:#928C80">strong fit</div>
+          <div class="slab" style="font-size:21px;font-weight:800;margin-top:4px">84%</div>
+        </div>
+        <div class="gajc lift" style="flex:1;min-width:0;padding:13px 13px">
+          <span style="width:30px;height:30px;border-radius:50%;background:#54B5A2;display:flex;align-items:center;justify-content:center"><i class="ti ti-headset" style="font-size:16px;color:#fff" aria-hidden="true"></i></span>
+          <div class="slab" style="font-size:13px;font-weight:700;margin-top:9px">Cust. success</div>
+          <div style="font-size:10.5px;color:#928C80">building</div>
+          <div class="slab" style="font-size:21px;font-weight:800;margin-top:4px">55%</div>
+        </div>
+        <div class="gajc lift" style="flex:1;min-width:0;padding:13px 13px">
+          <span style="width:30px;height:30px;border-radius:50%;background:#EFB23E;display:flex;align-items:center;justify-content:center"><i class="ti ti-trending-up" style="font-size:16px;color:#fff" aria-hidden="true"></i></span>
+          <div class="slab" style="font-size:13px;font-weight:700;margin-top:9px">Biz dev</div>
+          <div style="font-size:10.5px;color:#928C80">stretch</div>
+          <div class="slab" style="font-size:21px;font-weight:800;margin-top:4px">32%</div>
+        </div>
+        <div class="gajbtn lift" style="flex:0 0 96px;background:#54B5A2;border-radius:18px;padding:13px;flex-direction:column;align-items:flex-start;justify-content:space-between">
+          <span class="slab" style="font-size:14px;font-weight:700;color:#fff;text-align:left;line-height:1.1">Full<br>roadmap</span>
+          <span style="width:28px;height:28px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;margin-top:14px"><i class="ti ti-arrow-right" style="font-size:15px;color:#2E7C6B" aria-hidden="true"></i></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+ </div>
+</div>
+</div>
+<script>
+(function(){var b=document.getElementById('focusBtn');if(b){b.addEventListener('click',function(){b.style.background='#54B5A2';b.innerHTML='<i class="ti ti-check" style="font-size:22px;color:#fff" aria-hidden="true"></i>';});}})();
+</script>

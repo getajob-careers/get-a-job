@@ -1,6 +1,20 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-05-19 (through PR #70 — Settings/account-deletion, Practicum bundle, skill-propagation fix, tutorial replaces "Your Roles", direct-ATS job cache rebuild, doc count corrections).**
+**Last updated: 2026-06-02 (Login restyle + redesign foundation — branch `eli/redesign-foundation-login`).**
+
+## Visual redesign in flight
+
+Rolling page by page in funnel order. Foundation tokens + Rokkitt + the
+first two primitives (RdButton, RdCard) land additively — nothing reads
+`--rd-*` until a page opts in. Login is the first restyled page.
+Standing rules + token reference + typecheck baseline live in
+`tasks/redesign.md`. Preview pipeline for public routes:
+`scripts/preview-login.mjs` (Playwright + pdf-lib) →
+`docs/design/redesign/previews/<page>.pdf`. Auth-gated pages will
+choose between test-session and component-harness preview strategies
+per-PR before building.
+
+---
 
 This file is the **living source of truth** for the project. Read this first, then follow cross-references for depth.
 

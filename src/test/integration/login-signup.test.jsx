@@ -64,10 +64,16 @@ function renderLogin() {
 }
 
 function switchToSignup() {
-  // Mode switch lives in the tablist at the top of the form. role="tab"
-  // keeps it distinct from the form's submit button (which also matches
-  // /sign in/i) so existing submit-button assertions still resolve uniquely.
-  fireEvent.click(screen.getByRole('tab', { name: /sign up/i }));
+  // Mode switch lives in a "New to Get A Job? Create an account" bottom
+  // link in the redesigned Login. Click the "Create an account" button
+  // (role="button") to swap modes via the URL-driven setSearchParams.
+  fireEvent.click(screen.getByRole('button', { name: /create an account/i }));
+}
+
+function switchToForgot() {
+  // Forgot is the small "Forgot?" link to the right of the password label
+  // in signin mode (replaces the old "Forgot password?" label).
+  fireEvent.click(screen.getByRole('button', { name: /^forgot\??$/i }));
 }
 
 describe('Login — signin mode (default)', () => {
@@ -78,7 +84,7 @@ describe('Login — signin mode (default)', () => {
 
   it('submit button is enabled regardless of password strength', () => {
     renderLogin();
-    fireEvent.change(screen.getByPlaceholderText(/you@example/i), { target: { value: 'u@x.com' } });
+    fireEvent.change(screen.getByPlaceholderText(/you@email/i), { target: { value: 'u@x.com' } });
     fireEvent.change(screen.getByPlaceholderText(/••••••••/), { target: { value: 'weak' } });
     expect(screen.getByRole('button', { name: /sign in/i })).not.toBeDisabled();
   });
@@ -108,11 +114,13 @@ describe('Login — signup mode', () => {
     renderLogin();
     switchToSignup();
     fireEvent.change(screen.getByPlaceholderText(/john doe/i), { target: { value: 'Jane Doe' } });
-    fireEvent.change(screen.getByPlaceholderText(/you@example/i), { target: { value: 'u@x.com' } });
-    // Pilot gate (Aug-Nov 2026) added a required invite-code field on
-    // signup. canSubmit now also requires inviteCode.trim() non-empty.
-    // Fill it so this test continues to isolate the password-strength gate.
-    fireEvent.change(screen.getByPlaceholderText(/from your invitation/i), { target: { value: 'TEST-CODE' } });
+    fireEvent.change(screen.getByPlaceholderText(/you@email/i), { target: { value: 'u@x.com' } });
+    // Pilot gate added a required invite-code field on signup; the
+    // redesign added a required Terms & Privacy consent checkbox.
+    // Fill / check both so this test continues to isolate the
+    // password-strength gate.
+    fireEvent.change(screen.getByPlaceholderText(/GETAJOBPILOT/i), { target: { value: 'TEST-CODE' } });
+    fireEvent.click(screen.getByLabelText(/i agree to the/i));
 
     const submitBtn = screen.getByRole('button', { name: /create account/i });
     const pwInput = screen.getByPlaceholderText(/meets all 5 requirements/i);
@@ -128,7 +136,7 @@ describe('Login — signup mode', () => {
     fireEvent.change(pwInput, { target: { value: 'Abcdefg1' } });
     expect(submitBtn).toBeDisabled();
 
-    // All 5: enabled
+    // All 5 + consent: enabled
     fireEvent.change(pwInput, { target: { value: 'StrongPass1!' } });
     expect(submitBtn).not.toBeDisabled();
   });
@@ -137,7 +145,7 @@ describe('Login — signup mode', () => {
     renderLogin();
     switchToSignup();
     fireEvent.change(screen.getByPlaceholderText(/john doe/i), { target: { value: 'Jane Doe' } });
-    fireEvent.change(screen.getByPlaceholderText(/you@example/i), { target: { value: 'u@x.com' } });
+    fireEvent.change(screen.getByPlaceholderText(/you@email/i), { target: { value: 'u@x.com' } });
     fireEvent.change(screen.getByPlaceholderText(/meets all 5 requirements/i), { target: { value: 'weak' } });
     fireEvent.click(screen.getByRole('button', { name: /create account/i }));
     expect(signUp).not.toHaveBeenCalled();
@@ -147,7 +155,7 @@ describe('Login — signup mode', () => {
 describe('Login — forgot mode', () => {
   it('hides the password field entirely', () => {
     renderLogin();
-    fireEvent.click(screen.getByRole('button', { name: /forgot password/i }));
+    switchToForgot();
     expect(screen.queryByPlaceholderText(/••••••••/)).not.toBeInTheDocument();
     expect(screen.queryByPlaceholderText(/meets all 5 requirements/i)).not.toBeInTheDocument();
     expect(screen.queryByLabelText(/password requirements/i)).not.toBeInTheDocument();
@@ -173,7 +181,7 @@ describe('Login — captcha gating', () => {
 
   it('renders the Turnstile widget in forgot-password mode', () => {
     renderLogin();
-    fireEvent.click(screen.getByRole('button', { name: /forgot password/i }));
+    switchToForgot();
     expect(screen.getByTestId('turnstile-mock')).toBeInTheDocument();
   });
 });

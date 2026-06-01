@@ -1,0 +1,117 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@500;600;700;800&display=swap">
+<h2 class="sr-only">A Get A Job Tracker page mockup: a four-column kanban (Saved, Applied, Interview, Offer) of job applications with company, role, and match, plus add and filter controls.</h2>
+<style>
+.gajx *{box-sizing:border-box}
+.gajx{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#211D18}
+.slab{font-family:'Rokkitt',Georgia,serif}
+.gajnav{display:flex;align-items:center;gap:8px;font-family:'Rokkitt',Georgia,serif;font-size:15px;font-weight:500;color:#857F74;padding:5px 0;cursor:pointer}
+.gajnav.on{color:#211D18;font-weight:700}
+.fpill{font-family:'Rokkitt',Georgia,serif;font-size:12px;font-weight:600;color:#5A5247;background:#F3ECE0;border-radius:999px;padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px}
+.kcol{flex:1;min-width:0;background:#FAF6F0;border-radius:12px;padding:8px}
+.kc{background:#fff;border:1px solid #EFE6D8;border-radius:10px;padding:9px;margin-top:7px;cursor:grab;transition:transform .14s,border-color .14s}
+.kc:hover{transform:translateY(-2px);border-color:#E0D6C4}
+.gajbtn{border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:5px;transition:transform .12s,background .15s;font-family:'Rokkitt',Georgia,serif;font-weight:600}
+.gajbtn:active{transform:scale(.96)}
+</style>
+<div class="gajx">
+<div style="background:#E79B7D;padding:13px;border-radius:26px">
+ <div style="display:flex;background:#fff;border-radius:18px;overflow:hidden">
+
+  <div style="width:150px;flex:0 0 150px;background:#EFE7DB;padding:20px 16px;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div style="display:grid;grid-template-columns:repeat(2,7px);gap:3px">
+        <span style="width:7px;height:7px;border-radius:50%;background:#EF5A41"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#EFB23E"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#54B5A2"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#211D18"></span>
+      </div>
+      <span class="slab" style="font-size:17px;font-weight:700">Get A Job</span>
+    </div>
+    <div style="text-align:center;margin-top:26px">
+      <div style="width:54px;height:54px;border-radius:50%;background:#F0A98E;display:flex;align-items:center;justify-content:center;margin:0 auto"><span class="slab" style="color:#fff;font-size:22px;font-weight:700">E</span></div>
+      <div class="slab" style="font-size:16px;font-weight:700;margin-top:10px">Eli Englard</div>
+      <div style="font-size:11.5px;color:#928C80">Aspiring PM</div>
+    </div>
+    <div style="margin-top:26px;display:flex;flex-direction:column;gap:3px">
+      <div class="gajnav"><i class="ti ti-home" style="font-size:17px" aria-hidden="true"></i>Home</div>
+      <div class="gajnav"><i class="ti ti-route" style="font-size:17px" aria-hidden="true"></i>Roadmap</div>
+      <div class="gajnav"><i class="ti ti-briefcase" style="font-size:17px" aria-hidden="true"></i>Jobs</div>
+      <div class="gajnav on"><i class="ti ti-layout-kanban" style="font-size:17px" aria-hidden="true"></i>Tracker<span style="width:6px;height:6px;border-radius:50%;background:#EF5A41;margin-left:auto"></span></div>
+      <div class="gajnav"><i class="ti ti-brand-linkedin" style="font-size:17px" aria-hidden="true"></i>LinkedIn</div>
+      <div class="gajnav"><i class="ti ti-message-2" style="font-size:17px" aria-hidden="true"></i>Chat</div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:9px;color:#928C80">
+      <span style="width:26px;height:26px;border-radius:50%;background:#211D18;display:flex;align-items:center;justify-content:center"><i class="ti ti-logout" style="font-size:14px;color:#fff" aria-hidden="true"></i></span>
+      <span style="font-size:13px">Log out</span>
+    </div>
+  </div>
+
+  <div style="flex:1;min-width:0;padding:22px 22px 24px">
+
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px">
+      <div>
+        <div class="slab" style="font-size:27px;font-weight:800;letter-spacing:-.01em">Tracker</div>
+        <div style="font-size:12.5px;color:#928C80;margin-top:2px">Every application, from saved to offer.</div>
+      </div>
+      <button class="gajbtn" style="background:#EF5A41;color:#fff;font-size:12.5px;border-radius:999px;padding:8px 14px"><i class="ti ti-plus" style="font-size:15px" aria-hidden="true"></i>Add</button>
+    </div>
+
+    <div style="display:flex;gap:8px;margin-top:14px">
+      <span class="fpill"><i class="ti ti-filter" style="font-size:13px" aria-hidden="true"></i>All tracks<i class="ti ti-chevron-down" style="font-size:13px" aria-hidden="true"></i></span>
+      <span class="fpill">By match<i class="ti ti-chevron-down" style="font-size:13px" aria-hidden="true"></i></span>
+    </div>
+
+    <div style="display:flex;gap:9px;margin-top:14px">
+
+      <div class="kcol">
+        <div style="display:flex;align-items:center;gap:5px;padding:0 3px"><span style="width:7px;height:7px;border-radius:50%;background:#C9C1B4"></span><span class="slab" style="font-size:12px;font-weight:700">Saved</span><span style="flex:1"></span><span style="font-size:10.5px;color:#A39B8D">4</span></div>
+        <div class="kc">
+          <div style="display:flex;align-items:center;justify-content:space-between"><span style="width:22px;height:22px;border-radius:6px;background:#DBEEE8;display:flex;align-items:center;justify-content:center"><span class="slab" style="font-size:11px;font-weight:700;color:#2E7C6B">F</span></span><span class="slab" style="font-size:10.5px;font-weight:700;color:#2E7C6B">66%</span></div>
+          <div class="slab" style="font-size:11.5px;font-weight:700;line-height:1.2;margin-top:6px">Product Analyst</div>
+          <div style="font-size:10px;color:#928C80">Fireblocks</div>
+        </div>
+        <div class="kc">
+          <div style="display:flex;align-items:center;justify-content:space-between"><span style="width:22px;height:22px;border-radius:6px;background:#FBEBC9;display:flex;align-items:center;justify-content:center"><span class="slab" style="font-size:11px;font-weight:700;color:#9A6B0E">W</span></span><span class="slab" style="font-size:10.5px;font-weight:700;color:#9A6B0E">58%</span></div>
+          <div class="slab" style="font-size:11.5px;font-weight:700;line-height:1.2;margin-top:6px">Associate PM</div>
+          <div style="font-size:10px;color:#928C80">Wix</div>
+        </div>
+        <div style="text-align:center;font-size:10px;color:#B4ADA1;margin-top:7px">+2 more</div>
+      </div>
+
+      <div class="kcol">
+        <div style="display:flex;align-items:center;gap:5px;padding:0 3px"><span style="width:7px;height:7px;border-radius:50%;background:#EFB23E"></span><span class="slab" style="font-size:12px;font-weight:700">Applied</span><span style="flex:1"></span><span style="font-size:10.5px;color:#A39B8D">5</span></div>
+        <div class="kc">
+          <div style="display:flex;align-items:center;justify-content:space-between"><span style="width:22px;height:22px;border-radius:6px;background:#FCE6DF;display:flex;align-items:center;justify-content:center"><span class="slab" style="font-size:11px;font-weight:700;color:#C7461F">M</span></span><span class="slab" style="font-size:10.5px;font-weight:700;color:#C7461F">92%</span></div>
+          <div class="slab" style="font-size:11.5px;font-weight:700;line-height:1.2;margin-top:6px">Associate PM</div>
+          <div style="font-size:10px;color:#928C80">Monday.com</div>
+        </div>
+        <div class="kc">
+          <div style="display:flex;align-items:center;justify-content:space-between"><span style="width:22px;height:22px;border-radius:6px;background:#DBEEE8;display:flex;align-items:center;justify-content:center"><span class="slab" style="font-size:11px;font-weight:700;color:#2E7C6B">R</span></span><span class="slab" style="font-size:10.5px;font-weight:700;color:#2E7C6B">78%</span></div>
+          <div class="slab" style="font-size:11.5px;font-weight:700;line-height:1.2;margin-top:6px">Product Ops</div>
+          <div style="font-size:10px;color:#928C80">Riverside</div>
+        </div>
+        <div style="text-align:center;font-size:10px;color:#B4ADA1;margin-top:7px">+3 more</div>
+      </div>
+
+      <div class="kcol">
+        <div style="display:flex;align-items:center;gap:5px;padding:0 3px"><span style="width:7px;height:7px;border-radius:50%;background:#54B5A2"></span><span class="slab" style="font-size:12px;font-weight:700">Interview</span><span style="flex:1"></span><span style="font-size:10.5px;color:#A39B8D">1</span></div>
+        <div class="kc">
+          <div style="display:flex;align-items:center;justify-content:space-between"><span style="width:22px;height:22px;border-radius:6px;background:#DBEEE8;display:flex;align-items:center;justify-content:center"><span class="slab" style="font-size:11px;font-weight:700;color:#2E7C6B">L</span></span><span class="slab" style="font-size:10.5px;font-weight:700;color:#2E7C6B">71%</span></div>
+          <div class="slab" style="font-size:11.5px;font-weight:700;line-height:1.2;margin-top:6px">PM, Growth</div>
+          <div style="font-size:10px;color:#928C80">Lemonade</div>
+          <div style="font-size:9.5px;color:#2E7C6B;font-weight:600;margin-top:5px">Thu 2pm</div>
+        </div>
+      </div>
+
+      <div class="kcol">
+        <div style="display:flex;align-items:center;gap:5px;padding:0 3px"><span style="width:7px;height:7px;border-radius:50%;background:#EF5A41"></span><span class="slab" style="font-size:12px;font-weight:700">Offer</span><span style="flex:1"></span><span style="font-size:10.5px;color:#A39B8D">0</span></div>
+        <div style="border:1.5px dashed #E2D8C8;border-radius:10px;padding:14px 8px;margin-top:7px;text-align:center;font-size:10px;color:#B4ADA1;line-height:1.4">Your offers land here</div>
+      </div>
+
+    </div>
+
+  </div>
+ </div>
+</div>
+</div>

@@ -12,6 +12,8 @@ import PostHogProvider from '@/lib/PostHogProvider';
 import Login from '@/pages/Login';
 import ResetPassword from '@/pages/ResetPassword';
 import Landing from '@/pages/Landing';
+import Privacy from '@/pages/Privacy';
+import Terms from '@/pages/Terms';
 import RouteFallback, { ChunkErrorBoundary } from '@/components/RouteFallback';
 
 // Use the LAZY map (sibling of pages.config.js) so every authenticated
@@ -107,6 +109,8 @@ function App() {
             <Route path="/Landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/privacy" element={<Privacy />} />
+            <Route path="/terms" element={<Terms />} />
             <Route path="/*" element={<AuthenticatedApp />} />
           </Routes>
         </Router>
