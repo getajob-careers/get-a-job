@@ -479,7 +479,7 @@ export const proofSignalExtractionLogic = {
     "multiple_tools_5_plus": {
       "confidence_modifier": 0.2
     },
-    "tools_used_in_experience_section": {
+    "skills_listed_in_experience_section": {
       "confidence_modifier": 0.15
     }
   },

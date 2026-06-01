@@ -17,7 +17,7 @@ export const onboardingInputMapping = {
         "fit_scoring",
         "domain_detection"
       ],
-      "experience.tools_used": [
+      "experience.skills": [
         "proof_signals",
         "skill_inference",
         "domain_detection"

@@ -749,8 +749,7 @@ Deno.serve(async (req) => {
       // (DB audit, 2026-05-21). 4000 is purely defensive — covers a 5x growth
       // headroom without crowding the prompt budget.
       responsibilities: trunc(exp.responsibilities, 4000),
-      skills_used: safeArray(exp.skills_used).slice(0, 20).map((s) => trunc(s, 60)),
-      tools_used: safeArray(exp.tools_used).slice(0, 20).map((s) => trunc(s, 60)),
+      skills: safeArray(exp.skills).slice(0, 40).map((s) => trunc(s, 60)),
       type: trunc(exp.type, 50),
       bucket: classifyExperience(exp), // "military" | "volunteering" | "professional"
     });
@@ -816,7 +815,7 @@ Deno.serve(async (req) => {
       projects: safeArray(projects).slice(0, 10).map((p: any) => ({
         name: trunc(p.name, 100),
         description: trunc(p.description, 500),
-        skills_demonstrated: safeArray(p.skills_demonstrated).slice(0, 20).map((s) => trunc(s, 60)),
+        skills: safeArray(p.skills).slice(0, 20).map((s) => trunc(s, 60)),
         url: trunc(p.url, 300),
       })),
       certifications: safeArray(certifications).slice(0, 10).map((c: any) => ({
@@ -1018,16 +1017,16 @@ D. What you MAY do:
     Length: 3-4 sentences. (Page-fit is handled by the PDF renderer; About Me density is now governed by grounding richness, not the line budget.)
     Sentence 1: reference the user's primary qualification — degree program from USER DATA.education_list[0], OR current role + company from USER DATA.professional_experiences[0] — AND name at least one matched skill from the list above using its natural-language phrasing (NOT the snake_case ID).
     Sentence 2: connect to the target role's domain by referencing ONE of: a USER DATA-grounded fact about the role context (notable_customers entry, scale_signals entry), the function_family + req_seniority, or one more matched skill. The target company name may appear AT MOST once across the whole About Me.
-    Sentence 3 (and optional 4): expand with ONE more concrete grounding — another matched skill in context, a quantified outcome from a proof_signal or story, or a specific tool the user has used. Prefer naming a story metric or a USER DATA.experiences[i].skills_used entry over generic positioning.
+    Sentence 3 (and optional 4): expand with ONE more concrete grounding — another matched skill in context, a quantified outcome from a proof_signal or story, or a specific tool the user has used. Prefer naming a story metric or a USER DATA.experiences[i].skills entry over generic positioning.
     Every concrete claim (skill, company, metric, role title) must trace to USER DATA. If a claim doesn't trace, leave it out.
     ANTI-FABRICATION (load-bearing — read carefully):
     Do NOT infer domains, industries, functional specialties, or career interests that are NOT supported by USER DATA. The bridge from a degree to a specialty is the part to watch — degrees alone do not grant work experience. Specifically:
-      - A "Business Administration" degree alone does NOT mean the user has consulting, finance, marketing, or strategy experience. Their actual experiences + skills + tools_used + projects.skills_demonstrated are what count.
+      - A "Business Administration" degree alone does NOT mean the user has consulting, finance, marketing, or strategy experience. Their actual experiences + skills + projects.skills are what count.
       - A "Computer Science" degree alone does NOT mean the user has software engineering experience — only the experience rows + skill list do.
       - Do NOT write "interested in X" / "exploring X" / "focused on X" unless USER DATA.summary, USER DATA.cv_tailoring_strategy, or USER DATA.primary_domain explicitly says so.
     The target role's domain (e.g. "fintech", "cybersecurity", "B2B SaaS") IS safe to reference in the About Me when ANY of these is true:
       - one of the user's experiences was AT a company in that domain, OR
-      - one of the user's skills, skills_canonical, or tools_used names that domain, OR
+      - one of the user's skills or skills_canonical names that domain, OR
       - one of the user's projects or proof_signals references that domain.
     If none of those hold, leave the industry out.
     BAD: "Business Administration student at State University with consulting experience, interested in fintech." (Consulting + fintech were INFERRED — neither traces to an experience, skill, or project.)
@@ -1040,7 +1039,7 @@ D. What you MAY do:
     Example: "Business Administration student at State University with two years of operational support experience at the Civic Scholars Foundation, focused on customer-facing roles in product and operations."
     If you can't write 2 honestly-grounded sentences, write 1.
     ANTI-FABRICATION (load-bearing — read carefully):
-    Do NOT infer domains, industries, or specialties from the user's DEGREE or the TARGET ROLE alone. A Business Administration degree alone does not give the user "consulting", "strategy", "finance", or "marketing" experience — only their actual experience rows + skills + tools_used do. The target role's industry (e.g. "fintech", "cybersecurity") IS safe to reference when the user has experience at a company in that domain OR their skills/tools_used/projects name that domain. If neither holds, leave the industry out.
+    Do NOT infer domains, industries, or specialties from the user's DEGREE or the TARGET ROLE alone. A Business Administration degree alone does not give the user "consulting", "strategy", "finance", or "marketing" experience — only their actual experience rows + skills do. The target role's industry (e.g. "fintech", "cybersecurity") IS safe to reference when the user has experience at a company in that domain OR their skills/projects name that domain. If neither holds, leave the industry out.
     BAD: "Business Administration student at State University with consulting experience, interested in fintech." (Both inferred — neither traces.)
     GOOD: "Business Administration student at State University." (1 sentence — honest beats padded.)`;
 
@@ -1068,7 +1067,7 @@ ${ABOUT_ME_RULES}
     (2) TOOLS PRESERVED — every entry from the story's \`tools_used\` array MUST appear in the CV: ideally in the matching experience's bullet, or — if it doesn't fit naturally there — in the Skills & Tools section. Story tools are confirmed-real and must surface somewhere visible.
     (3) NO CROSS-EXPERIENCE SMEARING — story content stays attached to its \`experience_label\`. Do not sprinkle the story's adoption/metric/result language across other experiences in the CV. If you wrote a bullet referencing "88% adoption" under Experience A, do not also reference "adoption metrics" or similar paraphrases under Experience B unless Experience B has its own story or responsibilities text supporting it.
 - PROOF SIGNALS — USER DATA.proof_signals is a ranked list of pre-extracted, pre-scored evidence from the user's onboarding analysis. Each entry has a proof_signal name, mapped_skills, primary_domain, and confidence_score. When writing a professional bullet, FIRST check whether one of the proof_signals describes work the user did in that role — if so, prefer the proof_signal's evidence over rephrasing the freeform responsibilities text. Treat proof_signals as second only to Story Bank for bullet sourcing (Stories > proof_signals > responsibilities). Do NOT list proof_signal names in the output — they are inputs that ground bullets, not standalone CV content.
-- SKILLS_USED + TOOLS_USED — every experience entry in USER DATA carries skills_used[] and tools_used[] arrays alongside its responsibilities text. These are the user's confirmed skills and tools for that specific role. When writing bullets for that experience, surface specific items from these arrays whenever they fit naturally (e.g. a marketing internship with tools_used: ["HubSpot", "Google Analytics"] should mention HubSpot or Google Analytics in a bullet that describes the matching work). Any tool from tools_used that doesn't fit naturally in a bullet MUST still appear in skills.tools[] so it's visible.
+- EXPERIENCE SKILLS — every experience entry in USER DATA carries a skills[] array alongside its responsibilities text. This is the user's confirmed list of skills + tools/platforms for that specific role (one combined array). When writing bullets for that experience, surface specific items from skills[] whenever they fit naturally (e.g. a marketing internship with skills: ["HubSpot", "Google Analytics", "lifecycle marketing"] should mention HubSpot, Google Analytics, or lifecycle work in bullets that describe the matching work). Any platform-style entry that doesn't fit naturally in a bullet MUST still appear in skills.tools[] so it's visible.
 - Skills & Tools: categorize as Domain (role-specific capabilities) and Tools (software/platforms/systems). Languages do NOT go here.
 - Languages: human spoken/written languages only. Draw them from the user's skills list if language-like entries are there; draw also from language_hints[] which flags likely languages based on location. Include a proficiency level (Native | Fluent | Professional | Conversational | Basic) when the source or hint supports it, otherwise omit level.
 - Education: include every entry from USER DATA.education_list — render them in the order provided. Do not invent additional entries; the LLM's job is to format what's given, not to synthesize a second entry from another source.
@@ -1106,7 +1105,7 @@ EXAMPLES:
 ✅ AUTHENTIC professional bullet (good): "Owned customer relationships and drove 88% adoption in Q1 via 12 user research interviews with security leads."
 - (this is OK because the user actually did customer success work — JD keywords genuinely apply)
 
-PROJECTS — reorder by JD relevance. When USER DATA.projects is non-empty, score each project on overlap between its skills_demonstrated[] and the JD's must_include_phrases / tools_and_platforms / domain_terms. Output the top 2-3 most relevant projects first; drop the least relevant if you're tight on space. Project bullets follow the same XYZ structure as experience bullets — what was built + tools used + outcome. Include the URL when present.
+PROJECTS — reorder by JD relevance. When USER DATA.projects is non-empty, score each project on overlap between its skills[] and the JD's must_include_phrases / tools_and_platforms / domain_terms. Output the top 2-3 most relevant projects first; drop the least relevant if you're tight on space. Project bullets follow the same XYZ structure as experience bullets — what was built + tools used + outcome. Include the URL when present.
 
 EDUCATION COURSEWORK — select by JD relevance. USER DATA.education_list[i].relevant_coursework[] is the user's full coursework array (up to 20 items). For the output education[i].coursework[], pick up to 5 courses ranked by overlap with the JD's domain_terms and must_include_phrases. A Finance JD should surface "Financial Modeling, Corporate Finance"; a Product JD should surface "Data Science, SQL, Product Management". Pad with breadth courses only if there's no JD-aligned coursework. NEVER invent course names.
 
@@ -1306,7 +1305,7 @@ OUTPUT SCHEMA (JSON):
   "professional_experiences": [
     { "title": "string — EXACT title from USER DATA", "company": "string — EXACT company from USER DATA", "dates": "string — e.g. Oct 2025 - Present", "bullets": [
       "Action verb + what the user did + concrete outcome (tool / scope / metric). 14-22 words. Anchored in a story metric or proof_signal when available.",
-      "Second bullet referencing a specific tool from tools_used or a named project — different facet of the role than bullet 1.",
+      "Second bullet referencing a specific item from the experience's skills[] (a tool, platform, or named capability) or a named project — different facet of the role than bullet 1.",
       "Third bullet describing scope, stakeholders, or impact — preferably with a quantified outcome from the source data.",
       "Optional fourth bullet when the role has rich source material (multiple stories, multiple named tools, distinct facets). 5 bullets is the hard ceiling; beyond that the section reads as a list rather than a profile."
     ] }
@@ -1441,7 +1440,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     //
     // Eligibility heuristic: at least 30% of must_include_phrases overlap
     // (case-insensitive substring) with USER DATA.skills + every experience's
-    // skills_used + tools_used. Below that, the role is genuinely a stretch
+    // unified `skills` column. Below that, the role is genuinely a stretch
     // and the thin-source warning UX should fire instead of an LLM retry.
     let retryFired = false;
     if (jdKeywords && jdKeywords.must_include_phrases.length > 0) {
@@ -1454,8 +1453,8 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         // Build a haystack of the user's claimable skill vocabulary
         const userSkillHaystack = [
           ...(userContext.skills || []),
-          ...allExperiences.flatMap((e: any) => [...(e.skills_used || []), ...(e.tools_used || [])]),
-          ...((userContext.projects || []) as any[]).flatMap((p: any) => p.skills_demonstrated || []),
+          ...allExperiences.flatMap((e: any) => (e.skills || [])),
+          ...((userContext.projects || []) as any[]).flatMap((p: any) => p.skills || []),
         ].map((s) => String(s).toLowerCase()).join(' \n ');
         const overlapCount = jdKeywords.must_include_phrases.filter(
           (p) => userSkillHaystack.includes(String(p).toLowerCase())
@@ -2113,8 +2112,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       const sourceHaystackParts: string[] = [];
       for (const e of allExperiences as any[]) {
         if (e.responsibilities) sourceHaystackParts.push(String(e.responsibilities));
-        for (const s of (e.skills_used || [])) sourceHaystackParts.push(String(s));
-        for (const t of (e.tools_used || [])) sourceHaystackParts.push(String(t));
+        for (const s of (e.skills || [])) sourceHaystackParts.push(String(s));
       }
       for (const story of storiesForLLM as any[]) {
         for (const m of (story.metrics || [])) sourceHaystackParts.push(String(m));
@@ -2130,7 +2128,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       for (const s of (userContext.skills || [])) sourceHaystackParts.push(String(s));
       for (const p of (userContext.projects || []) as any[]) {
         if (p.description) sourceHaystackParts.push(String(p.description));
-        for (const s of (p.skills_demonstrated || [])) sourceHaystackParts.push(String(s));
+        for (const s of (p.skills || [])) sourceHaystackParts.push(String(s));
       }
       const sourceHaystack = sourceHaystackParts.join(' \n ').toLowerCase();
       // Quantified token regex — captures numbers (incl. percentages, currency,

@@ -7,7 +7,6 @@ import { createPageUrl } from "@/utils";
 import { Loader2 } from "lucide-react";
 import { EMPTY_PROFILE, cleanProfilePayload, ALLOWED_EXPERIENCE_TYPES, inferExperienceType } from "@/lib/onboardingPayload";
 import { normalizeEducationLevel, parseEducationDateRange } from "@/lib/educationPolicy";
-import { withUnifiedSkills } from "@/lib/unifiedSkills";
 import { resolveDueDate } from "@/lib/taskDueDate";
 import { ONBOARDING_FALLBACK_TASKS } from "@/lib/onboardingFallbackTasks";
 import { track, EVENTS } from "@/lib/analytics";
@@ -223,8 +222,7 @@ export default function Onboarding() {
           end_date: e.end_date || "",
           is_current: e.is_current || false,
           responsibilities: Array.isArray(e.responsibilities) ? e.responsibilities.join("\n") : (e.responsibilities || ""),
-          skills_used: e.skills_used || [],
-          tools_used: e.tools_used || [],
+          skills: e.skills || [],
           managed_people: e.managed_people ?? false,
           cross_functional: e.cross_functional ?? false,
         })));
@@ -234,7 +232,7 @@ export default function Onboarding() {
           name: p.name || "",
           description: p.description || "",
           url: p.url || "",
-          skills_demonstrated: p.skills_demonstrated || [],
+          skills: p.skills || [],
         })));
       }
       if (certRes.data?.length) {
@@ -357,8 +355,7 @@ export default function Onboarding() {
         responsibilities: Array.isArray(e.responsibilities)
           ? e.responsibilities.join("\n")
           : (e.responsibilities || ""),
-        skills_used: e.skills_used || [],
-        tools_used: [],
+        skills: e.skills || [],
       })));
     }
 
@@ -389,7 +386,7 @@ export default function Onboarding() {
         (e.degree_type || "").trim() !== "" ||
         (e.field_of_study || "").trim() !== "";
       if (!hasContent) continue;
-      const row = withUnifiedSkills({
+      const row = {
         user_id: user.id,
         institution: e.institution || null,
         education_level: e.education_level || null,
@@ -402,10 +399,10 @@ export default function Onboarding() {
         honors: e.honors || [],
         relevant_coursework: e.relevant_coursework || [],
         academic_projects: e.academic_projects || [],
-        skills_developed: e.skills_developed || [],
+        skills: e.skills || [],
         location: e.location || null,
         display_order: e.display_order ?? i,
-      }, "education");
+      };
       if (e.id) {
         const { error: updErr } = await supabase
           .from("education")
@@ -559,7 +556,7 @@ export default function Onboarding() {
         const insertedIds = { exp: [], proj: [], cert: [] };
         try {
           if (experiences.length > 0) {
-            const { data, error } = await supabase.from("experiences").insert(experiences.map((e) => withUnifiedSkills({
+            const { data, error } = await supabase.from("experiences").insert(experiences.map((e) => ({
               user_id: user.id,
               title: e.title,
               company: e.company,
@@ -568,32 +565,31 @@ export default function Onboarding() {
               end_date: e.end_date,
               is_current: e.is_current,
               responsibilities: e.responsibilities,
-              skills_used: e.skills_used,
-              tools_used: e.tools_used,
+              skills: e.skills || [],
               managed_people: e.managed_people ?? false,
               cross_functional: e.cross_functional ?? false,
-            }, "experience"))).select("id");
+            }))).select("id");
             if (error) throw error;
             insertedIds.exp = (data || []).map((r) => r.id);
           }
           if (projects.length > 0) {
-            const { data, error } = await supabase.from("projects").insert(projects.map((p) => withUnifiedSkills({
+            const { data, error } = await supabase.from("projects").insert(projects.map((p) => ({
               user_id: user.id,
               name: p.name,
               description: p.description,
               url: p.url,
-              skills_demonstrated: p.skills_demonstrated || [],
-            }, "project"))).select("id");
+              skills: p.skills || [],
+            }))).select("id");
             if (error) throw error;
             insertedIds.proj = (data || []).map((r) => r.id);
           }
           if (certifications.length > 0) {
-            const { data, error } = await supabase.from("certifications").insert(certifications.map((c) => withUnifiedSkills({
+            const { data, error } = await supabase.from("certifications").insert(certifications.map((c) => ({
               user_id: user.id,
               name: c.name,
               issuer: c.issuer,
               date_earned: c.date_earned,
-            }, "certification"))).select("id");
+            }))).select("id");
             if (error) throw error;
             insertedIds.cert = (data || []).map((r) => r.id);
           }
@@ -830,8 +826,7 @@ export default function Onboarding() {
           end_date: e.end_date,
           is_current: e.is_current,
           responsibilities: e.responsibilities,
-          skills_used: e.skills_used,
-          tools_used: e.tools_used,
+          skills: e.skills || [],
           managed_people: e.managed_people ?? false,
           cross_functional: e.cross_functional ?? false,
         }));
@@ -848,7 +843,7 @@ export default function Onboarding() {
             name: proj.name,
             description: proj.description,
             url: proj.url,
-            skills_demonstrated: proj.skills_demonstrated || [],
+            skills: proj.skills || [],
             user_id: user.id,
           })))
           .select("id");

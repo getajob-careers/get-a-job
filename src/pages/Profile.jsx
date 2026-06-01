@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { aggregateProfileSkills } from "@/lib/skillAggregation";
-import { withUnifiedSkills } from "@/lib/unifiedSkills";
 import { recomputeProfileSkillsCanonical } from "@/lib/recomputeProfileSkillsCanonical";
 import { suggestSkillsFromUnmapped } from "@/lib/suggestSkillFromUnmapped";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
@@ -347,7 +346,7 @@ export default function Profile() {
   }, [profile]);
 
   const [certForm, setCertForm] = useState({ name: "", issuer: "" });
-  const [projectForm, setProjectForm] = useState({ name: "", description: "", skills_demonstrated: [], url: "" });
+  const [projectForm, setProjectForm] = useState({ name: "", description: "", skills: [], url: "" });
   const [expForm, setExpForm] = useState({
     id: null,
     title: "",
@@ -357,8 +356,7 @@ export default function Profile() {
     end_date: "",
     is_current: false,
     responsibilities: "",
-    skills_used: [],
-    tools_used: [],
+    skills: [],
   });
 
   const saveProfile = async () => {
@@ -450,11 +448,11 @@ export default function Profile() {
 
   const addCert = async () => {
     if (!certForm.name) return;
-    const { error } = await supabase.from("certifications").insert(withUnifiedSkills({
+    const { error } = await supabase.from("certifications").insert({
       name: certForm.name,
       issuer: certForm.issuer,
       user_id: user.id,
-    }, "certification"));
+    });
     if (error) {
       console.error("Failed to add certification:", error);
       toast.error("Failed to add certification: " + error.message);
@@ -467,13 +465,13 @@ export default function Profile() {
 
   const addProject = async () => {
     if (!projectForm.name) return;
-    const { error } = await supabase.from("projects").insert(withUnifiedSkills({ ...projectForm, user_id: user.id }, "project"));
+    const { error } = await supabase.from("projects").insert({ ...projectForm, user_id: user.id });
     if (error) {
       console.error("Failed to add project:", error);
       toast.error("Failed to add project: " + error.message);
       return;
     }
-    setProjectForm({ name: "", description: "", skills_demonstrated: [], url: "" });
+    setProjectForm({ name: "", description: "", skills: [], url: "" });
     queryClient.invalidateQueries({ queryKey: ["projects"] });
     toast.success("Project added.");
   };
@@ -487,14 +485,13 @@ export default function Profile() {
     end_date: "",
     is_current: false,
     responsibilities: "",
-    skills_used: [],
-    tools_used: [],
+    skills: [],
   });
 
   const addExperience = async () => {
     if (!expForm.title || !expForm.company) return;
     const { id, ...payload } = expForm;
-    const row = withUnifiedSkills({ ...payload, user_id: user.id }, "experience");
+    const row = { ...payload, user_id: user.id };
     const { error } = id
       ? await supabase.from("experiences").update(row).eq("id", id).eq("user_id", user.id)
       : await supabase.from("experiences").insert(row);
@@ -1133,19 +1130,11 @@ export default function Profile() {
                   />
                 </div>
                 <SkillTagInput
-                  label="Skills used"
-                  description="Skills you applied in this role — feeds CV bullet generation and skill-graph matching."
-                  tags={expForm.skills_used}
-                  onChange={(v) => setExpForm({ ...expForm, skills_used: v })}
-                  placeholder="e.g. customer success, stakeholder management"
-                  suggestionType="library_skills"
-                />
-                <SkillTagInput
-                  label="Tools used"
-                  description="Software, platforms, or systems you used in this role."
-                  tags={expForm.tools_used || []}
-                  onChange={(v) => setExpForm({ ...expForm, tools_used: v })}
-                  placeholder="e.g. Excel, Python, Salesforce"
+                  label="Skills & tools"
+                  description="Skills you applied + software / platforms you used in this role — feeds CV bullet generation and skill-graph matching."
+                  tags={expForm.skills}
+                  onChange={(v) => setExpForm({ ...expForm, skills: v })}
+                  placeholder="e.g. customer success, stakeholder management, Salesforce, Python"
                   suggestionType="library_skills"
                 />
                 <button type="button" onClick={addExperience} className="p-btn p-btn-primary">
@@ -1191,8 +1180,7 @@ export default function Profile() {
                               end_date: e.end_date || "",
                               is_current: !!e.is_current,
                               responsibilities: e.responsibilities || "",
-                              skills_used: e.skills_used || [],
-                              tools_used: e.tools_used || [],
+                              skills: e.skills || [],
                             })}
                             className="p-btn p-btn-ghost p-btn-sm"
                           >
