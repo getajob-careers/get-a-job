@@ -57,7 +57,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "customer success": ["customer_health_management", "customer_relationship_management"],
   "customer success management": ["customer_health_management", "customer_success_strategy"],
   "project management": ["project_management"],
-  "product management": ["product_strategy", "product_discovery"],
   "product lifecycle management": ["product_lifecycle_management"],
   "account management": ["account_management"],
   "marketing strategy": ["marketing_campaign_design", "go_to_market_strategy"],
@@ -81,8 +80,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "js": ["frontend_development"],
   "typescript": ["frontend_development"],
   "ts": ["frontend_development"],
-  "html": ["frontend_development"],
-  "css": ["frontend_development"],
   "react": ["frontend_development"],
   "react.js": ["frontend_development"],
   "reactjs": ["frontend_development"],
@@ -98,7 +95,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "express.js": ["backend_development"],
   "mern stack": ["frontend_development", "backend_development"],
   "java": ["backend_development", "programming_fundamentals"],
-  "kotlin": ["backend_development"],
   "go": ["backend_development"],
   "golang": ["backend_development"],
   "ruby": ["backend_development"],
@@ -134,12 +130,10 @@ export const SKILL_ALIASES: Record<string, string[]> = {
 
   // ── Analytical & Quantitative (chip bank) ────────────────────────────────
   "data analysis": ["data_analysis", "user_behavior_analysis"],
-  "data analytics": ["data_analysis", "user_behavior_analysis"],
   "a/b testing": ["ab_testing"],
   "ab testing": ["ab_testing"],
   "a/b tests": ["ab_testing"],
   "forecasting": ["sales_forecasting", "budget_forecasting"],
-  "kpi reporting": ["dashboarding", "data_analysis"],
   "cohort analysis": ["user_behavior_analysis"],
   "statistics": ["data_analysis"],
   "business intelligence": ["bi_tools", "dashboarding"],
@@ -211,7 +205,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "jenkins": ["cloud_platforms_devops"],
   "circleci": ["cloud_platforms_devops"],
   "github actions": ["cloud_platforms_devops"],
-  "cloud infrastructure": ["cloud_platforms_devops", "cloud_platforms"],
   "microservices": ["backend_development"],
   "service mesh": ["cloud_platforms_devops"],
   "istio": ["cloud_platforms_devops"],
@@ -220,8 +213,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "linux": ["linux_administration", "linux_fundamentals"],
   "linux administration": ["linux_administration"],
   "bash": ["scripting_automation"],
-  "shell scripting": ["scripting_automation"],
-  "networking": ["networking_fundamentals", "it_infrastructure_networking"],
 
   // ── Data engineering tools ──────────────────────────────────────────────
   "spark": ["databases"],
@@ -231,13 +222,8 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "apache kafka": ["api_integrations"],
   "airflow": ["workflow_automation"],
   "apache airflow": ["workflow_automation"],
-  "snowflake": ["bi_tools", "databases"],
   "databricks": ["bi_tools", "databases"],
   "dbt": ["sql"],
-  "big data": ["databases"],
-  "etl": ["sql", "data_analysis"],
-  "data pipelines": ["sql", "data_analysis"],
-  "data engineering": ["sql", "databases"],
 
   // ── ML / AI tools (frequency rising fast in IL JDs) ─────────────────────
   "pytorch": ["machine_learning", "machine_learning_fundamentals"],
@@ -251,23 +237,15 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "llm": ["machine_learning_fundamentals"],
   "llms": ["machine_learning_fundamentals"],
   "langchain": ["machine_learning_fundamentals"],
-  "openai api": ["api_integrations", "machine_learning_fundamentals"],
-  "rag": ["machine_learning", "natural_language_processing"],
   "vector databases": ["vector_databases"],
   "pinecone": ["vector_databases"],
   "weaviate": ["vector_databases"],
   "cuda": ["cuda_gpu_programming"],
-  "ai tools": ["machine_learning_fundamentals"],
   "ai-first": ["machine_learning_fundamentals"],
 
   // ── Programming languages still missing ─────────────────────────────────
-  "c++": ["programming_fundamentals", "backend_development"],
-  "c/c++": ["programming_fundamentals", "backend_development"],
-  "c#": ["backend_development", "programming_fundamentals"],
-  ".net": ["backend_development"],
   "rust": ["backend_development", "programming_fundamentals"],
   "scala": ["backend_development", "programming_fundamentals"],
-  "swift": ["programming_fundamentals"],
   "php": ["backend_development"],
 
   // ── Frontend frameworks still missing ───────────────────────────────────
@@ -279,11 +257,7 @@ export const SKILL_ALIASES: Record<string, string[]> = {
 
   // ── Generic engineering practices ───────────────────────────────────────
   "code quality": ["analytical_thinking"],
-  "performance tuning": ["analytical_thinking"],
-  "performance optimization": ["analytical_thinking"],
   "scalability": ["analytical_thinking"],
-  "system design": ["analytical_thinking"],
-  "open source": ["git_version_control"],
 
   // ── Business / Product domain (snake_case + variant fixes) ──────────────
   "product_management": ["product_strategy", "product_discovery"],
@@ -291,7 +265,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "automation": ["workflow_automation", "scripting_automation"],
   "process automation": ["workflow_automation", "bizops_process_automation"],
   "workflow automation": ["workflow_automation"],
-  "analytics": ["data_analysis"],
   "data visualization": ["data_visualization_design"],
 
   // ── Sales / GTM tools ───────────────────────────────────────────────────
@@ -336,8 +309,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "full stack": ["backend_development", "frontend_development"],
 
   // Frontend variants
-  "frontend technologies": ["frontend_development"],
-  "web technologies": ["frontend_development"],
 
   // Programming generics
   "programming": ["programming_fundamentals"],
@@ -350,11 +321,9 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "design patterns": ["programming_fundamentals"],
   "oop": ["programming_fundamentals"],
   "object-oriented programming": ["programming_fundamentals"],
-  "concurrency": ["programming_fundamentals"],
   "memory management": ["programming_fundamentals"],
   "operating systems": ["programming_fundamentals"],
   "scripting": ["scripting_automation"],
-  "scripting languages": ["scripting_automation"],
 
   // Troubleshooting / support
   "troubleshooting": ["technical_troubleshooting"],
@@ -392,7 +361,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "product_design": ["ui_visual_design", "product_discovery"],
   "product_marketing": ["marketing_campaign_design", "go_to_market_strategy"],
   "product marketing": ["marketing_campaign_design", "go_to_market_strategy"],
-  "design systems": ["design_system_management"],
   "design": ["ui_visual_design"],
   "ai-assisted design tools": ["ai_design_tools"],
 
@@ -405,9 +373,7 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "ai tools": ["machine_learning_fundamentals"],
   "genai": ["machine_learning_fundamentals"],
   "generative ai": ["machine_learning_fundamentals"],
-  "ai agents": ["machine_learning_fundamentals"],
   "large language models": ["machine_learning_fundamentals", "natural_language_processing"],
-  "llm-based applications": ["machine_learning_fundamentals"],
   "machine learning frameworks": ["machine_learning"],
 
   // Analytics
@@ -417,8 +383,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
 
   // Business / commercial
   "b2b": ["go_to_market_strategy"],
-  "b2b_saas": ["product_strategy", "go_to_market_strategy"],
-  "b2b saas": ["product_strategy", "go_to_market_strategy"],
   "business_development": ["go_to_market_strategy"],
   "business development": ["go_to_market_strategy"],
   "partnerships": ["go_to_market_strategy"],
@@ -448,8 +412,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "client relationship management": ["customer_relationship_management"],
 
   // Security existing
-  "incident response": ["incident_response_forensics"],
-  "incident_response": ["incident_response_forensics"],
   "incident response and forensics": ["incident_response_forensics"],
 
   // Methodology phrases that sometimes leak into skills — alias them so they
@@ -467,9 +429,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   // Data tools
   "snowflake": ["snowflake_warehouse"],
   "observability": ["observability_engineering"],
-  "observability tools": ["observability_engineering"],
-  "monitoring": ["observability_engineering"],
-  "monitoring tools": ["observability_engineering"],
 
   // Productivity tools
   "monday.com": ["monday_com"],
@@ -491,7 +450,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
 
   // AI / dev tooling
   "cursor": ["cursor_ai_editor"],
-  "langgraph": ["langgraph_framework"],
   "workato": ["workato_ipaas"],
   "okta": ["okta_iam"],
   "active directory": ["active_directory"],
@@ -649,8 +607,6 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "zapier": ["zapier_ipaas"],
   "mcp": ["mcp_protocol"],
   "model context protocol": ["mcp_protocol"],
-  "claude": ["claude_assistant"],
-  "claude code": ["claude_assistant"],
   "claude_code": ["claude_assistant"],
   "openai api": ["openai_api"],
   "openai": ["openai_api"],
