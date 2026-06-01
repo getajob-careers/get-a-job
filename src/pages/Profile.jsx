@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { aggregateProfileSkills } from "@/lib/skillAggregation";
+import { withUnifiedSkills } from "@/lib/unifiedSkills";
 import { recomputeProfileSkillsCanonical } from "@/lib/recomputeProfileSkillsCanonical";
 import { suggestSkillsFromUnmapped } from "@/lib/suggestSkillFromUnmapped";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
@@ -457,11 +458,11 @@ export default function Profile() {
 
   const addCert = async () => {
     if (!certForm.name) return;
-    const { error } = await supabase.from("certifications").insert({
+    const { error } = await supabase.from("certifications").insert(withUnifiedSkills({
       name: certForm.name,
       issuer: certForm.issuer,
       user_id: user.id,
-    });
+    }, "certification"));
     if (error) {
       console.error("Failed to add certification:", error);
       toast.error("Failed to add certification: " + error.message);
@@ -474,7 +475,7 @@ export default function Profile() {
 
   const addProject = async () => {
     if (!projectForm.name) return;
-    const { error } = await supabase.from("projects").insert({ ...projectForm, user_id: user.id });
+    const { error } = await supabase.from("projects").insert(withUnifiedSkills({ ...projectForm, user_id: user.id }, "project"));
     if (error) {
       console.error("Failed to add project:", error);
       toast.error("Failed to add project: " + error.message);
@@ -501,7 +502,7 @@ export default function Profile() {
   const addExperience = async () => {
     if (!expForm.title || !expForm.company) return;
     const { id, ...payload } = expForm;
-    const row = { ...payload, user_id: user.id };
+    const row = withUnifiedSkills({ ...payload, user_id: user.id }, "experience");
     const { error } = id
       ? await supabase.from("experiences").update(row).eq("id", id).eq("user_id", user.id)
       : await supabase.from("experiences").insert(row);

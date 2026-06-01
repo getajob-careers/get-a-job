@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import { DEGREE_TYPE_OPTIONS, dropdownValueForDegreeType, EDUCATION_LEVELS } from "@/lib/educationPolicy";
 import { recomputeProfileSkillsCanonical } from "@/lib/recomputeProfileSkillsCanonical";
+import { withUnifiedSkills } from "@/lib/unifiedSkills";
 
 // Multi-entry education editor for the AddInformation Profile page.
 // Mirrors the Experience-tab pattern: an add/edit form at the top, a list
@@ -101,7 +102,7 @@ export default function EducationTab({ user }) {
         ? undefined
         : (educations.reduce((max, e) => Math.max(max, e.display_order ?? 0), -1) + 1);
 
-      const payload = {
+      const payload = withUnifiedSkills({
         user_id: user.id,
         institution: form.institution || null,
         education_level: form.education_level || null,
@@ -117,7 +118,7 @@ export default function EducationTab({ user }) {
         skills_developed: form.skills_developed || [],
         location: form.location || null,
         ...(nextDisplayOrder !== undefined && { display_order: nextDisplayOrder }),
-      };
+      }, "education");
 
       if (form.id) {
         const { error } = await supabase

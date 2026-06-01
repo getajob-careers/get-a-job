@@ -7,6 +7,7 @@ import { createPageUrl } from "@/utils";
 import { Loader2 } from "lucide-react";
 import { EMPTY_PROFILE, cleanProfilePayload, ALLOWED_EXPERIENCE_TYPES, inferExperienceType } from "@/lib/onboardingPayload";
 import { normalizeEducationLevel, parseEducationDateRange } from "@/lib/educationPolicy";
+import { withUnifiedSkills } from "@/lib/unifiedSkills";
 import { resolveDueDate } from "@/lib/taskDueDate";
 import { ONBOARDING_FALLBACK_TASKS } from "@/lib/onboardingFallbackTasks";
 import { track, EVENTS } from "@/lib/analytics";
@@ -388,7 +389,7 @@ export default function Onboarding() {
         (e.degree_type || "").trim() !== "" ||
         (e.field_of_study || "").trim() !== "";
       if (!hasContent) continue;
-      const row = {
+      const row = withUnifiedSkills({
         user_id: user.id,
         institution: e.institution || null,
         education_level: e.education_level || null,
@@ -404,7 +405,7 @@ export default function Onboarding() {
         skills_developed: e.skills_developed || [],
         location: e.location || null,
         display_order: e.display_order ?? i,
-      };
+      }, "education");
       if (e.id) {
         const { error: updErr } = await supabase
           .from("education")
@@ -558,7 +559,7 @@ export default function Onboarding() {
         const insertedIds = { exp: [], proj: [], cert: [] };
         try {
           if (experiences.length > 0) {
-            const { data, error } = await supabase.from("experiences").insert(experiences.map((e) => ({
+            const { data, error } = await supabase.from("experiences").insert(experiences.map((e) => withUnifiedSkills({
               user_id: user.id,
               title: e.title,
               company: e.company,
@@ -571,28 +572,28 @@ export default function Onboarding() {
               tools_used: e.tools_used,
               managed_people: e.managed_people ?? false,
               cross_functional: e.cross_functional ?? false,
-            }))).select("id");
+            }, "experience"))).select("id");
             if (error) throw error;
             insertedIds.exp = (data || []).map((r) => r.id);
           }
           if (projects.length > 0) {
-            const { data, error } = await supabase.from("projects").insert(projects.map((p) => ({
+            const { data, error } = await supabase.from("projects").insert(projects.map((p) => withUnifiedSkills({
               user_id: user.id,
               name: p.name,
               description: p.description,
               url: p.url,
               skills_demonstrated: p.skills_demonstrated || [],
-            }))).select("id");
+            }, "project"))).select("id");
             if (error) throw error;
             insertedIds.proj = (data || []).map((r) => r.id);
           }
           if (certifications.length > 0) {
-            const { data, error } = await supabase.from("certifications").insert(certifications.map((c) => ({
+            const { data, error } = await supabase.from("certifications").insert(certifications.map((c) => withUnifiedSkills({
               user_id: user.id,
               name: c.name,
               issuer: c.issuer,
               date_earned: c.date_earned,
-            }))).select("id");
+            }, "certification"))).select("id");
             if (error) throw error;
             insertedIds.cert = (data || []).map((r) => r.id);
           }
