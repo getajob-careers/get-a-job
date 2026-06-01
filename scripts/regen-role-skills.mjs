@@ -39,14 +39,29 @@ for (const m of map.role_skill_mapping || []) {
   if (m?.role_id) mappingById.set(m.role_id, m);
 }
 
+// Source 04_role_skill_mapping.ts mixes two shapes: 147 flat-string rows
+// + 23 object-form rows that carry `{skill_id, importance, notes}` for
+// future role↔requirement weighting. The generated mirror is consumed by
+// roleSkillsLookup.suggestSkillsForTitle which expects flat strings, so
+// flatten here. Source stays object-form to preserve tier data.
+function unwrapSkillId(entry) {
+  if (typeof entry === "string") return entry;
+  if (entry && typeof entry.skill_id === "string") return entry.skill_id;
+  return null;
+}
+function flattenBucket(arr) {
+  if (!Array.isArray(arr)) return [];
+  return arr.map(unwrapSkillId).filter(Boolean);
+}
+
 const roles = (lib.roles || []).map((r) => {
   const m = mappingById.get(r.id) || mappingById.get(r.role_id) || {};
   return {
     id: r.id || r.role_id,
     title: r.title || r.standardized_title || "",
     alternate_titles: Array.isArray(r.alternate_titles) ? r.alternate_titles : [],
-    core_skills: Array.isArray(m.core_skills) ? m.core_skills : [],
-    secondary_skills: Array.isArray(m.secondary_skills) ? m.secondary_skills : [],
+    core_skills: flattenBucket(m.core_skills),
+    secondary_skills: flattenBucket(m.secondary_skills),
   };
 }).filter((r) => r.id && r.title);
 

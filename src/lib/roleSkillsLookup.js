@@ -133,6 +133,17 @@ const ACCEPTED_VIAS = new Set([
   "title_prefix", "alternate_prefix",
 ]);
 
+// Unwrap object-form entries `{skill_id, importance, ...}` to bare strings.
+// The source library mixes two shapes (147 flat-string rows + 23 object-form
+// rows preserving tier metadata for future weighting); the regen script now
+// flattens, but defend here so a partially-regenerated JSON can't break the
+// onboarding suggestion chips.
+function unwrapSkillId(entry) {
+  if (typeof entry === "string") return entry;
+  if (entry && typeof entry.skill_id === "string") return entry.skill_id;
+  return null;
+}
+
 export function suggestSkillsForTitle(rawTitle) {
   const matched = matchRoleToLibrary(rawTitle);
   if (!matched) return null;
@@ -141,7 +152,9 @@ export function suggestSkillsForTitle(rawTitle) {
   const skillIds = [
     ...(Array.isArray(role.core_skills) ? role.core_skills : []),
     ...(Array.isArray(role.secondary_skills) ? role.secondary_skills : []),
-  ];
+  ]
+    .map(unwrapSkillId)
+    .filter(Boolean);
   // Dedupe
   const uniq = [...new Set(skillIds)];
   if (uniq.length === 0) return null;

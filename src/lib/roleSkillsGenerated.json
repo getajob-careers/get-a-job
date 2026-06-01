@@ -875,53 +875,17 @@
         "Growth Lead"
       ],
       "core_skills": [
-        {
-          "skill_id": "conversion_rate_optimization",
-          "importance": "critical",
-          "notes": "Primary function — owns CRO strategy and execution across digital properties"
-        },
-        {
-          "skill_id": "marketing_experimentation",
-          "importance": "critical",
-          "notes": "Designs and runs structured A/B testing programs with statistical rigor"
-        },
-        {
-          "skill_id": "funnel_optimization",
-          "importance": "critical",
-          "notes": "Analyzes and optimizes user journeys from acquisition through activation and conversion"
-        },
-        {
-          "skill_id": "analytical_thinking",
-          "importance": "high",
-          "notes": "Data interpretation, hypothesis development, and evidence-based decision making"
-        },
-        {
-          "skill_id": "engagement_personalization_tools",
-          "importance": "high",
-          "notes": "Manages chatbots, pop-ups, overlays, product tours, and personalization engines"
-        }
+        "conversion_rate_optimization",
+        "marketing_experimentation",
+        "funnel_optimization",
+        "analytical_thinking",
+        "engagement_personalization_tools"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "stakeholder_management",
-          "importance": "medium",
-          "notes": "Works cross-functionally with SEO, lifecycle, product, and regional marketing teams"
-        },
-        {
-          "skill_id": "cross_functional_collaboration",
-          "importance": "medium",
-          "notes": "Coordinates experiments and initiatives across multiple teams and markets"
-        },
-        {
-          "skill_id": "communication",
-          "importance": "medium",
-          "notes": "Communicates experiment results, growth insights, and strategic recommendations"
-        },
-        {
-          "skill_id": "strategic_thinking",
-          "importance": "medium",
-          "notes": "Prioritizes experimentation roadmap and balances speed, quality, and impact"
-        }
+        "stakeholder_management",
+        "cross_functional_collaboration",
+        "communication",
+        "strategic_thinking"
       ]
     },
     {
@@ -933,58 +897,18 @@
         "User Acquisition Manager"
       ],
       "core_skills": [
-        {
-          "skill_id": "paid_social_advertising",
-          "importance": "critical",
-          "notes": "Primary channel — Meta Ads is the most common core requirement, TikTok and LinkedIn increasingly expected"
-        },
-        {
-          "skill_id": "paid_search_advertising",
-          "importance": "critical",
-          "notes": "Google Ads (Search, UAC, Display) is the second core platform across nearly all listings"
-        },
-        {
-          "skill_id": "campaign_analytics_attribution",
-          "importance": "critical",
-          "notes": "Attribution, tracking, and analytics infrastructure — GA4, MMPs, pixels, dashboards"
-        },
-        {
-          "skill_id": "media_planning_buying",
-          "importance": "high",
-          "notes": "Budget ownership, media plan development, spend allocation across channels"
-        },
-        {
-          "skill_id": "analytical_thinking",
-          "importance": "high",
-          "notes": "Data analysis, performance interpretation, and optimization decision-making"
-        }
+        "paid_social_advertising",
+        "paid_search_advertising",
+        "campaign_analytics_attribution",
+        "media_planning_buying",
+        "analytical_thinking"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "creative_strategy_performance",
-          "importance": "high",
-          "notes": "Briefing creatives, testing ad variants, and scaling winning creative concepts"
-        },
-        {
-          "skill_id": "marketing_experimentation",
-          "importance": "medium",
-          "notes": "Structured A/B testing of creatives, audiences, bidding strategies, and landing pages"
-        },
-        {
-          "skill_id": "user_acquisition_partnerships",
-          "importance": "medium",
-          "notes": "Managing ad networks, DSPs, SDK networks, and platform partner relationships"
-        },
-        {
-          "skill_id": "cross_functional_collaboration",
-          "importance": "medium",
-          "notes": "Collaborates with creative, product, BI, and monetization teams"
-        },
-        {
-          "skill_id": "communication",
-          "importance": "medium",
-          "notes": "Reporting to leadership, presenting performance insights, working with partners"
-        }
+        "creative_strategy_performance",
+        "marketing_experimentation",
+        "user_acquisition_partnerships",
+        "cross_functional_collaboration",
+        "communication"
       ]
     },
     {
@@ -2235,56 +2159,20 @@
         "Entry-Level AI Engineer"
       ],
       "core_skills": [
-        {
-          "skill_id": "python_development",
-          "required_proficiency": "beginner"
-        },
-        {
-          "skill_id": "llm_api_integration",
-          "required_proficiency": "beginner"
-        },
-        {
-          "skill_id": "prompt_engineering",
-          "required_proficiency": "beginner"
-        },
-        {
-          "skill_id": "machine_learning_fundamentals",
-          "required_proficiency": "beginner"
-        },
-        {
-          "skill_id": "llm_fundamentals",
-          "required_proficiency": "beginner"
-        },
-        {
-          "skill_id": "analytical_thinking",
-          "required_proficiency": "beginner"
-        }
+        "python_development",
+        "llm_api_integration",
+        "prompt_engineering",
+        "machine_learning_fundamentals",
+        "llm_fundamentals",
+        "analytical_thinking"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "rag_systems",
-          "required_proficiency": "beginner"
-        },
-        {
-          "skill_id": "vector_databases",
-          "required_proficiency": "beginner"
-        },
-        {
-          "skill_id": "git_version_control",
-          "required_proficiency": "beginner"
-        },
-        {
-          "skill_id": "api_design",
-          "required_proficiency": "beginner"
-        },
-        {
-          "skill_id": "debugging",
-          "required_proficiency": "beginner"
-        },
-        {
-          "skill_id": "communication",
-          "required_proficiency": "beginner"
-        }
+        "rag_systems",
+        "vector_databases",
+        "git_version_control",
+        "api_design",
+        "debugging",
+        "communication"
       ]
     },
     {
@@ -2297,72 +2185,24 @@
         "GenAI Engineer"
       ],
       "core_skills": [
-        {
-          "skill_id": "python_development",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "llm_api_integration",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "prompt_engineering",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "rag_systems",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "ai_agent_development",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "vector_databases",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "ml_systems_thinking",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "backend_development",
-          "required_proficiency": "intermediate"
-        }
+        "python_development",
+        "llm_api_integration",
+        "prompt_engineering",
+        "rag_systems",
+        "ai_agent_development",
+        "vector_databases",
+        "ml_systems_thinking",
+        "backend_development"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "llm_evaluation",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "model_deployment_serving",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "cloud_platforms",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "api_design",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "databases",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "machine_learning_fundamentals",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "debugging",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "ai_product_thinking",
-          "required_proficiency": "intermediate"
-        }
+        "llm_evaluation",
+        "model_deployment_serving",
+        "cloud_platforms",
+        "api_design",
+        "databases",
+        "machine_learning_fundamentals",
+        "debugging",
+        "ai_product_thinking"
       ]
     },
     {
@@ -2375,72 +2215,24 @@
         "Senior Applied AI Engineer"
       ],
       "core_skills": [
-        {
-          "skill_id": "python_development",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "llm_api_integration",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_agent_development",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "rag_systems",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ml_systems_thinking",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "system_design",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "llm_evaluation",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "backend_development",
-          "required_proficiency": "advanced"
-        }
+        "python_development",
+        "llm_api_integration",
+        "ai_agent_development",
+        "rag_systems",
+        "ml_systems_thinking",
+        "system_design",
+        "llm_evaluation",
+        "backend_development"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "model_deployment_serving",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_safety_responsible_ai",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "model_training_finetuning",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "deep_learning",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "ai_cost_optimization",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "mentoring",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "technical_leadership",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "performance_optimization",
-          "required_proficiency": "advanced"
-        }
+        "model_deployment_serving",
+        "ai_safety_responsible_ai",
+        "model_training_finetuning",
+        "deep_learning",
+        "ai_cost_optimization",
+        "mentoring",
+        "technical_leadership",
+        "performance_optimization"
       ]
     },
     {
@@ -2452,72 +2244,24 @@
         "AI Platform Engineer"
       ],
       "core_skills": [
-        {
-          "skill_id": "python_development",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "mlops_pipelines",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "model_deployment_serving",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "model_monitoring_drift",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "containerization",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "cloud_platforms",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ci_cd",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_experiment_tracking",
-          "required_proficiency": "advanced"
-        }
+        "python_development",
+        "mlops_pipelines",
+        "model_deployment_serving",
+        "model_monitoring_drift",
+        "containerization",
+        "cloud_platforms",
+        "ci_cd",
+        "ai_experiment_tracking"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "distributed_training",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "data_pipeline_ml",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "deep_learning",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "monitoring_observability",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "system_design",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "ml_systems_thinking",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "scripting_automation",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "performance_optimization",
-          "required_proficiency": "advanced"
-        }
+        "distributed_training",
+        "data_pipeline_ml",
+        "deep_learning",
+        "monitoring_observability",
+        "system_design",
+        "ml_systems_thinking",
+        "scripting_automation",
+        "performance_optimization"
       ]
     },
     {
@@ -2530,64 +2274,22 @@
         "CV Engineer"
       ],
       "core_skills": [
-        {
-          "skill_id": "python_development",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "computer_vision",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "deep_learning",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "edge_ai_deployment",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ml_systems_thinking",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "performance_optimization",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "debugging",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "analytical_thinking",
-          "required_proficiency": "advanced"
-        }
+        "python_development",
+        "computer_vision",
+        "deep_learning",
+        "edge_ai_deployment",
+        "ml_systems_thinking",
+        "performance_optimization",
+        "debugging",
+        "analytical_thinking"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "model_training_finetuning",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "model_deployment_serving",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "linux_administration",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "system_design",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "machine_learning_fundamentals",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "data_pipeline_ml",
-          "required_proficiency": "intermediate"
-        }
+        "model_training_finetuning",
+        "model_deployment_serving",
+        "linux_administration",
+        "system_design",
+        "machine_learning_fundamentals",
+        "data_pipeline_ml"
       ]
     },
     {
@@ -2600,68 +2302,23 @@
         "Research Scientist"
       ],
       "core_skills": [
-        {
-          "skill_id": "python_development",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "applied_ai_research",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "machine_learning_fundamentals",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "deep_learning",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "model_training_finetuning",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ml_systems_thinking",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "llm_evaluation",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "analytical_thinking",
-          "required_proficiency": "advanced"
-        }
+        "python_development",
+        "applied_ai_research",
+        "machine_learning_fundamentals",
+        "deep_learning",
+        "model_training_finetuning",
+        "ml_systems_thinking",
+        "llm_evaluation",
+        "analytical_thinking"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "ai_agent_development",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "rag_systems",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "model_deployment_serving",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "ai_experiment_tracking",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "llm_fundamentals",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "communication",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "technical_communication",
-          "required_proficiency": "advanced"
-        }
+        "ai_agent_development",
+        "rag_systems",
+        "model_deployment_serving",
+        "ai_experiment_tracking",
+        "llm_fundamentals",
+        "communication",
+        "technical_communication"
       ]
     },
     {
@@ -2674,60 +2331,21 @@
         "Conversational AI Designer"
       ],
       "core_skills": [
-        {
-          "skill_id": "prompt_engineering",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "conversational_ai_design",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "llm_api_integration",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "llm_fundamentals",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "llm_evaluation",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "ai_product_thinking",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "communication",
-          "required_proficiency": "advanced"
-        }
+        "prompt_engineering",
+        "conversational_ai_design",
+        "llm_api_integration",
+        "llm_fundamentals",
+        "llm_evaluation",
+        "ai_product_thinking",
+        "communication"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "python_development",
-          "required_proficiency": "beginner"
-        },
-        {
-          "skill_id": "rag_systems",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "ai_safety_responsible_ai",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "attention_to_detail",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "analytical_thinking",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "cross_functional_collaboration",
-          "required_proficiency": "intermediate"
-        }
+        "python_development",
+        "rag_systems",
+        "ai_safety_responsible_ai",
+        "attention_to_detail",
+        "analytical_thinking",
+        "cross_functional_collaboration"
       ]
     },
     {
@@ -2740,68 +2358,23 @@
         "Enterprise AI Lead"
       ],
       "core_skills": [
-        {
-          "skill_id": "ai_transformation_change_mgmt",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_product_thinking",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "no_code_ai_automation",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "llm_api_integration",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "prompt_engineering",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "stakeholder_management",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "change_management",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "communication",
-          "required_proficiency": "advanced"
-        }
+        "ai_transformation_change_mgmt",
+        "ai_product_thinking",
+        "no_code_ai_automation",
+        "llm_api_integration",
+        "prompt_engineering",
+        "stakeholder_management",
+        "change_management",
+        "communication"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "ai_governance_compliance",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "ai_agent_development",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "process_improvement",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "cross_functional_collaboration",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "strategic_thinking",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "analytical_thinking",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "ai_tool_fluency",
-          "required_proficiency": "advanced"
-        }
+        "ai_governance_compliance",
+        "ai_agent_development",
+        "process_improvement",
+        "cross_functional_collaboration",
+        "strategic_thinking",
+        "analytical_thinking",
+        "ai_tool_fluency"
       ]
     },
     {
@@ -2814,72 +2387,24 @@
         "Head of Machine Learning"
       ],
       "core_skills": [
-        {
-          "skill_id": "ai_team_leadership",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_strategy_roadmap",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ml_systems_thinking",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "python_development",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_hiring_talent",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "people_management",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "technical_leadership",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "stakeholder_management",
-          "required_proficiency": "advanced"
-        }
+        "ai_team_leadership",
+        "ai_strategy_roadmap",
+        "ml_systems_thinking",
+        "python_development",
+        "ai_hiring_talent",
+        "people_management",
+        "technical_leadership",
+        "stakeholder_management"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "applied_ai_research",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_agent_development",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_product_thinking",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "system_design",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_safety_responsible_ai",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "mentoring",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "mlops_pipelines",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "strategic_thinking",
-          "required_proficiency": "advanced"
-        }
+        "applied_ai_research",
+        "ai_agent_development",
+        "ai_product_thinking",
+        "system_design",
+        "ai_safety_responsible_ai",
+        "mentoring",
+        "mlops_pipelines",
+        "strategic_thinking"
       ]
     },
     {
@@ -2892,72 +2417,24 @@
         "VP of Artificial Intelligence"
       ],
       "core_skills": [
-        {
-          "skill_id": "executive_leadership",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_strategy_roadmap",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_team_leadership",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "engineering_leadership",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "stakeholder_management",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "strategic_thinking",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_hiring_talent",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_product_thinking",
-          "required_proficiency": "advanced"
-        }
+        "executive_leadership",
+        "ai_strategy_roadmap",
+        "ai_team_leadership",
+        "engineering_leadership",
+        "stakeholder_management",
+        "strategic_thinking",
+        "ai_hiring_talent",
+        "ai_product_thinking"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "ml_systems_thinking",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_governance_compliance",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_transformation_change_mgmt",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_safety_responsible_ai",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "communication",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_strategy",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "change_management",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "cross_functional_collaboration",
-          "required_proficiency": "advanced"
-        }
+        "ml_systems_thinking",
+        "ai_governance_compliance",
+        "ai_transformation_change_mgmt",
+        "ai_safety_responsible_ai",
+        "communication",
+        "ai_strategy",
+        "change_management",
+        "cross_functional_collaboration"
       ]
     },
     {
@@ -2969,72 +2446,24 @@
         "Head of AI Solutions"
       ],
       "core_skills": [
-        {
-          "skill_id": "customer_facing_ai_delivery",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_product_thinking",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "people_management",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "stakeholder_management",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_agent_development",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "llm_api_integration",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "technical_leadership",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "communication",
-          "required_proficiency": "advanced"
-        }
+        "customer_facing_ai_delivery",
+        "ai_product_thinking",
+        "people_management",
+        "stakeholder_management",
+        "ai_agent_development",
+        "llm_api_integration",
+        "technical_leadership",
+        "communication"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "python_development",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "process_improvement",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "project_management",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "mentoring",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "ai_transformation_change_mgmt",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "prompt_engineering",
-          "required_proficiency": "intermediate"
-        },
-        {
-          "skill_id": "cross_functional_collaboration",
-          "required_proficiency": "advanced"
-        },
-        {
-          "skill_id": "strategic_thinking",
-          "required_proficiency": "intermediate"
-        }
+        "python_development",
+        "process_improvement",
+        "project_management",
+        "mentoring",
+        "ai_transformation_change_mgmt",
+        "prompt_engineering",
+        "cross_functional_collaboration",
+        "strategic_thinking"
       ]
     },
     {
@@ -3382,44 +2811,17 @@
         "Junior Business Analyst (consulting)"
       ],
       "core_skills": [
-        {
-          "skill_id": "consulting_frameworks",
-          "importance": "high"
-        },
-        {
-          "skill_id": "analytical_thinking",
-          "importance": "high"
-        },
-        {
-          "skill_id": "communication",
-          "importance": "high"
-        },
-        {
-          "skill_id": "client_engagement_delivery",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "attention_to_detail",
-          "importance": "high"
-        }
+        "consulting_frameworks",
+        "analytical_thinking",
+        "communication",
+        "client_engagement_delivery",
+        "attention_to_detail"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "executive_presentation",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "risk_compliance_consulting",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "process_improvement",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "stakeholder_management",
-          "importance": "low"
-        }
+        "executive_presentation",
+        "risk_compliance_consulting",
+        "process_improvement",
+        "stakeholder_management"
       ]
     },
     {
@@ -3431,52 +2833,19 @@
         "Engagement Manager"
       ],
       "core_skills": [
-        {
-          "skill_id": "consulting_frameworks",
-          "importance": "high"
-        },
-        {
-          "skill_id": "client_engagement_delivery",
-          "importance": "high"
-        },
-        {
-          "skill_id": "client_advisory",
-          "importance": "high"
-        },
-        {
-          "skill_id": "analytical_thinking",
-          "importance": "high"
-        },
-        {
-          "skill_id": "communication",
-          "importance": "high"
-        },
-        {
-          "skill_id": "executive_presentation",
-          "importance": "medium"
-        }
+        "consulting_frameworks",
+        "client_engagement_delivery",
+        "client_advisory",
+        "analytical_thinking",
+        "communication",
+        "executive_presentation"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "risk_compliance_consulting",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "process_improvement",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "stakeholder_management",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "strategic_thinking",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "proposal_development",
-          "importance": "low"
-        }
+        "risk_compliance_consulting",
+        "process_improvement",
+        "stakeholder_management",
+        "strategic_thinking",
+        "proposal_development"
       ]
     },
     {
@@ -3488,56 +2857,20 @@
         "Senior Manager (consulting)"
       ],
       "core_skills": [
-        {
-          "skill_id": "client_engagement_delivery",
-          "importance": "high"
-        },
-        {
-          "skill_id": "client_advisory",
-          "importance": "high"
-        },
-        {
-          "skill_id": "consulting_frameworks",
-          "importance": "high"
-        },
-        {
-          "skill_id": "executive_presentation",
-          "importance": "high"
-        },
-        {
-          "skill_id": "stakeholder_management",
-          "importance": "high"
-        },
-        {
-          "skill_id": "proposal_development",
-          "importance": "medium"
-        }
+        "client_engagement_delivery",
+        "client_advisory",
+        "consulting_frameworks",
+        "executive_presentation",
+        "stakeholder_management",
+        "proposal_development"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "strategic_thinking",
-          "importance": "high"
-        },
-        {
-          "skill_id": "analytical_thinking",
-          "importance": "high"
-        },
-        {
-          "skill_id": "process_improvement",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "change_management",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "communication",
-          "importance": "high"
-        },
-        {
-          "skill_id": "cross_team_collaboration",
-          "importance": "medium"
-        }
+        "strategic_thinking",
+        "analytical_thinking",
+        "process_improvement",
+        "change_management",
+        "communication",
+        "cross_team_collaboration"
       ]
     },
     {
@@ -3549,60 +2882,21 @@
         "Senior Manager (consulting)"
       ],
       "core_skills": [
-        {
-          "skill_id": "client_advisory",
-          "importance": "high"
-        },
-        {
-          "skill_id": "client_engagement_delivery",
-          "importance": "high"
-        },
-        {
-          "skill_id": "proposal_development",
-          "importance": "high"
-        },
-        {
-          "skill_id": "executive_presentation",
-          "importance": "high"
-        },
-        {
-          "skill_id": "strategic_thinking",
-          "importance": "high"
-        },
-        {
-          "skill_id": "leadership",
-          "importance": "high"
-        },
-        {
-          "skill_id": "stakeholder_management",
-          "importance": "high"
-        }
+        "client_advisory",
+        "client_engagement_delivery",
+        "proposal_development",
+        "executive_presentation",
+        "strategic_thinking",
+        "leadership",
+        "stakeholder_management"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "consulting_frameworks",
-          "importance": "high"
-        },
-        {
-          "skill_id": "change_management",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "cross_team_collaboration",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "process_improvement",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "analytical_thinking",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "emotional_intelligence",
-          "importance": "medium"
-        }
+        "consulting_frameworks",
+        "change_management",
+        "cross_team_collaboration",
+        "process_improvement",
+        "analytical_thinking",
+        "emotional_intelligence"
       ]
     },
     {
@@ -3614,56 +2908,20 @@
         "Director (consulting)"
       ],
       "core_skills": [
-        {
-          "skill_id": "proposal_development",
-          "importance": "high"
-        },
-        {
-          "skill_id": "client_advisory",
-          "importance": "high"
-        },
-        {
-          "skill_id": "executive_presentation",
-          "importance": "high"
-        },
-        {
-          "skill_id": "strategic_thinking",
-          "importance": "high"
-        },
-        {
-          "skill_id": "leadership",
-          "importance": "high"
-        },
-        {
-          "skill_id": "executive_leadership",
-          "importance": "high"
-        }
+        "proposal_development",
+        "client_advisory",
+        "executive_presentation",
+        "strategic_thinking",
+        "leadership",
+        "executive_leadership"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "client_engagement_delivery",
-          "importance": "high"
-        },
-        {
-          "skill_id": "consulting_frameworks",
-          "importance": "high"
-        },
-        {
-          "skill_id": "stakeholder_management",
-          "importance": "high"
-        },
-        {
-          "skill_id": "change_management",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "emotional_intelligence",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "hiring_talent_acquisition",
-          "importance": "medium"
-        }
+        "client_engagement_delivery",
+        "consulting_frameworks",
+        "stakeholder_management",
+        "change_management",
+        "emotional_intelligence",
+        "hiring_talent_acquisition"
       ]
     },
     {
@@ -3675,56 +2933,20 @@
         "Associate SE"
       ],
       "core_skills": [
-        {
-          "skill_id": "debugging",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "sql",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "api_design",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "communication",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "customer_technical_relationship",
-          "importance": "high"
-        },
-        {
-          "skill_id": "technical_onboarding_implementation",
-          "importance": "high"
-        }
+        "debugging",
+        "sql",
+        "api_design",
+        "communication",
+        "customer_technical_relationship",
+        "technical_onboarding_implementation"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "technical_discovery",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "product_demonstration",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "technical_content_creation",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "cross_functional_collaboration",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "integration_middleware",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "analytical_thinking",
-          "importance": "medium"
-        }
+        "technical_discovery",
+        "product_demonstration",
+        "technical_content_creation",
+        "cross_functional_collaboration",
+        "integration_middleware",
+        "analytical_thinking"
       ]
     },
     {
@@ -3737,68 +2959,23 @@
         "SE"
       ],
       "core_skills": [
-        {
-          "skill_id": "technical_discovery",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "solution_design_architecture",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "product_demonstration",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "poc_management",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "customer_technical_relationship",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "api_design",
-          "importance": "high"
-        },
-        {
-          "skill_id": "communication",
-          "importance": "high"
-        }
+        "technical_discovery",
+        "solution_design_architecture",
+        "product_demonstration",
+        "poc_management",
+        "customer_technical_relationship",
+        "api_design",
+        "communication"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "technical_onboarding_implementation",
-          "importance": "high"
-        },
-        {
-          "skill_id": "integration_middleware",
-          "importance": "high"
-        },
-        {
-          "skill_id": "technical_sales_acumen",
-          "importance": "high"
-        },
-        {
-          "skill_id": "sql",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "competitive_positioning",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "cross_functional_collaboration",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "rfp_response",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "debugging",
-          "importance": "medium"
-        }
+        "technical_onboarding_implementation",
+        "integration_middleware",
+        "technical_sales_acumen",
+        "sql",
+        "competitive_positioning",
+        "cross_functional_collaboration",
+        "rfp_response",
+        "debugging"
       ]
     },
     {
@@ -3811,76 +2988,25 @@
         "Lead Solutions Engineer"
       ],
       "core_skills": [
-        {
-          "skill_id": "solution_design_architecture",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "product_demonstration",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "customer_technical_relationship",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "technical_sales_acumen",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "competitive_positioning",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "technical_discovery",
-          "importance": "high"
-        },
-        {
-          "skill_id": "poc_management",
-          "importance": "high"
-        },
-        {
-          "skill_id": "domain_expertise",
-          "importance": "high"
-        }
+        "solution_design_architecture",
+        "product_demonstration",
+        "customer_technical_relationship",
+        "technical_sales_acumen",
+        "competitive_positioning",
+        "technical_discovery",
+        "poc_management",
+        "domain_expertise"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "executive_presentation",
-          "importance": "high"
-        },
-        {
-          "skill_id": "technical_content_creation",
-          "importance": "high"
-        },
-        {
-          "skill_id": "rfp_response",
-          "importance": "high"
-        },
-        {
-          "skill_id": "cloud_platforms",
-          "importance": "high"
-        },
-        {
-          "skill_id": "stakeholder_management",
-          "importance": "high"
-        },
-        {
-          "skill_id": "strategic_thinking",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "api_design",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "integration_middleware",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "cross_functional_collaboration",
-          "importance": "medium"
-        }
+        "executive_presentation",
+        "technical_content_creation",
+        "rfp_response",
+        "cloud_platforms",
+        "stakeholder_management",
+        "strategic_thinking",
+        "api_design",
+        "integration_middleware",
+        "cross_functional_collaboration"
       ]
     },
     {
@@ -3893,64 +3019,22 @@
         "Manager, Solutions Engineering"
       ],
       "core_skills": [
-        {
-          "skill_id": "se_team_leadership",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "delivery_methodology",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "customer_technical_relationship",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "cross_functional_collaboration",
-          "importance": "high"
-        },
-        {
-          "skill_id": "communication",
-          "importance": "high"
-        },
-        {
-          "skill_id": "stakeholder_management",
-          "importance": "high"
-        }
+        "se_team_leadership",
+        "delivery_methodology",
+        "customer_technical_relationship",
+        "cross_functional_collaboration",
+        "communication",
+        "stakeholder_management"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "solution_design_architecture",
-          "importance": "high"
-        },
-        {
-          "skill_id": "technical_sales_acumen",
-          "importance": "high"
-        },
-        {
-          "skill_id": "poc_management",
-          "importance": "high"
-        },
-        {
-          "skill_id": "technical_discovery",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "technical_onboarding_implementation",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "product_demonstration",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "analytical_thinking",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "hiring_talent_acquisition",
-          "importance": "medium"
-        }
+        "solution_design_architecture",
+        "technical_sales_acumen",
+        "poc_management",
+        "technical_discovery",
+        "technical_onboarding_implementation",
+        "product_demonstration",
+        "analytical_thinking",
+        "hiring_talent_acquisition"
       ]
     },
     {
@@ -3962,64 +3046,22 @@
         "Head of Pre-Sales"
       ],
       "core_skills": [
-        {
-          "skill_id": "se_team_leadership",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "delivery_methodology",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "executive_leadership",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "strategic_thinking",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "technical_sales_acumen",
-          "importance": "critical"
-        },
-        {
-          "skill_id": "stakeholder_management",
-          "importance": "high"
-        }
+        "se_team_leadership",
+        "delivery_methodology",
+        "executive_leadership",
+        "strategic_thinking",
+        "technical_sales_acumen",
+        "stakeholder_management"
       ],
       "secondary_skills": [
-        {
-          "skill_id": "customer_technical_relationship",
-          "importance": "high"
-        },
-        {
-          "skill_id": "cross_functional_collaboration",
-          "importance": "high"
-        },
-        {
-          "skill_id": "hiring_talent_acquisition",
-          "importance": "high"
-        },
-        {
-          "skill_id": "executive_presentation",
-          "importance": "high"
-        },
-        {
-          "skill_id": "competitive_positioning",
-          "importance": "high"
-        },
-        {
-          "skill_id": "domain_expertise",
-          "importance": "high"
-        },
-        {
-          "skill_id": "solution_design_architecture",
-          "importance": "medium"
-        },
-        {
-          "skill_id": "gtm_strategy",
-          "importance": "medium"
-        }
+        "customer_technical_relationship",
+        "cross_functional_collaboration",
+        "hiring_talent_acquisition",
+        "executive_presentation",
+        "competitive_positioning",
+        "domain_expertise",
+        "solution_design_architecture",
+        "gtm_strategy"
       ]
     },
     {

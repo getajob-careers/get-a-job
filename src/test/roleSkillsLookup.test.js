@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { matchRoleToLibrary, suggestSkillsForTitle } from "../lib/roleSkillsLookup";
+import roleData from "../lib/roleSkillsGenerated.json";
 
 describe("matchRoleToLibrary — coverage-gap-A additions", () => {
   // Sample from each bucket: alt-title hits + new-row title hits + an
@@ -48,5 +49,59 @@ describe("suggestSkillsForTitle — new rows return skill suggestions", () => {
     expect(s).not.toBeNull();
     expect(s.skillIds.length).toBeGreaterThan(0);
     expect(s.roleTitle).toBe("Growth Analyst");
+  });
+});
+
+// Gap C — 23 source rows were stored as `{skill_id, importance, notes}`
+// objects instead of flat strings. The generator + reader silently spread
+// the raw objects, producing broken chips downstream. This test locks in
+// that the read path emits flat strings for ALL roles, regardless of how
+// the source row is shaped.
+describe("suggestSkillsForTitle — object-form normalization (Gap C)", () => {
+  // 8 target-student roles flagged in tasks/0c-object-form-rows-fix.md
+  const STUDENT_FACING = [
+    "junior_consultant_analyst",
+    "consultant",
+    "senior_consultant",
+    "consulting_manager",
+    "growth_marketing_manager",
+    "performance_marketing_manager",
+    "solutions_engineer",
+    "solutions_engineer_junior",
+  ];
+
+  for (const roleId of STUDENT_FACING) {
+    it(`${roleId} returns non-empty flat-string skill list`, () => {
+      const s = suggestSkillsForTitle(roleId);
+      expect(s).not.toBeNull();
+      expect(s.skillIds.length).toBeGreaterThan(0);
+      for (const id of s.skillIds) {
+        expect(typeof id).toBe("string");
+        expect(id.length).toBeGreaterThan(0);
+      }
+    });
+  }
+
+  // Generalized: NO role in the generated mirror should yield non-string
+  // skills via suggestSkillsForTitle. Catches any future object-form regression.
+  it("every mapped role yields only flat strings via suggestSkillsForTitle", () => {
+    const offenders = [];
+    for (const role of roleData.roles) {
+      const hasMapping =
+        (role.core_skills?.length || 0) + (role.secondary_skills?.length || 0) > 0;
+      if (!hasMapping) continue;
+      const s = suggestSkillsForTitle(role.id);
+      if (!s) {
+        offenders.push({ role: role.id, reason: "matcher returned null" });
+        continue;
+      }
+      for (const id of s.skillIds) {
+        if (typeof id !== "string" || !id) {
+          offenders.push({ role: role.id, badEntry: id });
+          break;
+        }
+      }
+    }
+    expect(offenders).toEqual([]);
   });
 });
