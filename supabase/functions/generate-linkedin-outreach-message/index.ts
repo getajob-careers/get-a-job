@@ -313,11 +313,26 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Fetch user data for grounding (same shape as generate-linkedin-comment).
-    const [profileRes, experiencesRes, storiesRes] = await Promise.all([
+    // Fetch user data for grounding. Adds (for propose_internship): the
+    // user's internship_profiles row (pitch_strength_signals, etc.),
+    // educations (for the Reichman/IDC school gate), and the target
+    // companies row (resolved by id when target.company_id is provided,
+    // else fuzzy by name/ats_slug/domain).
+    const targetCompanyKey = activeTarget?.company?.trim().toLowerCase() ?? ''
+    const targetCompanyId = (activeTarget as any)?.company_id?.trim?.() || null
+    const companyQuery = targetCompanyId
+      ? supabase.from('companies').select('id, name, domain, description, industry, sector, stage, hq_city, hq_country').eq('id', targetCompanyId).maybeSingle()
+      : targetCompanyKey
+        ? supabase.from('companies').select('id, name, domain, description, industry, sector, stage, hq_city, hq_country').or(`name.ilike.${targetCompanyKey},ats_slug.ilike.${targetCompanyKey},domain.ilike.${targetCompanyKey}`).limit(1).maybeSingle()
+        : Promise.resolve({ data: null })
+
+    const [profileRes, experiencesRes, storiesRes, internshipProfileRes, educationsRes, companyRes] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', user.id).single(),
       supabase.from('experiences').select('*').eq('user_id', user.id).order('start_date', { ascending: false }).limit(5),
       supabase.from('stories').select('id, title, action, result, metrics, skills_demonstrated, tools_used').eq('user_id', user.id).order('created_at', { ascending: false }).limit(8),
+      supabase.from('internship_profiles').select('realistic_sectors, pitch_strength_signals, pitch_anti_patterns, pitchable_role_archetypes').eq('user_id', user.id).maybeSingle(),
+      supabase.from('educations').select('school, degree, field, graduation_year, is_current').eq('user_id', user.id).order('graduation_year', { ascending: false }),
+      companyQuery,
     ])
     const profile = profileRes.data
     if (!profile) {
@@ -330,6 +345,10 @@ Deno.serve(async (req) => {
     const trunc = (s: unknown, n: number) => String(s ?? '').slice(0, n)
     const safeArr = (v: unknown): any[] => Array.isArray(v) ? v : []
 
+    const internshipProfile = (internshipProfileRes as any)?.data ?? null
+    const educationsRaw = (educationsRes as any)?.data ?? []
+    const targetCompanyRow = (companyRes as any)?.data ?? null
+
     const userData = {
       full_name: trunc(profile.full_name, 100),
       summary: trunc(profile.summary, 800),
@@ -340,12 +359,9 @@ Deno.serve(async (req) => {
       // ENROLLMENT credibility lever. true when the user picked either
       // "Yes" option in onboarding's StepInternship (faculty_assigned
       // OR self_sourced — both mean "enrolled in my school's
-      // internship program"; null means "No, not enrolled"). The
-      // framework asserts ENROLLMENT only ("part of my university's
-      // internship program") with SAME wording regardless of sub-type
-      // — placement varies by sub-type and would over-claim for
-      // self-sourcing students. sub-type is a data dimension for
-      // analysis, not a behavior switch.
+      // internship program"; null means "No, not enrolled"). Combined
+      // in the framework with the school check (Reichman / IDC) to gate
+      // the practicum-led opener.
       in_practicum: !!profile.practicum_path,
       recent_experiences: (experiencesRes.data || []).slice(0, 5).map((e: any) => ({
         title: trunc(e.title, 200),
@@ -361,7 +377,41 @@ Deno.serve(async (req) => {
         skills: safeArr(s.skills_demonstrated).slice(0, 8),
         tools: safeArr(s.tools_used).slice(0, 8),
       })),
+      // Internship-pitch context — used by propose_internship framework.
+      // null when the user hasn't generated an internship_profile yet
+      // (the framework falls back to recent_experiences + stories).
+      internship_profile: internshipProfile ? {
+        realistic_sectors: safeArr(internshipProfile.realistic_sectors).slice(0, 10),
+        pitch_strength_signals: safeArr(internshipProfile.pitch_strength_signals).slice(0, 10),
+        pitch_anti_patterns: safeArr(internshipProfile.pitch_anti_patterns).slice(0, 10),
+        pitchable_role_archetypes: safeArr(internshipProfile.pitchable_role_archetypes).slice(0, 6),
+      } : null,
+      // Schools — driver of the propose_internship practicum gate
+      // (Reichman / IDC / IDC Herzliya / Interdisciplinary Center,
+      // case-insensitive). Pass through so the LLM can see the user's
+      // actual school list.
+      educations: safeArr(educationsRaw).slice(0, 5).map((e: any) => ({
+        school: trunc(e.school, 200),
+        degree: trunc(e.degree, 100),
+        field: trunc(e.field, 200),
+        graduation_year: e.graduation_year ?? null,
+        is_current: !!e.is_current,
+      })),
     }
+
+    // Target company row — resolved by id (when target_person.company_id
+    // is provided) or by fuzzy name/ats_slug/domain match. Null when no
+    // match found — the framework instructs the LLM not to invent
+    // company details in that case.
+    const targetCompany = targetCompanyRow ? {
+      name: trunc(targetCompanyRow.name, 200),
+      description: trunc(targetCompanyRow.description, 800),
+      industry: trunc(targetCompanyRow.industry, 200),
+      sector: trunc(targetCompanyRow.sector, 200),
+      stage: trunc(targetCompanyRow.stage, 100),
+      hq_city: trunc(targetCompanyRow.hq_city, 100),
+      hq_country: trunc(targetCompanyRow.hq_country, 100),
+    } : null
 
     const framework = FRAMEWORK_BY_GOAL[activeGoal]
     const systemPrompt = SYSTEM_PROMPT + '\n\n' + OUTREACH_VOICE_RULES + '\n\n' + framework
@@ -387,74 +437,112 @@ Deno.serve(async (req) => {
 TARGET PERSON:
 ${JSON.stringify(activeTarget, null, 2)}
 
+${targetCompany ? `TARGET COMPANY (from registry — use description for the specific company hook, do NOT invent details):\n${JSON.stringify(targetCompany, null, 2)}\n` : 'TARGET COMPANY: (no registry row matched — do NOT invent company details, fall back to sector/stage framing only)\n'}
 CONVERSATION THREAD (so far):
 ${threadForPrompt.length === 0 ? '(empty — no messages sent yet)' : JSON.stringify(threadForPrompt, null, 2)}
 
-USER DATA (the SENDER's profile, experiences, Story Bank — use these to ground the message in real specifics):
+USER DATA (the SENDER's profile, experiences, Story Bank, internship pitch context, schools — use these to ground the message in real specifics):
 ${JSON.stringify(userData, null, 2)}
 
 TURN HINT: ${turnHint}
 
 Now produce the next AI-coached suggestion as JSON per the output spec. Apply the goal-specific framework above + OUTREACH_VOICE_RULES strictly. If the user is pushing for the goal's ask in a turn that's premature given thread state, set warm_up_advice with explicit coaching for the warm-up turn instead.`
 
-    const openaiResponse = await openaiChatCompletion(
-      {
-        model: MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        temperature: 0.5,
-        max_tokens: 1500,
-        response_format: { type: 'json_object' },
-      },
-      openaiKey,
-      {
-        traceName: 'generate-linkedin-outreach-message',
-        userId: user.id,
-        // The conversation row id groups multi-turn outreach into one
-        // Langfuse session — every turn of the same DM thread appears
-        // together in the UI.
-        sessionId: `outreach-${convoRow.id}`,
-        metadata: {
-          goal: activeGoal,
-          thread_turn: thread.length,
+    // Defense-in-depth retry loop. The framework forbids "summer" and
+    // caps connection_request_note at 300 chars; if the LLM slips, we
+    // regenerate ONCE with a sharper instruction appended. We don't
+    // trim silently — if the model can't comply after one retry we
+    // surface the violation back to the client (visible in warnings).
+    const MAX_GEN_ATTEMPTS = 2
+    let suggestion: OutreachSuggestion | null = null
+    let lastViolation: string | null = null
+    for (let attempt = 0; attempt < MAX_GEN_ATTEMPTS; attempt++) {
+      const attemptPrompt = attempt === 0
+        ? userPrompt
+        : `${userPrompt}\n\nPREVIOUS ATTEMPT VIOLATED: ${lastViolation}. Regenerate the suggested_text with the violation fixed. Keep angle/conversation_state/warnings consistent.`
+
+      const openaiResponse = await openaiChatCompletion(
+        {
+          model: MODEL,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: attemptPrompt },
+          ],
+          temperature: 0.5,
+          max_tokens: 1500,
+          response_format: { type: 'json_object' },
         },
-      },
-      { signal: AbortSignal.timeout(60000) },
-    )
+        openaiKey,
+        {
+          traceName: 'generate-linkedin-outreach-message',
+          userId: user.id,
+          // The conversation row id groups multi-turn outreach into one
+          // Langfuse session — every turn of the same DM thread appears
+          // together in the UI.
+          sessionId: `outreach-${convoRow.id}`,
+          metadata: {
+            goal: activeGoal,
+            thread_turn: thread.length,
+            attempt,
+          },
+        },
+        { signal: AbortSignal.timeout(60000) },
+      )
 
-    if (!openaiResponse.ok) {
-      const errText = await openaiResponse.text()
-      console.error(`[generate-linkedin-outreach-message] OpenAI ${openaiResponse.status}: ${errText.slice(0, 300)}`)
-      _http = 502; _err = `openai_${openaiResponse.status}`
+      if (!openaiResponse.ok) {
+        const errText = await openaiResponse.text()
+        console.error(`[generate-linkedin-outreach-message] OpenAI ${openaiResponse.status}: ${errText.slice(0, 300)}`)
+        _http = 502; _err = `openai_${openaiResponse.status}`
+        m.modelUsed = MODEL
+        return new Response(JSON.stringify({ error: 'AI service temporarily unavailable. Please try again.' }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      const completion = await openaiResponse.json()
       m.modelUsed = MODEL
-      return new Response(JSON.stringify({ error: 'AI service temporarily unavailable. Please try again.' }), {
-        status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      m.tokensIn = (m.tokensIn ?? 0) + (completion.usage?.prompt_tokens ?? 0)
+      m.tokensOut = (m.tokensOut ?? 0) + (completion.usage?.completion_tokens ?? 0)
+
+      const content: string = completion.choices?.[0]?.message?.content || '{}'
+      let rawParsed: unknown
+      try {
+        rawParsed = JSON.parse(content)
+      } catch (parseErr) {
+        console.error('[generate-linkedin-outreach-message] JSON parse failed:', content.slice(0, 200), parseErr)
+        _http = 502; _err = 'json_parse'
+        return new Response(JSON.stringify({ error: 'AI returned malformed response. Please try again.' }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      const candidate = sanitizeSuggestion(rawParsed)
+      if (!candidate.suggested_text) {
+        _http = 502; _err = 'empty_suggestion'
+        return new Response(JSON.stringify({ error: 'AI returned an empty suggestion. Please try again.' }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+
+      // Defense-in-depth checks — only enforced for propose_internship.
+      // Other goals are unaffected.
+      if (activeGoal === 'propose_internship') {
+        if (/\bsummer\b/i.test(candidate.suggested_text)) {
+          lastViolation = 'output contained the word "summer" — the practicum is November–February. Remove all references to summer.'
+          if (attempt < MAX_GEN_ATTEMPTS - 1) continue
+        }
+        if (candidate.turn_type === 'connection_request_note' && candidate.suggested_text.length > 300) {
+          lastViolation = `output was ${candidate.suggested_text.length} chars — connection_request_note must be ≤ 300 chars (LinkedIn limit). Tighten the message.`
+          if (attempt < MAX_GEN_ATTEMPTS - 1) continue
+        }
+      }
+      suggestion = candidate
+      break
     }
 
-    const completion = await openaiResponse.json()
-    m.modelUsed = MODEL
-    m.tokensIn = completion.usage?.prompt_tokens ?? null
-    m.tokensOut = completion.usage?.completion_tokens ?? null
-
-    const content: string = completion.choices?.[0]?.message?.content || '{}'
-    let rawParsed: unknown
-    try {
-      rawParsed = JSON.parse(content)
-    } catch (parseErr) {
-      console.error('[generate-linkedin-outreach-message] JSON parse failed:', content.slice(0, 200), parseErr)
-      _http = 502; _err = 'json_parse'
-      return new Response(JSON.stringify({ error: 'AI returned malformed response. Please try again.' }), {
-        status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    const suggestion = sanitizeSuggestion(rawParsed)
-    if (!suggestion.suggested_text) {
-      _http = 502; _err = 'empty_suggestion'
-      return new Response(JSON.stringify({ error: 'AI returned an empty suggestion. Please try again.' }), {
+    if (!suggestion) {
+      _http = 502; _err = 'gen_violations'
+      return new Response(JSON.stringify({ error: 'AI could not satisfy generation constraints after retry. Please try again.' }), {
         status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -491,6 +579,10 @@ function sanitizeTargetPerson(raw: unknown): TargetPerson | null {
   const out: TargetPerson = { name }
   if (typeof t.role === 'string' && t.role.trim()) out.role = t.role.trim().slice(0, MAX_ROLE)
   if (typeof t.company === 'string' && t.company.trim()) out.company = t.company.trim().slice(0, MAX_COMPANY)
+  // UUID-ish guard for company_id — accept any non-empty string, the
+  // DB query is parameterized so it's safe; the column-level type check
+  // happens at query time.
+  if (typeof t.company_id === 'string' && t.company_id.trim()) out.company_id = t.company_id.trim().slice(0, 64)
   if (typeof t.relationship === 'string' && t.relationship.trim()) out.relationship = t.relationship.trim().slice(0, MAX_RELATIONSHIP)
   if (typeof t.mutual_context === 'string' && t.mutual_context.trim()) out.mutual_context = t.mutual_context.trim().slice(0, MAX_MUTUAL)
   return out

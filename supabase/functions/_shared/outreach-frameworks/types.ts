@@ -37,8 +37,14 @@ export interface TargetPerson {
   name: string
   // Their role/title — "Senior Recruiter", "VP Engineering", "Founder"
   role?: string
-  // Their company / org / institution
+  // Their company / org / institution (name string, free-text).
   company?: string
+  // Optional companies.id reference. When present, the edge function
+  // resolves target_company by id (cheapest, exact). When absent, falls
+  // back to fuzzy name/ats_slug/domain match on target_person.company.
+  // Populated by callers that already have the row (e.g. Internship
+  // Pipeline cards passing target_company_id).
+  company_id?: string
   // Free-text relationship description — "alumni from Reichman 2024",
   // "former colleague at Wix", "met at Tel Aviv hackathon", "cold —
   // found via LinkedIn search". This is what tells the AI the warmth

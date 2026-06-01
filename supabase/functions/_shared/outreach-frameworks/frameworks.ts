@@ -262,47 +262,93 @@ Recommender replied with: (a) a yes + accepted the lift-reduction offer (will us
 RECIPIENT REGISTER:
 Grateful, low-pressure, easy-to-say-yes-to. The recommender is doing the user a real favor; the message must acknowledge that without groveling.`
 
-export const PROPOSE_INTERNSHIP_FRAMEWORK = `OUTREACH GOAL — PROPOSE AN INTERNSHIP IN A TARGET FUNCTION:
+export const PROPOSE_INTERNSHIP_FRAMEWORK = `OUTREACH GOAL — PROPOSE A REICHMAN PRACTICUM AT A SPECIFIC COMPANY:
 
-The user is proposing themselves for an UNPOSTED internship in a specific function at a company — not applying to a listed req, not asking "are you hiring." The recipient is the function's leader (Head of Product, Head of Marketing, etc.) — someone who could actually host an intern in that function. This is high-leverage but high-bar: the message must be value-forward and respect that the recipient isn't in recruiting mode.
+The user is a Reichman University Business Administration student doing the practicum — a STRUCTURED, SUPERVISED internship that runs ~NOVEMBER through FEBRUARY at ~12 HOURS PER WEEK. They are proposing themselves to a function leader at a specific target company. NOT an application to a posted role.
 
-OPENER STRUCTURE (60-150 words):
-1. Who you are — student status + the function you want to intern in. State both up front so the recipient knows in 5 seconds what this DM is about. If user_data.in_practicum is true, you MAY reference program ENROLLMENT as a credibility lever — exact phrasing: "part of my university's internship program" (or close paraphrase). Do NOT add "which places students in a structured internship" or any other placement claim — enrollment is what's verified by the gate; placement varies by sub-type and over-reaches for self-sourcing students. Use the SAME phrasing regardless of sub-type. If user_data.in_practicum is false, do NOT mention any program — claiming program enrollment the user doesn't have is fabrication.
-2. The bridge — name a specific current signal from the user's real experience that connects to the target function. Pattern: "Your <real current signal> gives you a credible angle into <target function surface area>." Do NOT invent target-domain experience.
-3. The value — one specific contribution the user can credibly deliver FROM THEIR REAL VANTAGE in the next 2-3 months. The contribution must be something the user can actually do given what they currently know and have access to — NOT something that implies target-domain expertise they don't have. A CS-experience student bridging into product could "map recurring CS escalations to product gaps" (their real vantage) — NOT "own the onboarding workflow redesign" (that requires product-domain expertise). The phrasing should be "what I can do from where I stand," not "a workflow I'd own."
-4. The ask — explicit, soft: "Would you be open to a 20-minute conversation about whether a <function> internship at <company> could work for the summer?" Or: "I'd love to propose a specific project — can I send you a one-pager?"
+OUTPUT LENGTH:
+- opener:                  ≤ 80 words
+- connection_request_note: ≤ 300 characters (LinkedIn enforces this)
+- follow_up_after_silence: ≤ 60 words
 
-EXAMPLES (assume user_data.in_practicum = true — same phrasing for BOTH self_sourced and faculty_assigned sub-types):
-- Good: "Hi Daniel — final-year business student, part of my university's internship program, targeting a Product Operations internship for the summer. Currently a CSM at a cybersecurity startup, so I see the friction between customer signal and product roadmap from the customer side every day. I'd love to propose a 10-week project mapping recurring CS escalations to product gaps for your team — would you be open to a 20-minute conversation about whether that could fit?"
-- Bad (over-claims placement): "Hi Daniel — part of my university's program which places students in structured internships…" (enrollment is verified; placement isn't)
-- Bad (job-app framing): "Hi Daniel — are you hiring product interns? I'd be a great fit for your team."
+MANDATORY OPENER STRUCTURE (applies to opener AND connection_request_note):
 
-EXAMPLES (assume user_data.in_practicum = false):
-- Good: "Hi Daniel — final-year business student graduating in June, targeting a Product Operations internship for the summer. Currently a CSM at a cybersecurity startup, so I see the friction between customer signal and product roadmap from the customer side every day. I'd love to propose a 10-week project mapping recurring CS escalations to product gaps for your team — open to a 20-minute conversation?"
-- Bad (fabricates program): "Hi Daniel — part of my university's internship program…" (when user is NOT enrolled in one)
-- Bad (job-app framing): "Hi Daniel — are you hiring product interns?"
+1. PRACTICUM LEAD — first sentence. Anchor the structured-program credibility. Vary the wording across messages so it doesn't read templated. Acceptable patterns:
+   • "I'm in Reichman University's Business Administration practicum (internship) program: a structured, supervised placement, ~12 hours a week from November through February."
+   • "I'm a Reichman B.A. student doing the Business Administration practicum — a supervised internship that runs November–February at ~12 hrs/week."
+   • "I'm doing Reichman's Business Administration practicum this year (structured placement, Nov–Feb, ~12 hrs/week)."
+   The Nov–Feb window and ~12 hrs/week are de-risk levers — use one or both where they help. NEVER say "summer," "10-week project," or "part-time" without explicit "Nov–Feb practicum window" framing.
+   GATE: only emit this practicum opener when user_data.in_practicum is true AND any user_data.educations[].school contains "Reichman", "IDC", "IDC Herzliya", or "Interdisciplinary Center" (case-insensitive). For other users, fall back to the propose-internship pattern WITHOUT any program claim (claiming an enrollment the user doesn't have is fabrication).
 
-ANTI-FAB (CRITICAL):
-- The pitched function is what the user is BRIDGING TOWARD, not what they already do. Don't invent target-domain experience. A CS-experience student bridging into product writes "customer-side perspective" not "previous Product Ops work."
-- The senior version of the function ("Senior PM", "Director of Product Operations") is NOT what the user is proposing — that's the long-term goal, not the internship. Coach the user to entry-rung framing.
-- The value/contribution must be grounded in the user's REAL vantage. A CS-experience student bridging into product can "share patterns from customer escalations" — they CANNOT "own product roadmap planning" or "redesign the onboarding flow."
-- Program backing is GATED: only available when user_data.in_practicum is true. Never assert it when false.
+2. TARGET FUNCTION × COMPANY (one sentence) — name the function AND a SPECIFIC, TRUE detail about THIS company pulled from target_company:
+   • Prefer one substantive phrase from target_company.description (a product, customer segment, or positioning detail).
+   • Fall back to target_company.sector + target_company.stage combined ("a Series A cyber company").
+   • Fall back to target_company.hq_city ONLY when locally relevant.
+   When target_company is null/missing entirely, do NOT invent product details — use generic-but-true sector framing only.
+   BAN: generic praise like "leader in", "innovative", "exciting work in", "I admire". These trigger immediate template-detection.
 
-ASK TIMING:
-The ask is in the first message — internships need clarity early. But framed as "propose a project / function focus" not "give me a job." A learning-conversation framing ("can we talk about whether this could work") beats a direct ask ("will you hire me as an intern").
+3. VALUE LINE (one sentence) — tie ONE real, concrete signal from user data to the target function. The signal MUST come from user data — choose the strongest available:
+   • user_data.internship_profile.pitch_strength_signals (the curated list — read FIRST)
+   • user_data.recent_experiences (paid roles, internships, leadership)
+   • user_data.stories (concrete project actions + results)
+   • user_data.educations (for thin profiles: club leadership, semester projects, military, languages, honors)
+   STRONG PROFILE — student has paid/substantive experience in or adjacent to the target function: lead with the role and the specific work that maps. Concrete actions, not labels.
+   THIN PROFILE — first-job undergrad, no professional experience in target function: pull the strongest REAL signal from:
+   • Student club leadership (Reichman has Sigma, IDC Consulting Club, TAMID, etc.)
+   • Course / semester project with a concrete output
+   • Military service (unit + role + scope)
+   • Part-time work
+   • Languages (relevant when target sells into multilingual markets)
+   • Honors / Dean's list ONLY when it adds to a function-relevant signal, never as the headline
+   For thin profiles, frame the signal POSITIVELY and CONCRETELY. The practicum lead carries the de-risk; the value line carries authenticity.
 
-WARM-UP ADVICE TRIGGERS:
-- Opener treats this as a posted-req application ("Are you hiring interns?") → coach to proposal framing
-- No specific bridge from real experience → coach to add one
-- Asks for senior-target role ("PM internship" when target is "Product Operations") → coach to entry-rung function
-- "Value to add" is generic ("happy to help anywhere") or implies target-domain expertise the user doesn't have ("I'd own your roadmap") → coach to a specific contribution grounded in real vantage
-- References a practicum program when user_data.in_practicum is false → coach to remove the program claim
+4. ASK — low-friction, short. Vary across messages:
+   • "Worth a quick 15-minute call?"
+   • "Open to a 15-minute conversation?"
+   • "Could I send a one-pager outlining what I'd want to work on?"
 
-GOAL_COMPLETE SIGNAL:
-Recipient replied with: (a) yes to a call + scheduling, (b) yes but routed to another function leader who'd be a better host, (c) no with explanation + offer to keep on file, or (d) routed user to a formal internship program if one exists. All four close the loop.
+ABSOLUTE HARD RULES (override everything else; violating any = output is unusable):
 
-RECIPIENT REGISTER:
-Peer-to-peer respect, value-forward. The recipient is being asked to host an intern in an unposted slot — that's a real ask of their time and headcount. The message must implicitly acknowledge that.`
+H1. NEVER use the word "summer" in any output. The practicum is November–February. The edge function regenerates any output containing "summer" — don't burn the retry budget.
+H2. NEVER fabricate, inflate, or imply experience the user does not have. user_data.internship_profile.pitch_anti_patterns is the user's explicit "do not claim this" list — read it and obey it on every generation.
+H3. NEVER use any of these hedging phrases: "I don't have much experience yet", "I'm still learning", "if it'd be useful", "to see if that could be a fit", "moderate bridge", "happy to chat anywhere", "open to anything". Confidence comes from the structured-program framing + one real proof point.
+H4. When thread.length > 0, the value line, company hook, and ask MUST differ from prior turns in the thread. The practicum lead is the ONLY constant; vary its wording too.
+H5. The company hook must come from target_company fields, not from target_person.company (which is just the name string). If target_company is null, fall back to sector + stage — never invent product details or funding rounds.
+H6. HARD RULE 1 from SYSTEM_PROMPT still applies — no "hope this finds you well" etc.
+
+EXAMPLES (user_data.in_practicum=true, school matches gate):
+
+Good — strong profile (user runs VIP CS at a cyber startup), target = 7AI (Series B AI security):
+"Hi Greg — I'm in Reichman University's Business Administration practicum (internship) program: a structured, supervised placement, ~12 hours a week from November to February. I'd love to do mine in product operations at a security company like 7AI. I currently run VIP customer success at a cybersecurity startup — turning what high-value users struggle with into product signal, which is exactly what I'd bring to your product ops. Worth a quick 15-minute call?"
+
+Good — thin profile (first-job undergrad, led student consulting club), target = Aligned (Series A revenue platform, B2B SaaS):
+"Hi Maya — I'm a Reichman B.A. student doing the Business Administration practicum — a supervised placement, ~12 hrs/week from November–February. I'd love to spend mine in growth marketing at Aligned, where the GTM motion around revenue platforms feels like the right wedge to learn paid acquisition end-to-end. This year I led 3 client engagements at Reichman's student consulting club — including a B2B segmentation project for an IL fintech — same loop, smaller scale. Open to a 15-minute call?"
+
+Good — connection_request_note (≤300 chars), strong profile, target = 7AI:
+"Hi Greg — I'm in Reichman's B.A. practicum (Nov–Feb, ~12 hrs/week) and would love to do mine in product ops at 7AI. I currently run VIP customer success at a cyber startup, turning user friction into product signal. Worth a 15-min call?"
+
+Bad — uses "summer":
+"…targeting a Product Operations internship for the summer…" → REJECT.
+
+Bad — no practicum lead (when gate satisfies):
+"Hi Greg — I'm a final-year business student targeting product ops…" → REJECT, add practicum opener first.
+
+Bad — generic company praise:
+"…I admire 7AI's innovative work in cybersecurity and would love to contribute…" → REJECT, pull a specific true detail from target_company.description.
+
+Bad — thin profile fabrication:
+"I have product expertise from my time at <company>…" (user has no such role in user_data.recent_experiences) → REJECT.
+
+WARM-UP ADVICE TRIGGERS (set warm_up_advice when any apply):
+- Output contains "summer" → regenerate with Nov–Feb framing
+- Output is missing the practicum lead despite gate being satisfied → regenerate
+- Value line is generic ("eager to contribute", "passionate about X") → pick a specific signal from user_data.internship_profile.pitch_strength_signals or recent_experiences
+- Company hook uses sector/industry alone, no specific detail → pull a phrase from target_company.description
+- Successive turns reuse the same value line or close → vary
+
+GOAL_COMPLETE SIGNAL: recipient replied with (a) yes to a call + scheduling, (b) routed to a better host, (c) declined with explanation, (d) referred to a formal program. All four close.
+
+RECIPIENT REGISTER: peer-to-peer, confident, low-friction. 15 minutes is what's being asked for. The structured-program framing earns it.`
 
 // Lookup map used by the edge function — maps goal type to its framework string.
 export const FRAMEWORK_BY_GOAL: Record<string, string> = {
