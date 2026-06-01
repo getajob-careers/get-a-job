@@ -65,7 +65,7 @@ function CardHeader({ icon: Icon, title, subtitle, chipCount, expanded, onClick 
 // Role-library suggestion section — only rendered for experience cards
 // where the title matched the canonical role library. Pre-suggested
 // skills appear as dashed-outline chips with a "+" prefix. Tapping
-// adds the skill (canonical display name) to the card's skills_used
+// adds the skill (canonical display name) to the card's skills
 // array and removes the chip from the suggestion list.
 function RoleSuggestions({ suggestion, currentSkills, onAccept }) {
   const remainingIds = useMemo(() => {
@@ -142,10 +142,10 @@ export default function StepRoleSkills({ experiences, setExperiences, educations
   const handleToggle = (key) => setExpandedKey((prev) => (prev === key ? null : key));
 
   const updateExpSkills = (i, next) => {
-    setExperiences((prev) => prev.map((e, idx) => idx === i ? { ...e, skills_used: next } : e));
+    setExperiences((prev) => prev.map((e, idx) => idx === i ? { ...e, skills: next } : e));
   };
   const toggleExpSkill = (i, label) => {
-    const current = expList[i]?.skills_used || [];
+    const current = expList[i]?.skills || [];
     const next = matchesSkill(current, label)
       ? current.filter((s) => String(s).toLowerCase() !== String(label).toLowerCase())
       : [...current, label];
@@ -153,10 +153,10 @@ export default function StepRoleSkills({ experiences, setExperiences, educations
   };
 
   const updateEduSkills = (i, next) => {
-    setEducations((prev) => prev.map((e, idx) => idx === i ? { ...e, skills_developed: next } : e));
+    setEducations((prev) => prev.map((e, idx) => idx === i ? { ...e, skills: next } : e));
   };
   const toggleEduSkill = (i, label) => {
-    const current = eduList[i]?.skills_developed || [];
+    const current = eduList[i]?.skills || [];
     const next = matchesSkill(current, label)
       ? current.filter((s) => String(s).toLowerCase() !== String(label).toLowerCase())
       : [...current, label];
@@ -164,10 +164,10 @@ export default function StepRoleSkills({ experiences, setExperiences, educations
   };
 
   const updateProjSkills = (i, next) => {
-    setProjects((prev) => prev.map((p, idx) => idx === i ? { ...p, skills_demonstrated: next } : p));
+    setProjects((prev) => prev.map((p, idx) => idx === i ? { ...p, skills: next } : p));
   };
   const toggleProjSkill = (i, label) => {
-    const current = projList[i]?.skills_demonstrated || [];
+    const current = projList[i]?.skills || [];
     const next = matchesSkill(current, label)
       ? current.filter((s) => String(s).toLowerCase() !== String(label).toLowerCase())
       : [...current, label];
@@ -199,7 +199,7 @@ export default function StepRoleSkills({ experiences, setExperiences, educations
           {expList.map((e, i) => {
             const key = `exp_${i}`;
             const expanded = expandedKey === key;
-            const skills = e?.skills_used || [];
+            const skills = e?.skills || [];
             const tagged = skills.length;
             const subtitle = [e?.company, formatDateRange(e?.start_date, e?.end_date, e?.is_current)].filter(Boolean).join(" · ");
             return (
@@ -247,7 +247,7 @@ export default function StepRoleSkills({ experiences, setExperiences, educations
           {eduList.map((e, i) => {
             const key = `edu_${i}`;
             const expanded = expandedKey === key;
-            const skills = e?.skills_developed || [];
+            const skills = e?.skills || [];
             const tagged = skills.length;
             const title = [e?.degree_type, e?.field_of_study && `in ${e.field_of_study}`].filter(Boolean).join(" ") || (e?.institution || "(Education)");
             const subtitle = [e?.institution, formatDateRange(e?.start_date, e?.end_date, e?.is_current)].filter(Boolean).join(" · ");
@@ -289,7 +289,7 @@ export default function StepRoleSkills({ experiences, setExperiences, educations
           {projList.map((p, i) => {
             const key = `proj_${i}`;
             const expanded = expandedKey === key;
-            const skills = p?.skills_demonstrated || [];
+            const skills = p?.skills || [];
             const tagged = skills.length;
             const subtitle = p?.description ? p.description.slice(0, 80) + (p.description.length > 80 ? "…" : "") : "";
             return (

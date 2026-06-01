@@ -120,10 +120,10 @@ export const EMPTY_EDUCATION_ROW = {
   honors: [],
   relevant_coursework: [],
   academic_projects: [],
-  // PR onboarding-redesign: per-education skills tagged in StepRoleSkills.
-  // Same shape as experiences.skills_used. Aggregated into
+  // Per-education skills tagged in StepRoleSkills. Unified `skills` column —
+  // same shape across all 4 entity tables. Aggregated into
   // profiles.skills_canonical at save time by cleanProfilePayload.
-  skills_developed: [],
+  skills: [],
   location: "",
   display_order: 0,
 };
@@ -138,7 +138,6 @@ export const EMPTY_EDUCATION_ROW = {
 // and are persisted through a separate education-table write path — they
 // are intentionally NOT in this list.
 import { aggregateProfileSkills } from "./skillAggregation";
-import { withUnifiedSkills } from "./unifiedSkills";
 
 // `experiences`, `educations`, `projects` are NOT columns on the profiles
 // table — they live on their own tables. They're passed into
@@ -163,20 +162,15 @@ export function cleanProfilePayload(data) {
     experiences, educations, projects,
   } = data;
   // Compute skills_canonical from the unified `skills` column on every
-  // entity. The in-memory React state for experiences/educations/projects
-  // still carries the legacy column names (skills_used / tools_used /
-  // skills_developed / skills_demonstrated), so we materialize the
-  // unified `skills` field via withUnifiedSkills before aggregating.
+  // entity. The in-memory React state now uses `skills` directly (matches
+  // the DB column) — no field-name translation needed.
   // resolveSkillList handles canonicalization. Deterministic, no LLM.
-  const expWithUnified = Array.isArray(experiences) ? experiences.map((e) => withUnifiedSkills(e, "experience")) : [];
-  const eduWithUnified = Array.isArray(educations)  ? educations.map((e) => withUnifiedSkills(e, "education"))    : [];
-  const projWithUnified = Array.isArray(projects)   ? projects.map((p) => withUnifiedSkills(p, "project"))        : [];
   const { canonical: skills_canonical, unmapped: skills_unmapped } =
     aggregateProfileSkills({
       profileSkills: Array.isArray(skills) ? skills : [],
-      experiences: expWithUnified,
-      educations: eduWithUnified,
-      projects: projWithUnified,
+      experiences: experiences || [],
+      educations: educations || [],
+      projects: projects || [],
     });
   return {
     full_name, phone_number, location, linkedin_url, summary, skills, resume_url,

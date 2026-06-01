@@ -109,26 +109,22 @@ async function main() {
   let totalAdded = 0, totalRemoved = 0;
 
   for (const row of rows) {
-    // Fetch the 3 per-row sources concurrently.
-    const [{ data: experiences, error: expErr },
-           { data: educations, error: eduErr },
-           { data: projects, error: projErr }] = await Promise.all([
-      supabase.from("experiences").select("skills_used, tools_used").eq("user_id", row.id),
-      supabase.from("education").select("skills_developed").eq("user_id", row.id),
-      supabase.from("projects").select("skills_demonstrated").eq("user_id", row.id),
-    ]);
-    const fetchErr = expErr || eduErr || projErr;
-    if (fetchErr) {
-      console.error(`  FETCH FAIL ${row.id} — ${fetchErr.message}`);
+    // Single federated read via entity_spine (P1.3 read switch). Spine
+    // surfaces each row's unified `skills` column with RLS preserved via
+    // security_invoker.
+    const { data: spineRows, error: spineErr } = await supabase
+      .from("entity_spine")
+      .select("skills")
+      .eq("user_id", row.id);
+    if (spineErr) {
+      console.error(`  FETCH FAIL ${row.id} — ${spineErr.message}`);
       errored++;
       continue;
     }
 
     const { canonical, unmapped } = aggregateProfileSkills({
       profileSkills: Array.isArray(row.skills) ? row.skills : [],
-      experiences: experiences || [],
-      educations: educations || [],
-      projects: projects || [],
+      entitySpine: spineRows || [],
     });
 
     const before = new Set(Array.isArray(row.skills_canonical) ? row.skills_canonical : []);

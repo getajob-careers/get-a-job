@@ -12,7 +12,6 @@ import { toast } from "sonner";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import { DEGREE_TYPE_OPTIONS, dropdownValueForDegreeType, EDUCATION_LEVELS } from "@/lib/educationPolicy";
 import { recomputeProfileSkillsCanonical } from "@/lib/recomputeProfileSkillsCanonical";
-import { withUnifiedSkills } from "@/lib/unifiedSkills";
 
 // Multi-entry education editor for the AddInformation Profile page.
 // Mirrors the Experience-tab pattern: an add/edit form at the top, a list
@@ -36,7 +35,7 @@ const EMPTY_FORM = {
   honors: [],
   relevant_coursework: [],
   academic_projects: [],
-  skills_developed: [],
+  skills: [],
   location: "",
 };
 
@@ -102,7 +101,7 @@ export default function EducationTab({ user }) {
         ? undefined
         : (educations.reduce((max, e) => Math.max(max, e.display_order ?? 0), -1) + 1);
 
-      const payload = withUnifiedSkills({
+      const payload = {
         user_id: user.id,
         institution: form.institution || null,
         education_level: form.education_level || null,
@@ -115,10 +114,10 @@ export default function EducationTab({ user }) {
         honors: form.honors || [],
         relevant_coursework: form.relevant_coursework || [],
         academic_projects: form.academic_projects || [],
-        skills_developed: form.skills_developed || [],
+        skills: form.skills || [],
         location: form.location || null,
         ...(nextDisplayOrder !== undefined && { display_order: nextDisplayOrder }),
-      }, "education");
+      };
 
       if (form.id) {
         const { error } = await supabase
@@ -138,7 +137,7 @@ export default function EducationTab({ user }) {
       // education (Home, ProfileSummary, edge function callers).
       queryClient.invalidateQueries({ queryKey: ["userProfile", user.id] });
 
-      // skills_developed changes affect profiles.skills_canonical. Recompute
+      // skills changes affect profiles.skills_canonical. Recompute
       // from FRESH DB rows (all 4 sources) per the PR #178 incident pattern —
       // don't reuse cached React state.
       const recompute = await recomputeProfileSkillsCanonical(supabase, user.id);
@@ -171,7 +170,7 @@ export default function EducationTab({ user }) {
       academic_projects: e.academic_projects || [],
       // P1.3 read switch: prefer the unified `skills` column; fall back
       // to legacy until P1.4 drops it.
-      skills_developed: e.skills || e.skills_developed || [],
+      skills: e.skills || [],
       location: e.location || "",
     });
     // Scroll to top of tab so the form is visible
@@ -338,8 +337,8 @@ export default function EducationTab({ user }) {
         <SkillTagInput
           label="Skills Developed"
           description="Programs, methods, fields, or tools you developed during this degree — search the library or type custom."
-          tags={form.skills_developed}
-          onChange={(v) => setForm({ ...form, skills_developed: v })}
+          tags={form.skills}
+          onChange={(v) => setForm({ ...form, skills: v })}
           placeholder="e.g. financial modeling, market research"
           suggestionType="library_skills"
         />
@@ -370,13 +369,13 @@ export default function EducationTab({ user }) {
                 {e.institution || "Institution not set"}
                 {e.start_date || e.end_date ? ` · ${e.start_date || ""}${e.start_date && e.end_date ? " – " : ""}${e.end_date || (e.is_current ? "Present" : "")}` : ""}
               </p>
-              {(e.honors?.length > 0 || e.relevant_coursework?.length > 0 || e.academic_projects?.length > 0 || (e.skills?.length || e.skills_developed?.length) > 0) && (
+              {(e.honors?.length > 0 || e.relevant_coursework?.length > 0 || e.academic_projects?.length > 0 || e.skills?.length > 0) && (
                 <p className="text-[11px] text-[#9C9DA1] mt-1 truncate">
                   {e.honors?.length > 0 && <>{e.honors.length} honor{e.honors.length === 1 ? "" : "s"} · </>}
                   {e.relevant_coursework?.length > 0 && <>{e.relevant_coursework.length} course{e.relevant_coursework.length === 1 ? "" : "s"} · </>}
                   {e.academic_projects?.length > 0 && <>{e.academic_projects.length} project{e.academic_projects.length === 1 ? "" : "s"} · </>}
                   {(() => {
-                    const n = e.skills?.length || e.skills_developed?.length || 0;
+                    const n = e.skills?.length || 0;
                     return n > 0 ? <>{n} skill{n === 1 ? "" : "s"}</> : null;
                   })()}
                 </p>
