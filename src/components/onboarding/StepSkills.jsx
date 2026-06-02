@@ -1,7 +1,7 @@
 import React from "react";
-import SkillTagInput from "./SkillTagInput";
-import SkillChipBank from "./SkillChipBank";
-import SkipFooter from "./SkipFooter";
+import RdSkillTagInput from "@/components/redesign/RdSkillTagInput";
+import RdSkillChipBank from "@/components/redesign/RdSkillChipBank";
+import RdSkipFooter from "@/components/redesign/RdSkipFooter";
 import { matchesSkill } from "./skillBank";
 
 // "Any other skills?" — optional catch-all after StepRoleSkills.
@@ -9,9 +9,11 @@ import { matchesSkill } from "./skillBank";
 // in StepRoleSkills; this page exists for skills not tied to any
 // specific source (broad capabilities, self-taught, side projects, etc.).
 //
-// Shared with StepRoleSkills via SkillChipBank — same 6 categories,
-// same toggle behavior. Library autocomplete on top for searching the
-// full 595-skill canonical library.
+// Restyled for PR 2B — behaviour identical to the Direction-3 version.
+// SkillTagInput → RdSkillTagInput and SkillChipBank → RdSkillChipBank.
+// Both are behaviour-identical forks (same canonical-library suggestion
+// source, same chip categories, same matchesSkill helper).
+// Skill-picking UX preserved verbatim per the standing skill guarantee.
 
 export default function StepSkills({ data, onChange, onNext, onBack }) {
   const skills = Array.isArray(data.skills) ? data.skills : [];
@@ -28,15 +30,22 @@ export default function StepSkills({ data, onChange, onNext, onBack }) {
   return (
     <div className="space-y-7">
       <div>
-        <h1 className="onb-h1">Any other skills?</h1>
-        <p className="onb-sub">
-          You've already tagged skills under each role, degree, and project. This catch-all is for anything that doesn't belong to a specific experience — broad capabilities, side learning, or things you've picked up outside work.
+        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+          step 6 of 9 · any other skills
         </p>
-        <p className="onb-help">Optional. Only add skills you can actually demonstrate in an interview.</p>
+        <h1 className="font-display font-extrabold text-[26px] sm:text-[28px] leading-[1.1] tracking-tight text-rd-text mt-2">
+          Any other skills?
+        </h1>
+        <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
+          You&apos;ve already tagged skills under each role, degree, and project. This catch-all is for anything that doesn&apos;t belong to a specific experience — broad capabilities, side learning, or things you&apos;ve picked up outside work.
+        </p>
+        <p className="text-[11.5px] text-rd-text-secondary mt-2 leading-snug">
+          Optional. Only add skills you can actually demonstrate in an interview.
+        </p>
       </div>
 
-      <div className="onb-card">
-        <SkillTagInput
+      <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5">
+        <RdSkillTagInput
           label={skills.length > 0 ? `Selected (${skills.length})` : undefined}
           description="Search 595 standard skills or type your own."
           tags={skills}
@@ -46,15 +55,11 @@ export default function StepSkills({ data, onChange, onNext, onBack }) {
         />
       </div>
 
-      <div className="onb-card">
-        <SkillChipBank selected={skills} onToggle={toggleSkill} />
+      <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5">
+        <RdSkillChipBank selected={skills} onToggle={toggleSkill} />
       </div>
 
-      <SkipFooter
-        onBack={onBack}
-        onSkip={onNext}
-        onContinue={onNext}
-      />
+      <RdSkipFooter onBack={onBack} onSkip={onNext} onContinue={onNext} />
     </div>
   );
 }
