@@ -16,7 +16,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { CHAT_CSS } from "./chatStyles";
 import { toast } from "sonner";
 import { createPageUrl } from "@/utils";
 import { resolveDueDate } from "@/lib/taskDueDate";
@@ -41,29 +40,34 @@ const TRACK_LABELS = {
   track_3: "Track 3 — Work Toward",
 };
 
+// PR 3K — semantic-banner mapping retired. All action cards land on a
+// uniform rd-bg-card surface; the per-card identity comes from its icon
+// + slab heading. Applied-confirmation chips use rd-teal-tint
+// (success). Behavior unchanged — every handler call signature is
+// byte-equivalent (see P16–P19, P21 in the PR body).
 function TaskSuggestionCard({ messageId, tasks, addedTaskSets, onAdd }) {
   const addedForMessage = addedTaskSets[messageId] || {};
   return (
-    <div className="ml-10 mt-2 bg-blue-50 border border-blue-200 rounded-xl p-4 max-w-xl">
+    <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
       <div className="flex items-center gap-2 mb-3">
-        <ListTodo className="w-3.5 h-3.5 text-blue-700" />
-        <p className="text-xs font-semibold text-blue-800">Suggested Tasks</p>
+        <ListTodo className="w-3.5 h-3.5 text-rd-coral" />
+        <p className="text-[13.5px] font-display font-bold text-rd-text">Suggested tasks</p>
       </div>
       <ul className="space-y-2">
         {tasks.map((task, i) => (
           <li key={i} className="flex items-start justify-between gap-3">
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-blue-800 leading-snug">{task.title}</p>
+              <p className="text-[12.5px] font-display font-semibold text-rd-text leading-snug">{task.title}</p>
               {task.description && (
-                <p className="text-[11px] text-blue-600 mt-0.5 leading-snug">{task.description}</p>
+                <p className="text-[11px] text-rd-text-secondary mt-0.5 leading-snug">{task.description}</p>
               )}
             </div>
             {addedForMessage[i] ? (
-              <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
+              <CheckCircle2 className="w-4 h-4 text-rd-teal-dark shrink-0 mt-0.5" />
             ) : (
               <button
                 onClick={() => onAdd(messageId, task, i)}
-                className="text-[11px] font-medium text-blue-700 hover:text-blue-900 bg-white border border-blue-300 hover:border-blue-500 rounded px-2 py-0.5 shrink-0 transition-colors"
+                className="text-[11px] font-display font-semibold text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-3 py-1 shrink-0 transition-colors"
               >
                 Add
               </button>
@@ -78,35 +82,35 @@ function TaskSuggestionCard({ messageId, tasks, addedTaskSets, onAdd }) {
 function RoadmapChangeCard({ messageId, changes, applied, onApply }) {
   if (applied[messageId]) {
     return (
-      <div className="ml-10 mt-2 bg-emerald-50 border border-emerald-200 rounded-xl p-4 max-w-xl">
+      <div className="ml-10 mt-2 bg-rd-teal-tint border border-rd-teal/30 rounded-[14px] p-4 max-w-xl">
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <p className="text-xs font-semibold text-emerald-800">Roadmap changes applied</p>
+          <CheckCircle2 className="w-4 h-4 text-rd-teal-dark" />
+          <p className="text-xs font-display font-bold text-rd-teal-dark">Roadmap changes applied</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="ml-10 mt-2 bg-indigo-50 border border-indigo-200 rounded-xl p-4 max-w-xl">
+    <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
       <div className="flex items-center gap-2 mb-3">
-        <Route className="w-3.5 h-3.5 text-indigo-700" />
-        <p className="text-xs font-semibold text-indigo-800">Proposed Roadmap Changes</p>
+        <Route className="w-3.5 h-3.5 text-rd-coral" />
+        <p className="text-[13.5px] font-display font-bold text-rd-text">Proposed roadmap changes</p>
       </div>
       <ul className="space-y-2 mb-3">
         {changes.map((change, i) => (
-          <li key={i} className="text-xs text-indigo-700 leading-relaxed">
+          <li key={i} className="text-xs text-rd-text-secondary leading-relaxed">
             {change.action === "update_track" && (
-              <span>Move <strong>{change.role_title}</strong> → {TRACK_LABELS[change.new_track] || change.new_track}</span>
+              <span>Move <strong className="font-display font-semibold text-rd-text">{change.role_title}</strong> → {TRACK_LABELS[change.new_track] || change.new_track}</span>
             )}
             {change.action === "add_role" && (
-              <span>Add <strong>{change.title}</strong> as {TRACK_LABELS[change.track] || change.track}</span>
+              <span>Add <strong className="font-display font-semibold text-rd-text">{change.title}</strong> as {TRACK_LABELS[change.track] || change.track}</span>
             )}
             {change.action === "remove_role" && (
-              <span>Remove <strong>{change.role_title}</strong></span>
+              <span>Remove <strong className="font-display font-semibold text-rd-text">{change.role_title}</strong></span>
             )}
             {change.reason && (
-              <span className="text-indigo-500"> — {change.reason}</span>
+              <span className="text-rd-text-tertiary"> — {change.reason}</span>
             )}
           </li>
         ))}
@@ -114,9 +118,9 @@ function RoadmapChangeCard({ messageId, changes, applied, onApply }) {
       <Button
         size="sm"
         onClick={() => onApply(messageId, changes)}
-        className="h-7 text-xs bg-indigo-700 hover:bg-indigo-800 gap-1.5"
+        className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
       >
-        Apply Changes
+        Apply changes
       </Button>
     </div>
   );
@@ -125,29 +129,29 @@ function RoadmapChangeCard({ messageId, changes, applied, onApply }) {
 function ApplicationActionsCard({ messageId, actions, applied, onApply }) {
   if (applied[messageId]) {
     return (
-      <div className="ml-10 mt-2 bg-emerald-50 border border-emerald-200 rounded-xl p-4 max-w-xl">
+      <div className="ml-10 mt-2 bg-rd-teal-tint border border-rd-teal/30 rounded-[14px] p-4 max-w-xl">
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <p className="text-xs font-semibold text-emerald-800">Applications updated</p>
+          <CheckCircle2 className="w-4 h-4 text-rd-teal-dark" />
+          <p className="text-xs font-display font-bold text-rd-teal-dark">Applications updated</p>
         </div>
       </div>
     );
   }
   return (
-    <div className="ml-10 mt-2 bg-blue-50 border border-blue-200 rounded-xl p-4 max-w-xl">
+    <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
       <div className="flex items-center gap-2 mb-3">
-        <Briefcase className="w-3.5 h-3.5 text-blue-700" />
-        <p className="text-xs font-semibold text-blue-800">Proposed Application Changes</p>
+        <Briefcase className="w-3.5 h-3.5 text-rd-coral" />
+        <p className="text-[13.5px] font-display font-bold text-rd-text">Proposed application changes</p>
       </div>
       <ul className="space-y-2 mb-3">
         {actions.map((a, i) => (
-          <li key={i} className="text-xs text-blue-900 leading-relaxed">
+          <li key={i} className="text-xs text-rd-text-secondary leading-relaxed">
             {a.action === "add_application" && (
-              <span>Add <strong>{a.company}</strong> — {a.role_title} ({a.status || "interested"}{a.track ? `, ${a.track}` : ""})</span>
+              <span>Add <strong className="font-display font-semibold text-rd-text">{a.company}</strong> — {a.role_title} ({a.status || "interested"}{a.track ? `, ${a.track}` : ""})</span>
             )}
             {a.action === "update_application" && (
               <span>
-                Update <strong>{a.match_company}</strong> — {a.match_role_title}:
+                Update <strong className="font-display font-semibold text-rd-text">{a.match_company}</strong> — {a.match_role_title}:
                 {a.new_status && <span> status → {a.new_status}</span>}
                 {a.new_interview_stage && <span>, stage → {a.new_interview_stage}</span>}
                 {a.new_track && <span>, track → {a.new_track}</span>}
@@ -160,9 +164,9 @@ function ApplicationActionsCard({ messageId, actions, applied, onApply }) {
       <Button
         size="sm"
         onClick={() => onApply(messageId, actions)}
-        className="h-7 text-xs bg-blue-700 hover:bg-blue-800 gap-1.5"
+        className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
       >
-        Apply Changes
+        Apply changes
       </Button>
     </div>
   );
@@ -184,39 +188,39 @@ const PRACTICUM_STATUS_LABELS = {
 function CompanyTargetActionsCard({ messageId, actions, applied, onApply }) {
   if (applied[messageId]) {
     return (
-      <div className="ml-10 mt-2 bg-emerald-50 border border-emerald-200 rounded-xl p-4 max-w-xl">
+      <div className="ml-10 mt-2 bg-rd-teal-tint border border-rd-teal/30 rounded-[14px] p-4 max-w-xl">
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <p className="text-xs font-semibold text-emerald-800">Internship updated</p>
+          <CheckCircle2 className="w-4 h-4 text-rd-teal-dark" />
+          <p className="text-xs font-display font-bold text-rd-teal-dark">Internship updated</p>
         </div>
       </div>
     );
   }
   return (
-    <div className="ml-10 mt-2 bg-blue-50 border border-blue-200 rounded-xl p-4 max-w-xl">
+    <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
       <div className="flex items-center gap-2 mb-3">
-        <Briefcase className="w-3.5 h-3.5 text-blue-700" />
-        <p className="text-xs font-semibold text-blue-800">Proposed Internship Changes</p>
+        <Briefcase className="w-3.5 h-3.5 text-rd-coral" />
+        <p className="text-[13.5px] font-display font-bold text-rd-text">Proposed internship changes</p>
       </div>
       <ul className="space-y-2 mb-3">
         {actions.map((a, i) => (
-          <li key={i} className="text-xs text-blue-900 leading-relaxed">
+          <li key={i} className="text-xs text-rd-text-secondary leading-relaxed">
             {a.action === "add_company_target" && (
               <span>
-                Add <strong>{a.company_name}</strong> to your internship pipeline
+                Add <strong className="font-display font-semibold text-rd-text">{a.company_name}</strong> to your internship pipeline
                 {a.company_sector ? ` (${a.company_sector})` : ""}
                 {a.pitched_role && <span> · pitch: {a.pitched_role}</span>}
               </span>
             )}
             {a.action === "update_company_target_status" && (
               <span>
-                Update <strong>{a.match_company}</strong>: status → {PRACTICUM_STATUS_LABELS[a.new_status] || a.new_status}
-                {a.note && <span> · note: "{a.note.slice(0, 80)}{a.note.length > 80 ? "…" : ""}"</span>}
+                Update <strong className="font-display font-semibold text-rd-text">{a.match_company}</strong>: status → {PRACTICUM_STATUS_LABELS[a.new_status] || a.new_status}
+                {a.note && <span> · note: &quot;{a.note.slice(0, 80)}{a.note.length > 80 ? "…" : ""}&quot;</span>}
               </span>
             )}
             {a.action === "enrich_company" && (
               <span>
-                Enrich <strong>{a.match_company}</strong> with{" "}
+                Enrich <strong className="font-display font-semibold text-rd-text">{a.match_company}</strong> with{" "}
                 {[a.description && "description", a.sector && "sector", a.domain && "domain", a.industry && "industry"].filter(Boolean).join(", ")}
               </span>
             )}
@@ -226,9 +230,9 @@ function CompanyTargetActionsCard({ messageId, actions, applied, onApply }) {
       <Button
         size="sm"
         onClick={() => onApply(messageId, actions)}
-        className="h-7 text-xs bg-blue-700 hover:bg-blue-800 gap-1.5"
+        className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
       >
-        Apply Changes
+        Apply changes
       </Button>
     </div>
   );
@@ -285,51 +289,45 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
       ? Math.round(fit_analysis.skill_match_percentage)
       : null;
     const alignClass =
-      alignment === "Strong" ? "text-emerald-700"
-      : alignment === "Moderate" ? "text-amber-700"
-      : alignment === "Weak" ? "text-red-700"
-      : alignment === "Not a match" ? "text-red-700"
-      : "text-[#52545A]";
+      alignment === "Strong" ? "text-rd-teal-dark"
+      : alignment === "Moderate" ? "text-rd-golden-dark"
+      : alignment === "Weak" ? "text-rd-coral-dark"
+      : alignment === "Not a match" ? "text-rd-coral-dark"
+      : "text-rd-text-secondary";
     return (
-      <div className="ml-10 mt-2 bg-emerald-50 border border-emerald-200 rounded-xl p-4 max-w-xl">
+      <div className="ml-10 mt-2 bg-rd-teal-tint border border-rd-teal/30 rounded-[14px] p-4 max-w-xl">
         <div className="flex items-center gap-2 mb-1">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <p className="text-xs font-semibold text-emerald-800">CV generated for {proposal.target_role}</p>
+          <CheckCircle2 className="w-4 h-4 text-rd-teal-dark" />
+          <p className="text-[13.5px] font-display font-bold text-rd-teal-dark">CV generated for {proposal.target_role}</p>
         </div>
         {application_id && (
-          <p className="text-[11px] text-emerald-700 mb-2">✓ Linked to your application tracker</p>
+          <p className="text-[11px] text-rd-teal-dark mb-2">✓ Linked to your application tracker</p>
         )}
         {fit_analysis && (
-          <div className="mb-3 bg-white border border-emerald-100 rounded-lg px-3 py-2 text-xs space-y-1">
+          <div className="mb-3 bg-rd-bg-card border border-rd-border rounded-[10px] px-3 py-2 text-xs space-y-1">
             <div className="flex items-center justify-between">
-              <span className="text-[#52545A]">Fit</span>
-              <span className={`font-semibold ${alignClass}`}>
+              <span className="text-rd-text-secondary">Fit</span>
+              <span className={`font-display font-bold ${alignClass}`}>
                 {alignment || "—"}{pct != null ? ` · ${pct}%` : ""}
               </span>
             </div>
-            {/* Keyword-match stat removed 2026-05-26 — it surfaced an
-                unactionable algorithm artifact (the in-CV substring count
-                of must_include_phrases) and the "No exact phrase matches"
-                copy read as a failure label even when the CV was strong.
-                Backend still computes + logs the score for telemetry —
-                see [CV] Tailoring score: ... in edge function logs. */}
             {Array.isArray(fit_analysis.major_gaps) && fit_analysis.major_gaps.length > 0 && (
               <div>
-                <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mt-1">Major gaps</p>
-                <p className="text-[11px] text-[#52545A]">{fit_analysis.major_gaps.join(" · ")}</p>
+                <p className="text-[10px] uppercase tracking-[0.09em] text-rd-text-eyebrow font-mono font-medium mt-1">Major gaps</p>
+                <p className="text-[11px] text-rd-text-secondary">{fit_analysis.major_gaps.join(" · ")}</p>
               </div>
             )}
             {fit_analysis.explanation && (
-              <p className="text-[11px] text-[#52545A] leading-relaxed pt-1">{fit_analysis.explanation}</p>
+              <p className="text-[11px] text-rd-text-secondary leading-relaxed pt-1">{fit_analysis.explanation}</p>
             )}
           </div>
         )}
         {Array.isArray(unsourced_bullets) && unsourced_bullets.length > 0 && (
-          <div className="mb-3 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 text-xs">
-            <p className="text-[10px] uppercase tracking-wider text-amber-800 font-medium mb-1">
+          <div className="mb-3 bg-rd-golden-tint border border-rd-golden/40 rounded-[10px] px-3 py-2 text-xs">
+            <p className="text-[10px] uppercase tracking-[0.09em] text-rd-golden-dark font-mono font-medium mb-1">
               Review before sending ({unsourced_bullets.length} {unsourced_bullets.length === 1 ? "bullet" : "bullets"})
             </p>
-            <p className="text-[11px] text-amber-900 leading-relaxed">
+            <p className="text-[11px] text-rd-golden-dark leading-relaxed">
               Some bullets reference numbers or tools that we couldn&apos;t trace back to your profile data. Open the CV and double-check each one is accurate before sending — the AI sometimes elaborates.
             </p>
           </div>
@@ -343,7 +341,7 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
               toast.error(`Download failed: ${err?.message || "unknown error"}`);
             }
           }}
-          className="inline-flex items-center gap-1.5 text-xs font-medium bg-emerald-700 hover:bg-emerald-800 text-white rounded px-3 py-1.5 transition-colors"
+          className="inline-flex items-center gap-1.5 text-xs font-display font-bold bg-rd-coral hover:bg-rd-coral-dark text-white rounded-full px-3.5 py-2 transition-colors"
         >
           <Download className="w-3.5 h-3.5" />
           Download CV (.pdf)
@@ -353,26 +351,26 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
   }
 
   return (
-    <div className="ml-10 mt-2 bg-rose-50 border border-rose-200 rounded-xl p-4 max-w-xl">
+    <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
       <div className="flex items-center gap-2 mb-2">
-        <FileText className="w-3.5 h-3.5 text-rose-700" />
-        <p className="text-xs font-semibold text-rose-800">Generate tailored CV</p>
+        <FileText className="w-3.5 h-3.5 text-rd-coral" />
+        <p className="text-[13.5px] font-display font-bold text-rd-text">Generate tailored CV</p>
       </div>
-      <ul className="space-y-1 mb-3 text-xs text-rose-900">
-        <li><span className="text-rose-600">Role:</span> <strong>{proposal.target_role}</strong></li>
-        {appLabel && <li><span className="text-rose-600">Application:</span> {appLabel}</li>}
+      <ul className="space-y-1 mb-3 text-xs text-rd-text-secondary">
+        <li><span className="text-rd-text-tertiary">Role:</span> <strong className="font-display font-semibold text-rd-text">{proposal.target_role}</strong></li>
+        {appLabel && <li><span className="text-rd-text-tertiary">Application:</span> {appLabel}</li>}
         {!appLabel && proposal.application_id && (
-          <li><span className="text-rose-600">Application:</span> <span className="text-rose-500">linked to tracked role</span></li>
+          <li><span className="text-rd-text-tertiary">Application:</span> <span className="text-rd-text-tertiary italic">linked to tracked role</span></li>
         )}
       </ul>
       {error && (
-        <p className="text-[11px] text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1 mb-2">{error}</p>
+        <p className="text-[11px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-[8px] px-2 py-1 mb-2">{error}</p>
       )}
       <Button
         size="sm"
         onClick={() => onGenerate()}
         disabled={status === "generating"}
-        className="h-7 text-xs bg-rose-700 hover:bg-rose-800 gap-1.5"
+        className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
       >
         {status === "generating" ? (
           <><Loader2 className="w-3 h-3 animate-spin" /> Generating…</>
@@ -390,7 +388,7 @@ function AgentRedirectCard({ suggestion, onSwitch }) {
       <Button
         size="sm"
         onClick={() => onSwitch(suggestion.page)}
-        className="h-7 text-xs bg-amber-700 hover:bg-amber-800 gap-1.5"
+        className="h-8 text-xs bg-rd-golden hover:bg-rd-golden-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
       >
         Switch to {suggestion.label}
         <ArrowRight className="w-3 h-3" />
@@ -1391,22 +1389,20 @@ export default function ChatInterface({ agentName, title, description, applicati
   };
 
   return (
-    <>
-      <style>{CHAT_CSS}</style>
-      <div className="chat flex flex-col h-full">
+    <div className="flex flex-col h-full bg-rd-bg-page font-body text-rd-text">
       {/* Header */}
-      <div className="c-header">
+      <div className="px-6 py-3.5 border-b border-rd-border bg-rd-bg-card flex items-center justify-between gap-3">
         <div className="min-w-0">
-          <h2 className="c-header-title">{title}</h2>
+          <h2 className="font-display font-bold text-[14.5px] text-rd-text leading-tight">{title}</h2>
           {description && (
-            <p className="c-header-sub truncate">{description}</p>
+            <p className="text-[12px] text-rd-text-tertiary leading-snug mt-0.5 max-w-[540px] truncate">{description}</p>
           )}
         </div>
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Conversation switcher */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm" className="text-xs max-w-[220px]">
+              <Button variant="outline" size="sm" className="text-xs max-w-[220px] border-rd-border text-rd-text hover:bg-rd-bg-soft">
                 <MessageSquare className="w-3.5 h-3.5 mr-1.5 flex-shrink-0" />
                 <span className="truncate">
                   {conversations.find((c) => c.id === activeConversationId)?.title || "New conversation"}
@@ -1428,12 +1424,12 @@ export default function ChatInterface({ agentName, title, description, applicati
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate">{c.title || "Untitled"}</p>
-                    <p className="text-[10px] text-[#9C9DA1]">{new Date(c.updated_at).toLocaleDateString()}</p>
+                    <p className="text-[10px] text-rd-text-tertiary">{new Date(c.updated_at).toLocaleDateString()}</p>
                   </div>
                   <button
                     type="button"
                     onClick={(e) => { e.stopPropagation(); deleteConversation(c.id); }}
-                    className="p-1 rounded hover:bg-red-50 text-[#9C9DA1] hover:text-red-500 flex-shrink-0"
+                    className="p-1 rounded hover:bg-rd-coral-tint text-rd-text-tertiary hover:text-rd-coral-dark flex-shrink-0"
                     aria-label="Delete conversation"
                   >
                     <Trash2 className="w-3 h-3" />
@@ -1448,18 +1444,18 @@ export default function ChatInterface({ agentName, title, description, applicati
       {/* Messages */}
       <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
         {loadingMessages && (
-          <div className="flex items-center justify-center py-8 text-xs text-[#9C9DA1]">
+          <div className="flex items-center justify-center py-8 text-xs text-rd-text-tertiary">
             <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> Loading conversation…
           </div>
         )}
         {!loadingMessages && messages.length === 0 && (
           <div className="text-center py-12 space-y-4">
             {introMessage ? (
-              <p className="text-sm text-[#52545A] max-w-md mx-auto leading-relaxed whitespace-pre-line">
+              <p className="text-sm text-rd-text-secondary max-w-md mx-auto leading-relaxed whitespace-pre-line">
                 {introMessage}
               </p>
             ) : (
-              <p className="text-sm text-[#9C9DA1]">
+              <p className="text-sm text-rd-text-tertiary">
                 Start a conversation. Ask a question about your career path.
               </p>
             )}
@@ -1471,7 +1467,7 @@ export default function ChatInterface({ agentName, title, description, applicati
                     type="button"
                     onClick={() => sendMessage(prompt)}
                     disabled={sending}
-                    className="c-prompt-chip"
+                    className="inline-flex items-center px-3.5 py-1.5 rounded-full bg-rd-bg-card border border-rd-border text-rd-text-secondary font-body text-[12.5px] font-medium hover:bg-rd-coral-tint hover:border-rd-coral hover:text-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {prompt}
                   </button>
@@ -1555,14 +1551,16 @@ export default function ChatInterface({ agentName, title, description, applicati
             </React.Fragment>
           ))}
 
-        {/* Typing indicator */}
+        {/* Typing indicator — coral-tint avatar + warm bubble dots */}
         {sending && (
           <div className="flex gap-3">
-            <div className="c-avatar">
-              <div className="c-avatar-dot" />
+            <div className="w-[26px] h-[26px] rounded-full bg-rd-coral-tint flex items-center justify-center flex-shrink-0 mt-[2px]">
+              <div className="w-1.5 h-1.5 rounded-full bg-rd-coral" />
             </div>
-            <div className="c-typing">
-              <span /><span /><span />
+            <div className="inline-flex gap-1 items-center px-3.5 py-2.5 bg-[#F3ECE0] rounded-tl-[14px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[4px]">
+              <span className="w-[5px] h-[5px] rounded-full bg-rd-text-tertiary animate-chat-typing" />
+              <span className="w-[5px] h-[5px] rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.15s]" />
+              <span className="w-[5px] h-[5px] rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.3s]" />
             </div>
           </div>
         )}
@@ -1571,12 +1569,12 @@ export default function ChatInterface({ agentName, title, description, applicati
       </div>
 
       {/* Composer */}
-      <div className="c-composer">
+      <div className="px-6 pt-3.5 pb-[18px] border-t border-rd-border bg-rd-bg-card">
         {messages.length > 0 && (
           <div className="flex justify-end mb-2">
             <button
               onClick={startNewConversation}
-              className="text-xs text-[#52545A] hover:text-[#0E1014] flex items-center gap-1 transition-colors"
+              className="text-xs text-rd-text-secondary hover:text-rd-text flex items-center gap-1 transition-colors"
             >
               <Plus className="w-3 h-3" /> New chat
             </button>
@@ -1587,16 +1585,16 @@ export default function ChatInterface({ agentName, title, description, applicati
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Type your message..."
+            placeholder="Message your agent…"
             rows={1}
-            className="c-composer-input flex-1"
+            className="flex-1 px-3.5 py-2.5 rounded-[14px] border border-rd-border bg-rd-bg-card text-rd-text font-body text-[14px] min-h-[42px] max-h-[120px] resize-none transition-colors placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
           />
           <button
             type="button"
             onClick={() => sendMessage()}
             disabled={sending || !input.trim()}
             aria-label="Send message"
-            className="c-composer-send"
+            className="w-[42px] h-[42px] rounded-full bg-rd-coral hover:bg-rd-coral-dark text-white border-0 inline-flex items-center justify-center cursor-pointer flex-shrink-0 disabled:opacity-40 disabled:cursor-not-allowed active:scale-[0.97] transition-all"
           >
             {sending ? (
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -1606,7 +1604,6 @@ export default function ChatInterface({ agentName, title, description, applicati
           </button>
         </div>
       </div>
-      </div>
-    </>
+    </div>
   );
 }

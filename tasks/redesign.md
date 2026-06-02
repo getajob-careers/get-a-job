@@ -65,6 +65,7 @@ or scope-cut.
 | `eli/redesign-linkedin-profile` (LinkedIn 3J-A: page shell + Profile tab + ProfilePreview off .li-*; Posts/Networking + LI_CSS stay) | 2026-06-02 | 411 | −15 |
 | `eli/redesign-linkedin-posts` (LinkedIn 3J-B: Posts tab + 6 posts/* sub-components off .li-*; Networking + LI_CSS stay) | 2026-06-02 | 406 | −15 |
 | `eli/redesign-linkedin-networking` (LinkedIn 3J-C: Networking tab + 4 networking/* sub-components off .li-*; **LI_CSS teardown** — `linkedinStyles.js` deleted, `<style>{LI_CSS}</style>` + `.li` wrapper dropped) | 2026-06-02 | 401 | −33 |
+| `eli/redesign-chat` (Chat 3K: ChatInterface + MessageBubble + AgentIntro + StorySaveCard off .c-*; **CHAT_CSS teardown** — `chatStyles.js` deleted, `<style>{CHAT_CSS}</style>` + `.chat` wrapper dropped) | 2026-06-02 | 401 | −33 |
 
 ---
 
@@ -97,7 +98,8 @@ Tick boxes here as each PR merges.
 | 3J-A | LinkedIn Profile tab | complex | ☑ | Page shell + Profile tab + ProfilePreview restyled to match `getajob_linkedin_profile_optimizer.html`. Q1 hybrid pane (Current/Optimized segmented toggle + single profile-card preview + per-section refine reachable on click). Q2 "Apply section by section" entry-point pill. Q3 "Copy optimized profile" client-only concat helper (`buildOptimizedProfileBlob`). Q7 LinkedIn-blue cues kept in simulacrum surfaces only. P1/P2/P3 byte-equivalent (handleGenerate empty body, handleRefine sectionKey + ≤600-char instruction, ArchiveUploader import-linkedin-archive). LI_CSS injection + `.li` wrapper KEPT in Linkedin.jsx — Posts (3J-B) + Networking (3J-C) still consume `.li-*`. |
 | 3J-B | LinkedIn Posts tab | complex | ☑ | Maps to `getajob_linkedin_posts_feed_preview.html`. PostsTab + 6 posts/* sub-components restyled on rd-tokens. Icon mapping updated to mockup (Rocket / Lightbulb / Flag / Calendar / HelpCircle / Eye / Pencil). LinkedIn-blue `#0A66C2` preserved in feed-card hashtags only per Q7. P4 (generate-linkedin-post 7 types + story_id), P5 (refinement-updates-same-row), P6 (debounced edited_text auto-save, no optimistic/rollback by design), P7 (image upload + removal nulls image_url only — does NOT delete storage object), P8 (optimistic post-delete + rollback toast) byte-equivalent. LI_CSS injection STAYS; teardown in 3J-C. |
 | 3J-C | LinkedIn Networking tab + LI_CSS teardown | complex | ☑ | Maps to `getajob_linkedin_networking_outreach.html`. NetworkingTab + 4 networking/* restyled on rd tokens. **LI_CSS teardown landed** — gated audit confirmed zero remaining `.li-*` JSX consumers; `<style>{LI_CSS}</style>` + `.li` wrapper dropped from Linkedin.jsx + LinkedinPreview.jsx; `linkedinStyles.js` deleted. Q4 ruling: dropped "Why this works:" line; preserved existing `warm_up_advice` "Coach's advice" corrective WARNING banner in place (rd-golden WARNING tokens). Q5 affirmative state: client-derived from `warnings.length===0 && !warm_up_advice`, honest generic affirmation only ("No anti-pattern flags raised") — no fabricated specific claims. Mockup-fidelity bubble radii: user `14/14/4/14` dark `#211D18`, them `14/14/14/4` warm `#F3ECE0`. P9 (CommentCoach generate-linkedin-comment + no_fit_reason branch), P10 (5 callEdge body shapes new / mark_as_sent / new_them_reply / change-goal / regenerate), P12 (handleSaveTurnEdit), P13 (handleMarkStatus), P14 (Practicum prefill capture + URL-strip + clearPrefill) byte-equivalent. |
-| 9  | Chat agents | complex | ☐ | All 4 agent surfaces share the SSE streaming wrapper. |
+| 3K | Chat / Career Agent | complex | ☑ | ChatInterface + MessageBubble + AgentIntro + StorySaveCard restyled on rd-* tokens. **CHAT_CSS teardown** — gated audit confirmed zero remaining `.c-*` JSX consumers; `chatStyles.js` deleted, `<style>{CHAT_CSS}</style>` + `.chat` wrapper dropped. D3 bubble vocabulary adopts 3J-C ThreadBubble playbook (alignment unchanged). P16–P26 byte-equivalent: 7 SUGGESTED_*_JSON extractors + 7 card handlers (tasks/career_roles/applications/company_targets/stories + CV gen + AGENT nav) + conversation+chat_messages persistence + 20-turn slice + scroll + 401-refresh-retry. NO streaming reintroduction. StorySaveCard cross-context (StoryBank quick-add) preserved. |
+| 9  | Chat agents (legacy row) | complex | ☑ | Merged into PR 3K. |
 | 10 | Internship | complex | ☐ | Browse + Pipeline + DetailDrawer + match_score. |
 | 11 | Resources | simple | ☐ | Static-content page. |
 | 12 | Settings | simple | ☐ | Account + delete. |
@@ -1512,6 +1514,123 @@ from the `linkedin_outreach_conversations.goal` CHECK constraint —
 schema-code mismatch tracked separately (the constraint was added
 before the goal was introduced via P14 / Internship PR13). Queued for
 a standalone migration PR, NOT bundled into 3J-C.
+
+---
+
+## Chat / Career Agent — PR 3K (`eli/redesign-chat`)
+
+Restyles the shared chat surface consumed by all 4 agent pages
+(CareerAgent / CVAgent / InterviewCoach / SkillDevelopmentAdvisor)
+to `--rd-*` tokens. Maps loosely to
+`docs/design/redesign/getajob_chat_agents.html` — the mockup is a
+subset presentation of one agent (Career Agent) showing intro panel
++ agent pills + one message thread + one suggestion card + composer.
+
+**Files touched:**
+
+- `src/components/chat/ChatInterface.jsx` — orchestrator restyled.
+  All 6 inline action card subcomponents (TaskSuggestionCard,
+  RoadmapChangeCard, ApplicationActionsCard, CompanyTargetActionsCard,
+  CVGenerationCard, AgentRedirectCard) migrated from hardcoded
+  Tailwind palette colors (blue-50/indigo-50/rose-50/etc.) to a
+  uniform white-card surface with rd-coral icon accents. Applied
+  confirmations use rd-teal-tint. Header + composer + typing
+  indicator + suggested-prompt chips all off `.c-*`.
+- `src/components/chat/MessageBubble.jsx` — bubble vocabulary
+  adopted from 3J-C ThreadBubble (Eli's D3 re-ruling). User bubble:
+  bg `#211D18`, radii `14/14/4/14` (sharp BR). Assistant bubble: bg
+  `#F3ECE0`, radii `14/14/14/4` (sharp BL). **Alignment unchanged**:
+  `isUser ? "justify-end" : "justify-start"` byte-equivalent. Assistant
+  avatar: 26px coral-tint circle with generic coral dot — no
+  per-agent icon dispatch (no hardcoded compass), preserving the
+  abstract avatar pattern across all 4 agents. FunctionDisplay
+  tool-call expander also migrated to rd tokens.
+- `src/components/chat/AgentIntro.jsx` — collapsible intro panel
+  restyled (rd-bg-card border, rd-coral-tint how-to-use highlight).
+  Visit-aware default + localStorage manual-state sentinel preserved
+  byte-for-byte (`gaj.agent_intro_visits_*` + `gaj.agent_intro_seen_*`).
+- `src/components/chat/StorySaveCard.jsx` — migrated from violet
+  hex palette (`#E7E0F5` / `#C2B0E0` / `#4E36A0` / `#6B4FBF`) to
+  white-card surface with rd-coral icon + rd-teal-tint saved
+  confirmation. The two-stage capture flow (REVIEW → EXTRACTING →
+  PREVIEW → SAVING → SAVED) preserved byte-for-byte including the
+  extraction_notes italic display (anti-fabrication discipline).
+- `src/components/chat/chatStyles.js` — **deleted.** Gated audit
+  (`grep -rnE 'className=[^>]*\bc-[a-z]' src --include='*.jsx' --include='*.js'`)
+  returned zero JSX consumers before deletion.
+- `tailwind.config.js` — added `chat-typing` keyframes + animation
+  utility (replaces the inline `@keyframes c-bounce` that lived
+  inside CHAT_CSS).
+
+**Cross-page constraint honored:** StorySaveCard is also consumed
+by StoryBank.jsx:428 (quick-add Dialog). The white-card treatment
+reads cleanly inside both contexts; StoryBank's Dialog chrome is
+already on rd tokens (no regression).
+
+**Behavior preserved byte-for-byte (P16–P26):**
+
+- **P16** SUGGESTED_TASKS_JSON: extraction at `ChatInterface.jsx:1347`;
+  handleAddTask `.insert` to `tasks` table with `eq("user_id", user.id)`.
+- **P17** SUGGESTED_ROADMAP_CHANGES_JSON: 1348; handleApplyRoadmapChanges
+  updates `career_roles` (update_track / add_role / remove_role).
+- **P18** SUGGESTED_APPLICATION_ACTIONS_JSON: 1349; handleApplyApplicationActions
+  inserts/updates `applications` (add_application / update_application).
+- **P19** SUGGESTED_COMPANY_TARGET_JSON: 1350; handleApplyCompanyTargetActions
+  add_company_target / update_company_target_status / enrich_company.
+- **P20** SUGGESTED_CV_GENERATION_JSON: 1351; handleGenerateCV invokes
+  generate-tailored-cv edge function; in-memory `cvGenStates` rehydrated
+  on conversation reload from stored `suggested_cv_generation.result`.
+- **P21** SUGGESTED_AGENT_JSON: 1352; handleSwitchAgent → `navigate(createPageUrl(page))`.
+- **P22** SUGGESTED_STORY_CAPTURE_JSON: 1353; handleSaveStory `.insert`
+  to `stories` table with `eq("user_id", user.id)`.
+- **P23** 4-agent system: `career_agent` / `application_cv_success_agent` /
+  `interview_coach` / `skill_development_agent`. Selection via sidebar
+  + page routing; switching via P21 AGENT block.
+- **P24** Conversation persistence: `.insert` conversations (609),
+  chat_messages user (636) + assistant (689), `.update` updated_at (715),
+  `.insert` error message (736). RLS via policy.
+- **P25** Multi-turn history + scroll: useQuery loads on mount (514–532);
+  context window sliced to last 20 turns at 653; `bottomRef.scrollIntoView`
+  in useEffect (470–472).
+- **P26** Rate-limit / error: 401 (session expired) → refreshSession +
+  one retry at 664–669; generic error fallback at 730.
+
+**Streaming guard:** confirmed clean. Repo-wide grep of `src/components/chat/`
+for `EventSource` / `ReadableStream` / `getReader` / `text/event-stream`
+returned **zero matches**. The restyle is JSX/className only — the
+response-handling path between `ChatInterface.jsx:656` (awaited
+`supabase.functions.invoke`) and the 7 extractors at lines 1347–1353
+was not touched. PR #156 streaming regression cannot resurface.
+
+**D3 re-ruling history:** the original investigation report
+incorrectly described live as "user-dark on LEFT, assistant-light on
+RIGHT" and proposed a flip. Verification at MessageBubble.jsx:242
+showed `isUser ? "justify-end" : "justify-start"` — user is already
+on the right. Eli re-ruled: alignment unchanged; restyle adopts the
+3J-C ThreadBubble color + radii vocabulary only. **Lesson:** always
+verify `justify-end` vs `justify-start` semantics directly in the
+JSX before reporting alignment findings.
+
+**Preview harness:** `/_preview/chat/:state` (DEV-only via
+`import.meta.env.DEV`). ChatInterface does direct `supabase.from()`
+reads on mount (conversations list + chat_messages load), NOT
+TanStack-wrapped — the harness installs a fetch override mocking
+those PostgREST endpoints plus the ai-chat edge function. Cleanup
+restores real fetch on unmount.
+
+**Fixtures (9):**
+
+1. `chat-empty-intro` — empty conversation + AgentIntro expanded + suggested prompts
+2. `chat-multi-turn-story-capture` — user→assistant thread (P22 STORY_CAPTURE seeded)
+3. `chat-task-suggestion` — P16 TaskSuggestionCard with 3 tasks
+4. `chat-roadmap-change` — P17 RoadmapChangeCard (update_track + add_role)
+5. `chat-application-actions` — P18 ApplicationActionsCard (update + add)
+6. `chat-company-target` — P19 CompanyTargetActionsCard (add_company_target)
+7. `chat-cv-generation-idle-done` — P20 CVGenerationCard in "done" state (download link + fit analysis)
+8. `chat-agent-redirect` — P21 AgentRedirectCard (switch to Interview Coach)
+9. `chat-error-states` — session-expired + generic AI-unavailable with Retry
+
+Output: `docs/design/redesign/previews/chat-3k.pdf` (9 × 2 = 18 pages).
 
 ---
 

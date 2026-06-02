@@ -95,16 +95,26 @@ export default function StorySaveCard({
     }
   };
 
+  // PR 3K — migrated from violet hex (#E7E0F5 / #C2B0E0 / #4E36A0 /
+  // #6B4FBF) to rd-coral + warm white-card surface. The "story = distinct
+  // concept" was a Direction-3 era differentiation; in the rd system the
+  // distinctiveness comes from the BookText icon + slab heading + warm
+  // shadow, not from a separate hue.
+  //
+  // Cross-page constraint: this component is ALSO rendered inside the
+  // StoryBank quick-add Dialog (StoryBank.jsx:428). The white-card
+  // treatment reads cleanly in both contexts.
+
   // SAVED — success badge, persistent
   if (phase === PHASE.SAVED) {
     return (
-      <div className="ml-10 mt-2 bg-emerald-50 border border-emerald-200 rounded-xl p-4 max-w-xl">
+      <div className="ml-10 mt-2 bg-rd-teal-tint border border-rd-teal/30 rounded-[14px] p-4 max-w-xl">
         <div className="flex items-center gap-2">
-          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-          <p className="text-xs font-semibold text-emerald-800">Story saved to your Story Bank</p>
+          <CheckCircle2 className="w-4 h-4 text-rd-teal-dark" />
+          <p className="text-xs font-display font-bold text-rd-teal-dark">Story saved to your Story Bank</p>
         </div>
         {story?.title && (
-          <p className="text-[11px] text-emerald-700 mt-1">{story.title}</p>
+          <p className="text-[11px] text-rd-teal-dark mt-1">{story.title}</p>
         )}
       </div>
     );
@@ -113,32 +123,32 @@ export default function StorySaveCard({
   // PREVIEW / SAVING — editable STAR fields + arrays
   if (phase === PHASE.PREVIEW || phase === PHASE.SAVING) {
     return (
-      <div className="ml-10 mt-2 bg-[#E7E0F5] border border-[#C2B0E0] rounded-xl p-4 max-w-xl">
+      <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
         <div className="flex items-center gap-2 mb-2">
-          <BookText className="w-3.5 h-3.5 text-[#4E36A0]" />
-          <p className="text-xs font-semibold text-[#4E36A0]">Review extracted story</p>
+          <BookText className="w-3.5 h-3.5 text-rd-coral" />
+          <p className="text-[13.5px] font-display font-bold text-rd-text">Review extracted story</p>
         </div>
 
         {extracted?.extraction_notes && (
-          <p className="text-[11px] italic text-[#6B4FBF] mb-3">{extracted.extraction_notes}</p>
+          <p className="text-[11px] italic text-rd-text-secondary mb-3">{extracted.extraction_notes}</p>
         )}
 
         <div className="space-y-2 mb-3 text-xs">
           <div>
-            <label className="block text-[10px] uppercase tracking-wider text-[#6B4FBF] font-medium mb-0.5">Title</label>
+            <label className="block text-[10px] uppercase tracking-[0.09em] font-mono font-medium text-rd-text-eyebrow mb-0.5">Title</label>
             <Input
               value={story.title || ""}
               onChange={(e) => setStory({ ...story, title: e.target.value })}
-              className="text-xs h-8"
+              className="text-xs h-8 border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text"
             />
           </div>
 
           {STAR_FIELDS.map(([key, label]) => (
             <div key={key}>
-              <label className="block text-[10px] uppercase tracking-wider text-[#6B4FBF] font-medium mb-0.5">
+              <label className="block text-[10px] uppercase tracking-[0.09em] font-mono font-medium text-rd-text-eyebrow mb-0.5">
                 {label}
                 {!story[key] && (
-                  <span className="text-[#9C9DA1] normal-case font-normal"> · left blank by extractor</span>
+                  <span className="text-rd-text-tertiary normal-case font-normal tracking-normal"> · left blank by extractor</span>
                 )}
               </label>
               <Textarea
@@ -148,7 +158,7 @@ export default function StorySaveCard({
                   setStory({ ...story, [key]: v.trim() ? v : null });
                 }}
                 rows={2}
-                className="text-xs resize-none"
+                className="text-xs resize-none border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text"
                 placeholder={`Add ${label.toLowerCase()}…`}
               />
             </div>
@@ -156,7 +166,7 @@ export default function StorySaveCard({
 
           {ARRAY_FIELDS.map(([key, label]) => (
             <div key={key}>
-              <label className="block text-[10px] uppercase tracking-wider text-[#6B4FBF] font-medium mb-0.5">{label}</label>
+              <label className="block text-[10px] uppercase tracking-[0.09em] font-mono font-medium text-rd-text-eyebrow mb-0.5">{label}</label>
               <Input
                 value={(story[key] || []).join(", ")}
                 onChange={(e) =>
@@ -166,14 +176,14 @@ export default function StorySaveCard({
                   })
                 }
                 placeholder="comma, separated"
-                className="text-xs h-8"
+                className="text-xs h-8 border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text"
               />
             </div>
           ))}
         </div>
 
         {saveError && (
-          <p className="text-[11px] text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1 mb-2">{saveError}</p>
+          <p className="text-[11px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-[8px] px-2 py-1 mb-2">{saveError}</p>
         )}
 
         <div className="flex items-center gap-2">
@@ -181,7 +191,7 @@ export default function StorySaveCard({
             size="sm"
             onClick={handleSave}
             disabled={phase === PHASE.SAVING}
-            className="h-7 text-xs bg-[#6B4FBF] hover:bg-[#4E36A0] gap-1.5"
+            className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
           >
             {phase === PHASE.SAVING ? (
               <><Loader2 className="w-3 h-3 animate-spin" /> Saving…</>
@@ -193,7 +203,7 @@ export default function StorySaveCard({
             size="sm"
             variant="ghost"
             onClick={() => setPhase(PHASE.REVIEW)}
-            className="h-7 text-xs gap-1"
+            className="h-8 text-xs text-rd-text-secondary hover:text-rd-text rounded-full gap-1"
           >
             <ArrowLeft className="w-3 h-3" /> Back to text
           </Button>
@@ -204,17 +214,17 @@ export default function StorySaveCard({
 
   // REVIEW (default) — editable text + Extract button
   return (
-    <div className="ml-10 mt-2 bg-[#E7E0F5] border border-[#C2B0E0] rounded-xl p-4 max-w-xl">
+    <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
       <div className="flex items-center gap-2 mb-2">
-        <BookText className="w-3.5 h-3.5 text-[#4E36A0]" />
-        <p className="text-xs font-semibold text-[#4E36A0]">
+        <BookText className="w-3.5 h-3.5 text-rd-coral" />
+        <p className="text-[13.5px] font-display font-bold text-rd-text">
           {capture?.framing || "Save this to your Story Bank?"}
         </p>
       </div>
 
       {experienceLabel && (
-        <p className="text-[11px] text-[#6B4FBF] mb-2">
-          → Linked to: <strong>{experienceLabel}</strong>
+        <p className="text-[11px] text-rd-text-secondary mb-2">
+          → Linked to: <strong className="font-display font-semibold text-rd-text">{experienceLabel}</strong>
         </p>
       )}
 
@@ -222,18 +232,18 @@ export default function StorySaveCard({
         value={text}
         onChange={(e) => setText(e.target.value)}
         rows={4}
-        className="text-xs resize-none mb-2 bg-white border-[#C2B0E0] focus-visible:ring-[#6B4FBF]"
+        className="text-xs resize-none mb-2 bg-rd-bg-card border border-rd-border rounded-[10px] text-rd-text focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
       />
 
       {extractError && (
-        <p className="text-[11px] text-red-700 bg-red-50 border border-red-200 rounded px-2 py-1 mb-2">{extractError}</p>
+        <p className="text-[11px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-[8px] px-2 py-1 mb-2">{extractError}</p>
       )}
 
       <Button
         size="sm"
         onClick={handleExtract}
         disabled={phase === PHASE.EXTRACTING}
-        className="h-7 text-xs bg-[#6B4FBF] hover:bg-[#4E36A0] gap-1.5"
+        className="h-8 text-xs bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full px-4 gap-1.5"
       >
         {phase === PHASE.EXTRACTING ? (
           <><Loader2 className="w-3 h-3 animate-spin" /> Extracting…</>

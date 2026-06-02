@@ -70,32 +70,36 @@ export default function AgentIntro({ agentId, capabilities, howToUse }) {
   };
 
   return (
-    <div className="c-intro">
+    <div className="border-b border-rd-border bg-rd-bg-card flex-shrink-0">
       <button
         type="button"
         onClick={toggle}
         aria-expanded={open}
-        className="c-intro-toggle"
+        className="w-full px-6 py-[11px] flex items-center gap-2 bg-transparent border-0 cursor-pointer text-rd-text-secondary text-[12.5px] font-medium hover:bg-rd-bg-soft hover:text-rd-text transition-colors"
       >
-        <Info className="w-3.5 h-3.5 text-[#9C9DA1]" />
+        <Info className="w-3.5 h-3.5 text-rd-text-tertiary" />
         <span>{open ? "What this agent does" : "What can this agent do?"}</span>
         <ChevronDown
-          className={`w-3.5 h-3.5 text-[#9C9DA1] ml-auto transition-transform ${open ? "rotate-180" : ""}`}
+          className={`w-3.5 h-3.5 text-rd-text-tertiary ml-auto transition-transform ${open ? "rotate-180" : ""}`}
         />
       </button>
       {open && (
-        <div className="c-intro-body">
+        <div className="px-6 pb-[18px] grid grid-cols-1 lg:grid-cols-[1.2fr_1fr] gap-3.5">
           <div>
-            <p className="c-intro-cap-label">Capabilities</p>
-            <ul className="c-intro-cap-list">
+            <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-2">
+              Capabilities
+            </p>
+            <ul className="flex flex-col gap-1 m-0 p-0 list-none">
               {capabilities.map((cap, i) => (
-                <li key={i}>{cap}</li>
+                <li key={i} className="text-[12.5px] text-rd-text-secondary leading-snug">{cap}</li>
               ))}
             </ul>
           </div>
-          <div className="c-intro-howto">
-            <p className="c-intro-howto-label">How to use</p>
-            <p className="c-intro-howto-body">{howToUse}</p>
+          <div className="bg-rd-coral-tint border border-rd-coral/30 rounded-[14px] px-3.5 py-3 h-fit">
+            <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-coral-dark font-mono mb-1">
+              How to use
+            </p>
+            <p className="text-[12.5px] text-rd-text leading-snug">{howToUse}</p>
           </div>
         </div>
       )}
