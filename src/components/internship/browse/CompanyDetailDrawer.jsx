@@ -171,15 +171,15 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
         <div className="space-y-6 pt-2">
           <div>
             {originLabel && (
-              <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mb-1">
+              <p className="text-[10px] uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow font-medium mb-1">
                 {originLabel}
               </p>
             )}
             <SheetTitle asChild>
-              <h2 className="text-lg font-semibold text-[#0E1014] mb-1">{company.name}</h2>
+              <h2 className="text-lg font-display font-bold text-rd-text mb-1">{company.name}</h2>
             </SheetTitle>
             <SheetDescription asChild>
-              <p className="text-sm text-[#52545A]">
+              <p className="text-sm text-rd-text-secondary">
                 {[sectorOrIndustry, company.stage, company.employee_count_range, location]
                   .filter(Boolean)
                   .join(" · ")}
@@ -190,21 +190,21 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
                 href={`https://${company.domain.replace(/^https?:\/\//, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-[#2B5DC4] hover:underline mt-1.5"
+                className="inline-flex items-center gap-1 text-xs text-rd-coral hover:text-rd-coral-dark mt-1.5"
               >
                 {company.domain}
                 <ExternalLink className="w-3 h-3" />
               </a>
             )}
             {company.description && (
-              <p className="text-sm text-[#52545A] leading-relaxed mt-3">{company.description}</p>
+              <p className="text-sm text-rd-text-secondary leading-relaxed mt-3">{company.description}</p>
             )}
           </div>
 
           <Section title="Match">
             <BandTile band={band} loading={pitchQuery.isLoading} />
             {pitch?.match_rationale && (
-              <p className="text-xs text-[#52545A] leading-relaxed mt-2">{pitch.match_rationale}</p>
+              <p className="text-xs text-rd-text-secondary leading-relaxed mt-2">{pitch.match_rationale}</p>
             )}
           </Section>
 
@@ -216,7 +216,7 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
                   type="button"
                   onClick={handleRefresh}
                   disabled={refreshing}
-                  className="text-[#9C9DA1] hover:text-[#52545A] disabled:opacity-50"
+                  className="text-rd-text-tertiary hover:text-rd-text-secondary disabled:opacity-50"
                   aria-label="Refresh angle"
                   title="Refresh angle"
                 >
@@ -232,17 +232,17 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
             />
           </Section>
 
-          <div className="pt-2 border-t border-[#DDDDDB] space-y-2">
+          <div className="pt-2 border-t border-rd-border space-y-2">
             <button
               type="button"
               onClick={handleAddToPipeline}
               disabled={adding || alreadyInPipeline}
-              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium rounded-md transition-colors disabled:cursor-not-allowed"
-              style={{
-                background: alreadyInPipeline ? "#F4F4F2" : "#F87060",
-                color: alreadyInPipeline ? "#52545A" : "white",
-                border: alreadyInPipeline ? "1px solid #DDDDDB" : "none",
-              }}
+              className={[
+                "w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-display font-bold rounded-full transition-colors disabled:cursor-not-allowed",
+                alreadyInPipeline
+                  ? "bg-rd-bg-soft text-rd-text-secondary border border-rd-border"
+                  : "bg-rd-coral text-white hover:bg-rd-coral-dark",
+              ].join(" ")}
             >
               {adding ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -255,7 +255,7 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
             </button>
             <Link
               to={outreachUrl}
-              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-medium text-[#0E1014] bg-white border border-[#DDDDDB] rounded-md hover:bg-[#F4F4F2] transition-colors"
+              className="w-full inline-flex items-center justify-center gap-1.5 px-3 py-2 text-sm font-display font-bold text-rd-text bg-rd-bg-card border border-rd-border rounded-full hover:bg-rd-bg-soft hover:border-rd-border-hover transition-colors"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               Draft outreach message
@@ -271,7 +271,7 @@ function Section({ title, action, children }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium">{title}</p>
+        <p className="text-[10px] uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow font-medium">{title}</p>
         {action}
       </div>
       {children}
@@ -279,26 +279,25 @@ function Section({ title, action, children }) {
   );
 }
 
-// Band tile — High / Med / Low only, no number. Coral for High, slate
-// for Med, faded for Low; dashed-border placeholder while loading or
-// when the pitch hasn't generated yet.
+// Band tile — High / Med / Low only, no number. Coral for High, dark
+// for Med, faded for Low; placeholder while loading.
 function BandTile({ band, loading }) {
   if (loading) {
     return (
-      <div className="bg-[#F4F4F2] rounded-md p-3 border border-[#DDDDDB]">
+      <div className="bg-rd-bg-soft rounded-[10px] p-3 border border-rd-border">
         <Skeleton className="h-7 w-24" />
       </div>
     );
   }
   const label = BAND_LABELS[band];
-  const color =
-    band === "high" ? "#F87060" :
-    band === "med"  ? "#0E1014" :
-                      "#9C9DA1";
+  const colorClass =
+    band === "high" ? "text-rd-coral" :
+    band === "med"  ? "text-rd-text" :
+                      "text-rd-text-tertiary";
   return (
-    <div className="bg-[#F4F4F2] rounded-md p-3 border border-[#DDDDDB]">
-      <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mb-1">Match</p>
-      <span className="text-2xl font-semibold" style={{ color }}>{label}</span>
+    <div className="bg-rd-bg-soft rounded-[10px] p-3 border border-rd-border">
+      <p className="text-[10px] uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow font-medium mb-1">Match</p>
+      <span className={`text-2xl font-display font-bold ${colorClass}`}>{label}</span>
     </div>
   );
 }

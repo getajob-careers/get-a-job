@@ -69,21 +69,21 @@ export default function FindCompaniesCard({ disabled, disabledReason }) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-[#E5E5E5] p-5 mb-5">
+    <div className="bg-rd-bg-card rounded-[14px] border border-rd-border p-5 mb-5 shadow-rd">
       <div className="flex items-start gap-4">
-        <div className="w-10 h-10 rounded-lg bg-[#0A0A0A] flex items-center justify-center flex-shrink-0">
-          <Search className="w-5 h-5 text-white" />
+        <div className="w-10 h-10 rounded-[10px] bg-rd-coral-tint flex items-center justify-center flex-shrink-0">
+          <Search className="w-5 h-5 text-rd-coral" />
         </div>
         <div className="flex-1 min-w-0">
-          <h2 className="text-base font-semibold text-[#0A0A0A] mb-1">Find companies that match your pitch</h2>
-          <p className="text-sm text-[#525252] leading-relaxed mb-4">
-            We'll score the top candidates against your strategy and add them to your kanban. Companies you've already engaged with stay untouched.
+          <h2 className="text-base font-display font-bold text-rd-text mb-1">Find companies that match your pitch</h2>
+          <p className="text-sm text-rd-text-secondary leading-relaxed mb-4">
+            We&apos;ll score the top candidates against your strategy and add them to your kanban. Companies you&apos;ve already engaged with stay untouched.
           </p>
           <button
             type="button"
             onClick={handleFind}
             disabled={running || disabled}
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium bg-[#0A0A0A] hover:bg-[#262626] disabled:bg-[#E5E5E5] disabled:text-[#A3A3A3] disabled:cursor-not-allowed text-white rounded-md transition-colors"
+            className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-display font-bold bg-rd-coral hover:bg-rd-coral-dark disabled:bg-rd-bg-soft disabled:text-rd-text-tertiary disabled:cursor-not-allowed text-white rounded-full transition-colors"
             title={disabled ? disabledReason : ""}
           >
             {running ? (
@@ -99,7 +99,7 @@ export default function FindCompaniesCard({ disabled, disabledReason }) {
             )}
           </button>
           {disabled && disabledReason && (
-            <p className="text-[11px] text-[#A3A3A3] mt-2">{disabledReason}</p>
+            <p className="text-[11px] text-rd-text-tertiary mt-2">{disabledReason}</p>
           )}
         </div>
       </div>

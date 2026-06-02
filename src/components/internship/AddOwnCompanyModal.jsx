@@ -168,8 +168,8 @@ export default function AddOwnCompanyModal({ open, onClose }) {
         <DialogHeader>
           <DialogTitle>Add a company</DialogTitle>
           <DialogDescription asChild>
-            <p className="text-xs text-[#525252] -mt-2 mb-3">
-              Drop in any company you've found. It lands in your pipeline as &quot;Exploring&quot; — drag it through the stages as you go.
+            <p className="text-xs text-rd-text-secondary -mt-2 mb-3">
+              Drop in any company you&apos;ve found. It lands in your pipeline as &quot;Exploring&quot; — drag it through the stages as you go.
             </p>
           </DialogDescription>
         </DialogHeader>
@@ -226,7 +226,7 @@ export default function AddOwnCompanyModal({ open, onClose }) {
             size="sm"
             onClick={handleSubmit}
             disabled={submitting || !name.trim()}
-            className="bg-[#0A0A0A] hover:bg-[#262626]"
+            className="bg-rd-coral hover:bg-rd-coral-dark text-white font-display font-bold rounded-full"
           >
             {submitting ? (
               <><Loader2 className="w-3 h-3 animate-spin mr-1.5" /> Adding…</>
@@ -243,9 +243,9 @@ export default function AddOwnCompanyModal({ open, onClose }) {
 function Field({ label, required, children }) {
   return (
     <div>
-      <label className="block text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">
+      <label className="block text-[11px] uppercase tracking-[0.09em] font-mono font-medium text-rd-text-eyebrow mb-1">
         {label}
-        {required && <span className="text-red-500 ml-0.5">*</span>}
+        {required && <span className="text-rd-coral ml-0.5">*</span>}
       </label>
       {children}
     </div>

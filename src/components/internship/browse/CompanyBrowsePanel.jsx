@@ -145,7 +145,7 @@ export default function CompanyBrowsePanel() {
           {canGenerate && (
             <Link
               to={createPageUrl("Internship") + "?tab=pipeline"}
-              className="act-btn act-btn-outline act-btn-sm"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-display font-semibold bg-rd-bg-card text-rd-text border border-rd-border hover:bg-rd-bg-soft hover:border-rd-border-hover transition-colors"
             >
               Generate profile
             </Link>

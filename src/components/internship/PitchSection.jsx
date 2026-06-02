@@ -15,16 +15,16 @@ import { Skeleton } from "@/components/ui/skeleton";
 // "Your" addresses the student in second person, matching the
 // pitch-prompt voice change that landed in the same PR.
 
-const SUB_LABEL = "text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mb-1";
-const SUB_BODY  = "text-xs text-[#52545A] leading-relaxed";
+const SUB_LABEL = "text-[10px] uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow font-medium mb-1";
+const SUB_BODY  = "text-xs text-rd-text-secondary leading-relaxed";
 
 export default function PitchSection({ pitch, loading, error, emptyMessage }) {
   if (loading) return <PitchSkeleton />;
   if (error) {
-    return <p className="text-xs text-[#C84F40]">{String(error.message || error)}</p>;
+    return <p className="text-xs text-rd-coral-dark">{String(error.message || error)}</p>;
   }
   if (!pitch) {
-    return <p className="text-xs text-[#9C9DA1]">{emptyMessage || "No pitch available."}</p>;
+    return <p className="text-xs text-rd-text-tertiary">{emptyMessage || "No pitch available."}</p>;
   }
 
   const role = pitch.pitched_role;
@@ -36,7 +36,7 @@ export default function PitchSection({ pitch, loading, error, emptyMessage }) {
     <>
       {role && (
         <SubSection label="Role to pitch">
-          <p className="text-sm font-medium text-[#0E1014]">{role}</p>
+          <p className="text-sm font-display font-bold text-rd-text">{role}</p>
         </SubSection>
       )}
       {angle && (
@@ -55,7 +55,7 @@ export default function PitchSection({ pitch, loading, error, emptyMessage }) {
             {gaps.map((g, i) => (
               <span
                 key={i}
-                className="inline-flex items-center px-2 py-0.5 text-xs text-[#52545A] bg-[#F4F4F2] border border-[#DDDDDB] rounded"
+                className="inline-flex items-center px-2 py-0.5 text-xs text-rd-text-secondary bg-rd-bg-soft border border-rd-border rounded-full"
               >
                 {g}
               </span>

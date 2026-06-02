@@ -9,6 +9,19 @@ import CompanyTargetCard from "./CompanyTargetCard";
 import { STATUSES, STATUS_LABELS, STATUS_TONE } from "./constants";
 import { track, EVENTS } from "@/lib/analytics";
 
+// PR 3L — restyled on rd-* tokens. DnD structure UNTOUCHED:
+// DragDropContext/Droppable/Draggable + dragProvided.draggableProps.style
+// + provided.placeholder are preserved byte-for-byte (P27). Only the
+// presentational classNames migrated from .act-* to inline Tailwind+rd.
+const STATUS_BADGE_CLS = {
+  gray:    "bg-rd-bg-soft text-rd-text-secondary",
+  info:    "bg-rd-teal-tint text-rd-teal-dark",
+  warning: "bg-rd-golden-tint text-rd-golden-dark",
+  success: "bg-rd-teal-tint text-rd-teal-dark",
+  error:   "bg-rd-coral-tint text-rd-coral-dark",
+};
+const STATUS_BADGE_BASE = "inline-flex items-center px-2.5 py-0.5 rounded-full font-mono text-[10.5px] font-medium tracking-[0.04em] uppercase";
+
 // Desktop: 6-column drag-drop kanban (@hello-pangea/dnd).
 // Mobile (<768px): vertical accordion with one section per status; status
 //                  changes via a select dropdown inside each card. Drag-drop
@@ -93,24 +106,32 @@ export default function CompanyTargetsKanban({ targets, onCardClick }) {
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
-        <div className="act-kanban-row">
+        <div className="grid gap-3 min-w-[1100px] [grid-template-columns:repeat(6,minmax(220px,1fr))]">
           {STATUSES.map((status) => {
             const column = byStatus[status];
+            const tone = STATUS_TONE[status];
             return (
               <Droppable key={status} droppableId={status}>
                 {(provided, snapshot) => (
                   <div
                     ref={provided.innerRef}
                     {...provided.droppableProps}
-                    className={`act-kanban-col act-status-${STATUS_TONE[status]}`}
+                    className={[
+                      "flex flex-col gap-2 p-3 rounded-[14px] min-h-[200px] transition-colors",
+                      snapshot.isDraggingOver
+                        ? "bg-rd-coral-tint shadow-[inset_0_0_0_2px_var(--rd-coral)]"
+                        : "bg-rd-bg-soft",
+                    ].join(" ")}
                     data-dragover={snapshot.isDraggingOver}
                   >
-                    <div className="act-kanban-col-head">
-                      <span className="act-status-badge">{STATUS_LABELS[status]}</span>
-                      <span className="act-kanban-col-count">{column.length}</span>
+                    <div className="flex items-center justify-between px-1 py-0.5">
+                      <span className={`${STATUS_BADGE_BASE} ${STATUS_BADGE_CLS[tone] || STATUS_BADGE_CLS.gray}`}>
+                        {STATUS_LABELS[status]}
+                      </span>
+                      <span className="font-mono text-[11px] text-rd-text-tertiary tabular-nums">{column.length}</span>
                     </div>
                     {column.length === 0 ? (
-                      <div className="act-kanban-empty">No targets here yet.</div>
+                      <div className="text-[12px] text-rd-text-tertiary italic px-1 py-2">No targets here yet.</div>
                     ) : (
                       column.map((t, index) => (
                         <Draggable key={t.id} draggableId={t.id} index={index}>
@@ -163,38 +184,40 @@ function MobileAccordion({ byStatus, onCardClick, onStatusChange }) {
       {STATUSES.map((status) => {
         const column = byStatus[status] || [];
         const isOpen = openSet.has(status);
+        const tone = STATUS_TONE[status];
         return (
-          <div key={status} className="act-accordion-section">
-            <button type="button" onClick={() => toggle(status)} className="act-accordion-head">
+          <div key={status} className="bg-rd-bg-card border border-rd-border rounded-[14px] mb-2.5 overflow-hidden">
+            <button
+              type="button"
+              onClick={() => toggle(status)}
+              className="w-full flex items-center justify-between px-4 py-3.5 bg-transparent border-0 cursor-pointer font-body hover:bg-rd-bg-soft transition-colors"
+            >
               <div className="flex items-center gap-2.5">
-                <span className={`act-status-badge act-status-${STATUS_TONE[status]}`}>
+                <span className={`${STATUS_BADGE_BASE} ${STATUS_BADGE_CLS[tone] || STATUS_BADGE_CLS.gray}`}>
                   {STATUS_LABELS[status]}
                 </span>
-                <span className="text-xs text-[#9C9DA1] tabular-nums">{column.length}</span>
+                <span className="text-xs text-rd-text-tertiary tabular-nums">{column.length}</span>
               </div>
               {isOpen ? (
-                <ChevronUp className="w-4 h-4 text-[#52545A]" />
+                <ChevronUp className="w-4 h-4 text-rd-text-secondary" />
               ) : (
-                <ChevronDown className="w-4 h-4 text-[#52545A]" />
+                <ChevronDown className="w-4 h-4 text-rd-text-secondary" />
               )}
             </button>
             {isOpen && (
-              <div className="act-accordion-body">
+              <div className="px-3.5 pb-3.5 flex flex-col gap-2 border-t border-rd-border pt-3">
                 {column.length === 0 ? (
-                  <p className="text-xs text-[#9C9DA1] italic py-1">No targets here yet.</p>
+                  <p className="text-xs text-rd-text-tertiary italic py-1">No targets here yet.</p>
                 ) : (
                   column.map((t) => (
                     <div key={t.id}>
                       <CompanyTargetCard target={t} onClick={() => onCardClick(t)} />
-                      {/* Inline status change — drag-drop isn't reliable on
-                          touch screens, so users move cards between stages
-                          via this select instead. */}
                       <div className="flex items-center gap-2 mt-1.5 px-1">
-                        <span className="text-[11px] text-[#9C9DA1]">Move to:</span>
+                        <span className="text-[11px] text-rd-text-tertiary">Move to:</span>
                         <select
                           value={t.status}
                           onChange={(e) => onStatusChange(t, e.target.value)}
-                          className="text-[12px] text-[#0E1014] bg-white border border-[#DDDDDB] rounded-md px-2 py-1"
+                          className="text-[12px] text-rd-text bg-rd-bg-card border border-rd-border rounded-md px-2 py-1"
                         >
                           {STATUSES.map((s) => (
                             <option key={s} value={s}>{STATUS_LABELS[s]}</option>

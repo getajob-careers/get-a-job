@@ -17,11 +17,16 @@ import { facetCounts } from "./applyFilters";
 // Toggle: clicking an active pill removes it; clicking inactive adds it.
 // Multiple pills in one row = OR; across rows = AND.
 
-function Pill({ active, count, onClick, children, dimmed }) {
+function Pill({ active, count, onClick, children }) {
   return (
     <button
       type="button"
-      className="act-pill act-pill-sm"
+      className={[
+        "inline-flex items-center gap-1 px-3 py-1 rounded-full border font-body text-[12px] cursor-pointer transition-colors whitespace-nowrap",
+        active
+          ? "bg-rd-coral text-white border-rd-coral font-display font-semibold"
+          : "bg-rd-bg-card text-rd-text-secondary border-rd-border font-medium hover:border-rd-border-hover hover:text-rd-text",
+      ].join(" ")}
       data-selected={active ? "true" : "false"}
       onClick={onClick}
       disabled={count === 0 && !active}
@@ -90,13 +95,13 @@ export default function CompanyBrowseFilters({
       <div className="brz-search-row">
         <div className="brz-search" style={{ position: "relative" }}>
           <Search
-            className="w-4 h-4"
+            className="w-4 h-4 text-rd-text-tertiary"
             aria-hidden="true"
-            style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)", color: "var(--act-ink-faded)" }}
+            style={{ position: "absolute", left: 12, top: "50%", transform: "translateY(-50%)" }}
           />
           <input
             type="search"
-            className="act-input"
+            className="w-full px-3.5 py-2.5 rounded-[14px] border border-rd-border bg-rd-bg-card text-rd-text font-body text-[14px] placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
             placeholder="Search by name, sector, or industry"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
