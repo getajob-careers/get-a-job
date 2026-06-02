@@ -52,11 +52,6 @@ body {
   border-radius: 3px;
 }
 
-.prose-career {
-  line-height: 1.7;
-  letter-spacing: -0.01em;
-}
-
 .track-badge-1 {
   background: var(--track1-bg);
   color: var(--track1-color);
