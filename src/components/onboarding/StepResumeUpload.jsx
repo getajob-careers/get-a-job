@@ -1,14 +1,8 @@
 import React, { useState, useRef, useEffect } from "react";
 
 // pdfjs is lazy-loaded inside the function below — the lib + worker URL
-// pull ~356KB gzip onto the main chunk otherwise, paid by EVERY user
-// regardless of whether they ever upload a PDF resume. Onboarding is
-// eager (per PR F decision), so this is the largest single saving on
-// the main bundle path.
+// pull ~356KB gzip onto the main chunk otherwise.
 async function extractTextFromPdf(file) {
-  // pdfjs-dist exposes named exports (no default); use the namespace
-  // object directly. The worker URL module's default export is the
-  // resolved URL string from Vite's ?url asset import.
   const [pdfjsLib, pdfjsWorkerModule] = await Promise.all([
     import("pdfjs-dist"),
     import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
@@ -20,13 +14,11 @@ async function extractTextFromPdf(file) {
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
     const content = await page.getTextContent();
-    text += content.items.map(item => item.str).join(" ") + "\n";
+    text += content.items.map((item) => item.str).join(" ") + "\n";
   }
   return text;
 }
 
-// Lazy-loaded — mammoth + its deps add ~510 KB; off the initial chunk for
-// the ~50% of users who upload PDF or skip CV entirely.
 async function extractTextFromDocx(file) {
   const { default: mammoth } = await import("mammoth");
   const arrayBuffer = await file.arrayBuffer();
@@ -42,7 +34,20 @@ function isDocxFile(file) {
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { track, EVENTS } from "@/lib/analytics";
-import { Loader2, Upload, CheckCircle2, ArrowRight, Linkedin, Info, ExternalLink, X, GraduationCap, Briefcase, Search, Pause, Sparkles } from "lucide-react";
+import {
+  Loader2, Upload, CheckCircle2, ArrowRight, Linkedin, Info, ExternalLink, X,
+  GraduationCap, Briefcase, Search, Pause, Sparkles,
+} from "lucide-react";
+import RdButton from "@/components/redesign/RdButton";
+
+// StepResumeUpload — restyled for PR 2A.
+// Behaviour identical to the Direction-3 version; only the visual layer
+// changes. Employment-status XOR (PR #64) rules preserved verbatim:
+//   - `unemployed` ⊕ `employed`, `unemployed` ⊕ `looking_for_job`
+//   - `employed` ⊕ `looking_for_job`
+//   - `student` + `freelance` stack with everything
+// Resume-parse pipeline (ai-chat + extract-proof-signals in parallel)
+// preserved verbatim — onExtracted/onChange contracts unchanged.
 
 const LI_EXPORT_DISMISS_KEY = "gaj.onb.li_export_dismissed";
 
@@ -54,10 +59,6 @@ const EMPLOYMENT_OPTIONS = [
   { value: "freelance", label: "Freelancing", Icon: Sparkles },
 ];
 
-// `unemployed` is the only status that conflicts with others: it can't stack
-// with `employed` (you're one or the other) or with `looking_for_job`
-// (unemployed already implies job-search). `employed` + `looking_for_job`
-// is allowed — the "currently working, looking elsewhere" case.
 const UNEMPLOYED_CONFLICTS = ["employed", "looking_for_job"];
 
 export default function StepResumeUpload({ onNext, onExtracted, profileData, onChange }) {
@@ -117,7 +118,7 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
 
       const { data: signedData } = await supabase.storage
         .from("resumes")
-        .createSignedUrl(filePath, 315360000); // ~10 years
+        .createSignedUrl(filePath, 315360000);
 
       const resumeUrl = signedData?.signedUrl || filePath;
       onChange({ resume_url: resumeUrl });
@@ -209,16 +210,6 @@ When you classify an experience as military:
 
 Here is the resume:\n\n${fileText.slice(0, 15000)}`;
 
-      // Fire both edge function calls in parallel — extract-proof-signals
-      // doesn't depend on ai-chat's output (both consume the same
-      // fileText slice). Sequential was 10–20s combined; parallel is
-      // max(~5–10s) = ~5–10s. ~50% perceived-latency cut on the
-      // resume-upload step of onboarding.
-      //
-      // proof-signals .catch() handler swallows errors to null because
-      // we already treat its failure as non-fatal (existing semantics).
-      // Without this, if ai-chat throws before we await proof-signals,
-      // its promise becomes an unhandled rejection and logs noisily.
       const extractPromise = supabase.functions.invoke("ai-chat", {
         body: { message: extractionPrompt, agent: "resume-extractor", conversation_history: [] },
       });
@@ -239,13 +230,13 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
         const jsonMatch = replyText.match(/\{[\s\S]*\}/);
         if (jsonMatch) {
           let extracted = null;
-          try { extracted = JSON.parse(jsonMatch[0]); } catch {}
+          try { extracted = JSON.parse(jsonMatch[0]); } catch { /* try unescape below */ }
           if (!extracted && /\{\s*\\"/.test(jsonMatch[0])) {
             try {
               const unescaped = jsonMatch[0]
                 .replace(/\\"/g, '"')
-                .replace(/\\n/g, '\n')
-                .replace(/\\t/g, '\t');
+                .replace(/\\n/g, "\n")
+                .replace(/\\t/g, "\t");
               extracted = JSON.parse(unescaped);
             } catch (e) {
               console.error("JSON parse failed after unescaping:", e);
@@ -253,10 +244,6 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
           }
 
           if (extracted) {
-            // Await the in-flight proof-signals promise. Already running
-            // in parallel since the start of the upload — this is just
-            // waiting for whatever's left. The .catch() above ensures
-            // any error already resolved to { data: null }.
             let proofSignals = [];
             let primaryDomain = null;
             let adjacentFields = [];
@@ -307,18 +294,20 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
           request the export now and have it ready when LinkedIn Hub needs it
           a few hours later. */}
       {!liExportDismissed && (
-        <div className="onb-banner onb-banner-info flex items-start gap-3 relative pr-10">
+        <div className="bg-rd-coral-tint border border-rd-coral/40 rounded-[14px] p-3.5 pr-10 text-[13px] text-rd-coral-dark flex items-start gap-3 relative">
           <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="font-semibold">Get a head start on LinkedIn Hub — request your data export now</p>
-            <p className="mt-1 leading-relaxed">
+          <div className="flex-1 leading-relaxed">
+            <p className="font-display font-semibold text-rd-text">
+              Get a head start on LinkedIn Hub — request your data export now
+            </p>
+            <p className="mt-1 text-rd-text-secondary">
               We use it to optimise your profile, draft posts in your voice, and find warm intros at companies you target. LinkedIn takes a few hours to prepare the export.
             </p>
             <a
               href="https://www.linkedin.com/mypreferences/d/download-my-data"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-1 mt-2 text-[13px] font-semibold underline underline-offset-2"
+              className="inline-flex items-center gap-1 mt-2 text-[13px] font-semibold text-rd-coral hover:text-rd-coral-dark underline underline-offset-2"
             >
               Request LinkedIn data export <ExternalLink className="w-3 h-3" />
             </a>
@@ -326,26 +315,32 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
           <button
             type="button"
             onClick={dismissLiExport}
-            className="absolute top-2.5 right-2.5 p-1 hover:bg-black/5 rounded-md"
+            className="absolute top-2.5 right-2.5 p-1 hover:bg-rd-bg-soft rounded-md"
             aria-label="Dismiss"
           >
-            <X className="w-4 h-4" />
+            <X className="w-4 h-4 text-rd-text-secondary" />
           </button>
         </div>
       )}
 
       <div>
-        <h1 className="onb-h1">Let&apos;s start with your CV.</h1>
-        <p className="onb-sub">
+        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+          step 1 of 9 · your cv
+        </p>
+        <h1 className="font-display font-extrabold text-[26px] sm:text-[28px] leading-[1.1] tracking-tight text-rd-text mt-2">
+          Let&apos;s start with your CV.
+        </h1>
+        <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
           Drop your CV and we&apos;ll extract everything from it — no manual entry needed.
         </p>
       </div>
 
-      {/* Employment status — 5 visual cards. Only `unemployed` conflicts with
-          `employed` and `looking_for_job`; everything else stacks freely. */}
+      {/* Employment status — 5 visual cards. XOR rules preserved. */}
       <div>
-        <label className="onb-eyebrow">Your current situation</label>
-        <div className="mt-2 grid grid-cols-2 md:grid-cols-5 gap-2.5">
+        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow">
+          Your current situation
+        </p>
+        <div className="mt-2.5 grid grid-cols-2 md:grid-cols-5 gap-2.5">
           {EMPLOYMENT_OPTIONS.map(({ value, label, Icon }) => {
             const isSelected = selected.has(value);
             return (
@@ -353,13 +348,25 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
                 key={value}
                 type="button"
                 onClick={() => toggleEmploymentStatus(value)}
-                className="onb-grid-card"
                 data-selected={isSelected}
+                className={[
+                  "flex flex-col items-center gap-2 p-3 rounded-[14px] border transition-[border-color,background-color,box-shadow] duration-150",
+                  isSelected
+                    ? "border-rd-coral bg-rd-coral-tint shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+                    : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover",
+                ].join(" ")}
               >
-                <div className="onb-grid-card-icon">
+                <div
+                  className={[
+                    "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
+                    isSelected ? "bg-rd-coral text-white" : "bg-rd-bg-soft text-rd-text-secondary",
+                  ].join(" ")}
+                >
                   <Icon className="w-4 h-4" />
                 </div>
-                <span className="onb-grid-card-label">{label}</span>
+                <span className="text-[12px] font-display font-semibold text-rd-text text-center leading-tight">
+                  {label}
+                </span>
               </button>
             );
           })}
@@ -368,8 +375,14 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
 
       {/* Drop zone — primary action on the page */}
       <div
-        className="onb-dropzone"
+        className={[
+          "rounded-[18px] p-8 text-center cursor-pointer transition-[border-color,background-color] duration-150 border-2 border-dashed",
+          dragOver
+            ? "border-rd-coral bg-rd-coral-tint"
+            : "border-rd-border-hover bg-rd-bg-soft hover:border-rd-coral hover:bg-rd-coral-tint",
+        ].join(" ")}
         data-dragover={dragOver}
+        data-state={uploading ? "uploading" : extracting ? "extracting" : done ? "done" : "idle"}
         onClick={() => !uploading && !extracting && inputRef.current?.click()}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
@@ -385,89 +398,97 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
 
         {!uploading && !extracting && !done && (
           <div className="flex flex-col items-center gap-3">
-            <div className="w-14 h-14 rounded-full bg-[#E8E8E5] flex items-center justify-center">
-              <Upload className="w-6 h-6 text-[#52545A]" />
+            <div className="w-14 h-14 rounded-full bg-rd-coral-tint flex items-center justify-center">
+              <Upload className="w-6 h-6 text-rd-coral" />
             </div>
             <div>
-              <p className="text-base font-semibold text-[#0E1014]">Drop your CV here, or click to browse</p>
-              <p className="text-xs text-[#9C9DA1] mt-1">PDF or DOCX</p>
+              <p className="font-display font-semibold text-[15px] text-rd-text">
+                Drop your CV here, or click to browse
+              </p>
+              <p className="text-[11.5px] text-rd-text-secondary mt-1">
+                PDF or DOCX · stays private to you
+              </p>
             </div>
           </div>
         )}
 
         {(uploading || extracting) && (
           <div className="flex flex-col items-center gap-3">
-            <Loader2 className="w-8 h-8 animate-spin text-[#F87060]" />
-            <p className="text-sm font-semibold text-[#0E1014]">
+            <Loader2 className="w-8 h-8 animate-spin text-rd-coral" />
+            <p className="font-display font-semibold text-[14px] text-rd-text">
               {uploading ? "Uploading…" : "Extracting your details…"}
             </p>
-            {fileName && <p className="text-xs text-[#9C9DA1]">{fileName}</p>}
+            {fileName && <p className="text-[11.5px] text-rd-text-secondary">{fileName}</p>}
           </div>
         )}
 
         {done && (
           <div className="flex flex-col items-center gap-3">
-            <CheckCircle2 className="w-12 h-12 text-[#1D7556]" />
+            <CheckCircle2 className="w-12 h-12 text-rd-teal-dark" />
             <div>
-              <p className="text-base font-semibold text-[#0E1014]">CV extracted</p>
-              <p className="text-xs text-[#9C9DA1] mt-0.5">{fileName}</p>
+              <p className="font-display font-semibold text-[15px] text-rd-text">CV extracted</p>
+              <p className="text-[11.5px] text-rd-text-secondary mt-0.5">{fileName}</p>
             </div>
           </div>
         )}
       </div>
 
       {cvTruncated && (
-        <div className="onb-banner onb-banner-warning">
+        <div className="bg-rd-golden-tint border border-rd-golden/40 rounded-[14px] px-3.5 py-2.5 text-[12.5px] text-rd-golden-dark leading-snug">
           Your CV is long — only the first 15,000 characters were sent for extraction. Review the pre-filled details and add anything that wasn&apos;t captured.
         </div>
       )}
-      {error && <div className="onb-banner onb-banner-warning">{error}</div>}
+      {error && (
+        <div className="bg-rd-coral-tint border border-rd-coral/40 rounded-[14px] px-3.5 py-2.5 text-[12.5px] text-rd-coral-dark leading-snug">
+          {error}
+        </div>
+      )}
 
       {/* LinkedIn URL — collapsed by default; click to add. Optional. */}
       {!showLinkedin ? (
         <button
           type="button"
           onClick={() => setShowLinkedin(true)}
-          className="onb-btn onb-btn-ghost text-sm"
-          style={{ paddingLeft: 0 }}
+          className="inline-flex items-center gap-2 text-[13px] text-rd-text-tertiary hover:text-rd-text"
         >
           <Linkedin className="w-4 h-4" /> + Add LinkedIn URL (optional)
         </button>
       ) : (
-        <div className="onb-card">
-          <label className="onb-label">LinkedIn URL <span className="text-[#9C9DA1] font-normal">(optional)</span></label>
+        <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 space-y-2.5">
+          <label className="block text-[12px] font-semibold text-rd-text">
+            LinkedIn URL{" "}
+            <span className="text-rd-text-secondary font-normal">(optional)</span>
+          </label>
           <div className="flex gap-2">
             <input
               value={linkedinUrl}
               onChange={(e) => setLinkedinUrl(e.target.value)}
               placeholder="https://linkedin.com/in/yourname"
-              className="onb-input"
+              className="flex-1 px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
             />
             <button
               type="button"
               onClick={handleLinkedinExtract}
               disabled={!linkedinUrl.trim() || linkedinDone}
-              className="onb-btn onb-btn-outline whitespace-nowrap"
+              className="px-4 py-2.5 text-[13px] font-semibold rounded-full border border-rd-border text-rd-text bg-rd-bg-card hover:bg-rd-bg-soft disabled:opacity-50 transition-colors whitespace-nowrap"
             >
               {linkedinDone ? <CheckCircle2 className="w-4 h-4" /> : "Save"}
             </button>
           </div>
-          {linkedinDone && <p className="onb-help" style={{ color: "#1D7556" }}>✓ LinkedIn URL saved</p>}
+          {linkedinDone && (
+            <p className="text-[11.5px] text-rd-teal-dark">✓ LinkedIn URL saved</p>
+          )}
         </div>
       )}
 
       <div className="flex justify-between items-center pt-2">
         <button
           onClick={onNext}
-          className="text-xs text-[#9C9DA1] hover:text-[#52545A] underline underline-offset-2"
+          className="text-[12px] text-rd-text-tertiary hover:text-rd-text underline underline-offset-2"
         >
           Skip — I&apos;ll enter details manually
         </button>
-        <button
-          onClick={onNext}
-          disabled={!done && !error && !linkedinDone}
-          className="onb-btn onb-btn-primary onb-btn-lg"
-        >
+        <RdButton onClick={onNext} disabled={!done && !error && !linkedinDone}>
           {done ? (
             <>Continue <ArrowRight className="w-4 h-4" /></>
           ) : error ? (
@@ -475,7 +496,7 @@ Here is the resume:\n\n${fileText.slice(0, 15000)}`;
           ) : (
             "Upload to continue"
           )}
-        </button>
+        </RdButton>
       </div>
     </div>
   );

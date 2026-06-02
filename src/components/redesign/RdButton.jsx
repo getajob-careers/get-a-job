@@ -8,20 +8,14 @@ import React from "react";
 //
 // Tokens consumed: --rd-coral, --rd-coral-dark, --rd-font-display.
 // Active scale .98 matches the .gajbtn:active rule from the mockups.
-export default function RdButton({
-  type,
-  disabled = false,
-  className = "",
-  children,
-  ...rest
-}) {
-  // Default to "button" via JSX attribute (vs default-param) so TS infers
-  // the literal type ("button" | "submit" | "reset") rather than `string`.
-  const buttonType = type || "button";
+export default function RdButton({ className = "", children, ...rest }) {
+  // `type="button"` is the default; consumers passing `type="submit"`
+  // via `...rest` override it. Spread comes after the literal attribute
+  // so the override actually takes effect.
   return (
     <button
-      type={buttonType}
-      disabled={disabled}
+      type="button"
+      {...rest}
       className={[
         "inline-flex items-center justify-center gap-2",
         "rounded-full px-5 py-2.5",
@@ -34,7 +28,6 @@ export default function RdButton({
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral-dark focus-visible:ring-offset-2",
         className,
       ].join(" ")}
-      {...rest}
     >
       {children}
     </button>

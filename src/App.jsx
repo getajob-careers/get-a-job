@@ -1,4 +1,4 @@
-import { Suspense } from 'react';
+import React, { Suspense } from 'react';
 import { Toaster } from "@/components/ui/toaster"
 import { Toaster as SonnerToaster } from "@/components/ui/sonner"
 import { QueryClientProvider } from '@tanstack/react-query'
@@ -14,6 +14,20 @@ import ResetPassword from '@/pages/ResetPassword';
 import Landing from '@/pages/Landing';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
+
+// Redesign preview harness. Statically imported, but the route block
+// below registers it ONLY when `import.meta.env.DEV` is true. In a
+// production build the constant folds to false → the route block
+// becomes dead code → React Router never matches /_preview/* → the
+// path falls through to AuthenticatedApp → unauthenticated visitors
+// land on /login. See tasks/redesign.md + scripts/preview-onboarding.mjs.
+//
+// Earlier attempt used React.lazy + Suspense fallback={null}; under
+// Vite dev with the harness routes deeply nested the lazy chunk
+// resolved AFTER Playwright snapshotted the page (Suspense fallback
+// rendered nothing → empty body in screenshots). Eager import sidesteps
+// the race. Bundle cost in prod: ~10–15 KB (cold path; never invoked).
+import OnboardingPreview from '@/pages/_preview/OnboardingPreview';
 import RouteFallback, { ChunkErrorBoundary } from '@/components/RouteFallback';
 
 // Use the LAZY map (sibling of pages.config.js) so every authenticated
@@ -111,6 +125,12 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            {import.meta.env.DEV && (
+              <Route
+                path="/_preview/onboarding/:state"
+                element={<OnboardingPreview />}
+              />
+            )}
             <Route path="/*" element={<AuthenticatedApp />} />
           </Routes>
         </Router>

@@ -103,18 +103,27 @@ Target users for the pilot are not generic job seekers — they are early-career
 
 **Track scoring:** `src/lib/scoreApplication.js` (`trackFromScores`) mirrors `assignTrackWithGoal` in `generate-career-analysis`. LLM-derived alignment uses tighter thresholds than the deterministic path. Qualification level (Junior / Mid-Level / Senior) is inferred from full_time + freelance experience count only — internships, military, volunteer, leadership don't count (PR #60).
 
-**Onboarding flow (9 screens):**
-| Step | Component |
-|---|---|
-| 0 | StepResumeUpload |
-| 1 | StepEducation |
-| 2 | StepPracticum |
-| 3 | StepExperience |
-| 4 | StepSkills |
-| 5 | StepCareerDirection |
-| 6 | StepConstraints |
-| 7 | StepSurvey |
-| 8 | OnboardingTutorial — 6 slides (Browse Jobs / Application Tracker / Story Bank / LinkedIn Hub / CV Generation / Chat Agents) |
+**Onboarding flow (10 steps — 9 data-capture + 1 post-flow tutorial):**
+
+`OnboardingShell` wraps steps 0–8 (data capture); step 9 (tutorial) renders
+full-screen outside the shell. The header counter reads "Step X of 9" —
+the tutorial is intentionally NOT counted (it's post-flow orientation,
+not data capture). `STEP_NAMES` in `Onboarding.jsx` mirrors this table;
+when adding/moving a step, grep the regex `(setStep|step === |step !== |STEP_NAMES\[|step_index:|onboarding_step:)` or you'll silently break a
+forward-only branch (lesson 2026-05-25).
+
+| Idx | Component | Notes |
+|---|---|---|
+| 0 | StepResumeUpload | Employment status XOR (PR #64) — `looking_for_job` / `employed` / `unemployed` mutex; `student` + `freelance` stack. Fires `ai-chat` resume-extractor + parallel `extract-proof-signals` |
+| 1 | StepEducation | Primary degree row (`educations[0]`, `display_order=0`); secondary education silently mirrored from CV |
+| 2 | StepInternship | `practicum_path` (faculty / self_sourced / none). Renamed from StepPracticum |
+| 3 | StepExperience | Multi-entry experiences; commitment + founder type from PR #211 |
+| 4 | StepRoleSkills | **Inserted PR #136.** Per-entity skill capture across experiences / education / projects (accordion-per-entity) |
+| 5 | StepSkills | Catch-all skills (`profiles.skills`); SkillChipBank for category presets |
+| 6 | StepCareerDirection | `five_year_role` (role-library autocomplete) + target titles + industries + work environment + 2 booleans |
+| 7 | StepConstraints | location + start date + work_type. Triggers `generate-career-analysis` on submit |
+| 8 | StepSurvey | 6 self-assessment Qs. Triggers `handleFinalise` (background career-analysis + tasks + role cache) |
+| 9 | OnboardingTutorial | 6 slides (Browse Jobs / Tracker / Story Bank / LinkedIn / CV / Chat Agents). Full-screen, no shell. Returning-user gate via `profiles.has_seen_onboarding_tutorial` |
 
 The tutorial **replaced** the original "Your Roles" reveal page — slides 1-6 carry the same orienting work in a paced carousel, and the platform-finalising progress bar lives in the header (not as a competing card; PR #63). Returning users (those with `profiles.has_seen_onboarding_tutorial=true`) see a skip-or-watch gate.
 
