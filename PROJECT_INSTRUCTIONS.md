@@ -1,6 +1,6 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-06-02 (App-wide rollout PR 3D — Jobs restyle: warm palette, RdCard avatars, coral Apply button, track-rdColor pills, branch `eli/redesign-jobs`).**
+**Last updated: 2026-06-02 (App-wide rollout PR 3E — Tracker restyle: warm palette, grouped 7-step checklist, track-rdColor pills, branch `eli/redesign-tracker`).**
 
 ## Visual redesign in flight
 

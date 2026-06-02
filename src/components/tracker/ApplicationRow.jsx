@@ -4,7 +4,16 @@ import { useNavigate } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { scoreApplication } from "@/lib/scoreApplication";
 import { stripHtml } from "../../../scripts/lib/normalize.ts";
-import { ChevronDown, ChevronUp, Loader2, Lock, MessageSquare, RotateCw, Trash2 } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronUp,
+  Loader2,
+  Lock,
+  MessageSquare,
+  RotateCw,
+  Trash2,
+  AlertCircle,
+} from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -18,17 +27,55 @@ import InterviewPrep from "./InterviewPrep";
 import FollowUp from "./FollowUp";
 import ApplicationChecklist from "./ApplicationChecklist";
 
-// Status badges use the new tk-status-* token classes (defined in
-// trackerStyles.js). Each maps to a Direction 3 tint family — gray /
-// info-blue / violet / warning-amber / success-green / red.
+// Status label + warm-tint badge style. Each entry maps to a foreground
+// (text) + background (tint) pair. PR 3E restyle keeps the same 7 status
+// keys (applications.status enum — P14) and reuses the rd palette tints
+// already in use across Home / Roadmap / Jobs.
 const STATUS_LABELS = {
-  interested:   { label: "Interested",   cls: "tk-status-interested" },
-  preparing:    { label: "Preparing",    cls: "tk-status-preparing" },
-  applied:      { label: "Applied",      cls: "tk-status-applied" },
-  interviewing: { label: "Interviewing", cls: "tk-status-interviewing" },
-  offer:        { label: "Offer",        cls: "tk-status-offer" },
-  accepted:     { label: "Accepted",     cls: "tk-status-accepted" },
-  rejected:     { label: "Rejected",     cls: "tk-status-rejected" },
+  interested: {
+    label: "Interested",
+    bg:    "var(--rd-bg-soft)",
+    fg:    "var(--rd-text-secondary)",
+  },
+  preparing: {
+    label: "Preparing",
+    bg:    "var(--rd-bg-soft)",
+    fg:    "var(--rd-text)",
+  },
+  applied: {
+    label: "Applied",
+    bg:    "var(--rd-golden-tint)",
+    fg:    "var(--rd-golden-dark)",
+  },
+  interviewing: {
+    label: "Interviewing",
+    bg:    "var(--rd-teal-tint)",
+    fg:    "var(--rd-teal-dark)",
+  },
+  offer: {
+    label: "Offer",
+    bg:    "var(--rd-coral-tint)",
+    fg:    "var(--rd-coral-dark)",
+  },
+  accepted: {
+    label: "Accepted",
+    bg:    "var(--rd-teal-tint)",
+    fg:    "var(--rd-teal-dark)",
+  },
+  rejected: {
+    label: "Rejected",
+    bg:    "#FEE2E2",
+    fg:    "#991B1B",
+  },
+};
+
+// Track-color tint palette indexed by rdColor (coral/teal/golden). PR 3E
+// completes the rd palette migration — Tracker was the last surface still
+// reading TRACK_CONFIG.color (legacy green/gray/amber).
+const RD_TRACK_STYLES = {
+  coral:  { tint: "var(--rd-coral-tint)",  badgeBg: "var(--rd-coral)",  accent: "var(--rd-coral-dark)"  },
+  teal:   { tint: "var(--rd-teal-tint)",   badgeBg: "var(--rd-teal)",   accent: "var(--rd-teal-dark)"   },
+  golden: { tint: "var(--rd-golden-tint)", badgeBg: "var(--rd-golden)", accent: "var(--rd-golden-dark)" },
 };
 
 export default function ApplicationRow({ app, onUpdate, listingInactive = false }) {
@@ -53,6 +100,7 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
 
   const status = STATUS_LABELS[app.status] || STATUS_LABELS.interested;
   const trackMeta = TRACK_CONFIG[app.track]; // null when unclassified
+  const trackStyles = trackMeta?.rdColor ? RD_TRACK_STYLES[trackMeta.rdColor] : null;
 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [retryingScore, setRetryingScore] = useState(false);
@@ -71,6 +119,8 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
     }
   };
 
+  // P3 — two-step delete confirm preserved verbatim. ON DELETE CASCADE on
+  // status_changes.application_id clears the audit rows automatically.
   const handleDelete = async (e) => {
     e.stopPropagation();
     if (!confirmingDelete) {
@@ -88,6 +138,9 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
     onUpdate();
   };
 
+  // P2 — status UPDATE only. trg_log_application_status_change writes the
+  // audit row on the server side; client code MUST NOT write to the
+  // status_changes table (RLS denies it).
   const handleStatusChange = async (newStatus) => {
     const { error } = await supabase.from("applications").update({ status: newStatus }).eq("id", app.id);
     if (error) {
@@ -98,10 +151,9 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
     onUpdate();
   };
 
+  // P4 — stripHtml at the paste-boundary, then UPDATE, then chain
+  // scoreApplication (analyze-job-match) when the cleaned JD is non-empty.
   const handleSaveJobDescription = async () => {
-    // Strip HTML at the paste-write boundary. Pasted JDs often carry
-    // Word/Confluence markup; storing it raw makes the textarea show
-    // tags-as-text on re-render and inflates LLM token budgets downstream.
     const cleanedJd = stripHtml(jdText) || "";
     const { error } = await supabase.from("applications").update({ job_description: cleanedJd }).eq("id", app.id);
     if (error) {
@@ -109,8 +161,6 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
       toast.error("Failed to save job description. Please try again.");
       return;
     }
-    // Reflect the cleaned text back into local state so the textarea
-    // re-renders without the raw HTML after save.
     if (cleanedJd !== jdText) setJdText(cleanedJd);
     onUpdate();
     if (cleanedJd && cleanedJd.trim()) {
@@ -118,6 +168,7 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
     }
   };
 
+  // P6 — application details written together (no per-field write).
   const handleSaveApplicationDetails = async () => {
     const { error } = await supabase.from("applications").update({
       applied_date: appliedDate,
@@ -145,6 +196,7 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
 
   }, [expanded, app]);
 
+  // P5 — optimistic checklist update with rollback-on-error preserved.
   const handleChecklistChange = async (updated) => {
     const previous = checklist;
     setChecklist(updated);
@@ -163,6 +215,7 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
   const interviewLocked = !INTERVIEW_UNLOCK_STATUSES.has(app.status);
   const followupLocked = !FOLLOWUP_UNLOCK_STATUSES.has(app.status);
 
+  // P9 — tab lock semantics preserved exactly.
   const tabs = [
     { id: "checklist",   label: "📋 Steps" },
     { id: "target",      label: "Target role" },
@@ -175,188 +228,290 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
     { id: "followup",    label: "Follow-up", locked: followupLocked, unlockHint: "Unlocks once the application reaches Offer, Accepted, or Rejected." },
   ];
 
-  // Qualification score: green when strong, gray when weak. No red.
+  // AI confidence — track-tinted strong / muted soft. No red band.
   const qScore = app.qualification_score;
   const qPct = qScore != null ? Math.round(qScore * 100) : null;
-  const qClass = qPct == null ? null : (qPct >= 45 ? "tk-score-strong" : "tk-score-soft");
+  const qStrong = qPct != null && qPct >= 45;
 
   return (
-    <div className="tk-row">
+    <div className="bg-rd-bg-card border border-rd-border rounded-[18px] overflow-hidden shadow-rd">
       <button
+        type="button"
         onClick={() => {
           if (expanded && hasUnsavedChanges) {
+            // P11 — unsaved-changes guard.
             if (!window.confirm("You have unsaved changes. Collapse anyway?")) return;
           }
           setExpanded(!expanded);
         }}
         aria-label={expanded ? "Collapse application" : "Expand application"}
-        className="tk-row-header"
+        aria-expanded={expanded}
+        data-app-id={app.id}
+        className="w-full flex items-start justify-between gap-3 px-5 py-4 text-left hover:bg-rd-bg-soft/40 transition-colors"
       >
         <div className="flex items-center gap-3 min-w-0">
-          <span className={`tk-status ${status.cls} flex-shrink-0`}>{status.label}</span>
+          <span
+            className="inline-flex items-center text-[11px] font-display font-bold rounded-full px-2.5 py-1 flex-shrink-0"
+            style={{ background: status.bg, color: status.fg }}
+          >
+            {status.label}
+          </span>
           <div className="min-w-0">
-            <p className="tk-row-title truncate">{app.role_title}</p>
-            <p className="tk-row-company">{app.company || "No company"}</p>
+            <p className="font-display font-bold text-[15px] leading-[1.2] text-rd-text truncate">
+              {app.role_title}
+            </p>
+            <p className="text-[12px] text-rd-text-secondary mt-0.5">
+              {app.company || "No company"}
+            </p>
             {listingInactive && (
-              <p className="text-[10.5px] text-[#6B4E0F] mt-1">
+              <p className="inline-flex items-center gap-1 text-[10.5px] text-rd-golden-dark mt-1">
+                <AlertCircle className="w-3 h-3" />
                 This listing may no longer be active
               </p>
             )}
           </div>
         </div>
         <div className="flex items-center gap-3 flex-shrink-0">
-          {trackMeta ? (
-            <span className={`tk-track-pill tk-track-${trackMeta.color}`}>
-              <span className="tk-track-badge">{trackMeta.number}</span>
+          {trackMeta && trackStyles ? (
+            <span
+              className="inline-flex items-center gap-1.5 text-[11px] font-display font-bold rounded-full px-2.5 py-1"
+              style={{ background: trackStyles.tint, color: trackStyles.accent }}
+            >
+              <span
+                className="w-4 h-4 rounded-full inline-flex items-center justify-center font-display font-extrabold text-[9.5px] leading-none text-white"
+                style={{ background: trackStyles.badgeBg }}
+              >
+                {trackMeta.number}
+              </span>
               Track {trackMeta.number}
             </span>
           ) : scoringFailed && hasJd ? (
-            <button
-              type="button"
+            <span
+              role="button"
+              tabIndex={0}
               onClick={handleRetryScore}
-              disabled={retryingScore}
-              className="tk-meta-retry"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleRetryScore(e);
+                }
+              }}
+              aria-disabled={retryingScore}
+              className="inline-flex items-center gap-1.5 text-[11px] font-display font-semibold text-rd-text-secondary hover:text-rd-text cursor-pointer"
               title="Background scoring failed. Click to retry."
             >
-              {retryingScore
-                ? <><Loader2 className="w-3 h-3 animate-spin" />Retrying…</>
-                : <><RotateCw className="w-3 h-3" />Retry scoring</>}
-            </button>
+              {retryingScore ? (
+                <>
+                  <Loader2 className="w-3 h-3 animate-spin" />
+                  Retrying…
+                </>
+              ) : (
+                <>
+                  <RotateCw className="w-3 h-3" />
+                  Retry scoring
+                </>
+              )}
+            </span>
           ) : hasJd ? (
-            <span className="tk-meta-italic">Calculating track…</span>
+            <span className="text-[11px] italic text-rd-text-tertiary">Calculating track…</span>
           ) : null}
           {qPct != null ? (
-            <span className={qClass}>{qPct}%</span>
+            <span
+              className="text-[12px] font-display font-bold"
+              style={{ color: qStrong ? "var(--rd-teal-dark)" : "var(--rd-text-secondary)" }}
+            >
+              {qPct}%
+            </span>
           ) : !scoringFailed && hasJd ? (
-            <span className="tk-meta-italic">Calculating fit…</span>
+            <span className="text-[11px] italic text-rd-text-tertiary">Calculating fit…</span>
           ) : null}
           {confirmingDelete ? (
             <>
-              <button
+              <span
+                role="button"
+                tabIndex={0}
                 onClick={handleDelete}
-                className="text-xs text-[#C84F40] font-semibold hover:text-[#F87060]"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    handleDelete(e);
+                  }
+                }}
+                className="text-[11.5px] font-display font-bold text-rd-coral-dark hover:text-rd-coral cursor-pointer"
                 title="Confirm delete"
               >
                 Delete?
-              </button>
-              <button
+              </span>
+              <span
+                role="button"
+                tabIndex={0}
                 onClick={(e) => { e.stopPropagation(); setConfirmingDelete(false); }}
-                className="text-xs text-[#9C9DA1] hover:text-[#52545A]"
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setConfirmingDelete(false);
+                  }
+                }}
+                className="text-[11.5px] text-rd-text-secondary hover:text-rd-text cursor-pointer"
               >
                 Cancel
-              </button>
+              </span>
             </>
           ) : (
-            <button
+            <span
+              role="button"
+              tabIndex={0}
               onClick={handleDelete}
-              className="text-[#9C9DA1] hover:text-[#F87060] transition-colors"
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleDelete(e);
+                }
+              }}
+              className="text-rd-text-tertiary hover:text-rd-coral transition-colors cursor-pointer"
               title="Delete application"
               aria-label="Delete application"
             >
               <Trash2 className="w-4 h-4" />
-            </button>
+            </span>
           )}
-          {expanded
-            ? <ChevronUp className="w-4 h-4 text-[#9C9DA1]" />
-            : <ChevronDown className="w-4 h-4 text-[#9C9DA1]" />}
+          {expanded ? (
+            <ChevronUp className="w-4 h-4 text-rd-text-secondary" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-rd-text-secondary" />
+          )}
         </div>
       </button>
 
       {expanded && (
-        <div className="tk-row-body">
-          <div className="tk-status-bar">
-            <span className="tk-eyebrow">Status</span>
+        <div className="border-t border-rd-border-subtle bg-rd-bg-soft/40">
+          {/* Status row */}
+          <div className="px-5 py-3 flex items-center gap-3 border-b border-rd-border-subtle">
+            <span className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+              Status
+            </span>
             <Select value={app.status} onValueChange={handleStatusChange}>
-              <SelectTrigger className="h-8 w-[180px] text-xs border-[#DDDDDB]">
+              <SelectTrigger className="h-8 w-[180px] text-[12px] border-rd-border bg-rd-bg-card">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(STATUS_LABELS).map(([value, { label }]) => (
-                  <SelectItem key={value} value={value} className="text-xs">{label}</SelectItem>
+                  <SelectItem key={value} value={value} className="text-[12px]">{label}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          <div className="tk-tabs">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                title={tab.locked ? tab.unlockHint : undefined}
-                className="tk-tab"
-                data-active={activeTab === tab.id}
-                data-locked={!!tab.locked}
-              >
-                {tab.locked && <Lock className="w-3 h-3" />}
-                {tab.label}
-              </button>
-            ))}
+          {/* Tab bar */}
+          <div className="px-5 pt-3 flex gap-4 overflow-x-auto border-b border-rd-border-subtle">
+            {tabs.map((tab) => {
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  onClick={() => setActiveTab(tab.id)}
+                  title={tab.locked ? tab.unlockHint : undefined}
+                  aria-selected={active}
+                  className={[
+                    "pb-2.5 -mb-px font-display font-semibold text-[12.5px] whitespace-nowrap transition-colors duration-150 inline-flex items-center gap-1.5",
+                    active
+                      ? "text-rd-text border-b-[2.5px] border-rd-coral"
+                      : "text-rd-text-tertiary hover:text-rd-text border-b-[2.5px] border-transparent",
+                  ].join(" ")}
+                >
+                  {tab.locked && <Lock className="w-3 h-3" />}
+                  {tab.label}
+                </button>
+              );
+            })}
           </div>
 
-          <div className="tk-tab-panel">
+          {/* Tab panel */}
+          <div className="px-5 py-5 bg-rd-bg-card">
             {activeTab === "checklist" && (
               <ApplicationChecklist checklist={checklist} onChange={handleChecklistChange} />
             )}
 
             {activeTab === "target" && (
               <div className="flex flex-col gap-4">
-                <p className="tk-eyebrow">Target role information</p>
-                <div className="tk-card-inset">
-                  <div className="tk-tab-panel-row">
-                    <span className="tk-tab-panel-key">Role</span>
-                    <span className="tk-tab-panel-val">{app.role_title}</span>
-                  </div>
-                  <div className="tk-tab-panel-row">
-                    <span className="tk-tab-panel-key">Company</span>
-                    <span className="tk-tab-panel-val">{app.company || "—"}</span>
-                  </div>
-                  <div className="tk-tab-panel-row">
-                    <span className="tk-tab-panel-key">Track</span>
+                <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+                  Target role information
+                </p>
+                <div className="rounded-[14px] border border-rd-border-subtle bg-rd-bg-soft/50 px-4 py-3 flex flex-col gap-2">
+                  <TargetRow label="Role" value={app.role_title} />
+                  <TargetRow label="Company" value={app.company || "—"} />
+                  <div className="flex items-center justify-between gap-3 text-[12.5px] py-0.5">
+                    <span className="text-rd-text-secondary">Track</span>
                     {trackMeta ? (
-                      <span className="tk-tab-panel-val">Track {trackMeta.number} · {trackMeta.name}</span>
+                      <span className="font-display font-semibold text-rd-text">
+                        Track {trackMeta.number} · {trackMeta.name}
+                      </span>
                     ) : scoringFailed && hasJd ? (
-                      <button
-                        type="button"
+                      <span
+                        role="button"
+                        tabIndex={0}
                         onClick={handleRetryScore}
-                        disabled={retryingScore}
-                        className="tk-meta-retry"
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            handleRetryScore(e);
+                          }
+                        }}
+                        className="inline-flex items-center gap-1.5 text-[11.5px] font-display font-semibold text-rd-text-secondary hover:text-rd-text cursor-pointer"
                         title="Background scoring failed. Click to retry."
                       >
-                        {retryingScore
-                          ? <><Loader2 className="w-3 h-3 animate-spin" />Retrying…</>
-                          : <><RotateCw className="w-3 h-3" />Retry scoring</>}
-                      </button>
+                        {retryingScore ? (
+                          <>
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            Retrying…
+                          </>
+                        ) : (
+                          <>
+                            <RotateCw className="w-3 h-3" />
+                            Retry scoring
+                          </>
+                        )}
+                      </span>
                     ) : hasJd ? (
-                      <span className="tk-meta-italic">Calculating track…</span>
+                      <span className="text-[11.5px] italic text-rd-text-tertiary">Calculating track…</span>
                     ) : (
-                      <span className="tk-tab-panel-val">Unclassified</span>
+                      <span className="font-display font-semibold text-rd-text-tertiary">Unclassified</span>
                     )}
                   </div>
                   {qPct != null ? (
-                    <div className="tk-tab-panel-row">
-                      <span className="tk-tab-panel-key">AI confidence</span>
-                      <span className={qClass}>{qPct}%</span>
+                    <div className="flex items-center justify-between gap-3 text-[12.5px] py-0.5">
+                      <span className="text-rd-text-secondary">AI confidence</span>
+                      <span
+                        className="font-display font-bold"
+                        style={{ color: qStrong ? "var(--rd-teal-dark)" : "var(--rd-text-secondary)" }}
+                      >
+                        {qPct}%
+                      </span>
                     </div>
                   ) : !scoringFailed && hasJd ? (
-                    <div className="tk-tab-panel-row">
-                      <span className="tk-tab-panel-key">AI confidence</span>
-                      <span className="tk-meta-italic">Calculating fit…</span>
+                    <div className="flex items-center justify-between gap-3 text-[12.5px] py-0.5">
+                      <span className="text-rd-text-secondary">AI confidence</span>
+                      <span className="text-[11.5px] italic text-rd-text-tertiary">Calculating fit…</span>
                     </div>
                   ) : null}
                 </div>
                 <div className="flex flex-col gap-2">
-                  <label className="tk-eyebrow">Job description</label>
+                  <label className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+                    Job description
+                  </label>
                   <Textarea
                     value={jdText}
                     onChange={(e) => setJdText(e.target.value)}
                     placeholder="Paste the job description here..."
                     rows={6}
-                    className="text-sm border-[#DDDDDB]"
+                    className="text-[13px] border-rd-border bg-rd-bg-card focus-visible:ring-rd-coral focus-visible:ring-offset-0"
                   />
                   <button
+                    type="button"
                     onClick={handleSaveJobDescription}
-                    className="text-xs text-[#0E1014] underline underline-offset-2 self-start hover:text-[#F87060]"
+                    className="self-start text-[12px] font-display font-semibold text-rd-text hover:text-rd-coral-dark underline underline-offset-2 transition-colors"
                   >
                     Save job description
                   </button>
@@ -367,57 +522,61 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
             {activeTab === "cv" && (
               <div className="flex flex-col gap-4">
                 <CVManagement app={app} onUpdate={onUpdate} />
-                <div className="border-t border-[#E8E8E5] pt-4">
+                <div className="border-t border-rd-border-subtle pt-4">
                   <button
+                    type="button"
                     onClick={handleOpenCVAgent}
-                    className="flex items-center gap-2 text-xs font-semibold text-[#0E1014] hover:text-[#F87060] transition-colors"
+                    className="inline-flex items-center gap-1.5 text-[12px] font-display font-semibold text-rd-text hover:text-rd-coral-dark transition-colors"
                   >
                     <MessageSquare className="w-3.5 h-3.5" />
                     Chat with CV Agent for this role
                   </button>
-                  <p className="text-[11px] text-[#9C9DA1] mt-1">
+                  <p className="text-[11px] text-rd-text-secondary mt-1">
                     Opens a conversation pre-loaded with this application&apos;s context.
                   </p>
                 </div>
               </div>
             )}
+
             {activeTab === "skills"      && <SkillsRequired app={app} onUpdate={onUpdate} />}
             {activeTab === "projects"    && <ProjectsProof app={app} onUpdate={onUpdate} />}
             {activeTab === "networking"  && <NetworkingReferrals app={app} onUpdate={onUpdate} />}
 
             {activeTab === "application" && (
               <div className="flex flex-col gap-4">
-                <p className="tk-eyebrow">Application details</p>
+                <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+                  Application details
+                </p>
                 <div>
-                  <label className="text-xs text-[#52545A] mb-1.5 block">Date applied</label>
+                  <label className="block text-[12px] text-rd-text-secondary mb-1.5">Date applied</label>
                   <input
                     type="date"
                     value={appliedDate}
                     onChange={(e) => setAppliedDate(e.target.value)}
-                    className="tk-input"
-                    style={{ maxWidth: 220 }}
+                    className="w-full max-w-[220px] px-3 py-2 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13px] focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] outline-none transition-[border-color,box-shadow] duration-150"
                   />
                 </div>
                 <div>
-                  <label className="text-xs text-[#52545A] mb-1.5 block">CV version used</label>
+                  <label className="block text-[12px] text-rd-text-secondary mb-1.5">CV version used</label>
                   <input
                     value={cvVersionUsed}
                     onChange={(e) => setCvVersionUsed(e.target.value)}
                     placeholder="e.g. Customer Success CV — Monday"
-                    className="tk-input"
+                    className="w-full px-3 py-2 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13px] placeholder:text-rd-text-tertiary focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] outline-none transition-[border-color,box-shadow] duration-150"
                   />
                 </div>
-                <label className="flex items-center gap-2 text-sm text-[#52545A]">
+                <label className="inline-flex items-center gap-2 text-[13px] text-rd-text-secondary">
                   <Checkbox
                     checked={referralAttached}
                     onCheckedChange={setReferralAttached}
-                    className="accent-[#F87060]"
+                    className="accent-rd-coral"
                   />
                   Referral attached
                 </label>
                 <button
+                  type="button"
                   onClick={handleSaveApplicationDetails}
-                  className="text-xs text-[#0E1014] underline underline-offset-2 self-start hover:text-[#F87060]"
+                  className="self-start text-[12px] font-display font-semibold text-rd-text hover:text-rd-coral-dark underline underline-offset-2 transition-colors"
                 >
                   Save application details
                 </button>
@@ -426,24 +585,18 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
 
             {activeTab === "interview" && (
               interviewLocked ? (
-                <div className="tk-locked-notice">
-                  <Lock className="w-4 h-4 text-[#9C9DA1] flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-[#52545A] leading-relaxed">
-                    Move this application to <strong>Interviewing</strong> to unlock interview prep. Jumping ahead before you have an interview scheduled just adds noise.
-                  </p>
-                </div>
+                <LockedNotice>
+                  Move this application to <strong className="font-display font-bold text-rd-text">Interviewing</strong> to unlock interview prep. Jumping ahead before you have an interview scheduled just adds noise.
+                </LockedNotice>
               ) : (
                 <InterviewPrep app={app} onUpdate={onUpdate} />
               )
             )}
             {activeTab === "followup" && (
               followupLocked ? (
-                <div className="tk-locked-notice">
-                  <Lock className="w-4 h-4 text-[#9C9DA1] flex-shrink-0 mt-0.5" />
-                  <p className="text-xs text-[#52545A] leading-relaxed">
-                    Follow-up unlocks once the application reaches <strong>Offer</strong>, <strong>Accepted</strong>, or <strong>Rejected</strong>. There&apos;s nothing to follow up on yet.
-                  </p>
-                </div>
+                <LockedNotice>
+                  Follow-up unlocks once the application reaches <strong className="font-display font-bold text-rd-text">Offer</strong>, <strong className="font-display font-bold text-rd-text">Accepted</strong>, or <strong className="font-display font-bold text-rd-text">Rejected</strong>. There&apos;s nothing to follow up on yet.
+                </LockedNotice>
               ) : (
                 <FollowUp app={app} onUpdate={onUpdate} />
               )
@@ -451,6 +604,26 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function TargetRow({ label, value }) {
+  return (
+    <div className="flex items-center justify-between gap-3 text-[12.5px] py-0.5">
+      <span className="text-rd-text-secondary">{label}</span>
+      <span className="font-display font-semibold text-rd-text">{value}</span>
+    </div>
+  );
+}
+
+function LockedNotice({ children }) {
+  return (
+    <div className="flex items-start gap-2.5 rounded-[14px] border border-rd-border bg-rd-bg-soft px-4 py-3">
+      <Lock className="w-4 h-4 text-rd-text-tertiary flex-shrink-0 mt-0.5" />
+      <p className="text-[12.5px] text-rd-text-secondary leading-[1.55]">
+        {children}
+      </p>
     </div>
   );
 }
