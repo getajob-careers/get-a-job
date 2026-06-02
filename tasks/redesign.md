@@ -40,11 +40,12 @@ reviewed without running the app.
 ## Typecheck baseline (locked)
 
 `npm run typecheck`: **434 errors** as of 2026-06-02 (after PR #212).
+**Current ceiling: 401 (after 3K). Ratchet down only — never up.**
 
 **Rule:** no redesign PR may increase this count. Each redesign PR runs
-`npm run typecheck`, diffs against 434, and reports the delta in its PR
-body. If a PR would raise the count, fix the regression in the same PR
-or scope-cut.
+`npm run typecheck`, diffs against the current ceiling, and reports
+the delta in its PR body. If a PR would raise the count, fix the
+regression in the same PR or scope-cut.
 
 | PR | Date | TS errors | Δ vs baseline |
 |---|---|---|---|
@@ -65,7 +66,7 @@ or scope-cut.
 | `eli/redesign-linkedin-profile` (LinkedIn 3J-A: page shell + Profile tab + ProfilePreview off .li-*; Posts/Networking + LI_CSS stay) | 2026-06-02 | 411 | −15 |
 | `eli/redesign-linkedin-posts` (LinkedIn 3J-B: Posts tab + 6 posts/* sub-components off .li-*; Networking + LI_CSS stay) | 2026-06-02 | 406 | −15 |
 | `eli/redesign-linkedin-networking` (LinkedIn 3J-C: Networking tab + 4 networking/* sub-components off .li-*; **LI_CSS teardown** — `linkedinStyles.js` deleted, `<style>{LI_CSS}</style>` + `.li` wrapper dropped) | 2026-06-02 | 401 | −33 |
-| `eli/redesign-chat` (Chat 3K: ChatInterface + MessageBubble + AgentIntro + StorySaveCard off .c-*; **CHAT_CSS teardown** — `chatStyles.js` deleted, `<style>{CHAT_CSS}</style>` + `.chat` wrapper dropped) | 2026-06-02 | 401 | −33 |
+| `eli/redesign-chat` (Chat 3K: ChatInterface + MessageBubble + AgentIntro + StorySaveCard off .c-*; **CHAT_CSS teardown** — `chatStyles.js` deleted, `<style>{CHAT_CSS}</style>` + `.chat` wrapper dropped) — **SHIPPED PR #230** | 2026-06-02 | 401 | −33 |
 
 ---
 
