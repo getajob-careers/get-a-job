@@ -3,20 +3,25 @@ import { supabase } from "@/api/supabaseClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEducationQuery } from "@/lib/queries/useEducation";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Pencil, Trash2, GraduationCap } from "lucide-react";
+import { Plus, Pencil, Trash2, GraduationCap, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import { DEGREE_TYPE_OPTIONS, dropdownValueForDegreeType, EDUCATION_LEVELS } from "@/lib/educationPolicy";
 import { recomputeProfileSkillsCanonical } from "@/lib/recomputeProfileSkillsCanonical";
 import CertificationsSection from "./CertificationsSection";
 
-// Multi-entry education editor for the AddInformation Profile page.
-// Mirrors the Experience-tab pattern: an add/edit form at the top, a list
-// of saved rows below with Edit + Delete controls per row.
+// PR 3F — EducationTab restyled on rd-* tokens. Restyle-only: write
+// paths (handleSave, handleDelete), the recomputeProfileSkillsCanonical
+// call AFTER each entity write (PR #178 narrow-projection invariant),
+// and the RLS `.eq("user_id", user.id)` guards are all preserved
+// verbatim.
+//
+// Multi-entry education editor for the Profile page. Mirrors the
+// Experience-tab pattern: an add/edit form at the top, a list of saved
+// rows below with Edit + Delete controls per row.
 //
 // Dual-degree support: nothing here assumes one current education per
 // user. Multiple rows can have is_current=true; multiple rows can share
@@ -49,6 +54,14 @@ const LEVEL_LABEL = {
   bootcamp: "Bootcamp",
   self_taught: "Self-Taught",
 };
+
+// rd-token class strings — mirror Profile.jsx's vocabulary.
+const RD_CARD       = "rounded-[18px] border border-rd-border bg-rd-bg-card p-5 sm:p-6 shadow-rd";
+const RD_CARD_LG    = "rounded-[18px] border border-rd-border bg-rd-bg-card p-6 sm:p-7 shadow-rd";
+const RD_LABEL      = "block text-[11px] font-display font-semibold text-rd-text mb-1.5";
+const RD_INPUT_CLS  = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+const RD_BTN_GHOST   = "inline-flex items-center gap-1.5 text-[12px] text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rounded-full px-2.5 py-1.5 transition-colors";
 
 export default function EducationTab({ user }) {
   const queryClient = useQueryClient();
@@ -195,13 +208,13 @@ export default function EducationTab({ user }) {
   return (
     <div className="space-y-4">
       {/* Add / Edit form */}
-      <div className="bg-white rounded-xl border border-[#DDDDDB] p-6 space-y-4">
+      <div className={`${RD_CARD_LG} space-y-4`}>
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-[#0E1014]">
+          <h3 className="font-display font-bold text-[14px] text-rd-text">
             {form.id ? "Edit Education" : "Add Education"}
           </h3>
           {form.id && (
-            <button onClick={resetForm} className="text-xs text-[#9C9DA1] hover:text-[#52545A] underline">
+            <button onClick={resetForm} className="text-[12px] text-rd-text-tertiary hover:text-rd-text underline">
               Cancel edit
             </button>
           )}
@@ -209,18 +222,18 @@ export default function EducationTab({ user }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Institution</label>
+            <label className={RD_LABEL}>Institution</label>
             <Input
               value={form.institution}
               onChange={(e) => setForm({ ...form, institution: e.target.value })}
-              className="mt-1"
+              className={RD_INPUT_CLS}
               placeholder="e.g. Stanford University"
             />
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Education Level</label>
+            <label className={RD_LABEL}>Education Level</label>
             <Select value={form.education_level || undefined} onValueChange={(v) => setForm({ ...form, education_level: v })}>
-              <SelectTrigger className="mt-1"><SelectValue placeholder="Select level" /></SelectTrigger>
+              <SelectTrigger className={RD_INPUT_CLS}><SelectValue placeholder="Select level" /></SelectTrigger>
               <SelectContent>
                 {EDUCATION_LEVELS.map((lvl) => (
                   <SelectItem key={lvl} value={lvl}>{LEVEL_LABEL[lvl] || lvl}</SelectItem>
@@ -229,9 +242,9 @@ export default function EducationTab({ user }) {
             </Select>
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Degree Type</label>
+            <label className={RD_LABEL}>Degree Type</label>
             <Select value={degreeDropdownValue || undefined} onValueChange={handleDegreeDropdownChange}>
-              <SelectTrigger className="mt-1"><SelectValue placeholder="Select degree type" /></SelectTrigger>
+              <SelectTrigger className={RD_INPUT_CLS}><SelectValue placeholder="Select degree type" /></SelectTrigger>
               <SelectContent>
                 {DEGREE_TYPE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -243,53 +256,53 @@ export default function EducationTab({ user }) {
                 value={form.degree_type}
                 onChange={(e) => setForm({ ...form, degree_type: e.target.value })}
                 placeholder="e.g. B.Eng., Pharm.D., specific credential"
-                className="mt-2"
+                className={`${RD_INPUT_CLS} mt-2`}
               />
             )}
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Field of Study</label>
+            <label className={RD_LABEL}>Field of Study</label>
             <Input
               value={form.field_of_study}
               onChange={(e) => setForm({ ...form, field_of_study: e.target.value })}
-              className="mt-1"
+              className={RD_INPUT_CLS}
               placeholder="e.g. Business Administration"
             />
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Start Date</label>
+            <label className={RD_LABEL}>Start Date</label>
             <Input
               value={form.start_date}
               onChange={(e) => setForm({ ...form, start_date: e.target.value })}
-              className="mt-1"
+              className={RD_INPUT_CLS}
               placeholder="e.g. September 2023, 2023"
             />
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">End Date</label>
+            <label className={RD_LABEL}>End Date</label>
             <Input
               value={form.end_date}
               onChange={(e) => setForm({ ...form, end_date: e.target.value, is_current: /present|current/i.test(e.target.value) })}
               disabled={!!form.is_current}
-              className="mt-1"
+              className={RD_INPUT_CLS}
               placeholder='e.g. May 2025, "Present"'
             />
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">GPA (optional)</label>
+            <label className={RD_LABEL}>GPA (optional)</label>
             <Input
               value={form.gpa}
               onChange={(e) => setForm({ ...form, gpa: e.target.value })}
-              className="mt-1"
+              className={RD_INPUT_CLS}
               placeholder="e.g. 3.7 / 4.0 or 90 / 100"
             />
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Location (optional)</label>
+            <label className={RD_LABEL}>Location (optional)</label>
             <Input
               value={form.location}
               onChange={(e) => setForm({ ...form, location: e.target.value })}
-              className="mt-1"
+              className={RD_INPUT_CLS}
               placeholder="e.g. Boston, MA"
             />
           </div>
@@ -302,9 +315,10 @@ export default function EducationTab({ user }) {
             onCheckedChange={(v) =>
               setForm({ ...form, is_current: !!v, ...(v && { end_date: "" }) })
             }
+            className="border-rd-border data-[state=checked]:bg-rd-coral data-[state=checked]:border-rd-coral"
           />
-          <Label htmlFor="is_current" className="text-xs text-[#52545A] cursor-pointer">
-            I'm currently studying for this degree
+          <Label htmlFor="is_current" className="text-[12px] text-rd-text-secondary cursor-pointer">
+            I&apos;m currently studying for this degree
           </Label>
         </div>
 
@@ -344,17 +358,31 @@ export default function EducationTab({ user }) {
           suggestionType="library_skills"
         />
 
-        <Button onClick={handleSave} disabled={saving} className="bg-[#0E1014] hover:bg-[#52545A] text-sm">
-          {form.id ? <>Update Education</> : <><Plus className="w-4 h-4 mr-2" />Add Education</>}
-        </Button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className={RD_BTN_PRIMARY}
+        >
+          {saving ? (
+            <><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving…</>
+          ) : form.id ? (
+            "Update Education"
+          ) : (
+            <><Plus className="w-3.5 h-3.5" />Add Education</>
+          )}
+        </button>
       </div>
 
       {/* List of saved entries */}
       <div className="space-y-2">
-        {isLoading && <p className="text-xs text-[#9C9DA1]">Loading…</p>}
+        {isLoading && <p className="text-[12px] text-rd-text-tertiary">Loading…</p>}
         {!isLoading && educations.length === 0 && (
-          <div className="text-center py-6 text-xs text-[#9C9DA1]">
-            No education entries yet — add your first one above.
+          <div className={`${RD_CARD} text-center py-8`}>
+            <GraduationCap className="w-9 h-9 text-rd-coral mx-auto mb-2.5" />
+            <p className="text-[12.5px] text-rd-text-tertiary">
+              No education entries yet — add your first one above.
+            </p>
           </div>
         )}
         {educations.map((e) => (
@@ -364,20 +392,24 @@ export default function EducationTab({ user }) {
           // (honors / coursework / projects / skills counts). PR 3 or a
           // follow-up cleanup can lift these into EntityCard once
           // courses are in place and the shared shape is concrete.
-          <div key={e.id} className="bg-white rounded-xl border border-[#DDDDDB] p-4 flex items-start gap-3">
-            <div className="w-9 h-9 rounded-lg bg-[#E8E8E5] flex items-center justify-center flex-shrink-0">
-              <GraduationCap className="w-4 h-4 text-[#52545A]" />
+          <div
+            key={e.id}
+            data-edu-id={e.id}
+            className={`${RD_CARD} flex items-start gap-3 hover:border-rd-border-hover transition-colors`}
+          >
+            <div className="w-10 h-10 rounded-[12px] bg-rd-teal-tint flex items-center justify-center flex-shrink-0">
+              <GraduationCap className="w-4 h-4 text-rd-teal-dark" />
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-[#0E1014] truncate">
+              <p className="font-display font-bold text-[13.5px] text-rd-text truncate">
                 {e.degree_type ? `${e.degree_type} · ` : ""}{e.field_of_study || (LEVEL_LABEL[e.education_level] || "Education")}
               </p>
-              <p className="text-xs text-[#52545A] truncate">
+              <p className="text-[12px] text-rd-text-secondary truncate">
                 {e.institution || "Institution not set"}
                 {e.start_date || e.end_date ? ` · ${e.start_date || ""}${e.start_date && e.end_date ? " – " : ""}${e.end_date || (e.is_current ? "Present" : "")}` : ""}
               </p>
               {(e.honors?.length > 0 || e.relevant_coursework?.length > 0 || e.academic_projects?.length > 0 || e.skills?.length > 0) && (
-                <p className="text-[11px] text-[#9C9DA1] mt-1 truncate">
+                <p className="text-[11px] text-rd-text-tertiary mt-1 truncate">
                   {e.honors?.length > 0 && <>{e.honors.length} honor{e.honors.length === 1 ? "" : "s"} · </>}
                   {e.relevant_coursework?.length > 0 && <>{e.relevant_coursework.length} course{e.relevant_coursework.length === 1 ? "" : "s"} · </>}
                   {e.academic_projects?.length > 0 && <>{e.academic_projects.length} project{e.academic_projects.length === 1 ? "" : "s"} · </>}
@@ -389,12 +421,22 @@ export default function EducationTab({ user }) {
               )}
             </div>
             <div className="flex items-center gap-1 flex-shrink-0">
-              <Button variant="ghost" size="sm" onClick={() => handleEdit(e)}>
-                <Pencil className="w-3.5 h-3.5 text-[#9C9DA1]" />
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => handleDelete(e)}>
-                <Trash2 className="w-3.5 h-3.5 text-[#9C9DA1] hover:text-red-500" />
-              </Button>
+              <button
+                type="button"
+                onClick={() => handleEdit(e)}
+                className={RD_BTN_GHOST}
+                aria-label="Edit"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={() => handleDelete(e)}
+                className={RD_BTN_GHOST}
+                aria-label="Delete"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
         ))}
@@ -403,10 +445,10 @@ export default function EducationTab({ user }) {
       {/* Certifications — rendered under the Education tab per PR 2 of
           the entity IA. The standalone Certifications tab is removed
           (its URL redirects here). */}
-      <div className="pt-6 border-t border-[#DDDDDB] space-y-3">
+      <div className="pt-6 border-t border-rd-border-subtle space-y-3">
         <div>
-          <h2 className="text-sm font-semibold text-[#0E1014]">Certifications</h2>
-          <p className="text-xs text-[#9C9DA1] mt-0.5">
+          <h2 className="font-display font-bold text-[15px] text-rd-text">Certifications</h2>
+          <p className="text-[12px] text-rd-text-tertiary mt-0.5">
             Industry certs, course completions, in-progress credentials. Skills you tag here count toward your profile.
           </p>
         </div>

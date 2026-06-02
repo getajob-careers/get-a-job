@@ -33,6 +33,7 @@ import HomePreview from '@/pages/_preview/HomePreview';
 import RoadmapPreview from '@/pages/_preview/RoadmapPreview';
 import JobsPreview from '@/pages/_preview/JobsPreview';
 import TrackerPreview from '@/pages/_preview/TrackerPreview';
+import ProfilePreview from '@/pages/_preview/ProfilePreview';
 import RouteFallback, { ChunkErrorBoundary } from '@/components/RouteFallback';
 
 // Use the LAZY map (sibling of pages.config.js) so every authenticated
@@ -164,6 +165,12 @@ function App() {
               <Route
                 path="/_preview/tracker/:state"
                 element={<TrackerPreview />}
+              />
+            )}
+            {import.meta.env.DEV && (
+              <Route
+                path="/_preview/profile/:state"
+                element={<ProfilePreview />}
               />
             )}
             <Route path="/*" element={<AuthenticatedApp />} />

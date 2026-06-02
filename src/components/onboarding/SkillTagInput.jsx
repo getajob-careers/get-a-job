@@ -16,7 +16,7 @@ const JOB_TITLE_SUGGESTIONS = [
   "HR Coordinator", "Recruiter", "Administrative Assistant", "Executive Assistant", "Office Manager",
   "Graphic Designer", "UX Designer", "UI Designer", "Web Designer", "Brand Designer",
   "Account Executive", "Business Development Representative", "Inside Sales Representative",
-  
+
   // Mid-Level
   "Senior Analyst", "Senior Consultant", "Marketing Manager", "Sales Manager", "Customer Success Manager",
   "Senior Data Analyst", "Senior Business Analyst", "Senior Financial Analyst", "Operations Manager", "Product Manager",
@@ -27,7 +27,7 @@ const JOB_TITLE_SUGGESTIONS = [
   "Account Manager", "Business Development Manager", "Regional Sales Manager",
   "Project Manager", "Program Manager", "Scrum Master", "Product Owner",
   "Data Scientist", "Machine Learning Engineer", "Research Scientist", "Quantitative Analyst",
-  
+
   // Senior & Leadership
   "Director of Marketing", "Director of Sales", "Director of Operations", "Director of Product", "Director of Engineering",
   "VP of Marketing", "VP of Sales", "VP of Product", "VP of Engineering", "VP of Operations",
@@ -64,50 +64,50 @@ const INDUSTRY_SUGGESTIONS = [
   "Technology", "Software", "SaaS", "E-commerce", "Fintech", "Edtech", "Healthtech", "Cybersecurity",
   "Artificial Intelligence", "Machine Learning", "Data Analytics", "Cloud Computing", "Blockchain",
   "Mobile Apps", "Gaming", "Social Media", "Digital Media", "Adtech", "Martech",
-  
+
   // Financial Services
   "Banking", "Investment Banking", "Private Equity", "Venture Capital", "Asset Management", "Wealth Management",
   "Insurance", "Financial Services", "Accounting", "Auditing", "Tax", "Corporate Finance",
-  
+
   // Professional Services
   "Consulting", "Management Consulting", "Strategy Consulting", "Legal Services", "Law",
   "Human Resources", "Recruitment", "Marketing Services", "Advertising", "Public Relations",
-  
+
   // Healthcare & Life Sciences
   "Healthcare", "Pharmaceuticals", "Biotechnology", "Medical Devices", "Clinical Research",
   "Hospital & Health Care", "Mental Health", "Veterinary", "Wellness", "Fitness",
-  
+
   // Consumer & Retail
   "Retail", "E-commerce", "Consumer Goods", "Fashion", "Luxury Goods", "Food & Beverage",
   "Hospitality", "Travel & Tourism", "Hotels & Resorts", "Restaurants",
-  
+
   // Manufacturing & Industrial
   "Manufacturing", "Automotive", "Aerospace", "Defense", "Industrial", "Construction",
   "Engineering", "Supply Chain", "Logistics", "Transportation",
-  
+
   // Energy & Environment
   "Energy", "Oil & Gas", "Renewable Energy", "Solar Energy", "Wind Energy", "Utilities",
   "Environmental Services", "Sustainability", "CleanTech",
-  
+
   // Media & Entertainment
   "Media", "Entertainment", "Film & Video", "Music", "Publishing", "Broadcasting",
   "Creative Services", "Animation", "Design",
-  
+
   // Education & Research
   "Education", "Higher Education", "K-12 Education", "EdTech", "Online Learning",
   "Research", "Academia", "Think Tanks", "Libraries",
-  
+
   // Government & Non-Profit
   "Government", "Public Sector", "Defense & Space", "Public Policy", "International Affairs",
   "Non-Profit", "NGO", "Social Impact", "Charity", "Foundations",
-  
+
   // Real Estate & Construction
   "Real Estate", "Commercial Real Estate", "Property Management", "Construction",
   "Architecture", "Urban Planning",
-  
+
   // Telecommunications
   "Telecommunications", "Internet", "Networking", "Wireless",
-  
+
   // Agriculture
   "Agriculture", "Farming", "Food Production", "AgriTech",
 ];
@@ -145,6 +145,11 @@ const HONORS_SUGGESTIONS = [
 // canonical resolver: every entry must resolve or it shouldn't be
 // suggested.
 
+// PR 3F — restyled on rd-* tokens. Modify-in-place is safe: re-confirmed
+// at PR time that the 3 consumers (Profile.jsx + EducationTab.jsx +
+// CertificationsSection.jsx) are all in the Profile area. Onboarding
+// surfaces use the separate RdSkillTagInput component.
+//
 // Default is "library_skills" — the canonical-resolving source. The old
 // default "skills" pointed at a curated list with 39% unresolvable
 // labels; that list and the "skills" default were removed in Phase 0a.
@@ -241,17 +246,21 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
     }
   };
 
-  // Tailwind arbitrary values (not .onb-* classes) so this component
-  // stays portable — used in onboarding (.onb-scoped) AND in
-  // EducationTab on the Profile page (no .onb wrapper).
+  // Tailwind arbitrary values + rd tokens — used in EducationTab,
+  // CertificationsSection, and Profile.jsx. Onboarding surfaces use
+  // RdSkillTagInput, a separate component.
   return (
     <div ref={wrapperRef} className="relative">
       {label && (
-        <label className="block text-[13px] font-medium text-[#0E1014] mb-1.5 tracking-[-0.005em]">
+        <label className="block text-[11px] font-display font-semibold text-rd-text mb-1.5">
           {label}
         </label>
       )}
-      {description && <p className="text-xs text-[#9C9DA1] mb-2.5 leading-snug">{description}</p>}
+      {description && (
+        <p className="text-[11.5px] text-rd-text-tertiary mb-2.5 leading-snug">
+          {description}
+        </p>
+      )}
       <div className="flex gap-2 mb-2.5">
         <div className="relative flex-1">
           <input
@@ -264,20 +273,20 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
               }
             }}
             placeholder={placeholder || "Type and press Enter"}
-            className="w-full px-3.5 py-2.5 rounded-[14px] border border-[#DDDDDB] bg-white text-[#0E1014] text-sm font-[Geist,system-ui,sans-serif] transition-[border-color,box-shadow] duration-150 placeholder:text-[#9C9DA1] focus:outline-none focus:border-[#0E1014] focus:shadow-[0_0_0_3px_rgba(14,16,20,0.08)]"
+            className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] outline-none transition-[border-color,box-shadow] duration-150 placeholder:text-rd-text-tertiary focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
           />
           {showSuggestions && suggestions.length > 0 && (
-            <div className="absolute z-50 w-full mt-1 bg-white border border-[#DDDDDB] rounded-[14px] shadow-lg max-h-64 overflow-y-auto">
+            <div className="absolute z-50 w-full mt-1 bg-rd-bg-card border border-rd-border rounded-[12px] shadow-rd max-h-64 overflow-y-auto">
               {suggestions.map((skill, index) => (
                 <button
                   key={skill}
                   type="button"
                   onClick={() => add(skill)}
                   onMouseEnter={() => setSelectedIndex(index)}
-                  className={`w-full text-left px-3.5 py-2.5 text-sm transition-colors ${
+                  className={`w-full text-left px-3.5 py-2.5 text-[13px] transition-colors ${
                     index === selectedIndex
-                      ? "bg-[#FDE7E3] text-[#0E1014]"
-                      : "text-[#52545A] hover:bg-[#F4F4F2]"
+                      ? "bg-rd-coral-tint text-rd-text"
+                      : "text-rd-text-secondary hover:bg-rd-bg-soft"
                   }`}
                 >
                   {skill}
@@ -289,7 +298,7 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
         <button
           type="button"
           onClick={() => add()}
-          className="px-4 py-2.5 text-sm font-semibold rounded-full border border-[#DDDDDB] text-[#0E1014] bg-transparent hover:bg-[#E8E8E5] transition-colors whitespace-nowrap"
+          className="inline-flex items-center justify-center px-4 py-2.5 font-display font-semibold text-[13px] rounded-full border border-rd-border text-rd-text bg-rd-bg-card hover:border-rd-border-hover hover:bg-rd-bg-soft transition-colors whitespace-nowrap"
         >
           Add
         </button>
@@ -299,10 +308,15 @@ export default function SkillTagInput({ label, description, tags, onChange, plac
           {tags.map((tag, i) => (
             <span
               key={i}
-              className="inline-flex items-center gap-1.5 text-xs bg-[#0E1014] text-white px-2.5 py-1 rounded-md"
+              className="inline-flex items-center gap-1.5 text-[12px] bg-rd-text text-white px-2.5 py-1 rounded-full"
             >
               {tag}
-              <button onClick={() => remove(tag)} className="hover:text-[#F87060] transition-colors" aria-label={`Remove ${tag}`}>
+              <button
+                type="button"
+                onClick={() => remove(tag)}
+                className="hover:text-rd-coral-tint transition-colors"
+                aria-label={`Remove ${tag}`}
+              >
                 <X className="w-3 h-3" />
               </button>
             </span>
