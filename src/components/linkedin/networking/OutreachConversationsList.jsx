@@ -2,9 +2,11 @@ import React, { useEffect, useState, useCallback } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { Loader2, Plus, MessageSquare, Archive, CheckCircle2, Clock } from "lucide-react";
 
-// OutreachConversationsList — list view of user's outreach conversations,
-// active first, sorted by updated_at DESC (decision 3A from PR #34).
-// Click a row to resume; click "New conversation" to start a new one.
+// PR 3J-C — restyled on rd-* tokens. Restyle-only on behavior: the
+// supabase read (linkedin_outreach_conversations, RLS via implicit
+// policy, .order().limit(50) per Eli PR #34), the status-then-updated_at
+// sort, and the GOAL_LABELS map (exported for OutreachComposer) are all
+// preserved byte-for-byte.
 
 const GOAL_LABELS = {
   message_recruiter: "Message a recruiter",
@@ -18,10 +20,12 @@ const GOAL_LABELS = {
   propose_internship: "Propose an internship",
 };
 
+// Status pills mapped to rd tones: active = teal (running), completed
+// = coral (closed loop), archived = neutral (shelved).
 const STATUS_META = {
-  active: { Icon: Clock, label: "Active", color: "text-emerald-700 bg-emerald-50 border-emerald-200" },
-  completed: { Icon: CheckCircle2, label: "Completed", color: "text-blue-700 bg-blue-50 border-blue-200" },
-  archived: { Icon: Archive, label: "Archived", color: "text-[#9C9DA1] bg-[#F4F4F2] border-[#DDDDDB]" },
+  active:    { Icon: Clock,         label: "Active",    chip: "bg-rd-teal-tint text-rd-teal-dark border-rd-teal/30" },
+  completed: { Icon: CheckCircle2,  label: "Completed", chip: "bg-rd-coral-tint text-rd-coral-dark border-rd-coral/30" },
+  archived:  { Icon: Archive,       label: "Archived",  chip: "bg-rd-bg-soft text-rd-text-tertiary border-rd-border" },
 };
 
 function formatRelative(iso) {
@@ -68,16 +72,17 @@ export default function OutreachConversationsList({ onOpen, onNew, refreshKey })
   useEffect(() => { load(); }, [load, refreshKey]);
 
   return (
-    <div className="bg-white border border-[#DDDDDB] rounded-xl p-5">
-      <div className="flex items-center justify-between mb-4">
+    <div className="bg-white border border-rd-border rounded-[18px] p-5 shadow-rd">
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
         <div>
-          <h3 className="text-sm font-semibold text-[#0E1014]">Your outreach conversations</h3>
-          <p className="text-[11px] text-[#9C9DA1] mt-0.5">Active first, most recent on top</p>
+          <h3 className="font-display font-bold text-[14px] text-rd-text">Your outreach conversations</h3>
+          <p className="text-[11px] text-rd-text-tertiary mt-0.5">Active first, most recent on top</p>
         </div>
         <button
           type="button"
           onClick={onNew}
-          className="inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 bg-[#0E1014] text-white rounded-md hover:bg-[#F87060]"
+          data-action="new-conversation"
+          className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-3.5 py-[7px] transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           New conversation
@@ -85,17 +90,17 @@ export default function OutreachConversationsList({ onOpen, onNew, refreshKey })
       </div>
 
       {rows === null && (
-        <div className="flex items-center gap-2 text-xs text-[#9C9DA1] py-4">
+        <div className="flex items-center gap-2 text-[12px] text-rd-text-tertiary py-4">
           <Loader2 className="w-4 h-4 animate-spin" />
           Loading…
         </div>
       )}
       {error && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-800">{error}</div>
+        <div className="px-3 py-2.5 rounded-[10px] bg-rd-coral-tint border border-rd-coral/30 text-[12.5px] text-rd-coral-dark">{error}</div>
       )}
       {rows && rows.length === 0 && (
-        <div className="text-xs text-[#9C9DA1] italic py-3">
-          No conversations yet. Click "New conversation" to start coaching your first outreach.
+        <div className="text-[12px] text-rd-text-tertiary italic py-3">
+          No conversations yet. Click &quot;New conversation&quot; to start coaching your first outreach.
         </div>
       )}
       {rows && rows.length > 0 && (
@@ -118,23 +123,24 @@ function ConversationRow({ row, onOpen }) {
     <button
       type="button"
       onClick={() => onOpen(row.id)}
-      className="w-full text-left bg-[#F4F4F2] hover:bg-[#E8E8E5] border border-[#DDDDDB] rounded-lg p-3 transition-colors"
+      data-conversation-id={row.id}
+      className="w-full text-left bg-rd-bg-soft hover:bg-rd-border border border-rd-border rounded-[14px] p-3 transition-colors"
     >
-      <div className="flex items-start justify-between gap-3">
+      <div className="flex items-start justify-between gap-3 flex-wrap">
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 mb-1">
-            <MessageSquare className="w-3.5 h-3.5 text-[#52545A] flex-shrink-0" />
-            <span className="text-sm font-medium text-[#0E1014] truncate">{target.name || "(no name)"}</span>
+          <div className="flex items-center gap-2 mb-1 flex-wrap">
+            <MessageSquare className="w-3.5 h-3.5 text-rd-text-secondary flex-shrink-0" />
+            <span className="font-display font-semibold text-[13.5px] text-rd-text truncate">{target.name || "(no name)"}</span>
             {target.company && (
-              <span className="text-[11px] text-[#9C9DA1] truncate">— {target.company}</span>
+              <span className="text-[11px] text-rd-text-tertiary truncate">— {target.company}</span>
             )}
           </div>
-          <p className="text-[11px] text-[#52545A] truncate">{goalLabel}</p>
-          <p className="text-[10px] text-[#9C9DA1] mt-0.5">
+          <p className="text-[11.5px] text-rd-text-secondary truncate">{goalLabel}</p>
+          <p className="text-[10.5px] text-rd-text-tertiary mt-0.5">
             {turnsCount} {turnsCount === 1 ? "turn" : "turns"} · updated {formatRelative(row.updated_at)}
           </p>
         </div>
-        <div className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-medium px-2 py-0.5 rounded-full border ${statusMeta.color} flex-shrink-0`}>
+        <div className={`inline-flex items-center gap-1 text-[10px] uppercase tracking-[0.06em] font-mono font-semibold px-2 py-0.5 rounded-full border ${statusMeta.chip} flex-shrink-0`}>
           <StatusIcon className="w-3 h-3" />
           {statusMeta.label}
         </div>

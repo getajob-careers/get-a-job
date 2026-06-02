@@ -64,6 +64,7 @@ or scope-cut.
 | `eli/redesign-calendar` (Calendar restyle + AddEventDialog chrome + Calendar-side ACT_CSS injection drop; activityStyles.js kept for Internship) | 2026-06-02 | 413 | −15 |
 | `eli/redesign-linkedin-profile` (LinkedIn 3J-A: page shell + Profile tab + ProfilePreview off .li-*; Posts/Networking + LI_CSS stay) | 2026-06-02 | 411 | −15 |
 | `eli/redesign-linkedin-posts` (LinkedIn 3J-B: Posts tab + 6 posts/* sub-components off .li-*; Networking + LI_CSS stay) | 2026-06-02 | 406 | −15 |
+| `eli/redesign-linkedin-networking` (LinkedIn 3J-C: Networking tab + 4 networking/* sub-components off .li-*; **LI_CSS teardown** — `linkedinStyles.js` deleted, `<style>{LI_CSS}</style>` + `.li` wrapper dropped) | 2026-06-02 | 401 | −33 |
 
 ---
 
@@ -92,10 +93,10 @@ Tick boxes here as each PR merges.
 | 3G | Story Bank | simple | ☑ | StoryBank + StoryCard + StoryEditor restyled on rd-tokens. **profileStyles.js + PROFILE_CSS retired** — gated audit confirmed zero remaining consumers; Profile.jsx injection dropped; 1 dead `p-tabs` className stripped from Internship.jsx. |
 | 3H | Tasks | simple | ☑ | Tasks restyled on rd-tokens (categories teal/coral/golden/neutral by tone; due-chip tri-state coral/golden/soft). All write paths byte-equivalent: handleGenerate, optimistic toggleComplete/deleteTask/setDueDate. ACT_CSS injection dropped Tasks-side ONLY — `activityStyles.js` stays for Calendar + Internship + 6 internship sub-components. Tasks/Calendar tab merger DECLINED (deferred — see backlog). |
 | 3I | Calendar | simple | ☑ | Calendar restyled on rd-tokens (4-category palette: apply=teal-dark, interview=coral, followup=neutral, task=golden). Month/Week/Day views + AddEventDialog chrome restyled; calendar_events INSERT byte-equivalent. ACT_CSS injection dropped Calendar-side ONLY — `activityStyles.js` stays for Internship + 6 sub-components. No dedicated Calendar mockup existed; followed the established rd token design system. Tasks+Calendar tab merger DECLINED again (deferred). |
-| 3J | LinkedIn | complex | ☐ | Split into 3 sub-PRs (3J-A → 3J-B → 3J-C) for blast-radius control + mockup fidelity. Highest visual-fidelity bar of the rollout. |
+| 3J | LinkedIn | complex | ☑ | Split into 3 sub-PRs (3J-A → 3J-B → 3J-C) for blast-radius control + mockup fidelity. Highest visual-fidelity bar of the rollout. **LinkedIn rollout complete; LI_CSS teardown landed in 3J-C.** |
 | 3J-A | LinkedIn Profile tab | complex | ☑ | Page shell + Profile tab + ProfilePreview restyled to match `getajob_linkedin_profile_optimizer.html`. Q1 hybrid pane (Current/Optimized segmented toggle + single profile-card preview + per-section refine reachable on click). Q2 "Apply section by section" entry-point pill. Q3 "Copy optimized profile" client-only concat helper (`buildOptimizedProfileBlob`). Q7 LinkedIn-blue cues kept in simulacrum surfaces only. P1/P2/P3 byte-equivalent (handleGenerate empty body, handleRefine sectionKey + ≤600-char instruction, ArchiveUploader import-linkedin-archive). LI_CSS injection + `.li` wrapper KEPT in Linkedin.jsx — Posts (3J-B) + Networking (3J-C) still consume `.li-*`. |
 | 3J-B | LinkedIn Posts tab | complex | ☑ | Maps to `getajob_linkedin_posts_feed_preview.html`. PostsTab + 6 posts/* sub-components restyled on rd-tokens. Icon mapping updated to mockup (Rocket / Lightbulb / Flag / Calendar / HelpCircle / Eye / Pencil). LinkedIn-blue `#0A66C2` preserved in feed-card hashtags only per Q7. P4 (generate-linkedin-post 7 types + story_id), P5 (refinement-updates-same-row), P6 (debounced edited_text auto-save, no optimistic/rollback by design), P7 (image upload + removal nulls image_url only — does NOT delete storage object), P8 (optimistic post-delete + rollback toast) byte-equivalent. LI_CSS injection STAYS; teardown in 3J-C. |
-| 3J-C | LinkedIn Networking tab + LI_CSS teardown | complex | ☐ | Maps to `getajob_linkedin_networking_outreach.html`. Restyle NetworkingTab + 4 networking sub-components. Audit-gated retirement of `linkedinStyles.js` + LI_CSS injection + `.li` wrapper. Q4 ruling: drop "Why this works:" line; preserve existing `warm_up_advice` "Coach's advice" corrective WARNING display in place. Q5 affirmative state: client-derived from `warnings.length===0`, honest generic affirmation (no fabricated specific claims). |
+| 3J-C | LinkedIn Networking tab + LI_CSS teardown | complex | ☑ | Maps to `getajob_linkedin_networking_outreach.html`. NetworkingTab + 4 networking/* restyled on rd tokens. **LI_CSS teardown landed** — gated audit confirmed zero remaining `.li-*` JSX consumers; `<style>{LI_CSS}</style>` + `.li` wrapper dropped from Linkedin.jsx + LinkedinPreview.jsx; `linkedinStyles.js` deleted. Q4 ruling: dropped "Why this works:" line; preserved existing `warm_up_advice` "Coach's advice" corrective WARNING banner in place (rd-golden WARNING tokens). Q5 affirmative state: client-derived from `warnings.length===0 && !warm_up_advice`, honest generic affirmation only ("No anti-pattern flags raised") — no fabricated specific claims. Mockup-fidelity bubble radii: user `14/14/4/14` dark `#211D18`, them `14/14/14/4` warm `#F3ECE0`. P9 (CommentCoach generate-linkedin-comment + no_fit_reason branch), P10 (5 callEdge body shapes new / mark_as_sent / new_them_reply / change-goal / regenerate), P12 (handleSaveTurnEdit), P13 (handleMarkStatus), P14 (Practicum prefill capture + URL-strip + clearPrefill) byte-equivalent. |
 | 9  | Chat agents | complex | ☐ | All 4 agent surfaces share the SSE streaming wrapper. |
 | 10 | Internship | complex | ☐ | Browse + Pipeline + DetailDrawer + match_score. |
 | 11 | Resources | simple | ☐ | Static-content page. |
@@ -1385,6 +1386,132 @@ real fetch on unmount.
 6. `linkedin-profile-error` — rate-limit error banner (post-mount Generate click)
 
 Output: `docs/design/redesign/previews/linkedin-3ja.pdf` (6 × 2 = 12 pages).
+
+---
+
+## LinkedIn — PR 3J-C (`eli/redesign-linkedin-networking`)
+
+Final LinkedIn sub-PR. Restyles the Networking tab — Outreach Coach +
+Comment Coach + NetworkingPrinciples — and retires the LI_CSS scaffold
+that the prior two sub-PRs left in place. Maps to
+`docs/design/redesign/getajob_linkedin_networking_outreach.html`.
+
+**Files touched:**
+
+- `src/components/linkedin/NetworkingTab.jsx` — orchestrator restyled.
+  P14 Practicum prefill (capture from
+  `?goal=propose_internship&prefillCompany=…&prefillFunction=…&prefillContact=…`,
+  strip the params on read, `clearPrefill` on reset) preserved
+  byte-for-byte. Eli's ruling: the mockup's tool-toggle (Outreach Coach
+  / Comment Coach pills) is DECORATIVE — both sections stay stacked.
+  The pill row is eyebrow labels, not view-switching controls (keeps
+  Comment Coach discoverable; preserves existing user mental model).
+- `src/components/linkedin/networking/OutreachComposer.jsx` — the
+  showpiece. SuggestionCard adopts the mockup surface: coral Sparkles
+  + "Your agent drafted a reply" slab heading, soft warm suggestion
+  box (`#FBF7F1` bg / `#EFE7DA` border), recipient mini-row.
+  ThreadBubble adopts mockup-fidelity asymmetric radii (user
+  `14/14/4/14` dark `#211D18`, them `14/14/14/4` warm `#F3ECE0`) and
+  the avatar appears only on the "them" side. STATE_META chip palette
+  rd-tokenized. All 5 callEdge body shapes preserved byte-for-byte
+  through P10 (new / mark_as_sent / new_them_reply / change-goal /
+  regenerate). P12 handleSaveTurnEdit
+  (`linkedin_outreach_conversations.UPDATE message_thread`) and P13
+  handleMarkStatus (UPDATE status) preserved byte-for-byte.
+  SuggestionCard, ThreadBubble, ConversationHeader, STATE_META are
+  named-exported for harness reuse — non-behavioral additive change.
+- `src/components/linkedin/networking/OutreachConversationsList.jsx` —
+  restyled. STATUS_META mapped to rd tones (active=teal, completed=coral,
+  archived=neutral). The supabase read (`.order("status").order("updated_at").limit(50)`),
+  the status-then-updated_at sort, and the exported GOAL_LABELS map all
+  preserved byte-for-byte.
+- `src/components/linkedin/networking/CommentCoach.jsx` — restyled. P9
+  generate-linkedin-comment invocation + the anti-fabrication
+  `no_fit_reason` branch (options=[] + no_fit_reason → friendly
+  "no genuine relevance" banner instead of fabricated comments)
+  preserved byte-for-byte. Output card 3-options layout with editable
+  textareas + word-count gauge.
+- `src/components/linkedin/networking/NetworkingPrinciples.jsx` —
+  restyled. Static educational content (consumed only by
+  Resources.jsx).
+
+**Q4 ruling (warm_up_advice):** The mockup's "Why this works:"
+affirmative-rationale line has no honest backing field, so it was
+DROPPED. The existing `warm_up_advice` "Coach's advice" *corrective
+WARNING* banner is preserved IN PLACE (rd-golden WARNING tokens) and
+fires only when the edge fn deems the user is pushing for an ask their
+thread isn't ready for. Cautionary salience preserved — the field is
+load-bearing per the edge-fn spec; it would have been wrong to move it
+to a calm/affirmative slot.
+
+**Q5 ruling (affirmative anti-pattern PASS):** Client-derived from
+`!hasWarnings && !hasWarmUp`. Honest generic affirmation only — "No
+anti-pattern flags raised" in an rd-teal-tint chip with ShieldCheck
+icon. NO fabricated specific claims (e.g. "Soft ask, no pressure" or
+"Reads natural — no filler phrases") because those would be backed by
+checks the edge fn doesn't actually run.
+
+**LI_CSS teardown (gated):** After all four Networking files were
+restyled off `.li-*`, a repo-wide grep
+(`grep -rnE 'className=[^>]*\bli-[a-z]' src --include='*.jsx' --include='*.js'`)
+returned exit 1 (zero matches). Then:
+
+- `src/components/linkedin/linkedinStyles.js` — **deleted.**
+- `src/pages/Linkedin.jsx` — dropped LI_CSS import, dropped
+  `<style>{LI_CSS}</style>` injection, dropped `.li` wrapper div.
+  Header comment updated to document retirement.
+- `src/pages/_preview/LinkedinPreview.jsx` — dropped LI_CSS import,
+  removed `<style>` injection and `.li` wrapper from the PageShell
+  helper. Notes refreshed.
+
+If the audit had returned any consumer the teardown would have been
+skipped and surfaced as a blocker, per Eli's explicit gate.
+
+**Preview harness:** Three render modes for 3J-C fixtures:
+1. *Default mode* — mounts the full `<Linkedin>` page, pins
+   `?tab=networking`, drives view transitions via post-mount DOM
+   clicks (`click-new-conversation`, `pick-goal-propose-internship`).
+2. *outreach-thread subtree* — manually renders the OutreachComposer
+   card surface using the three named-exported subcomponents
+   (ConversationHeader, ThreadBubble, SuggestionCard) with seeded
+   threadConversation + threadSuggestion. Bypasses the composer's
+   screen-state machine so suggestion + warm-up-warning + warnings-only
+   states can be captured without driving the full pick→generate→reply
+   loop.
+3. *comment-coach subtree* — renders CommentCoach standalone; a
+   post-mount `fill-comment-coach` action sets the three inputs +
+   clicks Generate, and the fetch mock for
+   `/functions/v1/generate-linkedin-comment` returns the seeded result
+   (options[] OR no_fit_reason). Surfaces both branches.
+
+The fetch override is extended to mock the
+`linkedin_outreach_conversations` PostgREST endpoint plus the
+`generate-linkedin-outreach-message` + `generate-linkedin-comment`
+edge functions, in addition to the 3J-A/3J-B mocks.
+
+**Fixtures (9):**
+
+1. `linkedin-networking-list-empty` — Outreach list empty + decorative pill row
+2. `linkedin-networking-list-with-conversations` — 3 conversations (active / active / completed)
+3. `linkedin-networking-composer-goal-picker` — composer @ grouped 9 goals (post-mount: click "New conversation")
+4. `linkedin-networking-composer-target-form` — describe-target form (post-mount: pick "Propose an internship")
+5. `linkedin-networking-composer-thread-suggestion` — thread + agent suggestion (no warnings, Q5 affirmative chip)
+6. `linkedin-networking-composer-warm-up-warning` — Q4 `warm_up_advice` "Coach's advice" WARNING banner
+7. `linkedin-networking-composer-warning-only` — edge-fn warnings (no warm-up advice)
+8. `linkedin-networking-comment-coach-options` — 3 options output
+9. `linkedin-networking-comment-coach-no-fit` — anti-fab `no_fit_reason` banner
+
+Output: `docs/design/redesign/previews/linkedin-3jc.pdf` (9 × 2 = 18 pages).
+
+**LinkedIn rollout complete.** All three sub-PRs (3J-A Profile, 3J-B
+Posts, 3J-C Networking + LI_CSS teardown) merged in order. The page
+is now end-to-end on rd-* tokens with zero Direction-3 scaffold left.
+
+**Q8 separate-migration reminder:** `propose_internship` is missing
+from the `linkedin_outreach_conversations.goal` CHECK constraint —
+schema-code mismatch tracked separately (the constraint was added
+before the goal was introduced via P14 / Internship PR13). Queued for
+a standalone migration PR, NOT bundled into 3J-C.
 
 ---
 

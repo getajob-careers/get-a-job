@@ -4,20 +4,15 @@ import { useSearchParams } from "react-router-dom";
 import ProfileTab from "@/components/linkedin/ProfileTab";
 import PostsTab from "@/components/linkedin/PostsTab";
 import NetworkingTab from "@/components/linkedin/NetworkingTab";
-import { LI_CSS } from "@/components/linkedin/linkedinStyles";
 
-// PR 3J-A — LinkedIn hub page shell + tab bar restyled on rd-* tokens
-// (Rokkitt slab, coral underline tab). LI_CSS injection + `.li` wrapper
-// KEPT INTACT — Posts and Networking tabs still consume `.li-*` classes.
-// Those tabs will retire `.li-*` in 3J-B (Posts) and 3J-C (Networking),
-// at which point the LI_CSS injection + wrapper retire too.
+// LinkedIn hub — three-tab page (Profile / Posts / Networking),
+// URL-driven via ?tab=. All three tabs ship on rd-* tokens. The
+// legacy LI_CSS injection + `.li` wrapper were retired in PR 3J-C
+// after a repo-wide audit confirmed zero remaining `.li-*` className
+// consumers.
 //
-// Profile tab (ProfileTab.jsx + ProfilePreview.jsx) is the only sub-tree
-// migrated to Tailwind + rd tokens in this PR.
-//
-// URL-driven via ?tab= so deep links work. See
-// docs/research/linkedin-post-performance.md for the research grounding
-// the Posts + Networking tabs.
+// See docs/research/linkedin-post-performance.md for the research
+// grounding the Posts + Networking tabs.
 
 const TABS = [
   { id: "profile",    label: "Profile",    Component: ProfileTab },
@@ -52,14 +47,7 @@ export default function LinkedinOptimizer() {
   const ActiveTabComponent = TABS.find((t) => t.id === activeTab)?.Component || ProfileTab;
 
   return (
-    <>
-      {/* LI_CSS injection STAYS — Posts (3J-B) and Networking (3J-C)
-          still consume `.li-*` classes. Retires in 3J-C alongside the
-          `.li` wrapper. */}
-      <style>{LI_CSS}</style>
-
-      <div className="li">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
+    <div className="max-w-4xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
           {/* Header */}
           <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
             LinkedIn
@@ -98,12 +86,10 @@ export default function LinkedinOptimizer() {
             })}
           </div>
 
-          {/* Tab content */}
-          <div className="mt-4">
-            <ActiveTabComponent />
-          </div>
-        </div>
+      {/* Tab content */}
+      <div className="mt-4">
+        <ActiveTabComponent />
       </div>
-    </>
+    </div>
   );
 }
