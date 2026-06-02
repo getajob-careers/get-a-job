@@ -53,6 +53,41 @@ or scope-cut.
 | `eli/redesign-onboarding-2a` (foundation + first 3 onboarding steps) | 2026-06-02 | 432 | 0 |
 | `eli/redesign-onboarding-2b` (mid-flow: Experience / RoleSkills / Skills / CareerDirection + 3 input forks) | 2026-06-02 | 431 | −1 |
 | `eli/redesign-onboarding-2c` (Constraints + Survey + Tutorial + onb-style cleanup) | 2026-06-01 | 429 | −5 |
+| `eli/redesign-shell` (Layout + SidebarFooter — shared app chrome only) | 2026-06-02 | 428 | −6 |
+
+---
+
+## App-wide rollout checklist
+
+After the onboarding restyle (2A + 2B + 2C) shipped, the remaining
+authenticated surfaces roll in funnel order — each its own scoped PR
+with its own Vercel preview + preview PDF. No bundling, no auto-merge.
+Tick boxes here as each PR merges.
+
+**Process split:**
+
+- **Complex pages** keep the full investigate-first checkpoint:
+  inventory + preview-approach + design questions + my review BEFORE
+  the build PR opens.
+- **Simple pages** may investigate + build + preview in one pass.
+
+| PR | Page | Process | Status | Notes |
+|---|---|---|---|---|
+| 3A | Shell (Layout + SidebarFooter) | simple | ☐ | Cream sidebar + coral active. NO IA change. |
+| 3B | Home | complex | ☐ | Inventory landed in PR 3A investigation. Preview = pre-seeded QueryClient. |
+| 4  | Roadmap | complex | ☐ | Tracks 1/2/3 cards, track scoring, refresh flow. |
+| 5  | Jobs | complex | ☐ | Search RPC, filters, JobCard fork. |
+| 6  | Tracker | complex | ☐ | Pipeline kanban, DnD, status badges. |
+| 7  | Profile | complex | ☐ | EducationTab, CertificationsSection, experiences accordion. |
+| 8  | Story Bank | simple | ☐ | Capture + library. |
+| 9  | Tasks | simple | ☐ | Checklist + filters. |
+| 10 | Calendar | simple | ☐ | Event view. |
+| 11 | LinkedIn | complex | ☐ | ProfileTab + Posts + Outreach + Optimization. |
+| 12 | Chat agents | complex | ☐ | All 4 agent surfaces share the SSE streaming wrapper. |
+| 13 | Internship | complex | ☐ | Browse + Pipeline + DetailDrawer + match_score. |
+| 14 | Resources | simple | ☐ | Static-content page. |
+| 15 | Settings | simple | ☐ | Account + delete. |
+| 16 | Landing | simple | ☐ | Public marketing page — final pass. |
 
 ---
 
@@ -348,6 +383,92 @@ inputs (`RdAutocompleteInput`, `RdPresetBubbleInput`, `RdSkillChipBank`,
 primitives onboarding consumes. Non-onboarding consumers of the
 original inputs (e.g. `Profile`, `EducationTab`, `CertificationsSection`)
 remain on Direction-3 styling until their own retros.
+
+---
+
+## Shared shell — PR 3A (`eli/redesign-shell`)
+
+First app-wide PR. Restyles the dashboard chrome (`Layout` +
+`SidebarFooter`) in place — no page bodies, no fork. The new chrome
+applies to every authenticated route at once (16+ pages), so the rest
+of the rollout can restyle page bodies without re-touching shell code.
+
+**Files restyled in place:**
+
+- `src/Layout.jsx` — cream sidebar (`--rd-bg-sidebar`) with the warm
+  border, 4-dot brand mark + serif "Get A Job" wordmark, coral-tint
+  active row (replaces the legacy dark gradient `from-[#0A0A0A] to-
+  [#1a1a2e]`), small coral dot indicator on the active item, warm
+  border-l on the sub-item rail, font-display section labels.
+  Mobile-drawer overlay uses `bg-rd-text/20`. `<main>` now has the
+  `legacy-body` class + `bg-rd-bg-page` so any not-yet-restyled page
+  body paints against the warm page background instead of clashing
+  against the cream sidebar.
+- `src/components/layout/SidebarFooter.jsx` — peach-on-cream avatar
+  with white initials, serif full_name + muted email, coral-leaning
+  logout hover, eyebrow-style "About Get A Job" footer link.
+
+**Behaviour preserved (non-negotiable — verified with the existing
+test selectors + the live Layout source):**
+
+- Collapsible sections: Career, Activity, Chat (`SidebarSection` keeps
+  its ChevronRight + `aria-expanded`).
+- Active-section auto-expand + lock-open (`findActiveSectionId` +
+  `toggleSection`'s "don't allow collapsing the active section" guard).
+- Internship section conditional insertion when
+  `profiles.practicum_path != null`, between Activity and LinkedIn.
+- All 4 Chat sub-items + Story Bank + Calendar + Tasks + Resources.
+- The 3-field projection on `useProfileQuery` (`practicum_path`,
+  `onboarding_complete`, `full_name`).
+- Profile-chrome gating: Layout returns bare children when
+  `currentPageName === "Onboarding"` OR `!onboardingComplete`. The
+  redesigned onboarding (PRs 2A–2C) keeps rendering without the
+  sidebar.
+- Mobile drawer (`sidebarOpen`, `Menu` toggle, overlay click-to-close)
+  and `TopLoadingBar` 600ms route-change pulse.
+
+**Decorative `BrandMark` helper** added inline at the top of Layout.jsx
+(4-dot logo + serif wordmark) — same mark the onboarding shell uses.
+Not extracted to a shared module yet; first cross-shell consumer can
+hoist it.
+
+**Preview harness (new):**
+
+- `src/pages/_preview/ShellPreview.jsx` — DEV-only route at
+  `/_preview/shell/:state`. Wraps the real Layout in a fresh
+  `QueryClient` pre-seeded with a fixture profile + an
+  `AuthContext.Provider` stub user. The harness drives extra
+  expanded-section state + the mobile drawer via URL params
+  (`?expand=chat,profile`, `?mobile=1`) and a post-mount DOM-click
+  effect — Layout's `expandedSections` + `sidebarOpen` state live
+  inside the component and can't be passed in, so the harness clicks
+  the same buttons a user would.
+- `src/pages/_preview/fixtures/shell.js` — 9 fixtures: home active,
+  Roadmap active (auto-expanded Career), Tracker active (auto-expanded
+  Activity), Jobs active + Chat manually expanded, Internship section
+  visible, legacy-body reset proof, sidebar-hidden on Onboarding,
+  sidebar-hidden on `!onboardingComplete`, and mobile-drawer-open.
+- `src/lib/AuthContext.jsx` — `AuthContext` is now exported (was
+  module-private). Only the harness consumes it; production code still
+  reads through the `useAuth` hook.
+- `src/App.jsx` — route registration gated on `import.meta.env.DEV`,
+  identical pattern to the onboarding harness route.
+- `scripts/preview-shell.mjs` — sister runner to the onboarding one.
+  Same prod-404 verification flow (boots `vite preview` over the
+  production bundle, asserts the harness's `"shell preview · "`
+  marker is absent from `/_preview/shell/shell-home-active`).
+  Output: `docs/design/redesign/previews/shell-3a.pdf` (9 fixtures ×
+  desktop + mobile = 18 pages).
+
+**`data-section-id` on collapsible section headers** — added to
+`Layout.jsx`'s `SidebarSection` button so the harness can drive
+multi-expanded state from the URL. Inert in production; consumers
+that want to drive other behaviour off section ids can read it too.
+
+**Out of scope (next PRs):**
+
+- Page bodies. Home is the first body restyle in PR 3B; the rest
+  follow the rollout checklist above.
 
 ---
 

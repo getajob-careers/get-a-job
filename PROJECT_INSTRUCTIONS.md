@@ -1,6 +1,6 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-06-01 (Onboarding restyle PR 2C — Constraints + Survey + Tutorial + onb-style cleanup, branch `eli/redesign-onboarding-2c`).**
+**Last updated: 2026-06-02 (App-wide rollout PR 3A — shared shell restyle: Layout + SidebarFooter, branch `eli/redesign-shell`).**
 
 ## Visual redesign in flight
 
