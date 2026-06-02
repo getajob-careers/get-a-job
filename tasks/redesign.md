@@ -42,7 +42,10 @@ reviewed without running the app.
 `npm run typecheck`: **434 errors** as of 2026-06-02 (after PR #212).
 **Current ceiling: 400 (after 3L). Ratchet down only — never up.**
 
-(3L shipped at PR #231 / merge SHA e817650 / Vercel success 30s. Per the post-merge marker pattern, this status note is folded into the 3M PR rather than bare-pushed to main.)
+(3L shipped at PR #231 / merge SHA e817650 / Vercel success 30s.
+3M shipped at PR #232 / merge SHA c9c76de / Vercel success 32s.
+Per the post-merge marker pattern, these status notes are folded into the
+next page's PR rather than bare-pushed to main.)
 
 **Rule:** no redesign PR may increase this count. Each redesign PR runs
 `npm run typecheck`, diffs against the current ceiling, and reports
@@ -70,7 +73,8 @@ regression in the same PR or scope-cut.
 | `eli/redesign-linkedin-networking` (LinkedIn 3J-C: Networking tab + 4 networking/* sub-components off .li-*; **LI_CSS teardown** — `linkedinStyles.js` deleted, `<style>{LI_CSS}</style>` + `.li` wrapper dropped) | 2026-06-02 | 401 | −33 |
 | `eli/redesign-chat` (Chat 3K: ChatInterface + MessageBubble + AgentIntro + StorySaveCard off .c-*; **CHAT_CSS teardown** — `chatStyles.js` deleted, `<style>{CHAT_CSS}</style>` + `.chat` wrapper dropped) — **SHIPPED PR #230** | 2026-06-02 | 401 | −33 |
 | `eli/redesign-internship` (Internship 3L: Internship.jsx + 9 components + browse/* off .act-*; **ACT_CSS teardown** — `activityStyles.js` deleted, ACT_CSS import + both `<style>` injections dropped; browseStyles var(--act-*) rewritten to rd) — **SHIPPED PR #231** | 2026-06-02 | 400 | −34 |
-| `eli/redesign-resources` (Resources 3M: Resources.jsx restyled; 6 hex → rd tokens; `.prose-career` retired from globals.css; NetworkingPrinciples preserved 3J-C-shipped) | 2026-06-02 | 400 | −34 |
+| `eli/redesign-resources` (Resources 3M: Resources.jsx restyled; 6 hex → rd tokens; `.prose-career` retired from globals.css; NetworkingPrinciples preserved 3J-C-shipped) — **SHIPPED PR #232** | 2026-06-02 | 400 | −34 |
+| `eli/redesign-settings` (Settings 3N: Settings.jsx + PasswordCard.jsx restyled; hex → rd tokens; P41–P46 byte-equivalent — two-step password flow + delete-account edge fn + reset_user_data RPC + ?deleted=1 redirect untouched) | 2026-06-02 | 400 | −34 |
 
 ---
 
@@ -107,7 +111,7 @@ Tick boxes here as each PR merges.
 | 9  | Chat agents (legacy row) | complex | ☑ | Merged into PR 3K. |
 | 10 | Internship | complex | ☐ | Browse + Pipeline + DetailDrawer + match_score. |
 | 3M | Resources | simple | ☑ | Restyled `Resources.jsx` (accordion + 6 hex → rd tokens; `.prose-career` retired from globals.css — single-consumer typography helper inlined as Tailwind `leading-[1.7] tracking-[-0.01em]`). NetworkingPrinciples preserved (3J-C-shipped; not re-styled). Deferred per Eli: video "Watch & learn" section, guide icon+read-time metadata, category filter pills, copy-change to subtitle. P35–P40 byte-equivalent (no Supabase writes, no external links, no embeds, no progress tracking, accordion useState preserved). |
-| 12 | Settings | simple | ☐ | Account + delete. |
+| 3N | Settings | simple | ☑ | Restyled `Settings.jsx` + `PasswordCard.jsx` (hex → rd tokens; slab H1 + section headings; coral CTAs; danger zone on rd-coral palette). **HIGHEST-STAKES PAGE** — className/JSX only, zero behavior change. P41–P46 byte-equivalent: two-step password flow (auth.reauthenticate → updateUser({password,nonce})); delete-account edge fn + DELETE_CONFIRM_PHRASE gate + case-insensitive match + logout(false) + `?deleted=1` redirect; reset_user_data RPC + two-state resetConfirming gate + localStorage.removeItem + 8 queryClient.removeQueries; all inline error surfaces. PasswordCard prop signatures untouched (`password-card.test.jsx` 617/617 holds). Deferred per Eli: email promotion, password-modal collapse, lowercase-phrase, sidebar. |
 | 13 | Landing | simple | ☐ | Public marketing page — final pass. |
 
 ---
