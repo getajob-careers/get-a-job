@@ -60,6 +60,7 @@ or scope-cut.
 | `eli/redesign-tracker` (Tracker restyle: row-list rd-tokens, grouped 7-step checklist, track-rdColor) | 2026-06-02 | 419 | −15 |
 | `eli/redesign-profile` (Profile restyle: 6 tabs rd-tokens, SkillTagInput modify-in-place, EntityCard rd-tints) | 2026-06-02 | 419 | −15 |
 | `eli/redesign-storybank` (Story Bank restyle + profileStyles.js teardown — `.p-*` classes retired) | 2026-06-02 | 413 | −15 |
+| `eli/redesign-tasks` (Tasks restyle: rd tokens + Tasks-side ACT_CSS injection drop; activityStyles.js kept for Calendar + Internship) | 2026-06-02 | 413 | −15 |
 
 ---
 
@@ -86,7 +87,7 @@ Tick boxes here as each PR merges.
 | 3E | Tracker | complex | ☑ | Row-list restyled on rd-tokens; grouped 7-step checklist; track-rdColor migration complete. NO kanban / drilldown (post-launch). |
 | 3F | Profile | complex | ☑ | All 6 tabs restyled on rd-tokens. SkillTagInput modified-in-place (Profile-area scope-exclusive). EntityCard rd-tint per entity family. PROFILE_CSS carried-forward (StoryBank still consumes). Deferred: 5-tab IA, Profile Strength card, Languages tab. |
 | 3G | Story Bank | simple | ☑ | StoryBank + StoryCard + StoryEditor restyled on rd-tokens. **profileStyles.js + PROFILE_CSS retired** — gated audit confirmed zero remaining consumers; Profile.jsx injection dropped; 1 dead `p-tabs` className stripped from Internship.jsx. |
-| 6  | Tasks | simple | ☐ | Checklist + filters. |
+| 3H | Tasks | simple | ☑ | Tasks restyled on rd-tokens (categories teal/coral/golden/neutral by tone; due-chip tri-state coral/golden/soft). All write paths byte-equivalent: handleGenerate, optimistic toggleComplete/deleteTask/setDueDate. ACT_CSS injection dropped Tasks-side ONLY — `activityStyles.js` stays for Calendar + Internship + 6 internship sub-components. Tasks/Calendar tab merger DECLINED (deferred — see backlog). |
 | 7  | Calendar | simple | ☐ | Event view. |
 | 8  | LinkedIn | complex | ☐ | ProfileTab + Posts + Outreach + Optimization. |
 | 9  | Chat agents | complex | ☐ | All 4 agent surfaces share the SSE streaming wrapper. |
@@ -1051,6 +1052,11 @@ URL-driven, so a click is the only way to drive it).
 - **Languages tab** (mockup has a standalone Languages tab). Live
   schema keeps `profiles.languages` JSON; no separate table, no
   separate write path. Adding the tab is a new feature.
+- **Tasks + Calendar tab merger** (mockup proposes a Tasks/Calendar
+  tab bar on `/Tasks` — see `docs/design/redesign/getajob_tasks.html`).
+  Live keeps separate routes. Revisit at the Calendar restyle (page 7):
+  if we adopt the merger, it's a routing change + shared tab state +
+  Calendar render refactor — a product/IA decision, not a restyle.
 
 ---
 
@@ -1142,6 +1148,79 @@ or StoryCard).
 9. `storybank-delete-confirm`
 10. `storybank-add-dialog`
 11. `storybank-edit-dialog`
+
+---
+
+## Tasks — PR 3H (`eli/redesign-tasks`)
+
+Simple-page rollout (investigate + build in one pass). Restyle-only —
+every write path is byte-equivalent. ACT_CSS injection dropped on the
+Tasks side only; `activityStyles.js` stays alive for the unfinished
+Calendar + Internship surfaces (full teardown is a future cleanup PR
+after BOTH ship).
+
+**Files touched:**
+
+- `src/pages/Tasks.jsx` — Tailwind + rd tokens directly. `<style>{ACT_CSS}</style>`
+  injection + `.act` wrapper removed; `ACT_CSS` import dropped. Category
+  + priority + due chips moved to inline rd-token CSS-var backgrounds
+  (so the dynamic CATEGORY_LABELS lookup keeps working without
+  hand-coded hex). Filter pills follow the StoryBank pattern
+  (coral-selected, soft-tint unselected). DueChip extracted as a tiny
+  local helper for the three rd-toned states.
+- `src/components/activity/activityStyles.js` — **untouched.** Calendar
+  + Internship + 6 internship sub-components still consume `.act-*`
+  classes; full retirement is gated on those pages restyling first.
+
+**Audit-gated injection drop:** before removing the `<style>{ACT_CSS}</style>`
+from Tasks.jsx, the user-mandated grep confirmed zero remaining
+`act-*` / `ACT_CSS` / `className="act"` references in Tasks.jsx (only
+comments referencing the migration remain). Calendar.jsx + Internship.jsx
+still import + inject ACT_CSS — verified.
+
+**Preservation contract (verified byte-equivalent):**
+
+- `handleGenerate` — fresh-read incomplete IDs → `supabase.functions.invoke("generate-tasks", { body: { context: "weekly action plan" } })`
+  → PRIORITY_MAP / CATEGORY_MAP normalization → INSERT generated tasks
+  → DELETE old incomplete (RLS-scoped on user_id + is_complete=false)
+  → invalidate. Error surfaces via `generateError` state for inline
+  retry banner, not toast.
+- `toggleComplete` — optimistic `queryClient.setQueryData(["tasks", uid], …)`
+  then `supabase.from("tasks").update({ is_complete }).eq("id", task.id)`.
+  Rollback via `invalidateQueries` on error. `togglingIds` set tracks
+  in-flight per-row so double-click is a no-op.
+- `deleteTask` — optimistic filter-out via setQueryData, then
+  `supabase.from("tasks").delete().eq("id", taskId)`. Rollback via
+  invalidate. `deletingIds` set tracks in-flight.
+- `setDueDate` — `validateDueDate` guard (today → ~6mo, null on clear),
+  optimistic setQueryData, then `supabase.from("tasks").update({ due_date }).eq("id", task.id)`,
+  rollback via invalidate on error. Toast on out-of-range input.
+- RLS user_id scoping — implicit on tasks (via RLS policy), explicit
+  on the handleGenerate incomplete-IDs read (`.eq("user_id", user.id)`).
+- `onboardingFallbackTasks` helper + `resolveDueDate`/`validateDueDate`
+  helpers — NOT touched.
+- `daily_actions` table — NOT touched. Tasks does not interact with
+  daily_actions; that's the StoryBank + Home turf.
+
+**Preview harness:** `/_preview/tasks/:state` (DEV-only via
+`import.meta.env.DEV`). 9 fixtures × 2 viewports = 18 PDF pages →
+`docs/design/redesign/previews/tasks-3h.pdf`. Fresh QueryClient seeded
+synchronously on `["tasks", uid]` + `["userProfile", uid]` +
+`["careerRoles", uid]`. All view-state flags (filter pill, date-editor
+open, generate-error) are post-mount DOM-clicked since Tasks doesn't
+expose URL params for them.
+
+**Fixtures (9):**
+
+1. `tasks-loading`
+2. `tasks-empty-no-roles`
+3. `tasks-empty-with-roles`
+4. `tasks-populated`
+5. `tasks-filter-skill`
+6. `tasks-filter-networking`
+7. `tasks-onboarding-fallback-banner`
+8. `tasks-generate-error`
+9. `tasks-date-editor-open`
 
 ---
 
