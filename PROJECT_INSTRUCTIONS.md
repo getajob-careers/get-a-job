@@ -1,6 +1,6 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-06-02 (Onboarding restyle PR 2B — mid-flow steps + 3 input forks, branch `eli/redesign-onboarding-2b`).**
+**Last updated: 2026-06-01 (Onboarding restyle PR 2C — Constraints + Survey + Tutorial + onb-style cleanup, branch `eli/redesign-onboarding-2c`).**
 
 ## Visual redesign in flight
 

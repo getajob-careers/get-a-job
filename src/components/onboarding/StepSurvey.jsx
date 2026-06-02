@@ -1,6 +1,18 @@
 import React, { useState } from "react";
-import { Textarea } from "@/components/ui/textarea";
 import { X, ArrowRight } from "lucide-react";
+import RdButton from "@/components/redesign/RdButton";
+
+// Restyled for PR 2C — behaviour identical to the Direction-3 version.
+// All 5 question groups preserved verbatim (multi-select challenges, CV /
+// LinkedIn / referral single-selects, 5-button clarity row). Custom value
+// shapes + commit-on-blur/Enter behaviour are untouched, and the underlying
+// data keys (biggest_challenge[], cv_tailoring_strategy,
+// linkedin_outreach_strategy, role_clarity_score, job_search_efforts,
+// referral_source) remain stable identifiers stored in profiles.
+//
+// onNext still triggers the wrapper's handleSurveyNext, which is the
+// terminal call into finalise() in Onboarding.jsx. The finalise pipeline
+// itself is not touched here.
 
 const CHALLENGES = [
   "I don't know which roles to target",
@@ -26,8 +38,6 @@ const LINKEDIN_OPTIONS = [
   { value: "never",     label: "Never — I haven't tried" },
 ];
 
-// 5-button row with bigger touch targets (per Eli's decision #4 on the
-// onboarding redesign brief). Number + label both visible.
 const CLARITY_OPTIONS = [
   { value: 1, label: "No idea" },
   { value: 2, label: "Vague idea" },
@@ -44,6 +54,17 @@ const REFERRAL_OPTIONS = [
   { value: "friends",            label: "Friends" },
   { value: "community",          label: "Community" },
 ];
+
+const INPUT_CLS =
+  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+
+const OPTION_BTN = (isSelected) =>
+  [
+    "w-full text-left text-[13.5px] px-4 py-3 rounded-[12px] border transition-[border-color,background-color,box-shadow] duration-150",
+    isSelected
+      ? "border-rd-coral bg-rd-coral-tint text-rd-text shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+      : "border-rd-border bg-rd-bg-card text-rd-text-secondary hover:border-rd-border-hover hover:text-rd-text",
+  ].join(" ");
 
 export default function StepSurvey({ data, onChange, onNext, onBack }) {
   const [customChallenge, setCustomChallenge] = useState("");
@@ -78,25 +99,36 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
   const isCustomLinkedIn = data.linkedin_outreach_strategy && !LINKEDIN_OPTIONS.some((o) => o.value === data.linkedin_outreach_strategy);
   const isCustomReferral = data.referral_source && !REFERRAL_OPTIONS.some((o) => o.value === data.referral_source);
 
+  const customChallenges = selectedChallenges.filter((c) => !CHALLENGES.includes(c));
+
   return (
     <div className="space-y-7">
       <div>
-        <h1 className="onb-h1">Quick reality check.</h1>
-        <p className="onb-sub">
+        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+          step 9 of 9 · reality check
+        </p>
+        <h1 className="font-display font-extrabold text-[26px] sm:text-[28px] leading-[1.1] tracking-tight text-rd-text mt-2">
+          Quick reality check.
+        </h1>
+        <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
           Your honest answers help us calibrate. Where you actually are — not where you want to be.
         </p>
       </div>
 
-      <div className="onb-banner onb-banner-info">
-        All questions are optional. Click a suggestion, type your own, or leave blank.
+      <div className="bg-rd-bg-soft border border-rd-border rounded-[14px] px-4 py-3">
+        <p className="text-[12.5px] text-rd-text-secondary leading-snug">
+          All questions are optional. Click a suggestion, type your own, or leave blank.
+        </p>
       </div>
 
       <div className="space-y-7">
-
         {/* Biggest challenges — multi select */}
         <div>
-          <label className="onb-eyebrow">Your biggest job search challenges (select all that apply)</label>
-          <div className="mt-2.5 grid grid-cols-1 gap-2">
+          <label className="block text-[12px] font-semibold text-rd-text mb-2.5">
+            Your biggest job search challenges
+            <span className="text-rd-text-tertiary font-normal ml-1.5">(select all that apply)</span>
+          </label>
+          <div className="grid grid-cols-1 gap-2">
             {CHALLENGES.map((c) => {
               const isSelected = selectedChallenges.includes(c);
               return (
@@ -104,23 +136,27 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
                   key={c}
                   type="button"
                   onClick={() => toggleChallenge(c)}
-                  className={`text-left text-sm px-4 py-3 rounded-[14px] border transition-all ${
-                    isSelected
-                      ? "bg-[#0E1014] text-white border-[#0E1014]"
-                      : "bg-white text-[#52545A] border-[#DDDDDB] hover:border-[#52545A]"
-                  }`}
+                  className={OPTION_BTN(isSelected)}
                 >
                   {c}
                 </button>
               );
             })}
           </div>
-          {selectedChallenges.filter((c) => !CHALLENGES.includes(c)).length > 0 && (
-            <div className="mt-2 flex flex-wrap gap-1.5">
-              {selectedChallenges.filter((c) => !CHALLENGES.includes(c)).map((c) => (
-                <span key={c} className="inline-flex items-center gap-1 bg-[#0E1014] text-white text-xs px-2.5 py-1 rounded-md">
+          {customChallenges.length > 0 && (
+            <div className="mt-2.5 flex flex-wrap gap-1.5">
+              {customChallenges.map((c) => (
+                <span
+                  key={c}
+                  className="inline-flex items-center gap-1.5 text-[12px] bg-rd-bg-soft text-rd-text px-2.5 py-1 rounded-md border border-rd-border font-medium"
+                >
                   {c}
-                  <button type="button" onClick={() => removeChallenge(c)} className="hover:text-[#F87060]">
+                  <button
+                    type="button"
+                    onClick={() => removeChallenge(c)}
+                    className="text-rd-text-secondary hover:text-rd-coral transition-colors"
+                    aria-label={`Remove ${c}`}
+                  >
                     <X className="w-3 h-3" />
                   </button>
                 </span>
@@ -133,7 +169,7 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
             onBlur={commitCustomChallenge}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitCustomChallenge(); } }}
             placeholder="Or type your own — press Enter to add"
-            className="onb-input mt-2"
+            className={`${INPUT_CLS} mt-2.5`}
           />
         </div>
 
@@ -165,8 +201,10 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
 
         {/* Role clarity — 5-button row with bigger touch targets */}
         <div>
-          <label className="onb-eyebrow">How clear are you about which specific roles you&apos;re targeting?</label>
-          <div className="mt-2.5 grid grid-cols-5 gap-2">
+          <label className="block text-[12px] font-semibold text-rd-text mb-2.5">
+            How clear are you about which specific roles you&apos;re targeting?
+          </label>
+          <div className="grid grid-cols-5 gap-2">
             {CLARITY_OPTIONS.map((o) => {
               const isSelected = data.role_clarity_score === o.value;
               return (
@@ -174,29 +212,39 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
                   key={o.value}
                   type="button"
                   onClick={() => set("role_clarity_score", o.value)}
-                  className={`flex flex-col items-center justify-center gap-1 py-4 rounded-[14px] border transition-all ${
+                  className={[
+                    "flex flex-col items-center justify-center gap-1 py-4 px-1 rounded-[14px] border transition-[border-color,background-color,box-shadow] duration-150",
                     isSelected
-                      ? "bg-[#0E1014] text-white border-[#0E1014]"
-                      : "bg-white text-[#52545A] border-[#DDDDDB] hover:border-[#52545A]"
-                  }`}
+                      ? "border-rd-coral bg-rd-coral-tint text-rd-text shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+                      : "border-rd-border bg-rd-bg-card text-rd-text-secondary hover:border-rd-border-hover hover:text-rd-text",
+                  ].join(" ")}
                 >
-                  <span className="text-xl font-bold leading-none">{o.value}</span>
-                  <span className="text-[11px] leading-tight text-center px-1">{o.label}</span>
+                  <span className="font-display text-[20px] font-bold leading-none text-rd-text">
+                    {o.value}
+                  </span>
+                  <span className="text-[10.5px] leading-tight text-center">
+                    {o.label}
+                  </span>
                 </button>
               );
             })}
           </div>
-          <p className="onb-help">Scale of 1–5. Leave blank if you&apos;re not sure.</p>
+          <p className="text-[11.5px] text-rd-text-secondary mt-2 leading-snug">
+            Scale of 1–5. Leave blank if you&apos;re not sure.
+          </p>
         </div>
 
         {/* What have you tried */}
         <div>
-          <label className="onb-eyebrow">What have you already tried to improve your job search? <span className="text-[#9C9DA1] font-normal normal-case tracking-normal">(optional)</span></label>
-          <Textarea
+          <label className="block text-[12px] font-semibold text-rd-text mb-2.5">
+            What have you already tried to improve your job search?
+            <span className="text-rd-text-tertiary font-normal ml-1.5">(optional)</span>
+          </label>
+          <textarea
             value={data.job_search_efforts || ""}
             onChange={(e) => set("job_search_efforts", e.target.value)}
             placeholder="e.g. Applied to 50+ roles, attended career fairs, updated my LinkedIn…"
-            className="text-sm min-h-[88px] border-[#DDDDDB] mt-2.5 rounded-[14px]"
+            className={`${INPUT_CLS} min-h-[88px] resize-y`}
           />
         </div>
 
@@ -215,40 +263,59 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
         />
       </div>
 
-      <div className="flex justify-between pt-2">
-        <button onClick={onBack} className="onb-btn onb-btn-outline">Back</button>
-        <button onClick={onNext} className="onb-btn onb-btn-primary onb-btn-lg">
-          Continue <ArrowRight className="w-4 h-4" />
+      <div className="flex justify-between items-center pt-2">
+        <button
+          onClick={onBack}
+          className="text-[13px] font-semibold text-rd-text-tertiary hover:text-rd-text transition-colors"
+        >
+          ← Back
         </button>
+        <RdButton onClick={onNext}>
+          Continue <ArrowRight className="w-4 h-4" />
+        </RdButton>
       </div>
     </div>
   );
 }
 
-function SingleSelect({ label, options, selected, onSelect, isCustom, customValue, setCustomValue, onCommit, onClear, customPlaceholder = "Or type your own answer" }) {
+function SingleSelect({
+  label,
+  options,
+  selected,
+  onSelect,
+  isCustom,
+  customValue,
+  setCustomValue,
+  onCommit,
+  onClear,
+  customPlaceholder = "Or type your own answer",
+}) {
   return (
     <div>
-      <label className="onb-eyebrow">{label}</label>
-      <div className="mt-2.5 space-y-2">
+      <label className="block text-[12px] font-semibold text-rd-text mb-2.5">
+        {label}
+      </label>
+      <div className="space-y-2">
         {options.map((o) => (
           <button
             key={o.value}
             type="button"
             onClick={() => onSelect(o.value)}
-            className={`w-full text-left text-sm px-4 py-3 rounded-[14px] border transition-all ${
-              selected === o.value
-                ? "bg-[#0E1014] text-white border-[#0E1014]"
-                : "bg-white text-[#52545A] border-[#DDDDDB] hover:border-[#52545A]"
-            }`}
+            className={OPTION_BTN(selected === o.value)}
           >
             {o.label}
           </button>
         ))}
       </div>
       {isCustom && (
-        <div className="mt-2 inline-flex items-center gap-1 bg-[#0E1014] text-white text-xs px-2.5 py-1 rounded-md">
+        <div className="mt-2.5 inline-flex items-center gap-1.5 text-[12px] bg-rd-bg-soft text-rd-text px-2.5 py-1 rounded-md border border-rd-border font-medium">
           Your answer: {selected}
-          <button type="button" onClick={onClear} className="hover:text-[#F87060]">
+          <button
+            type="button"
+            onClick={onClear}
+            className="text-rd-text-secondary hover:text-rd-coral transition-colors"
+            aria-label="Remove custom answer"
+          >
             <X className="w-3 h-3" />
           </button>
         </div>
@@ -259,7 +326,7 @@ function SingleSelect({ label, options, selected, onSelect, isCustom, customValu
         onBlur={onCommit}
         onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); onCommit(); } }}
         placeholder={customPlaceholder}
-        className="onb-input mt-2"
+        className={`${INPUT_CLS} mt-2.5`}
       />
     </div>
   );

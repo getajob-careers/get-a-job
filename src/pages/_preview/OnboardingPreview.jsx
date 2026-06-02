@@ -26,6 +26,9 @@ import StepExperience from "@/components/onboarding/StepExperience";
 import StepRoleSkills from "@/components/onboarding/StepRoleSkills";
 import StepSkills from "@/components/onboarding/StepSkills";
 import StepCareerDirection from "@/components/onboarding/StepCareerDirection";
+import StepConstraints from "@/components/onboarding/StepConstraints";
+import StepSurvey from "@/components/onboarding/StepSurvey";
+import OnboardingTutorial from "@/components/onboarding/OnboardingTutorial";
 import RdSkillTagInput from "@/components/redesign/RdSkillTagInput";
 
 // Map each fixture prefix to the OnboardingShell `currentStep` index so
@@ -39,6 +42,8 @@ const STEP_INDEX_BY_PREFIX = {
   roleskills: 4,
   skills: 5,
   direction: 6,
+  constraints: 7,
+  survey: 8,
   shared: 0,
 };
 
@@ -74,6 +79,18 @@ export default function OnboardingPreview() {
 
   const prefix = (state || "resume-empty").split("-")[0];
   const stepIndex = STEP_INDEX_BY_PREFIX[prefix] ?? 0;
+
+  // Tutorial renders full-screen outside OnboardingShell (own FullScreenShell).
+  if (prefix === "tutorial") {
+    const t = fixture.tutorial || {};
+    return (
+      <OnboardingTutorial
+        isReturningUser={!!t.isReturningUser}
+        setupComplete={!!t.setupComplete}
+        onTutorialEnd={() => {}}
+      />
+    );
+  }
 
   // Standalone shared-input demo (skill picker fixture).
   if (prefix === "shared") {
@@ -172,6 +189,23 @@ export default function OnboardingPreview() {
       )}
       {prefix === "direction" && (
         <StepCareerDirection
+          data={profileData}
+          onChange={setProfileData}
+          onNext={() => {}}
+          onBack={() => {}}
+        />
+      )}
+      {prefix === "constraints" && (
+        <StepConstraints
+          data={profileData}
+          onChange={setProfileData}
+          onSubmit={() => {}}
+          onBack={() => {}}
+          submitting={false}
+        />
+      )}
+      {prefix === "survey" && (
+        <StepSurvey
           data={profileData}
           onChange={setProfileData}
           onNext={() => {}}

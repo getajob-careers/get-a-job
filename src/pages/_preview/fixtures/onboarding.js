@@ -211,6 +211,70 @@ export const FIXTURES = {
     },
   },
 
+  // ── StepConstraints (PR 2C) ─────────────────────────────────────
+  "constraints-empty": {
+    label: "Step 7 · Constraints — empty",
+    profileData: {
+      location: "",
+      available_start_date: "",
+      work_type: [],
+    },
+  },
+  "constraints-filled": {
+    label: "Step 7 · Constraints — filled",
+    profileData: {
+      location: "Tel Aviv, Israel",
+      available_start_date: "2026-09-01",
+      work_type: ["Hybrid", "Remote"],
+    },
+  },
+
+  // ── StepSurvey (PR 2C) — reality check, all 5 question groups ───
+  "survey-empty": {
+    label: "Step 8 · Reality check — empty",
+    profileData: {
+      biggest_challenge: [],
+      cv_tailoring_strategy: null,
+      linkedin_outreach_strategy: null,
+      role_clarity_score: null,
+      job_search_efforts: "",
+      referral_source: null,
+    },
+  },
+  "survey-filled": {
+    label: "Step 8 · Reality check — answers across all 5 groups",
+    profileData: {
+      biggest_challenge: [
+        "I don't know which roles to target",
+        "I apply but get no responses",
+      ],
+      cv_tailoring_strategy: "sometimes",
+      linkedin_outreach_strategy: "rarely",
+      role_clarity_score: 3,
+      job_search_efforts:
+        "Applied to ~40 roles over 3 months, attended 2 career fairs, refreshed my LinkedIn header.",
+      referral_source: "reichman_practicum",
+    },
+  },
+
+  // ── OnboardingTutorial (PR 2C) — 4 render states ────────────────
+  "tutorial-gate": {
+    label: "Step 9 · Tutorial — returning-user skip gate",
+    tutorial: { isReturningUser: true, setupComplete: false },
+  },
+  "tutorial-slide-1": {
+    label: "Step 9 · Tutorial — slide 1 (Browse jobs)",
+    tutorial: { isReturningUser: false, setupComplete: false },
+  },
+  "tutorial-slide-6": {
+    label: "Step 9 · Tutorial — final slide (Chat agents)",
+    tutorial: { isReturningUser: false, setupComplete: true },
+  },
+  "tutorial-completion": {
+    label: "Step 9 · Tutorial — setup complete handoff",
+    tutorial: { isReturningUser: true, setupComplete: true },
+  },
+
   // ── Shared-inputs proof (autocomplete + chip bank) ──────────────
   "shared-skill-picker": {
     label: "Shared inputs · RdSkillTagInput — autocomplete open",
