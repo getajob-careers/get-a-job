@@ -1,7 +1,8 @@
 import React, { useMemo, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { GraduationCap, BookOpen, Award, Microscope, Code2, ArrowRight } from "lucide-react";
-import SkillTagInput from "./SkillTagInput";
+import RdSkillTagInput from "@/components/redesign/RdSkillTagInput";
+import RdButton from "@/components/redesign/RdButton";
 import { DEGREE_TYPE_OPTIONS, dropdownValueForDegreeType } from "@/lib/educationPolicy";
 import { EMPTY_EDUCATION_ROW } from "@/lib/onboardingPayload";
 
@@ -9,6 +10,13 @@ import { EMPTY_EDUCATION_ROW } from "@/lib/onboardingPayload";
 // Secondary education from CV (high school) is silently created in state but
 // hidden here per the Phase B design decision. Users add/edit multiple
 // entries on Profile post-onboarding.
+//
+// Restyled for PR 2A — behaviour identical to the Direction-3 version.
+// Required-field rule preserved: full_name + institution + level +
+// field_of_study + start_date + (end_date OR is_current). Bidirectional
+// end_date ↔ is_current sync preserved. RdSkillTagInput (forked from
+// SkillTagInput) replaces inline SkillTagInput; suggestionType="none" is
+// preserved on both coursework / academic_projects (free-text fields).
 
 const EDU_LEVELS = [
   { value: "high_school", label: "High school", Icon: BookOpen },
@@ -17,13 +25,22 @@ const EDU_LEVELS = [
   { value: "phd", label: "PhD", Icon: Microscope },
   { value: "bootcamp", label: "Bootcamp", Icon: Code2 },
 ];
-// associate + self_taught keep the dropdown fallback below — they're real
-// values but uncommon enough that the visual grid would dilute the primary
-// 5 options. Falls into "Other levels" pulldown.
 const OTHER_LEVELS = [
   { value: "associate", label: "Associate degree" },
   { value: "self_taught", label: "Self-taught" },
 ];
+
+const INPUT_CLS =
+  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+
+function Label({ children, required = false }) {
+  return (
+    <label className="block text-[12px] font-semibold text-rd-text mb-1.5">
+      {children}{" "}
+      {required ? <span className="text-rd-coral">*</span> : null}
+    </label>
+  );
+}
 
 export default function StepEducation({ data, onChange, educations, setEducations, onNext, onBack }) {
   useEffect(() => {
@@ -44,9 +61,6 @@ export default function StepEducation({ data, onChange, educations, setEducation
 
   const setProfileField = (key, val) => onChange({ ...data, [key]: val });
 
-  // Bidirectional end_date ↔ is_current sync. Typing "Present"/"Current" in
-  // the end_date input checks is_current; checking the box clears end_date.
-  // Matches Profile EducationTab UX.
   const setEndDate = (val) => {
     setEducations((prev) => {
       const arr = Array.isArray(prev) && prev.length > 0 ? [...prev] : [{ ...EMPTY_EDUCATION_ROW }];
@@ -62,9 +76,6 @@ export default function StepEducation({ data, onChange, educations, setEducation
     });
   };
 
-  // Required: full_name + institution + level + field_of_study + start_date
-  // + (end_date OR is_current). Degree type stays soft (useful for matching
-  // but not worth blocking on).
   const hasEndOrCurrent = !!primary.is_current || !!primary.end_date?.trim();
   const dateError = !!primary.start_date?.trim() && !hasEndOrCurrent;
   const canProceed =
@@ -95,52 +106,72 @@ export default function StepEducation({ data, onChange, educations, setEducation
   return (
     <div className="space-y-7">
       <div>
-        <h1 className="onb-h1">Where did you study?</h1>
-        <p className="onb-sub">
+        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+          step 2 of 9 · education
+        </p>
+        <h1 className="font-display font-extrabold text-[26px] sm:text-[28px] leading-[1.1] tracking-tight text-rd-text mt-2">
+          Where did you study?
+        </h1>
+        <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
           We use this to map your knowledge domains to role requirements.
         </p>
       </div>
 
       <div className="space-y-5">
         <div>
-          <label className="onb-label">Full name <span className="req">*</span></label>
+          <Label required>Full name</Label>
           <input
             type="text"
             value={data.full_name || ""}
             onChange={(e) => setProfileField("full_name", e.target.value)}
             placeholder="Your full name"
-            className="onb-input"
+            className={INPUT_CLS}
           />
         </div>
 
         <div>
-          <label className="onb-label">Institution / University <span className="req">*</span></label>
+          <Label required>Institution / University</Label>
           <input
             type="text"
             value={primary.institution || ""}
             onChange={(e) => setEduField("institution", e.target.value)}
             placeholder="e.g. Stanford University, University of Toronto"
-            className="onb-input"
+            className={INPUT_CLS}
           />
         </div>
 
         <div>
-          <label className="onb-label">Education level <span className="req">*</span></label>
-          <div className="onb-grid-cards onb-grid-cards-5">
-            {EDU_LEVELS.map(({ value, label, Icon }) => (
-              <button
-                key={value}
-                type="button"
-                onClick={() => setEduField("education_level", value)}
-                className="onb-grid-card"
-                data-selected={currentLevel === value}
-              >
-                <div className="onb-grid-card-icon">
-                  <Icon className="w-4 h-4" />
-                </div>
-                <span className="onb-grid-card-label">{label}</span>
-              </button>
-            ))}
+          <Label required>Education level</Label>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5">
+            {EDU_LEVELS.map(({ value, label, Icon }) => {
+              const isSelected = currentLevel === value;
+              return (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setEduField("education_level", value)}
+                  data-selected={isSelected}
+                  className={[
+                    "flex flex-col items-center gap-2 p-3 rounded-[14px] border transition-[border-color,background-color,box-shadow] duration-150",
+                    isSelected
+                      ? "border-rd-coral bg-rd-coral-tint shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+                      : "border-rd-border bg-rd-bg-card hover:border-rd-border-hover",
+                  ].join(" ")}
+                >
+                  <div
+                    className={[
+                      "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
+                      isSelected ? "bg-rd-coral text-white" : "bg-rd-bg-soft text-rd-text-secondary",
+                    ].join(" ")}
+                  >
+                    <Icon className="w-4 h-4" />
+                  </div>
+                  <span className="text-[12px] font-display font-semibold text-rd-text text-center leading-tight">
+                    {label}
+                  </span>
+                </button>
+              );
+            })}
           </div>
           {/* Fallback dropdown for the long tail (associate / self-taught). */}
           <div className="mt-3">
@@ -148,7 +179,7 @@ export default function StepEducation({ data, onChange, educations, setEducation
               value={isOtherLevel ? currentLevel : ""}
               onValueChange={(v) => setEduField("education_level", v)}
             >
-              <SelectTrigger className="text-sm h-9 border-[#DDDDDB]">
+              <SelectTrigger className="text-sm h-9 border-rd-border bg-rd-bg-card text-rd-text">
                 <SelectValue placeholder="Other (Associate / Self-taught)" />
               </SelectTrigger>
               <SelectContent>
@@ -162,9 +193,14 @@ export default function StepEducation({ data, onChange, educations, setEducation
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="onb-label">Degree type</label>
-            <Select value={degreeDropdownValue || undefined} onValueChange={handleDegreeDropdownChange}>
-              <SelectTrigger className="text-sm border-[#DDDDDB]"><SelectValue placeholder="Select degree type" /></SelectTrigger>
+            <Label>Degree type</Label>
+            <Select
+              value={degreeDropdownValue || undefined}
+              onValueChange={handleDegreeDropdownChange}
+            >
+              <SelectTrigger className="text-sm border-rd-border bg-rd-bg-card text-rd-text">
+                <SelectValue placeholder="Select degree type" />
+              </SelectTrigger>
               <SelectContent>
                 {DEGREE_TYPE_OPTIONS.map((opt) => (
                   <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
@@ -177,53 +213,55 @@ export default function StepEducation({ data, onChange, educations, setEducation
                 value={primary.degree_type || ""}
                 onChange={(e) => setEduField("degree_type", e.target.value)}
                 placeholder="e.g. B.Eng., Pharm.D., specific credential"
-                className="onb-input mt-2"
+                className={INPUT_CLS + " mt-2"}
               />
             )}
           </div>
 
           <div>
-            <label className="onb-label">Field of study <span className="req">*</span></label>
+            <Label required>Field of study</Label>
             <input
               type="text"
               value={primary.field_of_study || ""}
               onChange={(e) => setEduField("field_of_study", e.target.value)}
               placeholder="e.g. Computer Science, Business"
-              className="onb-input"
+              className={INPUT_CLS}
             />
           </div>
 
           <div>
-            <label className="onb-label">Start date <span className="req">*</span></label>
+            <Label required>Start date</Label>
             <input
               type="text"
               value={primary.start_date || ""}
               onChange={(e) => setEduField("start_date", e.target.value)}
               placeholder="e.g. September 2023, 2023"
-              className="onb-input"
+              className={INPUT_CLS}
             />
           </div>
 
           <div>
-            <label className="onb-label">End date {!primary.is_current && <span className="req">*</span>}</label>
+            <Label required={!primary.is_current}>End date</Label>
             <input
               type="text"
               value={primary.end_date || ""}
               onChange={(e) => setEndDate(e.target.value)}
               disabled={!!primary.is_current}
               placeholder='e.g. May 2025, "Present"'
-              className="onb-input"
+              className={INPUT_CLS + " disabled:bg-rd-bg-soft disabled:cursor-not-allowed"}
             />
           </div>
 
           <div>
-            <label className="onb-label">GPA <span className="text-[#9C9DA1] font-normal">(optional)</span></label>
+            <Label>
+              GPA <span className="text-rd-text-secondary font-normal">(optional)</span>
+            </Label>
             <input
               type="text"
               value={primary.gpa || ""}
               onChange={(e) => setEduField("gpa", e.target.value)}
               placeholder="e.g. 3.7 / 4.0"
-              className="onb-input"
+              className={INPUT_CLS}
             />
           </div>
         </div>
@@ -234,14 +272,17 @@ export default function StepEducation({ data, onChange, educations, setEducation
             id="onb-edu-is-current"
             checked={!!primary.is_current}
             onChange={(e) => setIsCurrent(e.target.checked)}
-            className="cursor-pointer"
+            className="w-[15px] h-[15px] accent-rd-coral cursor-pointer"
           />
-          <label htmlFor="onb-edu-is-current" className="text-xs text-[#52545A] cursor-pointer">
-            I'm currently studying for this degree
+          <label
+            htmlFor="onb-edu-is-current"
+            className="text-[12.5px] text-rd-text-secondary cursor-pointer"
+          >
+            I&apos;m currently studying for this degree
           </label>
         </div>
 
-        <SkillTagInput
+        <RdSkillTagInput
           label="Relevant coursework"
           description="List courses that are relevant to your target roles."
           tags={primary.relevant_coursework || []}
@@ -250,7 +291,7 @@ export default function StepEducation({ data, onChange, educations, setEducation
           suggestionType="none"
         />
 
-        <SkillTagInput
+        <RdSkillTagInput
           label="Academic projects"
           description="Thesis, capstone, or notable academic projects."
           tags={primary.academic_projects || []}
@@ -261,20 +302,21 @@ export default function StepEducation({ data, onChange, educations, setEducation
       </div>
 
       {dateError && (
-        <p className="text-xs text-[#C84F40]">
+        <p className="text-[12px] text-rd-coral-dark">
           Enter an end date or check &ldquo;I&apos;m currently studying&rdquo;
         </p>
       )}
 
-      <div className="flex justify-between pt-2">
-        <button onClick={onBack} className="onb-btn onb-btn-outline">Back</button>
+      <div className="flex justify-between items-center pt-2">
         <button
-          onClick={onNext}
-          disabled={!canProceed}
-          className="onb-btn onb-btn-primary onb-btn-lg"
+          onClick={onBack}
+          className="text-[13px] font-semibold text-rd-text-tertiary hover:text-rd-text transition-colors"
         >
-          Continue <ArrowRight className="w-4 h-4" />
+          ← Back
         </button>
+        <RdButton onClick={onNext} disabled={!canProceed}>
+          Continue <ArrowRight className="w-4 h-4" />
+        </RdButton>
       </div>
     </div>
   );

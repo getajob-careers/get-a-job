@@ -1,15 +1,17 @@
 import React from "react";
 import { Briefcase, User2, X, ArrowRight } from "lucide-react";
+import RdButton from "@/components/redesign/RdButton";
 
 // Onboarding internship step — captures profiles.practicum_path +
 // practicum_cohort (DB column names kept; see CLAUDE.md). The
 // institution-detection regex remains as a future hook for cohort-
-// specific framing, but copy is generic across both branches today
-// (universal language; we used to surface school-specific copy when the
-// detection matched, which leaked branding).
+// specific framing, but copy is generic across both branches today.
 //
 // "No" leaves practicum_path = null, which makes /Internship redirect
 // home (the page guards on practicum_path before rendering).
+//
+// Visual: redesigned for PR 2A — --rd-* tokens, Rokkitt heading,
+// peach-framed shell. Behaviour identical to the Direction-3 version.
 
 const INTERNSHIP_PROGRAM_PATTERNS = [/reichman/i, /idc\s*herzliya/i, /\bidc\b/i];
 const STUDENT_LEVELS = new Set(["bachelors", "masters", "phd"]);
@@ -42,7 +44,8 @@ export default function StepInternship({ data, onChange, educations, onNext, onB
   const path = data.practicum_path || null;
 
   const headline = "Are you enrolled in your school's internship program?";
-  const description = "Some universities run an internship program — faculty-coordinated placements or student-sourced under program oversight. A \"yes\" here lets the Internship Finder reference your program enrollment in outreach. Pick \"no\" if your school doesn't have one or you're not enrolled.";
+  const description =
+    "Some universities run an internship program — faculty-coordinated placements or student-sourced under program oversight. A \"yes\" here lets the Internship Finder reference your program enrollment in outreach. Pick \"no\" if your school doesn't have one or you're not enrolled.";
 
   const setPath = (next) => {
     const newPath = next === path ? null : next;
@@ -56,8 +59,15 @@ export default function StepInternship({ data, onChange, educations, onNext, onB
   return (
     <div className="space-y-7">
       <div>
-        <h1 className="onb-h1">{headline}</h1>
-        <p className="onb-sub">{description}</p>
+        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+          step 3 of 9 · internship
+        </p>
+        <h1 className="font-display font-extrabold text-[26px] sm:text-[28px] leading-[1.1] tracking-tight text-rd-text mt-2">
+          {headline}
+        </h1>
+        <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
+          {description}
+        </p>
       </div>
 
       <div className="space-y-2.5">
@@ -85,26 +95,34 @@ export default function StepInternship({ data, onChange, educations, onNext, onB
       </div>
 
       {path && (
-        <div className="onb-card">
-          <label className="onb-label">Cohort <span className="text-[#9C9DA1] font-normal">(optional)</span></label>
+        <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5">
+          <label className="block text-[12px] font-semibold text-rd-text mb-1.5">
+            Cohort{" "}
+            <span className="text-rd-text-secondary font-normal">(optional)</span>
+          </label>
           <input
             type="text"
             value={data.practicum_cohort || ""}
             onChange={(e) => onChange({ ...data, practicum_cohort: e.target.value })}
             placeholder="e.g. Spring 2026"
-            className="onb-input"
+            className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
           />
-          <p className="onb-help">
+          <p className="text-[11.5px] text-rd-text-secondary mt-1.5 leading-snug">
             Helps faculty and admins group students for cohort-level analytics. You can skip this.
           </p>
         </div>
       )}
 
-      <div className="flex justify-between pt-2">
-        <button onClick={onBack} className="onb-btn onb-btn-outline">Back</button>
-        <button onClick={onNext} className="onb-btn onb-btn-primary onb-btn-lg">
-          Continue <ArrowRight className="w-4 h-4" />
+      <div className="flex justify-between items-center pt-2">
+        <button
+          onClick={onBack}
+          className="text-[13px] font-semibold text-rd-text-tertiary hover:text-rd-text transition-colors"
+        >
+          ← Back
         </button>
+        <RdButton onClick={onNext}>
+          Continue <ArrowRight className="w-4 h-4" />
+        </RdButton>
       </div>
     </div>
   );
@@ -115,15 +133,28 @@ function OptionCard({ icon: Icon, title, description, selected, onClick }) {
     <button
       type="button"
       onClick={onClick}
-      className="onb-option-card"
+      className={[
+        "w-full text-left flex items-start gap-4 p-4 rounded-[14px] transition-[border-color,background-color,box-shadow] duration-150",
+        "border bg-rd-bg-card",
+        selected
+          ? "border-rd-coral shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+          : "border-rd-border hover:border-rd-border-hover",
+      ].join(" ")}
       data-selected={selected}
     >
-      <div className="onb-option-card-icon">
+      <div
+        className={[
+          "w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0 transition-colors",
+          selected
+            ? "bg-rd-coral text-white"
+            : "bg-rd-bg-soft text-rd-text-secondary",
+        ].join(" ")}
+      >
         <Icon className="w-4 h-4" />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="onb-option-card-title">{title}</p>
-        <p className="onb-option-card-desc">{description}</p>
+        <p className="font-display font-semibold text-[14.5px] text-rd-text">{title}</p>
+        <p className="text-[12.5px] text-rd-text-secondary leading-[1.5] mt-1">{description}</p>
       </div>
     </button>
   );

@@ -50,6 +50,7 @@ or scope-cut.
 |---|---|---|---|
 | Baseline | 2026-06-02 | 434 | — |
 | `eli/redesign-foundation-login` (foundation + Login) | 2026-06-02 | 432 | −2 |
+| `eli/redesign-onboarding-2a` (foundation + first 3 onboarding steps) | 2026-06-02 | 432 | 0 |
 
 ---
 
@@ -104,6 +105,92 @@ PostHog flag). Direction 3 scoped `.login` styles fully replaced with
 390×844), blocks `challenges.cloudflare.com` so Turnstile's iframe
 doesn't churn capture, then `pdf-lib` assembles 8 pages →
 `docs/design/redesign/previews/login.pdf`.
+
+## Onboarding restyle — PR 2A (`eli/redesign-onboarding-2a`)
+
+First slice of the 10-step onboarding flow. Behaviour preserved 1:1 —
+the autosave dependency array (Onboarding.jsx:164, Eli-incident PR
+2026-05-28) and every `useQuery` key/`select()` were left untouched.
+Restyle-only on behaviour, per the standing rule.
+
+**Files restyled in place (none of these have non-onboarding consumers):**
+- `OnboardingShell.jsx` — peach outer frame (signature pattern across
+  all onboarding mockups), 4-dot brand mark, "Step X of 9" eyebrow,
+  coral progress fill, white inner card.
+- `StepResumeUpload.jsx` — coral CTA pill, --rd-* surfaces, employment
+  status 5-card grid with coral-tint selected state, dashed dropzone
+  with coral hover, restyled LinkedIn URL collapse / banner / error
+  states.
+- `StepEducation.jsx` — restyled inputs/grid cards, swapped
+  `SkillTagInput` → `RdSkillTagInput` for coursework + academic
+  projects (both still use `suggestionType="none"` per the original).
+- `StepInternship.jsx` — restyled OptionCards + cohort card.
+- `Onboarding.jsx` — chrome only (page bg, hydration spinner,
+  finalising loader, saveError + finaliseError banners). Wrapper
+  logic untouched.
+
+**Shared input scoping decision: FORK.** Created
+`src/components/redesign/RdSkillTagInput.jsx` (behaviour-identical to
+the canonical `SkillTagInput` — same `suggestionType` modes, same
+canonical-library suggestion source from `skillIdsGenerated.json`,
+same dedupe + keyboard handling; styling only changes). Old
+`SkillTagInput` remains untouched so non-redesigned consumers
+(Profile / Education / Certifications) keep their Direction-3 look.
+PR 2B will fork `AutocompleteInput`, `PresetBubbleInput`, and
+`SkillChipBank` the same way.
+
+**Preview harness (auth-gated decision — Option A from the forward
+note below):** `/_preview/onboarding/:state` route, registered ONLY
+when `import.meta.env.DEV` is true. The constant folds to false at
+prod build time → the route block becomes dead code → React Router
+never matches `/_preview/*` → unauthenticated visitors fall through
+to AuthenticatedApp → /login. Verified end-to-end by
+`scripts/preview-onboarding.mjs:verifyProd404` — every run boots a
+production `vite preview`, visits `/_preview/onboarding/shared-skill-picker`,
+and asserts the preview-only heading ("Skill picker — autocomplete +
+suggestions") is absent from the body. Captures don't proceed unless
+that check passes.
+
+The harness mounts each restyled step inside the real `OnboardingShell`
+with fixture data from `src/pages/_preview/fixtures/onboarding.js`.
+Parent callbacks (`onChange`, `onNext`, `onBack`, `onExtracted`)
+become no-ops. No Supabase, no edge functions, no DB. Preserves the
+full app CSS chain (`index.css` + Tailwind output) so screenshots
+reflect production rendering.
+
+**Skill-picker proof (per user spec):** the `shared-skill-picker`
+fixture mounts `RdSkillTagInput` standalone with
+`suggestionType="library_skills"` and pre-populated tags. The runner
+clicks into the input, fills it with `data`, waits for the dropdown
+to render, then screenshots. The PDF includes both desktop + mobile
+captures showing the autocomplete dropdown with real canonical
+library suggestions visible.
+
+**Fixtures captured (9 × 2 viewports = 18 PDF pages):**
+- `resume-empty`, `resume-employment-selected`
+- `education-empty`, `education-prefilled`
+- `internship-empty`, `internship-faculty`, `internship-self`,
+  `internship-none`
+- `shared-skill-picker` (autocomplete dropdown open)
+
+Note: StepResumeUpload's internal `uploading`/`extracting`/`done`/
+`error` states aren't externally settable from the harness, so the
+preview only shows the idle layout. Adding a `presetStepState` prop
+would require step-component changes; deferred unless review surfaces
+a need.
+
+The Experience-multiple-entries fixture (user-requested in 2A) lands
+with PR 2B — `StepExperience` isn't restyled until then.
+
+**Out of scope (per spec):**
+- Carded bugs (`split work-arrangement from employment-type`,
+  `accordion auto-scroll`) — both deferred to a focused follow-up
+  after the restyle ships.
+- `onboardingStyles.js` — kept intact (still consumed by 2B/2C
+  step files). To be deleted at the end of 2C only if a grep
+  confirms no external consumers (e.g. CV PDF builder).
+
+---
 
 **Auth-gated previews (forward note):** PR 2 onward will need a
 different strategy. Pick before building each page:
