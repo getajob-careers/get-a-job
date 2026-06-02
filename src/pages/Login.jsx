@@ -283,7 +283,7 @@ export default function Login() {
             {mode === "signup" && !waitlistMode && (
               <span className="inline-flex self-start items-center gap-2 text-[11px] font-medium uppercase tracking-[0.08em] text-rd-coral-dark bg-rd-coral-tint rounded-full px-2.5 py-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-rd-coral" />
-                Pilot · 100 invites
+                Pilot phase
               </span>
             )}
             <BrandMark />
@@ -421,7 +421,7 @@ export default function Login() {
                     type="text"
                     value={inviteCode}
                     onChange={(e) => setInviteCode(e.target.value)}
-                    placeholder="GETAJOBPILOT"
+                    placeholder="Enter your invite code"
                     autoCapitalize="characters"
                     autoComplete="off"
                     required

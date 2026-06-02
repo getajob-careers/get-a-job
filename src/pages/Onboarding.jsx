@@ -703,7 +703,11 @@ export default function Onboarding() {
           skill_gaps: data?.skill_gaps || [],
           qualification_level: data?.qualification_level || null,
           overall_assessment: data?.overall_assessment || null,
-          last_reality_check_date: new Date().toISOString(),
+          // last_reality_check_date is stamped on the final profile update
+          // in handleFinalise — AFTER the experiences/projects/certs
+          // re-insert succeeds — so it's >= every fresh `created_at`.
+          // Stamping it here would predate the inserts by ~1s and trip
+          // isAnalysisStale() on every new user's first Home load.
           onboarding_step: 9,
         }).eq("id", existingProfileId);
         if (persistErr) {
@@ -979,6 +983,14 @@ export default function Onboarding() {
     delete finalPayload.skill_gaps;
     delete finalPayload.overall_assessment;
     delete finalPayload.last_reality_check_date;
+
+    // Stamp last_reality_check_date HERE — AFTER the experiences/projects/
+    // certifications re-insert above. Postgres sets each new row's
+    // created_at at INSERT time; stamping the freshness marker earlier
+    // (e.g. in handleSurveyNext, where this used to live) predates those
+    // rows by ~1s and trips isAnalysisStale() on the user's first Home
+    // load. Stamping it last guarantees marker >= every fresh created_at.
+    finalPayload.last_reality_check_date = new Date().toISOString();
 
     const { error: finalUpdateError } = await supabase.from("profiles").update(finalPayload).eq("id", targetProfileId);
     if (finalUpdateError) {

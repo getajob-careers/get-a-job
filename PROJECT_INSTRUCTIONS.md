@@ -1,6 +1,6 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-06-02 (App-wide rollout PR 3A — shared shell restyle: Layout + SidebarFooter, branch `eli/redesign-shell`).**
+**Last updated: 2026-06-02 (Pre-launch fixes — stale-banner reorder, salary-negotiation copy, invite-code placeholder, pilot eyebrow, branch `eli/prelaunch-fixes`).**
 
 ## Visual redesign in flight
 

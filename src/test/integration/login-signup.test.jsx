@@ -119,7 +119,7 @@ describe('Login — signup mode', () => {
     // redesign added a required Terms & Privacy consent checkbox.
     // Fill / check both so this test continues to isolate the
     // password-strength gate.
-    fireEvent.change(screen.getByPlaceholderText(/GETAJOBPILOT/i), { target: { value: 'TEST-CODE' } });
+    fireEvent.change(screen.getByPlaceholderText(/invite code/i), { target: { value: 'TEST-CODE' } });
     fireEvent.click(screen.getByLabelText(/i agree to the/i));
 
     const submitBtn = screen.getByRole('button', { name: /create account/i });
