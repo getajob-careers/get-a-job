@@ -19,6 +19,13 @@
 // Coral (the brand accent) is intentionally NOT used for tiers — coral is
 // the brand signal, not a functional indicator. Using it for Track 1 would
 // muddy the brand vocabulary across the product.
+//
+// PR 3C update — the redesign re-uses the warm rd palette as the canonical
+// track-color vocabulary for restyled surfaces. The `rdColor` field below
+// is consumed by Roadmap (PR 3C) and Home's TrackPill (also re-aligned in
+// 3C). The legacy `color` field stays in place — it's still read by
+// non-redesigned surfaces (JobCard, Tracker) and the legacy `roadmapStyles`
+// CSS scaffolding until each surface gets its own restyle PR.
 
 export const TRACK_COLORS = {
   green: {
@@ -47,6 +54,7 @@ export const TRACK_CONFIG = {
     number:      1,
     name:        "Sweet spot",
     color:       "green",
+    rdColor:     "coral",
     description:
       "Roles you're qualified for that match where you want your career to go. Apply to these first.",
     emptyCopy:
@@ -57,6 +65,7 @@ export const TRACK_CONFIG = {
     number:      2,
     name:        "Detour",
     color:       "gray",
+    rdColor:     "teal",
     description:
       "Roles you're qualified for, but they'd take your career in a different direction. Good fallbacks if Track 1 isn't hiring.",
     emptyCopy:
@@ -67,6 +76,7 @@ export const TRACK_CONFIG = {
     number:      3,
     name:        "Growth",
     color:       "amber",
+    rdColor:     "golden",
     description:
       "Roles that match your direction, but you need more experience or skills first. Use these to plan what to learn next.",
     emptyCopy:

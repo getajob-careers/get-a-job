@@ -614,9 +614,12 @@ export default function Home() {
           </p>
           {roles.length > 0 && (
             <div className="flex flex-wrap gap-3 mt-1">
-              <TrackPill color="teal" count={track1Count} label="T1" />
-              <TrackPill color="golden" count={track2Count} label="T2" />
-              <TrackPill color="coral" count={track3Count} label="T3" />
+              {/* Track-color mapping aligned with TRACK_CONFIG[*].rdColor
+                  in PR 3C: T1=coral · T2=teal · T3=golden. Roadmap reads
+                  the same canonical mapping. */}
+              <TrackPill color="coral" count={track1Count} label="T1" />
+              <TrackPill color="teal" count={track2Count} label="T2" />
+              <TrackPill color="golden" count={track3Count} label="T3" />
             </div>
           )}
           <p className="text-[12.5px] text-rd-text-secondary leading-[1.5] mt-1">

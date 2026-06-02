@@ -1,6 +1,6 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-06-02 (App-wide rollout PR 3B — Home body restyle + count_active_jobs_by_role_titles RPC + live-matches hero stat, branch `eli/redesign-home`).**
+**Last updated: 2026-06-02 (App-wide rollout PR 3C — Roadmap restyle: 4-tab layout, clickable quadrant, RdCard role cards, track-color rd palette, branch `eli/redesign-roadmap`).**
 
 ## Visual redesign in flight
 
