@@ -58,6 +58,7 @@ or scope-cut.
 | `eli/redesign-roadmap` (Roadmap restyle: 4 tabs, clickable quadrant, track-color rd palette) | 2026-06-02 | 419 | −15 |
 | `eli/redesign-jobs` (Jobs restyle: warm palette, RdCard, track-rdColor pills) | 2026-06-02 | 419 | −15 |
 | `eli/redesign-tracker` (Tracker restyle: row-list rd-tokens, grouped 7-step checklist, track-rdColor) | 2026-06-02 | 419 | −15 |
+| `eli/redesign-profile` (Profile restyle: 6 tabs rd-tokens, SkillTagInput modify-in-place, EntityCard rd-tints) | 2026-06-02 | 419 | −15 |
 
 ---
 
@@ -82,7 +83,7 @@ Tick boxes here as each PR merges.
 | 3C | Roadmap | complex | ☑ | 4-tab layout (How tracks work / Track 1 / 2 / 3), clickable quadrant, rd track colors. |
 | 3D | Jobs | complex | ☑ | Search RPC + seniority filter preserved. JobCard restyled with track-rdColor avatars. |
 | 3E | Tracker | complex | ☑ | Row-list restyled on rd-tokens; grouped 7-step checklist; track-rdColor migration complete. NO kanban / drilldown (post-launch). |
-| 4  | Profile | complex | ☐ | EducationTab, CertificationsSection, experiences accordion. |
+| 3F | Profile | complex | ☑ | All 6 tabs restyled on rd-tokens. SkillTagInput modified-in-place (Profile-area scope-exclusive). EntityCard rd-tint per entity family. PROFILE_CSS carried-forward (StoryBank still consumes). Deferred: 5-tab IA, Profile Strength card, Languages tab. |
 | 5  | Story Bank | simple | ☐ | Capture + library. |
 | 6  | Tasks | simple | ☐ | Checklist + filters. |
 | 7  | Calendar | simple | ☐ | Event view. |
@@ -950,6 +951,105 @@ different strategy. Pick before building each page:
    risks drift if the harness mocks don't track the live page's
    contract.
 Recommendation written in each PR's investigation step.
+
+---
+
+## Profile — PR 3F (`eli/redesign-profile`)
+
+Restyle-only — every write path, RLS guard, and the
+`recomputeProfileSkillsCanonical` invariant (PR #178 narrow-projection
+fix) is preserved byte-for-byte across the 6 live tabs. Live file is
+authoritative; the mockup's 5-tab IA + Profile Strength card + Languages
+tab are explicitly out of scope (deferred — see backlog below).
+
+**Files touched:**
+
+- `src/pages/Profile.jsx` — Tailwind + rd tokens directly. `.profile`
+  wrapper dropped (Tracker precedent); `<style>{PROFILE_CSS}</style>`
+  kept at page root so StoryBank's deferred restyle can drop the
+  stylesheet cleanly. All 6 tabs reuse a tight set of rd-token class
+  constants (RD_CARD, RD_INPUT, RD_LABEL, RD_BTN_*) defined at the top
+  of the file. UnmappedSkillsSection moved to a warm golden-tint hint
+  card.
+- `src/components/profile/EducationTab.jsx` — restyled (form + list
+  cards + Certifications section header). `handleSave`/`handleDelete`
+  + recompute call sequence unchanged.
+- `src/components/profile/CertificationsSection.jsx` — restyled. Writes
+  + recompute unchanged. EntityCard usage updated to pass `iconBg`
+  (golden tint for cert family).
+- `src/components/profile/EntityCard.jsx` — rd-token surface, lighter
+  border, configurable icon-chip tint per entity family. Pure render.
+- `src/components/onboarding/SkillTagInput.jsx` — modify-in-place
+  (re-confirmed at PR time: 3 Profile-area consumers only; the 5
+  onboarding step files all import the separate `RdSkillTagInput`).
+  Suggestion list, dedup, keyboard handling all untouched — chrome only.
+- `src/components/profile/profileStyles.js` — UNTOUCHED. StoryBank
+  still consumes `.p-*` classes; deletion is a follow-up PR.
+
+**Preservation contract (verified by structured diff):**
+
+- **P1** `saveProfile` — entity_spine fresh-fetch read switch, full
+  23-field UPDATE on `profiles`, RLS `.eq("id", user.id)` guard.
+- **P2** resume upload — two-step (Storage upload → URL persist); a
+  mid-step failure throws BEFORE the profiles update, so existing
+  `resume_url` is preserved.
+- **P3** education writes (EducationTab.handleSave / handleDelete) +
+  recompute follow-up; both writes are RLS-scoped with explicit
+  `.eq("user_id", user.id)` belt + the implicit policy suspenders.
+- **P4** certifications writes (CertificationsSection.handleSave /
+  handleDelete) + recompute follow-up; same RLS pattern.
+- **P5** goals — shares `saveProfile`; field diff preserved.
+- **P6** self-assessment — save-on-commit via `saveProfile`, no
+  autosave loop.
+- **P7** projects — insert → invalidate → toast; delete RLS-scoped.
+- **P8** experiences — upsert keyed on id+user_id → invalidate →
+  recompute → toast; delete RLS-scoped and resets the in-form state
+  when the deleted row is the one being edited.
+- **P9** recompute invariant — `recomputeProfileSkillsCanonical` is
+  called AFTER every entity write, never before; the helper fetches
+  fresh from `entity_spine`. Verified across saveProfile, addExperience,
+  EducationTab.handleSave, CertificationsSection.handleSave.
+- **P10** dirty tracking — controlled inputs per tab, no
+  `beforeunload`, no autosave.
+- **P11** PROFILE_CSS — ONE injection at Profile page root.
+  StoryBank coupling documented in the Profile header comment.
+
+**Preview harness:** `/_preview/profile/:state` (DEV-only via
+`import.meta.env.DEV`). 11 fixtures × 2 viewports = 22 PDF pages →
+`docs/design/redesign/previews/profile-3f.pdf`. Fresh QueryClient
+seeded synchronously in `useMemo` on the 6 canonical keys (userProfile,
+projects, experiences, stories, education, certifications). Synchronous
+`<Navigate replace>` for `?tab=` flags; post-mount DOM click for
+`?edit=<id>` (experience-row Edit button is local useState, not
+URL-driven, so a click is the only way to drive it).
+
+**Fixtures:**
+
+1. `profile-empty`
+2. `profile-loading`
+3. `profile-populated`
+4. `profile-tab-education`
+5. `profile-tab-goals`
+6. `profile-tab-self-assessment`
+7. `profile-tab-projects`
+8. `profile-tab-experience`
+9. `profile-experience-edit-mode`
+10. `profile-unmapped-skills`
+11. `profile-resume-uploaded`
+
+**Deferred backlog (out of PR 3F, captured here):**
+
+- **5-tab IA consolidation** (mockup proposes Experience / Education /
+  Skills / Career / Languages). Live IA has Profile / Education /
+  Goals / Self-assessment / Projects / Experience. Goals +
+  Self-assessment feed scoring/alignment — collapsing them is a
+  product-level decision, not a restyle.
+- **Profile Strength card** (mockup shows an 82% completeness meter
+  near the header). New feature; needs a completeness scorer + write
+  semantics. Out of scope for restyle.
+- **Languages tab** (mockup has a standalone Languages tab). Live
+  schema keeps `profiles.languages` JSON; no separate table, no
+  separate write path. Adding the tab is a new feature.
 
 ---
 

@@ -3,15 +3,18 @@ import { supabase } from "@/api/supabaseClient";
 import { useQueryClient } from "@tanstack/react-query";
 import { useCertificationsQuery, certificationsQueryKey } from "@/lib/queries/useCertifications";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Award, Plus } from "lucide-react";
+import { Award, Plus, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import { recomputeProfileSkillsCanonical } from "@/lib/recomputeProfileSkillsCanonical";
 import EntityCard from "./EntityCard";
 
+// PR 3F — CertificationsSection restyled on rd-* tokens. Restyle-only:
+// every write path, RLS guard, and the recomputeProfileSkillsCanonical
+// call (PR #178 narrow-projection invariant) is preserved byte-for-byte.
+//
 // PR 2 of entity IA: certifications become rich entities under Education.
 // Mirrors EducationTab's form-on-top + list-below pattern. In-progress
 // certs supported via the existing is_current boolean (students often
@@ -31,6 +34,11 @@ const EMPTY_FORM = {
   is_current: false,
   skills: [],
 };
+
+const RD_CARD_LG    = "rounded-[18px] border border-rd-border bg-rd-bg-card p-6 sm:p-7 shadow-rd";
+const RD_LABEL      = "block text-[11px] font-display font-semibold text-rd-text mb-1.5";
+const RD_INPUT_CLS  = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
 
 export default function CertificationsSection({ user }) {
   const queryClient = useQueryClient();
@@ -126,13 +134,13 @@ export default function CertificationsSection({ user }) {
   return (
     <div className="space-y-4">
       {/* Add / Edit form */}
-      <div className="bg-white rounded-xl border border-[#DDDDDB] p-6 space-y-4">
+      <div className={`${RD_CARD_LG} space-y-4`}>
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-[#0E1014]">
+          <h3 className="font-display font-bold text-[14px] text-rd-text">
             {form.id ? "Edit Certification" : "Add Certification"}
           </h3>
           {form.id && (
-            <button onClick={resetForm} className="text-xs text-[#9C9DA1] hover:text-[#52545A] underline">
+            <button onClick={resetForm} className="text-[12px] text-rd-text-tertiary hover:text-rd-text underline">
               Cancel edit
             </button>
           )}
@@ -140,31 +148,31 @@ export default function CertificationsSection({ user }) {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Certification name</label>
+            <label className={RD_LABEL}>Certification name</label>
             <Input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="mt-1"
+              className={RD_INPUT_CLS}
               placeholder="e.g. AWS Certified Solutions Architect – Associate"
             />
           </div>
           <div>
-            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Issuer</label>
+            <label className={RD_LABEL}>Issuer</label>
             <Input
               value={form.issuer}
               onChange={(e) => setForm({ ...form, issuer: e.target.value })}
-              className="mt-1"
+              className={RD_INPUT_CLS}
               placeholder="e.g. AWS, Google, HubSpot Academy"
             />
           </div>
           <div className="md:col-span-2">
-            <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">
+            <label className={RD_LABEL}>
               {form.is_current ? "Expected completion (optional)" : "Date earned"}
             </label>
             <Input
               value={form.date_earned}
               onChange={(e) => setForm({ ...form, date_earned: e.target.value })}
-              className="mt-1"
+              className={RD_INPUT_CLS}
               placeholder={form.is_current ? "e.g. December 2026" : "e.g. March 2024, 2024"}
             />
           </div>
@@ -175,18 +183,19 @@ export default function CertificationsSection({ user }) {
             id="cert_is_current"
             checked={!!form.is_current}
             onCheckedChange={(v) => setForm({ ...form, is_current: !!v })}
+            className="border-rd-border data-[state=checked]:bg-rd-coral data-[state=checked]:border-rd-coral"
           />
-          <Label htmlFor="cert_is_current" className="text-xs text-[#52545A] cursor-pointer">
-            I'm currently pursuing this
+          <Label htmlFor="cert_is_current" className="text-[12px] text-rd-text-secondary cursor-pointer">
+            I&apos;m currently pursuing this
           </Label>
         </div>
 
         <div>
-          <label className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">Description (optional)</label>
+          <label className={RD_LABEL}>Description (optional)</label>
           <textarea
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="mt-1 w-full border border-[#DDDDDB] rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#0E1014]"
+            className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] resize-y min-h-[110px]"
             rows={4}
             placeholder="What you did or what it covered — e.g. core topics, projects completed, hands-on labs."
           />
@@ -201,17 +210,31 @@ export default function CertificationsSection({ user }) {
           suggestionType="library_skills"
         />
 
-        <Button onClick={handleSave} disabled={saving} className="bg-[#0E1014] hover:bg-[#52545A] text-sm">
-          {form.id ? <>Update Certification</> : <><Plus className="w-4 h-4 mr-2" />Add Certification</>}
-        </Button>
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className={RD_BTN_PRIMARY}
+        >
+          {saving ? (
+            <><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving…</>
+          ) : form.id ? (
+            "Update Certification"
+          ) : (
+            <><Plus className="w-3.5 h-3.5" />Add Certification</>
+          )}
+        </button>
       </div>
 
       {/* List of saved entries */}
       <div className="space-y-2">
-        {isLoading && <p className="text-xs text-[#9C9DA1]">Loading…</p>}
+        {isLoading && <p className="text-[12px] text-rd-text-tertiary">Loading…</p>}
         {!isLoading && certs.length === 0 && (
-          <div className="text-center py-6 text-xs text-[#9C9DA1]">
-            No certifications yet — add your first one above.
+          <div className="rounded-[18px] border border-rd-border bg-rd-bg-card text-center py-8 shadow-rd">
+            <Award className="w-9 h-9 text-rd-coral mx-auto mb-2.5" />
+            <p className="text-[12.5px] text-rd-text-tertiary">
+              No certifications yet — add your first one above.
+            </p>
           </div>
         )}
         {certs.map((c) => {
@@ -229,12 +252,14 @@ export default function CertificationsSection({ user }) {
           return (
             <EntityCard
               key={c.id}
-              icon={<Award className="w-4 h-4 text-[#52545A]" />}
+              entityId={c.id}
+              icon={<Award className="w-4 h-4 text-rd-golden-dark" />}
+              iconBg="bg-rd-golden-tint"
               title={c.name}
               subtitle={subtitleParts.join(" · ")}
               statusBadge={
                 c.is_current ? (
-                  <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded bg-[#E8E8E5] text-[#52545A] flex-shrink-0">
+                  <span className="text-[10px] uppercase tracking-[0.07em] font-mono font-semibold px-2 py-0.5 rounded-full bg-rd-coral-tint text-rd-coral-dark flex-shrink-0">
                     In progress
                   </span>
                 ) : null

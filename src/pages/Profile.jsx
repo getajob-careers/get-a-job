@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
-import { Loader2, Plus, Trash2, Upload, X, BookText, ExternalLink } from "lucide-react";
+import { Loader2, Plus, Trash2, Upload, X, BookText, ExternalLink, Check } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Select,
@@ -23,9 +23,22 @@ import EducationTab from "@/components/profile/EducationTab";
 import { PROFILE_CSS } from "@/components/profile/profileStyles";
 import { createPageUrl } from "@/utils";
 
-// Profile — Direction 3. Tabs URL-driven via ?tab=. Story Bank lives at
-// /StoryBank now; this page shows a summary card linking out, plus
-// inline story-count pills on each experience row.
+// PR 3F — Profile restyled on rd-* tokens. Restyle-only on behavior;
+// every write path, RLS guard, optimistic-update sequence, and the
+// `recomputeProfileSkillsCanonical` invariant (PR #178 narrow-projection
+// fix) are preserved verbatim. The 6 live tabs (Profile / Education /
+// Goals / Self-assessment / Projects / Experience) all stay.
+//
+// Carry-forward (same pattern Tracker PR 3E used for TRACKER_CSS):
+// PROFILE_CSS is kept injected at the page root because StoryBank.jsx
+// still consumes `.p-*` classes from profileStyles.js. The Profile page
+// chrome itself is now Tailwind + rd tokens; the `.profile` wrapper is
+// dropped so rd-token utilities aren't fighting `.profile { background:
+// var(--p-bg) }` for cascade priority. Deleting profileStyles.js +
+// restyling StoryBank is a follow-up PR.
+//
+// Deferred (out of this PR — see tasks/redesign.md): 5-tab IA
+// consolidation, Profile Strength card, standalone Languages tab.
 
 const PRIMARY_DOMAIN_OPTIONS = [
   { value: "customer_success", label: "Customer Success" },
@@ -95,7 +108,20 @@ const CLARITY_OPTIONS = [
 
 const VALID_TABS = ["profile", "education", "goals", "self-assessment", "projects", "experience"];
 
-// ─── Reusable controls (Direction 3) ───────────────────────────────────
+// ─── rd-token class strings ────────────────────────────────────────────
+// Centralised here so the same surface vocabulary is reused across every
+// tab body. EducationTab + CertificationsSection + EntityCard mirror
+// these in their own files.
+const RD_CARD       = "rounded-[18px] border border-rd-border bg-rd-bg-card p-5 sm:p-6 shadow-rd";
+const RD_CARD_LG    = "rounded-[18px] border border-rd-border bg-rd-bg-card p-6 sm:p-7 shadow-rd";
+const RD_INPUT      = "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+const RD_LABEL      = "block text-[11px] font-display font-semibold text-rd-text mb-1.5";
+const RD_EYEBROW    = "text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono";
+const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+const RD_BTN_OUTLINE = "inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[13px] text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-full px-3.5 py-2 transition-colors";
+const RD_BTN_GHOST   = "inline-flex items-center gap-1.5 text-[12px] text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rounded-full px-2.5 py-1.5 transition-colors";
+
+// ─── Reusable controls (rd-token restyle) ──────────────────────────────
 
 function TagEditor({ tags, onChange, placeholder }) {
   const [val, setVal] = useState("");
@@ -115,16 +141,32 @@ function TagEditor({ tags, onChange, placeholder }) {
           onChange={(e) => setVal(e.target.value)}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); add(); } }}
           placeholder={placeholder || "Add and press Enter"}
-          className="p-input"
+          className={RD_INPUT}
         />
-        <button type="button" onClick={add} className="p-btn p-btn-outline p-btn-sm">Add</button>
+        <button
+          type="button"
+          onClick={add}
+          className={RD_BTN_OUTLINE}
+        >
+          Add
+        </button>
       </div>
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {tags.map((t, i) => (
-            <span key={i} className="p-chip">
+            <span
+              key={i}
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-rd-bg-soft border border-rd-border-subtle rounded-full text-[12px] text-rd-text-secondary"
+            >
               {t}
-              <button onClick={() => remove(t)}><Trash2 className="w-3 h-3" /></button>
+              <button
+                type="button"
+                onClick={() => remove(t)}
+                className="text-rd-text-tertiary hover:text-rd-coral transition-colors"
+                aria-label={`Remove ${t}`}
+              >
+                <Trash2 className="w-3 h-3" />
+              </button>
             </span>
           ))}
         </div>
@@ -151,13 +193,19 @@ function MultiSelectTiles({ options, selected, onChange, exclusiveSubset = [] })
       {options.map((opt) => {
         const value = typeof opt === "string" ? opt : opt.value;
         const label = typeof opt === "string" ? opt : opt.label;
+        const isOn = selected.includes(value);
         return (
           <button
             key={value}
             type="button"
             onClick={() => toggle(value)}
-            className="p-tile"
-            data-selected={selected.includes(value)}
+            aria-pressed={isOn}
+            className={[
+              "font-display font-semibold text-[12.5px] rounded-full px-3.5 py-1.5 transition-colors duration-150 whitespace-nowrap border",
+              isOn
+                ? "bg-rd-text text-white border-rd-text"
+                : "bg-rd-bg-card text-rd-text-secondary border-rd-border hover:border-rd-border-hover hover:text-rd-text",
+            ].join(" ")}
           >
             {label}
           </button>
@@ -179,22 +227,35 @@ function StackedRadio({ options, value, onChange }) {
   return (
     <>
       <div className="space-y-2">
-        {options.map((o) => (
-          <button
-            key={o.value}
-            type="button"
-            onClick={() => onChange(o.value)}
-            className="p-stack-option"
-            data-selected={value === o.value}
-          >
-            {o.label}
-          </button>
-        ))}
+        {options.map((o) => {
+          const isOn = value === o.value;
+          return (
+            <button
+              key={o.value}
+              type="button"
+              onClick={() => onChange(o.value)}
+              aria-pressed={isOn}
+              className={[
+                "block w-full text-left px-4 py-3 rounded-[14px] border text-[13.5px] transition-colors duration-150 cursor-pointer",
+                isOn
+                  ? "bg-rd-text text-white border-rd-text font-medium"
+                  : "bg-rd-bg-card text-rd-text-secondary border-rd-border hover:border-rd-border-hover hover:text-rd-text",
+              ].join(" ")}
+            >
+              {o.label}
+            </button>
+          );
+        })}
       </div>
       {isCustom && (
-        <div className="mt-2 inline-flex items-center gap-1 bg-[#0E1014] text-[#F4F4F2] text-xs px-2.5 py-1 rounded-md">
+        <div className="mt-2 inline-flex items-center gap-1.5 bg-rd-text text-white text-[12px] px-2.5 py-1 rounded-full">
           Your answer: {value}
-          <button type="button" onClick={() => onChange(null)} className="hover:text-[#FDE7E3]">
+          <button
+            type="button"
+            onClick={() => onChange(null)}
+            className="hover:text-rd-coral-tint"
+            aria-label="Clear custom answer"
+          >
             <X className="w-3 h-3" />
           </button>
         </div>
@@ -206,7 +267,7 @@ function StackedRadio({ options, value, onChange }) {
           onBlur={commitCustom}
           onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitCustom(); } }}
           placeholder="Or type your own answer"
-          className="p-input"
+          className={RD_INPUT}
         />
       </div>
     </>
@@ -505,7 +566,7 @@ export default function Profile() {
   const isLoading = loadingProfile || loadingProjects || loadingExp;
 
   const SaveProfileButton = () => (
-    <button type="button" onClick={saveProfile} disabled={saving} className="p-btn p-btn-primary">
+    <button type="button" onClick={saveProfile} disabled={saving} className={RD_BTN_PRIMARY}>
       {saving ? <><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving…</> : "Save profile"}
     </button>
   );
@@ -523,630 +584,668 @@ export default function Profile() {
 
   return (
     <>
+      {/* PROFILE_CSS carry-forward — see header comment. No `.profile`
+          wrapper on this page; the stylesheet is kept loaded so the
+          deferred StoryBank restyle can drop it cleanly. */}
       <style>{PROFILE_CSS}</style>
-      <div className="profile">
-        <div className="max-w-4xl mx-auto px-6 py-10">
-          {/* Header */}
-          <div className="mb-7">
-            <p className="p-eyebrow">Profile</p>
-            <h1 className="p-h1 mt-1.5">Your career foundation.</h1>
-            <p className="p-sub">
-              Identity, experience, education, skills. Every change retriggers career analysis.
-            </p>
-          </div>
 
-          {/* Tab pill bar */}
-          <div className="p-tabs mb-6">
-            {TABS.map((t) => (
+      <div className="max-w-4xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
+        {/* Header */}
+        <div className="mb-7">
+          <p className={RD_EYEBROW}>Profile</p>
+          <h1 className="font-display font-extrabold text-[32px] sm:text-[36px] leading-[1.08] tracking-tight text-rd-text mt-1">
+            Your career foundation.
+          </h1>
+          <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] mt-2 max-w-2xl">
+            Identity, experience, education, skills. Every change retriggers career analysis.
+          </p>
+        </div>
+
+        {/* Tab pill bar — pattern shared with Tracker/Roadmap/Jobs. */}
+        <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+          {TABS.map((t) => {
+            const selected = activeTab === t.id;
+            return (
               <button
                 key={t.id}
                 type="button"
                 role="tab"
-                aria-selected={activeTab === t.id}
+                aria-selected={selected}
                 onClick={() => setTab(t.id)}
-                className="p-tab"
+                className={[
+                  "inline-flex items-center font-display font-bold text-[12.5px] rounded-full px-3.5 py-1.5 transition-colors duration-150 whitespace-nowrap",
+                  selected
+                    ? "bg-rd-text text-white"
+                    : "bg-rd-bg-card text-rd-text-secondary border border-rd-border hover:border-rd-border-hover hover:text-rd-text",
+                ].join(" ")}
               >
                 {t.label}
               </button>
-            ))}
-          </div>
+            );
+          })}
+        </div>
 
-          {/* Tab body — skeleton while profile/related queries load,
-              real content once data is in. Tab pills above stay
-              clickable + URL-stateful throughout. */}
-          {isLoading && <ProfileTabBodySkeleton />}
+        {/* Tab body — skeleton while profile/related queries load,
+            real content once data is in. Tab pills above stay
+            clickable + URL-stateful throughout. */}
+        {isLoading && <ProfileTabBodySkeleton />}
 
-          {/* ── Profile tab ─────────────────────────────────────────── */}
-          {!isLoading && activeTab === "profile" && (
-            <div className="p-card p-card-lg space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="p-label">Full name</label>
-                  <input value={profileForm.full_name} onChange={(e) => setField("full_name", e.target.value)} className="p-input" />
-                </div>
-                <div>
-                  <label className="p-label">Phone number</label>
-                  <input value={profileForm.phone_number} onChange={(e) => setField("phone_number", e.target.value)} className="p-input" placeholder="054-1234567 or +972 54 123 4567" />
-                </div>
-                <div>
-                  <label className="p-label">Location</label>
-                  <input value={profileForm.location} onChange={(e) => setField("location", e.target.value)} className="p-input" placeholder="e.g. Berlin, Germany" />
-                </div>
-                <div>
-                  <label className="p-label">LinkedIn URL</label>
-                  <input value={profileForm.linkedin_url} onChange={(e) => setField("linkedin_url", e.target.value)} className="p-input" placeholder="https://linkedin.com/in/..." />
-                </div>
-              </div>
-
+        {/* ── Profile tab ─────────────────────────────────────────── */}
+        {!isLoading && activeTab === "profile" && (
+          <div className={`${RD_CARD_LG} space-y-5`}>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="p-label">Professional summary</label>
-                <textarea
-                  value={profileForm.summary}
-                  onChange={(e) => setField("summary", e.target.value)}
-                  className="p-input"
-                  rows={4}
-                  placeholder="2–3 sentences. The CV generator uses this as the About Me anchor."
-                />
+                <label className={RD_LABEL}>Full name</label>
+                <input value={profileForm.full_name} onChange={(e) => setField("full_name", e.target.value)} className={RD_INPUT} />
               </div>
-
               <div>
-                <SkillTagInput
-                  label="Skills"
-                  description="Search 595 standard skills or type your own."
-                  tags={profileForm.skills}
-                  onChange={(next) => setProfileForm({ ...profileForm, skills: next })}
-                  suggestionType="library_skills"
-                  placeholder="Search skills, or type and press Enter to add custom"
-                />
+                <label className={RD_LABEL}>Phone number</label>
+                <input value={profileForm.phone_number} onChange={(e) => setField("phone_number", e.target.value)} className={RD_INPUT} placeholder="054-1234567 or +972 54 123 4567" />
               </div>
+              <div>
+                <label className={RD_LABEL}>Location</label>
+                <input value={profileForm.location} onChange={(e) => setField("location", e.target.value)} className={RD_INPUT} placeholder="e.g. Berlin, Germany" />
+              </div>
+              <div>
+                <label className={RD_LABEL}>LinkedIn URL</label>
+                <input value={profileForm.linkedin_url} onChange={(e) => setField("linkedin_url", e.target.value)} className={RD_INPUT} placeholder="https://linkedin.com/in/..." />
+              </div>
+            </div>
 
-              <UnmappedSkillsSection
-                profile={profile}
-                profileForm={profileForm}
-                setProfileForm={setProfileForm}
+            <div>
+              <label className={RD_LABEL}>Professional summary</label>
+              <textarea
+                value={profileForm.summary}
+                onChange={(e) => setField("summary", e.target.value)}
+                className={`${RD_INPUT} resize-y min-h-[110px]`}
+                rows={4}
+                placeholder="2–3 sentences. The CV generator uses this as the About Me anchor."
               />
-
-              {/* Languages — person-level, used to live on Education tab.
-                  Moved up here per redesign because it sits with identity. */}
-              <div>
-                <label className="p-label">Languages</label>
-                <div className="space-y-2">
-                  {profileForm.languages.map((lang, i) => (
-                    <div key={i} className="flex gap-2 items-center">
-                      <input
-                        value={lang.language || ""}
-                        onChange={(e) => {
-                          const next = [...profileForm.languages];
-                          next[i] = { ...next[i], language: e.target.value };
-                          setField("languages", next);
-                        }}
-                        placeholder="e.g. English"
-                        className="p-input flex-1"
-                      />
-                      <Select
-                        value={lang.proficiency || undefined}
-                        onValueChange={(v) => {
-                          const next = [...profileForm.languages];
-                          next[i] = { ...next[i], proficiency: v };
-                          setField("languages", next);
-                        }}
-                      >
-                        <SelectTrigger className="text-sm w-40 border-[#DDDDDB]">
-                          <SelectValue placeholder="Proficiency" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Native">Native</SelectItem>
-                          <SelectItem value="Fluent">Fluent</SelectItem>
-                          <SelectItem value="Professional">Professional</SelectItem>
-                          <SelectItem value="Conversational">Conversational</SelectItem>
-                          <SelectItem value="Basic">Basic</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const next = profileForm.languages.filter((_, idx) => idx !== i);
-                          setField("languages", next);
-                        }}
-                        className="p-btn p-btn-ghost p-btn-sm"
-                        aria-label="Remove language"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ))}
-                  <button
-                    type="button"
-                    onClick={() => setField("languages", [...profileForm.languages, { language: "", proficiency: "Fluent" }])}
-                    className="p-btn p-btn-outline p-btn-sm"
-                  >
-                    <Plus className="w-3.5 h-3.5" /> Add language
-                  </button>
-                </div>
-              </div>
-
-              <div>
-                <label className="p-label">Resume</label>
-                <div className="flex items-center gap-3">
-                  <label className="p-btn p-btn-outline p-btn-sm cursor-pointer">
-                    <Upload className="w-3.5 h-3.5" />
-                    {uploading ? "Uploading…" : "Upload resume"}
-                    <input ref={fileInputRef} type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} />
-                  </label>
-                  {profile?.resume_url && <span className="text-xs text-[#1D7556]">Resume uploaded</span>}
-                </div>
-              </div>
-
-              <SaveProfileButton />
             </div>
-          )}
 
-          {/* ── Education tab ───────────────────────────────────────── */}
-          {!isLoading && activeTab === "education" && (
-            <EducationTab user={user} />
-          )}
-
-          {/* ── Goals & preferences tab ─────────────────────────────── */}
-          {!isLoading && activeTab === "goals" && (
-            <div className="p-card p-card-lg space-y-5">
-              <p className="p-banner p-banner-info">
-                These fields shape your career recommendations. When you update them, your saved applications will re-score against your new direction the next time you open them.
-              </p>
-
-              <div>
-                <label className="p-label">5-year target role</label>
-                <input value={profileForm.five_year_role} onChange={(e) => setField("five_year_role", e.target.value)} className="p-input" placeholder="e.g. Product Manager, Senior Data Analyst" />
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="p-label">Primary domain</label>
-                  <Select value={profileForm.primary_domain || "__none__"} onValueChange={(v) => setField("primary_domain", v === "__none__" ? "" : v)}>
-                    <SelectTrigger className="border-[#DDDDDB]"><SelectValue placeholder="Select domain" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">— Not set —</SelectItem>
-                      {PRIMARY_DOMAIN_OPTIONS.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[11px] text-[#9C9DA1] mt-1">The role family that anchors your career story.</p>
-                </div>
-                <div>
-                  <label className="p-label">Qualification level</label>
-                  <Select value={profileForm.qualification_level || "__none__"} onValueChange={(v) => setField("qualification_level", v === "__none__" ? "" : v)}>
-                    <SelectTrigger className="border-[#DDDDDB]"><SelectValue placeholder="Select level" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__none__">— Not set (system will infer) —</SelectItem>
-                      {QUALIFICATION_LEVEL_OPTIONS.map((o) => (
-                        <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-[11px] text-[#9C9DA1] mt-1">Controls the seniority ceiling on track_1 recommendations.</p>
-                </div>
-              </div>
-
-              <div>
-                <label className="p-label">Job titles you&apos;re targeting now</label>
-                <TagEditor
-                  tags={profileForm.target_job_titles}
-                  onChange={(v) => setField("target_job_titles", v)}
-                  placeholder="e.g. Marketing Coordinator, Junior Product Analyst"
-                />
-              </div>
-
-              <div>
-                <label className="p-label">Target industries</label>
-                <TagEditor
-                  tags={profileForm.target_industries}
-                  onChange={(v) => setField("target_industries", v)}
-                  placeholder="e.g. Fintech, Healthcare, Cybersecurity"
-                />
-              </div>
-
-              <div>
-                <label className="p-label">Adjacent fields</label>
-                <TagEditor
-                  tags={profileForm.adjacent_fields}
-                  onChange={(v) => setField("adjacent_fields", v)}
-                  placeholder="Other domains relevant to your background"
-                />
-                <p className="text-[11px] text-[#9C9DA1] mt-1">Used by the roadmap to surface bridge roles between your current and target domain.</p>
-              </div>
-
-              <div>
-                <label className="p-label">Current employment status</label>
-                <MultiSelectTiles
-                  options={EMPLOYMENT_STATUS_OPTIONS}
-                  selected={profileForm.employment_status}
-                  onChange={(v) => setField("employment_status", v)}
-                  exclusiveSubset={["looking_for_job", "employed", "unemployed"]}
-                />
-                <p className="text-[11px] text-[#9C9DA1] mt-1">If you select &quot;Student&quot;, track scoring caps recommendations at the level you can be hired into now.</p>
-              </div>
-
-              <div>
-                <label className="p-label">Preferred work environment</label>
-                <MultiSelectTiles
-                  options={WORK_ENVIRONMENT_OPTIONS}
-                  selected={profileForm.work_environment}
-                  onChange={(v) => setField("work_environment", v)}
-                />
-              </div>
-
-              <div>
-                <label className="p-label">Work arrangement</label>
-                <MultiSelectTiles
-                  options={WORK_TYPE_OPTIONS}
-                  selected={profileForm.work_type}
-                  onChange={(v) => setField("work_type", v)}
-                />
-              </div>
-
-              <div>
-                <label className="p-label">Earliest start date</label>
-                <input
-                  type="date"
-                  value={profileForm.available_start_date}
-                  onChange={(e) => setField("available_start_date", e.target.value)}
-                  className="p-input"
-                />
-              </div>
-
-              <div className="space-y-3 pt-1">
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={profileForm.open_to_lateral}
-                    onChange={(e) => setField("open_to_lateral", e.target.checked)}
-                    className="rounded"
-                  />
-                  <div>
-                    <p className="text-sm text-[#0E1014] font-medium">Open to lateral roles</p>
-                    <p className="text-xs text-[#9C9DA1]">Roles at the same level in a different function or industry.</p>
-                  </div>
-                </label>
-                <label className="flex items-center gap-3 cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={profileForm.open_to_outside_degree}
-                    onChange={(e) => setField("open_to_outside_degree", e.target.checked)}
-                    className="rounded"
-                  />
-                  <div>
-                    <p className="text-sm text-[#0E1014] font-medium">Open to roles outside my degree field</p>
-                    <p className="text-xs text-[#9C9DA1]">e.g. a Finance major applying to Operations or Product roles.</p>
-                  </div>
-                </label>
-              </div>
-
-              <SaveProfileButton />
+            <div>
+              <SkillTagInput
+                label="Skills"
+                description="Search 595 standard skills or type your own."
+                tags={profileForm.skills}
+                onChange={(next) => setProfileForm({ ...profileForm, skills: next })}
+                suggestionType="library_skills"
+                placeholder="Search skills, or type and press Enter to add custom"
+              />
             </div>
-          )}
 
-          {/* ── Self-Assessment tab ─────────────────────────────────── */}
-          {!isLoading && activeTab === "self-assessment" && (
-            <div className="p-card p-card-lg space-y-6">
-              <p className="p-banner p-banner-info">
-                The same questions from onboarding. Update any of these as your situation changes — they
-                feed the weekly task generator and the chat agents&apos; understanding of where you&apos;re stuck.
-              </p>
+            <UnmappedSkillsSection
+              profile={profile}
+              profileForm={profileForm}
+              setProfileForm={setProfileForm}
+            />
 
-              <div>
-                <label className="p-label">Biggest job-search challenges</label>
-                <div className="grid grid-cols-1 gap-2">
-                  {CHALLENGES.map((c) => {
-                    const isSelected = profileForm.biggest_challenge.includes(c);
-                    return (
-                      <button
-                        key={c}
-                        type="button"
-                        onClick={() => {
-                          const next = isSelected
-                            ? profileForm.biggest_challenge.filter((x) => x !== c)
-                            : [...profileForm.biggest_challenge, c];
-                          setField("biggest_challenge", next);
-                        }}
-                        className="p-stack-option"
-                        data-selected={isSelected}
-                      >
-                        {c}
-                      </button>
-                    );
-                  })}
-                </div>
-                {profileForm.biggest_challenge.filter((c) => !CHALLENGES.includes(c)).length > 0 && (
-                  <div className="mt-2 flex flex-wrap gap-1.5">
-                    {profileForm.biggest_challenge.filter((c) => !CHALLENGES.includes(c)).map((c) => (
-                      <span key={c} className="inline-flex items-center gap-1 bg-[#0E1014] text-[#F4F4F2] text-xs px-2.5 py-1 rounded-md">
-                        {c}
-                        <button type="button" onClick={() => setField("biggest_challenge", profileForm.biggest_challenge.filter((x) => x !== c))} className="hover:text-[#FDE7E3]">
-                          <X className="w-3 h-3" />
-                        </button>
-                      </span>
-                    ))}
+            {/* Languages — person-level, used to live on Education tab.
+                Moved up here per redesign because it sits with identity. */}
+            <div>
+              <label className={RD_LABEL}>Languages</label>
+              <div className="space-y-2">
+                {profileForm.languages.map((lang, i) => (
+                  <div key={i} className="flex gap-2 items-center">
+                    <input
+                      value={lang.language || ""}
+                      onChange={(e) => {
+                        const next = [...profileForm.languages];
+                        next[i] = { ...next[i], language: e.target.value };
+                        setField("languages", next);
+                      }}
+                      placeholder="e.g. English"
+                      className={`${RD_INPUT} flex-1`}
+                    />
+                    <Select
+                      value={lang.proficiency || undefined}
+                      onValueChange={(v) => {
+                        const next = [...profileForm.languages];
+                        next[i] = { ...next[i], proficiency: v };
+                        setField("languages", next);
+                      }}
+                    >
+                      <SelectTrigger className="text-sm w-40 border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text">
+                        <SelectValue placeholder="Proficiency" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Native">Native</SelectItem>
+                        <SelectItem value="Fluent">Fluent</SelectItem>
+                        <SelectItem value="Professional">Professional</SelectItem>
+                        <SelectItem value="Conversational">Conversational</SelectItem>
+                        <SelectItem value="Basic">Basic</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const next = profileForm.languages.filter((_, idx) => idx !== i);
+                        setField("languages", next);
+                      }}
+                      className={RD_BTN_GHOST}
+                      aria-label="Remove language"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
                   </div>
+                ))}
+                <button
+                  type="button"
+                  onClick={() => setField("languages", [...profileForm.languages, { language: "", proficiency: "Fluent" }])}
+                  className={RD_BTN_OUTLINE}
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add language
+                </button>
+              </div>
+            </div>
+
+            <div>
+              <label className={RD_LABEL}>Resume</label>
+              <div className="flex items-center gap-3 flex-wrap">
+                <label className={`${RD_BTN_OUTLINE} cursor-pointer`}>
+                  <Upload className="w-3.5 h-3.5" />
+                  {uploading ? "Uploading…" : "Upload resume"}
+                  <input ref={fileInputRef} type="file" className="hidden" accept=".pdf,.doc,.docx" onChange={handleResumeUpload} />
+                </label>
+                {profile?.resume_url && (
+                  <span className="inline-flex items-center gap-1 text-[12px] text-rd-teal-dark">
+                    <Check className="w-3.5 h-3.5" /> Resume uploaded
+                  </span>
                 )}
               </div>
+            </div>
 
+            <SaveProfileButton />
+          </div>
+        )}
+
+        {/* ── Education tab ───────────────────────────────────────── */}
+        {!isLoading && activeTab === "education" && (
+          <EducationTab user={user} />
+        )}
+
+        {/* ── Goals & preferences tab ─────────────────────────────── */}
+        {!isLoading && activeTab === "goals" && (
+          <div className={`${RD_CARD_LG} space-y-5`}>
+            <p className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-teal-tint border border-rd-teal/30 text-rd-text">
+              These fields shape your career recommendations. When you update them, your saved applications will re-score against your new direction the next time you open them.
+            </p>
+
+            <div>
+              <label className={RD_LABEL}>5-year target role</label>
+              <input value={profileForm.five_year_role} onChange={(e) => setField("five_year_role", e.target.value)} className={RD_INPUT} placeholder="e.g. Product Manager, Senior Data Analyst" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="p-label">CV tailoring strategy</label>
-                <StackedRadio
-                  options={CV_OPTIONS}
-                  value={profileForm.cv_tailoring_strategy}
-                  onChange={(v) => setField("cv_tailoring_strategy", v)}
-                />
+                <label className={RD_LABEL}>Primary domain</label>
+                <Select value={profileForm.primary_domain || "__none__"} onValueChange={(v) => setField("primary_domain", v === "__none__" ? "" : v)}>
+                  <SelectTrigger className="border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text"><SelectValue placeholder="Select domain" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— Not set —</SelectItem>
+                    {PRIMARY_DOMAIN_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-rd-text-tertiary mt-1.5">The role family that anchors your career story.</p>
               </div>
-
               <div>
-                <label className="p-label">LinkedIn outreach strategy</label>
-                <StackedRadio
-                  options={LINKEDIN_OPTIONS}
-                  value={profileForm.linkedin_outreach_strategy}
-                  onChange={(v) => setField("linkedin_outreach_strategy", v)}
-                />
+                <label className={RD_LABEL}>Qualification level</label>
+                <Select value={profileForm.qualification_level || "__none__"} onValueChange={(v) => setField("qualification_level", v === "__none__" ? "" : v)}>
+                  <SelectTrigger className="border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text"><SelectValue placeholder="Select level" /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="__none__">— Not set (system will infer) —</SelectItem>
+                    {QUALIFICATION_LEVEL_OPTIONS.map((o) => (
+                      <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] text-rd-text-tertiary mt-1.5">Controls the seniority ceiling on track_1 recommendations.</p>
               </div>
+            </div>
 
-              <div>
-                <label className="p-label">Role clarity (1–5)</label>
-                <div className="flex gap-2 flex-wrap">
-                  {CLARITY_OPTIONS.map((o) => (
+            <div>
+              <label className={RD_LABEL}>Job titles you&apos;re targeting now</label>
+              <TagEditor
+                tags={profileForm.target_job_titles}
+                onChange={(v) => setField("target_job_titles", v)}
+                placeholder="e.g. Marketing Coordinator, Junior Product Analyst"
+              />
+            </div>
+
+            <div>
+              <label className={RD_LABEL}>Target industries</label>
+              <TagEditor
+                tags={profileForm.target_industries}
+                onChange={(v) => setField("target_industries", v)}
+                placeholder="e.g. Fintech, Healthcare, Cybersecurity"
+              />
+            </div>
+
+            <div>
+              <label className={RD_LABEL}>Adjacent fields</label>
+              <TagEditor
+                tags={profileForm.adjacent_fields}
+                onChange={(v) => setField("adjacent_fields", v)}
+                placeholder="Other domains relevant to your background"
+              />
+              <p className="text-[11px] text-rd-text-tertiary mt-1.5">Used by the roadmap to surface bridge roles between your current and target domain.</p>
+            </div>
+
+            <div>
+              <label className={RD_LABEL}>Current employment status</label>
+              <MultiSelectTiles
+                options={EMPLOYMENT_STATUS_OPTIONS}
+                selected={profileForm.employment_status}
+                onChange={(v) => setField("employment_status", v)}
+                exclusiveSubset={["looking_for_job", "employed", "unemployed"]}
+              />
+              <p className="text-[11px] text-rd-text-tertiary mt-1.5">If you select &quot;Student&quot;, track scoring caps recommendations at the level you can be hired into now.</p>
+            </div>
+
+            <div>
+              <label className={RD_LABEL}>Preferred work environment</label>
+              <MultiSelectTiles
+                options={WORK_ENVIRONMENT_OPTIONS}
+                selected={profileForm.work_environment}
+                onChange={(v) => setField("work_environment", v)}
+              />
+            </div>
+
+            <div>
+              <label className={RD_LABEL}>Work arrangement</label>
+              <MultiSelectTiles
+                options={WORK_TYPE_OPTIONS}
+                selected={profileForm.work_type}
+                onChange={(v) => setField("work_type", v)}
+              />
+            </div>
+
+            <div>
+              <label className={RD_LABEL}>Earliest start date</label>
+              <input
+                type="date"
+                value={profileForm.available_start_date}
+                onChange={(e) => setField("available_start_date", e.target.value)}
+                className={RD_INPUT}
+              />
+            </div>
+
+            <div className="space-y-3 pt-1">
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={profileForm.open_to_lateral}
+                  onChange={(e) => setField("open_to_lateral", e.target.checked)}
+                  className="rounded accent-rd-coral"
+                />
+                <div>
+                  <p className="text-[13px] text-rd-text font-display font-semibold">Open to lateral roles</p>
+                  <p className="text-[11.5px] text-rd-text-tertiary">Roles at the same level in a different function or industry.</p>
+                </div>
+              </label>
+              <label className="flex items-center gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={profileForm.open_to_outside_degree}
+                  onChange={(e) => setField("open_to_outside_degree", e.target.checked)}
+                  className="rounded accent-rd-coral"
+                />
+                <div>
+                  <p className="text-[13px] text-rd-text font-display font-semibold">Open to roles outside my degree field</p>
+                  <p className="text-[11.5px] text-rd-text-tertiary">e.g. a Finance major applying to Operations or Product roles.</p>
+                </div>
+              </label>
+            </div>
+
+            <SaveProfileButton />
+          </div>
+        )}
+
+        {/* ── Self-Assessment tab ─────────────────────────────────── */}
+        {!isLoading && activeTab === "self-assessment" && (
+          <div className={`${RD_CARD_LG} space-y-6`}>
+            <p className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-teal-tint border border-rd-teal/30 text-rd-text">
+              The same questions from onboarding. Update any of these as your situation changes — they
+              feed the weekly task generator and the chat agents&apos; understanding of where you&apos;re stuck.
+            </p>
+
+            <div>
+              <label className={RD_LABEL}>Biggest job-search challenges</label>
+              <div className="grid grid-cols-1 gap-2">
+                {CHALLENGES.map((c) => {
+                  const isSelected = profileForm.biggest_challenge.includes(c);
+                  return (
+                    <button
+                      key={c}
+                      type="button"
+                      onClick={() => {
+                        const next = isSelected
+                          ? profileForm.biggest_challenge.filter((x) => x !== c)
+                          : [...profileForm.biggest_challenge, c];
+                        setField("biggest_challenge", next);
+                      }}
+                      aria-pressed={isSelected}
+                      className={[
+                        "block w-full text-left px-4 py-3 rounded-[14px] border text-[13.5px] transition-colors duration-150 cursor-pointer",
+                        isSelected
+                          ? "bg-rd-text text-white border-rd-text font-medium"
+                          : "bg-rd-bg-card text-rd-text-secondary border-rd-border hover:border-rd-border-hover hover:text-rd-text",
+                      ].join(" ")}
+                    >
+                      {c}
+                    </button>
+                  );
+                })}
+              </div>
+              {profileForm.biggest_challenge.filter((c) => !CHALLENGES.includes(c)).length > 0 && (
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {profileForm.biggest_challenge.filter((c) => !CHALLENGES.includes(c)).map((c) => (
+                    <span key={c} className="inline-flex items-center gap-1.5 bg-rd-text text-white text-[12px] px-2.5 py-1 rounded-full">
+                      {c}
+                      <button type="button" onClick={() => setField("biggest_challenge", profileForm.biggest_challenge.filter((x) => x !== c))} className="hover:text-rd-coral-tint" aria-label={`Remove ${c}`}>
+                        <X className="w-3 h-3" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label className={RD_LABEL}>CV tailoring strategy</label>
+              <StackedRadio
+                options={CV_OPTIONS}
+                value={profileForm.cv_tailoring_strategy}
+                onChange={(v) => setField("cv_tailoring_strategy", v)}
+              />
+            </div>
+
+            <div>
+              <label className={RD_LABEL}>LinkedIn outreach strategy</label>
+              <StackedRadio
+                options={LINKEDIN_OPTIONS}
+                value={profileForm.linkedin_outreach_strategy}
+                onChange={(v) => setField("linkedin_outreach_strategy", v)}
+              />
+            </div>
+
+            <div>
+              <label className={RD_LABEL}>Role clarity (1–5)</label>
+              <div className="flex gap-2 flex-wrap">
+                {CLARITY_OPTIONS.map((o) => {
+                  const isOn = profileForm.role_clarity_score === o.value;
+                  return (
                     <button
                       key={o.value}
                       type="button"
                       onClick={() => setField("role_clarity_score", profileForm.role_clarity_score === o.value ? null : o.value)}
-                      className="p-tile"
-                      data-selected={profileForm.role_clarity_score === o.value}
+                      aria-pressed={isOn}
+                      className={[
+                        "font-display font-semibold text-[12.5px] rounded-full px-3.5 py-1.5 transition-colors duration-150 whitespace-nowrap border",
+                        isOn
+                          ? "bg-rd-text text-white border-rd-text"
+                          : "bg-rd-bg-card text-rd-text-secondary border-rd-border hover:border-rd-border-hover hover:text-rd-text",
+                      ].join(" ")}
                     >
                       {o.label}
                     </button>
-                  ))}
-                </div>
-                <p className="text-xs text-[#9C9DA1] mt-2">Click again to clear.</p>
+                  );
+                })}
               </div>
+              <p className="text-[11px] text-rd-text-tertiary mt-2">Click again to clear.</p>
+            </div>
 
+            <div>
+              <label className={RD_LABEL}>Job-search efforts so far</label>
+              <textarea
+                value={profileForm.job_search_efforts}
+                onChange={(e) => setField("job_search_efforts", e.target.value)}
+                placeholder="e.g. Applied to 50+ roles, attended career fairs, updated my LinkedIn..."
+                className={`${RD_INPUT} resize-y min-h-[110px]`}
+                rows={4}
+              />
+            </div>
+
+            <SaveProfileButton />
+          </div>
+        )}
+
+        {/* Certifications now render under the Education tab via
+            CertificationsSection (PR 2 of the entity IA). The old
+            standalone certifications tab + URL redirect to ?tab=education
+            above. */}
+
+        {/* ── Projects tab ────────────────────────────────────────── */}
+        {!isLoading && activeTab === "projects" && (
+          <div className="space-y-4">
+            <div className={`${RD_CARD_LG} space-y-4`}>
+              <h3 className="font-display font-bold text-[14px] text-rd-text">Add project</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className={RD_LABEL}>Project name</label>
+                  <input value={projectForm.name} onChange={(e) => setProjectForm({ ...projectForm, name: e.target.value })} className={RD_INPUT} />
+                </div>
+                <div>
+                  <label className={RD_LABEL}>URL</label>
+                  <input value={projectForm.url} onChange={(e) => setProjectForm({ ...projectForm, url: e.target.value })} className={RD_INPUT} placeholder="https://github.com/..." />
+                </div>
+              </div>
               <div>
-                <label className="p-label">Job-search efforts so far</label>
-                <textarea
-                  value={profileForm.job_search_efforts}
-                  onChange={(e) => setField("job_search_efforts", e.target.value)}
-                  placeholder="e.g. Applied to 50+ roles, attended career fairs, updated my LinkedIn..."
-                  className="p-input"
-                  rows={4}
-                />
+                <label className={RD_LABEL}>Description</label>
+                <textarea value={projectForm.description} onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })} className={`${RD_INPUT} resize-y min-h-[90px]`} rows={3} />
               </div>
-
-              <SaveProfileButton />
+              <button type="button" onClick={addProject} className={RD_BTN_PRIMARY}>
+                <Plus className="w-3.5 h-3.5" />Add project
+              </button>
             </div>
-          )}
-
-          {/* Certifications now render under the Education tab via
-              CertificationsSection (PR 2 of the entity IA). The old
-              standalone certifications tab + URL redirect to ?tab=education
-              above. */}
-
-          {/* ── Projects tab ────────────────────────────────────────── */}
-          {!isLoading && activeTab === "projects" && (
-            <div className="space-y-4">
-              <div className="p-card p-card-lg space-y-4">
-                <h3 className="text-sm font-semibold text-[#0E1014]">Add project</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="p-label">Project name</label>
-                    <input value={projectForm.name} onChange={(e) => setProjectForm({ ...projectForm, name: e.target.value })} className="p-input" />
-                  </div>
-                  <div>
-                    <label className="p-label">URL</label>
-                    <input value={projectForm.url} onChange={(e) => setProjectForm({ ...projectForm, url: e.target.value })} className="p-input" placeholder="https://github.com/..." />
-                  </div>
-                </div>
-                <div>
-                  <label className="p-label">Description</label>
-                  <textarea value={projectForm.description} onChange={(e) => setProjectForm({ ...projectForm, description: e.target.value })} className="p-input" rows={3} />
-                </div>
-                <button type="button" onClick={addProject} className="p-btn p-btn-primary">
-                  <Plus className="w-3.5 h-3.5" />Add project
-                </button>
-              </div>
-              {projects.length > 0 && (
-                <div className="space-y-2">
-                  <p className="p-eyebrow">Your projects</p>
-                  {projects.map((p) => (
-                    <div key={p.id} className="p-card flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-medium text-[#0E1014]">{p.name}</p>
-                        <p className="text-xs text-[#9C9DA1]">{p.description?.substring(0, 60)}{p.description?.length > 60 ? "..." : ""}</p>
-                      </div>
-                      <button
-                        type="button"
-                        onClick={async () => {
-                          const { error } = await supabase.from("projects").delete().eq("id", p.id).eq("user_id", user.id);
-                          if (error) { toast.error("Failed to delete project."); return; }
-                          queryClient.invalidateQueries({ queryKey: ["projects"] });
-                          toast.success("Project removed.");
-                        }}
-                        className="p-btn p-btn-ghost p-btn-sm"
-                        aria-label="Delete project"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+            {projects.length > 0 && (
+              <div className="space-y-2">
+                <p className={RD_EYEBROW}>Your projects</p>
+                {projects.map((p) => (
+                  <div key={p.id} className={`${RD_CARD} flex items-center justify-between gap-3`}>
+                    <div className="min-w-0 flex-1">
+                      <p className="text-[13.5px] font-display font-bold text-rd-text truncate">{p.name}</p>
+                      <p className="text-[12px] text-rd-text-tertiary truncate">{p.description?.substring(0, 60)}{p.description?.length > 60 ? "..." : ""}</p>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* ── Experience tab ──────────────────────────────────────── */}
-          {!isLoading && activeTab === "experience" && (
-            <div className="space-y-4">
-              {/* Story Bank summary — links to /StoryBank for full management */}
-              <div className="p-card flex items-center justify-between gap-3 flex-wrap">
-                <div className="flex items-center gap-3 min-w-0">
-                  <div className="w-8 h-8 rounded-lg bg-[#FDE7E3] flex items-center justify-center flex-shrink-0">
-                    <BookText className="w-4 h-4 text-[#C84F40]" />
-                  </div>
-                  <div className="min-w-0">
-                    <p className="text-sm font-semibold text-[#0E1014]">
-                      {stories.length === 0
-                        ? "No stories captured yet."
-                        : `${stories.length} ${stories.length === 1 ? "story" : "stories"} captured.`}
-                    </p>
-                    <p className="text-xs text-[#52545A]">
-                      Story Bank stores STAR-format moments that feed CVs, LinkedIn posts, and interview prep.
-                    </p>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => navigate(createPageUrl("StoryBank"))}
-                  className="p-btn p-btn-outline p-btn-sm flex-shrink-0"
-                >
-                  Open Story Bank<ExternalLink className="w-3.5 h-3.5" />
-                </button>
-              </div>
-
-              <div className="p-card p-card-lg space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-[#0E1014]">
-                    {expForm.id ? "Edit experience" : "Add experience"}
-                  </h3>
-                  {expForm.id && (
-                    <button onClick={resetExpForm} className="text-xs text-[#9C9DA1] hover:text-[#52545A] underline">
-                      Cancel edit
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        const { error } = await supabase.from("projects").delete().eq("id", p.id).eq("user_id", user.id);
+                        if (error) { toast.error("Failed to delete project."); return; }
+                        queryClient.invalidateQueries({ queryKey: ["projects"] });
+                        toast.success("Project removed.");
+                      }}
+                      className={RD_BTN_GHOST}
+                      aria-label="Delete project"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
                     </button>
-                  )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ── Experience tab ──────────────────────────────────────── */}
+        {!isLoading && activeTab === "experience" && (
+          <div className="space-y-4">
+            {/* Story Bank summary — links to /StoryBank for full management */}
+            <div className={`${RD_CARD} flex items-center justify-between gap-3 flex-wrap`}>
+              <div className="flex items-center gap-3 min-w-0">
+                <div className="w-9 h-9 rounded-[12px] bg-rd-coral-tint flex items-center justify-center flex-shrink-0">
+                  <BookText className="w-4 h-4 text-rd-coral-dark" />
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className="p-label">Title</label>
-                    <input value={expForm.title} onChange={(e) => setExpForm({ ...expForm, title: e.target.value })} className="p-input" placeholder="e.g. Team Lead, Marketing Intern" />
-                  </div>
-                  <div>
-                    <label className="p-label">Company / organization</label>
-                    <input value={expForm.company} onChange={(e) => setExpForm({ ...expForm, company: e.target.value })} className="p-input" placeholder="e.g. Acme Corp, Google" />
-                  </div>
-                  <div>
-                    <label className="p-label">Start date</label>
-                    <input value={expForm.start_date} onChange={(e) => setExpForm({ ...expForm, start_date: e.target.value })} className="p-input" placeholder="e.g. Oct 2025 or 2020" />
-                  </div>
-                  <div>
-                    <label className="p-label">End date</label>
-                    <input
-                      value={expForm.end_date}
-                      onChange={(e) => setExpForm({ ...expForm, end_date: e.target.value, is_current: e.target.value.toLowerCase() === "present" })}
-                      className="p-input"
-                      placeholder="e.g. Jul 2025 or Present"
-                    />
-                  </div>
+                <div className="min-w-0">
+                  <p className="text-[13.5px] font-display font-bold text-rd-text">
+                    {stories.length === 0
+                      ? "No stories captured yet."
+                      : `${stories.length} ${stories.length === 1 ? "story" : "stories"} captured.`}
+                  </p>
+                  <p className="text-[12px] text-rd-text-secondary leading-[1.5]">
+                    Story Bank stores STAR-format moments that feed CVs, LinkedIn posts, and interview prep.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => navigate(createPageUrl("StoryBank"))}
+                className={`${RD_BTN_OUTLINE} flex-shrink-0`}
+              >
+                Open Story Bank<ExternalLink className="w-3.5 h-3.5" />
+              </button>
+            </div>
+
+            <div className={`${RD_CARD_LG} space-y-4`}>
+              <div className="flex items-center justify-between">
+                <h3 className="font-display font-bold text-[14px] text-rd-text">
+                  {expForm.id ? "Edit experience" : "Add experience"}
+                </h3>
+                {expForm.id && (
+                  <button onClick={resetExpForm} className="text-[12px] text-rd-text-tertiary hover:text-rd-text underline">
+                    Cancel edit
+                  </button>
+                )}
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className={RD_LABEL}>Title</label>
+                  <input value={expForm.title} onChange={(e) => setExpForm({ ...expForm, title: e.target.value })} className={RD_INPUT} placeholder="e.g. Team Lead, Marketing Intern" />
                 </div>
                 <div>
-                  <label className="p-label">Type</label>
-                  <Select value={expForm.type} onValueChange={(v) => setExpForm({ ...expForm, type: v })}>
-                    <SelectTrigger className="border-[#DDDDDB]"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="internship">Internship</SelectItem>
-                      <SelectItem value="full_time">Full Time</SelectItem>
-                      <SelectItem value="part_time">Part Time</SelectItem>
-                      <SelectItem value="freelance">Freelance</SelectItem>
-                      <SelectItem value="founder">Founder / Self-employed</SelectItem>
-                      <SelectItem value="volunteer">Volunteer</SelectItem>
-                      <SelectItem value="leadership">Leadership / Club</SelectItem>
-                      <SelectItem value="military">Military Service</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <label className={RD_LABEL}>Company / organization</label>
+                  <input value={expForm.company} onChange={(e) => setExpForm({ ...expForm, company: e.target.value })} className={RD_INPUT} placeholder="e.g. Acme Corp, Google" />
                 </div>
                 <div>
-                  <label className="p-label">Responsibilities</label>
-                  <textarea
-                    value={expForm.responsibilities}
-                    onChange={(e) => setExpForm({ ...expForm, responsibilities: e.target.value })}
-                    className="p-input"
-                    rows={5}
-                    placeholder="One responsibility per line. Examples:&#10;Led a team of 5 engineers on the onboarding feature.&#10;Awarded Employee of the Quarter (Q3 2024)."
+                  <label className={RD_LABEL}>Start date</label>
+                  <input value={expForm.start_date} onChange={(e) => setExpForm({ ...expForm, start_date: e.target.value })} className={RD_INPUT} placeholder="e.g. Oct 2025 or 2020" />
+                </div>
+                <div>
+                  <label className={RD_LABEL}>End date</label>
+                  <input
+                    value={expForm.end_date}
+                    onChange={(e) => setExpForm({ ...expForm, end_date: e.target.value, is_current: e.target.value.toLowerCase() === "present" })}
+                    className={RD_INPUT}
+                    placeholder="e.g. Jul 2025 or Present"
                   />
                 </div>
-                <SkillTagInput
-                  label="Skills & tools"
-                  description="Skills you applied + software / platforms you used in this role — feeds CV bullet generation and skill-graph matching."
-                  tags={expForm.skills}
-                  onChange={(v) => setExpForm({ ...expForm, skills: v })}
-                  placeholder="e.g. customer success, stakeholder management, Salesforce, Python"
-                  suggestionType="library_skills"
-                />
-                <button type="button" onClick={addExperience} className="p-btn p-btn-primary">
-                  {expForm.id ? "Update experience" : <><Plus className="w-3.5 h-3.5" />Add experience</>}
-                </button>
               </div>
-
-              {experiences.length > 0 && (
-                <div className="space-y-2">
-                  <p className="p-eyebrow">Your experience</p>
-                  {experiences.map((e) => {
-                    const count = storyCountByExperience.get(e.id) || 0;
-                    return (
-                      <div key={e.id} className="p-exp-card">
-                        <div className="min-w-0 flex-1">
-                          <p className="p-exp-card-title truncate">
-                            {e.title} <span className="text-[#9C9DA1] font-normal">at</span> {e.company}
-                          </p>
-                          <p className="p-exp-card-meta">
-                            {e.type?.replace("_", " ")}
-                            {e.start_date ? ` · ${e.start_date}${e.end_date ? ` – ${e.end_date}` : ""}` : ""}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2 flex-shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => navigate(`${createPageUrl("StoryBank")}?filter=experience_id=${e.id}`)}
-                            className="p-story-pill"
-                            data-has={count > 0}
-                            title={count > 0 ? "View stories in Story Bank" : "Capture a story for this experience"}
-                          >
-                            <BookText className="w-3 h-3" />
-                            {count} {count === 1 ? "story" : "stories"}
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setExpForm({
-                              id: e.id,
-                              title: e.title || "",
-                              company: e.company || "",
-                              type: e.type || "internship",
-                              start_date: e.start_date || "",
-                              end_date: e.end_date || "",
-                              is_current: !!e.is_current,
-                              responsibilities: e.responsibilities || "",
-                              skills: e.skills || [],
-                            })}
-                            className="p-btn p-btn-ghost p-btn-sm"
-                          >
-                            Edit
-                          </button>
-                          <button
-                            type="button"
-                            onClick={async () => {
-                              const { error } = await supabase.from("experiences").delete().eq("id", e.id).eq("user_id", user.id);
-                              if (error) { toast.error("Failed to delete experience."); return; }
-                              queryClient.invalidateQueries({ queryKey: ["experiences"] });
-                              if (expForm.id === e.id) resetExpForm();
-                              toast.success("Experience removed.");
-                            }}
-                            className="p-btn p-btn-ghost p-btn-sm"
-                            aria-label="Delete experience"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              <div>
+                <label className={RD_LABEL}>Type</label>
+                <Select value={expForm.type} onValueChange={(v) => setExpForm({ ...expForm, type: v })}>
+                  <SelectTrigger className="border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="internship">Internship</SelectItem>
+                    <SelectItem value="full_time">Full Time</SelectItem>
+                    <SelectItem value="part_time">Part Time</SelectItem>
+                    <SelectItem value="freelance">Freelance</SelectItem>
+                    <SelectItem value="founder">Founder / Self-employed</SelectItem>
+                    <SelectItem value="volunteer">Volunteer</SelectItem>
+                    <SelectItem value="leadership">Leadership / Club</SelectItem>
+                    <SelectItem value="military">Military Service</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className={RD_LABEL}>Responsibilities</label>
+                <textarea
+                  value={expForm.responsibilities}
+                  onChange={(e) => setExpForm({ ...expForm, responsibilities: e.target.value })}
+                  className={`${RD_INPUT} resize-y min-h-[130px]`}
+                  rows={5}
+                  placeholder="One responsibility per line. Examples:&#10;Led a team of 5 engineers on the onboarding feature.&#10;Awarded Employee of the Quarter (Q3 2024)."
+                />
+              </div>
+              <SkillTagInput
+                label="Skills & tools"
+                description="Skills you applied + software / platforms you used in this role — feeds CV bullet generation and skill-graph matching."
+                tags={expForm.skills}
+                onChange={(v) => setExpForm({ ...expForm, skills: v })}
+                placeholder="e.g. customer success, stakeholder management, Salesforce, Python"
+                suggestionType="library_skills"
+              />
+              <button type="button" onClick={addExperience} className={RD_BTN_PRIMARY}>
+                {expForm.id ? "Update experience" : <><Plus className="w-3.5 h-3.5" />Add experience</>}
+              </button>
             </div>
-          )}
-        </div>
+
+            {experiences.length > 0 && (
+              <div className="space-y-2">
+                <p className={RD_EYEBROW}>Your experience</p>
+                {experiences.map((e) => {
+                  const count = storyCountByExperience.get(e.id) || 0;
+                  return (
+                    <div
+                      key={e.id}
+                      data-app-id={e.id}
+                      className={`${RD_CARD} flex items-center justify-between gap-3 flex-wrap hover:border-rd-border-hover transition-colors`}
+                    >
+                      <div className="min-w-0 flex-1">
+                        <p className="font-display font-bold text-[14px] text-rd-text truncate">
+                          {e.title} <span className="text-rd-text-tertiary font-normal">at</span> {e.company}
+                        </p>
+                        <p className="text-[12px] text-rd-text-tertiary mt-0.5">
+                          {e.type?.replace("_", " ")}
+                          {e.start_date ? ` · ${e.start_date}${e.end_date ? ` – ${e.end_date}` : ""}` : ""}
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 flex-shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => navigate(`${createPageUrl("StoryBank")}?filter=experience_id=${e.id}`)}
+                          className={[
+                            "inline-flex items-center gap-1 px-2.5 py-1 rounded-full font-mono font-semibold text-[10.5px] tracking-[0.04em] transition-colors",
+                            count > 0
+                              ? "bg-rd-coral-tint text-rd-coral-dark hover:bg-rd-coral-tint/80"
+                              : "bg-rd-bg-soft text-rd-text-tertiary hover:bg-rd-border",
+                          ].join(" ")}
+                          title={count > 0 ? "View stories in Story Bank" : "Capture a story for this experience"}
+                        >
+                          <BookText className="w-3 h-3" />
+                          {count} {count === 1 ? "story" : "stories"}
+                        </button>
+                        <button
+                          type="button"
+                          data-exp-edit={e.id}
+                          onClick={() => setExpForm({
+                            id: e.id,
+                            title: e.title || "",
+                            company: e.company || "",
+                            type: e.type || "internship",
+                            start_date: e.start_date || "",
+                            end_date: e.end_date || "",
+                            is_current: !!e.is_current,
+                            responsibilities: e.responsibilities || "",
+                            skills: e.skills || [],
+                          })}
+                          className={RD_BTN_GHOST}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          onClick={async () => {
+                            const { error } = await supabase.from("experiences").delete().eq("id", e.id).eq("user_id", user.id);
+                            if (error) { toast.error("Failed to delete experience."); return; }
+                            queryClient.invalidateQueries({ queryKey: ["experiences"] });
+                            if (expForm.id === e.id) resetExpForm();
+                            toast.success("Experience removed.");
+                          }}
+                          className={RD_BTN_GHOST}
+                          aria-label="Delete experience"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </>
   );
@@ -1160,7 +1259,7 @@ export default function Profile() {
 // Self-Assessment form shape.
 function ProfileTabBodySkeleton() {
   return (
-    <div className="p-card p-card-lg space-y-5" aria-hidden="true">
+    <div className="rounded-[18px] border border-rd-border bg-rd-bg-card p-6 sm:p-7 shadow-rd space-y-5" aria-hidden="true">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {[0, 1, 2, 3, 4, 5].map((i) => (
           <div key={i} className="space-y-2">
@@ -1219,46 +1318,46 @@ function UnmappedSkillsSection({ profile, profileForm, setProfileForm }) {
   };
 
   return (
-    <div className="bg-[#FAFAF8] border border-[#E8E8E5] rounded-md p-4">
-      <p className="text-xs font-medium text-[#0E1014] mb-1">
-        Skills we couldn't match ({fixable.length})
+    <div className="rounded-[14px] border border-rd-golden/40 bg-rd-golden-tint/60 px-4 py-3.5">
+      <p className="text-[12px] font-display font-bold text-rd-text mb-1">
+        Skills we couldn&apos;t match ({fixable.length})
       </p>
-      <p className="text-[11px] text-[#9C9DA1] mb-3 leading-relaxed">
-        These labels are in your skills but don't match a standard skill — so
-        they won't count for job matching or CV tailoring. Pick a suggestion
+      <p className="text-[11.5px] text-rd-text-secondary mb-3 leading-relaxed">
+        These labels are in your skills but don&apos;t match a standard skill — so
+        they won&apos;t count for job matching or CV tailoring. Pick a suggestion
         to replace, or remove. Changes save when you save the profile.
       </p>
       <div className="space-y-2">
         {fixable.map((label) => {
           const suggestions = suggestSkillsFromUnmapped(label);
           return (
-            <div key={label} className="bg-white border border-[#DDDDDB] rounded-md px-3 py-2">
+            <div key={label} className="bg-rd-bg-card border border-rd-border rounded-[10px] px-3 py-2.5">
               <div className="flex items-start justify-between gap-3 flex-wrap">
-                <span className="text-xs text-[#0E1014] font-medium">{label}</span>
+                <span className="text-[12.5px] text-rd-text font-display font-semibold">{label}</span>
                 <button
                   type="button"
                   onClick={() => removeLabel(label)}
-                  className="text-[11px] text-[#9C9DA1] hover:text-[#C84F40] transition-colors"
+                  className="text-[11px] text-rd-text-tertiary hover:text-rd-coral-dark transition-colors"
                 >
                   Remove
                 </button>
               </div>
               {suggestions.length > 0 ? (
                 <div className="mt-2 flex flex-wrap gap-1.5">
-                  <span className="text-[11px] text-[#9C9DA1] self-center">Did you mean:</span>
+                  <span className="text-[11px] text-rd-text-tertiary self-center">Did you mean:</span>
                   {suggestions.map((s) => (
                     <button
                       key={s.name}
                       type="button"
                       onClick={() => replaceLabel(label, s.name)}
-                      className="text-[11px] px-2 py-0.5 rounded-full border border-[#DDDDDB] text-[#52545A] hover:border-[#0E1014] hover:text-[#0E1014] transition-colors"
+                      className="text-[11px] px-2.5 py-0.5 rounded-full border border-rd-border text-rd-text-secondary hover:border-rd-text hover:text-rd-text transition-colors"
                     >
                       {s.name}
                     </button>
                   ))}
                 </div>
               ) : (
-                <p className="mt-1 text-[11px] text-[#9C9DA1] italic">
+                <p className="mt-1 text-[11px] text-rd-text-tertiary italic">
                   No close match in the standard library — remove or leave as-is.
                 </p>
               )}
