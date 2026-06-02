@@ -1,0 +1,83 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@500;600;700;800&display=swap">
+<h2 class="sr-only">A Get A Job onboarding mockup, the experience step: CV-imported roles, each with its own skill tags and an open autocomplete for adding more.</h2>
+<style>
+.gajx *{box-sizing:border-box}.gajx{font-family:system-ui,-apple-system,sans-serif;color:#211D18}
+.slab{font-family:'Rokkitt',Georgia,serif}
+.gajbtn{border:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-family:'Rokkitt',Georgia,serif;font-weight:700;border-radius:999px;transition:transform .12s}
+.gajbtn:active{transform:scale(.97)}
+.chip{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;color:#352F27;background:#F1EFE8;border-radius:8px;padding:4px 9px}
+.chip i{font-size:13px;color:#B4ADA1;cursor:pointer}
+.chip i:hover{color:#C7461F}
+.sugrow{display:flex;align-items:center;gap:8px;padding:8px 11px;cursor:pointer;font-size:12.5px;color:#352F27;transition:background .12s}
+.sugrow:hover{background:#FBF7F1}
+.expcard{background:#fff;border:1px solid #F0E7D8;border-radius:14px;padding:14px 15px}
+</style>
+<div class="gajx"><div style="background:#E79B7D;padding:13px;border-radius:26px"><div style="background:#fff;border-radius:18px;overflow:hidden">
+
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 24px">
+    <div style="display:flex;align-items:center;gap:9px"><div style="display:grid;grid-template-columns:repeat(2,7px);gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:#EF5A41"></span><span style="width:7px;height:7px;border-radius:50%;background:#EFB23E"></span><span style="width:7px;height:7px;border-radius:50%;background:#54B5A2"></span><span style="width:7px;height:7px;border-radius:50%;background:#211D18"></span></div><span class="slab" style="font-size:17px;font-weight:700">Get A Job</span></div>
+    <span style="font-size:12px;color:#928C80;cursor:pointer">Back</span>
+  </div>
+  <div style="height:5px;background:#F1EFE8"><div style="width:50%;height:100%;background:#EF5A41"></div></div>
+
+  <div style="max-width:472px;margin:0 auto;padding:30px 24px 38px">
+    <div style="font-family:monospace;font-size:11px;color:#A38E6F;letter-spacing:.04em">step 4 of 8 · experience</div>
+    <div class="slab" style="font-size:28px;font-weight:800;line-height:1.12;margin-top:10px">Your experience</div>
+    <div style="font-size:13.5px;color:#5A5247;line-height:1.6;margin-top:10px">We pulled these from your CV. Now tag the skills you actually used in <em>each</em> role — that's what sharpens your job matches and your tailored CV.</div>
+
+    <!-- expanded role with per-experience skills -->
+    <div class="expcard" style="margin-top:20px">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between">
+        <div><div class="slab" style="font-size:15px;font-weight:700">Customer Success Associate</div><div style="font-size:11.5px;color:#928C80;margin-top:1px">Guardio · 2024 – Present</div></div>
+        <i class="ti ti-edit" style="font-size:16px;color:#B4ADA1;cursor:pointer" aria-hidden="true"></i>
+      </div>
+      <div style="font-size:11.5px;font-weight:600;color:#857F74;margin-top:13px">Skills used here</div>
+      <div id="chips" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:8px">
+        <span class="chip">Customer Onboarding<i class="ti ti-x" aria-hidden="true"></i></span>
+        <span class="chip">Retention<i class="ti ti-x" aria-hidden="true"></i></span>
+        <span class="chip">Churn Analysis<i class="ti ti-x" aria-hidden="true"></i></span>
+      </div>
+      <!-- add-skill field with open autocomplete -->
+      <div style="position:relative;margin-top:10px">
+        <div style="display:flex;align-items:center;gap:8px;border:1.5px solid #EF5A41;border-radius:10px;padding:9px 11px;background:#fff">
+          <i class="ti ti-plus" style="font-size:15px;color:#C7461F" aria-hidden="true"></i>
+          <span style="font-size:12.5px;color:#928C80">Add a skill<span style="color:#211D18">…  account</span></span>
+        </div>
+        <div style="position:absolute;left:0;right:0;top:46px;background:#fff;border:1px solid #EAE0D0;border-radius:11px;box-shadow:0 12px 30px rgba(40,25,10,.12);overflow:hidden;z-index:5">
+          <div class="sugrow add-sug" data-skill="Account Management"><i class="ti ti-circle-plus" style="font-size:15px;color:#54B5A2"></i>Account Management</div>
+          <div class="sugrow add-sug" data-skill="Stakeholder Communication"><i class="ti ti-circle-plus" style="font-size:15px;color:#54B5A2"></i>Stakeholder Communication</div>
+          <div class="sugrow add-sug" data-skill="Salesforce"><i class="ti ti-circle-plus" style="font-size:15px;color:#54B5A2"></i>Salesforce</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- collapsed second role -->
+    <div class="expcard" style="margin-top:11px;display:flex;align-items:center;justify-content:space-between">
+      <div><div class="slab" style="font-size:14px;font-weight:700">Campus Events Lead</div><div style="font-size:11px;color:#928C80;margin-top:1px">Reichman University · 2023 – 2024 · 3 skills</div></div>
+      <i class="ti ti-chevron-down" style="font-size:18px;color:#B4ADA1;cursor:pointer" aria-hidden="true"></i>
+    </div>
+
+    <button class="gajbtn" style="background:#FBF7F1;border:1.5px dashed #E0C9BC;color:#C7461F;font-size:12.5px;padding:10px 0;width:100%;justify-content:center;margin-top:11px"><i class="ti ti-plus" style="font-size:15px" aria-hidden="true"></i>Add another role</button>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:24px">
+      <div style="display:flex;gap:5px"><span style="width:5px;height:5px;border-radius:999px;background:#E0D6C4"></span><span style="width:5px;height:5px;border-radius:999px;background:#E0D6C4"></span><span style="width:5px;height:5px;border-radius:999px;background:#E0D6C4"></span><span style="width:18px;height:5px;border-radius:999px;background:#EF5A41"></span><span style="width:5px;height:5px;border-radius:999px;background:#E0D6C4"></span><span style="width:5px;height:5px;border-radius:999px;background:#E0D6C4"></span><span style="width:5px;height:5px;border-radius:999px;background:#E0D6C4"></span><span style="width:5px;height:5px;border-radius:999px;background:#E0D6C4"></span></div>
+      <button class="gajbtn" style="background:#EF5A41;color:#fff;font-size:13px;padding:10px 20px">Continue<i class="ti ti-arrow-right" style="font-size:16px" aria-hidden="true"></i></button>
+    </div>
+  </div>
+
+</div></div></div>
+<script>
+(function(){
+  var chips=document.getElementById('chips');
+  function wireX(x){x.addEventListener('click',function(){x.parentElement.remove();});}
+  document.querySelectorAll('#chips .chip i').forEach(wireX);
+  document.querySelectorAll('.add-sug').forEach(function(r){
+    r.addEventListener('click',function(){
+      var s=r.getAttribute('data-skill');
+      var chip=document.createElement('span');chip.className='chip';
+      chip.innerHTML=s+'<i class="ti ti-x" aria-hidden="true"></i>';
+      chips.appendChild(chip);wireX(chip.querySelector('i'));
+    });
+  });
+})();
+</script>

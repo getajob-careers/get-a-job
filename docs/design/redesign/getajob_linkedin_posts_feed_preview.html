@@ -1,0 +1,118 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@500;600;700;800&display=swap">
+<h2 class="sr-only">A Get A Job LinkedIn Posts tab mockup: warm app chrome with a post-type picker and a draft rendered as a realistic LinkedIn feed card showing how it lands in-feed.</h2>
+<style>
+.gajx *{box-sizing:border-box}
+.gajx{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#211D18}
+.slab{font-family:'Rokkitt',Georgia,serif}
+.gajnav{display:flex;align-items:center;gap:8px;font-family:'Rokkitt',Georgia,serif;font-size:15px;font-weight:500;color:#857F74;padding:5px 0;cursor:pointer}
+.gajnav.on{color:#211D18;font-weight:700}
+.gajtab{font-family:'Rokkitt',Georgia,serif;font-size:15px;font-weight:600;color:#928C80;padding:0 0 9px;cursor:pointer;border-bottom:2.5px solid transparent}
+.gajtab.on{color:#211D18;border-bottom-color:#EF5A41}
+.gajpill{font-family:'Rokkitt',Georgia,serif;font-size:12.5px;font-weight:600;border-radius:999px;padding:7px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px}
+.tpill{font-family:'Rokkitt',Georgia,serif;font-size:12px;font-weight:600;border-radius:999px;padding:6px 12px;cursor:pointer;display:inline-flex;align-items:center;gap:5px;background:#F3ECE0;color:#6B655B;transition:background .14s}
+.tpill:hover{background:#EADFCF}
+.tpill.on{background:#EF5A41;color:#fff}
+.lkact{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:#5A5A5A;cursor:pointer}
+.gajbtn{border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,background .15s}
+.gajbtn:active{transform:scale(.94)}
+</style>
+<div class="gajx">
+<div style="background:#E79B7D;padding:13px;border-radius:26px">
+ <div style="display:flex;background:#fff;border-radius:18px;overflow:hidden">
+
+  <div style="width:150px;flex:0 0 150px;background:#EFE7DB;padding:20px 16px;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div style="display:grid;grid-template-columns:repeat(2,7px);gap:3px">
+        <span style="width:7px;height:7px;border-radius:50%;background:#EF5A41"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#EFB23E"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#54B5A2"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#211D18"></span>
+      </div>
+      <span class="slab" style="font-size:17px;font-weight:700">Get A Job</span>
+    </div>
+    <div style="text-align:center;margin-top:26px">
+      <div style="width:54px;height:54px;border-radius:50%;background:#F0A98E;display:flex;align-items:center;justify-content:center;margin:0 auto"><span class="slab" style="color:#fff;font-size:22px;font-weight:700">E</span></div>
+      <div class="slab" style="font-size:16px;font-weight:700;margin-top:10px">Eli Englard</div>
+      <div style="font-size:11.5px;color:#928C80">Aspiring PM</div>
+    </div>
+    <div style="margin-top:26px;display:flex;flex-direction:column;gap:3px">
+      <div class="gajnav"><i class="ti ti-home" style="font-size:17px" aria-hidden="true"></i>Home</div>
+      <div class="gajnav"><i class="ti ti-route" style="font-size:17px" aria-hidden="true"></i>Roadmap</div>
+      <div class="gajnav"><i class="ti ti-briefcase" style="font-size:17px" aria-hidden="true"></i>Jobs</div>
+      <div class="gajnav"><i class="ti ti-layout-kanban" style="font-size:17px" aria-hidden="true"></i>Tracker</div>
+      <div class="gajnav on"><i class="ti ti-brand-linkedin" style="font-size:17px" aria-hidden="true"></i>LinkedIn<span style="width:6px;height:6px;border-radius:50%;background:#EF5A41;margin-left:auto"></span></div>
+      <div class="gajnav"><i class="ti ti-message-2" style="font-size:17px" aria-hidden="true"></i>Chat</div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:9px;color:#928C80">
+      <span style="width:26px;height:26px;border-radius:50%;background:#211D18;display:flex;align-items:center;justify-content:center"><i class="ti ti-logout" style="font-size:14px;color:#fff" aria-hidden="true"></i></span>
+      <span style="font-size:13px">Log out</span>
+    </div>
+  </div>
+
+  <div style="flex:1;min-width:0;padding:22px 22px 24px">
+
+    <div class="slab" style="font-size:27px;font-weight:800;letter-spacing:-.01em">LinkedIn</div>
+    <div style="font-size:12.5px;color:#928C80;margin-top:2px">Build your presence — profile, posts, outreach.</div>
+
+    <div style="display:flex;gap:22px;margin-top:16px;border-bottom:1.5px solid #EDE7DD">
+      <div class="gajtab">Profile</div>
+      <div class="gajtab on">Posts</div>
+      <div class="gajtab">Networking</div>
+    </div>
+
+    <div class="slab" style="font-size:16px;font-weight:700;margin-top:16px">What do you want to post?</div>
+    <div style="display:flex;flex-wrap:wrap;gap:7px;margin-top:10px">
+      <span class="tpill"><i class="ti ti-rocket" style="font-size:13px" aria-hidden="true"></i>Project</span>
+      <span class="tpill on"><i class="ti ti-bulb" style="font-size:13px" aria-hidden="true"></i>Lessons</span>
+      <span class="tpill"><i class="ti ti-flag" style="font-size:13px" aria-hidden="true"></i>Milestone</span>
+      <span class="tpill"><i class="ti ti-calendar" style="font-size:13px" aria-hidden="true"></i>Recap</span>
+      <span class="tpill"><i class="ti ti-eye" style="font-size:13px" aria-hidden="true"></i>Observation</span>
+      <span class="tpill"><i class="ti ti-help-circle" style="font-size:13px" aria-hidden="true"></i>Question</span>
+      <span class="tpill"><i class="ti ti-pencil" style="font-size:13px" aria-hidden="true"></i>Free form</span>
+    </div>
+
+    <div style="background:#fff;border:1px solid #F0E7D8;border-radius:14px;margin-top:12px;padding:11px 11px 11px 15px;display:flex;align-items:center;gap:11px;box-shadow:0 6px 18px rgba(40,25,10,.05)">
+      <span style="flex:1;min-width:0;font-size:13px;color:#5A5247">owned onboarding at Guardio — a 2-line setup checklist cut week-one churn</span>
+      <button class="gajbtn gajpill" style="background:#EF5A41;color:#fff"><i class="ti ti-sparkles" style="font-size:14px" aria-hidden="true"></i>Draft</button>
+    </div>
+    <div style="display:inline-flex;align-items:center;gap:6px;margin-top:9px;background:#F3ECE0;border-radius:999px;padding:5px 11px;font-size:11px;color:#8A7A5E"><i class="ti ti-anchor" style="font-size:13px" aria-hidden="true"></i>Grounded in your Story Bank · Guardio onboarding</div>
+
+    <div style="display:flex;align-items:baseline;gap:8px;margin-top:18px">
+      <span class="slab" style="font-size:16px;font-weight:700">Preview</span>
+      <span style="font-size:11.5px;color:#928C80">how it lands in your feed</span>
+    </div>
+
+    <div style="background:#fff;border:1px solid #E2DED5;border-radius:12px;margin-top:10px;padding:16px 16px 6px">
+      <div style="display:flex;gap:10px">
+        <div style="width:46px;height:46px;border-radius:50%;background:#F0A98E;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><span class="slab" style="font-size:19px;font-weight:700;color:#fff">E</span></div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13.5px;font-weight:700;color:#1A1A1A">Eli Englard</div>
+          <div style="font-size:11.5px;color:#5A5A5A;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">Aspiring Product Manager · turning user research into product decisions</div>
+          <div style="font-size:11px;color:#6A6A6A;display:flex;align-items:center;gap:4px;margin-top:1px">Now · <i class="ti ti-world" style="font-size:12px" aria-hidden="true"></i></div>
+        </div>
+        <i class="ti ti-dots" style="font-size:18px;color:#6A6A6A" aria-hidden="true"></i>
+      </div>
+      <div style="font-size:13.5px;line-height:1.6;color:#1A1A1A;margin-top:12px">Three months into owning onboarding, I learned the fastest way to cut churn wasn't a new feature — it was a two-line setup checklist.<br><br>We'd been blaming the product. The data said otherwise: the users who finished setup in week one stayed. So we made finishing unavoidable, and that cohort's churn dropped.<br><br>The lesson I keep coming back to: the problem usually isn't the thing everyone's pointing at.<br><br><span style="color:#0A66C2;font-weight:600">#productmanagement #customersuccess</span></div>
+      <div style="border-top:1px solid #ECEAE4;margin-top:14px;padding-top:8px;display:flex;justify-content:space-between">
+        <span class="lkact"><i class="ti ti-thumb-up" style="font-size:18px" aria-hidden="true"></i>Like</span>
+        <span class="lkact"><i class="ti ti-message-circle" style="font-size:18px" aria-hidden="true"></i>Comment</span>
+        <span class="lkact"><i class="ti ti-repeat" style="font-size:18px" aria-hidden="true"></i>Repost</span>
+        <span class="lkact"><i class="ti ti-send" style="font-size:18px" aria-hidden="true"></i>Send</span>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:9px;margin-top:14px">
+      <span class="gajpill" style="background:#F3ECE0;color:#6B655B"><i class="ti ti-refresh" style="font-size:14px" aria-hidden="true"></i>Regenerate</span>
+      <span class="gajpill" style="background:#F3ECE0;color:#6B655B"><i class="ti ti-edit" style="font-size:14px" aria-hidden="true"></i>Edit</span>
+      <div style="flex:1"></div>
+      <button class="gajbtn gajpill" id="copyBtn" style="background:#EF5A41;color:#fff"><i class="ti ti-copy" style="font-size:14px" aria-hidden="true"></i>Copy to LinkedIn</button>
+    </div>
+
+  </div>
+ </div>
+</div>
+</div>
+<script>
+(function(){var b=document.getElementById('copyBtn');if(b){b.addEventListener('click',function(){b.style.background='#54B5A2';b.innerHTML='<i class="ti ti-check" style="font-size:14px" aria-hidden="true"></i>Copied';});}})();
+</script>

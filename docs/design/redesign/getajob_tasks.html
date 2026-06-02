@@ -1,0 +1,43 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@500;600;700;800&display=swap">
+<h2 class="sr-only">A Get A Job Tasks page mockup: a Tasks/Calendar tab frame and a checklist of agent-generated weekly tasks with due dates and categories.</h2>
+<style>
+.gajx *{box-sizing:border-box}.gajx{font-family:system-ui,-apple-system,sans-serif;color:#211D18}
+.slab{font-family:'Rokkitt',Georgia,serif}
+.gajnav{display:flex;align-items:center;gap:8px;font-family:'Rokkitt',Georgia,serif;font-size:15px;font-weight:500;color:#857F74;padding:5px 0;cursor:pointer}
+.gajnav.on{color:#211D18;font-weight:700}
+.gajtab{font-family:'Rokkitt',Georgia,serif;font-size:14px;font-weight:600;color:#928C80;padding:0 0 9px;cursor:pointer;border-bottom:2.5px solid transparent}
+.gajtab.on{color:#211D18;border-bottom-color:#EF5A41}
+.tk{background:#fff;border:1px solid #F0E7D8;border-radius:13px;padding:12px 14px;display:flex;align-items:center;gap:12px}
+.box{width:22px;height:22px;border-radius:7px;border:1.5px solid #D8CFC0;background:#fff;cursor:pointer;flex:0 0 auto;display:flex;align-items:center;justify-content:center;transition:background .14s,border-color .14s}
+.box.done{background:#54B5A2;border-color:#54B5A2}
+.cat{font-size:10px;font-weight:600;border-radius:6px;padding:2px 8px}
+</style>
+<div class="gajx"><div style="background:#E79B7D;padding:13px;border-radius:26px"><div style="display:flex;background:#fff;border-radius:18px;overflow:hidden">
+  <div style="width:150px;flex:0 0 150px;background:#EFE7DB;padding:20px 16px;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:9px"><div style="display:grid;grid-template-columns:repeat(2,7px);gap:3px"><span style="width:7px;height:7px;border-radius:50%;background:#EF5A41"></span><span style="width:7px;height:7px;border-radius:50%;background:#EFB23E"></span><span style="width:7px;height:7px;border-radius:50%;background:#54B5A2"></span><span style="width:7px;height:7px;border-radius:50%;background:#211D18"></span></div><span class="slab" style="font-size:17px;font-weight:700">Get A Job</span></div>
+    <div style="text-align:center;margin-top:26px"><div style="width:54px;height:54px;border-radius:50%;background:#F0A98E;display:flex;align-items:center;justify-content:center;margin:0 auto"><span class="slab" style="color:#fff;font-size:22px;font-weight:700">E</span></div><div class="slab" style="font-size:16px;font-weight:700;margin-top:10px">Eli Englard</div><div style="font-size:11.5px;color:#928C80">Aspiring PM</div></div>
+    <div style="margin-top:26px;display:flex;flex-direction:column;gap:3px">
+      <div class="gajnav"><i class="ti ti-home" style="font-size:17px"></i>Home</div>
+      <div class="gajnav"><i class="ti ti-route" style="font-size:17px"></i>Roadmap</div>
+      <div class="gajnav"><i class="ti ti-briefcase" style="font-size:17px"></i>Jobs</div>
+      <div class="gajnav"><i class="ti ti-layout-kanban" style="font-size:17px"></i>Tracker</div>
+      <div class="gajnav on"><i class="ti ti-checklist" style="font-size:17px"></i>Tasks<span style="width:6px;height:6px;border-radius:50%;background:#EF5A41;margin-left:auto"></span></div>
+      <div class="gajnav"><i class="ti ti-brand-linkedin" style="font-size:17px"></i>LinkedIn</div>
+      <div class="gajnav"><i class="ti ti-message-2" style="font-size:17px"></i>Chat</div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:9px;color:#928C80"><span style="width:26px;height:26px;border-radius:50%;background:#211D18;display:flex;align-items:center;justify-content:center"><i class="ti ti-logout" style="font-size:14px;color:#fff"></i></span><span style="font-size:13px">Log out</span></div>
+  </div>
+  <div style="flex:1;min-width:0;padding:22px 22px 24px">
+    <div class="slab" style="font-size:27px;font-weight:800">Tasks</div>
+    <div style="display:flex;gap:22px;margin-top:14px;border-bottom:1.5px solid #EDE7DD"><div class="gajtab on">Tasks</div><div class="gajtab">Calendar</div></div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px"><span class="slab" style="font-size:14px;font-weight:700">This week</span><span style="font-size:11px;color:#928C80;display:inline-flex;align-items:center;gap:4px"><i class="ti ti-sparkles" style="font-size:13px;color:#EF5A41"></i>planned by your agent</span></div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-top:11px">
+      <div class="tk"><span class="box done"><i class="ti ti-check" style="font-size:15px;color:#fff"></i></span><div style="flex:1"><div class="slab" style="font-size:13px;font-weight:700;color:#9A938A">Reach out to the PM lead at Monday.com</div></div><span class="cat" style="background:#FCE6DF;color:#C7461F">Outreach</span></div>
+      <div class="tk"><span class="box"></span><div style="flex:1"><div class="slab" style="font-size:13px;font-weight:700">Tailor your CV for the Riverside role</div><div style="font-size:10.5px;color:#B4ADA1">Due Tue</div></div><span class="cat" style="background:#FBEBC9;color:#9A6B0E">Application</span></div>
+      <div class="tk"><span class="box"></span><div style="flex:1"><div class="slab" style="font-size:13px;font-weight:700">Add a project to your profile</div><div style="font-size:10.5px;color:#B4ADA1">Due Wed</div></div><span class="cat" style="background:#DBEEE8;color:#2E7C6B">Profile</span></div>
+      <div class="tk"><span class="box"></span><div style="flex:1"><div class="slab" style="font-size:13px;font-weight:700">Practice two STAR answers</div><div style="font-size:10.5px;color:#B4ADA1">Due Fri</div></div><span class="cat" style="background:#DBEEE8;color:#2E7C6B">Interview</span></div>
+    </div>
+  </div>
+</div></div></div>
+<script>document.querySelectorAll('.box:not(.done)').forEach(function(b){b.addEventListener('click',function(){b.classList.add('done');b.innerHTML='<i class="ti ti-check" style="font-size:15px;color:#fff"></i>';});});</script>

@@ -2,6 +2,62 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Redesign tokens — additive --rd-* :root block. See tasks/redesign.md.
+ *
+ * NOTE: tokens are inlined here (rather than @import'd from a sibling
+ * file) because CSS spec requires @import to precede every other rule,
+ * and the @tailwind directives above invalidate any @import placed
+ * after them — PostCSS silently drops the rule and every --rd-* would
+ * resolve to its fallback. Inlining inside @layer base is the safest
+ * pattern and guarantees the tokens ship with the production bundle.
+ *
+ * If you edit this block, mirror the change into tasks/redesign.md's
+ * "Token reference" table so the doc stays the source of truth.
+ */
+@layer base {
+  :root {
+    /* Redesign — surfaces */
+    --rd-bg-page: #FAF6F0;
+    --rd-bg-card: #FFFFFF;
+    --rd-bg-sidebar: #EFE7DB;
+    --rd-bg-soft: #F3ECE0;
+
+    /* Redesign — lines */
+    --rd-border: #F0E7D8;
+    --rd-border-subtle: #EDE7DD;
+    --rd-border-hover: #E0D6C4;
+
+    /* Redesign — text */
+    --rd-text: #211D18;
+    --rd-text-secondary: #928C80;
+    --rd-text-tertiary: #857F74;
+    --rd-text-eyebrow: #A38E6F;
+
+    /* Redesign — coral (sole CTA accent) */
+    --rd-coral: #EF5A41;
+    --rd-coral-dark: #C7461F;
+    --rd-coral-tint: #FCE6DF;
+
+    /* Redesign — teal (success / progress) */
+    --rd-teal: #54B5A2;
+    --rd-teal-dark: #2E7C6B;
+    --rd-teal-tint: #DBEEE8;
+
+    /* Redesign — golden (stats / info) */
+    --rd-golden: #EFB23E;
+    --rd-golden-dark: #7A5408;
+    --rd-golden-tint: #FBEBC9;
+
+    /* Redesign — decorative */
+    --rd-peach: #E79B7D;
+
+    /* Redesign — elevation + type */
+    --rd-shadow: 0 10px 28px rgba(40, 25, 10, 0.07);
+    --rd-font-display: 'Rokkitt', Georgia, serif;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

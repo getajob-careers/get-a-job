@@ -1,0 +1,105 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@500;600;700;800&display=swap">
+<h2 class="sr-only">A Get A Job application detail mockup showing the Steps tab: a seven-step checklist grouped into three phases, each step linked to the relevant tool, with progress.</h2>
+<style>
+.gajx *{box-sizing:border-box}
+.gajx{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#211D18}
+.slab{font-family:'Rokkitt',Georgia,serif}
+.gajnav{display:flex;align-items:center;gap:8px;font-family:'Rokkitt',Georgia,serif;font-size:15px;font-weight:500;color:#857F74;padding:5px 0;cursor:pointer}
+.gajnav.on{color:#211D18;font-weight:700}
+.gajtab{font-family:'Rokkitt',Georgia,serif;font-size:14px;font-weight:600;color:#928C80;padding:0 0 9px;cursor:pointer;border-bottom:2.5px solid transparent}
+.gajtab.on{color:#211D18;border-bottom-color:#EF5A41}
+.chk{width:24px;height:24px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 auto;margin-top:1px}
+.chk.done{background:#EF5A41;color:#fff}
+.chk.cur{border:2px solid #EF5A41;background:#fff}
+.chk.todo{border:1.5px solid #D8CFC0;background:#fff;cursor:pointer;transition:border-color .14s}
+.chk.todo:hover{border-color:#EF5A41}
+.step{display:flex;gap:11px;padding:9px 2px}
+.act{font-family:'Rokkitt',Georgia,serif;font-size:11.5px;font-weight:600;border-radius:999px;padding:5px 12px;display:inline-flex;align-items:center;gap:5px;margin-top:7px;cursor:pointer}
+</style>
+<div class="gajx">
+<div style="background:#E79B7D;padding:13px;border-radius:26px">
+ <div style="display:flex;background:#fff;border-radius:18px;overflow:hidden">
+
+  <div style="width:150px;flex:0 0 150px;background:#EFE7DB;padding:20px 16px;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div style="display:grid;grid-template-columns:repeat(2,7px);gap:3px">
+        <span style="width:7px;height:7px;border-radius:50%;background:#EF5A41"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#EFB23E"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#54B5A2"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#211D18"></span>
+      </div>
+      <span class="slab" style="font-size:17px;font-weight:700">Get A Job</span>
+    </div>
+    <div style="text-align:center;margin-top:26px">
+      <div style="width:54px;height:54px;border-radius:50%;background:#F0A98E;display:flex;align-items:center;justify-content:center;margin:0 auto"><span class="slab" style="color:#fff;font-size:22px;font-weight:700">E</span></div>
+      <div class="slab" style="font-size:16px;font-weight:700;margin-top:10px">Eli Englard</div>
+      <div style="font-size:11.5px;color:#928C80">Aspiring PM</div>
+    </div>
+    <div style="margin-top:26px;display:flex;flex-direction:column;gap:3px">
+      <div class="gajnav"><i class="ti ti-home" style="font-size:17px" aria-hidden="true"></i>Home</div>
+      <div class="gajnav"><i class="ti ti-route" style="font-size:17px" aria-hidden="true"></i>Roadmap</div>
+      <div class="gajnav"><i class="ti ti-briefcase" style="font-size:17px" aria-hidden="true"></i>Jobs</div>
+      <div class="gajnav on"><i class="ti ti-layout-kanban" style="font-size:17px" aria-hidden="true"></i>Tracker<span style="width:6px;height:6px;border-radius:50%;background:#EF5A41;margin-left:auto"></span></div>
+      <div class="gajnav"><i class="ti ti-brand-linkedin" style="font-size:17px" aria-hidden="true"></i>LinkedIn</div>
+      <div class="gajnav"><i class="ti ti-message-2" style="font-size:17px" aria-hidden="true"></i>Chat</div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:9px;color:#928C80">
+      <span style="width:26px;height:26px;border-radius:50%;background:#211D18;display:flex;align-items:center;justify-content:center"><i class="ti ti-logout" style="font-size:14px;color:#fff" aria-hidden="true"></i></span>
+      <span style="font-size:13px">Log out</span>
+    </div>
+  </div>
+
+  <div style="flex:1;min-width:0;padding:20px 22px 24px">
+
+    <div style="font-size:11.5px;color:#928C80;display:inline-flex;align-items:center;gap:4px;cursor:pointer"><i class="ti ti-arrow-left" style="font-size:14px" aria-hidden="true"></i>Tracker</div>
+
+    <div style="display:flex;gap:12px;align-items:center;margin-top:11px">
+      <div style="width:44px;height:44px;border-radius:10px;background:#FCE6DF;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><span class="slab" style="font-size:19px;font-weight:700;color:#C7461F">M</span></div>
+      <div style="flex:1;min-width:0">
+        <div class="slab" style="font-size:18px;font-weight:800;line-height:1.1">Associate Product Manager</div>
+        <div style="font-size:11.5px;color:#928C80">Monday.com · Tel Aviv</div>
+      </div>
+      <div style="text-align:right"><span style="font-size:10.5px;font-weight:700;color:#9A6B0E;background:#FBEBC9;border-radius:999px;padding:3px 9px">Applied</span><div class="slab" style="font-size:15px;font-weight:800;color:#C7461F;margin-top:4px">92%</div></div>
+    </div>
+
+    <div style="display:flex;gap:22px;margin-top:14px;border-bottom:1.5px solid #EDE7DD">
+      <div class="gajtab on">Steps</div>
+      <div class="gajtab">Skills</div>
+      <div class="gajtab">Details</div>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:10px;margin-top:14px">
+      <div style="flex:1;height:7px;border-radius:999px;background:#F2EDE4;overflow:hidden"><span style="display:block;height:100%;width:43%;background:#EF5A41;border-radius:999px"></span></div>
+      <span class="slab" style="font-size:12px;font-weight:700;color:#5A5247">3 / 7</span>
+    </div>
+
+    <div class="slab" style="font-size:11px;font-weight:700;color:#9A6B0E;margin-top:16px">Know the role</div>
+    <div class="step"><span class="chk done"><i class="ti ti-check" style="font-size:15px" aria-hidden="true"></i></span><div style="flex:1"><div class="slab" style="font-size:13.5px;font-weight:700;color:#9A938A">1 · Qualify yourself</div><div style="font-size:11px;color:#B4ADA1">Done</div></div></div>
+    <div class="step"><span class="chk done"><i class="ti ti-check" style="font-size:15px" aria-hidden="true"></i></span><div style="flex:1"><div class="slab" style="font-size:13.5px;font-weight:700;color:#9A938A">2 · Dissect the job description</div><div style="font-size:11px;color:#B4ADA1">Done</div></div></div>
+
+    <div class="slab" style="font-size:11px;font-weight:700;color:#2E7C6B;margin-top:12px">Build your case</div>
+    <div style="background:#FBF7F1;border:1px solid #EFE7DA;border-radius:12px;padding:6px 10px;margin-top:4px">
+      <div class="step"><span class="chk cur"></span><div style="flex:1"><div class="slab" style="font-size:13.5px;font-weight:700">3 · Tailor your CV</div><div style="font-size:11.5px;color:#8C8478;line-height:1.4">Generate a CV tuned to this role's must-haves.</div><span class="act" style="background:#EF5A41;color:#fff">Generate tailored CV<i class="ti ti-arrow-right" style="font-size:13px" aria-hidden="true"></i></span></div></div>
+    </div>
+    <div class="step"><span class="chk todo"></span><div style="flex:1"><div class="slab" style="font-size:13.5px;font-weight:700">4 · Map your skill evidence</div><div style="font-size:11.5px;color:#8C8478;line-height:1.4">Match your stories to what the role asks for.</div><span class="act" style="background:#F3ECE0;color:#6B655B">See your skill match</span></div></div>
+    <div class="step"><span class="chk todo"></span><div style="flex:1"><div class="slab" style="font-size:13.5px;font-weight:700">5 · Find a referral contact</div><div style="font-size:11.5px;color:#8C8478;line-height:1.4">Find someone at Monday.com who can refer you in.</div><span class="act" style="background:#F3ECE0;color:#6B655B">Find a referral</span></div></div>
+
+    <div class="slab" style="font-size:11px;font-weight:700;color:#C7461F;margin-top:12px">Apply &amp; prep</div>
+    <div class="step"><span class="chk todo"></span><div style="flex:1"><div class="slab" style="font-size:13.5px;font-weight:700">6 · Submit your application</div><div style="font-size:11.5px;color:#8C8478;line-height:1.4">Apply on the company's careers page.</div><span class="act" style="background:#F3ECE0;color:#6B655B">Apply<i class="ti ti-external-link" style="font-size:12px" aria-hidden="true"></i></span></div></div>
+    <div class="step"><span class="chk todo"></span><div style="flex:1"><div class="slab" style="font-size:13.5px;font-weight:700">7 · Prep for the interview</div><div style="font-size:11.5px;color:#8C8478;line-height:1.4">Practice STAR-format answers with the Interview Coach.</div><span class="act" style="background:#F3ECE0;color:#6B655B">Open Interview Coach</span></div></div>
+
+  </div>
+ </div>
+</div>
+</div>
+<script>
+(function(){
+  document.querySelectorAll('.chk.todo').forEach(function(c){
+    c.addEventListener('click',function(){
+      c.classList.remove('todo');c.classList.add('done');
+      c.innerHTML='<i class="ti ti-check" style="font-size:15px;color:#fff" aria-hidden="true"></i>';
+    });
+  });
+})();
+</script>

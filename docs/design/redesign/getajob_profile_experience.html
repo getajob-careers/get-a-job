@@ -1,0 +1,112 @@
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rokkitt:wght@500;600;700;800&display=swap">
+<h2 class="sr-only">A Get A Job Profile page mockup: a profile-strength header and tabbed sections, showing the Experience tab with multi-entry roles that each carry their own skill tags.</h2>
+<style>
+.gajx *{box-sizing:border-box}
+.gajx{font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#211D18}
+.slab{font-family:'Rokkitt',Georgia,serif}
+.gajnav{display:flex;align-items:center;gap:8px;font-family:'Rokkitt',Georgia,serif;font-size:15px;font-weight:500;color:#857F74;padding:5px 0;cursor:pointer}
+.gajnav.on{color:#211D18;font-weight:700}
+.gajtab{font-family:'Rokkitt',Georgia,serif;font-size:14px;font-weight:600;color:#928C80;padding:0 0 9px;cursor:pointer;border-bottom:2.5px solid transparent}
+.gajtab.on{color:#211D18;border-bottom-color:#EF5A41}
+.xp{background:#fff;border:1px solid #F0E7D8;border-radius:14px;padding:14px 15px}
+.sk{font-size:11px;color:#7A746A;background:#F1EFE8;border-radius:7px;padding:3px 9px}
+.gajbtn{border:none;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;transition:transform .12s,background .15s;font-family:'Rokkitt',Georgia,serif;font-weight:600}
+.gajbtn:active{transform:scale(.96)}
+</style>
+<div class="gajx">
+<div style="background:#E79B7D;padding:13px;border-radius:26px">
+ <div style="display:flex;background:#fff;border-radius:18px;overflow:hidden">
+
+  <div style="width:150px;flex:0 0 150px;background:#EFE7DB;padding:20px 16px;display:flex;flex-direction:column">
+    <div style="display:flex;align-items:center;gap:9px">
+      <div style="display:grid;grid-template-columns:repeat(2,7px);gap:3px">
+        <span style="width:7px;height:7px;border-radius:50%;background:#EF5A41"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#EFB23E"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#54B5A2"></span>
+        <span style="width:7px;height:7px;border-radius:50%;background:#211D18"></span>
+      </div>
+      <span class="slab" style="font-size:17px;font-weight:700">Get A Job</span>
+    </div>
+    <div style="text-align:center;margin-top:26px">
+      <div style="width:54px;height:54px;border-radius:50%;background:#F0A98E;display:flex;align-items:center;justify-content:center;margin:0 auto"><span class="slab" style="color:#fff;font-size:22px;font-weight:700">E</span></div>
+      <div class="slab" style="font-size:16px;font-weight:700;margin-top:10px">Eli Englard</div>
+      <div style="font-size:11.5px;color:#928C80">Aspiring PM</div>
+    </div>
+    <div style="margin-top:26px;display:flex;flex-direction:column;gap:3px">
+      <div class="gajnav"><i class="ti ti-home" style="font-size:17px" aria-hidden="true"></i>Home</div>
+      <div class="gajnav"><i class="ti ti-route" style="font-size:17px" aria-hidden="true"></i>Roadmap</div>
+      <div class="gajnav"><i class="ti ti-briefcase" style="font-size:17px" aria-hidden="true"></i>Jobs</div>
+      <div class="gajnav"><i class="ti ti-layout-kanban" style="font-size:17px" aria-hidden="true"></i>Tracker</div>
+      <div class="gajnav"><i class="ti ti-building-skyscraper" style="font-size:17px" aria-hidden="true"></i>Internship</div>
+      <div class="gajnav"><i class="ti ti-brand-linkedin" style="font-size:17px" aria-hidden="true"></i>LinkedIn</div>
+      <div class="gajnav"><i class="ti ti-message-2" style="font-size:17px" aria-hidden="true"></i>Chat</div>
+      <div class="gajnav on"><i class="ti ti-user" style="font-size:17px" aria-hidden="true"></i>Profile<span style="width:6px;height:6px;border-radius:50%;background:#EF5A41;margin-left:auto"></span></div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="display:flex;align-items:center;gap:9px;color:#928C80">
+      <span style="width:26px;height:26px;border-radius:50%;background:#211D18;display:flex;align-items:center;justify-content:center"><i class="ti ti-logout" style="font-size:14px;color:#fff" aria-hidden="true"></i></span>
+      <span style="font-size:13px">Log out</span>
+    </div>
+  </div>
+
+  <div style="flex:1;min-width:0;padding:22px 22px 24px">
+
+    <div class="slab" style="font-size:27px;font-weight:800;letter-spacing:-.01em">Profile</div>
+
+    <div style="background:#F3ECE0;border-radius:14px;margin-top:14px;padding:13px 15px;display:flex;align-items:center;gap:14px">
+      <div style="flex:1;min-width:0">
+        <div style="display:flex;align-items:center;justify-content:space-between"><span class="slab" style="font-size:13px;font-weight:700">Profile strength</span><span class="slab" style="font-size:13px;font-weight:800;color:#2E7C6B">Strong · 82%</span></div>
+        <div style="height:7px;border-radius:999px;background:#E7DECF;overflow:hidden;margin-top:7px"><span style="display:block;height:100%;width:82%;background:#54B5A2;border-radius:999px"></span></div>
+        <div style="font-size:11px;color:#8C8478;margin-top:7px">Add one project to reach 100% — it strengthens your CV and matches.</div>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:20px;margin-top:16px;border-bottom:1.5px solid #EDE7DD">
+      <div class="gajtab on">Experience</div>
+      <div class="gajtab">Education</div>
+      <div class="gajtab">Skills</div>
+      <div class="gajtab">Career</div>
+      <div class="gajtab">Languages</div>
+    </div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px">
+      <span class="slab" style="font-size:14px;font-weight:700">3 roles</span>
+      <button class="gajbtn" style="background:#EF5A41;color:#fff;font-size:12px;border-radius:999px;padding:7px 13px"><i class="ti ti-plus" style="font-size:15px" aria-hidden="true"></i>Add</button>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:11px;margin-top:11px">
+
+      <div class="xp">
+        <div style="display:flex;gap:11px">
+          <div style="width:40px;height:40px;border-radius:9px;background:#FCE6DF;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><span class="slab" style="font-size:16px;font-weight:700;color:#C7461F">G</span></div>
+          <div style="flex:1;min-width:0">
+            <div class="slab" style="font-size:14px;font-weight:700;line-height:1.15">Customer Success Manager</div>
+            <div style="font-size:11.5px;color:#928C80">Guardio · Working student</div>
+            <div style="font-size:10.5px;color:#B4ADA1">Jun 2024 – Present</div>
+          </div>
+          <i class="ti ti-edit" style="font-size:17px;color:#B4ADA1;cursor:pointer" aria-hidden="true"></i>
+        </div>
+        <div style="font-size:12px;color:#5A5247;line-height:1.5;margin-top:9px">Owned onboarding for SMB accounts; built the setup flow that lifted week-one activation.</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px"><span class="sk">Onboarding</span><span class="sk">Customer Success</span><span class="sk">SQL</span><span style="font-size:11px;color:#C7461F;font-weight:600;background:#FCE6DF;border-radius:7px;padding:3px 9px;cursor:pointer">+ skill</span></div>
+      </div>
+
+      <div class="xp">
+        <div style="display:flex;gap:11px">
+          <div style="width:40px;height:40px;border-radius:9px;background:#DBEEE8;display:flex;align-items:center;justify-content:center;flex:0 0 auto"><span class="slab" style="font-size:16px;font-weight:700;color:#2E7C6B">R</span></div>
+          <div style="flex:1;min-width:0">
+            <div class="slab" style="font-size:14px;font-weight:700;line-height:1.15">Marketing Intern</div>
+            <div style="font-size:11.5px;color:#928C80">Reichman Student Union</div>
+            <div style="font-size:10.5px;color:#B4ADA1">Summer 2023</div>
+          </div>
+          <i class="ti ti-edit" style="font-size:17px;color:#B4ADA1;cursor:pointer" aria-hidden="true"></i>
+        </div>
+        <div style="font-size:12px;color:#5A5247;line-height:1.5;margin-top:9px">Ran social campaigns for student events; grew turnout through targeted posts.</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:9px"><span class="sk">Content</span><span class="sk">Social Media</span><span style="font-size:11px;color:#C7461F;font-weight:600;background:#FCE6DF;border-radius:7px;padding:3px 9px;cursor:pointer">+ skill</span></div>
+      </div>
+
+    </div>
+
+  </div>
+ </div>
+</div>
+</div>
