@@ -23,10 +23,11 @@ import { PDFDocument } from "pdf-lib";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
 const outDir = resolve(repoRoot, "docs/design/redesign/previews");
-// PR 2A shipped onboarding-2a.pdf (first 3 steps). 2B regenerates the
-// onboarding preview with the 4 new steps + 3 forked inputs included
-// and writes to onboarding-2b.pdf so reviewers can compare slices.
-const outPdf = resolve(outDir, "onboarding-2b.pdf");
+// PR 2A shipped onboarding-2a.pdf (first 3 steps). 2B regenerated with
+// the 4 new steps + 3 forked inputs (onboarding-2b.pdf). 2C closes the
+// flow: Constraints + Reality-check survey + 6-slide Tutorial across all
+// 4 render states. Output → onboarding-2c.pdf for direct slice compare.
+const outPdf = resolve(outDir, "onboarding-2c.pdf");
 
 const PORT = 4174;
 const BASE = `http://localhost:${PORT}`;
@@ -40,7 +41,7 @@ function loadFixtureIds() {
   const src = readFileSync(FIXTURE_PATH, "utf8");
   const ids = [];
   const labels = {};
-  const re = /"([a-z-]+)":\s*\{\s*label:\s*"([^"]+)"/g;
+  const re = /"([a-z0-9-]+)":\s*\{\s*label:\s*"([^"]+)"/g;
   let m;
   while ((m = re.exec(src)) !== null) {
     ids.push(m[1]);

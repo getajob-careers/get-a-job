@@ -1,11 +1,38 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Loader2, ArrowRight, ArrowLeft, Briefcase, ClipboardList, BookText, Linkedin, FileText, MessageCircle, RotateCcw, CheckCircle2, ExternalLink } from "lucide-react";
+import {
+  Loader2,
+  ArrowRight,
+  ArrowLeft,
+  Briefcase,
+  ClipboardList,
+  BookText,
+  Linkedin,
+  FileText,
+  MessageCircle,
+  RotateCcw,
+  CheckCircle2,
+  ExternalLink,
+} from "lucide-react";
+import { Link } from "react-router-dom";
 import { track, EVENTS } from "@/lib/analytics";
 import { useFakeProgress } from "@/lib/useFakeProgress";
 import { TRACKS } from "@/lib/trackConfig";
 
-// Slide content. User navigates manually via arrow buttons — no auto-advance.
-// Visuals are placeholder icons + descriptions until real screenshots land.
+// Restyled for PR 2C — behaviour identical to the Direction-3 version.
+// All 4 render states preserved: skip-pending + setup running, skip-pending +
+// setup complete, returning-user gate, and the slide carousel. All 6 slides
+// keep their copy 1:1 (product copy — restyle only). useFakeProgress runs
+// against EXPECTED_SETUP_MS to drive the setup percent, and skipFiredRef
+// still guards against double-fire of onTutorialEnd. All 4 analytics events
+// (STARTED, SLIDE_VIEWED, COMPLETED, SKIPPED) fire as before.
+//
+// Visual changes:
+//   - Peach outer frame around a white inner card (signature onboarding
+//     chrome from the mockups).
+//   - 4-dot brand logo + "Get A Job" wordmark in the header.
+//   - Cream-tinted preview panel that surfaces the slide icon + copy.
+//   - Coral primary CTA, soft-beige secondary, 6-dot carousel indicator.
+
 const SLIDES = [
   {
     name: "browse_jobs",
@@ -149,38 +176,43 @@ export default function OnboardingTutorial({
   // background navigated to Home without the user looking.
   if (skipPending && !skipFiredRef.current) {
     if (!setupComplete) {
-      // Still waiting for the background pipeline.
       return (
         <FullScreenShell>
-          <div className="max-w-md text-center space-y-6">
-            <Loader2 className="w-9 h-9 animate-spin mx-auto text-[#F87060]" />
+          <div className="max-w-md mx-auto text-center space-y-6">
+            <Loader2 className="w-10 h-10 animate-spin mx-auto text-rd-coral" />
             <div>
-              <h2 className="onb-h1" style={{ fontSize: 24 }}>Finishing setup…</h2>
-              <p className="onb-sub">
+              <h2 className="font-display font-extrabold text-[24px] leading-[1.15] tracking-tight text-rd-text">
+                Finishing setup…
+              </h2>
+              <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-2">
                 We&apos;re wrapping up your career analysis in the background. We&apos;ll let you know as soon as it&apos;s ready.
               </p>
             </div>
-            <div className="onb-progress-track" style={{ maxWidth: 240, margin: "0 auto" }}>
-              <div className="onb-progress-fill" style={{ width: `${setupPercent}%` }} />
-            </div>
-            <p className="onb-eyebrow">Setup {setupPercent}%</p>
+            <ProgressBar percent={setupPercent} />
+            <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+              Setup {setupPercent}%
+            </p>
           </div>
         </FullScreenShell>
       );
     }
-    // Setup finished while user was waiting — show a "ready, click to
-    // continue" view. Explicit click only. No auto-navigation.
     return (
       <FullScreenShell>
-        <div className="max-w-md text-center space-y-6">
-          <CheckCircle2 className="w-12 h-12 text-[#1D7556] mx-auto" />
-          <div>
-            <h2 className="onb-h1" style={{ fontSize: 24 }}>Setup complete</h2>
-            <p className="onb-sub">Your dashboard is ready when you are.</p>
+        <div className="max-w-md mx-auto text-center space-y-6">
+          <div className="w-14 h-14 rounded-full bg-rd-coral-tint text-rd-coral flex items-center justify-center mx-auto">
+            <CheckCircle2 className="w-7 h-7" />
           </div>
-          <button onClick={fireSkip} className="onb-btn onb-btn-primary">
+          <div>
+            <h2 className="font-display font-extrabold text-[24px] leading-[1.15] tracking-tight text-rd-text">
+              Setup complete
+            </h2>
+            <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-2">
+              Your dashboard is ready when you are.
+            </p>
+          </div>
+          <PrimaryButton onClick={fireSkip}>
             Continue to platform <ArrowRight className="w-4 h-4" />
-          </button>
+          </PrimaryButton>
         </div>
       </FullScreenShell>
     );
@@ -190,23 +222,25 @@ export default function OnboardingTutorial({
   if (!gateAcknowledged) {
     return (
       <FullScreenShell>
-        <div className="max-w-md text-center space-y-6">
-          <div className="w-14 h-14 rounded-full bg-[#FDE7E3] text-[#F87060] flex items-center justify-center mx-auto">
+        <div className="max-w-md mx-auto text-center space-y-6">
+          <div className="w-14 h-14 rounded-full bg-rd-coral-tint text-rd-coral flex items-center justify-center mx-auto">
             <RotateCcw className="w-6 h-6" />
           </div>
           <div>
-            <h2 className="onb-h1" style={{ fontSize: 24 }}>Welcome back</h2>
-            <p className="onb-sub">
+            <h2 className="font-display font-extrabold text-[24px] leading-[1.15] tracking-tight text-rd-text">
+              Welcome back
+            </h2>
+            <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-2">
               You&apos;ve been through the platform tour before. Skip it and head straight in, or watch it again if you&apos;d like a refresher.
             </p>
           </div>
-          <div className="flex flex-col gap-2">
-            <button onClick={handleSkipGate} className="onb-btn onb-btn-primary">
+          <div className="flex flex-col gap-2.5">
+            <PrimaryButton onClick={handleSkipGate}>
               Skip tutorial — I&apos;ve seen this before
-            </button>
-            <button onClick={() => setGateAcknowledged(true)} className="onb-btn onb-btn-outline">
+            </PrimaryButton>
+            <SecondaryButton onClick={() => setGateAcknowledged(true)}>
               Show me again
-            </button>
+            </SecondaryButton>
           </div>
         </div>
       </FullScreenShell>
@@ -220,59 +254,62 @@ export default function OnboardingTutorial({
 
   return (
     <FullScreenShell>
-      <div className="w-full max-w-2xl mx-auto space-y-7">
-        <div className="flex items-center justify-between">
-          <p className="onb-eyebrow">Slide {slideIndex + 1} of {SLIDES.length}</p>
-          <p className="onb-eyebrow">Setup {setupPercent}%</p>
+      <div className="w-full max-w-2xl mx-auto">
+        <div className="flex items-center justify-between mb-3">
+          <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+            Slide {slideIndex + 1} of {SLIDES.length}
+          </p>
+          <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+            Setup {setupPercent}%
+          </p>
         </div>
 
-        <div className="onb-progress-track">
-          <div className="onb-progress-fill" style={{ width: `${setupPercent}%` }} />
+        <ProgressBar percent={setupPercent} />
+
+        <div className="mt-7">
+          <Slide slide={slide} isFirstSlide={slideIndex === 0} />
         </div>
 
-        <Slide slide={slide} />
+        <div className="mt-7 flex items-center justify-center gap-1.5">
+          {SLIDES.map((_, i) => (
+            <button
+              key={i}
+              onClick={() => setSlideIndex(i)}
+              aria-label={`Go to slide ${i + 1}`}
+              className={[
+                "h-1.5 rounded-full transition-all duration-300 cursor-pointer",
+                i === slideIndex
+                  ? "w-7 bg-rd-coral"
+                  : "w-1.5 bg-rd-border hover:bg-rd-border-hover",
+              ].join(" ")}
+            />
+          ))}
+        </div>
 
-        <div className="flex items-center justify-between gap-3">
-          <button
+        <div className="mt-6 flex items-center justify-between gap-3">
+          <SecondaryButton
             onClick={goPrev}
             disabled={slideIndex === 0}
-            className="onb-btn onb-btn-outline"
             aria-label="Previous slide"
           >
             <ArrowLeft className="w-4 h-4" /> Back
-          </button>
-
-          <div className="flex gap-1.5">
-            {SLIDES.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => setSlideIndex(i)}
-                aria-label={`Go to slide ${i + 1}`}
-                className={`h-1.5 rounded-full transition-all duration-300 cursor-pointer ${
-                  i === slideIndex
-                    ? "w-8 bg-[#F87060]"
-                    : "w-1.5 bg-[#DDDDDB] hover:bg-[#52545A]"
-                }`}
-              />
-            ))}
-          </div>
+          </SecondaryButton>
 
           {isFinalSlide ? (
-            <button
+            <PrimaryButton
               onClick={handleGoToPlatform}
               disabled={!goToPlatformEnabled}
-              className="onb-btn onb-btn-primary"
             >
               {goToPlatformEnabled ? (
                 <>Go to platform <ArrowRight className="w-4 h-4" /></>
               ) : (
                 <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Finalising…</>
               )}
-            </button>
+            </PrimaryButton>
           ) : (
-            <button onClick={goNext} className="onb-btn onb-btn-outline" aria-label="Next slide">
+            <PrimaryButton onClick={goNext} aria-label="Next slide">
               Next <ArrowRight className="w-4 h-4" />
-            </button>
+            </PrimaryButton>
           )}
         </div>
       </div>
@@ -284,35 +321,94 @@ export default function OnboardingTutorial({
 // labels and copy can't drift from the Roadmap's TRACK_CONFIG. Single source
 // of truth for track vocabulary across onboarding + roadmap + role cards.
 
-function Slide({ slide }) {
+function Slide({ slide, isFirstSlide }) {
   const { Icon, title, description, name } = slide;
   const isBrowseJobs = name === "browse_jobs";
   const isLinkedinHub = name === "linkedin_hub";
+
   return (
-    <div className="onb-slide">
-      <div className="onb-slide-icon">
-        <Icon className="w-7 h-7" />
+    <div className="text-center">
+      {isFirstSlide && (
+        <p className="font-display font-bold text-[13px] text-rd-coral-dark mb-3.5">
+          You&apos;re all set 🎉
+        </p>
+      )}
+
+      <div className="bg-rd-bg-soft border border-rd-border rounded-[18px] px-5 py-7 sm:px-7">
+        <div className="w-14 h-14 rounded-2xl bg-rd-bg-card border border-rd-border flex items-center justify-center mx-auto shadow-[0_10px_28px_rgba(40,25,10,0.07)]">
+          <Icon className="w-6 h-6 text-rd-coral" />
+        </div>
+        {isBrowseJobs && (
+          <div className="mt-5 max-w-md mx-auto bg-rd-bg-card border border-rd-border rounded-[13px] px-3.5 py-3 text-left shadow-[0_10px_28px_rgba(40,25,10,0.07)]">
+            <div className="flex items-center gap-2.5">
+              <div className="w-9 h-9 rounded-[10px] bg-rd-text flex items-center justify-center flex-shrink-0">
+                <span className="font-display font-bold text-white text-[15px]">m</span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <div className="font-display font-semibold text-[13.5px] text-rd-text truncate">
+                  Associate Product Manager
+                </div>
+                <div className="text-[11px] text-rd-text-tertiary">
+                  monday.com · Tel Aviv
+                </div>
+              </div>
+              <div className="text-right flex-shrink-0">
+                <div className="font-display font-extrabold text-[18px] text-rd-coral-dark leading-none">
+                  88%
+                </div>
+                <div className="text-[9px] tracking-[0.04em] uppercase text-rd-text-tertiary mt-0.5">
+                  Match
+                </div>
+              </div>
+            </div>
+            <div className="flex gap-1.5 mt-2.5">
+              <span className="text-[10px] text-rd-text-secondary bg-rd-bg-soft rounded-md px-2 py-0.5">
+                Entry-level
+              </span>
+              <span className="text-[10px] text-rd-text-secondary bg-rd-bg-soft rounded-md px-2 py-0.5">
+                Hybrid
+              </span>
+            </div>
+          </div>
+        )}
       </div>
-      <h3 className="onb-slide-title">{title}</h3>
-      <p className="onb-slide-desc">{description}</p>
+
+      <h3 className="font-display font-extrabold text-[25px] sm:text-[26px] leading-[1.15] tracking-tight text-rd-text mt-5">
+        {title}
+      </h3>
+      <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-2 max-w-md mx-auto">
+        {description}
+      </p>
+
       {isBrowseJobs && (
-        <div className="onb-track-cards">
-          {TRACKS.map((track) => (
-            <div key={track.number} className="onb-track-card" data-track={track.color}>
-              <div className="onb-track-badge">{track.number}</div>
-              <div className="onb-track-name">Track {track.number} · {track.name}</div>
-              <p className="onb-track-desc">{track.description}</p>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 mt-5 max-w-xl mx-auto">
+          {TRACKS.map((t) => (
+            <div
+              key={t.number}
+              className="bg-rd-bg-card border border-rd-border rounded-[12px] p-3 text-left"
+            >
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-md bg-rd-bg-soft text-rd-text flex items-center justify-center font-display font-bold text-[12px]">
+                  {t.number}
+                </div>
+                <div className="font-display font-semibold text-[12px] text-rd-text">
+                  Track {t.number} · {t.name}
+                </div>
+              </div>
+              <p className="text-[11px] text-rd-text-secondary leading-snug mt-1.5">
+                {t.description}
+              </p>
             </div>
           ))}
         </div>
       )}
+
       {isLinkedinHub && (
         <a
           href="https://www.linkedin.com/mypreferences/d/download-my-data"
           target="_blank"
           rel="noopener noreferrer"
-          className="onb-btn onb-btn-outline"
-          style={{ marginTop: 18 }}
+          className="mt-5 inline-flex items-center gap-1.5 text-[12.5px] font-display font-semibold text-rd-text bg-rd-bg-card border border-rd-border rounded-full px-4 py-2 hover:border-rd-border-hover transition-colors"
         >
           Request data export now <ExternalLink className="w-3.5 h-3.5" />
         </a>
@@ -321,30 +417,84 @@ function Slide({ slide }) {
   );
 }
 
+function ProgressBar({ percent }) {
+  return (
+    <div
+      className="h-[5px] rounded-full overflow-hidden"
+      style={{ background: "var(--rd-border-subtle)" }}
+    >
+      <div
+        className="h-full transition-[width] duration-500 ease-out"
+        style={{ width: `${percent}%`, background: "var(--rd-coral)" }}
+      />
+    </div>
+  );
+}
+
+function BrandMark() {
+  return (
+    <div className="inline-flex items-center gap-2 select-none">
+      <div className="grid grid-cols-2 gap-[3px]">
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-coral" />
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-golden" />
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-teal" />
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-text" />
+      </div>
+      <span className="font-display font-bold text-[17px] tracking-tight text-rd-text">
+        Get A Job
+      </span>
+    </div>
+  );
+}
+
+function PrimaryButton({ children, ...props }) {
+  return (
+    <button
+      {...props}
+      className="inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-5 py-2.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {children}
+    </button>
+  );
+}
+
+function SecondaryButton({ children, ...props }) {
+  return (
+    <button
+      {...props}
+      className="inline-flex items-center justify-center gap-1.5 font-display font-semibold text-[13px] text-rd-text-secondary bg-rd-bg-soft hover:bg-rd-bg-card hover:text-rd-text rounded-full px-4 py-2.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      {children}
+    </button>
+  );
+}
+
 function FullScreenShell({ children }) {
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-white border-b border-[#DDDDDB]">
-        <div className="max-w-2xl mx-auto px-6 py-4 flex items-center justify-between">
-          <div className="flex items-baseline gap-4">
-            <div className="onb-brand">
-              <span className="onb-brand-mark">getajob</span>
-              <span className="onb-brand-dot" />
+    <div className="min-h-screen bg-rd-bg-page font-body text-rd-text px-4 py-6 sm:px-6 sm:py-8">
+      <div
+        className="max-w-2xl mx-auto rounded-[26px] p-[13px]"
+        style={{ background: "var(--rd-peach)" }}
+      >
+        <div className="bg-rd-bg-card rounded-[18px] overflow-hidden">
+          <div className="flex items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-4">
+              <BrandMark />
+              <Link
+                to="/Landing"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hidden sm:inline text-[12px] text-rd-text-secondary hover:text-rd-text transition-colors"
+              >
+                About Get A Job
+              </Link>
             </div>
-            <a
-              href="/Landing"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-xs text-[#9C9DA1] hover:text-[#52545A] inline-flex items-center gap-1 transition-colors"
-            >
-              About Get A Job <ExternalLink className="w-3 h-3" />
-            </a>
+            <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+              Platform tour
+            </p>
           </div>
-          <p className="onb-eyebrow">Platform tour</p>
+          <main className="px-6 py-8 sm:px-8 sm:py-10">{children}</main>
         </div>
-      </header>
-      <div className="flex-1 flex items-center justify-center py-10 px-4">
-        {children}
       </div>
     </div>
   );

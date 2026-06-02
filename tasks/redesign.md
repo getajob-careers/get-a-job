@@ -52,6 +52,7 @@ or scope-cut.
 | `eli/redesign-foundation-login` (foundation + Login) | 2026-06-02 | 432 | −2 |
 | `eli/redesign-onboarding-2a` (foundation + first 3 onboarding steps) | 2026-06-02 | 432 | 0 |
 | `eli/redesign-onboarding-2b` (mid-flow: Experience / RoleSkills / Skills / CareerDirection + 3 input forks) | 2026-06-02 | 431 | −1 |
+| `eli/redesign-onboarding-2c` (Constraints + Survey + Tutorial + onb-style cleanup) | 2026-06-01 | 429 | −5 |
 
 ---
 
@@ -259,6 +260,94 @@ the preview-only heading is absent from `/_preview/onboarding/shared-skill-picke
 - `onboardingStyles.js` — kept intact (still consumed by 2B/2C
   step files). To be deleted at the end of 2C only if a grep
   confirms no external consumers (e.g. CV PDF builder).
+
+---
+
+## Onboarding restyle — PR 2C (`eli/redesign-onboarding-2c`)
+
+Final slice of the 10-step flow. Restyles the last 3 step files in
+place + closes out the onboarding chrome cleanup. Same restyle-only-on-
+behaviour rule — the finalise pipeline (`generate-career-analysis`
+trigger, `replace_career_roles` RPC, `function_cache` dedup, the
+`generate-tasks` fallback, the snapshot-insert-delete rollback), the
+autosave dep array, and every analytics event are preserved 1:1. The
+wrapper's `handleSurveyNext` → `handleFinalise` chain is the terminal
+call into setup; `StepSurvey.onNext` still hits it. `StepConstraints`
+keeps calling its `onSubmit` handler (the wrapper continues to forward
+that to the next step → `handleSurveyNext` continues to trigger
+`generate-career-analysis` at survey submit, the actual fan-out point).
+
+**Files restyled in place:**
+- `StepConstraints.jsx` — location autocomplete + earliest-start-date
+  input + 4-card work-arrangement multi-select. Coral selected state
+  with coral-tint ring on the cards. AutocompleteInput → RdAutocompleteInput;
+  CTA via RdButton.
+- `StepSurvey.jsx` — reality-check survey. All 5 question groups
+  preserved verbatim (multi-select challenges, CV / LinkedIn / referral
+  single-selects via the internal SingleSelect helper, 5-button clarity
+  row). Custom-value shapes + commit-on-blur/Enter behaviour untouched
+  so stored stable identifiers (`reichman_practicum`, `always`, etc.)
+  don't drift.
+- `OnboardingTutorial.jsx` — 6-slide carousel + 4 render states.
+  Preserves: returning-user skip gate, `skipFiredRef` double-fire
+  guard, `useFakeProgress(EXPECTED_SETUP_MS = 80_000)`, 4 analytics
+  events (`STARTED`, `SLIDE_VIEWED`, `COMPLETED`, `SKIPPED`), the 6
+  slides 1:1 (product copy — restyle only), `TRACKS` cards on the
+  Browse Jobs slide, the LinkedIn data export link on the LinkedIn
+  Hub slide, and the `has_seen_onboarding_tutorial` write that lives
+  in the parent. FullScreenShell rebuilt with the peach outer frame
+  + 4-dot brand logo matching `docs/design/redesign/getajob_onboarding_tutorial_carousel.html`.
+
+**Final-handoff chrome (already on rd tokens from PR 2A — verified):**
+- `Onboarding.jsx` hydration spinner (`checkingProfile` branch).
+- `Onboarding.jsx` finalising loader ("Initialising your platform…").
+- `Onboarding.jsx` `finaliseError` banner (step 9 + main shell paths).
+- `Onboarding.jsx` `saveError` banner (main shell).
+
+**Cleanup landed in this PR:**
+- `src/components/onboarding/onboardingStyles.js` — **deleted.**
+  Grep confirmed only `Onboarding.jsx` consumed `ONB_CSS`; the
+  CV PDF builder under `supabase/functions/_shared/cv-templates/`
+  does not reference any `--onb-*` token or `.onb-*` class. The
+  four `<style>{ONB_CSS}</style>` injections in `Onboarding.jsx`
+  were removed at the same time.
+- `src/components/onboarding/SkipFooter.jsx` — **deleted.** Legacy
+  pre-redesign primitive whose only call sites had been migrated to
+  `RdSkipFooter` in PR 2B; the file was the last live consumer of
+  the `.onb-btn*` classes.
+
+**Fixtures added** (preview PDF: `onboarding-2c.pdf`, 24 fixtures
+× 2 viewports = 48 pages — carries 16 from 2A+2B and adds 8 new):
+- `constraints-empty` / `constraints-filled` (Hybrid+Remote multi-select,
+  Tel Aviv location, 2026-09-01 start date).
+- `survey-empty` / `survey-filled` (challenges multi-select + 4 single-
+  selects + free-text "what have you tried" populated).
+- `tutorial-gate` (returning-user skip-gate render state).
+- `tutorial-slide-1` (Browse Jobs slide — sample job card + 3 track
+  cards visible together).
+- `tutorial-slide-6` (final slide w/ "Go to platform" enabled because
+  `setupComplete=true`).
+- `tutorial-completion` (returning user + setupComplete combo → "Setup
+  complete" handoff view).
+
+**Preview runner fix:** `scripts/preview-onboarding.mjs` fixture-ID
+regex was `[a-z-]+` and silently dropped any fixture whose ID
+contained a digit. Loosened to `[a-z0-9-]+` so `tutorial-slide-1` /
+`tutorial-slide-6` get picked up. Output filename moved to
+`onboarding-2c.pdf` for slice compare against the 2B PDF.
+
+**Prod 404 still verified:** runner boots `vite preview` over the
+production build at every run and asserts the preview-only heading is
+absent from `/_preview/onboarding/shared-skill-picker`.
+
+**Onboarding restyle complete:** PRs 2A + 2B + 2C cover all 10 steps
++ shell + final-handoff chrome. The legacy `.onb-*` chrome is gone,
+all step files render via `--rd-*` tokens, and the 4 redesign-fork
+inputs (`RdAutocompleteInput`, `RdPresetBubbleInput`, `RdSkillChipBank`,
+`RdSkillTagInput`, `RdSkipFooter`, `RdButton`) are the canonical
+primitives onboarding consumes. Non-onboarding consumers of the
+original inputs (e.g. `Profile`, `EducationTab`, `CertificationsSection`)
+remain on Direction-3 styling until their own retros.
 
 ---
 

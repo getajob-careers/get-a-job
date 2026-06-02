@@ -10,7 +10,6 @@ import { normalizeEducationLevel, parseEducationDateRange } from "@/lib/educatio
 import { resolveDueDate } from "@/lib/taskDueDate";
 import { ONBOARDING_FALLBACK_TASKS } from "@/lib/onboardingFallbackTasks";
 import { track, EVENTS } from "@/lib/analytics";
-import { ONB_CSS } from "../components/onboarding/onboardingStyles";
 
 // Step index → snake_case name for the onboarding_step_completed event
 // property. Order matches the step constant at the top of this file.
@@ -1053,12 +1052,9 @@ export default function Onboarding() {
 
   if (checkingProfile) {
     return (
-      <>
-        <style>{ONB_CSS}</style>
-        <div className="onb min-h-screen flex items-center justify-center bg-rd-bg-page">
-          <Loader2 className="w-6 h-6 animate-spin text-rd-coral" />
-        </div>
-      </>
+      <div className="min-h-screen flex items-center justify-center bg-rd-bg-page">
+        <Loader2 className="w-6 h-6 animate-spin text-rd-coral" />
+      </div>
     );
   }
 
@@ -1070,51 +1066,42 @@ export default function Onboarding() {
   if (step === 9) {
     return (
       <>
-        <style>{ONB_CSS}</style>
-        <div className="onb">
-          {finaliseError && (
-            <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full px-4">
-              <div className="bg-rd-coral-tint border border-rd-coral/40 rounded-[14px] px-4 py-3 text-[13px] text-rd-coral-dark">
-                <p>{finaliseError}</p>
-                <button onClick={handleFinalise} className="mt-2 text-[12px] font-semibold text-rd-coral hover:text-rd-coral-dark underline underline-offset-2">
-                  Retry
-                </button>
-              </div>
+        {finaliseError && (
+          <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 max-w-lg w-full px-4">
+            <div className="bg-rd-coral-tint border border-rd-coral/40 rounded-[14px] px-4 py-3 text-[13px] text-rd-coral-dark">
+              <p>{finaliseError}</p>
+              <button onClick={handleFinalise} className="mt-2 text-[12px] font-semibold text-rd-coral hover:text-rd-coral-dark underline underline-offset-2">
+                Retry
+              </button>
             </div>
-          )}
-          <OnboardingTutorial
-            isReturningUser={isReturningUser}
-            setupComplete={setupComplete}
-            onTutorialEnd={handleTutorialEnd}
-          />
-        </div>
+          </div>
+        )}
+        <OnboardingTutorial
+          isReturningUser={isReturningUser}
+          setupComplete={setupComplete}
+          onTutorialEnd={handleTutorialEnd}
+        />
       </>
     );
   }
 
   if (finalising) {
     return (
-      <>
-        <style>{ONB_CSS}</style>
-        <div className="onb min-h-screen flex flex-col items-center justify-center gap-5 bg-rd-bg-page px-6">
-          <Loader2 className="w-9 h-9 animate-spin text-rd-coral" />
-          <div className="text-center">
-            <p className="font-display font-extrabold text-[22px] leading-tight text-rd-text">
-              Initialising your platform…
-            </p>
-            <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-2 max-w-[380px] mx-auto">
-              Generating tasks, configuring agents, building your dashboard.
-            </p>
-          </div>
+      <div className="min-h-screen flex flex-col items-center justify-center gap-5 bg-rd-bg-page px-6">
+        <Loader2 className="w-9 h-9 animate-spin text-rd-coral" />
+        <div className="text-center">
+          <p className="font-display font-extrabold text-[22px] leading-tight text-rd-text">
+            Initialising your platform…
+          </p>
+          <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-2 max-w-[380px] mx-auto">
+            Generating tasks, configuring agents, building your dashboard.
+          </p>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <style>{ONB_CSS}</style>
-      <div className="onb">
     <OnboardingShell currentStep={step}>
       {saveError && (
         <div className="mb-4 bg-rd-coral-tint border border-rd-coral/40 rounded-[14px] px-3.5 py-2.5 text-[13px] text-rd-coral-dark">
@@ -1211,7 +1198,5 @@ export default function Onboarding() {
       )}
       {/* step === 9 is rendered above via OnboardingTutorial — no entry here. */}
     </OnboardingShell>
-      </div>
-    </>
   );
 }
