@@ -14,19 +14,29 @@ import {
   parseISO, compareAsc,
 } from "date-fns";
 import AddEventDialog from "../components/calendar/AddEventDialog";
-import { ACT_CSS } from "../components/activity/activityStyles";
+
+// PR 3I — Calendar restyled on rd-* tokens. Restyle-only on behavior;
+// every data-source aggregation, the routing on chip click, AddEventDialog's
+// CRUD (INSERT calendar_events with optional application_id linkage), and
+// the RLS user_id scoping are preserved byte-for-byte.
+//
+// No dedicated Calendar mockup exists (only docs/design/redesign/getajob_tasks.html
+// which shows Calendar as a declined tab merger). Restyle follows the
+// established rd token design system for visual consistency with Tasks,
+// Profile, StoryBank, Tracker.
+//
+// Calendar.jsx no longer imports ACT_CSS. activityStyles.js itself stays
+// alive: Internship.jsx + 6 internship sub-components still consume `.act-*`
+// classes. Full teardown is a later cleanup PR after Internship restyles.
 
 // Flattened legend: 4 categories that map every data source through one of
-// 4 colour families. Replaces the previous 7-dot legend (interview / deadline
-// / networking / follow-up / task-high / task-medium / task-low). Cleaner
-// for users and the priority distinction inside tasks moves into a small
-// badge inside the chip rather than three pink shades on the legend.
+// 4 colour families. Replaces the previous 7-dot legend.
 //
-// Mapping:
-//   - apply       → applications.applied_date            (info blue)
-//   - interview   → calendar_events of interview type    (coral)
-//   - followup    → events of follow-up or networking    (success green)
-//   - task        → tasks.due_date (all priorities)      (warning amber)
+// rd-token mapping (preserving distinct tones across all 4):
+//   - apply       → applications.applied_date → teal-dark (submitted = done)
+//   - interview   → calendar_events of interview type → coral (priority/heat)
+//   - followup    → events of follow-up or networking → soft neutral
+//   - task        → tasks.due_date (all priorities) → golden (open work)
 const CATEGORY_OF_EVENT_TYPE = {
   interview: "interview",
   application_deadline: "task",
@@ -40,17 +50,17 @@ const CATEGORY_LABELS = {
   followup:  "Follow-up / Networking",
   task:      "Task",
 };
-const CATEGORY_CHIP_CLASS = {
-  apply:     "act-chip-apply",
-  interview: "act-chip-interview",
-  followup:  "act-chip-followup",
-  task:      "act-chip-task",
-};
 const CATEGORY_DOT = {
-  apply:     "#2B5DC4",
-  interview: "#F87060",
-  followup:  "#1D7556",
-  task:      "#B8841C",
+  apply:     "var(--rd-teal-dark)",
+  interview: "var(--rd-coral)",
+  followup:  "var(--rd-text-secondary)",
+  task:      "var(--rd-golden-dark)",
+};
+const CATEGORY_CHIP_TONE = {
+  apply:     { bg: "var(--rd-teal-tint)",   fg: "var(--rd-teal-dark)" },
+  interview: { bg: "var(--rd-coral-tint)",  fg: "var(--rd-coral-dark)" },
+  followup:  { bg: "var(--rd-bg-soft)",     fg: "var(--rd-text-secondary)" },
+  task:      { bg: "var(--rd-golden-tint)", fg: "var(--rd-golden-dark)" },
 };
 const CATEGORIES_FOR_LEGEND = ["apply", "interview", "followup", "task"];
 
@@ -69,6 +79,11 @@ function safeParseDate(value) {
     return null;
   }
 }
+
+// rd-token class strings (shared across Calendar's children).
+const RD_CARD       = "rounded-[18px] border border-rd-border bg-rd-bg-card p-4 shadow-rd";
+const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+const RD_BTN_OUTLINE_SM = "inline-flex items-center justify-center gap-1 font-display font-semibold text-[12px] text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-full px-2.5 py-1.5 transition-colors";
 
 export default function Calendar() {
   const queryClient = useQueryClient();
@@ -237,147 +252,160 @@ export default function Calendar() {
 
   if (isLoading) {
     return (
-      <>
-        <style>{ACT_CSS}</style>
-        <div className="act min-h-screen flex items-center justify-center">
-          <Loader2 className="w-6 h-6 animate-spin text-[#52545A]" />
-        </div>
-      </>
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-rd-text-secondary" />
+      </div>
     );
   }
 
   return (
-    <>
-      <style>{ACT_CSS}</style>
-      <div className="act">
-        <div className="max-w-7xl mx-auto px-6 py-10">
-          {eventsError && (
-            <div className="act-banner act-banner-error mb-6">
-              Could not load calendar events. Please refresh the page to try again.
-            </div>
-          )}
+    <div className="max-w-7xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
+      {eventsError && (
+        <div className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-coral-tint border border-rd-coral/30 text-rd-coral-dark mb-6">
+          Could not load calendar events. Please refresh the page to try again.
+        </div>
+      )}
 
-          {/* Header */}
-          <div className="flex items-start justify-between mb-7 gap-4 flex-wrap">
-            <div>
-              <p className="act-eyebrow">Calendar</p>
-              <h1 className="act-h1 mt-1.5">Your career on a calendar.</h1>
-              <p className="act-sub">Every task due date, application, and interview in one view.</p>
-            </div>
-            <button
-              type="button"
-              onClick={() => setShowAddDialog(true)}
-              className="act-btn act-btn-primary"
-            >
-              <Plus className="w-3.5 h-3.5" />Add event
-            </button>
-          </div>
+      {/* Header */}
+      <div className="flex items-start justify-between mb-7 gap-4 flex-wrap">
+        <div className="min-w-0">
+          <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+            Calendar
+          </p>
+          <h1 className="font-display font-extrabold text-[32px] sm:text-[36px] leading-[1.08] tracking-tight text-rd-text mt-1">
+            Your career on a calendar.
+          </h1>
+          <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] mt-2 max-w-2xl">
+            Every task due date, application, and interview in one view.
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={() => setShowAddDialog(true)}
+          className={`${RD_BTN_PRIMARY} flex-shrink-0`}
+        >
+          <Plus className="w-3.5 h-3.5" />Add event
+        </button>
+      </div>
 
-          {/* Legend — flattened to 4 categories */}
-          <div className="flex flex-wrap gap-4 mb-6">
-            {CATEGORIES_FOR_LEGEND.map((cat) => (
-              <span key={cat} className="inline-flex items-center gap-1.5 text-xs text-[#52545A]">
-                <span className="w-2 h-2 rounded-full" style={{ background: CATEGORY_DOT[cat] }} />
-                {CATEGORY_LABELS[cat]}
-              </span>
-            ))}
-          </div>
+      {/* Legend — flattened to 4 categories */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        {CATEGORIES_FOR_LEGEND.map((cat) => (
+          <span key={cat} className="inline-flex items-center gap-1.5 text-[12px] text-rd-text-secondary">
+            <span className="w-2 h-2 rounded-full" style={{ background: CATEGORY_DOT[cat] }} />
+            {CATEGORY_LABELS[cat]}
+          </span>
+        ))}
+      </div>
 
-          {/* Controls */}
-          <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
-            <div className="flex items-center gap-2">
+      {/* Controls */}
+      <div className="flex items-center justify-between mb-5 gap-3 flex-wrap">
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={handlePrev}
+            className={`${RD_BTN_OUTLINE_SM} px-2`}
+            aria-label="Previous"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={handleToday}
+            className={RD_BTN_OUTLINE_SM}
+          >
+            Today
+          </button>
+          <button
+            type="button"
+            onClick={handleNext}
+            className={`${RD_BTN_OUTLINE_SM} px-2`}
+            aria-label="Next"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          <span className="ml-2 font-display font-bold text-[15px] text-rd-text">
+            {headerLabel}
+          </span>
+        </div>
+        <div className="inline-flex gap-1.5">
+          {VIEW_MODES.map((mode) => {
+            const selected = viewMode === mode.id;
+            return (
               <button
+                key={mode.id}
                 type="button"
-                onClick={handlePrev}
-                className="act-btn act-btn-outline act-btn-sm"
-                aria-label="Previous"
-                style={{ padding: "6px 10px" }}
+                onClick={() => setViewMode(mode.id)}
+                data-mode={mode.id}
+                aria-pressed={selected}
+                className={[
+                  "inline-flex items-center font-display font-bold text-[12px] rounded-full px-3 py-1 transition-colors duration-150 whitespace-nowrap",
+                  selected
+                    ? "bg-rd-coral text-white"
+                    : "bg-rd-bg-soft text-rd-text-secondary hover:bg-rd-border hover:text-rd-text",
+                ].join(" ")}
               >
-                <ChevronLeft className="w-4 h-4" />
+                {mode.label}
               </button>
-              <button type="button" onClick={handleToday} className="act-btn act-btn-outline act-btn-sm">
-                Today
-              </button>
-              <button
-                type="button"
-                onClick={handleNext}
-                className="act-btn act-btn-outline act-btn-sm"
-                aria-label="Next"
-                style={{ padding: "6px 10px" }}
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-              <span className="ml-2 text-base font-semibold text-[#0E1014]">{headerLabel}</span>
-            </div>
-            <div className="inline-flex gap-1.5">
-              {VIEW_MODES.map((mode) => (
-                <button
-                  key={mode.id}
-                  type="button"
-                  onClick={() => setViewMode(mode.id)}
-                  className="act-pill act-pill-sm"
-                  data-selected={viewMode === mode.id}
-                >
-                  {mode.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {viewMode === "day" ? (
-            <DayView
-              date={cursor}
-              items={getItems(cursor)}
-              onItemClick={handleItemClick}
-            />
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
-              <div className="lg:col-span-2 act-card" style={{ padding: 16 }}>
-                {viewMode === "month" ? (
-                  <MonthGrid
-                    cursor={cursor}
-                    selectedDate={selectedDate}
-                    setSelectedDate={setSelectedDate}
-                    getItems={getItems}
-                  />
-                ) : (
-                  <WeekGrid
-                    cursor={cursor}
-                    selectedDate={selectedDate}
-                    setSelectedDate={setSelectedDate}
-                    getItems={getItems}
-                  />
-                )}
-              </div>
-
-              <div className="act-card">
-                <p className="act-eyebrow mb-3">{format(selectedDate, "EEE · MMM d")}</p>
-                {selectedDateItems.length === 0 ? (
-                  <p className="text-sm text-[#9C9DA1] text-center py-8">
-                    Nothing scheduled for this day.
-                  </p>
-                ) : (
-                  <div className="flex flex-col gap-2">
-                    {selectedDateItems.map((item) => (
-                      <ItemCard key={item.id} item={item} onClick={() => handleItemClick(item)} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          <AddEventDialog
-            open={showAddDialog}
-            onClose={() => setShowAddDialog(false)}
-            applications={applications}
-            onEventAdded={() => {
-              queryClient.invalidateQueries({ queryKey: ["calendarEvents"] });
-            }}
-          />
+            );
+          })}
         </div>
       </div>
-    </>
+
+      {viewMode === "day" ? (
+        <DayView
+          date={cursor}
+          items={getItems(cursor)}
+          onItemClick={handleItemClick}
+        />
+      ) : (
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className={`lg:col-span-2 ${RD_CARD}`}>
+            {viewMode === "month" ? (
+              <MonthGrid
+                cursor={cursor}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                getItems={getItems}
+              />
+            ) : (
+              <WeekGrid
+                cursor={cursor}
+                selectedDate={selectedDate}
+                setSelectedDate={setSelectedDate}
+                getItems={getItems}
+              />
+            )}
+          </div>
+
+          <div className={RD_CARD}>
+            <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-3">
+              {format(selectedDate, "EEE · MMM d")}
+            </p>
+            {selectedDateItems.length === 0 ? (
+              <p className="text-[13px] text-rd-text-tertiary text-center py-8">
+                Nothing scheduled for this day.
+              </p>
+            ) : (
+              <div className="flex flex-col gap-2">
+                {selectedDateItems.map((item) => (
+                  <ItemCard key={item.id} item={item} onClick={() => handleItemClick(item)} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      <AddEventDialog
+        open={showAddDialog}
+        onClose={() => setShowAddDialog(false)}
+        applications={applications}
+        onEventAdded={() => {
+          queryClient.invalidateQueries({ queryKey: ["calendarEvents"] });
+        }}
+      />
+    </div>
   );
 }
 
@@ -392,7 +420,12 @@ function MonthGrid({ cursor, selectedDate, setSelectedDate, getItems }) {
     <div>
       <div className="grid grid-cols-7 gap-1.5 mb-1.5">
         {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (
-          <div key={d} className="act-eyebrow text-center py-2">{d}</div>
+          <div
+            key={d}
+            className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono text-center py-2"
+          >
+            {d}
+          </div>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1.5">
@@ -422,7 +455,10 @@ function WeekGrid({ cursor, selectedDate, setSelectedDate, getItems }) {
     <div>
       <div className="grid grid-cols-7 gap-1.5 mb-1.5">
         {days.map((d) => (
-          <div key={d.toISOString()} className="act-eyebrow text-center py-2">
+          <div
+            key={d.toISOString()}
+            className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono text-center py-2"
+          >
             {format(d, "EEE")}
           </div>
         ))}
@@ -448,29 +484,55 @@ function WeekGrid({ cursor, selectedDate, setSelectedDate, getItems }) {
 function DayCell({ day, inMonth, items, selected, isToday, onClick, compact }) {
   const visible = items.slice(0, compact ? 6 : 3);
   const overflow = items.length - visible.length;
+  const dayKey = format(day, "yyyy-MM-dd");
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`act-day-cell ${compact ? "act-day-cell-compact" : ""}`}
-      data-out-of-month={!inMonth}
+      data-day={dayKey}
       data-selected={selected}
       data-today={isToday}
+      data-out-of-month={!inMonth}
+      className={[
+        "flex flex-col items-stretch text-left rounded-[10px] p-1.5 transition-colors min-h-[72px]",
+        compact ? "min-h-[120px]" : "min-h-[72px] sm:min-h-[88px]",
+        selected
+          ? "bg-rd-coral-tint border-2 border-rd-coral"
+          : isToday
+          ? "bg-rd-golden-tint/40 border border-rd-golden/40 hover:border-rd-golden"
+          : "bg-rd-bg-card border border-rd-border-subtle hover:border-rd-border-hover",
+        !inMonth && "opacity-50",
+      ].filter(Boolean).join(" ")}
     >
-      <span className="act-day-cell-num">{format(day, "d")}</span>
+      <span
+        className={[
+          "text-[11px] font-display font-bold mb-1",
+          isToday && !selected ? "text-rd-coral-dark" : "text-rd-text",
+        ].filter(Boolean).join(" ")}
+      >
+        {format(day, "d")}
+      </span>
       <div className="flex-1 flex flex-col gap-0.5 min-w-0">
-        {visible.map((it) => (
-          <div
-            key={it.id}
-            className={`act-chip ${CATEGORY_CHIP_CLASS[it.category]}`}
-            title={`${it.title}${it.subtitle ? ` — ${it.subtitle}` : ""}`}
-            style={it.completed ? { textDecoration: "line-through", opacity: 0.6 } : undefined}
-          >
-            <span className="truncate" style={{ maxWidth: "100%" }}>{it.title}</span>
-          </div>
-        ))}
+        {visible.map((it) => {
+          const tone = CATEGORY_CHIP_TONE[it.category] || CATEGORY_CHIP_TONE.interview;
+          return (
+            <div
+              key={it.id}
+              className="text-[10.5px] font-display font-semibold truncate rounded-[6px] px-1.5 py-0.5"
+              title={`${it.title}${it.subtitle ? ` — ${it.subtitle}` : ""}`}
+              style={{
+                background: tone.bg,
+                color: tone.fg,
+                textDecoration: it.completed ? "line-through" : undefined,
+                opacity: it.completed ? 0.6 : 1,
+              }}
+            >
+              <span className="block truncate">{it.title}</span>
+            </div>
+          );
+        })}
         {overflow > 0 && (
-          <span className="text-[10px] text-[#9C9DA1] px-1">+{overflow} more</span>
+          <span className="text-[10px] text-rd-text-tertiary px-1">+{overflow} more</span>
         )}
       </div>
     </button>
@@ -479,10 +541,12 @@ function DayCell({ day, inMonth, items, selected, isToday, onClick, compact }) {
 
 function DayView({ date, items, onItemClick }) {
   return (
-    <div className="act-card">
-      <p className="act-eyebrow mb-1.5">{format(date, "EEEE · MMM d")}</p>
+    <div className={RD_CARD}>
+      <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-1.5">
+        {format(date, "EEEE · MMM d")}
+      </p>
       {items.length === 0 ? (
-        <p className="text-sm text-[#9C9DA1] text-center py-10">
+        <p className="text-[13px] text-rd-text-tertiary text-center py-10">
           Nothing scheduled for this day.
         </p>
       ) : (
@@ -499,30 +563,35 @@ function DayView({ date, items, onItemClick }) {
 function ItemCard({ item, onClick, expanded = false }) {
   const Icon =
     item.kind === "task" ? CheckSquare : item.kind === "application" ? ClipboardList : CalendarDays;
+  const tone = CATEGORY_CHIP_TONE[item.category] || CATEGORY_CHIP_TONE.interview;
   return (
     <button
       type="button"
       onClick={onClick}
-      className="act-itemcard"
       data-kind={item.category}
-      style={item.completed ? { opacity: 0.6 } : undefined}
+      className="w-full text-left rounded-[12px] border border-rd-border bg-rd-bg-card hover:border-rd-border-hover hover:shadow-rd transition-all px-3 py-2.5"
+      style={{
+        opacity: item.completed ? 0.6 : 1,
+        borderLeftWidth: 3,
+        borderLeftColor: tone.fg,
+      }}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2">
-            <Icon className="w-3.5 h-3.5 flex-shrink-0 text-[#52545A]" />
+            <Icon className="w-3.5 h-3.5 flex-shrink-0 text-rd-text-secondary" />
             <span
-              className="text-sm font-semibold text-[#0E1014] truncate"
+              className="font-display font-semibold text-[13px] text-rd-text truncate"
               style={item.completed ? { textDecoration: "line-through" } : undefined}
             >
               {item.title}
             </span>
           </div>
           {item.subtitle && (
-            <p className="text-[11px] text-[#52545A] mt-0.5">{item.subtitle}</p>
+            <p className="text-[11px] text-rd-text-secondary mt-0.5">{item.subtitle}</p>
           )}
           {item.kind === "event" && !item.allDay && item.startISO && (
-            <div className="flex items-center gap-1 text-[11px] text-[#52545A] mt-1">
+            <div className="flex items-center gap-1 text-[11px] text-rd-text-secondary mt-1">
               <Clock className="w-3 h-3" />
               <span>
                 {(() => {
@@ -542,16 +611,16 @@ function ItemCard({ item, onClick, expanded = false }) {
             </div>
           )}
           {item.location && (
-            <div className="flex items-center gap-1 text-[11px] text-[#52545A] mt-1">
+            <div className="flex items-center gap-1 text-[11px] text-rd-text-secondary mt-1">
               <MapPin className="w-3 h-3" />
               <span className="truncate">{item.location}</span>
             </div>
           )}
           {expanded && item.description && (
-            <p className="text-[11px] text-[#52545A] mt-1.5 whitespace-pre-wrap">{item.description}</p>
+            <p className="text-[11px] text-rd-text-secondary mt-1.5 whitespace-pre-wrap">{item.description}</p>
           )}
         </div>
-        <ArrowRight className="w-3.5 h-3.5 flex-shrink-0 mt-1 text-[#9C9DA1]" />
+        <ArrowRight className="w-3.5 h-3.5 flex-shrink-0 mt-1 text-rd-text-tertiary" />
       </div>
     </button>
   );

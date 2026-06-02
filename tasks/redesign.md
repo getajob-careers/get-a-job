@@ -61,6 +61,7 @@ or scope-cut.
 | `eli/redesign-profile` (Profile restyle: 6 tabs rd-tokens, SkillTagInput modify-in-place, EntityCard rd-tints) | 2026-06-02 | 419 | −15 |
 | `eli/redesign-storybank` (Story Bank restyle + profileStyles.js teardown — `.p-*` classes retired) | 2026-06-02 | 413 | −15 |
 | `eli/redesign-tasks` (Tasks restyle: rd tokens + Tasks-side ACT_CSS injection drop; activityStyles.js kept for Calendar + Internship) | 2026-06-02 | 413 | −15 |
+| `eli/redesign-calendar` (Calendar restyle + AddEventDialog chrome + Calendar-side ACT_CSS injection drop; activityStyles.js kept for Internship) | 2026-06-02 | 413 | −15 |
 
 ---
 
@@ -88,7 +89,7 @@ Tick boxes here as each PR merges.
 | 3F | Profile | complex | ☑ | All 6 tabs restyled on rd-tokens. SkillTagInput modified-in-place (Profile-area scope-exclusive). EntityCard rd-tint per entity family. PROFILE_CSS carried-forward (StoryBank still consumes). Deferred: 5-tab IA, Profile Strength card, Languages tab. |
 | 3G | Story Bank | simple | ☑ | StoryBank + StoryCard + StoryEditor restyled on rd-tokens. **profileStyles.js + PROFILE_CSS retired** — gated audit confirmed zero remaining consumers; Profile.jsx injection dropped; 1 dead `p-tabs` className stripped from Internship.jsx. |
 | 3H | Tasks | simple | ☑ | Tasks restyled on rd-tokens (categories teal/coral/golden/neutral by tone; due-chip tri-state coral/golden/soft). All write paths byte-equivalent: handleGenerate, optimistic toggleComplete/deleteTask/setDueDate. ACT_CSS injection dropped Tasks-side ONLY — `activityStyles.js` stays for Calendar + Internship + 6 internship sub-components. Tasks/Calendar tab merger DECLINED (deferred — see backlog). |
-| 7  | Calendar | simple | ☐ | Event view. |
+| 3I | Calendar | simple | ☑ | Calendar restyled on rd-tokens (4-category palette: apply=teal-dark, interview=coral, followup=neutral, task=golden). Month/Week/Day views + AddEventDialog chrome restyled; calendar_events INSERT byte-equivalent. ACT_CSS injection dropped Calendar-side ONLY — `activityStyles.js` stays for Internship + 6 sub-components. No dedicated Calendar mockup existed; followed the established rd token design system. Tasks+Calendar tab merger DECLINED again (deferred). |
 | 8  | LinkedIn | complex | ☐ | ProfileTab + Posts + Outreach + Optimization. |
 | 9  | Chat agents | complex | ☐ | All 4 agent surfaces share the SSE streaming wrapper. |
 | 10 | Internship | complex | ☐ | Browse + Pipeline + DetailDrawer + match_score. |
@@ -1221,6 +1222,91 @@ expose URL params for them.
 7. `tasks-onboarding-fallback-banner`
 8. `tasks-generate-error`
 9. `tasks-date-editor-open`
+
+---
+
+## Calendar — PR 3I (`eli/redesign-calendar`)
+
+Simple-page rollout (investigate + build in one pass). Restyle-only —
+the page is a read-only aggregator across `calendar_events` +
+`applications` + `tasks`; the single write path lives in
+`AddEventDialog.handleSubmit` and is preserved byte-for-byte.
+
+No dedicated Calendar mockup exists in `docs/design/redesign/` — only
+the Tasks mockup, which shows Calendar as a declined tab-merger. The
+restyle follows the established rd token design system for visual
+consistency with Tasks / Profile / StoryBank / Tracker.
+
+**Files touched:**
+
+- `src/pages/Calendar.jsx` — Tailwind + rd tokens directly. `<style>{ACT_CSS}</style>`
+  injection + `.act` wrapper removed; ACT_CSS import dropped. The
+  4-category palette stays at 4 distinct tones in the rd palette:
+  apply=teal-dark (submitted = done semantic), interview=coral
+  (priority/heat), followup=soft neutral (calm relationships),
+  task=golden (open work). DayCell selected/today/out-of-month states
+  use rd-coral-tint border / golden-tint hover / opacity respectively.
+  ItemCard gets a left-border accent matching the category tone.
+- `src/components/calendar/AddEventDialog.jsx` — Dialog chrome
+  restyled (DialogContent on rd-card surface), inputs on RD_INPUT_CLS,
+  Cancel button restyled to rd outline, submit button restyled to
+  rd coral. `handleSubmit` (the calendar_events INSERT path) +
+  all 4 validation toasts + the formData reset on success +
+  application_id linkage are unchanged.
+- `src/components/activity/activityStyles.js` — **untouched.**
+  Internship.jsx + 6 internship sub-components still consume
+  `.act-*` classes; full retirement is gated on the Internship
+  restyle PR (page 10).
+
+**Audit-gated injection drop:** before removing
+`<style>{ACT_CSS}</style>` from Calendar.jsx, the user-mandated grep
+confirmed zero `act-*` / `ACT_CSS` / `className="act"` references
+remain in Calendar.jsx (only descriptive comments referencing the
+historical name). Internship.jsx still imports + injects ACT_CSS
+(verified post-restyle).
+
+**Preservation contract (byte-equivalent):**
+
+- All three reads (`calendar_events`, `applications`, `tasks`) RLS-scoped
+  by `user_id`.
+- `items` useMemo aggregation: events → category via `CATEGORY_OF_EVENT_TYPE`
+  mapping, tasks → category "task" with priority moved into subtitle,
+  applications → category "apply" via `applied_date`. Date parsing via
+  `safeParseDate(parseISO(value))`.
+- `itemsByDay` Map keyed on `yyyy-MM-dd`, sorted ascending by date.
+- `handleItemClick` routes app-linked events to /Tracker, task chips
+  to /Tasks, plain events back to /Calendar.
+- Month / Week / Day view navigation: subMonths/addMonths,
+  subWeeks/addWeeks, subDays/addDays + setCursor / setSelectedDate.
+- AddEventDialog `handleSubmit`:
+  - Validates `!all_day && !start_time` → toast.error
+  - Validates `end_date && !end_time` → toast.error
+  - Validates `endDateTime <= startDateTime` → toast.error
+  - INSERT calendar_events with `user_id: user.id` (RLS-implicit)
+  - application_id sentinel "none" → null
+  - onEventAdded() invalidates `["calendarEvents"]`, onClose() closes
+  - formData reset on success (same 11 fields)
+- No optimistic update / rollback (Calendar.jsx is read-only;
+  AddEventDialog is a single dialog INSERT that closes on success).
+
+**Preview harness:** `/_preview/calendar/:state` (DEV-only via
+`import.meta.env.DEV`). 8 fixtures × 2 viewports = 16 PDF pages →
+`docs/design/redesign/previews/calendar-3i.pdf`. Fresh QueryClient
+seeded synchronously on the 3 canonical query keys. View-mode + Add-
+dialog-open are post-mount DOM clicks (local useState, no URL param).
+events-error fixture uses React Query's internal queryCache state
+manipulation to land the query in `isError`.
+
+**Fixtures (8):**
+
+1. `calendar-loading`
+2. `calendar-empty`
+3. `calendar-populated-month`
+4. `calendar-week-view`
+5. `calendar-day-view`
+6. `calendar-error-banner`
+7. `calendar-overflow-day`
+8. `calendar-add-event-dialog`
 
 ---
 
