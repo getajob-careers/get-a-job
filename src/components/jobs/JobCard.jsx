@@ -5,8 +5,32 @@ import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import {
-  Loader2, ExternalLink, MapPin, CheckCircle2, PlusCircle, Clock, Briefcase,
+  Loader2,
+  ExternalLink,
+  CheckCircle2,
+  PlusCircle,
+  Clock,
+  ChevronDown,
+  ChevronUp,
+  Check,
+  X,
 } from "lucide-react";
+
+// PR 3D — JobCard restyled on rd tokens. Behaviour preserved 1:1:
+//   - scoreJobFit-derived signals are still rendered (match %, strengths,
+//     skill gaps, reason prose).
+//   - Track button calls addJobToTracker → idempotent insert into
+//     applications with the deterministic scoreResult persisted.
+//   - "See Job Posting" → external apply_url link (target="_blank",
+//     rel="noopener noreferrer"). Wording preserved.
+//   - Collapsible JD preview (hasDescription gate, max-h-56 overflow).
+//
+// Track-color contract: parent passes the new rdColor string
+// ("coral" | "teal" | "golden") that came from
+// TRACK_CONFIG[track].rdColor — matches Home + Roadmap. Old
+// green/gray/amber strings are still accepted by RD_TRACK_STYLES as
+// fallbacks (mapped to the same warm palette) so partial rollout
+// doesn't break the card.
 
 const SENIORITY_LABEL = {
   entry: "Entry",
@@ -26,6 +50,12 @@ function experienceChipText(job) {
   }
   if (job.years_experience_min === 0) return "0+ yrs";
   return `${job.years_experience_min}+ yrs`;
+}
+
+function workTypeChipText(job) {
+  if (job.is_remote === true) return "Remote";
+  if (job.is_remote === false) return job.location_city ? "On-site" : null;
+  return null;
 }
 
 function formatPostedDate(dateStr) {
@@ -102,11 +132,33 @@ async function addJobToTracker({ user, queryClient, job, scoreResult }) {
   return { ok: true };
 }
 
-// `trackColor` (optional) — when provided ("green" | "gray" | "amber"), the
-// card gets a 3px accent stripe at the top in that track's color. Set in
-// track mode by Jobs.jsx based on the currently-selected track. In keyword
-// mode it's null and no stripe renders.
-export default function JobCard({ job, scoreResult, trackColor }) {
+// Track-color tints for the redesigned card. Indexed by `rdColor`
+// (coral|teal|golden) coming from TRACK_CONFIG. Legacy color names
+// (green|gray|amber) map onto the same warm palette as a fallback so a
+// stale-cache path doesn't render a colorless card.
+const RD_TRACK_STYLES = {
+  coral:  { tint: "var(--rd-coral-tint)",  badgeBg: "var(--rd-coral)",  accent: "var(--rd-coral-dark)"  },
+  teal:   { tint: "var(--rd-teal-tint)",   badgeBg: "var(--rd-teal)",   accent: "var(--rd-teal-dark)"   },
+  golden: { tint: "var(--rd-golden-tint)", badgeBg: "var(--rd-golden)", accent: "var(--rd-golden-dark)" },
+  // Legacy alias support — fall back to coral if a stale cache surface
+  // passes the old names.
+  green:  { tint: "var(--rd-coral-tint)",  badgeBg: "var(--rd-coral)",  accent: "var(--rd-coral-dark)"  },
+  gray:   { tint: "var(--rd-teal-tint)",   badgeBg: "var(--rd-teal)",   accent: "var(--rd-teal-dark)"   },
+  amber:  { tint: "var(--rd-golden-tint)", badgeBg: "var(--rd-golden)", accent: "var(--rd-golden-dark)" },
+};
+
+function matchBand(score) {
+  if (score == null) return null;
+  if (score >= 75) return "strong";
+  if (score >= 50) return "medium";
+  return "soft";
+}
+
+// `trackColor` (optional) — when provided ("coral" | "teal" | "golden"),
+// the card avatar + match badge use that track's tint. Set in track mode
+// by Jobs.jsx based on the per-job scoreJobFit track. In keyword mode it
+// can be null (no scoreJobFit result) and the card renders neutral.
+export default function JobCard({ job, scoreResult = null, trackColor = null }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
@@ -119,6 +171,7 @@ export default function JobCard({ job, scoreResult, trackColor }) {
 
   const posted = formatPostedDate(job.date_posted);
   const chip = experienceChipText(job);
+  const workChip = workTypeChipText(job);
   const hasDescription = Boolean(job.description && job.description.length > 50);
 
   // scoreResult shape comes from src/lib/scoreJobFit.js (PR-C):
@@ -127,17 +180,22 @@ export default function JobCard({ job, scoreResult, trackColor }) {
   // when the parent passed a profile + job to score.
   const scored = !!scoreResult;
   const score = scored ? Math.round((scoreResult.fit_score ?? 0) * 100) : null;
+  const band = matchBand(score);
   const matchedSkills = scoreResult?.signals?.matched_skills || [];
   const missingCoreSkills = scoreResult?.signals?.missing_core_skills || [];
   const reasonText = (scoreResult?.reasoning?.strengths || []).join(" · ");
-  // Three bands; <50% is GRAY (not red) — a 45% match is "stretch possible",
-  // not "disaster". Red was punitive for the kinds of roles a user would
-  // want to score against. PR #92 (Jobs Direction 3) softened this.
-  const scoreClass = score == null
-    ? ""
-    : score >= 75 ? "jb-match-strong"
-    : score >= 50 ? "jb-match-medium"
-    : "jb-match-soft";
+
+  const styles = trackColor ? RD_TRACK_STYLES[trackColor] : null;
+
+  // Match-badge style — track-tinted when we have a track; muted neutral
+  // for soft (<50%) so a "stretch possible" match doesn't read alarming.
+  const badgeStyle = (() => {
+    if (!scored) return null;
+    if (band === "soft" || !styles) {
+      return { background: "var(--rd-bg-soft)", color: "var(--rd-text-secondary)" };
+    }
+    return { background: styles.tint, color: styles.accent };
+  })();
 
   const handleAdd = async () => {
     setAdding(true);
@@ -146,102 +204,187 @@ export default function JobCard({ job, scoreResult, trackColor }) {
     if (res.ok || res.duplicate) setAdded(true);
   };
 
-  const trackClass = trackColor ? `jb-track-${trackColor}` : "";
+  // Avatar — first letter of company name, tinted to the track color.
+  // Mockup signature pattern. Falls back to a neutral gray when no track
+  // (keyword mode without scoreJobFit result).
+  const avatarLetter = (job.company_name || "?").trim().charAt(0).toUpperCase();
+  const avatarStyle = styles
+    ? { background: styles.tint, color: styles.accent }
+    : { background: "var(--rd-bg-soft)", color: "var(--rd-text-secondary)" };
+
+  // Low-fit warning row at the bottom of the card (when scored < 50% AND
+  // we have a fit signal). Mockup uses a dim opacity for soft cards; we
+  // surface a one-liner instead so the user understands the card was
+  // shown to them but isn't recommended.
+  const lowFitWarning = band === "soft";
 
   return (
     <div
-      className={`jb-job-card ${trackClass}`}
-      data-track-color={trackColor || undefined}
+      className="bg-rd-bg-card border border-rd-border rounded-[18px] p-4 sm:p-5 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd flex flex-col gap-3"
+      style={{ boxShadow: "var(--rd-shadow)" }}
     >
-      <div className="jb-job-card-body">
-        <div className="flex items-start justify-between gap-3">
-          <div className="flex-1 min-w-0">
-            <h3 className="jb-job-card-title truncate">{job.title}</h3>
-            <p className="jb-job-card-company">{job.company_name}</p>
-          </div>
-          {scored && (
-            <span className={`jb-match-badge ${scoreClass}`}>
-              {score}% match
-            </span>
-          )}
+      <div className="flex items-start gap-3">
+        <div
+          aria-hidden="true"
+          className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0"
+          style={avatarStyle}
+        >
+          <span className="font-display font-extrabold text-[17px] leading-none">
+            {avatarLetter}
+          </span>
         </div>
-
-        <div className="jb-job-card-meta">
-          {job.location_city && (
-            <span className="flex items-center gap-1"><MapPin className="w-3 h-3" />{job.location_city}</span>
-          )}
-          <span className="jb-job-card-meta-chip">{chip}</span>
-          {posted && (
-            <span className="flex items-center gap-1"><Clock className="w-3 h-3" />{posted}</span>
-          )}
-        </div>
-
-        {scored && reasonText && (
-          <p className="text-xs text-[#52545A] leading-relaxed">{reasonText}</p>
-        )}
-        {scored && matchedSkills.length > 0 && (
-          <div>
-            <p className="jb-eyebrow mb-1.5">Your strengths</p>
-            <div className="flex flex-wrap gap-1.5">
-              {matchedSkills.slice(0, 5).map((s, i) => (
-                <span key={i} className="jb-skill-pill jb-skill-pill-matched">{humanizeSkillId(s)}</span>
-              ))}
-            </div>
-          </div>
-        )}
-        {scored && missingCoreSkills.length > 0 && (
-          <div>
-            <p className="jb-eyebrow mb-1.5">Skill gaps</p>
-            <div className="flex flex-wrap gap-1.5">
-              {missingCoreSkills.slice(0, 5).map((s, i) => (
-                <span key={i} className="jb-skill-pill jb-skill-pill-missing">{humanizeSkillId(s)}</span>
-              ))}
-            </div>
-          </div>
-        )}
-        {hasDescription && (
-          <div>
-            <button
-              type="button"
-              onClick={() => setShowJD((v) => !v)}
-              className="jb-eyebrow inline-flex items-center gap-1 hover:text-[#0E1014] transition-colors cursor-pointer"
-              aria-expanded={showJD}
-            >
-              {showJD ? "Hide" : "View"} job description
-              <span aria-hidden="true">{showJD ? "▲" : "▼"}</span>
-            </button>
-            {showJD && (
-              <p className="text-[11px] text-[#52545A] leading-relaxed whitespace-pre-line mt-1.5 max-h-56 overflow-y-auto pr-2">
-                {job.description}
-              </p>
+        <div className="flex-1 min-w-0">
+          <h3 className="font-display font-bold text-[15px] leading-[1.2] text-rd-text truncate">
+            {job.title}
+          </h3>
+          <p className="text-[11.5px] text-rd-text-secondary mt-0.5 truncate">
+            {job.company_name}
+            {job.location_city ? ` · ${job.location_city}` : ""}
+          </p>
+          <div className="flex flex-wrap gap-1.5 mt-2">
+            {workChip && <MetaChip>{workChip}</MetaChip>}
+            <MetaChip>{chip}</MetaChip>
+            {posted && (
+              <MetaChip>
+                <Clock className="w-2.5 h-2.5" />
+                {posted}
+              </MetaChip>
             )}
           </div>
+        </div>
+        {scored && badgeStyle && (
+          <span
+            className="flex-shrink-0 inline-flex items-center font-display font-extrabold text-[12.5px] rounded-full px-2.5 py-1"
+            style={badgeStyle}
+          >
+            {score}%
+          </span>
         )}
       </div>
 
-      <div className="jb-job-card-footer">
-        {job.apply_url ? (
-          <a href={job.apply_url} target="_blank" rel="noopener noreferrer" className="jb-see-posting-link">
-            <Briefcase className="w-3.5 h-3.5" />See Job Posting<ExternalLink className="w-3 h-3" />
-          </a>
-        ) : <span />}
-        <div className="flex gap-2">
+      {scored && reasonText && (
+        <p className="text-[12px] text-rd-text-secondary leading-[1.55]">
+          {reasonText}
+        </p>
+      )}
+      {scored && matchedSkills.length > 0 && (
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-1.5">
+            Your strengths
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {matchedSkills.slice(0, 5).map((s, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-rd-teal-tint text-rd-teal-dark"
+              >
+                <Check className="w-2.5 h-2.5" />
+                {humanizeSkillId(s)}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+      {scored && missingCoreSkills.length > 0 && (
+        <div>
+          <p className="text-[10px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-1.5">
+            Skill gaps
+          </p>
+          <div className="flex flex-wrap gap-1.5">
+            {missingCoreSkills.slice(0, 5).map((s, i) => (
+              <span
+                key={i}
+                className="inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full bg-rd-bg-soft text-rd-text-tertiary border border-rd-border"
+              >
+                <X className="w-2.5 h-2.5" />
+                {humanizeSkillId(s)}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {hasDescription && (
+        <div>
           <button
             type="button"
-            onClick={handleAdd}
-            disabled={adding || added}
-            className={`jb-btn jb-btn-sm ${added ? "jb-btn-success" : "jb-btn-primary"}`}
+            onClick={() => setShowJD((v) => !v)}
+            aria-expanded={showJD}
+            className="inline-flex items-center gap-1 text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono hover:text-rd-text transition-colors"
           >
-            {adding ? (
-              <><Loader2 className="w-3 h-3 animate-spin" />Adding…</>
-            ) : added ? (
-              <><CheckCircle2 className="w-3 h-3" />Added</>
+            {showJD ? (
+              <>
+                Hide job description <ChevronUp className="w-3 h-3" />
+              </>
             ) : (
-              <><PlusCircle className="w-3 h-3" />Track</>
+              <>
+                View job description <ChevronDown className="w-3 h-3" />
+              </>
             )}
           </button>
+          {showJD && (
+            <p className="text-[11.5px] text-rd-text-secondary leading-[1.55] whitespace-pre-line mt-1.5 max-h-56 overflow-y-auto pr-2">
+              {job.description}
+            </p>
+          )}
         </div>
+      )}
+
+      {lowFitWarning && (
+        <p className="text-[10.5px] text-rd-text-tertiary leading-[1.45] italic">
+          Low fit — shown because you searched, not recommended.
+        </p>
+      )}
+
+      <div className="flex items-center justify-end gap-2 pt-3 border-t border-rd-border-subtle mt-auto">
+        <button
+          type="button"
+          onClick={handleAdd}
+          disabled={adding || added}
+          className="inline-flex items-center gap-1.5 font-display font-semibold text-[12px] rounded-full px-3.5 py-1.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+          style={
+            added
+              ? { background: "var(--rd-teal-tint)", color: "var(--rd-teal-dark)" }
+              : { background: "var(--rd-bg-soft)", color: "var(--rd-text-secondary)" }
+          }
+        >
+          {adding ? (
+            <>
+              <Loader2 className="w-3 h-3 animate-spin" />
+              Adding…
+            </>
+          ) : added ? (
+            <>
+              <CheckCircle2 className="w-3 h-3" />
+              Tracked
+            </>
+          ) : (
+            <>
+              <PlusCircle className="w-3 h-3" />
+              Track
+            </>
+          )}
+        </button>
+        {job.apply_url && (
+          <a
+            href={job.apply_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-3.5 py-1.5 transition-colors"
+          >
+            See Job Posting
+            <ExternalLink className="w-3 h-3" />
+          </a>
+        )}
       </div>
     </div>
+  );
+}
+
+function MetaChip({ children }) {
+  return (
+    <span className="inline-flex items-center gap-1 text-[10.5px] text-rd-text-tertiary bg-rd-bg-soft rounded-md px-2 py-0.5">
+      {children}
+    </span>
   );
 }

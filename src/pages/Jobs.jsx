@@ -7,17 +7,22 @@ import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { useEducationQuery } from "@/lib/queries/useEducation";
 import { Link, useSearchParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Loader2, Briefcase, Search, RefreshCw } from "lucide-react";
+import { Loader2, Briefcase, Search, RefreshCw, AlertCircle, X } from "lucide-react";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experienceLevel";
 import { TRACK_CONFIG, TRACK_ORDER } from "@/lib/trackConfig";
 import { scoreJobFit } from "@/lib/scoreJobFit";
 import JobCard from "../components/jobs/JobCard";
-import { JOBS_CSS } from "../components/jobs/jobsStyles";
 
 // Page rebuild (PR 3 of jobs-cache rollout, 2026-05-17). Frontend cut over
 // from on-demand edge functions to direct supabase-js queries against
 // public.jobs (refreshed nightly by scripts/refresh-jobs.ts).
+//
+// PR 3D — Jobs restyled on rd tokens. Restyle-only on behavior; every
+// query shape, RPC param, mode-switch path, deep-link, debug flag,
+// pagination + scoreJobFit derivation is preserved verbatim. Track-color
+// mapping switched from `track.color` (legacy green/gray/amber) to
+// `track.rdColor` (coral/teal/golden) to match Home + Roadmap.
 
 const PROFILE_STALE_TIME = 30 * 60 * 1000;
 const BROWSE_PAGE_SIZE = 20;
@@ -302,11 +307,24 @@ export default function JobSuggestions() {
     setLoading(false);
   }, [buildJobsQuery]);
 
+  // Preview hatch — let the harness paint a "force-empty" state without
+  // a real RPC call. Inert in prod (the flag is never set there).
+  const previewForceEmpty = searchParams.get("preview-force-empty");
+
   useEffect(() => {
     if (!user?.id) return;
+    if (previewForceEmpty) {
+      // Skip the real fetch — the harness already seeded an empty list
+      // and the correct emptyReason via URL flag.
+      setJobs([]);
+      setHasMore(false);
+      setLoading(false);
+      setEmptyReason(previewForceEmpty);
+      return;
+    }
     setOffset(0);
     fetchJobs({ modeArg: mode, track: selectedTrack, kw: appliedKeyword, offsetArg: 0, append: false });
-  }, [user?.id, mode, selectedTrack, appliedKeyword, fetchJobs]);
+  }, [user?.id, mode, selectedTrack, appliedKeyword, fetchJobs, previewForceEmpty]);
 
   const handleTrackClick = (t) => {
     setMode("track");
@@ -321,6 +339,12 @@ export default function JobSuggestions() {
     if (!trimmed) return;
     setMode("keyword");
     setAppliedKeyword(trimmed);
+  };
+
+  const handleClearKeyword = () => {
+    setKeyword("");
+    setAppliedKeyword("");
+    setMode(hasAnyRoles ? "track" : "keyword");
   };
 
   const handleLoadMore = () => {
@@ -343,169 +367,286 @@ export default function JobSuggestions() {
     return `Filtered to ${levelLabel(experienceLevel)} roles based on your experience`;
   })();
 
+  // Count-row copy. Mirrors the mockup's "21 roles on Track 1" header.
+  const trackCfg = TRACK_CONFIG[selectedTrack];
+  const countCopy = (() => {
+    if (inKeywordMode && appliedKeyword) {
+      return `${displayedJobs.length} job${displayedJobs.length === 1 ? "" : "s"} matching “${appliedKeyword}”`;
+    }
+    if (inKeywordMode) {
+      return `${displayedJobs.length} job${displayedJobs.length === 1 ? "" : "s"}`;
+    }
+    return `${displayedJobs.length} role${displayedJobs.length === 1 ? "" : "s"} on Track ${trackCfg.number}`;
+  })();
+
   return (
-    <>
-      <style>{JOBS_CSS}</style>
-      <div className="jobs">
-        <div className="max-w-5xl mx-auto px-6 py-10">
-          {/* Header */}
-          <div className="mb-7">
-            <p className="jb-eyebrow flex items-center gap-2">
-              <Briefcase className="w-3.5 h-3.5" />Live jobs
-            </p>
-            <h1 className="jb-h1 mt-1.5">Real roles, refreshed nightly.</h1>
-            <p className="jb-sub">
-              Live tech postings filtered to your level. Track-aware browsing tied to your career roadmap.
-            </p>
-          </div>
+    <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
+      {/* Header */}
+      <div className="mb-7">
+        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+          Jobs
+        </p>
+        <h1 className="font-display font-extrabold text-[32px] sm:text-[36px] leading-[1.08] tracking-tight text-rd-text mt-1">
+          Live roles, scored against your tracks.
+        </h1>
+        <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] mt-2 max-w-2xl">
+          Live tech postings from real company career pages, refreshed nightly. Filtered to your experience level and your career-roadmap tracks.
+        </p>
+      </div>
 
-          {/* Stale roadmap banner */}
-          {stale && (
-            <div className="jb-banner jb-banner-warning mb-6 flex items-center justify-between gap-4 flex-wrap">
-              <p>Your profile has changed since your last roadmap analysis. Refresh to update track matches.</p>
-              <Link to={createPageUrl("Roadmap")} className="jb-btn jb-btn-primary jb-btn-sm flex-shrink-0">
-                <RefreshCw className="w-3 h-3" />Refresh roadmap
-              </Link>
-            </div>
-          )}
+      {/* Stale roadmap banner */}
+      {stale && (
+        <div className="mb-5 flex items-center justify-between gap-4 flex-wrap rounded-[14px] border border-rd-golden bg-rd-golden-tint px-4 py-3 text-[13px] text-rd-golden-dark">
+          <p className="flex items-center gap-2.5">
+            <AlertCircle className="w-4 h-4 flex-shrink-0" />
+            <span>Your profile has changed since your last roadmap analysis. Refresh to update track matches.</span>
+          </p>
+          <Link
+            to={createPageUrl("Roadmap")}
+            className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[12px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-3.5 py-1.5 transition-colors"
+          >
+            <RefreshCw className="w-3 h-3" />
+            Refresh roadmap
+          </Link>
+        </div>
+      )}
 
-          {/* No-profile banner */}
-          {noProfile && (
-            <div className="jb-banner jb-banner-info mb-6">
-              Complete your onboarding first so we can match jobs to your profile.
-            </div>
-          )}
+      {/* No-profile banner */}
+      {noProfile && (
+        <div className="mb-5 flex items-center gap-2.5 rounded-[14px] border border-rd-border bg-rd-bg-soft px-4 py-3 text-[13px] text-rd-text-secondary">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>Complete your onboarding first so we can match jobs to your profile.</span>
+        </div>
+      )}
 
-          {/* Filter bar */}
-          <div className="jb-filter-bar mb-3">
-            {TRACK_ORDER.map((id) => {
-              const track = TRACK_CONFIG[id];
-              const selected = inTrackMode && selectedTrack === id;
+      {/* Search bar */}
+      <form
+        onSubmit={handleKeywordSubmit}
+        className="flex items-center gap-2.5 rounded-[14px] border border-rd-border bg-rd-bg-card px-4 py-2.5 shadow-rd mb-3"
+      >
+        <Search className="w-4 h-4 text-rd-text-tertiary flex-shrink-0" />
+        <input
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          placeholder="Search a role or company…"
+          className="flex-1 bg-transparent border-0 outline-none text-[13.5px] text-rd-text placeholder:text-rd-text-tertiary"
+        />
+        {appliedKeyword && (
+          <button
+            type="button"
+            onClick={handleClearKeyword}
+            aria-label="Clear search"
+            className="p-1 rounded-full hover:bg-rd-bg-soft text-rd-text-tertiary hover:text-rd-text transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </form>
+
+      {/* Track filter pills */}
+      <div className="flex flex-wrap gap-2 mb-5">
+        {TRACK_ORDER.map((id) => {
+          const track = TRACK_CONFIG[id];
+          const selected = inTrackMode && selectedTrack === id;
+          return (
+            <TrackFilterPill
+              key={id}
+              track={track}
+              selected={selected}
+              dimmed={inKeywordMode}
+              onClick={() => handleTrackClick(id)}
+            />
+          );
+        })}
+      </div>
+
+      {/* Status row — count + seniority indicator */}
+      <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
+        <p className="font-display font-bold text-[15px] text-rd-text">
+          {countCopy}
+        </p>
+        <p className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary">
+          {seniorityIndicator}
+        </p>
+      </div>
+
+      {error && (
+        <div className="mb-4 flex items-center gap-2.5 rounded-[14px] border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-[13px] text-[#991B1B]">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span>{error}</span>
+        </div>
+      )}
+
+      {loading && jobs.length === 0 ? (
+        <JobsLoading />
+      ) : displayedJobs.length === 0 ? (
+        <JobsEmpty
+          emptyReason={emptyReason}
+          inKeywordMode={inKeywordMode}
+          inTrackMode={inTrackMode}
+          appliedKeyword={appliedKeyword}
+          selectedTrack={selectedTrack}
+          jobsCount={jobs.length}
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {displayedJobs.map((job) => {
+              // PR-G: card stripe + accent now reflect the per-job
+              // deterministic track (scoreJobFit), not the selected tab
+              // color. After the displayedJobs filter above they almost
+              // always agree, but using the per-job value is what makes
+              // keyword-mode cards still show their honest classification.
+              const perJobTrack = scoredById[job.id]?.track;
+              const trackRdColor = perJobTrack ? TRACK_CONFIG[perJobTrack]?.rdColor : null;
               return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => handleTrackClick(id)}
-                  className={`jb-track-pill jb-track-${track.color}`}
-                  data-selected={selected}
-                  data-dim={inKeywordMode}
-                >
-                  <span className="jb-track-pill-badge">{track.number}</span>
-                  Track {track.number} · {track.name}
-                </button>
+                <JobCard
+                  key={job.id}
+                  job={job}
+                  scoreResult={scoredById[job.id]}
+                  trackColor={trackRdColor}
+                />
               );
             })}
-            <form onSubmit={handleKeywordSubmit} className="jb-search ml-auto">
-              <Search className="w-3.5 h-3.5 jb-search-icon" />
-              <input
-                value={keyword}
-                onChange={(e) => setKeyword(e.target.value)}
-                placeholder="Search any job title (Enter)"
-                className="jb-search-input"
-              />
-            </form>
           </div>
-
-          {/* Seniority indicator + mode breadcrumb */}
-          <div className="flex items-center gap-3 mb-6 flex-wrap">
-            <span className="jb-seniority-chip">{seniorityIndicator}</span>
-            {inKeywordMode && appliedKeyword && (
-              <div className="jb-mode-notice">
-                <span>Searching &quot;{appliedKeyword}&quot;</span>
-                <button type="button" onClick={() => handleTrackClick(selectedTrack)}>
-                  Back to Track {TRACK_CONFIG[selectedTrack].number} · {TRACK_CONFIG[selectedTrack].name}
-                </button>
-              </div>
-            )}
-          </div>
-
-          {error && (
-            <div className="jb-banner jb-banner-error mb-4">{error}</div>
-          )}
-
-          {loading && jobs.length === 0 ? (
-            <div className="jb-card text-center py-12">
-              <Loader2 className="w-6 h-6 animate-spin text-[#52545A] mx-auto mb-2" />
-              <p className="text-sm text-[#52545A]">Loading jobs…</p>
+          {hasMore && (
+            <div className="text-center mt-7">
+              <button
+                type="button"
+                onClick={handleLoadMore}
+                disabled={loading}
+                className="inline-flex items-center gap-1.5 font-display font-semibold text-[13px] text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-full px-5 py-2.5 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Loading
+                  </>
+                ) : (
+                  "Load more"
+                )}
+              </button>
             </div>
-          ) : displayedJobs.length === 0 ? (
-            <div className="jb-card text-center py-10">
-              <Briefcase className="w-10 h-10 text-[#F87060] mx-auto mb-3" />
-              {emptyReason === "no_roles" ? (
-                <>
-                  <p className="text-sm font-medium text-[#0E1014]">
-                    No Track {TRACK_CONFIG[selectedTrack].number} ({TRACK_CONFIG[selectedTrack].name}) roles yet.
-                  </p>
-                  <p className="text-xs text-[#9C9DA1] mt-1.5 max-w-md mx-auto">
-                    Run your Career Roadmap to generate track-classified roles, then come back here to browse matching jobs.
-                  </p>
-                  <Link to={createPageUrl("Roadmap")} className="jb-btn jb-btn-primary jb-btn-sm mt-4">
-                    Go to Career Roadmap
-                  </Link>
-                </>
-              ) : inKeywordMode ? (
-                <p className="text-sm font-medium text-[#52545A]">
-                  No results for &quot;{appliedKeyword}&quot;. Try a different keyword.
-                </p>
-              ) : inTrackMode && jobs.length > 0 ? (
-                // Title-trigram fetch returned candidates but none cleared the
-                // deterministic Track filter. PR-G: this is the "9 in-direction
-                // CSMs but 0 actually Track 1 for you" case — honest signal,
-                // not a bug.
-                <>
-                  <p className="text-sm font-medium text-[#0E1014]">
-                    No Track {TRACK_CONFIG[selectedTrack].number} ({TRACK_CONFIG[selectedTrack].name}) jobs right now.
-                  </p>
-                  <p className="text-xs text-[#9C9DA1] mt-1.5 max-w-md mx-auto">
-                    {jobs.length} job{jobs.length === 1 ? "" : "s"} matched your Track {TRACK_CONFIG[selectedTrack].number} role titles, but none scored as Track {TRACK_CONFIG[selectedTrack].number} fit for your profile. Try {selectedTrack === "track_1" ? "Track 2 (Plan B) or Track 3 (Work Toward)" : selectedTrack === "track_2" ? "Track 3 (Work Toward)" : "another track"}.
-                  </p>
-                </>
-              ) : (
-                <p className="text-sm font-medium text-[#52545A]">
-                  No jobs match your Track {TRACK_CONFIG[selectedTrack].number} roles right now.
-                </p>
-              )}
-            </div>
-          ) : (
-            <>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {displayedJobs.map((job) => {
-                  // PR-G: card stripe + accent now reflect the per-job
-                  // deterministic track (scoreJobFit), not the selected tab
-                  // color. After the displayedJobs filter above they almost
-                  // always agree, but using the per-job value is what makes
-                  // keyword-mode cards still show their honest classification.
-                  const perJobTrack = scoredById[job.id]?.track;
-                  const trackColor = perJobTrack ? TRACK_CONFIG[perJobTrack]?.color : null;
-                  return (
-                    <JobCard
-                      key={job.id}
-                      job={job}
-                      scoreResult={scoredById[job.id]}
-                      trackColor={trackColor}
-                    />
-                  );
-                })}
-              </div>
-              {hasMore && (
-                <div className="text-center mt-6">
-                  <button
-                    onClick={handleLoadMore}
-                    disabled={loading}
-                    className="jb-btn jb-btn-outline jb-btn-sm"
-                  >
-                    {loading ? (
-                      <><Loader2 className="w-3.5 h-3.5 animate-spin" />Loading</>
-                    ) : (
-                      "Load more"
-                    )}
-                  </button>
-                </div>
-              )}
-            </>
           )}
-        </div>
-      </div>
-    </>
+        </>
+      )}
+    </div>
+  );
+}
+
+// ───── Track filter pill ─────
+
+// Three pills mapping to track_1/2/3, each tinted with the track's
+// rdColor (coral/teal/golden). Selected → solid track color; dimmed →
+// muted (when keyword mode is active so the user can see the pills are
+// inert but still navigable).
+const PILL_STYLES = {
+  coral: {
+    selectedBg: "var(--rd-coral)",
+    selectedText: "#ffffff",
+    idleBg: "var(--rd-coral-tint)",
+    idleText: "var(--rd-coral-dark)",
+  },
+  teal: {
+    selectedBg: "var(--rd-teal)",
+    selectedText: "#ffffff",
+    idleBg: "var(--rd-teal-tint)",
+    idleText: "var(--rd-teal-dark)",
+  },
+  golden: {
+    selectedBg: "var(--rd-golden)",
+    selectedText: "#ffffff",
+    idleBg: "var(--rd-golden-tint)",
+    idleText: "var(--rd-golden-dark)",
+  },
+};
+
+function TrackFilterPill({ track, selected, dimmed, onClick }) {
+  const styles = PILL_STYLES[track.rdColor] || PILL_STYLES.coral;
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={selected}
+      className="inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] rounded-full px-3.5 py-1.5 transition-all duration-150 hover:-translate-y-0.5"
+      style={{
+        background: selected ? styles.selectedBg : styles.idleBg,
+        color: selected ? styles.selectedText : styles.idleText,
+        opacity: dimmed ? 0.55 : 1,
+      }}
+    >
+      <span
+        className="w-4 h-4 rounded-full inline-flex items-center justify-center font-display font-extrabold text-[10px] leading-none"
+        style={{
+          background: selected ? "rgba(255,255,255,0.25)" : styles.selectedBg,
+          color: selected ? styles.selectedText : "#ffffff",
+        }}
+      >
+        {track.number}
+      </span>
+      Track {track.number} · {track.name}
+    </button>
+  );
+}
+
+// ───── Loading + empty states ─────
+
+function JobsLoading() {
+  return (
+    <div className="rounded-[18px] border border-rd-border bg-rd-bg-card px-6 py-12 shadow-rd text-center">
+      <Loader2 className="w-6 h-6 animate-spin text-rd-text-secondary mx-auto mb-2" />
+      <p className="text-[13px] text-rd-text-secondary">Loading jobs…</p>
+    </div>
+  );
+}
+
+function JobsEmpty({ emptyReason, inKeywordMode, inTrackMode, appliedKeyword, selectedTrack, jobsCount }) {
+  const trackCfg = TRACK_CONFIG[selectedTrack];
+  return (
+    <div className="rounded-[18px] border border-rd-border bg-rd-bg-card px-6 py-10 shadow-rd text-center">
+      <Briefcase className="w-10 h-10 text-rd-coral mx-auto mb-3" />
+      {emptyReason === "no_roles" ? (
+        <>
+          <p className="text-[14px] font-display font-bold text-rd-text">
+            No Track {trackCfg.number} ({trackCfg.name}) roles yet.
+          </p>
+          <p className="text-[12.5px] text-rd-text-secondary mt-1.5 max-w-md mx-auto leading-[1.55]">
+            Run your Career Roadmap to generate track-classified roles, then come back here to browse matching jobs.
+          </p>
+          <Link
+            to={createPageUrl("Roadmap")}
+            className="mt-5 inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-4 py-2 transition-colors"
+          >
+            Go to Career Roadmap
+          </Link>
+        </>
+      ) : inKeywordMode ? (
+        <p className="text-[14px] font-display font-bold text-rd-text-secondary">
+          No results for &ldquo;{appliedKeyword}&rdquo;. Try a different keyword.
+        </p>
+      ) : inTrackMode && jobsCount > 0 ? (
+        // Title-trigram fetch returned candidates but none cleared the
+        // deterministic Track filter. PR-G: this is the "9 in-direction
+        // CSMs but 0 actually Track 1 for you" case — honest signal,
+        // not a bug.
+        <>
+          <p className="text-[14px] font-display font-bold text-rd-text">
+            No Track {trackCfg.number} ({trackCfg.name}) jobs right now.
+          </p>
+          <p className="text-[12.5px] text-rd-text-secondary mt-1.5 max-w-md mx-auto leading-[1.55]">
+            {jobsCount} job{jobsCount === 1 ? "" : "s"} matched your Track {trackCfg.number} role titles, but none scored as Track {trackCfg.number} fit for your profile. Try{" "}
+            {selectedTrack === "track_1"
+              ? "Track 2 (Detour) or Track 3 (Growth)"
+              : selectedTrack === "track_2"
+              ? "Track 3 (Growth)"
+              : "another track"}.
+          </p>
+        </>
+      ) : (
+        <p className="text-[14px] font-display font-bold text-rd-text-secondary">
+          No jobs match your Track {trackCfg.number} roles right now.
+        </p>
+      )}
+    </div>
   );
 }

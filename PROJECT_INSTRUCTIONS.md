@@ -1,6 +1,6 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-06-02 (App-wide rollout PR 3C — Roadmap restyle: 4-tab layout, clickable quadrant, RdCard role cards, track-color rd palette, branch `eli/redesign-roadmap`).**
+**Last updated: 2026-06-02 (App-wide rollout PR 3D — Jobs restyle: warm palette, RdCard avatars, coral Apply button, track-rdColor pills, branch `eli/redesign-jobs`).**
 
 ## Visual redesign in flight
 

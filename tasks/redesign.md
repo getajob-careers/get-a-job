@@ -56,6 +56,7 @@ or scope-cut.
 | `eli/redesign-shell` (Layout + SidebarFooter — shared app chrome only) | 2026-06-02 | 428 | −6 |
 | `eli/redesign-home` (Home body + live-matches RPC + hero stat) | 2026-06-02 | 421 | −13 |
 | `eli/redesign-roadmap` (Roadmap restyle: 4 tabs, clickable quadrant, track-color rd palette) | 2026-06-02 | 419 | −15 |
+| `eli/redesign-jobs` (Jobs restyle: warm palette, RdCard, track-rdColor pills) | 2026-06-02 | 419 | −15 |
 
 ---
 
@@ -78,18 +79,18 @@ Tick boxes here as each PR merges.
 | 3A | Shell (Layout + SidebarFooter) | simple | ☑ | Merged. Cream sidebar + coral active. NO IA change. |
 | 3B | Home | complex | ☑ | Body restyle + live-matches RPC + hero stat. Preview = pre-seeded QueryClient. |
 | 3C | Roadmap | complex | ☑ | 4-tab layout (How tracks work / Track 1 / 2 / 3), clickable quadrant, rd track colors. |
-| 4  | Jobs | complex | ☐ | Search RPC, filters, JobCard fork. |
-| 5  | Tracker | complex | ☐ | Pipeline kanban, DnD, status badges. |
-| 6  | Profile | complex | ☐ | EducationTab, CertificationsSection, experiences accordion. |
-| 7  | Story Bank | simple | ☐ | Capture + library. |
-| 8  | Tasks | simple | ☐ | Checklist + filters. |
-| 9  | Calendar | simple | ☐ | Event view. |
-| 10 | LinkedIn | complex | ☐ | ProfileTab + Posts + Outreach + Optimization. |
-| 11 | Chat agents | complex | ☐ | All 4 agent surfaces share the SSE streaming wrapper. |
-| 12 | Internship | complex | ☐ | Browse + Pipeline + DetailDrawer + match_score. |
-| 13 | Resources | simple | ☐ | Static-content page. |
-| 14 | Settings | simple | ☐ | Account + delete. |
-| 15 | Landing | simple | ☐ | Public marketing page — final pass. |
+| 3D | Jobs | complex | ☑ | Search RPC + seniority filter preserved. JobCard restyled with track-rdColor avatars. |
+| 4  | Tracker | complex | ☐ | Pipeline kanban, DnD, status badges. |
+| 5  | Profile | complex | ☐ | EducationTab, CertificationsSection, experiences accordion. |
+| 6  | Story Bank | simple | ☐ | Capture + library. |
+| 7  | Tasks | simple | ☐ | Checklist + filters. |
+| 8  | Calendar | simple | ☐ | Event view. |
+| 9  | LinkedIn | complex | ☐ | ProfileTab + Posts + Outreach + Optimization. |
+| 10 | Chat agents | complex | ☐ | All 4 agent surfaces share the SSE streaming wrapper. |
+| 11 | Internship | complex | ☐ | Browse + Pipeline + DetailDrawer + match_score. |
+| 12 | Resources | simple | ☐ | Static-content page. |
+| 13 | Settings | simple | ☐ | Account + delete. |
+| 14 | Landing | simple | ☐ | Public marketing page — final pass. |
 
 ---
 
@@ -700,6 +701,116 @@ The separate colored description rows (live's "Track N · name — description" 
 - JobCard / Tracker still read `TRACK_CONFIG.color` (legacy
   green/gray/amber). They flip to `rdColor` when each gets its own
   restyle PR.
+
+---
+
+## Jobs — PR 3D (`eli/redesign-jobs`)
+
+Jobs restyled on rd tokens. Reference mockup:
+`docs/design/redesign/getajob_jobs_page.html`. Live Jobs is authoritative
+for behavior. JobCard flips to `rdColor` for its track-tinted avatar +
+match badge — completes the color migration started in PR 3C for one
+more surface. (Tracker still reads legacy `color`; its restyle PR is
+next.)
+
+**Files restyled in place:**
+
+- `src/pages/Jobs.jsx` — dropped the inline `JOBS_CSS` injection;
+  swapped to Tailwind + rd tokens. New layout:
+  - Serif "Live roles, scored against your tracks." hero (replaces
+    the legacy "Live jobs / Real roles, refreshed nightly" header).
+  - Full-width search bar (cream RdCard with magnifier icon + clear-x
+    button when a keyword is applied).
+  - 3 track filter pills in coral / teal / golden (the new `rdColor`
+    palette), with hover lift + selected solid state + dimmed
+    opacity when in keyword mode.
+  - "X roles on Track N" count row with seniority chip on the right.
+  - 2-column responsive job grid, Load more button, empty/loading/
+    error states all restyled.
+- `src/components/jobs/JobCard.jsx` — track-tinted avatar (first
+  letter of company), serif title, meta chips (work_type / seniority
+  / posted), match-percentage pill colored to the track tint band:
+    - 75+ → track-tint badge (coral/teal/golden tint + dark accent)
+    - 50–74 → same track tint, slightly muted
+    - <50 → neutral `--rd-bg-soft` + low-fit warning line
+  Strengths + skill-gaps preserved as rd-token pill rows. JD preview
+  toggle preserved verbatim. Footer: Track button (neutral pill,
+  flips to teal-tint "Tracked" on success) + coral Apply pill linking
+  to `apply_url` external.
+
+**Track-color: completes Jobs's switch to `rdColor`:**
+
+| Track | legacy `color` | Jobs now reads |
+|---|---|---|
+| Track 1 | green | **coral** (`rdColor`) |
+| Track 2 | gray  | **teal**  (`rdColor`) |
+| Track 3 | amber | **golden** (`rdColor`) |
+
+`Jobs.jsx` passes `TRACK_CONFIG[track].rdColor` to `JobCard` via the
+existing `trackColor` prop. JobCard's `RD_TRACK_STYLES` lookup
+accepts both the new names AND the legacy `green/gray/amber` aliases
+as a defensive fallback — protects against a stale cache surface
+passing the old names during the partial rollout window.
+
+**Wording preserved:** "See Job Posting" stays as the apply button
+label (mockup says "Apply" but live wording is more accurate for the
+external-link semantic). The coral pill styling is the mockup-faithful
+treatment; the label is intentionally unchanged.
+
+**Behaviour preserved 1:1:**
+
+- `search_jobs_by_role_titles` RPC + the full 6-param signature
+  (`p_role_titles`, `p_limit`, `p_offset`, `p_similarity_threshold`,
+  `p_max_seniority`, `p_work_types`) called byte-equivalent.
+- Seniority filter (`seniorityFilterFor`) — Track 3 still bypasses
+  the strict cap per PR #76/#77.
+- `work_type` filter — null-when-empty pass-through preserved.
+- Keyword search via direct `from("jobs").ilike("title", "%kw%")`.
+- Pagination via `offset` + `BROWSE_PAGE_SIZE=20` + Load more.
+- `?role=` deep-link from Roadmap RoleCards (`linkedRole` →
+  keyword-mode pre-fill).
+- `defaultedRef` one-shot mode flip from keyword → track after
+  `careerRoles` resolves.
+- `requestSeqRef` race protection on out-of-order responses.
+- `scoredById` useMemo with the exact dep array preserved (PR-G fix).
+- `displayedJobs` per-job track filter (PR-G).
+- `?debug=1` verbose console dump (PR-G1 TDZ fix preserved — `mode`
+  read directly, not via the lifted `inTrackMode` binding).
+- `addJobToTracker` idempotent insert with `score_source:
+  "deterministic"` write-path preserved verbatim.
+
+**Preview hatches added (DEV-only, inert in prod):**
+
+- `?preview-force-empty=<reason>` — short-circuits the `fetchJobs`
+  effect so the harness can paint the empty states without any
+  RPC/REST call. Two values used: `no_roles`, `no_matches`.
+
+**Preview harness (new):**
+
+- `src/pages/_preview/JobsPreview.jsx` — DEV-only route at
+  `/_preview/jobs/:state`. Wraps Jobs in a fresh QueryClient seeded
+  with the canonical keys + a stub `AuthContext.Provider`. Jobs.jsx
+  stores its jobs list in `useState` (not React Query), so the
+  harness also monkey-patches `supabase.from("jobs")` +
+  `supabase.rpc("search_jobs_by_role_titles")` to return fixture
+  rows. The patch runs synchronously inside `useMemo` before Jobs
+  mounts. Each Playwright fixture is its own page load so no cleanup
+  is needed.
+- 7 fixtures: loading, populated (4 cards across match bands),
+  keyword-mode (`?role=Product Manager`), empty-no-roles
+  (`?preview-force-empty=no_roles`), empty-no-matches
+  (`?preview-force-empty=no_matches`), stale-banner, no-profile.
+- `scripts/preview-jobs.mjs` — same prod-404 verification flow.
+  Output: `docs/design/redesign/previews/jobs-3d.pdf` (7 fixtures ×
+  desktop + mobile = 14 pages).
+- Prod `/_preview/jobs/*` verified unreachable.
+
+**Out of scope (carry-forward):**
+
+- `src/components/jobs/jobsStyles.js` still exists but is no longer
+  consumed by `Jobs.jsx`. Deletion is a follow-up cleanup pass —
+  leaving it for now in case any test selector still grabs at the
+  old `.jb-*` classes.
 
 ---
 
