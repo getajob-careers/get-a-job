@@ -200,92 +200,110 @@ One skill, fully demonstrated, is worth more than five skills listed on a resume
   },
 ];
 
+// PR 3M — Resources restyled on rd-* tokens. Accordion behavior
+// (P35 useState open-index) and the page's read-only nature (P36 no
+// supabase writes, P37 no external links/downloads, P38 no video
+// embeds, P39 no progress tracking) preserved byte-for-byte.
+// NetworkingPrinciples (P40) is consumed at GUIDES[0] but NOT
+// re-styled here — it landed on rd tokens in PR 3J-C #229.
+//
+// `.prose-career` (globals.css) was a Resources-only typography
+// helper (line-height: 1.7; letter-spacing: -0.01em). Retired in
+// this PR; equivalent Tailwind classes inlined on the content
+// wrapper. No other consumers exist (grep-verified) so the class
+// is removed from globals.css to avoid dead CSS.
+
 export default function Resources() {
   const [openIndex, setOpenIndex] = useState(null);
 
   return (
-    <div className="max-w-3xl mx-auto px-6 py-8">
+    <div className="max-w-3xl mx-auto px-6 py-8 bg-rd-bg-page min-h-screen font-body text-rd-text">
       <div className="mb-8">
-        <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">
+        <h1 className="font-display font-extrabold text-[27px] sm:text-[32px] leading-[1.08] tracking-tight text-rd-text">
           Resources
         </h1>
-        <p className="text-sm text-[#A3A3A3] mt-1">
+        <p className="text-sm text-rd-text-tertiary mt-1">
           Structured guides on how hiring actually works.
         </p>
       </div>
 
       <div className="space-y-3">
-        {GUIDES.map((guide, i) => (
-          <div
-            key={i}
-            className="bg-white rounded-xl border border-[#E5E5E5] overflow-hidden"
-          >
-            <button
-              onClick={() => setOpenIndex(openIndex === i ? null : i)}
-              className="w-full px-6 py-5 flex items-center justify-between text-left"
+        {GUIDES.map((guide, i) => {
+          const isOpen = openIndex === i;
+          return (
+            <div
+              key={i}
+              className="bg-rd-bg-card rounded-[14px] border border-rd-border overflow-hidden shadow-rd"
             >
-              <h2 className="text-sm font-semibold text-[#0A0A0A]">
-                {guide.title}
-              </h2>
-              {openIndex === i ? (
-                <ChevronUp className="w-4 h-4 text-[#A3A3A3] flex-shrink-0" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-[#A3A3A3] flex-shrink-0" />
-              )}
-            </button>
-            {openIndex === i && (
-              <div className="px-6 pb-6 border-t border-[#F0F0F0] pt-4">
-                {guide.component ? (
-                  <guide.component />
+              <button
+                type="button"
+                onClick={() => setOpenIndex(isOpen ? null : i)}
+                className="w-full px-6 py-5 flex items-center justify-between text-left hover:bg-rd-bg-soft transition-colors"
+                aria-expanded={isOpen}
+              >
+                <h2 className="font-display font-bold text-[14.5px] text-rd-text">
+                  {guide.title}
+                </h2>
+                {isOpen ? (
+                  <ChevronUp className="w-4 h-4 text-rd-text-tertiary flex-shrink-0" />
                 ) : (
-                <div className="prose-career">
-                  {guide.content.split("\n").map((line, j) => {
-                    if (line.startsWith("**") && line.endsWith("**")) {
-                      return (
-                        <h3
-                          key={j}
-                          className="text-sm font-semibold text-[#0A0A0A] mt-4 mb-1"
-                        >
-                          {line.replace(/\*\*/g, "")}
-                        </h3>
-                      );
-                    }
-                    if (line.startsWith("- ")) {
-                      return (
-                        <p
-                          key={j}
-                          className="text-sm text-[#525252] pl-4 py-0.5 leading-relaxed"
-                        >
-                          {line}
-                        </p>
-                      );
-                    }
-                    if (line.match(/^\d+\./)) {
-                      return (
-                        <p
-                          key={j}
-                          className="text-sm text-[#525252] pl-4 py-0.5 leading-relaxed"
-                        >
-                          {line}
-                        </p>
-                      );
-                    }
-                    if (line.trim() === "") return <div key={j} className="h-2" />;
-                    return (
-                      <p
-                        key={j}
-                        className="text-sm text-[#525252] leading-relaxed"
-                      >
-                        {line}
-                      </p>
-                    );
-                  })}
-                </div>
+                  <ChevronDown className="w-4 h-4 text-rd-text-tertiary flex-shrink-0" />
                 )}
-              </div>
-            )}
-          </div>
-        ))}
+              </button>
+              {isOpen && (
+                <div className="px-6 pb-6 border-t border-rd-border-subtle pt-4">
+                  {guide.component ? (
+                    <guide.component />
+                  ) : (
+                    <div className="leading-[1.7] tracking-[-0.01em]">
+                      {guide.content.split("\n").map((line, j) => {
+                        if (line.startsWith("**") && line.endsWith("**")) {
+                          return (
+                            <h3
+                              key={j}
+                              className="font-display font-bold text-[13.5px] text-rd-text mt-4 mb-1"
+                            >
+                              {line.replace(/\*\*/g, "")}
+                            </h3>
+                          );
+                        }
+                        if (line.startsWith("- ")) {
+                          return (
+                            <p
+                              key={j}
+                              className="text-sm text-rd-text-secondary pl-4 py-0.5 leading-relaxed"
+                            >
+                              {line}
+                            </p>
+                          );
+                        }
+                        if (line.match(/^\d+\./)) {
+                          return (
+                            <p
+                              key={j}
+                              className="text-sm text-rd-text-secondary pl-4 py-0.5 leading-relaxed"
+                            >
+                              {line}
+                            </p>
+                          );
+                        }
+                        if (line.trim() === "") return <div key={j} className="h-2" />;
+                        return (
+                          <p
+                            key={j}
+                            className="text-sm text-rd-text-secondary leading-relaxed"
+                          >
+                            {line}
+                          </p>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );

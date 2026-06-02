@@ -42,6 +42,8 @@ reviewed without running the app.
 `npm run typecheck`: **434 errors** as of 2026-06-02 (after PR #212).
 **Current ceiling: 400 (after 3L). Ratchet down only — never up.**
 
+(3L shipped at PR #231 / merge SHA e817650 / Vercel success 30s. Per the post-merge marker pattern, this status note is folded into the 3M PR rather than bare-pushed to main.)
+
 **Rule:** no redesign PR may increase this count. Each redesign PR runs
 `npm run typecheck`, diffs against the current ceiling, and reports
 the delta in its PR body. If a PR would raise the count, fix the
@@ -67,7 +69,8 @@ regression in the same PR or scope-cut.
 | `eli/redesign-linkedin-posts` (LinkedIn 3J-B: Posts tab + 6 posts/* sub-components off .li-*; Networking + LI_CSS stay) | 2026-06-02 | 406 | −15 |
 | `eli/redesign-linkedin-networking` (LinkedIn 3J-C: Networking tab + 4 networking/* sub-components off .li-*; **LI_CSS teardown** — `linkedinStyles.js` deleted, `<style>{LI_CSS}</style>` + `.li` wrapper dropped) | 2026-06-02 | 401 | −33 |
 | `eli/redesign-chat` (Chat 3K: ChatInterface + MessageBubble + AgentIntro + StorySaveCard off .c-*; **CHAT_CSS teardown** — `chatStyles.js` deleted, `<style>{CHAT_CSS}</style>` + `.chat` wrapper dropped) — **SHIPPED PR #230** | 2026-06-02 | 401 | −33 |
-| `eli/redesign-internship` (Internship 3L: Internship.jsx + 9 components + browse/* off .act-*; **ACT_CSS teardown** — `activityStyles.js` deleted, ACT_CSS import + both `<style>` injections dropped) | 2026-06-02 | 400 | −34 |
+| `eli/redesign-internship` (Internship 3L: Internship.jsx + 9 components + browse/* off .act-*; **ACT_CSS teardown** — `activityStyles.js` deleted, ACT_CSS import + both `<style>` injections dropped; browseStyles var(--act-*) rewritten to rd) — **SHIPPED PR #231** | 2026-06-02 | 400 | −34 |
+| `eli/redesign-resources` (Resources 3M: Resources.jsx restyled; 6 hex → rd tokens; `.prose-career` retired from globals.css; NetworkingPrinciples preserved 3J-C-shipped) | 2026-06-02 | 400 | −34 |
 
 ---
 
@@ -103,7 +106,7 @@ Tick boxes here as each PR merges.
 | 3K | Chat / Career Agent | complex | ☑ | ChatInterface + MessageBubble + AgentIntro + StorySaveCard restyled on rd-* tokens. **CHAT_CSS teardown** — gated audit confirmed zero remaining `.c-*` JSX consumers; `chatStyles.js` deleted, `<style>{CHAT_CSS}</style>` + `.chat` wrapper dropped. D3 bubble vocabulary adopts 3J-C ThreadBubble playbook (alignment unchanged). P16–P26 byte-equivalent: 7 SUGGESTED_*_JSON extractors + 7 card handlers (tasks/career_roles/applications/company_targets/stories + CV gen + AGENT nav) + conversation+chat_messages persistence + 20-turn slice + scroll + 401-refresh-retry. NO streaming reintroduction. StorySaveCard cross-context (StoryBank quick-add) preserved. |
 | 9  | Chat agents (legacy row) | complex | ☑ | Merged into PR 3K. |
 | 10 | Internship | complex | ☐ | Browse + Pipeline + DetailDrawer + match_score. |
-| 11 | Resources | simple | ☐ | Static-content page. |
+| 3M | Resources | simple | ☑ | Restyled `Resources.jsx` (accordion + 6 hex → rd tokens; `.prose-career` retired from globals.css — single-consumer typography helper inlined as Tailwind `leading-[1.7] tracking-[-0.01em]`). NetworkingPrinciples preserved (3J-C-shipped; not re-styled). Deferred per Eli: video "Watch & learn" section, guide icon+read-time metadata, category filter pills, copy-change to subtitle. P35–P40 byte-equivalent (no Supabase writes, no external links, no embeds, no progress tracking, accordion useState preserved). |
 | 12 | Settings | simple | ☐ | Account + delete. |
 | 13 | Landing | simple | ☐ | Public marketing page — final pass. |
 
