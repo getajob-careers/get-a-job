@@ -377,7 +377,7 @@ const ORGANIZATION_SCHEMA = {
   name: "Get A Job",
   url: "https://getajob.careers",
   description:
-    "An AI-powered career operating system — five specialist agents and a connected workspace that remembers your full background.",
+    "An AI-powered career operating system — four specialist agents and a connected workspace that remembers your full background.",
 };
 
 const FAQ_ITEMS = [
@@ -434,7 +434,7 @@ function useLandingHead() {
     };
 
     const description =
-      "Five AI agents and one connected workspace — career roadmap, tailored CVs, LinkedIn content, interview prep, story bank. Built for real job searches.";
+      "Four AI agents and one connected workspace — career roadmap, tailored CVs, LinkedIn content, interview prep, story bank. Built for real job searches.";
 
     const meta = [
       setOrUpdate('meta[name="description"]', { name: "description", content: description }),
