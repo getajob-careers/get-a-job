@@ -1,28 +1,22 @@
-// LinkedIn preview fixtures — 3J-A Profile tab only.
+// LinkedIn preview fixtures — 3J-A (Profile) + 3J-B (Posts).
 //
-// ProfileTab.jsx does a direct supabase.from("linkedin_optimizations")
-// .select(...).maybeSingle() call in useEffect on mount (not wrapped in
-// TanStack Query), so seeding via setQueryData alone is not enough.
-// The harness installs a fetch override that mocks PostgREST responses
-// for that exact URL + the generate-linkedin-content edge function.
-// Everything else falls through to the real fetch (which 401s in DEV
-// for non-mocked endpoints — harmless for the preview).
+// ProfileTab + PostsTab use direct supabase calls in useEffect (NOT
+// TanStack-wrapped), so the harness installs a fetch override that
+// mocks PostgREST endpoints + the relevant edge functions. Cleanup
+// restores the real fetch on unmount.
 //
-// Each fixture carries:
-//   - profile:  { full_name, location } for the useProfileQuery seed
-//   - linkedinOptimizations: the row returned by the maybeSingle() call
-//     (or null for the empty-baseline path)
-//   - generateError: { status, message } to drive the error banner via
-//     a post-mount Generate-button click
-//   - postMountAction: drives view-toggle and refine-form opens via
-//     DOM clicks (the corresponding state lives in local useState
-//     inside ProfilePreview, so a click is the only outside-in driver)
+// Two render modes per fixture:
+//   - default: render full `<Linkedin>` page; harness pins `?tab=` via
+//     `Navigate replace`. Post-mount DOM clicks drive view transitions.
+//   - subtreeOnly: render page shell + tab bar manually, bypass the
+//     orchestrator, render the named component standalone with seeded
+//     props. Used for states deep in the PostsTab state machine that
+//     can't be driven by mocked-fetch alone (preview / refine-open /
+//     image-attached).
 
 const UID = "linkedin-fixture-user";
 
-// Sample baseline + generated content. Both refer to the same
-// `experience_id` keys so the "Optimized" pills track changes by
-// section per the live diff logic.
+// ── Profile fixture data (3J-A — unchanged) ─────────────────────────
 const BASELINE = {
   profile: {
     headline: "Business administration student",
@@ -93,6 +87,86 @@ const GENERATED = {
   },
 };
 
+// ── Posts fixture data (3J-B) ───────────────────────────────────────
+const SAVED_POSTS = [
+  {
+    id: "post-1",
+    user_id: UID,
+    post_type: "lessons",
+    inputs: { source_type: "role", source_name: "Customer Success Intern at Guardio", lessons: ["Onboarding-completion-rate is the leading retention signal — it predicts week-4 churn cleanly.", "VIP cohorts watch what other VIPs do; one-on-one calls scale far less than a shared onboarding doc.", "Friction in the first five steps is what loses cohorts — anything beyond step five is upside, not save."] },
+    story_id: null,
+    generated_data: {
+      post_text: "Three months into owning onboarding, I learned the fastest way to cut churn wasn't a new feature — it was a two-line setup checklist.\n\nWe'd been blaming the product. The data said otherwise: the users who finished setup in week one stayed. So we made finishing unavoidable, and that cohort's churn dropped.\n\nThe lesson I keep coming back to: the problem usually isn't the thing everyone's pointing at.\n\n#productmanagement #customersuccess",
+      hook_preview: "Three months into owning onboarding, I learned the fastest way to cut churn wasn't a new feature — it was a two-line setup checklist.",
+    },
+    edited_text: null,
+    user_published_at: null,
+    created_at: new Date(Date.now() - 3 * 86400000).toISOString(),
+    updated_at: new Date(Date.now() - 3 * 86400000).toISOString(),
+  },
+  {
+    id: "post-2",
+    user_id: UID,
+    post_type: "project",
+    inputs: { project_name: "VIP onboarding redesign", context: "company", what_you_built: "...", outcome: "..." },
+    story_id: "story-1",
+    generated_data: {
+      post_text: "I rewrote VIP onboarding at Guardio from a 4-step manual handoff into a self-serve guided tour. Time-to-first-value dropped from 8 days to 3. The VIP cohort hit 88% feature adoption in their first quarter.\n\nWhat surprised me: the win was in the empty space, not the steps. Removing two confirmation screens did more than rewriting any of the copy.\n\n#productdesign #customersuccess",
+      hook_preview: "I rewrote VIP onboarding at Guardio from a 4-step manual handoff into a self-serve guided tour. Time-to-first-value dropped from 8 days to 3.",
+    },
+    edited_text: null,
+    user_published_at: null,
+    created_at: new Date(Date.now() - 7 * 86400000).toISOString(),
+    updated_at: new Date(Date.now() - 7 * 86400000).toISOString(),
+  },
+  {
+    id: "post-3",
+    user_id: UID,
+    post_type: "milestone",
+    inputs: { milestone_type: "internship_offer", the_thing: "Product Analyst internship at Riverside" },
+    story_id: null,
+    generated_data: {
+      post_text: "Excited to share — I'm joining Riverside as a Product Analyst intern this summer.\n\nThree people made this possible: Maya at monday.com who refactored my CV with me, Daniel who walked me through the SQL window-function patterns Riverside cared about, and my Customer Success lead at Guardio who let me redirect my last month toward analytics work.\n\nFirst two weeks I'm shadowing the activation cohort. Concrete first.\n\n#newrole #productanalytics",
+      hook_preview: "I'm joining Riverside as a Product Analyst intern this summer.",
+    },
+    edited_text: "Joining Riverside as a Product Analyst intern this summer. Three people made this possible — Maya at monday.com refactored my CV with me, Daniel walked me through the SQL window-function patterns Riverside cared about, and my Customer Success lead at Guardio let me redirect my last month toward analytics work.\n\nFirst two weeks I'm shadowing the activation cohort. Concrete first.\n\n#newrole #productanalytics",
+    user_published_at: null,
+    created_at: new Date(Date.now() - 14 * 86400000).toISOString(),
+    updated_at: new Date(Date.now() - 13 * 86400000).toISOString(),
+  },
+];
+
+// Synthetic "preview-mode" post object — matches the shape PostPreview
+// expects (post.post_text, post.hook_preview, post.hashtag_suggestions,
+// post.format_recommendation, post.format_reason, post.saveable_score,
+// post.warnings[]). Used by `subtreeOnly: "post-preview"` fixtures so we
+// can show the feed-card simulacrum without driving the full state
+// machine.
+const PREVIEW_POST = {
+  post_id: "post-preview",
+  post_text:
+    "Three months into owning onboarding, I learned the fastest way to cut churn wasn't a new feature — it was a two-line setup checklist.\n\nWe'd been blaming the product. The data said otherwise: the users who finished setup in week one stayed. So we made finishing unavoidable, and that cohort's churn dropped.\n\nThe lesson I keep coming back to: the problem usually isn't the thing everyone's pointing at.\n\n#productmanagement #customersuccess",
+  hook_preview:
+    "Three months into owning onboarding, I learned the fastest way to cut churn wasn't a new feature — it was a two-line setup checklist.",
+  hashtag_suggestions: ["#productmanagement", "#customersuccess", "#earlycareer"],
+  format_recommendation: "text",
+  format_reason:
+    "Story-driven lesson post — text format outperforms image/carousel here. The hook does the work.",
+  saveable_score: 8,
+  warnings: [],
+  generated_at: new Date().toISOString(),
+};
+
+const PREVIEW_INPUTS = {
+  source_type: "role",
+  source_name: "Customer Success Intern at Guardio",
+  lessons: [
+    "Onboarding-completion-rate is the leading retention signal — it predicts week-4 churn cleanly.",
+    "VIPs watch what other VIPs do; one-on-one calls scale far less than a shared onboarding doc.",
+    "Friction in the first five steps is what loses cohorts — anything beyond step five is upside, not save.",
+  ],
+};
+
 function profile(overrides = {}) {
   return {
     id: UID,
@@ -104,13 +178,16 @@ function profile(overrides = {}) {
 }
 
 export const LINKEDIN_FIXTURES = {
+  // ── 3J-A Profile fixtures (unchanged from prior PR) ────────────
   "linkedin-profile-empty": {
     label: "LinkedIn · Profile tab · empty state (no baseline, no content)",
+    tab: "profile",
     profile: profile(),
     linkedinOptimizations: null,
   },
   "linkedin-profile-baseline-imported": {
     label: "LinkedIn · Profile tab · baseline imported, awaiting Generate",
+    tab: "profile",
     profile: profile(),
     linkedinOptimizations: {
       baseline_data: BASELINE,
@@ -119,6 +196,7 @@ export const LINKEDIN_FIXTURES = {
   },
   "linkedin-profile-optimized": {
     label: "LinkedIn · Profile tab · fully generated · Optimized view (default)",
+    tab: "profile",
     profile: profile(),
     linkedinOptimizations: {
       baseline_data: BASELINE,
@@ -127,6 +205,7 @@ export const LINKEDIN_FIXTURES = {
   },
   "linkedin-profile-toggle-current": {
     label: "LinkedIn · Profile tab · toggle = Current (raw baseline rendered)",
+    tab: "profile",
     profile: profile(),
     linkedinOptimizations: {
       baseline_data: BASELINE,
@@ -136,6 +215,7 @@ export const LINKEDIN_FIXTURES = {
   },
   "linkedin-profile-section-refine-open": {
     label: "LinkedIn · Profile tab · About section refine form open",
+    tab: "profile",
     profile: profile(),
     linkedinOptimizations: {
       baseline_data: BASELINE,
@@ -145,6 +225,7 @@ export const LINKEDIN_FIXTURES = {
   },
   "linkedin-profile-error": {
     label: "LinkedIn · Profile tab · rate-limit error banner",
+    tab: "profile",
     profile: profile(),
     linkedinOptimizations: {
       baseline_data: BASELINE,
@@ -155,6 +236,81 @@ export const LINKEDIN_FIXTURES = {
       message: "Rate limit reached (30 generations/hour). Try again in a bit.",
     },
     postMountAction: { kind: "click-generate" },
+  },
+
+  // ── 3J-B Posts fixtures (this PR) ───────────────────────────────
+  "linkedin-posts-idle-empty": {
+    label: "LinkedIn · Posts tab · idle · type grid + empty history",
+    tab: "posts",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    posts: [],
+  },
+  "linkedin-posts-idle-with-history": {
+    label: "LinkedIn · Posts tab · idle · type grid + 3 saved posts",
+    tab: "posts",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    posts: SAVED_POSTS,
+  },
+  "linkedin-posts-compose-project": {
+    label: "LinkedIn · Posts tab · compose Project (post-mount click)",
+    tab: "posts",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    posts: [],
+    postMountAction: { kind: "select-post-type", type: "project" },
+  },
+  "linkedin-posts-compose-observation": {
+    label: "LinkedIn · Posts tab · compose Observation (warning banner visible)",
+    tab: "posts",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    posts: [],
+    postMountAction: { kind: "select-post-type", type: "observation" },
+  },
+  "linkedin-posts-compose-free-form": {
+    label: "LinkedIn · Posts tab · compose Free-form (escape-hatch intro card)",
+    tab: "posts",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    posts: [],
+    postMountAction: { kind: "select-post-type", type: "free_form" },
+  },
+  "linkedin-posts-preview-feed-card": {
+    label: "LinkedIn · Posts tab · preview feed-card simulacrum (no image)",
+    tab: "posts",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    subtreeOnly: "post-preview",
+    previewPost: PREVIEW_POST,
+    previewInputs: PREVIEW_INPUTS,
+    previewPostType: "lessons",
+    previewImageUrl: null,
+  },
+  "linkedin-posts-preview-with-image": {
+    label: "LinkedIn · Posts tab · preview feed-card with image attached",
+    tab: "posts",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    subtreeOnly: "post-preview",
+    previewPost: PREVIEW_POST,
+    previewInputs: PREVIEW_INPUTS,
+    previewPostType: "lessons",
+    previewImageUrl:
+      "https://images.unsplash.com/photo-1551434678-e076c223a692?w=640&q=80",
+  },
+  "linkedin-posts-preview-refine-open": {
+    label: "LinkedIn · Posts tab · preview · Refine textarea open",
+    tab: "posts",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    subtreeOnly: "post-preview",
+    previewPost: PREVIEW_POST,
+    previewInputs: PREVIEW_INPUTS,
+    previewPostType: "lessons",
+    previewImageUrl: null,
+    postMountAction: { kind: "open-refine-post" },
   },
 };
 

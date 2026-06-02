@@ -1,17 +1,24 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
-import { Loader2, Briefcase, Lightbulb, Award, FileText, Trash2 } from "lucide-react";
+import { Loader2, Rocket, Lightbulb, Flag, Calendar, HelpCircle, Eye, Pencil, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
+// PR 3J-B — restyled on rd-* tokens. Restyle-only on behavior:
+// P8 optimistic post-delete + rollback toast preserved verbatim
+// (linkedin_posts.delete().eq("id", id) → setPosts filter-out on
+// success, toast on error). Icon set updated to the new 3J-B mapping
+// (Rocket / Lightbulb / Flag / Calendar / HelpCircle / Eye / Pencil)
+// to match PostTypeGrid.
+
 const TYPE_META = {
-  project: { Icon: Briefcase, label: "Project" },
+  project: { Icon: Rocket, label: "Project" },
   lessons: { Icon: Lightbulb, label: "Lessons" },
-  milestone: { Icon: Award, label: "Milestone" },
-  recap: { Icon: FileText, label: "Recap" },
-  observation: { Icon: FileText, label: "Observation" },
-  question: { Icon: FileText, label: "Question" },
-  free_form: { Icon: FileText, label: "Free-form" },
+  milestone: { Icon: Flag, label: "Milestone" },
+  recap: { Icon: Calendar, label: "Recap" },
+  observation: { Icon: Eye, label: "Observation" },
+  question: { Icon: HelpCircle, label: "Question" },
+  free_form: { Icon: Pencil, label: "Free-form" },
 };
 
 // Past posts list — shown below the active compose flow.
@@ -62,7 +69,7 @@ export default function PostsList({ onOpen, refreshKey }) {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8 text-xs text-[#9C9DA1]">
+      <div className="flex items-center justify-center py-8 text-[11.5px] text-rd-text-tertiary">
         <Loader2 className="w-3 h-3 animate-spin mr-1.5" />Loading saved posts…
       </div>
     );
@@ -71,7 +78,7 @@ export default function PostsList({ onOpen, refreshKey }) {
 
   return (
     <div className="mt-8">
-      <h3 className="text-xs uppercase tracking-wider text-[#9C9DA1] font-medium mb-3">
+      <h3 className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-3">
         Your saved posts ({posts.length})
       </h3>
       <div className="space-y-2">
@@ -83,29 +90,33 @@ export default function PostsList({ onOpen, refreshKey }) {
             ? `${Math.max(1, Math.floor(ageMs / 3600000))}h ago`
             : `${Math.floor(ageMs / 86400000)}d ago`;
           return (
-            <div key={p.id} className="bg-white border border-[#DDDDDB] rounded-lg p-3 group hover:border-[#A3A3A3] transition-colors">
+            <div
+              key={p.id}
+              data-post-id={p.id}
+              className="bg-white border border-rd-border rounded-[14px] p-3 group hover:border-rd-border-hover transition-colors"
+            >
               <div className="flex items-start gap-3">
                 <div className="flex items-center gap-1.5 flex-shrink-0">
-                  <Icon className="w-3.5 h-3.5 text-[#52545A]" />
-                  <span className="text-[11px] font-medium text-[#52545A]">{label}</span>
+                  <Icon className="w-3.5 h-3.5 text-rd-coral" />
+                  <span className="text-[11px] font-display font-bold text-rd-text-secondary">{label}</span>
                 </div>
                 <button
                   type="button"
                   onClick={() => onOpen(p)}
                   className="flex-1 text-left min-w-0"
                 >
-                  <p className="text-xs text-[#0E1014] line-clamp-2 leading-snug">{text}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <span className="text-[10px] text-[#9C9DA1]">{age}</span>
-                    {p.edited_text && <span className="text-[10px] text-[#9C9DA1]">· edited</span>}
-                    {p.story_id && <span className="text-[10px] text-[#9C9DA1]">· story-grounded</span>}
+                  <p className="text-[12px] text-rd-text line-clamp-2 leading-snug">{text}</p>
+                  <div className="flex items-center gap-2 mt-1 flex-wrap">
+                    <span className="text-[10px] text-rd-text-tertiary">{age}</span>
+                    {p.edited_text && <span className="text-[10px] text-rd-text-tertiary">· edited</span>}
+                    {p.story_id && <span className="text-[10px] text-rd-text-tertiary">· story-grounded</span>}
                   </div>
                 </button>
                 <button
                   type="button"
                   onClick={() => handleDelete(p.id)}
                   disabled={deletingId === p.id}
-                  className="opacity-0 group-hover:opacity-100 transition-opacity text-[#9C9DA1] hover:text-red-600 flex-shrink-0"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-rd-text-tertiary hover:text-rd-coral-dark flex-shrink-0"
                   title="Delete post"
                 >
                   {deletingId === p.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Trash2 className="w-3.5 h-3.5" />}

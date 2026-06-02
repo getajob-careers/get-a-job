@@ -142,9 +142,9 @@ export default function PostsTab() {
               generating={generating}
             />
             {error && (
-              <div className="mt-3 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
-                <AlertCircle className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-800">{error}</p>
+              <div className="mt-3 px-3 py-2.5 rounded-[10px] bg-rd-coral-tint border border-rd-coral/30 text-[12.5px] text-rd-coral-dark flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 flex-shrink-0 mt-0.5" />
+                <p>{error}</p>
               </div>
             )}
           </div>
