@@ -20,7 +20,6 @@ import { suggestSkillsFromUnmapped } from "@/lib/suggestSkillFromUnmapped";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import EducationTab from "@/components/profile/EducationTab";
-import { PROFILE_CSS } from "@/components/profile/profileStyles";
 import { createPageUrl } from "@/utils";
 
 // PR 3F — Profile restyled on rd-* tokens. Restyle-only on behavior;
@@ -29,13 +28,9 @@ import { createPageUrl } from "@/utils";
 // fix) are preserved verbatim. The 6 live tabs (Profile / Education /
 // Goals / Self-assessment / Projects / Experience) all stay.
 //
-// Carry-forward (same pattern Tracker PR 3E used for TRACKER_CSS):
-// PROFILE_CSS is kept injected at the page root because StoryBank.jsx
-// still consumes `.p-*` classes from profileStyles.js. The Profile page
-// chrome itself is now Tailwind + rd tokens; the `.profile` wrapper is
-// dropped so rd-token utilities aren't fighting `.profile { background:
-// var(--p-bg) }` for cascade priority. Deleting profileStyles.js +
-// restyling StoryBank is a follow-up PR.
+// PR 3G — profileStyles.js / PROFILE_CSS torn down. The carry-forward
+// injection that lived here through PR 3F is gone now that StoryBank
+// no longer consumes `.p-*` classes.
 //
 // Deferred (out of this PR — see tasks/redesign.md): 5-tab IA
 // consolidation, Profile Strength card, standalone Languages tab.
@@ -583,13 +578,7 @@ export default function Profile() {
   ];
 
   return (
-    <>
-      {/* PROFILE_CSS carry-forward — see header comment. No `.profile`
-          wrapper on this page; the stylesheet is kept loaded so the
-          deferred StoryBank restyle can drop it cleanly. */}
-      <style>{PROFILE_CSS}</style>
-
-      <div className="max-w-4xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
+    <div className="max-w-4xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
         {/* Header */}
         <div className="mb-7">
           <p className={RD_EYEBROW}>Profile</p>
@@ -1246,8 +1235,7 @@ export default function Profile() {
             )}
           </div>
         )}
-      </div>
-    </>
+    </div>
   );
 }
 
