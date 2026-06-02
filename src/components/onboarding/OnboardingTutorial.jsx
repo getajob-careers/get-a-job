@@ -72,7 +72,7 @@ const SLIDES = [
     name: "chat_agents",
     title: "Chat agents",
     description:
-      "Specialist AI agents for career strategy, application reviews, interview prep, and salary negotiation. Each one knows your full profile.",
+      "Specialist AI agents for career strategy, application reviews, interview prep, and skill building. Each one knows your full profile.",
     Icon: MessageCircle,
   },
 ];
