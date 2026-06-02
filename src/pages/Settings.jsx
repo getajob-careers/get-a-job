@@ -91,33 +91,33 @@ export default function Settings() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto px-6 py-8 space-y-8">
+    <div className="max-w-2xl mx-auto px-6 py-8 space-y-8 bg-rd-bg-page min-h-screen font-body text-rd-text">
       <div>
-        <p className="text-xs uppercase tracking-wider text-[#A3A3A3] font-medium mb-1">Account</p>
-        <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">Settings</h1>
-        <p className="text-sm text-[#525252] mt-2">Manage your password, onboarding state, and account.</p>
+        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-1">Account</p>
+        <h1 className="font-display font-extrabold text-[27px] sm:text-[32px] leading-[1.08] tracking-tight text-rd-text">Settings</h1>
+        <p className="text-sm text-rd-text-secondary mt-2">Manage your password, onboarding state, and account.</p>
       </div>
 
       {/* ── Account section: password change ──────────────────────────── */}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-[#0A0A0A]">Account</h2>
+        <h2 className="font-display font-bold text-[14px] text-rd-text">Account</h2>
         <PasswordCard />
       </section>
 
       {/* ── Onboarding section: redo onboarding from scratch ───────────── */}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-[#0A0A0A]">Onboarding</h2>
-        <div className="bg-white border border-[#E5E5E5] rounded-xl p-5">
+        <h2 className="font-display font-bold text-[14px] text-rd-text">Onboarding</h2>
+        <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 shadow-rd">
           <div className="flex items-start gap-3">
-            <RotateCcw className="w-4 h-4 text-[#525252] flex-shrink-0 mt-0.5" />
+            <RotateCcw className="w-4 h-4 text-rd-text-secondary flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-[#0A0A0A]">Reset onboarding</p>
-              <p className="text-xs text-[#525252] mt-1 leading-relaxed">
+              <p className="text-sm font-display font-semibold text-rd-text">Reset onboarding</p>
+              <p className="text-xs text-rd-text-secondary mt-1 leading-relaxed">
                 Clears your profile, career roadmap, applications, tasks, experiences, projects, and certifications,
                 then sends you back through onboarding. Your account stays — only the data you entered is wiped.
               </p>
               {resetError && (
-                <p className="text-xs text-red-700 mt-2 flex items-center gap-1.5">
+                <p className="text-xs text-rd-coral-dark mt-2 flex items-center gap-1.5">
                   <AlertCircle className="w-3.5 h-3.5" /> {resetError}
                 </p>
               )}
@@ -129,7 +129,7 @@ export default function Settings() {
                       size="sm"
                       onClick={handleResetOnboarding}
                       disabled={resetBusy}
-                      className="gap-1.5 bg-red-600 hover:bg-red-700"
+                      className="gap-1.5 bg-rd-coral hover:bg-rd-coral-dark text-white rounded-full font-display font-bold"
                     >
                       {resetBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <RotateCcw className="w-3 h-3" />}
                       Confirm reset
@@ -139,6 +139,7 @@ export default function Settings() {
                       size="sm"
                       onClick={() => setResetConfirming(false)}
                       disabled={resetBusy}
+                      className="rounded-full"
                     >
                       Cancel
                     </Button>
@@ -148,7 +149,7 @@ export default function Settings() {
                     variant="outline"
                     size="sm"
                     onClick={handleResetOnboarding}
-                    className="gap-2 text-red-600 border-red-200 hover:bg-red-50"
+                    className="gap-2 text-rd-coral-dark border-rd-coral/30 hover:bg-rd-coral-tint rounded-full font-display font-semibold"
                   >
                     <RotateCcw className="w-3 h-3" />
                     Reset onboarding
@@ -162,18 +163,18 @@ export default function Settings() {
 
       {/* ── Danger zone: permanent account deletion ──────────────────── */}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-red-700">Danger zone</h2>
-        <div className="bg-white border border-red-200 rounded-xl p-5">
+        <h2 className="font-display font-bold text-[14px] text-rd-coral-dark">Danger zone</h2>
+        <div className="bg-rd-bg-card border border-rd-coral/30 rounded-[14px] p-5 shadow-rd">
           <div className="flex items-start gap-3">
-            <Trash2 className="w-4 h-4 text-red-600 flex-shrink-0 mt-0.5" />
+            <Trash2 className="w-4 h-4 text-rd-coral flex-shrink-0 mt-0.5" />
             <div className="flex-1">
-              <p className="text-sm font-medium text-[#0A0A0A]">Delete account</p>
-              <p className="text-xs text-[#525252] mt-1 leading-relaxed">
-                Permanently removes your account, all data tied to it, and any files you've uploaded. This action is
-                immediate and cannot be undone. To confirm, type <code className="bg-[#F5F5F5] text-[#0A0A0A] px-1 py-0.5 rounded text-[11px] font-mono">{DELETE_CONFIRM_PHRASE}</code> below.
+              <p className="text-sm font-display font-semibold text-rd-text">Delete account</p>
+              <p className="text-xs text-rd-text-secondary mt-1 leading-relaxed">
+                Permanently removes your account, all data tied to it, and any files you&apos;ve uploaded. This action is
+                immediate and cannot be undone. To confirm, type <code className="bg-rd-bg-soft text-rd-text px-1 py-0.5 rounded text-[11px] font-mono">{DELETE_CONFIRM_PHRASE}</code> below.
               </p>
               {deleteError && (
-                <p className="text-xs text-red-700 mt-2 flex items-center gap-1.5">
+                <p className="text-xs text-rd-coral-dark mt-2 flex items-center gap-1.5">
                   <AlertCircle className="w-3.5 h-3.5" /> {deleteError}
                 </p>
               )}
@@ -183,7 +184,7 @@ export default function Settings() {
                   onChange={(e) => setDeleteInput(e.target.value)}
                   placeholder={DELETE_CONFIRM_PHRASE}
                   disabled={deleteBusy}
-                  className="text-sm max-w-xs"
+                  className="text-sm max-w-xs border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
                   autoComplete="off"
                   aria-label="Type DELETE my account to confirm"
                 />
@@ -192,7 +193,7 @@ export default function Settings() {
                   size="sm"
                   onClick={handleDeleteAccount}
                   disabled={!canConfirmDelete || deleteBusy}
-                  className="gap-1.5 bg-red-600 hover:bg-red-700 disabled:opacity-40"
+                  className="gap-1.5 bg-rd-coral hover:bg-rd-coral-dark text-white rounded-full font-display font-bold disabled:opacity-40"
                 >
                   {deleteBusy ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trash2 className="w-3 h-3" />}
                   Delete account
@@ -208,7 +209,7 @@ export default function Settings() {
       <div className="pt-2 text-center">
         <a
           href="/Landing"
-          className="text-xs text-[#A3A3A3] hover:text-[#525252] underline underline-offset-2"
+          className="text-xs text-rd-text-tertiary hover:text-rd-text-secondary underline underline-offset-2"
         >
           About Get A Job
         </a>
