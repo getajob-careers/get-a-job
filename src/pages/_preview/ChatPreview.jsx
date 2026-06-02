@@ -5,12 +5,34 @@
 // fetch override that mocks the PostgREST endpoints. Cleanup restores
 // the real fetch on unmount.
 //
-// Two render paths:
-//   - default: mount full <ChatInterface> with seeded fetch results
-//     for conversations + chat_messages.
-//   - subtreeOnly: NOT USED for 3K (story-capture seed handled via
-//     a Suggested-Card simulacrum injected directly into the message
-//     stream — see fixtures.seedStoryCapture).
+// ─── Why the dropdown-click dance ────────────────────────────────
+// ChatInterface.jsx:496-498 intentionally does NOT auto-resume the
+// most-recent conversation on cold mount ("every fresh agent open
+// starts a clean chat"). So even when conversations + chat_messages
+// fetches are mocked, activeConversationId stays null and the
+// messages-load effect (line 504) bails out with messages.length===0
+// → empty intro state.
+//
+// To wake a fixture's seeded thread we must drive the same DOM path
+// a real user would: open the conversation dropdown (Radix
+// DropdownMenuTrigger button → aria-haspopup="menu"), then click
+// the conversation's DropdownMenuItem (role="menuitem"). That fires
+// ChatInterface.selectConversation() → sets activeConversationId →
+// the messages-load effect fires → mocked fetch returns rows →
+// bubbles + cards render.
+//
+// ─── subtreeOnly for story-capture ───────────────────────────────
+// `suggestedStoryCapture` is the only suggestion field NOT persisted
+// to chat_messages (it's an in-memory-only field added during live
+// sendMessage at line 708). The messages-load mapping at lines
+// 523-535 deliberately omits it. So the fetch-mock path CANNOT
+// surface a StorySaveCard.
+//
+// The story-thread subtree mirrors the 3J-C `subtreeOnly` pattern:
+// renders a chat-thread simulacrum using exported components
+// (MessageBubble + StorySaveCard) standalone, bypassing
+// ChatInterface entirely. The chrome (header + composer) is
+// re-implemented inline.
 //
 // Production safety: route registration in App.jsx is gated by
 // `import.meta.env.DEV`. Prod /_preview/chat/* falls through to
@@ -19,9 +41,12 @@
 import React, { useMemo, useEffect, useRef } from "react";
 import { useParams } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { Send, Plus, MessageSquare, ChevronDown } from "lucide-react";
 import { AuthContext } from "@/lib/AuthContext";
 import ChatInterface from "@/components/chat/ChatInterface";
 import AgentIntro from "@/components/chat/AgentIntro";
+import MessageBubble from "@/components/chat/MessageBubble";
+import StorySaveCard from "@/components/chat/StorySaveCard";
 import {
   CHAT_FIXTURES,
   CHAT_FIXTURE_UID,
@@ -29,8 +54,6 @@ import {
 
 function seedCache(qc, fixture) {
   qc.setQueryData(["userProfile", CHAT_FIXTURE_UID], fixture.profile ?? null);
-  // useProfileQuery + useExperiencesQuery are used by ChatInterface;
-  // pre-seed empty profile + experiences so the page doesn't fan-out.
   qc.setQueryData(["profile", CHAT_FIXTURE_UID], fixture.profile ?? null);
   qc.setQueryData(["experiences", CHAT_FIXTURE_UID], []);
   qc.setQueryData(["applications", CHAT_FIXTURE_UID], [
@@ -48,40 +71,26 @@ function installFetchOverride(fixture) {
           ? input.url
           : String(input || "");
 
-    // PostgREST: conversations list
     if (url.includes("/rest/v1/conversations")) {
-      const rows = fixture.conversations ?? [];
-      return jsonResponse(rows);
+      return jsonResponse(fixture.conversations ?? []);
     }
-
-    // PostgREST: chat_messages list
     if (url.includes("/rest/v1/chat_messages")) {
-      const rows = fixture.messages ?? [];
-      return jsonResponse(rows);
+      return jsonResponse(fixture.messages ?? []);
     }
-
-    // PostgREST: profiles
     if (url.includes("/rest/v1/profiles")) {
       return jsonResponse([fixture.profile ?? null]);
     }
-
-    // PostgREST: experiences (used by useExperiencesQuery)
     if (url.includes("/rest/v1/experiences")) {
       return jsonResponse([]);
     }
-
-    // PostgREST: applications
     if (url.includes("/rest/v1/applications")) {
       return jsonResponse([
         { id: "app-fixture-1", role_title: "Product Analyst", company: "Riverside" },
       ]);
     }
-
-    // Edge function: ai-chat (no-op return — fixtures don't send live messages)
     if (url.includes("/functions/v1/ai-chat")) {
       return jsonResponse({ reply: "[harness — no AI call fired]" });
     }
-
     return real(input, init);
   };
   return () => {
@@ -98,9 +107,6 @@ function jsonResponse(body, status = 200) {
   );
 }
 
-// AgentIntro defaults to expanded on first visit. The harness wants
-// it expanded regardless, so we wipe the localStorage sentinel that
-// would auto-collapse it on later visits.
 function resetAgentIntroState() {
   try {
     const keys = ["gaj.agent_intro_visits_career_agent", "gaj.agent_intro_seen_career_agent"];
@@ -110,14 +116,89 @@ function resetAgentIntroState() {
   }
 }
 
-// Post-mount seed: inject the suggested_story_capture into the
-// message that needs it. Looks up the assistant message in the React
-// state tree via a global setMessages reference (set by ChatInterface).
-// Because messages are React useState, we rely on the fetch-mocked
-// chat_messages already populating the list, then we use a custom
-// hook-bridge: we patch the rendered DOM. Simpler: skip the harness
-// path entirely and render a standalone StorySaveCard inside the
-// flow when the fixture requests it. See SeededStoryCapture below.
+// Conversation hydration is driven from the Playwright runner via
+// real pointer events (see scripts/preview-chat.mjs). Radix
+// DropdownMenuTrigger doesn't reliably open from a synthetic in-page
+// .click(); the runner uses page.click() with real pointer event
+// dispatch which Radix listens for. Keeping the logic in the runner
+// avoids React/Radix event-system mismatch.
+
+// ── Story-thread subtree (chat-multi-turn-story-capture) ──────────
+// Mirrors the live ChatInterface chrome (header + scroll area +
+// composer) but renders the message stream + StorySaveCard manually
+// from seeded fixture data. Used only when fixture.subtreeOnly ===
+// "story-thread" because suggestedStoryCapture is in-memory only and
+// can't ride through the chat_messages persistence path.
+function StoryThreadSubtree({ fixture }) {
+  const messages = (fixture.messages || []).map((m) => ({
+    id: m.id,
+    role: m.role,
+    content: m.content,
+  }));
+  const seed = fixture.seedStoryCapture;
+  const seedAfter = seed?.messageId || messages[messages.length - 1]?.id || null;
+
+  return (
+    <div className="flex flex-col h-full bg-rd-bg-page font-body text-rd-text">
+      {/* Header — mirrors ChatInterface lines 1396-1446 */}
+      <div className="px-6 py-3.5 border-b border-rd-border bg-rd-bg-card flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="font-display font-bold text-[14.5px] text-rd-text leading-tight">
+            Career Agent
+          </h2>
+          <p className="text-[12px] text-rd-text-tertiary leading-snug mt-0.5 max-w-[540px] truncate">
+            Tell me what you&apos;re working on — I&apos;ll help you move it forward.
+          </p>
+        </div>
+        <div className="inline-flex items-center gap-1.5 rounded-md border border-rd-border bg-rd-bg-card px-2.5 py-1.5 text-xs text-rd-text">
+          <MessageSquare className="w-3.5 h-3.5" />
+          <span className="truncate max-w-[140px]">
+            {fixture.conversations?.[0]?.title || "Career conversation"}
+          </span>
+          <ChevronDown className="w-3.5 h-3.5" />
+        </div>
+      </div>
+
+      {/* Messages area — mirrors ChatInterface lines 1449-1571 */}
+      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+        {messages.map((m) => (
+          <React.Fragment key={m.id}>
+            <MessageBubble message={m} />
+            {seedAfter === m.id && seed && (
+              <StorySaveCard
+                capture={seed.capture}
+                experienceLabel={null}
+                onExtract={async () => null}
+                onSave={async () => true}
+              />
+            )}
+          </React.Fragment>
+        ))}
+      </div>
+
+      {/* Composer — mirrors ChatInterface lines 1574-1608 */}
+      <div className="px-6 pt-3.5 pb-[18px] border-t border-rd-border bg-rd-bg-card">
+        <div className="flex justify-end mb-2">
+          <button className="text-xs text-rd-text-secondary hover:text-rd-text flex items-center gap-1 transition-colors">
+            <Plus className="w-3 h-3" /> New chat
+          </button>
+        </div>
+        <div className="flex items-end gap-2">
+          <div className="flex-1 px-3.5 py-2.5 rounded-[14px] border border-rd-border bg-rd-bg-card text-rd-text-tertiary font-body text-[14px] min-h-[42px]">
+            Message your agent…
+          </div>
+          <button
+            type="button"
+            aria-label="Send message"
+            className="w-[42px] h-[42px] rounded-full bg-rd-coral text-white border-0 inline-flex items-center justify-center flex-shrink-0"
+          >
+            <Send className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function ChatPreview() {
   const { state } = useParams();
@@ -150,6 +231,8 @@ export default function ChatPreview() {
     };
   }, [fixture]);
 
+  // Conversation hydration handled by the Playwright runner.
+
   const authValue = useMemo(
     () => ({
       user: { id: CHAT_FIXTURE_UID, email: "eli@example.com" },
@@ -165,8 +248,6 @@ export default function ChatPreview() {
     [],
   );
 
-  // CareerAgent capabilities + how-to-use — pulled verbatim from the
-  // live page for visual fidelity in the intro fixture.
   const careerAgentCapabilities = [
     "Pick the right next move when you're between threads",
     "Talk through a stuck application or interview wobble",
@@ -176,13 +257,33 @@ export default function ChatPreview() {
   const careerAgentHowToUse =
     "Tell me what's happening — a concrete moment, a stuck thread, or a question. I'll propose specific actions you can accept or edit.";
 
+  // Story-thread subtree — bypass ChatInterface entirely.
+  if (fixture.subtreeOnly === "story-thread") {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <AuthContext.Provider value={authValue}>
+          <div className="min-h-screen bg-rd-bg-page font-body text-rd-text">
+            <div className="max-w-4xl mx-auto h-screen flex flex-col">
+              <AgentIntro
+                agentId="career_agent"
+                capabilities={careerAgentCapabilities}
+                howToUse={careerAgentHowToUse}
+              />
+              <div className="flex-1 overflow-hidden">
+                <StoryThreadSubtree fixture={fixture} />
+              </div>
+            </div>
+          </div>
+        </AuthContext.Provider>
+      </QueryClientProvider>
+    );
+  }
+
+  // Default: full ChatInterface with post-mount dropdown click.
   return (
     <QueryClientProvider client={queryClient}>
       <AuthContext.Provider value={authValue}>
         <div className="min-h-screen bg-rd-bg-page font-body text-rd-text">
-          {/* Wrapper mirrors CareerAgent page chrome (top-bar omitted
-              for fixture clarity). Fixed-height container so the
-              composer sticks to the bottom inside the screenshot. */}
           <div className="max-w-4xl mx-auto h-screen flex flex-col">
             <AgentIntro
               agentId="career_agent"

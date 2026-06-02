@@ -75,7 +75,15 @@ export const CHAT_FIXTURES = {
     activeConversationId: null,
   },
 
-  // 2. Multi-turn thread + STORY_CAPTURE card (P22)
+  // 2. Multi-turn thread + STORY_CAPTURE card (P22).
+  //
+  // STORY_CAPTURE is in-memory-only (suggested_story_capture is NOT a
+  // chat_messages column; see ChatInterface.jsx:705-708). The
+  // fetch-mock load path therefore CANNOT surface a StorySaveCard.
+  // This fixture uses subtreeOnly to render a chat-thread simulacrum
+  // (header + bubbles + StorySaveCard + composer chrome) using the
+  // exported MessageBubble + StorySaveCard components — same pattern
+  // as 3J-C's OutreachThreadSubtree.
   "chat-multi-turn-story-capture": {
     label: "Chat · multi-turn thread + STORY_CAPTURE card (P22)",
     profile: profile(),
@@ -85,7 +93,7 @@ export const CHAT_FIXTURES = {
       msg("assistant", ASSIST_MSG_STORY, { id: "msg-2", created_at: ISO(4 * 60 * 1000) }),
     ],
     activeConversationId: CONVO_ID,
-    // Story-capture is in-memory only; harness seeds via post-mount.
+    subtreeOnly: "story-thread",
     seedStoryCapture: {
       messageId: "msg-2",
       capture: {

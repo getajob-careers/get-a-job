@@ -23,14 +23,29 @@ function loadFixtureIds() {
   const src = readFileSync(FIXTURE_PATH, "utf8");
   const ids = [];
   const labels = {};
-  const re = /"([a-z0-9-]+)":\s*\{\s*label:\s*"([^"]+)"/g;
+  // Conversation title per fixture (from `convo({ title: "…" })` in each
+  // fixture block) so the runner can click the right menuitem.
+  const convoTitles = {};
+  // Fixtures that hand their own thread render (story-thread subtree
+  // — no dropdown drive needed).
+  const subtreeOnly = {};
+
+  // Block-aware parse: walk each fixture object and extract label +
+  // first convo title within it + subtreeOnly flag.
+  const blockRe = /"(chat-[a-z0-9-]+)":\s*\{([\s\S]*?)\n\s{2}\}/g;
   let m;
-  while ((m = re.exec(src)) !== null) {
-    if (!m[1].startsWith("chat-")) continue;
-    ids.push(m[1]);
-    labels[m[1]] = m[2];
+  while ((m = blockRe.exec(src)) !== null) {
+    const id = m[1];
+    const body = m[2];
+    const labelMatch = body.match(/label:\s*"([^"]+)"/);
+    const convoTitleMatch = body.match(/convo\(\{[^}]*title:\s*"([^"]+)"/);
+    const subtreeMatch = body.match(/subtreeOnly:\s*"([^"]+)"/);
+    ids.push(id);
+    if (labelMatch) labels[id] = labelMatch[1];
+    if (convoTitleMatch) convoTitles[id] = convoTitleMatch[1];
+    if (subtreeMatch) subtreeOnly[id] = subtreeMatch[1];
   }
-  return { ids, labels };
+  return { ids, labels, convoTitles, subtreeOnly };
 }
 
 const VIEWPORTS = [
@@ -105,7 +120,7 @@ async function main() {
     await waitForServer(BASE);
     console.log(`Dev server ready at ${BASE}`);
 
-    const { ids, labels } = loadFixtureIds();
+    const { ids, labels, convoTitles, subtreeOnly } = loadFixtureIds();
     if (ids.length === 0) throw new Error("No chat-* fixtures loaded.");
     console.log(`Loaded ${ids.length} chat fixtures: ${ids.join(", ")}`);
 
@@ -132,7 +147,36 @@ async function main() {
         const url = `${BASE}/_preview/chat/${id}`;
         await page.goto(url, { waitUntil: "domcontentloaded" });
         await page.waitForLoadState("networkidle");
-        await page.waitForTimeout(1100);
+
+        // Hydrate the seeded conversation thread for non-subtree
+        // fixtures with a conversation. ChatInterface.jsx:496-498
+        // intentionally does NOT auto-resume on cold mount; we drive
+        // the same path a real user would (open the Radix dropdown,
+        // click the conversation menuitem). Playwright's page.click()
+        // dispatches real pointer events, which Radix listens for —
+        // a synthetic in-page .click() does NOT reliably open Radix's
+        // DropdownMenu.
+        const needsDropdownDance = !subtreeOnly[id] && convoTitles[id];
+        if (needsDropdownDance) {
+          try {
+            await page.waitForTimeout(400); // let conversations fetch resolve
+            await page.click('button[aria-haspopup="menu"]');
+            // Radix renders the menu in a portal; menuitems appear with
+            // a brief enter animation.
+            await page.waitForSelector(
+              `[role="menuitem"]:has-text("${convoTitles[id]}")`,
+              { timeout: 2000 },
+            );
+            await page.click(`[role="menuitem"]:has-text("${convoTitles[id]}")`);
+            // Wait for selectConversation → messages effect → fetch
+            // mock → setMessages → render.
+            await page.waitForSelector(".bg-\\[\\#211D18\\]", { timeout: 3000 });
+          } catch (err) {
+            console.warn(`[runner] dropdown dance failed for ${id}: ${err.message}`);
+          }
+        }
+        // Settle render for any remaining async work.
+        await page.waitForTimeout(800);
 
         const png = await page.screenshot({ fullPage: true });
         screenshots.push({
