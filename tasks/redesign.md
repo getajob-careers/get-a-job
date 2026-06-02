@@ -58,10 +58,13 @@ or scope-cut.
 Ships additively. Nothing reads `--rd-*` until a page opts in, so all
 live pages keep working untouched.
 
-- `src/styles/redesignTokens.css` — `:root` block with the locked
-  `--rd-*` palette + radii + shadow + display font stack.
-- `src/index.css` — imports the redesign tokens once (additive; existing
-  `:root` block untouched).
+- `src/index.css` — `--rd-*` tokens inlined inside `@layer base { :root { … } }`
+  (additive; the existing shadcn `:root` block stays untouched). The
+  tokens were briefly kept in `src/styles/redesignTokens.css` and pulled
+  in via `@import`, but CSS spec requires `@import` to precede every
+  other rule — placing it after the `@tailwind` directives meant PostCSS
+  silently dropped it and every `--rd-*` resolved to its fallback.
+  Inlining is the safest pattern; edits go to `index.css` directly.
 - `tailwind.config.js` — `theme.extend.colors.rd.*` + `fontFamily.display`
   added (existing entries untouched).
 - `index.html` — `<link>` for Rokkitt weights 500/600/700/800.
