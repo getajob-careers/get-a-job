@@ -18,7 +18,6 @@ import AddOwnCompanyModal from "@/components/internship/AddOwnCompanyModal";
 import { InternshipStartHere } from "@/components/internship/EmptyStates";
 import CompanyBrowsePanel from "@/components/internship/browse/CompanyBrowsePanel";
 import { BROWSE_CSS } from "@/components/internship/browse/browseStyles";
-import { ACT_CSS } from "../components/activity/activityStyles";
 
 // Internship page — Browse + Pipeline tabs (PR2 redesign).
 //
@@ -151,7 +150,7 @@ export default function Internship() {
   if (profileLoading) {
     return (
       <>
-        <style>{ACT_CSS}{BROWSE_CSS}</style>
+        <style>{BROWSE_CSS}</style>
         <InternshipLoadingSkeleton />
       </>
     );
@@ -174,8 +173,8 @@ export default function Internship() {
 
   return (
     <>
-      <style>{ACT_CSS}{BROWSE_CSS}</style>
-      <div className="act">
+      <style>{BROWSE_CSS}</style>
+      <div className="min-h-screen bg-rd-bg-page font-body text-rd-text">
         <div className="max-w-7xl mx-auto px-4 lg:px-8 py-10">
           <InternshipHeader
             practicumPath={practicumPath}
@@ -183,21 +182,29 @@ export default function Internship() {
             practicumCohort={profileRow?.practicum_cohort}
           />
 
-          {/* Tab pill bar — Browse (default) | Pipeline */}
-          <div className="mt-6 mb-2" role="tablist" style={{ display: "flex", gap: 6 }}>
-            {TABS.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="tab"
-                aria-selected={activeTab === t.id}
-                onClick={() => setTab(t.id)}
-                className="act-pill"
-                data-selected={activeTab === t.id ? "true" : "false"}
-              >
-                {t.label}
-              </button>
-            ))}
+          {/* Tab pill bar — Pipeline (default) | Browse */}
+          <div className="mt-6 mb-2 flex gap-1.5" role="tablist">
+            {TABS.map((t) => {
+              const selected = activeTab === t.id;
+              return (
+                <button
+                  key={t.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => setTab(t.id)}
+                  className={[
+                    "inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-body text-[12.5px] cursor-pointer transition-colors whitespace-nowrap",
+                    selected
+                      ? "bg-rd-coral text-white border border-rd-coral font-display font-semibold"
+                      : "bg-rd-bg-card text-rd-text-secondary border border-rd-border font-medium hover:border-rd-border-hover hover:text-rd-text",
+                  ].join(" ")}
+                  data-selected={selected ? "true" : "false"}
+                >
+                  {t.label}
+                </button>
+              );
+            })}
           </div>
 
           {activeTab === "browse" && <CompanyBrowsePanel />}
@@ -229,11 +236,11 @@ export default function Internship() {
               {showStartHere && <InternshipStartHere practicumPath={practicumPath} />}
 
               <div className="flex items-center justify-between mt-7 mb-3">
-                <p className="act-eyebrow">Your pipeline</p>
+                <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">Your pipeline</p>
                 <button
                   type="button"
                   onClick={() => setAddCompanyOpen(true)}
-                  className="act-btn act-btn-outline act-btn-sm"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-display font-semibold bg-rd-bg-card text-rd-text border border-rd-border hover:bg-rd-bg-soft hover:border-rd-border-hover transition-colors"
                 >
                   <Plus className="w-3.5 h-3.5" />
                   Add my own company
@@ -283,13 +290,13 @@ function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath, onSetTab 
       ? "Run Find companies above to populate it with strong matches, or browse the catalog to add companies yourself."
       : "Add a company your faculty assigned, or browse the catalog to add one you've found.";
     return (
-      <div className="act-card text-center py-8">
-        <p className="text-sm font-medium text-[#0E1014] mb-1">{headline}</p>
-        <p className="text-xs text-[#52545A] mb-4 max-w-md mx-auto leading-relaxed">{subhead}</p>
+      <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 text-center py-8">
+        <p className="text-sm font-display font-bold text-rd-text mb-1">{headline}</p>
+        <p className="text-xs text-rd-text-secondary mb-4 max-w-md mx-auto leading-relaxed">{subhead}</p>
         <button
           type="button"
           onClick={() => onSetTab?.("browse")}
-          className="act-btn act-btn-outline act-btn-sm"
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-display font-semibold bg-rd-bg-card text-rd-text border border-rd-border hover:bg-rd-bg-soft hover:border-rd-border-hover transition-colors"
         >
           Browse all companies
         </button>
@@ -301,7 +308,7 @@ function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath, onSetTab 
 
 function InternshipLoadingSkeleton() {
   return (
-    <div className="act">
+    <div className="min-h-screen bg-rd-bg-page font-body text-rd-text">
       <div className="max-w-7xl mx-auto px-4 lg:px-8 py-10 space-y-6">
         <div className="space-y-3">
           <Skeleton className="h-3 w-24" />
@@ -318,13 +325,13 @@ function KanbanSkeleton() {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3" aria-hidden="true">
       {[0, 1, 2, 3, 4, 5].map((col) => (
-        <div key={col} className="bg-[#F4F4F2] rounded-lg p-3 space-y-2">
+        <div key={col} className="bg-rd-bg-soft rounded-[14px] p-3 space-y-2">
           <div className="flex items-center justify-between mb-1">
             <Skeleton className="h-3 w-16" />
             <Skeleton className="h-4 w-5 rounded-full" />
           </div>
           {[0, 1].map((card) => (
-            <div key={card} className="bg-white rounded-md border border-[#DDDDDB] p-2.5 space-y-1.5">
+            <div key={card} className="bg-rd-bg-card rounded-[10px] border border-rd-border p-2.5 space-y-1.5">
               <Skeleton className="h-3 w-3/4" />
               <Skeleton className="h-2.5 w-1/2" />
             </div>

@@ -19,10 +19,10 @@ export const STATUS_LABELS = {
   declined: "Declined",
 };
 
-// Maps each status to one of the .act-status-* tones in activityStyles.js.
-// Keeps the column accent colors in the shared Direction 3 palette instead
-// of inlining their own colors here. The .act-status-* class sets two CSS
-// variables which the .act-status-badge consumes.
+// Maps each status to a tone key. PR 3L: tones are now resolved
+// inline at each consumer (CompanyTargetsKanban + CompanyTargetCard
+// + InternshipHeader) against rd-* tokens — the old activityStyles
+// .act-status-* CSS scaffold was retired.
 export const STATUS_TONE = {
   exploring:     "gray",
   outreach_sent: "info",

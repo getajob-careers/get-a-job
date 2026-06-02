@@ -44,7 +44,11 @@ export default function CompanyBrowseGrid({
       </div>
       {hasMore && (
         <div className="brz-load-more">
-          <button type="button" className="act-btn act-btn-outline" onClick={onLoadMore}>
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[13px] font-display font-bold bg-rd-bg-card text-rd-text border border-rd-border hover:bg-rd-bg-soft hover:border-rd-border-hover transition-colors"
+            onClick={onLoadMore}
+          >
             Load {Math.min(pageSize, total - visibleCount)} more
           </button>
         </div>

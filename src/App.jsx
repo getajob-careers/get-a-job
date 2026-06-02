@@ -39,6 +39,7 @@ import TasksPreview from '@/pages/_preview/TasksPreview';
 import CalendarPreview from '@/pages/_preview/CalendarPreview';
 import LinkedinPreview from '@/pages/_preview/LinkedinPreview';
 import ChatPreview from '@/pages/_preview/ChatPreview';
+import InternshipPreview from '@/pages/_preview/InternshipPreview';
 import RouteFallback, { ChunkErrorBoundary } from '@/components/RouteFallback';
 
 // Use the LAZY map (sibling of pages.config.js) so every authenticated
@@ -206,6 +207,12 @@ function App() {
               <Route
                 path="/_preview/chat/:state"
                 element={<ChatPreview />}
+              />
+            )}
+            {import.meta.env.DEV && (
+              <Route
+                path="/_preview/internship/:state"
+                element={<InternshipPreview />}
               />
             )}
             <Route path="/*" element={<AuthenticatedApp />} />

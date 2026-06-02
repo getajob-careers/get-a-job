@@ -262,10 +262,10 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
               announce the company name when the drawer opens. */}
           <div>
             <SheetTitle asChild>
-              <h2 className="text-lg font-semibold text-[#0E1014] mb-1">{company.name || "Unnamed company"}</h2>
+              <h2 className="text-lg font-display font-bold text-rd-text mb-1">{company.name || "Unnamed company"}</h2>
             </SheetTitle>
             <SheetDescription asChild>
-              <p className="text-sm text-[#52545A]">
+              <p className="text-sm text-rd-text-secondary">
                 {[company.sector, company.stage, company.hq_city].filter(Boolean).join(" · ") || "No company metadata yet."}
               </p>
             </SheetDescription>
@@ -274,7 +274,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
                 href={`https://${company.domain.replace(/^https?:\/\//, "")}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center gap-1 text-xs text-[#2B5DC4] hover:underline mt-1.5"
+                className="inline-flex items-center gap-1 text-xs text-rd-coral hover:text-rd-coral-dark mt-1.5"
               >
                 {company.domain}
                 <ExternalLink className="w-3 h-3" />
@@ -287,7 +287,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
             <Section title="Match">
               <BandTile band={band} />
               {target.match_rationale && (
-                <p className="text-xs text-[#52545A] leading-relaxed mt-2">{target.match_rationale}</p>
+                <p className="text-xs text-rd-text-secondary leading-relaxed mt-2">{target.match_rationale}</p>
               )}
             </Section>
           )}
@@ -309,7 +309,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
             <select
               value={pendingStatus}
               onChange={(e) => setPendingStatus(e.target.value)}
-              className="w-full px-3 py-2 text-sm bg-white border border-[#DDDDDB] rounded-md focus:outline-none focus:border-[#0E1014] mb-2"
+              className="w-full px-3 py-2 text-sm bg-rd-bg-card border border-rd-border rounded-[10px] focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] mb-2 text-rd-text"
             >
               {STATUSES.map((s) => (
                 <option key={s} value={s}>{STATUS_LABELS[s]}</option>
@@ -321,14 +321,14 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
                 onChange={(e) => setPendingNote(e.target.value)}
                 placeholder="Optional: what happened? (e.g. 'Reached out via Sarah Cohen, intro to PM team')"
                 rows={3}
-                className="w-full px-3 py-2 text-sm bg-white border border-[#DDDDDB] rounded-md focus:outline-none focus:border-[#0E1014] mb-2 resize-none"
+                className="w-full px-3 py-2 text-sm bg-rd-bg-card border border-rd-border rounded-[10px] focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] mb-2 resize-none text-rd-text"
               />
             )}
             <button
               type="button"
               onClick={handleSaveStatus}
               disabled={savingStatus || (pendingStatus === target.status && !pendingNote.trim())}
-              className="inline-flex items-center px-3 py-1.5 text-xs font-medium bg-[#0E1014] hover:bg-[#262626] disabled:bg-[#DDDDDB] disabled:text-[#9C9DA1] disabled:cursor-not-allowed text-white rounded-md transition-colors"
+              className="inline-flex items-center px-4 py-1.5 text-xs font-display font-bold bg-rd-coral hover:bg-rd-coral-dark disabled:bg-rd-bg-soft disabled:text-rd-text-tertiary disabled:cursor-not-allowed text-white rounded-full transition-colors"
             >
               {savingStatus ? "Saving…" : "Save status"}
             </button>
@@ -342,40 +342,40 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
               onBlur={handleSaveNotes}
               placeholder="Anything you want to remember about this company — research, contacts, reminders…"
               rows={4}
-              className="w-full px-3 py-2 text-sm bg-white border border-[#DDDDDB] rounded-md focus:outline-none focus:border-[#0E1014] resize-none"
+              className="w-full px-3 py-2 text-sm bg-rd-bg-card border border-rd-border rounded-[10px] focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] resize-none text-rd-text"
             />
-            {savingNotes && <p className="text-[10px] text-[#9C9DA1] mt-1">Saving…</p>}
+            {savingNotes && <p className="text-[10px] text-rd-text-tertiary mt-1">Saving…</p>}
           </Section>
 
           {/* Timeline */}
           <Section title="Timeline">
             {timeline.length === 0 ? (
-              <p className="text-xs text-[#9C9DA1] italic">No transitions yet.</p>
+              <p className="text-xs text-rd-text-tertiary italic">No transitions yet.</p>
             ) : (
               <ol className="space-y-3">
                 {timeline.map((change) => (
                   <li key={change.id} className="flex gap-3">
-                    <div className="w-1.5 h-1.5 rounded-full bg-[#0E1014] mt-1.5 flex-shrink-0" />
+                    <div className="w-1.5 h-1.5 rounded-full bg-rd-coral mt-1.5 flex-shrink-0" />
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs text-[#0E1014]">
+                      <p className="text-xs text-rd-text">
                         {change.old_status ? (
                           <>
-                            <span className="text-[#9C9DA1]">{STATUS_LABELS[change.old_status] || change.old_status}</span>
-                            <span className="text-[#9C9DA1]"> → </span>
-                            <span className="font-medium">{STATUS_LABELS[change.new_status] || change.new_status}</span>
+                            <span className="text-rd-text-tertiary">{STATUS_LABELS[change.old_status] || change.old_status}</span>
+                            <span className="text-rd-text-tertiary"> → </span>
+                            <span className="font-display font-semibold">{STATUS_LABELS[change.new_status] || change.new_status}</span>
                           </>
                         ) : (
-                          <span className="font-medium">{STATUS_LABELS[change.new_status] || change.new_status}</span>
+                          <span className="font-display font-semibold">{STATUS_LABELS[change.new_status] || change.new_status}</span>
                         )}
                       </p>
-                      <p className="text-[10px] text-[#9C9DA1] mt-0.5">
+                      <p className="text-[10px] text-rd-text-tertiary mt-0.5">
                         {new Date(change.changed_at).toLocaleString(undefined, {
                           dateStyle: "medium",
                           timeStyle: "short",
                         })}
                       </p>
                       {change.note && (
-                        <p className="text-xs text-[#52545A] mt-1.5 leading-relaxed">{change.note}</p>
+                        <p className="text-xs text-rd-text-secondary mt-1.5 leading-relaxed">{change.note}</p>
                       )}
                     </div>
                   </li>
@@ -387,10 +387,10 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
           {/* Footer — Outreach link (left) + Remove (right). Remove is
               styled as a destructive secondary, never the primary action;
               the primary spend on this drawer is status moves + outreach. */}
-          <div className="pt-2 border-t border-[#DDDDDB] flex items-center justify-between gap-3">
+          <div className="pt-2 border-t border-rd-border flex items-center justify-between gap-3">
             <Link
               to={outreachUrl}
-              className="inline-flex items-center gap-1.5 text-xs text-[#2B5DC4] hover:underline"
+              className="inline-flex items-center gap-1.5 text-xs font-display font-semibold text-rd-coral hover:text-rd-coral-dark transition-colors"
             >
               <MessageSquare className="w-3.5 h-3.5" />
               Open in Outreach Coach
@@ -398,7 +398,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
             <button
               type="button"
               onClick={() => setRemoveOpen(true)}
-              className="inline-flex items-center gap-1.5 text-xs text-[#9C9DA1] hover:text-[#C84F40] transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs text-rd-text-tertiary hover:text-rd-coral-dark transition-colors"
             >
               <Trash2 className="w-3.5 h-3.5" />
               Remove from pipeline
@@ -422,7 +422,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
             <AlertDialogAction
               onClick={(e) => { e.preventDefault(); handleRemove(); }}
               disabled={removing}
-              className="bg-[#C84F40] hover:bg-[#B04030] focus:ring-[#C84F40] text-white"
+              className="bg-rd-coral hover:bg-rd-coral-dark focus:ring-rd-coral text-white"
             >
               {removing ? "Removing…" : "Remove"}
             </AlertDialogAction>
@@ -436,25 +436,25 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
 function Section({ title, children }) {
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mb-2">{title}</p>
+      <p className="text-[10px] uppercase tracking-[0.09em] font-mono font-medium text-rd-text-eyebrow mb-2">{title}</p>
       {children}
     </div>
   );
 }
 
-// Band tile — coral for High, slate for Med, faded for Low. Mirrors the
+// Band tile — coral for High, dark for Med, faded for Low. Mirrors the
 // browse drawer's BandTile so the same band reads the same on both
 // surfaces (no number anywhere per PR5).
 function BandTile({ band }) {
   const label = BAND_LABELS[band];
-  const color =
-    band === "high" ? "#F87060" :
-    band === "med"  ? "#0E1014" :
-                      "#9C9DA1";
+  const colorClass =
+    band === "high" ? "text-rd-coral" :
+    band === "med"  ? "text-rd-text" :
+                      "text-rd-text-tertiary";
   return (
-    <div className="bg-[#F4F4F2] rounded-md p-3 border border-[#DDDDDB]">
-      <p className="text-[10px] uppercase tracking-wider text-[#9C9DA1] font-medium mb-1">Match</p>
-      <span className="text-2xl font-semibold" style={{ color }}>{label}</span>
+    <div className="bg-rd-bg-soft rounded-[10px] p-3 border border-rd-border">
+      <p className="text-[10px] uppercase tracking-[0.09em] font-mono font-medium text-rd-text-eyebrow mb-1">Match</p>
+      <span className={`text-2xl font-display font-bold ${colorClass}`}>{label}</span>
     </div>
   );
 }

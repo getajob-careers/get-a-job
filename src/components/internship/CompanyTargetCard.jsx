@@ -24,10 +24,16 @@ const SOURCE_TONE = {
 };
 
 const BAND_TEXT_COLOR = {
-  high: "text-[#1D7556]",
-  med:  "text-[#6B4E0F]",
-  low:  "text-[#C84F40]",
-  none: "text-[#9C9DA1]",
+  high: "text-rd-teal-dark",
+  med:  "text-rd-golden-dark",
+  low:  "text-rd-coral-dark",
+  none: "text-rd-text-tertiary",
+};
+
+const SOURCE_BADGE_CLS = {
+  info:    "bg-rd-teal-tint text-rd-teal-dark",
+  warning: "bg-rd-golden-tint text-rd-golden-dark",
+  gray:    "bg-rd-bg-soft text-rd-text-secondary",
 };
 
 export default function CompanyTargetCard({ target, onClick }) {
@@ -55,28 +61,28 @@ export default function CompanyTargetCard({ target, onClick }) {
       tabIndex={0}
       onClick={onClick}
       onKeyDown={handleKeyDown}
-      className="act-target-card mb-2"
+      className="w-full text-left p-3.5 bg-rd-bg-card border border-rd-border rounded-[14px] cursor-pointer transition-colors hover:border-rd-border-hover hover:shadow-rd mb-2"
     >
-      <div className="act-target-card-row">
-        <p className="act-target-card-title line-clamp-2">{company.name || "Unnamed company"}</p>
+      <div className="flex items-start justify-between gap-2">
+        <p className="text-[14px] font-display font-bold text-rd-text leading-tight line-clamp-2">{company.name || "Unnamed company"}</p>
         {target.source && SOURCE_LABELS[target.source] && (
-          <span className={`act-status-badge act-status-${sourceTone}`}>
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-mono text-[10.5px] font-medium tracking-[0.04em] uppercase ${SOURCE_BADGE_CLS[sourceTone] || SOURCE_BADGE_CLS.gray}`}>
             {SOURCE_LABELS[target.source]}
           </span>
         )}
       </div>
 
       {company.sector && (
-        <p className="act-target-card-sub">
+        <p className="text-[11.5px] text-rd-text-tertiary mt-1">
           {company.sector}{company.stage ? ` · ${company.stage}` : ""}
         </p>
       )}
 
       {showBand && (
-        <div className="act-target-card-scores">
+        <div className="flex gap-3 mt-2 text-[11.5px]">
           <div>
-            <span className="text-[#9C9DA1]">Match </span>
-            <span className={`font-medium ${BAND_TEXT_COLOR[band]}`}>
+            <span className="text-rd-text-tertiary">Match </span>
+            <span className={`font-display font-bold ${BAND_TEXT_COLOR[band]}`}>
               {BAND_LABELS_SHORT[band]}
             </span>
           </div>
@@ -84,7 +90,7 @@ export default function CompanyTargetCard({ target, onClick }) {
       )}
 
       {target.pitched_role && (
-        <p className="act-target-card-pitch line-clamp-2">{target.pitched_role}</p>
+        <p className="text-[11.5px] text-rd-text-secondary mt-2 italic line-clamp-2">{target.pitched_role}</p>
       )}
     </div>
   );

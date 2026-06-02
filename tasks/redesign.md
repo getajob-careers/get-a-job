@@ -40,7 +40,7 @@ reviewed without running the app.
 ## Typecheck baseline (locked)
 
 `npm run typecheck`: **434 errors** as of 2026-06-02 (after PR #212).
-**Current ceiling: 401 (after 3K). Ratchet down only — never up.**
+**Current ceiling: 400 (after 3L). Ratchet down only — never up.**
 
 **Rule:** no redesign PR may increase this count. Each redesign PR runs
 `npm run typecheck`, diffs against the current ceiling, and reports
@@ -67,6 +67,7 @@ regression in the same PR or scope-cut.
 | `eli/redesign-linkedin-posts` (LinkedIn 3J-B: Posts tab + 6 posts/* sub-components off .li-*; Networking + LI_CSS stay) | 2026-06-02 | 406 | −15 |
 | `eli/redesign-linkedin-networking` (LinkedIn 3J-C: Networking tab + 4 networking/* sub-components off .li-*; **LI_CSS teardown** — `linkedinStyles.js` deleted, `<style>{LI_CSS}</style>` + `.li` wrapper dropped) | 2026-06-02 | 401 | −33 |
 | `eli/redesign-chat` (Chat 3K: ChatInterface + MessageBubble + AgentIntro + StorySaveCard off .c-*; **CHAT_CSS teardown** — `chatStyles.js` deleted, `<style>{CHAT_CSS}</style>` + `.chat` wrapper dropped) — **SHIPPED PR #230** | 2026-06-02 | 401 | −33 |
+| `eli/redesign-internship` (Internship 3L: Internship.jsx + 9 components + browse/* off .act-*; **ACT_CSS teardown** — `activityStyles.js` deleted, ACT_CSS import + both `<style>` injections dropped) | 2026-06-02 | 400 | −34 |
 
 ---
 

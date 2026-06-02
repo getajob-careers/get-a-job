@@ -15,24 +15,24 @@ const PATH_LABELS = {
 export default function InternshipHeader({ practicumPath, practicumStatus, practicumCohort }) {
   return (
     <header className="mb-7">
-      <p className="act-eyebrow">Internship</p>
-      <h1 className="act-h1 mt-1.5">Track your internship pipeline.</h1>
+      <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">Internship</p>
+      <h1 className="font-display font-extrabold text-[27px] sm:text-[32px] leading-[1.08] tracking-tight text-rd-text mt-1.5">Track your internship pipeline.</h1>
       <div className="flex items-center gap-2 mt-3 flex-wrap">
         {practicumPath && (
-          <span className="act-status-badge act-status-gray">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-mono text-[10.5px] font-medium tracking-[0.04em] uppercase bg-rd-bg-soft text-rd-text-secondary">
             {PATH_LABELS[practicumPath] || practicumPath}
           </span>
         )}
         {practicumStatus && (
-          <span className="act-status-badge act-status-info">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full font-mono text-[10.5px] font-medium tracking-[0.04em] uppercase bg-rd-teal-tint text-rd-teal-dark">
             {STATUS_LABELS[practicumStatus] || practicumStatus}
           </span>
         )}
         {practicumCohort && (
-          <span className="text-xs text-[#9C9DA1]">{practicumCohort}</span>
+          <span className="text-xs text-rd-text-tertiary">{practicumCohort}</span>
         )}
       </div>
-      <p className="act-sub" style={{ marginTop: 14 }}>
+      <p className="text-[14.5px] leading-[1.55] text-rd-text-secondary mt-3.5">
         Track companies, manage outreach, and capture what you learn from each conversation.
       </p>
     </header>
