@@ -1,6 +1,6 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-06-02 (Pre-launch fixes — stale-banner reorder, salary-negotiation copy, invite-code placeholder, pilot eyebrow, branch `eli/prelaunch-fixes`).**
+**Last updated: 2026-06-02 (App-wide rollout PR 3B — Home body restyle + count_active_jobs_by_role_titles RPC + live-matches hero stat, branch `eli/redesign-home`).**
 
 ## Visual redesign in flight
 

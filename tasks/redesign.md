@@ -54,6 +54,7 @@ or scope-cut.
 | `eli/redesign-onboarding-2b` (mid-flow: Experience / RoleSkills / Skills / CareerDirection + 3 input forks) | 2026-06-02 | 431 | −1 |
 | `eli/redesign-onboarding-2c` (Constraints + Survey + Tutorial + onb-style cleanup) | 2026-06-01 | 429 | −5 |
 | `eli/redesign-shell` (Layout + SidebarFooter — shared app chrome only) | 2026-06-02 | 428 | −6 |
+| `eli/redesign-home` (Home body + live-matches RPC + hero stat) | 2026-06-02 | 421 | −13 |
 
 ---
 
@@ -73,8 +74,8 @@ Tick boxes here as each PR merges.
 
 | PR | Page | Process | Status | Notes |
 |---|---|---|---|---|
-| 3A | Shell (Layout + SidebarFooter) | simple | ☐ | Cream sidebar + coral active. NO IA change. |
-| 3B | Home | complex | ☐ | Inventory landed in PR 3A investigation. Preview = pre-seeded QueryClient. |
+| 3A | Shell (Layout + SidebarFooter) | simple | ☑ | Merged. Cream sidebar + coral active. NO IA change. |
+| 3B | Home | complex | ☑ | Body restyle + live-matches RPC + hero stat. Preview = pre-seeded QueryClient. |
 | 4  | Roadmap | complex | ☐ | Tracks 1/2/3 cards, track scoring, refresh flow. |
 | 5  | Jobs | complex | ☐ | Search RPC, filters, JobCard fork. |
 | 6  | Tracker | complex | ☐ | Pipeline kanban, DnD, status badges. |
@@ -469,6 +470,119 @@ that want to drive other behaviour off section ids can read it too.
 
 - Page bodies. Home is the first body restyle in PR 3B; the rest
   follow the rollout checklist above.
+
+---
+
+## Home body — PR 3B (`eli/redesign-home`)
+
+First page-body restyle under the new shell. Hero + 6 bento cards +
+both banners + `HomeSkeleton` rebuilt on rd tokens + RdCard +
+font-display + coral. Reference mockup:
+`docs/design/redesign/getajob_home_locked_crowz_style.html` (look
+reference; the live IA stays). The page renders inside the existing
+RdLayout (cream sidebar from 3A) — no shell changes.
+
+**One new stat surfaced (per spec):** "Live job matches" — an uncapped
+count of currently-active IL jobs whose title trigram-matches any of
+the user's Track-1 `career_roles` titles via `pg_trgm` similarity ≥
+0.3 (same match logic as `search_jobs_by_role_titles`, no 7-day
+filter, no limit). Computed server-side via a new
+`count_active_jobs_by_role_titles(TEXT[], REAL)` RPC, surfaced as the
+standout number in the hero ("X live job matches for you"), linking
+to /Jobs. Graceful zero-state for users with no Track-1 roles yet:
+"Matches incoming — generate your roadmap to see them" (also links
+to /Jobs).
+
+**Approach picked for the count:** new RPC migration
+(`supabase/migrations/20260603_count_active_jobs_by_role_titles.sql`).
+Rationale: cheaper than calling `search_jobs_by_role_titles` with a
+high `p_limit` (which still does diversification + ORDER BY work),
+and there's no risk of accidentally clamping the surfaced number at a
+ceiling. Mirrors the search RPC's match clauses verbatim
+(`is_il = TRUE`, `is_active = TRUE`, `similarity(j.title, role) >=
+threshold`), uses `COUNT(DISTINCT j.id)`, SECURITY INVOKER so RLS
+applies, GRANTED to authenticated.
+
+**SKIPPED from the mockup, per spec:**
+
+- Weekly chart (no time-series data captured yet).
+- Tracks-ranked-by-fit block (overlaps with the existing Roadmap card
+  + would duplicate the track pills already shown there).
+- Bell / notifications icon (no notifications system).
+- All other stat tiles besides Live job matches.
+
+**Self-heal stays silent.** No new banner; the focus-card CTA still
+flips to "Building your daily focus…" when `selfHealing=true`. The
+self-heal `useEffect` itself is byte-identical to the prior version.
+
+**Preserved 1:1 from the prior Direction-3 Home:**
+
+- Redirect-to-Onboarding `useEffect` (lines 598-610 in the prior file).
+  Fails open to Onboarding on profile-query errors.
+- Self-heal `useEffect` — single-fire via `selfHealRanRef`, `force:
+  true` on the analysis call, 45s timeout, persist + cache invalidation
+  via `invalidateAfterCareerAnalysis`.
+- Daily-action query: `staleTime: 30 * 60 * 1000`, `retry: false`,
+  date-keyed cache key (`new Date().toDateString()`).
+- `withDbTimeout` wrappers on profile/roles/applications (30s ceiling).
+- New_jobs_home inline-titles non-waterfall — the inner `from("career_roles").select("title")` fetch fires in parallel with the
+  outer roles query, no gating.
+- Memoised `activeApps` + `recentApps` BEFORE the early returns so the
+  hook order stays stable across `willRedirect` / `isLoading` branches.
+- All 6 card destinations: focusDestination (4 sub-branches),
+  /Roadmap, /Tracker, /Jobs, /StoryBank, /Linkedin?tab=…
+- `pickHeadline` rule ladder thresholds (≥5 active apps, ≥3 T1, ≥1 T1,
+  0 roles).
+- `hadRolesPreviously` localStorage write.
+
+**New live-matches query (added — 11th query)** —
+`["live_matches_home", uid]`, gated on `!!user?.id`, inline-titles
+non-waterfall pattern, returns `null` (NOT 0) when the user has no
+Track-1 roles so the hero renders the graceful "Matches incoming"
+zero-state instead of "0 live job matches". 5-minute staleTime to
+keep the hero stable across navigation.
+
+**Self-heal preview hook:** the self-heal `useState` initializer
+accepts a `?preview-selfheal=1` URL flag so the harness can paint the
+"Building your daily focus…" focus-card state without invoking the
+real edge function. Flag is inert in prod (no harness mount;
+useEffect short-circuits when conditions don't match).
+
+**Preview harness (new):**
+
+- `src/pages/_preview/HomePreview.jsx` — DEV-only route at
+  `/_preview/home/:state`. Wraps the real Home in a fresh
+  `QueryClient` whose cache is seeded SYNCHRONOUSLY inside the
+  `useMemo` factory (NOT in `useEffect`) — the redirect-to-Onboarding
+  effect fires on the first render before any effect runs, so the
+  seed has to land before that. Stub `AuthContext.Provider` overrides
+  the outer real AuthProvider for the harness subtree only.
+- `src/pages/_preview/fixtures/home.js` — 6 fixtures: empty (post-
+  onboarding, no roles, live-matches-incoming), partial (6 roles, no
+  apps, LI baseline set, count=42), active (12 roles, 7 apps, LI post
+  3d ago, daily action populated, count=174), stale-banner
+  (experience created_at > last_reality_check_date), error-banner
+  (forced error state on careerRoles + applications), self-healing
+  (?preview-selfheal=1 URL flag).
+- Error-banner forcing technique: the harness writes to the QueryCache
+  directly via `query.setState({ status: "error", error: ... })` after
+  the initial seed, which drives React Query's `isError` flag without
+  any real network call. Used to capture the rolesError/appsError red
+  banner.
+- `scripts/preview-home.mjs` — same prod-404 verification flow (boots
+  `vite preview` over the production bundle, asserts the
+  `"live job matches for you"` / `"Matches incoming"` Home markers
+  are absent from `/_preview/home/home-empty` in prod). Output:
+  `docs/design/redesign/previews/home-3b.pdf` (6 fixtures × desktop +
+  mobile = 12 pages).
+
+**Migration:**
+
+`supabase/migrations/20260603_count_active_jobs_by_role_titles.sql`
+adds the count RPC. Apply via the existing migration flow before the
+Vercel deploy so the new query has somewhere to land — the frontend
+gracefully degrades to `null` (zero-state copy) if the RPC errors, so
+a brief out-of-sequence window is non-fatal.
 
 ---
 

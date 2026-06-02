@@ -115,9 +115,10 @@ describe('Home error banners', () => {
 
     // Wait for the bento to render. The "Roadmap" eyebrow uniquely
     // identifies the new Home layout — sits in every state, success or
-    // empty, so it's a stable test target.
+    // empty, so it's a stable test target. Text is "Roadmap" in the
+    // DOM and CSS-uppercased by the eyebrow style.
     await waitFor(() => {
-      expect(screen.getByText('ROADMAP')).toBeInTheDocument();
+      expect(screen.getByText('Roadmap')).toBeInTheDocument();
     });
 
     expect(
