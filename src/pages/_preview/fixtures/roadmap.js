@@ -143,10 +143,17 @@ export const ROADMAP_FIXTURES = {
     roles: ROLES_MIXED,
   },
   "roadmap-track-1": {
-    label: "Roadmap · Track 1 tab (sweet spot)",
+    label: "Roadmap · Track 1 tab (sweet spot, all collapsed)",
     profile: profile(),
     roles: ROLES_MIXED,
     urlFlag: "tab=track_1",
+  },
+  "roadmap-track-1-expanded": {
+    label: "Roadmap · Track 1 tab, first role card expanded (bars + reasoning + skills + action items)",
+    profile: profile(),
+    roles: ROLES_MIXED,
+    urlFlag: "tab=track_1",
+    expandFirstCard: true,
   },
   "roadmap-track-2": {
     label: "Roadmap · Track 2 tab (detour)",

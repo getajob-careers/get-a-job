@@ -26,13 +26,27 @@ function loadFixtureIds() {
   const src = readFileSync(FIXTURE_PATH, "utf8");
   const ids = [];
   const labels = {};
+  const expandFirstCard = new Set();
   const re = /"([a-z0-9-]+)":\s*\{\s*label:\s*"([^"]+)"/g;
+  const positions = [];
   let m;
   while ((m = re.exec(src)) !== null) {
     ids.push(m[1]);
     labels[m[1]] = m[2];
+    positions.push({ id: m[1], start: m.index });
   }
-  return { ids, labels };
+  // For each fixture, look at the substring from its `"id":` to the
+  // next fixture's `"id":` (or end-of-file). Avoids the cross-fixture
+  // regex span that a naive `[\s\S]*?` would do.
+  for (let i = 0; i < positions.length; i++) {
+    const start = positions[i].start;
+    const end = i + 1 < positions.length ? positions[i + 1].start : src.length;
+    const block = src.slice(start, end);
+    if (/expandFirstCard:\s*true/.test(block)) {
+      expandFirstCard.add(positions[i].id);
+    }
+  }
+  return { ids, labels, expandFirstCard };
 }
 
 const VIEWPORTS = [
@@ -105,7 +119,7 @@ async function main() {
     await waitForServer(BASE);
     console.log(`Dev server ready at ${BASE}`);
 
-    const { ids, labels } = loadFixtureIds();
+    const { ids, labels, expandFirstCard } = loadFixtureIds();
     if (ids.length === 0) throw new Error("No roadmap fixtures loaded.");
     console.log(`Loaded ${ids.length} roadmap fixtures: ${ids.join(", ")}`);
 
@@ -133,6 +147,26 @@ async function main() {
         await page.goto(url, { waitUntil: "domcontentloaded" });
         await page.waitForLoadState("networkidle");
         await page.waitForTimeout(450);
+
+        // For fixtures with `expandFirstCard: true` — click the first
+        // RoleCard's header button so the PDF captures the expanded
+        // body (track-breakdown bars + reasoning + skill pills + action
+        // items). RoleCard's `expanded` state is local, so we drive it
+        // through the DOM rather than seeding it via cache.
+        if (expandFirstCard.has(id)) {
+          try {
+            const firstCardHeader = await page.waitForSelector(
+              'button[aria-expanded="false"]',
+              { timeout: 4000 },
+            );
+            if (firstCardHeader) {
+              await firstCardHeader.click();
+              await page.waitForTimeout(250);
+            }
+          } catch (e) {
+            console.warn(`[preview] could not expand first card on ${id}: ${e.message}`);
+          }
+        }
 
         const png = await page.screenshot({ fullPage: true });
         screenshots.push({

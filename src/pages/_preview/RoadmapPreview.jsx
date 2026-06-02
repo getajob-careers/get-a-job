@@ -11,8 +11,8 @@
 // `import.meta.env.DEV` — identical pattern to the onboarding + shell +
 // home harnesses.
 
-import React, { useEffect, useMemo } from "react";
-import { useParams } from "react-router-dom";
+import React, { useMemo } from "react";
+import { useParams, useSearchParams, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthContext } from "@/lib/AuthContext";
 import Roadmap from "@/pages/Roadmap";
@@ -62,8 +62,12 @@ function seedCache(qc, fixture) {
 
 export default function RoadmapPreview() {
   const { state } = useParams();
+  const [searchParams] = useSearchParams();
   const fixture = ROADMAP_FIXTURES[state] || ROADMAP_FIXTURES["roadmap-why"];
 
+  // Hooks must run unconditionally before any early return — so we
+  // compute QueryClient + auth here, then decide whether to short-
+  // circuit to <Navigate> below.
   const queryClient = useMemo(() => {
     const qc = new QueryClient({
       defaultOptions: {
@@ -95,15 +99,29 @@ export default function RoadmapPreview() {
     [],
   );
 
-  useEffect(() => {
-    if (!fixture.urlFlag) return;
-    const url = new URL(window.location.href);
-    fixture.urlFlag.split("&").forEach((kv) => {
-      const [k, v] = kv.split("=");
-      if (k) url.searchParams.set(k, v ?? "");
-    });
-    window.history.replaceState(null, "", url.toString());
-  }, [fixture.urlFlag]);
+  // Apply the fixture's URL flags THROUGH React Router (not via raw
+  // window.history.replaceState) so useSearchParams() inside Roadmap
+  // sees them on its first render. The prior approach used a useEffect
+  // — but useEffect fires AFTER Roadmap's first render, by which point
+  // useSearchParams had already read the URL (no flag) and Roadmap's
+  // activeTab fell back to the default "why". Same kind of race the
+  // QueryClient seed already worked around by moving into useMemo.
+  // <Navigate replace> short-circuits this render; React Router
+  // updates the URL synchronously; the harness re-renders with the
+  // right URL; THEN Roadmap mounts and reads activeTab=track_N.
+  if (fixture.urlFlag) {
+    const required = new URLSearchParams(fixture.urlFlag);
+    let needsRedirect = false;
+    for (const [k, v] of required.entries()) {
+      if (searchParams.get(k) !== v) {
+        needsRedirect = true;
+        break;
+      }
+    }
+    if (needsRedirect) {
+      return <Navigate to={`?${fixture.urlFlag}`} replace />;
+    }
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
