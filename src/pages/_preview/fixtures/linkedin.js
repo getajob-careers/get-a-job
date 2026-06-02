@@ -312,6 +312,201 @@ export const LINKEDIN_FIXTURES = {
     previewImageUrl: null,
     postMountAction: { kind: "open-refine-post" },
   },
+
+  // ── 3J-C Networking fixtures (this PR) ──────────────────────────
+  "linkedin-networking-list-empty": {
+    label: "LinkedIn · Networking · Outreach list empty + Comment Coach",
+    tab: "networking",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    outreachConversations: [],
+  },
+  "linkedin-networking-list-with-conversations": {
+    label: "LinkedIn · Networking · Outreach list with 3 conversations",
+    tab: "networking",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    outreachConversations: [
+      {
+        id: "conv-1",
+        goal: "propose_internship",
+        target_person: { name: "Maya Levi", role: "PM Lead", company: "monday.com" },
+        status: "active",
+        message_thread: [
+          { role: "user", text: "Hi Maya — I'm a Reichman business student focused on product…", ts: new Date(Date.now() - 3 * 86400000).toISOString() },
+          { role: "them", text: "Thanks for reaching out! We do take a few interns each semester. What kind of work are you hoping to do?", ts: new Date(Date.now() - 2 * 86400000).toISOString() },
+        ],
+        updated_at: new Date(Date.now() - 2 * 86400000).toISOString(),
+      },
+      {
+        id: "conv-2",
+        goal: "message_recruiter",
+        target_person: { name: "Daniel Ofer", role: "Talent Lead", company: "Riverside" },
+        status: "active",
+        message_thread: [
+          { role: "user", text: "Hi Daniel — I saw the Product Analyst opening at Riverside…", ts: new Date(Date.now() - 1 * 86400000).toISOString() },
+        ],
+        updated_at: new Date(Date.now() - 1 * 86400000).toISOString(),
+      },
+      {
+        id: "conv-3",
+        goal: "thank_you_follow_up",
+        target_person: { name: "Sara Cohen", role: "Senior PM", company: "Lightricks" },
+        status: "completed",
+        message_thread: [
+          { role: "user", text: "Hi Sara — thanks for the mock-interview prep…", ts: new Date(Date.now() - 14 * 86400000).toISOString() },
+          { role: "them", text: "Happy to help! Good luck with the rest of the process.", ts: new Date(Date.now() - 13 * 86400000).toISOString() },
+        ],
+        updated_at: new Date(Date.now() - 13 * 86400000).toISOString(),
+      },
+    ],
+  },
+  "linkedin-networking-composer-goal-picker": {
+    label: "LinkedIn · Networking · composer @ goal picker (grouped 9 goals)",
+    tab: "networking",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    outreachConversations: [],
+    postMountAction: { kind: "click-new-conversation" },
+  },
+  "linkedin-networking-composer-target-form": {
+    label: "LinkedIn · Networking · composer @ describe target (after goal pick)",
+    tab: "networking",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    outreachConversations: [],
+    postMountAction: { kind: "pick-goal-propose-internship" },
+  },
+  "linkedin-networking-composer-thread-suggestion": {
+    label: "LinkedIn · Networking · thread + agent suggestion (no warnings)",
+    tab: "networking",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    outreachConversations: [],
+    subtreeOnly: "outreach-thread",
+    threadConversation: {
+      id: "conv-thread",
+      goal: "propose_internship",
+      target_person: { name: "Maya Levi", role: "PM Lead", company: "monday.com", relationship: "alumni from Reichman" },
+      status: "active",
+      message_thread: [
+        { role: "user", name: "Eli", text: "Hi Maya — I'm a Reichman business student focused on product, and I've followed Monday's work on workflow automation. I'm part of my university's internship program and would love to learn how your team thinks about onboarding.", ts: new Date(Date.now() - 3 * 86400000).toISOString() },
+        { role: "them", name: "Maya", text: "Thanks for reaching out! We do take a few interns each semester. What kind of work are you hoping to do?", ts: new Date(Date.now() - 2 * 86400000).toISOString() },
+      ],
+    },
+    threadSuggestion: {
+      suggested_text:
+        "Thanks, Maya! If it'd be useful, one thing I could dig into is your week-one activation. I owned onboarding at Guardio and cut first-week churn with a simple setup checklist — so I'd be glad to look at where new Monday teams drop off early on, and share a short writeup either way.",
+      angle: "Concrete proposal grounded in real Guardio result",
+      turn_type: "next_response",
+      conversation_state: "rapport_built",
+      warm_up_advice: "",
+      warnings: [],
+    },
+  },
+  "linkedin-networking-composer-warm-up-warning": {
+    label: "LinkedIn · Networking · thread + warm_up_advice 'Coach's advice' WARNING (Q4)",
+    tab: "networking",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    outreachConversations: [],
+    subtreeOnly: "outreach-thread",
+    threadConversation: {
+      id: "conv-warmup",
+      goal: "ask_for_referral",
+      target_person: { name: "Tom Bennett", role: "Senior PM", company: "Wix", relationship: "we worked together briefly on the campus hackathon last year" },
+      status: "active",
+      message_thread: [
+        { role: "user", name: "Eli", text: "Hi Tom — long time no speak! Wondering if you could put me through to the Wix PM team for the Product Analyst role.", ts: new Date(Date.now() - 1 * 86400000).toISOString() },
+      ],
+    },
+    threadSuggestion: {
+      suggested_text:
+        "Hey Tom — it's been a while since the hackathon. Hope things are good. I've been working on the analytics side at Guardio and was reflecting on some of the activation patterns we saw — curious if Wix runs into anything similar at scale. Would love to hear what's been keeping you busy.",
+      angle: "Pure reconnection — ask deferred to turn 2",
+      turn_type: "opener",
+      conversation_state: "warming_up",
+      warm_up_advice: "This relationship is warm but not strong enough for a turn-1 ask. Send a reconnection message first, then bring up the referral in your next turn. Path B is the play here.",
+      warnings: [],
+    },
+  },
+  "linkedin-networking-composer-warning-only": {
+    label: "LinkedIn · Networking · thread + edge-fn warnings (no warm-up advice)",
+    tab: "networking",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    outreachConversations: [],
+    subtreeOnly: "outreach-thread",
+    threadConversation: {
+      id: "conv-warnings",
+      goal: "message_recruiter",
+      target_person: { name: "Daniel Ofer", role: "Talent Lead", company: "Riverside" },
+      status: "active",
+      message_thread: [
+        { role: "user", name: "Eli", text: "Hi Daniel — interested in the Product Analyst role.", ts: new Date(Date.now() - 1 * 86400000).toISOString() },
+      ],
+    },
+    threadSuggestion: {
+      suggested_text:
+        "Hi Daniel — saw the Product Analyst opening at Riverside. I owned the activation funnel dashboards at monday.com over the summer; the patterns mapped well to what your JD describes around adoption metrics. Happy to share a quick writeup or set up a call.",
+      angle: "Direct opener with concrete recent experience",
+      turn_type: "opener",
+      conversation_state: "cold_open",
+      warm_up_advice: "",
+      warnings: [
+        "Consider waiting until Tuesday morning Israel time — Mondays often see recruiter inboxes flooded.",
+      ],
+    },
+  },
+  "linkedin-networking-comment-coach-options": {
+    label: "LinkedIn · Networking · Comment Coach with 3 options",
+    tab: "networking",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    outreachConversations: [],
+    subtreeOnly: "comment-coach",
+    commentCoachState: {
+      postText:
+        "Three months into owning CS at a small SaaS — the most counterintuitive lesson is that activation completion rate is a better leading indicator of retention than CSAT. CSAT measures how the customer felt about one interaction; activation measures whether they'll come back.",
+      authorName: "Sarah Chen",
+      authorHeadline: "VP Customer Success at Verbit",
+      result: {
+        options: [
+          {
+            angle: "Echo + concrete add",
+            text: "Sarah — this matches what I saw at Guardio. We tracked CSAT for 18 months before noticing it lagged adoption-rate by ~3 weeks. The win was switching the early-warning dashboard to adoption-per-VIP-cohort; we caught two retention risks earlier than CSAT would have. One nuance: the threshold for 'activated' matters more than the metric itself — we re-tightened ours twice in the first quarter.",
+          },
+          {
+            angle: "Question the bar",
+            text: "Curious how you're defining 'activated' for this — is it tied to a specific feature usage count, an in-app event, or a time-based threshold (e.g. 7-day usage frequency)? At Guardio we initially used login-frequency and got false positives; switching to feature-completion gave a cleaner predictive signal but took two months to backfill.",
+          },
+          {
+            angle: "Counterexample",
+            text: "Agree on activation as the leading indicator most of the time, but with one wrinkle: for very long sales cycles (enterprise B2B) activation can lag the deal economics by months. CSAT during the proof-of-concept phase tracked closer to renewal for us than first-month activation did. Activation became the right metric only after the first contract anniversary.",
+          },
+        ],
+      },
+    },
+  },
+  "linkedin-networking-comment-coach-no-fit": {
+    label: "LinkedIn · Networking · Comment Coach anti-fab 'no genuine relevance' banner",
+    tab: "networking",
+    profile: profile(),
+    linkedinOptimizations: { baseline_data: BASELINE, generated_data: GENERATED },
+    outreachConversations: [],
+    subtreeOnly: "comment-coach",
+    commentCoachState: {
+      postText:
+        "Lessons from running a series-B fintech: scaling compliance is the moat. Three years in, our regulatory infrastructure is what makes the unit economics work — not the rates we charge.",
+      authorName: "Roni Adler",
+      authorHeadline: "CEO at Tomorrow.fin",
+      result: {
+        options: [],
+        no_fit_reason:
+          "Your profile is centered on early-career product work; you have no fintech or compliance experience to ground a substantive comment here. Saying anything about regulatory infrastructure would read as posturing.",
+      },
+    },
+  },
 };
 
 export const LINKEDIN_STATE_IDS = Object.keys(LINKEDIN_FIXTURES);

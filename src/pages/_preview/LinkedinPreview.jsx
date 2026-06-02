@@ -16,13 +16,21 @@
 // `import.meta.env.DEV`. Prod /_preview/linkedin/* falls through to
 // AuthenticatedApp → /login.
 
-import React, { useMemo, useEffect, useRef } from "react";
+import React, { useMemo, useEffect, useRef, useState } from "react";
 import { useParams, useSearchParams, Navigate } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ChevronLeft, CheckCircle2, Archive } from "lucide-react";
 import { AuthContext } from "@/lib/AuthContext";
 import Linkedin from "@/pages/Linkedin";
-import { LI_CSS } from "@/components/linkedin/linkedinStyles";
 import PostPreview from "@/components/linkedin/posts/PostPreview";
+import CommentCoach from "@/components/linkedin/networking/CommentCoach";
+import {
+  SuggestionCard,
+  ThreadBubble,
+  ConversationHeader,
+  STATE_META,
+} from "@/components/linkedin/networking/OutreachComposer";
+import { GOAL_LABELS } from "@/components/linkedin/networking/OutreachConversationsList";
 import {
   LINKEDIN_FIXTURES,
   LINKEDIN_FIXTURE_UID,
@@ -83,6 +91,12 @@ function installFetchOverride(fixture) {
       return jsonResponse([]);
     }
 
+    // PostgREST: linkedin_outreach_conversations list (3J-C)
+    if (url.includes("/rest/v1/linkedin_outreach_conversations")) {
+      const rows = fixture.outreachConversations ?? [];
+      return jsonResponse(rows);
+    }
+
     // Edge functions — surface success by default; the error fixture
     // overrides for generate-linkedin-content.
     if (url.includes("/functions/v1/generate-linkedin-content")) {
@@ -110,6 +124,30 @@ function installFetchOverride(fixture) {
     }
     if (url.includes("/functions/v1/import-linkedin-archive")) {
       return jsonResponse({ ok: true });
+    }
+
+    // Edge function: generate-linkedin-comment (3J-C CommentCoach)
+    if (url.includes("/functions/v1/generate-linkedin-comment")) {
+      const result = fixture.commentCoachState?.result ?? { options: [] };
+      return jsonResponse(result);
+    }
+
+    // Edge function: generate-linkedin-outreach-message (3J-C composer).
+    // Returns the full conversation payload shape callEdge() expects.
+    if (url.includes("/functions/v1/generate-linkedin-outreach-message")) {
+      const conv = fixture.threadConversation;
+      const suggestion = fixture.threadSuggestion;
+      if (!conv || !suggestion) {
+        return jsonResponse({ error: "No threadConversation/suggestion seeded." }, 500);
+      }
+      return jsonResponse({
+        conversation_id: conv.id,
+        goal: conv.goal,
+        target_person: conv.target_person,
+        message_thread: conv.message_thread,
+        status: conv.status,
+        suggestion,
+      });
     }
 
     return real(input, init);
@@ -173,59 +211,204 @@ function applyPostMountAction(action) {
     }
     return;
   }
+
+  if (action.kind === "click-new-conversation") {
+    const btn = document.querySelector('button[data-action="new-conversation"]');
+    if (btn && btn instanceof HTMLElement) {
+      btn.click();
+    }
+    return;
+  }
+
+  if (action.kind === "pick-goal-propose-internship") {
+    // Two-step: New conversation → goal pick.
+    const newBtn = document.querySelector('button[data-action="new-conversation"]');
+    if (newBtn && newBtn instanceof HTMLElement) {
+      newBtn.click();
+    }
+    // The goal picker mounts after state change — give React a tick.
+    setTimeout(() => {
+      const goalBtn = document.querySelector('button[data-goal="propose_internship"]');
+      if (goalBtn && goalBtn instanceof HTMLElement) {
+        goalBtn.click();
+      }
+    }, 60);
+    return;
+  }
+
+  if (action.kind === "fill-comment-coach") {
+    const setter = (el, value) => {
+      if (!el) return;
+      const proto =
+        el instanceof HTMLTextAreaElement
+          ? HTMLTextAreaElement.prototype
+          : HTMLInputElement.prototype;
+      const desc = Object.getOwnPropertyDescriptor(proto, "value");
+      desc?.set?.call(el, value);
+      el.dispatchEvent(new Event("input", { bubbles: true }));
+    };
+    const postEl = document.querySelector('textarea[placeholder*="Paste the LinkedIn post"]');
+    const nameEl = document.querySelector('input[placeholder*="Sarah Chen"]');
+    const headlineEl = document.querySelector('input[placeholder*="VP Customer Success"]');
+    setter(postEl, action.postText || "");
+    setter(nameEl, action.authorName || "");
+    setter(headlineEl, action.authorHeadline || "");
+    setTimeout(() => {
+      const gen = document.querySelector('button[data-action="generate-comments"]');
+      if (gen && gen instanceof HTMLElement) {
+        gen.click();
+      }
+    }, 60);
+    return;
+  }
 }
 
-// Manual page-shell wrapper for `subtreeOnly` fixtures. Renders the
-// `.li` wrapper + LI_CSS injection + LinkedIn eyebrow/h1/tab bar, then
-// hands off to children for the active-tab content. Mirrors the live
-// Linkedin.jsx shell — kept in sync deliberately so subtree fixtures
-// look identical to the full-page render.
+// Manual page-shell wrapper for `subtreeOnly` fixtures. Mirrors the
+// live Linkedin.jsx shell — kept in sync deliberately so subtree
+// fixtures look identical to the full-page render. LI_CSS retired in
+// 3J-C; this shell is now pure Tailwind + rd tokens.
 function PageShell({ tab = "posts", children }) {
   return (
-    <>
-      <style>{LI_CSS}</style>
-      <div className="li">
-        <div className="max-w-4xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
-          <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-            LinkedIn
-          </p>
-          <h1 className="font-display font-extrabold text-[27px] sm:text-[32px] leading-[1.08] tracking-tight text-rd-text mt-1">
-            Build your presence — profile, posts, outreach.
-          </h1>
+    <div className="max-w-4xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
+      <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+        LinkedIn
+      </p>
+      <h1 className="font-display font-extrabold text-[27px] sm:text-[32px] leading-[1.08] tracking-tight text-rd-text mt-1">
+        Build your presence — profile, posts, outreach.
+      </h1>
 
-          <div
-            className="flex gap-[22px] mt-5 border-b-[1.5px] border-rd-border-subtle"
-            role="tablist"
-            aria-label="LinkedIn hub sections"
-          >
-            {[
-              { id: "profile", label: "Profile" },
-              { id: "posts", label: "Posts" },
-              { id: "networking", label: "Networking" },
-            ].map(({ id, label }) => {
-              const selected = tab === id;
-              return (
-                <span
-                  key={id}
-                  role="tab"
-                  aria-selected={selected}
-                  className={[
-                    "font-display text-[15px] font-semibold pb-[9px] -mb-[1.5px] transition-colors duration-150 whitespace-nowrap",
-                    selected
-                      ? "text-rd-text border-b-[2.5px] border-rd-coral"
-                      : "text-rd-text-secondary border-b-[2.5px] border-transparent",
-                  ].join(" ")}
-                >
-                  {label}
-                </span>
-              );
-            })}
-          </div>
-
-          <div className="mt-4">{children}</div>
-        </div>
+      <div
+        className="flex gap-[22px] mt-5 border-b-[1.5px] border-rd-border-subtle"
+        role="tablist"
+        aria-label="LinkedIn hub sections"
+      >
+        {[
+          { id: "profile", label: "Profile" },
+          { id: "posts", label: "Posts" },
+          { id: "networking", label: "Networking" },
+        ].map(({ id, label }) => {
+          const selected = tab === id;
+          return (
+            <span
+              key={id}
+              role="tab"
+              aria-selected={selected}
+              className={[
+                "font-display text-[15px] font-semibold pb-[9px] -mb-[1.5px] transition-colors duration-150 whitespace-nowrap",
+                selected
+                  ? "text-rd-text border-b-[2.5px] border-rd-coral"
+                  : "text-rd-text-secondary border-b-[2.5px] border-transparent",
+              ].join(" ")}
+            >
+              {label}
+            </span>
+          );
+        })}
       </div>
-    </>
+
+      <div className="mt-4">{children}</div>
+    </div>
+  );
+}
+
+// Outreach thread subtree (3J-C) — renders the OutreachComposer card
+// surface manually using exported subcomponents (ConversationHeader,
+// ThreadBubble, SuggestionCard). The composer's screen-state machine
+// is bypassed; the harness seeds final-state data directly so the
+// suggestion + thread render without needing user interaction.
+function OutreachThreadSubtree({ fixture }) {
+  const conv = fixture.threadConversation;
+  const suggestion = fixture.threadSuggestion;
+  const goalLabel = GOAL_LABELS[conv.goal] || conv.goal;
+  const stateMeta = suggestion?.conversation_state
+    ? STATE_META[suggestion.conversation_state]
+    : null;
+  const [draftText, setDraftText] = useState(suggestion?.suggested_text || "");
+  return (
+    <div className="bg-white border border-rd-border rounded-[18px] p-5 sm:p-6 shadow-rd">
+      <div className="flex items-center justify-between mb-4 gap-3 flex-wrap">
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            className="inline-flex items-center gap-1 text-[12px] text-rd-text-secondary hover:text-rd-text"
+          >
+            <ChevronLeft className="w-4 h-4" />
+            Back
+          </button>
+          <h3 className="font-display font-bold text-[14px] text-rd-text">
+            Outreach to {conv.target_person?.name || "(no name)"}
+          </h3>
+        </div>
+        {conv.status === "active" && (
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              className="text-[11.5px] inline-flex items-center gap-1 text-rd-teal-dark hover:bg-rd-teal-tint px-2 py-1 rounded-full"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />Done
+            </button>
+            <button
+              type="button"
+              className="text-[11.5px] inline-flex items-center gap-1 text-rd-text-secondary hover:bg-rd-bg-soft px-2 py-1 rounded-full"
+            >
+              <Archive className="w-3.5 h-3.5" />Shelve
+            </button>
+          </div>
+        )}
+      </div>
+
+      <div className="space-y-4">
+        <ConversationHeader
+          goal={conv.goal}
+          goalLabel={goalLabel}
+          target={conv.target_person || {}}
+          status={conv.status}
+          showGoalEdit={false}
+          setShowGoalEdit={() => {}}
+          onChangeGoal={() => {}}
+          generating={false}
+        />
+
+        {conv.message_thread?.length > 0 && (
+          <div className="space-y-2.5 bg-rd-bg-soft border border-rd-border rounded-[14px] p-3 max-h-[500px] overflow-y-auto">
+            {conv.message_thread.map((msg, i) => (
+              <ThreadBubble
+                key={i}
+                msg={msg}
+                editing={false}
+                editingDraft=""
+                setEditingDraft={() => {}}
+                onStartEdit={() => {}}
+                onCancelEdit={() => {}}
+                onSave={() => {}}
+              />
+            ))}
+          </div>
+        )}
+
+        <SuggestionCard
+          suggestion={suggestion}
+          stateMeta={stateMeta}
+          draftText={draftText}
+          setDraftText={setDraftText}
+          generating={false}
+          onAcceptAndSend={() => {}}
+          onRegenerate={() => {}}
+          target={conv.target_person || {}}
+        />
+      </div>
+    </div>
+  );
+}
+
+// Comment Coach subtree (3J-C) — renders CommentCoach standalone and
+// drives the inputs + generate via post-mount DOM events. The result
+// payload is returned by the mocked /generate-linkedin-comment edge fn.
+function CommentCoachSubtree() {
+  return (
+    <div className="max-w-3xl mx-auto">
+      <CommentCoach />
+    </div>
   );
 }
 
@@ -325,6 +508,23 @@ export default function LinkedinPreview() {
     return () => clearTimeout(t1);
   }, [fixture]);
 
+  // Comment-coach subtree fixtures: auto-drive the inputs + Generate
+  // click so the result card renders. The fixture's commentCoachState
+  // payload is returned by the mocked /generate-linkedin-comment fn.
+  useEffect(() => {
+    if (fixture.subtreeOnly !== "comment-coach") return;
+    if (!fixture.commentCoachState) return;
+    const t = setTimeout(() => {
+      applyPostMountAction({
+        kind: "fill-comment-coach",
+        postText: fixture.commentCoachState.postText,
+        authorName: fixture.commentCoachState.authorName,
+        authorHeadline: fixture.commentCoachState.authorHeadline,
+      });
+    }, 300);
+    return () => clearTimeout(t);
+  }, [fixture]);
+
   // Pin ?tab= via Navigate. Declared AFTER the hooks above to keep
   // hook order stable across the redirect re-render.
   const targetTab = fixture.tab || "profile";
@@ -341,6 +541,36 @@ export default function LinkedinPreview() {
           <div className="min-h-screen bg-rd-bg-page font-body text-rd-text">
             <PageShell tab="posts">
               <PostPreviewSubtree fixture={fixture} />
+            </PageShell>
+          </div>
+        </AuthContext.Provider>
+      </QueryClientProvider>
+    );
+  }
+
+  if (fixture.subtreeOnly === "outreach-thread") {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <AuthContext.Provider value={authValue}>
+          <div className="min-h-screen bg-rd-bg-page font-body text-rd-text">
+            <PageShell tab="networking">
+              <div className="max-w-3xl mx-auto">
+                <OutreachThreadSubtree fixture={fixture} />
+              </div>
+            </PageShell>
+          </div>
+        </AuthContext.Provider>
+      </QueryClientProvider>
+    );
+  }
+
+  if (fixture.subtreeOnly === "comment-coach") {
+    return (
+      <QueryClientProvider client={queryClient}>
+        <AuthContext.Provider value={authValue}>
+          <div className="min-h-screen bg-rd-bg-page font-body text-rd-text">
+            <PageShell tab="networking">
+              <CommentCoachSubtree />
             </PageShell>
           </div>
         </AuthContext.Provider>

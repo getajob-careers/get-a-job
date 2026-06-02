@@ -6,15 +6,17 @@ import CommentCoach from "./networking/CommentCoach";
 import OutreachConversationsList from "./networking/OutreachConversationsList";
 import OutreachComposer from "./networking/OutreachComposer";
 
-// NetworkingTab — Phase 4 (PRs A + B). Two AI tools:
-//   - Comment Coach (AI tool, highest-leverage motion per research)
-//   - Outreach Coach (PR B): conversation-coach for 8 outreach modes —
-//     list of past conversations + new/resume composer with goal-aware
-//     coaching, multi-turn threads, warm-up-vs-ask judgment.
+// PR 3J-C — restyled on rd-* tokens. Restyle-only on behavior; the
+// Practicum prefill capture + URL-strip + clearPrefill (P14), the
+// outreachView state machine, and the refreshKey trigger pattern are
+// preserved byte-for-byte.
 //
-// The networking strategy/principles content lives in Resources (linked
-// at the top) — it's reference material, not something users want to
-// scroll past on every visit to the tools.
+// Mockup adds a tool-toggle pill row ("Outreach Coach" / "Comment
+// Coach") between which view is shown. Eli ruled the toggle is
+// DECORATIVE here — both tools stay rendered (stacked) so we don't
+// change discoverability behavior. The pills are eyebrow labels above
+// each section, not view-switching controls.
+
 export default function NetworkingTab() {
   // Outreach section view state. null/list = show list; "new" = composer
   // with no conversation; UUID = composer loaded for that conversation.
@@ -22,7 +24,7 @@ export default function NetworkingTab() {
   const [refreshKey, setRefreshKey] = useState(0);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Internship's drawer deep-links here with:
+  // P14: Internship's drawer deep-links here with:
   //   ?tab=networking&goal=propose_internship&prefillCompany=<co>
   //     &prefillFunction=<func>&prefillContact=<who_to_contact[0]>
   // PR13: goal in the URL is pre-picked → composer skips the picker
@@ -72,19 +74,33 @@ export default function NetworkingTab() {
     <div className="max-w-3xl mx-auto space-y-6">
       <Link
         to={createPageUrl("Resources")}
-        className="block bg-[#F4F4F2] hover:bg-[#E8E8E5] border border-[#DDDDDB] rounded-lg px-4 py-3 transition-colors"
+        className="block bg-rd-bg-soft hover:bg-rd-border border border-rd-border rounded-[14px] px-4 py-3 transition-colors"
       >
         <div className="flex items-center justify-between gap-3">
-          <p className="text-xs text-[#52545A] leading-snug">
-            New to LinkedIn networking? <span className="font-medium text-[#0E1014]">Read the strategy guide</span> — comment + reply windows, connection-request strategy, cold outreach reply rates.
+          <p className="text-[12px] text-rd-text-secondary leading-snug">
+            New to LinkedIn networking?{" "}
+            <span className="font-display font-semibold text-rd-text">Read the strategy guide</span>{" "}
+            — comment + reply windows, connection-request strategy, cold outreach reply rates.
           </p>
-          <ArrowRight className="w-4 h-4 text-[#52545A] flex-shrink-0" />
+          <ArrowRight className="w-4 h-4 text-rd-text-secondary flex-shrink-0" />
         </div>
       </Link>
 
-      {/* PR13: Outreach Coach surfaced first — it's the action the
-          internship flow drives to. Comment Coach (still high-leverage
-          per research) sits below as a discovery surface. */}
+      {/* Decorative tool-pill row per mockup — labels each tool below
+          but doesn't switch views (Eli's ruling: keep stacked, don't
+          change discoverability behavior). */}
+      <div className="flex gap-2 flex-wrap" aria-hidden="true">
+        <span className="inline-flex items-center font-display font-semibold text-[13px] rounded-full px-3.5 py-1.5 bg-rd-coral text-white">
+          Outreach Coach
+        </span>
+        <span className="inline-flex items-center font-display font-semibold text-[13px] rounded-full px-3.5 py-1.5 bg-rd-bg-soft text-rd-text-secondary">
+          Comment Coach
+        </span>
+      </div>
+
+      {/* Outreach Coach surfaced first — it's the action the Internship
+          flow drives to. Comment Coach (still high-leverage per
+          research) sits below as a discovery surface. */}
       <Section title="Outreach Coach">
         {outreachView === null ? (
           <OutreachConversationsList
@@ -115,7 +131,9 @@ export default function NetworkingTab() {
 function Section({ title, children }) {
   return (
     <section>
-      <h2 className="text-xs uppercase tracking-wider text-[#9C9DA1] font-medium mb-3">{title}</h2>
+      <h2 className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-3">
+        {title}
+      </h2>
       {children}
     </section>
   );
