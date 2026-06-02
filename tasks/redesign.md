@@ -62,6 +62,7 @@ or scope-cut.
 | `eli/redesign-storybank` (Story Bank restyle + profileStyles.js teardown — `.p-*` classes retired) | 2026-06-02 | 413 | −15 |
 | `eli/redesign-tasks` (Tasks restyle: rd tokens + Tasks-side ACT_CSS injection drop; activityStyles.js kept for Calendar + Internship) | 2026-06-02 | 413 | −15 |
 | `eli/redesign-calendar` (Calendar restyle + AddEventDialog chrome + Calendar-side ACT_CSS injection drop; activityStyles.js kept for Internship) | 2026-06-02 | 413 | −15 |
+| `eli/redesign-linkedin-profile` (LinkedIn 3J-A: page shell + Profile tab + ProfilePreview off .li-*; Posts/Networking + LI_CSS stay) | 2026-06-02 | 411 | −15 |
 
 ---
 
@@ -90,7 +91,10 @@ Tick boxes here as each PR merges.
 | 3G | Story Bank | simple | ☑ | StoryBank + StoryCard + StoryEditor restyled on rd-tokens. **profileStyles.js + PROFILE_CSS retired** — gated audit confirmed zero remaining consumers; Profile.jsx injection dropped; 1 dead `p-tabs` className stripped from Internship.jsx. |
 | 3H | Tasks | simple | ☑ | Tasks restyled on rd-tokens (categories teal/coral/golden/neutral by tone; due-chip tri-state coral/golden/soft). All write paths byte-equivalent: handleGenerate, optimistic toggleComplete/deleteTask/setDueDate. ACT_CSS injection dropped Tasks-side ONLY — `activityStyles.js` stays for Calendar + Internship + 6 internship sub-components. Tasks/Calendar tab merger DECLINED (deferred — see backlog). |
 | 3I | Calendar | simple | ☑ | Calendar restyled on rd-tokens (4-category palette: apply=teal-dark, interview=coral, followup=neutral, task=golden). Month/Week/Day views + AddEventDialog chrome restyled; calendar_events INSERT byte-equivalent. ACT_CSS injection dropped Calendar-side ONLY — `activityStyles.js` stays for Internship + 6 sub-components. No dedicated Calendar mockup existed; followed the established rd token design system. Tasks+Calendar tab merger DECLINED again (deferred). |
-| 8  | LinkedIn | complex | ☐ | ProfileTab + Posts + Outreach + Optimization. |
+| 3J | LinkedIn | complex | ☐ | Split into 3 sub-PRs (3J-A → 3J-B → 3J-C) for blast-radius control + mockup fidelity. Highest visual-fidelity bar of the rollout. |
+| 3J-A | LinkedIn Profile tab | complex | ☑ | Page shell + Profile tab + ProfilePreview restyled to match `getajob_linkedin_profile_optimizer.html`. Q1 hybrid pane (Current/Optimized segmented toggle + single profile-card preview + per-section refine reachable on click). Q2 "Apply section by section" entry-point pill. Q3 "Copy optimized profile" client-only concat helper (`buildOptimizedProfileBlob`). Q7 LinkedIn-blue cues kept in simulacrum surfaces only. P1/P2/P3 byte-equivalent (handleGenerate empty body, handleRefine sectionKey + ≤600-char instruction, ArchiveUploader import-linkedin-archive). LI_CSS injection + `.li` wrapper KEPT in Linkedin.jsx — Posts (3J-B) + Networking (3J-C) still consume `.li-*`. |
+| 3J-B | LinkedIn Posts tab | complex | ☐ | Maps to `getajob_linkedin_posts_feed_preview.html`. Restyle PostsTab + 6 posts sub-components off .li-*. 7 post types + refinement-updates-same-row + image upload/removal semantics + optimistic delete preserved. |
+| 3J-C | LinkedIn Networking tab + LI_CSS teardown | complex | ☐ | Maps to `getajob_linkedin_networking_outreach.html`. Restyle NetworkingTab + 4 networking sub-components. Audit-gated retirement of `linkedinStyles.js` + LI_CSS injection + `.li` wrapper. Q4 ruling: drop "Why this works:" line; preserve existing `warm_up_advice` "Coach's advice" corrective WARNING display in place. Q5 affirmative state: client-derived from `warnings.length===0`, honest generic affirmation (no fabricated specific claims). |
 | 9  | Chat agents | complex | ☐ | All 4 agent surfaces share the SSE streaming wrapper. |
 | 10 | Internship | complex | ☐ | Browse + Pipeline + DetailDrawer + match_score. |
 | 11 | Resources | simple | ☐ | Static-content page. |
@@ -1307,6 +1311,79 @@ manipulation to land the query in `isError`.
 6. `calendar-error-banner`
 7. `calendar-overflow-day`
 8. `calendar-add-event-dialog`
+
+---
+
+## LinkedIn — PR 3J-A (`eli/redesign-linkedin-profile`)
+
+Complex page split into 3 sub-PRs (3J-A Profile / 3J-B Posts / 3J-C
+Networking + LI_CSS teardown) for blast-radius control + mockup
+fidelity. This is the highest visual-fidelity bar of the rollout.
+
+3J-A scope: LinkedIn page shell + tab bar + Profile tab + ProfilePreview.
+Maps to `docs/design/redesign/getajob_linkedin_profile_optimizer.html`.
+
+**Files touched:**
+
+- `src/pages/Linkedin.jsx` — page shell + tab bar restyled on rd-*.
+  `<style>{LI_CSS}</style>` injection + `.li` wrapper KEPT INTACT
+  (Posts + Networking sub-trees still consume `.li-*` classes from
+  `linkedinStyles.js`). Tab bar adopts the mockup's underline pattern
+  (Rokkitt 600 15px, coral underline 2.5px on selected, soft-line
+  container 1.5px).
+- `src/components/linkedin/ProfileTab.jsx` — orchestrator only. P1
+  handleGenerate (empty-body `generate-linkedin-content` → local
+  `setContent`), P2 handleRefine (`{section, instruction ≤600}` →
+  `merged_content` → local state), P3 ArchiveUploader
+  (`import-linkedin-archive` → refetch
+  `linkedin_optimizations.maybeSingle()` → `setBaseline`) preserved
+  byte-for-byte. Direct supabase reads RLS-scoped by user_id via the
+  table policy.
+- `src/components/linkedin/ProfilePreview.jsx` — Q1 hybrid main
+  surface. Renders the single profile-card preview with Current/
+  Optimized segmented toggle. Each section header has an inline
+  Refine sparkle button that opens a per-section refine form below it
+  (handleRefine wiring unchanged). Skills section + Honors section
+  in-card. Q3 footer adds "Apply section by section" hint pill +
+  "Copy optimized profile" coral pill (calls
+  `buildOptimizedProfileBlob` client helper exported alongside the
+  component).
+- `src/components/linkedin/linkedinStyles.js` — **untouched.**
+  Posts + Networking sub-trees still consume `.li-*`; full retirement
+  is gated on 3J-C.
+
+**Q4 deferred to 3J-C:** the mockup's "Why this works:" affirmative
+rationale line has no backing edge-fn field. `warm_up_advice` is a
+corrective coaching field (renders only when the user pushes for an
+ask too early) — wrong semantics for the mockup's slot. Ruling: drop
+that mockup line in 3J-C; preserve the existing `warm_up_advice`
+"Coach's advice" WARNING display in place.
+
+**Brand fidelity (Q7):** LinkedIn-blue (`#0A66C2`) preserved in the
+simulacrum surfaces only — Open-to-work pill (`#E5F4EA` green per
+LinkedIn brand), cover strip (`#A7C4DD` light blue), "500+
+connections" link, the three action buttons (Open to work / Add
+section / More), and the experience-entry icon chip. Everything else
+on the page (app chrome, CTAs, refine sparkles) is rd-coral.
+
+**Preview harness:** `/_preview/linkedin/:state` (DEV-only via
+`import.meta.env.DEV`). Pins `?tab=profile` synchronously. ProfileTab
+does a direct `supabase.from("linkedin_optimizations").maybeSingle()`
+on mount (NOT TanStack-wrapped), so the harness installs a fetch
+override that mocks the PostgREST endpoint and the
+`generate-linkedin-content` edge function. Cleanup restores the
+real fetch on unmount.
+
+**Fixtures (6):**
+
+1. `linkedin-profile-empty` — no baseline, no content, empty CTA
+2. `linkedin-profile-baseline-imported` — archive imported, awaiting Generate
+3. `linkedin-profile-optimized` — fully generated, Optimized view (default)
+4. `linkedin-profile-toggle-current` — toggle = Current (raw baseline rendered)
+5. `linkedin-profile-section-refine-open` — About section refine form open
+6. `linkedin-profile-error` — rate-limit error banner (post-mount Generate click)
+
+Output: `docs/design/redesign/previews/linkedin-3ja.pdf` (6 × 2 = 12 pages).
 
 ---
 

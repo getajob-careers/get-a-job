@@ -1,26 +1,28 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
-import { User, FileText, Users } from "lucide-react";
 
 import ProfileTab from "@/components/linkedin/ProfileTab";
 import PostsTab from "@/components/linkedin/PostsTab";
 import NetworkingTab from "@/components/linkedin/NetworkingTab";
 import { LI_CSS } from "@/components/linkedin/linkedinStyles";
 
-// LinkedIn — three-tab hub for profile optimization, post creation, and
-// networking outreach coaching. URL-driven via ?tab= so deep links work.
+// PR 3J-A — LinkedIn hub page shell + tab bar restyled on rd-* tokens
+// (Rokkitt slab, coral underline tab). LI_CSS injection + `.li` wrapper
+// KEPT INTACT — Posts and Networking tabs still consume `.li-*` classes.
+// Those tabs will retire `.li-*` in 3J-B (Posts) and 3J-C (Networking),
+// at which point the LI_CSS injection + wrapper retire too.
 //
-// Direction 3 visual pass (PR-A) — .li token scope cascades to all three
-// tabs and their sub-components. PR-B adds the social-profile mockup
-// preview on Profile and the feed-card preview + image upload on Posts.
+// Profile tab (ProfileTab.jsx + ProfilePreview.jsx) is the only sub-tree
+// migrated to Tailwind + rd tokens in this PR.
 //
-// See docs/research/linkedin-post-performance.md for the research grounding
+// URL-driven via ?tab= so deep links work. See
+// docs/research/linkedin-post-performance.md for the research grounding
 // the Posts + Networking tabs.
 
 const TABS = [
-  { id: "profile",    label: "Profile",    Icon: User,     Component: ProfileTab },
-  { id: "posts",      label: "Posts",      Icon: FileText, Component: PostsTab },
-  { id: "networking", label: "Networking", Icon: Users,    Component: NetworkingTab },
+  { id: "profile",    label: "Profile",    Component: ProfileTab },
+  { id: "posts",      label: "Posts",      Component: PostsTab },
+  { id: "networking", label: "Networking", Component: NetworkingTab },
 ];
 const VALID_TAB_IDS = new Set(TABS.map((t) => t.id));
 
@@ -51,35 +53,55 @@ export default function LinkedinOptimizer() {
 
   return (
     <>
+      {/* LI_CSS injection STAYS — Posts (3J-B) and Networking (3J-C)
+          still consume `.li-*` classes. Retires in 3J-C alongside the
+          `.li` wrapper. */}
       <style>{LI_CSS}</style>
-      <div className="li">
-        <div className="max-w-4xl mx-auto px-6 py-10">
-          {/* Header */}
-          <p className="li-eyebrow">LinkedIn</p>
-          <h1 className="li-h1 mt-1.5">Show up like the candidate you are.</h1>
-          <p className="li-sub">
-            Optimise your profile, draft posts in your voice, and coach networking outreach — all grounded in your real experience.
-          </p>
 
-          {/* Tab pill bar */}
-          <div className="li-tabs mt-7 mb-6" role="tablist" aria-label="LinkedIn hub sections">
-            {TABS.map(({ id, label, Icon }) => (
-              <button
-                key={id}
-                type="button"
-                role="tab"
-                aria-selected={activeTab === id}
-                onClick={() => handleTabClick(id)}
-                className="li-tab"
-              >
-                <Icon className="w-3.5 h-3.5" />
-                {label}
-              </button>
-            ))}
+      <div className="li">
+        <div className="max-w-4xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
+          {/* Header */}
+          <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+            LinkedIn
+          </p>
+          <h1 className="font-display font-extrabold text-[27px] sm:text-[32px] leading-[1.08] tracking-tight text-rd-text mt-1">
+            Build your presence — profile, posts, outreach.
+          </h1>
+
+          {/* Tab bar — underline pattern per Profile mockup
+              (Rokkitt 600, 15px, coral underline 2.5px on selected,
+              soft-line container divider 1.5px) */}
+          <div
+            className="flex gap-[22px] mt-5 border-b-[1.5px] border-rd-border-subtle"
+            role="tablist"
+            aria-label="LinkedIn hub sections"
+          >
+            {TABS.map(({ id, label }) => {
+              const selected = activeTab === id;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={selected}
+                  onClick={() => handleTabClick(id)}
+                  className={[
+                    "appearance-none border-0 bg-transparent font-display text-[15px] font-semibold cursor-pointer pb-[9px] -mb-[1.5px] transition-colors duration-150 whitespace-nowrap",
+                    selected
+                      ? "text-rd-text border-b-[2.5px] border-rd-coral"
+                      : "text-rd-text-secondary border-b-[2.5px] border-transparent hover:text-rd-text",
+                  ].join(" ")}
+                >
+                  {label}
+                </button>
+              );
+            })}
           </div>
 
           {/* Tab content */}
-          <ActiveTabComponent />
+          <div className="mt-4">
+            <ActiveTabComponent />
+          </div>
         </div>
       </div>
     </>
