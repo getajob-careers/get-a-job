@@ -57,6 +57,7 @@ or scope-cut.
 | `eli/redesign-home` (Home body + live-matches RPC + hero stat) | 2026-06-02 | 421 | −13 |
 | `eli/redesign-roadmap` (Roadmap restyle: 4 tabs, clickable quadrant, track-color rd palette) | 2026-06-02 | 419 | −15 |
 | `eli/redesign-jobs` (Jobs restyle: warm palette, RdCard, track-rdColor pills) | 2026-06-02 | 419 | −15 |
+| `eli/redesign-tracker` (Tracker restyle: row-list rd-tokens, grouped 7-step checklist, track-rdColor) | 2026-06-02 | 419 | −15 |
 
 ---
 
@@ -80,17 +81,17 @@ Tick boxes here as each PR merges.
 | 3B | Home | complex | ☑ | Body restyle + live-matches RPC + hero stat. Preview = pre-seeded QueryClient. |
 | 3C | Roadmap | complex | ☑ | 4-tab layout (How tracks work / Track 1 / 2 / 3), clickable quadrant, rd track colors. |
 | 3D | Jobs | complex | ☑ | Search RPC + seniority filter preserved. JobCard restyled with track-rdColor avatars. |
-| 4  | Tracker | complex | ☐ | Pipeline kanban, DnD, status badges. |
-| 5  | Profile | complex | ☐ | EducationTab, CertificationsSection, experiences accordion. |
-| 6  | Story Bank | simple | ☐ | Capture + library. |
-| 7  | Tasks | simple | ☐ | Checklist + filters. |
-| 8  | Calendar | simple | ☐ | Event view. |
-| 9  | LinkedIn | complex | ☐ | ProfileTab + Posts + Outreach + Optimization. |
-| 10 | Chat agents | complex | ☐ | All 4 agent surfaces share the SSE streaming wrapper. |
-| 11 | Internship | complex | ☐ | Browse + Pipeline + DetailDrawer + match_score. |
-| 12 | Resources | simple | ☐ | Static-content page. |
-| 13 | Settings | simple | ☐ | Account + delete. |
-| 14 | Landing | simple | ☐ | Public marketing page — final pass. |
+| 3E | Tracker | complex | ☑ | Row-list restyled on rd-tokens; grouped 7-step checklist; track-rdColor migration complete. NO kanban / drilldown (post-launch). |
+| 4  | Profile | complex | ☐ | EducationTab, CertificationsSection, experiences accordion. |
+| 5  | Story Bank | simple | ☐ | Capture + library. |
+| 6  | Tasks | simple | ☐ | Checklist + filters. |
+| 7  | Calendar | simple | ☐ | Event view. |
+| 8  | LinkedIn | complex | ☐ | ProfileTab + Posts + Outreach + Optimization. |
+| 9  | Chat agents | complex | ☐ | All 4 agent surfaces share the SSE streaming wrapper. |
+| 10 | Internship | complex | ☐ | Browse + Pipeline + DetailDrawer + match_score. |
+| 11 | Resources | simple | ☐ | Static-content page. |
+| 12 | Settings | simple | ☐ | Account + delete. |
+| 13 | Landing | simple | ☐ | Public marketing page — final pass. |
 
 ---
 
@@ -811,6 +812,129 @@ treatment; the label is intentionally unchanged.
   consumed by `Jobs.jsx`. Deletion is a follow-up cleanup pass —
   leaving it for now in case any test selector still grabs at the
   old `.jb-*` classes.
+
+---
+
+## Tracker — PR 3E (`eli/redesign-tracker`)
+
+Restyle-only on the existing row-list Tracker per the Q1 ruling. NO
+kanban + NO drilldown route — those are post-launch feature work. The
+mockup-3 grouped 7-step layout is carried over visually inside the
+in-row Steps tab; everything else (status filter pills, inline
+expand-in-place, 9 tabs, 6 sub-components, all writes + audit
+behaviour) is preserved 1:1.
+
+**Files restyled in place:**
+
+- `src/pages/Tracker.jsx` — Tailwind + rd tokens directly. Serif
+  "Tracker" wordmark, coral "Add application" pill, restyled
+  "How to use" tile with 4 phase-coloured tiles
+  (golden / teal / coral / golden+star), 8 status filter pills
+  (selected→solid `--rd-text`), restyled empty state + loading
+  skeleton + Add dialog. The page-root `<style>{TRACKER_CSS}</style>`
+  injection is **kept here as the SINGLE source** so the six per-tab
+  subcomponents (CVManagement / SkillsRequired / ProjectsProof /
+  NetworkingReferrals / InterviewPrep / FollowUp) that still consume
+  `.tk-*` classes keep rendering. NO duplicate injection from
+  ApplicationRow.
+- `src/components/tracker/ApplicationRow.jsx` — collapsed-header
+  restyle (status badge → warm tints per status, AI confidence chip
+  → teal-dark or muted), track pill switches to `track.rdColor`
+  (coral / teal / golden), delete confirm + chevron preserved.
+  Expanded body: status row + tab bar + tab-panel container chrome
+  on rd tokens. Tab CONTENTS (CV / Skills / Projects / Networking /
+  Interview / Follow-up) untouched per the spec — only the panel
+  wrapper changed. `data-app-id={app.id}` added to the row-header
+  button so the preview harness can drive expand state by id.
+- `src/components/tracker/ApplicationChecklist.jsx` — rebuilt as a
+  three-phase grouped layout from
+  `docs/design/redesign/getajob_tracker_seven_step_guide.html`:
+  **Know the role** (steps 1–2, golden), **Build your case**
+  (steps 3–5, teal), **Apply & prep** (steps 6–7, coral). New
+  progress bar (`completedCount / 7` × `--rd-coral`). Same 7
+  checklist keys (P15), same lock rule on step 6, same
+  referral-star "High Impact" highlight on step 5. The
+  optimistic-update + rollback (P5) lives in the parent and is
+  untouched.
+
+**Track-color migration completes here:** `ApplicationRow` was the
+last surface reading `TRACK_CONFIG.color` (legacy green/gray/amber);
+it now reads `TRACK_CONFIG.rdColor` (coral/teal/golden), matching
+Home + Roadmap + Jobs. After this PR the legacy `color` field on
+`TRACK_CONFIG` is unused by any restyled surface (Internship still
+uses it pending its own restyle PR).
+
+**Preservation contract — verified preserved 1:1:**
+
+- **P1** `Tracker.handleAdd` — insert payload + analytics event +
+  cache invalidate + `scoreApplication` chain when JD present.
+- **P2** `ApplicationRow.handleStatusChange` — `applications.status`
+  UPDATE only. `trg_log_application_status_change` Postgres trigger
+  writes the audit row; client never touches `status_changes` (RLS
+  denies INSERT to users).
+- **P3** `ApplicationRow.handleDelete` — two-step confirm
+  (`confirmingDelete` ref).
+- **P4** `ApplicationRow.handleSaveJobDescription` — `stripHtml` at
+  the paste-boundary → UPDATE → chain `scoreApplication`
+  (analyze-job-match) when cleaned JD is non-empty. PR #351
+  sanitization fix preserved.
+- **P5** `ApplicationRow.handleChecklistChange` — optimistic
+  `setChecklist(updated)` then UPDATE; rollback to previous + toast
+  on error. Pattern byte-equivalent.
+- **P6** `ApplicationRow.handleSaveApplicationDetails` — applied_date
+  + cv_version_used + referral_attached written together.
+- **P9** Tab lock semantics — `INTERVIEW_UNLOCK_STATUSES` =
+  {interviewing, offer, accepted, rejected}; `FOLLOWUP_UNLOCK_STATUSES`
+  = {offer, accepted, rejected}.
+- **P11** Unsaved-changes guard — `hasUnsavedChanges` + `window.confirm`
+  on collapse.
+- **P14** `applications.status` 7-value enum untouched.
+- **P15** `applications.checklist` JSONB shape — same 7 keys,
+  same lock rules.
+- **P16** `status_changes` audit trigger — never written by client.
+- **P17** Typecheck baseline — Tracker-area errors still at 6
+  (pre-existing); total at 419 (unchanged vs main).
+
+**Preview harness:**
+
+- DEV-only `/_preview/tracker/:state` route, gated on
+  `import.meta.env.DEV`.
+- Fresh QueryClient seeded synchronously inside `useMemo` for
+  `["userProfile", uid]`, `["applications", uid]`, and
+  `["trackedJobsActiveStatus", uid, linkedCount]`. For the loading
+  fixture, applications cache is intentionally left empty so the
+  query reads as "pending" and Tracker's `isLoading` drives the
+  skeleton.
+- `AuthContext.Provider` stub overrides the outer AuthProvider for
+  the harness subtree only.
+- **URL-flag-driven view state**: filter pill / row expand / tab
+  click / Add dialog open are local `useState` in production code —
+  the harness uses `<Navigate replace>` to set the search params,
+  then a post-mount `useEffect` clicks the corresponding DOM
+  affordances by text/data-attribute. No production-code preview
+  hatch. Per the design constraint, Tracker.jsx contains NO
+  preview-only logic.
+- 9 fixtures: empty / loading / populated (5 apps across statuses
+  + tracks) / filtered-applied / expanded-steps / expanded-target /
+  expanded-locked-interview / add-dialog / inactive-listing.
+- `scripts/preview-tracker.mjs` — same prod-404 verification flow.
+  Captions in the assembled PDF strip non-ASCII chars (pdf-lib's
+  WinAnsi font can't encode emoji like 📋); screenshots themselves
+  carry the full UI. Output:
+  `docs/design/redesign/previews/tracker-3e.pdf` (9 × desktop+mobile
+  = 18 pages).
+- Prod `/_preview/tracker/*` verified unreachable.
+
+**Out of scope (carry-forward):**
+
+- `src/components/tracker/trackerStyles.js` is kept and still
+  injected from `Tracker.jsx` page-root because the 6 per-tab
+  subcomponents consume `.tk-*` classes inside their bodies. Those
+  bodies are intentionally untouched in this PR (per the spec) —
+  deleting the styles file plus restyling those 6 components is a
+  follow-up cleanup PR.
+- Kanban + drag-drop + drilldown route — deferred per the Q1 ruling.
+- "P2 default-sort-by-tier" — confirmed OUT.
 
 ---
 
