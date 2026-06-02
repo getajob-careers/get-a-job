@@ -51,6 +51,7 @@ or scope-cut.
 | Baseline | 2026-06-02 | 434 | — |
 | `eli/redesign-foundation-login` (foundation + Login) | 2026-06-02 | 432 | −2 |
 | `eli/redesign-onboarding-2a` (foundation + first 3 onboarding steps) | 2026-06-02 | 432 | 0 |
+| `eli/redesign-onboarding-2b` (mid-flow: Experience / RoleSkills / Skills / CareerDirection + 3 input forks) | 2026-06-02 | 431 | −1 |
 
 ---
 
@@ -181,6 +182,75 @@ a need.
 
 The Experience-multiple-entries fixture (user-requested in 2A) lands
 with PR 2B — `StepExperience` isn't restyled until then.
+
+---
+
+## Onboarding restyle — PR 2B (`eli/redesign-onboarding-2b`)
+
+Second slice of the 10-step flow. Restyles 4 step files in place and
+forks the 3 remaining shared-input primitives. Same restyle-only-on-
+behaviour rule — autosave dep array, every `useQuery` key/`select()`,
+the accordion behaviour in StepRoleSkills (no scroll-into-view
+change), and every analytics event are preserved 1:1.
+
+**Files restyled in place:**
+- `StepExperience.jsx` — multi-entry form. SkillTagInput → RdSkillTagInput.
+  The 8-value `type` dropdown (incl. PR #211's `founder`) and the
+  Edit / Add / Delete + "currently / managed / cross-functional" flags
+  are byte-equivalent.
+- `StepRoleSkills.jsx` — per-card accordion (1 expanded at a time,
+  first expanded by default). SkillTagInput + SkillChipBank → Rd forks;
+  RoleSuggestions section (the per-role library-skill pre-fills, the
+  one Eli flagged as TOP-PRIORITY) preserved verbatim with its same
+  `suggestSkillsForTitle()` source + `humanizeSkillId` rendering.
+  **Accordion auto-scroll bug deferred** (no scroll-into-view change
+  in this PR) per the standing deferral.
+- `StepSkills.jsx` — catch-all. SkillTagInput + SkillChipBank → Rd
+  forks. `matchesSkill` helper unchanged.
+- `StepCareerDirection.jsx` — five_year_role autocomplete (debounced
+  350ms against the 183-role library) restyled with rd tokens;
+  PresetBubbleInput / SkillTagInput → Rd forks; lateral / outside-
+  degree booleans preserved.
+
+**Files forked (Rd variants, originals untouched):**
+- `RdAutocompleteInput.jsx` — same `LOCATION_SUGGESTIONS` source,
+  same `suggestionType="location"` API.
+- `RdPresetBubbleInput.jsx` — same toggle / custom-add / shared text[]
+  array semantics. Active state in coral.
+- `RdSkillChipBank.jsx` — **skill guarantee surface.** Reads
+  `SKILL_BANK` from `@/components/onboarding/skillBank` (same 6
+  categories × 18 chips); same `matchesSkill` helper; same compact
+  mode. Chips render in rd tokens with a coral selected state.
+- `RdSkipFooter.jsx` — Back / Skip / Continue. Coral CTA via RdButton.
+
+**Fixtures added** (preview PDF: `onboarding-2b.pdf`, all 9 fixtures
+× 2 viewports + the 7 carried from 2A = 16 fixtures × 2 = 32 pages):
+- `experience-empty` + `experience-multi` (3-entry sample CV data)
+- `roleskills-prefilled` (first accordion card expanded → SkillTagInput
+  + RoleSuggestions + RdSkillChipBank all visible in one capture)
+- `skills-empty` (chip bank visible on the catch-all)
+- `skills-with-chips` (chips selected, coral state visible)
+- `direction-empty` / `direction-prefilled`
+- `shared-skill-picker` (carried — autocomplete dropdown open)
+
+**Skill guarantee (proof state in PDF):**
+1. RdSkillTagInput autocomplete dropdown OPEN with library suggestions
+   (`shared-skill-picker` fixture, runner types "data" then captures).
+2. RdSkillChipBank visible with all 6 categories rendered
+   (`skills-empty` fixture).
+3. RdSkillChipBank with chips selected (`skills-with-chips` fixture
+   — coral state captured).
+4. Per-role suggestion section + per-card SkillTagInput + per-card
+   SkillChipBank, all rendered together inside the first expanded
+   accordion (`roleskills-prefilled` fixture).
+
+If a reviewer can't see skills to pick from in the PDF, that's a fail —
+the four states above are designed so the failure mode is impossible
+to miss.
+
+**Prod 404 still verified:** `scripts/preview-onboarding.mjs:verifyProd404`
+boots `vite preview` over the production build at every run and asserts
+the preview-only heading is absent from `/_preview/onboarding/shared-skill-picker`.
 
 **Out of scope (per spec):**
 - Carded bugs (`split work-arrangement from employment-type`,

@@ -1,8 +1,16 @@
 import React, { useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import SkillTagInput from "./SkillTagInput";
+import RdSkillTagInput from "@/components/redesign/RdSkillTagInput";
+import RdButton from "@/components/redesign/RdButton";
 import { Plus, Trash2, FileText, ArrowRight } from "lucide-react";
+
+// Restyled for PR 2B — behaviour identical to the Direction-3 version.
+// Multi-entry experience form. SkillTagInput → RdSkillTagInput (preserves
+// the suggestionType="library_skills" autocomplete + suggestions per the
+// standing skill guarantee). Founder type (PR #211) preserved in the
+// dropdown. Edit / add / delete + "currently working / managed people /
+// cross-functional" flags untouched.
 
 const EMPTY_EXP = {
   title: "",
@@ -16,6 +24,15 @@ const EMPTY_EXP = {
   cross_functional: false,
   skills: [],
 };
+
+const INPUT_CLS =
+  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+
+function FieldLabel({ children }) {
+  return (
+    <label className="block text-[12px] font-semibold text-rd-text mb-1.5">{children}</label>
+  );
+}
 
 export default function StepExperience({ experiences, onChange, onNext, onBack }) {
   const [editing, setEditing] = useState(experiences.length === 0 ? 0 : null);
@@ -51,23 +68,31 @@ export default function StepExperience({ experiences, onChange, onNext, onBack }
   return (
     <div className="space-y-7">
       <div>
-        <h1 className="onb-h1">Your experience.</h1>
-        <p className="onb-sub">
+        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+          step 4 of 9 · experience
+        </p>
+        <h1 className="font-display font-extrabold text-[26px] sm:text-[28px] leading-[1.1] tracking-tight text-rd-text mt-2">
+          Your experience.
+        </h1>
+        <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
           Internships, volunteering, leadership, military, projects — each role is analysed for skills.
         </p>
       </div>
 
       {experiences.length > 0 && (
-        <div className="onb-banner onb-banner-success flex items-center gap-2.5">
+        <div className="bg-rd-teal-tint border border-rd-teal/40 rounded-[14px] px-3.5 py-2.5 text-[13px] text-rd-teal-dark flex items-center gap-2.5">
           <FileText className="w-4 h-4 flex-shrink-0" />
           <p>
-            <span className="font-semibold">{experiences.length} {experiences.length === 1 ? "entry" : "entries"}</span> pre-filled from your CV — review, edit, or add more below.
+            <span className="font-display font-semibold text-rd-text">
+              {experiences.length} {experiences.length === 1 ? "entry" : "entries"}
+            </span>{" "}
+            pre-filled from your CV — review, edit, or add more below.
           </p>
         </div>
       )}
 
       {experiences.length === 0 && (
-        <div className="onb-banner onb-banner-warning flex items-center gap-2.5">
+        <div className="bg-rd-golden-tint border border-rd-golden/40 rounded-[14px] px-3.5 py-2.5 text-[13px] text-rd-golden-dark flex items-center gap-2.5">
           <FileText className="w-4 h-4 flex-shrink-0" />
           <p>No experience extracted from your CV. Add entries manually below, or go back to upload your CV.</p>
         </div>
@@ -77,14 +102,28 @@ export default function StepExperience({ experiences, onChange, onNext, onBack }
       {experiences.length > 0 && (
         <div className="space-y-2">
           {experiences.map((exp, i) => (
-            <div key={i} className="bg-white rounded-[14px] border border-[#DDDDDB] px-4 py-3 flex items-center justify-between">
+            <div
+              key={i}
+              className="bg-rd-bg-card rounded-[14px] border border-rd-border px-4 py-3 flex items-center justify-between"
+            >
               <div className="min-w-0">
-                <p className="text-sm font-semibold text-[#0E1014] truncate">{exp.title}</p>
-                <p className="text-xs text-[#9C9DA1] truncate">{exp.company} — {exp.type?.replace("_", " ")}</p>
+                <p className="font-display font-semibold text-[14px] text-rd-text truncate">{exp.title}</p>
+                <p className="text-[12px] text-rd-text-secondary truncate">
+                  {exp.company} — {exp.type?.replace("_", " ")}
+                </p>
               </div>
               <div className="flex gap-2 flex-shrink-0">
-                <button onClick={() => startEdit(i)} className="text-xs text-[#52545A] hover:text-[#0E1014] px-2.5 py-1 rounded-md border border-[#DDDDDB] hover:bg-[#E8E8E5]">Edit</button>
-                <button onClick={() => deleteEntry(i)} className="text-xs text-[#C84F40] hover:text-[#F87060] px-2 py-1 rounded-md border border-[#FDE7E3] hover:bg-[#FDE7E3]">
+                <button
+                  onClick={() => startEdit(i)}
+                  className="text-[12px] text-rd-text-secondary hover:text-rd-text px-2.5 py-1 rounded-md border border-rd-border hover:bg-rd-bg-soft transition-colors"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={() => deleteEntry(i)}
+                  className="text-[12px] text-rd-coral-dark hover:text-rd-coral px-2 py-1 rounded-md border border-rd-coral-tint hover:bg-rd-coral-tint transition-colors"
+                  aria-label={`Delete ${exp.title}`}
+                >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               </div>
@@ -95,24 +134,36 @@ export default function StepExperience({ experiences, onChange, onNext, onBack }
 
       {/* Form for adding/editing */}
       {draft !== null ? (
-        <div className="onb-card space-y-4">
-          <h3 className="text-sm font-semibold text-[#0E1014]">
+        <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 space-y-4">
+          <h3 className="font-display font-semibold text-[14px] text-rd-text">
             {editing < experiences.length ? "Edit entry" : "Add experience"}
           </h3>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="onb-label">Job title</label>
-              <input className="onb-input" value={draft.title} onChange={(e) => set("title", e.target.value)} placeholder="e.g. Marketing Intern" />
+              <FieldLabel>Job title</FieldLabel>
+              <input
+                className={INPUT_CLS}
+                value={draft.title}
+                onChange={(e) => set("title", e.target.value)}
+                placeholder="e.g. Marketing Intern"
+              />
             </div>
             <div>
-              <label className="onb-label">Company / Organization</label>
-              <input className="onb-input" value={draft.company} onChange={(e) => set("company", e.target.value)} placeholder="e.g. Goldman Sachs" />
+              <FieldLabel>Company / Organization</FieldLabel>
+              <input
+                className={INPUT_CLS}
+                value={draft.company}
+                onChange={(e) => set("company", e.target.value)}
+                placeholder="e.g. Goldman Sachs"
+              />
             </div>
             <div>
-              <label className="onb-label">Type</label>
+              <FieldLabel>Type</FieldLabel>
               <Select value={draft.type} onValueChange={(v) => set("type", v)}>
-                <SelectTrigger className="border-[#DDDDDB]"><SelectValue /></SelectTrigger>
+                <SelectTrigger className="text-sm border-rd-border bg-rd-bg-card text-rd-text">
+                  <SelectValue />
+                </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="internship">Internship</SelectItem>
                   <SelectItem value="full_time">Full-Time</SelectItem>
@@ -126,44 +177,69 @@ export default function StepExperience({ experiences, onChange, onNext, onBack }
               </Select>
             </div>
             <div>
-              <label className="onb-label">Start date</label>
-              <input type="date" className="onb-input" value={draft.start_date} onChange={(e) => set("start_date", e.target.value)} />
+              <FieldLabel>Start date</FieldLabel>
+              <input
+                type="date"
+                className={INPUT_CLS}
+                value={draft.start_date}
+                onChange={(e) => set("start_date", e.target.value)}
+              />
             </div>
             {!draft.is_current && (
               <div>
-                <label className="onb-label">End date</label>
-                <input type="date" className="onb-input" value={draft.end_date} onChange={(e) => set("end_date", e.target.value)} />
+                <FieldLabel>End date</FieldLabel>
+                <input
+                  type="date"
+                  className={INPUT_CLS}
+                  value={draft.end_date}
+                  onChange={(e) => set("end_date", e.target.value)}
+                />
               </div>
             )}
           </div>
 
           <div className="flex flex-wrap gap-4">
-            <label className="flex items-center gap-2 text-sm text-[#52545A] cursor-pointer">
-              <input type="checkbox" checked={draft.is_current} onChange={(e) => set("is_current", e.target.checked)} className="rounded accent-[#F87060]" />
+            <label className="flex items-center gap-2 text-[13px] text-rd-text-secondary cursor-pointer">
+              <input
+                type="checkbox"
+                checked={draft.is_current}
+                onChange={(e) => set("is_current", e.target.checked)}
+                className="w-[15px] h-[15px] accent-rd-coral cursor-pointer"
+              />
               Currently working here
             </label>
-            <label className="flex items-center gap-2 text-sm text-[#52545A] cursor-pointer">
-              <input type="checkbox" checked={draft.managed_people} onChange={(e) => set("managed_people", e.target.checked)} className="rounded accent-[#F87060]" />
+            <label className="flex items-center gap-2 text-[13px] text-rd-text-secondary cursor-pointer">
+              <input
+                type="checkbox"
+                checked={draft.managed_people}
+                onChange={(e) => set("managed_people", e.target.checked)}
+                className="w-[15px] h-[15px] accent-rd-coral cursor-pointer"
+              />
               Managed people
             </label>
-            <label className="flex items-center gap-2 text-sm text-[#52545A] cursor-pointer">
-              <input type="checkbox" checked={draft.cross_functional} onChange={(e) => set("cross_functional", e.target.checked)} className="rounded accent-[#F87060]" />
+            <label className="flex items-center gap-2 text-[13px] text-rd-text-secondary cursor-pointer">
+              <input
+                type="checkbox"
+                checked={draft.cross_functional}
+                onChange={(e) => set("cross_functional", e.target.checked)}
+                className="w-[15px] h-[15px] accent-rd-coral cursor-pointer"
+              />
               Cross-functional
             </label>
           </div>
 
           <div>
-            <label className="onb-label">Responsibilities & achievements</label>
+            <FieldLabel>Responsibilities &amp; achievements</FieldLabel>
             <Textarea
               value={draft.responsibilities}
               onChange={(e) => set("responsibilities", e.target.value)}
               rows={4}
               placeholder="Describe what you did and any measurable outcomes..."
-              className="border-[#DDDDDB]"
+              className="border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] focus-visible:ring-rd-coral"
             />
           </div>
 
-          <SkillTagInput
+          <RdSkillTagInput
             label="Skills & tools"
             description="Skills you applied + software / platforms you used in this role — feeds CV bullet generation and skill-graph matching."
             tags={draft.skills || []}
@@ -173,10 +249,13 @@ export default function StepExperience({ experiences, onChange, onNext, onBack }
           />
 
           <div className="flex gap-2 pt-1">
-            <button onClick={saveEntry} disabled={!draft.title || !draft.company} className="onb-btn onb-btn-primary">
+            <RdButton onClick={saveEntry} disabled={!draft.title || !draft.company}>
               Save entry
-            </button>
-            <button onClick={() => { setDraft(null); setEditing(null); }} className="onb-btn onb-btn-outline">
+            </RdButton>
+            <button
+              onClick={() => { setDraft(null); setEditing(null); }}
+              className="text-[13px] font-semibold text-rd-text-tertiary hover:text-rd-text px-4 py-2.5 transition-colors"
+            >
               Cancel
             </button>
           </div>
@@ -184,18 +263,23 @@ export default function StepExperience({ experiences, onChange, onNext, onBack }
       ) : (
         <button
           onClick={startAdd}
-          className="w-full flex items-center justify-center gap-2 py-3.5 border border-dashed border-[#DDDDDB] rounded-[14px] text-sm text-[#9C9DA1] hover:border-[#F87060] hover:text-[#F87060] transition-colors bg-white"
+          className="w-full flex items-center justify-center gap-2 py-3.5 border border-dashed border-rd-border-hover rounded-[14px] text-[13px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral hover:bg-rd-coral-tint transition-colors bg-rd-bg-card"
         >
           <Plus className="w-4 h-4" />
           Add experience entry
         </button>
       )}
 
-      <div className="flex justify-between pt-2">
-        <button onClick={onBack} className="onb-btn onb-btn-outline">Back</button>
-        <button onClick={onNext} className="onb-btn onb-btn-primary onb-btn-lg">
-          Continue <ArrowRight className="w-4 h-4" />
+      <div className="flex justify-between items-center pt-2">
+        <button
+          onClick={onBack}
+          className="text-[13px] font-semibold text-rd-text-tertiary hover:text-rd-text transition-colors"
+        >
+          ← Back
         </button>
+        <RdButton onClick={onNext}>
+          Continue <ArrowRight className="w-4 h-4" />
+        </RdButton>
       </div>
     </div>
   );

@@ -23,7 +23,10 @@ import { PDFDocument } from "pdf-lib";
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, "..");
 const outDir = resolve(repoRoot, "docs/design/redesign/previews");
-const outPdf = resolve(outDir, "onboarding-2a.pdf");
+// PR 2A shipped onboarding-2a.pdf (first 3 steps). 2B regenerates the
+// onboarding preview with the 4 new steps + 3 forked inputs included
+// and writes to onboarding-2b.pdf so reviewers can compare slices.
+const outPdf = resolve(outDir, "onboarding-2b.pdf");
 
 const PORT = 4174;
 const BASE = `http://localhost:${PORT}`;

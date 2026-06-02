@@ -1,6 +1,6 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-06-02 (Login restyle + redesign foundation — branch `eli/redesign-foundation-login`).**
+**Last updated: 2026-06-02 (Onboarding restyle PR 2B — mid-flow steps + 3 input forks, branch `eli/redesign-onboarding-2b`).**
 
 ## Visual redesign in flight
 
