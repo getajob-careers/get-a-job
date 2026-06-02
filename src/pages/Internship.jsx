@@ -184,7 +184,7 @@ export default function Internship() {
           />
 
           {/* Tab pill bar — Browse (default) | Pipeline */}
-          <div className="p-tabs mt-6 mb-2" role="tablist" style={{ display: "flex", gap: 6 }}>
+          <div className="mt-6 mb-2" role="tablist" style={{ display: "flex", gap: 6 }}>
             {TABS.map((t) => (
               <button
                 key={t.id}

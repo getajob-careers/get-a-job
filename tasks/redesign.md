@@ -59,6 +59,7 @@ or scope-cut.
 | `eli/redesign-jobs` (Jobs restyle: warm palette, RdCard, track-rdColor pills) | 2026-06-02 | 419 | −15 |
 | `eli/redesign-tracker` (Tracker restyle: row-list rd-tokens, grouped 7-step checklist, track-rdColor) | 2026-06-02 | 419 | −15 |
 | `eli/redesign-profile` (Profile restyle: 6 tabs rd-tokens, SkillTagInput modify-in-place, EntityCard rd-tints) | 2026-06-02 | 419 | −15 |
+| `eli/redesign-storybank` (Story Bank restyle + profileStyles.js teardown — `.p-*` classes retired) | 2026-06-02 | 413 | −15 |
 
 ---
 
@@ -84,7 +85,7 @@ Tick boxes here as each PR merges.
 | 3D | Jobs | complex | ☑ | Search RPC + seniority filter preserved. JobCard restyled with track-rdColor avatars. |
 | 3E | Tracker | complex | ☑ | Row-list restyled on rd-tokens; grouped 7-step checklist; track-rdColor migration complete. NO kanban / drilldown (post-launch). |
 | 3F | Profile | complex | ☑ | All 6 tabs restyled on rd-tokens. SkillTagInput modified-in-place (Profile-area scope-exclusive). EntityCard rd-tint per entity family. PROFILE_CSS carried-forward (StoryBank still consumes). Deferred: 5-tab IA, Profile Strength card, Languages tab. |
-| 5  | Story Bank | simple | ☐ | Capture + library. |
+| 3G | Story Bank | simple | ☑ | StoryBank + StoryCard + StoryEditor restyled on rd-tokens. **profileStyles.js + PROFILE_CSS retired** — gated audit confirmed zero remaining consumers; Profile.jsx injection dropped; 1 dead `p-tabs` className stripped from Internship.jsx. |
 | 6  | Tasks | simple | ☐ | Checklist + filters. |
 | 7  | Calendar | simple | ☐ | Event view. |
 | 8  | LinkedIn | complex | ☐ | ProfileTab + Posts + Outreach + Optimization. |
@@ -1037,7 +1038,7 @@ URL-driven, so a click is the only way to drive it).
 10. `profile-unmapped-skills`
 11. `profile-resume-uploaded`
 
-**Deferred backlog (out of PR 3F, captured here):**
+**Deferred backlog (out of PR 3F, captured here — PR 3G retired profileStyles.js in the same wave):**
 
 - **5-tab IA consolidation** (mockup proposes Experience / Education /
   Skills / Career / Languages). Live IA has Profile / Education /
@@ -1050,6 +1051,97 @@ URL-driven, so a click is the only way to drive it).
 - **Languages tab** (mockup has a standalone Languages tab). Live
   schema keeps `profiles.languages` JSON; no separate table, no
   separate write path. Adding the tab is a new feature.
+
+---
+
+## Story Bank — PR 3G (`eli/redesign-storybank`)
+
+Simple-page rollout (investigate + build in one pass). Restyle-only —
+every CRUD path, the `extract-story-from-text` edge function call, the
+`daily_actions.status='done'` mark-done handoff, and the RLS
+`.eq("user_id", user.id)` guards on update/delete preserved
+byte-for-byte.
+
+**Files touched:**
+
+- `src/pages/StoryBank.jsx` — Tailwind + rd tokens directly. `.profile`
+  wrapper dropped; PROFILE_CSS injection removed (teardown — see below).
+  Filter pills swapped to the coral-selected / soft-tint pattern.
+  Floating quick-add restyled to a coral pill with rd-shadow.
+- `src/components/storyBank/StoryCard.jsx` — rd-token surface. Source
+  chips now coral-tint (linked) / soft-gray (general) per mockup.
+  Tag families: skill = teal-tint, tool = golden-tint, metric =
+  coral-tint, relevance_tag = neutral.
+- `src/components/storyBank/StoryEditor.jsx` — rd-token dialog +
+  inputs. Save / Cancel buttons restyled to rd primary / ghost.
+- **NOT touched:** `src/components/chat/StorySaveCard.jsx` — zero
+  `.p-*` usage; keeps its violet "chat-captured" visual language so
+  the create-flow stays consistent with the (not-yet-restyled) chat
+  agent surfaces where the same component is embedded.
+
+**profileStyles.js / PROFILE_CSS teardown — bundled in this PR (audit-gated):**
+
+After restyling the 3 storyBank-tree files off `.p-*`, a repo-wide grep
+confirmed the audit assumption: the only remaining `.p-*` className was
+the 1 inert `p-tabs` on `src/pages/Internship.jsx:187` (which never
+applied any styles — Internship doesn't inject PROFILE_CSS and the
+className was sitting next to an inline `style={{display:'flex',gap:6}}`
+that already covered its job). Teardown executed:
+
+- Removed dead `p-tabs` className from `src/pages/Internship.jsx:187`.
+- Dropped PROFILE_CSS import + `<style>` injection from
+  `src/pages/Profile.jsx`. Profile's outer fragment becomes a plain
+  `<div>` wrapper.
+- Dropped PROFILE_CSS import + `<style>` injection + `.profile` wrapper
+  from `src/pages/StoryBank.jsx`.
+- Deleted `src/components/profile/profileStyles.js`.
+
+Post-teardown grep returned zero className/import consumers — only
+descriptive comments referencing the historical name remain.
+
+**Preservation contract (verified byte-equivalent):**
+
+- `extract-story-from-text` edge function call: unchanged signature,
+  unchanged error handling.
+- `stories` INSERT (create flow): all 11 fields, including the
+  `Array.isArray(...) ? x : []` defensive coercion on metrics /
+  skills_demonstrated / tools_used / relevance_tags.
+- `stories` UPDATE (edit flow): direct patch shape, RLS guard.
+- `stories` DELETE: RLS guard, query invalidation.
+- `daily_actions.status='done'` mark-done sequence: fires only when
+  `dailyActionCtx?.id` is set; failure is non-fatal (console.warn,
+  not toast).
+- `experience_id` nullable: `capture?.experience_id || null` and the
+  `__general__` sentinel handling preserved.
+- Filter modes: `all` / `linked` / `general` / `experience_id=<uuid>`,
+  all URL-driven via `?filter=`.
+- Floating quick-add: only renders when ≥1 story (avoids competing
+  with the empty-state primary CTA).
+- Location-state Daily Action handoff: pre-opens quick-add with the
+  prompt as framing.
+
+**Preview harness:** `/_preview/storybank/:state` (DEV-only via
+`import.meta.env.DEV`). 11 fixtures × 2 viewports = 22 PDF pages →
+`docs/design/redesign/previews/storybank-3g.pdf`. Fresh QueryClient
+seeded synchronously on `["stories", uid]` + `["experiences", uid]`.
+Synchronous `<Navigate replace>` for `?filter=` flags; post-mount DOM
+driver clicks for card-expand / delete-confirm / Add-dialog / Edit-
+dialog states (each of which lives in local useState inside StoryBank
+or StoryCard).
+
+**Fixtures (11):**
+
+1. `storybank-empty-no-experiences`
+2. `storybank-empty-with-experiences`
+3. `storybank-loading`
+4. `storybank-populated`
+5. `storybank-filter-linked`
+6. `storybank-filter-general`
+7. `storybank-filter-by-experience`
+8. `storybank-card-expanded`
+9. `storybank-delete-confirm`
+10. `storybank-add-dialog`
+11. `storybank-edit-dialog`
 
 ---
 
