@@ -1,7 +1,10 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
 import { supabase } from '@/api/supabaseClient';
 
-const AuthContext = createContext();
+// Exported so DEV-gated preview harnesses can wrap children in their own
+// AuthContext.Provider to stub a fixture user. Not consumed by any prod
+// code path beyond useAuth() below.
+export const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);

@@ -116,6 +116,25 @@ function findActiveSectionId(sections, currentPageName) {
   return null;
 }
 
+// Decorative 4-dot logo glyph — the same mark the onboarding shell, login
+// page, and tutorial use. Kept inline (not extracted) because the shell
+// is the canonical place; if another consumer needs it later we'll lift.
+function BrandMark() {
+  return (
+    <div className="inline-flex items-center gap-2 select-none">
+      <div className="grid grid-cols-2 gap-[3px]">
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-coral" />
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-golden" />
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-teal" />
+        <span className="w-[7px] h-[7px] rounded-full bg-rd-text" />
+      </div>
+      <span className="font-display font-bold text-[17px] tracking-tight text-rd-text">
+        Get A Job
+      </span>
+    </div>
+  );
+}
+
 export default function Layout({ children, currentPageName }) {
   const { user } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -216,39 +235,35 @@ export default function Layout({ children, currentPageName }) {
   const closeMobileSidebar = () => setSidebarOpen(false);
 
   return (
-    <div className="flex h-screen bg-[#FAFAFA]">
+    <div className="flex h-screen bg-rd-bg-page font-body text-rd-text">
       <TopLoadingBar loading={navLoading} />
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden"
+          className="fixed inset-0 bg-rd-text/20 backdrop-blur-sm z-40 lg:hidden"
           onClick={closeMobileSidebar}
         />
       )}
 
-      {/* Sidebar */}
+      {/* Sidebar — cream sidebar surface (--rd-bg-sidebar) matches the
+          mockup in docs/design/redesign/getajob_home_locked_crowz_style.html.
+          Border is the warm border token; legacy --rd-border so it sits
+          flush against the cream page background without a hard edge. */}
       <aside
         className={cn(
-          "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-white border-r border-[#E5E5E5] flex flex-col transition-transform duration-300 lg:translate-x-0",
+          "fixed lg:static inset-y-0 left-0 z-50 w-64 bg-rd-bg-sidebar border-r border-rd-border flex flex-col transition-transform duration-300 lg:translate-x-0",
           sidebarOpen ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="px-6 py-5 border-b border-[#F0F0F0]">
+        <div className="px-5 py-5 border-b border-rd-border-subtle">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-lg font-bold tracking-tight text-[#0A0A0A]">
-                Get A Job
-              </h1>
-              <p className="text-xs text-[#A3A3A3] mt-0.5 tracking-wide uppercase">
-                Career Operating System
-              </p>
-            </div>
+            <BrandMark />
             <button
-              className="lg:hidden p-1 rounded-md hover:bg-[#F5F5F5]"
+              className="lg:hidden p-1 rounded-md hover:bg-rd-bg-soft transition-colors"
               onClick={closeMobileSidebar}
               aria-label="Close menu"
             >
-              <X className="w-5 h-5 text-[#525252]" />
+              <X className="w-5 h-5 text-rd-text-secondary" />
             </button>
           </div>
         </div>
@@ -273,22 +288,28 @@ export default function Layout({ children, currentPageName }) {
         />
       </aside>
 
-      {/* Main content */}
+      {/* Main content. The `legacy-body` wrapper forces the warm page
+          background underneath any unrestyled page that still ships a
+          legacy white/grey background — keeps the cream sidebar from
+          clashing while the per-page restyles roll out. Pages restyled
+          on rd tokens can leave their own backgrounds alone; pages that
+          set `bg-white` etc. as their root will paint over this with the
+          rd page color via the CSS reset below. */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile header */}
-        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-white border-b border-[#E5E5E5]">
+        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-rd-bg-card border-b border-rd-border">
           <button
             onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-[#F5F5F5]"
+            className="p-2 rounded-lg hover:bg-rd-bg-soft transition-colors"
             aria-label="Open menu"
           >
-            <Menu className="w-5 h-5 text-[#0A0A0A]" />
+            <Menu className="w-5 h-5 text-rd-text" />
           </button>
-          <h1 className="text-sm font-bold tracking-tight">Get A Job</h1>
+          <BrandMark />
           <div className="w-9" />
         </header>
 
-        <main className="flex-1 overflow-y-auto">
+        <main className="legacy-body flex-1 overflow-y-auto bg-rd-bg-page">
           {children}
         </main>
       </div>
@@ -298,8 +319,9 @@ export default function Layout({ children, currentPageName }) {
 
 // One section row. Direct-link sections render as a single Link.
 // Item-bearing sections render as a header button + (when expanded)
-// the indented sub-item list. Active state highlighting matches the
-// pre-restructure pattern: the dark gradient fill on the active page.
+// the indented sub-item list. Active state highlighting — coral on cream
+// (replaces the legacy dark gradient) — matches the active-row treatment
+// from the home mockup.
 function SidebarSection({
   section,
   currentPageName,
@@ -318,14 +340,20 @@ function SidebarSection({
         to={createPageUrl(section.page)}
         onClick={onNavigate}
         className={cn(
-          "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
+          "flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-display font-semibold transition-colors duration-150",
           isActive
-            ? "bg-gradient-to-r from-[#0A0A0A] to-[#1a1a2e] text-white shadow-sm"
-            : "text-[#525252] hover:bg-[#F5F5F5] hover:text-[#0A0A0A]",
+            ? "bg-rd-coral-tint text-rd-coral-dark"
+            : "text-rd-text-tertiary hover:bg-rd-bg-soft hover:text-rd-text",
         )}
       >
         <Icon className="w-4 h-4 flex-shrink-0" />
-        <span>{section.label}</span>
+        <span className="flex-1">{section.label}</span>
+        {isActive && (
+          <span
+            aria-hidden="true"
+            className="w-1.5 h-1.5 rounded-full bg-rd-coral flex-shrink-0"
+          />
+        )}
       </Link>
     );
   }
@@ -337,24 +365,25 @@ function SidebarSection({
         type="button"
         onClick={onToggle}
         aria-expanded={isExpanded}
+        data-section-id={section.id}
         className={cn(
-          "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-150",
+          "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-display font-semibold transition-colors duration-150",
           isActiveSection
-            ? "text-[#0A0A0A]"
-            : "text-[#525252] hover:bg-[#F5F5F5] hover:text-[#0A0A0A]",
+            ? "text-rd-text"
+            : "text-rd-text-tertiary hover:bg-rd-bg-soft hover:text-rd-text",
         )}
       >
         <Icon className="w-4 h-4 flex-shrink-0" />
         <span className="flex-1 text-left">{section.label}</span>
         <ChevronRight
           className={cn(
-            "w-3.5 h-3.5 text-[#A3A3A3] transition-transform duration-200",
+            "w-3.5 h-3.5 text-rd-text-secondary transition-transform duration-200",
             isExpanded && "rotate-90",
           )}
         />
       </button>
       {isExpanded && (
-        <div className="mt-0.5 ml-3 pl-3 border-l border-[#F0F0F0] space-y-0.5">
+        <div className="mt-0.5 ml-3 pl-3 border-l border-rd-border space-y-0.5">
           {section.items.map((item) => {
             const isActive = currentPageName === item.page;
             const ItemIcon = item.icon;
@@ -364,14 +393,20 @@ function SidebarSection({
                 to={createPageUrl(item.page)}
                 onClick={onNavigate}
                 className={cn(
-                  "flex items-center gap-2.5 px-3 py-2 rounded-md text-[13px] font-medium transition-all duration-150",
+                  "flex items-center gap-2.5 px-3 py-2 rounded-md text-[12.5px] font-medium transition-colors duration-150",
                   isActive
-                    ? "bg-gradient-to-r from-[#0A0A0A] to-[#1a1a2e] text-white shadow-sm"
-                    : "text-[#525252] hover:bg-[#F5F5F5] hover:text-[#0A0A0A]",
+                    ? "bg-rd-coral-tint text-rd-coral-dark font-display font-semibold"
+                    : "text-rd-text-tertiary hover:bg-rd-bg-soft hover:text-rd-text",
                 )}
               >
                 <ItemIcon className="w-3.5 h-3.5 flex-shrink-0" />
-                <span>{item.name}</span>
+                <span className="flex-1">{item.name}</span>
+                {isActive && (
+                  <span
+                    aria-hidden="true"
+                    className="w-1.5 h-1.5 rounded-full bg-rd-coral flex-shrink-0"
+                  />
+                )}
               </Link>
             );
           })}

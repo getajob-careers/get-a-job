@@ -28,6 +28,7 @@ import Terms from '@/pages/Terms';
 // rendered nothing → empty body in screenshots). Eager import sidesteps
 // the race. Bundle cost in prod: ~10–15 KB (cold path; never invoked).
 import OnboardingPreview from '@/pages/_preview/OnboardingPreview';
+import ShellPreview from '@/pages/_preview/ShellPreview';
 import RouteFallback, { ChunkErrorBoundary } from '@/components/RouteFallback';
 
 // Use the LAZY map (sibling of pages.config.js) so every authenticated
@@ -129,6 +130,12 @@ function App() {
               <Route
                 path="/_preview/onboarding/:state"
                 element={<OnboardingPreview />}
+              />
+            )}
+            {import.meta.env.DEV && (
+              <Route
+                path="/_preview/shell/:state"
+                element={<ShellPreview />}
               />
             )}
             <Route path="/*" element={<AuthenticatedApp />} />
