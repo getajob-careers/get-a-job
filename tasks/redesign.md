@@ -55,6 +55,7 @@ or scope-cut.
 | `eli/redesign-onboarding-2c` (Constraints + Survey + Tutorial + onb-style cleanup) | 2026-06-01 | 429 | −5 |
 | `eli/redesign-shell` (Layout + SidebarFooter — shared app chrome only) | 2026-06-02 | 428 | −6 |
 | `eli/redesign-home` (Home body + live-matches RPC + hero stat) | 2026-06-02 | 421 | −13 |
+| `eli/redesign-roadmap` (Roadmap restyle: 4 tabs, clickable quadrant, track-color rd palette) | 2026-06-02 | 419 | −15 |
 
 ---
 
@@ -76,19 +77,19 @@ Tick boxes here as each PR merges.
 |---|---|---|---|---|
 | 3A | Shell (Layout + SidebarFooter) | simple | ☑ | Merged. Cream sidebar + coral active. NO IA change. |
 | 3B | Home | complex | ☑ | Body restyle + live-matches RPC + hero stat. Preview = pre-seeded QueryClient. |
-| 4  | Roadmap | complex | ☐ | Tracks 1/2/3 cards, track scoring, refresh flow. |
-| 5  | Jobs | complex | ☐ | Search RPC, filters, JobCard fork. |
-| 6  | Tracker | complex | ☐ | Pipeline kanban, DnD, status badges. |
-| 7  | Profile | complex | ☐ | EducationTab, CertificationsSection, experiences accordion. |
-| 8  | Story Bank | simple | ☐ | Capture + library. |
-| 9  | Tasks | simple | ☐ | Checklist + filters. |
-| 10 | Calendar | simple | ☐ | Event view. |
-| 11 | LinkedIn | complex | ☐ | ProfileTab + Posts + Outreach + Optimization. |
-| 12 | Chat agents | complex | ☐ | All 4 agent surfaces share the SSE streaming wrapper. |
-| 13 | Internship | complex | ☐ | Browse + Pipeline + DetailDrawer + match_score. |
-| 14 | Resources | simple | ☐ | Static-content page. |
-| 15 | Settings | simple | ☐ | Account + delete. |
-| 16 | Landing | simple | ☐ | Public marketing page — final pass. |
+| 3C | Roadmap | complex | ☑ | 4-tab layout (How tracks work / Track 1 / 2 / 3), clickable quadrant, rd track colors. |
+| 4  | Jobs | complex | ☐ | Search RPC, filters, JobCard fork. |
+| 5  | Tracker | complex | ☐ | Pipeline kanban, DnD, status badges. |
+| 6  | Profile | complex | ☐ | EducationTab, CertificationsSection, experiences accordion. |
+| 7  | Story Bank | simple | ☐ | Capture + library. |
+| 8  | Tasks | simple | ☐ | Checklist + filters. |
+| 9  | Calendar | simple | ☐ | Event view. |
+| 10 | LinkedIn | complex | ☐ | ProfileTab + Posts + Outreach + Optimization. |
+| 11 | Chat agents | complex | ☐ | All 4 agent surfaces share the SSE streaming wrapper. |
+| 12 | Internship | complex | ☐ | Browse + Pipeline + DetailDrawer + match_score. |
+| 13 | Resources | simple | ☐ | Static-content page. |
+| 14 | Settings | simple | ☐ | Account + delete. |
+| 15 | Landing | simple | ☐ | Public marketing page — final pass. |
 
 ---
 
@@ -583,6 +584,122 @@ adds the count RPC. Apply via the existing migration flow before the
 Vercel deploy so the new query has somewhere to land — the frontend
 gracefully degrades to `null` (zero-state copy) if the RPC errors, so
 a brief out-of-sequence window is non-fatal.
+
+---
+
+## Roadmap — PR 3C (`eli/redesign-roadmap`)
+
+Roadmap restyled on rd tokens. Reference mockup:
+`docs/design/redesign/getajob_roadmap_tracks_quadrant.html`. Live IA
+re-shaped per the 3C spec: the Overview tab is dropped, the quadrant
+becomes the default landing tab AND a clickable jump-to-track widget,
+and the page leans on the cream + warm-palette identity established
+in PRs 3A + 3B.
+
+**Structural changes (per the 3C spec):**
+
+- **TAB_ORDER → `["why", "track_1", "track_2", "track_3"]`** — 4 tabs.
+  Default tab flipped from `"overview"` to `"why"`. Legacy
+  `?tab=overview` URLs fall through to the default (no breakage).
+- **Overview tab dropped.** Its Track-1-preview card and Live-Track-1-
+  matches card are not reproduced — Track 1 tab covers the role
+  preview, and Home's new live-matches hero stat covers the bridge to
+  /Jobs.
+- **Qualification + Assessment relocated** to a compact band directly
+  under the header. Visible on every tab so the user's anchor context
+  travels with them. Reads from `profile.qualification_level` +
+  `profile.overall_assessment` exactly as before — no shape change.
+
+**WhyTab — clickable quadrant + intro sentence:**
+
+`TrackQuadrantGrid` accepts two new optional props:
+- `onTrackClick(trackId)` — invoked when a populated cell is tapped.
+  Roadmap wires it to `setTab(trackId)` so the user jumps from the
+  quadrant to the corresponding track tab.
+- `counts: { track_1, track_2, track_3 }` — when present, each
+  populated cell renders `"N roles ›"`. No per-track job counts and
+  no extra RPC, per the spec.
+
+The separate colored description rows (live's "Track N · name — description" list at the bottom of WhyTab) are dropped, replaced by a single intro sentence above the quadrant: "Every role is placed by two things — how qualified you are now, and how well it moves you toward your goal." Mockup-faithful microcopy "Tap a track to see your suggested roles." sits below the grid. If this turns out to be too sparse in real use, condensed descriptions can be added back.
+
+**Track-color rd palette (CALL-OUT — cross-page impact):**
+
+`TRACK_CONFIG` gains a canonical `rdColor` field alongside the legacy `color`:
+
+| Track | legacy `color` | new `rdColor` |
+|---|---|---|
+| Track 1 | green | **coral** |
+| Track 2 | gray  | **teal**  |
+| Track 3 | amber | **golden** |
+
+- Roadmap (PR 3C) reads `rdColor` everywhere — quadrant cells, RoleCard tints + badges, per-track tab header card.
+- Home's `TrackPill` (under the Roadmap card) is RE-ALIGNED in this PR — was T1=teal / T2=golden / T3=coral, now T1=coral / T2=teal / T3=golden to match Roadmap. The shell sidebar's active-dot stays coral as a generic brand signal, not a track signal.
+- Legacy `color` field stays in place for non-redesigned surfaces (JobCard, Tracker) until each gets its own restyle PR. No cascading breakage.
+
+**RoleCard — restyle, behaviour preserved:**
+
+- Chevron-expand preserved (collapsed → header only; expanded → 4-7 sections).
+- Track-color tint reads from `rdColor` via a `RD_TRACK_STYLES` lookup; the card surface stays white but each track has its own badge + accent identity.
+- **Weakest-axis cue** preserved — but the muted "needs-work" fill is now `var(--rd-text-tertiary)` (a muted ink tone), NOT coral. Coral is now Track 1's identity color; reusing it for "weak axis" would create visual collisions with the badge.
+- `humanizeSkillId` (P16) preserved on every skill pill.
+- "See <title> jobs available now" deep-link (`/Jobs?role=<encoded>`) preserved verbatim.
+
+**Header treatment (per the 3C spec):**
+
+- Eyebrow "Roadmap" (mono uppercase, rd-text-eyebrow) → serif "Career roadmap" h1.
+- Subtitle dropped.
+- Last-updated stamp preserved (`profile.last_reality_check_date`, formatted with `toLocaleDateString`). Only shown when both timestamp AND `roles.length > 0` exist.
+- Refresh button preserved as the sole re-run path (top-right, three states: spinner / Refresh / Generate roadmap).
+
+**Behaviour preserved 1:1 (P1–P17 contract):**
+
+- P1 `handleGenerate` flow byte-equivalent — `refreshSession` →
+  POST `generate-career-analysis` with `force: true` → defensive
+  `cached: true` branch → `replace_career_roles` RPC with 12-field
+  payload → profile stamp (`last_reality_check_date,
+  qualification_level, overall_assessment, skill_gaps`) → `await
+  invalidateAfterCareerAnalysis`.
+- P4 URL-driven tab state preserved; only the default changed.
+- P6/P7 stale-banner trigger + gating preserved (`isAnalysisStale` +
+  `roles.length > 0` + `!generating`).
+- P8 client reads `r.track` directly — no client-side re-tracking.
+- P9 `TRACK_CONFIG` remains the single source of truth (now with
+  parallel `rdColor` for restyled consumers).
+- P10–P13 canonical query hooks (`useProfileQuery`,
+  `useExperiencesQuery`, `useEducationQuery`) + `invalidateAfterCareerAnalysis` helper untouched.
+- P14 `RoleCard` chevron-expand local state preserved.
+- P15 weakest-axis cue preserved (muted-ink fill instead of coral —
+  noted above).
+- P17 `RoleCard onTrack` back-compat slot preserved with a default
+  value (`onTrack = null`) so JS/TS prop-validation doesn't trip.
+
+**Preview harness:**
+
+- DEV-only `/_preview/roadmap/:state` route (gated on
+  `import.meta.env.DEV`, identical pattern to Shell/Home).
+- Wraps real Roadmap in a fresh QueryClient seeded SYNCHRONOUSLY inside
+  the `useMemo` factory (avoids the redirect-to-Onboarding race that
+  Home's harness already worked around).
+- 9 fixtures: `roadmap-empty-no-profile`, `roadmap-empty-no-roles`,
+  `roadmap-why` (default, populated), `roadmap-track-1`,
+  `roadmap-track-2`, `roadmap-track-3`, `roadmap-stale`,
+  `roadmap-generating` (driven by `?preview-generating=1` URL flag —
+  inert in prod), `roadmap-error` (forced via direct
+  `QueryCache.setState`).
+- `scripts/preview-roadmap.mjs` runner — same prod-404 verification
+  flow. Output: `docs/design/redesign/previews/roadmap-3c.pdf` (9
+  fixtures × desktop + mobile = 18 pages).
+- Prod `/_preview/roadmap/*` verified unreachable.
+
+**Out of scope (carry-forward):**
+
+- `roadmapStyles.js` still exists but is no longer consumed by
+  `Roadmap.jsx` (the new file uses Tailwind + inline rd-token styles).
+  Deletion is a follow-up cleanup pass — leaving it in place for now
+  in case any test selector still grabs at the old `.rm-*` classes.
+- JobCard / Tracker still read `TRACK_CONFIG.color` (legacy
+  green/gray/amber). They flip to `rdColor` when each gets its own
+  restyle PR.
 
 ---
 
