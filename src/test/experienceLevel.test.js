@@ -140,12 +140,16 @@ describe("inferExperienceLevel", () => {
 });
 
 describe("allowedSenioritiesForLevel", () => {
-  // Buckets locked 2026-05-20. If these change, update the Deno side too.
+  // Buckets updated 2026-06-03 (jobs-seniority-track-fix):
+  // mid_career now includes 'entry' so Junior-titled IL postings (all
+  // seniority='entry' in the live corpus) survive the RPC's
+  // p_max_seniority filter. Regression guard for Isaac's "Junior SWE
+  // shows no jobs" symptom.
   it("early_career → entry + mid", () => {
     expect(allowedSenioritiesForLevel("early_career")).toEqual(["entry", "mid"]);
   });
-  it("mid_career → mid + senior", () => {
-    expect(allowedSenioritiesForLevel("mid_career")).toEqual(["mid", "senior"]);
+  it("mid_career → entry + mid + senior (entry added 2026-06-03)", () => {
+    expect(allowedSenioritiesForLevel("mid_career")).toEqual(["entry", "mid", "senior"]);
   });
   it("senior_career → senior + lead + director + executive", () => {
     expect(allowedSenioritiesForLevel("senior_career")).toEqual([

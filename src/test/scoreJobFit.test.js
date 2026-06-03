@@ -145,6 +145,92 @@ describe("scoreJobFit — seniority axis + track hard-cap", () => {
     const r = scoreJobFit({ profile, experiences: exps, educations: [] }, job);
     expect(r.signals.seniority_match).toBe("in_range");
   });
+
+  // Stretch routing — added 2026-06-03 (jobs-seniority-track-fix).
+  // When req_seniority sits AT the user's STAGE_T1_CEILING (the canonical
+  // case is Mid-Level + Senior role, where Senior=3 and mid ceiling=3),
+  // the seniority axis alone weighs only 10% of fit_score, so a strong
+  // skill match would otherwise land the role in track_1 — contradicting
+  // Roadmap's track_3 placement for the same role title. We route by
+  // goal alignment: on-goal stretch → track_3 (aspirational growth),
+  // off-goal stretch → track_2 (qualified-but-off-path detour).
+
+  it("mid_career + on-goal Senior SWE → track_3 (stretch, family matches domain)", () => {
+    const profile = mkProfile({
+      skills_canonical: ["python_data", "sql", "data_analysis"],
+      primary_domain: "engineering",
+    });
+    const exps = [mkExp(2021, 2025)];  // 4 yrs → mid_career, ceiling = 3
+    const eds = [mkEdu("bachelors")];
+    const job = mkJob({
+      req_skills_core: ["python_data", "sql"],
+      req_skills_nice: ["data_analysis"],
+      req_education_levels: ["bachelors"],
+      req_seniority: "Senior",       // rank 3 === mid ceiling → "stretch"
+      function_family: "Engineering",  // matches primary_domain "engineering"
+    });
+    const r = scoreJobFit({ profile, experiences: exps, educations: eds }, job);
+    expect(r.signals.seniority_match).toBe("stretch");
+    expect(r.signals.function_family_match).toBe(true);
+    expect(r.track).toBe("track_3");
+  });
+
+  it("mid_career + off-goal Senior role → track_2 (stretch, off-family)", () => {
+    const profile = mkProfile({
+      skills_canonical: ["python_data", "sql"],
+      primary_domain: "engineering",
+    });
+    const exps = [mkExp(2021, 2025)];
+    const job = mkJob({
+      req_skills_core: ["python_data", "sql"],
+      req_seniority: "Senior",
+      function_family: "Sales",  // off-family relative to engineering domain
+    });
+    const r = scoreJobFit({ profile, experiences: exps, educations: [] }, job);
+    expect(r.signals.seniority_match).toBe("stretch");
+    expect(r.signals.function_family_match).toBe(false);
+    expect(r.track).toBe("track_2");
+  });
+
+  it("mid_career + Senior role with unknown function_family → track_2 (stretch, alignment unknown)", () => {
+    const profile = mkProfile({
+      skills_canonical: ["python_data", "sql"],
+      primary_domain: "engineering",
+    });
+    const exps = [mkExp(2021, 2025)];
+    const job = mkJob({
+      req_skills_core: ["python_data", "sql"],
+      req_seniority: "Senior",
+      function_family: null,       // unknown family — alignment unknown
+    });
+    const r = scoreJobFit({ profile, experiences: exps, educations: [] }, job);
+    expect(r.signals.seniority_match).toBe("stretch");
+    expect(r.track).toBe("track_2");
+  });
+
+  it("mid_career + entry-tagged role is eligible for track_1 (Junior SWE flow)", () => {
+    // Isaac's "no Junior SWE jobs" regression guard: a Mid-Level user
+    // hitting a strong-fit Entry-tagged Junior SWE job should still be
+    // able to land in track_1. Composite must clear 0.55 with the
+    // standard fit_only thresholds.
+    const profile = mkProfile({
+      skills_canonical: ["python_data", "sql", "data_analysis"],
+      primary_domain: "engineering",
+    });
+    const exps = [mkExp(2021, 2025)];  // 4 yrs → mid_career
+    const eds = [mkEdu("bachelors")];
+    const job = mkJob({
+      req_skills_core: ["python_data", "sql"],
+      req_skills_nice: ["data_analysis"],
+      req_years_min: 1,
+      req_education_levels: ["bachelors"],
+      req_seniority: "Entry",          // rank 0, below mid ceiling → in_range
+      function_family: "Engineering",
+    });
+    const r = scoreJobFit({ profile, experiences: exps, educations: eds }, job);
+    expect(r.signals.seniority_match).toBe("in_range");
+    expect(r.track).toBe("track_1");
+  });
 });
 
 describe("scoreJobFit — function family", () => {

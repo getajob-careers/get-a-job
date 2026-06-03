@@ -258,9 +258,33 @@ export function scoreJobFit(input, job) {
 
   // Seniority hard-cap to track_3 when the role is above stage ceiling —
   // even a 100% skill match on a Senior role isn't viable for a student.
+  // This branch stays stage-relative (any user, any rank > their ceiling).
+  //
+  // Seniority "stretch" routing — MID_CAREER ONLY. The role's req_seniority
+  // sits at the user's STAGE_T1_CEILING. The seniority axis only weighs 10%
+  // of the composite, so without a hard route a strong-skill / on-domain
+  // stretch Senior role would land in track_1, contradicting Roadmap's
+  // track_3 placement for the same title. Route by goal alignment:
+  //   on-goal stretch  (function_family ↔ primary_domain)  → track_3
+  //   off-goal / unknown                                   → track_2
+  //
+  // Scoped to mid_career to avoid gutting early_career's Track 1 sweet
+  // spot: early ceiling = 1 (Entry + Entry_Mid), so a symmetric rule would
+  // demote Entry_Mid roles for fresh-grads to T3/T2 — leaving only pure
+  // Entry as plausible Track 1, which strips the pilot's core fresh-grad
+  // cohort of the at-ceiling roles they CAN realistically get. early_career
+  // is already protected by the existing above_ceiling branch (rank > 1).
+  // senior_career stretch (VP) is so rare in the IL corpus it's not worth
+  // a separate route — composite handles it.
+  //
+  // Unconditional within mid_career — does NOT gate on fit_score; recruiters
+  // auto-filter on seniority signals regardless of skill strength. Lands
+  // before applyYearsCap so a thin years gap can still downgrade further.
   let track;
   if (seniority.match === "above_ceiling") {
     track = "track_3";
+  } else if (seniority.match === "stretch" && userLevel === "mid_career") {
+    track = family.match === true ? "track_3" : "track_2";
   } else {
     track = trackFromScore(fit_score);
   }
