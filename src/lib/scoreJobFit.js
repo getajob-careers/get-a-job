@@ -258,9 +258,23 @@ export function scoreJobFit(input, job) {
 
   // Seniority hard-cap to track_3 when the role is above stage ceiling —
   // even a 100% skill match on a Senior role isn't viable for a student.
+  //
+  // Seniority "stretch" routing (Mid-Level + Senior is the canonical case):
+  // the role's req_seniority sits at the user's STAGE_T1_CEILING. The
+  // seniority axis only weighs 10% of the composite, so without a hard
+  // route a strong-skill / on-domain stretch role would land in track_1
+  // ("apply now"), contradicting Roadmap's track_3 placement for the same
+  // role title. Route by goal alignment to mirror Roadmap:
+  //   on-goal stretch  (function_family ↔ primary_domain)  → track_3
+  //   off-goal / unknown                                   → track_2
+  // Unconditional — does NOT gate on fit_score; recruiters auto-filter on
+  // seniority signals regardless of skill strength. Lands before
+  // applyYearsCap so a thin years gap can still downgrade further.
   let track;
   if (seniority.match === "above_ceiling") {
     track = "track_3";
+  } else if (seniority.match === "stretch") {
+    track = family.match === true ? "track_3" : "track_2";
   } else {
     track = trackFromScore(fit_score);
   }

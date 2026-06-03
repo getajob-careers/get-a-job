@@ -168,10 +168,19 @@ export function inferQualificationLevel(experiences) {
   return base;
 }
 
-// Allowed jobs.seniority values per experienceLevel. Locked in 2026-05-20:
+// Allowed jobs.seniority values per experienceLevel. Updated 2026-06-03
+// (PR: jobs-seniority-track-fix):
 //   early_career  → entry, mid
-//   mid_career    → mid, senior
+//   mid_career    → entry, mid, senior
 //   senior_career → senior, lead, director, executive
+//
+// mid_career now INCLUDES 'entry'. A Mid-Level user can plausibly apply
+// to Junior / Entry roles (step-down is honest); excluding them stripped
+// every Junior-titled posting at the RPC level — Isaac's "Junior SWE
+// shows no jobs" symptom traced to all 20 Junior-titled IL postings
+// being seniority='entry'. The stretch-cap in scoreJobFit demotes Senior
+// postings out of track_1 so flooding T1 with entry roles is balanced
+// by tightening senior, not loosening overall.
 //
 // `staff` was specced but doesn't exist as a value in jobs.seniority —
 // the field has six values (entry / mid / senior / lead / director /
@@ -181,7 +190,7 @@ export function allowedSenioritiesForLevel(experienceLevel) {
     case "early_career":
       return ["entry", "mid"];
     case "mid_career":
-      return ["mid", "senior"];
+      return ["entry", "mid", "senior"];
     case "senior_career":
       return ["senior", "lead", "director", "executive"];
     default:

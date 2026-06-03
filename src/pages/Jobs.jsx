@@ -25,7 +25,12 @@ import JobCard from "../components/jobs/JobCard";
 // `track.rdColor` (coral/teal/golden) to match Home + Roadmap.
 
 const PROFILE_STALE_TIME = 30 * 60 * 1000;
-const BROWSE_PAGE_SIZE = 20;
+// 40 (was 20, 2026-06-03 jobs-seniority-track-fix): the stretch demotion
+// in scoreJobFit + the broadened mid_career corpus mean the post-fetch
+// `displayedJobs` filter is more aggressive for the Track 1 view. Doubling
+// the RPC fetch absorbs that aggression — gives roughly the same number
+// of T1 cards after filter as the prior 20-row fetch did pre-fix.
+const BROWSE_PAGE_SIZE = 40;
 const MAX_TRACK_ROLES = 8;
 
 // pg_trgm similarity threshold for track-mode searches. 0.3 catches obvious

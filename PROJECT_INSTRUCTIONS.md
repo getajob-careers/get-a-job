@@ -1,6 +1,6 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-06-02 (App-wide rollout PR 3E — Tracker restyle: warm palette, grouped 7-step checklist, track-rdColor pills, branch `eli/redesign-tracker`).**
+**Last updated: 2026-06-03 (jobs-seniority-track-fix — Jobs page seniority cap + stretch routing. mid_career corpus now `["entry","mid","senior"]`; scoreJobFit routes `seniority.match === "stretch"` to track_3 on-goal / track_2 off-goal so Senior roles no longer surface in Track 1 for Mid-Level users. BROWSE_PAGE_SIZE 20→40.).**
 
 ## Visual redesign in flight
 
