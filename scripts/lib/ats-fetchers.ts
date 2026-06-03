@@ -532,11 +532,13 @@ const DETAIL_TIMEOUT_MS = 8_000;
  * Returns: the raw HTML description string, or null on any failure
  * (network error, HTTP non-200, timeout, missing field). Never throws.
  *
- * URL shape: `https://{host}/wday/cxs/{tenant}/{site}/job{externalPath}`
- * — same base as the list endpoint, with `/job` singular and the
- * externalPath appended. externalPath is canonically `/job/...` so the
- * concatenation yields `/job/job/...` which Workday accepts. (The
- * helper handles both leading-slash and not.)
+ * URL shape: `https://{host}/wday/cxs/{tenant}/{site}{externalPath}`
+ * — same base as the list endpoint with the externalPath appended
+ * directly. externalPath is canonically `/job/Israel-.../JR123` (the
+ * `/job/` segment is part of the path Workday returns), so no extra
+ * prefix is needed. Probe 2026-06-03 against NVIDIA confirmed: this
+ * shape returns 200 + jobPostingInfo; an earlier shape that prepended
+ * an extra `/job` segment returned HTTP 406 across every tenant.
  *
  * Response shape: `{ jobPostingInfo: { jobDescription: "...html...",
  * description: "...", ... } }`. Tolerant of both field names.
@@ -552,7 +554,7 @@ export async function fetchWorkdayDetail(
   const site = parts.slice(1).join("/");
   const tenant = host.split(".")[0];
   const pathSegment = externalPath.startsWith("/") ? externalPath : `/${externalPath}`;
-  const url = `https://${host}/wday/cxs/${tenant}/${site}/job${pathSegment}`;
+  const url = `https://${host}/wday/cxs/${tenant}/${site}${pathSegment}`;
   try {
     const data = await httpGetJson<any>(url, DETAIL_TIMEOUT_MS);
     const info = data?.jobPostingInfo ?? {};

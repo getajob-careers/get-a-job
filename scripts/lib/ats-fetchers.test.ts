@@ -45,8 +45,14 @@ describe("fetchWorkdayDetail — URL construction", () => {
       "/job/Israel/Software-Engineer_JR123",
     );
 
+    // externalPath already starts with /job/... (Workday returns it that
+    // way in the list payload), so the helper just concatenates host +
+    // /wday/cxs/{tenant}/{site} + externalPath — no extra /job prefix.
+    // Probed 2026-06-03 against a real NVIDIA posting: this exact shape
+    // returns HTTP 200 + jobPostingInfo; prepending an extra /job
+    // segment (the pre-hotfix shape) returned 406 on every tenant.
     expect(capturedUrl).toBe(
-      "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite/job/job/Israel/Software-Engineer_JR123",
+      "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/NVIDIAExternalCareerSite/job/Israel/Software-Engineer_JR123",
     );
     expect(html).toBe("<p>hello</p>");
   });
@@ -61,7 +67,7 @@ describe("fetchWorkdayDetail — URL construction", () => {
     await fetchWorkdayDetail("tenant.wd1.myworkdayjobs.com/Careers", "job/foo");
 
     // Helper prepends the leading slash so Workday accepts it.
-    expect(capturedUrl).toBe("https://tenant.wd1.myworkdayjobs.com/wday/cxs/tenant/Careers/job/job/foo");
+    expect(capturedUrl).toBe("https://tenant.wd1.myworkdayjobs.com/wday/cxs/tenant/Careers/job/foo");
   });
 
   it("falls back to `description` field when `jobDescription` is missing", async () => {
