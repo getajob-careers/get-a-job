@@ -1,19 +1,40 @@
-# Nightly job-cache refresh.
+# Nightly job-cache refresh + extraction (two-stage).
 #
-# Runs scripts/refresh-jobs.ts, which iterates the 831-company registry at
-# supabase/functions/_shared/libraries/companies_il.json, filters down to
-# the ~440 entries with a supported ATS (Greenhouse / Lever / Ashby /
-# Workday / SmartRecruiters / Comeet / SuccessFactors), fetches their
-# public listings, and UPSERTs Israeli jobs into public.jobs.
+# Stage 1 — Ingest (scripts/refresh-jobs.ts):
+#   Iterates the 831-company registry at
+#   supabase/functions/_shared/libraries/companies_il.json, filters down to
+#   the ~440 entries with a supported ATS (Greenhouse / Lever / Ashby /
+#   Workday / SmartRecruiters / Comeet / SuccessFactors / Workable),
+#   fetches their public listings, and UPSERTs Israeli jobs into
+#   public.jobs. Ingestion writes nothing about LLM-extracted fields
+#   (function_family, req_skills_*, req_seniority, etc.) — those land
+#   blank on every newly-ingested row.
+#
+# Stage 2 — Extract (scripts/backfill-job-requirements.ts):
+#   Walks any active row with `extracted_at IS NULL` (or below the
+#   current schema version) and invokes the extract-job-requirements
+#   edge function, populating the LLM-derived fields the Jobs page and
+#   Tracker depend on. Idempotent (description_hash + schema_version
+#   skip), continue-on-error (extraction failures must not break
+#   ingestion), capped at --limit=500 as a runaway-cost safety net.
+#   Closes the extraction loop that used to grow ~30-60 rows/night of
+#   silent backlog when extraction was manual-only (2026-06-03 audit).
 #
 # Schedule: 01:00 UTC daily = 03:00 IL (winter) / 04:00 IL (summer).
 # Off-peak both ways; exact local time isn't load-bearing (no users
 # watching the run).
 #
+# Job-level timeout: 18 min. Ingest typically 3-5 min, extraction
+# capped at 8 min for the per-night delta of ~30-60 rows. The job
+# ceiling has a few minutes of headroom for catch-up runs after a
+# missed cron.
+#
 # Required repo secrets (Settings → Secrets and variables → Actions):
 #   - SUPABASE_URL                = https://ilmqmodklutztuybsvwd.supabase.co
 #   - SUPABASE_SERVICE_ROLE_KEY   = the project's service-role key
-#                                   (bypasses RLS — write access only here)
+#                                   (bypasses RLS — write access only here,
+#                                   also authorizes edge-function invocation
+#                                   in stage 2)
 #
 # Manually trigger:
 #   gh workflow run refresh-jobs.yml
@@ -38,7 +59,7 @@ concurrency:
 jobs:
   refresh:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 18
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -54,6 +75,25 @@ jobs:
 
       - name: Refresh jobs cache
         run: npx tsx scripts/refresh-jobs.ts
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      # Stage 2: extract LLM-derived fields for any newly-ingested rows.
+      # `if: success()` — only run if ingest exited clean.
+      # `continue-on-error: true` — extraction failures must never break
+      #   ingestion; if the edge function or OpenAI is down, ingestion
+      #   stays green and tomorrow's run picks up the still-null rows.
+      # `--limit=500` — runaway-cost safety net (~$2.50 worst case).
+      - name: Backfill extraction for newly-ingested jobs
+        if: success()
+        continue-on-error: true
+        timeout-minutes: 8
+        run: >
+          npx tsx scripts/backfill-job-requirements.ts
+          --concurrency=8
+          --progress-every=50
+          --limit=500
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
