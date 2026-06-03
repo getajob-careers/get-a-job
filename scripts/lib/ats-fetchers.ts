@@ -509,6 +509,162 @@ export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
   return collected;
 }
 
+// ───── Workday detail (per-job description) ──────────────────────────
+
+// Detail-fetch timeout tighter than the 25s list-call default — a single
+// JD detail is small. 8s is the "hung tenant" guard the brief asked for:
+// if a tenant's detail endpoint stalls we want the call to abort fast
+// and the job to land with description_html=null, not eat the 18-min
+// workflow budget. Per-call AbortController is built into httpGetJson.
+const DETAIL_TIMEOUT_MS = 8_000;
+
+/**
+ * Fetch a single Workday job's description via the CXS detail endpoint.
+ *
+ * Args:
+ *   slug         — "<host>/<site>" from companies_il.json (same parse
+ *                  the list fetcher does).
+ *   externalPath — the path returned in the list payload's
+ *                  `externalPath` field (already extracted by
+ *                  fetchWorkday into RawJob.external_id and
+ *                  RawJob.raw_payload.externalPath).
+ *
+ * Returns: the raw HTML description string, or null on any failure
+ * (network error, HTTP non-200, timeout, missing field). Never throws.
+ *
+ * URL shape: `https://{host}/wday/cxs/{tenant}/{site}/job{externalPath}`
+ * — same base as the list endpoint, with `/job` singular and the
+ * externalPath appended. externalPath is canonically `/job/...` so the
+ * concatenation yields `/job/job/...` which Workday accepts. (The
+ * helper handles both leading-slash and not.)
+ *
+ * Response shape: `{ jobPostingInfo: { jobDescription: "...html...",
+ * description: "...", ... } }`. Tolerant of both field names.
+ */
+export async function fetchWorkdayDetail(
+  slug: string,
+  externalPath: string,
+): Promise<string | null> {
+  if (!slug || !externalPath) return null;
+  const parts = slug.split("/");
+  if (parts.length < 2) return null;
+  const host = parts[0];
+  const site = parts.slice(1).join("/");
+  const tenant = host.split(".")[0];
+  const pathSegment = externalPath.startsWith("/") ? externalPath : `/${externalPath}`;
+  const url = `https://${host}/wday/cxs/${tenant}/${site}/job${pathSegment}`;
+  try {
+    const data = await httpGetJson<any>(url, DETAIL_TIMEOUT_MS);
+    const info = data?.jobPostingInfo ?? {};
+    const html = info.jobDescription ?? info.description ?? null;
+    return typeof html === "string" && html.length > 0 ? html : null;
+  } catch {
+    return null;
+  }
+}
+
+// ───── SmartRecruiters detail (per-job description) ──────────────────
+
+/**
+ * Fetch a single SmartRecruiters job's description via the v1 detail
+ * endpoint. Used when the list response's
+ * `jobAd.sections.jobDescription.text` is null (~100% of the 6
+ * SR-null rows on 2026-06-03).
+ *
+ * URL: `https://api.smartrecruiters.com/v1/companies/{slug}/postings/{id}`
+ * Response: `{ jobAd: { sections: { jobDescription: { text: "..." } } } }`
+ *
+ * Same null-on-failure contract as fetchWorkdayDetail. 8s timeout.
+ */
+export async function fetchSmartRecruitersDetail(
+  slug: string,
+  id: string,
+): Promise<string | null> {
+  if (!slug || !id) return null;
+  const url = `https://api.smartrecruiters.com/v1/companies/${slug}/postings/${id}`;
+  try {
+    const data = await httpGetJson<any>(url, DETAIL_TIMEOUT_MS);
+    const text = data?.jobAd?.sections?.jobDescription?.text ?? null;
+    return typeof text === "string" && text.length > 0 ? text : null;
+  } catch {
+    return null;
+  }
+}
+
+// ───── Enrichment orchestrator ───────────────────────────────────────
+
+// Per-tenant parallelism for detail calls. The list fetcher is already
+// the dominant request load (75 calls/tenant via search-term × pages).
+// Detail adds ~20-30 calls/tenant for IL rows — concurrency 4 keeps
+// added wall time under ~10s/tenant without hitting per-tenant rate
+// limits that the public CXS API enforces inconsistently.
+const DETAIL_CONCURRENCY = 4;
+
+async function pMap<T>(
+  items: T[],
+  concurrency: number,
+  fn: (item: T, idx: number) => Promise<void>,
+): Promise<void> {
+  let cursor = 0;
+  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
+    while (true) {
+      const idx = cursor++;
+      if (idx >= items.length) return;
+      await fn(items[idx], idx);
+    }
+  });
+  await Promise.all(workers);
+}
+
+/**
+ * Populate `description_html` in-place on RawJob rows that have a null
+ * description and an extractable detail-fetch key. Only acts on
+ * Workday and SmartRecruiters (the only sources observed with
+ * 100%-null descriptions per the 2026-06-03 DB audit).
+ *
+ * Called from refresh-jobs.ts AFTER the IL filter, so we never
+ * detail-fetch jobs that would have been dropped anyway. Mutates each
+ * row's description_html. Silent on individual failures (the row
+ * keeps null → extraction skips it server-side via the jd_too_short
+ * guard, same as today). Logs a per-tenant warning when >50% of
+ * detail calls fail so an outage surfaces in ops logs.
+ *
+ * Idempotent: rows with non-null description_html are skipped.
+ */
+export async function enrichDescriptions(
+  ats: string,
+  companySlug: string | null | undefined,
+  rows: RawJob[],
+): Promise<void> {
+  if (ats !== "workday" && ats !== "smartrecruiters") return;
+  if (!companySlug) return;
+  const targets = rows.filter((r) => !r.description_html);
+  if (targets.length === 0) return;
+
+  let failures = 0;
+  await pMap(targets, DETAIL_CONCURRENCY, async (r) => {
+    let html: string | null = null;
+    if (ats === "workday") {
+      const externalPath =
+        (r.raw_payload as any)?.externalPath ?? r.external_id ?? "";
+      html = await fetchWorkdayDetail(companySlug, externalPath);
+    } else if (ats === "smartrecruiters") {
+      html = await fetchSmartRecruitersDetail(companySlug, r.external_id);
+    }
+    if (html) {
+      r.description_html = html;
+    } else {
+      failures++;
+    }
+  });
+
+  if (targets.length >= 4 && failures / targets.length > 0.5) {
+    console.warn(
+      `[${ats} detail] ${failures}/${targets.length} detail fetches failed for slug=${companySlug} — tenant may be down or rate-limiting. Affected rows land with description_html=null (silent degradation; extraction will skip server-side).`,
+    );
+  }
+}
+
 // ───── SmartRecruiters ───────────────────────────────────────────────
 
 /**

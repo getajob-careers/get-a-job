@@ -1,6 +1,6 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-06-03 (tracker-skills-autofill — Tracker "Skills" tab is now live-derived. JobCard track-time insert stamps `applications.skills_required = { core, nice }` from the job's extracted skill IDs; SkillsRequired.jsx rewrites the manual entry tool to a read-only view that intersects the stored required IDs with the user's current `profile.skills_canonical` on every render via `src/lib/skillMatch.js` — gaps move to strengths the instant the user updates their profile. Reversible backfill migration covers the 16 ATS-resolvable rows that predate the write change. Previously: nightly-extraction-step.).**
+**Last updated: 2026-06-03 (workday-detail-fetch — `scripts/lib/ats-fetchers.ts` gains `fetchWorkdayDetail` + `fetchSmartRecruitersDetail` with 8s AbortController timeout and null-on-failure silent degradation; `scripts/refresh-jobs.ts` runs a new `enrichDescriptions` step after the IL filter (so non-IL rows are skipped) and before the UPSERT, populating `description_html` for the ~15% of the corpus (Workday 100% + SR 100%) whose list endpoints don't ship the JD body. Reversible migration `20260603_jobs_invalidate_zero_confidence_descriptions.sql` nulls `extracted_at` for the 450 prior zero-confidence rows so the nightly extraction step from PR #237 re-grabs them. Previously: tracker-skills-autofill.).**
 
 ## Visual redesign in flight
 

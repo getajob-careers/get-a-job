@@ -19,11 +19,12 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createClient, SupabaseClient } from "@supabase/supabase-js";
 
-import { FETCHERS } from "./lib/ats-fetchers.js";
+import { FETCHERS, enrichDescriptions } from "./lib/ats-fetchers.js";
 import {
   CompanyEntry,
   CompanyRegistry,
   NormalizedJob,
+  RawJob,
   classifyLocation,
   detectSeniorityFromTitle,
   finalSeniority,
@@ -123,14 +124,35 @@ async function processCompany(
 
   const totalFetched = raw.length;
 
-  // Normalize + filter to IL only
-  const ilRows: NormalizedJob[] = [];
+  // Two-pass to keep detail-fetch off non-IL rows. Pass 1 filters; the
+  // enrichment step (Workday/SR only) populates description_html
+  // in-place for the IL-passing rows; pass 2 normalizes for the DB.
+  // Pass 1: filter to IL-passing RawJobs (no normalization yet).
+  const ilRaws: RawJob[] = [];
+  const ilLocs: ReturnType<typeof classifyLocation>[] = [];
   for (const r of raw) {
     // Drop placeholder/junk titles (talent-network ghosts, "future
     // opportunities" stubs, etc.) before any further processing.
     if (isJunkTitle(r.title)) continue;
     const loc = classifyLocation(r.location_raw, r.structured_country);
     if (!loc.is_il) continue;
+    ilRaws.push(r);
+    ilLocs.push(loc);
+  }
+
+  // Enrichment: Workday + SmartRecruiters list endpoints don't include
+  // descriptions (or include them inconsistently). For IL-passing rows
+  // only, fetch the per-job detail to populate r.description_html.
+  // Silent degradation on per-call failure (row keeps description_html
+  // = null → extraction skips it server-side via the jd_too_short
+  // guard, same outcome as today). See enrichDescriptions docstring.
+  await enrichDescriptions(ats, company.slug, ilRaws);
+
+  // Pass 2: normalize the (now-enriched) RawJobs into NormalizedJobs.
+  const ilRows: NormalizedJob[] = [];
+  for (let i = 0; i < ilRaws.length; i++) {
+    const r = ilRaws[i];
+    const loc = ilLocs[i];
     const cleanTitle = normalizeJobTitle(r.title);
     const descPlain = stripHtml(r.description_html);
     const years = parseYearsOfExperience(descPlain);
