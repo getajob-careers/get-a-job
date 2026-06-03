@@ -1,145 +1,141 @@
-import React, { useState } from "react";
-import { supabase } from "@/api/supabaseClient";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, CheckCircle2, AlertCircle, MinusCircle, Trash2 } from "lucide-react";
-import { toast } from "sonner";
+import React, { useMemo } from "react";
+import { CheckCircle2, Circle, AlertCircle, Sparkles } from "lucide-react";
+import { computeSkillMatch } from "@/lib/skillMatch";
+import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import { cn } from "@/lib/utils";
 
-const STATUS_CONFIG = {
-  proven: { icon: CheckCircle2, color: "text-emerald-600", label: "Proven" },
-  partial: { icon: AlertCircle, color: "text-amber-600", label: "Partial" },
-  missing: { icon: MinusCircle, color: "text-red-500", label: "Missing" },
-};
+// Live-derived Skills tab: intersects the job's required skills
+// (applications.skills_required = { core: [...ids], nice: [...ids] })
+// with the user's current canonical skills (profile.skills_canonical)
+// on every render. Gaps move to strengths the instant the user adds
+// the skill in Profile — nothing is frozen here.
+//
+// Storage shape is set at JobCard track time (the only jobs-cache-sourced
+// insert path). Non-ATS rows (manual paste, chat agent) currently land
+// with skills_required = null and render the empty state — JD extraction
+// for those flows is the follow-up PR.
 
-export default function SkillsRequired({ app, onUpdate }) {
-  const [skills, setSkills] = useState(
-    (app.skills_required || []).map((s) => ({ ...s, id: s.id || crypto.randomUUID() }))
+export default function SkillsRequired({ app, profile }) {
+  const userCanonical = profile?.skills_canonical || [];
+  const required = app?.skills_required || null;
+  const hasAnyRequirements =
+    Array.isArray(required?.core) && required.core.length > 0 ||
+    Array.isArray(required?.nice) && required.nice.length > 0;
+
+  const match = useMemo(
+    () => computeSkillMatch(required || { core: [], nice: [] }, userCanonical),
+    [required, userCanonical],
   );
-  const [newSkill, setNewSkill] = useState({ skill_name: "", status: "missing", evidence_source: "" });
-  const [saving, setSaving] = useState(false);
 
-  const handleAdd = () => {
-    if (!newSkill.skill_name || saving) return;
-    const previous = skills;
-    const updated = [...skills, { ...newSkill, id: crypto.randomUUID() }];
-    setSkills(updated);
-    saveSkills(updated, previous);
-    setNewSkill({ skill_name: "", status: "missing", evidence_source: "" });
-  };
+  if (!hasAnyRequirements) {
+    return (
+      <div className="space-y-3">
+        <SectionLabel>Skills Required for This Role</SectionLabel>
+        <EmptyState />
+      </div>
+    );
+  }
 
-  const handleRemove = (id) => {
-    if (saving) return;
-    const previous = skills;
-    const updated = skills.filter((s) => s.id !== id);
-    setSkills(updated);
-    saveSkills(updated, previous);
-  };
-
-  const handleUpdate = (id, field, value) => {
-    if (saving) return;
-    const previous = skills;
-    const updated = skills.map((s) => (s.id === id ? { ...s, [field]: value } : s));
-    setSkills(updated);
-    saveSkills(updated, previous);
-  };
-
-  const saveSkills = async (updated, previous) => {
-    setSaving(true);
-    const { error } = await supabase.from("applications").update({ skills_required: updated }).eq("id", app.id);
-    setSaving(false);
-    if (error) {
-      console.error("Failed to save skills:", error);
-      setSkills(previous);
-      toast.error("Failed to save. Please try again.");
-      return;
-    }
-    onUpdate();
-  };
+  const totalRequired = (required?.core?.length || 0) + (required?.nice?.length || 0);
+  const totalMatched = match.matchedCore.length + match.matchedNice.length;
 
   return (
-    <div className="space-y-4">
-      <p className="text-[11px] uppercase tracking-wider text-[#9C9DA1] font-medium">
-        Skills Required for This Role
-      </p>
-
-      {skills.length === 0 ? (
-        <p className="text-xs text-[#9C9DA1] py-4 text-center">
-          No skills added yet. Add skills to track your qualification gaps.
+    <div className="space-y-5">
+      <div className="flex items-center justify-between gap-2">
+        <SectionLabel>Skills Required for This Role</SectionLabel>
+        <p className="text-[11px] font-mono text-rd-text-tertiary">
+          {totalMatched} of {totalRequired} matched
         </p>
-      ) : (
-        <div className="space-y-2">
-          {skills.map((skill, i) => {
-            const config = STATUS_CONFIG[skill.status];
-            const Icon = config.icon;
-            return (
-              <div key={skill.id ?? i} className="bg-[#F4F4F2] rounded-lg p-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-2 flex-1">
-                    <Icon className={cn("w-4 h-4 mt-0.5", config.color)} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-[#0E1014]">{skill.skill_name}</p>
-                      {skill.evidence_source && (
-                        <p className="text-xs text-[#9C9DA1] mt-0.5">{skill.evidence_source}</p>
-                      )}
-                      <Select
-                        value={skill.status}
-                        onValueChange={(v) => handleUpdate(skill.id, "status", v)}
-                      >
-                        <SelectTrigger className="mt-2 h-7 text-xs">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="proven">Proven</SelectItem>
-                          <SelectItem value="partial">Partial</SelectItem>
-                          <SelectItem value="missing">Missing</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  <button onClick={() => handleRemove(skill.id)} className="text-[#9C9DA1] hover:text-red-500">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            );
-          })}
-        </div>
+      </div>
+
+      {/* Strengths — matched core OR nice, surfaced first so the user
+          sees what they bring before what they lack. */}
+      {(match.matchedCore.length > 0 || match.matchedNice.length > 0) && (
+        <SkillGroup
+          label="Your strengths"
+          tone="strength"
+          ids={[...match.matchedCore, ...match.matchedNice]}
+        />
       )}
 
-      <div className="border-t border-[#DDDDDB] pt-4 space-y-3">
-        <p className="text-xs font-medium text-[#52545A]">Add New Skill</p>
-        <Input
-          placeholder="Skill name (e.g., SQL, Python)"
-          value={newSkill.skill_name}
-          onChange={(e) => setNewSkill({ ...newSkill, skill_name: e.target.value })}
-          className="text-sm"
+      {/* Missing core — prominent coral. These are must-haves. */}
+      {match.missingCore.length > 0 && (
+        <SkillGroup
+          label="Missing core requirements"
+          tone="missing-core"
+          ids={match.missingCore}
         />
-        <Input
-          placeholder="Evidence source (e.g., Data Analysis Project)"
-          value={newSkill.evidence_source}
-          onChange={(e) => setNewSkill({ ...newSkill, evidence_source: e.target.value })}
-          className="text-sm"
+      )}
+
+      {/* Missing nice — muted. Not blocking. */}
+      {match.missingNice.length > 0 && (
+        <SkillGroup
+          label="Nice-to-haves you don't have yet"
+          tone="missing-nice"
+          ids={match.missingNice}
         />
-        <Select
-          value={newSkill.status}
-          onValueChange={(v) => setNewSkill({ ...newSkill, status: v })}
-        >
-          <SelectTrigger className="text-sm">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="proven">Proven</SelectItem>
-            <SelectItem value="partial">Partial</SelectItem>
-            <SelectItem value="missing">Missing</SelectItem>
-          </SelectContent>
-        </Select>
-        <Button onClick={handleAdd} className="bg-[#0E1014] hover:bg-[#F87060] text-sm w-full">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Skill
-        </Button>
+      )}
+    </div>
+  );
+}
+
+function SectionLabel({ children }) {
+  return (
+    <p className="text-[10.5px] uppercase tracking-[0.09em] font-mono font-medium text-rd-text-eyebrow">
+      {children}
+    </p>
+  );
+}
+
+function SkillGroup({ label, tone, ids }) {
+  const { Icon, chipClass } = TONE_STYLES[tone];
+  return (
+    <div className="space-y-2">
+      <p className="text-[11px] font-display font-semibold text-rd-text-secondary">{label}</p>
+      <div className="flex flex-wrap gap-1.5">
+        {ids.map((id) => (
+          <span
+            key={id}
+            className={cn(
+              "inline-flex items-center gap-1 text-[11px] px-2 py-0.5 rounded-full",
+              chipClass,
+            )}
+          >
+            <Icon className="w-2.5 h-2.5" />
+            {humanizeSkillId(id)}
+          </span>
+        ))}
       </div>
+    </div>
+  );
+}
+
+const TONE_STYLES = {
+  strength: {
+    Icon: CheckCircle2,
+    chipClass: "bg-rd-teal-tint text-rd-teal-dark",
+  },
+  "missing-core": {
+    Icon: AlertCircle,
+    chipClass: "bg-rd-coral-tint text-rd-coral-dark",
+  },
+  "missing-nice": {
+    Icon: Circle,
+    chipClass: "bg-rd-bg-soft text-rd-text-tertiary border border-rd-border",
+  },
+};
+
+function EmptyState() {
+  return (
+    <div className="rounded-[12px] border border-rd-border bg-rd-bg-soft px-4 py-5 text-center">
+      <Sparkles className="w-5 h-5 text-rd-text-tertiary mx-auto mb-2" />
+      <p className="text-[12.5px] text-rd-text-secondary leading-[1.55]">
+        No extracted requirements for this role yet.
+      </p>
+      <p className="text-[11.5px] text-rd-text-tertiary mt-1 leading-[1.5]">
+        Jobs tracked from the Browse feed auto-fill this view once the role's
+        requirements are extracted (usually within 24 hours of posting).
+      </p>
     </div>
   );
 }

@@ -78,7 +78,7 @@ const RD_TRACK_STYLES = {
   golden: { tint: "var(--rd-golden-tint)", badgeBg: "var(--rd-golden)", accent: "var(--rd-golden-dark)" },
 };
 
-export default function ApplicationRow({ app, onUpdate, listingInactive = false }) {
+export default function ApplicationRow({ app, profile = null, onUpdate, listingInactive = false }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(false);
@@ -538,7 +538,7 @@ export default function ApplicationRow({ app, onUpdate, listingInactive = false 
               </div>
             )}
 
-            {activeTab === "skills"      && <SkillsRequired app={app} onUpdate={onUpdate} />}
+            {activeTab === "skills"      && <SkillsRequired app={app} profile={profile} />}
             {activeTab === "projects"    && <ProjectsProof app={app} onUpdate={onUpdate} />}
             {activeTab === "networking"  && <NetworkingReferrals app={app} onUpdate={onUpdate} />}
 

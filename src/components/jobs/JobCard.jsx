@@ -98,6 +98,16 @@ async function addJobToTracker({ user, queryClient, job, scoreResult }) {
   const hasScore = scoreResult && typeof scoreResult.fit_score === "number";
   const matchedSkills = scoreResult?.signals?.matched_skills || [];
   const matchReason = (scoreResult?.reasoning?.strengths || []).join(" · ");
+  // Stamp the job's required skills onto the application so the Tracker
+  // Skills tab can live-derive matched/missing against the user's CURRENT
+  // profile.skills_canonical (the match is intentionally NOT frozen — when
+  // the user gains a skill it must immediately move from gap → strength).
+  // Empty arrays when the source job had no extracted skills; the Tracker
+  // tab renders an empty-state in that case.
+  const requiredSkills = {
+    core: Array.isArray(job?.req_skills_core) ? job.req_skills_core : [],
+    nice: Array.isArray(job?.req_skills_nice) ? job.req_skills_nice : [],
+  };
   const { data: inserted, error } = await supabase.from("applications").insert({
     user_id: user.id,
     role_title: job.title,
@@ -107,6 +117,7 @@ async function addJobToTracker({ user, queryClient, job, scoreResult }) {
     ats_source: job.ats_source || null,
     external_id: job.external_id || null,
     cv_skills_emphasized: matchedSkills,
+    skills_required: requiredSkills,
     job_description: jd,
     url: job.apply_url || "",
     location: job.location_city || job.location_raw || "",

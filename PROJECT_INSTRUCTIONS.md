@@ -1,6 +1,6 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-06-03 (nightly-extraction-step — `.github/workflows/refresh-jobs.yml` now closes the LLM-extraction loop: after stage-1 ingest, a stage-2 step runs `scripts/backfill-job-requirements.ts --limit=500` with `continue-on-error: true` so the ~30-60 newly-ingested rows/night get their function_family / req_skills_* / req_seniority populated automatically. Job-level timeout 10→18 min to fit both stages. Previously: jobs-seniority-track-fix.).**
+**Last updated: 2026-06-03 (tracker-skills-autofill — Tracker "Skills" tab is now live-derived. JobCard track-time insert stamps `applications.skills_required = { core, nice }` from the job's extracted skill IDs; SkillsRequired.jsx rewrites the manual entry tool to a read-only view that intersects the stored required IDs with the user's current `profile.skills_canonical` on every render via `src/lib/skillMatch.js` — gaps move to strengths the instant the user updates their profile. Reversible backfill migration covers the 16 ATS-resolvable rows that predate the write change. Previously: nightly-extraction-step.).**
 
 ## Visual redesign in flight
 
