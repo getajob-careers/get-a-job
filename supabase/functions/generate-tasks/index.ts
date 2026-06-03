@@ -267,27 +267,28 @@ TASK GENERATION RULES:
 - Always end with at least one networking or application task unless the user is in interview stage
 - Use the task structure format exactly: task_title, task_description, suggested_specific_action, reason, category, priority, due_date
 
-TITLE PERSONALIZATION RULE (HARD — anti-convergence):
-A live audit (2026-06-04) showed task titles converging across users — "Define target roles" appeared for 8 distinct users, "Update your CV" for many. Generic titles erode the personalized feel of the platform and look like template advice. The user-prompt below ships you specific data; the title MUST use it.
+TITLE PERSONALIZATION RULE:
+Every task title is a noun phrase woven from THIS user's specific signal. The user prompt below ships you concrete data — role names, skill_gaps, missing_skills, named applications, experience anchors. Use them.
 
-Every task title MUST reference at least one of the following user-specific signals (pulled from USER PROFILE, CAREER ROLES, EXPERIENCES, or JOB SEARCH ACTIVITY below):
-- A specific role name from CAREER ROLES (e.g. "Junior Software Engineer", "Product Operations Coordinator")
-- A specific skill ID from the user's skill_gaps or missing_skills (e.g. "Practice SQL window functions", "Build a Figma prototype")
-- A specific company from the user's active applications (e.g. "Follow up with the Lemonade recruiter")
-- An experience-tied anchor (e.g. "Translate your Wix internship into a Product PM bullet")
+Title shape: <action verb> <user-specific noun phrase>. The noun phrase carries a proper noun, a named skill, or an experience-tied anchor pulled from the user prompt. The title should read like it was written for ONE person, not posted to a forum.
 
-BANNED generic title patterns — DO NOT EMIT these or close paraphrases:
-- "Define target roles" / "Define your target roles" / "Clarify your roles"
-- "Update your CV" / "Enhance your CV" / "Tailor your CV" (without a role/company suffix)
-- "Start networking" / "Network with PMs" (without a named target)
-- "Apply to jobs" / "Apply to 3 jobs" (without a named role/company)
+CONCRETE TITLE EXAMPLES (assume a user with Track-1 roles "Junior Software Engineer" + "Software Engineer", skill_gap "SQL window functions", experience at "Tavily", active application at "Lemonade"):
 
-PREFERRED title shape: <verb> <user-specific noun phrase>. Examples:
-- "Decide between Junior SWE and Software Engineer paths" (uses Track-1 role names)
-- "Add a SQL line item to your Tavily experience" (uses skill_gap + named experience)
-- "Send a follow-up to the Coralogix recruiter" (uses named active application)
+- "Decide between Junior SWE and Software Engineer paths"            ← uses Track-1 role names
+- "Add a SQL window functions line item to your Tavily experience"   ← uses skill_gap + named experience
+- "Send a follow-up to the Lemonade recruiter"                       ← uses named active application
+- "Tailor your CV for the Coralogix backend role"                    ← uses named application + role facet
+- "Practice React performance patterns for the Wiz interview"         ← uses skill + named interview target
+- "Open a referral chat with someone at NVIDIA chip design"          ← uses named company + sub-team
 
-If the user's profile is too sparse to support any specific anchor (no roles, no skills, no apps), keep the title concrete by tying it to their employment_status or biggest_challenge instead — never default to the generic stock titles above.${buildCompletedHistoryBlock(completedTitles)}
+STRUCTURAL TITLE TEST (apply to every title before emitting):
+The title contains AT LEAST ONE of:
+- a proper noun from the user prompt (role name, company name, team name, school name)
+- a specific skill ID or skill phrase from skill_gaps / missing_skills
+- a named experience anchor (company + verb from EXPERIENCES)
+If a draft title contains ZERO of the above, rewrite it before emitting. Generic verb + generic noun ("define roles", "update CV", "start networking", "apply to jobs") fails the test — those have no user-specific signal and read as template advice. A title that passes the test reads like personal coaching; a title that fails reads like a blog post.
+
+SPARSE-PROFILE FALLBACK: if the user genuinely has no roles, no skill_gaps, no applications, and no experiences (truly minimal profile), tie the noun phrase to their employment_status or biggest_challenge — those fields are always present and still user-specific. Never fall back to generic stock advice; always anchor to something concrete the user told you.${buildCompletedHistoryBlock(completedTitles)}
 
 DUE DATE GUIDANCE (today is ${today}):
 - high priority: pick a date 1-5 days from today

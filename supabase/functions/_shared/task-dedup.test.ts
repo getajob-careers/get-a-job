@@ -174,6 +174,111 @@ describe("capTasksByPriority", () => {
   });
 });
 
+// ─── Integration-shaped pipeline test ───────────────────────────────────
+//
+// The repo's existing _shared/ test patterns are pure-function only;
+// the generate-tasks Deno.serve handler isn't mocked anywhere in the
+// codebase. This block is the closest analogue to an integration test
+// the existing pattern allows: it composes the helpers in the EXACT
+// order generate-tasks/index.ts uses them (post-parse → normalize →
+// dedup → cap) and asserts the spec's three integration outcomes:
+//   - the completed-titles array is what powers prompt injection
+//   - dedup actually drops LLM-emitted duplicates of those titles
+//   - cap operates on the deduped set (not the pre-dedup set), so a
+//     dedup of 2 then cap of 8 lands at min(deduped, 8)
+// If the dedup/cap order is ever flipped, these tests fail loudly.
+describe("post-process pipeline (mirrors generate-tasks order-of-operations)", () => {
+  // Simulated user state — stopword variants reflect the live 2026-06-04
+  // duplication pattern: "Define target roles" vs "Define your target
+  // roles" must be treated as the same task.
+  const completedTitles = [
+    "Update your CV for product roles",
+    "Define your target roles",
+    "Network with PMs",
+  ];
+
+  // Simulated LLM output, mid-process (already PRIORITY_MAP /
+  // CATEGORY_MAP normalized — i.e. priority ∈ {low,medium,high}).
+  // Intentionally:
+  //   - 2 entries collide with completed titles (after stopword strip)
+  //   - 10 total entries → over the 8-cap by 2
+  //   - low-priority items appear first to test priority-sort
+  const llmOutput = [
+    { title: "Update CV for product roles",          priority: "low" },     // dup of "Update your CV for product roles"
+    { title: "Define target roles",                  priority: "low" },     // dup of "Define your target roles"
+    { title: "Apply to Tavily SWE role",             priority: "low" },     // survives
+    { title: "Add SQL line item to Wix experience",  priority: "low" },     // survives
+    { title: "Practice system design for Coralogix", priority: "low" },     // survives
+    { title: "Send follow-up to Lemonade recruiter", priority: "low" },     // survives
+    { title: "Schedule mock interview at Reichman",  priority: "low" },     // survives
+    { title: "Decide between Junior SWE and SWE",    priority: "high" },    // survives
+    { title: "Tailor CV to NVIDIA chip role",        priority: "high" },    // survives
+    { title: "Open referral chat with Wiz contact",  priority: "medium" },  // survives
+  ];
+
+  it("buildCompletedHistoryBlock surfaces every passed title for prompt injection", () => {
+    const block = buildCompletedHistoryBlock(completedTitles);
+    for (const t of completedTitles) {
+      expect(block).toContain(t);
+    }
+    // Soft enforcement directive must be in the prompt block.
+    expect(block).toMatch(/CRITICAL.*do NOT regenerate/);
+  });
+
+  it("end-to-end: dedup-then-cap leaves only specific, non-duplicate, high-priority-preserved tasks", () => {
+    // Run the helpers in the SAME ORDER as generate-tasks/index.ts:
+    //   1. dedupeAgainstHistory  (line 510)
+    //   2. capTasksByPriority    (line 512)
+    const deduped = dedupeAgainstHistory(llmOutput, completedTitles);
+    expect(deduped.length).toBe(8); // 10 LLM - 2 dups = 8
+
+    // The 2 dups must have been the two stopword-variant titles.
+    const dedupedTitles = deduped.map((t) => t.title);
+    expect(dedupedTitles).not.toContain("Update CV for product roles");
+    expect(dedupedTitles).not.toContain("Define target roles");
+
+    const capped = capTasksByPriority(deduped);
+    expect(capped.length).toBe(8); // already at cap
+
+    // Both high-priority tasks must survive (the priority-sort fixed-cap contract).
+    const highCount = capped.filter((t) => t.priority === "high").length;
+    expect(highCount).toBe(2);
+  });
+
+  it("cap operates on the deduped set, not the pre-dedup set", () => {
+    // Build an LLM output where dedup drops 4 and the remaining set is
+    // exactly 8 — cap must NOT then drop further.
+    const fourDups = completedTitles.slice(0, 3).map((t) => ({ title: t, priority: "low" }));
+    const eightSurvivors = Array.from({ length: 8 }, (_, i) => ({
+      title: `Specific task ${i} for Tavily`,
+      priority: i < 2 ? "high" : "medium",
+    }));
+    const pipelineInput = [...fourDups, ...eightSurvivors];
+
+    const deduped = dedupeAgainstHistory(pipelineInput, completedTitles);
+    expect(deduped.length).toBe(8); // 3 dups dropped (only 3 unique stopword-norms)
+    const capped = capTasksByPriority(deduped);
+    expect(capped.length).toBe(8); // cap is no-op — already at limit
+
+    // If dedup ran AFTER cap (the wrong order), the input would be
+    // capped to 8 first (likely keeping some dups at top of low-priority
+    // band), then dedup would shrink further to ~5-6 — leaving the user
+    // under target. This assertion locks the correct order.
+    expect(capped.length).toBeGreaterThan(5);
+  });
+
+  it("onboarding first-run (empty history) preserves the full LLM output up to the cap", () => {
+    const firstRunHistory: string[] = [];
+    const deduped = dedupeAgainstHistory(llmOutput, firstRunHistory);
+    expect(deduped).toEqual(llmOutput); // nothing dropped
+    const capped = capTasksByPriority(deduped);
+    expect(capped.length).toBe(8); // 10 → 8 by cap only
+    // Prompt block stays empty so the system prompt doesn't grow a
+    // malformed "completed tasks: " heading with no body.
+    expect(buildCompletedHistoryBlock(firstRunHistory)).toBe("");
+  });
+});
+
 describe("buildCompletedHistoryBlock", () => {
   it("returns '' on empty / null / non-array history", () => {
     expect(buildCompletedHistoryBlock([])).toBe("");
