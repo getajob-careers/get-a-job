@@ -2,6 +2,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
+import {
+  buildCompletedHistoryBlock,
+  capTasksByPriority,
+  dedupeAgainstHistory,
+} from '../_shared/task-dedup.ts'
 
 // --- Load JSON Libraries ---
 import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
@@ -116,6 +121,24 @@ Deno.serve(async (req) => {
     const { data: experiences } = await supabase.from('experiences').select('*').eq('user_id', user.id)
     const { data: projects } = await supabase.from('projects').select('*').eq('user_id', user.id)
     const { data: certifications } = await supabase.from('certifications').select('*').eq('user_id', user.id)
+
+    // Completed-task history powers the dedup layer (soft prompt
+    // injection + hard post-parse filter). Most-recent first, capped
+    // at 50 to bound prompt tokens. tasks table has no completed_at
+    // column — updated_at is touched on the is_complete toggle (the
+    // only Tasks.jsx mutation that flips that flag), so it's the
+    // proxy for "when did the user finish this". First-run users
+    // (onboarding) get an empty array and the dedup helpers no-op.
+    const { data: completedTaskRows } = await supabase
+      .from('tasks')
+      .select('title')
+      .eq('user_id', user.id)
+      .eq('is_complete', true)
+      .order('updated_at', { ascending: false })
+      .limit(50)
+    const completedTitles: string[] = (completedTaskRows || [])
+      .map((r: { title: unknown }) => String(r?.title ?? ''))
+      .filter((s) => s.length > 0)
 
     const profile = profiles?.[0]
 
@@ -243,6 +266,29 @@ TASK GENERATION RULES:
 - Only recommend course tasks for structured skill gaps (technical, tools, frameworks) ΓÇö not behavioral gaps
 - Always end with at least one networking or application task unless the user is in interview stage
 - Use the task structure format exactly: task_title, task_description, suggested_specific_action, reason, category, priority, due_date
+
+TITLE PERSONALIZATION RULE:
+Every task title is a noun phrase woven from THIS user's specific signal. The user prompt below ships you concrete data — role names, skill_gaps, missing_skills, named applications, experience anchors. Use them.
+
+Title shape: <action verb> <user-specific noun phrase>. The noun phrase carries a proper noun, a named skill, or an experience-tied anchor pulled from the user prompt. The title should read like it was written for ONE person, not posted to a forum.
+
+CONCRETE TITLE EXAMPLES (assume a user with Track-1 roles "Junior Software Engineer" + "Software Engineer", skill_gap "SQL window functions", experience at "Tavily", active application at "Lemonade"):
+
+- "Decide between Junior SWE and Software Engineer paths"            ← uses Track-1 role names
+- "Add a SQL window functions line item to your Tavily experience"   ← uses skill_gap + named experience
+- "Send a follow-up to the Lemonade recruiter"                       ← uses named active application
+- "Tailor your CV for the Coralogix backend role"                    ← uses named application + role facet
+- "Practice React performance patterns for the Wiz interview"         ← uses skill + named interview target
+- "Open a referral chat with someone at NVIDIA chip design"          ← uses named company + sub-team
+
+STRUCTURAL TITLE TEST (apply to every title before emitting):
+The title contains AT LEAST ONE of:
+- a proper noun from the user prompt (role name, company name, team name, school name)
+- a specific skill ID or skill phrase from skill_gaps / missing_skills
+- a named experience anchor (company + verb from EXPERIENCES)
+If a draft title contains ZERO of the above, rewrite it before emitting. Generic verb + generic noun ("define roles", "update CV", "start networking", "apply to jobs") fails the test — those have no user-specific signal and read as template advice. A title that passes the test reads like personal coaching; a title that fails reads like a blog post.
+
+SPARSE-PROFILE FALLBACK: if the user genuinely has no roles, no skill_gaps, no applications, and no experiences (truly minimal profile), tie the noun phrase to their employment_status or biggest_challenge — those fields are always present and still user-specific. Never fall back to generic stock advice; always anchor to something concrete the user told you.${buildCompletedHistoryBlock(completedTitles)}
 
 DUE DATE GUIDANCE (today is ${today}):
 - high priority: pick a date 1-5 days from today
@@ -449,6 +495,26 @@ Return ONLY valid JSON. Generate 5-8 tasks unless overwhelm signals are present,
         priority: PRIORITY_MAP[String(t?.priority)] || "medium",
         category: CATEGORY_MAP[String(t?.category)] || "application",
       }));
+
+      // Hard-enforce the soft prompt rules. Order matters:
+      //   1. dedup against completed history (backstop for the soft
+      //      prompt-injection layer above — LLM honors injected
+      //      "do not repeat" rules inconsistently, same gap as outreach
+      //      voice-rules)
+      //   2. priority-sort + cap so a low-first LLM ordering can't
+      //      drop all high-priority tasks when MAX_TASKS is exceeded
+      // Both helpers no-op cleanly on empty inputs (onboarding
+      // first-run path stays correct). Both run AFTER the priority
+      // and category MAP normalization above so chk_tasks_priority +
+      // chk_tasks_category remain satisfied for every surviving task.
+      const beforeDedup = result.tasks.length;
+      result.tasks = dedupeAgainstHistory(result.tasks as any[], completedTitles);
+      const afterDedup = result.tasks.length;
+      result.tasks = capTasksByPriority(result.tasks as any[]);
+      const afterCap = result.tasks.length;
+      if (beforeDedup !== afterDedup || afterDedup !== afterCap) {
+        console.log(`[generate-tasks] post-process: llm=${beforeDedup} → dedup=${afterDedup} → cap=${afterCap}`);
+      }
     }
 
     _ok = true; _http = 200
