@@ -7,6 +7,7 @@ import { stripHtml } from '../_shared/strip-html.ts'
 import { buildCvPdf } from '../_shared/cv-templates/build-pdf.ts'
 import { matchRoleToLibrary, resolveSectorTheme } from '../_shared/cv-templates/sector-mapping.ts'
 import type { TemplateStyle, SectionKey } from '../_shared/cv-templates/types.ts'
+import { fillFromSource, type SourceExperience } from './reconcile.ts'
 
 // --- Load JSON Libraries ---
 import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
@@ -755,10 +756,15 @@ Deno.serve(async (req) => {
     });
 
     const allExperiences = safeArray(experiences).slice(0, 15).map(mapExperience);
-    const professionalExperiences = allExperiences.filter((e: any) => e.bucket === "professional");
-    const militaryExperiences = allExperiences.filter((e: any) => e.bucket === "military");
-    const volunteeringExperiences = allExperiences.filter((e: any) => e.bucket === "volunteering");
-    const leadershipExperiences = allExperiences.filter((e: any) => e.bucket === "leadership");
+    // Per-bucket integer index (0,1,2…) is the stable join key the LLM
+    // echoes back so the server can attach bullets to the correct source
+    // experience without paraphrasing-tolerant date matching. Index is
+    // assigned AFTER bucket filtering so each bucket starts from 0.
+    const withIndex = (arr: any[]) => arr.map((e, i) => ({ ...e, index: i }));
+    const professionalExperiences = withIndex(allExperiences.filter((e: any) => e.bucket === "professional"));
+    const militaryExperiences = withIndex(allExperiences.filter((e: any) => e.bucket === "military"));
+    const volunteeringExperiences = withIndex(allExperiences.filter((e: any) => e.bucket === "volunteering"));
+    const leadershipExperiences = withIndex(allExperiences.filter((e: any) => e.bucket === "leadership"));
 
     // Language resolution. Prefer the user's explicitly stored languages
     // (new profiles.languages jsonb). Only fall back to inference when the
@@ -801,8 +807,10 @@ Deno.serve(async (req) => {
       // LLM do deterministic intersection against jobs.req_skills_core
       // rather than substring-matching free-text labels.
       skills_canonical: safeArray((profile as any).skills_canonical).slice(0, 50),
-      // Pre-bucketed experiences — the LLM MUST honor these groupings and
-      // must preserve `title` and `company` verbatim from each entry.
+      // Pre-bucketed experiences with stable integer `index` (0,1,2…).
+      // The LLM honors these groupings and echoes ONLY {index, bullets} per
+      // entry — the server stamps title / org / dates from the DB onto the
+      // output by matching the echoed index. See ./reconcile.ts.
       professional_experiences: professionalExperiences,
       military_experiences: militaryExperiences,
       volunteering_experiences: volunteeringExperiences,
@@ -1303,7 +1311,7 @@ OUTPUT SCHEMA (JSON):
   },
   "summary": "string — FACTUAL descriptive sentences. Typical 3-4 sentences (grounded path); 1-2 sentences when grounding is sparse. No pronouns (he/she/his/her). No candidate-speak (no 'strong candidate', 'eager to', 'well-suited'). Describe skills and current work as facts; let content speak for fit.",
   "professional_experiences": [
-    { "title": "string — EXACT title from USER DATA", "company": "string — EXACT company from USER DATA", "dates": "string — e.g. Oct 2025 - Present", "bullets": [
+    { "index": "integer — the EXACT `index` from USER DATA.professional_experiences[]. You echo this number only; do NOT emit title, company, or dates.", "bullets": [
       "Action verb + what the user did + concrete outcome (tool / scope / metric). 14-22 words. Anchored in a story metric or proof_signal when available.",
       "Second bullet referencing a specific item from the experience's skills[] (a tool, platform, or named capability) or a named project — different facet of the role than bullet 1.",
       "Third bullet describing scope, stakeholders, or impact — preferably with a quantified outcome from the source data.",
@@ -1311,20 +1319,20 @@ OUTPUT SCHEMA (JSON):
     ] }
   ],
   "military_experiences": [
-    { "title": "string — EXACT role/rank from USER DATA", "unit": "string — EXACT unit from USER DATA", "dates": "string", "bullets": [
+    { "index": "integer — the EXACT `index` from USER DATA.military_experiences[]. You echo this number only; do NOT emit title, unit, or dates.", "bullets": [
       "Civilian-readable description of operational responsibility. 14-22 words.",
       "Second bullet describing team size, mission scope, or training led.",
       "Optional third bullet for honors / commendations earned in the role."
     ] }
   ],
   "volunteering_experiences": [
-    { "title": "string — EXACT title from USER DATA", "organization": "string — EXACT org from USER DATA", "dates": "string", "bullets": [
+    { "index": "integer — the EXACT `index` from USER DATA.volunteering_experiences[]. You echo this number only; do NOT emit title, organization, or dates.", "bullets": [
       "Authentic volunteer-context bullet — what was built, taught, or coordinated.",
       "Second bullet — scope (audience size, duration, team coordinated)."
     ] }
   ],
   "leadership_experiences": [
-    { "title": "string — EXACT title", "organization": "string — EXACT org", "dates": "string", "bullets": [
+    { "index": "integer — the EXACT `index` from USER DATA.leadership_experiences[]. You echo this number only; do NOT emit title, organization, or dates.", "bullets": [
       "What the user led + the concrete outcome.",
       "Second bullet — scope, format, frequency, or impact."
     ] }
@@ -1359,7 +1367,8 @@ OUTPUT SCHEMA (JSON):
 
 SPECIFIC OUTPUT RULES:
 - "professional_experiences" contains ONLY entries whose \`bucket\` in USER DATA is "professional". Military → military_experiences[]. Volunteering → volunteering_experiences[]. Leadership → leadership_experiences[].
-- Every experience title and company/unit/organization must be COPIED VERBATIM from USER DATA. Do not shorten, generalize, or paraphrase them. If the source title is "Supervised and trained teams of soldiers", that is the title you output.
+- For every experience entry you output exactly two fields: \`index\` (the integer from the matching USER DATA bucket entry — 0, 1, 2…) and \`bullets\` (the array of bullet strings). DO NOT emit title, company, unit, organization, or dates — the server fills those from the DB by index. Echoing them is wasted tokens and any value you put there is discarded.
+- Emit at most one output entry per source index. Out of the four buckets, the union of indices you emit must match the indices present in USER DATA (don't skip a real experience, don't invent indices beyond the source bucket length).
 - Every bullet must trace to something in the user's responsibilities text. Rephrase, don't invent.
 - If a responsibility line mentions an award (e.g. "Awarded Presidential Award for Excellence"), keep the mention AND add the award to honors_and_awards[] as an object {name, description?}.
 - Output education[] should mirror USER DATA.education_list 1:1 — every entry in education_list becomes exactly one entry in education[]. Do not duplicate a primary degree or synthesize a "second entry" if education_list has only one row.
@@ -1521,67 +1530,51 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       }
     }
 
-    // ─── Post-process: reconcile titles + companies against source data ───
-    // The LLM sometimes shortens titles ("Supervised and trained teams of
-    // soldiers" → "Soldier") or reformats company names. We match each output
-    // entry back to its source experience by dates (cheapest stable key) and
-    // force the DB's title/company/unit/organization onto the output. This
-    // guarantees the "EXACT titles" rule even when the LLM paraphrases.
-    const normDates = (s: unknown) => String(s || "").replace(/\s+/g, " ").trim().toLowerCase();
-    const matchSource = (outDates: string, sources: any[]) => {
-      const key = normDates(outDates);
-      if (!key) return null;
-      // Exact-or-contains match on dates. Good enough given there are only a
-      // handful of experiences per user; dates are distinctive.
-      return sources.find((s) => {
-        const srcKey = normDates(`${s.start_date} ${s.end_date || s.is_current ? "present" : ""}`) ||
-                        normDates(`${s.start_date} - ${s.end_date}`);
-        return srcKey === key || srcKey.includes(key) || key.includes(srcKey);
-      }) || sources.find((s) => normDates(s.start_date) && key.includes(normDates(s.start_date)));
-    };
+    // ─── Server-driven experience fill (index-based join) ───
+    // The LLM emits only {index, bullets} per experience entry. The
+    // server iterates the authoritative per-bucket source list and stamps
+    // title / org / dates from the DB onto each output, attaching the
+    // LLM's bullets by `index`. This is the load-bearing anti-fabrication
+    // step — see ./reconcile.ts and PR #234 for the bug history that
+    // replaced the prior date-keyed reconcile path.
+    const toSource = (e: any): SourceExperience => ({
+      title: String(e?.title || ""),
+      company: String(e?.company || ""),
+      start_date: String(e?.start_date || ""),
+      end_date: String(e?.end_date || ""),
+      is_current: !!e?.is_current,
+      responsibilities: String(e?.responsibilities || ""),
+    });
+    cvData.professional_experiences = fillFromSource(
+      professionalExperiences.map(toSource),
+      cvData.professional_experiences,
+      "company",
+    );
+    cvData.military_experiences = fillFromSource(
+      militaryExperiences.map(toSource),
+      cvData.military_experiences,
+      "unit",
+    );
+    cvData.volunteering_experiences = fillFromSource(
+      volunteeringExperiences.map(toSource),
+      cvData.volunteering_experiences,
+      "organization",
+    );
+    cvData.leadership_experiences = fillFromSource(
+      leadershipExperiences.map(toSource),
+      cvData.leadership_experiences,
+      "organization",
+    );
 
-    // Guard against DB titles that are actually responsibility sentences
-    // (e.g. "Supervised and trained teams of soldiers" from a bad CV
-    // extraction). Real titles are short and typically noun phrases. If a
-    // source title looks like a sentence, substitute a bucket-appropriate
-    // generic so we don't dump a responsibility line in the bold title slot.
-    const VERB_PREFIX = /^(supervised|managed|led|coordinated|trained|oversaw|directed|assisted|designed|developed|delivered|built|owned|launched|executed|drove|ran|created|served|implemented|handled|facilitated|performed|worked)\b/i;
-    const BUCKET_FALLBACK: Record<string, string> = {
-      professional: "Team Member",
-      military: "Service Member",
-      volunteering: "Volunteer",
-      leadership: "Member",
-    };
-    const sanitizeTitle = (rawTitle: string, bucket: string): string => {
-      const t = String(rawTitle || "").trim();
-      if (!t) return BUCKET_FALLBACK[bucket] || "Member";
-      const looksLikeSentence = t.length > 60 || VERB_PREFIX.test(t);
-      if (looksLikeSentence) return BUCKET_FALLBACK[bucket] || "Member";
-      return t;
-    };
-
-    const reconcile = (outList: any[], sources: any[], titleField: string, orgField: string, bucket: string) => {
-      if (!Array.isArray(outList)) return;
-      for (const entry of outList) {
-        const src = matchSource(entry.dates, sources);
-        if (!src) continue;
-        // Preserve source title, but sanitize if it's a sentence fragment.
-        if (src.title) entry[titleField] = sanitizeTitle(src.title, bucket);
-        // Preserve source company / unit / organization.
-        if (src.company) entry[orgField] = src.company;
-      }
-    };
-
-    reconcile(cvData.professional_experiences, professionalExperiences, "title", "company", "professional");
-    reconcile(cvData.military_experiences, militaryExperiences, "title", "unit", "military");
-    reconcile(cvData.volunteering_experiences, volunteeringExperiences, "title", "organization", "volunteering");
-    reconcile(cvData.leadership_experiences, leadershipExperiences, "title", "organization", "leadership");
-
-    // ─── Normalize all date strings to "Mon YYYY" ───
-    // The LLM was emitting mixed formats inside the same CV ("October 2025"
-    // vs "Aug 2025") because the prompt doesn't enforce one shape. Normalize
+    // ─── Normalize education + certification date strings to "Mon YYYY" ───
+    // The LLM emits mixed formats inside the same CV ("October 2025" vs
+    // "Aug 2025") because the prompt doesn't enforce one shape. Normalize
     // server-side so every date renders as "Oct 2025" or "Oct 2025 – Present".
     // Idempotent: a string already in target shape passes through unchanged.
+    //
+    // NOTE: experience-bucket dates are NOT normalised here — fillFromSource
+    // above already stamps DB dates through formatExperienceDates(), which
+    // does the same normalisation from start_date + end_date + is_current.
     const MONTHS_FULL: Record<string, string> = {
       january: "Jan", february: "Feb", march: "Mar", april: "Apr", may: "May",
       june: "Jun", july: "Jul", august: "Aug", september: "Sep", sept: "Sep",
@@ -1641,10 +1634,6 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         if (e.dates) e.dates = normaliseDateString(e.dates);
       }
     };
-    normaliseDatesIn(cvData.professional_experiences);
-    normaliseDatesIn(cvData.military_experiences);
-    normaliseDatesIn(cvData.volunteering_experiences);
-    normaliseDatesIn(cvData.leadership_experiences);
     normaliseDatesIn(cvData.education);
     normaliseDatesIn(cvData.certifications as any[]);
 
