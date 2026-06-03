@@ -145,13 +145,9 @@ const JOB_ROWS = [
   },
   // → track_1, ~63% (medium band): only 2 of 4 core skills match (user
   //   has project_management + stakeholder_management; lacks
-  //   roadmap_planning + sprint_facilitation). On-domain, Entry seniority
-  //   (in_range for early_career, ceiling=1), 1-year gap (years axis
-  //   penalty). req_seniority was Entry_Mid until 2026-06-03 — that
-  //   value put it AT the ceiling ("stretch"), which the new
-  //   jobs-seniority-track-fix routes to track_3 (on-goal stretch). Kept
-  //   the fixture intent (medium-band track_1) by stepping req_seniority
-  //   down to Entry.
+  //   roadmap_planning + sprint_facilitation). On-domain, Entry_Mid
+  //   seniority (stretch but within early-career ceiling=1), 1-year
+  //   gap (years axis penalty).
   {
     id: "j-3",
     ats_source: "lever",
@@ -175,7 +171,7 @@ const JOB_ROWS = [
     req_years_max: 3,
     req_education_levels: ["bachelors"],
     req_education_strict: false,
-    req_seniority: "Entry",
+    req_seniority: "Entry_Mid",
     function_family: "Product",
     extraction_confidence: 0.85,
   },

@@ -8,12 +8,6 @@ import { scoreJobFit } from "../lib/scoreJobFit";
 // skill match. The cap mirrors the seniority ceiling — downgrade-only,
 // applied after the fit-based track assignment. (Re-applied after the
 // PR-112 TDZ hotfix moved trackFromScore into the shared .ts file.)
-//
-// 2026-06-03 (jobs-seniority-track-fix): integration tests below use
-// req_seniority "Entry" (rank 0, below early_career ceiling=1 → in_range)
-// so the years-cap is the only relevant downgrade. Previously these used
-// "Entry_Mid" (rank 1 == ceiling → stretch), which now triggers the new
-// stretch routing in scoreJobFit — co-mingled the two cap mechanisms.
 
 describe("applyYearsCap (helper)", () => {
   it("no-ops when reqYearsMin is null", () => {
@@ -66,7 +60,7 @@ describe("scoreJobFit — years cap integration", () => {
       req_years_min: 3,
       req_years_max: 5,
       req_education_strict: false,
-      req_seniority: "Entry",
+      req_seniority: "Entry_Mid",
       function_family: null,
       extraction_confidence: 0.8,
     };
@@ -81,7 +75,7 @@ describe("scoreJobFit — years cap integration", () => {
       req_skills_core: ["python_data", "sql"],
       req_years_min: 5,
       req_education_strict: false,
-      req_seniority: "Entry",
+      req_seniority: "Entry_Mid",
       function_family: null,
       extraction_confidence: 0.8,
     };
@@ -96,7 +90,7 @@ describe("scoreJobFit — years cap integration", () => {
       req_skills_core: ["python_data", "sql"],
       req_years_min: 3,
       req_education_strict: false,
-      req_seniority: "Entry",
+      req_seniority: "Entry_Mid",
       function_family: null,
       extraction_confidence: 0.8,
     };

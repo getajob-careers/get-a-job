@@ -1,6 +1,6 @@
 # PROJECT_INSTRUCTIONS — Get A Job
 
-**Last updated: 2026-06-03 (jobs-seniority-track-fix — Jobs page seniority cap + stretch routing. mid_career corpus now `["entry","mid","senior"]`; scoreJobFit routes `seniority.match === "stretch"` to track_3 on-goal / track_2 off-goal so Senior roles no longer surface in Track 1 for Mid-Level users. BROWSE_PAGE_SIZE 20→40.).**
+**Last updated: 2026-06-03 (jobs-seniority-track-fix — Jobs page seniority cap + stretch routing. mid_career corpus now `["entry","mid","senior"]`; scoreJobFit routes `seniority.match === "stretch"` to track_3 on-goal / track_2 off-goal — SCOPED TO `userLevel === "mid_career"` so Senior roles no longer surface in Track 1 for Mid-Level users while leaving early_career (ceiling 1) routing of Entry_Mid roles unchanged on the composite path. A symmetric rule would have demoted Entry_Mid to T3/T2 for fresh-grads, gutting the pilot's core cohort. BROWSE_PAGE_SIZE 20→40.).**
 
 ## Visual redesign in flight
 
