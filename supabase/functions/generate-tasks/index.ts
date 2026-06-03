@@ -2,6 +2,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
+import {
+  buildCompletedHistoryBlock,
+  capTasksByPriority,
+  dedupeAgainstHistory,
+} from '../_shared/task-dedup.ts'
 
 // --- Load JSON Libraries ---
 import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
@@ -116,6 +121,24 @@ Deno.serve(async (req) => {
     const { data: experiences } = await supabase.from('experiences').select('*').eq('user_id', user.id)
     const { data: projects } = await supabase.from('projects').select('*').eq('user_id', user.id)
     const { data: certifications } = await supabase.from('certifications').select('*').eq('user_id', user.id)
+
+    // Completed-task history powers the dedup layer (soft prompt
+    // injection + hard post-parse filter). Most-recent first, capped
+    // at 50 to bound prompt tokens. tasks table has no completed_at
+    // column — updated_at is touched on the is_complete toggle (the
+    // only Tasks.jsx mutation that flips that flag), so it's the
+    // proxy for "when did the user finish this". First-run users
+    // (onboarding) get an empty array and the dedup helpers no-op.
+    const { data: completedTaskRows } = await supabase
+      .from('tasks')
+      .select('title')
+      .eq('user_id', user.id)
+      .eq('is_complete', true)
+      .order('updated_at', { ascending: false })
+      .limit(50)
+    const completedTitles: string[] = (completedTaskRows || [])
+      .map((r: { title: unknown }) => String(r?.title ?? ''))
+      .filter((s) => s.length > 0)
 
     const profile = profiles?.[0]
 
@@ -243,6 +266,28 @@ TASK GENERATION RULES:
 - Only recommend course tasks for structured skill gaps (technical, tools, frameworks) ΓÇö not behavioral gaps
 - Always end with at least one networking or application task unless the user is in interview stage
 - Use the task structure format exactly: task_title, task_description, suggested_specific_action, reason, category, priority, due_date
+
+TITLE PERSONALIZATION RULE (HARD — anti-convergence):
+A live audit (2026-06-04) showed task titles converging across users — "Define target roles" appeared for 8 distinct users, "Update your CV" for many. Generic titles erode the personalized feel of the platform and look like template advice. The user-prompt below ships you specific data; the title MUST use it.
+
+Every task title MUST reference at least one of the following user-specific signals (pulled from USER PROFILE, CAREER ROLES, EXPERIENCES, or JOB SEARCH ACTIVITY below):
+- A specific role name from CAREER ROLES (e.g. "Junior Software Engineer", "Product Operations Coordinator")
+- A specific skill ID from the user's skill_gaps or missing_skills (e.g. "Practice SQL window functions", "Build a Figma prototype")
+- A specific company from the user's active applications (e.g. "Follow up with the Lemonade recruiter")
+- An experience-tied anchor (e.g. "Translate your Wix internship into a Product PM bullet")
+
+BANNED generic title patterns — DO NOT EMIT these or close paraphrases:
+- "Define target roles" / "Define your target roles" / "Clarify your roles"
+- "Update your CV" / "Enhance your CV" / "Tailor your CV" (without a role/company suffix)
+- "Start networking" / "Network with PMs" (without a named target)
+- "Apply to jobs" / "Apply to 3 jobs" (without a named role/company)
+
+PREFERRED title shape: <verb> <user-specific noun phrase>. Examples:
+- "Decide between Junior SWE and Software Engineer paths" (uses Track-1 role names)
+- "Add a SQL line item to your Tavily experience" (uses skill_gap + named experience)
+- "Send a follow-up to the Coralogix recruiter" (uses named active application)
+
+If the user's profile is too sparse to support any specific anchor (no roles, no skills, no apps), keep the title concrete by tying it to their employment_status or biggest_challenge instead — never default to the generic stock titles above.${buildCompletedHistoryBlock(completedTitles)}
 
 DUE DATE GUIDANCE (today is ${today}):
 - high priority: pick a date 1-5 days from today
@@ -449,6 +494,26 @@ Return ONLY valid JSON. Generate 5-8 tasks unless overwhelm signals are present,
         priority: PRIORITY_MAP[String(t?.priority)] || "medium",
         category: CATEGORY_MAP[String(t?.category)] || "application",
       }));
+
+      // Hard-enforce the soft prompt rules. Order matters:
+      //   1. dedup against completed history (backstop for the soft
+      //      prompt-injection layer above — LLM honors injected
+      //      "do not repeat" rules inconsistently, same gap as outreach
+      //      voice-rules)
+      //   2. priority-sort + cap so a low-first LLM ordering can't
+      //      drop all high-priority tasks when MAX_TASKS is exceeded
+      // Both helpers no-op cleanly on empty inputs (onboarding
+      // first-run path stays correct). Both run AFTER the priority
+      // and category MAP normalization above so chk_tasks_priority +
+      // chk_tasks_category remain satisfied for every surviving task.
+      const beforeDedup = result.tasks.length;
+      result.tasks = dedupeAgainstHistory(result.tasks as any[], completedTitles);
+      const afterDedup = result.tasks.length;
+      result.tasks = capTasksByPriority(result.tasks as any[]);
+      const afterCap = result.tasks.length;
+      if (beforeDedup !== afterDedup || afterDedup !== afterCap) {
+        console.log(`[generate-tasks] post-process: llm=${beforeDedup} → dedup=${afterDedup} → cap=${afterCap}`);
+      }
     }
 
     _ok = true; _http = 200
