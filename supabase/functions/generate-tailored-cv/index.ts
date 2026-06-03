@@ -1311,7 +1311,7 @@ OUTPUT SCHEMA (JSON):
   },
   "summary": "string — FACTUAL descriptive sentences. Typical 3-4 sentences (grounded path); 1-2 sentences when grounding is sparse. No pronouns (he/she/his/her). No candidate-speak (no 'strong candidate', 'eager to', 'well-suited'). Describe skills and current work as facts; let content speak for fit.",
   "professional_experiences": [
-    { "index": "integer — the EXACT `index` from USER DATA.professional_experiences[]. You echo this number only; do NOT emit title, company, or dates.", "bullets": [
+    { "index": "integer — the EXACT \`index\` from USER DATA.professional_experiences[]. You echo this number only; do NOT emit title, company, or dates.", "bullets": [
       "Action verb + what the user did + concrete outcome (tool / scope / metric). 14-22 words. Anchored in a story metric or proof_signal when available.",
       "Second bullet referencing a specific item from the experience's skills[] (a tool, platform, or named capability) or a named project — different facet of the role than bullet 1.",
       "Third bullet describing scope, stakeholders, or impact — preferably with a quantified outcome from the source data.",
@@ -1319,20 +1319,20 @@ OUTPUT SCHEMA (JSON):
     ] }
   ],
   "military_experiences": [
-    { "index": "integer — the EXACT `index` from USER DATA.military_experiences[]. You echo this number only; do NOT emit title, unit, or dates.", "bullets": [
+    { "index": "integer — the EXACT \`index\` from USER DATA.military_experiences[]. You echo this number only; do NOT emit title, unit, or dates.", "bullets": [
       "Civilian-readable description of operational responsibility. 14-22 words.",
       "Second bullet describing team size, mission scope, or training led.",
       "Optional third bullet for honors / commendations earned in the role."
     ] }
   ],
   "volunteering_experiences": [
-    { "index": "integer — the EXACT `index` from USER DATA.volunteering_experiences[]. You echo this number only; do NOT emit title, organization, or dates.", "bullets": [
+    { "index": "integer — the EXACT \`index\` from USER DATA.volunteering_experiences[]. You echo this number only; do NOT emit title, organization, or dates.", "bullets": [
       "Authentic volunteer-context bullet — what was built, taught, or coordinated.",
       "Second bullet — scope (audience size, duration, team coordinated)."
     ] }
   ],
   "leadership_experiences": [
-    { "index": "integer — the EXACT `index` from USER DATA.leadership_experiences[]. You echo this number only; do NOT emit title, organization, or dates.", "bullets": [
+    { "index": "integer — the EXACT \`index\` from USER DATA.leadership_experiences[]. You echo this number only; do NOT emit title, organization, or dates.", "bullets": [
       "What the user led + the concrete outcome.",
       "Second bullet — scope, format, frequency, or impact."
     ] }
