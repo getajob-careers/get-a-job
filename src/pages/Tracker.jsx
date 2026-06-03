@@ -16,6 +16,7 @@ import ApplicationRow from "../components/tracker/ApplicationRow";
 import { scoreApplication } from "@/lib/scoreApplication";
 import { stripHtml } from "../../scripts/lib/normalize.ts";
 import { TRACKER_CSS } from "../components/tracker/trackerStyles";
+import { useProfileQuery } from "@/lib/queries/useProfile";
 
 // PR 3E — Tracker restyled on rd tokens. Restyle-only on behavior; every
 // write path, schema enum, and audit contract is preserved verbatim (see
@@ -53,6 +54,12 @@ export default function Tracker() {
   const [jobDescription, setJobDescription] = useState("");
   const [importError, setImportError] = useState("");
   const [addingApp, setAddingApp] = useState(false);
+
+  // Profile (skills_canonical) feeds the Skills tab's live matched/missing
+  // derivation — see SkillsRequired.jsx + computeSkillMatch. Loaded here at
+  // the page root and threaded through ApplicationRow so every row re-derives
+  // against the user's CURRENT skills without each row firing its own query.
+  const { data: profile } = useProfileQuery(user?.id);
 
   const { data: applications = [], isLoading } = useQuery({
     queryKey: ["applications", user?.id],
@@ -256,6 +263,7 @@ export default function Tracker() {
               <ApplicationRow
                 key={app.id}
                 app={app}
+                profile={profile}
                 listingInactive={
                   Boolean(app.ats_source && app.external_id &&
                     inactiveExternalIds.has(`${app.ats_source}|${app.external_id}`))
