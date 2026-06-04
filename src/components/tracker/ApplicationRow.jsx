@@ -169,17 +169,30 @@ export default function ApplicationRow({ app, profile = null, onUpdate, listingI
   };
 
   // P6 — application details written together (no per-field write).
+  // Auto-mark step 6 (application_submitted) complete when applied_date
+  // gets populated. The Steps-tab CTA for step 6 ("Apply") opens the
+  // company URL; once the user comes back and fills in applied_date,
+  // we treat the application as submitted without requiring a second
+  // explicit toggle. Single atomic write — keeps the checklist + the
+  // details in sync.
   const handleSaveApplicationDetails = async () => {
-    const { error } = await supabase.from("applications").update({
+    const submittedNow = !!(appliedDate || "").trim();
+    const nextChecklist = submittedNow && !checklist?.application_submitted
+      ? { ...checklist, application_submitted: true }
+      : checklist;
+    const update = {
       applied_date: appliedDate,
       cv_version_used: cvVersionUsed,
       referral_attached: referralAttached,
-    }).eq("id", app.id);
+      ...(nextChecklist !== checklist && { checklist: nextChecklist }),
+    };
+    const { error } = await supabase.from("applications").update(update).eq("id", app.id);
     if (error) {
       console.error("Failed to save application details:", error);
       toast.error("Failed to save application details. Please try again.");
       return;
     }
+    if (nextChecklist !== checklist) setChecklist(nextChecklist);
     onUpdate();
   };
 
@@ -431,7 +444,12 @@ export default function ApplicationRow({ app, profile = null, onUpdate, listingI
           {/* Tab panel */}
           <div className="px-5 py-5 bg-rd-bg-card">
             {activeTab === "checklist" && (
-              <ApplicationChecklist checklist={checklist} onChange={handleChecklistChange} />
+              <ApplicationChecklist
+                app={app}
+                checklist={checklist}
+                onChange={handleChecklistChange}
+                onNavigateTab={setActiveTab}
+              />
             )}
 
             {activeTab === "target" && (

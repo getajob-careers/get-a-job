@@ -99,19 +99,30 @@ export default function OutreachComposer({
   prefillCompany = null,
   prefillFunction = null,
   prefillContact = null,
+  prefillRole = null,
   prefillGoal = null,
   onBack,
   onChange,
 }) {
-  // P14 prefill: from /Internship drawer cards with
-  // goal=propose_internship in the URL. Skips picker; target form
-  // lands with company + role (contact's function title) + function
-  // name in target.relationship as bridge context for the AI.
+  // Two distinct deep-link prefill flows arrive here today:
+  //
+  // 1. /Internship drawer (P14, goal=propose_internship): seeds target.role
+  //    with prefillContact (the function leader's contact role) +
+  //    target.relationship with the function name. target.company from
+  //    the company card.
+  //
+  // 2. /Tracker step-5 CTA (goal=ask_for_referral): seeds target.role
+  //    with prefillRole = applications.role_title (the role the user is
+  //    asking to be referred FOR). target.company from applications.company.
+  //
+  // prefillContact and prefillRole are mutually-exclusive in practice
+  // today; if both arrive, prefillContact wins (it's the older flow's
+  // contract).
   const [convoId, setConvoId] = useState(conversationId || null);
   const [goal, setGoal] = useState(prefillGoal || null);
   const [target, setTarget] = useState({
     name: "",
-    role: prefillContact || "",
+    role: prefillContact || prefillRole || "",
     company: prefillCompany || "",
     relationship: prefillFunction ? `Proposing a ${prefillFunction} internship` : "",
     mutual_context: "",

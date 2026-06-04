@@ -31,17 +31,26 @@ export default function NetworkingTab() {
   // and lands at describe_target with company + contact role +
   // function-as-relationship seeded. Strip the params after capturing
   // so back/refresh doesn't keep re-triggering the jump.
-  const [prefill, setPrefill] = useState({ company: null, function: null, contact: null, goal: null });
+  //
+  // 2026-06-05: Tracker step-5 CTA reuses this surface with
+  //   ?tab=networking&goal=ask_for_referral&prefillCompany=<co>
+  //     &prefillRole=<application.role_title>
+  // prefillRole seeds the composer's `target.role` (the role the user
+  // is asking to be referred for) — separate from prefillFunction
+  // which seeds the relationship line for the internship flow.
+  const [prefill, setPrefill] = useState({ company: null, function: null, contact: null, role: null, goal: null });
   useEffect(() => {
     const company = searchParams.get("prefillCompany");
     const fn = searchParams.get("prefillFunction");
     const contact = searchParams.get("prefillContact");
+    const roleParam = searchParams.get("prefillRole");
     const goalParam = searchParams.get("goal");
-    if (!company && !fn && !contact && !goalParam) return;
+    if (!company && !fn && !contact && !roleParam && !goalParam) return;
     setPrefill({
       company: company || null,
       function: fn || null,
       contact: contact || null,
+      role: roleParam || null,
       goal: goalParam || null,
     });
     setOutreachView("new");
@@ -49,12 +58,13 @@ export default function NetworkingTab() {
     next.delete("prefillCompany");
     next.delete("prefillFunction");
     next.delete("prefillContact");
+    next.delete("prefillRole");
     next.delete("goal");
     setSearchParams(next, { replace: true });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const clearPrefill = () => setPrefill({ company: null, function: null, contact: null, goal: null });
+  const clearPrefill = () => setPrefill({ company: null, function: null, contact: null, role: null, goal: null });
   const openConversation = (id) => {
     clearPrefill();
     setOutreachView(id);
@@ -114,6 +124,7 @@ export default function NetworkingTab() {
             prefillCompany={prefill.company}
             prefillFunction={prefill.function}
             prefillContact={prefill.contact}
+            prefillRole={prefill.role}
             prefillGoal={prefill.goal}
             onBack={backToList}
             onChange={onConvoChange}
