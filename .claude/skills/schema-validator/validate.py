@@ -137,6 +137,11 @@ CANONICAL_ROLE_FAMILIES = [
     "Operations", "RevOps_BizOps", "Finance",
     "HR_People", "Leadership", "Admin_GA",
     "IT_Security", "Solutions_Engineering", "Consulting",
+    # Added 2026-06-05 — taxonomy expansion to close the function_family=null
+    # gap from the techmap/Workday-MNC sourcing expansions (non-tech /
+    # life-sciences / industrial / regulated roles). Three new families
+    # cover ~85% of the live unmatched titles.
+    "Legal_Compliance", "Research_Science", "Manufacturing_Operations",
 ]
 CANONICAL_SENIORITY_LEVELS = [
     "Entry", "Entry_Mid", "Mid", "Senior", "Lead_Manager", "Director_Head", "VP_Executive",
