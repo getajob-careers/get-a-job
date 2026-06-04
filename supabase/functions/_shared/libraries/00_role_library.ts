@@ -24,7 +24,10 @@ export const roleLibrary = {
     "Admin_GA",
     "IT_Security",
     "Solutions_Engineering",
-    "Consulting"
+    "Consulting",
+    "Legal_Compliance",
+    "Research_Science",
+    "Manufacturing_Operations"
   ],
   "seniority_levels": [
     "Entry",
@@ -6814,6 +6817,16 @@ export const roleLibrary = {
     {
       "id": "junior_software_engineer",
       "standardized_title": "Junior Software Engineer",
+      "alternate_titles": [
+        "Junior Developer",
+        "Junior Programmer",
+        "Software Engineer Intern",
+        "Software Engineer Student",
+        "Software Engineer - Technion Fair",
+        "Software Engineering Student",
+        "Verification Student",
+        "Manual QA Tester"
+      ],
       "role_family": "Engineering",
       "secondary_family": null,
       "seniority": "Entry",
@@ -12650,9 +12663,9 @@ export const roleLibrary = {
     {
       "id": "legal_counsel",
       "standardized_title": "Legal Counsel",
-      "alternate_titles": ["In-House Counsel", "Corporate Counsel", "Commercial Counsel"],
-      "role_family": "Admin_GA",
-      "secondary_family": null,
+      "alternate_titles": ["In-House Counsel", "Corporate Counsel", "Commercial Counsel", "Senior Commercial Counsel", "VP Legal"],
+      "role_family": "Legal_Compliance",
+      "secondary_family": "Admin_GA",
       "seniority": "Mid",
       "core_purpose": "Provide in-house legal advice across commercial contracts, regulatory compliance, and corporate matters.",
       "core_responsibilities": [
@@ -12747,8 +12760,8 @@ export const roleLibrary = {
       "id": "paralegal",
       "standardized_title": "Paralegal",
       "alternate_titles": ["Legal Specialist", "Legal Operations Specialist", "Insurance Litigation Paralegal"],
-      "role_family": "Admin_GA",
-      "secondary_family": null,
+      "role_family": "Legal_Compliance",
+      "secondary_family": "Admin_GA",
       "seniority": "Entry_Mid",
       "core_purpose": "Support in-house counsel with contract administration, due diligence, corporate housekeeping, and legal operations.",
       "core_responsibilities": [
@@ -12778,8 +12791,8 @@ export const roleLibrary = {
     {
       "id": "compliance_counsel",
       "standardized_title": "Compliance Counsel",
-      "alternate_titles": ["Privacy Counsel", "Global Privacy Counsel", "Privacy & Compliance Counsel", "Regulatory Counsel"],
-      "role_family": "Admin_GA",
+      "alternate_titles": ["Privacy Counsel", "Global Privacy Counsel", "Privacy & Compliance Counsel", "Regulatory Counsel", "Crypto Product Compliance Lead", "Compliance Communications Team Lead", "Compliance Lead"],
+      "role_family": "Legal_Compliance",
       "secondary_family": "IT_Security",
       "seniority": "Mid",
       "core_purpose": "Own privacy, compliance, and regulatory legal matters — GDPR, CCPA, sector-specific (HIPAA, PCI, SOC2 legal pieces).",
@@ -13215,6 +13228,412 @@ export const roleLibrary = {
       "_research_method": "knowledge",
       "market_notes": {
         "israel": "Backgrounds: CSM promotion to revenue-owning roles, AE pivots into post-sale renewals, sometimes external account-management hires. Stack patterns: Salesforce + Gainsight + DealHub / PandaDoc for contracts + Outreach / Salesloft for renewal cadences. Hiring stage: B2B SaaS with sizeable existing customer bases that have split renewal ownership from CSM — monday.com, JFrog, HiBob, AppsFlyer, Gong, Lemonade, Payoneer, Cellebrite."
+      }
+    },
+    {
+      "id": "compliance_analyst",
+      "standardized_title": "Compliance Analyst",
+      "alternate_titles": ["KYC Analyst", "AML Analyst", "Compliance Specialist", "Regulatory Compliance Analyst"],
+      "role_family": "Legal_Compliance",
+      "secondary_family": "Operations",
+      "seniority": "Entry_Mid",
+      "core_purpose": "Operate day-to-day compliance, KYC/AML, and regulatory monitoring — execute the controls the legal/compliance team designs.",
+      "core_responsibilities": [
+        "Run KYC / AML / sanctions screening on customers and counterparties",
+        "Monitor transactions and flag suspicious activity",
+        "Maintain compliance documentation, controls, and audit trails",
+        "Support regulatory examinations and internal audits",
+        "Track changes in regulations and translate into operational steps"
+      ],
+      "required_skills": [
+        "compliance_general",
+        "risk_management",
+        "attention_to_detail",
+        "data_analysis"
+      ],
+      "preferred_skills": [
+        "gdpr_privacy",
+        "iso_27001",
+        "communication"
+      ],
+      "keywords": ["compliance", "kyc", "aml", "sanctions", "controls", "audit", "regulatory"],
+      "years_experience_typical": "1-3",
+      "_research_method": "library_addition_from_unmatched_2026_06_05",
+      "market_notes": {
+        "israel": "Fintech + crypto + B2B SaaS compliance teams. Backgrounds: ex-bank compliance analysts, audit/accounting grads, regulatory affairs. Common stack: ComplyAdvantage / Chainalysis / Refinitiv. Hiring: Robinhood IL, Melio, Payoneer, Lemonade, Forter, Tipalti."
+      }
+    },
+    {
+      "id": "chief_compliance_officer",
+      "standardized_title": "Chief Compliance Officer",
+      "alternate_titles": ["CCO", "Head of Compliance", "VP Compliance", "Chief Compliance Officer, RHD"],
+      "role_family": "Legal_Compliance",
+      "secondary_family": "Leadership",
+      "seniority": "VP_Executive",
+      "core_purpose": "Own the company-wide compliance program — design controls, set policy, manage regulator relationships, and report compliance posture to the board.",
+      "core_responsibilities": [
+        "Set the global compliance strategy and risk framework",
+        "Build and lead the compliance team (analysts, counsel, training)",
+        "Manage regulator relationships and respond to examinations",
+        "Report compliance KPIs and risk posture to the executive team and board",
+        "Approve product launches from a compliance/regulatory perspective"
+      ],
+      "required_skills": [
+        "compliance_general",
+        "risk_management",
+        "stakeholder_management",
+        "cross_functional_alignment"
+      ],
+      "preferred_skills": [
+        "gdpr_privacy",
+        "iso_27001",
+        "communication"
+      ],
+      "keywords": ["chief compliance officer", "cco", "compliance program", "regulatory strategy", "board reporting"],
+      "years_experience_typical": "12+",
+      "_research_method": "library_addition_from_unmatched_2026_06_05",
+      "market_notes": {
+        "israel": "Highly senior, narrow demand — concentrated at regulated fintechs and crypto firms with IL R&D + global operations. Examples: Robinhood, Payoneer, eToro, Lemonade."
+      }
+    },
+    {
+      "id": "security_researcher",
+      "standardized_title": "Security Researcher",
+      "alternate_titles": [
+        "Vulnerability Researcher",
+        "Application Security Researcher",
+        "iOS Vulnerability Researcher",
+        "Android Security Researcher",
+        "Threat Hunting Researcher",
+        "Cyber ML Event",
+        "Security Researcher Team Lead",
+        "Research Team Lead",
+        "Senior Product Security Low-Level Researcher",
+        "Senior Product Security Researcher",
+        "Senior Product Security Architect",
+        "Applied Algorithms & Operational Researcher",
+        "Technical Policy Researcher",
+        "Android Security Research Team Lead"
+      ],
+      "role_family": "IT_Security",
+      "secondary_family": "Engineering",
+      "seniority": "Mid",
+      "core_purpose": "Discover vulnerabilities, design exploits, and analyze threats — feed findings into product security or defensive operations.",
+      "core_responsibilities": [
+        "Reverse-engineer software/firmware/protocols to find vulnerabilities",
+        "Develop proof-of-concept exploits and disclose responsibly",
+        "Analyze attacker TTPs and design detections or mitigations",
+        "Publish internal/external research and CVEs",
+        "Collaborate with engineering on remediation and product hardening"
+      ],
+      "required_skills": [
+        "vulnerability_research",
+        "reverse_engineering",
+        "threat_analysis_investigation",
+        "problem_solving"
+      ],
+      "preferred_skills": [
+        "threat_hunting",
+        "threat_intelligence",
+        "communication",
+        "python_development"
+      ],
+      "keywords": ["vulnerability", "exploit", "reverse engineering", "cve", "threat hunting", "offensive security", "red team"],
+      "years_experience_typical": "3-7",
+      "_research_method": "library_addition_from_unmatched_2026_06_05",
+      "market_notes": {
+        "israel": "Heavily concentrated in IL cybersecurity ecosystem — ex-8200/Mamram, ex-defense industry. Companies: ActiveFence, Aqua Security, Cato Networks, Cellebrite, Checkmarx, Island, Paragon, Reflectiz, Silverfort, Vega, NSO."
+      }
+    },
+    {
+      "id": "research_scientist",
+      "standardized_title": "Research Scientist",
+      "alternate_titles": [
+        "Research Engineer",
+        "Applied Research Scientist",
+        "Senior Research Scientist",
+        "Research Scientist - LTX Model Applications",
+        "Research Scientist – LTX Model Evaluation",
+        "Microbiology Research Lead",
+        "Member of Technical Staff",
+        "Head of Research",
+        "Quantum Optics Student",
+        "Photonic Architect Student",
+        "Applied Physics and Electro-Optics Intern",
+        "Physics student"
+      ],
+      "role_family": "Research_Science",
+      "secondary_family": "AI_ML",
+      "seniority": "Mid",
+      "core_purpose": "Design and execute scientific experiments — physics, biology, chemistry, materials, or applied AI — to advance product, IP, or fundamental knowledge.",
+      "core_responsibilities": [
+        "Design experiments and analyze results",
+        "Build prototypes or models for hypothesis testing",
+        "Publish internal research reports and external papers/patents",
+        "Collaborate with engineering / product on translating research into product",
+        "Stay current with academic literature in domain"
+      ],
+      "required_skills": [
+        "statistical_analysis",
+        "data_analysis",
+        "python_development",
+        "problem_solving"
+      ],
+      "preferred_skills": [
+        "communication",
+        "cross_functional_collaboration"
+      ],
+      "keywords": ["research scientist", "applied research", "experiments", "publications", "phd", "materials", "physics", "biology", "ml research"],
+      "years_experience_typical": "2-8 (entry incl. PhD/MSc grad)",
+      "_research_method": "library_addition_from_unmatched_2026_06_05",
+      "market_notes": {
+        "israel": "Concentrated at: AI/ML labs (Lightricks, AI21, NVIDIA Research, Mobileye, Google), semiconductor research (KLA, Applied Materials, NVIDIA Optics), life sciences (ICL, Teva, Aleph Farms). Entry path: PhD/MSc graduates from Technion/TAU/Hebrew U/Weizmann."
+      }
+    },
+    {
+      "id": "medical_science_liaison",
+      "standardized_title": "Medical Science Liaison",
+      "alternate_titles": ["MSL", "Clinical Science Liaison", "Scientific Affairs Liaison", "CTA - Intern", "Clinical Trial Associate"],
+      "role_family": "Research_Science",
+      "secondary_family": "Sales",
+      "seniority": "Mid",
+      "core_purpose": "Bridge the company's clinical/scientific evidence and external HCPs (physicians, KOLs, payers) — communicate science, gather field intelligence, support medical strategy.",
+      "core_responsibilities": [
+        "Engage KOLs and HCPs on clinical evidence and disease state",
+        "Support clinical trial sites and medical affairs activities",
+        "Communicate scientific publications and product evidence",
+        "Gather field insights and feed back to medical / R&D leadership",
+        "Train internal stakeholders on therapeutic area science"
+      ],
+      "required_skills": [
+        "communication",
+        "stakeholder_management",
+        "attention_to_detail"
+      ],
+      "preferred_skills": [
+        "data_analysis",
+        "cross_functional_collaboration"
+      ],
+      "keywords": ["medical science liaison", "msl", "clinical affairs", "kol", "medical strategy", "therapeutic area"],
+      "years_experience_typical": "3-7",
+      "_research_method": "library_addition_from_unmatched_2026_06_05",
+      "market_notes": {
+        "israel": "IL medtech + pharma: Teva, Johnson & Johnson, Medtronic, Insightec, Magenta Medical, Eitan Medical, Aidoc. Typically requires advanced degree (PharmD, MD, PhD, MSc) in the therapeutic area."
+      }
+    },
+    {
+      "id": "process_engineer",
+      "standardized_title": "Process Engineer",
+      "alternate_titles": [
+        "Manufacturing Process Engineer",
+        "Production Process Engineer",
+        "Industrial Process Engineer",
+        "Industrial Engineer",
+        "מהנדס/ת תהליך",
+        "מהנדס/ת תהליך לאתר המגנזיום",
+        "Communication Algorithms Engineer",
+        "Process Engineer - Magnesium Site"
+      ],
+      "role_family": "Manufacturing_Operations",
+      "secondary_family": "Engineering",
+      "seniority": "Mid",
+      "core_purpose": "Design, optimize, and troubleshoot manufacturing or chemical processes — drive yield, throughput, and quality on the production floor.",
+      "core_responsibilities": [
+        "Design and improve manufacturing or chemical processes",
+        "Analyze process data to identify yield/quality issues",
+        "Lead root-cause investigations on production failures",
+        "Implement lean / six-sigma improvements",
+        "Coordinate with QA, production, and R&D on process transfers"
+      ],
+      "required_skills": [
+        "process_design",
+        "process_improvement",
+        "statistical_analysis",
+        "problem_solving"
+      ],
+      "preferred_skills": [
+        "data_analysis",
+        "cross_functional_collaboration"
+      ],
+      "keywords": ["process engineering", "lean", "six sigma", "yield", "manufacturing process", "root cause analysis"],
+      "years_experience_typical": "2-6",
+      "_research_method": "library_addition_from_unmatched_2026_06_05",
+      "market_notes": {
+        "israel": "Industrial + chemical + semiconductor manufacturing: ICL Group, Teva, Intel Fab, Tower Semiconductor, Flex, Frutarom/IFF, Applied Materials. Hebrew job titles common (מהנדס/ת תהליך)."
+      }
+    },
+    {
+      "id": "manufacturing_quality_engineer",
+      "standardized_title": "Manufacturing Quality Engineer",
+      "alternate_titles": [
+        "Quality Engineer",
+        "Design Assurance Engineer",
+        "Class III Quality Engineer",
+        "NPD Quality & Compliance Engineer",
+        "Supplier Quality Engineer",
+        "Production Quality Engineer",
+        "Senior Manufacturing Quality Engineer",
+        "QA Engineer (Manufacturing)",
+        "Supplier quality engineer"
+      ],
+      "role_family": "Manufacturing_Operations",
+      "secondary_family": "Engineering",
+      "seniority": "Mid",
+      "core_purpose": "Own the quality system for a manufactured product — design controls, run audits, manage CAPAs, ensure regulatory compliance (FDA / ISO / GMP).",
+      "core_responsibilities": [
+        "Design and maintain the quality management system (QMS)",
+        "Lead root-cause investigations on quality events and run CAPAs",
+        "Coordinate internal and external audits (FDA, ISO, supplier)",
+        "Approve manufacturing process changes from a quality perspective",
+        "Manage supplier quality and incoming inspection"
+      ],
+      "required_skills": [
+        "compliance_general",
+        "attention_to_detail",
+        "problem_solving",
+        "process_improvement"
+      ],
+      "preferred_skills": [
+        "statistical_analysis",
+        "data_analysis",
+        "communication"
+      ],
+      "keywords": ["quality engineer", "qms", "capa", "fda", "iso 13485", "iso 9001", "gmp", "design assurance", "supplier quality"],
+      "years_experience_typical": "3-7",
+      "_research_method": "library_addition_from_unmatched_2026_06_05",
+      "market_notes": {
+        "israel": "Heavily medtech + pharma + aerospace: Johnson & Johnson, Medtronic, Magenta Medical, Eitan Medical, PI-Cardia, Insightec, Stratasys, Teva, Flex. Class III/regulatory background commands premium."
+      }
+    },
+    {
+      "id": "quality_control_technician",
+      "standardized_title": "Quality Control Technician",
+      "alternate_titles": [
+        "QC Technician",
+        "QA Technician",
+        "QC Analyst",
+        "QC Student",
+        "QA LabOps Engineer",
+        "Content QA Analyst",
+        "Manual QA Tester",
+        "Mid-level Manual SW/System tester",
+        "QA Tester"
+      ],
+      "role_family": "Manufacturing_Operations",
+      "secondary_family": "Operations",
+      "seniority": "Entry_Mid",
+      "core_purpose": "Execute quality testing and inspection on incoming materials, in-process work, and finished goods — gate releases against defined specs.",
+      "core_responsibilities": [
+        "Run incoming, in-process, and final QC tests per documented procedures",
+        "Record results in QC system and flag out-of-spec for engineering review",
+        "Calibrate and maintain test equipment",
+        "Document deviations and support investigations",
+        "Maintain clean-room or controlled-environment compliance where required"
+      ],
+      "required_skills": [
+        "attention_to_detail",
+        "problem_solving",
+        "compliance_general"
+      ],
+      "preferred_skills": [
+        "data_analysis",
+        "communication"
+      ],
+      "keywords": ["qc technician", "qa technician", "quality control", "inspection", "test", "lab ops", "manual qa"],
+      "years_experience_typical": "0-3",
+      "_research_method": "library_addition_from_unmatched_2026_06_05",
+      "market_notes": {
+        "israel": "Medtech / pharma / hardware QA labs: PI-Cardia, Magenta Medical, Eitan Medical, Teva, Insightec, Stratasys, NVIDIA. Strong entry path — accepts QC Students from engineering programs."
+      }
+    },
+    {
+      "id": "production_technician",
+      "standardized_title": "Production Technician",
+      "alternate_titles": [
+        "Production Operator",
+        "Manufacturing Technician",
+        "Production Technician – Clean Room",
+        "Aeronautics Structural Builder",
+        "Wiring Technician",
+        "Materials Project Engineer",
+        "Electronic Engineering Technician",
+        "מבנאי.ת",
+        "חווט.ת",
+        "מלחימ.ה",
+        "מפעיל/ה",
+        "מפעיל צמ\"כ חומר גלם",
+        "מפעיל/ה צוות הכנות- ייצור סטרילי"
+      ],
+      "role_family": "Manufacturing_Operations",
+      "secondary_family": null,
+      "seniority": "Entry",
+      "core_purpose": "Execute manufacturing operations on the production floor — assemble, operate equipment, follow SOPs in regulated or clean-room environments.",
+      "core_responsibilities": [
+        "Execute production steps per SOPs (assembly, soldering, wiring, operating equipment)",
+        "Maintain clean-room or sterile-environment compliance",
+        "Record batch records and production data",
+        "Flag deviations and quality issues to supervisors",
+        "Support equipment changeovers and basic maintenance"
+      ],
+      "required_skills": [
+        "attention_to_detail",
+        "problem_solving"
+      ],
+      "preferred_skills": [
+        "communication"
+      ],
+      "keywords": ["production technician", "manufacturing operator", "clean room", "assembly", "soldering", "wiring", "sterile production"],
+      "years_experience_typical": "0-3 (vocational/military background common)",
+      "_research_method": "library_addition_from_unmatched_2026_06_05",
+      "market_notes": {
+        "israel": "Industrial + medtech + aerospace + pharma production floors: ICL, Teva, TAT Technologies, IAI, Eitan Medical, Magenta Medical, Flex, Bird Aerosystems. Hebrew job titles dominant (מבנאי / חווט / מלחים / מפעיל). Strong entry path — accepts post-military with relevant MOS, vocational grads, and clean-room certification holders."
+      }
+    },
+    {
+      "id": "hardware_engineer",
+      "standardized_title": "Hardware Engineer",
+      "alternate_titles": [
+        "Electrical Engineer",
+        "Firmware Engineer",
+        "Embedded Engineer",
+        "FPGA Engineer",
+        "ASIC Engineer",
+        "Verification Engineer",
+        "Silicon Engineer",
+        "PHY System Engineer",
+        "PHY System Team Leader",
+        "Photonic Architect",
+        "WiFi Firmware PHY Engineering Student",
+        "Verification Student for the SoC group",
+        "Software Verification Engineer, DOCA",
+        "Senior Product Quality and Reliability Engineer"
+      ],
+      "role_family": "Engineering",
+      "secondary_family": null,
+      "seniority": "Mid",
+      "core_purpose": "Design and verify hardware systems — chips, boards, firmware, RF/PHY — from spec through silicon bring-up to production.",
+      "core_responsibilities": [
+        "Design hardware components (analog, digital, RF, PHY, FPGA, ASIC) per spec",
+        "Write and run verification/simulation environments",
+        "Bring up and debug silicon, boards, or firmware on hardware",
+        "Collaborate with software/firmware teams on integration",
+        "Document designs and support production transfer"
+      ],
+      "required_skills": [
+        "programming_fundamentals",
+        "problem_solving",
+        "debugging"
+      ],
+      "preferred_skills": [
+        "python_development",
+        "linux_fundamentals",
+        "data_analysis"
+      ],
+      "keywords": ["hardware engineer", "firmware", "fpga", "asic", "verification", "soc", "phy", "rf", "silicon", "bring-up", "embedded"],
+      "years_experience_typical": "2-7 (entry incl. EE/CompE grad + Student/Intern programs)",
+      "_research_method": "library_addition_from_unmatched_2026_06_05",
+      "market_notes": {
+        "israel": "Massive IL hardware ecosystem: NVIDIA (Mellanox), Intel, Apple (chip team), Mobileye, Marvell, Qualcomm IL, KLA, Applied Materials, Tower Semiconductor, Annapurna (AWS), Ceragon, Parallel Wireless, Winbond, Sony Semiconductor (Altair), Mavenir. Strong student-track entry via Technion/TAU EE programs, plus on-campus Career Fair recruitment (e.g. NVIDIA, Intel)."
       }
     }
   ]
