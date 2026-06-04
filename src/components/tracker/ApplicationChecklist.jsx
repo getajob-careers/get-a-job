@@ -1,98 +1,109 @@
 import React from "react";
-import { CheckCircle2, Circle, Lock, Star } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Check, ArrowRight, ExternalLink, Lock } from "lucide-react";
+import { createPageUrl } from "@/utils";
 
-// PR 3E — Restyled on rd tokens with the grouped 7-step layout from
-// docs/design/redesign/getajob_tracker_seven_step_guide.html. The 7
-// checklist keys (P15) and lock rules (step 6 disabled until steps 1-5
-// done) are preserved 1:1. Only the visual reflow changes — same data
-// shape, same toggle behaviour, same optimistic-update + rollback
-// pattern in the parent (P5).
+// 7-step application checklist, restyled per
+// docs/design/redesign/getajob_application_steps_checklist.html (2026-06-05).
+//
+// Behaviour preserved 1:1 from the prior implementation:
+//   - 7 checklist keys (P15)
+//   - lock semantics for step 6 (application_submitted) — stays locked
+//     until steps 1–5 are complete
+//   - optimistic update + rollback pattern in the parent (P5)
+//
+// Net-new in this restyle:
+//   - One CTA per step. CTAs route to either an agent page
+//     (?application_id= + optional ?seed=), a sibling tab on the same
+//     application detail (via onNavigateTab), the Outreach Coach
+//     deep-link, or the company's careers URL.
+//   - Phase-tinted color treatment matches the mockup's golden / teal /
+//     coral palette via rd-tokens. Current-step is wrapped in a
+//     cream-tinted highlight card with a solid coral CTA; other pending
+//     steps use a muted tan pill.
+//
+// The first non-done step is the "current" step. Done steps render as
+// muted "Done" with no CTA (clicking the marker still toggles them
+// back to incomplete, same as before).
 
 const STEPS = [
   {
     key: "qualification_confirmed",
-    label: "Confirm You Qualify",
-    description: "Check the track for this role in Career Roadmap. Focus on Track 1 (Your Move) — your strongest matches with high goal alignment. Track 2 (Plan B) roles are also strong fits worth applying to. Track 3 (Work Toward) roles need more skill-building before applying — wait or close the gap first.",
-    step: 1,
+    title: "Qualify yourself",
+    description: "",                  // current-step gets no body text here
+    descriptionWhenCurrent: "Check your fit for this role before you invest more time.",
+    cta: { label: "Check if you qualify", icon: ArrowRight, action: "career_agent_with_seed" },
     phase: "know",
   },
   {
     key: "jd_dissected",
-    label: "Dissect the Job Description",
-    description: "Paste the JD in the 'Target Role' tab. Identify the 3 core responsibilities, 3 must-have skills, tools required, and seniority signals. Know this role better than other applicants.",
-    step: 2,
+    title: "Dissect the job description",
+    description: "",
+    descriptionWhenCurrent: "Know the role inside-out — responsibilities, must-have skills, seniority signals.",
+    cta: { label: "Review the job description", icon: ArrowRight, action: "navigate_tab", tab: "target" },
     phase: "know",
   },
   {
     key: "cv_tailored",
-    label: "Tailor Your CV to This Role",
-    description: "Go to the 'CV' tab. Rewrite your bullets to mirror the JD language. Move your most relevant experience to the top. A generic CV gets ignored — a tailored one gets calls.",
-    step: 3,
+    title: "Tailor your CV",
+    description: "Generate a CV tuned to this role's must-haves.",
+    descriptionWhenCurrent: "Generate a CV tuned to this role's must-haves.",
+    cta: { label: "Generate tailored CV", icon: ArrowRight, action: "open_agent", page: "CVAgent" },
     phase: "build",
   },
   {
     key: "skills_proof_mapped",
-    label: "Map Proof for Every Skill",
-    description: "Go to the 'Skills' tab. For each required skill, attach a project, course, or experience as evidence. Interviewers will ask — have an answer ready before you even apply.",
-    step: 4,
+    title: "Map your skill evidence",
+    description: "Match your stories to what the role asks for.",
+    descriptionWhenCurrent: "Match your stories to what the role asks for.",
+    cta: { label: "See your skill match", icon: ArrowRight, action: "navigate_tab", tab: "skills" },
     phase: "build",
   },
   {
     key: "referral_attempted",
-    label: "Find & Reach Out for a Referral",
-    description: "Go to the 'Networking' tab. Find 2+ people at this company on LinkedIn. A referral gets your CV seen by a human, skips ATS filtering, and — crucially — many companies offer referral bonuses to employees when a candidate they refer gets hired — so they're genuinely motivated to help you.",
-    step: 5,
+    title: "Find a referral contact",
+    description: "Find someone at {company} who can refer you in.",
+    descriptionWhenCurrent: "Find someone at {company} who can refer you in.",
+    cta: { label: "Find a referral", icon: ArrowRight, action: "outreach_referral" },
     phase: "build",
-    highlight: true,
   },
   {
     key: "application_submitted",
-    label: "Submit the Application",
-    description: "Only apply after all 5 steps above are done. Submitting early without prep is the #1 reason candidates get rejected. Go to the 'Application' tab to log the submission date and CV version used.",
-    step: 6,
+    title: "Submit your application",
+    description: "Apply on the company's careers page.",
+    descriptionWhenCurrent: "Apply on the company's careers page.",
+    cta: { label: "Apply", icon: ExternalLink, action: "open_apply_url" },
     phase: "apply",
   },
   {
     key: "interview_prep_done",
-    label: "Prepare for the Interview",
-    description: "Go to the 'Interview' tab. Review likely questions, prep STAR-format answers, and research the company. Most candidates wing it — this is how you stand out.",
-    step: 7,
+    title: "Prep for the interview",
+    description: "Practice STAR-format answers with the Interview Coach.",
+    descriptionWhenCurrent: "Practice STAR-format answers with the Interview Coach.",
+    cta: { label: "Open Interview Coach", icon: ArrowRight, action: "open_agent", page: "InterviewCoach" },
     phase: "apply",
   },
 ];
 
-// Phase palette — matches the "How to use" tiles on the Tracker page so
-// the 7-step framing reads as one continuous visual story.
 const PHASES = {
-  know:  {
-    label:      "Know the role",
-    headerBg:   "var(--rd-golden-tint)",
-    headerFg:   "var(--rd-golden-dark)",
-    rowTint:    "var(--rd-golden-tint)",
-    accent:     "var(--rd-golden)",
-    badgeBg:    "var(--rd-golden)",
-  },
-  build: {
-    label:      "Build your case",
-    headerBg:   "var(--rd-teal-tint)",
-    headerFg:   "var(--rd-teal-dark)",
-    rowTint:    "var(--rd-teal-tint)",
-    accent:     "var(--rd-teal)",
-    badgeBg:    "var(--rd-teal)",
-  },
-  apply: {
-    label:      "Apply & prep",
-    headerBg:   "var(--rd-coral-tint)",
-    headerFg:   "var(--rd-coral-dark)",
-    rowTint:    "var(--rd-coral-tint)",
-    accent:     "var(--rd-coral)",
-    badgeBg:    "var(--rd-coral)",
-  },
+  know:  { label: "Know the role",   color: "var(--rd-golden-dark)" },
+  build: { label: "Build your case", color: "var(--rd-teal-dark)" },
+  apply: { label: "Apply & prep",    color: "var(--rd-coral-dark)" },
 };
-
 const PHASE_ORDER = ["know", "build", "apply"];
 
-export default function ApplicationChecklist({ checklist = {}, onChange }) {
+// Seed message for step 1's Career Agent CTA. Kept in sync with the
+// step's intent — qualification check scoped to a single application.
+const STEP1_SEED = "Help me check whether I qualify for this role — walk through my track placement, goal alignment, and gaps.";
+
+export default function ApplicationChecklist({
+  app,
+  checklist = {},
+  onChange,
+  onNavigateTab,
+}) {
+  const navigate = useNavigate();
+
   const completedCount = STEPS.filter((s) => checklist[s.key]).length;
   const isReadyToApply =
     checklist.qualification_confirmed &&
@@ -101,171 +112,242 @@ export default function ApplicationChecklist({ checklist = {}, onChange }) {
     checklist.skills_proof_mapped &&
     checklist.referral_attempted;
 
+  // The current step is the first non-done step (or null if all done).
+  const currentStepKey = STEPS.find((s) => !checklist[s.key])?.key ?? null;
+
   const toggle = (key) => {
     onChange({ ...checklist, [key]: !checklist[key] });
   };
 
-  const stepsByPhase = PHASE_ORDER.reduce((acc, phase) => {
-    acc[phase] = STEPS.filter((s) => s.phase === phase);
-    return acc;
-  }, {});
+  const interpolate = (text) =>
+    text.replaceAll("{company}", app?.company || "this company");
+
+  const handleCta = (cta) => {
+    switch (cta.action) {
+      case "career_agent_with_seed": {
+        if (!app?.id) return;
+        const url = createPageUrl("CareerAgent") +
+          `?application_id=${encodeURIComponent(app.id)}` +
+          `&seed=${encodeURIComponent(STEP1_SEED)}`;
+        navigate(url);
+        return;
+      }
+      case "open_agent": {
+        if (!app?.id || !cta.page) return;
+        const url = createPageUrl(cta.page) +
+          `?application_id=${encodeURIComponent(app.id)}`;
+        navigate(url);
+        return;
+      }
+      case "navigate_tab": {
+        if (!cta.tab) return;
+        onNavigateTab?.(cta.tab);
+        return;
+      }
+      case "outreach_referral": {
+        if (!app?.company) {
+          // Without a company we can't seed the composer meaningfully —
+          // fall back to the Networking tab + let the user fill it in.
+          onNavigateTab?.("networking");
+          return;
+        }
+        const params = new URLSearchParams({
+          tab: "networking",
+          goal: "ask_for_referral",
+          prefillCompany: app.company,
+        });
+        if (app.role_title) params.set("prefillRole", app.role_title);
+        navigate(`${createPageUrl("Linkedin")}?${params.toString()}`);
+        return;
+      }
+      case "open_apply_url": {
+        const url = app?.url;
+        if (url) {
+          // Open in a new tab so the user keeps the Tracker open and can
+          // come back to log applied_date (which auto-completes this step).
+          window.open(url, "_blank", "noopener,noreferrer");
+        } else {
+          // No URL on file — drop them on the Application tab to enter it.
+          onNavigateTab?.("application");
+        }
+        return;
+      }
+      default:
+        return;
+    }
+  };
 
   return (
     <div>
-      {/* Header row — eyebrow + N/7 counter */}
-      <div className="flex items-center justify-between mb-3">
-        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-          Application Checklist
-        </p>
-        <span className="text-[11px] font-mono text-rd-text-secondary">
-          {completedCount}/{STEPS.length} steps
+      {/* Progress bar — full-width track, coral fill, "{done} / 7" tail. */}
+      <div className="flex items-center gap-2.5 mb-5">
+        <div className="flex-1 h-[7px] rounded-full bg-rd-bg-soft overflow-hidden">
+          <div
+            className="h-full bg-rd-coral transition-[width] duration-500 ease-out"
+            style={{ width: `${(completedCount / STEPS.length) * 100}%` }}
+          />
+        </div>
+        <span className="font-display font-bold text-[12px] text-rd-text-secondary tabular-nums">
+          {completedCount} / {STEPS.length}
         </span>
       </div>
 
-      {/* Progress bar */}
-      <div className="h-[7px] rounded-full bg-rd-bg-soft overflow-hidden mb-4">
-        <div
-          className="h-full rounded-full bg-rd-coral transition-[width] duration-500 ease-out"
-          style={{ width: `${(completedCount / STEPS.length) * 100}%` }}
-        />
-      </div>
-
-      {/* "How this works" callout */}
-      <div className="mb-4 rounded-[14px] border border-rd-border bg-rd-bg-soft px-4 py-3">
-        <p className="text-[11.5px] font-display font-bold text-rd-text mb-1">
-          How this works
-        </p>
-        <p className="text-[11.5px] text-rd-text-secondary leading-[1.55]">
-          Follow all 7 steps <em>before</em> submitting. Most applicants skip steps 3–5 — that&apos;s exactly how you beat them. Step 5 (referral) is the highest-leverage action: your CV gets seen by a human, ATS is bypassed, and many companies offer referral bonuses to employees when a referred candidate gets hired — so your contact is genuinely motivated to help you.
-        </p>
-      </div>
-
-      {/* Lock warning */}
-      {!isReadyToApply && !checklist.application_submitted && (
-        <div
-          className="mb-3 rounded-[14px] px-3.5 py-2"
-          style={{ background: "var(--rd-golden-tint)" }}
-        >
-          <p
-            className="text-[11.5px] font-display font-semibold leading-snug"
-            style={{ color: "var(--rd-golden-dark)" }}
-          >
-            ⚠ Application locked until steps 1–5 are complete. Don&apos;t skip the process.
-          </p>
-        </div>
-      )}
-
-      {/* Phase-grouped steps */}
-      <div className="flex flex-col gap-4">
-        {PHASE_ORDER.map((phase) => {
-          const phaseSteps = stepsByPhase[phase];
-          const phaseConfig = PHASES[phase];
-          if (phaseSteps.length === 0) return null;
-          return (
-            <div key={phase}>
-              <p
-                className="font-display font-bold text-[11px] uppercase tracking-[0.08em] mb-2"
-                style={{ color: phaseConfig.headerFg }}
-              >
-                {phaseConfig.label}
-              </p>
-              <div className="flex flex-col gap-2">
-                {phaseSteps.map((step) => {
-                  const done = !!checklist[step.key];
-                  const isLocked =
-                    step.key === "application_submitted" && !isReadyToApply && !done;
-                  return (
-                    <StepRow
-                      key={step.key}
-                      step={step}
-                      phaseConfig={phaseConfig}
-                      done={done}
-                      isLocked={isLocked}
-                      onToggle={() => !isLocked && toggle(step.key)}
-                    />
-                  );
-                })}
-              </div>
+      {/* Phase-grouped step list */}
+      {PHASE_ORDER.map((phase) => {
+        const phaseSteps = STEPS.map((s, i) => ({ ...s, step: i + 1 })).filter((s) => s.phase === phase);
+        const phaseConfig = PHASES[phase];
+        return (
+          <div key={phase} className="mt-4 first:mt-0">
+            <p
+              className="font-display font-bold text-[11px] uppercase tracking-[0.04em] mb-1.5"
+              style={{ color: phaseConfig.color }}
+            >
+              {phaseConfig.label}
+            </p>
+            <div className="flex flex-col">
+              {phaseSteps.map((step) => {
+                const done = !!checklist[step.key];
+                const isCurrent = step.key === currentStepKey;
+                const isLocked =
+                  step.key === "application_submitted" && !isReadyToApply && !done;
+                return (
+                  <StepRow
+                    key={step.key}
+                    step={step}
+                    done={done}
+                    isCurrent={isCurrent}
+                    isLocked={isLocked}
+                    interpolate={interpolate}
+                    onToggle={() => !isLocked && toggle(step.key)}
+                    onCta={handleCta}
+                  />
+                );
+              })}
             </div>
-          );
-        })}
-      </div>
+          </div>
+        );
+      })}
     </div>
   );
 }
 
-function StepRow({ step, phaseConfig, done, isLocked, onToggle }) {
-  // Done row → fully tinted with phase color. Active/idle → cream with
-  // subtle border. Locked → muted greyed-out.
-  const bg = done
-    ? phaseConfig.rowTint
-    : isLocked
-    ? "var(--rd-bg-soft)"
-    : "var(--rd-bg-card)";
-  const textColor = done
-    ? phaseConfig.headerFg
-    : isLocked
-    ? "var(--rd-text-tertiary)"
-    : "var(--rd-text)";
-  const descColor = done
-    ? phaseConfig.headerFg
-    : isLocked
-    ? "var(--rd-text-tertiary)"
-    : "var(--rd-text-secondary)";
+function StepRow({ step, done, isCurrent, isLocked, interpolate, onToggle, onCta }) {
+  const description = isCurrent
+    ? interpolate(step.descriptionWhenCurrent || step.description)
+    : interpolate(step.description);
+  const Icon = step.cta?.icon;
 
-  return (
-    <div
-      className="flex items-start gap-3 rounded-[12px] px-3.5 py-2.5 border border-rd-border-subtle transition-colors"
-      style={{ background: bg, opacity: isLocked ? 0.55 : 1 }}
-    >
+  // Current step is wrapped in a cream highlight card. Non-current rows
+  // are plain, no card chrome — keeps the eye on the next action.
+  const rowInner = (
+    <div className="flex items-start gap-3 py-2 px-0.5">
+      <StepMarker done={done} isCurrent={isCurrent} isLocked={isLocked} onToggle={onToggle} />
+      <div className="flex-1 min-w-0">
+        <p
+          className={[
+            "font-display font-bold text-[13.5px] leading-tight",
+            done ? "text-rd-text-tertiary" : isLocked ? "text-rd-text-tertiary" : "text-rd-text",
+          ].join(" ")}
+        >
+          {step.step} · {step.title}
+        </p>
+        {done ? (
+          <p className="text-[11px] text-rd-text-tertiary mt-0.5">Done</p>
+        ) : description ? (
+          <p
+            className={[
+              "text-[11.5px] leading-[1.4] mt-0.5",
+              isLocked ? "text-rd-text-tertiary" : "text-rd-text-secondary",
+            ].join(" ")}
+          >
+            {description}
+          </p>
+        ) : null}
+
+        {/* CTA — hidden when done; muted-tan when pending; solid-coral
+            when current. Locked steps show a disabled lock pill. */}
+        {!done && step.cta && (
+          isLocked ? (
+            <span
+              className="inline-flex items-center gap-1.5 font-display font-semibold text-[11.5px] rounded-full px-3 py-1.5 mt-2 bg-rd-bg-soft text-rd-text-tertiary cursor-not-allowed"
+              aria-disabled="true"
+            >
+              <Lock className="w-3 h-3" /> Locked
+            </span>
+          ) : (
+            <button
+              type="button"
+              onClick={() => onCta(step.cta)}
+              className={[
+                "inline-flex items-center gap-1.5 font-display font-semibold text-[11.5px] rounded-full px-3 py-1.5 mt-2 transition-colors",
+                isCurrent
+                  ? "bg-rd-coral text-white hover:bg-rd-coral-dark"
+                  : "bg-rd-bg-soft text-rd-text-secondary hover:bg-rd-border hover:text-rd-text border border-rd-border",
+              ].join(" ")}
+            >
+              {step.cta.label}
+              {Icon && <Icon className="w-3 h-3" />}
+            </button>
+          )
+        )}
+      </div>
+    </div>
+  );
+
+  if (isCurrent) {
+    return (
+      <div className="bg-rd-bg-soft border border-rd-border rounded-[12px] my-1 px-2.5 py-0.5">
+        {rowInner}
+      </div>
+    );
+  }
+  return rowInner;
+}
+
+function StepMarker({ done, isCurrent, isLocked, onToggle }) {
+  // Done: filled coral circle with white check. Current: coral outline
+  // circle. Pending: light-gray outline circle. Click anywhere toggles
+  // (the user can still manually mark steps complete without clicking
+  // the CTA — preserves the original toggle UX).
+  const base = "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors";
+  if (isLocked) {
+    return (
+      <span
+        className={`${base} border-[1.5px] border-rd-border bg-rd-bg-soft cursor-not-allowed`}
+        aria-label="Locked"
+      >
+        <Lock className="w-3 h-3 text-rd-text-tertiary" />
+      </span>
+    );
+  }
+  if (done) {
+    return (
       <button
         type="button"
         onClick={onToggle}
-        disabled={isLocked}
-        aria-label={
-          isLocked
-            ? `${step.label} (locked)`
-            : done
-            ? `Mark step ${step.step} incomplete`
-            : `Mark step ${step.step} complete`
-        }
-        className="mt-0.5 flex-shrink-0 disabled:cursor-not-allowed"
+        aria-label="Mark step incomplete"
+        className={`${base} bg-rd-coral text-white hover:bg-rd-coral-dark`}
       >
-        {isLocked ? (
-          <Lock className="w-4 h-4 text-rd-text-tertiary" />
-        ) : done ? (
-          <CheckCircle2 className="w-4 h-4" style={{ color: phaseConfig.accent }} />
-        ) : (
-          <Circle className="w-4 h-4 text-rd-text-tertiary hover:text-rd-text transition-colors" />
-        )}
+        <Check className="w-3.5 h-3.5" strokeWidth={3} />
       </button>
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2 flex-wrap">
-          <p
-            className="font-display font-bold text-[12.5px] leading-tight"
-            style={{ color: textColor }}
-          >
-            Step {step.step} — {step.label}
-          </p>
-          {step.highlight && (
-            <span
-              className="inline-flex items-center gap-1 text-[9.5px] font-display font-extrabold tracking-[0.04em] uppercase rounded-md px-1.5 py-0.5"
-              style={{
-                background: "var(--rd-golden-tint)",
-                color: "var(--rd-golden-dark)",
-              }}
-            >
-              <Star className="w-2.5 h-2.5" /> High Impact
-            </span>
-          )}
-        </div>
-        <p
-          className="text-[11.5px] leading-[1.5] mt-1"
-          style={{ color: descColor }}
-        >
-          {step.description}
-        </p>
-      </div>
-    </div>
+    );
+  }
+  if (isCurrent) {
+    return (
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-label="Mark step complete"
+        className={`${base} border-2 border-rd-coral bg-white hover:bg-rd-coral-tint`}
+      />
+    );
+  }
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      aria-label="Mark step complete"
+      className={`${base} border-[1.5px] border-rd-border bg-white hover:border-rd-coral`}
+    />
   );
 }

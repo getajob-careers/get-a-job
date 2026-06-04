@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -26,7 +27,13 @@ const GENERAL_PROMPTS = [
 
 export default function CareerAgent() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedAppId, setSelectedAppId] = useState("general");
+  // ?seed=… seeds the suggested prompts pane so the Tracker step-CTA's
+  // suggested first question appears at the top. We don't auto-send;
+  // student opts in by clicking the chip — same UX as the static
+  // suggestedPrompts list.
+  const [seedPrompt, setSeedPrompt] = useState(null);
 
   const { data: applications = [] } = useQuery({
     queryKey: ["applications", user?.id],
@@ -43,6 +50,26 @@ export default function CareerAgent() {
     enabled: !!user?.id,
     refetchOnMount: "always",
   });
+
+  // Consume ?application_id=…&seed=… from the Tracker step-CTAs.
+  // Validate the id against the user's own applications (avoid setting
+  // a stranger's id from a stale link). Strip params after capture so
+  // a refresh doesn't keep re-applying the seed prompt.
+  const validIds = useMemo(() => new Set(applications.map((a) => a.id)), [applications]);
+  useEffect(() => {
+    const appIdParam = searchParams.get("application_id");
+    const seedParam = searchParams.get("seed");
+    if (!appIdParam && !seedParam) return;
+    // Wait for applications list to load before validating the id.
+    if (appIdParam && !validIds.size) return;
+    if (appIdParam && validIds.has(appIdParam)) setSelectedAppId(appIdParam);
+    if (seedParam) setSeedPrompt(seedParam);
+    const next = new URLSearchParams(searchParams);
+    next.delete("application_id");
+    next.delete("seed");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [validIds.size]);
 
   const selectedApp = applications.find((a) => a.id === selectedAppId);
   const appLabel = selectedApp
@@ -61,7 +88,13 @@ export default function CareerAgent() {
     "What can I do this week to prepare for this application?",
     "How does my profile compare to what this role requires?",
   ];
-  const suggestedPrompts = selectedApp ? APPLICATION_PROMPTS : GENERAL_PROMPTS;
+  // If a seed prompt arrived via ?seed=, surface it as the FIRST suggested
+  // prompt for one easy click. Falls through to the standard prompt set
+  // after the seed is dismissed (clicking it sends, which clears it).
+  const baseSuggested = selectedApp ? APPLICATION_PROMPTS : GENERAL_PROMPTS;
+  const suggestedPrompts = seedPrompt
+    ? [seedPrompt, ...baseSuggested.filter((p) => p !== seedPrompt)]
+    : baseSuggested;
 
   return (
     <div className="h-screen flex flex-col overflow-hidden">

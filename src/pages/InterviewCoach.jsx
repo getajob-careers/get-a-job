@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
@@ -33,6 +34,7 @@ const APPLICATION_PROMPTS = [
 
 export default function InterviewCoach() {
   const { user } = useAuth();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedAppId, setSelectedAppId] = useState("general");
 
   const { data: applications = [] } = useQuery({
@@ -53,6 +55,20 @@ export default function InterviewCoach() {
     // an empty dropdown from a stale TanStack cache.
     refetchOnMount: "always",
   });
+
+  // Consume ?application_id= from the Tracker step-7 CTA. Validate +
+  // strip param so a refresh doesn't keep re-applying it.
+  const validIds = useMemo(() => new Set(applications.map((a) => a.id)), [applications]);
+  useEffect(() => {
+    const appIdParam = searchParams.get("application_id");
+    if (!appIdParam) return;
+    if (!validIds.size) return;
+    if (validIds.has(appIdParam)) setSelectedAppId(appIdParam);
+    const next = new URLSearchParams(searchParams);
+    next.delete("application_id");
+    setSearchParams(next, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [validIds.size]);
 
   const selectedApp = applications.find((a) => a.id === selectedAppId);
   const title = selectedApp

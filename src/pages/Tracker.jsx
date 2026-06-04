@@ -1,8 +1,9 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, X, Briefcase, Star } from "lucide-react";
+import { Loader2, Plus, X, Briefcase, Star, LayoutGrid, List as ListIcon } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Dialog,
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { track, EVENTS } from "@/lib/analytics";
 import ApplicationRow from "../components/tracker/ApplicationRow";
+import ApplicationsKanban from "../components/tracker/ApplicationsKanban";
 import { scoreApplication } from "@/lib/scoreApplication";
 import { stripHtml } from "../../scripts/lib/normalize.ts";
 import { TRACKER_CSS } from "../components/tracker/trackerStyles";
@@ -50,6 +52,23 @@ export default function Tracker() {
   const [showAdd, setShowAdd] = useState(false);
   const [filter, setFilter] = useState("all");
   const [newApp, setNewApp] = useState({ role_title: "", company: "", status: "interested" });
+
+  // Opt-in kanban view via ?view=kanban. Default remains the list — the
+  // list is the core path and shouldn't change behaviour for existing users
+  // following deep links. Toggle is bookmark-shareable.
+  const [searchParams, setSearchParams] = useSearchParams();
+  const view = searchParams.get("view") === "kanban" ? "kanban" : "list";
+  const setView = (next) => {
+    const params = new URLSearchParams(searchParams);
+    if (next === "kanban") params.set("view", "kanban"); else params.delete("view");
+    setSearchParams(params, { replace: true });
+  };
+  // Expanded application (kanban card click → expand the same ApplicationRow
+  // detail the list view shows). Keeps both views feeding the same drawer.
+  const [expandedAppId, setExpandedAppId] = useState(null);
+  // When switching to list, clear the kanban-driven expansion so we don't
+  // leave a stale row open.
+  useEffect(() => { if (view === "list") setExpandedAppId(null); }, [view]);
 
   const [jobDescription, setJobDescription] = useState("");
   const [importError, setImportError] = useState("");
@@ -222,32 +241,108 @@ export default function Tracker() {
           </div>
         </div>
 
-        {/* Status filters */}
-        <div className="flex gap-2 mt-7 mb-5 overflow-x-auto pb-1">
-          {STATUS_FILTERS.map((s) => {
-            const selected = filter === s;
-            return (
-              <button
-                key={s}
-                type="button"
-                onClick={() => setFilter(s)}
-                aria-pressed={selected}
-                className={[
-                  "inline-flex items-center font-display font-bold text-[12.5px] rounded-full px-3.5 py-1.5 transition-colors duration-150 whitespace-nowrap",
-                  selected
-                    ? "bg-rd-text text-white"
-                    : "bg-rd-bg-card text-rd-text-secondary border border-rd-border hover:border-rd-border-hover hover:text-rd-text",
-                ].join(" ")}
-              >
-                {STATUS_PILL_LABELS[s]}
-              </button>
-            );
-          })}
+        {/* View toggle + status filters. The toggle sits on its own row so
+            the filter pills stay scrollable on mobile without colliding. */}
+        <div className="flex items-center gap-2 mt-7 mb-3">
+          <div className="inline-flex bg-rd-bg-soft rounded-full p-0.5 border border-rd-border">
+            <button
+              type="button"
+              onClick={() => setView("list")}
+              aria-pressed={view === "list"}
+              className={[
+                "inline-flex items-center gap-1.5 font-display font-bold text-[12px] rounded-full px-3 py-1 transition-colors",
+                view === "list"
+                  ? "bg-rd-text text-white"
+                  : "text-rd-text-secondary hover:text-rd-text",
+              ].join(" ")}
+            >
+              <ListIcon className="w-3.5 h-3.5" />
+              List
+            </button>
+            <button
+              type="button"
+              onClick={() => setView("kanban")}
+              aria-pressed={view === "kanban"}
+              className={[
+                "inline-flex items-center gap-1.5 font-display font-bold text-[12px] rounded-full px-3 py-1 transition-colors",
+                view === "kanban"
+                  ? "bg-rd-text text-white"
+                  : "text-rd-text-secondary hover:text-rd-text",
+              ].join(" ")}
+            >
+              <LayoutGrid className="w-3.5 h-3.5" />
+              Board
+            </button>
+          </div>
         </div>
+
+        {/* Status filters — list view only. Kanban already shows every
+            column, so a filter would be either confusing or redundant. */}
+        {view === "list" && (
+          <div className="flex gap-2 mb-5 overflow-x-auto pb-1">
+            {STATUS_FILTERS.map((s) => {
+              const selected = filter === s;
+              return (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setFilter(s)}
+                  aria-pressed={selected}
+                  className={[
+                    "inline-flex items-center font-display font-bold text-[12.5px] rounded-full px-3.5 py-1.5 transition-colors duration-150 whitespace-nowrap",
+                    selected
+                      ? "bg-rd-text text-white"
+                      : "bg-rd-bg-card text-rd-text-secondary border border-rd-border hover:border-rd-border-hover hover:text-rd-text",
+                  ].join(" ")}
+                >
+                  {STATUS_PILL_LABELS[s]}
+                </button>
+              );
+            })}
+          </div>
+        )}
 
         {/* Applications */}
         {isLoading ? (
           <TrackerRowSkeleton />
+        ) : view === "kanban" ? (
+          applications.length === 0 ? (
+            <div className="rounded-[18px] border border-rd-border bg-rd-bg-card px-6 py-10 shadow-rd text-center">
+              <Briefcase className="w-10 h-10 text-rd-coral mx-auto mb-3" />
+              <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] max-w-md mx-auto">
+                No applications yet. Add one manually or use the Career Roadmap to auto-create tracked roles.
+              </p>
+            </div>
+          ) : (
+            <>
+              <ApplicationsKanban
+                applications={applications}
+                statuses={STATUS_FILTERS.filter((s) => s !== "all")}
+                statusLabels={STATUS_PILL_LABELS}
+                onCardClick={(app) => setExpandedAppId((cur) => cur === app.id ? null : app.id)}
+              />
+              {expandedAppId && (() => {
+                const app = applications.find((a) => a.id === expandedAppId);
+                if (!app) return null;
+                return (
+                  <div className="mt-5">
+                    <ApplicationRow
+                      key={`expanded-${app.id}`}
+                      app={app}
+                      profile={profile}
+                      listingInactive={
+                        Boolean(app.ats_source && app.external_id &&
+                          inactiveExternalIds.has(`${app.ats_source}|${app.external_id}`))
+                      }
+                      onUpdate={() =>
+                        queryClient.invalidateQueries({ queryKey: ["applications"] })
+                      }
+                    />
+                  </div>
+                );
+              })()}
+            </>
+          )
         ) : filtered.length === 0 ? (
           <div className="rounded-[18px] border border-rd-border bg-rd-bg-card px-6 py-10 shadow-rd text-center">
             <Briefcase className="w-10 h-10 text-rd-coral mx-auto mb-3" />
