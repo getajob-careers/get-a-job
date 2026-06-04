@@ -5655,11 +5655,11 @@
       "industry": "Medtech / Cardiac Catheter Pumps",
       "domain": "magentamed.com",
       "careers_url": "https://www.magentamed.com/careers",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Kadima, Israel HQ; ~150 employees; 8 active IL jobs per Glassdoor. Careers page uses an embedded form on magentamed.com without visible greenhouse/lever/comeet/ashby/workday hooks. Likely proprietary or a smaller ATS. Skipped — needs targeted ATS-detection pass via network inspection in browser."
+      "ats": "comeet",
+      "slug": "F9.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/F9.003/positions?token=9F345A51DD913E6009F34F981DD927CC&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token extracted from careers page HTML via discover-comeet.ts (2026-06-04). API returned 7 positions, all IL-tagged (Magenta Medical - IL)."
     },
     {
       "name": "Magic Software",
