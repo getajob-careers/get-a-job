@@ -1,24 +1,24 @@
 {
-  "generated_at": "2026-05-18",
-  "total_companies": 831,
+  "generated_at": "2026-06-04",
+  "total_companies": 873,
   "by_ats": {
-    "unknown": 262,
-    "lever": 24,
-    "ashby": 58,
-    "comeet": 200,
-    "greenhouse": 196,
-    "workday": 29,
+    "ashby": 67,
+    "comeet": 220,
     "custom": 32,
     "eightfold": 3,
+    "greenhouse": 202,
+    "iai": 1,
     "icims": 1,
-    "smartrecruiters": 10,
-    "workable": 5,
-    "successfactors": 8,
+    "jooble": 1,
+    "lever": 26,
     "oracle": 1,
     "recruitee": 1,
+    "smartrecruiters": 10,
+    "successfactors": 8,
     "teamtailor": 1,
-    "jooble": 1,
-    "iai": 1
+    "unknown": 260,
+    "workable": 10,
+    "workday": 29
   },
   "companies": [
     {
@@ -140,6 +140,18 @@
       "api_url": "https://accenture.wd103.myworkdayjobs.com/wday/cxs/accenture/AccentureCareers/jobs",
       "verified": true,
       "notes": "Slug verified. Tenant returns 2000+ jobs globally and rejects searchText='Israel' with HTTP 422 (likely the prior cron failure mode) but accepts locationCountry filter — 1 IL job (Penetration Tester, Kfar Saba). Recommendation: the cron's searchText='Israel' returns 422 here while searchText='' returns 2000 jobs but no Israel-specific filter applied. Slug itself is fine; the cron may want to fall back to locationCountry facet probe when searchText 422s."
+    },
+    {
+      "name": "accessiBe",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "accessibe.com",
+      "careers_url": "https://accessibe.com/careers",
+      "ats": "greenhouse",
+      "slug": "accessibe",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/accessibe/jobs?content=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 12 positions, 4 IL-tagged."
     },
     {
       "name": "ActiveFence",
@@ -838,6 +850,18 @@
       "notes": "Probed: greenhouse slug 'appsflyer' returns 200"
     },
     {
+      "name": "april",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "getapril.com",
+      "careers_url": "https://www.getapril.com/careers",
+      "ats": "ashby",
+      "slug": "april",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/april?includeCompensation=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 12 positions, 6 IL-tagged."
+    },
+    {
       "name": "Aqua Security",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -848,6 +872,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/91.001/positions?token=191644966966644E194B3191644644&details=true",
       "verified": true,
       "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.aquasec.com/careers/)"
+    },
+    {
+      "name": "Aquant Technologies",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "aquant.ai",
+      "careers_url": "https://www.aquant.ai/company/careers",
+      "ats": "ashby",
+      "slug": "aquant",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/aquant?includeCompensation=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 5 positions, 0 IL-tagged."
     },
     {
       "name": "Arbe Robotics",
@@ -1846,6 +1882,18 @@
       "notes": "Greenhouse; remote-first scheduling SaaS"
     },
     {
+      "name": "Candex Technologies",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "candex.com",
+      "careers_url": "https://www.candex.com/careers",
+      "ats": "ashby",
+      "slug": "candex",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/candex?includeCompensation=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 17 positions, 5 IL-tagged."
+    },
+    {
       "name": "Canonical",
       "type": "international_il_rd",
       "industry": "Software / Linux",
@@ -1964,6 +2012,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Comeet UID C1.00A found; token not extractable from comeet hosted page"
+    },
+    {
+      "name": "Ceragon Networks",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "ceragon.com",
+      "careers_url": "https://www.ceragon.com/about-ceragon/careers",
+      "ats": "comeet",
+      "slug": "D3.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/D3.003/positions?token=3D3131FF4C01AC57A61AC51E98131FF4C&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 56 positions, 10 IL-tagged."
     },
     {
       "name": "Cerebras Systems",
@@ -2302,6 +2362,18 @@
       "notes": "Search confused with Cognite (different co); no ATS for Cogniteam"
     },
     {
+      "name": "Cognyte",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "cognyte.com",
+      "careers_url": "https://www.cognyte.com/careers/",
+      "ats": "comeet",
+      "slug": "F2.009",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/F2.009/positions?token=2F9EDD2F92F911D61AC12F914CF11D62F9&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 31 positions, 8 IL-tagged."
+    },
+    {
       "name": "Cohere",
       "type": "international_il_rd",
       "industry": "AI/ML",
@@ -2540,6 +2612,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/C7.00F/positions?token=7CF2EDA1F3C270B1F3CF9E4647270B4647270B&details=true",
       "verified": true,
       "notes": "UID + token from static HTML at comeet.com/jobs/crossriver/C7.00F; API returned 15 positions, 15 IL-tagged. Banking-as-a-Service fintech with large IL R&D centre. Distinct from C7.004 already in registry."
+    },
+    {
+      "name": "CTERA Networks",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "ctera.com",
+      "careers_url": "https://www.ctera.com/company/careers/",
+      "ats": "comeet",
+      "slug": "A0.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/A0.003/positions?token=A328CA332FA3032F1E932FA3&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 5 positions, 1 IL-tagged."
     },
     {
       "name": "Cyabra",
@@ -2924,6 +3008,18 @@
       "api_url": null,
       "verified": false,
       "notes": "No ATS hit"
+    },
+    {
+      "name": "deepdub",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "deepdub.ai",
+      "careers_url": "https://deepdub.ai/careers",
+      "ats": "comeet",
+      "slug": "E7.00C",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/E7.00C/positions?token=7EC2F881FB037741FB017C4FD8FD83F60474C&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 14 positions, 4 IL-tagged."
     },
     {
       "name": "DeepMind",
@@ -3574,6 +3670,18 @@
       "notes": "Series B Jul 2025 $96M at $700M valuation. AI subsurface (underground) mapping for construction/utilities/transport. Comeet UID 89.005 + token 98542A398504C28391E130A391E391E2614. Verified: 41 jobs, 11 IL."
     },
     {
+      "name": "Explorium",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "explorium.ai",
+      "careers_url": "https://www.explorium.ai/careers/",
+      "ats": "comeet",
+      "slug": "B4.00E",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/B4.00E/positions?token=4BE17B61C744BE1C7497C4BE12F817B612F8&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 2 positions, 1 IL-tagged."
+    },
+    {
       "name": "ExpressVPN",
       "type": "international_il_rd",
       "industry": "Consumer VPN / Privacy",
@@ -3644,6 +3752,18 @@
       "api_url": null,
       "verified": false,
       "notes": "No ATS hit"
+    },
+    {
+      "name": "Fetcherr",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "fetcherr.io",
+      "careers_url": "https://www.fetcherr.io/career",
+      "ats": "comeet",
+      "slug": "68.006",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/68.006/positions?token=866326432643ACA866219829FE10CC193229FE&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 21 positions, 13 IL-tagged."
     },
     {
       "name": "Figma",
@@ -3898,6 +4018,18 @@
       "notes": "Comeet UID 54.002 confirmed. Israeli-founded (formerly AutoLeadStar). Automotive dealer marketing automation, hubs in US and IL."
     },
     {
+      "name": "FundGuard",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "fundguard.com",
+      "careers_url": "https://www.fundguard.com/careers/",
+      "ats": "comeet",
+      "slug": "37.002",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/37.002/positions?token=7322B2C1596159623FA40C21CC8159615961CC8&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 1 positions, 0 IL-tagged."
+    },
+    {
       "name": "Future Meat",
       "type": "israeli_founded",
       "industry": "FoodTech",
@@ -4016,6 +4148,18 @@
       "api_url": "https://api.smartrecruiters.com/v1/companies/gloat/postings",
       "verified": true,
       "notes": "Probed: smartrecruiters slug 'gloat' has jobs"
+    },
+    {
+      "name": "Global-e",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "global-e.com",
+      "careers_url": "https://www.global-e.com/careers/",
+      "ats": "comeet",
+      "slug": "62.002",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/62.002/positions?token=262988131015727264C41572E4C10AE10AE&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 80 positions, 22 IL-tagged."
     },
     {
       "name": "Globes",
@@ -4258,6 +4402,18 @@
       "notes": "Career portal returns HTTP 466/cloudflare-blocked to bots. Confirmed Israeli insurance proprietary HR portal (typical: Niloog/Hilan). Not in supported set."
     },
     {
+      "name": "Harness",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "harness.io",
+      "careers_url": "https://www.harness.io/company/careers",
+      "ats": "greenhouse",
+      "slug": "harnessinc",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/harnessinc/jobs?content=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 119 positions, 0 IL-tagged."
+    },
+    {
       "name": "Hazera Genetics",
       "type": "israeli_founded",
       "industry": "AgriTech / Seeds",
@@ -4496,6 +4652,18 @@
       "api_url": null,
       "verified": false,
       "notes": "No ATS hit"
+    },
+    {
+      "name": "Humanz",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "humanz.com",
+      "careers_url": "https://apply.workable.com/humanz/?lng=en",
+      "ats": "workable",
+      "slug": "humanz",
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/humanz?details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 5 positions."
     },
     {
       "name": "Hunters",
@@ -5014,6 +5182,18 @@
       "notes": "Lever URL jobs.lever.co/getjones exists in search results but API endpoint returns 404 — board may be closed or postings hidden"
     },
     {
+      "name": "Jooble (IL aggregator)",
+      "type": "aggregator",
+      "industry": "Job Aggregator",
+      "domain": "jooble.org",
+      "careers_url": "https://il.jooble.org/",
+      "ats": "jooble",
+      "slug": "jooble-il",
+      "api_url": "https://jooble.org/api/{JOOBLE_API_KEY}",
+      "verified": true,
+      "notes": "Legal multi-source aggregator (Drushim/AllJobs/LinkedIn/company sites). Fetcher hits the Jooble search API with location='Israel' + tech-keyword OR-query. Requires JOOBLE_API_KEY env var. Free tier ~500 req/day; we paginate up to 1000 jobs per refresh."
+    },
+    {
       "name": "JoyTunes",
       "type": "israeli_founded",
       "industry": "EdTech",
@@ -5386,6 +5566,18 @@
       "notes": "Probed: ashby slug 'lemonade' returns 200"
     },
     {
+      "name": "Lendbuzz",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "lendbuzz.com",
+      "careers_url": "https://www.lendbuzz.com/careers",
+      "ats": "lever",
+      "slug": "lendbuzz",
+      "api_url": "https://api.lever.co/v0/postings/lendbuzz?mode=json",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 65 positions, 5 IL-tagged."
+    },
+    {
       "name": "Leumit Health Fund",
       "type": "israeli_founded",
       "industry": "Healthcare / Health Fund",
@@ -5662,6 +5854,18 @@
       "notes": "Comeet UID + token extracted from careers page HTML via discover-comeet.ts (2026-06-04). API returned 7 positions, all IL-tagged (Magenta Medical - IL)."
     },
     {
+      "name": "Magic Leap",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "magicleap.com",
+      "careers_url": "https://resources.magicleap.cloud/careers",
+      "ats": "greenhouse",
+      "slug": "magicleap",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/magicleap/jobs?content=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 12 positions, 0 IL-tagged."
+    },
+    {
       "name": "Magic Software",
       "type": "israeli_founded",
       "industry": "Enterprise Software",
@@ -5708,6 +5912,18 @@
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/matia?includeCompensation=true",
       "verified": true,
       "notes": "Series A Feb 2026 $21M. Unified DataOps platform (ETL/rETL/observability/catalog). Verified: 7 jobs, 4 IL."
+    },
+    {
+      "name": "Matific",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "matific.com",
+      "careers_url": "https://www.matific.com/isr/he/home/",
+      "ats": "workable",
+      "slug": "matific",
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/matific?details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 7 positions."
     },
     {
       "name": "McKinsey & Company",
@@ -5938,6 +6154,18 @@
       "notes": "Series A Jun 2025 $30M. Data security platform. Comeet slug \"mindsecurity\", UID 4A.00D + token A4D481B29341EE729341EE7149A481B149A149A. Verified: 9 jobs, 6 IL."
     },
     {
+      "name": "Mine",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "mineos.ai",
+      "careers_url": "https://mineos.ai/careers",
+      "ats": "comeet",
+      "slug": "39.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/39.003/positions?token=933373252CB4998499824CC2DFF01B990&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 1 positions, 1 IL-tagged."
+    },
+    {
       "name": "Minute Media",
       "type": "israeli_founded",
       "industry": "Digital Media / Sports",
@@ -6082,6 +6310,18 @@
       "notes": "Probed: ashby slug 'moonactive' returns 200"
     },
     {
+      "name": "Moonshot Marketing",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "moonshot-marketing.com",
+      "careers_url": "https://www.moonshot-marketing.com/careers",
+      "ats": "comeet",
+      "slug": "87.005",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/87.005/positions?token=7852D1E168F43AD2D1E2D1E168F1E1434A32599&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 2 positions, 2 IL-tagged."
+    },
+    {
       "name": "Moovit",
       "type": "israeli_founded",
       "industry": "Mobility",
@@ -6164,6 +6404,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/nascompany/jobs?content=true",
       "verified": true,
       "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" student search; API confirmed 1 IL job (Account Manager — Tel Aviv/Singapore/Dubai listing, requires understanding of Israeli startup landscape)."
+    },
+    {
+      "name": "Natural Intelligence",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "naturalint.com",
+      "careers_url": "https://www.naturalint.com/jobs/",
+      "ats": "comeet",
+      "slug": "71.001",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/71.001/positions?token=1715C47357355C45C4A17CF9CF9735&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 3 positions, 3 IL-tagged."
     },
     {
       "name": "Navina",
@@ -6502,6 +6754,30 @@
       "notes": "Probed: ashby slug 'oligo' returns 200"
     },
     {
+      "name": "Onebeat",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "1beat.com",
+      "careers_url": "https://onebeat.co/careers/",
+      "ats": "comeet",
+      "slug": "0A.000",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/0A.000/positions?token=A0046001E001E005A005000460050005A000&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 2 positions, 0 IL-tagged."
+    },
+    {
+      "name": "OneStep",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "onestep.co",
+      "careers_url": "https://onestep.co/company/careers",
+      "ats": "comeet",
+      "slug": "79.007",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/79.007/positions?token=97742410552F9779774241552F25DC25DC&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 5 positions, 2 IL-tagged."
+    },
+    {
       "name": "Oosto",
       "type": "israeli_founded",
       "industry": "Defense-tech / Computer Vision AI",
@@ -6802,6 +7078,18 @@
       "notes": "Greenhouse board verified (Israel-specific): 10+ jobs all in Tel Aviv. Nasdaq-listed AI consumer credit/RE platform. NOTE: 'Pagaya' main entry exists in registry; this is the separate IL job board for IL-only roles."
     },
     {
+      "name": "Palantir",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "palantir.com",
+      "careers_url": "https://www.palantir.com/careers",
+      "ats": "lever",
+      "slug": "palantir",
+      "api_url": "https://api.lever.co/v0/postings/palantir?mode=json",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 225 positions, 2 IL-tagged."
+    },
+    {
       "name": "Palo Alto Networks",
       "type": "international_il_rd",
       "industry": "Cybersecurity",
@@ -6824,6 +7112,30 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/59.002/positions?token=952413E0254895295253E295237EC53E2&details=true",
       "verified": true,
       "notes": "UID + token from static HTML; API returned 12 positions, 12 IL-tagged. Israeli parking/mobility app, distinct from 'Port' (59.004) already in registry."
+    },
+    {
+      "name": "Panorays",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "panorays.com",
+      "careers_url": "https://panorays.com/careers/",
+      "ats": "comeet",
+      "slug": "97.00D",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/97.00D/positions?token=79D2DAE1E7479D1E742DAE3CE802DAE1E74&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 1 positions, 1 IL-tagged."
+    },
+    {
+      "name": "Papaya",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "papaya.com",
+      "careers_url": "https://papaya.com/careers",
+      "ats": "comeet",
+      "slug": "46.00B",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/46.00B/positions?token=64B25C264B12E112E102C0D2C0D64B25C2&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 11 positions, 11 IL-tagged."
     },
     {
       "name": "Papaya Gaming",
@@ -7016,6 +7328,18 @@
       "api_url": null,
       "verified": false,
       "notes": "No ATS hit"
+    },
+    {
+      "name": "Percepto",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "percepto.co",
+      "careers_url": "https://percepto.co/careers/",
+      "ats": "comeet",
+      "slug": "44.000",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/44.000/positions?token=440154015404400088019802640880&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 6 positions, 3 IL-tagged."
     },
     {
       "name": "Perimeter 81",
@@ -7378,6 +7702,18 @@
       "notes": "No ATS hit"
     },
     {
+      "name": "Primis",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "primis.tech",
+      "careers_url": "https://www.primis.tech/careers/",
+      "ats": "comeet",
+      "slug": "33.00C",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/33.00C/positions?token=33C102C33C19E013681D1C33C13686781D1C&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 11 positions, 9 IL-tagged."
+    },
+    {
       "name": "Priority Software",
       "type": "israeli_founded",
       "industry": "Enterprise Software",
@@ -7424,6 +7760,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/D5.00E/positions?token=5DE23340029121D562912029122334&details=true",
       "verified": true,
       "notes": "Comeet UID D5.00E + token verified"
+    },
+    {
+      "name": "Proxymity",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "proxymity.io",
+      "careers_url": "https://apply.workable.com/proxymity/",
+      "ats": "workable",
+      "slug": "proxymity",
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/proxymity?details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 3 positions."
     },
     {
       "name": "PTC Israel",
@@ -7724,6 +8072,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/residenthome/jobs",
       "verified": true,
       "notes": "GH slug 'residenthome' verified 200"
+    },
+    {
+      "name": "Resident Home",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "residenthome.com",
+      "careers_url": "https://www.residenthome.com/careers/",
+      "ats": "greenhouse",
+      "slug": "residenthome",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/residenthome/jobs?content=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 11 positions, 3 IL-tagged."
     },
     {
       "name": "Rhino Federated Computing",
@@ -8050,6 +8410,18 @@
       "notes": "Comeet UID 67.00D + token verified"
     },
     {
+      "name": "Semperis",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "semperis.com",
+      "careers_url": "https://www.semperis.com/careers/",
+      "ats": "ashby",
+      "slug": "semperis",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/semperis?includeCompensation=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 38 positions, 6 IL-tagged."
+    },
+    {
       "name": "SentinelOne",
       "type": "israeli_founded",
       "industry": "Cybersecurity",
@@ -8218,6 +8590,18 @@
       "notes": "Probed: greenhouse slug 'simply' returns 200"
     },
     {
+      "name": "Singular",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "singular.net",
+      "careers_url": "https://www.singular.net/careers/",
+      "ats": "ashby",
+      "slug": "singular",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/singular?includeCompensation=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 18 positions, 5 IL-tagged."
+    },
+    {
       "name": "Sisense",
       "type": "israeli_founded",
       "industry": "Analytics",
@@ -8242,6 +8626,18 @@
       "notes": "Comeet UID + token extracted from careers page HTML (source: https://skai.io/careers/)"
     },
     {
+      "name": "Skylo Technologies Israel",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "skylo.tech",
+      "careers_url": "https://www.skylo.tech/careers",
+      "ats": "ashby",
+      "slug": "skylo",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/skylo?includeCompensation=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 25 positions, 0 IL-tagged."
+    },
+    {
       "name": "Slice (Global Equity)",
       "type": "israeli_founded",
       "industry": "B2B SaaS",
@@ -8264,6 +8660,18 @@
       "api_url": null,
       "verified": false,
       "notes": "NEW. Snap uses a proprietary careers.snap.com portal; no Workday tenant (snap/snapinc.wd[1-5] all 422), no Greenhouse/Lever/Ashby. Talent-CRM is Gem (sourcing only, not ATS). Snap IL R&D in Tel Aviv (acquired Cimagine, Voca.ai, AI Factory)."
+    },
+    {
+      "name": "Snappy Gifts",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "snappy.com",
+      "careers_url": "https://www.snappy.com/careers",
+      "ats": "ashby",
+      "slug": "snappy",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/snappy?includeCompensation=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 6 positions, 3 IL-tagged."
     },
     {
       "name": "Snowflake",
@@ -8614,6 +9022,18 @@
       "notes": "NEW (extra). Uses Avature + TalentBrew (proprietary). Synopsys IL R&D in Hod HaSharon (via OpenLight + Coverity + native team)."
     },
     {
+      "name": "Syqe Medical",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "syqe.com",
+      "careers_url": "https://syqe.com/careers/",
+      "ats": "comeet",
+      "slug": "F1.00C",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/F1.00C/positions?token=1FC7F0DE4FE0011DC1FC11DC07F0&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 2 positions, 1 IL-tagged."
+    },
+    {
       "name": "Syte",
       "type": "israeli_founded",
       "industry": "Retail",
@@ -8770,6 +9190,18 @@
       "notes": "Comeet UID F8.000 + token verified"
     },
     {
+      "name": "TAT Technologies",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "tat-technologies.com",
+      "careers_url": "https://tat-technologies.com/career/",
+      "ats": "workable",
+      "slug": "tat-technologies-ltd",
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/tat-technologies-ltd?details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 8 positions."
+    },
+    {
       "name": "Tavily",
       "type": "israeli_founded",
       "industry": "AI/ML",
@@ -8854,6 +9286,18 @@
       "notes": "Proprietary. Note: 'tempo' on Greenhouse/Ashby/SmartRecruiters all match unrelated US/CA companies, not Israeli Tempo Beverages. No public API."
     },
     {
+      "name": "Tenable",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "tenable.com",
+      "careers_url": "https://www.tenable.com/careers",
+      "ats": "greenhouse",
+      "slug": "tenableinc",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/tenableinc/jobs?content=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 60 positions, 17 IL-tagged."
+    },
+    {
       "name": "Terrific",
       "type": "israeli_founded",
       "industry": "Social Commerce / Live Shopping",
@@ -8912,6 +9356,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/72.00F/positions?token=27F9FC16779FC13F8EFA13F84FE27F77D&details=true",
       "verified": true,
       "notes": "UID + token from static HTML; API returned 23 positions, 9 IL-tagged. AI-driven AML/financial-crime detection, IL HQ."
+    },
+    {
+      "name": "Tikal",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "tikalk.com",
+      "careers_url": "https://tikalk.com/careers",
+      "ats": "comeet",
+      "slug": "68.00C",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/68.00C/positions?token=86C32883288436021B086C86C3AF486C4360&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 5 positions, 4 IL-tagged."
     },
     {
       "name": "TikTok",
@@ -9238,6 +9694,18 @@
       "notes": "No ATS hit"
     },
     {
+      "name": "Ultra Information Solutions",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "ultra.global",
+      "careers_url": "https://ultra.global/careers/",
+      "ats": "comeet",
+      "slug": "E3.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/E3.004/positions?token=3E41374F907C81B3C23041F207C813741B3C&details=true",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 8 positions, 2 IL-tagged."
+    },
+    {
       "name": "Unframe",
       "type": "israeli_founded",
       "industry": "AI Platform / Enterprise AI",
@@ -9478,6 +9946,18 @@
       "notes": "Search confused with Vicarious Surgical; vicarius.io ATS not found"
     },
     {
+      "name": "Vim",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "getvim.com",
+      "careers_url": "https://getvim.com/careers/",
+      "ats": "greenhouse",
+      "slug": "vim",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/vim/jobs?content=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 3 positions, 0 IL-tagged."
+    },
+    {
       "name": "Vintage Investment Partners",
       "type": "israeli_founded",
       "industry": "Venture Capital",
@@ -9524,6 +10004,18 @@
       "api_url": null,
       "verified": false,
       "notes": "No ATS hit"
+    },
+    {
+      "name": "Votiro Cybersec",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "votiro.com",
+      "careers_url": "https://www.menlosecurity.com/about/life-at-menlo",
+      "ats": "ashby",
+      "slug": "menlosecurity",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/menlosecurity?includeCompensation=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 31 positions, 1 IL-tagged."
     },
     {
       "name": "Voyantis",
@@ -9596,6 +10088,18 @@
       "api_url": null,
       "verified": false,
       "notes": "No ATS hit"
+    },
+    {
+      "name": "Wand AI",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "wand.ai",
+      "careers_url": "https://wand.ai/careers",
+      "ats": "ashby",
+      "slug": "wand-ai",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/wand-ai?includeCompensation=false",
+      "verified": true,
+      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 21 positions, 1 IL-tagged."
     },
     {
       "name": "Webflow",
@@ -9992,18 +10496,6 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/zyngacareers/jobs?content=true",
       "verified": true,
       "notes": "Greenhouse board verified: 2 confirmed Tel Aviv roles (D2C Director of Product, Data Science Manager) under Storemaven (Zynga subsidiary, Israeli founded). Take-Two/Zynga parent."
-    },
-    {
-      "name": "Jooble (IL aggregator)",
-      "type": "aggregator",
-      "industry": "Job Aggregator",
-      "domain": "jooble.org",
-      "careers_url": "https://il.jooble.org/",
-      "ats": "jooble",
-      "slug": "jooble-il",
-      "api_url": "https://jooble.org/api/{JOOBLE_API_KEY}",
-      "verified": true,
-      "notes": "Legal multi-source aggregator (Drushim/AllJobs/LinkedIn/company sites). Fetcher hits the Jooble search API with location='Israel' + tech-keyword OR-query. Requires JOOBLE_API_KEY env var. Free tier ~500 req/day; we paginate up to 1000 jobs per refresh."
     }
   ]
 }
