@@ -1,9 +1,9 @@
 {
-  "generated_at": "2026-06-04",
-  "total_companies": 873,
+  "generated_at": "2026-06-05",
+  "total_companies": 876,
   "by_ats": {
     "ashby": 67,
-    "comeet": 220,
+    "comeet": 223,
     "custom": 32,
     "eightfold": 3,
     "greenhouse": 202,
@@ -3790,6 +3790,18 @@
       "notes": "Israel's largest PE fund ($7B+ AUM). Small in-house team; no public ATS."
     },
     {
+      "name": "Final",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "final.co.il",
+      "careers_url": "https://www.final.co.il/career/",
+      "ats": "comeet",
+      "slug": "C0.009",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/C0.009/positions?token=C9324192025B6483EDC971125B&details=true",
+      "verified": true,
+      "notes": "Recovered via techmap-recovery pass (2026-06-04); Chrome UA + broader URL fallback. ATS independently verified — API returned 8 positions, 8 IL-tagged."
+    },
+    {
       "name": "Finout",
       "type": "israeli_founded",
       "industry": "DevTools",
@@ -4688,6 +4700,18 @@
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/hypercore?includeCompensation=true",
       "verified": true,
       "notes": "Series A Feb 2026 $13.5M. Verified: 4 jobs, 2 IL."
+    },
+    {
+      "name": "HyperGuest",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "hyperguest.com",
+      "careers_url": "https://www.hyperguest.com/jobs",
+      "ats": "comeet",
+      "slug": "09.00B",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/09.00B/positions?token=90B3642516390B1B2148583F4D242C90B0&details=true",
+      "verified": true,
+      "notes": "Recovered via techmap-recovery pass (2026-06-04); Chrome UA + broader URL fallback. ATS independently verified — API returned 1 positions, 0 IL-tagged."
     },
     {
       "name": "Hypernative",
@@ -10148,6 +10172,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Detected comeet embed (raw id: F6.003) | Slug 'f6' recovered via repair pass"
+    },
+    {
+      "name": "Winbond",
+      "type": "israeli_founded",
+      "industry": "Unknown",
+      "domain": "winbond.co.il",
+      "careers_url": "https://winbond.co.il/",
+      "ats": "comeet",
+      "slug": "9A.009",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/9A.009/positions?token=A994A2F34FD4A2F1FCB5F615F61A9904A2F&details=true",
+      "verified": true,
+      "notes": "Recovered via techmap-recovery pass (2026-06-04); Chrome UA + broader URL fallback. ATS independently verified — API returned 5 positions, 5 IL-tagged."
     },
     {
       "name": "Wing Security",
