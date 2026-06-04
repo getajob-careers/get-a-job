@@ -25,6 +25,15 @@
 //                         came back null. Implies --skip-already=false
 //                         (we WANT to re-extract these). Pair with
 //                         --confidence-min to skip hopeless low-conf rows.
+//   --filter=null-function-family
+//                         picker mode: walk active IL jobs where
+//                         function_family IS NULL. Forces re-extraction
+//                         (bypasses description_hash idempotency).
+//                         Triggered after role-library expansions that
+//                         add new families — without re-extract, the
+//                         existing rows stay null because the function
+//                         skips on unchanged JD hash. Self-selecting:
+//                         no --ids needed.
 //   --confidence-min=0.7  with --filter=null-skills, require this minimum
 //                         extraction_confidence. Default 0 (no floor).
 //                         0.7 = "extraction was structurally OK but missed
@@ -127,6 +136,39 @@ async function pickJobs(): Promise<Array<{ id: string; title: string; ats_source
     return LIMIT ? all.slice(0, LIMIT) : all;
   }
 
+  // null-function-family filter: active IL jobs where the extractor
+  // landed function_family=null. Triggered after role-library expansions
+  // (new families added → old rows need a re-extraction to pick them up,
+  // since the function's description_hash idempotency would otherwise
+  // skip them). Forces force=true so SKIP_ALREADY's "extracted_at not
+  // null" gate doesn't reject the population we explicitly want re-run.
+  if (FILTER === "null-function-family") {
+    const PAGE = 1000;
+    const all: Array<{ id: string; title: string; ats_source: string }> = [];
+    let offset = 0;
+    for (;;) {
+      let q = supabase
+        .from("jobs")
+        .select("id, title, ats_source")
+        .eq("is_active", true)
+        .eq("is_il", true)
+        .is("function_family", null)
+        .order("first_seen_at", { ascending: true })
+        .range(offset, offset + PAGE - 1);
+      if (ATS_FILTER.length > 0) q = q.in("ats_source", ATS_FILTER);
+      const { data, error } = await q;
+      if (error) {
+        console.error("Query failed:", error.message);
+        process.exit(1);
+      }
+      if (!data || data.length === 0) break;
+      all.push(...data);
+      if (data.length < PAGE) break;
+      offset += PAGE;
+    }
+    return LIMIT ? all.slice(0, LIMIT) : all;
+  }
+
   // Paginate — PostgREST defaults to 1000 row cap so we walk in batches.
   const PAGE = 1000;
   const all: Array<{ id: string; title: string; ats_source: string }> = [];
@@ -159,11 +201,11 @@ async function pickJobs(): Promise<Array<{ id: string; title: string; ats_source
   return LIMIT ? all.slice(0, LIMIT) : all;
 }
 
-// For --filter=null-skills we always want force=true (the whole point is
-// to re-run extraction on rows that previously came back without skills).
-// SKIP_ALREADY's normal "skip if extracted_at not null" behaviour would
-// reject every one of these candidates.
-const FORCE_EXTRACTION = !SKIP_ALREADY || FILTER === "null-skills";
+// For --filter=null-skills and --filter=null-function-family we always
+// want force=true (the whole point is to re-run extraction on rows the
+// previous library version landed null on). SKIP_ALREADY's normal "skip
+// if extracted_at not null" behaviour would reject every candidate.
+const FORCE_EXTRACTION = !SKIP_ALREADY || FILTER === "null-skills" || FILTER === "null-function-family";
 
 async function invokeExtractor(jobId: string, attempt = 1): Promise<any> {
   // Network-layer errors (ETIMEDOUT, ECONNRESET, AbortError) used to kill the

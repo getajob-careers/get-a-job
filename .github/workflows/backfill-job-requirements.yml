@@ -1,0 +1,65 @@
+# One-off backfill for active IL jobs where function_family IS NULL.
+#
+# Why this exists:
+#   When the role library adds new role_families (e.g. the 2026-06-05
+#   taxonomy expansion that added Legal_Compliance / Research_Science /
+#   Manufacturing_Operations), the existing extracted rows stay at
+#   function_family=null. refresh-jobs.yml's stage-2 backfill skips
+#   them because their extracted_at is non-null AND the extract function
+#   short-circuits on unchanged description_hash. The nightly cron alone
+#   does not heal these rows.
+#
+# This workflow forces re-extraction on the self-selecting set:
+# `--filter=null-function-family` walks active IL rows with
+# function_family IS NULL and invokes extract-job-requirements with
+# `force=true`, bypassing both the picker's SKIP_ALREADY gate and the
+# function's hash idempotency. Re-uses the same SUPABASE_SERVICE_ROLE_KEY
+# refresh-jobs already uses.
+#
+# Cost envelope: ~$0.005/job × ~150 rows = ~$0.75 per run. Capped at
+# --limit=500 as a safety net (~$2.50 worst case).
+#
+# Manual-trigger only (no schedule). After a library expansion:
+#   gh workflow run backfill-job-requirements.yml
+#
+# Then verify the IL unmatched count via SQL or the Jobs page.
+
+name: Backfill function_family extraction
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+concurrency:
+  group: backfill-job-requirements
+  cancel-in-progress: false
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Backfill function_family for active IL jobs where it's NULL
+        run: >
+          npx tsx scripts/backfill-job-requirements.ts
+          --filter=null-function-family
+          --concurrency=8
+          --progress-every=25
+          --limit=500
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
