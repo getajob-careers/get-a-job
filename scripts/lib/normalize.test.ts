@@ -4,7 +4,7 @@
 // Co-located with the module (Vitest picks up *.test.ts anywhere).
 
 import { describe, it, expect } from "vitest";
-import { detectSeniorityFromTitle, finalSeniority } from "./normalize";
+import { classifyLocation, detectSeniorityFromTitle, finalSeniority } from "./normalize";
 
 describe("detectSeniorityFromTitle", () => {
   it("flags executive titles", () => {
@@ -81,6 +81,61 @@ describe("finalSeniority — Variant B", () => {
     });
     it("no years signal → mid (the only bucket-default state)", () => {
       expect(finalSeniority("mid", { min: null, max: null })).toBe("mid");
+    });
+  });
+
+  describe("classifyLocation — English coverage (existing baseline)", () => {
+    it("recognizes major IL cities", () => {
+      expect(classifyLocation("Tel Aviv, Israel").is_il).toBe(true);
+      expect(classifyLocation("Haifa, Israel").is_il).toBe(true);
+      expect(classifyLocation("Jerusalem").is_il).toBe(true);
+      expect(classifyLocation("Herzliya").is_il).toBe(true);
+      expect(classifyLocation("Yokneam Illit").is_il).toBe(true);
+    });
+    it("trusts structured country code", () => {
+      expect(classifyLocation(null, "IL").is_il).toBe(true);
+      expect(classifyLocation(null, "Israel").is_il).toBe(true);
+      expect(classifyLocation("Unknown city", "IL").is_il).toBe(true);
+    });
+    it("country-level fallback when no city matches", () => {
+      expect(classifyLocation("Remote — Israel").is_il).toBe(true);
+      expect(classifyLocation("Some unlisted place, IL").is_il).toBe(true);
+    });
+    it("rejects non-IL locations that share substrings", () => {
+      expect(classifyLocation("Springfield, Illinois").is_il).toBe(false);
+      expect(classifyLocation("Lille, France").is_il).toBe(false);
+      expect(classifyLocation("Toulouse, France").is_il).toBe(false);
+      expect(classifyLocation("New York, USA").is_il).toBe(false);
+      expect(classifyLocation("Bangalore, India").is_il).toBe(false);
+    });
+  });
+
+  describe("classifyLocation — Hebrew coverage (2026-06-04 Workday-MNC pass)", () => {
+    it("recognizes Hebrew city names from global ATSs", () => {
+      // Global Workday boards (Forcepoint, Motorola, Mavenir) frequently
+      // emit Hebrew location strings even on English UIs. Without these,
+      // real IL postings were silently dropped at is_il=false.
+      expect(classifyLocation("תל אביב").is_il).toBe(true);
+      expect(classifyLocation("תל אביב").city).toBe("Tel Aviv");
+      expect(classifyLocation("חיפה").is_il).toBe(true);
+      expect(classifyLocation("ירושלים").is_il).toBe(true);
+      expect(classifyLocation("הרצליה").is_il).toBe(true);
+      expect(classifyLocation("רעננה").is_il).toBe(true);
+      expect(classifyLocation("פתח תקווה").is_il).toBe(true);
+      expect(classifyLocation("יקנעם").is_il).toBe(true);
+      expect(classifyLocation("רחובות").is_il).toBe(true);
+      expect(classifyLocation("נתניה").is_il).toBe(true);
+      expect(classifyLocation("באר שבע").is_il).toBe(true);
+      expect(classifyLocation("קיסריה").is_il).toBe(true);
+      expect(classifyLocation("מודיעין").is_il).toBe(true);
+    });
+    it("recognizes the Hebrew country name", () => {
+      expect(classifyLocation("ישראל").is_il).toBe(true);
+      expect(classifyLocation("עבודה מהבית · ישראל").is_il).toBe(true);
+    });
+    it("recognizes mixed Hebrew + English locations", () => {
+      expect(classifyLocation("Tel Aviv / תל אביב").is_il).toBe(true);
+      expect(classifyLocation("Israel · ישראל").is_il).toBe(true);
     });
   });
 

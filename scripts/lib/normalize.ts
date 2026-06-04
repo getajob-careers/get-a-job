@@ -147,7 +147,17 @@ export function isJunkTitle(title: string | null | undefined): boolean {
  * "tlv" maps to Tel Aviv. "il" / "israel" are checked separately below
  * with word-boundary regex to avoid Illinois / Lille false positives.
  */
+// Hebrew + English city aliases. The Hebrew block was added 2026-06-04
+// for the Workday-MNC pass: global boards (NVIDIA, Intel, Motorola,
+// Mavenir, Forcepoint, etc.) frequently emit Hebrew-language location
+// strings for IL postings — those were being silently dropped by the
+// English-only matcher. Adding Hebrew aliases as substring matches is
+// safe because .toLowerCase() is a no-op for Hebrew code points, and
+// every Hebrew alias here is a place-name that can't false-positive on
+// any non-IL Hebrew string (unlike e.g. country-name "ישראל" which
+// would have to be word-boundary checked — handled separately below).
 const IL_CITY_MAP: Record<string, string> = {
+  // ─── English variants ────────────────────────────────────────────
   "tel aviv-yafo": "Tel Aviv",
   "tel-aviv":      "Tel Aviv",
   "tel aviv":      "Tel Aviv",
@@ -187,12 +197,51 @@ const IL_CITY_MAP: Record<string, string> = {
   "bat yam":       "Bat Yam",
   "lod":           "Lod",
   "ramla":         "Ramla",
+  "givatayim":     "Givatayim",
+  "or yehuda":     "Or Yehuda",
+  "yavne":         "Yavne",
+  // ─── Hebrew variants — all map to their canonical English form ───
+  "תל אביב":       "Tel Aviv",
+  "תל-אביב":       "Tel Aviv",
+  "הרצליה":        "Herzliya",
+  "רמת גן":        "Ramat Gan",
+  "רמת-גן":        "Ramat Gan",
+  "בני ברק":       "Bnei Brak",
+  "פתח תקווה":     "Petah Tikva",
+  "פתח-תקווה":     "Petah Tikva",
+  "ראשון לציון":   "Rishon LeZion",
+  "רחובות":        "Rehovot",
+  "מודיעין":       "Modi'in",
+  "הוד השרון":     "Hod Hasharon",
+  "כפר סבא":       "Kfar Saba",
+  "רעננה":         "Ra'anana",
+  "נתניה":         "Netanya",
+  "אשדוד":         "Ashdod",
+  "אשקלון":        "Ashkelon",
+  "חיפה":          "Haifa",
+  "ירושלים":       "Jerusalem",
+  "באר שבע":       "Be'er Sheva",
+  "נצרת":          "Nazareth",
+  "יקנעם":         "Yokneam",
+  "קיסריה":        "Caesarea",
+  "אילת":          "Eilat",
+  "חולון":         "Holon",
+  "בת ים":         "Bat Yam",
+  "לוד":           "Lod",
+  "רמלה":          "Ramla",
+  "גבעתיים":       "Givatayim",
+  "אור יהודה":     "Or Yehuda",
+  "יבנה":          "Yavne",
 };
 
 // Country-level fallback when the city map doesn't match but Israel is
 // mentioned. Word-boundary guards prevent matching "Illinois" / "Lille".
 const RX_COUNTRY_ISRAEL = /\bisrael\b/i;
 const RX_COUNTRY_IL_CODE = /\bIL\b/;       // case-sensitive to avoid "ail", "ill", etc.
+// Hebrew country name. Hebrew has no \b semantics in JS regex (Unicode
+// categories don't trigger word-boundary), so we match as a bare
+// substring — "ישראל" is unique enough that this is safe.
+const RX_COUNTRY_HEBREW_ISRAEL = /ישראל/;
 
 export function classifyLocation(
   raw: string | null,
@@ -215,7 +264,7 @@ export function classifyLocation(
   }
 
   // Country-level Israel mention (no specific city found)
-  if (RX_COUNTRY_ISRAEL.test(raw) || RX_COUNTRY_IL_CODE.test(raw)) {
+  if (RX_COUNTRY_ISRAEL.test(raw) || RX_COUNTRY_IL_CODE.test(raw) || RX_COUNTRY_HEBREW_ISRAEL.test(raw)) {
     return { is_il: true, city: null };
   }
 
