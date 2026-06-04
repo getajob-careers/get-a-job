@@ -1,9 +1,9 @@
 {
   "generated_at": "2026-06-05",
-  "total_companies": 876,
+  "total_companies": 884,
   "by_ats": {
     "ashby": 67,
-    "comeet": 223,
+    "comeet": 224,
     "custom": 32,
     "eightfold": 3,
     "greenhouse": 202,
@@ -16,9 +16,9 @@
     "smartrecruiters": 10,
     "successfactors": 8,
     "teamtailor": 1,
-    "unknown": 260,
+    "unknown": 259,
     "workable": 10,
-    "workday": 29
+    "workday": 37
   },
   "companies": [
     {
@@ -1160,6 +1160,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/augury/jobs",
       "verified": true,
       "notes": "Careers page is JS-rendered Comeet iframe. URL pattern '/careers/<job-id>/' matches Comeet. Could not extract UID+token from static HTML during 3 ops. Israeli-founded industrial IoT, HQ NYC + R&D Haifa. Worth re-attempting with headless browser."
+    },
+    {
+      "name": "Autodesk",
+      "type": "international_il_rd",
+      "industry": "Unknown",
+      "domain": "autodesktlv.com",
+      "careers_url": "https://autodesk.wd1.myworkdayjobs.com/Ext",
+      "ats": "workday",
+      "slug": "autodesk.wd1.myworkdayjobs.com/Ext",
+      "api_url": "https://autodesk.wd1.myworkdayjobs.com/wday/cxs/autodesk/Ext/jobs",
+      "verified": true,
+      "notes": "Discovered via Workday-MNC pass (2026-06-04); tenant resolved from careers-page HTML. CXS endpoint returned 646 total positions, 6 for searchText=\"Israel\"."
     },
     {
       "name": "AutoDS",
@@ -3130,6 +3142,18 @@
       "notes": "Already in registry (note: actual ATS appears to be Workable apply.workable.com/diagnostic-robotics — Workable not in supported list. Existing registry entry may need ATS audit)."
     },
     {
+      "name": "Digital Turbine",
+      "type": "international_il_rd",
+      "industry": "Unknown",
+      "domain": "digitalturbine.com",
+      "careers_url": "https://digitalturbine.wd501.myworkdayjobs.com/Digital_Turbine_External_Careers",
+      "ats": "workday",
+      "slug": "digitalturbine.wd501.myworkdayjobs.com/Digital_Turbine_External_Careers",
+      "api_url": "https://digitalturbine.wd501.myworkdayjobs.com/wday/cxs/digitalturbine/Digital_Turbine_External_Careers/jobs",
+      "verified": true,
+      "notes": "Discovered via Workday-MNC pass (2026-06-04); tenant resolved from careers-page HTML. CXS endpoint returned 32 total positions, 3 for searchText=\"Israel\"."
+    },
+    {
       "name": "DigitalOwl",
       "type": "israeli_founded",
       "industry": "InsurTech",
@@ -3886,6 +3910,18 @@
       "notes": "Greenhouse 132 jobs; mark_unverified for IL"
     },
     {
+      "name": "Flex",
+      "type": "international_il_rd",
+      "industry": "Unknown",
+      "domain": "flex.com",
+      "careers_url": "https://flextronics.wd1.myworkdayjobs.com/Careers",
+      "ats": "workday",
+      "slug": "flextronics.wd1.myworkdayjobs.com/Careers",
+      "api_url": "https://flextronics.wd1.myworkdayjobs.com/wday/cxs/flextronics/Careers/jobs",
+      "verified": true,
+      "notes": "Discovered via Workday-MNC pass (2026-06-04); tenant resolved from careers-page HTML. CXS endpoint returned 1286 total positions, 9 for searchText=\"Israel\"."
+    },
+    {
       "name": "Folloze",
       "type": "israeli_founded",
       "industry": "MarTech",
@@ -3896,6 +3932,18 @@
       "api_url": null,
       "verified": false,
       "notes": "No ATS hit"
+    },
+    {
+      "name": "Forcepoint",
+      "type": "international_il_rd",
+      "industry": "Unknown",
+      "domain": "forcepoint.com",
+      "careers_url": "https://forcepoint.wd1.myworkdayjobs.com/external-careers",
+      "ats": "workday",
+      "slug": "forcepoint.wd1.myworkdayjobs.com/external-careers",
+      "api_url": "https://forcepoint.wd1.myworkdayjobs.com/wday/cxs/forcepoint/external-careers/jobs",
+      "verified": true,
+      "notes": "Discovered via Workday-MNC pass (2026-06-04); tenant resolved from careers-page HTML. CXS endpoint returned 48 total positions, 5 for searchText=\"Israel\"."
     },
     {
       "name": "ForeScout",
@@ -4076,6 +4124,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/gemini/jobs",
       "verified": true,
       "notes": "Greenhouse 25 jobs; emerging IL hires (mark_unverified)"
+    },
+    {
+      "name": "Genesys",
+      "type": "international_il_rd",
+      "industry": "Unknown",
+      "domain": "genesys.com",
+      "careers_url": "https://genesys.wd1.myworkdayjobs.com/Genesys",
+      "ats": "workday",
+      "slug": "genesys.wd1.myworkdayjobs.com/Genesys",
+      "api_url": "https://genesys.wd1.myworkdayjobs.com/wday/cxs/genesys/Genesys/jobs",
+      "verified": true,
+      "notes": "Discovered via Workday-MNC pass (2026-06-04); tenant resolved from careers-page HTML. CXS endpoint returned 217 total positions, 2 for searchText=\"Israel\"."
     },
     {
       "name": "GeoX",
@@ -6358,6 +6418,18 @@
       "notes": "Comeet UID 63.007 + token verified"
     },
     {
+      "name": "Motorola Solutions",
+      "type": "international_il_rd",
+      "industry": "Unknown",
+      "domain": "motorolasolutions.com",
+      "careers_url": "https://motorolasolutions.wd5.myworkdayjobs.com/Careers",
+      "ats": "workday",
+      "slug": "motorolasolutions.wd5.myworkdayjobs.com/Careers",
+      "api_url": "https://motorolasolutions.wd5.myworkdayjobs.com/wday/cxs/motorolasolutions/Careers/jobs",
+      "verified": true,
+      "notes": "Discovered via Workday-MNC pass (2026-06-04); tenant resolved from careers-page HTML. CXS endpoint returned 940 total positions, 2 for searchText=\"Israel\"."
+    },
+    {
       "name": "MyHeritage",
       "type": "israeli_founded",
       "industry": "Consumer Genealogy / Biotech",
@@ -6488,6 +6560,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/nebius/jobs?content=true",
       "verified": true,
       "notes": "Greenhouse board verified: 10 jobs, 2 explicitly include Tel Aviv (AI Full-Stack Developer, Sr Account Executive Israel region). Spun out of Yandex, Nasdaq-listed NBIS, EU-HQ with Tel Aviv R&D hub."
+    },
+    {
+      "name": "NeoGames",
+      "type": "international_il_rd",
+      "industry": "Unknown",
+      "domain": "neogames.com",
+      "careers_url": "https://aristocrat.wd3.myworkdayjobs.com/AristocratExternalCareersSite",
+      "ats": "workday",
+      "slug": "aristocrat.wd3.myworkdayjobs.com/AristocratExternalCareersSite",
+      "api_url": "https://aristocrat.wd3.myworkdayjobs.com/wday/cxs/aristocrat/AristocratExternalCareersSite/jobs",
+      "verified": true,
+      "notes": "Discovered via Workday-MNC pass (2026-06-04); tenant resolved from careers-page HTML. CXS endpoint returned 167 total positions, 6 for searchText=\"Israel\"."
     },
     {
       "name": "Netafim",
@@ -7976,6 +8060,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Comeet markers detected in HTML (sweep); slug='reco'"
+    },
+    {
+      "name": "Red Hat",
+      "type": "international_il_rd",
+      "industry": "Unknown",
+      "domain": "redhat.com",
+      "careers_url": "https://redhat.wd5.myworkdayjobs.com/jobs",
+      "ats": "workday",
+      "slug": "redhat.wd5.myworkdayjobs.com/jobs",
+      "api_url": "https://redhat.wd5.myworkdayjobs.com/wday/cxs/redhat/jobs/jobs",
+      "verified": true,
+      "notes": "Discovered via Workday-MNC pass (2026-06-04); tenant resolved from careers-page HTML. CXS endpoint returned 296 total positions, 9 for searchText=\"Israel\"."
     },
     {
       "name": "Reddit",
