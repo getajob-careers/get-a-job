@@ -78,10 +78,10 @@ const RD_TRACK_STYLES = {
   golden: { tint: "var(--rd-golden-tint)", badgeBg: "var(--rd-golden)", accent: "var(--rd-golden-dark)" },
 };
 
-export default function ApplicationRow({ app, profile = null, onUpdate, listingInactive = false }) {
+export default function ApplicationRow({ app, profile = null, onUpdate, listingInactive = false, defaultExpanded = false }) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState(defaultExpanded);
 
   const handleOpenCVAgent = () => {
     navigate("/CVAgent");
