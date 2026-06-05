@@ -78,7 +78,14 @@ const RD_TRACK_STYLES = {
   golden: { tint: "var(--rd-golden-tint)", badgeBg: "var(--rd-golden)", accent: "var(--rd-golden-dark)" },
 };
 
-export default function ApplicationRow({ app, profile = null, onUpdate, listingInactive = false, defaultExpanded = false }) {
+export default function ApplicationRow({
+  app,
+  profile = null,
+  onUpdate,
+  listingInactive = false,
+  defaultExpanded = false,
+  initialTab = "target",
+}) {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [expanded, setExpanded] = useState(defaultExpanded);
@@ -86,7 +93,7 @@ export default function ApplicationRow({ app, profile = null, onUpdate, listingI
   const handleOpenCVAgent = () => {
     navigate("/CVAgent");
   };
-  const [activeTab, setActiveTab] = useState("target");
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [jdText, setJdText] = useState(app.job_description || "");
   const [appliedDate, setAppliedDate] = useState(app.applied_date || "");
   const [cvVersionUsed, setCvVersionUsed] = useState(app.cv_version_used || "");
