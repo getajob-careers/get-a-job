@@ -35,8 +35,13 @@ export default function CareerAgent() {
   // suggestedPrompts list.
   const [seedPrompt, setSeedPrompt] = useState(null);
 
+  // Picker-only projection — distinct cache key from the Tracker's wide
+  // ["applications", uid] query. Reusing the same key with a narrow
+  // select() poisons the wide cache for 5min (default staleTime), which
+  // wipes job_description and other tab-only fields on the next Tracker
+  // open. Lesson 2026-05-28 — no narrow-projection cache poisoning.
   const { data: applications = [] } = useQuery({
-    queryKey: ["applications", user?.id],
+    queryKey: ["applications", user?.id, "picker"],
     queryFn: async () => {
       if (!user?.id) return [];
       const { data, error } = await supabase

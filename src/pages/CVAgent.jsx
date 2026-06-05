@@ -29,8 +29,11 @@ export default function CVAgent() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [selectedAppId, setSelectedAppId] = useState("general");
 
+  // Picker-only projection — distinct cache key from the Tracker's wide
+  // ["applications", uid] query so a narrow projection here doesn't
+  // poison the wide cache (Lesson 2026-05-28).
   const { data: applications = [] } = useQuery({
-    queryKey: ["applications", user?.id],
+    queryKey: ["applications", user?.id, "picker"],
     queryFn: async () => {
       if (!user?.id) return [];
       const { data, error } = await supabase

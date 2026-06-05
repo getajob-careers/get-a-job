@@ -414,15 +414,21 @@ export default function ChatInterface({ agentName, title, description, applicati
   // is loaded, so a previously generated CV's download link survives reloads.
   const [cvGenStates, setCvGenStates] = useState({});
 
-  // Cached elsewhere (Tracker, CVAgent page) with the same key — this is just a
-  // lookup so CVGenerationCard can show "Role at Company" without re-fetching.
+  // Picker-only projection (id+role+company for the CVGenerationCard
+  // lookup). Distinct cache key from the Tracker's wide
+  // ["applications", uid] query — narrow + same key would poison the
+  // wide cache (Lesson 2026-05-28). The agent-page picker queries
+  // already share this "picker" key so the lookup is hot.
   const { data: applications = [] } = useQuery({
-    queryKey: ["applications", user?.id],
+    queryKey: ["applications", user?.id, "picker"],
     queryFn: async () => {
       if (!user?.id) return [];
       const { data, error } = await supabase
         .from("applications")
-        .select("id, role_title, company")
+        // Keep status in this projection so the picker cache reads the
+        // same shape whether CareerAgent / CVAgent / InterviewCoach
+        // (which all include status) or ChatInterface populated it.
+        .select("id, role_title, company, status")
         .eq("user_id", user.id);
       if (error) throw error;
       return data || [];
