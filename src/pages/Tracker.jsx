@@ -330,6 +330,7 @@ export default function Tracker() {
                       key={`expanded-${app.id}`}
                       app={app}
                       profile={profile}
+                      defaultExpanded
                       listingInactive={
                         Boolean(app.ats_source && app.external_id &&
                           inactiveExternalIds.has(`${app.ats_source}|${app.external_id}`))

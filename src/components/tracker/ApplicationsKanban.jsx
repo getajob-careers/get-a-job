@@ -205,6 +205,12 @@ export default function ApplicationsKanban({
 
 // ───── Card ─────
 
+// role="button" on a div (not a native <button>) so @hello-pangea/dnd's
+// interactive-element-blocking guard doesn't refuse to start the drag.
+// Native <button> children of a Draggable swallow pointer-down before
+// the DnD lib registers the drag intent; div + role="button" keeps the
+// a11y semantics + click semantics while leaving DnD free to take over.
+// (Same pattern as src/components/internship/CompanyTargetCard.jsx.)
 function ApplicationKanbanCard({ app, onClick }) {
   const initial = (app.company || app.role_title || "?").trim().charAt(0).toUpperCase();
   const tone = LOGO_TILE_TONE[app.status] || LOGO_TILE_TONE.interested;
@@ -212,10 +218,19 @@ function ApplicationKanbanCard({ app, onClick }) {
   const role = app.role_title || "Untitled role";
   const company = app.company || "";
 
+  const handleKeyDown = (e) => {
+    if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      onClick?.(e);
+    }
+  };
+
   return (
-    <button
-      type="button"
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={handleKeyDown}
       className="bg-rd-bg-card border border-rd-border rounded-[10px] p-2.5 cursor-grab text-left transition-[transform,border-color] duration-150 hover:-translate-y-[2px] hover:border-rd-border-hover focus:outline-none focus:ring-2 focus:ring-rd-coral/40 w-full"
     >
       <div className="flex items-center justify-between gap-2">
@@ -236,7 +251,7 @@ function ApplicationKanbanCard({ app, onClick }) {
           {company}
         </div>
       )}
-    </button>
+    </div>
   );
 }
 
