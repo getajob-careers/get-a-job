@@ -4,17 +4,17 @@ import { TRACK_CONFIG } from "@/lib/trackConfig";
 /**
  * 2x2 grid teaching track semantics through the two axes that define them:
  *   Y (rows):  on your career path (top) vs off (bottom)
- *   X (cols):  qualified now (right) vs not yet (left)
+ *   X (cols):  qualified now (left) vs not yet (right)
  *
- * Quadrants:
- *   Top-left     — Track 3 (on path, not yet qualified)  → golden
- *   Top-right    — Track 1 (qualified + on path)         → coral, emphasized
- *   Bottom-left  — Skipped (not surfaced in feed)        → neutral
- *   Bottom-right — Track 2 (qualified but off path)      → teal
+ * Quadrants (post 2026-06-04 reorder — read left-to-right Track 1 → 3):
+ *   Top-left     — Track 1 (qualified + on path)         → coral, emphasized
+ *   Top-right    — Track 3 (on path, not yet qualified)  → golden
+ *   Bottom-left  — Track 2 (qualified but off path)      → teal
+ *   Bottom-right — "Not relevant to your career path"    → neutral (off-path + not-qualified, not surfaced in feed)
  *
  * PR 3C — clickable cells per the mockup. `onTrackClick(trackId)` is
  * invoked when the user taps a populated cell so the Roadmap can jump to
- * the corresponding tab. The Skipped cell stays inert (no track to land
+ * the corresponding tab. The off-path cell stays inert (no track to land
  * on). Cell tints read from `TRACK_CONFIG[*].rdColor` so this surface and
  * the Roadmap header / RoleCard all read from the same source.
  *
@@ -42,26 +42,26 @@ export default function TrackQuadrantGrid({ onTrackClick, counts }) {
       <div className="flex-1 min-w-0">
         <div className="grid grid-cols-2 gap-2.5">
           <QuadrantCell
-            track={t3}
-            count={counts?.track_3}
-            onClick={onTrackClick ? () => onTrackClick("track_3") : undefined}
-          />
-          <QuadrantCell
             track={t1}
             count={counts?.track_1}
             onClick={onTrackClick ? () => onTrackClick("track_1") : undefined}
             emphasized
           />
-          <SkippedCell />
+          <QuadrantCell
+            track={t3}
+            count={counts?.track_3}
+            onClick={onTrackClick ? () => onTrackClick("track_3") : undefined}
+          />
           <QuadrantCell
             track={t2}
             count={counts?.track_2}
             onClick={onTrackClick ? () => onTrackClick("track_2") : undefined}
           />
+          <OffPathCell />
         </div>
         <div className="flex justify-between mt-2 text-[10.5px] tracking-[0.04em] text-rd-text-secondary">
+          <span>← qualified now</span>
           <span>not yet qualified</span>
-          <span>qualified now →</span>
         </div>
       </div>
     </div>
@@ -149,7 +149,7 @@ function QuadrantCell({ track, count, onClick, emphasized = false }) {
   );
 }
 
-function SkippedCell() {
+function OffPathCell() {
   return (
     <div
       className="rounded-[14px] px-3.5 py-3 min-h-[112px] flex flex-col text-left"
@@ -164,7 +164,7 @@ function SkippedCell() {
           <span className="font-display font-bold text-[14px] text-white leading-none">−</span>
         </span>
         <span className="font-display font-bold text-[14px] leading-none text-rd-text-tertiary">
-          Skipped
+          Not relevant to your career path
         </span>
       </div>
       <p className="text-[11.5px] leading-[1.45] text-rd-text-secondary mt-2">
