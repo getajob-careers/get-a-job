@@ -12,8 +12,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { track, EVENTS } from "@/lib/analytics";
-import ApplicationRow from "../components/tracker/ApplicationRow";
 import ApplicationsKanban from "../components/tracker/ApplicationsKanban";
+import ApplicationDetailDrawer from "../components/tracker/ApplicationDetailDrawer";
 import { scoreApplication } from "@/lib/scoreApplication";
 import { stripHtml } from "../../scripts/lib/normalize.ts";
 import { TRACKER_CSS } from "../components/tracker/trackerStyles";
@@ -52,11 +52,13 @@ export default function Tracker() {
   const [showAdd, setShowAdd] = useState(false);
   const [newApp, setNewApp] = useState({ role_title: "", company: "", status: "interested" });
 
-  // Kanban card click → expand the full ApplicationRow detail below the
-  // board. Same drawer the list view used; the list view itself was
-  // removed (board is now the only view) but the row component is reused
-  // as the detail surface so tabs / writes / locks stay 1:1.
-  const [expandedAppId, setExpandedAppId] = useState(null);
+  // Kanban card click → open the application detail in a right-side
+  // drawer (Sheet). The detail used to expand INLINE below the board,
+  // which put it below the fold and made cards feel un-clickable. The
+  // drawer slides in over the board so the click has an immediate
+  // visible result and the board state (scroll, columns) is preserved
+  // when the drawer closes.
+  const [drawerAppId, setDrawerAppId] = useState(null);
 
   const [jobDescription, setJobDescription] = useState("");
   const [importError, setImportError] = useState("");
@@ -238,38 +240,35 @@ export default function Tracker() {
               </p>
             </div>
           ) : (
-            <>
-              <ApplicationsKanban
-                applications={applications}
-                statuses={STATUSES}
-                statusLabels={STATUS_LABELS}
-                inactiveExternalIds={inactiveExternalIds}
-                onCardClick={(app) => setExpandedAppId((cur) => cur === app.id ? null : app.id)}
-              />
-              {expandedAppId && (() => {
-                const app = applications.find((a) => a.id === expandedAppId);
-                if (!app) return null;
-                return (
-                  <div className="mt-5">
-                    <ApplicationRow
-                      key={`expanded-${app.id}`}
-                      app={app}
-                      profile={profile}
-                      defaultExpanded
-                      listingInactive={
-                        Boolean(app.ats_source && app.external_id &&
-                          inactiveExternalIds.has(`${app.ats_source}|${app.external_id}`))
-                      }
-                      onUpdate={() =>
-                        queryClient.invalidateQueries({ queryKey: ["applications"] })
-                      }
-                    />
-                  </div>
-                );
-              })()}
-            </>
+            <ApplicationsKanban
+              applications={applications}
+              statuses={STATUSES}
+              statusLabels={STATUS_LABELS}
+              inactiveExternalIds={inactiveExternalIds}
+              onCardClick={(app) => setDrawerAppId(app.id)}
+            />
           )}
         </div>
+
+        {/* Detail drawer — opened by clicking any board card. Reads the
+            full app object from the wide ["applications", uid] cache so
+            the JD persists across navigation. */}
+        <ApplicationDetailDrawer
+          app={drawerAppId ? applications.find((a) => a.id === drawerAppId) : null}
+          profile={profile}
+          listingInactive={
+            drawerAppId
+              ? (() => {
+                  const a = applications.find((x) => x.id === drawerAppId);
+                  return Boolean(a?.ats_source && a?.external_id &&
+                    inactiveExternalIds.has(`${a.ats_source}|${a.external_id}`));
+                })()
+              : false
+          }
+          open={!!drawerAppId}
+          onClose={() => setDrawerAppId(null)}
+          onUpdate={() => queryClient.invalidateQueries({ queryKey: ["applications"] })}
+        />
 
         {/* Add dialog */}
         <Dialog open={showAdd} onOpenChange={(open) => { setShowAdd(open); if (!open) setImportError(""); }}>
