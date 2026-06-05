@@ -4,8 +4,23 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics";
+import { TRACK_CONFIG } from "@/lib/trackConfig";
+
+// Track-color tints for the in-card Track badge. Mirrors RD_TRACK_STYLES
+// in ApplicationRow.jsx but inlined here so the kanban card is
+// self-contained.
+const TRACK_RD_TINT = {
+  coral:  "var(--rd-coral-tint)",
+  teal:   "var(--rd-teal-tint)",
+  golden: "var(--rd-golden-tint)",
+};
+const TRACK_RD_ACCENT = {
+  coral:  "var(--rd-coral-dark)",
+  teal:   "var(--rd-teal-dark)",
+  golden: "var(--rd-golden-dark)",
+};
 
 // Opt-in kanban view of applications. Ports the practicum CompanyTargetsKanban
 // pattern verbatim:
@@ -64,9 +79,10 @@ const LOGO_TILE_TONE = {
 
 export default function ApplicationsKanban({
   applications,
-  statuses,           // canonical order
-  statusLabels,       // label map
-  onCardClick,        // (app) => void — opens the same expansion the list view uses
+  statuses,                       // canonical order
+  statusLabels,                   // label map
+  onCardClick,                    // (app) => void — opens the ApplicationRow detail
+  inactiveExternalIds = new Set(), // ats|external_id keys whose jobs row is is_active=false
 }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -76,6 +92,10 @@ export default function ApplicationsKanban({
     acc[status] = applications.filter((a) => a.status === status);
     return acc;
   }, {});
+
+  const isInactive = (app) =>
+    Boolean(app.ats_source && app.external_id &&
+      inactiveExternalIds.has(`${app.ats_source}|${app.external_id}`));
 
   const updateStatus = async (app, newStatus, via) => {
     const oldStatus = app.status;
@@ -127,6 +147,7 @@ export default function ApplicationsKanban({
         statuses={statuses}
         statusLabels={statusLabels}
         byStatus={byStatus}
+        isInactive={isInactive}
         onCardClick={onCardClick}
         onStatusChange={(app, newStatus) => updateStatus(app, newStatus, "select")}
       />
@@ -184,6 +205,7 @@ export default function ApplicationsKanban({
                             >
                               <ApplicationKanbanCard
                                 app={app}
+                                listingInactive={isInactive(app)}
                                 onClick={() => onCardClick?.(app)}
                               />
                             </div>
@@ -211,12 +233,13 @@ export default function ApplicationsKanban({
 // the DnD lib registers the drag intent; div + role="button" keeps the
 // a11y semantics + click semantics while leaving DnD free to take over.
 // (Same pattern as src/components/internship/CompanyTargetCard.jsx.)
-function ApplicationKanbanCard({ app, onClick }) {
+function ApplicationKanbanCard({ app, onClick, listingInactive = false }) {
   const initial = (app.company || app.role_title || "?").trim().charAt(0).toUpperCase();
   const tone = LOGO_TILE_TONE[app.status] || LOGO_TILE_TONE.interested;
   const matchPct = pickDisplayScore(app);
   const role = app.role_title || "Untitled role";
   const company = app.company || "";
+  const trackMeta = TRACK_CONFIG[app.track]; // null when unclassified
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -251,6 +274,30 @@ function ApplicationKanbanCard({ app, onClick }) {
           {company}
         </div>
       )}
+      {(trackMeta || listingInactive) && (
+        <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+          {trackMeta && (
+            <span
+              className="inline-flex items-center text-[9.5px] font-display font-bold rounded-full px-1.5 py-0.5"
+              style={{
+                background: TRACK_RD_TINT[trackMeta.rdColor] || "var(--rd-bg-soft)",
+                color: TRACK_RD_ACCENT[trackMeta.rdColor] || "var(--rd-text-secondary)",
+              }}
+            >
+              Track {trackMeta.number}
+            </span>
+          )}
+          {listingInactive && (
+            <span
+              className="inline-flex items-center gap-1 text-[9.5px] text-rd-golden-dark"
+              title="This listing may no longer be active"
+            >
+              <AlertCircle className="w-2.5 h-2.5" />
+              May be inactive
+            </span>
+          )}
+        </div>
+      )}
     </div>
   );
 }
@@ -271,7 +318,7 @@ function numOrNull(v) {
 
 // ───── Mobile accordion fallback ─────
 
-function MobileAccordion({ statuses, statusLabels, byStatus, onCardClick, onStatusChange }) {
+function MobileAccordion({ statuses, statusLabels, byStatus, isInactive, onCardClick, onStatusChange }) {
   // Default-expand "interested" + any column that has cards.
   const initialOpen = statuses.filter((s) => s === "interested" || (byStatus[s]?.length || 0) > 0);
   const [openSet, setOpenSet] = useState(new Set(initialOpen));
@@ -316,7 +363,11 @@ function MobileAccordion({ statuses, statusLabels, byStatus, onCardClick, onStat
                 ) : (
                   column.map((app) => (
                     <div key={app.id}>
-                      <ApplicationKanbanCard app={app} onClick={() => onCardClick?.(app)} />
+                      <ApplicationKanbanCard
+                        app={app}
+                        listingInactive={isInactive?.(app) || false}
+                        onClick={() => onCardClick?.(app)}
+                      />
                       <div className="flex items-center gap-2 mt-1.5 px-1">
                         <span className="text-[11px] text-rd-text-tertiary">Move to:</span>
                         <select
