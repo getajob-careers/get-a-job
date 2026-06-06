@@ -13,7 +13,7 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { track, EVENTS } from "@/lib/analytics";
 
-// Floating "Beta: got feedback?" pill + modal. Mounted from src/Layout.jsx
+// Floating "Got feedback?" pill + modal. Mounted from src/Layout.jsx
 // so it shows on every authenticated, post-onboarding route.
 //
 // Two-step flow inside the modal:
@@ -100,9 +100,6 @@ export default function FeedbackWidget() {
         aria-label="Send feedback"
         className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-40 inline-flex items-center gap-2 font-display font-bold text-[12.5px] rounded-full px-4 py-2.5 bg-rd-coral text-white shadow-lg hover:bg-rd-coral-dark transition-colors"
       >
-        <span className="inline-flex items-center font-mono font-medium text-[10px] uppercase tracking-[0.09em] bg-white/20 rounded-full px-1.5 py-0.5">
-          Beta
-        </span>
         <MessageSquare className="w-3.5 h-3.5" />
         Got feedback?
       </button>
