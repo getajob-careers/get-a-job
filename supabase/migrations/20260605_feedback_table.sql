@@ -13,6 +13,7 @@
 --   - users SELECT their own rows (so a future "your submissions"
 --     UI can show them what they sent)
 --   - admins (per public.is_admin() + admin_users) SELECT all rows
+--     (no-arg signature — `is_admin()` reads auth.uid() internally)
 --   - no UPDATE / DELETE policy → tombstone-style, mutation goes
 --     through service-role only if ever needed
 --
@@ -46,7 +47,7 @@ CREATE POLICY fb_select_own
 CREATE POLICY fb_select_admin
   ON public.feedback
   FOR SELECT
-  USING (public.is_admin(auth.uid()));
+  USING (public.is_admin());
 
 CREATE INDEX feedback_created_at_idx ON public.feedback (created_at DESC);
 CREATE INDEX feedback_user_id_idx    ON public.feedback (user_id);
