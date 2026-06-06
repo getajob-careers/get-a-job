@@ -33,6 +33,10 @@ export const EVENTS = {
   PRACTICUM_COMPANY_ADDED:     "practicum_company_added",
   PRACTICUM_STATUS_CHANGED:    "practicum_status_changed",
   CHAT_MESSAGE_SENT:           "chat_message_sent",
+  // Floating feedback widget — fires on successful insert into
+  // public.feedback with { category, route } so we can cohort users
+  // who flagged each pain category in PostHog.
+  FEEDBACK_SUBMITTED:          "feedback_submitted",
   // Stripe-driven — names reserved here so the convention is fixed.
   // Call sites land once Stripe webhooks / billing UI ship.
   SUBSCRIPTION_STARTED:        "subscription_started",
