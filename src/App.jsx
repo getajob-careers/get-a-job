@@ -14,6 +14,7 @@ import ResetPassword from '@/pages/ResetPassword';
 import Landing from '@/pages/Landing';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
+import FeedbackWidget from '@/components/feedback/FeedbackWidget';
 
 // Redesign preview harness. Statically imported, but the route block
 // below registers it ONLY when `import.meta.env.DEV` is true. In a
@@ -117,6 +118,14 @@ const AuthenticatedApp = () => {
           </Routes>
         </Suspense>
       </ChunkErrorBoundary>
+      {/* Floating "Got feedback?" widget — mounted as a sibling of
+          <Routes> (NOT inside Layout) so it doesn't get hidden by
+          Layout's chrome-gate during the profile-fetch window. The
+          widget owns its own /Onboarding pathname check via
+          useLocation, so we don't need a wrapper here. AuthenticatedApp
+          has already gated on isAuthenticated + user, so when this
+          renders the widget is guaranteed to see a non-null user. */}
+      <FeedbackWidget />
     </PostHogProvider>
   );
 };

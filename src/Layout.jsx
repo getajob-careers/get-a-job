@@ -4,7 +4,6 @@ import { useAuth } from "@/lib/AuthContext";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import TopLoadingBar from "./components/ui/TopLoadingBar";
 import SidebarFooter from "./components/layout/SidebarFooter";
-import FeedbackWidget from "./components/feedback/FeedbackWidget";
 import { createPageUrl } from "@/utils";
 import {
   LayoutDashboard,
@@ -314,12 +313,6 @@ export default function Layout({ children, currentPageName }) {
           {children}
         </main>
       </div>
-
-      {/* Floating "Beta: got feedback?" widget — mounted at the
-          Layout root so it appears on every authenticated, fully-
-          onboarded route. Returns null for unauth'd users itself, but
-          the early-return above already prevents that path. */}
-      <FeedbackWidget />
     </div>
   );
 }

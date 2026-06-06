@@ -13,8 +13,12 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { track, EVENTS } from "@/lib/analytics";
 
-// Floating "Got feedback?" pill + modal. Mounted from src/Layout.jsx
-// so it shows on every authenticated, post-onboarding route.
+// Floating "Got feedback?" pill + modal. Mounted from
+// `AuthenticatedApp` in src/App.jsx as a sibling of <Routes> so it
+// renders on every authenticated route — independent of Layout's
+// chrome-gate, which was hiding the widget during the profile-fetch
+// window (and entirely on any session where the profile query never
+// resolved). Skips /Onboarding via the pathname check below.
 //
 // Two-step flow inside the modal:
 //   step 1 — pick a category chip (one of 4)
@@ -85,10 +89,17 @@ export default function FeedbackWidget() {
     reset();
   };
 
-  // Don't render the launcher for unauthenticated users — Layout already
-  // gates by onboarding_complete, but belt-and-suspenders here for any
-  // future caller that mounts the widget outside Layout.
+  // Don't render the launcher for unauthenticated users —
+  // AuthenticatedApp already gates on isAuthenticated + user, but
+  // belt-and-suspenders here for any future caller that mounts the
+  // widget outside that gate.
   if (!user?.id) return null;
+
+  // Skip on the Onboarding route — users mid-onboarding shouldn't see
+  // the feedback pill. Matches /Onboarding exactly (case-insensitive)
+  // and any nested path. The widget mount point in App.jsx is a sibling
+  // of <Routes>, so this is the only gate filtering by current path.
+  if (/^\/onboarding($|\/)/i.test(location.pathname)) return null;
 
   return (
     <>
