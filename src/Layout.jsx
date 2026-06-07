@@ -228,14 +228,31 @@ export default function Layout({ children, currentPageName }) {
   // Tradeoff: existing complete users see a ~50-100ms no-chrome window on
   // first profile fetch each session (refresh on any page). Within session,
   // cache (staleTime 5 min) makes subsequent visits chrome-immediate.
+  // `data-private` on both Layout branches puts every authenticated
+  // surface inside the selector PostHog's session replay uses to mask
+  // DOM text content (PostHogProvider config: maskTextSelector:
+  // "[data-private]"). It prevents the user's CV preview, AI-generated
+  // outputs (career analysis, LinkedIn posts/comments/outreach, STAR
+  // stories, tasks, application/JD text), chat messages, profile
+  // fields rendered as text, and the SidebarFooter's full_name from
+  // landing in session replays. Form-input values (passwords, profile
+  // edits, pasted JDs) are already masked by `maskAllInputs: true`.
+  // Replays still capture the visual frame, clicks, scroll, and error
+  // states — just no readable text inside the authenticated app.
+  // Public surfaces (Landing / Login / Privacy / Terms / ResetPassword)
+  // are rendered outside Layout and stay unmasked since they don't
+  // display existing user content.
   if (currentPageName === ONBOARDING_PAGE || !onboardingComplete) {
-    return <>{children}</>;
+    return <div data-private>{children}</div>;
   }
 
   const closeMobileSidebar = () => setSidebarOpen(false);
 
   return (
-    <div className="flex h-screen bg-rd-bg-page font-body text-rd-text">
+    <div
+      data-private
+      className="flex h-screen bg-rd-bg-page font-body text-rd-text"
+    >
       <TopLoadingBar loading={navLoading} />
       {/* Mobile overlay */}
       {sidebarOpen && (
