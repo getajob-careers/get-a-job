@@ -72,7 +72,7 @@ export default function Terms() {
             <li>Provide accurate and current information when creating your account and updating your profile;</li>
             <li>Keep your password confidential and not share your account;</li>
             <li>Notify us immediately at{" "}
-              <a href="mailto:security@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">security@getajob.careers</a>
+              <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">elienglard34@gmail.com</a>
               {" "}if you suspect unauthorized access;
             </li>
             <li>Comply with these Terms and all applicable laws.</li>
@@ -176,7 +176,7 @@ export default function Terms() {
           </p>
           <p>
             Before starting formal proceedings, we encourage you to contact us at{" "}
-            <a href="mailto:legal@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">legal@getajob.careers</a>
+            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">elienglard34@gmail.com</a>
             {" "}so we can try to resolve the issue informally.
           </p>
         </Section>
@@ -201,8 +201,8 @@ export default function Terms() {
           </p>
           <p>
             Email:{" "}
-            <a href="mailto:legal@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">
-              legal@getajob.careers
+            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+              elienglard34@gmail.com
             </a>
           </p>
         </Section>

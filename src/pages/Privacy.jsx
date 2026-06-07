@@ -57,8 +57,8 @@ export default function Privacy() {
           </p>
           <p>
             For questions about this Policy or to exercise the rights described below, contact us at{" "}
-            <a href="mailto:privacy@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">
-              privacy@getajob.careers
+            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+              elienglard34@gmail.com
             </a>
             .
           </p>
@@ -113,7 +113,7 @@ export default function Privacy() {
                 <tr className="border-b border-rd-border-subtle">
                   <td className="py-2 pr-3 font-medium text-rd-text">Supabase</td>
                   <td className="py-2 pr-3">Database, authentication, file storage</td>
-                  <td className="py-2">EU</td>
+                  <td className="py-2">Southeast Asia (Singapore)</td>
                 </tr>
                 <tr className="border-b border-rd-border-subtle">
                   <td className="py-2 pr-3 font-medium text-rd-text">Vercel</td>
@@ -170,7 +170,16 @@ export default function Privacy() {
 
         <Section id="international" title="6. International data transfers">
           <p>
-            Get A Job is based in Israel, and the subprocessors listed above operate in Israel, the European Economic Area, the United States, and other regions. As a result, your information may be transferred to, stored in, and processed in countries outside your country of residence, including the United States.
+            Get A Job is based in Israel, but the data the Service stores is processed across several regions by our subprocessors. Specifically:
+          </p>
+          <ul className="list-disc pl-5 space-y-1.5">
+            <li><strong className="font-display text-rd-text">Supabase</strong> (our primary datastore — database, authentication, and uploaded CV files) operates in <strong className="font-display text-rd-text">Southeast Asia (Singapore)</strong>.</li>
+            <li><strong className="font-display text-rd-text">OpenAI</strong> (AI generation) processes content in the <strong className="font-display text-rd-text">United States</strong>.</li>
+            <li><strong className="font-display text-rd-text">PostHog</strong> (product analytics and session replay) and <strong className="font-display text-rd-text">Langfuse</strong> (LLM tracing) operate in the <strong className="font-display text-rd-text">European Union</strong>.</li>
+            <li><strong className="font-display text-rd-text">Vercel</strong>, <strong className="font-display text-rd-text">Cloudflare</strong>, and <strong className="font-display text-rd-text">Resend</strong> operate globally with regional points of presence.</li>
+          </ul>
+          <p className="!mt-4">
+            As a result, your information may be transferred to, stored in, and processed in countries outside your country of residence — including Singapore, the United States, and the European Union.
           </p>
           <p>
             Where the law requires it, we rely on appropriate transfer mechanisms — including the European Commission&rsquo;s Standard Contractual Clauses, the EU–US Data Privacy Framework, and equivalent safeguards under Israel&rsquo;s Privacy Protection Law — to legitimize cross-border transfers of personal data.
@@ -204,8 +213,8 @@ export default function Privacy() {
           </ul>
           <p className="!mt-4">
             To exercise these rights, use the in-app deletion flow or email us at{" "}
-            <a href="mailto:privacy@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">
-              privacy@getajob.careers
+            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+              elienglard34@gmail.com
             </a>
             . We&rsquo;ll respond within the timeframes required by applicable law.
           </p>
@@ -224,8 +233,8 @@ export default function Privacy() {
           </ul>
           <p className="!mt-4">
             No system is perfectly secure. You are responsible for keeping your account credentials confidential and for notifying us immediately if you suspect unauthorized access. Contact us at{" "}
-            <a href="mailto:security@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">
-              security@getajob.careers
+            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+              elienglard34@gmail.com
             </a>
             {" "}for security concerns.
           </p>
@@ -247,8 +256,8 @@ export default function Privacy() {
         <Section id="minimum-age" title="11. Minimum age">
           <p>
             The Service is intended for adults. You must be at least 18 years old (or the age of majority in your jurisdiction) to use it. We do not knowingly collect personal data from children. If you believe a child has provided us with personal data, contact{" "}
-            <a href="mailto:privacy@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">
-              privacy@getajob.careers
+            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+              elienglard34@gmail.com
             </a>
             {" "}and we will delete it.
           </p>
@@ -272,8 +281,8 @@ export default function Privacy() {
           </p>
           <p>
             Email:{" "}
-            <a href="mailto:privacy@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">
-              privacy@getajob.careers
+            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+              elienglard34@gmail.com
             </a>
           </p>
         </Section>
