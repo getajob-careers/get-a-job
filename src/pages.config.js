@@ -62,6 +62,7 @@ import Tracker from './pages/Tracker';
 import Calendar from './pages/Calendar';
 import Jobs from './pages/Jobs';
 import Admin from './pages/Admin';
+import AdminLaunch from './pages/AdminLaunch';
 import Linkedin from './pages/Linkedin';
 import Internship from './pages/Internship';
 import Settings from './pages/Settings';
@@ -88,6 +89,7 @@ export const PAGES = {
     "Calendar": Calendar,
     "Jobs": Jobs,
     "Admin": Admin,
+    "AdminLaunch": AdminLaunch,
     "Linkedin": Linkedin,
     "Internship": Internship,
     "Settings": Settings,

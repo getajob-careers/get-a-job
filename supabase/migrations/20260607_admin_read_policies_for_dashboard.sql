@@ -1,0 +1,10 @@
+drop policy if exists "Admins view all invite_codes" on public.invite_codes;
+create policy "Admins view all invite_codes" on public.invite_codes for select using (is_admin());
+drop policy if exists "Admins view all waitlist_signups" on public.waitlist_signups;
+create policy "Admins view all waitlist_signups" on public.waitlist_signups for select using (is_admin());
+drop policy if exists "Admins view all career_roles" on public.career_roles;
+create policy "Admins view all career_roles" on public.career_roles for select using (is_admin());
+drop policy if exists "Admins view all error_logs" on public.error_logs;
+create policy "Admins view all error_logs" on public.error_logs for select using (is_admin());
+drop policy if exists "Admins view all linkedin_outreach_conversations" on public.linkedin_outreach_conversations;
+create policy "Admins view all linkedin_outreach_conversations" on public.linkedin_outreach_conversations for select using (is_admin());
