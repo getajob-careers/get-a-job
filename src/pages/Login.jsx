@@ -68,6 +68,13 @@ export default function Login() {
     catch { return false; }
   })();
   const [waitlistMode, setWaitlistMode] = useState(previewWaitlist);
+  // Why we flipped to waitlist mode. "exhausted" = the user typed a
+  // valid cohort code that's at its cap → "pilot is full" copy. null /
+  // "invalid_or_exhausted" = the user typed something we couldn't
+  // recognize → existing "invalid code, join waitlist" copy. Used to
+  // swap eyebrow / title / subtitle on the waitlist form so the
+  // experience matches the cause without changing the submit path.
+  const [waitlistReason, setWaitlistReason] = useState(null);
   // Required consent for signup. Submit stays disabled until checked.
   // Layout reserves the row in all modes so the form doesn't reflow on
   // mode switch — checkbox is just visually hidden on signin/forgot.
@@ -122,7 +129,10 @@ export default function Login() {
     setMessage(null);
     // Leaving signup → clear waitlistMode so a future visit to signup
     // starts fresh.
-    if (next !== "signup") setWaitlistMode(false);
+    if (next !== "signup") {
+      setWaitlistMode(false);
+      setWaitlistReason(null);
+    }
     // Don't clear captchaToken — Turnstile widget stays mounted across
     // mode switches; the user's solved token is still valid for whichever
     // endpoint we hit next.
@@ -145,11 +155,23 @@ export default function Login() {
         const { data: redeemRaw, error: redeemError } = await supabase
           .rpc("redeem_invite_code", { p_code: inviteCode.trim() });
         if (redeemError) throw new Error(redeemError.message || "Could not validate invite code");
-        const redeemResult = /** @type {{ valid?: boolean; cohort_label?: string }} */ (redeemRaw || {});
+        const redeemResult = /** @type {{ valid?: boolean; reason?: string; cohort_label?: string }} */ (redeemRaw || {});
         if (!redeemResult.valid) {
           // Flip to inline waitlist mode. captchaToken still valid.
+          // RPC tells us which branch via `reason`:
+          //   - "exhausted": valid code, cohort at cap → "pilot is full" copy
+          //   - "invalid_or_exhausted" (or missing): unknown / inactive
+          //     code → original "invalid invite code" copy
+          // Either way we flip to the same waitlist form, just with
+          // copy that matches what actually happened.
           setWaitlistMode(true);
-          setError("Invalid invite code. If you don't have one, join the waitlist below — we'll email you when a spot opens.");
+          if (redeemResult.reason === "exhausted") {
+            setWaitlistReason("exhausted");
+            setError(null);
+          } else {
+            setWaitlistReason(null);
+            setError("Invalid invite code. If you don't have one, join the waitlist below — we'll email you when a spot opens.");
+          }
           setLoading(false);
           return;
         }
@@ -243,12 +265,20 @@ export default function Login() {
   };
 
   const eyebrowText =
-    mode === "signup" ? (waitlistMode ? "Waitlist" : "Get started")
+    mode === "signup"
+      ? (waitlistMode
+        ? (waitlistReason === "exhausted" ? "Pilot is full" : "Waitlist")
+        : "Get started")
     : mode === "forgot" ? "Password reset"
     : "Welcome back";
 
   const titleText =
-    mode === "signup" ? (waitlistMode ? "Join the waitlist" : "Create your account")
+    mode === "signup"
+      ? (waitlistMode
+        ? (waitlistReason === "exhausted"
+          ? "This pilot is full right now"
+          : "Join the waitlist")
+        : "Create your account")
     : mode === "forgot" ? "Reset your password"
     : "Sign in";
 
@@ -351,9 +381,15 @@ export default function Login() {
             </div>
           )}
 
-          {/* ── Inline waitlist form (within signup, after invalid code) ── */}
+          {/* ── Inline waitlist form (within signup, after invalid code
+               OR after a valid-but-exhausted cohort code) ── */}
           {mode === "signup" && waitlistMode ? (
             <form onSubmit={handleWaitlistSubmit} className="flex flex-col gap-3.5 mt-5">
+              {waitlistReason === "exhausted" && (
+                <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] -mt-1">
+                  Can we add you to the waitlist? We&apos;ll email you the moment a spot opens.
+                </p>
+              )}
               <Field id="waitlist-email" label="Email">
                 <Input
                   id="waitlist-email"
@@ -376,6 +412,7 @@ export default function Login() {
                 type="button"
                 onClick={() => {
                   setWaitlistMode(false);
+                  setWaitlistReason(null);
                   setError(null);
                   setMessage(null);
                 }}
