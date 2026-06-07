@@ -79,23 +79,15 @@ export default function Terms() {
           </ul>
         </Section>
 
-        <Section id="subscriptions" title="4. Subscriptions, billing, and refunds">
+        <Section id="pilot-access" title="4. Pilot access">
           <p>
-            <strong className="font-display text-rd-text">Free trial.</strong> New accounts may include a free trial period (currently 7 days), during which you have full access to paid features at no charge. We will tell you the length of the trial at signup. If you do not cancel before the trial ends, your subscription automatically converts to a paid subscription.
+            Get A Job is currently offered free of charge as part of a limited pilot. We do not collect or process payment information at this time, and there is no automatic conversion to a paid plan: your free pilot access does not turn into a paid subscription on its own.
           </p>
           <p>
-            <strong className="font-display text-rd-text">Subscription pricing.</strong> Paid subscriptions are billed at the rate disclosed at signup (currently US$12 per month) on a recurring monthly basis until cancelled. Prices and plan structures may change; we will provide reasonable advance notice of any change to your existing subscription and an opportunity to cancel before it takes effect.
+            We may introduce paid subscription plans in the future. If we do, we will give you reasonable advance notice and updated Terms before any charge is taken. You will not be charged unless you actively sign up for a paid plan after that notice.
           </p>
           <p>
-            <strong className="font-display text-rd-text">Payments.</strong> All payments are processed by our payments provider (Stripe). You authorize Stripe to charge your designated payment method for the amount disclosed at signup and for each recurring billing cycle. Payment-card details and billing records are held by Stripe; we do not store full card numbers on our systems.
-          </p>
-          <p>
-            <strong className="font-display text-rd-text">Cancellation.</strong> You can cancel your subscription at any time through your account settings. Cancellation stops future charges; you keep access to paid features through the end of the billing period you have already paid for.
-          </p>
-          <p>
-            <strong className="font-display text-rd-text">Refunds.</strong> Subscription fees are non-refundable for partial periods. Where applicable law gives you a statutory right to a refund (for example, the EU and UK 14-day right of withdrawal for consumers), we honour it. Contact{" "}
-            <a href="mailto:billing@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">billing@getajob.careers</a>
-            {" "}to request a refund under those rules.
+            During the pilot we may also change, suspend, or discontinue features at any time as we learn what works. We will try to give notice when changes are material.
           </p>
         </Section>
 
