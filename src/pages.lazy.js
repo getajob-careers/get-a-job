@@ -24,6 +24,7 @@ import { lazy } from "react";
 // Lazy page imports. Each one becomes its own chunk in dist/assets.
 // Ordering doesn't matter — kept alphabetical for grep-ability.
 const Admin = lazy(() => import("./pages/Admin"));
+const AdminLaunch = lazy(() => import("./pages/AdminLaunch"));
 const Calendar = lazy(() => import("./pages/Calendar"));
 const CareerAgent = lazy(() => import("./pages/CareerAgent"));
 const CVAgent = lazy(() => import("./pages/CVAgent"));
@@ -49,6 +50,7 @@ import Onboarding from "./pages/Onboarding";
 
 export const LAZY_PAGES = {
   Admin,
+  AdminLaunch,
   Calendar,
   CareerAgent,
   CVAgent,
