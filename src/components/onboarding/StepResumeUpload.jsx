@@ -1,91 +1,25 @@
 import React, { useState, useRef, useEffect } from "react";
 
-// pdfjs is lazy-loaded inside the function below — the lib + worker
-// pull ~356KB gzip onto the main chunk otherwise.
+// PDF text extraction is server-side via the `extract-cv-text` edge
+// function. The browser pdfjs path was repeatedly broken on iOS Safari
+// <17.4 by missing modern JS APIs (Promise.withResolvers et al.); the
+// Deno runtime on Supabase Edge has the full surface, so parsing moved
+// off the device. See supabase/functions/extract-cv-text/index.ts.
 //
-// iOS Safari < 17.4 fix — v5 canonical fake-worker pattern.
-//
-// Background: pdfjs-dist 5.x calls `Promise.withResolvers()` 26+ times
-// inside its main bundle AND inside the worker code. iOS Safari shipped
-// `Promise.withResolvers` only in 17.4 (March 2024), so earlier iOS
-// throws `TypeError: undefined is not a function` mid-parse. PR #261
-// polyfilled the main thread (src/lib/polyfills.js), but a Web Worker
-// has its own global scope — the main-thread polyfill never reaches
-// the worker. PR #262 tried `disableWorker: true` on getDocument, but
-// auditing pdfjs-dist@5.5.207 source revealed that option is silently
-// ignored — `disableWorker` does NOT exist anywhere in the v5
-// getDocument options parser (`build/pdf.mjs` lines 14440-14525).
-//
-// The actual v5 escape hatch is the `globalThis.pdfjsWorker` shortcut:
-// `PDFWorker.#mainThreadWorkerMessageHandler` (build/pdf.mjs:15404-15410)
-// reads `globalThis.pdfjsWorker?.WorkerMessageHandler` and, when set,
-// short-circuits `#initialize()` (line 15290) into `#setupFakeWorker()`
-// — pdfjs runs the worker code IN THE MAIN THREAD, where the polyfill
-// is defined. No worker is spawned at all.
-//
-// We import the worker file as a MODULE (not `?url`), so Vite bundles
-// its `WorkerMessageHandler` export. Assigning it to
-// `globalThis.pdfjsWorker` before `getDocument` triggers the
-// fake-worker path on first parse.
-//
-// Perf: negligible for CVs (1–3 pages parse in tens of ms). The worker
-// fork existed to keep huge PDFs from blocking the UI; doesn't apply
-// to resumes.
-//
-// Removed: `workerSrc` assignment (unused once fake-worker takes the
-// path) and the dead `disableWorker: true` option.
-//
-// Stage-labeled try/catch (Stage A..D) is so that any remaining failure
-// names the throwing step in the user-facing error message, instead of
-// the previous opaque "Upload failed: ...".
-async function extractTextFromPdf(file) {
-  // ─── Stage A: module import ──────────────────────────────────────
-  let pdfjsLib;
-  let pdfWorkerModule;
-  try {
-    [pdfjsLib, pdfWorkerModule] = await Promise.all([
-      import("pdfjs-dist"),
-      // Module import, NOT `?url`. We need the WorkerMessageHandler
-      // export to put on globalThis below.
-      import("pdfjs-dist/build/pdf.worker.min.mjs"),
-    ]);
-  } catch (err) {
-    throw new Error(`[Stage A: import pdfjs] ${err?.name || "Error"}: ${err?.message || String(err)}`);
+// IMPORTANT: callers must finish the storage upload (and ideally the
+// signed-URL roundtrip) BEFORE invoking — the server reads the uploaded
+// copy, and an unawaited upload races into a 404.
+async function extractTextFromPdfServer(filePath) {
+  const { data, error } = await supabase.functions.invoke("extract-cv-text", {
+    body: { file_path: filePath },
+  });
+  if (error) throw new Error(error.message || "PDF parse failed");
+  const text = data?.text || "";
+  if (!text) {
+    throw new Error(
+      "Couldn't extract text from this PDF. Please paste your details manually."
+    );
   }
-
-  // Force main-thread parsing via the v5 sanctioned shortcut. Must be
-  // set BEFORE getDocument so PDFWorker.#initialize sees it.
-  globalThis.pdfjsWorker = pdfWorkerModule;
-
-  // ─── Stage B: build the loading task ─────────────────────────────
-  let loadingTask;
-  try {
-    const arrayBuffer = await file.arrayBuffer();
-    loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-  } catch (err) {
-    throw new Error(`[Stage B: getDocument] ${err?.name || "Error"}: ${err?.message || String(err)}`);
-  }
-
-  // ─── Stage C: await the parse promise ────────────────────────────
-  let pdf;
-  try {
-    pdf = await loadingTask.promise;
-  } catch (err) {
-    throw new Error(`[Stage C: loadingTask.promise] ${err?.name || "Error"}: ${err?.message || String(err)}`);
-  }
-
-  // ─── Stage D: extract text from each page ────────────────────────
-  let text = "";
-  try {
-    for (let i = 1; i <= pdf.numPages; i++) {
-      const page = await pdf.getPage(i);
-      const content = await page.getTextContent();
-      text += content.items.map((item) => item.str).join(" ") + "\n";
-    }
-  } catch (err) {
-    throw new Error(`[Stage D: page text extraction] ${err?.name || "Error"}: ${err?.message || String(err)}`);
-  }
-
   return text;
 }
 
@@ -198,7 +132,10 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
 
       let fileText = "";
       if (file.type === "application/pdf") {
-        fileText = await extractTextFromPdf(file);
+        // Upload + signed URL above are fully awaited — the server reads
+        // the uploaded copy from storage, so the file must be in place
+        // before we invoke or the download 404s.
+        fileText = await extractTextFromPdfServer(filePath);
       } else if (isDocxFile(file)) {
         fileText = await extractTextFromDocx(file);
       } else if (file.type === "application/msword" || /\.doc$/i.test(file.name || "")) {
