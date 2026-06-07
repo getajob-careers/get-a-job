@@ -1,44 +1,91 @@
 import React, { useState, useRef, useEffect } from "react";
 
-// pdfjs is lazy-loaded inside the function below — the lib + worker URL
+// pdfjs is lazy-loaded inside the function below — the lib + worker
 // pull ~356KB gzip onto the main chunk otherwise.
 //
-// `disableWorker: true` runs pdfjs parsing on the main thread instead
-// of forking a Web Worker. This is the iOS Safari < 17.4 fix: pdfjs 5.x
-// calls `Promise.withResolvers()` (TC39 Stage-4, shipped in WebKit only
-// with Safari 17.4) inside its worker code, and a Web Worker has its
-// own global scope completely separate from the main thread. Our
-// main-thread polyfill in src/lib/polyfills.js never reaches the
-// worker, so anything below iOS 17.4 still crashed with `TypeError:
-// undefined is not a function` even after PR #261 shipped. Running on
-// the main thread sidesteps the scope split — pdfjs reaches the
-// polyfilled `Promise.withResolvers` and parsing completes.
+// iOS Safari < 17.4 fix — v5 canonical fake-worker pattern.
 //
-// Perf: negligible. CVs are 1–3 pages and parsing finishes in tens of
-// ms on any modern device. The previous worker fork existed mostly to
-// keep large PDFs from blocking the UI, which doesn't apply here.
+// Background: pdfjs-dist 5.x calls `Promise.withResolvers()` 26+ times
+// inside its main bundle AND inside the worker code. iOS Safari shipped
+// `Promise.withResolvers` only in 17.4 (March 2024), so earlier iOS
+// throws `TypeError: undefined is not a function` mid-parse. PR #261
+// polyfilled the main thread (src/lib/polyfills.js), but a Web Worker
+// has its own global scope — the main-thread polyfill never reaches
+// the worker. PR #262 tried `disableWorker: true` on getDocument, but
+// auditing pdfjs-dist@5.5.207 source revealed that option is silently
+// ignored — `disableWorker` does NOT exist anywhere in the v5
+// getDocument options parser (`build/pdf.mjs` lines 14440-14525).
 //
-// The `workerSrc` assignment + worker URL import stay in place. They're
-// harmless when `disableWorker: true` is set, and keeping them means a
-// future flip back (e.g. when iOS 17.4 adoption is universal) is a
-// one-flag change.
+// The actual v5 escape hatch is the `globalThis.pdfjsWorker` shortcut:
+// `PDFWorker.#mainThreadWorkerMessageHandler` (build/pdf.mjs:15404-15410)
+// reads `globalThis.pdfjsWorker?.WorkerMessageHandler` and, when set,
+// short-circuits `#initialize()` (line 15290) into `#setupFakeWorker()`
+// — pdfjs runs the worker code IN THE MAIN THREAD, where the polyfill
+// is defined. No worker is spawned at all.
+//
+// We import the worker file as a MODULE (not `?url`), so Vite bundles
+// its `WorkerMessageHandler` export. Assigning it to
+// `globalThis.pdfjsWorker` before `getDocument` triggers the
+// fake-worker path on first parse.
+//
+// Perf: negligible for CVs (1–3 pages parse in tens of ms). The worker
+// fork existed to keep huge PDFs from blocking the UI; doesn't apply
+// to resumes.
+//
+// Removed: `workerSrc` assignment (unused once fake-worker takes the
+// path) and the dead `disableWorker: true` option.
+//
+// Stage-labeled try/catch (Stage A..D) is so that any remaining failure
+// names the throwing step in the user-facing error message, instead of
+// the previous opaque "Upload failed: ...".
 async function extractTextFromPdf(file) {
-  const [pdfjsLib, pdfjsWorkerModule] = await Promise.all([
-    import("pdfjs-dist"),
-    import("pdfjs-dist/build/pdf.worker.min.mjs?url"),
-  ]);
-  pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerModule.default;
-  const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument({
-    data: arrayBuffer,
-    disableWorker: true,
-  }).promise;
-  let text = "";
-  for (let i = 1; i <= pdf.numPages; i++) {
-    const page = await pdf.getPage(i);
-    const content = await page.getTextContent();
-    text += content.items.map((item) => item.str).join(" ") + "\n";
+  // ─── Stage A: module import ──────────────────────────────────────
+  let pdfjsLib;
+  let pdfWorkerModule;
+  try {
+    [pdfjsLib, pdfWorkerModule] = await Promise.all([
+      import("pdfjs-dist"),
+      // Module import, NOT `?url`. We need the WorkerMessageHandler
+      // export to put on globalThis below.
+      import("pdfjs-dist/build/pdf.worker.min.mjs"),
+    ]);
+  } catch (err) {
+    throw new Error(`[Stage A: import pdfjs] ${err?.name || "Error"}: ${err?.message || String(err)}`);
   }
+
+  // Force main-thread parsing via the v5 sanctioned shortcut. Must be
+  // set BEFORE getDocument so PDFWorker.#initialize sees it.
+  globalThis.pdfjsWorker = pdfWorkerModule;
+
+  // ─── Stage B: build the loading task ─────────────────────────────
+  let loadingTask;
+  try {
+    const arrayBuffer = await file.arrayBuffer();
+    loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+  } catch (err) {
+    throw new Error(`[Stage B: getDocument] ${err?.name || "Error"}: ${err?.message || String(err)}`);
+  }
+
+  // ─── Stage C: await the parse promise ────────────────────────────
+  let pdf;
+  try {
+    pdf = await loadingTask.promise;
+  } catch (err) {
+    throw new Error(`[Stage C: loadingTask.promise] ${err?.name || "Error"}: ${err?.message || String(err)}`);
+  }
+
+  // ─── Stage D: extract text from each page ────────────────────────
+  let text = "";
+  try {
+    for (let i = 1; i <= pdf.numPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map((item) => item.str).join(" ") + "\n";
+    }
+  } catch (err) {
+    throw new Error(`[Stage D: page text extraction] ${err?.name || "Error"}: ${err?.message || String(err)}`);
+  }
+
   return text;
 }
 
