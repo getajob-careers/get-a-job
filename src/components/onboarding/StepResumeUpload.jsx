@@ -2,6 +2,26 @@ import React, { useState, useRef, useEffect } from "react";
 
 // pdfjs is lazy-loaded inside the function below — the lib + worker URL
 // pull ~356KB gzip onto the main chunk otherwise.
+//
+// `disableWorker: true` runs pdfjs parsing on the main thread instead
+// of forking a Web Worker. This is the iOS Safari < 17.4 fix: pdfjs 5.x
+// calls `Promise.withResolvers()` (TC39 Stage-4, shipped in WebKit only
+// with Safari 17.4) inside its worker code, and a Web Worker has its
+// own global scope completely separate from the main thread. Our
+// main-thread polyfill in src/lib/polyfills.js never reaches the
+// worker, so anything below iOS 17.4 still crashed with `TypeError:
+// undefined is not a function` even after PR #261 shipped. Running on
+// the main thread sidesteps the scope split — pdfjs reaches the
+// polyfilled `Promise.withResolvers` and parsing completes.
+//
+// Perf: negligible. CVs are 1–3 pages and parsing finishes in tens of
+// ms on any modern device. The previous worker fork existed mostly to
+// keep large PDFs from blocking the UI, which doesn't apply here.
+//
+// The `workerSrc` assignment + worker URL import stay in place. They're
+// harmless when `disableWorker: true` is set, and keeping them means a
+// future flip back (e.g. when iOS 17.4 adoption is universal) is a
+// one-flag change.
 async function extractTextFromPdf(file) {
   const [pdfjsLib, pdfjsWorkerModule] = await Promise.all([
     import("pdfjs-dist"),
@@ -9,7 +29,10 @@ async function extractTextFromPdf(file) {
   ]);
   pdfjsLib.GlobalWorkerOptions.workerSrc = pdfjsWorkerModule.default;
   const arrayBuffer = await file.arrayBuffer();
-  const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+  const pdf = await pdfjsLib.getDocument({
+    data: arrayBuffer,
+    disableWorker: true,
+  }).promise;
   let text = "";
   for (let i = 1; i <= pdf.numPages; i++) {
     const page = await pdf.getPage(i);
