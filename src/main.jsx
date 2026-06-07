@@ -1,3 +1,12 @@
+// MUST be the very first import — installs standard-API polyfills
+// (Promise.withResolvers, structuredClone, Array.prototype.findLast)
+// before any other module loads. Particularly, pdfjs-dist's dynamic
+// import in StepResumeUpload calls Promise.withResolvers internally;
+// older iOS Safari (<17.4) lacks it and crashes the CV upload. The
+// polyfill must exist before pdfjs evaluates, which means before
+// anything React-side has a chance to lazy-load it.
+import '@/lib/polyfills'
+
 import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
