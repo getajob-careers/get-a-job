@@ -1107,8 +1107,8 @@ function LandingFooter() {
     <footer className="lp-foot">
       <span>© 2026 Get A Job</span>
       <div className="lp-foot-links">
-        <a href="#">Privacy</a>
-        <a href="#">Terms</a>
+        <a href="/privacy">Privacy</a>
+        <a href="/terms">Terms</a>
         <a href="mailto:hello@getajob.careers">Contact</a>
       </div>
     </footer>

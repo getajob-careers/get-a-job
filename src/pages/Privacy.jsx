@@ -1,36 +1,298 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-// Privacy placeholder — route shell so the consent-checkbox link on
-// /login resolves. Real privacy content lands in a follow-up PR.
-//
-// The layout deliberately mirrors Terms.jsx so the pair feels like one
-// pass. Cream background + Rokkitt heading + system body, no chrome.
+// Privacy Policy — real content for launch. Tone is legitimate-policy
+// (no "draft" banner). Mirrors Terms.jsx structurally so the pair feels
+// like one pass: cream background, Rokkitt heading, narrow reading
+// column, no app chrome.
+
+const LAST_UPDATED = "2026-06-07";
+
+// Section wrapper — h2 + body styling kept in one place so the two
+// legal pages can't drift apart visually.
+function Section({ id, title, children }) {
+  return (
+    <section id={id} className="mt-10">
+      <h2 className="font-display font-bold text-[20px] sm:text-[22px] text-rd-text mb-3 scroll-mt-20">
+        {title}
+      </h2>
+      <div className="text-[14px] sm:text-[14.5px] text-rd-text-secondary leading-[1.65] space-y-3">
+        {children}
+      </div>
+    </section>
+  );
+}
+
 export default function Privacy() {
   return (
     <div className="min-h-screen bg-rd-bg-page text-rd-text">
-      <div className="max-w-2xl mx-auto px-6 py-16">
+      <div className="max-w-3xl mx-auto px-6 py-12 sm:py-16">
+        {/* Header */}
         <Link
-          to="/login"
+          to="/"
           className="text-rd-coral hover:text-rd-coral-dark text-sm font-medium inline-flex items-center gap-1"
         >
-          ← Back to sign in
+          ← Back to Get A Job
         </Link>
-        <h1 className="font-display font-bold text-3xl mt-6 mb-4">
+
+        <h1 className="font-display font-bold text-[32px] sm:text-[36px] mt-6 mb-2 leading-tight">
           Privacy Policy
         </h1>
-        <p className="text-rd-text-secondary text-sm leading-relaxed">
-          Placeholder. The full privacy policy is being drafted and lands
-          here shortly. If you have a specific question in the meantime,
-          email{" "}
-          <a
-            href="mailto:eli@getajob.careers"
-            className="text-rd-coral hover:text-rd-coral-dark font-medium"
-          >
-            eli@getajob.careers
-          </a>
-          .
+        <p className="text-[12.5px] text-rd-text-tertiary font-mono">
+          Last updated: {LAST_UPDATED}
         </p>
+
+        <div className="mt-8 text-[14px] sm:text-[14.5px] text-rd-text-secondary leading-[1.65]">
+          <p>
+            This Privacy Policy describes how Get A Job (&ldquo;<strong>Get A Job</strong>,&rdquo; &ldquo;<strong>we</strong>,&rdquo; &ldquo;<strong>our</strong>,&rdquo; or &ldquo;<strong>us</strong>&rdquo;) collects, uses, and shares information about you when you use our website at <a href="https://getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">getajob.careers</a> and the related products and services (collectively, the &ldquo;<strong>Service</strong>&rdquo;). It also explains the rights you have over your personal data.
+          </p>
+          <p className="mt-3">
+            We are based in Israel and operate this Service for users worldwide, including users in the European Economic Area (EEA) and the United Kingdom. By using the Service, you confirm you have read and understood this Privacy Policy.
+          </p>
+        </div>
+
+        <Section id="who-we-are" title="1. Who we are">
+          <p>
+            Get A Job is an AI-powered career operating system built primarily for early-career job seekers entering the Israeli tech market. The Service helps users prepare for, apply to, and follow through on job opportunities — including AI-generated career analysis, tailored CVs, LinkedIn content, interview preparation, and application tracking.
+          </p>
+          <p>
+            For questions about this Policy or to exercise the rights described below, contact us at{" "}
+            <a href="mailto:privacy@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+              privacy@getajob.careers
+            </a>
+            .
+          </p>
+        </Section>
+
+        <Section id="information-we-collect" title="2. Information we collect">
+          <p>We collect the following categories of information when you create an account and use the Service:</p>
+
+          <p className="!mt-4"><strong className="font-display text-rd-text">Account information.</strong> Your email address and account credentials. Passwords are hashed and managed by our authentication provider (Supabase Auth) and are never visible to us in plain text.</p>
+
+          <p><strong className="font-display text-rd-text">Profile and career information.</strong> Information you enter or upload to your profile, including your name, target role and seniority, five-year career goal, education history, work experience, skills, projects, certifications, honors, employment status, preferences and constraints (e.g., work arrangement, location, salary expectations), referral source, and any free-text notes you provide.</p>
+
+          <p><strong className="font-display text-rd-text">Uploaded files.</strong> CV or resume files you upload to the Service are stored in a private file bucket and used to extract profile data and produce AI outputs on your behalf.</p>
+
+          <p><strong className="font-display text-rd-text">AI-generated content.</strong> Content generated by the Service from your inputs, including tailored CVs, LinkedIn posts, comments and outreach messages, career analysis and role recommendations, STAR-format stories, tasks, and application-tracking metadata. Once generated, this content is stored on your account so you can return to it.</p>
+
+          <p><strong className="font-display text-rd-text">Product-usage analytics and session replay.</strong> Information about how you interact with the Service — pages visited, features used, errors encountered, device and browser metadata, and session replays. Session replays mask all text inputs by default so we can&rsquo;t see passwords or anything you type into a form field. Analytics events do not include the contents of your CV, AI outputs, or messages you draft.</p>
+
+          <p><strong className="font-display text-rd-text">In-app feedback.</strong> When you submit feedback through the in-product feedback widget, we store the category, message, and the route you were on when you submitted it.</p>
+
+          <p><strong className="font-display text-rd-text">Payment information.</strong> Payment card details, billing address, and transaction history are handled directly by our payments processor (Stripe) and are <em>not</em> stored on Get A Job&rsquo;s systems. We receive a subscription status, customer ID, and minimal billing metadata from Stripe.</p>
+        </Section>
+
+        <Section id="how-we-use" title="3. How we use your information">
+          <p>We use the information we collect to:</p>
+          <ul className="list-disc pl-5 space-y-1.5">
+            <li>Operate, maintain, and provide the Service to you;</li>
+            <li>Generate AI career materials (CV tailoring, LinkedIn content, interview prep, career analysis) at your request;</li>
+            <li>Improve the Service through aggregated and anonymized analytics, debugging, and quality measurement;</li>
+            <li>Send service-related communications (account confirmations, transactional emails, security notices);</li>
+            <li>Detect, prevent, and respond to abuse, fraud, and security incidents;</li>
+            <li>Comply with legal obligations and enforce our{" "}
+              <Link to="/terms" className="text-rd-coral hover:text-rd-coral-dark font-medium">Terms of Service</Link>.
+            </li>
+          </ul>
+        </Section>
+
+        <Section id="third-parties" title="4. Service providers and third-party processors">
+          <p>
+            We share information with a small set of vetted service providers (&ldquo;subprocessors&rdquo;) that help us operate the Service. Each is bound by contractual confidentiality and data-protection obligations. We do not sell your personal data to anyone.
+          </p>
+          <div className="!mt-4 overflow-x-auto">
+            <table className="w-full text-[12.5px] border-collapse">
+              <thead>
+                <tr className="text-left border-b border-rd-border">
+                  <th className="py-2 pr-3 font-display font-bold text-rd-text">Provider</th>
+                  <th className="py-2 pr-3 font-display font-bold text-rd-text">Purpose</th>
+                  <th className="py-2 font-display font-bold text-rd-text">Region</th>
+                </tr>
+              </thead>
+              <tbody className="text-rd-text-secondary">
+                <tr className="border-b border-rd-border-subtle">
+                  <td className="py-2 pr-3 font-medium text-rd-text">Supabase</td>
+                  <td className="py-2 pr-3">Database, authentication, file storage</td>
+                  <td className="py-2">EU</td>
+                </tr>
+                <tr className="border-b border-rd-border-subtle">
+                  <td className="py-2 pr-3 font-medium text-rd-text">Vercel</td>
+                  <td className="py-2 pr-3">Web hosting and content delivery</td>
+                  <td className="py-2">Global</td>
+                </tr>
+                <tr className="border-b border-rd-border-subtle">
+                  <td className="py-2 pr-3 font-medium text-rd-text">OpenAI</td>
+                  <td className="py-2 pr-3">AI generation of CVs, LinkedIn content, career analysis</td>
+                  <td className="py-2">United States</td>
+                </tr>
+                <tr className="border-b border-rd-border-subtle">
+                  <td className="py-2 pr-3 font-medium text-rd-text">PostHog</td>
+                  <td className="py-2 pr-3">Product analytics and session replay</td>
+                  <td className="py-2">EU</td>
+                </tr>
+                <tr className="border-b border-rd-border-subtle">
+                  <td className="py-2 pr-3 font-medium text-rd-text">Langfuse</td>
+                  <td className="py-2 pr-3">LLM tracing and observability</td>
+                  <td className="py-2">EU</td>
+                </tr>
+                <tr className="border-b border-rd-border-subtle">
+                  <td className="py-2 pr-3 font-medium text-rd-text">Resend</td>
+                  <td className="py-2 pr-3">Transactional email delivery</td>
+                  <td className="py-2">Global</td>
+                </tr>
+                <tr className="border-b border-rd-border-subtle">
+                  <td className="py-2 pr-3 font-medium text-rd-text">Cloudflare</td>
+                  <td className="py-2 pr-3">Network infrastructure and security</td>
+                  <td className="py-2">Global</td>
+                </tr>
+                <tr>
+                  <td className="py-2 pr-3 font-medium text-rd-text">Stripe</td>
+                  <td className="py-2 pr-3">Payment processing (when paid plans are live)</td>
+                  <td className="py-2">United States</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p className="!mt-4">
+            Each provider only receives the information necessary to perform its function. For example, OpenAI receives the profile, CV, and prompt content needed to generate the specific output you requested; Resend receives your email address to send you transactional messages; Stripe receives the information needed to bill you.
+          </p>
+          <p>
+            We may also disclose information if required by law, to comply with valid legal process, or to protect the rights, safety, or property of Get A Job, our users, or the public.
+          </p>
+        </Section>
+
+        <Section id="ai-disclosure" title="5. AI processing disclosure">
+          <p>
+            The Service uses third-party AI models (currently provided by OpenAI) to generate outputs from the content you provide — for example, taking your profile, CV, and a target job description and returning a tailored CV draft. Your input content is transmitted to OpenAI for processing for the limited purpose of producing the output you requested. OpenAI&rsquo;s API processing terms state that content submitted via the API is not used to train OpenAI&rsquo;s models.
+          </p>
+          <p>
+            AI-generated outputs may be imperfect, inaccurate, or out of date. You should review and validate any AI-generated content (such as a tailored CV or an outreach message) before sending it to a third party or relying on it for an important decision.
+          </p>
+        </Section>
+
+        <Section id="international" title="6. International data transfers">
+          <p>
+            Get A Job is based in Israel, and the subprocessors listed above operate in Israel, the European Economic Area, the United States, and other regions. As a result, your information may be transferred to, stored in, and processed in countries outside your country of residence, including the United States.
+          </p>
+          <p>
+            Where the law requires it, we rely on appropriate transfer mechanisms — including the European Commission&rsquo;s Standard Contractual Clauses, the EU–US Data Privacy Framework, and equivalent safeguards under Israel&rsquo;s Privacy Protection Law — to legitimize cross-border transfers of personal data.
+          </p>
+        </Section>
+
+        <Section id="retention" title="7. Data retention and deletion">
+          <p>
+            We retain your information for as long as your account is active and for a limited period afterwards as needed to comply with legal obligations, resolve disputes, and enforce our agreements.
+          </p>
+          <p>
+            You can delete your account at any time from <strong className="font-display text-rd-text">Settings → Danger zone</strong> inside the app. Account deletion wipes your profile, application data, AI-generated content, and any CV files you uploaded. We retain a minimal, anonymized deletion record (a tombstone with the deletion timestamp and the user ID that was deleted) for audit, fraud-prevention, and integrity purposes; this record does not contain any personally identifying information.
+          </p>
+          <p>
+            Subprocessors process data on our behalf and follow their own retention schedules consistent with their data-processing agreements. For example, payment records held by Stripe and email-delivery records held by Resend are retained per those providers&rsquo; policies.
+          </p>
+        </Section>
+
+        <Section id="your-rights" title="8. Your rights">
+          <p>
+            Depending on where you live, you may have the following rights with respect to your personal data — including rights under the EU and UK General Data Protection Regulation (GDPR), and rights under Israel&rsquo;s Privacy Protection Law, 1981 and the Privacy Protection (Information Held in a Database) Regulations:
+          </p>
+          <ul className="list-disc pl-5 space-y-1.5">
+            <li><strong className="font-display text-rd-text">Access:</strong> request a copy of the personal data we hold about you.</li>
+            <li><strong className="font-display text-rd-text">Rectification:</strong> correct inaccurate or out-of-date information. Most profile fields are directly editable in the app.</li>
+            <li><strong className="font-display text-rd-text">Erasure (deletion):</strong> delete your account and the personal data associated with it. The self-service delete in Settings is the fastest path; you may also email us.</li>
+            <li><strong className="font-display text-rd-text">Portability:</strong> receive your data in a structured, commonly used, machine-readable format.</li>
+            <li><strong className="font-display text-rd-text">Objection and restriction:</strong> object to specific processing activities or ask us to restrict them.</li>
+            <li><strong className="font-display text-rd-text">Withdrawal of consent:</strong> withdraw any consent you have given, without affecting the lawfulness of prior processing.</li>
+            <li><strong className="font-display text-rd-text">Complaint:</strong> lodge a complaint with the Israeli Privacy Protection Authority or your local EU/UK supervisory authority.</li>
+          </ul>
+          <p className="!mt-4">
+            To exercise these rights, use the in-app deletion flow or email us at{" "}
+            <a href="mailto:privacy@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+              privacy@getajob.careers
+            </a>
+            . We&rsquo;ll respond within the timeframes required by applicable law.
+          </p>
+        </Section>
+
+        <Section id="security" title="9. Security">
+          <p>
+            We use commercially reasonable technical and organizational measures to protect your information, including:
+          </p>
+          <ul className="list-disc pl-5 space-y-1.5">
+            <li>Encryption of data in transit using TLS;</li>
+            <li>Row-level access controls so users can only read and modify their own data;</li>
+            <li>Private file storage for uploaded CVs (no public URLs);</li>
+            <li>Password hashing handled by our authentication provider;</li>
+            <li>Audit logging of administrative access.</li>
+          </ul>
+          <p className="!mt-4">
+            No system is perfectly secure. You are responsible for keeping your account credentials confidential and for notifying us immediately if you suspect unauthorized access. Contact us at{" "}
+            <a href="mailto:security@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+              security@getajob.careers
+            </a>
+            {" "}for security concerns.
+          </p>
+        </Section>
+
+        <Section id="cookies" title="10. Cookies and similar technologies">
+          <p>
+            We use cookies and similar browser storage to:
+          </p>
+          <ul className="list-disc pl-5 space-y-1.5">
+            <li><strong className="font-display text-rd-text">Essential authentication cookies</strong> — required to keep you signed in and to protect your session;</li>
+            <li><strong className="font-display text-rd-text">Analytics and session-replay cookies</strong> — used to understand how the Service is used so we can improve it. Session replay masks all text inputs by default.</li>
+          </ul>
+          <p className="!mt-4">
+            You can control non-essential cookies through your browser settings. Disabling essential cookies will prevent the Service from functioning correctly.
+          </p>
+        </Section>
+
+        <Section id="minimum-age" title="11. Minimum age">
+          <p>
+            The Service is intended for adults. You must be at least 18 years old (or the age of majority in your jurisdiction) to use it. We do not knowingly collect personal data from children. If you believe a child has provided us with personal data, contact{" "}
+            <a href="mailto:privacy@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+              privacy@getajob.careers
+            </a>
+            {" "}and we will delete it.
+          </p>
+        </Section>
+
+        <Section id="changes" title="12. Changes to this Privacy Policy">
+          <p>
+            We may update this Privacy Policy from time to time to reflect changes in our practices, the Service, or applicable law. When we do, we will update the &ldquo;Last updated&rdquo; date at the top of this page. If the changes are material, we will provide reasonable notice (for example, by email or via an in-app notice) before they take effect. Your continued use of the Service after the effective date constitutes acceptance of the revised Policy.
+          </p>
+        </Section>
+
+        <Section id="governing-law" title="13. Governing law">
+          <p>
+            This Privacy Policy is governed by the laws of the State of Israel. Nothing in this Policy limits any non-waivable rights you may have under the law of your country of residence.
+          </p>
+        </Section>
+
+        <Section id="contact" title="14. Contact us">
+          <p>
+            Get A Job, Israel.
+          </p>
+          <p>
+            Email:{" "}
+            <a href="mailto:privacy@getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+              privacy@getajob.careers
+            </a>
+          </p>
+        </Section>
+
+        {/* Footer cross-links — keeps the Privacy/Terms pair discoverable
+            without leaning on the app's authenticated chrome. */}
+        <footer className="mt-16 pt-6 border-t border-rd-border-subtle flex flex-wrap items-center justify-between gap-3 text-[12.5px] text-rd-text-tertiary">
+          <span>© 2026 Get A Job</span>
+          <div className="flex items-center gap-4">
+            <Link to="/terms" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+              Terms of Service
+            </Link>
+            <Link to="/" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+              Home
+            </Link>
+          </div>
+        </footer>
       </div>
     </div>
   );
