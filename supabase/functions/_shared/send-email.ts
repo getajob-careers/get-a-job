@@ -47,10 +47,26 @@ export interface SendEmailResult {
 }
 
 export async function sendEmail(args: SendEmailArgs): Promise<SendEmailResult> {
-  const apiKey = Deno.env.get('RESEND_API_KEY')
-  if (!apiKey) {
+  const apiKeyRaw = Deno.env.get('RESEND_API_KEY')
+  if (!apiKeyRaw) {
     console.warn('[send-email] RESEND_API_KEY not configured — skipping send')
     return { ok: false, status: 500, error: 'RESEND_API_KEY_missing — set it in Supabase Dashboard → Project Settings → Edge Functions → Secrets' }
+  }
+
+  // Defensive: a trailing \n on the Supabase Dashboard secret value
+  // (very easy when pasting) puts a newline into the Authorization
+  // header. Deno's Request constructor then rejects the whole headers
+  // object with `'headers' ... is not a valid ByteString` — opaque
+  // error that caused 17/17 welcome-email sends to fail silently
+  // from June 2 onwards.
+  //
+  // The format check is a second guard against any non-printable-ASCII
+  // sneaking through (smart-quoted paste, etc.). Resend keys are
+  // `re_` + alphanumeric — pure ASCII by spec.
+  const apiKey = apiKeyRaw.trim()
+  if (!apiKey || !/^[\x21-\x7e]+$/.test(apiKey)) {
+    console.error('[send-email] RESEND_API_KEY invalid format after trim (length=' + apiKey.length + ')')
+    return { ok: false, status: 500, error: 'RESEND_API_KEY_invalid_format — non-printable-ASCII characters present (whitespace/newline?)' }
   }
 
   const body: Record<string, unknown> = {
@@ -63,11 +79,20 @@ export async function sendEmail(args: SendEmailArgs): Promise<SendEmailResult> {
   if (args.replyTo) body.reply_to = args.replyTo
 
   try {
-    const headers: Record<string, string> = {
+    // Headers constructor (not a plain Record) gives a clearer
+    // per-header error if any value somehow ends up non-ByteString —
+    // and idempotencyKey can be a user-controlled value, so validate
+    // it the same way.
+    const headers = new Headers({
       Authorization: `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
+    })
+    if (args.idempotencyKey) {
+      const idem = args.idempotencyKey.trim()
+      if (/^[\x21-\x7e]+$/.test(idem)) headers.set('Idempotency-Key', idem)
+      // else: silently drop — better to send without idempotency than
+      // to fail the whole call on a malformed key.
     }
-    if (args.idempotencyKey) headers['Idempotency-Key'] = args.idempotencyKey
 
     const res = await fetch(RESEND_ENDPOINT, {
       method: 'POST',
