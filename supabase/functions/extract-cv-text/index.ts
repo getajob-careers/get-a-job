@@ -44,7 +44,7 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       _http = 401; _err = 'auth'
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      return new Response(JSON.stringify({ error: 'Unauthorized', error_code: 'auth' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -58,7 +58,7 @@ Deno.serve(async (req) => {
     const { data: { user }, error: userError } = await supabase.auth.getUser()
     if (userError || !user) {
       _http = 401; _err = 'auth'
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      return new Response(JSON.stringify({ error: 'Unauthorized', error_code: 'auth' }), {
         status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -68,7 +68,7 @@ Deno.serve(async (req) => {
     const filePath = typeof body?.file_path === 'string' ? body.file_path : ''
     if (!filePath) {
       _http = 400; _err = 'missing_file_path'
-      return new Response(JSON.stringify({ error: 'file_path is required' }), {
+      return new Response(JSON.stringify({ error: 'file_path is required', error_code: 'missing_file_path' }), {
         status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -77,7 +77,7 @@ Deno.serve(async (req) => {
     // sit under this user's prefix.
     if (!filePath.startsWith(`${user.id}/`)) {
       _http = 403; _err = 'forbidden_path'
-      return new Response(JSON.stringify({ error: 'Forbidden' }), {
+      return new Response(JSON.stringify({ error: 'Forbidden', error_code: 'forbidden_path' }), {
         status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
     if (downloadError || !blob) {
       console.error(`[extract-cv-text] storage download failed for ${filePath}:`, downloadError?.message)
       _http = 404; _err = 'storage_download_failed'
-      return new Response(JSON.stringify({ error: 'Could not read uploaded file' }), {
+      return new Response(JSON.stringify({ error: 'Could not read uploaded file', error_code: 'storage_download_failed' }), {
         status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -105,14 +105,14 @@ Deno.serve(async (req) => {
     } catch (err: any) {
       console.error('[extract-cv-text] pdf parse failed:', err?.message || err)
       _http = 422; _err = 'pdf_parse_failed'
-      return new Response(JSON.stringify({ error: 'Could not extract text from this PDF' }), {
+      return new Response(JSON.stringify({ error: 'Could not extract text from this PDF', error_code: 'pdf_parse_failed' }), {
         status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
     if (!text.trim()) {
       _http = 422; _err = 'empty_text'
-      return new Response(JSON.stringify({ error: 'PDF contained no extractable text' }), {
+      return new Response(JSON.stringify({ error: 'PDF contained no extractable text', error_code: 'empty_text' }), {
         status: 422, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
@@ -127,7 +127,7 @@ Deno.serve(async (req) => {
   } catch (error: any) {
     console.error('[extract-cv-text] unhandled:', error?.message || error)
     _http = 500; _err = 'unhandled'
-    return new Response(JSON.stringify({ error: 'Unexpected error' }), {
+    return new Response(JSON.stringify({ error: 'Unexpected error', error_code: 'unhandled' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } finally {

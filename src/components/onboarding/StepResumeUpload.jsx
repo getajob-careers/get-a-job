@@ -9,16 +9,35 @@ import React, { useState, useRef, useEffect } from "react";
 // IMPORTANT: callers must finish the storage upload (and ideally the
 // signed-URL roundtrip) BEFORE invoking — the server reads the uploaded
 // copy, and an unawaited upload races into a 404.
+// Throws an Error with `.code` set to extract-cv-text's structured
+// error_code (e.g. "empty_text", "pdf_parse_failed") so handleFile's
+// catch can branch on it. supabase-js v2 stuffs the raw Response into
+// error.context.response — we clone() because reading the body
+// consumes the stream and other code may want it.
 async function extractTextFromPdfServer(filePath) {
   const { data, error } = await supabase.functions.invoke("extract-cv-text", {
     body: { file_path: filePath },
   });
-  if (error) throw new Error(error.message || "PDF parse failed");
+  if (error) {
+    let code = null;
+    let serverMessage = null;
+    try {
+      const body = await error.context?.response?.clone?.().json();
+      code = body?.error_code || null;
+      serverMessage = body?.error || null;
+    } catch { /* non-JSON body (relay/fetch error) — fall back to error.message */ }
+    const e = new Error(serverMessage || error.message || "PDF parse failed");
+    e.code = code;
+    throw e;
+  }
   const text = data?.text || "";
   if (!text) {
-    throw new Error(
-      "Couldn't extract text from this PDF. Please paste your details manually."
-    );
+    // Defensive: 2xx response with empty text shouldn't happen (the
+    // function returns 422 + error_code="empty_text" instead), but if
+    // a future regression sneaks one through, treat it the same way.
+    const e = new Error("Couldn't extract text from this PDF.");
+    e.code = "empty_text";
+    throw e;
   }
   return text;
 }
@@ -73,6 +92,7 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
   const [fileName, setFileName] = useState(null);
   const [done, setDone] = useState(false);
   const [error, setError] = useState(null);
+  const [emptyTextMode, setEmptyTextMode] = useState(false);
   const [cvTruncated, setCvTruncated] = useState(false);
   const [linkedinUrl, setLinkedinUrl] = useState(profileData?.linkedin_url || "");
   const [linkedinDone, setLinkedinDone] = useState(false);
@@ -112,6 +132,7 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
     if (!file) return;
     setFileName(file.name);
     setError(null);
+    setEmptyTextMode(false);
     setUploading(true);
 
     try {
@@ -214,8 +235,25 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
       console.error("Resume upload error:", err);
       setUploading(false);
       setExtracting(false);
-      setError(`Upload failed: ${err.message}. Please try again or enter details manually.`);
+      // empty_text gets the tailored nudge (image-only PDF / Print-to-PDF
+      // export); everything else stays on the generic banner.
+      if (err.code === "empty_text") {
+        setEmptyTextMode(true);
+      } else {
+        setError(`Upload failed: ${err.message}. Please try again or enter details manually.`);
+      }
     }
+  };
+
+  const resetUploadForRetry = () => {
+    setEmptyTextMode(false);
+    setError(null);
+    setFileName(null);
+    setDone(false);
+    setUploading(false);
+    setExtracting(false);
+    if (inputRef.current) inputRef.current.value = "";
+    inputRef.current?.click();
   };
 
   const handleLinkedinExtract = () => {
@@ -321,7 +359,7 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
             : "border-rd-border-hover bg-rd-bg-soft hover:border-rd-coral hover:bg-rd-coral-tint",
         ].join(" ")}
         data-dragover={dragOver}
-        data-state={uploading ? "uploading" : extracting ? "extracting" : done ? "done" : "idle"}
+        data-state={uploading ? "uploading" : extracting ? "extracting" : emptyTextMode ? "empty_text" : done ? "done" : "idle"}
         onClick={() => !uploading && !extracting && inputRef.current?.click()}
         onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
         onDragLeave={() => setDragOver(false)}
@@ -335,7 +373,7 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
           onChange={(e) => handleFile(e.target.files[0])}
         />
 
-        {!uploading && !extracting && !done && (
+        {!uploading && !extracting && !done && !emptyTextMode && (
           <div className="flex flex-col items-center gap-3">
             <div className="w-14 h-14 rounded-full bg-rd-coral-tint flex items-center justify-center">
               <Upload className="w-6 h-6 text-rd-coral" />
@@ -347,6 +385,20 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
               <p className="text-[11.5px] text-rd-text-secondary mt-1">
                 PDF or DOCX · stays private to you
               </p>
+            </div>
+          </div>
+        )}
+
+        {emptyTextMode && (
+          <div className="flex flex-col items-center gap-3">
+            <div className="w-14 h-14 rounded-full bg-rd-golden-tint flex items-center justify-center">
+              <Info className="w-6 h-6 text-rd-golden-dark" />
+            </div>
+            <div>
+              <p className="font-display font-semibold text-[15px] text-rd-text">
+                CV uploaded — but no text inside
+              </p>
+              <p className="text-[11.5px] text-rd-text-secondary mt-0.5">{fileName}</p>
             </div>
           </div>
         )}
@@ -371,6 +423,36 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
           </div>
         )}
       </div>
+
+      {emptyTextMode && (
+        <div className="bg-rd-golden-tint border border-rd-golden/40 rounded-[14px] p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-rd-golden-dark" />
+            <div className="text-[13px] text-rd-text leading-relaxed">
+              <p className="font-display font-semibold mb-1">We couldn&apos;t find any text in this PDF.</p>
+              <p className="text-rd-text-secondary">
+                It looks like an image-only PDF or a &ldquo;Print to PDF&rdquo; export — common with Google Docs on Windows, Canva, or scanned files. Two easy fixes:
+              </p>
+              <ul className="mt-2 ml-4 list-disc text-rd-text-secondary space-y-0.5">
+                <li>Upload your CV as a <strong>Word document (.docx)</strong> instead.</li>
+                <li>In Google Docs, use <strong>File → Download → PDF Document (.pdf)</strong> — not the Print menu.</li>
+              </ul>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-1">
+            <RdButton onClick={onNext}>
+              Continue and fill in details manually <ArrowRight className="w-4 h-4" />
+            </RdButton>
+            <button
+              type="button"
+              onClick={resetUploadForRetry}
+              className="px-4 py-2.5 text-[13px] font-semibold rounded-full border border-rd-border text-rd-text bg-rd-bg-card hover:bg-rd-bg-soft transition-colors"
+            >
+              Upload a different file
+            </button>
+          </div>
+        </div>
+      )}
 
       {cvTruncated && (
         <div className="bg-rd-golden-tint border border-rd-golden/40 rounded-[14px] px-3.5 py-2.5 text-[12.5px] text-rd-golden-dark leading-snug">
@@ -427,7 +509,7 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
         >
           Skip — I&apos;ll enter details manually
         </button>
-        <RdButton onClick={onNext} disabled={!done && !error && !linkedinDone}>
+        <RdButton onClick={onNext} disabled={!done && !error && !linkedinDone && !emptyTextMode}>
           {done ? (
             <>Continue <ArrowRight className="w-4 h-4" /></>
           ) : error ? (
