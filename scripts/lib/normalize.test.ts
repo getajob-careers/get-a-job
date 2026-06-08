@@ -110,6 +110,37 @@ describe("finalSeniority — Variant B", () => {
     });
   });
 
+  describe("classifyLocation — 'IL' state-code vs country-code disambiguation", () => {
+    // Illinois fix: the original regex matched \bIL\b unconditionally,
+    // so "Chicago, IL" was tagged as Israel (Illinois's USPS code is
+    // literally "IL"). Live impact: 307 active rows; worst offenders
+    // DoorDash 113, EY 77, Robinhood 21, Pinterest 18. The rule below
+    // requires a CORROBORATING US signal (US ZIP, ", US/USA", or a
+    // non-IL state code) before flipping to false — so small Israeli
+    // towns not in the city map (e.g. "Yokneam, IL") stay IL.
+    it("Chicago, IL with US ZIP → false (Illinois state code)", () => {
+      expect(classifyLocation("Chicago, IL, US, 60606").is_il).toBe(false);
+    });
+    it("Chicago, IL with ', US' → false", () => {
+      expect(classifyLocation("Chicago, IL, USA").is_il).toBe(false);
+    });
+    it("multi-city US string containing 'Chicago, IL' → false", () => {
+      // Real DoorDash / Robinhood pattern — corroborated by other state codes
+      expect(
+        classifyLocation("Atlanta, GA; Austin, TX; Boston, MA; Chicago, IL; Denver, CO").is_il,
+      ).toBe(false);
+    });
+    it("Yokneam, IL stays IL (no US corroborator → trust IL = country code)", () => {
+      // Small Israeli town not in the IL_CITY_MAP needle list. The
+      // looser version of this fix would have dropped this row.
+      expect(classifyLocation("Yokneam, IL").is_il).toBe(true);
+    });
+    it("global-remote with Israel + US co-mention → true (Israel wins)", () => {
+      expect(classifyLocation("Remote, Israel; Remote, US").is_il).toBe(true);
+      expect(classifyLocation("Tel Aviv; San Francisco, CA").is_il).toBe(true);
+    });
+  });
+
   describe("classifyLocation — Hebrew coverage (2026-06-04 Workday-MNC pass)", () => {
     it("recognizes Hebrew city names from global ATSs", () => {
       // Global Workday boards (Forcepoint, Motorola, Mavenir) frequently

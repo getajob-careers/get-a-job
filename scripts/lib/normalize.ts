@@ -243,6 +243,35 @@ const RX_COUNTRY_IL_CODE = /\bIL\b/;       // case-sensitive to avoid "ail", "il
 // substring — "ישראל" is unique enough that this is safe.
 const RX_COUNTRY_HEBREW_ISRAEL = /ישראל/;
 
+// Hard US signals — when ANY of these appear alongside a bare "IL" token,
+// the "IL" is the Illinois state code (US), not the Israel country code.
+//
+// The original RX_COUNTRY_IL_CODE alone was wrong because "Chicago, IL"
+// matches \bIL\b cleanly. We could have just blocked "<word>, IL" but
+// that would also drop "Yokneam, IL" (a small Israeli town not in our
+// city map), so the rule is conservative: only flip away from IL when
+// there's a CORROBORATING US signal somewhere in the same string.
+//
+// Signals (any one hits):
+//   • ", US" / ", USA" / "United States" / "United States of America"
+//   • A 5- or 9-digit US ZIP code as a standalone token
+//   • Any non-IL US state code as a standalone uppercase token
+//     ("Chicago, IL; Denver, CO" → "CO" corroborates US for the whole
+//     string → IL flips to false)
+//
+// Caveat (accepted): a bare "Chicago, IL" with no other US signal in
+// the string stays as IL under this rule. Live audit shows this case is
+// rare (~46 rows across Reddit/Toast/etc.); fixing it would require a
+// US-city whitelist that risks new false negatives on Yokneam-class
+// small Israeli towns. Conservative beats clever here.
+const RX_US_COUNTRY = /,\s*(US|USA|United\s+States(\s+of\s+America)?)\b/i;
+const RX_US_ZIP = /\b\d{5}(-\d{4})?\b/;
+const RX_US_STATE_NON_IL = /\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b/;
+
+function hasUsCorroboratingSignal(raw: string): boolean {
+  return RX_US_COUNTRY.test(raw) || RX_US_ZIP.test(raw) || RX_US_STATE_NON_IL.test(raw);
+}
+
 export function classifyLocation(
   raw: string | null,
   structuredCountry?: string | null,
@@ -258,13 +287,22 @@ export function classifyLocation(
   if (!raw) return { is_il: false, city: null };
   const lower = raw.toLowerCase();
 
-  // City substring match — first hit wins
+  // City substring match — first hit wins. An Israeli city anywhere in
+  // the string wins regardless of US co-mentions: "Tel Aviv; Remote, US"
+  // is a global-remote role that includes Israel — keep it.
   for (const [needle, canonical] of Object.entries(IL_CITY_MAP)) {
     if (lower.includes(needle)) return { is_il: true, city: canonical };
   }
 
-  // Country-level Israel mention (no specific city found)
-  if (RX_COUNTRY_ISRAEL.test(raw) || RX_COUNTRY_IL_CODE.test(raw) || RX_COUNTRY_HEBREW_ISRAEL.test(raw)) {
+  // Explicit Israel mention (English or Hebrew) — same precedence as
+  // city match; a US co-mention doesn't override a literal "Israel".
+  if (RX_COUNTRY_ISRAEL.test(raw) || RX_COUNTRY_HEBREW_ISRAEL.test(raw)) {
+    return { is_il: true, city: null };
+  }
+
+  // Bare "IL" country code — only counts as Israel if NO corroborating
+  // US signal exists in the string. This is the Illinois fix.
+  if (RX_COUNTRY_IL_CODE.test(raw) && !hasUsCorroboratingSignal(raw)) {
     return { is_il: true, city: null };
   }
 
