@@ -310,7 +310,11 @@ export async function fetchLever(c: CompanyEntry): Promise<RawJob[]> {
     return {
       external_id:      String(j.id),
       title:            j.text ?? "",
-      description_html: j.descriptionPlain ?? j.description ?? null,
+      // `||` not `??` — Lever returns `""` (not null) for empty
+      // descriptions, and the nullish-coalescing form preserved the
+      // empty string, causing 9.1% of Lever rows to land with no
+      // description. `||` treats `""` as missing and falls through.
+      description_html: j.descriptionPlain || j.description || null,
       location_raw:     location,
       structured_country: null,
       apply_url:        j.hostedUrl ?? j.applyUrl ?? "",
@@ -695,8 +699,12 @@ export async function fetchSmartRecruiters(c: CompanyEntry): Promise<RawJob[]> {
         external_id:      String(p.id),
         title:            p.name ?? "",
         // SR list endpoint sometimes includes jobAd.sections.jobDescription.
-        // When it doesn't, description stays null (same tradeoff as Workday).
-        description_html: p?.jobAd?.sections?.jobDescription?.text ?? null,
+        // Use `||` (not `??`) so an empty-string description flows to
+        // null — that lets the enrichDescriptions detail-refetch
+        // (which only triggers on null) recover the missing text via
+        // fetchSmartRecruitersDetail. Pre-fix: empty strings stuck
+        // around and 66.7% of SR rows landed with no description.
+        description_html: p?.jobAd?.sections?.jobDescription?.text || null,
         location_raw:     locParts.join(", ") || null,
         // SR DOES expose the country structurally — pass it through.
         structured_country: loc.country ?? null,
