@@ -26,8 +26,10 @@ import {
   NormalizedJob,
   RawJob,
   classifyLocation,
+  detectMgmtSignalFromTitle,
   detectSeniorityFromTitle,
   finalSeniority,
+  parseExplicitJuniorSignal,
   isJunkTitle,
   normalizeJobTitle,
   parseYearsOfExperience,
@@ -157,6 +159,8 @@ async function processCompany(
     const descPlain = stripHtml(r.description_html);
     const years = parseYearsOfExperience(descPlain);
     const titleBucket = detectSeniorityFromTitle(cleanTitle);
+    const titleHasMgmtSignal = detectMgmtSignalFromTitle(cleanTitle);
+    const explicitJunior = parseExplicitJuniorSignal(descPlain);
     ilRows.push({
       ats_source:           ats,
       external_id:          r.external_id,
@@ -172,7 +176,7 @@ async function processCompany(
       salary_min:           r.salary_min,
       salary_max:           r.salary_max,
       salary_currency:      r.salary_currency,
-      seniority:            finalSeniority(titleBucket, years),
+      seniority:            finalSeniority(titleBucket, years, { explicitJunior, titleHasMgmtSignal }),
       years_experience_min: years.min,
       years_experience_max: years.max,
       industry:             company.industry,
