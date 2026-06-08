@@ -4,7 +4,12 @@
 // Co-located with the module (Vitest picks up *.test.ts anywhere).
 
 import { describe, it, expect } from "vitest";
-import { classifyLocation, detectSeniorityFromTitle, finalSeniority } from "./normalize";
+import {
+  classifyLocation,
+  detectSeniorityFromTitle,
+  finalSeniority,
+  parseExplicitJuniorSignal,
+} from "./normalize";
 
 describe("detectSeniorityFromTitle", () => {
   it("flags executive titles", () => {
@@ -63,9 +68,9 @@ describe("finalSeniority — Variant B", () => {
   });
 
   describe("'mid' title (no seniority keyword) — years refines", () => {
-    it("years.min ≤ 2 → entry", () => {
-      expect(finalSeniority("mid", { min: 0, max: null })).toBe("entry");
-      expect(finalSeniority("mid", { min: 2, max: null })).toBe("entry");
+    it("years.min ≤ 2 → mid (Variant C: years no longer demotes to entry)", () => {
+      expect(finalSeniority("mid", { min: 0, max: null })).toBe("mid");
+      expect(finalSeniority("mid", { min: 2, max: null })).toBe("mid");
     });
     it("years.min 3-5 → mid", () => {
       expect(finalSeniority("mid", { min: 3, max: null })).toBe("mid");
@@ -170,6 +175,97 @@ describe("finalSeniority — Variant B", () => {
     });
   });
 
+  // ─── Variant C tests (2026-06-09 cache audit) ───────────────────────
+
+  describe("detectSeniorityFromTitle — Variant C tightening", () => {
+    it("'lead' is reserved for explicit lead-track titles", () => {
+      expect(detectSeniorityFromTitle("Lead Engineer")).toBe("lead");
+      expect(detectSeniorityFromTitle("Principal Designer")).toBe("lead");
+      expect(detectSeniorityFromTitle("Staff Software Engineer")).toBe("lead");
+      expect(detectSeniorityFromTitle("Solutions Architect")).toBe("lead");
+      expect(detectSeniorityFromTitle("Team Leader")).toBe("lead");
+      expect(detectSeniorityFromTitle("DevOps Team Leader")).toBe("lead");
+      expect(detectSeniorityFromTitle("Group Product Manager")).toBe("lead");
+    });
+    it("bare Manager / Controller / Counsel → MID (not lead — 566-to-lead bug fix)", () => {
+      expect(detectSeniorityFromTitle("Product Manager")).toBe("mid");
+      expect(detectSeniorityFromTitle("Marketing Manager")).toBe("mid");
+      expect(detectSeniorityFromTitle("Customer Success Manager")).toBe("mid");
+      expect(detectSeniorityFromTitle("Account Manager")).toBe("mid");
+      expect(detectSeniorityFromTitle("Controller")).toBe("mid");
+      expect(detectSeniorityFromTitle("Assistant Controller")).toBe("mid");
+      expect(detectSeniorityFromTitle("Legal Counsel")).toBe("mid");
+    });
+    it("Senior wins over Lead/Manager when both present", () => {
+      expect(detectSeniorityFromTitle("Senior Product Manager")).toBe("senior");
+      expect(detectSeniorityFromTitle("Senior Lead Engineer")).toBe("senior");
+    });
+    it("Head of X → executive, bare Head → lead", () => {
+      expect(detectSeniorityFromTitle("Head of Marketing")).toBe("executive");
+      expect(detectSeniorityFromTitle("Vice President of Sales")).toBe("executive");
+      expect(detectSeniorityFromTitle("Department Head")).toBe("lead");
+    });
+    it("expanded entry signals: SDR / BDR / Coordinator / Representative", () => {
+      expect(detectSeniorityFromTitle("SDR")).toBe("entry");
+      expect(detectSeniorityFromTitle("BDR - Israel")).toBe("entry");
+      expect(detectSeniorityFromTitle("Sales Development Representative")).toBe("entry");
+      expect(detectSeniorityFromTitle("Business Development Representative")).toBe("entry");
+      expect(detectSeniorityFromTitle("Marketing Coordinator")).toBe("entry");
+      expect(detectSeniorityFromTitle("Customer Service Representative")).toBe("entry");
+    });
+    it("'Associate' is narrow: requires IC role-noun after", () => {
+      expect(detectSeniorityFromTitle("Associate Engineer")).toBe("entry");
+      expect(detectSeniorityFromTitle("Associate Consultant")).toBe("entry");
+      expect(detectSeniorityFromTitle("Associate Analyst")).toBe("entry");
+      // Standalone "Associate" alone doesn't trigger anymore — falls
+      // through to mid. (Old regex would match `\bassociate\b` always.)
+      expect(detectSeniorityFromTitle("Associate")).toBe("mid");
+    });
+  });
+
+  describe("parseExplicitJuniorSignal", () => {
+    it("matches the listed phrases", () => {
+      expect(parseExplicitJuniorSignal("Requires 0-1 years of experience")).toBe(true);
+      expect(parseExplicitJuniorSignal("0 to 1 year of experience preferred")).toBe(true);
+      expect(parseExplicitJuniorSignal("No experience required")).toBe(true);
+      expect(parseExplicitJuniorSignal("no prior experience needed")).toBe(true);
+      expect(parseExplicitJuniorSignal("Open to recent graduates")).toBe(true);
+      expect(parseExplicitJuniorSignal("Looking for a new grad")).toBe(true);
+      expect(parseExplicitJuniorSignal("This is an entry-level position")).toBe(true);
+      expect(parseExplicitJuniorSignal("Entry Level role")).toBe(true);
+    });
+    it("does NOT match bare years phrases (the original bug)", () => {
+      expect(parseExplicitJuniorSignal("2 years of experience")).toBe(false);
+      expect(parseExplicitJuniorSignal("1+ year")).toBe(false);
+      expect(parseExplicitJuniorSignal("1-2 years experience")).toBe(false);
+      expect(parseExplicitJuniorSignal("3-5 years required")).toBe(false);
+    });
+    it("returns false on null / empty", () => {
+      expect(parseExplicitJuniorSignal(null)).toBe(false);
+      expect(parseExplicitJuniorSignal("")).toBe(false);
+    });
+  });
+
+  describe("finalSeniority — Variant C: years no longer demotes, JD promotion replaces it", () => {
+    it("neutral IC title + years.min=1 → mid (NOT entry — bug fix)", () => {
+      expect(finalSeniority("mid", { min: 1, max: null })).toBe("mid");
+      expect(finalSeniority("mid", { min: 2, max: null })).toBe("mid");
+    });
+    it("neutral IC title + explicit junior JD → entry (promotion)", () => {
+      expect(finalSeniority("mid", { min: null, max: null }, { explicitJunior: true })).toBe("entry");
+      expect(finalSeniority("mid", { min: 1, max: null }, { explicitJunior: true })).toBe("entry");
+    });
+    it("Manager-title (mid) + explicit junior JD → mid (titleHasMgmtSignal blocks promotion)", () => {
+      expect(
+        finalSeniority("mid", { min: null, max: null }, { explicitJunior: true, titleHasMgmtSignal: true }),
+      ).toBe("mid");
+    });
+    it("years STILL refines upward (no change)", () => {
+      expect(finalSeniority("mid", { min: 7, max: null })).toBe("senior");
+      expect(finalSeniority("mid", { min: 9, max: null })).toBe("lead");
+    });
+  });
+
   describe("regression cases from the 2026-05-20 cache audit", () => {
     it("'Senior Software Engineer, 3-5 yrs' → senior (was: mid)", () => {
       expect(finalSeniority(detectSeniorityFromTitle("Senior Software Engineer"), { min: 3, max: 5 })).toBe(
@@ -186,10 +282,23 @@ describe("finalSeniority — Variant B", () => {
         "executive",
       );
     });
-    it("untitled 'Software Engineer, 1 yr' → entry (years refines mid bucket)", () => {
+    it("untitled 'Software Engineer, 1 yr' → mid (Variant C: years no longer auto-demotes to entry)", () => {
+      // Pre-Variant-C this returned "entry" — the demotion was too
+      // aggressive (most JDs mention "1+ year" as a soft floor). Now
+      // only an explicit JD junior signal ("entry-level", "new grad",
+      // "0-1 years", "no experience required") promotes to entry.
       expect(finalSeniority(detectSeniorityFromTitle("Software Engineer"), { min: 1, max: null })).toBe(
-        "entry",
+        "mid",
       );
+    });
+    it("untitled 'Software Engineer, 1 yr, explicit junior JD' → entry (promotion)", () => {
+      expect(
+        finalSeniority(
+          detectSeniorityFromTitle("Software Engineer"),
+          { min: 1, max: null },
+          { explicitJunior: true },
+        ),
+      ).toBe("entry");
     });
     it("untitled 'Software Engineer, 7 yrs' → senior (years refines mid bucket)", () => {
       expect(finalSeniority(detectSeniorityFromTitle("Software Engineer"), { min: 7, max: null })).toBe(

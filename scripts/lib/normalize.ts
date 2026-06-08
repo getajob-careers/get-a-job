@@ -325,14 +325,41 @@ export type Seniority = "entry" | "mid" | "senior" | "lead" | "director" | "exec
 /**
  * v1: detect bucket from title alone. Used as the baseline before any
  * description-based parsing overrides it.
+ *
+ * Rules (locked 2026-06-09 after the cache audit):
+ * - `lead` is RESERVED for explicit Lead/Principal/Staff/Architect/
+ *   Team Leader/Group + bare Head (not "Head of X" — that's executive).
+ *   Bare "Manager" / "Controller" / "Counsel" route to mid, NOT lead —
+ *   sending 200+ PMs and CSMs to lead would hide them from junior users
+ *   on the entry-track Jobs page (566-roles-to-lead concern from the
+ *   ISSUE 2 distribution audit).
+ * - `entry` includes the genuine signals (intern/junior/grad/trainee/
+ *   student/fellow/new-grad/early-career/university) PLUS explicit
+ *   entry-track titles (SDR/BDR/Sales Development Rep/Business
+ *   Development Representative/Coordinator/Representative).
+ * - `associate` ALONE no longer auto-routes to entry; "Associate Manager
+ *   of X" was being wrongly tagged entry. Now requires a following IC
+ *   role-noun (engineer, analyst, scientist, developer, designer,
+ *   specialist, consultant, coordinator, product, partner, attorney,
+ *   representative, manager) — and even "Associate Manager" lands in
+ *   entry only if the rest of the title is bare; downstream finalSeniority
+ *   doesn't auto-promote it.
  */
 export function detectSeniorityFromTitle(title: string): Seniority {
   const t = (title || "").toLowerCase();
-  if (/\b(vp\b|chief|cto|ceo|cmo|cpo|cfo|head\s+of)\b/.test(t)) return "executive";
-  if (/\b(director|head)\b/.test(t))                            return "director";
-  if (/\b(principal|staff|lead|manager\s+of|architect)\b/.test(t)) return "lead";
-  if (/\b(senior|sr\.?)\b/.test(t))                             return "senior";
-  if (/\b(junior|jr\.?|associate|intern|entry|graduate|trainee|student)\b/.test(t)) return "entry";
+  if (/\b(vp\b|chief|cto|ceo|cmo|cpo|cfo|head\s+of|vice\s+president)\b/.test(t)) return "executive";
+  if (/\bdirector\b/.test(t))                                                    return "director";
+  if (/\b(senior|sr\.?)\b/.test(t))                                              return "senior";
+  if (/\b(principal|staff|lead|architect|team[\s-]?lead(er)?|group)\b/.test(t))  return "lead";
+  // Bare "Head" only counts as lead when not part of "Head of X" — that
+  // executive case is already caught above.
+  if (/\bhead\b/.test(t))                                                        return "lead";
+  if (/\b(intern|internship|junior|jr\.?|graduate|trainee|student|entry|fellow|new\s?grad|early[\s-]?career|university|sdr|bdr|sales\s+development\s+(representative|rep)|business\s+development\s+representative|coordinator|representative)\b/.test(t)) return "entry";
+  // Narrowed associate: must be followed by an IC role-noun. "Associate
+  // Engineer" → entry; "Associate Manager, Marketplace S&O" → entry only
+  // when no other management signal in the title (this still routes
+  // there but finalSeniority + JD context can re-route).
+  if (/\bassociate\s+(engineer|analyst|scientist|developer|designer|specialist|consultant|coordinator|product|partner|attorney|representative|manager)\b/.test(t)) return "entry";
   return "mid";
 }
 
@@ -379,34 +406,65 @@ export function parseYearsOfExperience(
 }
 
 /**
- * Combine title + years signals. Variant B (locked 2026-05-20):
+ * Detect an EXPLICIT junior signal in the description text — a
+ * recruiter saying "we want a beginner" in so many words. Used by
+ * finalSeniority to promote neutral-IC titles (Analyst, Specialist,
+ * Coordinator, etc.) from mid → entry when the JD explicitly invites
+ * junior applicants. Deliberately strict: bare "1+ year" or "2 years"
+ * does NOT count — that was the original over-promotion bug.
+ */
+const RX_EXPLICIT_JUNIOR = /\b(?:0\s*(?:-|–|to)\s*1\s*(?:years?|yrs?)|no\s+(?:prior\s+|previous\s+)?experience(?:\s+(?:required|needed|necessary))?|new\s*grad(?:uate)?|recent\s+grad(?:uate)?s?|entry[\s-]?level)\b/i;
+
+export function parseExplicitJuniorSignal(description: string | null): boolean {
+  if (!description) return false;
+  return RX_EXPLICIT_JUNIOR.test(description.slice(0, 3000));
+}
+
+/**
+ * True when the title carries an explicit management signal that
+ * `detectSeniorityFromTitle` collapses into the mid bucket. Used by
+ * `finalSeniority` to block the explicit-junior promotion for
+ * management titles — "Marketing Manager" with an "entry-level" JD
+ * sentence shouldn't become entry just because the recruiter pasted
+ * boilerplate.
+ */
+export function detectMgmtSignalFromTitle(title: string): boolean {
+  const t = (title || "").toLowerCase();
+  return /\b(manager|controller|counsel|owner|partner)\b/.test(t);
+}
+
+/**
+ * Combine title + years + JD signals. Variant C (locked 2026-06-09):
  *
  *   - If title classifies as senior / lead / director / executive,
- *     TITLE WINS. A job titled "Senior X" is positioned at senior even
- *     when the description says "3-5 years required". Recruiters set
- *     the level via the title; the years range is often a broad band
- *     that demotes the role unfairly when years-based logic runs first.
- *   - If title classifies as entry, title wins. Junior-titled postings
- *     are junior, full stop.
- *   - If title is "mid" (no seniority keyword matched in the title),
- *     use years.min to refine — this is where years carry real signal.
+ *     TITLE WINS. Recruiters set the level via the title.
+ *   - If title classifies as entry, title wins.
+ *   - If title is "mid" (neutral IC — Analyst, Specialist, Engineer,
+ *     etc.), promote to entry ONLY if the JD has an explicit junior
+ *     signal (parseExplicitJuniorSignal). The old years-based demotion
+ *     ("years.min ≤ 2 → entry") was removed because too many neutral
+ *     postings mention "1+ year" or "2 years" as a soft floor; demoting
+ *     them all to entry hid 100+ legit mid roles per refresh.
+ *   - Years still refine UPWARD: 6-8 → senior, 9+ → lead. Years never
+ *     demote.
  *
- * Why the old logic failed (cache audit 2026-05-20):
- *   - 294 jobs titled "Senior X" tagged as `mid` (years.min avg 4.7).
- *   - 70 "Lead X" tagged as `mid`.
- *   - 13 "Director X" tagged as `mid` — director was unreachable
- *     entirely because the old function could only return entry/mid/
- *     senior/lead from the years branch.
- *   - 18% of the active IL cache (558 / 3,071 rows) mis-tagged.
+ * Why Variant B failed (cache audit 2026-06-09):
+ *   - 87 management titles (Manager / Controller / Counsel / Team
+ *     Leader / Specialist / etc.) tagged as `entry` because the title
+ *     regex was too narrow and years.min ≤ 2 in their JDs demoted
+ *     them.
+ *   - ~168 "Software Engineer" / "Marketing Specialist" gray-area
+ *     roles tagged entry because of the same years branch.
  *
- * Variant B fixes 460+ of those at the cost of trusting titles more
- * aggressively. The smaller bucket of remaining noise (e.g. "Senior
- * Year Internship" matching `\bsenior\b`) is left for a follow-up that
- * tightens the title regex.
+ * Variant C promotes only on the EXPLICIT junior phrases ("0-1 years",
+ * "no experience required", "new grad", "recent graduate", "entry
+ * level"), giving up the years auto-demote in exchange for ~250 fewer
+ * mis-tagged entry rows.
  */
 export function finalSeniority(
   titleBucket: Seniority,
   years: { min: number | null; max: number | null },
+  opts: { explicitJunior?: boolean; titleHasMgmtSignal?: boolean } = {},
 ): Seniority {
   if (
     titleBucket === "senior" ||
@@ -418,10 +476,15 @@ export function finalSeniority(
   }
   if (titleBucket === "entry") return "entry";
 
-  // titleBucket is "mid" — no seniority keyword in the title. Years
-  // refines when present; otherwise default to mid.
+  // titleBucket is "mid". Promotion to entry fires ONLY when the JD has
+  // an explicit junior signal AND the title is a neutral IC (NOT
+  // management). "Marketing Manager" with "entry-level" boilerplate in
+  // the JD shouldn't become entry.
+  if (opts.explicitJunior && !opts.titleHasMgmtSignal) return "entry";
+
+  // Years can only refine UPWARD from mid. No more years-based
+  // demotion to entry (Variant C change).
   if (years.min === null) return "mid";
-  if (years.min <= 2) return "entry";
   if (years.min < 6)  return "mid";
   if (years.min < 9)  return "senior";
   return "lead";
