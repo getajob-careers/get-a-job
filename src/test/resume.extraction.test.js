@@ -1,4 +1,8 @@
 import { describe, it, expect } from 'vitest';
+import {
+  buildResumeExtractionPrompt,
+  EXPERIENCE_SKILLS_DIRECTIVE,
+} from '../lib/resumeExtractionPrompt.js';
 
 // Replicate the extraction logic from StepResumeUpload
 function extractJson(replyText) {
@@ -48,5 +52,40 @@ describe('extractJson', () => {
     const reply = `Here is the data: ${doubleEscaped}`;
     const result = extractJson(reply);
     expect(result?.full_name).toBe('Isaac');
+  });
+});
+
+// Snapshot-lock the EXPERIENCE.skills directive. The investigation that
+// added this test found per-experience skills were ~44% empty on pilot
+// users because the previous directive said "Leave [] if none are
+// explicitly tied to the role" — the model dutifully left arrays empty
+// whenever a resume put skills in a global Skills section instead of
+// per-role bullets. Locking the new directive prevents that regression.
+describe('buildResumeExtractionPrompt — EXPERIENCE.skills directive', () => {
+  it('embeds the directive verbatim in the built prompt', () => {
+    const prompt = buildResumeExtractionPrompt('sample resume text');
+    expect(prompt).toContain(EXPERIENCE_SKILLS_DIRECTIVE);
+  });
+
+  it('matches the locked directive text exactly', () => {
+    expect(EXPERIENCE_SKILLS_DIRECTIVE).toBe(
+      `EXPERIENCE.skills — for EACH role, return 3-8 skills the role demonstrated. Sources of evidence (use ALL together):
+- Title (e.g. "Data Analyst" → SQL, Excel, data analysis)
+- Company / sector (e.g. consulting firm → research, presentations)
+- Responsibilities bullets — the most direct source
+- The resume's global Skills / Tools section — include any entry that plausibly applied to this role
+Skills repeating across multiple roles is EXPECTED and CORRECT — the same Excel skill used in 3 jobs should appear in all 3.
+
+HARD anti-hallucination rule: EVERY skill you return MUST appear somewhere in the resume text — in this role's bullets, in another role, in the Skills section, in the Tools section, in projects, anywhere. If you cannot point to the skill verbatim somewhere in the resume, NEVER invent it.
+
+Return [] ONLY when the role has empty responsibilities AND no skill from anywhere in the resume plausibly applies — rare; most real roles will hit the 3-8 range.`
+    );
+  });
+
+  it('caps fileText at 15000 characters to bound prompt size', () => {
+    const big = 'x'.repeat(20000);
+    const prompt = buildResumeExtractionPrompt(big);
+    const tail = prompt.split('Here is the resume:')[1];
+    expect(tail.replace(/^\s*/, '').length).toBe(15000);
   });
 });
