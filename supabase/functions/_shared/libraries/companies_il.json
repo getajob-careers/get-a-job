@@ -1999,7 +1999,7 @@
       "domain": "cbc.co.il",
       "careers_url": "https://career.adamtotal.co.il/?token=4fiBEcF763Em2UKTVQ4OPb1hiX9SxJtoMD",
       "ats": "adamtotal",
-      "slug": null,
+      "slug": "adamtotal_cbc",
       "api_url": "https://career.adamtotal.co.il/Home/Index?token=4fiBEcF763Em2UKTVQ4OPb1hiX9SxJtoMHssWX",
       "verified": true,
       "notes": "AdamTotal direct-employer board (verified live 2026-06-09, ~150 jobs across 6 pages). Prior token was prefix-truncated by scoping agent — real token ends in `MHssWX`."
@@ -4135,7 +4135,7 @@
       "domain": "gefen-hr.co.il",
       "careers_url": "https://career.adamtotal.co.il/?token=cedd5c19-d59c-4f80-bca6-768f41edee7e",
       "ats": "adamtotal",
-      "slug": null,
+      "slug": "adamtotal_gefen",
       "api_url": "https://career.adamtotal.co.il/Home/Index?token=cedd5c19-d59c-4f80-bca6-768f41edee7e",
       "verified": true,
       "notes": "AdamTotal ATS (multi-tenant). ~110 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
@@ -4495,7 +4495,7 @@
       "domain": "harel-group.co.il",
       "careers_url": "https://www.harel-group.co.il/career",
       "ats": "adamtotal",
-      "slug": null,
+      "slug": "adamtotal_harel",
       "api_url": "https://career.adamtotal.co.il/Home/Index?token=6675d401-0dee-428a-a776-5d41885d16b0-harel",
       "verified": true,
       "notes": "AdamTotal ATS (multi-tenant). ~82 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
@@ -5191,7 +5191,7 @@
       "domain": "rail.co.il",
       "careers_url": "https://www.rail.co.il/he/jobs",
       "ats": "adamtotal",
-      "slug": null,
+      "slug": "adamtotal_rail",
       "api_url": "https://railcareer.adamtotal.co.il/Home/Index?token=45e7ea44-8787-4910-3423-c84e9fttredbccf_ext",
       "verified": true,
       "notes": "AdamTotal ATS (multi-tenant). ~60 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
@@ -5371,7 +5371,7 @@
       "domain": "kalmobil.co.il",
       "careers_url": "https://career.adamtotal.co.il/?token=49ea5fae-22f9-4ff5-b20b-4c897490009f",
       "ats": "adamtotal",
-      "slug": null,
+      "slug": "adamtotal_kalmobil",
       "api_url": "https://career.adamtotal.co.il/Home/Index?token=49ea5fae-22f9-4ff5-b20b-4c897490009f",
       "verified": true,
       "notes": "AdamTotal ATS (multi-tenant). ~85 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
@@ -6019,7 +6019,7 @@
       "domain": "matav.org.il",
       "careers_url": "https://career.adamtotal.co.il/?token=0fs45Rvqd16b0Matav",
       "ats": "adamtotal",
-      "slug": null,
+      "slug": "adamtotal_matav",
       "api_url": "https://career.adamtotal.co.il/Home/Index?token=5675d424-frd00-42a-a889-0fs45Rvqd16b0Matav",
       "verified": true,
       "notes": "AdamTotal direct-employer board (verified live 2026-06-09, ~35 jobs). Real token has UUID prefix that the scoping agent had stripped."
@@ -6811,7 +6811,7 @@
       "domain": "novolog.co.il",
       "careers_url": "https://career.adamtotal.co.il/?token=0fs13Rvgd16b0Novolog",
       "ats": "adamtotal",
-      "slug": null,
+      "slug": "adamtotal_novolog",
       "api_url": "https://career.adamtotal.co.il/Home/Index?token=7675h424-frd01-42a-a879-0fs13Rvgd16b0Novolog",
       "verified": true,
       "notes": "AdamTotal direct-employer board (verified live 2026-06-09, ~28 jobs). Real token has UUID prefix."
@@ -7375,7 +7375,7 @@
       "domain": "partner.co.il",
       "careers_url": "https://www.partner.co.il/en/about-partner/career/",
       "ats": "adamtotal",
-      "slug": null,
+      "slug": "adamtotal_partner",
       "api_url": "https://career.adamtotal.co.il/Home/Index?token=75gs6218-dvpr57-moi51-ccr68d-rf4d78tvc",
       "verified": true,
       "notes": "AdamTotal ATS (multi-tenant). ~60 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
@@ -7447,7 +7447,7 @@
       "domain": "pelephone.co.il",
       "careers_url": "https://www.pelephone.co.il/",
       "ats": "adamtotal",
-      "slug": null,
+      "slug": "adamtotal_pelephone",
       "api_url": "https://career.adamtotal.co.il/Home/Index?token=OPY78QbFG53N63Em2UKTVQ4OPb1hiX9SxJtoMHssWX",
       "verified": true,
       "notes": "AdamTotal ATS (multi-tenant). ~60 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
@@ -7519,7 +7519,7 @@
       "domain": "peresgroup.co.il",
       "careers_url": "https://career.adamtotal.co.il/?token=0fd45Rzqd16b0Peres",
       "ats": "adamtotal_agency",
-      "slug": null,
+      "slug": "adamtotal_peres_agency",
       "api_url": "https://career.adamtotal.co.il/Home/Index?token=6675d423-frd00-42a-a776-0fd45Rzqd16b0Peres",
       "verified": true,
       "notes": "AdamTotal placement-AGENCY board (verified live 2026-06-09, ~403 jobs across 17 pages). Peres reposts roles across multiple IL employer clients (EBA, Flex, Tax Authority, etc.). Tagged ats=adamtotal_agency so dedup vs direct rows is measurable. Real token has UUID prefix."
@@ -9487,7 +9487,7 @@
       "domain": "tempo.co.il",
       "careers_url": "https://www.tempo.co.il/career/",
       "ats": "adamtotal",
-      "slug": null,
+      "slug": "adamtotal_tempo",
       "api_url": "https://career.adamtotal.co.il/Home/Index?token=5fiBEcF763Em2KLOPNQ4OPb1hiX9SxJtoMDssWS",
       "verified": true,
       "notes": "AdamTotal ATS (multi-tenant). ~32 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
