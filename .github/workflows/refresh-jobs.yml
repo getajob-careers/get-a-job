@@ -20,6 +20,15 @@
 #   Closes the extraction loop that used to grow ~30-60 rows/night of
 #   silent backlog when extraction was manual-only (2026-06-03 audit).
 #
+# Stage 3 — Derive Hebrew seniority (scripts/derive-hebrew-seniority.ts):
+#   The title-regex classifier in normalize.ts is English-only, so
+#   Hebrew titles fall through to seniority='mid'. After extraction
+#   populates the LLM's req_seniority (Hebrew-aware), this stage maps
+#   it back to the lowercase seniority column the Jobs filter + card
+#   badge read from — but only on Hebrew rows where the regex landed
+#   the default 'mid'. Never overrides a regex-asserted entry/senior/
+#   lead/director. Idempotent; safe to re-run.
+#
 # Schedule: 01:00 UTC daily = 03:00 IL (winter) / 04:00 IL (summer).
 # Off-peak both ways; exact local time isn't load-bearing (no users
 # watching the run).
@@ -94,6 +103,19 @@ jobs:
           --concurrency=8
           --progress-every=50
           --limit=500
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+      # Stage 3: derive jobs.seniority from req_seniority on Hebrew
+      # rows the title-regex defaulted to 'mid'. Runs even if stage 2
+      # timed out — operates on whatever req_seniority values landed.
+      # Idempotent; the predicate skips already-flipped rows.
+      - name: Derive Hebrew seniority from req_seniority
+        if: always()
+        continue-on-error: true
+        timeout-minutes: 2
+        run: npx tsx scripts/derive-hebrew-seniority.ts
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
