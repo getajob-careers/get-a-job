@@ -292,6 +292,31 @@ interface CallResult {
   error?: string;
 }
 
+// Headers must be Latin-1 (ByteString) per the Fetch spec — Node's fetch
+// throws "Cannot convert argument to a ByteString" if any header value
+// contains code points > 0xFF. UTF-8 punctuation (em dash U+2014, en dash
+// U+2013, smart quotes, ellipsis) commonly sneaks in via app-attribution
+// strings (X-Title, etc). The request BODY can still be UTF-8 — only
+// header values need this treatment.
+function latin1SafeHeader(s: string): string {
+  return s
+    .replace(/[\u2013\u2014\u2015]/g, "-")  // en/em dash, horizontal bar
+    .replace(/[\u2018\u2019\u201A\u201B]/g, "'")  // smart single quotes
+    .replace(/[\u201C\u201D\u201E\u201F]/g, '"')  // smart double quotes
+    .replace(/[\u2026]/g, "...")            // horizontal ellipsis
+    .replace(/[^\x00-\xff]/g, "");          // strip any remaining non-Latin-1
+}
+function assertLatin1Headers(h: Record<string, string>): Record<string, string> {
+  for (const [k, v] of Object.entries(h)) {
+    for (let i = 0; i < v.length; i++) {
+      if (v.charCodeAt(i) > 0xff) {
+        throw new Error(`header "${k}" contains non-Latin-1 char U+${v.charCodeAt(i).toString(16).toUpperCase().padStart(4, "0")} at index ${i}: "${v.slice(Math.max(0, i - 8), i + 8)}"`);
+      }
+    }
+  }
+  return h;
+}
+
 async function callModel(modelSlug: string, systemPrompt: string, userContent: string): Promise<CallResult> {
   const t0 = Date.now();
   const isDirectOpenAI = modelSlug === GPT4O_CONTROL;
@@ -315,17 +340,22 @@ async function callModel(modelSlug: string, systemPrompt: string, userContent: s
   };
 
   try {
+    const headers = assertLatin1Headers({
+      Authorization: `Bearer ${key}`,
+      "Content-Type": "application/json",
+      ...(isDirectOpenAI ? {} : {
+        // OpenRouter optional headers for traffic attribution.
+        // All values run through latin1SafeHeader so future edits can't
+        // re-introduce U+2014 / smart quotes / etc. The previous run
+        // hit U+2014 in X-Title and failed at fetch() construction
+        // before reaching the network.
+        "HTTP-Referer": latin1SafeHeader("https://getajob.careers"),
+        "X-Title": latin1SafeHeader("Get A Job - CV bake-off eval"),
+      }),
+    });
     const res = await fetch(url, {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${key}`,
-        "Content-Type": "application/json",
-        ...(isDirectOpenAI ? {} : {
-          // OpenRouter optional headers for traffic attribution.
-          "HTTP-Referer": "https://getajob.careers",
-          "X-Title": "Get A Job — CV bake-off eval",
-        }),
-      },
+      headers,
       body: JSON.stringify(body),
       signal: AbortSignal.timeout(120_000),
     });
