@@ -43,6 +43,17 @@ EXPERIENCE.is_current — set to true if the role's end_date is "Present", "Curr
 
 ${EXPERIENCE_SKILLS_DIRECTIVE}
 
+SKILLS (top-level array) — HARD CAP AND DEDUP:
+- Return AT MOST 40 unique skills in the top-level skills array.
+- Deduplicate case-insensitively ("Excel" and "excel" count as one; "Project Management" and "project management" count as one). Prefer Title Case for the surviving entry.
+- If you'd otherwise emit more than 40, drop the least-supported ones first: a skill mentioned only once in the resume with no per-role appearance ranks below a skill mentioned in 3 roles or in both a per-role skills array AND the global Skills section.
+- Stronger models tend to over-extract (one CV produced 116 entries against a 1-page resume). The downstream canonical-skill resolver doesn't benefit from this; the duplicates dilute matching.
+
+THIN-CV ANTI-HALLUCINATION GUARD:
+- If the resume's responsibilities are sparse (under 300 characters total across ALL experiences combined) AND the global Skills / Tools section is empty or absent, return skills: [] rather than inferring skills from job titles alone.
+- "Marketing Intern" alone is NOT evidence the candidate has "Social Media Marketing" — that's a title-based fabrication and the verbatim rule above already forbids it. Returning an empty skills array is the correct response when the resume genuinely doesn't list any.
+- This guard fires rarely (most CVs have either real responsibilities OR a Skills section) but prevents the LLM from confabulating to fill an array it thinks the schema expects.
+
 PHONE NUMBER — scan the full document, not just the header:
 - Search the ENTIRE resume text for a phone number, including the header, "Contact" section, email signature area, and anywhere near the email/LinkedIn.
 - Accept any of these formats and keep the original formatting:

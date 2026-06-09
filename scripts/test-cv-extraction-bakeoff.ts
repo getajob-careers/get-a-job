@@ -108,7 +108,10 @@ const REQUESTED_MODELS = arg("models", DEFAULT_MODELS)
 let MODELS: string[] = [];
 const SKIPPED_MODELS: string[] = [];
 
-const DIRECT_OPENAI_CONTROLS = ["gpt-4o-mini", "gpt-4o"];
+// Controls go through api.openai.com directly (production-realistic transport).
+// gpt-5.5 added so we measure the candidate-upgrade latency p50 on the same
+// transport production would use after the model swap — NOT through OpenRouter.
+const DIRECT_OPENAI_CONTROLS = ["gpt-4o-mini", "gpt-4o", "gpt-5.5"];
 
 const REASONING_MODEL_PATTERNS = [
   /^openai\/gpt-5(\.|$)/i,
@@ -120,7 +123,8 @@ const isReasoningModel = (slug: string) => REASONING_MODEL_PATTERNS.some((rx) =>
 const PRICING_FALLBACK: Record<string, { in_per_m: number; out_per_m: number }> = {
   "gpt-4o-mini": { in_per_m: 0.15, out_per_m: 0.6 },
   "gpt-4o": { in_per_m: 2.5, out_per_m: 10 },
-  "openai/gpt-5.5": { in_per_m: 5, out_per_m: 30 },
+  "gpt-5.5": { in_per_m: 5, out_per_m: 30 }, // direct-OpenAI control
+  "openai/gpt-5.5": { in_per_m: 5, out_per_m: 30 }, // OpenRouter cell
   "anthropic/claude-opus-4.8": { in_per_m: 5, out_per_m: 25 },
   "anthropic/claude-sonnet-4.6": { in_per_m: 3, out_per_m: 15 },
   "~anthropic/claude-sonnet-latest": { in_per_m: 3, out_per_m: 15 },
@@ -341,12 +345,15 @@ async function callModel(modelSlug: string, systemPrompt: string, userContent: s
   const key = isDirectOpenAI ? OPENAI_API_KEY : OPENROUTER_API_KEY;
   const reasoning = isReasoningModel(modelSlug);
   // Cap heuristics:
-  //   - Direct gpt-4o / gpt-4o-mini: 4096 (CV extraction can produce ~3k tokens
-  //     of nested JSON for a rich resume; 4k gives headroom without hitting
-  //     either model's hard ceiling).
+  //   - Direct gpt-4o / gpt-4o-mini (non-reasoning): 4096 (CV extraction
+  //     can produce ~3k tokens of nested JSON for a rich resume; 4k gives
+  //     headroom without hitting either model's hard ceiling).
+  //   - Direct gpt-5.5 (reasoning, effort=none): 16000. Even at effort=none,
+  //     reasoning tokens count against this cap; 16k mirrors the OpenRouter
+  //     reasoning budget so latency is comparable across transports.
   //   - OpenRouter non-reasoning: 8000.
-  //   - OpenRouter reasoning: 16000 + reasoning_effort=low.
-  const completionCap = isDirectOpenAI ? 4096 : reasoning ? 16000 : 8000;
+  //   - OpenRouter reasoning: 16000 + reasoning_effort=none.
+  const completionCap = reasoning ? 16000 : isDirectOpenAI ? 4096 : 8000;
 
   const body: any = {
     model: modelSlug,
@@ -357,16 +364,24 @@ async function callModel(modelSlug: string, systemPrompt: string, userContent: s
     temperature: 0.2,
     response_format: { type: "json_object" },
   };
-  // CRITICAL: do NOT send both max_tokens and max_completion_tokens for the
-  // direct-OpenAI path — gpt-4o/-mini reject the combination with
-  // "Setting 'max_tokens' and 'max_completion_tokens' at the same time is
-  // not supported". Reasoning models on OpenRouter want max_completion_tokens.
-  if (isDirectOpenAI) {
-    body.max_tokens = completionCap;
-  } else if (reasoning) {
+  // Token-param routing — never send both max_tokens and max_completion_tokens:
+  //   - Direct OpenAI non-reasoning (gpt-4o, gpt-4o-mini): max_tokens only
+  //   - Direct OpenAI reasoning (gpt-5.5, o-series): max_completion_tokens +
+  //     reasoning_effort='none'. gpt-5.5 standardised on "none" as the
+  //     lowest effort (replaces "minimal" from earlier gpt-5 releases). For
+  //     resume extraction — single-shot structured emit, no multi-step
+  //     reasoning needed — "none" is the right pick per OpenAI's own guide.
+  //   - OpenRouter non-reasoning: max_tokens only
+  //   - OpenRouter reasoning: max_completion_tokens + reasoning.effort='none'
+  //     (nested OR-shape) + flat reasoning_effort='none' for redundancy
+  if (reasoning) {
     body.max_completion_tokens = completionCap;
-    body.reasoning = { effort: "low" };
-    body.reasoning_effort = "low";
+    // "none" is the lowest gpt-5.x effort and is what production
+    // resume-extractor will use. o-series accepts "low" but not "none";
+    // a cell that errors with "Invalid value: 'none'" means we threw an
+    // o-series slug in — bump to "low" via --reasoning-effort=low if so.
+    body.reasoning_effort = "none";
+    if (!isDirectOpenAI) body.reasoning = { effort: "none" };
   } else {
     body.max_tokens = completionCap;
   }

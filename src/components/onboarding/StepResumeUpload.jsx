@@ -54,6 +54,71 @@ function isDocxFile(file) {
   return /\.docx$/i.test(file.name || "");
 }
 
+// Hardened JSON parser for the resume-extractor reply. Returns the parsed
+// object on success, null on total failure. Logic mirrors the test fixtures
+// at src/test/resume.extraction.test.js.
+//
+// The four passes in order:
+//   1. Direct parse — clean JSON (response_format=json_object route, post-fix)
+//   2. ```json``` fence strip — some non-JSON-mode replies still wrap output
+//   3. Balanced-brace match — tighter than greedy [\s\S]*; walks brace depth
+//      so trailing-prose objects don't pollute the captured slice
+//   4. Legacy double-escape unescape — kept for any older replies in flight
+export function parseExtractedJson(replyText) {
+  if (typeof replyText !== "string" || !replyText.trim()) return null;
+
+  // 1. direct parse
+  try {
+    const direct = JSON.parse(replyText);
+    if (direct && typeof direct === "object") return direct;
+  } catch { /* fall through */ }
+
+  // 2. ```json fence strip
+  const fenceMatch = replyText.match(/```(?:json)?\s*\n?([\s\S]*?)```/i);
+  if (fenceMatch) {
+    try {
+      const fenced = JSON.parse(fenceMatch[1]);
+      if (fenced && typeof fenced === "object") return fenced;
+    } catch { /* fall through */ }
+  }
+
+  // 3. balanced-brace match. Walk from first `{` tracking depth, ignoring
+  //    braces inside strings (with escape-awareness). Stops at the matching
+  //    `}`, so trailing prose or a second object can't break the parse.
+  const first = replyText.indexOf("{");
+  if (first >= 0) {
+    let depth = 0;
+    let inString = false;
+    let escape = false;
+    let end = -1;
+    for (let i = first; i < replyText.length; i++) {
+      const ch = replyText[i];
+      if (escape) { escape = false; continue; }
+      if (ch === "\\") { escape = true; continue; }
+      if (ch === '"') { inString = !inString; continue; }
+      if (inString) continue;
+      if (ch === "{") depth++;
+      else if (ch === "}") { depth--; if (depth === 0) { end = i; break; } }
+    }
+    if (end > first) {
+      const slice = replyText.slice(first, end + 1);
+      try {
+        const braced = JSON.parse(slice);
+        if (braced && typeof braced === "object") return braced;
+      } catch { /* fall through */ }
+      // 4. legacy double-escape pass against the balanced slice
+      if (/\{\s*\\"/.test(slice)) {
+        try {
+          const unescaped = slice.replace(/\\"/g, '"').replace(/\\n/g, "\n").replace(/\\t/g, "\t");
+          const fixed = JSON.parse(unescaped);
+          if (fixed && typeof fixed === "object") return fixed;
+        } catch { /* fall through */ }
+      }
+    }
+  }
+  return null;
+}
+
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { track, EVENTS } from "@/lib/analytics";
@@ -187,43 +252,41 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
       const replyText = extractData?.reply || extractData?.content || extractData?.text || "";
 
       if (replyText) {
-        const jsonMatch = replyText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          let extracted = null;
-          try { extracted = JSON.parse(jsonMatch[0]); } catch { /* try unescape below */ }
-          if (!extracted && /\{\s*\\"/.test(jsonMatch[0])) {
-            try {
-              const unescaped = jsonMatch[0]
-                .replace(/\\"/g, '"')
-                .replace(/\\n/g, "\n")
-                .replace(/\\t/g, "\t");
-              extracted = JSON.parse(unescaped);
-            } catch (e) {
-              console.error("JSON parse failed after unescaping:", e);
-            }
+        // Hardened parse chain — replaces the prior loose greedy regex that
+        // dropped 4 of 19 pilot users (nevo, agam, redheadeg, ybarshain)
+        // when gpt-4o-mini emitted JSON wrapped in prose. Strategy:
+        //   1. Direct parse — works when the model emits clean JSON (the
+        //      response_format=json_object route now ensures this on the
+        //      resume-extractor agent).
+        //   2. Strip a single markdown fence wrapper (```json ... ```).
+        //   3. Balanced-brace match from the FIRST `{` to its matching `}` —
+        //      tighter than the prior greedy `{[\s\S]*}` which spanned
+        //      trailing-prose objects and produced invalid JSON.
+        //   4. Legacy double-escape unescape — kept for backwards-compat
+        //      with any older clients still in the wild.
+        const extracted = parseExtractedJson(replyText);
+        if (extracted == null) {
+          console.warn("[StepResumeUpload] all parse paths failed — falling back to manual entry banner. reply head:", replyText.slice(0, 200));
+        } else {
+          let proofSignals = [];
+          let primaryDomain = null;
+          let adjacentFields = [];
+          const { data: psData } = await proofSignalsPromise;
+          if (psData?.proof_signals?.length) {
+            proofSignals = psData.proof_signals;
+            primaryDomain = psData.primary_domain || null;
+            adjacentFields = psData.adjacent_fields || [];
           }
 
-          if (extracted) {
-            let proofSignals = [];
-            let primaryDomain = null;
-            let adjacentFields = [];
-            const { data: psData } = await proofSignalsPromise;
-            if (psData?.proof_signals?.length) {
-              proofSignals = psData.proof_signals;
-              primaryDomain = psData.primary_domain || null;
-              adjacentFields = psData.adjacent_fields || [];
-            }
-
-            onExtracted({ ...extracted, proof_signals: proofSignals, primary_domain: primaryDomain, adjacent_fields: adjacentFields });
-            const fileType = file.type === "application/pdf" ? "pdf" : isDocxFile(file) ? "docx" : "other";
-            const extractedFieldsCount = Object.values(extracted || {}).filter(
-              (v) => v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0)
-            ).length;
-            track(EVENTS.CV_UPLOADED, { file_type: fileType, extracted_fields_count: extractedFieldsCount });
-            setExtracting(false);
-            setDone(true);
-            return;
-          }
+          onExtracted({ ...extracted, proof_signals: proofSignals, primary_domain: primaryDomain, adjacent_fields: adjacentFields });
+          const fileType = file.type === "application/pdf" ? "pdf" : isDocxFile(file) ? "docx" : "other";
+          const extractedFieldsCount = Object.values(extracted || {}).filter(
+            (v) => v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0)
+          ).length;
+          track(EVENTS.CV_UPLOADED, { file_type: fileType, extracted_fields_count: extractedFieldsCount });
+          setExtracting(false);
+          setDone(true);
+          return;
         }
       }
 
