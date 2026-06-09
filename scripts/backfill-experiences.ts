@@ -1,45 +1,63 @@
 // scripts/backfill-experiences.ts
 //
-// One-off backfill for 4 pilot users (nevo.liani, agamf123, redheadeg,
-// ybarshain) who completed onboarding with zero experiences because the
-// pre-PR-#277 resume-extractor wrapped its JSON in prose, which the
-// loose-regex client parser dropped silently. The fix is live (gpt-4o-mini
-// + response_format json_object + parseExtractedJson). This script re-runs
-// extraction for those 4 users against their already-uploaded CVs and
-// inserts the missing experiences.
+// One-off backfill for the 2 pilot users who completed onboarding with
+// zero experiences because the pre-PR-#277 resume-extractor wrapped its
+// JSON in prose, which the loose-regex client parser dropped silently.
 //
-// Hard scope guarantees:
-//   1. Only ever touches the four hardcoded TARGET emails. The list is
-//      intentionally not a flag — this is not a general-purpose tool.
-//   2. Skips any target whose experiences count is already > 0
-//      (idempotent — second run of --execute is a no-op).
-//   3. Only writes to the `experiences` table, using the same column
-//      whitelist as Onboarding.jsx finishOnboarding (avoids PGRST204).
-//   4. Default mode is DRY-RUN. --execute is required to write.
-//   5. Snapshots before AND after (when executing) so we can prove the
-//      ONLY tables that changed are experiences for the target users.
+// Targets (HARDCODED — this is a one-off recovery, not a general tool):
+//   - nevo.liani@gmail.com
+//   - agamf123@gmail.com
 //
-// Extraction mirrors the post-#277 production path EXACTLY:
-//   - unpdf for .pdf, mammoth.extractRawText for .docx (matches
-//     StepResumeUpload.jsx; legacy .doc rejected)
-//   - Truncate to 15,000 chars (same 15k cap production uses)
-//   - buildResumeExtractionPrompt imported from src/lib (single source
-//     of truth — same prompt the LLM gets in production)
-//   - gpt-4o-mini, temperature 0.2, response_format json_object (matches
-//     the routing layer's resume-extractor route)
-//   - parseExtractedJson imported from src/lib (same 4-pass parser that
-//     replaced the loose regex)
+// (redheadeg + ybarshain were dropped from targets — they didn't complete
+// onboarding and will re-enter through the redesigned onboarding flow via
+// re-engagement email; backfilling them now would race against re-onboard
+// inserts.)
+//
+// Three independently-gated stages:
+//
+//   STAGE 1 — EXPERIENCE BACKFILL
+//     Pull each user's latest CV from storage, extract via the production
+//     path (unpdf/mammoth + buildResumeExtractionPrompt + gpt-4o-mini +
+//     parseExtractedJson), sanitise to the Onboarding finishOnboarding
+//     column whitelist, insert. Idempotency-guarded (skips if exp_count
+//     > 0). Diff after: only experiences gained rows.
+//
+//   STAGE 2 — CAREER ANALYSIS RE-RUN
+//     For each user with experiences (Stage 1 must have run): mint a
+//     per-user JWT via auth.admin.generateLink + verifyOtp (same pattern
+//     as scripts/rerun-career-analysis.mjs — does NOT email the user),
+//     POST generate-career-analysis with force=true, then call
+//     replace_career_roles RPC under the user's client. The RPC is the
+//     ONLY destructive op (scoped DELETE-then-insert on career_roles).
+//     Diff after: only career_roles changed. Profiles intentionally NOT
+//     updated by this stage.
+//
+//   STAGE 3 — DOWNSTREAM REFRESH
+//     For each user whose career_roles changed in Stage 2: DELETE existing
+//     AI-generated tasks (heuristic: role_title populated, all rows
+//     batched at same created_at — matches generate-tasks output pattern),
+//     re-invoke generate-tasks with the user's JWT. Same dance for
+//     today's daily_action if present (UNIQUE per (user, for_date) —
+//     DELETE-then-regen). Manual tasks (no role_title) are never touched.
+//
+// Each stage is dry-run by default. --execute is required per-stage to
+// write. Stages must be invoked separately: --stage=1 then review, then
+// --stage=2 then review, then --stage=3.
 //
 // Usage:
-//   # Dry-run (default) — prints proposed experiences per user, writes nothing
-//   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... OPENAI_API_KEY=... \
-//     npx tsx scripts/backfill-experiences.ts
+//   # Stage 1
+//   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... SUPABASE_ANON_KEY=... \
+//     OPENAI_API_KEY=... \
+//     npx tsx scripts/backfill-experiences.ts --stage=1
+//   npx tsx scripts/backfill-experiences.ts --stage=1 --execute
 //
-//   # Real insert — only after reviewing the dry-run output
-//   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... OPENAI_API_KEY=... \
-//     npx tsx scripts/backfill-experiences.ts --execute
+//   # Stage 2 (after Stage 1 --execute)
+//   npx tsx scripts/backfill-experiences.ts --stage=2
+//   npx tsx scripts/backfill-experiences.ts --stage=2 --execute
 //
-// Cost: 4 users × 1 call × gpt-4o-mini = ~$0.005 total.
+//   # Stage 3 (after Stage 2 --execute)
+//   npx tsx scripts/backfill-experiences.ts --stage=3
+//   npx tsx scripts/backfill-experiences.ts --stage=3 --execute
 
 import { createClient } from "@supabase/supabase-js";
 import { writeFileSync } from "node:fs";
@@ -50,36 +68,40 @@ import { parseExtractedJson } from "../src/lib/parseExtractedJson.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 if (!SUPABASE_URL || !SERVICE_ROLE || !OPENAI_API_KEY) {
   console.error("ERROR: set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OPENAI_API_KEY");
   process.exit(1);
 }
+if (!ANON_KEY) {
+  console.error("ERROR: SUPABASE_ANON_KEY (or VITE_SUPABASE_ANON_KEY) is required for Stages 2 + 3 (per-user JWT minting via verifyOtp)");
+  process.exit(1);
+}
 
 const args = process.argv.slice(2);
+const arg = (n: string, d = ""): string => args.find((a) => a.startsWith(`--${n}=`))?.split("=")[1] ?? d;
+const STAGE = arg("stage", "");
 const EXECUTE = args.includes("--execute");
+if (!["1", "2", "3"].includes(STAGE)) {
+  console.error("ERROR: --stage must be 1, 2, or 3. Each stage runs independently.");
+  process.exit(1);
+}
 const ts = new Date().toISOString().replace(/[:.]/g, "-");
-const SNAPSHOT_BEFORE = `/tmp/backfill-snapshot-${ts}-before.json`;
-const SNAPSHOT_AFTER = `/tmp/backfill-snapshot-${ts}-after.json`;
-const PROPOSAL_PATH = `/tmp/backfill-proposal-${ts}.json`;
+const stageSlug = `stage${STAGE}`;
+const SNAPSHOT_BEFORE = `/tmp/backfill-${stageSlug}-${ts}-before.json`;
+const SNAPSHOT_AFTER = `/tmp/backfill-${stageSlug}-${ts}-after.json`;
 
-// Hardcoded — this script is intentionally targeted, not parameterised.
-const TARGETS = [
-  "nevo.liani@gmail.com",
-  "agamf123@gmail.com",
-  "redheadeg@gmail.com",
-  "ybarshain@gmail.com",
-];
+const TARGETS = ["nevo.liani@gmail.com", "agamf123@gmail.com"];
 
-// Mirrors ai-chat/index.ts:508 verbatim.
 const RESUME_EXTRACTOR_SYSTEM_PROMPT =
   "You are a strict data extraction AI. Extract the requested fields from the resume text and format exactly as a valid JSON object. Do not include markdown formatting or commentary.";
 
-const MODEL = "gpt-4o-mini";
+const admin = createClient(SUPABASE_URL, SERVICE_ROLE, {
+  auth: { autoRefreshToken: false, persistSession: false },
+});
 
-const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
-
-// ─── User resolution (admin.listUsers — auth schema not exposed by PostgREST) ───
+// ─── Shared: user resolution ───
 
 let _userIndex: Map<string, string> | null = null;
 async function userIdByEmail(email: string): Promise<string | null> {
@@ -87,11 +109,9 @@ async function userIdByEmail(email: string): Promise<string | null> {
     _userIndex = new Map();
     let page = 1;
     for (;;) {
-      const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+      const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
       if (error) throw new Error(`auth.admin.listUsers failed: ${error.message}`);
-      for (const u of data.users) {
-        if (u.email) _userIndex.set(u.email.trim().toLowerCase(), u.id);
-      }
+      for (const u of data.users) if (u.email) _userIndex.set(u.email.trim().toLowerCase(), u.id);
       if (data.users.length < 1000) break;
       page++;
     }
@@ -99,17 +119,142 @@ async function userIdByEmail(email: string): Promise<string | null> {
   return _userIndex.get(email.trim().toLowerCase()) ?? null;
 }
 
-// ─── Resume download + text extraction (mirrors StepResumeUpload.jsx) ───
+// ─── Shared: snapshot every surface we care about ───
+
+interface UserSnapshot {
+  email: string;
+  user_id: string;
+  experiences: any[];
+  education: any[];
+  career_roles: any[];
+  stories: any[];
+  applications: any[];
+  company_targets: any[];
+  tasks: any[];
+  daily_actions: any[];
+  profile_skills: any[] | null;
+  profile_proof_signals: any[] | null;
+  profile_qualification_level: string | null;
+  profile_overall_assessment: string | null;
+  profile_skill_gaps: any[] | null;
+  profile_last_reality_check_date: string | null;
+}
+
+async function snapshotUser(email: string, userId: string): Promise<UserSnapshot> {
+  const [exp, edu, roles, stories, apps, targets, tasks, daily, profile] = await Promise.all([
+    admin.from("experiences").select("*").eq("user_id", userId).order("created_at"),
+    admin.from("education").select("*").eq("user_id", userId).order("created_at"),
+    admin.from("career_roles").select("*").eq("user_id", userId).order("created_at"),
+    admin.from("stories").select("*").eq("user_id", userId).order("created_at"),
+    admin.from("applications").select("*").eq("user_id", userId).order("created_at"),
+    admin.from("company_targets").select("*").eq("user_id", userId).order("created_at"),
+    admin.from("tasks").select("*").eq("user_id", userId).order("created_at"),
+    admin.from("daily_actions").select("*").eq("user_id", userId).order("created_at"),
+    admin.from("profiles").select("skills, proof_signals, qualification_level, overall_assessment, skill_gaps, last_reality_check_date").eq("id", userId).maybeSingle(),
+  ]);
+  const p = profile.data as any;
+  return {
+    email,
+    user_id: userId,
+    experiences: exp.data || [],
+    education: edu.data || [],
+    career_roles: roles.data || [],
+    stories: stories.data || [],
+    applications: apps.data || [],
+    company_targets: targets.data || [],
+    tasks: tasks.data || [],
+    daily_actions: daily.data || [],
+    profile_skills: p?.skills ?? null,
+    profile_proof_signals: p?.proof_signals ?? null,
+    profile_qualification_level: p?.qualification_level ?? null,
+    profile_overall_assessment: p?.overall_assessment ?? null,
+    profile_skill_gaps: p?.skill_gaps ?? null,
+    profile_last_reality_check_date: p?.last_reality_check_date ?? null,
+  };
+}
+
+function rowKey(row: any): string { return JSON.stringify(row, Object.keys(row).sort()); }
+function diffRows(before: any[], after: any[]): { added: any[]; removed: any[] } {
+  const b = new Set(before.map(rowKey));
+  const a = new Set(after.map(rowKey));
+  return {
+    added: after.filter((r) => !b.has(rowKey(r))),
+    removed: before.filter((r) => !a.has(rowKey(r))),
+  };
+}
+
+interface SnapshotDiff {
+  email: string;
+  experiences: { added: any[]; removed: any[] };
+  education: { added: any[]; removed: any[] };
+  career_roles: { added: any[]; removed: any[] };
+  stories: { added: any[]; removed: any[] };
+  applications: { added: any[]; removed: any[] };
+  company_targets: { added: any[]; removed: any[] };
+  tasks: { added: any[]; removed: any[] };
+  daily_actions: { added: any[]; removed: any[] };
+  profile_changed: string[];
+}
+
+function diffSnapshot(before: UserSnapshot, after: UserSnapshot): SnapshotDiff {
+  const profile_changed: string[] = [];
+  for (const k of ["profile_skills", "profile_proof_signals", "profile_qualification_level", "profile_overall_assessment", "profile_skill_gaps", "profile_last_reality_check_date"] as const) {
+    if (JSON.stringify(before[k]) !== JSON.stringify(after[k])) profile_changed.push(k);
+  }
+  return {
+    email: before.email,
+    experiences: diffRows(before.experiences, after.experiences),
+    education: diffRows(before.education, after.education),
+    career_roles: diffRows(before.career_roles, after.career_roles),
+    stories: diffRows(before.stories, after.stories),
+    applications: diffRows(before.applications, after.applications),
+    company_targets: diffRows(before.company_targets, after.company_targets),
+    tasks: diffRows(before.tasks, after.tasks),
+    daily_actions: diffRows(before.daily_actions, after.daily_actions),
+    profile_changed,
+  };
+}
+
+function printDiff(d: SnapshotDiff, expectedTables: string[]) {
+  console.log(`\n${d.email}:`);
+  const t = (name: keyof Omit<SnapshotDiff, "email" | "profile_changed">, changes: { added: any[]; removed: any[] }) => {
+    const marker = expectedTables.includes(name) ? "  " : (changes.added.length + changes.removed.length > 0 ? "⚠️" : "  ");
+    console.log(`  ${marker} ${name.padEnd(16)} +${changes.added.length} added, -${changes.removed.length} removed`);
+  };
+  t("experiences", d.experiences);
+  t("education", d.education);
+  t("career_roles", d.career_roles);
+  t("stories", d.stories);
+  t("applications", d.applications);
+  t("company_targets", d.company_targets);
+  t("tasks", d.tasks);
+  t("daily_actions", d.daily_actions);
+  if (d.profile_changed.length > 0) {
+    const allExpected = d.profile_changed.every((k) => expectedTables.includes(k));
+    console.log(`  ${allExpected ? "  " : "⚠️"} profile fields changed: ${d.profile_changed.join(", ")}`);
+  }
+}
+
+function unexpectedChange(d: SnapshotDiff, expectedTables: string[]): boolean {
+  const tables = ["experiences", "education", "career_roles", "stories", "applications", "company_targets", "tasks", "daily_actions"] as const;
+  for (const tab of tables) {
+    if (expectedTables.includes(tab)) continue;
+    if (d[tab].added.length > 0 || d[tab].removed.length > 0) return true;
+  }
+  for (const k of d.profile_changed) {
+    if (!expectedTables.includes(k)) return true;
+  }
+  return false;
+}
+
+// ─── Stage 1: extraction helpers (mirror StepResumeUpload.jsx) ───
 
 async function listLatestResume(userId: string): Promise<{ path: string; ext: "pdf" | "docx" | "other"; name: string } | null> {
-  const { data, error } = await supabase.storage.from("resumes").list(userId, {
+  const { data, error } = await admin.storage.from("resumes").list(userId, {
     limit: 100,
     sortBy: { column: "created_at", order: "desc" },
   });
-  if (error) {
-    console.error(`  storage.list failed for ${userId}: ${error.message}`);
-    return null;
-  }
+  if (error) { console.error(`  storage.list failed: ${error.message}`); return null; }
   const files = (data || []).filter((o) => o.name && !o.name.endsWith("/"));
   if (files.length === 0) return null;
   const latest = files[0];
@@ -119,58 +264,42 @@ async function listLatestResume(userId: string): Promise<{ path: string; ext: "p
 }
 
 async function downloadAndExtractText(filePath: string, ext: "pdf" | "docx"): Promise<{ text: string; pages: number }> {
-  const { data, error } = await supabase.storage.from("resumes").download(filePath);
-  if (error || !data) throw new Error(`storage.download failed: ${error?.message || "no data"}`);
+  const { data, error } = await admin.storage.from("resumes").download(filePath);
+  if (error || !data) throw new Error(`storage.download: ${error?.message || "no data"}`);
   const arrayBuffer = await data.arrayBuffer();
   if (ext === "pdf") {
-    const bytes = new Uint8Array(arrayBuffer);
-    const pdf = await getDocumentProxy(bytes);
+    const pdf = await getDocumentProxy(new Uint8Array(arrayBuffer));
     const result = await extractText(pdf, { mergePages: true });
     return { text: result.text || "", pages: result.totalPages };
   }
-  const buffer = Buffer.from(arrayBuffer);
-  const result = await mammoth.extractRawText({ buffer });
+  const result = await mammoth.extractRawText({ buffer: Buffer.from(arrayBuffer) });
   return { text: result.value || "", pages: 0 };
 }
-
-// ─── OpenAI call (mirrors the deployed routing layer for resume-extractor) ───
 
 async function callOpenAI(systemPrompt: string, userMessage: string): Promise<{ ok: true; cv: any } | { ok: false; error: string }> {
   const res = await fetch("https://api.openai.com/v1/chat/completions", {
     method: "POST",
-    headers: {
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-      "Content-Type": "application/json",
-    },
+    headers: { Authorization: `Bearer ${OPENAI_API_KEY}`, "Content-Type": "application/json" },
     body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userMessage },
-      ],
+      model: "gpt-4o-mini",
+      messages: [{ role: "system", content: systemPrompt }, { role: "user", content: userMessage }],
       temperature: 0.2,
       max_tokens: 4096,
       response_format: { type: "json_object" },
     }),
     signal: AbortSignal.timeout(60000),
   });
-  if (!res.ok) {
-    const t = await res.text();
-    return { ok: false, error: `OpenAI ${res.status}: ${t.slice(0, 200)}` };
-  }
+  if (!res.ok) return { ok: false, error: `OpenAI ${res.status}: ${(await res.text()).slice(0, 200)}` };
   const j = await res.json();
-  const raw: string = j.choices?.[0]?.message?.content || "";
-  const cv = parseExtractedJson(raw);
-  if (!cv) return { ok: false, error: `parseExtractedJson returned null. raw head: ${raw.slice(0, 150)}` };
+  const cv = parseExtractedJson(j.choices?.[0]?.message?.content || "");
+  if (!cv) return { ok: false, error: "parseExtractedJson returned null" };
   return { ok: true, cv };
 }
-
-// ─── Sanitisation — exact column whitelist from Onboarding.jsx finishOnboarding ───
 
 function sanitiseExperience(e: any, userId: string): Record<string, unknown> | null {
   if (!e || typeof e !== "object") return null;
   const title = String(e.title ?? "").trim();
-  if (!title) return null; // skip rows the LLM emitted with no title
+  if (!title) return null;
   return {
     user_id: userId,
     title: title.slice(0, 200),
@@ -186,96 +315,48 @@ function sanitiseExperience(e: any, userId: string): Record<string, unknown> | n
   };
 }
 
-// ─── Snapshot — every table the user expects to verify against ───
+// ─── Stage 2 + 3: per-user JWT minting (no email sent) ───
 
-interface UserSnapshot {
-  email: string;
-  user_id: string;
-  experiences: any[];
-  education: any[];
-  career_roles: any[];
-  stories: any[];
-  applications: any[];
-  company_targets: any[];
-  tasks: any[];
-  profile_skills: any[] | null;
-  profile_proof_signals: any[] | null;
+async function mintUserToken(email: string): Promise<string> {
+  const { data: link, error: linkErr } = await admin.auth.admin.generateLink({ type: "magiclink", email });
+  if (linkErr) throw new Error(`generateLink: ${linkErr.message}`);
+  const hashed = link?.properties?.hashed_token;
+  if (!hashed) throw new Error("no hashed_token from generateLink");
+  const anonClient = createClient(SUPABASE_URL, ANON_KEY, { auth: { autoRefreshToken: false, persistSession: false } });
+  const { data: otp, error: otpErr } = await anonClient.auth.verifyOtp({ token_hash: hashed, type: "magiclink" });
+  if (otpErr) throw new Error(`verifyOtp: ${otpErr.message}`);
+  const at = otp?.session?.access_token;
+  if (!at) throw new Error("no access_token from verifyOtp");
+  return at;
 }
 
-async function snapshotUser(email: string, userId: string): Promise<UserSnapshot> {
-  const [exp, edu, roles, stories, apps, targets, tasks, profile] = await Promise.all([
-    supabase.from("experiences").select("*").eq("user_id", userId).order("created_at"),
-    supabase.from("education").select("*").eq("user_id", userId).order("created_at"),
-    supabase.from("career_roles").select("*").eq("user_id", userId).order("created_at"),
-    supabase.from("stories").select("*").eq("user_id", userId).order("created_at"),
-    supabase.from("applications").select("*").eq("user_id", userId).order("created_at"),
-    supabase.from("company_targets").select("*").eq("user_id", userId).order("created_at"),
-    supabase.from("tasks").select("*").eq("user_id", userId).order("created_at"),
-    supabase.from("profiles").select("skills, proof_signals").eq("id", userId).maybeSingle(),
-  ]);
-  return {
-    email,
-    user_id: userId,
-    experiences: exp.data || [],
-    education: edu.data || [],
-    career_roles: roles.data || [],
-    stories: stories.data || [],
-    applications: apps.data || [],
-    company_targets: targets.data || [],
-    tasks: tasks.data || [],
-    profile_skills: (profile.data as any)?.skills ?? null,
-    profile_proof_signals: (profile.data as any)?.proof_signals ?? null,
-  };
+function userClientFor(accessToken: string) {
+  return createClient(SUPABASE_URL, ANON_KEY, {
+    auth: { autoRefreshToken: false, persistSession: false },
+    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+  });
 }
 
-// ─── Diff — for the post-execute verification step ───
-
-function rowKey(row: any): string {
-  return JSON.stringify(row, Object.keys(row).sort());
-}
-function diffRows(before: any[], after: any[]): { added: any[]; removed: any[]; unchanged: number } {
-  const b = new Set(before.map(rowKey));
-  const a = new Set(after.map(rowKey));
-  const added = after.filter((r) => !b.has(rowKey(r)));
-  const removed = before.filter((r) => !a.has(rowKey(r)));
-  return { added, removed, unchanged: before.length - removed.length };
-}
-
-function diffSnapshot(before: UserSnapshot, after: UserSnapshot) {
-  return {
-    email: before.email,
-    experiences: diffRows(before.experiences, after.experiences),
-    education: diffRows(before.education, after.education),
-    career_roles: diffRows(before.career_roles, after.career_roles),
-    stories: diffRows(before.stories, after.stories),
-    applications: diffRows(before.applications, after.applications),
-    company_targets: diffRows(before.company_targets, after.company_targets),
-    tasks: diffRows(before.tasks, after.tasks),
-    profile_skills_changed: JSON.stringify(before.profile_skills) !== JSON.stringify(after.profile_skills),
-    profile_proof_signals_changed: JSON.stringify(before.profile_proof_signals) !== JSON.stringify(after.profile_proof_signals),
-  };
+async function invokeEdgeFn(accessToken: string, slug: string, body: any): Promise<any> {
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/${slug}`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+      apikey: ANON_KEY,
+    },
+    body: JSON.stringify(body),
+    signal: AbortSignal.timeout(120_000),
+  });
+  const j = await res.json().catch(() => ({}));
+  if (!res.ok || j?.error) throw new Error(`${slug} ${res.status}: ${j?.error || JSON.stringify(j).slice(0, 200)}`);
+  return j;
 }
 
-// ─── Main ───
+// ─── STAGE 1 ───
 
-interface ProposalEntry {
-  email: string;
-  user_id: string;
-  cv_file: string;
-  cv_ext: string;
-  text_len: number;
-  skipped_reason: string | null;
-  proposed_experiences: Array<Record<string, unknown>>;
-  llm_raw_keys: string[];
-}
-
-async function main() {
-  console.error(`Mode: ${EXECUTE ? "EXECUTE (will INSERT)" : "DRY-RUN (no writes)"}`);
-  console.error(`Targets: ${TARGETS.join(", ")}`);
-  console.error("");
-
-  // Phase 1 — baseline snapshot of all 4 users.
-  console.error("Phase 1: baseline snapshot...");
+async function stage1() {
+  console.error("STAGE 1 — experience backfill");
   const baseline: UserSnapshot[] = [];
   for (const email of TARGETS) {
     const uid = await userIdByEmail(email);
@@ -283,220 +364,310 @@ async function main() {
     baseline.push(await snapshotUser(email, uid));
   }
   writeFileSync(SNAPSHOT_BEFORE, JSON.stringify(baseline, null, 2));
-  console.error(`  wrote ${SNAPSHOT_BEFORE} (${baseline.length} users)`);
-  console.error("");
+  console.error(`baseline snapshot: ${SNAPSHOT_BEFORE}`);
 
-  // Phase 2 — extract for each user (idempotency guard fires here).
-  console.error("Phase 2: extract proposed experiences...");
-  const proposals: ProposalEntry[] = [];
+  interface Proposal { email: string; user_id: string; cv_file: string; cv_ext: string; text_len: number; skipped: string | null; experiences: any[]; other_llm_keys: string[]; }
+  const proposals: Proposal[] = [];
+
   for (const snap of baseline) {
-    console.error(`\n=== ${snap.email} ===`);
+    console.error(`\n--- ${snap.email}`);
     if (snap.experiences.length > 0) {
-      console.error(`  SKIP: already has ${snap.experiences.length} experiences (idempotency guard)`);
-      proposals.push({
-        email: snap.email,
-        user_id: snap.user_id,
-        cv_file: "",
-        cv_ext: "",
-        text_len: 0,
-        skipped_reason: `already_has_experiences (${snap.experiences.length})`,
-        proposed_experiences: [],
-        llm_raw_keys: [],
-      });
+      console.error(`  SKIP: already has ${snap.experiences.length} experiences (idempotency)`);
+      proposals.push({ email: snap.email, user_id: snap.user_id, cv_file: "", cv_ext: "", text_len: 0, skipped: `already_has_experiences_${snap.experiences.length}`, experiences: [], other_llm_keys: [] });
       continue;
     }
     const resume = await listLatestResume(snap.user_id);
-    if (!resume) {
-      console.error(`  SKIP: no resume in resumes/${snap.user_id}/`);
-      proposals.push({
-        email: snap.email,
-        user_id: snap.user_id,
-        cv_file: "",
-        cv_ext: "",
-        text_len: 0,
-        skipped_reason: "no_resume_in_storage",
-        proposed_experiences: [],
-        llm_raw_keys: [],
-      });
-      continue;
-    }
-    if (resume.ext === "other") {
-      console.error(`  SKIP: latest file "${resume.name}" is neither .pdf nor .docx`);
-      proposals.push({
-        email: snap.email,
-        user_id: snap.user_id,
-        cv_file: resume.path,
-        cv_ext: resume.ext,
-        text_len: 0,
-        skipped_reason: "unsupported_file_type",
-        proposed_experiences: [],
-        llm_raw_keys: [],
-      });
-      continue;
-    }
+    if (!resume) { console.error(`  SKIP: no resume`); proposals.push({ email: snap.email, user_id: snap.user_id, cv_file: "", cv_ext: "", text_len: 0, skipped: "no_resume", experiences: [], other_llm_keys: [] }); continue; }
+    if (resume.ext === "other") { console.error(`  SKIP: ${resume.name} is neither .pdf nor .docx`); proposals.push({ email: snap.email, user_id: snap.user_id, cv_file: resume.path, cv_ext: "other", text_len: 0, skipped: "unsupported_ext", experiences: [], other_llm_keys: [] }); continue; }
     console.error(`  CV: ${resume.path} (${resume.ext})`);
-    let text = "";
-    try {
-      const r = await downloadAndExtractText(resume.path, resume.ext);
-      text = r.text;
-      console.error(`  text_len=${text.length}${text.length > 15000 ? " (will truncate to 15000)" : ""}`);
-    } catch (e) {
-      console.error(`  FAIL: extract text: ${e instanceof Error ? e.message : e}`);
-      proposals.push({
-        email: snap.email,
-        user_id: snap.user_id,
-        cv_file: resume.path,
-        cv_ext: resume.ext,
-        text_len: 0,
-        skipped_reason: `extract_text_failed: ${e instanceof Error ? e.message : String(e)}`,
-        proposed_experiences: [],
-        llm_raw_keys: [],
-      });
-      continue;
-    }
-    const truncated = text.slice(0, 15000);
-    const userMessage = buildResumeExtractionPrompt(truncated);
-    console.error(`  calling ${MODEL}...`);
-    const r = await callOpenAI(RESUME_EXTRACTOR_SYSTEM_PROMPT, userMessage);
-    if (!r.ok) {
-      console.error(`  FAIL: LLM call: ${r.error}`);
-      proposals.push({
-        email: snap.email,
-        user_id: snap.user_id,
-        cv_file: resume.path,
-        cv_ext: resume.ext,
-        text_len: text.length,
-        skipped_reason: `llm_call_failed: ${r.error}`,
-        proposed_experiences: [],
-        llm_raw_keys: [],
-      });
-      continue;
-    }
-    const cv = r.cv;
-    const rawExps = Array.isArray(cv?.experiences) ? cv.experiences : Array.isArray(cv?.experience) ? cv.experience : [];
-    const sanitised: Array<Record<string, unknown>> = [];
-    for (const e of rawExps) {
-      const s = sanitiseExperience(e, snap.user_id);
-      if (s) sanitised.push(s);
-    }
-    console.error(`  extracted ${sanitised.length} experiences (LLM emitted ${rawExps.length}, ${rawExps.length - sanitised.length} dropped for missing title)`);
-    proposals.push({
-      email: snap.email,
-      user_id: snap.user_id,
-      cv_file: resume.path,
-      cv_ext: resume.ext,
-      text_len: text.length,
-      skipped_reason: null,
-      proposed_experiences: sanitised,
-      llm_raw_keys: Object.keys(cv || {}),
-    });
+    let text: string;
+    try { const r = await downloadAndExtractText(resume.path, resume.ext); text = r.text; console.error(`  text_len=${text.length}`); }
+    catch (e) { console.error(`  FAIL extract: ${e instanceof Error ? e.message : e}`); proposals.push({ email: snap.email, user_id: snap.user_id, cv_file: resume.path, cv_ext: resume.ext, text_len: 0, skipped: `extract_failed`, experiences: [], other_llm_keys: [] }); continue; }
+    const userMsg = buildResumeExtractionPrompt(text.slice(0, 15000));
+    const r = await callOpenAI(RESUME_EXTRACTOR_SYSTEM_PROMPT, userMsg);
+    if (!r.ok) { console.error(`  FAIL LLM: ${r.error}`); proposals.push({ email: snap.email, user_id: snap.user_id, cv_file: resume.path, cv_ext: resume.ext, text_len: text.length, skipped: `llm_failed`, experiences: [], other_llm_keys: [] }); continue; }
+    const rawExps = Array.isArray(r.cv?.experiences) ? r.cv.experiences : Array.isArray(r.cv?.experience) ? r.cv.experience : [];
+    const sanitised: Record<string, unknown>[] = [];
+    for (const e of rawExps) { const s = sanitiseExperience(e, snap.user_id); if (s) sanitised.push(s); }
+    console.error(`  extracted ${sanitised.length} (LLM emitted ${rawExps.length})`);
+    proposals.push({ email: snap.email, user_id: snap.user_id, cv_file: resume.path, cv_ext: resume.ext, text_len: text.length, skipped: null, experiences: sanitised, other_llm_keys: Object.keys(r.cv || {}).filter((k) => k !== "experiences") });
   }
-  writeFileSync(PROPOSAL_PATH, JSON.stringify(proposals, null, 2));
-  console.error(`\nwrote ${PROPOSAL_PATH}`);
 
-  // Phase 3 — print proposals.
-  console.error("\n" + "=".repeat(78));
-  console.error("PROPOSED EXPERIENCES (per user)");
-  console.error("=".repeat(78));
+  console.log("\n" + "=".repeat(78));
+  console.log("STAGE 1 — PROPOSED EXPERIENCES");
+  console.log("=".repeat(78));
   for (const p of proposals) {
-    console.log("");
-    console.log(`### ${p.email} (${p.user_id})`);
-    if (p.skipped_reason) {
-      console.log(`  SKIPPED: ${p.skipped_reason}`);
-      continue;
-    }
+    console.log(`\n### ${p.email} (${p.user_id})`);
+    if (p.skipped) { console.log(`  SKIPPED: ${p.skipped}`); continue; }
     console.log(`  CV: ${p.cv_file} (${p.cv_ext}, ${p.text_len} chars)`);
-    console.log(`  Other LLM-emitted top-level fields (for context, NOT inserted): ${p.llm_raw_keys.filter((k) => k !== "experiences").join(", ") || "(none)"}`);
-    console.log(`  Will INSERT ${p.proposed_experiences.length} experiences:`);
-    for (let i = 0; i < p.proposed_experiences.length; i++) {
-      const e = p.proposed_experiences[i] as any;
+    console.log(`  Other LLM fields (NOT inserted): ${p.other_llm_keys.join(", ") || "(none)"}`);
+    console.log(`  Will INSERT ${p.experiences.length} experiences:`);
+    for (let i = 0; i < p.experiences.length; i++) {
+      const e = p.experiences[i] as any;
       console.log(`    ${i + 1}. ${e.title} @ ${e.company || "(no company)"}`);
       console.log(`       dates=${e.start_date || "?"} → ${e.is_current ? "Present" : (e.end_date || "?")}, type=${e.type}`);
-      if (e.responsibilities) {
-        const r = String(e.responsibilities).replace(/\s+/g, " ").trim();
-        console.log(`       responsibilities: ${r.slice(0, 220)}${r.length > 220 ? "…" : ""}`);
-      }
+      if (e.responsibilities) console.log(`       responsibilities: ${String(e.responsibilities).replace(/\s+/g, " ").trim().slice(0, 220)}${(e.responsibilities as string).length > 220 ? "…" : ""}`);
       console.log(`       skills (${(e.skills as string[]).length}): ${(e.skills as string[]).slice(0, 12).join(", ")}${(e.skills as string[]).length > 12 ? "…" : ""}`);
     }
   }
 
-  // Phase 4 — execute (only if --execute).
-  if (!EXECUTE) {
-    console.log("");
-    console.log("=".repeat(78));
-    console.log("DRY-RUN COMPLETE. No writes. Re-run with --execute to insert.");
-    console.log("=".repeat(78));
-    return;
-  }
+  if (!EXECUTE) { console.log("\nDRY-RUN. No writes. Re-run --stage=1 --execute to insert."); return; }
 
-  console.error("\n" + "=".repeat(78));
-  console.error("EXECUTING INSERTS");
-  console.error("=".repeat(78));
+  console.error("\nEXECUTING INSERTS...");
   for (const p of proposals) {
-    if (p.skipped_reason || p.proposed_experiences.length === 0) {
-      console.error(`  ${p.email}: nothing to insert (${p.skipped_reason || "0 proposed"})`);
-      continue;
-    }
-    const { data, error } = await supabase
-      .from("experiences")
-      .insert(p.proposed_experiences)
-      .select("id");
-    if (error) {
-      console.error(`  ${p.email}: INSERT FAILED: ${error.message}`);
-      console.error("  ABORTING further inserts to preserve audit cleanliness");
-      process.exit(1);
-    }
+    if (p.skipped || p.experiences.length === 0) { console.error(`  ${p.email}: nothing to insert`); continue; }
+    const { data, error } = await admin.from("experiences").insert(p.experiences).select("id");
+    if (error) { console.error(`  ${p.email}: INSERT FAILED: ${error.message}\nABORTING.`); process.exit(1); }
     console.error(`  ${p.email}: inserted ${data?.length || 0} rows`);
   }
 
-  // Phase 5 — re-snapshot + diff verification.
-  console.error("\nPhase 5: re-snapshot + diff verification...");
+  console.error("\nRe-snapshot + diff...");
   const after: UserSnapshot[] = [];
-  for (const snap of baseline) {
-    after.push(await snapshotUser(snap.email, snap.user_id));
-  }
+  for (const snap of baseline) after.push(await snapshotUser(snap.email, snap.user_id));
   writeFileSync(SNAPSHOT_AFTER, JSON.stringify(after, null, 2));
-  console.error(`  wrote ${SNAPSHOT_AFTER}`);
 
-  console.log("");
+  console.log("\n" + "=".repeat(78));
+  console.log("STAGE 1 DIFF (expected: ONLY experiences gained rows)");
   console.log("=".repeat(78));
-  console.log("POST-EXECUTE DIFF (must show: only experiences changed)");
-  console.log("=".repeat(78));
-  let unexpectedChanges = 0;
+  let bad = 0;
   for (let i = 0; i < baseline.length; i++) {
     const d = diffSnapshot(baseline[i], after[i]);
-    console.log(`\n${d.email}:`);
-    console.log(`  experiences:     +${d.experiences.added.length} added, -${d.experiences.removed.length} removed`);
-    console.log(`  education:       +${d.education.added.length} added, -${d.education.removed.length} removed`);
-    console.log(`  career_roles:    +${d.career_roles.added.length} added, -${d.career_roles.removed.length} removed`);
-    console.log(`  stories:         +${d.stories.added.length} added, -${d.stories.removed.length} removed`);
-    console.log(`  applications:    +${d.applications.added.length} added, -${d.applications.removed.length} removed`);
-    console.log(`  company_targets: +${d.company_targets.added.length} added, -${d.company_targets.removed.length} removed`);
-    console.log(`  tasks:           +${d.tasks.added.length} added, -${d.tasks.removed.length} removed`);
-    console.log(`  profile.skills changed:        ${d.profile_skills_changed}`);
-    console.log(`  profile.proof_signals changed: ${d.profile_proof_signals_changed}`);
-    const offendingCounts = (
-      d.education.added.length + d.education.removed.length +
-      d.career_roles.added.length + d.career_roles.removed.length +
-      d.stories.added.length + d.stories.removed.length +
-      d.applications.added.length + d.applications.removed.length +
-      d.company_targets.added.length + d.company_targets.removed.length +
-      d.tasks.added.length + d.tasks.removed.length +
-      (d.profile_skills_changed ? 1 : 0) +
-      (d.profile_proof_signals_changed ? 1 : 0) +
-      d.experiences.removed.length
-    );
-    if (offendingCounts > 0) unexpectedChanges++;
+    printDiff(d, ["experiences"]);
+    if (unexpectedChange(d, ["experiences"]) || d.experiences.removed.length > 0) bad++;
   }
-  console.log("");
-  if (unexpectedChanges > 0) {
-    console.log(`⚠️ ${unexpectedChanges} user(s) saw changes outside experiences. INVESTIGATE.`);
-    process.exit(1);
-  }
-  console.log(`✅ Verified: only experiences rows added; education/career_roles/stories/applications/company_targets/tasks/profile unchanged across all targets.`);
+  if (bad > 0) { console.log(`\n⚠️ ${bad} user(s) saw unexpected changes. INVESTIGATE.`); process.exit(1); }
+  console.log("\n✅ Verified: only experiences added; nothing else moved.");
 }
 
-main().catch((e) => {
-  console.error("FATAL:", e);
-  process.exit(1);
-});
+// ─── STAGE 2 ───
+
+async function stage2() {
+  console.error("STAGE 2 — career-analysis re-run");
+  const baseline: UserSnapshot[] = [];
+  for (const email of TARGETS) {
+    const uid = await userIdByEmail(email);
+    if (!uid) { console.error(`  could not resolve ${email}`); continue; }
+    baseline.push(await snapshotUser(email, uid));
+  }
+  writeFileSync(SNAPSHOT_BEFORE, JSON.stringify(baseline, null, 2));
+  console.error(`baseline snapshot: ${SNAPSHOT_BEFORE}`);
+
+  interface Plan { email: string; user_id: string; skipped: string | null; baseline_roles: number; five_year_role: string | null; }
+  const plans: Plan[] = [];
+
+  for (const snap of baseline) {
+    console.error(`\n--- ${snap.email}`);
+    if (snap.experiences.length === 0) {
+      console.error(`  SKIP: 0 experiences (Stage 1 must run first)`);
+      plans.push({ email: snap.email, user_id: snap.user_id, skipped: "no_experiences", baseline_roles: snap.career_roles.length, five_year_role: null });
+      continue;
+    }
+    const { data: profile } = await admin.from("profiles").select("five_year_role").eq("id", snap.user_id).maybeSingle();
+    const fyr = (profile as any)?.five_year_role || null;
+    console.error(`  exp=${snap.experiences.length} baseline_roles=${snap.career_roles.length} five_year_role=${fyr ?? "(none)"}`);
+    plans.push({ email: snap.email, user_id: snap.user_id, skipped: null, baseline_roles: snap.career_roles.length, five_year_role: fyr });
+  }
+
+  console.log("\n" + "=".repeat(78));
+  console.log("STAGE 2 — PLAN");
+  console.log("=".repeat(78));
+  for (const p of plans) {
+    console.log(`\n### ${p.email} (${p.user_id})`);
+    if (p.skipped) { console.log(`  SKIPPED: ${p.skipped}`); continue; }
+    console.log(`  Will: mint per-user JWT → POST generate-career-analysis { dream_roles: ${p.five_year_role ? `["${p.five_year_role}"]` : "[]"}, force: true } → rpc('replace_career_roles', user_id, roles) under user JWT`);
+    console.log(`  Expected change: career_roles ${p.baseline_roles} → N (N is the role count the LLM returns, typically 5-12)`);
+    console.log(`  Profiles row will NOT be updated by this stage (deliberate scope narrowing)`);
+  }
+
+  if (!EXECUTE) { console.log("\nDRY-RUN. No writes. Re-run --stage=2 --execute to run."); return; }
+
+  console.error("\nEXECUTING...");
+  for (const p of plans) {
+    if (p.skipped) { console.error(`  ${p.email}: skip`); continue; }
+    console.error(`\n  ${p.email}: minting token...`);
+    let token: string;
+    try { token = await mintUserToken(p.email); }
+    catch (e) { console.error(`  FAIL mintToken: ${e instanceof Error ? e.message : e}\nABORTING.`); process.exit(1); }
+    console.error(`  ${p.email}: invoking generate-career-analysis...`);
+    let resp: any;
+    try {
+      resp = await invokeEdgeFn(token, "generate-career-analysis", {
+        dream_roles: p.five_year_role ? [p.five_year_role] : [],
+        force: true,
+      });
+    } catch (e) { console.error(`  FAIL invoke: ${e instanceof Error ? e.message : e}\nABORTING.`); process.exit(1); }
+    if (resp?.cached) { console.error(`  ${p.email}: response cached (qualification_level=${resp.qualification_level}). Skipping replace_career_roles.`); continue; }
+    if (!Array.isArray(resp?.roles) || resp.roles.length === 0) { console.error(`  ${p.email}: 0 roles returned. Skipping replace_career_roles.`); continue; }
+    const rolesPayload = resp.roles.map((r: any) => ({
+      title: r.title, track: r.track,
+      match_score: r.readiness_score, readiness_score: r.readiness_score,
+      goal_alignment_score: r.goal_alignment_score ?? null,
+      matched_skills: r.matched_skills || [], missing_skills: r.missing_skills || [],
+      skills_gap: r.missing_skills || [],
+      alignment_to_goal: r.alignment_to_goal || "",
+      alignment_reason: r.alignment_reason || "",
+      reasoning: r.reasoning || "",
+      action_items: r.action_items || [],
+    }));
+    const userClient = userClientFor(token);
+    const { error: rpcErr } = await userClient.rpc("replace_career_roles", {
+      p_user_id: p.user_id,
+      p_roles: rolesPayload,
+      p_input_hash: resp.input_hash || null,
+    });
+    if (rpcErr) { console.error(`  ${p.email}: replace_career_roles FAILED: ${rpcErr.message}\nABORTING.`); process.exit(1); }
+    console.error(`  ${p.email}: replaced ${rolesPayload.length} career_roles`);
+  }
+
+  console.error("\nRe-snapshot + diff...");
+  const after: UserSnapshot[] = [];
+  for (const snap of baseline) after.push(await snapshotUser(snap.email, snap.user_id));
+  writeFileSync(SNAPSHOT_AFTER, JSON.stringify(after, null, 2));
+
+  console.log("\n" + "=".repeat(78));
+  console.log("STAGE 2 DIFF (expected: ONLY career_roles changed)");
+  console.log("=".repeat(78));
+  let bad = 0;
+  for (let i = 0; i < baseline.length; i++) {
+    const d = diffSnapshot(baseline[i], after[i]);
+    printDiff(d, ["career_roles"]);
+    if (unexpectedChange(d, ["career_roles"])) bad++;
+  }
+  if (bad > 0) { console.log(`\n⚠️ ${bad} user(s) saw changes outside career_roles. INVESTIGATE.`); process.exit(1); }
+  console.log("\n✅ Verified: only career_roles changed.");
+}
+
+// ─── STAGE 3 ───
+
+// Heuristic: a task is AI-generated if role_title is non-empty AND it was
+// inserted in the same batch as other AI tasks (created_at clustered with
+// other tasks that share a role_title). generate-tasks batches all its
+// inserts at one timestamp. Manual tasks have role_title=null (default).
+function classifyTask(t: any, allTasks: any[]): "ai" | "manual" {
+  if (!t.role_title || String(t.role_title).trim() === "") return "manual";
+  const sameTs = allTasks.filter((x) => x.created_at === t.created_at).length;
+  return sameTs > 1 || allTasks.length === 1 ? "ai" : "manual";
+}
+
+async function stage3() {
+  console.error("STAGE 3 — downstream refresh (tasks + today's daily_action)");
+  const baseline: UserSnapshot[] = [];
+  for (const email of TARGETS) {
+    const uid = await userIdByEmail(email);
+    if (!uid) { console.error(`  could not resolve ${email}`); continue; }
+    baseline.push(await snapshotUser(email, uid));
+  }
+  writeFileSync(SNAPSHOT_BEFORE, JSON.stringify(baseline, null, 2));
+  console.error(`baseline snapshot: ${SNAPSHOT_BEFORE}`);
+
+  const today = new Date().toISOString().slice(0, 10);
+
+  interface Plan {
+    email: string;
+    user_id: string;
+    ai_tasks_to_delete: any[];
+    manual_tasks_preserved: any[];
+    todays_daily_action: any | null;
+    daily_action_is_ai: boolean;
+    skipped: string | null;
+  }
+  const plans: Plan[] = [];
+
+  for (const snap of baseline) {
+    console.error(`\n--- ${snap.email}`);
+    if (snap.career_roles.length === 0) {
+      console.error(`  SKIP: 0 career_roles (Stage 2 must run first)`);
+      plans.push({ email: snap.email, user_id: snap.user_id, ai_tasks_to_delete: [], manual_tasks_preserved: [], todays_daily_action: null, daily_action_is_ai: false, skipped: "no_career_roles" });
+      continue;
+    }
+    const aiTasks = snap.tasks.filter((t) => classifyTask(t, snap.tasks) === "ai");
+    const manualTasks = snap.tasks.filter((t) => classifyTask(t, snap.tasks) === "manual");
+    const todays = snap.daily_actions.find((da: any) => {
+      const d = (da as any).for_date || (da as any).action_date || null;
+      return d && String(d).slice(0, 10) === today;
+    }) || null;
+    // daily_actions are exclusively AI-generated by generate-daily-action
+    // (no manual-edit surface in the app). Default to true; surface for the
+    // user to confirm if behaviour ever changes.
+    const dailyIsAi = !!todays;
+    console.error(`  career_roles=${snap.career_roles.length} tasks_total=${snap.tasks.length} (ai=${aiTasks.length}, manual=${manualTasks.length}) daily_today=${todays ? "yes" : "no"}`);
+    plans.push({ email: snap.email, user_id: snap.user_id, ai_tasks_to_delete: aiTasks, manual_tasks_preserved: manualTasks, todays_daily_action: todays, daily_action_is_ai: dailyIsAi, skipped: null });
+  }
+
+  console.log("\n" + "=".repeat(78));
+  console.log("STAGE 3 — PLAN");
+  console.log("=".repeat(78));
+  for (const p of plans) {
+    console.log(`\n### ${p.email} (${p.user_id})`);
+    if (p.skipped) { console.log(`  SKIPPED: ${p.skipped}`); continue; }
+    console.log(`  Tasks: will DELETE ${p.ai_tasks_to_delete.length} AI task(s), preserve ${p.manual_tasks_preserved.length} manual task(s)`);
+    for (const t of p.ai_tasks_to_delete) console.log(`    - [AI] "${t.title}" (role_title=${t.role_title}, created=${t.created_at})`);
+    for (const t of p.manual_tasks_preserved) console.log(`    - [keep] "${t.title}" (role_title=${t.role_title || "<null>"})`);
+    console.log(`  Then invoke generate-tasks (writes new tasks aligned to refreshed career_roles)`);
+    if (p.todays_daily_action) {
+      console.log(`  Today's daily_action: present (id=${p.todays_daily_action.id}, AI=${p.daily_action_is_ai}). Will DELETE then invoke generate-daily-action.`);
+    } else {
+      console.log(`  Today's daily_action: not present — generate-daily-action will create one fresh.`);
+    }
+  }
+
+  if (!EXECUTE) { console.log("\nDRY-RUN. No writes. Re-run --stage=3 --execute to run."); return; }
+
+  console.error("\nEXECUTING...");
+  for (const p of plans) {
+    if (p.skipped) { console.error(`  ${p.email}: skip`); continue; }
+    console.error(`\n  ${p.email}: minting token...`);
+    let token: string;
+    try { token = await mintUserToken(p.email); }
+    catch (e) { console.error(`  FAIL mintToken: ${e instanceof Error ? e.message : e}\nABORTING.`); process.exit(1); }
+    const userClient = userClientFor(token);
+
+    if (p.ai_tasks_to_delete.length > 0) {
+      const ids = p.ai_tasks_to_delete.map((t) => t.id);
+      const { error: delErr } = await userClient.from("tasks").delete().in("id", ids);
+      if (delErr) { console.error(`  ${p.email}: DELETE tasks FAILED: ${delErr.message}\nABORTING.`); process.exit(1); }
+      console.error(`  ${p.email}: deleted ${ids.length} AI task(s)`);
+    }
+    try {
+      await invokeEdgeFn(token, "generate-tasks", {});
+      console.error(`  ${p.email}: invoked generate-tasks`);
+    } catch (e) { console.error(`  ${p.email}: generate-tasks FAILED: ${e instanceof Error ? e.message : e}\nABORTING.`); process.exit(1); }
+
+    if (p.todays_daily_action) {
+      const { error: delErr } = await userClient.from("daily_actions").delete().eq("id", p.todays_daily_action.id);
+      if (delErr) { console.error(`  ${p.email}: DELETE daily_action FAILED: ${delErr.message}\nABORTING.`); process.exit(1); }
+      console.error(`  ${p.email}: deleted today's daily_action`);
+    }
+    try {
+      await invokeEdgeFn(token, "generate-daily-action", {});
+      console.error(`  ${p.email}: invoked generate-daily-action`);
+    } catch (e) { console.error(`  ${p.email}: generate-daily-action FAILED: ${e instanceof Error ? e.message : e}\nABORTING.`); process.exit(1); }
+  }
+
+  console.error("\nRe-snapshot + diff...");
+  const after: UserSnapshot[] = [];
+  for (const snap of baseline) after.push(await snapshotUser(snap.email, snap.user_id));
+  writeFileSync(SNAPSHOT_AFTER, JSON.stringify(after, null, 2));
+
+  console.log("\n" + "=".repeat(78));
+  console.log("STAGE 3 DIFF (expected: ONLY tasks + daily_actions changed)");
+  console.log("=".repeat(78));
+  let bad = 0;
+  for (let i = 0; i < baseline.length; i++) {
+    const d = diffSnapshot(baseline[i], after[i]);
+    printDiff(d, ["tasks", "daily_actions"]);
+    if (unexpectedChange(d, ["tasks", "daily_actions"])) bad++;
+  }
+  if (bad > 0) { console.log(`\n⚠️ ${bad} user(s) saw changes outside tasks + daily_actions. INVESTIGATE.`); process.exit(1); }
+  console.log("\n✅ Verified: only tasks + daily_actions changed.");
+}
+
+async function main() {
+  console.error(`Stage: ${STAGE}  Mode: ${EXECUTE ? "EXECUTE (will write)" : "DRY-RUN"}`);
+  console.error(`Targets: ${TARGETS.join(", ")}\n`);
+  if (STAGE === "1") await stage1();
+  else if (STAGE === "2") await stage2();
+  else if (STAGE === "3") await stage3();
+}
+
+main().catch((e) => { console.error("FATAL:", e); process.exit(1); });
