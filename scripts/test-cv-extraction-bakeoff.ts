@@ -73,6 +73,7 @@
 import { createClient } from "@supabase/supabase-js";
 import { writeFileSync } from "node:fs";
 import { extractText, getDocumentProxy } from "unpdf";
+import mammoth from "mammoth";
 import { buildResumeExtractionPrompt } from "../src/lib/resumeExtractionPrompt.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
@@ -263,9 +264,15 @@ function resolveRequestedModels(): void {
   }
 }
 
-// ─── PDF download + text extraction (mirrors extract-cv-text/index.ts) ───
+// ─── Resume download + text extraction (mirrors production StepResumeUpload.jsx).
+//
+// Production path: PDF → extract-cv-text edge function (unpdf), DOCX → browser
+// mammoth.extractRawText. Legacy .doc is explicitly unsupported. We mirror that
+// branching here so docx-uploaders (michael, zaczbrown, werner.gidon, agamf123,
+// ybarshain — 5 of 20 pilots) get measured on the same text-extraction path
+// production uses, not skipped.
 
-async function listLatestPdf(userId: string): Promise<string | null> {
+async function listLatestResume(userId: string): Promise<{ path: string; ext: "pdf" | "docx" | "other"; name: string } | null> {
   const { data, error } = await supabase.storage.from("resumes").list(userId, {
     limit: 100,
     sortBy: { column: "created_at", order: "desc" },
@@ -274,18 +281,41 @@ async function listLatestPdf(userId: string): Promise<string | null> {
     console.error(`  storage.list failed for ${userId}: ${error.message}`);
     return null;
   }
-  const pdfs = (data || []).filter((o) => /\.pdf$/i.test(o.name));
-  if (pdfs.length === 0) return null;
-  return `${userId}/${pdfs[0].name}`;
+  const files = (data || []).filter((o) => o.name && !o.name.endsWith("/"));
+  if (files.length === 0) return null;
+  const latest = files[0]; // storage.list already sorted desc by created_at
+  const lower = latest.name.toLowerCase();
+  const ext: "pdf" | "docx" | "other" = lower.endsWith(".pdf")
+    ? "pdf"
+    : lower.endsWith(".docx")
+      ? "docx"
+      : "other";
+  return { path: `${userId}/${latest.name}`, ext, name: latest.name };
 }
 
-async function downloadAndExtractText(filePath: string): Promise<{ text: string; pages: number }> {
+async function downloadAndExtractText(
+  filePath: string,
+  ext: "pdf" | "docx" | "other",
+): Promise<{ text: string; pages: number }> {
+  if (ext === "other") {
+    throw new Error(`unsupported file type for ${filePath} — only .pdf and .docx are handled (legacy .doc is rejected client-side in production too)`);
+  }
   const { data, error } = await supabase.storage.from("resumes").download(filePath);
   if (error || !data) throw new Error(`storage.download failed: ${error?.message || "no data"}`);
-  const bytes = new Uint8Array(await data.arrayBuffer());
-  const pdf = await getDocumentProxy(bytes);
-  const result = await extractText(pdf, { mergePages: true });
-  return { text: result.text || "", pages: result.totalPages };
+  const arrayBuffer = await data.arrayBuffer();
+
+  if (ext === "pdf") {
+    const bytes = new Uint8Array(arrayBuffer);
+    const pdf = await getDocumentProxy(bytes);
+    const result = await extractText(pdf, { mergePages: true });
+    return { text: result.text || "", pages: result.totalPages };
+  }
+  // docx — mammoth wants a Node Buffer (or { buffer: ArrayBuffer }). Node 24's
+  // Buffer.from(ArrayBuffer) returns a Buffer view over the underlying memory
+  // without copying. mammoth doesn't expose a "pages" concept; we report 0.
+  const buffer = Buffer.from(arrayBuffer);
+  const result = await mammoth.extractRawText({ buffer });
+  return { text: result.value || "", pages: 0 };
 }
 
 // ─── Model invocation ───
@@ -499,8 +529,9 @@ interface UserCell {
 interface UserReport {
   email: string;
   user_id: string;
-  pdf_path: string;
-  pdf_pages: number;
+  file_path: string;
+  file_ext: "pdf" | "docx";
+  file_pages: number; // 0 for docx (mammoth has no page concept)
   source_text_len: number;
   source_text: string;
   cells: Record<string, UserCell>;
@@ -513,26 +544,31 @@ async function runOneUser(email: string): Promise<UserReport | null> {
     console.error(`  could not resolve email`);
     return null;
   }
-  const pdfPath = await listLatestPdf(userId);
-  if (!pdfPath) {
-    console.error(`  no PDF in resumes/${userId}/`);
+  const resume = await listLatestResume(userId);
+  if (!resume) {
+    console.error(`  no resume file in resumes/${userId}/`);
+    return null;
+  }
+  if (resume.ext === "other") {
+    console.error(`  latest file in resumes/${userId}/ is "${resume.name}" — neither .pdf nor .docx, skipping (production rejects this too)`);
     return null;
   }
   let text: string, pages: number;
   try {
-    const r = await downloadAndExtractText(pdfPath);
+    const r = await downloadAndExtractText(resume.path, resume.ext);
     text = r.text; pages = r.pages;
   } catch (e) {
     console.error(`  extract failed: ${e instanceof Error ? e.message : e}`);
     return null;
   }
   if (!text.trim()) {
-    console.error(`  empty text (likely image-only PDF) — skipping`);
+    console.error(`  empty text (likely image-only PDF or empty docx) — skipping`);
     return null;
   }
   const truncated = text.length > 15000;
   const sourceText = text.slice(0, 15000);
-  console.error(`  PDF=${pdfPath} pages=${pages} text_len=${text.length}${truncated ? " (truncated to 15000)" : ""}`);
+  const pagesStr = resume.ext === "pdf" ? ` pages=${pages}` : "";
+  console.error(`  file=${resume.path} (${resume.ext})${pagesStr} text_len=${text.length}${truncated ? " (truncated to 15000)" : ""}`);
   const userMessage = buildResumeExtractionPrompt(sourceText);
 
   const cells: Record<string, UserCell> = {};
@@ -554,8 +590,9 @@ async function runOneUser(email: string): Promise<UserReport | null> {
   return {
     email,
     user_id: userId,
-    pdf_path: pdfPath,
-    pdf_pages: pages,
+    file_path: resume.path,
+    file_ext: resume.ext,
+    file_pages: pages,
     source_text_len: text.length,
     source_text: sourceText,
     cells,
@@ -638,7 +675,8 @@ function renderMarkdown(reports: UserReport[]): string {
     lines.push("---");
     lines.push("");
     lines.push(`## ${r.email}`);
-    lines.push(`PDF: \`${r.pdf_path}\` · ${r.pdf_pages} pages · source text ${r.source_text_len} chars${r.source_text_len > 15000 ? " (truncated to 15000)" : ""}.`);
+    const pagesStr = r.file_ext === "pdf" ? ` · ${r.file_pages} pages` : "";
+    lines.push(`File: \`${r.file_path}\` (${r.file_ext})${pagesStr} · source text ${r.source_text_len} chars${r.source_text_len > 15000 ? " (truncated to 15000)" : ""}.`);
     lines.push("");
     lines.push("| Model | Exp | %Resp | %Skill | Verb% | Mil | Edu | Phone | Lat (ms) | $ | Status |");
     lines.push("|---|---:|---:|---:|---:|---|---|---|---:|---:|---|");
