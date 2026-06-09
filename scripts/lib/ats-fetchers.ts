@@ -880,6 +880,157 @@ export async function fetchSuccessFactors(c: CompanyEntry): Promise<RawJob[]> {
   }));
 }
 
+// ───── AdamTotal ─────────────────────────────────────────────────────
+//
+// Israeli ATS used by traditional IL employers (Harel, Tempo, CBC,
+// Kalmobil, Partner, Pelephone, Israel Railways, Gefen, etc.). Multi-
+// tenant via `?token=<opaque-token>` on `career.adamtotal.co.il`;
+// Israel Railways uses its own subdomain `railcareer.adamtotal.co.il`.
+// Both are handled by storing the FULL listing URL in `c.api_url` —
+// the fetcher doesn't hard-code the host.
+//
+// Server-rendered HTML (ASP.NET MVC), no JS execution required. Each
+// page wraps 25 `<article class="job-card" data-job-id="...">` blocks
+// with title / dept / location / description-text inline. Apply URL
+// is the first `<a href="/Jobs/JobDetails?token=...">` inside the
+// article.
+//
+// Cloudflare-fronted but no managed challenge for a realistic browser
+// UA. We pass a Chrome UA + standard Accept headers. If CF ever
+// tightens, this becomes the canary — the fetch will throw on 403.
+//
+// All AdamTotal tenants are Israel-only — we set
+// structured_country='IL' so the downstream IL classifier short-
+// circuits without scanning the Hebrew location string for English
+// city tokens.
+const ADAMTOTAL_MAX_PAGES = 20;       // 20 × 25 = 500 jobs/tenant ceiling
+const ADAMTOTAL_PAGE_SIZE = 25;       // server constant
+
+async function httpGetText(url: string, timeout = DEFAULT_TIMEOUT_MS): Promise<string> {
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), timeout);
+  try {
+    const res = await fetch(url, {
+      headers: {
+        // Real browser UA — default fetch UA would trip Cloudflare bot
+        // detection on the AdamTotal tenants.
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
+        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Language": "en-US,en;q=0.9,he;q=0.8",
+      },
+      signal: ac.signal,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} on ${url}`);
+    return await res.text();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+function decodeHtmlEntities(s: string): string {
+  return s
+    .replace(/&amp;/g, "&")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&nbsp;/g, " ");
+}
+
+interface AdamTotalCard {
+  id: string;
+  title: string;
+  department: string | null;
+  location: string | null;
+  apply_url: string;
+  description_html: string | null;
+}
+
+function parseAdamTotalCards(html: string, origin: string): AdamTotalCard[] {
+  const cards: AdamTotalCard[] = [];
+  // Match each <article class="...job-card..." data-job-id="N" data-job-title="..."> through its </article>.
+  // The lookahead on next-article-or-end avoids over-matching nested </article> in injected content.
+  const articleRe = /<article\b[^>]*\bjob-card\b[^>]*\bdata-job-id="(\d+)"[^>]*\bdata-job-title="([^"]*)"[^>]*>([\s\S]*?)<\/article>/g;
+  let m: RegExpExecArray | null;
+  while ((m = articleRe.exec(html)) !== null) {
+    const id = m[1];
+    const title = decodeHtmlEntities(m[2]).trim();
+    const body = m[3];
+    // Dept = text after fa-building icon, until next < or |
+    const deptMatch = body.match(/fa-building[^<]*<\/i>\s*([^<|]+)/);
+    const department = deptMatch ? decodeHtmlEntities(deptMatch[1]).trim() : null;
+    // Location = text after fa-map-marker-alt icon
+    const locMatch = body.match(/fa-map-marker-alt[^<]*<\/i>\s*([^<|]+)/);
+    const location = locMatch ? decodeHtmlEntities(locMatch[1]).trim() : null;
+    // Apply URL = first /Jobs/JobDetails href in the card
+    const applyMatch = body.match(/href="(\/Jobs\/JobDetails\?[^"]+)"/);
+    const applyPathRaw = applyMatch ? applyMatch[1] : "";
+    const applyPath = decodeHtmlEntities(applyPathRaw);
+    const apply_url = applyPath ? `${origin}${applyPath}` : "";
+    // Description = inner of <div class="description-text">...</div>
+    const descMatch = body.match(/<div[^>]*\bdescription-text\b[^>]*>([\s\S]*?)<\/div>\s*(?:<\/div>|<button|<\/article>)/);
+    const description_html = descMatch ? descMatch[1].trim() : null;
+    cards.push({ id, title, department, location, apply_url, description_html });
+  }
+  return cards;
+}
+
+function appendPageParam(url: string, page: number): string {
+  // URL constructor handles existing/missing ?query cleanly.
+  const u = new URL(url);
+  u.searchParams.set("page", String(page));
+  return u.toString();
+}
+
+export async function fetchAdamTotal(c: CompanyEntry): Promise<RawJob[]> {
+  if (!c.api_url) return [];
+  const baseUrl = new URL(c.api_url);
+  const origin = `${baseUrl.protocol}//${baseUrl.host}`;
+  const collected: RawJob[] = [];
+  const seenIds = new Set<string>();
+  for (let page = 1; page <= ADAMTOTAL_MAX_PAGES; page++) {
+    const pageUrl = appendPageParam(c.api_url, page);
+    let html: string;
+    try {
+      html = await httpGetText(pageUrl);
+    } catch (err) {
+      // First-page failure throws (caller's catch handles); after-page-1
+      // we treat as "ran out of pages" — partial result is still useful.
+      if (page === 1) throw err;
+      break;
+    }
+    const cards = parseAdamTotalCards(html, origin);
+    // De-dupe defensively in case pagination wraps. Stop when no new IDs.
+    const fresh = cards.filter((c) => !seenIds.has(c.id));
+    if (fresh.length === 0) break;
+    for (const card of fresh) seenIds.add(card.id);
+    for (const card of fresh) {
+      const location_raw = [card.location, card.department].filter(Boolean).join(" | ") || null;
+      collected.push({
+        external_id: card.id,
+        title: card.title,
+        description_html: card.description_html,
+        location_raw,
+        // AdamTotal tenants are Israel-only — short-circuit the
+        // downstream IL classifier (the Hebrew city map covers most
+        // locations, but English-only fallback would miss e.g.
+        // "השרון" without a structured hint).
+        structured_country: "IL",
+        apply_url: card.apply_url,
+        date_posted: null,
+        salary_min: null,
+        salary_max: null,
+        salary_currency: null,
+        is_remote: false,
+        raw_payload: { source: "adamtotal", department: card.department, location: card.location },
+      });
+    }
+    // Last page heuristic: server returns < 25 cards on the final page.
+    if (cards.length < ADAMTOTAL_PAGE_SIZE) break;
+  }
+  return collected;
+}
+
 // ───── Dispatch table ────────────────────────────────────────────────
 
 export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = {
@@ -893,4 +1044,5 @@ export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = 
   workable:        fetchWorkable,
   iai:             fetchIai,
   jooble:          fetchJooble,
+  adamtotal:       fetchAdamTotal,
 };

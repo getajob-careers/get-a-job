@@ -49,7 +49,7 @@ const UPSERT_BATCH_SIZE = 200;
 // "jooble" is intentionally excluded — the Jooble API has no IL coverage
 // (verified 2026-05: "Israel" location matched US towns in OH/IL/IN). The
 // fetcher stays in the repo in case Jooble adds IL inventory later.
-const ENABLED_ATSS = new Set(["greenhouse", "lever", "ashby", "workday", "smartrecruiters", "comeet", "successfactors", "workable", "iai"]);
+const ENABLED_ATSS = new Set(["greenhouse", "lever", "ashby", "workday", "smartrecruiters", "comeet", "successfactors", "workable", "iai", "adamtotal"]);
 
 // ───── Types ──────────────────────────────────────────────────────────
 
