@@ -1,36 +1,54 @@
 // scripts/test-cv-authoring-diff.ts
 //
-// Validation harness for Option A CV-authoring changes (responsibilities-as-primary,
+// Multi-model bake-off harness for Option A CV authoring (responsibilities-as-primary,
 // bullet-per-line cap, numeric carry-through, sparse-profile fallback).
 //
-// The script pulls a real pilot user's experiences/projects/proof_signals via
-// service-role Supabase, then calls OpenAI twice for that user — once with the
-// OLD prompt (current production behaviour), once with the NEW prompt (this
-// branch's behaviour). It prints the authored bullets side-by-side so we can
-// confirm:
-//   - bullet counts rise when source has >4 responsibilities
-//   - numbers in responsibilities text carry through verbatim
-//   - zero-experience users get a non-empty CV via academic_projects + proof_signals
+// Two transport paths:
+//   - Direct OpenAI (api.openai.com)    — used ONLY for the gpt-4o controls
+//     so the two baselines reproduce production exactly. Auth: OPENAI_API_KEY.
+//   - OpenRouter (openrouter.ai/api/v1) — used for every cross-model run.
+//     Auth: OPENROUTER_API_KEY.
 //
-// This is a FOCUSED harness, not a full replay of generate-tailored-cv. It uses
-// a stripped-down system prompt that exercises only the four changes — adding
-// JD keywords, role-library context, etc. would conflate the diff. We're
-// isolating the prompt change as the single variable.
+// What runs:
+//   - Control 1: gpt-4o + OLD prompt (current production behaviour)
+//   - Control 2: gpt-4o + NEW prompt (Option A)
+//   - Bake-off: every model in --models, NEW prompt only
+//
+// Default --models set (looked up against OpenRouter catalog 2026-06-09):
+//   openai/gpt-5.5-20260423            ($5 / $30 per M tokens)
+//   anthropic/claude-opus-4.8-20260528 ($5 / $25)
+//   google/gemini-3.5-flash-20260519   ($1.50 / $9)
+//   x-ai/grok-4.3-20260430             (~$1.25 / $2.50, 4.20 pricing inherited)
+//
+// claude-sonnet-4.6 is NOT in the OpenRouter catalog as of 2026-06-09 —
+// skipped per "note and skip rather than guess" instruction (will appear in
+// the report's preamble).
+//
+// Per-model output:
+//   - total bullet count across all professional experiences
+//   - numeric carry-through X/Y per user (X = source numbers reproduced)
+//   - latency (ms per call)
+//   - cost in USD (input + output tokens × pricing table)
+//
+// Plus a "Gavibook full bullets" section that prints the entire authored
+// CV professional_experiences section for every model side-by-side. This
+// is the writing-quality read, not just counts.
 //
 // Usage:
 //   SUPABASE_URL=https://ilmqmodklutztuybsvwd.supabase.co \
 //   SUPABASE_SERVICE_ROLE_KEY=... \
-//   OPENAI_API_KEY=... \
+//   OPENAI_API_KEY=...        # for gpt-4o controls only
+//   OPENROUTER_API_KEY=...    # for every other model
 //     npx tsx scripts/test-cv-authoring-diff.ts \
-//       --emails=michael@sobol.cc,matiborlak@gmail.com,gavibook@gmail.com,nevo.liani@gmail.com \
-//       --out=/tmp/cv-diff-report.md
+//       --emails=michael@sobol.cc,gavibook@gmail.com,nevo.liani@gmail.com \
+//       --out=/tmp/cv-bakeoff.md
 //
-// Model is locked to gpt-4o to mirror production (generate-tailored-cv/index.ts:30).
-// A diff on gpt-4o-mini would be meaningless — prompt changes interact with the
-// model's instruction-following discipline, which differs between -mini and -4o.
-//
-// Cost: gpt-4o is ~$0.05 per CV-authoring call (~2.2k in + ~1.5k out at $2.50/$10 per M).
-// The 4-user × 2-prompt run is roughly $0.40 total.
+// Cost (rough):
+//   - 2 gpt-4o controls × 3 users  = 6 calls × ~$0.05 = $0.30
+//   - 4 bake-off models × 3 users  = 12 calls, dominated by GPT-5.5
+//     ($5/$30 → ~$0.10 each → $0.30) and Opus 4.8 ($5/$25 → ~$0.10 → $0.30).
+//     Gemini Flash + Grok are minor (~$0.05 + $0.02 total).
+//   - Total run: ~$1.00 give or take 30%.
 
 import { createClient } from "@supabase/supabase-js";
 import { writeFileSync } from "node:fs";
@@ -38,27 +56,51 @@ import { writeFileSync } from "node:fs";
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-if (!SUPABASE_URL || !SERVICE_ROLE || !OPENAI_API_KEY) {
-  console.error("ERROR: set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OPENAI_API_KEY");
+const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
+if (!SUPABASE_URL || !SERVICE_ROLE || !OPENAI_API_KEY || !OPENROUTER_API_KEY) {
+  console.error("ERROR: set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OPENAI_API_KEY, OPENROUTER_API_KEY");
   process.exit(1);
 }
 
 const args = process.argv.slice(2);
 const arg = (n: string, d = ""): string =>
   args.find((a) => a.startsWith(`--${n}=`))?.split("=")[1] ?? d;
-const EMAILS = arg("emails", "michael@sobol.cc,matiborlak@gmail.com,gavibook@gmail.com,nevo.liani@gmail.com")
+const EMAILS = arg("emails", "michael@sobol.cc,gavibook@gmail.com,nevo.liani@gmail.com")
   .split(",").map((s) => s.trim()).filter(Boolean);
-const OUT = arg("out", "/tmp/cv-diff-report.md");
+const OUT = arg("out", "/tmp/cv-bakeoff.md");
 const TARGET_ROLE = arg("role", "Customer Success Specialist");
-// Mirrors generate-tailored-cv/index.ts:30 — production CV authoring uses gpt-4o,
-// NOT -mini. A diff on -mini would be meaningless because instruction-following
-// behaviour differs between the two and Option A's rules are instruction-heavy.
-const MODEL = "gpt-4o";
+const DETAIL_USER = arg("detail-user", "gavibook@gmail.com");
+
+// Bake-off slugs verified against the OpenRouter catalog 2026-06-09.
+// claude-sonnet-4.6 is intentionally absent — not listed in the catalog.
+const DEFAULT_MODELS = [
+  "openai/gpt-5.5-20260423",
+  "anthropic/claude-opus-4.8-20260528",
+  "google/gemini-3.5-flash-20260519",
+  "x-ai/grok-4.3-20260430",
+].join(",");
+const MODELS = arg("models", DEFAULT_MODELS).split(",").map((s) => s.trim()).filter(Boolean);
+
+// Hardcoded pricing fallback ($/1M input, $/1M output). Used when the
+// OpenRouter /models endpoint response doesn't expose pricing for a given
+// slug (the script fetches that endpoint at startup and prefers live data).
+const PRICING_FALLBACK: Record<string, { in_per_m: number; out_per_m: number }> = {
+  "gpt-4o": { in_per_m: 2.5, out_per_m: 10 },
+  "openai/gpt-5.5-20260423": { in_per_m: 5, out_per_m: 30 },
+  "anthropic/claude-opus-4.8-20260528": { in_per_m: 5, out_per_m: 25 },
+  "google/gemini-3.5-flash-20260519": { in_per_m: 1.5, out_per_m: 9 },
+  "x-ai/grok-4.3-20260430": { in_per_m: 1.25, out_per_m: 2.5 },
+};
+const SKIPPED_MODELS = [
+  "anthropic/claude-sonnet-4.6 — not listed on OpenRouter as of 2026-06-09",
+];
+
+const GPT4O_CONTROL = "gpt-4o";
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
-// ─── Stripped-down prompt fragments — each prompt picks one "bullet-policy"
-// fragment, holds everything else constant. This isolates the diff. ───
+// ─── Prompt fragments — identical to the prior single-diff harness so the
+// model comparison is purely about model behaviour, not prompt variance. ───
 
 const TRUTHFULNESS_CORE = `TRUTHFULNESS — these override all other rules:
 - NEVER invent metrics, numbers, percentages, durations, team sizes, dollar amounts, dates, company names, or tools that aren't EXPLICITLY in the user's source data.
@@ -70,16 +112,12 @@ const VOICE_CORE = `WRITING VOICE:
 - 14-22 words per bullet. No filler.
 - Numbers belong in bullets when they exist in the source data. Round numbers that look invented are worse than no numbers.`;
 
-// OLD policy — current production behaviour (the 2-4 cap, story-first precedence,
-// metrics only verbatim for stories).
 const OLD_BULLET_POLICY = `BULLET POLICY (current production behaviour):
 - Professional experiences: 2-4 bullets per role. Pick the number based on richness of the source: a role with one short responsibility line gets 2 bullets; a role with multiple stories + named tools + measured outcomes gets 4.
 - Hard ceiling: 5 bullets per experience.
 - SOURCE PRECEDENCE: when stories[] contains a story whose experience_label matches an experience AND a JD requirement, PREFER the story's result + metrics + tools_used over the experience's freeform responsibilities text. Otherwise use the responsibilities text.
 - VERBATIM METRICS (stories only): every entry from a matched story's metrics[] array must appear in a bullet WORD-FOR-WORD. Numbers in responsibilities text may be rephrased.`;
 
-// NEW policy — Option A (one-per-line, responsibilities primary, numeric
-// carry-through for responsibilities + stories, sparse fallback).
 const NEW_BULLET_POLICY = `BULLET POLICY (Option A):
 - Professional experiences: ONE bullet per distinct responsibility line in the source, capped at 6. If the user wrote 5 responsibility lines, emit 5 bullets — do not compress to 3. If 1 short line, emit 1-2 bullets (split a compound responsibility if needed; do not invent). Faithfulness over compression. Drop the LEAST JD-relevant line only if you hit the 6-bullet ceiling.
 - SOURCE PRECEDENCE — RESPONSIBILITIES FIRST: experience.responsibilities is the PRIMARY source. Stories are OPTIONAL ENRICHMENT — they may contribute a metric or named tool the responsibility omits, but never replace a responsibility line. Source ranking: responsibilities > proof_signals (enrichment) > stories (enrichment).
@@ -109,6 +147,8 @@ Return JSON only, exactly this shape:
   "skills": ["string", ...]
 }`;
 
+// ─── User loading (auth.admin.listUsers based — see prior fix) ───
+
 interface UserContext {
   email: string;
   full_name: string;
@@ -131,10 +171,6 @@ interface UserContext {
   skills: string[];
 }
 
-// PostgREST refuses to expose the `auth` schema even with service-role auth,
-// so .schema('auth').from('users') errors with "Invalid schema: auth". Cache
-// the listUsers() result across diffOne() calls — single GoTrue page covers
-// the ~30 pilot users without issue.
 let _userIndex: Map<string, string> | null = null;
 async function userIdByEmail(email: string): Promise<string | null> {
   if (!_userIndex) {
@@ -206,51 +242,162 @@ async function loadUser(email: string): Promise<UserContext | null> {
   };
 }
 
-async function callOpenAI(systemPrompt: string, userContent: string): Promise<any> {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${OPENAI_API_KEY}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        { role: "system", content: systemPrompt },
-        { role: "user", content: userContent },
-      ],
-      temperature: 0.3,
-      max_tokens: 2200,
-      response_format: { type: "json_object" },
-    }),
-    signal: AbortSignal.timeout(60000),
-  });
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`OpenAI ${res.status}: ${t.slice(0, 200)}`);
-  }
-  const j = await res.json();
+// ─── Pricing — fetch the OpenRouter /models endpoint once at startup so we
+// don't drift from the catalog. Falls back to the hardcoded table above
+// when a slug isn't present in the live response. ───
+
+let _orPricing: Map<string, { in_per_m: number; out_per_m: number }> | null = null;
+async function loadOpenRouterPricing(): Promise<void> {
+  if (_orPricing) return;
+  _orPricing = new Map();
   try {
-    return JSON.parse(j.choices?.[0]?.message?.content || "{}");
+    const res = await fetch("https://openrouter.ai/api/v1/models", {
+      headers: { Authorization: `Bearer ${OPENROUTER_API_KEY}` },
+      signal: AbortSignal.timeout(20000),
+    });
+    if (!res.ok) {
+      console.warn(`  OpenRouter /models returned ${res.status} — falling back to hardcoded pricing`);
+      return;
+    }
+    const j = await res.json();
+    for (const m of j.data || []) {
+      const p = m.pricing;
+      if (m.id && p?.prompt && p?.completion) {
+        _orPricing.set(m.id, {
+          in_per_m: parseFloat(p.prompt) * 1e6,
+          out_per_m: parseFloat(p.completion) * 1e6,
+        });
+      }
+    }
+    console.error(`  loaded pricing for ${_orPricing.size} OpenRouter models`);
   } catch (e) {
-    console.warn("  could not parse OpenAI JSON:", e);
-    return {};
+    console.warn(`  OpenRouter pricing fetch failed (${e instanceof Error ? e.message : e}) — fallback table will be used`);
+  }
+}
+
+function priceFor(slug: string): { in_per_m: number; out_per_m: number } {
+  if (_orPricing?.has(slug)) return _orPricing.get(slug)!;
+  return PRICING_FALLBACK[slug] ?? { in_per_m: 0, out_per_m: 0 };
+}
+
+// ─── Model invocation — direct OpenAI for gpt-4o; OpenRouter for everything else ───
+
+interface CallResult {
+  cv: any;
+  tokens_in: number;
+  tokens_out: number;
+  latency_ms: number;
+  cost_usd: number;
+  ok: boolean;
+  error?: string;
+}
+
+async function callModel(modelSlug: string, systemPrompt: string, userContent: string): Promise<CallResult> {
+  const t0 = Date.now();
+  const isDirectOpenAI = modelSlug === GPT4O_CONTROL;
+  const url = isDirectOpenAI
+    ? "https://api.openai.com/v1/chat/completions"
+    : "https://openrouter.ai/api/v1/chat/completions";
+  const key = isDirectOpenAI ? OPENAI_API_KEY : OPENROUTER_API_KEY;
+
+  // Some Anthropic and Google models on OpenRouter don't honour
+  // response_format=json_object strictly; we ask for it anyway and parse
+  // defensively (strip ```json fences, extract first {...} block).
+  const body: any = {
+    model: modelSlug,
+    messages: [
+      { role: "system", content: systemPrompt },
+      { role: "user", content: userContent },
+    ],
+    temperature: 0.3,
+    max_tokens: 2200,
+    response_format: { type: "json_object" },
+  };
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+        ...(isDirectOpenAI ? {} : {
+          // OpenRouter optional headers for traffic attribution.
+          "HTTP-Referer": "https://getajob.careers",
+          "X-Title": "Get A Job — CV bake-off eval",
+        }),
+      },
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(120_000),
+    });
+    const latency_ms = Date.now() - t0;
+    if (!res.ok) {
+      const t = await res.text();
+      return {
+        cv: {},
+        tokens_in: 0,
+        tokens_out: 0,
+        latency_ms,
+        cost_usd: 0,
+        ok: false,
+        error: `HTTP ${res.status}: ${t.slice(0, 200)}`,
+      };
+    }
+    const j = await res.json();
+    const raw: string = j.choices?.[0]?.message?.content || "{}";
+    const tokens_in = j.usage?.prompt_tokens ?? 0;
+    const tokens_out = j.usage?.completion_tokens ?? 0;
+    const p = priceFor(modelSlug);
+    const cost_usd = (tokens_in / 1e6) * p.in_per_m + (tokens_out / 1e6) * p.out_per_m;
+
+    // Defensive JSON parse: strip markdown fences, then try to extract the
+    // first balanced {...} block if the raw string isn't clean JSON.
+    const tryParse = (s: string): any => {
+      try { return JSON.parse(s); } catch { return null; }
+    };
+    let parsed = tryParse(raw);
+    if (!parsed) {
+      const fenced = raw.match(/```(?:json)?\s*\n?([\s\S]*?)```/i);
+      if (fenced) parsed = tryParse(fenced[1]);
+    }
+    if (!parsed) {
+      const brace = raw.match(/\{[\s\S]*\}/);
+      if (brace) parsed = tryParse(brace[0]);
+    }
+    if (!parsed) {
+      return {
+        cv: {},
+        tokens_in,
+        tokens_out,
+        latency_ms,
+        cost_usd,
+        ok: false,
+        error: `bad_json: ${raw.slice(0, 200)}`,
+      };
+    }
+
+    return { cv: parsed, tokens_in, tokens_out, latency_ms, cost_usd, ok: true };
+  } catch (e) {
+    return {
+      cv: {},
+      tokens_in: 0,
+      tokens_out: 0,
+      latency_ms: Date.now() - t0,
+      cost_usd: 0,
+      ok: false,
+      error: e instanceof Error ? e.message : String(e),
+    };
   }
 }
 
 function formatUserPayload(u: UserContext): string {
   return JSON.stringify({
     target_role: TARGET_ROLE,
-    candidate: {
-      full_name: u.full_name,
-      summary: u.profile_summary,
-      skills: u.skills,
-    },
+    candidate: { full_name: u.full_name, summary: u.profile_summary, skills: u.skills },
     professional_experiences: u.professional_experiences,
     education: u.education,
     projects: u.projects,
     proof_signals: u.proof_signals,
-    stories: [], // empty for all 19 pilot users
+    stories: [],
   }, null, 2);
 }
 
@@ -267,7 +414,20 @@ function bulletsContainNumber(bullets: string[], num: string): boolean {
   return blob.includes(num.toLowerCase());
 }
 
-interface CompareReport {
+// ─── Per-user × per-cell summary ───
+
+interface CellSummary {
+  total_bullets: number;
+  numbers_found: number;
+  numbers_total: number;
+  latency_ms: number;
+  cost_usd: number;
+  cv: any;
+  ok: boolean;
+  error?: string;
+}
+
+interface UserReport {
   email: string;
   full_name: string;
   source: {
@@ -275,28 +435,34 @@ interface CompareReport {
     project_count: number;
     proof_signal_count: number;
     education_count: number;
-    source_numbers: Record<string, string[]>; // per-experience numbers
+    source_numbers: Record<string, string[]>;
   };
-  before: {
-    bullet_counts: Record<string, number>;
-    bullets: any;
-    numbers_carried: Record<string, { found: string[]; missing: string[] }>;
-  };
-  after: {
-    bullet_counts: Record<string, number>;
-    bullets: any;
-    numbers_carried: Record<string, { found: string[]; missing: string[] }>;
-  };
+  cells: Record<string, CellSummary>; // key = label e.g. "gpt-4o (OLD)", "openai/gpt-5.5-… (NEW)"
 }
 
-async function diffOne(email: string): Promise<CompareReport | null> {
+function summariseCell(cv: any, sourceNumbers: Record<string, string[]>): { total_bullets: number; numbers_found: number; numbers_total: number } {
+  let total_bullets = 0;
+  let numbers_found = 0;
+  let numbers_total = 0;
+  for (const exp of (cv?.professional_experiences ?? [])) {
+    const key = `${exp.title} @ ${exp.company}`;
+    total_bullets += Array.isArray(exp.bullets) ? exp.bullets.length : 0;
+    const need = sourceNumbers[key] || [];
+    for (const n of need) {
+      numbers_total++;
+      if (bulletsContainNumber(exp.bullets || [], n)) numbers_found++;
+    }
+  }
+  return { total_bullets, numbers_found, numbers_total };
+}
+
+async function reportOneUser(email: string): Promise<UserReport | null> {
   console.error(`\n=== ${email} ===`);
   const u = await loadUser(email);
   if (!u) return null;
   console.error(`  ${u.full_name}: ${u.professional_experiences.length} exp / ${u.projects.length} projects / ${u.proof_signals.length} proof_signals / ${u.education.length} edu`);
 
   const userPayload = formatUserPayload(u);
-  // Per-experience source numbers (the bar the after-prompt should clear).
   const sourceNumbers: Record<string, string[]> = {};
   for (const exp of u.professional_experiences) {
     const key = `${exp.title} @ ${exp.company}`;
@@ -304,37 +470,27 @@ async function diffOne(email: string): Promise<CompareReport | null> {
     if (nums.length > 0) sourceNumbers[key] = nums;
   }
 
-  console.error("  calling OpenAI for OLD prompt…");
-  const beforeCV = await callOpenAI(buildSystemPrompt(OLD_BULLET_POLICY), userPayload);
-  console.error("  calling OpenAI for NEW prompt…");
-  const afterCV = await callOpenAI(buildSystemPrompt(NEW_BULLET_POLICY), userPayload);
+  const cells: Record<string, CellSummary> = {};
 
-  const summariseBullets = (cv: any) => {
-    const out: Record<string, number> = {};
-    const numCheck: Record<string, { found: string[]; missing: string[] }> = {};
-    for (const exp of (cv?.professional_experiences ?? [])) {
-      const key = `${exp.title} @ ${exp.company}`;
-      out[key] = Array.isArray(exp.bullets) ? exp.bullets.length : 0;
-      const need = sourceNumbers[key] || [];
-      const found: string[] = [];
-      const missing: string[] = [];
-      for (const n of need) {
-        if (bulletsContainNumber(exp.bullets || [], n)) found.push(n);
-        else missing.push(n);
-      }
-      if (need.length > 0) numCheck[key] = { found, missing };
-    }
-    if (Array.isArray(cv?.academic_projects)) out["academic_projects[]"] = cv.academic_projects.length;
-    if (Array.isArray(cv?.projects)) {
-      let total = 0;
-      for (const p of cv.projects) total += Array.isArray(p.bullets) ? p.bullets.length : 0;
-      out["projects[*].bullets"] = total;
-    }
-    return { counts: out, numCheck };
-  };
+  // Two gpt-4o controls (direct OpenAI).
+  for (const [label, policy] of [
+    [`${GPT4O_CONTROL} (OLD ctrl)`, OLD_BULLET_POLICY],
+    [`${GPT4O_CONTROL} (NEW ctrl)`, NEW_BULLET_POLICY],
+  ] as const) {
+    console.error(`  → ${label}…`);
+    const r = await callModel(GPT4O_CONTROL, buildSystemPrompt(policy), userPayload);
+    const s = summariseCell(r.cv, sourceNumbers);
+    cells[label] = { ...s, latency_ms: r.latency_ms, cost_usd: r.cost_usd, cv: r.cv, ok: r.ok, error: r.error };
+  }
 
-  const bSum = summariseBullets(beforeCV);
-  const aSum = summariseBullets(afterCV);
+  // Bake-off models on NEW prompt only.
+  for (const slug of MODELS) {
+    const label = `${slug} (NEW)`;
+    console.error(`  → ${label}…`);
+    const r = await callModel(slug, buildSystemPrompt(NEW_BULLET_POLICY), userPayload);
+    const s = summariseCell(r.cv, sourceNumbers);
+    cells[label] = { ...s, latency_ms: r.latency_ms, cost_usd: r.cost_usd, cv: r.cv, ok: r.ok, error: r.error };
+  }
 
   return {
     email,
@@ -346,46 +502,70 @@ async function diffOne(email: string): Promise<CompareReport | null> {
       education_count: u.education.length,
       source_numbers: sourceNumbers,
     },
-    before: { bullet_counts: bSum.counts, bullets: beforeCV, numbers_carried: bSum.numCheck },
-    after: { bullet_counts: aSum.counts, bullets: afterCV, numbers_carried: aSum.numCheck },
+    cells,
   };
 }
 
-function renderMarkdownReport(reports: CompareReport[]): string {
+function renderMarkdown(reports: UserReport[]): string {
   const lines: string[] = [];
-  lines.push("# CV authoring diff — Option A");
+  lines.push("# CV authoring — multi-model bake-off");
   lines.push("");
   lines.push(`Generated: ${new Date().toISOString()}`);
-  lines.push(`Model: ${MODEL}`);
-  lines.push(`Target role for tailoring: "${TARGET_ROLE}"`);
+  lines.push(`Target role: "${TARGET_ROLE}"`);
   lines.push("");
-  lines.push("## Summary");
-  lines.push("");
-  lines.push("| User | Exp | Projects | Proof Signals | Old bullets total | New bullets total | Old numbers carried | New numbers carried |");
-  lines.push("|---|---:|---:|---:|---:|---:|---|---|");
-  for (const r of reports) {
-    const oldTotal = Object.entries(r.before.bullet_counts).filter(([k]) => k.includes(" @ ")).reduce((a, [, v]) => a + v, 0);
-    const newTotal = Object.entries(r.after.bullet_counts).filter(([k]) => k.includes(" @ ")).reduce((a, [, v]) => a + v, 0);
-    const oldFnd = Object.values(r.before.numbers_carried).reduce((a, v) => a + v.found.length, 0);
-    const oldMis = Object.values(r.before.numbers_carried).reduce((a, v) => a + v.missing.length, 0);
-    const newFnd = Object.values(r.after.numbers_carried).reduce((a, v) => a + v.found.length, 0);
-    const newMis = Object.values(r.after.numbers_carried).reduce((a, v) => a + v.missing.length, 0);
-    lines.push(`| ${r.full_name} (${r.email}) | ${r.source.exp_count} | ${r.source.project_count} | ${r.source.proof_signal_count} | ${oldTotal} | ${newTotal} | ${oldFnd}/${oldFnd + oldMis} | ${newFnd}/${newFnd + newMis} |`);
+  lines.push("**Controls (direct OpenAI):** gpt-4o on OLD prompt + gpt-4o on NEW prompt.");
+  lines.push(`**Bake-off (via OpenRouter, NEW prompt only):** ${MODELS.join(", ")}.`);
+  if (SKIPPED_MODELS.length > 0) {
+    lines.push("");
+    lines.push("**Skipped (slug not present in OpenRouter catalog):**");
+    for (const s of SKIPPED_MODELS) lines.push(`- ${s}`);
   }
   lines.push("");
 
+  // Per-model summary across ALL users.
+  lines.push("## Per-model summary (totals across all users)");
+  lines.push("");
+  const labels = Array.from(new Set(reports.flatMap((r) => Object.keys(r.cells))));
+  lines.push("| Model / prompt | Total bullets | Numbers carried | Latency p50 (ms) | Cost ($) | Failures |");
+  lines.push("|---|---:|---|---:|---:|---:|");
+  for (const label of labels) {
+    let totalBullets = 0;
+    let nFound = 0;
+    let nTotal = 0;
+    let totalCost = 0;
+    const latencies: number[] = [];
+    let failures = 0;
+    for (const r of reports) {
+      const c = r.cells[label];
+      if (!c) continue;
+      if (!c.ok) {
+        failures++;
+        continue;
+      }
+      totalBullets += c.total_bullets;
+      nFound += c.numbers_found;
+      nTotal += c.numbers_total;
+      totalCost += c.cost_usd;
+      latencies.push(c.latency_ms);
+    }
+    latencies.sort((a, b) => a - b);
+    const p50 = latencies.length === 0 ? "—" : String(latencies[Math.floor(latencies.length / 2)]);
+    lines.push(`| \`${label}\` | ${totalBullets} | ${nFound}/${nTotal} | ${p50} | $${totalCost.toFixed(4)} | ${failures} |`);
+  }
+  lines.push("");
+
+  // Per-user table.
   for (const r of reports) {
     lines.push("---");
     lines.push("");
     lines.push(`## ${r.full_name} — ${r.email}`);
     lines.push(`Source: ${r.source.exp_count} experiences, ${r.source.project_count} projects, ${r.source.proof_signal_count} proof_signals, ${r.source.education_count} education entries.`);
     lines.push("");
-
     if (Object.keys(r.source.source_numbers).length > 0) {
-      lines.push("### Numbers present in source responsibilities (the carry-through target)");
+      lines.push("**Numbers present in source responsibilities (the carry-through target):**");
       lines.push("");
       for (const [key, nums] of Object.entries(r.source.source_numbers)) {
-        lines.push(`- **${key}**: ${nums.join(" · ")}`);
+        lines.push(`- ${key}: ${nums.join(" · ")}`);
       }
       lines.push("");
     } else {
@@ -393,49 +573,60 @@ function renderMarkdownReport(reports: CompareReport[]): string {
       lines.push("");
     }
 
-    const expKeys = Array.from(new Set([
-      ...Object.keys(r.before.bullet_counts).filter((k) => k.includes(" @ ")),
-      ...Object.keys(r.after.bullet_counts).filter((k) => k.includes(" @ ")),
-    ]));
-
-    for (const key of expKeys) {
-      lines.push(`### ${key}`);
-      lines.push("");
-      const bExp = (r.before.bullets?.professional_experiences || []).find((e: any) => `${e.title} @ ${e.company}` === key);
-      const aExp = (r.after.bullets?.professional_experiences || []).find((e: any) => `${e.title} @ ${e.company}` === key);
-      const oldBullets = bExp?.bullets || [];
-      const newBullets = aExp?.bullets || [];
-      const oldNC = r.before.numbers_carried[key];
-      const newNC = r.after.numbers_carried[key];
-
-      lines.push(`**BEFORE** — ${oldBullets.length} bullets${oldNC ? ` · numbers carried ${oldNC.found.length}/${oldNC.found.length + oldNC.missing.length}` : ""}${oldNC?.missing.length ? ` · MISSING: ${oldNC.missing.join(", ")}` : ""}`);
-      lines.push("");
-      for (const b of oldBullets) lines.push(`- ${b}`);
-      lines.push("");
-
-      lines.push(`**AFTER** — ${newBullets.length} bullets${newNC ? ` · numbers carried ${newNC.found.length}/${newNC.found.length + newNC.missing.length}` : ""}${newNC?.missing.length ? ` · MISSING: ${newNC.missing.join(", ")}` : ""}`);
-      lines.push("");
-      for (const b of newBullets) lines.push(`- ${b}`);
-      lines.push("");
+    lines.push("| Model / prompt | Bullets | Numbers carried | Latency (ms) | Cost ($) | Status |");
+    lines.push("|---|---:|---|---:|---:|---|");
+    for (const label of labels) {
+      const c = r.cells[label];
+      if (!c) { lines.push(`| \`${label}\` | — | — | — | — | not run |`); continue; }
+      const status = c.ok ? "ok" : `**FAIL**: ${(c.error || "").slice(0, 60)}`;
+      const numStr = c.numbers_total > 0 ? `${c.numbers_found}/${c.numbers_total}` : "—";
+      lines.push(`| \`${label}\` | ${c.total_bullets} | ${numStr} | ${c.latency_ms} | $${c.cost_usd.toFixed(4)} | ${status} |`);
     }
+    lines.push("");
+  }
 
-    // Sparse-profile fallback evidence (academic_projects + projects buckets).
-    const oldAP = r.before.bullet_counts["academic_projects[]"] ?? 0;
-    const newAP = r.after.bullet_counts["academic_projects[]"] ?? 0;
-    const oldPB = r.before.bullet_counts["projects[*].bullets"] ?? 0;
-    const newPB = r.after.bullet_counts["projects[*].bullets"] ?? 0;
-    if (r.source.exp_count === 0 || (oldAP + newAP + oldPB + newPB > 0)) {
-      lines.push("### Fallback bucket (sparse-profile path)");
+  // Full bullets dump for the detail user across every model.
+  const detail = reports.find((r) => r.email === DETAIL_USER);
+  if (detail) {
+    lines.push("---");
+    lines.push("");
+    lines.push(`## Full authored bullets — ${detail.full_name} (${detail.email})`);
+    lines.push("");
+    lines.push("Side-by-side writing quality across every model. Same input, same NEW prompt (except the two gpt-4o controls which use OLD and NEW).");
+    lines.push("");
+    for (const label of labels) {
+      const c = detail.cells[label];
+      lines.push(`### ${label}`);
       lines.push("");
-      lines.push(`- Academic projects: BEFORE ${oldAP} / AFTER ${newAP}`);
-      lines.push(`- Project bullets total: BEFORE ${oldPB} / AFTER ${newPB}`);
-      lines.push("");
-      const aboutBefore = String(r.before.bullets?.about_me || "").trim();
-      const aboutAfter = String(r.after.bullets?.about_me || "").trim();
-      if (aboutBefore) lines.push(`**Before About Me:** ${aboutBefore}`);
-      lines.push("");
-      if (aboutAfter) lines.push(`**After About Me:** ${aboutAfter}`);
-      lines.push("");
+      if (!c) { lines.push("_(not run)_"); lines.push(""); continue; }
+      if (!c.ok) { lines.push(`_(failed: ${c.error})_`); lines.push(""); continue; }
+      const about = String(c.cv?.about_me || "").trim();
+      if (about) {
+        lines.push(`**About Me:** ${about}`);
+        lines.push("");
+      }
+      const exps = c.cv?.professional_experiences || [];
+      for (const exp of exps) {
+        lines.push(`**${exp.title} @ ${exp.company}** _(${exp.dates || ""})_`);
+        lines.push("");
+        for (const b of (exp.bullets || [])) lines.push(`- ${b}`);
+        lines.push("");
+      }
+      const aps = c.cv?.academic_projects || [];
+      if (aps.length > 0) {
+        lines.push(`**Academic projects:**`);
+        for (const ap of aps) lines.push(`- ${ap.name || ""} — ${ap.description || ""}`);
+        lines.push("");
+      }
+      const prjs = c.cv?.projects || [];
+      if (prjs.length > 0) {
+        lines.push(`**Projects:**`);
+        for (const prj of prjs) {
+          lines.push(`- ${prj.name || ""}`);
+          for (const b of (prj.bullets || [])) lines.push(`  - ${b}`);
+        }
+        lines.push("");
+      }
     }
   }
 
@@ -443,18 +634,19 @@ function renderMarkdownReport(reports: CompareReport[]): string {
 }
 
 async function main() {
-  const reports: CompareReport[] = [];
+  await loadOpenRouterPricing();
+  const reports: UserReport[] = [];
   for (const email of EMAILS) {
     try {
-      const r = await diffOne(email);
+      const r = await reportOneUser(email);
       if (r) reports.push(r);
     } catch (e) {
       console.error(`  FATAL for ${email}:`, e instanceof Error ? e.message : e);
     }
   }
-  const md = renderMarkdownReport(reports);
+  const md = renderMarkdown(reports);
   writeFileSync(OUT, md);
-  console.error(`\nWrote ${OUT} (${reports.length} users compared).`);
+  console.error(`\nWrote ${OUT} (${reports.length} users × ${MODELS.length + 2} cells each).`);
 }
 
 main().catch((e) => {
