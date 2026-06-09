@@ -1031,18 +1031,147 @@ export async function fetchAdamTotal(c: CompanyEntry): Promise<RawJob[]> {
   return collected;
 }
 
+// ───── PwC Israel — Niloosoft Hunter Next.js + Heroku ────────────────
+//
+// PwC Israel runs a custom Next.js careers UI at
+// pwc-careersite.hunterhrms.com backed by a Heroku Niloosoft service
+// at niloo-server.herokuapp.com/actions-pwc-career. The whole job
+// catalogue ships in ONE POST: {cmd:"get-jobs", data:{}}. No auth,
+// no pagination, no per-tenant cmd vocabulary required for the list
+// path (cmds: get-categories, get-jobs, get-job, submit-application).
+//
+// Audience-fit reason this fetcher exists: PwC's intake is dominated
+// by audit/tax/consulting/M&A INTERNSHIPS — exactly the practicum
+// pilot's target. 62 jobs verified live (2026-06-09), including 6
+// explicit internship roles (Tax 2027, M&A Advisory, Audit 2027,
+// Economic Dept 2027, RAS Consulting 2026, Audit pre-internship).
+//
+// Quirks:
+// - Heroku returns 201 (not 200) on POST. httpPostJson treats both
+//   as success via res.ok.
+// - Description/Requirements/Skills are HTML-entity-double-encoded
+//   (e.g. "&amp;lt;p&amp;gt;"); decode once at write time.
+// - locationAddress is null on most postings — we hardcode "Israel"
+//   (PwC Israel is the only tenant; all roles are IL) so the
+//   downstream IL classifier sees a positive signal.
+const PWC_HEROKU_URL = "https://niloo-server.herokuapp.com/actions-pwc-career";
+const PWC_ORIGIN = "https://pwc-careersite.hunterhrms.com";
+
+// Niloosoft category dictionary observed in the live Next.js bundle.
+// Used to populate a meaningful department for the row.
+const PWC_CATEGORY_LABELS: Record<string, string> = {
+  "39": "Audit",
+  "40": "Tax",
+  "41": "Consulting",
+  "42": "HQ / Risk / Compliance",
+  "43": "Internship",
+};
+
+function htmlEntityDecodeOnce(s: string): string {
+  return s
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&nbsp;/g, " ");
+}
+
+async function httpPostJsonWithHeaders<T>(
+  url: string,
+  body: unknown,
+  extraHeaders: Record<string, string>,
+  timeout = DEFAULT_TIMEOUT_MS,
+): Promise<T> {
+  const ac = new AbortController();
+  const timer = setTimeout(() => ac.abort(), timeout);
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        // Browser UA — Heroku ingress doesn't WAF us, but PwC's CDN
+        // upstream will eventually if we look like a script.
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        ...extraHeaders,
+      },
+      body: JSON.stringify(body),
+      signal: ac.signal,
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status} on ${url}`);
+    return (await res.json()) as T;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+export async function fetchPwcHeroku(_c: CompanyEntry): Promise<RawJob[]> {
+  // Single POST returns the entire catalogue. _c is unused because
+  // there's exactly one PwC Israel tenant — the URL + Origin are
+  // hard-coded above. Keeping the CompanyEntry signature for FETCHERS
+  // dispatch parity.
+  const data = await httpPostJsonWithHeaders<any>(
+    PWC_HEROKU_URL,
+    { cmd: "get-jobs", data: {} },
+    { Origin: PWC_ORIGIN, Referer: `${PWC_ORIGIN}/` },
+  );
+  const jobs: any[] = Array.isArray(data) ? data : (data?.data ?? data?.jobs ?? []);
+  if (!Array.isArray(jobs)) return [];
+  return jobs.map((j) => {
+    const jobId = String(j.jobId ?? j.JobId ?? j.id ?? "");
+    // Live API field is `jobTitle` (camelCase). The scoping-agent
+    // report listed `title`/`JobTitle` variants but neither is what
+    // the Heroku server actually returns. Fallback chain kept defensive.
+    const title = htmlEntityDecodeOnce(String(j.jobTitle ?? j.title ?? j.JobTitle ?? "")).trim();
+    // Description fields are double-entity-encoded HTML in the live
+    // response. One pass of decode gives us valid HTML that the v4
+    // extractor can stripHtml on later.
+    const desc = htmlEntityDecodeOnce(String(j.description ?? j.Description ?? ""));
+    const reqs = htmlEntityDecodeOnce(String(j.requirements ?? j.Requirements ?? ""));
+    const skills = htmlEntityDecodeOnce(String(j.skills ?? j.Skills ?? ""));
+    const description_html = [desc, reqs, skills].filter((p) => p && p.trim().length > 0).join("\n\n") || null;
+    const catId = String(j.categoryId ?? "");
+    const department = PWC_CATEGORY_LABELS[catId] ?? (j.employerName ? String(j.employerName) : null);
+    // locationAddress is mostly null; PwC Israel is Israel-only.
+    const locationAddress = (j.locationAddress ?? "").toString().trim();
+    const location_raw = locationAddress || "Israel" + (department ? ` | ${department}` : "");
+    return {
+      external_id: jobId,
+      title,
+      description_html,
+      location_raw,
+      structured_country: "IL",
+      apply_url: jobId ? `${PWC_ORIGIN}/job?jid=${encodeURIComponent(jobId)}` : "",
+      date_posted: j.openDate ?? j.OpenDate ?? null,
+      salary_min: null,
+      salary_max: null,
+      salary_currency: null,
+      is_remote: false,
+      raw_payload: { source: "pwc_heroku", categoryId: catId, employerName: j.employerName ?? null },
+    };
+  });
+}
+
 // ───── Dispatch table ────────────────────────────────────────────────
 
 export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = {
-  greenhouse:      fetchGreenhouse,
-  lever:           fetchLever,
-  ashby:           fetchAshby,
-  workday:         fetchWorkday,
-  smartrecruiters: fetchSmartRecruiters,
-  comeet:          fetchComeet,
-  successfactors:  fetchSuccessFactors,
-  workable:        fetchWorkable,
-  iai:             fetchIai,
-  jooble:          fetchJooble,
-  adamtotal:       fetchAdamTotal,
+  greenhouse:        fetchGreenhouse,
+  lever:             fetchLever,
+  ashby:             fetchAshby,
+  workday:           fetchWorkday,
+  smartrecruiters:   fetchSmartRecruiters,
+  comeet:            fetchComeet,
+  successfactors:    fetchSuccessFactors,
+  workable:          fetchWorkable,
+  iai:               fetchIai,
+  jooble:            fetchJooble,
+  adamtotal:         fetchAdamTotal,
+  // adamtotal_agency: same fetcher, distinct ats_source value so we
+  // can evaluate / dedup placement-agency feeds (Peres Group) against
+  // direct-employer rows. The agency's 400+ roles are reposts across
+  // multiple IL clients and may overlap with companies we source
+  // directly — splitting the namespace lets us measure that.
+  adamtotal_agency:  fetchAdamTotal,
+  pwc_heroku:        fetchPwcHeroku,
 };
