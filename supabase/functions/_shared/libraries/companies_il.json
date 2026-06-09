@@ -1,12 +1,13 @@
 {
   "generated_at": "2026-06-09",
-  "total_companies": 884,
+  "total_companies": 890,
   "by_ats": {
-    "ashby": 67,
+    "adamtotal": 11,
+    "ashby": 68,
     "comeet": 225,
     "custom": 32,
     "eightfold": 3,
-    "greenhouse": 200,
+    "greenhouse": 199,
     "iai": 1,
     "icims": 1,
     "jooble": 1,
@@ -16,7 +17,7 @@
     "smartrecruiters": 10,
     "successfactors": 8,
     "teamtailor": 1,
-    "unknown": 261,
+    "unknown": 256,
     "workable": 10,
     "workday": 37
   },
@@ -1988,6 +1989,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/catonetworks/jobs",
       "verified": true,
       "notes": "Probed: greenhouse slug 'catonetworks' returns 200"
+    },
+    {
+      "name": "CBC Israel",
+      "type": "israeli_founded",
+      "industry": "Beverages / Coca-Cola + Carlsberg Bottler",
+      "domain": "cbc.co.il",
+      "careers_url": "https://career.adamtotal.co.il/?token=4fiBEcF763Em2UKTVQ4OPb1hiX9SxJtoMD",
+      "ats": "adamtotal",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Scoping-agent token returned HTTP 500 on probe (2026-06-09) — needs real token from a live careers-page redirect. Held until verified."
     },
     {
       "name": "Cellcom Israel",
@@ -4114,6 +4127,18 @@
       "notes": "NEW. jobs.gehealthcare.com is bot-blocked (ECONNREFUSED on programmatic fetch). GE Healthcare spun off from GE; uses TalentBrew/proprietary careers portal (mirroring GE). IL R&D in Tirat Carmel + Haifa (ultrasound). Re-investigate manually."
     },
     {
+      "name": "Gefen Placement",
+      "type": "israeli_founded",
+      "industry": "Recruitment / Placement",
+      "domain": "gefen-hr.co.il",
+      "careers_url": "https://career.adamtotal.co.il/?token=cedd5c19-d59c-4f80-bca6-768f41edee7e",
+      "ats": "adamtotal",
+      "slug": null,
+      "api_url": "https://career.adamtotal.co.il/Home/Index?token=cedd5c19-d59c-4f80-bca6-768f41edee7e",
+      "verified": true,
+      "notes": "AdamTotal ATS (multi-tenant). ~110 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
+    },
+    {
       "name": "Gemini",
       "type": "international_il_rd",
       "industry": "FinTech / Crypto Exchange",
@@ -4467,11 +4492,11 @@
       "industry": "Insurance / Finance",
       "domain": "harel-group.co.il",
       "careers_url": "https://www.harel-group.co.il/career",
-      "ats": "unknown",
+      "ats": "adamtotal",
       "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Career portal returns HTTP 466/cloudflare-blocked to bots. Confirmed Israeli insurance proprietary HR portal (typical: Niloog/Hilan). Not in supported set."
+      "api_url": "https://career.adamtotal.co.il/Home/Index?token=6675d401-0dee-428a-a776-5d41885d16b0-harel",
+      "verified": true,
+      "notes": "AdamTotal ATS (multi-tenant). ~82 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
     },
     {
       "name": "Harness",
@@ -5163,11 +5188,11 @@
       "industry": "Transportation / Rail",
       "domain": "rail.co.il",
       "careers_url": "https://www.rail.co.il/he/jobs",
-      "ats": "unknown",
+      "ats": "adamtotal",
       "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Government-owned. Proprietary Hebrew careers — bound to public-sector tender rules. No public API."
+      "api_url": "https://railcareer.adamtotal.co.il/Home/Index?token=45e7ea44-8787-4910-3423-c84e9fttredbccf_ext",
+      "verified": true,
+      "notes": "AdamTotal ATS (multi-tenant). ~60 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
     },
     {
       "name": "Israel Shipyards",
@@ -5336,6 +5361,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Comeet UID D5.000 confirmed via comeet.com/jobs/k2view/D5.000. Token not extractable. Israeli-founded real-time data management for enterprises, HQ Ra'anana."
+    },
+    {
+      "name": "Kalmobil",
+      "type": "israeli_founded",
+      "industry": "Automotive / Mercedes + Hyundai Importer",
+      "domain": "kalmobil.co.il",
+      "careers_url": "https://career.adamtotal.co.il/?token=49ea5fae-22f9-4ff5-b20b-4c897490009f",
+      "ats": "adamtotal",
+      "slug": null,
+      "api_url": "https://career.adamtotal.co.il/Home/Index?token=49ea5fae-22f9-4ff5-b20b-4c897490009f",
+      "verified": true,
+      "notes": "AdamTotal ATS (multi-tenant). ~85 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
     },
     {
       "name": "Kaltura",
@@ -5972,6 +6009,18 @@
       "api_url": null,
       "verified": false,
       "notes": "NEW (extra). No Workday tenant detected (marvell.wd1 returns 404 site_not_found). Likely custom or iCIMS. Marvell IL R&D via Aquantia + Cavium-IL (legacy)."
+    },
+    {
+      "name": "Matav",
+      "type": "israeli_founded",
+      "industry": "Eldercare / Non-profit",
+      "domain": "matav.org.il",
+      "careers_url": "https://career.adamtotal.co.il/?token=0fs45Rvqd16b0Matav",
+      "ats": "adamtotal",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Scoping-agent token (ends in company name `…Matav`) appears fabricated/templated, returns HTTP 500. Needs real token. Held."
     },
     {
       "name": "Materialspace",
@@ -6754,6 +6803,18 @@
       "notes": "Comeet UID + token extracted from careers page HTML (source: https://novidea.com/careers/)"
     },
     {
+      "name": "Novolog",
+      "type": "israeli_founded",
+      "industry": "Pharma Logistics",
+      "domain": "novolog.co.il",
+      "careers_url": "https://career.adamtotal.co.il/?token=0fs13Rvgd16b0Novolog",
+      "ats": "adamtotal",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Scoping-agent token (ends in `…Novolog`) appears fabricated/templated, returns HTTP 500. Needs real token. Held."
+    },
+    {
       "name": "NRGene",
       "type": "israeli_founded",
       "industry": "Biotech / Agri-Genomics",
@@ -7311,11 +7372,11 @@
       "industry": "Telecom",
       "domain": "partner.co.il",
       "careers_url": "https://www.partner.co.il/en/about-partner/career/",
-      "ats": "unknown",
+      "ats": "adamtotal",
       "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Proprietary careers portal (404 unauthenticated curl). No public API."
+      "api_url": "https://career.adamtotal.co.il/Home/Index?token=75gs6218-dvpr57-moi51-ccr68d-rf4d78tvc",
+      "verified": true,
+      "notes": "AdamTotal ATS (multi-tenant). ~60 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
     },
     {
       "name": "Payoneer",
@@ -7383,11 +7444,11 @@
       "industry": "Telecom",
       "domain": "pelephone.co.il",
       "careers_url": "https://www.pelephone.co.il/",
-      "ats": "unknown",
+      "ats": "adamtotal",
       "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Bezeq subsidiary. Proprietary careers system tied to Bezeq Group. No public API."
+      "api_url": "https://career.adamtotal.co.il/Home/Index?token=OPY78QbFG53N63Em2UKTVQ4OPb1hiX9SxJtoMHssWX",
+      "verified": true,
+      "notes": "AdamTotal ATS (multi-tenant). ~60 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
     },
     {
       "name": "Pendo",
@@ -7448,6 +7509,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/44.000/positions?token=440154015404400088019802640880&details=true",
       "verified": true,
       "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 6 positions, 3 IL-tagged."
+    },
+    {
+      "name": "Peres Group",
+      "type": "israeli_founded",
+      "industry": "Tech Placement / Recruitment",
+      "domain": "peresgroup.co.il",
+      "careers_url": "https://career.adamtotal.co.il/?token=0fd45Rzqd16b0Peres",
+      "ats": "adamtotal",
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Scoping-agent token (ends in `…Peres`) appears fabricated/templated, returns HTTP 500. Needs real token. Held — was projected as largest tenant at ~390 jobs, worth chasing in a token-discovery follow-up."
     },
     {
       "name": "Perimeter 81",
@@ -9399,11 +9472,11 @@
       "industry": "Food & Beverage / Beer",
       "domain": "tempo.co.il",
       "careers_url": "https://www.tempo.co.il/career/",
-      "ats": "unknown",
+      "ats": "adamtotal",
       "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Proprietary. Note: 'tempo' on Greenhouse/Ashby/SmartRecruiters all match unrelated US/CA companies, not Israeli Tempo Beverages. No public API."
+      "api_url": "https://career.adamtotal.co.il/Home/Index?token=5fiBEcF763Em2KLOPNQ4OPb1hiX9SxJtoMDssWS",
+      "verified": true,
+      "notes": "AdamTotal ATS (multi-tenant). ~32 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
     },
     {
       "name": "Tenable",
