@@ -3,7 +3,7 @@ import {
   buildResumeExtractionPrompt,
   EXPERIENCE_SKILLS_DIRECTIVE,
 } from '../lib/resumeExtractionPrompt.js';
-import { parseExtractedJson } from '../components/onboarding/StepResumeUpload.jsx';
+import { parseExtractedJson } from '../lib/parseExtractedJson.js';
 
 // Legacy regex-based parser, kept here as the comparison for the old
 // behaviour the hardened parser replaces. The new tests use

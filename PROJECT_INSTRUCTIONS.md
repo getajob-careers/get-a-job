@@ -164,7 +164,7 @@ All under `supabase/functions/<slug>/index.ts`. Each writes per-call metrics via
 
 | Slug | Model | Rate | Purpose |
 |---|---|---|---|
-| `ai-chat` | gpt-4o-mini | 30/h | Career Agent multi-turn chat. Emits `SUGGESTED_*_JSON` blocks (TASKS, ROADMAP_CHANGES, APPLICATION_ACTIONS, COMPANY_TARGET, CV_GENERATION, AGENT, STORY_CAPTURE) the frontend renders as cards |
+| `ai-chat` | gpt-4o-mini | 30/h | Career Agent multi-turn chat. Emits `SUGGESTED_*_JSON` blocks (TASKS, ROADMAP_CHANGES, APPLICATION_ACTIONS, COMPANY_TARGET, CV_GENERATION, AGENT, STORY_CAPTURE) the frontend renders as cards. The `resume-extractor` agent inside this function reads from `_shared/model-routing.ts` and gets `response_format: { type: 'json_object' }` + the hardened `parseExtractedJson` parser on the client (PR #277 — fixed silent zero-experience loss that hit 4 of 19 pilot users). All other agents still use the hardcoded `MODEL = 'gpt-4o-mini'` constant and no `response_format` |
 | `analyze-job-match` | gpt-4o-mini | 30/h | Score JD vs profile → `match_score` + `goal_alignment_score` + `required_seniority`. Retries on token exhaustion (BASE 2048 / RETRY 4096) |
 | `delete-account` | — | — | Self-service account deletion (PR #66). JWT-gated, wipes resumes/, inserts tombstone, calls `auth.admin.deleteUser` (fires CASCADEs) |
 | `extract-proof-signals` | gpt-4o | 10/h | Pull proof signals (metrics, named tools, named outcomes) from CV text. Maps to skill IDs |
@@ -184,6 +184,9 @@ All under `supabase/functions/<slug>/index.ts`. Each writes per-call metrics via
 | `match-internship-companies` | gpt-4o | 4/h | Two-stage: rule-based pre-filter (stage / sector / signal / geography → top 30) then ONE batched LLM call scoring fit + career-compound + per-company pitch. UPSERTs into `company_targets` |
 
 **Deploy:** `supabase functions deploy <slug> --project-ref ilmqmodklutztuybsvwd`. CI does NOT auto-deploy — each change requires manual deploy after merge. The token lives at `/tmp/.gaj_supabase_token` for current sessions; see `tasks/lessons.md` 2026-05-05 entry.
+
+**Standing items:**
+- Swapping `resume-extractor` to gpt-5.5 (or any other reasoning model) ALSO requires the corresponding `max_tokens` → `max_completion_tokens` translation in the `ai-chat` callOpenAI helper. The OpenAI Chat Completions API rejects `max_tokens` for gpt-5.x and o-series with HTTP 400 "Unsupported parameter". The route comment at `_shared/model-routing.ts` `'resume-extractor'` flags this; PR #277 left `resume-extractor` on `gpt-4o-mini` precisely because the latency re-measure was still pending.
 
 ---
 
@@ -282,6 +285,7 @@ Single index — when something feels load-bearing, it's probably in here.
 | `supabase/functions/_shared/voice-rules.ts` | The 5 voice-rule constants |
 | `supabase/functions/_shared/metrics.ts` | `startMetric` / `finishMetric` writing to `function_metrics` |
 | `supabase/functions/_shared/openai-chat.ts` | `openaiChatCompletion()` fetch wrapper with Langfuse pass-through tracing |
+| `supabase/functions/_shared/model-routing.ts` | **PR #277.** Job-to-model routing map (`chat-agent`, `resume-extractor`, `structured-extract`). Only the `resume-extractor` agent in `ai-chat` consumes it today; other entries documented for the eventual agent-merge work. `ModelRoute` supports `response_format`, `reasoning_effort`, and `transport: 'openai' \| 'openrouter'` for forward-compat |
 | `supabase/functions/_shared/libraries/00_role_library.ts` | 183 roles, v2.0 schema. Source of truth |
 | `supabase/functions/_shared/libraries/01_skill_library.ts` | 387 unique skill IDs |
 | `supabase/functions/_shared/libraries/companies_il.json` | 831-company ATS-tagged Israeli registry. Drives `scripts/refresh-jobs.ts` |
