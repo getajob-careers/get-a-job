@@ -1,8 +1,9 @@
 {
   "generated_at": "2026-06-09",
-  "total_companies": 890,
+  "total_companies": 891,
   "by_ats": {
-    "adamtotal": 11,
+    "adamtotal": 10,
+    "adamtotal_agency": 1,
     "ashby": 68,
     "comeet": 225,
     "custom": 32,
@@ -13,6 +14,7 @@
     "jooble": 1,
     "lever": 25,
     "oracle": 1,
+    "pwc_heroku": 1,
     "recruitee": 1,
     "smartrecruiters": 10,
     "successfactors": 8,
@@ -1998,9 +2000,9 @@
       "careers_url": "https://career.adamtotal.co.il/?token=4fiBEcF763Em2UKTVQ4OPb1hiX9SxJtoMD",
       "ats": "adamtotal",
       "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Scoping-agent token returned HTTP 500 on probe (2026-06-09) — needs real token from a live careers-page redirect. Held until verified."
+      "api_url": "https://career.adamtotal.co.il/Home/Index?token=4fiBEcF763Em2UKTVQ4OPb1hiX9SxJtoMHssWX",
+      "verified": true,
+      "notes": "AdamTotal direct-employer board (verified live 2026-06-09, ~150 jobs across 6 pages). Prior token was prefix-truncated by scoping agent — real token ends in `MHssWX`."
     },
     {
       "name": "Cellcom Israel",
@@ -6018,9 +6020,9 @@
       "careers_url": "https://career.adamtotal.co.il/?token=0fs45Rvqd16b0Matav",
       "ats": "adamtotal",
       "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Scoping-agent token (ends in company name `…Matav`) appears fabricated/templated, returns HTTP 500. Needs real token. Held."
+      "api_url": "https://career.adamtotal.co.il/Home/Index?token=5675d424-frd00-42a-a889-0fs45Rvqd16b0Matav",
+      "verified": true,
+      "notes": "AdamTotal direct-employer board (verified live 2026-06-09, ~35 jobs). Real token has UUID prefix that the scoping agent had stripped."
     },
     {
       "name": "Materialspace",
@@ -6810,9 +6812,9 @@
       "careers_url": "https://career.adamtotal.co.il/?token=0fs13Rvgd16b0Novolog",
       "ats": "adamtotal",
       "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Scoping-agent token (ends in `…Novolog`) appears fabricated/templated, returns HTTP 500. Needs real token. Held."
+      "api_url": "https://career.adamtotal.co.il/Home/Index?token=7675h424-frd01-42a-a879-0fs13Rvgd16b0Novolog",
+      "verified": true,
+      "notes": "AdamTotal direct-employer board (verified live 2026-06-09, ~28 jobs). Real token has UUID prefix."
     },
     {
       "name": "NRGene",
@@ -7516,11 +7518,11 @@
       "industry": "Tech Placement / Recruitment",
       "domain": "peresgroup.co.il",
       "careers_url": "https://career.adamtotal.co.il/?token=0fd45Rzqd16b0Peres",
-      "ats": "adamtotal",
+      "ats": "adamtotal_agency",
       "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Scoping-agent token (ends in `…Peres`) appears fabricated/templated, returns HTTP 500. Needs real token. Held — was projected as largest tenant at ~390 jobs, worth chasing in a token-discovery follow-up."
+      "api_url": "https://career.adamtotal.co.il/Home/Index?token=6675d423-frd00-42a-a776-0fd45Rzqd16b0Peres",
+      "verified": true,
+      "notes": "AdamTotal placement-AGENCY board (verified live 2026-06-09, ~403 jobs across 17 pages). Peres reposts roles across multiple IL employer clients (EBA, Flex, Tax Authority, etc.). Tagged ats=adamtotal_agency so dedup vs direct rows is measurable. Real token has UUID prefix."
     },
     {
       "name": "Perimeter 81",
@@ -7989,6 +7991,18 @@
       "api_url": "https://pwc.wd3.myworkdayjobs.com/wday/cxs/pwc/Global_Experienced_Careers/jobs",
       "verified": true,
       "notes": "Slug verified; tenant returns 0 IL jobs for searchText 'Israel' and 0 for 'Tel Aviv'. The 4716 global jobs noted in registry are real but PwC Israel (Kesselman & Kesselman) does not post to the global Workday tenant — they hire via local pwc.com/il/he/careers (Hebrew). Workday tenant correct but PwC IL posts elsewhere. Leave as-is, expect ~0."
+    },
+    {
+      "name": "PwC Israel",
+      "type": "international_il_rd",
+      "industry": "Big-4 Accounting / Audit / Tax / Consulting",
+      "domain": "pwc.com/il",
+      "careers_url": "https://pwc-careersite.hunterhrms.com/",
+      "ats": "pwc_heroku",
+      "slug": "pwc-careersite",
+      "api_url": "https://niloo-server.herokuapp.com/actions-pwc-career",
+      "verified": true,
+      "notes": "Niloosoft Hunter Next.js + Heroku tenant. Single POST {cmd:get-jobs,data:{}} returns full catalogue (~62 jobs as of 2026-06-09 including 6 explicit internship roles — Tax 2027, M&A Advisory, Audit 2027, Economic Dept 2027, RAS Consulting 2026, Audit pre-internship). High practicum-audience fit."
     },
     {
       "name": "Pyramid Analytics",
