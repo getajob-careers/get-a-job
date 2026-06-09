@@ -113,9 +113,15 @@ const SKIPPED_MODELS: string[] = [];
 // transport production would use after the model swap — NOT through OpenRouter.
 const DIRECT_OPENAI_CONTROLS = ["gpt-4o-mini", "gpt-4o", "gpt-5.5"];
 
+// Matches both bare OpenAI slugs (direct-OpenAI controls like "gpt-5.5") AND
+// OpenRouter-prefixed ones (like "openai/gpt-5.5"). The previous version only
+// matched the openai/-prefixed form, which meant the bare "gpt-5.5" direct-
+// OpenAI control fell through to the non-reasoning branch, got max_tokens
+// instead of max_completion_tokens, and produced 19/19 HTTP 400s with
+// "Unsupported parameter: 'max_tokens' is not supported with this model".
 const REASONING_MODEL_PATTERNS = [
-  /^openai\/gpt-5(\.|$)/i,
-  /^openai\/o[1-9](\.|-|$)/i,
+  /^(openai\/)?gpt-5(\.|$)/i,
+  /^(openai\/)?o[1-9](\.|-|$)/i,
   /-thinking$/i,
 ];
 const isReasoningModel = (slug: string) => REASONING_MODEL_PATTERNS.some((rx) => rx.test(slug));

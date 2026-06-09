@@ -65,6 +65,22 @@ export const ROUTES: Record<JobKey, ModelRoute> = {
   // Model stays gpt-4o-mini until the bake-off latency for gpt-5.5
   // direct-OpenAI confirms it's acceptable for the onboarding spinner.
   // Swap is two lines: model -> 'gpt-5.5' + add reasoning_effort: 'none'.
+  //
+  // ⚠️ BEFORE SWAPPING TO gpt-5.5 OR ANY OTHER REASONING MODEL:
+  // The OpenAI Chat Completions API rejects `max_tokens` for gpt-5.x and
+  // o-series reasoning models with HTTP 400 "Unsupported parameter:
+  // 'max_tokens' is not supported with this model, use 'max_completion_
+  // tokens' instead." The ai-chat callOpenAI helper currently hardcodes
+  // `max_tokens` (see supabase/functions/ai-chat/index.ts callOpenAI). The
+  // resume-extractor branch in ai-chat MUST translate to
+  // `max_completion_tokens` before the model swap, or every resume-
+  // extractor call will 400 in production exactly like the bake-off
+  // direct-OpenAI control did 19/19. Specifically:
+  //   - If route.reasoning_effort is set: send max_completion_tokens, not
+  //     max_tokens. Send reasoning_effort as a top-level body field.
+  //   - Otherwise (gpt-4o-mini today): keep max_tokens as-is.
+  // Verified pattern: scripts/test-cv-extraction-bakeoff.ts callModel()
+  // does this correctly once the reasoning regex matches the bare slug.
   'resume-extractor': {
     model: 'gpt-4o-mini',
     transport: 'openai',
