@@ -131,19 +131,34 @@ interface UserContext {
   skills: string[];
 }
 
+// PostgREST refuses to expose the `auth` schema even with service-role auth,
+// so .schema('auth').from('users') errors with "Invalid schema: auth". Cache
+// the listUsers() result across diffOne() calls — single GoTrue page covers
+// the ~30 pilot users without issue.
+let _userIndex: Map<string, string> | null = null;
+async function userIdByEmail(email: string): Promise<string | null> {
+  if (!_userIndex) {
+    _userIndex = new Map();
+    let page = 1;
+    for (;;) {
+      const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+      if (error) throw new Error(`auth.admin.listUsers failed: ${error.message}`);
+      for (const u of data.users) {
+        if (u.email) _userIndex.set(u.email.trim().toLowerCase(), u.id);
+      }
+      if (data.users.length < 1000) break;
+      page++;
+    }
+  }
+  return _userIndex.get(email.trim().toLowerCase()) ?? null;
+}
+
 async function loadUser(email: string): Promise<UserContext | null> {
-  // Look up the user_id via auth.users (RPC fallback if direct query is blocked).
-  const { data: authRow, error: authErr } = await supabase
-    .schema("auth" as any)
-    .from("users")
-    .select("id, email")
-    .eq("email", email)
-    .maybeSingle();
-  if (authErr || !authRow) {
-    console.error(`  could not resolve ${email}:`, authErr?.message);
+  const userId = await userIdByEmail(email);
+  if (!userId) {
+    console.error(`  could not resolve ${email}: not found in auth.users`);
     return null;
   }
-  const userId = (authRow as any).id as string;
 
   const [pRes, eRes, prRes, edRes] = await Promise.all([
     supabase.from("profiles").select("*").eq("id", userId).maybeSingle(),
