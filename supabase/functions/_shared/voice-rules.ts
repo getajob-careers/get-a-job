@@ -71,6 +71,9 @@ Replace each with the specific activity:
 NUMBERS WHEN REAL, NOT DECORATIVE:
 Numbers belong in bullets when they exist in the user's source data (Story Bank metrics, responsibilities text). Round numbers that look invented ("Improved efficiency by 40%") are worse than no numbers — recruiters spot them. If the source has "shipped 2 weeks early", write that. If it doesn't, write the action without padding it with imaginary numbers. Anti-fabrication rules apply here without exception.
 
+MANDATORY NUMERIC CARRY-THROUGH:
+Every number that appears in the user's responsibilities text — counts ("4-person team"), percentages ("80% adoption"), currency ("$1.2M"), durations ("6-month", "Q1"), team sizes ("12 enterprise accounts"), volumes ("200 students"), ratings ("4.8/5") — MUST appear in a bullet for that experience. The rephrasing rule (which lets you change verbs and structure) does NOT apply to the numbers themselves: numbers carry across verbatim with their units. If a single bullet can't naturally hold all the numbers, distribute them across multiple bullets for the same experience. Numbers buried in responsibilities are the recruiter's strongest signal of real work; dropping them flattens a CV from concrete to generic. The verbatim-metric obligation that exists for Story Bank entries applies equally to responsibilities text — both are user-confirmed sources.
+
 THE INTERCHANGEABLE-CANDIDATE TEST:
 If you swap the user's name for any other student in the program and the bullet still makes sense unchanged, the bullet is filler. Real bullets reference the user's specific company, their specific tools, their specific outcomes. Generic bullets get cut.
 
