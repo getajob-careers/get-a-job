@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-06-05",
+  "generated_at": "2026-06-09",
   "total_companies": 884,
   "by_ats": {
     "ashby": 67,
-    "comeet": 224,
+    "comeet": 225,
     "custom": 32,
     "eightfold": 3,
-    "greenhouse": 202,
+    "greenhouse": 200,
     "iai": 1,
     "icims": 1,
     "jooble": 1,
-    "lever": 26,
+    "lever": 25,
     "oracle": 1,
     "recruitee": 1,
     "smartrecruiters": 10,
     "successfactors": 8,
     "teamtailor": 1,
-    "unknown": 259,
+    "unknown": 261,
     "workable": 10,
     "workday": 37
   },
@@ -2307,11 +2307,11 @@
       "industry": "DevTools",
       "domain": "codefresh.io",
       "careers_url": "https://codefresh.io/careers/",
-      "ats": "lever",
-      "slug": "octopus",
-      "api_url": "https://api.lever.co/v0/postings/octopus?mode=json",
+      "ats": "greenhouse",
+      "slug": "octopusdeploy",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/octopusdeploy/jobs?content=true",
       "verified": true,
-      "notes": "Acquired by Octopus Deploy (2024) — careers now on jobs.lever.co/octopus; slug 'octopus' may have IL roles"
+      "notes": "Acquired by Octopus Deploy 2023. Octopus careers on Greenhouse `octopusdeploy` (verified 2026-06-09, currently 3 generic talent-pool entries; real Octopus roles JS-hydrate into a separate UI). Old Lever `octopus` slug returns 404."
     },
     {
       "name": "CodeMonkey",
@@ -4611,11 +4611,11 @@
       "industry": "B2B SaaS",
       "domain": "honeybook.com",
       "careers_url": "https://www.honeybook.com/careers",
-      "ats": "greenhouse",
+      "ats": "ashby",
       "slug": "honeybook",
-      "api_url": "https://boards-api.greenhouse.io/v1/boards/honeybook/jobs",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/honeybook?includeCompensation=true",
       "verified": true,
-      "notes": "Probed: greenhouse slug 'honeybook' returns 200"
+      "notes": "Moved from Greenhouse to Ashby (verified 2026-06-09, 13 active postings including Tel Aviv). Old GH slug `honeybook` returns 404."
     },
     {
       "name": "Honeycomb Insurance",
@@ -6099,11 +6099,11 @@
       "industry": "Healthtech / Host Immune Response Diagnostics",
       "domain": "me-med.com",
       "careers_url": "https://www.me-med.com/careers/",
-      "ats": "greenhouse",
-      "slug": "memed",
-      "api_url": "https://boards-api.greenhouse.io/v1/boards/memed/jobs",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
       "verified": false,
-      "notes": "Historically used Greenhouse (boards.greenhouse.io/memed) — saw job IDs 5846180002, 6274366002, 5047799002 in indexes. Board currently returns 404/inactive. MeMed is Haifa-based personalized diagnostics, real ongoing hiring activity. Add as unverified=false; may have moved boards. Alternative: monitor me-med.com/careers directly."
+      "notes": "Custom WordPress form at me-med.com/careers/ (no public ATS endpoint, verified 2026-06-09). careers.me-med.com subdomain shows LiteSpeed suspendedpage.cgi. Old Greenhouse slug `memed` returns 404."
     },
     {
       "name": "Mend",
@@ -6267,11 +6267,11 @@
       "industry": "AI / LLM",
       "domain": "mistral.ai",
       "careers_url": "https://mistral.ai/careers/",
-      "ats": "ashby",
+      "ats": "lever",
       "slug": "mistral",
-      "api_url": "https://api.ashbyhq.com/posting-api/job-board/mistral?includeCompensation=true",
+      "api_url": "https://api.lever.co/v0/postings/mistral?mode=json",
       "verified": true,
-      "notes": "French LLM lab; mark_unverified for IL"
+      "notes": "Moved from Ashby to Lever (verified 2026-06-09, 170 active postings). Old Ashby slug `mistral` returns 404."
     },
     {
       "name": "Mitiga",
@@ -6651,11 +6651,11 @@
       "industry": "Adtech / DSP+SSP",
       "domain": "nexxen.com",
       "careers_url": "https://job-boards.greenhouse.io/nexxen",
-      "ats": "greenhouse",
+      "ats": "ashby",
       "slug": "nexxen",
-      "api_url": "https://boards-api.greenhouse.io/v1/boards/nexxen/jobs?content=true",
-      "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" UX UI search. Greenhouse API returned 404 on api endpoint but boards.greenhouse.io/nexxen redirects to job-boards.greenhouse.io/nexxen and lists multiple Tel Aviv hybrid jobs (UX/UI Product Designer, Junior Business Development Manager, Data Engineer, BI Frontend, Office Receptionist & Admin, Senior BI Developer, Junior Sales Manager). Marked unverified due to API 404 — the slug appears live in the embed form. Worth investigating directly."
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/nexxen?includeCompensation=true",
+      "verified": true,
+      "notes": "Moved from Greenhouse to Ashby post-Tremor rebrand (verified 2026-06-09, 44 active postings, 14 in Tel Aviv). Old GH slug `nexxen` returns 404."
     },
     {
       "name": "NICE Systems",
@@ -7347,11 +7347,11 @@
       "industry": "Fintech / Healthcare Payments",
       "domain": "payzen.com",
       "careers_url": "https://www.payzen.com/careers",
-      "ats": "lever",
-      "slug": "payzen",
-      "api_url": "https://api.lever.co/v0/postings/payzen?mode=json",
-      "verified": false,
-      "notes": "Found via Google index showing Sr BE Developer Tel Aviv role at jobs.lever.co/payzen. Lever JSON endpoint returned 404 at time of check (board may be private). Worth keeping with verified=false; manual confirmation needed."
+      "ats": "ashby",
+      "slug": "payzen-inc",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/payzen-inc?includeCompensation=true",
+      "verified": true,
+      "notes": "Moved from Lever to Ashby (verified 2026-06-09, 8 active US-only postings — no IL hiring at present). Old Lever slug `payzen` returns 404."
     },
     {
       "name": "Paz Oil",
@@ -7851,11 +7851,11 @@
       "industry": "AgTech",
       "domain": "prospera.ag",
       "careers_url": null,
-      "ats": "ashby",
-      "slug": "prospera",
-      "api_url": "https://api.ashbyhq.com/posting-api/job-board/prospera",
-      "verified": true,
-      "notes": "Probed: ashby slug 'prospera' returns 200"
+      "ats": "comeet",
+      "slug": "prospera/C5.00F",
+      "api_url": null,
+      "verified": false,
+      "notes": "Moved from Ashby to Comeet (verified 2026-06-09). API requires token from human page; needs headless extraction. Old Ashby slug `prospera` returns 404. Park until Comeet token-extraction pipeline lands."
     },
     {
       "name": "ProteanTecs",
@@ -8931,11 +8931,11 @@
       "industry": "Fintech / Finance Operations",
       "domain": "statement.co",
       "careers_url": "https://job-boards.greenhouse.io/statement",
-      "ats": "greenhouse",
-      "slug": "statement",
-      "api_url": "https://boards-api.greenhouse.io/v1/boards/statement/jobs?content=true",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
       "verified": false,
-      "notes": "Surfaced via site:job-boards.greenhouse.io fintech Israel search (Data Integrity Analyst Tel Aviv-Yafo on-site). API URL returns 404 — slug may have been retired or moved. Worth re-checking."
+      "notes": "ACQUIRED by Tipalti (verified 2026-06-09 via LinkedIn). statement.io still up but jobs link is dead Greenhouse board. Hiring now via Tipalti — separate registry entry. Archive this row from active fetching."
     },
     {
       "name": "StoreDot",
