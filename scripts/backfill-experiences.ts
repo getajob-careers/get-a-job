@@ -517,6 +517,26 @@ async function stage2() {
     });
     if (rpcErr) { console.error(`  ${p.email}: replace_career_roles FAILED: ${rpcErr.message}\nABORTING.`); process.exit(1); }
     console.error(`  ${p.email}: replaced ${rolesPayload.length} career_roles`);
+
+    // Profile assessment refresh — generate-career-analysis returns the
+    // fresh qualification_level / overall_assessment / skill_gaps but does
+    // NOT persist them itself. Without this update they'd stay at the
+    // stale 0-experience values ("Junior" / "couldn't find clear role
+    // matches yet" / []). Matches the pattern in scripts/rerun-career-
+    // analysis.mjs:142-151. profile.skills + profile.proof_signals are
+    // deliberately NOT touched here — those are guard-rails that should
+    // stay unchanged through this stage.
+    const { error: profErr } = await userClient
+      .from("profiles")
+      .update({
+        qualification_level: resp.qualification_level || null,
+        overall_assessment: resp.overall_assessment || null,
+        skill_gaps: Array.isArray(resp.skill_gaps) ? resp.skill_gaps : [],
+        last_reality_check_date: new Date().toISOString(),
+      })
+      .eq("id", p.user_id);
+    if (profErr) { console.error(`  ${p.email}: profile assessment update FAILED: ${profErr.message}\nABORTING.`); process.exit(1); }
+    console.error(`  ${p.email}: refreshed profile assessment (qualification_level=${resp.qualification_level || "?"}, skill_gaps=${(resp.skill_gaps || []).length})`);
   }
 
   console.error("\nRe-snapshot + diff...");
@@ -525,16 +545,28 @@ async function stage2() {
   writeFileSync(SNAPSHOT_AFTER, JSON.stringify(after, null, 2));
 
   console.log("\n" + "=".repeat(78));
-  console.log("STAGE 2 DIFF (expected: ONLY career_roles changed)");
+  console.log("STAGE 2 DIFF (expected: career_roles + 4 profile assessment fields)");
   console.log("=".repeat(78));
+  // Widened from career_roles-only after the script also refreshes the
+  // profile assessment (qualification_level / overall_assessment /
+  // skill_gaps / last_reality_check_date). profile.skills and
+  // profile.proof_signals stay OUT of the expected set so the diff still
+  // flags them as guard-rails if anything ever writes to them by mistake.
+  const STAGE_2_EXPECTED = [
+    "career_roles",
+    "profile_qualification_level",
+    "profile_overall_assessment",
+    "profile_skill_gaps",
+    "profile_last_reality_check_date",
+  ];
   let bad = 0;
   for (let i = 0; i < baseline.length; i++) {
     const d = diffSnapshot(baseline[i], after[i]);
-    printDiff(d, ["career_roles"]);
-    if (unexpectedChange(d, ["career_roles"])) bad++;
+    printDiff(d, STAGE_2_EXPECTED);
+    if (unexpectedChange(d, STAGE_2_EXPECTED)) bad++;
   }
-  if (bad > 0) { console.log(`\n⚠️ ${bad} user(s) saw changes outside career_roles. INVESTIGATE.`); process.exit(1); }
-  console.log("\n✅ Verified: only career_roles changed.");
+  if (bad > 0) { console.log(`\n⚠️ ${bad} user(s) saw changes outside the expected set. INVESTIGATE.`); process.exit(1); }
+  console.log("\n✅ Verified: only career_roles + profile assessment fields changed; profile.skills and profile.proof_signals untouched.");
 }
 
 // ─── STAGE 3 ───
