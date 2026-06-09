@@ -22,10 +22,15 @@
 //   SUPABASE_SERVICE_ROLE_KEY=... \
 //   OPENAI_API_KEY=... \
 //     npx tsx scripts/test-cv-authoring-diff.ts \
-//       --emails=michael@sobol.cc,matiborlak@gmail.com,nevo.liani@gmail.com \
+//       --emails=michael@sobol.cc,matiborlak@gmail.com,gavibook@gmail.com,nevo.liani@gmail.com \
 //       --out=/tmp/cv-diff-report.md
 //
-// Cost: ~$0.01 per user per prompt = ~$0.06 for the 3-user comparison on gpt-4o-mini.
+// Model is locked to gpt-4o to mirror production (generate-tailored-cv/index.ts:30).
+// A diff on gpt-4o-mini would be meaningless — prompt changes interact with the
+// model's instruction-following discipline, which differs between -mini and -4o.
+//
+// Cost: gpt-4o is ~$0.05 per CV-authoring call (~2.2k in + ~1.5k out at $2.50/$10 per M).
+// The 4-user × 2-prompt run is roughly $0.40 total.
 
 import { createClient } from "@supabase/supabase-js";
 import { writeFileSync } from "node:fs";
@@ -41,11 +46,14 @@ if (!SUPABASE_URL || !SERVICE_ROLE || !OPENAI_API_KEY) {
 const args = process.argv.slice(2);
 const arg = (n: string, d = ""): string =>
   args.find((a) => a.startsWith(`--${n}=`))?.split("=")[1] ?? d;
-const EMAILS = arg("emails", "michael@sobol.cc,matiborlak@gmail.com,nevo.liani@gmail.com")
+const EMAILS = arg("emails", "michael@sobol.cc,matiborlak@gmail.com,gavibook@gmail.com,nevo.liani@gmail.com")
   .split(",").map((s) => s.trim()).filter(Boolean);
 const OUT = arg("out", "/tmp/cv-diff-report.md");
 const TARGET_ROLE = arg("role", "Customer Success Specialist");
-const MODEL = "gpt-4o-mini";
+// Mirrors generate-tailored-cv/index.ts:30 — production CV authoring uses gpt-4o,
+// NOT -mini. A diff on -mini would be meaningless because instruction-following
+// behaviour differs between the two and Option A's rules are instruction-heavy.
+const MODEL = "gpt-4o";
 
 const supabase = createClient(SUPABASE_URL, SERVICE_ROLE);
 
