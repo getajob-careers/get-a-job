@@ -71,29 +71,45 @@ const OUT = arg("out", "/tmp/cv-bakeoff.md");
 const TARGET_ROLE = arg("role", "Customer Success Specialist");
 const DETAIL_USER = arg("detail-user", "gavibook@gmail.com");
 
-// Bake-off slugs verified against the OpenRouter catalog 2026-06-09.
-// claude-sonnet-4.6 is intentionally absent — not listed in the catalog.
+// Bake-off requests use the simple (un-dated) slug form so the runtime
+// resolver can find the catalog entry no matter what date suffix the
+// catalog currently exposes. Slug strings here are *requests*, not the
+// final resolved IDs — see resolveModelSlug() below.
+// claude-sonnet-4.6 is included so the resolver can pick it up if/when
+// it lands in the catalog; if not, it'll be skipped with closest-matches
+// suggestions.
 const DEFAULT_MODELS = [
-  "openai/gpt-5.5-20260423",
-  "anthropic/claude-opus-4.8-20260528",
-  "google/gemini-3.5-flash-20260519",
-  "x-ai/grok-4.3-20260430",
+  "openai/gpt-5.5",
+  "anthropic/claude-opus-4.8",
+  "anthropic/claude-sonnet-4.6",
+  "google/gemini-3.5-flash",
+  "x-ai/grok-4.3",
 ].join(",");
-const MODELS = arg("models", DEFAULT_MODELS).split(",").map((s) => s.trim()).filter(Boolean);
+const REQUESTED_MODELS = arg("models", DEFAULT_MODELS).split(",").map((s) => s.trim()).filter(Boolean);
+let MODELS: string[] = []; // filled by resolveRequestedModels() at startup
+const SKIPPED_MODELS: string[] = [];
 
-// Hardcoded pricing fallback ($/1M input, $/1M output). Used when the
-// OpenRouter /models endpoint response doesn't expose pricing for a given
-// slug (the script fetches that endpoint at startup and prefers live data).
+// Reasoning-model allowlist — these consume hidden reasoning tokens before
+// emitting visible JSON, so they need a much larger completion budget and
+// (when supported) the OpenRouter `reasoning: { effort }` knob to keep the
+// visible-token share usable.
+const REASONING_MODEL_PATTERNS = [
+  /^openai\/gpt-5(\.|$)/i,         // gpt-5, gpt-5.4, gpt-5.5, gpt-5.5-pro, etc.
+  /^openai\/o[1-9](\.|-|$)/i,      // o1, o3, etc.
+  /-thinking$/i,                   // anthropic/claude-*-thinking
+];
+const isReasoningModel = (slug: string) => REASONING_MODEL_PATTERNS.some((rx) => rx.test(slug));
+
+// Hardcoded pricing fallback ($/1M input, $/1M output). The runtime catalog
+// query at startup is the primary source; fallback only fires for slugs the
+// /models endpoint doesn't price (rare).
 const PRICING_FALLBACK: Record<string, { in_per_m: number; out_per_m: number }> = {
   "gpt-4o": { in_per_m: 2.5, out_per_m: 10 },
-  "openai/gpt-5.5-20260423": { in_per_m: 5, out_per_m: 30 },
-  "anthropic/claude-opus-4.8-20260528": { in_per_m: 5, out_per_m: 25 },
-  "google/gemini-3.5-flash-20260519": { in_per_m: 1.5, out_per_m: 9 },
-  "x-ai/grok-4.3-20260430": { in_per_m: 1.25, out_per_m: 2.5 },
+  "openai/gpt-5.5": { in_per_m: 5, out_per_m: 30 },
+  "anthropic/claude-opus-4.8": { in_per_m: 5, out_per_m: 25 },
+  "google/gemini-3.5-flash": { in_per_m: 1.5, out_per_m: 9 },
+  "x-ai/grok-4.3": { in_per_m: 1.25, out_per_m: 2.5 },
 };
-const SKIPPED_MODELS = [
-  "anthropic/claude-sonnet-4.6 — not listed on OpenRouter as of 2026-06-09",
-];
 
 const GPT4O_CONTROL = "gpt-4o";
 
@@ -247,37 +263,109 @@ async function loadUser(email: string): Promise<UserContext | null> {
 // when a slug isn't present in the live response. ───
 
 let _orPricing: Map<string, { in_per_m: number; out_per_m: number }> | null = null;
-async function loadOpenRouterPricing(): Promise<void> {
-  if (_orPricing) return;
+let _orCatalog: string[] | null = null; // every catalog id, sorted, kept for resolver suggestions
+
+async function loadOpenRouterCatalog(): Promise<void> {
+  if (_orPricing && _orCatalog) return;
   _orPricing = new Map();
+  _orCatalog = [];
   try {
     const res = await fetch("https://openrouter.ai/api/v1/models", {
       headers: { Authorization: `Bearer ${OPENROUTER_API_KEY}` },
       signal: AbortSignal.timeout(20000),
     });
     if (!res.ok) {
-      console.warn(`  OpenRouter /models returned ${res.status} — falling back to hardcoded pricing`);
+      console.warn(`  OpenRouter /models returned ${res.status} — falling back to hardcoded pricing, no slug resolution available`);
       return;
     }
     const j = await res.json();
     for (const m of j.data || []) {
+      if (!m.id) continue;
+      _orCatalog.push(m.id);
       const p = m.pricing;
-      if (m.id && p?.prompt && p?.completion) {
+      if (p?.prompt && p?.completion) {
         _orPricing.set(m.id, {
           in_per_m: parseFloat(p.prompt) * 1e6,
           out_per_m: parseFloat(p.completion) * 1e6,
         });
       }
     }
-    console.error(`  loaded pricing for ${_orPricing.size} OpenRouter models`);
+    _orCatalog.sort();
+    console.error(`  loaded ${_orCatalog.length} OpenRouter models (${_orPricing.size} priced)`);
   } catch (e) {
-    console.warn(`  OpenRouter pricing fetch failed (${e instanceof Error ? e.message : e}) — fallback table will be used`);
+    console.warn(`  OpenRouter catalog fetch failed (${e instanceof Error ? e.message : e}) — fallback table will be used, no slug resolution available`);
   }
 }
 
 function priceFor(slug: string): { in_per_m: number; out_per_m: number } {
   if (_orPricing?.has(slug)) return _orPricing.get(slug)!;
   return PRICING_FALLBACK[slug] ?? { in_per_m: 0, out_per_m: 0 };
+}
+
+// Resolve a user-supplied slug request against the live catalog. Returns
+// either { resolved, via } or { error, suggestions }.
+//   - "exact"           — the request matches a catalog id verbatim
+//   - "case-insensitive"— case-only difference (rare)
+//   - "stripped-date"   — request had a "-YYYYMMDD" suffix the catalog dropped
+//   - "prefix-shortest" — request is a prefix of one or more catalog ids;
+//                         pick the shortest (which is typically the base
+//                         family slug, not a "-fast" / "-thinking" variant)
+function resolveModelSlug(
+  requested: string,
+  catalog: string[],
+): { resolved: string; via: string } | { error: string; suggestions: string[] } {
+  if (catalog.length === 0) {
+    // No catalog loaded — accept the requested slug verbatim and hope for the best.
+    return { resolved: requested, via: "no-catalog" };
+  }
+  // Exact match
+  if (catalog.includes(requested)) return { resolved: requested, via: "exact" };
+  // Case-insensitive
+  const lower = requested.toLowerCase();
+  for (const id of catalog) {
+    if (id.toLowerCase() === lower) return { resolved: id, via: "case-insensitive" };
+  }
+  // Strip a trailing -YYYYMMDD that the catalog might no longer carry
+  const stripped = requested.replace(/-\d{8}$/, "");
+  if (stripped !== requested && catalog.includes(stripped)) {
+    return { resolved: stripped, via: "stripped-date" };
+  }
+  // Prefix match — pick the shortest (base family without -fast / -thinking / etc.)
+  const prefix = stripped !== requested ? stripped : requested;
+  const prefixMatches = catalog.filter((id) => id.startsWith(prefix));
+  if (prefixMatches.length >= 1) {
+    prefixMatches.sort((a, b) => a.length - b.length);
+    return { resolved: prefixMatches[0], via: prefixMatches.length === 1 ? "prefix" : "prefix-shortest" };
+  }
+  // Fall back to token-overlap suggestions
+  const tokens = requested.toLowerCase().split(/[/\-.]/).filter((t) => t.length > 1);
+  const scored: Array<{ id: string; score: number }> = [];
+  for (const id of catalog) {
+    const idLower = id.toLowerCase();
+    let score = 0;
+    for (const t of tokens) if (idLower.includes(t)) score++;
+    if (score > 0) scored.push({ id, score });
+  }
+  scored.sort((a, b) => b.score - a.score || a.id.length - b.id.length);
+  return { error: "not_found", suggestions: scored.slice(0, 5).map((s) => s.id) };
+}
+
+function resolveRequestedModels(): void {
+  for (const requested of REQUESTED_MODELS) {
+    const r = resolveModelSlug(requested, _orCatalog || []);
+    if ("resolved" in r) {
+      if (r.resolved !== requested) {
+        console.error(`  slug resolved: "${requested}" → "${r.resolved}" (${r.via})`);
+      } else {
+        console.error(`  slug verified: "${requested}" (exact match in catalog)`);
+      }
+      MODELS.push(r.resolved);
+    } else {
+      const sugg = r.suggestions.length > 0 ? `\n      closest: ${r.suggestions.join(", ")}` : " (no close matches found)";
+      console.error(`  slug NOT in catalog, skipping: "${requested}"${sugg}`);
+      SKIPPED_MODELS.push(`${requested} — not in OpenRouter catalog. Closest: ${r.suggestions.join(", ") || "(none)"}`);
+    }
+  }
 }
 
 // ─── Model invocation — direct OpenAI for gpt-4o; OpenRouter for everything else ───
@@ -328,6 +416,17 @@ async function callModel(modelSlug: string, systemPrompt: string, userContent: s
   // Some Anthropic and Google models on OpenRouter don't honour
   // response_format=json_object strictly; we ask for it anyway and parse
   // defensively (strip ```json fences, extract first {...} block).
+  //
+  // Completion budget:
+  //   - gpt-4o controls: 2200 is fine (production CV gen uses similar)
+  //   - OpenRouter non-reasoning models: 8000 (defends against Gemini-style
+  //     mid-stream truncation we saw in the first bake-off run)
+  //   - OpenRouter reasoning models (gpt-5.x, o-series, *-thinking):
+  //     16000 + reasoning.effort=low. Hidden reasoning tokens count against
+  //     max_completion_tokens, and gpt-5.5 ate the entire 2200 budget on
+  //     thought before emitting a single visible token in the first run.
+  const reasoning = isReasoningModel(modelSlug);
+  const completionCap = isDirectOpenAI ? 2200 : reasoning ? 16000 : 8000;
   const body: any = {
     model: modelSlug,
     messages: [
@@ -335,9 +434,21 @@ async function callModel(modelSlug: string, systemPrompt: string, userContent: s
       { role: "user", content: userContent },
     ],
     temperature: 0.3,
-    max_tokens: 2200,
+    // Send BOTH parameter names: max_tokens (legacy, what gpt-4o expects)
+    // and max_completion_tokens (current, what gpt-5.x reasoning models
+    // expect). OpenRouter normalises whichever the upstream model uses.
+    max_tokens: completionCap,
+    max_completion_tokens: completionCap,
     response_format: { type: "json_object" },
   };
+  if (reasoning && !isDirectOpenAI) {
+    // OpenRouter-supported knob to cap hidden thinking on reasoning models.
+    // "low" keeps a usable share of completionCap for visible output.
+    // Also send the flat OpenAI name for redundancy — if either side accepts
+    // it, the hidden thinking gets bounded.
+    body.reasoning = { effort: "low" };
+    body.reasoning_effort = "low";
+  }
 
   try {
     const headers = assertLatin1Headers({
@@ -373,14 +484,24 @@ async function callModel(modelSlug: string, systemPrompt: string, userContent: s
       };
     }
     const j = await res.json();
-    const raw: string = j.choices?.[0]?.message?.content || "{}";
+    const raw: string = j.choices?.[0]?.message?.content || "";
+    const finish_reason: string = j.choices?.[0]?.finish_reason || "";
     const tokens_in = j.usage?.prompt_tokens ?? 0;
     const tokens_out = j.usage?.completion_tokens ?? 0;
+    // For reasoning models OpenRouter surfaces a separate "reasoning_tokens"
+    // count nested under usage.completion_tokens_details. Track it so a
+    // gpt-5.5 cell that emits zero visible tokens can be diagnosed.
+    const reasoning_tokens = j.usage?.completion_tokens_details?.reasoning_tokens
+      ?? j.usage?.reasoning_tokens
+      ?? 0;
     const p = priceFor(modelSlug);
     const cost_usd = (tokens_in / 1e6) * p.in_per_m + (tokens_out / 1e6) * p.out_per_m;
 
-    // Defensive JSON parse: strip markdown fences, then try to extract the
-    // first balanced {...} block if the raw string isn't clean JSON.
+    // Defensive JSON parse: strip markdown fences, then extract the first
+    // balanced {...} block. If the response was TRUNCATED (finish_reason
+    // == "length"), label it distinctly so the bake-off table shows
+    // "truncated" not "bad_json" — the fix is to raise completionCap,
+    // not to chase model formatting bugs.
     const tryParse = (s: string): any => {
       try { return JSON.parse(s); } catch { return null; }
     };
@@ -394,14 +515,32 @@ async function callModel(modelSlug: string, systemPrompt: string, userContent: s
       if (brace) parsed = tryParse(brace[0]);
     }
     if (!parsed) {
+      // Distinguish "ran out of completion budget" from "model emitted
+      // un-parseable JSON". When finish_reason==length we know the JSON
+      // was cut, even if balanced-brace extraction succeeded earlier we
+      // still want to flag it because content beyond the truncation point
+      // is lost (e.g., later experiences missing).
+      const truncated = finish_reason === "length" || tokens_out >= completionCap - 50;
+      const empty = raw.trim().length === 0;
+      const label = empty
+        ? `empty_output finish_reason=${finish_reason} reasoning_tokens=${reasoning_tokens} visible_tokens=${tokens_out}`
+        : truncated
+          ? `truncated finish_reason=${finish_reason} reasoning_tokens=${reasoning_tokens} visible_tokens=${tokens_out}`
+          : `bad_json finish_reason=${finish_reason}: ${raw.slice(0, 150)}`;
+      return { cv: {}, tokens_in, tokens_out, latency_ms, cost_usd, ok: false, error: label };
+    }
+
+    // Even when parse succeeded, surface a soft warning if truncation
+    // happened — the parsed object may be missing trailing fields.
+    if (finish_reason === "length") {
       return {
-        cv: {},
+        cv: parsed,
         tokens_in,
         tokens_out,
         latency_ms,
         cost_usd,
         ok: false,
-        error: `bad_json: ${raw.slice(0, 200)}`,
+        error: `truncated_but_parsed finish_reason=length visible_tokens=${tokens_out} cap=${completionCap}`,
       };
     }
 
@@ -544,10 +683,11 @@ function renderMarkdown(reports: UserReport[]): string {
   lines.push(`Target role: "${TARGET_ROLE}"`);
   lines.push("");
   lines.push("**Controls (direct OpenAI):** gpt-4o on OLD prompt + gpt-4o on NEW prompt.");
-  lines.push(`**Bake-off (via OpenRouter, NEW prompt only):** ${MODELS.join(", ")}.`);
+  lines.push(`**Bake-off (via OpenRouter, NEW prompt only — slugs verified live against catalog):**`);
+  for (const slug of MODELS) lines.push(`- \`${slug}\``);
   if (SKIPPED_MODELS.length > 0) {
     lines.push("");
-    lines.push("**Skipped (slug not present in OpenRouter catalog):**");
+    lines.push("**Skipped (slug not in OpenRouter catalog at run time):**");
     for (const s of SKIPPED_MODELS) lines.push(`- ${s}`);
   }
   lines.push("");
@@ -664,7 +804,13 @@ function renderMarkdown(reports: UserReport[]): string {
 }
 
 async function main() {
-  await loadOpenRouterPricing();
+  console.error("Loading OpenRouter catalog…");
+  await loadOpenRouterCatalog();
+  console.error("Resolving requested model slugs against catalog…");
+  resolveRequestedModels();
+  if (MODELS.length === 0) {
+    console.error("  no models resolved — running gpt-4o controls only.");
+  }
   const reports: UserReport[] = [];
   for (const email of EMAILS) {
     try {
