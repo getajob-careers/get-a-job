@@ -3,8 +3,11 @@ import {
   buildResumeExtractionPrompt,
   EXPERIENCE_SKILLS_DIRECTIVE,
 } from '../lib/resumeExtractionPrompt.js';
+import { parseExtractedJson } from '../lib/parseExtractedJson.js';
 
-// Replicate the extraction logic from StepResumeUpload
+// Legacy regex-based parser, kept here as the comparison for the old
+// behaviour the hardened parser replaces. The new tests use
+// parseExtractedJson imported from the production module.
 function extractJson(replyText) {
   const jsonMatch = replyText.match(/\{[\s\S]*\}/);
   if (!jsonMatch) return null;
@@ -87,5 +90,71 @@ Return [] ONLY when the role has empty responsibilities AND no skill from anywhe
     const prompt = buildResumeExtractionPrompt(big);
     const tail = prompt.split('Here is the resume:')[1];
     expect(tail.replace(/^\s*/, '').length).toBe(15000);
+  });
+});
+
+// Hardened parser tests. The legacy regex parser dropped 4 of 19 pilot
+// users because gpt-4o-mini wrapped JSON in prose and the greedy match
+// produced unparseable spans. parseExtractedJson tightens the chain.
+describe('parseExtractedJson — hardened resume-extractor parser', () => {
+  it('parses clean JSON object directly (json_object mode response)', () => {
+    const r = parseExtractedJson('{"full_name":"Nevo","skills":["React","SQL"]}');
+    expect(r?.full_name).toBe('Nevo');
+    expect(r?.skills).toEqual(['React', 'SQL']);
+  });
+
+  it('strips a ```json fence wrapper', () => {
+    const r = parseExtractedJson('```json\n{"full_name":"Agam","skills":[]}\n```');
+    expect(r?.full_name).toBe('Agam');
+  });
+
+  it('strips a bare ``` fence wrapper', () => {
+    const r = parseExtractedJson('```\n{"full_name":"Ella"}\n```');
+    expect(r?.full_name).toBe('Ella');
+  });
+
+  it('balanced-brace match recovers JSON wrapped in prose', () => {
+    // Reproduces the exact production failure: gpt-4o-mini emits a prefix,
+    // the JSON, then a closing remark. Legacy greedy regex spans both
+    // braces and produces invalid JSON. parseExtractedJson stops at the
+    // matched closing brace.
+    const reply =
+      'Here is the structured resume data:\n' +
+      '{"full_name":"Yonah","experiences":[{"title":"Analyst","company":"Acme"}]}\n' +
+      'Let me know if you need anything else { "note": "trailing" }';
+    const r = parseExtractedJson(reply);
+    expect(r?.full_name).toBe('Yonah');
+    expect(r?.experiences?.[0]?.company).toBe('Acme');
+  });
+
+  it('balanced-brace match handles nested braces in string values', () => {
+    const reply = '{"full_name":"X","summary":"Worked on } interesting { problems"}';
+    const r = parseExtractedJson(reply);
+    expect(r?.full_name).toBe('X');
+    expect(r?.summary).toContain('interesting');
+  });
+
+  it('balanced-brace match handles escaped quotes inside strings', () => {
+    const reply = '{"name":"He said \\"hi\\"","level":"bachelors"}';
+    const r = parseExtractedJson(reply);
+    expect(r?.name).toBe('He said "hi"');
+    expect(r?.level).toBe('bachelors');
+  });
+
+  it('falls back to double-escape unescape for legacy responses', () => {
+    const reply = 'Here: {\\"full_name\\": \\"Daniella\\", \\"skills\\": []}';
+    const r = parseExtractedJson(reply);
+    expect(r?.full_name).toBe('Daniella');
+  });
+
+  it('returns null on total failure (no JSON anywhere)', () => {
+    expect(parseExtractedJson("Sorry, I couldn't extract the data.")).toBeNull();
+    expect(parseExtractedJson("")).toBeNull();
+    expect(parseExtractedJson(null)).toBeNull();
+  });
+
+  it('returns null when JSON is corrupted past recovery', () => {
+    // Truncated JSON with no closing brace — balanced-brace walk finds no end.
+    expect(parseExtractedJson('{"full_name":"X","skills":["a","b"')).toBeNull();
   });
 });

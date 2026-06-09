@@ -58,6 +58,7 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { track, EVENTS } from "@/lib/analytics";
 import { buildResumeExtractionPrompt } from "@/lib/resumeExtractionPrompt";
+import { parseExtractedJson } from "@/lib/parseExtractedJson";
 import {
   Loader2, Upload, CheckCircle2, ArrowRight, Linkedin, Info, ExternalLink, X,
   GraduationCap, Briefcase, Search, Pause, Sparkles,
@@ -187,43 +188,41 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
       const replyText = extractData?.reply || extractData?.content || extractData?.text || "";
 
       if (replyText) {
-        const jsonMatch = replyText.match(/\{[\s\S]*\}/);
-        if (jsonMatch) {
-          let extracted = null;
-          try { extracted = JSON.parse(jsonMatch[0]); } catch { /* try unescape below */ }
-          if (!extracted && /\{\s*\\"/.test(jsonMatch[0])) {
-            try {
-              const unescaped = jsonMatch[0]
-                .replace(/\\"/g, '"')
-                .replace(/\\n/g, "\n")
-                .replace(/\\t/g, "\t");
-              extracted = JSON.parse(unescaped);
-            } catch (e) {
-              console.error("JSON parse failed after unescaping:", e);
-            }
+        // Hardened parse chain — replaces the prior loose greedy regex that
+        // dropped 4 of 19 pilot users (nevo, agam, redheadeg, ybarshain)
+        // when gpt-4o-mini emitted JSON wrapped in prose. Strategy:
+        //   1. Direct parse — works when the model emits clean JSON (the
+        //      response_format=json_object route now ensures this on the
+        //      resume-extractor agent).
+        //   2. Strip a single markdown fence wrapper (```json ... ```).
+        //   3. Balanced-brace match from the FIRST `{` to its matching `}` —
+        //      tighter than the prior greedy `{[\s\S]*}` which spanned
+        //      trailing-prose objects and produced invalid JSON.
+        //   4. Legacy double-escape unescape — kept for backwards-compat
+        //      with any older clients still in the wild.
+        const extracted = parseExtractedJson(replyText);
+        if (extracted == null) {
+          console.warn("[StepResumeUpload] all parse paths failed — falling back to manual entry banner. reply head:", replyText.slice(0, 200));
+        } else {
+          let proofSignals = [];
+          let primaryDomain = null;
+          let adjacentFields = [];
+          const { data: psData } = await proofSignalsPromise;
+          if (psData?.proof_signals?.length) {
+            proofSignals = psData.proof_signals;
+            primaryDomain = psData.primary_domain || null;
+            adjacentFields = psData.adjacent_fields || [];
           }
 
-          if (extracted) {
-            let proofSignals = [];
-            let primaryDomain = null;
-            let adjacentFields = [];
-            const { data: psData } = await proofSignalsPromise;
-            if (psData?.proof_signals?.length) {
-              proofSignals = psData.proof_signals;
-              primaryDomain = psData.primary_domain || null;
-              adjacentFields = psData.adjacent_fields || [];
-            }
-
-            onExtracted({ ...extracted, proof_signals: proofSignals, primary_domain: primaryDomain, adjacent_fields: adjacentFields });
-            const fileType = file.type === "application/pdf" ? "pdf" : isDocxFile(file) ? "docx" : "other";
-            const extractedFieldsCount = Object.values(extracted || {}).filter(
-              (v) => v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0)
-            ).length;
-            track(EVENTS.CV_UPLOADED, { file_type: fileType, extracted_fields_count: extractedFieldsCount });
-            setExtracting(false);
-            setDone(true);
-            return;
-          }
+          onExtracted({ ...extracted, proof_signals: proofSignals, primary_domain: primaryDomain, adjacent_fields: adjacentFields });
+          const fileType = file.type === "application/pdf" ? "pdf" : isDocxFile(file) ? "docx" : "other";
+          const extractedFieldsCount = Object.values(extracted || {}).filter(
+            (v) => v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0)
+          ).length;
+          track(EVENTS.CV_UPLOADED, { file_type: fileType, extracted_fields_count: extractedFieldsCount });
+          setExtracting(false);
+          setDone(true);
+          return;
         }
       }
 

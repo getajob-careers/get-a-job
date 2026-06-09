@@ -4,6 +4,7 @@ import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion, type TraceContext } from '../_shared/openai-chat.ts'
 import { pickPrimaryEducation, formatEducationLine } from '../_shared/education-helpers.ts'
 import { stripHtml } from '../_shared/strip-html.ts'
+import { routeFor } from '../_shared/model-routing.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -856,9 +857,38 @@ Deno.serve(async (req) => {
     const BASE_MAX_TOKENS = 2048
     const RETRY_MAX_TOKENS = 4096
 
+    // Route resolution: ONLY resume-extractor reads from the routing layer
+    // today. Every other agent stays on MODEL = 'gpt-4o-mini' with the
+    // existing temperature 0.4 and no response_format. This is the surgical
+    // part of the change — conversational agents are byte-identical because
+    // their callOpenAI path is unchanged. The merge to a unified chat agent
+    // will switch the chat-agent route in a separate PR.
+    //
+    // resume-extractor specifically gets:
+    //   - response_format: { type: 'json_object' } — forces structured output,
+    //     eliminating the prefix/suffix-prose failure that lost 4 of 19
+    //     pilot users to the loose-regex parser
+    //   - temperature: 0.2 — extraction is parsing, not creative writing
+    //   - reasoning_effort: when the route specifies one (gpt-5.x and
+    //     o-series), passed as the flat OpenAI param. Routes without it
+    //     (gpt-4o-mini) just don't send the field.
+    const route = agent === 'resume-extractor' ? routeFor('resume-extractor') : null
+    const callModel = route?.model ?? MODEL
+    const callTemperature = route?.temperature ?? 0.4
+    const callResponseFormat = route?.response_format
+    const callReasoningEffort = route?.reasoning_effort
+
     async function callOpenAI(maxTokens: number) {
+      const body: Record<string, unknown> = {
+        model: callModel,
+        messages,
+        temperature: callTemperature,
+        max_tokens: maxTokens,
+      }
+      if (callResponseFormat) body.response_format = callResponseFormat
+      if (callReasoningEffort) body.reasoning_effort = callReasoningEffort
       return await fetchOpenAIWithRetry(
-        { model: MODEL, messages, temperature: 0.4, max_tokens: maxTokens },
+        body as Parameters<typeof fetchOpenAIWithRetry>[0],
         openaiKey,
         {
           traceName: 'ai-chat',
@@ -868,6 +898,7 @@ Deno.serve(async (req) => {
             has_application_link: !!application_id,
             follow_up_after: follow_up_after || null,
             max_tokens: maxTokens,
+            model: callModel,
           },
         },
       )
@@ -890,7 +921,7 @@ Deno.serve(async (req) => {
         })
       } catch { /* swallow */ }
       _http = 502; _err = `openai_${openaiResponse.status}`
-      m.modelUsed = MODEL
+      m.modelUsed = callModel
       return new Response(JSON.stringify({ error: 'AI service error' }), {
         status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -900,7 +931,10 @@ Deno.serve(async (req) => {
     let finishReason: string | undefined = completion.choices?.[0]?.finish_reason
     // Track usage additively across initial + retry. Both calls bill, so
     // the metric should reflect total consumption, not just the last response.
-    m.modelUsed = MODEL
+    // Uses callModel so routed agents (resume-extractor) report their actual
+    // model in function_metrics — previously every ai-chat row reported
+    // 'gpt-4o-mini' regardless of agent.
+    m.modelUsed = callModel
     m.tokensIn = completion.usage?.prompt_tokens ?? 0
     m.tokensOut = completion.usage?.completion_tokens ?? 0
 
