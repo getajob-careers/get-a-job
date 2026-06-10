@@ -1204,6 +1204,7 @@ export default function ChatInterface({ agentName, title, description, applicati
           // Strip HTML defensively — chat-agent-emitted CV proposals can
           // carry the user's pasted JD verbatim. Server-side strips too.
           job_description: proposal.job_description ? (stripHtml(proposal.job_description) || proposal.job_description) : null,
+          cv_model: "sonnet",
         },
       });
       if (error) throw error;

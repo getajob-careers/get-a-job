@@ -160,7 +160,7 @@ The tutorial **replaced** the original "Your Roles" reveal page — slides 1-6 c
 
 ## Edge functions (18)
 
-All under `supabase/functions/<slug>/index.ts`. Each writes per-call metrics via `_shared/metrics.ts` and (where they call OpenAI) emits Langfuse traces via `_shared/openai-chat.ts`.
+All under `supabase/functions/<slug>/index.ts`. Each writes per-call metrics via `_shared/metrics.ts` and (where they call OpenAI) emits Langfuse traces via `_shared/openai-chat.ts`. Non-OpenAI models route through `_shared/openrouter-chat.ts` — same OpenAI-shaped Response contract, same fire-and-forget Langfuse trace (reuses `sendLangfuseTrace` unchanged), same retry semantics (`openrouterChatCompletionWithRetry` mirrors the OpenAI wrapper: 3 retries, exponential + jitter, Retry-After honor). Used by `generate-tailored-cv` for the Sonnet branch.
 
 | Slug | Model | Rate | Purpose |
 |---|---|---|---|
@@ -177,7 +177,7 @@ All under `supabase/functions/<slug>/index.ts`. Each writes per-call metrics via
 | `generate-linkedin-content` | gpt-4o | 30/h | 7-section LinkedIn profile generation (headline, about, experiences, volunteering, military, skills_priority, honors). Refinement mode supported |
 | `generate-linkedin-outreach-message` | gpt-4o | 60/h | Multi-turn outreach coach. 8 goals. Two modes: new conversation or continue thread. Anti-pattern detection in post-process |
 | `generate-linkedin-post` | gpt-4o | 60/h | 7 post types (project / lessons / milestone / recap / observation / question / free_form). Refinement mode UPDATES same row |
-| `generate-tailored-cv` | gpt-4o | 30/h | Two-pass CV: keyword extraction → story bank selection → CV authoring. DOCX render via template engine. STORY BANK PRECEDENCE for verbatim metric/tool binding |
+| `generate-tailored-cv` | gpt-4o (Pass 1) + **claude-sonnet-4-6 via OpenRouter** (Pass 2/3) | 30/h | Three-pass CV: keyword extraction (gpt-4o) → CV authoring (Sonnet + Option A overlay) → coverage retry (Sonnet) when must-include-phrase coverage drops below 50% AND user skill overlap ≥ 30%. Both call sites send `cv_model: 'sonnet'` from the frontend (PR ramp); server keeps gpt-4o as the rollback default. PDF render via pdf-lib. DEFENSIVE JSON PARSE: three-tier fence-tolerant parser (strict → ` ```json ``` ` regex → greedy brace) handles Sonnet's markdown-wrapped output. RECONCILE WARNINGS in response payload flag cross-bucket migrations + positional fallbacks. Phase 0 bake-off evidence: `docs/research/cv-bakeoff-2026-06.md` |
 | `generate-tasks` | gpt-4o-mini | 10/h | Personalised tasks. Retry on truncation. Role library scoped to user's career_roles only |
 | `import-linkedin-archive` | — | 10/h | LinkedIn data-export ZIP parser (positions, education, skills, recommendations, honors, volunteering, languages). Privacy-first: ZIP never persisted, counts-only logging |
 | `lookup-role-skills` | — | — | Deterministic role → skills lookup against role library. No LLM, no rate limit |
@@ -187,6 +187,7 @@ All under `supabase/functions/<slug>/index.ts`. Each writes per-call metrics via
 
 **Standing items:**
 - `resume-extractor` moved from `gpt-4o-mini` to `gpt-5.4-mini` in the post-#277 model-swap PR. The `ai-chat` callOpenAI helper now branches on the route's `reasoning_effort` field — present → `max_completion_tokens`, absent → legacy `max_tokens`. Adding a future reasoning model to any other route works the same way: include `reasoning_effort` + (optionally) `max_completion_tokens` and callOpenAI handles the translation. No other agent's body shape changed.
+- `generate-tailored-cv` Pass 2/3 routes through `_shared/openrouter-chat.ts` to `anthropic/claude-sonnet-4.6`. The frontend sends `cv_model: 'sonnet'` from both call sites (`CVManagement.jsx`, `ChatInterface.jsx`); the server-side default stays `gpt-4o`, so a frontend revert at either call site returns that surface to gpt-4o with no edge-function redeploy. Required Supabase secret: `OPENROUTER_API_KEY`. Server returns HTTP 500 `no_openrouter_key` if the secret is unset and the request asked for Sonnet; the default branch never reads the key. Validate post-deploy via `scripts/validate-cv-deploy.ts` (model+ok per cell, reconcile_warnings, unsourced_bullets, Pass-3-fired heuristic from tokens_out ratio).
 
 ---
 
