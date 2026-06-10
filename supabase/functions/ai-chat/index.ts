@@ -865,28 +865,56 @@ Deno.serve(async (req) => {
     // will switch the chat-agent route in a separate PR.
     //
     // resume-extractor specifically gets:
+    //   - model: gpt-5.4-mini (reasoning model — see notes below)
     //   - response_format: { type: 'json_object' } — forces structured output,
     //     eliminating the prefix/suffix-prose failure that lost 4 of 19
-    //     pilot users to the loose-regex parser
+    //     pilot users to the loose-regex parser (PR #277)
     //   - temperature: 0.2 — extraction is parsing, not creative writing
-    //   - reasoning_effort: when the route specifies one (gpt-5.x and
-    //     o-series), passed as the flat OpenAI param. Routes without it
-    //     (gpt-4o-mini) just don't send the field.
+    //   - reasoning_effort: 'none' — lowest effort, recommended for
+    //     "fast information retrieval and classification"
+    //   - max_completion_tokens: 16000 — bake-off-validated cap that
+    //     mirrors the run that produced clean JSON 19/19. Reasoning models
+    //     count hidden thinking against this cap, so it's intentionally
+    //     much higher than the global BASE/RETRY budget below.
+    //
+    // Reasoning vs non-reasoning token-param routing:
+    //   - Reasoning models (gpt-5.x, o-series) reject `max_tokens` with
+    //     HTTP 400 "Unsupported parameter". They require
+    //     `max_completion_tokens` + accept `reasoning_effort`.
+    //   - Non-reasoning models reject `max_completion_tokens` paired with
+    //     `max_tokens` ("Setting both is not supported"), but accept
+    //     either one alone.
+    //
+    // The route's `reasoning_effort` presence IS the declaration that
+    // this is a reasoning model — no separate regex needed. Routes
+    // without it (every agent except resume-extractor today) fall into
+    // the legacy `max_tokens` branch and are byte-identical to before
+    // this PR.
     const route = agent === 'resume-extractor' ? routeFor('resume-extractor') : null
     const callModel = route?.model ?? MODEL
     const callTemperature = route?.temperature ?? 0.4
     const callResponseFormat = route?.response_format
     const callReasoningEffort = route?.reasoning_effort
+    const callMaxCompletionTokens = route?.max_completion_tokens
 
     async function callOpenAI(maxTokens: number) {
       const body: Record<string, unknown> = {
         model: callModel,
         messages,
         temperature: callTemperature,
-        max_tokens: maxTokens,
+      }
+      if (callReasoningEffort) {
+        // Reasoning branch: max_completion_tokens + flat reasoning_effort.
+        // Use the route's own cap when set (resume-extractor: 16000),
+        // else fall through to the global maxTokens budget passed by
+        // the retry-on-truncation orchestration below.
+        body.max_completion_tokens = callMaxCompletionTokens ?? maxTokens
+        body.reasoning_effort = callReasoningEffort
+      } else {
+        // Legacy branch: byte-identical to pre-PR for every non-routed agent.
+        body.max_tokens = maxTokens
       }
       if (callResponseFormat) body.response_format = callResponseFormat
-      if (callReasoningEffort) body.reasoning_effort = callReasoningEffort
       return await fetchOpenAIWithRetry(
         body as Parameters<typeof fetchOpenAIWithRetry>[0],
         openaiKey,
@@ -897,7 +925,10 @@ Deno.serve(async (req) => {
             agent,
             has_application_link: !!application_id,
             follow_up_after: follow_up_after || null,
-            max_tokens: maxTokens,
+            // Report whichever cap was actually sent so function_metrics
+            // doesn't lie about reasoning-model calls (which use a much
+            // larger cap than the BASE/RETRY constants would suggest).
+            max_tokens: callReasoningEffort ? (callMaxCompletionTokens ?? maxTokens) : maxTokens,
             model: callModel,
           },
         },
