@@ -1,31 +1,19 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ArrowRight } from "lucide-react";
 import RdSkillTagInput from "@/components/redesign/RdSkillTagInput";
-import RdPresetBubbleInput from "@/components/redesign/RdPresetBubbleInput";
 import RdButton from "@/components/redesign/RdButton";
 import { matchRoles } from "@/lib/roleMatch";
 
 // Restyled for PR 2B — behaviour identical to the Direction-3 version.
-// SkillTagInput → RdSkillTagInput, PresetBubbleInput → RdPresetBubbleInput.
-// Role-library autocomplete (debounced 350ms against the 183-role library),
-// dismiss-and-keep behaviour, exact-match success indicator, and the
-// 2 boolean checkboxes (open_to_lateral, open_to_outside_degree) are
-// all preserved verbatim.
+// SkillTagInput → RdSkillTagInput. Role-library autocomplete (debounced
+// 350ms against the 183-role library), dismiss-and-keep behaviour, and
+// the exact-match success indicator are all preserved verbatim.
 //
-// Industry presets aligned with companies.industry canonical spellings so the
-// substring matcher in match-internship-companies fires against real seeded
-// rows.
-const INDUSTRY_PRESETS = [
-  "Cybersecurity", "FinTech", "B2B SaaS", "AI/ML", "InsurTech", "HealthTech",
-  "HR Tech", "MarTech", "AdTech", "Gaming", "EdTech", "PropTech",
-  "E-commerce", "Climate Tech", "Mobility", "Logistics Tech",
-  "DevTools", "Sales Tech", "FoodTech", "Consumer Apps",
-];
-
-// Mirrors AddInformation.jsx exactly so onboarding ↔ profile-edit don't drift.
-const WORK_ENVIRONMENT_PRESETS = [
-  "Startup", "Scale-up", "Corporate", "Agency", "Non-profit", "Public Sector",
-];
+// Phase 1 onboarding trim: target_industries, work_environment,
+// open_to_lateral, and open_to_outside_degree captures removed — none
+// of those fields had downstream consumers beyond generate-tasks prompt
+// context, which falls back gracefully. five_year_role + target_job_titles
+// stay; the structured pick against the role library is Phase 2.
 
 const INPUT_CLS =
   "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
@@ -175,55 +163,6 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
           placeholder="e.g. Data Analyst, Marketing Coordinator"
           suggestionType="job_titles"
         />
-
-        <RdPresetBubbleInput
-          label="Target industries"
-          description="Pick the industries you're aiming for. Add your own if it's not listed."
-          presets={INDUSTRY_PRESETS}
-          tags={data.target_industries || []}
-          onChange={(v) => set("target_industries", v)}
-          customPlaceholder="Or type another industry"
-        />
-
-        <RdPresetBubbleInput
-          label="Preferred work environment"
-          description="Select all environments you're open to working in."
-          presets={WORK_ENVIRONMENT_PRESETS}
-          tags={data.work_environment || []}
-          onChange={(v) => set("work_environment", v)}
-          customPlaceholder="Or type another"
-        />
-
-        <div className="space-y-3 pt-1">
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={data.open_to_lateral || false}
-              onChange={(e) => set("open_to_lateral", e.target.checked)}
-              className="mt-0.5 w-[15px] h-[15px] accent-rd-coral cursor-pointer"
-            />
-            <div>
-              <p className="text-[13.5px] text-rd-text font-medium">Open to lateral roles</p>
-              <p className="text-[12px] text-rd-text-secondary leading-snug">
-                Roles at the same level in a different function or industry
-              </p>
-            </div>
-          </label>
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={data.open_to_outside_degree || false}
-              onChange={(e) => set("open_to_outside_degree", e.target.checked)}
-              className="mt-0.5 w-[15px] h-[15px] accent-rd-coral cursor-pointer"
-            />
-            <div>
-              <p className="text-[13.5px] text-rd-text font-medium">Open to roles outside my degree field</p>
-              <p className="text-[12px] text-rd-text-secondary leading-snug">
-                E.g. a Finance major applying to Operations or Product roles
-              </p>
-            </div>
-          </label>
-        </div>
       </div>
 
       <div className="flex justify-between items-center pt-2">

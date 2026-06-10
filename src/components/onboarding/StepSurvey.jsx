@@ -2,13 +2,14 @@ import React, { useState } from "react";
 import { X, ArrowRight } from "lucide-react";
 import RdButton from "@/components/redesign/RdButton";
 
-// Restyled for PR 2C — behaviour identical to the Direction-3 version.
-// All 5 question groups preserved verbatim (multi-select challenges, CV /
-// LinkedIn / referral single-selects, 5-button clarity row). Custom value
-// shapes + commit-on-blur/Enter behaviour are untouched, and the underlying
-// data keys (biggest_challenge[], cv_tailoring_strategy,
-// linkedin_outreach_strategy, role_clarity_score, job_search_efforts,
-// referral_source) remain stable identifiers stored in profiles.
+// Phase 1 onboarding trim: three load-bearing questions only —
+//   1. role_clarity_score   (drives task-count cap in generate-tasks)
+//   2. biggest_challenge[]  (sparse-profile fallback anchor in generate-tasks)
+//   3. cv_tailoring_strategy (anti-fabrication anchor in generate-tailored-cv)
+//
+// Dropped from capture: linkedin_outreach_strategy, job_search_efforts,
+// referral_source. DB columns stay; the post-onboarding profile editor
+// may still surface them.
 //
 // onNext still triggers the wrapper's handleSurveyNext, which is the
 // terminal call into finalise() in Onboarding.jsx. The finalise pipeline
@@ -31,28 +32,12 @@ const CV_OPTIONS = [
   { value: "never",     label: "Never — I use the same CV for everything" },
 ];
 
-const LINKEDIN_OPTIONS = [
-  { value: "often",     label: "Yes, often — I message recruiters or employees regularly" },
-  { value: "sometimes", label: "Sometimes — I've tried it a few times" },
-  { value: "rarely",    label: "Rarely — I find it awkward" },
-  { value: "never",     label: "Never — I haven't tried" },
-];
-
 const CLARITY_OPTIONS = [
   { value: 1, label: "No idea" },
   { value: 2, label: "Vague idea" },
   { value: 3, label: "Some clarity" },
   { value: 4, label: "Fairly clear" },
   { value: 5, label: "Very clear" },
-];
-
-const REFERRAL_OPTIONS = [
-  // Value strings are stable identifiers stored in profiles — don't rename
-  // without a migration. Only the human-facing labels change here.
-  { value: "reichman_practicum", label: "Faculty internship program" },
-  { value: "school_whatsapp",    label: "School WhatsApp" },
-  { value: "friends",            label: "Friends" },
-  { value: "community",          label: "Community" },
 ];
 
 const INPUT_CLS =
@@ -69,8 +54,6 @@ const OPTION_BTN = (isSelected) =>
 export default function StepSurvey({ data, onChange, onNext, onBack }) {
   const [customChallenge, setCustomChallenge] = useState("");
   const [customCVStrategy, setCustomCVStrategy] = useState("");
-  const [customLinkedInStrategy, setCustomLinkedInStrategy] = useState("");
-  const [customReferralSource, setCustomReferralSource] = useState("");
 
   const set = (key, val) => onChange({ ...data, [key]: val });
 
@@ -96,8 +79,6 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
   };
 
   const isCustomCV = data.cv_tailoring_strategy && !CV_OPTIONS.some((o) => o.value === data.cv_tailoring_strategy);
-  const isCustomLinkedIn = data.linkedin_outreach_strategy && !LINKEDIN_OPTIONS.some((o) => o.value === data.linkedin_outreach_strategy);
-  const isCustomReferral = data.referral_source && !REFERRAL_OPTIONS.some((o) => o.value === data.referral_source);
 
   const customChallenges = selectedChallenges.filter((c) => !CHALLENGES.includes(c));
 
@@ -122,7 +103,42 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
       </div>
 
       <div className="space-y-7">
-        {/* Biggest challenges — multi select */}
+        {/* 1. Role clarity — 5-button row with bigger touch targets */}
+        <div>
+          <label className="block text-[12px] font-semibold text-rd-text mb-2.5">
+            How clear are you about which specific roles you&apos;re targeting?
+          </label>
+          <div className="grid grid-cols-5 gap-2">
+            {CLARITY_OPTIONS.map((o) => {
+              const isSelected = data.role_clarity_score === o.value;
+              return (
+                <button
+                  key={o.value}
+                  type="button"
+                  onClick={() => set("role_clarity_score", o.value)}
+                  className={[
+                    "flex flex-col items-center justify-center gap-1 py-4 px-1 rounded-[14px] border transition-[border-color,background-color,box-shadow] duration-150",
+                    isSelected
+                      ? "border-rd-coral bg-rd-coral-tint text-rd-text shadow-[0_0_0_3px_var(--rd-coral-tint)]"
+                      : "border-rd-border bg-rd-bg-card text-rd-text-secondary hover:border-rd-border-hover hover:text-rd-text",
+                  ].join(" ")}
+                >
+                  <span className="font-display text-[20px] font-bold leading-none text-rd-text">
+                    {o.value}
+                  </span>
+                  <span className="text-[10.5px] leading-tight text-center">
+                    {o.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <p className="text-[11.5px] text-rd-text-secondary mt-2 leading-snug">
+            Scale of 1–5. Leave blank if you&apos;re not sure.
+          </p>
+        </div>
+
+        {/* 2. Biggest challenges — multi select */}
         <div>
           <label className="block text-[12px] font-semibold text-rd-text mb-2.5">
             Your biggest job search challenges
@@ -173,7 +189,7 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
           />
         </div>
 
-        {/* CV tailoring */}
+        {/* 3. CV tailoring */}
         <SingleSelect
           label="Do you tailor your CV for each application?"
           options={CV_OPTIONS}
@@ -184,82 +200,6 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
           setCustomValue={setCustomCVStrategy}
           onCommit={() => { commitCustom("cv_tailoring_strategy", customCVStrategy); setCustomCVStrategy(""); }}
           onClear={() => set("cv_tailoring_strategy", null)}
-        />
-
-        {/* LinkedIn outreach */}
-        <SingleSelect
-          label="Have you messaged people on LinkedIn as part of your job search?"
-          options={LINKEDIN_OPTIONS}
-          selected={data.linkedin_outreach_strategy}
-          onSelect={(v) => set("linkedin_outreach_strategy", v)}
-          isCustom={isCustomLinkedIn}
-          customValue={customLinkedInStrategy}
-          setCustomValue={setCustomLinkedInStrategy}
-          onCommit={() => { commitCustom("linkedin_outreach_strategy", customLinkedInStrategy); setCustomLinkedInStrategy(""); }}
-          onClear={() => set("linkedin_outreach_strategy", null)}
-        />
-
-        {/* Role clarity — 5-button row with bigger touch targets */}
-        <div>
-          <label className="block text-[12px] font-semibold text-rd-text mb-2.5">
-            How clear are you about which specific roles you&apos;re targeting?
-          </label>
-          <div className="grid grid-cols-5 gap-2">
-            {CLARITY_OPTIONS.map((o) => {
-              const isSelected = data.role_clarity_score === o.value;
-              return (
-                <button
-                  key={o.value}
-                  type="button"
-                  onClick={() => set("role_clarity_score", o.value)}
-                  className={[
-                    "flex flex-col items-center justify-center gap-1 py-4 px-1 rounded-[14px] border transition-[border-color,background-color,box-shadow] duration-150",
-                    isSelected
-                      ? "border-rd-coral bg-rd-coral-tint text-rd-text shadow-[0_0_0_3px_var(--rd-coral-tint)]"
-                      : "border-rd-border bg-rd-bg-card text-rd-text-secondary hover:border-rd-border-hover hover:text-rd-text",
-                  ].join(" ")}
-                >
-                  <span className="font-display text-[20px] font-bold leading-none text-rd-text">
-                    {o.value}
-                  </span>
-                  <span className="text-[10.5px] leading-tight text-center">
-                    {o.label}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <p className="text-[11.5px] text-rd-text-secondary mt-2 leading-snug">
-            Scale of 1–5. Leave blank if you&apos;re not sure.
-          </p>
-        </div>
-
-        {/* What have you tried */}
-        <div>
-          <label className="block text-[12px] font-semibold text-rd-text mb-2.5">
-            What have you already tried to improve your job search?
-            <span className="text-rd-text-tertiary font-normal ml-1.5">(optional)</span>
-          </label>
-          <textarea
-            value={data.job_search_efforts || ""}
-            onChange={(e) => set("job_search_efforts", e.target.value)}
-            placeholder="e.g. Applied to 50+ roles, attended career fairs, updated my LinkedIn…"
-            className={`${INPUT_CLS} min-h-[88px] resize-y`}
-          />
-        </div>
-
-        {/* Referral source */}
-        <SingleSelect
-          label="How did you hear about us?"
-          options={REFERRAL_OPTIONS}
-          selected={data.referral_source}
-          onSelect={(v) => set("referral_source", v)}
-          isCustom={isCustomReferral}
-          customValue={customReferralSource}
-          setCustomValue={setCustomReferralSource}
-          onCommit={() => { commitCustom("referral_source", customReferralSource); setCustomReferralSource(""); }}
-          onClear={() => set("referral_source", null)}
-          customPlaceholder="Other — type your own"
         />
       </div>
 

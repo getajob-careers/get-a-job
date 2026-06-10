@@ -65,6 +65,18 @@ export function inferExperienceType(e) {
 // `educations` state in Onboarding.jsx and the education tab in
 // AddInformation.jsx. languages stays on profiles (person-level, not
 // tied to a specific degree).
+// Phase 1 capture trim (onboarding redesign): nine fields no longer
+// collected in the onboarding UI. The DB columns stay — pre-trim users
+// keep their values, post-onboarding profile editors (Profile.jsx) may
+// still surface them — but the onboarding state shape stops carrying
+// them so cleanProfilePayload can't accidentally clobber existing values
+// with empty defaults on every per-step save.
+//   - target_industries, work_environment, open_to_lateral,
+//     open_to_outside_degree (Step 6 dead weight)
+//   - available_start_date (Step 7 dead weight)
+//   - linkedin_outreach_strategy, job_search_efforts, referral_source
+//     (Step 8 trim to three load-bearing questions)
+//   - practicum_cohort (Step 2 — practicum_path stays as the gate)
 export const EMPTY_PROFILE = {
   full_name: "",
   phone_number: "",
@@ -79,33 +91,20 @@ export const EMPTY_PROFILE = {
   skills: [],
   five_year_role: "",
   target_job_titles: [],
-  target_industries: [],
-  work_environment: [],
-  open_to_lateral: false,
-  open_to_outside_degree: false,
   location: "",
   work_type: [],
   employment_status: [],
   salary_expectation: "",
-  available_start_date: "",
   biggest_challenge: [],
-  job_search_efforts: "",
   role_clarity_score: null,
   cv_tailoring_strategy: "",
-  linkedin_outreach_strategy: "",
   volunteering: [],
   proof_signals: [],
   primary_domain: null,
   adjacent_fields: [],
-  // Internship fields captured in StepInternship (Wk 4). DB column names
-  // kept (practicum_path, practicum_cohort) — see CLAUDE.md. path is null
-  // when user opts out; cohort is free-text and optional.
+  // Internship gate captured in StepInternship (Wk 4). practicum_cohort
+  // was dropped from capture in Phase 1; only the path remains.
   practicum_path: null,
-  practicum_cohort: "",
-  // "How did you hear about us?" — captured in StepSurvey. Stored as a
-  // single text value: canonical snake_case for predefined options
-  // (e.g. "reichman_practicum"), or the user's free text for "Other".
-  referral_source: "",
 };
 
 // Empty row used when initialising the educations state in a fresh
@@ -157,12 +156,11 @@ export function cleanProfilePayload(data) {
     onboarding_step, onboarding_complete,
     skill_gaps, qualification_level, overall_assessment, last_reality_check_date,
     five_year_role, proof_signals, primary_domain, adjacent_fields,
-    practicum_path, practicum_cohort,
-    biggest_challenge, cv_tailoring_strategy, linkedin_outreach_strategy,
-    role_clarity_score, job_search_efforts, referral_source,
-    target_job_titles, target_industries, work_environment, work_type,
-    employment_status, salary_expectation, available_start_date,
-    open_to_lateral, open_to_outside_degree,
+    practicum_path,
+    biggest_challenge, cv_tailoring_strategy,
+    role_clarity_score,
+    target_job_titles, work_type,
+    employment_status, salary_expectation,
     // Per-object skill sources — used for the union, not persisted on profiles.
     experiences, educations, projects,
   } = data;
@@ -184,11 +182,10 @@ export function cleanProfilePayload(data) {
     onboarding_step, onboarding_complete,
     skill_gaps, qualification_level, overall_assessment, last_reality_check_date,
     five_year_role, proof_signals, primary_domain, adjacent_fields,
-    practicum_path, practicum_cohort,
-    biggest_challenge, cv_tailoring_strategy, linkedin_outreach_strategy,
-    role_clarity_score, job_search_efforts, referral_source,
-    target_job_titles, target_industries, work_environment, work_type,
-    employment_status, salary_expectation, available_start_date,
-    open_to_lateral, open_to_outside_degree,
+    practicum_path,
+    biggest_challenge, cv_tailoring_strategy,
+    role_clarity_score,
+    target_job_titles, work_type,
+    employment_status, salary_expectation,
   };
 }
