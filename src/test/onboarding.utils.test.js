@@ -45,6 +45,10 @@ describe('EMPTY_PROFILE', () => {
     expect(EMPTY_PROFILE.role_clarity_score).toBeNull();
     expect(EMPTY_PROFILE.primary_domain).toBeNull();
     expect(EMPTY_PROFILE.practicum_path).toBeNull();
+    // Phase 2 onboarding redesign: structured pick against role library.
+    // Null until the user picks; resolveGoalRoleId fallback path covers
+    // the null case in generate-career-analysis.
+    expect(EMPTY_PROFILE.five_year_goal_role_id).toBeNull();
   });
 
   // Phase 1 onboarding trim — these nine fields are no longer captured in
@@ -149,8 +153,11 @@ describe('cleanProfilePayload', () => {
     expect(result).toHaveProperty('adjacent_fields');
 
     // Career direction (Phase 1 trim: target_industries, work_environment,
-    // open_to_lateral, open_to_outside_degree, available_start_date dropped)
+    // open_to_lateral, open_to_outside_degree, available_start_date dropped).
+    // Phase 2 add: five_year_goal_role_id is the new structured-pick column,
+    // five_year_role stays as the human label written alongside it.
     expect(result).toHaveProperty('five_year_role');
+    expect(result).toHaveProperty('five_year_goal_role_id');
     expect(result).toHaveProperty('target_job_titles');
     expect(result).toHaveProperty('work_type');
     expect(result).toHaveProperty('employment_status');
@@ -302,10 +309,12 @@ describe('cleanProfilePayload', () => {
       onboarding_complete: true,
       role_clarity_score: 4,
       primary_domain: 'product',
+      five_year_goal_role_id: 'product_manager',
     });
     expect(result.onboarding_complete).toBe(true);
     expect(result.role_clarity_score).toBe(4);
     expect(result.primary_domain).toBe('product');
+    expect(result.five_year_goal_role_id).toBe('product_manager');
   });
 
   it('does not mutate the input object', () => {
