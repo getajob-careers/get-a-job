@@ -65,6 +65,7 @@ import { extractText, getDocumentProxy } from "unpdf";
 import mammoth from "mammoth";
 import { buildResumeExtractionPrompt } from "../src/lib/resumeExtractionPrompt.js";
 import { parseExtractedJson } from "../src/lib/parseExtractedJson.js";
+import { resolveDueDate } from "../src/lib/taskDueDate.js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -648,11 +649,11 @@ async function stage3() {
     console.log(`  Tasks: will DELETE ${p.ai_tasks_to_delete.length} AI task(s), preserve ${p.manual_tasks_preserved.length} manual task(s)`);
     for (const t of p.ai_tasks_to_delete) console.log(`    - [AI] "${t.title}" (role_title=${t.role_title}, created=${t.created_at})`);
     for (const t of p.manual_tasks_preserved) console.log(`    - [keep] "${t.title}" (role_title=${t.role_title || "<null>"})`);
-    console.log(`  Then invoke generate-tasks (writes new tasks aligned to refreshed career_roles)`);
+    console.log(`  Then invoke generate-tasks { context: 'weekly action plan' } and INSERT the returned tasks under user JWT (matches Tasks.jsx pattern)`);
     if (p.todays_daily_action) {
-      console.log(`  Today's daily_action: present (id=${p.todays_daily_action.id}, AI=${p.daily_action_is_ai}). Will DELETE then invoke generate-daily-action.`);
+      console.log(`  Today's daily_action: present (id=${p.todays_daily_action.id}) — IDEMPOTENT SKIP (no invoke, no delete)`);
     } else {
-      console.log(`  Today's daily_action: not present — generate-daily-action will create one fresh.`);
+      console.log(`  Today's daily_action: not present — invoke generate-daily-action to create one`);
     }
   }
 
@@ -673,20 +674,54 @@ async function stage3() {
       if (delErr) { console.error(`  ${p.email}: DELETE tasks FAILED: ${delErr.message}\nABORTING.`); process.exit(1); }
       console.error(`  ${p.email}: deleted ${ids.length} AI task(s)`);
     }
+
+    // generate-tasks returns the generated tasks in its HTTP response body
+    // but does NOT write to the DB. The caller is responsible for inserting
+    // — same pattern as Tasks.jsx:133-163 and Onboarding.jsx:890+. The
+    // previous Stage 3 invoked but discarded the response, which is why
+    // agamf ended up at 0 tasks after deletion.
+    let resp: any;
     try {
-      await invokeEdgeFn(token, "generate-tasks", {});
-      console.error(`  ${p.email}: invoked generate-tasks`);
+      resp = await invokeEdgeFn(token, "generate-tasks", { context: "weekly action plan" });
     } catch (e) { console.error(`  ${p.email}: generate-tasks FAILED: ${e instanceof Error ? e.message : e}\nABORTING.`); process.exit(1); }
 
-    if (p.todays_daily_action) {
-      const { error: delErr } = await userClient.from("daily_actions").delete().eq("id", p.todays_daily_action.id);
-      if (delErr) { console.error(`  ${p.email}: DELETE daily_action FAILED: ${delErr.message}\nABORTING.`); process.exit(1); }
-      console.error(`  ${p.email}: deleted today's daily_action`);
+    const PRIORITY_MAP: Record<string, string> = { urgent_now: "high", this_week: "medium", longer_term: "low", high: "high", medium: "medium", low: "low" };
+    const CATEGORY_MAP: Record<string, string> = { application: "application", cv: "cv", skill: "skill", project: "project", networking: "networking", interview_prep: "application", clarity_positioning: "application" };
+    // Field shape MIRRORS Tasks.jsx:146-158 exactly. Notable: title and
+    // description are inserted RAW (no length-truncation) because the
+    // frontend doesn't truncate them either, and resolveDueDate is the
+    // same helper Tasks.jsx imports (validates the ISO date + returns
+    // null on invalid; null lets the user set a date later from the UI).
+    const generated = (resp?.tasks || []).map((t: any) => ({
+      user_id: p.user_id,
+      title: t.title,
+      description: t.description,
+      category: CATEGORY_MAP[String(t.category)] || "application",
+      priority: PRIORITY_MAP[String(t.priority)] || "medium",
+      role_title: t.role_title || null,
+      due_date: resolveDueDate(t.due_date),
+      is_complete: false,
+    }));
+    console.error(`  ${p.email}: generate-tasks returned ${generated.length} tasks`);
+    if (generated.length > 0) {
+      const { error: insErr } = await userClient.from("tasks").insert(generated);
+      if (insErr) { console.error(`  ${p.email}: tasks INSERT FAILED: ${insErr.message}\nABORTING.`); process.exit(1); }
+      console.error(`  ${p.email}: inserted ${generated.length} tasks`);
     }
-    try {
-      await invokeEdgeFn(token, "generate-daily-action", {});
-      console.error(`  ${p.email}: invoked generate-daily-action`);
-    } catch (e) { console.error(`  ${p.email}: generate-daily-action FAILED: ${e instanceof Error ? e.message : e}\nABORTING.`); process.exit(1); }
+
+    // Idempotent daily-action: skip the invoke if today's row already
+    // exists for this user. The function itself short-circuits on the
+    // existing row (per its own comment at index.ts:13), but skipping
+    // saves the LLM call and avoids the async-write timing weirdness
+    // we hit on the prior Stage 3 execute.
+    if (p.todays_daily_action) {
+      console.error(`  ${p.email}: today's daily_action already present (id=${p.todays_daily_action.id}) — skipping generate-daily-action (idempotent)`);
+    } else {
+      try {
+        await invokeEdgeFn(token, "generate-daily-action", {});
+        console.error(`  ${p.email}: invoked generate-daily-action`);
+      } catch (e) { console.error(`  ${p.email}: generate-daily-action FAILED: ${e instanceof Error ? e.message : e}\nABORTING.`); process.exit(1); }
+    }
   }
 
   console.error("\nRe-snapshot + diff...");
@@ -695,16 +730,24 @@ async function stage3() {
   writeFileSync(SNAPSHOT_AFTER, JSON.stringify(after, null, 2));
 
   console.log("\n" + "=".repeat(78));
-  console.log("STAGE 3 DIFF (expected: ONLY tasks + daily_actions changed)");
+  console.log("STAGE 3 DIFF (gate: ONLY tasks counts toward fail-fast; daily_actions logged but not gated)");
   console.log("=".repeat(78));
+  // daily_actions is in the expected-set so it doesn't print ⚠️, but is
+  // EXCLUDED from the fail-fast gate because generate-daily-action's
+  // writes can land after our re-snapshot (observed empirically — DB
+  // shows the row, snapshot misses it). tasks now stays in the gate
+  // because the script inserts synchronously above, so the re-snapshot
+  // WILL catch them.
+  const STAGE_3_LOGGED = ["tasks", "daily_actions"];
+  const STAGE_3_GATED = ["tasks"];
   let bad = 0;
   for (let i = 0; i < baseline.length; i++) {
     const d = diffSnapshot(baseline[i], after[i]);
-    printDiff(d, ["tasks", "daily_actions"]);
-    if (unexpectedChange(d, ["tasks", "daily_actions"])) bad++;
+    printDiff(d, STAGE_3_LOGGED);
+    if (unexpectedChange(d, STAGE_3_GATED)) bad++;
   }
-  if (bad > 0) { console.log(`\n⚠️ ${bad} user(s) saw changes outside tasks + daily_actions. INVESTIGATE.`); process.exit(1); }
-  console.log("\n✅ Verified: only tasks + daily_actions changed.");
+  if (bad > 0) { console.log(`\n⚠️ ${bad} user(s) saw changes outside tasks. INVESTIGATE.`); process.exit(1); }
+  console.log("\n✅ Verified: only tasks changed in a gated way (daily_actions changes, if any, are tolerated due to async-write timing).");
 }
 
 // ─── --dump-text — read-only ground-truth helper ───
