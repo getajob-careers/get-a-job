@@ -1,7 +1,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { startMetric, finishMetric, type Metric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
-import { openrouterChatCompletion } from '../_shared/openrouter-chat.ts'
+import { openrouterChatCompletionWithRetry } from '../_shared/openrouter-chat.ts'
 import type { ReconcileWarning } from './reconcile.ts'
 import { pickPrimaryEducation } from '../_shared/education-helpers.ts'
 import { CV_VOICE_RULES } from '../_shared/voice-rules.ts'
@@ -1560,7 +1560,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       },
     };
     const openaiRes = safeCvModel === 'sonnet'
-      ? await openrouterChatCompletion(
+      ? await openrouterChatCompletionWithRetry(
           pass2Payload,
           openrouterKey!,
           pass2TraceCtx,
@@ -1575,9 +1575,18 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
 
     if (!openaiRes.ok) {
       const err = await openaiRes.text();
-      _http = 500; _err = `openai_${openaiRes.status}`
+      // Source-correct error labels: telemetry that names the actual
+      // upstream so the on-call human doesn't reflexively check the
+      // wrong service's status page. Default branch (gpt-4o) keeps the
+      // "OpenAI error" / "openai_<status>" labels byte-identical to
+      // pre-ramp; the Sonnet branch reports "OpenRouter error" /
+      // "openrouter_<status>" so function_metrics.error_code rolls up
+      // by real upstream during incident triage.
+      const upstream = safeCvModel === 'sonnet' ? 'OpenRouter' : 'OpenAI';
+      const tag = safeCvModel === 'sonnet' ? 'openrouter' : 'openai';
+      _http = 500; _err = `${tag}_${openaiRes.status}`
       m.modelUsed = pass2MetricsModel
-      return json({ error: `OpenAI error: ${err}` }, 500);
+      return json({ error: `${upstream} error: ${err}` }, 500);
     }
 
     const openaiData = await openaiRes.json();
@@ -1652,7 +1661,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
               metadata: { cv_model: safeCvModel },
             };
             const retryRes = safeCvModel === 'sonnet'
-              ? await openrouterChatCompletion(
+              ? await openrouterChatCompletionWithRetry(
                   pass3Payload,
                   openrouterKey!,
                   pass3TraceCtx,

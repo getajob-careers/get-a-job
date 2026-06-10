@@ -77,6 +77,7 @@ export default function CVManagement({ app, onUpdate }) {
           job_description: app.job_description,
           target_role: app.role_title,
           application_id: app.id,
+          cv_model: "sonnet",
         },
       });
 
