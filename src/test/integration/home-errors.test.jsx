@@ -113,12 +113,11 @@ describe('Home error banners', () => {
 
     await renderHome();
 
-    // Wait for the bento to render. The "Roadmap" eyebrow uniquely
-    // identifies the new Home layout — sits in every state, success or
-    // empty, so it's a stable test target. Text is "Roadmap" in the
-    // DOM and CSS-uppercased by the eyebrow style.
+    // Wait for the command-center layout to render. The "Pipeline"
+    // card heading sits in every state, success or empty, so it's a
+    // stable test target.
     await waitFor(() => {
-      expect(screen.getByText('Roadmap')).toBeInTheDocument();
+      expect(screen.getByText('Pipeline')).toBeInTheDocument();
     });
 
     expect(

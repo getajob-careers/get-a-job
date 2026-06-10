@@ -1,27 +1,26 @@
 /*
- * Home.jsx — authenticated dashboard.
+ * Home.jsx — authenticated dashboard, "command center" layout.
  *
- * Restyled for PR 3B on rd tokens. The page renders on the warm cream
- * page background (provided by Layout) with RdCard surfaces, Rokkitt
- * display type, and coral accents. The bento layout collapses to a
- * 2-col then 1-col grid on narrower viewports.
+ * Locked design (docs/design/redesign/getajob_home_locked_crowz_style.html
+ * + pipeline variant C): greeting → three underlined stats → cream focus
+ * card with a single coral action button → Today's plan + Pipeline card
+ * row → teal coach band. Pipeline C shows funnel counts up top and
+ * exception rows ("worth your attention") below, instead of a roster.
  *
- * Behaviour PRESERVED 1:1 from the prior Direction-3 Home (see PR 3B
- * spec): the self-heal useEffect (single-fire, force:true, 45s, persist
- * + invalidateAfterCareerAnalysis), the redirect-to-Onboarding guard,
- * the daily-action query (staleTime 30m + retry:false), withDbTimeout
- * wrappers on profile/roles/applications, the inline-titles non-
- * waterfall on the new_jobs_home query, the memoised activeApps /
- * recentApps before the early returns (hook-order stability), all 6
- * card destinations, pickHeadline thresholds, and the hadRolesPreviously
- * localStorage write are all carried over verbatim.
+ * Behaviour PRESERVED from PR 3B: the self-heal useEffect (single-fire,
+ * force:true, 45s, persist + invalidateAfterCareerAnalysis), the
+ * redirect-to-Onboarding guard, the daily-action query (staleTime 30m +
+ * retry:false), withDbTimeout wrappers on profile/roles/applications,
+ * the liveMatches inline-titles non-waterfall, memoised activeApps
+ * before the early returns (hook-order stability), and the
+ * hadRolesPreviously localStorage write.
  *
- * NEW IN 3B — a single additional query "liveMatches" that counts
- * uncapped active IL jobs trigram-matching the user's Track-1 role
- * titles via the new count_active_jobs_by_role_titles RPC. Surfaced as
- * the standout number in the hero, linking to /Jobs. Zero-state when
- * the user has no Track-1 roles renders as "Matches incoming" — never
- * an error.
+ * Dropped with the bento: the stories / linkedin_posts / linkedin_opts /
+ * new_jobs_home queries (no surface reads them here any more).
+ *
+ * Added: the tasks query — same key + full select as Tasks.jsx so the
+ * shared cache never holds a narrower row shape (see tasks/lessons.md
+ * 2026-05-28, cache pollution).
  */
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
@@ -33,10 +32,12 @@ import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { invalidateAfterCareerAnalysis } from "@/lib/invalidateAfterCareerAnalysis";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { ArrowUpRight, ArrowRight, Loader2, AlertCircle, Sparkles } from "lucide-react";
+import {
+  ArrowRight, ChevronRight, Loader2, AlertCircle, Sparkles, Check,
+  GraduationCap, Rocket, Users, FileText, Send,
+} from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import RdCard from "@/components/redesign/RdCard";
-import RdButton from "@/components/redesign/RdButton";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 import { withDbTimeout } from "@/lib/withDbTimeout";
 
@@ -51,155 +52,50 @@ function timeOfDayGreeting() {
   return "Good evening";
 }
 
-const ROLLING_7D_MS = 7 * 24 * 60 * 60 * 1000;
+const DAY_MS = 24 * 60 * 60 * 1000;
+// An applied row with no movement for this long surfaces in the
+// "worth your attention" exception list.
+const IDLE_NUDGE_DAYS = 7;
 
-// Headline rule ladder — picks the most-load-bearing statement about
-// the user's current job-hunt state. Active applications are the strongest
-// signal (already in motion); Track 1 roles next; goal/roadmap state last;
-// fall back to a plain greeting if nothing else qualifies.
-// Thresholds preserved: ≥5 active apps · ≥3 T1 · ≥1 T1 · 0 roles · default.
-function pickHeadline({ profile, roles, applications }) {
-  const firstName = (profile?.full_name || "").split(" ")[0] || "there";
-  const activeApps = applications.filter(
-    (a) => !["rejected", "withdrawn", "offer", "accepted"].includes(a.status),
-  );
-  const track1Roles = roles.filter((r) => r.track === "track_1");
+// Funnel buckets for pipeline variant C. Maps the 7-value
+// applications.status enum onto the 4 stages a student thinks in.
+// rejected / withdrawn are excluded from the funnel entirely.
+const FUNNEL_BUCKETS = [
+  { key: "saved", label: "saved", statuses: ["interested", "preparing"] },
+  { key: "applied", label: "applied", statuses: ["applied"] },
+  { key: "interview", label: "interview", statuses: ["interviewing"] },
+  { key: "offer", label: "offer", statuses: ["offer", "accepted"] },
+];
 
-  if (activeApps.length >= 5) {
-    return (
-      <>
-        You have{" "}
-        <span className="text-rd-coral">{activeApps.length} applications</span>{" "}
-        in motion.
-      </>
-    );
-  }
-  if (track1Roles.length >= 3) {
-    return (
-      <>
-        You have{" "}
-        <span className="text-rd-coral">{track1Roles.length} Track&nbsp;1 roles</span>{" "}
-        ready to apply to.
-      </>
-    );
-  }
-  if (track1Roles.length >= 1) {
-    return (
-      <>
-        Your strongest fit is{" "}
-        <span className="text-rd-coral">{track1Roles[0].title}</span>.
-      </>
-    );
-  }
-  if (roles.length === 0) {
-    return (
-      <>
-        Generate your{" "}
-        <span className="text-rd-coral">career roadmap</span>{" "}
-        to see your first roles.
-      </>
-    );
-  }
-  return (
-    <>
-      Welcome back, <span className="text-rd-coral">{firstName}</span>.
-    </>
-  );
+function taskDueMs(t) {
+  if (!t.due_date) return Number.POSITIVE_INFINITY;
+  const d = new Date(t.due_date).getTime();
+  return Number.isNaN(d) ? Number.POSITIVE_INFINITY : d;
 }
 
-function statusBadgeStyle(status) {
-  const s = (status || "").toLowerCase();
-  if (s === "offer" || s === "accepted") {
-    return "bg-rd-teal-tint text-rd-teal-dark";
-  }
-  if (s === "interviewing" || s === "preparing") {
-    return "bg-rd-golden-tint text-rd-golden-dark";
-  }
-  if (s === "rejected" || s === "withdrawn") {
-    return "bg-[#FEE2E2] text-[#991B1B]";
-  }
-  return "bg-rd-bg-soft text-rd-text-secondary";
-}
+// Avatar tint rotation for exception rows — golden for idle (needs a
+// nudge), teal for interviews (moving). Color encodes urgency, matching
+// the rest of the page.
+const ATTENTION_STYLES = {
+  idle: { bg: "bg-rd-golden-tint", fg: "text-rd-golden-dark" },
+  interview: { bg: "bg-rd-teal-tint", fg: "text-rd-teal-dark" },
+};
 
-// ────────────────────────────────────────────────────────────────────────
-// Card components — each one is a clickable launchpad
-// ────────────────────────────────────────────────────────────────────────
+// Task-row icon per tasks.category — same tint/fg pairs as the
+// CATEGORY_LABELS map on the Tasks page so the two surfaces agree.
+// Raw category values normalize the same way Tasks.jsx does
+// (interview_prep / clarity_positioning fold into application).
+const TASK_CATEGORY_STYLES = {
+  skill: { icon: GraduationCap, bg: "bg-rd-teal-tint", fg: "text-rd-teal-dark" },
+  project: { icon: Rocket, bg: "bg-rd-coral-tint", fg: "text-rd-coral-dark" },
+  networking: { icon: Users, bg: "bg-rd-golden-tint", fg: "text-rd-golden-dark" },
+  cv: { icon: FileText, bg: "bg-rd-bg-soft", fg: "text-rd-text-secondary" },
+  application: { icon: Send, bg: "bg-rd-teal-tint", fg: "text-rd-teal-dark" },
+};
 
-function HomeCard({ to, dark = false, className = "", children, onClick = null }) {
-  const navigate = useNavigate();
-  const handle = (e) => {
-    if (onClick) {
-      onClick(e);
-      if (e.defaultPrevented) return;
-    }
-    if (to) navigate(to);
-  };
-  return (
-    <div
-      role="button"
-      tabIndex={0}
-      onClick={handle}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          handle(e);
-        }
-      }}
-      className={[
-        "group cursor-pointer flex flex-col gap-2.5 rounded-[18px] border p-6",
-        "transition-[transform,border-color,box-shadow] duration-150",
-        "focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2",
-        "hover:-translate-y-0.5",
-        dark
-          ? "bg-rd-text text-white border-rd-text hover:border-rd-coral hover:shadow-[0_14px_32px_rgba(40,25,10,0.18)]"
-          : "bg-rd-bg-card text-rd-text border-rd-border hover:border-rd-border-hover hover:shadow-rd",
-        className || "",
-      ].join(" ")}
-    >
-      {children}
-    </div>
-  );
-}
-
-function CardEyebrow({ children, dark = false, stat = null }) {
-  return (
-    <div
-      className={[
-        "flex items-center gap-2 text-[10.5px] uppercase tracking-[0.09em] font-medium font-mono",
-        dark ? "text-rd-coral" : "text-rd-text-eyebrow",
-      ].join(" ")}
-    >
-      <span>{children}</span>
-      {stat && (
-        <span
-          className={[
-            "text-[11px] tracking-normal font-mono normal-case",
-            dark ? "text-white/55" : "text-rd-text-secondary",
-          ].join(" ")}
-        >
-          {stat}
-        </span>
-      )}
-    </div>
-  );
-}
-
-function CardArrow({ dark = false }) {
-  return (
-    <div
-      aria-hidden="true"
-      className={[
-        "ml-auto self-end inline-flex items-center justify-center w-7 h-7 rounded-full",
-        "transition-[background-color,color,transform] duration-150",
-        "group-hover:bg-rd-coral group-hover:text-white group-hover:translate-x-0.5",
-        dark
-          ? "bg-white/10 text-white/70"
-          : "bg-rd-bg-soft text-rd-text-secondary",
-      ].join(" ")}
-    >
-      <ArrowUpRight className="w-3.5 h-3.5" />
-    </div>
-  );
+function taskCategoryStyle(category) {
+  const map = { interview_prep: "application", clarity_positioning: "application" };
+  return TASK_CATEGORY_STYLES[map[category] || category] || TASK_CATEGORY_STYLES.application;
 }
 
 // ────────────────────────────────────────────────────────────────────────
@@ -211,17 +107,12 @@ export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Canonical profile cache — shared across the app. Returns the full
-  // row as a single object (or null when no row exists).
   const { data: profile, isLoading: loadingProfile, isFetched: profileFetched, isError: profileError } = useProfileQuery(user?.id);
 
   // Direct DB queries get wrapped in withDbTimeout (30s) — guards
   // against a hung Supabase REST call leaving Home stuck on the skeleton
-  // indefinitely. Profile + roles + applications gate `isLoading`; if any
-  // of them hangs, the user can't escape the skeleton. The wrapper
-  // surfaces hung queries as normal React Query errors at 30s instead
-  // of an infinite wait. Edge function invocations (daily_action) are
-  // NOT wrapped — they legitimately run 40s+ in some paths.
+  // indefinitely. Edge function invocations (daily_action) are NOT
+  // wrapped — they legitimately run 40s+.
   const { data: roles = [], isLoading: loadingRoles, isError: rolesError } = useQuery({
     queryKey: ["careerRoles", user?.id],
     queryFn: withDbTimeout(async () => {
@@ -242,6 +133,19 @@ export default function Home() {
     enabled: !!user?.id,
   });
 
+  // Same key + projection as Tasks.jsx — the shared ["tasks", uid] cache
+  // must always hold full rows.
+  const { data: tasks = [] } = useQuery({
+    queryKey: ["tasks", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const { data, error } = await supabase.from("tasks").select("*").eq("user_id", user.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
   const { data: experiences = [] } = useExperiencesQuery(user?.id);
   const { data: certifications = [] } = useQuery({
     queryKey: ["certifications", user?.id],
@@ -254,43 +158,9 @@ export default function Home() {
     enabled: !!user?.id,
   });
 
-  const { data: stories = [] } = useQuery({
-    queryKey: ["stories", user?.id],
-    queryFn: async () => (await supabase.from("stories").select("id, created_at").eq("user_id", user.id)).data || [],
-    enabled: !!user?.id,
-  });
-
-  // LinkedIn last-post + optimization status.
-  const { data: linkedinPosts = [] } = useQuery({
-    queryKey: ["linkedin_posts_home", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("linkedin_posts")
-        .select("created_at")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1);
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
-  const { data: linkedinOpts = [] } = useQuery({
-    queryKey: ["linkedin_opts_home", user?.id],
-    queryFn: async () => {
-      const { data } = await supabase
-        .from("linkedin_optimizations")
-        .select("baseline_data")
-        .eq("user_id", user.id)
-        .limit(1);
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
-
   // Daily action — lazy-fetches via the edge function (UPSERTs today's
   // row idempotent per (user_id, for_date)). Preserved: staleTime 30m,
-  // retry: false, function-invoke (NOT withDbTimeout — edge fns legitimately
-  // run 40s+).
+  // retry: false.
   const { data: dailyAction } = useQuery({
     queryKey: ["daily_action_home", user?.id, new Date().toDateString()],
     queryFn: async () => {
@@ -303,42 +173,9 @@ export default function Home() {
     retry: false,
   });
 
-  // Track-1-matching new jobs in the rolling 7d window. Preserved verbatim
-  // including the inline-titles non-waterfall (fetch the narrow title
-  // select inline so this query fires in parallel with `roles` on user.id
-  // resolution, not gated on the full roles cache).
-  const { data: newJobs = [] } = useQuery({
-    queryKey: ["new_jobs_home", user?.id],
-    queryFn: async () => {
-      const { data: rolesData } = await supabase
-        .from("career_roles")
-        .select("title")
-        .eq("user_id", user.id)
-        .eq("track", "track_1");
-      const titles = (rolesData || []).map((r) => r.title).filter(Boolean);
-      if (titles.length === 0) return [];
-      const { data } = await supabase.rpc("search_jobs_by_role_titles", {
-        p_role_titles: titles,
-        p_limit: 20,
-        p_offset: 0,
-        p_similarity_threshold: 0.3,
-      });
-      if (!Array.isArray(data)) return [];
-      const cutoff = Date.now() - ROLLING_7D_MS;
-      return data.filter((j) => j.date_posted && new Date(j.date_posted).getTime() >= cutoff);
-    },
-    enabled: !!user?.id,
-  });
-
-  // NEW (PR 3B) — uncapped count of active IL jobs trigram-matching the
-  // user's Track-1 role titles. Fires in parallel with all the others;
-  // gated on !!user?.id like the rest. Same inline-titles pattern as
-  // new_jobs_home so it doesn't waterfall behind the `roles` query.
-  //
-  // Zero-state when the user has no Track-1 roles → returns null (NOT
-  // zero), so the hero can render "Matches incoming" instead of "0 live
-  // job matches". 5-minute staleTime to keep the hero stable across
-  // intra-session navigation; refetches on user.id change.
+  // Uncapped count of active IL jobs trigram-matching the user's Track-1
+  // role titles. Inline-titles fetch so this fires in parallel with
+  // `roles` on user.id resolution — preserved verbatim from PR 3B.
   const { data: liveMatchCount = null } = useQuery({
     queryKey: ["live_matches_home", user?.id],
     queryFn: async () => {
@@ -350,17 +187,11 @@ export default function Home() {
       if (titleErr) return null;
       const titles = (rolesData || []).map((r) => r.title).filter(Boolean);
       if (titles.length === 0) return null;
-      // RPC name not yet in generated types/database.types.ts — cast to
-      // any so the typecheck doesn't have to be regenerated for this PR.
-      // Regenerating types happens via `supabase gen types` and lives in
-      // a separate cleanup pass.
       const { data, error } = await /** @type {any} */ (supabase).rpc("count_active_jobs_by_role_titles", {
         p_role_titles: titles,
         p_similarity_threshold: 0.3,
       });
       if (error) return null;
-      // RPC returns an integer scalar; supabase-js sometimes wraps in an
-      // array depending on REST shape — accept both.
       const n = Array.isArray(data) ? data[0] : data;
       return typeof n === "number" ? n : null;
     },
@@ -371,7 +202,7 @@ export default function Home() {
   const stale = isAnalysisStale({ profile, experiences, certifications, projects });
   const isLoading = loadingProfile || loadingRoles || loadingApps;
 
-  // hadRolesPreviously — preserved from pre-redesign for empty-state copy.
+  // hadRolesPreviously — preserved for empty-state copy.
   useEffect(() => {
     if (roles.length > 0 && user?.id) {
       try { localStorage.setItem(`careerRoles:${user.id}:hadData`, "1"); } catch { /* localStorage unavailable */ }
@@ -395,11 +226,8 @@ export default function Home() {
   }, [user, profileFetched, profileError, profile, navigate]);
 
   // Self-heal — PRESERVED VERBATIM (single-fire, force:true, 45s timeout,
-  // persist + invalidateAfterCareerAnalysis). The only behavioural touch in
-  // PR 3B is allowing a `?preview-selfheal=1` URL flag to put the page into
-  // the self-heal-pending visual state for capture in the preview PDF — it
-  // does not invoke the edge function and is DEV-only (URL flags are not
-  // gated in prod but the absence of the flag makes them inert).
+  // persist + invalidateAfterCareerAnalysis). ?preview-selfheal=1 puts the
+  // page into the pending visual state for preview capture only.
   const previewSelfHealFlag = (() => {
     try { return new URLSearchParams(window.location.search).get("preview-selfheal") === "1"; }
     catch { return false; }
@@ -464,18 +292,44 @@ export default function Home() {
     (profile && !profile.onboarding_complete);
 
   // Memoised before the early returns so the hook order stays stable.
-  // PRESERVED: filter+sort runs once per applications change rather than
-  // on every parent re-render.
   const activeApps = useMemo(
     () => applications.filter((a) => !["rejected", "withdrawn", "offer", "accepted"].includes(a.status)),
     [applications],
   );
-  const recentApps = useMemo(
-    () => [...applications]
-      .sort((a, b) => new Date(b.updated_at || b.created_at).getTime() - new Date(a.updated_at || a.created_at).getTime())
-      .slice(0, 3),
-    [applications],
+
+  const funnelCounts = useMemo(() => {
+    const counts = {};
+    for (const bucket of FUNNEL_BUCKETS) {
+      counts[bucket.key] = applications.filter((a) => bucket.statuses.includes(a.status)).length;
+    }
+    return counts;
+  }, [applications]);
+
+  // Exception rows: interviews first (moving — don't drop the ball),
+  // then applied rows idle past the nudge threshold.
+  const attentionItems = useMemo(() => {
+    const interviews = [];
+    const idle = [];
+    for (const a of applications) {
+      if (a.status === "interviewing") {
+        interviews.push({ app: a, kind: "interview", note: "interviewing — keep momentum" });
+      } else if (a.status === "applied") {
+        const ts = new Date(a.updated_at || a.created_at).getTime();
+        const days = Number.isNaN(ts) ? 0 : Math.floor((Date.now() - ts) / DAY_MS);
+        if (days >= IDLE_NUDGE_DAYS) {
+          idle.push({ app: a, kind: "idle", days, note: `${days} days quiet` });
+        }
+      }
+    }
+    idle.sort((a, b) => b.days - a.days);
+    return [...interviews, ...idle].slice(0, 2);
+  }, [applications]);
+
+  const planTasks = useMemo(
+    () => tasks.filter((t) => !t.is_complete).sort((a, b) => taskDueMs(a) - taskDueMs(b)).slice(0, 4),
+    [tasks],
   );
+  const tasksDoneCount = useMemo(() => tasks.filter((t) => t.is_complete).length, [tasks]);
 
   if (willRedirect) {
     return (
@@ -488,32 +342,6 @@ export default function Home() {
     return <HomeSkeleton />;
   }
 
-  const track1Count = roles.filter((r) => r.track === "track_1").length;
-  const track2Count = roles.filter((r) => r.track === "track_2").length;
-  const track3Count = roles.filter((r) => r.track === "track_3").length;
-
-  const storiesCount = stories.length;
-  const storiesThisWeek = stories.filter((s) => new Date(s.created_at).getTime() >= Date.now() - ROLLING_7D_MS).length;
-
-  const lastPostAt = linkedinPosts[0]?.created_at ? new Date(linkedinPosts[0].created_at) : null;
-  // baseline_data is typed as Json in the generated types; cast the row
-  // to read the nested .profile flag.
-  const hasLinkedinBaseline = /** @type {any} */ (linkedinOpts[0]?.baseline_data)?.profile != null;
-  const daysSinceLastPost = lastPostAt ? Math.floor((Date.now() - lastPostAt.getTime()) / (24 * 60 * 60 * 1000)) : null;
-
-  const linkedinCta = (() => {
-    if (!hasLinkedinBaseline) return "Optimize your profile";
-    if (daysSinceLastPost === null || daysSinceLastPost >= 7) return "Write a post";
-    return "Continue your draft";
-  })();
-  const linkedinStat = (() => {
-    if (!hasLinkedinBaseline) return "Profile not yet optimized";
-    if (daysSinceLastPost === null) return "No posts yet";
-    if (daysSinceLastPost === 0) return "Last post: today";
-    if (daysSinceLastPost === 1) return "Last post: yesterday";
-    return `Last post: ${daysSinceLastPost}d ago`;
-  })();
-
   const focusCta = (() => {
     if (selfHealing) return "Building your daily focus…";
     if (dailyAction?.title) return dailyAction.title;
@@ -525,7 +353,6 @@ export default function Home() {
     if (roles.length === 0) return "Your daily focus generates from your roadmap. Start there.";
     return "Your daily focus will appear here once it's ready.";
   })();
-
   const focusDestination = (() => {
     if (dailyAction?.source_table === "applications") return createPageUrl("Tracker");
     if (dailyAction?.source_table === "tasks") return createPageUrl("Tasks");
@@ -534,14 +361,71 @@ export default function Home() {
     return createPageUrl("Roadmap");
   })();
 
-  const handleHero = () => {
-    navigate(focusDestination);
-  };
+  // Coach band rule ladder — most urgent situation wins. Each rule deep-
+  // links into the chat with a ?seed= prompt (and ?application_id= when
+  // scoped to a row) so the conversation opens already pointed at the
+  // reason the user clicked. Seeds surface as the first suggested prompt;
+  // CareerAgent validates the id against the user's own applications.
+  const coach = (() => {
+    const chatUrl = (seed, appId = null) => {
+      const params = new URLSearchParams();
+      if (appId) params.set("application_id", appId);
+      params.set("seed", seed);
+      return `${createPageUrl("CareerAgent")}?${params.toString()}`;
+    };
+
+    const interviewApp = activeApps.find((a) => a.status === "interviewing");
+    if (interviewApp) {
+      const name = interviewApp.company || interviewApp.role_title;
+      return {
+        headline: `You're interviewing at ${name}.`,
+        sub: "Prep with your career agent — it knows the role and your background.",
+        cta: "Prep with the agent",
+        to: chatUrl(`Help me prepare for my ${interviewApp.role_title} interview at ${name}`, interviewApp.id),
+      };
+    }
+
+    const idleItem = attentionItems.find((i) => i.kind === "idle");
+    if (idleItem) {
+      const name = idleItem.app.company || idleItem.app.role_title;
+      return {
+        headline: `${name} has been quiet for ${idleItem.days} days.`,
+        sub: "A short, polite follow-up doubles your odds of a reply.",
+        cta: "Draft the follow-up",
+        to: chatUrl(`Help me draft a short follow-up message for my ${idleItem.app.role_title} application at ${name}`, idleItem.app.id),
+      };
+    }
+
+    if (roles.length === 0) {
+      return {
+        headline: "Not sure where to start?",
+        sub: "Your roadmap comes first — your agent can walk you through it.",
+        cta: "Ask how it works",
+        to: chatUrl("How do I get started with my career roadmap?"),
+      };
+    }
+
+    if (tasks.length > 0 && planTasks.length === 0) {
+      return {
+        headline: "All clear for today.",
+        sub: "Nice work. Ask your agent what would move you forward next.",
+        cta: "What's next?",
+        to: chatUrl("I finished today's tasks — what should I focus on next?"),
+      };
+    }
+
+    return {
+      headline: "Your agent knows your pipeline, roadmap, and stories.",
+      sub: "Stuck on anything in your search? Ask it anything.",
+      cta: "Ask anything",
+      to: createPageUrl("CareerAgent"),
+    };
+  })();
 
   const firstName = (profile?.full_name || "").split(" ")[0] || "";
 
   return (
-    <div className="max-w-[1180px] mx-auto px-5 sm:px-8 py-8 sm:py-10">
+    <div className="max-w-[1080px] mx-auto px-5 sm:px-8 py-8 sm:py-10">
       {(rolesError || appsError) && (
         <div className="mb-5 flex items-center gap-2.5 rounded-[14px] border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-[13px] text-[#991B1B]">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
@@ -562,308 +446,295 @@ export default function Home() {
         </div>
       )}
 
-      {/* Hero */}
-      <section className="pb-7 sm:pb-9">
-        <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-          {timeOfDayGreeting()}
-          {firstName ? `, ${firstName}` : ""}
-        </p>
+      <h1 className="font-display font-extrabold text-[30px] sm:text-[34px] leading-[1.1] tracking-tight text-rd-text">
+        {timeOfDayGreeting()}
+        {firstName ? `, ${firstName}` : ""}
+      </h1>
 
-        <h1 className="font-display font-extrabold text-[40px] sm:text-[52px] leading-[1.06] tracking-tight text-rd-text mt-4 max-w-3xl">
-          {pickHeadline({ profile, roles, applications })}
-        </h1>
+      {/* Underlined stats — the locked pattern: big slab number over a
+          hairline, no card chrome. */}
+      <div className="grid grid-cols-3 gap-4 sm:gap-7 mt-7">
+        <StatBlock
+          label="Live matches"
+          to={createPageUrl("Jobs")}
+          value={liveMatchCount === null ? "—" : liveMatchCount.toLocaleString()}
+        />
+        <StatBlock label="In pipeline" to={createPageUrl("Tracker")} value={String(activeApps.length)} />
+        <StatBlock
+          label="Tasks done"
+          to={createPageUrl("Tasks")}
+          value={String(tasksDoneCount)}
+          suffix={tasks.length > 0 ? `/${tasks.length}` : ""}
+        />
+      </div>
 
-        <LiveMatchesStat count={liveMatchCount} />
-
-        <div className="flex flex-wrap items-center gap-3 mt-6">
-          <RdButton onClick={handleHero}>
-            See today&apos;s action <ArrowUpRight className="w-4 h-4" />
-          </RdButton>
-          <Link
-            to={createPageUrl("Jobs")}
-            className="inline-flex items-center gap-1.5 font-display font-semibold text-[13.5px] text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-full px-5 py-2.5 transition-colors"
-          >
-            Browse jobs
-          </Link>
-        </div>
-      </section>
-
-      {/* Bento grid. Row 1: focus (span 4) + roadmap (span 2). Row 2:
-          applications + jobs (span 3 each). Row 3: stories + linkedin
-          (span 3 each). Collapses to 2 columns at <900px and 1 column
-          at <640px. Min-heights keep the skeleton ↔ real-data swap
-          CLS-free. */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3.5">
-        {/* Today's focus — dark accent. */}
-        <HomeCard dark className="lg:col-span-4 min-h-[180px]" to={focusDestination}>
-          <CardEyebrow dark>Today&apos;s focus</CardEyebrow>
-          <p className="font-display font-extrabold text-[24px] sm:text-[26px] leading-[1.15] tracking-tight mt-1 text-white">
+      {/* Focus card — soft cream, single coral circle button. The page's
+          one loud element. */}
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => navigate(focusDestination)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            navigate(focusDestination);
+          }
+        }}
+        className="group cursor-pointer bg-rd-bg-soft rounded-[20px] mt-7 px-5 py-4 sm:px-6 sm:py-5 flex items-center gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+      >
+        <div className="flex-1 min-w-0">
+          <p className="text-[11px] font-medium text-rd-text-eyebrow">
+            today&apos;s focus · picked by your agent
+          </p>
+          <p className="font-display font-bold text-[18px] sm:text-[20px] leading-[1.2] text-rd-text mt-1.5">
             {focusCta}
           </p>
-          <p className="text-[13px] leading-[1.55] text-white/70 mt-1">
+          <p className="text-[12.5px] text-rd-text-tertiary leading-[1.55] mt-1.5">
             {focusDesc}
           </p>
-          <CardArrow dark />
-        </HomeCard>
+        </div>
+        <div
+          aria-hidden="true"
+          className="w-[50px] h-[50px] rounded-full bg-rd-coral flex items-center justify-center flex-shrink-0 transition-transform duration-150 group-hover:translate-x-0.5"
+        >
+          <ArrowRight className="w-[22px] h-[22px] text-white" />
+        </div>
+      </div>
 
-        {/* Roadmap */}
-        <HomeCard className="lg:col-span-2 min-h-[180px]" to={createPageUrl("Roadmap")}>
-          <CardEyebrow>Roadmap</CardEyebrow>
-          <p className="font-display font-extrabold text-[20px] sm:text-[22px] leading-[1.15] tracking-tight text-rd-text mt-1">
-            {roles.length === 0 ? "Generate your roadmap" : "Open your roadmap"}
-          </p>
-          {roles.length > 0 && (
-            <div className="flex flex-wrap gap-3 mt-1">
-              {/* Track-color mapping aligned with TRACK_CONFIG[*].rdColor
-                  in PR 3C: T1=coral · T2=teal · T3=golden. Roadmap reads
-                  the same canonical mapping. */}
-              <TrackPill color="coral" count={track1Count} label="T1" />
-              <TrackPill color="teal" count={track2Count} label="T2" />
-              <TrackPill color="golden" count={track3Count} label="T3" />
+      <div className="grid grid-cols-1 md:grid-cols-[1.45fr_1fr] gap-4 mt-4 items-start">
+        {/* Today's plan */}
+        <RdCard className="p-5">
+          <div className="flex items-center justify-between">
+            <h2 className="font-display font-bold text-[17px] text-rd-text">Today&apos;s plan</h2>
+            {planTasks.length > 0 && (
+              <span className="text-[11px] text-rd-text-tertiary border border-rd-border-subtle rounded-full px-2.5 py-1">
+                {planTasks.length} open
+              </span>
+            )}
+          </div>
+          {planTasks.length > 0 ? (
+            <ul className="mt-3 space-y-1">
+              {planTasks.map((t) => {
+                const cat = taskCategoryStyle(t.category);
+                const CatIcon = cat.icon;
+                return (
+                <li key={t.id}>
+                  <Link
+                    to={createPageUrl("Tasks")}
+                    className="flex items-center gap-3 px-1.5 py-2 rounded-[12px] hover:bg-rd-bg-page transition-colors"
+                  >
+                    <span className={`w-7 h-7 rounded-full ${cat.bg} flex items-center justify-center flex-shrink-0`}>
+                      <CatIcon className={`w-3.5 h-3.5 ${cat.fg}`} />
+                    </span>
+                    <span className="flex-1 min-w-0">
+                      <span className="block font-display font-bold text-[13px] text-rd-text truncate">
+                        {t.title}
+                      </span>
+                      {t.role_title && (
+                        <span className="block text-[11px] text-rd-text-secondary truncate">
+                          For: {t.role_title}
+                        </span>
+                      )}
+                    </span>
+                    {t.due_date && (
+                      <span className="text-[11px] text-rd-text-secondary flex-shrink-0">
+                        {new Date(t.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+                );
+              })}
+            </ul>
+          ) : (
+            <div className="mt-3 flex items-start gap-3 px-1.5 py-2">
+              <span className="w-7 h-7 rounded-full bg-rd-teal-tint flex items-center justify-center flex-shrink-0">
+                <Check className="w-3.5 h-3.5 text-rd-teal-dark" />
+              </span>
+              <p className="text-[12.5px] text-rd-text-secondary leading-[1.55]">
+                {tasks.length > 0
+                  ? "All caught up. New tasks generate as your roadmap moves."
+                  : "No tasks yet — they generate from your roadmap."}
+              </p>
             </div>
           )}
-          <p className="text-[12.5px] text-rd-text-secondary leading-[1.5] mt-1">
-            {roles.length === 0
-              ? "Score every role in the library against your profile."
-              : "See your track breakdown, fit scores, and skill gaps."}
-          </p>
-          <CardArrow />
-        </HomeCard>
-
-        {/* Applications */}
-        <HomeCard className="lg:col-span-3 min-h-[200px]" to={createPageUrl("Tracker")}>
-          <CardEyebrow stat={`${activeApps.length} active`}>Applications</CardEyebrow>
-          <p className="font-display font-extrabold text-[22px] leading-[1.15] tracking-tight text-rd-text mt-1">
-            {applications.length === 0 ? "Track your first application" : "Manage your pipeline"}
-          </p>
-          {recentApps.length > 0 ? (
-            <ul className="mt-auto pt-3 border-t border-rd-border-subtle space-y-1.5">
-              {recentApps.map((a) => (
-                <li
-                  key={a.id}
-                  className="flex items-center justify-between gap-2 text-[12.5px] text-rd-text-secondary"
-                >
-                  <span className="font-medium text-rd-text truncate min-w-0">
-                    {a.company ? `${a.company} · ${a.role_title}` : a.role_title}
-                  </span>
-                  <span
-                    className={[
-                      "flex-shrink-0 text-[9.5px] tracking-[0.05em] uppercase font-mono px-2 py-0.5 rounded-full",
-                      statusBadgeStyle(a.status),
-                    ].join(" ")}
-                  >
-                    {a.status}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-[12.5px] text-rd-text-secondary leading-[1.5] mt-1">
-              Save a role from the job board to start tracking outcomes.
-            </p>
-          )}
-          <CardArrow />
-        </HomeCard>
-
-        {/* New jobs (last 7 days) */}
-        <HomeCard className="lg:col-span-3 min-h-[200px]" to={createPageUrl("Jobs")}>
-          <CardEyebrow stat={`${newJobs.length} matches`}>New this week</CardEyebrow>
-          <p className="font-display font-extrabold text-[22px] leading-[1.15] tracking-tight text-rd-text mt-1">
-            {roles.filter((r) => r.track === "track_1" && r.title).length === 0
-              ? "Browse open roles"
-              : "Browse jobs"}
-          </p>
-          {newJobs.length > 0 ? (
-            <ul className="mt-auto pt-3 border-t border-rd-border-subtle space-y-1.5">
-              {newJobs.slice(0, 3).map((j) => (
-                <li
-                  key={j.id}
-                  className="text-[12.5px] text-rd-text-secondary truncate"
-                >
-                  <span className="font-medium text-rd-text">
-                    {j.company_name ? `${j.company_name} · ${j.title}` : j.title}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="text-[12.5px] text-rd-text-secondary leading-[1.5] mt-1">
-              {roles.filter((r) => r.track === "track_1" && r.title).length === 0
-                ? "Generate your roadmap first — jobs are filtered to your Track 1 roles."
-                : "No new matches in the last 7 days. Browse the full board instead."}
-            </p>
-          )}
-          <CardArrow />
-        </HomeCard>
-
-        {/* Story bank */}
-        <HomeCard className="lg:col-span-3 min-h-[150px]" to={createPageUrl("StoryBank")}>
-          <CardEyebrow
-            stat={
-              storiesThisWeek > 0
-                ? `${storiesCount} · +${storiesThisWeek} this week`
-                : `${storiesCount} stories`
-            }
+          <Link
+            to={createPageUrl("Tasks")}
+            className="inline-flex items-center gap-1 mt-3 text-[12px] font-medium text-rd-coral-dark hover:text-rd-text transition-colors"
           >
-            Story bank
-          </CardEyebrow>
-          <p className="font-display font-extrabold text-[22px] leading-[1.15] tracking-tight text-rd-text mt-1">
-            {storiesCount === 0 ? "Capture your first story" : "Add a story"}
-          </p>
-          <p className="text-[12.5px] text-rd-text-secondary leading-[1.5] mt-1">
-            {storiesCount === 0
-              ? "Stories fuel every CV, LinkedIn post, and interview answer. Capture once, use everywhere."
-              : "Each story you capture compounds across CVs, LinkedIn, and interviews."}
-          </p>
-          <CardArrow />
-        </HomeCard>
+            All tasks <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </RdCard>
 
-        {/* LinkedIn */}
-        <HomeCard
-          className="lg:col-span-3 min-h-[150px]"
-          to={hasLinkedinBaseline ? `${createPageUrl("Linkedin")}?tab=posts` : `${createPageUrl("Linkedin")}?tab=profile`}
+        {/* Pipeline — variant C: funnel counts up top, exceptions below. */}
+        <RdCard className="p-5">
+          <h2 className="font-display font-bold text-[17px] text-rd-text">Pipeline</h2>
+          <div className="flex gap-1.5 mt-3">
+            <FunnelTile label="saved" value={funnelCounts.saved} tone="neutral" />
+            <FunnelTile label="applied" value={funnelCounts.applied} tone="coral" />
+            <FunnelTile label="interview" value={funnelCounts.interview} tone="teal" />
+            <FunnelTile label="offer" value={funnelCounts.offer} tone="neutral" />
+          </div>
+          <div className="border-t-[1.5px] border-rd-border-subtle mt-4 pt-3">
+            <p className="text-[11px] font-medium text-rd-text-eyebrow">worth your attention</p>
+            {attentionItems.length > 0 ? (
+              <ul className="mt-1 space-y-0.5">
+                {attentionItems.map(({ app, kind, note }) => {
+                  const style = ATTENTION_STYLES[kind];
+                  const name = app.company || app.role_title || "Application";
+                  return (
+                    <li key={app.id}>
+                      <Link
+                        to={createPageUrl("Tracker")}
+                        className="flex items-center gap-3 px-1.5 py-2 rounded-[12px] hover:bg-rd-bg-page transition-colors"
+                      >
+                        <span className={`w-7 h-7 rounded-full ${style.bg} flex items-center justify-center flex-shrink-0`}>
+                          <span className={`font-display font-bold text-[12px] ${style.fg}`}>
+                            {name.charAt(0).toUpperCase()}
+                          </span>
+                        </span>
+                        <span className="flex-1 min-w-0">
+                          <span className="block font-display font-bold text-[13px] text-rd-text truncate">
+                            {name}
+                          </span>
+                          <span className={`block text-[11px] truncate ${style.fg}`}>{note}</span>
+                        </span>
+                      </Link>
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <p className="mt-1.5 px-1.5 text-[12.5px] text-rd-text-secondary leading-[1.55]">
+                {applications.length === 0
+                  ? "Save a role from the job board to start your funnel."
+                  : "Nothing needs you right now."}
+              </p>
+            )}
+          </div>
+          <Link
+            to={createPageUrl("Tracker")}
+            className="inline-flex items-center gap-1 mt-3 text-[12px] font-medium text-rd-coral-dark hover:text-rd-text transition-colors"
+          >
+            Open tracker <ChevronRight className="w-3.5 h-3.5" />
+          </Link>
+        </RdCard>
+      </div>
+
+      {/* Coach band — teal zone, one sentence, one action. */}
+      <div className="bg-rd-teal-tint rounded-[20px] mt-4 px-5 py-4 flex items-center gap-3.5 flex-wrap">
+        <span className="w-[34px] h-[34px] rounded-full bg-rd-text flex items-center justify-center flex-shrink-0">
+          <Sparkles className="w-4 h-4 text-rd-coral" />
+        </span>
+        <div className="flex-1 min-w-[180px]">
+          <p className="font-display font-bold text-[14px] text-rd-text">{coach.headline}</p>
+          <p className="text-[12px] text-rd-teal-dark mt-0.5">{coach.sub}</p>
+        </div>
+        <Link
+          to={coach.to}
+          className="flex-shrink-0 bg-rd-bg-card rounded-full px-4 py-2 text-[12px] font-medium text-rd-text hover:shadow-rd transition-shadow"
         >
-          <CardEyebrow stat={linkedinStat}>LinkedIn</CardEyebrow>
-          <p className="font-display font-extrabold text-[22px] leading-[1.15] tracking-tight text-rd-text mt-1">
-            {linkedinCta}
-          </p>
-          <p className="text-[12.5px] text-rd-text-secondary leading-[1.5] mt-1">
-            {!hasLinkedinBaseline
-              ? "Rewrite your headline, About, and experience bullets against your real achievements."
-              : "Draft a post from your Story Bank, score a comment, or run warm outreach."}
-          </p>
-          <CardArrow />
-        </HomeCard>
+          {coach.cta}
+        </Link>
       </div>
     </div>
   );
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// Live-matches hero stat — uncapped count + /Jobs link.
+// Pieces
 // ────────────────────────────────────────────────────────────────────────
-function LiveMatchesStat({ count }) {
-  // Two zero-states distinguished:
-  //   - count === null: user has no Track-1 roles yet (or fetch errored
-  //     — we silently degrade to the same state; never surface an error).
-  //   - count === 0: Track-1 roles exist, no live matches found right now.
-  // Both render as "Matches incoming" rather than a raw zero, but the
-  // link still targets /Jobs in case the user wants to scan the full
-  // board. Per spec: graceful zero-state, never an error.
-  const isUnavailable = count === null;
-  const display = isUnavailable ? null : count;
 
+function StatBlock({ label, value, suffix = "", to }) {
   return (
-    <Link
-      to={createPageUrl("Jobs")}
-      className="group inline-flex items-baseline gap-3 mt-5 text-rd-text hover:text-rd-coral-dark transition-colors"
-    >
-      <Sparkles className="w-[18px] h-[18px] text-rd-coral self-center" aria-hidden="true" />
-      {display !== null && display > 0 ? (
-        <>
-          <span className="font-display font-extrabold text-[28px] sm:text-[32px] leading-none tracking-tight">
-            {display.toLocaleString()}
-          </span>
-          <span className="text-[13.5px] sm:text-[14px] font-display font-semibold text-rd-text-secondary group-hover:text-rd-coral-dark">
-            live job matches for you
-          </span>
-          <ArrowRight className="w-3.5 h-3.5 self-center opacity-0 -ml-2 group-hover:opacity-100 group-hover:translate-x-0.5 transition-[opacity,transform]" />
-        </>
-      ) : (
-        <>
-          <span className="font-display font-extrabold text-[20px] sm:text-[22px] leading-none tracking-tight text-rd-text-secondary group-hover:text-rd-coral-dark">
-            Matches incoming
-          </span>
-          <span className="text-[12.5px] text-rd-text-tertiary group-hover:text-rd-coral-dark">
-            — generate your roadmap to see them
-          </span>
-        </>
-      )}
+    <Link to={to} className="block min-w-0 border-b-[1.5px] border-rd-border-subtle pb-2 group">
+      <span className="text-[12px] text-rd-text-secondary">{label}</span>
+      <span className="block font-display font-extrabold text-[26px] sm:text-[28px] leading-tight text-rd-text mt-1 group-hover:text-rd-coral-dark transition-colors">
+        {value}
+        {suffix && <span className="text-rd-text-tertiary text-[17px]">{suffix}</span>}
+      </span>
     </Link>
   );
 }
 
-// ────────────────────────────────────────────────────────────────────────
-// Track pill — small dot + label for the roadmap card.
-// ────────────────────────────────────────────────────────────────────────
-function TrackPill({ color, count, label }) {
-  const dot = {
-    teal: "bg-rd-teal",
-    golden: "bg-rd-golden",
-    coral: "bg-rd-coral",
-  }[color];
+const FUNNEL_TONES = {
+  neutral: { bg: "bg-rd-bg-page", num: "text-rd-text", label: "text-rd-text-secondary" },
+  coral: { bg: "bg-rd-coral-tint", num: "text-rd-coral-dark", label: "text-rd-coral-dark" },
+  teal: { bg: "bg-rd-teal-tint", num: "text-rd-teal-dark", label: "text-rd-teal-dark" },
+};
+
+function FunnelTile({ label, value, tone }) {
+  const t = FUNNEL_TONES[tone];
+  // Zero counts render muted regardless of tone — the colored tiles only
+  // light up once there's something in the stage.
+  const isZero = !value;
   return (
-    <span className="inline-flex items-center gap-1.5 text-[11.5px] font-mono text-rd-text-secondary">
-      <span className={`w-2 h-2 rounded-full ${dot}`} />
-      {count} {label}
-    </span>
+    <div className={`flex-1 min-w-0 text-center rounded-[12px] py-2 ${isZero ? "bg-rd-bg-page" : t.bg}`}>
+      <div className={`font-display font-extrabold text-[18px] leading-tight ${isZero ? "text-rd-text-tertiary" : t.num}`}>
+        {value}
+      </div>
+      <div className={`text-[10.5px] ${isZero ? "text-rd-text-tertiary" : t.label}`}>{label}</div>
+    </div>
   );
 }
 
 // ────────────────────────────────────────────────────────────────────────
-// Page-level skeleton — mirrors the bento grid layout pixel-equivalent.
-// Each card uses the same min-height as the real card so CLS = 0 when
-// real data arrives.
+// Page-level skeleton — mirrors the command-center layout so the
+// skeleton ↔ real-data swap stays CLS-free.
 // ────────────────────────────────────────────────────────────────────────
 function HomeSkeleton() {
   return (
-    <div className="max-w-[1180px] mx-auto px-5 sm:px-8 py-8 sm:py-10" aria-hidden="true">
-      <section className="pb-7 sm:pb-9">
-        <Skeleton className="h-3 w-32 mb-4" />
-        <Skeleton className="h-10 w-2/3 max-w-2xl" />
-        <Skeleton className="h-8 w-72 mt-5" />
-        <div className="flex gap-3 mt-6">
-          <Skeleton className="h-10 w-40 rounded-full" />
-          <Skeleton className="h-10 w-28 rounded-full" />
+    <div className="max-w-[1080px] mx-auto px-5 sm:px-8 py-8 sm:py-10" aria-hidden="true">
+      <Skeleton className="h-9 w-72" />
+      <div className="grid grid-cols-3 gap-4 sm:gap-7 mt-7">
+        <div className="border-b-[1.5px] border-rd-border-subtle pb-2">
+          <Skeleton className="h-3 w-20" />
+          <Skeleton className="h-7 w-16 mt-2" />
         </div>
-      </section>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-3.5">
-        <RdCard className="lg:col-span-4 min-h-[180px] p-6 !bg-rd-text">
-          <Skeleton className="h-3 w-24 bg-white/20" />
-          <Skeleton className="h-6 w-2/3 bg-white/20 mt-3" />
-          <Skeleton className="h-3 w-full bg-white/20 mt-2" />
-          <Skeleton className="h-3 w-3/4 bg-white/20 mt-1" />
-        </RdCard>
-        <RdCard className="lg:col-span-2 min-h-[180px] p-6">
+        <div className="border-b-[1.5px] border-rd-border-subtle pb-2">
           <Skeleton className="h-3 w-20" />
-          <Skeleton className="h-6 w-2/3 mt-3" />
-          <div className="flex gap-2 mt-2">
-            <Skeleton className="h-3 w-12" />
-            <Skeleton className="h-3 w-12" />
-            <Skeleton className="h-3 w-12" />
-          </div>
-          <Skeleton className="h-3 w-3/4 mt-2" />
-        </RdCard>
-        <RdCard className="lg:col-span-3 min-h-[200px] p-6">
-          <Skeleton className="h-3 w-32" />
-          <Skeleton className="h-6 w-2/3 mt-3" />
-          <div className="space-y-2 mt-4">
-            <Skeleton className="h-3.5 w-full" />
-            <Skeleton className="h-3.5 w-full" />
-            <Skeleton className="h-3.5 w-5/6" />
-          </div>
-        </RdCard>
-        <RdCard className="lg:col-span-3 min-h-[200px] p-6">
-          <Skeleton className="h-3 w-32" />
-          <Skeleton className="h-6 w-1/2 mt-3" />
-          <div className="space-y-2 mt-4">
-            <Skeleton className="h-3.5 w-full" />
-            <Skeleton className="h-3.5 w-5/6" />
-            <Skeleton className="h-3.5 w-4/5" />
-          </div>
-        </RdCard>
-        <RdCard className="lg:col-span-3 min-h-[150px] p-6">
-          <Skeleton className="h-3 w-24" />
-          <Skeleton className="h-6 w-1/2 mt-3" />
-          <Skeleton className="h-3 w-full mt-2" />
-          <Skeleton className="h-3 w-2/3 mt-1" />
-        </RdCard>
-        <RdCard className="lg:col-span-3 min-h-[150px] p-6">
+          <Skeleton className="h-7 w-10 mt-2" />
+        </div>
+        <div className="border-b-[1.5px] border-rd-border-subtle pb-2">
           <Skeleton className="h-3 w-20" />
-          <Skeleton className="h-6 w-1/2 mt-3" />
-          <Skeleton className="h-3 w-3/4 mt-2" />
+          <Skeleton className="h-7 w-12 mt-2" />
+        </div>
+      </div>
+      <div className="bg-rd-bg-soft rounded-[20px] mt-7 px-6 py-5 flex items-center gap-4 min-h-[110px]">
+        <div className="flex-1">
+          <Skeleton className="h-3 w-44" />
+          <Skeleton className="h-6 w-2/3 mt-2.5" />
+          <Skeleton className="h-3 w-1/2 mt-2" />
+        </div>
+        <Skeleton className="w-[50px] h-[50px] rounded-full flex-shrink-0" />
+      </div>
+      <div className="grid grid-cols-1 md:grid-cols-[1.45fr_1fr] gap-4 mt-4">
+        <RdCard className="p-5 min-h-[220px]">
+          <Skeleton className="h-5 w-28" />
+          <div className="space-y-3 mt-4">
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-full" />
+            <Skeleton className="h-9 w-5/6" />
+          </div>
         </RdCard>
+        <RdCard className="p-5 min-h-[220px]">
+          <Skeleton className="h-5 w-20" />
+          <div className="flex gap-1.5 mt-4">
+            <Skeleton className="h-12 flex-1 rounded-[12px]" />
+            <Skeleton className="h-12 flex-1 rounded-[12px]" />
+            <Skeleton className="h-12 flex-1 rounded-[12px]" />
+            <Skeleton className="h-12 flex-1 rounded-[12px]" />
+          </div>
+          <Skeleton className="h-3 w-32 mt-4" />
+          <Skeleton className="h-9 w-full mt-2" />
+        </RdCard>
+      </div>
+      <div className="bg-rd-teal-tint rounded-[20px] mt-4 px-5 py-4 flex items-center gap-3.5 min-h-[66px]">
+        <Skeleton className="w-[34px] h-[34px] rounded-full flex-shrink-0" />
+        <div className="flex-1">
+          <Skeleton className="h-4 w-56" />
+          <Skeleton className="h-3 w-40 mt-1.5" />
+        </div>
       </div>
     </div>
   );

@@ -20,6 +20,7 @@ import { useParams } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthContext } from "@/lib/AuthContext";
 import Home from "@/pages/Home";
+import Layout from "@/Layout";
 import { HOME_FIXTURES, HOME_FIXTURE_UID, HOME_FIXTURE_DATE } from "./fixtures/home";
 
 function seedCache(qc, fixture) {
@@ -28,14 +29,11 @@ function seedCache(qc, fixture) {
   qc.setQueryData(["userProfile", HOME_FIXTURE_UID], fixture.profile);
   qc.setQueryData(["careerRoles", HOME_FIXTURE_UID], fixture.roles || []);
   qc.setQueryData(["applications", HOME_FIXTURE_UID], fixture.applications || []);
+  qc.setQueryData(["tasks", HOME_FIXTURE_UID], fixture.tasks || []);
   qc.setQueryData(["experiences", HOME_FIXTURE_UID], fixture.experiences || []);
   qc.setQueryData(["certifications", HOME_FIXTURE_UID], fixture.certifications || []);
   qc.setQueryData(["projects", HOME_FIXTURE_UID], fixture.projects || []);
-  qc.setQueryData(["stories", HOME_FIXTURE_UID], fixture.stories || []);
-  qc.setQueryData(["linkedin_posts_home", HOME_FIXTURE_UID], fixture.linkedinPosts || []);
-  qc.setQueryData(["linkedin_opts_home", HOME_FIXTURE_UID], fixture.linkedinOpts || []);
   qc.setQueryData(["daily_action_home", HOME_FIXTURE_UID, HOME_FIXTURE_DATE], fixture.dailyAction ?? null);
-  qc.setQueryData(["new_jobs_home", HOME_FIXTURE_UID], fixture.newJobs || []);
   qc.setQueryData(["live_matches_home", HOME_FIXTURE_UID], fixture.liveMatchCount ?? null);
 
   // Error simulation: setQueryData can't set an isError=true state, but
@@ -121,11 +119,12 @@ export default function HomePreview() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthContext.Provider value={authValue}>
-        {/* Render Home inside the warm cream page background so the
-            harness mirrors how Layout would frame it in production. */}
-        <div className="min-h-screen bg-rd-bg-page font-body text-rd-text">
+        {/* Render Home inside the real Layout (sidebar + chrome) so the
+            preview shows the full-page picture. Layout reads the stubbed
+            auth user + the seeded userProfile cache — no network. */}
+        <Layout currentPageName="Home">
           <Home />
-        </div>
+        </Layout>
       </AuthContext.Provider>
     </QueryClientProvider>
   );
