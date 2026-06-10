@@ -109,9 +109,12 @@ let MODELS: string[] = [];
 const SKIPPED_MODELS: string[] = [];
 
 // Controls go through api.openai.com directly (production-realistic transport).
-// gpt-5.5 added so we measure the candidate-upgrade latency p50 on the same
-// transport production would use after the model swap — NOT through OpenRouter.
-const DIRECT_OPENAI_CONTROLS = ["gpt-4o-mini", "gpt-4o", "gpt-5.5"];
+// Reasoning vs non-reasoning routing inside callModel() — verified for all 5:
+//   gpt-4o-mini, gpt-4o, gpt-4.1-mini → non-reasoning (max_tokens)
+//   gpt-5.4-mini, gpt-5.5             → reasoning (max_completion_tokens +
+//                                       reasoning_effort='none' via the
+//                                       gpt-5 pattern in REASONING_MODEL_PATTERNS)
+const DIRECT_OPENAI_CONTROLS = ["gpt-4o-mini", "gpt-4o", "gpt-4.1-mini", "gpt-5.4-mini", "gpt-5.5"];
 
 // Matches both bare OpenAI slugs (direct-OpenAI controls like "gpt-5.5") AND
 // OpenRouter-prefixed ones (like "openai/gpt-5.5"). The previous version only
@@ -126,9 +129,19 @@ const REASONING_MODEL_PATTERNS = [
 ];
 const isReasoningModel = (slug: string) => REASONING_MODEL_PATTERNS.some((rx) => rx.test(slug));
 
+// Pricing in $/M tokens (in / out). Live values from OpenRouter /models at
+// startup override these for any slug also listed there; this table is the
+// fallback for direct-OpenAI control slugs (which won't be in the OR catalog)
+// and for any OR slug the catalog query happens to miss.
+//
+// gpt-5.4-mini pricing is approximate — cost isn't the deciding factor for
+// this bake-off; latency + extraction quality are. A real dashboard value
+// will land via the OR catalog query if openai/gpt-5.4-mini is published.
 const PRICING_FALLBACK: Record<string, { in_per_m: number; out_per_m: number }> = {
   "gpt-4o-mini": { in_per_m: 0.15, out_per_m: 0.6 },
   "gpt-4o": { in_per_m: 2.5, out_per_m: 10 },
+  "gpt-4.1-mini": { in_per_m: 0.4, out_per_m: 1.6 },
+  "gpt-5.4-mini": { in_per_m: 0.5, out_per_m: 4.0 }, // approximate — mini reasoning models typically have a higher output multiplier due to hidden thinking tokens
   "gpt-5.5": { in_per_m: 5, out_per_m: 30 }, // direct-OpenAI control
   "openai/gpt-5.5": { in_per_m: 5, out_per_m: 30 }, // OpenRouter cell
   "anthropic/claude-opus-4.8": { in_per_m: 5, out_per_m: 25 },
