@@ -33,7 +33,7 @@ export default function StepConstraints({ data, onChange, onSubmit, onBack, subm
     <div className="space-y-7">
       <div>
         <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-          step 8 of 9 · constraints
+          step 5 of 6 · constraints
         </p>
         <h1 className="font-display font-extrabold text-[26px] sm:text-[28px] leading-[1.1] tracking-tight text-rd-text mt-2">
           Where and when can you work?

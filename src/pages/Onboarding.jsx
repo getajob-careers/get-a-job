@@ -12,14 +12,13 @@ import { ONBOARDING_FALLBACK_TASKS } from "@/lib/onboardingFallbackTasks";
 import { track, EVENTS } from "@/lib/analytics";
 
 // Step index → snake_case name for the onboarding_step_completed event
-// property. Order matches the step constant at the top of this file.
+// property. Order matches the new 7-step machine post-Phase-3 collapse:
+// 0=Resume, 1=Review (Education + Experience + Projects + Certs + skills),
+// 2=Practicum gate, 3=Career direction, 4=Constraints, 5=Survey, 6=Tutorial.
 const STEP_NAMES = [
   "cv",
-  "education",
+  "review",
   "internship",
-  "experience",
-  "role_skills",
-  "skills",
   "career_direction",
   "constraints",
   "survey",
@@ -29,11 +28,8 @@ const STEP_NAMES = [
 import OnboardingShell from "../components/onboarding/OnboardingShell";
 import OnboardingTutorial from "../components/onboarding/OnboardingTutorial";
 import StepResumeUpload from "../components/onboarding/StepResumeUpload";
-import StepEducation from "../components/onboarding/StepEducation";
+import StepReview from "../components/onboarding/StepReview";
 import StepInternship from "../components/onboarding/StepInternship";
-import StepExperience from "../components/onboarding/StepExperience";
-import StepRoleSkills from "../components/onboarding/StepRoleSkills";
-import StepSkills from "../components/onboarding/StepSkills";
 import StepCareerDirection from "../components/onboarding/StepCareerDirection";
 import StepConstraints from "../components/onboarding/StepConstraints";
 import StepSurvey from "../components/onboarding/StepSurvey";
@@ -42,12 +38,21 @@ import StepSurvey from "../components/onboarding/StepSurvey";
 // ALLOWED_EXPERIENCE_TYPES + inferExperienceType moved to
 // src/lib/onboardingPayload.js for direct unit testing. See that file.
 
-// Steps: 0=CV, 1=Education, 2=Internship, 3=Experience, 4=RoleSkills (batched per-object tagging), 5=Skills (catch-all), 6=CareerDirection, 7=Constraints, 8=Survey, 9=TierReveal
+// Steps (post-Phase-3 collapse, 7-step machine):
+//   0 = CV upload
+//   1 = Review what we extracted (Education + Experience + Projects + Certs + catch-all skills)
+//   2 = Internship gate (practicum_path) — sits AFTER Review so the
+//       institution-detection in StepInternship can read educations[]
+//   3 = Career direction (structured pick — Phase 2)
+//   4 = Constraints
+//   5 = Survey (reality check)
+//   6 = TierReveal / tutorial
 //
-// Internship step (Wk 4) inserted at index 2 after Education (we have
-// the institution by then). Existing in-flight users with
-// onboarding_step stored from before the insert may see a slightly
-// different step on reload — they can navigate forward without data loss.
+// Pre-Phase-3 users with onboarding_step >= 1 stored from the old 9-step
+// machine: their stored index may be off by N, but they can navigate
+// forward without data loss — every entity table is hydrated in
+// checkExistingProfile and the saveProgress writes their current step
+// on the next Continue.
 export default function Onboarding() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -110,7 +115,7 @@ export default function Onboarding() {
   const recoveryFiredRef = useRef(false);
   useEffect(() => {
     if (recoveryFiredRef.current) return;
-    if (step !== 9) return;
+    if (step !== 6) return;
     if (checkingProfile) return;
     if (!existingProfileId) return;
     if (generatingRoles || finalising) return;
@@ -514,24 +519,24 @@ export default function Onboarding() {
   // self-heal useEffect retries the analysis on next visit.
   const handleSurveyNext = async () => {
     if (generatingRoles) return;
-    // Step 8 (Survey) → 9 (TierReveal) bypasses goTo, so emit the step-
-    // completed event explicitly here. Without this we'd miss "survey" in
-    // the funnel. Step indices shifted +1 in PR #136 (StepRoleSkills
-    // inserted at index 4) — Survey is now index 8, TierReveal index 9.
+    // Step 5 (Survey) → 6 (TierReveal) bypasses goTo, so emit the step-
+    // completed event explicitly here. Without this we'd miss "survey"
+    // in the funnel. Step indices shifted in Phase 3 — Survey is now
+    // index 5, TierReveal index 6.
     track(EVENTS.ONBOARDING_STEP_COMPLETED, {
-      step_index: 8,
-      step_name: STEP_NAMES[8],
+      step_index: 5,
+      step_name: STEP_NAMES[5],
     });
-    setStep(9);
+    setStep(6);
     setGeneratingRoles(true);
 
     try {
-      // Persist step 9 to DB before the career analysis reads the row.
+      // Persist step 6 to DB before the career analysis reads the row.
       // skills is already a single flat array (Bug 3 fix dropped categories);
       // no merge needed.
       if (existingProfileId) {
         await supabase.from("profiles").update({
-          onboarding_step: 9,
+          onboarding_step: 6,
           skills: [...new Set(profileData.skills || [])],
         }).eq("id", existingProfileId);
       }
@@ -708,7 +713,7 @@ export default function Onboarding() {
           // re-insert succeeds — so it's >= every fresh `created_at`.
           // Stamping it here would predate the inserts by ~1s and trip
           // isAnalysisStale() on every new user's first Home load.
-          onboarding_step: 9,
+          onboarding_step: 6,
         }).eq("id", existingProfileId);
         if (persistErr) {
           console.error("[onboarding] career analysis persist failed:", persistErr, {
@@ -762,7 +767,7 @@ export default function Onboarding() {
     if (!targetProfileId) {
       // The user somehow reached the end without a profile row saved!
       // Attempt to save it now explicitly.
-      const rawPayload = { ...profileData, experiences, educations, projects, onboarding_step: 8 };
+      const rawPayload = { ...profileData, experiences, educations, projects, onboarding_step: 5 };
       const payload = cleanProfilePayload(rawPayload);
       Object.keys(payload).forEach(key => payload[key] === undefined && delete payload[key]);
 
@@ -969,7 +974,7 @@ export default function Onboarding() {
       projects,
       skills: allSkills,
       onboarding_complete: true,
-      onboarding_step: 9,
+      onboarding_step: 6,
     };
     const finalPayload = cleanProfilePayload(finalRawPayload);
     Object.keys(finalPayload).forEach(key => finalPayload[key] === undefined && delete finalPayload[key]);
@@ -1070,12 +1075,12 @@ export default function Onboarding() {
     );
   }
 
-  // Step 9 → render the OnboardingTutorial full-screen (no OnboardingShell).
+  // Step 6 → render the OnboardingTutorial full-screen (no OnboardingShell).
   // handleSurveyNext now chains to handleFinalise on BOTH success and
   // failure paths, so setupComplete reliably flips true and the tutorial's
   // "Go to platform" button enables. No setupError prop — error UX moved
   // out of the tutorial; Home self-heal recovers in the background.
-  if (step === 9) {
+  if (step === 6) {
     return (
       <>
         {finaliseError && (
@@ -1137,11 +1142,17 @@ export default function Onboarding() {
         />
       )}
       {step === 1 && (
-        <StepEducation
+        <StepReview
           data={profileData}
           onChange={setProfileData}
           educations={educations}
           setEducations={setEducations}
+          experiences={experiences}
+          setExperiences={setExperiences}
+          projects={projects}
+          setProjects={setProjects}
+          certifications={certifications}
+          setCertifications={setCertifications}
           onNext={() => goTo(2)}
           onBack={() => goTo(0)}
         />
@@ -1156,59 +1167,31 @@ export default function Onboarding() {
         />
       )}
       {step === 3 && (
-        <StepExperience
-          experiences={experiences}
-          onChange={setExperiences}
+        <StepCareerDirection
+          data={profileData}
+          onChange={setProfileData}
           onNext={() => goTo(4)}
           onBack={() => goTo(2)}
         />
       )}
       {step === 4 && (
-        <StepRoleSkills
-          experiences={experiences}
-          setExperiences={setExperiences}
-          educations={educations}
-          setEducations={setEducations}
-          projects={projects}
-          setProjects={setProjects}
-          onNext={() => goTo(5)}
-          onBack={() => goTo(3)}
-        />
-      )}
-      {step === 5 && (
-        <StepSkills
-          data={profileData}
-          onChange={setProfileData}
-          onNext={() => goTo(6)}
-          onBack={() => goTo(4)}
-        />
-      )}
-      {step === 6 && (
-        <StepCareerDirection
-          data={profileData}
-          onChange={setProfileData}
-          onNext={() => goTo(7)}
-          onBack={() => goTo(5)}
-        />
-      )}
-      {step === 7 && (
         <StepConstraints
           data={profileData}
           onChange={setProfileData}
-          onSubmit={() => goTo(8)}
-          onBack={() => goTo(6)}
+          onSubmit={() => goTo(5)}
+          onBack={() => goTo(3)}
           submitting={saving}
         />
       )}
-      {step === 8 && (
+      {step === 5 && (
         <StepSurvey
           data={profileData}
           onChange={setProfileData}
           onNext={handleSurveyNext}
-          onBack={() => goTo(7)}
+          onBack={() => goTo(4)}
         />
       )}
-      {/* step === 9 is rendered above via OnboardingTutorial — no entry here. */}
+      {/* step === 6 is rendered above via OnboardingTutorial — no entry here. */}
     </OnboardingShell>
   );
 }

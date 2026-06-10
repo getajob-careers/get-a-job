@@ -62,7 +62,7 @@ export default function StepInternship({ data, onChange, educations, onNext, onB
     <div className="space-y-7">
       <div>
         <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-          step 3 of 9 · internship
+          step 3 of 6 · internship
         </p>
         <h1 className="font-display font-extrabold text-[26px] sm:text-[28px] leading-[1.1] tracking-tight text-rd-text mt-2">
           {headline}
