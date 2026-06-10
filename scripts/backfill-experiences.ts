@@ -155,6 +155,16 @@ interface UserSnapshot {
 }
 
 async function snapshotUser(email: string, userId: string): Promise<UserSnapshot> {
+  // ORDER columns verified against information_schema 2026-06-10:
+  //   experiences, education, career_roles, stories, applications,
+  //   company_targets, tasks — all have `created_at` (the 7 other tables).
+  //   daily_actions — NO created_at column (has `generated_at` + `for_date`);
+  //     ordering on `created_at` returned an error which supabase-js
+  //     coerced into `{ data: null, error }`, the snapshot recorded
+  //     daily_actions as [], the today-detection found nothing, and the
+  //     Stage 3 "idempotent skip" never fired even though both target
+  //     users have today's daily_action in the DB. Fix: order by
+  //     `generated_at` (the closest semantic equivalent to created_at).
   const [exp, edu, roles, stories, apps, targets, tasks, daily, profile] = await Promise.all([
     admin.from("experiences").select("*").eq("user_id", userId).order("created_at"),
     admin.from("education").select("*").eq("user_id", userId).order("created_at"),
@@ -163,9 +173,21 @@ async function snapshotUser(email: string, userId: string): Promise<UserSnapshot
     admin.from("applications").select("*").eq("user_id", userId).order("created_at"),
     admin.from("company_targets").select("*").eq("user_id", userId).order("created_at"),
     admin.from("tasks").select("*").eq("user_id", userId).order("created_at"),
-    admin.from("daily_actions").select("*").eq("user_id", userId).order("created_at"),
+    admin.from("daily_actions").select("*").eq("user_id", userId).order("generated_at"),
     admin.from("profiles").select("skills, proof_signals, qualification_level, overall_assessment, skill_gaps, last_reality_check_date").eq("id", userId).maybeSingle(),
   ]);
+  // Surface any silent query errors so we never re-create the daily_actions
+  // failure mode (broken column → empty array → meaningless diff).
+  const checks: Array<[string, { error: any }]> = [
+    ["experiences", exp], ["education", edu], ["career_roles", roles],
+    ["stories", stories], ["applications", apps], ["company_targets", targets],
+    ["tasks", tasks], ["daily_actions", daily], ["profiles", profile],
+  ];
+  for (const [name, r] of checks) {
+    if (r.error) {
+      throw new Error(`snapshotUser(${email}): ${name} query failed: ${r.error.message ?? r.error}`);
+    }
+  }
   const p = profile.data as any;
   return {
     email,
