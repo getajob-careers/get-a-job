@@ -2,13 +2,16 @@ import React from "react";
 import { Briefcase, User2, X, ArrowRight } from "lucide-react";
 import RdButton from "@/components/redesign/RdButton";
 
-// Onboarding internship step — captures profiles.practicum_path +
-// practicum_cohort (DB column names kept; see CLAUDE.md). The
-// institution-detection regex remains as a future hook for cohort-
-// specific framing, but copy is generic across both branches today.
+// Onboarding internship step — captures profiles.practicum_path (DB
+// column name kept; see CLAUDE.md). The institution-detection regex
+// remains as a future hook for cohort-specific framing, but copy is
+// generic across both branches today.
 //
 // "No" leaves practicum_path = null, which makes /Internship redirect
 // home (the page guards on practicum_path before rendering).
+//
+// Phase 1 onboarding trim: practicum_cohort capture removed. The DB
+// column stays (post-onboarding profile editor still surfaces it).
 //
 // Visual: redesigned for PR 2A — --rd-* tokens, Rokkitt heading,
 // peach-framed shell. Behaviour identical to the Direction-3 version.
@@ -52,7 +55,6 @@ export default function StepInternship({ data, onChange, educations, onNext, onB
     onChange({
       ...data,
       practicum_path: newPath,
-      ...(newPath === null && { practicum_cohort: "" }),
     });
   };
 
@@ -93,25 +95,6 @@ export default function StepInternship({ data, onChange, educations, onNext, onB
           onClick={() => setPath(null)}
         />
       </div>
-
-      {path && (
-        <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5">
-          <label className="block text-[12px] font-semibold text-rd-text mb-1.5">
-            Cohort{" "}
-            <span className="text-rd-text-secondary font-normal">(optional)</span>
-          </label>
-          <input
-            type="text"
-            value={data.practicum_cohort || ""}
-            onChange={(e) => onChange({ ...data, practicum_cohort: e.target.value })}
-            placeholder="e.g. Spring 2026"
-            className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
-          />
-          <p className="text-[11.5px] text-rd-text-secondary mt-1.5 leading-snug">
-            Helps faculty and admins group students for cohort-level analytics. You can skip this.
-          </p>
-        </div>
-      )}
 
       <div className="flex justify-between items-center pt-2">
         <button

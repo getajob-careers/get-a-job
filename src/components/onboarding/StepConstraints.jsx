@@ -8,6 +8,9 @@ import RdButton from "@/components/redesign/RdButton";
 // 4-card multi-select; toggling is unchanged. onSubmit still triggers
 // the wrapper's `handleConstraintsNext` (which fires the background
 // generate-career-analysis call in Onboarding.jsx; not touched).
+//
+// Phase 1 onboarding trim: available_start_date capture removed (no
+// downstream consumers found). Location + work_type[] remain.
 
 const WORK_ARRANGEMENTS = [
   { value: "Remote",   label: "Remote",   Icon: Globe },
@@ -15,9 +18,6 @@ const WORK_ARRANGEMENTS = [
   { value: "On-site",  label: "On-site",  Icon: Building2 },
   { value: "Flexible", label: "Flexible", Icon: Sparkles },
 ];
-
-const INPUT_CLS =
-  "w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
 
 export default function StepConstraints({ data, onChange, onSubmit, onBack, submitting }) {
   const set = (key, val) => onChange({ ...data, [key]: val });
@@ -44,29 +44,13 @@ export default function StepConstraints({ data, onChange, onSubmit, onBack, subm
       </div>
 
       <div className="space-y-5">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div>
-            <RdAutocompleteInput
-              label="Location"
-              value={data.location || ""}
-              onChange={(v) => set("location", v)}
-              placeholder="e.g. New York, London, Berlin"
-              suggestionType="location"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[12px] font-semibold text-rd-text mb-1.5">
-              Earliest start date
-            </label>
-            <input
-              type="date"
-              value={data.available_start_date || ""}
-              onChange={(e) => set("available_start_date", e.target.value)}
-              className={INPUT_CLS}
-            />
-          </div>
-        </div>
+        <RdAutocompleteInput
+          label="Location"
+          value={data.location || ""}
+          onChange={(v) => set("location", v)}
+          placeholder="e.g. New York, London, Berlin"
+          suggestionType="location"
+        />
 
         <div>
           <label className="block text-[12px] font-semibold text-rd-text mb-1.5">
@@ -114,7 +98,7 @@ export default function StepConstraints({ data, onChange, onSubmit, onBack, subm
           What happens next
         </p>
         <p className="text-[13.5px] text-rd-text-secondary leading-relaxed mt-1.5">
-          One last step — 6 quick self-assessment questions — then we&apos;ll run your career analysis and build your roadmap. Takes about 60 seconds.
+          One last step — 3 quick self-assessment questions — then we&apos;ll run your career analysis and build your roadmap. Takes about 30 seconds.
         </p>
       </div>
 

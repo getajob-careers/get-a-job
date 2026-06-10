@@ -22,10 +22,8 @@ describe('EMPTY_PROFILE', () => {
   it('initialises every text[] DB column as an array', () => {
     expect(EMPTY_PROFILE.employment_status).toEqual([]);
     expect(EMPTY_PROFILE.biggest_challenge).toEqual([]);
-    expect(EMPTY_PROFILE.work_environment).toEqual([]);
     expect(EMPTY_PROFILE.work_type).toEqual([]);
     expect(EMPTY_PROFILE.target_job_titles).toEqual([]);
-    expect(EMPTY_PROFILE.target_industries).toEqual([]);
   });
 
   it('initialises jsonb columns with the correct default shape', () => {
@@ -41,17 +39,29 @@ describe('EMPTY_PROFILE', () => {
     expect(EMPTY_PROFILE.location).toBe('');
     expect(EMPTY_PROFILE.salary_expectation).toBe('');
     expect(EMPTY_PROFILE.cv_tailoring_strategy).toBe('');
-    expect(EMPTY_PROFILE.linkedin_outreach_strategy).toBe('');
-  });
-
-  it('initialises boolean columns as false', () => {
-    expect(EMPTY_PROFILE.open_to_lateral).toBe(false);
-    expect(EMPTY_PROFILE.open_to_outside_degree).toBe(false);
   });
 
   it('initialises nullable scalar columns as null', () => {
     expect(EMPTY_PROFILE.role_clarity_score).toBeNull();
     expect(EMPTY_PROFILE.primary_domain).toBeNull();
+    expect(EMPTY_PROFILE.practicum_path).toBeNull();
+  });
+
+  // Phase 1 onboarding trim — these nine fields are no longer captured in
+  // the onboarding UI. The DB columns stay (post-onboarding profile editor
+  // may still surface them) but EMPTY_PROFILE must not carry them, or
+  // cleanProfilePayload would write empty defaults on every per-step save
+  // and clobber existing values for users mid-flow.
+  it('does NOT carry the Phase 1 capture-trim fields', () => {
+    expect(EMPTY_PROFILE).not.toHaveProperty('target_industries');
+    expect(EMPTY_PROFILE).not.toHaveProperty('work_environment');
+    expect(EMPTY_PROFILE).not.toHaveProperty('open_to_lateral');
+    expect(EMPTY_PROFILE).not.toHaveProperty('open_to_outside_degree');
+    expect(EMPTY_PROFILE).not.toHaveProperty('available_start_date');
+    expect(EMPTY_PROFILE).not.toHaveProperty('linkedin_outreach_strategy');
+    expect(EMPTY_PROFILE).not.toHaveProperty('job_search_efforts');
+    expect(EMPTY_PROFILE).not.toHaveProperty('referral_source');
+    expect(EMPTY_PROFILE).not.toHaveProperty('practicum_cohort');
   });
 
   it('keeps volunteering as an array (React state only, no DB column)', () => {
@@ -138,29 +148,56 @@ describe('cleanProfilePayload', () => {
     expect(result).toHaveProperty('primary_domain');
     expect(result).toHaveProperty('adjacent_fields');
 
-    // Career direction
+    // Career direction (Phase 1 trim: target_industries, work_environment,
+    // open_to_lateral, open_to_outside_degree, available_start_date dropped)
     expect(result).toHaveProperty('five_year_role');
     expect(result).toHaveProperty('target_job_titles');
-    expect(result).toHaveProperty('target_industries');
-    expect(result).toHaveProperty('work_environment');
     expect(result).toHaveProperty('work_type');
     expect(result).toHaveProperty('employment_status');
     expect(result).toHaveProperty('salary_expectation');
-    expect(result).toHaveProperty('available_start_date');
-    expect(result).toHaveProperty('open_to_lateral');
-    expect(result).toHaveProperty('open_to_outside_degree');
 
-    // Survey
+    // Survey (Phase 1 trim: linkedin_outreach_strategy, job_search_efforts,
+    // referral_source dropped — three load-bearing questions remain)
     expect(result).toHaveProperty('biggest_challenge');
     expect(result).toHaveProperty('cv_tailoring_strategy');
-    expect(result).toHaveProperty('linkedin_outreach_strategy');
     expect(result).toHaveProperty('role_clarity_score');
-    expect(result).toHaveProperty('job_search_efforts');
+
+    // Internship gate (Phase 1 trim: practicum_cohort dropped)
+    expect(result).toHaveProperty('practicum_path');
 
     // Onboarding flow control
     expect(result).toHaveProperty('onboarding_step');
     expect(result).toHaveProperty('onboarding_complete');
     expect(result).toHaveProperty('resume_url');
+  });
+
+  it('does NOT forward the Phase 1 capture-trim fields to PostgREST', () => {
+    // The DB columns stay (post-onboarding profile editor still surfaces
+    // them) but cleanProfilePayload must stop writing them on the
+    // onboarding path so we don't clobber existing values with nulls on
+    // every per-step save.
+    const result = cleanProfilePayload({
+      ...EMPTY_PROFILE,
+      target_industries: ['Fintech'],
+      work_environment: ['Startup'],
+      open_to_lateral: true,
+      open_to_outside_degree: true,
+      available_start_date: '2026-07-01',
+      linkedin_outreach_strategy: 'often',
+      job_search_efforts: 'Applied to 50 roles',
+      referral_source: 'friends',
+      practicum_cohort: 'Spring 2026',
+    });
+
+    expect(result).not.toHaveProperty('target_industries');
+    expect(result).not.toHaveProperty('work_environment');
+    expect(result).not.toHaveProperty('open_to_lateral');
+    expect(result).not.toHaveProperty('open_to_outside_degree');
+    expect(result).not.toHaveProperty('available_start_date');
+    expect(result).not.toHaveProperty('linkedin_outreach_strategy');
+    expect(result).not.toHaveProperty('job_search_efforts');
+    expect(result).not.toHaveProperty('referral_source');
+    expect(result).not.toHaveProperty('practicum_cohort');
   });
 
   it('strips the React-only fields that have no profiles column', () => {
@@ -225,8 +262,6 @@ describe('cleanProfilePayload', () => {
       employment_status: ['student', 'looking_for_job'],
       biggest_challenge: ["I don't know which roles to target"],
       target_job_titles: ['Product Manager', 'Data Analyst'],
-      target_industries: ['Fintech'],
-      work_environment: ['Startup', 'Hybrid'],
       work_type: ['Remote'],
       honors: ["Dean's List"],
       languages: [{ language: 'English', proficiency: 'Native' }],
@@ -243,8 +278,6 @@ describe('cleanProfilePayload', () => {
     expect(result.biggest_challenge).toEqual(["I don't know which roles to target"]);
 
     expect(Array.isArray(result.target_job_titles)).toBe(true);
-    expect(Array.isArray(result.target_industries)).toBe(true);
-    expect(Array.isArray(result.work_environment)).toBe(true);
     expect(Array.isArray(result.work_type)).toBe(true);
     expect(Array.isArray(result.languages)).toBe(true);
     expect(Array.isArray(result.skills)).toBe(true);
@@ -266,13 +299,11 @@ describe('cleanProfilePayload', () => {
   it('preserves boolean and nullable scalar fields', () => {
     const result = cleanProfilePayload({
       ...EMPTY_PROFILE,
-      open_to_lateral: true,
-      open_to_outside_degree: true,
+      onboarding_complete: true,
       role_clarity_score: 4,
       primary_domain: 'product',
     });
-    expect(result.open_to_lateral).toBe(true);
-    expect(result.open_to_outside_degree).toBe(true);
+    expect(result.onboarding_complete).toBe(true);
     expect(result.role_clarity_score).toBe(4);
     expect(result.primary_domain).toBe('product');
   });
