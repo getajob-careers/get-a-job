@@ -70,21 +70,34 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-if (!SUPABASE_URL || !SERVICE_ROLE || !OPENAI_API_KEY) {
-  console.error("ERROR: set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, OPENAI_API_KEY");
-  process.exit(1);
-}
-if (!ANON_KEY) {
-  console.error("ERROR: SUPABASE_ANON_KEY (or VITE_SUPABASE_ANON_KEY) is required for Stages 2 + 3 (per-user JWT minting via verifyOtp)");
-  process.exit(1);
-}
 
 const args = process.argv.slice(2);
 const arg = (n: string, d = ""): string => args.find((a) => a.startsWith(`--${n}=`))?.split("=")[1] ?? d;
 const STAGE = arg("stage", "");
 const EXECUTE = args.includes("--execute");
-if (!["1", "2", "3"].includes(STAGE)) {
-  console.error("ERROR: --stage must be 1, 2, or 3. Each stage runs independently.");
+// Read-only debug mode: download + extract the user's latest CV via the
+// SAME unpdf/mammoth path Stage 1 uses, print the raw text to stdout, and
+// exit. No LLM call, no DB write, no snapshot. Used to ground-truth the
+// LLM's extracted output against the actual CV bytes.
+const DUMP_TEXT_EMAIL = arg("dump-text", "");
+
+if (!DUMP_TEXT_EMAIL && !["1", "2", "3"].includes(STAGE)) {
+  console.error("ERROR: --stage must be 1, 2, or 3 (or use --dump-text=<email> for read-only CV text dump).");
+  process.exit(1);
+}
+
+// Env-var checks are mode-aware so the read-only dump doesn't demand
+// keys it never uses.
+if (!SUPABASE_URL || !SERVICE_ROLE) {
+  console.error("ERROR: set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY");
+  process.exit(1);
+}
+if (!DUMP_TEXT_EMAIL && !OPENAI_API_KEY) {
+  console.error("ERROR: OPENAI_API_KEY required for Stage 1 (resume extraction LLM call)");
+  process.exit(1);
+}
+if (STAGE !== "1" && STAGE !== "" && !ANON_KEY) {
+  console.error("ERROR: SUPABASE_ANON_KEY (or VITE_SUPABASE_ANON_KEY) required for Stages 2 + 3 (per-user JWT minting via verifyOtp)");
   process.exit(1);
 }
 const ts = new Date().toISOString().replace(/[:.]/g, "-");
@@ -694,7 +707,40 @@ async function stage3() {
   console.log("\n✅ Verified: only tasks + daily_actions changed.");
 }
 
+// ─── --dump-text — read-only ground-truth helper ───
+//
+// Downloads the user's latest CV via the SAME unpdf/mammoth path Stage 1
+// uses and prints the raw extracted text. No LLM call, no DB write, no
+// snapshot. Used to compare what the model extracted against what the CV
+// literally says.
+//
+// The text printed here is byte-identical to what production
+// extract-cv-text + the client-side mammoth path would produce, so
+// anomalies in the dump are anomalies the LLM saw too — not artifacts
+// of this script's transport.
+
+async function dumpText(email: string) {
+  console.error(`READ-ONLY DUMP for ${email}\n`);
+  const uid = await userIdByEmail(email);
+  if (!uid) { console.error(`FATAL: could not resolve ${email}`); process.exit(1); }
+  console.error(`  user_id: ${uid}`);
+  const resume = await listLatestResume(uid);
+  if (!resume) { console.error(`FATAL: no resume in resumes/${uid}/`); process.exit(1); }
+  if (resume.ext === "other") { console.error(`FATAL: latest file "${resume.name}" is neither .pdf nor .docx`); process.exit(1); }
+  console.error(`  file: ${resume.path} (${resume.ext})`);
+  const { text, pages } = await downloadAndExtractText(resume.path, resume.ext);
+  console.error(`  pages: ${pages}  text_len: ${text.length}${text.length > 15000 ? `  (Stage 1 truncates to 15000)` : ""}`);
+  console.error(`\n${"─".repeat(78)}\n--- RAW EXTRACTED TEXT (verbatim, no truncation) ---\n${"─".repeat(78)}\n`);
+  process.stdout.write(text);
+  if (!text.endsWith("\n")) process.stdout.write("\n");
+  console.error(`\n${"─".repeat(78)}\n--- END OF TEXT ---\n${"─".repeat(78)}`);
+}
+
 async function main() {
+  if (DUMP_TEXT_EMAIL) {
+    await dumpText(DUMP_TEXT_EMAIL);
+    return;
+  }
   console.error(`Stage: ${STAGE}  Mode: ${EXECUTE ? "EXECUTE (will write)" : "DRY-RUN"}`);
   console.error(`Targets: ${TARGETS.join(", ")}\n`);
   if (STAGE === "1") await stage1();
