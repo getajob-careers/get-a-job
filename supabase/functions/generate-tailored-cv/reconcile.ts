@@ -42,6 +42,36 @@ export interface FilledEntry {
   [orgField: string]: any;
 }
 
+// Defensive instrumentation surface — additive, no render-behavior change.
+//
+// Two warning kinds:
+//   - 'unclaimed_entry'    — an LLM entry that produced no slot binding after
+//                            both pass 1 (in-range index claim) AND pass 2
+//                            (positional rescue). Its bullets are dropped.
+//                            This is the agamf123-shape failure: misrouted
+//                            bucket, out-of-range index, no positional slot
+//                            available — the LLM's tailored text vanishes
+//                            silently.
+//   - 'positional_fallback'— a slot claimed via pass-2 positional rescue
+//                            rather than a valid index. Indicates the LLM
+//                            emitted an out-of-range or non-integer index.
+//                            Less severe than 'unclaimed_entry' because the
+//                            bullets DO attach to a source slot — but they
+//                            may be misrouted (the LLM's bullets describe a
+//                            different role than the source at position j).
+//
+// Caller passes a shared array via opts.warnings; fillFromSource appends to
+// it across all four bucket calls. The shape mirrors unsourcedBullets in
+// the index.ts response payload (`{ bucket, ...details }`) so the same
+// rendering / inspection plumbing applies.
+export interface ReconcileWarning {
+  bucket: string;
+  kind: 'unclaimed_entry' | 'positional_fallback';
+  entry_position: number;
+  llm_index: number | string | null;
+  source_index?: number;
+}
+
 const MONTHS_FULL: Record<string, string> = {
   january: "Jan", february: "Feb", march: "Mar", april: "Apr", may: "May",
   june: "Jun", july: "Jul", august: "Aug", september: "Sep", sept: "Sep",
@@ -102,9 +132,11 @@ export function fillFromSource(
   sources: SourceExperience[],
   llmEntries: LlmEntry[] | undefined | null,
   orgFieldName: string,
-  opts?: { logger?: (msg: string) => void },
+  opts?: { logger?: (msg: string) => void; warnings?: ReconcileWarning[]; bucket?: string },
 ): FilledEntry[] {
   const log = opts?.logger || ((msg: string) => console.warn(msg));
+  const warnings = opts?.warnings;
+  const bucket = opts?.bucket || orgFieldName;
   const entries: LlmEntry[] = Array.isArray(llmEntries) ? llmEntries : [];
 
   // Build a map source-index → bullets in two passes so positional
@@ -121,6 +153,20 @@ export function fillFromSource(
       ? (raw as unknown[]).map((b) => String(b || "").trim()).filter(Boolean)
       : [];
 
+  // Track which LLM entry produced each claim so the post-pass scan can
+  // surface duplicate-index losses (LLM emitted idx=2 twice; only first
+  // claims, second is silently dropped without entering pass 2).
+  const claimedByEntry = new Set<number>();
+
+  // Normalize an llm-supplied `raw` index into a JSON-safe value for the
+  // warning payload. Numbers and strings pass through; anything else
+  // (null, undefined, objects, NaN bait) becomes null.
+  const safeLlmIndex = (raw: unknown): number | string | null => {
+    if (typeof raw === 'number' && Number.isFinite(raw)) return raw;
+    if (typeof raw === 'string') return raw;
+    return null;
+  };
+
   for (let j = 0; j < entries.length; j++) {
     const e = entries[j];
     if (!e) continue;
@@ -129,6 +175,7 @@ export function fillFromSource(
     const valid = Number.isInteger(idx) && idx >= 0 && idx < sources.length;
     if (valid && !bulletsBySource.has(idx)) {
       bulletsBySource.set(idx, cleanBullets(e.bullets));
+      claimedByEntry.add(j);
     }
   }
   for (let j = 0; j < entries.length; j++) {
@@ -141,7 +188,36 @@ export function fillFromSource(
     log(`[CV reconcile] LLM entry ${j} has out-of-range index=${raw} (sources.length=${sources.length}); positional fallback to source ${j}`);
     if (j < sources.length && !bulletsBySource.has(j)) {
       bulletsBySource.set(j, cleanBullets(e.bullets));
+      claimedByEntry.add(j);
+      // Slot j was claimed via positional rescue, not by a valid index
+      // match. The LLM's bullets attach to source[j] regardless of which
+      // source the LLM thought it was describing.
+      log(`[CV reconcile] bucket=${bucket} positional_fallback j=${j} llm_index=${raw}`);
+      warnings?.push({
+        bucket,
+        kind: 'positional_fallback',
+        entry_position: j,
+        llm_index: safeLlmIndex(raw),
+        source_index: j,
+      });
     }
+  }
+
+  // Post-pass scan — any LLM entry not in claimedByEntry was silently
+  // dropped. Catches both (a) the agamf123-shape failure (out-of-range
+  // index, j >= sources.length so positional fallback also failed) and
+  // (b) duplicate-index entries where pass 1 first-wins skipped them.
+  for (let j = 0; j < entries.length; j++) {
+    const e = entries[j];
+    if (!e || claimedByEntry.has(j)) continue;
+    const raw = e.index;
+    log(`[CV reconcile] bucket=${bucket} unclaimed_entry j=${j} llm_index=${raw} sources.length=${sources.length}`);
+    warnings?.push({
+      bucket,
+      kind: 'unclaimed_entry',
+      entry_position: j,
+      llm_index: safeLlmIndex(raw),
+    });
   }
 
   return sources.map((src, i) => {

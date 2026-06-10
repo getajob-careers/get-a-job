@@ -1,6 +1,8 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { startMetric, finishMetric, type Metric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
+import { openrouterChatCompletion } from '../_shared/openrouter-chat.ts'
+import type { ReconcileWarning } from './reconcile.ts'
 import { pickPrimaryEducation } from '../_shared/education-helpers.ts'
 import { CV_VOICE_RULES } from '../_shared/voice-rules.ts'
 import { stripHtml } from '../_shared/strip-html.ts'
@@ -28,6 +30,14 @@ const corsHeaders = {
 // click — moderate volume, latency matters because users wait synchronously
 // for the docx download to be ready.
 const MODEL = "gpt-4o";
+
+// Sonnet authoring slug — only loaded when the request's cv_model param is
+// the literal 'sonnet'. The slug must match the OpenRouter catalog entry
+// exactly. The model identifier surfaced in function_metrics for billing
+// is a different shape (no slash) — see m.modelUsed assignment at the call
+// site. Phase-0 bake-off evidence: docs/research/cv-bakeoff-2026-06.md.
+const SONNET_OPENROUTER_SLUG = "anthropic/claude-sonnet-4.6";
+const SONNET_MODEL_USED = "claude-sonnet-4-6";
 
 // Helper so every response path picks up CORS headers without having to thread
 // them manually. Replaces Response.json() — which does NOT merge custom headers
@@ -289,7 +299,7 @@ Deno.serve(async (req) => {
       _http = 413; _err = 'payload_too_large'
       return json({ error: 'Request payload too large.' }, 413);
     }
-    const { job_description, target_role, application_id, template_style } = body;
+    const { job_description, target_role, application_id, template_style, cv_model } = body;
     const safeTargetRole = String(target_role ?? '').slice(0, 200);
     // Smart truncation: pull Requirements/Qualifications/Responsibilities
     // sections first when the JD has detectable headings; otherwise fall
@@ -309,6 +319,18 @@ Deno.serve(async (req) => {
     // exhaustive set so a bad client can't trigger a downstream error.
     const safeTemplateStyle: TemplateStyle =
       template_style === 'polished' ? 'polished' : 'ats-optimized';
+
+    // cv_model: 'sonnet' routes Pass 2 (authoring) + Pass 3 (coverage retry)
+    // through OpenRouter to anthropic/claude-sonnet-4.6 with the Option A
+    // prompt blocks (responsibilities-first source ranking, 1-per-line bullet
+    // cap up to 6, verbatim metrics across responsibilities AND stories,
+    // sparse fallback). Anything else — including missing, malformed,
+    // misspelled, or null — resolves to the gpt-4o default branch, which is
+    // byte-identical to today's main. Same parse/validate/default shape as
+    // safeTemplateStyle above. Phase-0 evidence: 21/21 index validity and
+    // 35/35 numbers carried on Sonnet+Option A vs 13/21 on gpt-4o.
+    const safeCvModel: 'gpt-4o' | 'sonnet' =
+      cv_model === 'sonnet' ? 'sonnet' : 'gpt-4o';
 
     if (!safeTargetRole) {
       _http = 400; _err = 'missing_input'
@@ -1234,6 +1256,48 @@ PRIORITY ORDER; the keyword block enforces ATS-substring presence. Both
 constraints must be honored.
 ` : ``;
 
+    // Option A overlay — appended ONLY when safeCvModel === 'sonnet'. Lives
+    // at the END of the system prompt so the model treats it as authoritative
+    // over the earlier conflict-mapped blocks (ONE_PAGE_RULE bullet counts,
+    // STRUCTURE_RULES STORY BANK PRECEDENCE, TAILORING_RULES verbatim-metrics
+    // scope, ABOUT_ME SPARSE branch). LLMs weight later instructions higher
+    // for conflicting guidance; the Phase-0 bake-off validated this content
+    // against the Sonnet candidate and the writing-quality + index-validity
+    // metrics moved decisively in this direction (21/21 vs 13/21 index
+    // validity, 35/35 vs 30/35 numbers carried; see
+    // docs/research/cv-bakeoff-2026-06.md).
+    //
+    // The two targeted prompt additions at the bottom of the overlay address
+    // specific defects observed in the Phase-0 outputs:
+    //   - PROJECTS guard fixes the gavibook coursework-mis-filed-as-project
+    //     case (Sonnet pulled education.relevant_coursework into a Projects
+    //     section because the prompt left "what is a project" open-ended).
+    //   - DERIVED-FIGURES guard fixes the michael "14 years" case (Sonnet
+    //     computed tenure from start/end dates and stated it as if from
+    //     source — a fabrication by computation even though every individual
+    //     date was real).
+    const OPTION_A_OVERLAY = `
+─── OPTION-A AUTHORING OVERLAY (overrides any conflicting rule above) ───
+
+SOURCE RANKING (RESPONSIBILITIES FIRST):
+- experience.responsibilities is the PRIMARY source for bullets. Stories and proof_signals are ENRICHMENT only — they may contribute a metric or named tool the responsibility omits, but they NEVER replace a responsibility line. Ranking: responsibilities > proof_signals (enrichment) > stories (enrichment).
+
+BULLET CAP (faithfulness over compression):
+- Emit ONE bullet per distinct responsibility line in the source, capped at 6 per experience. If the user wrote 5 responsibility lines, emit 5 bullets — do NOT compress to 3. If a single short responsibility line exists, emit 1-2 bullets (split a compound responsibility if needed; never invent). Drop the LEAST JD-relevant line ONLY when you hit the 6-bullet ceiling.
+
+VERBATIM METRICS (responsibilities AND stories):
+- Every number appearing in experience.responsibilities — counts, percentages, currency, durations, team sizes, volumes — MUST appear in a bullet for that experience, word-for-word. Rephrasing applies to verbs and surrounding structure, NEVER to the number tokens themselves. If a single bullet cannot carry all numbers, distribute across multiple bullets for the same experience. Story metrics remain verbatim (unchanged from the existing STORY BANK BINDING rules).
+
+SPARSE-PROFILE FALLBACK:
+- When professional_experiences[] is empty or contains only one short entry: the About Me must anchor on education + draw 2-3 specific claims from proof_signals. Render up to 4 academic_projects per education entry (cap rises from 2 to 4 for sparse profiles only). Surface every project. Skills carry the relevance signal in place of bullet density.
+
+PROJECTS SECTION — POPULATE ONLY FROM USER DATA.projects:
+- Output projects[] contains entries drawn ONLY from USER DATA.projects[]. Do NOT promote education.relevant_coursework, course assignments, internships, or work tasks into Projects. If USER DATA.projects[] is empty or absent, omit the projects[] field from the output JSON entirely — do not emit an empty array, do not synthesize entries to fill a section.
+
+NO DERIVED OR COMPUTED FIGURES:
+- State only figures present VERBATIM in the source. Do NOT compute, derive, or estimate numbers — including tenure expressed in years/months from start_date and end_date, head-counts inferred from a team description, percentages calculated from raw figures, totals summed across roles, or any other arithmetic over source values. If the source says "Jan 2010 – Dec 2024" you may render the date range exactly — but you may NOT write "14 years of experience" or any computed restatement of that span. The same rule applies to currency totals, percentages, ratios, and head-counts: if a number didn't appear verbatim in source, it cannot appear in output.
+`;
+
     const systemPrompt =
       `You are a CV Generation Engine for the "Get A Job" Career Operating System. Your job is to produce a tailored, one-page, truthful CV as JSON. The CV WILL be sent to real employers — so every word must be grounded in the user's actual data.\n\n` +
       `You are generating a TAILORED CV. The CV must be specifically customized for the target job description. Generic CVs that don't incorporate JD-specific language will be rejected.\n\n` +
@@ -1246,7 +1310,8 @@ constraints must be honored.
       LIBRARY_CONTEXT + `\n` +
       `REMINDER: Truthfulness beats polish AND one-page fit is non-negotiable. If a bullet needs a metric to sound impressive but you have no metric in the source, leave it without. Do not invent. If content is overflowing, shorten bullets rather than dropping entries.
 
-BEFORE FINALIZING THE JSON: count how many of the must_include_phrases appear anywhere in your output (case-insensitive substring match in any field). If fewer than 6 of 10 — or fewer than 60% of however many were provided — rewrite bullets to incorporate more, but ONLY where the user actually has the underlying experience. The factual-integrity rules above always win.`;
+BEFORE FINALIZING THE JSON: count how many of the must_include_phrases appear anywhere in your output (case-insensitive substring match in any field). If fewer than 6 of 10 — or fewer than 60% of however many were provided — rewrite bullets to incorporate more, but ONLY where the user actually has the underlying experience. The factual-integrity rules above always win.` +
+      (safeCvModel === 'sonnet' ? OPTION_A_OVERLAY : '');
     // KEYWORD_INJECTION_BLOCK is appended to the END of the user prompt below
     // so it's the last instruction the LLM sees before producing output.
 
@@ -1386,6 +1451,18 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       return json({ error: "OpenAI API key not configured on server" }, 500);
     }
 
+    // OPENROUTER_API_KEY only required when this request opted into Sonnet.
+    // Lookup-then-validate; the default branch never reaches this code path
+    // so a missing key cannot break gpt-4o requests. Flag-gated rollout
+    // means any user on the Sonnet path is one who explicitly opted in.
+    const openrouterKey = safeCvModel === 'sonnet'
+      ? Deno.env.get("OPENROUTER_API_KEY")
+      : null;
+    if (safeCvModel === 'sonnet' && !openrouterKey) {
+      _http = 500; _err = 'no_openrouter_key'
+      return json({ error: "OpenRouter API key not configured on server (required for cv_model='sonnet')" }, 500);
+    }
+
     // Diagnostic: confirm the JD is actually reaching the LLM and the
     // keyword extraction pulled something useful out. Shows up in
     // Supabase edge-function logs under this function.
@@ -1393,43 +1470,60 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     console.log("[CV] Keywords extracted:", JSON.stringify(jdKeywords?.must_include_phrases?.slice(0, 5) || []));
     console.log("[CV] Injection block length:", KEYWORD_INJECTION_BLOCK.length);
 
-    const openaiRes = await openaiChatCompletionWithRetry(
-      {
-        model: MODEL,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt }
-        ],
-        response_format: { type: "json_object" },
-        temperature: 0.2, // lower = less likely to invent metrics
-        max_tokens: 4096,
+    // Pass 2 — CV authoring. cv_model flag routes the call to either OpenAI
+    // (gpt-4o, default branch — byte-identical to current production) or
+    // OpenRouter (anthropic/claude-sonnet-4.6). Both transports return
+    // OpenAI-shaped JSON (choices[].message.content + usage.*), so the
+    // downstream parse code path is unchanged.
+    const pass2Model = safeCvModel === 'sonnet' ? SONNET_OPENROUTER_SLUG : MODEL;
+    const pass2MetricsModel = safeCvModel === 'sonnet' ? SONNET_MODEL_USED : MODEL;
+    const pass2Payload = {
+      model: pass2Model,
+      messages: [
+        { role: "system", content: systemPrompt },
+        { role: "user", content: userPrompt }
+      ],
+      response_format: { type: "json_object" },
+      temperature: 0.2, // lower = less likely to invent metrics
+      max_tokens: 4096,
+    };
+    const pass2TraceCtx = {
+      // Pass-2 trace — shares sessionId with pass-1 so both passes group
+      // as one CV generation in the Langfuse UI.
+      traceName: 'generate-tailored-cv:pass-2-cv',
+      userId: user.id,
+      sessionId: cvSessionId,
+      metadata: {
+        template_style: safeTemplateStyle,
+        cv_model: safeCvModel,
+        has_jd: !!safeJobDescription,
+        has_target_role: !!safeTargetRole,
+        has_application_link: !!application_id,
       },
-      openaiKey,
-      {
-        // Pass-2 trace — shares sessionId with pass-1 so both passes group
-        // as one CV generation in the Langfuse UI.
-        traceName: 'generate-tailored-cv:pass-2-cv',
-        userId: user.id,
-        sessionId: cvSessionId,
-        metadata: {
-          template_style: safeTemplateStyle,
-          has_jd: !!safeJobDescription,
-          has_target_role: !!safeTargetRole,
-          has_application_link: !!application_id,
-        },
-      },
-      { signal: AbortSignal.timeout(45000) },
-    );
+    };
+    const openaiRes = safeCvModel === 'sonnet'
+      ? await openrouterChatCompletion(
+          pass2Payload,
+          openrouterKey!,
+          pass2TraceCtx,
+          { signal: AbortSignal.timeout(45000) },
+        )
+      : await openaiChatCompletionWithRetry(
+          pass2Payload,
+          openaiKey,
+          pass2TraceCtx,
+          { signal: AbortSignal.timeout(45000) },
+        );
 
     if (!openaiRes.ok) {
       const err = await openaiRes.text();
       _http = 500; _err = `openai_${openaiRes.status}`
-      m.modelUsed = MODEL
+      m.modelUsed = pass2MetricsModel
       return json({ error: `OpenAI error: ${err}` }, 500);
     }
 
     const openaiData = await openaiRes.json();
-    m.modelUsed = MODEL
+    m.modelUsed = pass2MetricsModel
     m.tokensIn = (m.tokensIn ?? 0) + (openaiData.usage?.prompt_tokens ?? 0)
     m.tokensOut = (m.tokensOut ?? 0) + (openaiData.usage?.completion_tokens ?? 0)
     let cvData: Record<string, any>;
@@ -1474,25 +1568,38 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
           console.log(`[CV] Retry firing: tailoring ${Math.round(preliminaryPct*100)}% + overlap ${Math.round(overlapPct*100)}%; ${missed.length} missed phrases`);
           const retryHint = `\n\nRETRY: The previous draft missed these phrases that genuinely describe the user's experience:\n${missed.map((p) => `- "${p}"`).join('\n')}\n\nRewrite the CV bullets, About Me, and Skills to incorporate as many of these as TRUTHFULLY apply. ABSOLUTE FACTUAL INTEGRITY rules still win — do not invent. If a missed phrase doesn't honestly describe the user's work, leave it out.`;
           try {
-            const retryRes = await openaiChatCompletionWithRetry(
-              {
-                model: MODEL,
-                messages: [
-                  { role: "system", content: systemPrompt },
-                  { role: "user", content: userPrompt + retryHint },
-                ],
-                response_format: { type: "json_object" },
-                temperature: 0.2,
-                max_tokens: 4096,
-              },
-              openaiKey,
-              {
-                traceName: 'generate-tailored-cv:pass-3-retry',
-                userId: user.id,
-                sessionId: cvSessionId,
-              },
-              { signal: AbortSignal.timeout(45000) },
-            );
+            // Pass 3 (coverage retry) routes through the same transport as
+            // Pass 2 — keeping both authoring calls on the same model so the
+            // retry's output shape matches what the bake-off measured.
+            const pass3Payload = {
+              model: pass2Model,
+              messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: userPrompt + retryHint },
+              ],
+              response_format: { type: "json_object" },
+              temperature: 0.2,
+              max_tokens: 4096,
+            };
+            const pass3TraceCtx = {
+              traceName: 'generate-tailored-cv:pass-3-retry',
+              userId: user.id,
+              sessionId: cvSessionId,
+              metadata: { cv_model: safeCvModel },
+            };
+            const retryRes = safeCvModel === 'sonnet'
+              ? await openrouterChatCompletion(
+                  pass3Payload,
+                  openrouterKey!,
+                  pass3TraceCtx,
+                  { signal: AbortSignal.timeout(45000) },
+                )
+              : await openaiChatCompletionWithRetry(
+                  pass3Payload,
+                  openaiKey,
+                  pass3TraceCtx,
+                  { signal: AbortSignal.timeout(45000) },
+                );
             if (retryRes.ok) {
               const retryData = await retryRes.json();
               m.tokensIn = (m.tokensIn ?? 0) + (retryData.usage?.prompt_tokens ?? 0)
@@ -1545,26 +1652,42 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       is_current: !!e?.is_current,
       responsibilities: String(e?.responsibilities || ""),
     });
+    // Defensive instrumentation sink — additive, no behavior change. Each
+    // bucket's fillFromSource appends any unclaimed or positional-fallback
+    // warnings here; the final array is surfaced on the response payload
+    // (mirrors the unsourced_bullets pattern) so callers and admin views
+    // can flag silent reconcile drift without scraping edge-function logs.
+    // See ./reconcile.ts for the warning shape + when each kind fires.
+    const reconcileWarnings: ReconcileWarning[] = [];
     cvData.professional_experiences = fillFromSource(
       professionalExperiences.map(toSource),
       cvData.professional_experiences,
       "company",
+      { warnings: reconcileWarnings, bucket: "professional_experiences" },
     );
     cvData.military_experiences = fillFromSource(
       militaryExperiences.map(toSource),
       cvData.military_experiences,
       "unit",
+      { warnings: reconcileWarnings, bucket: "military_experiences" },
     );
     cvData.volunteering_experiences = fillFromSource(
       volunteeringExperiences.map(toSource),
       cvData.volunteering_experiences,
       "organization",
+      { warnings: reconcileWarnings, bucket: "volunteering_experiences" },
     );
     cvData.leadership_experiences = fillFromSource(
       leadershipExperiences.map(toSource),
       cvData.leadership_experiences,
       "organization",
+      { warnings: reconcileWarnings, bucket: "leadership_experiences" },
     );
+    if (reconcileWarnings.length > 0) {
+      console.warn(`[CV] reconcile flagged ${reconcileWarnings.length} warning(s): ${
+        reconcileWarnings.map((w) => `${w.bucket}.${w.kind}@${w.entry_position}`).join(', ')
+      }`);
+    }
 
     // ─── Normalize education + certification date strings to "Mon YYYY" ───
     // The LLM emits mixed formats inside the same CV ("October 2025" vs
@@ -2416,6 +2539,15 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       // any fabricated numbers before sending. Empty when every quantified
       // token in the emitted bullets traces to source data.
       ...(unsourcedBullets.length > 0 && { unsourced_bullets: unsourcedBullets }),
+      // Reconcile defensive warnings. Same additive pattern as
+      // unsourced_bullets above: present only when fillFromSource detected
+      // an unclaimed LLM entry (silent drop) or a positional fallback
+      // (rescued via slot j rather than a valid index match). The CV
+      // rendered exactly as it would have without this surface — this is
+      // pure diagnostic exposure of the bake-off-observed gpt-4o cross-
+      // bucket migration failure mode, so it can be flagged in admin views
+      // and tracked in user reports without scraping edge-function logs.
+      ...(reconcileWarnings.length > 0 && { reconcile_warnings: reconcileWarnings }),
       // JD truncation telemetry — surfaces which path fired and how many JD
       // chars actually reached the LLM. Used by ops/admin views; the frontend
       // generally won't render this.

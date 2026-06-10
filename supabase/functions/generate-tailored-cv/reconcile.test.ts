@@ -14,6 +14,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   fillFromSource,
   formatExperienceDates,
+  type ReconcileWarning,
   type SourceExperience,
 } from "./reconcile";
 
@@ -152,6 +153,63 @@ describe("fillFromSource — server-driven CV reconciliation", () => {
     expect(result[1].bullets).toEqual(["Ran B operations.", "Managed B team of 4."]);
     expect(result[2].company).toBe("Co C");
     expect(result[2].bullets).toEqual(["C bullet"]);
+  });
+});
+
+describe("fillFromSource — reconcile warnings (additive instrumentation, no behavior change)", () => {
+  it("emits a positional_fallback warning when an out-of-range index is rescued by slot-j attachment", () => {
+    const sources = [src({ title: "Soldier", company: "IDF", responsibilities: "Trained recruits." })];
+    const llm = [{ index: 99, bullets: ["civilian-readable bullet"] }];
+    const warnings: ReconcileWarning[] = [];
+
+    const result = fillFromSource(sources, llm, "unit", { warnings, bucket: "military_experiences" });
+
+    // Behavior is unchanged — slot 0 still attaches the bullet via positional rescue.
+    expect(result[0].bullets).toEqual(["civilian-readable bullet"]);
+    // And a structured warning was recorded for the caller to surface.
+    expect(warnings).toEqual([
+      { bucket: "military_experiences", kind: "positional_fallback", entry_position: 0, llm_index: 99, source_index: 0 },
+    ]);
+  });
+
+  it("emits an unclaimed_entry warning when an out-of-range index has no positional slot (the agamf123 shape)", () => {
+    // The bake-off failure shape: misrouted bucket has zero sources, the LLM's
+    // bullets vanish silently from this bucket's render.
+    const sources: SourceExperience[] = [];
+    const llm = [{ index: 4, bullets: ["Led a team of 6 soldiers in the Tavor Battalion"] }];
+    const warnings: ReconcileWarning[] = [];
+
+    const result = fillFromSource(sources, llm, "unit", { warnings, bucket: "military_experiences" });
+
+    // Render: empty bucket (no sources). LLM bullets dropped.
+    expect(result).toEqual([]);
+    // Warning recorded so the caller can flag the silent drop.
+    expect(warnings).toEqual([
+      { bucket: "military_experiences", kind: "unclaimed_entry", entry_position: 0, llm_index: 4 },
+    ]);
+  });
+
+  it("emits an unclaimed_entry warning when the LLM emits a duplicate index (only first claims)", () => {
+    const sources = [
+      src({ title: "Role A", company: "Co A" }),
+      src({ title: "Role B", company: "Co B" }),
+    ];
+    const llm = [
+      { index: 0, bullets: ["first A bullet"] },
+      { index: 0, bullets: ["second A bullet — should be lost"] },
+    ];
+    const warnings: ReconcileWarning[] = [];
+
+    const result = fillFromSource(sources, llm, "company", { warnings });
+
+    // Render: slot 0 has the first claim's bullets; slot 1 falls back to its
+    // own (empty) responsibilities. The second LLM entry's bullets are dropped.
+    expect(result[0].bullets).toEqual(["first A bullet"]);
+    expect(result[1].bullets).toEqual([]);
+    // Warning recorded for the silently-dropped duplicate.
+    expect(warnings).toEqual([
+      { bucket: "company", kind: "unclaimed_entry", entry_position: 1, llm_index: 0 },
+    ]);
   });
 });
 

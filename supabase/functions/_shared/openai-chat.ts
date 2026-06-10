@@ -28,13 +28,19 @@ const LANGFUSE_SECRET = Deno.env.get('LANGFUSE_SECRET_KEY')
 const LANGFUSE_PUBLIC = Deno.env.get('LANGFUSE_PUBLIC_KEY')
 const LANGFUSE_URL = Deno.env.get('LANGFUSE_BASE_URL')
 
-const LANGFUSE_ENABLED = !!(LANGFUSE_SECRET && LANGFUSE_PUBLIC && LANGFUSE_URL)
+// Exported so parallel helpers (e.g. _shared/openrouter-chat.ts) can run
+// the same enabled-check + Basic-auth header without re-reading env or
+// re-encoding the credential. The values themselves remain module-load
+// constants — no behavior change.
+export const LANGFUSE_ENABLED = !!(LANGFUSE_SECRET && LANGFUSE_PUBLIC && LANGFUSE_URL)
 
 // Cached Basic-auth header. Built once at module load. Safe even when
 // disabled — never used if LANGFUSE_ENABLED is false.
-const LANGFUSE_AUTH_HEADER: string | null = LANGFUSE_ENABLED
+export const LANGFUSE_AUTH_HEADER: string | null = LANGFUSE_ENABLED
   ? `Basic ${btoa(`${LANGFUSE_PUBLIC}:${LANGFUSE_SECRET}`)}`
   : null
+
+export const LANGFUSE_BASE_URL: string | null = LANGFUSE_URL ?? null
 
 const OPENAI_ENDPOINT = 'https://api.openai.com/v1/chat/completions'
 
@@ -209,7 +215,7 @@ export async function openaiChatCompletion(
   return response
 }
 
-interface SendTraceArgs {
+export interface SendTraceArgs {
   payload: Record<string, unknown>
   traceCtx: TraceContext
   startTime: Date
@@ -219,7 +225,10 @@ interface SendTraceArgs {
   responseStatus: number
 }
 
-async function sendLangfuseTrace(args: SendTraceArgs): Promise<void> {
+// Exported so parallel transports (OpenRouter etc.) can emit identically-
+// shaped traces. The function body is unchanged — only the visibility was
+// promoted from module-private to module-public.
+export async function sendLangfuseTrace(args: SendTraceArgs): Promise<void> {
   const { payload, traceCtx, startTime, endTime, responseClone, responseOk, responseStatus } = args
 
   // Parse the OpenAI response body for the trace. If parsing fails (bad
