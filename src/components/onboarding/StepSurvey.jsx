@@ -86,7 +86,7 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
     <div className="space-y-7">
       <div>
         <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-          step 9 of 9 · reality check
+          step 6 of 6 · reality check
         </p>
         <h1 className="font-display font-extrabold text-[26px] sm:text-[28px] leading-[1.1] tracking-tight text-rd-text mt-2">
           Quick reality check.

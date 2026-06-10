@@ -9,22 +9,20 @@
 // to false and the route never registers → /_preview/* falls through
 // to AuthenticatedApp → /login.
 //
-// Skill-picker fixtures (`shared-skill-picker`, `skills-empty`,
-// `skills-with-chips`, `roleskills-prefilled`) prove the picker UX
-// preserved across the redesign forks — see scripts/preview-onboarding.mjs
-// for the typing flows that surface the dropdown + chip bank in the
-// PDF captures.
+// Phase 3 onboarding redesign collapsed Education / Experience /
+// Role-skills / Other-skills into one StepReview page. The matching
+// fixture prefixes (`education-*`, `experience-*`, `roleskills-*`,
+// `skills-*`) now all resolve to the same Review fixture; the old
+// `shared-skill-picker` standalone surface still proves the
+// RdSkillTagInput contract independently.
 
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import { FIXTURES } from "./fixtures/onboarding";
 import OnboardingShell from "@/components/onboarding/OnboardingShell";
 import StepResumeUpload from "@/components/onboarding/StepResumeUpload";
-import StepEducation from "@/components/onboarding/StepEducation";
+import StepReview from "@/components/onboarding/StepReview";
 import StepInternship from "@/components/onboarding/StepInternship";
-import StepExperience from "@/components/onboarding/StepExperience";
-import StepRoleSkills from "@/components/onboarding/StepRoleSkills";
-import StepSkills from "@/components/onboarding/StepSkills";
 import StepCareerDirection from "@/components/onboarding/StepCareerDirection";
 import StepConstraints from "@/components/onboarding/StepConstraints";
 import StepSurvey from "@/components/onboarding/StepSurvey";
@@ -33,19 +31,26 @@ import RdSkillTagInput from "@/components/redesign/RdSkillTagInput";
 
 // Map each fixture prefix to the OnboardingShell `currentStep` index so
 // the progress bar + header label match what the user would see in the
-// live flow.
+// live flow. Indices are the new 6-step machine post-Phase-3 collapse.
+//
+// Legacy prefixes (education / experience / roleskills / skills) all
+// resolve to the Review step at index 1 so existing preview links from
+// the old PDF captures still mount something useful.
 const STEP_INDEX_BY_PREFIX = {
   resume: 0,
+  review: 1,
   education: 1,
+  experience: 1,
+  roleskills: 1,
+  skills: 1,
   internship: 2,
-  experience: 3,
-  roleskills: 4,
-  skills: 5,
-  direction: 6,
-  constraints: 7,
-  survey: 8,
+  direction: 3,
+  constraints: 4,
+  survey: 5,
   shared: 0,
 };
+
+const REVIEW_PREFIXES = new Set(["review", "education", "experience", "roleskills", "skills"]);
 
 function StepWrap({ stepIndex, children }) {
   return (
@@ -64,12 +69,14 @@ export default function OnboardingPreview() {
   const [educations, setEducations] = useState(fixture.educations || []);
   const [experiences, setExperiences] = useState(fixture.experiences || []);
   const [projects, setProjects] = useState(fixture.projects || []);
+  const [certifications, setCertifications] = useState(fixture.certifications || []);
 
   useEffect(() => {
     setProfileData(fixture.profileData || {});
     setEducations(fixture.educations || []);
     setExperiences(fixture.experiences || []);
     setProjects(fixture.projects || []);
+    setCertifications(fixture.certifications || []);
   }, [state, fixture]);
 
   const onProfileChange = (patch) =>
@@ -140,12 +147,18 @@ export default function OnboardingPreview() {
           onChange={onProfileChange}
         />
       )}
-      {prefix === "education" && (
-        <StepEducation
+      {REVIEW_PREFIXES.has(prefix) && (
+        <StepReview
           data={profileData}
           onChange={setProfileData}
           educations={educations}
           setEducations={setEducations}
+          experiences={experiences}
+          setExperiences={setExperiences}
+          projects={projects}
+          setProjects={setProjects}
+          certifications={certifications}
+          setCertifications={setCertifications}
           onNext={() => {}}
           onBack={() => {}}
         />
@@ -155,34 +168,6 @@ export default function OnboardingPreview() {
           data={profileData}
           onChange={setProfileData}
           educations={educations}
-          onNext={() => {}}
-          onBack={() => {}}
-        />
-      )}
-      {prefix === "experience" && (
-        <StepExperience
-          experiences={experiences}
-          onChange={setExperiences}
-          onNext={() => {}}
-          onBack={() => {}}
-        />
-      )}
-      {prefix === "roleskills" && (
-        <StepRoleSkills
-          experiences={experiences}
-          setExperiences={setExperiences}
-          educations={educations}
-          setEducations={setEducations}
-          projects={projects}
-          setProjects={setProjects}
-          onNext={() => {}}
-          onBack={() => {}}
-        />
-      )}
-      {prefix === "skills" && (
-        <StepSkills
-          data={profileData}
-          onChange={setProfileData}
           onNext={() => {}}
           onBack={() => {}}
         />

@@ -3,8 +3,8 @@ import { Link } from "react-router-dom";
 
 // OnboardingShell — visual redesign (PR 2A).
 //
-// Chrome for steps 0-8 (data capture); step 9 (tutorial) renders
-// full-screen outside this shell. Step counter reads "Step X of 9";
+// Chrome for steps 0-5 (data capture); step 6 (tutorial) renders
+// full-screen outside this shell. Step counter reads "Step X of 6";
 // the tutorial is intentionally NOT counted.
 //
 // Visual structure: cream page background → peach outer frame
@@ -18,13 +18,14 @@ import { Link } from "react-router-dom";
 // renumbering, grep this array too. Lesson 2026-06-02 (PR #213):
 // import paths matter — keep imports identical to the prior file so
 // existing test selectors (role/text-based) still resolve.
+//
+// Phase 3 (2026-06-10): Education / Experience / Role skills / Other
+// skills collapsed into a single "Review" page after CV upload —
+// the array shrinks from 9 entries to 6.
 const STEPS = [
   "CV upload",
-  "Education",
+  "Review",
   "Internship",
-  "Experience",
-  "Role skills",      // index 4 — added in PR #136 (StepRoleSkills)
-  "Other skills",     // index 5 — was "Skills"; matches the "Any other skills?" framing
   "Career direction",
   "Constraints",
   "Reality check",

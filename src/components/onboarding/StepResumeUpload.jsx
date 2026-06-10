@@ -301,7 +301,7 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
 
       <div>
         <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-          step 1 of 9 · your cv
+          step 1 of 6 · your cv
         </p>
         <h1 className="font-display font-extrabold text-[26px] sm:text-[28px] leading-[1.1] tracking-tight text-rd-text mt-2">
           Let&apos;s start with your CV.
