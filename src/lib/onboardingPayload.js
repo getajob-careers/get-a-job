@@ -89,7 +89,15 @@ export const EMPTY_PROFILE = {
   // analysis edge function reads only this field; categories never had a
   // persistence target.
   skills: [],
+  // Five-year goal is captured as a structured pick against
+  // _shared/libraries/00_role_library.ts (Phase 2 onboarding redesign).
+  // Both fields write together on selection: five_year_goal_role_id is the
+  // role.id used directly by generate-career-analysis (skips
+  // resolveGoalRoleId entirely), five_year_role is the human-readable
+  // standardized_title kept for display + the fallback resolver path for
+  // users whose column is null. NEVER set one without the other.
   five_year_role: "",
+  five_year_goal_role_id: null,
   target_job_titles: [],
   location: "",
   work_type: [],
@@ -155,7 +163,8 @@ export function cleanProfilePayload(data) {
     languages,
     onboarding_step, onboarding_complete,
     skill_gaps, qualification_level, overall_assessment, last_reality_check_date,
-    five_year_role, proof_signals, primary_domain, adjacent_fields,
+    five_year_role, five_year_goal_role_id,
+    proof_signals, primary_domain, adjacent_fields,
     practicum_path,
     biggest_challenge, cv_tailoring_strategy,
     role_clarity_score,
@@ -181,7 +190,8 @@ export function cleanProfilePayload(data) {
     languages,
     onboarding_step, onboarding_complete,
     skill_gaps, qualification_level, overall_assessment, last_reality_check_date,
-    five_year_role, proof_signals, primary_domain, adjacent_fields,
+    five_year_role, five_year_goal_role_id,
+    proof_signals, primary_domain, adjacent_fields,
     practicum_path,
     biggest_challenge, cv_tailoring_strategy,
     role_clarity_score,

@@ -909,8 +909,26 @@ Deno.serve(async (req) => {
     // whole run collapses to pure-fit scoring and Track 1 almost never
     // populates for junior profiles.
     const experienceLevel = inferExperienceLevel(experiences || [], profile);
-    let goalRoleId = resolveGoalRoleId(sanitisedProfile.five_year_role, experienceLevel);
-    let goalSource: "five_year_role" | "primary_domain" | "none" = goalRoleId ? "five_year_role" : "none";
+    // Phase 2 onboarding redesign: structured pick first. If the user picked
+    // a role from the library in StepCareerDirection, profile.five_year_goal_role_id
+    // holds the role.id directly — skip resolveGoalRoleId entirely (the resolver
+    // is the source of the goal_alignment_score=0 failure mode for typos /
+    // non-canonical phrasing).
+    //
+    // Byte-identical for users with null five_year_goal_role_id (every user
+    // pre-Phase-2): the resolveGoalRoleId → primary_domain fallback chain
+    // below is unchanged. The explicit-id branch simply doesn't fire.
+    let goalRoleId: string | null = null;
+    let goalSource: "five_year_goal_role_id" | "five_year_role" | "primary_domain" | "none" = "none";
+    const explicitGoalId = (profile as { five_year_goal_role_id?: unknown }).five_year_goal_role_id;
+    if (explicitGoalId && ROLE_BY_ID.has(String(explicitGoalId))) {
+      goalRoleId = String(explicitGoalId);
+      goalSource = "five_year_goal_role_id";
+    }
+    if (!goalRoleId) {
+      goalRoleId = resolveGoalRoleId(sanitisedProfile.five_year_role, experienceLevel);
+      if (goalRoleId) goalSource = "five_year_role";
+    }
     if (!goalRoleId && profile.primary_domain) {
       const domainFallback = PRIMARY_DOMAIN_TO_ROLE_ID[String(profile.primary_domain).toLowerCase()];
       if (domainFallback && ROLE_BY_ID.has(domainFallback)) {
@@ -1047,7 +1065,9 @@ Deno.serve(async (req) => {
     }));
 
     const goalRoleTitle = goalRoleId ? ROLE_BY_ID.get(goalRoleId)?.standardized_title : null;
-    const goalDisplay = goalSource === "five_year_role"
+    const goalDisplay = goalSource === "five_year_goal_role_id"
+      ? `5-YEAR GOAL ROLE (user picked from library): ${goalRoleTitle}`
+      : goalSource === "five_year_role"
       ? `RESOLVED 5-YEAR GOAL ROLE (matched to library): ${goalRoleTitle}`
       : goalSource === "primary_domain"
       ? `FALLBACK ANCHOR ROLE (from primary_domain "${profile.primary_domain}"): ${goalRoleTitle}. The user's typed 5-year goal could not be matched to a library role; alignment scoring uses this domain anchor instead.`
