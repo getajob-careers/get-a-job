@@ -2,11 +2,16 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
-// SYSTEM_PROMPT and USER_MESSAGE_PREFIX are now sourced from the shared
+// SYSTEM_PROMPT and USER_MESSAGE_PREFIX are sourced from the shared
 // module so the bake-off harness (scripts/test-proof-signals-bakeoff.ts)
-// can import the exact production prompt without replicating the build
-// logic. String produced is byte-identical to the prior inline version.
+// imports the exact production prompt without replicating the build.
 import { SYSTEM_PROMPT, USER_MESSAGE_PREFIX } from '../_shared/proof-signals-prompt.ts'
+// Model identity + reasoning-model params now live in model-routing.ts.
+// The PR #282 bake-off picked gpt-5.4-mini at reasoning_effort='none'
+// + max_completion_tokens=16000; that decision is encoded in the
+// 'proof-signals' route entry. This module reads the entry once at
+// module load and branches the request body shape accordingly.
+import { routeFor } from '../_shared/model-routing.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,12 +20,20 @@ const corsHeaders = {
   'Access-Control-Max-Age': '86400',
 }
 
-// gpt-4o (not -mini): proof-signal extraction is the first thing every
-// new user sees after resume upload, and -mini was 25s p50 — bad first
-// impression. -4o brings it to ~10s for ~$3/mo extra (100 students,
-// onboarding once each). Cost is negligible because volume is one-shot
-// per user.
-const MODEL = 'gpt-4o'
+// Production model + request shape come from the routing layer. The
+// shared openai-chat helper is a pure pass-through (does NOT translate
+// max_tokens → max_completion_tokens for reasoning models), so the
+// branching has to happen at the caller — same pattern as ai-chat's
+// callOpenAI for resume-extractor (ai-chat/index.ts:893-916). Reading
+// the route once at module load is safe because the route is a static
+// object literal in model-routing.ts.
+const ROUTE = routeFor('proof-signals')
+const MODEL = ROUTE.model
+// Non-reasoning cap fallback. Today's route IS reasoning (gpt-5.4-mini
+// + effort=none), so this only fires if a future route swap drops
+// reasoning_effort. Pre-Phase-2 production was 4000 → keep that as the
+// floor so any downgrade lands on a known-good cap.
+const NONREASONING_MAX_TOKENS = 4000
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
@@ -71,22 +84,39 @@ Deno.serve(async (req) => {
       })
     }
 
+    // Body shape branches on the route's reasoning_effort presence —
+    // mirrors ai-chat/index.ts callOpenAI for resume-extractor. The
+    // shared helper does NOT translate params; the caller is on the
+    // hook for sending max_completion_tokens (reasoning) vs max_tokens
+    // (non-reasoning). Sending both, or sending max_tokens to a
+    // reasoning model, fails with HTTP 400 "Unsupported parameter".
+    const body: Record<string, unknown> = {
+      model: MODEL,
+      messages: [
+        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'user', content: `${USER_MESSAGE_PREFIX}${cvText}` },
+      ],
+      temperature: ROUTE.temperature ?? 0.2,
+    }
+    if (ROUTE.response_format) body.response_format = ROUTE.response_format
+    if (ROUTE.reasoning_effort) {
+      // Reasoning branch — hidden thinking tokens count against the cap,
+      // so use the route's bake-off-validated max_completion_tokens
+      // (currently 16000) and never send max_tokens alongside.
+      body.max_completion_tokens = ROUTE.max_completion_tokens ?? NONREASONING_MAX_TOKENS
+      body.reasoning_effort = ROUTE.reasoning_effort
+    } else {
+      // Non-reasoning branch — kept for any future route downgrade.
+      body.max_tokens = NONREASONING_MAX_TOKENS
+    }
+
     const openaiResponse = await openaiChatCompletionWithRetry(
-      {
-        model: MODEL,
-        messages: [
-          { role: 'system', content: SYSTEM_PROMPT },
-          { role: 'user', content: `${USER_MESSAGE_PREFIX}${cvText}` },
-        ],
-        temperature: 0.2,
-        max_tokens: 4000,
-        response_format: { type: 'json_object' },
-      },
+      body,
       openaiKey,
       {
         traceName: 'extract-proof-signals',
         userId: user.id,
-        metadata: { cv_text_length: cvText.length },
+        metadata: { cv_text_length: cvText.length, model: MODEL },
       },
       { signal: AbortSignal.timeout(45000) },
     )

@@ -13,14 +13,24 @@
 // Adding a non-OpenAI model later means adding ONE entry per job, not
 // remapping every agent string.
 //
-// Current scope: ONLY resume-extractor reads from this layer in production.
-// The other two job entries are placeholders that document intent for the
-// upcoming agent-merge work; they're not wired anywhere yet, so changing
-// them won't affect production until a future PR.
+// Current scope: resume-extractor and proof-signals read from this layer
+// in production. The other two job entries (chat-agent, structured-extract)
+// are placeholders that document intent for the upcoming agent-merge work;
+// they're not wired anywhere yet, so changing them won't affect production
+// until a future PR.
+//
+// Why proof-signals gets its own key (and not the structured-extract
+// umbrella): the bake-off result for proof-signals doesn't necessarily
+// transfer to other extract-* functions (extract-job-requirements,
+// extract-story-from-text, etc.). Each function has different input
+// shape, output shape, and latency tolerance. Same precedent as
+// resume-extractor — it has its own key because its bake-off result
+// is specific to that surface.
 
 export type JobKey =
   | 'chat-agent'
   | 'resume-extractor'
+  | 'proof-signals'
   | 'structured-extract';
 
 export type Transport = 'openai' | 'openrouter';
@@ -103,10 +113,41 @@ export const ROUTES: Record<JobKey, ModelRoute> = {
     max_completion_tokens: 16000,
   },
 
-  // Placeholder — the existing structured-extract functions (extract-
-  // proof-signals, extract-job-requirements, extract-story-from-text,
-  // extract-cv-text-no-LLM, etc.) still hold their own model constants.
-  // Documented here for the eventual consolidation; nothing reads it now.
+  // Proof-signals sits on gpt-5.4-mini per the bake-off in PR #282.
+  // Same shape as resume-extractor (reasoning model, structured JSON
+  // output, latency-sensitive surface). Pairing matters:
+  //
+  //   - `reasoning_effort: 'none'` — bake-off ran with effort='none' and
+  //     gpt-5.4-mini won. Higher effort would defeat the cost/latency
+  //     win that produced the swap decision.
+  //   - `max_completion_tokens: 16000` — reasoning models count hidden
+  //     thinking against this cap. The prior production cap was 4000
+  //     (max_tokens for gpt-4o); 16000 mirrors the resume-extractor
+  //     ceiling and the bake-off harness, so a future effort bump
+  //     can't trip the silent-truncation failure mode PR #277 fixed.
+  //
+  // extract-proof-signals/index.ts consults this entry directly at
+  // module load. The body it sends matches the contract documented on
+  // resume-extractor above: max_tokens replaced by max_completion_tokens
+  // when reasoning_effort is set, no temperature/format coercion.
+  //
+  // response_format json_object stays — the prompt's "Return ONLY valid
+  // JSON" instruction is the spec, and the stripped prompt (PR #282)
+  // didn't change that contract.
+  'proof-signals': {
+    model: 'gpt-5.4-mini',
+    transport: 'openai',
+    response_format: { type: 'json_object' },
+    temperature: 0.2,
+    reasoning_effort: 'none',
+    max_completion_tokens: 16000,
+  },
+
+  // Placeholder — the OTHER structured-extract functions (extract-job-
+  // requirements, extract-story-from-text, extract-cv-text-no-LLM, etc.)
+  // still hold their own model constants. Documented here for the
+  // eventual consolidation; nothing reads it now. extract-proof-signals
+  // graduated to its own key above after the PR #282 bake-off.
   'structured-extract': {
     model: 'gpt-4o-mini',
     transport: 'openai',
