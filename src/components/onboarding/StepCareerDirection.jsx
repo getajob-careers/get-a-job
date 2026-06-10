@@ -72,10 +72,11 @@ const INPUT_CLS =
 export default function StepCareerDirection({ data, onChange, onNext, onBack }) {
   const set = (key, val) => onChange({ ...data, [key]: val });
 
-  // The structured pick is the only gate to proceed. Free-text-only state
-  // (users mid-flow from before Phase 2 deploy) won't satisfy this — they
-  // re-pick from the library before continuing.
-  const canProceed = !!data.five_year_goal_role_id;
+  // The structured pick is the preferred path, NOT a hard gate. Users can
+  // always advance. If they typed something but didn't pick, that text is
+  // committed to five_year_role as free text on continue (handleContinue
+  // below) so the resolveGoalRoleId fallback in generate-career-analysis
+  // still has something to chew on. Empty → both stay null/empty.
 
   // The chosen role — resolved from the id when set so display stays in sync
   // even if five_year_role drifts.
@@ -177,6 +178,23 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
     setShowSuggestions(true);
   };
 
+  // Advance handler. Picked roles already have both fields set via choose().
+  // For the unpicked path, capture whatever the user typed (even if it
+  // doesn't match a library role) so generate-career-analysis can still try
+  // resolveGoalRoleId(five_year_role). Empty query → wipe both so we don't
+  // carry stale state from a prior pass through this step.
+  const handleContinue = () => {
+    if (!chosenRole) {
+      const trimmed = (query || "").trim();
+      onChange({
+        ...data,
+        five_year_role: trimmed,
+        five_year_goal_role_id: null,
+      });
+    }
+    onNext();
+  };
+
   const handleSearchKeyDown = (e) => {
     if (suggestions.length === 0) return;
     if (e.key === "ArrowDown") {
@@ -207,14 +225,15 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
         </h1>
         <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
           Pick the role you&apos;re aiming for in 5 years. Locking it to a known role
-          lets us measure how aligned each recommendation is with your goal.
+          gives us the strongest signal for measuring goal alignment — but if
+          you&apos;re not sure yet, that&apos;s fine, you can continue without picking.
         </p>
       </div>
 
       <div className="space-y-5">
         <div ref={wrapperRef} className="relative">
           <label className="block text-[12px] font-semibold text-rd-text mb-1.5">
-            5-year goal role <span className="text-rd-coral">*</span>
+            5-year goal role
           </label>
 
           {chosenRole ? (
@@ -316,6 +335,22 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
                   Type to search across all roles, or pick an area to browse.
                 </p>
               )}
+
+              {/* Secondary, de-emphasized escape hatch — text link, NOT a CTA.
+                  Picking from the library stays the path of least resistance;
+                  this affordance just signals that proceeding without picking
+                  is allowed. Same handler as the main Continue button — keeps
+                  the unpicked-with-text path behaviour identical. */}
+              <p className="mt-4 text-[12px] text-rd-text-secondary">
+                Not sure yet?{" "}
+                <button
+                  type="button"
+                  onClick={handleContinue}
+                  className="underline underline-offset-2 text-rd-text-tertiary hover:text-rd-text transition-colors"
+                >
+                  {query.trim() ? "Continue with what I typed" : "Skip and come back to this later"}
+                </button>
+              </p>
             </>
           )}
         </div>
@@ -337,7 +372,7 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
         >
           ← Back
         </button>
-        <RdButton onClick={onNext} disabled={!canProceed}>
+        <RdButton onClick={handleContinue}>
           Continue <ArrowRight className="w-4 h-4" />
         </RdButton>
       </div>
