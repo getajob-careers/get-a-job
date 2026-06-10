@@ -33,13 +33,18 @@
 //   SUPABASE_URL=https://ilmqmodklutztuybsvwd.supabase.co \
 //   SUPABASE_SERVICE_ROLE_KEY=... \
 //   SUPABASE_ANON_KEY=... \
-//   AI_CHAT_URL=http://localhost:54321/functions/v1/ai-chat \
 //     npx tsx scripts/test-ai-chat-local-serve.ts
 //
-// AI_CHAT_URL defaults to localhost:54321 if unset; override to point at
-// a different host (e.g. a preview deploy) only if the local-serve path
-// isn't usable. Cost: ~$0.10 (3 resume-extractor calls on gpt-5.4-mini +
-// 1 career_agent call on gpt-4o-mini).
+// Against the deployed production function (skip local serve entirely —
+// useful when Docker isn't available for `supabase functions serve`):
+//
+//   AI_CHAT_BASE_URL=https://ilmqmodklutztuybsvwd.supabase.co \
+//   SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... SUPABASE_ANON_KEY=... \
+//     npx tsx scripts/test-ai-chat-local-serve.ts
+//
+// AI_CHAT_BASE_URL defaults to the local-serve base (http://localhost:54321);
+// the harness always appends /functions/v1/ai-chat to it. Cost: ~$0.10
+// (3 resume-extractor calls on gpt-5.4-mini + 1 career_agent on gpt-4o-mini).
 
 import { createClient } from "@supabase/supabase-js";
 import { extractText, getDocumentProxy } from "unpdf";
@@ -50,7 +55,12 @@ import { parseExtractedJson } from "../src/lib/parseExtractedJson.js";
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.VITE_SUPABASE_ANON_KEY;
-const AI_CHAT_URL = process.env.AI_CHAT_URL || "http://localhost:54321/functions/v1/ai-chat";
+// Base host (scheme + host + port). Harness always appends the function
+// path. Default is the local-serve base; override to the project URL to
+// hit the deployed production function instead — useful when Docker
+// isn't available for `supabase functions serve`.
+const AI_CHAT_BASE_URL = process.env.AI_CHAT_BASE_URL || "http://localhost:54321";
+const AI_CHAT_URL = `${AI_CHAT_BASE_URL.replace(/\/+$/, "")}/functions/v1/ai-chat`;
 
 if (!SUPABASE_URL || !SERVICE_ROLE || !ANON_KEY) {
   console.error("ERROR: set SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY");
