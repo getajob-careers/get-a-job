@@ -43,6 +43,15 @@ export interface ModelRoute {
   response_format?: { type: 'json_object' };
   temperature?: number;
   reasoning_effort?: ReasoningEffort;
+  // Optional per-route completion cap. Reasoning models (gpt-5.x,
+  // o-series) count hidden thinking against this cap, so the bake-off-
+  // proven value for resume-extractor is much higher (16000) than the
+  // ai-chat global default of 2048 / 4096. Callers MUST use this when
+  // present on the route, otherwise fall through to whatever cap they'd
+  // pass for the non-routed path. Only applies to the reasoning branch
+  // in callOpenAI (max_completion_tokens); non-reasoning agents keep
+  // the global max_tokens budget.
+  max_completion_tokens?: number;
 }
 
 // IMPORTANT: changing the chat-agent or structured-extract routes here is
@@ -59,33 +68,39 @@ export const ROUTES: Record<JobKey, ModelRoute> = {
     temperature: 0.4,
   },
 
-  // Reliability fix: response_format json_object eliminates the prefix/
-  // suffix-prose failure mode that lost 4 of 19 pilot users' experiences
-  // (the production loose-regex parser dropped unparseable replies).
-  // Model stays gpt-4o-mini until the bake-off latency for gpt-5.5
-  // direct-OpenAI confirms it's acceptable for the onboarding spinner.
-  // Swap is two lines: model -> 'gpt-5.5' + add reasoning_effort: 'none'.
+  // Resume-extractor sits on gpt-5.4-mini since the model-swap PR. The
+  // bake-off across 5 direct-OpenAI controls (gpt-4o-mini, gpt-4o,
+  // gpt-4.1-mini, gpt-5.4-mini, gpt-5.5) plus 4 OpenRouter models picked
+  // gpt-5.4-mini for the right cost/latency/quality balance on the
+  // onboarding spinner. Two paired settings make this work:
   //
-  // ⚠️ BEFORE SWAPPING TO gpt-5.5 OR ANY OTHER REASONING MODEL:
-  // The OpenAI Chat Completions API rejects `max_tokens` for gpt-5.x and
-  // o-series reasoning models with HTTP 400 "Unsupported parameter:
-  // 'max_tokens' is not supported with this model, use 'max_completion_
-  // tokens' instead." The ai-chat callOpenAI helper currently hardcodes
-  // `max_tokens` (see supabase/functions/ai-chat/index.ts callOpenAI). The
-  // resume-extractor branch in ai-chat MUST translate to
-  // `max_completion_tokens` before the model swap, or every resume-
-  // extractor call will 400 in production exactly like the bake-off
-  // direct-OpenAI control did 19/19. Specifically:
-  //   - If route.reasoning_effort is set: send max_completion_tokens, not
-  //     max_tokens. Send reasoning_effort as a top-level body field.
-  //   - Otherwise (gpt-4o-mini today): keep max_tokens as-is.
-  // Verified pattern: scripts/test-cv-extraction-bakeoff.ts callModel()
-  // does this correctly once the reasoning regex matches the bare slug.
+  //   - `reasoning_effort: 'none'` — gpt-5.x's lowest effort level (replaces
+  //     "minimal" from earlier gpt-5 releases). OpenAI explicitly recommends
+  //     it for "fast information retrieval and classification" — exactly
+  //     what resume-extractor does.
+  //   - `max_completion_tokens: 16000` — reasoning models count hidden
+  //     thinking against this cap, so the bake-off-validated value is 8x
+  //     the ai-chat global default of 2048. Held at 16000 to mirror the
+  //     bake-off run that produced clean JSON 19/19; "none" effort won't
+  //     approach it but a high ceiling protects against the truncation
+  //     failure mode PR #277 fixed (truncated JSON → silent zero-experience
+  //     parse loss).
+  //
+  // The standing translation contract on ai-chat callOpenAI (max_tokens →
+  // max_completion_tokens when route.reasoning_effort is set) is now live
+  // — see supabase/functions/ai-chat/index.ts. Adding a future reasoning
+  // model to any other route here will just work as long as it includes
+  // reasoning_effort + max_completion_tokens.
+  //
+  // Response_format json_object stays — it's the parse-reliability fix
+  // from PR #277 and is independent of the model swap.
   'resume-extractor': {
-    model: 'gpt-4o-mini',
+    model: 'gpt-5.4-mini',
     transport: 'openai',
     response_format: { type: 'json_object' },
     temperature: 0.2,
+    reasoning_effort: 'none',
+    max_completion_tokens: 16000,
   },
 
   // Placeholder — the existing structured-extract functions (extract-
