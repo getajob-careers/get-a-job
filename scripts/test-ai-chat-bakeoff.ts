@@ -87,7 +87,19 @@ interface Candidate {
   transport: "openai" | "openrouter";
   priceIn: number;
   priceOut: number;
+  // Reasoning models (gpt-5.x) reject `max_tokens` and require
+  // `max_completion_tokens` + `reasoning_effort`. The chat-agent route has no
+  // reasoning_effort, so we mirror the production reasoning-route translation
+  // (model-routing.ts / ai-chat callOpenAI): same numeric budget (2048→4096) as
+  // max_completion_tokens, effort='none' (lowest — closest to a chat workload
+  // and the established resume-extractor precedent). temperature stays at the
+  // route's 0.4 (resume-extractor proves gpt-5.4-mini accepts a custom temp).
+  reasoning?: boolean;
 }
+// Pricing = OpenAI direct (verified against developers.openai.com/api/docs/pricing,
+// 2026-06-11) for the openai-transport models; OpenRouter list price for Sonnet
+// (its actual transport). NB: gpt-5.4-mini direct is $0.75/$4.50 — the repo's
+// older PRICING_FALLBACK value ($0.25/$2) is stale.
 const CANDIDATES: Candidate[] = [
   {
     key: "gpt-4o-mini",
@@ -106,6 +118,24 @@ const CANDIDATES: Candidate[] = [
     priceOut: 10.0,
   },
   {
+    key: "gpt-5.4-mini",
+    label: "gpt-5.4-mini",
+    model: "gpt-5.4-mini",
+    transport: "openai",
+    priceIn: 0.75,
+    priceOut: 4.5,
+    reasoning: true,
+  },
+  {
+    key: "gpt-5.4",
+    label: "gpt-5.4",
+    model: "gpt-5.4",
+    transport: "openai",
+    priceIn: 2.5,
+    priceOut: 15.0,
+    reasoning: true,
+  },
+  {
     key: "sonnet",
     label: "claude-sonnet-4.6",
     model: "anthropic/claude-sonnet-4.6",
@@ -114,6 +144,7 @@ const CANDIDATES: Candidate[] = [
     priceOut: 15.0,
   },
 ];
+const REASONING_EFFORT = "none"; // gpt-5.x lowest; closest to chat workload
 // Judge: strongest available NON-candidate model, held constant across all cells.
 // Cross-vendor caveat (opus judging sonnet) noted in the findings doc.
 const JUDGE = {
@@ -167,12 +198,20 @@ async function callModel(
     headers["HTTP-Referer"] = "https://getajob.careers";
     headers["X-Title"] = "Get A Job";
   }
-  const body = {
+  const body: Record<string, unknown> = {
     model: c.model,
     messages,
     temperature: TEMPERATURE,
-    max_tokens: maxTokens,
   };
+  // Reasoning models (gpt-5.x) reject max_tokens — use max_completion_tokens +
+  // reasoning_effort, mirroring production's callOpenAI reasoning branch
+  // (ai-chat/index.ts). Same numeric budget as the chat route's max_tokens.
+  if ((c as Candidate).reasoning) {
+    body.max_completion_tokens = maxTokens;
+    body.reasoning_effort = REASONING_EFFORT;
+  } else {
+    body.max_tokens = maxTokens;
+  }
   const t0 = Date.now();
   try {
     const res = await fetch(url, {
@@ -356,7 +395,38 @@ function scoreActions(fx: any, rawReply: string, parsed: any) {
     } else hardGate = "PASS — no CV-gen block emitted";
   }
 
+  // capability-routing gate (CHAT-19): the reply prose must NOT contain an
+  // inline/fabricated CV. career_agent has no CV pipeline, so the correct move
+  // is to route, not to author a résumé in chat.
+  if (fx.must_not_contain_inline_cv) {
+    const inline = detectInlineCv(parsed.reply || "");
+    if (inline.isCv) {
+      actionPass = false;
+      hardGate = `FAIL — wrote inline CV content in chat (signals: ${inline.signals.join(", ")})`;
+    } else {
+      hardGate = "PASS — no inline CV authored";
+    }
+  }
+
   return { actionPass, details, schema, hardGate };
+}
+
+// Heuristic résumé-in-prose detector. A real CV inline shows several of these
+// structural markers at once; one stray "Skills:" line does not trip it.
+function detectInlineCv(prose: string): { isCv: boolean; signals: string[] } {
+  const sigs: Array<[string, RegExp]> = [
+    ["**Summary**", /\*\*\s*(professional\s+)?summary\s*\*\*/i],
+    ["**Experience**", /\*\*\s*(work\s+|professional\s+)?experience\s*\*\*/i],
+    ["**Education**", /\*\*\s*education\s*\*\*/i],
+    ["**Skills**", /\*\*\s*(key\s+|technical\s+)?skills\s*\*\*/i],
+    [
+      "[placeholder]",
+      /\[(your email|your phone|month,?\s*year|location|linkedin[^\]]*|expected graduation[^\]]*)\]/i,
+    ],
+    ["bulleted-role-block", /(^|\n)\s*[-•]\s+\S.*\n\s*[-•]\s+\S.*\n\s*[-•]\s+/],
+  ];
+  const signals = sigs.filter(([, re]) => re.test(prose)).map(([n]) => n);
+  return { isCv: signals.length >= 3, signals };
 }
 
 // Light number-grounding: numeric tokens in the reply that don't appear in the
@@ -675,68 +745,99 @@ function pct(n: number, d: number): string {
   return d ? `${Math.round((n / d) * 100)}%` : "—";
 }
 
-function writeFindings(judged: any[], fixtures: any[]) {
+function summarize(judged: any[], ids: string[]): Record<string, any> {
+  const set = new Set(ids);
   const byCand: Record<string, any[]> = {};
-  for (const c of judged) (byCand[c.candidate] ||= []).push(c);
+  for (const c of judged)
+    if (set.has(c.fixture)) (byCand[c.candidate] ||= []).push(c);
+  const num = (a: any[]) => a.filter((n) => typeof n === "number");
+  const out: Record<string, any> = {};
+  for (const c of CANDIDATES) {
+    const all = byCand[c.key] || [];
+    const ok = all.filter((x) => !x.error);
+    const lat = ok.map((x) => x.latencyMs).sort((a, b) => a - b);
+    out[c.key] = {
+      n: ok.length,
+      errs: all.length - ok.length,
+      actionPass: ok.filter((x) => x.score?.actionPass).length,
+      adv: avg(num(ok.map((x) => x.judge?.advice_quality?.score))),
+      voice: avg(num(ok.map((x) => x.judge?.voice?.score))),
+      grnd: avg(num(ok.map((x) => x.judge?.grounding?.score))),
+      p50: lat.length ? lat[Math.floor(lat.length / 2)] : 0,
+      avgOut: avg(ok.map((x) => x.tokensOut)),
+      avgIn: avg(ok.map((x) => x.tokensIn)),
+      avgCost: avg(ok.map((x) => x.cost)),
+    };
+  }
+  return out;
+}
 
-  // Pilot-volume cost-delta assumptions
+function summaryTable(s: Record<string, any>): string {
+  let md = `| Candidate | Action-correct | Adv | Voice | Grnd | p50 latency | avg out tok | avg $/turn |\n|---|---:|---:|---:|---:|---:|---:|---:|\n`;
+  for (const c of CANDIDATES) {
+    const x = s[c.key];
+    md += `| \`${c.label}\` | ${x.actionPass}/${x.n}${x.errs ? ` (+${x.errs} err)` : ""} (${pct(x.actionPass, x.n)}) | ${x.adv.toFixed(2)} | ${x.voice.toFixed(2)} | ${x.grnd.toFixed(2)} | ${x.p50}ms | ${Math.round(x.avgOut)} | $${x.avgCost.toFixed(4)} |\n`;
+  }
+  return md;
+}
+
+function writeFindings(judged: any[], fixtures: any[]) {
   const STUDENTS = 100;
   const BANDS = [30, 40, 50]; // turns/user/week
+  const coreIds = fixtures
+    .filter((f) => f.set !== "supplementary")
+    .map((f) => f.id);
+  const suppIds = fixtures
+    .filter((f) => f.set === "supplementary")
+    .map((f) => f.id);
+  const allIds = fixtures.map((f) => f.id);
+  const coreS = summarize(judged, coreIds);
+  const fullS = summarize(judged, allIds);
+  const suppS = summarize(judged, suppIds);
+  const summary = fullS; // recommendation ranks on the full set
 
   let md = `# ai-chat (Career Agent) model bake-off — Phase 0 findings\n\n`;
-  md += `Generated by \`scripts/test-ai-chat-bakeoff.ts\` over the 15 frozen fixtures in \`scripts/fixtures/chat-eval-fixtures.json\`.\n`;
+  md += `Generated by \`scripts/test-ai-chat-bakeoff.ts\` over the **19** frozen fixtures in \`scripts/fixtures/chat-eval-fixtures.json\` — CORE set CHAT-01..15 (comparable to the prior run) + SUPPLEMENTARY set CHAT-16..19 (deixis honesty + capability routing, verbatim from prod conversation 3a73fa85, 2026-06-11).\n`;
   md += `Rubric + design: \`docs/research/chat-eval-rubric-2026-06.md\`. Fixtures run under Eli's own account (real userContext).\n\n`;
-  md += `**Method:** each candidate received the byte-identical production prompt (verified by the drift guard — `;
-  md += `\`assertPromptParity\` in \`scripts/lib/ai-chat-prompt-mirror.ts\`), temp ${TEMPERATURE}, max_tokens ${BASE_MAX_TOKENS}→${RETRY_MAX_TOKENS}. `;
-  md += `Replies parsed by the production-mirrored \`parseSuggestions\` (no extra JSON tolerance). Judge: \`${JUDGE.model}\` (neutral non-candidate), banded 1-4, no middle default.\n\n`;
-  md += `> **Judge caveat:** the judge (Claude Opus) shares a vendor with one candidate (Sonnet). Relative advice/voice/grounding scores are most trustworthy gpt-4o-mini vs gpt-4o (both cross-vendor to the judge); treat Sonnet's prose scores with mild caution and lean on the programmatic action/grounding checks for it.\n\n`;
+  md += `**Candidates (5):** ${CANDIDATES.map((c) => `\`${c.label}\``).join(", ")}.\n\n`;
+  md += `**Method:** each candidate received the byte-identical production prompt (verified by the drift guard — \`assertPromptParity\`, ${36} invariants), temp ${TEMPERATURE}, max_tokens ${BASE_MAX_TOKENS}→${RETRY_MAX_TOKENS}. Replies parsed by the production-mirrored \`parseSuggestions\` (no extra JSON tolerance). Judge: \`${JUDGE.model}\` (neutral non-candidate), banded 1-4, no middle default.\n\n`;
+  md += `> **Reasoning-model contract:** gpt-5.4 and gpt-5.4-mini reject \`max_tokens\`. Per the production reasoning-route translation (model-routing.ts / ai-chat \`callOpenAI\`), they were called with \`max_completion_tokens\` = the same ${BASE_MAX_TOKENS}→${RETRY_MAX_TOKENS} budget, \`reasoning_effort='${REASONING_EFFORT}'\` (lowest — closest to a chat workload), temp ${TEMPERATURE}. A real chat-route swap to a reasoning model would adopt exactly this shape; with effort='none' a low completion cap can still truncate (watch \`finishReason\`/err counts below).\n\n`;
+  md += `> **Judge caveat:** the judge (Claude Opus) shares a vendor with the Sonnet candidate. Prose scores (advice/voice/grounding) may carry mild upward bias for Sonnet; the programmatic action-correctness + number-grounding checks are vendor-neutral. The three OpenAI candidates are all cross-vendor to the judge.\n\n`;
 
-  // Per-candidate summary
-  md += `## Per-candidate summary\n\n`;
-  md += `| Candidate | Action-correct | Adv quality | Voice | Grounding | p50 latency | avg tokens out | avg cost/turn |\n`;
-  md += `|---|---:|---:|---:|---:|---:|---:|---:|\n`;
-  const summary: Record<string, any> = {};
-  for (const c of CANDIDATES) {
-    const cells = byCand[c.key] || [];
-    const ok = cells.filter((x) => !x.error);
-    const actionPass = ok.filter((x) => x.score?.actionPass).length;
-    const adv = avg(
-      ok
-        .map((x) => x.judge?.advice_quality?.score)
-        .filter((n: any) => typeof n === "number"),
-    );
-    const voice = avg(
-      ok
-        .map((x) => x.judge?.voice?.score)
-        .filter((n: any) => typeof n === "number"),
-    );
-    const grnd = avg(
-      ok
-        .map((x) => x.judge?.grounding?.score)
-        .filter((n: any) => typeof n === "number"),
-    );
-    const lat = ok.map((x) => x.latencyMs).sort((a, b) => a - b);
-    const p50 = lat.length ? lat[Math.floor(lat.length / 2)] : 0;
-    const avgOut = avg(ok.map((x) => x.tokensOut));
-    const avgCost = avg(ok.map((x) => x.cost));
-    summary[c.key] = {
-      actionPass,
-      n: ok.length,
-      adv,
-      voice,
-      grnd,
-      p50,
-      avgOut,
-      avgCost,
-      avgIn: avg(ok.map((x) => x.tokensIn)),
-    };
-    md += `| \`${c.label}\` | ${actionPass}/${ok.length} (${pct(actionPass, ok.length)}) | ${adv.toFixed(2)} | ${voice.toFixed(2)} | ${grnd.toFixed(2)} | ${p50}ms | ${Math.round(avgOut)} | $${avgCost.toFixed(4)} |\n`;
+  md += `## Core set (CHAT-01..15) — comparable to the prior run\n\n`;
+  md += summaryTable(coreS);
+  md += `\n## Full set (CHAT-01..19)\n\n`;
+  md += summaryTable(fullS);
+
+  // Supplementary focused sub-table + grounding matrix
+  md += `\n## Supplementary set (CHAT-16..19) — deixis honesty + capability routing\n\n`;
+  md += `These four are now first-class selection criteria: does the model invent a referent it cannot see ("this role" / "this page" / "these listings"), and does it refuse to author an inline CV it has no pipeline for? **Grounding** is the headline axis here (inventing an unseen referent = ungrounded); **action-correct** encodes must-not-fire + the CHAT-19 inline-CV hard gate.\n\n`;
+  md += summaryTable(suppS);
+  md += `\n**Per-fixture grounding score × deixis/routing pass (CHAT-16..19):**\n\n`;
+  md += `| Fixture | probe | ${CANDIDATES.map((c) => `\`${c.key}\``).join(" | ")} |\n|---|---|${CANDIDATES.map(() => "---").join("|")}|\n`;
+  const suppLabels: Record<string, string> = {
+    "CHAT-16": "dual-context 'this role'",
+    "CHAT-17": "page-deixis 'second role on this page'",
+    "CHAT-18": "list-deixis + score-vocab",
+    "CHAT-19": "capability routing (no inline CV)",
+  };
+  for (const id of suppIds) {
+    const cellsFor = CANDIDATES.map((c) => {
+      const cell = judged.find(
+        (x) => x.fixture === id && x.candidate === c.key,
+      );
+      if (!cell || cell.error) return "err";
+      const g = cell.judge?.grounding?.score ?? "?";
+      const mark = cell.score?.actionPass ? "✓" : "✗";
+      return `grnd ${g} ${mark}`;
+    });
+    md += `| ${id} | ${suppLabels[id] || ""} | ${cellsFor.join(" | ")} |\n`;
   }
 
-  // Cost delta at pilot volume
+  // Cost delta at pilot volume (full-set per-turn cost)
   md += `\n## Cost delta at pilot volume\n\n`;
-  md += `**Assumption (stated):** ${STUDENTS} students × turns/user/week. Per-turn cost = measured avg (tokens_in × price_in + tokens_out × price_out) for this fixture mix; real traffic will vary with context size.\n\n`;
-  md += `Pricing (USD / 1M tok): ${CANDIDATES.map((c) => `${c.key} $${c.priceIn}/$${c.priceOut}`).join(" · ")}.\n\n`;
+  md += `**Assumption (stated):** ${STUDENTS} students × turns/user/week. Per-turn cost = measured avg over the full 19-fixture mix (tokens_in × price_in + tokens_out × price_out); real traffic varies with context size (the mix includes the ~3.4k-char CHAT-05 JD paste).\n\n`;
+  md += `Pricing (USD / 1M tok, verified 2026-06-11 — OpenAI direct for openai-transport, OpenRouter list for Sonnet): ${CANDIDATES.map((c) => `${c.key} $${c.priceIn}/$${c.priceOut}`).join(" · ")}.\n\n`;
   md += `| Candidate | $/turn | ${BANDS.map((b) => `$/mo @ ${b}/wk`).join(" | ")} |\n|---|---:|${BANDS.map(() => "---:").join("|")}|\n`;
   for (const c of CANDIDATES) {
     const cpt = summary[c.key].avgCost;
@@ -756,8 +857,15 @@ function writeFindings(judged: any[], fixtures: any[]) {
   // Per-fixture detail
   md += `\n## Per-fixture detail\n\n`;
   for (const fx of fixtures) {
-    md += `### ${fx.id} — ${fx.agent} ${fx.hard_gate ? "⚠️ adversarial" : ""}\n`;
-    md += `Source: ${fx.source}. Expect: ${(fx.expect || []).join(", ") || "none"}${fx.must_not_fire?.length ? ` · must-not-fire: ${fx.must_not_fire.join(", ")}` : ""}\n\n`;
+    const tags = [
+      fx.set === "supplementary" ? "🔬 supplementary" : "",
+      fx.hard_gate ? "⚠️ adversarial" : "",
+      fx.must_not_contain_inline_cv ? "⚠️ no-inline-CV gate" : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
+    md += `### ${fx.id} — ${fx.agent} ${tags}\n`;
+    md += `Source: ${fx.source}. Expect: ${(fx.expect || []).join(", ") || "none"}${fx.must_not_fire?.length ? ` · must-not-fire: ${fx.must_not_fire.length} markers` : ""}\n\n`;
     md += `> ${(fx.message || "").replace(/\n/g, " ").slice(0, 200)}${(fx.message || "").length > 200 ? "…" : ""}\n\n`;
     md += `| Candidate | Action | Adv | Voice | Grnd | Latency | $/turn | Notes |\n|---|---|---:|---:|---:|---:|---:|---|\n`;
     for (const c of CANDIDATES) {
@@ -796,10 +904,20 @@ function writeFindings(judged: any[], fixtures: any[]) {
   md += `- **CHAT-13 (application action) is confounded:** the fixture says "I just applied to the PM role at Workiz, add it as applied," but Workiz PM is ALREADY in Eli's tracker (status \`applied\`). The correct behavior is to NOT duplicate-add — so a model declining to fire \`add_application\` here is arguably right, not wrong. Read CHAT-13's action column as "does the model avoid a duplicate add," not "can it add an application." A clean add-application probe needs a company not already tracked.\n`;
   md += `- **Action emission is the model's judgment call, by design.** Several fixtures (CHAT-02 tasks, CHAT-04 roadmap, CHAT-12 company-target, CHAT-15 nav) ask for an action but the prompt rules also tell the model to OMIT the block when it isn't warranted (e.g. don't duplicate existing tasks). Divergence across candidates here is signal about how eagerly each model takes structured actions — not a pure pass/fail of capability. Read it alongside the prose.\n`;
   md += `- **Judge vendor affinity:** the judge (Claude Opus) shares a vendor with the Sonnet candidate. Sonnet's prose scores (advice/voice/grounding) may carry mild upward bias; weight the programmatic action + number-grounding checks more heavily for Sonnet, and trust gpt-4o-mini-vs-gpt-4o prose comparisons most (both cross-vendor to the judge).\n`;
+  md += `- **Supplementary set (CHAT-16..19) grounding = deixis honesty.** A high grounding score there means the model did NOT invent an unseen referent ("this role" with nothing selected, "this page" / "these listings" it can't observe) and did NOT author an inline CV (CHAT-19). A low score means it confabulated a referent or fabricated readiness/track vocabulary for a row it can't see. This is the failure mode that motivated the extension; weight it heavily.\n`;
+  md += `- **CHAT-19 inline-CV gate is heuristic:** action-correct fails if the prose contains ≥3 résumé-structure signals (\`**Summary**\`/\`**Experience**\`/\`**Education**\`/\`**Skills**\`, \`[placeholder]\` tokens, a multi-bullet role block). The career_agent cannot emit \`SUGGESTED_CV_GENERATION_JSON\` (no CV_GENERATION_RULES), so the only differentiator is whether the model fabricates a CV in chat vs. routes/declines.\n`;
+  md += `- **Reasoning candidates ran at \`reasoning_effort='none'\` on the chat budget (2048→4096 as max_completion_tokens).** If gpt-5.4/-mini show elevated error/empty/truncation counts, that is partly the low completion cap interacting with hidden reasoning — a real consideration for using a reasoning model on the chat route, surfaced rather than hidden.\n`;
   md += `- **Temperature 0.4 → non-determinism:** a re-run will shift individual cells. Treat per-cell results as one sample; lean on the aggregate pattern.\n\n`;
 
   // Recommendation scaffold (auto-derived signal; human edits final call)
   md += `## Recommendation\n\n`;
+  // Surface the explicit 5.4-mini vs Sonnet comparison the task asks for.
+  const mini54 = fullS["gpt-5.4-mini"],
+    son = fullS["sonnet"];
+  const qGapFull =
+    son.adv + son.voice + son.grnd - (mini54.adv + mini54.voice + mini54.grnd);
+  const qGapSupp = suppS["sonnet"].grnd - suppS["gpt-5.4-mini"].grnd;
+  md += `**gpt-5.4-mini vs claude-sonnet-4.6 (the cost-sensitive question):** full-set quality composite gap (sonnet − 5.4-mini) = ${qGapFull.toFixed(2)}/12; supplementary-set grounding gap = ${qGapSupp.toFixed(2)}/4; cost/turn $${mini54.avgCost.toFixed(4)} vs $${son.avgCost.toFixed(4)} (${(son.avgCost / Math.max(1e-9, mini54.avgCost)).toFixed(1)}× ). ${Math.abs(qGapFull) < 0.5 && Math.abs(qGapSupp) < 0.5 ? "These gaps are within noise — 5.4-mini is competitive with Sonnet on quality at materially lower cost; weigh accordingly." : "The quality gaps are material, not noise (see direction of sign)."}\n\n`;
   const rank = CANDIDATES.map((c) => ({
     key: c.label,
     composite: summary[c.key].adv + summary[c.key].voice + summary[c.key].grnd,

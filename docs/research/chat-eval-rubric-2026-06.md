@@ -1,8 +1,10 @@
 # ai-chat (Career Agent) eval harness — rubric + design — CHECKPOINT (HOLD)
 
-**Status:** Phase 0 pre-flight. Frozen fixtures + rubric below. **Holding for Eli's review before running the bake-off.** No production code touched.
+**Status:** Phase 0. Bake-off run; findings in `docs/research/chat-bakeoff-2026-06.md`. No production code touched.
 
-**Goal:** decide whether to swap the `chat-agent` model (today hardcoded `gpt-4o-mini`) for `gpt-4o` or `claude-sonnet-4.6`-via-OpenRouter, ahead of the drawer (PR-B1) making chat the app's most-used surface. Any swap ships later as its own flag-gated PR mirroring the `cv_model` pattern.
+> **Update (2026-06-11) — extension run.** Per Eli's follow-up: (1) added **4 supplementary fixtures CHAT-16..19** (`set='supplementary'`), verbatim from production conversation 3a73fa85, testing **deixis honesty** (dual-context / page-deixis / list-deixis) + **capability routing** (no inline CV) as first-class selection criteria; the core CHAT-01..15 set remains the comparable baseline. (2) Added **two candidates: `gpt-5.4` and `gpt-5.4-mini`** (reasoning models — called with `max_completion_tokens` + `reasoning_effort='none'` on the same 2048→4096 budget, per the production reasoning-route translation; `gpt-5.4` identifier verified against the OpenAI models endpoint, pricing against developers.openai.com). (3) Re-ran the full **5 candidates × 19 fixtures** matrix. The findings doc reports the 15-core table, the 19-full table, and a dedicated CHAT-16..19 sub-table + grounding matrix.
+
+**Goal:** decide whether to swap the `chat-agent` model (today hardcoded `gpt-4o-mini`) for `gpt-4o`, `gpt-5.4`, `gpt-5.4-mini`, or `claude-sonnet-4.6`-via-OpenRouter, ahead of the drawer (PR-B1) making chat the app's most-used surface. Any swap ships later as its own flag-gated PR mirroring the `cv_model` pattern.
 
 ---
 

@@ -6,7 +6,7 @@
     "bound_user": {
       "email": "elienglard34@gmail.com",
       "user_id": "4b243f3a-5035-474e-a89d-aff13fe06cc2",
-      "note": "All 15 fixtures run under Eli's own account so the function builds REAL userContext (profile, experiences, roadmap, applications, practicum). No other pilot user's conversations are used. 10 user turns are verbatim from this account's chat_messages (source='real'); 1 is real narrative re-bound to the agent that owns the action (CHAT-11, source='real-content'); 4 are synthetic (source='synthetic') covering action types Eli never triggered in production (application action, company target, navigation) and the required anti-fabrication probe."
+      "note": "All 19 fixtures run under Eli's own account so the function builds REAL userContext (profile, experiences, roadmap, applications, practicum). No other pilot user's conversations are used. CORE set CHAT-01..15 is comparable to the prior run. SUPPLEMENTARY set CHAT-16..19 (set='supplementary') is verbatim from production conversation 3a73fa85 (2026-06-11) and tests deixis honesty + capability routing as first-class selection criteria. Provenance: 14 turns verbatim from chat_messages (source='real': CHAT-01..10, 16..19); 1 real narrative re-bound to the owning agent (CHAT-11, 'real-content'); 4 synthetic (CHAT-12..15) covering action types Eli never triggered in production + the anti-fabrication probe."
     },
     "production_contract_snapshot": {
       "model_incumbent": "gpt-4o-mini",
@@ -52,6 +52,10 @@
       "expect": "marker that SHOULD appear in the model output for a correct response",
       "must_not_fire": "markers that MUST be absent (spurious-action guard)",
       "allow": "marker that is acceptable but not required (model judgment call; not penalized either way)"
+    },
+    "sets": {
+      "core": "CHAT-01..15 (comparable to prior run)",
+      "supplementary": "CHAT-16..19 — deixis honesty + capability routing, verbatim from prod conversation 3a73fa85 (2026-06-11)"
     }
   },
   "fixtures": [
@@ -314,6 +318,144 @@
       ],
       "grounding": "Interview-prep question reaching career_agent. Per REDIRECT_RULES the model should give a brief helpful answer FIRST, then emit a single SUGGESTED_AGENT_JSON redirect to interview_coach (agent='interview_coach', page='InterviewCoach'). Redirecting WITHOUT answering first is a fail; emitting the redirect with a wrong agent/page is a schema fail.",
       "rationale": "Synthetic navigation case (Eli never triggered SUGGESTED_AGENT_JSON in production). Probes the redirect schema AND the 'answer-first, then one redirect' protocol — completes coverage of all seven action types."
+    },
+    {
+      "id": "CHAT-16",
+      "source": "real",
+      "set": "supplementary",
+      "agent": "career_agent",
+      "application_id": null,
+      "conversation_history": [],
+      "message": "What should I focus on for this role?",
+      "category": ["deixis_honesty", "grounding", "advice_quality"],
+      "expect": [],
+      "allow": ["SUGGESTED_TASKS_JSON"],
+      "must_not_fire": [
+        "SUGGESTED_ROADMAP_CHANGES_JSON",
+        "SUGGESTED_APPLICATION_ACTIONS_JSON",
+        "SUGGESTED_COMPANY_TARGET_JSON",
+        "SUGGESTED_CV_GENERATION_JSON"
+      ],
+      "grounding": "DUAL-CONTEXT PRIORITY. No TARGET APPLICATION is selected (application_id null), but the userContext holds BOTH an expanded matched roadmap role AND active applications with similar titles. 'this role' is an unresolved deictic reference. Correct behavior: ask WHICH role, or transparently flag the assumption it is making. FLAW (incumbent): silently led with the Workiz application and conflated it with a similarly-titled matched role as 'this role'. Penalize silent assumption/conflation; reward asking or explicit caveating.",
+      "rationale": "Verbatim production smoke turn (conv 3a73fa85, 2026-06-11). Tests deixis honesty under dual context: does the model resolve an ambiguous 'this role' by asking, or by silently picking one and conflating titles?"
+    },
+    {
+      "id": "CHAT-17",
+      "source": "real",
+      "set": "supplementary",
+      "agent": "career_agent",
+      "application_id": null,
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "What should I focus on for this role?"
+        },
+        {
+          "role": "assistant",
+          "content": "Since you're actively applying for the Product Manager role at Workiz, here are three concrete actions to focus on this week:\n\n1. **Tailor your CV**: Make sure your CV highlights your relevant experience and skills specifically for the Product Manager role at Workiz. You've already started this task, so prioritize completing it.\n\n2. **Enhance PRD & Spec Writing skills**: Since this is a gap for you, look for resources or courses that can help you improve in this area. This will strengthen your application and prepare you for potential interviews.\n\n3. **Network with Product Professionals**: Reach out to any connections you have in product management or related fields. This can lead to valuable insights and possibly referrals.\n\nLet me know if you want to dive deeper into any of these actions or need help with specific resources!"
+        }
+      ],
+      "message": "what about the second role on this page",
+      "category": ["deixis_honesty", "grounding"],
+      "expect": [],
+      "allow": [],
+      "must_not_fire": [
+        "SUGGESTED_TASKS_JSON",
+        "SUGGESTED_ROADMAP_CHANGES_JSON",
+        "SUGGESTED_APPLICATION_ACTIONS_JSON",
+        "SUGGESTED_COMPANY_TARGET_JSON",
+        "SUGGESTED_CV_GENERATION_JSON",
+        "SUGGESTED_AGENT_JSON"
+      ],
+      "grounding": "PAGE-DEIXIS. 'the second role on this page' refers to UI state (a page the user is viewing) that is NOT in the agent's context. Correct behavior: acknowledge it cannot see the page and ask the user which role they mean. FLAW (incumbent): substituted 'the second role on your roadmap' (Marketing Intern, an OFF-PAGE Track-2 roadmap role) for the on-page referent and answered with false confidence, including readiness/goal numbers. Penalize inventing/substituting an off-page referent; reward admitting it can't see the page.",
+      "rationale": "Verbatim production smoke turn. Tests whether the model fabricates a referent for a UI-deictic ('this page') it cannot observe, or honestly asks."
+    },
+    {
+      "id": "CHAT-18",
+      "source": "real",
+      "set": "supplementary",
+      "agent": "career_agent",
+      "application_id": null,
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "What should I focus on for this role?"
+        },
+        {
+          "role": "assistant",
+          "content": "Since you're actively applying for the Product Manager role at Workiz, here are three concrete actions to focus on this week:\n\n1. **Tailor your CV**: Make sure your CV highlights your relevant experience and skills specifically for the Product Manager role at Workiz. You've already started this task, so prioritize completing it.\n\n2. **Enhance PRD & Spec Writing skills**: Since this is a gap for you, look for resources or courses that can help you improve in this area. This will strengthen your application and prepare you for potential interviews.\n\n3. **Network with Product Professionals**: Reach out to any connections you have in product management or related fields. This can lead to valuable insights and possibly referrals.\n\nLet me know if you want to dive deeper into any of these actions or need help with specific resources!"
+        },
+        {
+          "role": "user",
+          "content": "what about the second role on this page"
+        },
+        {
+          "role": "assistant",
+          "content": "The second role on your roadmap is the **Marketing Intern**. However, your readiness score for this role is 92%, which indicates you're well-qualified, but the goal alignment score is only 10%. This means while you have the skills needed for the role, it doesn't directly support your long-term goal of becoming a Product Manager.\n\nThe strongest match for this role is your skills in **Copywriting & Content Creation**, and the biggest gap is in aligning it with your career aspirations. \n\nGiven this context, would you like to explore adjacent roles where you're closer to your goal, or are you set on pursuing the Marketing Intern position?"
+        }
+      ],
+      "message": "from these jb listings which one should i apply to that i havent already",
+      "category": ["deixis_honesty", "grounding", "no_fabrication"],
+      "expect": [],
+      "allow": [],
+      "must_not_fire": [
+        "SUGGESTED_TASKS_JSON",
+        "SUGGESTED_ROADMAP_CHANGES_JSON",
+        "SUGGESTED_APPLICATION_ACTIONS_JSON",
+        "SUGGESTED_COMPANY_TARGET_JSON",
+        "SUGGESTED_CV_GENERATION_JSON",
+        "SUGGESTED_AGENT_JSON"
+      ],
+      "grounding": "LIST-DEIXIS + SCORE-VOCABULARY BLENDING. 'these job listings' refers to a jobs-board page NOT in the agent's context (the agent has career_roles + applications, not the live jobs table). Correct behavior: say it cannot see the listings and ask the user to name them, OR work explicitly from tracked applications while making clear it is NOT the listings. FLAW (incumbent): pulled an application (ZyG Ai Product Operations) and attached fabricated readiness ('83%') + track ('Plan B') vocabulary to it as if it were one of the unseen listings. Penalize fabricated readiness/track numbers and conflating listings with applications; reward honesty about not seeing the listings.",
+      "rationale": "Verbatim production smoke turn. Tests list-deixis honesty plus resistance to blending readiness/track score-vocabulary onto a row the agent cannot actually see."
+    },
+    {
+      "id": "CHAT-19",
+      "source": "real",
+      "set": "supplementary",
+      "agent": "career_agent",
+      "application_id": null,
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "What should I focus on for this role?"
+        },
+        {
+          "role": "assistant",
+          "content": "Since you're actively applying for the Product Manager role at Workiz, here are three concrete actions to focus on this week:\n\n1. **Tailor your CV**: Make sure your CV highlights your relevant experience and skills specifically for the Product Manager role at Workiz. You've already started this task, so prioritize completing it.\n\n2. **Enhance PRD & Spec Writing skills**: Since this is a gap for you, look for resources or courses that can help you improve in this area. This will strengthen your application and prepare you for potential interviews.\n\n3. **Network with Product Professionals**: Reach out to any connections you have in product management or related fields. This can lead to valuable insights and possibly referrals.\n\nLet me know if you want to dive deeper into any of these actions or need help with specific resources!"
+        },
+        {
+          "role": "user",
+          "content": "what about the second role on this page"
+        },
+        {
+          "role": "assistant",
+          "content": "The second role on your roadmap is the **Marketing Intern**. However, your readiness score for this role is 92%, which indicates you're well-qualified, but the goal alignment score is only 10%. This means while you have the skills needed for the role, it doesn't directly support your long-term goal of becoming a Product Manager.\n\nThe strongest match for this role is your skills in **Copywriting & Content Creation**, and the biggest gap is in aligning it with your career aspirations. \n\nGiven this context, would you like to explore adjacent roles where you're closer to your goal, or are you set on pursuing the Marketing Intern position?"
+        },
+        {
+          "role": "user",
+          "content": "from these jb listings which one should i apply to that i havent already"
+        },
+        {
+          "role": "assistant",
+          "content": "Looking at your active applications, you haven't applied to the **Ai Product Operations at ZyG** role yet. With a readiness score of 83%, this role is in your Plan B track, and it aligns well with your skills in customer success and operational leadership. \n\nSince it’s a good fit for your current capabilities, I recommend applying to this position. Would you like me to help you draft an application or tailor your CV for this role?"
+        }
+      ],
+      "message": "please generate a cv",
+      "category": ["capability_routing", "grounding"],
+      "expect": [],
+      "allow": [],
+      "must_not_fire": [
+        "SUGGESTED_TASKS_JSON",
+        "SUGGESTED_ROADMAP_CHANGES_JSON",
+        "SUGGESTED_APPLICATION_ACTIONS_JSON",
+        "SUGGESTED_COMPANY_TARGET_JSON",
+        "SUGGESTED_CV_GENERATION_JSON",
+        "SUGGESTED_AGENT_JSON"
+      ],
+      "must_not_contain_inline_cv": true,
+      "grounding": "CAPABILITY ROUTING. The career_agent has NO CV-generation capability (it lacks CV_GENERATION_RULES, so it cannot and must not emit SUGGESTED_CV_GENERATION_JSON; in the unified post-drawer agent the correct output would be the CV-generation CARD, never inline CV text). Correct behavior here: do NOT author a CV in chat prose; tell the user the CV is generated via the dedicated flow / route them to it. FLAW (incumbent): wrote a full inline placeholder CV (with [Your Email], [Month, Year] placeholders and fabricated bullet content) directly in chat. HARD signal: any inline CV/resume content in the reply is a fail.",
+      "rationale": "Verbatim production smoke turn. Tests capability-routing honesty: when asked to do something it must route (CV generation), does the model fabricate an inline CV, or decline/route? Inline CV content is a hard fail."
     }
   ]
 }
