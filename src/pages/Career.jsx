@@ -25,10 +25,10 @@
  * of the score so the long dimmed tail no longer dominates the page.
  */
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { useEducationQuery } from "@/lib/queries/useEducation";
@@ -36,18 +36,26 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   Rocket, Headphones, TrendingUp, Search, HelpCircle, Check, Plus,
-  ChevronDown, ChevronUp, ChevronRight, ExternalLink, Loader2,
+  ChevronDown, ChevronUp, ChevronRight, Loader2,
 } from "lucide-react";
 import RdCard from "@/components/redesign/RdCard";
 import { TRACK_CONFIG } from "@/lib/trackConfig";
 import { scoreJobFit } from "@/lib/scoreJobFit";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
-import { addJobToTracker } from "@/components/jobs/JobCard";
+import JobCard from "@/components/jobs/JobCard";
 import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experienceLevel";
 
 const TRACK_SIMILARITY_THRESHOLD = 0.3;
 const MAX_TRACK_ROLES = 8;
 const JOBS_PAGE_SIZE = 20;
+
+// All-scope search: corpus-wide title ilike, mirroring Jobs.jsx's
+// keyword-mode REST query (Jobs.jsx:256-268). The page size here is
+// smaller than Jobs.jsx's BROWSE_PAGE_SIZE = 40 because Career's
+// list-card layout is denser and a 40-item all-scope result floods the
+// pane below the matched-roles rail.
+const SEARCH_PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 300;
 
 // All six values of jobs.seniority (entry / mid / senior / lead / director /
 // executive), used to bypass the level-based pre-filter on Track 3. Mirrors
@@ -83,6 +91,11 @@ const ALL_SENIORITIES = ["entry", "mid", "senior", "lead", "director", "executiv
 const toPct = (v) =>
   Math.max(0, Math.min(100, Math.round((v ?? 0) * 100)));
 
+// JobCard's `trackColor` prop accepts the rdColor strings TRACK_CONFIG
+// already publishes (coral / teal / golden). Mirrors RD_TRACK_STYLES in
+// JobCard.jsx; using TRACK_CONFIG[selectedTrack].rdColor keeps a single
+// source of truth.
+
 // Band styling per track — canonical rdColor mapping (T1 coral · T2 teal ·
 // T3 golden) from TRACK_CONFIG, expressed as static Tailwind classes so
 // the JIT compiler sees them.
@@ -109,29 +122,28 @@ const TRACK_BAND = [
 
 const FIT_LABELS = { track_1: "strong fit", track_2: "doable detour", track_3: "stretch" };
 
-function matchBadgeClasses(pct) {
-  if (pct >= 75) return "bg-rd-coral-tint text-rd-coral-dark";
-  if (pct >= 50) return "bg-rd-teal-tint text-rd-teal-dark";
-  return "bg-rd-bg-soft text-rd-text-tertiary";
-}
-
-function jobAgeChip(datePosted) {
-  if (!datePosted) return null;
-  const days = Math.floor((Date.now() - new Date(datePosted).getTime()) / 86400000);
-  if (Number.isNaN(days) || days < 0) return null;
-  if (days === 0) return "today";
-  if (days === 1) return "1d ago";
-  if (days < 7) return `${days}d ago`;
-  return `${Math.floor(days / 7)}w ago`;
-}
-
 export default function Career() {
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const [selectedTrack, setSelectedTrack] = useState("track_1");
   const [whyOpen, setWhyOpen] = useState(false);
   const [search, setSearch] = useState("");
-  const [trackedIds, setTrackedIds] = useState(() => new Set());
+  // Scope toggle for the live-jobs pane:
+  //   - "track" (default): client-side filter over the active track's
+  //     pre-fetched live jobs. Cheap, no extra query.
+  //   - "all":   corpus-wide search via the same REST pattern Jobs.jsx
+  //     uses in keyword mode (.from("jobs").select(...).ilike("title",
+  //     ...)). Hits a separate, scoped queryKey ("career_jobs_search")
+  //     so the canonical career_jobs cache stays clean.
+  const [searchScope, setSearchScope] = useState("track");
+  // 300ms debounce on the input → query trigger so the user can type
+  // freely without firing a Supabase REST call per keystroke. State
+  // updates via useEffect rather than useDebounce hook to keep the
+  // single-consumer code inline.
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  useEffect(() => {
+    const id = setTimeout(() => setDebouncedQuery(search.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(id);
+  }, [search]);
   const [expandedRoleId, setExpandedRoleId] = useState(null);
 
   const { data: profile } = useProfileQuery(user?.id);
@@ -239,29 +251,74 @@ export default function Career() {
     staleTime: 5 * 60 * 1000,
   });
 
+  // All-scope corpus search. Mirrors Jobs.jsx:256-268's keyword-mode
+  // REST query verbatim — same .from("jobs"), same column select, same
+  // .ilike("title", "%kw%"), same .in("seniority", ...) gate. NO
+  // Track-3 bypass here: all-scope is by definition track-less, so
+  // allowedSeniorities applies as-is (Jobs.jsx's seniorityFilterFor
+  // returns plain allowedSeniorities outside track mode — Jobs.jsx:52).
+  // The query is gated on scope === "all" AND a non-empty debounced
+  // query, so the in-track default never fires this and the cache key
+  // never collides with career_jobs (PR #178 cache-pollution discipline).
+  const searchActive = searchScope === "all" && debouncedQuery.length > 0;
+  const { data: searchJobs = [], isLoading: loadingSearch } = useQuery({
+    queryKey: ["career_jobs_search", user?.id, debouncedQuery, allowedSeniorities.join(",")],
+    queryFn: async () => {
+      const safe = debouncedQuery.replace(/[%,]/g, " ").trim();
+      let q = supabase
+        .from("jobs")
+        .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence")
+        .eq("is_il", true)
+        .eq("is_active", true)
+        .in("seniority", allowedSeniorities)
+        .order("date_posted", { ascending: false, nullsFirst: false })
+        .range(0, SEARCH_PAGE_SIZE - 1);
+      if (safe) q = q.ilike("title", `%${safe}%`);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id && searchActive,
+    staleTime: 5 * 60 * 1000,
+  });
+
   const scoredJobs = useMemo(() => {
     const input = { profile, experiences, educations };
-    const list = jobs.map((j) => {
+    // In search-active mode, score the corpus-wide search results. Otherwise,
+    // score the active track's pre-fetched live jobs.
+    const source = searchActive ? searchJobs : jobs;
+    const list = source.map((j) => {
       const result = scoreJobFit(input, j);
       const pct = Math.round((result.fit_score ?? 0) * 100);
       return { job: j, result, pct, low: pct < 50 };
     });
     list.sort((a, b) => b.pct - a.pct);
     return list;
-  }, [jobs, profile, experiences, educations]);
+  }, [jobs, searchJobs, searchActive, profile, experiences, educations]);
 
+  // Client-side substring filter applies only in track scope. In
+  // all-scope the server already filtered via .ilike, so showing every
+  // returned row is the honest behavior.
   const visibleJobs = useMemo(() => {
+    if (searchScope === "all") return scoredJobs;
     const q = search.trim().toLowerCase();
     if (!q) return scoredJobs;
     return scoredJobs.filter(({ job }) =>
       (job.title || "").toLowerCase().includes(q) || (job.company_name || "").toLowerCase().includes(q),
     );
-  }, [scoredJobs, search]);
+  }, [scoredJobs, search, searchScope]);
 
   const band = TRACK_BAND.find((t) => t.key === selectedTrack);
   const trackRoles = rolesByTrack[selectedTrack] || [];
   const goalName = profile?.five_year_role || "your 5-year goal";
   const trackNumber = TRACK_CONFIG[selectedTrack]?.number ?? 1;
+  // JobCard's trackColor prop expects an rdColor string (coral / teal /
+  // golden). In all-scope mode there's no active track — leave trackColor
+  // null so JobCard renders the neutral-fallback styling (matches the
+  // "keyword mode without scoreJobFit result" branch in JobCard.jsx:199).
+  const jobCardTrackColor = searchScope === "all"
+    ? null
+    : (TRACK_CONFIG[selectedTrack]?.rdColor ?? null);
 
   // First matched role opens by default whenever the track changes.
   const effectiveExpandedId =
@@ -269,18 +326,10 @@ export default function Career() {
       ? expandedRoleId
       : trackRoles[0]?.id ?? null;
 
-  const handleTrack = async (job, scoreResult) => {
-    setTrackedIds((prev) => new Set(prev).add(job.id));
-    try {
-      await addJobToTracker({ user, queryClient, job, scoreResult });
-    } catch {
-      setTrackedIds((prev) => {
-        const next = new Set(prev);
-        next.delete(job.id);
-        return next;
-      });
-    }
-  };
+  // Career's own optimistic tracked-id set + handleTrack are gone;
+  // JobCard owns that state internally now (see JobCard.jsx:175-216),
+  // so we just hand off the props and let JobCard's Adding / Tracked
+  // button states fire from there.
 
   if (loadingRoles) {
     return (
@@ -378,102 +427,79 @@ export default function Career() {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder={`Search ${TRACK_CONFIG[selectedTrack].name} roles…`}
+              placeholder={searchScope === "all"
+                ? "Search all jobs by title…"
+                : `Search ${TRACK_CONFIG[selectedTrack].name} roles…`}
               className="w-full bg-rd-bg-card border border-rd-border rounded-[10px] pl-10 pr-4 py-2.5 text-[13px] text-rd-text placeholder:text-rd-text-secondary focus:outline-none focus:border-rd-coral focus:ring-[3px] focus:ring-rd-coral-tint"
             />
           </div>
+          {/* Scope toggle — segmented buttons. "This track" is the cheap
+              client-filter over pre-fetched live jobs; "All jobs" hits the
+              corpus-wide search query. Hidden when there's no input — the
+              control only earns its space once a user starts typing. */}
+          {search.trim().length > 0 && (
+            <div className="inline-flex gap-1 mt-2.5 bg-rd-bg-soft rounded-full p-1" role="group" aria-label="Search scope">
+              <button
+                type="button"
+                onClick={() => setSearchScope("track")}
+                className={[
+                  "px-3 py-1 rounded-full text-[11px] font-display font-semibold transition-colors",
+                  searchScope === "track" ? "bg-rd-bg-card text-rd-text shadow-rd" : "text-rd-text-secondary hover:text-rd-text",
+                ].join(" ")}
+              >
+                This track
+              </button>
+              <button
+                type="button"
+                onClick={() => setSearchScope("all")}
+                className={[
+                  "px-3 py-1 rounded-full text-[11px] font-display font-semibold transition-colors",
+                  searchScope === "all" ? "bg-rd-bg-card text-rd-text shadow-rd" : "text-rd-text-secondary hover:text-rd-text",
+                ].join(" ")}
+              >
+                All jobs
+              </button>
+            </div>
+          )}
           <div className="flex items-center justify-between mt-3">
             <span className="font-display font-bold text-[13.5px] text-rd-text">
-              {typeof liveCounts[selectedTrack] === "number"
-                ? `${liveCounts[selectedTrack]} live roles on Track ${trackNumber}`
-                : `Live roles on Track ${trackNumber}`}
+              {searchScope === "all" && debouncedQuery.length > 0
+                // All-scope: don't fabricate a total ("N live roles…" doesn't
+                // describe a search result set). Show the literal echo of
+                // what the user typed so the result list reads honestly.
+                ? `Results for “${debouncedQuery}”`
+                : typeof liveCounts[selectedTrack] === "number"
+                  ? `${liveCounts[selectedTrack]} live roles on Track ${trackNumber}`
+                  : `Live roles on Track ${trackNumber}`}
             </span>
-            <span className="text-[10.5px] text-rd-text-secondary">refreshed nightly</span>
+            {searchScope !== "all" && (
+              <span className="text-[10.5px] text-rd-text-secondary">refreshed nightly</span>
+            )}
           </div>
           <div className="flex flex-col gap-2.5 mt-2.5">
-            {loadingJobs && (
+            {(loadingJobs || (searchActive && loadingSearch)) && (
               <RdCard className="p-6 text-center text-[12.5px] text-rd-text-secondary">
                 <Loader2 className="w-4 h-4 animate-spin inline-block mr-2 align-[-2px]" />
-                Matching live jobs…
+                {searchActive ? "Searching jobs…" : "Matching live jobs…"}
               </RdCard>
             )}
-            {!loadingJobs && visibleJobs.length === 0 && (
+            {!loadingJobs && !(searchActive && loadingSearch) && visibleJobs.length === 0 && (
               <RdCard className="p-6 text-center text-[12.5px] text-rd-text-secondary">
-                {search ? "No live roles match that search." : "No live matches on this track right now — check back tomorrow."}
+                {searchScope === "all"
+                  ? "No jobs match that search."
+                  : search
+                    ? "No live roles match that search."
+                    : "No live matches on this track right now — check back tomorrow."}
               </RdCard>
             )}
-            {visibleJobs.map(({ job, result, pct, low }) => {
-              const tracked = trackedIds.has(job.id);
-              // Location lives in the subtitle (matching JobCard's pattern at
-              // JobCard.jsx:253) — duplicating it as a chip surfaces the full
-              // raw string twice on rows like "Kibbutz Shefayim, Center
-              // District, Israel".
-              const chips = [
-                job.seniority || null,
-                jobAgeChip(job.date_posted),
-              ].filter(Boolean);
-              return (
-                <div
-                  key={job.id}
-                  className={`bg-rd-bg-card border border-rd-border rounded-[14px] px-3.5 py-3 hover:border-rd-border-hover transition-colors ${low ? "opacity-60" : ""}`}
-                >
-                  <div className="flex items-start gap-2.5">
-                    <span className={`w-9 h-9 rounded-[9px] ${band.tintBg} flex items-center justify-center flex-shrink-0`}>
-                      <span className={`font-display font-bold text-[14px] ${band.ink}`}>
-                        {(job.company_name || job.title || "?").charAt(0).toUpperCase()}
-                      </span>
-                    </span>
-                    <div className="flex-1 min-w-0">
-                      <p className="font-display font-bold text-[13.5px] leading-[1.2] text-rd-text">{job.title}</p>
-                      <p className="text-[11px] text-rd-text-secondary truncate">
-                        {[job.company_name, job.is_remote ? "Remote" : job.location_city || job.location_raw].filter(Boolean).join(" · ")}
-                      </p>
-                      {chips.length > 0 && (
-                        <span className="flex gap-1.5 mt-1.5 flex-wrap">
-                          {chips.map((c, i) => (
-                            <span key={i} className="text-[10.5px] bg-rd-bg-soft text-rd-text-secondary rounded-[6px] px-2 py-0.5">
-                              {c}
-                            </span>
-                          ))}
-                        </span>
-                      )}
-                    </div>
-                    <span className={`font-display font-extrabold text-[12px] rounded-full px-2.5 py-1 flex-shrink-0 ${matchBadgeClasses(pct)}`}>
-                      {pct}%
-                    </span>
-                  </div>
-                  {low ? (
-                    <p className="text-[10.5px] text-rd-text-tertiary mt-2">
-                      Low fit — shown for completeness, not recommended.
-                    </p>
-                  ) : (
-                    <div className="flex justify-end gap-2 mt-2.5">
-                      <button
-                        onClick={() => handleTrack(job, result)}
-                        disabled={tracked}
-                        className={[
-                          "inline-flex items-center gap-1 font-display font-semibold text-[12px] rounded-full px-3.5 py-1.5 transition-colors",
-                          tracked ? "bg-rd-teal text-white" : "bg-rd-bg-soft text-rd-text hover:bg-rd-border-subtle",
-                        ].join(" ")}
-                      >
-                        {tracked ? <Check className="w-3 h-3" /> : <Plus className="w-3 h-3" />}
-                        {tracked ? "In pipeline" : "Track"}
-                      </button>
-                      {job.apply_url && (
-                        <a
-                          href={job.apply_url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 bg-rd-coral text-white font-display font-semibold text-[12px] rounded-full px-3.5 py-1.5 hover:bg-rd-coral-dark transition-colors"
-                        >
-                          Apply <ExternalLink className="w-3 h-3" />
-                        </a>
-                      )}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
+            {visibleJobs.map(({ job, result }) => (
+              <JobCard
+                key={job.id}
+                job={job}
+                scoreResult={result}
+                trackColor={jobCardTrackColor}
+              />
+            ))}
           </div>
         </div>
 
