@@ -71,7 +71,7 @@ const APP_ACTIVE_7 = [
     user_id: UID,
     company: "Wix",
     role_title: "Product Analyst",
-    status: "preparing",
+    status: "interviewing",
     created_at: "2026-05-25T10:00:00.000Z",
     updated_at: "2026-05-31T10:00:00.000Z",
   },
@@ -119,6 +119,13 @@ const STORIES_4 = [
   { id: "s-4", created_at: "2026-04-12T10:00:00.000Z" },
 ];
 
+const TASKS_MIXED = [
+  { id: "t-1", user_id: UID, title: "Capture the Q3 funnel story", category: "project", is_complete: true, due_date: null, role_title: null },
+  { id: "t-2", user_id: UID, title: "Prep 3 STAR answers for the Wix interview", category: "interview_prep", is_complete: false, due_date: new Date(Date.now() + 2 * 86400000).toISOString(), role_title: "Product Analyst" },
+  { id: "t-3", user_id: UID, title: "Apply to the Riskified Revenue Analyst role", category: "application", is_complete: false, due_date: new Date(Date.now() + 4 * 86400000).toISOString(), role_title: "BizOps Analyst" },
+  { id: "t-4", user_id: UID, title: "Update your LinkedIn headline", category: "networking", is_complete: false, due_date: null, role_title: null },
+];
+
 const DAILY_ACTION_POPULATED = {
   title: "Reach out to the PM lead at monday.com",
   rationale: "Your strongest open match — and the role went live two days ago.",
@@ -147,6 +154,7 @@ export const HOME_FIXTURES = {
     profile: profile(),
     roles: ROLES_MIXED,
     applications: [],
+    tasks: TASKS_MIXED.slice(1, 3),
     stories: STORIES_4,
     linkedinPosts: [],
     linkedinOpts: [{ baseline_data: { profile: { headline: "Aspiring PM" } } }],
@@ -167,6 +175,7 @@ export const HOME_FIXTURES = {
       { id: "r-12", user_id: UID, title: "Principal Product Manager", track: "track_3", match_score: 42, readiness_score: 32 },
     ],
     applications: APP_ACTIVE_7,
+    tasks: TASKS_MIXED,
     stories: STORIES_4,
     linkedinPosts: [{ created_at: new Date(Date.now() - 3 * 86400000).toISOString() }],
     linkedinOpts: [{ baseline_data: { profile: { headline: "Aspiring PM" } } }],

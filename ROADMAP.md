@@ -32,6 +32,8 @@ This roadmap's source of truth for **scheduling** is the [June 15 launch sprint]
 
 ## In Progress
 
+- **2026-06-11 — Seamless-IA scopes 1+2 (branch `isaac/home-redesign-pipeline-c`).** Career page (Roadmap+Jobs condensed: track band, live-jobs pane, matched-roles why-panel) + Home -> Today (progress ring, completable hero, checkable plan rows, quick-access tiles, 4-stat strip) + nav slim-down (Today / Career / Chat / Internship / Profile). Old pages stay routable. Scope 3 (agent drawer) NOT started. Spec: `GetAJob Design System/design_handoff_seamless_ia/`. Post-June-15 merge.
+
 - **Wk 2 Day 5 / Isaac's queue** — Admin view (`cohort_scout_metrics` + `student_engagement_summary` SQL views + `/admin` page, RLS-gated). Eli picking up.
 - **Wk 3 remaining (Eli):** Daily Action Card schema + edge function · Admin chat log viewer · Admin story browser
 - **Wk 3 remaining (Isaac):** Story Bank Phase 2 AddInformation surface · Daily Action Card UI · Daily Action calibration loop

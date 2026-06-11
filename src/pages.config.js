@@ -1,8 +1,9 @@
 /**
  * pages.config.js - Page routing configuration
- * 
- * This file is AUTO-GENERATED. Do not add imports or modify PAGES manually.
- * Pages are auto-registered when you create files in the ./pages/ folder.
+ *
+ * This file is HAND-MAINTAINED (per PR #67) — the earlier "AUTO-GENERATED"
+ * claim is stale, no generator exists. Add new page imports + a `PAGES` map
+ * entry by hand when registering a new route.
  * 
  * THE ONLY EDITABLE VALUE: mainPage
  * This controls which page is the landing page (shown when users visit the app).
@@ -63,6 +64,7 @@ import Calendar from './pages/Calendar';
 import Jobs from './pages/Jobs';
 import Admin from './pages/Admin';
 import AdminLaunch from './pages/AdminLaunch';
+import Career from './pages/Career';
 import Linkedin from './pages/Linkedin';
 import Internship from './pages/Internship';
 import Settings from './pages/Settings';
@@ -90,6 +92,7 @@ export const PAGES = {
     "Jobs": Jobs,
     "Admin": Admin,
     "AdminLaunch": AdminLaunch,
+    "Career": Career,
     "Linkedin": Linkedin,
     "Internship": Internship,
     "Settings": Settings,

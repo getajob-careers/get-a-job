@@ -4,7 +4,7 @@ This is a React + Vite + Supabase career operating system for business students 
 
 ## Architecture pointers
 
-- **Frontend:** React 18 + Vite + Tailwind + shadcn/ui + TanStack Query. Pages live in `src/pages/` and auto-register via `src/pages.config.js` (do not edit `pages.config.js` manually — files are auto-registered).
+- **Frontend:** React 18 + Vite + Tailwind + shadcn/ui + TanStack Query. Pages live in `src/pages/`. `src/pages.config.js` is **hand-maintained** (per PR #67) — the "AUTO-GENERATED" header in that file is stale; add new page imports + the `PAGES` map entry by hand when registering a new route.
 - **Backend:** Supabase (Postgres + Auth + Edge Functions in Deno + Storage + RLS). Project ref `ilmqmodklutztuybsvwd`.
 - **Edge functions:** in `supabase/functions/<slug>/index.ts`. Deploy via `supabase functions deploy <slug> --project-ref ilmqmodklutztuybsvwd`.
 - **Domain libraries** (Israeli market context, role/skill graphs): `supabase/functions/_shared/libraries/00_role_library.ts` (183 roles), `01_skill_library.ts` (387 unique skill IDs), `04_role_skill_mapping.ts`, plus 13 logic / mapping files (16 .ts total + `companies_il.json` with 831 ATS-tagged Israeli companies for the job cache). Consolidated to `_shared/libraries/` in Wk 5; each edge function imports its specific subset via `../_shared/libraries/X.ts`. Validate with `python3 .claude/skills/schema-validator/validate.py` after edits.

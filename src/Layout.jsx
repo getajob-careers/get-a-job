@@ -8,23 +8,16 @@ import { createPageUrl } from "@/utils";
 import {
   LayoutDashboard,
   Map,
-  ClipboardList,
-  BookOpen,
   Menu,
   X,
-  CheckSquare,
-  Calendar as CalendarIcon,
   User,
   Briefcase,
-  Target,
   ChevronRight,
   Brain,
   FileText,
   Mic,
   GraduationCap,
-  Linkedin as LinkedinIcon,
   MessageCircle,
-  BookText,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -42,10 +35,18 @@ import { cn } from "@/lib/utils";
 // here. The 4 agent pages it routed to are now top-level under Chat.
 // The Subagents file stays registered as an orphan in pages.config.js;
 // it can be deleted in a separate cleanup PR.
+// Seamless-IA nav slim-down (design handoff, scopes 1+2 of 3): the old
+// Career group (Roadmap/Jobs/StoryBank/Resources), Activity group
+// (Tracker/Calendar/Tasks), and the LinkedIn item leave the nav. Roadmap +
+// Jobs are replaced by the Career page; Tasks live on Today; Tracker is
+// reachable from Today's Pipeline card; StoryBank/CV/LinkedIn surface as
+// Today's quick-access tiles. All old pages stay registered and routable —
+// deep links keep working. The Chat section STAYS until the agent-drawer
+// PR (scope 3) ships a replacement entry point.
 const BASE_SECTIONS = [
   {
     id: "home",
-    label: "Home",
+    label: "Today",
     icon: LayoutDashboard,
     page: "Home",
   },
@@ -53,31 +54,7 @@ const BASE_SECTIONS = [
     id: "career",
     label: "Career",
     icon: Map,
-    items: [
-      { name: "Roadmap", page: "Roadmap", icon: Map },
-      { name: "Jobs", page: "Jobs", icon: Target },
-      { name: "Story Bank", page: "StoryBank", icon: BookText },
-      { name: "Resources", page: "Resources", icon: BookOpen },
-    ],
-  },
-  {
-    // section id stays "pipeline" so the active-section auto-expand logic
-    // (which keys off the id) keeps working. Just the user-facing label
-    // changed from "Pipeline" to "Activity".
-    id: "pipeline",
-    label: "Activity",
-    icon: ClipboardList,
-    items: [
-      { name: "Tracker", page: "Tracker", icon: ClipboardList },
-      { name: "Calendar", page: "Calendar", icon: CalendarIcon },
-      { name: "Tasks", page: "Tasks", icon: CheckSquare },
-    ],
-  },
-  {
-    id: "linkedin",
-    label: "LinkedIn",
-    icon: LinkedinIcon,
-    page: "Linkedin",
+    page: "Career",
   },
   {
     id: "chat",
