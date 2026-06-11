@@ -1,8 +1,9 @@
 /**
  * pages.config.js - Page routing configuration
- * 
- * This file is AUTO-GENERATED. Do not add imports or modify PAGES manually.
- * Pages are auto-registered when you create files in the ./pages/ folder.
+ *
+ * This file is HAND-MAINTAINED (per PR #67) — the earlier "AUTO-GENERATED"
+ * claim is stale, no generator exists. Add new page imports + a `PAGES` map
+ * entry by hand when registering a new route.
  * 
  * THE ONLY EDITABLE VALUE: mainPage
  * This controls which page is the landing page (shown when users visit the app).
