@@ -46,6 +46,8 @@ import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import JobCard from "@/components/jobs/JobCard";
 import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experienceLevel";
 import { FUNNEL_BUCKETS } from "@/lib/funnelBuckets";
+import { useAgentDrawer } from "@/lib/AgentDrawerContext";
+import { buildCareerPageContext } from "@/lib/buildCareerPageContext";
 import ApplicationsKanban from "@/components/tracker/ApplicationsKanban";
 import ApplicationDetailDrawer from "@/components/tracker/ApplicationDetailDrawer";
 import AddApplicationDialog from "@/components/tracker/AddApplicationDialog";
@@ -494,6 +496,27 @@ export default function Career() {
     expandedRoleId && trackRoles.some((r) => r.id === expandedRoleId)
       ? expandedRoleId
       : trackRoles[0]?.id ?? null;
+
+  // PR-B2 agent page-context: surface what Career has cheaply available
+  // (the selected track + the matched-role currently expanded on the
+  // rail + the application open in the detail drawer, if any) to the
+  // agent drawer so the server can fetch each entity authoritatively
+  // and inject TARGET ROLE / CURRENT TRACK / TARGET APPLICATION blocks.
+  // IDs only — never titles. Cleared on unmount so navigating to a
+  // different page doesn't leave stale context behind.
+  //
+  // Shape builder kept inline + exported for the
+  // src/test/career-page-context.test.js unit suite — proves the wiring
+  // emits the right IDs without rendering the full page tree.
+  const agentDrawer = useAgentDrawer();
+  useEffect(() => {
+    agentDrawer.setPageContext(buildCareerPageContext({
+      selectedTrack,
+      roleId: effectiveExpandedId,
+      applicationId: drawerAppId,
+    }));
+    return () => agentDrawer.setPageContext(null);
+  }, [selectedTrack, effectiveExpandedId, drawerAppId, agentDrawer]);
 
   // Career's own optimistic tracked-id set + handleTrack are gone;
   // JobCard owns that state internally now (see JobCard.jsx:175-216),

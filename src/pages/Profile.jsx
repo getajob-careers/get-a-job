@@ -2,6 +2,7 @@ import React, { useState, useMemo, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
+import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import { toast } from "sonner";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
@@ -276,6 +277,12 @@ export default function Profile() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  // PR-B2: page-only context so the agent knows the user is on Profile.
+  const agentDrawer = useAgentDrawer();
+  useEffect(() => {
+    agentDrawer.setPageContext({ page: "Profile" });
+    return () => agentDrawer.setPageContext(null);
+  }, [agentDrawer]);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = React.useRef(null);

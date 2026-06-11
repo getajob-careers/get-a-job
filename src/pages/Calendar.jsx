@@ -1,6 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
+import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import {
@@ -93,6 +94,19 @@ export default function Calendar() {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [viewMode, setViewMode] = useState("month");
   const [showAddDialog, setShowAddDialog] = useState(false);
+
+  // PR-B2: page-only context for the agent drawer. Calendar doesn't
+  // have a single "selected event" — a selected day surfaces multiple
+  // items — so the spec's event-level application_id wiring isn't a
+  // natural fit today. Setting {page: "Calendar"} alone still gives
+  // the agent meaningful situational awareness; per-item application_id
+  // wiring can land as a follow-up when the surface gains a single-event
+  // selection state.
+  const agentDrawer = useAgentDrawer();
+  useEffect(() => {
+    agentDrawer.setPageContext({ page: "Calendar" });
+    return () => agentDrawer.setPageContext(null);
+  }, [agentDrawer]);
 
   const { data: events = [], isLoading: loadingEvents, isError: eventsError } = useQuery({
     queryKey: ["calendarEvents", user?.id],

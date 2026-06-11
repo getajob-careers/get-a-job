@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Navigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
+import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import { Plus } from "lucide-react";
@@ -50,6 +51,19 @@ export default function Internship() {
   const [openTarget, setOpenTarget] = useState(null);
   const [generatingProfile, setGeneratingProfile] = useState(false);
   const [addCompanyOpen, setAddCompanyOpen] = useState(false);
+
+  // PR-B2: surface the open company-target row to the agent drawer so
+  // the server can render a TARGET COMPANY block from company_targets +
+  // companies. openTarget.id is the row's UUID — no titles or content
+  // travel through the client; the server fetches everything under
+  // user-scoped auth.
+  const agentDrawer = useAgentDrawer();
+  useEffect(() => {
+    const ctx = { page: "Internship" };
+    if (openTarget?.id) ctx.company_target_id = openTarget.id;
+    agentDrawer.setPageContext(ctx);
+    return () => agentDrawer.setPageContext(null);
+  }, [openTarget?.id, agentDrawer]);
   const [searchParams, setSearchParams] = useSearchParams();
   const activeTab = TABS.find((t) => t.id === searchParams.get("tab"))?.id || DEFAULT_TAB;
 
