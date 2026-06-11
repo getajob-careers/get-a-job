@@ -10,7 +10,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthContext } from "@/lib/AuthContext";
 import Layout from "@/Layout";
 import Career from "@/pages/Career";
-import { HOME_FIXTURES, HOME_FIXTURE_UID } from "./fixtures/home";
+import { HOME_FIXTURES, HOME_FIXTURE_UID, APP_ACTIVE_7 } from "./fixtures/home";
 
 const UID = HOME_FIXTURE_UID;
 const MAX_TRACK_ROLES = 8;
@@ -85,6 +85,15 @@ function titlesJoin(roles, track) {
 }
 
 export default function CareerPreview() {
+  // PR-A1 strip preview supports two variants via ?state= query param:
+  //   - (default / populated) the strip lights up saved/applied/interview tiles
+  //   - state=zero — empty applications, all tiles render muted-zero
+  // Read synchronously so the seed in useMemo factory picks it up before
+  // Career's first render.
+  const stripVariant = typeof window !== "undefined"
+    ? new URLSearchParams(window.location.search).get("state")
+    : null;
+
   const queryClient = useMemo(() => {
     const qc = new QueryClient({
       defaultOptions: {
@@ -104,6 +113,12 @@ export default function CareerPreview() {
       skills_canonical: FIXTURE_SKILLS_CANONICAL,
     });
     qc.setQueryData(["careerRoles", UID], CAREER_ROLES);
+    // Wide applications cache for the pipeline strip (PR-A1). Reuses
+    // home.js's APP_ACTIVE_7 mixed-status fixture so the strip lights up
+    // applied (4) + interview (2) tiles; saved and offer render muted-zero
+    // so both render paths appear in a single capture. ?state=zero swaps
+    // to an empty list for the zero-state capture.
+    qc.setQueryData(["applications", UID], stripVariant === "zero" ? [] : APP_ACTIVE_7);
     // experiences + educations seeded explicitly as empty arrays so
     // inferExperienceLevel resolves deliberately to "early_career"
     // (totalYearsOfExperience([]) === 0, isCurrentlyStudent([]) === false,
@@ -131,7 +146,8 @@ export default function CareerPreview() {
       ),
     );
     return qc;
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [stripVariant]);
 
   const authValue = useMemo(
     () => ({

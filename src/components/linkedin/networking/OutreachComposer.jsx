@@ -111,9 +111,12 @@ export default function OutreachComposer({
   //    target.relationship with the function name. target.company from
   //    the company card.
   //
-  // 2. /Tracker step-5 CTA (goal=ask_for_referral): seeds target.role
-  //    with prefillRole = applications.role_title (the role the user is
-  //    asking to be referred FOR). target.company from applications.company.
+  // 2. /Career?pipeline=open application-detail step-5 CTA
+  //    (goal=ask_for_referral): seeds target.role with prefillRole =
+  //    applications.role_title (the role the user is asking to be referred
+  //    FOR). target.company from applications.company. Originally launched
+  //    from /Tracker before the seamless-IA Tracker-absorption rolls
+  //    (PR-A1+A2) moved the surface into Career.
   //
   // prefillContact and prefillRole are mutually-exclusive in practice
   // today; if both arrive, prefillContact wins (it's the older flow's
