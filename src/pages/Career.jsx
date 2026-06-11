@@ -48,6 +48,7 @@ import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experien
 import { FUNNEL_BUCKETS } from "@/lib/funnelBuckets";
 import ApplicationsKanban from "@/components/tracker/ApplicationsKanban";
 import ApplicationDetailDrawer from "@/components/tracker/ApplicationDetailDrawer";
+import AddApplicationDialog from "@/components/tracker/AddApplicationDialog";
 import { TRACKER_CSS } from "@/components/tracker/trackerStyles";
 
 // Application status set — canonical order matches the live
@@ -198,12 +199,13 @@ export default function Career() {
     }
   }, [boardOpen]);
 
-  // Manual "Add application" path: deferred to a follow-up PR. The Track
-  // button on JobCard is the primary add flow; ApplicationDetailDrawer
-  // covers full editing of an existing row. Re-introducing the Tracker
-  // Add dialog here triggers the repo-wide shadcn Dialog forwardRef TS
-  // pattern (see AddEventDialog and Tracker.jsx for the same errors) —
-  // saving it for a follow-up keeps the typecheck ratchet honest.
+  // Manual "Add application" path — reuses the same dialog component
+  // mounted by Tracker.jsx (extracted to src/components/tracker/
+  // AddApplicationDialog.jsx in PR-A2 so both surfaces share one call
+  // site). Pilot students who type a role into the dialog land in the
+  // same applications cache the strip + kanban read; no second code
+  // path to maintain.
+  const [showAdd, setShowAdd] = useState(false);
 
   // First-time guide card — dismissible, persisted per-user in
   // localStorage. The 4-tile 7-step framing copy is preserved from
@@ -689,11 +691,21 @@ export default function Career() {
             </RdCard>
           )}
 
-          <div className={!guideDismissed ? "mt-4" : ""}>
-            <h2 className="font-display font-bold text-[17px] text-rd-text">Pipeline board</h2>
-            <p className="text-[11.5px] text-rd-text-secondary mt-0.5">
-              Drag a card between columns to update its status. Click any card to open the steps checklist.
-            </p>
+          <div className={`flex items-start justify-between gap-3 flex-wrap ${!guideDismissed ? "mt-4" : ""}`}>
+            <div className="min-w-0">
+              <h2 className="font-display font-bold text-[17px] text-rd-text">Pipeline board</h2>
+              <p className="text-[11.5px] text-rd-text-secondary mt-0.5">
+                Drag a card between columns to update its status. Click any card to open the steps checklist.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAdd(true)}
+              className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-3.5 py-2 transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add manually
+            </button>
           </div>
 
           <div className="mt-3">
@@ -728,6 +740,13 @@ export default function Career() {
             onClose={closeDrawer}
             onUpdate={() => queryClient.invalidateQueries({ queryKey: ["applications"] })}
           />
+
+          {/* Same AddApplicationDialog instance Tracker.jsx mounts — the
+              extraction in this PR lets both surfaces share one call
+              site. Manual add of an application that came from a channel
+              other than Browse Jobs (e.g. WhatsApp tip, email referral)
+              lands here. */}
+          <AddApplicationDialog open={showAdd} onOpenChange={setShowAdd} />
         </section>
       )}
 
