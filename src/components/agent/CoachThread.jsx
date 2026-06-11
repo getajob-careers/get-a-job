@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Loader2, RefreshCw, Maximize2, CheckCircle2, AlertCircle } from "lucide-react";
+import { Loader2, RefreshCw, Maximize2, CheckCircle2, AlertCircle, ListTodo, Route, Briefcase, Building2, FileText } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import MessageBubble from "@/components/chat/MessageBubble";
@@ -40,29 +40,39 @@ const DEFAULT_DOCK_PROMPTS = [
   "What's my biggest gap?",
 ];
 
-function SuggestionRowShell({ kind, title, action, error, applied, onApply, onExpand, busy }) {
+function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onApply, onExpand, busy }) {
   return (
-    <div className="ml-9 mt-1 bg-rd-bg-soft border border-rd-border rounded-[10px] px-3 py-2 flex items-center justify-between gap-2">
-      <div className="min-w-0 flex-1">
-        <p className="text-[10px] uppercase tracking-[0.07em] font-medium text-rd-text-eyebrow font-mono">
+    <div className="ml-9 mt-1 bg-rd-bg-card border border-rd-coral-tint rounded-[10px] px-3 py-2">
+      <div className="flex items-center gap-1.5">
+        {KindIcon && <KindIcon className="w-2.5 h-2.5 text-rd-coral-dark flex-shrink-0" aria-hidden="true" />}
+        <p className="text-[10px] uppercase tracking-[0.07em] font-display font-bold text-rd-coral-dark">
           {kind}
         </p>
-        <p className="text-[11.5px] text-rd-text-secondary truncate">{title}</p>
-        {error && (
-          <p className="text-[10.5px] text-rd-coral-dark mt-0.5 inline-flex items-center gap-1">
-            <AlertCircle className="w-2.5 h-2.5" />
-            {error}
-          </p>
-        )}
       </div>
-      <div className="flex items-center gap-1.5 flex-shrink-0">
+      <p className="text-[11.5px] text-rd-text leading-snug mt-0.5">{title}</p>
+      {error && (
+        <p className="text-[10.5px] text-rd-coral-dark mt-1 inline-flex items-center gap-1">
+          <AlertCircle className="w-2.5 h-2.5" />
+          {error}
+        </p>
+      )}
+      <div className="flex items-center justify-end gap-1.5 mt-1.5">
         {applied ? (
-          <span className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-teal-dark">
+          <span className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-teal-dark bg-rd-teal-tint rounded-full px-2 py-0.5">
             <CheckCircle2 className="w-2.5 h-2.5" />
             Applied
           </span>
         ) : (
           <>
+            {onExpand && (
+              <button
+                type="button"
+                onClick={onExpand}
+                className="inline-flex items-center gap-1 text-[10.5px] font-display font-semibold text-rd-text-secondary hover:text-rd-text rounded-full px-2 py-0.5 transition-colors"
+              >
+                View
+              </button>
+            )}
             {action && (
               <button
                 type="button"
@@ -72,16 +82,6 @@ function SuggestionRowShell({ kind, title, action, error, applied, onApply, onEx
               >
                 {busy ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : null}
                 {action}
-              </button>
-            )}
-            {onExpand && (
-              <button
-                type="button"
-                onClick={onExpand}
-                className="inline-flex items-center justify-center w-5 h-5 rounded-md text-rd-text-tertiary hover:bg-rd-bg-card hover:text-rd-text transition-colors"
-                aria-label="Open in panel for details"
-              >
-                <Maximize2 className="w-2.5 h-2.5" />
               </button>
             )}
           </>
@@ -119,6 +119,7 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
     return (
       <SuggestionRowShell
         kind="Tasks proposed"
+        KindIcon={ListTodo}
         title={`${n} task${n === 1 ? "" : "s"} from your coach`}
         action="Add all"
         applied={applied}
@@ -143,6 +144,7 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
     return (
       <SuggestionRowShell
         kind="Roadmap changes proposed"
+        KindIcon={Route}
         title={`${n} change${n === 1 ? "" : "s"} to your career roadmap`}
         action="Apply"
         applied={applied}
@@ -167,6 +169,7 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
     return (
       <SuggestionRowShell
         kind="Application updates proposed"
+        KindIcon={Briefcase}
         title={`${n} update${n === 1 ? "" : "s"} to your tracker`}
         action="Apply"
         applied={applied}
@@ -189,6 +192,7 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
     return (
       <SuggestionRowShell
         kind="Internship updates proposed"
+        KindIcon={Building2}
         title={`${n} update${n === 1 ? "" : "s"} to your internship pipeline`}
         action="Apply"
         applied={applied}
@@ -214,6 +218,7 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
     return (
       <SuggestionRowShell
         kind="CV generation proposed"
+        KindIcon={FileText}
         title={`Tailored CV for ${message.suggestedCVGeneration.target_role}`}
         action={done ? null : "Generate"}
         applied={done}
@@ -266,18 +271,22 @@ export default function CoachThread({ variant = "dock" }) {
       )}
 
       {!conv.loadingMessages && conv.messages.length === 0 && (
-        <div className={`text-center ${isDock ? "py-2" : "py-8"} space-y-3`}>
-          <p className={`${isDock ? "text-[11.5px]" : "text-[13px]"} text-rd-text-secondary leading-relaxed`}>
-            Your coach knows your roadmap, pipeline, and the page you're on. Ask anything.
+        // Top-anchored, left-aligned — not centered in the void. One
+        // short line, then coach-flavored coral-tint pill chips stacked
+        // left-aligned so they read as part of the coach's first turn
+        // rather than generic suggestion bubbles.
+        <div className="space-y-2.5">
+          <p className={`${isDock ? "text-[12px]" : "text-[13px]"} text-rd-text-secondary leading-[1.5]`}>
+            Knows your roadmap, your pipeline, and this page.
           </p>
-          <div className="flex flex-wrap gap-1.5 justify-center">
+          <div className="flex flex-col items-start gap-1.5">
             {DEFAULT_DOCK_PROMPTS.map((p, i) => (
               <button
                 key={i}
                 type="button"
                 onClick={() => conv.sendMessage(p)}
                 disabled={conv.sending}
-                className={`inline-flex items-center ${isDock ? "px-2 py-1 text-[10.5px]" : "px-3 py-1.5 text-[12px]"} rounded-full bg-rd-bg-card border border-rd-border text-rd-text-secondary font-medium hover:bg-rd-coral-tint hover:border-rd-coral hover:text-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
+                className={`inline-flex items-center ${isDock ? "px-2.5 py-1 text-[11px]" : "px-3 py-1.5 text-[12px]"} rounded-full bg-rd-coral-tint border border-rd-coral/30 text-rd-coral-dark font-display font-semibold hover:bg-rd-coral hover:border-rd-coral hover:text-white disabled:opacity-50 disabled:cursor-not-allowed transition-colors`}
               >
                 {p}
               </button>
@@ -319,7 +328,7 @@ export default function CoachThread({ variant = "dock" }) {
           <span className="w-[22px] h-[22px] rounded-full bg-rd-coral-tint flex items-center justify-center flex-shrink-0 mt-[2px]">
             <span className="w-1.5 h-1.5 rounded-full bg-rd-coral" />
           </span>
-          <span className="inline-flex gap-1 items-center px-3 py-2 bg-[#F3ECE0] rounded-tl-[12px] rounded-tr-[12px] rounded-br-[12px] rounded-bl-[3px]">
+          <span className="inline-flex gap-1 items-center px-3 py-2 bg-rd-bg-soft rounded-tl-[12px] rounded-tr-[12px] rounded-br-[12px] rounded-bl-[3px]">
             <span className="w-[4px] h-[4px] rounded-full bg-rd-text-tertiary animate-chat-typing" />
             <span className="w-[4px] h-[4px] rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.15s]" />
             <span className="w-[4px] h-[4px] rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.3s]" />
