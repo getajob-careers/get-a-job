@@ -34,6 +34,13 @@ import {
 import MessageBubble from "./MessageBubble";
 import StorySaveCard from "./StorySaveCard";
 
+// Flag-gated conversational model (eli/chat-model-sonnet). Sent on every
+// ai-chat call; the edge function routes to claude-sonnet-4.6 via OpenRouter
+// when this is "sonnet" AND OPENROUTER_API_KEY is set server-side, else falls
+// back to gpt-4o-mini. Rollback lever #1: set to "" to send everyone back to
+// gpt-4o-mini without a redeploy. See docs/research/chat-bakeoff-2026-06.md.
+const CHAT_MODEL = "sonnet";
+
 const TRACK_LABELS = {
   track_1: "Track 1 — Your Move",
   track_2: "Track 2 — Plan B",
@@ -692,6 +699,7 @@ export default function ChatInterface({
         message: text,
         agent: agentName || "career-coach",
         conversation_history: updatedMessages.slice(-20).filter((m) => m.role !== "system"),
+        chat_model: CHAT_MODEL,
         ...(applicationId && { application_id: applicationId }),
         // PR-B2: forward page_context verbatim when the drawer surface
         // populated it. Server sanitizes + fetches authoritatively, so
@@ -807,6 +815,7 @@ export default function ChatInterface({
           message: userText,
           agent: agentName || "career-coach",
           conversation_history: historyForCall,
+          chat_model: CHAT_MODEL,
           ...(applicationId && { application_id: applicationId }),
           ...(pageContext && { page_context: pageContext }),
         },
@@ -1329,6 +1338,7 @@ export default function ChatInterface({
               message: "[CV ready]",
               agent: agentName || "career-coach",
               conversation_history: historyForFollowUp,
+              chat_model: CHAT_MODEL,
               follow_up_after: "cv_generation",
               ...(applicationId && { application_id: applicationId }),
             },

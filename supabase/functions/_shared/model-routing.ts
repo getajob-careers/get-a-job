@@ -28,12 +28,12 @@
 // is specific to that surface.
 
 export type JobKey =
-  | 'chat-agent'
-  | 'resume-extractor'
-  | 'proof-signals'
-  | 'structured-extract';
+  | "chat-agent"
+  | "resume-extractor"
+  | "proof-signals"
+  | "structured-extract";
 
-export type Transport = 'openai' | 'openrouter';
+export type Transport = "openai" | "openrouter";
 
 // reasoning_effort param shape for gpt-5.x and o-series. Values per
 // OpenAI Chat Completions docs (Nov 2026): "none" | "low" | "medium"
@@ -42,7 +42,7 @@ export type Transport = 'openai' | 'openrouter';
 // which is exactly what resume-extractor does. Older gpt-5 versions used
 // "minimal" instead of "none" for the lowest setting; gpt-5.5 standardised
 // on "none".
-export type ReasoningEffort = 'none' | 'low' | 'medium' | 'high' | 'xhigh';
+export type ReasoningEffort = "none" | "low" | "medium" | "high" | "xhigh";
 
 export interface ModelRoute {
   model: string;
@@ -50,7 +50,7 @@ export interface ModelRoute {
   // Optional request-shaping defaults the caller applies. None of these
   // are forced — a caller that needs to override for one specific reason
   // can ignore the route entry and use its own values.
-  response_format?: { type: 'json_object' };
+  response_format?: { type: "json_object" };
   temperature?: number;
   reasoning_effort?: ReasoningEffort;
   // Optional per-route completion cap. Reasoning models (gpt-5.x,
@@ -69,12 +69,19 @@ export interface ModelRoute {
 // extractor currently reads from ROUTES (ai-chat/index.ts), so a change
 // to the other two has zero production effect.
 export const ROUTES: Record<JobKey, ModelRoute> = {
-  // Unchanged from production today. After the agent-merge PR, the unified
-  // chat agent points here. Bake-off may swap the model to a non-OpenAI
-  // candidate via { transport: 'openrouter' } — the shape supports it.
-  'chat-agent': {
-    model: 'gpt-4o-mini',
-    transport: 'openai',
+  // chat-agent is the FLAGGED model for the conversational chat route
+  // (career_agent / cv-helper / interview_coach / skill_development_agent).
+  // Set to claude-sonnet-4.6 via OpenRouter per the June 11 bake-off
+  // (docs/research/chat-bakeoff-2026-06.md: Sonnet won on quality, deixis
+  // honesty, and latency). ai-chat consults this route ONLY when the request
+  // carries chat_model='sonnet' AND OPENROUTER_API_KEY is present; otherwise it
+  // falls back to gpt-4o-mini on OpenAI. Two rollback levers: flip the frontend
+  // flag off, or pull OPENROUTER_API_KEY server-side. Mirrors the cv_model
+  // pattern (PRs #284-286). model is the OpenRouter slug; function_metrics
+  // records 'claude-sonnet-4-6' (the dash form in metrics.ts MODEL_PRICING).
+  "chat-agent": {
+    model: "anthropic/claude-sonnet-4.6",
+    transport: "openrouter",
     temperature: 0.4,
   },
 
@@ -104,12 +111,12 @@ export const ROUTES: Record<JobKey, ModelRoute> = {
   //
   // Response_format json_object stays — it's the parse-reliability fix
   // from PR #277 and is independent of the model swap.
-  'resume-extractor': {
-    model: 'gpt-5.4-mini',
-    transport: 'openai',
-    response_format: { type: 'json_object' },
+  "resume-extractor": {
+    model: "gpt-5.4-mini",
+    transport: "openai",
+    response_format: { type: "json_object" },
     temperature: 0.2,
-    reasoning_effort: 'none',
+    reasoning_effort: "none",
     max_completion_tokens: 16000,
   },
 
@@ -134,12 +141,12 @@ export const ROUTES: Record<JobKey, ModelRoute> = {
   // response_format json_object stays — the prompt's "Return ONLY valid
   // JSON" instruction is the spec, and the stripped prompt (PR #282)
   // didn't change that contract.
-  'proof-signals': {
-    model: 'gpt-5.4-mini',
-    transport: 'openai',
-    response_format: { type: 'json_object' },
+  "proof-signals": {
+    model: "gpt-5.4-mini",
+    transport: "openai",
+    response_format: { type: "json_object" },
     temperature: 0.2,
-    reasoning_effort: 'none',
+    reasoning_effort: "none",
     max_completion_tokens: 16000,
   },
 
@@ -148,10 +155,10 @@ export const ROUTES: Record<JobKey, ModelRoute> = {
   // still hold their own model constants. Documented here for the
   // eventual consolidation; nothing reads it now. extract-proof-signals
   // graduated to its own key above after the PR #282 bake-off.
-  'structured-extract': {
-    model: 'gpt-4o-mini',
-    transport: 'openai',
-    response_format: { type: 'json_object' },
+  "structured-extract": {
+    model: "gpt-4o-mini",
+    transport: "openai",
+    response_format: { type: "json_object" },
     temperature: 0.2,
   },
 };
