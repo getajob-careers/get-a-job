@@ -4,13 +4,18 @@
 // synchronous seed inside useMemo, post-mount driver opens the drawer
 // / detail Sheet via DOM clicks where needed.
 //
-// States cover the five required preview surfaces:
-//   - closed-tab-visible
-//   - open-empty (drawer open, no seed, fresh conversation)
-//   - open-with-seed (drawer open, coach-band seed populated)
-//   - open-with-history (drawer open with a seeded conversation thread)
-//   - open-over-detail-sheet (the z-order overlap capture: agent panel
-//     layers above an open ApplicationDetailDrawer Sheet)
+// Updated for the sidebar-entry change: the harness now mounts the real
+// Layout so the new Coach nav item is visible. AgentDrawerProvider is
+// already mounted inside Layout, so we don't wrap again here.
+//
+// States cover the sidebar-entry + panel flows + the z-order overlap:
+//   - entry-visible: closed drawer, Coach item idle in sidebar
+//   - panel-open-from-sidebar: drawer open + Coach item highlighted
+//   - panel-open-with-seed: drawer open + coach-band seed in input
+//   - panel-open-over-detail-sheet: agent panel layered above an open
+//     ApplicationDetailDrawer Sheet (z-order regression check)
+//   - mobile-sidebar-with-coach: mobile sidebar open with the Coach
+//     item reachable (the spec's mobile reachability proof at <768px)
 //
 // Production safety: route registration in App.jsx is gated by
 // `import.meta.env.DEV`. Prod /_preview/drawer/* falls through to
@@ -20,25 +25,21 @@ import React, { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthContext } from "@/lib/AuthContext";
-import { AgentDrawerProvider, useAgentDrawer } from "@/lib/AgentDrawerContext";
-import AgentDrawer from "@/components/agent/AgentDrawer";
+import { useAgentDrawer } from "@/lib/AgentDrawerContext";
+import Layout from "@/Layout";
 import ApplicationDetailDrawer from "@/components/tracker/ApplicationDetailDrawer";
 
 const UID = "drawer-fixture-user";
 
-// Minimal fixture profile — Layout's onboardingComplete gate is bypassed
-// since this harness doesn't mount Layout; the drawer provider mounts
-// directly. Profile is only seeded for ChatInterface's profile read.
 const FIXTURE_PROFILE = {
   id: UID,
   full_name: "Eli Englard",
   onboarding_complete: true,
+  practicum_path: null,
   skills_canonical: ["stakeholder_management", "user_research"],
   qualification_level: "entry",
 };
 
-// Sample application for the over-detail-sheet capture. Wide enough to
-// drive ApplicationDetailDrawer + ApplicationRow without errors.
 const FIXTURE_APP = {
   id: "drawer-app-1",
   user_id: UID,
@@ -61,38 +62,54 @@ const FIXTURE_APP = {
 };
 
 const STATES = {
-  "closed-tab-visible": { label: "Tab visible, drawer closed (right-edge persistence)", open: false },
-  "open-empty": { label: "Drawer open · empty (no seed, default prompts)", open: true, seed: null, applicationId: null },
-  "open-with-seed": {
-    label: "Drawer open · seeded from coach band (Help me prepare for my APM interview…)",
+  "entry-visible": {
+    label: "Sidebar entry · Coach item idle (drawer closed)",
+    open: false,
+  },
+  "panel-open-from-sidebar": {
+    label: "Sidebar entry · Coach item active + panel open (default prompts)",
+    open: true,
+    seed: null,
+    applicationId: null,
+  },
+  "panel-open-with-seed": {
+    label: "Sidebar entry · panel open with coach-band seed populated",
     open: true,
     seed: "Help me prepare for my Associate Product Manager interview at monday.com",
     applicationId: FIXTURE_APP.id,
   },
-  "open-with-history": {
-    label: "Drawer open · rolling conversation (seeded history)",
-    open: true,
-    seed: null,
-    applicationId: null,
-    seedHistory: true,
-  },
-  "open-over-detail-sheet": {
+  "panel-open-over-detail-sheet": {
     label: "Z-order overlap · agent panel layered over ApplicationDetailDrawer Sheet",
     open: true,
     seed: null,
     applicationId: null,
     openDetailSheet: true,
   },
+  "mobile-sidebar-with-coach": {
+    label: "Mobile (<768px) · sidebar open with Coach item visible (tap-through reachability)",
+    open: false,
+    forceSidebarOpen: true,
+  },
 };
 
-function DrawerDriver({ state }) {
+// Driver runs inside the AgentDrawerProvider (mounted by Layout) so it
+// can call useAgentDrawer.open() to drive the panel states from the URL
+// param. Also forces the mobile sidebar open via a DOM click on the
+// hamburger when the state asks for it.
+function PreviewDriver({ state }) {
   const drawer = useAgentDrawer();
   useEffect(() => {
     if (!state) return;
     if (state.open) {
       drawer.open({ seed: state.seed || null, applicationId: state.applicationId || null });
-    } else {
-      drawer.close();
+    }
+    if (state.forceSidebarOpen) {
+      // The mobile hamburger sits in Layout's <768px header. Click it so
+      // the sidebar slides in for the capture.
+      setTimeout(() => {
+        const btn = document.querySelector('[aria-label="Open menu"]');
+        if (btn instanceof HTMLElement) btn.click();
+      }, 120);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -101,7 +118,7 @@ function DrawerDriver({ state }) {
 
 export default function DrawerPreview() {
   const { state } = useParams();
-  const fixture = STATES[state] || STATES["closed-tab-visible"];
+  const fixture = STATES[state] || STATES["entry-visible"];
 
   const queryClient = useMemo(() => {
     const qc = new QueryClient({
@@ -120,7 +137,6 @@ export default function DrawerPreview() {
     qc.setQueryData(["applications", UID, "picker"], [
       { id: FIXTURE_APP.id, role_title: FIXTURE_APP.role_title, company: FIXTURE_APP.company, status: FIXTURE_APP.status },
     ]);
-    // ChatInterface's conversation list query — empty list = "New conversation".
     return qc;
   }, []);
 
@@ -139,50 +155,42 @@ export default function DrawerPreview() {
     [],
   );
 
-  // The over-detail-sheet capture needs the detail Sheet open underneath
-  // so we can prove the agent panel layers above. Mount the detail
-  // drawer here when the state asks for it.
   const detailOpen = !!fixture.openDetailSheet;
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthContext.Provider value={authValue}>
-        <AgentDrawerProvider>
-          {/* Stub page chrome — a single rd-bg-page canvas so the
-              right-edge tab has somewhere to sit and the panel has a
-              page color to slide over. */}
-          <div className="min-h-screen bg-rd-bg-page font-body text-rd-text relative">
-            <div className="max-w-[1080px] mx-auto px-8 py-10">
-              <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-                Drawer preview · {state || "closed-tab-visible"}
-              </p>
-              <h1 className="font-display font-extrabold text-[26px] sm:text-[30px] leading-[1.1] tracking-tight text-rd-text mt-1">
-                {fixture.label}
-              </h1>
-              <p className="text-[12.5px] text-rd-text-secondary mt-2 max-w-xl">
-                DEV-only harness. The drawer is mounted inside an{" "}
-                <code className="font-mono text-[12px]">AgentDrawerProvider</code>; the rest of
-                this page is a stub canvas so the right-edge tab has visible context.
-              </p>
-            </div>
-
-            {/* Z-order overlap state — mount the detail Sheet open so the
-                capture proves the agent panel covers it. */}
-            {detailOpen && (
-              <ApplicationDetailDrawer
-                app={FIXTURE_APP}
-                profile={FIXTURE_PROFILE}
-                listingInactive={false}
-                open
-                onClose={() => {}}
-                onUpdate={() => {}}
-              />
-            )}
-
-            <AgentDrawer />
-            <DrawerDriver state={fixture} />
+        {/* Layout mounts AgentDrawerProvider + AgentDrawer + the sidebar.
+            The harness's children are the page-content stub. */}
+        <Layout currentPageName="Home">
+          <div className="max-w-[1080px] mx-auto px-8 py-10">
+            <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+              Drawer preview · {state || "entry-visible"}
+            </p>
+            <h1 className="font-display font-extrabold text-[26px] sm:text-[30px] leading-[1.1] tracking-tight text-rd-text mt-1">
+              {fixture.label}
+            </h1>
+            <p className="text-[12.5px] text-rd-text-secondary mt-2 max-w-xl">
+              DEV-only harness. Mounted inside the real Layout so the new
+              <strong className="text-rd-text font-display"> Coach</strong> sidebar entry +
+              the agent panel are both visible. The page body is a stub —
+              not a real Home — so changes there don't change this surface.
+            </p>
           </div>
-        </AgentDrawerProvider>
+
+          {detailOpen && (
+            <ApplicationDetailDrawer
+              app={FIXTURE_APP}
+              profile={FIXTURE_PROFILE}
+              listingInactive={false}
+              open
+              onClose={() => {}}
+              onUpdate={() => {}}
+            />
+          )}
+
+          <PreviewDriver state={fixture} />
+        </Layout>
       </AuthContext.Provider>
     </QueryClientProvider>
   );

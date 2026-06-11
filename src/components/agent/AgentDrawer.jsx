@@ -1,22 +1,22 @@
 import React, { useEffect, useState } from "react";
-import { MessageCircle, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import ChatInterface from "@/components/chat/ChatInterface";
 
-// PR-A3: persistent right-edge agent drawer.
+// Agent drawer panel. PR-A3 originally shipped a right-edge floating
+// tab beside the panel; the founder retired the tab after production use
+// because it was too invisible. The drawer entry now lives as the
+// "Coach" item in Layout's sidebar (Layout.jsx). This component owns
+// only the panel + overlay + close button — the trigger is external.
 //
-// Tab: always-visible button on the right edge of the viewport while
-// authenticated. z-[55] keeps it clickable when an
-// ApplicationDetailDrawer Sheet (Radix default z-50) is open.
-//
-// Panel: layered above the detail Sheet so the agent always wins the
-// foreground when invoked. Overlay z-[58], panel z-[60], detail Sheet
-// stays at z-50.
-//
-// Desktop ≥ 768px: right-side panel (520px wide) with translate-x
-// transition. Mobile < 768px: bottom sheet (85vh tall) with translate-y
-// transition. The tab remains right-edge on both — only the panel
-// presentation changes.
+// Panel mechanics (unchanged from #293):
+//   - Desktop ≥ 768px: right-side panel (520px wide) with translate-x
+//     transition.
+//   - Mobile < 768px: bottom sheet (85vh tall) with translate-y
+//     transition.
+//   - Overlay z-[58], panel z-[60] — layers above the
+//     ApplicationDetailDrawer Sheet (Radix default z-50) so the agent
+//     wins the foreground when invoked.
 //
 // Mount strategy: ChatInterface stays mounted whenever isOpen has been
 // truthy at least once. We keep its state in memory across close so the
@@ -46,7 +46,9 @@ const DEFAULT_DRAWER_PROMPTS = [
 ];
 
 export default function AgentDrawer() {
-  const { isOpen, seed, applicationId, pageContext, open, close } = useAgentDrawer();
+  // `open` no longer destructured — the sidebar's Coach item is the
+  // trigger now (Layout.jsx handleCoachClick → openAgentDrawer({})).
+  const { isOpen, seed, applicationId, pageContext, close } = useAgentDrawer();
   const isMobile = useIsMobile();
 
   // Mount the chat once the drawer has been opened at least once; keep
@@ -70,31 +72,10 @@ export default function AgentDrawer() {
 
   return (
     <>
-      {/* Right-edge tab — always visible while the drawer provider is
-          mounted. Vertical text leaves the tab narrow (~36px) so it
-          doesn't crowd page content. */}
-      <button
-        type="button"
-        onClick={() => open({})}
-        aria-label="Open your career agent"
-        aria-expanded={isOpen}
-        aria-controls="agent-drawer-panel"
-        className="fixed right-0 top-1/2 -translate-y-1/2 z-[55] bg-rd-coral text-white pl-1.5 pr-1 py-3.5 rounded-l-[12px] shadow-rd hover:bg-rd-coral-dark transition-colors flex flex-col items-center gap-1.5"
-        data-agent-tab
-      >
-        <MessageCircle className="w-3.5 h-3.5" aria-hidden="true" />
-        <span
-          className="font-display font-bold text-[10.5px] tracking-tight whitespace-nowrap"
-          style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
-        >
-          Ask your agent
-        </span>
-      </button>
-
       {/* Overlay — interactive (click closes), aria-hidden so screen
           readers don't double-announce the dialog backdrop. Only renders
-          when open so the page stays scrollable + the tab keeps its
-          right-edge hit area when closed. */}
+          when open so the page stays scrollable when the drawer is
+          closed. */}
       {isOpen && (
         <div
           className="fixed inset-0 z-[58] bg-rd-text/30 backdrop-blur-[2px]"

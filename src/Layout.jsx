@@ -18,9 +18,10 @@ import {
   Mic,
   GraduationCap,
   MessageCircle,
+  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AgentDrawerProvider } from "@/lib/AgentDrawerContext";
+import { AgentDrawerProvider, useAgentDrawer } from "@/lib/AgentDrawerContext";
 import AgentDrawer from "@/components/agent/AgentDrawer";
 
 // Sidebar information architecture — top-level sections + footer.
@@ -43,14 +44,27 @@ import AgentDrawer from "@/components/agent/AgentDrawer";
 // Jobs are replaced by the Career page; Tasks live on Today; Tracker is
 // reachable from Today's Pipeline card; StoryBank/CV/LinkedIn surface as
 // Today's quick-access tiles. All old pages stay registered and routable —
-// deep links keep working. The Chat section STAYS until the agent-drawer
-// PR (scope 3) ships a replacement entry point.
+// deep links keep working.
+//
+// The Chat section stays untouched (full-page agents remain the deep entry
+// until the Phase B merge). The new Coach item is the drawer entry —
+// founder decision after production use: the right-edge floating tab was
+// too invisible, so the entry moves into the left sidebar styled as a
+// first-class nav item. Coach is NOT a route; clicking it opens the
+// existing drawer panel via useAgentDrawer().open(). The Sparkles icon
+// matches Home's coach-band glyph for surface continuity.
 const BASE_SECTIONS = [
   {
     id: "home",
     label: "Today",
     icon: LayoutDashboard,
     page: "Home",
+  },
+  {
+    id: "coach",
+    label: "Coach",
+    icon: Sparkles,
+    action: "open-agent-drawer",
   },
   {
     id: "career",
@@ -114,8 +128,23 @@ function BrandMark() {
   );
 }
 
+// Layout is split into an outer wrapper that mounts the
+// AgentDrawerProvider and an inner LayoutBody that consumes
+// useAgentDrawer. The sidebar's Coach item needs the drawer state to
+// drive its active-while-panel-open styling, so the body has to live
+// inside the provider; doing this inline in a single Layout function
+// would put the hook call outside the provider scope.
 export default function Layout({ children, currentPageName }) {
+  return (
+    <AgentDrawerProvider>
+      <LayoutBody currentPageName={currentPageName}>{children}</LayoutBody>
+    </AgentDrawerProvider>
+  );
+}
+
+function LayoutBody({ children, currentPageName }) {
   const { user } = useAuth();
+  const { isOpen: agentDrawerOpen, open: openAgentDrawer } = useAgentDrawer();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [navLoading, setNavLoading] = useState(false);
   const location = useLocation();
@@ -227,8 +256,15 @@ export default function Layout({ children, currentPageName }) {
 
   const closeMobileSidebar = () => setSidebarOpen(false);
 
+  // Coach nav item handler — opens the agent drawer + closes the mobile
+  // sidebar so the panel/sheet animation isn't competing with the
+  // sidebar's slide-in overlay.
+  const handleCoachClick = () => {
+    closeMobileSidebar();
+    openAgentDrawer({});
+  };
+
   return (
-    <AgentDrawerProvider>
     <div
       data-private
       className="flex h-screen bg-rd-bg-page font-body text-rd-text"
@@ -273,8 +309,10 @@ export default function Layout({ children, currentPageName }) {
               currentPageName={currentPageName}
               isExpanded={expandedSections.has(section.id)}
               isActiveSection={activeSectionId === section.id}
+              agentDrawerOpen={agentDrawerOpen}
               onToggle={() => toggleSection(section.id)}
               onNavigate={closeMobileSidebar}
+              onCoachClick={handleCoachClick}
             />
           ))}
         </nav>
@@ -311,31 +349,66 @@ export default function Layout({ children, currentPageName }) {
         </main>
       </div>
 
-      {/* Persistent agent drawer — tab + panel/sheet. Mounted inside the
-          authenticated chrome so it lives on every page (including
-          Career, where ApplicationDetailDrawer's Sheet might be open;
-          tab + agent panel layer above via z-[55]/[60] vs the detail
-          Sheet's z-50). PR-A3. */}
+      {/* Agent drawer — panel/sheet only. The original right-edge tab
+          retired in this PR; the sidebar Coach item is the new entry.
+          Panel mechanics unchanged: desktop right-side panel + mobile
+          bottom sheet at z-[60], overlay z-[58]. Still layers above
+          ApplicationDetailDrawer's Sheet (z-50). */}
       <AgentDrawer />
     </div>
-    </AgentDrawerProvider>
   );
 }
 
-// One section row. Direct-link sections render as a single Link.
-// Item-bearing sections render as a header button + (when expanded)
-// the indented sub-item list. Active state highlighting — coral on cream
-// (replaces the legacy dark gradient) — matches the active-row treatment
-// from the home mockup.
+// One section row. Three render branches:
+//   1. `action: "open-agent-drawer"` → button that opens the agent drawer
+//      via the parent's onCoachClick handler. NOT a route. Active styling
+//      applies while the panel is open (agentDrawerOpen prop).
+//   2. `section.page` → Link to a route (Home / Career / Internship / Profile).
+//   3. `section.items` → collapsible group with sub-item Links.
+//
+// Active state highlighting — coral on cream — matches the active-row
+// treatment from the home mockup.
 function SidebarSection({
   section,
   currentPageName,
   isExpanded,
   isActiveSection,
+  agentDrawerOpen,
   onToggle,
   onNavigate,
+  onCoachClick,
 }) {
   const Icon = section.icon;
+
+  // Action section — currently just "open-agent-drawer" for the Coach
+  // entry. Renders as a button; coral active styling fires while the
+  // drawer is open (agentDrawerOpen).
+  if (section.action === "open-agent-drawer") {
+    const isActive = !!agentDrawerOpen;
+    return (
+      <button
+        type="button"
+        onClick={onCoachClick}
+        aria-pressed={isActive}
+        data-coach-entry
+        className={cn(
+          "w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-display font-semibold transition-colors duration-150",
+          isActive
+            ? "bg-rd-coral-tint text-rd-coral-dark"
+            : "text-rd-text-tertiary hover:bg-rd-bg-soft hover:text-rd-text",
+        )}
+      >
+        <Icon className="w-4 h-4 flex-shrink-0" />
+        <span className="flex-1">{section.label}</span>
+        {isActive && (
+          <span
+            aria-hidden="true"
+            className="w-1.5 h-1.5 rounded-full bg-rd-coral flex-shrink-0"
+          />
+        )}
+      </button>
+    );
+  }
 
   // Direct-link section (Home, LinkedIn, Profile).
   if (section.page) {
