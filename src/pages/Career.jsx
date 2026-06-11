@@ -25,18 +25,18 @@
  * of the score so the long dimmed tail no longer dominates the page.
  */
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { useEducationQuery } from "@/lib/queries/useEducation";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   Rocket, Headphones, TrendingUp, Search, HelpCircle, Check, Plus,
-  ChevronDown, ChevronUp, ChevronRight, Loader2,
+  ChevronDown, ChevronUp, ChevronRight, Loader2, X, Star, Briefcase,
 } from "lucide-react";
 import RdCard from "@/components/redesign/RdCard";
 import RdFunnelTile from "@/components/redesign/RdFunnelTile";
@@ -46,6 +46,29 @@ import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import JobCard from "@/components/jobs/JobCard";
 import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experienceLevel";
 import { FUNNEL_BUCKETS } from "@/lib/funnelBuckets";
+import ApplicationsKanban from "@/components/tracker/ApplicationsKanban";
+import ApplicationDetailDrawer from "@/components/tracker/ApplicationDetailDrawer";
+import AddApplicationDialog from "@/components/tracker/AddApplicationDialog";
+import { TRACKER_CSS } from "@/components/tracker/trackerStyles";
+
+// Application status set — canonical order matches the live
+// applications.status enum and mirrors Tracker.jsx:37. The kanban renders
+// columns in this exact order; ApplicationDetailDrawer treats this same
+// list as the status palette.
+const APPLICATION_STATUSES = ["interested", "preparing", "applied", "interviewing", "offer", "accepted", "rejected"];
+const APPLICATION_STATUS_LABELS = {
+  interested:   "Interested",
+  preparing:    "Preparing",
+  applied:      "Applied",
+  interviewing: "Interviewing",
+  offer:        "Offer",
+  accepted:     "Accepted",
+  rejected:     "Rejected",
+};
+
+// First-time guide dismissal: per-user localStorage flag, same precedent
+// as Home's hero-done key (Home.jsx:365).
+const PIPELINE_GUIDE_DISMISS_KEY = (uid) => `pipelineGuideDismissed:${uid}`;
 
 const TRACK_SIMILARITY_THRESHOLD = 0.3;
 const MAX_TRACK_ROLES = 8;
@@ -126,9 +149,81 @@ const FIT_LABELS = { track_1: "strong fit", track_2: "doable detour", track_3: "
 
 export default function Career() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [selectedTrack, setSelectedTrack] = useState("track_1");
   const [whyOpen, setWhyOpen] = useState(false);
   const [search, setSearch] = useState("");
+
+  // ── PR-A2: inline expandable pipeline board ─────────────────────────
+  // Board open state is URL-driven via ?pipeline=open so deep links from
+  // Home / Calendar / the redirected /Tracker route can land on it
+  // open. Strip toggling syncs the param via history.replaceState (no
+  // nav, no scroll jump). Collapse state persists for the session only —
+  // a fresh visit without ?pipeline=open shows the board collapsed.
+  const boardOpen = searchParams.get("pipeline") === "open";
+  // Detail drawer is also URL-driven: &app=<id> opens that application's
+  // drawer if it exists in the cache. Closing the drawer drops the param
+  // but keeps pipeline=open.
+  const drawerAppId = searchParams.get("app");
+
+  const setBoardOpen = (open) => {
+    const next = new URLSearchParams(searchParams);
+    if (open) {
+      next.set("pipeline", "open");
+    } else {
+      next.delete("pipeline");
+      next.delete("app");
+    }
+    setSearchParams(next, { replace: true });
+  };
+
+  const closeDrawer = () => {
+    const next = new URLSearchParams(searchParams);
+    next.delete("app");
+    setSearchParams(next, { replace: true });
+  };
+
+  const boardSectionRef = useRef(null);
+  // On expand, scroll the board into view. The effect also fires on the
+  // initial render if pipeline=open is present, so deep-links from Home
+  // / Calendar land already scrolled to the right place.
+  useEffect(() => {
+    if (boardOpen && boardSectionRef.current) {
+      // requestAnimationFrame so the board's reveal completes before the
+      // scroll measures its position.
+      const id = requestAnimationFrame(() => {
+        boardSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      });
+      return () => cancelAnimationFrame(id);
+    }
+  }, [boardOpen]);
+
+  // Manual "Add application" path — reuses the same dialog component
+  // mounted by Tracker.jsx (extracted to src/components/tracker/
+  // AddApplicationDialog.jsx in PR-A2 so both surfaces share one call
+  // site). Pilot students who type a role into the dialog land in the
+  // same applications cache the strip + kanban read; no second code
+  // path to maintain.
+  const [showAdd, setShowAdd] = useState(false);
+
+  // First-time guide card — dismissible, persisted per-user in
+  // localStorage. The 4-tile 7-step framing copy is preserved from
+  // Tracker.jsx with "tracker" → "pipeline" where it reads naturally.
+  const guideDismissKey = user?.id ? PIPELINE_GUIDE_DISMISS_KEY(user.id) : null;
+  const [guideDismissed, setGuideDismissed] = useState(false);
+  useEffect(() => {
+    if (!guideDismissKey) return;
+    try {
+      setGuideDismissed(localStorage.getItem(guideDismissKey) === "1");
+    } catch { /* localStorage unavailable */ }
+  }, [guideDismissKey]);
+  const dismissGuide = () => {
+    setGuideDismissed(true);
+    try {
+      if (guideDismissKey) localStorage.setItem(guideDismissKey, "1");
+    } catch { /* localStorage unavailable */ }
+  };
   // Scope toggle for the live-jobs pane:
   //   - "track" (default): client-side filter over the active track's
   //     pre-fetched live jobs. Cheap, no extra query.
@@ -174,6 +269,55 @@ export default function Career() {
     }
     return counts;
   }, [applications]);
+
+  // Cross-reference jobs cache for tracked rows that came from Browse
+  // (ats_source + external_id populated). When the matching jobs row is
+  // is_active=false, ApplicationsKanban surfaces a "may no longer be
+  // active" badge. Same query as Tracker.jsx:98-124 — keyed by the
+  // count rather than the row contents so a status update on a card
+  // doesn't kick a refetch.
+  const atsLinkedKeys = useMemo(
+    () => applications.filter((a) => a.ats_source && a.external_id).map((a) => ({ ats: a.ats_source, ext: a.external_id })),
+    [applications],
+  );
+  const { data: inactiveExternalIds = new Set() } = useQuery({
+    queryKey: ["trackedJobsActiveStatus", user?.id, atsLinkedKeys.length],
+    queryFn: async () => {
+      if (atsLinkedKeys.length === 0) return new Set();
+      const inactive = new Set();
+      const byAts = atsLinkedKeys.reduce((acc, k) => {
+        (acc[k.ats] = acc[k.ats] || []).push(k.ext);
+        return acc;
+      }, {});
+      for (const [ats, ids] of Object.entries(byAts)) {
+        const { data, error } = await supabase
+          .from("jobs")
+          .select("external_id")
+          .eq("ats_source", ats)
+          .in("external_id", ids)
+          .eq("is_active", false);
+        if (error) {
+          console.warn("[career-board] inactive cross-ref failed:", error.message);
+          continue;
+        }
+        for (const j of data || []) inactive.add(`${ats}|${j.external_id}`);
+      }
+      return inactive;
+    },
+    enabled: !!user?.id && boardOpen && atsLinkedKeys.length > 0,
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Drawer subject lookup — resolves the URL ?app= id against the wide
+  // ["applications", uid] cache.
+  const drawerApp = useMemo(
+    () => (drawerAppId ? applications.find((a) => a.id === drawerAppId) : null),
+    [drawerAppId, applications],
+  );
+  const drawerListingInactive = drawerApp && drawerApp.ats_source && drawerApp.external_id
+    ? inactiveExternalIds.has(`${drawerApp.ats_source}|${drawerApp.external_id}`)
+    : false;
+
 
   // Mirrors Jobs.jsx:86-93 — derive the user's career-stage from
   // experiences + educations, then map to a seniority allow-list. This is
@@ -444,31 +588,167 @@ export default function Career() {
         })}
       </div>
 
-      {/* Pipeline strip — first of the Tracker-absorption PRs (PR-A1).
-          Reads counts off the shared ["applications", uid] cache via
-          FUNNEL_BUCKETS, the same mapping Home's pipeline card uses.
-          Counts are exempt from RULINGS.md (a) — that rule covers SCORES.
-          The strip is read-only in PR-A1; PR-A2 makes the tiles open the
-          board (the /Career?pipeline=open param the retargeted entry
-          points already pass is a no-op here until then). */}
-      <RdCard className="p-3 mt-3" data-pipeline-strip>
-        <div className="flex items-center justify-between mb-1.5 px-1">
-          <span className="text-[11px] font-medium text-rd-text-eyebrow uppercase tracking-[0.09em]">
-            Your pipeline
-          </span>
-          {applications.length > 0 && (
-            <span className="text-[10.5px] text-rd-text-secondary">
-              {applications.length} {applications.length === 1 ? "role" : "roles"} tracked
+      {/* Pipeline strip — clickable. PR-A2 makes the whole strip a
+          single button that toggles the inline board below. URL syncs
+          to ?pipeline=open via history.replaceState so deep links from
+          Home / Calendar / the redirected /Tracker land on it open. */}
+      <button
+        type="button"
+        onClick={() => setBoardOpen(!boardOpen)}
+        aria-expanded={boardOpen}
+        aria-controls="career-pipeline-board"
+        className="w-full text-left mt-3 group"
+        data-pipeline-strip
+      >
+        <RdCard className="p-3 group-hover:border-rd-border-hover group-hover:shadow-rd transition-[border-color,box-shadow] duration-150">
+          <div className="flex items-center justify-between mb-1.5 px-1">
+            <span className="text-[11px] font-medium text-rd-text-eyebrow uppercase tracking-[0.09em]">
+              Your pipeline
             </span>
+            <span className="inline-flex items-center gap-1.5 text-[10.5px] text-rd-text-secondary">
+              {applications.length > 0 && (
+                <>{applications.length} {applications.length === 1 ? "role" : "roles"} tracked · </>
+              )}
+              {boardOpen ? (
+                <>Hide board <ChevronUp className="w-3 h-3" /></>
+              ) : (
+                <>Open board <ChevronDown className="w-3 h-3" /></>
+              )}
+            </span>
+          </div>
+          <div className="flex gap-1.5">
+            <RdFunnelTile label="saved" value={funnelCounts.saved} tone="neutral" />
+            <RdFunnelTile label="applied" value={funnelCounts.applied} tone="coral" />
+            <RdFunnelTile label="interview" value={funnelCounts.interview} tone="teal" />
+            <RdFunnelTile label="offer" value={funnelCounts.offer} tone="neutral" />
+          </div>
+        </RdCard>
+      </button>
+
+      {/* Inline expandable board — final Tracker-absorption surface
+          (PR-A2). Reuses ApplicationsKanban + ApplicationDetailDrawer
+          exactly as Tracker.jsx mounts them. The TRACKER_CSS injection
+          carries forward so the per-tab subcomponents inside the drawer
+          (CVManagement, SkillsRequired, ProjectsProof, NetworkingReferrals,
+          InterviewPrep, FollowUp) that still consume `.tk-*` classes keep
+          rendering — same single-injection pattern as Tracker.jsx:165. */}
+      {boardOpen && (
+        <section
+          id="career-pipeline-board"
+          ref={boardSectionRef}
+          className="mt-4"
+          aria-label="Pipeline board"
+        >
+          <style>{TRACKER_CSS}</style>
+
+          {!guideDismissed && (
+            <RdCard className="p-5" data-pipeline-guide>
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+                    How to use this pipeline
+                  </p>
+                  <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] mt-1.5">
+                    Every application has a <strong className="text-rd-text font-display font-bold">7-step process</strong>. Open any application and go to the <strong className="text-rd-text font-display font-bold">📋 Steps</strong> tab. Work through each step before submitting — candidates who skip steps are the ones who get ignored.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={dismissGuide}
+                  aria-label="Dismiss the pipeline guide"
+                  className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-4">
+                <PipelineGuideTile
+                  tint="var(--rd-golden-tint)"
+                  accent="var(--rd-golden-dark)"
+                  head="Steps 1–2"
+                  body="Qualify yourself. Dissect the job description. Know the role before applying."
+                />
+                <PipelineGuideTile
+                  tint="var(--rd-teal-tint)"
+                  accent="var(--rd-teal-dark)"
+                  head="Steps 3–5"
+                  body="Tailor your CV, map skill evidence, and find a referral contact at the company."
+                />
+                <PipelineGuideTile
+                  tint="var(--rd-coral-tint)"
+                  accent="var(--rd-coral-dark)"
+                  head="Steps 6–7"
+                  body="Submit your application, then prep for the interview with STAR-format answers."
+                />
+                <PipelineGuideTile
+                  tint="var(--rd-golden-tint)"
+                  accent="var(--rd-golden-dark)"
+                  head="⭐ Referral = your biggest edge"
+                  body="Many companies offer referral bonuses to employees when a referred candidate gets hired. They're incentivised to get you in."
+                  highlight
+                />
+              </div>
+            </RdCard>
           )}
-        </div>
-        <div className="flex gap-1.5">
-          <RdFunnelTile label="saved" value={funnelCounts.saved} tone="neutral" />
-          <RdFunnelTile label="applied" value={funnelCounts.applied} tone="coral" />
-          <RdFunnelTile label="interview" value={funnelCounts.interview} tone="teal" />
-          <RdFunnelTile label="offer" value={funnelCounts.offer} tone="neutral" />
-        </div>
-      </RdCard>
+
+          <div className={`flex items-start justify-between gap-3 flex-wrap ${!guideDismissed ? "mt-4" : ""}`}>
+            <div className="min-w-0">
+              <h2 className="font-display font-bold text-[17px] text-rd-text">Pipeline board</h2>
+              <p className="text-[11.5px] text-rd-text-secondary mt-0.5">
+                Drag a card between columns to update its status. Click any card to open the steps checklist.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setShowAdd(true)}
+              className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-3.5 py-2 transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add manually
+            </button>
+          </div>
+
+          <div className="mt-3">
+            {applications.length === 0 ? (
+              <RdCard className="px-6 py-10 text-center">
+                <Briefcase className="w-10 h-10 text-rd-coral mx-auto mb-3" />
+                <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] max-w-md mx-auto">
+                  No applications yet. Track one from the live-jobs list below — the Track button on any role card prepends it here.
+                </p>
+              </RdCard>
+            ) : (
+              <ApplicationsKanban
+                applications={applications}
+                statuses={APPLICATION_STATUSES}
+                statusLabels={APPLICATION_STATUS_LABELS}
+                inactiveExternalIds={inactiveExternalIds}
+                onCardClick={(app) => {
+                  const next = new URLSearchParams(searchParams);
+                  next.set("pipeline", "open");
+                  next.set("app", app.id);
+                  setSearchParams(next, { replace: true });
+                }}
+              />
+            )}
+          </div>
+
+          <ApplicationDetailDrawer
+            app={drawerApp}
+            profile={profile}
+            listingInactive={drawerListingInactive}
+            open={!!drawerApp}
+            onClose={closeDrawer}
+            onUpdate={() => queryClient.invalidateQueries({ queryKey: ["applications"] })}
+          />
+
+          {/* Same AddApplicationDialog instance Tracker.jsx mounts — the
+              extraction in this PR lets both surfaces share one call
+              site. Manual add of an application that came from a channel
+              other than Browse Jobs (e.g. WhatsApp tip, email referral)
+              lands here. */}
+          <AddApplicationDialog open={showAdd} onOpenChange={setShowAdd} />
+        </section>
+      )}
 
       <div className="flex flex-col md:flex-row gap-4 mt-4 items-start">
         {/* Left — live jobs */}
@@ -645,6 +925,28 @@ export default function Career() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+// Phase-grouping tile inside the dismissible "How to use this pipeline"
+// card. Inline-styled tints so we don't have to thread Tailwind
+// arbitrary-value backgrounds for each tone. Preserved verbatim from
+// Tracker.jsx's HowToTile (renamed because this lives on a different
+// surface now).
+function PipelineGuideTile({ tint, accent, head, body, highlight = false }) {
+  return (
+    <div className="rounded-[14px] px-3.5 py-3" style={{ background: tint }}>
+      <p
+        className="font-display font-bold text-[12.5px] leading-tight inline-flex items-center gap-1.5"
+        style={{ color: accent }}
+      >
+        {highlight && <Star className="w-3 h-3" aria-hidden="true" />}
+        {head}
+      </p>
+      <p className="text-[11.5px] leading-[1.45] mt-1.5" style={{ color: accent }}>
+        {body}
+      </p>
     </div>
   );
 }

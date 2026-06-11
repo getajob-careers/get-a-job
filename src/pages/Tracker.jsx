@@ -2,20 +2,11 @@ import React, { useState, useMemo } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2, Plus, X, Briefcase, Star } from "lucide-react";
+import { Plus, Briefcase, Star } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { track, EVENTS } from "@/lib/analytics";
 import ApplicationsKanban from "../components/tracker/ApplicationsKanban";
 import ApplicationDetailDrawer from "../components/tracker/ApplicationDetailDrawer";
-import { scoreApplication } from "@/lib/scoreApplication";
-import { stripHtml } from "../../scripts/lib/normalize.ts";
+import AddApplicationDialog from "../components/tracker/AddApplicationDialog";
 import { TRACKER_CSS } from "../components/tracker/trackerStyles";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 
@@ -50,7 +41,6 @@ export default function Tracker() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   const [showAdd, setShowAdd] = useState(false);
-  const [newApp, setNewApp] = useState({ role_title: "", company: "", status: "interested" });
 
   // Kanban card click → open the application detail in a right-side
   // drawer (Sheet). The detail used to expand INLINE below the board,
@@ -59,10 +49,6 @@ export default function Tracker() {
   // visible result and the board state (scroll, columns) is preserved
   // when the drawer closes.
   const [drawerAppId, setDrawerAppId] = useState(null);
-
-  const [jobDescription, setJobDescription] = useState("");
-  const [importError, setImportError] = useState("");
-  const [addingApp, setAddingApp] = useState(false);
 
   // Profile (skills_canonical) feeds the Skills tab's live matched/missing
   // derivation — see SkillsRequired.jsx + computeSkillMatch. Loaded here at
@@ -123,38 +109,12 @@ export default function Tracker() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // P1: handleAdd preserved byte-equivalent — insert payload, stripHtml on
-  // the paste-boundary JD, analytics event, cache invalidation, and the
-  // scoreApplication chain when JD is non-empty all carry over.
-  const handleAdd = async () => {
-    if (!newApp.role_title) return;
-    setAddingApp(true);
-    const jd = stripHtml(jobDescription || newApp.job_description || "") || "";
-
-    const { data: inserted, error } = await supabase.from("applications").insert({
-      user_id: user.id,
-      role_title: newApp.role_title,
-      company: newApp.company,
-      status: newApp.status,
-      source: "manual",
-      ...(jd && { job_description: jd }),
-    }).select("id").single();
-    if (error) {
-      console.error("Error adding application:", error);
-      setImportError(`Could not add application: ${error.message}`);
-      setAddingApp(false);
-      return;
-    }
-
-    track(EVENTS.APPLICATION_TRACKED, { source: "manual", has_jd: !!jd });
-
-    setNewApp({ role_title: "", company: "", status: "interested" });
-    setJobDescription("");
-    setShowAdd(false);
-    setAddingApp(false);
-    queryClient.invalidateQueries({ queryKey: ["applications"] });
-    if (inserted?.id && jd) scoreApplication(supabase, queryClient, inserted.id, jd, user.id);
-  };
+  // handleAdd moved into <AddApplicationDialog> alongside the JSX it
+  // owns — Career.jsx (PR-A2) mounts the same dialog inside the expanded
+  // pipeline board so the manual-add path survives the /Tracker
+  // absorption. The insert payload, paste-boundary stripHtml, analytics
+  // event, cache invalidation, and scoreApplication chain are all
+  // preserved verbatim inside the extracted component.
 
   return (
     <>
@@ -270,84 +230,10 @@ export default function Tracker() {
           onUpdate={() => queryClient.invalidateQueries({ queryKey: ["applications"] })}
         />
 
-        {/* Add dialog */}
-        <Dialog open={showAdd} onOpenChange={(open) => { setShowAdd(open); if (!open) setImportError(""); }}>
-          <DialogContent className="bg-rd-bg-card border border-rd-border rounded-[18px]">
-            <DialogHeader>
-              <DialogTitle className="font-display font-extrabold text-[20px] text-rd-text">
-                Add application
-              </DialogTitle>
-            </DialogHeader>
-            <div className="flex flex-col gap-4 py-2">
-              {importError && (
-                <div className="flex items-center gap-2 rounded-[14px] border border-[#FECACA] bg-[#FEF2F2] px-3.5 py-2.5 text-[12.5px] text-[#991B1B]">
-                  {importError}
-                </div>
-              )}
-              <div>
-                <label className="block text-[12px] font-display font-semibold text-rd-text mb-1.5">
-                  Role title
-                </label>
-                <input
-                  value={newApp.role_title}
-                  onChange={(e) => setNewApp({ ...newApp, role_title: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
-                  placeholder="e.g. Junior Data Analyst"
-                />
-              </div>
-              <div>
-                <label className="block text-[12px] font-display font-semibold text-rd-text mb-1.5">
-                  Company
-                </label>
-                <input
-                  value={newApp.company}
-                  onChange={(e) => setNewApp({ ...newApp, company: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)]"
-                  placeholder="e.g. Google"
-                />
-              </div>
-              <div>
-                <label className="block text-[12px] font-display font-semibold text-rd-text mb-1.5">
-                  Job description{" "}
-                  <span className="text-rd-text-tertiary font-normal">
-                    (optional — AI will use this to set the track)
-                  </span>
-                </label>
-                <textarea
-                  value={jobDescription}
-                  onChange={(e) => setJobDescription(e.target.value)}
-                  placeholder="Paste the job description here..."
-                  rows={5}
-                  className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-secondary/70 outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] resize-y min-h-[110px]"
-                />
-                {!jobDescription && !newApp.job_description && (
-                  <p className="text-[11px] text-rd-text-secondary mt-1.5 leading-snug">
-                    Without AI classification, track will be unset. Add the role to your Career Roadmap to get track classification.
-                  </p>
-                )}
-              </div>
-            </div>
-            <DialogFooter className="gap-2">
-              <button
-                type="button"
-                onClick={() => setShowAdd(false)}
-                className="inline-flex items-center gap-1.5 font-display font-semibold text-[13px] text-rd-text bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-full px-4 py-2 transition-colors"
-              >
-                <X className="w-3.5 h-3.5" />Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleAdd}
-                disabled={addingApp || !newApp.role_title}
-                className="inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2 transition-colors"
-              >
-                {addingApp ? (
-                  <><Loader2 className="w-3.5 h-3.5 animate-spin" />Analysing…</>
-                ) : "Add"}
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        {/* Manual-add dialog — extracted into AddApplicationDialog so
+            Career.jsx's PR-A2 expanded board can mount the same call
+            site without duplicating insert/analytics/scoreApplication. */}
+        <AddApplicationDialog open={showAdd} onOpenChange={setShowAdd} />
       </div>
     </>
   );

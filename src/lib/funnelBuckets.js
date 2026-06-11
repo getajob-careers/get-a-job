@@ -1,6 +1,8 @@
 // Funnel buckets for the 4-stage pipeline strip (Home pipeline card + Career
-// strip). Maps the 7-value applications.status enum onto the 4 stages a
-// student thinks in. rejected / withdrawn are excluded from the funnel.
+// strip). Maps the 7-value applications.status enum (interested / preparing
+// / applied / interviewing / offer / accepted / rejected) onto the 4 stages
+// a student thinks in. `rejected` is the sole exclusion — `withdrawn` is
+// not part of the live enum.
 //
 // Extracted from Home.jsx in PR-A1 so the Career strip consumes the same
 // canonical mapping — single source of truth for what counts as "saved" /
