@@ -18,19 +18,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { createPageUrl } from "@/utils";
-import { resolveDueDate } from "@/lib/taskDueDate";
-import { scoreApplication } from "@/lib/scoreApplication";
-import { stripHtml } from "../../../scripts/lib/normalize.ts";
 import {
-  validTrack,
-  validStatus,
-  validInterviewStage,
-  validateMatchedSkills,
-  sanitizeMissingSkills,
-  clampScore,
-  sanitizeText,
-  sanitizeActionItems,
-} from "@/lib/applyHandlerValidation";
+  applyTaskSuggestion,
+  applyRoadmapChanges as sharedApplyRoadmapChanges,
+  applyApplicationActions as sharedApplyApplicationActions,
+  applyCompanyTargetActions as sharedApplyCompanyTargetActions,
+  generateTailoredCV as sharedGenerateTailoredCV,
+} from "@/lib/coachActionHandlers";
 import MessageBubble from "./MessageBubble";
 import StorySaveCard from "./StorySaveCard";
 
@@ -866,22 +860,8 @@ export default function ChatInterface({
 
   const handleAddTasks = async (messageId, task, taskIndex) => {
     if (!user?.id || addedTaskSets[messageId]?.[taskIndex]) return;
-    const priority = task.priority || "medium";
-    // Only honor LLM-provided dates when they validate. resolveDueDate
-    // returns null otherwise — user sets a date via the Tasks page when
-    // they want one (no synthetic auto-assignment).
-    const { error } = await supabase.from("tasks").insert({
-      title: task.title,
-      description: task.description || "",
-      category: task.category || "application",
-      priority,
-      role_title: task.role_title || "",
-      due_date: resolveDueDate(task.due_date),
-      user_id: user.id,
-      is_complete: false,
-    });
-    if (error) {
-      console.error("Failed to add task:", error);
+    const res = await applyTaskSuggestion({ user, task });
+    if (res.error) {
       toast.error("Could not add task. Please try again.");
       return;
     }
@@ -896,105 +876,12 @@ export default function ChatInterface({
   const handleApplyRoadmapChanges = async (messageId, changes) => {
     if (!user?.id || appliedRoadmapSets[messageId]) return;
     const userSkills = (profile?.skills || []).filter((s) => typeof s === "string");
-    let hasError = false;
-    const pathCRoles = [];
-
-    for (const change of changes) {
-      if (change.action === "update_track") {
-        const newTrack = validTrack(change.new_track);
-        if (!newTrack) { console.error("Roadmap update_track: invalid track", change.new_track); hasError = true; continue; }
-        const { data: matches, error: lookupErr } = await supabase
-          .from("career_roles")
-          .select("id")
-          .eq("user_id", user.id)
-          .ilike("title", change.role_title);
-        if (lookupErr) { console.error("Roadmap update_track lookup error:", lookupErr); hasError = true; continue; }
-        if (!matches || matches.length === 0) { console.error("Roadmap update_track: role not found", change.role_title); hasError = true; continue; }
-        // Multi-match: update all (the user said "move PM to track_1" — if they
-        // have two PMs, moving both is the natural intent). For remove_role
-        // we're stricter because delete is irreversible.
-        const ids = matches.map((m) => m.id);
-        const { error } = await supabase
-          .from("career_roles")
-          .update({ track: newTrack })
-          .in("id", ids);
-        if (error) { console.error("Roadmap update_track error:", error); hasError = true; }
-      } else if (change.action === "add_role") {
-        const track = validTrack(change.track);
-        if (!track) { console.error("Roadmap add_role: invalid track", change.track); hasError = true; continue; }
-
-        // Path B: use AI-proposed skills if the agent emitted them (key
-        // existence check — distinguishes "agent provided 0 matches" from
-        // "agent didn't try"). Validation strips any matched_skills the
-        // user doesn't actually have in their profile.
-        let matched_skills = [];
-        let missing_skills = [];
-        let usedAIProposed = false;
-        if ("matched_skills_proposed" in change) {
-          matched_skills = validateMatchedSkills(change.matched_skills_proposed, userSkills);
-          usedAIProposed = true;
-        }
-        if ("missing_skills_proposed" in change) {
-          missing_skills = sanitizeMissingSkills(change.missing_skills_proposed);
-          usedAIProposed = true;
-        }
-
-        // Match the shape generate-career-analysis writes via
-        // replace_career_roles RPC, so AI-added roles render the same
-        // expanded card content (reasoning, alignment, action items,
-        // % match) as analysis-generated ones. Each field is added only
-        // if the AI provided it; missing keys fall through to NULL/empty.
-        const insertPayload = {
-          user_id: user.id,
-          title: change.title,
-          track,
-          matched_skills,
-          missing_skills,
-          // skills_gap mirrors missing_skills (matches the analysis pattern)
-          skills_gap: missing_skills,
-        };
-        if ("readiness_score" in change) {
-          const score = clampScore(change.readiness_score);
-          if (score !== null) {
-            insertPayload.readiness_score = score;
-            insertPayload.match_score = score; // legacy column kept in sync
-          }
-        }
-        if ("reasoning" in change) insertPayload.reasoning = sanitizeText(change.reasoning, 500);
-        if ("alignment_to_goal" in change) insertPayload.alignment_to_goal = sanitizeText(change.alignment_to_goal, 500);
-        if ("action_items" in change) insertPayload.action_items = sanitizeActionItems(change.action_items);
-
-        const { error } = await supabase.from("career_roles").insert(insertPayload);
-        if (error) { console.error("Roadmap add_role error:", error); hasError = true; continue; }
-
-        // Path C: if the AI didn't emit either skills array, the row landed
-        // with empty arrays. Surface a soft notification pointing the user
-        // at Refresh Analysis to compute skills properly. Home's defensive
-        // guard handles the empty UI in the meantime.
-        if (!usedAIProposed) pathCRoles.push(change.title);
-      } else if (change.action === "remove_role") {
-        const { data: matches, error: lookupErr } = await supabase
-          .from("career_roles")
-          .select("id")
-          .eq("user_id", user.id)
-          .ilike("title", change.role_title);
-        if (lookupErr) { console.error("Roadmap remove_role lookup error:", lookupErr); hasError = true; continue; }
-        if (!matches || matches.length === 0) { console.error("Roadmap remove_role: role not found", change.role_title); hasError = true; continue; }
-        // Strict on multi-match for delete — irreversible, ambiguity should
-        // reject rather than wipe multiple rows the user didn't intend.
-        if (matches.length > 1) { console.error("Roadmap remove_role: ambiguous match", change.role_title); hasError = true; continue; }
-        const { error } = await supabase
-          .from("career_roles")
-          .delete()
-          .eq("id", matches[0].id);
-        if (error) { console.error("Roadmap remove_role error:", error); hasError = true; }
-      }
-    }
-
+    const res = await sharedApplyRoadmapChanges({ user, changes, userSkills });
+    const pathCRoles = res.pathCRoles || [];
     if (pathCRoles.length > 0) {
       toast.info(`Added ${pathCRoles.join(", ")} to your roadmap. Click "Refresh Analysis" on Career Roadmap to compute the skill breakdown.`);
     }
-    if (hasError) {
+    if (res.error) {
       toast.error("Some changes could not be applied. Please try again.");
       return;
     }
@@ -1005,76 +892,8 @@ export default function ChatInterface({
 
   const handleApplyApplicationActions = async (messageId, actions) => {
     if (!user?.id || appliedAppActionSets[messageId]) return;
-    let hasError = false;
-
-    for (const a of actions) {
-      if (a.action === "add_application") {
-        const status = validStatus(a.status) || "interested";
-        // Track is intentionally not set from the agent's payload — it's
-        // derived from the JD-based qualification_score by scoreApplication.
-        // If there's no JD, the row shows "Unclassified" until one is added.
-        const row = {
-          user_id: user.id,
-          company: a.company,
-          role_title: a.role_title,
-          status,
-          source: 'chat_agent',
-          ...(a.url && { url: a.url }),
-          ...(a.location && { location: a.location }),
-          ...(a.notes && { notes: a.notes }),
-          // Chat-agent-supplied JDs can include markup from pasted sources.
-          // Strip at the write boundary so the textarea on next Tracker
-          // open + every downstream LLM call sees clean text.
-          ...(a.job_description && { job_description: stripHtml(a.job_description) || a.job_description }),
-          // Auto-set applied_date so the Calendar surfaces it (parallel to
-          // the B4 fix on tasks). Only fires when the agent's add request
-          // is for an already-applied role.
-          ...(status === "applied" && { applied_date: new Date().toISOString() }),
-        };
-        const { data: inserted, error } = await supabase.from("applications").insert(row).select("id").single();
-        if (error) { console.error("add_application error:", error); hasError = true; continue; }
-        if (inserted?.id && a.job_description) {
-          const cleanedJd = stripHtml(a.job_description) || a.job_description;
-          scoreApplication(supabase, queryClient, inserted.id, cleanedJd, user.id);
-        }
-      } else if (a.action === "update_application") {
-        const patch = {};
-        const newStatus = validStatus(a.new_status);
-        const newTrack = validTrack(a.new_track);
-        const newStage = validInterviewStage(a.new_interview_stage);
-        if (newStatus) patch.status = newStatus;
-        if (newStage) patch.interview_stage = newStage;
-        if (newTrack) patch.track = newTrack;
-        if (a.new_notes && typeof a.new_notes === "string") patch.notes = a.new_notes;
-        if (Object.keys(patch).length === 0) continue;
-
-        // Pre-check so we know whether to set applied_date and to surface
-        // multi-match ambiguity rather than silently updating multiple rows.
-        const { data: matches, error: lookupErr } = await supabase
-          .from("applications")
-          .select("id, applied_date")
-          .eq("user_id", user.id)
-          .ilike("company", a.match_company)
-          .ilike("role_title", a.match_role_title);
-        if (lookupErr) { console.error("update_application lookup error:", lookupErr); hasError = true; continue; }
-        if (!matches || matches.length === 0) { console.error("update_application: not found", a.match_company, a.match_role_title); hasError = true; continue; }
-        if (matches.length > 1) { console.error("update_application: ambiguous match"); hasError = true; continue; }
-        const target = matches[0];
-
-        // Auto-set applied_date when transitioning to "applied" and the row
-        // doesn't already have one. Don't overwrite existing applied_date.
-        if (newStatus === "applied" && !target.applied_date) {
-          patch.applied_date = new Date().toISOString();
-        }
-
-        const { error } = await supabase
-          .from("applications")
-          .update(patch)
-          .eq("id", target.id);
-        if (error) { console.error("update_application error:", error); hasError = true; }
-      }
-    }
-    if (hasError) {
+    const res = await sharedApplyApplicationActions({ user, queryClient, actions });
+    if (res.error) {
       toast.error("Some applications could not be updated. Please try again.");
       return;
     }
@@ -1105,129 +924,15 @@ export default function ChatInterface({
   //        matched companies row. RLS allows UPDATE only when source='manual'.
   const handleApplyCompanyTargetActions = async (messageId, actions) => {
     if (!user?.id || appliedCompanyTargetSets[messageId]) return;
-    let hasError = false;
-    let skippedDuplicate = 0;
-
-    for (const a of actions) {
-      if (a.action === "add_company_target") {
-        const name = String(a.company_name || "").trim();
-        if (!name) { hasError = true; continue; }
-
-        // Lookup or create the company.
-        const { data: existing, error: lookupErr } = await supabase
-          .from("companies")
-          .select("id")
-          .ilike("name", name)
-          .limit(1)
-          .maybeSingle();
-        if (lookupErr) { console.error("company lookup error:", lookupErr); hasError = true; continue; }
-
-        let companyId = existing?.id;
-        if (!companyId) {
-          const { data: created, error: createErr } = await supabase
-            .from("companies")
-            .insert({
-              name,
-              source: "manual",
-              created_by: user.id,
-              ...(a.company_domain && { domain: a.company_domain }),
-              ...(a.company_sector && { sector: a.company_sector }),
-            })
-            .select("id")
-            .single();
-          if (createErr) { console.error("company insert error:", createErr); hasError = true; continue; }
-          companyId = created?.id;
-        }
-        if (!companyId) { hasError = true; continue; }
-
-        // Insert company_target with source='self_added'. Conflict on
-        // unique (user_id, company_id) means it's already in the pipeline
-        // — skip with a tally, not an error.
-        const { error: insertErr } = await supabase
-          .from("company_targets")
-          .insert({
-            user_id: user.id,
-            company_id: companyId,
-            source: "self_added",
-            status: "exploring",
-            ...(a.pitched_role && { pitched_role: a.pitched_role }),
-            ...(a.pitch_rationale && { pitch_rationale: a.pitch_rationale }),
-            ...(Array.isArray(a.skill_gaps_this_fills) && a.skill_gaps_this_fills.length > 0 && { skill_gaps_this_fills: a.skill_gaps_this_fills }),
-            ...(a.notes && { notes: a.notes }),
-          });
-        if (insertErr) {
-          if (insertErr.code === "23505") { skippedDuplicate++; continue; }
-          console.error("company_target insert error:", insertErr);
-          hasError = true;
-        }
-      } else if (a.action === "update_company_target_status") {
-        const matchCompany = String(a.match_company || "").trim();
-        if (!matchCompany || !a.new_status) { hasError = true; continue; }
-
-        const { data: matches, error: lookupErr } = await supabase
-          .from("company_targets")
-          .select("id, companies!inner(name)")
-          .eq("user_id", user.id)
-          .ilike("companies.name", matchCompany);
-        if (lookupErr) { console.error("company_target lookup error:", lookupErr); hasError = true; continue; }
-        if (!matches || matches.length === 0) { console.error("update_company_target_status: not found", matchCompany); hasError = true; continue; }
-        if (matches.length > 1) { console.error("update_company_target_status: ambiguous match", matchCompany); hasError = true; continue; }
-        const target = matches[0];
-
-        const { error: updateErr } = await supabase
-          .from("company_targets")
-          .update({ status: a.new_status })
-          .eq("id", target.id);
-        if (updateErr) { console.error("company_target update error:", updateErr); hasError = true; continue; }
-
-        // Patch the just-inserted audit row's note column. Trigger
-        // already fired on the UPDATE above.
-        if (a.note && a.note.trim()) {
-          const { data: latestChange } = await supabase
-            .from("company_target_status_changes")
-            .select("id")
-            .eq("target_id", target.id)
-            .order("changed_at", { ascending: false })
-            .limit(1)
-            .maybeSingle();
-          if (latestChange?.id) {
-            await supabase
-              .from("company_target_status_changes")
-              .update({ note: a.note.trim() })
-              .eq("id", latestChange.id);
-          }
-        }
-      } else if (a.action === "enrich_company") {
-        const matchCompany = String(a.match_company || "").trim();
-        if (!matchCompany) { hasError = true; continue; }
-
-        const patch = {};
-        if (a.description) patch.description = a.description;
-        if (a.sector) patch.sector = a.sector;
-        if (a.domain) patch.domain = a.domain;
-        if (a.industry) patch.industry = a.industry;
-        if (Object.keys(patch).length === 0) continue;
-
-        // RLS pins UPDATE to rows where source='manual'. Filter explicitly
-        // so we get a clean "no rows updated" if the company is jsearch
-        // or faculty_seeded rather than a confusing RLS deny.
-        const { error: updateErr } = await supabase
-          .from("companies")
-          .update(patch)
-          .ilike("name", matchCompany)
-          .eq("source", "manual");
-        if (updateErr) { console.error("enrich_company error:", updateErr); hasError = true; }
-      }
-    }
-
-    if (hasError) {
+    const res = await sharedApplyCompanyTargetActions({ user, actions });
+    if (res.error) {
       toast.error("Some internship changes could not be applied. Please try again.");
       return;
     }
     setAppliedCompanyTargetSets((prev) => ({ ...prev, [messageId]: true }));
     queryClient.invalidateQueries({ queryKey: ["company_targets", user.id] });
-    if (skippedDuplicate > 0) {
-      toast.message(`Already in your pipeline — skipped ${skippedDuplicate}.`);
+    if (res.skippedDuplicate > 0) {
+      toast.message(`Already in your pipeline — skipped ${res.skippedDuplicate}.`);
     } else {
       toast.success("Internship updated");
     }
@@ -1238,58 +943,20 @@ export default function ChatInterface({
     if (cvGenStates[messageId]?.status === "generating" || cvGenStates[messageId]?.status === "done") return;
 
     setCvGenStates((prev) => ({ ...prev, [messageId]: { status: "generating" } }));
-    try {
-      const { data, error } = await supabase.functions.invoke("generate-tailored-cv", {
-        body: {
-          target_role: proposal.target_role,
-          application_id: proposal.application_id || null,
-          // Strip HTML defensively — chat-agent-emitted CV proposals can
-          // carry the user's pasted JD verbatim. Server-side strips too.
-          job_description: proposal.job_description ? (stripHtml(proposal.job_description) || proposal.job_description) : null,
-          cv_model: "sonnet",
-        },
-      });
-      if (error) throw error;
-      if (!data?.cv_url) throw new Error(data?.error || "CV generation did not return a download link.");
+    const res = await sharedGenerateTailoredCV({ queryClient, proposal, messageId });
+    if (res.error) {
+      setCvGenStates((prev) => ({ ...prev, [messageId]: { status: "idle", error: res.error } }));
+      toast.error(res.error);
+      return;
+    }
+    setCvGenStates((prev) => ({ ...prev, [messageId]: res.result }));
+    if (res.result.application_id) {
+      toast.success("CV linked to your application tracker!");
+    } else {
+      toast.success("CV generated");
+    }
 
-      // Snapshot everything the card needs — cv_url, fit_analysis, the
-      // application_id the edge function actually wrote to the tracker, and
-      // the keyword-tailoring score.
-      const next = {
-        status: "done",
-        cv_url: data.cv_url,
-        fit_analysis: data.fit_analysis,
-        application_id: data.application_id || null,
-        tailoring: data.tailoring || null,
-        unsourced_bullets: Array.isArray(data.unsourced_bullets) ? data.unsourced_bullets : [],
-      };
-      setCvGenStates((prev) => ({ ...prev, [messageId]: next }));
-
-      // Persist the result alongside the original proposal so refreshing the
-      // conversation still shows the download button + fit analysis + linkage.
-      const merged = {
-        ...proposal,
-        result: {
-          cv_url: data.cv_url,
-          fit_analysis: data.fit_analysis,
-          application_id: data.application_id,
-          tailoring: data.tailoring || null,
-          unsourced_bullets: Array.isArray(data.unsourced_bullets) ? data.unsourced_bullets : [],
-        },
-      };
-      await supabase.from("chat_messages")
-        .update({ suggested_cv_generation: merged })
-        .eq("id", messageId);
-
-      // If the function touched an application, refresh the tracker cache.
-      queryClient.invalidateQueries({ queryKey: ["applications"] });
-      if (data.application_id) {
-        toast.success("CV linked to your application tracker!");
-      } else {
-        toast.success("CV generated");
-      }
-
-      // Path B follow-up: give the agent a clean second turn to check
+    // Path B follow-up: give the agent a clean second turn to check
       // whether the user's previous message contained a story-worthy moment
       // that wasn't captured. Path A's same-turn cross-emission was unreliable
       // (1/3 hit rate on mixed messages + false-positive CV emissions on
@@ -1352,16 +1019,10 @@ export default function ChatInterface({
             }]);
           }
         }
-      } catch (followUpErr) {
-        // Don't surface to the user — CV gen already succeeded; missed
-        // story-capture is acceptable degradation, not a failure.
-        console.warn("Story-capture follow-up failed (non-blocking):", followUpErr);
-      }
-    } catch (err) {
-      console.error("CV generation failed:", err);
-      const message = err?.message || "Could not generate CV. Please try again.";
-      setCvGenStates((prev) => ({ ...prev, [messageId]: { status: "idle", error: message } }));
-      toast.error(message);
+    } catch (followUpErr) {
+      // Don't surface to the user — CV gen already succeeded; missed
+      // story-capture is acceptable degradation, not a failure.
+      console.warn("Story-capture follow-up failed (non-blocking):", followUpErr);
     }
   };
 

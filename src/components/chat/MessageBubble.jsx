@@ -224,9 +224,16 @@ const isCV = (content) => content && (
   content.includes("Professional Experience") || content.includes("Education")
 );
 
-export default function MessageBubble({ message }) {
+// Variant prop controls bubble density:
+//   - "page" / "drawer" / undefined: original spec (px-3.5 py-2.5, text-[13px]).
+//   - "dock": tighter for the sidebar dock (px-3 py-2, text-[12px], wider
+//     max-width % so the narrow sidebar isn't dominated by gutters).
+//   - "panel": same as "page" — kept as an explicit name so the AgentDrawer
+//     panel can opt in clearly.
+export default function MessageBubble({ message, variant = "page" }) {
   const isUser = message.role === "user";
   const showDownload = !isUser && isCV(message.content || "");
+  const isDock = variant === "dock";
   // Disable the Download button briefly while jsPDF lazy-fetches + renders.
   // First click pays a ~200–500ms chunk fetch on cold cache; subsequent
   // clicks are instant. Prevents double-fire if a user clicks twice.
@@ -246,28 +253,35 @@ export default function MessageBubble({ message }) {
   // Avatar stays generic (no per-agent icon dispatch) so CVAgent /
   // InterviewCoach / SkillDevelopmentAdvisor render the same coral-tint
   // circle without hardcoding the mockup's compass icon.
+  const gapClass = isDock ? "gap-2" : "gap-3";
+  const avatarSize = isDock ? "w-[22px] h-[22px]" : "w-[26px] h-[26px]";
+  const bubbleMaxW = isDock ? "max-w-[92%]" : "max-w-[85%]";
+  const bubblePadding = isDock ? "px-3 py-2" : "px-3.5 py-2.5";
+  const textSize = isDock ? "text-[12px]" : "text-[13px]";
+
   return (
-    <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
+    <div className={cn("flex", gapClass, isUser ? "justify-end" : "justify-start")}>
       {!isUser && (
-        <div className="w-[26px] h-[26px] rounded-full bg-rd-coral-tint flex items-center justify-center flex-shrink-0 mt-[2px]">
+        <div className={cn(avatarSize, "rounded-full bg-rd-coral-tint flex items-center justify-center flex-shrink-0 mt-[2px]")}>
           <div className="w-1.5 h-1.5 rounded-full bg-rd-coral" />
         </div>
       )}
-      <div className={cn("max-w-[85%]", isUser && "flex flex-col items-end")}>
+      <div className={cn(bubbleMaxW, isUser && "flex flex-col items-end")}>
         {message.content && (
           <div
             className={cn(
-              "max-w-full px-3.5 py-2.5",
+              "max-w-full",
+              bubblePadding,
               isUser
                 ? "bg-[#211D18] text-white rounded-tl-[14px] rounded-tr-[14px] rounded-br-[4px] rounded-bl-[14px]"
                 : "bg-[#F3ECE0] text-rd-text rounded-tl-[14px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[4px]",
             )}
           >
             {isUser ? (
-              <p className="text-[13px] leading-[1.55]">{message.content}</p>
+              <p className={cn(textSize, "leading-[1.55]")}>{message.content}</p>
             ) : (
               <ReactMarkdown
-                className="text-[13px] prose prose-sm prose-neutral max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0"
+                className={cn(textSize, "prose prose-sm prose-neutral max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0")}
                 components={{
                   p: ({ children }) => <p className="my-1.5 leading-relaxed text-rd-text">{children}</p>,
                   strong: ({ children }) => <strong className="font-semibold text-rd-text">{children}</strong>,
