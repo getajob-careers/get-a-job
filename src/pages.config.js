@@ -59,6 +59,11 @@ import Onboarding from './pages/Onboarding';
 import Resources from './pages/Resources';
 import Subagents from './pages/Subagents';
 import Tasks from './pages/Tasks';
+// PR-A2: the live /Tracker route is now a redirect to /Career?pipeline=open
+// (handled in pages.lazy.js, which is the routing source of truth — App.jsx
+// reads LAZY_PAGES, not this file's PAGES export). The original Tracker
+// page is kept registered here for the historic record and so the
+// TrackerPreview kanban harness keeps importing it without surprises.
 import Tracker from './pages/Tracker';
 import Calendar from './pages/Calendar';
 import Jobs from './pages/Jobs';

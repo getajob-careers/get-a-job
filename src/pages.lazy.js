@@ -42,7 +42,12 @@ const SkillDevelopmentAdvisor = lazy(() => import("./pages/SkillDevelopmentAdvis
 const StoryBank = lazy(() => import("./pages/StoryBank"));
 const Subagents = lazy(() => import("./pages/Subagents"));
 const Tasks = lazy(() => import("./pages/Tasks"));
-const Tracker = lazy(() => import("./pages/Tracker"));
+// PR-A2 — the live /Tracker route is now a redirect to /Career?pipeline=open
+// (preserving ?app= passthrough). Tracker.jsx itself stays unchanged in
+// the repo so TrackerPreview's kanban regression checks keep working.
+// Loaded eagerly because the redirect is a one-shot <Navigate>; a lazy
+// chunk would add a perceived flicker on every legacy-link click.
+import TrackerRedirect from "./pages/TrackerRedirect";
 
 // Onboarding stays eager — imported here without lazy() so the
 // shape matches the rest of the map but no chunk fetch happens.
@@ -70,7 +75,10 @@ export const LAZY_PAGES = {
   StoryBank,
   Subagents,
   Tasks,
-  Tracker,
+  // PR-A2: live route is a redirect to /Career?pipeline=open. The real
+  // Tracker page still lives at src/pages/Tracker.jsx and renders via
+  // /_preview/tracker/:state (TrackerPreview) for kanban regression checks.
+  Tracker: TrackerRedirect,
 };
 
 // Same mainPage value as pages.config.js — kept in sync manually since
