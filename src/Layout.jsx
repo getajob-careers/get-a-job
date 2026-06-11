@@ -20,6 +20,8 @@ import {
   MessageCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { AgentDrawerProvider } from "@/lib/AgentDrawerContext";
+import AgentDrawer from "@/components/agent/AgentDrawer";
 
 // Sidebar information architecture — top-level sections + footer.
 // Sections with `items` are collapsible groups; sections with a direct
@@ -226,6 +228,7 @@ export default function Layout({ children, currentPageName }) {
   const closeMobileSidebar = () => setSidebarOpen(false);
 
   return (
+    <AgentDrawerProvider>
     <div
       data-private
       className="flex h-screen bg-rd-bg-page font-body text-rd-text"
@@ -307,7 +310,15 @@ export default function Layout({ children, currentPageName }) {
           {children}
         </main>
       </div>
+
+      {/* Persistent agent drawer — tab + panel/sheet. Mounted inside the
+          authenticated chrome so it lives on every page (including
+          Career, where ApplicationDetailDrawer's Sheet might be open;
+          tab + agent panel layer above via z-[55]/[60] vs the detail
+          Sheet's z-50). PR-A3. */}
+      <AgentDrawer />
     </div>
+    </AgentDrawerProvider>
   );
 }
 

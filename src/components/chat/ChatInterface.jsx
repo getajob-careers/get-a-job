@@ -397,12 +397,42 @@ function AgentRedirectCard({ suggestion, onSwitch }) {
   );
 }
 
-export default function ChatInterface({ agentName, title, description, applicationId, suggestedPrompts, introMessage }) {
+// Layout variants:
+//   - "page" (default): full-page chat as mounted by CareerAgent / CVAgent
+//     / InterviewCoach / SkillDevelopmentAdvisor. Existing behavior.
+//   - "drawer": narrow panel mount (PR-A3 agent drawer). Trims horizontal
+//     padding from px-6 → px-4 so 520px-wide / 390px-wide containers
+//     don't crop, removes the conversation-switcher dropdown (one rolling
+//     conversation per user in the drawer; multi-conversation belongs on
+//     the full-page CareerAgent surface), and pads the header for the
+//     drawer's close button. No fork of internal logic — same query
+//     keys, same conversation persistence, same 401-refresh-retry, same
+//     20-turn slice. The internal flex-1 overflow-y-auto messages
+//     container stays — the drawer panel uses `flex flex-col` (no own
+//     scroll), so there's no double-scroll.
+export default function ChatInterface({
+  agentName,
+  title,
+  description,
+  applicationId,
+  suggestedPrompts,
+  introMessage,
+  variant = "page",
+  initialInput = null,
+}) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const isDrawer = variant === "drawer";
   const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
+  const [input, setInput] = useState(initialInput || "");
+
+  // Re-seed input when the drawer reopens with a new seed prompt
+  // (AgentDrawer passes the same instance across opens — only initialInput
+  // changes). Empty seed leaves whatever the user already typed.
+  useEffect(() => {
+    if (initialInput) setInput(initialInput);
+  }, [initialInput]);
   const [sending, setSending] = useState(false);
   const [addedTaskSets, setAddedTaskSets] = useState({});
   const [appliedRoadmapSets, setAppliedRoadmapSets] = useState({});
@@ -1396,15 +1426,24 @@ export default function ChatInterface({ agentName, title, description, applicati
   };
 
   return (
-    <div className="flex flex-col h-full bg-rd-bg-page font-body text-rd-text">
+    <div
+      className={`flex flex-col h-full ${isDrawer ? "bg-rd-bg-card" : "bg-rd-bg-page"} font-body text-rd-text`}
+      data-chat-variant={variant}
+    >
       {/* Header */}
-      <div className="px-6 py-3.5 border-b border-rd-border bg-rd-bg-card flex items-center justify-between gap-3">
+      <div
+        className={`${isDrawer ? "px-4 pr-12 py-3" : "px-6 py-3.5"} border-b border-rd-border bg-rd-bg-card flex items-center justify-between gap-3`}
+      >
         <div className="min-w-0">
           <h2 className="font-display font-bold text-[14.5px] text-rd-text leading-tight">{title}</h2>
-          {description && (
+          {description && !isDrawer && (
             <p className="text-[12px] text-rd-text-tertiary leading-snug mt-0.5 max-w-[540px] truncate">{description}</p>
           )}
         </div>
+        {/* Conversation switcher hidden in drawer mode — one rolling
+            conversation per user; multi-conversation switching belongs
+            on the full-page CareerAgent surface. */}
+        {!isDrawer && (
         <div className="flex items-center gap-2 flex-shrink-0">
           {/* Conversation switcher */}
           <DropdownMenu>
@@ -1446,10 +1485,11 @@ export default function ChatInterface({ agentName, title, description, applicati
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+        )}
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-6 py-6 space-y-4">
+      <div className={`flex-1 overflow-y-auto ${isDrawer ? "px-4 py-4" : "px-6 py-6"} space-y-4`}>
         {loadingMessages && (
           <div className="flex items-center justify-center py-8 text-xs text-rd-text-tertiary">
             <Loader2 className="w-3.5 h-3.5 animate-spin mr-1.5" /> Loading conversation…
@@ -1576,7 +1616,7 @@ export default function ChatInterface({ agentName, title, description, applicati
       </div>
 
       {/* Composer */}
-      <div className="px-6 pt-3.5 pb-[18px] border-t border-rd-border bg-rd-bg-card">
+      <div className={`${isDrawer ? "px-4 pt-3 pb-4" : "px-6 pt-3.5 pb-[18px]"} border-t border-rd-border bg-rd-bg-card`}>
         {messages.length > 0 && (
           <div className="flex justify-end mb-2">
             <button

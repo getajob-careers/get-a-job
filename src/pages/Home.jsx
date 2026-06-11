@@ -43,6 +43,7 @@ import RdFunnelTile from "@/components/redesign/RdFunnelTile";
 import { FUNNEL_BUCKETS } from "@/lib/funnelBuckets";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 import { withDbTimeout } from "@/lib/withDbTimeout";
+import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 
 // ────────────────────────────────────────────────────────────────────────
 // Helpers
@@ -102,6 +103,7 @@ export default function Home() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const agentDrawer = useAgentDrawer();
 
   const { data: profile, isLoading: loadingProfile, isFetched: profileFetched, isError: profileError } = useProfileQuery(user?.id);
 
@@ -439,12 +441,17 @@ export default function Home() {
     return createPageUrl("Roadmap");
   })();
 
-  // Coach band rule ladder — most urgent situation wins. Each rule deep-
-  // links into the chat with a ?seed= prompt (and ?application_id= when
-  // scoped to a row) so the conversation opens already pointed at the
-  // reason the user clicked. Seeds surface as the first suggested prompt;
-  // CareerAgent validates the id against the user's own applications.
+  // Coach band rule ladder — most urgent situation wins. Each rule emits
+  // a seed prompt + optional application_id and the CTA opens the agent
+  // drawer pre-seeded (PR-A3). Previously these `to:` URLs navigated to
+  // /CareerAgent with ?seed=&application_id=; the chatUrl helper below is
+  // kept verbatim as a rollback path — flip the CTA's onClick back to
+  // navigate(coach.to) and restore the `to: chatUrl(...)` shape to revert.
   const coach = (() => {
+    // ROLLBACK PATH (PR-A3): if the drawer rollout needs unwinding, swap
+    // each rule's `seed`/`applicationId` back to `to: chatUrl(seed, appId)`
+    // and change the CTA element from button → Link to={coach.to}.
+    // eslint-disable-next-line no-unused-vars
     const chatUrl = (seed, appId = null) => {
       const params = new URLSearchParams();
       if (appId) params.set("application_id", appId);
@@ -459,7 +466,8 @@ export default function Home() {
         headline: `You're interviewing at ${name}.`,
         sub: "Prep with your career agent — it knows the role and your background.",
         cta: "Prep with the agent",
-        to: chatUrl(`Help me prepare for my ${interviewApp.role_title} interview at ${name}`, interviewApp.id),
+        seed: `Help me prepare for my ${interviewApp.role_title} interview at ${name}`,
+        applicationId: interviewApp.id,
       };
     }
 
@@ -470,7 +478,8 @@ export default function Home() {
         headline: `${name} has been quiet for ${idleItem.days} days.`,
         sub: "A short, polite follow-up doubles your odds of a reply.",
         cta: "Draft the follow-up",
-        to: chatUrl(`Help me draft a short follow-up message for my ${idleItem.app.role_title} application at ${name}`, idleItem.app.id),
+        seed: `Help me draft a short follow-up message for my ${idleItem.app.role_title} application at ${name}`,
+        applicationId: idleItem.app.id,
       };
     }
 
@@ -479,7 +488,8 @@ export default function Home() {
         headline: "Not sure where to start?",
         sub: "Your roadmap comes first — your agent can walk you through it.",
         cta: "Ask how it works",
-        to: chatUrl("How do I get started with my career roadmap?"),
+        seed: "How do I get started with my career roadmap?",
+        applicationId: null,
       };
     }
 
@@ -488,7 +498,8 @@ export default function Home() {
         headline: "All clear for today.",
         sub: "Nice work. Ask your agent what would move you forward next.",
         cta: "What's next?",
-        to: chatUrl("I finished today's tasks — what should I focus on next?"),
+        seed: "I finished today's tasks — what should I focus on next?",
+        applicationId: null,
       };
     }
 
@@ -496,7 +507,8 @@ export default function Home() {
       headline: "Your agent knows your pipeline, roadmap, and stories.",
       sub: "Stuck on anything in your search? Ask it anything.",
       cta: "Ask anything",
-      to: createPageUrl("CareerAgent"),
+      seed: null,
+      applicationId: null,
     };
   })();
 
@@ -804,12 +816,13 @@ export default function Home() {
           <p className="font-display font-bold text-[14px] text-rd-text">{coach.headline}</p>
           <p className="text-[12px] text-rd-teal-dark mt-0.5">{coach.sub}</p>
         </div>
-        <Link
-          to={coach.to}
+        <button
+          type="button"
+          onClick={() => agentDrawer.open({ seed: coach.seed, applicationId: coach.applicationId })}
           className="flex-shrink-0 bg-rd-bg-card rounded-full px-4 py-2 text-[12px] font-medium text-rd-text hover:shadow-rd transition-shadow"
         >
           {coach.cta}
-        </Link>
+        </button>
       </div>
     </div>
   );
