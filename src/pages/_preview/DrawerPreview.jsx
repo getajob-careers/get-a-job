@@ -66,6 +66,10 @@ const LONG_SEEDED_MESSAGES = Array.from({ length: 14 }, (_, i) => ({
 
 const STATES = {
   "dock-idle": { label: "Dock · idle (fresh state, no messages)" },
+  "dock-condensed-apply-succeeded": {
+    label: "Dock · condensed Apply succeeded (CV generation proposed → Applied chip)",
+    seedAppliedCV: true,
+  },
   "dock-with-conversation": {
     label: "Dock · seeded conversation (single source of truth shared with panel)",
     messages: SEEDED_MESSAGES,
@@ -103,19 +107,34 @@ function PreviewDriver({ state }) {
   const drawer = useAgentDrawer();
   const conv = useCoachConversation();
   useEffect(() => {
-    if (state.messages && conv) {
-      // Manual seed so the dock + panel render with content. We bypass
-      // the provider's setMessages by directly setting (the provider
-      // exposes setMessages indirectly via send; here we use a hidden
-      // setter through the closure — but the provider doesn't expose
-      // setMessages directly, so we use a different trick: call sendMessage
-      // is too involved. Instead, the dock + panel render whatever's in
-      // messages array. We set via a useState mirror...
-      //
-      // Simpler: we don't have a public setter. Skip seeding for now;
-      // captures will show the empty state for these scenes.
-    }
     if (state.openDrawer) drawer.open({});
+    if (state.seedAppliedCV && conv) {
+      // Seed a canned conversation: one user turn + one assistant turn
+      // carrying a suggestedCVGeneration payload. Then mark the
+      // suggestion as applied so the capture shows the "Applied" chip.
+      conv.setMessages([
+        { id: "preview-user-msg", role: "user", content: "Tailor a CV for the monday.com APM role" },
+        {
+          id: "preview-cv-msg",
+          role: "assistant",
+          content: "Here's a tailored CV proposal for the APM role at monday.com. Tap Generate to produce the PDF.",
+          suggestedCVGeneration: {
+            target_role: "Associate Product Manager",
+            application_id: "drawer-app-1",
+            // result is populated by the harness's markApplied below — this
+            // value gets fed back into the row via the cvGeneration applied
+            // state read.
+            result: {
+              cv_url: "https://example.com/tailored.pdf",
+              fit_analysis: { skill_match_percentage: 0.82, alignment: "Strong" },
+              application_id: "drawer-app-1",
+              tailoring: null,
+              unsourced_bullets: [],
+            },
+          },
+        },
+      ]);
+    }
     if (state.forceMobileSidebarOpen) {
       setTimeout(() => {
         const btn = document.querySelector('[aria-label="Open menu"]');

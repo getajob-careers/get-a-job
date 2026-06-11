@@ -238,6 +238,12 @@ export function CoachConversationProvider({ children }) {
 
   const value = useMemo(() => ({
     messages,
+    // setMessages exposed so the DEV preview harness can seed a
+    // canned conversation (e.g. an assistant turn with a suggestedCVGeneration
+    // payload) without going through a real ai-chat call. Production
+    // surfaces should NEVER call this — the send pipeline owns the
+    // append + DB persist contract.
+    setMessages,
     input,
     setInput,
     sending,
