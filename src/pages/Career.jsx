@@ -12,11 +12,17 @@
  * alive (deep links + roadmap generation live there); this page is the
  * new nav destination.
  *
- * v1 deviation, on purpose: the seniority pre-filter (allowedSeniorities
- * + seniorityFilterFor) stays internal to Jobs.jsx; here the RPC runs
- * unfiltered and the deterministic scorer's track/fit output drives
- * display instead. Low-fit roles render dimmed with no actions rather
- * than being hidden.
+ * Seniority pre-filter restored — the v1 deviation that skipped it has
+ * been undone. `inferExperienceLevel(experiences, educations)` +
+ * `allowedSenioritiesForLevel()` derive the seniority allow-list, and
+ * the search_jobs_by_role_titles RPC's `p_max_seniority` consumes it.
+ * Track 3 bypasses the filter (`ALL_SENIORITIES`) per the 2026-05-20
+ * live-data lesson (Senior PM: 66 listings → 0 visible without bypass);
+ * Track 1 and Track 2 enforce it so the apply-now / doable-detour feeds
+ * stop leading with roles outside the user's career stage. Low-fit dimming
+ * inside the allowed range still happens via scoreJobFit + the pct < 50
+ * gate — both mechanisms run, but the seniority filter prunes upstream
+ * of the score so the long dimmed tail no longer dominates the page.
  */
 
 import React, { useState, useMemo } from "react";
@@ -37,10 +43,22 @@ import { TRACK_CONFIG } from "@/lib/trackConfig";
 import { scoreJobFit } from "@/lib/scoreJobFit";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import { addJobToTracker } from "@/components/jobs/JobCard";
+import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experienceLevel";
 
 const TRACK_SIMILARITY_THRESHOLD = 0.3;
 const MAX_TRACK_ROLES = 8;
 const JOBS_PAGE_SIZE = 20;
+
+// All six values of jobs.seniority (entry / mid / senior / lead / director /
+// executive), used to bypass the level-based pre-filter on Track 3. Mirrors
+// Jobs.jsx:46 — kept in sync. Track 3 is the growth-path track by
+// definition; the 2026-05-20 live-data check (Jobs.jsx:43-50) showed the
+// strict filter hid 100% of "Senior Product Manager" jobs (66 → 0) and
+// "Senior Software Engineer" (112 → 0) for early-career users on Track 3,
+// defeating the discovery intent. Strict filter still applies on Track 1
+// and Track 2 (apply-now feed + doable-detour) where job-vs-qualification
+// reality matters.
+const ALL_SENIORITIES = ["entry", "mid", "senior", "lead", "director", "executive"];
 
 // Display normalization for the 0-1 score contract.
 //
@@ -120,6 +138,29 @@ export default function Career() {
   const { data: experiences = [] } = useExperiencesQuery(user?.id);
   const { data: educations = [] } = useEducationQuery(user?.id);
 
+  // Mirrors Jobs.jsx:86-93 — derive the user's career-stage from
+  // experiences + educations, then map to a seniority allow-list. This is
+  // the parity fix the seamless-IA cut deferred ("v1 deviation, on
+  // purpose" — see the original file-header comment that this PR
+  // partially rewrites). Without it, Track 1 + Track 2 lists for an
+  // early-career user surface mid / senior / lead rows that the scorer
+  // pushes to the bottom of the page but can't hide. Restoring the
+  // pre-filter eliminates the long dimmed tail upstream of the score.
+  const experienceLevel = useMemo(
+    () => inferExperienceLevel(experiences, educations),
+    [experiences, educations],
+  );
+  const allowedSeniorities = useMemo(
+    () => allowedSenioritiesForLevel(experienceLevel),
+    [experienceLevel],
+  );
+  // Track-3 bypass — inline because there's only one consumer; matches the
+  // shape of seniorityFilterFor() in Jobs.jsx but skips the extraction.
+  const seniorityFilter = useMemo(
+    () => (selectedTrack === "track_3" ? ALL_SENIORITIES : allowedSeniorities),
+    [selectedTrack, allowedSeniorities],
+  );
+
   const { data: roles = [], isLoading: loadingRoles } = useQuery({
     queryKey: ["careerRoles", user?.id],
     queryFn: async () => {
@@ -173,7 +214,10 @@ export default function Career() {
   }).data || {};
 
   const { data: jobs = [], isLoading: loadingJobs } = useQuery({
-    queryKey: ["career_jobs", user?.id, selectedTrack, (trackTitles[selectedTrack] || []).join("|")],
+    // seniorityFilter folded into the queryKey so a Track 1 ↔ Track 3
+    // switch (with different allow-lists) actually refetches instead of
+    // serving a cached track-1 result that didn't include senior roles.
+    queryKey: ["career_jobs", user?.id, selectedTrack, (trackTitles[selectedTrack] || []).join("|"), seniorityFilter.join(",")],
     queryFn: async () => {
       const titles = trackTitles[selectedTrack] || [];
       if (titles.length === 0) return [];
@@ -184,7 +228,7 @@ export default function Career() {
           p_limit: JOBS_PAGE_SIZE,
           p_offset: 0,
           p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
-          p_max_seniority: null,
+          p_max_seniority: seniorityFilter,
           p_work_types: workTypes.length > 0 ? workTypes : null,
         })
         .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence");
@@ -360,8 +404,11 @@ export default function Career() {
             )}
             {visibleJobs.map(({ job, result, pct, low }) => {
               const tracked = trackedIds.has(job.id);
+              // Location lives in the subtitle (matching JobCard's pattern at
+              // JobCard.jsx:253) — duplicating it as a chip surfaces the full
+              // raw string twice on rows like "Kibbutz Shefayim, Center
+              // District, Israel".
               const chips = [
-                job.is_remote ? "Remote" : job.location_city || job.location_raw || null,
                 job.seniority || null,
                 jobAgeChip(job.date_posted),
               ].filter(Boolean);

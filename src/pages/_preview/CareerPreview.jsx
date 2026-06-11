@@ -33,10 +33,21 @@ const CAREER_ROLES = [
   { id: "r-6", user_id: UID, title: "Product Manager", track: "track_3", match_score: 0.41, readiness_score: 0.34, goal_alignment_score: 0.98, matched_skills: ["user_research"], missing_skills: ["product_roadmapping"] },
 ];
 
+// Seniority values use the live enum (entry / mid / senior / lead /
+// director / executive — confirmed against live data 2026-05-20 per
+// experienceLevel.js:185-187). The mix here is deliberate: 3 in-range
+// for the early-career fixture profile (entry / mid) + 3 out-of-range
+// (senior / lead / director). With the seniority pre-filter restored,
+// only the first three render on Track 1 and Track 2; Track 3 still
+// shows the full set thanks to the ALL_SENIORITIES bypass (the
+// 2026-05-20 discovery lesson).
 const CAREER_JOBS = [
-  { id: "cj-1", ats_source: "greenhouse", external_id: "x1", title: "Associate Product Manager", company_name: "monday.com", location_city: "Tel Aviv", is_remote: false, seniority: "Junior", date_posted: new Date(Date.now() - 2 * 86400000).toISOString(), apply_url: "https://example.com", description: "", req_skills_core: [], req_skills_nice: [], req_seniority: null, function_family: null, extraction_confidence: 0.8 },
-  { id: "cj-2", ats_source: "comeet", external_id: "x2", title: "Product Operations Manager", company_name: "Lightricks", location_city: "Jerusalem", is_remote: true, seniority: "Junior", date_posted: new Date(Date.now() - 4 * 86400000).toISOString(), apply_url: "https://example.com", description: "", req_skills_core: [], req_skills_nice: [], req_seniority: null, function_family: null, extraction_confidence: 0.7 },
-  { id: "cj-3", ats_source: "lever", external_id: "x3", title: "Junior Product Analyst", company_name: "Riskified", location_city: "Tel Aviv", is_remote: false, seniority: "Junior", date_posted: new Date(Date.now() - 5 * 86400000).toISOString(), apply_url: "https://example.com", description: "", req_skills_core: [], req_skills_nice: [], req_seniority: null, function_family: null, extraction_confidence: 0.6 },
+  { id: "cj-1", ats_source: "greenhouse", external_id: "x1", title: "Associate Product Manager", company_name: "monday.com", location_city: "Tel Aviv", is_remote: false, seniority: "entry", date_posted: new Date(Date.now() - 2 * 86400000).toISOString(), apply_url: "https://example.com", description: "", req_skills_core: [], req_skills_nice: [], req_seniority: null, function_family: null, extraction_confidence: 0.8 },
+  { id: "cj-2", ats_source: "comeet", external_id: "x2", title: "Product Operations Manager", company_name: "Lightricks", location_city: "Jerusalem", is_remote: true, seniority: "mid", date_posted: new Date(Date.now() - 4 * 86400000).toISOString(), apply_url: "https://example.com", description: "", req_skills_core: [], req_skills_nice: [], req_seniority: null, function_family: null, extraction_confidence: 0.7 },
+  { id: "cj-3", ats_source: "lever", external_id: "x3", title: "Junior Product Analyst", company_name: "Riskified", location_city: "Tel Aviv", is_remote: false, seniority: "entry", date_posted: new Date(Date.now() - 5 * 86400000).toISOString(), apply_url: "https://example.com", description: "", req_skills_core: [], req_skills_nice: [], req_seniority: null, function_family: null, extraction_confidence: 0.6 },
+  { id: "cj-4", ats_source: "greenhouse", external_id: "x4", title: "Senior Product Manager", company_name: "Wix", location_city: "Tel Aviv", is_remote: false, seniority: "senior", date_posted: new Date(Date.now() - 3 * 86400000).toISOString(), apply_url: "https://example.com", description: "", req_skills_core: [], req_skills_nice: [], req_seniority: null, function_family: null, extraction_confidence: 0.7 },
+  { id: "cj-5", ats_source: "lever", external_id: "x5", title: "Director of Product", company_name: "Lemonade", location_city: "Tel Aviv", is_remote: false, seniority: "director", date_posted: new Date(Date.now() - 6 * 86400000).toISOString(), apply_url: "https://example.com", description: "", req_skills_core: [], req_skills_nice: [], req_seniority: null, function_family: null, extraction_confidence: 0.6 },
+  { id: "cj-6", ats_source: "comeet", external_id: "x6", title: "Lead Product Operations", company_name: "Fiverr", location_city: "Tel Aviv", is_remote: false, seniority: "lead", date_posted: new Date(Date.now() - 7 * 86400000).toISOString(), apply_url: "https://example.com", description: "", req_skills_core: [], req_skills_nice: [], req_seniority: null, function_family: null, extraction_confidence: 0.55 },
 ];
 
 function titlesJoin(roles, track) {
@@ -62,10 +73,20 @@ export default function CareerPreview() {
     const t3 = titlesJoin(CAREER_ROLES, "track_3");
     qc.setQueryData(["userProfile", UID], { ...fixture.profile, five_year_role: "Product Manager" });
     qc.setQueryData(["careerRoles", UID], CAREER_ROLES);
-    qc.setQueryData(["experiences", UID], fixture.experiences || []);
+    // experiences + educations seeded explicitly as empty arrays so
+    // inferExperienceLevel resolves deliberately to "early_career"
+    // (totalYearsOfExperience([]) === 0, isCurrentlyStudent([]) === false,
+    // 0 < 3 → early_career). That maps to allowedSeniorities =
+    // ["entry", "mid"], which is the case the fixture's mixed-seniority
+    // CAREER_JOBS list is built to exercise.
+    qc.setQueryData(["experiences", UID], []);
     qc.setQueryData(["education", UID], []);
     qc.setQueryData(["career_track_counts", UID, t1, t2, t3], { track_1: 19, track_2: 14, track_3: 7 });
-    qc.setQueryData(["career_jobs", UID, "track_1", t1], CAREER_JOBS);
+    // The career_jobs queryKey now includes the seniority filter — keep
+    // both seeds (filtered + bypass) so Track 1 and Track 3 both render
+    // through cache without falling back to the (mocked-empty) RPC.
+    qc.setQueryData(["career_jobs", UID, "track_1", t1, ["entry","mid"].join(",")], CAREER_JOBS.filter((j) => ["entry","mid"].includes(j.seniority)));
+    qc.setQueryData(["career_jobs", UID, "track_3", t3, ["entry","mid","senior","lead","director","executive"].join(",")], CAREER_JOBS);
     return qc;
   }, []);
 
