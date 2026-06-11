@@ -55,7 +55,7 @@ const APP_ACTIVE_3 = [
   },
 ];
 
-const APP_ACTIVE_7 = [
+export const APP_ACTIVE_7 = [
   ...APP_ACTIVE_3,
   {
     id: "app-4",

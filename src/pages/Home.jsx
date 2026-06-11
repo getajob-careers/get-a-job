@@ -39,6 +39,8 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import RdCard from "@/components/redesign/RdCard";
+import RdFunnelTile from "@/components/redesign/RdFunnelTile";
+import { FUNNEL_BUCKETS } from "@/lib/funnelBuckets";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 import { withDbTimeout } from "@/lib/withDbTimeout";
 
@@ -58,15 +60,8 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 // "worth your attention" exception list.
 const IDLE_NUDGE_DAYS = 7;
 
-// Funnel buckets for pipeline variant C. Maps the 7-value
-// applications.status enum onto the 4 stages a student thinks in.
-// rejected / withdrawn are excluded from the funnel entirely.
-const FUNNEL_BUCKETS = [
-  { key: "saved", label: "saved", statuses: ["interested", "preparing"] },
-  { key: "applied", label: "applied", statuses: ["applied"] },
-  { key: "interview", label: "interview", statuses: ["interviewing"] },
-  { key: "offer", label: "offer", statuses: ["offer", "accepted"] },
-];
+// FUNNEL_BUCKETS lifted to src/lib/funnelBuckets.js in PR-A1 — Career's
+// pipeline strip consumes the same mapping.
 
 function taskDueMs(t) {
   if (!t.due_date) return Number.POSITIVE_INFINITY;
@@ -433,7 +428,11 @@ export default function Home() {
     return "Your daily focus will appear here once it's ready.";
   })();
   const focusDestination = (() => {
-    if (dailyAction?.source_table === "applications") return createPageUrl("Tracker");
+    // Pipeline-anchored entry points retarget to /Career?pipeline=open
+    // (PR-A1). The param is a no-op until the expandable board lands in
+    // PR-A2 — for now the link just lands on Career where the pipeline
+    // strip shows.
+    if (dailyAction?.source_table === "applications") return `${createPageUrl("Career")}?pipeline=open`;
     if (dailyAction?.source_table === "tasks") return createPageUrl("Tasks");
     if (dailyAction?.source_table === "career_roles") return createPageUrl("Roadmap");
     if (dailyAction?.action_type === "reflect") return createPageUrl("Profile");
@@ -564,7 +563,7 @@ export default function Home() {
           to={createPageUrl("Career")}
           value={liveMatchCount === null ? "—" : liveMatchCount.toLocaleString()}
         />
-        <StatBlock label="In pipeline" to={createPageUrl("Tracker")} value={String(activeApps.length)} />
+        <StatBlock label="In pipeline" to={`${createPageUrl("Career")}?pipeline=open`} value={String(activeApps.length)} />
         <StatBlock
           label="Interviews"
           to={createPageUrl("Tracker")}
@@ -745,10 +744,10 @@ export default function Home() {
         <RdCard className="p-5">
           <h2 className="font-display font-bold text-[17px] text-rd-text">Pipeline</h2>
           <div className="flex gap-1.5 mt-3">
-            <FunnelTile label="saved" value={funnelCounts.saved} tone="neutral" />
-            <FunnelTile label="applied" value={funnelCounts.applied} tone="coral" />
-            <FunnelTile label="interview" value={funnelCounts.interview} tone="teal" />
-            <FunnelTile label="offer" value={funnelCounts.offer} tone="neutral" />
+            <RdFunnelTile label="saved" value={funnelCounts.saved} tone="neutral" />
+            <RdFunnelTile label="applied" value={funnelCounts.applied} tone="coral" />
+            <RdFunnelTile label="interview" value={funnelCounts.interview} tone="teal" />
+            <RdFunnelTile label="offer" value={funnelCounts.offer} tone="neutral" />
           </div>
           <div className="border-t-[1.5px] border-rd-border-subtle mt-4 pt-3">
             <p className="text-[11px] font-medium text-rd-text-eyebrow">worth your attention</p>
@@ -760,7 +759,7 @@ export default function Home() {
                   return (
                     <li key={app.id}>
                       <Link
-                        to={createPageUrl("Tracker")}
+                        to={`${createPageUrl("Career")}?pipeline=open&app=${app.id}`}
                         className="flex items-center gap-3 px-1.5 py-2 rounded-[12px] hover:bg-rd-bg-page transition-colors"
                       >
                         <span className={`w-7 h-7 rounded-full ${style.bg} flex items-center justify-center flex-shrink-0`}>
@@ -788,10 +787,10 @@ export default function Home() {
             )}
           </div>
           <Link
-            to={createPageUrl("Tracker")}
+            to={`${createPageUrl("Career")}?pipeline=open`}
             className="inline-flex items-center gap-1 mt-3 text-[12px] font-medium text-rd-coral-dark hover:text-rd-text transition-colors"
           >
-            Open tracker <ChevronRight className="w-3.5 h-3.5" />
+            Open pipeline <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </RdCard>
       </div>
@@ -847,26 +846,7 @@ function StatBlock({ label, value, suffix = "", to }) {
   );
 }
 
-const FUNNEL_TONES = {
-  neutral: { bg: "bg-rd-bg-page", num: "text-rd-text", label: "text-rd-text-secondary" },
-  coral: { bg: "bg-rd-coral-tint", num: "text-rd-coral-dark", label: "text-rd-coral-dark" },
-  teal: { bg: "bg-rd-teal-tint", num: "text-rd-teal-dark", label: "text-rd-teal-dark" },
-};
-
-function FunnelTile({ label, value, tone }) {
-  const t = FUNNEL_TONES[tone];
-  // Zero counts render muted regardless of tone — the colored tiles only
-  // light up once there's something in the stage.
-  const isZero = !value;
-  return (
-    <div className={`flex-1 min-w-0 text-center rounded-[12px] py-2 ${isZero ? "bg-rd-bg-page" : t.bg}`}>
-      <div className={`font-display font-extrabold text-[18px] leading-tight ${isZero ? "text-rd-text-tertiary" : t.num}`}>
-        {value}
-      </div>
-      <div className={`text-[10.5px] ${isZero ? "text-rd-text-tertiary" : t.label}`}>{label}</div>
-    </div>
-  );
-}
+// FunnelTile lifted to src/components/redesign/RdFunnelTile.jsx in PR-A1.
 
 // ────────────────────────────────────────────────────────────────────────
 // Page-level skeleton — mirrors the command-center layout so the

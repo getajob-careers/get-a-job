@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { toast } from "sonner";
 import { supabase } from "@/api/supabaseClient";
 import { scoreApplication } from "@/lib/scoreApplication";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
@@ -84,6 +85,15 @@ function formatPostedDate(dateStr) {
 // 2026 started rejecting the unknown column, breaking the Track button.
 // Removed in PR #134 since no code path read it. The (ats_source,
 // external_id) pair we still write serves the same join purpose.)
+//
+// PR-A1: optimistic cache prepend. Between the dup-check and the awaited
+// insert, prepend a synthetic row onto ["applications", uid] so the Career
+// pipeline strip (saved bucket) reflects the Track action in the same
+// frame the button toggles to "Tracked". On insert failure both states
+// (cache prepend + button) roll back and the caller surfaces a toast.
+// On success the synthetic row is replaced with the returned wide-row
+// shape so downstream consumers reading specific columns (created_at,
+// applied_date, qualification_score) see real values.
 export async function addJobToTracker({ user, queryClient, job, scoreResult }) {
   let dupQuery = supabase.from("applications").select("id").eq("user_id", user.id).limit(1);
   if (job.ats_source && job.external_id) {
@@ -108,7 +118,8 @@ export async function addJobToTracker({ user, queryClient, job, scoreResult }) {
     core: Array.isArray(job?.req_skills_core) ? job.req_skills_core : [],
     nice: Array.isArray(job?.req_skills_nice) ? job.req_skills_nice : [],
   };
-  const { data: inserted, error } = await supabase.from("applications").insert({
+
+  const insertPayload = {
     user_id: user.id,
     role_title: job.title,
     company: job.company_name || "Unknown",
@@ -128,12 +139,59 @@ export async function addJobToTracker({ user, queryClient, job, scoreResult }) {
       track: scoreResult.track,
       score_source: "deterministic",
     }),
-  }).select("id").single();
+  };
+
+  // Synthetic optimistic row — wide enough that consumers reading the
+  // ["applications", uid] cache (Home pipeline funnel, Career strip, the
+  // attentionItems exception list) all see consistent fields. Uses
+  // crypto.randomUUID via a `pending-` prefix so it cannot collide with a
+  // real Supabase-generated id.
+  const tempId = `pending-${
+    typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+      ? crypto.randomUUID()
+      : `${Date.now()}-${Math.random().toString(36).slice(2)}`
+  }`;
+  const nowIso = new Date().toISOString();
+  const syntheticRow = {
+    ...insertPayload,
+    id: tempId,
+    created_at: nowIso,
+    updated_at: nowIso,
+    applied_date: null,
+    interview_stage: null,
+  };
+
+  // PRE-AWAIT prepend onto the wide cache. JSDoc cast on prev is the
+  // minimal narrowing hint TanStack Query needs (callback param types as
+  // unknown). Same pattern as Home.jsx toggleTask + b1ee594.
+  queryClient.setQueryData(["applications", user.id], (/** @type {any[] | undefined} */ prev) =>
+    [syntheticRow, ...(prev || [])]
+  );
+
+  const { data: inserted, error } = await supabase
+    .from("applications")
+    .insert(insertPayload)
+    .select("*")
+    .single();
 
   if (error) {
+    // Roll back the optimistic prepend by id, not by index — guards
+    // against a concurrent write that prepended its own row between our
+    // optimistic write and this rollback.
+    queryClient.setQueryData(["applications", user.id], (/** @type {any[] | undefined} */ prev) =>
+      (prev || []).filter((r) => r.id !== tempId)
+    );
     console.error("Failed to add to tracker:", error);
     return { error };
   }
+
+  // Replace the synthetic row in place so the wide cache holds the real
+  // inserted row shape (real id, real created_at, server-side defaults).
+  // Belt-and-suspenders invalidate so other key variations the Settings
+  // sweep cares about stay in sync.
+  queryClient.setQueryData(["applications", user.id], (/** @type {any[] | undefined} */ prev) =>
+    (prev || []).map((r) => (r.id === tempId ? inserted : r))
+  );
   queryClient.invalidateQueries({ queryKey: ["applications"] });
   // Only re-score from scratch when we couldn't write a deterministic result
   // (no scoreResult was passed) AND we have a JD to feed the fallback path.
@@ -209,10 +267,19 @@ export default function JobCard({ job, scoreResult = null, trackColor = null }) 
   })();
 
   const handleAdd = async () => {
+    // Toggle the tracked-button state in the same frame as the helper's
+    // setQueryData prepend (PR-A1). If the insert fails, both states
+    // (button + cache) roll back inside addJobToTracker; this surface
+    // additionally shows the error toast.
     setAdding(true);
+    setAdded(true);
     const res = await addJobToTracker({ user, queryClient, job, scoreResult });
     setAdding(false);
-    if (res.ok || res.duplicate) setAdded(true);
+    if (res.error) {
+      setAdded(false);
+      toast.error("Couldn't add to your pipeline. Try again.");
+    }
+    // res.ok and res.duplicate both leave the button in the Tracked state.
   };
 
   // Avatar — first letter of company name, tinted to the track color.

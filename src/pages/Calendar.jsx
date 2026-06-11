@@ -159,7 +159,7 @@ export default function Calendar() {
         endISO: event.end_date,
         location: event.location,
         description: event.description,
-        route: event.application_id ? "/Tracker" : "/Calendar",
+        route: event.application_id ? `/Career?pipeline=open&app=${event.application_id}` : "/Calendar",
       });
     }
 
@@ -195,7 +195,7 @@ export default function Calendar() {
         subtitle: app.company ? `Applied · ${app.company}` : "Applied",
         date,
         allDay: true,
-        route: "/Tracker",
+        route: `/Career?pipeline=open&app=${app.id}`,
       });
     }
 

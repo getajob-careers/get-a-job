@@ -39,11 +39,13 @@ import {
   ChevronDown, ChevronUp, ChevronRight, Loader2,
 } from "lucide-react";
 import RdCard from "@/components/redesign/RdCard";
+import RdFunnelTile from "@/components/redesign/RdFunnelTile";
 import { TRACK_CONFIG } from "@/lib/trackConfig";
 import { scoreJobFit } from "@/lib/scoreJobFit";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import JobCard from "@/components/jobs/JobCard";
 import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experienceLevel";
+import { FUNNEL_BUCKETS } from "@/lib/funnelBuckets";
 
 const TRACK_SIMILARITY_THRESHOLD = 0.3;
 const MAX_TRACK_ROLES = 8;
@@ -149,6 +151,29 @@ export default function Career() {
   const { data: profile } = useProfileQuery(user?.id);
   const { data: experiences = [] } = useExperiencesQuery(user?.id);
   const { data: educations = [] } = useEducationQuery(user?.id);
+
+  // Wide applications query — same canonical key + select Home + Tracker
+  // already use, so this surface joins the shared cache rather than
+  // narrowing it (PR #178 / lesson 2026-05-28). The funnel strip below
+  // reads counts off this cache; JobCard's optimistic Apply path prepends
+  // into the same key in the same frame the button toggles to Tracked.
+  const { data: applications = [] } = useQuery({
+    queryKey: ["applications", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("applications").select("*").eq("user_id", user.id);
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  const funnelCounts = useMemo(() => {
+    const counts = {};
+    for (const bucket of FUNNEL_BUCKETS) {
+      counts[bucket.key] = applications.filter((a) => bucket.statuses.includes(a.status)).length;
+    }
+    return counts;
+  }, [applications]);
 
   // Mirrors Jobs.jsx:86-93 — derive the user's career-stage from
   // experiences + educations, then map to a seniority allow-list. This is
@@ -385,7 +410,7 @@ export default function Career() {
       )}
 
       {/* Track band — the roadmap, condensed */}
-      <div className="grid grid-cols-3 gap-2.5 mt-4">
+      <div className="grid grid-cols-3 gap-2.5 mt-4" data-strip-anchor="track-band">
         {TRACK_BAND.map((t) => {
           const cfg = TRACK_CONFIG[t.key];
           const TIcon = t.icon;
@@ -419,6 +444,32 @@ export default function Career() {
         })}
       </div>
 
+      {/* Pipeline strip — first of the Tracker-absorption PRs (PR-A1).
+          Reads counts off the shared ["applications", uid] cache via
+          FUNNEL_BUCKETS, the same mapping Home's pipeline card uses.
+          Counts are exempt from RULINGS.md (a) — that rule covers SCORES.
+          The strip is read-only in PR-A1; PR-A2 makes the tiles open the
+          board (the /Career?pipeline=open param the retargeted entry
+          points already pass is a no-op here until then). */}
+      <RdCard className="p-3 mt-3" data-pipeline-strip>
+        <div className="flex items-center justify-between mb-1.5 px-1">
+          <span className="text-[11px] font-medium text-rd-text-eyebrow uppercase tracking-[0.09em]">
+            Your pipeline
+          </span>
+          {applications.length > 0 && (
+            <span className="text-[10.5px] text-rd-text-secondary">
+              {applications.length} {applications.length === 1 ? "role" : "roles"} tracked
+            </span>
+          )}
+        </div>
+        <div className="flex gap-1.5">
+          <RdFunnelTile label="saved" value={funnelCounts.saved} tone="neutral" />
+          <RdFunnelTile label="applied" value={funnelCounts.applied} tone="coral" />
+          <RdFunnelTile label="interview" value={funnelCounts.interview} tone="teal" />
+          <RdFunnelTile label="offer" value={funnelCounts.offer} tone="neutral" />
+        </div>
+      </RdCard>
+
       <div className="flex flex-col md:flex-row gap-4 mt-4 items-start">
         {/* Left — live jobs */}
         <div className="w-full md:flex-[1.55] min-w-0">
@@ -435,32 +486,32 @@ export default function Career() {
           </div>
           {/* Scope toggle — segmented buttons. "This track" is the cheap
               client-filter over pre-fetched live jobs; "All jobs" hits the
-              corpus-wide search query. Hidden when there's no input — the
-              control only earns its space once a user starts typing. */}
-          {search.trim().length > 0 && (
-            <div className="inline-flex gap-1 mt-2.5 bg-rd-bg-soft rounded-full p-1" role="group" aria-label="Search scope">
-              <button
-                type="button"
-                onClick={() => setSearchScope("track")}
-                className={[
-                  "px-3 py-1 rounded-full text-[11px] font-display font-semibold transition-colors",
-                  searchScope === "track" ? "bg-rd-bg-card text-rd-text shadow-rd" : "text-rd-text-secondary hover:text-rd-text",
-                ].join(" ")}
-              >
-                This track
-              </button>
-              <button
-                type="button"
-                onClick={() => setSearchScope("all")}
-                className={[
-                  "px-3 py-1 rounded-full text-[11px] font-display font-semibold transition-colors",
-                  searchScope === "all" ? "bg-rd-bg-card text-rd-text shadow-rd" : "text-rd-text-secondary hover:text-rd-text",
-                ].join(" ")}
-              >
-                All jobs
-              </button>
-            </div>
-          )}
+              corpus-wide search query. Rendered whenever the search input
+              renders (PR-A1 discoverability rider) — gating it on input
+              made "All jobs" effectively invisible. "This track" is the
+              default so the band cue stays meaningful pre-typing. */}
+          <div className="inline-flex gap-1 mt-2.5 bg-rd-bg-soft rounded-full p-1" role="group" aria-label="Search scope">
+            <button
+              type="button"
+              onClick={() => setSearchScope("track")}
+              className={[
+                "px-3 py-1 rounded-full text-[11px] font-display font-semibold transition-colors",
+                searchScope === "track" ? "bg-rd-bg-card text-rd-text shadow-rd" : "text-rd-text-secondary hover:text-rd-text",
+              ].join(" ")}
+            >
+              This track
+            </button>
+            <button
+              type="button"
+              onClick={() => setSearchScope("all")}
+              className={[
+                "px-3 py-1 rounded-full text-[11px] font-display font-semibold transition-colors",
+                searchScope === "all" ? "bg-rd-bg-card text-rd-text shadow-rd" : "text-rd-text-secondary hover:text-rd-text",
+              ].join(" ")}
+            >
+              All jobs
+            </button>
+          </div>
           <div className="flex items-center justify-between mt-3">
             <span className="font-display font-bold text-[13.5px] text-rd-text">
               {searchScope === "all" && debouncedQuery.length > 0
