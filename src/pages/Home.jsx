@@ -386,13 +386,16 @@ export default function Home() {
       return next;
     });
     // Optimistic flip on the shared canonical cache — same pattern as
-    // Tasks.jsx toggleComplete.
-    queryClient.setQueryData(["tasks", user?.id], (prev) =>
+    // Tasks.jsx toggleComplete. The JSDoc cast on `prev` is the minimal
+    // shape TanStack Query needs — its callback param types as `unknown`,
+    // so `.map` requires a narrowing hint. Same JSDoc-cast pattern used
+    // elsewhere in this file (see the rpc() casts above).
+    queryClient.setQueryData(["tasks", user?.id], (/** @type {any[] | undefined} */ prev) =>
       (prev || []).map((t) => (t.id === task.id ? { ...t, is_complete: nextComplete } : t)),
     );
     const { error } = await supabase.from("tasks").update({ is_complete: nextComplete }).eq("id", task.id);
     if (error) {
-      queryClient.setQueryData(["tasks", user?.id], (prev) =>
+      queryClient.setQueryData(["tasks", user?.id], (/** @type {any[] | undefined} */ prev) =>
         (prev || []).map((t) => (t.id === task.id ? { ...t, is_complete: task.is_complete } : t)),
       );
       setSessionDoneIds((prev) => {

@@ -424,7 +424,16 @@ export default function Career() {
             )}
             {trackRoles.map((r) => {
               const expanded = r.id === effectiveExpandedId;
-              const qualified = Math.round(r.readiness_score ?? r.match_score ?? 0);
+              // RULINGS.md (e): null score columns NEVER render as 0%.
+              // Compute "available" from the raw nulls (not from the
+              // coalesced fallback) so a genuinely-missing column omits
+              // its bar entirely. readiness_score is allowed to fall
+              // back to match_score for display — both being null is
+              // the only case that omits the qualified bar.
+              const qualifiedRaw = r.readiness_score ?? r.match_score;
+              const qualifiedAvailable = qualifiedRaw !== null && qualifiedRaw !== undefined;
+              const pathAvailable = r.goal_alignment_score !== null && r.goal_alignment_score !== undefined;
+              const qualified = Math.round(qualifiedRaw ?? 0);
               const path = Math.round(r.goal_alignment_score ?? 0);
               const matched = (r.matched_skills || []).slice(0, 4);
               const gaps = (r.missing_skills || []).slice(0, 3);
@@ -451,10 +460,16 @@ export default function Career() {
                   </button>
                   {expanded && (
                     <div className="px-3 pb-3">
-                      <div className="flex flex-col gap-1.5">
-                        <AxisBar label="Qualified now" value={qualified} fill={band.barFill} track={band.barTrack} />
-                        <AxisBar label={`Moves you to ${goalName}`} value={path} fill={band.barFill} track={band.barTrack} />
-                      </div>
+                      {(qualifiedAvailable || pathAvailable) && (
+                        <div className="flex flex-col gap-1.5">
+                          {qualifiedAvailable && (
+                            <AxisBar label="Qualified now" value={qualified} fill={band.barFill} track={band.barTrack} />
+                          )}
+                          {pathAvailable && (
+                            <AxisBar label={`Moves you to ${goalName}`} value={path} fill={band.barFill} track={band.barTrack} />
+                          )}
+                        </div>
+                      )}
                       {(matched.length > 0 || gaps.length > 0) && (
                         <div className="flex flex-wrap gap-1.5 mt-2.5">
                           {matched.map((s) => (
@@ -488,6 +503,10 @@ export default function Career() {
 }
 
 function AxisBar({ label, value, fill, track }) {
+  // RULINGS.md (b): explanatory axes render as bars with NO numerals.
+  // The bar fill is the sole carrier of magnitude; the label names the
+  // axis. Removing the trailing percent span here is the load-bearing
+  // edit — keep it that way.
   const v = Math.max(0, Math.min(100, value || 0));
   return (
     <div className="flex items-center gap-2">
@@ -495,7 +514,6 @@ function AxisBar({ label, value, fill, track }) {
       <span className={`flex-1 h-1.5 rounded-full ${track} overflow-hidden`}>
         <span className={`block h-full rounded-full ${fill}`} style={{ width: `${v}%` }} />
       </span>
-      <span className="font-display font-extrabold text-[11px] text-rd-text w-[30px] text-right">{v}%</span>
     </div>
   );
 }
