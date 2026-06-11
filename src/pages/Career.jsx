@@ -47,6 +47,7 @@ import JobCard from "@/components/jobs/JobCard";
 import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experienceLevel";
 import { FUNNEL_BUCKETS } from "@/lib/funnelBuckets";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
+import { buildCareerPageContext } from "@/lib/buildCareerPageContext";
 import ApplicationsKanban from "@/components/tracker/ApplicationsKanban";
 import ApplicationDetailDrawer from "@/components/tracker/ApplicationDetailDrawer";
 import AddApplicationDialog from "@/components/tracker/AddApplicationDialog";
@@ -971,18 +972,6 @@ function PipelineGuideTile({ tint, accent, head, body, highlight = false }) {
       </p>
     </div>
   );
-}
-
-// PR-B2 page-context shape — pure helper exported for testing. Career
-// uses this inside a useEffect (above) to emit the IDs the drawer
-// forwards to ai-chat. Omits any falsy entity ID so the server's
-// sanitizer doesn't have to filter undefined/empty values.
-export function buildCareerPageContext({ selectedTrack, roleId, applicationId }) {
-  const ctx = { page: "Career" };
-  if (selectedTrack) ctx.track = selectedTrack;
-  if (roleId) ctx.role_id = roleId;
-  if (applicationId) ctx.application_id = applicationId;
-  return ctx;
 }
 
 function AxisBar({ label, value, fill, track }) {

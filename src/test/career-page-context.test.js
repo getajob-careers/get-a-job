@@ -6,7 +6,7 @@
 // so the assertion stays focused on the wire shape.
 
 import { describe, it, expect } from "vitest";
-import { buildCareerPageContext } from "../pages/Career";
+import { buildCareerPageContext } from "../lib/buildCareerPageContext";
 
 const ROLE_ID = "11111111-2222-3333-4444-555555555555";
 const APP_ID = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
