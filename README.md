@@ -32,7 +32,10 @@ VITE_SUPABASE_URL=your_supabase_project_url
 VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-Additionally, set the `OPENAI_API_KEY` as a **Supabase project secret** (Dashboard → Edge Functions → Manage Secrets) for AI features.
+Additionally, set the following as **Supabase project secrets** (Dashboard → Edge Functions → Manage Secrets) for AI features:
+
+- `OPENAI_API_KEY` — required for every AI surface.
+- `OPENROUTER_API_KEY` — required for `generate-tailored-cv` Pass 2/3 on the Sonnet path (`cv_model: 'sonnet'`, which is the current frontend default). The function returns HTTP 500 `no_openrouter_key` if this secret is missing and a `cv_model: 'sonnet'` request arrives; the gpt-4o default branch never reads it.
 
 > Never commit `.env.local`. It is listed in `.gitignore`.
 
