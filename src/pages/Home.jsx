@@ -34,7 +34,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   ArrowRight, ChevronRight, Loader2, AlertCircle, Sparkles, Check,
-  GraduationCap, Rocket, Users, FileText, Send,
+  GraduationCap, Rocket, Users, FileText, Send, Bookmark,
+  Linkedin as LinkedinIcon,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import RdCard from "@/components/redesign/RdCard";
@@ -141,6 +142,26 @@ export default function Home() {
       if (!user?.id) return [];
       const { data, error } = await supabase.from("tasks").select("*").eq("user_id", user.id);
       if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id,
+  });
+
+  // Stories + last LinkedIn post feed the stat strip and quick tiles.
+  const { data: stories = [] } = useQuery({
+    queryKey: ["stories", user?.id],
+    queryFn: async () => (await supabase.from("stories").select("id, created_at").eq("user_id", user.id)).data || [],
+    enabled: !!user?.id,
+  });
+  const { data: linkedinPosts = [] } = useQuery({
+    queryKey: ["linkedin_posts_home", user?.id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("linkedin_posts")
+        .select("created_at")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1);
       return data || [];
     },
     enabled: !!user?.id,
@@ -325,11 +346,66 @@ export default function Home() {
     return [...interviews, ...idle].slice(0, 2);
   }, [applications]);
 
+  // Plan rows are checkable in place (seamless-ia Today spec). Rows
+  // toggled complete this session stay visible with a strikethrough
+  // instead of vanishing — sessionDoneIds remembers them; on the next
+  // visit completed tasks drop out naturally.
+  const [sessionDoneIds, setSessionDoneIds] = useState(() => new Set());
   const planTasks = useMemo(
-    () => tasks.filter((t) => !t.is_complete).sort((a, b) => taskDueMs(a) - taskDueMs(b)).slice(0, 4),
-    [tasks],
+    () => tasks
+      .filter((t) => !t.is_complete || sessionDoneIds.has(t.id))
+      .sort((a, b) => taskDueMs(a) - taskDueMs(b))
+      .slice(0, 4),
+    [tasks, sessionDoneIds],
   );
-  const tasksDoneCount = useMemo(() => tasks.filter((t) => t.is_complete).length, [tasks]);
+
+  // Hero focus completion — no daily_actions completion column exists, so
+  // done-state persists per (user, day) in localStorage. Resets with the
+  // next day's action.
+  const heroDoneKey = user?.id ? `focusDone:${user.id}:${new Date().toDateString()}` : null;
+  const [heroDone, setHeroDone] = useState(false);
+  useEffect(() => {
+    if (!heroDoneKey) return;
+    try { setHeroDone(localStorage.getItem(heroDoneKey) === "1"); } catch { /* unavailable */ }
+  }, [heroDoneKey]);
+  const toggleHeroDone = () => {
+    setHeroDone((prev) => {
+      const next = !prev;
+      try {
+        if (heroDoneKey) localStorage.setItem(heroDoneKey, next ? "1" : "0");
+      } catch { /* unavailable */ }
+      return next;
+    });
+  };
+
+  const toggleTask = async (task) => {
+    const nextComplete = !task.is_complete;
+    setSessionDoneIds((prev) => {
+      const next = new Set(prev);
+      if (nextComplete) next.add(task.id); else next.delete(task.id);
+      return next;
+    });
+    // Optimistic flip on the shared canonical cache — same pattern as
+    // Tasks.jsx toggleComplete.
+    queryClient.setQueryData(["tasks", user?.id], (prev) =>
+      (prev || []).map((t) => (t.id === task.id ? { ...t, is_complete: nextComplete } : t)),
+    );
+    const { error } = await supabase.from("tasks").update({ is_complete: nextComplete }).eq("id", task.id);
+    if (error) {
+      queryClient.setQueryData(["tasks", user?.id], (prev) =>
+        (prev || []).map((t) => (t.id === task.id ? { ...t, is_complete: task.is_complete } : t)),
+      );
+      setSessionDoneIds((prev) => {
+        const next = new Set(prev);
+        if (nextComplete) next.delete(task.id); else next.add(task.id);
+        return next;
+      });
+    }
+  };
+
+  // Progress ring: today's moves = visible plan rows + the hero focus.
+  const ringTotal = planTasks.length + (dailyAction?.title || selfHealing ? 1 : 0);
+  const ringDone = planTasks.filter((t) => t.is_complete).length + (heroDone && ringTotal > planTasks.length ? 1 : 0);
 
   if (willRedirect) {
     return (
@@ -446,30 +522,57 @@ export default function Home() {
         </div>
       )}
 
-      <h1 className="font-display font-extrabold text-[30px] sm:text-[34px] leading-[1.1] tracking-tight text-rd-text">
-        {timeOfDayGreeting()}
-        {firstName ? `, ${firstName}` : ""}
-      </h1>
+      <div className="flex items-center justify-between gap-4">
+        <div className="min-w-0">
+          <h1 className="font-display font-extrabold text-[26px] sm:text-[30px] leading-[1.1] tracking-tight text-rd-text">
+            {timeOfDayGreeting()}
+            {firstName ? `, ${firstName}` : ""}
+          </h1>
+          <p className="text-[12.5px] text-rd-text-secondary mt-1">
+            {new Date().toLocaleDateString(undefined, { weekday: "long", month: "long", day: "numeric" })}
+            {" · everything for today lives here."}
+          </p>
+        </div>
+        {ringTotal > 0 && (
+          <div className="flex items-center gap-2.5 flex-shrink-0">
+            <svg width="44" height="44" viewBox="0 0 44 44" aria-hidden="true">
+              <circle cx="22" cy="22" r="18" fill="none" stroke="var(--rd-bg-soft)" strokeWidth="5" />
+              <circle
+                cx="22" cy="22" r="18" fill="none" stroke="var(--rd-teal)" strokeWidth="5"
+                strokeLinecap="round"
+                strokeDasharray={`${(ringDone / ringTotal) * 113} 113`}
+                transform="rotate(-90 22 22)"
+                style={{ transition: "stroke-dasharray .35s ease-out" }}
+              />
+              <text x="22" y="26" textAnchor="middle" fontFamily="Rokkitt, serif" fontWeight="800" fontSize="11" fill="var(--rd-text)">
+                {ringDone}/{ringTotal}
+              </text>
+            </svg>
+            <span className="text-[11px] text-rd-text-secondary leading-[1.35] w-16">today&apos;s moves done</span>
+          </div>
+        )}
+      </div>
 
       {/* Underlined stats — the locked pattern: big slab number over a
           hairline, no card chrome. */}
-      <div className="grid grid-cols-3 gap-4 sm:gap-7 mt-7">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mt-6">
         <StatBlock
           label="Live matches"
-          to={createPageUrl("Jobs")}
+          to={createPageUrl("Career")}
           value={liveMatchCount === null ? "—" : liveMatchCount.toLocaleString()}
         />
         <StatBlock label="In pipeline" to={createPageUrl("Tracker")} value={String(activeApps.length)} />
         <StatBlock
-          label="Tasks done"
-          to={createPageUrl("Tasks")}
-          value={String(tasksDoneCount)}
-          suffix={tasks.length > 0 ? `/${tasks.length}` : ""}
+          label="Interviews"
+          to={createPageUrl("Tracker")}
+          value={String(funnelCounts.interview)}
         />
+        <StatBlock label="Stories banked" to={createPageUrl("StoryBank")} value={String(stories.length)} />
       </div>
 
-      {/* Focus card — soft cream, single coral circle button. The page's
-          one loud element. */}
+      {/* Focus card — coral tint, completable (seamless-ia Today spec).
+          Card body navigates to the action; the circle button toggles
+          done (teal state) without leaving the page. */}
       <div
         role="button"
         tabIndex={0}
@@ -480,35 +583,55 @@ export default function Home() {
             navigate(focusDestination);
           }
         }}
-        className="group cursor-pointer bg-rd-bg-soft rounded-[20px] mt-7 px-5 py-4 sm:px-6 sm:py-5 flex items-center gap-4 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+        className={[
+          "group cursor-pointer rounded-[18px] mt-6 px-5 py-4 sm:px-6 sm:py-5 flex items-center gap-4",
+          "transition-colors duration-200",
+          "focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2",
+          heroDone ? "bg-rd-teal-tint" : "bg-rd-coral-tint",
+        ].join(" ")}
       >
         <div className="flex-1 min-w-0">
-          <p className="text-[11px] font-medium text-rd-text-eyebrow">
-            today&apos;s focus · picked by your agent
+          <p className={`font-display font-semibold text-[11px] uppercase tracking-[0.04em] ${heroDone ? "text-rd-teal-dark" : "text-rd-coral-dark"}`}>
+            {heroDone ? "done — nice work" : "today's focus · picked by your agent"}
           </p>
-          <p className="font-display font-bold text-[18px] sm:text-[20px] leading-[1.2] text-rd-text mt-1.5">
+          <p className={`font-display font-bold text-[18px] sm:text-[20px] leading-[1.2] mt-1.5 ${heroDone ? "line-through text-rd-teal-dark" : "text-rd-text"}`}>
             {focusCta}
           </p>
-          <p className="text-[12.5px] text-rd-text-tertiary leading-[1.55] mt-1.5">
-            {focusDesc}
-          </p>
+          {!heroDone && (
+            <p className="text-[12.5px] text-rd-text-tertiary leading-[1.55] mt-1.5">
+              {focusDesc}
+            </p>
+          )}
         </div>
-        <div
-          aria-hidden="true"
-          className="w-[50px] h-[50px] rounded-full bg-rd-coral flex items-center justify-center flex-shrink-0 transition-transform duration-150 group-hover:translate-x-0.5"
+        <button
+          aria-label={heroDone ? "Mark focus not done" : "Mark focus done"}
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleHeroDone();
+          }}
+          className={[
+            "w-[50px] h-[50px] rounded-full flex items-center justify-center flex-shrink-0",
+            "transition-[background-color,transform] duration-150 active:scale-[.94]",
+            heroDone ? "bg-rd-teal" : "bg-rd-coral group-hover:translate-x-0.5",
+          ].join(" ")}
         >
-          <ArrowRight className="w-[22px] h-[22px] text-white" />
-        </div>
+          {heroDone ? (
+            <Check className="w-[22px] h-[22px] text-white" />
+          ) : (
+            <ArrowRight className="w-[22px] h-[22px] text-white" />
+          )}
+        </button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-[1.45fr_1fr] gap-4 mt-4 items-start">
-        {/* Today's plan */}
+        {/* Left column — Today's plan + quick-access tiles */}
+        <div className="flex flex-col gap-3 min-w-0">
         <RdCard className="p-5">
           <div className="flex items-center justify-between">
             <h2 className="font-display font-bold text-[17px] text-rd-text">Today&apos;s plan</h2>
-            {planTasks.length > 0 && (
+            {planTasks.filter((t) => !t.is_complete).length > 0 && (
               <span className="text-[11px] text-rd-text-tertiary border border-rd-border-subtle rounded-full px-2.5 py-1">
-                {planTasks.length} open
+                {planTasks.filter((t) => !t.is_complete).length} open
               </span>
             )}
           </div>
@@ -517,31 +640,36 @@ export default function Home() {
               {planTasks.map((t) => {
                 const cat = taskCategoryStyle(t.category);
                 const CatIcon = cat.icon;
+                const done = !!t.is_complete;
                 return (
                 <li key={t.id}>
-                  <Link
-                    to={createPageUrl("Tasks")}
-                    className="flex items-center gap-3 px-1.5 py-2 rounded-[12px] hover:bg-rd-bg-page transition-colors"
+                  <button
+                    onClick={() => toggleTask(t)}
+                    className="w-full text-left flex items-center gap-3 px-1.5 py-2 rounded-[12px] hover:bg-rd-bg-page transition-colors"
                   >
-                    <span className={`w-7 h-7 rounded-full ${cat.bg} flex items-center justify-center flex-shrink-0`}>
-                      <CatIcon className={`w-3.5 h-3.5 ${cat.fg}`} />
+                    <span className={`w-7 h-7 rounded-full ${done ? "bg-rd-teal-tint" : cat.bg} flex items-center justify-center flex-shrink-0`}>
+                      {done ? (
+                        <Check className="w-3.5 h-3.5 text-rd-teal-dark" />
+                      ) : (
+                        <CatIcon className={`w-3.5 h-3.5 ${cat.fg}`} />
+                      )}
                     </span>
                     <span className="flex-1 min-w-0">
-                      <span className="block font-display font-bold text-[13px] text-rd-text truncate">
+                      <span className={`block font-display font-bold text-[13px] truncate ${done ? "line-through text-rd-text-tertiary" : "text-rd-text"}`}>
                         {t.title}
                       </span>
-                      {t.role_title && (
+                      {t.role_title && !done && (
                         <span className="block text-[11px] text-rd-text-secondary truncate">
                           For: {t.role_title}
                         </span>
                       )}
                     </span>
-                    {t.due_date && (
+                    {t.due_date && !done && (
                       <span className="text-[11px] text-rd-text-secondary flex-shrink-0">
                         {new Date(t.due_date).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
                       </span>
                     )}
-                  </Link>
+                  </button>
                 </li>
                 );
               })}
@@ -565,6 +693,50 @@ export default function Home() {
             All tasks <ChevronRight className="w-3.5 h-3.5" />
           </Link>
         </RdCard>
+
+        {/* Quick-access tiles — surfaces that left the nav (seamless-ia). */}
+        <div className="flex gap-2.5 flex-wrap">
+          <QuickTile
+            to={createPageUrl("StoryBank")}
+            icon={Bookmark}
+            tint="bg-rd-coral-tint"
+            ink="text-rd-coral-dark"
+            label="Story Bank"
+            meta={
+              stories.length === 0
+                ? "capture your first"
+                : `${stories.length} ${stories.length === 1 ? "story" : "stories"}${
+                    stories.filter((s) => new Date(s.created_at).getTime() >= Date.now() - 7 * DAY_MS).length > 0
+                      ? ` · ${stories.filter((s) => new Date(s.created_at).getTime() >= Date.now() - 7 * DAY_MS).length} new`
+                      : ""
+                  }`
+            }
+          />
+          <QuickTile
+            to={createPageUrl("CVAgent")}
+            icon={FileText}
+            tint="bg-rd-teal-tint"
+            ink="text-rd-teal-dark"
+            label="My CV"
+            meta="tailor one in chat"
+          />
+          <QuickTile
+            to={createPageUrl("Linkedin")}
+            icon={LinkedinIcon}
+            tint="bg-rd-golden-tint"
+            ink="text-rd-golden-dark"
+            label="LinkedIn"
+            meta={(() => {
+              const last = linkedinPosts[0]?.created_at ? new Date(linkedinPosts[0].created_at) : null;
+              if (!last) return "no posts yet";
+              const d = Math.floor((Date.now() - last.getTime()) / DAY_MS);
+              if (d === 0) return "posted today";
+              if (d === 1) return "posted yesterday";
+              return `last post ${d}d ago`;
+            })()}
+          />
+        </div>
+        </div>
 
         {/* Pipeline — variant C: funnel counts up top, exceptions below. */}
         <RdCard className="p-5">
@@ -644,6 +816,21 @@ export default function Home() {
 // ────────────────────────────────────────────────────────────────────────
 // Pieces
 // ────────────────────────────────────────────────────────────────────────
+
+function QuickTile({ to, icon: Icon, tint, ink, label, meta }) {
+  return (
+    <Link
+      to={to}
+      className="flex-1 basis-[96px] min-w-[96px] bg-rd-bg-card border border-rd-border hover:border-rd-border-hover rounded-[14px] px-3 py-2.5 transition-[border-color,transform] duration-150 hover:-translate-y-0.5"
+    >
+      <span className={`w-7 h-7 rounded-full ${tint} flex items-center justify-center`}>
+        <Icon className={`w-3.5 h-3.5 ${ink}`} />
+      </span>
+      <span className="block font-display font-bold text-[12.5px] text-rd-text mt-2">{label}</span>
+      <span className="block text-[10.5px] text-rd-text-secondary truncate mt-0.5">{meta}</span>
+    </Link>
+  );
+}
 
 function StatBlock({ label, value, suffix = "", to }) {
   return (

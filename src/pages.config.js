@@ -63,6 +63,7 @@ import Calendar from './pages/Calendar';
 import Jobs from './pages/Jobs';
 import Admin from './pages/Admin';
 import AdminLaunch from './pages/AdminLaunch';
+import Career from './pages/Career';
 import Linkedin from './pages/Linkedin';
 import Internship from './pages/Internship';
 import Settings from './pages/Settings';
@@ -90,6 +91,7 @@ export const PAGES = {
     "Jobs": Jobs,
     "Admin": Admin,
     "AdminLaunch": AdminLaunch,
+    "Career": Career,
     "Linkedin": Linkedin,
     "Internship": Internship,
     "Settings": Settings,

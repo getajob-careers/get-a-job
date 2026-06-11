@@ -30,6 +30,8 @@ function seedCache(qc, fixture) {
   qc.setQueryData(["careerRoles", HOME_FIXTURE_UID], fixture.roles || []);
   qc.setQueryData(["applications", HOME_FIXTURE_UID], fixture.applications || []);
   qc.setQueryData(["tasks", HOME_FIXTURE_UID], fixture.tasks || []);
+  qc.setQueryData(["stories", HOME_FIXTURE_UID], fixture.stories || []);
+  qc.setQueryData(["linkedin_posts_home", HOME_FIXTURE_UID], fixture.linkedinPosts || []);
   qc.setQueryData(["experiences", HOME_FIXTURE_UID], fixture.experiences || []);
   qc.setQueryData(["certifications", HOME_FIXTURE_UID], fixture.certifications || []);
   qc.setQueryData(["projects", HOME_FIXTURE_UID], fixture.projects || []);

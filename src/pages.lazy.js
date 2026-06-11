@@ -25,6 +25,7 @@ import { lazy } from "react";
 // Ordering doesn't matter — kept alphabetical for grep-ability.
 const Admin = lazy(() => import("./pages/Admin"));
 const AdminLaunch = lazy(() => import("./pages/AdminLaunch"));
+const Career = lazy(() => import("./pages/Career"));
 const Calendar = lazy(() => import("./pages/Calendar"));
 const CareerAgent = lazy(() => import("./pages/CareerAgent"));
 const CVAgent = lazy(() => import("./pages/CVAgent"));
@@ -51,6 +52,7 @@ import Onboarding from "./pages/Onboarding";
 export const LAZY_PAGES = {
   Admin,
   AdminLaunch,
+  Career,
   Calendar,
   CareerAgent,
   CVAgent,

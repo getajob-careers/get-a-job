@@ -84,7 +84,7 @@ function formatPostedDate(dateStr) {
 // 2026 started rejecting the unknown column, breaking the Track button.
 // Removed in PR #134 since no code path read it. The (ats_source,
 // external_id) pair we still write serves the same join purpose.)
-async function addJobToTracker({ user, queryClient, job, scoreResult }) {
+export async function addJobToTracker({ user, queryClient, job, scoreResult }) {
   let dupQuery = supabase.from("applications").select("id").eq("user_id", user.id).limit(1);
   if (job.ats_source && job.external_id) {
     dupQuery = dupQuery.eq("ats_source", job.ats_source).eq("external_id", job.external_id);
