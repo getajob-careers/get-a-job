@@ -328,7 +328,7 @@ export default function CoachThread({ variant = "dock" }) {
           <span className="w-[22px] h-[22px] rounded-full bg-rd-coral-tint flex items-center justify-center flex-shrink-0 mt-[2px]">
             <span className="w-1.5 h-1.5 rounded-full bg-rd-coral" />
           </span>
-          <span className="inline-flex gap-1 items-center px-3 py-2 bg-[#F3ECE0] rounded-tl-[12px] rounded-tr-[12px] rounded-br-[12px] rounded-bl-[3px]">
+          <span className="inline-flex gap-1 items-center px-3 py-2 bg-rd-bg-soft rounded-tl-[12px] rounded-tr-[12px] rounded-br-[12px] rounded-bl-[3px]">
             <span className="w-[4px] h-[4px] rounded-full bg-rd-text-tertiary animate-chat-typing" />
             <span className="w-[4px] h-[4px] rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.15s]" />
             <span className="w-[4px] h-[4px] rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.3s]" />
