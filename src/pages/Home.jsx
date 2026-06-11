@@ -104,6 +104,14 @@ export default function Home() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const agentDrawer = useAgentDrawer();
+  // PR-B2: Today surface — set page-only context so the agent knows the
+  // route the user is on without surfacing any entity IDs (Today's
+  // attention items are linked through to /Career?pipeline=open, not
+  // selected on this surface).
+  useEffect(() => {
+    agentDrawer.setPageContext({ page: "Today" });
+    return () => agentDrawer.setPageContext(null);
+  }, [agentDrawer]);
 
   const { data: profile, isLoading: loadingProfile, isFetched: profileFetched, isError: profileError } = useProfileQuery(user?.id);
 

@@ -5,6 +5,11 @@ import { openaiChatCompletion, type TraceContext } from '../_shared/openai-chat.
 import { pickPrimaryEducation, formatEducationLine } from '../_shared/education-helpers.ts'
 import { stripHtml } from '../_shared/strip-html.ts'
 import { routeFor } from '../_shared/model-routing.ts'
+import {
+  sanitizePageContext,
+  fetchPageContextEntities,
+  renderPageContextBlocks,
+} from './page-context.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -14,7 +19,12 @@ const corsHeaders = {
 }
 
 const MODEL = 'gpt-4o-mini'
-const RATE_LIMIT_CALLS = 30
+// PR-B2 bump 30 → 50: the agent drawer adds a second high-volume entry
+// point on top of the four full-page agents, and pilot students who
+// keep the drawer open through a working session legitimately need
+// more turns than the legacy single-page flow modeled. Same 1-hour
+// window. Telemetry will revisit after Aug-Nov 2026 pilot.
+const RATE_LIMIT_CALLS = 50
 const RATE_LIMIT_WINDOW = 3600
 
 function extractJsonBlock(
@@ -617,7 +627,24 @@ Deno.serve(async (req) => {
         status: 413, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
-    const { message, agent, conversation_history = [], application_id, follow_up_after } = JSON.parse(rawBody)
+    const { message, agent, conversation_history = [], application_id, follow_up_after, page_context } = JSON.parse(rawBody)
+
+    // PR-B2 page-context contract: the drawer surface forwards the
+    // user's current route + entity IDs only. Sanitize aggressively
+    // (whitelist enum / UUID-format / valid keys) before any DB work;
+    // unknown shapes silently drop to null so the prompt assembly stays
+    // byte-identical to the legacy path. Empty / absent input skips the
+    // fetch round-trips entirely.
+    const safePageContext = sanitizePageContext(page_context)
+    // The drawer can also surface application_id via page_context for
+    // surfaces where it's natural (Career detail drawer, Calendar event
+    // row). Prefer the explicit top-level application_id when present so
+    // legacy callers (CVAgent, InterviewCoach) keep working untouched;
+    // fall back to page_context only when the body field isn't set.
+    const effectiveApplicationId =
+      (typeof application_id === 'string' && application_id) ||
+      safePageContext?.application_id ||
+      null
 
     if (!message || !agent) {
       _http = 400; _err = 'missing_input'
@@ -783,17 +810,17 @@ Deno.serve(async (req) => {
       }
     }
 
-    if (application_id && typeof application_id === 'string') {
+    if (effectiveApplicationId) {
       const { data: appData } = await supabase
         .from('applications')
         .select('role_title, company, job_description, skills_required, status')
-        .eq('id', application_id).eq('user_id', user.id).single()
+        .eq('id', effectiveApplicationId).eq('user_id', user.id).single()
       if (appData) {
         // Explicit "application_id:" line so the LLM can copy the UUID into
         // any SUGGESTED_CV_GENERATION_JSON / SUGGESTED_APPLICATION_ACTIONS_JSON
         // block without confusion. Key name matches the field name the client
         // forwards to generate-tailored-cv.
-        userContext += `\n\nTARGET APPLICATION (use this exact application_id in any CV or application actions — the user has already selected this via the dropdown; do NOT ask which role):\n- application_id: ${application_id}\n- Role: ${appData.role_title}\n- Company: ${appData.company || '(not set)'}\n- Status: ${appData.status}`
+        userContext += `\n\nTARGET APPLICATION (use this exact application_id in any CV or application actions — the user has already selected this via the dropdown; do NOT ask which role):\n- application_id: ${effectiveApplicationId}\n- Role: ${appData.role_title}\n- Company: ${appData.company || '(not set)'}\n- Status: ${appData.status}`
         // Defensive HTML strip — legacy applications.job_description rows
         // may hold raw HTML from pre-fix user pastes. Pass to LLM cleaned.
         if (appData.job_description) {
@@ -807,6 +834,23 @@ Deno.serve(async (req) => {
           if (gaps.length > 0) userContext += `\n- Skill Gaps: ${gaps.map((s: { skill_name: string; status: string }) => `${s.skill_name} (${s.status})`).join(', ')}`
         }
       }
+    }
+
+    // PR-B2 page-context blocks. Server-authoritative — each entity is
+    // fetched by ID under the caller's auth (career_roles.user_id /
+    // company_targets.user_id scoped; jobs are publicly readable). The
+    // LLM never receives client-authored entity content. Unknown /
+    // foreign IDs silently drop. Absent page_context = empty render =
+    // userContext byte-identical to the legacy path (see
+    // page-context.test.ts "prompt-byte-equivalence" suite).
+    //
+    // application_id intentionally NOT re-rendered here — the TARGET
+    // APPLICATION block above already handles it via effectiveApplicationId,
+    // so there's no duplication when page_context.application_id triggers
+    // the legacy fetch.
+    if (safePageContext) {
+      const pageCtxFetched = await fetchPageContextEntities(supabase, user.id, safePageContext)
+      userContext += renderPageContextBlocks(pageCtxFetched)
     }
 
     const basePrompt = AGENT_SYSTEM_PROMPTS[agent] || AGENT_SYSTEM_PROMPTS['career-coach']
@@ -923,7 +967,8 @@ Deno.serve(async (req) => {
           userId: user.id,
           metadata: {
             agent,
-            has_application_link: !!application_id,
+            has_application_link: !!effectiveApplicationId,
+            page_context_keys: safePageContext ? Object.keys(safePageContext).sort() : null,
             follow_up_after: follow_up_after || null,
             // Report whichever cap was actually sent so function_metrics
             // doesn't lie about reasoning-model calls (which use a much

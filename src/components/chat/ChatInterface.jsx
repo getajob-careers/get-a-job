@@ -419,6 +419,13 @@ export default function ChatInterface({
   introMessage,
   variant = "page",
   initialInput = null,
+  // PR-B2: page-context payload. The drawer's AgentDrawer reads this
+  // from useAgentDrawer() and passes it through; full-page agent
+  // surfaces (CareerAgent / CVAgent / InterviewCoach / SkillAdvisor)
+  // leave it null so ai-chat falls back to the legacy assembly path
+  // (byte-identical). Shape: {page, application_id?, job_id?, role_id?,
+  // track?, company_target_id?} — IDs only, validated server-side.
+  pageContext = null,
 }) {
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -686,6 +693,10 @@ export default function ChatInterface({
         agent: agentName || "career-coach",
         conversation_history: updatedMessages.slice(-20).filter((m) => m.role !== "system"),
         ...(applicationId && { application_id: applicationId }),
+        // PR-B2: forward page_context verbatim when the drawer surface
+        // populated it. Server sanitizes + fetches authoritatively, so
+        // there's no risk of the client claiming entity content.
+        ...(pageContext && { page_context: pageContext }),
       };
       let { data, error } = await supabase.functions.invoke("ai-chat", { body: invokeBody });
 
@@ -797,6 +808,7 @@ export default function ChatInterface({
           agent: agentName || "career-coach",
           conversation_history: historyForCall,
           ...(applicationId && { application_id: applicationId }),
+          ...(pageContext && { page_context: pageContext }),
         },
       });
       if (error) throw error;

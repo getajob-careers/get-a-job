@@ -46,7 +46,7 @@ const DEFAULT_DRAWER_PROMPTS = [
 ];
 
 export default function AgentDrawer() {
-  const { isOpen, seed, applicationId, open, close } = useAgentDrawer();
+  const { isOpen, seed, applicationId, pageContext, open, close } = useAgentDrawer();
   const isMobile = useIsMobile();
 
   // Mount the chat once the drawer has been opened at least once; keep
@@ -139,6 +139,7 @@ export default function AgentDrawer() {
             title="Career Agent"
             description=""
             applicationId={applicationId}
+            pageContext={pageContext}
             suggestedPrompts={suggestedPrompts}
             initialInput={seed || null}
             introMessage="What would you like to work on?"
