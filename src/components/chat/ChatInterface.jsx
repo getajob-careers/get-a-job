@@ -27,6 +27,8 @@ import {
 } from "@/lib/coachActionHandlers";
 import MessageBubble from "./MessageBubble";
 import StorySaveCard from "./StorySaveCard";
+import { CHAT_MODEL } from "@/lib/chatModel";
+
 
 const TRACK_LABELS = {
   track_1: "Track 1 — Your Move",
@@ -686,6 +688,7 @@ export default function ChatInterface({
         message: text,
         agent: agentName || "career-coach",
         conversation_history: updatedMessages.slice(-20).filter((m) => m.role !== "system"),
+        chat_model: CHAT_MODEL,
         ...(applicationId && { application_id: applicationId }),
         // PR-B2: forward page_context verbatim when the drawer surface
         // populated it. Server sanitizes + fetches authoritatively, so
@@ -801,6 +804,7 @@ export default function ChatInterface({
           message: userText,
           agent: agentName || "career-coach",
           conversation_history: historyForCall,
+          chat_model: CHAT_MODEL,
           ...(applicationId && { application_id: applicationId }),
           ...(pageContext && { page_context: pageContext }),
         },
@@ -996,6 +1000,7 @@ export default function ChatInterface({
               message: "[CV ready]",
               agent: agentName || "career-coach",
               conversation_history: historyForFollowUp,
+              chat_model: CHAT_MODEL,
               follow_up_after: "cv_generation",
               ...(applicationId && { application_id: applicationId }),
             },

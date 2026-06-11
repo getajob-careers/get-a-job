@@ -43,7 +43,6 @@ import {
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 import {
-  assertPromptParity,
   buildUserContext,
   assembleSystemPrompt,
   buildMessages,
@@ -615,12 +614,10 @@ async function main() {
   const rawLog = `${OUT_DIR}/cells.jsonl`;
   writeFileSync(rawLog, "");
 
-  // 1) DRIFT GUARD
-  const indexSrc = readFileSync(INDEX_TS, "utf8");
-  const parity = assertPromptParity(indexSrc);
-  console.log(
-    `✓ drift guard: ${parity.checked} invariants match ai-chat/index.ts`,
-  );
+  // 1) Option-B: prompt assembly + parser are imported verbatim from
+  // supabase/functions/ai-chat/prompt-lib.ts (the same module the edge function
+  // uses), so there is no copied mirror and no drift guard to run.
+  console.log(`✓ using shared prompt-lib.ts (single source of truth)`);
   console.log(
     `  Langfuse Scores: ${LANGFUSE_ENABLED ? "ENABLED" : "disabled (no keys) — scores persisted locally only"}`,
   );
@@ -638,7 +635,8 @@ async function main() {
   for (const fx of fixtures) {
     const userContext = await buildUserContext(svc, BOUND_USER_ID, {
       agent: fx.agent,
-      application_id: fx.application_id,
+      effectiveApplicationId: fx.application_id,
+      safePageContext: fx.page_context ?? null,
     });
     const systemPrompt = assembleSystemPrompt(fx.agent, userContext, null);
     const messages = buildMessages(

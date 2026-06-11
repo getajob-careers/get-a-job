@@ -16,6 +16,7 @@
 // the client side.
 
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { CHAT_MODEL } from "@/lib/chatModel";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
@@ -164,6 +165,7 @@ export function CoachConversationProvider({ children }) {
         message: text,
         agent: AGENT_NAME,
         conversation_history: optimisticMessages.slice(-TURN_HISTORY_SLICE).filter((m) => m.role !== "system").map((m) => ({ role: m.role, content: m.content })),
+        chat_model: CHAT_MODEL,
         ...(applicationId && { application_id: applicationId }),
         ...(pageContext && { page_context: pageContext }),
       };
