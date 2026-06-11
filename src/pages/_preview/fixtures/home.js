@@ -95,13 +95,17 @@ const APP_ACTIVE_7 = [
   },
 ];
 
+// Scores stored as 0-1 fractions to mirror the live DB contract — see
+// tasks/lessons.md 2026-06-11. Consumers normalize to percent at display
+// time. Previously these rows used display-unit numbers (88, 80, …),
+// which let a 100× display bug slip past two reviews of Career.jsx.
 const ROLES_MIXED = [
-  { id: "r-1", user_id: UID, title: "Associate Product Manager", track: "track_1", match_score: 88, readiness_score: 84 },
-  { id: "r-2", user_id: UID, title: "Product Analyst", track: "track_1", match_score: 80, readiness_score: 78 },
-  { id: "r-3", user_id: UID, title: "Strategy & Operations Associate", track: "track_1", match_score: 72, readiness_score: 70 },
-  { id: "r-4", user_id: UID, title: "BizOps Analyst", track: "track_2", match_score: 65, readiness_score: 64 },
-  { id: "r-5", user_id: UID, title: "Customer Success Manager", track: "track_2", match_score: 60, readiness_score: 58 },
-  { id: "r-6", user_id: UID, title: "Senior Product Manager", track: "track_3", match_score: 55, readiness_score: 45 },
+  { id: "r-1", user_id: UID, title: "Associate Product Manager", track: "track_1", match_score: 0.88, readiness_score: 0.84 },
+  { id: "r-2", user_id: UID, title: "Product Analyst", track: "track_1", match_score: 0.80, readiness_score: 0.78 },
+  { id: "r-3", user_id: UID, title: "Strategy & Operations Associate", track: "track_1", match_score: 0.72, readiness_score: 0.70 },
+  { id: "r-4", user_id: UID, title: "BizOps Analyst", track: "track_2", match_score: 0.65, readiness_score: 0.64 },
+  { id: "r-5", user_id: UID, title: "Customer Success Manager", track: "track_2", match_score: 0.60, readiness_score: 0.58 },
+  { id: "r-6", user_id: UID, title: "Senior Product Manager", track: "track_3", match_score: 0.55, readiness_score: 0.45 },
 ];
 
 const NEW_JOBS_5 = [
@@ -167,12 +171,12 @@ export const HOME_FIXTURES = {
     profile: profile(),
     roles: [
       ...ROLES_MIXED,
-      { id: "r-7", user_id: UID, title: "RevOps Analyst", track: "track_2", match_score: 62, readiness_score: 60 },
-      { id: "r-8", user_id: UID, title: "Implementation Manager", track: "track_2", match_score: 58, readiness_score: 56 },
-      { id: "r-9", user_id: UID, title: "Sales Operations Analyst", track: "track_2", match_score: 56, readiness_score: 54 },
-      { id: "r-10", user_id: UID, title: "Director of Product Operations", track: "track_3", match_score: 48, readiness_score: 38 },
-      { id: "r-11", user_id: UID, title: "Head of Strategy", track: "track_3", match_score: 45, readiness_score: 35 },
-      { id: "r-12", user_id: UID, title: "Principal Product Manager", track: "track_3", match_score: 42, readiness_score: 32 },
+      { id: "r-7", user_id: UID, title: "RevOps Analyst", track: "track_2", match_score: 0.62, readiness_score: 0.60 },
+      { id: "r-8", user_id: UID, title: "Implementation Manager", track: "track_2", match_score: 0.58, readiness_score: 0.56 },
+      { id: "r-9", user_id: UID, title: "Sales Operations Analyst", track: "track_2", match_score: 0.56, readiness_score: 0.54 },
+      { id: "r-10", user_id: UID, title: "Director of Product Operations", track: "track_3", match_score: 0.48, readiness_score: 0.38 },
+      { id: "r-11", user_id: UID, title: "Head of Strategy", track: "track_3", match_score: 0.45, readiness_score: 0.35 },
+      { id: "r-12", user_id: UID, title: "Principal Product Manager", track: "track_3", match_score: 0.42, readiness_score: 0.32 },
     ],
     applications: APP_ACTIVE_7,
     tasks: TASKS_MIXED,

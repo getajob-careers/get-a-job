@@ -42,6 +42,29 @@ const TRACK_SIMILARITY_THRESHOLD = 0.3;
 const MAX_TRACK_ROLES = 8;
 const JOBS_PAGE_SIZE = 20;
 
+// Display normalization for the 0-1 score contract.
+//
+// career_roles.match_score, readiness_score, and goal_alignment_score are
+// stored as 0-1 fractions (verified against live DB 2026-06-11; max across
+// all 426 production rows is 1.0). This page renders percent strings, so
+// every consumer here multiplies by 100. Same conversion JobCard.jsx
+// already applies for fit_score (Math.round(score * 100), and that
+// RoleCard.jsx applies for readiness_score + goal_alignment_score
+// (Math.round(Number(rawScore) * 100)). This page was the outlier; the
+// rail forgot the conversion and shipped showing "1%" badges for two
+// weeks of production.
+//
+// Contract:
+//   - Caller MUST gate on null/undefined upstream (see qualifiedAvailable
+//     and pathAvailable in the rail; typeof === "number" for the badge).
+//   - This helper coerces null/undefined to 0 defensively but the rendered
+//     element should already be omitted in the null case.
+//   - Clamped to [0, 100] so a future stored value > 1 (or a 0-100 row
+//     left over before this hotfix) renders as 100 rather than something
+//     absurd like "8800%".
+const toPct = (v) =>
+  Math.max(0, Math.min(100, Math.round((v ?? 0) * 100)));
+
 // Band styling per track — canonical rdColor mapping (T1 coral · T2 teal ·
 // T3 golden) from TRACK_CONFIG, expressed as static Tailwind classes so
 // the JIT compiler sees them.
@@ -293,7 +316,7 @@ export default function Career() {
                     {cfg.name}
                   </span>
                   <span className={`block text-[10.5px] truncate ${active ? t.ink : "text-rd-text-secondary"}`}>
-                    T{cfg.number} · {FIT_LABELS[t.key]} · {(rolesByTrack[t.key] || []).length} roles
+                    T{cfg.number} · {FIT_LABELS[t.key]} · {(rolesByTrack[t.key] || []).length} {(rolesByTrack[t.key] || []).length === 1 ? "role" : "roles"}
                     {typeof count === "number" ? ` · ${count} live` : ""}
                   </span>
                 </span>
@@ -433,8 +456,8 @@ export default function Career() {
               const qualifiedRaw = r.readiness_score ?? r.match_score;
               const qualifiedAvailable = qualifiedRaw !== null && qualifiedRaw !== undefined;
               const pathAvailable = r.goal_alignment_score !== null && r.goal_alignment_score !== undefined;
-              const qualified = Math.round(qualifiedRaw ?? 0);
-              const path = Math.round(r.goal_alignment_score ?? 0);
+              const qualified = toPct(qualifiedRaw);
+              const path = toPct(r.goal_alignment_score);
               const matched = (r.matched_skills || []).slice(0, 4);
               const gaps = (r.missing_skills || []).slice(0, 3);
               return (
@@ -449,7 +472,7 @@ export default function Career() {
                     </span>
                     {typeof r.match_score === "number" && (
                       <span className={`font-display font-extrabold text-[11px] rounded-full px-2 py-0.5 ${band.tintBg} ${band.ink}`}>
-                        {Math.round(r.match_score)}%
+                        {toPct(r.match_score)}%
                       </span>
                     )}
                     {expanded ? (

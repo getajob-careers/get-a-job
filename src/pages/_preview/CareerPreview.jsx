@@ -19,12 +19,18 @@ const MAX_TRACK_ROLES = 8;
 // matched/gap skill chips). Skill ids are canonical library ids so
 // humanizeSkillId resolves them.
 const CAREER_ROLES = [
-  { id: "r-1", user_id: UID, title: "Associate Product Manager", track: "track_1", match_score: 88, readiness_score: 84, goal_alignment_score: 95, matched_skills: ["stakeholder_management", "user_research"], missing_skills: ["product_roadmapping"] },
-  { id: "r-2", user_id: UID, title: "Product Analyst", track: "track_1", match_score: 80, readiness_score: 78, goal_alignment_score: 70, matched_skills: ["data_analysis", "sql"], missing_skills: ["ab_testing"] },
-  { id: "r-3", user_id: UID, title: "Strategy & Operations Associate", track: "track_1", match_score: 72, readiness_score: 70, goal_alignment_score: 66, matched_skills: ["process_design"], missing_skills: ["financial_modeling"] },
-  { id: "r-4", user_id: UID, title: "Customer Success Manager", track: "track_2", match_score: 64, readiness_score: 81, goal_alignment_score: 38, matched_skills: ["client_communication"], missing_skills: ["cs_tooling"] },
-  { id: "r-5", user_id: UID, title: "Implementation Specialist", track: "track_2", match_score: 55, readiness_score: 74, goal_alignment_score: 31, matched_skills: ["onboarding"], missing_skills: ["integrations"] },
-  { id: "r-6", user_id: UID, title: "Product Manager", track: "track_3", match_score: 41, readiness_score: 34, goal_alignment_score: 98, matched_skills: ["user_research"], missing_skills: ["product_roadmapping"] },
+  // Scores stored as 0-1 fractions to mirror the live DB contract — see
+  // tasks/lessons.md 2026-06-11. Career.jsx normalizes to percent at
+  // display time via toPct(). Previously these rows used display-unit
+  // numbers (88, 80, …), which let the 100× display bug slip past two
+  // reviews and a 17-page preview packet because the preview pipeline
+  // saw already-percent values and never exercised the missing × 100.
+  { id: "r-1", user_id: UID, title: "Associate Product Manager", track: "track_1", match_score: 0.88, readiness_score: 0.84, goal_alignment_score: 0.95, matched_skills: ["stakeholder_management", "user_research"], missing_skills: ["product_roadmapping"] },
+  { id: "r-2", user_id: UID, title: "Product Analyst", track: "track_1", match_score: 0.80, readiness_score: 0.78, goal_alignment_score: 0.70, matched_skills: ["data_analysis", "sql"], missing_skills: ["ab_testing"] },
+  { id: "r-3", user_id: UID, title: "Strategy & Operations Associate", track: "track_1", match_score: 0.72, readiness_score: 0.70, goal_alignment_score: 0.66, matched_skills: ["process_design"], missing_skills: ["financial_modeling"] },
+  { id: "r-4", user_id: UID, title: "Customer Success Manager", track: "track_2", match_score: 0.64, readiness_score: 0.81, goal_alignment_score: 0.38, matched_skills: ["client_communication"], missing_skills: ["cs_tooling"] },
+  { id: "r-5", user_id: UID, title: "Implementation Specialist", track: "track_2", match_score: 0.55, readiness_score: 0.74, goal_alignment_score: 0.31, matched_skills: ["onboarding"], missing_skills: ["integrations"] },
+  { id: "r-6", user_id: UID, title: "Product Manager", track: "track_3", match_score: 0.41, readiness_score: 0.34, goal_alignment_score: 0.98, matched_skills: ["user_research"], missing_skills: ["product_roadmapping"] },
 ];
 
 const CAREER_JOBS = [
