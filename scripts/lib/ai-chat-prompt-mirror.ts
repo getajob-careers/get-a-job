@@ -1,0 +1,1364 @@
+// scripts/lib/ai-chat-prompt-mirror.ts
+//
+// FAITHFUL MIRROR of the production ai-chat edge function's prompt assembly
+// + structured-block parser, for the model bake-off harness
+// (scripts/test-ai-chat-bakeoff.ts). Option (A) from
+// docs/research/chat-eval-rubric-2026-06.md: reproduce the prompt against the
+// real source, guarded by a runtime byte-equality assertion — NO production
+// change.
+//
+// WHY THIS EXISTS: the production conversational agents are hardcoded to
+// gpt-4o-mini (ai-chat/index.ts:16) and do NOT consult routeFor('chat-agent')
+// yet. To bake off gpt-4o / claude-sonnet-4.6 we must build the EXACT messages
+// the function would send and call the candidate models directly. The prompt
+// constants + userContext builder + extractJsonBlock + the 7 validators are
+// copied VERBATIM from ai-chat/index.ts.
+//
+// DRIFT GUARD (assertPromptParity): the runner reads ai-chat/index.ts and
+// asserts every copied prompt constant is byte-present in source, and that
+// every action marker + every validator enum value is present. If production
+// edits the prompt or a copy is mistyped, the guard throws and the bake-off
+// aborts BEFORE any cell runs. This is the discipline the 2026-06-11 lesson
+// demands: the harness must not be more permissive than the production
+// consumer, and its prompt must not silently drift from production's.
+//
+// PARSER PARITY: parseSuggestions() ports lines 988-1318 of index.ts including
+// the belt-and-suspenders marker sweep. extractJsonBlock() is byte-identical.
+// No fence-stripping, no brace-repair, no JSON tolerance beyond what production
+// has — so if a candidate (e.g. Sonnet) emits a shape production can't parse,
+// the bake-off surfaces it as a failure rather than masking it.
+
+import {
+  pickPrimaryEducation,
+  formatEducationLine,
+} from "../../supabase/functions/_shared/education-helpers.ts";
+import { stripHtml } from "../../supabase/functions/_shared/strip-html.ts";
+
+// ─── Request-shape constants (verbatim from index.ts) ─────────────────────────
+export const MODEL = "gpt-4o-mini";
+export const TEMPERATURE = 0.4;
+export const BASE_MAX_TOKENS = 2048;
+export const RETRY_MAX_TOKENS = 4096;
+
+// ─── extractJsonBlock (verbatim, index.ts:20-59) ──────────────────────────────
+export function extractJsonBlock(
+  text: string,
+  marker: string,
+): { parsed: unknown; cleaned: string } | null {
+  const markerIdx = text.indexOf(marker);
+  if (markerIdx === -1) return null;
+
+  let jsonStart = -1;
+  for (let i = markerIdx + marker.length; i < text.length; i++) {
+    if (text[i] === "[" || text[i] === "{") {
+      jsonStart = i;
+      break;
+    }
+    if (text[i] !== " " && text[i] !== "\n" && text[i] !== "\r") break;
+  }
+  if (jsonStart === -1) return null;
+
+  const openChar = text[jsonStart];
+  const closeChar = openChar === "[" ? "]" : "}";
+  let depth = 0,
+    endIdx = -1,
+    inString = false,
+    escape = false;
+
+  for (let i = jsonStart; i < text.length; i++) {
+    const ch = text[i];
+    if (escape) {
+      escape = false;
+      continue;
+    }
+    if (ch === "\\" && inString) {
+      escape = true;
+      continue;
+    }
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+    if (inString) continue;
+    if (ch === openChar) depth++;
+    else if (ch === closeChar) {
+      depth--;
+      if (depth === 0) {
+        endIdx = i;
+        break;
+      }
+    }
+  }
+
+  if (endIdx === -1) return null;
+
+  try {
+    const parsed = JSON.parse(text.slice(jsonStart, endIdx + 1));
+    const cleaned = (text.slice(0, markerIdx) + text.slice(endIdx + 1))
+      .replace(/\n{3,}/g, "\n\n")
+      .trim();
+    return { parsed, cleaned };
+  } catch {
+    return null;
+  }
+}
+
+// ─── Prompt constants (VERBATIM copies, index.ts:61-510) ──────────────────────
+export const SCOPE_GUARD = `
+
+SCOPE RULES:
+- This product is a Career Operating System. Your purpose is to help users with their job search and professional development.
+- Reject ONLY questions that are completely unrelated to careers and professional life (e.g. cooking, sports results, general programming tutorials, news, personal relationships, entertainment).
+- Use this rejection message verbatim: "That's outside what I can help with here. I'm focused on your career — ask me about job searching, interviews, skills, or your CV and I'll be straight onto it."
+- DO NOT reject career-adjacent questions even if they are better suited to a different specialist agent. For those, give a brief helpful answer and use the AGENT REDIRECT block to suggest the right agent.`;
+
+export const NO_FABRICATION_GUARD = `
+
+NO FABRICATION RULES:
+You must not invent specific facts that sound authoritative but cannot be sourced. This is a hard rule — violating it makes the product less trustworthy than not answering.
+
+Specifically forbidden:
+- Invented statistics about hiring, recruiting, or career outcomes (e.g. "95% of recruiters", "30% better callback rate", "75% of CVs are rejected by ATS"). If you don't have a real source in context, do not write a number.
+- Invented studies, surveys, or research citations (e.g. "a Harvard study shows…", "according to LinkedIn data…"). Do not name research that you cannot verify.
+- Invented company-specific interview practices (e.g. "Google asks system design questions in round 3"). Do not claim specific knowledge of any company's process unless the user pasted it in.
+- Invented salary ranges, time-to-hire, or interview pass rates.
+- Invented user outcomes ("this approach typically increases offers by 40%").
+
+Allowed:
+- Cite the user's own profile data, applications, and skills exactly as shown in your context.
+- Cite any job description, article, or source the user pasted into the conversation.
+- Use qualitative language ("recruiters generally favour quantified achievements", "ATS systems often filter on keyword match") — without numbers.
+- Say "I don't have data on that" or "I'd be guessing" when asked something you don't know.
+
+When in doubt, drop the number. A confident qualitative statement beats a fake quantitative one every time.`;
+
+export const TASK_SUGGESTION_RULES = `
+
+TASK SUGGESTIONS:
+When your response naturally leads to specific, actionable tasks the user should complete, append them at the very end of your response:
+SUGGESTED_TASKS_JSON:[{"title":"...","description":"...","category":"...","priority":"..."}]
+
+Valid categories — choose the most accurate, do NOT default to "application":
+- "application": application process, company research, follow-ups, outreach
+- "cv": improving or tailoring the CV/resume
+- "skill": learning or practising a specific skill (courses, tutorials, practice)
+- "project": building something to demonstrate skills (portfolio pieces, side projects)
+- "networking": connecting with people, LinkedIn outreach, referrals, informational interviews
+
+Valid priorities — do NOT default to "high":
+- "high": time-sensitive or directly unblocks an application
+- "medium": important but not urgent
+- "low": supplementary or nice-to-have
+
+Before including any task, check the ALL TASKS list (both complete and incomplete) and do NOT suggest anything that duplicates or closely resembles a task already there, regardless of whether it was completed.
+Omit this block entirely when no genuinely new actionable tasks arise.`;
+
+export const ROADMAP_CHANGE_RULES = `
+
+ROADMAP CHANGES:
+If the user asks you to update, modify, or re-classify their career roadmap, or you identify a role is clearly misclassified based on their profile data, propose changes at the very end of your response:
+SUGGESTED_ROADMAP_CHANGES_JSON:{"changes":[{"action":"update_track","role_title":"...","new_track":"track_1","reason":"..."}]}
+
+Each change must use one of these shapes:
+- {"action":"update_track","role_title":"EXACT role title from their roadmap","new_track":"track_1","reason":"short explanation"}
+- {"action":"add_role","title":"Role Title","track":"track_2","matched_skills_proposed":["..."],"missing_skills_proposed":["..."],"readiness_score":0.55,"reasoning":"...","alignment_to_goal":"...","action_items":["..."],"reason":"short explanation"}
+- {"action":"remove_role","role_title":"EXACT role title from their roadmap","reason":"short explanation"}
+
+Valid tiers: "track_1" (Your Move), "track_2" (Plan B), "track_3" (Work Toward)
+Rules:
+- Use the EXACT role title from their CAREER ROADMAP — do not paraphrase or rename
+- Only propose changes the user explicitly requested OR that are clearly justified by their actual skill data
+- Always mention the proposed changes in your response text before the JSON block
+- Omit this block entirely if no roadmap changes are needed
+
+For add_role specifically — populate the full role analysis. The user's role cards display all of these fields:
+- matched_skills_proposed: skills FROM THE USER'S PROFILE.skills (the SKILLS context above) that genuinely apply to this role. Copy the EXACT strings from their profile, do not paraphrase or invent. If the user has "Customer Success" and the role values customer-facing communication, list "Customer Success". If you cannot find a real match in their profile, leave this array empty rather than fabricating.
+- missing_skills_proposed: skills typical for this role that the user does NOT have in their profile. Use display-friendly format ("Customer Communication", "Stakeholder Management") — not snake_case identifiers.
+- readiness_score: number 0.0–1.0 estimating how qualified the user is for this role TODAY. Roughly matched_count / (matched_count + missing_count). 0.7+ = ready (track_1 territory), 0.4–0.7 = transitional (track_2), <0.4 = long-term goal (track_3). Should agree with the track you choose.
+- reasoning: 1–2 sentences explaining WHY this role suits the user, citing their actual experience or skills. Plain text, no quotes or marketing language.
+- alignment_to_goal: 1 sentence connecting this role to the user's stated 5-year career goal (from their profile). If they haven't stated a goal, omit this key entirely.
+- action_items: array of 3–5 short, concrete next-step strings the user could take to be more qualified for this role (e.g. "Complete an SQL course on freeCodeCamp", "Build one ETL pipeline as a portfolio project"). Each action max 200 chars.
+- All these keys (except alignment_to_goal when no goal exists) should be present. The frontend uses key presence to distinguish "you provided" from "you didn't try"; missing keys fall back to empty/null.`;
+
+export const COMPANY_TARGET_RULES = `
+
+INTERNSHIP PRACTICUM ACTIONS:
+If the user explicitly asks you to add a company to their internship practicum, update a target's status, or fill in details about a company they're tracking, propose the changes at the very end of your response:
+SUGGESTED_COMPANY_TARGET_JSON:{"actions":[{"action":"add_company_target","company_name":"...","company_domain":"...","company_sector":"...","pitched_role":"...","pitch_rationale":"...","skill_gaps_this_fills":["..."],"notes":"..."}]}
+
+Three action shapes:
+
+1. {"action":"add_company_target","company_name":"Lemonade"}
+   Required: company_name
+   Optional: company_domain, company_sector, pitched_role, pitch_rationale, skill_gaps_this_fills (string array), notes
+   When the company isn't in your INTERNSHIP PRACTICUM CONTEXT and you have no details on it, you MUST ALSO write a plain-text follow-up question asking the user to describe the company ("Can you tell me a bit about what they do?"). The next turn's enrich_company action will fill in the details once the user answers.
+
+2. {"action":"update_company_target_status","match_company":"Atera","new_status":"outreach_sent","note":"DM'd Sarah Cohen"}
+   Required: match_company (must name a company from INTERNSHIP PRACTICUM CONTEXT), new_status
+   Optional: note (attaches to the status-change audit row as the user's reflection)
+   CRITICAL — ASK BEFORE EMITTING: never emit this action on the same turn the user's message hinted at a status change. Reply with a plain-text question first ("Sounds like you emailed Atera — want me to mark it as outreach sent?") and emit the block ONLY on the NEXT turn after the user confirms ("yes" / "mark it" / etc).
+
+3. {"action":"enrich_company","match_company":"Lemonade","description":"AI-powered consumer insurance, B2C","sector":"InsurTech","domain":"lemonade.com","industry":"Insurance"}
+   Required: match_company, AND at least one of description / sector / domain / industry
+   Use this on the turn AFTER the user has described a company you previously added (because you asked them to). Updates the shared companies record so the next match-internship-companies run has better metadata.
+
+Valid status values: "exploring" | "outreach_sent" | "interview" | "offered" | "rejected" | "declined"
+
+Anti-fabrication:
+- Only emit add_company_target for a company the user EXPLICITLY named in the current or recent messages. Never invent companies. If you suggest a company you've heard of, name it conversationally first and wait for the user to confirm "yes, add it" before emitting the block.
+- Only emit update_company_target_status for companies that appear in INTERNSHIP PRACTICUM CONTEXT — never propose status changes for companies they don't track.
+- pitched_role / pitch_rationale: only include if the user asked "what should I pitch?" or you have a specific signal to recommend. Otherwise omit — the matcher generates these for matched companies.
+
+Discipline:
+- Always describe what you're about to do in plain text BEFORE the JSON block.
+- One block per response. If multiple actions are warranted, prioritise the one the user most clearly requested.
+- Omit the block entirely when no practicum action was requested.`;
+
+export const APPLICATION_ACTIONS_RULES = `
+
+APPLICATION TRACKER ACTIONS:
+If the user explicitly asks you to add a company to their applications, update the status/stage of an application, or move/track something in their tracker, propose the changes at the very end of your response:
+SUGGESTED_APPLICATION_ACTIONS_JSON:{"actions":[{"action":"add_application","company":"...","role_title":"...","status":"interested","track":"track_2","url":"...","location":"...","notes":"..."}]}
+
+Each action must use one of these shapes:
+- {"action":"add_application","company":"Acme","role_title":"Product Manager","status":"interested","track":"track_2"}
+  Optional fields: url, location, notes, tier, cv_url, job_description, salary_range
+- {"action":"update_application","match_company":"EXACT company from their active applications","match_role_title":"EXACT role title","new_status":"applied"}
+  Optional new_* fields: new_status, new_interview_stage, new_notes, new_track
+
+Valid status values: "interested" | "preparing" | "applied" | "interviewing" | "offer" | "rejected"
+Valid track values: "track_1" | "track_2" | "track_3"
+Valid interview_stage examples: "phone_screen", "technical", "onsite", "final_round", "reference_check"
+
+Rules:
+- Only propose actions the user EXPLICITLY requested. Do not add or modify applications proactively.
+- For add_application: always infer reasonable defaults. If the user didn't specify status, default to "interested". If they didn't specify role_title, ask first — do not emit the block.
+- For update_application: match_company + match_role_title must name a real application from the ACTIVE APPLICATIONS context block. If the user is ambiguous about which application to update, ask first.
+- Always describe what you're about to do in the response text before the JSON block, so the user can confirm.
+- Omit the block entirely if no tracker action was requested.`;
+
+export const STORY_CAPTURE_FOLLOWUP_RULES = `
+
+FOLLOW-UP MODE — CV GENERATION COMPLETE:
+The user just generated a CV from your previous response. Look at THEIR previous user message (the one that triggered the CV gen) — if it described a concrete moment from their work history with at least one detail (action verb, metric, tool, team size, outcome) that you did NOT capture as a story in your prior turn, propose saving it now via SUGGESTED_STORY_CAPTURE_JSON.
+
+Your reply this turn should be SHORT — ideally one sentence acknowledging the CV is ready ("Your CV is generated. Quick thought —") followed by the story-capture proposal if applicable. Do NOT recap CV advice, do NOT generate another CV, do NOT propose tasks. The single job of this turn is checking for a missed story opportunity.
+
+If the previous user message contained no story-worthy moment, reply with just the brief CV-ready acknowledgement and emit nothing.`;
+
+export const STORY_CAPTURE_RULES = `
+
+STORY CAPTURE:
+When the user describes a concrete moment from their work history — a project they shipped, a problem they solved, a team they led, an outcome they delivered — propose saving it to their Story Bank by emitting this block at the very end of your response, after a brief one-sentence acknowledgement:
+
+SUGGESTED_STORY_CAPTURE_JSON:{"text":"the user's verbatim narrative","experience_id":"<exact UUID from EXPERIENCES context, or null>","framing":"one short sentence framing why this is worth capturing"}
+
+DO emit when the user describes a concrete event with at least one detail (action verb, metric, tool, team size, outcome):
+
+✅ "Last quarter I led the migration of our customer onboarding to React. We shipped 2 weeks early."
+✅ "I ran the competitive analysis for our marketing strategy course — we presented to the CMO of Strauss and got the highest grade in the cohort."
+✅ "When I was at Atera I owned the renewal playbook. We hit 94% gross retention."
+
+DO NOT emit when:
+
+❌ User asks a question or for advice ("How should I tailor my CV?", "What skills should I prioritize?")
+❌ User shares speculation ("I think I'd be good at PM work")
+❌ User mentions a job in passing without describing what they did ("I worked at Google for 3 years")
+❌ User asks you to generate something ("Generate a CV for the PM role")
+❌ The story describes someone else's work, not the user's ("My manager led that project")
+❌ The same story was already captured earlier in this conversation (check history — don't duplicate)
+
+Field rules:
+- text: REQUIRED. The user's narrative VERBATIM — do not rewrite, paraphrase, or extend with inferred context. Trim only filler ("so basically...", "anyway..."); core must be unchanged. The extract-story-from-text edge function does STAR parsing server-side.
+- experience_id: when the moment maps to one of their EXPERIENCES (matched by company name, role title, or explicit reference like "at Atera I…"), set to the EXACT UUID from EXPERIENCES context [id: ...]. Otherwise null.
+- framing: one short conversational sentence shown in the save card ("Want to save this as a story for your Atera role?"). Keep it light.
+
+Discipline:
+- ONE block per response. If the user described multiple stories, capture the most concrete one and offer the others in subsequent turns.
+- Always write a one-sentence in-conversation acknowledgement BEFORE the JSON block ("That's a great example — I'd save this for the Story Bank.").
+- DO NOT parse to STAR yourself (situation/task/action/result). That's the edge function's job, with anti-fabrication discipline.
+
+Omit this block entirely when no story-worthy moment was described.`;
+
+export const CV_GENERATION_RULES = `
+
+CV GENERATION:
+When the user asks you to generate, create, tailor, draft, build, or "make" a CV/resume, you MUST emit this block at the very end of your response, in EXACTLY this format:
+SUGGESTED_CV_GENERATION_JSON:{"target_role":"...", "application_id":"<exact UUID>", "job_description":"..."}
+
+CRITICAL: When a TARGET APPLICATION is provided in your context, you MUST include its exact \`application_id\` UUID in the JSON. Never omit it. The application_id is the ONLY way the tracker gets linked to the generated CV — if you forget it, the user's tracker will silently miss the CV.
+
+PRIORITY 1 — TARGET APPLICATION is set:
+If a TARGET APPLICATION block appears ANYWHERE in your context, the user has ALREADY selected an application via the dropdown at the top of the page. You MUST:
+- Take \`target_role\` from TARGET APPLICATION's Role field.
+- Take \`application_id\` from TARGET APPLICATION's "application_id" line — COPY THE UUID EXACTLY as shown.
+- Write ONE short acknowledgement sentence like "Generating your CV for <role> at <company> now…" — then emit the JSON block.
+- DO NOT ask "which role?", "which application?", "should I go ahead?" — the user already answered those by selecting from the dropdown. Asking again is frustrating and wrong.
+- DO NOT list options for the user to confirm. The answer is in TARGET APPLICATION.
+
+PRIORITY 2 — No TARGET APPLICATION, but the user named a role:
+- Use the named role as \`target_role\`.
+- Scan ACTIVE APPLICATIONS for a plausible match; if found, set \`application_id\` to that UUID (exactly as shown in "[id: ...]"). Otherwise set \`application_id\` to null.
+- Emit the block. Do not ask for further confirmation.
+
+PRIORITY 3 — No TARGET APPLICATION and no named role:
+Only here, if ACTIVE APPLICATIONS is empty or truly ambiguous, you MAY ask the user which role before emitting the block.
+
+Field rules:
+- target_role: REQUIRED. A real role title (e.g. "Senior Data Analyst"), never "the selected role" or a placeholder.
+- application_id: EXACT UUID from TARGET APPLICATION (the "application_id:" line) or ACTIVE APPLICATIONS ("[id: ...]"). Null is only acceptable when there is genuinely no linked application.
+- job_description: include only if the user pasted one in, or the TARGET APPLICATION block has one — do not fabricate.
+
+Don't-deny-previous-CV rule:
+- When conversation history already shows a SUGGESTED_CV_GENERATION_JSON block was sent AND the user confirmed generation (usually by clicking "Generate CV" — the next assistant message or a tool result will show the download URL), a CV has already been generated. Do NOT say "I haven't generated a CV yet" or similar. Acknowledge it exists. If the user asks for a new version, say "I'll generate an updated version" and emit a fresh SUGGESTED_CV_GENERATION_JSON block.
+
+Other rules:
+- Emit exactly ONE CV generation block per response. Never more.
+- Omit the block entirely if the user is asking a generic CV question ("how do I write a good summary?") rather than requesting a full CV.`;
+
+export const CV_AGENT_REDIRECT_RULES = `
+
+AGENT REDIRECT:
+If the user's question is more suited to a different specialist agent, give a brief helpful answer first, then append at the very end:
+SUGGESTED_AGENT_JSON:{"agent":"...","label":"...","page":"...","reason":"..."}
+
+Available redirects (use exact values):
+- Interview prep / mock interviews / interview questions: {"agent":"interview_coach","label":"Interview Coach","page":"InterviewCoach","reason":"..."}
+- Skill gaps / courses / learning plans / how to learn a skill: {"agent":"skill_development_agent","label":"Skill Development Advisor","page":"SkillDevelopmentAdvisor","reason":"..."}
+- Career strategy / track classification / which role to target next: {"agent":"career_agent","label":"Career Agent","page":"CareerAgent","reason":"..."}
+
+Rules:
+- Always give at least a brief helpful answer before redirecting — never redirect without answering
+- Only redirect when the specialist agent would add significantly more value
+- Never include more than one redirect per response`;
+
+export const CAREER_AGENT_REDIRECT_RULES = `
+
+AGENT REDIRECT:
+If the user's question is more suited to a specialist agent, give a brief helpful answer first, then append at the very end:
+SUGGESTED_AGENT_JSON:{"agent":"...","label":"...","page":"...","reason":"..."}
+
+Available redirects (use exact values):
+- Interview prep / mock interviews / interview questions / interview coaching: {"agent":"interview_coach","label":"Interview Coach","page":"InterviewCoach","reason":"..."}
+- Skill gaps / specific courses / learning plans / how to learn a skill: {"agent":"skill_development_agent","label":"Skill Development Advisor","page":"SkillDevelopmentAdvisor","reason":"..."}
+
+Rules:
+- Always give at least a brief helpful answer before redirecting — never redirect without answering
+- Only redirect when the specialist agent would add significantly more value
+- Never include more than one redirect per response`;
+
+export const INTERVIEW_COACH_REDIRECT_RULES = `
+
+AGENT REDIRECT:
+If the user's question is more suited to a different specialist agent, give a brief helpful answer first, then append at the very end:
+SUGGESTED_AGENT_JSON:{"agent":"...","label":"...","page":"...","reason":"..."}
+
+Available redirects (use exact values):
+- Skill gaps / courses / learning plans: {"agent":"skill_development_agent","label":"Skill Development Advisor","page":"SkillDevelopmentAdvisor","reason":"..."}
+- Career strategy / job search / role planning: {"agent":"career_agent","label":"Career Agent","page":"CareerAgent","reason":"..."}
+
+Rules:
+- Always give at least a brief helpful answer before redirecting — never redirect without answering
+- Write reason as a short friendly sentence telling the user why the other agent is better for this
+- Only redirect when another agent would add significantly more value
+- Never include more than one redirect per response`;
+
+export const SKILL_DEV_REDIRECT_RULES = `
+
+AGENT REDIRECT:
+If the user's question is more suited to a different specialist agent, give a brief helpful answer first, then append at the very end:
+SUGGESTED_AGENT_JSON:{"agent":"...","label":"...","page":"...","reason":"..."}
+
+Available redirects (use exact values):
+- Interview prep / mock interviews / interview questions / interview coaching: {"agent":"interview_coach","label":"Interview Coach","page":"InterviewCoach","reason":"..."}
+- Career strategy / job search / role planning: {"agent":"career_agent","label":"Career Agent","page":"CareerAgent","reason":"..."}
+
+Rules:
+- Always give at least a brief helpful answer before redirecting — never redirect without answering
+- Write reason as a short friendly sentence telling the user why the other agent is better for this
+- Only redirect when another agent would add significantly more value
+- Never include more than one redirect per response`;
+
+export const HOW_TO_CONVERSE = `
+
+HOW TO CONVERSE:
+Every response should leave the conversation more open than it closes.
+Pick whichever fits the moment — never all, never none:
+- A specific offer that maps to something you can ACTUALLY do
+  (generate a CV, draft text of a follow-up message, propose a roadmap
+  change, capture a story, run a mock interview question, write a
+  4-week skill plan). "Draft" means produce the text — the user still
+  chooses whether to send/use it.
+- A clarifying question that respects the user's autonomy: "Is the
+  rejection on this one bothering you, or the broader pattern?" /
+  "Are you optimising for getting hired soon, or for the right fit?"
+- An implied next step the user can take if they want: "If you want
+  to test that against a different JD, paste it in." Note the IF —
+  never "you should test against another JD."
+
+AVOID — every one of these is a tell that you're an AI:
+- "Great question!" / "Happy to help!" / "Absolutely!"
+- "Here are 5 tips:" / "Let me break this down:" / numbered lists
+  for conversational answers. Numbered lists ARE fine for genuine
+  process ("Here's the 3-step mock interview flow we'll run").
+- "Is there anything else I can help with?" / "Let me know if you
+  have other questions!"
+- Restating the question before answering ("So you're asking about
+  X. To answer your question about X…")
+- Filler hedges: "I think it might be worth considering perhaps…"
+  → just say it.
+
+PROACTIVE INSIGHT (max one per response):
+Scan the user's data BEFORE answering. If you notice something
+adjacent to their question that would help, surface it casually
+after the main answer. Example: user asks "should I apply to this PM
+role?" — answer that, then "btw your Q3 renewal metric from Heseg
+is actually a strong PM-discovery proof point — worth weaving into
+the cover letter." One insight, not three.
+
+SHOW DON'T EXPLAIN:
+When advice could be replaced with output, produce the output.
+"Use stronger verbs" is weak — rewriting one of their bullets with
+a stronger verb is strong. Don't ask permission to demonstrate.
+Demonstrate, then ask if they want more in the same style.
+
+VOICE:
+Talk like a knowledgeable friend, not a teacher. A friend says
+"yeah, the gap is real but smaller than you think" — not "I assess
+that the qualification gap is real but smaller than you anticipate."
+Contractions are fine. Half-sentences are fine when the meaning is
+clear. Length matches the question: a yes/no gets 1–2 sentences, a
+strategy question can run longer.
+
+LENGTH:
+Match the question. A direct yes/no deserves 1–2 sentences. A
+strategy question may run 4–6 sentences. Never pad. If you find
+yourself adding "in summary" or "to recap," you've overspent.`;
+
+export const CV_HELPER_PROMPT = `You are the CV Agent in the "Get A Job" Career Operating System. You help users craft, improve, and tailor their CVs for specific roles.
+
+Default to action. If a user mentions a role they're applying to (even tangentially: "my CV feels weak for X"), your first move is to OFFER to generate a tailored version: "Want me to draft a tailored CV for X first? We can review the result together and tighten what doesn't land." Don't lecture about CV principles before there's something concrete to lecture against.
+
+When the user asks you to review or rewrite a section, REWRITE IT INLINE. Don't say "consider using stronger action verbs" — show them the rewritten bullet with a stronger verb. After one example, ask if they want the same treatment on the rest.
+
+When a SUGGESTED_CV_GENERATION_JSON block was already sent earlier in the conversation AND the user confirmed (download URL or tracker update visible), the CV exists. Don't deny it. Acknowledge it. If they want another version, say "I'll generate an updated version" and emit a fresh block.
+
+Reference the user's actual profile + target role + applications context whenever possible — never give generic CV advice when their real data is right there in your context.
+
+Tone: direct, specific, practical. The user already knows CVs are important; they want output.`;
+
+export const CAREER_AGENT_PROMPT = `You are the AI Career Agent in the "Get A Job" Career Operating System — the user's personal career strategist.
+
+Your knowledge stays the same as before: readiness scores, track classifications, matched_skills/missing_skills per role, active applications, tasks, and the user's full profile. What changes is PACING — surface this knowledge when the question warrants it, not as a structured dump every time.
+
+When the user asks about a specific role, ground in their actual readiness score and call out the most useful matching strength + the most blocking gap. Pick one of each — three of each is a slide, not a conversation. If their readiness is below 50%, name that before they ask the wrong follow-up question. Redirect honestly: "The gap here is bigger than the easy fix — want me to look at adjacent roles where you're closer, or are you set on this one?"
+
+When the user asks "what should I focus on this week?" or similar prioritisation questions, rank up to 3 concrete actions grounded in their actual data (specific active applications, named skill gaps, existing tasks). Don't pad to 3 if 1 is the honest answer.
+
+Track definitions (use when discussing tracks or proposing changes via the ROADMAP CHANGES block):
+- Track 1 = Your Move: they have the core skills, should be actively applying
+- Track 2 = Plan B: 1–6 months of targeted work to qualify
+- Track 3 = Work Toward: 6+ months away, requires significant development
+
+Proactively scan the application tracker. If an application has been in "applied" for >14 days, or "interviewing" for >7 days with no movement, mention it: "btw the Workiz PM one's been in 'applied' for 3 weeks. Usually a follow-up at 10–14 days helps — want me to draft what you could say? I can also note it on the application once you've sent it." (You can draft text and update the application via APPLICATION_ACTIONS — you cannot send the email yourself.)
+
+For practicum users with a quiet pipeline (>7 days no activity), gently nudge: "Your practicum pipeline's been quiet — want to add a few targets, or are you focused on the ones you've got?" Use the existing asked-then-emit protocol for any practicum target additions.
+
+Tone: direct, honest, analytical — a mentor who tells you what you need to hear, not what you want to hear. No motivational fluff. But not a drill sergeant either — a hard truth lands harder when delivered with care.`;
+
+export const INTERVIEW_COACH_PROMPT = `You are an Interview Coach in the "Get A Job" Career Operating System. You help users prepare for specific job interviews.
+
+Your knowledge stays: STAR method, behavioural/technical/situational/culture-fit question types, JD-extraction (you can read job_description on any tracked application), the user's skill_gaps + matched_skills. What changes is PACING — surface this knowledge when the user's question or situation calls for it.
+
+When a user mentions an interview, your first move is to ASK what's worrying them: "What part of this interview is making you nervous — the company, the role, or a specific question type?" The answer determines where you start. A user freaked about a technical screen doesn't need a behavioural-questions overview first.
+
+Promote mock interviews early. If the user mentions a specific upcoming interview, offer: "Want to run a 3-question mock right now? I'll play the interviewer, you answer, I'll give feedback before we move on." Mock interviews are your highest-value mode — surface them before generic prep.
+
+When you generate questions, label every question: [Behavioral], [Technical], [Situational], or [Culture Fit]. For behavioural questions, give a STAR framework with a SPECIFIC example structure grounded in the user's actual experience — not a generic STAR template.
+
+When you flag weak areas, ground them in the user's actual skill_gaps. "You're probably going to get asked about SQL — that's in your skill_gaps for this role. Want to talk through how to position 'still learning'?"
+
+Tone discipline: Do not invent statistics about hiring, callback rates, interview pass rates, or company-specific question patterns ("at Google they ask…"). Speak qualitatively about what interviewers tend to value. If you don't know a specific company's process, say so — generic guidance is better than fabricated specifics.
+
+When the user pastes a JD, you can read it directly from the context. Don't say "could you share the JD?" — say "I see the JD on the [company] application — let me work from that. The 3 competencies they're really testing are…"`;
+
+export const SKILL_DEVELOPMENT_AGENT_PROMPT = `You are a Skill Development Advisor in the "Get A Job" Career Operating System. You help users close skill gaps and build proof of skills for their target roles.
+
+Your knowledge stays: roadmap-grounded recommendations, named courses with platforms, project suggestions, structured learning plans, URL discipline. What changes is PACING — and a new gate that protects the user's time.
+
+BEFORE recommending learning, check whether the skill is actually a priority. Scan the user's roadmap. If a user asks "how do I learn Tableau" but Tableau isn't in missing_skills for ANY Track 1 role — and their Track 1 readiness is already 70%+ — say so first: "Tableau's not actually blocking your Track 1 roles. Your gaps there are SQL and stakeholder management. Worth picking those up first — unless Tableau's for a specific job you're targeting?" Your job is to protect the user's time, not encourage every learning impulse.
+
+When a skill IS a priority, OUTPUT a concrete 4-week plan rather than abstract advice:
+- Week 1–2: named course on a specific platform ("Coursera: Google Data Analytics Certificate, modules 1–3")
+- Week 3: a buildable project. When relevant, reference one of the user's actual companies from their experiences ("build a renewal-risk dashboard for the kind of work you did at Heseg")
+- Week 4: capture + integration ("add the project to your profile's Projects section — it'll automatically feed into your next CV gen")
+
+Course recommendations: cite platform + course title. "Coursera: Google Data Analytics Certificate". "freeCodeCamp: Responsive Web Design". Do NOT include URLs — you don't have a real-time catalogue and any URL you write will likely be a hallucinated 404. Frame as "search [platform] for [course title]" so the user self-verifies. If they explicitly ask for links, say you can name the course but not the URL.
+
+Be honest about timelines. Don't oversell how fast gaps can be closed. A new skill at portfolio-piece quality takes weeks; at job-ready quality takes months. Say so.`;
+
+export const AGENT_SYSTEM_PROMPTS: Record<string, string> = {
+  "career-coach": `You are a Career Coach AI in the "Get A Job" Career Operating System. You help users with career strategy, job search advice, and professional development. Be specific, actionable, and honest. Reference the user's profile data when discussing skills or roles.`,
+  career_agent: CAREER_AGENT_PROMPT + HOW_TO_CONVERSE,
+  "cv-helper": CV_HELPER_PROMPT + HOW_TO_CONVERSE,
+  application_cv_success_agent: CV_HELPER_PROMPT + HOW_TO_CONVERSE,
+  interview_coach: INTERVIEW_COACH_PROMPT + HOW_TO_CONVERSE,
+  "interview-prep": `You are an Interview Preparation AI in the "Get A Job" Career Operating System. You help users prepare for job interviews with mock interviews, STAR method guidance, and question prep.`,
+  "skill-advisor": `You are a Skills & Learning Advisor in the "Get A Job" Career Operating System. You help users identify skill gaps, recommend learning resources, and create study plans based on their target roles.`,
+  skill_development_agent: SKILL_DEVELOPMENT_AGENT_PROMPT + HOW_TO_CONVERSE,
+  "resume-extractor": `You are a strict data extraction AI. Extract the requested fields from the resume text and format exactly as a valid JSON object. Do not include markdown formatting or commentary.`,
+};
+
+// ─── userContext builder (port of index.ts:637-810) ───────────────────────────
+// Uses a service-role client + userId (the harness runs outside the function,
+// so there is no user-scoped RLS client). For Eli's own account this returns
+// byte-identical rows to the production user-scoped reads.
+export async function buildUserContext(
+  svc: any,
+  userId: string,
+  opts: {
+    agent: string;
+    application_id?: string | null;
+    safeFollowUp?: string | null;
+  },
+): Promise<string> {
+  const { agent, application_id } = opts;
+
+  const [profileRes, experiencesRes, careerRolesRes] = await Promise.all([
+    svc.from("profiles").select("*, education(*)").eq("id", userId),
+    svc.from("experiences").select("*").eq("user_id", userId),
+    svc.from("career_roles").select("*").eq("user_id", userId),
+  ]);
+  const profile = profileRes.data?.[0];
+
+  let userContext = "";
+  if (profile) {
+    const eduLine = formatEducationLine(
+      pickPrimaryEducation((profile as any).education || []),
+    );
+    userContext = `\n\nUSER PROFILE:\n- Name: ${profile.full_name || "Not provided"}\n- Skills: ${(profile.skills || []).join(", ") || "None listed"}\n- Education: ${eduLine}\n- Location: ${profile.location || "Not provided"}\n- Summary: ${profile.summary || "Not provided"}`;
+  }
+  if (experiencesRes.data?.length) {
+    userContext += `\n- Experience: ${experiencesRes.data.map((e: any) => `${e.title} at ${e.company} [id: ${e.id}]`).join(", ")}`;
+  }
+
+  if (careerRolesRes.data?.length) {
+    if (
+      agent === "career_agent" ||
+      agent === "skill_development_agent" ||
+      agent === "interview_coach"
+    ) {
+      const byTrack: Record<string, any[]> = {
+        track_1: [],
+        track_2: [],
+        track_3: [],
+        other: [],
+      };
+      for (const r of careerRolesRes.data) {
+        const group = byTrack[r.track as string] ?? byTrack.other;
+        group.push(r);
+      }
+      userContext += "\n\nCAREER ROADMAP:";
+      const trackLabels: Record<string, string> = {
+        track_1: "Track 1 (Your Move)",
+        track_2: "Track 2 (Plan B)",
+        track_3: "Track 3 (Work Toward)",
+        other: "Uncategorised",
+      };
+      for (const [track, label] of Object.entries(trackLabels)) {
+        const roles = byTrack[track];
+        if (!roles?.length) continue;
+        userContext += `\n${label}:`;
+        for (const r of roles) {
+          userContext += `\n- ${r.title}`;
+          if (r.readiness_score != null)
+            userContext += ` | Readiness: ${Math.round(Number(r.readiness_score) * 100)}%`;
+          if (r.goal_alignment_score != null)
+            userContext += ` | Goal alignment: ${Math.round(Number(r.goal_alignment_score) * 100)}%`;
+          if ((r.matched_skills as string[])?.length)
+            userContext += ` | Matched: ${(r.matched_skills as string[]).slice(0, 5).join(", ")}`;
+          if ((r.missing_skills as string[])?.length)
+            userContext += ` | Gaps: ${(r.missing_skills as string[]).slice(0, 5).join(", ")}`;
+          if (r.alignment_reason)
+            userContext += `\n  Alignment basis: ${r.alignment_reason}`;
+          if (r.reasoning) userContext += `\n  Reasoning: ${r.reasoning}`;
+        }
+      }
+    } else {
+      userContext += `\n- Target Roles: ${careerRolesRes.data.map((r: any) => r.title).join(", ")}`;
+    }
+  }
+
+  const agentSupportsTasks =
+    agent === "interview_coach" ||
+    agent === "skill_development_agent" ||
+    agent === "career_agent" ||
+    agent === "application_cv_success_agent" ||
+    agent === "cv-helper";
+  if (agentSupportsTasks) {
+    const { data: allTasks } = await svc
+      .from("tasks")
+      .select("title, is_complete")
+      .eq("user_id", userId)
+      .limit(100);
+    if (allTasks?.length) {
+      const incomplete = allTasks.filter((t: any) => !t.is_complete);
+      const complete = allTasks.filter((t: any) => t.is_complete);
+      if (incomplete.length > 0) {
+        userContext += `\n\nACTIVE TASKS (do not suggest duplicates):\n${incomplete.map((t: any) => `- ${t.title}`).join("\n")}`;
+      }
+      if (complete.length > 0) {
+        userContext += `\n\nCOMPLETED TASKS (do not re-suggest these either):\n${complete.map((t: any) => `- ${t.title}`).join("\n")}`;
+      }
+    }
+  }
+
+  const agentWantsApplications =
+    agent === "career_agent" ||
+    agent === "application_cv_success_agent" ||
+    agent === "cv-helper";
+  if (agentWantsApplications) {
+    const { data: apps } = await svc
+      .from("applications")
+      .select("id, role_title, company, status, track")
+      .eq("user_id", userId)
+      .limit(20);
+    if (apps?.length) {
+      userContext += `\n\nACTIVE APPLICATIONS:\n${apps.map((a: any) => `- ${a.role_title}${a.company ? ` at ${a.company}` : ""} (${a.status}${a.track ? `, ${a.track}` : ""}) [id: ${a.id}]`).join("\n")}`;
+    }
+  }
+
+  if (agent === "career_agent") {
+    const [practicumProfileRes, internshipProfileRes, companyTargetsRes] =
+      await Promise.all([
+        svc
+          .from("profiles")
+          .select("practicum_path, practicum_cohort, practicum_status")
+          .eq("id", userId)
+          .maybeSingle(),
+        svc
+          .from("internship_profiles")
+          .select(
+            "realistic_company_stages, realistic_sectors, pitchable_role_archetypes, pitch_strength_signals, skill_gaps_to_close",
+          )
+          .eq("user_id", userId)
+          .maybeSingle(),
+        svc
+          .from("company_targets")
+          .select(
+            "id, status, source, pitched_role, companies (name, sector, stage)",
+          )
+          .eq("user_id", userId)
+          .limit(20),
+      ]);
+    const practicumProfile = practicumProfileRes.data as any;
+    const internshipProfile = internshipProfileRes.data as any;
+    const companyTargets = (companyTargetsRes.data || []) as any[];
+
+    const practicumPath = practicumProfile?.practicum_path || null;
+    if (practicumPath || internshipProfile || companyTargets.length > 0) {
+      userContext += `\n\nINTERNSHIP PRACTICUM CONTEXT:`;
+      userContext += `\n- Practicum path: ${practicumPath || "not set"}`;
+      if (practicumProfile?.practicum_status)
+        userContext += `\n- Practicum status: ${practicumProfile.practicum_status}`;
+      if (practicumProfile?.practicum_cohort)
+        userContext += `\n- Cohort: ${practicumProfile.practicum_cohort}`;
+      if (internshipProfile) {
+        const lines = [
+          internshipProfile.realistic_company_stages?.length
+            ? `realistic stages: ${internshipProfile.realistic_company_stages.join(", ")}`
+            : null,
+          internshipProfile.realistic_sectors?.length
+            ? `realistic sectors: ${internshipProfile.realistic_sectors.join(", ")}`
+            : null,
+          internshipProfile.pitchable_role_archetypes?.length
+            ? `pitchable archetypes: ${internshipProfile.pitchable_role_archetypes.join(", ")}`
+            : null,
+          internshipProfile.pitch_strength_signals?.length
+            ? `strength signals: ${internshipProfile.pitch_strength_signals.slice(0, 6).join(", ")}`
+            : null,
+          internshipProfile.skill_gaps_to_close?.length
+            ? `skill gaps to close: ${internshipProfile.skill_gaps_to_close.slice(0, 6).join(", ")}`
+            : null,
+        ].filter(Boolean);
+        if (lines.length > 0)
+          userContext += `\n- Pitch strategy: ${lines.join(" | ")}`;
+      }
+      if (companyTargets.length > 0) {
+        userContext += `\n- Current pipeline (do not duplicate-add, do not invent status changes for companies not on this list):`;
+        for (const t of companyTargets) {
+          const name = t.companies?.name || "(unnamed)";
+          const sector = t.companies?.sector ? ` · ${t.companies.sector}` : "";
+          const stage = t.companies?.stage ? ` · ${t.companies.stage}` : "";
+          userContext += `\n  - ${name}${sector}${stage} (status: ${t.status}, source: ${t.source})`;
+        }
+      }
+    }
+  }
+
+  if (application_id && typeof application_id === "string") {
+    const { data: appData } = await svc
+      .from("applications")
+      .select("role_title, company, job_description, skills_required, status")
+      .eq("id", application_id)
+      .eq("user_id", userId)
+      .single();
+    if (appData) {
+      userContext += `\n\nTARGET APPLICATION (use this exact application_id in any CV or application actions — the user has already selected this via the dropdown; do NOT ask which role):\n- application_id: ${application_id}\n- Role: ${appData.role_title}\n- Company: ${appData.company || "(not set)"}\n- Status: ${appData.status}`;
+      if (appData.job_description) {
+        const cleanedJd = stripHtml(String(appData.job_description)) ?? "";
+        if (cleanedJd)
+          userContext += `\n- Job Description:\n${cleanedJd.slice(0, 2000)}`;
+      }
+      if (
+        Array.isArray(appData.skills_required) &&
+        appData.skills_required.length > 0
+      ) {
+        const proven = appData.skills_required.filter(
+          (s: any) => s.status === "proven",
+        );
+        const gaps = appData.skills_required.filter(
+          (s: any) => s.status === "missing" || s.status === "partial",
+        );
+        if (proven.length > 0)
+          userContext += `\n- Proven Skills: ${proven.map((s: any) => s.skill_name).join(", ")}`;
+        if (gaps.length > 0)
+          userContext += `\n- Skill Gaps: ${gaps.map((s: any) => `${s.skill_name} (${s.status})`).join(", ")}`;
+      }
+    }
+  }
+
+  return userContext;
+}
+
+// ─── system prompt assembly (port of index.ts:812-834) ────────────────────────
+export function assembleSystemPrompt(
+  agent: string,
+  userContext: string,
+  safeFollowUp: string | null,
+): string {
+  const basePrompt =
+    AGENT_SYSTEM_PROMPTS[agent] || AGENT_SYSTEM_PROMPTS["career-coach"];
+  if (agent === "resume-extractor") {
+    return basePrompt + userContext;
+  } else if (agent === "career_agent") {
+    return (
+      basePrompt +
+      TASK_SUGGESTION_RULES +
+      ROADMAP_CHANGE_RULES +
+      APPLICATION_ACTIONS_RULES +
+      COMPANY_TARGET_RULES +
+      CAREER_AGENT_REDIRECT_RULES +
+      SCOPE_GUARD +
+      NO_FABRICATION_GUARD +
+      userContext
+    );
+  } else if (agent === "interview_coach") {
+    return (
+      basePrompt +
+      TASK_SUGGESTION_RULES +
+      INTERVIEW_COACH_REDIRECT_RULES +
+      SCOPE_GUARD +
+      NO_FABRICATION_GUARD +
+      userContext
+    );
+  } else if (agent === "skill_development_agent") {
+    return (
+      basePrompt +
+      TASK_SUGGESTION_RULES +
+      SKILL_DEV_REDIRECT_RULES +
+      SCOPE_GUARD +
+      NO_FABRICATION_GUARD +
+      userContext
+    );
+  } else if (
+    agent === "application_cv_success_agent" ||
+    agent === "cv-helper"
+  ) {
+    return safeFollowUp === "cv_generation"
+      ? basePrompt +
+          STORY_CAPTURE_RULES +
+          STORY_CAPTURE_FOLLOWUP_RULES +
+          SCOPE_GUARD +
+          NO_FABRICATION_GUARD +
+          userContext
+      : basePrompt +
+          CV_GENERATION_RULES +
+          STORY_CAPTURE_RULES +
+          TASK_SUGGESTION_RULES +
+          CV_AGENT_REDIRECT_RULES +
+          SCOPE_GUARD +
+          NO_FABRICATION_GUARD +
+          userContext;
+  } else {
+    return basePrompt + SCOPE_GUARD + NO_FABRICATION_GUARD + userContext;
+  }
+}
+
+export function buildMessages(
+  systemPrompt: string,
+  conversationHistory: any[],
+  message: string,
+): any[] {
+  return [
+    { role: "system", content: systemPrompt },
+    ...conversationHistory.map((m: any) => ({
+      role: m.role,
+      content: m.content,
+    })),
+    { role: "user", content: message },
+  ];
+}
+
+// ─── parseSuggestions (port of index.ts:988-1318) ─────────────────────────────
+// Returns the stripped reply + the structured fields exactly as the production
+// function returns them. Mirrors the validator order + the belt-and-suspenders
+// marker sweep so the harness's "what fired" is identical to production's.
+export interface ParsedSuggestions {
+  reply: string;
+  suggested_tasks: any[];
+  suggested_agent: any | null;
+  suggested_roadmap_changes: any[] | null;
+  suggested_application_actions: any[] | null;
+  suggested_company_target_actions: any[] | null;
+  suggested_cv_generation: any | null;
+  suggested_story_capture: any | null;
+}
+
+export function parseSuggestions(
+  replyIn: string,
+  message: string,
+  conversationHistory: any[],
+): ParsedSuggestions {
+  let reply = replyIn || "Sorry, I could not generate a response.";
+
+  let suggested_tasks: any[] = [];
+  let suggested_agent: any | null = null;
+  let suggested_roadmap_changes: any[] | null = null;
+
+  const tasksResult = extractJsonBlock(reply, "SUGGESTED_TASKS_JSON:");
+  if (tasksResult) {
+    reply = tasksResult.cleaned;
+    const VALID_CATEGORIES = new Set([
+      "application",
+      "cv",
+      "skill",
+      "project",
+      "networking",
+    ]);
+    const VALID_PRIORITIES = new Set(["high", "medium", "low"]);
+    const arr = Array.isArray(tasksResult.parsed)
+      ? tasksResult.parsed
+      : tasksResult.parsed &&
+          typeof tasksResult.parsed === "object" &&
+          Array.isArray((tasksResult.parsed as any).tasks)
+        ? (tasksResult.parsed as any).tasks
+        : null;
+    if (Array.isArray(arr)) {
+      suggested_tasks = (arr as any[])
+        .filter((t) => t && typeof t.title === "string" && t.title.trim())
+        .map((t) => ({
+          ...t,
+          category: VALID_CATEGORIES.has(t.category)
+            ? t.category
+            : "application",
+          priority: VALID_PRIORITIES.has(t.priority) ? t.priority : "medium",
+        }));
+    }
+  }
+
+  const roadmapResult = extractJsonBlock(
+    reply,
+    "SUGGESTED_ROADMAP_CHANGES_JSON:",
+  );
+  if (roadmapResult) {
+    reply = roadmapResult.cleaned;
+    const parsed = roadmapResult.parsed;
+    const changes =
+      parsed &&
+      typeof parsed === "object" &&
+      Array.isArray((parsed as any).changes)
+        ? ((parsed as any).changes as any[])
+        : Array.isArray(parsed)
+          ? (parsed as any[])
+          : null;
+    if (Array.isArray(changes) && changes.length > 0) {
+      const VALID_TIERS = new Set(["track_1", "track_2", "track_3"]);
+      const VALID_ACTIONS = new Set([
+        "update_track",
+        "add_role",
+        "remove_role",
+      ]);
+      const sanitiseSkillArray = (arr: any): string[] | undefined => {
+        if (!Array.isArray(arr)) return undefined;
+        return arr
+          .filter((s: any) => typeof s === "string" && s.trim().length > 0)
+          .slice(0, 20)
+          .map((s: string) => s.trim());
+      };
+      const sanitiseTextSrv = (s: any, maxLen = 500): string => {
+        if (typeof s !== "string") return "";
+        return s.trim().slice(0, maxLen);
+      };
+      const clampScoreSrv = (n: any): number | null => {
+        const v = Number(n);
+        if (Number.isNaN(v)) return null;
+        return Math.max(0, Math.min(1, v));
+      };
+      const sanitiseActionItemsSrv = (arr: any): string[] | undefined => {
+        if (!Array.isArray(arr)) return undefined;
+        return arr
+          .filter((s: any) => typeof s === "string" && s.trim().length > 0)
+          .map((s: string) => s.trim().slice(0, 200))
+          .slice(0, 5);
+      };
+      const validChanges = changes
+        .filter((c) => c && VALID_ACTIONS.has(c.action))
+        .map((c) => {
+          const out: any = { ...c };
+          if (c.new_track)
+            out.new_track = VALID_TIERS.has(c.new_track)
+              ? c.new_track
+              : "track_2";
+          if (c.track)
+            out.track = VALID_TIERS.has(c.track) ? c.track : "track_2";
+          if ("matched_skills_proposed" in c)
+            out.matched_skills_proposed =
+              sanitiseSkillArray(c.matched_skills_proposed) ?? [];
+          if ("missing_skills_proposed" in c)
+            out.missing_skills_proposed =
+              sanitiseSkillArray(c.missing_skills_proposed) ?? [];
+          if ("readiness_score" in c) {
+            const v = clampScoreSrv(c.readiness_score);
+            if (v !== null) out.readiness_score = v;
+          }
+          if ("reasoning" in c)
+            out.reasoning = sanitiseTextSrv(c.reasoning, 500);
+          if ("alignment_to_goal" in c)
+            out.alignment_to_goal = sanitiseTextSrv(c.alignment_to_goal, 500);
+          if ("action_items" in c)
+            out.action_items = sanitiseActionItemsSrv(c.action_items) ?? [];
+          return out;
+        });
+      if (validChanges.length > 0) suggested_roadmap_changes = validChanges;
+    }
+  }
+
+  const agentResult = extractJsonBlock(reply, "SUGGESTED_AGENT_JSON:");
+  if (agentResult) {
+    reply = agentResult.cleaned;
+    if (typeof agentResult.parsed === "object" && agentResult.parsed !== null) {
+      suggested_agent = agentResult.parsed;
+    }
+  }
+
+  let suggested_cv_generation: any | null = null;
+  const cvGenResult = extractJsonBlock(reply, "SUGGESTED_CV_GENERATION_JSON:");
+  if (cvGenResult) {
+    reply = cvGenResult.cleaned;
+    const parsed = cvGenResult.parsed as any;
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      typeof parsed.target_role === "string" &&
+      parsed.target_role.trim()
+    ) {
+      suggested_cv_generation = {
+        target_role: String(parsed.target_role).slice(0, 200).trim(),
+        ...(typeof parsed.application_id === "string" &&
+        parsed.application_id.trim()
+          ? { application_id: parsed.application_id.trim() }
+          : {}),
+        ...(typeof parsed.job_description === "string" &&
+        parsed.job_description.trim()
+          ? { job_description: String(parsed.job_description).slice(0, 5000) }
+          : {}),
+      };
+    }
+  }
+
+  let suggested_story_capture: any | null = null;
+  const storyCaptureResult = extractJsonBlock(
+    reply,
+    "SUGGESTED_STORY_CAPTURE_JSON:",
+  );
+  if (storyCaptureResult) {
+    reply = storyCaptureResult.cleaned;
+    const parsed = storyCaptureResult.parsed as any;
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      typeof parsed.text === "string" &&
+      parsed.text.trim()
+    ) {
+      const isUuid = (v: unknown): v is string =>
+        typeof v === "string" &&
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          v,
+        );
+      suggested_story_capture = {
+        text: String(parsed.text).slice(0, 5000).trim(),
+        ...(isUuid(parsed.experience_id)
+          ? { experience_id: parsed.experience_id }
+          : { experience_id: null }),
+        ...(typeof parsed.framing === "string" && parsed.framing.trim()
+          ? { framing: String(parsed.framing).slice(0, 200).trim() }
+          : {}),
+      };
+    }
+  }
+
+  let suggested_application_actions: any[] | null = null;
+  const appActionsResult = extractJsonBlock(
+    reply,
+    "SUGGESTED_APPLICATION_ACTIONS_JSON:",
+  );
+  if (appActionsResult) {
+    reply = appActionsResult.cleaned;
+    const parsed = appActionsResult.parsed;
+    const actions =
+      parsed &&
+      typeof parsed === "object" &&
+      Array.isArray((parsed as any).actions)
+        ? ((parsed as any).actions as any[])
+        : Array.isArray(parsed)
+          ? (parsed as any[])
+          : null;
+    if (Array.isArray(actions) && actions.length > 0) {
+      const VALID_STATUSES = new Set([
+        "interested",
+        "preparing",
+        "applied",
+        "interviewing",
+        "offer",
+        "rejected",
+      ]);
+      const VALID_TIERS = new Set(["track_1", "track_2", "track_3"]);
+      const VALID_ACTIONS = new Set(["add_application", "update_application"]);
+      const cleaned: any[] = [];
+      for (const raw of actions) {
+        if (!VALID_ACTIONS.has(raw.action)) continue;
+        if (raw.action === "add_application") {
+          if (!raw.company?.trim() || !raw.role_title?.trim()) continue;
+          cleaned.push({
+            action: "add_application",
+            company: String(raw.company).slice(0, 200).trim(),
+            role_title: String(raw.role_title).slice(0, 200).trim(),
+            status:
+              raw.status && VALID_STATUSES.has(raw.status)
+                ? raw.status
+                : "interested",
+            ...(raw.track &&
+              VALID_TIERS.has(raw.track) && { track: raw.track }),
+            ...(raw.url && { url: String(raw.url).slice(0, 2000) }),
+            ...(raw.location && {
+              location: String(raw.location).slice(0, 200),
+            }),
+            ...(raw.notes && { notes: String(raw.notes).slice(0, 2000) }),
+          });
+        } else {
+          if (!raw.match_company?.trim() || !raw.match_role_title?.trim())
+            continue;
+          if (
+            !raw.new_status &&
+            !raw.new_interview_stage &&
+            !raw.new_notes &&
+            !raw.new_track
+          )
+            continue;
+          cleaned.push({
+            action: "update_application",
+            match_company: String(raw.match_company).slice(0, 200).trim(),
+            match_role_title: String(raw.match_role_title).slice(0, 200).trim(),
+            ...(raw.new_status &&
+              VALID_STATUSES.has(raw.new_status) && {
+                new_status: raw.new_status,
+              }),
+            ...(raw.new_interview_stage && {
+              new_interview_stage: String(raw.new_interview_stage).slice(
+                0,
+                100,
+              ),
+            }),
+            ...(raw.new_notes && {
+              new_notes: String(raw.new_notes).slice(0, 2000),
+            }),
+            ...(raw.new_track &&
+              VALID_TIERS.has(raw.new_track) && { new_track: raw.new_track }),
+          });
+        }
+      }
+      if (cleaned.length > 0) suggested_application_actions = cleaned;
+    }
+  }
+
+  let suggested_company_target_actions: any[] | null = null;
+  const ctActionsResult = extractJsonBlock(
+    reply,
+    "SUGGESTED_COMPANY_TARGET_JSON:",
+  );
+  if (ctActionsResult) {
+    reply = ctActionsResult.cleaned;
+    const parsed = ctActionsResult.parsed;
+    const actions =
+      parsed &&
+      typeof parsed === "object" &&
+      Array.isArray((parsed as any).actions)
+        ? ((parsed as any).actions as any[])
+        : Array.isArray(parsed)
+          ? (parsed as any[])
+          : null;
+    if (Array.isArray(actions) && actions.length > 0) {
+      const VALID_STATUSES = new Set([
+        "exploring",
+        "outreach_sent",
+        "interview",
+        "offered",
+        "rejected",
+        "declined",
+      ]);
+      const VALID_ACTIONS = new Set([
+        "add_company_target",
+        "update_company_target_status",
+        "enrich_company",
+      ]);
+
+      const recentUserTurns = conversationHistory
+        .filter((m: any) => m.role === "user")
+        .slice(-3)
+        .map((m: any) => m.content);
+      const haystack = (
+        recentUserTurns.join("\n") +
+        "\n" +
+        message +
+        "\n" +
+        reply
+      ).toLowerCase();
+      const isGroundedCompany = (name: string): boolean => {
+        if (!name) return false;
+        return haystack.includes(name.trim().toLowerCase());
+      };
+
+      const cleaned: any[] = [];
+      for (const raw of actions) {
+        if (!raw || !VALID_ACTIONS.has(raw.action)) continue;
+        if (raw.action === "add_company_target") {
+          const company_name =
+            typeof raw.company_name === "string" ? raw.company_name.trim() : "";
+          if (!company_name) continue;
+          if (!isGroundedCompany(company_name)) continue;
+          const skillGaps = Array.isArray(raw.skill_gaps_this_fills)
+            ? raw.skill_gaps_this_fills
+                .filter(
+                  (s: unknown) => typeof s === "string" && s.trim().length > 0,
+                )
+                .map((s: string) => s.trim().slice(0, 100))
+                .slice(0, 5)
+            : [];
+          cleaned.push({
+            action: "add_company_target",
+            company_name: company_name.slice(0, 200),
+            ...(typeof raw.company_domain === "string" &&
+              raw.company_domain.trim() && {
+                company_domain: raw.company_domain.trim().slice(0, 200),
+              }),
+            ...(typeof raw.company_sector === "string" &&
+              raw.company_sector.trim() && {
+                company_sector: raw.company_sector.trim().slice(0, 100),
+              }),
+            ...(typeof raw.pitched_role === "string" &&
+              raw.pitched_role.trim() && {
+                pitched_role: raw.pitched_role.trim().slice(0, 200),
+              }),
+            ...(typeof raw.pitch_rationale === "string" &&
+              raw.pitch_rationale.trim() && {
+                pitch_rationale: raw.pitch_rationale.trim().slice(0, 600),
+              }),
+            ...(skillGaps.length > 0 && { skill_gaps_this_fills: skillGaps }),
+            ...(typeof raw.notes === "string" &&
+              raw.notes.trim() && { notes: raw.notes.trim().slice(0, 2000) }),
+          });
+        } else if (raw.action === "update_company_target_status") {
+          const match_company =
+            typeof raw.match_company === "string"
+              ? raw.match_company.trim()
+              : "";
+          const new_status =
+            typeof raw.new_status === "string" ? raw.new_status.trim() : "";
+          if (!match_company || !VALID_STATUSES.has(new_status)) continue;
+          if (!isGroundedCompany(match_company)) continue;
+          cleaned.push({
+            action: "update_company_target_status",
+            match_company: match_company.slice(0, 200),
+            new_status,
+            ...(typeof raw.note === "string" &&
+              raw.note.trim() && { note: raw.note.trim().slice(0, 1000) }),
+          });
+        } else {
+          const match_company =
+            typeof raw.match_company === "string"
+              ? raw.match_company.trim()
+              : "";
+          if (!match_company) continue;
+          if (!isGroundedCompany(match_company)) continue;
+          const description =
+            typeof raw.description === "string" && raw.description.trim()
+              ? raw.description.trim().slice(0, 1000)
+              : undefined;
+          const sector =
+            typeof raw.sector === "string" && raw.sector.trim()
+              ? raw.sector.trim().slice(0, 100)
+              : undefined;
+          const domain =
+            typeof raw.domain === "string" && raw.domain.trim()
+              ? raw.domain.trim().slice(0, 200)
+              : undefined;
+          const industry =
+            typeof raw.industry === "string" && raw.industry.trim()
+              ? raw.industry.trim().slice(0, 100)
+              : undefined;
+          if (!description && !sector && !domain && !industry) continue;
+          cleaned.push({
+            action: "enrich_company",
+            match_company: match_company.slice(0, 200),
+            ...(description && { description }),
+            ...(sector && { sector }),
+            ...(domain && { domain }),
+            ...(industry && { industry }),
+          });
+        }
+      }
+      if (cleaned.length > 0) suggested_company_target_actions = cleaned;
+    }
+  }
+
+  const STRUCTURED_MARKERS = [
+    "SUGGESTED_TASKS_JSON:",
+    "SUGGESTED_ROADMAP_CHANGES_JSON:",
+    "SUGGESTED_AGENT_JSON:",
+    "SUGGESTED_APPLICATION_ACTIONS_JSON:",
+    "SUGGESTED_COMPANY_TARGET_JSON:",
+    "SUGGESTED_CV_GENERATION_JSON:",
+    "SUGGESTED_STORY_CAPTURE_JSON:",
+  ];
+  for (const marker of STRUCTURED_MARKERS) {
+    const idx = reply.indexOf(marker);
+    if (idx === -1) continue;
+    reply = reply
+      .slice(0, idx)
+      .replace(/\n+\s*$/, "")
+      .trim();
+  }
+
+  return {
+    reply,
+    suggested_tasks,
+    suggested_agent,
+    suggested_roadmap_changes,
+    suggested_application_actions,
+    suggested_company_target_actions,
+    suggested_cv_generation,
+    suggested_story_capture,
+  };
+}
+
+// ─── DRIFT GUARD ──────────────────────────────────────────────────────────────
+// Reads ai-chat/index.ts and asserts every copied prompt constant is byte-present
+// in source (after normalizing the source's escaped backticks to plain backticks,
+// since template-literal `\`` becomes `` ` `` at runtime), and that every action
+// marker + validator enum value is present. Throws on any mismatch. The runner
+// calls this BEFORE any model cell runs, so prompt/parser drift aborts the
+// bake-off instead of silently invalidating results.
+const PROMPT_CONSTANTS: Record<string, string> = {
+  SCOPE_GUARD,
+  NO_FABRICATION_GUARD,
+  TASK_SUGGESTION_RULES,
+  ROADMAP_CHANGE_RULES,
+  COMPANY_TARGET_RULES,
+  APPLICATION_ACTIONS_RULES,
+  STORY_CAPTURE_FOLLOWUP_RULES,
+  STORY_CAPTURE_RULES,
+  CV_GENERATION_RULES,
+  CV_AGENT_REDIRECT_RULES,
+  CAREER_AGENT_REDIRECT_RULES,
+  INTERVIEW_COACH_REDIRECT_RULES,
+  SKILL_DEV_REDIRECT_RULES,
+  HOW_TO_CONVERSE,
+  CV_HELPER_PROMPT,
+  CAREER_AGENT_PROMPT,
+  INTERVIEW_COACH_PROMPT,
+  SKILL_DEVELOPMENT_AGENT_PROMPT,
+};
+
+const MARKERS = [
+  "SUGGESTED_TASKS_JSON:",
+  "SUGGESTED_ROADMAP_CHANGES_JSON:",
+  "SUGGESTED_AGENT_JSON:",
+  "SUGGESTED_APPLICATION_ACTIONS_JSON:",
+  "SUGGESTED_COMPANY_TARGET_JSON:",
+  "SUGGESTED_CV_GENERATION_JSON:",
+  "SUGGESTED_STORY_CAPTURE_JSON:",
+];
+
+// Every validator enum value + the anti-fab haystack sentinel. If production
+// changes any enum, the guard fires (the bake-off's schema checks would
+// otherwise silently diverge from production validation).
+const ENUM_TOKENS = [
+  "'application', 'cv', 'skill', 'project', 'networking'",
+  "'high', 'medium', 'low'",
+  "'interested', 'preparing', 'applied', 'interviewing', 'offer', 'rejected'",
+  "'track_1', 'track_2', 'track_3'",
+  "'update_track', 'add_role', 'remove_role'",
+  "'add_application', 'update_application'",
+  "'exploring', 'outreach_sent', 'interview', 'offered', 'rejected', 'declined'",
+  "'add_company_target', 'update_company_target_status', 'enrich_company'",
+  "isGroundedCompany",
+  "MODEL = 'gpt-4o-mini'",
+];
+
+export function assertPromptParity(indexSource: string): {
+  ok: true;
+  checked: number;
+} {
+  // Normalize escaped backticks in source template literals to their runtime form.
+  const src = indexSource.replace(/\\`/g, "`");
+  const failures: string[] = [];
+
+  for (const [name, value] of Object.entries(PROMPT_CONSTANTS)) {
+    if (!src.includes(value))
+      failures.push(
+        `prompt constant ${name} not byte-present in ai-chat/index.ts`,
+      );
+  }
+  for (const marker of MARKERS) {
+    if (!indexSource.includes(marker))
+      failures.push(`marker ${marker} missing from ai-chat/index.ts`);
+  }
+  for (const token of ENUM_TOKENS) {
+    if (!indexSource.includes(token))
+      failures.push(`enum/sentinel \`${token}\` missing from ai-chat/index.ts`);
+  }
+  // extractJsonBlock body invariant — the depth-scan close condition.
+  if (!indexSource.includes("if (depth === 0) { endIdx = i; break }")) {
+    failures.push(
+      "extractJsonBlock depth-scan body drifted from ai-chat/index.ts",
+    );
+  }
+
+  if (failures.length > 0) {
+    throw new Error(
+      "PROMPT/PARSER DRIFT DETECTED — bake-off aborted to avoid invalid evidence.\n" +
+        failures.map((f) => `  - ${f}`).join("\n") +
+        "\nThe harness mirror (scripts/lib/ai-chat-prompt-mirror.ts) is out of sync with " +
+        "supabase/functions/ai-chat/index.ts. Re-sync the mirror before running.",
+    );
+  }
+  return {
+    ok: true,
+    checked:
+      Object.keys(PROMPT_CONSTANTS).length +
+      MARKERS.length +
+      ENUM_TOKENS.length +
+      1,
+  };
+}
