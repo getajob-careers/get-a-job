@@ -253,11 +253,31 @@ export default function MessageBubble({ message, variant = "page" }) {
   // Avatar stays generic (no per-agent icon dispatch) so CVAgent /
   // InterviewCoach / SkillDevelopmentAdvisor render the same coral-tint
   // circle without hardcoding the mockup's compass icon.
+  // Coach contexts (dock + panel) share one bubble vocabulary distinct
+  // from the legacy full-page agents. Both use coral-tint user bubbles
+  // with coral-dark text and rd-bg-soft agent bubbles with rd-text —
+  // reads as the coach's voice, not generic chat. Asymmetric radii
+  // point the tight corner toward the sender (user bottom-right,
+  // agent bottom-left). variant="page" preserves the legacy dark user
+  // bubble + warm-cream agent bubble used on CareerAgent / CVAgent /
+  // InterviewCoach / SkillDevelopmentAdvisor full-page surfaces.
+  const isCoach = variant === "dock" || variant === "panel";
   const gapClass = isDock ? "gap-2" : "gap-3";
   const avatarSize = isDock ? "w-[22px] h-[22px]" : "w-[26px] h-[26px]";
   const bubbleMaxW = isDock ? "max-w-[92%]" : "max-w-[85%]";
   const bubblePadding = isDock ? "px-3 py-2" : "px-3.5 py-2.5";
   const textSize = isDock ? "text-[12px]" : "text-[13px]";
+  const leading = isDock ? "leading-[1.45]" : "leading-[1.5]";
+
+  // Bubble color + radii per variant. Tight corner faces the sender so
+  // the "speech tail" points the right direction (user-right → tight
+  // bottom-right; agent-left → tight bottom-left).
+  const userBubbleClasses = isCoach
+    ? "bg-rd-coral-tint text-rd-coral-dark rounded-tl-[14px] rounded-tr-[14px] rounded-br-[4px] rounded-bl-[14px]"
+    : "bg-[#211D18] text-white rounded-tl-[14px] rounded-tr-[14px] rounded-br-[4px] rounded-bl-[14px]";
+  const agentBubbleClasses = isCoach
+    ? "bg-rd-bg-soft text-rd-text rounded-tl-[14px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[4px]"
+    : "bg-[#F3ECE0] text-rd-text rounded-tl-[14px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[4px]";
 
   return (
     <div className={cn("flex", gapClass, isUser ? "justify-end" : "justify-start")}>
@@ -272,16 +292,14 @@ export default function MessageBubble({ message, variant = "page" }) {
             className={cn(
               "max-w-full",
               bubblePadding,
-              isUser
-                ? "bg-[#211D18] text-white rounded-tl-[14px] rounded-tr-[14px] rounded-br-[4px] rounded-bl-[14px]"
-                : "bg-[#F3ECE0] text-rd-text rounded-tl-[14px] rounded-tr-[14px] rounded-br-[14px] rounded-bl-[4px]",
+              isUser ? userBubbleClasses : agentBubbleClasses,
             )}
           >
             {isUser ? (
-              <p className={cn(textSize, "leading-[1.55]")}>{message.content}</p>
+              <p className={cn(textSize, leading)}>{message.content}</p>
             ) : (
               <ReactMarkdown
-                className={cn(textSize, "prose prose-sm prose-neutral max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0")}
+                className={cn(textSize, leading, "prose prose-sm prose-neutral max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0")}
                 components={{
                   p: ({ children }) => <p className="my-1.5 leading-relaxed text-rd-text">{children}</p>,
                   strong: ({ children }) => <strong className="font-semibold text-rd-text">{children}</strong>,
