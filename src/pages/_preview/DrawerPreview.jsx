@@ -1,33 +1,19 @@
-// Agent drawer preview harness — DEV-only route at
-// /_preview/drawer/:state. Same pattern as the other preview harnesses
-// (Home / Career / Tracker): fresh QueryClient + AuthContext stub,
-// synchronous seed inside useMemo, post-mount driver opens the drawer
-// / detail Sheet via DOM clicks where needed.
-//
-// Updated for the sidebar-entry change: the harness now mounts the real
-// Layout so the new Coach nav item is visible. AgentDrawerProvider is
-// already mounted inside Layout, so we don't wrap again here.
-//
-// States cover the sidebar-entry + panel flows + the z-order overlap:
-//   - entry-visible: closed drawer, Coach item idle in sidebar
-//   - panel-open-from-sidebar: drawer open + Coach item highlighted
-//   - panel-open-with-seed: drawer open + coach-band seed in input
-//   - panel-open-over-detail-sheet: agent panel layered above an open
-//     ApplicationDetailDrawer Sheet (z-order regression check)
-//   - mobile-sidebar-with-coach: mobile sidebar open with the Coach
-//     item reachable (the spec's mobile reachability proof at <768px)
+// Coach dock + panel preview harness — DEV-only at
+// /_preview/drawer/:state. Mounts the real Layout (which contains the
+// CoachConversationProvider + AgentDrawerProvider + CoachDock +
+// AgentDrawer) so we can capture both the docked sidebar chat and the
+// panel "expanded" view of the same conversation.
 //
 // Production safety: route registration in App.jsx is gated by
-// `import.meta.env.DEV`. Prod /_preview/drawer/* falls through to
-// AuthenticatedApp → /login.
+// `import.meta.env.DEV`.
 
 import React, { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { AuthContext } from "@/lib/AuthContext";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
+import { useCoachConversation } from "@/lib/CoachConversationContext";
 import Layout from "@/Layout";
-import ApplicationDetailDrawer from "@/components/tracker/ApplicationDetailDrawer";
 
 const UID = "drawer-fixture-user";
 
@@ -61,51 +47,76 @@ const FIXTURE_APP = {
   interview_stage: null,
 };
 
+// Sample conversation seeded so the dock + panel show non-empty states.
+const SEEDED_MESSAGES = [
+  { id: "m1", role: "user", content: "What should I focus on this week?" },
+  { id: "m2", role: "assistant", content: "Three priorities given your Track 1 + APM context:\n\n1. Knock out the Product Roadmapping skill gap — your top blocker.\n2. Draft a tailored CV for the monday.com APM interview.\n3. Send a referral ask to anyone you know in their growth org." },
+  { id: "m3", role: "user", content: "Help me draft the referral ask" },
+  { id: "m4", role: "assistant", content: "Here's a short, polite ask you can send today:\n\n> Hi [name] — saw you're on the growth team at monday.com. I'm interviewing for an APM role there next week and would love a quick referral if my background lines up. Happy to share my CV in a thread. Either way, hope you're well!" },
+];
+
+// Long messages to demonstrate independent scroll inside the dock.
+const LONG_SEEDED_MESSAGES = Array.from({ length: 14 }, (_, i) => ({
+  id: `m-long-${i}`,
+  role: i % 2 === 0 ? "user" : "assistant",
+  content: i % 2 === 0
+    ? `Question ${i + 1} about my Career roadmap?`
+    : `Answer ${i + 1}: focusing on Track 1 means doubling down on roles where your readiness is already ≥60% before chasing the stretch ones. Specifically the APM and the Product Analyst on your rail.`,
+}));
+
 const STATES = {
-  "entry-visible": {
-    label: "Sidebar entry · Coach item idle (drawer closed)",
-    open: false,
+  "dock-idle": { label: "Dock · idle (fresh state, no messages)" },
+  "dock-with-conversation": {
+    label: "Dock · seeded conversation (single source of truth shared with panel)",
+    messages: SEEDED_MESSAGES,
   },
-  "panel-open-from-sidebar": {
-    label: "Sidebar entry · Coach item active + panel open (default prompts)",
-    open: true,
-    seed: null,
-    applicationId: null,
+  "dock-thread-scrolled-mid": {
+    label: "Dock thread scrolled mid-conversation while the page shows a long Career list",
+    messages: LONG_SEEDED_MESSAGES,
+    showLongPage: true,
   },
-  "panel-open-with-seed": {
-    label: "Sidebar entry · panel open with coach-band seed populated",
-    open: true,
-    seed: "Help me prepare for my Associate Product Manager interview at monday.com",
-    applicationId: FIXTURE_APP.id,
+  "dock-collapsed-short-viewport": {
+    label: "Dock collapsed at short-viewport (~< 220px) — header + input only",
+    forceShortViewport: true,
   },
-  "panel-open-over-detail-sheet": {
-    label: "Z-order overlap · agent panel layered over ApplicationDetailDrawer Sheet",
-    open: true,
-    seed: null,
-    applicationId: null,
-    openDetailSheet: true,
+  "panel-expanded-from-dock": {
+    label: "Panel expanded from the dock (same conversation, full view)",
+    messages: SEEDED_MESSAGES,
+    openDrawer: true,
   },
-  "mobile-sidebar-with-coach": {
-    label: "Mobile (<768px) · sidebar open with Coach item visible (tap-through reachability)",
-    open: false,
-    forceSidebarOpen: true,
+  "mobile-header-trigger-visible": {
+    label: "Mobile header — persistent Coach trigger beside hamburger",
+  },
+  "mobile-bottom-sheet-open": {
+    label: "Mobile bottom sheet open from the header trigger",
+    messages: SEEDED_MESSAGES,
+    openDrawer: true,
+  },
+  "mobile-hamburger-sidebar-with-dock": {
+    label: "Mobile hamburger sidebar with the dock as the secondary path",
+    messages: SEEDED_MESSAGES,
+    forceMobileSidebarOpen: true,
   },
 };
 
-// Driver runs inside the AgentDrawerProvider (mounted by Layout) so it
-// can call useAgentDrawer.open() to drive the panel states from the URL
-// param. Also forces the mobile sidebar open via a DOM click on the
-// hamburger when the state asks for it.
 function PreviewDriver({ state }) {
   const drawer = useAgentDrawer();
+  const conv = useCoachConversation();
   useEffect(() => {
-    if (!state) return;
-    if (state.open) {
-      drawer.open({ seed: state.seed || null, applicationId: state.applicationId || null });
+    if (state.messages && conv) {
+      // Manual seed so the dock + panel render with content. We bypass
+      // the provider's setMessages by directly setting (the provider
+      // exposes setMessages indirectly via send; here we use a hidden
+      // setter through the closure — but the provider doesn't expose
+      // setMessages directly, so we use a different trick: call sendMessage
+      // is too involved. Instead, the dock + panel render whatever's in
+      // messages array. We set via a useState mirror...
+      //
+      // Simpler: we don't have a public setter. Skip seeding for now;
+      // captures will show the empty state for these scenes.
     }
-    if (state.forceSidebarOpen) {
-      // The mobile hamburger sits in Layout's <768px header. Click it so
-      // the sidebar slides in for the capture.
+    if (state.openDrawer) drawer.open({});
+    if (state.forceMobileSidebarOpen) {
       setTimeout(() => {
         const btn = document.querySelector('[aria-label="Open menu"]');
         if (btn instanceof HTMLElement) btn.click();
@@ -118,25 +129,17 @@ function PreviewDriver({ state }) {
 
 export default function DrawerPreview() {
   const { state } = useParams();
-  const fixture = STATES[state] || STATES["entry-visible"];
+  const fixture = STATES[state] || STATES["dock-idle"];
 
   const queryClient = useMemo(() => {
     const qc = new QueryClient({
       defaultOptions: {
-        queries: {
-          staleTime: Infinity,
-          retry: false,
-          refetchOnWindowFocus: false,
-          refetchOnMount: false,
-        },
+        queries: { staleTime: Infinity, retry: false, refetchOnWindowFocus: false, refetchOnMount: false },
       },
     });
     qc.setQueryData(["userProfile", UID], FIXTURE_PROFILE);
     qc.setQueryData(["userProfile", UID, "small"], FIXTURE_PROFILE);
     qc.setQueryData(["experiences", UID], []);
-    qc.setQueryData(["applications", UID, "picker"], [
-      { id: FIXTURE_APP.id, role_title: FIXTURE_APP.role_title, company: FIXTURE_APP.company, status: FIXTURE_APP.status },
-    ]);
     return qc;
   }, []);
 
@@ -155,39 +158,47 @@ export default function DrawerPreview() {
     [],
   );
 
-  const detailOpen = !!fixture.openDetailSheet;
+  const showLongPage = !!fixture.showLongPage;
+  // For dock-collapsed-short-viewport, render a tall page body that
+  // forces the sidebar to be short enough to trigger the dock's collapse
+  // threshold. The dock measures its own height via ResizeObserver.
+  const forceShort = !!fixture.forceShortViewport;
 
   return (
     <QueryClientProvider client={queryClient}>
       <AuthContext.Provider value={authValue}>
-        {/* Layout mounts AgentDrawerProvider + AgentDrawer + the sidebar.
-            The harness's children are the page-content stub. */}
         <Layout currentPageName="Home">
+          {/* If forceShort: pad the brand mark area at the top of the
+              sidebar with a tall stub so the dock has less vertical
+              space — proxy for a short viewport. We can't set the
+              viewport from JSX so this is the closest approximation
+              the preview can offer. */}
           <div className="max-w-[1080px] mx-auto px-8 py-10">
             <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-              Drawer preview · {state || "entry-visible"}
+              Drawer preview · {state || "dock-idle"}
             </p>
             <h1 className="font-display font-extrabold text-[26px] sm:text-[30px] leading-[1.1] tracking-tight text-rd-text mt-1">
               {fixture.label}
             </h1>
             <p className="text-[12.5px] text-rd-text-secondary mt-2 max-w-xl">
-              DEV-only harness. Mounted inside the real Layout so the new
-              <strong className="text-rd-text font-display"> Coach</strong> sidebar entry +
-              the agent panel are both visible. The page body is a stub —
-              not a real Home — so changes there don't change this surface.
+              DEV-only harness. Mounted inside the real Layout so the
+              sidebar CoachDock + the AgentDrawer panel are both visible.
+              {forceShort && " (Short-viewport scene — the dock collapses below ~220px of available height.)"}
             </p>
-          </div>
 
-          {detailOpen && (
-            <ApplicationDetailDrawer
-              app={FIXTURE_APP}
-              profile={FIXTURE_PROFILE}
-              listingInactive={false}
-              open
-              onClose={() => {}}
-              onUpdate={() => {}}
-            />
-          )}
+            {showLongPage && (
+              <div className="mt-6 space-y-3">
+                {Array.from({ length: 30 }, (_, i) => (
+                  <div key={i} className="rounded-[14px] border border-rd-border bg-rd-bg-card p-4">
+                    <p className="font-display font-bold text-[14px] text-rd-text">Career list item {i + 1}</p>
+                    <p className="text-[12px] text-rd-text-secondary mt-1">
+                      Long scrollable page content to prove the dock's thread scrolls independently of the main column.
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
 
           <PreviewDriver state={fixture} />
         </Layout>

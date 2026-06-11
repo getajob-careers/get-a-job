@@ -18,11 +18,13 @@ import {
   Mic,
   GraduationCap,
   MessageCircle,
-  Sparkles,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { AgentDrawerProvider, useAgentDrawer } from "@/lib/AgentDrawerContext";
+import { AgentDrawerProvider } from "@/lib/AgentDrawerContext";
+import { CoachConversationProvider } from "@/lib/CoachConversationContext";
 import AgentDrawer from "@/components/agent/AgentDrawer";
+import CoachDock from "@/components/agent/CoachDock";
+import MobileCoachTrigger from "@/components/agent/MobileCoachTrigger";
 
 // Sidebar information architecture — top-level sections + footer.
 // Sections with `items` are collapsible groups; sections with a direct
@@ -47,24 +49,20 @@ import AgentDrawer from "@/components/agent/AgentDrawer";
 // deep links keep working.
 //
 // The Chat section stays untouched (full-page agents remain the deep entry
-// until the Phase B merge). The new Coach item is the drawer entry —
-// founder decision after production use: the right-edge floating tab was
-// too invisible, so the entry moves into the left sidebar styled as a
-// first-class nav item. Coach is NOT a route; clicking it opens the
-// existing drawer panel via useAgentDrawer().open(). The Sparkles icon
-// matches Home's coach-band glyph for surface continuity.
+// until the Phase B merge).
+//
+// PR-REWORK: the previous "Coach" nav item that toggled the drawer was
+// removed in this rework. The coach now LIVES in the sidebar as a docked
+// chat (CoachDock) between the nav and the user footer. On mobile, the
+// MobileCoachTrigger chip sits beside the hamburger as the primary entry;
+// the dock additionally renders inside the opened mobile sidebar as the
+// secondary path.
 const BASE_SECTIONS = [
   {
     id: "home",
     label: "Today",
     icon: LayoutDashboard,
     page: "Home",
-  },
-  {
-    id: "coach",
-    label: "Coach",
-    icon: Sparkles,
-    action: "open-agent-drawer",
   },
   {
     id: "career",
@@ -128,23 +126,23 @@ function BrandMark() {
   );
 }
 
-// Layout is split into an outer wrapper that mounts the
-// AgentDrawerProvider and an inner LayoutBody that consumes
-// useAgentDrawer. The sidebar's Coach item needs the drawer state to
-// drive its active-while-panel-open styling, so the body has to live
-// inside the provider; doing this inline in a single Layout function
-// would put the hook call outside the provider scope.
+// Layout is wrapped by AgentDrawerProvider + CoachConversationProvider
+// so the sidebar's CoachDock + the AgentDrawer panel share the same
+// rolling-conversation state. The body lives inside both providers so
+// every component below can read/write via useAgentDrawer or
+// useCoachConversation.
 export default function Layout({ children, currentPageName }) {
   return (
     <AgentDrawerProvider>
-      <LayoutBody currentPageName={currentPageName}>{children}</LayoutBody>
+      <CoachConversationProvider>
+        <LayoutBody currentPageName={currentPageName}>{children}</LayoutBody>
+      </CoachConversationProvider>
     </AgentDrawerProvider>
   );
 }
 
 function LayoutBody({ children, currentPageName }) {
   const { user } = useAuth();
-  const { isOpen: agentDrawerOpen, open: openAgentDrawer } = useAgentDrawer();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [navLoading, setNavLoading] = useState(false);
   const location = useLocation();
@@ -256,14 +254,6 @@ function LayoutBody({ children, currentPageName }) {
 
   const closeMobileSidebar = () => setSidebarOpen(false);
 
-  // Coach nav item handler — opens the agent drawer + closes the mobile
-  // sidebar so the panel/sheet animation isn't competing with the
-  // sidebar's slide-in overlay.
-  const handleCoachClick = () => {
-    closeMobileSidebar();
-    openAgentDrawer({});
-  };
-
   return (
     <div
       data-private
@@ -301,7 +291,10 @@ function LayoutBody({ children, currentPageName }) {
           </div>
         </div>
 
-        <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        {/* Nav items take their intrinsic height (no flex-1) so the
+            CoachDock below them claims all the remaining vertical
+            space. */}
+        <nav className="px-3 py-4 space-y-0.5">
           {sections.map((section) => (
             <SidebarSection
               key={section.id}
@@ -309,13 +302,16 @@ function LayoutBody({ children, currentPageName }) {
               currentPageName={currentPageName}
               isExpanded={expandedSections.has(section.id)}
               isActiveSection={activeSectionId === section.id}
-              agentDrawerOpen={agentDrawerOpen}
               onToggle={() => toggleSection(section.id)}
               onNavigate={closeMobileSidebar}
-              onCoachClick={handleCoachClick}
             />
           ))}
         </nav>
+
+        {/* CoachDock fills the dead space between the nav and the
+            user footer. flex-1 min-h-0 + own scroll container = sidebar
+            holds still while the chat thread scrolls independently. */}
+        <CoachDock />
 
         <SidebarFooter
           profileFullName={profileFullName}
@@ -331,15 +327,21 @@ function LayoutBody({ children, currentPageName }) {
           set `bg-white` etc. as their root will paint over this with the
           rd page color via the CSS reset below. */}
       <div className="flex-1 flex flex-col min-w-0">
-        {/* Mobile header */}
-        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-rd-bg-card border-b border-rd-border">
-          <button
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 rounded-lg hover:bg-rd-bg-soft transition-colors"
-            aria-label="Open menu"
-          >
-            <Menu className="w-5 h-5 text-rd-text" />
-          </button>
+        {/* Mobile header — hamburger + persistent Coach trigger chip on
+            the left, brand mark center. The right edge stays clear so
+            no floating element competes with page-level Apply buttons
+            or the feedback pill. */}
+        <header className="lg:hidden flex items-center justify-between px-4 py-3 bg-rd-bg-card border-b border-rd-border gap-2">
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setSidebarOpen(true)}
+              className="p-2 rounded-lg hover:bg-rd-bg-soft transition-colors"
+              aria-label="Open menu"
+            >
+              <Menu className="w-5 h-5 text-rd-text" />
+            </button>
+            <MobileCoachTrigger />
+          </div>
           <BrandMark />
           <div className="w-9" />
         </header>
@@ -359,56 +361,22 @@ function LayoutBody({ children, currentPageName }) {
   );
 }
 
-// One section row. Three render branches:
-//   1. `action: "open-agent-drawer"` → button that opens the agent drawer
-//      via the parent's onCoachClick handler. NOT a route. Active styling
-//      applies while the panel is open (agentDrawerOpen prop).
-//   2. `section.page` → Link to a route (Home / Career / Internship / Profile).
-//   3. `section.items` → collapsible group with sub-item Links.
+// One section row. Two render branches:
+//   1. `section.page` → Link to a route (Home / Career / Internship / Profile).
+//   2. `section.items` → collapsible group with sub-item Links.
 //
-// Active state highlighting — coral on cream — matches the active-row
-// treatment from the home mockup.
+// The action-button branch from the previous PR-attempt (Coach as a nav
+// item that opens the drawer) was reverted in this rework — the coach
+// now lives as a docked chat below the nav (CoachDock).
 function SidebarSection({
   section,
   currentPageName,
   isExpanded,
   isActiveSection,
-  agentDrawerOpen,
   onToggle,
   onNavigate,
-  onCoachClick,
 }) {
   const Icon = section.icon;
-
-  // Action section — currently just "open-agent-drawer" for the Coach
-  // entry. Renders as a button; coral active styling fires while the
-  // drawer is open (agentDrawerOpen).
-  if (section.action === "open-agent-drawer") {
-    const isActive = !!agentDrawerOpen;
-    return (
-      <button
-        type="button"
-        onClick={onCoachClick}
-        aria-pressed={isActive}
-        data-coach-entry
-        className={cn(
-          "w-full text-left flex items-center gap-3 px-3 py-2.5 rounded-lg text-[13.5px] font-display font-semibold transition-colors duration-150",
-          isActive
-            ? "bg-rd-coral-tint text-rd-coral-dark"
-            : "text-rd-text-tertiary hover:bg-rd-bg-soft hover:text-rd-text",
-        )}
-      >
-        <Icon className="w-4 h-4 flex-shrink-0" />
-        <span className="flex-1">{section.label}</span>
-        {isActive && (
-          <span
-            aria-hidden="true"
-            className="w-1.5 h-1.5 rounded-full bg-rd-coral flex-shrink-0"
-          />
-        )}
-      </button>
-    );
-  }
 
   // Direct-link section (Home, LinkedIn, Profile).
   if (section.page) {

@@ -1,27 +1,26 @@
 import React, { useEffect, useState } from "react";
-import { X } from "lucide-react";
+import { Sparkles, X } from "lucide-react";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
-import ChatInterface from "@/components/chat/ChatInterface";
+import { useCoachConversation } from "@/lib/CoachConversationContext";
+import CoachThread from "./CoachThread";
+import CoachInput from "./CoachInput";
 
 // Agent drawer panel. PR-A3 originally shipped a right-edge floating
-// tab beside the panel; the founder retired the tab after production use
-// because it was too invisible. The drawer entry now lives as the
-// "Coach" item in Layout's sidebar (Layout.jsx). This component owns
-// only the panel + overlay + close button — the trigger is external.
+// tab; PR-#295 attempt moved the entry to a Coach sidebar nav item.
+// This rework retires both: the coach is now a docked live chat in
+// the sidebar, and the drawer panel is the "expanded" view of that
+// same conversation. State is shared via CoachConversationProvider so
+// anything sent in the dock appears here and vice-versa.
 //
-// Panel mechanics (unchanged from #293):
-//   - Desktop ≥ 768px: right-side panel (520px wide) with translate-x
-//     transition.
-//   - Mobile < 768px: bottom sheet (85vh tall) with translate-y
-//     transition.
-//   - Overlay z-[58], panel z-[60] — layers above the
-//     ApplicationDetailDrawer Sheet (Radix default z-50) so the agent
-//     wins the foreground when invoked.
+// Panel mechanics (unchanged from #293/#294):
+//   - Desktop ≥ 768px: right-side 520px panel with translate-x.
+//   - Mobile < 768px: bottom sheet 85vh with translate-y.
+//   - Overlay z-[58], panel z-[60] — layers above ApplicationDetailDrawer
+//     Sheet (z-50).
 //
-// Mount strategy: ChatInterface stays mounted whenever isOpen has been
-// truthy at least once. We keep its state in memory across close so the
-// user's rolling conversation persists across open/close cycles — that's
-// the "one rolling conversation per user" contract.
+// Mount strategy: CoachThread + CoachInput pull from the provider, so the
+// rolling conversation persists across close/reopen without needing the
+// hasMounted guard from the ChatInterface-based earlier shape.
 
 const MOBILE_BREAKPOINT = 768;
 
@@ -37,28 +36,19 @@ function useIsMobile() {
   return isMobile;
 }
 
-// Default suggested prompts for the drawer's empty-state. The seed (when
-// present) is prepended above these. Kept short — the panel is narrow.
-const DEFAULT_DRAWER_PROMPTS = [
-  "What should I focus on this week?",
-  "Am I ready to apply for my Track 1 roles?",
-  "What's my biggest gap right now?",
-];
-
 export default function AgentDrawer() {
-  // `open` no longer destructured — the sidebar's Coach item is the
-  // trigger now (Layout.jsx handleCoachClick → openAgentDrawer({})).
-  const { isOpen, seed, applicationId, pageContext, close } = useAgentDrawer();
+  const { isOpen, seed, close } = useAgentDrawer();
+  const conv = useCoachConversation();
   const isMobile = useIsMobile();
 
-  // Mount the chat once the drawer has been opened at least once; keep
-  // it mounted across close/reopen so the rolling conversation persists.
-  const [hasMounted, setHasMounted] = useState(false);
+  // Seed integration: when the drawer opens with a coach-band seed,
+  // pre-populate the shared input. Empty seed leaves whatever the user
+  // is typing alone.
   useEffect(() => {
-    if (isOpen && !hasMounted) setHasMounted(true);
-  }, [isOpen, hasMounted]);
+    if (isOpen && seed && conv) conv.setInput(seed);
+  }, [isOpen, seed, conv]);
 
-  // Esc closes the drawer (same a11y affordance every dialog gets).
+  // Esc closes (same a11y affordance every dialog gets).
   useEffect(() => {
     if (!isOpen) return;
     const onKey = (e) => { if (e.key === "Escape") close(); };
@@ -66,16 +56,8 @@ export default function AgentDrawer() {
     return () => document.removeEventListener("keydown", onKey);
   }, [isOpen, close]);
 
-  const suggestedPrompts = seed
-    ? [seed, ...DEFAULT_DRAWER_PROMPTS.filter((p) => p !== seed)]
-    : DEFAULT_DRAWER_PROMPTS;
-
   return (
     <>
-      {/* Overlay — interactive (click closes), aria-hidden so screen
-          readers don't double-announce the dialog backdrop. Only renders
-          when open so the page stays scrollable when the drawer is
-          closed. */}
       {isOpen && (
         <div
           className="fixed inset-0 z-[58] bg-rd-text/30 backdrop-blur-[2px]"
@@ -84,13 +66,10 @@ export default function AgentDrawer() {
         />
       )}
 
-      {/* Panel / sheet. Always in the DOM once mounted so ChatInterface
-          state survives close. Transform-driven slide so the close →
-          reopen path doesn't unmount + lose conversation state. */}
       <aside
         id="agent-drawer-panel"
         role="dialog"
-        aria-label="Career agent"
+        aria-label="Career coach"
         aria-hidden={!isOpen}
         aria-modal={isOpen ? "true" : "false"}
         className={[
@@ -101,31 +80,30 @@ export default function AgentDrawer() {
         ].join(" ")}
         data-agent-panel
       >
-        {/* Close affordance inside the panel chrome — distinct from the
-            right-edge tab (which stays for re-open after close). */}
-        <button
-          type="button"
-          onClick={close}
-          aria-label="Close your career agent"
-          tabIndex={isOpen ? 0 : -1}
-          className="absolute right-3 top-3 z-10 inline-flex items-center justify-center w-7 h-7 rounded-full text-rd-text-tertiary hover:bg-rd-bg-soft hover:text-rd-text transition-colors"
-        >
-          <X className="w-3.5 h-3.5" aria-hidden="true" />
-        </button>
+        {/* Panel header */}
+        <div className="px-4 py-3 border-b border-rd-border flex items-center gap-2.5">
+          <span className="w-7 h-7 rounded-full bg-rd-coral flex items-center justify-center flex-shrink-0">
+            <Sparkles className="w-3.5 h-3.5 text-white" aria-hidden="true" />
+          </span>
+          <div className="flex-1 min-w-0">
+            <p className="font-display font-bold text-[14px] text-rd-text leading-tight">Coach</p>
+            <p className="text-[10.5px] text-rd-text-tertiary leading-tight">Same conversation as your sidebar dock</p>
+          </div>
+          <button
+            type="button"
+            onClick={close}
+            aria-label="Close coach panel"
+            tabIndex={isOpen ? 0 : -1}
+            className="inline-flex items-center justify-center w-7 h-7 rounded-full text-rd-text-tertiary hover:bg-rd-bg-soft hover:text-rd-text transition-colors"
+          >
+            <X className="w-3.5 h-3.5" aria-hidden="true" />
+          </button>
+        </div>
 
-        {hasMounted && (
-          <ChatInterface
-            variant="drawer"
-            agentName="career_agent"
-            title="Career Agent"
-            description=""
-            applicationId={applicationId}
-            pageContext={pageContext}
-            suggestedPrompts={suggestedPrompts}
-            initialInput={seed || null}
-            introMessage="What would you like to work on?"
-          />
-        )}
+        {/* Same shared-state thread + input rendered in the dock, just
+            in the panel's wider variant. */}
+        <CoachThread variant="panel" />
+        <CoachInput variant="panel" />
       </aside>
     </>
   );
