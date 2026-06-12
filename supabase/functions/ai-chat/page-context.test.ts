@@ -37,7 +37,9 @@ describe("sanitizePageContext", () => {
   });
 
   it("accepts the three valid tracks + drops unknown ones", () => {
-    expect(sanitizePageContext({ track: "track_1" })).toEqual({ track: "track_1" });
+    expect(sanitizePageContext({ track: "track_1" })).toEqual({
+      track: "track_1",
+    });
     expect(sanitizePageContext({ track: "track_4" })).toBeNull();
     expect(sanitizePageContext({ track: 1 })).toBeNull();
   });
@@ -98,8 +100,12 @@ describe("renderPageContextBlocks", () => {
   it("renders the track block with the human-readable label", () => {
     const out = renderPageContextBlocks({ track: "track_1" });
     expect(out).toContain("CURRENT TRACK: Track 1 (Your Move)");
-    expect(renderPageContextBlocks({ track: "track_2" })).toContain("Track 2 (Plan B)");
-    expect(renderPageContextBlocks({ track: "track_3" })).toContain("Track 3 (Work Toward)");
+    expect(renderPageContextBlocks({ track: "track_2" })).toContain(
+      "Track 2 (Plan B)",
+    );
+    expect(renderPageContextBlocks({ track: "track_3" })).toContain(
+      "Track 3 (Work Toward)",
+    );
   });
 
   it("renders a TARGET ROLE block with the role's metadata + percent-scaled scores", () => {
@@ -120,7 +126,9 @@ describe("renderPageContextBlocks", () => {
     expect(out).toContain("Title: Associate Product Manager");
     expect(out).toContain("Readiness: 84%");
     expect(out).toContain("Goal alignment: 95%");
-    expect(out).toContain("Matched skills: stakeholder_management, user_research");
+    expect(out).toContain(
+      "Matched skills: stakeholder_management, user_research",
+    );
     expect(out).toContain("Skill gaps: product_roadmapping");
   });
 
@@ -140,7 +148,9 @@ describe("renderPageContextBlocks", () => {
     });
     expect(out).toContain(`job_id: ${VALID_UUID}`);
     expect(out).toContain("Experience required: 5-8 yrs");
-    expect(out).toContain("Required skills: ab_testing, stakeholder_management");
+    expect(out).toContain(
+      "Required skills: ab_testing, stakeholder_management",
+    );
     expect(out).toContain("Nice-to-haves: sql");
   });
 
@@ -343,6 +353,236 @@ describe("fetchPageContextEntities", () => {
       company_name: "Lemonade",
       company_sector: "Insurance",
     });
+  });
+});
+
+// ─── B3 visible-list IDs ──────────────────────────────────────────────────────
+const ID = (n: number) =>
+  `${String(n).padStart(8, "0")}-2222-3333-4444-555555555555`;
+
+describe("sanitizePageContext — visible_items (B3)", () => {
+  it("accepts a typed list, caps ids at 15, preserves total", () => {
+    const ids = Array.from({ length: 20 }, (_, i) => ID(i + 1));
+    const out = sanitizePageContext({
+      page: "Career",
+      visible_items: [{ type: "role", ids }],
+    });
+    expect(out?.visible_items?.length).toBe(1);
+    expect(out?.visible_items?.[0].type).toBe("role");
+    expect(out?.visible_items?.[0].ids.length).toBe(15); // capped
+    expect(out?.visible_items?.[0].ids).toEqual(ids.slice(0, 15)); // render order
+    expect(out?.visible_items?.[0].total).toBe(20); // pre-cap length
+  });
+
+  it("drops invalid types, non-uuid ids, and empty lists", () => {
+    const out = sanitizePageContext({
+      page: "Career",
+      visible_items: [
+        { type: "evil", ids: [ID(1)] }, // bad type → dropped
+        { type: "job", ids: ["not-a-uuid", 42, ID(2)] }, // keeps only the uuid
+        { type: "role", ids: [] }, // empty → dropped
+      ],
+    });
+    expect(out?.visible_items?.length).toBe(1);
+    expect(out?.visible_items?.[0]).toEqual({
+      type: "job",
+      ids: [ID(2)],
+      total: 1,
+    });
+  });
+
+  it("keeps at most 2 lists", () => {
+    const out = sanitizePageContext({
+      page: "Career",
+      visible_items: [
+        { type: "job", ids: [ID(1)] },
+        { type: "role", ids: [ID(2)] },
+        { type: "company_target", ids: [ID(3)] }, // 3rd → dropped
+      ],
+    });
+    expect(out?.visible_items?.length).toBe(2);
+    expect(out?.visible_items?.map((l) => l.type)).toEqual(["job", "role"]);
+  });
+});
+
+describe("renderPageContextBlocks — VISIBLE ON SCREEN (B3)", () => {
+  it("renders a numbered list so ordinals resolve, roles carry readiness", () => {
+    const out = renderPageContextBlocks({
+      visibleLists: [
+        {
+          type: "role",
+          total: 2,
+          items: [
+            {
+              title: "Marketing Intern",
+              track: "track_2",
+              readiness_score: 0.92,
+              goal_alignment_score: 0.1,
+              missing_skills: ["sql"],
+            },
+            {
+              title: "Sales Rep",
+              track: "track_2",
+              readiness_score: 0.8,
+              goal_alignment_score: 0.1,
+            },
+          ],
+        },
+      ],
+    });
+    expect(out).toContain("VISIBLE ON SCREEN");
+    expect(out).toContain("ROLES (ranked, as shown on screen):");
+    expect(out).toContain(
+      "1. Marketing Intern · track_2 · readiness 92% · goal 10% · gaps: sql",
+    );
+    expect(out).toContain("2. Sales Rep");
+  });
+
+  it("jobs in the visible list carry NO readiness vocabulary (entity-bound scores)", () => {
+    const out = renderPageContextBlocks({
+      visibleLists: [
+        {
+          type: "job",
+          total: 1,
+          items: [
+            {
+              title: "Data Analyst",
+              company: "Acme",
+              seniority: "mid",
+              req_years_min: 3,
+              req_years_max: 5,
+              req_skills_core: ["sql", "python"],
+            },
+          ],
+        },
+      ],
+    });
+    expect(out).toContain(
+      "1. Data Analyst — Acme · mid · 3-5 yrs · core: sql, python",
+    );
+    expect(out.toLowerCase()).not.toContain("readiness");
+    expect(out.toLowerCase()).not.toContain("goal ");
+  });
+
+  it("notes the truncation count when total exceeds the shown items", () => {
+    const out = renderPageContextBlocks({
+      visibleLists: [
+        {
+          type: "job",
+          total: 20,
+          items: Array.from({ length: 15 }, (_, i) => ({
+            title: `Job ${i + 1}`,
+          })),
+        },
+      ],
+    });
+    expect(out).toContain("(+5 more visible on screen");
+  });
+
+  it("renders nothing for an absent/empty visible list (byte-identical contract)", () => {
+    expect(renderPageContextBlocks({ visibleLists: [] })).toBe("");
+  });
+});
+
+// Batch mock supporting from().select().in()  and  from().select().eq().in().
+// eq() honors the filter so foreign-user rows drop; rows returned in storage
+// order (NOT client order) to prove fetchVisibleList re-orders.
+function makeBatchMock(
+  tableRows: Record<string, Record<string, unknown>[]>,
+): SupabaseLike {
+  const sel = (table: string) => ({
+    in: async (_col: string, ids: string[]) => ({
+      data: (tableRows[table] || []).filter((r) =>
+        ids.includes(r.id as string),
+      ),
+    }),
+    eq: (col: string, val: unknown) => ({
+      in: async (_col: string, ids: string[]) => ({
+        data: (tableRows[table] || []).filter(
+          (r) => ids.includes(r.id as string) && r[col] === val,
+        ),
+      }),
+    }),
+  });
+  return {
+    from: (table: string) => ({ select: (_c: string) => sel(table) }),
+  } as unknown as SupabaseLike;
+}
+
+describe("fetchPageContextEntities — visible lists (B3)", () => {
+  const USER = "user-1";
+
+  it("re-orders rows to the client's render order and drops missing ids", async () => {
+    // client order: [1, 2, 3]; storage returns them shuffled; id 3 missing.
+    const supabase = makeBatchMock({
+      career_roles: [
+        {
+          id: ID(2),
+          title: "Two",
+          user_id: USER,
+          track: "track_2",
+          readiness_score: 0.8,
+          goal_alignment_score: 0.1,
+          missing_skills: null,
+        },
+        {
+          id: ID(1),
+          title: "One",
+          user_id: USER,
+          track: "track_2",
+          readiness_score: 0.9,
+          goal_alignment_score: 0.1,
+          missing_skills: null,
+        },
+      ],
+    });
+    const out = await fetchPageContextEntities(supabase, USER, {
+      visible_items: [{ type: "role", ids: [ID(1), ID(2), ID(3)], total: 3 }],
+    });
+    const list = out.visibleLists?.[0];
+    expect(list?.items.map((i) => i.title)).toEqual(["One", "Two"]); // render order, id 3 dropped
+    expect(list?.total).toBe(3); // truncation note source preserved
+  });
+
+  it("drops a foreign-user role row (scoped fetch)", async () => {
+    const supabase = makeBatchMock({
+      career_roles: [
+        {
+          id: ID(1),
+          title: "Foreign",
+          user_id: "user-2",
+          track: null,
+          readiness_score: null,
+          goal_alignment_score: null,
+          missing_skills: null,
+        },
+      ],
+    });
+    const out = await fetchPageContextEntities(supabase, USER, {
+      visible_items: [{ type: "role", ids: [ID(1)], total: 1 }],
+    });
+    expect(out.visibleLists).toBeUndefined(); // empty list → omitted
+  });
+
+  it("fetches jobs as a public read (no user filter)", async () => {
+    const supabase = makeBatchMock({
+      jobs: [
+        {
+          id: ID(1),
+          title: "Public Job",
+          company_name: "Acme",
+          seniority: "mid",
+          req_years_min: 2,
+          req_years_max: null,
+          req_skills_core: ["sql"],
+        },
+      ],
+    });
+    const out = await fetchPageContextEntities(supabase, USER, {
+      visible_items: [{ type: "job", ids: [ID(1)], total: 1 }],
+    });
+    expect(out.visibleLists?.[0].items[0].title).toBe("Public Job");
+    expect(out.visibleLists?.[0].items[0].company).toBe("Acme");
   });
 });
 
