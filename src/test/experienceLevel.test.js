@@ -17,30 +17,58 @@ import {
 
 describe("reinferType", () => {
   it("classifies military by Hebrew/IDF keywords even when stored as full_time", () => {
-    expect(reinferType({ type: "full_time", title: "Combat Soldier", company: "IDF", responsibilities: "Nahal Brigade" })).toBe(
-      "military",
-    );
+    expect(
+      reinferType({
+        type: "full_time",
+        title: "Combat Soldier",
+        company: "IDF",
+        responsibilities: "Nahal Brigade",
+      }),
+    ).toBe("military");
   });
 
   it("classifies volunteering from text patterns", () => {
-    expect(reinferType({ type: "full_time", title: "Volunteer Mentor", company: "Make a Wish", responsibilities: "pro bono mentoring" })).toBe(
-      "volunteer",
-    );
+    expect(
+      reinferType({
+        type: "full_time",
+        title: "Volunteer Mentor",
+        company: "Make a Wish",
+        responsibilities: "pro bono mentoring",
+      }),
+    ).toBe("volunteer");
   });
 
   it("classifies internships from title text even when stored type is missing", () => {
-    expect(reinferType({ title: "Summer Internship — Marketing", company: "Wix" })).toBe("internship");
+    expect(
+      reinferType({ title: "Summer Internship — Marketing", company: "Wix" }),
+    ).toBe("internship");
   });
 
   it("preserves stored full_time when nothing flags otherwise", () => {
-    expect(reinferType({ type: "full_time", title: "Product Manager", company: "Lemonade" })).toBe("full_time");
+    expect(
+      reinferType({
+        type: "full_time",
+        title: "Product Manager",
+        company: "Lemonade",
+      }),
+    ).toBe("full_time");
   });
 
   it("flags student-leadership only when title + context both hit", () => {
     expect(
-      reinferType({ type: "full_time", title: "President of Reichman Marketing Club", company: "Reichman University" }),
+      reinferType({
+        type: "full_time",
+        title: "President of Reichman Marketing Club",
+        company: "Reichman University",
+      }),
     ).toBe("leadership");
-    expect(reinferType({ type: "full_time", title: "President", company: "Acme Corp" })).toBe("full_time");
+    expect(
+      reinferType({
+        type: "full_time",
+        title: "President",
+        company: "Acme Corp",
+      }),
+    ).toBe("full_time");
   });
 });
 
@@ -50,7 +78,12 @@ describe("totalYearsOfExperience", () => {
   it("counts full_time years between start and end", () => {
     expect(
       totalYearsOfExperience([
-        { type: "full_time", title: "Analyst", start_date: "2020-01", end_date: "2023-06" },
+        {
+          type: "full_time",
+          title: "Analyst",
+          start_date: "2020-01",
+          end_date: "2023-06",
+        },
       ]),
     ).toBe(3);
   });
@@ -58,7 +91,12 @@ describe("totalYearsOfExperience", () => {
   it("counts in-progress roles up to the current year", () => {
     expect(
       totalYearsOfExperience([
-        { type: "full_time", title: "PM", start_date: `${currentYear - 4}-01`, is_current: true },
+        {
+          type: "full_time",
+          title: "PM",
+          start_date: `${currentYear - 4}-01`,
+          is_current: true,
+        },
       ]),
     ).toBe(4);
   });
@@ -66,9 +104,24 @@ describe("totalYearsOfExperience", () => {
   it("excludes military and volunteer experience", () => {
     expect(
       totalYearsOfExperience([
-        { type: "military", title: "IDF Service", start_date: "2018", end_date: "2021" },
-        { type: "volunteer", title: "Tutor", start_date: "2017", end_date: "2018" },
-        { type: "full_time", title: "Analyst", start_date: "2022", end_date: "2024" },
+        {
+          type: "military",
+          title: "IDF Service",
+          start_date: "2018",
+          end_date: "2021",
+        },
+        {
+          type: "volunteer",
+          title: "Tutor",
+          start_date: "2017",
+          end_date: "2018",
+        },
+        {
+          type: "full_time",
+          title: "Analyst",
+          start_date: "2022",
+          end_date: "2024",
+        },
       ]),
     ).toBe(2);
   });
@@ -76,8 +129,18 @@ describe("totalYearsOfExperience", () => {
   it("counts internships and freelance", () => {
     expect(
       totalYearsOfExperience([
-        { type: "internship", title: "Marketing Intern", start_date: "2022", end_date: "2023" },
-        { type: "freelance", title: "Designer", start_date: "2023", end_date: "2024" },
+        {
+          type: "internship",
+          title: "Marketing Intern",
+          start_date: "2022",
+          end_date: "2023",
+        },
+        {
+          type: "freelance",
+          title: "Designer",
+          start_date: "2023",
+          end_date: "2024",
+        },
       ]),
     ).toBe(2);
   });
@@ -85,13 +148,22 @@ describe("totalYearsOfExperience", () => {
   it("counts part_time (added 2026-05-27 — seniority ceiling already gates juniors from Mid+ roles)", () => {
     expect(
       totalYearsOfExperience([
-        { type: "part_time", title: "CSM", start_date: "2024", end_date: "2026" },
+        {
+          type: "part_time",
+          title: "CSM",
+          start_date: "2024",
+          end_date: "2026",
+        },
       ]),
     ).toBe(2);
   });
 
   it("ignores rows without parseable start_date", () => {
-    expect(totalYearsOfExperience([{ type: "full_time", title: "Junk", start_date: "" }])).toBe(0);
+    expect(
+      totalYearsOfExperience([
+        { type: "full_time", title: "Junk", start_date: "" },
+      ]),
+    ).toBe(0);
   });
 });
 
@@ -109,7 +181,14 @@ describe("inferExperienceLevel", () => {
   it("returns early_career when years < 3 and not a student", () => {
     expect(
       inferExperienceLevel(
-        [{ type: "full_time", title: "Analyst", start_date: `${yr - 2}`, is_current: true }],
+        [
+          {
+            type: "full_time",
+            title: "Analyst",
+            start_date: `${yr - 2}`,
+            is_current: true,
+          },
+        ],
         [],
       ),
     ).toBe("early_career");
@@ -118,7 +197,14 @@ describe("inferExperienceLevel", () => {
   it("returns mid_career when 3 ≤ years < 8", () => {
     expect(
       inferExperienceLevel(
-        [{ type: "full_time", title: "PM", start_date: `${yr - 5}`, is_current: true }],
+        [
+          {
+            type: "full_time",
+            title: "PM",
+            start_date: `${yr - 5}`,
+            is_current: true,
+          },
+        ],
         [],
       ),
     ).toBe("mid_career");
@@ -127,7 +213,14 @@ describe("inferExperienceLevel", () => {
   it("returns senior_career when years ≥ 8", () => {
     expect(
       inferExperienceLevel(
-        [{ type: "full_time", title: "Director", start_date: `${yr - 9}`, is_current: true }],
+        [
+          {
+            type: "full_time",
+            title: "Director",
+            start_date: `${yr - 9}`,
+            is_current: true,
+          },
+        ],
         [],
       ),
     ).toBe("senior_career");
@@ -146,13 +239,26 @@ describe("allowedSenioritiesForLevel", () => {
   // p_max_seniority filter. Regression guard for Isaac's "Junior SWE
   // shows no jobs" symptom.
   it("early_career → entry + mid", () => {
-    expect(allowedSenioritiesForLevel("early_career")).toEqual(["entry", "mid"]);
+    expect(allowedSenioritiesForLevel("early_career")).toEqual([
+      "entry",
+      "mid",
+    ]);
   });
   it("mid_career → entry + mid + senior (entry added 2026-06-03)", () => {
-    expect(allowedSenioritiesForLevel("mid_career")).toEqual(["entry", "mid", "senior"]);
+    expect(allowedSenioritiesForLevel("mid_career")).toEqual([
+      "entry",
+      "mid",
+      "senior",
+    ]);
   });
-  it("senior_career → senior + lead + director + executive", () => {
+  it("senior_career → mid + senior + lead + director + executive (mid added 2026-06-12)", () => {
+    // 'mid' added so senior users can see the 59%-of-corpus Mid bucket (the
+    // conservative no-signal tagging default), mirroring the step-down
+    // symmetry mid_career already has with 'senior'. Repro #303: 5
+    // title-matching jobs → 0 visible before this. fit-score ranking keeps
+    // Mid roles below true Senior+ matches.
     expect(allowedSenioritiesForLevel("senior_career")).toEqual([
+      "mid",
       "senior",
       "lead",
       "director",
