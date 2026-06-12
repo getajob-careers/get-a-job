@@ -14,11 +14,15 @@ import {
 describe("detectSeniorityFromTitle", () => {
   it("flags executive titles", () => {
     expect(detectSeniorityFromTitle("VP of Engineering")).toBe("executive");
-    expect(detectSeniorityFromTitle("Chief Marketing Officer")).toBe("executive");
+    expect(detectSeniorityFromTitle("Chief Marketing Officer")).toBe(
+      "executive",
+    );
     expect(detectSeniorityFromTitle("Head of Product")).toBe("executive");
   });
   it("flags director titles", () => {
-    expect(detectSeniorityFromTitle("Director of Customer Success")).toBe("director");
+    expect(detectSeniorityFromTitle("Director of Customer Success")).toBe(
+      "director",
+    );
   });
   it("flags lead/principal/staff/architect titles", () => {
     expect(detectSeniorityFromTitle("Lead Engineer")).toBe("lead");
@@ -54,10 +58,14 @@ describe("finalSeniority — Variant B", () => {
       expect(finalSeniority("lead", { min: 4, max: 6 })).toBe("lead");
     });
     it("'director' title stays director even when years.min=4 (was unreachable pre-fix)", () => {
-      expect(finalSeniority("director", { min: 4, max: null })).toBe("director");
+      expect(finalSeniority("director", { min: 4, max: null })).toBe(
+        "director",
+      );
     });
     it("'executive' title stays executive even when years.min=5 (was unreachable pre-fix)", () => {
-      expect(finalSeniority("executive", { min: 5, max: null })).toBe("executive");
+      expect(finalSeniority("executive", { min: 5, max: null })).toBe(
+        "executive",
+      );
     });
   });
 
@@ -132,7 +140,9 @@ describe("finalSeniority — Variant B", () => {
     it("multi-city US string containing 'Chicago, IL' → false", () => {
       // Real DoorDash / Robinhood pattern — corroborated by other state codes
       expect(
-        classifyLocation("Atlanta, GA; Austin, TX; Boston, MA; Chicago, IL; Denver, CO").is_il,
+        classifyLocation(
+          "Atlanta, GA; Austin, TX; Boston, MA; Chicago, IL; Denver, CO",
+        ).is_il,
       ).toBe(false);
     });
     it("Yokneam, IL stays IL (no US corroborator → trust IL = country code)", () => {
@@ -202,16 +212,24 @@ describe("finalSeniority — Variant B", () => {
     });
     it("Head of X → executive, bare Head → lead", () => {
       expect(detectSeniorityFromTitle("Head of Marketing")).toBe("executive");
-      expect(detectSeniorityFromTitle("Vice President of Sales")).toBe("executive");
+      expect(detectSeniorityFromTitle("Vice President of Sales")).toBe(
+        "executive",
+      );
       expect(detectSeniorityFromTitle("Department Head")).toBe("lead");
     });
     it("expanded entry signals: SDR / BDR / Coordinator / Representative", () => {
       expect(detectSeniorityFromTitle("SDR")).toBe("entry");
       expect(detectSeniorityFromTitle("BDR - Israel")).toBe("entry");
-      expect(detectSeniorityFromTitle("Sales Development Representative")).toBe("entry");
-      expect(detectSeniorityFromTitle("Business Development Representative")).toBe("entry");
+      expect(detectSeniorityFromTitle("Sales Development Representative")).toBe(
+        "entry",
+      );
+      expect(
+        detectSeniorityFromTitle("Business Development Representative"),
+      ).toBe("entry");
       expect(detectSeniorityFromTitle("Marketing Coordinator")).toBe("entry");
-      expect(detectSeniorityFromTitle("Customer Service Representative")).toBe("entry");
+      expect(detectSeniorityFromTitle("Customer Service Representative")).toBe(
+        "entry",
+      );
     });
     it("'Associate' is narrow: requires IC role-noun after", () => {
       expect(detectSeniorityFromTitle("Associate Engineer")).toBe("entry");
@@ -225,13 +243,21 @@ describe("finalSeniority — Variant B", () => {
 
   describe("parseExplicitJuniorSignal", () => {
     it("matches the listed phrases", () => {
-      expect(parseExplicitJuniorSignal("Requires 0-1 years of experience")).toBe(true);
-      expect(parseExplicitJuniorSignal("0 to 1 year of experience preferred")).toBe(true);
+      expect(
+        parseExplicitJuniorSignal("Requires 0-1 years of experience"),
+      ).toBe(true);
+      expect(
+        parseExplicitJuniorSignal("0 to 1 year of experience preferred"),
+      ).toBe(true);
       expect(parseExplicitJuniorSignal("No experience required")).toBe(true);
-      expect(parseExplicitJuniorSignal("no prior experience needed")).toBe(true);
+      expect(parseExplicitJuniorSignal("no prior experience needed")).toBe(
+        true,
+      );
       expect(parseExplicitJuniorSignal("Open to recent graduates")).toBe(true);
       expect(parseExplicitJuniorSignal("Looking for a new grad")).toBe(true);
-      expect(parseExplicitJuniorSignal("This is an entry-level position")).toBe(true);
+      expect(parseExplicitJuniorSignal("This is an entry-level position")).toBe(
+        true,
+      );
       expect(parseExplicitJuniorSignal("Entry Level role")).toBe(true);
     });
     it("does NOT match bare years phrases (the original bug)", () => {
@@ -244,6 +270,32 @@ describe("finalSeniority — Variant B", () => {
       expect(parseExplicitJuniorSignal(null)).toBe(false);
       expect(parseExplicitJuniorSignal("")).toBe(false);
     });
+    it("matches bare Hebrew junior phrases (AdamTotal / Comeet)", () => {
+      expect(
+        parseExplicitJuniorSignal("הזדמנות מצוינת לעבודה ראשונה בתחום"),
+      ).toBe(true); // עבודה ראשונה = first job
+      expect(parseExplicitJuniorSignal("התפקיד מתאים גם ללא ניסיון קודם")).toBe(
+        true,
+      ); // ללא ניסיון = no experience
+      expect(parseExplicitJuniorSignal("דרוש/ה מפתח/ת ג'וניור לצוות")).toBe(
+        true,
+      ); // ג'וניור = junior (geresh)
+      expect(parseExplicitJuniorSignal("המשרה ללא נסיון נדרש")).toBe(true); // נסיון spelling variant (no yod)
+    });
+    it("scoped דרושים: bare hiring headline does NOT promote; promotes only with a nearby no-experience qualifier", () => {
+      // 'דרושים/דרושות' = generic 'wanted' headline on most IL posts — must NOT promote alone
+      expect(parseExplicitJuniorSignal("דרושים מהנדס תוכנה")).toBe(false);
+      expect(parseExplicitJuniorSignal("דרושות נציגות מכירות מנוסות")).toBe(
+        false,
+      );
+      // same headline WITH a no-experience qualifier nearby → promotes
+      expect(
+        parseExplicitJuniorSignal("דרושים נציגי שירות, ללא ניסיון נדרש"),
+      ).toBe(true);
+      expect(
+        parseExplicitJuniorSignal("עבודה ראשונה? דרושים עובדים חדשים"),
+      ).toBe(true);
+    });
   });
 
   describe("finalSeniority — Variant C: years no longer demotes, JD promotion replaces it", () => {
@@ -252,12 +304,24 @@ describe("finalSeniority — Variant B", () => {
       expect(finalSeniority("mid", { min: 2, max: null })).toBe("mid");
     });
     it("neutral IC title + explicit junior JD → entry (promotion)", () => {
-      expect(finalSeniority("mid", { min: null, max: null }, { explicitJunior: true })).toBe("entry");
-      expect(finalSeniority("mid", { min: 1, max: null }, { explicitJunior: true })).toBe("entry");
+      expect(
+        finalSeniority(
+          "mid",
+          { min: null, max: null },
+          { explicitJunior: true },
+        ),
+      ).toBe("entry");
+      expect(
+        finalSeniority("mid", { min: 1, max: null }, { explicitJunior: true }),
+      ).toBe("entry");
     });
     it("Manager-title (mid) + explicit junior JD → mid (titleHasMgmtSignal blocks promotion)", () => {
       expect(
-        finalSeniority("mid", { min: null, max: null }, { explicitJunior: true, titleHasMgmtSignal: true }),
+        finalSeniority(
+          "mid",
+          { min: null, max: null },
+          { explicitJunior: true, titleHasMgmtSignal: true },
+        ),
       ).toBe("mid");
     });
     it("years STILL refines upward (no change)", () => {
@@ -268,28 +332,40 @@ describe("finalSeniority — Variant B", () => {
 
   describe("regression cases from the 2026-05-20 cache audit", () => {
     it("'Senior Software Engineer, 3-5 yrs' → senior (was: mid)", () => {
-      expect(finalSeniority(detectSeniorityFromTitle("Senior Software Engineer"), { min: 3, max: 5 })).toBe(
-        "senior",
-      );
+      expect(
+        finalSeniority(detectSeniorityFromTitle("Senior Software Engineer"), {
+          min: 3,
+          max: 5,
+        }),
+      ).toBe("senior");
     });
     it("'Director of CS, 4 yrs' → director (was: mid — unreachable)", () => {
-      expect(finalSeniority(detectSeniorityFromTitle("Director of Customer Success"), { min: 4, max: null })).toBe(
-        "director",
-      );
+      expect(
+        finalSeniority(
+          detectSeniorityFromTitle("Director of Customer Success"),
+          { min: 4, max: null },
+        ),
+      ).toBe("director");
     });
     it("'VP Marketing, 5 yrs' → executive (was: mid — unreachable)", () => {
-      expect(finalSeniority(detectSeniorityFromTitle("VP of Marketing"), { min: 5, max: null })).toBe(
-        "executive",
-      );
+      expect(
+        finalSeniority(detectSeniorityFromTitle("VP of Marketing"), {
+          min: 5,
+          max: null,
+        }),
+      ).toBe("executive");
     });
     it("untitled 'Software Engineer, 1 yr' → mid (Variant C: years no longer auto-demotes to entry)", () => {
       // Pre-Variant-C this returned "entry" — the demotion was too
       // aggressive (most JDs mention "1+ year" as a soft floor). Now
       // only an explicit JD junior signal ("entry-level", "new grad",
       // "0-1 years", "no experience required") promotes to entry.
-      expect(finalSeniority(detectSeniorityFromTitle("Software Engineer"), { min: 1, max: null })).toBe(
-        "mid",
-      );
+      expect(
+        finalSeniority(detectSeniorityFromTitle("Software Engineer"), {
+          min: 1,
+          max: null,
+        }),
+      ).toBe("mid");
     });
     it("untitled 'Software Engineer, 1 yr, explicit junior JD' → entry (promotion)", () => {
       expect(
@@ -301,9 +377,12 @@ describe("finalSeniority — Variant B", () => {
       ).toBe("entry");
     });
     it("untitled 'Software Engineer, 7 yrs' → senior (years refines mid bucket)", () => {
-      expect(finalSeniority(detectSeniorityFromTitle("Software Engineer"), { min: 7, max: null })).toBe(
-        "senior",
-      );
+      expect(
+        finalSeniority(detectSeniorityFromTitle("Software Engineer"), {
+          min: 7,
+          max: null,
+        }),
+      ).toBe("senior");
     });
   });
 });

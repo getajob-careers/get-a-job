@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-09",
-  "total_companies": 891,
+  "generated_at": "2026-06-12",
+  "total_companies": 890,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
     "ashby": 68,
-    "comeet": 225,
+    "comeet": 220,
     "custom": 32,
     "eightfold": 3,
     "greenhouse": 199,
@@ -19,7 +19,7 @@
     "smartrecruiters": 10,
     "successfactors": 8,
     "teamtailor": 1,
-    "unknown": 256,
+    "unknown": 260,
     "workable": 10,
     "workday": 37
   },
@@ -1076,9 +1076,9 @@
       "careers_url": "https://www.comeet.com/jobs/joinattil/38.00A",
       "ats": "comeet",
       "slug": "38.00A",
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet UID 38.00A confirmed via comeet.com/jobs/joinattil/38.00A. Token not extractable from comeet.com (template only). AT&T's largest R&D center outside US (600+ employees in Hod HaSharon)."
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/38.00A/positions?token=83A315C29223996399641D039963996107418AE&details=true",
+      "verified": true,
+      "notes": "Comeet UID 38.00A confirmed via comeet.com/jobs/joinattil/38.00A. Token not extractable from comeet.com (template only). AT&T's largest R&D center outside US (600+ employees in Hod HaSharon). | api_url recovered 2026-06-12 (token re-harvest; 3 positions, 3 IL at recovery)."
     },
     {
       "name": "At-Bay",
@@ -1547,18 +1547,6 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/C7.004/positions?token=7C42E981F101F10365C174C2E98F88F880&details=true",
       "verified": true,
       "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.blinkops.com/careers)"
-    },
-    {
-      "name": "BlinkOps",
-      "type": "international_il_rd",
-      "industry": "Cybersecurity (Automation)",
-      "domain": "blinkops.com",
-      "careers_url": "https://www.blinkops.com/careers",
-      "ats": "comeet",
-      "slug": "c7.004",
-      "api_url": "https://www.comeet.co/careers-api/2.0/company/c7.004/positions?token=7C42E981F101F10365C174C2E98F88F880&details=true",
-      "verified": true,
-      "notes": "Raised $50M Jul 2025. SecOps no-code automation. Comeet slug \"blinkops\", UID c7.004 + token 7C42E981F101F10365C174C2E98F88F880. Verified: 19 jobs, 8 IL."
     },
     {
       "name": "Block (Square)",
@@ -2444,9 +2432,9 @@
       "careers_url": "https://www.comeet.com/jobs/comm-it/76.008",
       "ats": "comeet",
       "slug": "76.008",
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet UID 76.008 confirmed. Israeli IT services co (500+ employees, 1200+ projects since 2005), HQ Kfar Saba."
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/76.008/positions?token=67826D067833C0CF002D48020581368&details=true",
+      "verified": true,
+      "notes": "Comeet UID 76.008 confirmed. Israeli IT services co (500+ employees, 1200+ projects since 2005), HQ Kfar Saba. | api_url recovered 2026-06-12 (token re-harvest; 106 positions, 44 IL at recovery)."
     },
     {
       "name": "Compete",
@@ -2467,10 +2455,10 @@
       "domain": "cgen.com",
       "careers_url": "https://cgen.com/careers/",
       "ats": "comeet",
-      "slug": "cgen/D9.00E",
-      "api_url": "https://www.comeet.com/jobs/cgen/D9.00E",
-      "verified": false,
-      "notes": "Comeet board confirmed via cgen.com/careers/co/israel listings. Holon HQ, San Francisco corporate office, immuno-oncology. Current snapshot returns no open Comeet listings but careers page itself shows roles. Add as unverified; expect intermittent IL roles."
+      "slug": "D9.00E",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/D9.00E/positions?token=9DE451213BC4EF04EF058CE13BC3B341D9A58CE&details=true",
+      "verified": true,
+      "notes": "Comeet board confirmed via cgen.com/careers/co/israel listings. Holon HQ, San Francisco corporate office, immuno-oncology. Current snapshot returns no open Comeet listings but careers page itself shows roles. Add as unverified; expect intermittent IL roles. | api_url recovered 2026-06-12 (token re-harvest; 0 positions, 0 IL at recovery)."
     },
     {
       "name": "Comunix",
@@ -3777,8 +3765,8 @@
       "ats": "comeet",
       "slug": "A9.00F",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/A9.00F/positions?token=9AF43C9135E09AF5727306B043C93A1A&details=true",
-      "verified": false,
-      "notes": "Seed Jan 2026 $63M (mega-seed). Smart document platform replacing PDFs. Comeet UID A9.00F + token 9AF43C9135E09AF5727306B043C93A1A verified. API returns 0 current positions but board exists — early-stage hiring may be private. Industry-leading round size for an Israeli seed."
+      "verified": true,
+      "notes": "Seed Jan 2026 $63M (mega-seed). Smart document platform replacing PDFs. Comeet UID A9.00F + token 9AF43C9135E09AF5727306B043C93A1A verified. API returns 0 current positions but board exists — early-stage hiring may be private. Industry-leading round size for an Israeli seed. | verified 2026-06-12 (probe: api_url returns IL jobs)."
     },
     {
       "name": "Faddom",
@@ -3871,10 +3859,10 @@
       "domain": "firebolt.io",
       "careers_url": "https://firebolt.io/careers",
       "ats": "comeet",
-      "slug": "firebolt",
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug='firebolt'"
+      "slug": "26.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/26.004/positions?token=62424D80374424D824D8126C126C1EB41890&details=true",
+      "verified": true,
+      "notes": "Comeet markers detected in HTML (sweep); slug='firebolt' | api_url recovered 2026-06-12 (token re-harvest; 4 positions, 0 IL at recovery)."
     },
     {
       "name": "First International Bank of Israel (FIBI)",
@@ -3907,10 +3895,10 @@
       "domain": "fiverr.com",
       "careers_url": "https://careers.fiverr.com/",
       "ats": "comeet",
-      "slug": "60.002/positions?token=62188018812631018862C4188",
+      "slug": "60.002",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/60.002/positions?token=62188018812631018862C4188&details=true",
       "verified": true,
-      "notes": "Comeet company_uid 60.002 + token scraped from www.comeet.com/jobs/fiverr/60.002; API returns 36 jobs with 28 in Tel Aviv-Yafo IL."
+      "notes": "Comeet company_uid 60.002 + token scraped from www.comeet.com/jobs/fiverr/60.002; API returns 36 jobs with 28 in Tel Aviv-Yafo IL. | slug de-corrupted 2026-06-12 (was the full path+token)."
     },
     {
       "name": "Fivetran",
@@ -3979,10 +3967,10 @@
       "domain": "foresightauto.com",
       "careers_url": "https://www.foresightauto.com/careers/",
       "ats": "comeet",
-      "slug": "foresightauto/13.000",
-      "api_url": "https://www.comeet.com/jobs/foresightauto/13.000",
-      "verified": false,
-      "notes": "Comeet board referenced from foresightauto.com/careers. Nasdaq-listed (FRSX), Ness Ziona HQ, dual-use civilian + defense computer vision. Current snapshot shows board live but no open positions. Add as unverified."
+      "slug": "13.000",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/13.000/positions?token=310F50310C4062031012606201B90310&details=true",
+      "verified": true,
+      "notes": "Comeet board referenced from foresightauto.com/careers. Nasdaq-listed (FRSX), Ness Ziona HQ, dual-use civilian + defense computer vision. Current snapshot shows board live but no open positions. Add as unverified. | api_url recovered 2026-06-12 (token re-harvest; 2 positions, 2 IL at recovery)."
     },
     {
       "name": "Foresight Autonomous",
@@ -4088,9 +4076,9 @@
       "careers_url": "https://www.comeet.com/jobs/fullpath/54.002",
       "ats": "comeet",
       "slug": "54.002",
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet UID 54.002 confirmed. Israeli-founded (formerly AutoLeadStar). Automotive dealer marketing automation, hubs in US and IL."
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/54.002/positions?token=452159A159A8A4CF61E3E229019EC26E21148&details=true",
+      "verified": true,
+      "notes": "Comeet UID 54.002 confirmed. Israeli-founded (formerly AutoLeadStar). Automotive dealer marketing automation, hubs in US and IL. | api_url recovered 2026-06-12 (token re-harvest; 15 positions, 11 IL at recovery)."
     },
     {
       "name": "FundGuard",
@@ -4459,10 +4447,10 @@
       "domain": "h2pro.co",
       "careers_url": "https://www.h2pro.co/careers",
       "ats": "comeet",
-      "slug": "h2pro/A7.001",
-      "api_url": "https://www.comeet.com/jobs/h2pro/A7.001",
-      "verified": false,
-      "notes": "Comeet board confirmed (referenced from h2pro.co/careers and Comeet job links). Current snapshot returns 'no open positions' on Comeet — board active but empty. H2Pro is one of the most well-funded IL climatetech scaleups (decoupled electrolysis, Caesarea). Add to registry as unverified=false until jobs appear; cron will catch."
+      "slug": "A7.001",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/A7.001/positions?token=7A12DC61E847A13D083D0835671E842DC61E84&details=true",
+      "verified": true,
+      "notes": "Comeet board confirmed (referenced from h2pro.co/careers and Comeet job links). Current snapshot returns 'no open positions' on Comeet — board active but empty. H2Pro is one of the most well-funded IL climatetech scaleups (decoupled electrolysis, Caesarea). Add to registry as unverified=false until jobs appear; cron will catch. | api_url recovered 2026-06-12 (token re-harvest; 0 positions, 0 IL at recovery)."
     },
     {
       "name": "Haat",
@@ -4530,11 +4518,11 @@
       "industry": "HealthTech",
       "domain": "healthy.io",
       "careers_url": "https://healthy.io/careers/",
-      "ats": "comeet",
+      "ats": "unknown",
       "slug": "healthy",
       "api_url": null,
       "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug='healthy'"
+      "notes": "Comeet markers detected in HTML (sweep); slug='healthy' | retagged comeet->unknown 2026-06-12 (careers page no longer Comeet)."
     },
     {
       "name": "Helios",
@@ -4881,8 +4869,8 @@
       "ats": "comeet",
       "slug": "D7.000",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/D7.000/positions?token=7D02EE01F402710271004650177001770&details=true",
-      "verified": false,
-      "notes": "Series B Jul 2025 $23M. AI pathology. Comeet UID D7.000 + token 7D02EE01F402710271004650177001770. API returns 2 jobs, 0 currently listed as IL but company is Tel Aviv-based."
+      "verified": true,
+      "notes": "Series B Jul 2025 $23M. AI pathology. Comeet UID D7.000 + token 7D02EE01F402710271004650177001770. API returns 2 jobs, 0 currently listed as IL but company is Tel Aviv-based. | verified 2026-06-12 (probe: api_url returns IL jobs)."
     },
     {
       "name": "Imagindairy",
@@ -4975,10 +4963,10 @@
       "domain": "insightec.com",
       "careers_url": "https://insightec.com/careers/",
       "ats": "comeet",
-      "slug": "insightec/4A.004",
-      "api_url": "https://www.comeet.com/jobs/insightec/4A.004",
-      "verified": false,
-      "notes": "Duplicate entry note — see above; primary Insightec entry handles Comeet detection. Removed."
+      "slug": "4A.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/4A.004/positions?token=A4447DC2910A44148829105C6452201ECC3354&details=true",
+      "verified": true,
+      "notes": "Duplicate entry note — see above; primary Insightec entry handles Comeet detection. Removed. | api_url recovered 2026-06-12 (token re-harvest; 20 positions, 3 IL at recovery)."
     },
     {
       "name": "Instacart",
@@ -5216,9 +5204,9 @@
       "careers_url": "https://www.comeet.com/jobs/israeltechguard/29.009",
       "ats": "comeet",
       "slug": "29.009",
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet UID 29.009 confirmed. Elite tech unit founded during Iron Swords war, OSINT + social network analytics + LLM-based intel, IL-founded."
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/29.009/positions?token=92936F65271401F125212521B7B929527136F6&details=true",
+      "verified": true,
+      "notes": "Comeet UID 29.009 confirmed. Elite tech unit founded during Iron Swords war, OSINT + social network analytics + LLM-based intel, IL-founded. | api_url recovered 2026-06-12 (token re-harvest; 3 positions, 3 IL at recovery)."
     },
     {
       "name": "Israir",
@@ -5360,9 +5348,9 @@
       "careers_url": "https://www.comeet.com/jobs/k2view/D5.000",
       "ats": "comeet",
       "slug": "D5.000",
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet UID D5.000 confirmed via comeet.com/jobs/k2view/D5.000. Token not extractable. Israeli-founded real-time data management for enterprises, HQ Ra'anana."
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/D5.000/positions?token=5D01D1034502E80117022E017405D05D05D0&details=true",
+      "verified": true,
+      "notes": "Comeet UID D5.000 confirmed via comeet.com/jobs/k2view/D5.000. Token not extractable. Israeli-founded real-time data management for enterprises, HQ Ra'anana. | api_url recovered 2026-06-12 (token re-harvest; 1 positions, 0 IL at recovery)."
     },
     {
       "name": "Kalmobil",
@@ -5442,11 +5430,11 @@
       "industry": "Media / Broadcasting",
       "domain": "keshet-tv.com",
       "careers_url": "https://jobs.keshet-mediagroup.com/",
-      "ats": "comeet",
+      "ats": "unknown",
       "slug": "26.009",
       "api_url": null,
       "verified": false,
-      "notes": "Comeet UID 26.009 + token extracted from HTML but Comeet API returns HTTP 400 — UID/token format atypical (numeric-prefix UID). Needs manual re-discovery."
+      "notes": "Comeet UID 26.009 + token extracted from HTML but Comeet API returns HTTP 400 — UID/token format atypical (numeric-prefix UID). Needs manual re-discovery. | retagged comeet->unknown 2026-06-12 (careers page no longer Comeet)."
     },
     {
       "name": "Keter Plastic",
@@ -7964,9 +7952,9 @@
       "careers_url": "https://www.comeet.com/jobs/ptc/32.005",
       "ats": "comeet",
       "slug": "32.005",
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet UID 32.005 confirmed via comeet.com/jobs/ptc/32.005. Israeli dev center in Herzliya. NB: PTC global also uses Workday — Comeet is the IL-specific board."
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/32.005/positions?token=2358D411A88D40B0913DD235D3E46A&details=true",
+      "verified": true,
+      "notes": "Comeet UID 32.005 confirmed via comeet.com/jobs/ptc/32.005. Israeli dev center in Herzliya. NB: PTC global also uses Workday — Comeet is the IL-specific board. | api_url recovered 2026-06-12 (token re-harvest; 1 positions, 1 IL at recovery)."
     },
     {
       "name": "Pure Storage",
@@ -8347,10 +8335,10 @@
       "domain": "riverside.fm",
       "careers_url": "https://riverside.fm/careers",
       "ats": "comeet",
-      "slug": "riverside-fm",
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug='riverside-fm'"
+      "slug": "66.009",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/66.009/positions?token=66926766692CDF00669CD22CDF133B&details=true",
+      "verified": true,
+      "notes": "Comeet markers detected in HTML (sweep); slug='riverside-fm' | api_url recovered 2026-06-12 (token re-harvest; 31 positions, 21 IL at recovery)."
     },
     {
       "name": "Robinhood",
@@ -9450,11 +9438,11 @@
       "industry": "Venture Studio / Cyber / Fintech / AI",
       "domain": "team8.vc",
       "careers_url": "https://www.team8.vc/careers",
-      "ats": "comeet",
+      "ats": "unknown",
       "slug": "61.003",
       "api_url": null,
       "verified": false,
-      "notes": "Comeet UID 61.003 confirmed via comeet.com/jobs/team8/61.003. Token not extractable from comeet.com (Spark Hire template only). Israeli-founded venture studio + portfolio. Build cyber/fintech/data companies."
+      "notes": "Comeet UID 61.003 confirmed via comeet.com/jobs/team8/61.003. Token not extractable from comeet.com (Spark Hire template only). Israeli-founded venture studio + portfolio. Build cyber/fintech/data companies. | retagged comeet->unknown 2026-06-12 (careers page no longer Comeet)."
     },
     {
       "name": "Techstars Tel Aviv",
@@ -9870,11 +9858,11 @@
       "industry": "Healthtech / Telehealth",
       "domain": "tytocare.com",
       "careers_url": "https://www.tytocare.com/careers/",
-      "ats": "comeet",
+      "ats": "unknown",
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Careers page uses Comeet (confirmed by URL patterns /careers/<role>/ and 'Application powered by Comeet' style structure). Could not extract UID+token from static HTML (JS-rendered). HQ Netanya, NYC presence."
+      "notes": "Careers page uses Comeet (confirmed by URL patterns /careers/<role>/ and 'Application powered by Comeet' style structure). Could not extract UID+token from static HTML (JS-rendered). HQ Netanya, NYC presence. | retagged comeet->unknown 2026-06-12 (careers page no longer Comeet)."
     },
     {
       "name": "Uber",
@@ -10351,10 +10339,10 @@
       "domain": "wiliot.com",
       "careers_url": "https://www.wiliot.com/careers",
       "ats": "comeet",
-      "slug": "f6",
-      "api_url": null,
-      "verified": false,
-      "notes": "Detected comeet embed (raw id: F6.003) | Slug 'f6' recovered via repair pass"
+      "slug": "F6.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/F6.003/positions?token=6F329B2DE6379829B229B2037983E8B3E8B&details=true",
+      "verified": true,
+      "notes": "Detected comeet embed (raw id: F6.003) | Slug 'f6' recovered via repair pass | api_url recovered 2026-06-12 (token re-harvest; 19 positions, 6 IL at recovery)."
     },
     {
       "name": "Winbond",
@@ -10495,10 +10483,10 @@
       "domain": "xtend.me",
       "careers_url": "https://www.xtend.me/working-at-xtend",
       "ats": "comeet",
-      "slug": "xtend/85.00A",
-      "api_url": "https://www.comeet.com/jobs/xtend/85.00A",
-      "verified": false,
-      "notes": "Comeet board referenced from xtend.me/working-at-xtend and TechAviv. Current snapshot returns 'no open positions' — board active but empty. XTEND raised $70M Series B (defense drones, validated in 5 combat zones), Tel Aviv. Glassdoor shows 8 historical TLV listings. Add as unverified; cron will pick up future openings."
+      "slug": "85.00A",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/85.00A/positions?token=58A1BB22C50B14213C162858A213C26C61628&details=true",
+      "verified": true,
+      "notes": "Comeet board referenced from xtend.me/working-at-xtend and TechAviv. Current snapshot returns 'no open positions' — board active but empty. XTEND raised $70M Series B (defense drones, validated in 5 combat zones), Tel Aviv. Glassdoor shows 8 historical TLV listings. Add as unverified; cron will pick up future openings. | api_url recovered 2026-06-12 (token re-harvest; 35 positions, 22 IL at recovery)."
     },
     {
       "name": "Y.H. Dimri",
