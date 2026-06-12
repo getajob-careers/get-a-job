@@ -24,7 +24,7 @@ This is a React + Vite + Supabase career operating system for business students 
 - **PRs:** open against `main`, fill out the template at `.github/pull_request_template.md`, get one approval from the other dev, squash-merge to keep `main` linear.
 - **Conflicts:** the dev who opens the PR resolves conflicts before merge.
 - **Picking up someone else's branch:** run `npm test && npm run build` before any commit. Don't trust that "it worked on their machine."
-- **Domain libraries** (`supabase/functions/_shared/libraries/*.ts`): edits require explicit cross-review by the other dev. These libraries drive 6 edge functions; the schema-validator skill at `.claude/skills/schema-validator/` catches structural drift + cross-reference breaks before they ship.
+- **Domain libraries** (`supabase/functions/_shared/libraries/*`): **schema/structural** changes (new fields, shape changes, renamed keys, role/skill graph edits) require explicit cross-review by the other dev. **Data-row** changes (registry entries, ATS tokens, tags) may merge on Eli's review alone **when the PR includes live-validation evidence and a clean schema-validator run** (amended 2026-06-12, PR #310). These libraries drive 6 edge functions; the schema-validator skill at `.claude/skills/schema-validator/` catches structural drift + cross-reference breaks before they ship.
 - **`ROADMAP.md`:** keep updated. Move items between Done / In Progress / Up Next as work moves. If it's not in the roadmap, it's not happening.
 
 ## Lessons (reflection loop)

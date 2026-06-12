@@ -31,16 +31,16 @@ export interface CompanyRegistry {
 export interface RawJob {
   external_id: string;
   title: string;
-  description_html: string | null;   // raw, may be HTML or plain text
-  location_raw: string | null;       // exact ATS string
+  description_html: string | null; // raw, may be HTML or plain text
+  location_raw: string | null; // exact ATS string
   structured_country: string | null; // ISO code or country name when ATS exposes it
   apply_url: string;
-  date_posted: string | null;        // ISO timestamp from ATS
+  date_posted: string | null; // ISO timestamp from ATS
   salary_min: number | null;
   salary_max: number | null;
   salary_currency: string | null;
   is_remote: boolean;
-  raw_payload: unknown;              // full ATS object for forensics
+  raw_payload: unknown; // full ATS object for forensics
 }
 
 /** What lands in public.jobs after IL filter + seniority classification. */
@@ -50,7 +50,7 @@ export interface NormalizedJob {
   company_slug: string;
   company_name: string;
   title: string;
-  description: string | null;        // PLAIN TEXT (HTML stripped)
+  description: string | null; // PLAIN TEXT (HTML stripped)
   apply_url: string;
   location_raw: string | null;
   location_city: string | null;
@@ -73,9 +73,11 @@ export interface NormalizedJob {
 // trigram track matching. Strip in this order — earlier strips affect
 // later ones (e.g. ID prefix has to go before maternity suffix detection
 // on tail-only patterns).
-const RX_LOCATION_SUFFIX = /\s*\(\s*[A-Za-z'.\- ]+,\s*(?:Israel|IL)(?:,\s*\d+)?\s*\)\s*$/i;
-const RX_JOB_ID_PREFIX   = /^\s*\d{4,6}\s*-\s*/;
-const RX_MATERNITY_TAIL  = /\s*[-–—]?\s*\(?\s*(?:temporary,?\s*)?maternity[^)]*\)?\s*$/i;
+const RX_LOCATION_SUFFIX =
+  /\s*\(\s*[A-Za-z'.\- ]+,\s*(?:Israel|IL)(?:,\s*\d+)?\s*\)\s*$/i;
+const RX_JOB_ID_PREFIX = /^\s*\d{4,6}\s*-\s*/;
+const RX_MATERNITY_TAIL =
+  /\s*[-–—]?\s*\(?\s*(?:temporary,?\s*)?maternity[^)]*\)?\s*$/i;
 // Most trailing parentheticals after a real title are noise (city,
 // product, "Hybrid, ISR", "early talent" etc.). Strip when conservative:
 // only when the leading title still has 2+ words after the strip.
@@ -103,8 +105,12 @@ export function normalizeJobTitle(input: string | null | undefined): string {
     if (m) {
       const inner = m[0].replace(/[()\s]/g, "");
       // Strip when the paren mentions location, product, hybrid, etc.
-      if (/(israel|hybrid|isr|herzliya|tel\s*aviv|haifa|maternity|petach|petah|kfar|sodom|sdom|shoham|early\s*talent)/i.test(inner)
-          || /^[A-Z][A-Za-z\s\-]{8,}$/.test(inner)) {
+      if (
+        /(israel|hybrid|isr|herzliya|tel\s*aviv|haifa|maternity|petach|petah|kfar|sodom|sdom|shoham|early\s*talent)/i.test(
+          inner,
+        ) ||
+        /^[A-Z][A-Za-z\s\-]{8,}$/.test(inner)
+      ) {
         t = stripped;
       }
     }
@@ -159,79 +165,79 @@ export function isJunkTitle(title: string | null | undefined): boolean {
 const IL_CITY_MAP: Record<string, string> = {
   // ─── English variants ────────────────────────────────────────────
   "tel aviv-yafo": "Tel Aviv",
-  "tel-aviv":      "Tel Aviv",
-  "tel aviv":      "Tel Aviv",
-  "telaviv":       "Tel Aviv",
-  "tlv":           "Tel Aviv",
-  "herzliya":      "Herzliya",
-  "hertzliya":     "Herzliya",
-  "ramat gan":     "Ramat Gan",
-  "ramat-gan":     "Ramat Gan",
-  "bnei brak":     "Bnei Brak",
-  "petah tikva":   "Petah Tikva",
-  "petach tikva":  "Petah Tikva",
-  "petah-tikva":   "Petah Tikva",
+  "tel-aviv": "Tel Aviv",
+  "tel aviv": "Tel Aviv",
+  telaviv: "Tel Aviv",
+  tlv: "Tel Aviv",
+  herzliya: "Herzliya",
+  hertzliya: "Herzliya",
+  "ramat gan": "Ramat Gan",
+  "ramat-gan": "Ramat Gan",
+  "bnei brak": "Bnei Brak",
+  "petah tikva": "Petah Tikva",
+  "petach tikva": "Petah Tikva",
+  "petah-tikva": "Petah Tikva",
   "rishon lezion": "Rishon LeZion",
-  "rishon le zion":"Rishon LeZion",
-  "rehovot":       "Rehovot",
-  "modiin":        "Modi'in",
-  "modi'in":       "Modi'in",
-  "hod hasharon":  "Hod Hasharon",
-  "kfar saba":     "Kfar Saba",
-  "ra'anana":      "Ra'anana",
-  "raanana":       "Ra'anana",
-  "netanya":       "Netanya",
-  "ashdod":        "Ashdod",
-  "ashkelon":      "Ashkelon",
-  "haifa":         "Haifa",
-  "jerusalem":     "Jerusalem",
-  "be'er sheva":   "Be'er Sheva",
-  "beer sheva":    "Be'er Sheva",
-  "beersheba":     "Be'er Sheva",
-  "nazareth":      "Nazareth",
-  "yokneam":       "Yokneam",
-  "caesarea":      "Caesarea",
-  "krayot":        "Krayot",
-  "eilat":         "Eilat",
-  "holon":         "Holon",
-  "bat yam":       "Bat Yam",
-  "lod":           "Lod",
-  "ramla":         "Ramla",
-  "givatayim":     "Givatayim",
-  "or yehuda":     "Or Yehuda",
-  "yavne":         "Yavne",
+  "rishon le zion": "Rishon LeZion",
+  rehovot: "Rehovot",
+  modiin: "Modi'in",
+  "modi'in": "Modi'in",
+  "hod hasharon": "Hod Hasharon",
+  "kfar saba": "Kfar Saba",
+  "ra'anana": "Ra'anana",
+  raanana: "Ra'anana",
+  netanya: "Netanya",
+  ashdod: "Ashdod",
+  ashkelon: "Ashkelon",
+  haifa: "Haifa",
+  jerusalem: "Jerusalem",
+  "be'er sheva": "Be'er Sheva",
+  "beer sheva": "Be'er Sheva",
+  beersheba: "Be'er Sheva",
+  nazareth: "Nazareth",
+  yokneam: "Yokneam",
+  caesarea: "Caesarea",
+  krayot: "Krayot",
+  eilat: "Eilat",
+  holon: "Holon",
+  "bat yam": "Bat Yam",
+  lod: "Lod",
+  ramla: "Ramla",
+  givatayim: "Givatayim",
+  "or yehuda": "Or Yehuda",
+  yavne: "Yavne",
   // ─── Hebrew variants — all map to their canonical English form ───
-  "תל אביב":       "Tel Aviv",
-  "תל-אביב":       "Tel Aviv",
-  "הרצליה":        "Herzliya",
-  "רמת גן":        "Ramat Gan",
-  "רמת-גן":        "Ramat Gan",
-  "בני ברק":       "Bnei Brak",
-  "פתח תקווה":     "Petah Tikva",
-  "פתח-תקווה":     "Petah Tikva",
-  "ראשון לציון":   "Rishon LeZion",
-  "רחובות":        "Rehovot",
-  "מודיעין":       "Modi'in",
-  "הוד השרון":     "Hod Hasharon",
-  "כפר סבא":       "Kfar Saba",
-  "רעננה":         "Ra'anana",
-  "נתניה":         "Netanya",
-  "אשדוד":         "Ashdod",
-  "אשקלון":        "Ashkelon",
-  "חיפה":          "Haifa",
-  "ירושלים":       "Jerusalem",
-  "באר שבע":       "Be'er Sheva",
-  "נצרת":          "Nazareth",
-  "יקנעם":         "Yokneam",
-  "קיסריה":        "Caesarea",
-  "אילת":          "Eilat",
-  "חולון":         "Holon",
-  "בת ים":         "Bat Yam",
-  "לוד":           "Lod",
-  "רמלה":          "Ramla",
-  "גבעתיים":       "Givatayim",
-  "אור יהודה":     "Or Yehuda",
-  "יבנה":          "Yavne",
+  "תל אביב": "Tel Aviv",
+  "תל-אביב": "Tel Aviv",
+  הרצליה: "Herzliya",
+  "רמת גן": "Ramat Gan",
+  "רמת-גן": "Ramat Gan",
+  "בני ברק": "Bnei Brak",
+  "פתח תקווה": "Petah Tikva",
+  "פתח-תקווה": "Petah Tikva",
+  "ראשון לציון": "Rishon LeZion",
+  רחובות: "Rehovot",
+  מודיעין: "Modi'in",
+  "הוד השרון": "Hod Hasharon",
+  "כפר סבא": "Kfar Saba",
+  רעננה: "Ra'anana",
+  נתניה: "Netanya",
+  אשדוד: "Ashdod",
+  אשקלון: "Ashkelon",
+  חיפה: "Haifa",
+  ירושלים: "Jerusalem",
+  "באר שבע": "Be'er Sheva",
+  נצרת: "Nazareth",
+  יקנעם: "Yokneam",
+  קיסריה: "Caesarea",
+  אילת: "Eilat",
+  חולון: "Holon",
+  "בת ים": "Bat Yam",
+  לוד: "Lod",
+  רמלה: "Ramla",
+  גבעתיים: "Givatayim",
+  "אור יהודה": "Or Yehuda",
+  יבנה: "Yavne",
 };
 
 // Hebrew (and English-transliterated) region/district tags that appear
@@ -255,17 +261,17 @@ const IL_CITY_MAP: Record<string, string> = {
 // "Tel Aviv" via the city map, never "Tel Aviv District" via this).
 const IL_REGION_MAP: Record<string, string> = {
   // ─── Hebrew ──────────────────────────────────────────────────────
-  "גוש דן":        "Tel Aviv District",
-  "השפלה":         "Central District",
-  "השרון":         "Central District",
-  "דרום":          "Southern District",
-  "צפון":          "Northern District",
-  "מרכז":          "Central District",
+  "גוש דן": "Tel Aviv District",
+  השפלה: "Central District",
+  השרון: "Central District",
+  דרום: "Southern District",
+  צפון: "Northern District",
+  מרכז: "Central District",
   // ─── English transliterations + literal district names ──────────
-  "gush dan":      "Tel Aviv District",
+  "gush dan": "Tel Aviv District",
   "tel aviv district": "Tel Aviv District",
   "central district": "Central District",
-  "center district":  "Central District",   // Workday's English spelling
+  "center district": "Central District", // Workday's English spelling
   "southern district": "Southern District",
   "northern district": "Northern District",
   "haifa district": "Haifa District",
@@ -276,7 +282,7 @@ const IL_REGION_MAP: Record<string, string> = {
 // Country-level fallback when the city map doesn't match but Israel is
 // mentioned. Word-boundary guards prevent matching "Illinois" / "Lille".
 const RX_COUNTRY_ISRAEL = /\bisrael\b/i;
-const RX_COUNTRY_IL_CODE = /\bIL\b/;       // case-sensitive to avoid "ail", "ill", etc.
+const RX_COUNTRY_IL_CODE = /\bIL\b/; // case-sensitive to avoid "ail", "ill", etc.
 // Hebrew country name. Hebrew has no \b semantics in JS regex (Unicode
 // categories don't trigger word-boundary), so we match as a bare
 // substring — "ישראל" is unique enough that this is safe.
@@ -309,7 +315,8 @@ const RX_COUNTRY_HEBREW_ISRAEL = /ישראל/;
 //     runs before this guard.
 const RX_US_COUNTRY = /,\s*(US|USA|United\s+States(\s+of\s+America)?)\b/i;
 const RX_US_ZIP = /\b\d{5}(-\d{4})?\b/;
-const RX_US_STATE_NON_IL = /\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b/;
+const RX_US_STATE_NON_IL =
+  /\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b/;
 
 // 50 US tech-hub cities (24 multi-word, 26 single-word, alphabetized).
 // Word-boundaries on either side of each entry — "San Jose, CA" matches
@@ -329,67 +336,71 @@ const RX_US_STATE_NON_IL = /\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IN|IA|KS|KY|L
 // reaching this guard. The malformed "Phoenix, IL" case (US miscoding)
 // correctly flips to is_il=false under this rule.
 const RX_US_CITY = new RegExp(
-  "\\b(" + [
-    "Ann Arbor",
-    "Atlanta",
-    "Austin",
-    "Bellevue",
-    "Berkeley",
-    "Boston",
-    "Boulder",
-    "Cambridge",
-    "Charlotte",
-    "Chicago",
-    "Colorado Springs",
-    "Cupertino",
-    "Dallas",
-    "Denver",
-    "Detroit",
-    "Foster City",
-    "Fremont",
-    "Houston",
-    "Indianapolis",
-    "Irvine",
-    "Kansas City",
-    "Las Vegas",
-    "Los Angeles",
-    "Menlo Park",
-    "Miami",
-    "Minneapolis",
-    "Mountain View",
-    "Nashville",
-    "New York",
-    "Oakland",
-    "Palo Alto",
-    "Philadelphia",
-    "Phoenix",
-    "Pittsburgh",
-    "Plano",
-    "Portland",
-    "Raleigh",
-    "Redmond",
-    "Redwood City",
-    "Sacramento",
-    "Saint Louis",
-    "St\\. Louis",
-    "Salt Lake City",
-    "San Diego",
-    "San Francisco",
-    "San Jose",
-    "San Mateo",
-    "Santa Clara",
-    "Santa Monica",
-    "Seattle",
-    "Sunnyvale",
-  ].join("|") + ")\\b",
+  "\\b(" +
+    [
+      "Ann Arbor",
+      "Atlanta",
+      "Austin",
+      "Bellevue",
+      "Berkeley",
+      "Boston",
+      "Boulder",
+      "Cambridge",
+      "Charlotte",
+      "Chicago",
+      "Colorado Springs",
+      "Cupertino",
+      "Dallas",
+      "Denver",
+      "Detroit",
+      "Foster City",
+      "Fremont",
+      "Houston",
+      "Indianapolis",
+      "Irvine",
+      "Kansas City",
+      "Las Vegas",
+      "Los Angeles",
+      "Menlo Park",
+      "Miami",
+      "Minneapolis",
+      "Mountain View",
+      "Nashville",
+      "New York",
+      "Oakland",
+      "Palo Alto",
+      "Philadelphia",
+      "Phoenix",
+      "Pittsburgh",
+      "Plano",
+      "Portland",
+      "Raleigh",
+      "Redmond",
+      "Redwood City",
+      "Sacramento",
+      "Saint Louis",
+      "St\\. Louis",
+      "Salt Lake City",
+      "San Diego",
+      "San Francisco",
+      "San Jose",
+      "San Mateo",
+      "Santa Clara",
+      "Santa Monica",
+      "Seattle",
+      "Sunnyvale",
+    ].join("|") +
+    ")\\b",
   "i",
 );
 
 function hasUsCorroboratingSignal(raw: string): boolean {
-  return RX_US_COUNTRY.test(raw)
-    || RX_US_ZIP.test(raw)
-    || RX_US_STATE_NON_IL.test(raw)
-    || RX_US_CITY.test(raw);
+  return (
+    RX_US_COUNTRY.test(raw) ||
+    RX_US_ZIP.test(raw) ||
+    RX_US_STATE_NON_IL.test(raw) ||
+    RX_US_CITY.test(raw)
+  );
 }
 
 export function classifyLocation(
@@ -454,7 +465,13 @@ function extractIlCity(raw: string | null): string | null {
 
 // ───── Seniority detection ────────────────────────────────────────────
 
-export type Seniority = "entry" | "mid" | "senior" | "lead" | "director" | "executive";
+export type Seniority =
+  | "entry"
+  | "mid"
+  | "senior"
+  | "lead"
+  | "director"
+  | "executive";
 
 /**
  * v1: detect bucket from title alone. Used as the baseline before any
@@ -481,19 +498,31 @@ export type Seniority = "entry" | "mid" | "senior" | "lead" | "director" | "exec
  */
 export function detectSeniorityFromTitle(title: string): Seniority {
   const t = (title || "").toLowerCase();
-  if (/\b(vp\b|chief|cto|ceo|cmo|cpo|cfo|head\s+of|vice\s+president)\b/.test(t)) return "executive";
-  if (/\bdirector\b/.test(t))                                                    return "director";
-  if (/\b(senior|sr\.?)\b/.test(t))                                              return "senior";
-  if (/\b(principal|staff|lead|architect|team[\s-]?lead(er)?|group)\b/.test(t))  return "lead";
+  if (/\b(vp\b|chief|cto|ceo|cmo|cpo|cfo|head\s+of|vice\s+president)\b/.test(t))
+    return "executive";
+  if (/\bdirector\b/.test(t)) return "director";
+  if (/\b(senior|sr\.?)\b/.test(t)) return "senior";
+  if (/\b(principal|staff|lead|architect|team[\s-]?lead(er)?|group)\b/.test(t))
+    return "lead";
   // Bare "Head" only counts as lead when not part of "Head of X" — that
   // executive case is already caught above.
-  if (/\bhead\b/.test(t))                                                        return "lead";
-  if (/\b(intern|internship|junior|jr\.?|graduate|trainee|student|entry|fellow|new\s?grad|early[\s-]?career|university|sdr|bdr|sales\s+development\s+(representative|rep)|business\s+development\s+representative|coordinator|representative)\b/.test(t)) return "entry";
+  if (/\bhead\b/.test(t)) return "lead";
+  if (
+    /\b(intern|internship|junior|jr\.?|graduate|trainee|student|entry|fellow|new\s?grad|early[\s-]?career|university|sdr|bdr|sales\s+development\s+(representative|rep)|business\s+development\s+representative|coordinator|representative)\b/.test(
+      t,
+    )
+  )
+    return "entry";
   // Narrowed associate: must be followed by an IC role-noun. "Associate
   // Engineer" → entry; "Associate Manager, Marketplace S&O" → entry only
   // when no other management signal in the title (this still routes
   // there but finalSeniority + JD context can re-route).
-  if (/\bassociate\s+(engineer|analyst|scientist|developer|designer|specialist|consultant|coordinator|product|partner|attorney|representative|manager)\b/.test(t)) return "entry";
+  if (
+    /\bassociate\s+(engineer|analyst|scientist|developer|designer|specialist|consultant|coordinator|product|partner|attorney|representative|manager)\b/.test(
+      t,
+    )
+  )
+    return "entry";
   return "mid";
 }
 
@@ -513,14 +542,17 @@ export function detectSeniorityFromTitle(title: string): Seniority {
  * Operates only on the first ~3000 chars to avoid catching tail mentions
  * like "5+ years ago I co-founded..." that are biographical, not required.
  */
-export function parseYearsOfExperience(
-  description: string | null,
-): { min: number | null; max: number | null } {
+export function parseYearsOfExperience(description: string | null): {
+  min: number | null;
+  max: number | null;
+} {
   if (!description) return { min: null, max: null };
   const text = description.slice(0, 3000).toLowerCase();
 
   // Range first ("3-5 years" / "3 to 5 years") so it doesn't lose to "3+"
-  const rangeMatch = text.match(/(\d{1,2})\s*(?:to|-|–|—)\s*(\d{1,2})\s*(?:years?|yrs?)\b/);
+  const rangeMatch = text.match(
+    /(\d{1,2})\s*(?:to|-|–|—)\s*(\d{1,2})\s*(?:years?|yrs?)\b/,
+  );
   if (rangeMatch) {
     const a = parseInt(rangeMatch[1], 10);
     const b = parseInt(rangeMatch[2], 10);
@@ -528,8 +560,12 @@ export function parseYearsOfExperience(
   }
 
   // "5+ years" / "5 or more years"
-  const plusMatch = text.match(/(\d{1,2})\s*\+?\s*(?:\+|or\s+more)?\s*(?:years?|yrs?)\s*(?:of\s+)?(?:experience|exp)?/);
-  const minimumMatch = text.match(/(?:minimum|at\s+least|min\.?)\s+(\d{1,2})\s*(?:years?|yrs?)/);
+  const plusMatch = text.match(
+    /(\d{1,2})\s*\+?\s*(?:\+|or\s+more)?\s*(?:years?|yrs?)\s*(?:of\s+)?(?:experience|exp)?/,
+  );
+  const minimumMatch = text.match(
+    /(?:minimum|at\s+least|min\.?)\s+(\d{1,2})\s*(?:years?|yrs?)/,
+  );
 
   let min: number | null = null;
   if (minimumMatch) min = parseInt(minimumMatch[1], 10);
@@ -547,11 +583,39 @@ export function parseYearsOfExperience(
  * junior applicants. Deliberately strict: bare "1+ year" or "2 years"
  * does NOT count — that was the original over-promotion bug.
  */
-const RX_EXPLICIT_JUNIOR = /\b(?:0\s*(?:-|–|to)\s*1\s*(?:years?|yrs?)|no\s+(?:prior\s+|previous\s+)?experience(?:\s+(?:required|needed|necessary))?|new\s*grad(?:uate)?|recent\s+grad(?:uate)?s?|entry[\s-]?level)\b/i;
+const RX_EXPLICIT_JUNIOR =
+  /\b(?:0\s*(?:-|–|to)\s*1\s*(?:years?|yrs?)|no\s+(?:prior\s+|previous\s+)?experience(?:\s+(?:required|needed|necessary))?|new\s*grad(?:uate)?|recent\s+grad(?:uate)?s?|entry[\s-]?level)\b/i;
+
+// Hebrew explicit-junior signals. RX_EXPLICIT_JUNIOR is English-only, so it
+// never fires on the Hebrew-heavy ATSs (AdamTotal, Comeet) — these JDs carry
+// the beginner invitation in Hebrew prose. Same role as the English regex:
+// promote a neutral-IC "mid" title to entry on an explicit junior signal in
+// the JD TEXT. This is the layer the 2026-06-09 review endorsed — the prior
+// rejection (see derive-hebrew-seniority.ts) was for adding Hebrew to the
+// TITLE regex, which has no JD context to disambiguate (`רכז ... בכיר` is a
+// SENIOR coordinator); the JD-text signal has that context.
+//   bare:   עבודה ראשונה ("first job") · ללא ניסיון ("no experience",
+//           נסיון spelling variant ok) · ג'וניור ("junior", geresh variant ok)
+//   scoped: דרושים/דרושות ("wanted", m/f plural) is the generic hiring
+//           headline on nearly every IL post — it promotes ONLY when a
+//           no-experience qualifier sits within ~40 chars. Bare
+//           "דרושים מהנדס תוכנה" must NOT promote, else it re-creates the
+//           #270 / Variant-C mass-over-promotion of Hebrew mid-IC roles.
+const HE_NO_EXPERIENCE = "(?:ללא\\s+ני?סיון|עבודה\\s+ראשונה)";
+const RX_HE_JUNIOR = new RegExp(
+  HE_NO_EXPERIENCE +
+    "|ג['׳]וניור|" +
+    "דרוש(?:ים|ות)[\\s\\S]{0,40}" +
+    HE_NO_EXPERIENCE +
+    "|" +
+    HE_NO_EXPERIENCE +
+    "[\\s\\S]{0,40}דרוש(?:ים|ות)",
+);
 
 export function parseExplicitJuniorSignal(description: string | null): boolean {
   if (!description) return false;
-  return RX_EXPLICIT_JUNIOR.test(description.slice(0, 3000));
+  const head = description.slice(0, 3000);
+  return RX_EXPLICIT_JUNIOR.test(head) || RX_HE_JUNIOR.test(head);
 }
 
 /**
@@ -619,8 +683,8 @@ export function finalSeniority(
   // Years can only refine UPWARD from mid. No more years-based
   // demotion to entry (Variant C change).
   if (years.min === null) return "mid";
-  if (years.min < 6)  return "mid";
-  if (years.min < 9)  return "senior";
+  if (years.min < 6) return "mid";
+  if (years.min < 9) return "senior";
   return "lead";
 }
 
@@ -638,62 +702,64 @@ export function finalSeniority(
 // asserts identical output across a fixed corpus and will fail CI on drift.
 export function stripHtml(input: string | null): string | null {
   if (input == null) return null;
-  return input
-    // STEP 1 (load-bearing): decode entities FIRST. Greenhouse + SAP
-    // SuccessFactors return HTML that's been ENCODED for transport
-    // (`&lt;p&gt;...&lt;/p&gt;`). If we leave entity-decode at the end
-    // (the original ordering), the tag-strip regexes below see no
-    // literal `<` and pass through — then the decode at step 5 turns
-    // `&lt;p&gt;` into real `<p>` tags in the output, leaving the
-    // sanitizer's caller with a string FULL of HTML. Live audit on
-    // 2026-05-31 showed greenhouse 1147/1147 + SF 299/301 dirty in
-    // jobs.description; that bug is here, not at the call site.
-    .replace(/&nbsp;/g, " ")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&hellip;/g, "…")
-    .replace(/&mdash;/g, "—")
-    .replace(/&ndash;/g, "–")
-    .replace(/&#(\d+);/g, (_, n: string) => {
-      const code = parseInt(n, 10);
-      return code > 0 && code < 0x10000 ? String.fromCharCode(code) : " ";
-    })
-    // &amp; is decoded LAST in the first pass so we don't double-decode
-    // already-decoded `&...;` sequences mid-stream. Step 5 mops up any
-    // entities embedded in plaintext content that survived tag-strip
-    // (e.g. `&copy;` inside paragraph text); &amp; goes there.
-    // STEP 2: drop scripts/styles wholesale before tag stripping (their
-    // contents are JS/CSS, not human text)
-    .replace(/<(script|style)[^>]*>[\s\S]*?<\/(?:script|style)>/gi, " ")
-    // STEP 3: convert <br> and block-level closing tags to newlines for readability
-    .replace(/<br\s*\/?>/gi, "\n")
-    .replace(/<\/(p|div|li|h[1-6]|tr)>/gi, "\n")
-    // STEP 4: strip all remaining tags (including data-* attributes via
-    // the catch-all)
-    .replace(/<[^>]*>/g, " ")
-    // STEP 5: decode the entities that appear inside plaintext content
-    // (after tags are gone). Also catches anything that was originally
-    // double-encoded (&amp;lt; → &lt; after step 1 → < here, no tag to
-    // strip but at least the entity is resolved).
-    .replace(/&amp;/g, "&")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/&apos;/g, "'")
-    .replace(/&hellip;/g, "…")
-    .replace(/&mdash;/g, "—")
-    .replace(/&ndash;/g, "–")
-    .replace(/&#(\d+);/g, (_, n: string) => {
-      const code = parseInt(n, 10);
-      return code > 0 && code < 0x10000 ? String.fromCharCode(code) : " ";
-    })
-    // STEP 6: collapse whitespace runs (but keep paragraph breaks readable)
-    .replace(/[ \t]+/g, " ")
-    .replace(/\n{3,}/g, "\n\n")
-    .trim();
+  return (
+    input
+      // STEP 1 (load-bearing): decode entities FIRST. Greenhouse + SAP
+      // SuccessFactors return HTML that's been ENCODED for transport
+      // (`&lt;p&gt;...&lt;/p&gt;`). If we leave entity-decode at the end
+      // (the original ordering), the tag-strip regexes below see no
+      // literal `<` and pass through — then the decode at step 5 turns
+      // `&lt;p&gt;` into real `<p>` tags in the output, leaving the
+      // sanitizer's caller with a string FULL of HTML. Live audit on
+      // 2026-05-31 showed greenhouse 1147/1147 + SF 299/301 dirty in
+      // jobs.description; that bug is here, not at the call site.
+      .replace(/&nbsp;/g, " ")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&apos;/g, "'")
+      .replace(/&hellip;/g, "…")
+      .replace(/&mdash;/g, "—")
+      .replace(/&ndash;/g, "–")
+      .replace(/&#(\d+);/g, (_, n: string) => {
+        const code = parseInt(n, 10);
+        return code > 0 && code < 0x10000 ? String.fromCharCode(code) : " ";
+      })
+      // &amp; is decoded LAST in the first pass so we don't double-decode
+      // already-decoded `&...;` sequences mid-stream. Step 5 mops up any
+      // entities embedded in plaintext content that survived tag-strip
+      // (e.g. `&copy;` inside paragraph text); &amp; goes there.
+      // STEP 2: drop scripts/styles wholesale before tag stripping (their
+      // contents are JS/CSS, not human text)
+      .replace(/<(script|style)[^>]*>[\s\S]*?<\/(?:script|style)>/gi, " ")
+      // STEP 3: convert <br> and block-level closing tags to newlines for readability
+      .replace(/<br\s*\/?>/gi, "\n")
+      .replace(/<\/(p|div|li|h[1-6]|tr)>/gi, "\n")
+      // STEP 4: strip all remaining tags (including data-* attributes via
+      // the catch-all)
+      .replace(/<[^>]*>/g, " ")
+      // STEP 5: decode the entities that appear inside plaintext content
+      // (after tags are gone). Also catches anything that was originally
+      // double-encoded (&amp;lt; → &lt; after step 1 → < here, no tag to
+      // strip but at least the entity is resolved).
+      .replace(/&amp;/g, "&")
+      .replace(/&nbsp;/g, " ")
+      .replace(/&lt;/g, "<")
+      .replace(/&gt;/g, ">")
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/&apos;/g, "'")
+      .replace(/&hellip;/g, "…")
+      .replace(/&mdash;/g, "—")
+      .replace(/&ndash;/g, "–")
+      .replace(/&#(\d+);/g, (_, n: string) => {
+        const code = parseInt(n, 10);
+        return code > 0 && code < 0x10000 ? String.fromCharCode(code) : " ";
+      })
+      // STEP 6: collapse whitespace runs (but keep paragraph breaks readable)
+      .replace(/[ \t]+/g, " ")
+      .replace(/\n{3,}/g, "\n\n")
+      .trim()
+  );
 }
