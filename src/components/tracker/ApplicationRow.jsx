@@ -13,10 +13,17 @@ import {
   RotateCw,
   Trash2,
   AlertCircle,
+  ExternalLink,
 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { toast } from "sonner";
 import { TRACK_CONFIG } from "@/lib/trackConfig";
 import CVManagement from "./CVManagement";
@@ -34,38 +41,38 @@ import ApplicationChecklist from "./ApplicationChecklist";
 const STATUS_LABELS = {
   interested: {
     label: "Interested",
-    bg:    "var(--rd-bg-soft)",
-    fg:    "var(--rd-text-secondary)",
+    bg: "var(--rd-bg-soft)",
+    fg: "var(--rd-text-secondary)",
   },
   preparing: {
     label: "Preparing",
-    bg:    "var(--rd-bg-soft)",
-    fg:    "var(--rd-text)",
+    bg: "var(--rd-bg-soft)",
+    fg: "var(--rd-text)",
   },
   applied: {
     label: "Applied",
-    bg:    "var(--rd-golden-tint)",
-    fg:    "var(--rd-golden-dark)",
+    bg: "var(--rd-golden-tint)",
+    fg: "var(--rd-golden-dark)",
   },
   interviewing: {
     label: "Interviewing",
-    bg:    "var(--rd-teal-tint)",
-    fg:    "var(--rd-teal-dark)",
+    bg: "var(--rd-teal-tint)",
+    fg: "var(--rd-teal-dark)",
   },
   offer: {
     label: "Offer",
-    bg:    "var(--rd-coral-tint)",
-    fg:    "var(--rd-coral-dark)",
+    bg: "var(--rd-coral-tint)",
+    fg: "var(--rd-coral-dark)",
   },
   accepted: {
     label: "Accepted",
-    bg:    "var(--rd-teal-tint)",
-    fg:    "var(--rd-teal-dark)",
+    bg: "var(--rd-teal-tint)",
+    fg: "var(--rd-teal-dark)",
   },
   rejected: {
     label: "Rejected",
-    bg:    "#FEE2E2",
-    fg:    "#991B1B",
+    bg: "#FEE2E2",
+    fg: "#991B1B",
   },
 };
 
@@ -73,9 +80,21 @@ const STATUS_LABELS = {
 // completes the rd palette migration — Tracker was the last surface still
 // reading TRACK_CONFIG.color (legacy green/gray/amber).
 const RD_TRACK_STYLES = {
-  coral:  { tint: "var(--rd-coral-tint)",  badgeBg: "var(--rd-coral)",  accent: "var(--rd-coral-dark)"  },
-  teal:   { tint: "var(--rd-teal-tint)",   badgeBg: "var(--rd-teal)",   accent: "var(--rd-teal-dark)"   },
-  golden: { tint: "var(--rd-golden-tint)", badgeBg: "var(--rd-golden)", accent: "var(--rd-golden-dark)" },
+  coral: {
+    tint: "var(--rd-coral-tint)",
+    badgeBg: "var(--rd-coral)",
+    accent: "var(--rd-coral-dark)",
+  },
+  teal: {
+    tint: "var(--rd-teal-tint)",
+    badgeBg: "var(--rd-teal)",
+    accent: "var(--rd-teal-dark)",
+  },
+  golden: {
+    tint: "var(--rd-golden-tint)",
+    badgeBg: "var(--rd-golden)",
+    accent: "var(--rd-golden-dark)",
+  },
 };
 
 export default function ApplicationRow({
@@ -97,7 +116,9 @@ export default function ApplicationRow({
   const [jdText, setJdText] = useState(app.job_description || "");
   const [appliedDate, setAppliedDate] = useState(app.applied_date || "");
   const [cvVersionUsed, setCvVersionUsed] = useState(app.cv_version_used || "");
-  const [referralAttached, setReferralAttached] = useState(app.referral_attached || false);
+  const [referralAttached, setReferralAttached] = useState(
+    app.referral_attached || false,
+  );
 
   const hasUnsavedChanges =
     jdText !== (app.job_description || "") ||
@@ -107,7 +128,9 @@ export default function ApplicationRow({
 
   const status = STATUS_LABELS[app.status] || STATUS_LABELS.interested;
   const trackMeta = TRACK_CONFIG[app.track]; // null when unclassified
-  const trackStyles = trackMeta?.rdColor ? RD_TRACK_STYLES[trackMeta.rdColor] : null;
+  const trackStyles = trackMeta?.rdColor
+    ? RD_TRACK_STYLES[trackMeta.rdColor]
+    : null;
 
   const [confirmingDelete, setConfirmingDelete] = useState(false);
   const [retryingScore, setRetryingScore] = useState(false);
@@ -120,7 +143,13 @@ export default function ApplicationRow({
     if (retryingScore || !hasJd) return;
     setRetryingScore(true);
     try {
-      await scoreApplication(supabase, queryClient, app.id, app.job_description, app.user_id);
+      await scoreApplication(
+        supabase,
+        queryClient,
+        app.id,
+        app.job_description,
+        app.user_id,
+      );
     } finally {
       setRetryingScore(false);
     }
@@ -134,7 +163,10 @@ export default function ApplicationRow({
       setConfirmingDelete(true);
       return;
     }
-    const { error } = await supabase.from("applications").delete().eq("id", app.id);
+    const { error } = await supabase
+      .from("applications")
+      .delete()
+      .eq("id", app.id);
     if (error) {
       console.error("Failed to delete application:", error);
       toast.error("Failed to delete application: " + error.message);
@@ -149,7 +181,10 @@ export default function ApplicationRow({
   // audit row on the server side; client code MUST NOT write to the
   // status_changes table (RLS denies it).
   const handleStatusChange = async (newStatus) => {
-    const { error } = await supabase.from("applications").update({ status: newStatus }).eq("id", app.id);
+    const { error } = await supabase
+      .from("applications")
+      .update({ status: newStatus })
+      .eq("id", app.id);
     if (error) {
       console.error("Failed to update status:", error);
       toast.error("Failed to update status. Please try again.");
@@ -162,7 +197,10 @@ export default function ApplicationRow({
   // scoreApplication (analyze-job-match) when the cleaned JD is non-empty.
   const handleSaveJobDescription = async () => {
     const cleanedJd = stripHtml(jdText) || "";
-    const { error } = await supabase.from("applications").update({ job_description: cleanedJd }).eq("id", app.id);
+    const { error } = await supabase
+      .from("applications")
+      .update({ job_description: cleanedJd })
+      .eq("id", app.id);
     if (error) {
       console.error("Failed to save job description:", error);
       toast.error("Failed to save job description. Please try again.");
@@ -184,16 +222,20 @@ export default function ApplicationRow({
   // details in sync.
   const handleSaveApplicationDetails = async () => {
     const submittedNow = !!(appliedDate || "").trim();
-    const nextChecklist = submittedNow && !checklist?.application_submitted
-      ? { ...checklist, application_submitted: true }
-      : checklist;
+    const nextChecklist =
+      submittedNow && !checklist?.application_submitted
+        ? { ...checklist, application_submitted: true }
+        : checklist;
     const update = {
       applied_date: appliedDate,
       cv_version_used: cvVersionUsed,
       referral_attached: referralAttached,
       ...(nextChecklist !== checklist && { checklist: nextChecklist }),
     };
-    const { error } = await supabase.from("applications").update(update).eq("id", app.id);
+    const { error } = await supabase
+      .from("applications")
+      .update(update)
+      .eq("id", app.id);
     if (error) {
       console.error("Failed to save application details:", error);
       toast.error("Failed to save application details. Please try again.");
@@ -213,14 +255,16 @@ export default function ApplicationRow({
       setReferralAttached(app.referral_attached || false);
       setChecklist(app.checklist || {});
     }
-
   }, [expanded, app]);
 
   // P5 — optimistic checklist update with rollback-on-error preserved.
   const handleChecklistChange = async (updated) => {
     const previous = checklist;
     setChecklist(updated);
-    const { error } = await supabase.from("applications").update({ checklist: updated }).eq("id", app.id);
+    const { error } = await supabase
+      .from("applications")
+      .update({ checklist: updated })
+      .eq("id", app.id);
     if (error) {
       console.error("Failed to save checklist:", error);
       setChecklist(previous);
@@ -230,22 +274,39 @@ export default function ApplicationRow({
     onUpdate();
   };
 
-  const INTERVIEW_UNLOCK_STATUSES = new Set(["interviewing", "offer", "accepted", "rejected"]);
+  const INTERVIEW_UNLOCK_STATUSES = new Set([
+    "interviewing",
+    "offer",
+    "accepted",
+    "rejected",
+  ]);
   const FOLLOWUP_UNLOCK_STATUSES = new Set(["offer", "accepted", "rejected"]);
   const interviewLocked = !INTERVIEW_UNLOCK_STATUSES.has(app.status);
   const followupLocked = !FOLLOWUP_UNLOCK_STATUSES.has(app.status);
 
   // P9 — tab lock semantics preserved exactly.
   const tabs = [
-    { id: "checklist",   label: "📋 Steps" },
-    { id: "target",      label: "Target role" },
-    { id: "cv",          label: "CV" },
-    { id: "skills",      label: "Skills" },
-    { id: "projects",    label: "Projects" },
-    { id: "networking",  label: "Networking" },
+    { id: "checklist", label: "📋 Steps" },
+    { id: "target", label: "Target role" },
+    { id: "cv", label: "CV" },
+    { id: "skills", label: "Skills" },
+    { id: "projects", label: "Projects" },
+    { id: "networking", label: "Networking" },
     { id: "application", label: "Application" },
-    { id: "interview",   label: "Interview", locked: interviewLocked, unlockHint: "Move this application to 'Interviewing' to unlock interview prep." },
-    { id: "followup",    label: "Follow-up", locked: followupLocked, unlockHint: "Unlocks once the application reaches Offer, Accepted, or Rejected." },
+    {
+      id: "interview",
+      label: "Interview",
+      locked: interviewLocked,
+      unlockHint:
+        "Move this application to 'Interviewing' to unlock interview prep.",
+    },
+    {
+      id: "followup",
+      label: "Follow-up",
+      locked: followupLocked,
+      unlockHint:
+        "Unlocks once the application reaches Offer, Accepted, or Rejected.",
+    },
   ];
 
   // AI confidence — track-tinted strong / muted soft. No red band.
@@ -260,7 +321,8 @@ export default function ApplicationRow({
         onClick={() => {
           if (expanded && hasUnsavedChanges) {
             // P11 — unsaved-changes guard.
-            if (!window.confirm("You have unsaved changes. Collapse anyway?")) return;
+            if (!window.confirm("You have unsaved changes. Collapse anyway?"))
+              return;
           }
           setExpanded(!expanded);
         }}
@@ -283,6 +345,31 @@ export default function ApplicationRow({
             <p className="text-[12px] text-rd-text-secondary mt-0.5">
               {app.company || "No company"}
             </p>
+            {app.url && (
+              // Span-role-button (not a nested <a>) because the whole header is
+              // a toggle button — stopPropagation keeps the click from also
+              // expanding/collapsing the row. Opens the original listing.
+              <span
+                role="button"
+                tabIndex={0}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  window.open(app.url, "_blank", "noopener,noreferrer");
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    window.open(app.url, "_blank", "noopener,noreferrer");
+                  }
+                }}
+                className="inline-flex items-center gap-1 text-[11px] font-display font-semibold text-rd-coral hover:text-rd-coral-dark mt-1 cursor-pointer"
+                title="Open the original job listing in a new tab"
+              >
+                View listing
+                <ExternalLink className="w-3 h-3" />
+              </span>
+            )}
             {listingInactive && (
               <p className="inline-flex items-center gap-1 text-[10.5px] text-rd-golden-dark mt-1">
                 <AlertCircle className="w-3 h-3" />
@@ -295,7 +382,10 @@ export default function ApplicationRow({
           {trackMeta && trackStyles ? (
             <span
               className="inline-flex items-center gap-1.5 text-[11px] font-display font-bold rounded-full px-2.5 py-1"
-              style={{ background: trackStyles.tint, color: trackStyles.accent }}
+              style={{
+                background: trackStyles.tint,
+                color: trackStyles.accent,
+              }}
             >
               <span
                 className="w-4 h-4 rounded-full inline-flex items-center justify-center font-display font-extrabold text-[9.5px] leading-none text-white"
@@ -333,17 +423,25 @@ export default function ApplicationRow({
               )}
             </span>
           ) : hasJd ? (
-            <span className="text-[11px] italic text-rd-text-tertiary">Calculating track…</span>
+            <span className="text-[11px] italic text-rd-text-tertiary">
+              Calculating track…
+            </span>
           ) : null}
           {qPct != null ? (
             <span
               className="text-[12px] font-display font-bold"
-              style={{ color: qStrong ? "var(--rd-teal-dark)" : "var(--rd-text-secondary)" }}
+              style={{
+                color: qStrong
+                  ? "var(--rd-teal-dark)"
+                  : "var(--rd-text-secondary)",
+              }}
             >
               {qPct}%
             </span>
           ) : !scoringFailed && hasJd ? (
-            <span className="text-[11px] italic text-rd-text-tertiary">Calculating fit…</span>
+            <span className="text-[11px] italic text-rd-text-tertiary">
+              Calculating fit…
+            </span>
           ) : null}
           {confirmingDelete ? (
             <>
@@ -365,7 +463,10 @@ export default function ApplicationRow({
               <span
                 role="button"
                 tabIndex={0}
-                onClick={(e) => { e.stopPropagation(); setConfirmingDelete(false); }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setConfirmingDelete(false);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
@@ -417,7 +518,9 @@ export default function ApplicationRow({
               </SelectTrigger>
               <SelectContent>
                 {Object.entries(STATUS_LABELS).map(([value, { label }]) => (
-                  <SelectItem key={value} value={value} className="text-[12px]">{label}</SelectItem>
+                  <SelectItem key={value} value={value} className="text-[12px]">
+                    {label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
@@ -500,25 +603,39 @@ export default function ApplicationRow({
                         )}
                       </span>
                     ) : hasJd ? (
-                      <span className="text-[11.5px] italic text-rd-text-tertiary">Calculating track…</span>
+                      <span className="text-[11.5px] italic text-rd-text-tertiary">
+                        Calculating track…
+                      </span>
                     ) : (
-                      <span className="font-display font-semibold text-rd-text-tertiary">Unclassified</span>
+                      <span className="font-display font-semibold text-rd-text-tertiary">
+                        Unclassified
+                      </span>
                     )}
                   </div>
                   {qPct != null ? (
                     <div className="flex items-center justify-between gap-3 text-[12.5px] py-0.5">
-                      <span className="text-rd-text-secondary">AI confidence</span>
+                      <span className="text-rd-text-secondary">
+                        AI confidence
+                      </span>
                       <span
                         className="font-display font-bold"
-                        style={{ color: qStrong ? "var(--rd-teal-dark)" : "var(--rd-text-secondary)" }}
+                        style={{
+                          color: qStrong
+                            ? "var(--rd-teal-dark)"
+                            : "var(--rd-text-secondary)",
+                        }}
                       >
                         {qPct}%
                       </span>
                     </div>
                   ) : !scoringFailed && hasJd ? (
                     <div className="flex items-center justify-between gap-3 text-[12.5px] py-0.5">
-                      <span className="text-rd-text-secondary">AI confidence</span>
-                      <span className="text-[11.5px] italic text-rd-text-tertiary">Calculating fit…</span>
+                      <span className="text-rd-text-secondary">
+                        AI confidence
+                      </span>
+                      <span className="text-[11.5px] italic text-rd-text-tertiary">
+                        Calculating fit…
+                      </span>
                     </div>
                   ) : null}
                 </div>
@@ -557,15 +674,22 @@ export default function ApplicationRow({
                     Chat with CV Agent for this role
                   </button>
                   <p className="text-[11px] text-rd-text-secondary mt-1">
-                    Opens a conversation pre-loaded with this application&apos;s context.
+                    Opens a conversation pre-loaded with this application&apos;s
+                    context.
                   </p>
                 </div>
               </div>
             )}
 
-            {activeTab === "skills"      && <SkillsRequired app={app} profile={profile} />}
-            {activeTab === "projects"    && <ProjectsProof app={app} onUpdate={onUpdate} />}
-            {activeTab === "networking"  && <NetworkingReferrals app={app} onUpdate={onUpdate} />}
+            {activeTab === "skills" && (
+              <SkillsRequired app={app} profile={profile} />
+            )}
+            {activeTab === "projects" && (
+              <ProjectsProof app={app} onUpdate={onUpdate} />
+            )}
+            {activeTab === "networking" && (
+              <NetworkingReferrals app={app} onUpdate={onUpdate} />
+            )}
 
             {activeTab === "application" && (
               <div className="flex flex-col gap-4">
@@ -573,7 +697,9 @@ export default function ApplicationRow({
                   Application details
                 </p>
                 <div>
-                  <label className="block text-[12px] text-rd-text-secondary mb-1.5">Date applied</label>
+                  <label className="block text-[12px] text-rd-text-secondary mb-1.5">
+                    Date applied
+                  </label>
                   <input
                     type="date"
                     value={appliedDate}
@@ -582,7 +708,9 @@ export default function ApplicationRow({
                   />
                 </div>
                 <div>
-                  <label className="block text-[12px] text-rd-text-secondary mb-1.5">CV version used</label>
+                  <label className="block text-[12px] text-rd-text-secondary mb-1.5">
+                    CV version used
+                  </label>
                   <input
                     value={cvVersionUsed}
                     onChange={(e) => setCvVersionUsed(e.target.value)}
@@ -608,24 +736,39 @@ export default function ApplicationRow({
               </div>
             )}
 
-            {activeTab === "interview" && (
-              interviewLocked ? (
+            {activeTab === "interview" &&
+              (interviewLocked ? (
                 <LockedNotice>
-                  Move this application to <strong className="font-display font-bold text-rd-text">Interviewing</strong> to unlock interview prep. Jumping ahead before you have an interview scheduled just adds noise.
+                  Move this application to{" "}
+                  <strong className="font-display font-bold text-rd-text">
+                    Interviewing
+                  </strong>{" "}
+                  to unlock interview prep. Jumping ahead before you have an
+                  interview scheduled just adds noise.
                 </LockedNotice>
               ) : (
                 <InterviewPrep app={app} onUpdate={onUpdate} />
-              )
-            )}
-            {activeTab === "followup" && (
-              followupLocked ? (
+              ))}
+            {activeTab === "followup" &&
+              (followupLocked ? (
                 <LockedNotice>
-                  Follow-up unlocks once the application reaches <strong className="font-display font-bold text-rd-text">Offer</strong>, <strong className="font-display font-bold text-rd-text">Accepted</strong>, or <strong className="font-display font-bold text-rd-text">Rejected</strong>. There&apos;s nothing to follow up on yet.
+                  Follow-up unlocks once the application reaches{" "}
+                  <strong className="font-display font-bold text-rd-text">
+                    Offer
+                  </strong>
+                  ,{" "}
+                  <strong className="font-display font-bold text-rd-text">
+                    Accepted
+                  </strong>
+                  , or{" "}
+                  <strong className="font-display font-bold text-rd-text">
+                    Rejected
+                  </strong>
+                  . There&apos;s nothing to follow up on yet.
                 </LockedNotice>
               ) : (
                 <FollowUp app={app} onUpdate={onUpdate} />
-              )
-            )}
+              ))}
           </div>
         </div>
       )}
