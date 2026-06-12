@@ -10,7 +10,8 @@
 //      caller's perspective.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fetchWorkdayDetail, fetchSmartRecruitersDetail } from "./ats-fetchers.ts";
+import { fetchWorkdayDetail, fetchSmartRecruitersDetail, fetchAmazonJobs } from "./ats-fetchers.ts";
+import type { CompanyEntry } from "./normalize.ts";
 
 const realFetch = globalThis.fetch;
 
@@ -160,5 +161,207 @@ describe("detail fetchers — silent degradation contract", () => {
     globalThis.fetch = vi.fn().mockRejectedValue(new TypeError("fetch failed")) as any;
     const html = await fetchSmartRecruitersDetail("AcmeCo", "id-1");
     expect(html).toBeNull();
+  });
+});
+
+// ───── fetchAmazonJobs — M1 step (b), Amazon.jobs search.json ────────
+//
+// Pins three contracts the live amazon.jobs surface depends on:
+//   1. URL construction matches the public endpoint (search.json with
+//      country, result_limit, offset). The hardcoded ?country=ISR shape
+//      was the actual probe URL that returned 143 IL hits 2026-06-12.
+//   2. The fetcher pages via offset until hits is exhausted (full IL
+//      surface, not just the first 10 / 100 result_limit).
+//   3. structured_country='IL' on every row — short-circuits the
+//      downstream classifier. The search filter guarantees Israel; the
+//      hardcoded country tag is the contract.
+
+const amazonEntry: CompanyEntry = {
+  name: "Amazon",
+  type: "international_il_rd",
+  industry: "Cloud/E-commerce",
+  domain: "amazon.com",
+  careers_url: "https://www.amazon.jobs/en/",
+  ats: "amazon_jobs",
+  slug: "ISR",
+  api_url: "https://www.amazon.jobs/en/search.json",
+  verified: true,
+  notes: null,
+};
+
+function makeJob(id: string, title: string, overrides: Record<string, unknown> = {}) {
+  return {
+    id_icims: id,
+    title,
+    job_path: `/en/jobs/${id}/${title.toLowerCase().replace(/\s+/g, "-")}`,
+    location: "IL, Haifa",
+    normalized_location: "Haifa, Israel",
+    posted_date: "2026-06-01",
+    description: "<p>Build the thing.</p>",
+    description_short: "Build the thing.",
+    basic_qualifications: "<p>5+ years of building things.</p>",
+    preferred_qualifications: "<p>Bonus: things.</p>",
+    country_code: "ISR",
+    city: "Haifa",
+    state: "Haifa District",
+    is_intern: false,
+    is_manager: false,
+    university_job: false,
+    team: { label: "AWS Israel" },
+    business_category: "Software Development",
+    ...overrides,
+  };
+}
+
+describe("fetchAmazonJobs — URL construction + IL filter", () => {
+  it("constructs the canonical search.json URL with country=ISR + result_limit=100 + offset=0", async () => {
+    let capturedUrl = "";
+    globalThis.fetch = vi.fn().mockImplementation((url: any) => {
+      capturedUrl = String(url);
+      return Promise.resolve(
+        new Response(JSON.stringify({ hits: 0, jobs: [] }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    }) as any;
+
+    await fetchAmazonJobs(amazonEntry);
+
+    expect(capturedUrl).toBe(
+      "https://www.amazon.jobs/en/search.json?country=ISR&result_limit=100&offset=0",
+    );
+  });
+
+  it("returns [] when api_url or slug is missing (misconfigured registry row)", async () => {
+    expect(await fetchAmazonJobs({ ...amazonEntry, api_url: null })).toEqual([]);
+    expect(await fetchAmazonJobs({ ...amazonEntry, slug: null })).toEqual([]);
+  });
+});
+
+describe("fetchAmazonJobs — RawJob mapping", () => {
+  it("maps id_icims → external_id, builds apply_url from api_url host + job_path, marks structured_country='IL'", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          hits: 1,
+          jobs: [
+            makeJob("3001234", "Senior Software Engineer, AWS ElastiCache", {
+              job_path: "/en/jobs/3001234/senior-software-engineer-aws-elasticache",
+            }),
+          ],
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    ) as any;
+
+    const rows = await fetchAmazonJobs(amazonEntry);
+
+    expect(rows).toHaveLength(1);
+    const r = rows[0];
+    expect(r.external_id).toBe("3001234");
+    expect(r.title).toBe("Senior Software Engineer, AWS ElastiCache");
+    expect(r.apply_url).toBe(
+      "https://www.amazon.jobs/en/jobs/3001234/senior-software-engineer-aws-elasticache",
+    );
+    // Every Amazon row is Israel-only by construction — pre-set so the
+    // downstream classifier doesn't need to introspect location strings.
+    expect(r.structured_country).toBe("IL");
+    expect(r.location_raw).toBe("Haifa, Israel");
+    expect(r.date_posted).toBe("2026-06-01");
+  });
+
+  it("falls back to id when id_icims is missing", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          hits: 1,
+          jobs: [{ ...makeJob("ignored", "T"), id_icims: undefined, id: "fallback-id-99" }],
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    ) as any;
+    const rows = await fetchAmazonJobs(amazonEntry);
+    expect(rows[0].external_id).toBe("fallback-id-99");
+  });
+
+  it("concatenates description_short + description + basic_qualifications + preferred_qualifications into description_html", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({ hits: 1, jobs: [makeJob("1", "T")] }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    ) as any;
+    const rows = await fetchAmazonJobs(amazonEntry);
+    const desc = rows[0].description_html!;
+    expect(desc).toContain("Build the thing.");
+    expect(desc).toContain("<p>5+ years of building things.</p>");
+    expect(desc).toContain("Basic Qualifications");
+    expect(desc).toContain("Preferred Qualifications");
+  });
+
+  it("captures is_intern + is_manager + university_job in raw_payload (signal for downstream entry-level metrics)", async () => {
+    globalThis.fetch = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          hits: 1,
+          jobs: [makeJob("X", "Intern", { is_intern: true, university_job: true })],
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      ),
+    ) as any;
+    const rows = await fetchAmazonJobs(amazonEntry);
+    expect((rows[0].raw_payload as any).is_intern).toBe(true);
+    expect((rows[0].raw_payload as any).university_job).toBe(true);
+  });
+});
+
+describe("fetchAmazonJobs — pagination", () => {
+  it("pages by offset until offset >= hits", async () => {
+    const allJobs = Array.from({ length: 143 }, (_, i) =>
+      makeJob(String(10000 + i), `Job ${i}`, { job_path: `/en/jobs/${10000 + i}/job-${i}` }),
+    );
+    let callCount = 0;
+    const seenUrls: string[] = [];
+    globalThis.fetch = vi.fn().mockImplementation((url: any) => {
+      seenUrls.push(String(url));
+      callCount++;
+      const u = new URL(String(url));
+      const offset = Number(u.searchParams.get("offset") ?? "0");
+      const limit = Number(u.searchParams.get("result_limit") ?? "100");
+      return Promise.resolve(
+        new Response(
+          JSON.stringify({ hits: 143, jobs: allJobs.slice(offset, offset + limit) }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+      );
+    }) as any;
+
+    const rows = await fetchAmazonJobs(amazonEntry);
+
+    // 143 / 100 = 2 pages (page 1: 0..99 → 100 jobs; page 2: 100..142 → 43 jobs).
+    expect(callCount).toBe(2);
+    expect(seenUrls[0]).toContain("offset=0");
+    expect(seenUrls[1]).toContain("offset=100");
+    expect(rows).toHaveLength(143);
+  });
+
+  it("dedupes by external_id across pages so a server-side duplicate doesn't double-count", async () => {
+    let call = 0;
+    globalThis.fetch = vi.fn().mockImplementation(() => {
+      call++;
+      const payload = call === 1
+        ? { hits: 200, jobs: [makeJob("A", "First"), makeJob("B", "Second")] }
+        : { hits: 200, jobs: [makeJob("B", "Second-dup"), makeJob("C", "Third")] };
+      return Promise.resolve(
+        new Response(JSON.stringify(payload), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+      );
+    }) as any;
+    const rows = await fetchAmazonJobs(amazonEntry);
+    const ids = rows.map((r) => r.external_id);
+    expect(ids.sort()).toEqual(["A", "B", "C"]);
   });
 });

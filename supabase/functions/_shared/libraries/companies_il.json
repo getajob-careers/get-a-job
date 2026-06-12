@@ -510,11 +510,11 @@
       "industry": "Cloud/E-commerce",
       "domain": "amazon.com",
       "careers_url": "https://www.amazon.jobs/en/",
-      "ats": "custom",
-      "slug": null,
+      "ats": "amazon_jobs",
+      "slug": "ISR",
       "api_url": "https://www.amazon.jobs/en/search.json",
       "verified": true,
-      "notes": "ALREADY IN REGISTRY (verified). Skip — no changes needed. Custom amazon.jobs search.json API (returns JSON). Includes AWS Tel Aviv + Annapurna Labs Haifa + Amazon Israel."
+      "notes": "Custom amazon.jobs search.json API (returns JSON). M1 step (b) wired via fetchAmazonJobs (2026-06-12). slug='ISR' = ISO 3166-1 alpha-3 country filter passed as ?country=. Probe at wire time returned 143 IL hits across AWS Tel Aviv + Annapurna Labs Haifa + Amazon Development Center Israel. Structured_country='IL' short-circuit on every row."
     },
     {
       "name": "AMD",
