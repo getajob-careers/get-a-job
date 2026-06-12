@@ -28,7 +28,11 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import {
+  useQuery,
+  useQueryClient,
+  keepPreviousData,
+} from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { useEducationQuery } from "@/lib/queries/useEducation";
@@ -63,6 +67,7 @@ import {
 import { FUNNEL_BUCKETS } from "@/lib/funnelBuckets";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import { buildCareerPageContext } from "@/lib/buildCareerPageContext";
+import { careerJobsQueryKey, careerJobsEnabled } from "@/lib/careerJobsQuery";
 import ApplicationsKanban from "@/components/tracker/ApplicationsKanban";
 import ApplicationDetailDrawer from "@/components/tracker/ApplicationDetailDrawer";
 import AddApplicationDialog from "@/components/tracker/AddApplicationDialog";
@@ -303,9 +308,18 @@ export default function Career() {
   }, [search]);
   const [expandedRoleId, setExpandedRoleId] = useState(null);
 
-  const { data: profile } = useProfileQuery(user?.id);
-  const { data: experiences = [] } = useExperiencesQuery(user?.id);
-  const { data: educations = [] } = useEducationQuery(user?.id);
+  // isSuccess flags gate the career_jobs fetch (below): seniorityFilter and
+  // p_work_types derive from these three async queries, so firing jobs before
+  // they settle produces a transient WRONG list cached under the early_career
+  // key (see "disappearing Track 1 jobs" fix).
+  const { data: profile, isSuccess: profileReady } = useProfileQuery(user?.id);
+  const { data: experiences = [], isSuccess: expReady } = useExperiencesQuery(
+    user?.id,
+  );
+  const { data: educations = [], isSuccess: eduReady } = useEducationQuery(
+    user?.id,
+  );
+  const jobsInputsReady = profileReady && expReady && eduReady;
 
   // Wide applications query — same canonical key + select Home + Tracker
   // already use, so this surface joins the shared cache rather than
@@ -493,13 +507,17 @@ export default function Career() {
     // seniorityFilter folded into the queryKey so a Track 1 ↔ Track 3
     // switch (with different allow-lists) actually refetches instead of
     // serving a cached track-1 result that didn't include senior roles.
-    queryKey: [
-      "career_jobs",
-      user?.id,
+    // work_types is consumed in the queryFn (p_work_types) so careerJobsQueryKey
+    // folds it into the key — otherwise a profile.work_type change (or a fetch
+    // that fired before profile loaded) would leave a stale work-type filter
+    // cached. See src/lib/careerJobsQuery.js + its test.
+    queryKey: careerJobsQueryKey({
+      userId: user?.id,
       selectedTrack,
-      (trackTitles[selectedTrack] || []).join("|"),
-      seniorityFilter.join(","),
-    ],
+      titles: trackTitles[selectedTrack] || [],
+      seniorityFilter,
+      workType: profile?.work_type,
+    }),
     queryFn: async () => {
       const titles = trackTitles[selectedTrack] || [];
       if (titles.length === 0) return [];
@@ -521,7 +539,17 @@ export default function Career() {
       if (error) throw error;
       return data || [];
     },
-    enabled: !!user?.id && roles.length > 0,
+    // Wait for the seniority/work-type inputs to settle before the first fetch
+    // (jobsInputsReady = profile + experiences + educations all isSuccess), so
+    // we never fetch under a half-loaded early_career filter and cache the
+    // wrong list. keepPreviousData smooths the track-switch flash (show the
+    // prior track's rows while the next track loads instead of an empty pane).
+    enabled: careerJobsEnabled({
+      userId: user?.id,
+      rolesLength: roles.length,
+      jobsInputsReady,
+    }),
+    placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
   });
 
@@ -590,6 +618,12 @@ export default function Career() {
         (job.company_name || "").toLowerCase().includes(q),
     );
   }, [scoredJobs, search, searchScope]);
+
+  // The career_jobs query is gated until profile/experiences/educations settle
+  // (jobsInputsReady). While gated, isLoading is false (disabled query), so the
+  // pane must still read as LOADING — never "no jobs" — until the first real
+  // fetch can run. Track scope only; all-scope uses its own loadingSearch.
+  const jobsLoading = loadingJobs || (!searchActive && !jobsInputsReady);
 
   const band = TRACK_BAND.find((t) => t.key === selectedTrack);
   const trackRoles = rolesByTrack[selectedTrack] || [];
@@ -1046,13 +1080,13 @@ export default function Career() {
             )}
           </div>
           <div className="flex flex-col gap-2.5 mt-2.5">
-            {(loadingJobs || (searchActive && loadingSearch)) && (
+            {(jobsLoading || (searchActive && loadingSearch)) && (
               <RdCard className="p-6 text-center text-[12.5px] text-rd-text-secondary">
                 <Loader2 className="w-4 h-4 animate-spin inline-block mr-2 align-[-2px]" />
                 {searchActive ? "Searching jobs…" : "Matching live jobs…"}
               </RdCard>
             )}
-            {!loadingJobs &&
+            {!jobsLoading &&
               !(searchActive && loadingSearch) &&
               visibleJobs.length === 0 && (
                 <RdCard className="p-6 text-center text-[12.5px] text-rd-text-secondary">
