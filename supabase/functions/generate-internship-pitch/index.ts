@@ -415,6 +415,6 @@ Deno.serve(async (req) => {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } finally {
-    finishMetric(m, { ok: _ok, http: _http, err: _err })
+    finishMetric(m, { ok: _ok, httpStatus: _http, errorCode: _err })
   }
 })

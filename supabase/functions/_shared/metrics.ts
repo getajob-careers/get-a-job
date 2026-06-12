@@ -25,7 +25,13 @@
 // forensic data on failures only; function_metrics captures aggregate signal
 // on every call. Different cardinality, different consumers.
 
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+// Note: the @supabase/supabase-js client is dynamically imported inside
+// the fire-and-forget IIFE below. Two reasons:
+//   1. Vitest can't resolve `https://esm.sh/...` static imports under the
+//      default ESM loader, which would block this module's tests from
+//      loading. Lazy import keeps the test path env-skip-only.
+//   2. Module-load latency stays zero for callers that never reach the DB
+//      write (e.g. local dev without SERVICE_ROLE_KEY).
 
 // Pricing table in $/1M tokens. Update when models change or new ones added.
 // Unknown models record cost_usd = 0 (so SUMs still work cleanly) — update
@@ -52,14 +58,19 @@ export interface Metric {
 export interface MetricResult {
   ok: boolean
   httpStatus: number
-  errorCode?: string | null
+  // Required (no `?`) so callers must explicitly decide null vs string at the
+  // call site. Forces the next field-name typo (e.g. `err:` instead of
+  // `errorCode:`) to surface as a TypeScript error rather than dropping
+  // silently to undefined → null in the DB row, as
+  // generate-internship-pitch did from May 4 to June 11 2026.
+  errorCode: string | null
 }
 
 export function startMetric(functionName: string): Metric {
   return { functionName, startedAt: Date.now() }
 }
 
-function computeCostUsd(
+export function computeCostUsd(
   model: string | null | undefined,
   tokensIn: number | null | undefined,
   tokensOut: number | null | undefined
@@ -76,6 +87,20 @@ function computeCostUsd(
  * thrown.
  */
 export function finishMetric(m: Metric, result: MetricResult): void {
+  // Backstop for the field-name-typo regression. TypeScript should already
+  // catch a missing httpStatus or errorCode at compile time, but `supabase
+  // functions deploy` does not run `deno check` — so a typo can ship as
+  // runtime `undefined`. Log loudly if that happens; observability bugs
+  // hiding in dashboards for months is exactly what this is meant to
+  // prevent. NEVER throw — observability must not break the function it's
+  // observing.
+  if (result.httpStatus == null || typeof result.httpStatus !== 'number') {
+    console.error(
+      `[metrics] ${m.functionName} called finishMetric with non-numeric httpStatus (${typeof result.httpStatus}); ` +
+      `row will record http_status=NULL — check the call site for a field-name typo (e.g. \`http:\` instead of \`httpStatus:\`).`
+    )
+  }
+
   const url = Deno.env.get('SUPABASE_URL') ?? ''
   const serviceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   if (!url || !serviceKey) {
@@ -93,12 +118,13 @@ export function finishMetric(m: Metric, result: MetricResult): void {
     tokens_in: m.tokensIn ?? null,
     tokens_out: m.tokensOut ?? null,
     cost_usd: computeCostUsd(m.modelUsed, m.tokensIn, m.tokensOut),
-    http_status: result.httpStatus,
+    http_status: typeof result.httpStatus === 'number' ? result.httpStatus : null,
   }
 
   // Fire-and-forget. Don't await — observability shouldn't block the response.
   ;(async () => {
     try {
+      const { createClient } = await import('https://esm.sh/@supabase/supabase-js@2')
       const client = createClient(url, serviceKey)
       const { error } = await client.from('function_metrics').insert(row)
       if (error) console.warn(`[metrics] insert failed for ${m.functionName}:`, error.message)
