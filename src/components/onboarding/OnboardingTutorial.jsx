@@ -37,7 +37,8 @@ const SLIDES = [
   {
     name: "browse_jobs",
     title: "Browse jobs",
-    description: "Score any role for a personalised fit breakdown.",
+    description:
+      "Score any role for a personalised fit breakdown. Your 5-year goal anchors every match score — sharper goal, sharper signal.",
     Icon: Briefcase,
   },
   {

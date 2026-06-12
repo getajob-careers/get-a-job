@@ -42,6 +42,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import RdCard from "@/components/redesign/RdCard";
 import RdFunnelTile from "@/components/redesign/RdFunnelTile";
 import { FUNNEL_BUCKETS } from "@/lib/funnelBuckets";
+import GoalRefinementNudge from "@/components/dashboard/GoalRefinementNudge";
 import { isAnalysisStale } from "@/lib/staleAnalysis";
 import { withDbTimeout } from "@/lib/withDbTimeout";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
@@ -591,6 +592,16 @@ export default function Home() {
           value={String(funnelCounts.interview)}
         />
         <StatBlock label="Stories banked" to={createPageUrl("StoryBank")} value={String(stories.length)} />
+      </div>
+
+      {/* Goal-refinement nudge — Barabi P1. Shows ONCE per session when the
+          user's 5-year goal is empty or single-word; degrades the entire
+          tiering + goal_alignment_score pipeline. Dismiss is sessionStorage,
+          not localStorage, so a new tab/browser shows it again unless the
+          user has meanwhile refined the goal (in which case the
+          empty/single-word check filters them out naturally). */}
+      <div className="mt-6">
+        <GoalRefinementNudge profile={profile} userId={user?.id} />
       </div>
 
       {/* Focus card — coral tint, completable (seamless-ia Today spec).
