@@ -1,11 +1,11 @@
 {
   "generated_at": "2026-06-12",
-  "total_companies": 890,
+  "total_companies": 889,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
     "ashby": 68,
-    "comeet": 220,
+    "comeet": 224,
     "custom": 32,
     "eightfold": 3,
     "greenhouse": 199,
@@ -19,7 +19,7 @@
     "smartrecruiters": 10,
     "successfactors": 8,
     "teamtailor": 1,
-    "unknown": 260,
+    "unknown": 255,
     "workable": 10,
     "workday": 37
   },
@@ -4518,11 +4518,11 @@
       "industry": "HealthTech",
       "domain": "healthy.io",
       "careers_url": "https://healthy.io/careers/",
-      "ats": "unknown",
+      "ats": "comeet",
       "slug": "healthy",
       "api_url": null,
       "verified": false,
-      "notes": "Comeet markers detected in HTML (sweep); slug='healthy' | retagged comeet->unknown 2026-06-12 (careers page no longer Comeet)."
+      "notes": "Comeet markers detected in HTML (sweep); slug='healthy' | static Comeet harvest failed 2026-06-12 (JS-rendered / atypical token); deferred to dynamic-harvest (Playwright) — see tasks/r1-discovery-token-harvest-rider.md."
     },
     {
       "name": "Helios",
@@ -5430,11 +5430,11 @@
       "industry": "Media / Broadcasting",
       "domain": "keshet-tv.com",
       "careers_url": "https://jobs.keshet-mediagroup.com/",
-      "ats": "unknown",
+      "ats": "comeet",
       "slug": "26.009",
       "api_url": null,
       "verified": false,
-      "notes": "Comeet UID 26.009 + token extracted from HTML but Comeet API returns HTTP 400 — UID/token format atypical (numeric-prefix UID). Needs manual re-discovery. | retagged comeet->unknown 2026-06-12 (careers page no longer Comeet)."
+      "notes": "Comeet UID 26.009 + token extracted from HTML but Comeet API returns HTTP 400 — UID/token format atypical (numeric-prefix UID). Needs manual re-discovery. | static Comeet harvest failed 2026-06-12 (JS-rendered / atypical token); deferred to dynamic-harvest (Playwright) — see tasks/r1-discovery-token-harvest-rider.md."
     },
     {
       "name": "Keter Plastic",
@@ -9438,11 +9438,11 @@
       "industry": "Venture Studio / Cyber / Fintech / AI",
       "domain": "team8.vc",
       "careers_url": "https://www.team8.vc/careers",
-      "ats": "unknown",
+      "ats": "comeet",
       "slug": "61.003",
       "api_url": null,
       "verified": false,
-      "notes": "Comeet UID 61.003 confirmed via comeet.com/jobs/team8/61.003. Token not extractable from comeet.com (Spark Hire template only). Israeli-founded venture studio + portfolio. Build cyber/fintech/data companies. | retagged comeet->unknown 2026-06-12 (careers page no longer Comeet)."
+      "notes": "Comeet UID 61.003 confirmed via comeet.com/jobs/team8/61.003. Token not extractable from comeet.com (Spark Hire template only). Israeli-founded venture studio + portfolio. Build cyber/fintech/data companies. | static Comeet harvest failed 2026-06-12 (JS-rendered / atypical token); deferred to dynamic-harvest (Playwright) — see tasks/r1-discovery-token-harvest-rider.md."
     },
     {
       "name": "Techstars Tel Aviv",
@@ -9841,28 +9841,16 @@
       "notes": "Lever (4 jobs); competes with IL-strong cyber market; mark_unverified for IL R&D"
     },
     {
-      "name": "Tyto Care",
-      "type": "israeli_founded",
-      "industry": "HealthTech",
-      "domain": "tytocare.com",
-      "careers_url": "https://www.tytocare.com/careers/",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet UID E5.003 found; token not extracted"
-    },
-    {
       "name": "TytoCare",
       "type": "israeli_founded",
       "industry": "Healthtech / Telehealth",
       "domain": "tytocare.com",
       "careers_url": "https://www.tytocare.com/careers/",
-      "ats": "unknown",
+      "ats": "comeet",
       "slug": null,
       "api_url": null,
       "verified": false,
-      "notes": "Careers page uses Comeet (confirmed by URL patterns /careers/<role>/ and 'Application powered by Comeet' style structure). Could not extract UID+token from static HTML (JS-rendered). HQ Netanya, NYC presence. | retagged comeet->unknown 2026-06-12 (careers page no longer Comeet)."
+      "notes": "Careers page uses Comeet (confirmed by URL patterns /careers/<role>/ and 'Application powered by Comeet' style structure). Could not extract UID+token from static HTML (JS-rendered). HQ Netanya, NYC presence. | static Comeet harvest failed 2026-06-12 (JS-rendered / atypical token); deferred to dynamic-harvest (Playwright) — see tasks/r1-discovery-token-harvest-rider.md. | dup \"Tyto Care\" merged 2026-06-12 (sibling noted Comeet UID E5.003)."
     },
     {
       "name": "Uber",
