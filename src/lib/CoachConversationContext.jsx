@@ -18,6 +18,7 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { CHAT_MODEL } from "@/lib/chatModel";
 import { supabase } from "@/api/supabaseClient";
+import { invokeWithAuthRetry } from "@/api/invokeWithAuthRetry";
 import { useAuth } from "@/lib/AuthContext";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import { toast } from "sonner";
@@ -169,13 +170,7 @@ export function CoachConversationProvider({ children }) {
         ...(applicationId && { application_id: applicationId }),
         ...(pageContext && { page_context: pageContext }),
       };
-      let { data, error } = await supabase.functions.invoke("ai-chat", { body: invokeBody });
-      if (error?.context?.status === 401) {
-        const { error: refreshErr } = await supabase.auth.refreshSession();
-        if (!refreshErr) {
-          ({ data, error } = await supabase.functions.invoke("ai-chat", { body: invokeBody }));
-        }
-      }
+      const { data, error } = await invokeWithAuthRetry("ai-chat", { body: invokeBody });
       if (error) throw error;
       if (!data?.reply) throw new Error("Empty response from the agent.");
 
