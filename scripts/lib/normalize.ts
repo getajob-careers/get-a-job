@@ -234,6 +234,45 @@ const IL_CITY_MAP: Record<string, string> = {
   "יבנה":          "Yavne",
 };
 
+// Hebrew (and English-transliterated) region/district tags that appear
+// as bare locations on Israeli boards — usually because the employer
+// is hiring across a metro area or the ATS only exposes a regional
+// tag instead of a specific city. PR-M1 step (a) audit (2026-06-12)
+// found ~222 active IL jobs (5.7% of the corpus) currently land with
+// is_il=true but city=NULL because these tags aren't in IL_CITY_MAP.
+//
+// Mapped to Israel's six administrative districts so the values
+// roll up cleanly in dashboards:
+//   • גוש דן (Gush Dan)   — Tel Aviv metro            → Tel Aviv District
+//   • השפלה (HaShfela)    — coastal lowlands south of TLV → Central District
+//   • השרון (HaSharon)    — Sharon coast (Herzliya/Ra'anana/Netanya) → Central District
+//   • דרום (Darom)        — South                     → Southern District
+//   • צפון (Tzafon)       — North                     → Northern District
+//   • מרכז (Merkaz)       — Center                    → Central District
+//
+// Region match runs AFTER the specific city map — a real city name
+// always wins (e.g. "Tel Aviv-Yafo, Gush Dan, Israel" resolves to
+// "Tel Aviv" via the city map, never "Tel Aviv District" via this).
+const IL_REGION_MAP: Record<string, string> = {
+  // ─── Hebrew ──────────────────────────────────────────────────────
+  "גוש דן":        "Tel Aviv District",
+  "השפלה":         "Central District",
+  "השרון":         "Central District",
+  "דרום":          "Southern District",
+  "צפון":          "Northern District",
+  "מרכז":          "Central District",
+  // ─── English transliterations + literal district names ──────────
+  "gush dan":      "Tel Aviv District",
+  "tel aviv district": "Tel Aviv District",
+  "central district": "Central District",
+  "center district":  "Central District",   // Workday's English spelling
+  "southern district": "Southern District",
+  "northern district": "Northern District",
+  "haifa district": "Haifa District",
+  "jerusalem district": "Jerusalem District",
+  "judea and samaria": "Judea and Samaria District",
+};
+
 // Country-level fallback when the city map doesn't match but Israel is
 // mentioned. Word-boundary guards prevent matching "Illinois" / "Lille".
 const RX_COUNTRY_ISRAEL = /\bisrael\b/i;
@@ -258,18 +297,99 @@ const RX_COUNTRY_HEBREW_ISRAEL = /ישראל/;
 //   • Any non-IL US state code as a standalone uppercase token
 //     ("Chicago, IL; Denver, CO" → "CO" corroborates US for the whole
 //     string → IL flips to false)
-//
-// Caveat (accepted): a bare "Chicago, IL" with no other US signal in
-// the string stays as IL under this rule. Live audit shows this case is
-// rare (~46 rows across Reddit/Toast/etc.); fixing it would require a
-// US-city whitelist that risks new false negatives on Yokneam-class
-// small Israeli towns. Conservative beats clever here.
+//   • A US tech-hub city name (PR-M1 step (a), 2026-06-12). Required
+//     before adding MNC boards: Google/Microsoft/Meta/Amazon Workday
+//     feeds return many "Chicago, IL", "Seattle, WA", "Mountain View, CA"
+//     rows. The state-code rule already catches the explicit-state
+//     pattern, but a bare "Chicago, IL" (no other US signal) was the
+//     pre-existing miss — 67 active false-positives in production at
+//     audit time. The city allowlist closes that hole. Additive: it
+//     cannot regress any currently-correct IL row, because every IL
+//     classification path (city map, "Israel" word, structured country)
+//     runs before this guard.
 const RX_US_COUNTRY = /,\s*(US|USA|United\s+States(\s+of\s+America)?)\b/i;
 const RX_US_ZIP = /\b\d{5}(-\d{4})?\b/;
 const RX_US_STATE_NON_IL = /\b(AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY|DC)\b/;
 
+// 50 US tech-hub cities (24 multi-word, 26 single-word, alphabetized).
+// Word-boundaries on either side of each entry — "San Jose, CA" matches
+// "San Jose"; "San Joseph" does not. Case-insensitive. Includes the
+// multi-word cities Eli specifically named for MNC coverage:
+// San Francisco, New York, Los Angeles, San Jose, Mountain View,
+// Menlo Park, Redmond, Santa Clara, Palo Alto, Ann Arbor, Salt Lake City.
+//
+// Both "Saint Louis" and "St. Louis" are listed since both spellings
+// appear in ATS feeds (UnitedHealth uses "St. Louis"; Edward Jones uses
+// "Saint Louis"). The period in "St\\." is escaped — regex special.
+//
+// Phoenix is included even though it shares a name with the Israeli
+// insurer (Phoenix Insurance / הפניקס). The function reads location_raw
+// (ATS-supplied geographic string), not company names, so a "Phoenix
+// Insurance, Tel Aviv" location passes the IL_CITY_MAP check long before
+// reaching this guard. The malformed "Phoenix, IL" case (US miscoding)
+// correctly flips to is_il=false under this rule.
+const RX_US_CITY = new RegExp(
+  "\\b(" + [
+    "Ann Arbor",
+    "Atlanta",
+    "Austin",
+    "Bellevue",
+    "Berkeley",
+    "Boston",
+    "Boulder",
+    "Cambridge",
+    "Charlotte",
+    "Chicago",
+    "Colorado Springs",
+    "Cupertino",
+    "Dallas",
+    "Denver",
+    "Detroit",
+    "Foster City",
+    "Fremont",
+    "Houston",
+    "Indianapolis",
+    "Irvine",
+    "Kansas City",
+    "Las Vegas",
+    "Los Angeles",
+    "Menlo Park",
+    "Miami",
+    "Minneapolis",
+    "Mountain View",
+    "Nashville",
+    "New York",
+    "Oakland",
+    "Palo Alto",
+    "Philadelphia",
+    "Phoenix",
+    "Pittsburgh",
+    "Plano",
+    "Portland",
+    "Raleigh",
+    "Redmond",
+    "Redwood City",
+    "Sacramento",
+    "Saint Louis",
+    "St\\. Louis",
+    "Salt Lake City",
+    "San Diego",
+    "San Francisco",
+    "San Jose",
+    "San Mateo",
+    "Santa Clara",
+    "Santa Monica",
+    "Seattle",
+    "Sunnyvale",
+  ].join("|") + ")\\b",
+  "i",
+);
+
 function hasUsCorroboratingSignal(raw: string): boolean {
-  return RX_US_COUNTRY.test(raw) || RX_US_ZIP.test(raw) || RX_US_STATE_NON_IL.test(raw);
+  return RX_US_COUNTRY.test(raw)
+    || RX_US_ZIP.test(raw)
+    || RX_US_STATE_NON_IL.test(raw)
+    || RX_US_CITY.test(raw);
 }
 
 export function classifyLocation(
@@ -294,6 +414,16 @@ export function classifyLocation(
     if (lower.includes(needle)) return { is_il: true, city: canonical };
   }
 
+  // Region match — Hebrew district tags (גוש דן / השפלה / etc.) and
+  // their English transliterations. Runs AFTER the city map so a real
+  // city in the string always wins ("Tel Aviv-Yafo, Gush Dan, Israel"
+  // resolves to "Tel Aviv" via city, never "Tel Aviv District" via
+  // region). PR-M1 step (a): closes the ~222-job city-attribution gap
+  // surfaced by the 2026-06-12 audit.
+  for (const [needle, canonical] of Object.entries(IL_REGION_MAP)) {
+    if (lower.includes(needle)) return { is_il: true, city: canonical };
+  }
+
   // Explicit Israel mention (English or Hebrew) — same precedence as
   // city match; a US co-mention doesn't override a literal "Israel".
   if (RX_COUNTRY_ISRAEL.test(raw) || RX_COUNTRY_HEBREW_ISRAEL.test(raw)) {
@@ -301,7 +431,8 @@ export function classifyLocation(
   }
 
   // Bare "IL" country code — only counts as Israel if NO corroborating
-  // US signal exists in the string. This is the Illinois fix.
+  // US signal exists in the string. This is the Illinois fix (now
+  // extended to catch US tech-hub city co-mentions before adding MNCs).
   if (RX_COUNTRY_IL_CODE.test(raw) && !hasUsCorroboratingSignal(raw)) {
     return { is_il: true, city: null };
   }
@@ -313,6 +444,9 @@ function extractIlCity(raw: string | null): string | null {
   if (!raw) return null;
   const lower = raw.toLowerCase();
   for (const [needle, canonical] of Object.entries(IL_CITY_MAP)) {
+    if (lower.includes(needle)) return canonical;
+  }
+  for (const [needle, canonical] of Object.entries(IL_REGION_MAP)) {
     if (lower.includes(needle)) return canonical;
   }
   return null;
