@@ -1153,6 +1153,157 @@ export async function fetchPwcHeroku(_c: CompanyEntry): Promise<RawJob[]> {
   });
 }
 
+// ───── Amazon.jobs — custom JSON API, IL-filtered ───────────────────
+//
+// Amazon's careers backend exposes a public, unauthenticated JSON search
+// at amazon.jobs/en/search.json. The endpoint accepts ?country=ISR (the
+// confirmed ISO 3166-1 alpha-3 filter at probe time, 2026-06-12) and
+// pages via ?offset + ?result_limit. A full scan of the IL surface
+// returned 143 hits — the full Amazon-IL roster across Annapurna Labs
+// (Haifa) + AWS Israel (Tel Aviv) + Amazon Development Center Israel.
+//
+// The registry stores the IL country code in CompanyEntry.slug so this
+// fetcher can be reused for other Amazon country surfaces later (Amazon
+// EU, India) without re-keying the api_url. CompanyEntry.api_url is the
+// hostless base path so a future change to the host or path stays in
+// one place.
+//
+// All amazon_jobs rows are Israel-only — we set structured_country='IL'
+// to short-circuit the downstream IL classifier (same precedent as
+// AdamTotal and PwC Heroku — see classifyLocation contract).
+//
+// Polite by default: 500ms pause between pages, max 5 pages × 100 = 500
+// jobs ceiling (~3.5× headroom over today's 143 hits). Real-browser UA
+// not required — the search.json API is unauthenticated by design.
+
+const AMAZON_PAGE_SIZE = 100;
+const AMAZON_MAX_PAGES = 5;
+const AMAZON_INTERPAGE_PAUSE_MS = 500;
+
+interface AmazonJobsResponse {
+  hits: number;
+  jobs: Array<{
+    id?: string | number;
+    id_icims?: string | number;
+    title?: string;
+    description?: string;
+    description_short?: string;
+    basic_qualifications?: string;
+    preferred_qualifications?: string;
+    job_path?: string;
+    location?: string;
+    normalized_location?: string;
+    city?: string;
+    state?: string;
+    country_code?: string;
+    posted_date?: string;
+    updated_time?: string;
+    is_intern?: boolean;
+    is_manager?: boolean;
+    university_job?: boolean;
+    team?: { label?: string } | string | null;
+    business_category?: string;
+  }>;
+}
+
+export async function fetchAmazonJobs(c: CompanyEntry): Promise<RawJob[]> {
+  // api_url is the base search endpoint (e.g. .../search.json); slug is
+  // the country filter (e.g. "ISR"). Both required — fall through to []
+  // on a misconfigured registry row rather than throwing.
+  if (!c.api_url || !c.slug) return [];
+  const base = c.api_url;
+  const country = c.slug;
+
+  const collected: RawJob[] = [];
+  const seenIds = new Set<string>();
+  let offset = 0;
+  let totalHits = Infinity;
+
+  for (let page = 0; page < AMAZON_MAX_PAGES; page++) {
+    if (page > 0) await new Promise((r) => setTimeout(r, AMAZON_INTERPAGE_PAUSE_MS));
+    const url = `${base}?country=${encodeURIComponent(country)}&result_limit=${AMAZON_PAGE_SIZE}&offset=${offset}`;
+    let resp: AmazonJobsResponse;
+    try {
+      resp = await httpGetJson<AmazonJobsResponse>(url);
+    } catch (err) {
+      // First-page failure throws (the orchestrator's catch records the
+      // company as fetch_error); after-page-1 failures keep what we got.
+      // Same contract as AdamTotal.
+      if (page === 0) throw err;
+      break;
+    }
+    if (typeof resp.hits === "number" && Number.isFinite(resp.hits)) {
+      totalHits = resp.hits;
+    }
+    const jobs = Array.isArray(resp.jobs) ? resp.jobs : [];
+    if (jobs.length === 0) break;
+
+    for (const j of jobs) {
+      // Prefer id_icims (canonical, stable across Amazon job moves).
+      // Fall through to id; skip the row if neither resolves.
+      const eid = String(j.id_icims ?? j.id ?? "").trim();
+      if (!eid || seenIds.has(eid)) continue;
+      seenIds.add(eid);
+
+      // Build description from the four narrative fields. Amazon
+      // serves these as a mix of plain text and inline HTML; concat is
+      // fine because the downstream stripHtml normalizes either.
+      const descParts = [
+        j.description_short,
+        j.description,
+        j.basic_qualifications && `<h4>Basic Qualifications</h4>${j.basic_qualifications}`,
+        j.preferred_qualifications && `<h4>Preferred Qualifications</h4>${j.preferred_qualifications}`,
+      ].filter(Boolean);
+
+      // Location: prefer the normalized form; fall back to free text.
+      // Empty-string from .join() coerces to null via the trailing ||.
+      const location_raw =
+        (j.normalized_location
+          ?? j.location
+          ?? [j.city, j.state, j.country_code].filter(Boolean).join(", "))
+        || null;
+
+      // Apply URL: registry-supplied scheme + host + job_path. The
+      // search.json response gives a relative path; the host is
+      // amazon.jobs regardless of locale, so derive it from api_url.
+      const apiHost = (() => {
+        try { return new URL(base).origin; } catch { return "https://www.amazon.jobs"; }
+      })();
+      const apply_url = j.job_path
+        ? `${apiHost}${j.job_path.startsWith("/") ? "" : "/"}${j.job_path}`
+        : "";
+
+      collected.push({
+        external_id: eid,
+        title: j.title ?? "",
+        description_html: descParts.length > 0 ? descParts.join("\n") : null,
+        location_raw,
+        // Country=ISR filter on the search.json means every returned
+        // row is Israeli by construction. Short-circuit the IL classifier.
+        structured_country: "IL",
+        apply_url,
+        date_posted: j.posted_date ?? j.updated_time ?? null,
+        salary_min: null,
+        salary_max: null,
+        salary_currency: null,
+        is_remote: false,
+        raw_payload: {
+          source: "amazon_jobs",
+          team: typeof j.team === "object" ? j.team?.label : j.team,
+          business_category: j.business_category,
+          is_intern: j.is_intern,
+          is_manager: j.is_manager,
+          university_job: j.university_job,
+        },
+      });
+    }
+
+    offset += jobs.length;
+    if (offset >= totalHits) break;
+  }
+  return collected;
+}
+
 // ───── Dispatch table ────────────────────────────────────────────────
 
 export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = {
@@ -1174,4 +1325,5 @@ export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = 
   // directly — splitting the namespace lets us measure that.
   adamtotal_agency:  fetchAdamTotal,
   pwc_heroku:        fetchPwcHeroku,
+  amazon_jobs:       fetchAmazonJobs,
 };
