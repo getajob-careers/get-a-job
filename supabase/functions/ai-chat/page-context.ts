@@ -25,7 +25,28 @@ const VALID_PAGES = new Set([
   "Profile",
 ]);
 const VALID_TRACKS = new Set(["track_1", "track_2", "track_3"]);
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// B3 visible-list contract. The client sends the ORDERED ids of the items
+// currently rendered on a list surface so the agent can answer "which one on
+// this page is best" without guessing. Cap rule (B3): exactly 15 ids per list,
+// at most 2 lists per turn. Over-cap keeps the first 15 in render order; `total`
+// preserves the original length so the render can note "(+N more on screen)".
+const VISIBLE_ITEM_TYPES = new Set([
+  "job",
+  "role",
+  "company_target",
+  "application",
+]);
+const MAX_IDS_PER_LIST = 15;
+const MAX_LISTS = 2;
+
+export interface VisibleListInput {
+  type: "job" | "role" | "company_target" | "application";
+  ids: string[];
+  total: number; // original count before the 15-id cap (for the truncation note)
+}
 
 export interface PageContextInput {
   page?: string;
@@ -34,6 +55,7 @@ export interface PageContextInput {
   role_id?: string;
   track?: string;
   company_target_id?: string;
+  visible_items?: VisibleListInput[];
 }
 
 export interface FetchedRole {
@@ -66,12 +88,39 @@ export interface FetchedCompanyTarget {
   company_sector: string | null;
 }
 
+// A hydrated visible list: each item is a compact, render-ready row (NO full
+// JDs). `shown` is the number rendered (≤15); `total` is what the client sent.
+export interface FetchedVisibleItem {
+  // Union of the compact per-type fields; only the relevant ones are set.
+  title: string;
+  company?: string | null;
+  track?: string | null;
+  readiness_score?: number | null;
+  goal_alignment_score?: number | null;
+  matched_skills?: string[] | null;
+  missing_skills?: string[] | null;
+  seniority?: string | null;
+  req_years_min?: number | null;
+  req_years_max?: number | null;
+  req_skills_core?: string[] | null;
+  sector?: string | null;
+  pitched_role?: string | null;
+  status?: string | null;
+}
+
+export interface FetchedVisibleList {
+  type: "job" | "role" | "company_target" | "application";
+  items: FetchedVisibleItem[];
+  total: number;
+}
+
 export interface FetchedPageContext {
   page?: string;
   track?: string;
   role?: FetchedRole;
   job?: FetchedJob;
   companyTarget?: FetchedCompanyTarget;
+  visibleLists?: FetchedVisibleList[];
 }
 
 // Whitelist the incoming shape — drops unknown keys, invalid UUIDs,
@@ -87,14 +136,100 @@ export function sanitizePageContext(raw: unknown): PageContextInput | null {
   if (typeof ctx.track === "string" && VALID_TRACKS.has(ctx.track)) {
     out.track = ctx.track;
   }
-  const uuidFields = ["application_id", "job_id", "role_id", "company_target_id"] as const;
+  const uuidFields = [
+    "application_id",
+    "job_id",
+    "role_id",
+    "company_target_id",
+  ] as const;
   for (const key of uuidFields) {
     const v = ctx[key];
     if (typeof v === "string" && UUID_RE.test(v)) {
       out[key] = v;
     }
   }
+  // B3 visible_items: array of typed lists. Cap rule — keep at most MAX_LISTS
+  // (2) well-formed lists, each capped at MAX_IDS_PER_LIST (15) UUID-valid ids
+  // in the client's render order; `total` preserves the pre-cap length. A list
+  // with an invalid type or zero valid ids is dropped entirely.
+  if (Array.isArray(ctx.visible_items)) {
+    const lists: VisibleListInput[] = [];
+    for (const raw of ctx.visible_items) {
+      if (lists.length >= MAX_LISTS) break;
+      if (!raw || typeof raw !== "object") continue;
+      const r = raw as Record<string, unknown>;
+      if (typeof r.type !== "string" || !VISIBLE_ITEM_TYPES.has(r.type))
+        continue;
+      if (!Array.isArray(r.ids)) continue;
+      const valid = (r.ids as unknown[]).filter(
+        (id): id is string => typeof id === "string" && UUID_RE.test(id),
+      );
+      if (valid.length === 0) continue;
+      lists.push({
+        type: r.type as VisibleListInput["type"],
+        ids: valid.slice(0, MAX_IDS_PER_LIST),
+        total: valid.length,
+      });
+    }
+    if (lists.length > 0) out.visible_items = lists;
+  }
   return Object.keys(out).length > 0 ? out : null;
+}
+
+const VISIBLE_LIST_LABELS: Record<string, string> = {
+  role: "ROLES",
+  job: "JOBS",
+  company_target: "COMPANIES",
+  application: "APPLICATIONS",
+};
+
+// One compact line per visible item. Score vocabulary stays entity-bound:
+// roles carry readiness/goal; jobs NEVER do (CONTEXT_HONESTY_RULES item 3).
+function renderVisibleItemLine(
+  type: FetchedVisibleList["type"],
+  it: FetchedVisibleItem,
+): string {
+  if (type === "role") {
+    const parts = [it.title];
+    if (it.track) parts.push(it.track);
+    if (it.readiness_score != null)
+      parts.push(`readiness ${Math.round(Number(it.readiness_score) * 100)}%`);
+    if (it.goal_alignment_score != null)
+      parts.push(`goal ${Math.round(Number(it.goal_alignment_score) * 100)}%`);
+    if (it.missing_skills?.length)
+      parts.push(`gaps: ${it.missing_skills.slice(0, 3).join(", ")}`);
+    return parts.join(" · ");
+  }
+  if (type === "job") {
+    let s = it.title;
+    if (it.company) s += ` — ${it.company}`;
+    const tail: string[] = [];
+    if (it.seniority) tail.push(it.seniority);
+    if (it.req_years_min != null) {
+      tail.push(
+        it.req_years_max != null && it.req_years_max > it.req_years_min
+          ? `${it.req_years_min}-${it.req_years_max} yrs`
+          : `${it.req_years_min}+ yrs`,
+      );
+    }
+    if (it.req_skills_core?.length)
+      tail.push(`core: ${it.req_skills_core.slice(0, 5).join(", ")}`);
+    return tail.length ? `${s} · ${tail.join(" · ")}` : s;
+  }
+  if (type === "company_target") {
+    const parts = [it.title];
+    if (it.sector) parts.push(it.sector);
+    if (it.status) parts.push(`status: ${it.status}`);
+    if (it.pitched_role) parts.push(`pitched: ${it.pitched_role}`);
+    return parts.join(" · ");
+  }
+  // application
+  let s = it.title;
+  if (it.company) s += ` @ ${it.company}`;
+  const tail: string[] = [];
+  if (it.status) tail.push(it.status);
+  if (it.track) tail.push(it.track);
+  return tail.length ? `${s} · ${tail.join(" · ")}` : s;
 }
 
 // Renders the prompt blocks from already-fetched entities. Pure — no
@@ -139,12 +274,15 @@ export function renderPageContextBlocks(fetched: FetchedPageContext): string {
     out += `\n\nTARGET JOB (a live job posting the user is currently viewing in the live-jobs pane):`;
     out += `\n- job_id: ${fetched.job.id}`;
     out += `\n- Title: ${fetched.job.title}`;
-    if (fetched.job.company_name) out += `\n- Company: ${fetched.job.company_name}`;
-    if (fetched.job.location_city) out += `\n- Location: ${fetched.job.location_city}`;
+    if (fetched.job.company_name)
+      out += `\n- Company: ${fetched.job.company_name}`;
+    if (fetched.job.location_city)
+      out += `\n- Location: ${fetched.job.location_city}`;
     if (fetched.job.seniority) out += `\n- Seniority: ${fetched.job.seniority}`;
     if (fetched.job.req_years_min != null) {
       const range =
-        fetched.job.req_years_max != null && fetched.job.req_years_max > fetched.job.req_years_min
+        fetched.job.req_years_max != null &&
+        fetched.job.req_years_max > fetched.job.req_years_min
           ? `${fetched.job.req_years_min}-${fetched.job.req_years_max} yrs`
           : `${fetched.job.req_years_min}+ yrs`;
       out += `\n- Experience required: ${range}`;
@@ -159,11 +297,28 @@ export function renderPageContextBlocks(fetched: FetchedPageContext): string {
   if (fetched.companyTarget) {
     out += `\n\nTARGET COMPANY (the internship pipeline row the user is currently viewing):`;
     out += `\n- company_target_id: ${fetched.companyTarget.id}`;
-    if (fetched.companyTarget.company_name) out += `\n- Company: ${fetched.companyTarget.company_name}`;
-    if (fetched.companyTarget.company_sector) out += `\n- Sector: ${fetched.companyTarget.company_sector}`;
+    if (fetched.companyTarget.company_name)
+      out += `\n- Company: ${fetched.companyTarget.company_name}`;
+    if (fetched.companyTarget.company_sector)
+      out += `\n- Sector: ${fetched.companyTarget.company_sector}`;
     out += `\n- Status: ${fetched.companyTarget.status}`;
     if (fetched.companyTarget.pitched_role) {
       out += `\n- Pitched role: ${fetched.companyTarget.pitched_role}`;
+    }
+  }
+  // B3 visible lists — numbered so ordinal references ("the second one")
+  // resolve to render order. The agent CAN answer from these (see the
+  // CONTEXT_HONESTY_RULES exception).
+  if (fetched.visibleLists?.length) {
+    out += `\n\nVISIBLE ON SCREEN (the exact ordered list the user is currently looking at — you CAN reference these by position, e.g. "the second one", and answer "which is best"):`;
+    for (const list of fetched.visibleLists) {
+      out += `\n${VISIBLE_LIST_LABELS[list.type] || list.type} (ranked, as shown on screen):`;
+      list.items.forEach((it, i) => {
+        out += `\n  ${i + 1}. ${renderVisibleItemLine(list.type, it)}`;
+      });
+      if (list.total > list.items.length) {
+        out += `\n  (+${list.total - list.items.length} more visible on screen, not listed here — if the user means one of those, ask them to name it)`;
+      }
     }
   }
   return out;
@@ -189,8 +344,14 @@ export function renderPageContextBlocks(fetched: FetchedPageContext): string {
 type AnySupabaseChain = {
   from: (table: string) => {
     select: (cols: string) => {
-      eq: (col: string, val: unknown) => {
-        eq?: (col: string, val: unknown) => {
+      eq: (
+        col: string,
+        val: unknown,
+      ) => {
+        eq?: (
+          col: string,
+          val: unknown,
+        ) => {
           maybeSingle: () => Promise<{ data: unknown; error: unknown }>;
         };
         maybeSingle: () => Promise<{ data: unknown; error: unknown }>;
@@ -222,9 +383,13 @@ export async function fetchPageContextEntities(
   if (ctx.role_id) {
     const roleQ = supabase
       .from("career_roles")
-      .select("id, title, track, readiness_score, goal_alignment_score, matched_skills, missing_skills")
+      .select(
+        "id, title, track, readiness_score, goal_alignment_score, matched_skills, missing_skills",
+      )
       .eq("id", ctx.role_id);
-    const { data: role } = await (roleQ.eq?.("user_id", userId)?.maybeSingle?.() ?? roleQ.maybeSingle());
+    const { data: role } = await (roleQ
+      .eq?.("user_id", userId)
+      ?.maybeSingle?.() ?? roleQ.maybeSingle());
     if (role) out.role = role as FetchedRole;
   }
 
@@ -235,7 +400,9 @@ export async function fetchPageContextEntities(
   if (ctx.job_id) {
     const { data: job } = await supabase
       .from("jobs")
-      .select("id, title, company_name, location_city, req_skills_core, req_skills_nice, req_years_min, req_years_max, seniority")
+      .select(
+        "id, title, company_name, location_city, req_skills_core, req_skills_nice, req_years_min, req_years_max, seniority",
+      )
       .eq("id", ctx.job_id)
       .maybeSingle();
     if (job) out.job = job as FetchedJob;
@@ -249,7 +416,8 @@ export async function fetchPageContextEntities(
       .from("company_targets")
       .select("id, status, pitched_role, companies(name, sector)")
       .eq("id", ctx.company_target_id);
-    const { data: ct } = await (ctQ.eq?.("user_id", userId)?.maybeSingle?.() ?? ctQ.maybeSingle());
+    const { data: ct } = await (ctQ.eq?.("user_id", userId)?.maybeSingle?.() ??
+      ctQ.maybeSingle());
     if (ct) {
       const row = ct as {
         id: string;
@@ -267,5 +435,140 @@ export async function fetchPageContextEntities(
     }
   }
 
+  // B3 visible lists — batch-fetch each typed list, re-ordered to render order.
+  if (ctx.visible_items?.length) {
+    const lists: FetchedVisibleList[] = [];
+    for (const list of ctx.visible_items) {
+      const items = await fetchVisibleList(supabaseRaw, userId, list);
+      if (items.length > 0) {
+        lists.push({ type: list.type, items, total: list.total });
+      }
+    }
+    if (lists.length > 0) out.visibleLists = lists;
+  }
+
   return out;
+}
+
+// Batch chain shape: from().select().in()  (jobs, public) OR
+// from().select().eq('user_id',uid).in()  (user-scoped types). Modeled
+// loosely so the production client + the test mock both satisfy it.
+type BatchChain = {
+  from: (t: string) => {
+    select: (c: string) => {
+      in: (col: string, vals: string[]) => Promise<{ data: unknown }>;
+      eq: (
+        col: string,
+        val: unknown,
+      ) => { in: (col: string, vals: string[]) => Promise<{ data: unknown }> };
+    };
+  };
+};
+
+// Fetches ONE visible list, scoped to the user (jobs are public), and returns
+// compact items re-ordered to the client's render order. Foreign / missing ids
+// silently drop. NO full JDs — only the compact reasoning columns.
+async function fetchVisibleList(
+  supabaseRaw: unknown,
+  userId: string,
+  list: VisibleListInput,
+): Promise<FetchedVisibleItem[]> {
+  const supabase = supabaseRaw as BatchChain;
+  const spec: Record<
+    VisibleListInput["type"],
+    { table: string; cols: string; scoped: boolean }
+  > = {
+    job: {
+      table: "jobs",
+      cols: "id, title, company_name, seniority, req_years_min, req_years_max, req_skills_core",
+      scoped: false,
+    },
+    role: {
+      table: "career_roles",
+      cols: "id, title, track, readiness_score, goal_alignment_score, missing_skills",
+      scoped: true,
+    },
+    company_target: {
+      table: "company_targets",
+      cols: "id, status, pitched_role, companies(name, sector)",
+      scoped: true,
+    },
+    application: {
+      table: "applications",
+      cols: "id, role_title, company, status, track",
+      scoped: true,
+    },
+  };
+  const { table, cols, scoped } = spec[list.type];
+  const sel = supabase.from(table).select(cols);
+  let res: { data: unknown };
+  try {
+    res = scoped
+      ? await sel.eq("user_id", userId).in("id", list.ids)
+      : await sel.in("id", list.ids);
+  } catch {
+    return [];
+  }
+  const rows = Array.isArray(res?.data)
+    ? (res.data as Record<string, unknown>[])
+    : [];
+  const byId = new Map<string, Record<string, unknown>>();
+  for (const r of rows) {
+    if (typeof r.id === "string") byId.set(r.id, r);
+  }
+  // Re-order to the client's render order; drop ids that didn't resolve.
+  const items: FetchedVisibleItem[] = [];
+  for (const id of list.ids) {
+    const r = byId.get(id);
+    if (!r) continue;
+    items.push(mapVisibleRow(list.type, r));
+  }
+  return items;
+}
+
+function mapVisibleRow(
+  type: VisibleListInput["type"],
+  r: Record<string, unknown>,
+): FetchedVisibleItem {
+  const arr = (v: unknown): string[] | null =>
+    Array.isArray(v) ? (v as string[]) : null;
+  const num = (v: unknown): number | null => (typeof v === "number" ? v : null);
+  if (type === "role") {
+    return {
+      title: String(r.title ?? "(role)"),
+      track: (r.track as string) ?? null,
+      readiness_score: num(r.readiness_score),
+      goal_alignment_score: num(r.goal_alignment_score),
+      missing_skills: arr(r.missing_skills),
+    };
+  }
+  if (type === "job") {
+    return {
+      title: String(r.title ?? "(job)"),
+      company: (r.company_name as string) ?? null,
+      seniority: (r.seniority as string) ?? null,
+      req_years_min: num(r.req_years_min),
+      req_years_max: num(r.req_years_max),
+      req_skills_core: arr(r.req_skills_core),
+    };
+  }
+  if (type === "company_target") {
+    const companies = r.companies as {
+      name?: string;
+      sector?: string | null;
+    } | null;
+    return {
+      title: companies?.name ?? "(company)",
+      sector: companies?.sector ?? null,
+      status: (r.status as string) ?? null,
+      pitched_role: (r.pitched_role as string) ?? null,
+    };
+  }
+  // application
+  return {
+    title: String(r.role_title ?? "(application)"),
+    company: (r.company as string) ?? null,
+    status: (r.status as string) ?? null,
+    track: (r.track as string) ?? null,
+  };
 }

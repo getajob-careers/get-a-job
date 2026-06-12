@@ -51,6 +51,9 @@ import {
   RETRY_MAX_TOKENS,
   TEMPERATURE,
 } from "./lib/ai-chat-prompt-mirror.ts";
+// page_context fixtures carry the RAW client shape; production sanitizes it
+// (adds the visible_items `total` field) before buildUserContext. Mirror that.
+import { sanitizePageContext } from "../supabase/functions/ai-chat/page-context.ts";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(HERE, "..");
@@ -636,7 +639,9 @@ async function main() {
     const userContext = await buildUserContext(svc, BOUND_USER_ID, {
       agent: fx.agent,
       effectiveApplicationId: fx.application_id,
-      safePageContext: fx.page_context ?? null,
+      safePageContext: fx.page_context
+        ? sanitizePageContext(fx.page_context)
+        : null,
     });
     const systemPrompt = assembleSystemPrompt(fx.agent, userContext, null);
     const messages = buildMessages(

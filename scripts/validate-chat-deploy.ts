@@ -133,6 +133,7 @@ async function callFn(
       conversation_history: fx.conversation_history || [],
       chat_model: "sonnet",
       ...(fx.application_id && { application_id: fx.application_id }),
+      ...(fx.page_context && { page_context: fx.page_context }),
     }),
     signal: AbortSignal.timeout(120_000),
   });
@@ -184,6 +185,38 @@ function validate(fx: any, data: any): { pass: boolean; notes: string[] } {
       notes.push(
         `cv application_id mismatch: ${cv.application_id} != ${fx.application_id}`,
       );
+    }
+  }
+  // B3 visible-list: with a visible list present, the agent must answer FROM it
+  // (reply names one of the on-screen titles).
+  if (Array.isArray(fx.must_mention_one_of)) {
+    const lc = reply.toLowerCase();
+    const hit = fx.must_mention_one_of.find((t: string) =>
+      lc.includes(t.toLowerCase()),
+    );
+    if (!hit) {
+      pass = false;
+      notes.push(`VISIBLE-LIST FAIL: reply names none of the on-screen roles`);
+    } else {
+      notes.push(`answered from list (${hit})`);
+    }
+  }
+  // B3 sibling: with NO visible list, the agent must ask / say it can't see —
+  // a question or an explicit "can't see the list", and must NOT confidently
+  // assert a single best role.
+  if (fx.must_ask) {
+    const asks =
+      /\?/.test(reply) ||
+      /can'?t see|don'?t see|which (role|one)|not sure which|tell me which|on your screen|name the/i.test(
+        reply,
+      );
+    if (!asks) {
+      pass = false;
+      notes.push(
+        `ASK-FALLBACK FAIL: reply did not ask / disclaim the unseen list`,
+      );
+    } else {
+      notes.push("asked (no visible list)");
     }
   }
   if (notes.length === 0) notes.push("ok");

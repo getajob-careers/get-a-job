@@ -58,7 +58,7 @@
     },
     "sets": {
       "core": "CHAT-01..15 (comparable to prior run)",
-      "supplementary": "CHAT-16..19 — deixis honesty + capability routing, verbatim from prod conversation 3a73fa85 (2026-06-11)"
+      "supplementary": "CHAT-16..21 — deixis honesty + capability routing + B3 visible-list (CHAT-20/21 verbatim from the June-12 prod failure)"
     }
   },
   "fixtures": [
@@ -569,6 +569,80 @@
       "must_not_contain_inline_cv": true,
       "grounding": "CAPABILITY ROUTING (post eli/chat-model-sonnet). career_agent now carries CV_GENERATION_RULES + CONTEXT_HONESTY_RULES item 4. Correct behavior: emit SUGGESTED_CV_GENERATION_JSON to route the real CV pipeline (a target_role can be inferred from the conversation about applications/roles, or ask which role) — and NEVER author CV content inline. Any inline CV/résumé content in the reply is a HARD FAIL regardless of whether the card also fires.",
       "rationale": "Verbatim production smoke turn. Pre-change the incumbent wrote a full inline placeholder CV. With the routing rule live, the expected behavior is the CV-generation CARD (SUGGESTED_CV_GENERATION_JSON), never inline CV content. Tests both the new routing capability and the no-inline-CV hard gate."
+    },
+    {
+      "id": "CHAT-20",
+      "source": "real-content",
+      "set": "supplementary",
+      "agent": "career_agent",
+      "application_id": null,
+      "page_context": {
+        "page": "Career",
+        "track": "track_2",
+        "visible_items": [
+          {
+            "type": "role",
+            "ids": [
+              "00c3a821-8b6d-476f-911f-1ebeede9efef",
+              "31b89b07-96c6-4f33-b38f-b16008e9e434",
+              "453433f6-172b-4f3a-9ac7-45e2ae1cc9b2",
+              "0b57b88b-3e7e-41fa-bbb9-f88d65b5c9a5",
+              "f74c0971-2376-450d-9b76-0fe2174c5ae0"
+            ]
+          }
+        ]
+      },
+      "conversation_history": [],
+      "message": "what real role on this page is best for me",
+      "category": [
+        "visible_list",
+        "grounding",
+        "deixis_honesty"
+      ],
+      "expect": [],
+      "must_not_fire": [
+        "SUGGESTED_ROADMAP_CHANGES_JSON",
+        "SUGGESTED_APPLICATION_ACTIONS_JSON",
+        "SUGGESTED_COMPANY_TARGET_JSON",
+        "SUGGESTED_CV_GENERATION_JSON"
+      ],
+      "must_mention_one_of": [
+        "Marketing Intern",
+        "Customer Support Representative",
+        "Customer Onboarding Specialist",
+        "Sales Representative",
+        "Sales Associate"
+      ],
+      "grounding": "B3 visible-list (the exact June-12 production failure). page_context carries the ORDERED role ids currently rendered on Career's track_2 roadmap (the VISIBLE ON SCREEN block). The CONTEXT_HONESTY_RULES exception applies: the agent CAN see this list and MUST answer 'which role is best for me' by naming one of the listed roles, grounded in the provided readiness/goal/gaps — NOT inventing an off-list role. Naming a role NOT in the list, or claiming it can't see the page, is a fail.",
+      "rationale": "Mirrors the June-12 prod failure where the incumbent substituted 'Marketing Intern' from the roadmap for an unseen on-page list. With visible_items present, the agent answers from the real list. Tests the B3 happy path + the honesty-rule exception."
+    },
+    {
+      "id": "CHAT-21",
+      "source": "real-content",
+      "set": "supplementary",
+      "agent": "career_agent",
+      "application_id": null,
+      "page_context": {
+        "page": "Career",
+        "track": "track_2"
+      },
+      "conversation_history": [],
+      "message": "what real role on this page is best for me",
+      "category": [
+        "visible_list",
+        "deixis_honesty",
+        "grounding"
+      ],
+      "expect": [],
+      "must_not_fire": [
+        "SUGGESTED_ROADMAP_CHANGES_JSON",
+        "SUGGESTED_APPLICATION_ACTIONS_JSON",
+        "SUGGESTED_COMPANY_TARGET_JSON",
+        "SUGGESTED_CV_GENERATION_JSON"
+      ],
+      "must_ask": true,
+      "grounding": "B3 sibling — same question but NO visible_items in page_context (the VISIBLE ON SCREEN block is absent). The honesty rule's default applies: the agent CANNOT see the on-screen list, so it must say so and ask the user to name the role — it must NOT substitute a roadmap role (e.g. 'Marketing Intern') as if it were the thing on screen. Asserting a specific 'best' role here is a fail.",
+      "rationale": "The fail-open sibling to CHAT-20: with visible_items absent, the agent falls back to ask-don't-guess. Guards against the model treating the roadmap/corpus as the on-screen list when the list wasn't provided."
     }
   ]
 }

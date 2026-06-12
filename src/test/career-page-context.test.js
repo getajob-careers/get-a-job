@@ -17,9 +17,10 @@ describe("buildCareerPageContext (PR-B2)", () => {
   });
 
   it("emits {page: 'Career', track} on a fresh visit with no role expanded + no detail drawer open", () => {
-    expect(
-      buildCareerPageContext({ selectedTrack: "track_1" }),
-    ).toEqual({ page: "Career", track: "track_1" });
+    expect(buildCareerPageContext({ selectedTrack: "track_1" })).toEqual({
+      page: "Career",
+      track: "track_1",
+    });
   });
 
   it("emits all three Career-spec IDs together when the user has a track + expanded role + open detail drawer", () => {
@@ -66,10 +67,79 @@ describe("buildCareerPageContext (PR-B2)", () => {
   });
 
   it("switches to a different track without leaking the old one", () => {
-    const before = buildCareerPageContext({ selectedTrack: "track_1", roleId: ROLE_ID });
-    const after = buildCareerPageContext({ selectedTrack: "track_3", roleId: ROLE_ID });
+    const before = buildCareerPageContext({
+      selectedTrack: "track_1",
+      roleId: ROLE_ID,
+    });
+    const after = buildCareerPageContext({
+      selectedTrack: "track_3",
+      roleId: ROLE_ID,
+    });
     expect(before.track).toBe("track_1");
     expect(after.track).toBe("track_3");
     expect(before).not.toBe(after);
+  });
+});
+
+// B3 visible-list ids — the producer emits visible_items as an array of typed
+// lists (job + role), and memoizes that array behind a stable ids key so the
+// shared setPageContext shallow-equal guard doesn't thrash on every render.
+describe("buildCareerPageContext — visible_items (B3)", () => {
+  const J1 = "11111111-0000-0000-0000-000000000001";
+  const J2 = "11111111-0000-0000-0000-000000000002";
+  const R1 = "22222222-0000-0000-0000-000000000001";
+
+  it("emits a typed visible_items array for jobs + roles, in render order", () => {
+    const ctx = buildCareerPageContext({
+      selectedTrack: "track_2",
+      visibleJobIds: [J1, J2],
+      visibleRoleIds: [R1],
+    });
+    expect(ctx.visible_items).toEqual([
+      { type: "job", ids: [J1, J2] },
+      { type: "role", ids: [R1] },
+    ]);
+  });
+
+  it("omits visible_items entirely when both id lists are empty", () => {
+    const ctx = buildCareerPageContext({
+      selectedTrack: "track_1",
+      visibleJobIds: [],
+      visibleRoleIds: [],
+    });
+    expect(ctx.visible_items).toBeUndefined();
+  });
+
+  it("returns a STABLE visible_items reference while the ids are unchanged (thrash fix)", () => {
+    const a = buildCareerPageContext({
+      selectedTrack: "track_2",
+      visibleJobIds: [J1, J2],
+      visibleRoleIds: [R1],
+    });
+    const b = buildCareerPageContext({
+      selectedTrack: "track_2",
+      visibleJobIds: [J1, J2],
+      visibleRoleIds: [R1],
+    });
+    // identity stability — same content ⇒ same array reference ⇒ no thrash
+    expect(b.visible_items).toBe(a.visible_items);
+  });
+
+  it("returns a NEW visible_items reference when the ids (content or order) change", () => {
+    const a = buildCareerPageContext({
+      selectedTrack: "track_2",
+      visibleJobIds: [J1, J2],
+    });
+    const reordered = buildCareerPageContext({
+      selectedTrack: "track_2",
+      visibleJobIds: [J2, J1],
+    });
+    const added = buildCareerPageContext({
+      selectedTrack: "track_2",
+      visibleJobIds: [J1, J2],
+      visibleRoleIds: [R1],
+    });
+    expect(reordered.visible_items).not.toBe(a.visible_items);
+    expect(added.visible_items).not.toBe(a.visible_items);
   });
 });
