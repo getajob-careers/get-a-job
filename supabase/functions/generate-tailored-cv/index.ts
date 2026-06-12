@@ -251,62 +251,21 @@ function safeArray(val: unknown): unknown[] {
   return [];
 }
 
-// Defensive JSON parser for LLM responses.
-//
-// Three tiers, evaluated in order, no-op fast path for clean JSON:
-//   1. JSON.parse — bare-JSON path. gpt-4o's chat-completions endpoint
-//      with response_format json_object returns bare JSON; this tier
-//      succeeds unchanged for every call the default branch makes.
-//   2. Fenced-block regex — extracts the body from a markdown fence,
-//      ```json\n{...}\n``` or ```\n{...}\n```. Sonnet via OpenRouter
-//      ignores response_format and wraps its output in a fence (see
-//      bake-off raw dumps at /tmp/cv-bakeoff-raw/*sonnet*); this tier
-//      makes the Sonnet branch parseable without prompt or transport
-//      changes. The harness at scripts/test-cv-authoring-diff.ts has
-//      had this fallback for months — porting it here closes the
-//      contract drift the 2026-06-11 Phase-2 failure exposed.
-//   3. Greedy brace match — catches the rare prose-preamble case
-//      ("Here's the CV:\n{...}") that occasionally surfaces when an
-//      LLM hedges before emitting structured output.
-//
-// On all-three failure: throws a structured Error whose message
-// includes finish_reason and the first 80 chars of the unparseable
-// content. Caller's catch turns this into the user-facing error AND
-// the function_metrics.error_code tag, so a future regression can be
-// triaged from the metric row alone instead of pulling edge-function
-// logs.
-//
-// Behavior contract:
-//   - Pure: no I/O, no global state. Safe to call from any branch.
-//   - Idempotent on clean JSON: tier 1 succeeds, tiers 2-3 untouched.
-//   - No silent fabrication: if NO tier yields a parseable object,
-//     we throw — never returns {} or null on parse failure (callers
-//     downstream rely on the absence of throws to mean "valid CV").
+// Thin wrapper around the shared fence-tolerant parser. The inline three-
+// tier implementation that lived here from #285 used regex-based fence and
+// brace matching, which is not quote-aware — Sonnet's two 2026-06-10
+// json_parse failures (user 4b243f3a, ~30s latency, 1500/1845 tokens out
+// well under the 4096 cap so NOT truncation) escaped both Tier 2 (non-
+// greedy fence regex stops at the first INTERNAL ``` inside a JSON string
+// value) and Tier 3 (greedy `\{...\}` regex picks up bracket characters
+// inside strings). The shared parser at _shared/json-parse.ts replaces both
+// with a single string-aware balanced scan. Signature preserved so callers
+// at index.ts:1598 and :1680 are untouched; the (raw, finishReason, label)
+// → (raw, label, finishReason) parameter reorder is only intra-helper.
+import { parseLlmJsonObject } from "../_shared/json-parse.ts";
+
 function parseLlmJson(rawContent: string, finishReason: string, label: string): any {
-  const raw = String(rawContent || "");
-  const tryParse = (s: string): any | null => {
-    try { return JSON.parse(s); } catch { return null; }
-  };
-  // Tier 1: strict bare-JSON parse (default branch fast path).
-  let parsed = tryParse(raw);
-  if (parsed !== null && typeof parsed === 'object') return parsed;
-  // Tier 2: fenced-block extraction. The regex is greedy on the
-  // content so a JSON payload containing internal ``` characters
-  // (none expected, but defensive) would still extract correctly.
-  const fenced = raw.match(/```(?:json)?\s*\n?([\s\S]*?)```/i);
-  if (fenced) {
-    parsed = tryParse(fenced[1]);
-    if (parsed !== null && typeof parsed === 'object') return parsed;
-  }
-  // Tier 3: greedy brace match (preamble-prose path).
-  const brace = raw.match(/\{[\s\S]*\}/);
-  if (brace) {
-    parsed = tryParse(brace[0]);
-    if (parsed !== null && typeof parsed === 'object') return parsed;
-  }
-  // All three tiers failed — emit a structured error.
-  const preview = raw.trim().slice(0, 80).replace(/\s+/g, ' ');
-  throw new Error(`AI returned unparseable response (label=${label}, finish_reason=${finishReason || 'unknown'}, preview="${preview}"). Please try again.`);
+  return parseLlmJsonObject(rawContent, label, finishReason);
 }
 
 Deno.serve(async (req) => {
