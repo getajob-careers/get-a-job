@@ -24,14 +24,25 @@ import { isCurrentlyStudent } from "@/lib/educationPolicy";
 // users with target-domain part-time roles (e.g. a CSM-aspirant doing
 // part-time CS work) were getting zero credit, dropping their fit_score
 // composite enough to fail Track 1 on otherwise-qualifying jobs.
-const CAREER_COUNTABLE_TYPES = new Set(["internship", "full_time", "freelance", "part_time", "founder"]);
+const CAREER_COUNTABLE_TYPES = new Set([
+  "internship",
+  "full_time",
+  "freelance",
+  "part_time",
+  "founder",
+]);
 
 // Narrower set used by inferQualificationLevel — internships are training,
 // not qualifying career work (the "PR #60 line"). Volunteer / military /
 // leadership stay out for the same reason. Founder is included: real work
 // of any commitment counts toward qualification, with depth handled by
 // duration rather than type-discount.
-const QUAL_COUNTABLE_TYPES = new Set(["full_time", "part_time", "freelance", "founder"]);
+const QUAL_COUNTABLE_TYPES = new Set([
+  "full_time",
+  "part_time",
+  "freelance",
+  "founder",
+]);
 
 // Pull a 4-digit year from a date string. Returns null when nothing matches.
 function yearFromDate(s) {
@@ -58,18 +69,25 @@ export function reinferType(exp) {
     )
   )
     return "military";
-  if (/\b(volunteer|volunteering|pro bono|mentor(ed|ing)? at)\b/.test(text)) return "volunteer";
+  if (/\b(volunteer|volunteering|pro bono|mentor(ed|ing)? at)\b/.test(text))
+    return "volunteer";
   if (/\b(intern|internship)\b/.test(text)) return "internship";
-  if (/\b(freelance|freelancer|self-employed|contractor|consultant)\b/.test(text)) return "freelance";
   if (
-    /\b(president|captain|chair|founder|co-founder|team lead(er)?)\b/.test(text) &&
+    /\b(freelance|freelancer|self-employed|contractor|consultant)\b/.test(text)
+  )
+    return "freelance";
+  if (
+    /\b(president|captain|chair|founder|co-founder|team lead(er)?)\b/.test(
+      text,
+    ) &&
     /\b(club|society|association|student|chapter)\b/.test(text)
   )
     return "leadership";
   // Real-company founders / self-employed (not student-club leadership,
   // which the check above catches first). Keeps "Founder of X" as
   // qual-countable instead of misclassifying it as full_time or leadership.
-  if (/\b(founder|co-?founder|self-?employed|ceo)\b/.test(text)) return "founder";
+  if (/\b(founder|co-?founder|self-?employed|ceo)\b/.test(text))
+    return "founder";
 
   return stored || "full_time";
 }
@@ -86,8 +104,11 @@ export function totalYearsOfExperience(experiences) {
     if (start === null) continue;
     const endRaw = String(exp.end_date ?? "").toLowerCase();
     const isCurrent =
-      exp.is_current || !endRaw || endRaw.includes("present") || endRaw.includes("current");
-    const end = isCurrent ? now : yearFromDate(exp.end_date) ?? now;
+      exp.is_current ||
+      !endRaw ||
+      endRaw.includes("present") ||
+      endRaw.includes("current");
+    const end = isCurrent ? now : (yearFromDate(exp.end_date) ?? now);
     total += Math.max(0, end - start);
   }
   return total;
@@ -149,8 +170,11 @@ export function inferQualificationLevel(experiences) {
     if (start === null) continue;
     const endRaw = String(exp.end_date ?? "").toLowerCase();
     const isCurrent =
-      exp.is_current || !endRaw || endRaw.includes("present") || endRaw.includes("current");
-    const end = isCurrent ? now : yearFromDate(exp.end_date) ?? now;
+      exp.is_current ||
+      !endRaw ||
+      endRaw.includes("present") ||
+      endRaw.includes("current");
+    const end = isCurrent ? now : (yearFromDate(exp.end_date) ?? now);
     const dur = Math.max(0, end - start);
     years += dur;
     if (exp.managed_people && dur >= 1) hasManagedWithDuration = true;
@@ -168,19 +192,29 @@ export function inferQualificationLevel(experiences) {
   return base;
 }
 
-// Allowed jobs.seniority values per experienceLevel. Updated 2026-06-03
-// (PR: jobs-seniority-track-fix):
+// Allowed jobs.seniority values per experienceLevel. Updated 2026-06-12
+// (PR: senior-sees-mid-jobs):
 //   early_career  → entry, mid
 //   mid_career    → entry, mid, senior
-//   senior_career → senior, lead, director, executive
+//   senior_career → mid, senior, lead, director, executive
 //
-// mid_career now INCLUDES 'entry'. A Mid-Level user can plausibly apply
+// mid_career INCLUDES 'entry'. A Mid-Level user can plausibly apply
 // to Junior / Entry roles (step-down is honest); excluding them stripped
 // every Junior-titled posting at the RPC level — Isaac's "Junior SWE
 // shows no jobs" symptom traced to all 20 Junior-titled IL postings
 // being seniority='entry'. The stretch-cap in scoreJobFit demotes Senior
 // postings out of track_1 so flooding T1 with entry roles is balanced
 // by tightening senior, not loosening overall.
+//
+// senior_career now INCLUDES 'mid' (added 2026-06-12). This restores the
+// symmetry mid_career already has (it includes 'senior'): a senior user
+// applying to a Mid-titled role is an honest step-down. The concrete bug:
+// 59% of the corpus (2,318 jobs) is tagged seniority='mid' because the
+// conservative no-signal tagging default lands there, so senior users'
+// title-matches mostly fell into a bucket they could not see — a real
+// repro (#303) had 5 title-matching jobs resolve to 0 visible. fit-score
+// ranking keeps the ordering sane, so Mid roles surface below true
+// Senior+ matches rather than flooding the top.
 //
 // `staff` was specced but doesn't exist as a value in jobs.seniority —
 // the field has six values (entry / mid / senior / lead / director /
@@ -192,7 +226,7 @@ export function allowedSenioritiesForLevel(experienceLevel) {
     case "mid_career":
       return ["entry", "mid", "senior"];
     case "senior_career":
-      return ["senior", "lead", "director", "executive"];
+      return ["mid", "senior", "lead", "director", "executive"];
     default:
       // Defensive: unknown level → most permissive. Avoids breaking the
       // UI if a future ExperienceLevel value gets added without an entry
