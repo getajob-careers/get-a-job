@@ -42,6 +42,24 @@ const markExpired = (error) => {
   return error;
 };
 
+// Distinguish a real auth rejection (refresh-token revoked / user deleted /
+// invalid grant — JWT is unrecoverable) from a transient network failure
+// (offline, DNS hiccup, AuthRetryableFetchError — JWT might still be fine,
+// the user just couldn't reach Supabase). Only the former should sign the
+// user out; signing out on a network blip kicks an authenticated user to
+// /login mid-flight, which is the UX the amendment to #305 forbids.
+//
+// Discriminator: an AuthApiError carries a 4xx HTTP status (the auth
+// backend explicitly rejected the request). AuthRetryableFetchError has
+// no status (the request never reached the backend). Anything without a
+// 4xx status is treated as transient — including 5xx upstream failures,
+// which are by definition the server's problem, not the user's session.
+const isAuthRejection = (err) =>
+  !!err &&
+  typeof err.status === "number" &&
+  err.status >= 400 &&
+  err.status < 500;
+
 export async function invokeWithAuthRetry(functionName, options = {}) {
   const first = await supabase.functions.invoke(functionName, options);
   if (!is401(first.error)) return first;
@@ -49,9 +67,17 @@ export async function invokeWithAuthRetry(functionName, options = {}) {
   // 401 — try a one-shot refresh.
   const { error: refreshErr } = await supabase.auth.refreshSession();
   if (refreshErr) {
-    // Refresh token rejected or network failed. The user's session is
-    // unrecoverable from the client; sign them out so AuthContext drives
-    // a redirect to /login on the next render.
+    if (!isAuthRejection(refreshErr)) {
+      // Transient — network failure, AuthRetryableFetchError, or 5xx
+      // upstream. The session is probably still valid; the user just
+      // couldn't reach Supabase to refresh. Return the original 401 so
+      // the caller's normal error toast fires, and the user can retry
+      // when their connection recovers. NOT signed out.
+      return { data: null, error: first.error };
+    }
+    // Hard auth rejection (refresh token revoked, user deleted, grant
+    // invalid). Session is unrecoverable from the client; sign out so
+    // AuthContext drives a redirect to /login on the next render.
     try { await supabase.auth.signOut(); } catch { /* ignore — already signed out */ }
     return { data: null, error: markExpired(first.error) };
   }
@@ -61,7 +87,8 @@ export async function invokeWithAuthRetry(functionName, options = {}) {
   if (is401(second.error)) {
     // Still 401 after a fresh JWT — the credential isn't merely expired,
     // it's invalid (e.g. user record deleted, JWT revoked server-side).
-    // Same fall-through: sign out, surface a clean expired signal.
+    // This branch is unambiguous: no transient/auth ambiguity here, the
+    // server rejected a brand-new token, so the user MUST re-authenticate.
     try { await supabase.auth.signOut(); } catch { /* ignore */ }
     return { data: null, error: markExpired(second.error) };
   }

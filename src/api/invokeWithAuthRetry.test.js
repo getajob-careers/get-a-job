@@ -96,11 +96,14 @@ describe("invokeWithAuthRetry — 401 → refresh → retry", () => {
 });
 
 describe("invokeWithAuthRetry — refresh failure / persistent 401 → signOut", () => {
-  it("signs the user out + flags isAuthExpired when refresh fails", async () => {
+  it("signs the user out + flags isAuthExpired on real auth rejection (4xx) from refresh", async () => {
     const original401 = { context: { status: 401 }, message: "Unauthorized" };
     mockInvoke.mockResolvedValueOnce({ data: null, error: original401 });
+    // AuthApiError shape: explicit 4xx status = the auth backend rejected
+    // the refresh-token grant (revoked, user deleted, etc.). Real
+    // unrecoverable auth failure — signOut + redirect is the right call.
     mockRefresh.mockResolvedValueOnce({
-      error: { name: "AuthApiError", message: "Invalid Refresh Token" },
+      error: { name: "AuthApiError", status: 400, message: "Invalid Refresh Token" },
     });
     mockSignOut.mockResolvedValueOnce({ error: null });
 
@@ -112,6 +115,44 @@ describe("invokeWithAuthRetry — refresh failure / persistent 401 → signOut",
     expect(r.error).toBe(original401); // same reference, marked
     // Invoke is NOT retried when refresh fails — would be wasted call.
     expect(mockInvoke).toHaveBeenCalledTimes(1);
+  });
+
+  // The amendment-to-#305 branch. The wrapper must NOT sign a user out
+  // when refresh fails due to a network blip — the JWT is probably still
+  // valid, the user just couldn't reach Supabase. Signing them out kicks
+  // an authenticated user to /login mid-flight, which is the UX hazard
+  // Eli forbade. We surface the original 401 unmarked so the caller's
+  // normal toast fires; the user can retry once their connection is back.
+  it("treats network-blip refresh errors as transient: no signOut, no isAuthExpired", async () => {
+    const original401 = { context: { status: 401 }, message: "Unauthorized" };
+    mockInvoke.mockResolvedValueOnce({ data: null, error: original401 });
+    // AuthRetryableFetchError has no status — the auth-API request never
+    // reached the backend (offline, DNS, TLS handshake fail).
+    mockRefresh.mockResolvedValueOnce({
+      error: { name: "AuthRetryableFetchError", message: "Failed to fetch" },
+    });
+
+    const r = await invokeWithAuthRetry("generate-tailored-cv", { body: {} });
+
+    expect(mockSignOut).not.toHaveBeenCalled();
+    expect(mockInvoke).toHaveBeenCalledTimes(1); // no wasted retry either
+    expect(r.data).toBeNull();
+    expect(r.error).toBe(original401);
+    expect(r.error.isAuthExpired).toBeUndefined();
+  });
+
+  it("treats 5xx upstream refresh errors as transient: no signOut", async () => {
+    const original401 = { context: { status: 401 } };
+    mockInvoke.mockResolvedValueOnce({ data: null, error: original401 });
+    // 5xx from Supabase auth = backend problem, not user's session.
+    mockRefresh.mockResolvedValueOnce({
+      error: { name: "AuthApiError", status: 503, message: "Service Unavailable" },
+    });
+
+    const r = await invokeWithAuthRetry("anything", { body: {} });
+
+    expect(mockSignOut).not.toHaveBeenCalled();
+    expect(r.error.isAuthExpired).toBeUndefined();
   });
 
   it("signs the user out + flags isAuthExpired when retry STILL returns 401", async () => {
@@ -133,7 +174,8 @@ describe("invokeWithAuthRetry — refresh failure / persistent 401 → signOut",
 
   it("does not crash if signOut itself throws (already-signed-out case)", async () => {
     mockInvoke.mockResolvedValueOnce({ data: null, error: { context: { status: 401 } } });
-    mockRefresh.mockResolvedValueOnce({ error: { message: "refresh failed" } });
+    // 4xx auth rejection so we actually reach the signOut path.
+    mockRefresh.mockResolvedValueOnce({ error: { status: 400, message: "refresh failed" } });
     mockSignOut.mockRejectedValueOnce(new Error("already signed out"));
 
     const r = await invokeWithAuthRetry("anything", { body: {} });
