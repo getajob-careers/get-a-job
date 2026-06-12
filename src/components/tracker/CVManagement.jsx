@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { supabase } from "@/api/supabaseClient";
+import { invokeWithAuthRetry } from "@/api/invokeWithAuthRetry";
 import { useAuth } from "@/lib/AuthContext";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -72,7 +73,7 @@ export default function CVManagement({ app, onUpdate }) {
     }
     setGenerating(true);
     try {
-      const { data, error } = await supabase.functions.invoke("generate-tailored-cv", {
+      const { data, error } = await invokeWithAuthRetry("generate-tailored-cv", {
         body: {
           job_description: app.job_description,
           target_role: app.role_title,
@@ -87,7 +88,9 @@ export default function CVManagement({ app, onUpdate }) {
       toast.success(data?.message || "CV generated successfully!");
       onUpdate(); // Refresh application data
     } catch (error) {
-      toast.error("Failed to generate CV: " + error.message);
+      toast.error(error?.isAuthExpired
+        ? "Your session expired. Redirecting to log in again."
+        : "Failed to generate CV: " + error.message);
     } finally {
       setGenerating(false);
     }

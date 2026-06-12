@@ -16,6 +16,7 @@
 // same as before this PR.
 
 import { supabase } from "@/api/supabaseClient";
+import { invokeWithAuthRetry } from "@/api/invokeWithAuthRetry";
 import { resolveDueDate } from "@/lib/taskDueDate";
 import { scoreApplication } from "@/lib/scoreApplication";
 import { stripHtml } from "../../scripts/lib/normalize.ts";
@@ -336,7 +337,7 @@ export async function applyCompanyTargetActions({ user, actions }) {
 export async function generateTailoredCV({ queryClient, proposal, messageId }) {
   if (!proposal?.target_role) return { error: "missing target_role" };
   try {
-    const { data, error } = await supabase.functions.invoke("generate-tailored-cv", {
+    const { data, error } = await invokeWithAuthRetry("generate-tailored-cv", {
       body: {
         target_role: proposal.target_role,
         application_id: proposal.application_id || null,

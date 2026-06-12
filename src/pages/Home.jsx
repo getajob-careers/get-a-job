@@ -25,6 +25,7 @@
 
 import React, { useState, useRef, useEffect, useMemo } from "react";
 import { supabase } from "@/api/supabaseClient";
+import { invokeWithAuthRetry } from "@/api/invokeWithAuthRetry";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
@@ -278,7 +279,7 @@ export default function Home() {
 
     (async () => {
       try {
-        const { data, error } = await supabase.functions.invoke("generate-career-analysis", {
+        const { data, error } = await invokeWithAuthRetry("generate-career-analysis", {
           body: { dream_roles: [], force: true },
         });
         if (error || !data?.qualification_level) {
