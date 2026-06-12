@@ -35,12 +35,26 @@ import {
   parseYearsOfExperience,
   stripHtml,
 } from "./lib/normalize.js";
+import {
+  computePerAtsBreakdown,
+  selectOverThreshold,
+} from "./lib/per-ats-thresholds.js";
 
 const SCRIPT_DIR = fileURLToPath(new URL(".", import.meta.url));
 const REGISTRY_PATH = join(SCRIPT_DIR, "..", "supabase", "functions", "_shared", "libraries", "companies_il.json");
 
 const CONCURRENCY_LIMIT = 20;
-const FAILURE_THRESHOLD_PCT = 20;   // exit 1 if >20% of companies fail
+// Global backstop: exit 1 if >20% of ALL companies fail. Catches the
+// "everything is on fire" case (registry-wide outage, env-var typo).
+const FAILURE_THRESHOLD_PCT = 20;
+// Per-ATS isolation: exit 1 if any SINGLE ATS family has >50% failures,
+// even when the global rate stays under FAILURE_THRESHOLD_PCT. The
+// canonical scenario this guards: Greenhouse goes dark overnight (199
+// of 891 companies) — global rate stays at 22% (borderline ok), but
+// Greenhouse alone is 100% failed. The student opens an empty tracker
+// the next morning. Per-ATS isolation surfaces it in the GHA run
+// summary instead. See PR-N1 plan §4.5.
+const PER_ATS_FAILURE_THRESHOLD_PCT = 50;
 const STALE_DAYS = 2;
 const UPSERT_BATCH_SIZE = 200;
 
@@ -326,13 +340,34 @@ async function main() {
   console.log(`Wall time:            ${((Date.now() - startedAt) / 1000).toFixed(1)}s`);
   console.log(`Mode:                 ${dryRun ? "DRY RUN" : "LIVE WRITES"}`);
 
-  // Exit code — fail the GHA run if too many companies broke
+  // Per-ATS isolation runs BEFORE the global backstop. Print the
+  // per-family breakdown unconditionally so a GHA run summary always
+  // shows the per-ATS health table — even on a clean run — and trips
+  // (with the offending row first) when any one family breaks its
+  // PER_ATS_FAILURE_THRESHOLD_PCT budget.
+  const perAtsBreakdown = computePerAtsBreakdown(results);
+  console.log(`\nPer-ATS health (failurePct > ${PER_ATS_FAILURE_THRESHOLD_PCT}% trips exit 1):`);
+  for (const b of perAtsBreakdown) {
+    const mark = b.failurePct > PER_ATS_FAILURE_THRESHOLD_PCT ? "✗" : "·";
+    console.log(`  ${mark} ${b.ats.padEnd(20)} ${b.failed}/${b.total} failed (${b.failurePct.toFixed(0)}%)`);
+  }
+  const perAtsOver = selectOverThreshold(perAtsBreakdown, PER_ATS_FAILURE_THRESHOLD_PCT);
+  if (perAtsOver.length > 0) {
+    const offenders = perAtsOver.map((b) => `${b.ats}@${b.failurePct.toFixed(0)}%`).join(", ");
+    console.error(`\nEXIT 1: per-ATS isolation tripped — ${offenders} (threshold: ${PER_ATS_FAILURE_THRESHOLD_PCT}%).`);
+    process.exit(1);
+  }
+
+  // Global backstop — catches the registry-wide outage case the per-ATS
+  // check would miss (e.g. EVERY ATS limps along at 30% failure, no
+  // single family trips the 50% gate, but the corpus as a whole is
+  // 30% down).
   const failurePct = totalCompanies > 0 ? (failed / totalCompanies) * 100 : 0;
   if (failurePct > FAILURE_THRESHOLD_PCT) {
     console.error(`\nEXIT 1: ${failurePct.toFixed(0)}% of companies failed (threshold: ${FAILURE_THRESHOLD_PCT}%).`);
     process.exit(1);
   }
-  console.log(`\nEXIT 0: ${failurePct.toFixed(0)}% failure rate within ${FAILURE_THRESHOLD_PCT}% threshold.`);
+  console.log(`\nEXIT 0: ${failurePct.toFixed(0)}% failure rate within ${FAILURE_THRESHOLD_PCT}% global threshold; per-ATS rates within ${PER_ATS_FAILURE_THRESHOLD_PCT}%.`);
 }
 
 main().catch((err) => {

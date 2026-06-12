@@ -1,0 +1,105 @@
+{
+  "generated_at": "2026-06-12T08:32:22.099Z",
+  "seeds_probed": 10,
+  "wall_seconds": 158.6,
+  "by_status": {
+    "slug_captured": 0,
+    "challenge_detected": 3,
+    "no_niloo_xhr": 7,
+    "navigation_failed": 0,
+    "global_endpoint_no_il_filter": 0
+  },
+  "results": [
+    {
+      "name": "019 Mobile",
+      "category": "telecom",
+      "careers_url": "https://www.019mobile.co.il/career",
+      "base_domain": "019mobile.co.il",
+      "status": "challenge_detected",
+      "challenge_evidence": "redirect to challenge host: https://www.google.com/recaptcha/api2/webworker.js?hl=iw&v=ne1iDVwClkE7nKD3uA9Vqsvl",
+      "captured_slugs": []
+    },
+    {
+      "name": "AVNET",
+      "category": "tech",
+      "careers_url": "https://www.avnet.com/wps/portal/us/about-avnet/careers/",
+      "base_domain": "avnet.com",
+      "notes": "International tenant — IL-filter required",
+      "status": "no_niloo_xhr"
+    },
+    {
+      "name": "Cinema City",
+      "hebrew_name": "סינמה סיטי",
+      "category": "consumer",
+      "careers_url": "https://www.cinema-city.co.il/career/",
+      "base_domain": "cinema-city.co.il",
+      "status": "challenge_detected",
+      "challenge_evidence": "redirect to challenge host: https://www.google.com/recaptcha/api.js",
+      "captured_slugs": []
+    },
+    {
+      "name": "Egged",
+      "hebrew_name": "אגד",
+      "category": "transport",
+      "careers_url": "https://www.egged.co.il/career/",
+      "base_domain": "egged.co.il",
+      "notes": "Already in registry as ats=unknown — upgrade in place",
+      "status": "no_niloo_xhr"
+    },
+    {
+      "name": "Keshet Te'amim",
+      "hebrew_name": "קשת טעמים",
+      "category": "retail",
+      "careers_url": "https://www.keshet-teamim.co.il/career",
+      "base_domain": "keshet-teamim.co.il",
+      "status": "no_niloo_xhr"
+    },
+    {
+      "name": "Motorola Solutions Israel",
+      "category": "tech",
+      "careers_url": "https://www.motorolasolutions.com/en_xu/about/careers.html",
+      "base_domain": "motorolasolutions.com",
+      "notes": "International tenant — IL-filter required",
+      "status": "no_niloo_xhr",
+      "navigation_error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://www.motorolasolutions.com/en_xu/about/careers.html\", waiting until \"networkidle\"\u001b[22m\n"
+    },
+    {
+      "name": "Psagot",
+      "hebrew_name": "פסגות",
+      "category": "finance",
+      "careers_url": "https://www.psagot.co.il/career/",
+      "base_domain": "psagot.co.il",
+      "status": "no_niloo_xhr"
+    },
+    {
+      "name": "TechBuddy",
+      "category": "tech",
+      "careers_url": "https://www.techbuddy.co.il/career",
+      "base_domain": "techbuddy.co.il",
+      "status": "no_niloo_xhr",
+      "navigation_error": "page.goto: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - navigating to \"https://www.techbuddy.co.il/career\", waiting until \"networkidle\"\u001b[22m\n"
+    },
+    {
+      "name": "Phoenix Insurance",
+      "hebrew_name": "הפניקס",
+      "category": "insurance",
+      "careers_url": "https://www.fnx.co.il/Career",
+      "base_domain": "fnx.co.il",
+      "historical_hold": true,
+      "notes": "Historical hold; opt-in retry. Tripwire applies.",
+      "status": "no_niloo_xhr"
+    },
+    {
+      "name": "Cellcom",
+      "hebrew_name": "סלקום",
+      "category": "telecom",
+      "careers_url": "https://cellcom.co.il/career/",
+      "base_domain": "cellcom.co.il",
+      "historical_hold": true,
+      "notes": "Historical hold; opt-in retry. Tripwire applies.",
+      "status": "challenge_detected",
+      "challenge_evidence": "redirect to challenge host: https://www.google.com/recaptcha/api2/webworker.js?hl=iw&v=ne1iDVwClkE7nKD3uA9Vqsvl",
+      "captured_slugs": []
+    }
+  ]
+}
