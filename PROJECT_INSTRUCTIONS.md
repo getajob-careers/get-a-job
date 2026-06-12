@@ -142,6 +142,7 @@ The tutorial **replaced** the original "Your Roles" reveal page — slides 1-6 c
 - **Cron:** `.github/workflows/refresh-jobs.yml` at 01:00 UTC daily
 - **Observability:** Langfuse Cloud (per-call LLM traces with userId metadata) + Supabase `function_metrics` table (per-call latency/cost/tokens, populated by `_shared/metrics.ts`) + Supabase edge function logs dashboard
 - **Analytics:** PostHog (`src/lib/analytics.js`) — **17 events** spanning signup, 4 onboarding events, 4 tutorial events, CV upload, career analysis, job-match check, application tracking, 2 practicum events, chat, 2 subscription events
+- **Metrics-exclusion source of truth:** `src/lib/INTERNAL_USER_IDS` in `src/lib/internalUsers.js` (the 5 no-plus team accounts a `+`-filter can't catch) — exclude internal users from ALL production metrics with `email LIKE '%+%' OR id IN (INTERNAL_USER_IDS)` (this is also the PostHog "internal users" cohort). Established after the 2026-06-12 demo-seed cleanup (`scripts/delete-demo-seeds.mjs`).
 
 ---
 
