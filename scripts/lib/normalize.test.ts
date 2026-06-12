@@ -175,6 +175,167 @@ describe("finalSeniority — Variant B", () => {
     });
   });
 
+  // ─── PR-M1 step (a): US tech-hub city co-mention ─────────────────────
+  //
+  // Bare "Chicago, IL" used to pass through as IL because no other US
+  // signal was present and the explicit caveat in the comment block
+  // accepted ~46 false-positive rows. PR-M1 step (a) audit (2026-06-12)
+  // counted 67 active production false-positives across Greenhouse +
+  // Workday — and Google/Microsoft/Meta/Amazon Workday boards (added in
+  // step (b)) would multiply that by an order of magnitude. The US-city
+  // allowlist closes the hole. Additive (only flips when paired with
+  // `\bIL\b` and zero other Israel signal), so currently-correct IL
+  // rows cannot regress.
+
+  describe("classifyLocation — US tech-hub city co-mention flips bare 'IL'", () => {
+    // Single-word US cities — these were the original 67 false-positives.
+    it("Chicago, IL → false (the canonical bug)", () => {
+      expect(classifyLocation("Chicago, IL").is_il).toBe(false);
+    });
+    it("Seattle, IL → false", () => {
+      expect(classifyLocation("Seattle, IL").is_il).toBe(false);
+    });
+    it("Boston, IL → false", () => {
+      expect(classifyLocation("Boston, IL").is_il).toBe(false);
+    });
+    it("Austin, IL → false", () => {
+      expect(classifyLocation("Austin, IL").is_il).toBe(false);
+    });
+    it("Phoenix, IL → false (malformed US miscoding; the Israeli insurer 'Phoenix Insurance' is a company name, not a location)", () => {
+      expect(classifyLocation("Phoenix, IL").is_il).toBe(false);
+    });
+
+    // Multi-word US cities — Eli specifically named these as the
+    // long-tail risk in MNC boards.
+    it("New York, IL → false (multi-word)", () => {
+      expect(classifyLocation("New York, IL").is_il).toBe(false);
+    });
+    it("Los Angeles, IL → false (multi-word)", () => {
+      expect(classifyLocation("Los Angeles, IL").is_il).toBe(false);
+    });
+    it("San Francisco, IL → false (multi-word)", () => {
+      expect(classifyLocation("San Francisco, IL").is_il).toBe(false);
+    });
+    it("San Jose, IL → false (multi-word)", () => {
+      expect(classifyLocation("San Jose, IL").is_il).toBe(false);
+    });
+    it("Mountain View, IL → false (multi-word, Google HQ)", () => {
+      expect(classifyLocation("Mountain View, IL").is_il).toBe(false);
+    });
+    it("Menlo Park, IL → false (multi-word, Meta HQ)", () => {
+      expect(classifyLocation("Menlo Park, IL").is_il).toBe(false);
+    });
+    it("Santa Clara, IL → false (multi-word, Nvidia/Intel)", () => {
+      expect(classifyLocation("Santa Clara, IL").is_il).toBe(false);
+    });
+    it("Palo Alto, IL → false (multi-word, HP/VMware)", () => {
+      expect(classifyLocation("Palo Alto, IL").is_il).toBe(false);
+    });
+    it("Salt Lake City, IL → false (three-word — boundary handling)", () => {
+      expect(classifyLocation("Salt Lake City, IL").is_il).toBe(false);
+    });
+    it("Saint Louis, IL → false (both 'Saint Louis' and 'St. Louis' spellings)", () => {
+      expect(classifyLocation("Saint Louis, IL").is_il).toBe(false);
+      expect(classifyLocation("St. Louis, IL").is_il).toBe(false);
+    });
+
+    // Israeli wins ARE preserved — Israel signal beats US-city signal,
+    // exact same precedence as the existing state-code rule.
+    it("Tel Aviv + San Francisco co-mention → still true (city map wins)", () => {
+      expect(classifyLocation("Tel Aviv; San Francisco, CA").is_il).toBe(true);
+    });
+    it("San Francisco; Remote, Israel → still true ('Israel' word wins)", () => {
+      expect(classifyLocation("San Francisco; Remote, Israel").is_il).toBe(true);
+    });
+    it("Phoenix Insurance, Tel Aviv → still true (Tel Aviv via city map; the company-name collision is irrelevant)", () => {
+      expect(classifyLocation("Phoenix Insurance, Tel Aviv").is_il).toBe(true);
+      expect(classifyLocation("Phoenix Insurance, Tel Aviv").city).toBe("Tel Aviv");
+    });
+
+    // Yokneam-class small-town protection — still works because no US
+    // city is in the string.
+    it("Yokneam, IL still true (no US city → trust IL = country code) — PR #269 contract preserved", () => {
+      expect(classifyLocation("Yokneam, IL").is_il).toBe(true);
+    });
+    it("Sdom, IL still true (small Israeli locale; no US co-mention)", () => {
+      expect(classifyLocation("Sdom, IL").is_il).toBe(true);
+    });
+
+    // Case-insensitivity check — ATSs occasionally yell.
+    it("SAN FRANCISCO, IL → false (case-insensitive city match)", () => {
+      expect(classifyLocation("SAN FRANCISCO, IL").is_il).toBe(false);
+    });
+  });
+
+  // ─── PR-M1 step (a): Hebrew region tags ──────────────────────────────
+  //
+  // Audit found 222 active production rows landing as is_il=true but
+  // city=NULL because the location_raw was a bare Hebrew district tag
+  // (גוש דן 122, השפלה 55, דרום 24, השרון 13, מרכז 8). They're now
+  // mapped to canonical Israeli district names. Specific cities always
+  // win first — a real city in the same string is never overridden by
+  // a region.
+
+  describe("classifyLocation — Hebrew region tags resolve to districts", () => {
+    it("גוש דן → Tel Aviv District", () => {
+      const r = classifyLocation("גוש דן");
+      expect(r.is_il).toBe(true);
+      expect(r.city).toBe("Tel Aviv District");
+    });
+    it("השפלה → Central District", () => {
+      const r = classifyLocation("השפלה");
+      expect(r.is_il).toBe(true);
+      expect(r.city).toBe("Central District");
+    });
+    it("השרון → Central District", () => {
+      const r = classifyLocation("השרון");
+      expect(r.is_il).toBe(true);
+      expect(r.city).toBe("Central District");
+    });
+    it("דרום → Southern District", () => {
+      const r = classifyLocation("דרום");
+      expect(r.is_il).toBe(true);
+      expect(r.city).toBe("Southern District");
+    });
+    it("צפון → Northern District", () => {
+      const r = classifyLocation("צפון");
+      expect(r.is_il).toBe(true);
+      expect(r.city).toBe("Northern District");
+    });
+    it("מרכז → Central District", () => {
+      const r = classifyLocation("מרכז");
+      expect(r.is_il).toBe(true);
+      expect(r.city).toBe("Central District");
+    });
+    it("substring match works for the real production shape 'גוש דן | <employer>'", () => {
+      // The actual top-producing strings from the audit: "גוש דן | משרד הביטחון"
+      // (30 jobs), "גוש דן | IBI" (18), etc.
+      const r = classifyLocation("גוש דן | משרד הביטחון");
+      expect(r.is_il).toBe(true);
+      expect(r.city).toBe("Tel Aviv District");
+    });
+    it("English 'Gush Dan' transliteration resolves too", () => {
+      const r = classifyLocation("Gush Dan, Israel");
+      expect(r.is_il).toBe(true);
+      expect(r.city).toBe("Tel Aviv District");
+    });
+
+    // Specific city precedence: a real city name in the same string
+    // always beats the region tag.
+    it("'Tel Aviv-Yafo, Gush Dan, Israel' resolves to Tel Aviv (city wins over region)", () => {
+      const r = classifyLocation("Tel Aviv-Yafo, Gush Dan, Israel");
+      expect(r.is_il).toBe(true);
+      expect(r.city).toBe("Tel Aviv");
+    });
+
+    // Structured-country path also gets the region resolution.
+    it("structuredCountry='IL' with Hebrew region in raw → district city", () => {
+      const r = classifyLocation("גוש דן", "IL");
+      expect(r.is_il).toBe(true);
+      expect(r.city).toBe("Tel Aviv District");
+    });
+  });
+
   // ─── Variant C tests (2026-06-09 cache audit) ───────────────────────
 
   describe("detectSeniorityFromTitle — Variant C tightening", () => {
