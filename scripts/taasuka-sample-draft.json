@@ -1,0 +1,2331 @@
+{
+  "probed_at": "2026-06-13T21:54:35.417Z",
+  "entry_url": "https://www.taasuka.gov.il/he/applicants/jobs/",
+  "target_min": 200,
+  "target_max": 300,
+  "total_classified": 200,
+  "audience_relevant_count": 19,
+  "audience_relevant_pct": 9.5,
+  "tally": {
+    "healthcare": 23,
+    "other": 93,
+    "business": 13,
+    "clerical": 17,
+    "warehouse": 13,
+    "retail": 3,
+    "manual": 7,
+    "hospitality": 19,
+    "tech": 3,
+    "gtm": 3,
+    "security": 4,
+    "education": 2
+  },
+  "listings": [
+    {
+      "title": "מטפל/ת בקשיש/ה",
+      "category": null,
+      "location": "חולון",
+      "jobId": "33edc327-98b2-4f2d-9a2b-cfdd57dd86d5",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "סט אפיסט/ית",
+      "category": null,
+      "location": "חולון",
+      "jobId": "bda61547-37f7-4137-bf10-199caff52f68",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מבקר/ת איכות (עיבוד שבבי)",
+      "category": null,
+      "location": "חולון",
+      "jobId": "c4b522b6-81bb-45f6-9da1-ed8a1e8c20ff",
+      "bucket": "business",
+      "source": "dom"
+    },
+    {
+      "title": "עוזר/ת טכני",
+      "category": null,
+      "location": "חולון",
+      "jobId": "f8c9fa7d-7066-445d-8864-433b81a8e832",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/ה קבלה",
+      "category": null,
+      "location": "חולון",
+      "jobId": "5d46df02-baf6-448c-980d-8394ed1c58d3",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "נהג משאית 7.5 טוו",
+      "category": null,
+      "location": "חולון",
+      "jobId": "a41ed09a-4c9b-43b2-9a41-b64bda02b920",
+      "bucket": "warehouse",
+      "source": "dom"
+    },
+    {
+      "title": "עוזר/ת תפעול",
+      "category": null,
+      "location": "חולון",
+      "jobId": "106a0441-96c3-4032-b720-9fdfda3d8a82",
+      "bucket": "business",
+      "source": "dom"
+    },
+    {
+      "title": "נהג/ת הסעות",
+      "category": null,
+      "location": "חולון",
+      "jobId": "b56e1b6a-a051-4866-87c0-5cde4ef526d0",
+      "bucket": "warehouse",
+      "source": "dom"
+    },
+    {
+      "title": "קופאי/ת",
+      "category": null,
+      "location": "חולון",
+      "jobId": "135003e3-7e76-4789-829f-cb206af8c4fe",
+      "bucket": "retail",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת מעדניה",
+      "category": null,
+      "location": "חולון",
+      "jobId": "0208481b-3142-4eb0-9ee8-ef291fc332ea",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "סדרן/ית סחורה",
+      "category": null,
+      "location": "חולון",
+      "jobId": "bf557da1-e666-4efa-9aa7-48b651d3f2f9",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "חווט/ת לוחות חשמל",
+      "category": null,
+      "location": "חולון",
+      "jobId": "1eb7fd00-3cd2-4e49-8ced-6ee6c15aa187",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "חשמלאי/ת קריית מלאכי",
+      "category": null,
+      "location": "קרית מלאכי",
+      "jobId": "8bad2f34-fd2e-42f9-8e2c-8ef3ac84e6ae",
+      "bucket": "manual",
+      "source": "dom"
+    },
+    {
+      "title": "חשמלאי/ת מוסמך/ת באר שבע",
+      "category": null,
+      "location": "באר שבע",
+      "jobId": "5ebeca87-e660-4717-98a8-efbeba4475ad",
+      "bucket": "manual",
+      "source": "dom"
+    },
+    {
+      "title": "חרט/כרסם cnc בבאר יעקב",
+      "category": null,
+      "location": "באר יעקב",
+      "jobId": "26a227ee-3071-49ab-bfc3-67a884d50e87",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "דרוש/ה מוכר/ת לחנות חיות",
+      "category": null,
+      "location": "שפיים",
+      "jobId": "6d979d44-5662-406c-a1f0-e12e835253f2",
+      "bucket": "retail",
+      "source": "dom"
+    },
+    {
+      "title": "נהג.ת מחסנאי.ת",
+      "category": null,
+      "location": "עין עירון",
+      "jobId": "33a6cac6-af36-4d22-bbbc-6f85ffb9e572",
+      "bucket": "warehouse",
+      "source": "dom"
+    },
+    {
+      "title": "מנהל/ת תפעול ומערכות",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "8076157e-f48a-4dc8-9e9e-de0094244ad1",
+      "bucket": "business",
+      "source": "dom"
+    },
+    {
+      "title": "נהג משאית 7.5 טוו",
+      "category": null,
+      "location": "חולון",
+      "jobId": "14001f5a-375e-480b-8b38-2481c181b83d",
+      "bucket": "warehouse",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/ה סוכן ביטוח אלמנטרי",
+      "category": null,
+      "location": "רחובות",
+      "jobId": "03424c9a-8390-42dd-9ee3-62380ac6cf0e",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/פקידת סוכן ביטוח",
+      "category": null,
+      "location": "מודיעין-מכבים-רעות",
+      "jobId": "184f890d-9a75-4569-97cd-0ce9f1234af7",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/ה סוכן ביטוח אלמנטרי",
+      "category": null,
+      "location": "יבנה",
+      "jobId": "55b51021-9bb3-48f4-97d2-3c93aaaf8917",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "דוור לחלוקת עיתונים",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "cb55dfe0-0be3-417d-a1c4-0f0765a727e2",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "נהג/ת חלוקה",
+      "category": null,
+      "location": "נצרת",
+      "jobId": "9848313e-bb97-43ac-a8e6-9886abbc3da9",
+      "bucket": "warehouse",
+      "source": "dom"
+    },
+    {
+      "title": "נהג הסעות",
+      "category": null,
+      "location": "חולון",
+      "jobId": "59f43306-d9f9-49a5-a22b-347cb43dcc74",
+      "bucket": "warehouse",
+      "source": "dom"
+    },
+    {
+      "title": "סגן /ית מנהל/ת חנות",
+      "category": null,
+      "location": "נצרת",
+      "jobId": "4d7ca54c-51f9-4e62-8485-be4445f50c0b",
+      "bucket": "retail",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת ניקיון",
+      "category": null,
+      "location": "יפיע",
+      "jobId": "ba86d237-a56e-465d-b839-354825fd185b",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "דרוש/ה אלוף/ת אדמיניסטרציה ושירות לדיופיקס בחיפה!",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "ba3991da-ea8b-417a-9875-39efd7425617",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד ייצור בחווה לגידול נבטים",
+      "category": null,
+      "location": "קיסריה",
+      "jobId": "3742790c-7f65-458d-a774-57cb84683d9c",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת ניקיון",
+      "category": null,
+      "location": "נצרת",
+      "jobId": "d48b50c1-1f4b-4384-bf38-fa51f1526adb",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "מטפל/ת סיעודי/ת",
+      "category": null,
+      "location": "נצרת",
+      "jobId": "908d2b7b-c5f6-4525-9b6b-29a426a702f0",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "נהג/ת רישיון  12 טון",
+      "category": null,
+      "location": "ראש העין",
+      "jobId": "b5a22c21-6a87-4ad7-a929-5bacb8d8c9da",
+      "bucket": "warehouse",
+      "source": "dom"
+    },
+    {
+      "title": "טכנאי/ת מעבדה- גופי תאורה",
+      "category": null,
+      "location": "ראש העין",
+      "jobId": "93b6501d-2726-4043-a62f-0c117c9dd3db",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "אחראי/ת תפ\"י",
+      "category": null,
+      "location": "עינת",
+      "jobId": "1aff9c4a-c7ed-4cfb-9536-d83fc6e11db8",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "מ\"מ עובד/ת ספרייה עירונית- מכרז",
+      "category": null,
+      "location": "ראש העין",
+      "jobId": "ff3d12ab-5840-4480-bd2c-5c7fcbf95f9a",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מחסנאי/ית JB-67",
+      "category": null,
+      "location": "גן שמואל",
+      "jobId": "8ce0ae89-b4f5-4a38-8442-5e5268e64d13",
+      "bucket": "warehouse",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/ת הזמנות JB-74",
+      "category": null,
+      "location": "גן שמואל",
+      "jobId": "9aca9d5f-e43f-4ec2-bd5f-639dbbb7d673",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "מנהל/ת חשבונות JB-75",
+      "category": null,
+      "location": "גן שמואל",
+      "jobId": "793ef4fd-c7d1-4a1e-be71-bebce5c95bbc",
+      "bucket": "business",
+      "source": "dom"
+    },
+    {
+      "title": "איש/ת אחזקה",
+      "category": null,
+      "location": "אריאל",
+      "jobId": "e4923b8a-f4ea-4413-b768-e5934697cd61",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "מרכיב\\ה מכאני לחברת הייטק ביקנעם - מוכר כעבודה מועדפת",
+      "category": null,
+      "location": "יקנעם עילית",
+      "jobId": "0518ac55-055c-4767-8f4a-ec87a22a7891",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מנהל/ת מחלקת חינוך מיוחד",
+      "category": null,
+      "location": "ראש העין",
+      "jobId": "7a3354a5-95a5-4ba7-9968-1ac598e19226",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "NPI Quality Engineer",
+      "category": null,
+      "location": "יקנעם עילית",
+      "jobId": "2c6fb824-a372-495b-affb-26aae4b58f71",
+      "bucket": "tech",
+      "source": "dom"
+    },
+    {
+      "title": "מטפל/ת",
+      "category": null,
+      "location": "שדרות",
+      "jobId": "1965fbc3-cce9-49a0-9c83-eee2fd6d4d3d",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "מטפל/ת בקשישים",
+      "category": null,
+      "location": "רמלה",
+      "jobId": "680df64f-0a90-4009-beb8-e2b0265c078f",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת כללי לצימר \"זהר בדשא\" - מועדפת",
+      "category": null,
+      "location": "דליה",
+      "jobId": "92c26d8f-345f-47b9-b908-19224218339e",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת מחלקת אחזקה",
+      "category": null,
+      "location": "מגדל העמק",
+      "jobId": "e0747e88-e098-43f2-916d-91afd7bde5a8",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "מוכר/ת בקנטינה",
+      "category": null,
+      "location": "רמלה",
+      "jobId": "c3bafc50-b0a1-4b89-8837-328c3f0b4d5d",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "נציג/ת תמיכה טכנית  Nayax",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "ee3ddd69-1197-4abf-ae5c-e3214e22db0a",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת אחזקה",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "a25341e9-b56c-46b7-9d98-6b037a21eeb3",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "סייר/ת",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "766d1e0d-bace-4e00-a560-b44ccbfd615b",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "חוקר/ת",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "ceae92a1-8e6f-4db7-b368-73bfd7263623",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מפתח/ת PowerBI",
+      "category": null,
+      "location": "טירת כרמל",
+      "jobId": "65210230-a1cd-4ab2-a9b4-5ed7cd9106d7",
+      "bucket": "tech",
+      "source": "dom"
+    },
+    {
+      "title": "רכז/ת להלנת חירום לצעירות חרדיות בירושלים",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "f0dd8b1e-a1b6-4db3-b79b-c2377b6f1228",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מטפל/ת סיעודי/ת",
+      "category": null,
+      "location": "נצרת",
+      "jobId": "676a2a64-44cc-4a12-b4b4-1627dd2f98fb",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "מזכיר/ה",
+      "category": null,
+      "location": "נס ציונה",
+      "jobId": "a9e3fcdc-d373-4af0-8758-14f19f1d88d1",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "רכז/ת להוסטל לצעירים בסיכון בירושלים",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "2ff0164d-21f1-42b8-9871-6f477d44f7e2",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "טבח",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "e0e83987-2650-4692-b056-c98d18c8fad4",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "מנהל/ת תיק לקוחות",
+      "category": null,
+      "location": "רחובות",
+      "jobId": "4c529d14-55be-424c-9c1a-d7988a30a690",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "סדרן\\ית לסופרמרקט",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "111af35d-6fd4-4725-84e2-5b36726dce17",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מדריכות /ים להוסטל לצעירות בסיכון בירושלים",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "91512b93-b8f1-46fc-ada7-4d73ba39ca6a",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "לקוח/ה סמוי/ה",
+      "category": null,
+      "location": "רמלה",
+      "jobId": "c7a575ba-7d19-4f87-8642-952b4c2ae245",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עו\"ס/ית משפחה",
+      "category": null,
+      "location": "ראש העין",
+      "jobId": "1a34f857-b659-4cc6-80c6-7f8c81125d75",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת  ייצור לחדר נקי",
+      "category": null,
+      "location": "באר שבע",
+      "jobId": "1d9dc414-719f-402e-846b-f9b4da1285ca",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "נציג/ת שירות לקוחות",
+      "category": null,
+      "location": "מודיעין-מכבים-רעות",
+      "jobId": "091a5e5b-2278-4567-a90a-9fbd8a85279b",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/ת קבלה",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "3d827833-96a3-418e-afdc-60faacb5cd20",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "נציג/ת מכירות  (B2B) – לחברת הייטק",
+      "category": null,
+      "location": "באר יעקב",
+      "jobId": "cea160cc-c081-4a1c-b28f-92b2385decd1",
+      "bucket": "gtm",
+      "source": "dom"
+    },
+    {
+      "title": "מטפל/ת בקשישים",
+      "category": null,
+      "location": "רחובות",
+      "jobId": "d10d82c5-fe0d-4402-9475-34f0ae4695e3",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "טבח/ית",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "355e8eae-3b4e-42a7-ba65-27747e21a45d",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "אם/אב בית",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "054bf207-ca17-47f7-9bdc-f7c6016b5afe",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מלצר/ית",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "4465ac36-f6e8-4f81-8c71-69df7fd33506",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת סוציאלי/ת",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "c89b41a3-e3ec-476a-9d26-ef700398e39c",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מפתח/ת Full Stack",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "e4573dcf-c5f0-4ef5-bbf4-68c4d93b9be3",
+      "bucket": "tech",
+      "source": "dom"
+    },
+    {
+      "title": "משגיחי/ות בחינות",
+      "category": null,
+      "location": "נתניה",
+      "jobId": "dc38afc2-9745-47d9-be26-f0445dd0dedf",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "תומכ/ת חינוך",
+      "category": null,
+      "location": "מודיעין-מכבים-רעות",
+      "jobId": "07481f25-3f5c-4fb3-9156-8fe564aab13e",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מאבטחים/ות",
+      "category": null,
+      "location": "מודיעין-מכבים-רעות",
+      "jobId": "c5ca2703-344b-4d31-8db4-2ef141d0b335",
+      "bucket": "security",
+      "source": "dom"
+    },
+    {
+      "title": "מחסנאי/ת",
+      "category": null,
+      "location": "קרית מוצקין",
+      "jobId": "f06b86fc-9a38-4977-80b8-b39032285fdb",
+      "bucket": "warehouse",
+      "source": "dom"
+    },
+    {
+      "title": "אחראי/ת פרוייקטים",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "6e36bb9e-5ea2-4b4f-a421-eaa19d4e2dd1",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "צבעי/ת // עוזר/ת צבעי",
+      "category": null,
+      "location": "באר שבע",
+      "jobId": "dc42d4fa-e874-469f-8b48-5b8334c1b232",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מזכיר/ה",
+      "category": null,
+      "location": "צפת",
+      "jobId": "576b6933-0a5a-462b-b4d7-50c695f8c5f9",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "מנתח/ת מערכות",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "8192f26d-81e8-466d-8291-409e472ae091",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת ניקיון",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "b4ce0bd0-1205-4c96-9a25-db5ea1a5fe96",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "חשמלאי/ית מוסמך/ת",
+      "category": null,
+      "location": "מגדל העמק",
+      "jobId": "809554f9-ec33-46e6-b4da-695b18e7b3ce",
+      "bucket": "manual",
+      "source": "dom"
+    },
+    {
+      "title": "נציג/ת שירות ומכירה",
+      "category": null,
+      "location": "נתניה",
+      "jobId": "74b0fb90-5821-47c6-a9c8-79cb25bfbb0f",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד למטחנה",
+      "category": null,
+      "location": "פתח תקווה",
+      "jobId": "cd3db426-f7be-4518-885d-016046899686",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "דייל/ת יופי לסופר פארם",
+      "category": null,
+      "location": "יקנעם עילית",
+      "jobId": "6aa0b0c3-8426-4728-9311-62c99a1ef4c6",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מחסנאי/ת ממוחשב",
+      "category": null,
+      "location": "יקנעם עילית",
+      "jobId": "7c0e8950-ebc8-4bfd-b643-b1bd93b6dfda",
+      "bucket": "business",
+      "source": "dom"
+    },
+    {
+      "title": "עובד.ת ייצור לקו הרכבות עדינות (ובד\"ס)",
+      "category": null,
+      "location": "יקנעם עילית",
+      "jobId": "65ca2c0a-980b-4bac-89de-02efdc55a02b",
+      "bucket": "manual",
+      "source": "dom"
+    },
+    {
+      "title": "מנהל/ת מחלקת פדגוגיה - 1209",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "f05841ad-474a-4c7a-afaf-de68a1981f80",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "רכז/ת אדמיניסטרטיבי/ת",
+      "category": null,
+      "location": "רחובות",
+      "jobId": "8e47bc37-ac8f-45b7-9867-a4394efaeb58",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "פקח/ית  עירוני.",
+      "category": null,
+      "location": "חורה",
+      "jobId": "76ccae37-f07a-4015-a0e9-926d7c641d47",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד.ת במחלקת גביה.",
+      "category": null,
+      "location": "חורה",
+      "jobId": "b1be0a60-5fab-46ac-aafe-2b6ad4794901",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מכונאי/ת אחזקה",
+      "category": null,
+      "location": "קרית אתא",
+      "jobId": "5fb65702-76b0-4760-9207-30655b315e44",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "חרט/ת CNC",
+      "category": null,
+      "location": "קרית אתא",
+      "jobId": "7a397c90-0dae-45cb-8eb4-6133db71c9cb",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת מעדנייה",
+      "category": null,
+      "location": "קרית אתא",
+      "jobId": "1e7f54dd-134b-4c0c-847d-666fa79f171c",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "נציג/ת מכירות טלפוניות",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "9e71cffd-f682-4745-970e-c9a30987f3f5",
+      "bucket": "gtm",
+      "source": "dom"
+    },
+    {
+      "title": "טבח/ית מוביל/ה",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "1aa5f691-8ed8-46c3-95f4-e5d3f11ea1ee",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "מפעיל/ה",
+      "category": null,
+      "location": "קרית אתא",
+      "jobId": "5b272867-5114-4848-8410-8dbbd4d0e8fd",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת כללי/ת",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "99394767-c5cc-476e-b171-8fc79008e58a",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת כללי/ת - עוזר/ת טבח",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "c7a7c356-fa82-4598-a43e-7ed18544554c",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "מפעיל/ת מכונה",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "146175e3-5e33-4ede-b36a-e54b0c991b86",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מטפל/ת בקשישים",
+      "category": null,
+      "location": "לוד",
+      "jobId": "553bd07d-44e7-4704-ad17-a3d2b3d290c4",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "עובדים/ות כלליים",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "5561a185-11fe-43a2-a1ff-5dec5d8a0a0f",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "איש לצוות התקנות של צנרת",
+      "category": null,
+      "location": "קרית ביאליק",
+      "jobId": "830bec83-d442-4414-a634-ae557cb09a7a",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מנהל/ת מטבח",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "0069cfb2-2d2d-4acc-b87e-e1eeb2a5c76d",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/ת מבצעים לשטח האווירי בנתב\"ג",
+      "category": null,
+      "location": "לוד",
+      "jobId": "6f3f08de-0631-41b4-b632-8a7f9b91b488",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת מטבח",
+      "category": null,
+      "location": "דימונה",
+      "jobId": "bed5336e-9757-4b52-898f-14f4c563e46f",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "21039- מתאמ/ת תפעול- החלפה לחל\"ד עם אופציה לקביעות",
+      "category": null,
+      "location": "טבריה",
+      "jobId": "ecf44c48-d845-4290-9272-25116a44b65f",
+      "bucket": "business",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת ייצור טכני",
+      "category": null,
+      "location": "שדרות",
+      "jobId": "9784814e-920f-4e46-b0d9-b012e94c2c96",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מדריכ/ה למרכז חברתי (40% משרה)",
+      "category": null,
+      "location": "קרית גת",
+      "jobId": "f1cbf0a7-c4b1-4c57-8168-cb2517d8741e",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מנהל/ת מחסן ממוחשב",
+      "category": null,
+      "location": "עכו",
+      "jobId": "ecb1aefb-cce0-4852-ab6a-80d7a9425e50",
+      "bucket": "business",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת ניקיון",
+      "category": null,
+      "location": "שדרות",
+      "jobId": "a2d0d951-ade3-448d-8167-48d3088f0d13",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "סייעות למעון תינוקות 44 לשעה",
+      "category": null,
+      "location": "חולון",
+      "jobId": "28be61f3-f54f-4ed1-8466-f92fe467f661",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת לעבודת מחשב",
+      "category": null,
+      "location": "נשר",
+      "jobId": "3a7ac8b8-e64f-41a9-83c6-6f16db2e5b0d",
+      "bucket": "business",
+      "source": "dom"
+    },
+    {
+      "title": "מנהל/ת מחלקת פרוייקטים חינוכיים - 1206",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "87a43605-4825-48e3-812b-6c7559ee0799",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת אריזה",
+      "category": null,
+      "location": "מג'ד אל-כרום",
+      "jobId": "1a568bfb-b7e8-4f0e-827a-5f3433eeb749",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "דרוש/ה מכונאי/ת",
+      "category": null,
+      "location": "ראשון לציון",
+      "jobId": "0fc80b44-4fbe-4d2e-a040-e1e410096bce",
+      "bucket": "manual",
+      "source": "dom"
+    },
+    {
+      "title": "מאבטח/ת",
+      "category": null,
+      "location": "זכרון יעקב",
+      "jobId": "9ae2589d-0931-45f2-b9e5-2f7335ce3600",
+      "bucket": "security",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת אחזקת מכונות",
+      "category": null,
+      "location": "אשדות יעקב (איחוד)",
+      "jobId": "11228842-f694-409f-ba11-dae0b14f3b33",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "סדרן/ית סחורה",
+      "category": null,
+      "location": "רמת גן",
+      "jobId": "5b1b0e17-ddc4-424c-a1f2-2e67db385813",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת ניקיון",
+      "category": null,
+      "location": "קרית אתא",
+      "jobId": "dea3899c-a0e9-4694-8466-9dbcdaa25f7b",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "גנן/ת / סייע/ת מובילה",
+      "category": null,
+      "location": "עדי",
+      "jobId": "a486b89e-7770-4732-9b5d-98c7176a2d98",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד /ת שיווק והצעות מחיר",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "c56f5f3e-a25f-40b5-be28-f792c7ce41ed",
+      "bucket": "gtm",
+      "source": "dom"
+    },
+    {
+      "title": "איש/ת תפעול",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "da9766d4-4873-44cb-b26c-15c34d1afab2",
+      "bucket": "business",
+      "source": "dom"
+    },
+    {
+      "title": "מלווה מטופלים",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "a5fd89c5-cee2-4a8f-b09f-a53337e53f3c",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "נציג/ת שירות ומכירה פרונטלי",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "d7d2055d-53aa-42c6-9d98-673f2088121c",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "נציג/ת שירות ומכירה",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "100e4ea7-4634-4ce4-9aa9-1a359a3d527b",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מחסנאי/ת",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "51a08e5c-48a3-4fff-a087-3dcabe8bc171",
+      "bucket": "warehouse",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת ייצור",
+      "category": null,
+      "location": "מג'דל שמס",
+      "jobId": "d88d04ed-e006-4277-a3bd-bccd918f9015",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת הרכבה",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "b4c268ad-56ae-47cc-8e85-8013b4e9e075",
+      "bucket": "manual",
+      "source": "dom"
+    },
+    {
+      "title": "איש/ת שירות ותפעול",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "b11b472e-a24e-47a1-9ccb-a90ca70afea0",
+      "bucket": "business",
+      "source": "dom"
+    },
+    {
+      "title": "סוכני/ות ביטוח",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "47bc2a14-3bf8-4fc4-aec0-18bf99c6108f",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "נהג/ת טריילר",
+      "category": null,
+      "location": "קרית אתא",
+      "jobId": "ec4ec912-81b8-40fc-a91f-b69255908cb4",
+      "bucket": "warehouse",
+      "source": "dom"
+    },
+    {
+      "title": "מטפל/ת בקשישים",
+      "category": null,
+      "location": "זכרון יעקב",
+      "jobId": "f2ded22a-eede-45ed-8acb-0554da47d633",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "מטפל/ת לקשישים",
+      "category": null,
+      "location": "חריש",
+      "jobId": "ad244716-3d5e-410c-bca5-6dab4ec8bf69",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/ה",
+      "category": null,
+      "location": "קרית מוצקין",
+      "jobId": "7da13463-a900-480d-b1fc-9aa01f9cbd69",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "נציג/ת שירות לקוחות",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "c6920ae6-313d-43c6-be0d-e765d596c568",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מהנדס/ת תא",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "d87304f1-83be-44f7-bdb0-ed2ba72c04b5",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מחסנאי/ת למחסן ממוחשב",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "2d7c8ccd-fae6-4755-931d-e3f1b4a5adde",
+      "bucket": "business",
+      "source": "dom"
+    },
+    {
+      "title": "20931- מנהל/ת ביצוע מיזוג אויר לאזור הצפון",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "a1858cdc-361b-45e5-b468-841e3003243e",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "אנליטיקאי/ת",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "0b2e9fe5-94fd-4f84-ae99-8267954bd0ad",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "טכנאי/ת מכשור ובקרה",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "16e31869-a503-471a-b043-fa7b745fb256",
+      "bucket": "business",
+      "source": "dom"
+    },
+    {
+      "title": "טבח/ית",
+      "category": null,
+      "location": "טבריה",
+      "jobId": "36380579-977f-43ac-b106-e18e202b8be7",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "מהנדס/ת תכנון חומר",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "b590ea45-24cc-47d4-a29c-bcf5087dc8f4",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מוכר/ת",
+      "category": null,
+      "location": "נצרת",
+      "jobId": "0cfdd21a-0196-43a0-932e-69b7089e55cb",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובדים/ות ייצור",
+      "category": null,
+      "location": "דלתון",
+      "jobId": "fc9150fc-7b0c-4420-bb9f-bacc1e46e274",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "טכנאי תשתיות",
+      "category": null,
+      "location": "ירושלים",
+      "jobId": "3ed6c6c2-6b31-4f4d-9122-d529421fe406",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מפקח/ת ניקיון",
+      "category": null,
+      "location": "רחובות",
+      "jobId": "d6576f7c-6ab3-464c-9522-ab583c02125f",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "טכנאי/ת מיזוג אויר",
+      "category": null,
+      "location": "פתח תקווה",
+      "jobId": "23b2f8d2-cff4-47cd-be6c-a9d4d6c8013c",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת סוציאלית",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "9ede0e23-206a-434d-bf67-3a2ac2a408df",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובדים/ות כלליים/יות",
+      "category": null,
+      "location": "פתח תקווה",
+      "jobId": "797002a2-5cd9-44fb-b81a-3f1ff0563aec",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת מאפייה",
+      "category": null,
+      "location": "גבעתיים",
+      "jobId": "1d224b96-ac54-4f00-a1bf-b7ddae53dcf8",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "סדרנ/ית סחורה",
+      "category": null,
+      "location": "גבעתיים",
+      "jobId": "ad69dcaa-aadd-450e-bc19-ecd68c98ae94",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "עובד/ת מעדניה",
+      "category": null,
+      "location": "גבעתיים",
+      "jobId": "b3c425fc-f4f7-4adf-a702-f264163a5260",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מחסנאי/ת -289",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "2a659044-851b-4210-bcc3-150ae4f41503",
+      "bucket": "warehouse",
+      "source": "dom"
+    },
+    {
+      "title": "קצב/ית",
+      "category": null,
+      "location": "גבעתיים",
+      "jobId": "2b5e60a3-1875-4406-8aa7-db62e0cdc6a8",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "חוקר/ת",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "c0b656f6-f6f8-4e73-8921-4ef51b934f69",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "סייר/ת תנועה",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "d50cfeb9-4f35-4bc1-b685-444cb76bb1bd",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "שוטרים/ות יס\"מ",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "88b6ab5e-23e7-4e8b-ba34-5c9fdc111a60",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "שומר/ת",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "e91588f3-1cde-4844-8f75-fc97b8592ce5",
+      "bucket": "security",
+      "source": "dom"
+    },
+    {
+      "title": "טבח/ית",
+      "category": null,
+      "location": "פתח תקווה",
+      "jobId": "8828c4ac-d7ed-4392-8d71-758a1743236c",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "סייר/ת",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "d7901957-a82d-4ce2-97df-f42f76b80fe7",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "שוטף/ת כלים /עובד/ת ניקיון /עובד/ת מטבח כללי",
+      "category": null,
+      "location": "פתח תקווה",
+      "jobId": "5e43d8e3-4901-4424-9244-367a181fea3c",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/ת בק אופיס",
+      "category": null,
+      "location": "גזר",
+      "jobId": "cd2cc732-4885-40ef-be3b-b22577670918",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "עורך/ת דין",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "8cbb0891-ca22-4d51-b865-aa6d94640aaa",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מזכיר/ה למשרד עורכי דין",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "4d9d07d5-52fa-46c7-9f0c-8c793f11e250",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "איש/ת אחזקה",
+      "category": null,
+      "location": "רחובות",
+      "jobId": "25b1547f-4bb9-40a3-8d50-ade9fdaa557f",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "רכז/ת גבייה בצוות",
+      "category": null,
+      "location": "פתח תקווה",
+      "jobId": "14783627-85b4-4e55-adca-550ba5c8af46",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מפעיל/ת מתקן לשעות הערב",
+      "category": null,
+      "location": "פתח תקווה",
+      "jobId": "17c51ac3-89d7-4031-859e-535438b9ab70",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "ברמן/ית  עובד/ת בריסטה",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "6b4f1d96-f775-4a1f-963a-d8664c687a37",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "רכז/ת שירות אפוטרופסות",
+      "category": null,
+      "location": "חיפה",
+      "jobId": "31d84140-482f-4999-9582-8fba799e9810",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/ת גבייה",
+      "category": null,
+      "location": "תימורים",
+      "jobId": "31eaa702-49bd-4c2f-80f5-9bead216610d",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/ה לניהול משרד שוטף",
+      "category": null,
+      "location": "עפולה",
+      "jobId": "11800326-6c79-4590-9ead-223d4164eb2b",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/ת כללי/ת",
+      "category": null,
+      "location": "בית שמש",
+      "jobId": "9b9e1cd6-fb6f-4c20-9945-dc30aa8f9dd5",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "מפעילי/ות מתקנים",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "f74be3c8-92b0-47f0-8e85-897bf0b5b39e",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מבקר/ת טיב",
+      "category": null,
+      "location": "עכו",
+      "jobId": "c1ad962c-f068-468c-b8e9-31a4a4cfd388",
+      "bucket": "business",
+      "source": "dom"
+    },
+    {
+      "title": "עובד ייצור כללי למפעל באזור תעשייה ברקן",
+      "category": null,
+      "location": "ברקן",
+      "jobId": "d1476ee0-0ddf-4593-8450-72e86ab48770",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "נהג/ת",
+      "category": null,
+      "location": "כרמיאל",
+      "jobId": "58dfc452-eff3-44c5-80fa-628346004e9f",
+      "bucket": "warehouse",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/ה",
+      "category": null,
+      "location": "רחובות",
+      "jobId": "7eaf577b-6479-4e23-98eb-5541475051e8",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "אם בית",
+      "category": null,
+      "location": "נצרת",
+      "jobId": "fc92fa7a-c596-475e-8da2-781aa3af420b",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מלצרים/ות",
+      "category": null,
+      "location": "תל אביב - יפו",
+      "jobId": "b0c83146-ca04-49be-b49a-da27b8607413",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "פלנר/ית",
+      "category": null,
+      "location": "תימורים",
+      "jobId": "838701bc-be2d-4981-b8e3-04cc1d3f7c4d",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "הנדסאי/ת מכונות / שרטט/ת",
+      "category": null,
+      "location": "פתח תקווה",
+      "jobId": "0aedb191-5570-442e-866a-c0ced5201e67",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מכונאי /תרכב",
+      "category": null,
+      "location": "בני ברק",
+      "jobId": "d67e5841-13da-4409-b032-30eb6a75e423",
+      "bucket": "manual",
+      "source": "dom"
+    },
+    {
+      "title": "מתקין/ה  מערכות  לרכב",
+      "category": null,
+      "location": "בני ברק",
+      "jobId": "2356043b-f0dc-4f05-8639-dd64141c8f9f",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מנהל/ת מטבח",
+      "category": null,
+      "location": "גן נר",
+      "jobId": "d6f2594d-13ba-4652-8e6d-bdf466d89e6e",
+      "bucket": "hospitality",
+      "source": "dom"
+    },
+    {
+      "title": "דרוש.ה מדריך.ה לפנימייה טיפולית לנוער בגן יבנה",
+      "category": null,
+      "location": "גן יבנה",
+      "jobId": "9ae10c5b-ba2a-4088-8bc3-fa47a3f1b4ea",
+      "bucket": "education",
+      "source": "dom"
+    },
+    {
+      "title": "מטפל/ת לקשישים",
+      "category": null,
+      "location": "חריש",
+      "jobId": "e3b821d0-ab49-41a1-9cfe-0bcd8b3d3540",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "מנהל/ת בית ספר יסודי JB-58",
+      "category": null,
+      "location": "אופקים",
+      "jobId": "3f769a5e-d5ed-45e5-b9c2-11036cfe460f",
+      "bucket": "education",
+      "source": "dom"
+    },
+    {
+      "title": "חשלאי/ת רכב",
+      "category": null,
+      "location": "בני ברק",
+      "jobId": "a31044bb-8a13-402a-ba33-385343a92513",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "מטפל/ת סיעודי/ת",
+      "category": null,
+      "location": "בית שמש",
+      "jobId": "a2f8aade-dbb3-43c2-b5bc-445587abfc86",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "מטפל/ת בקשישים",
+      "category": null,
+      "location": "נתניה",
+      "jobId": "74690b2c-73b2-4c7d-9692-fda476e51770",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "אורז/ת",
+      "category": null,
+      "location": "אשדוד",
+      "jobId": "c4660175-10c3-466c-9fbb-5f9c3f40762d",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "שומרים/ות ללא נשק למפעל הגלידות נסטלה!",
+      "category": null,
+      "location": "באר שבע",
+      "jobId": "f91ca1f1-f181-4aac-80b3-9683aceb4fff",
+      "bucket": "security",
+      "source": "dom"
+    },
+    {
+      "title": "מטפל/ת צמוד/ה",
+      "category": null,
+      "location": "ירוחם",
+      "jobId": "5a3f3c66-3a5c-4b40-966c-d347f51d853d",
+      "bucket": "healthcare",
+      "source": "dom"
+    },
+    {
+      "title": "קלינאי/ת תקשורת",
+      "category": null,
+      "location": "מודיעין-מכבים-רעות",
+      "jobId": "de99333a-6bf5-432c-9b4a-686f98003308",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "דייל/ת קוסמטיקה Be",
+      "category": null,
+      "location": "אילת",
+      "jobId": "2e2fee4e-7a65-4e1b-9450-b9d9bc40da52",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "חתמ/ת אלמנטרי",
+      "category": null,
+      "location": "נתניה",
+      "jobId": "6421dd15-2abd-4f41-a902-77ce23ce3606",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "פקיד/ה",
+      "category": null,
+      "location": "קרית גת",
+      "jobId": "f45c4e9b-fcaf-43bf-a491-31387393b4dc",
+      "bucket": "clerical",
+      "source": "dom"
+    },
+    {
+      "title": "דרוש/ה רכז/ת אדמיניסטרטיבית לעמותת אלווין ישראל - הרצליה",
+      "category": null,
+      "location": "הרצליה",
+      "jobId": "4356d08b-3681-447e-ad29-6d6916d51ab8",
+      "bucket": "other",
+      "source": "dom"
+    },
+    {
+      "title": "יועץ/ת חינוכי/ת JB-40",
+      "category": null,
+      "location": "אופקים",
+      "jobId": "9d186392-611b-4ebd-9820-9c16f424e1fc",
+      "bucket": "other",
+      "source": "dom"
+    }
+  ],
+  "xhr_endpoints_observed": [
+    {
+      "url": "https://www.taasuka.gov.il/he/applicants/jobs/",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 1074394,
+      "bodySample": "\r\n<!DOCTYPE html>\r\n<html lang=\"he-IL\" dir=\"rtl\">\r\n<head>\r\n    \r\n<title>&#x5E9;&#x5D9;&#x5E8;&#x5D5;&#x5EA; &#x5D4;&#x5EA;&#x5E2;&#x5E1;&#x5D5;&#x5E7;&#x5D4; | jobs</title>\r\n<meta http-equiv=\"Content-type\" content=\"text/html; charset=utf-8\" />\r\n<meta http-equiv=\"Expires\" content=\"0\" />\r\n<meta http-equiv=\"X-UA-Compatible\" content=\"IE=10\" />\r\n<meta name=\"keywords\" content=\"\" />\r\n<meta name=\"description\" content=\"\">\r\n<meta name=\"viewport\" content=\"width=device-width, initial-scale=1, maximum-scale=1\" />\r\n<meta name=\"robots\" content=\"index, follow\">\r\n<link rel=\"canonical\" />\r\n\r\n<meta property=\"og:t"
+    },
+    {
+      "url": "https://www.taasuka.gov.il/sb/JobsCSS.css.v639169481839806475",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/css",
+      "byteSize": 3170,
+      "bodySample": "/* Jobs */\r\n.page-title,\r\n#search-results-container {\r\n    max-width: 100%;\r\n    margin: 0 auto;\r\n    box-sizing: border-box;\r\n}\r\n\r\n/* Fix error message position on datepicker values */\r\n.position-relative {\r\n    position: relative;\r\n}\r\n\r\n.position-absolute {\r\n    position: absolute;\r\n    top: 100%;\r\n    left: 0;\r\n    width: 100%;\r\n    margin-top: 0.25rem;\r\n    z-index: 1;\r\n}\r\n\r\n.enddate-container.has-error {\r\n    margin-top: 50px;\r\n}\r\n\r\n.button-container.has-error {\r\n    margin-top: 50px;\r\n}\r\n\r\n@media print {\r\n\t.jobTools {\r\n\t\tdisplay: none !important;\r\n\t}\r\n\r\n\t.backToJobsList {\r\n\t\tdisplay: non"
+    },
+    {
+      "url": "https://www.taasuka.gov.il/sb/AccessibilityPluginJS.js.v639169481839806475",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript",
+      "byteSize": 885,
+      "bodySample": "window.interdeal={get sitekey(){return server_equalWebSiteKey},get domains(){return{js:\"https://cdn.nagich.co.il/\",acc:\"https://access.nagich.co.il/\"}},Position:\"right\",Menulang:\"HE\",draggable:!0,btnStyle:{vPosition:[\"50%\",\"50%\"],margin:[\"0\",\"0\"],scale:[\"0.5\",\"0.5\"],color:{main:\"#142b61\",second:\"#ffffff\"},icon:{outline:!0,outlineColor:\"#ffffff\",type:11,shape:\"circle\"}}},function(doc,head,body){var coreCall=doc.createElement(\"script\");coreCall.src=interdeal.domains.js+\"core/5.1.13/accessibility.js\";coreCall.defer=!0;coreCall.integrity=\"sha512-70/AbMe6C9H3r5hjsQleJEY4y5l9ykt4WYSgyZj/WjpY/ord/26L"
+    },
+    {
+      "url": "https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/css; charset=utf-8",
+      "byteSize": 5282,
+      "bodySample": "/* arabic */\n@font-face {\n  font-family: 'Rubik';\n  font-style: italic;\n  font-weight: 300 900;\n  font-display: swap;\n  src: url(https://fonts.gstatic.com/s/rubik/v31/iJWEBXyIfDnIV7nEnXu61E_c5IhGzg.woff2) format('woff2');\n  unicode-range: U+0600-06FF, U+0750-077F, U+0870-088E, U+0890-0891, U+0897-08E1, U+08E3-08FF, U+200C-200E, U+2010-2011, U+204F, U+2E41, U+FB50-FDFF, U+FE70-FE74, U+FE76-FEFC, U+102E0-102FB, U+10E60-10E7E, U+10EC2-10EC4, U+10EFC-10EFF, U+1EE00-1EE03, U+1EE05-1EE1F, U+1EE21-1EE22, U+1EE24, U+1EE27, U+1EE29-1EE32, U+1EE34-1EE37, U+1EE39, U+1EE3B, U+1EE42, U+1EE47, U+1EE49, U+1E"
+    },
+    {
+      "url": "https://www.taasuka.gov.il/sb/MasterSiteJS.js.v639169481839806475",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript",
+      "byteSize": 13696,
+      "bodySample": "$(function(){$(\"header .navbar-toggler:visible\").length&&($(\".mega-menu\").each(function(i,e){$(e).find(\"h6\").each(function(ih,mh){$(mh).wrap('<a href=\"#\"/>')});$(e).find(\"div.col:not(.row-cols-lg-4)\").each(function(ic,mc){$(mc).wrapInner(\"<li/>\").contents().unwrap().appendTo($(e))});$(e).removeClass(\"mega-menu\")}),$(\".has-mega-menu li.row\").remove());$(\"#main-menu\").smartmenus({subMenusSubOffsetX:1,subMenusSubOffsetY:-8,collapsibleBehavior:\"accordion\"});$(\".has-submenu\").each(function(){var pathName=window.location.pathname.toLowerCase(),navLink=$(this).attr(\"href\").toLowerCase();pathName.inde"
+    },
+    {
+      "url": "https://www.taasuka.gov.il/sb/JobsJS.js.v639169481839806475",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript",
+      "byteSize": 49815,
+      "bodySample": "Taasuka.Forms=Object.freeze({checkValid:function(formId){var form=$(\"#\"+formId);return form.length&&form.valid()?!0:!1},printForm:function(formId){if(Taasuka.Forms.checkValid(formId))window.print();else{Taasuka.Utilities.scrollToError();var fieldToFocus=$(\".field-validation-error\").first().prev(\"input, select, textarea\");fieldToFocus.length>0&&fieldToFocus.focus()}},\"continue\":function(formId){Taasuka.Forms.checkValid(formId)},CheckForm:function(){\"use strict\";var form=document.querySelector(\"form\");form.addEventListener(\"submit\",function(event){event.preventDefault();$(form).valid()?form.subm"
+    },
+    {
+      "url": "https://www.taasuka.gov.il/sb/GlobalSearchJS.js.v639169481839806475",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript",
+      "byteSize": 3103,
+      "bodySample": "function validateInput(value){if(!value)return\"\";return/^[\\p{L}0-9\\s'\"()\\/\\\\,.\\-_]+$/u.test(value)?\"\":globalSearchValidationErrorMessage}function showValidationError(message){var $errorDiv=$(\"#searchInputError\"),$input=$(\".input-group .form-control\");$errorDiv.length&&$input.length&&(message?($errorDiv.text(message).show(),$input.attr(\"aria-invalid\",\"true\")):($errorDiv.text(\"\").hide(),$input.removeAttr(\"aria-invalid\")))}$(\"#globalSearchButton\").click(function(event){var value;event.preventDefault();value=$(\"#generalSearch\").val();console.log(\"Input value:\",value);var baseUrl=globalSearchAbsolu"
+    },
+    {
+      "url": "https://www.taasuka.gov.il/sb/FormLoginJS.js.v639169481839806475",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript",
+      "byteSize": 8168,
+      "bodySample": "Taasuka.FormLogin={Page_Init:function(){const utilities=Taasuka.Utilities,forms=Taasuka.Forms,SERVER_ERROR_OTP_RESEND_COOLDOWN=\"MembershipError:ApplicantLogin_OtpResendCooldown\",SERVER_ERROR_OTP_MAX_RESEND_REQUESTS=\"MembershipError:ApplicantLogin_OtpResendLimit\",modal=$(\"#verificationModal\"),RESPONSE_STATUS_REQUIRE_LOGIN_UPDATE=\"require_login_update\",RESPONSE_STATUS_REQUIRE_REGISTRATION_UPDATE=\"require_registration_update\",UPDATE_REGISTER_FORM_URL=siteLanguage===server_arIL?\"/ar/applicants/formregisterupdate/?isRegisterForm=0\":\"/applicants/formregisterupdate/?isRegisterForm=0\";$(\"#verification"
+    },
+    {
+      "url": "https://www.taasuka.gov.il/sb/PersonalZoneMyProfileJS.js.v639169481839806475",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript",
+      "byteSize": 30974,
+      "bodySample": "Taasuka.PersonalZone_MyProfile={isEmailVerificationInProgress:!1,isPhoneVerificationInProgress:!1,isValidationBypassed:!1,Page_Init:function(){function showErrorModal(){$(\"#verificationModal\").modal(\"hide\");$(\"#errorModal-2\").modal(\"show\")}function addRule(selector,rule,message){$(selector).rules(\"add\",{required:rule,messages:{required:message}})}function removeRule(selector,rule){$(selector).rules(\"remove\",rule)}function updateRequiredFields(mandatoryMeansOfCommunication){switch(mandatoryMeansOfCommunication){case constants.COMMUNICATION_TYPE_HOME_PHONE.toString():addRule(\"#PhoneNumber\",!0,se"
+    },
+    {
+      "url": "https://www.google.com/recaptcha/api.js?render=6LcvH3QrAAAAAEN-Lh3RL6fETyPea8ngvx06mtiT&hl=he",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8",
+      "byteSize": 1582,
+      "bodySample": "/* PLEASE DO NOT COPY AND PASTE THIS CODE. */(function(){var w=window,C='___grecaptcha_cfg',cfg=w[C]=w[C]||{},N='grecaptcha';var gr=w[N]=w[N]||{};gr.ready=gr.ready||function(f){(cfg['fns']=cfg['fns']||[]).push(f);};w['__recaptcha_api']='https://www.google.com/recaptcha/api2/';(cfg['render']=cfg['render']||[]).push('6LcvH3QrAAAAAEN-Lh3RL6fETyPea8ngvx06mtiT');(cfg['anchor-ms']=cfg['anchor-ms']||[]).push(20000);(cfg['execute-ms']=cfg['execute-ms']||[]).push(30000);w['__google_recaptcha_client']=true;var d=document,po=d.createElement('script');po.type='text/javascript';po.async=true; po.charset='u"
+    },
+    {
+      "url": "https://static.addtoany.com/menu/page.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript",
+      "byteSize": 3457,
+      "bodySample": "!function(i,r){function o(){}var n,e,t,c,a,d,l,s,u,f,p,y,m,v,h,_,g,E,k,S=\"addtoany\",b=\".bycdb5qo\",L=i.head;\"function\"==typeof[].indexOf&&L&&(r.a2a=r.a2a||{},n=r.a2a_config=r.a2a_config||{},_=(e=i.currentScript instanceof HTMLScriptElement?i.currentScript:null)&&e.src?e.src:\"\",t=e&&e.nonce?e.nonce:null,c=r.a2a.nonce=function(e){t&&e.setAttribute(\"nonce\",t)},a=e&&!e.async&&!e.defer,NodeList&&NodeList.prototype.forEach&&(r.a2a.init=function(e,t){void 0===t&&(t=n);var a=\":not([data-a2a-url]):not(.a2a_target)\";i.querySelectorAll(\".a2a_dd\"+a+\",.a2a_kit\"+a).forEach(function(e){e.matches(\".a2a_kit .a2"
+    },
+    {
+      "url": "https://cdn.nagich.co.il/core/5.1.13/accessibility.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript",
+      "byteSize": 46369,
+      "bodySample": "((y,e,a)=>{class t{#langDir=\"ltr\";constructor(){if(this.instance||y.a11y)return y.a11y;this.instance=y.a11y=this,y.version=this.version=\"5.1.13\",this.locale={},y.locale={},this.GetDefaultProp(),this.SetPolyfills(),this.setNativePrototypes(),this.AssignConst(\"isDev\",!0),this.AssignConst(\"SHOW_TIMEOUT\",400),y.Promise=window.INDPromise||window.Promise,this.isShadowRoot=!0,y.Event=this.Event=this.GetDefaultProp(\"Event\"),y.JSON=this.JSON=this.GetDefaultProp(\"JSON\"),y.Function=this.Function=this.GetDefaultProp(\"Function\"),this.domParser=new DOMParser,this.setConsts().then(()=>{1==y.nagichOnTop||0==y"
+    },
+    {
+      "url": "https://www.taasuka.gov.il/sb/OldMasterPluginsJS_he-IL.js.v639169481839806475",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript",
+      "byteSize": 597737,
+      "bodySample": "/*! jQuery v3.6.1 | (c) OpenJS Foundation and other contributors | jquery.org/license */\r\n!function(e,t){\"use strict\";\"object\"==typeof module&&\"object\"==typeof module.exports?module.exports=e.document?t(e,!0):function(e){if(!e.document)throw new Error(\"jQuery requires a window with a document\");return t(e)}:t(e)}(\"undefined\"!=typeof window?window:this,function(C,e){\"use strict\";var t=[],r=Object.getPrototypeOf,s=t.slice,g=t.flat?function(e){return t.flat.call(e)}:function(e){return t.concat.apply([],e)},u=t.push,i=t.indexOf,n={},o=n.toString,y=n.hasOwnProperty,a=y.toString,l=a.call(Object),v={"
+    },
+    {
+      "url": "https://static.addtoany.com/menu/modules/core.bycdb5qo.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript",
+      "byteSize": 72927,
+      "bodySample": "let t=\".bycdb5qo\",J=window,K=document,p=function(){},X=void 0;J.a2a_config=J.a2a_config||{};var e={localize:J.a2a_localize||{},static_server:J.a2a_config.static_server||\"https://static.addtoany.com/menu\",templates:{},native:X,onclick:2,orientation:X,track_links:X,track_links_key:\"\",callbacks:[],tracking_callback:X,add_services:!1,thanks:{},locale:X,no_3p:X,icon_color:X,color_main:X,color_bg:X,color_border:X,color_link_text:X,color_link_text_hover:X,counts:X,overlays:[]};let T={num_services:8,prioritize:X,exclude_services:X,custom_services:X,delay:0,show_menu:X,bookmarklet:X},B={linkmedia:X,lin"
+    },
+    {
+      "url": "https://cdn.nagich.co.il/assets/data/methods.json",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/json",
+      "byteSize": 3577,
+      "bodySample": "{\r\n    \"validMethods\" : {\r\n        \"soundreder\"\t\t: \"setNavigation\",\r\n        \"keyboard\"\t\t\t: \"setNavigation\",\r\n        \"smartnav\"\t\t\t: \"setNavigation\",\r\n        \"virtualKeyboard\"\t: \"setVirtualKeyboard\",\r\n        \"dictionary\"\t\t: \"setDictionary\",\r\n        \"textreader\"\t\t: \"setTextReader\",\r\n        \"textmagnifier\"\t\t: \"settextmagnifier\",\r\n        \"voicecmd\"\t\t\t: \"setVoiceCommands\",\r\n        \"epilepsy\"\t\t\t: \"setEpilepsy\",\r\n\r\n        \"customcolor\"\t\t: \"customcolorUpadate\",\r\n        \"monochrome\"\t\t: \"setColorScheme\",\r\n        \"blackwhite\"\t\t: \"setColorScheme\",\r\n        \"whiteblack\"\t\t: \"setColorScheme\",\r\n    "
+    },
+    {
+      "url": "https://www.gstatic.com/recaptcha/releases/ne1iDVwClkE7nKD3uA9Vqsvl/recaptcha__iw.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript",
+      "byteSize": 900432,
+      "bodySample": "(function(){/*\n\n Copyright The Closure Library Authors.\n SPDX-License-Identifier: Apache-2.0\n*/\n/*\n\n\n Copyright (c) 2015-2018 Google, Inc., Netflix, Inc., Microsoft Corp. and contributors\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the License.\n You may obtain a copy of the License at\n     http://www.apache.org/licenses/LICENSE-2.0\n Unless required by applicable law or agreed to in writing, software\n distributed under the License is distributed on an \"AS IS\" BASIS,\n WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either ex"
+    },
+    {
+      "url": "https://connect.facebook.net/en_US/fbevents.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/x-javascript; charset=utf-8",
+      "byteSize": 378758,
+      "bodySample": "/**\n* Copyright (c) 2017-present, Facebook, Inc. All rights reserved.\n*\n* You are hereby granted a non-exclusive, worldwide, royalty-free license to use,\n* copy, modify, and distribute this software in source code or binary form for use\n* in connection with the web services and APIs provided by Facebook.\n*\n* As with any software that integrates with the Facebook platform, your use of\n* this software is subject to the Facebook Platform Policy\n* [http://developers.facebook.com/policy/]. This copyright notice shall be\n* included in all copies or substantial portions of the software.\n*\n* THE SOFTW"
+    },
+    {
+      "url": "https://www.googletagmanager.com/gtm.js?id=GTM-TQP2BZD",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript; charset=UTF-8",
+      "byteSize": 669427,
+      "bodySample": "\n// Copyright 2012 Google Inc. All rights reserved.\n \n (function(w,g){w[g]=w[g]||{};\n w[g].e=function(s){return eval(s);};})(window,'google_tag_manager');\n \n(function(){\n\nvar data = {\n\"resource\": {\n  \"version\":\"106\",\n  \n  \"macros\":[{\"function\":\"__v\",\"vtp_name\":\"gtm.elementClasses\",\"vtp_dataLayerVersion\":1},{\"function\":\"__v\",\"vtp_name\":\"gtm.elementUrl\",\"vtp_dataLayerVersion\":1},{\"function\":\"__e\"},{\"function\":\"__v\",\"vtp_name\":\"gtm.triggers\",\"vtp_dataLayerVersion\":2,\"vtp_setDefaultValue\":true,\"vtp_defaultValue\":\"\"},{\"function\":\"__u\",\"vtp_component\":\"URL\",\"vtp_enableMultiQueryKeys\":false,\"vtp_enab"
+    },
+    {
+      "url": "https://cdn.nagich.co.il/assets/data/lang.json",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/json",
+      "byteSize": 1149,
+      "bodySample": "[\n    \"af\",\n    \"am\",\n    \"ar\",\n    \"az\",\n    \"be\",\n    \"bg\",\n    \"bn\",\n    \"bs\",\n    \"ca\",\n    \"co\",\n    \"cs\",\n    \"cy\",\n    \"da\",\n    \"de\",\n    \"el\",\n    \"en\",\n    \"en-AU\",\n    \"en-CA\",\n    \"en-GB\",\n    \"en-ZA\",\n    \"eo\",\n    \"es\",\n    \"es-MX\",\n    \"et\",\n    \"eu\",\n    \"fa\",\n    \"fi\",\n    \"fr\",\n    \"fr-CA\",\n    \"fy\",\n    \"ga\",\n    \"gd\",\n    \"gl\",\n    \"gu\",\n    \"ha\",\n    \"he\",\n    \"hi\",\n    \"hr\",\n    \"hu\",\n    \"hy\",\n    \"id\",\n    \"ig\",\n    \"is\",\n    \"it\",\n    \"ja\",\n    \"ka\",\n    \"kk\",\n    \"km\",\n    \"kn\",\n    \"ko\",\n    \"ko\",\n    \"ku\",\n    \"ky\",\n    \"lb\",\n    \"lo\",\n    \"lt\",\n    \"lv\",\n    \"mg\",\n"
+    },
+    {
+      "url": "https://static.addtoany.com/menu/locale/he.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript",
+      "byteSize": 2323,
+      "bodySample": "// he\r\n// Hebrew / עברית\r\na2a_localize = {\r\n\tShare: \"&#1513;&#1514;&#1507;\",\r\n\tSave: \"&#1513;&#1502;&#1493;&#1512;\",\r\n\tSubscribe: \"&#1492;&#1512;&#1513;&#1501; &#1500;&#1506;&#1497;&#1491;&#1499;&#1493;&#1504;&#1497;&#1501;\",\r\n\tEmail: \"&#1488;&#1497;&#1502;&#1497;&#1497;&#1500;\",\r\n\tBookmark: \"&#1492;&#1493;&#1505;&#1507; &#1500;&#1502;&#1493;&#1506;&#1491;&#1508;&#1497;&#1501;\",\r\n\tShowAll: \"&#1492;&#1512;&#1488;&#1492; &#1492;&#1499;&#1500;\",\r\n\tShowLess: \"&#1492;&#1512;&#1488;&#1492; &#1508;&#1495;&#1493;&#1514;\",\r\n\tFindServices: \"&#1502;&#1510;&#1488; &#1513;&#1497;&#1512;&#1493;&#1514;/"
+    },
+    {
+      "url": "https://static.addtoany.com/menu/svg/icons/email.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript",
+      "byteSize": 415,
+      "bodySample": "!function(c){\"object\"==typeof c&&\"object\"==typeof c.svg&&\"function\"==typeof c.svg.add&&c.svg.add({email:'<path fill=\"#fff\" d=\"M27 21.775v-9.9s-10.01 6.985-10.982 7.348C15.058 18.878 5 11.875 5 11.875v9.9c0 1.375.293 1.65 1.65 1.65h18.7c1.393 0 1.65-.242 1.65-1.65m-.017-11.841c0-1.002-.291-1.359-1.633-1.359H6.65c-1.38 0-1.65.429-1.65 1.43l.016.154s9.939 6.842 11 7.216C17.14 16.941 27 10.005 27 10.005z\"/>'})}(a2a)"
+    },
+    {
+      "url": "https://static.addtoany.com/menu/svg/icons/linkedin.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript",
+      "byteSize": 435,
+      "bodySample": "!function(c){\"object\"==typeof c&&\"object\"==typeof c.svg&&\"function\"==typeof c.svg.add&&c.svg.add({linkedin:'<path fill=\"#FFF\" d=\"M6.227 12.61h4.19v13.48h-4.19zm2.095-6.7a2.43 2.43 0 0 1 0 4.86c-1.344 0-2.428-1.09-2.428-2.43s1.084-2.43 2.428-2.43m4.72 6.7h4.02v1.84h.058c.56-1.058 1.927-2.176 3.965-2.176 4.238 0 5.02 2.792 5.02 6.42v7.395h-4.183v-6.56c0-1.564-.03-3.574-2.178-3.574-2.18 0-2.514 1.7-2.514 3.46v6.668h-4.187z\"/>'})}(a2a)"
+    },
+    {
+      "url": "https://static.addtoany.com/menu/svg/icons/facebook.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript",
+      "byteSize": 429,
+      "bodySample": "!function(c){\"object\"==typeof c&&\"object\"==typeof c.svg&&\"function\"==typeof c.svg.add&&c.svg.add({facebook:'<path fill=\"#fff\" d=\"M28 16c0-6.627-5.373-12-12-12S4 9.373 4 16c0 5.628 3.875 10.35 9.101 11.647v-7.98h-2.474V16H13.1v-1.58c0-4.085 1.849-5.978 5.859-5.978.76 0 2.072.15 2.608.298v3.325c-.283-.03-.775-.045-1.386-.045-1.967 0-2.728.745-2.728 2.683V16h3.92l-.673 3.667h-3.247v8.245C23.395 27.195 28 22.135 28 16\"/>'})}(a2a)"
+    },
+    {
+      "url": "https://static.addtoany.com/menu/svg/icons/whatsapp.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript",
+      "byteSize": 1108,
+      "bodySample": "!function(c){\"object\"==typeof c&&\"object\"==typeof c.svg&&\"function\"==typeof c.svg.add&&c.svg.add({whatsapp:'<path fill=\"#FFF\" fill-rule=\"evenodd\" d=\"M16.21 4.41C9.973 4.41 4.917 9.465 4.917 15.7c0 2.134.592 4.13 1.62 5.832L4.5 27.59l6.25-2.002a11.24 11.24 0 0 0 5.46 1.404c6.234 0 11.29-5.055 11.29-11.29 0-6.237-5.056-11.292-11.29-11.292m0 20.69c-1.91 0-3.69-.57-5.173-1.553l-3.61 1.156 1.173-3.49a9.35 9.35 0 0 1-1.79-5.512c0-5.18 4.217-9.4 9.4-9.4s9.397 4.22 9.397 9.4c0 5.188-4.214 9.4-9.398 9.4zm5.293-6.832c-.284-.155-1.673-.906-1.934-1.012-.265-.106-.455-.16-.658.12s-.78.91-.954 1.096c-.176.1"
+    },
+    {
+      "url": "https://static.addtoany.com/menu/svg/icons/twitter.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript",
+      "byteSize": 645,
+      "bodySample": "!function(c){\"object\"==typeof c&&\"object\"==typeof c.svg&&\"function\"==typeof c.svg.add&&c.svg.add({twitter:'<path fill=\"#FFF\" d=\"M28 8.557a10 10 0 0 1-2.828.775 4.93 4.93 0 0 0 2.166-2.725 9.7 9.7 0 0 1-3.13 1.194 4.92 4.92 0 0 0-3.593-1.55 4.924 4.924 0 0 0-4.794 6.049c-4.09-.21-7.72-2.17-10.15-5.15a4.94 4.94 0 0 0-.665 2.477c0 1.71.87 3.214 2.19 4.1a5 5 0 0 1-2.23-.616v.06c0 2.39 1.7 4.38 3.952 4.83-.414.115-.85.174-1.297.174q-.476-.001-.928-.086a4.935 4.935 0 0 0 4.6 3.42 9.9 9.9 0 0 1-6.114 2.107q-.597 0-1.175-.068a13.95 13.95 0 0 0 7.55 2.213c9.056 0 14.01-7.507 14.01-14.013q0-.32-.015-.63"
+    },
+    {
+      "url": "https://cdn.nagich.co.il/assets/scripts/classManager.src.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript",
+      "byteSize": 5578,
+      "bodySample": "(function(interdeal){\r\n\tinterdeal.ClassManager = class{\r\n\t\tconstructor(){\r\n\t\t\tif(!this.isInit){\r\n\t\t\t\tthis.bodyDataSet    =  document.body.dataset;\r\n\t\t\t\tthis.bodyClasslist  =  document.body.classList;\r\n\t\t\t\tthis.INDWrapClasslist  =  interdeal.INDWrap.classList;\r\n\t\t\t\tthis.INDWrapDataset  =  interdeal.INDWrap.dataset;\r\n\t\t\t\tthis.docDataset     = document.documentElement.dataset;\r\n\t\t\t\tthis.excludes = ['indRatio'];\r\n\t\t\t\tthis.indREGEX = /^ind/g;\r\n\t\t\t\tthis.storage = {\r\n\t\t\t\t\tdoc  : [],\r\n\t\t\t\t\tbody : []\r\n\t\t\t\t}\r\n\t\t\t\tthis.init();\r\n\t\t\t}\r\n\t\t\treturn this;\r\n\t\t}\r\n\r\n\t\t/////////////////////////////////////////////"
+    },
+    {
+      "url": "https://cdn.nagich.co.il/assets/locale/he.json",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/json",
+      "byteSize": 1387,
+      "bodySample": "{\n  \"closeBtn\": \"סגור\",\n  \"a11yBtn\": {\n    \"txt\" : \"נגישות\",\n    \"tip\" : \"פְּתַח תַּפְרִיט נְגִישׁוּת.\",\n    \"drag\" : \"כַּפְתּוֹר נְגִישׁוּת\"\n  },\n  \"blindNotif\": {\n    \"note\" : \"שִׂים לֵב: בְּאֲתָר זֶה מֻפְעֶלֶת מַעֲרֶכֶת נָגִישׁ בִּקְלִיק הַמְּסַיַּעַת לִנְגִישׁוּת הָאֲתָר.\",\n    \"keys\" : \"לְחַץ Control-F11 לְהַתְאָמַת הָאֲתָר לְעִוְורִים הַמִּשְׁתַּמְּשִׁים בְּתוֹכְנַת קוֹרֵא־מָס�"
+    },
+    {
+      "url": "https://www.google.com/recaptcha/api2/anchor?ar=1&k=6LcvH3QrAAAAAEN-Lh3RL6fETyPea8ngvx06mtiT&co=aHR0cHM6Ly93d3cudGFhc3VrYS5nb3YuaWw6NDQz&hl=iw&v=ne1iDVwClkE7nKD3uA9Vqsvl&size=invisible&anchor-ms=20000&execute-ms=30000&cb=p5m6curnelr9",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 55365,
+      "bodySample": "<!DOCTYPE HTML><html dir=\"rtl\" lang=\"iw\"><head><meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\">\n<meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n<title>reCAPTCHA</title>\n<style type=\"text/css\">\n/* cyrillic-ext */\n@font-face {\n  font-family: 'Roboto';\n  font-style: normal;\n  font-weight: 400;\n  font-stretch: 100%;\n  src: url(//fonts.gstatic.com/s/roboto/v48/KFO7CnqEu92Fr1ME7kSn66aGLdTylUAMa3GUBHMdazTgWw.woff2) format('woff2');\n  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;\n}\n/* cyrillic */\n@font-face {\n  font-family: 'Roboto';\n "
+    },
+    {
+      "url": "https://connect.facebook.net/signals/config/1561316587495986?v=2.9.338&r=stable&domain=www.taasuka.gov.il&hme=ed806287581422089c496fd485507306546b2937977788da80b80247d3e2e94b&ex_m=105%2C208%2C156%2C22%2C73%2C74%2C147%2C69%2C68%2C11%2C165%2C91%2C16%2C139%2C128%2C39%2C76%2C79%2C135%2C161%2C167%2C8%2C4%2C5%2C7%2C6%2C3%2C92%2C102%2C168%2C173%2C222%2C30%2C75%2C234%2C233%2C232%2C23%2C33%2C55%2C104%2C61%2C10%2C64%2C98%2C99%2C100%2C106%2C131%2C31%2C29%2C133%2C134%2C130%2C129%2C157%2C77%2C160%2C158%2C159%2C50%2C60%2C124%2C15%2C164%2C45%2C267%2C268%2C266%2C26%2C27%2C28%2C48%2C148%2C78%2C113%2C18%2C20%2C44%2C40%2C42%2C41%2C84%2C93%2C97%2C111%2C146%2C149%2C46%2C112%2C24%2C21%2C120%2C70%2C36%2C151%2C150%2C152%2C143%2C141%2C25%2C35%2C59%2C110%2C163%2C71%2C17%2C154%2C115%2C82%2C67%2C19%2C86%2C87%2C117%2C85%2C137%2C136%2C140%2C162%2C34%2C281%2C297%2C215%2C204%2C62%2C205%2C203%2C300%2C291%2C52%2C216%2C108%2C132%2C81%2C122%2C54%2C47%2C49%2C114%2C121%2C127%2C126%2C58%2C65%2C63%2C153%2C116%2C37%2C32%2C53%2C56%2C101%2C166%2C1%2C125%2C14%2C123%2C12%2C2%2C57%2C94%2C66%2C119%2C90%2C89%2C169%2C170%2C95%2C96%2C9%2C103%2C51%2C144%2C88%2C80%2C72%2C118%2C107%2C43%2C145%2C0%2C83%2C138%2C142%2C155%2C38%2C109%2C13%2C171",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/x-javascript; charset=utf-8",
+      "byteSize": 247776,
+      "bodySample": "/**\n* Copyright (c) 2017-present, Facebook, Inc. All rights reserved.\n*\n* You are hereby granted a non-exclusive, worldwide, royalty-free license to use,\n* copy, modify, and distribute this software in source code or binary form for use\n* in connection with the web services and APIs provided by Facebook.\n*\n* As with any software that integrates with the Facebook platform, your use of\n* this software is subject to the Facebook Platform Policy\n* [http://developers.facebook.com/policy/]. This copyright notice shall be\n* included in all copies or substantial portions of the software.\n*\n* THE SOFTW"
+    },
+    {
+      "url": "https://www.gstatic.com/recaptcha/releases/ne1iDVwClkE7nKD3uA9Vqsvl/recaptcha__iw.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript",
+      "byteSize": 900432,
+      "bodySample": "(function(){/*\n\n Copyright The Closure Library Authors.\n SPDX-License-Identifier: Apache-2.0\n*/\n/*\n\n\n Copyright (c) 2015-2018 Google, Inc., Netflix, Inc., Microsoft Corp. and contributors\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the License.\n You may obtain a copy of the License at\n     http://www.apache.org/licenses/LICENSE-2.0\n Unless required by applicable law or agreed to in writing, software\n distributed under the License is distributed on an \"AS IS\" BASIS,\n WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either ex"
+    },
+    {
+      "url": "https://d2xerlamkztbb1.cloudfront.net/19762570-86a6/5/widget.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript",
+      "byteSize": 736,
+      "bodySample": "\n                        \nvar _zaVerWidget = 5;\n(function() {\n  var elem = document.createElement(\"script\");elem.type = \"text/javascript\";elem.async = true;\n  elem.src = ('https:' == document.location.protocol ? 'https://d221oziut8gs4d.cloudfront.net/widget.js?id=19762570&secure&'+Math.round((new Date()).getTime()/1000/180) : 'http://apicdn.zoomanalytics.co/widget.js?id=19762570&'+Math.round((new Date()).getTime()/1000/180));\nif (window.location.search.indexOf(\"__za\") != -1 || window.location.search.indexOf(\"_za_\") != -1)\n    elem.src += '&q='+encodeURIComponent(window.location.href);\nvar ssc "
+    },
+    {
+      "url": "https://d221oziut8gs4d.cloudfront.net/widget.js?id=19762570&secure&9896598",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript; charset=UTF-8",
+      "byteSize": 4552,
+      "bodySample": "var __ZA_ver_all='1.js487.www707a.extjs63i.wid420a.land83';\nvar __ZA_cidt='+vmjGCwjL6YwR5rT65L2BLkDG9760vwasvOh6NPGcT8=';\nvar __ZA_status_vars='eyJzZXR1cF9jb21wbGV0ZSI6IjEiLCJkeW5hbWljIjoxLCJhbGxvd19zZXR1cF9jb21wbGV0ZSI6IjEiLCJzdWJkb21haW5zIjoiMCIsIm5vX2NkX2Nvb2tpZXMiOiIwIiwiY2FtcGFpZ25zX2FjdGl2ZSI6IjEiLCJmZWF0dXJlcyI6eyJpbl9wYWdlIjoiMSJ9LCJnZW9faXAiOiIwIiwiemUiOiIxIiwiY2FtcGFpZ25zIjp7ImdGb250cyI6W3sibmFtZSI6IkZvbnQgQXdlc29tZSIsImhyZWYiOiJodHRwczpcL1wvdXNlLmZvbnRhd2Vzb21lLmNvbVwvcmVsZWFzZXNcL3Y1LjAuOVwvY3NzXC9hbGwuY3NzIiwiYWN0aXZlIjoiMSIsInByb2R1Y3Rpb24iOiIwIn0seyJuYW1lIjoiYXJpYWw7IGZvbnQtc2l6"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F&rl=&if=false&ts=1781387596388&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=0&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387596268&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&expv2[7]=pt1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.googletagmanager.com/gtag/js?id=G-KT13B9B2N0&cx=c&gtm=4e66a1h1",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript; charset=UTF-8",
+      "byteSize": 553517,
+      "bodySample": "\n// Copyright 2012 Google Inc. All rights reserved.\n \n(function(){\n\nvar data = {\n\"resource\": {\n  \"version\":\"1\",\n  \n  \"macros\":[{\"function\":\"__e\"},{\"function\":\"__c\",\"vtp_value\":\"google.co.il\"},{\"function\":\"__c\",\"vtp_value\":0}],\n  \"tags\":[{\"function\":\"__ogt_1p_data_v2\",\"priority\":15,\"vtp_isAutoEnabled\":true,\"vtp_autoPhoneEnabled\":true,\"vtp_autoCollectExclusionSelectors\":[\"list\",[\"map\",\"exclusionSelector\",\"\"]],\"vtp_isEnabled\":true,\"vtp_autoAddressEnabled\":true,\"vtp_autoEmailEnabled\":true,\"vtp_isAutoCollectPiiEnabledFlag\":true,\"tag_id\":4},{\"function\":\"__ccd_ga_first\",\"priority\":14,\"vtp_instanceDes"
+    },
+    {
+      "url": "https://www.googletagmanager.com/gtag/js?id=G-ZX7F2NZ9T9&cx=c&gtm=4e66a1h1",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript; charset=UTF-8",
+      "byteSize": 553537,
+      "bodySample": "\n// Copyright 2012 Google Inc. All rights reserved.\n \n(function(){\n\nvar data = {\n\"resource\": {\n  \"version\":\"1\",\n  \n  \"macros\":[{\"function\":\"__e\"},{\"function\":\"__c\",\"vtp_value\":\"google.co.il\"},{\"function\":\"__c\",\"vtp_value\":0}],\n  \"tags\":[{\"function\":\"__ogt_1p_data_v2\",\"priority\":15,\"vtp_isAutoEnabled\":true,\"vtp_autoPhoneEnabled\":true,\"vtp_autoCollectExclusionSelectors\":[\"list\",[\"map\",\"exclusionSelector\",\"\"]],\"vtp_isEnabled\":true,\"vtp_autoAddressEnabled\":true,\"vtp_autoEmailEnabled\":true,\"vtp_isAutoCollectPiiEnabledFlag\":true,\"tag_id\":4},{\"function\":\"__ccd_ga_first\",\"priority\":14,\"vtp_instanceDes"
+    },
+    {
+      "url": "https://www.googletagmanager.com/gtag/js?id=G-VZ1PH13VYK&cx=c&gtm=4e66a1h1",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript; charset=UTF-8",
+      "byteSize": 553537,
+      "bodySample": "\n// Copyright 2012 Google Inc. All rights reserved.\n \n(function(){\n\nvar data = {\n\"resource\": {\n  \"version\":\"1\",\n  \n  \"macros\":[{\"function\":\"__e\"},{\"function\":\"__c\",\"vtp_value\":\"google.co.il\"},{\"function\":\"__c\",\"vtp_value\":0}],\n  \"tags\":[{\"function\":\"__ogt_1p_data_v2\",\"priority\":15,\"vtp_isAutoEnabled\":true,\"vtp_autoPhoneEnabled\":true,\"vtp_autoCollectExclusionSelectors\":[\"list\",[\"map\",\"exclusionSelector\",\"\"]],\"vtp_isEnabled\":true,\"vtp_autoAddressEnabled\":true,\"vtp_autoEmailEnabled\":true,\"vtp_isAutoCollectPiiEnabledFlag\":true,\"tag_id\":4},{\"function\":\"__ccd_ga_first\",\"priority\":14,\"vtp_instanceDes"
+    },
+    {
+      "url": "https://www.googletagmanager.com/gtag/js?id=G-K30EP8Y86E&cx=c&gtm=4e66a1h1",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript; charset=UTF-8",
+      "byteSize": 588630,
+      "bodySample": "\n// Copyright 2012 Google Inc. All rights reserved.\n \n(function(){\n\nvar data = {\n\"resource\": {\n  \"version\":\"1\",\n  \n  \"macros\":[{\"function\":\"__e\"},{\"function\":\"__c\",\"vtp_value\":\"google.co.il\"},{\"function\":\"__c\",\"vtp_value\":0}],\n  \"tags\":[{\"function\":\"__ogt_1p_data_v2\",\"priority\":41,\"vtp_isAutoEnabled\":true,\"vtp_autoPhoneEnabled\":true,\"vtp_autoCollectExclusionSelectors\":[\"list\",[\"map\",\"exclusionSelector\",\"\"]],\"vtp_isEnabled\":true,\"vtp_autoAddressEnabled\":true,\"vtp_autoEmailEnabled\":true,\"vtp_isAutoCollectPiiEnabledFlag\":true,\"tag_id\":4},{\"function\":\"__ccd_ga_first\",\"priority\":40,\"vtp_instanceDes"
+    },
+    {
+      "url": "https://www.google.com/recaptcha/api2/webworker.js?hl=iw&v=ne1iDVwClkE7nKD3uA9Vqsvl",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript; charset=utf-8",
+      "byteSize": 102,
+      "bodySample": "importScripts('https://www.gstatic.com/recaptcha/releases/ne1iDVwClkE7nKD3uA9Vqsvl/recaptcha__iw.js');"
+    },
+    {
+      "url": "https://widgetver.zoomengage.com/js/za_widget_420a.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript",
+      "byteSize": 443647,
+      "bodySample": "/*\n @preserve\n jQuery JavaScript Library v1.8.2\n http://jquery.com/\n\n Includes Sizzle.js\n http://sizzlejs.com/\n\n Copyright 2012 jQuery Foundation and other contributors\n Released under the MIT license\n http://jquery.org/license\n\n Date: Thu Sep 20 2012 21:13:05 GMT-0400 (Eastern Daylight Time)\n @preserve Copyright 2012, Ben Lin (http://dreamerslab.com/)\n Licensed under the MIT License (LICENSE.txt).\n\n Version: 1.0.16\n\n Requires: jQuery >= 1.2.3\n @preserve\n The Final Countdown for jQuery v2.2.0 (http://hilios.github.io/jQuery.countdown/)\n Copyright (c) 2016 Edson Hilios\n\n Permission is hereby gr"
+    },
+    {
+      "url": "https://www.googletagmanager.com/gtag/js?id=G-NQRZ6BSETX&cx=c&gtm=4e66a1h1",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript; charset=UTF-8",
+      "byteSize": 553517,
+      "bodySample": "\n// Copyright 2012 Google Inc. All rights reserved.\n \n(function(){\n\nvar data = {\n\"resource\": {\n  \"version\":\"1\",\n  \n  \"macros\":[{\"function\":\"__e\"},{\"function\":\"__c\",\"vtp_value\":\"google.co.il\"},{\"function\":\"__c\",\"vtp_value\":0}],\n  \"tags\":[{\"function\":\"__ogt_1p_data_v2\",\"priority\":15,\"vtp_isAutoEnabled\":true,\"vtp_autoPhoneEnabled\":true,\"vtp_autoCollectExclusionSelectors\":[\"list\",[\"map\",\"exclusionSelector\",\"\"]],\"vtp_isEnabled\":true,\"vtp_autoAddressEnabled\":true,\"vtp_autoEmailEnabled\":true,\"vtp_isAutoCollectPiiEnabledFlag\":true,\"tag_id\":4},{\"function\":\"__ccd_ga_first\",\"priority\":14,\"vtp_instanceDes"
+    },
+    {
+      "url": "https://www.gstatic.com/recaptcha/releases/ne1iDVwClkE7nKD3uA9Vqsvl/recaptcha__iw.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript",
+      "byteSize": 900432,
+      "bodySample": "(function(){/*\n\n Copyright The Closure Library Authors.\n SPDX-License-Identifier: Apache-2.0\n*/\n/*\n\n\n Copyright (c) 2015-2018 Google, Inc., Netflix, Inc., Microsoft Corp. and contributors\n Licensed under the Apache License, Version 2.0 (the \"License\");\n you may not use this file except in compliance with the License.\n You may obtain a copy of the License at\n     http://www.apache.org/licenses/LICENSE-2.0\n Unless required by applicable law or agreed to in writing, software\n distributed under the License is distributed on an \"AS IS\" BASIS,\n WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either ex"
+    },
+    {
+      "url": "https://www.google.com/recaptcha/api2/reload?k=6LcvH3QrAAAAAEN-Lh3RL6fETyPea8ngvx06mtiT",
+      "method": "POST",
+      "status": 200,
+      "contentType": "application/json; charset=utf-8",
+      "byteSize": 2871,
+      "bodySample": ")]}'\n[\"rresp\",\"0cAFcWeA5al6_dEtpVGg2Dj2gxh_j_8Dw8OQO435gBrFlm22LyQl5CX7c3vuMkrIIdi2GDIKZTmAH83dFWC2OY3ddlrDHbiVL29NEq7usNFJn_tuUB_uPQLtllLtQtv8K69pNWauazJAZTUNtblF_W4lkLZzoSa0JWz0NVTHz6Xg7Ns1T5_0KVyhqLae_4urbPDuVPsm8eqM6rKnIjb45GIRwB1-VzyrYydMMlNYUgs8AnZf0wh2ll3lQLVJUEXP__Gl-XMiRF6qB_-B7pqtszoEdG_F5h1m5ocHJBCJ53vviIXL0-jZORKquUT1R7gA_3gX9UV_rZFY7PEVhVTamDSYNvAqyFidbYKLy4bMeH9kSZ3KaJS7cW-8_2sJg7sqYNHcq2CamvgR6yOYVSz6850Rq2JV7-L908-ngpHXJhex5ZngVWODdQJ5Ka9IZuXi9x0O6rWkLV7qNDuFssO4JU7rMoKmpcp--Wg2lW-m9cSh6M1BouuZgVC4qb8kQTO-cWgXM8FsDj-Xog-dj62O_g1hYNaCrnKfAb-Gr-UA5hHc-LAXQNlwdPy0iJa6Y642cbxVppmbd"
+    },
+    {
+      "url": "https://www.googletagmanager.com/gtag/destination?id=AW-859354872&cx=c&gtm=4e66a1h1",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript; charset=UTF-8",
+      "byteSize": 402959,
+      "bodySample": "\n// Copyright 2012 Google Inc. All rights reserved.\n \n(function(){\n\nvar data = {\n\"resource\": {\n  \"version\":\"1\",\n  \n  \"macros\":[{\"function\":\"__e\"}],\n  \"tags\":[{\"function\":\"__ogt_1p_data_v2\",\"priority\":3,\"vtp_isAutoEnabled\":true,\"vtp_autoCollectExclusionSelectors\":[\"list\",[\"map\",\"exclusionSelector\",\"\"]],\"vtp_isEnabled\":true,\"vtp_cityType\":\"CSS_SELECTOR\",\"vtp_manualEmailEnabled\":false,\"vtp_firstNameType\":\"CSS_SELECTOR\",\"vtp_countryType\":\"CSS_SELECTOR\",\"vtp_cityValue\":\"\",\"vtp_emailType\":\"CSS_SELECTOR\",\"vtp_regionType\":\"CSS_SELECTOR\",\"vtp_autoEmailEnabled\":true,\"vtp_postalCodeValue\":\"\",\"vtp_lastNam"
+    },
+    {
+      "url": "https://widgetapi.zoomengage.com/php/InitSessionApi.php?customerId=19762570&device=D&host=www.taasuka.gov.il&Referrer=Direct%2FUnknown&OriginalReferrer=Direct%2FUnknown&PrevVisits=%5B%22NA%22%5D&LocalTime=00%3A53&initBuckets=%5B%5B-330%2C-331%5D%2C%5B-63%2C-64%5D%5D&ua=Mozilla%2F5.0%20(Macintosh%3B%20Intel%20Mac%20OS%20X%2010_15_7)%20AppleWebKit%2F537.36%20(KHTML%2C%20like%20Gecko)%20Chrome%2F121.0%20Safari%2F537.36&tHost=taasuka.gov.il&getMapping&cidt=%2BvmjGCwjL6YwR5rT65L2BLkDG9760vwasvOh6NPGcT8%3D",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript; charset=UTF-8",
+      "byteSize": 259776,
+      "bodySample": "__ZA.initSessionCallback({\"sessionCode\":\"c5a83738a7982fc38f66841cf25aedaf\",\"sessionId\":45316446,\"dbwId\":\"1\",\"sendInterval\":5000,\"now\":1781387597,\"countryCode\":\"IL\",\"region\":\"HaDarom\",\"city\":\"Qiryat Gat\",\"isp\":\"Partner Communications Ltd.\",\"browser\":\"Chrome\",\"os\":\"Macintosh\",\"actionPairs\":\"[[-321,-596],[-322,-597],[-66,-175],[-380,-437],[-16,-18],[-24,-27],[-355,-377],[-598,-604],[-45,-46],[-53,\\\"-54\\\"],[-42,-43],[-330,-331],[-63,-64]]\",\"campaignsActive\":\"1\",\"ip\":\"87.70.164.127\",\"language\":\"HE\",\"mapping\":{\"capi\":[],\"getContentRequest\":null,\"co\":[],\"wizardActions\":[],\"mappingData\":[[-3,\"action_l"
+    },
+    {
+      "url": "https://widgetver.zoomengage.com/js/za_accessibility_420a.js",
+      "method": "GET",
+      "status": 200,
+      "contentType": "application/javascript",
+      "byteSize": 29856,
+      "bodySample": "var focus_clr=__ZA.statusVars.campaigns.accessibility.fcs_clr||\"#81d9f7\",focus_width=__ZA.statusVars.campaigns.accessibility.fcs_width||\"1\",focus_style=__ZA.statusVars.campaigns.accessibility.fcs_style||\"dotted\",__ZA_Accessibility_Style=\"[za_accessibility=true]:focus {     border: \"+focus_width+\"px \"+focus_style+\" \"+focus_clr+\" !important; } /* za_reset_access MUST come after za_reset so it overrides it */  video.za_reset_access:focus,button.za_reset_access:focus,input.za_reset.za_reset_access:focus,select.za_reset.za_reset_access:focus,a.za_reset.za_reset_access:focus, textarea.za_reset.za_re"
+    },
+    {
+      "url": "https://googleads.g.doubleclick.net/pagead/viewthroughconversion/859354872/?random=1781387597148&cv=11&fst=1781387597148&bg=ffffff&guid=ON&async=1&gtm=45be66a1h1z876234644za20gzb76234644zd76234644xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938465~115938468~119392697~119392705~119456239~119456247&u_w=1280&u_h=720&url=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F&rcb=17&frm=0&tiba=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=1352134102.1781387596&uaa=x86&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uamb=0&uam=&uap=macOS&uapv=10_15_7&uaw=0&_tu=CA&ept=9&rfmt=3&fmt=4",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript; charset=UTF-8",
+      "byteSize": 5541,
+      "bodySample": "(function(){var s = {};(function(){var k=typeof Object.defineProperties==\"function\"?Object.defineProperty:function(a,d,b){if(a==Array.prototype||a==Object.prototype)return a;a[d]=b.value;return a};function l(a){a=[\"object\"==typeof globalThis&&globalThis,a,\"object\"==typeof window&&window,\"object\"==typeof self&&self,\"object\"==typeof global&&global];for(var d=0;d<a.length;++d){var b=a[d];if(b&&b.Math==Math)return b}throw Error(\"Cannot find global object\");} var p=l(this),q=typeof Symbol===\"function\"&&typeof Symbol(\"x\")===\"symbol\",r={},t={};function u(a,d,b){if(!b||a!=null){b=t[d];if(b==null)retur"
+    },
+    {
+      "url": "https://www.google.com/pagead/1p-user-list/859354872/?random=1781387597148&cv=11&fst=1781384400000&bg=ffffff&guid=ON&async=1&gtm=45be66a1h1z876234644za20gzb76234644zd76234644xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938465~115938468~119392697~119392705~119456239~119456247&u_w=1280&u_h=720&url=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F&rcb=17&frm=0&tiba=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=1352134102.1781387596&uaa=x86&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uamb=0&uam=&uap=macOS&uapv=10_15_7&uaw=0&_tu=CA&ept=9&rfmt=3&fmt=3&is_vtc=1&cid=CAQS0wEAEQoqgfCls7zoKQVwjk9qhkkrpkKrpBbBQbJs7Bu1NNTorVGp4DbPyMEol05uG_7GxUsmSmyFtvceWjB0DWnFC1w8PEv1fcASIRZssOgiaG0rBNJzOex4Rb1_u1kWdHzRIIjShO6OrOGnsLftQs9K52wxO9FbdvF3fN8ZxorbVZIoiEDl0iMbk_tpyelS2kWgmgDHLUd76Rt3rKsT8uGtkY88fKMpGarHkAJE4YgZ7NzoL3az468eVfd25ebhokaYT_uzDhsaFP2oTzPpwXU78YMb&random=1139877105&rmt_tld=0&ipr=y",
+      "method": "GET",
+      "status": 200,
+      "contentType": "image/gif",
+      "byteSize": 42,
+      "bodySample": "GIF89a\u0001\u0000\u0001\u0000�\u0000\u0000\u0000\u0000\u0000���!�\u0004\u0001\u0000\u0000\u0000\u0000,\u0000\u0000\u0000\u0000\u0001\u0000\u0001\u0000\u0000\u0002\u0001D\u0000;"
+    },
+    {
+      "url": "https://www.google.co.il/pagead/1p-user-list/859354872/?random=1781387597148&cv=11&fst=1781384400000&bg=ffffff&guid=ON&async=1&gtm=45be66a1h1z876234644za20gzb76234644zd76234644xea&gcd=13l3l3l3l1l1&dma=0&tag_exp=115616986~115938465~115938468~119392697~119392705~119456239~119456247&u_w=1280&u_h=720&url=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F&rcb=17&frm=0&tiba=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&hn=www.googleadservices.com&npa=0&pscdl=noapi&auid=1352134102.1781387596&uaa=x86&uab=64&uafvl=Chromium%3B148.0.7778.96%7CHeadlessChrome%3B148.0.7778.96%7CNot%252FA)Brand%3B99.0.0.0&uamb=0&uam=&uap=macOS&uapv=10_15_7&uaw=0&_tu=CA&ept=9&rfmt=3&fmt=3&is_vtc=1&cid=CAQS0wEAEQoqgfCls7zoKQVwjk9qhkkrpkKrpBbBQbJs7Bu1NNTorVGp4DbPyMEol05uG_7GxUsmSmyFtvceWjB0DWnFC1w8PEv1fcASIRZssOgiaG0rBNJzOex4Rb1_u1kWdHzRIIjShO6OrOGnsLftQs9K52wxO9FbdvF3fN8ZxorbVZIoiEDl0iMbk_tpyelS2kWgmgDHLUd76Rt3rKsT8uGtkY88fKMpGarHkAJE4YgZ7NzoL3az468eVfd25ebhokaYT_uzDhsaFP2oTzPpwXU78YMb&random=1139877105&rmt_tld=1&ipr=y",
+      "method": "GET",
+      "status": 200,
+      "contentType": "image/gif",
+      "byteSize": 42,
+      "bodySample": "GIF89a\u0001\u0000\u0001\u0000�\u0000\u0000\u0000\u0000\u0000���!�\u0004\u0001\u0000\u0000\u0000\u0000,\u0000\u0000\u0000\u0000\u0001\u0000\u0001\u0000\u0000\u0002\u0001D\u0000;"
+    },
+    {
+      "url": "https://widgetapi.zoomengage.com/php/AddActionApi.php?customerId=19762570&sessionId=45316446&dbwId=1&sessionCode=c5a83738a7982fc38f66841cf25aedaf&actionsArray=%5B%5B1781387597%2C-3%2C%224751%22%2C%224752%22%2C1%2C%7B%22campaign_id%22%3A%2294838%22%2C%22shown%22%3A%22true%22%7D%5D%5D&actionPairs=[[-321,-596],[-322,-597],[-66,-175],[-380,-437],[-16,-18],[-24,-27],[-355,-377],[-598,-604],[-45,-46],[-53,%22-54%22],[-42,-43],[-330,-331],[-63,-64]]&cidt=%2BvmjGCwjL6YwR5rT65L2BLkDG9760vwasvOh6NPGcT8%3D",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript; charset=UTF-8",
+      "byteSize": 202,
+      "bodySample": "__ZA.addActionCallback({\"actionPairs\":\"[[-321,-596],[-322,-597],[-66,-175],[-380,-437],[-16,-18],[-24,-27],[-355,-377],[-598,-604],[-45,-46],[-53,\\\"-54\\\"],[-42,-43],[-330,-331],[-63,-64],[4751,4752]]\"})"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D2&rl=&if=false&ts=1781387598050&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=1&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387598048&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=2",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 173271,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://widgetapi.zoomengage.com/php/AddActionApi.php?customerId=19762570&sessionId=45316446&dbwId=1&sessionCode=c5a83738a7982fc38f66841cf25aedaf&actionsArray=%5B%5B1781387598%2C-3%2C%224748%22%2C%224749%22%2C1%2C%7B%22campaign_id%22%3A%2294837%22%2C%22shown%22%3A%22true%22%7D%5D%5D&actionPairs=[[-321,-596],[-322,-597],[-66,-175],[-380,-437],[-16,-18],[-24,-27],[-355,-377],[-598,-604],[-45,-46],[-53,%22-54%22],[-42,-43],[-330,-331],[-63,-64],[4751,4752]]&cidt=%2BvmjGCwjL6YwR5rT65L2BLkDG9760vwasvOh6NPGcT8%3D",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/javascript; charset=UTF-8",
+      "byteSize": 214,
+      "bodySample": "__ZA.addActionCallback({\"actionPairs\":\"[[-321,-596],[-322,-597],[-66,-175],[-380,-437],[-16,-18],[-24,-27],[-355,-377],[-598,-604],[-45,-46],[-53,\\\"-54\\\"],[-42,-43],[-330,-331],[-63,-64],[4751,4752],[4748,4749]]\"})"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D3&rl=&if=false&ts=1781387602169&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=2&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387602165&coo=false&expv2[0]=pl1&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=3",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 167232,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D4&rl=&if=false&ts=1781387606227&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=3&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387606224&coo=false&expv2[0]=pl1&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=4",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 174461,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D5&rl=&if=false&ts=1781387610291&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=4&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387610288&coo=false&expv2[0]=pl1&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=5",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 173633,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D6&rl=&if=false&ts=1781387614345&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=5&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387614343&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=6",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 176484,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D7&rl=&if=false&ts=1781387618406&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=6&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387618403&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=7",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 170590,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D8&rl=&if=false&ts=1781387622471&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=7&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387622468&coo=false&expv2[0]=pl1&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=8",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 173061,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D9&rl=&if=false&ts=1781387626524&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=8&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387626521&coo=false&expv2[0]=pl1&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=9",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 176772,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D10&rl=&if=false&ts=1781387630589&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=9&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387630583&coo=false&expv2[0]=pl1&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=10",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 164533,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D11&rl=&if=false&ts=1781387634659&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=10&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387634656&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=11",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 166790,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D12&rl=&if=false&ts=1781387638736&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=11&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387638732&coo=false&expv2[0]=pl1&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=12",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 166884,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D13&rl=&if=false&ts=1781387642802&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=12&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387642799&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=13",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 182622,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D14&rl=&if=false&ts=1781387646877&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=13&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387646873&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=14",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 176662,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D15&rl=&if=false&ts=1781387650944&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=14&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387650940&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=15",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 171498,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D16&rl=&if=false&ts=1781387655013&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=15&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387655010&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=16",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 166558,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D17&rl=&if=false&ts=1781387659094&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=16&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387659089&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=17",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 170980,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D18&rl=&if=false&ts=1781387663179&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=17&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387663176&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=18",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 165868,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D19&rl=&if=false&ts=1781387667248&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=18&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387667242&coo=false&expv2[0]=pl1&expv2[1]=el3&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=19",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 167704,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    },
+    {
+      "url": "https://www.facebook.com/tr/?id=1561316587495986&ev=PageView&dl=https%3A%2F%2Fwww.taasuka.gov.il%2Fhe%2Fapplicants%2Fjobs%2F%3Fpage%3D20&rl=&if=false&ts=1781387671321&iw=false&sw=1280&sh=720&v=2.9.338&r=stable&ec=19&o=4126&aems=0%3B0&fbp=fb.2.1781387596383.466622853598650084&cs_est=true&ler=empty&pmd[title]=%D7%A9%D7%99%D7%A8%D7%95%D7%AA%20%D7%94%D7%AA%D7%A2%D7%A1%D7%95%D7%A7%D7%94%20%7C%20jobs&pmd[locale]=he-IL&pmd[keywords]=&pmd[description]=&plt=3112.5&iss=1&imft=1&tz=180&it=1781387671317&coo=false&expv2[0]=pl1&expv2[1]=el2&expv2[2]=bc1&expv2[3]=ra2&expv2[4]=rp2&expv2[5]=im0&expv2[6]=hf1&rqm=GET",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/plain",
+      "byteSize": 0,
+      "bodySample": ""
+    },
+    {
+      "url": "https://www.taasuka.gov.il/umbraco/surface/jobsearchsurface/searchjobs?ProfessionCategoryCode=&FreeText=&IsEmployersJobSearch=false&page=20",
+      "method": "GET",
+      "status": 200,
+      "contentType": "text/html; charset=utf-8",
+      "byteSize": 166650,
+      "bodySample": "\r\n\r\n<div class=\"personalJobResults\">\r\n    <div class=\"col-12\">\r\n        <div id=\"smartAgentAlert\" class=\"alert alert-taasuka alert-dismissible fade hide\" role=\"alert\">\r\n            <strong>&#x5E1;&#x5D5;&#x5DB;&#x5DF; &#x5D7;&#x5DB;&#x5DD; &#x5E0;&#x5E9;&#x5DE;&#x5E8;</strong>\r\n        </div>\r\n    </div>\r\n\r\n    <div class=\"searchCount\">\r\n        <div class=\"SearchResults_Count\">&#x5E0;&#x5DE;&#x5E6;&#x5D0;&#x5D5; 15351 &#x5EA;&#x5D5;&#x5E6;&#x5D0;&#x5D5;&#x5EA;</div>\r\n        <button class=\"btn btn-link d-lg-none filterJobs\" type=\"button\" data-bs-toggle=\"offcanvas\" data-bs-target=\"#offcanvasFi"
+    }
+  ]
+}
