@@ -224,9 +224,10 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
           Where do you want to go?
         </h1>
         <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
-          Pick the role you&apos;re aiming for in 5 years. Locking it to a known role
-          gives us the strongest signal for measuring goal alignment — but if
-          you&apos;re not sure yet, that&apos;s fine, you can continue without picking.
+          Your 5-year goal anchors every recommendation we make — track
+          placement, role suggestions, and job-fit scores all key off this.
+          Pick from the library if you can; you can continue without picking
+          if you&apos;re still figuring it out.
         </p>
       </div>
 
@@ -235,6 +236,20 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
           <label className="block text-[12px] font-semibold text-rd-text mb-1.5">
             5-year goal role
           </label>
+          {/* Good/bad example chip — concrete framing that the library pick
+              gives a sharper signal than free-text typing. Sits above the
+              input so users see it before they type. Treatment is the same
+              cream-soft card other helpers use — not a callout, not a
+              warning. */}
+          {!chosenRole && (
+            <div className="mb-2 text-[11.5px] leading-snug text-rd-text-secondary bg-rd-bg-soft border border-rd-border rounded-[10px] px-3 py-2">
+              <span className="text-rd-text-tertiary">e.g.</span>{" "}
+              <span className="text-rd-coral-dark font-medium">Senior Product Manager</span>{" "}
+              <span className="text-rd-text-tertiary">scores better than</span>{" "}
+              <span className="font-medium">PM</span>
+              <span className="text-rd-text-tertiary">. Specific roles map to library entries; vague ones fall back to keyword search.</span>
+            </div>
+          )}
 
           {chosenRole ? (
             <div className="flex items-start gap-3 p-4 rounded-[14px] border border-rd-coral bg-rd-coral-tint shadow-[0_0_0_3px_var(--rd-coral-tint)]">
