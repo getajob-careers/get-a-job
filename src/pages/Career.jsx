@@ -30,6 +30,7 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import {
   useQuery,
+  useInfiniteQuery,
   useQueryClient,
   keepPreviousData,
 } from "@tanstack/react-query";
@@ -67,7 +68,12 @@ import {
 import { FUNNEL_BUCKETS } from "@/lib/funnelBuckets";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import { buildCareerPageContext } from "@/lib/buildCareerPageContext";
-import { careerJobsQueryKey, careerJobsEnabled } from "@/lib/careerJobsQuery";
+import {
+  careerJobsQueryKey,
+  careerJobsEnabled,
+  dedupeJobsById,
+} from "@/lib/careerJobsQuery";
+import { isAnalysisPending } from "@/lib/analysisStatus";
 import ApplicationsKanban from "@/components/tracker/ApplicationsKanban";
 import ApplicationDetailDrawer from "@/components/tracker/ApplicationDetailDrawer";
 import AddApplicationDialog from "@/components/tracker/AddApplicationDialog";
@@ -428,6 +434,12 @@ export default function Career() {
     () => (selectedTrack === "track_3" ? ALL_SENIORITIES : allowedSeniorities),
     [selectedTrack, allowedSeniorities],
   );
+  // profile.work_type as a clean array, shared by the honest count + the
+  // list so both apply the identical work_type filter.
+  const workTypes = useMemo(
+    () => (Array.isArray(profile?.work_type) ? profile.work_type : []),
+    [profile?.work_type],
+  );
 
   const { data: roles = [], isLoading: loadingRoles } = useQuery({
     queryKey: ["careerRoles", user?.id],
@@ -440,6 +452,14 @@ export default function Career() {
       return data || [];
     },
     enabled: !!user?.id,
+    // Poll while the analysis is still generating (just-signed-up window):
+    // career_roles is empty but isAnalysisPending, so refetch until the rows
+    // land, then stop. Lets the "building your matches" cold-start state
+    // auto-resolve without a manual refresh.
+    refetchInterval: (query) =>
+      (query.state.data?.length ?? 0) === 0 && isAnalysisPending(profile)
+        ? 4000
+        : false,
   });
 
   const rolesByTrack = useMemo(() => {
@@ -464,8 +484,13 @@ export default function Career() {
     return out;
   }, [rolesByTrack]);
 
-  // Per-track uncapped live counts for the band meta — same RPC the Home
-  // hero stat uses, fired once per track that has titles.
+  // Per-track HONEST live counts for the band meta + header — the count RPC
+  // now takes the SAME seniority + work_type filters the list applies, so the
+  // header number is the post-filter universe ("N live roles — showing top
+  // 20"), not the unfiltered ceiling that contradicted the rendered list.
+  // Each track uses its own seniority allow-list (track_3 bypasses to ALL);
+  // work_type is profile-wide. Filters folded into the key so a level /
+  // work_type change refetches.
   const liveCounts =
     useQuery({
       queryKey: [
@@ -474,6 +499,8 @@ export default function Career() {
         trackTitles.track_1?.join("|"),
         trackTitles.track_2?.join("|"),
         trackTitles.track_3?.join("|"),
+        allowedSeniorities.join(","),
+        [...workTypes].sort().join(","),
       ],
       queryFn: async () => {
         const counts = {};
@@ -488,6 +515,9 @@ export default function Career() {
             {
               p_role_titles: titles,
               p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
+              p_max_seniority:
+                k === "track_3" ? ALL_SENIORITIES : allowedSeniorities,
+              p_work_types: workTypes.length > 0 ? workTypes : null,
             },
           );
           if (error) {
@@ -503,14 +533,21 @@ export default function Career() {
       staleTime: 5 * 60 * 1000,
     }).data || {};
 
-  const { data: jobs = [], isLoading: loadingJobs } = useQuery({
-    // seniorityFilter folded into the queryKey so a Track 1 ↔ Track 3
-    // switch (with different allow-lists) actually refetches instead of
-    // serving a cached track-1 result that didn't include senior roles.
-    // work_types is consumed in the queryFn (p_work_types) so careerJobsQueryKey
-    // folds it into the key — otherwise a profile.work_type change (or a fetch
-    // that fired before profile loaded) would leave a stale work-type filter
-    // cached. See src/lib/careerJobsQuery.js + its test.
+  // Paginated so the rendered list can actually reach the honest header
+  // count instead of a frozen first page of 20 (the "174 but I see ~15" P0).
+  // seniorityFilter + work_type fold into the queryKey (via careerJobsQueryKey)
+  // so a Track 1↔3 switch or a profile.work_type change refetches rather than
+  // serving a stale filtered list. Pages append at p_offset; the RPC ordering
+  // is deterministic (20260612_jobs_search_deterministic_order) so pages don't
+  // overlap, and dedupeJobsById is the belt. keepPreviousData smooths the
+  // track-switch flash.
+  const {
+    data: jobsPages,
+    isLoading: loadingJobs,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
     queryKey: careerJobsQueryKey({
       userId: user?.id,
       selectedTrack,
@@ -518,17 +555,15 @@ export default function Career() {
       seniorityFilter,
       workType: profile?.work_type,
     }),
-    queryFn: async () => {
+    initialPageParam: 0,
+    queryFn: async ({ pageParam }) => {
       const titles = trackTitles[selectedTrack] || [];
       if (titles.length === 0) return [];
-      const workTypes = Array.isArray(profile?.work_type)
-        ? profile.work_type
-        : [];
       const { data, error } = await supabase
         .rpc("search_jobs_by_role_titles", {
           p_role_titles: titles,
           p_limit: JOBS_PAGE_SIZE,
-          p_offset: 0,
+          p_offset: pageParam,
           p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
           p_max_seniority: seniorityFilter,
           p_work_types: workTypes.length > 0 ? workTypes : null,
@@ -539,11 +574,12 @@ export default function Career() {
       if (error) throw error;
       return data || [];
     },
-    // Wait for the seniority/work-type inputs to settle before the first fetch
-    // (jobsInputsReady = profile + experiences + educations all isSuccess), so
-    // we never fetch under a half-loaded early_career filter and cache the
-    // wrong list. keepPreviousData smooths the track-switch flash (show the
-    // prior track's rows while the next track loads instead of an empty pane).
+    // A short page (< page size) means no more rows; otherwise the next
+    // offset is the total fetched so far.
+    getNextPageParam: (lastPage, allPages) =>
+      Array.isArray(lastPage) && lastPage.length === JOBS_PAGE_SIZE
+        ? allPages.reduce((n, p) => n + (p?.length || 0), 0)
+        : undefined,
     enabled: careerJobsEnabled({
       userId: user?.id,
       rolesLength: roles.length,
@@ -552,6 +588,10 @@ export default function Career() {
     placeholderData: keepPreviousData,
     staleTime: 5 * 60 * 1000,
   });
+  const jobs = useMemo(
+    () => dedupeJobsById((jobsPages?.pages ?? []).flat()),
+    [jobsPages],
+  );
 
   // All-scope corpus search. Mirrors Jobs.jsx:256-268's keyword-mode
   // REST query verbatim — same .from("jobs"), same column select, same
@@ -704,25 +744,48 @@ export default function Career() {
   }
 
   if (roles.length === 0) {
+    // Cold-start sibling of the count P0: a just-signed-up user has
+    // career_roles=0 WHILE onboarding's analysis is still generating. Show a
+    // "building your matches" state (the roles query polls until it lands) —
+    // never the "Generate your roadmap first" dead-end, which wrongly tells
+    // them to start something already in flight. isAnalysisPending mirrors
+    // Home's self-heal trigger so the two surfaces agree.
+    const building = isAnalysisPending(profile);
     return (
       <div className="max-w-[1080px] mx-auto px-5 sm:px-8 py-8 sm:py-10">
         <h1 className="font-display font-extrabold text-[26px] tracking-tight text-rd-text">
           Career
         </h1>
         <RdCard className="mt-6 p-8 text-center">
-          <p className="font-display font-bold text-[18px] text-rd-text">
-            Generate your roadmap first
-          </p>
-          <p className="text-[12.5px] text-rd-text-secondary mt-2 max-w-md mx-auto">
-            Your tracks, matched roles, and live jobs all come from your career
-            analysis.
-          </p>
-          <Link
-            to={createPageUrl("Roadmap")}
-            className="inline-flex items-center gap-1.5 mt-5 bg-rd-coral text-white font-display font-semibold text-[13px] rounded-full px-5 py-2.5"
-          >
-            Generate roadmap <ChevronRight className="w-4 h-4" />
-          </Link>
+          {building ? (
+            <>
+              <Loader2 className="w-5 h-5 animate-spin text-rd-coral mx-auto" />
+              <p className="font-display font-bold text-[18px] text-rd-text mt-4">
+                Building your matches…
+              </p>
+              <p className="text-[12.5px] text-rd-text-secondary mt-2 max-w-md mx-auto">
+                We’re analyzing your background to find your tracks, matched
+                roles, and live jobs. This usually takes under a minute and
+                updates here automatically.
+              </p>
+            </>
+          ) : (
+            <>
+              <p className="font-display font-bold text-[18px] text-rd-text">
+                Generate your roadmap first
+              </p>
+              <p className="text-[12.5px] text-rd-text-secondary mt-2 max-w-md mx-auto">
+                Your tracks, matched roles, and live jobs all come from your
+                career analysis.
+              </p>
+              <Link
+                to={createPageUrl("Roadmap")}
+                className="inline-flex items-center gap-1.5 mt-5 bg-rd-coral text-white font-display font-semibold text-[13px] rounded-full px-5 py-2.5"
+              >
+                Generate roadmap <ChevronRight className="w-4 h-4" />
+              </Link>
+            </>
+          )}
         </RdCard>
       </div>
     );
@@ -1105,6 +1168,29 @@ export default function Career() {
                 trackColor={jobCardTrackColor}
               />
             ))}
+            {/* Load more — makes the honest header count reachable instead of
+                a frozen first page. Track scope only, and not while a
+                substring filter is narrowing the loaded set. */}
+            {searchScope !== "all" &&
+              !search &&
+              hasNextPage &&
+              visibleJobs.length > 0 && (
+                <button
+                  onClick={() => fetchNextPage()}
+                  disabled={isFetchingNextPage}
+                  className="self-center inline-flex items-center gap-1.5 bg-rd-bg-soft rounded-full px-5 py-2.5 font-display font-semibold text-[12.5px] text-rd-text-secondary hover:text-rd-text transition-colors disabled:opacity-60"
+                >
+                  {isFetchingNextPage ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading…
+                    </>
+                  ) : typeof liveCounts[selectedTrack] === "number" ? (
+                    `Show more · showing ${visibleJobs.length} of ${liveCounts[selectedTrack]}`
+                  ) : (
+                    "Show more"
+                  )}
+                </button>
+              )}
           </div>
         </div>
 

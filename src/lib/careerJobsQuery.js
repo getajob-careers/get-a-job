@@ -36,3 +36,22 @@ export function careerJobsQueryKey({
 export function careerJobsEnabled({ userId, rolesLength, jobsInputsReady }) {
   return !!userId && rolesLength > 0 && !!jobsInputsReady;
 }
+
+// Pagination belt: flatten useInfiniteQuery pages and drop any duplicate
+// job ids, first occurrence wins (order preserved). The search RPC's
+// ordering is now deterministic (20260612_jobs_search_deterministic_order),
+// so pages shouldn't overlap — but a stale page in cache straddling a
+// corpus refresh could still repeat an id, and a repeated React key throws.
+// This is the defensive belt the deterministic ordering is the fix for.
+export function dedupeJobsById(rows) {
+  if (!Array.isArray(rows)) return [];
+  const seen = new Set();
+  const out = [];
+  for (const r of rows) {
+    const id = r?.id;
+    if (id == null || seen.has(id)) continue;
+    seen.add(id);
+    out.push(r);
+  }
+  return out;
+}

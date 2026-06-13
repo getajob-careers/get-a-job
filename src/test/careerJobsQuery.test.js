@@ -11,6 +11,7 @@ import {
   careerJobsQueryKey,
   careerJobsEnabled,
   workTypesKeyPart,
+  dedupeJobsById,
 } from "../lib/careerJobsQuery";
 
 const UID = "u-1";
@@ -69,6 +70,28 @@ describe("careerJobsQueryKey", () => {
     expect(careerJobsQueryKey({ ...base, workType: undefined }).at(-1)).toBe(
       "",
     );
+  });
+});
+
+describe("dedupeJobsById — pagination append belt", () => {
+  it("flattened two pages with an overlapping id render no duplicate (no repeated React key)", () => {
+    const page1 = [{ id: "a" }, { id: "b" }, { id: "c" }];
+    // a straddling id ("c") repeats on page 2 — the belt must drop it
+    const page2 = [{ id: "c" }, { id: "d" }, { id: "e" }];
+    const merged = dedupeJobsById([...page1, ...page2]);
+    expect(merged.map((r) => r.id)).toEqual(["a", "b", "c", "d", "e"]);
+  });
+
+  it("preserves order, first occurrence wins", () => {
+    const rows = [{ id: 1, t: "first" }, { id: 2 }, { id: 1, t: "dupe" }];
+    const out = dedupeJobsById(rows);
+    expect(out).toEqual([{ id: 1, t: "first" }, { id: 2 }]);
+  });
+
+  it("drops null/undefined ids and tolerates non-arrays", () => {
+    expect(dedupeJobsById([{ id: null }, { id: undefined }, {}])).toEqual([]);
+    expect(dedupeJobsById(null)).toEqual([]);
+    expect(dedupeJobsById(undefined)).toEqual([]);
   });
 });
 
