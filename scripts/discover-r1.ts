@@ -33,8 +33,8 @@
 
 import { readFileSync, writeFileSync } from "node:fs";
 
-const SEEDS_PATH = "scripts/seeds/r1_net_new_seeds_901.json";
-const OUT_PATH = "scripts/discover-r1-draft.json";
+const DEFAULT_SEEDS_PATH = "scripts/seeds/r1_net_new_seeds_901.json";
+const DEFAULT_OUT_PATH = "scripts/discover-r1-draft.json";
 
 const REAL_BROWSER_UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36";
@@ -44,17 +44,23 @@ const POLITE_GAP_MS = 500;
 
 // ───── Seed shape (matches r1_net_new_seeds_901.json) ──────────────
 
+// SeedRow is the R1 schema. Optional fields (sector, crawl_priority, etc.)
+// let leaner seed files (e.g. the 2026-06-13 tech_seeds_netnew_crawlable
+// shape with just company_name + domain) flow through without
+// adaptation. Missing sector defaults to "unknown"; missing
+// crawl_priority defaults to "high" so --priority=high still accepts
+// the row.
 interface SeedRow {
   company_name: string;
   domain: string;
-  sector: string;
-  subsector: string;
-  country: string;
-  source_hint: string;
-  crawl_priority: "high" | "medium" | "low";
-  domain_confidence_1_10: string;
-  notes: string;
-  domain_status: "known" | "known_or_candidate" | "guessed";
+  sector?: string;
+  subsector?: string;
+  country?: string;
+  source_hint?: string;
+  crawl_priority?: "high" | "medium" | "low";
+  domain_confidence_1_10?: string;
+  notes?: string;
+  domain_status?: "known" | "known_or_candidate" | "guessed";
 }
 
 // ───── ATS detection signatures ────────────────────────────────────
@@ -268,14 +274,16 @@ interface Result {
   evidence: string | null;
   challenge_evidence: string | null;
   error: string | null;
+  playwright_retry_attempted?: boolean;
+  playwright_retry_outcome?: "recovered_to_ats_detected" | "recovered_to_nothing_found" | "recovered_to_blocked" | "still_failed";
 }
 
 async function probeOne(seed: SeedRow): Promise<Result> {
   const base: Result = {
     company_name: seed.company_name,
     domain: seed.domain,
-    sector: seed.sector,
-    crawl_priority: seed.crawl_priority,
+    sector: seed.sector ?? "unknown",
+    crawl_priority: seed.crawl_priority ?? "high",
     careers_url_probed: null,
     final_url: null,
     http_status: null,
@@ -349,24 +357,31 @@ async function probeOne(seed: SeedRow): Promise<Result> {
 
 async function main() {
   const args = process.argv.slice(2);
-  const priorityArg =
-    args.find((a) => a.startsWith("--priority="))?.split("=")[1] || "high";
+  const argVal = (name: string) => args.find((a) => a.startsWith(`--${name}=`))?.split("=").slice(1).join("=");
+  const argFlag = (name: string) => args.includes(`--${name}`);
+
+  const priorityArg = argVal("priority") || "high";
+  const seedsPath = argVal("seeds") || DEFAULT_SEEDS_PATH;
+  const outPath = argVal("out") || DEFAULT_OUT_PATH;
+  const playwrightRetry = argFlag("playwright-retry-failed");
+
   const allowed: Record<string, true> = { high: true, all: true, medium: true, low: true };
   if (!allowed[priorityArg]) {
     console.error(`Unknown --priority value: ${priorityArg}. Use high | medium | low | all.`);
     process.exit(1);
   }
 
-  const allSeeds = JSON.parse(readFileSync(SEEDS_PATH, "utf8")) as SeedRow[];
+  const allSeeds = JSON.parse(readFileSync(seedsPath, "utf8")) as SeedRow[];
   const seeds = priorityArg === "all"
     ? allSeeds
-    : allSeeds.filter((s) => s.crawl_priority === priorityArg);
+    : allSeeds.filter((s) => (s.crawl_priority ?? "high") === priorityArg);
 
   console.log(`R1 detection crawl`);
   console.log(`==================`);
-  console.log(`seeds file: ${SEEDS_PATH}`);
+  console.log(`seeds file: ${seedsPath}`);
   console.log(`priority filter: ${priorityArg} → ${seeds.length} seeds`);
-  console.log(`concurrency: ${CONCURRENCY}, polite gap: ${POLITE_GAP_MS}ms, timeout: ${TIMEOUT_MS}ms\n`);
+  console.log(`concurrency: ${CONCURRENCY}, polite gap: ${POLITE_GAP_MS}ms, timeout: ${TIMEOUT_MS}ms`);
+  console.log(`playwright retry for nav_failed: ${playwrightRetry ? "ENABLED" : "disabled"}\n`);
 
   const t0 = Date.now();
   const results: Result[] = new Array(seeds.length);
@@ -391,6 +406,99 @@ async function main() {
     }),
   );
 
+  // ───── Playwright retry on nav_failed rows ──────────────────────
+  //
+  // Added 2026-06-13 for the tech-population crawl: tech domains should
+  // mostly resolve, so a TypeError from bare fetch is more likely a TLS/
+  // SNI quirk than a real "no careers page" verdict. One additional
+  // navigation attempt via headless Chromium (real-browser TLS stack,
+  // wider cipher set) cleans up the measurement before classification.
+  // Still polite — serial, 500ms gap, single attempt per seed. Same
+  // tripwire detection as the HTTP pass; never bypasses a challenge.
+  if (playwrightRetry) {
+    const failed = results.filter((r) => r.verdict === "navigation_failed");
+    if (failed.length > 0) {
+      console.log(`\n=== Playwright retry pass (${failed.length} nav_failed seeds) ===`);
+      const { chromium } = await import("playwright");
+      const browser = await chromium.launch({ headless: true });
+      try {
+        for (let i = 0; i < failed.length; i++) {
+          const r = failed[i];
+          r.playwright_retry_attempted = true;
+          const context = await browser.newContext({
+            userAgent: REAL_BROWSER_UA,
+            locale: "he-IL",
+            viewport: { width: 1280, height: 800 },
+          });
+          const page = await context.newPage();
+          let html: string | null = null;
+          let challengeFromResponse: string | null = null;
+          page.on("response", (res) => {
+            // Light tripwire on responses — we never solve a challenge.
+            if (res.status() === 403 || res.status() === 503) {
+              try {
+                res.text().then((body) => {
+                  if (CHALLENGE_MARKERS.test(body)) challengeFromResponse = `pw ${res.status()} body markers`;
+                }).catch(() => { /* ignore */ });
+              } catch { /* ignore */ }
+            }
+          });
+          for (const url of candidateUrls(r.domain)) {
+            r.careers_url_probed = url;
+            try {
+              const resp = await page.goto(url, { waitUntil: "domcontentloaded", timeout: TIMEOUT_MS });
+              if (resp) {
+                r.http_status = resp.status();
+                r.final_url = page.url();
+              }
+              html = await page.content();
+              if (html && html.length > 100) break;
+            } catch (e: any) {
+              r.error = String(e?.message ?? e);
+            }
+          }
+          await context.close();
+          await new Promise((res) => setTimeout(res, POLITE_GAP_MS));
+
+          if (!html || html.length < 100) {
+            r.playwright_retry_outcome = "still_failed";
+            console.log(`  [pw ${i + 1}/${failed.length}] ${r.company_name.padEnd(30)} still_failed`);
+            continue;
+          }
+
+          if (challengeFromResponse || detectChallenge(r.http_status ?? 200, html)) {
+            r.verdict = "blocked";
+            r.challenge_evidence = challengeFromResponse ?? "in-body challenge markers (pw)";
+            r.error = null;
+            r.playwright_retry_outcome = "recovered_to_blocked";
+            console.log(`  [pw ${i + 1}/${failed.length}] ${r.company_name.padEnd(30)} → blocked: ${r.challenge_evidence}`);
+            continue;
+          }
+
+          const ats = detectAts(html);
+          if (ats) {
+            r.verdict = "ats_detected";
+            r.ats_detected = ats.ats;
+            r.slug = ats.slug ?? null;
+            r.api_url = ats.api_url ?? null;
+            r.evidence = ats.evidence;
+            r.error = null;
+            r.playwright_retry_outcome = "recovered_to_ats_detected";
+            console.log(`  [pw ${i + 1}/${failed.length}] ${r.company_name.padEnd(30)} → ats_detected: ${ats.ats}${ats.slug ? ` (${ats.slug})` : ""}`);
+            continue;
+          }
+
+          r.verdict = "nothing_found";
+          r.error = null;
+          r.playwright_retry_outcome = "recovered_to_nothing_found";
+          console.log(`  [pw ${i + 1}/${failed.length}] ${r.company_name.padEnd(30)} → nothing_found`);
+        }
+      } finally {
+        await browser.close();
+      }
+    }
+  }
+
   // ───── Aggregate stats ──────────────────────────────────────────
 
   const byVerdict: Record<string, number> = {};
@@ -406,8 +514,9 @@ async function main() {
 
   const summary = {
     generated_at: new Date().toISOString(),
-    seeds_file: SEEDS_PATH,
+    seeds_file: seedsPath,
     priority_filter: priorityArg,
+    playwright_retry_failed: playwrightRetry,
     seeds_probed: results.length,
     wall_seconds: Number(((Date.now() - t0) / 1000).toFixed(1)),
     by_verdict: byVerdict,
@@ -424,7 +533,7 @@ async function main() {
     ),
     results,
   };
-  writeFileSync(OUT_PATH, JSON.stringify(summary, null, 2));
+  writeFileSync(outPath, JSON.stringify(summary, null, 2));
 
   console.log(`\n=== SUMMARY ===`);
   console.log(`Wall time: ${summary.wall_seconds}s`);
@@ -437,7 +546,7 @@ async function main() {
       console.log(`  ${String(v).padStart(3)}  ${k}`);
     }
   }
-  console.log(`\nDraft → ${OUT_PATH}`);
+  console.log(`\nDraft → ${outPath}`);
   console.log(`Next: review detection rate vs the spec hold point (162 high → decide on medium/low).`);
 }
 

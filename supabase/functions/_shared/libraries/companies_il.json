@@ -1,14 +1,15 @@
 {
-  "generated_at": "2026-06-12",
-  "total_companies": 889,
+  "generated_at": "2026-06-14",
+  "total_companies": 891,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
-    "ashby": 68,
-    "comeet": 224,
-    "custom": 32,
+    "amazon_jobs": 1,
+    "ashby": 69,
+    "comeet": 225,
+    "custom": 31,
     "eightfold": 3,
-    "greenhouse": 199,
+    "greenhouse": 200,
     "iai": 1,
     "icims": 1,
     "jooble": 1,
@@ -19,7 +20,7 @@
     "smartrecruiters": 10,
     "successfactors": 8,
     "teamtailor": 1,
-    "unknown": 255,
+    "unknown": 254,
     "workable": 10,
     "workday": 37
   },
@@ -1895,6 +1896,18 @@
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/candex?includeCompensation=false",
       "verified": true,
       "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 17 positions, 5 IL-tagged."
+    },
+    {
+      "name": "Candivore",
+      "type": "israeli_founded",
+      "industry": "Gaming / Game Studio",
+      "domain": "candivore.com",
+      "careers_url": "https://www.candivore.com/careers",
+      "ats": "comeet",
+      "slug": "48.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/48.00F/positions?token=84F31DA31DA109E084F4AC74278298B298B&details=true",
+      "verified": true,
+      "notes": "Discovered via 2026-06-13 tech-population B-pass (Playwright + networkidle + XHR capture); A-pass static crawl missed it (SPA careers page, COMEET.init runs only after JS execution). Comeet API verified: 3/3 IL Tel Aviv jobs (Game Analyst, Senior Game Analyst, UI/UX Designer)."
     },
     {
       "name": "Canonical",
@@ -4691,6 +4704,18 @@
       "api_url": "https://hpe.wd5.myworkdayjobs.com/wday/cxs/hpe/Jobsathpe/jobs",
       "verified": true,
       "notes": "Workday tenant verified (1359 jobs); IL via Indigo/3PAR/SimpliVity acquisitions"
+    },
+    {
+      "name": "HUMAN Security",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity / Fraud Detection",
+      "domain": "humansecurity.com",
+      "careers_url": "https://www.humansecurity.com/careers",
+      "ats": "ashby",
+      "slug": "HUMAN",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/HUMAN?includeCompensation=false",
+      "verified": true,
+      "notes": "Discovered via 2026-06-13 tech-population detection crawl (PR-A of discover-tech). Ashby board verified: 4 IL of 11 total jobs at probe time — Tel Aviv R&D (Web Security Researcher, Senior JavaScript Engineer, Senior Backend Engineer, plus 1)."
     },
     {
       "name": "Huawei",
@@ -8622,11 +8647,11 @@
       "industry": "Cybersecurity",
       "domain": "sentinelone.com",
       "careers_url": "https://www.sentinelone.com/careers/",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Uses Jobvite (jobs.jobvite.com/sentinelone/jobs) — not in supported ATS list"
+      "ats": "greenhouse",
+      "slug": "sentinellabs",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/sentinellabs/jobs?content=true",
+      "verified": true,
+      "notes": "Migrated from Jobvite to Greenhouse (slug 'sentinellabs') ahead of the SentinelOne ↔ Prompt Security acquisition fold-in. Discovered via 2026-06-13 tech-population B-pass: probing Prompt Security's careers page captured XHR to boards-api.greenhouse.io/v1/boards/sentinellabs/jobs. Greenhouse API verified: 156 total / 21 IL jobs (Tel Aviv engineering — Backend, Windows Endpoint, Prompt Security roles). Old Jobvite URL no longer canonical."
     },
     {
       "name": "Sentra",
