@@ -1,10 +1,10 @@
 {
-  "generated_at": "2026-06-12",
-  "total_companies": 889,
+  "generated_at": "2026-06-13",
+  "total_companies": 890,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
-    "ashby": 68,
+    "ashby": 69,
     "comeet": 224,
     "custom": 32,
     "eightfold": 3,
@@ -4691,6 +4691,18 @@
       "api_url": "https://hpe.wd5.myworkdayjobs.com/wday/cxs/hpe/Jobsathpe/jobs",
       "verified": true,
       "notes": "Workday tenant verified (1359 jobs); IL via Indigo/3PAR/SimpliVity acquisitions"
+    },
+    {
+      "name": "HUMAN Security",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity / Fraud Detection",
+      "domain": "humansecurity.com",
+      "careers_url": "https://www.humansecurity.com/careers",
+      "ats": "ashby",
+      "slug": "HUMAN",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/HUMAN?includeCompensation=false",
+      "verified": true,
+      "notes": "Discovered via 2026-06-13 tech-population detection crawl (PR-A of discover-tech). Ashby board verified: 4 IL of 11 total jobs at probe time — Tel Aviv R&D (Web Security Researcher, Senior JavaScript Engineer, Senior Backend Engineer, plus 1)."
     },
     {
       "name": "Huawei",
