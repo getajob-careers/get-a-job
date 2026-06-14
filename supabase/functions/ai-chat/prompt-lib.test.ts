@@ -14,6 +14,8 @@ import {
   parseSuggestions,
   assembleSystemPrompt,
   CONTEXT_HONESTY_RULES,
+  STORY_CAPTURE_RULES,
+  STORY_CAPTURE_REGEN_RULES,
 } from "./prompt-lib.ts";
 
 const MARKER = "SUGGESTED_TASKS_JSON:";
@@ -154,5 +156,89 @@ describe("assembleSystemPrompt — capability boundary (no fake writes)", () => 
     expect(CONTEXT_HONESTY_RULES).toContain("experiences");
     expect(CONTEXT_HONESTY_RULES).toContain("skills_canonical");
     expect(CONTEXT_HONESTY_RULES).toContain("profile.summary");
+  });
+});
+
+describe("STORY_CAPTURE_RULES — add-X-to-CV intent (PR #390)", () => {
+  // The agent must now emit SUGGESTED_STORY_CAPTURE_JSON on "add X to my
+  // CV / put Y on my resume / include Z on my profile" intent (the
+  // persist-intent pattern) AND continue to NOT emit on a bare "generate
+  // a CV" regenerate request. These tests pin the rule body's emit/
+  // exclude language so future edits can't silently undo the loop-closer.
+
+  it("affirms 'add X to my CV' as an EMIT trigger", () => {
+    expect(STORY_CAPTURE_RULES).toContain("add my Guardio AI-bot QA work to my CV");
+    expect(STORY_CAPTURE_RULES).toContain("intent to PERSIST");
+  });
+
+  it("still excludes bare 'generate a fresh CV' from emit (the regenerate intent stays separate)", () => {
+    expect(STORY_CAPTURE_RULES).toContain("generate a fresh CV");
+    expect(STORY_CAPTURE_RULES).toContain("SUGGESTED_CV_GENERATION_JSON");
+  });
+
+  it("requires the thin-narrative ask-first anti-fab gate (never invent details)", () => {
+    expect(STORY_CAPTURE_RULES).toContain("THIN-NARRATIVE");
+    expect(STORY_CAPTURE_RULES).toContain("NEVER invent details");
+    expect(STORY_CAPTURE_RULES).toContain("ONE concrete clarifying question");
+  });
+
+  it("requires PROPOSAL framing pre-confirm (regression: #319 honesty must hold)", () => {
+    // The CAPABILITY BOUNDARY rule from #319 forbade phrases that imply a
+    // completed write before the user taps the confirm card. STORY_CAPTURE
+    // must echo that — when the agent emits the proposal block, the
+    // in-conversation acknowledgement must be future-tense / conditional,
+    // never past-tense "saved".
+    expect(STORY_CAPTURE_RULES).toContain("PROPOSAL FRAMING");
+    expect(STORY_CAPTURE_RULES).toContain('"saved"');
+    expect(STORY_CAPTURE_RULES).toContain("confirm in the card below");
+    expect(STORY_CAPTURE_RULES).toContain("Future-tense or conditional only");
+  });
+
+  it("text field rule still demands user-verbatim (anti-fab on save payload)", () => {
+    expect(STORY_CAPTURE_RULES).toContain("VERBATIM");
+    // For add-X-to-CV intent, text is the user's description of X — not
+    // the literal "add X to my CV" phrasing — pulled from this turn or
+    // recent turns.
+    expect(STORY_CAPTURE_RULES).toContain('not the phrase "add X to my CV" itself');
+  });
+});
+
+describe("STORY_CAPTURE_REGEN_RULES — post-confirm CV regen offer (PR #390)", () => {
+  // After the user confirms the StorySaveCard, the frontend fires a
+  // synthetic "[story saved]" turn with follow_up_after === "story_capture".
+  // assembleSystemPrompt intercepts before agent-specific branches so the
+  // regen offer is agent-agnostic.
+
+  it("intercepts at assembleSystemPrompt regardless of source agent", () => {
+    for (const a of ["career_agent", "cv-helper", "application_cv_success_agent", "interview_coach", "skill_development_agent", "career-coach"]) {
+      const sys = assembleSystemPrompt(a, "", "story_capture");
+      expect(sys).toContain("STORY JUST SAVED, OFFER CV REGEN");
+      // CV_GENERATION_RULES must also be present so the agent has the
+      // SUGGESTED_CV_GENERATION_JSON contract + target_role/application_id
+      // priority logic to emit cleanly.
+      expect(sys).toContain("SUGGESTED_CV_GENERATION_JSON");
+    }
+  });
+
+  it("permits past-tense 'Saved' acknowledgement IN THIS BRANCH ONLY (the write actually happened)", () => {
+    // The whole point of this branch is post-confirm. Past-tense saved is
+    // honest here, not a violation of #319 — the row exists. Pin the
+    // example so the rule body isn't accidentally softened.
+    expect(STORY_CAPTURE_REGEN_RULES).toContain("Saved that to your Story Bank");
+    expect(STORY_CAPTURE_REGEN_RULES).toContain("past tense is OK NOW");
+  });
+
+  it("forbids re-emitting a story-capture proposal (no infinite loop)", () => {
+    expect(STORY_CAPTURE_REGEN_RULES).toContain("Generate another story-capture proposal");
+  });
+
+  it("forbids authoring CV content inline (capability routing still holds)", () => {
+    expect(STORY_CAPTURE_REGEN_RULES).toContain("Generate a fresh CV inline");
+  });
+
+  it("CONTEXT_HONESTY_RULES still appended in story_capture follow-up branch (no regression)", () => {
+    const sys = assembleSystemPrompt("career_agent", "", "story_capture");
+    expect(sys).toContain("CAPABILITY BOUNDARY");
+    expect(sys).toContain("DEIXIS HONESTY");
   });
 });
