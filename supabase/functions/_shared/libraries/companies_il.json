@@ -20,9 +20,9 @@
     "smartrecruiters": 10,
     "successfactors": 8,
     "teamtailor": 1,
-    "unknown": 254,
+    "unknown": 255,
     "workable": 10,
-    "workday": 37
+    "workday": 36
   },
   "companies": [
     {
@@ -2683,11 +2683,11 @@
       "industry": "Cybersecurity",
       "domain": "cyberark.com",
       "careers_url": "https://www.cyberark.com/careers/",
-      "ats": "workday",
-      "slug": "paloaltonetworks.wd5.myworkdayjobs.com/PaloAltoNetworks",
-      "api_url": "https://paloaltonetworks.wd5.myworkdayjobs.com/wday/cxs/paloaltonetworks/PaloAltoNetworks/jobs",
+      "ats": "unknown",
+      "slug": null,
+      "api_url": null,
       "verified": false,
-      "notes": "Post Palo Alto Networks acquisition; careers redirect to PAN Workday. Workday tenant URL captured but not API-verified in this pass."
+      "notes": "Post Palo Alto Networks acquisition; careers redirect to PAN Workday. PAN slug nulled 2026-06-14 (task #391) to stop fetch-contamination — the slug would have surfaced PAN's full Workday board as 'CyberArk' jobs. ATS re-discovery deferred; likely folds into the canonical Palo Alto Networks row once the acquisition closes and CyberArk-branded postings stop being independently issued."
     },
     {
       "name": "Cyberbit",
@@ -2996,10 +2996,10 @@
       "domain": "deci.ai",
       "careers_url": "https://deci.ai/careers/",
       "ats": "workday",
-      "slug": "nvidia.wd5.myworkdayjobs.com/login",
-      "api_url": "https://nvidia.wd5.myworkdayjobs.com/wday/cxs/nvidia/login/jobs",
-      "verified": true,
-      "notes": "Detected via external link https://jobs.nvidia.com/careers: workday tenant 'nvidia' | R4: agent's slug fix would duplicate another entry — skipped."
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Detected via external link https://jobs.nvidia.com/careers: workday tenant 'nvidia' | R4: agent's slug fix would duplicate another entry — skipped. Nulled 2026-06-14 (task #391): Deci AI was acquired by NVIDIA; the nvidia/login slug fetched NVIDIA's login-page Workday board as 'Deci AI' (active fetch-contamination, verified=true ⇒ every cron run). Jobs are already covered by the canonical NVIDIA row (slug NVIDIAExternalCareerSite — the correct main career site). Marking inactive (verified=false + api_url=null) is the clean revert. No acquired_by schema."
     },
     {
       "name": "Deel",
@@ -3632,10 +3632,10 @@
       "domain": "ermetic.com",
       "careers_url": "https://ermetic.com/careers/",
       "ats": "greenhouse",
-      "slug": "tenableinc",
-      "api_url": "https://boards-api.greenhouse.io/v1/boards/tenableinc/jobs",
-      "verified": true,
-      "notes": "Detected greenhouse iframe slug 'tenableinc'"
+      "slug": null,
+      "api_url": null,
+      "verified": false,
+      "notes": "Detected greenhouse iframe slug 'tenableinc'. Nulled 2026-06-14 (task #391): Ermetic was acquired by Tenable; the tenableinc slug fetched ALL Tenable jobs as 'Ermetic' (active fetch-contamination, verified=true ⇒ every cron run). Jobs are already covered by the canonical Tenable row, so marking inactive (verified=false + api_url=null) is the clean revert. No acquired_by schema."
     },
     {
       "name": "eScribers",
