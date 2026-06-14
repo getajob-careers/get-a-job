@@ -16,7 +16,7 @@ import FindCompaniesCard from "@/components/internship/FindCompaniesCard";
 import CompanyTargetsKanban from "@/components/internship/CompanyTargetsKanban";
 import CompanyTargetDrawer from "@/components/internship/CompanyTargetDrawer";
 import AddOwnCompanyModal from "@/components/internship/AddOwnCompanyModal";
-import { InternshipStartHere } from "@/components/internship/EmptyStates";
+import { InternshipStartHere, NoInternshipProfile } from "@/components/internship/EmptyStates";
 import CompanyBrowsePanel from "@/components/internship/browse/CompanyBrowsePanel";
 import { BROWSE_CSS } from "@/components/internship/browse/browseStyles";
 
@@ -183,7 +183,29 @@ export default function Internship() {
     });
   };
 
-  const showStartHere = targets.length === 0 && !targetsLoading;
+  // Three Pipeline-tab states the empty-state logic has to disambiguate:
+  //
+  //   A. self_sourced, internship_profile missing       → NoInternshipProfile
+  //      (the only state with an interactive Generate-profile CTA — without
+  //      it the student has no path to invoke generate-internship-profile,
+  //      so the matcher/pipeline downstream stays empty forever)
+  //   B. self_sourced, internship_profile exists, 0 targets → ProfileStrip +
+  //      FindCompaniesCard (enabled) + InternshipStartHere (3-step explainer)
+  //      + empty-kanban placeholder
+  //   C. faculty_assigned, any target count             → KanbanOrEmpty
+  //      (faculty users skip the matcher entirely; they Add-my-own or get a
+  //      faculty-assigned placement)
+  //
+  // PR-NoIPFix (2026-06-14): state A was previously unreachable — the
+  // legacy NoInternshipProfile empty state stopped being rendered during
+  // the Pipeline-as-default redesign (PRs 184-190), leaving a chicken-and-
+  // egg where InternshipProfileStrip (containing the only handle to
+  // handleGenerateProfile via its Refresh button) only mounted AFTER an
+  // internship_profile existed. The 2 self-sourced practicum users on prod
+  // landed on a passive InternshipStartHere card with no action and never
+  // invoked generate-internship-profile (zero metric rows confirmed).
+  const needsInternshipProfile = isSelfSourced && !internshipProfileLoading && !internshipProfile;
+  const showStartHere = !needsInternshipProfile && targets.length === 0 && !targetsLoading;
 
   return (
     <>
@@ -225,49 +247,59 @@ export default function Internship() {
 
           {activeTab === "pipeline" && (
             <>
-              {isSelfSourced && (
+              {needsInternshipProfile ? (
+                <NoInternshipProfile
+                  onGenerate={handleGenerateProfile}
+                  generateDisabled={generatingProfile}
+                />
+              ) : (
                 <>
-                  {!internshipProfileLoading && internshipProfile && (
-                    <InternshipProfileStrip
-                      profile={internshipProfile}
-                      onRefresh={handleGenerateProfile}
-                      refreshDisabled={generatingProfile}
-                      refreshLoading={generatingProfile}
-                      latestCareerRolesUpdatedAt={latestCareerRolesUpdatedAt}
-                    />
+                  {isSelfSourced && (
+                    <>
+                      {!internshipProfileLoading && internshipProfile && (
+                        <InternshipProfileStrip
+                          profile={internshipProfile}
+                          onRefresh={handleGenerateProfile}
+                          refreshDisabled={generatingProfile}
+                          refreshLoading={generatingProfile}
+                          latestCareerRolesUpdatedAt={latestCareerRolesUpdatedAt}
+                        />
+                      )}
+                      <FindCompaniesCard
+                        disabled={!internshipProfile || generatingProfile}
+                        disabledReason={
+                          !internshipProfile
+                            ? "Generate your pitch profile first."
+                            : undefined
+                        }
+                      />
+                    </>
                   )}
-                  <FindCompaniesCard
-                    disabled={!internshipProfile || generatingProfile}
-                    disabledReason={
-                      !internshipProfile
-                        ? "Generate your pitch profile first."
-                        : undefined
-                    }
+
+                  {showStartHere && <InternshipStartHere practicumPath={practicumPath} />}
+
+                  <div className="flex items-center justify-between mt-7 mb-3">
+                    <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">Your pipeline</p>
+                    <button
+                      type="button"
+                      onClick={() => setAddCompanyOpen(true)}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-display font-semibold bg-rd-bg-card text-rd-text border border-rd-border hover:bg-rd-bg-soft hover:border-rd-border-hover transition-colors"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Add my own company
+                    </button>
+                  </div>
+
+                  <KanbanOrEmpty
+                    targets={targets}
+                    loading={targetsLoading}
+                    onCardClick={setOpenTarget}
+                    practicumPath={practicumPath}
+                    onSetTab={setTab}
+                    onAddOwn={() => setAddCompanyOpen(true)}
                   />
                 </>
               )}
-
-              {showStartHere && <InternshipStartHere practicumPath={practicumPath} />}
-
-              <div className="flex items-center justify-between mt-7 mb-3">
-                <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">Your pipeline</p>
-                <button
-                  type="button"
-                  onClick={() => setAddCompanyOpen(true)}
-                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-display font-semibold bg-rd-bg-card text-rd-text border border-rd-border hover:bg-rd-bg-soft hover:border-rd-border-hover transition-colors"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Add my own company
-                </button>
-              </div>
-
-              <KanbanOrEmpty
-                targets={targets}
-                loading={targetsLoading}
-                onCardClick={setOpenTarget}
-                practicumPath={practicumPath}
-                onSetTab={setTab}
-              />
             </>
           )}
 
@@ -286,7 +318,7 @@ export default function Internship() {
   );
 }
 
-function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath, onSetTab }) {
+function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath, onSetTab, onAddOwn }) {
   if (loading) {
     return <KanbanSkeleton />;
   }
@@ -296,24 +328,43 @@ function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath, onSetTab 
     // "Find companies" action (the FindCompaniesCard rendered above
     // for self-sourced users covers this for that path), and always
     // offer a Browse jump for users who'd rather explore first.
+    //
+    // PR-NoIPFix: faculty_assigned users skip the matcher entirely, so
+    // their two real next actions are (a) add the company faculty
+    // assigned them via "Add my own company" and (b) browse the catalog
+    // to explore. Surface BOTH buttons here — Add-my-own used to live
+    // only in the header strip above the kanban, easy to miss when the
+    // kanban itself is the canvas of attention.
     const isSelfSourced = practicumPath === "self_sourced";
     const headline = isSelfSourced
       ? "Your pipeline is empty."
       : "No companies in your pipeline yet.";
     const subhead = isSelfSourced
       ? "Run Find companies above to populate it with strong matches, or browse the catalog to add companies yourself."
-      : "Add a company your faculty assigned, or browse the catalog to add one you've found.";
+      : "Your faculty will assign you a company — add it here once you have it, or browse the catalog to explore options.";
     return (
       <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 text-center py-8">
         <p className="text-sm font-display font-bold text-rd-text mb-1">{headline}</p>
         <p className="text-xs text-rd-text-secondary mb-4 max-w-md mx-auto leading-relaxed">{subhead}</p>
-        <button
-          type="button"
-          onClick={() => onSetTab?.("browse")}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-display font-semibold bg-rd-bg-card text-rd-text border border-rd-border hover:bg-rd-bg-soft hover:border-rd-border-hover transition-colors"
-        >
-          Browse all companies
-        </button>
+        <div className="inline-flex flex-wrap items-center justify-center gap-2">
+          {!isSelfSourced && onAddOwn && (
+            <button
+              type="button"
+              onClick={onAddOwn}
+              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-[12.5px] font-display font-bold bg-rd-coral text-white hover:bg-rd-coral-dark transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add my own company
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={() => onSetTab?.("browse")}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-display font-semibold bg-rd-bg-card text-rd-text border border-rd-border hover:bg-rd-bg-soft hover:border-rd-border-hover transition-colors"
+          >
+            Browse all companies
+          </button>
+        </div>
       </div>
     );
   }
