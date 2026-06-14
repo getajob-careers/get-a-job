@@ -95,3 +95,64 @@ describe("assembleSystemPrompt — honesty rules + capability routing", () => {
     expect(sys).not.toContain("CONTEXT & HONESTY RULES");
   });
 });
+
+describe("assembleSystemPrompt — capability boundary (no fake writes)", () => {
+  // Regression coverage for the 2026-06-14 bug where the agent told the
+  // user "I'll save this to your Story Bank" / "I'll include this in your
+  // CV" without emitting any SUGGESTED_*_JSON block — i.e. claimed writes
+  // it had no path to perform. Item 5 of CONTEXT_HONESTY_RULES forbids
+  // any phrasing that implies a completed write before user confirmation,
+  // and forbids claiming the CV "includes" content not in authoritative
+  // rows. Wired into every conversational agent + the cv-helper's
+  // cv_generation follow-up path (which previously skipped CONTEXT_HONESTY_RULES
+  // entirely and was therefore the most likely place the false-write
+  // phrasing leaked through).
+  const sentinel = "CAPABILITY BOUNDARY";
+
+  it("wires CAPABILITY BOUNDARY into career_agent", () => {
+    expect(assembleSystemPrompt("career_agent", "", null)).toContain(sentinel);
+  });
+
+  it("wires CAPABILITY BOUNDARY into interview_coach", () => {
+    expect(assembleSystemPrompt("interview_coach", "", null)).toContain(sentinel);
+  });
+
+  it("wires CAPABILITY BOUNDARY into skill_development_agent", () => {
+    expect(assembleSystemPrompt("skill_development_agent", "", null)).toContain(sentinel);
+  });
+
+  it("wires CAPABILITY BOUNDARY into cv-helper (general path)", () => {
+    expect(assembleSystemPrompt("cv-helper", "", null)).toContain(sentinel);
+  });
+
+  it("wires CAPABILITY BOUNDARY into cv-helper's cv_generation follow-up path (regression)", () => {
+    // Pre-fix this branch built a prompt with STORY_CAPTURE_RULES +
+    // STORY_CAPTURE_FOLLOWUP_RULES + guards only — no CONTEXT_HONESTY_RULES,
+    // so the false-write phrasing was unconstrained. The fix appends
+    // CONTEXT_HONESTY_RULES here too.
+    expect(assembleSystemPrompt("cv-helper", "", "cv_generation")).toContain(sentinel);
+  });
+
+  it("wires CAPABILITY BOUNDARY into application_cv_success_agent (CV agent on tracker)", () => {
+    expect(assembleSystemPrompt("application_cv_success_agent", "", null)).toContain(sentinel);
+  });
+
+  it("CAPABILITY BOUNDARY forbids the specific false-write phrasings the bug surfaced", () => {
+    // The rule body must contain the named anti-claim phrasings so any
+    // future prompt edit that softens the rule loudly fails this test.
+    expect(CONTEXT_HONESTY_RULES).toContain('"I\'ll add that to your CV"');
+    expect(CONTEXT_HONESTY_RULES).toContain('"saved to your Story Bank"');
+    expect(CONTEXT_HONESTY_RULES).toContain('"capturing this now"');
+    expect(CONTEXT_HONESTY_RULES).toContain('"updating your profile"');
+    expect(CONTEXT_HONESTY_RULES).toContain('"noted in your skills"');
+    // And the affirmative routing-to-Profile guidance for skill / summary
+    // edits where there is no propose block:
+    expect(CONTEXT_HONESTY_RULES).toContain("open Profile and add it there");
+  });
+
+  it("CAPABILITY BOUNDARY explicitly enumerates the no-write tables (cannot drift silently)", () => {
+    expect(CONTEXT_HONESTY_RULES).toContain("experiences");
+    expect(CONTEXT_HONESTY_RULES).toContain("skills_canonical");
+    expect(CONTEXT_HONESTY_RULES).toContain("profile.summary");
+  });
+});
