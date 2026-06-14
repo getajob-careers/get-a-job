@@ -85,6 +85,12 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
   // matcher's chosen role (the hint folds into the cache input_hash,
   // so distinct roles produce distinct cache entries). First open of an
   // existing row is one cache miss; subsequent opens are cached.
+  //
+  // Error code surfaces on the error object so the UI can swap a plain
+  // red string for an action-oriented CTA when the cause is a missing
+  // internship_profile (the chicken-and-egg state Internship.jsx now
+  // surfaces NoInternshipProfile for; the drawer routes the user back
+  // there rather than re-implementing the Generate flow).
   const companyIdForPitch = target?.companies?.id ?? null;
   const pitchQuery = useQuery({
     queryKey: ["internship_pitch", user?.id, companyIdForPitch, target?.pitched_role ?? null],
@@ -100,7 +106,11 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
       );
       if (error) {
         const status = error?.context?.status;
-        if (status === 400) throw new Error(error?.context?.error || "Pitch profile missing.");
+        if (status === 400) {
+          const e = new Error(error?.context?.error || "Pitch profile missing.");
+          e.code = "missing_profile";
+          throw e;
+        }
         if (status === 429) throw new Error("Rate limit reached — try again in a few minutes.");
         throw new Error("Couldn't generate the pitch. Please try again.");
       }
@@ -293,14 +303,33 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
           )}
 
           {/* Pitch — fetched on demand via generate-internship-pitch
-              (PR8). Same shared PitchSection Browse uses. */}
+              (PR8). Same shared PitchSection Browse uses, except the
+              missing-internship_profile case (#382) — route those users
+              back to /Internship/Pipeline where NoInternshipProfile
+              surfaces the Generate CTA, rather than dead-ending them at
+              a red error string in the drawer. */}
           {showPitchSection && (
             <Section title="Your pitch">
-              <PitchSection
-                pitch={pitchForSection}
-                loading={pitchQuery.isLoading}
-                error={pitchQuery.error}
-              />
+              {pitchQuery.error?.code === "missing_profile" ? (
+                <div className="bg-rd-bg-soft border border-rd-border rounded-[12px] p-4">
+                  <p className="text-sm font-display font-semibold text-rd-text mb-1">Generate your pitch profile first</p>
+                  <p className="text-xs text-rd-text-secondary leading-relaxed mb-3">
+                    The pitch is built from your internship profile — once it exists, you'll see your role, angle, and gaps for every matched company.
+                  </p>
+                  <Link
+                    to={`${createPageUrl("Internship")}?tab=pipeline`}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[12px] font-display font-bold bg-rd-coral text-white hover:bg-rd-coral-dark transition-colors"
+                  >
+                    Go to Pipeline
+                  </Link>
+                </div>
+              ) : (
+                <PitchSection
+                  pitch={pitchForSection}
+                  loading={pitchQuery.isLoading}
+                  error={pitchQuery.error}
+                />
+              )}
             </Section>
           )}
 
