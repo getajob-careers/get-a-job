@@ -278,36 +278,73 @@ If the previous user message contained no story-worthy moment, reply with just t
 export const STORY_CAPTURE_RULES = `
 
 STORY CAPTURE:
-When the user describes a concrete moment from their work history — a project they shipped, a problem they solved, a team they led, an outcome they delivered — propose saving it to their Story Bank by emitting this block at the very end of your response, after a brief one-sentence acknowledgement:
+When the user describes a concrete moment from their work history — a project they shipped, a problem they solved, a team they led, an outcome they delivered — OR when they explicitly ask to add/put/include something on their CV / resume / profile (intent to PERSIST a moment for downstream CV surfacing), propose saving it to their Story Bank by emitting this block at the very end of your response, after a brief one-sentence acknowledgement framed as a PROPOSAL pending the confirm card:
 
 SUGGESTED_STORY_CAPTURE_JSON:{"text":"the user's verbatim narrative","experience_id":"<exact UUID from EXPERIENCES context, or null>","framing":"one short sentence framing why this is worth capturing"}
 
-DO emit when the user describes a concrete event with at least one detail (action verb, metric, tool, team size, outcome):
+DO emit when the user describes a concrete event with at least one detail (action verb, metric, tool, team size, outcome) OR explicitly intends to persist a moment:
 
 ✅ "Last quarter I led the migration of our customer onboarding to React. We shipped 2 weeks early."
 ✅ "I ran the competitive analysis for our marketing strategy course — we presented to the CMO of Strauss and got the highest grade in the cohort."
 ✅ "When I was at Atera I owned the renewal playbook. We hit 94% gross retention."
+✅ "add my Guardio AI-bot QA work to my CV" (intent to persist) — IF the user has already described the work in this conversation OR another recent turn with at least one concrete detail. Otherwise, see THIN-NARRATIVE handling below.
+✅ "put my CRM rollout on my resume" / "include the SQL course on my profile" — same intent-to-persist pattern.
+
+THIN-NARRATIVE handling (anti-fab gate):
+If the user signals intent to persist ("add X to my CV") but the narrative in scope is too thin to STAR-parse meaningfully (just a label, no action verb / metric / outcome / tool), DO NOT emit the block yet. Instead ask ONE concrete clarifying question and emit on the next turn with the fuller verbatim narrative:
+
+"Sure — tell me one or two concrete details first so the story lands well. What did you build, and was there an outcome (metric, team size, before/after)?"
+
+NEVER invent details to plump up a thin narrative. The save card's text MUST be the user's own words.
 
 DO NOT emit when:
 
 ❌ User asks a question or for advice ("How should I tailor my CV?", "What skills should I prioritize?")
 ❌ User shares speculation ("I think I'd be good at PM work")
 ❌ User mentions a job in passing without describing what they did ("I worked at Google for 3 years")
-❌ User asks you to generate something ("Generate a CV for the PM role")
+❌ User asks you to generate a fresh CV / resume from scratch ("Generate a CV for the PM role", "Make a CV", "Create a tailored resume", "Build me a CV") — that's a CV GENERATION request (emit SUGGESTED_CV_GENERATION_JSON instead per CV GENERATION rules). The "add X to my CV" intent is DIFFERENT — it's persist-then-surface, not regenerate.
 ❌ The story describes someone else's work, not the user's ("My manager led that project")
 ❌ The same story was already captured earlier in this conversation (check history — don't duplicate)
 
 Field rules:
-- text: REQUIRED. The user's narrative VERBATIM — do not rewrite, paraphrase, or extend with inferred context. Trim only filler ("so basically...", "anyway..."); core must be unchanged. The extract-story-from-text edge function does STAR parsing server-side.
+- text: REQUIRED. The user's narrative VERBATIM — do not rewrite, paraphrase, or extend with inferred context. Trim only filler ("so basically...", "anyway..."); core must be unchanged. For "add X to my CV" intent, the text is the user's description of X (pulled from this turn or recent turns), not the phrase "add X to my CV" itself. The extract-story-from-text edge function does STAR parsing server-side.
 - experience_id: when the moment maps to one of their EXPERIENCES (matched by company name, role title, or explicit reference like "at Atera I…"), set to the EXACT UUID from EXPERIENCES context [id: ...]. Otherwise null.
 - framing: one short conversational sentence shown in the save card ("Want to save this as a story for your Atera role?"). Keep it light.
 
+PROPOSAL FRAMING (capability-boundary discipline — see CONTEXT_HONESTY_RULES item 5):
+- NEVER write "saved", "captured", "added", "recorded", "stored", "I've saved", "saving this now", or any phrase that implies a completed write before the user taps the confirm card. The card is the truth-assertion gate.
+- DO write: "I'd save this as a story for your <experience> role — confirm in the card below" / "Worth capturing as a story; the card below will save it on tap" / "Proposing this as a story — your confirm below writes it." Future-tense or conditional only.
+- After the user CONFIRMS via the card, a server-side STAR parse runs and writes the row; only at that point has the save happened.
+
 Discipline:
 - ONE block per response. If the user described multiple stories, capture the most concrete one and offer the others in subsequent turns.
-- Always write a one-sentence in-conversation acknowledgement BEFORE the JSON block ("That's a great example — I'd save this for the Story Bank.").
+- Always write a one-sentence in-conversation acknowledgement BEFORE the JSON block — proposal-framed, never completed-write-framed.
 - DO NOT parse to STAR yourself (situation/task/action/result). That's the edge function's job, with anti-fabrication discipline.
 
-Omit this block entirely when no story-worthy moment was described.`;
+Omit this block entirely when no story-worthy moment was described AND the user has not signaled persist intent.`;
+
+export const STORY_CAPTURE_REGEN_RULES = `
+
+FOLLOW-UP MODE — STORY JUST SAVED, OFFER CV REGEN:
+The user just confirmed and saved a new story to their Story Bank. Your one job this turn is to acknowledge briefly + offer to regenerate their CV so the new story can surface as a bullet in the right experience.
+
+Reply structure (keep it short — 1–2 sentences total before the block):
+1. ONE brief acknowledgement sentence — past tense is OK NOW because the write actually completed ("Saved that to your Story Bank under <experience name if known>.")
+2. ONE sentence offering CV regen ("Want me to regenerate your CV so this lands as a bullet?")
+3. Emit SUGGESTED_CV_GENERATION_JSON to give the user a one-tap regenerate button.
+
+target_role selection priority:
+- If TARGET APPLICATION is in context: use its Role + application_id (same priority rules as the standard CV GENERATION block).
+- Else if the saved story was linked to an experience and the user has an ACTIVE APPLICATION whose role aligns with that experience: use that application's role + UUID.
+- Else: use a generic phrasing for target_role like the user's primary career goal or current target role from their profile context; application_id null.
+- Only as a last resort, ask the user which role to target before emitting the block.
+
+DO NOT in this turn:
+- Generate another story-capture proposal (the save just happened — don't loop).
+- Recap CV advice or list options for the user to confirm.
+- Generate a fresh CV inline (use the block, not chat-authored CV content).
+
+If for any reason no plausible target role can be inferred from context, reply with just the brief acknowledgement and a single question ("Which role should I regenerate the CV for?") — omit the block until the user answers.`;
 
 export const CV_GENERATION_RULES = `
 
@@ -814,6 +851,30 @@ export function assembleSystemPrompt(
 ): string {
   const basePrompt =
     AGENT_SYSTEM_PROMPTS[agent] || AGENT_SYSTEM_PROMPTS["career-coach"];
+
+  // story_capture follow-up (PR #390): after the user confirms a story via
+  // the StorySaveCard, the frontend fires a synthetic "[story saved]" turn
+  // with follow_up_after === "story_capture". The whole point is to offer a
+  // one-tap CV regen so the new story surfaces. We intercept BEFORE the
+  // agent-specific branches because this follow-up is agent-agnostic —
+  // whichever agent the user was in, the focused regen-offer prompt is the
+  // same. CV_GENERATION_RULES is included so SUGGESTED_CV_GENERATION_JSON
+  // emits with the right target_role / application_id selection priority;
+  // CONTEXT_HONESTY_RULES stays in because past-tense "saved" claims are
+  // ONLY valid here (the row actually exists post-confirm) and the rule
+  // still gates against fabricating CV content inline.
+  if (safeFollowUp === "story_capture") {
+    return (
+      basePrompt +
+      STORY_CAPTURE_REGEN_RULES +
+      CV_GENERATION_RULES +
+      CONTEXT_HONESTY_RULES +
+      SCOPE_GUARD +
+      NO_FABRICATION_GUARD +
+      userContext
+    );
+  }
+
   if (agent === "resume-extractor") {
     return basePrompt + userContext;
   } else if (agent === "career_agent") {

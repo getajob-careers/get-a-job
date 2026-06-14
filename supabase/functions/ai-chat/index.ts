@@ -215,10 +215,15 @@ Deno.serve(async (req) => {
     }
 
     // Path B follow-up trigger. The frontend sets this after a side-effect
-    // completes (currently only 'cv_generation') so the agent can do a clean
-    // second pass for things missed when the user had a competing explicit ask.
-    // Whitelist the values to keep the contract tight.
-    const VALID_FOLLOW_UPS = new Set(["cv_generation"]);
+    // completes so the agent can do a clean second pass for things missed
+    // when the user had a competing explicit ask. Whitelist the values to
+    // keep the contract tight.
+    //
+    // story_capture (PR #390): fired by the frontend after the user confirms
+    // a StorySaveCard so the agent's next turn can offer a one-tap CV regen
+    // (SUGGESTED_CV_GENERATION_JSON) with the new story now in the source
+    // corpus. See STORY_CAPTURE_REGEN_RULES in prompt-lib.ts.
+    const VALID_FOLLOW_UPS = new Set(["cv_generation", "story_capture"]);
     const safeFollowUp =
       typeof follow_up_after === "string" &&
       VALID_FOLLOW_UPS.has(follow_up_after)

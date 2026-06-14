@@ -1089,11 +1089,64 @@ export default function ChatInterface({
         toast.error("Could not save story. Please try again.");
         return false;
       }
+      // PR #390: kick off the CV-regen offer follow-up. Fire-and-forget so
+      // StorySaveCard collapses to SAVED immediately (true is returned
+      // before the follow-up resolves). Non-blocking — if the follow-up
+      // errors, the save itself is still persisted; the user can ask for
+      // a regen manually next turn.
+      triggerStoryCaptureRegenFollowup({ story, capture }).catch((err) =>
+        console.warn("Story-capture regen follow-up failed (non-blocking):", err),
+      );
       return true;
     } catch (err) {
       console.error("Story save exception:", err);
       return false;
     }
+  };
+
+  // PR #390 post-save offer-regen follow-up. Mirrors the cv_generation
+  // follow-up at handleGenerateCV (synthetic "[story saved]" turn,
+  // history slice for context, agent-agnostic — assembleSystemPrompt
+  // intercepts on safeFollowUp === "story_capture" regardless of source
+  // agent). The agent responds with a brief acknowledgement +
+  // SUGGESTED_CV_GENERATION_JSON so the user gets a one-tap regen card
+  // rendered right under the StorySaveCard, fully closing the loop in
+  // chat. Honesty-rule discipline holds: only here (post-confirmed
+  // write) may the agent use past-tense "saved" language.
+  const triggerStoryCaptureRegenFollowup = async ({ capture }) => {
+    const conversationId = activeConversationId;
+    if (!conversationId) return;
+    const historyForFollowUp = messages
+      .filter((m) => m.role !== "system")
+      .slice(-20);
+    const { data: followData, error: followError } = await supabase.functions.invoke("ai-chat", {
+      body: {
+        message: "[story saved]",
+        agent: agentName || "career-coach",
+        conversation_history: historyForFollowUp,
+        chat_model: CHAT_MODEL,
+        follow_up_after: "story_capture",
+        ...(capture?.experience_id && { experience_id: capture.experience_id }),
+        ...(applicationId && { application_id: applicationId }),
+      },
+    });
+    if (followError || !followData?.reply) return;
+    const followPayload = {
+      conversation_id: conversationId,
+      role: "assistant",
+      content: followData.reply,
+    };
+    const { data: savedFollow } = await supabase
+      .from("chat_messages")
+      .insert(followPayload)
+      .select("id")
+      .single();
+    setMessages((prev) => [...prev, {
+      id: savedFollow?.id || crypto.randomUUID(),
+      role: "assistant",
+      content: followData.reply,
+      suggestedCVGeneration: followData.suggested_cv_generation || null,
+    }]);
   };
 
   const handleKeyDown = (e) => {

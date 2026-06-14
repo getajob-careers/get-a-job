@@ -58,7 +58,7 @@
     },
     "sets": {
       "core": "CHAT-01..15 (comparable to prior run)",
-      "supplementary": "CHAT-16..21 — deixis honesty + capability routing + B3 visible-list (CHAT-20/21 verbatim from the June-12 prod failure)"
+      "supplementary": "CHAT-16..23 — deixis honesty + capability routing + B3 visible-list (CHAT-20/21 verbatim from the June-12 prod failure; CHAT-22/23 PR #390 chat→story loop-closer + regen-intent negative control)"
     }
   },
   "fixtures": [
@@ -644,6 +644,69 @@
       "must_ask": true,
       "grounding": "B3 sibling — same question but NO visible_items in page_context (the VISIBLE ON SCREEN block is absent). The honesty rule's default applies: the agent CANNOT see the on-screen list, so it must say so and ask the user to name the role — it must NOT substitute a roadmap role (e.g. 'Marketing Intern') as if it were the thing on screen. Asserting a specific 'best' role here is a fail.",
       "rationale": "The fail-open sibling to CHAT-20: with visible_items absent, the agent falls back to ask-don't-guess. Guards against the model treating the roadmap/corpus as the on-screen list when the list wasn't provided."
+    },
+    {
+      "id": "CHAT-22",
+      "source": "real",
+      "set": "supplementary",
+      "agent": "application_cv_success_agent",
+      "application_id": null,
+      "conversation_history": [
+        {
+          "role": "user",
+          "content": "At Guardio I built a QA pipeline for our AI support bot — ran adversarial test conversations across the top 20 intents, scored each on accuracy and tone, flagged the ~15% that needed prompt tweaks. We shipped the bot to VIP and complaint volume dropped noticeably in the first week."
+        },
+        {
+          "role": "assistant",
+          "content": "That's a solid concrete example — proven QA process + real outcome at Guardio. Worth keeping in mind for your CV."
+        }
+      ],
+      "message": "add my Guardio AI-bot QA work to my CV",
+      "category": [
+        "story_capture",
+        "capability_routing",
+        "honesty"
+      ],
+      "expect": [
+        "SUGGESTED_STORY_CAPTURE_JSON"
+      ],
+      "must_not_fire": [
+        "SUGGESTED_CV_GENERATION_JSON",
+        "SUGGESTED_TASKS_JSON"
+      ],
+      "must_not_contain": [
+        "saved",
+        "captured",
+        "I've added",
+        "I'll add that to your CV",
+        "the CV now includes",
+        "updating your profile",
+        "noted in your skills"
+      ],
+      "grounding": "PR #390 loop-closer: agent must emit SUGGESTED_STORY_CAPTURE_JSON with the user's verbatim narrative from the prior turn (Guardio QA pipeline) as the text field, framed as a PROPOSAL pending the confirm card — NEVER claim a completed save. Must NOT emit SUGGESTED_CV_GENERATION_JSON (this is persist-intent, not regenerate-intent). Capability-boundary discipline from #319 must hold: pre-confirm acknowledgement is future-tense or conditional only.",
+      "rationale": "The exact intent + transcript shape that motivated #390. Pins the loop-closer behavior: agent recognizes 'add X to my CV' as story-capture intent (not CV regeneration), pulls the user's verbatim narrative from prior context, and proposes via the confirm card — with #319's no-fake-writes phrasing held."
+    },
+    {
+      "id": "CHAT-23",
+      "source": "synthetic",
+      "set": "supplementary",
+      "agent": "application_cv_success_agent",
+      "application_id": null,
+      "conversation_history": [],
+      "message": "Generate a CV for a Junior PM role",
+      "category": [
+        "capability_routing",
+        "no_spurious_action"
+      ],
+      "expect": [
+        "SUGGESTED_CV_GENERATION_JSON"
+      ],
+      "must_not_fire": [
+        "SUGGESTED_STORY_CAPTURE_JSON",
+        "SUGGESTED_TASKS_JSON"
+      ],
+      "grounding": "Negative-control sibling for CHAT-22: 'Generate a CV' is the regenerate-intent path and MUST route to SUGGESTED_CV_GENERATION_JSON, not story-capture. Guards against #390's STORY_CAPTURE_RULES emit-trigger expansion creating a false-positive on bare regen requests.",
+      "rationale": "After #390 broadened STORY_CAPTURE_RULES to cover add-X-to-CV intent, the bare 'generate a CV' phrasing must continue to route exclusively to CV regeneration. This fixture pins that the two intents stay disambiguated."
     }
   ]
 }
