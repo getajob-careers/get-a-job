@@ -432,7 +432,56 @@ describe("scoreJobFit — attainability score + band (PR #393)", () => {
     expect(r.attainability_score).toBeLessThanOrEqual(1);
   });
 
-  it("band thresholds: strong ≥ 0.65, good ≥ 0.45, stretch ≥ 0.30, reach < 0.30", () => {
+  it("above_ceiling floors band to 'stretch' even when raw score would qualify for strong/good", () => {
+    // Seniority soft gate (PR #393 follow-up). The seniority axis only
+    // contributes 0.115 of the attainability score, so a strong-skill
+    // Senior role on a 1-yr user lands ~0.086 docked from "strong" —
+    // not enough to sink it. We label these "stretch" regardless of
+    // raw score so the band UI never tells an early_career student a
+    // Senior role is a strong fit. They stay IN the feed (per the
+    // stretch-aware RPC widening) but appear honestly labelled.
+    const earlyProfile = mkProfile({
+      skills_canonical: ["python_data", "sql", "data_analysis"],
+      primary_domain: "data_analytics",
+    });
+    const exps = [mkExp(2024, 2025)];  // 1 yr → early_career, ceiling = 1
+    const job = mkJob({
+      req_skills_core: ["python_data", "sql", "data_analysis"],
+      req_education_levels: ["bachelors"],
+      req_seniority: "Senior",   // rank 3 > early ceiling 1 → above_ceiling
+      function_family: "Data",
+    });
+    const r = scoreJobFit({ profile: earlyProfile, experiences: exps, educations: eds }, job);
+    expect(r.signals.seniority_match).toBe("above_ceiling");
+    // Raw attainability would put this in "good" — sen=0.25 still leaves
+    // the other axes high enough — but the floor caps it at "stretch".
+    expect(r.attainability_band).toBe("stretch");
+    // Score itself is unchanged (the floor is a label cap, not a math cap).
+    expect(r.attainability_score).toBeGreaterThan(0);
+  });
+
+  it("above_ceiling does NOT touch 'reach' band (only floors strong/good down)", () => {
+    // Confirm we floor DOWN to stretch, not move UP from reach to stretch.
+    // Zero skills + above_ceiling → raw attainability ≈ 0.32 (still stretch
+    // band by score). We're not promoting — only capping.
+    const sparseProfile = mkProfile({
+      skills_canonical: [],
+      primary_domain: "data_analytics",
+    });
+    const exps = [mkExp(2024, 2025)];
+    const job = mkJob({
+      req_skills_core: ["python_data", "sql"],   // no overlap → low skill
+      req_education_levels: ["phd"],              // gap_soft → 0.45
+      req_seniority: "Director",                  // above_ceiling
+      function_family: "Data",
+    });
+    const r = scoreJobFit({ profile: sparseProfile, experiences: exps, educations: eds }, job);
+    expect(r.signals.seniority_match).toBe("above_ceiling");
+    // Should still be one of stretch/reach — never strong/good.
+    expect(["stretch", "reach"]).toContain(r.attainability_band);
+  });
+
+  it("band thresholds: strong ≥ 0.55, good ≥ 0.42, stretch ≥ 0.28, reach < 0.28", () => {
     // Synthetic stub: bypass mkJob/scoreJobFit and inspect a known scenario.
     // We can't easily inject arbitrary attainability_score without rewriting
     // the function, so verify the band derivation via observed values instead.

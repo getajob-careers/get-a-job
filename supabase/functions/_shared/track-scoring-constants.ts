@@ -171,19 +171,30 @@ export const FAMILY_ADJACENCY: Record<string, string[]> = {
   project_management: ["Product", "Engineering", "Consulting", "Finance"],
 };
 
-// Attainability band thresholds — placeholders to validate against the
-// gated histogram on prod data (elienglard34, ofriraichel, rpress13)
-// before the unified-list flag is flipped to default. The bands drive
-// the per-card "how you stack up" badge; calibration TBD after smoke.
+// Attainability band thresholds — calibrated 2026-06-15 against the gated
+// distribution on prod data (elienglard34, ofriraichel, rpress13). The
+// previous placeholders (0.65/0.45/0.30) left "strong" nearly empty
+// (~2.7% for two of three users) because the gated mass clusters
+// 0.45–0.60 — strong ≥ 0.65 was unreachable at today's skill density.
+// The values below are a validated STARTING point, not a permanent lock —
+// labels, not gates, so retuning is low-risk. Eyeball during the 24h
+// ?flag=jobs_unified_list=1&debug=1 side-by-side and nudge if needed.
 //
-// strong  ≥ 0.65   clear match
-// good    0.45–0.65 solid
-// stretch 0.30–0.45 reach
-// reach   < 0.30    surface only if user explicitly widens (today: no UI to widen)
+// strong  ≥ 0.55   clear match
+// good    0.42–0.55 solid
+// stretch 0.28–0.42 reach
+// reach   < 0.28    surface only if user explicitly widens (today: no UI)
+//
+// FUTURE PASS REQUIRED: these bands are tuned against today's skill data,
+// which is still thin — #394 (thin-JD skill-match clamp) and the canonical
+// skill-recovery work aren't in yet. Once those land, attainability will
+// spread (skill axis weighs 0.55 of the composite — the dominant lever),
+// and these thresholds will likely need to slide upward again. Treat any
+// "strong" share > 25% post-skill-recovery as a signal to recalibrate.
 export const ATTAINABILITY_BAND_THRESHOLDS = {
-  strong: 0.65,
-  good: 0.45,
-  stretch: 0.30,
+  strong: 0.55,
+  good: 0.42,
+  stretch: 0.28,
 } as const;
 
 // Weights for the new ATTAINABILITY score — the existing scoreJobFit
