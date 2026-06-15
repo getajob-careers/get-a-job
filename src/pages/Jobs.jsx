@@ -149,13 +149,18 @@ export default function JobSuggestions() {
   const [searchParams] = useSearchParams();
   const linkedRole = searchParams.get("role") || "";
 
-  // PR #393 flag gate. Match shape: ?flag=jobs_unified_list=1 (per Eli's
-  // spec). When on, the page renders a single best-fit-first feed gated
-  // by scoreJobFit.relevance_match instead of the Track 1/2/3 tabs. All
-  // legacy track behavior is byte-unchanged when the flag is OFF — the
-  // unified path is purely additive.
+  // Jobs feed default. The unified best-fit-first feed (PR #393) is now the
+  // DEFAULT at /jobs — no flag needed. It renders a single relevance-gated,
+  // seniority-floored, band-calibrated feed instead of the Track 1/2/3 tabs.
+  //
+  // Fast rollback WITHOUT a redeploy: ?flag=legacy_track_tabs forces the old
+  // track-tab path back on for that session. Every legacy branch below
+  // (`!unifiedListEnabled`) is kept fully intact so the escape hatch works
+  // and so the whole track-tab path stays cleanly removable once the unified
+  // feed has baked. The old ?flag=jobs_unified_list=1 opt-in is now a
+  // harmless no-op (unified is the default).
   const flagParam = searchParams.get("flag") || "";
-  const unifiedListEnabled = flagParam.includes("jobs_unified_list");
+  const unifiedListEnabled = !flagParam.includes("legacy_track_tabs");
 
   // Mode is exactly one of track | keyword. Switching one clears the other.
   // Default to "keyword" for users who don't yet have career_roles so they
@@ -568,11 +573,12 @@ export default function JobSuggestions() {
         )}
       </form>
 
-      {/* Track filter pills — hidden when the unified-list flag is on
-          (PR #393). Track stops being top-level navigation in the unified
+      {/* Track filter pills — hidden in the unified feed (now the default;
+          PR #393). Track stops being top-level navigation in the unified
           mode; the per-card relevance tag + (future) chip filter take
-          over. Kept inline (not extracted to a component) to keep the
-          flag-off path byte-unchanged. */}
+          over. Shown only on the legacy ?flag=legacy_track_tabs rollback
+          path. Kept inline (not extracted to a component) so that legacy
+          path stays byte-unchanged and cleanly removable. */}
       {!unifiedListEnabled && (
         <div className="flex flex-wrap gap-2 mb-5">
           {TRACK_ORDER.map((id) => {
