@@ -24,11 +24,11 @@ export interface CompanyResultLike {
 
 export interface AtsBreakdown {
   ats: string;
-  total: number;          // total companies attempted for this ATS
-  successful: number;     // status === 'ok'
-  failed: number;         // status in {'fetch_error', 'upsert_error'}
-  skipped: number;        // status === 'no_slug' — neither success nor failure
-  failurePct: number;     // failed / total * 100, 0 when total === 0
+  total: number; // total companies attempted for this ATS
+  successful: number; // status === 'ok'
+  failed: number; // status in {'fetch_error', 'upsert_error'}
+  skipped: number; // status === 'no_slug' — neither success nor failure
+  failurePct: number; // failed / total * 100, 0 when total === 0
 }
 
 /**
@@ -42,37 +42,66 @@ export interface AtsBreakdown {
  * always at index 0. ATSs with no companies in the input list are
  * omitted from the result (would be percent NaN otherwise).
  */
-export function computePerAtsBreakdown(results: CompanyResultLike[]): AtsBreakdown[] {
+export function computePerAtsBreakdown(
+  results: CompanyResultLike[],
+): AtsBreakdown[] {
   const groups = new Map<string, AtsBreakdown>();
   for (const r of results) {
     let g = groups.get(r.ats);
     if (!g) {
-      g = { ats: r.ats, total: 0, successful: 0, failed: 0, skipped: 0, failurePct: 0 };
+      g = {
+        ats: r.ats,
+        total: 0,
+        successful: 0,
+        failed: 0,
+        skipped: 0,
+        failurePct: 0,
+      };
       groups.set(r.ats, g);
     }
     g.total++;
     if (r.status === "ok") g.successful++;
-    else if (r.status === "fetch_error" || r.status === "upsert_error") g.failed++;
+    else if (r.status === "fetch_error" || r.status === "upsert_error")
+      g.failed++;
     else if (r.status === "no_slug") g.skipped++;
   }
   for (const g of groups.values()) {
     g.failurePct = g.total > 0 ? (g.failed / g.total) * 100 : 0;
   }
-  return Array.from(groups.values()).sort((a, b) => b.failurePct - a.failurePct);
+  return Array.from(groups.values()).sort(
+    (a, b) => b.failurePct - a.failurePct,
+  );
 }
 
 /**
  * Which ATSs broke their per-family budget? Returns the breakdown rows
- * whose `failurePct > thresholdPct`. The orchestrator uses this to
- * decide whether to exit 1 even when the global rate is fine.
+ * whose `failurePct > thresholdPct` AND whose sample is large enough
+ * (`total >= minSample`) for that percentage to be a meaningful signal.
+ * The orchestrator uses this to decide whether to exit 1 even when the
+ * global rate is fine.
+ *
+ * Why minSample: a percentage needs a denominator big enough to mean
+ * something. A single-company family (e.g. `iai`, `amazon_jobs`,
+ * `pwc_heroku`) hits "100% failed" on ONE transient error — that's noise,
+ * not a family going dark, but pre-this-guard it tripped exit 1 every
+ * night and (via the workflow's `if: success()` gate) silently skipped
+ * the entire extraction stage for every newly-ingested job. The 50%
+ * percentage gate only earns its exit-1 above `minSample` companies; the
+ * caller still PRINTS every family's health unconditionally, so a small
+ * family's failure stays visible in the run log — it just doesn't nuke
+ * the run. Sub-minSample families remain covered by the global backstop.
  *
  * Edge case: an ATS with zero total companies (impossible from
  * computePerAtsBreakdown today but kept defensive) never trips — there's
- * no signal to interpret as failure.
+ * no signal to interpret as failure. minSample defaults to 1 to preserve
+ * the original behavior for callers that don't opt into the guard.
  */
 export function selectOverThreshold(
   breakdown: AtsBreakdown[],
   thresholdPct: number,
+  minSample = 1,
 ): AtsBreakdown[] {
-  return breakdown.filter((b) => b.total > 0 && b.failurePct > thresholdPct);
+  return breakdown.filter(
+    (b) => b.total >= minSample && b.total > 0 && b.failurePct > thresholdPct,
+  );
 }
