@@ -362,6 +362,20 @@ export function scoreJobFit(input, job) {
   else if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.stretch) attainability_band = "stretch";
   else attainability_band = "reach";
 
+  // Above-ceiling soft gate (PR #393 follow-up). The seniority axis only
+  // contributes 0.115 of the attainability score — a strong skill match on
+  // a Senior role lands ~0.086 docked, not enough to sink it. The
+  // stretch-aware RPC widening (level + 1 step up) is intentional, so we
+  // keep these jobs IN the feed, but cap the BAND so they never get
+  // labelled "strong" or "good". They surface as "stretch" — honestly
+  // labelled, ranked below in-range alternatives via the band-sort UI.
+  // Same failure pattern the family weight fix addressed; same fix
+  // approach (gate on the categorical signal, don't lean on the weight).
+  if (seniority.match === "above_ceiling" &&
+      (attainability_band === "strong" || attainability_band === "good")) {
+    attainability_band = "stretch";
+  }
+
   // Reasoning strings — short, actionable phrases the UI surfaces.
   const strengths = [];
   const gaps = [];
