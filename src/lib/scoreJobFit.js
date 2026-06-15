@@ -38,6 +38,9 @@ import {
   SENIORITY_RANK,
   STAGE_T1_CEILING,
   DOMAIN_TO_FAMILIES,
+  FAMILY_ADJACENCY,
+  ATTAINABILITY_WEIGHTS,
+  ATTAINABILITY_BAND_THRESHOLDS,
   EDUCATION_RANK,
   EXPERIENCE_LEVEL_TO_STAGE,
   trackFromScore,
@@ -72,6 +75,21 @@ function getDomainFamiliesSet() {
     );
   }
   return __domainSetCache;
+}
+
+// Same deferred-derivation pattern as getDomainFamiliesSet — avoids the
+// production TDZ risk that bit PR #109/116 when `const FOO = Object...`
+// at module top read an import binding before its source module had
+// finished evaluation. The cached helper runs at first call (post-render),
+// by which point all module bodies have evaluated.
+let __adjacencySetCache = null;
+function getFamilyAdjacencySet() {
+  if (!__adjacencySetCache) {
+    __adjacencySetCache = Object.fromEntries(
+      Object.entries(FAMILY_ADJACENCY).map(([k, v]) => [k, new Set(v)]),
+    );
+  }
+  return __adjacencySetCache;
 }
 
 let __stageCeilingCache = null;
@@ -295,6 +313,55 @@ export function scoreJobFit(input, job) {
   // ceiling pattern. See applyYearsCap docstring for the rule.
   track = applyYearsCap(track, years.user_years, years.required_min);
 
+  // ─── ADDITIVE: relevance_match + attainability_score + attainability_band ─
+  //
+  // Read by the Jobs page when ?flag=jobs_unified_list=1 is set (PR #393).
+  // EXISTING fit_score / track / signals / goal_alignment_score / reasoning
+  // are byte-unchanged so Tracker, Home, Career, scoreApplication, and any
+  // other consumer that reads the legacy contract stays unaffected.
+  //
+  // relevance_match GATES feed membership in the unified list:
+  //   "primary"  → job.function_family ∈ DOMAIN_TO_FAMILIES[user.primary_domain]
+  //   "adjacent" → job.function_family ∈ FAMILY_ADJACENCY[user.primary_domain]
+  //   "unknown"  → job.function_family IS NULL (35% of jobs have no
+  //                extracted family; surface them last rather than drop)
+  //   "off"      → off-path family; DROPPED from the unified feed
+  //
+  // attainability_score = existing composite math MINUS the function_family
+  // axis, with weights renormalized so the remaining 4 axes sum to 1.0.
+  // ATTAINABILITY_WEIGHTS in track-scoring-constants.ts. The 10% removed
+  // is now expressed via the relevance gate + per-card "on your goal path"
+  // tag rather than blended into the rank-driving number.
+  //
+  // attainability_band labels the score for the per-card "how you stack
+  // up" UI. Thresholds in ATTAINABILITY_BAND_THRESHOLDS are placeholders
+  // to validate against the prod gated histogram before flipping default.
+  const domain = String(profile?.primary_domain || "").toLowerCase();
+  let relevance_match = "off";
+  if (!job?.function_family) {
+    relevance_match = "unknown";
+  } else if (getDomainFamiliesSet()[domain]?.has(job.function_family)) {
+    relevance_match = "primary";
+  } else if (getFamilyAdjacencySet()[domain]?.has(job.function_family)) {
+    relevance_match = "adjacent";
+  }
+
+  let attainability_score =
+    skill.score * ATTAINABILITY_WEIGHTS.skill +
+    years.score * ATTAINABILITY_WEIGHTS.years +
+    education.score * ATTAINABILITY_WEIGHTS.education +
+    seniority.score * ATTAINABILITY_WEIGHTS.seniority;
+  // Mirror the extraction-confidence softener from fit_score for parity.
+  if (conf !== null && conf < 0.4) attainability_score = attainability_score * 0.9;
+  attainability_score = Math.max(0, Math.min(1, attainability_score));
+  attainability_score = Math.round(attainability_score * 100) / 100;
+
+  let attainability_band;
+  if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.strong) attainability_band = "strong";
+  else if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.good) attainability_band = "good";
+  else if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.stretch) attainability_band = "stretch";
+  else attainability_band = "reach";
+
   // Reasoning strings — short, actionable phrases the UI surfaces.
   const strengths = [];
   const gaps = [];
@@ -340,6 +407,11 @@ export function scoreJobFit(input, job) {
     fit_score: Math.round(fit_score * 100) / 100,
     goal_alignment_score,
     track,
+    // PR #393: additive fields for the Jobs unified-list. Consumers that
+    // read only fit_score/track/signals are unaffected.
+    relevance_match,
+    attainability_score,
+    attainability_band,
     signals: {
       skill_match_pct: skill.skill_match_pct,
       matched_skills: skill.matched_skills,
