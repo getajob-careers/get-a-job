@@ -41,7 +41,15 @@ import {
 } from "./lib/per-ats-thresholds.js";
 
 const SCRIPT_DIR = fileURLToPath(new URL(".", import.meta.url));
-const REGISTRY_PATH = join(SCRIPT_DIR, "..", "supabase", "functions", "_shared", "libraries", "companies_il.json");
+const REGISTRY_PATH = join(
+  SCRIPT_DIR,
+  "..",
+  "supabase",
+  "functions",
+  "_shared",
+  "libraries",
+  "companies_il.json",
+);
 
 const CONCURRENCY_LIMIT = 20;
 // Global backstop: exit 1 if >20% of ALL companies fail. Catches the
@@ -55,6 +63,18 @@ const FAILURE_THRESHOLD_PCT = 20;
 // the next morning. Per-ATS isolation surfaces it in the GHA run
 // summary instead. See PR-N1 plan §4.5.
 const PER_ATS_FAILURE_THRESHOLD_PCT = 50;
+// Minimum family size for the per-ATS percentage gate to trip exit 1. A
+// percentage needs a big-enough denominator to be a real signal: a
+// single-company family (iai, amazon_jobs, pwc_heroku, adamtotal_agency)
+// hits "100% failed" on ONE transient error, which is noise — yet
+// pre-guard it tripped exit 1 nightly and skipped the entire extraction
+// stage (the 2026-06-13 regression). 5 is the floor where ">50% failed"
+// means ≥3 real failures, not one flaky fetch; every family the gate is
+// meant to catch going dark (greenhouse ~176, comeet ~203, lever ~25,
+// ashby ~69, workday ~32, successfactors ~7) clears it. Smaller families
+// stay covered by the global FAILURE_THRESHOLD_PCT backstop and still
+// print their health row below, just without tripping exit 1.
+const PER_ATS_MIN_SAMPLE = 5;
 const STALE_DAYS = 2;
 const UPSERT_BATCH_SIZE = 200;
 
@@ -63,7 +83,21 @@ const UPSERT_BATCH_SIZE = 200;
 // "jooble" is intentionally excluded — the Jooble API has no IL coverage
 // (verified 2026-05: "Israel" location matched US towns in OH/IL/IN). The
 // fetcher stays in the repo in case Jooble adds IL inventory later.
-const ENABLED_ATSS = new Set(["greenhouse", "lever", "ashby", "workday", "smartrecruiters", "comeet", "successfactors", "workable", "iai", "adamtotal", "adamtotal_agency", "pwc_heroku", "amazon_jobs"]);
+const ENABLED_ATSS = new Set([
+  "greenhouse",
+  "lever",
+  "ashby",
+  "workday",
+  "smartrecruiters",
+  "comeet",
+  "successfactors",
+  "workable",
+  "iai",
+  "adamtotal",
+  "adamtotal_agency",
+  "pwc_heroku",
+  "amazon_jobs",
+]);
 
 // ───── Types ──────────────────────────────────────────────────────────
 
@@ -91,17 +125,20 @@ async function runWithConcurrency<T, R>(
 ): Promise<PromiseSettledResult<R>[]> {
   const results: PromiseSettledResult<R>[] = new Array(items.length);
   let cursor = 0;
-  const workers = Array.from({ length: Math.min(limit, items.length) }, async () => {
-    while (true) {
-      const idx = cursor++;
-      if (idx >= items.length) return;
-      try {
-        results[idx] = { status: "fulfilled", value: await fn(items[idx]) };
-      } catch (err) {
-        results[idx] = { status: "rejected", reason: err };
+  const workers = Array.from(
+    { length: Math.min(limit, items.length) },
+    async () => {
+      while (true) {
+        const idx = cursor++;
+        if (idx >= items.length) return;
+        try {
+          results[idx] = { status: "fulfilled", value: await fn(items[idx]) };
+        } catch (err) {
+          results[idx] = { status: "rejected", reason: err };
+        }
       }
-    }
-  });
+    },
+  );
   await Promise.all(workers);
   return results;
 }
@@ -116,11 +153,26 @@ async function processCompany(
   const t0 = Date.now();
   const ats = company.ats;
   if (!company.slug) {
-    return { company: company.name, ats, total_fetched: 0, il_jobs: 0, status: "no_slug", elapsed_ms: Date.now() - t0 };
+    return {
+      company: company.name,
+      ats,
+      total_fetched: 0,
+      il_jobs: 0,
+      status: "no_slug",
+      elapsed_ms: Date.now() - t0,
+    };
   }
   const fetcher = FETCHERS[ats];
   if (!fetcher) {
-    return { company: company.name, ats, total_fetched: 0, il_jobs: 0, status: "fetch_error", error: `no fetcher for ats=${ats}`, elapsed_ms: Date.now() - t0 };
+    return {
+      company: company.name,
+      ats,
+      total_fetched: 0,
+      il_jobs: 0,
+      status: "fetch_error",
+      error: `no fetcher for ats=${ats}`,
+      elapsed_ms: Date.now() - t0,
+    };
   }
 
   let raw;
@@ -176,31 +228,41 @@ async function processCompany(
     const titleHasMgmtSignal = detectMgmtSignalFromTitle(cleanTitle);
     const explicitJunior = parseExplicitJuniorSignal(descPlain);
     ilRows.push({
-      ats_source:           ats,
-      external_id:          r.external_id,
-      company_slug:         company.slug!,
-      company_name:         company.name,
-      title:                cleanTitle,
-      description:          descPlain,
-      apply_url:            r.apply_url,
-      location_raw:         r.location_raw,
-      location_city:        loc.city,
-      is_il:                true,
-      is_remote:            r.is_remote,
-      salary_min:           r.salary_min,
-      salary_max:           r.salary_max,
-      salary_currency:      r.salary_currency,
-      seniority:            finalSeniority(titleBucket, years, { explicitJunior, titleHasMgmtSignal }),
+      ats_source: ats,
+      external_id: r.external_id,
+      company_slug: company.slug!,
+      company_name: company.name,
+      title: cleanTitle,
+      description: descPlain,
+      apply_url: r.apply_url,
+      location_raw: r.location_raw,
+      location_city: loc.city,
+      is_il: true,
+      is_remote: r.is_remote,
+      salary_min: r.salary_min,
+      salary_max: r.salary_max,
+      salary_currency: r.salary_currency,
+      seniority: finalSeniority(titleBucket, years, {
+        explicitJunior,
+        titleHasMgmtSignal,
+      }),
       years_experience_min: years.min,
       years_experience_max: years.max,
-      industry:             company.industry,
-      date_posted:          r.date_posted,
-      raw_payload:          r.raw_payload,
+      industry: company.industry,
+      date_posted: r.date_posted,
+      raw_payload: r.raw_payload,
     });
   }
 
   if (dryRun || ilRows.length === 0 || !supabase) {
-    return { company: company.name, ats, total_fetched: totalFetched, il_jobs: ilRows.length, status: "ok", elapsed_ms: Date.now() - t0 };
+    return {
+      company: company.name,
+      ats,
+      total_fetched: totalFetched,
+      il_jobs: ilRows.length,
+      status: "ok",
+      elapsed_ms: Date.now() - t0,
+    };
   }
 
   // UPSERT in batches to avoid huge single requests
@@ -209,8 +271,8 @@ async function processCompany(
       const batch = ilRows.slice(i, i + UPSERT_BATCH_SIZE).map((j) => ({
         ...j,
         last_seen_at: new Date().toISOString(),
-        fetched_at:   new Date().toISOString(),
-        is_active:    true,
+        fetched_at: new Date().toISOString(),
+        is_active: true,
       }));
       const { error } = await supabase
         .from("jobs")
@@ -229,7 +291,14 @@ async function processCompany(
     };
   }
 
-  return { company: company.name, ats, total_fetched: totalFetched, il_jobs: ilRows.length, status: "ok", elapsed_ms: Date.now() - t0 };
+  return {
+    company: company.name,
+    ats,
+    total_fetched: totalFetched,
+    il_jobs: ilRows.length,
+    status: "ok",
+    elapsed_ms: Date.now() - t0,
+  };
 }
 
 // ───── Soft-delete sweep ──────────────────────────────────────────────
@@ -255,16 +324,22 @@ async function main() {
   // Load registry — fail fast if it's missing or malformed
   let registry: CompanyRegistry;
   try {
-    registry = JSON.parse(readFileSync(REGISTRY_PATH, "utf8")) as CompanyRegistry;
+    registry = JSON.parse(
+      readFileSync(REGISTRY_PATH, "utf8"),
+    ) as CompanyRegistry;
   } catch (err) {
-    console.error(`FATAL: could not read registry at ${REGISTRY_PATH}: ${(err as Error).message}`);
+    console.error(
+      `FATAL: could not read registry at ${REGISTRY_PATH}: ${(err as Error).message}`,
+    );
     process.exit(1);
   }
 
   const companies = registry.companies.filter(
     (c) => c.verified && c.api_url && ENABLED_ATSS.has(c.ats),
   );
-  console.log(`Loaded registry: ${registry.companies.length} total, ${companies.length} processable (verified + supported ATS).`);
+  console.log(
+    `Loaded registry: ${registry.companies.length} total, ${companies.length} processable (verified + supported ATS).`,
+  );
 
   // Initialize Supabase client (skipped in dry-run mode)
   let supabase: SupabaseClient | null = null;
@@ -272,16 +347,22 @@ async function main() {
     const url = process.env.SUPABASE_URL;
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     if (!url || !serviceKey) {
-      console.error("FATAL: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required (or pass --dry-run).");
+      console.error(
+        "FATAL: SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required (or pass --dry-run).",
+      );
       process.exit(1);
     }
-    supabase = createClient(url, serviceKey, { auth: { persistSession: false } });
+    supabase = createClient(url, serviceKey, {
+      auth: { persistSession: false },
+    });
   } else {
     console.log("DRY RUN — no DB writes will happen.");
   }
 
   // Fan out across companies
-  console.log(`\nFetching ${companies.length} companies with concurrency=${CONCURRENCY_LIMIT}...`);
+  console.log(
+    `\nFetching ${companies.length} companies with concurrency=${CONCURRENCY_LIMIT}...`,
+  );
   const settled = await runWithConcurrency(CONCURRENCY_LIMIT, companies, (c) =>
     processCompany(c, supabase, dryRun),
   );
@@ -308,12 +389,16 @@ async function main() {
       r.status === "ok"
         ? `${r.il_jobs} IL / ${r.total_fetched} total (${r.elapsed_ms}ms)`
         : `${r.status}${r.error ? `: ${r.error.slice(0, 120)}` : ""}`;
-    console.log(`  ${mark} ${r.company.padEnd(30)} ${r.ats.padEnd(15)} ${detail}`);
+    console.log(
+      `  ${mark} ${r.company.padEnd(30)} ${r.ats.padEnd(15)} ${detail}`,
+    );
   }
 
   const totalCompanies = results.length;
   const successful = results.filter((r) => r.status === "ok").length;
-  const failed = results.filter((r) => r.status === "fetch_error" || r.status === "upsert_error").length;
+  const failed = results.filter(
+    (r) => r.status === "fetch_error" || r.status === "upsert_error",
+  ).length;
   const totalIl = results.reduce((acc, r) => acc + r.il_jobs, 0);
   const totalFetched = results.reduce((acc, r) => acc + r.total_fetched, 0);
 
@@ -323,7 +408,9 @@ async function main() {
     try {
       staleMarked = await softDeleteStale(supabase);
     } catch (err) {
-      console.error(`WARN: soft-delete sweep failed: ${(err as Error).message}`);
+      console.error(
+        `WARN: soft-delete sweep failed: ${(err as Error).message}`,
+      );
     }
   }
 
@@ -337,7 +424,9 @@ async function main() {
   console.log(`Total jobs fetched:   ${totalFetched}`);
   console.log(`Total IL jobs:        ${totalIl}`);
   console.log(`Stale marked inactive:${staleMarked}`);
-  console.log(`Wall time:            ${((Date.now() - startedAt) / 1000).toFixed(1)}s`);
+  console.log(
+    `Wall time:            ${((Date.now() - startedAt) / 1000).toFixed(1)}s`,
+  );
   console.log(`Mode:                 ${dryRun ? "DRY RUN" : "LIVE WRITES"}`);
 
   // Per-ATS isolation runs BEFORE the global backstop. Print the
@@ -346,15 +435,31 @@ async function main() {
   // (with the offending row first) when any one family breaks its
   // PER_ATS_FAILURE_THRESHOLD_PCT budget.
   const perAtsBreakdown = computePerAtsBreakdown(results);
-  console.log(`\nPer-ATS health (failurePct > ${PER_ATS_FAILURE_THRESHOLD_PCT}% trips exit 1):`);
+  console.log(
+    `\nPer-ATS health (failurePct > ${PER_ATS_FAILURE_THRESHOLD_PCT}% AND ≥${PER_ATS_MIN_SAMPLE} companies trips exit 1):`,
+  );
   for (const b of perAtsBreakdown) {
-    const mark = b.failurePct > PER_ATS_FAILURE_THRESHOLD_PCT ? "✗" : "·";
-    console.log(`  ${mark} ${b.ats.padEnd(20)} ${b.failed}/${b.total} failed (${b.failurePct.toFixed(0)}%)`);
+    // ✗ trips exit 1; ⚠ is over the % but below the sample floor — a real
+    // failure worth seeing in the log, but too small a denominator to
+    // alarm on (e.g. a 1/1 single-company family); · is healthy.
+    const overPct = b.failurePct > PER_ATS_FAILURE_THRESHOLD_PCT;
+    const mark = overPct ? (b.total >= PER_ATS_MIN_SAMPLE ? "✗" : "⚠") : "·";
+    console.log(
+      `  ${mark} ${b.ats.padEnd(20)} ${b.failed}/${b.total} failed (${b.failurePct.toFixed(0)}%)`,
+    );
   }
-  const perAtsOver = selectOverThreshold(perAtsBreakdown, PER_ATS_FAILURE_THRESHOLD_PCT);
+  const perAtsOver = selectOverThreshold(
+    perAtsBreakdown,
+    PER_ATS_FAILURE_THRESHOLD_PCT,
+    PER_ATS_MIN_SAMPLE,
+  );
   if (perAtsOver.length > 0) {
-    const offenders = perAtsOver.map((b) => `${b.ats}@${b.failurePct.toFixed(0)}%`).join(", ");
-    console.error(`\nEXIT 1: per-ATS isolation tripped — ${offenders} (threshold: ${PER_ATS_FAILURE_THRESHOLD_PCT}%).`);
+    const offenders = perAtsOver
+      .map((b) => `${b.ats}@${b.failurePct.toFixed(0)}%`)
+      .join(", ");
+    console.error(
+      `\nEXIT 1: per-ATS isolation tripped — ${offenders} (threshold: ${PER_ATS_FAILURE_THRESHOLD_PCT}%).`,
+    );
     process.exit(1);
   }
 
@@ -364,10 +469,14 @@ async function main() {
   // 30% down).
   const failurePct = totalCompanies > 0 ? (failed / totalCompanies) * 100 : 0;
   if (failurePct > FAILURE_THRESHOLD_PCT) {
-    console.error(`\nEXIT 1: ${failurePct.toFixed(0)}% of companies failed (threshold: ${FAILURE_THRESHOLD_PCT}%).`);
+    console.error(
+      `\nEXIT 1: ${failurePct.toFixed(0)}% of companies failed (threshold: ${FAILURE_THRESHOLD_PCT}%).`,
+    );
     process.exit(1);
   }
-  console.log(`\nEXIT 0: ${failurePct.toFixed(0)}% failure rate within ${FAILURE_THRESHOLD_PCT}% global threshold; per-ATS rates within ${PER_ATS_FAILURE_THRESHOLD_PCT}%.`);
+  console.log(
+    `\nEXIT 0: ${failurePct.toFixed(0)}% failure rate within ${FAILURE_THRESHOLD_PCT}% global threshold; no ATS family ≥${PER_ATS_MIN_SAMPLE} companies over ${PER_ATS_FAILURE_THRESHOLD_PCT}%.`,
+  );
 }
 
 main().catch((err) => {

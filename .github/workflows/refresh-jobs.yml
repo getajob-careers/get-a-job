@@ -89,13 +89,20 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
       # Stage 2: extract LLM-derived fields for any newly-ingested rows.
-      # `if: success()` — only run if ingest exited clean.
+      # `if: always()` — extraction and fetch-health are INDEPENDENT
+      #   concerns. Stage 1 exits 1 as a fetch-health ALARM (per-ATS or
+      #   global failure budget); that must not skip extraction, which
+      #   operates on whatever DID ingest. Coupling them (the old
+      #   `if: success()`) caused the 2026-06-13 regression: a single
+      #   broken ATS family (iai) tripped Stage 1's exit 1 and silently
+      #   skipped extraction for EVERY newly-ingested job, every night.
+      #   Matches Stage 3, which is already `if: always()`.
       # `continue-on-error: true` — extraction failures must never break
-      #   ingestion; if the edge function or OpenAI is down, ingestion
-      #   stays green and tomorrow's run picks up the still-null rows.
+      #   the run; if the edge function or OpenAI is down, the run stays
+      #   green and tomorrow's run picks up the still-null rows.
       # `--limit=500` — runaway-cost safety net (~$2.50 worst case).
       - name: Backfill extraction for newly-ingested jobs
-        if: success()
+        if: always()
         continue-on-error: true
         timeout-minutes: 8
         run: >

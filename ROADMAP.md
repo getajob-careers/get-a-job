@@ -38,6 +38,8 @@ This roadmap's source of truth for **scheduling** is the [June 15 launch sprint]
 - **Wk 3 remaining (Eli):** Daily Action Card schema + edge function · Admin chat log viewer · Admin story browser
 - **Wk 3 remaining (Isaac):** Story Bank Phase 2 AddInformation surface · Daily Action Card UI · Daily Action calibration loop
 
+- **[BUG] IAI (Israel Aerospace Industries) fetcher is broken — real ingest gap.** The `iai` ATS adapter intermittently returns HTML (404 / `<!DOCTYPE …>`), not JSON, so IAI's ~475 IL listings drop out of `public.jobs` whenever its endpoint is down. Surfaced during the 2026-06-13 extraction-skip diagnosis (PR for `eli/fix-extraction-gate`): IAI's 1/1=100% failure was the trigger that tripped the per-ATS exit-1 gate. That gate is now sample-floored so it no longer false-alarms, but the underlying fetcher is genuinely failing — a real coverage gap, separate from the extraction fix. Fix the `iai` adapter (correct endpoint/parser, or add HTML-response handling) so IAI listings ingest reliably. Single-company ATS family, so it never trips the per-ATS alarm — easy to miss; watch the per-ATS health table's `⚠ iai` marker.
+
 ---
 
 ## June 15 launch sprint (May 4 → June 15, 2026)
@@ -87,22 +89,22 @@ Week 6: Final features + launch                            │
 
 Activate when needed, not before. Total monthly recurring cost at launch: **~$130/mo.**
 
-| Service | When | Why now | Monthly cost |
-|---|---|---|---|
-| **1Password** | Wk 1 Day 1 | Before any other credential creation | $5–8 |
-| **Domain (Cloudflare Registrar)** | Wk 1 Day 1 | DNS propagation needs 24–48h buffer | ~$1/mo amortized |
-| **Vercel Hobby** | Wk 1 Day 2 | Free tier covers pilot; need for preview deploys | $0 |
-| **Sentry Developer** | Wk 1 Day 2 | Free 5K errors/mo; need from launch | $0 |
-| **PostHog Free** | Wk 1 Day 2 | Free 1M events/mo; instrument from day 1 | $0 |
-| **JSearch Pro (RapidAPI)** | Wk 1 Day 2 | Already in production; upgrade from Basic now | $25 |
-| **Active Jobs DB Pro (RapidAPI)** | Wk 1 Day 2 | Already in production; upgrade now | ~$25 |
-| **Coursera affiliate signup** | Wk 1 Day 3 | 3–5 day approval window | $0 |
-| **LinkedIn Learning affiliate signup** | Wk 1 Day 3 | 3–5 day approval window | $0 |
-| **OpenAI Track 2 pre-spend** | Wk 5 | Need ~$50 of test calls to auto-promote to Track 2 (450K TPM headroom) before launch wave hits | One-time $50 |
-| **Mailgun Free (inbound)** | Wk 4 OR skip | Only needed if LinkedIn email forwarding ships v1; defer to post-launch | $0 |
-| **Firecrawl Hobby** | **Wk 6 Day 1** | Don't activate until JD auto-fetch ships. Save $19 × 5 weeks = $95 | $19 |
-| **Langfuse Cloud Free** | Wk 5 | Free 50K observations/mo; activate when scout ships and LLM volume increases | $0 |
-| **Cursor Pro** | Anytime | Personal preference, doesn't block anything | $20 |
+| Service                                | When           | Why now                                                                                        | Monthly cost     |
+| -------------------------------------- | -------------- | ---------------------------------------------------------------------------------------------- | ---------------- |
+| **1Password**                          | Wk 1 Day 1     | Before any other credential creation                                                           | $5–8             |
+| **Domain (Cloudflare Registrar)**      | Wk 1 Day 1     | DNS propagation needs 24–48h buffer                                                            | ~$1/mo amortized |
+| **Vercel Hobby**                       | Wk 1 Day 2     | Free tier covers pilot; need for preview deploys                                               | $0               |
+| **Sentry Developer**                   | Wk 1 Day 2     | Free 5K errors/mo; need from launch                                                            | $0               |
+| **PostHog Free**                       | Wk 1 Day 2     | Free 1M events/mo; instrument from day 1                                                       | $0               |
+| **JSearch Pro (RapidAPI)**             | Wk 1 Day 2     | Already in production; upgrade from Basic now                                                  | $25              |
+| **Active Jobs DB Pro (RapidAPI)**      | Wk 1 Day 2     | Already in production; upgrade now                                                             | ~$25             |
+| **Coursera affiliate signup**          | Wk 1 Day 3     | 3–5 day approval window                                                                        | $0               |
+| **LinkedIn Learning affiliate signup** | Wk 1 Day 3     | 3–5 day approval window                                                                        | $0               |
+| **OpenAI Track 2 pre-spend**           | Wk 5           | Need ~$50 of test calls to auto-promote to Track 2 (450K TPM headroom) before launch wave hits | One-time $50     |
+| **Mailgun Free (inbound)**             | Wk 4 OR skip   | Only needed if LinkedIn email forwarding ships v1; defer to post-launch                        | $0               |
+| **Firecrawl Hobby**                    | **Wk 6 Day 1** | Don't activate until JD auto-fetch ships. Save $19 × 5 weeks = $95                             | $19              |
+| **Langfuse Cloud Free**                | Wk 5           | Free 50K observations/mo; activate when scout ships and LLM volume increases                   | $0               |
+| **Cursor Pro**                         | Anytime        | Personal preference, doesn't block anything                                                    | $20              |
 
 **Cost-timing wins:** Firecrawl deferred to Wk 6 saves ~$95. Mailgun skipped entirely. **Pre-launch one-time:** ~$60. **Recurring at launch:** ~$130/mo.
 
@@ -110,51 +112,51 @@ Activate when needed, not before. Total monthly recurring cost at launch: **~$13
 
 **Eli (5 days)**
 
-| Day | Task | Status |
-|---|---|---|
-| Mon | 1Password setup + domain purchase + Cloudflare DNS (let propagation start) | — |
-| Tue | Merge PRs #1–5 → Sentry/PostHog/Vercel signup + Vercel connect to repo (preview only) | PRs #1–5 ✓ merged |
-| Wed | **Application Outcome Loop schema** + auto-populate `source` from add-paths | ✓ shipped (PR #5) |
-| Thu | function_metrics table + emit from each edge function | ✓ shipped (PR #6) |
-| Fri | Pre-spend OpenAI to land in Track 2 (~$50). Affiliate signups. **Request your own LinkedIn full archive (24h wait)**. Smoke test + buffer | — |
+| Day | Task                                                                                                                                      | Status            |
+| --- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------- |
+| Mon | 1Password setup + domain purchase + Cloudflare DNS (let propagation start)                                                                | —                 |
+| Tue | Merge PRs #1–5 → Sentry/PostHog/Vercel signup + Vercel connect to repo (preview only)                                                     | PRs #1–5 ✓ merged |
+| Wed | **Application Outcome Loop schema** + auto-populate `source` from add-paths                                                               | ✓ shipped (PR #5) |
+| Thu | function_metrics table + emit from each edge function                                                                                     | ✓ shipped (PR #6) |
+| Fri | Pre-spend OpenAI to land in Track 2 (~$50). Affiliate signups. **Request your own LinkedIn full archive (24h wait)**. Smoke test + buffer | —                 |
 
 **Isaac (2.5 days)**
 
-| Day | Task | Status |
-|---|---|---|
-| Mon | Pending fix #31: tasks `due_date` | ✓ already shipped (B4 fix Apr 27) |
-| Wed | Pending fix #30: education fields manual UI | ✓ shipped (PR #7) |
+| Day | Task                                                                                                                             | Status                                                                                                   |
+| --- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Mon | Pending fix #31: tasks `due_date`                                                                                                | ✓ already shipped (B4 fix Apr 27)                                                                        |
+| Wed | Pending fix #30: education fields manual UI                                                                                      | ✓ shipped (PR #7)                                                                                        |
 | Fri | Pending fix #33: extract-proof-signals library bloat (filter by primary_domain) + AI disclaimer text + onboarding consent screen | #33 declined (extraction quality risk too high for marginal savings); disclaimer + consent still pending |
 
 ### Week 2 (May 12–18): Story Bank core + Landing + Admin
 
 **Eli (5 days)**
 
-| Day | Task | Status |
-|---|---|---|
-| Mon | Story Bank schema + RLS migration | ✓ shipped (PR #8) |
-| Tue | `extract-story-from-text` edge function (gpt-4o-mini, structured output) | ✓ shipped (PR #8) |
-| Wed | CV Agent integration: SUGGESTED_STORY_CAPTURE_JSON parsing + save card UI | ✓ shipped (PR #8) |
+| Day | Task                                                                                 | Status            |
+| --- | ------------------------------------------------------------------------------------ | ----------------- |
+| Mon | Story Bank schema + RLS migration                                                    | ✓ shipped (PR #8) |
+| Tue | `extract-story-from-text` edge function (gpt-4o-mini, structured output)             | ✓ shipped (PR #8) |
+| Wed | CV Agent integration: SUGGESTED_STORY_CAPTURE_JSON parsing + save card UI            | ✓ shipped (PR #8) |
 | Thu | Story Bank consumption in `generate-tailored-cv` (pull stories matching JD keywords) | ✓ shipped (PR #8) |
-| Fri | Buffer + integration testing + cross-check Isaac's landing page | — |
+| Fri | Buffer + integration testing + cross-check Isaac's landing page                      | —                 |
 
 **Isaac (2.5 days)**
 
-| Day | Task | Status |
-|---|---|---|
-| Mon | Landing page: v0.dev generation → paste into `Landing.jsx` → routing change for unauth users | — |
+| Day | Task                                                                                                                                 | Status                       |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------- |
+| Mon | Landing page: v0.dev generation → paste into `Landing.jsx` → routing change for unauth users                                         | —                            |
 | Wed | Admin view: SQL views (`cohort_scout_metrics`, `student_engagement_summary`) + `/admin` page (read-only, RLS-gated to Eli's user_id) | in progress (Eli picking up) |
-| Fri | ESLint warning for hardcoded hex + Playwright screenshot baseline (top 8 screens) | — |
+| Fri | ESLint warning for hardcoded hex + Playwright screenshot baseline (top 8 screens)                                                    | —                            |
 
 ### Week 3 (May 19–25): LinkedIn Optimizer + Daily Action + Story Bank surface + Admin pilot tooling
 
 **Eli (5 days)**
 
-| Day | Task | Status |
-|---|---|---|
-| Mon–Wed | **LinkedIn Optimizer (generation-first)** — page, prompt, generate-from-profile flow. v1 = no PDF upload mode, just generation from existing profile data + Story Bank stories | ✓ shipped + expanded into a 3-tab command center (Profile / Posts / Networking) — PRs #30 (research), #31 (Phase 1 hub), #32 (Phase 2 Posts MVP), #33 (Phase 3 4 more types), #34 (Phase 4 PR A: Comment Coach), #35 (Phase 4 PR B: Outreach Conversation Coach) |
-| Thu | Daily Action Card schema + `generate-daily-action` edge function (priority logic + LLM picker) | — |
-| Fri | **Admin chat log viewer + admin story browser** (new cards on `/admin`). How Eli will tune prompts during the pilot based on real student data. Same RLS gating pattern as existing admin cards (`is_admin()`-gated SELECT policies + admin RPC functions with explicit gate). v1: read-only browse; filter by student dropdown. Buffer absorbed if these run long; integration testing slips to Wk 4 buffer. | — |
+| Day     | Task                                                                                                                                                                                                                                                                                                                                                                                                          | Status                                                                                                                                                                                                                                                           |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mon–Wed | **LinkedIn Optimizer (generation-first)** — page, prompt, generate-from-profile flow. v1 = no PDF upload mode, just generation from existing profile data + Story Bank stories                                                                                                                                                                                                                                | ✓ shipped + expanded into a 3-tab command center (Profile / Posts / Networking) — PRs #30 (research), #31 (Phase 1 hub), #32 (Phase 2 Posts MVP), #33 (Phase 3 4 more types), #34 (Phase 4 PR A: Comment Coach), #35 (Phase 4 PR B: Outreach Conversation Coach) |
+| Thu     | Daily Action Card schema + `generate-daily-action` edge function (priority logic + LLM picker)                                                                                                                                                                                                                                                                                                                | —                                                                                                                                                                                                                                                                |
+| Fri     | **Admin chat log viewer + admin story browser** (new cards on `/admin`). How Eli will tune prompts during the pilot based on real student data. Same RLS gating pattern as existing admin cards (`is_admin()`-gated SELECT policies + admin RPC functions with explicit gate). v1: read-only browse; filter by student dropdown. Buffer absorbed if these run long; integration testing slips to Wk 4 buffer. | —                                                                                                                                                                                                                                                                |
 
 **Eli Friday — admin pilot tooling detail**
 
@@ -163,11 +165,11 @@ Activate when needed, not before. Total monthly recurring cost at launch: **~$13
 
 **Isaac (2.5 days)**
 
-| Day | Task | Status |
-|---|---|---|
-| Mon | Story Bank Phase 2: AddInformation Experience tab inline stories + quick-add modal | — |
-| Wed | Daily Action Card UI on Home dashboard (display + Done/Snooze/Dismiss actions) | — (depends on Eli landing schema + edge function first) |
-| Fri | Daily Action calibration loop (dismissed-type backoff in priority weighting) | — |
+| Day | Task                                                                               | Status                                                  |
+| --- | ---------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Mon | Story Bank Phase 2: AddInformation Experience tab inline stories + quick-add modal | —                                                       |
+| Wed | Daily Action Card UI on Home dashboard (display + Done/Snooze/Dismiss actions)     | — (depends on Eli landing schema + edge function first) |
+| Fri | Daily Action calibration loop (dismissed-type backoff in priority weighting)       | —                                                       |
 
 **Wk 3 scope expansion note.** What was originally scoped as "LinkedIn Optimizer (generation-first)" expanded into a full 3-tab command center across PRs #30–35 — driven by Eli's research finding that commenting on others' posts is the highest-leverage motion for sub-1K-follower accounts (~55% profile-view lift). The original scope (Profile generation from Story Bank) shipped as Phase 1 (#31). Posts (Phase 2 #32 + Phase 3 #33) and Networking with Comment Coach + Outreach Conversation Coach (Phase 4 #34 + #35) are scope additions justified by the research. Wk 3's other tracks (Daily Action, admin tooling, Story Bank Phase 2) slipped into Wk 4 buffer as a result.
 
@@ -175,20 +177,20 @@ Activate when needed, not before. Total monthly recurring cost at launch: **~$13
 
 **Eli (5 days)** — should have own LinkedIn archive by now (requested Wk 1)
 
-| Day | Task |
-|---|---|
-| Mon–Tue | LinkedIn import — schema (`linkedin_imports` + `linkedin_connections` + `linkedin_change_events`) + zip upload edge function + parser (Connections.csv first, others added if time) |
-| Wed | Connection cross-reference — match user's connections against Internship Picker company list. Surface "X connections at Atera" UI on Tracker rows |
-| Thu | Internship Finder schema (`internship_profiles` + `companies` + `company_targets` + `faculty_practicum_companies`) + `practicum_mode` onboarding toggle + `generate-internship-profile` edge function |
-| Fri | Buffer + integration test |
+| Day     | Task                                                                                                                                                                                                  |
+| ------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mon–Tue | LinkedIn import — schema (`linkedin_imports` + `linkedin_connections` + `linkedin_change_events`) + zip upload edge function + parser (Connections.csv first, others added if time)                   |
+| Wed     | Connection cross-reference — match user's connections against Internship Picker company list. Surface "X connections at Atera" UI on Tracker rows                                                     |
+| Thu     | Internship Finder schema (`internship_profiles` + `companies` + `company_targets` + `faculty_practicum_companies`) + `practicum_mode` onboarding toggle + `generate-internship-profile` edge function |
+| Fri     | Buffer + integration test                                                                                                                                                                             |
 
 **Isaac (2.5 days)**
 
-| Day | Task |
-|---|---|
-| Mon | `match-internship-companies` edge function (scoring against profile) |
+| Day | Task                                                                                                         |
+| --- | ------------------------------------------------------------------------------------------------------------ |
+| Mon | `match-internship-companies` edge function (scoring against profile)                                         |
 | Wed | `/Practicum` page UI: profile display + kanban pipeline (basic — exploring → outreach → interview → offered) |
-| Fri | Career Agent practicum prompt addition + SUGGESTED_COMPANY_TARGET_JSON parsing |
+| Fri | Career Agent practicum prompt addition + SUGGESTED_COMPANY_TARGET_JSON parsing                               |
 
 **Wk 4 risk:** Internship Finder is normally 10 days; we're fitting ~4. v1 cuts: no curated companies DB seed (job-board API only), no `draft-outreach-message` (defer post-launch), no faculty-provided list (manual entries). Phase 2 polish post-launch.
 
@@ -196,20 +198,20 @@ Activate when needed, not before. Total monthly recurring cost at launch: **~$13
 
 **Eli (5 days)**
 
-| Day | Task |
-|---|---|
+| Day | Task                                                                                                                 |
+| --- | -------------------------------------------------------------------------------------------------------------------- |
 | Mon | Autonomous Job Scout schema (`scout_findings` table) + `pg_cron` schedule + `scout-find-jobs` edge function skeleton |
-| Tue | Scout scoring pipeline (reuse `analyze-job-match` logic) + threshold logic + `fit_rationale` generation |
-| Wed | Scout UI: Home dashboard "Scout" card + JobSuggestions integration (scout badge) + Career Agent passive mention |
-| Thu | Practice Interview Agent schema + question generation edge function + answer scoring rubric |
-| Fri | Practice Interview Agent UI: mode toggle on `/InterviewCoach` + practice-mode chat |
+| Tue | Scout scoring pipeline (reuse `analyze-job-match` logic) + threshold logic + `fit_rationale` generation              |
+| Wed | Scout UI: Home dashboard "Scout" card + JobSuggestions integration (scout badge) + Career Agent passive mention      |
+| Thu | Practice Interview Agent schema + question generation edge function + answer scoring rubric                          |
+| Fri | Practice Interview Agent UI: mode toggle on `/InterviewCoach` + practice-mode chat                                   |
 
 **Isaac (2.5 days)**
 
-| Day | Task |
-|---|---|
-| Mon | Schema validator skill (reads `role_library` + `skill_library`, emits enums + ID sets as JSON) |
-| Wed | Role library research skill (slash command, drafts to `_drafts/`) |
+| Day | Task                                                                                                                                         |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| Mon | Schema validator skill (reads `role_library` + `skill_library`, emits enums + ID sets as JSON)                                               |
+| Wed | Role library research skill (slash command, drafts to `_drafts/`)                                                                            |
 | Fri | Add 30–50 business-student roles using the research skill (BD Analyst, Solutions Engineer, RevOps, Customer Marketing, GTM Strategist, etc.) |
 
 **Wk 5 risk:** Practice Interview ships v1 — basic Q&A with rubric scoring; no story integration polish, no drill-down. Story integration post-launch.
@@ -218,56 +220,56 @@ Activate when needed, not before. Total monthly recurring cost at launch: **~$13
 
 **Eli (5 days)**
 
-| Day | Task |
-|---|---|
-| Mon–Tue | **Streaming chat refactor** — convert `ai-chat` to streaming responses (frontend SSE handling + backend OpenAI streaming + retry logic adjustment) |
-| Wed | Morning: **activate Firecrawl Hobby ($19/mo)**. Afternoon: Firecrawl JD auto-fetch in `handleAddToTracker` (~30 lines) |
-| Thu | Final smoke test: fresh user signup → onboarding → application → CV gen → LinkedIn optimize → daily action → scout finding → practice interview. Find what breaks. |
-| Fri | Fix what broke. Triage. Ship-no-ship decision. **Soft launch — invite first 10 users from group chat.** |
+| Day     | Task                                                                                                                                                               |
+| ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Mon–Tue | **Streaming chat refactor** — convert `ai-chat` to streaming responses (frontend SSE handling + backend OpenAI streaming + retry logic adjustment)                 |
+| Wed     | Morning: **activate Firecrawl Hobby ($19/mo)**. Afternoon: Firecrawl JD auto-fetch in `handleAddToTracker` (~30 lines)                                             |
+| Thu     | Final smoke test: fresh user signup → onboarding → application → CV gen → LinkedIn optimize → daily action → scout finding → practice interview. Find what breaks. |
+| Fri     | Fix what broke. Triage. Ship-no-ship decision. **Soft launch — invite first 10 users from group chat.**                                                            |
 
 **Isaac (2.5 days)**
 
-| Day | Task |
-|---|---|
-| Mon | Story Bank → Career Agent passive mention. Story Bank → LinkedIn Optimizer evidence injection |
+| Day | Task                                                                                                                                                                                 |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Mon | Story Bank → Career Agent passive mention. Story Bank → LinkedIn Optimizer evidence injection                                                                                        |
 | Wed | Visual redesign incremental: token migration on top 5 most-trafficked components (Home, Tracker, AddInformation, Career Agent, Onboarding). Playwright baseline as regression check. |
-| Fri | Final UI polish + responsive checks on mobile + faculty briefing materials |
+| Fri | Final UI polish + responsive checks on mobile + faculty briefing materials                                                                                                           |
 
 ### Launch weekend (June 13–15)
 
-| Day | Task |
-|---|---|
-| Sat (Jun 13) | Quiet day — monitor preview environment, fix issues found Friday |
-| Sun (Jun 14) | Production deploy on launch domain. Final smoke test. Open registration |
+| Day              | Task                                                                              |
+| ---------------- | --------------------------------------------------------------------------------- |
+| Sat (Jun 13)     | Quiet day — monitor preview environment, fix issues found Friday                  |
+| Sun (Jun 14)     | Production deploy on launch domain. Final smoke test. Open registration           |
 | **Mon (Jun 15)** | **Full launch — broader invite from WhatsApp groups (target 80 own-pilot users)** |
 
 ### v1 / v2 cuts (the honest cuts inside "everything ships")
 
-| Feature | v1 ships June 15 | v2 polish post-launch |
-|---|---|---|
-| LinkedIn import | Connections.csv parsing + connection cross-reference at companies | Other archive files (Recommendations, Endorsements, etc.), email forwarding mode, diff-on-import |
-| Internship Finder | Profile gen, matching against job board, kanban UI, Career Agent integration | Curated companies DB seed (~100 IL companies), faculty list import, `draft-outreach-message` |
-| Practice Interview | Mode toggle, question generation, answer scoring, rubric output | Story integration polish, drill-down conversation, session summary visualization |
-| LinkedIn Optimizer | Generation-first from profile + stories | Visual mirror page (per ROADMAP entry below), PDF upload mode for current LinkedIn comparison |
-| Daily Action Card | Card with Done/Snooze/Dismiss + calibration loop | Calendar integration ("block time"), advanced source variety |
-| Scout | Daily cron + scoring + Home card + Career Agent passive | Per-user notification preferences, optional digest emails |
-| Visual redesign | ESLint warning + screenshot baseline + top-5 component token migration | Full migration of remaining 200+ hex usages |
-| Role library expansion | 30 new roles via research skill | 50+ roles, validated cross-references, market notes for each |
-| Streaming chat | Working stream | Polished error states, retry UX, optimistic message UI |
+| Feature                | v1 ships June 15                                                             | v2 polish post-launch                                                                            |
+| ---------------------- | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| LinkedIn import        | Connections.csv parsing + connection cross-reference at companies            | Other archive files (Recommendations, Endorsements, etc.), email forwarding mode, diff-on-import |
+| Internship Finder      | Profile gen, matching against job board, kanban UI, Career Agent integration | Curated companies DB seed (~100 IL companies), faculty list import, `draft-outreach-message`     |
+| Practice Interview     | Mode toggle, question generation, answer scoring, rubric output              | Story integration polish, drill-down conversation, session summary visualization                 |
+| LinkedIn Optimizer     | Generation-first from profile + stories                                      | Visual mirror page (per ROADMAP entry below), PDF upload mode for current LinkedIn comparison    |
+| Daily Action Card      | Card with Done/Snooze/Dismiss + calibration loop                             | Calendar integration ("block time"), advanced source variety                                     |
+| Scout                  | Daily cron + scoring + Home card + Career Agent passive                      | Per-user notification preferences, optional digest emails                                        |
+| Visual redesign        | ESLint warning + screenshot baseline + top-5 component token migration       | Full migration of remaining 200+ hex usages                                                      |
+| Role library expansion | 30 new roles via research skill                                              | 50+ roles, validated cross-references, market notes for each                                     |
+| Streaming chat         | Working stream                                                               | Polished error states, retry UX, optimistic message UI                                           |
 
 ### Risk register
 
-| Risk | Likelihood | Mitigation |
-|---|---|---|
-| Eli's LinkedIn archive doesn't arrive Wk 1 | Medium | Request immediately. If late, parser uses sample data; ship Connections-only v1 |
-| Wk 4 Internship Finder runs over | High | v1 cuts already documented (no curated DB, no outreach drafting). Accept the cut. |
-| Wk 6 Streaming chat breaks existing chat | Medium | Land it Mon–Tue so Wed–Fri has rollback time. If risky, defer streaming to post-launch |
-| Visual redesign migration introduces regressions | Medium | Playwright screenshot baseline IS the regression check. If breaks > 3 components, revert + ship as post-launch |
-| OpenAI rate limits hit during launch wave | Low | Pre-spend Wk 5 lands you in Track 2 (450K TPM). Should comfortably handle 80 users onboarding |
-| Domain DNS propagation takes >48h | Low | Buy Wk 1 Day 1 — gives 5 weeks of buffer |
-| Isaac's part-time capacity drops below 50% | Medium | Plan stays achievable — drops to 40d if Isaac is at ~25%. Cuts visual redesign + role library would absorb shortfall |
-| Sentry / PostHog instrumentation slows feature work | Low | Both are 1-line SDK installs. Real work is wiring events through; minimal dev cost |
-| Privacy counsel review takes >2 weeks | Medium | Engage Wk 1 with a 3-week deadline. They're typically responsive on small scope. |
+| Risk                                                | Likelihood | Mitigation                                                                                                           |
+| --------------------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------- |
+| Eli's LinkedIn archive doesn't arrive Wk 1          | Medium     | Request immediately. If late, parser uses sample data; ship Connections-only v1                                      |
+| Wk 4 Internship Finder runs over                    | High       | v1 cuts already documented (no curated DB, no outreach drafting). Accept the cut.                                    |
+| Wk 6 Streaming chat breaks existing chat            | Medium     | Land it Mon–Tue so Wed–Fri has rollback time. If risky, defer streaming to post-launch                               |
+| Visual redesign migration introduces regressions    | Medium     | Playwright screenshot baseline IS the regression check. If breaks > 3 components, revert + ship as post-launch       |
+| OpenAI rate limits hit during launch wave           | Low        | Pre-spend Wk 5 lands you in Track 2 (450K TPM). Should comfortably handle 80 users onboarding                        |
+| Domain DNS propagation takes >48h                   | Low        | Buy Wk 1 Day 1 — gives 5 weeks of buffer                                                                             |
+| Isaac's part-time capacity drops below 50%          | Medium     | Plan stays achievable — drops to 40d if Isaac is at ~25%. Cuts visual redesign + role library would absorb shortfall |
+| Sentry / PostHog instrumentation slows feature work | Low        | Both are 1-line SDK installs. Real work is wiring events through; minimal dev cost                                   |
+| Privacy counsel review takes >2 weeks               | Medium     | Engage Wk 1 with a 3-week deadline. They're typically responsive on small scope.                                     |
 
 ### Eli's personal Wk 1 to-dos (beyond code)
 
@@ -359,14 +361,14 @@ Every existing primitive feeds in. The architectural insight: **the platform's v
 
 ### Build phases
 
-| Phase | Wk | Effort | Notes |
-|---|---|---|---|
-| Schema + practicum mode toggle in onboarding | 3 | 1 day | Migrations, profile flag, onboarding question |
-| `generate-internship-profile` edge function + /Practicum profile display | 3-4 | 2 days | Prompt iteration with sample students |
-| `match-internship-companies` + kanban pipeline UI | 4-5 | 2 days | Reuses analyze-job-match scoring patterns |
-| Curated company DB seed (~100 IL anchor companies) + faculty list import | 4 | 1.5 days | Faculty input + manual research |
-| Career Agent practicum prompt addition | 5 | 0.5 day | System prompt + JSON-block parsing |
-| `draft-outreach-message` + Tracker integration | 9-10 | 2 days | Depends on Story Bank + LinkedIn import landing |
+| Phase                                                                    | Wk   | Effort   | Notes                                           |
+| ------------------------------------------------------------------------ | ---- | -------- | ----------------------------------------------- |
+| Schema + practicum mode toggle in onboarding                             | 3    | 1 day    | Migrations, profile flag, onboarding question   |
+| `generate-internship-profile` edge function + /Practicum profile display | 3-4  | 2 days   | Prompt iteration with sample students           |
+| `match-internship-companies` + kanban pipeline UI                        | 4-5  | 2 days   | Reuses analyze-job-match scoring patterns       |
+| Curated company DB seed (~100 IL anchor companies) + faculty list import | 4    | 1.5 days | Faculty input + manual research                 |
+| Career Agent practicum prompt addition                                   | 5    | 0.5 day  | System prompt + JSON-block parsing              |
+| `draft-outreach-message` + Tracker integration                           | 9-10 | 2 days   | Depends on Story Bank + LinkedIn import landing |
 
 **Total: ~10 days dev, spread Wk 3-10.** Phases 1-5 ship incrementally; outreach drafting (phase 6) gates on Story Bank (Wk 7-8) + LinkedIn import (Wk 9-10).
 
@@ -385,6 +387,7 @@ Status: **design complete.** Backend is architecturally trivial (cron + LLM call
 ### Design — one process, three surfaces
 
 **Backend (~5 days dev):**
+
 - `pg_cron` daily schedule, staggered per user
 - Edge function `scout-find-jobs` per user: query JSearch / Active Jobs DB with last-24h filter against target_job_titles + target_industries + location
 - For each new posting (deduped against `applications`, `job_suggestions`, `scout_findings`): score using existing analyze-job-match logic
@@ -394,17 +397,18 @@ Status: **design complete.** Backend is architecturally trivial (cron + LLM call
 
 **Three student-facing surfaces (one mental model):**
 
-| Surface | Channel | Why |
-|---|---|---|
-| Home dashboard "Scout" card | Passive — visible always, never demanding | Primary entry point for "dashboard people" |
-| Career Agent passive mention on chat open | Conversational — "I found 3 things, want to talk?" | Primary entry for "chat people"; agent has fresh material |
-| JobSuggestions page with scout badge | Existing surface, scout findings appear alongside pull-based matches | Unified "all my AI-suggested matches" view |
+| Surface                                   | Channel                                                              | Why                                                       |
+| ----------------------------------------- | -------------------------------------------------------------------- | --------------------------------------------------------- |
+| Home dashboard "Scout" card               | Passive — visible always, never demanding                            | Primary entry point for "dashboard people"                |
+| Career Agent passive mention on chat open | Conversational — "I found 3 things, want to talk?"                   | Primary entry for "chat people"; agent has fresh material |
+| JobSuggestions page with scout badge      | Existing surface, scout findings appear alongside pull-based matches | Unified "all my AI-suggested matches" view                |
 
 **Why no separate scout chat:** Career Agent already understands goals, roadmap, applications. Scout findings are "more things to talk about" within that context. A separate chat fragments the mental model. The scout's value is its content + rationale, not conversational personality.
 
 ### Admin metrics for Eli (replaces full instructor dashboard for pilot)
 
 Skip the full faculty-facing cohort dashboard. For the pilot, just an admin page or SQL query for Eli covering:
+
 - Daily scout activity (findings surfaced, students with unseen findings 7+ days, conversion rate findings → applications)
 - Per-student engagement (last seen, findings this week, application velocity)
 - Aggregate trends (top company matches across cohort, skill-gap drivers, week-over-week conversion change)
@@ -441,15 +445,15 @@ Every part is existing infrastructure. **The scout doesn't introduce a new syste
 
 ### Build phases
 
-| Phase | Wk | Effort | Notes |
-|---|---|---|---|
-| `scout_findings` table + pg_cron + edge function skeleton | 7 | 1 day | Schema, scheduler, dedup logic |
-| Scoring pipeline + threshold logic + fit_rationale | 7 | 2 days | Reuses analyze-job-match patterns |
-| Home dashboard "Scout" card | 7-8 | 1 day | Save / dismiss / mark-seen actions |
-| Career Agent passive mention | 8 | 0.5 day | Prompt addition + when-to-mention logic |
-| JobSuggestions integration (scout badge) | 8 | 0.5 day | Unified status flow |
-| Practicum-mode scoring | 8 | 0.5 day | Inject internship_profile; depends on practicum work |
-| Admin metrics SQL views + /admin page | 9 | 1 day | The simplified instructor visibility |
+| Phase                                                     | Wk  | Effort  | Notes                                                |
+| --------------------------------------------------------- | --- | ------- | ---------------------------------------------------- |
+| `scout_findings` table + pg_cron + edge function skeleton | 7   | 1 day   | Schema, scheduler, dedup logic                       |
+| Scoring pipeline + threshold logic + fit_rationale        | 7   | 2 days  | Reuses analyze-job-match patterns                    |
+| Home dashboard "Scout" card                               | 7-8 | 1 day   | Save / dismiss / mark-seen actions                   |
+| Career Agent passive mention                              | 8   | 0.5 day | Prompt addition + when-to-mention logic              |
+| JobSuggestions integration (scout badge)                  | 8   | 0.5 day | Unified status flow                                  |
+| Practicum-mode scoring                                    | 8   | 0.5 day | Inject internship_profile; depends on practicum work |
+| Admin metrics SQL views + /admin page                     | 9   | 1 day   | The simplified instructor visibility                 |
 
 **Total: ~7 days dev, Wk 7-9.**
 
@@ -470,6 +474,7 @@ Status: **design complete.** Three capture surfaces, six consumption points, one
 Capture pattern (same on all three surfaces): user types free-form text → AI extracts STAR structure → user confirms/edits in a card → row written to `stories`. **No STAR formatting required from the user** — the AI does the parsing. Anti-fabrication preserved: any STAR field unsupported by the user's words stays NULL.
 
 Three capture surfaces:
+
 1. **CV Agent chat (proactive)** — agent asks targeted questions when discussing an experience. Emits `SUGGESTED_STORY_JSON` block; user confirms via existing `TaskSuggestionCard`-style component.
 2. **AddInformation → Experience tab** — each experience card gains an inline "Stories" section + `+ Add story` button → modal with single textarea + AI extraction + editable confirmation.
 3. **Quick-add from anywhere** — floating "+ Story" button on profile-editing pages with experience selector dropdown.
@@ -478,14 +483,14 @@ All three call `extract-story-from-text` edge function. One pattern, three surfa
 
 Six consumption points (all share a `getStoriesFor({user_id, experienceIds?, jdKeywords?, skillTags?})` helper):
 
-| Consumer | Behaviour |
-|---|---|
-| `generate-tailored-cv` | Pulls stories matching JD keywords as bullet evidence; replaces generic responsibility-shaped bullets with metric-backed ones |
-| LinkedIn Optimizer | Top 2-3 stories per experience; LinkedIn descriptions become tightened paraphrases of real stories |
-| Career Agent | Stories matching current discussion context for grounded coaching |
-| Interview Coach | Stories matching question's `skills_demonstrated` for behavioral answers |
-| `generate-career-analysis` | Top 3-5 stories per experience as context — track scoring becomes more accurate |
-| Internship Finder outreach drafting | Stories as evidence in cold-DM templates |
+| Consumer                            | Behaviour                                                                                                                     |
+| ----------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| `generate-tailored-cv`              | Pulls stories matching JD keywords as bullet evidence; replaces generic responsibility-shaped bullets with metric-backed ones |
+| LinkedIn Optimizer                  | Top 2-3 stories per experience; LinkedIn descriptions become tightened paraphrases of real stories                            |
+| Career Agent                        | Stories matching current discussion context for grounded coaching                                                             |
+| Interview Coach                     | Stories matching question's `skills_demonstrated` for behavioral answers                                                      |
+| `generate-career-analysis`          | Top 3-5 stories per experience as context — track scoring becomes more accurate                                               |
+| Internship Finder outreach drafting | Stories as evidence in cold-DM templates                                                                                      |
 
 ### Schema
 
@@ -517,15 +522,15 @@ CREATE TABLE stories (
 
 ### Build cost
 
-| Phase | Wk | Effort |
-|---|---|---|
-| Schema + RLS | 7 | 0.5 day |
-| `extract-story-from-text` edge function (gpt-4o-mini, structured output) | 7 | 1 day |
-| CV Agent integration (SUGGESTED_STORY_JSON parsing + save card) | 7 | 1 day |
-| AddInformation Experience tab inline + quick-add modal | 7-8 | 1.5 days |
-| `getStoriesFor` shared helper | 8 | 0.5 day |
-| Wire stories into generate-tailored-cv prompt | 8 | 0.5 day |
-| Wire stories into other consumers (incremental) | 8-10 | ~1 day across consumers |
+| Phase                                                                    | Wk   | Effort                  |
+| ------------------------------------------------------------------------ | ---- | ----------------------- |
+| Schema + RLS                                                             | 7    | 0.5 day                 |
+| `extract-story-from-text` edge function (gpt-4o-mini, structured output) | 7    | 1 day                   |
+| CV Agent integration (SUGGESTED_STORY_JSON parsing + save card)          | 7    | 1 day                   |
+| AddInformation Experience tab inline + quick-add modal                   | 7-8  | 1.5 days                |
+| `getStoriesFor` shared helper                                            | 8    | 0.5 day                 |
+| Wire stories into generate-tailored-cv prompt                            | 8    | 0.5 day                 |
+| Wire stories into other consumers (incremental)                          | 8-10 | ~1 day across consumers |
 
 **Total: ~6 days dev, Wk 7-10.** Front-loaded so dependents can use stories immediately.
 
@@ -546,20 +551,21 @@ Three conversation modes the student picks from:
 ### Story integration (the key differentiator)
 
 Two ways:
-- **Pre-answer suggestion:** *"You actually have a great story here — your Guardio triage automation. Want to use that as your answer?"*
-- **Post-answer enhancement:** *"Solid answer, but no metrics. You have a Guardio story with '200 → 80 tickets/week' — adding that would make this stronger. Try again?"*
+
+- **Pre-answer suggestion:** _"You actually have a great story here — your Guardio triage automation. Want to use that as your answer?"_
+- **Post-answer enhancement:** _"Solid answer, but no metrics. You have a Guardio story with '200 → 80 tickets/week' — adding that would make this stronger. Try again?"_
 
 Stories pulled by `relevance_tags && question.expected_skills`. Never references stories not in the user's table (anti-fabrication guard).
 
 ### Eval rubric (per answer, 1-5 each)
 
-| Dimension | What it measures |
-|---|---|
-| Structure | STAR clarity — situation/task/action/result identifiable? |
-| Specificity | Real situation with names/dates vs. generic platitudes |
-| Relevance | Answers the question asked, not adjacent |
-| Metrics | Concrete outcomes — numbers, before/after, scope |
-| Brevity | Under ~2 min spoken / ~250 words written |
+| Dimension   | What it measures                                          |
+| ----------- | --------------------------------------------------------- |
+| Structure   | STAR clarity — situation/task/action/result identifiable? |
+| Specificity | Real situation with names/dates vs. generic platitudes    |
+| Relevance   | Answers the question asked, not adjacent                  |
+| Metrics     | Concrete outcomes — numbers, before/after, scope          |
+| Brevity     | Under ~2 min spoken / ~250 words written                  |
 
 Output JSON with strengths, improvements, story_used_id, would_recommend_story_id, drill_down_question. Surfaced conversationally, not as a grade.
 
@@ -609,15 +615,15 @@ Existing `/InterviewCoach` already has the application selector — extend with 
 
 ### Build cost
 
-| Phase | Wk | Effort |
-|---|---|---|
-| Schema + RLS | 11 | 0.5 day |
-| Mode toggle on /InterviewCoach + practice-mode UI | 11 | 1 day |
-| Question generation edge function | 11 | 1 day |
-| Answer scoring edge function (rubric prompt) | 11 | 1 day |
-| Story integration (suggest / recommend) | 11-12 | 1 day |
-| Session summary + score progression | 12 | 0.5 day |
-| Drill-down conversation flow | 12 | 1 day |
+| Phase                                             | Wk    | Effort  |
+| ------------------------------------------------- | ----- | ------- |
+| Schema + RLS                                      | 11    | 0.5 day |
+| Mode toggle on /InterviewCoach + practice-mode UI | 11    | 1 day   |
+| Question generation edge function                 | 11    | 1 day   |
+| Answer scoring edge function (rubric prompt)      | 11    | 1 day   |
+| Story integration (suggest / recommend)           | 11-12 | 1 day   |
+| Session summary + score progression               | 12    | 0.5 day |
+| Drill-down conversation flow                      | 12    | 1 day   |
 
 **Total: ~6 days dev, Wk 11-12.**
 
@@ -633,14 +639,14 @@ Status: **v1 generation-first shipping Wk 3 (text output).** v2 visual mirror re
 
 **6 sections covered in v1:**
 
-| Section | LinkedIn char limit | Source priority |
-|---|---|---|
-| Headline | 220 | profile.summary + target_job_titles + primary_domain |
-| About | 2,600 | profile.summary + top stories across experiences (recency + target alignment) + target_job_titles |
-| Experience descriptions (per professional experience) | 2,000 each | experience row + stories linked to that experience_id |
-| Volunteering descriptions (per volunteering experience) | 2,000 each | same as Experience but filtered to bucket=volunteering |
-| Skills priority order | top 50, top 3 highlighted | profile.skills + frequency in stories' skills_demonstrated + target_job_titles alignment |
-| Honors & Awards descriptions | ~200 chars per honor | profile.honors[] expanded into 1-2 sentence factual descriptions (anti-fab discipline; no inventing reasons) |
+| Section                                                 | LinkedIn char limit       | Source priority                                                                                              |
+| ------------------------------------------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Headline                                                | 220                       | profile.summary + target_job_titles + primary_domain                                                         |
+| About                                                   | 2,600                     | profile.summary + top stories across experiences (recency + target alignment) + target_job_titles            |
+| Experience descriptions (per professional experience)   | 2,000 each                | experience row + stories linked to that experience_id                                                        |
+| Volunteering descriptions (per volunteering experience) | 2,000 each                | same as Experience but filtered to bucket=volunteering                                                       |
+| Skills priority order                                   | top 50, top 3 highlighted | profile.skills + frequency in stories' skills_demonstrated + target_job_titles alignment                     |
+| Honors & Awards descriptions                            | ~200 chars per honor      | profile.honors[] expanded into 1-2 sentence factual descriptions (anti-fab discipline; no inventing reasons) |
 
 Anti-fab + Story Bank precedence inherited from `generate-tailored-cv` (Day 4 BINDING rules — metrics verbatim, tools preserved, no cross-experience smearing). Plus LinkedIn-specific banned vocabulary ("passionate about", "results-driven", "let's connect" prefix, etc.).
 
@@ -649,6 +655,7 @@ Anti-fab + Story Bank precedence inherited from `generate-tailored-cv` (Day 4 BI
 Visual replica of LinkedIn's actual UI (avatar, font, spacing, character-count meter inline) for the 6 v1 sections, PLUS coverage of every remaining LinkedIn section so the platform handles a complete profile rewrite. None of these are skipped — all on the roadmap for eventual coverage:
 
 **Additional sections to generate (v2):**
+
 - Featured (pinned posts/articles/links — short titled descriptions)
 - Projects (project descriptions with bullet evidence from stories)
 - Courses + Certifications (descriptions + relevance framing)
@@ -702,11 +709,11 @@ Agent quality is currently judged by usage proxies (did the user click Generate 
 
 ### Build cost (rough)
 
-| Phase | Effort |
-|---|---|
-| Schema + RLS | 0.5 day |
-| Thumbs UI component, wire into ~6 agent surfaces | 1 day |
-| Per-user aggregation + system-prompt injection helper | 1 day |
+| Phase                                                   | Effort  |
+| ------------------------------------------------------- | ------- |
+| Schema + RLS                                            | 0.5 day |
+| Thumbs UI component, wire into ~6 agent surfaces        | 1 day   |
+| Per-user aggregation + system-prompt injection helper   | 1 day   |
 | Outcome correlation view + Career Agent reference rules | 0.5 day |
 
 **Total: ~3 days dev. Can be wired incrementally — schema + UI on every surface lands first as the data-capture foundation, personalisation + outcome correlation comes later.**
@@ -727,22 +734,22 @@ Status: **design complete.** Daily curation pass over the user's existing pool (
 
 `generate-daily-action` edge function runs daily per user (pg_cron, staggered). Reads the candidate pool, scores each by **leverage × urgency × low-friction**:
 
-| Factor | Examples |
-|---|---|
-| Leverage | Warm-intro outreach > generic application > skill-gap practice |
-| Urgency | Interview tomorrow > application going stale 5 days > skill-gap with no deadline |
+| Factor       | Examples                                                                                   |
+| ------------ | ------------------------------------------------------------------------------------------ |
+| Leverage     | Warm-intro outreach > generic application > skill-gap practice                             |
+| Urgency      | Interview tomorrow > application going stale 5 days > skill-gap with no deadline           |
 | Low-friction | "Send the draft you already wrote" > "Draft outreach to Maya" > "Research 5 new companies" |
 
 LLM picks the single highest-scoring action and writes a one-sentence framing.
 
 ### How it differs from existing tasks
 
-| Tasks | Daily action |
-|---|---|
+| Tasks                                   | Daily action                                    |
+| --------------------------------------- | ----------------------------------------------- |
 | Persistent — accumulate as a to-do list | Ephemeral — generated daily, replaced when done |
-| User browses + picks | System picks one for you |
-| Created weekly by `generate-tasks` | Curated daily by `generate-daily-action` |
-| Generic priority (high/med/low) | Today's-priority (computed contextually) |
+| User browses + picks                    | System picks one for you                        |
+| Created weekly by `generate-tasks`      | Curated daily by `generate-daily-action`        |
+| Generic priority (high/med/low)         | Today's-priority (computed contextually)        |
 
 The daily action **may reference** an existing task ("Reach out to Maya — task #7, you've been on it 5 days. Today's the day."). Doesn't duplicate; surfaces.
 
@@ -750,7 +757,7 @@ The daily action **may reference** an existing task ("Reach out to Maya — task
 
 - **✓ Done** — mark complete, generate tomorrow's action
 - **⏭ Snooze** — defer for today, regenerate tomorrow
-- **✕ Not relevant** — dismiss this *type* for the next 7 days; the priority logic deweights similar items
+- **✕ Not relevant** — dismiss this _type_ for the next 7 days; the priority logic deweights similar items
 
 Third option is the calibration signal — students who dismiss "skill practice" 3 times in a row get fewer skill-practice surfacings, more outreach surfacings.
 
@@ -790,13 +797,13 @@ Card lives at the top of Home dashboard. One per day, replaces when completed. "
 
 ### Build cost
 
-| Phase | Wk | Effort |
-|---|---|---|
-| Schema + RLS | 7 | 0.5 day |
-| `generate-daily-action` edge function (priority logic + LLM picker) | 7-8 | 2 days |
-| Home dashboard card UI (display, done/snooze/dismiss) | 8 | 1 day |
-| Calibration loop (dismissed-type backoff) | 8 | 0.5 day |
-| Calendar integration ("block time for this") | 8 | 0.5 day |
+| Phase                                                               | Wk  | Effort  |
+| ------------------------------------------------------------------- | --- | ------- |
+| Schema + RLS                                                        | 7   | 0.5 day |
+| `generate-daily-action` edge function (priority logic + LLM picker) | 7-8 | 2 days  |
+| Home dashboard card UI (display, done/snooze/dismiss)               | 8   | 1 day   |
+| Calibration loop (dismissed-type backoff)                           | 8   | 0.5 day |
+| Calendar integration ("block time for this")                        | 8   | 0.5 day |
 
 **Total: ~4.5 days dev, Wk 7-8.**
 
@@ -813,6 +820,7 @@ If the audit table + schema additions wait until Wk 11-12 when we want to surfac
 ### Signals to capture
 
 **At application creation** (already + new):
+
 - tier, qualification_score, goal_alignment_score, required_seniority (already)
 - `source` — scout / job_suggestion / manual / chat_agent / company_target (NEW)
 - `attached_cv_version` (already as cv_version_used)
@@ -820,10 +828,12 @@ If the audit table + schema additions wait until Wk 11-12 when we want to surfac
 - `found_via_alumni` — bool, true if company has reichman_alumni overlap (NEW; depends on alumni list)
 
 **At each status transition:**
+
 - `status_changes` audit table (already designed for cohort velocity precondition) + trigger
 - duration_in_previous_status (computed via view)
 
 **At terminal status** (offer / rejected / accepted / declined):
+
 - `outcome_notes` — single-sentence reflection prompt ("what worked, what didn't?")
 - referral_attached (already)
 
@@ -873,25 +883,26 @@ Always returns counts, not just rates — the UI needs N to decide if a pattern 
 - **Cohort comparison anonymized** — medians + ranges, never individual data. Suppress entirely if cohort has <10 active.
 
 Career Agent prompt addition:
+
 > When discussing strategy, you MAY reference patterns from `user_application_patterns` and `cohort_application_patterns` ONLY IF count ≥5 (individual) or ≥30 (cohort). Always cite the count. Never present a pattern as a rule. Frame as "trend to consider," not "this is what works."
 
 ### UI surfaces
 
-1. **Reflection prompt at terminal status** — when user updates to rejected/offer/accepted/declined, inline prompt: *"Quick reflection — what worked or didn't? One sentence is fine. (skips silently if blank)"*
+1. **Reflection prompt at terminal status** — when user updates to rejected/offer/accepted/declined, inline prompt: _"Quick reflection — what worked or didn't? One sentence is fine. (skips silently if blank)"_
 2. **/Insights page** (per-student) — personal patterns with explicit N counts; cohort comparison anonymized.
 3. **Career Agent integration** — agent references patterns when discussing strategy with the safety rules above.
 
 ### Build cost (split across pilot)
 
-| Phase | Wk | Effort |
-|---|---|---|
-| status_changes table + trigger | 1-2 | 0.5 day |
-| applications schema additions (source, found_via_*, outcome_notes) | 1-2 | 0.5 day |
-| Reflection prompt UI on terminal status change | 2 | 0.5 day |
-| Auto-populate source from add-paths + found_via_* logic | 2 | 0.5 day |
-| user_application_patterns + cohort_application_patterns views | 11 | 1 day |
-| /Insights page UI | 11-12 | 1.5 days |
-| Career Agent pattern integration (prompt + safety rules) | 12 | 0.5 day |
+| Phase                                                               | Wk    | Effort   |
+| ------------------------------------------------------------------- | ----- | -------- |
+| status_changes table + trigger                                      | 1-2   | 0.5 day  |
+| applications schema additions (source, found*via*\*, outcome_notes) | 1-2   | 0.5 day  |
+| Reflection prompt UI on terminal status change                      | 2     | 0.5 day  |
+| Auto-populate source from add-paths + found*via*\* logic            | 2     | 0.5 day  |
+| user_application_patterns + cohort_application_patterns views       | 11    | 1 day    |
+| /Insights page UI                                                   | 11-12 | 1.5 days |
+| Career Agent pattern integration (prompt + safety rules)            | 12    | 0.5 day  |
 
 **Total: ~4.5 days dev, BUT split: 2 days NOW (Wk 1-2) + 3 days LATER (Wk 11-12).**
 
@@ -911,7 +922,7 @@ A "rewrite all the CSS" PR is the kind of thing that introduces visual regressio
 
 ### Risks
 
-- **Visual regression** — the largest risk. Hardcoded hex values are at least *predictable*; CSS variables resolved at runtime can shift unexpectedly across themes/devices. Mitigation: Playwright screenshot tests on the 8-10 most-trafficked screens before any wholesale migration.
+- **Visual regression** — the largest risk. Hardcoded hex values are at least _predictable_; CSS variables resolved at runtime can shift unexpectedly across themes/devices. Mitigation: Playwright screenshot tests on the 8-10 most-trafficked screens before any wholesale migration.
 - **Mid-pilot UI churn** — students notice when "the buttons changed." Avoid dedicated migration during Aug-Nov.
 - **Half-migrated state** — some components use tokens, some hex; visual drift becomes hard to debug. Mitigation: lint rule that flags `#[0-9a-f]{6}` in JSX during PR review (warning, not error).
 
@@ -925,12 +936,12 @@ Recommendation when execution starts: v0.dev for components, Stitch for full-pag
 
 ### Build cost
 
-| Phase | Wk | Effort |
-|---|---|---|
-| ESLint rule: warn on hardcoded hex in JSX | 1-2 | 0.5 day |
-| Playwright screenshot baseline (top 8 screens) | 2 | 1 day |
-| Token migration alongside feature PRs (free, no separate effort) | ongoing | 0 day |
-| Dedicated migration sprint (post-pilot) | post-Nov 2026 | 8-12 days |
+| Phase                                                            | Wk            | Effort    |
+| ---------------------------------------------------------------- | ------------- | --------- |
+| ESLint rule: warn on hardcoded hex in JSX                        | 1-2           | 0.5 day   |
+| Playwright screenshot baseline (top 8 screens)                   | 2             | 1 day     |
+| Token migration alongside feature PRs (free, no separate effort) | ongoing       | 0 day     |
+| Dedicated migration sprint (post-pilot)                          | post-Nov 2026 | 8-12 days |
 
 **Total: ~1.5 days now (lint + screenshot baseline) + ongoing free progress + ~2 weeks post-pilot for the dedicated sprint.**
 
@@ -950,6 +961,7 @@ Status: **planned, Wk 13.** Pilot students get direct invites and never see a la
 Single-page route at `/` for unauthenticated users. Authenticated users redirect to existing Home (current behavior preserved).
 
 Sections (in order):
+
 - **Hero** — single sentence value prop ("Engineer your career, from your first internship") + one CTA (Sign up / Sign in)
 - **What it does** — three cards: career roadmap, application tracker with AI scoring, conversational career agents
 - **How it works** — 3-step process: (1) onboard with CV → roadmap, (2) track + score applications, (3) practice with role-specific agents
@@ -970,11 +982,10 @@ NO pricing, no waitlist, no marketing fluff. Honest description of what the plat
 
 ```jsx
 // In src/App.jsx
-<Route path="/" element={
-  isAuthenticated
-    ? <Navigate to="/Home" replace />
-    : <Landing />
-} />
+<Route
+  path="/"
+  element={isAuthenticated ? <Navigate to="/Home" replace /> : <Landing />}
+/>
 ```
 
 Authenticated users keep Home as their landing; unauthenticated see the public page.
@@ -987,12 +998,12 @@ Authenticated users keep Home as their landing; unauthenticated see the public p
 
 ### Build cost
 
-| Phase | Wk | Effort |
-|---|---|---|
-| v0.dev / Stitch generation + paste into Landing.jsx | 13 | 0.5 day |
-| Routing change (public `/` for unauth, redirect for auth) | 13 | 0.5 day |
-| Copy + faculty testimonials (with permission) | 13 | 0.5 day |
-| Privacy policy + footer pages (mostly already exist for LinkedIn import compliance) | 13 | 0.5 day |
+| Phase                                                                               | Wk  | Effort  |
+| ----------------------------------------------------------------------------------- | --- | ------- |
+| v0.dev / Stitch generation + paste into Landing.jsx                                 | 13  | 0.5 day |
+| Routing change (public `/` for unauth, redirect for auth)                           | 13  | 0.5 day |
+| Copy + faculty testimonials (with permission)                                       | 13  | 0.5 day |
+| Privacy policy + footer pages (mostly already exist for LinkedIn import compliance) | 13  | 0.5 day |
 
 **Total: ~2 days dev, Wk 13.**
 
@@ -1002,18 +1013,18 @@ Authenticated users keep Home as their landing; unauthenticated see the public p
 
 Deliberately not building these before Aug-Nov 2026. Listed with reasoning so the decisions are visible, not silently dropped.
 
-| Feature | Why skipped |
-|---|---|
-| **Email parser inbox (Mailgun)** | Auto-classify-and-update has too many wrong-action failure modes; risk surface > value at pilot scale. The "draft updates instead of auto-apply" version is technically possible but not differentiating enough to spend a week on pre-pilot. Already in backlog. |
-| **WhatsApp/SMS via Twilio** | Notifications are nice but not a feature differentiator; the value is in *what* we surface, not *how*. Existing surfaces (Home card, Career Agent passive mention, scout findings) cover engagement without push. Add post-pilot if engagement metrics show late-week drop-off. |
-| **N5 reverse-job-spec / North-star JD generator** | Cute but `five_year_role` + `target_job_titles` + the new internship_profile already cover "clarify what students aim at." Synthetic-JD framing is a flourish, not foundational. |
-| **Voice mode for Practice Interview** | Realtime API costs more, adds complexity. Text v1 proves the rubric and conversation shape. If text works, voice is a UI swap. Post-pilot stretch. |
-| **Hebrew/RTL support** | Reichman business cohort is English-comfortable; CVs are in English; Israeli scale-ups operate in English at the recruiter level. Real i18n is multi-week scope and most of the value (CV gen, agent chats) doesn't need it. Revisit if a non-English cohort comes up. |
-| **Salary negotiation coach** | Useful in principle but only triggers at "offer" status — at 100 students × 4 months, maybe 5-15 reach this. Hand-hold via Career Agent ad-hoc until pilot signal justifies a dedicated feature. |
-| **Mobile-first responsive pass** | Audit-flagged but most current screens already work on mobile (`overflow-x-auto` patterns are in place). Polish post-pilot rather than optimize for an unsettled desktop UX. |
-| **Library deduplication audit machinery** | ~10 MB of duplicated `_shared/libraries` is annoying but each function deploys individually so they update together. Real fix is the existing Wk 2 "library deduplication" item — don't add audit infrastructure on top. |
-| **Cohort velocity metric on student dashboard** | Already parked to mid-pilot. Need real user data (status_changes audit table populated for ≥6 weeks) before comparison metrics are meaningful. |
-| **Faculty-facing cohort dashboard** | Replaced by simple admin metrics (SQL views + /admin page) for Eli during pilot. Full faculty dashboard waits for pilot to prove the concept. |
+| Feature                                           | Why skipped                                                                                                                                                                                                                                                                     |
+| ------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Email parser inbox (Mailgun)**                  | Auto-classify-and-update has too many wrong-action failure modes; risk surface > value at pilot scale. The "draft updates instead of auto-apply" version is technically possible but not differentiating enough to spend a week on pre-pilot. Already in backlog.               |
+| **WhatsApp/SMS via Twilio**                       | Notifications are nice but not a feature differentiator; the value is in _what_ we surface, not _how_. Existing surfaces (Home card, Career Agent passive mention, scout findings) cover engagement without push. Add post-pilot if engagement metrics show late-week drop-off. |
+| **N5 reverse-job-spec / North-star JD generator** | Cute but `five_year_role` + `target_job_titles` + the new internship_profile already cover "clarify what students aim at." Synthetic-JD framing is a flourish, not foundational.                                                                                                |
+| **Voice mode for Practice Interview**             | Realtime API costs more, adds complexity. Text v1 proves the rubric and conversation shape. If text works, voice is a UI swap. Post-pilot stretch.                                                                                                                              |
+| **Hebrew/RTL support**                            | Reichman business cohort is English-comfortable; CVs are in English; Israeli scale-ups operate in English at the recruiter level. Real i18n is multi-week scope and most of the value (CV gen, agent chats) doesn't need it. Revisit if a non-English cohort comes up.          |
+| **Salary negotiation coach**                      | Useful in principle but only triggers at "offer" status — at 100 students × 4 months, maybe 5-15 reach this. Hand-hold via Career Agent ad-hoc until pilot signal justifies a dedicated feature.                                                                                |
+| **Mobile-first responsive pass**                  | Audit-flagged but most current screens already work on mobile (`overflow-x-auto` patterns are in place). Polish post-pilot rather than optimize for an unsettled desktop UX.                                                                                                    |
+| **Library deduplication audit machinery**         | ~10 MB of duplicated `_shared/libraries` is annoying but each function deploys individually so they update together. Real fix is the existing Wk 2 "library deduplication" item — don't add audit infrastructure on top.                                                        |
+| **Cohort velocity metric on student dashboard**   | Already parked to mid-pilot. Need real user data (status_changes audit table populated for ≥6 weeks) before comparison metrics are meaningful.                                                                                                                                  |
+| **Faculty-facing cohort dashboard**               | Replaced by simple admin metrics (SQL views + /admin page) for Eli during pilot. Full faculty dashboard waits for pilot to prove the concept.                                                                                                                                   |
 
 **Net: cuts ~3 weeks of dev work from the backlog.** What remains is genuinely differentiating: Internship Finder, Scout, Story Bank, LinkedIn import + Optimizer, Practice Interview, Daily Action Card, Application Outcome Loop, Visual redesign, Landing page. Everything else is post-pilot signal-driven.
 
