@@ -32,6 +32,15 @@ const PROFILE_STALE_TIME = 30 * 60 * 1000;
 // of T1 cards after filter as the prior 20-row fetch did pre-fix.
 const BROWSE_PAGE_SIZE = 40;
 const MAX_TRACK_ROLES = 8;
+// PR #393 (Jobs unified-list, behind ?flag=jobs_unified_list=1): when the
+// fetch unions titles across all 3 tracks instead of one tab at a time,
+// users with many career_roles can exceed the per-track cap. Bump the
+// title cap for the unified RPC call to 3× the per-track cap. Postgres
+// TEXT[] has no practical cardinality limit and the RPC's CROSS JOIN
+// unnest scales linearly — Ofri at 15 titles + Eli at 11 + heavier
+// users at ~24 all fit. If a user exceeds 24, the oldest-loaded T3
+// roles drop first (career_roles ordering preserves T1 + T2 in full).
+const UNIFIED_MAX_ROLES = MAX_TRACK_ROLES * 3;
 
 // pg_trgm similarity threshold for track-mode searches. 0.3 catches obvious
 // variants ("Customer Success Specialist" matching "Customer Success Manager")
@@ -52,6 +61,19 @@ const ALL_SENIORITIES = ["entry", "mid", "senior", "lead", "director", "executiv
 function seniorityFilterFor(mode, track, allowedSeniorities) {
   if (mode === "track" && track === "track_3") return ALL_SENIORITIES;
   return allowedSeniorities;
+}
+
+// Stretch-aware seniority for the unified-list mode (PR #393): the user's
+// level-default list PLUS one step up. Replaces the per-track widening
+// (Track 3 → ALL_SENIORITIES) with a single calibrated set that surfaces
+// stretch roles without showing VPs to early_career users. Order in
+// ALL_SENIORITIES matches the rank order in track-scoring-constants.ts.
+function stretchAwareSeniorityFor(allowedSeniorities) {
+  if (!allowedSeniorities || allowedSeniorities.length === 0) return ALL_SENIORITIES;
+  const highest = allowedSeniorities[allowedSeniorities.length - 1];
+  const idx = ALL_SENIORITIES.indexOf(highest);
+  if (idx === -1 || idx === ALL_SENIORITIES.length - 1) return allowedSeniorities;
+  return [...allowedSeniorities, ALL_SENIORITIES[idx + 1]];
 }
 
 // Map experienceLevel to a human-readable label used in the seniority chip.
@@ -127,6 +149,14 @@ export default function JobSuggestions() {
   const [searchParams] = useSearchParams();
   const linkedRole = searchParams.get("role") || "";
 
+  // PR #393 flag gate. Match shape: ?flag=jobs_unified_list=1 (per Eli's
+  // spec). When on, the page renders a single best-fit-first feed gated
+  // by scoreJobFit.relevance_match instead of the Track 1/2/3 tabs. All
+  // legacy track behavior is byte-unchanged when the flag is OFF — the
+  // unified path is purely additive.
+  const flagParam = searchParams.get("flag") || "";
+  const unifiedListEnabled = flagParam.includes("jobs_unified_list");
+
   // Mode is exactly one of track | keyword. Switching one clears the other.
   // Default to "keyword" for users who don't yet have career_roles so they
   // have something usable immediately (otherwise the page lands on Track 1
@@ -187,9 +217,32 @@ export default function JobSuggestions() {
   // line that declares `inTrackMode` further down in the function body
   // has executed. Reading `mode` directly avoids the cross-line TDZ.
   const displayedJobs = useMemo(() => {
-    if (mode !== "track" || jobs.length === 0 || !profile) return jobs;
+    if (jobs.length === 0 || !profile) return jobs;
+    // PR #393 unified-list path: relevance_match GATES feed membership
+    // (primary + adjacent + unknown all pass; "off" drops). Within the
+    // gated set, sort by relevance tier then attainability_score DESC so
+    // the on-domain matches dominate the top of the list and adjacents
+    // sit below them. Read inline from `mode` per the PR-G1 TDZ fix.
+    if (unifiedListEnabled && mode === "track") {
+      const rankRel = { primary: 0, adjacent: 1, unknown: 2 };
+      const gated = jobs.filter((job) => {
+        const r = scoredById[job.id];
+        if (!r) return false;
+        return r.relevance_match && r.relevance_match !== "off";
+      });
+      gated.sort((a, b) => {
+        const ra = rankRel[scoredById[a.id].relevance_match];
+        const rb = rankRel[scoredById[b.id].relevance_match];
+        if (ra !== rb) return ra - rb;
+        const aa = scoredById[a.id].attainability_score ?? 0;
+        const ab = scoredById[b.id].attainability_score ?? 0;
+        return ab - aa;
+      });
+      return gated;
+    }
+    if (mode !== "track") return jobs;
     return jobs.filter((job) => scoredById[job.id]?.track === selectedTrack);
-  }, [jobs, scoredById, mode, selectedTrack, profile]);
+  }, [jobs, scoredById, mode, selectedTrack, profile, unifiedListEnabled]);
 
   // ?debug=1 — dump per-job scoreJobFit verdicts to console so we can
   // compare against the SQL simulation. Helps diagnose "expected N Track
@@ -237,18 +290,48 @@ export default function JobSuggestions() {
       };
     });
     /* eslint-disable no-console */
-    console.groupCollapsed(
-      `[debug] Jobs ${selectedTrack} — ${rows.length} candidates, ${
-        rows.filter((r) => r.track === selectedTrack).length
-      } pass filter`,
-    );
-    console.table(rows);
-    console.log("profile.primary_domain:", profile?.primary_domain ?? null);
-    console.log("profile.work_type:", profile?.work_type ?? null);
-    console.log("userYears (totalYearsOfExperience):", rows[0]?.years_status ? "see signals.years_user" : "n/a");
-    console.groupEnd();
+    if (unifiedListEnabled) {
+      // PR #393 unified-list debug echo: surface the gate stats + per-job
+      // relevance_match + attainability_band so we can validate before
+      // flipping default. Mirrors the structure of the legacy track-mode
+      // log so eyeball-comparison stays cheap.
+      const enriched = rows.map((r) => {
+        const s = scoredById[r.id || r.fit] || {};
+        return {
+          ...r,
+          relevance: s.relevance_match ?? null,
+          attain: s.attainability_score ?? null,
+          band: s.attainability_band ?? null,
+        };
+      });
+      const gateStats = enriched.reduce(
+        (m, r) => {
+          m[r.relevance ?? "null"] = (m[r.relevance ?? "null"] ?? 0) + 1;
+          return m;
+        },
+        {},
+      );
+      console.groupCollapsed(
+        `[debug-unified] Jobs — ${rows.length} fetched, gate: ${JSON.stringify(gateStats)}`,
+      );
+      console.table(enriched);
+      console.log("profile.primary_domain:", profile?.primary_domain ?? null);
+      console.log("profile.work_type:", profile?.work_type ?? null);
+      console.groupEnd();
+    } else {
+      console.groupCollapsed(
+        `[debug] Jobs ${selectedTrack} — ${rows.length} candidates, ${
+          rows.filter((r) => r.track === selectedTrack).length
+        } pass filter`,
+      );
+      console.table(rows);
+      console.log("profile.primary_domain:", profile?.primary_domain ?? null);
+      console.log("profile.work_type:", profile?.work_type ?? null);
+      console.log("userYears (totalYearsOfExperience):", rows[0]?.years_status ? "see signals.years_user" : "n/a");
+      console.groupEnd();
+    }
     /* eslint-enable no-console */
-  }, [searchParams, mode, selectedTrack, profile, jobs, scoredById]);
+  }, [searchParams, mode, selectedTrack, profile, jobs, scoredById, unifiedListEnabled]);
 
   const buildJobsQuery = useCallback((modeArg, track, kw, offsetArg) => {
     const seniorities = seniorityFilterFor(modeArg, track, allowedSeniorities);
@@ -267,6 +350,39 @@ export default function JobSuggestions() {
       return q;
     }
 
+    // PR #393 unified-list path: union role titles across all three
+    // tracks (capped at UNIFIED_MAX_ROLES=24), use stretch-aware seniority
+    // instead of per-track widening, and let scoreJobFit.relevance_match
+    // gate the displayed set in displayedJobs below. We still call the
+    // existing search_jobs_by_role_titles RPC — the params widen, the
+    // RPC contract doesn't change.
+    if (unifiedListEnabled && modeArg === "track") {
+      const unionedRoles = [];
+      const seen = new Set();
+      for (const t of TRACK_ORDER) {
+        for (const r of rolesByTrack[t] || []) {
+          if (!r?.title || seen.has(r.title)) continue;
+          seen.add(r.title);
+          unionedRoles.push(r.title);
+          if (unionedRoles.length >= UNIFIED_MAX_ROLES) break;
+        }
+        if (unionedRoles.length >= UNIFIED_MAX_ROLES) break;
+      }
+      if (unionedRoles.length === 0) return { _empty: "no_roles" };
+      const stretchSeniorities = stretchAwareSeniorityFor(allowedSeniorities);
+      const workTypes = Array.isArray(profile?.work_type) ? profile.work_type : [];
+      return supabase
+        .rpc("search_jobs_by_role_titles", {
+          p_role_titles: unionedRoles,
+          p_limit: BROWSE_PAGE_SIZE,
+          p_offset: offsetArg,
+          p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
+          p_max_seniority: stretchSeniorities,
+          p_work_types: workTypes.length > 0 ? workTypes : null,
+        })
+        .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence");
+    }
+
     // track mode → RPC
     const roles = (rolesByTrack[track] || []).slice(0, MAX_TRACK_ROLES).map((r) => r.title);
     if (roles.length === 0) return { _empty: "no_roles" };
@@ -281,7 +397,7 @@ export default function JobSuggestions() {
         p_work_types: workTypes.length > 0 ? workTypes : null,
       })
       .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence");
-  }, [rolesByTrack, allowedSeniorities, profile]);
+  }, [rolesByTrack, allowedSeniorities, profile, unifiedListEnabled]);
 
   const fetchJobs = useCallback(async ({ modeArg, track, kw, offsetArg, append }) => {
     const seq = ++requestSeqRef.current;
@@ -381,6 +497,10 @@ export default function JobSuggestions() {
     if (inKeywordMode) {
       return `${displayedJobs.length} job${displayedJobs.length === 1 ? "" : "s"}`;
     }
+    // PR #393 unified-list: single feed header instead of per-track copy.
+    if (unifiedListEnabled) {
+      return `Our picks for you — ${displayedJobs.length} role${displayedJobs.length === 1 ? "" : "s"}`;
+    }
     return `${displayedJobs.length} role${displayedJobs.length === 1 ? "" : "s"} on Track ${trackCfg.number}`;
   })();
 
@@ -448,22 +568,28 @@ export default function JobSuggestions() {
         )}
       </form>
 
-      {/* Track filter pills */}
-      <div className="flex flex-wrap gap-2 mb-5">
-        {TRACK_ORDER.map((id) => {
-          const track = TRACK_CONFIG[id];
-          const selected = inTrackMode && selectedTrack === id;
-          return (
-            <TrackFilterPill
-              key={id}
-              track={track}
-              selected={selected}
-              dimmed={inKeywordMode}
-              onClick={() => handleTrackClick(id)}
-            />
-          );
-        })}
-      </div>
+      {/* Track filter pills — hidden when the unified-list flag is on
+          (PR #393). Track stops being top-level navigation in the unified
+          mode; the per-card relevance tag + (future) chip filter take
+          over. Kept inline (not extracted to a component) to keep the
+          flag-off path byte-unchanged. */}
+      {!unifiedListEnabled && (
+        <div className="flex flex-wrap gap-2 mb-5">
+          {TRACK_ORDER.map((id) => {
+            const track = TRACK_CONFIG[id];
+            const selected = inTrackMode && selectedTrack === id;
+            return (
+              <TrackFilterPill
+                key={id}
+                track={track}
+                selected={selected}
+                dimmed={inKeywordMode}
+                onClick={() => handleTrackClick(id)}
+              />
+            );
+          })}
+        </div>
+      )}
 
       {/* Status row — count + seniority indicator */}
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4">

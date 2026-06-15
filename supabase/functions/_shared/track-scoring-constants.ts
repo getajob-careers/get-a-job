@@ -100,6 +100,18 @@ export const GOAL_TRACK_THRESHOLDS = {
 // Profile primary_domain → role families the user counts as direct family
 // experience. Identical across all surfaces today; centralized here so a
 // future addition (e.g. new "growth" domain) lands everywhere.
+//
+// 2026-06-15 expansion (Jobs unified-list): 5 live primary_domain values
+// observed in profiles were absent from this map — `data_analytics`,
+// `business_operations`, `cybersecurity`, `software_engineering`,
+// `project_management`, `ux_design`. For those users the
+// computeFunctionFamilyAxis lookup returned `{score:0.5, match:false}`
+// (the "no userFams" fallback), making the family signal effectively
+// OFF — every job scored as off-family-but-neutral. That was the
+// primary reason Ofri (data_analytics, 4 affected users total) saw
+// off-domain Warehouse/HR jobs at the top of her feed alongside
+// the 0.10 weighting issue. Adding these keys is co-primary with the
+// FAMILY_ADJACENCY introduction; both ship in the same PR.
 export const DOMAIN_TO_FAMILIES: Record<string, string[]> = {
   customer_success: ["Relationship_Growth", "Customer_Experience", "Onboarding_Implementation", "Support"],
   customer_experience: ["Customer_Experience", "Support", "Relationship_Growth"],
@@ -109,14 +121,81 @@ export const DOMAIN_TO_FAMILIES: Record<string, string[]> = {
   sales: ["Sales", "BD_Partnerships"],
   marketing: ["Marketing"],
   operations: ["Operations", "RevOps_BizOps"],
+  business_operations: ["Operations", "RevOps_BizOps"],
   data: ["Data", "RevOps_BizOps"],
+  data_analytics: ["Data", "RevOps_BizOps"],
   analytics: ["Data"],
   finance: ["Finance"],
   hr: ["HR_People", "Admin_GA"],
   people: ["HR_People"],
   engineering: ["Engineering", "Solutions_Engineering"],
+  software_engineering: ["Engineering", "Solutions_Engineering"],
+  cybersecurity: ["IT_Security"],
   design: ["Design_UX"],
+  ux_design: ["Design_UX"],
+  project_management: ["Operations"],
 };
+
+// Function-family ADJACENCY — used by the Jobs unified-list (PR #393) to
+// gate feed membership beyond strict primary-family match. The relevance
+// gate is: primary > adjacent > unknown (no family) > off (dropped).
+// Adjacencies are semantic neighborhoods grounded in the canonical
+// role_library taxonomy (role_family field; 24 families total). The
+// principle: keep the path open from a user's primary domain to functions
+// they could plausibly pivot into without re-training. We rely on the
+// attainability score to RANK adjacent matches LOWER than primary ones
+// (adjacency unlocks them; skill/years gaps in those families naturally
+// sink them down the feed) — so the gate is permissive about WHICH jobs
+// can appear, strict only about which families are entirely off-path.
+export const FAMILY_ADJACENCY: Record<string, string[]> = {
+  customer_success: ["Sales", "Operations"],
+  customer_experience: ["Sales", "Operations"],
+  support: ["Operations", "Solutions_Engineering"],
+  product: ["Engineering", "Data", "Design_UX", "RevOps_BizOps"],
+  product_management: ["Engineering", "Data", "Design_UX", "RevOps_BizOps"],
+  sales: ["Customer_Experience", "Marketing", "Relationship_Growth"],
+  marketing: ["Sales", "BD_Partnerships", "Data", "Customer_Experience"],
+  operations: ["Finance", "Admin_GA", "Customer_Experience", "Support"],
+  business_operations: ["Finance", "Admin_GA", "Customer_Experience", "Support"],
+  data: ["Product", "Marketing", "AI_ML"],
+  data_analytics: ["Product", "Marketing", "AI_ML"],
+  analytics: ["Product", "Marketing", "AI_ML"],
+  finance: ["Operations", "RevOps_BizOps", "Consulting"],
+  hr: ["Admin_GA"],
+  people: ["Admin_GA"],
+  engineering: ["IT_Security", "AI_ML", "Data"],
+  software_engineering: ["IT_Security", "AI_ML", "Data"],
+  cybersecurity: ["Engineering", "Solutions_Engineering", "Operations"],
+  design: ["Product", "Marketing"],
+  ux_design: ["Product", "Marketing"],
+  project_management: ["Product", "Engineering", "Consulting", "Finance"],
+};
+
+// Attainability band thresholds — placeholders to validate against the
+// gated histogram on prod data (elienglard34, ofriraichel, rpress13)
+// before the unified-list flag is flipped to default. The bands drive
+// the per-card "how you stack up" badge; calibration TBD after smoke.
+//
+// strong  ≥ 0.65   clear match
+// good    0.45–0.65 solid
+// stretch 0.30–0.45 reach
+// reach   < 0.30    surface only if user explicitly widens (today: no UI to widen)
+export const ATTAINABILITY_BAND_THRESHOLDS = {
+  strong: 0.65,
+  good: 0.45,
+  stretch: 0.30,
+} as const;
+
+// Weights for the new ATTAINABILITY score — the existing scoreJobFit
+// composite minus the 0.10 function_family weight, renormalized so the
+// remaining axes sum to 1.0. Used by the Jobs unified-list (PR #393);
+// the legacy fit_score weights in scoreJobFit.js stay byte-unchanged.
+export const ATTAINABILITY_WEIGHTS = {
+  skill: 0.55,
+  years: 0.22,
+  education: 0.115,
+  seniority: 0.115,
+} as const;
 
 // Education degree-level rank for the strict-degree-requirement axis.
 export const EDUCATION_RANK: Record<string, number> = {

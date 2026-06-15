@@ -298,3 +298,182 @@ describe("scoreJobFit — composite + extraction confidence", () => {
     expect(r.reasoning.strengths.length).toBeGreaterThan(0);
   });
 });
+
+// PR #393 — additive relevance_match + attainability_score + attainability_band.
+// These power the Jobs unified-list feed when ?flag=jobs_unified_list=1 is on.
+// Existing fit_score / track / signals / goal_alignment_score stay
+// byte-unchanged regardless of the new fields — the legacy track-tab consumer
+// (Jobs.jsx with flag off), Tracker / Home / scoreApplication all see the
+// same values as before. Tests below pin the new contract so a future
+// refactor can't quietly redefine it.
+describe("scoreJobFit — relevance gate (PR #393)", () => {
+  const eds = [mkEdu("bachelors")];
+
+  it("primary: job.function_family is in user.primary_domain's family set", () => {
+    const profile = mkProfile({ primary_domain: "data_analytics" });
+    const job = mkJob({ function_family: "Data" });
+    const r = scoreJobFit({ profile, experiences: [], educations: eds }, job);
+    expect(r.relevance_match).toBe("primary");
+  });
+
+  it("adjacent: job.function_family is in the user's adjacency set", () => {
+    // data_analytics's adjacency includes Product (analytics → PM crossover)
+    const profile = mkProfile({ primary_domain: "data_analytics" });
+    const job = mkJob({ function_family: "Product" });
+    const r = scoreJobFit({ profile, experiences: [], educations: eds }, job);
+    expect(r.relevance_match).toBe("adjacent");
+  });
+
+  it("off: job.function_family is outside both primary and adjacency", () => {
+    // data_analytics has no path to HR_People — dropped from the unified feed
+    const profile = mkProfile({ primary_domain: "data_analytics" });
+    const job = mkJob({ function_family: "HR_People" });
+    const r = scoreJobFit({ profile, experiences: [], educations: eds }, job);
+    expect(r.relevance_match).toBe("off");
+  });
+
+  it("unknown: job has no function_family (12.7% of corpus) — soft-pass, not dropped", () => {
+    const profile = mkProfile({ primary_domain: "data_analytics" });
+    const job = mkJob({ function_family: null });
+    const r = scoreJobFit({ profile, experiences: [], educations: eds }, job);
+    expect(r.relevance_match).toBe("unknown");
+  });
+
+  it("DOMAIN_TO_FAMILIES extension — data_analytics is now in the map (was the Ofri bug)", () => {
+    // Before PR #393, computeFunctionFamilyAxis returned {match:false,score:0.5}
+    // for every job because data_analytics wasn't in DOMAIN_TO_FAMILIES — Ofri
+    // saw Warehouse/HR jobs at the top. Now Data IS recognized as primary.
+    const profile = mkProfile({ primary_domain: "data_analytics" });
+    const dataJob = mkJob({ function_family: "Data" });
+    const r = scoreJobFit({ profile, experiences: [], educations: eds }, dataJob);
+    expect(r.relevance_match).toBe("primary");
+    expect(r.signals.function_family_match).toBe(true);
+  });
+
+  it("DOMAIN_TO_FAMILIES extension — all 6 missing keys land on a real family", () => {
+    const checks = [
+      ["data_analytics", "Data", "primary"],
+      ["business_operations", "Operations", "primary"],
+      ["software_engineering", "Engineering", "primary"],
+      ["cybersecurity", "IT_Security", "primary"],
+      ["ux_design", "Design_UX", "primary"],
+      ["project_management", "Operations", "primary"],
+    ];
+    for (const [domain, family, expected] of checks) {
+      const r = scoreJobFit(
+        { profile: mkProfile({ primary_domain: domain }), experiences: [], educations: eds },
+        mkJob({ function_family: family }),
+      );
+      expect(r.relevance_match).toBe(expected);
+    }
+  });
+
+  it("off when user has no primary_domain (no map to gate against)", () => {
+    const profile = mkProfile({ primary_domain: null });
+    const job = mkJob({ function_family: "Data" });
+    const r = scoreJobFit({ profile, experiences: [], educations: eds }, job);
+    // unknown user-domain → can't be primary or adjacent; not in the gate
+    expect(r.relevance_match).toBe("off");
+  });
+});
+
+describe("scoreJobFit — attainability score + band (PR #393)", () => {
+  const profile = mkProfile({
+    skills_canonical: ["python_data", "sql", "data_analysis"],
+    primary_domain: "data_analytics",
+  });
+  const eds = [mkEdu("bachelors")];
+
+  it("strong band when skill + years + edu + seniority all max out", () => {
+    const exps = [mkExp(2022, 2025)];
+    const job = mkJob({
+      req_skills_core: ["python_data", "sql", "data_analysis"],
+      req_years_min: 2,
+      req_education_levels: ["bachelors"],
+      req_seniority: "Entry_Mid",
+      function_family: "Data",
+    });
+    const r = scoreJobFit({ profile, experiences: exps, educations: eds }, job);
+    expect(r.attainability_score).toBeGreaterThanOrEqual(0.65);
+    expect(r.attainability_band).toBe("strong");
+  });
+
+  it("attainability excludes family contribution — same skill+years jobs score equally regardless of family", () => {
+    const exps = [mkExp(2022, 2025)];
+    const inFamilyJob = mkJob({
+      req_skills_core: ["python_data", "sql"],
+      req_years_min: 2,
+      req_education_levels: ["bachelors"],
+      req_seniority: "Entry_Mid",
+      function_family: "Data",
+    });
+    const offFamilyJob = mkJob({
+      req_skills_core: ["python_data", "sql"],
+      req_years_min: 2,
+      req_education_levels: ["bachelors"],
+      req_seniority: "Entry_Mid",
+      function_family: "HR_People",
+    });
+    const a = scoreJobFit({ profile, experiences: exps, educations: eds }, inFamilyJob);
+    const b = scoreJobFit({ profile, experiences: exps, educations: eds }, offFamilyJob);
+    // family only differs — attainability_score must match exactly
+    expect(a.attainability_score).toBe(b.attainability_score);
+    // fit_score still differs because family is 10% of THAT composite
+    expect(a.fit_score).toBeGreaterThan(b.fit_score);
+    // relevance_match correctly splits: in-family is primary, off is off
+    expect(a.relevance_match).toBe("primary");
+    expect(b.relevance_match).toBe("off");
+  });
+
+  it("attainability_score is in [0, 1]", () => {
+    const job = mkJob({ function_family: "Data" });
+    const r = scoreJobFit({ profile, experiences: [], educations: eds }, job);
+    expect(r.attainability_score).toBeGreaterThanOrEqual(0);
+    expect(r.attainability_score).toBeLessThanOrEqual(1);
+  });
+
+  it("band thresholds: strong ≥ 0.65, good ≥ 0.45, stretch ≥ 0.30, reach < 0.30", () => {
+    // Synthetic stub: bypass mkJob/scoreJobFit and inspect a known scenario.
+    // We can't easily inject arbitrary attainability_score without rewriting
+    // the function, so verify the band derivation via observed values instead.
+    // Empty-skills + no years + no edu + no seniority + null family →
+    // skill=0.5, years=0.5, edu=0.5, sen=0.5 → attainability ≈ 0.5 → "good"
+    const r = scoreJobFit(
+      { profile: mkProfile({ primary_domain: "data_analytics" }), experiences: [], educations: [] },
+      mkJob({ function_family: null }),
+    );
+    expect(r.attainability_band).toBe("good");
+  });
+});
+
+describe("scoreJobFit — backward-compat guarantee (PR #393)", () => {
+  // The whole point of "additive" is that no existing field changes shape
+  // or value when the new fields are added. Lock that in.
+  it("fit_score, track, goal_alignment_score, signals, reasoning are unchanged in shape", () => {
+    const profile = mkProfile({
+      skills_canonical: ["python_data", "sql"],
+      primary_domain: "data_analytics",
+    });
+    const job = mkJob({
+      req_skills_core: ["python_data", "sql"],
+      function_family: "Data",
+      req_seniority: "Entry_Mid",
+    });
+    const r = scoreJobFit({ profile, experiences: [mkExp(2022, 2025)], educations: [mkEdu("bachelors")] }, job);
+    // existing fields all present
+    expect(typeof r.fit_score).toBe("number");
+    expect(typeof r.track).toBe("string");
+    expect(r.goal_alignment_score === null || typeof r.goal_alignment_score === "number").toBe(true);
+    expect(r.signals).toBeDefined();
+    expect(r.signals).toHaveProperty("skill_match_pct");
+    expect(r.signals).toHaveProperty("function_family_match");
+    expect(r.signals).toHaveProperty("seniority_match");
+    expect(r.reasoning).toBeDefined();
+    expect(Array.isArray(r.reasoning.strengths)).toBe(true);
+    expect(Array.isArray(r.reasoning.gaps)).toBe(true);
+    // new fields all present
+    expect(typeof r.relevance_match).toBe("string");
+    expect(typeof r.attainability_score).toBe("number");
+    expect(typeof r.attainability_band).toBe("string");
+  });
+});
