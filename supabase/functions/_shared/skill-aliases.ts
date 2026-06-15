@@ -1020,6 +1020,145 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "candidate sourcing": ["talent_acquisition_recruiting"],
   "employer branding": ["employer_branding"],
   "hr analytics": ["hr_data_analytics"],
+
+  // ── Tier 1 skill recovery (2026-06-15) ───────────────────────────────────
+  //
+  // Hebrew + plain-English variants surfaced by the ≥3-job phrase audit of
+  // extraction_unmapped_skills over zero-core IL jobs. 1,444 zero-core jobs
+  // had real extracted skills failing canonical mapping (no aliases for
+  // common Hebrew JD phrases or for snake_case extractor outputs). All
+  // mappings audited against the live skill_library before adding; sector
+  // entries are audience-relevant (IL business-grad pilot). Soft skills,
+  // languages, and blue-collar/manufacturing phrases were filtered out per
+  // the don't-add rules.
+  //
+  // Keys are lowercase + whitespace-collapsed to match the resolver's
+  // normalization. Hebrew keys preserve characters as stored (the resolver
+  // doesn't touch non-ASCII case).
+
+  // — Microsoft Office / computer literacy cluster
+  "office": ["microsoft_office_suite"],
+  "office software": ["microsoft_office_suite"],
+  "office_software": ["microsoft_office_suite"],
+  "office applications": ["microsoft_office_suite"],
+  "office_applications": ["microsoft_office_suite"],
+  "office_management": ["office_operations"],
+  "computer skills": ["microsoft_office_suite"],
+  "computer_skills": ["microsoft_office_suite"],
+  "computer_systems": ["microsoft_office_suite"],
+  "אקסל": ["excel_advanced_finance"],
+  "יישומי מחשב": ["microsoft_office_suite"],
+  "יישומי office": ["microsoft_office_suite"],
+  "תוכנות office": ["microsoft_office_suite"],
+  "תוכנות אופיס": ["microsoft_office_suite"],
+  "עבודה בסביבה ממוחשבת": ["microsoft_office_suite"],
+  "שליטה ביישומי מחשב": ["microsoft_office_suite"],
+
+  // — Sales cluster (Hebrew variants of existing "sales" alias)
+  "מכירות": ["outbound_prospecting"],
+  "מכירה": ["outbound_prospecting"],
+  "ניהול מכירות": ["sales_team_leadership"],
+  "מכירות טלפוניות": ["cold_calling"],
+  "פיתוח לקוחות חדשים": ["outbound_prospecting"],
+
+  // — Customer service / customer ops cluster
+  "customer service": ["customer_support_operations"],
+  "customer_service": ["customer_support_operations"],
+  "שירות לקוחות": ["customer_support_operations"],
+  "עבודה מול לקוחות": ["customer_communication"],
+  "ניהול תיק לקוחות": ["account_management"],
+  "ניהול קשר עם לקוחות": ["customer_relationship_management"],
+  // NOTE: "ליווי עסקאות" was on the worklist (3 jobs) but dropped per spot-check
+  // review — genuinely ambiguous between sales account_management and consulting
+  // client_advisory; multi-targeting would blur-match both onto every job (the
+  // false-match pattern the relevance gate just removed). 3 jobs unrecovered;
+  // Tier 3 re-extraction will resolve more accurately with full JD context.
+  "שימור": ["customer_retention"],
+
+  // — People management / leadership cluster
+  "ניהול צוות": ["people_management"],
+  "ניהול צוותים": ["people_management"],
+  "ניהול צוות עובדים": ["people_management"],
+  "ניהול עובדים": ["people_management"],
+  "ניסיון ניהולי": ["people_management"],
+
+  // — Recruiting / HR cluster
+  "recruitment": ["talent_acquisition_recruiting"],
+  "interviewing": ["talent_acquisition_recruiting"],
+  "human_resources": ["hr_business_partnering"],
+  "גיוס": ["talent_acquisition_recruiting"],
+
+  // — Training / mentoring cluster
+  "training": ["training_facilitation"],
+  "הדרכה": ["training_facilitation"],
+  "הדרכה פרונטלית": ["training_facilitation"],
+  "חניכה": ["onboarding_training", "mentoring"],
+
+  // — Operations / admin cluster
+  "administration": ["administrative_operations"],
+  "administrative_experience": ["administrative_operations"],
+  "data_entry": ["administrative_operations"],
+  "אדמיניסטרציה": ["administrative_operations"],
+  "תפעול": ["operational_management"],
+  "ניהול אינבוקסים": ["administrative_operations"],  // borderline E12: approved
+  "לוגיסטיקה": ["logistics_practice"],
+  "הפצה": ["logistics_practice"],                       // borderline E11: approved
+  "ניהול מלאי": ["inventory_management"],
+  "implementation": ["implementation_management"],
+
+  // — Project management cluster
+  "ניהול פרויקטים": ["project_management"],
+  "ms-project": ["project_management"],
+
+  // — Marketing (generic — explicitly NOT b2b_marketing per Eli)
+  "שיווק": ["marketing_campaign_design"],
+  "social_media": ["social_media_management"],
+
+  // — Negotiation
+  "ניהול מו\"מ": ["negotiation"],
+  "מו\"מ": ["negotiation"],
+
+  // — Analytics + data
+  "ניתוח נתונים": ["data_analysis"],
+  "מאגרי מידע": ["databases"],
+
+  // — Business understanding + process
+  "הבנה עסקית": ["business_understanding"],
+  "שיפור תהליכים": ["process_improvement"],
+
+  // — AI tools
+  "כלי ai": ["ai_tool_fluency"],
+
+  // — Compliance / integration fallbacks (canonical IDs verified missing)
+  "regulatory compliance": ["compliance_general"],
+  "system integration": ["integration_middleware"],
+
+  // — Accounting (borderline E8: approved)
+  "taxation": ["accounting_general"],
+
+  // ── NEW canonical IDs (4 added to 01_skill_library.ts in same PR) ────────
+  // — Insurance domain (covers ביטוח + variants)
+  "ביטוח": ["insurance_domain"],
+  "ביטוח דירות": ["insurance_domain"],
+  "ביטוח כלי רכב": ["insurance_domain"],
+  "היכרות עם עולם הביטוח": ["insurance_domain"],
+  "insurance": ["insurance_domain"],
+
+  // — Collections
+  "גבייה": ["collections_management"],
+  "collections": ["collections_management"],
+
+  // — Field sales (distinct modality from outbound_prospecting / cold_calling)
+  // "מכירות פרונטליות" → field_sales (face-to-face / frontal selling)
+  "field sales": ["field_sales"],
+  "מכירות שטח": ["field_sales"],
+  "מכירות פרונטליות": ["field_sales"],
+  "territory sales": ["field_sales"],
+  "outside sales": ["field_sales"],
+
+  // — Underwriting
+  "חיתום": ["underwriting"],
+  "underwriting": ["underwriting"],
 };
 
 // Resolve a free-text skill label to library skill IDs.
