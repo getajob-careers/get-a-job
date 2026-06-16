@@ -13,6 +13,7 @@ import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experien
 import { TRACK_CONFIG, TRACK_ORDER } from "@/lib/trackConfig";
 import { scoreJobFit } from "@/lib/scoreJobFit";
 import JobCard from "../components/jobs/JobCard";
+import JobsSearchTab from "../components/jobs/JobsSearchTab";
 import { dedupeJobsById } from "@/lib/careerJobsQuery";
 
 // Page rebuild (PR 3 of jobs-cache rollout, 2026-05-17). Frontend cut over
@@ -647,7 +648,11 @@ export default function JobSuggestions() {
       )}
 
       {unifiedListEnabled && unifiedTab === "search" ? (
-        <SearchTabPlaceholder />
+        <JobsSearchTab
+          profile={profile}
+          experiences={experiences}
+          educations={educations}
+        />
       ) : (
         <>
       {/* Status row — count + seniority indicator */}
@@ -755,23 +760,6 @@ function UnifiedTabButton({ label, active, onClick }) {
     >
       {label}
     </button>
-  );
-}
-
-// PR A placeholder. Tab 2 (whole-corpus faceted search) ships in PR B/C;
-// until then the tab is reachable but explains itself rather than 404-ing.
-function SearchTabPlaceholder() {
-  return (
-    <div className="rounded-[18px] border border-rd-border bg-rd-bg-card px-6 py-12 shadow-rd text-center">
-      <Search className="w-8 h-8 text-rd-coral mx-auto mb-3" />
-      <p className="text-[14px] font-display font-bold text-rd-text">
-        Search all jobs — coming soon
-      </p>
-      <p className="text-[12.5px] text-rd-text-secondary mt-1.5 max-w-md mx-auto leading-[1.55]">
-        Browse the whole live board with filters for function, location,
-        seniority and work type. For now, see your Top Matches.
-      </p>
-    </div>
   );
 }
 
