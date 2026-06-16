@@ -90,7 +90,12 @@ const TRACK_CHIPS = [
   ["track_3", "Track 3"],
 ];
 
-export default function JobsSearchTab({ profile, experiences, educations }) {
+export default function JobsSearchTab({
+  profile,
+  experiences,
+  educations,
+  singleColumn = false,
+}) {
   // 1. Whole active-IL corpus, fetched ONCE, light projection, cached. Fires
   //    only when this tab mounts (the user opted into Search), and is reused
   //    across tab switches via the react-query cache.
@@ -346,7 +351,13 @@ export default function JobsSearchTab({ profile, experiences, educations }) {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div
+            className={
+              singleColumn
+                ? "grid grid-cols-1 gap-4"
+                : "grid grid-cols-1 md:grid-cols-2 gap-4"
+            }
+          >
             {visible.map(({ job, score }) => {
               const trackRdColor = score?.track
                 ? TRACK_CONFIG[score.track]?.rdColor

@@ -148,10 +148,13 @@ const TRACK_BAND = [
   },
 ];
 
-const FIT_LABELS = {
-  track_1: "strong fit",
-  track_2: "doable detour",
-  track_3: "stretch",
+// Matched-roles chip text = the track NAME (the "how tracks work" explainer
+// covers what each one means). Keyed by track id; goal-ordering elsewhere
+// still renders sweet spot → growth → detour.
+const TRACK_NAMES = {
+  track_1: "Sweet spot",
+  track_2: "Detour",
+  track_3: "Growth",
 };
 
 export default function Career() {
@@ -692,7 +695,7 @@ export default function Career() {
             track-scoped feed). It self-fetches profile / experiences / roles
             via the canonical hooks and owns its own scoring, search + tabs. */}
         <div className="w-full md:flex-[1.55] min-w-0">
-          <UnifiedJobsFeed />
+          <UnifiedJobsFeed singleColumn />
         </div>
 
         {/* Right — matched roles why-panel. Track-agnostic (PR2): one flat
@@ -725,7 +728,7 @@ export default function Career() {
               // unrecognized so a row never renders without a color.
               const band =
                 TRACK_BAND.find((t) => t.key === r.track) || TRACK_BAND[0];
-              const fitLabel = FIT_LABELS[r.track];
+              const trackName = TRACK_NAMES[r.track];
               // RULINGS.md (e): null score columns NEVER render as 0%.
               // Compute "available" from the raw nulls (not from the
               // coalesced fallback) so a genuinely-missing column omits its
@@ -734,8 +737,8 @@ export default function Career() {
               // that omits the qualified bar. match_score and readiness_score
               // are identical on live data, so the magnitude shows ONCE as the
               // "Qualified now" bar; the collapsed header carries the
-              // fit-quality WORD chip (strong fit / doable detour / stretch),
-              // never the number a second time.
+              // track-NAME chip (Sweet spot / Growth / Detour), never the
+              // number a second time.
               const qualifiedRaw = r.readiness_score ?? r.match_score;
               const qualifiedAvailable =
                 qualifiedRaw !== null && qualifiedRaw !== undefined;
@@ -763,11 +766,11 @@ export default function Career() {
                     <span className="flex-1 min-w-0 font-display font-bold text-[12.5px] leading-[1.25] text-rd-text">
                       {r.title}
                     </span>
-                    {fitLabel && (
+                    {trackName && (
                       <span
                         className={`font-display font-semibold text-[10px] rounded-full px-2 py-0.5 ${band.tintBg} ${band.ink}`}
                       >
-                        {fitLabel}
+                        {trackName}
                       </span>
                     )}
                     {expanded ? (
