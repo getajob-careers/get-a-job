@@ -1,11 +1,28 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Briefcase } from "lucide-react";
+import { Loader2, Briefcase, Check, ChevronsUpDown } from "lucide-react";
 import { supabase } from "@/api/supabaseClient";
 import { scoreJobFit } from "@/lib/scoreJobFit";
 import { TRACK_CONFIG } from "@/lib/trackConfig";
-import { applyFacetsAndRank, searchFacetsKey } from "@/lib/jobsSearchFacets";
+import {
+  applyFacetsAndRank,
+  searchFacetsKey,
+  buildLocationOptions,
+} from "@/lib/jobsSearchFacets";
 import { toggleSeniority } from "@/lib/unifiedJobsFilter";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import JobCard from "./JobCard";
 
 // Tab 2 "Search All Jobs" (PR B). Whole-corpus faceted search, PURE
@@ -13,9 +30,9 @@ import JobCard from "./JobCard";
 //   1. fetch the whole active-IL corpus ONCE (light projection, no
 //      description — lazy-loaded on card expand), cached by react-query;
 //   2. score every job ONCE against the profile, cached in a useMemo;
-//   3. apply facets (seniority + work-type here; family/location/track in
-//      PR C) as client-side filters over the cached scored array and re-sort
-//      by fit — NO re-fetch and NO re-score on facet change;
+//   3. apply facets (seniority, work-type, function, location, track) as
+//      client-side filters over the cached scored array and re-sort by fit —
+//      NO re-fetch and NO re-score on facet change;
 //   4. render a single fit-ranked list with band labels (no picks/stretch).
 //
 // Default (no facets) = the whole corpus, fit-ranked. Facets AND-compose.
@@ -37,6 +54,32 @@ const SENIORITY_CHIPS = [
 const WORK_TYPE_CHIPS = [
   ["remote_ok", "Remote OK"],
   ["onsite_only", "On-site only"],
+];
+// Top-volume families only (the long tail is hidden — empty options are dead
+// ends). Admin_GA stays selectable here: in SEARCH the user's explicit pick
+// governs (it's only excluded from the Tab-1 early-career widening).
+const FAMILY_OPTIONS = [
+  ["", "All functions"],
+  ["Engineering", "Engineering"],
+  ["Product", "Product"],
+  ["Data", "Data"],
+  ["Design_UX", "Design & UX"],
+  ["AI_ML", "AI & ML"],
+  ["IT_Security", "IT & Security"],
+  ["Sales", "Sales"],
+  ["Marketing", "Marketing"],
+  ["Customer_Experience", "Customer Experience"],
+  ["Support", "Support"],
+  ["Operations", "Operations"],
+  ["Finance", "Finance"],
+  ["Consulting", "Consulting"],
+  ["HR_People", "HR & People"],
+  ["Admin_GA", "Admin & GA"],
+];
+const TRACK_CHIPS = [
+  ["track_1", "Track 1"],
+  ["track_2", "Track 2"],
+  ["track_3", "Track 3"],
 ];
 
 export default function JobsSearchTab({ profile, experiences, educations }) {
@@ -87,17 +130,37 @@ export default function JobsSearchTab({ profile, experiences, educations }) {
   // 3. Facet state. PR B: seniority + work-type (track/family/location → PR C).
   const [seniorities, setSeniorities] = useState([]); // [] = no filter (all)
   const [workTypeMode, setWorkTypeMode] = useState("remote_ok"); // default = all
+  const [family, setFamily] = useState(""); // "" = all functions
+  const [location, setLocation] = useState(""); // "" = anywhere
+  const [track, setTrack] = useState(null); // null = all tracks
+
+  // Location picker options derived from the ALREADY-cached corpus (no extra
+  // query): every real city with its live count + the region groups.
+  const locationOptions = useMemo(() => buildLocationOptions(corpus), [corpus]);
 
   // 4. Filter + rank over the cached scored set. Re-runs only on facet/scored
   //    change (no re-fetch, no re-score).
+  const facets = { seniorities, workTypeMode, track, family, location };
   const ranked = useMemo(
-    () =>
-      applyFacetsAndRank(scored, { seniorities, workTypeMode, track: null }),
-    [scored, seniorities, workTypeMode],
+    () => applyFacetsAndRank(scored, facets),
+    [scored, seniorities, workTypeMode, track, family, location],
   );
 
   // 5. Client-side pagination; reset to the first page when facets change.
-  const facetsKey = searchFacetsKey({ seniorities, workTypeMode, track: null });
+  const facetsKey = searchFacetsKey(facets);
+  const hasActiveFacets =
+    seniorities.length > 0 ||
+    workTypeMode !== "remote_ok" ||
+    track !== null ||
+    family !== "" ||
+    location !== "";
+  const clearFacets = () => {
+    setSeniorities([]);
+    setWorkTypeMode("remote_ok");
+    setTrack(null);
+    setFamily("");
+    setLocation("");
+  };
   const [visibleCount, setVisibleCount] = useState(SEARCH_PAGE);
   useEffect(() => {
     setVisibleCount(SEARCH_PAGE);
@@ -156,6 +219,40 @@ export default function JobsSearchTab({ profile, experiences, educations }) {
             ))}
           </div>
         </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary mr-0.5">
+            Function
+          </span>
+          <FacetSelect value={family} onChange={setFamily} options={FAMILY_OPTIONS} />
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary mr-0.5">
+            Location
+          </span>
+          <LocationCombobox value={location} onChange={setLocation} options={locationOptions} />
+        </div>
+        <div className="flex items-center gap-1.5">
+          <span className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary mr-0.5">
+            Track
+          </span>
+          {TRACK_CHIPS.map(([value, label]) => (
+            <FacetChip
+              key={value}
+              label={label}
+              active={track === value}
+              onClick={() => setTrack(track === value ? null : value)}
+            />
+          ))}
+        </div>
+        {hasActiveFacets && (
+          <button
+            type="button"
+            onClick={clearFacets}
+            className="text-[12px] font-display font-semibold text-rd-coral-dark hover:text-rd-coral underline underline-offset-2"
+          >
+            Clear filters
+          </button>
+        )}
       </div>
 
       {/* Count */}
@@ -225,6 +322,102 @@ export default function JobsSearchTab({ profile, experiences, educations }) {
         </>
       )}
     </div>
+  );
+}
+
+// Searchable single-select location picker (no volume cutoff): every real city
+// in the corpus (district tags excluded) plus the region groups, each with its
+// live count. Type-ahead via cmdk so the ~31 cities aren't an unwieldy list.
+function LocationCombobox({ value, onChange, options }) {
+  const [open, setOpen] = useState(false);
+  const all = [
+    { key: "", label: "Anywhere", count: null },
+    ...options.regions,
+    ...options.cities,
+  ];
+  const current = all.find((o) => o.key === value) || {
+    label: value || "Anywhere",
+    count: null,
+  };
+  const select = (key) => {
+    onChange(key);
+    setOpen(false);
+  };
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <button
+          type="button"
+          aria-expanded={open}
+          className="inline-flex items-center gap-1.5 text-[12px] font-display font-semibold rounded-full bg-rd-bg-soft text-rd-text px-3 py-1 border border-rd-border hover:border-rd-coral focus:outline-none"
+        >
+          {current.label}
+          {current.count != null && (
+            <span className="text-rd-text-tertiary">({current.count})</span>
+          )}
+          <ChevronsUpDown className="w-3 h-3 text-rd-text-tertiary" />
+        </button>
+      </PopoverTrigger>
+      <PopoverContent className="p-0 w-[240px]" align="start">
+        <Command>
+          <CommandInput placeholder="Search a city or area…" />
+          <CommandList>
+            <CommandEmpty>No match.</CommandEmpty>
+            <CommandGroup heading="Areas">
+              <ComboItem
+                opt={{ key: "", label: "Anywhere", count: null }}
+                value={value}
+                onSelect={select}
+              />
+              {options.regions.map((r) => (
+                <ComboItem key={r.key} opt={r} value={value} onSelect={select} />
+              ))}
+            </CommandGroup>
+            <CommandGroup heading="Cities">
+              {options.cities.map((c) => (
+                <ComboItem key={c.key} opt={c} value={value} onSelect={select} />
+              ))}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  );
+}
+
+function ComboItem({ opt, value, onSelect }) {
+  return (
+    <CommandItem
+      value={opt.label}
+      onSelect={() => onSelect(opt.key)}
+      className="text-[13px]"
+    >
+      <Check
+        className={`w-3.5 h-3.5 mr-1.5 ${value === opt.key ? "opacity-100" : "opacity-0"}`}
+      />
+      <span>{opt.label}</span>
+      {opt.count != null && (
+        <span className="ml-auto text-[11px] text-rd-text-tertiary">
+          {opt.count}
+        </span>
+      )}
+    </CommandItem>
+  );
+}
+
+function FacetSelect({ value, onChange, options }) {
+  return (
+    <select
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      className="text-[12px] font-display font-semibold rounded-full bg-rd-bg-soft text-rd-text px-2.5 py-1 border border-rd-border focus:outline-none focus:border-rd-coral"
+    >
+      {options.map(([v, label]) => (
+        <option key={v} value={v}>
+          {label}
+        </option>
+      ))}
+    </select>
   );
 }
 

@@ -41,6 +41,103 @@ export function matchesTrack(score, track) {
   return score?.track === track;
 }
 
+// Function/family (PR C): single-select over the existing function_family
+// taxonomy. null = no filter; otherwise exact match. Null-family jobs drop
+// under a selection (intended — the user picked a function).
+export function matchesFamily(job, family) {
+  if (!family) return true;
+  return job?.function_family === family;
+}
+
+// Location regions (PR C). City values grouped into the regions the corrected
+// whole-corpus counts supported. A region selection admits ONLY jobs whose
+// location_city is in the group — NULL / unmapped location drops (the locked
+// exclude decision: an unknown location can't satisfy "in this region";
+// remote-seekers use the work-type facet). City strings must match the live
+// jobs.location_city values exactly (apostrophes / casing included).
+export const LOCATION_REGIONS = {
+  tlv_center: {
+    label: "Tel Aviv & Center",
+    cities: [
+      "Tel Aviv",
+      "Tel Aviv District",
+      "Central District",
+      "Petah Tikva",
+      "Herzliya",
+      "Ramat Gan",
+      "Rehovot",
+      "Or Yehuda",
+      "Yavne",
+      "Bnei Brak",
+      "Holon",
+      "Givatayim",
+      "Ramla",
+      "Rishon LeZion",
+      "Bat Yam",
+      "Modi'in",
+    ],
+  },
+  sharon: {
+    label: "Sharon",
+    cities: ["Ra'anana", "Kfar Saba", "Netanya", "Hod Hasharon", "Caesarea"],
+  },
+  haifa_north: {
+    label: "Haifa & North",
+    cities: ["Yokneam", "Haifa", "Northern District", "Nazareth"],
+  },
+  jerusalem: { label: "Jerusalem", cities: ["Jerusalem"] },
+  south: {
+    label: "South",
+    cities: ["Southern District", "Be'er Sheva", "Ashdod", "Eilat", "Ashkelon"],
+  },
+};
+
+// District-fallback tags — the ATS sometimes tags a job with an admin
+// district instead of a city. They stay INSIDE the region buckets above, but
+// are excluded from the selectable city list (not cities; confusing next to
+// real ones).
+export const LOCATION_DISTRICT_TAGS = new Set([
+  "Tel Aviv District",
+  "Central District",
+  "Northern District",
+  "Southern District",
+]);
+
+// matchesLocation accepts EITHER a region key (city-list membership) OR a raw
+// city string (exact match). null/"" = no filter. NULL/unmapped job location
+// drops under any selection (it can't satisfy "in this place").
+export function matchesLocation(job, key) {
+  if (!key) return true;
+  const region = LOCATION_REGIONS[key];
+  if (region) return region.cities.includes(job?.location_city);
+  return job?.location_city === key; // standalone city
+}
+
+// Build the location-picker options from the ALREADY-CACHED corpus (no extra
+// query): every real city (district tags + nulls excluded) with its live
+// count, plus the region groups with their summed counts. Pure + testable.
+export function buildLocationOptions(corpus) {
+  // Count ALL location_city values (district tags included) so region sums are
+  // accurate — the region filter admits district-tagged jobs.
+  const counts = new Map();
+  for (const j of Array.isArray(corpus) ? corpus : []) {
+    const c = j?.location_city;
+    if (!c) continue;
+    counts.set(c, (counts.get(c) || 0) + 1);
+  }
+  // City options exclude the district tags (kept in regions, not offered solo).
+  const cities = [...counts.entries()]
+    .filter(([city]) => !LOCATION_DISTRICT_TAGS.has(city))
+    .map(([city, count]) => ({ key: city, label: city, count }))
+    .sort((a, b) => b.count - a.count || a.label.localeCompare(b.label));
+  const regions = Object.entries(LOCATION_REGIONS).map(([key, r]) => ({
+    key,
+    label: r.label,
+    count: r.cities.reduce((sum, c) => sum + (counts.get(c) || 0), 0),
+  }));
+  return { cities, regions };
+}
+
 // searchFacetsKey — a stable string that BUSTS when any facet changes (drives
 // the ranked-memo recompute). AND-composition is implicit: every active facet
 // must pass in the reducer below.
@@ -51,6 +148,8 @@ export function searchFacetsKey(facets) {
     (Array.isArray(f.seniorities) ? [...f.seniorities].sort() : []).join(","),
     f.workTypeMode || "",
     f.track || "",
+    f.family || "",
+    f.location || "",
   ].join("|");
 }
 
@@ -68,7 +167,9 @@ export function applyFacetsAndRank(scored, facets) {
     ({ job, score }) =>
       matchesSeniority(job, f.seniorities) &&
       matchesWorkType(job, f.workTypeMode) &&
-      matchesTrack(score, f.track),
+      matchesTrack(score, f.track) &&
+      matchesFamily(job, f.family) &&
+      matchesLocation(job, f.location),
   );
   return filtered.sort(
     (a, b) => (b.score?.fit_score ?? 0) - (a.score?.fit_score ?? 0),

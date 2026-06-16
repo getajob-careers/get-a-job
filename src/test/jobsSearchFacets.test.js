@@ -8,8 +8,13 @@ import {
   matchesSeniority,
   matchesWorkType,
   matchesTrack,
+  matchesFamily,
+  matchesLocation,
+  buildLocationOptions,
+  LOCATION_DISTRICT_TAGS,
   searchFacetsKey,
   applyFacetsAndRank,
+  LOCATION_REGIONS,
 } from "../lib/jobsSearchFacets";
 
 describe("facet → predicate mappers", () => {
@@ -40,6 +45,72 @@ describe("facet → predicate mappers", () => {
   });
 });
 
+describe("function/family + location predicates (PR C)", () => {
+  it("family: null = no filter; otherwise exact; null-family job drops under a selection", () => {
+    expect(matchesFamily({ function_family: "Sales" }, null)).toBe(true);
+    expect(matchesFamily({ function_family: "Sales" }, "Sales")).toBe(true);
+    expect(matchesFamily({ function_family: "Engineering" }, "Sales")).toBe(
+      false,
+    );
+    expect(matchesFamily({ function_family: null }, "Sales")).toBe(false);
+  });
+
+  it("location: region admits its cities only; NULL/unmapped location drops under a selection", () => {
+    expect(matchesLocation({ location_city: "Herzliya" }, null)).toBe(true); // no filter
+    expect(matchesLocation({ location_city: "Herzliya" }, "tlv_center")).toBe(
+      true,
+    );
+    expect(matchesLocation({ location_city: "Haifa" }, "tlv_center")).toBe(
+      false,
+    );
+    expect(matchesLocation({ location_city: null }, "tlv_center")).toBe(false); // NULL drops
+    expect(matchesLocation({ location_city: "Atlantis" }, "tlv_center")).toBe(
+      false,
+    ); // unmapped drops
+    expect(matchesLocation({ location_city: "Be'er Sheva" }, "south")).toBe(
+      true,
+    );
+  });
+
+  it("location: a raw CITY key matches exactly (no volume bar); NULL drops", () => {
+    expect(matchesLocation({ location_city: "Herzliya" }, "Herzliya")).toBe(
+      true,
+    );
+    expect(matchesLocation({ location_city: "Tel Aviv" }, "Herzliya")).toBe(
+      false,
+    );
+    expect(matchesLocation({ location_city: null }, "Herzliya")).toBe(false);
+  });
+
+  it("region city lists are non-empty and apostrophe-exact to the live values", () => {
+    expect(LOCATION_REGIONS.tlv_center.cities).toContain("Tel Aviv");
+    expect(LOCATION_REGIONS.sharon.cities).toContain("Ra'anana");
+    expect(LOCATION_REGIONS.south.cities).toContain("Be'er Sheva");
+    for (const r of Object.values(LOCATION_REGIONS))
+      expect(r.cities.length).toBeGreaterThan(0);
+  });
+
+  it("buildLocationOptions: real cities (district tags excluded) with counts + region sums", () => {
+    const corpus = [
+      { location_city: "Tel Aviv" },
+      { location_city: "Tel Aviv" },
+      { location_city: "Herzliya" },
+      { location_city: "Tel Aviv District" }, // district tag — excluded from city list
+      { location_city: "Haifa" },
+      { location_city: null }, // null — excluded
+    ];
+    const { cities, regions } = buildLocationOptions(corpus);
+    // city list: real cities only, no district tags, sorted by count desc
+    expect(cities.map((c) => c.key)).toEqual(["Tel Aviv", "Haifa", "Herzliya"]);
+    expect(cities.find((c) => c.key === "Tel Aviv").count).toBe(2);
+    expect(cities.some((c) => LOCATION_DISTRICT_TAGS.has(c.key))).toBe(false);
+    // region sum INCLUDES the district tag (the region filter admits it):
+    // TLV & Center = Tel Aviv(2) + Tel Aviv District(1) + Herzliya(1) = 4
+    expect(regions.find((r) => r.key === "tlv_center").count).toBe(4);
+    expect(regions.find((r) => r.key === "haifa_north").count).toBe(1); // Haifa
+  });
+});
+
 describe("searchFacetsKey — busts on change + AND-composition", () => {
   const base = {
     seniorities: ["entry", "mid"],
@@ -60,6 +131,8 @@ describe("searchFacetsKey — busts on change + AND-composition", () => {
       k0,
     );
     expect(searchFacetsKey({ ...base, track: "track_1" })).not.toBe(k0);
+    expect(searchFacetsKey({ ...base, family: "Sales" })).not.toBe(k0);
+    expect(searchFacetsKey({ ...base, location: "tlv_center" })).not.toBe(k0);
   });
 });
 
@@ -99,5 +172,29 @@ describe("applyFacetsAndRank — score → sort → AND-filter reducer", () => {
 
   it("a tight combination can yield zero (honest-empty upstream)", () => {
     expect(applyFacetsAndRank(corpus, { seniorities: ["lead"] })).toEqual([]);
+  });
+
+  it("family + location AND-compose with the rest (PR C)", () => {
+    const j = (id, family, city, fit) => ({
+      job: {
+        id,
+        seniority: "entry",
+        is_remote: false,
+        function_family: family,
+        location_city: city,
+      },
+      score: { track: "track_1", fit_score: fit, attainability_score: 1 - fit },
+    });
+    const set = [
+      j("p", "Sales", "Tel Aviv", 0.5),
+      j("q", "Sales", "Haifa", 0.9), // right family, wrong region
+      j("r", "Marketing", "Herzliya", 0.8), // wrong family, right region
+      j("s", "Sales", null, 0.7), // right family, NULL location → drops under a region
+    ];
+    const out = applyFacetsAndRank(set, {
+      family: "Sales",
+      location: "tlv_center",
+    });
+    expect(out.map((x) => x.job.id)).toEqual(["p"]); // only Sales ∧ TLV&Center ∧ non-null city
   });
 });
