@@ -7,6 +7,7 @@ import { describe, it, expect } from "vitest";
 import {
   matchesSeniority,
   matchesWorkType,
+  matchesKeyword,
   matchesTrack,
   matchesFamily,
   matchesLocation,
@@ -29,12 +30,29 @@ describe("facet → predicate mappers", () => {
     );
   });
 
-  it("work-type: onsite_only drops remote; remote_ok/null admit all", () => {
-    expect(matchesWorkType({ is_remote: true }, "onsite_only")).toBe(false);
-    expect(matchesWorkType({ is_remote: false }, "onsite_only")).toBe(true);
-    expect(matchesWorkType({ is_remote: null }, "onsite_only")).toBe(true); // unknown ≠ remote
-    expect(matchesWorkType({ is_remote: true }, "remote_ok")).toBe(true);
-    expect(matchesWorkType({ is_remote: true }, null)).toBe(true);
+  it("work-type chips: onsite=is_remote false, remote=is_remote true, both/neither=all", () => {
+    // neither selected → all
+    expect(matchesWorkType({ is_remote: true }, [])).toBe(true);
+    expect(matchesWorkType({ is_remote: false }, null)).toBe(true);
+    // both selected → all
+    expect(matchesWorkType({ is_remote: true }, ["onsite", "remote"])).toBe(
+      true,
+    );
+    // remote only
+    expect(matchesWorkType({ is_remote: true }, ["remote"])).toBe(true);
+    expect(matchesWorkType({ is_remote: false }, ["remote"])).toBe(false);
+    // onsite only
+    expect(matchesWorkType({ is_remote: false }, ["onsite"])).toBe(true);
+    expect(matchesWorkType({ is_remote: true }, ["onsite"])).toBe(false);
+  });
+
+  it("keyword: case-insensitive substring over title + company; empty = all", () => {
+    const job = { title: "Senior Product Manager", company_name: "Wiz" };
+    expect(matchesKeyword(job, "")).toBe(true);
+    expect(matchesKeyword(job, "  ")).toBe(true);
+    expect(matchesKeyword(job, "product")).toBe(true);
+    expect(matchesKeyword(job, "WIZ")).toBe(true); // company, case-insensitive
+    expect(matchesKeyword(job, "designer")).toBe(false);
   });
 
   it("track: null = no filter; otherwise scoreJobFit.track match (off-roadmap null drops)", () => {
@@ -114,7 +132,7 @@ describe("function/family + location predicates (PR C)", () => {
 describe("searchFacetsKey — busts on change + AND-composition", () => {
   const base = {
     seniorities: ["entry", "mid"],
-    workTypeMode: "remote_ok",
+    workTypes: [],
     track: null,
   };
 
@@ -127,12 +145,11 @@ describe("searchFacetsKey — busts on change + AND-composition", () => {
   it("each facet change busts the key (AND-composition — adding a facet changes the key)", () => {
     const k0 = searchFacetsKey(base);
     expect(searchFacetsKey({ ...base, seniorities: ["entry"] })).not.toBe(k0);
-    expect(searchFacetsKey({ ...base, workTypeMode: "onsite_only" })).not.toBe(
-      k0,
-    );
+    expect(searchFacetsKey({ ...base, workTypes: ["onsite"] })).not.toBe(k0);
     expect(searchFacetsKey({ ...base, track: "track_1" })).not.toBe(k0);
     expect(searchFacetsKey({ ...base, family: "Sales" })).not.toBe(k0);
     expect(searchFacetsKey({ ...base, location: "tlv_center" })).not.toBe(k0);
+    expect(searchFacetsKey({ ...base, keyword: "wiz" })).not.toBe(k0);
   });
 });
 
@@ -159,10 +176,34 @@ describe("applyFacetsAndRank — score → sort → AND-filter reducer", () => {
   it("AND-composes: Entry + On-site + Track 1 → only 'a'", () => {
     const out = applyFacetsAndRank(corpus, {
       seniorities: ["entry"],
-      workTypeMode: "onsite_only",
+      workTypes: ["onsite"],
       track: "track_1",
     });
     expect(out.map((x) => x.job.id)).toEqual(["a"]);
+  });
+
+  it("keyword AND-composes over title + company, fit-ranked", () => {
+    const k = (id, title, company, fit) => ({
+      job: {
+        id,
+        title,
+        company_name: company,
+        seniority: "entry",
+        is_remote: false,
+      },
+      score: { track: "track_1", fit_score: fit, attainability_score: 1 - fit },
+    });
+    const set = [
+      k("x", "Product Manager", "Wiz", 0.5),
+      k("y", "Product Designer", "Monday", 0.9), // matches "product" but ranks higher
+      k("z", "Data Analyst", "Wiz", 0.7), // company matches "wiz" not "product"
+    ];
+    expect(
+      applyFacetsAndRank(set, { keyword: "product" }).map((j) => j.job.id),
+    ).toEqual(["y", "x"]);
+    expect(
+      applyFacetsAndRank(set, { keyword: "wiz" }).map((j) => j.job.id),
+    ).toEqual(["z", "x"]);
   });
 
   it("track filter drops the null-track (off-roadmap) job even though it ranks highest by fit", () => {
