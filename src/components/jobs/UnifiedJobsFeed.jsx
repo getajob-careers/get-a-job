@@ -39,8 +39,9 @@ import JobsSearchTab from "./JobsSearchTab";
 // useEducationQuery / useCareerRolesQuery), so the feed and the Career panels
 // dedupe to one fetch per key and can't poison each other's cache (the
 // career_roles projection is now the canonical superset, not the old narrow
-// one). The legacy track-tabs path stays in Jobs.jsx behind ?flag=
-// legacy_track_tabs; this component is ONLY the unified path.
+// one). This component is the only jobs feed now — the legacy track-tabs path
+// and its ?flag=legacy_track_tabs rollback hatch were removed in PR3 when
+// /Jobs was consolidated into /Career.
 //
 // Reuse seam: renders the tabs + feed body only (no page header / banners —
 // those are page chrome). The optional onTabChange callback reports the
@@ -97,7 +98,16 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [emptyReason, setEmptyReason] = useState(null);
-  const [unifiedTab, setUnifiedTab] = useState("matches");
+  // Deep-link prefill (PR3): /Career?role=<title> — and the retired /Jobs route
+  // that forwards to it — opens the Search tab with the role seeded into the
+  // keyword box. roleParam drives the initial tab here; the seed string is
+  // handed to JobsSearchTab as initialKeyword. A role-less mount opens on the
+  // "matches" tab. Read once on mount (useState initializer), so clearing the
+  // keyword afterward doesn't re-seed from the still-present URL param.
+  const roleParam = searchParams.get("role") || "";
+  const [unifiedTab, setUnifiedTab] = useState(
+    roleParam ? "search" : "matches",
+  );
   const requestSeqRef = useRef(0);
 
   // Report the active tab to the host (tab-aware subhead) — fires on mount
@@ -267,6 +277,7 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
           experiences={experiences}
           educations={educations}
           singleColumn={singleColumn}
+          initialKeyword={roleParam}
         />
       ) : (
         <>

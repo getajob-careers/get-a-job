@@ -95,6 +95,7 @@ export default function JobsSearchTab({
   experiences,
   educations,
   singleColumn = false,
+  initialKeyword = "",
 }) {
   // 1. Whole active-IL corpus, fetched ONCE, light projection, cached. Fires
   //    only when this tab mounts (the user opted into Search), and is reused
@@ -141,7 +142,10 @@ export default function JobsSearchTab({
   }, [corpus, profile, experiences, educations]);
 
   // 3. Facet state. PR B: seniority + work-type (track/family/location → PR C).
-  const [keyword, setKeyword] = useState(""); // "" = no keyword filter
+  // Seeded from initialKeyword for the /Career?role= deep link (PR3); "" = no
+  // keyword filter. One-time seed (useState initializer) — the user can clear
+  // or edit it freely afterward without the URL param re-applying.
+  const [keyword, setKeyword] = useState(initialKeyword);
   const [seniorities, setSeniorities] = useState([]); // [] = no filter (all)
   const [workTypes, setWorkTypes] = useState([]); // [] = no filter (all)
   const [family, setFamily] = useState(""); // "" = all functions

@@ -33,7 +33,6 @@ import ShellPreview from '@/pages/_preview/ShellPreview';
 import HomePreview from '@/pages/_preview/HomePreview';
 import CareerPreview from '@/pages/_preview/CareerPreview';
 import RoadmapPreview from '@/pages/_preview/RoadmapPreview';
-import JobsPreview from '@/pages/_preview/JobsPreview';
 import TrackerPreview from '@/pages/_preview/TrackerPreview';
 import ProfilePreview from '@/pages/_preview/ProfilePreview';
 import StoryBankPreview from '@/pages/_preview/StoryBankPreview';
@@ -178,12 +177,6 @@ function App() {
               <Route
                 path="/_preview/roadmap/:state"
                 element={<RoadmapPreview />}
-              />
-            )}
-            {import.meta.env.DEV && (
-              <Route
-                path="/_preview/jobs/:state"
-                element={<JobsPreview />}
               />
             )}
             {import.meta.env.DEV && (

@@ -204,13 +204,13 @@ export default function RoleCard({ role, onTrack = null }) { // eslint-disable-l
             </div>
           )}
 
-          {/* Bridge to the Jobs page filtered to this role title — closes
-              the "Roadmap says I'm a fit, but where are the actual jobs?"
-              loop by deep-linking into the place where specific openings
-              are scored per-posting. */}
+          {/* Bridge to the Career jobs feed filtered to this role title —
+              closes the "Roadmap says I'm a fit, but where are the actual
+              jobs?" loop by deep-linking into the Search tab with the role
+              prefilled (PR3: /Jobs was consolidated into /Career). */}
           {role.title && (
             <Link
-              to={`${createPageUrl("Jobs")}?role=${encodeURIComponent(role.title)}`}
+              to={`${createPageUrl("Career")}?role=${encodeURIComponent(role.title)}`}
               className="inline-flex items-center gap-1.5 self-start text-[12.5px] font-display font-semibold transition-colors"
               style={{ color: styles.accent }}
             >
