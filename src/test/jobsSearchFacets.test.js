@@ -65,9 +65,11 @@ describe("searchFacetsKey — busts on change + AND-composition", () => {
 
 describe("applyFacetsAndRank — score → sort → AND-filter reducer", () => {
   // fixtures: { job, score } where score is the scoreJobFit shape we read.
-  const mk = (id, seniority, is_remote, track, attain) => ({
+  // score carries fit_score (the Tab-2 sort key) + attainability_score (the
+  // card badge — present but NOT the sort key).
+  const mk = (id, seniority, is_remote, track, fit) => ({
     job: { id, seniority, is_remote },
-    score: { track, attainability_score: attain },
+    score: { track, fit_score: fit, attainability_score: 1 - fit },
   });
   const corpus = [
     mk("a", "entry", false, "track_1", 0.4),
@@ -76,7 +78,7 @@ describe("applyFacetsAndRank — score → sort → AND-filter reducer", () => {
     mk("d", "senior", false, null, 0.9),
   ];
 
-  it("no facets → whole corpus, sorted by attainability desc", () => {
+  it("no facets → whole corpus, sorted by fit_score desc (off-domain sinks)", () => {
     const out = applyFacetsAndRank(corpus, {});
     expect(out.map((x) => x.job.id)).toEqual(["d", "b", "c", "a"]);
   });
@@ -90,7 +92,7 @@ describe("applyFacetsAndRank — score → sort → AND-filter reducer", () => {
     expect(out.map((x) => x.job.id)).toEqual(["a"]);
   });
 
-  it("track filter drops the null-track (off-roadmap) job even though it ranks highest", () => {
+  it("track filter drops the null-track (off-roadmap) job even though it ranks highest by fit", () => {
     const out = applyFacetsAndRank(corpus, { track: "track_1" });
     expect(out.map((x) => x.job.id)).toEqual(["c", "a"]); // 'd' (null track) excluded
   });

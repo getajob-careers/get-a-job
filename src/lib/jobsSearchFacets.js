@@ -55,9 +55,13 @@ export function searchFacetsKey(facets) {
 }
 
 // The reducer: filter the scored corpus by ALL active facets (AND), then sort
-// best-fit-first by attainability_score (the number the band labels reflect).
-// Input: scored = [{ job, score }] (score = scoreJobFit output). Output: same
-// shape, filtered + sorted. Pure — no re-score happens here.
+// best-fit-first by fit_score. fit_score is FAMILY-INCLUSIVE, so off-domain
+// jobs sink in the no-facet view (the "best-fit-first, off-domain sinks"
+// behavior we want) — attainability_score would float off-domain-but-gettable
+// jobs to the top before any facet is applied. The card BADGE stays
+// attainability (gettability); within a Function facet, family is constant so
+// fit_score effectively ranks by gettability anyway. Input: scored =
+// [{ job, score }]. Output: same shape, filtered + sorted. Pure — no re-score.
 export function applyFacetsAndRank(scored, facets) {
   const f = facets || {};
   const filtered = (Array.isArray(scored) ? scored : []).filter(
@@ -67,7 +71,6 @@ export function applyFacetsAndRank(scored, facets) {
       matchesTrack(score, f.track),
   );
   return filtered.sort(
-    (a, b) =>
-      (b.score?.attainability_score ?? 0) - (a.score?.attainability_score ?? 0),
+    (a, b) => (b.score?.fit_score ?? 0) - (a.score?.fit_score ?? 0),
   );
 }
