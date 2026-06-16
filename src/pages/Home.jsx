@@ -30,6 +30,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
+import { useStoriesQuery } from "@/lib/queries/useStories";
 import { invalidateAfterCareerAnalysis } from "@/lib/invalidateAfterCareerAnalysis";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
@@ -101,6 +102,11 @@ function taskCategoryStyle(category) {
 // Root component
 // ────────────────────────────────────────────────────────────────────────
 
+// Per-observer projection for the stat strip: count + recency only.
+// Module-level so TanStack's referential-equality memo holds.
+const selectStoryStats = (rows) =>
+  rows.map((s) => ({ id: s.id, created_at: s.created_at }));
+
 export default function Home() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -155,11 +161,9 @@ export default function Home() {
   });
 
   // Stories + last LinkedIn post feed the stat strip and quick tiles.
-  const { data: stories = [] } = useQuery({
-    queryKey: ["stories", user?.id],
-    queryFn: async () => (await supabase.from("stories").select("id, created_at").eq("user_id", user.id)).data || [],
-    enabled: !!user?.id,
-  });
+  // Canonical hook + select option (client-side projection; never writes
+  // the shared cache, so StoryBank always reads full rows).
+  const { data: stories = [] } = useStoriesQuery(user?.id, selectStoryStats);
   const { data: linkedinPosts = [] } = useQuery({
     queryKey: ["linkedin_posts_home", user?.id],
     queryFn: async () => {

@@ -18,6 +18,7 @@
 import { supabase } from "@/api/supabaseClient";
 import { invokeWithAuthRetry } from "@/api/invokeWithAuthRetry";
 import { resolveDueDate } from "@/lib/taskDueDate";
+import { experiencesQueryKey } from "@/lib/queries/useExperiences";
 import { scoreApplication } from "@/lib/scoreApplication";
 import { stripHtml } from "../../scripts/lib/normalize.ts";
 import {
@@ -403,7 +404,7 @@ export async function saveStory({ user, story, capture, conversationId = null })
 // reaches this handler (the agent is told to ask which experience).
 // Idempotent: a case-insensitive dupe is a no-op success, not a second
 // array entry.
-export async function applyAddSkillToExperience({ user, skill, experienceId }) {
+export async function applyAddSkillToExperience({ user, queryClient, skill, experienceId }) {
   if (!user?.id) return { error: "missing user" };
   const clean = typeof skill === "string" ? skill.trim() : "";
   if (!clean) return { error: "missing skill" };
@@ -435,6 +436,10 @@ export async function applyAddSkillToExperience({ user, skill, experienceId }) {
       console.error("[coachActions] addSkill update failed:", updateErr);
       return { error: updateErr.message || "Could not add the skill." };
     }
+    // The DB write lands, but Profile reads experiences from the shared
+    // ["experiences", uid] TanStack cache — without this invalidation the
+    // new skill never shows until a hard reload (2026-06-16 add-skill bug).
+    queryClient?.invalidateQueries({ queryKey: experiencesQueryKey(user.id) });
     return { ok: true, experienceLabel: label, skill: clean };
   } catch (err) {
     console.error("[coachActions] applyAddSkillToExperience exception:", err);

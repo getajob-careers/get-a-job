@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Loader2, BookText, Plus, X } from "lucide-react";
 import {
@@ -21,6 +21,8 @@ import {
 import StorySaveCard from "@/components/chat/StorySaveCard";
 import StoryCard from "@/components/storyBank/StoryCard";
 import StoryEditor from "@/components/storyBank/StoryEditor";
+import { useStoriesQuery } from "@/lib/queries/useStories";
+import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 
 // PR 3G — StoryBank restyled on rd-* tokens. Restyle-only on behavior;
 // every CRUD path, the extract-story-from-text edge function call, the
@@ -96,34 +98,17 @@ export default function StoryBank() {
   };
 
   // ── Data ────────────────────────────────────────────────────────────
-  const { data: stories = [], isLoading: storiesLoading } = useQuery({
-    queryKey: ["stories", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from("stories")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  // Canonical full-shape fetch — the shared ["stories", uid] cache always
+  // holds complete rows, so StoryCard binds title/action/result regardless
+  // of whether Home/Profile (narrow consumers) mounted first.
+  const { data: stories = [], isLoading: storiesLoading } = useStoriesQuery(
+    user?.id,
+  );
 
-  const { data: experiences = [] } = useQuery({
-    queryKey: ["experiences", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from("experiences")
-        .select("id, title, company")
-        .eq("user_id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  // Canonical experiences fetch (was a raw narrow select on the shared
+  // ["experiences", uid] key — same projection-collision class). Full rows;
+  // the label map below only reads id/title/company.
+  const { data: experiences = [] } = useExperiencesQuery(user?.id);
 
   // Map experience_id → "Role at Company" for the StoryCard chips.
   const experienceLabelById = useMemo(() => {

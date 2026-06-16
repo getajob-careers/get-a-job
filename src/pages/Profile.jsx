@@ -19,6 +19,7 @@ import { aggregateProfileSkills } from "@/lib/skillAggregation";
 import { recomputeProfileSkillsCanonical } from "@/lib/recomputeProfileSkillsCanonical";
 import { suggestSkillsFromUnmapped } from "@/lib/suggestSkillFromUnmapped";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
+import { useStoriesQuery } from "@/lib/queries/useStories";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import EducationTab from "@/components/profile/EducationTab";
 import { createPageUrl } from "@/utils";
@@ -272,6 +273,11 @@ function StackedRadio({ options, value, onChange }) {
 
 // ─── Page ───────────────────────────────────────────────────────────────
 
+// Per-observer projection: only the experience link is needed for the
+// count pills. Module-level so the select memo holds.
+const selectStoryExperienceLinks = (rows) =>
+  rows.map((s) => ({ id: s.id, experience_id: s.experience_id }));
+
 export default function Profile() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -326,19 +332,12 @@ export default function Profile() {
 
   // Stories — only used here for the inline story-count pill per experience
   // and the Story Bank summary card. Create/edit/delete moved to /StoryBank.
-  const { data: stories = [] } = useQuery({
-    queryKey: ["stories", user?.id],
-    queryFn: async () => {
-      if (!user?.id) return [];
-      const { data, error } = await supabase
-        .from("stories")
-        .select("id, experience_id")
-        .eq("user_id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-  });
+  // Canonical hook + select option (client-side projection; never writes
+  // the shared cache).
+  const { data: stories = [] } = useStoriesQuery(
+    user?.id,
+    selectStoryExperienceLinks,
+  );
 
   const storyCountByExperience = useMemo(() => {
     const m = new Map();

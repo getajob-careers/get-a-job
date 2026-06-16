@@ -1086,6 +1086,7 @@ export default function ChatInterface({
     if (!user?.id) return { error: "Not signed in." };
     const res = await sharedApplyAddSkillToExperience({
       user,
+      queryClient,
       skill,
       experienceId,
     });

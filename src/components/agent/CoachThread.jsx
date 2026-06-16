@@ -250,6 +250,7 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
 // the SAME centralized handlers — closing the seam where story-capture
 // used to render full-page but silently vanish in the dock.
 function ProfileWriteCards({ message, user, conversationId, experiencesById }) {
+  const queryClient = useQueryClient();
   const cap = message.suggestedStoryCapture;
   const skillBlock = message.suggestedAddSkill;
   if (!cap?.text && !skillBlock?.skill) return null;
@@ -279,6 +280,7 @@ function ProfileWriteCards({ message, user, conversationId, experiencesById }) {
           onConfirm={async () => {
             const res = await applyAddSkillToExperience({
               user,
+              queryClient,
               skill: skillBlock.skill,
               experienceId: skillBlock.experience_id,
             });
