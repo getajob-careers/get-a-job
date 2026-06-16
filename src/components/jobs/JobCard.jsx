@@ -372,10 +372,10 @@ export default function JobCard({
           </span>
         </div>
         <div className="flex-1 min-w-0">
-          <h3 className="font-display font-bold text-[15px] leading-[1.2] text-rd-text truncate">
+          <h3 className="font-display font-bold text-[15px] leading-[1.2] text-rd-text break-words">
             {job.title}
           </h3>
-          <p className="text-[11.5px] text-rd-text-secondary mt-0.5 truncate">
+          <p className="text-[11.5px] text-rd-text-secondary mt-0.5 break-words">
             {job.company_name}
             {job.location_city ? ` · ${job.location_city}` : ""}
           </p>

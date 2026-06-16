@@ -47,12 +47,18 @@ import JobsSearchTab from "./JobsSearchTab";
 // active tab so a host (Jobs.jsx) can keep a tab-aware subhead in sync; hosts
 // that don't need it (Career, PR2) simply omit it.
 //
+// singleColumn forces the card grid to one column on BOTH tabs. /career mounts
+// the feed in a narrow column where the default md:grid-cols-2 squeezes cards
+// until role/company names clip — it passes singleColumn so cards get the full
+// column width. /jobs (full-width) and the legacy path omit it, so their grid
+// class strings stay byte-identical (visually unchanged).
+//
 // Behaviour is a faithful copy of Jobs.jsx's unified path. The only dev-only
 // diagnostic dropped is the ?debug=1 console echo.
 /**
- * @param {{ onTabChange?: (tab: string) => void }} props
+ * @param {{ onTabChange?: (tab: string) => void, singleColumn?: boolean }} props
  */
-export default function UnifiedJobsFeed({ onTabChange }) {
+export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
 
@@ -260,6 +266,7 @@ export default function UnifiedJobsFeed({ onTabChange }) {
           profile={profile}
           experiences={experiences}
           educations={educations}
+          singleColumn={singleColumn}
         />
       ) : (
         <>
@@ -305,6 +312,7 @@ export default function UnifiedJobsFeed({ onTabChange }) {
                       jobs={sectionedJobs.picks}
                       scoredById={scoredById}
                       unified
+                      singleColumn={singleColumn}
                     />
                   </section>
                 )}
@@ -325,6 +333,7 @@ export default function UnifiedJobsFeed({ onTabChange }) {
                       jobs={sectionedJobs.stretch}
                       scoredById={scoredById}
                       unified
+                      singleColumn={singleColumn}
                     />
                   </section>
                 )}
@@ -375,9 +384,15 @@ function UnifiedTabButton({ label, active, onClick }) {
   );
 }
 
-function JobGrid({ jobs, scoredById, unified = false }) {
+function JobGrid({ jobs, scoredById, unified = false, singleColumn = false }) {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div
+      className={
+        singleColumn
+          ? "grid grid-cols-1 gap-4"
+          : "grid grid-cols-1 md:grid-cols-2 gap-4"
+      }
+    >
       {jobs.map((job) => {
         const perJobTrack = scoredById[job.id]?.track;
         const trackRdColor = perJobTrack
