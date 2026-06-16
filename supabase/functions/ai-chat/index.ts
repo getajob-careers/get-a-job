@@ -420,6 +420,7 @@ Deno.serve(async (req) => {
       parsed.suggested_company_target_actions;
     const suggested_cv_generation = parsed.suggested_cv_generation;
     const suggested_story_capture = parsed.suggested_story_capture;
+    const suggested_add_skill = parsed.suggested_add_skill;
 
     _ok = true;
     _http = 200;
@@ -436,6 +437,7 @@ Deno.serve(async (req) => {
         }),
         ...(suggested_cv_generation && { suggested_cv_generation }),
         ...(suggested_story_capture && { suggested_story_capture }),
+        ...(suggested_add_skill && { suggested_add_skill }),
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );

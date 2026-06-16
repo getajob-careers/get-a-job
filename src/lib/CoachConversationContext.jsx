@@ -103,6 +103,10 @@ export function CoachConversationProvider({ children }) {
         suggestedCompanyTargetActions: Array.isArray(m.suggested_company_target_actions) && m.suggested_company_target_actions.length > 0 ? m.suggested_company_target_actions : null,
         suggestedCVGeneration: m.suggested_cv_generation || null,
         suggestedAgent: m.suggested_agent || null,
+        // No chat_messages columns for these two — always null on reload
+        // (live-session card only; the DB write is already durable).
+        suggestedStoryCapture: null,
+        suggestedAddSkill: null,
         isError: m.is_error || false,
         userMessageText: m.original_user_message || null,
       })));
@@ -196,6 +200,12 @@ export function CoachConversationProvider({ children }) {
         suggestedCompanyTargetActions: assistantRow.suggested_company_target_actions,
         suggestedCVGeneration: assistantRow.suggested_cv_generation,
         suggestedAgent: assistantRow.suggested_agent,
+        // Story-capture + add-skill are in-memory only (no chat_messages
+        // columns) — read from the live response, not assistantRow. Reload
+        // hides the card; the underlying write (stories / experiences.skills)
+        // is already durable. Matches ChatInterface's ephemeral behavior.
+        suggestedStoryCapture: data.suggested_story_capture || null,
+        suggestedAddSkill: data.suggested_add_skill || null,
       };
       setMessages((prev) => [...prev, assistantMsg]);
       await supabase.from("conversations").update({ updated_at: new Date().toISOString() }).eq("id", convoId);

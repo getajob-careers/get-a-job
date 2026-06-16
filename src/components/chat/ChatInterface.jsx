@@ -24,9 +24,13 @@ import {
   applyApplicationActions as sharedApplyApplicationActions,
   applyCompanyTargetActions as sharedApplyCompanyTargetActions,
   generateTailoredCV as sharedGenerateTailoredCV,
+  extractStoryFromText as sharedExtractStoryFromText,
+  saveStory as sharedSaveStory,
+  applyAddSkillToExperience as sharedApplyAddSkillToExperience,
 } from "@/lib/coachActionHandlers";
 import MessageBubble from "./MessageBubble";
 import StorySaveCard from "./StorySaveCard";
+import AddSkillCard from "./AddSkillCard";
 import { CHAT_MODEL } from "@/lib/chatModel";
 
 
@@ -748,6 +752,7 @@ export default function ChatInterface({
           // chat_messages. Reload hides the card; user can re-trigger by
           // continuing the conversation. Day 4 doesn't require persistence.
           suggestedStoryCapture: data.suggested_story_capture || null,
+          suggestedAddSkill: data.suggested_add_skill || null,
         },
       ]);
 
@@ -840,6 +845,7 @@ export default function ChatInterface({
         suggestedCVGeneration: assistantPayload.suggested_cv_generation,
         suggestedAgent: assistantPayload.suggested_agent,
         suggestedStoryCapture: data.suggested_story_capture || null,
+        suggestedAddSkill: data.suggested_add_skill || null,
       }]);
     } catch (err) {
       console.error("Chat retry error:", err);
@@ -1021,6 +1027,7 @@ export default function ChatInterface({
               role: "assistant",
               content: followData.reply,
               suggestedStoryCapture: followData.suggested_story_capture || null,
+              suggestedAddSkill: followData.suggested_add_skill || null,
             }]);
           }
         }
@@ -1041,67 +1048,53 @@ export default function ChatInterface({
   // the stories table via the user-scoped supabase client (RLS gates
   // ownership). Source is hard-coded 'conversation' since this card
   // only renders for chat-captured stories.
-  const handleExtractStory = async (text) => {
-    try {
-      const { data, error } = await supabase.functions.invoke("extract-story-from-text", {
-        body: {
-          text,
-          source: "conversation",
-        },
-      });
-      if (error) {
-        console.error("Story extraction error:", error);
-        return null;
-      }
-      return data || null;
-    } catch (err) {
-      console.error("Story extraction exception:", err);
-      return null;
-    }
-  };
+  // Story extract + save now route through the centralized handlers
+  // (src/lib/coachActionHandlers.js) so the dock calls the exact same
+  // path. The CV-regen follow-up stays surface-local — it needs this
+  // surface's conversation state (messages / activeConversationId /
+  // agentName) — which is the seam coachActionHandlers documents.
+  const handleExtractStory = (text) => sharedExtractStoryFromText({ text });
 
   const handleSaveStory = async (story, capture) => {
     if (!user?.id) return false;
-    try {
-      const { error } = await supabase.from("stories").insert({
-        user_id: user.id,
-        source: "conversation",
-        // Both FKs are nullable. capture.experience_id was validated as
-        // a UUID by the ai-chat parser; conversation_id comes from local
-        // state. activeConversationId can be null if the chat is brand
-        // new (insert path defers conversation creation), in which case
-        // we store the story without the back-link rather than blocking
-        // the save.
-        experience_id: capture?.experience_id || null,
-        conversation_id: activeConversationId || null,
-        title: story.title,
-        situation: story.situation || null,
-        task: story.task || null,
-        action: story.action || null,
-        result: story.result || null,
-        metrics: Array.isArray(story.metrics) ? story.metrics : [],
-        skills_demonstrated: Array.isArray(story.skills_demonstrated) ? story.skills_demonstrated : [],
-        tools_used: Array.isArray(story.tools_used) ? story.tools_used : [],
-        relevance_tags: Array.isArray(story.relevance_tags) ? story.relevance_tags : [],
-      });
-      if (error) {
-        console.error("Story save error:", error);
-        toast.error("Could not save story. Please try again.");
-        return false;
-      }
-      // PR #390: kick off the CV-regen offer follow-up. Fire-and-forget so
-      // StorySaveCard collapses to SAVED immediately (true is returned
-      // before the follow-up resolves). Non-blocking — if the follow-up
-      // errors, the save itself is still persisted; the user can ask for
-      // a regen manually next turn.
-      triggerStoryCaptureRegenFollowup({ story, capture }).catch((err) =>
-        console.warn("Story-capture regen follow-up failed (non-blocking):", err),
-      );
-      return true;
-    } catch (err) {
-      console.error("Story save exception:", err);
+    const res = await sharedSaveStory({
+      user,
+      story,
+      capture,
+      conversationId: activeConversationId || null,
+    });
+    if (res.error) {
+      toast.error(res.error);
       return false;
     }
+    // PR #390: kick off the CV-regen offer follow-up. Fire-and-forget so
+    // StorySaveCard collapses to SAVED immediately (true is returned
+    // before the follow-up resolves). Non-blocking — if the follow-up
+    // errors, the save itself is still persisted; the user can ask for
+    // a regen manually next turn.
+    triggerStoryCaptureRegenFollowup({ story, capture }).catch((err) =>
+      console.warn("Story-capture regen follow-up failed (non-blocking):", err),
+    );
+    return true;
+  };
+
+  // Add-skill — appends a user-stated skill to a specific experience via
+  // the centralized handler. Returns the handler result so AddSkillCard
+  // can flip to its saved/already-present state; a failure surfaces a
+  // toast AND the card's inline error (loud, never silent).
+  const handleAddSkill = async ({ skill, experienceId }) => {
+    if (!user?.id) return { error: "Not signed in." };
+    const res = await sharedApplyAddSkillToExperience({
+      user,
+      skill,
+      experienceId,
+    });
+    if (res.error) {
+      toast.error(res.error);
+      return res;
+    }
+    toast.success(res.alreadyPresent ? "Already on that experience" : "Skill added");
+    return res;
   };
 
   // PR #390 post-save offer-regen follow-up. Mirrors the cv_generation
@@ -1305,6 +1298,18 @@ export default function ChatInterface({
                   experienceLabel={experiencesById[msg.suggestedStoryCapture.experience_id] || null}
                   onExtract={handleExtractStory}
                   onSave={handleSaveStory}
+                />
+              )}
+              {msg.suggestedAddSkill && msg.suggestedAddSkill.skill && (
+                <AddSkillCard
+                  skill={msg.suggestedAddSkill.skill}
+                  experienceLabel={experiencesById[msg.suggestedAddSkill.experience_id] || null}
+                  onConfirm={() =>
+                    handleAddSkill({
+                      skill: msg.suggestedAddSkill.skill,
+                      experienceId: msg.suggestedAddSkill.experience_id,
+                    })
+                  }
                 />
               )}
               {msg.suggestedAgent && (
