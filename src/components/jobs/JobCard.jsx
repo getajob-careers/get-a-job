@@ -223,6 +223,18 @@ function matchBand(score) {
   return "soft";
 }
 
+// Attainability-band presentation (jobs-early-career-gate). The unified
+// feed ranks on attainability_score and labels it with attainability_band
+// (strong/good/stretch/reach). We lead the card with the band word and
+// show the % de-emphasized, so a legitimate "broaden-toward" role reads as
+// a stretch, not a bad match on a scary-low number.
+const BAND_META = {
+  strong: { label: "Strong match", bg: "var(--rd-teal-tint)", fg: "var(--rd-teal-dark)" },
+  good: { label: "Good match", bg: "var(--rd-coral-tint)", fg: "var(--rd-coral-dark)" },
+  stretch: { label: "Stretch", bg: "var(--rd-golden-tint)", fg: "var(--rd-golden-dark)" },
+  reach: { label: "Reach", bg: "var(--rd-bg-soft)", fg: "var(--rd-text-secondary)" },
+};
+
 // `trackColor` (optional) — when provided ("coral" | "teal" | "golden"),
 // the card avatar + match badge use that track's tint. Set in track mode
 // by Jobs.jsx based on the per-job scoreJobFit track. In keyword mode it
@@ -249,6 +261,14 @@ export default function JobCard({ job, scoreResult = null, trackColor = null }) 
   // when the parent passed a profile + job to score.
   const scored = !!scoreResult;
   const score = scored ? Math.round((scoreResult.fit_score ?? 0) * 100) : null;
+  // Prefer the attainability band/score (the number the unified feed ranks
+  // on) when present. Consumers passing a legacy scoreResult without the
+  // additive fields keep the old fit_score badge byte-unchanged.
+  const attainBand = scored ? scoreResult.attainability_band || null : null;
+  const attainPct =
+    scored && scoreResult.attainability_score != null
+      ? Math.round(scoreResult.attainability_score * 100)
+      : null;
   const band = matchBand(score);
   const matchedSkills = scoreResult?.signals?.matched_skills || [];
   const missingCoreSkills = scoreResult?.signals?.missing_core_skills || [];
@@ -294,7 +314,11 @@ export default function JobCard({ job, scoreResult = null, trackColor = null }) 
   // we have a fit signal). Mockup uses a dim opacity for soft cards; we
   // surface a one-liner instead so the user understands the card was
   // shown to them but isn't recommended.
-  const lowFitWarning = band === "soft";
+  // Legacy "not recommended" warning stays for non-unified cards. On the
+  // unified feed (attainBand present) the picks/stretch section header does
+  // the honest framing, so a per-card "not recommended" would contradict a
+  // deliberately-surfaced stretch role.
+  const lowFitWarning = !attainBand && band === "soft";
 
   return (
     <div
@@ -330,14 +354,26 @@ export default function JobCard({ job, scoreResult = null, trackColor = null }) 
             )}
           </div>
         </div>
-        {scored && badgeStyle && (
+        {scored && attainBand && BAND_META[attainBand] ? (
+          // Band-led badge: the word carries the meaning; the % is
+          // de-emphasized so a stretch role doesn't read as a bad number.
+          <span
+            className="flex-shrink-0 inline-flex items-baseline gap-1 font-display rounded-full px-2.5 py-1"
+            style={{ background: BAND_META[attainBand].bg, color: BAND_META[attainBand].fg }}
+          >
+            <span className="font-extrabold text-[12.5px]">{BAND_META[attainBand].label}</span>
+            {attainPct != null && (
+              <span className="font-semibold text-[10.5px] opacity-70">{attainPct}%</span>
+            )}
+          </span>
+        ) : scored && badgeStyle ? (
           <span
             className="flex-shrink-0 inline-flex items-center font-display font-extrabold text-[12.5px] rounded-full px-2.5 py-1"
             style={badgeStyle}
           >
             {score}%
           </span>
-        )}
+        ) : null}
       </div>
 
       {scored && reasonText && (

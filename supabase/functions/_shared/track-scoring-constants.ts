@@ -171,6 +171,59 @@ export const FAMILY_ADJACENCY: Record<string, string[]> = {
   project_management: ["Product", "Engineering", "Consulting", "Finance"],
 };
 
+// ─── Early-career business widening (PR: jobs-early-career-gate) ──────────
+// The strict primary+adjacent gate above leaves an EARLY-CAREER business
+// student with a thin feed: the IL corpus has few entry/mid roles in any
+// single family, and a business domain's adjacency is intentionally narrow
+// (e.g. product -> Engineering/Data/Design_UX/RevOps only -- tech-side, NOT
+// the GTM families a business grad actually enters). When the user is
+// early_career AND their primary_domain is a business domain, we let GTM +
+// business-generalist families through the gate as relevance_match =
+// "adjacent" (sort below primary; the band + feed sectioning frame them as
+// stretch). Mid/senior + technical-domain users keep the tight gate.
+//
+// The line (locked 2026-06-16): trigger domains are business/GTM only;
+// technical domains are deliberately excluded. Family set = GTM (Tier A) +
+// business-generalist (Tier B: Finance, Consulting, HR_People). Admin_GA is
+// HELD OUT (clerical, per title review). Never widened in:
+// Manufacturing_Operations, IT_Security, AI_ML, Solutions_Engineering,
+// Research_Science, Legal_Compliance, Leadership, and the tech-craft
+// families Engineering/Data/Design_UX (those stay visible only for the
+// domains whose existing FAMILY_ADJACENCY already maps them).
+export const BUSINESS_PRIMARY_DOMAINS: string[] = [
+  "product",
+  "product_management",
+  "sales",
+  "marketing",
+  "operations",
+  "business_operations",
+  "customer_success",
+  "customer_experience",
+  "support",
+  "project_management",
+  "finance",
+  "hr",
+  "people",
+];
+
+export const EARLY_CAREER_BUSINESS_FAMILIES: string[] = [
+  // Tier A -- GTM
+  "Sales",
+  "BD_Partnerships",
+  "Marketing",
+  "Operations",
+  "RevOps_BizOps",
+  "Customer_Experience",
+  "Support",
+  "Relationship_Growth",
+  "Onboarding_Implementation",
+  // Tier B -- business generalist
+  "Finance",
+  "Consulting",
+  "HR_People",
+  // Admin_GA intentionally omitted (held out -- clerical, per title review).
+];
+
 // Attainability band thresholds — calibrated 2026-06-15 against the gated
 // distribution on prod data (elienglard34, ofriraichel, rpress13). The
 // previous placeholders (0.65/0.45/0.30) left "strong" nearly empty

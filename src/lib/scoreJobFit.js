@@ -39,6 +39,8 @@ import {
   STAGE_T1_CEILING,
   DOMAIN_TO_FAMILIES,
   FAMILY_ADJACENCY,
+  BUSINESS_PRIMARY_DOMAINS,
+  EARLY_CAREER_BUSINESS_FAMILIES,
   ATTAINABILITY_WEIGHTS,
   ATTAINABILITY_BAND_THRESHOLDS,
   EDUCATION_RANK,
@@ -90,6 +92,25 @@ function getFamilyAdjacencySet() {
     );
   }
   return __adjacencySetCache;
+}
+
+// Early-career business-widening lookup Sets — same deferred-derivation
+// pattern as getFamilyAdjacencySet (avoids the module-init TDZ that bit
+// PR #109/116). Built once at first call, post-render.
+let __businessDomainsCache = null;
+function getBusinessDomainsSet() {
+  if (!__businessDomainsCache) {
+    __businessDomainsCache = new Set(BUSINESS_PRIMARY_DOMAINS);
+  }
+  return __businessDomainsCache;
+}
+
+let __businessFamiliesCache = null;
+function getEarlyCareerBusinessFamiliesSet() {
+  if (!__businessFamiliesCache) {
+    __businessFamiliesCache = new Set(EARLY_CAREER_BUSINESS_FAMILIES);
+  }
+  return __businessFamiliesCache;
 }
 
 let __stageCeilingCache = null;
@@ -343,6 +364,21 @@ export function scoreJobFit(input, job) {
   } else if (getDomainFamiliesSet()[domain]?.has(job.function_family)) {
     relevance_match = "primary";
   } else if (getFamilyAdjacencySet()[domain]?.has(job.function_family)) {
+    relevance_match = "adjacent";
+  } else if (
+    // Early-career business widening (jobs-early-career-gate). A business
+    // student's GTM/business roadmap roles (Sales, Support, Marketing, CS…)
+    // are real entry points but fall outside their narrow primary adjacency;
+    // let them through as "adjacent" (sort below primary) so the feed fills
+    // with relevant business roles instead of just the thin exact-domain
+    // slice. Gated on early_career + a business primary_domain so mid/senior
+    // and technical-domain users keep the tight gate. The off-domain noise
+    // (Manufacturing/IT_Security/AI_ML/etc.) is NOT in the family set, so it
+    // stays "off".
+    userLevel === "early_career" &&
+    getBusinessDomainsSet().has(domain) &&
+    getEarlyCareerBusinessFamiliesSet().has(job.function_family)
+  ) {
     relevance_match = "adjacent";
   }
 
