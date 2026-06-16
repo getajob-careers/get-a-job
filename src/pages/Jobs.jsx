@@ -244,6 +244,23 @@ export default function JobSuggestions() {
     return jobs.filter((job) => scoredById[job.id]?.track === selectedTrack);
   }, [jobs, scoredById, mode, selectedTrack, profile, unifiedListEnabled]);
 
+  // Unified-feed sectioning (jobs-early-career-gate): split the gated +
+  // sorted feed into "Our picks for you" (strong + good bands) and "Worth
+  // a stretch" (stretch + reach). Each section preserves displayedJobs'
+  // existing relevance-then-attainability order. Null when not in unified
+  // track mode — the legacy single-grid render path stays byte-unchanged.
+  const sectionedJobs = useMemo(() => {
+    if (!unifiedListEnabled || mode !== "track") return null;
+    const picks = [];
+    const stretch = [];
+    for (const job of displayedJobs) {
+      const b = scoredById[job.id]?.attainability_band;
+      if (b === "strong" || b === "good") picks.push(job);
+      else stretch.push(job);
+    }
+    return { picks, stretch };
+  }, [unifiedListEnabled, mode, displayedJobs, scoredById]);
+
   // ?debug=1 — dump per-job scoreJobFit verdicts to console so we can
   // compare against the SQL simulation. Helps diagnose "expected N Track
   // 1 jobs, only seeing M" — usually narrows to either a request-shape
@@ -497,9 +514,10 @@ export default function JobSuggestions() {
     if (inKeywordMode) {
       return `${displayedJobs.length} job${displayedJobs.length === 1 ? "" : "s"}`;
     }
-    // PR #393 unified-list: single feed header instead of per-track copy.
+    // Unified-list: total count; the picks/stretch section headers below
+    // carry the per-section framing.
     if (unifiedListEnabled) {
-      return `Our picks for you — ${displayedJobs.length} role${displayedJobs.length === 1 ? "" : "s"}`;
+      return `${displayedJobs.length} role${displayedJobs.length === 1 ? "" : "s"} matched to you`;
     }
     return `${displayedJobs.length} role${displayedJobs.length === 1 ? "" : "s"} on Track ${trackCfg.number}`;
   })();
@@ -512,10 +530,14 @@ export default function JobSuggestions() {
           Jobs
         </p>
         <h1 className="font-display font-extrabold text-[32px] sm:text-[36px] leading-[1.08] tracking-tight text-rd-text mt-1">
-          Live roles, scored against your tracks.
+          {unifiedListEnabled
+            ? "Roles that fit you, best first."
+            : "Live roles, scored against your tracks."}
         </h1>
         <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] mt-2 max-w-2xl">
-          Live tech postings from real company career pages, refreshed nightly. Filtered to your experience level and your career-roadmap tracks.
+          {unifiedListEnabled
+            ? "Live postings from real company career pages, refreshed nightly. Matched to your domain and experience and ranked best-fit-first — split into your strongest picks and stretch roles worth a look."
+            : "Live tech postings from real company career pages, refreshed nightly. Filtered to your experience level and your career-roadmap tracks."}
         </p>
       </div>
 
@@ -621,25 +643,38 @@ export default function JobSuggestions() {
         />
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {displayedJobs.map((job) => {
-              // PR-G: card stripe + accent now reflect the per-job
-              // deterministic track (scoreJobFit), not the selected tab
-              // color. After the displayedJobs filter above they almost
-              // always agree, but using the per-job value is what makes
-              // keyword-mode cards still show their honest classification.
-              const perJobTrack = scoredById[job.id]?.track;
-              const trackRdColor = perJobTrack ? TRACK_CONFIG[perJobTrack]?.rdColor : null;
-              return (
-                <JobCard
-                  key={job.id}
-                  job={job}
-                  scoreResult={scoredById[job.id]}
-                  trackColor={trackRdColor}
-                />
-              );
-            })}
-          </div>
+          {sectionedJobs ? (
+            <div className="space-y-7">
+              {sectionedJobs.picks.length > 0 && (
+                <section>
+                  <SectionHeader
+                    title="Our picks for you"
+                    subtitle="Your strongest matches — apply with confidence"
+                    count={sectionedJobs.picks.length}
+                  />
+                  <JobGrid jobs={sectionedJobs.picks} scoredById={scoredById} unified />
+                </section>
+              )}
+              {sectionedJobs.stretch.length > 0 && (
+                <section>
+                  <SectionHeader
+                    title="Worth a stretch"
+                    subtitle="Adjacent roles you could grow into — a reach today, not a bad match"
+                    count={sectionedJobs.stretch.length}
+                  />
+                  {sectionedJobs.picks.length === 0 && (
+                    <p className="text-[12.5px] text-rd-text-secondary leading-[1.55] mb-3 max-w-2xl">
+                      No strong picks in this batch yet — here are relevant roles
+                      worth a look as you build toward them.
+                    </p>
+                  )}
+                  <JobGrid jobs={sectionedJobs.stretch} scoredById={scoredById} unified />
+                </section>
+              )}
+            </div>
+          ) : (
+            <JobGrid jobs={displayedJobs} scoredById={scoredById} />
+          )}
           {hasMore && (
             <div className="text-center mt-7">
               <button
@@ -660,6 +695,49 @@ export default function JobSuggestions() {
             </div>
           )}
         </>
+      )}
+    </div>
+  );
+}
+
+// ───── Job grid + section header (unified feed) ─────
+
+// Extracted so the unified feed can render the same card grid twice (picks
+// + stretch sections) without duplicating the per-job track-color logic.
+// The legacy single-grid path renders one JobGrid over displayedJobs.
+function JobGrid({ jobs, scoredById, unified = false }) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {jobs.map((job) => {
+        const perJobTrack = scoredById[job.id]?.track;
+        const trackRdColor = perJobTrack ? TRACK_CONFIG[perJobTrack]?.rdColor : null;
+        return (
+          <JobCard
+            key={job.id}
+            job={job}
+            scoreResult={scoredById[job.id]}
+            trackColor={trackRdColor}
+            showAttainabilityBand={unified}
+          />
+        );
+      })}
+    </div>
+  );
+}
+
+function SectionHeader({ title, subtitle, count }) {
+  return (
+    <div className="mb-3">
+      <div className="flex items-baseline gap-2">
+        <h2 className="font-display font-extrabold text-[18px] text-rd-text">
+          {title}
+        </h2>
+        <span className="text-[12px] font-mono text-rd-text-tertiary">
+          {count}
+        </span>
+      </div>
+      {subtitle && (
+        <p className="text-[12px] text-rd-text-secondary mt-0.5">{subtitle}</p>
       )}
     </div>
   );

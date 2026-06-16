@@ -325,9 +325,10 @@ describe("scoreJobFit — relevance gate (PR #393)", () => {
   });
 
   it("off: job.function_family is outside both primary and adjacency", () => {
-    // data_analytics has no path to HR_People — dropped from the unified feed
+    // data_analytics has no path to IT_Security — dropped from the unified
+    // feed (IT_Security is on the early-career-widening exclude list too)
     const profile = mkProfile({ primary_domain: "data_analytics" });
-    const job = mkJob({ function_family: "HR_People" });
+    const job = mkJob({ function_family: "IT_Security" });
     const r = scoreJobFit({ profile, experiences: [], educations: eds }, job);
     expect(r.relevance_match).toBe("off");
   });
@@ -374,6 +375,69 @@ describe("scoreJobFit — relevance gate (PR #393)", () => {
     const r = scoreJobFit({ profile, experiences: [], educations: eds }, job);
     // unknown user-domain → can't be primary or adjacent; not in the gate
     expect(r.relevance_match).toBe("off");
+  });
+});
+
+// jobs-early-career-gate — widen the gate for EARLY-CAREER users so their
+// GTM/business roadmap roles (Sales, Support, Marketing, CS…) pass as
+// "adjacent" instead of being dropped "off". Triggered on user_level ALONE
+// (the supply is title-bounded to career_roles); off-domain noise + Admin_GA
+// stay excluded.
+describe("scoreJobFit — early-career business widening", () => {
+  const eds = [mkEdu("bachelors")]; // not current → no student shortcut
+
+  it("early_career + GTM family → adjacent (was off)", () => {
+    const profile = mkProfile({ primary_domain: "product_management" });
+    const r = scoreJobFit({ profile, experiences: [], educations: eds }, mkJob({ function_family: "Sales" }));
+    expect(r.signals.user_level).toBe("early_career");
+    expect(r.relevance_match).toBe("adjacent");
+  });
+
+  it("early_career + business domain + Tier-B family (Consulting) → adjacent", () => {
+    const profile = mkProfile({ primary_domain: "product_management" });
+    const r = scoreJobFit({ profile, experiences: [], educations: eds }, mkJob({ function_family: "Consulting" }));
+    expect(r.relevance_match).toBe("adjacent");
+  });
+
+  it("Admin_GA is held OUT — stays off for early-career business", () => {
+    const profile = mkProfile({ primary_domain: "product_management" });
+    const r = scoreJobFit({ profile, experiences: [], educations: eds }, mkJob({ function_family: "Admin_GA" }));
+    expect(r.relevance_match).toBe("off");
+  });
+
+  it("excluded noise families stay off (Manufacturing_Operations, IT_Security)", () => {
+    const profile = mkProfile({ primary_domain: "product_management" });
+    for (const fam of ["Manufacturing_Operations", "IT_Security"]) {
+      const r = scoreJobFit({ profile, experiences: [], educations: eds }, mkJob({ function_family: fam }));
+      expect(r.relevance_match).toBe("off");
+    }
+  });
+
+  it("conditioning: mid_career business user does NOT widen (Sales stays off)", () => {
+    const profile = mkProfile({ primary_domain: "product_management" });
+    // 5 yrs full_time, not a current student → mid_career
+    const r = scoreJobFit({ profile, experiences: [mkExp("2019", "2024")], educations: eds }, mkJob({ function_family: "Sales" }));
+    expect(r.signals.user_level).toBe("mid_career");
+    expect(r.relevance_match).toBe("off");
+  });
+
+  it("domain-independent: early_career data_analytics + Sales → adjacent (trigger is level, not domain)", () => {
+    const profile = mkProfile({ primary_domain: "data_analytics" });
+    const r = scoreJobFit({ profile, experiences: [], educations: eds }, mkJob({ function_family: "Sales" }));
+    expect(r.signals.user_level).toBe("early_career");
+    expect(r.relevance_match).toBe("adjacent");
+  });
+
+  it("domain-independent: early_career engineering + Marketing → adjacent", () => {
+    const profile = mkProfile({ primary_domain: "engineering" });
+    const r = scoreJobFit({ profile, experiences: [], educations: eds }, mkJob({ function_family: "Marketing" }));
+    expect(r.relevance_match).toBe("adjacent");
+  });
+
+  it("existing primary/adjacency is unchanged (product + Data still adjacent)", () => {
+    const profile = mkProfile({ primary_domain: "product_management" });
+    const r = scoreJobFit({ profile, experiences: [], educations: eds }, mkJob({ function_family: "Data" }));
+    expect(r.relevance_match).toBe("adjacent");
   });
 });
 
