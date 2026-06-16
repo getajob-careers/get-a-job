@@ -172,40 +172,29 @@ export const FAMILY_ADJACENCY: Record<string, string[]> = {
 };
 
 // ─── Early-career business widening (PR: jobs-early-career-gate) ──────────
-// The strict primary+adjacent gate above leaves an EARLY-CAREER business
-// student with a thin feed: the IL corpus has few entry/mid roles in any
-// single family, and a business domain's adjacency is intentionally narrow
-// (e.g. product -> Engineering/Data/Design_UX/RevOps only -- tech-side, NOT
-// the GTM families a business grad actually enters). When the user is
-// early_career AND their primary_domain is a business domain, we let GTM +
-// business-generalist families through the gate as relevance_match =
-// "adjacent" (sort below primary; the band + feed sectioning frame them as
-// stretch). Mid/senior + technical-domain users keep the tight gate.
+// The strict primary+adjacent gate above leaves an EARLY-CAREER user with a
+// thin feed: the IL corpus has few entry/mid roles in any one family, and a
+// domain's adjacency is intentionally narrow. When user_level is
+// early_career we let GTM + business-generalist families through the gate as
+// relevance_match = "adjacent" (sort below primary; the band + feed
+// sectioning frame them as stretch). Mid/senior keep the tight gate.
 //
-// The line (locked 2026-06-16): trigger domains are business/GTM only;
-// technical domains are deliberately excluded. Family set = GTM (Tier A) +
-// business-generalist (Tier B: Finance, Consulting, HR_People). Admin_GA is
-// HELD OUT (clerical, per title review). Never widened in:
+// Trigger is user_level ALONE -- NOT gated on primary_domain. The supply is
+// title-bounded to the user's career_roles (search_jobs_by_role_titles), so
+// a business family only surfaces when the roadmap already contains roles of
+// that family -- a higher-fidelity signal than the single coarse
+// primary_domain tag (which mislabels business-seekers as "data" for 2 of 3
+// known pilot users). Leak test (2026-06-16): a purely-technical SWE roadmap
+// pulled 1/40 business jobs (an "Engineering Project Manager" mis-familied
+// as Operations) -- a trivial trigram collision, not a flood.
+//
+// Family set = GTM (Tier A) + business-generalist (Tier B: Finance,
+// Consulting, HR_People). Admin_GA HELD OUT (clerical -- office/travel/
+// workplace coordinators, per title review). Never widened in:
 // Manufacturing_Operations, IT_Security, AI_ML, Solutions_Engineering,
 // Research_Science, Legal_Compliance, Leadership, and the tech-craft
-// families Engineering/Data/Design_UX (those stay visible only for the
+// families Engineering/Data/Design_UX (those stay visible only via the
 // domains whose existing FAMILY_ADJACENCY already maps them).
-export const BUSINESS_PRIMARY_DOMAINS: string[] = [
-  "product",
-  "product_management",
-  "sales",
-  "marketing",
-  "operations",
-  "business_operations",
-  "customer_success",
-  "customer_experience",
-  "support",
-  "project_management",
-  "finance",
-  "hr",
-  "people",
-];
-
 export const EARLY_CAREER_BUSINESS_FAMILIES: string[] = [
   // Tier A -- GTM
   "Sales",
