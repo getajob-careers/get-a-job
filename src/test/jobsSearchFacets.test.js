@@ -10,6 +10,8 @@ import {
   matchesTrack,
   matchesFamily,
   matchesLocation,
+  buildLocationOptions,
+  LOCATION_DISTRICT_TAGS,
   searchFacetsKey,
   applyFacetsAndRank,
   LOCATION_REGIONS,
@@ -70,12 +72,42 @@ describe("function/family + location predicates (PR C)", () => {
     );
   });
 
+  it("location: a raw CITY key matches exactly (no volume bar); NULL drops", () => {
+    expect(matchesLocation({ location_city: "Herzliya" }, "Herzliya")).toBe(
+      true,
+    );
+    expect(matchesLocation({ location_city: "Tel Aviv" }, "Herzliya")).toBe(
+      false,
+    );
+    expect(matchesLocation({ location_city: null }, "Herzliya")).toBe(false);
+  });
+
   it("region city lists are non-empty and apostrophe-exact to the live values", () => {
     expect(LOCATION_REGIONS.tlv_center.cities).toContain("Tel Aviv");
     expect(LOCATION_REGIONS.sharon.cities).toContain("Ra'anana");
     expect(LOCATION_REGIONS.south.cities).toContain("Be'er Sheva");
     for (const r of Object.values(LOCATION_REGIONS))
       expect(r.cities.length).toBeGreaterThan(0);
+  });
+
+  it("buildLocationOptions: real cities (district tags excluded) with counts + region sums", () => {
+    const corpus = [
+      { location_city: "Tel Aviv" },
+      { location_city: "Tel Aviv" },
+      { location_city: "Herzliya" },
+      { location_city: "Tel Aviv District" }, // district tag — excluded from city list
+      { location_city: "Haifa" },
+      { location_city: null }, // null — excluded
+    ];
+    const { cities, regions } = buildLocationOptions(corpus);
+    // city list: real cities only, no district tags, sorted by count desc
+    expect(cities.map((c) => c.key)).toEqual(["Tel Aviv", "Haifa", "Herzliya"]);
+    expect(cities.find((c) => c.key === "Tel Aviv").count).toBe(2);
+    expect(cities.some((c) => LOCATION_DISTRICT_TAGS.has(c.key))).toBe(false);
+    // region sum INCLUDES the district tag (the region filter admits it):
+    // TLV & Center = Tel Aviv(2) + Tel Aviv District(1) + Herzliya(1) = 4
+    expect(regions.find((r) => r.key === "tlv_center").count).toBe(4);
+    expect(regions.find((r) => r.key === "haifa_north").count).toBe(1); // Haifa
   });
 });
 
