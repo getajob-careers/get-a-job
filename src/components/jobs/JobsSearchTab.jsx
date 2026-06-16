@@ -7,6 +7,7 @@ import {
   ChevronsUpDown,
   Search,
   X,
+  HelpCircle,
 } from "lucide-react";
 import { supabase } from "@/api/supabaseClient";
 import { scoreJobFit } from "@/lib/scoreJobFit";
@@ -267,6 +268,28 @@ export default function JobsSearchTab({ profile, experiences, educations }) {
           <span className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary mr-0.5">
             Track
           </span>
+          <Popover>
+            <PopoverTrigger asChild>
+              <button
+                type="button"
+                aria-label="What are tracks?"
+                className="inline-flex items-center justify-center text-rd-text-secondary hover:text-rd-text transition-colors"
+              >
+                <HelpCircle className="w-3.5 h-3.5" />
+              </button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="start"
+              className="w-[260px] text-[12px] leading-[1.5] text-rd-text-tertiary"
+            >
+              Tracks group roles by how they fit you.{" "}
+              <b className="text-rd-text">Track 1</b> is a strong fit for your
+              background now; <b className="text-rd-text">Track 2</b> is a
+              doable detour; <b className="text-rd-text">Track 3</b> is a
+              stretch you grow into. Filtering by a track narrows the board to
+              roles in that fit band.
+            </PopoverContent>
+          </Popover>
           {TRACK_CHIPS.map(([value, label]) => (
             <FacetChip
               key={value}

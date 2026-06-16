@@ -9,7 +9,7 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useSearchParams, Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Loader2, Briefcase } from "lucide-react";
+import { Loader2, Briefcase, AlertCircle } from "lucide-react";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { useEducationQuery } from "@/lib/queries/useEducation";
@@ -49,6 +49,9 @@ import JobsSearchTab from "./JobsSearchTab";
 //
 // Behaviour is a faithful copy of Jobs.jsx's unified path. The only dev-only
 // diagnostic dropped is the ?debug=1 console echo.
+/**
+ * @param {{ onTabChange?: (tab: string) => void }} props
+ */
 export default function UnifiedJobsFeed({ onTabChange }) {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
