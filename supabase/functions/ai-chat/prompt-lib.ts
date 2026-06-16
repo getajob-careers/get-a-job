@@ -323,6 +323,49 @@ Discipline:
 
 Omit this block entirely when no story-worthy moment was described AND the user has not signaled persist intent.`;
 
+export const ADD_SKILL_RULES = `
+
+ADD SKILL TO EXPERIENCE:
+When the user EXPLICITLY states they have a specific skill AND ties it to a SPECIFIC one of their EXPERIENCES, propose adding that skill to that experience by emitting this block at the very end of your response, after a brief one-sentence acknowledgement framed as a PROPOSAL pending the confirm card:
+
+SUGGESTED_ADD_SKILL_JSON:{"skill":"<the exact skill the user named>","experience_id":"<exact UUID from EXPERIENCES context>"}
+
+This is an ADD-ONLY, profile-write capability. The skill lands on experiences.skills, which the next career analysis reads. It is NOT a CV edit, NOT a story, NOT a new experience.
+
+DO emit when the user explicitly claims a skill for a named experience:
+
+✅ "I actually used Python a lot in my Atera role" → skill "Python", experience_id = Atera's UUID.
+✅ "Add SQL to my analyst job — I built all the dashboards there" → skill "SQL", experience_id = the analyst job's UUID.
+✅ "You should note that I did stakeholder management at Strauss" → skill "Stakeholder Management", experience_id = Strauss's UUID.
+
+ANTI-FABRICATION (non-negotiable):
+- ONLY a skill the user EXPLICITLY stated about themselves in this conversation. Never a skill you inferred from their job title, industry, or seniority. Never embellish or upgrade ("used Excel" is NOT "data analysis").
+- The skill MUST be tied to that SPECIFIC experience by the user — either because they named the experience, or because the skill claim is unambiguously about one experience in context.
+- NEVER invent the experience_id. It MUST be an exact UUID from the EXPERIENCES context [id: ...].
+
+MISSING-EXPERIENCE handling (v1 supports skill+experience pairs ONLY):
+If the user names a skill but does NOT tie it to a specific experience (and context doesn't make it unambiguous), DO NOT emit the block and DO NOT guess. Ask ONE short question naming their experiences:
+"Which role should I add <skill> to — your <experience A> or <experience B> position?"
+Emit on the next turn once they pick.
+
+DO NOT emit when:
+
+❌ The skill is inferred, not stated ("you're a PM so you must know roadmapping").
+❌ The user asks which skills they should learn or prioritize (that's advice, not a claim of possession).
+❌ The skill isn't tied to a specific experience and you can't disambiguate — ask first.
+❌ A goal/aspiration ("I want to get better at SQL") — that's a gap, not a possessed skill.
+❌ The same skill is already on that experience (check context — don't propose a duplicate).
+
+PROPOSAL FRAMING (capability-boundary discipline — see CONTEXT_HONESTY_RULES item 5):
+- NEVER write "added", "noted", "updated your skills", "I've added", or any phrase implying a completed write before the user taps the confirm card.
+- DO write: "I'd add <skill> to your <experience> role — confirm in the card below." Future-tense or conditional only.
+
+Discipline:
+- ONE block per response. If the user stated multiple skills, propose the most clearly-stated one and offer the others in subsequent turns.
+- Always write a one-sentence proposal-framed acknowledgement BEFORE the JSON block.
+
+Omit this block entirely when the user has not explicitly claimed a specific skill for a specific experience.`;
+
 export const STORY_CAPTURE_REGEN_RULES = `
 
 FOLLOW-UP MODE — STORY JUST SAVED, OFFER CV REGEN:
@@ -888,6 +931,8 @@ export function assembleSystemPrompt(
       APPLICATION_ACTIONS_RULES +
       COMPANY_TARGET_RULES +
       CV_GENERATION_RULES +
+      STORY_CAPTURE_RULES +
+      ADD_SKILL_RULES +
       CAREER_AGENT_REDIRECT_RULES +
       CONTEXT_HONESTY_RULES +
       SCOPE_GUARD +
@@ -898,6 +943,8 @@ export function assembleSystemPrompt(
     return (
       basePrompt +
       TASK_SUGGESTION_RULES +
+      STORY_CAPTURE_RULES +
+      ADD_SKILL_RULES +
       INTERVIEW_COACH_REDIRECT_RULES +
       CONTEXT_HONESTY_RULES +
       SCOPE_GUARD +
@@ -908,6 +955,8 @@ export function assembleSystemPrompt(
     return (
       basePrompt +
       TASK_SUGGESTION_RULES +
+      STORY_CAPTURE_RULES +
+      ADD_SKILL_RULES +
       SKILL_DEV_REDIRECT_RULES +
       CONTEXT_HONESTY_RULES +
       SCOPE_GUARD +
@@ -921,6 +970,7 @@ export function assembleSystemPrompt(
     return safeFollowUp === "cv_generation"
       ? basePrompt +
           STORY_CAPTURE_RULES +
+          ADD_SKILL_RULES +
           STORY_CAPTURE_FOLLOWUP_RULES +
           CONTEXT_HONESTY_RULES +
           SCOPE_GUARD +
@@ -929,6 +979,7 @@ export function assembleSystemPrompt(
       : basePrompt +
           CV_GENERATION_RULES +
           STORY_CAPTURE_RULES +
+          ADD_SKILL_RULES +
           TASK_SUGGESTION_RULES +
           CV_AGENT_REDIRECT_RULES +
           CONTEXT_HONESTY_RULES +
@@ -936,7 +987,19 @@ export function assembleSystemPrompt(
           NO_FABRICATION_GUARD +
           userContext;
   } else {
-    return basePrompt + SCOPE_GUARD + NO_FABRICATION_GUARD + userContext;
+    // career-coach (the base catch-all) + any future agent: both
+    // profile-write capabilities are agent-agnostic, so every surface
+    // can propose them. resume-extractor returns early above and is the
+    // only agent intentionally without these (structured extraction).
+    return (
+      basePrompt +
+      STORY_CAPTURE_RULES +
+      ADD_SKILL_RULES +
+      CONTEXT_HONESTY_RULES +
+      SCOPE_GUARD +
+      NO_FABRICATION_GUARD +
+      userContext
+    );
   }
 }
 
@@ -968,6 +1031,7 @@ export interface ParsedSuggestions {
   suggested_company_target_actions: any[] | null;
   suggested_cv_generation: any | null;
   suggested_story_capture: any | null;
+  suggested_add_skill: any | null;
 }
 
 export function parseSuggestions(
@@ -1149,6 +1213,31 @@ export function parseSuggestions(
         ...(typeof parsed.framing === "string" && parsed.framing.trim()
           ? { framing: String(parsed.framing).slice(0, 200).trim() }
           : {}),
+      };
+    }
+  }
+
+  // Add-skill: v1 requires the skill+experience PAIR. A block with a
+  // missing/invalid experience_id or an empty skill is dropped (null) —
+  // the agent is told to ask which experience rather than guess.
+  let suggested_add_skill: any | null = null;
+  const addSkillResult = extractJsonBlock(reply, "SUGGESTED_ADD_SKILL_JSON:");
+  if (addSkillResult) {
+    reply = addSkillResult.cleaned;
+    const parsed = addSkillResult.parsed as any;
+    const isUuid = (v: unknown): v is string =>
+      typeof v === "string" &&
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
+    if (
+      parsed &&
+      typeof parsed === "object" &&
+      typeof parsed.skill === "string" &&
+      parsed.skill.trim() &&
+      isUuid(parsed.experience_id)
+    ) {
+      suggested_add_skill = {
+        skill: String(parsed.skill).slice(0, 120).trim(),
+        experience_id: parsed.experience_id,
       };
     }
   }
@@ -1385,6 +1474,7 @@ export function parseSuggestions(
     "SUGGESTED_COMPANY_TARGET_JSON:",
     "SUGGESTED_CV_GENERATION_JSON:",
     "SUGGESTED_STORY_CAPTURE_JSON:",
+    "SUGGESTED_ADD_SKILL_JSON:",
   ];
   for (const marker of STRUCTURED_MARKERS) {
     const idx = reply.indexOf(marker);
@@ -1404,5 +1494,6 @@ export function parseSuggestions(
     suggested_company_target_actions,
     suggested_cv_generation,
     suggested_story_capture,
+    suggested_add_skill,
   };
 }

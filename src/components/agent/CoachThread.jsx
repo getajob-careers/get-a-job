@@ -3,16 +3,22 @@ import { Loader2, RefreshCw, Maximize2, CheckCircle2, AlertCircle, ListTodo, Rou
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import MessageBubble from "@/components/chat/MessageBubble";
+import StorySaveCard from "@/components/chat/StorySaveCard";
+import AddSkillCard from "@/components/chat/AddSkillCard";
 import { useCoachConversation } from "@/lib/CoachConversationContext";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import { useAuth } from "@/lib/AuthContext";
 import { useProfileQuery } from "@/lib/queries/useProfile";
+import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import {
   applyAllTaskSuggestions,
   applyRoadmapChanges,
   applyApplicationActions,
   applyCompanyTargetActions,
   generateTailoredCV,
+  extractStoryFromText,
+  saveStory,
+  applyAddSkillToExperience,
 } from "@/lib/coachActionHandlers";
 
 // CoachThread — shared message list rendered by both the sidebar dock
@@ -238,13 +244,75 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
   return null;
 }
 
+// The two ADD-ONLY profile-write cards (story-capture + add-skill).
+// Unlike the condensed SuggestionRows above, these are interactive
+// confirm cards (same components the full-page agents render) wired to
+// the SAME centralized handlers — closing the seam where story-capture
+// used to render full-page but silently vanish in the dock.
+function ProfileWriteCards({ message, user, conversationId, experiencesById }) {
+  const cap = message.suggestedStoryCapture;
+  const skillBlock = message.suggestedAddSkill;
+  if (!cap?.text && !skillBlock?.skill) return null;
+
+  return (
+    <>
+      {cap?.text && (
+        <StorySaveCard
+          capture={cap}
+          experienceLabel={experiencesById[cap.experience_id] || null}
+          onExtract={(text) => extractStoryFromText({ text })}
+          onSave={async (story, capture) => {
+            const res = await saveStory({ user, story, capture, conversationId });
+            if (res.error) {
+              toast.error(res.error);
+              return false;
+            }
+            toast.success("Story saved to your Story Bank");
+            return true;
+          }}
+        />
+      )}
+      {skillBlock?.skill && (
+        <AddSkillCard
+          skill={skillBlock.skill}
+          experienceLabel={experiencesById[skillBlock.experience_id] || null}
+          onConfirm={async () => {
+            const res = await applyAddSkillToExperience({
+              user,
+              skill: skillBlock.skill,
+              experienceId: skillBlock.experience_id,
+            });
+            if (res.error) {
+              toast.error(res.error);
+              return res;
+            }
+            toast.success(res.alreadyPresent ? "Already on that experience" : "Skill added");
+            return res;
+          }}
+        />
+      )}
+    </>
+  );
+}
+
 export default function CoachThread({ variant = "dock" }) {
   const conv = useCoachConversation();
   const drawer = useAgentDrawer();
   const { user } = useAuth();
   const { data: profile } = useProfileQuery(user?.id);
+  const { data: experiences = [] } = useExperiencesQuery(user?.id);
   const queryClient = useQueryClient();
   const bottomRef = useRef(null);
+
+  // Resolve experience_id → "Role at Company" for the add-skill /
+  // story-capture confirm cards (so they show the exact target).
+  const experiencesById = React.useMemo(() => {
+    const m = {};
+    for (const e of experiences) {
+      m[e.id] = `${e.title || "(untitled)"}${e.company ? ` at ${e.company}` : ""}`;
+    }
+    return m;
+  }, [experiences]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -307,6 +375,12 @@ export default function CoachThread({ variant = "dock" }) {
               user={user}
               queryClient={queryClient}
               profileSkills={profileSkills}
+            />
+            <ProfileWriteCards
+              message={msg}
+              user={user}
+              conversationId={conv.activeConversationId}
+              experiencesById={experiencesById}
             />
             {msg.isError && msg.userMessageText && (
               <div className={`${isDock ? "ml-9" : "ml-10"} mt-1`}>

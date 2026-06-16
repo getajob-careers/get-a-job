@@ -71,6 +71,59 @@ describe("parseSuggestions — fenced action block end-to-end", () => {
   });
 });
 
+describe("parseSuggestions — add-skill (profile-write capability v1)", () => {
+  const UUID = "11111111-2222-3333-4444-555555555555";
+
+  it("extracts a valid skill+experience pair and strips the block from reply", () => {
+    const reply = `I'd add Python to your Atera role — confirm below.\n\nSUGGESTED_ADD_SKILL_JSON:{"skill":"Python","experience_id":"${UUID}"}`;
+    const parsed = parseSuggestions(reply, "I used python at atera", []);
+    expect(parsed.suggested_add_skill).toEqual({
+      skill: "Python",
+      experience_id: UUID,
+    });
+    expect(parsed.reply).toBe("I'd add Python to your Atera role — confirm below.");
+    expect(parsed.reply).not.toContain("SUGGESTED_ADD_SKILL_JSON");
+  });
+
+  it("drops the block when experience_id is missing/invalid (v1 requires the pair)", () => {
+    const reply = `Sure.\n\nSUGGESTED_ADD_SKILL_JSON:{"skill":"SQL","experience_id":"not-a-uuid"}`;
+    const parsed = parseSuggestions(reply, "add sql", []);
+    expect(parsed.suggested_add_skill).toBeNull();
+    expect(parsed.reply).not.toContain("SUGGESTED_ADD_SKILL_JSON");
+  });
+
+  it("drops the block when skill is empty", () => {
+    const reply = `SUGGESTED_ADD_SKILL_JSON:{"skill":"  ","experience_id":"${UUID}"}`;
+    const parsed = parseSuggestions(reply, "x", []);
+    expect(parsed.suggested_add_skill).toBeNull();
+  });
+});
+
+describe("assembleSystemPrompt — profile-write capabilities on every agent", () => {
+  const AGENTS = [
+    "career_agent",
+    "interview_coach",
+    "skill_development_agent",
+    "cv-helper",
+    "application_cv_success_agent",
+    "career-coach",
+  ];
+
+  for (const agent of AGENTS) {
+    it(`gives ${agent} both SUGGESTED_STORY_CAPTURE_JSON and SUGGESTED_ADD_SKILL_JSON`, () => {
+      const sys = assembleSystemPrompt(agent, "", null);
+      expect(sys).toContain("SUGGESTED_STORY_CAPTURE_JSON");
+      expect(sys).toContain("SUGGESTED_ADD_SKILL_JSON");
+    });
+  }
+
+  it("does NOT give resume-extractor the profile-write blocks", () => {
+    const sys = assembleSystemPrompt("resume-extractor", "", null);
+    expect(sys).not.toContain("SUGGESTED_ADD_SKILL_JSON");
+    expect(sys).not.toContain("SUGGESTED_STORY_CAPTURE_JSON");
+  });
+});
+
 describe("assembleSystemPrompt — honesty rules + capability routing", () => {
   it("appends CONTEXT_HONESTY_RULES to career_agent", () => {
     const sys = assembleSystemPrompt("career_agent", "", null);

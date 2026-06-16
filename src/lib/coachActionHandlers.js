@@ -325,6 +325,123 @@ export async function applyCompanyTargetActions({ user, actions }) {
   return { ok: true, skippedDuplicate };
 }
 
+// ─── Profile writes: add-story + add-skill ─────────────────────────────
+// The two ADD-ONLY profile-write capabilities (v1: adds, leaf-fields,
+// recoverable — no edits/deletes). Centralized here so EVERY agent
+// surface (full-page ChatInterface + the dock CoachThread) calls the
+// same insert/update path. story-capture used to live inline in
+// ChatInterface and never reached the dock — that seam is what this
+// module closes. Both fail LOUDLY (return { error }) like the 5 above;
+// the caller toasts. Nothing persists without the user confirming the
+// card.
+
+// Story extract — invokes the same extract-story-from-text edge function
+// the StorySaveCard's two-stage flow calls. Returns the raw
+// { story, extraction_notes } payload (or null) to match the card's
+// onExtract contract; the card renders its own extract-failed state.
+export async function extractStoryFromText({ text }) {
+  try {
+    const { data, error } = await supabase.functions.invoke("extract-story-from-text", {
+      body: { text, source: "conversation" },
+    });
+    if (error) {
+      console.error("[coachActions] extractStoryFromText failed:", error);
+      return null;
+    }
+    return data || null;
+  } catch (err) {
+    console.error("[coachActions] extractStoryFromText exception:", err);
+    return null;
+  }
+}
+
+// Story save — writes the user-confirmed STAR story to `stories`. Both
+// FKs are nullable; experience_id was UUID-validated by the ai-chat
+// parser, conversationId is surface-local (null on a brand-new chat is
+// fine — store without the back-link rather than block the save).
+export async function saveStory({ user, story, capture, conversationId = null }) {
+  if (!user?.id) return { error: "missing user" };
+  if (!story?.title?.trim()) return { error: "story title required" };
+  try {
+    const { error } = await supabase.from("stories").insert({
+      user_id: user.id,
+      source: "conversation",
+      experience_id: capture?.experience_id || null,
+      conversation_id: conversationId || null,
+      title: story.title,
+      situation: story.situation || null,
+      task: story.task || null,
+      action: story.action || null,
+      result: story.result || null,
+      metrics: Array.isArray(story.metrics) ? story.metrics : [],
+      skills_demonstrated: Array.isArray(story.skills_demonstrated) ? story.skills_demonstrated : [],
+      tools_used: Array.isArray(story.tools_used) ? story.tools_used : [],
+      relevance_tags: Array.isArray(story.relevance_tags) ? story.relevance_tags : [],
+    });
+    if (error) {
+      console.error("[coachActions] saveStory failed:", error);
+      return { error: error.message || "Could not save story." };
+    }
+    return { ok: true };
+  } catch (err) {
+    console.error("[coachActions] saveStory exception:", err);
+    return { error: err?.message || "Could not save story." };
+  }
+}
+
+// Add-skill — appends ONE user-stated skill to a SPECIFIC experience's
+// `experiences.skills` array. That column is the P1.3 read column the
+// next generate-career-analysis run scores against (sanitised inputs +
+// the deterministic match corpus + the LLM CANDIDATE_SKILLS prompt) —
+// so the add lands exactly where the next analysis will see it. We do
+// NOT re-run analysis here (too expensive per-edit); the next natural
+// run picks it up.
+//
+// The experience must belong to the user (verified by the id + user_id
+// fetch — RLS-aware AND an explicit ownership guard). v1 only supports
+// skill+experience pairs: a skill without a resolvable experience never
+// reaches this handler (the agent is told to ask which experience).
+// Idempotent: a case-insensitive dupe is a no-op success, not a second
+// array entry.
+export async function applyAddSkillToExperience({ user, skill, experienceId }) {
+  if (!user?.id) return { error: "missing user" };
+  const clean = typeof skill === "string" ? skill.trim() : "";
+  if (!clean) return { error: "missing skill" };
+  if (!experienceId) return { error: "missing experience" };
+  try {
+    const { data: exp, error: lookupErr } = await supabase
+      .from("experiences")
+      .select("id, title, company, skills")
+      .eq("id", experienceId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (lookupErr) {
+      console.error("[coachActions] addSkill lookup failed:", lookupErr);
+      return { error: lookupErr.message || "Could not look up that experience." };
+    }
+    if (!exp) return { error: "That experience wasn't found on your profile." };
+
+    const label = `${exp.title || "(untitled)"}${exp.company ? ` at ${exp.company}` : ""}`;
+    const current = Array.isArray(exp.skills) ? exp.skills : [];
+    if (current.some((s) => typeof s === "string" && s.toLowerCase() === clean.toLowerCase())) {
+      return { ok: true, alreadyPresent: true, experienceLabel: label, skill: clean };
+    }
+    const { error: updateErr } = await supabase
+      .from("experiences")
+      .update({ skills: [...current, clean] })
+      .eq("id", experienceId)
+      .eq("user_id", user.id);
+    if (updateErr) {
+      console.error("[coachActions] addSkill update failed:", updateErr);
+      return { error: updateErr.message || "Could not add the skill." };
+    }
+    return { ok: true, experienceLabel: label, skill: clean };
+  } catch (err) {
+    console.error("[coachActions] applyAddSkillToExperience exception:", err);
+    return { error: err?.message || "Could not add the skill." };
+  }
+}
+
 // ─── CV generation ─────────────────────────────────────────────────────
 // Invokes generate-tailored-cv and persists the result alongside the
 // original suggested_cv_generation payload so a reload shows the
