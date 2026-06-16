@@ -41,6 +41,64 @@ export function matchesTrack(score, track) {
   return score?.track === track;
 }
 
+// Function/family (PR C): single-select over the existing function_family
+// taxonomy. null = no filter; otherwise exact match. Null-family jobs drop
+// under a selection (intended — the user picked a function).
+export function matchesFamily(job, family) {
+  if (!family) return true;
+  return job?.function_family === family;
+}
+
+// Location regions (PR C). City values grouped into the regions the corrected
+// whole-corpus counts supported. A region selection admits ONLY jobs whose
+// location_city is in the group — NULL / unmapped location drops (the locked
+// exclude decision: an unknown location can't satisfy "in this region";
+// remote-seekers use the work-type facet). City strings must match the live
+// jobs.location_city values exactly (apostrophes / casing included).
+export const LOCATION_REGIONS = {
+  tlv_center: {
+    label: "Tel Aviv & Center",
+    cities: [
+      "Tel Aviv",
+      "Tel Aviv District",
+      "Central District",
+      "Petah Tikva",
+      "Herzliya",
+      "Ramat Gan",
+      "Rehovot",
+      "Or Yehuda",
+      "Yavne",
+      "Bnei Brak",
+      "Holon",
+      "Givatayim",
+      "Ramla",
+      "Rishon LeZion",
+      "Bat Yam",
+      "Modi'in",
+    ],
+  },
+  sharon: {
+    label: "Sharon",
+    cities: ["Ra'anana", "Kfar Saba", "Netanya", "Hod Hasharon", "Caesarea"],
+  },
+  haifa_north: {
+    label: "Haifa & North",
+    cities: ["Yokneam", "Haifa", "Northern District", "Nazareth"],
+  },
+  jerusalem: { label: "Jerusalem", cities: ["Jerusalem"] },
+  south: {
+    label: "South",
+    cities: ["Southern District", "Be'er Sheva", "Ashdod", "Eilat", "Ashkelon"],
+  },
+};
+
+export function matchesLocation(job, regionKey) {
+  if (!regionKey) return true;
+  const region = LOCATION_REGIONS[regionKey];
+  if (!region) return true;
+  return region.cities.includes(job?.location_city);
+}
+
 // searchFacetsKey — a stable string that BUSTS when any facet changes (drives
 // the ranked-memo recompute). AND-composition is implicit: every active facet
 // must pass in the reducer below.
@@ -51,6 +109,8 @@ export function searchFacetsKey(facets) {
     (Array.isArray(f.seniorities) ? [...f.seniorities].sort() : []).join(","),
     f.workTypeMode || "",
     f.track || "",
+    f.family || "",
+    f.location || "",
   ].join("|");
 }
 
@@ -68,7 +128,9 @@ export function applyFacetsAndRank(scored, facets) {
     ({ job, score }) =>
       matchesSeniority(job, f.seniorities) &&
       matchesWorkType(job, f.workTypeMode) &&
-      matchesTrack(score, f.track),
+      matchesTrack(score, f.track) &&
+      matchesFamily(job, f.family) &&
+      matchesLocation(job, f.location),
   );
   return filtered.sort(
     (a, b) => (b.score?.fit_score ?? 0) - (a.score?.fit_score ?? 0),
