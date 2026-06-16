@@ -1,49 +1,40 @@
 /*
- * Career.jsx — Roadmap + Jobs condensed into one surface, per the
- * seamless-ia design handoff (screen 2 / prototype variation A):
- * selectable track band → live-jobs pane (left) + "Your matched roles"
- * why-panel (right). Selecting a track re-filters both panes.
+ * Career.jsx — the primary career surface: matched roles + a live jobs
+ * feed + the application pipeline, in one place.
  *
- * Data contracts reused from Jobs.jsx / Roadmap.jsx — same canonical
- * query keys (careerRoles, experiences, education), the same
- * search_jobs_by_role_titles RPC + column select, scoreJobFit with the
- * same { profile, experiences, educations } input, and the idempotent
- * addJobToTracker from JobCard. The old /Roadmap and /Jobs routes stay
- * alive (deep links + roadmap generation live there); this page is the
- * new nav destination.
+ * PR2 (/career ← unified-feed integration) retired the track-card model.
+ * The page no longer owns a forked, track-scoped live-jobs query: the live
+ * feed is now the SAME <UnifiedJobsFeed> /jobs renders (one implementation,
+ * no drift), self-fetching profile / experiences / career_roles through the
+ * canonical query hooks. Career keeps three things of its own:
+ *   1. "Your matched roles" — a flat, track-agnostic list of career_roles
+ *      ordered by fit-quality tier (sweet spot → growth → detour) then
+ *      match_score, each row carrying its own track band styling;
+ *   2. the inline application pipeline (strip + kanban + drawers);
+ *   3. the header-level "how tracks work" explainer.
  *
- * Seniority pre-filter restored — the v1 deviation that skipped it has
- * been undone. `inferExperienceLevel(experiences, educations)` +
- * `allowedSenioritiesForLevel()` derive the seniority allow-list, and
- * the search_jobs_by_role_titles RPC's `p_max_seniority` consumes it.
- * Track 3 bypasses the filter (`ALL_SENIORITIES`) per the 2026-05-20
- * live-data lesson (Senior PM: 66 listings → 0 visible without bypass);
- * Track 1 and Track 2 enforce it so the apply-now / doable-detour feeds
- * stop leading with roles outside the user's career stage. Low-fit dimming
- * inside the allowed range still happens via scoreJobFit + the pct < 50
- * gate — both mechanisms run, but the seniority filter prunes upstream
- * of the score so the long dimmed tail no longer dominates the page.
+ * Data contracts: career_roles via the canonical useCareerRolesQuery hook
+ * (shared key with the feed — the #336/#178 same-key/different-shape fix);
+ * applications via the wide ["applications", uid] cache Home + Tracker share.
+ * The old /Roadmap and /Jobs routes stay alive (deep links + roadmap
+ * generation live there) until PR3.
+ *
+ * Seniority pre-filtering + per-track live-jobs scoring moved INTO
+ * <UnifiedJobsFeed> with the feed; Career no longer derives a seniority
+ * allow-list or scores jobs itself.
  */
 
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
-import {
-  useQuery,
-  useInfiniteQuery,
-  useQueryClient,
-  keepPreviousData,
-} from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
-import { useExperiencesQuery } from "@/lib/queries/useExperiences";
-import { useEducationQuery } from "@/lib/queries/useEducation";
 import { Link, useSearchParams } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   Rocket,
   Headphones,
   TrendingUp,
-  Search,
   HelpCircle,
   Check,
   Plus,
@@ -57,22 +48,12 @@ import {
 } from "lucide-react";
 import RdCard from "@/components/redesign/RdCard";
 import RdFunnelTile from "@/components/redesign/RdFunnelTile";
-import { TRACK_CONFIG } from "@/lib/trackConfig";
-import { scoreJobFit } from "@/lib/scoreJobFit";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
-import JobCard from "@/components/jobs/JobCard";
-import {
-  inferExperienceLevel,
-  allowedSenioritiesForLevel,
-} from "@/lib/experienceLevel";
+import UnifiedJobsFeed from "@/components/jobs/UnifiedJobsFeed";
+import { useCareerRolesQuery } from "@/lib/queries/useCareerRoles";
 import { FUNNEL_BUCKETS } from "@/lib/funnelBuckets";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import { buildCareerPageContext } from "@/lib/buildCareerPageContext";
-import {
-  careerJobsQueryKey,
-  careerJobsEnabled,
-  dedupeJobsById,
-} from "@/lib/careerJobsQuery";
 import { isAnalysisPending } from "@/lib/analysisStatus";
 import ApplicationsKanban from "@/components/tracker/ApplicationsKanban";
 import ApplicationDetailDrawer from "@/components/tracker/ApplicationDetailDrawer";
@@ -106,36 +87,6 @@ const APPLICATION_STATUS_LABELS = {
 // as Home's hero-done key (Home.jsx:365).
 const PIPELINE_GUIDE_DISMISS_KEY = (uid) => `pipelineGuideDismissed:${uid}`;
 
-const TRACK_SIMILARITY_THRESHOLD = 0.3;
-const MAX_TRACK_ROLES = 8;
-const JOBS_PAGE_SIZE = 20;
-
-// All-scope search: corpus-wide title ilike, mirroring Jobs.jsx's
-// keyword-mode REST query (Jobs.jsx:256-268). The page size here is
-// smaller than Jobs.jsx's BROWSE_PAGE_SIZE = 40 because Career's
-// list-card layout is denser and a 40-item all-scope result floods the
-// pane below the matched-roles rail.
-const SEARCH_PAGE_SIZE = 20;
-const SEARCH_DEBOUNCE_MS = 300;
-
-// All six values of jobs.seniority (entry / mid / senior / lead / director /
-// executive), used to bypass the level-based pre-filter on Track 3. Mirrors
-// Jobs.jsx:46 — kept in sync. Track 3 is the growth-path track by
-// definition; the 2026-05-20 live-data check (Jobs.jsx:43-50) showed the
-// strict filter hid 100% of "Senior Product Manager" jobs (66 → 0) and
-// "Senior Software Engineer" (112 → 0) for early-career users on Track 3,
-// defeating the discovery intent. Strict filter still applies on Track 1
-// and Track 2 (apply-now feed + doable-detour) where job-vs-qualification
-// reality matters.
-const ALL_SENIORITIES = [
-  "entry",
-  "mid",
-  "senior",
-  "lead",
-  "director",
-  "executive",
-];
-
 // Display normalization for the 0-1 score contract.
 //
 // career_roles.match_score, readiness_score, and goal_alignment_score are
@@ -157,11 +108,6 @@ const ALL_SENIORITIES = [
 //     left over before this hotfix) renders as 100 rather than something
 //     absurd like "8800%".
 const toPct = (v) => Math.max(0, Math.min(100, Math.round((v ?? 0) * 100)));
-
-// JobCard's `trackColor` prop accepts the rdColor strings TRACK_CONFIG
-// already publishes (coral / teal / golden). Mirrors RD_TRACK_STYLES in
-// JobCard.jsx; using TRACK_CONFIG[selectedTrack].rdColor keeps a single
-// source of truth.
 
 // Band styling per track — canonical rdColor mapping (T1 coral · T2 teal ·
 // T3 golden) from TRACK_CONFIG, expressed as static Tailwind classes so
@@ -212,9 +158,7 @@ export default function Career() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [searchParams, setSearchParams] = useSearchParams();
-  const [selectedTrack, setSelectedTrack] = useState("track_1");
   const [whyOpen, setWhyOpen] = useState(false);
-  const [search, setSearch] = useState("");
 
   // ── PR-A2: inline expandable pipeline board ─────────────────────────
   // Board open state is URL-driven via ?pipeline=open so deep links from
@@ -292,40 +236,9 @@ export default function Career() {
       /* localStorage unavailable */
     }
   };
-  // Scope toggle for the live-jobs pane:
-  //   - "track" (default): client-side filter over the active track's
-  //     pre-fetched live jobs. Cheap, no extra query.
-  //   - "all":   corpus-wide search via the same REST pattern Jobs.jsx
-  //     uses in keyword mode (.from("jobs").select(...).ilike("title",
-  //     ...)). Hits a separate, scoped queryKey ("career_jobs_search")
-  //     so the canonical career_jobs cache stays clean.
-  const [searchScope, setSearchScope] = useState("track");
-  // 300ms debounce on the input → query trigger so the user can type
-  // freely without firing a Supabase REST call per keystroke. State
-  // updates via useEffect rather than useDebounce hook to keep the
-  // single-consumer code inline.
-  const [debouncedQuery, setDebouncedQuery] = useState("");
-  useEffect(() => {
-    const id = setTimeout(
-      () => setDebouncedQuery(search.trim()),
-      SEARCH_DEBOUNCE_MS,
-    );
-    return () => clearTimeout(id);
-  }, [search]);
   const [expandedRoleId, setExpandedRoleId] = useState(null);
 
-  // isSuccess flags gate the career_jobs fetch (below): seniorityFilter and
-  // p_work_types derive from these three async queries, so firing jobs before
-  // they settle produces a transient WRONG list cached under the early_career
-  // key (see "disappearing Track 1 jobs" fix).
-  const { data: profile, isSuccess: profileReady } = useProfileQuery(user?.id);
-  const { data: experiences = [], isSuccess: expReady } = useExperiencesQuery(
-    user?.id,
-  );
-  const { data: educations = [], isSuccess: eduReady } = useEducationQuery(
-    user?.id,
-  );
-  const jobsInputsReady = profileReady && expReady && eduReady;
+  const { data: profile } = useProfileQuery(user?.id);
 
   // Wide applications query — same canonical key + select Home + Tracker
   // already use, so this surface joins the shared cache rather than
@@ -412,289 +325,47 @@ export default function Career() {
         )
       : false;
 
-  // Mirrors Jobs.jsx:86-93 — derive the user's career-stage from
-  // experiences + educations, then map to a seniority allow-list. This is
-  // the parity fix the seamless-IA cut deferred ("v1 deviation, on
-  // purpose" — see the original file-header comment that this PR
-  // partially rewrites). Without it, Track 1 + Track 2 lists for an
-  // early-career user surface mid / senior / lead rows that the scorer
-  // pushes to the bottom of the page but can't hide. Restoring the
-  // pre-filter eliminates the long dimmed tail upstream of the score.
-  const experienceLevel = useMemo(
-    () => inferExperienceLevel(experiences, educations),
-    [experiences, educations],
-  );
-  const allowedSeniorities = useMemo(
-    () => allowedSenioritiesForLevel(experienceLevel),
-    [experienceLevel],
-  );
-  // Track-3 bypass — inline because there's only one consumer; matches the
-  // shape of seniorityFilterFor() in Jobs.jsx but skips the extraction.
-  const seniorityFilter = useMemo(
-    () => (selectedTrack === "track_3" ? ALL_SENIORITIES : allowedSeniorities),
-    [selectedTrack, allowedSeniorities],
-  );
-  // profile.work_type as a clean array, shared by the honest count + the
-  // list so both apply the identical work_type filter.
-  const workTypes = useMemo(
-    () => (Array.isArray(profile?.work_type) ? profile.work_type : []),
-    [profile?.work_type],
+  // Canonical career_roles read (PR2): same hook + key <UnifiedJobsFeed>
+  // uses, so Career's Matched Roles and the feed share one cache entry and
+  // one analysis-pending poll instead of two reads on the same key with
+  // different projections (the #336/#178 same-key/different-shape poison).
+  const { data: roles = [], isLoading: loadingRoles } = useCareerRolesQuery(
+    user?.id,
+    { profile },
   );
 
-  const { data: roles = [], isLoading: loadingRoles } = useQuery({
-    queryKey: ["careerRoles", user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("career_roles")
-        .select("*")
-        .eq("user_id", user.id);
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id,
-    // Poll while the analysis is still generating (just-signed-up window):
-    // career_roles is empty but isAnalysisPending, so refetch until the rows
-    // land, then stop. Lets the "building your matches" cold-start state
-    // auto-resolve without a manual refresh.
-    refetchInterval: (query) =>
-      (query.state.data?.length ?? 0) === 0 && isAnalysisPending(profile)
-        ? 4000
-        : false,
-  });
-
-  const rolesByTrack = useMemo(() => {
-    const out = { track_1: [], track_2: [], track_3: [] };
-    for (const r of roles) {
-      if (out[r.track]) out[r.track].push(r);
-    }
-    for (const k of Object.keys(out)) {
-      out[k].sort((a, b) => (b.match_score ?? 0) - (a.match_score ?? 0));
-    }
-    return out;
+  // Flat, track-agnostic Matched Roles list (PR2). Ordered by fit-quality
+  // TIER first — sweet spot (track_1), then growth (track_3), then detour
+  // (track_2) — and by match_score DESC within a tier. Tier-before-score is
+  // deliberate: on live data a 0.92 detour would outrank a 0.847 sweet-spot
+  // role under a flat match_score sort, burying the role the user should act
+  // on first. Unknown tracks sort last.
+  const sortedRoles = useMemo(() => {
+    const TIER_ORDER = { track_1: 0, track_3: 1, track_2: 2 };
+    return [...roles].sort((a, b) => {
+      const ta = TIER_ORDER[a.track] ?? 99;
+      const tb = TIER_ORDER[b.track] ?? 99;
+      if (ta !== tb) return ta - tb;
+      return (b.match_score ?? 0) - (a.match_score ?? 0);
+    });
   }, [roles]);
 
-  const trackTitles = useMemo(() => {
-    const out = {};
-    for (const k of Object.keys(rolesByTrack)) {
-      out[k] = rolesByTrack[k]
-        .slice(0, MAX_TRACK_ROLES)
-        .map((r) => r.title)
-        .filter(Boolean);
-    }
-    return out;
-  }, [rolesByTrack]);
-
-  // Per-track HONEST live counts for the band meta + header — the count RPC
-  // now takes the SAME seniority + work_type filters the list applies, so the
-  // header number is the post-filter universe ("N live roles — showing top
-  // 20"), not the unfiltered ceiling that contradicted the rendered list.
-  // Each track uses its own seniority allow-list (track_3 bypasses to ALL);
-  // work_type is profile-wide. Filters folded into the key so a level /
-  // work_type change refetches.
-  const liveCounts =
-    useQuery({
-      queryKey: [
-        "career_track_counts",
-        user?.id,
-        trackTitles.track_1?.join("|"),
-        trackTitles.track_2?.join("|"),
-        trackTitles.track_3?.join("|"),
-        allowedSeniorities.join(","),
-        [...workTypes].sort().join(","),
-      ],
-      queryFn: async () => {
-        const counts = {};
-        for (const k of ["track_1", "track_2", "track_3"]) {
-          const titles = trackTitles[k];
-          if (!titles || titles.length === 0) {
-            counts[k] = null;
-            continue;
-          }
-          const { data, error } = await /** @type {any} */ (supabase).rpc(
-            "count_active_jobs_by_role_titles",
-            {
-              p_role_titles: titles,
-              p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
-              p_max_seniority:
-                k === "track_3" ? ALL_SENIORITIES : allowedSeniorities,
-              p_work_types: workTypes.length > 0 ? workTypes : null,
-            },
-          );
-          if (error) {
-            counts[k] = null;
-            continue;
-          }
-          const n = Array.isArray(data) ? data[0] : data;
-          counts[k] = typeof n === "number" ? n : null;
-        }
-        return counts;
-      },
-      enabled: !!user?.id && roles.length > 0,
-      staleTime: 5 * 60 * 1000,
-    }).data || {};
-
-  // Paginated so the rendered list can actually reach the honest header
-  // count instead of a frozen first page of 20 (the "174 but I see ~15" P0).
-  // seniorityFilter + work_type fold into the queryKey (via careerJobsQueryKey)
-  // so a Track 1↔3 switch or a profile.work_type change refetches rather than
-  // serving a stale filtered list. Pages append at p_offset; the RPC ordering
-  // is deterministic (20260612_jobs_search_deterministic_order) so pages don't
-  // overlap, and dedupeJobsById is the belt. keepPreviousData smooths the
-  // track-switch flash.
-  const {
-    data: jobsPages,
-    isLoading: loadingJobs,
-    fetchNextPage,
-    hasNextPage,
-    isFetchingNextPage,
-  } = useInfiniteQuery({
-    queryKey: careerJobsQueryKey({
-      userId: user?.id,
-      selectedTrack,
-      titles: trackTitles[selectedTrack] || [],
-      seniorityFilter,
-      workType: profile?.work_type,
-    }),
-    initialPageParam: 0,
-    queryFn: async ({ pageParam }) => {
-      const titles = trackTitles[selectedTrack] || [];
-      if (titles.length === 0) return [];
-      const { data, error } = await supabase
-        .rpc("search_jobs_by_role_titles", {
-          p_role_titles: titles,
-          p_limit: JOBS_PAGE_SIZE,
-          p_offset: pageParam,
-          p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
-          p_max_seniority: seniorityFilter,
-          p_work_types: workTypes.length > 0 ? workTypes : null,
-        })
-        .select(
-          "id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence",
-        );
-      if (error) throw error;
-      return data || [];
-    },
-    // A short page (< page size) means no more rows; otherwise the next
-    // offset is the total fetched so far.
-    getNextPageParam: (lastPage, allPages) =>
-      Array.isArray(lastPage) && lastPage.length === JOBS_PAGE_SIZE
-        ? allPages.reduce((n, p) => n + (p?.length || 0), 0)
-        : undefined,
-    enabled: careerJobsEnabled({
-      userId: user?.id,
-      rolesLength: roles.length,
-      jobsInputsReady,
-    }),
-    placeholderData: keepPreviousData,
-    staleTime: 5 * 60 * 1000,
-  });
-  const jobs = useMemo(
-    () => dedupeJobsById((jobsPages?.pages ?? []).flat()),
-    [jobsPages],
-  );
-
-  // All-scope corpus search. Mirrors Jobs.jsx:256-268's keyword-mode
-  // REST query verbatim — same .from("jobs"), same column select, same
-  // .ilike("title", "%kw%"), same .in("seniority", ...) gate. NO
-  // Track-3 bypass here: all-scope is by definition track-less, so
-  // allowedSeniorities applies as-is (Jobs.jsx's seniorityFilterFor
-  // returns plain allowedSeniorities outside track mode — Jobs.jsx:52).
-  // The query is gated on scope === "all" AND a non-empty debounced
-  // query, so the in-track default never fires this and the cache key
-  // never collides with career_jobs (PR #178 cache-pollution discipline).
-  const searchActive = searchScope === "all" && debouncedQuery.length > 0;
-  const { data: searchJobs = [], isLoading: loadingSearch } = useQuery({
-    queryKey: [
-      "career_jobs_search",
-      user?.id,
-      debouncedQuery,
-      allowedSeniorities.join(","),
-    ],
-    queryFn: async () => {
-      const safe = debouncedQuery.replace(/[%,]/g, " ").trim();
-      let q = supabase
-        .from("jobs")
-        .select(
-          "id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence",
-        )
-        .eq("is_il", true)
-        .eq("is_active", true)
-        .in("seniority", allowedSeniorities)
-        .order("date_posted", { ascending: false, nullsFirst: false })
-        .range(0, SEARCH_PAGE_SIZE - 1);
-      if (safe) q = q.ilike("title", `%${safe}%`);
-      const { data, error } = await q;
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id && searchActive,
-    staleTime: 5 * 60 * 1000,
-  });
-
-  const scoredJobs = useMemo(() => {
-    const input = { profile, experiences, educations };
-    // In search-active mode, score the corpus-wide search results. Otherwise,
-    // score the active track's pre-fetched live jobs.
-    const source = searchActive ? searchJobs : jobs;
-    const list = source.map((j) => {
-      const result = scoreJobFit(input, j);
-      const pct = Math.round((result.fit_score ?? 0) * 100);
-      return { job: j, result, pct, low: pct < 50 };
-    });
-    list.sort((a, b) => b.pct - a.pct);
-    return list;
-  }, [jobs, searchJobs, searchActive, profile, experiences, educations]);
-
-  // Client-side substring filter applies only in track scope. In
-  // all-scope the server already filtered via .ilike, so showing every
-  // returned row is the honest behavior.
-  const visibleJobs = useMemo(() => {
-    if (searchScope === "all") return scoredJobs;
-    const q = search.trim().toLowerCase();
-    if (!q) return scoredJobs;
-    return scoredJobs.filter(
-      ({ job }) =>
-        (job.title || "").toLowerCase().includes(q) ||
-        (job.company_name || "").toLowerCase().includes(q),
-    );
-  }, [scoredJobs, search, searchScope]);
-
-  // The career_jobs query is gated until profile/experiences/educations settle
-  // (jobsInputsReady). While gated, isLoading is false (disabled query), so the
-  // pane must still read as LOADING — never "no jobs" — until the first real
-  // fetch can run. Track scope only; all-scope uses its own loadingSearch.
-  const jobsLoading = loadingJobs || (!searchActive && !jobsInputsReady);
-
-  const band = TRACK_BAND.find((t) => t.key === selectedTrack);
-  const trackRoles = rolesByTrack[selectedTrack] || [];
   const goalName = profile?.five_year_role || "your 5-year goal";
-  const trackNumber = TRACK_CONFIG[selectedTrack]?.number ?? 1;
-  // JobCard's trackColor prop expects an rdColor string (coral / teal /
-  // golden). In all-scope mode there's no active track — leave trackColor
-  // null so JobCard renders the neutral-fallback styling (matches the
-  // "keyword mode without scoreJobFit result" branch in JobCard.jsx:199).
-  const jobCardTrackColor =
-    searchScope === "all"
-      ? null
-      : (TRACK_CONFIG[selectedTrack]?.rdColor ?? null);
 
-  // First matched role opens by default whenever the track changes.
+  // First matched role opens by default; falls back to the top role once
+  // the user collapses the open one (the closed-<id> sentinel never matches).
   const effectiveExpandedId =
-    expandedRoleId && trackRoles.some((r) => r.id === expandedRoleId)
+    expandedRoleId && sortedRoles.some((r) => r.id === expandedRoleId)
       ? expandedRoleId
-      : (trackRoles[0]?.id ?? null);
+      : (sortedRoles[0]?.id ?? null);
 
-  // B3 visible-list ids — the exact ORDER rendered: jobs by fit_score desc,
-  // roles by match_score desc within the selected track. Memoized so the
-  // producer's stable-key cache (buildCareerPageContext) holds a stable
-  // visible_items reference and setPageContext's shallow guard doesn't thrash.
-  const visibleJobIds = useMemo(
-    () => visibleJobs.map(({ job }) => job.id),
-    [visibleJobs],
-  );
+  // B3 visible-list ids — the exact ORDER rendered in the Matched Roles rail
+  // (tier then match_score). The live-jobs list now lives inside
+  // <UnifiedJobsFeed>, which owns its own scoring + order, so Career no longer
+  // surfaces visible JOB ids here — only the roles it renders.
   const visibleRoleIds = useMemo(
-    () => trackRoles.map((r) => r.id),
-    [trackRoles],
+    () => sortedRoles.map((r) => r.id),
+    [sortedRoles],
   );
 
   // PR-B2 agent page-context: surface what Career has cheaply available
@@ -713,27 +384,19 @@ export default function Career() {
   useEffect(() => {
     agentDrawer.setPageContext(
       buildCareerPageContext({
-        selectedTrack,
+        // No selected track anymore (track-card model retired) and the live
+        // jobs list lives inside <UnifiedJobsFeed>, so Career surfaces neither
+        // here — the helper omits falsy entities. Only matched-role + drawer
+        // ids carry through.
+        selectedTrack: null,
         roleId: effectiveExpandedId,
         applicationId: drawerAppId,
-        visibleJobIds,
+        visibleJobIds: [],
         visibleRoleIds,
       }),
     );
     return () => agentDrawer.setPageContext(null);
-  }, [
-    selectedTrack,
-    effectiveExpandedId,
-    drawerAppId,
-    visibleJobIds,
-    visibleRoleIds,
-    agentDrawer,
-  ]);
-
-  // Career's own optimistic tracked-id set + handleTrack are gone;
-  // JobCard owns that state internally now (see JobCard.jsx:175-216),
-  // so we just hand off the props and let JobCard's Adding / Tracked
-  // button states fire from there.
+  }, [effectiveExpandedId, drawerAppId, visibleRoleIds, agentDrawer]);
 
   if (loadingRoles) {
     return (
@@ -764,9 +427,9 @@ export default function Career() {
                 Building your matches…
               </p>
               <p className="text-[12.5px] text-rd-text-secondary mt-2 max-w-md mx-auto">
-                We’re analyzing your background to find your tracks, matched
-                roles, and live jobs. This usually takes under a minute and
-                updates here automatically.
+                We’re analyzing your background to find your matched roles and
+                live jobs. This usually takes under a minute and updates here
+                automatically.
               </p>
             </>
           ) : (
@@ -775,8 +438,8 @@ export default function Career() {
                 Generate your roadmap first
               </p>
               <p className="text-[12.5px] text-rd-text-secondary mt-2 max-w-md mx-auto">
-                Your tracks, matched roles, and live jobs all come from your
-                career analysis.
+                Your matched roles and live jobs all come from your career
+                analysis.
               </p>
               <Link
                 to={createPageUrl("Roadmap")}
@@ -799,8 +462,8 @@ export default function Career() {
             Career
           </h1>
           <p className="text-[12.5px] text-rd-text-secondary mt-1">
-            Your tracks, the roles you match, and the live jobs on them — one
-            place.
+            The roles you match, a live job feed tuned to them, and your
+            application pipeline — one place.
           </p>
         </div>
         <button
@@ -816,60 +479,10 @@ export default function Career() {
           Every role is placed by two things — how{" "}
           <b className="text-rd-text">qualified</b> you are now, and whether it
           moves you toward <b className="text-rd-text">{goalName}</b>. Track 1
-          is the sweet spot: apply there first. Track 2 is a doable detour;
-          Track 3 is what you grow into.
+          is the sweet spot; Track 2 is a doable detour; Track 3 is what you
+          grow into.
         </div>
       )}
-
-      {/* Track band — the roadmap, condensed */}
-      <div
-        className="grid grid-cols-3 gap-2.5 mt-4"
-        data-strip-anchor="track-band"
-      >
-        {TRACK_BAND.map((t) => {
-          const cfg = TRACK_CONFIG[t.key];
-          const TIcon = t.icon;
-          const active = t.key === selectedTrack;
-          const count = liveCounts[t.key];
-          return (
-            <button
-              key={t.key}
-              onClick={() => setSelectedTrack(t.key)}
-              className={[
-                "min-w-0 text-left rounded-[14px] px-3 py-2.5 border-[1.5px] transition-colors",
-                active
-                  ? `${t.tintBg} ${t.activeBorder}`
-                  : "bg-rd-bg-card border-rd-border hover:border-rd-border-hover",
-              ].join(" ")}
-            >
-              <span className="flex items-center gap-2">
-                <span
-                  className={`w-[26px] h-[26px] rounded-full ${t.circle} flex items-center justify-center flex-shrink-0`}
-                >
-                  <TIcon className="w-3.5 h-3.5 text-white" />
-                </span>
-                <span className="min-w-0">
-                  <span
-                    className={`block font-display font-bold text-[13px] truncate ${active ? t.ink : "text-rd-text"}`}
-                  >
-                    {cfg.name}
-                  </span>
-                  <span
-                    className={`block text-[10.5px] truncate ${active ? t.ink : "text-rd-text-secondary"}`}
-                  >
-                    T{cfg.number} · {FIT_LABELS[t.key]} ·{" "}
-                    {(rolesByTrack[t.key] || []).length}{" "}
-                    {(rolesByTrack[t.key] || []).length === 1
-                      ? "role"
-                      : "roles"}
-                    {typeof count === "number" ? ` · ${count} live` : ""}
-                  </span>
-                </span>
-              </span>
-            </button>
-          );
-        })}
-      </div>
 
       {/* Pipeline strip — clickable. PR-A2 makes the whole strip a
           single button that toggles the inline board below. URL syncs
@@ -1074,134 +687,24 @@ export default function Career() {
       )}
 
       <div className="flex flex-col md:flex-row gap-4 mt-4 items-start">
-        {/* Left — live jobs */}
+        {/* Left — the shared unified two-tab jobs feed. Career renders the
+            SAME <UnifiedJobsFeed> as /jobs (one implementation, no forked
+            track-scoped feed). It self-fetches profile / experiences / roles
+            via the canonical hooks and owns its own scoring, search + tabs. */}
         <div className="w-full md:flex-[1.55] min-w-0">
-          <div className="relative">
-            <Search className="w-4 h-4 text-rd-text-secondary absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder={
-                searchScope === "all"
-                  ? "Search all jobs by title…"
-                  : `Search ${TRACK_CONFIG[selectedTrack].name} roles…`
-              }
-              className="w-full bg-rd-bg-card border border-rd-border rounded-[10px] pl-10 pr-4 py-2.5 text-[13px] text-rd-text placeholder:text-rd-text-secondary focus:outline-none focus:border-rd-coral focus:ring-[3px] focus:ring-rd-coral-tint"
-            />
-          </div>
-          {/* Scope toggle — segmented buttons. "This track" is the cheap
-              client-filter over pre-fetched live jobs; "All jobs" hits the
-              corpus-wide search query. Rendered whenever the search input
-              renders (PR-A1 discoverability rider) — gating it on input
-              made "All jobs" effectively invisible. "This track" is the
-              default so the band cue stays meaningful pre-typing. */}
-          <div
-            className="inline-flex gap-1 mt-2.5 bg-rd-bg-soft rounded-full p-1"
-            role="group"
-            aria-label="Search scope"
-          >
-            <button
-              type="button"
-              onClick={() => setSearchScope("track")}
-              className={[
-                "px-3 py-1 rounded-full text-[11px] font-display font-semibold transition-colors",
-                searchScope === "track"
-                  ? "bg-rd-bg-card text-rd-text shadow-rd"
-                  : "text-rd-text-secondary hover:text-rd-text",
-              ].join(" ")}
-            >
-              This track
-            </button>
-            <button
-              type="button"
-              onClick={() => setSearchScope("all")}
-              className={[
-                "px-3 py-1 rounded-full text-[11px] font-display font-semibold transition-colors",
-                searchScope === "all"
-                  ? "bg-rd-bg-card text-rd-text shadow-rd"
-                  : "text-rd-text-secondary hover:text-rd-text",
-              ].join(" ")}
-            >
-              All jobs
-            </button>
-          </div>
-          <div className="flex items-center justify-between mt-3">
-            <span className="font-display font-bold text-[13.5px] text-rd-text">
-              {searchScope === "all" && debouncedQuery.length > 0
-                ? // All-scope: don't fabricate a total ("N live roles…" doesn't
-                  // describe a search result set). Show the literal echo of
-                  // what the user typed so the result list reads honestly.
-                  `Results for “${debouncedQuery}”`
-                : typeof liveCounts[selectedTrack] === "number"
-                  ? `${liveCounts[selectedTrack]} live roles on Track ${trackNumber}`
-                  : `Live roles on Track ${trackNumber}`}
-            </span>
-            {searchScope !== "all" && (
-              <span className="text-[10.5px] text-rd-text-secondary">
-                refreshed nightly
-              </span>
-            )}
-          </div>
-          <div className="flex flex-col gap-2.5 mt-2.5">
-            {(jobsLoading || (searchActive && loadingSearch)) && (
-              <RdCard className="p-6 text-center text-[12.5px] text-rd-text-secondary">
-                <Loader2 className="w-4 h-4 animate-spin inline-block mr-2 align-[-2px]" />
-                {searchActive ? "Searching jobs…" : "Matching live jobs…"}
-              </RdCard>
-            )}
-            {!jobsLoading &&
-              !(searchActive && loadingSearch) &&
-              visibleJobs.length === 0 && (
-                <RdCard className="p-6 text-center text-[12.5px] text-rd-text-secondary">
-                  {searchScope === "all"
-                    ? "No jobs match that search."
-                    : search
-                      ? "No live roles match that search."
-                      : "No live matches on this track right now — check back tomorrow."}
-                </RdCard>
-              )}
-            {visibleJobs.map(({ job, result }) => (
-              <JobCard
-                key={job.id}
-                job={job}
-                scoreResult={result}
-                trackColor={jobCardTrackColor}
-              />
-            ))}
-            {/* Load more — makes the honest header count reachable instead of
-                a frozen first page. Track scope only, and not while a
-                substring filter is narrowing the loaded set. */}
-            {searchScope !== "all" &&
-              !search &&
-              hasNextPage &&
-              visibleJobs.length > 0 && (
-                <button
-                  onClick={() => fetchNextPage()}
-                  disabled={isFetchingNextPage}
-                  className="self-center inline-flex items-center gap-1.5 bg-rd-bg-soft rounded-full px-5 py-2.5 font-display font-semibold text-[12.5px] text-rd-text-secondary hover:text-rd-text transition-colors disabled:opacity-60"
-                >
-                  {isFetchingNextPage ? (
-                    <>
-                      <Loader2 className="w-3.5 h-3.5 animate-spin" /> Loading…
-                    </>
-                  ) : typeof liveCounts[selectedTrack] === "number" ? (
-                    `Show more · showing ${visibleJobs.length} of ${liveCounts[selectedTrack]}`
-                  ) : (
-                    "Show more"
-                  )}
-                </button>
-              )}
-          </div>
+          <UnifiedJobsFeed />
         </div>
 
-        {/* Right — matched roles why-panel */}
+        {/* Right — matched roles why-panel. Track-agnostic (PR2): one flat
+            list across all tracks, ordered by fit-quality tier then
+            match_score. Each row carries its own track band styling. */}
         <div className="w-full md:flex-1 min-w-0 bg-rd-bg-page border border-rd-border-subtle rounded-[16px] p-3.5">
           <div className="flex items-center justify-between mb-2">
             <span className="font-display font-bold text-[14px] text-rd-text">
               Your matched roles
             </span>
             <span className="text-[10.5px] text-rd-text-secondary">
-              Track {trackNumber}
+              {sortedRoles.length} {sortedRoles.length === 1 ? "role" : "roles"}
             </span>
           </div>
           <p className="text-[10.5px] leading-[1.5] text-rd-text-tertiary mb-2.5">
@@ -1210,19 +713,29 @@ export default function Career() {
             it <b className="text-rd-text">moves you toward {goalName}</b>.
           </p>
           <div className="flex flex-col gap-2">
-            {trackRoles.length === 0 && (
+            {sortedRoles.length === 0 && (
               <p className="text-[12px] text-rd-text-secondary px-1 py-2">
-                No roles on this track yet.
+                No matched roles yet.
               </p>
             )}
-            {trackRoles.map((r) => {
+            {sortedRoles.map((r) => {
               const expanded = r.id === effectiveExpandedId;
+              // Each role carries its OWN track band (the list is mixed-track
+              // now). Fall back to track_1 styling if the stored track is
+              // unrecognized so a row never renders without a color.
+              const band =
+                TRACK_BAND.find((t) => t.key === r.track) || TRACK_BAND[0];
+              const fitLabel = FIT_LABELS[r.track];
               // RULINGS.md (e): null score columns NEVER render as 0%.
               // Compute "available" from the raw nulls (not from the
-              // coalesced fallback) so a genuinely-missing column omits
-              // its bar entirely. readiness_score is allowed to fall
-              // back to match_score for display — both being null is
-              // the only case that omits the qualified bar.
+              // coalesced fallback) so a genuinely-missing column omits its
+              // bar entirely. readiness_score is allowed to fall back to
+              // match_score for display — both being null is the only case
+              // that omits the qualified bar. match_score and readiness_score
+              // are identical on live data, so the magnitude shows ONCE as the
+              // "Qualified now" bar; the collapsed header carries the
+              // fit-quality WORD chip (strong fit / doable detour / stretch),
+              // never the number a second time.
               const qualifiedRaw = r.readiness_score ?? r.match_score;
               const qualifiedAvailable =
                 qualifiedRaw !== null && qualifiedRaw !== undefined;
@@ -1250,11 +763,11 @@ export default function Career() {
                     <span className="flex-1 min-w-0 font-display font-bold text-[12.5px] leading-[1.25] text-rd-text">
                       {r.title}
                     </span>
-                    {typeof r.match_score === "number" && (
+                    {fitLabel && (
                       <span
-                        className={`font-display font-extrabold text-[11px] rounded-full px-2 py-0.5 ${band.tintBg} ${band.ink}`}
+                        className={`font-display font-semibold text-[10px] rounded-full px-2 py-0.5 ${band.tintBg} ${band.ink}`}
                       >
-                        {toPct(r.match_score)}%
+                        {fitLabel}
                       </span>
                     )}
                     {expanded ? (
