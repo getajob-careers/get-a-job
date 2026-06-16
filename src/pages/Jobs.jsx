@@ -652,7 +652,7 @@ export default function JobSuggestions() {
                     subtitle="Your strongest matches — apply with confidence"
                     count={sectionedJobs.picks.length}
                   />
-                  <JobGrid jobs={sectionedJobs.picks} scoredById={scoredById} />
+                  <JobGrid jobs={sectionedJobs.picks} scoredById={scoredById} unified />
                 </section>
               )}
               {sectionedJobs.stretch.length > 0 && (
@@ -668,7 +668,7 @@ export default function JobSuggestions() {
                       worth a look as you build toward them.
                     </p>
                   )}
-                  <JobGrid jobs={sectionedJobs.stretch} scoredById={scoredById} />
+                  <JobGrid jobs={sectionedJobs.stretch} scoredById={scoredById} unified />
                 </section>
               )}
             </div>
@@ -705,7 +705,7 @@ export default function JobSuggestions() {
 // Extracted so the unified feed can render the same card grid twice (picks
 // + stretch sections) without duplicating the per-job track-color logic.
 // The legacy single-grid path renders one JobGrid over displayedJobs.
-function JobGrid({ jobs, scoredById }) {
+function JobGrid({ jobs, scoredById, unified = false }) {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {jobs.map((job) => {
@@ -717,6 +717,7 @@ function JobGrid({ jobs, scoredById }) {
             job={job}
             scoreResult={scoredById[job.id]}
             trackColor={trackRdColor}
+            showAttainabilityBand={unified}
           />
         );
       })}

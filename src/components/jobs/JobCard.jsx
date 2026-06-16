@@ -239,7 +239,15 @@ const BAND_META = {
 // the card avatar + match badge use that track's tint. Set in track mode
 // by Jobs.jsx based on the per-job scoreJobFit track. In keyword mode it
 // can be null (no scoreJobFit result) and the card renders neutral.
-export default function JobCard({ job, scoreResult = null, trackColor = null }) {
+export default function JobCard({
+  job,
+  scoreResult = null,
+  trackColor = null,
+  // Gated ON only by the unified feed (Jobs.jsx, flag jobs_unified_list).
+  // Default false keeps the legacy track-tabs feed + Career live-jobs pane
+  // showing the fit_score badge byte-unchanged until #329 flips the default.
+  showAttainabilityBand = false,
+}) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [adding, setAdding] = useState(false);
@@ -264,7 +272,10 @@ export default function JobCard({ job, scoreResult = null, trackColor = null }) 
   // Prefer the attainability band/score (the number the unified feed ranks
   // on) when present. Consumers passing a legacy scoreResult without the
   // additive fields keep the old fit_score badge byte-unchanged.
-  const attainBand = scored ? scoreResult.attainability_band || null : null;
+  const attainBand =
+    scored && showAttainabilityBand
+      ? scoreResult.attainability_band || null
+      : null;
   const attainPct =
     scored && scoreResult.attainability_score != null
       ? Math.round(scoreResult.attainability_score * 100)

@@ -139,3 +139,44 @@ describe('JobCard — track-time write shape', () => {
     expect(insertPayloads[0].skills_required).toEqual({ core: [], nice: [] });
   });
 });
+
+
+// Isolation guard (jobs-early-career-gate): the attainability band must render
+// ONLY when the unified feed opts in via showAttainabilityBand. With the prop
+// off (legacy track-tabs default + Career live-jobs pane), the card keeps the
+// fit_score % badge even though scoreResult carries the additive band fields.
+// Locks the "default untouched until #329" guarantee.
+describe('JobCard — attainability band gated behind the unified flag', () => {
+  const withBand = {
+    ...baseScoreResult,
+    attainability_score: 0.58,
+    attainability_band: 'strong',
+  };
+
+  it('legacy default (no showAttainabilityBand): fit_score % badge, no band label', () => {
+    const Wrapper = createWrapper();
+    render(
+      <Wrapper>
+        <JobCard job={baseJob} scoreResult={withBand} trackColor="coral" />
+      </Wrapper>,
+    );
+    expect(screen.getByText('72%')).toBeInTheDocument();
+    expect(screen.queryByText(/Strong match/i)).toBeNull();
+  });
+
+  it('unified (showAttainabilityBand): leads with the band label, drops the fit %', () => {
+    const Wrapper = createWrapper();
+    render(
+      <Wrapper>
+        <JobCard
+          job={baseJob}
+          scoreResult={withBand}
+          trackColor="coral"
+          showAttainabilityBand
+        />
+      </Wrapper>,
+    );
+    expect(screen.getByText(/Strong match/i)).toBeInTheDocument();
+    expect(screen.queryByText('72%')).toBeNull();
+  });
+});
