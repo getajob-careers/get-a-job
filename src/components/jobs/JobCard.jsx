@@ -247,6 +247,11 @@ export default function JobCard({
   // Default false keeps the legacy track-tabs feed + Career live-jobs pane
   // showing the fit_score badge byte-unchanged until #329 flips the default.
   showAttainabilityBand = false,
+  // Tab 2 (Search) fetches a light projection WITHOUT `description` (11 MB
+  // across the corpus). When set, the JD toggle always renders and fetches the
+  // description on first expand. Legacy/Tab-1 (description present) pass
+  // nothing → byte-unchanged.
+  lazyDescription = false,
 }) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -257,11 +262,31 @@ export default function JobCard({
   // See Job Posting or Track. Workday rows have null description (per ATS scraper
   // audit) — the toggle won't render when description is missing.
   const [showJD, setShowJD] = useState(false);
+  const [lazyDesc, setLazyDesc] = useState(null);
+  const [loadingDesc, setLoadingDesc] = useState(false);
+
+  // Lazy-load the JD on first expand when the parent passed a light projection
+  // (Tab 2). No-op when the description is already present (legacy/Tab-1).
+  const handleToggleJD = async () => {
+    const opening = !showJD;
+    setShowJD(opening);
+    if (opening && lazyDescription && !job.description && lazyDesc == null && !loadingDesc) {
+      setLoadingDesc(true);
+      const { data } = await supabase
+        .from("jobs")
+        .select("description")
+        .eq("id", job.id)
+        .maybeSingle();
+      setLazyDesc(data?.description || "");
+      setLoadingDesc(false);
+    }
+  };
 
   const posted = formatPostedDate(job.date_posted);
   const chip = experienceChipText(job);
   const workChip = workTypeChipText(job);
-  const hasDescription = Boolean(job.description && job.description.length > 50);
+  const hasDescription =
+    Boolean(job.description && job.description.length > 50) || lazyDescription;
 
   // scoreResult shape comes from src/lib/scoreJobFit.js (PR-C):
   //   { fit_score: 0..1, track, signals: {...}, reasoning: { strengths, gaps } }
@@ -433,7 +458,7 @@ export default function JobCard({
         <div>
           <button
             type="button"
-            onClick={() => setShowJD((v) => !v)}
+            onClick={handleToggleJD}
             aria-expanded={showJD}
             className="inline-flex items-center gap-1 text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono hover:text-rd-text transition-colors"
           >
@@ -447,11 +472,16 @@ export default function JobCard({
               </>
             )}
           </button>
-          {showJD && (
-            <p className="text-[11.5px] text-rd-text-secondary leading-[1.55] whitespace-pre-line mt-1.5 max-h-56 overflow-y-auto pr-2">
-              {job.description}
-            </p>
-          )}
+          {showJD &&
+            (loadingDesc ? (
+              <p className="text-[11.5px] text-rd-text-tertiary mt-1.5 inline-flex items-center gap-1.5">
+                <Loader2 className="w-3 h-3 animate-spin" /> Loading…
+              </p>
+            ) : (
+              <p className="text-[11.5px] text-rd-text-secondary leading-[1.55] whitespace-pre-line mt-1.5 max-h-56 overflow-y-auto pr-2">
+                {job.description || lazyDesc || "No description provided."}
+              </p>
+            ))}
         </div>
       )}
 
