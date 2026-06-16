@@ -23,13 +23,26 @@ export function matchesSeniority(job, seniorities) {
   return seniorities.includes(job?.seniority);
 }
 
-// Work-type: reuse #332 semantics as a client predicate. "onsite_only" drops
-// remote jobs; "remote_ok" / null admit everything (including remote). The
-// corpus has only an is_remote boolean (no hybrid signal), so these are the
-// only two honest states.
-export function matchesWorkType(job, workTypeMode) {
-  if (workTypeMode === "onsite_only") return job?.is_remote !== true;
-  return true;
+// Work-type: multi-select chips ["onsite", "remote"] (same idiom as
+// seniority). "onsite" = is_remote false, "remote" = is_remote true.
+// Both-or-neither selected = no filter (all jobs). No Hybrid: the corpus has
+// only an is_remote boolean — no hybrid signal.
+export function matchesWorkType(job, workTypes) {
+  const wt = Array.isArray(workTypes) ? workTypes : [];
+  const onsite = wt.includes("onsite");
+  const remote = wt.includes("remote");
+  if (onsite === remote) return true; // both or neither → all
+  if (remote) return job?.is_remote === true;
+  return job?.is_remote === false;
+}
+
+// Keyword: match-as-you-type over the cached corpus on title + company only
+// (description is lazy-loaded, out of scope). Empty = no filter.
+export function matchesKeyword(job, keyword) {
+  const q = (keyword || "").trim().toLowerCase();
+  if (!q) return true;
+  const hay = `${job?.title || ""} ${job?.company_name || ""}`.toLowerCase();
+  return hay.includes(q);
 }
 
 // Track: scoreJobFit.track for THIS job against the profile (same value as the
@@ -146,10 +159,11 @@ export function searchFacetsKey(facets) {
   return [
     "search_facets",
     (Array.isArray(f.seniorities) ? [...f.seniorities].sort() : []).join(","),
-    f.workTypeMode || "",
+    (Array.isArray(f.workTypes) ? [...f.workTypes].sort() : []).join(","),
     f.track || "",
     f.family || "",
     f.location || "",
+    (f.keyword || "").trim().toLowerCase(),
   ].join("|");
 }
 
@@ -165,8 +179,9 @@ export function applyFacetsAndRank(scored, facets) {
   const f = facets || {};
   const filtered = (Array.isArray(scored) ? scored : []).filter(
     ({ job, score }) =>
+      matchesKeyword(job, f.keyword) &&
       matchesSeniority(job, f.seniorities) &&
-      matchesWorkType(job, f.workTypeMode) &&
+      matchesWorkType(job, f.workTypes) &&
       matchesTrack(score, f.track) &&
       matchesFamily(job, f.family) &&
       matchesLocation(job, f.location),

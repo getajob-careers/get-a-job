@@ -1,6 +1,13 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Briefcase, Check, ChevronsUpDown } from "lucide-react";
+import {
+  Loader2,
+  Briefcase,
+  Check,
+  ChevronsUpDown,
+  Search,
+  X,
+} from "lucide-react";
 import { supabase } from "@/api/supabaseClient";
 import { scoreJobFit } from "@/lib/scoreJobFit";
 import { TRACK_CONFIG } from "@/lib/trackConfig";
@@ -52,8 +59,8 @@ const SENIORITY_CHIPS = [
   ["senior", "Senior"],
 ];
 const WORK_TYPE_CHIPS = [
-  ["remote_ok", "Remote OK"],
-  ["onsite_only", "On-site only"],
+  ["onsite", "On-site"],
+  ["remote", "Remote"],
 ];
 // Top-volume families only (the long tail is hidden — empty options are dead
 // ends). Admin_GA stays selectable here: in SEARCH the user's explicit pick
@@ -128,8 +135,9 @@ export default function JobsSearchTab({ profile, experiences, educations }) {
   }, [corpus, profile, experiences, educations]);
 
   // 3. Facet state. PR B: seniority + work-type (track/family/location → PR C).
+  const [keyword, setKeyword] = useState(""); // "" = no keyword filter
   const [seniorities, setSeniorities] = useState([]); // [] = no filter (all)
-  const [workTypeMode, setWorkTypeMode] = useState("remote_ok"); // default = all
+  const [workTypes, setWorkTypes] = useState([]); // [] = no filter (all)
   const [family, setFamily] = useState(""); // "" = all functions
   const [location, setLocation] = useState(""); // "" = anywhere
   const [track, setTrack] = useState(null); // null = all tracks
@@ -140,23 +148,25 @@ export default function JobsSearchTab({ profile, experiences, educations }) {
 
   // 4. Filter + rank over the cached scored set. Re-runs only on facet/scored
   //    change (no re-fetch, no re-score).
-  const facets = { seniorities, workTypeMode, track, family, location };
+  const facets = { keyword, seniorities, workTypes, track, family, location };
   const ranked = useMemo(
     () => applyFacetsAndRank(scored, facets),
-    [scored, seniorities, workTypeMode, track, family, location],
+    [scored, keyword, seniorities, workTypes, track, family, location],
   );
 
   // 5. Client-side pagination; reset to the first page when facets change.
   const facetsKey = searchFacetsKey(facets);
   const hasActiveFacets =
+    keyword.trim() !== "" ||
     seniorities.length > 0 ||
-    workTypeMode !== "remote_ok" ||
+    workTypes.length > 0 ||
     track !== null ||
     family !== "" ||
     location !== "";
   const clearFacets = () => {
+    setKeyword("");
     setSeniorities([]);
-    setWorkTypeMode("remote_ok");
+    setWorkTypes([]);
     setTrack(null);
     setFamily("");
     setLocation("");
@@ -177,6 +187,29 @@ export default function JobsSearchTab({ profile, experiences, educations }) {
 
   return (
     <div>
+      {/* Keyword — match-as-you-type over the cached corpus (title + company
+          only; description is lazy-loaded, out of scope). AND-composes with
+          the facets below. */}
+      <div className="flex items-center gap-2.5 rounded-[14px] border border-rd-border bg-rd-bg-card px-4 py-2.5 shadow-rd mb-3">
+        <Search className="w-4 h-4 text-rd-text-tertiary flex-shrink-0" />
+        <input
+          value={keyword}
+          onChange={(e) => setKeyword(e.target.value)}
+          placeholder="Search title or company…"
+          className="flex-1 bg-transparent border-0 outline-none text-[13.5px] text-rd-text placeholder:text-rd-text-tertiary"
+        />
+        {keyword && (
+          <button
+            type="button"
+            onClick={() => setKeyword("")}
+            aria-label="Clear keyword"
+            className="p-1 rounded-full hover:bg-rd-bg-soft text-rd-text-tertiary hover:text-rd-text transition-colors"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+        )}
+      </div>
+
       {/* Facets */}
       <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4">
         <div className="flex items-center gap-1.5">
@@ -201,35 +234,34 @@ export default function JobsSearchTab({ profile, experiences, educations }) {
           <span className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary mr-0.5">
             Work type
           </span>
-          <div className="inline-flex rounded-full bg-rd-bg-soft p-0.5">
-            {WORK_TYPE_CHIPS.map(([value, label]) => (
-              <button
-                key={value}
-                type="button"
-                aria-pressed={workTypeMode === value}
-                onClick={() => setWorkTypeMode(value)}
-                className={`inline-flex items-center text-[12px] font-display font-semibold rounded-full px-3 py-1 transition-colors ${
-                  workTypeMode === value
-                    ? "bg-rd-coral text-white"
-                    : "text-rd-text-secondary hover:text-rd-text"
-                }`}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {WORK_TYPE_CHIPS.map(([value, label]) => (
+            <FacetChip
+              key={value}
+              label={label}
+              active={workTypes.includes(value)}
+              onClick={() => setWorkTypes(toggleSeniority(workTypes, value))}
+            />
+          ))}
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary mr-0.5">
             Function
           </span>
-          <FacetSelect value={family} onChange={setFamily} options={FAMILY_OPTIONS} />
+          <FacetSelect
+            value={family}
+            onChange={setFamily}
+            options={FAMILY_OPTIONS}
+          />
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary mr-0.5">
             Location
           </span>
-          <LocationCombobox value={location} onChange={setLocation} options={locationOptions} />
+          <LocationCombobox
+            value={location}
+            onChange={setLocation}
+            options={locationOptions}
+          />
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary mr-0.5">
@@ -370,12 +402,22 @@ function LocationCombobox({ value, onChange, options }) {
                 onSelect={select}
               />
               {options.regions.map((r) => (
-                <ComboItem key={r.key} opt={r} value={value} onSelect={select} />
+                <ComboItem
+                  key={r.key}
+                  opt={r}
+                  value={value}
+                  onSelect={select}
+                />
               ))}
             </CommandGroup>
             <CommandGroup heading="Cities">
               {options.cities.map((c) => (
-                <ComboItem key={c.key} opt={c} value={value} onSelect={select} />
+                <ComboItem
+                  key={c.key}
+                  opt={c}
+                  value={value}
+                  onSelect={select}
+                />
               ))}
             </CommandGroup>
           </CommandList>

@@ -549,9 +549,11 @@ export default function JobSuggestions() {
             : "Live roles, scored against your tracks."}
         </h1>
         <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] mt-2 max-w-2xl">
-          {unifiedListEnabled
-            ? "Live postings from real company career pages, refreshed nightly. Matched to your domain and experience and ranked best-fit-first — split into your strongest picks and stretch roles worth a look."
-            : "Live tech postings from real company career pages, refreshed nightly. Filtered to your experience level and your career-roadmap tracks."}
+          {!unifiedListEnabled
+            ? "Live tech postings from real company career pages, refreshed nightly. Filtered to your experience level and your career-roadmap tracks."
+            : unifiedTab === "search"
+              ? "Browse the whole live board — every IL role, ranked best-fit for you, with filters for function, location, seniority and work type."
+              : "Live postings from real company career pages, refreshed nightly. Matched to your domain and experience and ranked best-fit-first — split into your strongest picks and stretch roles worth a look."}
         </p>
       </div>
 
