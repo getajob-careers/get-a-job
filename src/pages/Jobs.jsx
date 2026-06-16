@@ -13,15 +13,7 @@ import { inferExperienceLevel, allowedSenioritiesForLevel } from "@/lib/experien
 import { TRACK_CONFIG, TRACK_ORDER } from "@/lib/trackConfig";
 import { scoreJobFit } from "@/lib/scoreJobFit";
 import JobCard from "../components/jobs/JobCard";
-import {
-  defaultWorkTypeMode,
-  workTypeModeToParam,
-  effectiveSeniorities,
-  toggleSeniority,
-  dedupeJobsById,
-  WORK_TYPE_REMOTE_OK,
-  WORK_TYPE_ONSITE_ONLY,
-} from "@/lib/unifiedJobsFilter";
+import { dedupeJobsById } from "@/lib/careerJobsQuery";
 
 // Page rebuild (PR 3 of jobs-cache rollout, 2026-05-17). Frontend cut over
 // from on-demand edge functions to direct supabase-js queries against
@@ -58,16 +50,6 @@ const TRACK_SIMILARITY_THRESHOLD = 0.3;
 
 // All seniorities, used when bypassing the filter for track_3.
 const ALL_SENIORITIES = ["entry", "mid", "senior", "lead", "director", "executive"];
-
-// Display labels for the unified-feed seniority chips.
-const SENIORITY_CHIP_LABEL = {
-  entry: "Entry",
-  mid: "Mid",
-  senior: "Senior",
-  lead: "Lead",
-  director: "Director",
-  executive: "Exec",
-};
 
 // Bypass the seniority filter for track_3 only. Live data check (2026-05-20)
 // showed that for early_career users, the strict filter was hiding 100% of
@@ -206,13 +188,11 @@ export default function JobSuggestions() {
   const [error, setError] = useState(null);
   const [emptyReason, setEmptyReason] = useState(null);
 
-  // Unified-feed filters (seniority + work-type). null = "use default", so the
-  // default reproduces today's feed (resolved against allowedSeniorities /
-  // profile, which load async). Both feed the RPC (supply-side); a change
-  // re-fetches via buildJobsQuery identity and resets offset in the fetch
-  // effect. Filter state lives only on the unified path.
-  const [seniorityFilter, setSeniorityFilter] = useState(null);
-  const [workTypeMode, setWorkTypeMode] = useState(null);
+  // Two-tab unified surface (jobs-two-tab): "matches" = personalized
+  // picks/stretch recs, "search" = whole-corpus faceted search (PR B/C).
+  // Default to the personalized tab; search is opt-in. Filters live on the
+  // Search tab (PR B), NOT on the personalized recs.
+  const [unifiedTab, setUnifiedTab] = useState("matches");
 
   const requestSeqRef = useRef(0);
 
@@ -413,23 +393,16 @@ export default function JobSuggestions() {
         if (unionedRoles.length >= UNIFIED_MAX_ROLES) break;
       }
       if (unionedRoles.length === 0) return { _empty: "no_roles" };
-      // User filters feed the RPC params (supply-side). Default (null state)
-      // resolves to today's behavior — stretch-aware seniority + profile-derived
-      // work-type — so "filters on" reproduces today's feed.
-      const defaultSeniorities = stretchAwareSeniorityFor(allowedSeniorities);
-      const unifiedSeniorities = effectiveSeniorities(
-        seniorityFilter ?? defaultSeniorities,
-        defaultSeniorities,
-      );
-      const effMode = workTypeMode ?? defaultWorkTypeMode(profile?.work_type);
+      const stretchSeniorities = stretchAwareSeniorityFor(allowedSeniorities);
+      const workTypes = Array.isArray(profile?.work_type) ? profile.work_type : [];
       return supabase
         .rpc("search_jobs_by_role_titles", {
           p_role_titles: unionedRoles,
           p_limit: BROWSE_PAGE_SIZE,
           p_offset: offsetArg,
           p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
-          p_max_seniority: unifiedSeniorities,
-          p_work_types: workTypeModeToParam(effMode),
+          p_max_seniority: stretchSeniorities,
+          p_work_types: workTypes.length > 0 ? workTypes : null,
         })
         .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence");
     }
@@ -448,7 +421,7 @@ export default function JobSuggestions() {
         p_work_types: workTypes.length > 0 ? workTypes : null,
       })
       .select("id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, description, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence");
-  }, [rolesByTrack, allowedSeniorities, profile, unifiedListEnabled, seniorityFilter, workTypeMode]);
+  }, [rolesByTrack, allowedSeniorities, profile, unifiedListEnabled]);
 
   const fetchJobs = useCallback(async ({ modeArg, track, kw, offsetArg, append }) => {
     const seq = ++requestSeqRef.current;
@@ -562,12 +535,6 @@ export default function JobSuggestions() {
     return `${displayedJobs.length} role${displayedJobs.length === 1 ? "" : "s"} on Track ${trackCfg.number}`;
   })();
 
-  // Unified-feed filter UI state — chips reflect the user's stretch-aware
-  // seniority set; toggle reflects the profile-derived work-type default.
-  const seniorityChips = stretchAwareSeniorityFor(allowedSeniorities);
-  const selectedSeniorities = seniorityFilter ?? seniorityChips;
-  const workTypeModeUI = workTypeMode ?? defaultWorkTypeMode(profile?.work_type);
-
   return (
     <div className="max-w-5xl mx-auto px-5 sm:px-8 py-8 sm:py-10">
       {/* Header */}
@@ -612,7 +579,9 @@ export default function JobSuggestions() {
         </div>
       )}
 
-      {/* Search bar */}
+      {/* Search bar — legacy only; unified search is the "Search All Jobs"
+          tab (built in PR B/C). */}
+      {!unifiedListEnabled && (
       <form
         onSubmit={handleKeywordSubmit}
         className="flex items-center gap-2.5 rounded-[14px] border border-rd-border bg-rd-bg-card px-4 py-2.5 shadow-rd mb-3"
@@ -635,6 +604,7 @@ export default function JobSuggestions() {
           </button>
         )}
       </form>
+      )}
 
       {/* Track filter pills — hidden when the unified-list flag is on
           (PR #393). Track stops being top-level navigation in the unified
@@ -659,65 +629,27 @@ export default function JobSuggestions() {
         </div>
       )}
 
-      {/* Unified-feed filters (seniority + work-type) — supply-side: each
-          change re-queries the RPC under the constraint, so a tight filter
-          re-fetches rather than collapsing the gated page. Rendered ONLY on
-          the unified path in track mode; the legacy feed shows nothing here. */}
-      {unifiedListEnabled && inTrackMode && (
-        <div className="flex flex-wrap items-center gap-x-5 gap-y-2 mb-4">
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary mr-0.5">
-              Seniority
-            </span>
-            {seniorityChips.map((s) => {
-              const on = selectedSeniorities.includes(s);
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  aria-pressed={on}
-                  onClick={() =>
-                    setSeniorityFilter(toggleSeniority(selectedSeniorities, s))
-                  }
-                  className={`inline-flex items-center text-[12px] font-display font-semibold rounded-full px-2.5 py-1 transition-colors ${
-                    on
-                      ? "bg-rd-coral text-white"
-                      : "bg-rd-bg-soft text-rd-text-secondary hover:text-rd-text"
-                  }`}
-                >
-                  {SENIORITY_CHIP_LABEL[s] || s}
-                </button>
-              );
-            })}
-          </div>
-          <div className="flex items-center gap-1.5">
-            <span className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary mr-0.5">
-              Work type
-            </span>
-            <div className="inline-flex rounded-full bg-rd-bg-soft p-0.5">
-              {[
-                [WORK_TYPE_REMOTE_OK, "Remote OK"],
-                [WORK_TYPE_ONSITE_ONLY, "On-site only"],
-              ].map(([mode, label]) => (
-                <button
-                  key={mode}
-                  type="button"
-                  aria-pressed={workTypeModeUI === mode}
-                  onClick={() => setWorkTypeMode(mode)}
-                  className={`inline-flex items-center text-[12px] font-display font-semibold rounded-full px-3 py-1 transition-colors ${
-                    workTypeModeUI === mode
-                      ? "bg-rd-coral text-white"
-                      : "text-rd-text-secondary hover:text-rd-text"
-                  }`}
-                >
-                  {label}
-                </button>
-              ))}
-            </div>
-          </div>
+      {/* Two-tab switcher — unified only (jobs-two-tab). Tab 1 = personalized
+          picks/stretch recs; Tab 2 = whole-corpus faceted search (PR B/C). */}
+      {unifiedListEnabled && (
+        <div className="flex gap-2 mb-5">
+          <UnifiedTabButton
+            label="Top Matches for You"
+            active={unifiedTab === "matches"}
+            onClick={() => setUnifiedTab("matches")}
+          />
+          <UnifiedTabButton
+            label="Search All Jobs"
+            active={unifiedTab === "search"}
+            onClick={() => setUnifiedTab("search")}
+          />
         </div>
       )}
 
+      {unifiedListEnabled && unifiedTab === "search" ? (
+        <SearchTabPlaceholder />
+      ) : (
+        <>
       {/* Status row — count + seniority indicator */}
       <div className="flex items-center justify-between gap-3 flex-wrap mb-4">
         <p className="font-display font-bold text-[15px] text-rd-text">
@@ -801,6 +733,44 @@ export default function JobSuggestions() {
           )}
         </>
       )}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ───── Two-tab switcher + Search-tab placeholder (unified) ─────
+
+function UnifiedTabButton({ label, active, onClick }) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-pressed={active}
+      className={`inline-flex items-center font-display font-bold text-[13px] rounded-full px-4 py-1.5 transition-colors ${
+        active
+          ? "bg-rd-coral text-white"
+          : "bg-rd-bg-soft text-rd-text-secondary hover:text-rd-text"
+      }`}
+    >
+      {label}
+    </button>
+  );
+}
+
+// PR A placeholder. Tab 2 (whole-corpus faceted search) ships in PR B/C;
+// until then the tab is reachable but explains itself rather than 404-ing.
+function SearchTabPlaceholder() {
+  return (
+    <div className="rounded-[18px] border border-rd-border bg-rd-bg-card px-6 py-12 shadow-rd text-center">
+      <Search className="w-8 h-8 text-rd-coral mx-auto mb-3" />
+      <p className="text-[14px] font-display font-bold text-rd-text">
+        Search all jobs — coming soon
+      </p>
+      <p className="text-[12.5px] text-rd-text-secondary mt-1.5 max-w-md mx-auto leading-[1.55]">
+        Browse the whole live board with filters for function, location,
+        seniority and work type. For now, see your Top Matches.
+      </p>
     </div>
   );
 }
