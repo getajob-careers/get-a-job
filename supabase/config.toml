@@ -51,3 +51,7 @@ verify_jwt = false
 
 [functions.generateTailoredCV]
 verify_jwt = false
+
+# Admin-only reengagement campaign send (in-code service-role gate).
+[functions.send-reengagement]
+verify_jwt = false
