@@ -38,6 +38,17 @@ const FROM = "Get A Job <noreply@getajob.careers>";
 const REPLY_TO = "eli@getajob.careers";
 const CAMPAIGN_ID = "reengage-2026-06";
 const PER_SEGMENT_CAP = 50;
+// Smoke: a SEPARATE campaign_id so it never touches the real campaign's
+// idempotency rows. One representative per segment, all delivered to a single
+// controlled inbox to eyeball every template in a real client.
+const SMOKE_CAMPAIGN_ID = "reengage-2026-06-smoke";
+const SMOKE_TO = "eli@getajob.careers";
+const SMOKE_REPS: Record<string, string> = {
+  A: "werner.gidon@gmail.com", // longest role line (Gidon)
+  B: "idodagan1414@gmail.com", // company-examples variant (Ido)
+  C: "redheadeg@gmail.com", // stalled (Ella)
+  D: "adarevekalter@gmail.com", // cold no-profile ("there")
+};
 
 // ── Named memberships (explicit, from Eli) ─────────────────────────────────
 const B_IDS = new Set([
@@ -311,7 +322,12 @@ Deno.serve(async (req) => {
   });
 
   const payload = await req.json().catch(() => ({}));
-  const mode = payload?.mode === "live" ? "live" : "dry";
+  const mode =
+    payload?.mode === "live"
+      ? "live"
+      : payload?.mode === "smoke"
+        ? "smoke"
+        : "dry";
   const confirm = typeof payload?.confirm === "number" ? payload.confirm : null;
 
   const { recipients, neverConfirm, untargeted } =
@@ -335,6 +351,103 @@ Deno.serve(async (req) => {
         links: r.links,
       })),
     });
+  }
+
+  // ── SMOKE ───────────────────────────────────────────────────────────────────
+  // One representative per segment, rendered with that recipient's real slots
+  // but delivered to SMOKE_TO. Written under SMOKE_CAMPAIGN_ID so the real
+  // campaign's rows stay untouched. Idempotent on (SMOKE_CAMPAIGN_ID, user_id)
+  // → a re-run skips every row.
+  if (mode === "smoke") {
+    if (!Deno.env.get("RESEND_API_KEY")) {
+      return json(
+        { error: "RESEND_API_KEY not configured in function env" },
+        500,
+      );
+    }
+    const sends: any[] = [];
+    for (const seg of ["A", "B", "C", "D"]) {
+      const rep = recipients.find(
+        (r) => r.email === SMOKE_REPS[seg] && r.segment === seg,
+      );
+      if (!rep) {
+        sends.push({
+          segment: seg,
+          rep_email: SMOKE_REPS[seg],
+          status: "rep_not_found",
+        });
+        continue;
+      }
+      const body = buildBody(rep);
+      const m = startMetric("send-reengagement");
+      m.userId = rep.userId;
+      const { error: insErr } = await admin.from("campaign_sends").insert({
+        campaign_id: SMOKE_CAMPAIGN_ID,
+        user_id: rep.userId,
+        email: SMOKE_TO,
+        segment: seg,
+        status: "sent",
+      });
+      if (insErr) {
+        const skipped = (insErr as any).code === "23505";
+        finishMetric(m, {
+          ok: skipped,
+          httpStatus: skipped ? 200 : 500,
+          errorCode: skipped ? "skipped_duplicate" : "insert_failed",
+        });
+        sends.push({
+          segment: seg,
+          rep_email: rep.email,
+          to: SMOKE_TO,
+          subject: rep.subject,
+          body,
+          status: skipped ? "skipped" : "insert_failed",
+          error: skipped ? undefined : insErr.message,
+        });
+        continue;
+      }
+      const res = await sendEmail({
+        to: SMOKE_TO,
+        from: FROM,
+        replyTo: REPLY_TO,
+        subject: rep.subject,
+        text: body,
+        idempotencyKey: `reengage:${SMOKE_CAMPAIGN_ID}:${rep.userId}`,
+      });
+      if (res.ok) {
+        await admin
+          .from("campaign_sends")
+          .update({ resend_message_id: res.id ?? null, status: "sent" })
+          .eq("campaign_id", SMOKE_CAMPAIGN_ID)
+          .eq("user_id", rep.userId);
+        finishMetric(m, { ok: true, httpStatus: 200, errorCode: null });
+      } else {
+        await admin
+          .from("campaign_sends")
+          .update({
+            status: "failed",
+            error: (res.error ?? "unknown").slice(0, 300),
+          })
+          .eq("campaign_id", SMOKE_CAMPAIGN_ID)
+          .eq("user_id", rep.userId);
+        finishMetric(m, {
+          ok: false,
+          httpStatus: res.status ?? 500,
+          errorCode: "send_failed",
+        });
+      }
+      sends.push({
+        segment: seg,
+        rep_email: rep.email,
+        to: SMOKE_TO,
+        subject: rep.subject,
+        body,
+        status: res.ok ? "sent" : "failed",
+        resend_message_id: res.id,
+        error: res.ok ? undefined : res.error,
+      });
+    }
+    return json({ mode: "smoke", campaign_id: SMOKE_CAMPAIGN_ID, sends });
   }
 
   // ── LIVE ──────────────────────────────────────────────────────────────────
