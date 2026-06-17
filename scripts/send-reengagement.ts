@@ -68,11 +68,19 @@ const NEVERCONFIRM_MATCH = (e: string) =>
   /^jenna@bettear\.com$/i.test(e) ||
   /gulicheric/i.test(e);
 
-// No email-handle fallback: "Hey adarevekalter," in a real send looks broken.
-// Name-less recipients (most of Segment D) get a neutral "there" — flagged in
-// the report so Eli can decide on generic greeting vs supplied names.
-const firstName = (full?: string | null) =>
-  full?.trim().split(/\s+/)[0] || "there";
+// Title-case the derived first token; name-less recipients (most of D) get a
+// neutral "there" (no email-handle fallback — "Hey adarevekalter," reads broken).
+const titleCase = (s: string) =>
+  s.charAt(0).toUpperCase() + s.slice(1).toLowerCase();
+const firstName = (full?: string | null) => {
+  const tok = full?.trim().split(/\s+/)[0];
+  return tok ? titleCase(tok) : "there";
+};
+// Hand-fixed outliers: title-case already fixes GIDON→Gidon / AMITAI→Amitai;
+// Adi's full_name "Adiburshan" has no space, so override by id.
+const NAME_OVERRIDE: Record<string, string> = {
+  "cb6c2a44-3768-4a11-9d0a-9a608e9e1f37": "Adi",
+};
 
 // ── Load auth users (paginated) + profiles + career_roles ──────────────────
 async function loadAuthUsers() {
@@ -125,14 +133,24 @@ for (const r of (roles ?? []) as any[]) {
       );
   }
 }
-const topRole = (uid: string, prof: any) => {
+// Clean-role rule: include {top_role} only when it resolves to a clean short
+// label. Track-1 title preferred; else five_year_role/primary_domain — but if
+// that's a long sentence (e.g. rpress13), DROP the role mention rather than
+// printing prose. Returns null = omit the role line entirely (exclude no one).
+const isCleanShortRole = (s: string) =>
+  s.length > 0 &&
+  s.length <= 48 &&
+  s.split(/\s+/).length <= 7 &&
+  !/[.,]/.test(s);
+const roleLine = (uid: string, prof: any): string | null => {
   const c = topRoleByUser.get(uid);
-  return (
+  const candidate = (
     (c && JSON.parse(c).t) ||
     prof?.five_year_role ||
     prof?.primary_domain ||
-    "your target role"
-  );
+    ""
+  ).trim();
+  return isCleanShortRole(candidate) ? candidate : null;
 };
 
 // ── Segment assignment (precedence: never-confirm → B → C → A → D) ──────────
@@ -167,7 +185,7 @@ for (const u of authUsers) {
     continue;
   }
 
-  const fn = firstName(prof?.full_name);
+  const fn = NAME_OVERRIDE[u.id] ?? firstName(prof?.full_name);
 
   if (B_IDS.has(u.id)) {
     const isIdo = u.id === IDO;
@@ -198,10 +216,11 @@ for (const u of authUsers) {
     continue;
   }
   if (prof?.invite_code === "GETAJOBPILOT" && prof?.onboarding_complete) {
+    const role = roleLine(u.id, prof);
     recipients.push({
       email,
       segment: "A",
-      slots: { first_name: fn, top_role: topRole(u.id, prof) },
+      slots: role ? { first_name: fn, top_role: role } : { first_name: fn },
       links: [`${APP}/Career`, `${APP}/CareerAgent`],
       subject: "Your agents are ready when you are",
     });
@@ -244,6 +263,10 @@ for (const s of ["A", "B", "C", "D"]) {
     console.log(`  ${r.email}`);
     console.log(`    subject: ${r.subject}`);
     console.log(`    slots:   ${JSON.stringify(r.slots)}`);
+    if (s === "A")
+      console.log(
+        `    role:    ${r.slots.top_role ?? "(omitted — no clean short label)"}`,
+      );
     console.log(`    links:   ${r.links.join("  ")}`);
   }
 }
