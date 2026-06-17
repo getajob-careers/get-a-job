@@ -68,6 +68,9 @@ Replace each with the specific activity:
   BAD: "Demonstrated ability to drive results across cross-functional teams"
   GOOD: "Shipped the Q3 onboarding redesign with PMs from 3 squads, cutting time-to-first-value from 9 days to 4"
 
+PUNCTUATION (NO EM DASHES):
+Write with commas, periods, and hyphens. Do NOT use the em dash (the long horizontal dash, Unicode U+2014) in any bullet or the About Me section; it reads as AI-generated on a resume. Use a comma or a period, or restructure the sentence. A plain hyphen "-" is fine for compound words. (Date ranges are formatted by the system, not by you.)
+
 NUMBERS WHEN REAL, NOT DECORATIVE:
 Numbers belong in bullets when they exist in the user's source data (Story Bank metrics, responsibilities text). Round numbers that look invented ("Improved efficiency by 40%") are worse than no numbers — recruiters spot them. If the source has "shipped 2 weeks early", write that. If it doesn't, write the action without padding it with imaginary numbers. Anti-fabrication rules apply here without exception.
 
