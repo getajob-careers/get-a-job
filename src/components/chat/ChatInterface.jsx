@@ -24,12 +24,13 @@ import {
   applyApplicationActions as sharedApplyApplicationActions,
   applyCompanyTargetActions as sharedApplyCompanyTargetActions,
   generateTailoredCV as sharedGenerateTailoredCV,
-  extractStoryFromText as sharedExtractStoryFromText,
-  saveStory as sharedSaveStory,
+  extractExperienceBullets as sharedExtractExperienceBullets,
+  appendExperienceBullets as sharedAppendExperienceBullets,
+  restoreExperienceBullets as sharedRestoreExperienceBullets,
   applyAddSkillToExperience as sharedApplyAddSkillToExperience,
 } from "@/lib/coachActionHandlers";
 import MessageBubble from "./MessageBubble";
-import StorySaveCard from "./StorySaveCard";
+import BulletSaveCard from "./BulletSaveCard";
 import AddSkillCard from "./AddSkillCard";
 import { CHAT_MODEL } from "@/lib/chatModel";
 
@@ -473,7 +474,7 @@ export default function ChatInterface({
     enabled: !!user?.id,
   });
 
-  // For StorySaveCard's experience chip when the agent links a captured
+  // For BulletSaveCard's experience picker when the agent links a captured
   // story to one of the user's experience rows by UUID. Routes through
   // useExperiencesQuery so this narrow consumer no longer pollutes the
   // shared cache with a 3-column projection — see useExperiences.js
@@ -748,10 +749,10 @@ export default function ChatInterface({
           suggestedCompanyTargetActions: assistantPayload.suggested_company_target_actions,
           suggestedCVGeneration: assistantPayload.suggested_cv_generation,
           suggestedAgent: assistantPayload.suggested_agent,
-          // Story-capture is in-memory only for now — not persisted on
-          // chat_messages. Reload hides the card; user can re-trigger by
-          // continuing the conversation. Day 4 doesn't require persistence.
-          suggestedStoryCapture: data.suggested_story_capture || null,
+          // Bullet-capture is in-memory only — not persisted on
+          // chat_messages. Reload hides the card; user re-triggers by
+          // continuing the conversation.
+          suggestedBulletCapture: data.suggested_bullet_capture || null,
           suggestedAddSkill: data.suggested_add_skill || null,
         },
       ]);
@@ -844,7 +845,7 @@ export default function ChatInterface({
         suggestedCompanyTargetActions: assistantPayload.suggested_company_target_actions,
         suggestedCVGeneration: assistantPayload.suggested_cv_generation,
         suggestedAgent: assistantPayload.suggested_agent,
-        suggestedStoryCapture: data.suggested_story_capture || null,
+        suggestedBulletCapture: data.suggested_bullet_capture || null,
         suggestedAddSkill: data.suggested_add_skill || null,
       }]);
     } catch (err) {
@@ -1026,7 +1027,7 @@ export default function ChatInterface({
               id: savedFollow?.id || crypto.randomUUID(),
               role: "assistant",
               content: followData.reply,
-              suggestedStoryCapture: followData.suggested_story_capture || null,
+              suggestedBulletCapture: followData.suggested_bullet_capture || null,
               suggestedAddSkill: followData.suggested_add_skill || null,
             }]);
           }
@@ -1042,39 +1043,43 @@ export default function ChatInterface({
     navigate(createPageUrl(page));
   };
 
-  // StorySaveCard's two-stage handlers. onExtractStory invokes the
-  // extract-story-from-text edge function (the same function the
-  // AddInformation surfaces will call in Wk 3); onSaveStory writes to
-  // the stories table via the user-scoped supabase client (RLS gates
-  // ownership). Source is hard-coded 'conversation' since this card
-  // only renders for chat-captured stories.
-  // Story extract + save now route through the centralized handlers
-  // (src/lib/coachActionHandlers.js) so the dock calls the exact same
-  // path. The CV-regen follow-up stays surface-local — it needs this
-  // surface's conversation state (messages / activeConversationId /
-  // agentName) — which is the seam coachActionHandlers documents.
-  const handleExtractStory = (text) => sharedExtractStoryFromText({ text });
+  // BulletSaveCard handlers (Phase 1b). extract -> propose bullets; save ->
+  // append to experiences.bullets (snapshotting prior for undo); undo ->
+  // restore the snapshot. Routed through coachActionHandlers so the dock
+  // (CoachThread) shares the exact same path. NO post-save CV-regen follow-up:
+  // experiences.bullets is not read for output until Phase 4, so offering a
+  // regen would promise an effect that does not happen yet.
+  const handleExtractBullets = (text, experienceId) =>
+    sharedExtractExperienceBullets({ text, experienceId });
 
-  const handleSaveStory = async (story, capture) => {
-    if (!user?.id) return false;
-    const res = await sharedSaveStory({
+  const handleSaveBullets = async ({ bullets, skills, experienceId }) => {
+    if (!user?.id) return { error: "Not signed in." };
+    const res = await sharedAppendExperienceBullets({
       user,
-      story,
-      capture,
-      conversationId: activeConversationId || null,
+      experienceId,
+      bullets,
+      skills,
+    });
+    if (res.error) {
+      toast.error(res.error);
+      return { error: res.error };
+    }
+    queryClient.invalidateQueries({ queryKey: ["experiences"] });
+    return { ok: true, snapshot: res.snapshot };
+  };
+
+  const handleUndoBullets = async ({ snapshot, experienceId }) => {
+    if (!user?.id) return false;
+    const res = await sharedRestoreExperienceBullets({
+      user,
+      experienceId,
+      snapshot,
     });
     if (res.error) {
       toast.error(res.error);
       return false;
     }
-    // PR #390: kick off the CV-regen offer follow-up. Fire-and-forget so
-    // StorySaveCard collapses to SAVED immediately (true is returned
-    // before the follow-up resolves). Non-blocking — if the follow-up
-    // errors, the save itself is still persisted; the user can ask for
-    // a regen manually next turn.
-    triggerStoryCaptureRegenFollowup({ story, capture }).catch((err) =>
-      console.warn("Story-capture regen follow-up failed (non-blocking):", err),
-    );
+    queryClient.invalidateQueries({ queryKey: ["experiences"] });
     return true;
   };
 
@@ -1096,51 +1101,6 @@ export default function ChatInterface({
     }
     toast.success(res.alreadyPresent ? "Already on that experience" : "Skill added");
     return res;
-  };
-
-  // PR #390 post-save offer-regen follow-up. Mirrors the cv_generation
-  // follow-up at handleGenerateCV (synthetic "[story saved]" turn,
-  // history slice for context, agent-agnostic — assembleSystemPrompt
-  // intercepts on safeFollowUp === "story_capture" regardless of source
-  // agent). The agent responds with a brief acknowledgement +
-  // SUGGESTED_CV_GENERATION_JSON so the user gets a one-tap regen card
-  // rendered right under the StorySaveCard, fully closing the loop in
-  // chat. Honesty-rule discipline holds: only here (post-confirmed
-  // write) may the agent use past-tense "saved" language.
-  const triggerStoryCaptureRegenFollowup = async ({ capture }) => {
-    const conversationId = activeConversationId;
-    if (!conversationId) return;
-    const historyForFollowUp = messages
-      .filter((m) => m.role !== "system")
-      .slice(-20);
-    const { data: followData, error: followError } = await supabase.functions.invoke("ai-chat", {
-      body: {
-        message: "[story saved]",
-        agent: agentName || "career-coach",
-        conversation_history: historyForFollowUp,
-        chat_model: CHAT_MODEL,
-        follow_up_after: "story_capture",
-        ...(capture?.experience_id && { experience_id: capture.experience_id }),
-        ...(applicationId && { application_id: applicationId }),
-      },
-    });
-    if (followError || !followData?.reply) return;
-    const followPayload = {
-      conversation_id: conversationId,
-      role: "assistant",
-      content: followData.reply,
-    };
-    const { data: savedFollow } = await supabase
-      .from("chat_messages")
-      .insert(followPayload)
-      .select("id")
-      .single();
-    setMessages((prev) => [...prev, {
-      id: savedFollow?.id || crypto.randomUUID(),
-      role: "assistant",
-      content: followData.reply,
-      suggestedCVGeneration: followData.suggested_cv_generation || null,
-    }]);
   };
 
   const handleKeyDown = (e) => {
@@ -1293,12 +1253,13 @@ export default function ChatInterface({
                   appLabel={applicationsById[msg.suggestedCVGeneration.application_id] || null}
                 />
               )}
-              {msg.suggestedStoryCapture && msg.suggestedStoryCapture.text && (
-                <StorySaveCard
-                  capture={msg.suggestedStoryCapture}
-                  experienceLabel={experiencesById[msg.suggestedStoryCapture.experience_id] || null}
-                  onExtract={handleExtractStory}
-                  onSave={handleSaveStory}
+              {msg.suggestedBulletCapture && msg.suggestedBulletCapture.text && (
+                <BulletSaveCard
+                  capture={msg.suggestedBulletCapture}
+                  experiences={experiences}
+                  onExtract={handleExtractBullets}
+                  onSave={handleSaveBullets}
+                  onUndo={handleUndoBullets}
                 />
               )}
               {msg.suggestedAddSkill && msg.suggestedAddSkill.skill && (
