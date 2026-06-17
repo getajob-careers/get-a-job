@@ -25,6 +25,7 @@ import {
   BookOpen,
   ChevronDown,
   ChevronRight,
+  UserCheck,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
