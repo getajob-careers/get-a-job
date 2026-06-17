@@ -6,6 +6,13 @@
 // (elienglard34+demo@…) is auto-excluded by a `LIKE '%+%'` filter, but the five
 // PRIMARY team accounts below have NO `+`, so a pattern filter misses them.
 // The full internal exclusion is therefore:  email LIKE '%+%'  OR  id IN (these 5).
+//
+// ⚠ LOCKSTEP: the SQL helper public.is_internal_user(uuid) in
+// supabase/migrations/20260617_admin_real_user_counts.sql encodes this EXACT rule
+// (the same five ids + the '%+%' email pattern, reading auth.users). The admin
+// dashboard counts (admin_user_counts / admin_funnel / admin_activation_funnel /
+// admin_student_engagement / admin_list_students) all exclude via that helper.
+// If you change the ids or the rule here, change it there too — and vice versa.
 
 // The five no-plus team accounts (the ones a '+' filter cannot catch).
 export const INTERNAL_USER_IDS = [
