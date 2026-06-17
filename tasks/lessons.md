@@ -215,3 +215,10 @@ What I did wrong (in #308's design, caught here): conflated two independent conc
 Rule for next time: (1) In multi-stage GHA jobs, a stage that exists to ALARM (non-zero exit as a health signal) must not be a hard predecessor of stages doing independent work — gate the downstream stage on `if: always()`/`!cancelled()`, not `if: success()`, unless it genuinely consumes stage-1 output. Ask "does this stage NEED the previous one to have succeeded, or just to have run?" (2) Any percentage threshold over a grouped population needs a minimum-denominator guard (`total >= N`) or it fires on noise; singletons are the canonical false-trip. (3) When a "worked then stopped" regression has a clean date cutover, diff the merges in that window AND check the GHA run-conclusion history — the green→red flip date localizes the culprit PR faster than reading code.
 
 ---
+
+---
+2026-06-17 — anon smoke client must never have verifyOtp called on it
+Trigger: an "anon" RPC call returned admin data — looked like a critical leak.
+What I did wrong: reused the same supabase-js client for verifyOtp (which mints + stores a session on that client) and then for the "anon" call — so the "anon" call was authenticated as the minted user.
+Rule for next time: in the JWT-minting smoke pattern, the anon-rejection client must be a FRESH createClient(URL, ANON) that never touches verifyOtp/signIn. One client per identity; never reuse a client across identities.
+---
