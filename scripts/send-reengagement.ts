@@ -255,7 +255,7 @@ function buildBody(rec: Rec): string {
         "",
         `Your five agents — career strategy, CV, interview, LinkedIn, skill development — are still here, and they've read your profile.${roleSentence}`,
         "",
-        "If you've got ten minutes this week, start with the career agent: it'll point you at the live roles actually worth your time.",
+        "If you've got ten minutes this week, start with the career agent: it knows your matched roles and can talk through which are worth your time.",
         "",
         rec.links.join("\n"),
         "",
