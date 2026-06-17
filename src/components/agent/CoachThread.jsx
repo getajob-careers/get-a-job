@@ -10,15 +10,16 @@ import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import { useAuth } from "@/lib/AuthContext";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
+import { useEducationQuery } from "@/lib/queries/useEducation";
 import {
   applyAllTaskSuggestions,
   applyRoadmapChanges,
   applyApplicationActions,
   applyCompanyTargetActions,
   generateTailoredCV,
-  extractExperienceBullets,
-  appendExperienceBullets,
-  restoreExperienceBullets,
+  extractBullets,
+  appendBullets,
+  restoreBullets,
   applyAddSkillToExperience,
 } from "@/lib/coachActionHandlers";
 
@@ -250,7 +251,7 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
 // confirm cards (same components the full-page agents render) wired to
 // the SAME centralized handlers — closing the seam where story-capture
 // used to render full-page but silently vanish in the dock.
-function ProfileWriteCards({ message, user, conversationId, experiencesById, experiences }) {
+function ProfileWriteCards({ message, user, conversationId, experiencesById, experiences, educations }) {
   const queryClient = useQueryClient();
   const cap = message.suggestedBulletCapture;
   const skillBlock = message.suggestedAddSkill;
@@ -262,13 +263,15 @@ function ProfileWriteCards({ message, user, conversationId, experiencesById, exp
         <BulletSaveCard
           capture={cap}
           experiences={experiences}
-          onExtract={(text, experienceId) =>
-            extractExperienceBullets({ text, experienceId })
+          educations={educations}
+          onExtract={(text, targetType, targetId) =>
+            extractBullets({ text, targetType, targetId })
           }
-          onSave={async ({ bullets, skills, experienceId }) => {
-            const res = await appendExperienceBullets({
+          onSave={async ({ bullets, skills, targetType, targetId }) => {
+            const res = await appendBullets({
               user,
-              experienceId,
+              targetType,
+              targetId,
               bullets,
               skills,
             });
@@ -276,20 +279,25 @@ function ProfileWriteCards({ message, user, conversationId, experiencesById, exp
               toast.error(res.error);
               return { error: res.error };
             }
-            queryClient.invalidateQueries({ queryKey: ["experiences"] });
+            queryClient.invalidateQueries({
+              queryKey: [targetType === "education" ? "education" : "experiences"],
+            });
             return { ok: true, snapshot: res.snapshot };
           }}
-          onUndo={async ({ snapshot, experienceId }) => {
-            const res = await restoreExperienceBullets({
+          onUndo={async ({ snapshot, targetType, targetId }) => {
+            const res = await restoreBullets({
               user,
-              experienceId,
+              targetType,
+              targetId,
               snapshot,
             });
             if (res.error) {
               toast.error(res.error);
               return false;
             }
-            queryClient.invalidateQueries({ queryKey: ["experiences"] });
+            queryClient.invalidateQueries({
+              queryKey: [targetType === "education" ? "education" : "experiences"],
+            });
             return true;
           }}
         />
@@ -324,6 +332,7 @@ export default function CoachThread({ variant = "dock" }) {
   const { user } = useAuth();
   const { data: profile } = useProfileQuery(user?.id);
   const { data: experiences = [] } = useExperiencesQuery(user?.id);
+  const { data: educations = [] } = useEducationQuery(user?.id);
   const queryClient = useQueryClient();
   const bottomRef = useRef(null);
 
@@ -405,6 +414,7 @@ export default function CoachThread({ variant = "dock" }) {
               conversationId={conv.activeConversationId}
               experiencesById={experiencesById}
               experiences={experiences}
+              educations={educations}
             />
             {msg.isError && msg.userMessageText && (
               <div className={`${isDock ? "ml-9" : "ml-10"} mt-1`}>

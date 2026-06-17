@@ -34,7 +34,16 @@
       "Bash(node *)",
       "Bash(python3 -c \"import json,sys; d=json.load\\(sys.stdin\\); print\\('Keys:', list\\(d.keys\\(\\)\\)\\); roles=d.get\\('roles',[]\\); print\\('Role count:', len\\(roles\\)\\); print\\('First role keys:', list\\(roles[0].keys\\(\\)\\) if roles else 'none'\\)\")",
       "Bash(python3 *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(grep -n \"Experience: \\\\${experiencesRes\\\\|education\\\\|EDUCATION\\\\|pickPrimaryEducation\" supabase/functions/ai-chat/prompt-lib.ts)",
+      "Bash(git rm *)",
+      "Bash(npx eslint *)",
+      "Bash(npm run *)",
+      "Bash(deno check *)",
+      "Bash(git --no-pager diff --stat src/lib/database.types.ts)",
+      "Bash(git --no-pager diff --stat)",
+      "Bash(git commit -q -m ' *)",
+      "Bash(git push *)"
     ]
   },
   "enableAllProjectMcpServers": true,

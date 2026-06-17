@@ -22,7 +22,7 @@ import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { useStoriesQuery } from "@/lib/queries/useStories";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import EducationTab from "@/components/profile/EducationTab";
-import ExperienceBulletsEditor from "@/components/profile/ExperienceBulletsEditor";
+import BulletsEditor from "@/components/profile/BulletsEditor";
 import { createPageUrl } from "@/utils";
 
 // PR 3F — Profile restyled on rd-* tokens. Restyle-only on behavior;
@@ -1237,8 +1237,9 @@ export default function Profile() {
                         </button>
                       </div>
                       </div>
-                      <ExperienceBulletsEditor
-                        experience={e}
+                      <BulletsEditor
+                        targetType="experience"
+                        entity={e}
                         userId={user?.id}
                         onChanged={() =>
                           queryClient.invalidateQueries({ queryKey: ["experiences"] })

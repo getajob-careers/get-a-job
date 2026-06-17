@@ -11,23 +11,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-// BulletSaveCard — Phase 1b. The chat-capture card for experience bullets,
-// the bullet-writer counterpart of StorySaveCard (which stays in StoryBank).
-// Flow:
-//   1. REVIEW     — agent's verbatim text (editable) + an EXPERIENCE PICKER
-//                   pre-selected to the agent's best-guess experience_id; the
-//                   user confirms/changes the target. Draft is disabled until
-//                   an experience is chosen.
-//   2. EXTRACTING — calls extract-experience-bullets via onExtract(text, expId).
-//   3. PREVIEW    — proposed STAR bullets (editable / removable) + the
-//                   anti-fab extraction_notes; user confirms.
-//   4. SAVING     — onSave appends to experiences.bullets (snapshotting prior).
-//   5. SAVED      — "Added to {experience}" with a persistent UNDO that
-//                   restores the snapshot.
+// BulletSaveCard — the chat-capture card for bullets on an experience OR an
+// education entry (Story Bank → experiences/education). The bullet-writer
+// counterpart of StorySaveCard (which stays in StoryBank). Flow:
+//   1. REVIEW     — agent's verbatim text (editable) + a TARGET PICKER spanning
+//                   Experiences + Education, pre-selected to the agent's
+//                   best-guess target. Draft is disabled until a target is set.
+//   2. EXTRACTING — calls extract-bullets via onExtract(text, targetType, targetId).
+//   3. PREVIEW    — proposed STAR bullets (editable / removable) + extraction_notes.
+//   4. SAVING     — onSave appends to the entry's bullets (snapshotting prior).
+//   5. SAVED      — "Added to {entry}" with a persistent UNDO that restores it.
 //
-// A saved bullet lands in the Profile experience ONLY — it does NOT flow into
-// the CV / LinkedIn / internship / daily-action output yet (Phase 4), which is
-// why there is no post-save CV-regen offer here.
+// A saved bullet lands in the Profile entry ONLY — it does NOT flow into the
+// CV / LinkedIn / internship / daily-action output yet (Phase 4), which is why
+// there is no post-save CV-regen offer here.
 
 const PHASE = {
   REVIEW: "review",
@@ -37,17 +34,29 @@ const PHASE = {
   SAVED: "saved",
 };
 
+const eduLabel = (e) => {
+  const head = e.degree_type || e.field_of_study || "Studies";
+  const field =
+    e.field_of_study && e.degree_type ? ` in ${e.field_of_study}` : "";
+  const at = e.institution ? ` at ${e.institution}` : "";
+  return `${head}${field}${at}`;
+};
+
 export default function BulletSaveCard({
-  capture, // { text, experience_id, framing }
+  capture, // { text, target: { type, id } | null, framing }
   experiences = [], // [{ id, title, company }]
-  onExtract, // async (text, experienceId) => { bullets, skills, extraction_notes } | null
-  onSave, // async ({ bullets, skills, experienceId }) => { ok, snapshot } | { error }
-  onUndo, // async ({ snapshot, experienceId }) => boolean
+  educations = [], // [{ id, degree_type, field_of_study, institution }]
+  onExtract, // async (text, targetType, targetId) => { bullets, skills, extraction_notes } | null
+  onSave, // async ({ bullets, skills, targetType, targetId }) => { ok, snapshot } | { error }
+  onUndo, // async ({ snapshot, targetType, targetId }) => boolean
 }) {
   const [phase, setPhase] = useState(PHASE.REVIEW);
   const [text, setText] = useState(capture?.text || "");
-  const [experienceId, setExperienceId] = useState(
-    capture?.experience_id || "",
+  // The picker value encodes "type:id"; targetType / targetId derive from it.
+  const [selected, setSelected] = useState(
+    capture?.target?.type && capture?.target?.id
+      ? `${capture.target.type}:${capture.target.id}`
+      : "",
   );
   const [extractError, setExtractError] = useState(null);
   const [notes, setNotes] = useState("");
@@ -59,20 +68,31 @@ export default function BulletSaveCard({
   const [undoing, setUndoing] = useState(false);
   const [undone, setUndone] = useState(false);
 
-  const expLabel = (id) => {
-    const e = experiences.find((x) => x.id === id);
-    return e
-      ? `${e.title || "(untitled)"}${e.company ? ` at ${e.company}` : ""}`
-      : null;
+  const colon = selected.indexOf(":");
+  const targetType = colon > 0 ? selected.slice(0, colon) : "";
+  const targetId = colon > 0 ? selected.slice(colon + 1) : "";
+
+  const labelFor = (type, id) => {
+    if (type === "experience") {
+      const e = experiences.find((x) => x.id === id);
+      return e
+        ? `${e.title || "(untitled)"}${e.company ? ` at ${e.company}` : ""}`
+        : null;
+    }
+    if (type === "education") {
+      const e = educations.find((x) => x.id === id);
+      return e ? eduLabel(e) : null;
+    }
+    return null;
   };
 
   const handleExtract = async () => {
     setExtractError(null);
     if (!text.trim()) return setExtractError("Add some text first.");
-    if (!experienceId)
-      return setExtractError("Pick which experience this belongs to.");
+    if (!targetType || !targetId)
+      return setExtractError("Pick which entry this belongs to.");
     setPhase(PHASE.EXTRACTING);
-    const res = await onExtract(text, experienceId);
+    const res = await onExtract(text, targetType, targetId);
     if (!res || !Array.isArray(res.bullets) || res.bullets.length === 0) {
       setExtractError(
         "Couldn't draft a bullet from that — add a concrete detail and retry.",
@@ -89,10 +109,15 @@ export default function BulletSaveCard({
   const handleSave = async () => {
     const cleaned = bullets.map((b) => b.trim()).filter(Boolean);
     if (cleaned.length === 0) return setSaveError("Add at least one bullet.");
-    if (!experienceId) return setSaveError("Pick an experience.");
+    if (!targetType || !targetId) return setSaveError("Pick an entry.");
     setSaveError(null);
     setPhase(PHASE.SAVING);
-    const res = await onSave({ bullets: cleaned, skills, experienceId });
+    const res = await onSave({
+      bullets: cleaned,
+      skills,
+      targetType,
+      targetId,
+    });
     if (!res?.ok) {
       setSaveError(res?.error || "Save failed. Please try again.");
       setPhase(PHASE.PREVIEW);
@@ -106,7 +131,7 @@ export default function BulletSaveCard({
   const handleUndo = async () => {
     if (!snapshot) return;
     setUndoing(true);
-    const ok = await onUndo({ snapshot, experienceId });
+    const ok = await onUndo({ snapshot, targetType, targetId });
     setUndoing(false);
     if (ok) setUndone(true);
   };
@@ -120,7 +145,7 @@ export default function BulletSaveCard({
           <p className="text-xs font-display font-bold text-rd-teal-dark">
             {undone
               ? "Undone — bullets removed"
-              : `Added ${savedCount} bullet${savedCount === 1 ? "" : "s"} to ${expLabel(experienceId) || "your experience"}`}
+              : `Added ${savedCount} bullet${savedCount === 1 ? "" : "s"} to ${labelFor(targetType, targetId) || "your entry"}`}
           </p>
         </div>
         {!undone && snapshot && (
@@ -152,7 +177,7 @@ export default function BulletSaveCard({
         <div className="flex items-center gap-2 mb-2">
           <ListChecks className="w-3.5 h-3.5 text-rd-coral" />
           <p className="text-[13.5px] font-display font-bold text-rd-text">
-            Review bullets for {expLabel(experienceId) || "your experience"}
+            Review bullets for {labelFor(targetType, targetId) || "your entry"}
           </p>
         </div>
         {notes && (
@@ -215,7 +240,7 @@ export default function BulletSaveCard({
             ) : (
               <>
                 Add to{" "}
-                {expLabel(experienceId)?.split(" at ")[0] || "experience"}
+                {labelFor(targetType, targetId)?.split(" at ")[0] || "entry"}
               </>
             )}
           </Button>
@@ -232,13 +257,13 @@ export default function BulletSaveCard({
     );
   }
 
-  // REVIEW (default) — text + experience picker
-  if (experiences.length === 0) {
+  // REVIEW (default) — text + target picker (Experiences + Education)
+  if (experiences.length === 0 && educations.length === 0) {
     return (
       <div className="ml-10 mt-2 bg-rd-bg-card border border-rd-border rounded-[14px] p-4 max-w-xl shadow-rd">
         <p className="text-[12.5px] text-rd-text-secondary">
-          Add an experience under Profile → Experience first, then I can save
-          bullets to it.
+          Add an experience or an education entry under Profile first, then I
+          can save bullets to it.
         </p>
       </div>
     );
@@ -254,20 +279,33 @@ export default function BulletSaveCard({
       </div>
 
       <label className="block text-[10px] uppercase tracking-[0.09em] font-mono font-medium text-rd-text-eyebrow mb-0.5">
-        Experience
+        Where it belongs
       </label>
       <select
-        value={experienceId}
-        onChange={(e) => setExperienceId(e.target.value)}
+        value={selected}
+        onChange={(e) => setSelected(e.target.value)}
         className="w-full mb-2 bg-rd-bg-card border border-rd-border rounded-[10px] px-2.5 py-1.5 text-xs text-rd-text focus:outline-none focus:border-rd-coral"
       >
-        <option value="">Choose an experience…</option>
-        {experiences.map((e) => (
-          <option key={e.id} value={e.id}>
-            {e.title || "(untitled)"}
-            {e.company ? ` at ${e.company}` : ""}
-          </option>
-        ))}
+        <option value="">Choose where this belongs…</option>
+        {experiences.length > 0 && (
+          <optgroup label="Experience">
+            {experiences.map((e) => (
+              <option key={`experience:${e.id}`} value={`experience:${e.id}`}>
+                {e.title || "(untitled)"}
+                {e.company ? ` at ${e.company}` : ""}
+              </option>
+            ))}
+          </optgroup>
+        )}
+        {educations.length > 0 && (
+          <optgroup label="Education">
+            {educations.map((e) => (
+              <option key={`education:${e.id}`} value={`education:${e.id}`}>
+                {eduLabel(e)}
+              </option>
+            ))}
+          </optgroup>
+        )}
       </select>
 
       <Textarea

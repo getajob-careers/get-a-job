@@ -390,24 +390,28 @@ export async function saveStory({ user, story, capture, conversationId = null })
   }
 }
 
-// ── Experience bullets (Phase 1: Story Bank → experiences) ─────────────────
+// ── Bullets (Story Bank -> experiences / education) ────────────────────────
+// Bullets live on an experience OR an education entry. targetType selects the
+// table; the read / append / snapshot / restore logic is otherwise identical.
+const bulletsTable = (targetType) =>
+  targetType === "education" ? "education" : "experiences";
+
 // Bullet extract — the bullet-writer sibling of extractStoryFromText. Invokes
-// extract-experience-bullets (anti-fab gated, experience_id REQUIRED) and
+// extract-bullets (anti-fab gated; target_type + target_id REQUIRED) and
 // returns { bullets, skills, extraction_notes } | null for the confirm card.
-export async function extractExperienceBullets({ text, experienceId }) {
-  if (!experienceId) return null;
+export async function extractBullets({ text, targetType, targetId }) {
+  if (!targetType || !targetId) return null;
   try {
-    const { data, error } = await supabase.functions.invoke(
-      "extract-experience-bullets",
-      { body: { text, experience_id: experienceId } },
-    );
+    const { data, error } = await supabase.functions.invoke("extract-bullets", {
+      body: { text, target_type: targetType, target_id: targetId },
+    });
     if (error) {
-      console.error("[coachActions] extractExperienceBullets failed:", error);
+      console.error("[coachActions] extractBullets failed:", error);
       return null;
     }
     return data || null;
   } catch (err) {
-    console.error("[coachActions] extractExperienceBullets exception:", err);
+    console.error("[coachActions] extractBullets exception:", err);
     return null;
   }
 }
@@ -426,51 +430,51 @@ const dedupeAppend = (existing, incoming) => {
   return out;
 };
 
-// Append user-confirmed bullets to an experience. Reads the current arrays so
-// it can (a) snapshot the PRIOR bullets/skills for undo and (b) dedupe-append.
-// Returns { ok, snapshot } | { error }. The snapshot is what restore uses.
-export async function appendExperienceBullets({ user, experienceId, bullets, skills = [] }) {
+// Append user-confirmed bullets to an experience or education entry. Reads the
+// current arrays so it can (a) snapshot the PRIOR bullets/skills for undo and
+// (b) dedupe-append. A NULL skills column (education.skills is nullable)
+// coalesces to [] before the merge. Returns { ok, snapshot } | { error }.
+export async function appendBullets({ user, targetType, targetId, bullets, skills = [] }) {
   if (!user?.id) return { error: "missing user" };
-  if (!experienceId) return { error: "experience required" };
+  if (!targetType || !targetId) return { error: "target required" };
+  const table = bulletsTable(targetType);
   const incoming = (Array.isArray(bullets) ? bullets : [])
     .map((b) => String(b || "").trim())
     .filter(Boolean);
   if (incoming.length === 0) return { error: "no bullets to add" };
   try {
-    const { data: row, error: readErr } = await (
-      /** @type {any} */ (supabase)
-    )
-      .from("experiences")
+    const { data: row, error: readErr } = await (/** @type {any} */ (supabase))
+      .from(table)
       .select("bullets, skills")
-      .eq("id", experienceId)
+      .eq("id", targetId)
       .eq("user_id", user.id)
       .maybeSingle();
-    if (readErr || !row) return { error: "experience not found" };
+    if (readErr || !row) return { error: "entry not found" };
     const prevBullets = Array.isArray(row.bullets) ? row.bullets : [];
-    const prevSkills = Array.isArray(row.skills) ? row.skills : [];
+    const prevSkills = Array.isArray(row.skills) ? row.skills : []; // NULL -> []
     const mergedBullets = dedupeAppend(prevBullets, incoming);
     const mergedSkills = dedupeAppend(prevSkills, Array.isArray(skills) ? skills : []);
     const { error } = await (/** @type {any} */ (supabase))
-      .from("experiences")
+      .from(table)
       .update({ bullets: mergedBullets, skills: mergedSkills })
-      .eq("id", experienceId)
+      .eq("id", targetId)
       .eq("user_id", user.id);
     if (error) {
-      console.error("[coachActions] appendExperienceBullets failed:", error);
+      console.error("[coachActions] appendBullets failed:", error);
       return { error: error.message || "Could not add bullets." };
     }
     return { ok: true, snapshot: { bullets: prevBullets, skills: prevSkills } };
   } catch (err) {
-    console.error("[coachActions] appendExperienceBullets exception:", err);
+    console.error("[coachActions] appendBullets exception:", err);
     return { error: err?.message || "Could not add bullets." };
   }
 }
 
-// Replace an experience's bullets (+ optionally skills) with the given arrays —
-// the Profile editor owns the full draft. Returns { ok } | { error }.
-export async function setExperienceBullets({ user, experienceId, bullets, skills }) {
+// Replace an entry's bullets (+ optionally skills) with the given arrays — the
+// Profile editor owns the full draft. Returns { ok } | { error }.
+export async function setBullets({ user, targetType, targetId, bullets, skills }) {
   if (!user?.id) return { error: "missing user" };
-  if (!experienceId) return { error: "experience required" };
+  if (!targetType || !targetId) return { error: "target required" };
   try {
     const patch = {
       bullets: (Array.isArray(bullets) ? bullets : [])
@@ -479,26 +483,27 @@ export async function setExperienceBullets({ user, experienceId, bullets, skills
     };
     if (Array.isArray(skills)) patch.skills = skills;
     const { error } = await (/** @type {any} */ (supabase))
-      .from("experiences")
+      .from(bulletsTable(targetType))
       .update(patch)
-      .eq("id", experienceId)
+      .eq("id", targetId)
       .eq("user_id", user.id);
     if (error) {
-      console.error("[coachActions] setExperienceBullets failed:", error);
+      console.error("[coachActions] setBullets failed:", error);
       return { error: error.message || "Could not save bullets." };
     }
     return { ok: true };
   } catch (err) {
-    console.error("[coachActions] setExperienceBullets exception:", err);
+    console.error("[coachActions] setBullets exception:", err);
     return { error: err?.message || "Could not save bullets." };
   }
 }
 
-// Undo — restore a prior bullets/skills snapshot from appendExperienceBullets.
-export async function restoreExperienceBullets({ user, experienceId, snapshot }) {
-  return setExperienceBullets({
+// Undo — restore a prior bullets/skills snapshot from appendBullets.
+export async function restoreBullets({ user, targetType, targetId, snapshot }) {
+  return setBullets({
     user,
-    experienceId,
+    targetType,
+    targetId,
     bullets: snapshot?.bullets || [],
     skills: snapshot?.skills,
   });

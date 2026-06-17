@@ -255,16 +255,16 @@ describe("BULLET_CAPTURE_RULES — add-X-to-CV intent + bullet contract (Phase 1
   });
 });
 
-describe("BULLET_CAPTURE_RULES — experience-scoped + no downstream promise (Phase 1b)", () => {
-  it("requires an experience and refuses to invent one (zero-experiences gate)", () => {
-    expect(BULLET_CAPTURE_RULES).toContain("ZERO EXPERIENCES");
+describe("BULLET_CAPTURE_RULES — experiences + education target + no downstream promise (Part B)", () => {
+  it("requires an experience OR education target and refuses to invent one (zero-targets gate)", () => {
+    expect(BULLET_CAPTURE_RULES).toContain("ZERO TARGETS");
     expect(BULLET_CAPTURE_RULES).toContain("Never invent an experience");
   });
 
-  it("emits a best-guess experience_id from real UUIDs, null when unsure (picker resolves)", () => {
-    expect(BULLET_CAPTURE_RULES).toContain("EXACT UUID from EXPERIENCES context");
+  it("emits a best-guess {type,id} target from real UUIDs, null when unsure (picker resolves)", () => {
+    expect(BULLET_CAPTURE_RULES).toContain("EXACT UUID from the matching EXPERIENCES or EDUCATION context");
     expect(BULLET_CAPTURE_RULES).toContain("NEVER invent a UUID");
-    expect(BULLET_CAPTURE_RULES).toContain("use null");
+    expect(BULLET_CAPTURE_RULES).toContain('"target":null');
   });
 
   it("forbids promising the bullet flows into CV / LinkedIn / internship / daily-action output", () => {
@@ -278,7 +278,10 @@ describe("BULLET_CAPTURE_RULES — experience-scoped + no downstream promise (Ph
 
   it("routes through the new bullet marker + edge function", () => {
     expect(BULLET_CAPTURE_RULES).toContain("SUGGESTED_BULLET_CAPTURE_JSON");
-    expect(BULLET_CAPTURE_RULES).toContain("extract-experience-bullets");
+    expect(BULLET_CAPTURE_RULES).toContain("extract-bullets");
+    // generalized target contract: experiences AND education
+    expect(BULLET_CAPTURE_RULES).toContain('"target"');
+    expect(BULLET_CAPTURE_RULES).toContain("education");
   });
 });
 
