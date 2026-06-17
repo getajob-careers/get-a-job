@@ -3,7 +3,7 @@ import { Loader2, RefreshCw, Maximize2, CheckCircle2, AlertCircle, ListTodo, Rou
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import MessageBubble from "@/components/chat/MessageBubble";
-import StorySaveCard from "@/components/chat/StorySaveCard";
+import BulletSaveCard from "@/components/chat/BulletSaveCard";
 import AddSkillCard from "@/components/chat/AddSkillCard";
 import { useCoachConversation } from "@/lib/CoachConversationContext";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
@@ -16,8 +16,9 @@ import {
   applyApplicationActions,
   applyCompanyTargetActions,
   generateTailoredCV,
-  extractStoryFromText,
-  saveStory,
+  extractExperienceBullets,
+  appendExperienceBullets,
+  restoreExperienceBullets,
   applyAddSkillToExperience,
 } from "@/lib/coachActionHandlers";
 
@@ -249,26 +250,46 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
 // confirm cards (same components the full-page agents render) wired to
 // the SAME centralized handlers — closing the seam where story-capture
 // used to render full-page but silently vanish in the dock.
-function ProfileWriteCards({ message, user, conversationId, experiencesById }) {
+function ProfileWriteCards({ message, user, conversationId, experiencesById, experiences }) {
   const queryClient = useQueryClient();
-  const cap = message.suggestedStoryCapture;
+  const cap = message.suggestedBulletCapture;
   const skillBlock = message.suggestedAddSkill;
   if (!cap?.text && !skillBlock?.skill) return null;
 
   return (
     <>
       {cap?.text && (
-        <StorySaveCard
+        <BulletSaveCard
           capture={cap}
-          experienceLabel={experiencesById[cap.experience_id] || null}
-          onExtract={(text) => extractStoryFromText({ text })}
-          onSave={async (story, capture) => {
-            const res = await saveStory({ user, story, capture, conversationId });
+          experiences={experiences}
+          onExtract={(text, experienceId) =>
+            extractExperienceBullets({ text, experienceId })
+          }
+          onSave={async ({ bullets, skills, experienceId }) => {
+            const res = await appendExperienceBullets({
+              user,
+              experienceId,
+              bullets,
+              skills,
+            });
+            if (res.error) {
+              toast.error(res.error);
+              return { error: res.error };
+            }
+            queryClient.invalidateQueries({ queryKey: ["experiences"] });
+            return { ok: true, snapshot: res.snapshot };
+          }}
+          onUndo={async ({ snapshot, experienceId }) => {
+            const res = await restoreExperienceBullets({
+              user,
+              experienceId,
+              snapshot,
+            });
             if (res.error) {
               toast.error(res.error);
               return false;
             }
-            toast.success("Story saved to your Story Bank");
+            queryClient.invalidateQueries({ queryKey: ["experiences"] });
             return true;
           }}
         />
@@ -307,7 +328,7 @@ export default function CoachThread({ variant = "dock" }) {
   const bottomRef = useRef(null);
 
   // Resolve experience_id → "Role at Company" for the add-skill /
-  // story-capture confirm cards (so they show the exact target).
+  // bullet-capture confirm cards (so they show the exact target).
   const experiencesById = React.useMemo(() => {
     const m = {};
     for (const e of experiences) {
@@ -383,6 +404,7 @@ export default function CoachThread({ variant = "dock" }) {
               user={user}
               conversationId={conv.activeConversationId}
               experiencesById={experiencesById}
+              experiences={experiences}
             />
             {msg.isError && msg.userMessageText && (
               <div className={`${isDock ? "ml-9" : "ml-10"} mt-1`}>

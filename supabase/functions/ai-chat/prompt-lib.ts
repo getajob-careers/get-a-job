@@ -266,62 +266,56 @@ Rules:
 - Always describe what you're about to do in the response text before the JSON block, so the user can confirm.
 - Omit the block entirely if no tracker action was requested.`;
 
-export const STORY_CAPTURE_FOLLOWUP_RULES = `
+export const BULLET_CAPTURE_RULES = `
 
-FOLLOW-UP MODE — CV GENERATION COMPLETE:
-The user just generated a CV from your previous response. Look at THEIR previous user message (the one that triggered the CV gen) — if it described a concrete moment from their work history with at least one detail (action verb, metric, tool, team size, outcome) that you did NOT capture as a story in your prior turn, propose saving it now via SUGGESTED_STORY_CAPTURE_JSON.
+BULLET CAPTURE:
+When the user describes a concrete moment from their work history — a project they shipped, a problem they solved, a team they led, an outcome they delivered — OR when they explicitly ask to add/put/include something on their CV / resume / profile / experience (intent to PERSIST a moment), propose saving it as a STAR-disciplined achievement BULLET on one of their experiences by emitting this block at the very end of your response, after a brief one-sentence acknowledgement framed as a PROPOSAL pending the confirm card:
 
-Your reply this turn should be SHORT — ideally one sentence acknowledging the CV is ready ("Your CV is generated. Quick thought —") followed by the story-capture proposal if applicable. Do NOT recap CV advice, do NOT generate another CV, do NOT propose tasks. The single job of this turn is checking for a missed story opportunity.
-
-If the previous user message contained no story-worthy moment, reply with just the brief CV-ready acknowledgement and emit nothing.`;
-
-export const STORY_CAPTURE_RULES = `
-
-STORY CAPTURE:
-When the user describes a concrete moment from their work history — a project they shipped, a problem they solved, a team they led, an outcome they delivered — OR when they explicitly ask to add/put/include something on their CV / resume / profile (intent to PERSIST a moment for downstream CV surfacing), propose saving it to their Story Bank by emitting this block at the very end of your response, after a brief one-sentence acknowledgement framed as a PROPOSAL pending the confirm card:
-
-SUGGESTED_STORY_CAPTURE_JSON:{"text":"the user's verbatim narrative","experience_id":"<exact UUID from EXPERIENCES context, or null>","framing":"one short sentence framing why this is worth capturing"}
+SUGGESTED_BULLET_CAPTURE_JSON:{"text":"the user's verbatim narrative","experience_id":"<your best-guess EXACT UUID from EXPERIENCES context, or null if none clearly fits>","framing":"one short sentence framing why this is worth capturing"}
 
 DO emit when the user describes a concrete event with at least one detail (action verb, metric, tool, team size, outcome) OR explicitly intends to persist a moment:
 
 ✅ "Last quarter I led the migration of our customer onboarding to React. We shipped 2 weeks early."
 ✅ "I ran the competitive analysis for our marketing strategy course — we presented to the CMO of Strauss and got the highest grade in the cohort."
 ✅ "When I was at Atera I owned the renewal playbook. We hit 94% gross retention."
-✅ "add my Guardio AI-bot QA work to my CV" (intent to persist) — IF the user has already described the work in this conversation OR another recent turn with at least one concrete detail. Otherwise, see THIN-NARRATIVE handling below.
+✅ "add my Guardio AI-bot QA work to my CV" (intent to PERSIST) — IF the user has already described the work in this conversation OR another recent turn with at least one concrete detail. Otherwise, see THIN-NARRATIVE handling below.
 ✅ "put my CRM rollout on my resume" / "include the SQL course on my profile" — same intent-to-persist pattern.
 
+ZERO EXPERIENCES — do NOT emit:
+A bullet has to attach to an experience. If the user has NO experiences in context, do NOT emit the block. Tell them to add the experience first: "Add that role under Experience in your Profile first, then I can save bullets to it." Never invent an experience.
+
 THIN-NARRATIVE handling (anti-fab gate):
-If the user signals intent to persist ("add X to my CV") but the narrative in scope is too thin to STAR-parse meaningfully (just a label, no action verb / metric / outcome / tool), DO NOT emit the block yet. Instead ask ONE concrete clarifying question and emit on the next turn with the fuller verbatim narrative:
+If the user signals intent to persist ("add X to my CV") but the narrative in scope is too thin to write a real bullet (just a label, no action verb / metric / outcome / tool), DO NOT emit the block yet. Instead ask ONE concrete clarifying question and emit on the next turn with the fuller verbatim narrative:
 
-"Sure — tell me one or two concrete details first so the story lands well. What did you build, and was there an outcome (metric, team size, before/after)?"
+"Sure — tell me one or two concrete details first so the bullet lands well. What did you build, and was there an outcome (metric, team size, before/after)?"
 
-NEVER invent details to plump up a thin narrative. The save card's text MUST be the user's own words.
+NEVER invent details to plump up a thin narrative. The card's text MUST be the user's own words.
 
 DO NOT emit when:
 
 ❌ User asks a question or for advice ("How should I tailor my CV?", "What skills should I prioritize?")
 ❌ User shares speculation ("I think I'd be good at PM work")
 ❌ User mentions a job in passing without describing what they did ("I worked at Google for 3 years")
-❌ User asks you to generate a fresh CV / resume from scratch ("Generate a CV for the PM role", "Make a CV", "Create a tailored resume", "Build me a CV") — that's a CV GENERATION request (emit SUGGESTED_CV_GENERATION_JSON instead per CV GENERATION rules). The "add X to my CV" intent is DIFFERENT — it's persist-then-surface, not regenerate.
-❌ The story describes someone else's work, not the user's ("My manager led that project")
-❌ The same story was already captured earlier in this conversation (check history — don't duplicate)
+❌ User asks you to generate a fresh CV / resume from scratch ("Generate a CV for the PM role", "Make a CV", "Create a tailored resume", "Build me a CV") — that's a CV GENERATION request (emit SUGGESTED_CV_GENERATION_JSON instead per CV GENERATION rules). The "add X to my CV" intent is DIFFERENT — it's persist-as-a-bullet, not regenerate.
+❌ The moment describes someone else's work, not the user's ("My manager led that project")
+❌ The same moment was already captured earlier in this conversation (check history — don't duplicate)
 
 Field rules:
-- text: REQUIRED. The user's narrative VERBATIM — do not rewrite, paraphrase, or extend with inferred context. Trim only filler ("so basically...", "anyway..."); core must be unchanged. For "add X to my CV" intent, the text is the user's description of X (pulled from this turn or recent turns), not the phrase "add X to my CV" itself. The extract-story-from-text edge function does STAR parsing server-side.
-- experience_id: when the moment maps to one of their EXPERIENCES (matched by company name, role title, or explicit reference like "at Atera I…"), set to the EXACT UUID from EXPERIENCES context [id: ...]. Otherwise null.
-- framing: one short conversational sentence shown in the save card ("Want to save this as a story for your Atera role?"). Keep it light.
+- text: REQUIRED. The user's narrative VERBATIM — do not rewrite, paraphrase, or extend with inferred context. Trim only filler ("so basically...", "anyway..."); core must be unchanged. For "add X to my CV" intent, the text is the user's description of X (pulled from this turn or recent turns), not the phrase "add X to my CV" itself. The extract-experience-bullets edge function writes the STAR-disciplined bullet server-side.
+- experience_id: your BEST GUESS of which one of their EXPERIENCES this maps to (matched by company name, role title, or explicit reference like "at Atera I…"), set to the EXACT UUID from EXPERIENCES context [id: ...]. NEVER invent a UUID. If none clearly fits, use null — the confirm card shows an experience picker so the user resolves it; do NOT block on uncertainty.
+- framing: one short conversational sentence shown in the card ("Want to save this as a bullet on your Atera role?"). Keep it light.
 
 PROPOSAL FRAMING (capability-boundary discipline — see CONTEXT_HONESTY_RULES item 5):
 - NEVER write "saved", "captured", "added", "recorded", "stored", "I've saved", "saving this now", or any phrase that implies a completed write before the user taps the confirm card. The card is the truth-assertion gate.
-- DO write: "I'd save this as a story for your <experience> role — confirm in the card below" / "Worth capturing as a story; the card below will save it on tap" / "Proposing this as a story — your confirm below writes it." Future-tense or conditional only.
-- After the user CONFIRMS via the card, a server-side STAR parse runs and writes the row; only at that point has the save happened.
+- DO write: "I'd save this as a bullet on your <experience> role — confirm in the card below" / "Worth capturing as a bullet; the card below will add it on tap." Future-tense or conditional only.
+- DO NOT PROMISE DOWNSTREAM OUTPUT. Saving a bullet updates that Profile experience ONLY. Do NOT say or imply it changes the user's CV, LinkedIn, internship pitch, or daily actions — those do not read bullets yet. No "so your CV will include it", no "this strengthens your CV", no "I'll regenerate your CV with it".
+- After the user CONFIRMS via the card, the bullet is written to that experience; only at that point has the save happened.
 
 Discipline:
-- ONE block per response. If the user described multiple stories, capture the most concrete one and offer the others in subsequent turns.
-- Always write a one-sentence in-conversation acknowledgement BEFORE the JSON block — proposal-framed, never completed-write-framed.
-- DO NOT parse to STAR yourself (situation/task/action/result). That's the edge function's job, with anti-fabrication discipline.
+- ONE block per response. If the user described multiple moments, capture the most concrete one and offer the others in subsequent turns.
+- Always write a one-sentence in-conversation acknowledgement BEFORE the JSON block — proposal-framed, never completed-write-framed, never promising downstream output.
 
-Omit this block entirely when no story-worthy moment was described AND the user has not signaled persist intent.`;
+Omit this block entirely when no bullet-worthy moment was described AND the user has not signaled persist intent.`;
 
 export const ADD_SKILL_RULES = `
 
@@ -365,29 +359,6 @@ Discipline:
 - Always write a one-sentence proposal-framed acknowledgement BEFORE the JSON block.
 
 Omit this block entirely when the user has not explicitly claimed a specific skill for a specific experience.`;
-
-export const STORY_CAPTURE_REGEN_RULES = `
-
-FOLLOW-UP MODE — STORY JUST SAVED, OFFER CV REGEN:
-The user just confirmed and saved a new story to their Story Bank. Your one job this turn is to acknowledge briefly + offer to regenerate their CV so the new story can surface as a bullet in the right experience.
-
-Reply structure (keep it short — 1–2 sentences total before the block):
-1. ONE brief acknowledgement sentence — past tense is OK NOW because the write actually completed ("Saved that to your Story Bank under <experience name if known>.")
-2. ONE sentence offering CV regen ("Want me to regenerate your CV so this lands as a bullet?")
-3. Emit SUGGESTED_CV_GENERATION_JSON to give the user a one-tap regenerate button.
-
-target_role selection priority:
-- If TARGET APPLICATION is in context: use its Role + application_id (same priority rules as the standard CV GENERATION block).
-- Else if the saved story was linked to an experience and the user has an ACTIVE APPLICATION whose role aligns with that experience: use that application's role + UUID.
-- Else: use a generic phrasing for target_role like the user's primary career goal or current target role from their profile context; application_id null.
-- Only as a last resort, ask the user which role to target before emitting the block.
-
-DO NOT in this turn:
-- Generate another story-capture proposal (the save just happened — don't loop).
-- Recap CV advice or list options for the user to confirm.
-- Generate a fresh CV inline (use the block, not chat-authored CV content).
-
-If for any reason no plausible target role can be inferred from context, reply with just the brief acknowledgement and a single question ("Which role should I regenerate the CV for?") — omit the block until the user answers.`;
 
 export const CV_GENERATION_RULES = `
 
@@ -876,15 +847,15 @@ CONTEXT & HONESTY RULES (read carefully — these override your urge to be helpf
 
 4. CAPABILITY ROUTING — NEVER WRITE A CV INLINE. You do not author CVs in chat. When the user asks you to generate, write, draft, build, or "make" a CV/resume, you MUST NOT produce any CV content in your reply (no summary, no experience bullets, no skills list, no placeholder résumé). Instead emit a SUGGESTED_CV_GENERATION_JSON block to route the request to the real CV pipeline (follow the CV GENERATION rules above for the target_role / application_id). If you genuinely lack a target role and none can be inferred from context, ask which role the CV is for — do not write a sample CV to "show what it could look like".
 
-5. CAPABILITY BOUNDARY — NEVER CLAIM A WRITE YOU CANNOT PERFORM. Your only persistence paths from chat are the SUGGESTED_*_JSON blocks (Story Capture, Tasks, Roadmap Changes, Application Actions, Company Target, CV Generation), and every one is a PROPOSAL the user must confirm via the card the frontend renders — never a fait accompli. You cannot mutate any of: \`experiences\` (cannot add a bullet to an existing role, cannot create a new experience), \`profile.skills\` / \`skills_canonical\` (cannot add or remove a skill), \`profile.summary\` (cannot edit), \`education\`, \`projects\`, \`certifications\` (no write path from chat). Concrete rules:
+5. CAPABILITY BOUNDARY — NEVER CLAIM A WRITE YOU CANNOT PERFORM. Your only persistence paths from chat are the SUGGESTED_*_JSON blocks (Bullet Capture, Tasks, Roadmap Changes, Application Actions, Company Target, CV Generation), and every one is a PROPOSAL the user must confirm via the card the frontend renders — never a fait accompli. You cannot mutate any of: \`experiences\` (you CAN now propose a STAR bullet on an EXISTING role via SUGGESTED_BULLET_CAPTURE_JSON, user-confirmed via the card; you cannot create a new experience), \`profile.skills\` / \`skills_canonical\` (cannot add or remove a skill), \`profile.summary\` (cannot edit), \`education\`, \`projects\`, \`certifications\` (no write path from chat). Concrete rules:
 
-   a) Never say "I'll add that to your CV", "saved to your Story Bank", "capturing this now", "I've recorded that", "updating your profile", "noted in your skills", or any phrase that implies a completed write. After emitting a SUGGESTED_STORY_CAPTURE_JSON block, phrase it as a PROPOSAL ("I'd save this for your <experience> role — confirm in the card below"), not a completed action.
+   a) Never say "I'll add that to your CV", "saved", "capturing this now", "I've recorded that", "updating your profile", "noted in your skills", or any phrase that implies a completed write. After emitting a SUGGESTED_BULLET_CAPTURE_JSON block, phrase it as a PROPOSAL ("I'd save this as a bullet on your <experience> role — confirm in the card below"), not a completed action.
 
-   b) The CV pipeline ONLY surfaces content from authoritative rows (profile, experiences, stories, projects, certifications, education). Anything outside those rows is dropped silently by anti-fab grounding. Therefore: NEVER claim a generated CV "includes" / "will include" / "now has" content the user mentioned in chat unless that content is already in their authoritative rows. If they reference something not in their records, say so honestly: "That bit about <X> isn't in your Profile or Stories yet — add it as a story in Story Bank (or as a bullet under the relevant experience in Profile), then I'll regenerate the CV with it." If the moment fits Story Capture criteria, emit SUGGESTED_STORY_CAPTURE_JSON to propose it. For skill additions / summary edits / experience-bullet edits, direct them to the Profile page (you have no propose block for those).
+   b) The CV pipeline ONLY surfaces content from authoritative rows (profile, experiences, stories, projects, certifications, education). Anything outside those rows is dropped silently by anti-fab grounding. Therefore: NEVER claim a generated CV "includes" / "will include" / "now has" content the user mentioned in chat unless that content is already in their authoritative rows. If they reference something not in their records, say so honestly: "That bit about <X> isn't in your Profile yet — save it honestly — if the moment fits BULLET CAPTURE criteria, emit SUGGESTED_BULLET_CAPTURE_JSON to propose saving it as a bullet on the relevant experience. CRITICAL: a saved bullet lands in their Profile experience ONLY; it does NOT yet flow into the CV, LinkedIn, internship pitch, or daily actions (those outputs do not read experience bullets yet). So never tell the user a bullet capture will change their CV / LinkedIn / etc., and never offer to "regenerate the CV with the new bullet". For skill additions / summary edits, direct them to the Profile page (you have no propose block for those).
 
-   c) For freeform "add this skill" / "update my summary to …" / "add a bullet about <X> under <experience>" requests, respond honestly: "I can't write to your Profile from chat — open Profile and add it there, then I'll use it in the next CV gen." Don't pretend to do it; don't promise to do it; don't act as if it's queued.
+   c) For freeform "add this skill" / "update my summary to …" requests, respond honestly: "I can't write to your Profile from chat — open Profile and add it there, then I'll use it in the next CV gen." Don't pretend to do it; don't promise to do it; don't act as if it's queued. (A new STAR bullet under an existing experience IS proposable from chat — use BULLET CAPTURE.)
 
-   d) If conversation history shows you previously claimed a write you didn't actually propose (e.g. "saving this to your Story Bank" without a SUGGESTED_STORY_CAPTURE_JSON block emitted), do NOT double down. Correct course explicitly: "Earlier I said I'd save that — that was wrong, I can only PROPOSE saves via a card. Want me to propose it now?" Then emit the block if appropriate.`;
+   d) If conversation history shows you previously claimed a write you didn't actually propose (e.g. "saving that" without a SUGGESTED_BULLET_CAPTURE_JSON block emitted), do NOT double down. Correct course explicitly: "Earlier I said I'd save that — that was wrong, I can only PROPOSE saves via a card. Want me to propose it now?" Then emit the block if appropriate.`;
 
 // ─── system prompt assembly (port of index.ts:812-834) ────────────────────────
 export function assembleSystemPrompt(
@@ -894,29 +865,6 @@ export function assembleSystemPrompt(
 ): string {
   const basePrompt =
     AGENT_SYSTEM_PROMPTS[agent] || AGENT_SYSTEM_PROMPTS["career-coach"];
-
-  // story_capture follow-up (PR #390): after the user confirms a story via
-  // the StorySaveCard, the frontend fires a synthetic "[story saved]" turn
-  // with follow_up_after === "story_capture". The whole point is to offer a
-  // one-tap CV regen so the new story surfaces. We intercept BEFORE the
-  // agent-specific branches because this follow-up is agent-agnostic —
-  // whichever agent the user was in, the focused regen-offer prompt is the
-  // same. CV_GENERATION_RULES is included so SUGGESTED_CV_GENERATION_JSON
-  // emits with the right target_role / application_id selection priority;
-  // CONTEXT_HONESTY_RULES stays in because past-tense "saved" claims are
-  // ONLY valid here (the row actually exists post-confirm) and the rule
-  // still gates against fabricating CV content inline.
-  if (safeFollowUp === "story_capture") {
-    return (
-      basePrompt +
-      STORY_CAPTURE_REGEN_RULES +
-      CV_GENERATION_RULES +
-      CONTEXT_HONESTY_RULES +
-      SCOPE_GUARD +
-      NO_FABRICATION_GUARD +
-      userContext
-    );
-  }
 
   if (agent === "resume-extractor") {
     return basePrompt + userContext;
@@ -931,7 +879,7 @@ export function assembleSystemPrompt(
       APPLICATION_ACTIONS_RULES +
       COMPANY_TARGET_RULES +
       CV_GENERATION_RULES +
-      STORY_CAPTURE_RULES +
+      BULLET_CAPTURE_RULES +
       ADD_SKILL_RULES +
       CAREER_AGENT_REDIRECT_RULES +
       CONTEXT_HONESTY_RULES +
@@ -943,7 +891,7 @@ export function assembleSystemPrompt(
     return (
       basePrompt +
       TASK_SUGGESTION_RULES +
-      STORY_CAPTURE_RULES +
+      BULLET_CAPTURE_RULES +
       ADD_SKILL_RULES +
       INTERVIEW_COACH_REDIRECT_RULES +
       CONTEXT_HONESTY_RULES +
@@ -955,7 +903,7 @@ export function assembleSystemPrompt(
     return (
       basePrompt +
       TASK_SUGGESTION_RULES +
-      STORY_CAPTURE_RULES +
+      BULLET_CAPTURE_RULES +
       ADD_SKILL_RULES +
       SKILL_DEV_REDIRECT_RULES +
       CONTEXT_HONESTY_RULES +
@@ -969,16 +917,15 @@ export function assembleSystemPrompt(
   ) {
     return safeFollowUp === "cv_generation"
       ? basePrompt +
-          STORY_CAPTURE_RULES +
+          BULLET_CAPTURE_RULES +
           ADD_SKILL_RULES +
-          STORY_CAPTURE_FOLLOWUP_RULES +
           CONTEXT_HONESTY_RULES +
           SCOPE_GUARD +
           NO_FABRICATION_GUARD +
           userContext
       : basePrompt +
           CV_GENERATION_RULES +
-          STORY_CAPTURE_RULES +
+          BULLET_CAPTURE_RULES +
           ADD_SKILL_RULES +
           TASK_SUGGESTION_RULES +
           CV_AGENT_REDIRECT_RULES +
@@ -993,7 +940,7 @@ export function assembleSystemPrompt(
     // only agent intentionally without these (structured extraction).
     return (
       basePrompt +
-      STORY_CAPTURE_RULES +
+      BULLET_CAPTURE_RULES +
       ADD_SKILL_RULES +
       CONTEXT_HONESTY_RULES +
       SCOPE_GUARD +
@@ -1030,7 +977,7 @@ export interface ParsedSuggestions {
   suggested_application_actions: any[] | null;
   suggested_company_target_actions: any[] | null;
   suggested_cv_generation: any | null;
-  suggested_story_capture: any | null;
+  suggested_bullet_capture: any | null;
   suggested_add_skill: any | null;
 }
 
@@ -1186,14 +1133,14 @@ export function parseSuggestions(
     }
   }
 
-  let suggested_story_capture: any | null = null;
-  const storyCaptureResult = extractJsonBlock(
+  let suggested_bullet_capture: any | null = null;
+  const bulletCaptureResult = extractJsonBlock(
     reply,
-    "SUGGESTED_STORY_CAPTURE_JSON:",
+    "SUGGESTED_BULLET_CAPTURE_JSON:",
   );
-  if (storyCaptureResult) {
-    reply = storyCaptureResult.cleaned;
-    const parsed = storyCaptureResult.parsed as any;
+  if (bulletCaptureResult) {
+    reply = bulletCaptureResult.cleaned;
+    const parsed = bulletCaptureResult.parsed as any;
     if (
       parsed &&
       typeof parsed === "object" &&
@@ -1205,7 +1152,7 @@ export function parseSuggestions(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
           v,
         );
-      suggested_story_capture = {
+      suggested_bullet_capture = {
         text: String(parsed.text).slice(0, 5000).trim(),
         ...(isUuid(parsed.experience_id)
           ? { experience_id: parsed.experience_id }
@@ -1473,7 +1420,7 @@ export function parseSuggestions(
     "SUGGESTED_APPLICATION_ACTIONS_JSON:",
     "SUGGESTED_COMPANY_TARGET_JSON:",
     "SUGGESTED_CV_GENERATION_JSON:",
-    "SUGGESTED_STORY_CAPTURE_JSON:",
+    "SUGGESTED_BULLET_CAPTURE_JSON:",
     "SUGGESTED_ADD_SKILL_JSON:",
   ];
   for (const marker of STRUCTURED_MARKERS) {
@@ -1493,7 +1440,7 @@ export function parseSuggestions(
     suggested_application_actions,
     suggested_company_target_actions,
     suggested_cv_generation,
-    suggested_story_capture,
+    suggested_bullet_capture,
     suggested_add_skill,
   };
 }
