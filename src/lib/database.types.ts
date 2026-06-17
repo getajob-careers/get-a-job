@@ -804,6 +804,7 @@ export type Database = {
       }
       experiences: {
         Row: {
+          bullets: string[]
           company: string
           created_at: string
           cross_functional: boolean
@@ -820,6 +821,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          bullets?: string[]
           company: string
           created_at?: string
           cross_functional?: boolean
@@ -836,6 +838,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          bullets?: string[]
           company?: string
           created_at?: string
           cross_functional?: boolean
