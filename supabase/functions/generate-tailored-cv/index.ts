@@ -2099,6 +2099,11 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       [/\b(O|o)rchestrated\b/g, (m) => m[0] === "O" ? "Led" : "led"],
       [/\b(O|o)rchestrating\b/g, (m) => m[0] === "O" ? "Leading" : "leading"],
       [/\b(O|o)rchestrate\b/g, (m) => m[0] === "O" ? "Lead" : "lead"],
+      // em dash (U+2014) -> " - ": the em dash is a strong LLM tell on a resume.
+      // Collapse surrounding spaces so "a \u2014 b" and "a\u2014b" both become
+      // "a - b". DO NOT touch U+2013 (en dash) \u2014 that is the server-stamped
+      // date-range separator (reconcile.ts formatExperienceDates).
+      [/\s*\u2014\s*/g, () => " - "],
     ];
     const deBanish = (text: string): string => {
       let out = text;
@@ -2538,6 +2543,28 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         status: "interested",
       }).select().single();
       appRecord = data;
+    }
+
+    // Persist the reconciled structured CV as a versioned row (CV-as-state
+    // foundation; this PR adds public.application_cvs). Best-effort + non-fatal:
+    // the PDF is already rendered and uploaded, so a persist failure must NOT
+    // block CV delivery (no user-facing behavior change). The applications.cv_url
+    // write above stays the back-compat pointer. source_jd records the pasted JD
+    // (jdInput) so a standalone/extension CV remembers what it was tailored to.
+    try {
+      const { error: cvPersistError } = await supabase.from("application_cvs").insert({
+        user_id: user.id,
+        application_id: appRecord?.id ?? null,
+        source_jd: jdInput || null,
+        cv_data: cvData as any,
+        cv_url,
+        version: 1,
+      });
+      if (cvPersistError) {
+        console.error("[CV] application_cvs persist failed (non-fatal):", cvPersistError.message);
+      }
+    } catch (e) {
+      console.error("[CV] application_cvs persist threw (non-fatal):", (e as Error).message);
     }
 
     // Collect any profile fields that silently dropped out of the CV because
