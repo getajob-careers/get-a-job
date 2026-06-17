@@ -192,12 +192,9 @@ for (const u of authUsers) {
     recipients.push({
       email,
       segment: "B",
-      slots: {
-        first_name: fn,
-        company_block: isIdo
-          ? "companies like Datarails and Anyword"
-          : "[no-company block: exploratory framing]",
-      },
+      slots: isIdo
+        ? { first_name: fn, companies: "Datarails and Anyword" }
+        : { first_name: fn },
       links: isIdo
         ? [`${APP}/CareerAgent`, `${APP}/Linkedin`, `${APP}/Career`]
         : [`${APP}/CareerAgent`, `${APP}/Linkedin`],
@@ -244,6 +241,79 @@ for (const u of authUsers) {
   });
 }
 
+// ── Locked body copy (rendered exactly here; the live path reuses buildBody) ─
+const SIGNOFF = "\n\n— The Get A Job team";
+function buildBody(rec: Rec): string {
+  const fn = rec.slots.first_name;
+  if (rec.segment === "A") {
+    const roleSentence = rec.slots.top_role
+      ? ` They're locked on your target: ${rec.slots.top_role}.`
+      : "";
+    return (
+      [
+        `Hey ${fn},`,
+        "",
+        `Your five agents — career strategy, CV, interview, LinkedIn, skill development — are still here, and they've read your profile.${roleSentence}`,
+        "",
+        "If you've got ten minutes this week, start with the career agent: it'll point you at the live roles actually worth your time.",
+        "",
+        rec.links.join("\n"),
+        "",
+        "Broken or unclear? Just reply — it goes straight to Eli.",
+      ].join("\n") + SIGNOFF
+    );
+  }
+  if (rec.segment === "B") {
+    const hasCos = !!rec.slots.companies;
+    const opening = hasCos
+      ? `We've been mapping companies in the Israeli market, and a few stood out as worth a look for you — companies like ${rec.slots.companies}.`
+      : "We've been mapping companies in the Israeli market that might be worth a look for someone with your background.";
+    const second = hasCos
+      ? "Nothing formal — just a starting point. The career agent can talk any of them through, and the LinkedIn hub will help you find a way in."
+      : "Nothing formal — just a starting point. The career agent can help you explore which directions fit, and the LinkedIn hub will help you find a way in.";
+    return (
+      [
+        `Hey ${fn},`,
+        "",
+        opening,
+        "",
+        second,
+        "",
+        rec.links.join("\n"),
+        "",
+        "Reply anytime — it reaches Eli directly.",
+      ].join("\n") + SIGNOFF
+    );
+  }
+  if (rec.segment === "C") {
+    return (
+      [
+        `Hey ${fn},`,
+        "",
+        "You started setting up your Get A Job profile but didn't finish — you're a few minutes from having your five agents ready to work on your search.",
+        "",
+        "Pick up where you left off:",
+        rec.links.join("\n"),
+        "",
+        "Stuck on something? Just reply — it goes straight to Eli.",
+      ].join("\n") + SIGNOFF
+    );
+  }
+  // D
+  return (
+    [
+      `Hey ${fn},`,
+      "",
+      "You signed up for Get A Job but never set up your profile. If you're still job-hunting, it's worth ten minutes: five agents — career strategy, CV, interview, LinkedIn, skill development — built around your background.",
+      "",
+      "Start here:",
+      rec.links.join("\n"),
+      "",
+      "Not for you? Ignore this. If you reply, it goes straight to Eli.",
+    ].join("\n") + SIGNOFF
+  );
+}
+
 // ── Per-segment counts ─────────────────────────────────────────────────────
 const bySeg: Record<string, Rec[]> = { A: [], B: [], C: [], D: [] };
 for (const r of recipients) bySeg[r.segment].push(r);
@@ -273,6 +343,33 @@ for (const s of ["A", "B", "C", "D"]) {
 if (untargeted.length) {
   console.log("\n-- untargeted (for your audit) --");
   for (const u of untargeted) console.log(`  ${u.email}  (${u.why})`);
+}
+
+// ── LOCKED BODY COPY — fully-resolved samples (one+ per segment) ────────────
+const SAMPLE_EMAILS = [
+  "werner.gidon@gmail.com", // A — longest role line (Gidon)
+  "ymayberg@gmail.com", // A — slash role (Yacova)
+  "rpress13@gmail.com", // A — role omitted (Raphael)
+  "idodagan1414@gmail.com", // B — Ido (company examples)
+  "burshanadi62@gmail.com", // B — no-company block (Adi)
+  "redheadeg@gmail.com", // C — stalled (Ella)
+  "adarevekalter@gmail.com", // D — cold no-profile (there)
+];
+console.log(
+  "\n\n================ LOCKED BODY COPY (fully resolved) ================",
+);
+for (const se of SAMPLE_EMAILS) {
+  const r = recipients.find((x) => x.email === se);
+  if (!r) {
+    console.log(`\n(${se} not in recipients)`);
+    continue;
+  }
+  console.log(`\n----- Segment ${r.segment} — ${r.email} -----`);
+  console.log(`From:     ${FROM}`);
+  console.log(`Reply-To: ${REPLY_TO}`);
+  console.log(`Subject:  ${r.subject}`);
+  console.log("");
+  console.log(buildBody(r));
 }
 
 if (!LIVE) {
