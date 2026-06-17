@@ -217,10 +217,13 @@ Deno.serve(async (req) => {
     // Path B follow-up trigger. The frontend sets this after a side-effect
     // completes so the agent can do a clean second pass for things missed
     // when the user had a competing explicit ask. Whitelist the values to
-    // keep the contract tight. (The Phase-1b bullet capture does NOT use a
-    // post-save follow-up: nothing reads experiences.bullets for output yet,
-    // so there's no honest CV-regen to offer — reinstated in Phase 4.)
-    const VALID_FOLLOW_UPS = new Set(["cv_generation"]);
+    // keep the contract tight.
+    //
+    // story_capture (PR #390): fired by the frontend after the user confirms
+    // a StorySaveCard so the agent's next turn can offer a one-tap CV regen
+    // (SUGGESTED_CV_GENERATION_JSON) with the new story now in the source
+    // corpus. See STORY_CAPTURE_REGEN_RULES in prompt-lib.ts.
+    const VALID_FOLLOW_UPS = new Set(["cv_generation", "story_capture"]);
     const safeFollowUp =
       typeof follow_up_after === "string" &&
       VALID_FOLLOW_UPS.has(follow_up_after)
@@ -416,7 +419,7 @@ Deno.serve(async (req) => {
     const suggested_company_target_actions =
       parsed.suggested_company_target_actions;
     const suggested_cv_generation = parsed.suggested_cv_generation;
-    const suggested_bullet_capture = parsed.suggested_bullet_capture;
+    const suggested_story_capture = parsed.suggested_story_capture;
     const suggested_add_skill = parsed.suggested_add_skill;
 
     _ok = true;
@@ -433,7 +436,7 @@ Deno.serve(async (req) => {
           suggested_company_target_actions,
         }),
         ...(suggested_cv_generation && { suggested_cv_generation }),
-        ...(suggested_bullet_capture && { suggested_bullet_capture }),
+        ...(suggested_story_capture && { suggested_story_capture }),
         ...(suggested_add_skill && { suggested_add_skill }),
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },

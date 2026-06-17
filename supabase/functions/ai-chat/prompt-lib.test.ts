@@ -14,7 +14,8 @@ import {
   parseSuggestions,
   assembleSystemPrompt,
   CONTEXT_HONESTY_RULES,
-  BULLET_CAPTURE_RULES,
+  STORY_CAPTURE_RULES,
+  STORY_CAPTURE_REGEN_RULES,
 } from "./prompt-lib.ts";
 
 const MARKER = "SUGGESTED_TASKS_JSON:";
@@ -109,9 +110,9 @@ describe("assembleSystemPrompt — profile-write capabilities on every agent", (
   ];
 
   for (const agent of AGENTS) {
-    it(`gives ${agent} both SUGGESTED_BULLET_CAPTURE_JSON and SUGGESTED_ADD_SKILL_JSON`, () => {
+    it(`gives ${agent} both SUGGESTED_STORY_CAPTURE_JSON and SUGGESTED_ADD_SKILL_JSON`, () => {
       const sys = assembleSystemPrompt(agent, "", null);
-      expect(sys).toContain("SUGGESTED_BULLET_CAPTURE_JSON");
+      expect(sys).toContain("SUGGESTED_STORY_CAPTURE_JSON");
       expect(sys).toContain("SUGGESTED_ADD_SKILL_JSON");
     });
   }
@@ -119,7 +120,7 @@ describe("assembleSystemPrompt — profile-write capabilities on every agent", (
   it("does NOT give resume-extractor the profile-write blocks", () => {
     const sys = assembleSystemPrompt("resume-extractor", "", null);
     expect(sys).not.toContain("SUGGESTED_ADD_SKILL_JSON");
-    expect(sys).not.toContain("SUGGESTED_BULLET_CAPTURE_JSON");
+    expect(sys).not.toContain("SUGGESTED_STORY_CAPTURE_JSON");
   });
 });
 
@@ -180,8 +181,8 @@ describe("assembleSystemPrompt — capability boundary (no fake writes)", () => 
   });
 
   it("wires CAPABILITY BOUNDARY into cv-helper's cv_generation follow-up path (regression)", () => {
-    // Pre-fix this branch built a prompt with BULLET_CAPTURE_RULES +
-    // the dropped FOLLOWUP rule + guards only — no CONTEXT_HONESTY_RULES,
+    // Pre-fix this branch built a prompt with STORY_CAPTURE_RULES +
+    // STORY_CAPTURE_FOLLOWUP_RULES + guards only — no CONTEXT_HONESTY_RULES,
     // so the false-write phrasing was unconstrained. The fix appends
     // CONTEXT_HONESTY_RULES here too.
     expect(assembleSystemPrompt("cv-helper", "", "cv_generation")).toContain(sentinel);
@@ -195,7 +196,7 @@ describe("assembleSystemPrompt — capability boundary (no fake writes)", () => 
     // The rule body must contain the named anti-claim phrasings so any
     // future prompt edit that softens the rule loudly fails this test.
     expect(CONTEXT_HONESTY_RULES).toContain('"I\'ll add that to your CV"');
-    expect(CONTEXT_HONESTY_RULES).toContain('"saved"');
+    expect(CONTEXT_HONESTY_RULES).toContain('"saved to your Story Bank"');
     expect(CONTEXT_HONESTY_RULES).toContain('"capturing this now"');
     expect(CONTEXT_HONESTY_RULES).toContain('"updating your profile"');
     expect(CONTEXT_HONESTY_RULES).toContain('"noted in your skills"');
@@ -211,87 +212,86 @@ describe("assembleSystemPrompt — capability boundary (no fake writes)", () => 
   });
 });
 
-describe("BULLET_CAPTURE_RULES — add-X-to-CV intent + bullet contract (Phase 1b)", () => {
-  // The agent must now emit SUGGESTED_BULLET_CAPTURE_JSON on "add X to my
+describe("STORY_CAPTURE_RULES — add-X-to-CV intent (PR #390)", () => {
+  // The agent must now emit SUGGESTED_STORY_CAPTURE_JSON on "add X to my
   // CV / put Y on my resume / include Z on my profile" intent (the
   // persist-intent pattern) AND continue to NOT emit on a bare "generate
   // a CV" regenerate request. These tests pin the rule body's emit/
   // exclude language so future edits can't silently undo the loop-closer.
 
   it("affirms 'add X to my CV' as an EMIT trigger", () => {
-    expect(BULLET_CAPTURE_RULES).toContain("add my Guardio AI-bot QA work to my CV");
-    expect(BULLET_CAPTURE_RULES).toContain("intent to PERSIST");
+    expect(STORY_CAPTURE_RULES).toContain("add my Guardio AI-bot QA work to my CV");
+    expect(STORY_CAPTURE_RULES).toContain("intent to PERSIST");
   });
 
   it("still excludes bare 'generate a fresh CV' from emit (the regenerate intent stays separate)", () => {
-    expect(BULLET_CAPTURE_RULES).toContain("generate a fresh CV");
-    expect(BULLET_CAPTURE_RULES).toContain("SUGGESTED_CV_GENERATION_JSON");
+    expect(STORY_CAPTURE_RULES).toContain("generate a fresh CV");
+    expect(STORY_CAPTURE_RULES).toContain("SUGGESTED_CV_GENERATION_JSON");
   });
 
   it("requires the thin-narrative ask-first anti-fab gate (never invent details)", () => {
-    expect(BULLET_CAPTURE_RULES).toContain("THIN-NARRATIVE");
-    expect(BULLET_CAPTURE_RULES).toContain("NEVER invent details");
-    expect(BULLET_CAPTURE_RULES).toContain("ONE concrete clarifying question");
+    expect(STORY_CAPTURE_RULES).toContain("THIN-NARRATIVE");
+    expect(STORY_CAPTURE_RULES).toContain("NEVER invent details");
+    expect(STORY_CAPTURE_RULES).toContain("ONE concrete clarifying question");
   });
 
   it("requires PROPOSAL framing pre-confirm (regression: #319 honesty must hold)", () => {
     // The CAPABILITY BOUNDARY rule from #319 forbade phrases that imply a
-    // completed write before the user taps the confirm card. BULLET_CAPTURE
+    // completed write before the user taps the confirm card. STORY_CAPTURE
     // must echo that — when the agent emits the proposal block, the
     // in-conversation acknowledgement must be future-tense / conditional,
     // never past-tense "saved".
-    expect(BULLET_CAPTURE_RULES).toContain("PROPOSAL FRAMING");
-    expect(BULLET_CAPTURE_RULES).toContain('"saved"');
-    expect(BULLET_CAPTURE_RULES).toContain("confirm in the card below");
-    expect(BULLET_CAPTURE_RULES).toContain("Future-tense or conditional only");
+    expect(STORY_CAPTURE_RULES).toContain("PROPOSAL FRAMING");
+    expect(STORY_CAPTURE_RULES).toContain('"saved"');
+    expect(STORY_CAPTURE_RULES).toContain("confirm in the card below");
+    expect(STORY_CAPTURE_RULES).toContain("Future-tense or conditional only");
   });
 
   it("text field rule still demands user-verbatim (anti-fab on save payload)", () => {
-    expect(BULLET_CAPTURE_RULES).toContain("VERBATIM");
+    expect(STORY_CAPTURE_RULES).toContain("VERBATIM");
     // For add-X-to-CV intent, text is the user's description of X — not
     // the literal "add X to my CV" phrasing — pulled from this turn or
     // recent turns.
-    expect(BULLET_CAPTURE_RULES).toContain('not the phrase "add X to my CV" itself');
+    expect(STORY_CAPTURE_RULES).toContain('not the phrase "add X to my CV" itself');
   });
 });
 
-describe("BULLET_CAPTURE_RULES — experience-scoped + no downstream promise (Phase 1b)", () => {
-  it("requires an experience and refuses to invent one (zero-experiences gate)", () => {
-    expect(BULLET_CAPTURE_RULES).toContain("ZERO EXPERIENCES");
-    expect(BULLET_CAPTURE_RULES).toContain("Never invent an experience");
+describe("STORY_CAPTURE_REGEN_RULES — post-confirm CV regen offer (PR #390)", () => {
+  // After the user confirms the StorySaveCard, the frontend fires a
+  // synthetic "[story saved]" turn with follow_up_after === "story_capture".
+  // assembleSystemPrompt intercepts before agent-specific branches so the
+  // regen offer is agent-agnostic.
+
+  it("intercepts at assembleSystemPrompt regardless of source agent", () => {
+    for (const a of ["career_agent", "cv-helper", "application_cv_success_agent", "interview_coach", "skill_development_agent", "career-coach"]) {
+      const sys = assembleSystemPrompt(a, "", "story_capture");
+      expect(sys).toContain("STORY JUST SAVED, OFFER CV REGEN");
+      // CV_GENERATION_RULES must also be present so the agent has the
+      // SUGGESTED_CV_GENERATION_JSON contract + target_role/application_id
+      // priority logic to emit cleanly.
+      expect(sys).toContain("SUGGESTED_CV_GENERATION_JSON");
+    }
   });
 
-  it("emits a best-guess experience_id from real UUIDs, null when unsure (picker resolves)", () => {
-    expect(BULLET_CAPTURE_RULES).toContain("EXACT UUID from EXPERIENCES context");
-    expect(BULLET_CAPTURE_RULES).toContain("NEVER invent a UUID");
-    expect(BULLET_CAPTURE_RULES).toContain("use null");
+  it("permits past-tense 'Saved' acknowledgement IN THIS BRANCH ONLY (the write actually happened)", () => {
+    // The whole point of this branch is post-confirm. Past-tense saved is
+    // honest here, not a violation of #319 — the row exists. Pin the
+    // example so the rule body isn't accidentally softened.
+    expect(STORY_CAPTURE_REGEN_RULES).toContain("Saved that to your Story Bank");
+    expect(STORY_CAPTURE_REGEN_RULES).toContain("past tense is OK NOW");
   });
 
-  it("forbids promising the bullet flows into CV / LinkedIn / internship / daily-action output", () => {
-    // Phase 1b: nothing reads experiences.bullets for output yet, so the
-    // agent must NOT promise downstream effects (reinstated in Phase 4 when
-    // the CV authors from bullets).
-    expect(BULLET_CAPTURE_RULES).toContain("DO NOT PROMISE DOWNSTREAM OUTPUT");
-    expect(BULLET_CAPTURE_RULES).toContain("do not read bullets yet");
-    expect(BULLET_CAPTURE_RULES).toContain("I'll regenerate your CV with it");
+  it("forbids re-emitting a story-capture proposal (no infinite loop)", () => {
+    expect(STORY_CAPTURE_REGEN_RULES).toContain("Generate another story-capture proposal");
   });
 
-  it("routes through the new bullet marker + edge function", () => {
-    expect(BULLET_CAPTURE_RULES).toContain("SUGGESTED_BULLET_CAPTURE_JSON");
-    expect(BULLET_CAPTURE_RULES).toContain("extract-experience-bullets");
+  it("forbids authoring CV content inline (capability routing still holds)", () => {
+    expect(STORY_CAPTURE_REGEN_RULES).toContain("Generate a fresh CV inline");
   });
-});
 
-describe("post-save CV-regen follow-up is DROPPED in Phase 1b", () => {
-  // The "STORY JUST SAVED, OFFER CV REGEN" follow-up promised an output the
-  // CV doesn't produce yet (bullets aren't read until Phase 4), so it is
-  // removed entirely. A bullet_capture / story_capture follow-up value must
-  // NOT resurrect a regen offer — it falls through to the normal agent prompt.
-  for (const fu of ["story_capture", "bullet_capture"]) {
-    it(`follow_up_after="${fu}" produces no CV-regen offer`, () => {
-      const sys = assembleSystemPrompt("career_agent", "", fu);
-      expect(sys).not.toContain("OFFER CV REGEN");
-      expect(sys).not.toContain("STORY JUST SAVED");
-    });
-  }
+  it("CONTEXT_HONESTY_RULES still appended in story_capture follow-up branch (no regression)", () => {
+    const sys = assembleSystemPrompt("career_agent", "", "story_capture");
+    expect(sys).toContain("CAPABILITY BOUNDARY");
+    expect(sys).toContain("DEIXIS HONESTY");
+  });
 });
