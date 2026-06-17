@@ -35,6 +35,13 @@ export default [
       "unused-imports": pluginUnusedImports,
     },
     rules: {
+      // no-undef guards a real regression: `unused-imports/no-unused-imports`
+      // (below) auto-removes an import the moment it's momentarily unused, so
+      // adding an import before the code that uses it silently drops it. Without
+      // no-undef the resulting undefined identifier (e.g. an icon used only as a
+      // prop value, which react/jsx-uses-vars can't see) passes lint and white-
+      // screens at runtime. PR #352 shipped exactly this. Keep it on.
+      "no-undef": "error",
       "no-unused-vars": "off",
       "react/jsx-uses-vars": "error",
       "react/jsx-uses-react": "error",
