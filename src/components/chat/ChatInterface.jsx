@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
+import { useEducationQuery } from "@/lib/queries/useEducation";
 import { track, EVENTS } from "@/lib/analytics";
 import { Send, Loader2, Plus, ListTodo, CheckCircle2, ArrowRight, Route, Briefcase, ChevronDown, Trash2, MessageSquare, FileText, Download, RefreshCw } from "lucide-react";
 import { triggerBlobDownload, filenameFromSignedUrl } from "@/lib/downloadFile";
@@ -24,9 +25,9 @@ import {
   applyApplicationActions as sharedApplyApplicationActions,
   applyCompanyTargetActions as sharedApplyCompanyTargetActions,
   generateTailoredCV as sharedGenerateTailoredCV,
-  extractExperienceBullets as sharedExtractExperienceBullets,
-  appendExperienceBullets as sharedAppendExperienceBullets,
-  restoreExperienceBullets as sharedRestoreExperienceBullets,
+  extractBullets as sharedExtractBullets,
+  appendBullets as sharedAppendBullets,
+  restoreBullets as sharedRestoreBullets,
   applyAddSkillToExperience as sharedApplyAddSkillToExperience,
 } from "@/lib/coachActionHandlers";
 import MessageBubble from "./MessageBubble";
@@ -480,6 +481,7 @@ export default function ChatInterface({
   // shared cache with a 3-column projection — see useExperiences.js
   // header for the Eli incident retro.
   const { data: experiences = [] } = useExperiencesQuery(user?.id);
+  const { data: educations = [] } = useEducationQuery(user?.id);
   const experiencesById = React.useMemo(() => {
     const m = {};
     for (const e of experiences) {
@@ -1049,14 +1051,18 @@ export default function ChatInterface({
   // (CoachThread) shares the exact same path. NO post-save CV-regen follow-up:
   // experiences.bullets is not read for output until Phase 4, so offering a
   // regen would promise an effect that does not happen yet.
-  const handleExtractBullets = (text, experienceId) =>
-    sharedExtractExperienceBullets({ text, experienceId });
+  const bulletsCacheKey = (targetType) =>
+    targetType === "education" ? "education" : "experiences";
 
-  const handleSaveBullets = async ({ bullets, skills, experienceId }) => {
+  const handleExtractBullets = (text, targetType, targetId) =>
+    sharedExtractBullets({ text, targetType, targetId });
+
+  const handleSaveBullets = async ({ bullets, skills, targetType, targetId }) => {
     if (!user?.id) return { error: "Not signed in." };
-    const res = await sharedAppendExperienceBullets({
+    const res = await sharedAppendBullets({
       user,
-      experienceId,
+      targetType,
+      targetId,
       bullets,
       skills,
     });
@@ -1064,22 +1070,23 @@ export default function ChatInterface({
       toast.error(res.error);
       return { error: res.error };
     }
-    queryClient.invalidateQueries({ queryKey: ["experiences"] });
+    queryClient.invalidateQueries({ queryKey: [bulletsCacheKey(targetType)] });
     return { ok: true, snapshot: res.snapshot };
   };
 
-  const handleUndoBullets = async ({ snapshot, experienceId }) => {
+  const handleUndoBullets = async ({ snapshot, targetType, targetId }) => {
     if (!user?.id) return false;
-    const res = await sharedRestoreExperienceBullets({
+    const res = await sharedRestoreBullets({
       user,
-      experienceId,
+      targetType,
+      targetId,
       snapshot,
     });
     if (res.error) {
       toast.error(res.error);
       return false;
     }
-    queryClient.invalidateQueries({ queryKey: ["experiences"] });
+    queryClient.invalidateQueries({ queryKey: [bulletsCacheKey(targetType)] });
     return true;
   };
 
@@ -1257,6 +1264,7 @@ export default function ChatInterface({
                 <BulletSaveCard
                   capture={msg.suggestedBulletCapture}
                   experiences={experiences}
+                  educations={educations}
                   onExtract={handleExtractBullets}
                   onSave={handleSaveBullets}
                   onUndo={handleUndoBullets}

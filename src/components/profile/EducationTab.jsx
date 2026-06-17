@@ -7,6 +7,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Pencil, Trash2, GraduationCap, Loader2 } from "lucide-react";
+import BulletsEditor from "@/components/profile/BulletsEditor";
 import { toast } from "sonner";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import { DEGREE_TYPE_OPTIONS, dropdownValueForDegreeType, EDUCATION_LEVELS } from "@/lib/educationPolicy";
@@ -395,8 +396,9 @@ export default function EducationTab({ user }) {
           <div
             key={e.id}
             data-edu-id={e.id}
-            className={`${RD_CARD} flex items-start gap-3 hover:border-rd-border-hover transition-colors`}
+            className={`${RD_CARD} hover:border-rd-border-hover transition-colors`}
           >
+            <div className="flex items-start gap-3">
             <div className="w-10 h-10 rounded-[12px] bg-rd-teal-tint flex items-center justify-center flex-shrink-0">
               <GraduationCap className="w-4 h-4 text-rd-teal-dark" />
             </div>
@@ -438,6 +440,15 @@ export default function EducationTab({ user }) {
                 <Trash2 className="w-3.5 h-3.5" />
               </button>
             </div>
+            </div>
+            <BulletsEditor
+              targetType="education"
+              entity={e}
+              userId={user?.id}
+              onChanged={() =>
+                queryClient.invalidateQueries({ queryKey: ["education", user.id] })
+              }
+            />
           </div>
         ))}
       </div>

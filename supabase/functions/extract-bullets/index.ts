@@ -3,17 +3,18 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { startMetric, finishMetric } from "../_shared/metrics.ts";
 import { openaiChatCompletion } from "../_shared/openai-chat.ts";
 
-// extract-experience-bullets — Phase 1 of the Story Bank -> experiences
+// extract-bullets — the bullet-writer for the Story Bank -> experiences/education
 // migration. The bullet-writer sibling of extract-story-from-text.
 //
-// Reads free-form user text describing something they did in a role and
-// returns 1-3 resume-ready STAR-disciplined bullet lines (action + outcome
-// with any REAL metric/tool in-line) plus the skills/tools demonstrated. It
-// requires an experience_id — bullets always belong to an experience.
+// Reads free-form user text describing something they did in a role or in
+// their studies and returns 1-3 resume-ready STAR-disciplined bullet lines
+// (action + outcome with any REAL metric/tool in-line) plus the skills/tools
+// demonstrated. It requires a target_type (experience | education) + target_id
+// — bullets always belong to an existing experience or education entry.
 //
 // Like the story extractor, this function does NOT write to the DB: it returns
 // the candidate bullets for the frontend to render in an editable confirmation
-// card. The frontend appends to experiences.bullets only after the user
+// card. The frontend appends to the entry's bullets only after the user
 // accepts/edits (the anti-fabrication safety seam) and snapshots the prior
 // array so the write is undoable. The bullet TEXT is the source of truth for
 // the downstream verbatim-metric guarantee (later phases), so every real
@@ -107,7 +108,7 @@ Deno.serve(async (req) => {
   if (req.method === "OPTIONS")
     return new Response("ok", { headers: corsHeaders });
 
-  const m = startMetric("extract-experience-bullets");
+  const m = startMetric("extract-bullets");
   let _ok = false;
   let _http = 500;
   let _err: string | null = null;
@@ -163,7 +164,7 @@ Deno.serve(async (req) => {
 
     const { data: allowed } = await serviceClient.rpc("check_rate_limit", {
       p_user_id: user.id,
-      p_function_name: "extract-experience-bullets",
+      p_function_name: "extract-bullets",
       p_max_calls: RATE_LIMIT_CALLS,
       p_window_seconds: RATE_LIMIT_WINDOW,
     });
@@ -191,7 +192,7 @@ Deno.serve(async (req) => {
         },
       );
     }
-    let parsed: { text?: unknown; experience_id?: unknown };
+    let parsed: { text?: unknown; target_type?: unknown; target_id?: unknown };
     try {
       parsed = JSON.parse(rawBody);
     } catch {
@@ -216,14 +217,33 @@ Deno.serve(async (req) => {
       });
     }
 
-    // experience_id is REQUIRED — a bullet always belongs to an experience.
-    const experience_id =
-      typeof parsed.experience_id === "string" ? parsed.experience_id : "";
-    if (!experience_id || !UUID_RE.test(experience_id)) {
+    // target_type + target_id are REQUIRED — a bullet always belongs to an
+    // EXISTING experience or education entry. Ownership is validated against
+    // the matching table (RLS gates the SELECT under the user's auth).
+    const target_type =
+      parsed.target_type === "experience" || parsed.target_type === "education"
+        ? parsed.target_type
+        : "";
+    const target_id =
+      typeof parsed.target_id === "string" ? parsed.target_id : "";
+    if (!target_type) {
       _http = 400;
       _err = "bad_input";
       return new Response(
-        JSON.stringify({ error: "experience_id (valid UUID) is required" }),
+        JSON.stringify({
+          error: 'target_type must be "experience" or "education"',
+        }),
+        {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        },
+      );
+    }
+    if (!target_id || !UUID_RE.test(target_id)) {
+      _http = 400;
+      _err = "bad_input";
+      return new Response(
+        JSON.stringify({ error: "target_id (valid UUID) is required" }),
         {
           status: 400,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -231,20 +251,23 @@ Deno.serve(async (req) => {
       );
     }
 
-    // Verify ownership via the user-scoped client (RLS gates the SELECT, so an
-    // experience the user doesn't own returns no rows).
-    const { data: exp } = await supabase
-      .from("experiences")
-      .select("title, company")
-      .eq("id", experience_id)
+    // Ownership check against the matching table; a short label grounds the LLM.
+    const targetTable =
+      target_type === "education" ? "education" : "experiences";
+    const targetCols =
+      target_type === "education"
+        ? "degree_type, field_of_study, institution"
+        : "title, company";
+    const { data: entry } = await supabase
+      .from(targetTable)
+      .select(targetCols)
+      .eq("id", target_id)
       .maybeSingle();
-    if (!exp) {
+    if (!entry) {
       _http = 404;
       _err = "bad_ownership";
       return new Response(
-        JSON.stringify({
-          error: "experience_id not found or not owned by user",
-        }),
+        JSON.stringify({ error: "target not found or not owned by user" }),
         {
           status: 404,
           headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -252,9 +275,18 @@ Deno.serve(async (req) => {
       );
     }
 
-    const userPrompt = `EXPERIENCE (the bullets belong to this role — you may reference the role/company since they are confirmed, but do not invent other details about it):
-- Role: ${String(exp.title || "").slice(0, 200)}
-- Company: ${String(exp.company || "").slice(0, 200)}
+    const ent = entry as unknown as Record<string, unknown>;
+    const entryLabel =
+      target_type === "education"
+        ? `EDUCATION ENTRY (the bullets belong to this entry — you may reference the degree / field / school since they are confirmed, but do not invent other details):
+- Degree: ${String(ent.degree_type || "").slice(0, 200)}
+- Field of study: ${String(ent.field_of_study || "").slice(0, 200)}
+- School: ${String(ent.institution || "").slice(0, 200)}`
+        : `EXPERIENCE (the bullets belong to this role — you may reference the role / company since they are confirmed, but do not invent other details about it):
+- Role: ${String(ent.title || "").slice(0, 200)}
+- Company: ${String(ent.company || "").slice(0, 200)}`;
+
+    const userPrompt = `${entryLabel}
 
 USER TEXT:
 ${text}
@@ -274,9 +306,9 @@ Write resume-ready achievement bullets from the user text above.`;
       },
       openaiKey,
       {
-        traceName: "extract-experience-bullets",
+        traceName: "extract-bullets",
         userId: user.id,
-        metadata: { has_experience_link: true },
+        metadata: { target_type },
       },
       { signal: AbortSignal.timeout(20000) },
     );
@@ -284,7 +316,7 @@ Write resume-ready achievement bullets from the user text above.`;
     if (!openaiResponse.ok) {
       const errText = await openaiResponse.text();
       console.error(
-        `[extract-experience-bullets] OpenAI ${openaiResponse.status}: ${errText}`,
+        `[extract-bullets] OpenAI ${openaiResponse.status}: ${errText}`,
       );
       _http = 502;
       _err = `openai_${openaiResponse.status}`;
@@ -311,7 +343,7 @@ Write resume-ready achievement bullets from the user text above.`;
       rawParsed = JSON.parse(content);
     } catch (parseErr) {
       console.error(
-        `[extract-experience-bullets] JSON parse failed:`,
+        `[extract-bullets] JSON parse failed:`,
         content.slice(0, 200),
         parseErr,
       );
@@ -331,7 +363,7 @@ Write resume-ready achievement bullets from the user text above.`;
     const sanitised = sanitise(rawParsed);
     if (!sanitised) {
       console.error(
-        `[extract-experience-bullets] bad shape from LLM:`,
+        `[extract-bullets] bad shape from LLM:`,
         JSON.stringify(rawParsed).slice(0, 300),
       );
       _http = 502;
@@ -354,7 +386,7 @@ Write resume-ready achievement bullets from the user text above.`;
     });
   } catch (error: any) {
     console.error(
-      "[extract-experience-bullets] unhandled:",
+      "[extract-bullets] unhandled:",
       error?.message || error,
     );
     _http = 500;

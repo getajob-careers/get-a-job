@@ -707,6 +707,7 @@ export type Database = {
       education: {
         Row: {
           academic_projects: string[]
+          bullets: string[]
           created_at: string
           degree_type: string | null
           display_order: number | null
@@ -727,6 +728,7 @@ export type Database = {
         }
         Insert: {
           academic_projects?: string[]
+          bullets?: string[]
           created_at?: string
           degree_type?: string | null
           display_order?: number | null
@@ -747,6 +749,7 @@ export type Database = {
         }
         Update: {
           academic_projects?: string[]
+          bullets?: string[]
           created_at?: string
           degree_type?: string | null
           display_order?: number | null

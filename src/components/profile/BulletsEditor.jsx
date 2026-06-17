@@ -11,26 +11,27 @@ import {
   Check,
 } from "lucide-react";
 import {
-  extractExperienceBullets,
-  setExperienceBullets,
+  extractBullets,
+  setBullets,
 } from "@/lib/coachActionHandlers";
 
-// ExperienceBulletsEditor — Phase 1 of the Story Bank → experiences migration.
-// Per-experience editor for experiences.bullets[]: each bullet is one
+// BulletsEditor — per-entry editor for an experience's OR education entry's
+// bullets[] (Story Bank → experiences/education). Each bullet is one
 // STAR-disciplined achievement line the user can add / edit / reorder / delete,
 // plus an AI-assist that turns a sentence of free text into proposed bullets
-// via the anti-fab-gated extract-experience-bullets edge function. Nothing the
-// AI proposes is written until the user accepts it into the draft and saves.
-export default function ExperienceBulletsEditor({
-  experience,
+// via the anti-fab-gated extract-bullets edge function (target_type-aware).
+// Nothing the AI proposes is written until the user accepts it + saves.
+export default function BulletsEditor({
+  targetType, // "experience" | "education"
+  entity,
   userId,
   onChanged,
 }) {
-  const expId = experience?.id;
+  const entityId = entity?.id;
   const [draft, setDraft] = useState(() =>
-    Array.isArray(experience?.bullets) ? [...experience.bullets] : [],
+    Array.isArray(entity?.bullets) ? [...entity.bullets] : [],
   );
-  // Skills the user accepted from AI proposals, merged into the experience's
+  // Skills the user accepted from AI proposals, merged into the entry's
   // skills on save (deduped server-side).
   const [pendingSkills, setPendingSkills] = useState([]);
   const [saving, setSaving] = useState(false);
@@ -40,7 +41,7 @@ export default function ExperienceBulletsEditor({
   const [aiBusy, setAiBusy] = useState(false);
   const [proposed, setProposed] = useState(null); // { bullets, skills, extraction_notes }
 
-  const original = Array.isArray(experience?.bullets) ? experience.bullets : [];
+  const original = Array.isArray(entity?.bullets) ? entity.bullets : [];
   const dirty =
     JSON.stringify(draft.map((b) => b.trim()).filter(Boolean)) !==
       JSON.stringify(original) || pendingSkills.length > 0;
@@ -59,16 +60,17 @@ export default function ExperienceBulletsEditor({
   const addBlank = () => setDraft((d) => [...d, ""]);
 
   const save = async () => {
-    if (!userId || !expId) return;
+    if (!userId || !entityId) return;
     setSaving(true);
     const cleaned = draft.map((b) => b.trim()).filter(Boolean);
     const skills =
       pendingSkills.length > 0
-        ? [...(experience?.skills || []), ...pendingSkills]
+        ? [...(entity?.skills || []), ...pendingSkills]
         : undefined; // undefined → leave skills untouched
-    const res = await setExperienceBullets({
+    const res = await setBullets({
       user: { id: userId },
-      experienceId: expId,
+      targetType,
+      targetId: entityId,
       bullets: cleaned,
       skills,
     });
@@ -90,10 +92,10 @@ export default function ExperienceBulletsEditor({
 
   const runAi = async () => {
     const text = aiText.trim();
-    if (!text || !expId) return;
+    if (!text || !entityId) return;
     setAiBusy(true);
     setProposed(null);
-    const res = await extractExperienceBullets({ text, experienceId: expId });
+    const res = await extractBullets({ text, targetType, targetId: entityId });
     setAiBusy(false);
     if (!res || !Array.isArray(res.bullets) || res.bullets.length === 0) {
       toast.error("Couldn't draft a bullet from that — try adding a detail.");
@@ -190,7 +192,7 @@ export default function ExperienceBulletsEditor({
             value={aiText}
             onChange={(e) => setAiText(e.target.value)}
             rows={3}
-            placeholder="Describe something you did in this role, in your own words. The AI keeps your real numbers and tools and never invents any."
+            placeholder="Describe something you did here, in your own words. The AI keeps your real numbers and tools and never invents any."
             className="w-full bg-rd-bg-card border border-rd-border rounded-[8px] px-2.5 py-1.5 text-[12.5px] text-rd-text placeholder:text-rd-text-tertiary focus:outline-none focus:border-rd-coral resize-y"
           />
           <div className="flex items-center gap-2 mt-1.5">

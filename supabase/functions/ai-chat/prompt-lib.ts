@@ -269,20 +269,22 @@ Rules:
 export const BULLET_CAPTURE_RULES = `
 
 BULLET CAPTURE:
-When the user describes a concrete moment from their work history — a project they shipped, a problem they solved, a team they led, an outcome they delivered — OR when they explicitly ask to add/put/include something on their CV / resume / profile / experience (intent to PERSIST a moment), propose saving it as a STAR-disciplined achievement BULLET on one of their experiences by emitting this block at the very end of your response, after a brief one-sentence acknowledgement framed as a PROPOSAL pending the confirm card:
+When the user describes a concrete moment from their work or studies — a project they shipped, a problem they solved, a team they led, an outcome they delivered, a notable academic project or achievement — OR when they explicitly ask to add/put/include something on their CV / resume / profile (intent to PERSIST a moment), propose saving it as a STAR-disciplined achievement BULLET on one of their EXPERIENCES or EDUCATION entries by emitting this block at the very end of your response, after a brief one-sentence acknowledgement framed as a PROPOSAL pending the confirm card:
 
-SUGGESTED_BULLET_CAPTURE_JSON:{"text":"the user's verbatim narrative","experience_id":"<your best-guess EXACT UUID from EXPERIENCES context, or null if none clearly fits>","framing":"one short sentence framing why this is worth capturing"}
+SUGGESTED_BULLET_CAPTURE_JSON:{"text":"the user's verbatim narrative","target":{"type":"experience","id":"<your best-guess EXACT UUID>"},"framing":"one short sentence framing why this is worth capturing"}
+
+The target is your BEST GUESS of which entry it belongs to — set type to "experience" or "education" and id to the EXACT UUID from that entry's context [id: ...]. If none clearly fits, emit "target":null — the confirm card shows a picker spanning both Experiences and Education so the user resolves it.
 
 DO emit when the user describes a concrete event with at least one detail (action verb, metric, tool, team size, outcome) OR explicitly intends to persist a moment:
 
-✅ "Last quarter I led the migration of our customer onboarding to React. We shipped 2 weeks early."
-✅ "I ran the competitive analysis for our marketing strategy course — we presented to the CMO of Strauss and got the highest grade in the cohort."
-✅ "When I was at Atera I owned the renewal playbook. We hit 94% gross retention."
-✅ "add my Guardio AI-bot QA work to my CV" (intent to PERSIST) — IF the user has already described the work in this conversation OR another recent turn with at least one concrete detail. Otherwise, see THIN-NARRATIVE handling below.
-✅ "put my CRM rollout on my resume" / "include the SQL course on my profile" — same intent-to-persist pattern.
+✅ "Last quarter I led the migration of our customer onboarding to React. We shipped 2 weeks early." → target experience.
+✅ "When I was at Atera I owned the renewal playbook. We hit 94% gross retention." → target experience (Atera).
+✅ "For my capstone at the Technion I built a traffic-prediction model that beat the baseline by 18%." → target education (the Technion entry).
+✅ "add my Guardio AI-bot QA work to my CV" (intent to PERSIST) — IF the user has already described the work in this conversation OR a recent turn with at least one concrete detail. Otherwise, see THIN-NARRATIVE handling below.
+✅ "put my CRM rollout on my resume" / "include the thesis project on my profile" — same intent-to-persist pattern.
 
-ZERO EXPERIENCES — do NOT emit:
-A bullet has to attach to an experience. If the user has NO experiences in context, do NOT emit the block. Tell them to add the experience first: "Add that role under Experience in your Profile first, then I can save bullets to it." Never invent an experience.
+ZERO TARGETS — do NOT emit:
+A bullet has to attach to an experience or an education entry. If the user has NO experiences AND NO education entries in context, do NOT emit the block. Tell them to add the entry first: "Add that role under Experience (or your school under Education) in your Profile first, then I can save bullets to it." Never invent an experience or education entry.
 
 THIN-NARRATIVE handling (anti-fab gate):
 If the user signals intent to persist ("add X to my CV") but the narrative in scope is too thin to write a real bullet (just a label, no action verb / metric / outcome / tool), DO NOT emit the block yet. Instead ask ONE concrete clarifying question and emit on the next turn with the fuller verbatim narrative:
@@ -295,21 +297,21 @@ DO NOT emit when:
 
 ❌ User asks a question or for advice ("How should I tailor my CV?", "What skills should I prioritize?")
 ❌ User shares speculation ("I think I'd be good at PM work")
-❌ User mentions a job in passing without describing what they did ("I worked at Google for 3 years")
+❌ User mentions a job or school in passing without describing what they did ("I worked at Google for 3 years", "I studied at NYU")
 ❌ User asks you to generate a fresh CV / resume from scratch ("Generate a CV for the PM role", "Make a CV", "Create a tailored resume", "Build me a CV") — that's a CV GENERATION request (emit SUGGESTED_CV_GENERATION_JSON instead per CV GENERATION rules). The "add X to my CV" intent is DIFFERENT — it's persist-as-a-bullet, not regenerate.
 ❌ The moment describes someone else's work, not the user's ("My manager led that project")
 ❌ The same moment was already captured earlier in this conversation (check history — don't duplicate)
 
 Field rules:
-- text: REQUIRED. The user's narrative VERBATIM — do not rewrite, paraphrase, or extend with inferred context. Trim only filler ("so basically...", "anyway..."); core must be unchanged. For "add X to my CV" intent, the text is the user's description of X (pulled from this turn or recent turns), not the phrase "add X to my CV" itself. The extract-experience-bullets edge function writes the STAR-disciplined bullet server-side.
-- experience_id: your BEST GUESS of which one of their EXPERIENCES this maps to (matched by company name, role title, or explicit reference like "at Atera I…"), set to the EXACT UUID from EXPERIENCES context [id: ...]. NEVER invent a UUID. If none clearly fits, use null — the confirm card shows an experience picker so the user resolves it; do NOT block on uncertainty.
-- framing: one short conversational sentence shown in the card ("Want to save this as a bullet on your Atera role?"). Keep it light.
+- text: REQUIRED. The user's narrative VERBATIM — do not rewrite, paraphrase, or extend with inferred context. Trim only filler ("so basically...", "anyway..."); core must be unchanged. For "add X to my CV" intent, the text is the user's description of X (pulled from this turn or recent turns), not the phrase "add X to my CV" itself. The extract-bullets edge function writes the STAR-disciplined bullet server-side.
+- target: your BEST GUESS — {type: "experience" or "education", id: EXACT UUID from the matching EXPERIENCES or EDUCATION context [id: ...]}. Match by company / role for experiences, by school / degree / field for education, or an explicit reference ("at Atera I…", "in my Technion capstone…"). NEVER invent a UUID. If none clearly fits, use "target":null — the confirm card's picker (Experiences + Education) lets the user resolve it; do NOT block on uncertainty.
+- framing: one short conversational sentence shown in the card ("Want to save this as a bullet on your Atera role?" / "Save this under your Technion degree?"). Keep it light.
 
 PROPOSAL FRAMING (capability-boundary discipline — see CONTEXT_HONESTY_RULES item 5):
 - NEVER write "saved", "captured", "added", "recorded", "stored", "I've saved", "saving this now", or any phrase that implies a completed write before the user taps the confirm card. The card is the truth-assertion gate.
-- DO write: "I'd save this as a bullet on your <experience> role — confirm in the card below" / "Worth capturing as a bullet; the card below will add it on tap." Future-tense or conditional only.
-- DO NOT PROMISE DOWNSTREAM OUTPUT. Saving a bullet updates that Profile experience ONLY. Do NOT say or imply it changes the user's CV, LinkedIn, internship pitch, or daily actions — those do not read bullets yet. No "so your CV will include it", no "this strengthens your CV", no "I'll regenerate your CV with it".
-- After the user CONFIRMS via the card, the bullet is written to that experience; only at that point has the save happened.
+- DO write: "I'd save this as a bullet on your <experience or education entry> — confirm in the card below" / "Worth capturing as a bullet; the card below will add it on tap." Future-tense or conditional only.
+- DO NOT PROMISE DOWNSTREAM OUTPUT. Saving a bullet updates that Profile entry ONLY. Do NOT say or imply it changes the user's CV, LinkedIn, internship pitch, or daily actions — those do not read bullets yet. No "so your CV will include it", no "this strengthens your CV", no "I'll regenerate your CV with it".
+- After the user CONFIRMS via the card, the bullet is written to that entry; only at that point has the save happened.
 
 Discipline:
 - ONE block per response. If the user described multiple moments, capture the most concrete one and offer the others in subsequent turns.
@@ -623,6 +625,9 @@ export async function buildUserContext(
   if (experiencesRes.data?.length) {
     userContext += `\n- Experience: ${experiencesRes.data.map((e: any) => `${e.title} at ${e.company} [id: ${e.id}]`).join(", ")}`;
   }
+  if ((profile as any)?.education?.length) {
+    userContext += `\n- Education entries: ${(profile as any).education.map((e: any) => `${e.degree_type || e.education_level || "Studies"}${e.field_of_study ? ` in ${e.field_of_study}` : ""}${e.institution ? ` at ${e.institution}` : ""} [id: ${e.id}]`).join(", ")}`;
+  }
 
   if (careerRolesRes.data?.length) {
     if (
@@ -847,11 +852,11 @@ CONTEXT & HONESTY RULES (read carefully — these override your urge to be helpf
 
 4. CAPABILITY ROUTING — NEVER WRITE A CV INLINE. You do not author CVs in chat. When the user asks you to generate, write, draft, build, or "make" a CV/resume, you MUST NOT produce any CV content in your reply (no summary, no experience bullets, no skills list, no placeholder résumé). Instead emit a SUGGESTED_CV_GENERATION_JSON block to route the request to the real CV pipeline (follow the CV GENERATION rules above for the target_role / application_id). If you genuinely lack a target role and none can be inferred from context, ask which role the CV is for — do not write a sample CV to "show what it could look like".
 
-5. CAPABILITY BOUNDARY — NEVER CLAIM A WRITE YOU CANNOT PERFORM. Your only persistence paths from chat are the SUGGESTED_*_JSON blocks (Bullet Capture, Tasks, Roadmap Changes, Application Actions, Company Target, CV Generation), and every one is a PROPOSAL the user must confirm via the card the frontend renders — never a fait accompli. You cannot mutate any of: \`experiences\` (you CAN now propose a STAR bullet on an EXISTING role via SUGGESTED_BULLET_CAPTURE_JSON, user-confirmed via the card; you cannot create a new experience), \`profile.skills\` / \`skills_canonical\` (cannot add or remove a skill), \`profile.summary\` (cannot edit), \`education\`, \`projects\`, \`certifications\` (no write path from chat). Concrete rules:
+5. CAPABILITY BOUNDARY — NEVER CLAIM A WRITE YOU CANNOT PERFORM. Your only persistence paths from chat are the SUGGESTED_*_JSON blocks (Bullet Capture, Tasks, Roadmap Changes, Application Actions, Company Target, CV Generation), and every one is a PROPOSAL the user must confirm via the card the frontend renders — never a fait accompli. You cannot mutate any of: \`experiences\` (you CAN now propose a STAR bullet on an EXISTING experience OR education entry via SUGGESTED_BULLET_CAPTURE_JSON, user-confirmed via the card; you cannot create a new experience or education entry), \`profile.skills\` / \`skills_canonical\` (cannot add or remove a skill), \`profile.summary\` (cannot edit), \`projects\`, \`certifications\` (no write path from chat). Concrete rules:
 
    a) Never say "I'll add that to your CV", "saved", "capturing this now", "I've recorded that", "updating your profile", "noted in your skills", or any phrase that implies a completed write. After emitting a SUGGESTED_BULLET_CAPTURE_JSON block, phrase it as a PROPOSAL ("I'd save this as a bullet on your <experience> role — confirm in the card below"), not a completed action.
 
-   b) The CV pipeline ONLY surfaces content from authoritative rows (profile, experiences, stories, projects, certifications, education). Anything outside those rows is dropped silently by anti-fab grounding. Therefore: NEVER claim a generated CV "includes" / "will include" / "now has" content the user mentioned in chat unless that content is already in their authoritative rows. If they reference something not in their records, say so honestly: "That bit about <X> isn't in your Profile yet — save it honestly — if the moment fits BULLET CAPTURE criteria, emit SUGGESTED_BULLET_CAPTURE_JSON to propose saving it as a bullet on the relevant experience. CRITICAL: a saved bullet lands in their Profile experience ONLY; it does NOT yet flow into the CV, LinkedIn, internship pitch, or daily actions (those outputs do not read experience bullets yet). So never tell the user a bullet capture will change their CV / LinkedIn / etc., and never offer to "regenerate the CV with the new bullet". For skill additions / summary edits, direct them to the Profile page (you have no propose block for those).
+   b) The CV pipeline ONLY surfaces content from authoritative rows (profile, experiences, stories, projects, certifications, education). Anything outside those rows is dropped silently by anti-fab grounding. Therefore: NEVER claim a generated CV "includes" / "will include" / "now has" content the user mentioned in chat unless that content is already in their authoritative rows. If they reference something not in their records, say so honestly: "That bit about <X> isn't in your Profile yet — save it honestly — if the moment fits BULLET CAPTURE criteria, emit SUGGESTED_BULLET_CAPTURE_JSON to propose saving it as a bullet on the relevant experience or education entry. CRITICAL: a saved bullet lands in their Profile entry ONLY; it does NOT yet flow into the CV, LinkedIn, internship pitch, or daily actions (those outputs do not read experience bullets yet). So never tell the user a bullet capture will change their CV / LinkedIn / etc., and never offer to "regenerate the CV with the new bullet". For skill additions / summary edits, direct them to the Profile page (you have no propose block for those).
 
    c) For freeform "add this skill" / "update my summary to …" requests, respond honestly: "I can't write to your Profile from chat — open Profile and add it there, then I'll use it in the next CV gen." Don't pretend to do it; don't promise to do it; don't act as if it's queued. (A new STAR bullet under an existing experience IS proposable from chat — use BULLET CAPTURE.)
 
@@ -1152,11 +1157,19 @@ export function parseSuggestions(
         /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
           v,
         );
+      // target: {type: "experience"|"education", id: UUID} — both must be
+      // valid or the target drops to null and the card's picker resolves it.
+      const rawTarget = parsed.target;
+      const target =
+        rawTarget &&
+        typeof rawTarget === "object" &&
+        (rawTarget.type === "experience" || rawTarget.type === "education") &&
+        isUuid(rawTarget.id)
+          ? { type: rawTarget.type, id: rawTarget.id }
+          : null;
       suggested_bullet_capture = {
         text: String(parsed.text).slice(0, 5000).trim(),
-        ...(isUuid(parsed.experience_id)
-          ? { experience_id: parsed.experience_id }
-          : { experience_id: null }),
+        target,
         ...(typeof parsed.framing === "string" && parsed.framing.trim()
           ? { framing: String(parsed.framing).slice(0, 200).trim() }
           : {}),
