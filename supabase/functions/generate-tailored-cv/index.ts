@@ -1523,13 +1523,13 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
           pass2Payload,
           openrouterKey!,
           pass2TraceCtx,
-          { signal: AbortSignal.timeout(45000) },
+          { signal: AbortSignal.timeout(60000) },
         )
       : await openaiChatCompletionWithRetry(
           pass2Payload,
           openaiKey,
           pass2TraceCtx,
-          { signal: AbortSignal.timeout(45000) },
+          { signal: AbortSignal.timeout(60000) },
         );
 
     if (!openaiRes.ok) {
@@ -1624,13 +1624,13 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
                   pass3Payload,
                   openrouterKey!,
                   pass3TraceCtx,
-                  { signal: AbortSignal.timeout(45000) },
+                  { signal: AbortSignal.timeout(60000) },
                 )
               : await openaiChatCompletionWithRetry(
                   pass3Payload,
                   openaiKey,
                   pass3TraceCtx,
-                  { signal: AbortSignal.timeout(45000) },
+                  { signal: AbortSignal.timeout(60000) },
                 );
             if (retryRes.ok) {
               const retryData = await retryRes.json();
