@@ -22,6 +22,7 @@ import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { useStoriesQuery } from "@/lib/queries/useStories";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
 import EducationTab from "@/components/profile/EducationTab";
+import ExperienceBulletsEditor from "@/components/profile/ExperienceBulletsEditor";
 import { createPageUrl } from "@/utils";
 
 // PR 3F — Profile restyled on rd-* tokens. Restyle-only on behavior;
@@ -1175,8 +1176,9 @@ export default function Profile() {
                     <div
                       key={e.id}
                       data-app-id={e.id}
-                      className={`${RD_CARD} flex items-center justify-between gap-3 flex-wrap hover:border-rd-border-hover transition-colors`}
+                      className={`${RD_CARD} hover:border-rd-border-hover transition-colors`}
                     >
+                      <div className="flex items-center justify-between gap-3 flex-wrap">
                       <div className="min-w-0 flex-1">
                         <p className="font-display font-bold text-[14px] text-rd-text truncate">
                           {e.title} <span className="text-rd-text-tertiary font-normal">at</span> {e.company}
@@ -1234,6 +1236,14 @@ export default function Profile() {
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
+                      </div>
+                      <ExperienceBulletsEditor
+                        experience={e}
+                        userId={user?.id}
+                        onChanged={() =>
+                          queryClient.invalidateQueries({ queryKey: ["experiences"] })
+                        }
+                      />
                     </div>
                   );
                 })}
