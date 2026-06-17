@@ -4,7 +4,7 @@ import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
+import { AlertCircle, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics";
 import { TRACK_CONFIG } from "@/lib/trackConfig";
 
@@ -298,6 +298,39 @@ function ApplicationKanbanCard({ app, onClick, listingInactive = false }) {
           )}
         </div>
       )}
+      <div className="mt-1.5">
+        {app.url ? (
+          // role="button" span (not a nested <a>) because the card root is a
+          // role="button" + DnD drag handle — stopPropagation on click/keydown
+          // keeps it from opening the detail drawer, and on mousedown from
+          // starting a drag. Opens the original ATS listing in a new tab.
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={(e) => {
+              e.stopPropagation();
+              window.open(app.url, "_blank", "noopener,noreferrer");
+            }}
+            onMouseDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                e.stopPropagation();
+                window.open(app.url, "_blank", "noopener,noreferrer");
+              }
+            }}
+            className="inline-flex items-center gap-1 text-[9.5px] font-display font-semibold text-rd-coral hover:text-rd-coral-dark cursor-pointer"
+            title="Open the original job listing in a new tab"
+          >
+            View listing
+            <ExternalLink className="w-2.5 h-2.5" />
+          </span>
+        ) : (
+          <span className="text-[9.5px] text-rd-text-tertiary">
+            No source link
+          </span>
+        )}
+      </div>
     </div>
   );
 }
