@@ -3,7 +3,15 @@ import { Navigate } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, Users, AlertCircle, DollarSign, MessageSquare, Ticket, UserPlus } from "lucide-react";
+import {
+  Loader2,
+  Users,
+  AlertCircle,
+  DollarSign,
+  MessageSquare,
+  Ticket,
+  UserPlus,
+} from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
 // Launch-night admin dashboard. Parallel to /Admin (which keeps its
@@ -42,7 +50,9 @@ function Card({ title, icon: Icon, footer, children }) {
     <div className="bg-white rounded-xl border border-[#E5E5E5] p-5">
       <div className="flex items-center gap-2 mb-4">
         {Icon && <Icon className="w-4 h-4 text-[#525252]" />}
-        <h2 className="text-sm font-semibold text-[#0A0A0A] tracking-tight">{title}</h2>
+        <h2 className="text-sm font-semibold text-[#0A0A0A] tracking-tight">
+          {title}
+        </h2>
       </div>
       <div>{children}</div>
       {footer && (
@@ -56,7 +66,9 @@ function Card({ title, icon: Icon, footer, children }) {
 
 function EmptyState({ message }) {
   return (
-    <div className="flex items-center justify-center h-32 text-xs text-[#A3A3A3]">{message}</div>
+    <div className="flex items-center justify-center h-32 text-xs text-[#A3A3A3]">
+      {message}
+    </div>
   );
 }
 
@@ -120,12 +132,23 @@ function CapacityCard() {
                 const pct = cap === 0 ? 0 : Math.round((used / cap) * 100);
                 const nearCap = pct >= 80;
                 return (
-                  <tr key={r.code} className={`border-b border-[#FAFAFA] ${nearCap ? "bg-amber-50/40" : ""}`}>
-                    <td className="py-2 pr-3 font-mono text-[#0A0A0A]">{r.code}</td>
-                    <td className="py-2 pr-3 text-[#525252]">{r.cohort_label || "—"}</td>
+                  <tr
+                    key={r.code}
+                    className={`border-b border-[#FAFAFA] ${nearCap ? "bg-amber-50/40" : ""}`}
+                  >
+                    <td className="py-2 pr-3 font-mono text-[#0A0A0A]">
+                      {r.code}
+                    </td>
+                    <td className="py-2 pr-3 text-[#525252]">
+                      {r.cohort_label || "—"}
+                    </td>
                     <td className="py-2 pr-3 text-right">{used}</td>
-                    <td className="py-2 pr-3 text-right text-[#525252]">{cap}</td>
-                    <td className={`py-2 pr-3 text-right ${nearCap ? "font-semibold text-amber-700" : ""}`}>
+                    <td className="py-2 pr-3 text-right text-[#525252]">
+                      {cap}
+                    </td>
+                    <td
+                      className={`py-2 pr-3 text-right ${nearCap ? "font-semibold text-amber-700" : ""}`}
+                    >
                       {slotsLeft}
                     </td>
                     <td className="py-2 pr-3">
@@ -139,7 +162,9 @@ function CapacityCard() {
                             }}
                           />
                         </div>
-                        <span className="text-[10px] text-[#525252]">{pct}%</span>
+                        <span className="text-[10px] text-[#525252]">
+                          {pct}%
+                        </span>
                       </div>
                     </td>
                     <td className="py-2">
@@ -162,43 +187,24 @@ function CapacityCard() {
 
 // ────────────────────────────────────────────────────────────────────
 // Panel 2 — Signups & activation funnel
-// Fires 5 parallel counts and renders a drop-off-aware bar list.
+// Server-side admin_activation_funnel() RPC (internal/test accounts excluded);
+// renders a drop-off-aware bar list.
 // ────────────────────────────────────────────────────────────────────
 
 function FunnelCard() {
   const { data, isLoading, error } = useQuery({
-    queryKey: ["admin_launch_funnel"],
+    queryKey: ["admin_activation_funnel"],
     queryFn: async () => {
-      const [signups, onboarded, analysis, apps, stories] = await Promise.all([
-        supabase.from("profiles").select("id", { count: "exact", head: true }),
-        supabase
-          .from("profiles")
-          .select("id", { count: "exact", head: true })
-          .eq("onboarding_complete", true),
-        // distinct user_id from career_roles → fetch just the user_id column,
-        // dedupe client-side. Volumes are tiny per the spec.
-        supabase.from("career_roles").select("user_id"),
-        supabase.from("applications").select("user_id"),
-        supabase.from("stories").select("user_id"),
-      ]);
-
-      const distinct = (rows) => {
-        if (rows?.error) throw rows.error;
-        const s = new Set();
-        for (const r of rows?.data || []) if (r.user_id) s.add(r.user_id);
-        return s.size;
-      };
-
-      if (signups.error) throw signups.error;
-      if (onboarded.error) throw onboarded.error;
-
-      return [
-        { stage: "Signed up", count: signups.count || 0 },
-        { stage: "Completed onboarding", count: onboarded.count || 0 },
-        { stage: "Ran career analysis", count: distinct(analysis) },
-        { stage: "Tracked an application", count: distinct(apps) },
-        { stage: "Saved a story", count: distinct(stories) },
-      ];
+      // Server-side via the admin-gated RPC: it reads auth.users to exclude
+      // internal/test accounts (the client can't) and dedupes per-user
+      // career_roles / applications / stories in SQL. Returns one row per
+      // stage as { ord, stage, count } ordered by ord.
+      const { data, error } = await supabase.rpc("admin_activation_funnel");
+      if (error) throw error;
+      return (data || []).map((r) => ({
+        stage: r.stage,
+        count: Number(r.count) || 0,
+      }));
     },
     refetchInterval: 60_000,
   });
@@ -209,7 +215,10 @@ function FunnelCard() {
     const palette = ["#10b981", "#34d399", "#fbbf24", "#fb923c", "#ef4444"];
     return data.map((row, i) => {
       const prev = i === 0 ? row.count : data[i - 1].count;
-      const dropPct = i === 0 || prev === 0 ? 0 : Math.round(((prev - row.count) / prev) * 100);
+      const dropPct =
+        i === 0 || prev === 0
+          ? 0
+          : Math.round(((prev - row.count) / prev) * 100);
       const widthPct = top === 0 ? 0 : Math.round((row.count / top) * 100);
       return { ...row, dropPct, widthPct, color: palette[i] };
     });
@@ -222,7 +231,7 @@ function FunnelCard() {
       footer={
         rows.length === 0
           ? "No data yet"
-          : `${rows[0].count} signed up → ${rows[rows.length - 1].count} saved a story`
+          : `${rows[0].count} ${rows[0].stage.toLowerCase()} → ${rows[rows.length - 1].count} ${rows[rows.length - 1].stage.toLowerCase()} · excl. internal`
       }
     >
       {isLoading ? (
@@ -240,14 +249,19 @@ function FunnelCard() {
                 <span className="text-[#525252]">
                   <strong>{row.count}</strong>
                   {i > 0 && row.dropPct > 0 && (
-                    <span className="text-[#A3A3A3] ml-2">−{row.dropPct}% from prev</span>
+                    <span className="text-[#A3A3A3] ml-2">
+                      −{row.dropPct}% from prev
+                    </span>
                   )}
                 </span>
               </div>
               <div className="h-6 bg-[#FAFAFA] rounded">
                 <div
                   className="h-6 rounded transition-all"
-                  style={{ width: `${row.widthPct}%`, backgroundColor: row.color }}
+                  style={{
+                    width: `${row.widthPct}%`,
+                    backgroundColor: row.color,
+                  }}
                 />
               </div>
             </div>
@@ -269,7 +283,9 @@ function RecentSignupsCard() {
       const since = new Date(Date.now() - SEVEN_DAYS_MS).toISOString();
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, full_name, created_at, onboarding_complete, referral_source")
+        .select(
+          "id, full_name, created_at, onboarding_complete, referral_source",
+        )
         .gte("created_at", since)
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -305,10 +321,14 @@ function RecentSignupsCard() {
               {data.map((r) => (
                 <tr key={r.id} className="border-b border-[#FAFAFA]">
                   <td className="py-2 pr-3 text-[#525252]" title={r.created_at}>
-                    {formatDistanceToNow(new Date(r.created_at), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(r.created_at), {
+                      addSuffix: true,
+                    })}
                   </td>
                   <td className="py-2 pr-3 truncate max-w-[180px]">
-                    {r.full_name || <span className="text-[#A3A3A3]">(no name yet)</span>}
+                    {r.full_name || (
+                      <span className="text-[#A3A3A3]">(no name yet)</span>
+                    )}
                   </td>
                   <td className="py-2 pr-3">
                     {r.onboarding_complete ? (
@@ -318,7 +338,9 @@ function RecentSignupsCard() {
                     )}
                   </td>
                   <td className="py-2 text-[#525252]">
-                    {r.referral_source || <span className="text-[#A3A3A3]">—</span>}
+                    {r.referral_source || (
+                      <span className="text-[#A3A3A3]">—</span>
+                    )}
                   </td>
                 </tr>
               ))}
@@ -361,12 +383,19 @@ function SystemHealthCard() {
       const grouped = new Map();
       for (const f of failures.data || []) {
         const k = f.function_name;
-        if (!grouped.has(k)) grouped.set(k, { function_name: k, count: 0, last_seen: f.created_at });
+        if (!grouped.has(k))
+          grouped.set(k, {
+            function_name: k,
+            count: 0,
+            last_seen: f.created_at,
+          });
         const entry = grouped.get(k);
         entry.count += 1;
         if (f.created_at > entry.last_seen) entry.last_seen = f.created_at;
       }
-      const byFn = Array.from(grouped.values()).sort((a, b) => b.count - a.count);
+      const byFn = Array.from(grouped.values()).sort(
+        (a, b) => b.count - a.count,
+      );
       return { byFn, errors: errors.data || [] };
     },
     refetchInterval: 30_000,
@@ -401,11 +430,18 @@ function SystemHealthCard() {
                     key={f.function_name}
                     className="flex items-center justify-between text-[11px] border border-[#F5F5F5] rounded px-2.5 py-1.5"
                   >
-                    <span className="font-medium text-[#0A0A0A] truncate">{f.function_name}</span>
+                    <span className="font-medium text-[#0A0A0A] truncate">
+                      {f.function_name}
+                    </span>
                     <span className="flex items-center gap-3 flex-shrink-0">
-                      <span className="font-semibold text-red-700">{f.count}</span>
+                      <span className="font-semibold text-red-700">
+                        {f.count}
+                      </span>
                       <span className="text-[10px] text-[#A3A3A3]">
-                        last {formatDistanceToNow(new Date(f.last_seen), { addSuffix: true })}
+                        last{" "}
+                        {formatDistanceToNow(new Date(f.last_seen), {
+                          addSuffix: true,
+                        })}
                       </span>
                     </span>
                   </div>
@@ -425,7 +461,9 @@ function SystemHealthCard() {
                     className="border border-red-100 bg-red-50/60 rounded px-2.5 py-1.5 text-[11px]"
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <span className="font-semibold text-red-900 truncate">{e.function_name}</span>
+                      <span className="font-semibold text-red-900 truncate">
+                        {e.function_name}
+                      </span>
                       <span className="text-[10px] text-red-700 flex-shrink-0">
                         {format(new Date(e.created_at), "MMM d HH:mm")}
                       </span>
@@ -464,7 +502,8 @@ function CostCard() {
       const byDay = new Map();
       for (const r of data || []) {
         const day = r.created_at.slice(0, 10);
-        if (!byDay.has(day)) byDay.set(day, { day, calls: 0, users: new Set(), cost: 0 });
+        if (!byDay.has(day))
+          byDay.set(day, { day, calls: 0, users: new Set(), cost: 0 });
         const entry = byDay.get(day);
         entry.calls += 1;
         if (r.user_id) entry.users.add(r.user_id);
@@ -472,7 +511,12 @@ function CostCard() {
         entry.cost += c;
       }
       return Array.from(byDay.values())
-        .map((e) => ({ day: e.day, calls: e.calls, users: e.users.size, cost: e.cost }))
+        .map((e) => ({
+          day: e.day,
+          calls: e.calls,
+          users: e.users.size,
+          cost: e.cost,
+        }))
         .sort((a, b) => b.day.localeCompare(a.day));
     },
     refetchInterval: 60_000,
@@ -509,17 +553,23 @@ function CostCard() {
               <tr className="text-left text-[#A3A3A3] border-b border-[#F5F5F5]">
                 <th className="py-2 pr-3 font-medium">Day (UTC)</th>
                 <th className="py-2 pr-3 font-medium text-right">Calls</th>
-                <th className="py-2 pr-3 font-medium text-right">Active users</th>
+                <th className="py-2 pr-3 font-medium text-right">
+                  Active users
+                </th>
                 <th className="py-2 font-medium text-right">Cost</th>
               </tr>
             </thead>
             <tbody>
               {data.map((r) => (
                 <tr key={r.day} className="border-b border-[#FAFAFA]">
-                  <td className="py-2 pr-3 font-mono text-[#0A0A0A]">{r.day}</td>
+                  <td className="py-2 pr-3 font-mono text-[#0A0A0A]">
+                    {r.day}
+                  </td>
                   <td className="py-2 pr-3 text-right">{r.calls}</td>
                   <td className="py-2 pr-3 text-right">{r.users}</td>
-                  <td className="py-2 text-right font-medium text-[#0A0A0A]">${r.cost.toFixed(4)}</td>
+                  <td className="py-2 text-right font-medium text-[#0A0A0A]">
+                    ${r.cost.toFixed(4)}
+                  </td>
                 </tr>
               ))}
             </tbody>
@@ -535,10 +585,10 @@ function CostCard() {
 // ────────────────────────────────────────────────────────────────────
 
 const CATEGORY_PALETTE = {
-  bug:             "bg-red-50 border-red-200 text-red-800",
-  confusing:       "bg-amber-50 border-amber-200 text-amber-800",
+  bug: "bg-red-50 border-red-200 text-red-800",
+  confusing: "bg-amber-50 border-amber-200 text-amber-800",
   missing_feature: "bg-blue-50 border-blue-200 text-blue-800",
-  other:           "bg-[#FAFAFA] border-[#E5E5E5] text-[#525252]",
+  other: "bg-[#FAFAFA] border-[#E5E5E5] text-[#525252]",
 };
 
 function FeedbackCard() {
@@ -583,7 +633,9 @@ function FeedbackCard() {
                     {f.category}
                   </span>
                   {f.route && (
-                    <span className="opacity-70 font-mono text-[10px] truncate">{f.route}</span>
+                    <span className="opacity-70 font-mono text-[10px] truncate">
+                      {f.route}
+                    </span>
                   )}
                 </div>
                 <span className="opacity-60 text-[10px] flex-shrink-0">
@@ -591,6 +643,63 @@ function FeedbackCard() {
                 </span>
               </div>
               <p className="whitespace-pre-wrap leading-snug">{f.message}</p>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────
+// Headline real-user counts — admin_user_counts() RPC (SECURITY DEFINER,
+// admin-gated; the only path that can read auth.users for the sign-in count).
+// All three EXCLUDE internal/test accounts, kept in lockstep with
+// src/lib/internalUsers.js via the SQL is_internal_user() helper.
+// ────────────────────────────────────────────────────────────────────
+
+function UserCountsCard() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["admin_user_counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_user_counts");
+      if (error) throw error;
+      return Array.isArray(data) ? data[0] : data;
+    },
+    refetchInterval: 60_000,
+  });
+
+  const stats = [
+    { label: "Visited", sub: "signed in ≥ once", value: data?.visited },
+    {
+      label: "Started onboarding",
+      sub: "has a profile",
+      value: data?.started_onboarding,
+    },
+    { label: "Onboarded", sub: "completed onboarding", value: data?.onboarded },
+  ];
+
+  return (
+    <Card
+      title="Real users"
+      icon={UserCheck}
+      footer="Excludes internal / test accounts"
+    >
+      {isLoading ? (
+        <LoadingState />
+      ) : error ? (
+        <EmptyState message={`Error loading counts: ${error.message}`} />
+      ) : (
+        <div className="grid grid-cols-3 gap-4">
+          {stats.map((s) => (
+            <div key={s.label}>
+              <div className="text-2xl font-bold tracking-tight text-[#0A0A0A]">
+                {s.value ?? "—"}
+              </div>
+              <div className="text-xs font-medium text-[#525252] mt-0.5">
+                {s.label}
+              </div>
+              <div className="text-[11px] text-[#A3A3A3]">{s.sub}</div>
             </div>
           ))}
         </div>
@@ -638,11 +747,15 @@ export default function AdminLaunch() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-8 space-y-4">
       <div className="mb-2">
-        <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">Launch dashboard</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">
+          Launch dashboard
+        </h1>
         <p className="text-sm text-[#A3A3A3] mt-1">
           Read-only pilot observability. Auto-refreshes every 30–60s.
         </p>
       </div>
+
+      <UserCountsCard />
 
       <CapacityCard />
 

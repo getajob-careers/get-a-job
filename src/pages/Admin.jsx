@@ -15,8 +15,16 @@ import {
   Legend,
 } from "recharts";
 import {
-  Loader2, AlertTriangle, Activity, DollarSign, Users, AlertCircle,
-  MessageSquare, BookOpen, ChevronDown, ChevronRight,
+  Loader2,
+  AlertTriangle,
+  Activity,
+  DollarSign,
+  Users,
+  AlertCircle,
+  MessageSquare,
+  BookOpen,
+  ChevronDown,
+  ChevronRight,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 
@@ -61,7 +69,8 @@ const errorChip = (code) => {
   if (!code) return "bg-gray-50 border-gray-200 text-gray-700";
   if (ERROR_COLORS[code]) return ERROR_COLORS[code];
   // openai_<status>, openai_retry_<status> — bucket by family
-  if (code.startsWith("openai_")) return "bg-red-50 border-red-200 text-red-800";
+  if (code.startsWith("openai_"))
+    return "bg-red-50 border-red-200 text-red-800";
   return "bg-gray-50 border-gray-200 text-gray-700";
 };
 
@@ -73,10 +82,16 @@ function Card({ title, icon: Icon, footer, children }) {
     <div className="bg-white rounded-xl border border-[#E5E5E5] p-5">
       <div className="flex items-center gap-2 mb-4">
         {Icon && <Icon className="w-4 h-4 text-[#525252]" />}
-        <h2 className="text-sm font-semibold text-[#0A0A0A] tracking-tight">{title}</h2>
+        <h2 className="text-sm font-semibold text-[#0A0A0A] tracking-tight">
+          {title}
+        </h2>
       </div>
       <div>{children}</div>
-      {footer && <div className="mt-3 pt-3 border-t border-[#F5F5F5] text-[11px] text-[#A3A3A3]">{footer}</div>}
+      {footer && (
+        <div className="mt-3 pt-3 border-t border-[#F5F5F5] text-[11px] text-[#A3A3A3]">
+          {footer}
+        </div>
+      )}
     </div>
   );
 }
@@ -89,12 +104,74 @@ function EmptyState({ message }) {
   );
 }
 
+// Headline real-user counts. Source: admin_user_counts() RPC (SECURITY DEFINER,
+// admin-gated) — the only path that can read auth.users for the sign-in count.
+// All three counts EXCLUDE internal/test accounts (see src/lib/internalUsers.js;
+// kept in lockstep with the SQL is_internal_user() helper).
+//   - visited:            auth.users.last_sign_in_at IS NOT NULL (signed in ≥ once)
+//   - started_onboarding: has a profiles row
+//   - onboarded:          profiles.onboarding_complete = true
+function UserCountsCard() {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["admin_user_counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase.rpc("admin_user_counts");
+      if (error) throw error;
+      // RPC returns a single row { visited, started_onboarding, onboarded }
+      return Array.isArray(data) ? data[0] : data;
+    },
+    refetchInterval: 60_000,
+  });
+
+  const stats = [
+    { label: "Visited", sub: "signed in ≥ once", value: data?.visited },
+    {
+      label: "Started onboarding",
+      sub: "has a profile",
+      value: data?.started_onboarding,
+    },
+    { label: "Onboarded", sub: "completed onboarding", value: data?.onboarded },
+  ];
+
+  return (
+    <Card
+      title="Real users"
+      icon={UserCheck}
+      footer="Excludes internal / test accounts"
+    >
+      {isLoading ? (
+        <div className="flex items-center justify-center h-24">
+          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+        </div>
+      ) : error ? (
+        <EmptyState message={`Error loading counts: ${error.message}`} />
+      ) : (
+        <div className="grid grid-cols-3 gap-4">
+          {stats.map((s) => (
+            <div key={s.label}>
+              <div className="text-2xl font-bold tracking-tight text-[#0A0A0A]">
+                {s.value ?? "—"}
+              </div>
+              <div className="text-xs font-medium text-[#525252] mt-0.5">
+                {s.label}
+              </div>
+              <div className="text-[11px] text-[#A3A3A3]">{s.sub}</div>
+            </div>
+          ))}
+        </div>
+      )}
+    </Card>
+  );
+}
+
 function TrendCard() {
   const [days, setDays] = useState(7);
   const { data, isLoading, error } = useQuery({
     queryKey: ["admin_cost_trend", days],
     queryFn: async () => {
-      const { data, error } = await supabase.rpc("admin_cost_trend", { p_days: days });
+      const { data, error } = await supabase.rpc("admin_cost_trend", {
+        p_days: days,
+      });
       if (error) throw error;
       return data || [];
     },
@@ -135,25 +212,56 @@ function TrendCard() {
         ))}
       </div>
       {isLoading ? (
-        <div className="flex items-center justify-center h-40"><Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" /></div>
+        <div className="flex items-center justify-center h-40">
+          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+        </div>
       ) : error ? (
         <EmptyState message={`Error loading trend: ${error.message}`} />
       ) : chartData.length === 0 ? (
         <EmptyState message="No data in this window yet." />
       ) : (
         <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={chartData} margin={{ top: 5, right: 30, left: 0, bottom: 0 }}>
+          <LineChart
+            data={chartData}
+            margin={{ top: 5, right: 30, left: 0, bottom: 0 }}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="#F5F5F5" />
             <XAxis dataKey="day" tick={{ fontSize: 10, fill: "#525252" }} />
             <YAxis yAxisId="left" tick={{ fontSize: 10, fill: "#525252" }} />
-            <YAxis yAxisId="right" orientation="right" tick={{ fontSize: 10, fill: "#525252" }} />
+            <YAxis
+              yAxisId="right"
+              orientation="right"
+              tick={{ fontSize: 10, fill: "#525252" }}
+            />
             <Tooltip
-              contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E5E5E5" }}
-              formatter={(v, name) => name === "cost" ? `$${Number(v).toFixed(4)}` : v}
+              contentStyle={{
+                fontSize: 11,
+                borderRadius: 8,
+                border: "1px solid #E5E5E5",
+              }}
+              formatter={(v, name) =>
+                name === "cost" ? `$${Number(v).toFixed(4)}` : v
+              }
             />
             <Legend wrapperStyle={{ fontSize: 11 }} />
-            <Line yAxisId="left" type="monotone" dataKey="calls" stroke="#3b82f6" strokeWidth={2} dot={{ r: 3 }} name="calls" />
-            <Line yAxisId="right" type="monotone" dataKey="cost" stroke="#10b981" strokeWidth={2} dot={{ r: 3 }} name="cost ($)" />
+            <Line
+              yAxisId="left"
+              type="monotone"
+              dataKey="calls"
+              stroke="#3b82f6"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              name="calls"
+            />
+            <Line
+              yAxisId="right"
+              type="monotone"
+              dataKey="cost"
+              stroke="#10b981"
+              strokeWidth={2}
+              dot={{ r: 3 }}
+              name="cost ($)"
+            />
           </LineChart>
         </ResponsiveContainer>
       )}
@@ -174,7 +282,9 @@ function VolumeCard() {
 
   const chartData = useMemo(() => {
     return (data || []).map((d) => ({
-      name: d.function_name.replace(/^generate-/, "g-").replace(/^extract-/, "e-"),
+      name: d.function_name
+        .replace(/^generate-/, "g-")
+        .replace(/^extract-/, "e-"),
       fullName: d.function_name,
       calls: Number(d.calls),
       failures: Number(d.failures),
@@ -191,28 +301,57 @@ function VolumeCard() {
       footer={`${chartData.length} function(s) · ${chartData.reduce((a, d) => a + d.calls, 0)} total calls · ${chartData.reduce((a, d) => a + d.failures, 0)} failures`}
     >
       {isLoading ? (
-        <div className="flex items-center justify-center h-40"><Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" /></div>
+        <div className="flex items-center justify-center h-40">
+          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+        </div>
       ) : error ? (
         <EmptyState message={`Error loading volume: ${error.message}`} />
       ) : chartData.length === 0 ? (
         <EmptyState message="No function calls in the last 7 days." />
       ) : (
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+          <BarChart
+            data={chartData}
+            margin={{ top: 5, right: 10, left: 0, bottom: 0 }}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="#F5F5F5" />
-            <XAxis dataKey="name" tick={{ fontSize: 9, fill: "#525252" }} interval={0} angle={-15} textAnchor="end" height={50} />
+            <XAxis
+              dataKey="name"
+              tick={{ fontSize: 9, fill: "#525252" }}
+              interval={0}
+              angle={-15}
+              textAnchor="end"
+              height={50}
+            />
             <YAxis tick={{ fontSize: 10, fill: "#525252" }} />
             <Tooltip
-              contentStyle={{ fontSize: 11, borderRadius: 8, border: "1px solid #E5E5E5" }}
-              labelFormatter={(label, payload) => payload?.[0]?.payload?.fullName || label}
+              contentStyle={{
+                fontSize: 11,
+                borderRadius: 8,
+                border: "1px solid #E5E5E5",
+              }}
+              labelFormatter={(label, payload) =>
+                payload?.[0]?.payload?.fullName || label
+              }
               formatter={(v, name, p) => {
-                if (name === "successes") return [`${v} (avg ${p.payload.avgLatency}ms)`, "successes"];
+                if (name === "successes")
+                  return [`${v} (avg ${p.payload.avgLatency}ms)`, "successes"];
                 return v;
               }}
             />
             <Legend wrapperStyle={{ fontSize: 11 }} />
-            <Bar dataKey="successes" stackId="a" fill="#10b981" name="successes" />
-            <Bar dataKey="failures" stackId="a" fill="#ef4444" name="failures" />
+            <Bar
+              dataKey="successes"
+              stackId="a"
+              fill="#10b981"
+              name="successes"
+            />
+            <Bar
+              dataKey="failures"
+              stackId="a"
+              fill="#ef4444"
+              name="failures"
+            />
           </BarChart>
         </ResponsiveContainer>
       )}
@@ -238,9 +377,20 @@ function FunnelCard() {
     return data.map((row, i) => {
       const count = Number(row.count);
       const prev = i === 0 ? count : Number(data[i - 1].count);
-      const dropPct = i === 0 ? 0 : prev === 0 ? 0 : Math.round(((prev - count) / prev) * 100);
+      const dropPct =
+        i === 0
+          ? 0
+          : prev === 0
+            ? 0
+            : Math.round(((prev - count) / prev) * 100);
       const widthPct = top === 0 ? 0 : Math.round((count / top) * 100);
-      return { stage: row.stage, count, dropPct, widthPct, color: FUNNEL_COLORS[i] || "#737373" };
+      return {
+        stage: row.stage,
+        count,
+        dropPct,
+        widthPct,
+        color: FUNNEL_COLORS[i] || "#737373",
+      };
     });
   }, [data]);
 
@@ -248,10 +398,16 @@ function FunnelCard() {
     <Card
       title="Conversion funnel"
       icon={Users}
-      footer={funnelRows.length === 0 ? "No data yet" : `Top: ${funnelRows[0].count} signups · Bottom: ${funnelRows[funnelRows.length - 1].count} offers`}
+      footer={
+        funnelRows.length === 0
+          ? "No data yet"
+          : `${funnelRows[0].stage}: ${funnelRows[0].count} · ${funnelRows[funnelRows.length - 1].stage}: ${funnelRows[funnelRows.length - 1].count} · excl. internal`
+      }
     >
       {isLoading ? (
-        <div className="flex items-center justify-center h-40"><Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" /></div>
+        <div className="flex items-center justify-center h-40">
+          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+        </div>
       ) : error ? (
         <EmptyState message={`Error loading funnel: ${error.message}`} />
       ) : funnelRows.length === 0 ? (
@@ -265,14 +421,19 @@ function FunnelCard() {
                 <span className="text-[#525252]">
                   <strong>{row.count}</strong>
                   {i > 0 && row.dropPct > 0 && (
-                    <span className="text-[#A3A3A3] ml-2">−{row.dropPct}% from prev</span>
+                    <span className="text-[#A3A3A3] ml-2">
+                      −{row.dropPct}% from prev
+                    </span>
                   )}
                 </span>
               </div>
               <div className="h-6 bg-[#FAFAFA] rounded">
                 <div
                   className="h-6 rounded transition-all"
-                  style={{ width: `${row.widthPct}%`, backgroundColor: row.color }}
+                  style={{
+                    width: `${row.widthPct}%`,
+                    backgroundColor: row.color,
+                  }}
                 />
               </div>
             </div>
@@ -290,7 +451,9 @@ function ErrorFeedCard() {
       // Direct query; RLS gates to admin via the function_metrics admin policy
       const { data, error } = await supabase
         .from("function_metrics")
-        .select("id, function_name, error_code, http_status, latency_ms, user_id, created_at")
+        .select(
+          "id, function_name, error_code, http_status, latency_ms, user_id, created_at",
+        )
         .eq("ok", false)
         .order("created_at", { ascending: false })
         .limit(20);
@@ -307,7 +470,9 @@ function ErrorFeedCard() {
       footer={`Latest 20 ok=false rows · refreshes every 30s · ${(data || []).length} shown`}
     >
       {isLoading ? (
-        <div className="flex items-center justify-center h-40"><Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" /></div>
+        <div className="flex items-center justify-center h-40">
+          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+        </div>
       ) : error ? (
         <EmptyState message={`Error loading feed: ${error.message}`} />
       ) : (data || []).length === 0 ? (
@@ -322,15 +487,22 @@ function ErrorFeedCard() {
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <span className="font-semibold">{r.function_name}</span>
-                  <span className="opacity-70 ml-2">{r.error_code || "(no code)"}</span>
-                  <span className="opacity-50 ml-2">→ HTTP {r.http_status}</span>
+                  <span className="opacity-70 ml-2">
+                    {r.error_code || "(no code)"}
+                  </span>
+                  <span className="opacity-50 ml-2">
+                    → HTTP {r.http_status}
+                  </span>
                 </div>
                 <div className="opacity-60 flex-shrink-0 text-[10px]">
-                  {format(new Date(r.created_at), "MMM d HH:mm:ss")} · {r.latency_ms}ms
+                  {format(new Date(r.created_at), "MMM d HH:mm:ss")} ·{" "}
+                  {r.latency_ms}ms
                 </div>
               </div>
               {r.user_id && (
-                <div className="opacity-50 text-[10px] mt-0.5 truncate">user_id: {r.user_id.slice(0, 8)}…</div>
+                <div className="opacity-50 text-[10px] mt-0.5 truncate">
+                  user_id: {r.user_id.slice(0, 8)}…
+                </div>
               )}
             </div>
           ))}
@@ -358,7 +530,9 @@ function EngagementCard() {
       footer={`${(data || []).length} student(s) total`}
     >
       {isLoading ? (
-        <div className="flex items-center justify-center h-40"><Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" /></div>
+        <div className="flex items-center justify-center h-40">
+          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+        </div>
       ) : error ? (
         <EmptyState message={`Error loading engagement: ${error.message}`} />
       ) : (data || []).length === 0 ? (
@@ -381,7 +555,10 @@ function EngagementCard() {
             <tbody>
               {data.map((r) => (
                 <tr key={r.user_id} className="border-b border-[#FAFAFA]">
-                  <td className="py-2 pr-3 truncate max-w-[140px]" title={r.user_id}>
+                  <td
+                    className="py-2 pr-3 truncate max-w-[140px]"
+                    title={r.user_id}
+                  >
                     {r.full_name || "(no name)"}
                   </td>
                   <td className="py-2 pr-3">
@@ -391,15 +568,29 @@ function EngagementCard() {
                       <span className="text-[#A3A3A3]">—</span>
                     )}
                   </td>
-                  <td className="py-2 pr-3 text-right">{r.total_applications}</td>
                   <td className="py-2 pr-3 text-right">
-                    {r.applications_7d > 0 ? <span className="font-semibold text-emerald-700">{r.applications_7d}</span> : "—"}
+                    {r.total_applications}
+                  </td>
+                  <td className="py-2 pr-3 text-right">
+                    {r.applications_7d > 0 ? (
+                      <span className="font-semibold text-emerald-700">
+                        {r.applications_7d}
+                      </span>
+                    ) : (
+                      "—"
+                    )}
                   </td>
                   <td className="py-2 pr-3 text-right">{r.total_stories}</td>
-                  <td className="py-2 pr-3 text-right">{r.function_calls_7d}</td>
-                  <td className="py-2 pr-3 text-right">${Number(r.total_cost_usd).toFixed(4)}</td>
+                  <td className="py-2 pr-3 text-right">
+                    {r.function_calls_7d}
+                  </td>
+                  <td className="py-2 pr-3 text-right">
+                    ${Number(r.total_cost_usd).toFixed(4)}
+                  </td>
                   <td className="py-2 text-[#525252]">
-                    {r.last_application_at ? format(new Date(r.last_application_at), "MMM d") : "—"}
+                    {r.last_application_at
+                      ? format(new Date(r.last_application_at), "MMM d")
+                      : "—"}
                   </td>
                 </tr>
               ))}
@@ -441,7 +632,11 @@ function ChatLogsCard() {
   const [expandedConvos, setExpandedConvos] = useState(() => new Set());
   const { data: students } = useStudentList();
 
-  const { data: messages, isLoading, error } = useQuery({
+  const {
+    data: messages,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["admin_chat_messages", selectedUserId],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("admin_chat_messages", {
@@ -482,7 +677,8 @@ function ChatLogsCard() {
   const toggleConvo = (id) => {
     setExpandedConvos((prev) => {
       const next = new Set(prev);
-      if (next.has(id)) next.delete(id); else next.add(id);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
       return next;
     });
   };
@@ -518,7 +714,9 @@ function ChatLogsCard() {
       {!selectedUserId ? (
         <EmptyState message="Pick a student from the dropdown above." />
       ) : isLoading ? (
-        <div className="flex items-center justify-center h-40"><Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" /></div>
+        <div className="flex items-center justify-center h-40">
+          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+        </div>
       ) : error ? (
         <EmptyState message={`Error loading messages: ${error.message}`} />
       ) : conversations.length === 0 ? (
@@ -541,7 +739,9 @@ function ChatLogsCard() {
 
 function ConversationBlock({ convo, expanded, onToggle }) {
   const lastMsg = convo.messages[convo.messages.length - 1];
-  const lastTime = lastMsg?.created_at ? formatDistanceToNow(new Date(lastMsg.created_at), { addSuffix: true }) : "—";
+  const lastTime = lastMsg?.created_at
+    ? formatDistanceToNow(new Date(lastMsg.created_at), { addSuffix: true })
+    : "—";
   return (
     <div className="border border-[#E5E5E5] rounded-md bg-[#FAFAFA]">
       <button
@@ -550,7 +750,11 @@ function ConversationBlock({ convo, expanded, onToggle }) {
         className="w-full px-3 py-2 flex items-center justify-between gap-2 text-left hover:bg-[#F5F5F5]"
       >
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          {expanded ? <ChevronDown className="w-3.5 h-3.5 flex-shrink-0 text-[#525252]" /> : <ChevronRight className="w-3.5 h-3.5 flex-shrink-0 text-[#525252]" />}
+          {expanded ? (
+            <ChevronDown className="w-3.5 h-3.5 flex-shrink-0 text-[#525252]" />
+          ) : (
+            <ChevronRight className="w-3.5 h-3.5 flex-shrink-0 text-[#525252]" />
+          )}
           <span className="text-[10px] uppercase tracking-wider font-medium text-[#525252] px-1.5 py-0.5 bg-white border border-[#E5E5E5] rounded">
             {convo.agent || "?"}
           </span>
@@ -569,7 +773,9 @@ function ConversationBlock({ convo, expanded, onToggle }) {
       </button>
       {expanded && (
         <div className="px-3 pb-3 pt-1 space-y-2 border-t border-[#E5E5E5] bg-white">
-          {convo.messages.map((m) => <MessageBubble key={m.message_id} msg={m} />)}
+          {convo.messages.map((m) => (
+            <MessageBubble key={m.message_id} msg={m} />
+          ))}
         </div>
       )}
     </div>
@@ -598,24 +804,30 @@ function MessageBubble({ msg }) {
       </div>
       {isError && msg.original_user_message && (
         <div className="mb-2 text-[11px]">
-          <div className="text-[10px] uppercase tracking-wider text-red-800 font-medium mb-0.5">Failed prompt</div>
+          <div className="text-[10px] uppercase tracking-wider text-red-800 font-medium mb-0.5">
+            Failed prompt
+          </div>
           <div className="bg-white border border-red-200 rounded px-2 py-1 text-red-900 whitespace-pre-wrap">
             {msg.original_user_message}
           </div>
         </div>
       )}
-      <p className="text-[11px] text-[#0A0A0A] whitespace-pre-wrap leading-snug">{msg.content}</p>
+      <p className="text-[11px] text-[#0A0A0A] whitespace-pre-wrap leading-snug">
+        {msg.content}
+      </p>
       {hasSuggested && (
         <div className="mt-2 space-y-1.5">
           {SUGGESTED_BLOCK_FIELDS.map(([key, label]) =>
             msg[key] == null ? null : (
               <div key={key}>
-                <div className="text-[9px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-0.5">{label}</div>
+                <div className="text-[9px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-0.5">
+                  {label}
+                </div>
                 <pre className="text-[10px] bg-[#FAFAFA] border border-[#E5E5E5] rounded px-2 py-1 overflow-x-auto whitespace-pre-wrap">
                   {JSON.stringify(msg[key], null, 2)}
                 </pre>
               </div>
-            )
+            ),
           )}
         </div>
       )}
@@ -632,7 +844,11 @@ function StoryBrowserCard() {
   const [selectedUserId, setSelectedUserId] = useState(""); // "" = all students
   const { data: students } = useStudentList();
 
-  const { data: stories, isLoading, error } = useQuery({
+  const {
+    data: stories,
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["admin_stories_browse", selectedUserId || "all"],
     queryFn: async () => {
       const { data, error } = await supabase.rpc("admin_stories_browse", {
@@ -666,14 +882,28 @@ function StoryBrowserCard() {
         </select>
       </div>
       {isLoading ? (
-        <div className="flex items-center justify-center h-40"><Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" /></div>
+        <div className="flex items-center justify-center h-40">
+          <Loader2 className="w-4 h-4 animate-spin text-[#A3A3A3]" />
+        </div>
       ) : error ? (
         <EmptyState message={`Error loading stories: ${error.message}`} />
       ) : (stories || []).length === 0 ? (
-        <EmptyState message={selectedUserId ? "No stories captured for this student yet." : "No stories captured yet."} />
+        <EmptyState
+          message={
+            selectedUserId
+              ? "No stories captured for this student yet."
+              : "No stories captured yet."
+          }
+        />
       ) : (
         <div className="space-y-3 max-h-[700px] overflow-y-auto">
-          {stories.map((s) => <StoryCard key={s.story_id} story={s} showStudentName={!selectedUserId} />)}
+          {stories.map((s) => (
+            <StoryCard
+              key={s.story_id}
+              story={s}
+              showStudentName={!selectedUserId}
+            />
+          ))}
         </div>
       )}
     </Card>
@@ -686,9 +916,13 @@ function StoryCard({ story, showStudentName }) {
     <div className="border border-[#E5E5E5] rounded-md p-3 bg-white">
       <div className="flex items-start justify-between gap-3 mb-2">
         <div className="min-w-0 flex-1">
-          <p className="text-xs font-semibold text-[#0A0A0A] truncate">{story.title || "(untitled)"}</p>
+          <p className="text-xs font-semibold text-[#0A0A0A] truncate">
+            {story.title || "(untitled)"}
+          </p>
           {showStudentName && (
-            <p className="text-[10px] text-[#525252] mt-0.5">{story.full_name || "(no name)"}</p>
+            <p className="text-[10px] text-[#525252] mt-0.5">
+              {story.full_name || "(no name)"}
+            </p>
           )}
         </div>
         <div className="flex items-center gap-1.5 flex-shrink-0">
@@ -700,7 +934,9 @@ function StoryCard({ story, showStudentName }) {
           </span>
         </div>
       </div>
-      <div className={`grid gap-3 ${hasRawText ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"}`}>
+      <div
+        className={`grid gap-3 ${hasRawText ? "grid-cols-1 lg:grid-cols-2" : "grid-cols-1"}`}
+      >
         <div className="space-y-1.5">
           <StarField label="Situation" value={story.situation} />
           <StarField label="Task" value={story.task} />
@@ -709,7 +945,9 @@ function StoryCard({ story, showStudentName }) {
         </div>
         {hasRawText && (
           <div>
-            <div className="text-[9px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-0.5">Source text</div>
+            <div className="text-[9px] uppercase tracking-wider text-[#A3A3A3] font-medium mb-0.5">
+              Source text
+            </div>
             <pre className="text-[11px] bg-[#FAFAFA] border border-[#E5E5E5] rounded px-2 py-1.5 whitespace-pre-wrap overflow-x-auto leading-snug">
               {story.raw_source_text}
             </pre>
@@ -722,16 +960,36 @@ function StoryCard({ story, showStudentName }) {
         story.relevance_tags?.length > 0) && (
         <div className="mt-3 pt-2 border-t border-[#F5F5F5] flex flex-wrap gap-1">
           {(story.metrics || []).map((m, i) => (
-            <span key={`m-${i}`} className="text-[10px] px-1.5 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded">{m}</span>
+            <span
+              key={`m-${i}`}
+              className="text-[10px] px-1.5 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded"
+            >
+              {m}
+            </span>
           ))}
           {(story.skills_demonstrated || []).map((m, i) => (
-            <span key={`s-${i}`} className="text-[10px] px-1.5 py-0.5 bg-blue-50 border border-blue-200 text-blue-800 rounded">{m}</span>
+            <span
+              key={`s-${i}`}
+              className="text-[10px] px-1.5 py-0.5 bg-blue-50 border border-blue-200 text-blue-800 rounded"
+            >
+              {m}
+            </span>
           ))}
           {(story.tools_used || []).map((m, i) => (
-            <span key={`t-${i}`} className="text-[10px] px-1.5 py-0.5 bg-purple-50 border border-purple-200 text-purple-800 rounded">{m}</span>
+            <span
+              key={`t-${i}`}
+              className="text-[10px] px-1.5 py-0.5 bg-purple-50 border border-purple-200 text-purple-800 rounded"
+            >
+              {m}
+            </span>
           ))}
           {(story.relevance_tags || []).map((m, i) => (
-            <span key={`rt-${i}`} className="text-[10px] px-1.5 py-0.5 bg-[#FAFAFA] border border-[#E5E5E5] text-[#525252] rounded">#{m}</span>
+            <span
+              key={`rt-${i}`}
+              className="text-[10px] px-1.5 py-0.5 bg-[#FAFAFA] border border-[#E5E5E5] text-[#525252] rounded"
+            >
+              #{m}
+            </span>
           ))}
         </div>
       )}
@@ -742,11 +1000,17 @@ function StoryCard({ story, showStudentName }) {
 function StarField({ label, value }) {
   return (
     <div>
-      <div className="text-[9px] uppercase tracking-wider text-[#A3A3A3] font-medium">{label}</div>
+      <div className="text-[9px] uppercase tracking-wider text-[#A3A3A3] font-medium">
+        {label}
+      </div>
       {value ? (
-        <p className="text-[11px] text-[#0A0A0A] leading-snug whitespace-pre-wrap">{value}</p>
+        <p className="text-[11px] text-[#0A0A0A] leading-snug whitespace-pre-wrap">
+          {value}
+        </p>
       ) : (
-        <p className="text-[11px] text-[#A3A3A3] italic">— (extractor left null)</p>
+        <p className="text-[11px] text-[#A3A3A3] italic">
+          — (extractor left null)
+        </p>
       )}
     </div>
   );
@@ -781,7 +1045,9 @@ export default function Admin() {
       <div className="flex flex-col items-center justify-center h-full min-h-[60vh] gap-2">
         <AlertTriangle className="w-8 h-8 text-[#A3A3A3]" />
         <p className="text-sm font-medium text-[#525252]">Page not found</p>
-        <p className="text-xs text-[#A3A3A3]">The page you're looking for doesn't exist.</p>
+        <p className="text-xs text-[#A3A3A3]">
+          The page you're looking for doesn't exist.
+        </p>
       </div>
     );
   }
@@ -789,10 +1055,17 @@ export default function Admin() {
   return (
     <div className="max-w-7xl mx-auto px-6 py-8">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">Admin Dashboard</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">
+          Admin Dashboard
+        </h1>
         <p className="text-sm text-[#A3A3A3] mt-1">
-          Real-time observability over the platform. Auto-refreshes every 30–60s.
+          Real-time observability over the platform. Auto-refreshes every
+          30–60s.
         </p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 mb-4">
+        <UserCountsCard />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
