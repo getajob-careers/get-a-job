@@ -11,6 +11,7 @@ import {
   MessageSquare,
   Ticket,
   UserPlus,
+  UserCheck,
 } from "lucide-react";
 import { format, formatDistanceToNow } from "date-fns";
 

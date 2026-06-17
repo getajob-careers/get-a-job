@@ -215,3 +215,10 @@ What I did wrong (in #308's design, caught here): conflated two independent conc
 Rule for next time: (1) In multi-stage GHA jobs, a stage that exists to ALARM (non-zero exit as a health signal) must not be a hard predecessor of stages doing independent work — gate the downstream stage on `if: always()`/`!cancelled()`, not `if: success()`, unless it genuinely consumes stage-1 output. Ask "does this stage NEED the previous one to have succeeded, or just to have run?" (2) Any percentage threshold over a grouped population needs a minimum-denominator guard (`total >= N`) or it fires on noise; singletons are the canonical false-trip. (3) When a "worked then stopped" regression has a clean date cutover, diff the merges in that window AND check the GHA run-conclusion history — the green→red flip date localizes the culprit PR faster than reading code.
 
 ---
+
+---
+2026-06-17 — import-before-use + unused-imports auto-fix = silent dropped import → prod white-screen
+Trigger: AdminLaunch (and Admin) white-screened on prod after #352; `UserCheck` was used as `icon={UserCheck}` but never imported.
+What I did wrong: added the `UserCheck` import BEFORE writing the component that used it; the PostToolUse formatter ran `unused-imports/no-unused-imports` and auto-removed the then-unused import. Lint/build/tests all passed: no-undef was disabled (the flat-config `rules:` object overrode `pluginJs.recommended`), `react/jsx-uses-vars` can't see an icon used only as a prop value (not a JSX tag), and no test renders these cards.
+Rule for next time: write the USAGE first (or same edit), then the import — never add an import that's momentarily unused, or the auto-fixer eats it. And treat green lint/build/tests as necessary-not-sufficient for a page that nothing renders in tests: smoke the actual route or add a render test. (Fixed the gap by enabling `no-undef` in eslint.config.js.)
+---
