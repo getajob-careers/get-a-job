@@ -47,6 +47,16 @@ const MODEL = "gpt-4o"; // JD keyword extraction (same as from-scratch pass 1)
 const SONNET_OPENROUTER_SLUG = "anthropic/claude-sonnet-4.6";
 const SONNET_MODEL_USED = "claude-sonnet-4-6";
 
+// Ops model routing (experiment): cv_model selects the ops LLM, defaulting to
+// Sonnet (back-compat). All route through OpenRouter so the transport + retry
+// wrapper are unchanged — the ONLY variable is the model. The lazy master author
+// (generate-tailored-cv) stays on Sonnet regardless.
+const OPS_MODELS: Record<string, { slug: string; used: string }> = {
+  sonnet: { slug: SONNET_OPENROUTER_SLUG, used: SONNET_MODEL_USED },
+  haiku: { slug: "anthropic/claude-haiku-4.5", used: "claude-haiku-4-5" },
+  "gpt-4o-mini": { slug: "openai/gpt-4o-mini", used: "gpt-4o-mini" },
+};
+
 function json(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
     status,
@@ -520,6 +530,7 @@ async function callOps(
   traceCtx: { userId: string; sessionId: string },
   retryHint: string,
   m: Metric,
+  opsModel: { slug: string; used: string },
 ): Promise<Ops | null> {
   const userPrompt = `TARGET JOB KEYWORDS:
 - must_include_phrases: ${JSON.stringify(jdKeywords.must_include_phrases)}
@@ -533,7 +544,7 @@ ${jdExcerpt}
 MASTER CV (select from this — every experience_id and bullet_id you emit must exist here):
 ${JSON.stringify(masterV)}${retryHint}`;
   const payload = {
-    model: SONNET_OPENROUTER_SLUG,
+    model: opsModel.slug,
     messages: [
       { role: "system", content: OPS_SYSTEM_PROMPT },
       { role: "user", content: userPrompt },
@@ -557,7 +568,7 @@ ${JSON.stringify(masterV)}${retryHint}`;
     return null;
   }
   const data = await res.json();
-  m.modelUsed = SONNET_MODEL_USED;
+  m.modelUsed = opsModel.used;
   m.tokensIn = (m.tokensIn ?? 0) + (data.usage?.prompt_tokens ?? 0);
   m.tokensOut = (m.tokensOut ?? 0) + (data.usage?.completion_tokens ?? 0);
   try {
@@ -629,7 +640,8 @@ Deno.serve(async (req) => {
     }
     const safeJobDescription = jdInput.slice(0, 10000);
     const safeTemplateStyle: TemplateStyle = "ats-optimized";
-    void cv_model; // ops authoring is always Sonnet; param accepted for parity
+    // ops model routing (experiment): default Sonnet; cv_model can pick a faster model
+    const opsModel = OPS_MODELS[String(cv_model ?? "").trim()] ?? OPS_MODELS.sonnet;
 
     const { data: allowed } = await serviceClient.rpc("check_rate_limit", {
       p_user_id: user.id,
@@ -753,6 +765,7 @@ Deno.serve(async (req) => {
         { userId: user.id, sessionId },
         retryHint,
         m,
+        opsModel,
       );
       if (!ops) return null;
       const { cv, rejectedRewordings } = assembleJobCv(master, ops, summaryJdHaystack);
