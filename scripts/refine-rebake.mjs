@@ -593,11 +593,22 @@ async function main() {
   async function worker() {
     while (i < pairs.length) {
       const pr = pairs[i++];
+      let res;
       try {
-        results.push(await runPair(pr, frozen.get(pr.job.id)));
+        res = await runPair(pr, frozen.get(pr.job.id));
       } catch (e) {
-        results.push({ pair: pr, error: e.message });
+        res = { pair: pr, error: e.message };
       }
+      results.push(res);
+      const who = (pr.email || pr.profile.id).slice(0, 26);
+      if (res.ok)
+        console.log(
+          `  [${results.length}/${pairs.length}] ${pr.type.padEnd(8)} ${who.padEnd(26)} covR=${String(res.covRefine).padStart(3)} covS=${String(res.covScratch).padStart(3)} rf1=${String(res.rfSingleScore).padStart(3)} judge=${res.judge.winner.padEnd(12)} dropped=${res.judge.dropped_strong_bullet.padEnd(12)} audit=${res.auditRefine}/${res.auditScratch}`,
+        );
+      else
+        console.log(
+          `  [${results.length}/${pairs.length}] ${pr.type.padEnd(8)} ${who.padEnd(26)} FAIL: ${res.error}`,
+        );
     }
   }
   await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
@@ -631,7 +642,12 @@ async function main() {
     refine_dropped_strong_frac: +refineDropped.toFixed(2),
     antifab_regression_pairs: antifabRegress,
     summary_overclaim_pairs: summaryOverclaims,
-    single_pass_score_distribution: covR.sort((a, b) => a - b), // for the retry-threshold recommendation
+    // retry-threshold distribution = the FUNCTION's own single-pass tailoring_score
+    // (what the <50 retry gate compares against), not the frozen re-score.
+    single_pass_score_distribution: ok
+      .map((r) => r.rfSingleScore)
+      .filter((x) => typeof x === "number")
+      .sort((a, b) => a - b),
   };
   const pass =
     verdict.coverage_median_refine >=
@@ -642,6 +658,19 @@ async function main() {
     verdict.refine_dropped_strong_frac <= PASS.refineDroppedStrongMaxFrac &&
     antifabRegress === 0 &&
     summaryOverclaims === 0;
+
+  console.log("\n=== PER-PAIR ===");
+  console.log(
+    "type     profile                    covR covS  rf1  judge        dropped       auditR/S",
+  );
+  for (const r of results) {
+    const who = (r.pair.email || r.pair.profile.id).slice(0, 26).padEnd(26);
+    if (r.ok)
+      console.log(
+        `${r.pair.type.padEnd(8)} ${who} ${String(r.covRefine).padStart(4)} ${String(r.covScratch).padStart(4)}  ${String(r.rfSingleScore).padStart(3)}  ${r.judge.winner.padEnd(12)} ${r.judge.dropped_strong_bullet.padEnd(12)} ${r.auditRefine}/${r.auditScratch}`,
+      );
+    else console.log(`${r.pair.type.padEnd(8)} ${who} FAIL: ${r.error}`);
+  }
 
   console.log("\n=== VERDICT ===");
   console.log(JSON.stringify(verdict, null, 2));
