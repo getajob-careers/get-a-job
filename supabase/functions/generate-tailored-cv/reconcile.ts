@@ -132,7 +132,7 @@ export function fillFromSource(
   sources: SourceExperience[],
   llmEntries: LlmEntry[] | undefined | null,
   orgFieldName: string,
-  opts?: { logger?: (msg: string) => void; warnings?: ReconcileWarning[]; bucket?: string },
+  opts?: { logger?: (msg: string) => void; warnings?: ReconcileWarning[]; bucket?: string; stampSourceId?: boolean; sourceIds?: (string | null | undefined)[] },
 ): FilledEntry[] {
   const log = opts?.logger || ((msg: string) => console.warn(msg));
   const warnings = opts?.warnings;
@@ -231,6 +231,15 @@ export function fillFromSource(
       bullets,
     };
     out[orgFieldName] = src.company || "";
+    // Master addressability (Phase 2.0): stamp the authoritative DB source-row
+    // id by the SAME index map used for title/company/dates above. Additive key,
+    // gated to master mode via stampSourceId so the from-scratch / job-CV path is
+    // byte-identical (no key added). Positional fallback only where no source row
+    // id maps. Bullets stay bare strings — unchanged; every other consumer
+    // (buildCvPdf included) ignores this extra key.
+    if (opts?.stampSourceId) {
+      out.experience_id = opts.sourceIds?.[i] || `${bucket}.${i}`;
+    }
     return out;
   });
 }
