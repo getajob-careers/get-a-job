@@ -626,7 +626,7 @@ Deno.serve(async (req) => {
       _err = "payload_too_large";
       return json({ error: "Payload too large." }, 413);
     }
-    const { application_id, job_description, cv_model } = body;
+    const { application_id, job_description, cv_model, disable_retry } = body;
     if (typeof application_id !== "string" || !application_id) {
       _http = 400;
       _err = "missing_input";
@@ -642,6 +642,10 @@ Deno.serve(async (req) => {
     const safeTemplateStyle: TemplateStyle = "ats-optimized";
     // ops model routing (experiment): default Sonnet; cv_model can pick a faster model
     const opsModel = OPS_MODELS[String(cv_model ?? "").trim()] ?? OPS_MODELS.sonnet;
+    // disable_retry (additive, default false = current behavior): when true, run a
+    // single ops pass only. Used by the Phase 2.2 re-bake harness so single-pass
+    // coverage/latency are clean. Prod callers omit it -> retry behaves as before.
+    const disableRetry = disable_retry === true;
 
     const { data: allowed } = await serviceClient.rpc("check_rate_limit", {
       p_user_id: user.id,
@@ -780,6 +784,7 @@ Deno.serve(async (req) => {
     }
     let retryFired = false;
     if (
+      !disableRetry &&
       jdKeywords.must_include_phrases.length > 0 &&
       result.cov.tailoring_score < 50
     ) {
