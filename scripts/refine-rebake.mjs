@@ -310,12 +310,13 @@ async function extractJDKeywords(jd) {
 // ── Blinded, order-randomized LLM judge ───────────────────────────────────────
 function bulletsOf(cv) {
   const out = [];
+  // selection-delta scope: the four tailored experience buckets only (projects
+  // are verbatim master carry-over, not a refine selection signal).
   for (const b of [
     "professional_experiences",
     "military_experiences",
     "volunteering_experiences",
     "leadership_experiences",
-    "projects",
   ])
     for (const e of safeArray(cv?.[b]))
       for (const x of safeArray(e?.bullets)) out.push(String(x));
@@ -325,15 +326,24 @@ async function judge(jd, cvRefine, cvScratch, coinHeads) {
   // blind: A/B randomized per pair so the judge can't learn which arm is which
   const A = coinHeads ? cvRefine : cvScratch;
   const B = coinHeads ? cvScratch : cvRefine;
+  // SCOPE: show the judge ONLY the surfaces the refine actually tailors — the
+  // summary + the four experience buckets (selection + rewording). Projects,
+  // education, header, languages, certifications are verbatim master carry-over
+  // (the refine clones them, does not tailor them), so they are NOT shown and
+  // cannot influence winner / dropped_strong_bullet — including the master's
+  // null-title projects. A from-scratch edge in those sections is not a refine
+  // selection failure.
+  const expView = (cv, k) =>
+    safeArray(cv?.[k]).map((e) => ({ title: e.title, bullets: e.bullets }));
   const view = (cv) => ({
     summary: cv?.summary,
-    professional_experiences: safeArray(cv?.professional_experiences).map(
-      (e) => ({ title: e.title, bullets: e.bullets }),
-    ),
-    skills: cv?.skills,
+    professional_experiences: expView(cv, "professional_experiences"),
+    military_experiences: expView(cv, "military_experiences"),
+    volunteering_experiences: expView(cv, "volunteering_experiences"),
+    leadership_experiences: expView(cv, "leadership_experiences"),
   });
   const sys =
-    "You are an expert technical recruiter comparing two one-page CVs (A and B) tailored to the same job. Judge ONLY which surfaces the more specific, higher-impact, JD-relevant achievements. Return JSON only.";
+    "You are an expert technical recruiter comparing two one-page CVs (A and B) tailored to the same job. You are shown ONLY the tailored surfaces: the summary and the four experience sections (professional, military, volunteering, leadership). Projects, education, header, languages, and certifications are intentionally omitted — they are verbatim carry-over that neither CV tailors, so they MUST NOT affect your judgment. Judge ONLY which of the shown surfaces presents the more specific, higher-impact, JD-relevant achievements through selection and wording, and base dropped_strong_bullet ONLY on the shown experience bullets. Return JSON only.";
   const user = `JOB DESCRIPTION:\n${jd.slice(0, 4000)}\n\nCV A:\n${JSON.stringify(view(A))}\n\nCV B:\n${JSON.stringify(view(B))}\n\nReturn JSON:\n{\n  "winner": "A" | "B" | "tie",\n  "dropped_strong_bullet": "A" | "B" | "none",   // did one OMIT a strong, JD-relevant achievement the other included? which one dropped it\n  "quote": "the dropped achievement, verbatim, or empty",\n  "rationale": "one sentence"\n}`;
   const r = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
