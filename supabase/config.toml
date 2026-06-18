@@ -17,6 +17,9 @@ verify_jwt = false
 [functions.generate-tailored-cv]
 verify_jwt = false
 
+[functions.refine-cv]
+verify_jwt = false
+
 [functions.generate-tasks]
 verify_jwt = false
 
