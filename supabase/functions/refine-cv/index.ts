@@ -295,6 +295,32 @@ function tokensTraceToMaster(text: string, haystackLower: string): boolean {
   return true;
 }
 
+// Summary-only gate (Phase 2.1). NUMERIC tokens (percent/dollar/count/number) must
+// still trace to the master — strict, unchanged. PROPER-NOUN tokens (CamelCase /
+// ALLCAPS, e.g. a JD acronym like "GTM") may instead come from the JD keyword set,
+// since extractJDKeywords already provenance-filters those to terms present in the
+// JD — so a legitimately JD-framed summary survives instead of being forced back to
+// the JD-agnostic master summary. Matches the latitude the from-scratch path gives
+// its own summary: no stricter, no looser. NOT used for bullet rewords — those stay
+// on the strict master-only trace (tokensTraceToMaster) above.
+function summaryTokensClean(
+  text: string,
+  masterHaystackLower: string,
+  jdHaystackLower: string,
+): boolean {
+  const tokens = String(text || "").match(QUANT_TOKEN_RE) || [];
+  for (const tok of tokens) {
+    if (TOKEN_BLOCKLIST.has(tok)) continue;
+    const lower = tok.toLowerCase();
+    if (/\d/.test(tok)) {
+      if (!masterHaystackLower.includes(lower)) return false; // numbers: master only (strict)
+    } else if (!masterHaystackLower.includes(lower) && !jdHaystackLower.includes(lower)) {
+      return false; // proper-noun: master OR JD keyword set (widened)
+    }
+  }
+  return true;
+}
+
 // ── Master → addressable view + assembly ──────────────────────────────────────
 const EXP_BUCKETS: { key: string; org: string }[] = [
   { key: "professional_experiences", org: "company" },
@@ -356,9 +382,12 @@ function parseOps(raw: any): Ops {
       .map((r: any) => ({
         bullet_id: String(r.bullet_id),
         new_text: String(r.new_text).slice(0, 600),
-      })),
+      }))
+      .slice(0, 4), // Phase 2.1: hard cap 4 rewordings (the main output-token lever)
     summary: typeof raw?.summary === "string" ? raw.summary.slice(0, 1500) : "",
-    skills_emphasis: safeArray(raw?.skills_emphasis).map((x: any) => String(x)),
+    skills_emphasis: safeArray(raw?.skills_emphasis)
+      .map((x: any) => String(x))
+      .slice(0, 8), // Phase 2.1: cap ~8
   };
 }
 
@@ -367,6 +396,7 @@ function parseOps(raw: any): Ops {
 function assembleJobCv(
   master: any,
   ops: Ops,
+  summaryJdHaystack: string,
 ): { cv: any; rejectedRewordings: number } {
   const selectedExpIds = new Set(ops.select.experience_ids);
   const selectedBulletIds = new Set(ops.select.bullet_ids);
@@ -419,9 +449,11 @@ function assembleJobCv(
     cv[key] = out;
   }
 
-  // Summary: gated against the WHOLE master (it's not tied to one experience).
+  // Summary: numbers must trace to the master (strict); proper-noun JD framing
+  // (e.g. "GTM") may come from the JD keyword set — so a tailored summary lands
+  // instead of falling back to the JD-agnostic master. See summaryTokensClean.
   const masterHaystack = JSON.stringify(master).toLowerCase();
-  if (ops.summary && tokensTraceToMaster(ops.summary, masterHaystack))
+  if (ops.summary && summaryTokensClean(ops.summary, masterHaystack, summaryJdHaystack))
     cv.summary = ops.summary;
   else cv.summary = master?.summary || "";
 
@@ -466,18 +498,19 @@ Emit ONLY this JSON (no prose, no markdown):
 }
 
 ONE-PAGE BUDGET — this is the PRIMARY one-page mechanism:
-- Select the most JD-relevant experiences and roughly a page's worth of bullets. Aim for about 3-5 experiences and ~12-18 bullets TOTAL (about 2-4 bullets per selected experience). Include the most JD-relevant experiences and bullets; drop the rest. Do not select everything.
+- Select the most JD-relevant experiences and roughly a page's worth of bullets. Aim for about 3-5 experiences and about 12 bullets TOTAL (roughly 10-14; about 2-3 bullets per selected experience). Include the most JD-relevant experiences and bullets; drop the rest. Do not select everything.
 - experience_ids and bullet_ids MUST be ids that exist in the MASTER below. bullet_ids must belong to selected experiences.
 
-REWORDINGS — truthfulness is non-negotiable:
-- A rewording may ONLY re-phrase an EXISTING master bullet to surface a JD keyword the user genuinely demonstrated in that same experience. It must NOT introduce any metric, number, percentage, currency, tool, company, or claim that is not already present in that experience's master bullets. If a keyword can't be surfaced truthfully, leave the bullet as-is (omit it from rewordings).
-- Keep rewordings minimal — only where they raise JD keyword coverage.
+REWORDINGS — minimal, only to ADD a missing keyword (truthfulness is non-negotiable):
+- Reword a SELECTED bullet ONLY when it is MISSING a must_include JD keyword the user genuinely demonstrated in that same experience, AND rewording would surface that keyword. If a selected bullet already conveys its JD-relevant content, SELECT IT VERBATIM by id and emit NO rewording for it — do NOT re-emit its text. Most selected bullets need no rewording.
+- HARD CAP: at most 4 rewordings total. Choose the 4 that add the most missing-keyword coverage.
+- A rewording may only re-phrase; it must NOT introduce any metric, number, percentage, currency, tool, company, or claim that is not already present in that experience's master bullets. If a keyword can't be surfaced truthfully, leave the bullet as-is.
 
 SUMMARY:
-- 2-3 sentences, grounded entirely in the master. No invented facts, metrics, or tools.
+- 2-3 sentences. You MAY frame it with the target job's terminology and keywords, but every fact, metric, number, tool, and claim must be grounded in the master. Do not invent.
 
 SKILLS_EMPHASIS:
-- An ordered list of skills, taken from the master's skills, to surface first (most JD-relevant first). Do NOT invent skills.`;
+- Up to 8 skills, taken from the master's skills, ordered most JD-relevant first. Do NOT invent skills.`;
 
 async function callOps(
   masterV: any,
@@ -704,6 +737,13 @@ Deno.serve(async (req) => {
     // ── 3 + 4 + 5. Ops → assemble → anti-fab gate, with one coverage retry ──
     const masterV = masterView(master);
     const jdExcerpt = safeJobDescription.slice(0, 4000);
+    // Summary-gate widening input (Phase 2.1): JD keyword terms, already
+    // provenance-filtered by extractJDKeywords to terms present in the JD.
+    const summaryJdHaystack = [
+      ...jdKeywords.must_include_phrases,
+      ...jdKeywords.tools_and_platforms,
+      ...jdKeywords.domain_terms,
+    ].join(" \n ").toLowerCase();
     const runPass = async (retryHint: string) => {
       const ops = await callOps(
         masterV,
@@ -715,7 +755,7 @@ Deno.serve(async (req) => {
         m,
       );
       if (!ops) return null;
-      const { cv, rejectedRewordings } = assembleJobCv(master, ops);
+      const { cv, rejectedRewordings } = assembleJobCv(master, ops, summaryJdHaystack);
       const cov = scoreCoverage(cv, jdKeywords.must_include_phrases);
       return { cv, cov, rejectedRewordings };
     };
