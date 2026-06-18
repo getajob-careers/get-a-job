@@ -2567,27 +2567,40 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     // (jdInput) so a standalone/extension CV remembers what it was tailored to.
     try {
       if (isMasterMode) {
-        // Master CV: exactly one is_master row per user (the partial unique index
-        // is the guard). Regen UPDATEs the existing master in place — no second
-        // row, no applications row. application_id + source_jd are null (JD-agnostic).
-        const { data: existingMaster } = await supabase.from("application_cvs")
-          .select("id").eq("user_id", user.id).eq("is_master", true).maybeSingle();
-        if (existingMaster?.id) {
+        // Race-safe master upsert against the partial unique index
+        // (user_id) WHERE is_master. INSERT first; on a unique violation
+        // (23505 — a concurrent onboarding-fire + self-heal in 1b beat us to it)
+        // UPDATE the existing master in place. This is the supabase-js-expressible
+        // equivalent of INSERT ... ON CONFLICT (user_id) WHERE is_master DO UPDATE
+        // (the JS client can't pass a partial-index predicate to .upsert()); the
+        // unique index serialises the concurrent inserts, so exactly one wins and
+        // the rest fall through to the in-place update — no second master, no lost
+        // write. Master is a LIVING document: version stays 1, application_id +
+        // source_jd null. Same field set on insert and on the post-conflict update.
+        const masterRow = {
+          user_id: user.id,
+          application_id: null,
+          is_master: true,
+          source_jd: null,
+          cv_data: cvData as any,
+          cv_url,
+          version: 1,
+        };
+        const { error: insErr } = await supabase.from("application_cvs").insert(masterRow);
+        if (insErr && (insErr as any).code === "23505") {
           const { error: upErr } = await supabase.from("application_cvs")
-            .update({ cv_data: cvData as any, cv_url, version: 1, source_jd: null })
-            .eq("id", existingMaster.id).eq("user_id", user.id);
-          if (upErr) console.error("[CV] master cv update failed (non-fatal):", upErr.message);
-        } else {
-          const { error: insErr } = await supabase.from("application_cvs").insert({
-            user_id: user.id,
-            application_id: null,
-            is_master: true,
-            source_jd: null,
-            cv_data: cvData as any,
-            cv_url,
-            version: 1,
-          });
-          if (insErr) console.error("[CV] master cv insert failed (non-fatal):", insErr.message);
+            .update({
+              cv_data: cvData as any,
+              cv_url,
+              source_jd: null,
+              is_master: true,
+              application_id: null,
+              version: 1,
+            })
+            .eq("user_id", user.id).eq("is_master", true);
+          if (upErr) console.error("[CV] master cv update (post-conflict) failed (non-fatal):", upErr.message);
+        } else if (insErr) {
+          console.error("[CV] master cv insert failed (non-fatal):", insErr.message);
         }
       } else {
         const { error: cvPersistError } = await supabase.from("application_cvs").insert({
