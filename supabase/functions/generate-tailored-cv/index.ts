@@ -316,7 +316,7 @@ Deno.serve(async (req) => {
       _http = 413; _err = 'payload_too_large'
       return json({ error: 'Request payload too large.' }, 413);
     }
-    const { job_description, target_role, application_id, template_style, cv_model } = body;
+    const { job_description, target_role, application_id, template_style, cv_model, master } = body;
     const safeTargetRole = String(target_role ?? '').slice(0, 200);
     // Smart truncation: pull Requirements/Qualifications/Responsibilities
     // sections first when the JD has detectable headings; otherwise fall
@@ -348,6 +348,19 @@ Deno.serve(async (req) => {
     // 35/35 numbers carried on Sonnet+Option A vs 13/21 on gpt-4o.
     const safeCvModel: 'gpt-4o' | 'sonnet' =
       cv_model === 'sonnet' ? 'sonnet' : 'gpt-4o';
+
+    // Master-CV mode (Phase 1a). Triggered ONLY by an explicit `master: true`
+    // in the body — NEVER inferred from a missing JD/application, because the
+    // chat path (coachActionHandlers.generateTailoredCV) can already invoke with
+    // application_id:null AND job_description:null; inferring master from "no JD"
+    // would misclassify that live path. The vestigial tailoring prompt text is
+    // gated on isMasterMode (NOT on safeJobDescription), so every current call
+    // stays byte-identical (none set the flag). A master run reuses the same
+    // author JD-agnostically and persists one is_master row per user.
+    //   Invoke shape (authenticated AS the target user):
+    //   POST /functions/v1/generate-tailored-cv
+    //   { "master": true, "target_role": "<role>", "cv_model": "sonnet" }
+    const isMasterMode = master === true;
 
     if (!safeTargetRole) {
       _http = 400; _err = 'missing_input'
@@ -1316,18 +1329,19 @@ NO DERIVED OR COMPUTED FIGURES:
 `;
 
     const systemPrompt =
-      `You are a CV Generation Engine for the "Get A Job" Career Operating System. Your job is to produce a tailored, one-page, truthful CV as JSON. The CV WILL be sent to real employers — so every word must be grounded in the user's actual data.\n\n` +
-      `You are generating a TAILORED CV. The CV must be specifically customized for the target job description. Generic CVs that don't incorporate JD-specific language will be rejected.\n\n` +
+      `You are a CV Generation Engine for the "Get A Job" Career Operating System. Your job is to produce a ${isMasterMode ? 'comprehensive' : 'tailored'}, one-page, truthful CV as JSON. The CV WILL be sent to real employers — so every word must be grounded in the user's actual data.\n\n` +
+      (isMasterMode ? '' : `You are generating a TAILORED CV. The CV must be specifically customized for the target job description. Generic CVs that don't incorporate JD-specific language will be rejected.\n\n`) +
       ONE_PAGE_RULE + `\n` +
       TRUTHFULNESS_RULES + `\n` +
       CV_VOICE_RULES + `\n` +
       STRUCTURE_RULES + `\n` +
-      TAILORING_RULES + `\n` +
+      (isMasterMode ? '' : TAILORING_RULES + `\n`) +
       STRUCTURED_REQUIREMENTS_RULE + `\n` +
       LIBRARY_CONTEXT + `\n` +
-      `REMINDER: Truthfulness beats polish AND one-page fit is non-negotiable. If a bullet needs a metric to sound impressive but you have no metric in the source, leave it without. Do not invent. If content is overflowing, shorten bullets rather than dropping entries.
+      `REMINDER: Truthfulness beats polish AND one-page fit is non-negotiable. If a bullet needs a metric to sound impressive but you have no metric in the source, leave it without. Do not invent. If content is overflowing, shorten bullets rather than dropping entries.` +
+      (isMasterMode ? '' : `
 
-BEFORE FINALIZING THE JSON: count how many of the must_include_phrases appear anywhere in your output (case-insensitive substring match in any field). If fewer than 6 of 10 — or fewer than 60% of however many were provided — rewrite bullets to incorporate more, but ONLY where the user actually has the underlying experience. The factual-integrity rules above always win.` +
+BEFORE FINALIZING THE JSON: count how many of the must_include_phrases appear anywhere in your output (case-insensitive substring match in any field). If fewer than 6 of 10 — or fewer than 60% of however many were provided — rewrite bullets to incorporate more, but ONLY where the user actually has the underlying experience. The factual-integrity rules above always win.`) +
       (safeCvModel === 'sonnet' ? OPTION_A_OVERLAY : '');
     // KEYWORD_INJECTION_BLOCK is appended to the END of the user prompt below
     // so it's the last instruction the LLM sees before producing output.
@@ -1338,7 +1352,7 @@ ${targetCompany ? `TARGET COMPANY: ${targetCompany}` : ""}
 USER DATA:
 ${JSON.stringify(userContext, null, 2)}
 
-${safeJobDescription ? `JOB DESCRIPTION:\n${safeJobDescription}\n` : "(No job description provided — tailor using the target role and user profile only.)"}
+${safeJobDescription ? `JOB DESCRIPTION:\n${safeJobDescription}\n` : (isMasterMode ? "(No job description — this is a comprehensive master CV. Author from the full profile across all roles; do not tailor to any specific job.)" : "(No job description provided — tailor using the target role and user profile only.)")}
 ${targetRoleContext && Object.values(targetRoleContext).some(v => v !== null && v !== undefined && v !== '') ? `
 TARGET_ROLE_CONTEXT (pre-computed signal from this application; null fields just mean unknown — don't penalize the user for them):
 ${JSON.stringify({
@@ -1380,7 +1394,7 @@ ${JSON.stringify(v4, null, 2)}
 `;
 })()}
 TASK:
-Produce a tailored, truthful, one-page CV for this user as JSON matching the exact schema below.
+Produce a ${isMasterMode ? 'comprehensive' : 'tailored'}, truthful, one-page CV for this user as JSON matching the exact schema below.
 
 OUTPUT SCHEMA (JSON):
 {
@@ -2532,7 +2546,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       }).eq("id", application_id).eq("user_id", user.id).select().single();
       if (!data) { _http = 404; _err = 'app_not_found'; return json({ error: "Application not found or not owned by user." }, 404); }
       appRecord = data;
-    } else {
+    } else if (!isMasterMode) {
       const { data } = await supabase.from("applications").insert({
         user_id: user.id,
         role_title: safeTargetRole,
@@ -2552,16 +2566,54 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     // write above stays the back-compat pointer. source_jd records the pasted JD
     // (jdInput) so a standalone/extension CV remembers what it was tailored to.
     try {
-      const { error: cvPersistError } = await supabase.from("application_cvs").insert({
-        user_id: user.id,
-        application_id: appRecord?.id ?? null,
-        source_jd: jdInput || null,
-        cv_data: cvData as any,
-        cv_url,
-        version: 1,
-      });
-      if (cvPersistError) {
-        console.error("[CV] application_cvs persist failed (non-fatal):", cvPersistError.message);
+      if (isMasterMode) {
+        // Race-safe master upsert against the partial unique index
+        // (user_id) WHERE is_master. INSERT first; on a unique violation
+        // (23505 — a concurrent onboarding-fire + self-heal in 1b beat us to it)
+        // UPDATE the existing master in place. This is the supabase-js-expressible
+        // equivalent of INSERT ... ON CONFLICT (user_id) WHERE is_master DO UPDATE
+        // (the JS client can't pass a partial-index predicate to .upsert()); the
+        // unique index serialises the concurrent inserts, so exactly one wins and
+        // the rest fall through to the in-place update — no second master, no lost
+        // write. Master is a LIVING document: version stays 1, application_id +
+        // source_jd null. Same field set on insert and on the post-conflict update.
+        const masterRow = {
+          user_id: user.id,
+          application_id: null,
+          is_master: true,
+          source_jd: null,
+          cv_data: cvData as any,
+          cv_url,
+          version: 1,
+        };
+        const { error: insErr } = await supabase.from("application_cvs").insert(masterRow);
+        if (insErr && (insErr as any).code === "23505") {
+          const { error: upErr } = await supabase.from("application_cvs")
+            .update({
+              cv_data: cvData as any,
+              cv_url,
+              source_jd: null,
+              is_master: true,
+              application_id: null,
+              version: 1,
+            })
+            .eq("user_id", user.id).eq("is_master", true);
+          if (upErr) console.error("[CV] master cv update (post-conflict) failed (non-fatal):", upErr.message);
+        } else if (insErr) {
+          console.error("[CV] master cv insert failed (non-fatal):", insErr.message);
+        }
+      } else {
+        const { error: cvPersistError } = await supabase.from("application_cvs").insert({
+          user_id: user.id,
+          application_id: appRecord?.id ?? null,
+          source_jd: jdInput || null,
+          cv_data: cvData as any,
+          cv_url,
+          version: 1,
+        });
+        if (cvPersistError) {
+          console.error("[CV] application_cvs persist failed (non-fatal):", cvPersistError.message);
+        }
       }
     } catch (e) {
       console.error("[CV] application_cvs persist threw (non-fatal):", (e as Error).message);
@@ -2582,7 +2634,9 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       application_id: appRecord?.id,
       fit_analysis: cvData.fit_analysis,
       library_match,
-      message: `CV generated for "${safeTargetRole}". Download it using the link, and it's been saved to your Application Tracker.`,
+      message: isMasterMode
+        ? `Master CV generated for "${safeTargetRole}". Saved as your master record.`
+        : `CV generated for "${safeTargetRole}". Download it using the link, and it's been saved to your Application Tracker.`,
       // Diagnostic metadata — lets callers see the overflow decision at a
       // glance without having to pull edge-function logs.
       page_fit: {
