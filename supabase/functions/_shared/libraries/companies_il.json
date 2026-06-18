@@ -1,19 +1,19 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 891,
+  "total_companies": 895,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
     "amazon_jobs": 1,
     "ashby": 69,
-    "comeet": 225,
+    "comeet": 228,
     "custom": 31,
     "eightfold": 3,
     "greenhouse": 200,
     "iai": 1,
     "icims": 1,
     "jooble": 1,
-    "lever": 25,
+    "lever": 26,
     "oracle": 1,
     "pwc_heroku": 1,
     "recruitee": 1,
@@ -10716,6 +10716,54 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/zyngacareers/jobs?content=true",
       "verified": true,
       "notes": "Greenhouse board verified: 2 confirmed Tel Aviv roles (D2C Director of Product, Data Science Manager) under Storemaven (Zynga subsidiary, Israeli founded). Take-Two/Zynga parent."
+    },
+    {
+      "name": "PayBox",
+      "type": "israeli_founded",
+      "industry": "Fintech / Payments",
+      "domain": "paybox.co.il",
+      "careers_url": "https://www.comeet.com/jobs/paybox/18.004",
+      "ats": "comeet",
+      "slug": "18.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/18.004/positions?token=814307828641028048B4183C286440A03078&details=true",
+      "verified": true,
+      "notes": "R1 net-new 2026-06-14. Comeet UID 18.004, token harvested from comeet.com/jobs/paybox/18.004. Validated 3 IL at capture. Israeli payments app."
+    },
+    {
+      "name": "Plus500",
+      "type": "israeli_founded",
+      "industry": "Fintech / Trading",
+      "domain": "plus500.com",
+      "careers_url": "https://careers.plus500.com",
+      "ats": "comeet",
+      "slug": "A1.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/A1.00F/positions?token=1AF6BCA1AF27A1A35E86B6BC50D0&details=true",
+      "verified": true,
+      "notes": "R1 net-new 2026-06-14. Comeet UID A1.00F (XHR-harvested). Validated 14 IL at capture. Israeli fintech/CFD, Haifa."
+    },
+    {
+      "name": "One Zero",
+      "type": "israeli_founded",
+      "industry": "Fintech / Digital Banking",
+      "domain": "onezerobank.com",
+      "careers_url": "https://www.onezerobank.com/en/career",
+      "ats": "comeet",
+      "slug": "36.00A",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/36.00A/positions?token=63A255C63A63A18E831D063A31D063A1F22&details=true",
+      "verified": true,
+      "notes": "R1 net-new 2026-06-14. Comeet UID 36.00A (XHR-harvested). Validated 11 IL at capture. Israeli digital bank."
+    },
+    {
+      "name": "Contentsquare",
+      "type": "international_il_rd",
+      "industry": "Analytics / Digital Experience",
+      "domain": "contentsquare.com",
+      "careers_url": "https://contentsquare.com/careers",
+      "ats": "lever",
+      "slug": "contentsquare",
+      "api_url": "https://api.lever.co/v0/postings/contentsquare?mode=json",
+      "verified": true,
+      "notes": "R1 net-new 2026-06-14. Lever slug 'contentsquare'. 35 postings, 0 currently IL-tagged (yields when IL roles post; has IL R&D)."
     }
   ]
 }
