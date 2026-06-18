@@ -362,7 +362,7 @@ Deno.serve(async (req) => {
     //   { "master": true, "target_role": "<role>", "cv_model": "sonnet" }
     const isMasterMode = master === true;
 
-    if (!safeTargetRole) {
+    if (!safeTargetRole && !isMasterMode) {
       _http = 400; _err = 'missing_input'
       return json({ error: "target_role is required" }, 400);
     }
@@ -929,7 +929,7 @@ Deno.serve(async (req) => {
     // 17% → 42% with this matcher (n=12 sampled 2026-05-05). The
     // library_match flag drives the LIBRARY_CONTEXT prompt block, so
     // higher match rate = more CVs benefit from role-library tailoring.
-    const matchResult = matchRoleToLibrary(safeTargetRole, roleLibrary as any);
+    const matchResult = isMasterMode ? null : matchRoleToLibrary(safeTargetRole, roleLibrary as any);
     const targetRoleDef = matchResult?.role || null;
     const matchVia = matchResult?.via || null;
 
@@ -1005,6 +1005,27 @@ Section richness:
 - About Me density follows the path-specific rules below (3-4 sentences grounded, 1-2 sparse).
 
 Recruiter scan order remains: professional experience top, then education, then skills/honors. Lead with your strongest material in each bucket — chronologically AND by relevance to the JD.
+`;
+
+    // Master variant of ONE_PAGE_RULE: uncapped bullets, no one-page framing.
+    // Swapped in only when isMasterMode (see systemPrompt assembly). Truthfulness
+    // & preservation rules below still override this without exception.
+    const MASTER_CONTENT_RULES = `CONTENT DENSITY & QUALITY — MASTER RESERVOIR:
+
+This is a COMPREHENSIVE master CV: a complete reservoir of everything the user has, NOT a one-page document. There is NO page limit. Do not ration, compress, or shrink content to fit a page — a later per-job step selects from this material, so completeness matters more than length.
+
+Per-experience bullets — UNCAPPED:
+- Emit ONE bullet per distinct responsibility or accomplishment the source genuinely supports. There is NO ceiling: if the source contains 9 distinct responsibilities, emit 9 bullets. NEVER drop a real responsibility to save space, and NEVER compress several into one to shorten the page.
+- Faithfulness over volume: write as many bullets as the source TRULY supports, and no more. Do NOT pad, invent, duplicate, or split a single responsibility into several just to inflate the count. The ABSOLUTE TRUTHFULNESS & PRESERVATION rules below remain in full force without exception.
+
+Per-bullet word count (quality, not page-fit):
+- Target 14-22 words for most bullets. Bullets shorter than 12 words usually under-describe the work and read as thin. Bullets longer than 26 words are almost always padded — tighten.
+
+Section richness:
+- Include every experience, education entry, certification, award, and language the user has. NEVER drop entries.
+- About Me density follows the path-specific rules below.
+
+Recruiter scan order remains: professional experience top, then education, then skills/honors. Lead with your strongest material in each bucket.
 `;
 
     const TRUTHFULNESS_RULES = `ABSOLUTE TRUTHFULNESS & PRESERVATION RULES — THESE OVERRIDE EVERY OTHER RULE:
@@ -1313,7 +1334,7 @@ SOURCE RANKING (RESPONSIBILITIES FIRST):
 - experience.responsibilities is the PRIMARY source for bullets. Stories and proof_signals are ENRICHMENT only — they may contribute a metric or named tool the responsibility omits, but they NEVER replace a responsibility line. Ranking: responsibilities > proof_signals (enrichment) > stories (enrichment).
 
 BULLET CAP (faithfulness over compression):
-- Emit ONE bullet per distinct responsibility line in the source, capped at 6 per experience. If the user wrote 5 responsibility lines, emit 5 bullets — do NOT compress to 3. If a single short responsibility line exists, emit 1-2 bullets (split a compound responsibility if needed; never invent). Drop the LEAST JD-relevant line ONLY when you hit the 6-bullet ceiling.
+- ${isMasterMode ? "MASTER RESERVOIR — UNCAPPED: emit ONE bullet per distinct responsibility or accomplishment in the source. There is NO ceiling — if the user wrote 9 responsibility lines, emit 9 bullets. NEVER drop a real responsibility and NEVER compress. Split a compound responsibility only when it genuinely holds two distinct accomplishments; never invent or pad to inflate the count." : "Emit ONE bullet per distinct responsibility line in the source, capped at 6 per experience. If the user wrote 5 responsibility lines, emit 5 bullets — do NOT compress to 3. If a single short responsibility line exists, emit 1-2 bullets (split a compound responsibility if needed; never invent). Drop the LEAST JD-relevant line ONLY when you hit the 6-bullet ceiling."}
 
 VERBATIM METRICS (responsibilities AND stories):
 - Every number appearing in experience.responsibilities — counts, percentages, currency, durations, team sizes, volumes — MUST appear in a bullet for that experience, word-for-word. Rephrasing applies to verbs and surrounding structure, NEVER to the number tokens themselves. If a single bullet cannot carry all numbers, distribute across multiple bullets for the same experience. Story metrics remain verbatim (unchanged from the existing STORY BANK BINDING rules).
@@ -1329,16 +1350,16 @@ NO DERIVED OR COMPUTED FIGURES:
 `;
 
     const systemPrompt =
-      `You are a CV Generation Engine for the "Get A Job" Career Operating System. Your job is to produce a ${isMasterMode ? 'comprehensive' : 'tailored'}, one-page, truthful CV as JSON. The CV WILL be sent to real employers — so every word must be grounded in the user's actual data.\n\n` +
+      `You are a CV Generation Engine for the "Get A Job" Career Operating System. Your job is to produce a ${isMasterMode ? 'comprehensive, multi-section' : 'tailored, one-page'}, truthful CV as JSON. The CV WILL be sent to real employers — so every word must be grounded in the user's actual data.\n\n` +
       (isMasterMode ? '' : `You are generating a TAILORED CV. The CV must be specifically customized for the target job description. Generic CVs that don't incorporate JD-specific language will be rejected.\n\n`) +
-      ONE_PAGE_RULE + `\n` +
+      (isMasterMode ? MASTER_CONTENT_RULES : ONE_PAGE_RULE) + `\n` +
       TRUTHFULNESS_RULES + `\n` +
       CV_VOICE_RULES + `\n` +
       STRUCTURE_RULES + `\n` +
       (isMasterMode ? '' : TAILORING_RULES + `\n`) +
       STRUCTURED_REQUIREMENTS_RULE + `\n` +
       LIBRARY_CONTEXT + `\n` +
-      `REMINDER: Truthfulness beats polish AND one-page fit is non-negotiable. If a bullet needs a metric to sound impressive but you have no metric in the source, leave it without. Do not invent. If content is overflowing, shorten bullets rather than dropping entries.` +
+      `REMINDER: Truthfulness beats polish${isMasterMode ? '' : ' AND one-page fit is non-negotiable'}. If a bullet needs a metric to sound impressive but you have no metric in the source, leave it without. Do not invent.${isMasterMode ? '' : ' If content is overflowing, shorten bullets rather than dropping entries.'}` +
       (isMasterMode ? '' : `
 
 BEFORE FINALIZING THE JSON: count how many of the must_include_phrases appear anywhere in your output (case-insensitive substring match in any field). If fewer than 6 of 10 — or fewer than 60% of however many were provided — rewrite bullets to incorporate more, but ONLY where the user actually has the underlying experience. The factual-integrity rules above always win.`) +
@@ -1346,7 +1367,10 @@ BEFORE FINALIZING THE JSON: count how many of the must_include_phrases appear an
     // KEYWORD_INJECTION_BLOCK is appended to the END of the user prompt below
     // so it's the last instruction the LLM sees before producing output.
 
-    const userPrompt = `TARGET ROLE: ${safeTargetRole}
+    const promptHeaderLine = isMasterMode
+      ? `PRIMARY DOMAIN: ${(userContext as any).primary_domain || '(none specified)'}`
+      : `TARGET ROLE: ${safeTargetRole}`;
+    const userPrompt = `${promptHeaderLine}
 ${targetCompany ? `TARGET COMPANY: ${targetCompany}` : ""}
 
 USER DATA:
@@ -1394,7 +1418,7 @@ ${JSON.stringify(v4, null, 2)}
 `;
 })()}
 TASK:
-Produce a ${isMasterMode ? 'comprehensive' : 'tailored'}, truthful, one-page CV for this user as JSON matching the exact schema below.
+Produce a ${isMasterMode ? 'comprehensive, multi-section' : 'tailored'}, truthful${isMasterMode ? '' : ', one-page'} CV for this user as JSON matching the exact schema below.
 
 OUTPUT SCHEMA (JSON):
 {
@@ -2500,41 +2524,49 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       : ['about', 'education', 'professional_experience', 'military_service', 'volunteering', 'leadership',
          'skills', 'languages', 'honors', 'certifications', 'projects']
 
-    const sectorResolution = resolveSectorTheme(safeTargetRole, roleLibrary as any, profile as any)
-    console.log(`[CV] sector theme: ${sectorResolution.theme.label} (${sectorResolution.source})`)
+    // Master mode (5A): the master is a structured reservoir, not a sent
+    // document, and the renderer is single-page (it would shrink-then-clip a
+    // comprehensive master). Skip the PDF entirely for masters — persist cv_data
+    // only, cv_url stays null (the column is nullable). The JD-present job-CV
+    // path is byte-identical: it renders, uploads, and signs exactly as before.
+    let cv_url: string | null = null;
+    if (!isMasterMode) {
+      const sectorResolution = resolveSectorTheme(safeTargetRole, roleLibrary as any, profile as any)
+      console.log(`[CV] sector theme: ${sectorResolution.theme.label} (${sectorResolution.source})`)
 
-    // CV now renders as PDF via pdf-lib (build-pdf.ts). DOCX renderer
-    // (build.ts) remains in the codebase as a fallback but is no longer
-    // wired in — see PR / commit message for the rationale.
-    const cvBytes = await buildCvPdf(cvData, userContext as any, {
-      style: safeTemplateStyle,
-      theme: sectorResolution.theme,
-      sectionOrder,
-      photo: null, // photo embedding still pending — renderer ignores when null
-    })
+      // CV now renders as PDF via pdf-lib (build-pdf.ts). DOCX renderer
+      // (build.ts) remains in the codebase as a fallback but is no longer
+      // wired in — see PR / commit message for the rationale.
+      const cvBytes = await buildCvPdf(cvData, userContext as any, {
+        style: safeTemplateStyle,
+        theme: sectorResolution.theme,
+        sectionOrder,
+        photo: null, // photo embedding still pending — renderer ignores when null
+      })
 
-    const safeRole = safeTargetRole.replace(/[^a-zA-Z0-9_\-]/g, "_");
-    const fileName = `${user.id}/${safeRole}_CV_${Date.now()}.pdf`;
-    const PDF_MIME = "application/pdf";
+      const safeRole = safeTargetRole.replace(/[^a-zA-Z0-9_\-]/g, "_");
+      const fileName = `${user.id}/${safeRole}_CV_${Date.now()}.pdf`;
+      const PDF_MIME = "application/pdf";
 
-    const { error: uploadError } = await serviceClient.storage
-      .from("cvs")
-      .upload(fileName, cvBytes, { contentType: PDF_MIME, upsert: true });
+      const { error: uploadError } = await serviceClient.storage
+        .from("cvs")
+        .upload(fileName, cvBytes, { contentType: PDF_MIME, upsert: true });
 
-    if (uploadError) {
-      _http = 500; _err = 'upload'
-      return json({ error: `CV upload failed: ${uploadError.message}` }, 500);
+      if (uploadError) {
+        _http = 500; _err = 'upload'
+        return json({ error: `CV upload failed: ${uploadError.message}` }, 500);
+      }
+
+      const { data: signedUrlData, error: signedUrlError } = await serviceClient.storage
+        .from("cvs")
+        .createSignedUrl(fileName, 315360000);
+
+      if (signedUrlError || !signedUrlData) {
+        _http = 500; _err = 'signed_url'
+        return json({ error: "Failed to generate CV download URL" }, 500);
+      }
+      cv_url = signedUrlData.signedUrl;
     }
-
-    const { data: signedUrlData, error: signedUrlError } = await serviceClient.storage
-      .from("cvs")
-      .createSignedUrl(fileName, 315360000);
-
-    if (signedUrlError || !signedUrlData) {
-      _http = 500; _err = 'signed_url'
-      return json({ error: "Failed to generate CV download URL" }, 500);
-    }
-    const cv_url = signedUrlData.signedUrl;
 
     let appRecord;
     if (application_id) {
