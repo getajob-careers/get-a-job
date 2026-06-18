@@ -1733,29 +1733,41 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     // can flag silent reconcile drift without scraping edge-function logs.
     // See ./reconcile.ts for the warning shape + when each kind fires.
     const reconcileWarnings: ReconcileWarning[] = [];
+    // Master addressability (Phase 2.0): per-bucket authoritative DB source-row
+    // ids, built from the RAW experiences with the SAME slice(15) +
+    // classifyExperience bucketing + filter order as the source arrays reconcile
+    // maps by index — so sourceIdsFor(bucket)[i] lines up with the i-th reconciled
+    // entry. Derived from the raw rows (NOT mapExperience), so the prompt-facing
+    // userContext experiences are untouched. Only consumed when isMasterMode
+    // (stampSourceId), so the from-scratch path stays byte-identical.
+    const masterSourceRows = safeArray(experiences).slice(0, 15).map((e: any) => ({
+      id: e?.id != null ? String(e.id) : null,
+      bucket: classifyExperience(e),
+    }));
+    const sourceIdsFor = (b: string) => masterSourceRows.filter((e) => e.bucket === b).map((e) => e.id);
     cvData.professional_experiences = fillFromSource(
       professionalExperiences.map(toSource),
       cvData.professional_experiences,
       "company",
-      { warnings: reconcileWarnings, bucket: "professional_experiences" },
+      { warnings: reconcileWarnings, bucket: "professional_experiences", stampSourceId: isMasterMode, sourceIds: sourceIdsFor("professional") },
     );
     cvData.military_experiences = fillFromSource(
       militaryExperiences.map(toSource),
       cvData.military_experiences,
       "unit",
-      { warnings: reconcileWarnings, bucket: "military_experiences" },
+      { warnings: reconcileWarnings, bucket: "military_experiences", stampSourceId: isMasterMode, sourceIds: sourceIdsFor("military") },
     );
     cvData.volunteering_experiences = fillFromSource(
       volunteeringExperiences.map(toSource),
       cvData.volunteering_experiences,
       "organization",
-      { warnings: reconcileWarnings, bucket: "volunteering_experiences" },
+      { warnings: reconcileWarnings, bucket: "volunteering_experiences", stampSourceId: isMasterMode, sourceIds: sourceIdsFor("volunteering") },
     );
     cvData.leadership_experiences = fillFromSource(
       leadershipExperiences.map(toSource),
       cvData.leadership_experiences,
       "organization",
-      { warnings: reconcileWarnings, bucket: "leadership_experiences" },
+      { warnings: reconcileWarnings, bucket: "leadership_experiences", stampSourceId: isMasterMode, sourceIds: sourceIdsFor("leadership") },
     );
     if (reconcileWarnings.length > 0) {
       console.warn(`[CV] reconcile flagged ${reconcileWarnings.length} warning(s): ${
