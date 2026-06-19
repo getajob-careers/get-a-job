@@ -543,17 +543,36 @@ const SELECTION_VARIANTS: Record<OpsVariant, string> = {
   v3: `You are not selecting a small subset. You are presenting the candidate's strongest, most relevant evidence for this job. From the 3 to 5 most JD-relevant experiences, keep all strong bullets, anything with a metric, number, named tool, or named outcome, reorder bullets within each experience so the most role-relevant come first, and remove only genuinely weak, generic, or redundant lines. Do not cut strong material to hit a length target.`,
 };
 
+// Optional grounding constraint (A/B-testable, OFF by default). When "strict", a
+// constraint block is APPENDED to the ops prompt — governing rewordings, the
+// summary, and skills_emphasis (NOT the selection step). grounding="default"
+// appends nothing, so the prompt stays byte-identical to v8 by construction.
+// Like ops_variant, only the enum is honored (refine-cv is verify_jwt=false, so a
+// public caller must never be able to inject a prompt).
+type Grounding = "default" | "strict";
+const GROUNDINGS: readonly Grounding[] = ["default", "strict"];
+const GROUNDING_CONSTRAINT = `
+
+GROUNDING — STRICT (applies to rewordings, the summary, and skills_emphasis; NOT to selection):
+- When rephrasing, reordering, or summarizing, use only facts and terminology present in the candidate's source material. Do not introduce any tool, technology, programming language, methodology, framework, certification, military unit, job title, company descriptor, or industry or domain label that is not already in the source. Rephrasing an existing fact is allowed; naming something new is not. If the JD calls for a term the candidate lacks, omit it rather than insert it.`;
+
 // Assemble the ops system prompt for a variant by swapping ONLY the selection
-// paragraph. `current` returns the const unchanged (byte-identical guarantee);
-// the others replace exactly that one sentence (unique in the prompt). The
-// caller only ever supplies the enum — never a raw prompt string.
-function opsSystemPromptFor(opsVariant: OpsVariant): string {
-  return opsVariant === "current"
-    ? OPS_SYSTEM_PROMPT
-    : OPS_SYSTEM_PROMPT.replace(
-        SELECTION_VARIANTS.current,
-        SELECTION_VARIANTS[opsVariant],
-      );
+// paragraph, then optionally appending the strict grounding block. `current` +
+// `default` returns the const unchanged (byte-identical guarantee); the variant
+// swap replaces exactly that one sentence (unique in the prompt). The caller
+// only ever supplies the enums — never a raw prompt string.
+function opsSystemPromptFor(
+  opsVariant: OpsVariant,
+  grounding: Grounding,
+): string {
+  const base =
+    opsVariant === "current"
+      ? OPS_SYSTEM_PROMPT
+      : OPS_SYSTEM_PROMPT.replace(
+          SELECTION_VARIANTS.current,
+          SELECTION_VARIANTS[opsVariant],
+        );
+  return grounding === "strict" ? base + GROUNDING_CONSTRAINT : base;
 }
 
 async function callOps(
@@ -566,6 +585,7 @@ async function callOps(
   m: Metric,
   opsModel: { slug: string; used: string },
   opsVariant: OpsVariant,
+  grounding: Grounding,
 ): Promise<Ops | null> {
   const userPrompt = `TARGET JOB KEYWORDS:
 - must_include_phrases: ${JSON.stringify(jdKeywords.must_include_phrases)}
@@ -581,7 +601,7 @@ ${JSON.stringify(masterV)}${retryHint}`;
   const payload = {
     model: opsModel.slug,
     messages: [
-      { role: "system", content: opsSystemPromptFor(opsVariant) },
+      { role: "system", content: opsSystemPromptFor(opsVariant, grounding) },
       { role: "user", content: userPrompt },
     ],
     response_format: { type: "json_object" },
@@ -671,6 +691,13 @@ Deno.serve(async (req) => {
     )
       ? (body.ops_variant as OpsVariant)
       : "current";
+    // Grounding constraint (A/B): enum-only, same injection-safety rationale as
+    // ops_variant. Unknown/free-form falls back to "default" (byte-identical).
+    const grounding: Grounding = (GROUNDINGS as readonly string[]).includes(
+      body?.grounding,
+    )
+      ? (body.grounding as Grounding)
+      : "default";
     if (typeof application_id !== "string" || !application_id) {
       _http = 400;
       _err = "missing_input";
@@ -818,6 +845,7 @@ Deno.serve(async (req) => {
         m,
         opsModel,
         opsVariant,
+        grounding,
       );
       if (!ops) return null;
       const { cv, rejectedRewordings } = assembleJobCv(
