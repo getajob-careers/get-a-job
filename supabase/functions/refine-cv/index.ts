@@ -324,7 +324,10 @@ function summaryTokensClean(
     const lower = tok.toLowerCase();
     if (/\d/.test(tok)) {
       if (!masterHaystackLower.includes(lower)) return false; // numbers: master only (strict)
-    } else if (!masterHaystackLower.includes(lower) && !jdHaystackLower.includes(lower)) {
+    } else if (
+      !masterHaystackLower.includes(lower) &&
+      !jdHaystackLower.includes(lower)
+    ) {
       return false; // proper-noun: master OR JD keyword set (widened)
     }
   }
@@ -463,7 +466,10 @@ function assembleJobCv(
   // (e.g. "GTM") may come from the JD keyword set — so a tailored summary lands
   // instead of falling back to the JD-agnostic master. See summaryTokensClean.
   const masterHaystack = JSON.stringify(master).toLowerCase();
-  if (ops.summary && summaryTokensClean(ops.summary, masterHaystack, summaryJdHaystack))
+  if (
+    ops.summary &&
+    summaryTokensClean(ops.summary, masterHaystack, summaryJdHaystack)
+  )
     cv.summary = ops.summary;
   else cv.summary = master?.summary || "";
 
@@ -522,6 +528,34 @@ SUMMARY:
 SKILLS_EMPHASIS:
 - Up to 8 skills, taken from the master's skills, ordered most JD-relevant first. Do NOT invent skills.`;
 
+// Bullet-selection bake-off. The ONLY thing that varies across ops_variant is
+// the single ONE-PAGE-BUDGET selection paragraph below; the rest of
+// OPS_SYSTEM_PROMPT and the entire pipeline stay byte-identical. `current` is
+// the shipped sentence VERBATIM — opsSystemPromptFor("current") returns the
+// untouched OPS_SYSTEM_PROMPT const, so the omitted-variant prompt is
+// byte-identical to today by construction.
+type OpsVariant = "current" | "v1" | "v2" | "v3";
+const OPS_VARIANTS: readonly OpsVariant[] = ["current", "v1", "v2", "v3"];
+const SELECTION_VARIANTS: Record<OpsVariant, string> = {
+  current: `Select the most JD-relevant experiences and roughly a page's worth of bullets. Aim for about 3-5 experiences and about 12 bullets TOTAL (roughly 10-14; about 2-3 bullets per selected experience). Include the most JD-relevant experiences and bullets; drop the rest. Do not select everything.`,
+  v1: `Select about 3 to 5 of the most JD-relevant experiences and roughly a page of bullets, about 10 to 14 total. Within that budget, first keep every bullet that carries a metric, number, percentage, named tool, or named outcome; use the remaining slots for the most JD-relevant of the rest. When you must cut to fit, cut generic or duplicative bullets first, and never drop a quantified or proof-bearing bullet in favor of a weaker but more on-topic one.`,
+  v2: `Select about 3 to 5 of the most JD-relevant experiences. Keep every bullet that carries a metric, number, percentage, named tool, or named outcome, even if that takes a strong role to 4 or 5 bullets and the CV slightly past one page, up to about 16 bullets total when the material justifies it. Fill any remaining room with the most JD-relevant of the rest, and drop only generic, weak, or duplicative bullets.`,
+  v3: `You are not selecting a small subset. You are presenting the candidate's strongest, most relevant evidence for this job. From the 3 to 5 most JD-relevant experiences, keep all strong bullets, anything with a metric, number, named tool, or named outcome, reorder bullets within each experience so the most role-relevant come first, and remove only genuinely weak, generic, or redundant lines. Do not cut strong material to hit a length target.`,
+};
+
+// Assemble the ops system prompt for a variant by swapping ONLY the selection
+// paragraph. `current` returns the const unchanged (byte-identical guarantee);
+// the others replace exactly that one sentence (unique in the prompt). The
+// caller only ever supplies the enum — never a raw prompt string.
+function opsSystemPromptFor(opsVariant: OpsVariant): string {
+  return opsVariant === "current"
+    ? OPS_SYSTEM_PROMPT
+    : OPS_SYSTEM_PROMPT.replace(
+        SELECTION_VARIANTS.current,
+        SELECTION_VARIANTS[opsVariant],
+      );
+}
+
 async function callOps(
   masterV: any,
   jdKeywords: JDKeywords,
@@ -531,6 +565,7 @@ async function callOps(
   retryHint: string,
   m: Metric,
   opsModel: { slug: string; used: string },
+  opsVariant: OpsVariant,
 ): Promise<Ops | null> {
   const userPrompt = `TARGET JOB KEYWORDS:
 - must_include_phrases: ${JSON.stringify(jdKeywords.must_include_phrases)}
@@ -546,7 +581,7 @@ ${JSON.stringify(masterV)}${retryHint}`;
   const payload = {
     model: opsModel.slug,
     messages: [
-      { role: "system", content: OPS_SYSTEM_PROMPT },
+      { role: "system", content: opsSystemPromptFor(opsVariant) },
       { role: "user", content: userPrompt },
     ],
     response_format: { type: "json_object" },
@@ -627,6 +662,15 @@ Deno.serve(async (req) => {
       return json({ error: "Payload too large." }, 413);
     }
     const { application_id, job_description, cv_model, disable_retry } = body;
+    // Bake-off selection variant. ONLY the enum is honored — refine-cv is
+    // verify_jwt=false, so a public caller must never be able to inject a
+    // prompt. An unknown/free-form value falls back to "current" (never passed
+    // through as text).
+    const opsVariant: OpsVariant = (OPS_VARIANTS as readonly string[]).includes(
+      body?.ops_variant,
+    )
+      ? (body.ops_variant as OpsVariant)
+      : "current";
     if (typeof application_id !== "string" || !application_id) {
       _http = 400;
       _err = "missing_input";
@@ -641,7 +685,8 @@ Deno.serve(async (req) => {
     const safeJobDescription = jdInput.slice(0, 10000);
     const safeTemplateStyle: TemplateStyle = "ats-optimized";
     // ops model routing (experiment): default Sonnet; cv_model can pick a faster model
-    const opsModel = OPS_MODELS[String(cv_model ?? "").trim()] ?? OPS_MODELS.sonnet;
+    const opsModel =
+      OPS_MODELS[String(cv_model ?? "").trim()] ?? OPS_MODELS.sonnet;
     // disable_retry (additive, default false = current behavior): when true, run a
     // single ops pass only. Used by the Phase 2.2 re-bake harness so single-pass
     // coverage/latency are clean. Prod callers omit it -> retry behaves as before.
@@ -759,7 +804,9 @@ Deno.serve(async (req) => {
       ...jdKeywords.must_include_phrases,
       ...jdKeywords.tools_and_platforms,
       ...jdKeywords.domain_terms,
-    ].join(" \n ").toLowerCase();
+    ]
+      .join(" \n ")
+      .toLowerCase();
     const runPass = async (retryHint: string) => {
       const ops = await callOps(
         masterV,
@@ -770,9 +817,14 @@ Deno.serve(async (req) => {
         retryHint,
         m,
         opsModel,
+        opsVariant,
       );
       if (!ops) return null;
-      const { cv, rejectedRewordings } = assembleJobCv(master, ops, summaryJdHaystack);
+      const { cv, rejectedRewordings } = assembleJobCv(
+        master,
+        ops,
+        summaryJdHaystack,
+      );
       const cov = scoreCoverage(cv, jdKeywords.must_include_phrases);
       return { cv, cov, rejectedRewordings };
     };
