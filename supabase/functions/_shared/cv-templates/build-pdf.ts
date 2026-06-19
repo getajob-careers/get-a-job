@@ -41,11 +41,24 @@ import {
   PDFDocument,
   PDFFont,
   PDFPage,
-  StandardFonts,
   rgb,
 } from "https://esm.sh/pdf-lib@1.17.1";
+// @pdf-lib/fontkit ships CommonJS; esm.sh's default-interop yields the Fontkit
+// object at runtime, but its .d.ts declares no default export, so import the
+// namespace and take `.default` (falling back to the namespace itself). Typed
+// `any` because the runtime object and the .d.ts namespace don't share a shape.
+import * as fontkitMod from "https://esm.sh/@pdf-lib/fontkit@1.1.1";
+// deno-lint-ignore no-explicit-any
+const fontkit: any =
+  (fontkitMod as { default?: unknown }).default ?? fontkitMod;
 
 import type { TemplateConfig, SectionKey } from "./types.ts";
+import {
+  ARIMO_BOLD,
+  ARIMO_BOLDITALIC,
+  ARIMO_ITALIC,
+  ARIMO_REGULAR,
+} from "./arimo-fonts.ts";
 
 // ─── Page geometry (US Letter, points) ─────────────────────────────
 const PAGE_W = 612;
@@ -56,25 +69,25 @@ const CONTENT_W = PAGE_W - 2 * MARGIN_SIDE;
 
 // ─── Banner (fixed-size, does NOT scale) ───────────────────────────
 const BANNER_H = 118;
-const BANNER_TOP_PAD = 28;          // top of banner → name baseline reference
+const BANNER_TOP_PAD = 28; // top of banner → name baseline reference
 const BANNER_GAP_NAME_CONTACT = 12; // between name baseline and contact line
-const SIZE_NAME = 26;               // banner name (fixed)
-const SIZE_CONTACT = 10;            // banner contact (fixed)
-const TRACK_NAME = 2;               // banner name letter spacing (fixed)
-const SP_AFTER_BANNER = 28;         // breathing room before first section
+const SIZE_NAME = 26; // banner name (fixed)
+const SIZE_CONTACT = 10; // banner contact (fixed)
+const TRACK_NAME = 2; // banner name letter spacing (fixed)
+const SP_AFTER_BANNER = 28; // breathing room before first section
 
 // ─── Default content typography (scaled by ctx.scale) ──────────────
-const SIZE_SECTION = 11;            // section heading (UPPERCASE)
-const SIZE_BODY = 10.5;             // entry title, body paragraph
-const SIZE_BULLET = 10;             // bullet text
-const SIZE_DATE = 9.5;              // right-aligned italic
-const SIZE_SUBLINE = 10;            // education institution line
+const SIZE_SECTION = 11; // section heading (UPPERCASE)
+const SIZE_BODY = 10.5; // entry title, body paragraph
+const SIZE_BULLET = 10; // bullet text
+const SIZE_DATE = 9.5; // right-aligned italic
+const SIZE_SUBLINE = 10; // education institution line
 
 // Tracking. Note: pdf-lib has no native characterSpacing — we draw each
 // glyph at a measured x-offset and add this gap. The value is in points,
 // NOT a percentage of font size, so a 2pt gap at 11pt section text reads
 // as ~18% tracking (heavy). 1pt at 11pt = ~9% (subtle but distinct).
-const TRACK_SECTION = 1;            // ~9% of 11pt — subtle tracking
+const TRACK_SECTION = 1; // ~9% of 11pt — subtle tracking
 
 // ─── Colors ─────────────────────────────────────────────────────────
 // Single unified text color (#2C3E50 dark slate). Body, entry titles,
@@ -82,25 +95,25 @@ const TRACK_SECTION = 1;            // ~9% of 11pt — subtle tracking
 // rendered on the cream page uses COLOR_TEXT. The banner has its own
 // pair of colors (cream name + slightly muted cream contact strip) since
 // they read on the dark banner background.
-const COLOR_BANNER_BG = rgb(44 / 255, 62 / 255, 80 / 255);      // #2C3E50
-const COLOR_NAME = rgb(249 / 255, 245 / 255, 236 / 255);        // #F9F5EC cream
-const COLOR_CONTACT = rgb(207 / 255, 216 / 255, 224 / 255);     // #CFD8E0 muted cream
-const COLOR_PAGE = rgb(249 / 255, 245 / 255, 236 / 255);        // #F9F5EC cream
-const COLOR_TEXT = rgb(44 / 255, 62 / 255, 80 / 255);           // #2C3E50 — primary text on cream
+const COLOR_BANNER_BG = rgb(44 / 255, 62 / 255, 80 / 255); // #2C3E50
+const COLOR_NAME = rgb(249 / 255, 245 / 255, 236 / 255); // #F9F5EC cream
+const COLOR_CONTACT = rgb(207 / 255, 216 / 255, 224 / 255); // #CFD8E0 muted cream
+const COLOR_PAGE = rgb(249 / 255, 245 / 255, 236 / 255); // #F9F5EC cream
+const COLOR_TEXT = rgb(44 / 255, 62 / 255, 80 / 255); // #2C3E50 — primary text on cream
 
 // ─── Line metrics (scale with ctx.scale) ───────────────────────────
-const LH_BODY = 12;                 // 10pt × 1.2
-const LH_BULLET_GAP = 14;           // 10pt × 1.4 between bullets
-const SP_SECTION_BEFORE = 28;       // above section heading — bumped 20→28 for breathing room
-const SP_AFTER_ACCENT_LINE = 12;    // after the accent line — bumped 10→12
-const SP_ENTRY_BEFORE = 14;         // between sibling entries — bumped 10→14
-const SECTION_LINE_OFFSET = 6;      // gap (pt) between heading baseline and the full-width underline
+const LH_BODY = 12; // 10pt × 1.2
+const LH_BULLET_GAP = 14; // 10pt × 1.4 between bullets
+const SP_SECTION_BEFORE = 28; // above section heading — bumped 20→28 for breathing room
+const SP_AFTER_ACCENT_LINE = 12; // after the accent line — bumped 10→12
+const SP_ENTRY_BEFORE = 14; // between sibling entries — bumped 10→14
+const SECTION_LINE_OFFSET = 6; // gap (pt) between heading baseline and the full-width underline
 const SECTION_LINE_THICKNESS = 1.5; // pt
 
 // ─── Shrink-to-fit bounds ───────────────────────────────────────────
 const SCALE_MIN = 0.55;
 const SCALE_MAX = 1.0;
-const SCALE_WARN = 0.70;
+const SCALE_WARN = 0.7;
 
 // ─── CV data shape (mirrors build.ts CvData) ───────────────────────
 interface CvData {
@@ -143,8 +156,88 @@ interface UserContext {
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────
-const safeArray = (v: unknown): unknown[] => Array.isArray(v) ? v : [];
+const safeArray = (v: unknown): unknown[] => (Array.isArray(v) ? v : []);
 const trim = (v: unknown): string => String(v ?? "").trim();
+
+// ─── Unicode sanitize (font-cmap-driven; the crash backstop) ─────────
+// Every string that reaches embedFont/widthOfTextAtSize/drawText is run
+// through this first (see the chokepoint in buildCvPdf). Per codepoint:
+//   • Arimo has a glyph for it → keep as-is (é, ā, ñ, ç all survive).
+//   • no glyph → NFKD-decompose and keep the renderable base components,
+//     dropping combining marks (pdf-lib does NO mark positioning, so a
+//     kept mark would float) — e.g. a missing precomposed char falls back
+//     to its base letter.
+//   • still nothing renderable (Hebrew, emoji, other scripts) → dropped,
+//     not substituted. No tofu boxes, and — because no glyph-less codepoint
+//     ever reaches the encoder — structurally no throw, regardless of input.
+// Renderability is read from the font's ACTUAL cmap via fontkit, so it
+// stays correct if the embedded font is ever changed.
+type GlyphFont = {
+  hasGlyphForCodePoint?: (cp: number) => boolean;
+  characterSet?: number[];
+};
+const COMBINING_MARK = /\p{M}/u;
+function makeCodepointSanitizer(fk: GlyphFont): (s: string) => string {
+  let charset: Set<number> | null = null;
+  const has = (cp: number): boolean => {
+    if (typeof fk.hasGlyphForCodePoint === "function") {
+      try {
+        return !!fk.hasGlyphForCodePoint(cp);
+      } catch {
+        /* fall through */
+      }
+    }
+    if (!charset && Array.isArray(fk.characterSet)) {
+      charset = new Set(fk.characterSet);
+    }
+    // Last resort: keep. A custom (fontkit) font maps missing glyphs to
+    // .notdef rather than throwing, so keeping is still crash-safe.
+    return charset ? charset.has(cp) : true;
+  };
+  const cache = new Map<number, string>();
+  const repr = (cp: number): string => {
+    const cached = cache.get(cp);
+    if (cached !== undefined) return cached;
+    let out: string;
+    if (has(cp)) {
+      out = String.fromCodePoint(cp);
+    } else {
+      out = "";
+      for (const ch of String.fromCodePoint(cp).normalize("NFKD")) {
+        if (COMBINING_MARK.test(ch)) continue;
+        const dcp = ch.codePointAt(0)!;
+        if (has(dcp)) out += ch;
+      }
+    }
+    cache.set(cp, out);
+    return out;
+  };
+  return (s: string): string => {
+    let out = "";
+    for (const ch of s) out += repr(ch.codePointAt(0)!);
+    return out;
+  };
+}
+function deepSanitizeStrings(
+  value: unknown,
+  sanitize: (s: string) => string,
+): unknown {
+  if (typeof value === "string") return sanitize(value);
+  if (Array.isArray(value)) {
+    return value.map((v) => deepSanitizeStrings(v, sanitize));
+  }
+  if (value && typeof value === "object") {
+    const out: Record<string, unknown> = {};
+    for (const k of Object.keys(value as Record<string, unknown>)) {
+      out[k] = deepSanitizeStrings(
+        (value as Record<string, unknown>)[k],
+        sanitize,
+      );
+    }
+    return out;
+  }
+  return value;
+}
 
 function hexToRgb(hex: string) {
   const c = (hex || "000000").replace("#", "");
@@ -155,8 +248,15 @@ function hexToRgb(hex: string) {
   );
 }
 
-function wrap(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
-  const words = String(text || "").split(/\s+/).filter(Boolean);
+function wrap(
+  text: string,
+  font: PDFFont,
+  size: number,
+  maxWidth: number,
+): string[] {
+  const words = String(text || "")
+    .split(/\s+/)
+    .filter(Boolean);
   if (words.length === 0) return [];
   const lines: string[] = [];
   let current = "";
@@ -197,21 +297,38 @@ function s(ctx: Ctx, base: number): number {
 // glyph at a measured x-offset. When ctx.draw is false, walks the
 // string to advance the cursor without rendering (measure pass).
 function drawTracked(
-  ctx: Ctx, text: string,
-  opts: { x: number; y: number; size: number; font: PDFFont; color: any; tracking: number },
+  ctx: Ctx,
+  text: string,
+  opts: {
+    x: number;
+    y: number;
+    size: number;
+    font: PDFFont;
+    color: any;
+    tracking: number;
+  },
 ): number {
   let cursor = opts.x;
   for (const ch of text) {
     if (ctx.draw) {
       ctx.page.drawText(ch, {
-        x: cursor, y: opts.y, size: opts.size, font: opts.font, color: opts.color,
+        x: cursor,
+        y: opts.y,
+        size: opts.size,
+        font: opts.font,
+        color: opts.color,
       });
     }
     cursor += opts.font.widthOfTextAtSize(ch, opts.size) + opts.tracking;
   }
   return cursor;
 }
-function measureTracked(text: string, font: PDFFont, size: number, tracking: number): number {
+function measureTracked(
+  text: string,
+  font: PDFFont,
+  size: number,
+  tracking: number,
+): number {
   let w = 0;
   for (const ch of text) w += font.widthOfTextAtSize(ch, size) + tracking;
   return Math.max(0, w - tracking);
@@ -225,9 +342,12 @@ function drawSectionHeading(ctx: Ctx, label: string) {
   const headSize = s(ctx, SIZE_SECTION);
   const headTrack = s(ctx, TRACK_SECTION);
   drawTracked(ctx, label.toUpperCase(), {
-    x: MARGIN_SIDE, y: ctx.y,
-    size: headSize, font: ctx.fonts.bold,
-    color: COLOR_TEXT, tracking: headTrack,
+    x: MARGIN_SIDE,
+    y: ctx.y,
+    size: headSize,
+    font: ctx.fonts.bold,
+    color: COLOR_TEXT,
+    tracking: headTrack,
   });
   // Full-width hairline underline under the heading, drawn in the same
   // slate color as the heading text (NOT the per-sector accent) so the
@@ -247,13 +367,19 @@ function drawSectionHeading(ctx: Ctx, label: string) {
 }
 
 function drawEntryTitleLine(
-  ctx: Ctx, titleLeft: string, dateRight: string | undefined, isFirst: boolean,
+  ctx: Ctx,
+  titleLeft: string,
+  dateRight: string | undefined,
+  isFirst: boolean,
 ) {
   if (!isFirst) ctx.y -= s(ctx, SP_ENTRY_BEFORE);
   if (ctx.draw) {
     ctx.page.drawText(titleLeft, {
-      x: MARGIN_SIDE, y: ctx.y,
-      size: s(ctx, SIZE_BODY), font: ctx.fonts.bold, color: COLOR_TEXT,
+      x: MARGIN_SIDE,
+      y: ctx.y,
+      size: s(ctx, SIZE_BODY),
+      font: ctx.fonts.bold,
+      color: COLOR_TEXT,
     });
   }
   const date = trim(dateRight);
@@ -262,8 +388,11 @@ function drawEntryTitleLine(
     const dateW = ctx.fonts.boldItalic.widthOfTextAtSize(date, dateSize);
     if (ctx.draw) {
       ctx.page.drawText(date, {
-        x: PAGE_W - MARGIN_SIDE - dateW, y: ctx.y,
-        size: dateSize, font: ctx.fonts.boldItalic, color: COLOR_TEXT,
+        x: PAGE_W - MARGIN_SIDE - dateW,
+        y: ctx.y,
+        size: dateSize,
+        font: ctx.fonts.boldItalic,
+        color: COLOR_TEXT,
       });
     }
   }
@@ -274,8 +403,11 @@ function drawSubLine(ctx: Ctx, text: string) {
   ctx.y -= s(ctx, LH_BODY);
   if (ctx.draw) {
     ctx.page.drawText(text, {
-      x: MARGIN_SIDE, y: ctx.y,
-      size: s(ctx, SIZE_SUBLINE), font: ctx.fonts.regular, color: COLOR_TEXT,
+      x: MARGIN_SIDE,
+      y: ctx.y,
+      size: s(ctx, SIZE_SUBLINE),
+      font: ctx.fonts.regular,
+      color: COLOR_TEXT,
     });
   }
 }
@@ -288,8 +420,11 @@ function drawBullet(ctx: Ctx, text: string) {
   const bulletSize = s(ctx, SIZE_BULLET);
   if (ctx.draw) {
     ctx.page.drawText("\u2022", {
-      x: MARGIN_SIDE + 3, y: ctx.y,
-      size: bulletSize, font: ctx.fonts.regular, color: COLOR_TEXT,
+      x: MARGIN_SIDE + 3,
+      y: ctx.y,
+      size: bulletSize,
+      font: ctx.fonts.regular,
+      color: COLOR_TEXT,
     });
   }
   const lines = wrap(text, ctx.fonts.regular, bulletSize, textWidth);
@@ -297,8 +432,11 @@ function drawBullet(ctx: Ctx, text: string) {
     if (i > 0) ctx.y -= s(ctx, LH_BODY);
     if (ctx.draw) {
       ctx.page.drawText(lines[i], {
-        x: MARGIN_SIDE + bulletIndent, y: ctx.y,
-        size: bulletSize, font: ctx.fonts.regular, color: COLOR_TEXT,
+        x: MARGIN_SIDE + bulletIndent,
+        y: ctx.y,
+        size: bulletSize,
+        font: ctx.fonts.regular,
+        color: COLOR_TEXT,
       });
     }
   }
@@ -315,26 +453,35 @@ function drawSkillsRow(ctx: Ctx, label: string, items: string[]) {
   const bulletSize = s(ctx, SIZE_BULLET);
   if (ctx.draw) {
     ctx.page.drawText(label, {
-      x: MARGIN_SIDE, y: ctx.y,
-      size: bulletSize, font: ctx.fonts.bold, color: COLOR_TEXT,
+      x: MARGIN_SIDE,
+      y: ctx.y,
+      size: bulletSize,
+      font: ctx.fonts.bold,
+      color: COLOR_TEXT,
     });
   }
   const valueX = MARGIN_SIDE + s(ctx, SKILLS_LABEL_COL_W);
-  const valueWidth = (PAGE_W - MARGIN_SIDE) - valueX;
+  const valueWidth = PAGE_W - MARGIN_SIDE - valueX;
   const valueLines = wrap(value, ctx.fonts.regular, bulletSize, valueWidth);
   if (valueLines.length === 0) return;
   if (ctx.draw) {
     ctx.page.drawText(valueLines[0], {
-      x: valueX, y: ctx.y,
-      size: bulletSize, font: ctx.fonts.regular, color: COLOR_TEXT,
+      x: valueX,
+      y: ctx.y,
+      size: bulletSize,
+      font: ctx.fonts.regular,
+      color: COLOR_TEXT,
     });
   }
   for (let i = 1; i < valueLines.length; i++) {
     ctx.y -= s(ctx, LH_BODY);
     if (ctx.draw) {
       ctx.page.drawText(valueLines[i], {
-        x: valueX, y: ctx.y,
-        size: bulletSize, font: ctx.fonts.regular, color: COLOR_TEXT,
+        x: valueX,
+        y: ctx.y,
+        size: bulletSize,
+        font: ctx.fonts.regular,
+        color: COLOR_TEXT,
       });
     }
   }
@@ -349,8 +496,11 @@ function drawPlainLine(ctx: Ctx, text: string) {
     if (i > 0) ctx.y -= s(ctx, LH_BODY);
     if (ctx.draw) {
       ctx.page.drawText(lines[i], {
-        x: MARGIN_SIDE, y: ctx.y,
-        size: bulletSize, font: ctx.fonts.regular, color: COLOR_TEXT,
+        x: MARGIN_SIDE,
+        y: ctx.y,
+        size: bulletSize,
+        font: ctx.fonts.regular,
+        color: COLOR_TEXT,
       });
     }
   }
@@ -365,8 +515,11 @@ function drawBodyParagraph(ctx: Ctx, text: string) {
     if (i > 0) ctx.y -= s(ctx, LH_BODY);
     if (ctx.draw) {
       ctx.page.drawText(lines[i], {
-        x: MARGIN_SIDE, y: ctx.y,
-        size: bodySize, font: ctx.fonts.regular, color: COLOR_TEXT,
+        x: MARGIN_SIDE,
+        y: ctx.y,
+        size: bodySize,
+        font: ctx.fonts.regular,
+        color: COLOR_TEXT,
       });
     }
   }
@@ -384,12 +537,17 @@ function renderBanner(ctx: Ctx, cvData: CvData, userContext: UserContext) {
     cvData.header?.email || userContext.email,
     cvData.header?.location || userContext.location,
     cvData.header?.linkedin || userContext.linkedin_url,
-  ].map((v) => trim(v)).filter(Boolean);
+  ]
+    .map((v) => trim(v))
+    .filter(Boolean);
 
   // Full-width dark banner
   const bannerY = PAGE_H - BANNER_H;
   ctx.page.drawRectangle({
-    x: 0, y: bannerY, width: PAGE_W, height: BANNER_H,
+    x: 0,
+    y: bannerY,
+    width: PAGE_W,
+    height: BANNER_H,
     color: COLOR_BANNER_BG,
   });
 
@@ -402,9 +560,12 @@ function renderBanner(ctx: Ctx, cvData: CvData, userContext: UserContext) {
   // The outer renderBanner is gated already; reuse drawTracked with the
   // same ctx since draw is true here.
   drawTracked(ctx, name, {
-    x: nameX, y: nameBaselineY,
-    size: SIZE_NAME, font: ctx.fonts.bold,
-    color: COLOR_NAME, tracking: TRACK_NAME,
+    x: nameX,
+    y: nameBaselineY,
+    size: SIZE_NAME,
+    font: ctx.fonts.bold,
+    color: COLOR_NAME,
+    tracking: TRACK_NAME,
   });
 
   // Contact strip — centered, muted cream on dark.
@@ -413,8 +574,11 @@ function renderBanner(ctx: Ctx, cvData: CvData, userContext: UserContext) {
     const contact = contactBits.join("  \u00B7  ");
     const contactW = ctx.fonts.regular.widthOfTextAtSize(contact, SIZE_CONTACT);
     ctx.page.drawText(contact, {
-      x: MARGIN_SIDE + (CONTENT_W - contactW) / 2, y: contactY,
-      size: SIZE_CONTACT, font: ctx.fonts.regular, color: COLOR_CONTACT,
+      x: MARGIN_SIDE + (CONTENT_W - contactW) / 2,
+      y: contactY,
+      size: SIZE_CONTACT,
+      font: ctx.fonts.regular,
+      color: COLOR_CONTACT,
     });
   }
 }
@@ -428,7 +592,10 @@ function renderAbout(ctx: Ctx, cvData: CvData) {
 }
 
 function renderExperienceBucket(
-  ctx: Ctx, label: string, entries: any[], orgKey: string,
+  ctx: Ctx,
+  label: string,
+  entries: any[],
+  orgKey: string,
 ) {
   if (!Array.isArray(entries) || entries.length === 0) return;
   drawSectionHeading(ctx, label);
@@ -437,33 +604,41 @@ function renderExperienceBucket(
     const org = trim(entry?.[orgKey]);
     const titleLine = org ? (title ? `${title}, ${org}` : org) : title;
     drawEntryTitleLine(ctx, titleLine, entry?.dates, idx === 0);
-    for (const b of (entry?.bullets || [])) drawBullet(ctx, trim(b));
+    for (const b of entry?.bullets || []) drawBullet(ctx, trim(b));
   });
 }
 
 function renderProfessionalExperience(ctx: Ctx, cvData: CvData) {
   const list = Array.isArray(cvData.professional_experiences)
     ? cvData.professional_experiences
-    : (Array.isArray(cvData.experiences) ? cvData.experiences : []);
+    : Array.isArray(cvData.experiences)
+      ? cvData.experiences
+      : [];
   renderExperienceBucket(ctx, "Professional Experience", list, "company");
 }
 
 function renderMilitaryService(ctx: Ctx, cvData: CvData) {
   const list = Array.isArray(cvData.military_experiences)
     ? cvData.military_experiences
-    : (cvData.military_service && (cvData.military_service as any).unit ? [cvData.military_service] : []);
+    : cvData.military_service && (cvData.military_service as any).unit
+      ? [cvData.military_service]
+      : [];
   renderExperienceBucket(ctx, "Military Service", list, "unit");
 }
 
 function renderVolunteering(ctx: Ctx, cvData: CvData) {
   const list = Array.isArray(cvData.volunteering_experiences)
     ? cvData.volunteering_experiences
-    : (Array.isArray(cvData.volunteering) ? cvData.volunteering : []);
+    : Array.isArray(cvData.volunteering)
+      ? cvData.volunteering
+      : [];
   renderExperienceBucket(ctx, "Volunteering", list, "organization");
 }
 
 function renderLeadership(ctx: Ctx, cvData: CvData) {
-  const list = Array.isArray(cvData.leadership_experiences) ? cvData.leadership_experiences : [];
+  const list = Array.isArray(cvData.leadership_experiences)
+    ? cvData.leadership_experiences
+    : [];
   renderExperienceBucket(ctx, "Leadership", list, "organization");
 }
 
@@ -474,7 +649,7 @@ function renderEducation(ctx: Ctx, cvData: CvData) {
 
   const honorsSet = new Set(
     safeArray(cvData.honors_and_awards)
-      .map((h: any) => (h && typeof h === "object") ? trim(h.name) : trim(h))
+      .map((h: any) => (h && typeof h === "object" ? trim(h.name) : trim(h)))
       .map((str) => str.replace(/\s+/g, " ").toLowerCase())
       .filter(Boolean),
   );
@@ -488,17 +663,23 @@ function renderEducation(ctx: Ctx, cvData: CvData) {
     else if (degree) topLine = degree;
     else if (field) topLine = field;
     else topLine = institution;
-    const subLine = (degree || field) ? institution : "";
+    const subLine = degree || field ? institution : "";
     drawEntryTitleLine(ctx, topLine, edu?.dates, idx === 0);
     drawSubLine(ctx, subLine);
 
     if (edu?.gpa) drawBullet(ctx, `GPA: ${trim(edu.gpa)}`);
 
-    const coursework = safeArray(edu?.coursework || edu?.relevant_coursework).map(trim).filter(Boolean);
-    if (coursework.length > 0) drawBullet(ctx, `Relevant coursework: ${coursework.join(", ")}`);
+    const coursework = safeArray(edu?.coursework || edu?.relevant_coursework)
+      .map(trim)
+      .filter(Boolean);
+    if (coursework.length > 0)
+      drawBullet(ctx, `Relevant coursework: ${coursework.join(", ")}`);
 
-    const academic = safeArray(edu?.academic_projects).map(trim).filter(Boolean);
-    if (academic.length > 0) drawBullet(ctx, `Academic projects: ${academic.join("; ")}`);
+    const academic = safeArray(edu?.academic_projects)
+      .map(trim)
+      .filter(Boolean);
+    if (academic.length > 0)
+      drawBullet(ctx, `Academic projects: ${academic.join("; ")}`);
 
     const seen = new Set<string>();
     for (const a of safeArray(edu?.activities)) {
@@ -558,20 +739,24 @@ function renderLanguages(ctx: Ctx, cvData: CvData) {
 }
 
 function renderHonors(ctx: Ctx, cvData: CvData) {
-  const lines = safeArray(cvData.honors_and_awards).map((h: any) => {
-    if (!h) return "";
-    if (typeof h === "string") return h;
-    const name = trim(h.name);
-    const desc = trim(h.description);
-    return name && desc ? `${name} \u2014 ${desc}` : name;
-  }).filter(Boolean);
+  const lines = safeArray(cvData.honors_and_awards)
+    .map((h: any) => {
+      if (!h) return "";
+      if (typeof h === "string") return h;
+      const name = trim(h.name);
+      const desc = trim(h.description);
+      return name && desc ? `${name} \u2014 ${desc}` : name;
+    })
+    .filter(Boolean);
   if (lines.length === 0) return;
   drawSectionHeading(ctx, "Honors & Awards");
   for (const line of lines) drawBullet(ctx, line);
 }
 
 function renderCertifications(ctx: Ctx, cvData: CvData) {
-  const certs = Array.isArray(cvData.certifications) ? cvData.certifications : [];
+  const certs = Array.isArray(cvData.certifications)
+    ? cvData.certifications
+    : [];
   if (certs.length === 0) return;
   drawSectionHeading(ctx, "Certifications");
   for (const cert of certs) {
@@ -593,12 +778,16 @@ function renderProjects(ctx: Ctx, cvData: CvData) {
     const url = trim(proj?.url);
     const titleLine = url ? `${name}  (${url})` : name;
     drawEntryTitleLine(ctx, titleLine, undefined, idx === 0);
-    for (const b of (proj?.bullets || [])) drawBullet(ctx, trim(b));
+    for (const b of proj?.bullets || []) drawBullet(ctx, trim(b));
   });
 }
 
 // ─── Section dispatch ──────────────────────────────────────────────
-function renderAllSections(ctx: Ctx, cvData: CvData, sectionOrder: SectionKey[]) {
+function renderAllSections(
+  ctx: Ctx,
+  cvData: CvData,
+  sectionOrder: SectionKey[],
+) {
   const dispatch: Record<SectionKey, () => void> = {
     about: () => renderAbout(ctx, cvData),
     professional_experience: () => renderProfessionalExperience(ctx, cvData),
@@ -624,14 +813,32 @@ export async function buildCvPdf(
   config: TemplateConfig,
 ): Promise<Uint8Array> {
   const pdfDoc = await PDFDocument.create();
+  pdfDoc.registerFontkit(fontkit);
   const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
 
+  // Arimo (Apache-2.0), metric-compatible with Helvetica so the output is
+  // visually ~identical, but with full Latin coverage — the WinAnsi-only
+  // StandardFonts.Helvetica* embeds threw on any non-WinAnsi glyph (e.g. "ā").
+  // subset: true keeps the embedded font (and thus the output PDF) small.
   const fonts: Fonts = {
-    regular: await pdfDoc.embedFont(StandardFonts.Helvetica),
-    bold: await pdfDoc.embedFont(StandardFonts.HelveticaBold),
-    italic: await pdfDoc.embedFont(StandardFonts.HelveticaOblique),
-    boldItalic: await pdfDoc.embedFont(StandardFonts.HelveticaBoldOblique),
+    regular: await pdfDoc.embedFont(ARIMO_REGULAR, { subset: true }),
+    bold: await pdfDoc.embedFont(ARIMO_BOLD, { subset: true }),
+    italic: await pdfDoc.embedFont(ARIMO_ITALIC, { subset: true }),
+    boldItalic: await pdfDoc.embedFont(ARIMO_BOLDITALIC, { subset: true }),
   };
+
+  // ── Sanitize chokepoint ──────────────────────────────────────────────
+  // After the embed (the sanitizer reads the font's cmap) and BEFORE the
+  // measure pass below (widthOfTextAtSize encodes too, not just drawText):
+  // strip every codepoint Arimo can't render from all string fields in
+  // cvData + userContext — the only sources of drawn user text. Keeps the
+  // renderer structurally unable to throw on any input. See
+  // makeCodepointSanitizer above for the keep/fallback/drop rule.
+  const sanitize = makeCodepointSanitizer(
+    fontkit.create(ARIMO_REGULAR) as GlyphFont,
+  );
+  const cv = deepSanitizeStrings(cvData, sanitize) as CvData;
+  const uc = deepSanitizeStrings(userContext, sanitize) as UserContext;
 
   const accent = hexToRgb(config.theme.accentHex || "4A6B5D");
 
@@ -642,19 +849,21 @@ export async function buildCvPdf(
 
   // ─── Pass 1: MEASURE (sections only — banner is fixed) ───
   const measureCtx: Ctx = {
-    page, fonts, accent,
+    page,
+    fonts,
+    accent,
     y: contentTopY,
     draw: false,
     scale: SCALE_MAX,
   };
-  renderAllSections(measureCtx, cvData, config.sectionOrder);
+  renderAllSections(measureCtx, cv, config.sectionOrder);
   const usedHeight = contentTopY - measureCtx.y;
 
   let scale = SCALE_MAX;
   if (usedHeight > contentAvailableH) {
     scale = Math.max(SCALE_MIN, contentAvailableH / usedHeight);
   }
-  const fits = (usedHeight * scale) <= contentAvailableH + 0.5;
+  const fits = usedHeight * scale <= contentAvailableH + 0.5;
   const tag = scale < SCALE_WARN ? "[CV-PDF][WARN]" : "[CV-PDF]";
   console.log(
     `${tag} measure pass: content used ${usedHeight.toFixed(1)}pt of ${contentAvailableH.toFixed(1)}pt available → scale ${scale.toFixed(3)} (fits: ${fits})`,
@@ -664,17 +873,22 @@ export async function buildCvPdf(
   // Cream page background first (covers everything), then dark banner on
   // top of that (covers only the top BANNER_H strip), then content below.
   page.drawRectangle({
-    x: 0, y: 0, width: PAGE_W, height: PAGE_H,
+    x: 0,
+    y: 0,
+    width: PAGE_W,
+    height: PAGE_H,
     color: COLOR_PAGE,
   });
   const drawCtx: Ctx = {
-    page, fonts, accent,
+    page,
+    fonts,
+    accent,
     y: contentTopY,
     draw: true,
     scale,
   };
-  renderBanner(drawCtx, cvData, userContext);
-  renderAllSections(drawCtx, cvData, config.sectionOrder);
+  renderBanner(drawCtx, cv, uc);
+  renderAllSections(drawCtx, cv, config.sectionOrder);
 
   return await pdfDoc.save();
 }
