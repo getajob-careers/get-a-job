@@ -194,6 +194,7 @@ function refreshComposer() {
   input.disabled = busy;
   $("send").disabled = busy || !loggedIn;
   $("generateCv").disabled = busy || empty || !loggedIn;
+  $("addTracker").disabled = busy || empty || !loggedIn;
 }
 
 // ───────────────────────── Agent: render ────────────────────────────────────
@@ -565,6 +566,102 @@ async function generateCvFromJD(jd) {
   }
 }
 
+// ───────────────────────── Add to tracker (front of the pipeline, no CV) ─────
+// Same front as the CV pipeline (extract-jd-basics → insert → background
+// analyze-job-match score update) but STOPS before refine-cv. The row appears
+// in the Tracker tab (refreshTracker re-queries on pill select).
+async function addToTracker(jd) {
+  if (busy) return;
+  if (!loggedIn) {
+    sessionLine.textContent =
+      "Not logged in: open www.getajob.careers, sign in, then reopen this";
+    return;
+  }
+  if (!currentUserId) {
+    messages.push({ role: "assistant", content: "No user id on the session." });
+    renderMessages();
+    return;
+  }
+
+  messages.push({ role: "user", content: "Add this role to my tracker." });
+  setBusy(true, "Reading the role…");
+
+  try {
+    // 1. extract-jd-basics — company + role_title
+    const { data: basics, error: basicsErr } = await supabase.functions.invoke(
+      "extract-jd-basics",
+      { body: { job_description: jd } },
+    );
+    if (basicsErr) throw basicsErr;
+    const company = basics?.company || null;
+    const roleTitle = basics?.role_title || null;
+
+    // 2. Insert the application immediately (no scores yet). NO refine-cv.
+    setBusy(true, "Adding to tracker…");
+    const row = {
+      user_id: currentUserId,
+      company: company || "Unknown company",
+      role_title: roleTitle || "Role",
+      job_description: jd,
+      status: "interested",
+      source: "chat_agent",
+    };
+    const { data: inserted, error: insErr } = await supabase
+      .from("applications")
+      .insert(row)
+      .select("id")
+      .single();
+    if (insErr) throw insErr;
+    currentApplicationId = inserted.id;
+    const appId = currentApplicationId;
+
+    // Inline confirmation.
+    messages.push({
+      role: "assistant",
+      content: `Added ${roleTitle || "Role"} at ${company || "Unknown company"} to your tracker.`,
+    });
+
+    // 3. Background scoring — same mapping the CV pipeline uses, three columns
+    //    only. Self-contained; does not hold the composer.
+    void (async () => {
+      try {
+        const { data: ajm, error: ajmErr } = await supabase.functions.invoke(
+          "analyze-job-match",
+          { body: { job_description: jd } },
+        );
+        if (ajmErr) throw ajmErr;
+        const qualification_score =
+          ajm?.match_score == null
+            ? null
+            : clamp01(Number(ajm.match_score) / 100);
+        const goal_alignment_score =
+          ajm?.goal_alignment_score == null
+            ? null
+            : clamp01(Number(ajm.goal_alignment_score) / 100);
+        const required_seniority = ajm?.required_seniority || null;
+        await supabase
+          .from("applications")
+          .update({
+            qualification_score,
+            goal_alignment_score,
+            required_seniority,
+          })
+          .eq("id", appId);
+      } catch (e) {
+        console.error("tracker scoring failed:", e);
+      }
+    })();
+  } catch (err) {
+    console.error("Add to tracker error:", err);
+    messages.push({
+      role: "assistant",
+      content: "Couldn't add to tracker: " + (await edgeErrorMessage(err)),
+    });
+  } finally {
+    setBusy(false);
+  }
+}
+
 // ───────────────────────── composer wiring ──────────────────────────────────
 $("send").addEventListener("click", sendMessage);
 $("generateCv").addEventListener("click", () => {
@@ -573,6 +670,13 @@ $("generateCv").addEventListener("click", () => {
   $("input").value = "";
   refreshComposer();
   generateCvFromJD(jd);
+});
+$("addTracker").addEventListener("click", () => {
+  const jd = $("input").value.trim();
+  if (!jd) return;
+  $("input").value = "";
+  refreshComposer();
+  addToTracker(jd);
 });
 $("input").addEventListener("input", refreshComposer);
 $("input").addEventListener("keydown", (e) => {
@@ -679,9 +783,9 @@ async function refreshTracker() {
     rowEl.appendChild(el("div", "trk-role", r.role_title || "Role"));
     rowEl.appendChild(el("div", "trk-company", r.company || "(no company)"));
 
-    // Footer: status chip, optional match %, date.
+    // Footer: status control, optional match %, date.
     const foot = el("div", "trk-foot");
-    foot.appendChild(el("span", "status-chip", r.status || "—"));
+    foot.appendChild(statusSelect(r));
     // Match % renders only when the row carries qualification_score (0-1).
     if (typeof r.qualification_score === "number") {
       foot.appendChild(
@@ -700,6 +804,39 @@ async function refreshTracker() {
 
     list.appendChild(rowEl);
   });
+}
+
+// Per-card status control. Optimistic: the <select> reflects the new value
+// instantly; on a failed update we roll back to the previous value. Writes ONLY
+// applications.status — never status_changes (a Postgres trigger owns that audit
+// and RLS denies client writes to it).
+function statusSelect(r) {
+  const sel = document.createElement("select");
+  sel.className = "status-select";
+  for (const s of VALID_STATUSES) {
+    const opt = document.createElement("option");
+    opt.value = s;
+    opt.textContent = s;
+    if (s === r.status) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  let prev = r.status;
+  sel.addEventListener("change", async () => {
+    const next = sel.value; // optimistic — the select already shows `next`
+    sel.disabled = true;
+    const { error } = await supabase
+      .from("applications")
+      .update({ status: next })
+      .eq("id", r.id);
+    sel.disabled = false;
+    if (error) {
+      sel.value = prev; // rollback
+      console.error("status update failed:", error.message);
+    } else {
+      prev = next;
+    }
+  });
+  return sel;
 }
 
 // ───────────────────────── boot ─────────────────────────────────────────────
