@@ -766,7 +766,7 @@ async function refreshTracker() {
   const { data, error } = await supabase
     .from("applications")
     .select(
-      "id, company, role_title, status, created_at, qualification_score, goal_alignment_score, required_seniority, job_description, cv_url",
+      "id, company, role_title, status, created_at, qualification_score, goal_alignment_score, required_seniority, job_description, cv_url, checklist",
     )
     .eq("user_id", currentUserId)
     .order("created_at", { ascending: false });
@@ -954,7 +954,135 @@ function renderApplicationDetail(r, notice) {
   cvSection.appendChild(genNote);
   detail.appendChild(cvSection);
 
+  // 7-step checklist.
+  detail.appendChild(renderChecklist(r));
+
   list.appendChild(detail);
+}
+
+// ───────────────────────── 7-step checklist (mirrors ApplicationChecklist) ───
+// Step labels, helper text, and phase grouping mirror the web app's
+// src/components/tracker/ApplicationChecklist.jsx. Manual toggles only — no
+// current-step / lock / CTA logic and no auto-derivation in this slice.
+const CHECKLIST_PHASES = [
+  { key: "know", label: "Know the role" },
+  { key: "build", label: "Build your case" },
+  { key: "apply", label: "Apply & prep" },
+];
+const CHECKLIST_STEPS = [
+  {
+    key: "qualification_confirmed",
+    title: "Qualify yourself",
+    helper: "Check your fit for this role before you invest more time.",
+    phase: "know",
+  },
+  {
+    key: "jd_dissected",
+    title: "Dissect the job description",
+    helper:
+      "Know the role inside-out — responsibilities, must-have skills, seniority signals.",
+    phase: "know",
+  },
+  {
+    key: "cv_tailored",
+    title: "Tailor your CV",
+    helper: "Generate a CV tuned to this role's must-haves.",
+    phase: "build",
+  },
+  {
+    key: "skills_proof_mapped",
+    title: "Map your skill evidence",
+    helper: "Match your stories to what the role asks for.",
+    phase: "build",
+  },
+  {
+    key: "referral_attempted",
+    title: "Find a referral contact",
+    helper: "Find someone at {company} who can refer you in.",
+    phase: "build",
+  },
+  {
+    key: "application_submitted",
+    title: "Submit your application",
+    helper: "Apply on the company's careers page.",
+    phase: "apply",
+  },
+  {
+    key: "interview_prep_done",
+    title: "Prep for the interview",
+    helper: "Practice STAR-format answers with the Interview Coach.",
+    phase: "apply",
+  },
+];
+
+function renderChecklist(r) {
+  const section = el("div", "checklist");
+  // Shared working copy of the checklist; defaults to {} when absent.
+  const cl = { ...(r.checklist || {}) };
+
+  const done = CHECKLIST_STEPS.filter((s) => cl[s.key]).length;
+  const head = el("div", "detail-label");
+  head.textContent = "Steps";
+  const count = el(
+    "span",
+    "checklist-count",
+    `${done} / ${CHECKLIST_STEPS.length}`,
+  );
+  head.appendChild(count);
+  section.appendChild(head);
+
+  CHECKLIST_PHASES.forEach((phase, pi) => {
+    section.appendChild(el("div", "phase-label", phase.label));
+    CHECKLIST_STEPS.filter((s) => s.phase === phase.key).forEach((step) => {
+      const stepNo = CHECKLIST_STEPS.indexOf(step) + 1;
+      const row = el("div", "step-row");
+
+      const marker = el("button", "step-marker");
+      const paint = () => {
+        const isDone = !!cl[step.key];
+        marker.classList.toggle("done", isDone);
+        marker.textContent = isDone ? "✓" : "";
+      };
+      paint();
+
+      const body = el("div", "step-body");
+      body.appendChild(el("div", "step-title", `${stepNo} · ${step.title}`));
+      const helper = String(step.helper || "").replaceAll(
+        "{company}",
+        r.company || "this company",
+      );
+      if (helper) body.appendChild(el("div", "step-helper", helper));
+
+      marker.addEventListener("click", async (e) => {
+        e.stopPropagation();
+        const prevVal = !!cl[step.key];
+        cl[step.key] = !prevVal; // optimistic in-memory
+        paint();
+        const next = { ...cl };
+        marker.disabled = true;
+        const { error } = await supabase
+          .from("applications")
+          .update({ checklist: next })
+          .eq("id", r.id);
+        marker.disabled = false;
+        if (error) {
+          cl[step.key] = prevVal; // rollback
+          paint();
+          console.error("checklist update failed:", error.message);
+        } else {
+          // recompute the count + keep the row object in sync
+          count.textContent = `${CHECKLIST_STEPS.filter((s) => cl[s.key]).length} / ${CHECKLIST_STEPS.length}`;
+          r.checklist = { ...cl };
+        }
+      });
+
+      row.appendChild(marker);
+      row.appendChild(body);
+      section.appendChild(row);
+    });
+  });
+
+  return section;
 }
 
 // ───────────────────────── boot ─────────────────────────────────────────────

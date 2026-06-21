@@ -478,6 +478,83 @@
         font-size: 11.5px;
       }
 
+      /* ── 7-step checklist ── */
+      .checklist {
+        margin-top: 18px;
+        border-top: 1px solid var(--gaj-border-subtle);
+        padding-top: 14px;
+      }
+      .checklist-count {
+        margin-left: 8px;
+        font-family: var(--gaj-sans);
+        font-size: 11px;
+        font-weight: 700;
+        color: var(--gaj-muted);
+      }
+      .phase-label {
+        font-family: var(--gaj-serif);
+        font-size: 11px;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        color: var(--gaj-text-eyebrow, #a38e6f);
+        margin: 12px 0 4px;
+      }
+      .step-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        padding: 6px 2px;
+      }
+      .step-marker {
+        width: 22px;
+        height: 22px;
+        flex: 0 0 auto;
+        margin-top: 1px;
+        border-radius: 50%;
+        border: 1.5px solid var(--gaj-border);
+        background: var(--gaj-card);
+        color: #fff;
+        font-size: 13px;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.12s ease,
+          border-color 0.12s ease;
+      }
+      .step-marker:hover:not(.done):not(:disabled) {
+        border-color: var(--gaj-coral);
+      }
+      .step-marker.done {
+        background: var(--gaj-coral);
+        border-color: var(--gaj-coral);
+        font-weight: 700;
+      }
+      .step-marker:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+      .step-body {
+        flex: 1;
+        min-width: 0;
+      }
+      .step-title {
+        font-family: var(--gaj-serif);
+        font-size: 13.5px;
+        font-weight: 600;
+        color: var(--gaj-ink);
+        line-height: 1.25;
+      }
+      .step-helper {
+        font-size: 11.5px;
+        color: var(--gaj-muted);
+        line-height: 1.4;
+        margin-top: 1px;
+      }
+
       /* ── Empty / loading states ── */
       .empty {
         color: var(--gaj-muted);
