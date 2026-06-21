@@ -336,13 +336,16 @@ function cvResultCard(cv) {
 }
 
 // ───────────────────────── shared refine handler (steps 2c–2d) ──────────────
-// Calls refine-cv (ops_variant v3, grounding default) and renders the CV result
-// card FIRST. Returns { ok, cv_url } | { error }. Caller owns busy/loading.
+// Calls refine-cv (ops_variant v3, grounding default). Returns { ok, cv_url } |
+// { error }. Caller owns busy/loading. renderCard defaults true (Agent-tab path:
+// append the CV result card to the transcript); the Tracker detail passes false
+// so the result stays in the detail rather than landing in a different tab.
 async function runRefineAndRenderCV({
   applicationId,
   jobDescription,
   roleLabel,
   companyLabel,
+  renderCard = true,
 }) {
   const { data, error } = await supabase.functions.invoke("refine-cv", {
     body: {
@@ -356,17 +359,19 @@ async function runRefineAndRenderCV({
   if (data?.error) return { error: data.error };
   if (!data?.cv_url)
     return { error: data?.message || "refine-cv returned no cv_url" };
-  messages.push({
-    type: "cv_result",
-    role: "system", // excluded from conversation_history (role !== "system")
-    cv: {
-      role: roleLabel,
-      company: companyLabel,
-      cv_url: data.cv_url,
-      message: data.message || null,
-    },
-  });
-  renderMessages();
+  if (renderCard) {
+    messages.push({
+      type: "cv_result",
+      role: "system", // excluded from conversation_history (role !== "system")
+      cv: {
+        role: roleLabel,
+        company: companyLabel,
+        cv_url: data.cv_url,
+        message: data.message || null,
+      },
+    });
+    renderMessages();
+  }
   return { ok: true, cv_url: data.cv_url };
 }
 
@@ -760,7 +765,9 @@ async function refreshTracker() {
   list.appendChild(el("div", "empty", "Loading…"));
   const { data, error } = await supabase
     .from("applications")
-    .select("id, company, role_title, status, created_at, qualification_score")
+    .select(
+      "id, company, role_title, status, created_at, qualification_score, goal_alignment_score, required_seniority, job_description, cv_url",
+    )
     .eq("user_id", currentUserId)
     .order("created_at", { ascending: false });
   list.innerHTML = "";
@@ -802,6 +809,9 @@ async function refreshTracker() {
     if (when) foot.appendChild(el("span", "trk-date", when));
     rowEl.appendChild(foot);
 
+    // Card opens the detail view. The status <select> stops propagation so
+    // changing status doesn't also navigate.
+    rowEl.addEventListener("click", () => renderApplicationDetail(r));
     list.appendChild(rowEl);
   });
 }
@@ -813,6 +823,8 @@ async function refreshTracker() {
 function statusSelect(r) {
   const sel = document.createElement("select");
   sel.className = "status-select";
+  // Don't let interacting with the dropdown bubble up to a clickable card.
+  sel.addEventListener("click", (e) => e.stopPropagation());
   for (const s of VALID_STATUSES) {
     const opt = document.createElement("option");
     opt.value = s;
@@ -834,9 +846,115 @@ function statusSelect(r) {
       console.error("status update failed:", error.message);
     } else {
       prev = next;
+      r.status = next; // keep the row object in sync across re-renders
     }
   });
   return sel;
+}
+
+// ───────────────────────── Tracker detail view ──────────────────────────────
+// Replaces the list with a single application's detail. Back returns to the
+// list (a fresh refreshTracker re-query). `r` is the row object; it's mutated
+// in place (r.cv_url) after a generation so a re-render reflects the new CV.
+function renderApplicationDetail(r, notice) {
+  const list = $("trackerList");
+  list.innerHTML = "";
+
+  const back = el("button", "detail-back", "← Back");
+  back.addEventListener("click", () => refreshTracker());
+  list.appendChild(back);
+
+  const detail = el("div", "detail");
+
+  // Header: role (Rokkitt), company, status control, match/goal chips.
+  detail.appendChild(el("div", "detail-role", r.role_title || "Role"));
+  detail.appendChild(el("div", "detail-company", r.company || "(no company)"));
+
+  const chips = el("div", "detail-chips");
+  chips.appendChild(statusSelect(r));
+  if (typeof r.qualification_score === "number")
+    chips.appendChild(
+      el(
+        "span",
+        "match-chip",
+        Math.round(r.qualification_score * 100) + "% match",
+      ),
+    );
+  if (typeof r.goal_alignment_score === "number")
+    chips.appendChild(
+      el(
+        "span",
+        "goal-chip",
+        Math.round(r.goal_alignment_score * 100) + "% goal",
+      ),
+    );
+  if (r.required_seniority)
+    chips.appendChild(el("span", "status-chip", r.required_seniority));
+  detail.appendChild(chips);
+
+  // Job description — scrollable + collapsible.
+  if (r.job_description) {
+    detail.appendChild(el("div", "detail-label", "Job description"));
+    const jd = el("div", "jd-block", r.job_description);
+    detail.appendChild(jd);
+    const toggle = el("button", "detail-link", "Expand");
+    toggle.addEventListener("click", () => {
+      const open = jd.classList.toggle("expanded");
+      toggle.textContent = open ? "Collapse" : "Expand";
+    });
+    detail.appendChild(toggle);
+  }
+
+  // CV section.
+  detail.appendChild(el("div", "detail-label", "CV"));
+  const cvSection = el("div", "detail-cv");
+  if (r.cv_url) {
+    const link = el("a", "cvlink", "Open CV");
+    link.href = r.cv_url;
+    link.target = "_blank";
+    link.rel = "noopener";
+    cvSection.appendChild(link);
+  }
+  const genBtn = el(
+    "button",
+    "detail-gen",
+    r.cv_url ? "Regenerate CV" : "Generate CV for this role",
+  );
+  const genNote = el("div", "note");
+  if (notice) genNote.textContent = notice;
+  genBtn.addEventListener("click", async () => {
+    if (busy) return;
+    if (!r.job_description) {
+      genNote.textContent = "No job description on this application.";
+      return;
+    }
+    genBtn.disabled = true;
+    genNote.textContent = "Tailoring your CV…"; // staged loading (in-detail)
+    // Same staged loading as the Agent-tab path (global busy + refine-cv), but
+    // renderCard:false keeps the result IN THE DETAIL — no card is appended to
+    // the Agent transcript, so the CV stays in the tab it was triggered from.
+    setBusy(true, "Tailoring your CV…");
+    const res = await runRefineAndRenderCV({
+      applicationId: r.id,
+      jobDescription: r.job_description,
+      roleLabel: r.role_title || "Role",
+      companyLabel: r.company || "",
+      renderCard: false,
+    });
+    setBusy(false);
+    if (res.ok) {
+      r.cv_url = res.cv_url; // reflect the new CV in the detail
+      renderApplicationDetail(r, "CV updated"); // in-place update + inline note
+    } else {
+      genBtn.disabled = false;
+      genNote.textContent = "CV generation failed: " + res.error;
+    }
+  });
+  cvSection.appendChild(genBtn);
+  cvSection.appendChild(genNote);
+  detail.appendChild(cvSection);
+
+  list.appendChild(detail);
 }
 
 // ───────────────────────── boot ─────────────────────────────────────────────
