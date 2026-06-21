@@ -561,6 +561,7 @@
         text-align: center;
         padding: 22px 12px;
         font-size: 12.5px;
+        line-height: 1.5;
       }
       .empty .empty-title {
         font-family: var(--gaj-serif);
@@ -568,14 +569,87 @@
         color: var(--gaj-ink);
         margin-bottom: 3px;
       }
+      /* Agent welcome / empty transcript */
+      .agent-empty {
+        color: var(--gaj-muted);
+        text-align: center;
+        padding: 26px 14px;
+        font-size: 12.5px;
+        line-height: 1.55;
+      }
+      .agent-empty .empty-title {
+        font-family: var(--gaj-serif);
+        font-size: 16px;
+        color: var(--gaj-ink);
+        margin-bottom: 4px;
+      }
+
+      /* Inline error bubble in the chat transcript */
+      .msg.error {
+        background: var(--gaj-coral-tint);
+        color: var(--gaj-coral-dark);
+        align-self: flex-start;
+        max-width: 90%;
+        border-bottom-left-radius: 5px;
+      }
+      /* Transient inline error (status / checklist failures) */
+      .inline-err {
+        color: var(--gaj-coral-dark);
+        font-size: 11px;
+        font-weight: 600;
+      }
+
+      /* ── Signed-out / expired gate ── */
+      .gate {
+        margin: 26px 16px;
+        padding: 26px 18px;
+        text-align: center;
+        background: var(--gaj-panel);
+        border: 1px solid var(--gaj-border);
+        border-radius: var(--gaj-radius);
+      }
+      .gate-mark {
+        width: 46px;
+        height: 46px;
+        margin: 0 auto 12px;
+        border-radius: 50%;
+        background: var(--gaj-coral);
+        color: #fff;
+        font-size: 20px;
+        line-height: 46px;
+      }
+      .gate-title {
+        font-family: var(--gaj-serif);
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--gaj-ink);
+        margin-bottom: 6px;
+      }
+      .gate-body {
+        color: var(--gaj-muted);
+        font-size: 13px;
+        line-height: 1.5;
+      }
+      .gate-body strong {
+        color: var(--gaj-coral-dark);
+        font-weight: 700;
+      }
     </style>
   </head>
   <body>
-    <div class="pills">
+    <div class="pills" id="pills">
       <div class="pill active" id="pillAgent" data-view="agent">Agent</div>
       <div class="pill" id="pillTracker" data-view="tracker">Tracker</div>
     </div>
     <div id="sessionLine">Loading session…</div>
+
+    <!-- Signed-out / expired gate (shown in place of the views when there's no
+         usable session). Filled + toggled by popup.js. -->
+    <div class="gate hidden" id="gate">
+      <div class="gate-mark">●</div>
+      <div class="gate-title" id="gateTitle">Not signed in</div>
+      <div class="gate-body" id="gateBody"></div>
+    </div>
 
     <div class="view" id="agentView">
       <div id="messages"></div>

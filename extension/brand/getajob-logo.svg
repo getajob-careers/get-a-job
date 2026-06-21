@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 168" width="260" height="168" role="img" aria-label="Get a Job">
+  <g transform="translate(98,12)">
+    <path d="M32 38 C23 33 12 19 16 6 C25 13 33 27 32 38 Z" fill="#2E7C6B"/>
+    <path d="M32 38 C41 33 52 19 48 6 C39 13 31 27 32 38 Z" fill="#54B5A2"/>
+    <line x1="32" y1="38" x2="32" y2="60" stroke="#211D18" stroke-width="3.4" stroke-linecap="round"/>
+    <circle cx="32" cy="63.5" r="3.6" fill="#EFB23E"/>
+  </g>
+  <text x="130" y="144" text-anchor="middle" font-family="'Rokkitt', Georgia, serif" font-weight="700" font-size="42" letter-spacing="-0.5" fill="#211D18">Get a Job</text>
+</svg>

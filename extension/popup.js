@@ -59,6 +59,46 @@ async function edgeErrorMessage(error) {
   return error?.message || "request failed";
 }
 
+// A 401 means the bridged session expired. Edge functions surface it on
+// error.context.status; PostgREST (the .from().update() calls) surfaces it as a
+// JWT error (code PGRST301 / "JWT expired").
+function isAuthExpired(error) {
+  if (error?.context?.status === 401 || error?.status === 401) return true;
+  const code = error?.code || "";
+  const msg = (error?.message || "").toLowerCase();
+  return (
+    code === "PGRST301" || (msg.includes("jwt") && msg.includes("expired"))
+  );
+}
+
+// ── Signed-out / expired gate ────────────────────────────────────────────────
+function showGate(title, bodyHtml) {
+  $("gateTitle").textContent = title;
+  $("gateBody").innerHTML = bodyHtml; // static, controlled strings only
+  $("gate").classList.remove("hidden");
+  $("pills").classList.add("hidden");
+  $("sessionLine").classList.add("hidden");
+  $("agentView").classList.add("hidden");
+  $("trackerView").classList.add("hidden");
+}
+function showSignedOut() {
+  showGate(
+    "Not signed in",
+    "Open and log into <strong>www.getajob.careers</strong> in this browser, then reopen this extension.",
+  );
+}
+// Called when a function returns 401 mid-session.
+function handleAuthExpired() {
+  loggedIn = false;
+  currentUserId = null;
+  busy = false;
+  loadingText = "";
+  showGate(
+    "Your session expired",
+    "Reopen <strong>www.getajob.careers</strong> and log in again, then reopen this extension.",
+  );
+}
+
 // ───────────────────────── session bridge (DO NOT TOUCH AUTH) ────────────────
 function readSession() {
   const TOKEN_KEY_RE = /^sb-.*-auth-token(\.\d+)?$/;
@@ -140,13 +180,13 @@ function pullSession(tabId) {
 async function initSession() {
   const { tab, totalTabs, getajobUrls } = await findTab();
   if (!tab) {
-    sessionLine.textContent =
-      "Open getajob.careers in a tab and sign in, then reopen this\n" +
-      "[debug] total tabs: " +
-      totalTabs +
-      " · getajob: " +
-      JSON.stringify(getajobUrls);
-    refreshComposer();
+    console.log(
+      "[session] no getajob.careers tab — total tabs:",
+      totalTabs,
+      "getajob:",
+      getajobUrls,
+    );
+    showSignedOut();
     return;
   }
   const result = await pullSession(tab.id);
@@ -155,16 +195,21 @@ async function initSession() {
       access_token: result.access_token,
       refresh_token: result.refresh_token,
     });
-    loggedIn = !error;
-    currentUserId = data?.user?.id || null;
-    sessionLine.textContent = loggedIn
-      ? "Logged in: true"
-      : "setSession failed: " + error.message;
+    if (error || !data?.user?.id) {
+      // Token present but rejected → treat as expired.
+      console.log("[session] setSession rejected:", error?.message);
+      handleAuthExpired();
+      return;
+    }
+    loggedIn = true;
+    currentUserId = data.user.id;
+    sessionLine.textContent = "Signed in";
+    $("gate").classList.add("hidden");
+    refreshComposer();
   } else {
-    sessionLine.textContent =
-      "Not logged in: no Supabase session in the getajob.careers tab.";
+    // A tab is open but no usable session was read from it.
+    showSignedOut();
   }
-  refreshComposer();
 }
 
 // ───────────────────────── tab shell ────────────────────────────────────────
@@ -208,12 +253,29 @@ function el(tag, cls, text) {
 function renderMessages() {
   const box = $("messages");
   box.innerHTML = "";
+  // Clean empty transcript — a friendly prompt instead of a blank panel.
+  if (messages.length === 0 && !busy) {
+    const empty = el("div", "agent-empty");
+    empty.appendChild(el("div", "empty-title", "Start with a job description"));
+    empty.appendChild(
+      el(
+        "div",
+        null,
+        "Paste a JD above, then Generate CV for a tailored CV + fit read, or Add to tracker. You can also just chat with your coach.",
+      ),
+    );
+    box.appendChild(empty);
+    return;
+  }
   messages.forEach((m) => {
     if (m.type === "cv_result") {
       box.appendChild(cvResultCard(m.cv));
       return;
     }
-    box.appendChild(el("div", "msg " + m.role, m.content));
+    // Errors render as a coral-tinted bubble so they never pass silently.
+    box.appendChild(
+      el("div", m.error ? "msg error" : "msg " + m.role, m.content),
+    );
     if (Array.isArray(m.suggestedApplicationActions)) {
       m.suggestedApplicationActions.forEach((a) =>
         box.appendChild(applicationCard(a)),
@@ -225,6 +287,17 @@ function renderMessages() {
   });
   if (busy) box.appendChild(el("div", "msg typing", loadingText || "…"));
   box.scrollTop = box.scrollHeight;
+}
+
+// Append a transient inline error next to a control (status / checklist), so a
+// failed write is visible without a bubble. Auto-clears.
+function flashInlineError(parent, text) {
+  if (!parent) return;
+  const prev = parent.querySelector(".inline-err");
+  if (prev) prev.remove();
+  const e = el("span", "inline-err", text);
+  parent.appendChild(e);
+  setTimeout(() => e.remove(), 3500);
 }
 
 // Add/update-application card (coachActionHandlers parity).
@@ -306,8 +379,13 @@ function cvProposalCard(proposal) {
     });
     setBusy(false);
     if (!res.ok) {
+      if (res.authExpired) {
+        handleAuthExpired();
+        return;
+      }
       messages.push({
         role: "assistant",
+        error: true,
         content: "CV generation error: " + res.error,
       });
       renderMessages();
@@ -355,7 +433,11 @@ async function runRefineAndRenderCV({
       grounding: "default",
     },
   });
-  if (error) return { error: await edgeErrorMessage(error) };
+  if (error)
+    return {
+      error: await edgeErrorMessage(error),
+      authExpired: isAuthExpired(error),
+    };
   if (data?.error) return { error: data.error };
   if (!data?.cv_url)
     return { error: data?.message || "refine-cv returned no cv_url" };
@@ -423,8 +505,13 @@ async function sendMessage() {
     });
   } catch (err) {
     console.error("ai-chat error:", err);
+    if (isAuthExpired(err)) {
+      handleAuthExpired();
+      return;
+    }
     messages.push({
       role: "assistant",
+      error: true,
       content: "Couldn't reach the AI: " + (await edgeErrorMessage(err)),
     });
   } finally {
@@ -557,13 +644,24 @@ async function generateCvFromJD(jd) {
       roleLabel: roleTitle || "Role",
       companyLabel: company || "Unknown company",
     });
-    if (!refineRes.ok) throw new Error(refineRes.error);
+    if (!refineRes.ok) {
+      if (refineRes.authExpired) {
+        handleAuthExpired();
+        return;
+      }
+      throw new Error(refineRes.error);
+    }
     // Do not await scoringPromise — the fit block fills in whenever it returns.
     void scoringPromise;
   } catch (err) {
     console.error("CV pipeline error:", err);
+    if (isAuthExpired(err)) {
+      handleAuthExpired();
+      return;
+    }
     messages.push({
       role: "assistant",
+      error: true,
       content: "CV generation failed: " + (await edgeErrorMessage(err)),
     });
   } finally {
@@ -658,8 +756,13 @@ async function addToTracker(jd) {
     })();
   } catch (err) {
     console.error("Add to tracker error:", err);
+    if (isAuthExpired(err)) {
+      handleAuthExpired();
+      return;
+    }
     messages.push({
       role: "assistant",
+      error: true,
       content: "Couldn't add to tracker: " + (await edgeErrorMessage(err)),
     });
   } finally {
@@ -772,7 +875,14 @@ async function refreshTracker() {
     .order("created_at", { ascending: false });
   list.innerHTML = "";
   if (error) {
-    list.appendChild(el("div", "empty", "Error: " + error.message));
+    if (isAuthExpired(error)) {
+      handleAuthExpired();
+      return;
+    }
+    const errEl = el("div", "empty");
+    errEl.appendChild(el("div", "empty-title", "Couldn't load your tracker"));
+    errEl.appendChild(el("div", null, error.message));
+    list.appendChild(errEl);
     return;
   }
   if (!data || data.length === 0) {
@@ -844,6 +954,8 @@ function statusSelect(r) {
     if (error) {
       sel.value = prev; // rollback
       console.error("status update failed:", error.message);
+      if (isAuthExpired(error)) handleAuthExpired();
+      else flashInlineError(sel.parentElement, "Couldn't update status");
     } else {
       prev = next;
       r.status = next; // keep the row object in sync across re-renders
@@ -945,6 +1057,8 @@ function renderApplicationDetail(r, notice) {
     if (res.ok) {
       r.cv_url = res.cv_url; // reflect the new CV in the detail
       renderApplicationDetail(r, "CV updated"); // in-place update + inline note
+    } else if (res.authExpired) {
+      handleAuthExpired();
     } else {
       genBtn.disabled = false;
       genNote.textContent = "CV generation failed: " + res.error;
@@ -1069,6 +1183,8 @@ function renderChecklist(r) {
           cl[step.key] = prevVal; // rollback
           paint();
           console.error("checklist update failed:", error.message);
+          if (isAuthExpired(error)) handleAuthExpired();
+          else flashInlineError(row, "Couldn't save");
         } else {
           // recompute the count + keep the row object in sync
           count.textContent = `${CHECKLIST_STEPS.filter((s) => cl[s.key]).length} / ${CHECKLIST_STEPS.length}`;
