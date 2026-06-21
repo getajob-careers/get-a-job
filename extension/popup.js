@@ -1,0 +1,707 @@
+// GetAJob extension popup — two-pill shell (Agent | Tracker).
+// Auth/session bridge is UNCHANGED: we find the www.getajob.careers tab,
+// chrome.scripting reads the Supabase session out of its localStorage, and we
+// setSession() on the anon-key client so it carries the user's identity.
+// The Agent tab is wired to ai-chat + the CV pipeline (analyze-job-match →
+// applications insert → refine-cv), mirroring the web app's contracts
+// (src/components/chat/ChatInterface.jsx, src/lib/coachActionHandlers.js,
+// src/lib/scoreApplication.js).
+
+// ───────────────────────── contract constants (mirrored) ─────────────────────
+const AGENT = "career_agent"; // ai-chat assembleSystemPrompt appends card rules only for "career_agent"
+const VALID_STATUSES = [
+  "interested",
+  "preparing",
+  "applied",
+  "interviewing",
+  "offer",
+  "accepted",
+  "rejected",
+];
+const validStatus = (s) => (VALID_STATUSES.includes(s) ? s : null);
+const stripHtml = (s) =>
+  String(s || "")
+    .replace(/<[^>]*>/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+const clamp01 = (n) => Math.max(0, Math.min(1, Number(n)));
+
+// ───────────────────────── client + state ───────────────────────────────────
+const supabase = window.supabaseLib.createClient(
+  window.SUPA.url,
+  window.SUPA.anon,
+);
+
+let loggedIn = false;
+let currentUserId = null;
+let currentApplicationId = null; // set after add-to-tracker / CV pipeline; forwarded to ai-chat
+let busy = false; // true while ANY backend call (ai-chat or CV pipeline) is running
+let loadingText = ""; // staged loading text shown in the typing bubble
+// messages: text turns { role, content, suggestedApplicationActions?, suggestedCVGeneration? }
+//           or a CV result card { type:"cv_result", role:"system", cv:{...} }
+const messages = [];
+
+const $ = (id) => document.getElementById(id);
+const sessionLine = $("sessionLine");
+
+// Pull the real error text out of a supabase FunctionsHttpError (the .message is
+// generic; the function's JSON body — e.g. "Master CV unavailable." — is on the
+// Response in error.context).
+async function edgeErrorMessage(error) {
+  try {
+    if (error?.context && typeof error.context.json === "function") {
+      const body = await error.context.json();
+      if (body?.error) return body.error;
+    }
+  } catch {
+    /* fall through */
+  }
+  return error?.message || "request failed";
+}
+
+// ───────────────────────── session bridge (DO NOT TOUCH AUTH) ────────────────
+function readSession() {
+  const TOKEN_KEY_RE = /^sb-.*-auth-token(\.\d+)?$/;
+  const allKeys = [];
+  for (let i = 0; i < localStorage.length; i++)
+    allKeys.push(localStorage.key(i));
+  const sbKeys = allKeys.filter((k) => k && k.indexOf("sb-") === 0);
+
+  const cookieNames = [];
+  for (const part of (document.cookie || "").split(";")) {
+    const name = part.split("=")[0].trim();
+    if (name) cookieNames.push(name);
+  }
+  const sessionKeys = [];
+  for (let i = 0; i < sessionStorage.length; i++)
+    sessionKeys.push(sessionStorage.key(i));
+
+  const debug = {
+    location_href: location.href,
+    all_localstorage_keys: allKeys,
+    all_sessionstorage_keys: sessionKeys,
+    all_cookie_names: cookieNames,
+    sb_localstorage_keys: sbKeys,
+  };
+
+  const tokenKeys = allKeys.filter((k) => k && TOKEN_KEY_RE.test(k));
+  const chunkIndex = (k) => {
+    const m = k.match(/\.(\d+)$/);
+    return m ? Number(m[1]) : -1;
+  };
+  tokenKeys.sort((a, b) => chunkIndex(a) - chunkIndex(b));
+  let raw = tokenKeys.map((k) => localStorage.getItem(k) || "").join("");
+  if (!raw) return { debug };
+
+  if (raw.indexOf("base64-") === 0) {
+    try {
+      raw = atob(raw.slice("base64-".length));
+    } catch {
+      return { debug };
+    }
+  }
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    return { debug };
+  }
+  const session = (parsed && parsed.currentSession) || parsed;
+  const access_token = session && session.access_token;
+  const refresh_token = session && session.refresh_token;
+  if (!access_token || !refresh_token) return { debug };
+  return { access_token, refresh_token };
+}
+
+function findTab() {
+  return new Promise((resolve) => {
+    chrome.tabs.query({}, (tabs) => {
+      const all = tabs || [];
+      const matches = all.filter((t) =>
+        (t.url || "").includes("getajob.careers"),
+      );
+      const getajobUrls = all
+        .filter((t) => (t.url || "").includes("getajob"))
+        .map((t) => t.url);
+      resolve({ tab: matches[0] || null, totalTabs: all.length, getajobUrls });
+    });
+  });
+}
+function pullSession(tabId) {
+  return new Promise((resolve) => {
+    chrome.scripting.executeScript(
+      { target: { tabId }, func: readSession },
+      (results) =>
+        resolve((results && results[0] && results[0].result) || null),
+    );
+  });
+}
+
+async function initSession() {
+  const { tab, totalTabs, getajobUrls } = await findTab();
+  if (!tab) {
+    sessionLine.textContent =
+      "Open getajob.careers in a tab and sign in, then reopen this\n" +
+      "[debug] total tabs: " +
+      totalTabs +
+      " · getajob: " +
+      JSON.stringify(getajobUrls);
+    refreshComposer();
+    return;
+  }
+  const result = await pullSession(tab.id);
+  if (result && result.access_token && result.refresh_token) {
+    const { data, error } = await supabase.auth.setSession({
+      access_token: result.access_token,
+      refresh_token: result.refresh_token,
+    });
+    loggedIn = !error;
+    currentUserId = data?.user?.id || null;
+    sessionLine.textContent = loggedIn
+      ? "Logged in: true"
+      : "setSession failed: " + error.message;
+  } else {
+    sessionLine.textContent =
+      "Not logged in: no Supabase session in the getajob.careers tab.";
+  }
+  refreshComposer();
+}
+
+// ───────────────────────── tab shell ────────────────────────────────────────
+function switchView(view) {
+  $("pillAgent").classList.toggle("active", view === "agent");
+  $("pillTracker").classList.toggle("active", view === "tracker");
+  $("agentView").classList.toggle("hidden", view !== "agent");
+  $("trackerView").classList.toggle("hidden", view !== "tracker");
+  if (view === "tracker") refreshTracker();
+}
+$("pillAgent").addEventListener("click", () => switchView("agent"));
+$("pillTracker").addEventListener("click", () => switchView("tracker"));
+
+// ───────────────────────── loading / composer state ─────────────────────────
+// One lock for every backend call: disables the composer (textarea + both
+// buttons) and shows a typing bubble. setBusy(true, text) before a call,
+// setBusy(false) when it resolves or errors.
+function setBusy(on, text) {
+  busy = on;
+  loadingText = on ? text || "Working…" : "";
+  renderMessages();
+  refreshComposer();
+}
+function refreshComposer() {
+  const input = $("input");
+  const empty = !input.value.trim();
+  input.disabled = busy;
+  $("send").disabled = busy || !loggedIn;
+  $("generateCv").disabled = busy || empty || !loggedIn;
+}
+
+// ───────────────────────── Agent: render ────────────────────────────────────
+function el(tag, cls, text) {
+  const e = document.createElement(tag);
+  if (cls) e.className = cls;
+  if (text != null) e.textContent = text;
+  return e;
+}
+
+function renderMessages() {
+  const box = $("messages");
+  box.innerHTML = "";
+  messages.forEach((m) => {
+    if (m.type === "cv_result") {
+      box.appendChild(cvResultCard(m.cv));
+      return;
+    }
+    box.appendChild(el("div", "msg " + m.role, m.content));
+    if (Array.isArray(m.suggestedApplicationActions)) {
+      m.suggestedApplicationActions.forEach((a) =>
+        box.appendChild(applicationCard(a)),
+      );
+    }
+    if (m.suggestedCVGeneration) {
+      box.appendChild(cvProposalCard(m.suggestedCVGeneration));
+    }
+  });
+  if (busy) box.appendChild(el("div", "msg typing", loadingText || "…"));
+  box.scrollTop = box.scrollHeight;
+}
+
+// Add/update-application card (coachActionHandlers parity).
+function applicationCard(a) {
+  const card = el("div", "card");
+  if (a.action === "add_application") {
+    card.appendChild(el("h4", null, "Add to tracker"));
+    card.appendChild(
+      el(
+        "div",
+        "meta",
+        `${a.company || "?"} — ${a.role_title || "?"} (${a.status || "interested"})`,
+      ),
+    );
+  } else if (a.action === "update_application") {
+    card.appendChild(el("h4", null, "Update application"));
+    card.appendChild(
+      el(
+        "div",
+        "meta",
+        `${a.match_company || "?"} — ${a.match_role_title || "?"}` +
+          (a.new_status ? ` → ${a.new_status}` : ""),
+      ),
+    );
+  } else {
+    card.appendChild(el("h4", null, a.action || "Application action"));
+  }
+
+  const btn = el("button", null, "Apply");
+  btn.addEventListener("click", async () => {
+    btn.disabled = true;
+    btn.textContent = "Applying…";
+    const res = await applyApplicationAction(a);
+    if (res.ok) {
+      btn.textContent =
+        a.action === "add_application" ? "Added ✓" : "Updated ✓";
+      card.appendChild(
+        el(
+          "div",
+          "note",
+          a.action === "add_application"
+            ? "Saved to tracker. Linked for follow-up turns."
+            : "Updated.",
+        ),
+      );
+    } else {
+      btn.disabled = false;
+      btn.textContent = "Apply";
+      card.appendChild(el("div", "note", "Error: " + res.error));
+    }
+  });
+  card.appendChild(btn);
+  return card;
+}
+
+// The agent's mid-conversation CV proposal card. Its Generate button runs the
+// SAME refine handler the pipeline uses (steps 2c–2d), with the card's own
+// application_id + job_description.
+function cvProposalCard(proposal) {
+  const card = el("div", "card");
+  card.appendChild(el("h4", null, "Generate tailored CV"));
+  card.appendChild(el("div", "meta", "Role: " + (proposal.target_role || "?")));
+  const btn = el("button", null, "Generate");
+  const note = el("div", "note");
+  btn.addEventListener("click", async () => {
+    if (busy) return;
+    const appId = proposal.application_id || currentApplicationId;
+    if (!appId) {
+      note.textContent =
+        "No application linked yet — add it to the tracker first.";
+      return;
+    }
+    setBusy(true, "Tailoring your CV…");
+    const res = await runRefineAndRenderCV({
+      applicationId: appId,
+      jobDescription: proposal.job_description || "",
+      roleLabel: proposal.target_role || "Role",
+      companyLabel: proposal.company || "",
+    });
+    setBusy(false);
+    if (!res.ok) {
+      messages.push({
+        role: "assistant",
+        content: "CV generation error: " + res.error,
+      });
+      renderMessages();
+    }
+  });
+  card.appendChild(btn);
+  card.appendChild(note);
+  return card;
+}
+
+// The CV RESULT card (rendered first, before any fit discussion).
+function cvResultCard(cv) {
+  const card = el("div", "card cv");
+  card.appendChild(el("h4", null, "Tailored CV ready"));
+  const where = cv.company ? `${cv.role} · ${cv.company}` : cv.role;
+  card.appendChild(el("div", "meta", where));
+  if (cv.cv_url) {
+    const link = el("a", "cvlink", "Open CV");
+    link.href = cv.cv_url;
+    link.target = "_blank";
+    link.rel = "noopener";
+    card.appendChild(link);
+  }
+  if (cv.message) card.appendChild(el("div", "note", cv.message));
+  return card;
+}
+
+// ───────────────────────── shared refine handler (steps 2c–2d) ──────────────
+// Calls refine-cv (ops_variant v3, grounding default) and renders the CV result
+// card FIRST. Returns { ok, cv_url } | { error }. Caller owns busy/loading.
+async function runRefineAndRenderCV({
+  applicationId,
+  jobDescription,
+  roleLabel,
+  companyLabel,
+}) {
+  const { data, error } = await supabase.functions.invoke("refine-cv", {
+    body: {
+      application_id: applicationId,
+      job_description: jobDescription,
+      ops_variant: "v3",
+      grounding: "default",
+    },
+  });
+  if (error) return { error: await edgeErrorMessage(error) };
+  if (data?.error) return { error: data.error };
+  if (!data?.cv_url)
+    return { error: data?.message || "refine-cv returned no cv_url" };
+  messages.push({
+    type: "cv_result",
+    role: "system", // excluded from conversation_history (role !== "system")
+    cv: {
+      role: roleLabel,
+      company: companyLabel,
+      cv_url: data.cv_url,
+      message: data.message || null,
+    },
+  });
+  renderMessages();
+  return { ok: true, cv_url: data.cv_url };
+}
+
+// ───────────────────────── conversation history helper ──────────────────────
+function conversationHistory() {
+  return messages
+    .map((m) => ({ role: m.role, content: m.content }))
+    .filter((m) => m.role !== "system") // drops cv_result cards
+    .slice(-20);
+}
+
+// ───────────────────────── Agent: send (ai-chat) ────────────────────────────
+async function sendMessage() {
+  if (busy) return;
+  const input = $("input");
+  const text = input.value.trim();
+  if (!text) return;
+  if (!loggedIn) {
+    sessionLine.textContent =
+      "Not logged in: open www.getajob.careers, sign in, then reopen this";
+    return;
+  }
+
+  input.value = "";
+  messages.push({ role: "user", content: text });
+  setBusy(true, "Thinking…");
+
+  const body = {
+    message: text,
+    agent: AGENT,
+    conversation_history: conversationHistory(),
+    ...(currentApplicationId && { application_id: currentApplicationId }),
+  };
+
+  try {
+    const { data, error } = await supabase.functions.invoke("ai-chat", {
+      body,
+    });
+    if (error) throw error;
+    if (!data?.reply) throw new Error("The AI returned an empty response.");
+    messages.push({
+      role: "assistant",
+      content: data.reply,
+      suggestedApplicationActions:
+        data.suggested_application_actions?.length > 0
+          ? data.suggested_application_actions
+          : null,
+      suggestedCVGeneration: data.suggested_cv_generation || null,
+    });
+  } catch (err) {
+    console.error("ai-chat error:", err);
+    messages.push({
+      role: "assistant",
+      content: "Couldn't reach the AI: " + (await edgeErrorMessage(err)),
+    });
+  } finally {
+    setBusy(false);
+  }
+}
+
+// ───────────────────────── CV pipeline (step 2) ─────────────────────────────
+async function generateCvFromJD(jd) {
+  if (busy) return;
+  if (!loggedIn) {
+    sessionLine.textContent =
+      "Not logged in: open www.getajob.careers, sign in, then reopen this";
+    return;
+  }
+  if (!currentUserId) {
+    messages.push({ role: "assistant", content: "No user id on the session." });
+    renderMessages();
+    return;
+  }
+
+  messages.push({
+    role: "user",
+    content:
+      "Generate a tailored CV for this role and give me a quick read on my fit.",
+  });
+  setBusy(true, "Reading the role…");
+
+  try {
+    // 1. Reading the role — fast extract-jd-basics (company + role_title only),
+    //    so the REAL role_title is on the row before refine-cv (which derives
+    //    the CV target from app.role_title) runs.
+    const { data: basics, error: basicsErr } = await supabase.functions.invoke(
+      "extract-jd-basics",
+      { body: { job_description: jd } },
+    );
+    if (basicsErr) throw basicsErr;
+    const company = basics?.company || null;
+    const roleTitle = basics?.role_title || null;
+
+    // 2. Insert the application immediately (no scores yet).
+    setBusy(true, "Creating the application…");
+    const row = {
+      user_id: currentUserId,
+      company: company || "Unknown company",
+      role_title: roleTitle || "Role",
+      job_description: jd,
+      status: "interested",
+      source: "chat_agent",
+    };
+    const { data: inserted, error: insErr } = await supabase
+      .from("applications")
+      .insert(row)
+      .select("id")
+      .single();
+    if (insErr) throw insErr;
+    currentApplicationId = inserted.id;
+    const appId = currentApplicationId;
+
+    // 3. Fire refine-cv and analyze-job-match in PARALLEL — do NOT await
+    //    analyze-job-match before starting refine-cv.
+
+    // 3b. Background scoring + fit: when analyze-job-match returns, UPDATE only
+    //     the three score columns (never company/role_title, so the CV target
+    //     and tracker row stay consistent with what refine-cv used) and render
+    //     the fit block. Does NOT hold the composer lock. Self-contained
+    //     try/catch so it never rejects unhandled, before OR after the CV.
+    const scoringPromise = (async () => {
+      try {
+        const { data: ajm, error: ajmErr } = await supabase.functions.invoke(
+          "analyze-job-match",
+          { body: { job_description: jd } },
+        );
+        if (ajmErr) throw ajmErr;
+        // Column mapping mirrored from scoreApplication.js (LLM path, 226-248):
+        //   qualification_score = clamp01(match_score / 100)
+        //   goal_alignment_score = null if missing else clamp01(.../100)
+        //   required_seniority   = required_seniority || null
+        const qualification_score =
+          ajm?.match_score == null
+            ? null
+            : clamp01(Number(ajm.match_score) / 100);
+        const goal_alignment_score =
+          ajm?.goal_alignment_score == null
+            ? null
+            : clamp01(Number(ajm.goal_alignment_score) / 100);
+        const required_seniority = ajm?.required_seniority || null;
+        const { error: updErr } = await supabase
+          .from("applications")
+          .update({
+            qualification_score,
+            goal_alignment_score,
+            required_seniority,
+          })
+          .eq("id", appId);
+        if (updErr) throw updErr;
+
+        const matched = Array.isArray(ajm?.matched_requirements)
+          ? ajm.matched_requirements
+          : [];
+        const missing = Array.isArray(ajm?.missing_requirements)
+          ? ajm.missing_requirements
+          : [];
+        const strengths = matched
+          .slice(0, 3)
+          .map((mm) => "• " + (mm?.requirement || ""))
+          .filter((s) => s.trim() !== "•")
+          .join("\n");
+        const topGap = missing[0]?.requirement || null;
+        let fit = "Fit: " + (ajm?.verdict || "Analysis complete.");
+        if (strengths) fit += "\n\nTop strengths:\n" + strengths;
+        if (topGap) fit += "\n\nBiggest gap: " + topGap;
+        messages.push({ role: "assistant", content: fit });
+        renderMessages();
+      } catch (e) {
+        console.error("scoring/fit failed:", e);
+        messages.push({
+          role: "assistant",
+          content: "Fit read failed: " + (await edgeErrorMessage(e)),
+        });
+        renderMessages();
+      }
+    })();
+
+    // 3a. refine-cv — gates the composer. Renders the CV card first on resolve.
+    setBusy(true, "Tailoring your CV…");
+    const refineRes = await runRefineAndRenderCV({
+      applicationId: appId,
+      jobDescription: jd,
+      roleLabel: roleTitle || "Role",
+      companyLabel: company || "Unknown company",
+    });
+    if (!refineRes.ok) throw new Error(refineRes.error);
+    // Do not await scoringPromise — the fit block fills in whenever it returns.
+    void scoringPromise;
+  } catch (err) {
+    console.error("CV pipeline error:", err);
+    messages.push({
+      role: "assistant",
+      content: "CV generation failed: " + (await edgeErrorMessage(err)),
+    });
+  } finally {
+    setBusy(false);
+  }
+}
+
+// ───────────────────────── composer wiring ──────────────────────────────────
+$("send").addEventListener("click", sendMessage);
+$("generateCv").addEventListener("click", () => {
+  const jd = $("input").value.trim();
+  if (!jd) return;
+  $("input").value = "";
+  refreshComposer();
+  generateCvFromJD(jd);
+});
+$("input").addEventListener("input", refreshComposer);
+$("input").addEventListener("keydown", (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+});
+
+// ───────────────────────── add/update application (card handler) ─────────────
+async function applyApplicationAction(a) {
+  if (!currentUserId) return { error: "no user id" };
+  try {
+    if (a.action === "add_application") {
+      const status = validStatus(a.status) || "interested";
+      const row = {
+        user_id: currentUserId,
+        company: a.company,
+        role_title: a.role_title,
+        status,
+        source: "chat_agent",
+        ...(a.url && { url: a.url }),
+        ...(a.location && { location: a.location }),
+        ...(a.notes && { notes: a.notes }),
+        ...(a.job_description && {
+          job_description: stripHtml(a.job_description) || a.job_description,
+        }),
+        ...(status === "applied" && { applied_date: new Date().toISOString() }),
+      };
+      const { data: inserted, error } = await supabase
+        .from("applications")
+        .insert(row)
+        .select("id")
+        .single();
+      if (error) return { error: error.message };
+      if (inserted?.id) currentApplicationId = inserted.id;
+      return { ok: true };
+    }
+    if (a.action === "update_application") {
+      const patch = {};
+      const newStatus = validStatus(a.new_status);
+      if (newStatus) patch.status = newStatus;
+      if (a.new_notes && typeof a.new_notes === "string")
+        patch.notes = a.new_notes;
+      if (Object.keys(patch).length === 0)
+        return { error: "nothing to update" };
+      const { data: matches, error: lookupErr } = await supabase
+        .from("applications")
+        .select("id, applied_date")
+        .eq("user_id", currentUserId)
+        .ilike("company", a.match_company)
+        .ilike("role_title", a.match_role_title);
+      if (lookupErr) return { error: lookupErr.message };
+      if (!matches || matches.length === 0) return { error: "not found" };
+      if (matches.length > 1) return { error: "ambiguous match" };
+      if (newStatus === "applied" && !matches[0].applied_date)
+        patch.applied_date = new Date().toISOString();
+      const { error } = await supabase
+        .from("applications")
+        .update(patch)
+        .eq("id", matches[0].id);
+      if (error) return { error: error.message };
+      currentApplicationId = matches[0].id;
+      return { ok: true };
+    }
+    return { error: "unsupported action" };
+  } catch (err) {
+    return { error: err?.message || String(err) };
+  }
+}
+
+// ───────────────────────── Tracker ──────────────────────────────────────────
+async function refreshTracker() {
+  const list = $("trackerList");
+  if (!loggedIn) {
+    list.innerHTML = "";
+    list.appendChild(el("div", "empty", "Not logged in."));
+    return;
+  }
+  list.innerHTML = "";
+  list.appendChild(el("div", "empty", "Loading…"));
+  const { data, error } = await supabase
+    .from("applications")
+    .select("id, company, role_title, status, created_at, qualification_score")
+    .eq("user_id", currentUserId)
+    .order("created_at", { ascending: false });
+  list.innerHTML = "";
+  if (error) {
+    list.appendChild(el("div", "empty", "Error: " + error.message));
+    return;
+  }
+  if (!data || data.length === 0) {
+    const empty = el("div", "empty");
+    empty.appendChild(el("div", "empty-title", "No applications yet"));
+    empty.appendChild(
+      el("div", null, "Generate a CV for a role and it'll show up here."),
+    );
+    list.appendChild(empty);
+    return;
+  }
+  data.forEach((r) => {
+    const rowEl = el("div", "trk-row");
+    // Rokkitt role title, company subtext.
+    rowEl.appendChild(el("div", "trk-role", r.role_title || "Role"));
+    rowEl.appendChild(el("div", "trk-company", r.company || "(no company)"));
+
+    // Footer: status chip, optional match %, date.
+    const foot = el("div", "trk-foot");
+    foot.appendChild(el("span", "status-chip", r.status || "—"));
+    // Match % renders only when the row carries qualification_score (0-1).
+    if (typeof r.qualification_score === "number") {
+      foot.appendChild(
+        el(
+          "span",
+          "match-chip",
+          Math.round(r.qualification_score * 100) + "% match",
+        ),
+      );
+    }
+    const when = r.created_at
+      ? new Date(r.created_at).toLocaleDateString()
+      : "";
+    if (when) foot.appendChild(el("span", "trk-date", when));
+    rowEl.appendChild(foot);
+
+    list.appendChild(rowEl);
+  });
+}
+
+// ───────────────────────── boot ─────────────────────────────────────────────
+refreshComposer();
+initSession();

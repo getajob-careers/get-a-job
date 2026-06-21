@@ -1,0 +1,16 @@
+{
+  "manifest_version": 3,
+  "name": "GetAJob Edge Function Plumbing Test",
+  "version": "0.0.1",
+  "description": "Throwaway MV3 extension: reuse the user's getajob.careers Supabase session and call an authenticated edge function end to end.",
+  "permissions": ["storage", "scripting", "tabs"],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "GAJ Edge Test"
+  },
+  "host_permissions": [
+    "https://ilmqmodklutztuybsvwd.supabase.co/*",
+    "*://getajob.careers/*",
+    "*://www.getajob.careers/*"
+  ]
+}

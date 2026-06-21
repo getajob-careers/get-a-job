@@ -1,0 +1,4 @@
+# throwaway plumbing test — don't commit the bundle or the (public) client config
+vendor/
+build/
+config.js
