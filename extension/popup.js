@@ -294,6 +294,131 @@ function el(tag, cls, text) {
   return e;
 }
 
+// ───────────────────── CV generation progress (simulated, honest) ───────────
+// CV gen is a single LLM call with no streamed progress (~18-36s). Mirrors the
+// web app's CvGenerationProgress verbatim: ease toward ~90% over a 35s baseline
+// (decelerating), HOLD at 90 with the label rotating, SNAP to 100 when the real
+// response lands, "Still working" + shimmer past ~45s, clear on error. Never a
+// fabricated 100% before the response arrives.
+const CVP_BASELINE_MS = 35000;
+const CVP_LONGTAIL_MS = 45000;
+const CVP_HOLD_PCT = 90;
+const CVP_STAGES = [
+  { t: 0, label: "Scanning the job description" },
+  { t: 5000, label: "Finding your relevant experience" },
+  { t: 13000, label: "Selecting your strongest stories" },
+  { t: 22000, label: "Tailoring your CV to this role" },
+  { t: 32000, label: "Finalizing" },
+];
+const CVP_LONGTAIL_LABEL = "Still working, almost there";
+function cvpEasedPct(ms) {
+  const x = Math.min(Math.max(ms, 0) / CVP_BASELINE_MS, 1);
+  return CVP_HOLD_PCT * (1 - Math.pow(1 - x, 2.2));
+}
+function cvpStageLabel(ms) {
+  if (ms >= CVP_LONGTAIL_MS) return CVP_LONGTAIL_LABEL;
+  let label = CVP_STAGES[0].label;
+  for (const st of CVP_STAGES) if (ms >= st.t) label = st.label;
+  return label;
+}
+const cvProgress = {
+  active: false,
+  snapping: false,
+  startTs: 0,
+  pct: 0,
+  label: CVP_STAGES[0].label,
+  longtail: false,
+  timer: null,
+  node: null,
+  start() {
+    this.active = true;
+    this.snapping = false;
+    this.startTs = Date.now();
+    this.pct = 0;
+    this.longtail = false;
+    this.label = CVP_STAGES[0].label;
+    this._render();
+    this.timer = setInterval(() => this._frame(), 80);
+  },
+  _frame() {
+    if (!this.active || this.snapping) return;
+    const ms = Date.now() - this.startTs;
+    this.pct = cvpEasedPct(ms);
+    this.label = cvpStageLabel(ms);
+    this.longtail = ms >= CVP_LONGTAIL_MS;
+    this._render();
+  },
+  finish() {
+    if (!this.active) return;
+    this.snapping = true;
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+    const from = this.pct;
+    const t0 = Date.now();
+    const DUR = 450;
+    const snap = () => {
+      const k = Math.min((Date.now() - t0) / DUR, 1);
+      this.pct = from + (100 - from) * k;
+      this.label = "Done";
+      this.longtail = false;
+      this._render();
+      if (k < 1) requestAnimationFrame(snap);
+      else setTimeout(() => this._clear(), 350);
+    };
+    requestAnimationFrame(snap);
+  },
+  fail() {
+    this._clear();
+  },
+  _clear() {
+    this.active = false;
+    this.snapping = false;
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+    if (this.node && this.node.parentNode) this.node.parentNode.removeChild(this.node);
+    this.node = null;
+    renderMessages();
+  },
+  _ensureNode() {
+    if (this.node) return;
+    const wrap = document.createElement("div");
+    wrap.className = "cvp";
+    wrap.setAttribute("aria-live", "polite");
+    const top = document.createElement("div");
+    top.className = "cvp-top";
+    const label = document.createElement("span");
+    label.className = "cvp-label";
+    const pct = document.createElement("span");
+    pct.className = "cvp-pct";
+    top.appendChild(label);
+    top.appendChild(pct);
+    const track = document.createElement("div");
+    track.className = "cvp-track";
+    const bar = document.createElement("div");
+    bar.className = "cvp-bar";
+    track.appendChild(bar);
+    wrap.appendChild(top);
+    wrap.appendChild(track);
+    this.node = wrap;
+  },
+  _render() {
+    this._ensureNode();
+    const box = $("messages");
+    if (box && this.node.parentNode !== box) box.appendChild(this.node);
+    const p = Math.round(this.pct);
+    this.node.querySelector(".cvp-label").textContent = this.label;
+    this.node.querySelector(".cvp-pct").textContent = p + "%";
+    const bar = this.node.querySelector(".cvp-bar");
+    bar.style.width = Math.max(2, p) + "%";
+    bar.classList.toggle("cvp-shimmer", this.longtail && !this.snapping);
+    if (box) box.scrollTop = box.scrollHeight;
+  },
+};
+
 function renderMessages() {
   const box = $("messages");
   box.innerHTML = "";
@@ -329,7 +454,9 @@ function renderMessages() {
       box.appendChild(cvProposalCard(m.suggestedCVGeneration));
     }
   });
-  if (busy) box.appendChild(el("div", "msg typing", loadingText || "…"));
+  if (busy && !cvProgress.active)
+    box.appendChild(el("div", "msg typing", loadingText || "…"));
+  if (cvProgress.active && cvProgress.node) box.appendChild(cvProgress.node);
   box.scrollTop = box.scrollHeight;
 }
 
@@ -469,6 +596,7 @@ async function runRefineAndRenderCV({
   companyLabel,
   renderCard = true,
 }) {
+  cvProgress.start();
   const { data, error } = await supabase.functions.invoke("refine-cv", {
     body: {
       application_id: applicationId,
@@ -477,14 +605,22 @@ async function runRefineAndRenderCV({
       grounding: "default",
     },
   });
-  if (error)
+  if (error) {
+    cvProgress.fail();
     return {
       error: await edgeErrorMessage(error),
       authExpired: isAuthExpired(error),
     };
-  if (data?.error) return { error: data.error };
-  if (!data?.cv_url)
+  }
+  if (data?.error) {
+    cvProgress.fail();
+    return { error: data.error };
+  }
+  if (!data?.cv_url) {
+    cvProgress.fail();
     return { error: data?.message || "refine-cv returned no cv_url" };
+  }
+  cvProgress.finish();
   if (renderCard) {
     messages.push({
       type: "cv_result",

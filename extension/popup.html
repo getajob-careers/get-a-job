@@ -650,6 +650,63 @@
       .gate-btn:hover {
         background: var(--gaj-coral-dark);
       }
+      /* CV generation progress (simulated) — coral bar, cream track, Rokkitt label.
+         Mirrors the web app's CvGenerationProgress styling within the panel's tokens. */
+      .cvp {
+        margin: 8px 0;
+        padding: 10px 12px;
+        border: 1px solid var(--gaj-border);
+        border-radius: var(--gaj-radius);
+        background: var(--gaj-soft);
+      }
+      .cvp-top {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        margin-bottom: 7px;
+      }
+      .cvp-label {
+        font-family: var(--gaj-serif);
+        font-size: 13px;
+        color: var(--gaj-ink);
+      }
+      .cvp-pct {
+        font-size: 11px;
+        color: var(--gaj-muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .cvp-track {
+        height: 8px;
+        border-radius: 999px;
+        background: var(--gaj-page);
+        border: 1px solid var(--gaj-border-subtle);
+        overflow: hidden;
+      }
+      .cvp-bar {
+        height: 100%;
+        border-radius: 999px;
+        background: var(--gaj-coral);
+        width: 2%;
+        transition: width 0.15s ease-out;
+      }
+      .cvp-bar.cvp-shimmer {
+        background-image: linear-gradient(
+          90deg,
+          var(--gaj-coral) 0%,
+          var(--gaj-coral-tint) 45%,
+          var(--gaj-coral) 90%
+        );
+        background-size: 200% 100%;
+        animation: cvpShimmer 1.2s linear infinite;
+      }
+      @keyframes cvpShimmer {
+        0% {
+          background-position: -150% 0;
+        }
+        100% {
+          background-position: 250% 0;
+        }
+      }
     </style>
   </head>
   <body>
