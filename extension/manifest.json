@@ -3,10 +3,16 @@
   "name": "Get A Job",
   "version": "0.1.0",
   "description": "Generate tailored CVs and manage your job-application tracker, using your getajob.careers account.",
-  "permissions": ["storage", "scripting", "tabs"],
+  "minimum_chrome_version": "114",
+  "permissions": ["storage", "scripting", "tabs", "sidePanel"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "side_panel": {
+    "default_path": "popup.html"
+  },
   "action": {
-    "default_popup": "popup.html",
-    "default_title": "GetAJob",
+    "default_title": "Get A Job",
     "default_icon": {
       "16": "icons/icon-16.png",
       "32": "icons/icon-32.png",
