@@ -1,25 +1,232 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import policyMd from "../content/privacy-policy.md?raw";
 
-// Privacy Policy — real content for launch. Tone is legitimate-policy
-// (no "draft" banner). Mirrors Terms.jsx structurally so the pair feels
-// like one pass: cream background, Rokkitt heading, narrow reading
-// column, no app chrome.
+// Public Privacy Policy page, served at /privacy OUTSIDE the auth gate (see the
+// public-routes block in App.jsx) so a Chrome Web Store reviewer and logged-out
+// users can open it. The policy text is the single source of truth in
+// src/content/privacy-policy.md — imported verbatim with Vite's ?raw and
+// rendered here, so the finalized legal wording is never transcribed by hand.
+// Design mirrors Terms.jsx: cream background, Rokkitt headings, coral accents,
+// narrow reading column, no app chrome.
 
-const LAST_UPDATED = "2026-06-07";
+// ── Inline markdown: **bold**, *italic*, bare URLs, emails ───────────────────
+function renderInline(text, kp) {
+  const nodes = [];
+  let rest = String(text);
+  let k = 0;
+  const re =
+    /(\*\*[^*]+\*\*|\*[^*]+\*|https?:\/\/[^\s)]+|[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,})/;
+  while (rest.length) {
+    const m = rest.match(re);
+    if (!m) {
+      nodes.push(rest);
+      break;
+    }
+    if (m.index > 0) nodes.push(rest.slice(0, m.index));
+    const tok = m[0];
+    const key = `${kp}-${k++}`;
+    if (tok.startsWith("**")) {
+      nodes.push(
+        <strong key={key} className="font-semibold text-rd-text">
+          {tok.slice(2, -2)}
+        </strong>,
+      );
+    } else if (tok.startsWith("*")) {
+      nodes.push(<em key={key}>{tok.slice(1, -1)}</em>);
+    } else if (/^https?:/.test(tok)) {
+      nodes.push(
+        <a
+          key={key}
+          href={tok}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-rd-coral hover:text-rd-coral-dark font-medium break-words"
+        >
+          {tok}
+        </a>,
+      );
+    } else {
+      nodes.push(
+        <a
+          key={key}
+          href={`mailto:${tok}`}
+          className="text-rd-coral hover:text-rd-coral-dark font-medium"
+        >
+          {tok}
+        </a>,
+      );
+    }
+    rest = rest.slice(m.index + tok.length);
+  }
+  return nodes;
+}
 
-// Section wrapper — h2 + body styling kept in one place so the two
-// legal pages can't drift apart visually.
-function Section({ id, title, children }) {
+const isBlank = (l) => l.trim() === "";
+const isHr = (l) => l.trim() === "---";
+const isHeading = (l) => /^#{1,6}\s/.test(l);
+const isTableRow = (l) => l.trimStart().startsWith("|");
+const isListItem = (l) => /^\s*-\s+/.test(l);
+
+function parseBlocks(md) {
+  const lines = md.replace(/\r\n/g, "\n").split("\n");
+  const blocks = [];
+  let i = 0;
+  while (i < lines.length) {
+    const line = lines[i];
+    if (isBlank(line)) {
+      i++;
+      continue;
+    }
+    if (isHr(line)) {
+      blocks.push({ type: "hr" });
+      i++;
+      continue;
+    }
+    const h = line.match(/^(#{1,6})\s+(.*)$/);
+    if (h) {
+      blocks.push({ type: "h", level: h[1].length, text: h[2] });
+      i++;
+      continue;
+    }
+    if (isTableRow(line)) {
+      const rows = [];
+      while (i < lines.length && isTableRow(lines[i])) rows.push(lines[i++]);
+      blocks.push({ type: "table", rows });
+      continue;
+    }
+    if (isListItem(line)) {
+      const items = [];
+      while (i < lines.length && isListItem(lines[i]))
+        items.push(lines[i++].replace(/^\s*-\s+/, ""));
+      blocks.push({ type: "ul", items });
+      continue;
+    }
+    // paragraph — gather soft-wrapped lines until a block boundary
+    const para = [line];
+    i++;
+    while (
+      i < lines.length &&
+      !isBlank(lines[i]) &&
+      !isHr(lines[i]) &&
+      !isHeading(lines[i]) &&
+      !isTableRow(lines[i]) &&
+      !isListItem(lines[i])
+    ) {
+      para.push(lines[i++]);
+    }
+    blocks.push({ type: "p", lines: para });
+  }
+  return blocks;
+}
+
+const tableCells = (row) =>
+  row
+    .trim()
+    .replace(/^\|/, "")
+    .replace(/\|$/, "")
+    .split("|")
+    .map((c) => c.trim());
+
+function MarkdownDoc({ md }) {
+  const blocks = parseBlocks(md);
   return (
-    <section id={id} className="mt-10">
-      <h2 className="font-display font-bold text-[20px] sm:text-[22px] text-rd-text mb-3 scroll-mt-20">
-        {title}
-      </h2>
-      <div className="text-[14px] sm:text-[14.5px] text-rd-text-secondary leading-[1.65] space-y-3">
-        {children}
-      </div>
-    </section>
+    <>
+      {blocks.map((b, idx) => {
+        const key = `b${idx}`;
+        if (b.type === "hr")
+          return <hr key={key} className="border-rd-border my-8" />;
+        if (b.type === "h") {
+          if (b.level === 1)
+            return (
+              <h1
+                key={key}
+                className="font-display font-bold text-[32px] sm:text-[36px] leading-tight mt-6 mb-2"
+              >
+                {renderInline(b.text, key)}
+              </h1>
+            );
+          if (b.level === 2)
+            return (
+              <h2
+                key={key}
+                className="font-display font-bold text-[20px] sm:text-[22px] text-rd-text mt-10 mb-3 scroll-mt-20"
+              >
+                {renderInline(b.text, key)}
+              </h2>
+            );
+          return (
+            <h3
+              key={key}
+              className="font-display font-semibold text-[15.5px] sm:text-[16px] text-rd-text mt-6 mb-1.5"
+            >
+              {renderInline(b.text, key)}
+            </h3>
+          );
+        }
+        if (b.type === "ul")
+          return (
+            <ul
+              key={key}
+              className="list-disc pl-5 space-y-1.5 mt-3 text-[14px] sm:text-[14.5px] text-rd-text-secondary leading-[1.6]"
+            >
+              {b.items.map((it, j) => (
+                <li key={j}>{renderInline(it, `${key}-${j}`)}</li>
+              ))}
+            </ul>
+          );
+        if (b.type === "table") {
+          const header = tableCells(b.rows[0]);
+          const body = b.rows.slice(2).map(tableCells); // row[1] is the |---| separator
+          return (
+            <div key={key} className="overflow-x-auto mt-4">
+              <table className="w-full text-[12.5px] border-collapse">
+                <thead>
+                  <tr>
+                    {header.map((cell, j) => (
+                      <th
+                        key={j}
+                        className="text-left font-display font-semibold text-rd-text border-b border-rd-border px-2.5 py-2 align-top"
+                      >
+                        {renderInline(cell, `${key}-h${j}`)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {body.map((row, r) => (
+                    <tr key={r}>
+                      {row.map((cell, j) => (
+                        <td
+                          key={j}
+                          className="border-b border-rd-border-subtle px-2.5 py-2 align-top text-rd-text-secondary leading-[1.5]"
+                        >
+                          {renderInline(cell, `${key}-${r}-${j}`)}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          );
+        }
+        // paragraph — soft line breaks preserved
+        return (
+          <p
+            key={key}
+            className="text-[14px] sm:text-[14.5px] text-rd-text-secondary leading-[1.65] mt-3"
+          >
+            {b.lines.map((l, j) => (
+              <React.Fragment key={j}>
+                {j > 0 && <br />}
+                {renderInline(l, `${key}-${j}`)}
+              </React.Fragment>
+            ))}
+          </p>
+        );
+      })}
+    </>
   );
 }
 
@@ -27,7 +234,6 @@ export default function Privacy() {
   return (
     <div className="min-h-screen bg-rd-bg-page text-rd-text">
       <div className="max-w-3xl mx-auto px-6 py-12 sm:py-16">
-        {/* Header */}
         <Link
           to="/"
           className="text-rd-coral hover:text-rd-coral-dark text-sm font-medium inline-flex items-center gap-1"
@@ -35,267 +241,25 @@ export default function Privacy() {
           ← Back to Get A Job
         </Link>
 
-        <h1 className="font-display font-bold text-[32px] sm:text-[36px] mt-6 mb-2 leading-tight">
-          Privacy Policy
-        </h1>
-        <p className="text-[12.5px] text-rd-text-tertiary font-mono">
-          Last updated: {LAST_UPDATED}
-        </p>
-
-        <div className="mt-8 text-[14px] sm:text-[14.5px] text-rd-text-secondary leading-[1.65]">
-          <p>
-            This Privacy Policy describes how Get A Job (&ldquo;<strong>Get A Job</strong>,&rdquo; &ldquo;<strong>we</strong>,&rdquo; &ldquo;<strong>our</strong>,&rdquo; or &ldquo;<strong>us</strong>&rdquo;) collects, uses, and shares information about you when you use our website at <a href="https://getajob.careers" className="text-rd-coral hover:text-rd-coral-dark font-medium">getajob.careers</a> and the related products and services (collectively, the &ldquo;<strong>Service</strong>&rdquo;). It also explains the rights you have over your personal data.
-          </p>
-          <p className="mt-3">
-            We are based in Israel and operate this Service for users worldwide, including users in the European Economic Area (EEA) and the United Kingdom. By using the Service, you confirm you have read and understood this Privacy Policy.
-          </p>
-        </div>
-
-        <Section id="who-we-are" title="1. Who we are">
-          <p>
-            Get A Job is an AI-powered career operating system built primarily for early-career job seekers entering the Israeli tech market. The Service helps users prepare for, apply to, and follow through on job opportunities — including AI-generated career analysis, tailored CVs, LinkedIn content, interview preparation, and application tracking.
-          </p>
-          <p>
-            For questions about this Policy or to exercise the rights described below, contact us at{" "}
-            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">
-              elienglard34@gmail.com
-            </a>
-            .
-          </p>
-        </Section>
-
-        <Section id="information-we-collect" title="2. Information we collect">
-          <p>We collect the following categories of information when you create an account and use the Service:</p>
-
-          <p className="!mt-4"><strong className="font-display text-rd-text">Account information.</strong> Your email address and account credentials. Passwords are hashed and managed by our authentication provider (Supabase Auth) and are never visible to us in plain text.</p>
-
-          <p><strong className="font-display text-rd-text">Profile and career information.</strong> Information you enter or upload to your profile, including your name, target role and seniority, five-year career goal, education history, work experience, skills, projects, certifications, honors, employment status, preferences and constraints (e.g., work arrangement, location, salary expectations), referral source, and any free-text notes you provide.</p>
-
-          <p><strong className="font-display text-rd-text">Uploaded files.</strong> CV or resume files you upload to the Service are stored in a private file bucket and used to extract profile data and produce AI outputs on your behalf.</p>
-
-          <p><strong className="font-display text-rd-text">AI-generated content.</strong> Content generated by the Service from your inputs, including tailored CVs, LinkedIn posts, comments and outreach messages, career analysis and role recommendations, STAR-format stories, tasks, and application-tracking metadata. Once generated, this content is stored on your account so you can return to it.</p>
-
-          <p><strong className="font-display text-rd-text">Product-usage analytics and session replay.</strong> Information about how you interact with the Service — pages visited, features used, errors encountered, device and browser metadata, and session replays. To protect sensitive entry, form inputs (such as passwords, profile field edits, and pasted job descriptions) are masked by default in session replays. Other rendered text on the page — including content the Service displays back to you, such as your profile, an AI-generated CV draft, or a chat message — may appear in session replays so we can diagnose UI issues; we treat replay data as confidential and limit access to it. Named analytics events sent to our analytics provider record what feature was used and metadata about it, not the body of your CV, AI outputs, or messages.</p>
-
-          <p><strong className="font-display text-rd-text">In-app feedback.</strong> When you submit feedback through the in-product feedback widget, we store the category, message, and the route you were on when you submitted it.</p>
-
-          <p><strong className="font-display text-rd-text">Payment information.</strong> Get A Job is currently free to use as part of a limited pilot, and we do <em>not</em> collect or process payment information at this time. If we introduce paid plans in the future, payments will be processed by a third-party payments provider (currently planned to be Stripe), and we will not store full payment-card numbers on our systems.</p>
-        </Section>
-
-        <Section id="how-we-use" title="3. How we use your information">
-          <p>We use the information we collect to:</p>
-          <ul className="list-disc pl-5 space-y-1.5">
-            <li>Operate, maintain, and provide the Service to you;</li>
-            <li>Generate AI career materials (CV tailoring, LinkedIn content, interview prep, career analysis) at your request;</li>
-            <li>Improve the Service through aggregated and anonymized analytics, debugging, and quality measurement;</li>
-            <li>Send service-related communications (account confirmations, transactional emails, security notices);</li>
-            <li>Detect, prevent, and respond to abuse, fraud, and security incidents;</li>
-            <li>Comply with legal obligations and enforce our{" "}
-              <Link to="/terms" className="text-rd-coral hover:text-rd-coral-dark font-medium">Terms of Service</Link>.
-            </li>
-          </ul>
-        </Section>
-
-        <Section id="third-parties" title="4. Service providers and third-party processors">
-          <p>
-            We share information with a small set of vetted service providers (&ldquo;subprocessors&rdquo;) that help us operate the Service. Each is bound by contractual confidentiality and data-protection obligations. We do not sell your personal data to anyone.
-          </p>
-          <div className="!mt-4 overflow-x-auto">
-            <table className="w-full text-[12.5px] border-collapse">
-              <thead>
-                <tr className="text-left border-b border-rd-border">
-                  <th className="py-2 pr-3 font-display font-bold text-rd-text">Provider</th>
-                  <th className="py-2 pr-3 font-display font-bold text-rd-text">Purpose</th>
-                  <th className="py-2 font-display font-bold text-rd-text">Region</th>
-                </tr>
-              </thead>
-              <tbody className="text-rd-text-secondary">
-                <tr className="border-b border-rd-border-subtle">
-                  <td className="py-2 pr-3 font-medium text-rd-text">Supabase</td>
-                  <td className="py-2 pr-3">Database, authentication, file storage</td>
-                  <td className="py-2">Southeast Asia (Singapore)</td>
-                </tr>
-                <tr className="border-b border-rd-border-subtle">
-                  <td className="py-2 pr-3 font-medium text-rd-text">Vercel</td>
-                  <td className="py-2 pr-3">Web hosting and content delivery</td>
-                  <td className="py-2">Global</td>
-                </tr>
-                <tr className="border-b border-rd-border-subtle">
-                  <td className="py-2 pr-3 font-medium text-rd-text">OpenAI</td>
-                  <td className="py-2 pr-3">AI generation of CVs, LinkedIn content, career analysis</td>
-                  <td className="py-2">United States</td>
-                </tr>
-                <tr className="border-b border-rd-border-subtle">
-                  <td className="py-2 pr-3 font-medium text-rd-text">PostHog</td>
-                  <td className="py-2 pr-3">Product analytics and session replay</td>
-                  <td className="py-2">EU</td>
-                </tr>
-                <tr className="border-b border-rd-border-subtle">
-                  <td className="py-2 pr-3 font-medium text-rd-text">Langfuse</td>
-                  <td className="py-2 pr-3">LLM tracing and observability</td>
-                  <td className="py-2">EU</td>
-                </tr>
-                <tr className="border-b border-rd-border-subtle">
-                  <td className="py-2 pr-3 font-medium text-rd-text">Resend</td>
-                  <td className="py-2 pr-3">Transactional email delivery</td>
-                  <td className="py-2">Global</td>
-                </tr>
-                <tr>
-                  <td className="py-2 pr-3 font-medium text-rd-text">Cloudflare</td>
-                  <td className="py-2 pr-3">Network infrastructure and security</td>
-                  <td className="py-2">Global</td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-          <p className="!mt-4">
-            Each provider only receives the information necessary to perform its function. For example, OpenAI receives the profile, CV, and prompt content needed to generate the specific output you requested, and Resend receives your email address to send you transactional messages.
-          </p>
-          <p>
-            If we introduce paid plans in the future, we will add a payments processor (currently planned to be Stripe) as an additional subprocessor and update this Policy before any charge is taken.
-          </p>
-          <p>
-            We may also disclose information if required by law, to comply with valid legal process, or to protect the rights, safety, or property of Get A Job, our users, or the public.
-          </p>
-        </Section>
-
-        <Section id="ai-disclosure" title="5. AI processing disclosure">
-          <p>
-            The Service uses third-party AI models (currently provided by OpenAI) to generate outputs from the content you provide — for example, taking your profile, CV, and a target job description and returning a tailored CV draft. Your input content is transmitted to OpenAI for processing for the limited purpose of producing the output you requested. OpenAI&rsquo;s API processing terms state that content submitted via the API is not used to train OpenAI&rsquo;s models.
-          </p>
-          <p>
-            AI-generated outputs may be imperfect, inaccurate, or out of date. You should review and validate any AI-generated content (such as a tailored CV or an outreach message) before sending it to a third party or relying on it for an important decision.
-          </p>
-        </Section>
-
-        <Section id="international" title="6. International data transfers">
-          <p>
-            Get A Job is based in Israel, but the data the Service stores is processed across several regions by our subprocessors. Specifically:
-          </p>
-          <ul className="list-disc pl-5 space-y-1.5">
-            <li><strong className="font-display text-rd-text">Supabase</strong> (our primary datastore — database, authentication, and uploaded CV files) operates in <strong className="font-display text-rd-text">Southeast Asia (Singapore)</strong>.</li>
-            <li><strong className="font-display text-rd-text">OpenAI</strong> (AI generation) processes content in the <strong className="font-display text-rd-text">United States</strong>.</li>
-            <li><strong className="font-display text-rd-text">PostHog</strong> (product analytics and session replay) and <strong className="font-display text-rd-text">Langfuse</strong> (LLM tracing) operate in the <strong className="font-display text-rd-text">European Union</strong>.</li>
-            <li><strong className="font-display text-rd-text">Vercel</strong>, <strong className="font-display text-rd-text">Cloudflare</strong>, and <strong className="font-display text-rd-text">Resend</strong> operate globally with regional points of presence.</li>
-          </ul>
-          <p className="!mt-4">
-            As a result, your information may be transferred to, stored in, and processed in countries outside your country of residence — including Singapore, the United States, and the European Union.
-          </p>
-          <p>
-            Where the law requires it, we rely on appropriate transfer mechanisms — including the European Commission&rsquo;s Standard Contractual Clauses, the EU–US Data Privacy Framework, and equivalent safeguards under Israel&rsquo;s Privacy Protection Law — to legitimize cross-border transfers of personal data.
-          </p>
-        </Section>
-
-        <Section id="retention" title="7. Data retention and deletion">
-          <p>
-            We retain your information for as long as your account is active and for a limited period afterwards as needed to comply with legal obligations, resolve disputes, and enforce our agreements.
-          </p>
-          <p>
-            You can delete your account at any time from <strong className="font-display text-rd-text">Settings → Danger zone</strong> inside the app. Account deletion wipes your profile, application data, AI-generated content, and any CV files you uploaded. We retain a small deletion record consisting of the deletion timestamp, the prior internal user ID, and the email address used on the deleted account. We keep this record for audit, integrity, and fraud-prevention purposes — for example, so that a previously-deleted account cannot be silently re-signed-up to abuse a one-per-person invite, and so we can respond to legal or law-enforcement requests about the deleted account.
-          </p>
-          <p>
-            Subprocessors process data on our behalf and follow their own retention schedules consistent with their data-processing agreements. For example, email-delivery records held by Resend are retained per that provider&rsquo;s policy.
-          </p>
-        </Section>
-
-        <Section id="your-rights" title="8. Your rights">
-          <p>
-            Depending on where you live, you may have the following rights with respect to your personal data — including rights under the EU and UK General Data Protection Regulation (GDPR), and rights under Israel&rsquo;s Privacy Protection Law, 1981 and the Privacy Protection (Information Held in a Database) Regulations:
-          </p>
-          <ul className="list-disc pl-5 space-y-1.5">
-            <li><strong className="font-display text-rd-text">Access:</strong> request a copy of the personal data we hold about you.</li>
-            <li><strong className="font-display text-rd-text">Rectification:</strong> correct inaccurate or out-of-date information. Most profile fields are directly editable in the app.</li>
-            <li><strong className="font-display text-rd-text">Erasure (deletion):</strong> delete your account and the personal data associated with it. The self-service delete in Settings is the fastest path; you may also email us.</li>
-            <li><strong className="font-display text-rd-text">Portability:</strong> receive your data in a structured, commonly used, machine-readable format.</li>
-            <li><strong className="font-display text-rd-text">Objection and restriction:</strong> object to specific processing activities or ask us to restrict them.</li>
-            <li><strong className="font-display text-rd-text">Withdrawal of consent:</strong> withdraw any consent you have given, without affecting the lawfulness of prior processing.</li>
-            <li><strong className="font-display text-rd-text">Complaint:</strong> lodge a complaint with the Israeli Privacy Protection Authority or your local EU/UK supervisory authority.</li>
-          </ul>
-          <p className="!mt-4">
-            To exercise these rights, use the in-app deletion flow or email us at{" "}
-            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">
-              elienglard34@gmail.com
-            </a>
-            . We&rsquo;ll respond within the timeframes required by applicable law.
-          </p>
-        </Section>
-
-        <Section id="security" title="9. Security">
-          <p>
-            We use commercially reasonable technical and organizational measures to protect your information, including:
-          </p>
-          <ul className="list-disc pl-5 space-y-1.5">
-            <li>Encryption of data in transit using TLS;</li>
-            <li>Row-level access controls so users can only read and modify their own data;</li>
-            <li>Private file storage for uploaded CVs (no public URLs);</li>
-            <li>Password hashing handled by our authentication provider;</li>
-            <li>Audit logging of administrative access.</li>
-          </ul>
-          <p className="!mt-4">
-            No system is perfectly secure. You are responsible for keeping your account credentials confidential and for notifying us immediately if you suspect unauthorized access. Contact us at{" "}
-            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">
-              elienglard34@gmail.com
-            </a>
-            {" "}for security concerns.
-          </p>
-        </Section>
-
-        <Section id="cookies" title="10. Cookies and similar technologies">
-          <p>
-            We use cookies and similar browser storage to:
-          </p>
-          <ul className="list-disc pl-5 space-y-1.5">
-            <li><strong className="font-display text-rd-text">Essential authentication cookies</strong> — required to keep you signed in and to protect your session;</li>
-            <li><strong className="font-display text-rd-text">Analytics and session-replay cookies</strong> — used to understand how the Service is used so we can improve it. Form-input values (passwords, profile field edits, pasted job descriptions) are masked in session replays; other rendered text on the page may appear in replays as described in section 2.</li>
-          </ul>
-          <p className="!mt-4">
-            You can control non-essential cookies through your browser settings. Disabling essential cookies will prevent the Service from functioning correctly.
-          </p>
-        </Section>
-
-        <Section id="minimum-age" title="11. Minimum age">
-          <p>
-            The Service is intended for adults. You must be at least 18 years old (or the age of majority in your jurisdiction) to use it. We do not knowingly collect personal data from children. If you believe a child has provided us with personal data, contact{" "}
-            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">
-              elienglard34@gmail.com
-            </a>
-            {" "}and we will delete it.
-          </p>
-        </Section>
-
-        <Section id="changes" title="12. Changes to this Privacy Policy">
-          <p>
-            We may update this Privacy Policy from time to time to reflect changes in our practices, the Service, or applicable law. When we do, we will update the &ldquo;Last updated&rdquo; date at the top of this page. If the changes are material, we will provide reasonable notice (for example, by email or via an in-app notice) before they take effect. Your continued use of the Service after the effective date constitutes acceptance of the revised Policy.
-          </p>
-        </Section>
-
-        <Section id="governing-law" title="13. Governing law">
-          <p>
-            This Privacy Policy is governed by the laws of the State of Israel. Nothing in this Policy limits any non-waivable rights you may have under the law of your country of residence.
-          </p>
-        </Section>
-
-        <Section id="contact" title="14. Contact us">
-          <p>
-            Get A Job, Israel.
-          </p>
-          <p>
-            Email:{" "}
-            <a href="mailto:elienglard34@gmail.com" className="text-rd-coral hover:text-rd-coral-dark font-medium">
-              elienglard34@gmail.com
-            </a>
-          </p>
-        </Section>
+        <article className="mt-6">
+          <MarkdownDoc md={policyMd} />
+        </article>
 
         {/* Footer cross-links — keeps the Privacy/Terms pair discoverable
             without leaning on the app's authenticated chrome. */}
         <footer className="mt-16 pt-6 border-t border-rd-border-subtle flex flex-wrap items-center justify-between gap-3 text-[12.5px] text-rd-text-tertiary">
           <span>© 2026 Get A Job</span>
           <div className="flex items-center gap-4">
-            <Link to="/terms" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+            <Link
+              to="/terms"
+              className="text-rd-coral hover:text-rd-coral-dark font-medium"
+            >
               Terms of Service
             </Link>
-            <Link to="/" className="text-rd-coral hover:text-rd-coral-dark font-medium">
+            <Link
+              to="/"
+              className="text-rd-coral hover:text-rd-coral-dark font-medium"
+            >
               Home
             </Link>
           </div>
