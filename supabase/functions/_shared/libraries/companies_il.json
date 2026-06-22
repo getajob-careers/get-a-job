@@ -1422,12 +1422,12 @@
       "type": "israeli_founded",
       "industry": "Telecom",
       "domain": "bezeq.co.il",
-      "careers_url": "https://drushim.bezeq.co.il/",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "drushim.bezeq.co.il subdomain (DNS resolves but bot-blocked). Israel's incumbent telco — proprietary Hebrew careers portal, likely Niloog or in-house. No public API."
+      "careers_url": "https://www.bezeq.co.il/career_new/",
+      "ats": "bezeq_native",
+      "slug": "bezeq",
+      "api_url": "https://d-api.bezeq.co.il/api/Adam/GetActiveJobs",
+      "verified": true,
+      "notes": "Per-publisher JSON endpoint, NOT a SaaS ATS. Bezeq fronts its own AdamTotal backend through its own gateway at d-api.bezeq.co.il/api/Adam/GetActiveJobs (returns JSON, no auth, single page; ?page=N is ignored). The career.adamtotal.co.il adamtotal fetcher cannot consume this (different host, transport, no token); handled by fetchBezeq under ats=bezeq_native. Hebrew JD body lives in notes/notes_text; structured_country=IL set on every row. Verified live 2026-06-23: 30 active jobs."
     },
     {
       "name": "Bidalgo",

@@ -18,12 +18,15 @@ import type { CompanyEntry, RawJob } from "./normalize.js";
 
 const USER_AGENT = "GetAJob-RefreshJobs/1.0 (https://getajob.example)";
 const DEFAULT_TIMEOUT_MS = 25_000;
-const WORKDAY_MAX_PAGES = 25;       // 25 × 20 = 500 IL-matching jobs ceiling per tenant
-const SR_MAX_PAGES = 10;            // 10 × 100 = 1000 IL jobs ceiling per company
+const WORKDAY_MAX_PAGES = 25; // 25 × 20 = 500 IL-matching jobs ceiling per tenant
+const SR_MAX_PAGES = 10; // 10 × 100 = 1000 IL jobs ceiling per company
 
 // ───── HTTP helpers ──────────────────────────────────────────────────
 
-async function httpGetJson<T>(url: string, timeout = DEFAULT_TIMEOUT_MS): Promise<T> {
+async function httpGetJson<T>(
+  url: string,
+  timeout = DEFAULT_TIMEOUT_MS,
+): Promise<T> {
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), timeout);
   try {
@@ -38,7 +41,11 @@ async function httpGetJson<T>(url: string, timeout = DEFAULT_TIMEOUT_MS): Promis
   }
 }
 
-async function httpPostJson<T>(url: string, body: unknown, timeout = DEFAULT_TIMEOUT_MS): Promise<T> {
+async function httpPostJson<T>(
+  url: string,
+  body: unknown,
+  timeout = DEFAULT_TIMEOUT_MS,
+): Promise<T> {
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), timeout);
   try {
@@ -67,19 +74,19 @@ export async function fetchGreenhouse(c: CompanyEntry): Promise<RawJob[]> {
   const data = await httpGetJson<{ jobs?: any[] }>(url);
   const jobs = data.jobs ?? [];
   return jobs.map((j) => ({
-    external_id:      String(j.id),
-    title:            j.title ?? "",
+    external_id: String(j.id),
+    title: j.title ?? "",
     description_html: j.content ?? null,
-    location_raw:     (j.location?.name as string) ?? null,
+    location_raw: (j.location?.name as string) ?? null,
     // Greenhouse doesn't expose structured country; rely on string match.
     structured_country: null,
-    apply_url:        j.absolute_url ?? "",
-    date_posted:      j.updated_at ?? null,
-    salary_min:       null,
-    salary_max:       null,
-    salary_currency:  null,
-    is_remote:        /remote/i.test(j.location?.name ?? ""),
-    raw_payload:      j,
+    apply_url: j.absolute_url ?? "",
+    date_posted: j.updated_at ?? null,
+    salary_min: null,
+    salary_max: null,
+    salary_currency: null,
+    is_remote: /remote/i.test(j.location?.name ?? ""),
+    raw_payload: j,
   }));
 }
 
@@ -119,7 +126,8 @@ export async function fetchIai(_c: CompanyEntry): Promise<RawJob[]> {
   // the URL because the JSON path is unique to IAI's WordPress theme
   // and wouldn't generalize even if other companies licensed the same
   // theme (different cachebuster, different relative paths).
-  const url = "https://jobs.iai.co.il/wp-content/themes/tyco-wp/assets/json/jobs.json";
+  const url =
+    "https://jobs.iai.co.il/wp-content/themes/tyco-wp/assets/json/jobs.json";
   const data = await httpGetJson<any[]>(url);
   if (!Array.isArray(data)) {
     console.warn("[iai] unexpected response shape — expected array");
@@ -128,28 +136,27 @@ export async function fetchIai(_c: CompanyEntry): Promise<RawJob[]> {
   return data.map((j) => {
     const code = j.cd || j.id;
     return {
-      external_id:      String(j.id ?? code),
-      title:            (j.tl ?? "").toString(),
-      description_html: typeof j.dc === "string" && j.dc.trim().length > 0
-                          ? j.dc
-                          : null,
+      external_id: String(j.id ?? code),
+      title: (j.tl ?? "").toString(),
+      description_html:
+        typeof j.dc === "string" && j.dc.trim().length > 0 ? j.dc : null,
       // Location string from the Hebrew city field. The classifier's
       // Hebrew-city map handles the major IL cities (Tel Aviv, Herzliya,
       // Ramat Gan, Be'er Yaakov, etc.); rare cities fall through to the
       // /israel/i regex catch-all.
-      location_raw:     (j.ct ?? "").toString() || null,
+      location_raw: (j.ct ?? "").toString() || null,
       // IAI is exclusively Israel — every job here is IL by construction.
       // Pre-tag so the classifier short-circuits.
       structured_country: "IL",
-      apply_url:        `https://jobs.iai.co.il/?p=jobs&jobCode=${encodeURIComponent(code)}`,
+      apply_url: `https://jobs.iai.co.il/?p=jobs&jobCode=${encodeURIComponent(code)}`,
       // No posted date in the JSON; the v4 extractor's "stale" heuristic
       // falls back to first-seen-at when date_posted is null.
-      date_posted:      null,
-      salary_min:       null,
-      salary_max:       null,
-      salary_currency:  null,
-      is_remote:        false,  // IAI is defense/aerospace; remote is rare and not exposed in the feed
-      raw_payload:      j,
+      date_posted: null,
+      salary_min: null,
+      salary_max: null,
+      salary_currency: null,
+      is_remote: false, // IAI is defense/aerospace; remote is rare and not exposed in the feed
+      raw_payload: j,
     };
   });
 }
@@ -168,14 +175,17 @@ export async function fetchIai(_c: CompanyEntry): Promise<RawJob[]> {
 // extraction_confidence < 0.4 and the deterministic scorer downweights
 // these rows automatically.
 
-const JOOBLE_KEYWORDS = "engineer OR developer OR manager OR analyst OR designer OR product OR data OR sales OR marketing OR operations";
-const JOOBLE_MAX_PAGES = 20;        // 20 × 50 = 1000 jobs max per refresh
+const JOOBLE_KEYWORDS =
+  "engineer OR developer OR manager OR analyst OR designer OR product OR data OR sales OR marketing OR operations";
+const JOOBLE_MAX_PAGES = 20; // 20 × 50 = 1000 jobs max per refresh
 const JOOBLE_RESULTS_PER_PAGE = 50;
 
 export async function fetchJooble(_c: CompanyEntry): Promise<RawJob[]> {
   const apiKey = (globalThis as any).process?.env?.JOOBLE_API_KEY;
   if (!apiKey) {
-    console.warn("[jooble] JOOBLE_API_KEY not set — skipping (no jobs returned)");
+    console.warn(
+      "[jooble] JOOBLE_API_KEY not set — skipping (no jobs returned)",
+    );
     return [];
   }
   const endpoint = `https://jooble.org/api/${apiKey}`;
@@ -214,20 +224,21 @@ export async function fetchJooble(_c: CompanyEntry): Promise<RawJob[]> {
       if (!id || seenIds.has(id)) continue;
       seenIds.add(id);
       allJobs.push({
-        external_id:      `jooble:${id}`,
-        title:            j.title ?? "",
-        description_html: typeof j.snippet === "string" && j.snippet.trim().length > 0
-                            ? j.snippet
-                            : null,
-        location_raw:     j.location ?? null,
+        external_id: `jooble:${id}`,
+        title: j.title ?? "",
+        description_html:
+          typeof j.snippet === "string" && j.snippet.trim().length > 0
+            ? j.snippet
+            : null,
+        location_raw: j.location ?? null,
         structured_country: "IL",
-        apply_url:        j.link ?? "",
-        date_posted:      j.updated ?? null,
-        salary_min:       null,
-        salary_max:       null,
-        salary_currency:  null,
-        is_remote:        /remote/i.test(j.location ?? ""),
-        raw_payload:      j,
+        apply_url: j.link ?? "",
+        date_posted: j.updated ?? null,
+        salary_min: null,
+        salary_max: null,
+        salary_currency: null,
+        is_remote: /remote/i.test(j.location ?? ""),
+        raw_payload: j,
       });
     }
     if (pageJobs.length < JOOBLE_RESULTS_PER_PAGE) break;
@@ -273,27 +284,30 @@ export async function fetchWorkable(c: CompanyEntry): Promise<RawJob[]> {
     // expensive city-map lookup for IL postings.
     const country = (j.country || "").trim();
     const structured_country = country
-      ? (/^(israel|il)$/i.test(country) ? "IL" : country)
+      ? /^(israel|il)$/i.test(country)
+        ? "IL"
+        : country
       : null;
     return {
-      external_id:      String(j.shortcode ?? j.code ?? ""),
-      title:            j.title ?? "",
-      description_html: typeof j.description === "string" && j.description.trim().length > 0
-                          ? j.description
-                          : null,
-      location_raw:     locStr,
+      external_id: String(j.shortcode ?? j.code ?? ""),
+      title: j.title ?? "",
+      description_html:
+        typeof j.description === "string" && j.description.trim().length > 0
+          ? j.description
+          : null,
+      location_raw: locStr,
       structured_country,
-      apply_url:        j.application_url ?? j.url ?? j.shortlink ?? "",
+      apply_url: j.application_url ?? j.url ?? j.shortlink ?? "",
       // published_on is the more meaningful "live for candidates" date;
       // created_at is when the draft was first authored.
-      date_posted:      j.published_on ?? j.created_at ?? null,
+      date_posted: j.published_on ?? j.created_at ?? null,
       // The widget response doesn't expose salary fields. Leaving null —
       // the v4 extractor will pull salary from prose when present.
-      salary_min:       null,
-      salary_max:       null,
-      salary_currency:  null,
-      is_remote:        j.telecommuting === true || /remote/i.test(locStr ?? ""),
-      raw_payload:      j,
+      salary_min: null,
+      salary_max: null,
+      salary_currency: null,
+      is_remote: j.telecommuting === true || /remote/i.test(locStr ?? ""),
+      raw_payload: j,
     };
   });
 }
@@ -308,22 +322,22 @@ export async function fetchLever(c: CompanyEntry): Promise<RawJob[]> {
     const cats = j.categories ?? {};
     const location = cats.location ?? null;
     return {
-      external_id:      String(j.id),
-      title:            j.text ?? "",
+      external_id: String(j.id),
+      title: j.text ?? "",
       // `||` not `??` — Lever returns `""` (not null) for empty
       // descriptions, and the nullish-coalescing form preserved the
       // empty string, causing 9.1% of Lever rows to land with no
       // description. `||` treats `""` as missing and falls through.
       description_html: j.descriptionPlain || j.description || null,
-      location_raw:     location,
+      location_raw: location,
       structured_country: null,
-      apply_url:        j.hostedUrl ?? j.applyUrl ?? "",
-      date_posted:      j.createdAt ? new Date(j.createdAt).toISOString() : null,
-      salary_min:       j.salaryRange?.min ?? null,
-      salary_max:       j.salaryRange?.max ?? null,
-      salary_currency:  j.salaryRange?.currency ?? null,
-      is_remote:        cats.commitment === "Remote" || /remote/i.test(location ?? ""),
-      raw_payload:      j,
+      apply_url: j.hostedUrl ?? j.applyUrl ?? "",
+      date_posted: j.createdAt ? new Date(j.createdAt).toISOString() : null,
+      salary_min: j.salaryRange?.min ?? null,
+      salary_max: j.salaryRange?.max ?? null,
+      salary_currency: j.salaryRange?.currency ?? null,
+      is_remote: cats.commitment === "Remote" || /remote/i.test(location ?? ""),
+      raw_payload: j,
     };
   });
 }
@@ -340,22 +354,27 @@ export async function fetchAshby(c: CompanyEntry): Promise<RawJob[]> {
     // concatenate so the IL classifier sees all of them.
     const primary = j.location ?? "";
     const secondary = Array.isArray(j.secondaryLocations)
-      ? j.secondaryLocations.map((s: any) => s?.location).filter(Boolean).join(" | ")
+      ? j.secondaryLocations
+          .map((s: any) => s?.location)
+          .filter(Boolean)
+          .join(" | ")
       : "";
-    const locationRaw = [primary, secondary].filter(Boolean).join(" | ") || null;
+    const locationRaw =
+      [primary, secondary].filter(Boolean).join(" | ") || null;
     return {
-      external_id:      String(j.id),
-      title:            j.title ?? "",
+      external_id: String(j.id),
+      title: j.title ?? "",
       description_html: j.descriptionHtml ?? j.descriptionPlain ?? null,
-      location_raw:     locationRaw,
+      location_raw: locationRaw,
       structured_country: null,
-      apply_url:        j.jobUrl ?? j.applyUrl ?? "",
-      date_posted:      j.publishedAt ?? null,
-      salary_min:       j.compensation?.compensationTierSummary?.minValue ?? null,
-      salary_max:       j.compensation?.compensationTierSummary?.maxValue ?? null,
-      salary_currency:  j.compensation?.compensationTierSummary?.currencyCode ?? null,
-      is_remote:        Boolean(j.isRemote) || /remote/i.test(locationRaw ?? ""),
-      raw_payload:      j,
+      apply_url: j.jobUrl ?? j.applyUrl ?? "",
+      date_posted: j.publishedAt ?? null,
+      salary_min: j.compensation?.compensationTierSummary?.minValue ?? null,
+      salary_max: j.compensation?.compensationTierSummary?.maxValue ?? null,
+      salary_currency:
+        j.compensation?.compensationTierSummary?.currencyCode ?? null,
+      is_remote: Boolean(j.isRemote) || /remote/i.test(locationRaw ?? ""),
+      raw_payload: j,
     };
   });
 }
@@ -471,9 +490,12 @@ export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
       pagesFetched++;
       if (postings.length === 0) break;
       for (const p of postings) {
-        const externalPath = String(p.externalPath ?? p.bulletFields?.[0] ?? "");
-        const dedupKey = externalPath
-          || `${String(p.title ?? "")}|${String(p.locationsText ?? "")}`;
+        const externalPath = String(
+          p.externalPath ?? p.bulletFields?.[0] ?? "",
+        );
+        const dedupKey =
+          externalPath ||
+          `${String(p.title ?? "")}|${String(p.locationsText ?? "")}`;
         if (seen.has(dedupKey)) continue;
         seen.add(dedupKey);
 
@@ -481,20 +503,20 @@ export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
           ? `https://${host}/${site}${externalPath.startsWith("/") ? externalPath : `/${externalPath}`}`
           : `https://${host}/${site}`;
         collected.push({
-          external_id:      dedupKey,
-          title:            p.title ?? "",
+          external_id: dedupKey,
+          title: p.title ?? "",
           // Workday list endpoint doesn't include descriptions. Fetching
           // per job would 20x the request count — skipped in v1.
           description_html: null,
-          location_raw:     p.locationsText ?? null,
+          location_raw: p.locationsText ?? null,
           structured_country: null,
-          apply_url:        applyUrl,
-          date_posted:      parseWorkdayDate(p.postedOn),
-          salary_min:       null,
-          salary_max:       null,
-          salary_currency:  null,
-          is_remote:        /remote/i.test(p.locationsText ?? ""),
-          raw_payload:      p,
+          apply_url: applyUrl,
+          date_posted: parseWorkdayDate(p.postedOn),
+          salary_min: null,
+          salary_max: null,
+          salary_currency: null,
+          is_remote: /remote/i.test(p.locationsText ?? ""),
+          raw_payload: p,
         });
       }
       if (postings.length < limit) break;
@@ -557,7 +579,9 @@ export async function fetchWorkdayDetail(
   const host = parts[0];
   const site = parts.slice(1).join("/");
   const tenant = host.split(".")[0];
-  const pathSegment = externalPath.startsWith("/") ? externalPath : `/${externalPath}`;
+  const pathSegment = externalPath.startsWith("/")
+    ? externalPath
+    : `/${externalPath}`;
   const url = `https://${host}/wday/cxs/${tenant}/${site}${pathSegment}`;
   try {
     const data = await httpGetJson<any>(url, DETAIL_TIMEOUT_MS);
@@ -612,13 +636,16 @@ async function pMap<T>(
   fn: (item: T, idx: number) => Promise<void>,
 ): Promise<void> {
   let cursor = 0;
-  const workers = Array.from({ length: Math.min(concurrency, items.length) }, async () => {
-    while (true) {
-      const idx = cursor++;
-      if (idx >= items.length) return;
-      await fn(items[idx], idx);
-    }
-  });
+  const workers = Array.from(
+    { length: Math.min(concurrency, items.length) },
+    async () => {
+      while (true) {
+        const idx = cursor++;
+        if (idx >= items.length) return;
+        await fn(items[idx], idx);
+      }
+    },
+  );
   await Promise.all(workers);
 }
 
@@ -696,8 +723,8 @@ export async function fetchSmartRecruiters(c: CompanyEntry): Promise<RawJob[]> {
       const loc = p.location ?? {};
       const locParts = [loc.city, loc.region, loc.country].filter(Boolean);
       collected.push({
-        external_id:      String(p.id),
-        title:            p.name ?? "",
+        external_id: String(p.id),
+        title: p.name ?? "",
         // SR list endpoint sometimes includes jobAd.sections.jobDescription.
         // Use `||` (not `??`) so an empty-string description flows to
         // null — that lets the enrichDescriptions detail-refetch
@@ -705,16 +732,16 @@ export async function fetchSmartRecruiters(c: CompanyEntry): Promise<RawJob[]> {
         // fetchSmartRecruitersDetail. Pre-fix: empty strings stuck
         // around and 66.7% of SR rows landed with no description.
         description_html: p?.jobAd?.sections?.jobDescription?.text || null,
-        location_raw:     locParts.join(", ") || null,
+        location_raw: locParts.join(", ") || null,
         // SR DOES expose the country structurally — pass it through.
         structured_country: loc.country ?? null,
-        apply_url:        p.applyUrl ?? p.ref ?? "",
-        date_posted:      p.releasedDate ?? null,
-        salary_min:       p.typeOfEmployment?.salary?.from ?? null,
-        salary_max:       p.typeOfEmployment?.salary?.to ?? null,
-        salary_currency:  p.typeOfEmployment?.salary?.currency ?? null,
-        is_remote:        loc.remote === true || /remote/i.test(locParts.join(" ")),
-        raw_payload:      p,
+        apply_url: p.applyUrl ?? p.ref ?? "",
+        date_posted: p.releasedDate ?? null,
+        salary_min: p.typeOfEmployment?.salary?.from ?? null,
+        salary_max: p.typeOfEmployment?.salary?.to ?? null,
+        salary_currency: p.typeOfEmployment?.salary?.currency ?? null,
+        is_remote: loc.remote === true || /remote/i.test(locParts.join(" ")),
+        raw_payload: p,
       });
     }
     if (content.length < limit) break;
@@ -753,9 +780,10 @@ export async function fetchComeet(c: CompanyEntry): Promise<RawJob[]> {
   return data.map((p) => {
     const loc = p.location || {};
     const country = (loc.country || "").toUpperCase();
-    const locName = loc.name
-      || [loc.city, loc.state, loc.country].filter(Boolean).join(", ")
-      || null;
+    const locName =
+      loc.name ||
+      [loc.city, loc.state, loc.country].filter(Boolean).join(", ") ||
+      null;
     // Concatenate all `details` sections (e.g. "Description", "About this
     // role", "Requirements") into one HTML blob with H3 headings between.
     const descParts = Array.isArray(p.details)
@@ -765,22 +793,23 @@ export async function fetchComeet(c: CompanyEntry): Promise<RawJob[]> {
           .join("\n")
       : "";
     return {
-      external_id:        String(p.uid || ""),
-      title:              p.name || "",
-      description_html:   descParts || null,
-      location_raw:       locName,
+      external_id: String(p.uid || ""),
+      title: p.name || "",
+      description_html: descParts || null,
+      location_raw: locName,
       structured_country: country || null,
-      apply_url:          p.url_active_page
-                          || p.url_comeet_hosted_page
-                          || p.url_recruit_hosted_page
-                          || c.careers_url
-                          || "",
-      date_posted:        p.time_updated || null,
-      salary_min:         null,
-      salary_max:         null,
-      salary_currency:    null,
-      is_remote:          Boolean(loc.is_remote),
-      raw_payload:        p,
+      apply_url:
+        p.url_active_page ||
+        p.url_comeet_hosted_page ||
+        p.url_recruit_hosted_page ||
+        c.careers_url ||
+        "",
+      date_posted: p.time_updated || null,
+      salary_min: null,
+      salary_max: null,
+      salary_currency: null,
+      is_remote: Boolean(loc.is_remote),
+      raw_payload: p,
     };
   });
 }
@@ -826,17 +855,22 @@ export function parseSuccessFactorsRss(xml: string): Array<{
     // RSS standard fallback when an SF tenant has the namespace stripped.
     const externalId = String(it["g:id"] ?? it.guid ?? "");
     return {
-      external_id:      externalId,
-      title:            typeof it.title === "string" ? it.title : "",
-      description_html: typeof it.description === "string" ? it.description : null,
-      location_raw:     typeof it["g:location"] === "string" ? it["g:location"] : null,
-      apply_url:        typeof it.link === "string" ? it.link : "",
+      external_id: externalId,
+      title: typeof it.title === "string" ? it.title : "",
+      description_html:
+        typeof it.description === "string" ? it.description : null,
+      location_raw:
+        typeof it["g:location"] === "string" ? it["g:location"] : null,
+      apply_url: typeof it.link === "string" ? it.link : "",
       // RSS `pubDate` is the standard; SF doesn't always include it, but
       // `g:expiration_date` is consistently present so we don't lose freshness.
-      date_posted:      (typeof it.pubDate === "string" && it.pubDate)
-                          || (typeof it["g:expiration_date"] === "string" && it["g:expiration_date"])
-                          || null,
-      job_function:     typeof it["g:job_function"] === "string" ? it["g:job_function"] : null,
+      date_posted:
+        (typeof it.pubDate === "string" && it.pubDate) ||
+        (typeof it["g:expiration_date"] === "string" &&
+          it["g:expiration_date"]) ||
+        null,
+      job_function:
+        typeof it["g:job_function"] === "string" ? it["g:job_function"] : null,
     };
   });
 }
@@ -848,7 +882,10 @@ export async function fetchSuccessFactors(c: CompanyEntry): Promise<RawJob[]> {
   let xmlText: string;
   try {
     const res = await fetch(c.api_url, {
-      headers: { "User-Agent": USER_AGENT, Accept: "application/xml, text/xml" },
+      headers: {
+        "User-Agent": USER_AGENT,
+        Accept: "application/xml, text/xml",
+      },
       signal: ac.signal,
     });
     if (!res.ok) throw new Error(`HTTP ${res.status} on ${c.api_url}`);
@@ -865,18 +902,18 @@ export async function fetchSuccessFactors(c: CompanyEntry): Promise<RawJob[]> {
 
   const items = parseSuccessFactorsRss(xmlText);
   return items.map((it) => ({
-    external_id:        it.external_id,
-    title:              it.title,
-    description_html:   it.description_html,
-    location_raw:       it.location_raw,
+    external_id: it.external_id,
+    title: it.title,
+    description_html: it.description_html,
+    location_raw: it.location_raw,
     structured_country: null, // location_raw carries "Israel" or ", IL"
-    apply_url:          it.apply_url,
-    date_posted:        it.date_posted,
-    salary_min:         null,
-    salary_max:         null,
-    salary_currency:    null,
-    is_remote:          /remote/i.test(it.location_raw ?? ""),
-    raw_payload:        it,
+    apply_url: it.apply_url,
+    date_posted: it.date_posted,
+    salary_min: null,
+    salary_max: null,
+    salary_currency: null,
+    is_remote: /remote/i.test(it.location_raw ?? ""),
+    raw_payload: it,
   }));
 }
 
@@ -903,10 +940,13 @@ export async function fetchSuccessFactors(c: CompanyEntry): Promise<RawJob[]> {
 // structured_country='IL' so the downstream IL classifier short-
 // circuits without scanning the Hebrew location string for English
 // city tokens.
-const ADAMTOTAL_MAX_PAGES = 20;       // 20 × 25 = 500 jobs/tenant ceiling
-const ADAMTOTAL_PAGE_SIZE = 25;       // server constant
+const ADAMTOTAL_MAX_PAGES = 20; // 20 × 25 = 500 jobs/tenant ceiling
+const ADAMTOTAL_PAGE_SIZE = 25; // server constant
 
-async function httpGetText(url: string, timeout = DEFAULT_TIMEOUT_MS): Promise<string> {
+async function httpGetText(
+  url: string,
+  timeout = DEFAULT_TIMEOUT_MS,
+): Promise<string> {
   const ac = new AbortController();
   const timer = setTimeout(() => ac.abort(), timeout);
   try {
@@ -914,8 +954,10 @@ async function httpGetText(url: string, timeout = DEFAULT_TIMEOUT_MS): Promise<s
       headers: {
         // Real browser UA — default fetch UA would trip Cloudflare bot
         // detection on the AdamTotal tenants.
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
-        Accept: "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
+        Accept:
+          "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Language": "en-US,en;q=0.9,he;q=0.8",
       },
       signal: ac.signal,
@@ -950,7 +992,8 @@ function parseAdamTotalCards(html: string, origin: string): AdamTotalCard[] {
   const cards: AdamTotalCard[] = [];
   // Match each <article class="...job-card..." data-job-id="N" data-job-title="..."> through its </article>.
   // The lookahead on next-article-or-end avoids over-matching nested </article> in injected content.
-  const articleRe = /<article\b[^>]*\bjob-card\b[^>]*\bdata-job-id="(\d+)"[^>]*\bdata-job-title="([^"]*)"[^>]*>([\s\S]*?)<\/article>/g;
+  const articleRe =
+    /<article\b[^>]*\bjob-card\b[^>]*\bdata-job-id="(\d+)"[^>]*\bdata-job-title="([^"]*)"[^>]*>([\s\S]*?)<\/article>/g;
   let m: RegExpExecArray | null;
   while ((m = articleRe.exec(html)) !== null) {
     const id = m[1];
@@ -958,7 +1001,9 @@ function parseAdamTotalCards(html: string, origin: string): AdamTotalCard[] {
     const body = m[3];
     // Dept = text after fa-building icon, until next < or |
     const deptMatch = body.match(/fa-building[^<]*<\/i>\s*([^<|]+)/);
-    const department = deptMatch ? decodeHtmlEntities(deptMatch[1]).trim() : null;
+    const department = deptMatch
+      ? decodeHtmlEntities(deptMatch[1]).trim()
+      : null;
     // Location = text after fa-map-marker-alt icon
     const locMatch = body.match(/fa-map-marker-alt[^<]*<\/i>\s*([^<|]+)/);
     const location = locMatch ? decodeHtmlEntities(locMatch[1]).trim() : null;
@@ -968,9 +1013,18 @@ function parseAdamTotalCards(html: string, origin: string): AdamTotalCard[] {
     const applyPath = decodeHtmlEntities(applyPathRaw);
     const apply_url = applyPath ? `${origin}${applyPath}` : "";
     // Description = inner of <div class="description-text">...</div>
-    const descMatch = body.match(/<div[^>]*\bdescription-text\b[^>]*>([\s\S]*?)<\/div>\s*(?:<\/div>|<button|<\/article>)/);
+    const descMatch = body.match(
+      /<div[^>]*\bdescription-text\b[^>]*>([\s\S]*?)<\/div>\s*(?:<\/div>|<button|<\/article>)/,
+    );
     const description_html = descMatch ? descMatch[1].trim() : null;
-    cards.push({ id, title, department, location, apply_url, description_html });
+    cards.push({
+      id,
+      title,
+      department,
+      location,
+      apply_url,
+      description_html,
+    });
   }
   return cards;
 }
@@ -1005,7 +1059,8 @@ export async function fetchAdamTotal(c: CompanyEntry): Promise<RawJob[]> {
     if (fresh.length === 0) break;
     for (const card of fresh) seenIds.add(card.id);
     for (const card of fresh) {
-      const location_raw = [card.location, card.department].filter(Boolean).join(" | ") || null;
+      const location_raw =
+        [card.location, card.department].filter(Boolean).join(" | ") || null;
       collected.push({
         external_id: card.id,
         title: card.title,
@@ -1022,13 +1077,157 @@ export async function fetchAdamTotal(c: CompanyEntry): Promise<RawJob[]> {
         salary_max: null,
         salary_currency: null,
         is_remote: false,
-        raw_payload: { source: "adamtotal", department: card.department, location: card.location },
+        raw_payload: {
+          source: "adamtotal",
+          department: card.department,
+          location: card.location,
+        },
       });
     }
     // Last page heuristic: server returns < 25 cards on the final page.
     if (cards.length < ADAMTOTAL_PAGE_SIZE) break;
   }
   return collected;
+}
+
+// ───── Bezeq (per-publisher JSON endpoint) ───────────────────────────
+//
+// Bezeq-specific endpoint. The 'bezeq_native' ats slug is intentional to
+// distinguish per-publisher JSON endpoints from multi-tenant ATSs. If more
+// publishers expose similar self-built JSON APIs, they should each get their
+// own fetcher and ats slug, and do NOT shoehorn into a single generic fetcher
+// because each publisher's schema is different.
+//
+// Mechanics: Bezeq fronts its own AdamTotal backend through its OWN API
+// gateway at d-api.bezeq.co.il/api/Adam/GetActiveJobs, returning JSON. This is
+// NOT the career.adamtotal.co.il server-rendered HTML the `adamtotal` fetcher
+// parses, so that fetcher cannot consume it (different host, different
+// transport, no token). One GET returns the full active set; ?page=N is
+// ignored (verified: page=2 returns the byte-identical set), so there is no
+// pagination loop and no auth. We send a real browser UA via httpGetText, same
+// as the AdamTotal tenants, because IL enterprise gateways can bot-filter a
+// non-browser UA.
+//
+// Field reality (do not trust a first guess at the schema): the job TITLE is
+// in `description`; the JD BODY is in `notes` (HTML) / `notes_text` (plain
+// fallback); `requirement1`/`requirement2` are numeric codes, NOT text, so
+// they go to raw_payload rather than the description. The source is
+// unambiguously Hebrew, so we tag raw_payload.jd_language='he' (the pipeline
+// has no first-class jd_language field; the downstream extractor keys off
+// content) and set structured_country='IL' (the endpoint is inherently IL),
+// which short-circuits classifyLocation.
+const BEZEQ_API_URL = "https://d-api.bezeq.co.il/api/Adam/GetActiveJobs";
+const BEZEQ_CAREERS_URL = "https://www.bezeq.co.il/career_new/";
+
+interface BezeqJobRecord {
+  order_id: number;
+  description?: string | null; // Hebrew job title
+  notes?: string | null; // JD body, HTML
+  notes_text?: string | null; // JD body, plain text (fallback)
+  living_area1?: string | null;
+  living_area2?: string | null;
+  living_area3?: string | null;
+  living_area4?: string | null;
+  living_area5?: string | null;
+  living_area6?: string | null;
+  profession_name?: string | null;
+  role_level_desc?: string | null;
+  requirement1?: unknown;
+  requirement2?: unknown;
+  perot_tafked?: string | null;
+  client_name?: string | null;
+  orderDate?: string | null;
+  update_date?: string | null;
+  close_date?: string | null;
+}
+
+interface BezeqResponse {
+  isSuccessfull?: boolean;
+  error?: unknown;
+  data?: BezeqJobRecord[];
+}
+
+function bezeqFirstArea(r: BezeqJobRecord): string | null {
+  for (const v of [
+    r.living_area1,
+    r.living_area2,
+    r.living_area3,
+    r.living_area4,
+    r.living_area5,
+    r.living_area6,
+  ]) {
+    if (v && v.trim()) return v.trim();
+  }
+  return null;
+}
+
+function parseBezeqDate(raw: string | null | undefined): string | null {
+  if (!raw) return null;
+  // AdamTotal-origin records use 1900-01-01 as a "no date" placeholder.
+  if (raw.startsWith("1900-01-01")) return null;
+  const d = new Date(raw);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
+}
+
+// Pure mapper (unit-tested). Kept separate from the fetch so the schema
+// mapping can be asserted without a network round-trip.
+export function mapBezeqJobs(records: BezeqJobRecord[]): RawJob[] {
+  const out: RawJob[] = [];
+  for (const r of records) {
+    if (!r || r.order_id == null) continue;
+    out.push({
+      external_id: String(r.order_id),
+      title: (r.description ?? "").trim(),
+      description_html: r.notes ?? r.notes_text ?? null,
+      location_raw: bezeqFirstArea(r),
+      structured_country: "IL",
+      apply_url: `${BEZEQ_CAREERS_URL}?jobId=${r.order_id}`,
+      date_posted: parseBezeqDate(r.orderDate),
+      salary_min: null,
+      salary_max: null,
+      salary_currency: null,
+      is_remote: false,
+      raw_payload: {
+        source: "bezeq_native",
+        jd_language: "he",
+        order_id: r.order_id,
+        profession_name: r.profession_name ?? null,
+        role_level_desc: r.role_level_desc ?? null,
+        requirement1: r.requirement1 ?? null,
+        requirement2: r.requirement2 ?? null,
+        perot_tafked: r.perot_tafked ?? null,
+        client_name: r.client_name ?? null,
+        living_areas: [
+          r.living_area1,
+          r.living_area2,
+          r.living_area3,
+          r.living_area4,
+          r.living_area5,
+          r.living_area6,
+        ].filter(Boolean),
+        order_date: r.orderDate ?? null,
+        update_date: r.update_date ?? null,
+        close_date: r.close_date ?? null,
+      },
+    });
+  }
+  return out;
+}
+
+export async function fetchBezeq(c: CompanyEntry): Promise<RawJob[]> {
+  const url = c.api_url ?? BEZEQ_API_URL;
+  // Browser-UA GET (httpGetText), then JSON.parse. Same UA path as the
+  // AdamTotal tenants. The gateway returns application/json regardless of the
+  // Accept header.
+  const text = await httpGetText(url);
+  let res: BezeqResponse;
+  try {
+    res = JSON.parse(text) as BezeqResponse;
+  } catch {
+    throw new Error(`bezeq: non-JSON response from ${url}`);
+  }
+  const data = Array.isArray(res?.data) ? res.data : [];
+  return mapBezeqJobs(data);
 }
 
 // ───── PwC Israel — Niloosoft Hunter Next.js + Heroku ────────────────
@@ -1091,7 +1290,8 @@ async function httpPostJsonWithHeaders<T>(
       headers: {
         // Browser UA — Heroku ingress doesn't WAF us, but PwC's CDN
         // upstream will eventually if we look like a script.
-        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
+        "User-Agent":
+          "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0 Safari/537.36",
         "Content-Type": "application/json",
         Accept: "application/json",
         ...extraHeaders,
@@ -1116,39 +1316,59 @@ export async function fetchPwcHeroku(_c: CompanyEntry): Promise<RawJob[]> {
     { cmd: "get-jobs", data: {} },
     { Origin: PWC_ORIGIN, Referer: `${PWC_ORIGIN}/` },
   );
-  const jobs: any[] = Array.isArray(data) ? data : (data?.data ?? data?.jobs ?? []);
+  const jobs: any[] = Array.isArray(data)
+    ? data
+    : (data?.data ?? data?.jobs ?? []);
   if (!Array.isArray(jobs)) return [];
   return jobs.map((j) => {
     const jobId = String(j.jobId ?? j.JobId ?? j.id ?? "");
     // Live API field is `jobTitle` (camelCase). The scoping-agent
     // report listed `title`/`JobTitle` variants but neither is what
     // the Heroku server actually returns. Fallback chain kept defensive.
-    const title = htmlEntityDecodeOnce(String(j.jobTitle ?? j.title ?? j.JobTitle ?? "")).trim();
+    const title = htmlEntityDecodeOnce(
+      String(j.jobTitle ?? j.title ?? j.JobTitle ?? ""),
+    ).trim();
     // Description fields are double-entity-encoded HTML in the live
     // response. One pass of decode gives us valid HTML that the v4
     // extractor can stripHtml on later.
-    const desc = htmlEntityDecodeOnce(String(j.description ?? j.Description ?? ""));
-    const reqs = htmlEntityDecodeOnce(String(j.requirements ?? j.Requirements ?? ""));
+    const desc = htmlEntityDecodeOnce(
+      String(j.description ?? j.Description ?? ""),
+    );
+    const reqs = htmlEntityDecodeOnce(
+      String(j.requirements ?? j.Requirements ?? ""),
+    );
     const skills = htmlEntityDecodeOnce(String(j.skills ?? j.Skills ?? ""));
-    const description_html = [desc, reqs, skills].filter((p) => p && p.trim().length > 0).join("\n\n") || null;
+    const description_html =
+      [desc, reqs, skills]
+        .filter((p) => p && p.trim().length > 0)
+        .join("\n\n") || null;
     const catId = String(j.categoryId ?? "");
-    const department = PWC_CATEGORY_LABELS[catId] ?? (j.employerName ? String(j.employerName) : null);
+    const department =
+      PWC_CATEGORY_LABELS[catId] ??
+      (j.employerName ? String(j.employerName) : null);
     // locationAddress is mostly null; PwC Israel is Israel-only.
     const locationAddress = (j.locationAddress ?? "").toString().trim();
-    const location_raw = locationAddress || "Israel" + (department ? ` | ${department}` : "");
+    const location_raw =
+      locationAddress || "Israel" + (department ? ` | ${department}` : "");
     return {
       external_id: jobId,
       title,
       description_html,
       location_raw,
       structured_country: "IL",
-      apply_url: jobId ? `${PWC_ORIGIN}/job?jid=${encodeURIComponent(jobId)}` : "",
+      apply_url: jobId
+        ? `${PWC_ORIGIN}/job?jid=${encodeURIComponent(jobId)}`
+        : "",
       date_posted: j.openDate ?? j.OpenDate ?? null,
       salary_min: null,
       salary_max: null,
       salary_currency: null,
       is_remote: false,
-      raw_payload: { source: "pwc_heroku", categoryId: catId, employerName: j.employerName ?? null },
+      raw_payload: {
+        source: "pwc_heroku",
+        categoryId: catId,
+        employerName: j.employerName ?? null,
+      },
     };
   });
 }
@@ -1220,7 +1440,8 @@ export async function fetchAmazonJobs(c: CompanyEntry): Promise<RawJob[]> {
   let totalHits = Infinity;
 
   for (let page = 0; page < AMAZON_MAX_PAGES; page++) {
-    if (page > 0) await new Promise((r) => setTimeout(r, AMAZON_INTERPAGE_PAUSE_MS));
+    if (page > 0)
+      await new Promise((r) => setTimeout(r, AMAZON_INTERPAGE_PAUSE_MS));
     const url = `${base}?country=${encodeURIComponent(country)}&result_limit=${AMAZON_PAGE_SIZE}&offset=${offset}`;
     let resp: AmazonJobsResponse;
     try {
@@ -1251,23 +1472,29 @@ export async function fetchAmazonJobs(c: CompanyEntry): Promise<RawJob[]> {
       const descParts = [
         j.description_short,
         j.description,
-        j.basic_qualifications && `<h4>Basic Qualifications</h4>${j.basic_qualifications}`,
-        j.preferred_qualifications && `<h4>Preferred Qualifications</h4>${j.preferred_qualifications}`,
+        j.basic_qualifications &&
+          `<h4>Basic Qualifications</h4>${j.basic_qualifications}`,
+        j.preferred_qualifications &&
+          `<h4>Preferred Qualifications</h4>${j.preferred_qualifications}`,
       ].filter(Boolean);
 
       // Location: prefer the normalized form; fall back to free text.
       // Empty-string from .join() coerces to null via the trailing ||.
       const location_raw =
-        (j.normalized_location
-          ?? j.location
-          ?? [j.city, j.state, j.country_code].filter(Boolean).join(", "))
-        || null;
+        (j.normalized_location ??
+          j.location ??
+          [j.city, j.state, j.country_code].filter(Boolean).join(", ")) ||
+        null;
 
       // Apply URL: registry-supplied scheme + host + job_path. The
       // search.json response gives a relative path; the host is
       // amazon.jobs regardless of locale, so derive it from api_url.
       const apiHost = (() => {
-        try { return new URL(base).origin; } catch { return "https://www.amazon.jobs"; }
+        try {
+          return new URL(base).origin;
+        } catch {
+          return "https://www.amazon.jobs";
+        }
       })();
       const apply_url = j.job_path
         ? `${apiHost}${j.job_path.startsWith("/") ? "" : "/"}${j.job_path}`
@@ -1306,24 +1533,28 @@ export async function fetchAmazonJobs(c: CompanyEntry): Promise<RawJob[]> {
 
 // ───── Dispatch table ────────────────────────────────────────────────
 
-export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = {
-  greenhouse:        fetchGreenhouse,
-  lever:             fetchLever,
-  ashby:             fetchAshby,
-  workday:           fetchWorkday,
-  smartrecruiters:   fetchSmartRecruiters,
-  comeet:            fetchComeet,
-  successfactors:    fetchSuccessFactors,
-  workable:          fetchWorkable,
-  iai:               fetchIai,
-  jooble:            fetchJooble,
-  adamtotal:         fetchAdamTotal,
-  // adamtotal_agency: same fetcher, distinct ats_source value so we
-  // can evaluate / dedup placement-agency feeds (Peres Group) against
-  // direct-employer rows. The agency's 400+ roles are reposts across
-  // multiple IL clients and may overlap with companies we source
-  // directly — splitting the namespace lets us measure that.
-  adamtotal_agency:  fetchAdamTotal,
-  pwc_heroku:        fetchPwcHeroku,
-  amazon_jobs:       fetchAmazonJobs,
-};
+export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> =
+  {
+    greenhouse: fetchGreenhouse,
+    lever: fetchLever,
+    ashby: fetchAshby,
+    workday: fetchWorkday,
+    smartrecruiters: fetchSmartRecruiters,
+    comeet: fetchComeet,
+    successfactors: fetchSuccessFactors,
+    workable: fetchWorkable,
+    iai: fetchIai,
+    jooble: fetchJooble,
+    adamtotal: fetchAdamTotal,
+    // adamtotal_agency: same fetcher, distinct ats_source value so we
+    // can evaluate / dedup placement-agency feeds (Peres Group) against
+    // direct-employer rows. The agency's 400+ roles are reposts across
+    // multiple IL clients and may overlap with companies we source
+    // directly — splitting the namespace lets us measure that.
+    adamtotal_agency: fetchAdamTotal,
+    pwc_heroku: fetchPwcHeroku,
+    amazon_jobs: fetchAmazonJobs,
+    // Per-publisher JSON endpoint (Bezeq's own gateway over its AdamTotal
+    // backend), NOT the multi-tenant adamtotal SaaS. See fetchBezeq.
+    bezeq_native: fetchBezeq,
+  };

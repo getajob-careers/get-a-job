@@ -97,6 +97,7 @@ const ENABLED_ATSS = new Set([
   "adamtotal_agency",
   "pwc_heroku",
   "amazon_jobs",
+  "bezeq_native",
 ]);
 
 // ───── Types ──────────────────────────────────────────────────────────

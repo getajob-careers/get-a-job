@@ -10,15 +10,22 @@
 //      caller's perspective.
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { fetchWorkdayDetail, fetchSmartRecruitersDetail, fetchAmazonJobs } from "./ats-fetchers.ts";
+import {
+  fetchWorkdayDetail,
+  fetchSmartRecruitersDetail,
+  fetchAmazonJobs,
+  mapBezeqJobs,
+} from "./ats-fetchers.ts";
 import type { CompanyEntry } from "./normalize.ts";
 
 const realFetch = globalThis.fetch;
 
 function mockFetchOnce(impl: (url: string) => Promise<Response> | Response) {
-  globalThis.fetch = vi.fn().mockImplementation((url: any) =>
-    Promise.resolve(impl(typeof url === "string" ? url : String(url))),
-  ) as any;
+  globalThis.fetch = vi
+    .fn()
+    .mockImplementation((url: any) =>
+      Promise.resolve(impl(typeof url === "string" ? url : String(url))),
+    ) as any;
 }
 
 beforeEach(() => {
@@ -62,21 +69,34 @@ describe("fetchWorkdayDetail — URL construction", () => {
     let capturedUrl = "";
     mockFetchOnce((url) => {
       capturedUrl = url;
-      return new Response(JSON.stringify({ jobPostingInfo: { jobDescription: "x" } }), { status: 200 });
+      return new Response(
+        JSON.stringify({ jobPostingInfo: { jobDescription: "x" } }),
+        { status: 200 },
+      );
     });
 
     await fetchWorkdayDetail("tenant.wd1.myworkdayjobs.com/Careers", "job/foo");
 
     // Helper prepends the leading slash so Workday accepts it.
-    expect(capturedUrl).toBe("https://tenant.wd1.myworkdayjobs.com/wday/cxs/tenant/Careers/job/foo");
+    expect(capturedUrl).toBe(
+      "https://tenant.wd1.myworkdayjobs.com/wday/cxs/tenant/Careers/job/foo",
+    );
   });
 
   it("falls back to `description` field when `jobDescription` is missing", async () => {
-    mockFetchOnce(() => new Response(
-      JSON.stringify({ jobPostingInfo: { description: "<p>via description field</p>" } }),
-      { status: 200 },
-    ));
-    const html = await fetchWorkdayDetail("t.wd1.myworkdayjobs.com/site", "/job/x");
+    mockFetchOnce(
+      () =>
+        new Response(
+          JSON.stringify({
+            jobPostingInfo: { description: "<p>via description field</p>" },
+          }),
+          { status: 200 },
+        ),
+    );
+    const html = await fetchWorkdayDetail(
+      "t.wd1.myworkdayjobs.com/site",
+      "/job/x",
+    );
     expect(html).toBe("<p>via description field</p>");
   });
 
@@ -85,7 +105,7 @@ describe("fetchWorkdayDetail — URL construction", () => {
     globalThis.fetch = spy as any;
     const html = await fetchWorkdayDetail("just-a-host-no-slash", "/job/x");
     expect(html).toBeNull();
-    expect(spy).not.toHaveBeenCalled();   // no network call attempted
+    expect(spy).not.toHaveBeenCalled(); // no network call attempted
   });
 
   it("returns null when externalPath is empty", async () => {
@@ -103,7 +123,9 @@ describe("fetchSmartRecruitersDetail — URL construction", () => {
     mockFetchOnce((url) => {
       capturedUrl = url;
       return new Response(
-        JSON.stringify({ jobAd: { sections: { jobDescription: { text: "SR body" } } } }),
+        JSON.stringify({
+          jobAd: { sections: { jobDescription: { text: "SR body" } } },
+        }),
         { status: 200 },
       );
     });
@@ -117,10 +139,12 @@ describe("fetchSmartRecruitersDetail — URL construction", () => {
   });
 
   it("returns null when the nested jobDescription.text is missing", async () => {
-    mockFetchOnce(() => new Response(
-      JSON.stringify({ jobAd: { sections: {} } }),
-      { status: 200 },
-    ));
+    mockFetchOnce(
+      () =>
+        new Response(JSON.stringify({ jobAd: { sections: {} } }), {
+          status: 200,
+        }),
+    );
     const html = await fetchSmartRecruitersDetail("AcmeCo", "id-1");
     expect(html).toBeNull();
   });
@@ -128,20 +152,31 @@ describe("fetchSmartRecruitersDetail — URL construction", () => {
 
 describe("detail fetchers — silent degradation contract", () => {
   it("fetchWorkdayDetail returns null when fetch throws (network error)", async () => {
-    globalThis.fetch = vi.fn().mockRejectedValue(new TypeError("fetch failed")) as any;
-    const html = await fetchWorkdayDetail("t.wd1.myworkdayjobs.com/site", "/job/x");
+    globalThis.fetch = vi
+      .fn()
+      .mockRejectedValue(new TypeError("fetch failed")) as any;
+    const html = await fetchWorkdayDetail(
+      "t.wd1.myworkdayjobs.com/site",
+      "/job/x",
+    );
     expect(html).toBeNull();
   });
 
   it("fetchWorkdayDetail returns null on non-200 HTTP", async () => {
     mockFetchOnce(() => new Response("Not Found", { status: 404 }));
-    const html = await fetchWorkdayDetail("t.wd1.myworkdayjobs.com/site", "/job/x");
+    const html = await fetchWorkdayDetail(
+      "t.wd1.myworkdayjobs.com/site",
+      "/job/x",
+    );
     expect(html).toBeNull();
   });
 
   it("fetchWorkdayDetail returns null when the upstream returns invalid JSON", async () => {
     mockFetchOnce(() => new Response("not json{", { status: 200 }));
-    const html = await fetchWorkdayDetail("t.wd1.myworkdayjobs.com/site", "/job/x");
+    const html = await fetchWorkdayDetail(
+      "t.wd1.myworkdayjobs.com/site",
+      "/job/x",
+    );
     expect(html).toBeNull();
   });
 
@@ -153,12 +188,17 @@ describe("detail fetchers — silent degradation contract", () => {
       (err as any).name = "AbortError";
       throw err;
     }) as any;
-    const html = await fetchWorkdayDetail("t.wd1.myworkdayjobs.com/site", "/job/x");
+    const html = await fetchWorkdayDetail(
+      "t.wd1.myworkdayjobs.com/site",
+      "/job/x",
+    );
     expect(html).toBeNull();
   });
 
   it("fetchSmartRecruitersDetail returns null on fetch throw", async () => {
-    globalThis.fetch = vi.fn().mockRejectedValue(new TypeError("fetch failed")) as any;
+    globalThis.fetch = vi
+      .fn()
+      .mockRejectedValue(new TypeError("fetch failed")) as any;
     const html = await fetchSmartRecruitersDetail("AcmeCo", "id-1");
     expect(html).toBeNull();
   });
@@ -189,7 +229,11 @@ const amazonEntry: CompanyEntry = {
   notes: null,
 };
 
-function makeJob(id: string, title: string, overrides: Record<string, unknown> = {}) {
+function makeJob(
+  id: string,
+  title: string,
+  overrides: Record<string, unknown> = {},
+) {
   return {
     id_icims: id,
     title,
@@ -234,7 +278,9 @@ describe("fetchAmazonJobs — URL construction + IL filter", () => {
   });
 
   it("returns [] when api_url or slug is missing (misconfigured registry row)", async () => {
-    expect(await fetchAmazonJobs({ ...amazonEntry, api_url: null })).toEqual([]);
+    expect(await fetchAmazonJobs({ ...amazonEntry, api_url: null })).toEqual(
+      [],
+    );
     expect(await fetchAmazonJobs({ ...amazonEntry, slug: null })).toEqual([]);
   });
 });
@@ -247,7 +293,8 @@ describe("fetchAmazonJobs — RawJob mapping", () => {
           hits: 1,
           jobs: [
             makeJob("3001234", "Senior Software Engineer, AWS ElastiCache", {
-              job_path: "/en/jobs/3001234/senior-software-engineer-aws-elasticache",
+              job_path:
+                "/en/jobs/3001234/senior-software-engineer-aws-elasticache",
             }),
           ],
         }),
@@ -276,7 +323,13 @@ describe("fetchAmazonJobs — RawJob mapping", () => {
       new Response(
         JSON.stringify({
           hits: 1,
-          jobs: [{ ...makeJob("ignored", "T"), id_icims: undefined, id: "fallback-id-99" }],
+          jobs: [
+            {
+              ...makeJob("ignored", "T"),
+              id_icims: undefined,
+              id: "fallback-id-99",
+            },
+          ],
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       ),
@@ -287,10 +340,10 @@ describe("fetchAmazonJobs — RawJob mapping", () => {
 
   it("concatenates description_short + description + basic_qualifications + preferred_qualifications into description_html", async () => {
     globalThis.fetch = vi.fn().mockResolvedValue(
-      new Response(
-        JSON.stringify({ hits: 1, jobs: [makeJob("1", "T")] }),
-        { status: 200, headers: { "Content-Type": "application/json" } },
-      ),
+      new Response(JSON.stringify({ hits: 1, jobs: [makeJob("1", "T")] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }),
     ) as any;
     const rows = await fetchAmazonJobs(amazonEntry);
     const desc = rows[0].description_html!;
@@ -305,7 +358,9 @@ describe("fetchAmazonJobs — RawJob mapping", () => {
       new Response(
         JSON.stringify({
           hits: 1,
-          jobs: [makeJob("X", "Intern", { is_intern: true, university_job: true })],
+          jobs: [
+            makeJob("X", "Intern", { is_intern: true, university_job: true }),
+          ],
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       ),
@@ -319,7 +374,9 @@ describe("fetchAmazonJobs — RawJob mapping", () => {
 describe("fetchAmazonJobs — pagination", () => {
   it("pages by offset until offset >= hits", async () => {
     const allJobs = Array.from({ length: 143 }, (_, i) =>
-      makeJob(String(10000 + i), `Job ${i}`, { job_path: `/en/jobs/${10000 + i}/job-${i}` }),
+      makeJob(String(10000 + i), `Job ${i}`, {
+        job_path: `/en/jobs/${10000 + i}/job-${i}`,
+      }),
     );
     let callCount = 0;
     const seenUrls: string[] = [];
@@ -331,7 +388,10 @@ describe("fetchAmazonJobs — pagination", () => {
       const limit = Number(u.searchParams.get("result_limit") ?? "100");
       return Promise.resolve(
         new Response(
-          JSON.stringify({ hits: 143, jobs: allJobs.slice(offset, offset + limit) }),
+          JSON.stringify({
+            hits: 143,
+            jobs: allJobs.slice(offset, offset + limit),
+          }),
           { status: 200, headers: { "Content-Type": "application/json" } },
         ),
       );
@@ -350,9 +410,13 @@ describe("fetchAmazonJobs — pagination", () => {
     let call = 0;
     globalThis.fetch = vi.fn().mockImplementation(() => {
       call++;
-      const payload = call === 1
-        ? { hits: 200, jobs: [makeJob("A", "First"), makeJob("B", "Second")] }
-        : { hits: 200, jobs: [makeJob("B", "Second-dup"), makeJob("C", "Third")] };
+      const payload =
+        call === 1
+          ? { hits: 200, jobs: [makeJob("A", "First"), makeJob("B", "Second")] }
+          : {
+              hits: 200,
+              jobs: [makeJob("B", "Second-dup"), makeJob("C", "Third")],
+            };
       return Promise.resolve(
         new Response(JSON.stringify(payload), {
           status: 200,
@@ -363,5 +427,65 @@ describe("fetchAmazonJobs — pagination", () => {
     const rows = await fetchAmazonJobs(amazonEntry);
     const ids = rows.map((r) => r.external_id);
     expect(ids.sort()).toEqual(["A", "B", "C"]);
+  });
+});
+
+// mapBezeqJobs is the pure schema mapper for the Bezeq per-publisher JSON
+// endpoint. These lock the non-obvious field mapping (title in `description`,
+// body in `notes`, numeric requirement codes that must NOT become the
+// description) and the IL + Hebrew + apply-URL contract.
+describe("mapBezeqJobs — Bezeq per-publisher schema mapping", () => {
+  const rec = {
+    order_id: 2913,
+    description: "מנהל.ת מכירות שטח",
+    notes: "<p>תיאור התפקיד</p>",
+    notes_text: "תיאור התפקיד plain",
+    living_area1: "",
+    living_area2: "גוש דן",
+    profession_name: "משרות מטה",
+    requirement1: 0,
+    requirement2: 0,
+    orderDate: "2026-06-04T00:00:00",
+    update_date: "2026-06-22T11:04:57",
+    close_date: "1900-01-01T00:00:00",
+  };
+
+  it("maps title from description, body from notes, id from order_id", () => {
+    const [j] = mapBezeqJobs([rec]);
+    expect(j.external_id).toBe("2913");
+    expect(j.title).toBe("מנהל.ת מכירות שטח");
+    expect(j.description_html).toBe("<p>תיאור התפקיד</p>");
+  });
+
+  it("tags every row IL + Hebrew and builds the apply URL from order_id", () => {
+    const [j] = mapBezeqJobs([rec]);
+    expect(j.structured_country).toBe("IL");
+    expect((j.raw_payload as any).jd_language).toBe("he");
+    expect(j.apply_url).toBe("https://www.bezeq.co.il/career_new/?jobId=2913");
+  });
+
+  it("keeps numeric requirement codes in raw_payload, not in the description", () => {
+    const [j] = mapBezeqJobs([rec]);
+    expect((j.raw_payload as any).requirement1).toBe(0);
+    expect((j.raw_payload as any).requirement2).toBe(0);
+    expect(j.description_html).toBe("<p>תיאור התפקיד</p>");
+  });
+
+  it("picks the first non-empty living_area for location", () => {
+    const [j] = mapBezeqJobs([rec]);
+    expect(j.location_raw).toBe("גוש דן");
+  });
+
+  it("treats the 1900-01-01 placeholder as no date and parses orderDate", () => {
+    const [j] = mapBezeqJobs([rec]);
+    expect(j.date_posted).not.toBeNull();
+    expect(new Date(j.date_posted as string).getUTCFullYear()).toBe(2026);
+    expect((j.raw_payload as any).close_date).toBe("1900-01-01T00:00:00");
+  });
+
+  it("falls back to notes_text when notes is absent, and skips records with no order_id", () => {
+    const [j] = mapBezeqJobs([{ ...rec, notes: null }]);
+    expect(j.description_html).toBe("תיאור התפקיד plain");
+    expect(mapBezeqJobs([{ description: "x" } as any])).toHaveLength(0);
   });
 });
