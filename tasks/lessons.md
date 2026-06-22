@@ -231,3 +231,9 @@ What I did wrong: added the `UserCheck` import BEFORE writing the component that
 Rule for next time: write the USAGE first (or same edit), then the import — never add an import that's momentarily unused, or the auto-fixer eats it. And treat green lint/build/tests as necessary-not-sufficient for a page that nothing renders in tests: smoke the actual route or add a render test. (Fixed the gap by enabling `no-undef` in eslint.config.js.)
 
 ---
+
+2026-06-23 — Multi-tenant Israeli ATS investigations uniformly return thin yield (Teamtailor, iCIMS, Hunter HRMS)
+Trigger: Hunter HRMS / Niloosoft no-build, the third consecutive multi-tenant ATS investigation to fail on yield after Teamtailor and iCIMS.
+Lesson: Multi-tenant Israeli ATS investigations (Teamtailor, iCIMS, Hunter HRMS) have uniformly returned thin yield. The Israeli market consolidates onto a small set of multi-tenant ATSs (Greenhouse, Lever, Ashby, Comeet, Workday, SmartRecruiters, SuccessFactors, AdamTotal, PwC Heroku) that are already covered. Beyond that core, real volume is found via (a) per-publisher JSON endpoints discoverable from individual companies' own JavaScript — Bezeq being the proven example — and (b) the aggregator-scraping tier which is held pending legal review.
+Rule for next time: Do not initiate a multi-tenant ATS investigation without independent evidence of 4+ Israeli tenants with current postings. Vendor brand identity is unreliable signal: a single brand may cover incompatible architectures, as Hunter HRMS / Niloosoft demonstrated (PwC and toga on Next.js + Heroku vs BDO on a WordPress plugin, the latter auth-gated).
+---
