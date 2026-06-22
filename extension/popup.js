@@ -99,8 +99,8 @@ function showGate(title, bodyHtml) {
 }
 function showSignedOut() {
   showGate(
-    "Not signed in",
-    "Open and log into <strong>www.getajob.careers</strong> in this browser, then reopen this extension.",
+    "Sign in to Get A Job",
+    "This extension works with your <strong>getajob.careers</strong> account. Sign in — or create an account — to generate tailored CVs and track your applications.",
   );
 }
 // Called when a function returns 401 mid-session.
@@ -110,8 +110,8 @@ function handleAuthExpired() {
   busy = false;
   loadingText = "";
   showGate(
-    "Your session expired",
-    "Reopen <strong>www.getajob.careers</strong> and log in again, then reopen this extension.",
+    "Session expired",
+    "Your <strong>getajob.careers</strong> session expired. Sign back in there, then reopen this panel.",
   );
 }
 
@@ -1258,6 +1258,13 @@ try {
 } catch (e) {
   console.warn("[session] storage purge skipped:", e);
 }
+
+// Gate panel's working path: open the site in a new tab (no extra permission —
+// chrome.tabs.create needs none). The same button serves both the no-session and
+// expired states. Display only; the auth/session-read logic is untouched.
+$("gateBtn").addEventListener("click", () => {
+  chrome.tabs.create({ url: "https://getajob.careers" });
+});
 
 refreshComposer();
 initSession();

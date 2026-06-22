@@ -634,6 +634,22 @@
         color: var(--gaj-coral-dark);
         font-weight: 700;
       }
+      .gate-btn {
+        margin-top: 16px;
+        padding: 9px 18px;
+        border-radius: 11px;
+        border: none;
+        background: var(--gaj-coral);
+        color: #fff;
+        font-family: var(--gaj-serif);
+        font-size: 14px;
+        font-weight: 700;
+        cursor: pointer;
+        transition: background 0.12s ease;
+      }
+      .gate-btn:hover {
+        background: var(--gaj-coral-dark);
+      }
     </style>
   </head>
   <body>
@@ -647,8 +663,9 @@
          usable session). Filled + toggled by popup.js. -->
     <div class="gate hidden" id="gate">
       <div class="gate-mark">●</div>
-      <div class="gate-title" id="gateTitle">Not signed in</div>
+      <div class="gate-title" id="gateTitle">Sign in to Get A Job</div>
       <div class="gate-body" id="gateBody"></div>
+      <button class="gate-btn" id="gateBtn">Open getajob.careers</button>
     </div>
 
     <div class="view" id="agentView">
