@@ -27,9 +27,23 @@ const stripHtml = (s) =>
 const clamp01 = (n) => Math.max(0, Math.min(1, Number(n)));
 
 // ───────────────────────── client + state ───────────────────────────────────
+// Cached access token — fallback if a tab read momentarily fails mid-session.
+let accessTokenCache = null;
+
+// The extension must NEVER own or rotate a refresh token. Doing so double-uses
+// the web app's single-use refresh token, which Supabase treats as theft and
+// revokes the whole token family — logging the user out of the real web app.
+// So we create the client with an accessToken PROVIDER that returns a FRESH
+// access token read from the getajob.careers tab per request. This disables the
+// GoTrue auth client entirely — no persistSession, no autoRefreshToken, no
+// _recoverAndRefresh. supabase.auth.* is intentionally unused; the web app stays
+// the sole owner and rotator of the refresh token.
 const supabase = window.supabaseLib.createClient(
   window.SUPA.url,
   window.SUPA.anon,
+  {
+    accessToken: async () => (await getFreshAccessToken()) || "",
+  },
 );
 
 let loggedIn = false;
@@ -148,9 +162,10 @@ function readSession() {
   }
   const session = (parsed && parsed.currentSession) || parsed;
   const access_token = session && session.access_token;
-  const refresh_token = session && session.refresh_token;
-  if (!access_token || !refresh_token) return { debug };
-  return { access_token, refresh_token };
+  // Bridge the ACCESS TOKEN ONLY — never the refresh token. The extension must
+  // not own or rotate the web app's single-use refresh token.
+  if (!access_token) return { debug };
+  return { access_token };
 }
 
 function findTab() {
@@ -177,6 +192,34 @@ function pullSession(tabId) {
   });
 }
 
+// Read the CURRENT access token from the getajob.careers tab — fresh on each
+// call, so it stays non-expired as long as the web app session is valid. ACCESS
+// TOKEN ONLY; the refresh token is never bridged. Falls back to the last good
+// token if the tab read momentarily fails (a resulting 401 is handled).
+async function getFreshAccessToken() {
+  const { tab } = await findTab();
+  if (tab) {
+    const result = await pullSession(tab.id);
+    if (result && result.access_token) {
+      accessTokenCache = result.access_token;
+      return result.access_token;
+    }
+  }
+  return accessTokenCache;
+}
+
+// Decode the user id (`sub`) from a JWT WITHOUT verifying — we only need the id
+// for row scoping; the server validates the token on every request.
+function decodeJwtSub(jwt) {
+  try {
+    const b64 = String(jwt).split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const padded = b64 + "=".repeat((4 - (b64.length % 4)) % 4);
+    return JSON.parse(atob(padded)).sub || null;
+  } catch {
+    return null;
+  }
+}
+
 async function initSession() {
   const { tab, totalTabs, getajobUrls } = await findTab();
   if (!tab) {
@@ -190,19 +233,18 @@ async function initSession() {
     return;
   }
   const result = await pullSession(tab.id);
-  if (result && result.access_token && result.refresh_token) {
-    const { data, error } = await supabase.auth.setSession({
-      access_token: result.access_token,
-      refresh_token: result.refresh_token,
-    });
-    if (error || !data?.user?.id) {
-      // Token present but rejected → treat as expired.
-      console.log("[session] setSession rejected:", error?.message);
+  if (result && result.access_token) {
+    // Establish identity WITHOUT a GoTrue session: cache the bridged access
+    // token (the client's accessToken provider uses it) and decode the user id
+    // from the JWT. No setSession, no refresh token, nothing to rotate.
+    accessTokenCache = result.access_token;
+    currentUserId = decodeJwtSub(result.access_token);
+    if (!currentUserId) {
+      console.log("[session] could not decode user id from bridged token");
       handleAuthExpired();
       return;
     }
     loggedIn = true;
-    currentUserId = data.user.id;
     sessionLine.textContent = "Signed in";
     $("gate").classList.add("hidden");
     refreshComposer();
@@ -1202,5 +1244,18 @@ function renderChecklist(r) {
 }
 
 // ───────────────────────── boot ─────────────────────────────────────────────
+// Hygiene: purge any session a previous (auto-refreshing) build of this client
+// persisted to the EXTENSION's OWN storage. The new client has no auth layer so
+// nothing reads it, but we don't want a stale refresh token lingering here. This
+// touches only the extension's localStorage — never the getajob.careers tab.
+try {
+  for (let i = localStorage.length - 1; i >= 0; i--) {
+    const k = localStorage.key(i);
+    if (k && /^sb-.*-auth-token/.test(k)) localStorage.removeItem(k);
+  }
+} catch (e) {
+  console.warn("[session] storage purge skipped:", e);
+}
+
 refreshComposer();
 initSession();
