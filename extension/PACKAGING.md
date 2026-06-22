@@ -1,0 +1,76 @@
+# Packaging the GetAJob extension
+
+The distribution zip must be **self-contained**. Two required files are
+**gitignored** and therefore absent from a fresh clone — they must be
+regenerated before zipping.
+
+## Files that MUST be in the distribution zip
+
+```
+manifest.json
+popup.html
+popup.js
+config.js                      ← gitignored, regenerate (see below)
+vendor/supabase.js             ← gitignored, regenerate (see below)
+fonts/rokkitt-latin.woff2
+fonts/rokkitt-latin-ext.woff2
+icons/icon-16.png
+icons/icon-32.png
+icons/icon-48.png
+icons/icon-128.png
+```
+
+`.gitignore` and `PACKAGING.md` do **not** need to go in the zip.
+
+## Regenerate the two gitignored files
+
+**`config.js`** — public client config (Supabase URL + anon key). Both are public
+client values, safe to ship. Generated from the web app's `.env.local`:
+
+```js
+// extension/config.js
+window.SUPA = {
+  url: "<VITE_SUPABASE_URL>",
+  anon: "<VITE_SUPABASE_ANON_KEY>",
+};
+```
+
+**`vendor/supabase.js`** — bundled `@supabase/supabase-js` (exposes
+`window.supabaseLib.createClient`). Rebuild from the repo root:
+
+```sh
+mkdir -p extension/vendor extension/build
+cat > extension/build/entry.js <<'EOF'
+import { createClient } from "@supabase/supabase-js";
+window.supabaseLib = { createClient };
+EOF
+node_modules/.bin/esbuild extension/build/entry.js \
+  --bundle --format=iife --platform=browser --target=es2020 \
+  --outfile=extension/vendor/supabase.js --minify
+```
+
+## Zip it
+
+From `extension/`, after both files exist:
+
+```sh
+zip -r ../getajob-extension.zip \
+  manifest.json popup.html popup.js config.js \
+  vendor fonts icons
+```
+
+## Icons & brand
+
+`icons/icon-{16,32,48,128}.png` are the real **Get A Job sprout mark**, rendered
+from `brand/getajob-mark.svg` onto a solid cream (#FAF6F0) rounded square (with
+padding so the dark stem stays legible on light and dark toolbars). To
+regenerate after a mark change, re-run the rasterizer that produced them
+(`/tmp/genmark.py` during the hardening pass) against `brand/getajob-mark.svg`,
+overwriting the four PNGs in place.
+
+`brand/` holds the source SVGs:
+
+- `getajob-mark.svg` — the sprout mark (source for the icon PNGs).
+- `getajob-logo.svg` — the full lockup (mark + "Get A Job" wordmark) for the
+  Chrome Web Store **listing** (uploaded to the store separately — it does not
+  need to go in the extension zip).
