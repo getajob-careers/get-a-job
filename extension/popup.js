@@ -100,7 +100,7 @@ function showGate(title, bodyHtml) {
 function showSignedOut() {
   showGate(
     "Sign in to Get A Job",
-    "This extension works with your <strong>getajob.careers</strong> account. Sign in — or create an account — to generate tailored CVs and track your applications.",
+    "This extension works with your <strong>getajob.careers</strong> account. Sign in, or create an account, to generate tailored CVs and track your applications.",
   );
 }
 // Called when a function returns 401 mid-session.
