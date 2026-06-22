@@ -1,7 +1,9 @@
 // GetAJob extension popup — two-pill shell (Agent | Tracker).
-// Auth/session bridge is UNCHANGED: we find the www.getajob.careers tab,
-// chrome.scripting reads the Supabase session out of its localStorage, and we
-// setSession() on the anon-key client so it carries the user's identity.
+// Auth/session bridge: we find the www.getajob.careers tab, chrome.scripting
+// reads the Supabase ACCESS TOKEN out of its localStorage, and the client uses
+// it via an accessToken provider so requests carry the user's identity. The
+// refresh token is never read or owned by the extension (the web app rotates
+// it); see the createClient call below for why.
 // The Agent tab is wired to ai-chat + the CV pipeline (analyze-job-match →
 // applications insert → refine-cv), mirroring the web app's contracts
 // (src/components/chat/ChatInterface.jsx, src/lib/coachActionHandlers.js,
@@ -236,7 +238,7 @@ async function initSession() {
   if (result && result.access_token) {
     // Establish identity WITHOUT a GoTrue session: cache the bridged access
     // token (the client's accessToken provider uses it) and decode the user id
-    // from the JWT. No setSession, no refresh token, nothing to rotate.
+    // from the JWT. No GoTrue session, no refresh token, nothing to rotate.
     accessTokenCache = result.access_token;
     currentUserId = decodeJwtSub(result.access_token);
     if (!currentUserId) {
