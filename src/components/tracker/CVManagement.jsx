@@ -10,12 +10,15 @@ import { Loader2, FileText, Sparkles, Download, Save, AlertTriangle } from "luci
 import { toast } from "sonner";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import { triggerBlobDownload, filenameFromSignedUrl } from "@/lib/downloadFile";
+import CvGenerationProgress from "@/components/cv/CvGenerationProgress";
 
 export default function CVManagement({ app, onUpdate }) {
   const { user } = useAuth();
   const [cvName, setCvName] = useState(app.cv_version_name || "");
   const [cvStatus, setCvStatus] = useState(app.cv_status || "not_started");
   const [generating, setGenerating] = useState(false);
+  // Drives the simulated-but-honest progress bar: idle | loading | success | error.
+  const [cvGenStatus, setCvGenStatus] = useState("idle");
   const [saving, setSaving] = useState(false);
   // Last-generation diagnostics: unsourced bullets, fit, tailoring score.
   // Snapshotted from the most recent generate-tailored-cv response so the
@@ -72,6 +75,7 @@ export default function CVManagement({ app, onUpdate }) {
       if (!ok) return;
     }
     setGenerating(true);
+    setCvGenStatus("loading");
     try {
       const { data, error } = await invokeWithAuthRetry("generate-tailored-cv", {
         body: {
@@ -85,9 +89,11 @@ export default function CVManagement({ app, onUpdate }) {
       if (error) throw error;
 
       setLastResult(data || null);
+      setCvGenStatus("success");
       toast.success(data?.message || "CV generated successfully!");
       onUpdate(); // Refresh application data
     } catch (error) {
+      setCvGenStatus("error");
       toast.error(error?.isAuthExpired
         ? "Your session expired. Redirecting to log in again."
         : "Failed to generate CV: " + error.message);
@@ -190,6 +196,11 @@ export default function CVManagement({ app, onUpdate }) {
           </div>
         </div>
       )}
+
+      <CvGenerationProgress
+        status={cvGenStatus}
+        onIdle={() => setCvGenStatus("idle")}
+      />
 
       <div className="flex gap-2">
         <Button
