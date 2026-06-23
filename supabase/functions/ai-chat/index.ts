@@ -219,7 +219,8 @@ Deno.serve(async (req) => {
     // when the user had a competing explicit ask. Whitelist the values to
     // keep the contract tight. Phase 4 shipped (PR #377 + #378): experiences.bullets
     // now flows into CV generation, so after a bullet save the frontend fires a
-    // "bullet_capture" follow-up and the agent offers a one-tap CV regen.
+    // "bullet_capture" follow-up and the agent acknowledges the save verbally
+    // (the bullet is available for future CV generations; no card is emitted).
     const VALID_FOLLOW_UPS = new Set(["cv_generation", "bullet_capture"]);
     const safeFollowUp =
       typeof follow_up_after === "string" &&

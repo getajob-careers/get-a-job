@@ -1050,15 +1050,15 @@ export default function ChatInterface({
   // snapshot. Routed through coachActionHandlers so the dock (CoachThread)
   // shares the exact same path. Phase 4 (PR #377/#378): experiences.bullets now
   // feeds CV generation, so a successful save fires a post-save follow-up turn
-  // (follow_up_after: "bullet_capture") letting the agent confirm the save and
-  // offer a one-tap CV regen. Mirrors the cv_generation follow-up.
+  // (follow_up_after: "bullet_capture") letting the agent acknowledge the save
+  // verbally (the bullet is available for future CV generations; no card).
   const bulletsCacheKey = (targetType) =>
     targetType === "education" ? "education" : "experiences";
 
   const handleExtractBullets = (text, targetType, targetId) =>
     sharedExtractBullets({ text, targetType, targetId });
 
-  // Post-save CV-regen follow-up. Non-blocking: the bullet save already
+  // Post-save acknowledgement follow-up. Non-blocking: the bullet save already
   // succeeded, so a failed follow-up is acceptable degradation, not a save
   // failure. The synthetic "[bullet saved]" message is sent in the API call
   // only; it is NOT added to local messages state so it never renders in chat.
@@ -1118,7 +1118,7 @@ export default function ChatInterface({
       return { error: res.error };
     }
     queryClient.invalidateQueries({ queryKey: [bulletsCacheKey(targetType)] });
-    // Phase 4: offer a CV regen now that the bullet actually flows into the CV.
+    // Phase 4: post-save turn so the agent verbally acknowledges the save.
     void fireBulletCaptureRegenFollowUp();
     return { ok: true, snapshot: res.snapshot };
   };
