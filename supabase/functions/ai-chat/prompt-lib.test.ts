@@ -267,13 +267,18 @@ describe("BULLET_CAPTURE_RULES — experiences + education target + no downstrea
     expect(BULLET_CAPTURE_RULES).toContain('"target":null');
   });
 
-  it("forbids promising the bullet flows into CV / LinkedIn / internship / daily-action output", () => {
-    // Phase 1b: nothing reads experiences.bullets for output yet, so the
-    // agent must NOT promise downstream effects (reinstated in Phase 4 when
-    // the CV authors from bullets).
-    expect(BULLET_CAPTURE_RULES).toContain("DO NOT PROMISE DOWNSTREAM OUTPUT");
-    expect(BULLET_CAPTURE_RULES).toContain("do not read bullets yet");
-    expect(BULLET_CAPTURE_RULES).toContain("I'll regenerate your CV with it");
+  it("Phase 4: bullets feed CV generation, regen offered post-save, proposal turn stays future-tense", () => {
+    // Phase 4 (PR #377/#378): experiences.bullets now flows into CV generation.
+    // The proposal-turn rule references the downstream CV effect + a post-save
+    // regen offer, but still forbids claiming a completed write in this turn.
+    expect(BULLET_CAPTURE_RULES).toContain("read by CV generation");
+    expect(BULLET_CAPTURE_RULES).toContain("regenerate");
+    expect(BULLET_CAPTURE_RULES).toContain("stay future-tense");
+    // The stale Phase-1b prohibitions are gone.
+    expect(BULLET_CAPTURE_RULES).not.toContain("do not read bullets yet");
+    expect(BULLET_CAPTURE_RULES).not.toContain("DO NOT PROMISE DOWNSTREAM OUTPUT");
+    // LinkedIn / internship / daily actions still do not read bullets.
+    expect(BULLET_CAPTURE_RULES).toContain("do NOT read bullets");
   });
 
   it("routes through the new bullet marker + edge function", () => {
@@ -285,16 +290,21 @@ describe("BULLET_CAPTURE_RULES — experiences + education target + no downstrea
   });
 });
 
-describe("post-save CV-regen follow-up is DROPPED in Phase 1b", () => {
-  // The "STORY JUST SAVED, OFFER CV REGEN" follow-up promised an output the
-  // CV doesn't produce yet (bullets aren't read until Phase 4), so it is
-  // removed entirely. A bullet_capture / story_capture follow-up value must
-  // NOT resurrect a regen offer — it falls through to the normal agent prompt.
-  for (const fu of ["story_capture", "bullet_capture"]) {
-    it(`follow_up_after="${fu}" produces no CV-regen offer`, () => {
-      const sys = assembleSystemPrompt("career_agent", "", fu);
-      expect(sys).not.toContain("OFFER CV REGEN");
-      expect(sys).not.toContain("STORY JUST SAVED");
-    });
-  }
+describe("post-save CV-regen follow-up (Phase 4: bullet_capture offers regen)", () => {
+  // Phase 4 (PR #377/#378): experiences.bullets now feeds CV generation, so the
+  // bullet_capture follow-up reinstates the one-tap regen offer. story_capture
+  // is no longer wired (Story Bank migrated to experiences), so it falls through
+  // to the normal agent prompt with no regen offer.
+  it('follow_up_after="bullet_capture" injects the regen-offer block', () => {
+    const sys = assembleSystemPrompt("career_agent", "", "bullet_capture");
+    expect(sys).toContain("OFFER CV REGEN");
+    expect(sys).toContain("BULLET JUST SAVED");
+    expect(sys).toContain("SUGGESTED_CV_GENERATION_JSON");
+  });
+
+  it('follow_up_after="story_capture" is unwired and produces no regen offer', () => {
+    const sys = assembleSystemPrompt("career_agent", "", "story_capture");
+    expect(sys).not.toContain("OFFER CV REGEN");
+    expect(sys).not.toContain("BULLET JUST SAVED");
+  });
 });

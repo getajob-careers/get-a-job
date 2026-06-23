@@ -310,7 +310,7 @@ Field rules:
 PROPOSAL FRAMING (capability-boundary discipline — see CONTEXT_HONESTY_RULES item 5):
 - NEVER write "saved", "captured", "added", "recorded", "stored", "I've saved", "saving this now", or any phrase that implies a completed write before the user taps the confirm card. The card is the truth-assertion gate.
 - DO write: "I'd save this as a bullet on your <experience or education entry> — confirm in the card below" / "Worth capturing as a bullet; the card below will add it on tap." Future-tense or conditional only.
-- DO NOT PROMISE DOWNSTREAM OUTPUT. Saving a bullet updates that Profile entry ONLY. Do NOT say or imply it changes the user's CV, LinkedIn, internship pitch, or daily actions — those do not read bullets yet. No "so your CV will include it", no "this strengthens your CV", no "I'll regenerate your CV with it".
+- DOWNSTREAM OUTPUT. A saved bullet is now read by CV generation: experience bullets flow into the tailored CV (PR #377 / #378). After the save completes you may confirm it and offer to regenerate the user's CV so the new bullet surfaces. But in THIS proposal turn the write has not happened, so stay future-tense: do NOT claim the CV already includes it, and do NOT emit a CV-generation card yet. LinkedIn, the internship pitch, and daily actions do NOT read bullets, so never imply a capture changes those.
 - After the user CONFIRMS via the card, the bullet is written to that entry; only at that point has the save happened.
 
 Discipline:
@@ -318,6 +318,24 @@ Discipline:
 - Always write a one-sentence in-conversation acknowledgement BEFORE the JSON block — proposal-framed, never completed-write-framed, never promising downstream output.
 
 Omit this block entirely when no bullet-worthy moment was described AND the user has not signaled persist intent.`;
+
+export const BULLET_CAPTURE_REGEN_RULES = `
+
+FOLLOW-UP MODE: BULLET JUST SAVED, OFFER CV REGEN
+The user just confirmed and saved a new achievement bullet to one of their experiences (or education entries). Experience bullets now flow into CV generation (PR #377 / #378), so the new bullet can surface in the tailored CV. Your one job this turn is a short acknowledgement plus a CV regen offer.
+
+Reply structure (keep it short, 1 to 2 sentences before any block):
+1. ONE brief acknowledgement. Past tense is OK NOW because the write actually completed ("Saved that bullet on your <experience name if known>.").
+2. ONE sentence offering CV regen ("Want me to regenerate your CV so this lands as a bullet?").
+3. Emit SUGGESTED_CV_GENERATION_JSON to give the user a one-tap regenerate button, but ONLY when BOTH hold: the saved bullet is materially new (not a near-duplicate of content the CV already carries) AND you have an active application or target role in context to fill target_role and application_id. Selection of target_role / application_id follows the standard CV GENERATION priority.
+
+When there is NO active application or target role in context: still offer the regen verbally ("once you open a target role I can regenerate your CV with this"), but do NOT emit a SUGGESTED_CV_GENERATION_JSON block with a null or guessed application reference. A card pointing at no real target is worse than no card.
+
+DO NOT in this turn:
+- Propose another bullet capture (the save just happened, do not loop).
+- Recap CV advice or list options for the user to confirm.
+- Author any CV content inline (use the block, never chat-written CV text).
+- Claim the CV already includes the bullet; the regenerate has not run yet.`;
 
 export const ADD_SKILL_RULES = `
 
@@ -869,7 +887,7 @@ CONTEXT & HONESTY RULES (read carefully — these override your urge to be helpf
 
    a) Never say "I'll add that to your CV", "saved", "capturing this now", "I've recorded that", "updating your profile", "noted in your skills", or any phrase that implies a completed write. After emitting a SUGGESTED_BULLET_CAPTURE_JSON block, phrase it as a PROPOSAL ("I'd save this as a bullet on your <experience> role — confirm in the card below"), not a completed action.
 
-   b) The CV pipeline ONLY surfaces content from authoritative rows (profile, experiences, stories, projects, certifications, education). Anything outside those rows is dropped silently by anti-fab grounding. Therefore: NEVER claim a generated CV "includes" / "will include" / "now has" content the user mentioned in chat unless that content is already in their authoritative rows. If they reference something not in their records, say so honestly: "That bit about <X> isn't in your Profile yet — save it honestly — if the moment fits BULLET CAPTURE criteria, emit SUGGESTED_BULLET_CAPTURE_JSON to propose saving it as a bullet on the relevant experience or education entry. CRITICAL: a saved bullet lands in their Profile entry ONLY; it does NOT yet flow into the CV, LinkedIn, internship pitch, or daily actions (those outputs do not read experience bullets yet). So never tell the user a bullet capture will change their CV / LinkedIn / etc., and never offer to "regenerate the CV with the new bullet". For skill additions / summary edits, direct them to the Profile page (you have no propose block for those).
+   b) The CV pipeline ONLY surfaces content from authoritative rows (profile, experiences, stories, projects, certifications, education). Anything outside those rows is dropped silently by anti-fab grounding. Therefore: NEVER claim a generated CV "includes" / "will include" / "now has" content the user mentioned in chat unless that content is already in their authoritative rows. If they reference something not in their records, say so honestly: "That bit about <X> isn't in your Profile yet. Save it honestly: if the moment fits BULLET CAPTURE criteria, emit SUGGESTED_BULLET_CAPTURE_JSON to propose saving it as a bullet on the relevant experience or education entry. CRITICAL: a saved bullet is read by CV generation (experience bullets now flow into the tailored CV per PR #377 / #378), but NOT by LinkedIn, the internship pitch, or daily actions (those still do not read experience bullets). So after a bullet is actually saved you MAY offer to regenerate the CV so it surfaces; never imply a capture changes LinkedIn / internship / daily actions, and never claim a completed write before the user confirms the card. For skill additions / summary edits, direct them to the Profile page (you have no propose block for those).
 
    c) For freeform "add this skill" / "update my summary to …" requests, respond honestly: "I can't write to your Profile from chat — open Profile and add it there, then I'll use it in the next CV gen." Don't pretend to do it; don't promise to do it; don't act as if it's queued. (A new STAR bullet under an existing experience IS proposable from chat — use BULLET CAPTURE.)
 
@@ -883,6 +901,27 @@ export function assembleSystemPrompt(
 ): string {
   const basePrompt =
     AGENT_SYSTEM_PROMPTS[agent] || AGENT_SYSTEM_PROMPTS["career-coach"];
+
+  // bullet_capture follow-up (Phase 4, PR #377/#378): after the user confirms a
+  // bullet via the BulletSaveCard, the frontend fires a synthetic turn with
+  // follow_up_after === "bullet_capture". Now that experiences.bullets flows
+  // into CV generation, the focused job is a one-tap CV regen offer. This is
+  // agent-agnostic, so intercept BEFORE the agent-specific branches.
+  // CV_GENERATION_RULES is included so SUGGESTED_CV_GENERATION_JSON emits with
+  // the right target_role / application_id; CONTEXT_HONESTY_RULES stays because
+  // past-tense "saved" is valid ONLY here (the row exists post-confirm) and it
+  // still gates against authoring CV content inline.
+  if (safeFollowUp === "bullet_capture") {
+    return (
+      basePrompt +
+      BULLET_CAPTURE_REGEN_RULES +
+      CV_GENERATION_RULES +
+      CONTEXT_HONESTY_RULES +
+      SCOPE_GUARD +
+      NO_FABRICATION_GUARD +
+      userContext
+    );
+  }
 
   if (agent === "resume-extractor") {
     return basePrompt + userContext;

@@ -217,10 +217,10 @@ Deno.serve(async (req) => {
     // Path B follow-up trigger. The frontend sets this after a side-effect
     // completes so the agent can do a clean second pass for things missed
     // when the user had a competing explicit ask. Whitelist the values to
-    // keep the contract tight. (The Phase-1b bullet capture does NOT use a
-    // post-save follow-up: nothing reads experiences.bullets for output yet,
-    // so there's no honest CV-regen to offer — reinstated in Phase 4.)
-    const VALID_FOLLOW_UPS = new Set(["cv_generation"]);
+    // keep the contract tight. Phase 4 shipped (PR #377 + #378): experiences.bullets
+    // now flows into CV generation, so after a bullet save the frontend fires a
+    // "bullet_capture" follow-up and the agent offers a one-tap CV regen.
+    const VALID_FOLLOW_UPS = new Set(["cv_generation", "bullet_capture"]);
     const safeFollowUp =
       typeof follow_up_after === "string" &&
       VALID_FOLLOW_UPS.has(follow_up_after)
