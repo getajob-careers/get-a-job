@@ -1,19 +1,19 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 892,
+  "total_companies": 895,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
     "amazon_jobs": 1,
     "ashby": 69,
-    "comeet": 227,
+    "comeet": 229,
     "custom": 31,
     "eightfold": 3,
     "greenhouse": 200,
     "iai": 1,
     "icims": 1,
     "jooble": 1,
-    "lever": 25,
+    "lever": 26,
     "oracle": 1,
     "pwc_heroku": 1,
     "recruitee": 1,
@@ -2556,6 +2556,18 @@
       "api_url": "https://api.smartrecruiters.com/v1/companies/Continental/postings?limit=10",
       "verified": true,
       "notes": "1233 jobs on SR; IL automotive software presence"
+    },
+    {
+      "name": "ControlUp",
+      "type": "israeli_founded",
+      "industry": "IT / VDI Monitoring",
+      "domain": "controlup.com",
+      "careers_url": "https://jobs.lever.co/controlup",
+      "ats": "lever",
+      "slug": "controlup",
+      "api_url": "https://api.lever.co/v0/postings/controlup?mode=json",
+      "verified": true,
+      "notes": "Lever; slug observed in DOM (wide-net re-walk). Verified live 2026-06-23: 6 postings, 1 IL (Rishon Lezion)."
     },
     {
       "name": "Copyleaks",
@@ -7886,6 +7898,18 @@
       "notes": "Ashby; FinTech open-banking"
     },
     {
+      "name": "PlainID",
+      "type": "israeli_founded",
+      "industry": "Identity Security",
+      "domain": "plainid.com",
+      "careers_url": "https://www.plainid.com/careers",
+      "ats": "comeet",
+      "slug": "C4.00C",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/C4.00C/positions?token=4CC17FC1CC8E644CCE644CC4CC13300&details=true",
+      "verified": true,
+      "notes": "Comeet uid+token observed in page JS (wide-net re-walk). Verified live 2026-06-23: 6 positions, 4 IL."
+    },
+    {
       "name": "Plarium",
       "type": "israeli_founded",
       "industry": "Gaming",
@@ -9348,6 +9372,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Tel Aviv-Yafo HQ, $30M raised, AI-driven CGM platform. Careers page exists but shows no department-filtered listings publicly and no detectable ATS (greenhouse/lever/comeet/ashby) URLs. LinkedIn shows active hiring (Head of Data, R&D Team Leader). Skipped — needs deeper detection."
+    },
+    {
+      "name": "Swimm",
+      "type": "israeli_founded",
+      "industry": "Developer Tools / Documentation",
+      "domain": "swimm.io",
+      "careers_url": "https://swimm.io/careers",
+      "ats": "comeet",
+      "slug": "56.007",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/56.007/positions?token=657260A657195C1FB332B8390F195C6571305&details=true",
+      "verified": true,
+      "notes": "Comeet uid+token observed in page JS (wide-net re-walk). Verified live 2026-06-23: 1 position, 1 IL (Tel Aviv)."
     },
     {
       "name": "Sygnia",
