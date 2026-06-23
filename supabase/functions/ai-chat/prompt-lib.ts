@@ -623,7 +623,20 @@ export async function buildUserContext(
     userContext = `\n\nUSER PROFILE:\n- Name: ${profile.full_name || "Not provided"}\n- Skills: ${(profile.skills || []).join(", ") || "None listed"}\n- Education: ${eduLine}\n- Location: ${profile.location || "Not provided"}\n- Summary: ${profile.summary || "Not provided"}`;
   }
   if (experiencesRes.data?.length) {
-    userContext += `\n- Experience: ${experiencesRes.data.map((e: any) => `${e.title} at ${e.company} [id: ${e.id}]`).join(", ")}`;
+    // PR #321 Phase-4 read side: surface the user-curated bullets (chat "add X
+    // to my CV" capture) under each experience so the agent can see and discuss
+    // them, not just the role metadata. Cap at 10 bullets per experience to
+    // bound prompt size. The title/company/[id] line is unchanged so the
+    // agent's id-addressability for "add to experience X" still works.
+    const expLines = experiencesRes.data.map((e: any) => {
+      let line = `\n  - ${e.title} at ${e.company} [id: ${e.id}]`;
+      const bullets = Array.isArray(e.bullets)
+        ? e.bullets.map((b: any) => String(b ?? "").trim()).filter(Boolean).slice(0, 10)
+        : [];
+      for (const b of bullets) line += `\n      - ${b}`;
+      return line;
+    });
+    userContext += `\n- Experience:${expLines.join("")}`;
   }
   if ((profile as any)?.education?.length) {
     userContext += `\n- Education entries: ${(profile as any).education.map((e: any) => `${e.degree_type || e.education_level || "Studies"}${e.field_of_study ? ` in ${e.field_of_study}` : ""}${e.institution ? ` at ${e.institution}` : ""} [id: ${e.id}]`).join(", ")}`;
