@@ -156,6 +156,53 @@ describe("finalSeniority — Variant B", () => {
     });
   });
 
+  describe("classifyLocation: Illinois suppression (PR #387)", () => {
+    // The ~164 residual US-Illinois false positives: Illinois suburbs not in the
+    // tech-hub allowlist, dotted "U.S." / "U.S.A." forms, and structured_country
+    // = "US". The bare ", IL" continues to mean Israel only when no US signal is
+    // present.
+    it("Chicago, IL → not IL (US)", () => {
+      expect(classifyLocation("Chicago, IL").is_il).toBe(false);
+    });
+    it("Chicago, IL 60606 → not IL (US ZIP)", () => {
+      expect(classifyLocation("Chicago, IL 60606").is_il).toBe(false);
+    });
+    it("Chicago, Illinois, US → not IL (US token)", () => {
+      expect(classifyLocation("Chicago, Illinois, US").is_il).toBe(false);
+    });
+    it("Remote, US or IL → not IL (US token present)", () => {
+      expect(classifyLocation("Remote, US or IL").is_il).toBe(false);
+    });
+    it("Illinois suburbs that pair with IL → not IL", () => {
+      expect(classifyLocation("Naperville, IL").is_il).toBe(false);
+      expect(classifyLocation("Schaumburg, IL").is_il).toBe(false);
+      expect(classifyLocation("Springfield, IL").is_il).toBe(false);
+      expect(classifyLocation("Aurora, IL").is_il).toBe(false);
+      expect(classifyLocation("Elgin, IL").is_il).toBe(false);
+    });
+    it("dotted U.S. / U.S.A. token alongside IL → not IL", () => {
+      expect(classifyLocation("Remote, IL, U.S.").is_il).toBe(false);
+      expect(classifyLocation("Remote, IL, U.S.A.").is_il).toBe(false);
+    });
+    it("structured_country = 'US' alongside a bare IL string → not IL", () => {
+      expect(classifyLocation("Somewhere, IL", "US").is_il).toBe(false);
+      expect(classifyLocation("Unknown place, IL", "USA").is_il).toBe(false);
+    });
+
+    it("', IL' alone → IL (preserve current behavior)", () => {
+      expect(classifyLocation(", IL").is_il).toBe(true);
+    });
+    it("Tel Aviv, IL → IL", () => {
+      expect(classifyLocation("Tel Aviv, IL").is_il).toBe(true);
+    });
+    it("Tel Aviv-Yafo → IL (existing city map)", () => {
+      expect(classifyLocation("Tel Aviv-Yafo").is_il).toBe(true);
+    });
+    it("Haifa, IL → IL (existing city map)", () => {
+      expect(classifyLocation("Haifa, IL").is_il).toBe(true);
+    });
+  });
+
   describe("classifyLocation — Hebrew coverage (2026-06-04 Workday-MNC pass)", () => {
     it("recognizes Hebrew city names from global ATSs", () => {
       // Global Workday boards (Forcepoint, Motorola, Mavenir) frequently
@@ -255,11 +302,15 @@ describe("finalSeniority — Variant B", () => {
       expect(classifyLocation("Tel Aviv; San Francisco, CA").is_il).toBe(true);
     });
     it("San Francisco; Remote, Israel → still true ('Israel' word wins)", () => {
-      expect(classifyLocation("San Francisco; Remote, Israel").is_il).toBe(true);
+      expect(classifyLocation("San Francisco; Remote, Israel").is_il).toBe(
+        true,
+      );
     });
     it("Phoenix Insurance, Tel Aviv → still true (Tel Aviv via city map; the company-name collision is irrelevant)", () => {
       expect(classifyLocation("Phoenix Insurance, Tel Aviv").is_il).toBe(true);
-      expect(classifyLocation("Phoenix Insurance, Tel Aviv").city).toBe("Tel Aviv");
+      expect(classifyLocation("Phoenix Insurance, Tel Aviv").city).toBe(
+        "Tel Aviv",
+      );
     });
 
     // Yokneam-class small-town protection — still works because no US
