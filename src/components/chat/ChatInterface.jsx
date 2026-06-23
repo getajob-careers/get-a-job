@@ -1045,17 +1045,64 @@ export default function ChatInterface({
     navigate(createPageUrl(page));
   };
 
-  // BulletSaveCard handlers (Phase 1b). extract -> propose bullets; save ->
-  // append to experiences.bullets (snapshotting prior for undo); undo ->
-  // restore the snapshot. Routed through coachActionHandlers so the dock
-  // (CoachThread) shares the exact same path. NO post-save CV-regen follow-up:
-  // experiences.bullets is not read for output until Phase 4, so offering a
-  // regen would promise an effect that does not happen yet.
+  // BulletSaveCard handlers. extract -> propose bullets; save -> append to
+  // experiences.bullets (snapshotting prior for undo); undo -> restore the
+  // snapshot. Routed through coachActionHandlers so the dock (CoachThread)
+  // shares the exact same path. Phase 4 (PR #377/#378): experiences.bullets now
+  // feeds CV generation, so a successful save fires a post-save follow-up turn
+  // (follow_up_after: "bullet_capture") letting the agent confirm the save and
+  // offer a one-tap CV regen. Mirrors the cv_generation follow-up.
   const bulletsCacheKey = (targetType) =>
     targetType === "education" ? "education" : "experiences";
 
   const handleExtractBullets = (text, targetType, targetId) =>
     sharedExtractBullets({ text, targetType, targetId });
+
+  // Post-save CV-regen follow-up. Non-blocking: the bullet save already
+  // succeeded, so a failed follow-up is acceptable degradation, not a save
+  // failure. The synthetic "[bullet saved]" message is sent in the API call
+  // only; it is NOT added to local messages state so it never renders in chat.
+  const fireBulletCaptureRegenFollowUp = async () => {
+    try {
+      const conversationId = activeConversationId;
+      if (!conversationId) return;
+      const historyForFollowUp = messages
+        .filter((m) => m.role !== "system")
+        .slice(-20);
+      const { data: followData, error: followError } = await supabase.functions.invoke("ai-chat", {
+        body: {
+          message: "[bullet saved]",
+          agent: agentName || "career-coach",
+          conversation_history: historyForFollowUp,
+          chat_model: CHAT_MODEL,
+          follow_up_after: "bullet_capture",
+          ...(applicationId && { application_id: applicationId }),
+        },
+      });
+      if (followError || !followData?.reply) return;
+      const followPayload = {
+        conversation_id: conversationId,
+        role: "assistant",
+        content: followData.reply,
+      };
+      const { data: savedFollow } = await supabase
+        .from("chat_messages")
+        .insert(followPayload)
+        .select("id")
+        .single();
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: savedFollow?.id || crypto.randomUUID(),
+          role: "assistant",
+          content: followData.reply,
+          suggestedCVGeneration: followData.suggested_cv_generation || null,
+        },
+      ]);
+    } catch (followUpErr) {
+      console.warn("Bullet-capture regen follow-up failed (non-blocking):", followUpErr);
+    }
+  };
 
   const handleSaveBullets = async ({ bullets, skills, targetType, targetId }) => {
     if (!user?.id) return { error: "Not signed in." };
@@ -1071,6 +1118,8 @@ export default function ChatInterface({
       return { error: res.error };
     }
     queryClient.invalidateQueries({ queryKey: [bulletsCacheKey(targetType)] });
+    // Phase 4: offer a CV regen now that the bullet actually flows into the CV.
+    void fireBulletCaptureRegenFollowUp();
     return { ok: true, snapshot: res.snapshot };
   };
 
