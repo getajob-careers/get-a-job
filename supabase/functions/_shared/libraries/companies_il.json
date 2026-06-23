@@ -1,12 +1,12 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 892,
+  "total_companies": 893,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
     "amazon_jobs": 1,
     "ashby": 69,
-    "comeet": 226,
+    "comeet": 227,
     "custom": 31,
     "eightfold": 3,
     "greenhouse": 200,
@@ -19,8 +19,8 @@
     "recruitee": 1,
     "smartrecruiters": 10,
     "successfactors": 8,
-    "teamtailor": 1,
-    "unknown": 255,
+    "teamtailor": 2,
+    "unknown": 254,
     "workable": 10,
     "workday": 36
   },
@@ -612,6 +612,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/F9.00B/positions?token=9FB45DD1DF11DF113F69FB59D345DD13F61DF1&details=true",
       "verified": true,
       "notes": "Comeet UID F9.00B + token verified from comeet.com hosted page"
+    },
+    {
+      "name": "Anima",
+      "type": "israeli_founded",
+      "industry": "DevTools / AI",
+      "domain": "animaapp.com",
+      "careers_url": "https://animaapp-1721730147.teamtailor.com/",
+      "ats": "teamtailor",
+      "slug": "animaapp-1721730147",
+      "api_url": "https://animaapp-1721730147.teamtailor.com/jobs.json",
+      "verified": true,
+      "notes": "Hetz Ventures portfolio. First IL TeamTailor tenant in the registry. No TeamTailor fetcher exists yet (single tenant, below the 4+ multi-tenant threshold), so the nightly cron skips it cleanly (teamtailor is not in ENABLED_ATSS) until a fetcher is built. Slug locked for the future. Endpoint verified live 2026-06-23: jobs.json returns 200 (valid feed) with 0 current postings."
     },
     {
       "name": "Anina Culinary Art",
@@ -7960,14 +7972,14 @@
     {
       "name": "PrettyDamnQuick",
       "type": "israeli_founded",
-      "industry": "Logistics",
+      "industry": "eCommerce / Checkout",
       "domain": "prettydamnquick.com",
       "careers_url": null,
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "No ATS hit"
+      "ats": "comeet",
+      "slug": "0A.00E",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/0A.00E/positions?token=A0E46621E2A3246283832464662A0E141C0&details=true",
+      "verified": true,
+      "notes": "Comeet uid+token embedded in the careers page (TLV Partners portfolio). Upgraded from an unverified placeholder. Verified live 2026-06-23: 2 positions, 1 IL (Tel Aviv)."
     },
     {
       "name": "Primis",
