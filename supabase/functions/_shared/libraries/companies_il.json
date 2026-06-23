@@ -1430,6 +1430,18 @@
       "notes": "Per-publisher JSON endpoint, NOT a SaaS ATS. Bezeq fronts its own AdamTotal backend through its own gateway at d-api.bezeq.co.il/api/Adam/GetActiveJobs (returns JSON, no auth, single page; ?page=N is ignored). The career.adamtotal.co.il adamtotal fetcher cannot consume this (different host, transport, no token); handled by fetchBezeq under ats=bezeq_native. Hebrew JD body lives in notes/notes_text; structured_country=IL set on every row. Verified live 2026-06-23: 30 active jobs."
     },
     {
+      "name": "HOT Telecommunications",
+      "type": "israeli_founded",
+      "industry": "Telecom",
+      "domain": "hot.net.il",
+      "careers_url": "https://www.hot.net.il/heb/career/careersearch/",
+      "ats": "hot_native",
+      "slug": "hot",
+      "api_url": "https://www.hot.net.il/HotCmsApiFront/api/MarketingJob/GetJobs",
+      "verified": true,
+      "notes": "Per-publisher JSON endpoint, NOT a SaaS ATS. HOT exposes its own HotCmsApiFront CMS API at www.hot.net.il/HotCmsApiFront/api/MarketingJob/GetJobs (POST {professionId:0, areaId:0, take:100}; returns JSON, no auth, single response). The response body is double-encoded (a JSON string containing the JSON object). Handled by fetchHotTelecom under ats=hot_native. Hebrew JD body lives in briefDescription/jobRequirements; structured_country=IL set on every row. Verified live 2026-06-23: 6 active jobs."
+    },
+    {
       "name": "Bidalgo",
       "type": "israeli_founded",
       "industry": "AdTech",

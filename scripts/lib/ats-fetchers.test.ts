@@ -15,6 +15,7 @@ import {
   fetchSmartRecruitersDetail,
   fetchAmazonJobs,
   mapBezeqJobs,
+  mapHotJobs,
 } from "./ats-fetchers.ts";
 import type { CompanyEntry } from "./normalize.ts";
 
@@ -487,5 +488,74 @@ describe("mapBezeqJobs — Bezeq per-publisher schema mapping", () => {
     const [j] = mapBezeqJobs([{ ...rec, notes: null }]);
     expect(j.description_html).toBe("תיאור התפקיד plain");
     expect(mapBezeqJobs([{ description: "x" } as any])).toHaveLength(0);
+  });
+});
+
+// mapHotJobs is the pure schema mapper for the HOT per-publisher JSON
+// endpoint. These lock the non-obvious field mapping (title in `jobTitle`,
+// id in `vacancyName`, JD body concatenated from briefDescription +
+// jobRequirements, no posted-date/apply-url in the payload) and the IL +
+// Hebrew + apply-URL contract.
+describe("mapHotJobs - HOT per-publisher schema mapping", () => {
+  const rec = {
+    vacancyName: "JB-265",
+    jobTitle: "כלכלן/ית למחלקת הכנסות ופיתוח עסקי",
+    location: "יקום",
+    briefDescription: "<p>ריכוז ובניית התקציב</p>",
+    detailedDescription: "",
+    jobRequirements: "<p>תואר ראשון רלוונטי</p>",
+    vacancyDivision: "חטיבת כספים",
+    employmentStatus: "משרה מלאה",
+    professionalArea: "כספים",
+  };
+
+  it("maps title from jobTitle, id from vacancyName, location from location", () => {
+    const [j] = mapHotJobs([rec]);
+    expect(j.external_id).toBe("JB-265");
+    expect(j.title).toBe("כלכלן/ית למחלקת הכנסות ופיתוח עסקי");
+    expect(j.location_raw).toBe("יקום");
+  });
+
+  it("concatenates brief + requirements into description_html and drops the empty detailed", () => {
+    const [j] = mapHotJobs([rec]);
+    expect(j.description_html).toBe(
+      "<p>ריכוז ובניית התקציב</p>\n<p>תואר ראשון רלוונטי</p>",
+    );
+  });
+
+  it("tags every row IL + Hebrew and builds the apply URL from vacancyName", () => {
+    const [j] = mapHotJobs([rec]);
+    expect(j.structured_country).toBe("IL");
+    expect((j.raw_payload as any).jd_language).toBe("he");
+    expect(j.apply_url).toBe(
+      "https://www.hot.net.il/heb/career/careersearch/?jobId=JB-265",
+    );
+  });
+
+  it("exposes no posted-date or salary (the payload carries none)", () => {
+    const [j] = mapHotJobs([rec]);
+    expect(j.date_posted).toBeNull();
+    expect(j.salary_min).toBeNull();
+    expect(j.is_remote).toBe(false);
+  });
+
+  it("keeps division/employmentStatus/professionalArea in raw_payload, not the description", () => {
+    const [j] = mapHotJobs([rec]);
+    expect((j.raw_payload as any).vacancyDivision).toBe("חטיבת כספים");
+    expect((j.raw_payload as any).employmentStatus).toBe("משרה מלאה");
+    expect(j.description_html).not.toContain("חטיבת כספים");
+  });
+
+  it("skips records with no vacancyName and nulls description when all body parts are empty", () => {
+    expect(mapHotJobs([{ jobTitle: "x" } as any])).toHaveLength(0);
+    const [j] = mapHotJobs([
+      {
+        ...rec,
+        briefDescription: "",
+        detailedDescription: "",
+        jobRequirements: "",
+      },
+    ]);
+    expect(j.description_html).toBeNull();
   });
 });

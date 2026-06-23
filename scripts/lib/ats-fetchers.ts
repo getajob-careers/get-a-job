@@ -1230,6 +1230,121 @@ export async function fetchBezeq(c: CompanyEntry): Promise<RawJob[]> {
   return mapBezeqJobs(data);
 }
 
+// ───── HOT Telecommunications (per-publisher JSON endpoint) ──────────
+//
+// HOT-specific endpoint. The 'hot_native' ats slug is intentional to
+// distinguish per-publisher JSON endpoints from multi-tenant ATSs. If more
+// publishers expose similar self-built JSON APIs, they should each get their
+// own fetcher and ats slug, and do NOT shoehorn into a single generic fetcher
+// because each publisher's schema is different.
+//
+// Mechanics: HOT exposes its own CMS API at
+// www.hot.net.il/HotCmsApiFront/api/MarketingJob/GetJobs. One POST with
+// {professionId:0, areaId:0, take:100} returns the full active set as JSON.
+// No auth, no token, no pagination loop (take is a cap; the set is small).
+// Two quirks. (1) The body is DOUBLE-ENCODED: the response is a JSON string
+// that itself contains the JSON object, so it must be parsed twice. (2) Only
+// F5 BIG-IP load-balancer cookies (TS...) are set, and none are required to
+// replay. We send a real browser UA (httpPostJson uses USER_AGENT), same as
+// the other IL enterprise endpoints, because IL gateways can bot-filter a
+// non-browser UA.
+//
+// Field reality (do not trust a first guess at the schema). The job TITLE is
+// in `jobTitle`. The JD BODY is split across `briefDescription` (role, HTML),
+// `detailedDescription` (often empty), and `jobRequirements` (HTML), which we
+// concatenate into description_html. `vacancyName` is the job ID (e.g.
+// "JB-265"), NOT a name. There is no posted-date and no apply URL in the
+// payload, so date_posted is null and apply_url is built from vacancyName
+// against the careers page. The source is unambiguously Hebrew, so we tag
+// raw_payload.jd_language='he' (the pipeline has no first-class jd_language
+// field; the downstream extractor keys off content) and set
+// structured_country='IL' (the endpoint is inherently IL), which
+// short-circuits classifyLocation.
+const HOT_API_URL =
+  "https://www.hot.net.il/HotCmsApiFront/api/MarketingJob/GetJobs";
+const HOT_CAREERS_URL = "https://www.hot.net.il/heb/career/careersearch/";
+const HOT_REQUEST_BODY = { professionId: 0, areaId: 0, take: 100 };
+
+interface HotJobRecord {
+  vacancyName?: string | null; // job ID, e.g. "JB-265"
+  jobTitle?: string | null; // Hebrew job title
+  location?: string | null; // Hebrew location
+  briefDescription?: string | null; // JD body, HTML
+  detailedDescription?: string | null; // JD body, HTML (often empty)
+  jobRequirements?: string | null; // requirements, HTML
+  vacancyDivision?: string | null;
+  orgName?: string | null;
+  employmentStatus?: string | null;
+  departmentDescription?: string | null;
+  professionalArea?: string | null;
+  additionalDetails?: string | null;
+}
+
+interface HotResponse {
+  isError?: boolean;
+  data?: { vacanciesDetails?: HotJobRecord[] };
+  messageCode?: unknown;
+  messageDesc?: unknown;
+}
+
+// Concatenate the HTML body parts HOT splits a JD across, dropping empties.
+function hotDescriptionHtml(r: HotJobRecord): string | null {
+  const parts = [r.briefDescription, r.detailedDescription, r.jobRequirements]
+    .map((p) => (p ?? "").trim())
+    .filter(Boolean);
+  return parts.length ? parts.join("\n") : null;
+}
+
+// Pure mapper (unit-tested). Kept separate from the fetch so the schema
+// mapping can be asserted without a network round-trip.
+export function mapHotJobs(records: HotJobRecord[]): RawJob[] {
+  const out: RawJob[] = [];
+  for (const r of records) {
+    if (!r || !r.vacancyName) continue;
+    out.push({
+      external_id: String(r.vacancyName),
+      title: (r.jobTitle ?? "").trim(),
+      description_html: hotDescriptionHtml(r),
+      location_raw: r.location?.trim() || null,
+      structured_country: "IL",
+      apply_url: `${HOT_CAREERS_URL}?jobId=${encodeURIComponent(r.vacancyName)}`,
+      date_posted: null,
+      salary_min: null,
+      salary_max: null,
+      salary_currency: null,
+      is_remote: false,
+      raw_payload: {
+        source: "hot_native",
+        jd_language: "he",
+        vacancyName: r.vacancyName,
+        vacancyDivision: r.vacancyDivision ?? null,
+        orgName: r.orgName ?? null,
+        employmentStatus: r.employmentStatus ?? null,
+        departmentDescription: r.departmentDescription ?? null,
+        professionalArea: r.professionalArea ?? null,
+        additionalDetails: r.additionalDetails ?? null,
+      },
+    });
+  }
+  return out;
+}
+
+export async function fetchHotTelecom(c: CompanyEntry): Promise<RawJob[]> {
+  const url = c.api_url ?? HOT_API_URL;
+  // Browser-UA POST. HOT double-encodes: httpPostJson parses the outer JSON,
+  // which yields a STRING; we parse that string once more to get the object.
+  // Guard for the case HOT stops double-encoding (returns the object directly).
+  const raw = await httpPostJson<unknown>(url, HOT_REQUEST_BODY);
+  let res: HotResponse;
+  try {
+    res = (typeof raw === "string" ? JSON.parse(raw) : raw) as HotResponse;
+  } catch {
+    throw new Error(`hot: non-JSON response from ${url}`);
+  }
+  const records = res?.data?.vacanciesDetails;
+  return mapHotJobs(Array.isArray(records) ? records : []);
+}
+
 // ───── PwC Israel — Niloosoft Hunter Next.js + Heroku ────────────────
 //
 // PwC Israel runs a custom Next.js careers UI at
@@ -1557,4 +1672,7 @@ export const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> =
     // Per-publisher JSON endpoint (Bezeq's own gateway over its AdamTotal
     // backend), NOT the multi-tenant adamtotal SaaS. See fetchBezeq.
     bezeq_native: fetchBezeq,
+    // Per-publisher JSON endpoint (HOT's own HotCmsApiFront CMS API),
+    // NOT a multi-tenant ATS. See fetchHotTelecom.
+    hot_native: fetchHotTelecom,
   };
