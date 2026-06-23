@@ -7334,42 +7334,6 @@
       "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 1 positions, 1 IL-tagged."
     },
     {
-      "name": "Windward",
-      "type": "israeli_founded",
-      "industry": "Maritime AI",
-      "domain": "windward.ai",
-      "careers_url": "https://windward.ai/careers/",
-      "ats": "comeet",
-      "slug": "31.002",
-      "api_url": "https://www.comeet.co/careers-api/2.0/company/31.002/positions?token=1324C84C80AC299072C5FA72C396&details=true",
-      "verified": true,
-      "notes": "Aleph VC portfolio walk. ATS verified live 2026-06-23; Comeet API returned 20 positions, 9 IL-tagged (TLV). Maritime domain AI."
-    },
-    {
-      "name": "Placer.ai",
-      "type": "israeli_founded",
-      "industry": "Location Analytics",
-      "domain": "placer.ai",
-      "careers_url": "https://www.placer.ai/careers",
-      "ats": "greenhouse",
-      "slug": "placerlabs",
-      "api_url": "https://boards-api.greenhouse.io/v1/boards/placerlabs/jobs",
-      "verified": true,
-      "notes": "Aleph VC portfolio walk. Greenhouse slug placerlabs verified live 2026-06-23; board returned 14 jobs, 4 IL-tagged (Ramat Gan)."
-    },
-    {
-      "name": "Nexar",
-      "type": "israeli_founded",
-      "industry": "Vision AI",
-      "domain": "getnexar.com",
-      "careers_url": "https://www.getnexar.com/careers",
-      "ats": "smartrecruiters",
-      "slug": "NexarInc",
-      "api_url": "https://api.smartrecruiters.com/v1/companies/NexarInc/postings",
-      "verified": true,
-      "notes": "Aleph VC portfolio walk. SmartRecruiters slug NexarInc verified live 2026-06-23; API returned 2 postings, both IL-tagged (Tel Aviv-Yafo)."
-    },
-    {
       "name": "Papaya",
       "type": "israeli_founded",
       "industry": "Unknown",
