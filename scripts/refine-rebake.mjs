@@ -26,6 +26,41 @@ const ANON = process.env.SUPABASE_ANON_KEY || process.env.SMOKE_ANON_KEY;
 const OPENAI = process.env.OPENAI_API_KEY;
 const OPENROUTER = process.env.OPENROUTER_API_KEY;
 const HARNESS_TAG = "__REBAKE_HARNESS__";
+
+// ── Seed-account safety gate (added per PR #385 findings) ─────────────────────
+// WHY THIS EXISTS: this harness mints real magic-link JWTs for every profile it
+// selects and writes throwaway applications + CVs against their real user_id. A
+// 2026-06-19 run wrote 9 applications + 11 CVs against 8 real accounts, 5 of them
+// real non-team pilot users, because the eligible set was "every onboarded
+// profile with a master CV". See scripts/findings/harness-contamination-cleanup.md
+// (PR #385) for the full contamination map and cleanup.
+//
+// To make "write to a real user_id in production" impossible, the harness now
+// runs ONLY against the dedicated +-convention seed accounts below, and HARD
+// ABORTS (fail closed, no override flag, no --force) if any selected user_id is
+// not a seed. Eli's real id (4b243f3a-...) is deliberately NOT in this list.
+const SEED_ACCOUNTS = new Set([
+  "42d8133f-302f-4b75-99a0-d3b6d322b8fa", // isaacselig+demo@gmail.com (early-career seed)
+  "78260897-3641-4c8f-a769-81c46580d5bd", // yishailieser+demo3@gmail.com (mid seed)
+]);
+
+// Throws (fail closed) if any target user_id is not a dedicated seed account.
+// The thrown error names the offending id(s); main()'s catch prints it and exits 1.
+function assertSeedOnly(userIds) {
+  const offenders = [...new Set(userIds)].filter(
+    (id) => !SEED_ACCOUNTS.has(id),
+  );
+  if (offenders.length > 0) {
+    throw new Error(
+      `SEED GATE: refusing to run. Non-seed user_id(s) in the target set: ` +
+        `${offenders.join(", ")}. This harness writes throwaway applications + CVs ` +
+        `against real user accounts, so it may only target the dedicated seed ` +
+        `accounts in SEED_ACCOUNTS (see scripts/findings/harness-contamination-cleanup.md, ` +
+        `PR #385). There is no override flag by design.`,
+    );
+  }
+}
+
 const N_ALIGNED = 30;
 const N_STRETCH = 30;
 const CONCURRENCY = 3; // keep low — the concurrent-OpenAI-load lesson (gen 500s under ~4 concurrent)
@@ -543,7 +578,8 @@ async function main() {
   });
   const emailById = new Map((list?.users || []).map((u) => [u.id, u.email]));
   const eligible = (profs || []).filter(
-    (p) => haveMaster.has(p.id) && emailById.get(p.id),
+    (p) =>
+      haveMaster.has(p.id) && emailById.get(p.id) && SEED_ACCOUNTS.has(p.id),
   );
 
   // build frozen pair set
@@ -576,6 +612,12 @@ async function main() {
   console.log(
     `pairs: ${pairs.length} (${pairs.filter((x) => x.type === "aligned").length} aligned + ${pairs.filter((x) => x.type === "stretch").length} stretch)`,
   );
+
+  // Fail-closed seed gate: hard-abort before any JWT mint or DB write if any
+  // selected target is not a dedicated seed account. The eligible filter above
+  // already restricts to seeds; this is the backstop that makes a real-user
+  // write impossible even if selection logic changes. See PR #385.
+  assertSeedOnly(pairs.map((pr) => pr.profile.id));
 
   // freeze keywords once per distinct JD
   const frozen = new Map();
@@ -653,7 +695,13 @@ async function main() {
   );
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+// Only run the harness when invoked directly (node scripts/refine-rebake.mjs).
+// Guarded so the seed gate can be imported and unit-tested without running main.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  main().catch((e) => {
+    console.error(e);
+    process.exit(1);
+  });
+}
+
+export { SEED_ACCOUNTS, assertSeedOnly };
