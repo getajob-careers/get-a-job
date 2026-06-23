@@ -3,7 +3,7 @@
 **Get A Job — Own Your Career**
 
 **Effective Date:** June 22, 2026
-**Last Updated:** June 22, 2026
+**Last Updated:** June 23, 2026
 
 **Operated by:** Eliezer Englard (Get A Job), Israel
 **Contact:** privacy@getajob.careers
@@ -200,8 +200,9 @@ We do **not** use advertising cookies or tracking pixels. We do **not** serve ad
 This Privacy Policy also applies to the Get A Job browser extension, an optional companion to your Get A Job account. The extension is designed not to collect any personal data beyond what this policy already describes.
 
 - **Authentication:** The extension works only when you are signed in to getajob.careers in the same browser. It reads your existing Get A Job login session from your open getajob.careers tab in order to authenticate your requests. It does not create a separate login and does not access or store your password.
-- **Job descriptions you paste:** When you paste a job description into the extension, that text is sent to the Get A Job backend (Supabase and the AI providers in Section 6) to generate a tailored CV and a job match, and to add the role to your application tracker. This is the same processing described elsewhere in this policy.
-- **What it does not do:** The extension does not read, collect, or transmit the content of other websites you visit, your browsing history, or any page content other than a job description you choose to paste into it. It does not track you across the web and does not serve advertising.
+- **Job descriptions you analyze:** When you explicitly choose to generate a tailored CV or add a role to your application tracker, the extension reads the text of the job posting on the page you are currently viewing, or processes the text you paste into the extension interface. That text is sent to the Get A Job backend (Supabase and the AI providers described in Section 6) for the processing described elsewhere in this policy.
+- **Chrome Web Store data-use compliance:** Our use of information received through the extension, including any data accessed via Google APIs, adhere to the Chrome Web Store User Data Policy, including its Limited Use requirements.
+- **What it does not do:** The extension does not automatically monitor, collect, or transmit your browsing history, any page content other than the specific job description you explicitly choose to evaluate, or any data unrelated to the core functions of Get A Job. It does not track you across the web, does not sell your data, and does not serve advertising.
 - **Storage and permissions:** The extension uses your browser's local storage only to hold your Get A Job session so it can authenticate. The permissions it requests — access to your getajob.careers tab and to the Get A Job backend — exist solely for the functions described above.
 
 ---
