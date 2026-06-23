@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 893,
+  "total_companies": 892,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -19,7 +19,7 @@
     "recruitee": 1,
     "smartrecruiters": 10,
     "successfactors": 8,
-    "teamtailor": 2,
+    "teamtailor": 1,
     "unknown": 254,
     "workable": 10,
     "workday": 36
@@ -612,18 +612,6 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/F9.00B/positions?token=9FB45DD1DF11DF113F69FB59D345DD13F61DF1&details=true",
       "verified": true,
       "notes": "Comeet UID F9.00B + token verified from comeet.com hosted page"
-    },
-    {
-      "name": "Anima",
-      "type": "israeli_founded",
-      "industry": "DevTools / AI",
-      "domain": "animaapp.com",
-      "careers_url": "https://animaapp-1721730147.teamtailor.com/",
-      "ats": "teamtailor",
-      "slug": "animaapp-1721730147",
-      "api_url": "https://animaapp-1721730147.teamtailor.com/jobs.json",
-      "verified": true,
-      "notes": "Hetz Ventures portfolio. First IL TeamTailor tenant in the registry. No TeamTailor fetcher exists yet (single tenant, below the 4+ multi-tenant threshold), so the nightly cron skips it cleanly (teamtailor is not in ENABLED_ATSS) until a fetcher is built. Slug locked for the future. Endpoint verified live 2026-06-23: jobs.json returns 200 (valid feed) with 0 current postings."
     },
     {
       "name": "Anina Culinary Art",
