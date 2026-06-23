@@ -1,12 +1,12 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 891,
+  "total_companies": 892,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
     "amazon_jobs": 1,
     "ashby": 69,
-    "comeet": 225,
+    "comeet": 226,
     "custom": 31,
     "eightfold": 3,
     "greenhouse": 200,
@@ -6936,6 +6936,18 @@
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/oligo",
       "verified": true,
       "notes": "Probed: ashby slug 'oligo' returns 200"
+    },
+    {
+      "name": "One Zero Digital Bank",
+      "type": "israeli_founded",
+      "industry": "Digital Banking",
+      "domain": "onezerobank.com",
+      "careers_url": "https://www.onezerobank.com/career/",
+      "ats": "comeet",
+      "slug": "36.00A",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/36.00A/positions?token=63A255C63A63A18E831D063A31D063A1F22&details=true",
+      "verified": true,
+      "notes": "Comeet UID + token from careers page (browser-agent JSON-endpoint check); API returned 10 positions, all IL-tagged (Tel Aviv). Source: https://www.onezerobank.com/career/"
     },
     {
       "name": "Onebeat",
