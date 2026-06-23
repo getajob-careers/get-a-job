@@ -394,12 +394,40 @@ const RX_US_CITY = new RegExp(
   "i",
 );
 
-function hasUsCorroboratingSignal(raw: string): boolean {
+// US Illinois suppression additions (PR #387, scripts/findings/country-code-
+// fetcher-audit.md). The 2026-06-12 guard caught explicit-state strings and the
+// tech-hub allowlist, but ~164 US-Illinois rows still slipped through: Illinois
+// suburbs not in the tech-hub list, the dotted "U.S." / "U.S.A." forms, and rows
+// whose structured_country was already "US". These three signals close that gap.
+// They run only inside hasUsCorroboratingSignal, which gates the bare "IL" rule
+// alone, so the IL_CITY_MAP / region / "Israel" paths still win first and no
+// legitimate IL row can regress.
+//
+// Major US cities that pair with the Illinois state code. A bare "Naperville,
+// IL" (no other US token) was the residual miss.
+const RX_US_IL_CITY =
+  /\b(Chicago|Springfield|Aurora|Rockford|Naperville|Joliet|Peoria|Schaumburg|Elgin)\b/i;
+// Dotted US country forms: "U.S." and "U.S.A." (RX_US_COUNTRY only catches the
+// undotted "US" / "USA" / "United States" after a comma).
+const RX_US_DOTTED = /\bU\.S\.(?:A\.?)?/i;
+// A structured_country supplied by the ATS that resolves to the United States.
+const RX_US_STRUCTURED =
+  /^(?:US|USA|U\.S\.(?:A\.?)?|United\s+States(?:\s+of\s+America)?)$/i;
+
+function hasUsCorroboratingSignal(
+  raw: string,
+  structuredCountry?: string | null,
+): boolean {
+  if (structuredCountry && RX_US_STRUCTURED.test(structuredCountry.trim())) {
+    return true;
+  }
   return (
     RX_US_COUNTRY.test(raw) ||
+    RX_US_DOTTED.test(raw) ||
     RX_US_ZIP.test(raw) ||
     RX_US_STATE_NON_IL.test(raw) ||
-    RX_US_CITY.test(raw)
+    RX_US_CITY.test(raw) ||
+    RX_US_IL_CITY.test(raw)
   );
 }
 
@@ -444,7 +472,10 @@ export function classifyLocation(
   // Bare "IL" country code — only counts as Israel if NO corroborating
   // US signal exists in the string. This is the Illinois fix (now
   // extended to catch US tech-hub city co-mentions before adding MNCs).
-  if (RX_COUNTRY_IL_CODE.test(raw) && !hasUsCorroboratingSignal(raw)) {
+  if (
+    RX_COUNTRY_IL_CODE.test(raw) &&
+    !hasUsCorroboratingSignal(raw, structuredCountry)
+  ) {
     return { is_il: true, city: null };
   }
 
