@@ -10,6 +10,7 @@ import {
   type ScoredMatch,
 } from '../_shared/internship-pitch.ts'
 import { buildTargetContext } from '../_shared/internship-target.ts'
+import { chunk } from './batch.ts'
 
 // match-internship-companies — Wk 4 Strategic Internship Finder matcher.
 //
@@ -56,6 +57,12 @@ const POOL_CAP = 500
 
 // Top-N from rule pre-filter → LLM scoring batch.
 const LLM_BATCH_SIZE = 30
+
+// Companies per parallel LLM batch. One call across all 30 candidates pushed
+// gpt-4o past its wall-clock budget and timed out (the 2026-06-23 500 for
+// user 5dce661c). Splitting into smaller parallel calls keeps each well
+// inside its own 45s abort window and removes the single-point timeout.
+const BATCH_COMPANIES = 10
 
 // PR7: pipeline UPSERT filter. The matcher scores all 30 LLM-prefiltered
 // candidates, but only adds High-band matches to the user's pipeline so
@@ -116,6 +123,7 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   const m = startMetric('match-internship-companies')
+  const startedAt = Date.now()
   let _ok = false
   let _http = 500
   let _err: string | null = null
@@ -259,7 +267,7 @@ Deno.serve(async (req) => {
       profileRes.data ?? null,
       (careerRolesRes.data ?? []) as any[],
     )
-    const llmInput = {
+    const sharedInput = {
       target_context: targetContext,
       internship_profile: {
         realistic_company_stages: internshipProfile.realistic_company_stages,
@@ -273,86 +281,100 @@ Deno.serve(async (req) => {
         career_compound_rationale: internshipProfile.career_compound_rationale,
         track_1_role_alignment: internshipProfile.track_1_role_alignment,
       },
-      candidate_companies: preScored.map((c) => ({
-        company_id: c.id,
-        name: c.name,
-        domain: c.domain,
-        sector: c.sector,
-        industry: c.industry,
-        stage: c.stage,
-        hq: c.hq_city || c.hq_country
-          ? [c.hq_city, c.hq_country].filter(Boolean).join(', ')
-          : null,
-        employee_count_range: c.employee_count_range,
-        description: c.description ? c.description.slice(0, 400) : null,
-      })),
     }
+    const mapCandidate = (c: PreScoredCompany) => ({
+      company_id: c.id,
+      name: c.name,
+      domain: c.domain,
+      sector: c.sector,
+      industry: c.industry,
+      stage: c.stage,
+      hq: c.hq_city || c.hq_country
+        ? [c.hq_city, c.hq_country].filter(Boolean).join(', ')
+        : null,
+      employee_count_range: c.employee_count_range,
+      description: c.description ? c.description.slice(0, 400) : null,
+    })
 
     // PR8: matcher uses the dedicated MATCHER_SYSTEM_PROMPT (score +
     // match_rationale + pitched_role only). Prose was moved to
-    // generate-internship-pitch, called on demand by the Pipeline
-    // drawer with this pitched_role as a hint. Output dropped from
-    // ~5,400 → ~2,100 tokens — cap pressure is gone permanently.
-    // max_tokens stays at 6000 (per Eli): a tight cap above expected
-    // output is the exact failure we're removing; the cap costs
-    // nothing when unused.
-    const systemPrompt = MATCHER_SYSTEM_PROMPT
-    const userPrompt = buildUserPrompt(llmInput)
-
+    // generate-internship-pitch, called on demand by the Pipeline drawer.
+    // Batched scoring (2026-06-23 timeout fix): split the prefiltered pool
+    // into parallel calls of BATCH_COMPANIES, each with its own short abort
+    // window, then merge. max_tokens is per batch, so a tighter 2500 cap is
+    // plenty for the narrow score + rationale + role output.
+    const companyBatches = chunk(preScored, BATCH_COMPANIES)
     const sessionId = `match-internship-${user.id}-${Date.now()}`
-    const openaiResponse = await openaiChatCompletion(
-      {
-        model: MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt },
-        ],
-        temperature: 0.3,
-        max_tokens: 6000,
-        response_format: { type: 'json_object' },
-      },
-      openaiKey,
-      {
-        traceName: 'match-internship-companies',
-        userId: user.id,
-        sessionId,
-        metadata: {
-          pool_size: pool.length,
-          prefilter_size: preScored.length,
-          practicum_cohort: null,
-        },
-      },
-      { signal: AbortSignal.timeout(60000) },
+
+    const batchResponses = await Promise.all(
+      companyBatches.map((batch, i) =>
+        openaiChatCompletion(
+          {
+            model: MODEL,
+            messages: [
+              { role: 'system', content: MATCHER_SYSTEM_PROMPT },
+              {
+                role: 'user',
+                content: buildUserPrompt({
+                  ...sharedInput,
+                  candidate_companies: batch.map(mapCandidate),
+                }),
+              },
+            ],
+            temperature: 0.3,
+            max_tokens: 2500,
+            response_format: { type: 'json_object' },
+          },
+          openaiKey,
+          {
+            traceName: 'match-internship-companies',
+            userId: user.id,
+            sessionId: `${sessionId}-b${i}`,
+            metadata: {
+              pool_size: pool.length,
+              prefilter_size: preScored.length,
+              batch_index: i,
+              batch_size: batch.length,
+              practicum_cohort: null,
+            },
+          },
+          { signal: AbortSignal.timeout(45000) },
+        )
+      ),
     )
 
-    if (!openaiResponse.ok) {
-      console.error(`[match-internship-companies] OpenAI ${openaiResponse.status}`)
-      _http = 502; _err = `openai_${openaiResponse.status}`
-      m.modelUsed = MODEL
-      return new Response(JSON.stringify({ error: 'AI service temporarily unavailable. Please try again.' }), {
-        status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
-    }
-
-    const completion = await openaiResponse.json()
     m.modelUsed = MODEL
-    m.tokensIn = completion.usage?.prompt_tokens ?? null
-    m.tokensOut = completion.usage?.completion_tokens ?? null
-
-    const content: string = completion.choices?.[0]?.message?.content || '{}'
-    let parsed: any
-    try {
-      parsed = JSON.parse(content)
-    } catch (parseErr) {
-      console.error('[match-internship-companies] JSON parse failed:', content.slice(0, 200), parseErr)
-      _http = 502; _err = 'json_parse'
-      return new Response(JSON.stringify({ error: 'AI returned malformed response. Please try again.' }), {
-        status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+    let tokensIn = 0
+    let tokensOut = 0
+    const rawScored: any[] = []
+    for (const openaiResponse of batchResponses) {
+      if (!openaiResponse.ok) {
+        console.error(`[match-internship-companies] OpenAI ${openaiResponse.status}`)
+        _http = 502; _err = `openai_${openaiResponse.status}`
+        return new Response(JSON.stringify({ error: 'AI service temporarily unavailable. Please try again.' }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      const completion = await openaiResponse.json()
+      tokensIn += completion.usage?.prompt_tokens ?? 0
+      tokensOut += completion.usage?.completion_tokens ?? 0
+      const content: string = completion.choices?.[0]?.message?.content || '{}'
+      let parsed: any
+      try {
+        parsed = JSON.parse(content)
+      } catch (parseErr) {
+        console.error('[match-internship-companies] JSON parse failed:', content.slice(0, 200), parseErr)
+        _http = 502; _err = 'json_parse'
+        return new Response(JSON.stringify({ error: 'AI returned malformed response. Please try again.' }), {
+          status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
+      }
+      if (Array.isArray(parsed?.scored)) rawScored.push(...parsed.scored)
     }
+    m.tokensIn = tokensIn
+    m.tokensOut = tokensOut
 
     const validCompanyIds = new Set(preScored.map((c) => c.id))
-    const rawScored = Array.isArray(parsed?.scored) ? parsed.scored : []
     const scored: LlmScoredCompany[] = []
     for (const r of rawScored) {
       const norm = sharedNormalizeScoredMatch(r, validCompanyIds)
@@ -512,7 +534,23 @@ Deno.serve(async (req) => {
     })
 
   } catch (error: any) {
-    console.error('[match-internship-companies] unhandled:', error?.message || error)
+    const name = error?.name || ''
+    const durationMs = Date.now() - startedAt
+    // A batch that ran past its AbortSignal.timeout rejects with a
+    // TimeoutError (AbortError on some runtimes). That is the 2026-06-23
+    // failure mode: surface it as a retryable 504, not a generic 500.
+    if (name === 'TimeoutError' || name === 'AbortError') {
+      console.error(`[match-internship-companies] timeout (${name}) after ${durationMs}ms`)
+      _http = 504; _err = 'timeout'
+      return new Response(JSON.stringify({
+        error: 'matching_timeout',
+        message: 'Internship matching took longer than expected. Please retry in a moment.',
+        retry_after_seconds: 5,
+      }), {
+        status: 504, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+    console.error(`[match-internship-companies] unhandled (${name || 'Error'}) after ${durationMs}ms:`, error?.message || error)
     _http = 500; _err = 'unhandled'
     return new Response(JSON.stringify({ error: 'An unexpected error occurred.' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
