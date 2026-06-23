@@ -6374,6 +6374,18 @@
       "notes": "Tel Aviv office hosts product-leader meetups; 38 jobs"
     },
     {
+      "name": "Mixtiles",
+      "type": "israeli_founded",
+      "industry": "Consumer / E-commerce",
+      "domain": "mixtiles.com",
+      "careers_url": "https://www.mixtiles.com/careers",
+      "ats": "greenhouse",
+      "slug": "mixtiles",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/mixtiles/jobs",
+      "verified": true,
+      "notes": "83North VC portfolio walk. Greenhouse slug mixtiles verified live 2026-06-23; board returned 12 jobs, 11 IL-tagged (Tel-Aviv)."
+    },
+    {
       "name": "Mizrahi Tefahot Bank",
       "type": "israeli_founded",
       "industry": "Banking",
