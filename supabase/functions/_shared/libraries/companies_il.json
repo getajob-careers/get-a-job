@@ -6,7 +6,7 @@
     "adamtotal_agency": 1,
     "amazon_jobs": 1,
     "ashby": 69,
-    "comeet": 226,
+    "comeet": 227,
     "custom": 31,
     "eightfold": 3,
     "greenhouse": 200,
@@ -20,7 +20,7 @@
     "smartrecruiters": 10,
     "successfactors": 8,
     "teamtailor": 1,
-    "unknown": 255,
+    "unknown": 254,
     "workable": 10,
     "workday": 36
   },
@@ -7960,14 +7960,14 @@
     {
       "name": "PrettyDamnQuick",
       "type": "israeli_founded",
-      "industry": "Logistics",
+      "industry": "eCommerce / Checkout",
       "domain": "prettydamnquick.com",
       "careers_url": null,
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "No ATS hit"
+      "ats": "comeet",
+      "slug": "0A.00E",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/0A.00E/positions?token=A0E46621E2A3246283832464662A0E141C0&details=true",
+      "verified": true,
+      "notes": "Comeet uid+token embedded in the careers page (TLV Partners portfolio). Upgraded from an unverified placeholder. Verified live 2026-06-23: 2 positions, 1 IL (Tel Aviv)."
     },
     {
       "name": "Primis",
