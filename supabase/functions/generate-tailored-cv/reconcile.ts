@@ -27,6 +27,11 @@ export interface SourceExperience {
   end_date: string;
   is_current: boolean;
   responsibilities: string;
+  // PR #321 Phase-4 read side: user-curated achievement bullets (chat
+  // "add X to my CV" capture). When present, preferred over splitting
+  // responsibilities in the no-LLM-bullets fallback below. Optional so the
+  // job-CV / from-scratch callers that omit it stay byte-identical.
+  bullets?: string[];
 }
 
 export interface LlmEntry {
@@ -223,7 +228,15 @@ export function fillFromSource(
   return sources.map((src, i) => {
     let bullets = bulletsBySource.get(i) || [];
     if (bullets.length === 0) {
-      bullets = responsibilitiesToBullets(src.responsibilities);
+      // PR #321 Phase-4 read side: when the LLM emitted no bullets for this
+      // slot, prefer the user-curated bullets over splitting responsibilities.
+      const curated = Array.isArray(src.bullets)
+        ? src.bullets.map((b) => String(b || "").trim()).filter(Boolean)
+        : [];
+      bullets =
+        curated.length > 0
+          ? curated
+          : responsibilitiesToBullets(src.responsibilities);
     }
     const out: FilledEntry = {
       title: src.title || "",

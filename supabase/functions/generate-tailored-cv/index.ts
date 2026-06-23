@@ -390,6 +390,9 @@ Deno.serve(async (req) => {
 
     const [profileRes, experiencesRes, projectsRes, certificationsRes] = await Promise.all([
       supabase.from("profiles").select("*, education(*)").eq("id", user.id).single(),
+      // select("*") is load-bearing here: experiences.bullets (PR #321 Phase-4
+      // read side) MUST be pulled so mapExperience can prefer it as the bullet
+      // source. Do NOT narrow this to a column list without including bullets.
       supabase.from("experiences").select("*").eq("user_id", user.id),
       supabase.from("projects").select("*").eq("user_id", user.id),
       supabase.from("certifications").select("*").eq("user_id", user.id),
@@ -802,6 +805,12 @@ Deno.serve(async (req) => {
       // (DB audit, 2026-05-21). 4000 is purely defensive — covers a 5x growth
       // headroom without crowding the prompt budget.
       responsibilities: trunc(exp.responsibilities, 4000),
+      // PR #321 Phase-4 read side: experiences.bullets is the user-curated
+      // achievement list captured via the chat "add X to my CV" loop. When
+      // present it is the PREFERRED bullet source (see OPTION_A_OVERLAY source
+      // ranking + reconcile fillFromSource fallback); empty falls back to
+      // responsibilities. Cap each bullet and the count to bound prompt budget.
+      bullets: safeArray(exp.bullets).map((b) => trunc(String(b ?? ""), 600)).filter(Boolean).slice(0, 20),
       skills: safeArray(exp.skills).slice(0, 40).map((s) => trunc(s, 60)),
       type: trunc(exp.type, 50),
       bucket: classifyExperience(exp), // "military" | "volunteering" | "professional"
@@ -1330,14 +1339,16 @@ constraints must be honored.
     const OPTION_A_OVERLAY = `
 ─── OPTION-A AUTHORING OVERLAY (overrides any conflicting rule above) ───
 
-SOURCE RANKING (RESPONSIBILITIES FIRST):
-- experience.responsibilities is the PRIMARY source for bullets. Stories and proof_signals are ENRICHMENT only — they may contribute a metric or named tool the responsibility omits, but they NEVER replace a responsibility line. Ranking: responsibilities > proof_signals (enrichment) > stories (enrichment).
+SOURCE RANKING (CURATED BULLETS FIRST, THEN RESPONSIBILITIES):
+- When experience.bullets is present and non-empty, it is the PRIMARY source for that experience's bullets: each entry is a user-curated achievement line, so base ONE tailored bullet on each (subject to the bullet cap) and do NOT also generate bullets from experience.responsibilities for that same role. The same accomplishment must never appear twice.
+- When experience.bullets is empty or absent, experience.responsibilities is the PRIMARY source instead.
+- Stories and proof_signals are ENRICHMENT only: they may contribute a metric or named tool the primary source omits, but they NEVER replace a primary-source line. Ranking: experience.bullets (or experience.responsibilities when bullets is empty) > proof_signals (enrichment) > stories (enrichment).
 
 BULLET CAP (faithfulness over compression):
 - ${isMasterMode ? "MASTER RESERVOIR — UNCAPPED: emit ONE bullet per distinct responsibility or accomplishment in the source. There is NO ceiling — if the user wrote 9 responsibility lines, emit 9 bullets. NEVER drop a real responsibility and NEVER compress. Split a compound responsibility only when it genuinely holds two distinct accomplishments; never invent or pad to inflate the count." : "Emit ONE bullet per distinct responsibility line in the source, capped at 6 per experience. If the user wrote 5 responsibility lines, emit 5 bullets — do NOT compress to 3. If a single short responsibility line exists, emit 1-2 bullets (split a compound responsibility if needed; never invent). Drop the LEAST JD-relevant line ONLY when you hit the 6-bullet ceiling."}
 
-VERBATIM METRICS (responsibilities AND stories):
-- Every number appearing in experience.responsibilities — counts, percentages, currency, durations, team sizes, volumes — MUST appear in a bullet for that experience, word-for-word. Rephrasing applies to verbs and surrounding structure, NEVER to the number tokens themselves. If a single bullet cannot carry all numbers, distribute across multiple bullets for the same experience. Story metrics remain verbatim (unchanged from the existing STORY BANK BINDING rules).
+VERBATIM METRICS (primary source AND stories):
+- Every number appearing in the experience's PRIMARY source (experience.bullets when present, otherwise experience.responsibilities), including counts, percentages, currency, durations, team sizes, and volumes, MUST appear in a bullet for that experience, word-for-word. Rephrasing applies to verbs and surrounding structure, NEVER to the number tokens themselves. If a single bullet cannot carry all numbers, distribute across multiple bullets for the same experience. Story metrics remain verbatim (unchanged from the existing STORY BANK BINDING rules).
 
 SPARSE-PROFILE FALLBACK:
 - When professional_experiences[] is empty or contains only one short entry: the About Me must anchor on education + draw 2-3 specific claims from proof_signals. Render up to 4 academic_projects per education entry (cap rises from 2 to 4 for sparse profiles only). Surface every project. Skills carry the relevance signal in place of bullet density.
@@ -1725,6 +1736,11 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       end_date: String(e?.end_date || ""),
       is_current: !!e?.is_current,
       responsibilities: String(e?.responsibilities || ""),
+      // PR #321 Phase-4 read side: carry curated bullets to fillFromSource so
+      // its no-LLM-bullets fallback prefers them over splitting responsibilities.
+      bullets: Array.isArray(e?.bullets)
+        ? e.bullets.map((b: any) => String(b || "").trim()).filter(Boolean)
+        : [],
     });
     // Defensive instrumentation sink — additive, no behavior change. Each
     // bucket's fillFromSource appends any unclaimed or positional-fallback
