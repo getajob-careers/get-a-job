@@ -233,3 +233,68 @@ describe("formatExperienceDates", () => {
     expect(formatExperienceDates("", "", false)).toBe("");
   });
 });
+
+describe("fillFromSource curated bullets source preference (PR #321 Phase-4 read side)", () => {
+  it("bullets populated, LLM omits the slot - output bullets come from source.bullets, NOT responsibilities", () => {
+    const sources = [
+      src({
+        title: "CS Specialist",
+        company: "Guardio",
+        responsibilities: "Generic VIP support prose.",
+        bullets: ["Built a QA pipeline for the AI voice bot", "Redesigned the social-media auto-moderation system"],
+      }),
+    ];
+    // LLM returns nothing, forcing the no-LLM-bullets fallback.
+    const result = fillFromSource(sources, [], "company");
+
+    expect(result).toHaveLength(1);
+    expect(result[0].company).toBe("Guardio");
+    expect(result[0].bullets).toEqual([
+      "Built a QA pipeline for the AI voice bot",
+      "Redesigned the social-media auto-moderation system",
+    ]);
+  });
+
+  it("bullets empty, LLM omits the slot - falls back to responsibilitiesToBullets(responsibilities) as before", () => {
+    const sources = [
+      src({ title: "Role B", company: "Co B", bullets: [], responsibilities: "Ran B operations.\nManaged B team of 4." }),
+    ];
+    const result = fillFromSource(sources, [], "company");
+
+    expect(result[0].bullets).toEqual(["Ran B operations.", "Managed B team of 4."]);
+  });
+
+  it("mixed sources - each experience uses its own correct source (bullets vs responsibilities)", () => {
+    const sources = [
+      src({ title: "Curated", company: "HasBullets", bullets: ["curated bullet one", "curated bullet two"], responsibilities: "ignored prose." }),
+      src({ title: "Legacy", company: "NoBullets", responsibilities: "legacy line one\nlegacy line two" }),
+    ];
+    // LLM omits both, so each falls back to its own preferred source.
+    const result = fillFromSource(sources, [], "company");
+
+    expect(result[0].company).toBe("HasBullets");
+    expect(result[0].bullets).toEqual(["curated bullet one", "curated bullet two"]);
+    expect(result[1].company).toBe("NoBullets");
+    expect(result[1].bullets).toEqual(["legacy line one", "legacy line two"]);
+  });
+
+  it("LLM-emitted bullets still win over curated source bullets (tailoring path unchanged)", () => {
+    const sources = [
+      src({ title: "CS Specialist", company: "Guardio", bullets: ["raw curated bullet"], responsibilities: "prose" }),
+    ];
+    const llm = [{ index: 0, bullets: ["JD-tailored bullet"] }];
+    const result = fillFromSource(sources, llm, "company");
+
+    expect(result[0].bullets).toEqual(["JD-tailored bullet"]);
+  });
+
+  it("blank/whitespace curated bullets are dropped before the fallback decision", () => {
+    const sources = [
+      src({ title: "Role", company: "Co", bullets: ["  ", ""], responsibilities: "real line" }),
+    ];
+    const result = fillFromSource(sources, [], "company");
+
+    // All curated entries were blank, so it falls through to responsibilities.
+    expect(result[0].bullets).toEqual(["real line"]);
+  });
+});
