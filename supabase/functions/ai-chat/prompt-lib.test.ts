@@ -15,6 +15,7 @@ import {
   assembleSystemPrompt,
   CONTEXT_HONESTY_RULES,
   BULLET_CAPTURE_RULES,
+  BULLET_CAPTURE_REGEN_RULES,
 } from "./prompt-lib.ts";
 
 const MARKER = "SUGGESTED_TASKS_JSON:";
@@ -290,21 +291,30 @@ describe("BULLET_CAPTURE_RULES — experiences + education target + no downstrea
   });
 });
 
-describe("post-save CV-regen follow-up (Phase 4: bullet_capture offers regen)", () => {
-  // Phase 4 (PR #377/#378): experiences.bullets now feeds CV generation, so the
-  // bullet_capture follow-up reinstates the one-tap regen offer. story_capture
-  // is no longer wired (Story Bank migrated to experiences), so it falls through
-  // to the normal agent prompt with no regen offer.
-  it('follow_up_after="bullet_capture" injects the regen-offer block', () => {
-    const sys = assembleSystemPrompt("career_agent", "", "bullet_capture");
-    expect(sys).toContain("OFFER CV REGEN");
-    expect(sys).toContain("BULLET JUST SAVED");
-    expect(sys).toContain("SUGGESTED_CV_GENERATION_JSON");
+describe("post-save bullet_capture follow-up (verbal acknowledgement, no card)", () => {
+  // Product decision (post PR #380 live check): the regen card mis-attributed to
+  // a wrong application when no active application context existed, so the card
+  // is dropped. The bullet_capture follow-up now produces a verbal-only
+  // acknowledgement that the bullet is available for future CV generations.
+  // story_capture remains unwired (Story Bank migrated to experiences).
+  it("the regen constant is verbal-only: keeps the ack, drops the card + regen offer", () => {
+    expect(BULLET_CAPTURE_REGEN_RULES).toContain("ACKNOWLEDGE ONLY");
+    expect(BULLET_CAPTURE_REGEN_RULES).toContain("available next time they generate a tailored CV");
+    expect(BULLET_CAPTURE_REGEN_RULES).toContain("verbal acknowledgement only");
+    expect(BULLET_CAPTURE_REGEN_RULES).not.toContain("SUGGESTED_CV_GENERATION_JSON");
+    expect(BULLET_CAPTURE_REGEN_RULES).not.toContain("OFFER CV REGEN");
   });
 
-  it('follow_up_after="story_capture" is unwired and produces no regen offer', () => {
+  it('follow_up_after="bullet_capture" injects the verbal-ack block', () => {
+    const sys = assembleSystemPrompt("career_agent", "", "bullet_capture");
+    expect(sys).toContain("BULLET JUST SAVED");
+    expect(sys).toContain("ACKNOWLEDGE ONLY");
+    expect(sys).toContain("available next time they generate a tailored CV");
+  });
+
+  it('follow_up_after="story_capture" is unwired and produces no acknowledgement block', () => {
     const sys = assembleSystemPrompt("career_agent", "", "story_capture");
-    expect(sys).not.toContain("OFFER CV REGEN");
     expect(sys).not.toContain("BULLET JUST SAVED");
+    expect(sys).not.toContain("ACKNOWLEDGE ONLY");
   });
 });

@@ -321,21 +321,18 @@ Omit this block entirely when no bullet-worthy moment was described AND the user
 
 export const BULLET_CAPTURE_REGEN_RULES = `
 
-FOLLOW-UP MODE: BULLET JUST SAVED, OFFER CV REGEN
-The user just confirmed and saved a new achievement bullet to one of their experiences (or education entries). Experience bullets now flow into CV generation (PR #377 / #378), so the new bullet can surface in the tailored CV. Your one job this turn is a short acknowledgement plus a CV regen offer.
+FOLLOW-UP MODE: BULLET JUST SAVED, ACKNOWLEDGE ONLY
+The user just confirmed and saved a new achievement bullet to one of their experiences (or education entries). Experience bullets now flow into CV generation (PR #377 / #378), so this bullet will be picked up the next time they generate a tailored CV. Your one job this turn is a single short, natural acknowledgement. This is a verbal acknowledgement only.
 
-Reply structure (keep it short, 1 to 2 sentences before any block):
-1. ONE brief acknowledgement. Past tense is OK NOW because the write actually completed ("Saved that bullet on your <experience name if known>.").
-2. ONE sentence offering CV regen ("Want me to regenerate your CV so this lands as a bullet?").
-3. Emit SUGGESTED_CV_GENERATION_JSON to give the user a one-tap regenerate button, but ONLY when BOTH hold: the saved bullet is materially new (not a near-duplicate of content the CV already carries) AND you have an active application or target role in context to fill target_role and application_id. Selection of target_role / application_id follows the standard CV GENERATION priority.
-
-When there is NO active application or target role in context: still offer the regen verbally ("once you open a target role I can regenerate your CV with this"), but do NOT emit a SUGGESTED_CV_GENERATION_JSON block with a null or guessed application reference. A card pointing at no real target is worse than no card.
+Reply shape (one short sentence, no blocks, no cards):
+1. Briefly acknowledge the save. Past tense is OK NOW because the write actually completed.
+2. Mention that the bullet is now in their profile and will be available next time they generate a tailored CV. Phrase it naturally in your own words; do not recite a template. Shape: "Saved that on your <experience name if known>; it will be available next time you generate a tailored CV."
 
 DO NOT in this turn:
+- Emit any CV-generation card or block. There is no one-tap regenerate button here.
+- Offer to regenerate the CV now, or ask which role to target. The bullet is simply available for future generations.
 - Propose another bullet capture (the save just happened, do not loop).
-- Recap CV advice or list options for the user to confirm.
-- Author any CV content inline (use the block, never chat-written CV text).
-- Claim the CV already includes the bullet; the regenerate has not run yet.`;
+- Author any CV content inline, or claim a specific CV already includes the bullet.`;
 
 export const ADD_SKILL_RULES = `
 
@@ -904,18 +901,19 @@ export function assembleSystemPrompt(
 
   // bullet_capture follow-up (Phase 4, PR #377/#378): after the user confirms a
   // bullet via the BulletSaveCard, the frontend fires a synthetic turn with
-  // follow_up_after === "bullet_capture". Now that experiences.bullets flows
-  // into CV generation, the focused job is a one-tap CV regen offer. This is
-  // agent-agnostic, so intercept BEFORE the agent-specific branches.
-  // CV_GENERATION_RULES is included so SUGGESTED_CV_GENERATION_JSON emits with
-  // the right target_role / application_id; CONTEXT_HONESTY_RULES stays because
+  // follow_up_after === "bullet_capture". The post-save job is a verbal-only
+  // acknowledgement that the bullet is saved and will be available for future
+  // CV generations. NO card: the regen card was dropped after the PR #380 live
+  // check showed it mis-attributing to a wrong application when no active
+  // application context existed. Agent-agnostic, so intercept BEFORE the
+  // agent-specific branches. CV_GENERATION_RULES is deliberately NOT injected
+  // here so the card schema is out of reach; CONTEXT_HONESTY_RULES stays because
   // past-tense "saved" is valid ONLY here (the row exists post-confirm) and it
   // still gates against authoring CV content inline.
   if (safeFollowUp === "bullet_capture") {
     return (
       basePrompt +
       BULLET_CAPTURE_REGEN_RULES +
-      CV_GENERATION_RULES +
       CONTEXT_HONESTY_RULES +
       SCOPE_GUARD +
       NO_FABRICATION_GUARD +

@@ -22,9 +22,12 @@ import { Textarea } from "@/components/ui/textarea";
 //   4. SAVING     — onSave appends to the entry's bullets (snapshotting prior).
 //   5. SAVED      — "Added to {entry}" with a persistent UNDO that restores it.
 //
-// A saved bullet lands in the Profile entry ONLY — it does NOT flow into the
-// CV / LinkedIn / internship / daily-action output yet (Phase 4), which is why
-// there is no post-save CV-regen offer here.
+// A saved bullet lands in the user's Profile entry and is read by CV generation
+// (experience bullets now flow into the tailored CV per PR #377 / #378). On the
+// post-save follow-up turn the agent acknowledges the save verbally, noting the
+// bullet will be available for future CV generations. There is no clickable
+// regen card here, and LinkedIn / internship / daily actions still do not read
+// bullets.
 
 const PHASE = {
   REVIEW: "review",
