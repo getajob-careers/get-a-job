@@ -3950,6 +3950,18 @@
       "notes": "Discovered via Workday-MNC pass (2026-06-04); tenant resolved from careers-page HTML. CXS endpoint returned 1286 total positions, 9 for searchText=\"Israel\"."
     },
     {
+      "name": "Flexor",
+      "type": "israeli_founded",
+      "industry": "AI / Data",
+      "domain": "flexor.ai",
+      "careers_url": "https://flexor.ai/about-us/",
+      "ats": "comeet",
+      "slug": "F9.006",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/F9.006/positions?token=9F645BA1DE213EC31CE1DE2059A613EC3BC4&details=true",
+      "verified": true,
+      "notes": "Comeet token harvest (PR #383). Verified live 2026-06-23: 3 positions, 3 IL-tagged (Tel Aviv-Yafo). Unstructured-data-to-AI platform. Same 32-hex decoy caveat as Immunai; working token is 36 hex."
+    },
+    {
       "name": "Folloze",
       "type": "israeli_founded",
       "industry": "MarTech",
@@ -4344,6 +4356,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Custom Google careers portal; huge IL R&D (Haifa, Tel Aviv)"
+    },
+    {
+      "name": "Grain Finance",
+      "type": "israeli_founded",
+      "industry": "FinTech",
+      "domain": "grainfinance.com",
+      "careers_url": "https://www.grainfinance.com/careers",
+      "ats": "comeet",
+      "slug": "4A.000",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/4A.000/positions?token=A4047C0290005C4014803340A401EC05C40&details=true",
+      "verified": true,
+      "notes": "Comeet token harvest (PR #383). Verified live 2026-06-23: 5 positions, 2 IL-tagged (Tel Aviv). Embedded FX / consumer credit fintech."
     },
     {
       "name": "Granica",
@@ -4920,6 +4944,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Israeli precision-fermentation foodtech, world-first 100k+ liter facility, recently cleared to sell animal-free whey in Israel. Careers page uses 'Send us your CV' — no detectable ATS URLs. Skipped — open to a future pass if they add structured ATS."
+    },
+    {
+      "name": "Immunai",
+      "type": "israeli_founded",
+      "industry": "Health / Biotech",
+      "domain": "immunai.com",
+      "careers_url": "https://immunai.com/careers",
+      "ats": "comeet",
+      "slug": "37.009",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/37.009/positions?token=7392B5615AB1CE42B5615AB328F039C81CE4&details=true",
+      "verified": true,
+      "notes": "Comeet token harvest (PR #383). Verified live 2026-06-23: 10 positions, 5 IL-tagged (Ramat Gan). Immune-system AI mapping. A 32-hex decoy token on the page returns 400; the working token is 36 hex."
     },
     {
       "name": "Imperva",
@@ -6758,6 +6794,18 @@
       "notes": "Custom internal apply system at /careers/apply"
     },
     {
+      "name": "Nimbleway",
+      "type": "israeli_founded",
+      "industry": "Data / AI Infrastructure",
+      "domain": "nimbleway.com",
+      "careers_url": "https://nimbleway.com/careers",
+      "ats": "comeet",
+      "slug": "09.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/09.00F/positions?token=90F365A5187121E2D4B121E1B2D90F365A365A&details=true",
+      "verified": true,
+      "notes": "Comeet token harvest (PR #383). Verified live 2026-06-23: 17 positions, 6 IL-tagged (Tel Aviv). Web data collection / proxy infrastructure."
+    },
+    {
       "name": "Noga (Israel Independent System Operator)",
       "type": "israeli_founded",
       "industry": "Energy / Grid Operator",
@@ -8294,6 +8342,18 @@
       "notes": "Comeet UID + token extracted from comeetvar JSON in static HTML. API returns 2 jobs at 'REE'. Nasdaq-listed modular EV platform (REE-corner). HQ Tel Aviv (Glil Yam)."
     },
     {
+      "name": "Reeco",
+      "type": "israeli_founded",
+      "industry": "Hospitality Tech",
+      "domain": "reeco.com",
+      "careers_url": "https://reeco.com/careers",
+      "ats": "comeet",
+      "slug": "0A.00D",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/0A.00D/positions?token=A0D465B1E2732411E27141A141A50685A753C4E&details=true",
+      "verified": true,
+      "notes": "Comeet token harvest (PR #383). Verified live 2026-06-23: 4 positions, 2 IL-tagged (Tel Aviv). Restaurant procurement / hospitality tech."
+    },
+    {
       "name": "Reflectiz",
       "type": "israeli_founded",
       "industry": "Cyber / Web Security",
@@ -9828,6 +9888,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/transmitsecurity/jobs",
       "verified": true,
       "notes": "Probed: greenhouse slug 'transmitsecurity' returns 200"
+    },
+    {
+      "name": "Travelier",
+      "type": "israeli_founded",
+      "industry": "Travel Tech",
+      "domain": "travelier.com",
+      "careers_url": "https://www.travelier.com/careers/",
+      "ats": "comeet",
+      "slug": "64.006",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/64.006/positions?token=46615FE15FED321A6446601A64D322796&details=true",
+      "verified": true,
+      "notes": "Comeet token harvest (PR #383). Verified live 2026-06-23: 1 position, 1 IL-tagged (Ramat Gan). Browser-agent uid ED.66A was wrong; corrected to 64.006. Online travel booking."
     },
     {
       "name": "Trax Retail",
