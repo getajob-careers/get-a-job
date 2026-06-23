@@ -237,3 +237,12 @@ Trigger: Hunter HRMS / Niloosoft no-build, the third consecutive multi-tenant AT
 Lesson: Multi-tenant Israeli ATS investigations (Teamtailor, iCIMS, Hunter HRMS) have uniformly returned thin yield. The Israeli market consolidates onto a small set of multi-tenant ATSs (Greenhouse, Lever, Ashby, Comeet, Workday, SmartRecruiters, SuccessFactors, AdamTotal, PwC Heroku) that are already covered. Beyond that core, real volume is found via (a) per-publisher JSON endpoints discoverable from individual companies' own JavaScript — Bezeq being the proven example — and (b) the aggregator-scraping tier which is held pending legal review.
 Rule for next time: Do not initiate a multi-tenant ATS investigation without independent evidence of 4+ Israeli tenants with current postings. Vendor brand identity is unreliable signal: a single brand may cover incompatible architectures, as Hunter HRMS / Niloosoft demonstrated (PwC and toga on Next.js + Heroku vs BDO on a WordPress plugin, the latter auth-gated).
 ---
+
+---
+
+2026-06-23 (cont.) — Vendor-brand-unreliable generalizes from ATS vendors to shared CMS infrastructure (Umbraco: Bank Yahav vs Clal)
+Trigger: Umbraco careers-handshake investigation — Bank Yahav and Clal both run Umbraco CMS, but turned out to be two different bespoke controller architectures behind two different anti-bot stacks (Incapsula vs F5 + Angular), with no shared handshake despite the shared CMS. See tasks/2026-06-22-umbraco-handshake-investigation.md.
+Lesson: Vendor brand identity is unreliable signal — applies not just to ATS vendors but also to shared CMS infrastructure. A shared CMS implies nothing about a shared, reproducible API surface: the careers controllers were bespoke per agency build (CareerPopupApi vs JobSearch) and the gate was per-tenant front-door protection, not a CMS-level handshake.
+Rule for next time: Future shared-infrastructure investigations should require independent evidence of (a) a shared API surface, not just a shared vendor brand, and (b) 4+ Israeli tenants reachable from that shared API — before investing. Same bar as the multi-tenant-ATS rule above, now generalized to any "shared platform / CMS / infra" framing.
+
+---
