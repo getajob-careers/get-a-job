@@ -703,13 +703,14 @@ Deno.serve(async (req) => {
       _err = "missing_input";
       return json({ error: "application_id is required" }, 400);
     }
-    const jdInput = stripHtml(String(job_description ?? "")) ?? "";
-    if (!jdInput.trim()) {
-      _http = 400;
-      _err = "missing_input";
-      return json({ error: "job_description is required" }, 400);
-    }
-    const safeJobDescription = jdInput.slice(0, 10000);
+    // JD resolution with a server-side fallback. The extension proposal-card
+    // path sends job_description:"" when the user references a JD from an
+    // earlier message (extension/popup.js), even though the JD is stored on
+    // the application row. So we defer the empty-JD rejection: parse the body
+    // JD here, fall back to the application's stored job_description after the
+    // app load below, and only 400 when BOTH are empty (the guardrail there).
+    const bodyJd = stripHtml(String(job_description ?? "")) ?? "";
+    let safeJobDescription = bodyJd.trim() ? bodyJd.slice(0, 10000) : "";
     const safeTemplateStyle: TemplateStyle = "ats-optimized";
     // ops model routing (experiment): default Sonnet; cv_model can pick a faster model
     const opsModel =
@@ -734,7 +735,7 @@ Deno.serve(async (req) => {
     // application (ownership + role title for the persist pointer)
     const { data: app, error: appErr } = await supabase
       .from("applications")
-      .select("id, role_title, company")
+      .select("id, role_title, company, job_description")
       .eq("id", application_id)
       .eq("user_id", user.id)
       .single();
@@ -745,6 +746,20 @@ Deno.serve(async (req) => {
         { error: "Application not found or not owned by user." },
         404,
       );
+    }
+    // Fall back to the application's stored JD when the request body omitted it
+    // (the extension proposal-card path). Live check: ~88% of applications carry
+    // a populated job_description, so this rescues the common missing-JD case.
+    if (!safeJobDescription) {
+      const storedJd = stripHtml(String(app.job_description ?? "")) ?? "";
+      if (storedJd.trim()) safeJobDescription = storedJd.slice(0, 10000);
+    }
+    // Guardrail: with no usable JD from the body OR the stored row, there is
+    // nothing to tailor against. Keep the original clear 400.
+    if (!safeJobDescription) {
+      _http = 400;
+      _err = "missing_input";
+      return json({ error: "job_description is required" }, 400);
     }
     const safeTargetRole = String(app.role_title ?? "").slice(0, 200);
 
@@ -962,7 +977,7 @@ Deno.serve(async (req) => {
         .insert({
           user_id: user.id,
           application_id,
-          source_jd: jdInput || null,
+          source_jd: safeJobDescription || null,
           cv_data: cvData as any,
           cv_url,
           version: 1,
