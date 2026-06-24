@@ -1,3 +1,16 @@
+---
+title: Frontend
+status: living
+owner: shared
+last_reviewed: 2026-06-24
+code_paths:
+  - src/pages
+  - src/components
+  - src/lib/queries
+---
+
+> Carried over from the previous docs/ layout. Content is broadly accurate; a line-by-line review against current code is still pending (see the freshness note at the bottom).
+
 # Component Documentation
 
 Key components, their purpose, and what props they accept across the application.

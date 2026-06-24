@@ -1,3 +1,15 @@
+---
+title: Auth
+status: living
+owner: shared
+last_reviewed: 2026-06-24
+code_paths:
+  - src/lib/AuthContext.jsx
+  - src/pages/Login.jsx
+---
+
+> Carried over from the previous docs/ layout. Content is broadly accurate; a line-by-line review against current code is still pending (see the freshness note at the bottom).
+
 # Auth Flow
 
 Authentication is handled entirely by Supabase Auth. No custom auth logic exists outside of `AuthContext.jsx`.
