@@ -142,3 +142,19 @@
     @apply bg-background text-foreground;
   }
 }
+/* CV-generation progress long-tail shimmer (web app) — mirrors the extension's
+   .cv-progress-shimmer so the two surfaces look identical past ~45s. */
+@keyframes cvProgressShimmer {
+  0% { background-position: -150% 0; }
+  100% { background-position: 250% 0; }
+}
+.cv-progress-shimmer {
+  background-image: linear-gradient(
+    90deg,
+    #f87060 0%,
+    #fca799 45%,
+    #f87060 90%
+  );
+  background-size: 200% 100%;
+  animation: cvProgressShimmer 1.2s linear infinite;
+}
