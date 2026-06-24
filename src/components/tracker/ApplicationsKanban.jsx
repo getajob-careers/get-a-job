@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { AlertCircle, ChevronDown, ChevronUp, ExternalLink } from "lucide-react";
 import { track, EVENTS } from "@/lib/analytics";
 import { TRACK_CONFIG } from "@/lib/trackConfig";
+import { useCompanyDomains, companyDomainFor } from "@/lib/queries/useCompanyDomains";
+import CompanyLogo from "@/components/jobs/CompanyLogo";
 
 // Track-color tints for the in-card Track badge. Mirrors RD_TRACK_STYLES
 // in ApplicationRow.jsx but inlined here so the kanban card is
@@ -234,9 +236,13 @@ export default function ApplicationsKanban({
 // a11y semantics + click semantics while leaving DnD free to take over.
 // (Same pattern as src/components/internship/CompanyTargetCard.jsx.)
 function ApplicationKanbanCard({ app, onClick, listingInactive = false }) {
-  const initial = (app.company || app.role_title || "?").trim().charAt(0).toUpperCase();
   const tone = LOGO_TILE_TONE[app.status] || LOGO_TILE_TONE.interested;
   const matchPct = pickDisplayScore(app);
+  // Applications store the company name only (no slug), so resolve the
+  // logo domain by name; CompanyLogo falls back to the status-tinted
+  // initial chip when there's no match or no logo.
+  const { data: companyDomains } = useCompanyDomains();
+  const companyDomain = companyDomainFor(companyDomains, { company_name: app.company });
   const role = app.role_title || "Untitled role";
   const company = app.company || "";
   const trackMeta = TRACK_CONFIG[app.track]; // null when unclassified
@@ -257,9 +263,13 @@ function ApplicationKanbanCard({ app, onClick, listingInactive = false }) {
       className="bg-rd-bg-card border border-rd-border rounded-[10px] p-2.5 cursor-grab text-left transition-[transform,border-color] duration-150 hover:-translate-y-[2px] hover:border-rd-border-hover focus:outline-none focus:ring-2 focus:ring-rd-coral/40 w-full"
     >
       <div className="flex items-center justify-between gap-2">
-        <span className={`w-[22px] h-[22px] rounded-md flex items-center justify-center font-display font-bold text-[11px] ${tone.bg} ${tone.fg}`}>
-          {initial}
-        </span>
+        <CompanyLogo
+          domain={companyDomain}
+          companyName={app.company || app.role_title}
+          size={22}
+          radius={6}
+          fallbackClassName={`font-display font-bold ${tone.bg} ${tone.fg}`}
+        />
         {matchPct != null && (
           <span className={`font-display font-bold text-[10.5px] ${tone.fg}`}>
             {matchPct}%
@@ -337,16 +347,29 @@ function ApplicationKanbanCard({ app, onClick, listingInactive = false }) {
 
 // Pick the score we display on the card. Prefer qualification_score (track
 // fit); fall back to goal_alignment_score; null when neither is set.
-function pickDisplayScore(app) {
+// Exported for unit coverage of the 0-1 → percent conversion.
+export function pickDisplayScore(app) {
   const q = numOrNull(app.qualification_score);
-  if (q != null) return Math.round(q);
+  if (q != null) return toPct(q);
   const g = numOrNull(app.goal_alignment_score);
-  if (g != null) return Math.round(g);
+  if (g != null) return toPct(g);
   return null;
 }
 function numOrNull(v) {
+  // Guard null/undefined/"" explicitly — Number(null) is 0, which made
+  // unscored applications render a spurious "0%" badge.
+  if (v == null || v === "") return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
+}
+// applications.qualification_score / goal_alignment_score are stored as
+// 0-1 fractions (scoreJobFit.fit_score). Rendering Math.round() on the raw
+// fraction showed "1%"/"0%" for every card — the same 0-1-vs-percent bug
+// the Career rail hit (tasks/lessons.md 2026-06-11). Multiply to percent;
+// tolerate legacy 0-100 rows by passing values >1 through unchanged.
+function toPct(n) {
+  const pct = n <= 1 ? n * 100 : n;
+  return Math.max(0, Math.min(100, Math.round(pct)));
 }
 
 // ───── Mobile accordion fallback ─────
