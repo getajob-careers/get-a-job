@@ -41,6 +41,15 @@ let loadingText = ""; // staged loading text shown in the typing bubble
 //           or a CV result card { type:"cv_result", role:"system", cv:{...} }
 const messages = [];
 
+// DB-backed conversation history (conversations + chat_messages, same tables +
+// client-insert pattern as the web app's career_agent surface — see
+// src/lib/CoachConversationContext.jsx). currentConversationId is the active
+// thread; null until the first persisted turn lazily creates the row.
+// conversationCreatePromise dedups concurrent lazy-creates (the CV pipeline can
+// append several messages before the row exists).
+let currentConversationId = null;
+let conversationCreatePromise = null;
+
 const $ = (id) => document.getElementById(id);
 const sessionLine = $("sessionLine");
 
@@ -206,6 +215,9 @@ async function initSession() {
     sessionLine.textContent = "Signed in";
     $("gate").classList.add("hidden");
     refreshComposer();
+    // Restore the most recent thread + populate the history picker.
+    await loadMostRecentConversation();
+    await refreshConversationList();
   } else {
     // A tab is open but no usable session was read from it.
     showSignedOut();
@@ -383,12 +395,11 @@ function cvProposalCard(proposal) {
         handleAuthExpired();
         return;
       }
-      messages.push({
+      await appendMessage({
         role: "assistant",
         error: true,
         content: "CV generation error: " + res.error,
       });
-      renderMessages();
     }
   });
   card.appendChild(btn);
@@ -442,7 +453,7 @@ async function runRefineAndRenderCV({
   if (!data?.cv_url)
     return { error: data?.message || "refine-cv returned no cv_url" };
   if (renderCard) {
-    messages.push({
+    await appendMessage({
       type: "cv_result",
       role: "system", // excluded from conversation_history (role !== "system")
       cv: {
@@ -452,7 +463,6 @@ async function runRefineAndRenderCV({
         message: data.message || null,
       },
     });
-    renderMessages();
   }
   return { ok: true, cv_url: data.cv_url };
 }
@@ -463,6 +473,226 @@ function conversationHistory() {
     .map((m) => ({ role: m.role, content: m.content }))
     .filter((m) => m.role !== "system") // drops cv_result cards
     .slice(-20);
+}
+
+// ───────────────────────── conversation persistence ─────────────────────────
+// Mirrors the web app's career_agent client-insert pattern exactly: the client
+// owns BOTH the conversations row and every chat_messages row; ai-chat persists
+// nothing. RLS (conversations.user_id = auth.uid(); chat_messages via the parent
+// conversation owner) lets the bridged session read/write only its own rows.
+
+// Lazily create the conversation row on the first persisted turn. A single
+// in-flight promise prevents two near-simultaneous appends (e.g. the CV card and
+// the fit read) from racing into two rows.
+async function ensureConversation(titleHint) {
+  if (currentConversationId) return currentConversationId;
+  if (conversationCreatePromise) return conversationCreatePromise;
+  conversationCreatePromise = (async () => {
+    const title = String(titleHint || "New chat").slice(0, 60);
+    const { data, error } = await supabase
+      .from("conversations")
+      .insert({ user_id: currentUserId, agent: AGENT, title })
+      .select("id")
+      .single();
+    if (error || !data?.id) {
+      console.error("create conversation failed:", error?.message);
+      conversationCreatePromise = null;
+      return null;
+    }
+    currentConversationId = data.id;
+    refreshConversationList();
+    return data.id;
+  })();
+  return conversationCreatePromise;
+}
+
+// In-memory message → chat_messages row. The CV result card has no column home,
+// so it rides in suggested_cv_generation.result — the SAME column + shape the
+// web app rehydrates CV cards from (ChatInterface.jsx) — no parallel store.
+function messageToRow(m, conversationId) {
+  if (m.type === "cv_result") {
+    return {
+      conversation_id: conversationId,
+      role: "system",
+      content: "", // content is NOT NULL; the card carries no body text
+      suggested_cv_generation: {
+        result: {
+          cv_url: m.cv.cv_url,
+          role: m.cv.role,
+          company: m.cv.company,
+          message: m.cv.message || null,
+        },
+      },
+    };
+  }
+  return {
+    conversation_id: conversationId,
+    role: m.role,
+    content: m.content || "",
+    suggested_application_actions:
+      Array.isArray(m.suggestedApplicationActions) &&
+      m.suggestedApplicationActions.length > 0
+        ? m.suggestedApplicationActions
+        : null,
+    suggested_cv_generation: m.suggestedCVGeneration || null,
+  };
+}
+
+// chat_messages row → in-memory message (inverse of messageToRow).
+function rowToMessage(m) {
+  const g = m.suggested_cv_generation;
+  if (g && g.result && g.result.cv_url) {
+    return {
+      type: "cv_result",
+      role: "system",
+      cv: {
+        role: g.result.role,
+        company: g.result.company,
+        cv_url: g.result.cv_url,
+        message: g.result.message || null,
+      },
+    };
+  }
+  return {
+    role: m.role,
+    content: m.content || "",
+    suggestedApplicationActions:
+      Array.isArray(m.suggested_application_actions) &&
+      m.suggested_application_actions.length > 0
+        ? m.suggested_application_actions
+        : null,
+    suggestedCVGeneration: m.suggested_cv_generation || null,
+    error: m.is_error || false,
+  };
+}
+
+// THE single append+persist path. Every transcript mutation routes through here:
+// push → render → durably persist (awaited, never fire-and-forget, so closing the
+// panel can't drop a committed turn). Error turns render but are NOT persisted —
+// matching the web career_agent surface: the triggering user message is already
+// durable, so a failed turn never pollutes reopened history.
+async function appendMessage(m) {
+  messages.push(m);
+  renderMessages();
+  if (m.error) return;
+  if (!loggedIn || !currentUserId) return; // no session → in-memory only
+  try {
+    const convoId = await ensureConversation(
+      m.role === "user" ? m.content : null,
+    );
+    if (!convoId) return;
+    const { error } = await supabase
+      .from("chat_messages")
+      .insert(messageToRow(m, convoId));
+    if (error) {
+      console.error("persist message failed:", error.message);
+      return;
+    }
+    await supabase
+      .from("conversations")
+      .update({ updated_at: new Date().toISOString() })
+      .eq("id", convoId);
+  } catch (e) {
+    console.error("persist message error:", e);
+  }
+}
+
+// Restore a conversation's transcript into the panel.
+async function openConversation(id) {
+  if (busy || !id) return;
+  currentConversationId = id;
+  conversationCreatePromise = null;
+  const { data, error } = await supabase
+    .from("chat_messages")
+    .select("*")
+    .eq("conversation_id", id)
+    .order("created_at", { ascending: true });
+  if (error) {
+    console.error("load messages failed:", error.message);
+    if (isAuthExpired(error)) handleAuthExpired();
+    return;
+  }
+  messages.length = 0;
+  (data || []).forEach((row) => messages.push(rowToMessage(row)));
+  renderMessages();
+}
+
+// On open: resume the most recent thread (or start fresh if there is none).
+async function loadMostRecentConversation() {
+  if (!currentUserId) return;
+  const { data, error } = await supabase
+    .from("conversations")
+    .select("id")
+    .eq("user_id", currentUserId)
+    .eq("agent", AGENT)
+    .is("application_id", null)
+    .order("updated_at", { ascending: false })
+    .limit(1);
+  if (error) {
+    console.error("load recent conversation failed:", error.message);
+    return;
+  }
+  if (data && data.length > 0) await openConversation(data[0].id);
+}
+
+// Populate the reopen-past-chats dropdown.
+async function refreshConversationList() {
+  const sel = $("convSelect");
+  if (!sel || !currentUserId) return;
+  const { data, error } = await supabase
+    .from("conversations")
+    .select("id, title, updated_at")
+    .eq("user_id", currentUserId)
+    .eq("agent", AGENT)
+    .is("application_id", null)
+    .order("updated_at", { ascending: false });
+  if (error) {
+    console.error("load conversation list failed:", error.message);
+    return;
+  }
+  const convos = data || [];
+  sel.innerHTML = "";
+  if (convos.length === 0) {
+    const opt = el("option", null, "No saved chats");
+    opt.value = "";
+    sel.appendChild(opt);
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
+  // Placeholder doubles as "new chat": selected whenever no saved thread is
+  // active, so a fresh panel never mislabels itself with a past conversation.
+  const placeholder = el("option", null, "New chat");
+  placeholder.value = "";
+  if (!currentConversationId) placeholder.selected = true;
+  sel.appendChild(placeholder);
+  convos.forEach((c) => {
+    const when = c.updated_at
+      ? new Date(c.updated_at).toLocaleDateString()
+      : "";
+    const opt = el(
+      "option",
+      null,
+      (c.title || "Untitled") + (when ? ` · ${when}` : ""),
+    );
+    opt.value = c.id;
+    if (c.id === currentConversationId) opt.selected = true;
+    sel.appendChild(opt);
+  });
+}
+
+// "New chat": clear the active thread; the next persisted turn creates a fresh
+// row lazily. Unlinks any in-session application so the new thread starts clean.
+function startNewConversation() {
+  if (busy) return;
+  currentConversationId = null;
+  conversationCreatePromise = null;
+  currentApplicationId = null;
+  messages.length = 0;
+  renderMessages();
+  const sel = $("convSelect");
+  if (sel) sel.value = "";
+  refreshConversationList();
 }
 
 // ───────────────────────── Agent: send (ai-chat) ────────────────────────────
@@ -478,7 +708,7 @@ async function sendMessage() {
   }
 
   input.value = "";
-  messages.push({ role: "user", content: text });
+  await appendMessage({ role: "user", content: text });
   setBusy(true, "Thinking…");
 
   const body = {
@@ -494,7 +724,7 @@ async function sendMessage() {
     });
     if (error) throw error;
     if (!data?.reply) throw new Error("The AI returned an empty response.");
-    messages.push({
+    await appendMessage({
       role: "assistant",
       content: data.reply,
       suggestedApplicationActions:
@@ -509,7 +739,7 @@ async function sendMessage() {
       handleAuthExpired();
       return;
     }
-    messages.push({
+    await appendMessage({
       role: "assistant",
       error: true,
       content: "Couldn't reach the AI: " + (await edgeErrorMessage(err)),
@@ -528,12 +758,14 @@ async function generateCvFromJD(jd) {
     return;
   }
   if (!currentUserId) {
-    messages.push({ role: "assistant", content: "No user id on the session." });
-    renderMessages();
+    await appendMessage({
+      role: "assistant",
+      content: "No user id on the session.",
+    });
     return;
   }
 
-  messages.push({
+  await appendMessage({
     role: "user",
     content:
       "Generate a tailored CV for this role and give me a quick read on my fit.",
@@ -624,15 +856,14 @@ async function generateCvFromJD(jd) {
         let fit = "Fit: " + (ajm?.verdict || "Analysis complete.");
         if (strengths) fit += "\n\nTop strengths:\n" + strengths;
         if (topGap) fit += "\n\nBiggest gap: " + topGap;
-        messages.push({ role: "assistant", content: fit });
-        renderMessages();
+        await appendMessage({ role: "assistant", content: fit });
       } catch (e) {
         console.error("scoring/fit failed:", e);
-        messages.push({
+        await appendMessage({
           role: "assistant",
+          error: true,
           content: "Fit read failed: " + (await edgeErrorMessage(e)),
         });
-        renderMessages();
       }
     })();
 
@@ -659,7 +890,7 @@ async function generateCvFromJD(jd) {
       handleAuthExpired();
       return;
     }
-    messages.push({
+    await appendMessage({
       role: "assistant",
       error: true,
       content: "CV generation failed: " + (await edgeErrorMessage(err)),
@@ -681,12 +912,17 @@ async function addToTracker(jd) {
     return;
   }
   if (!currentUserId) {
-    messages.push({ role: "assistant", content: "No user id on the session." });
-    renderMessages();
+    await appendMessage({
+      role: "assistant",
+      content: "No user id on the session.",
+    });
     return;
   }
 
-  messages.push({ role: "user", content: "Add this role to my tracker." });
+  await appendMessage({
+    role: "user",
+    content: "Add this role to my tracker.",
+  });
   setBusy(true, "Reading the role…");
 
   try {
@@ -719,7 +955,7 @@ async function addToTracker(jd) {
     const appId = currentApplicationId;
 
     // Inline confirmation.
-    messages.push({
+    await appendMessage({
       role: "assistant",
       content: `Added ${roleTitle || "Role"} at ${company || "Unknown company"} to your tracker.`,
     });
@@ -760,7 +996,7 @@ async function addToTracker(jd) {
       handleAuthExpired();
       return;
     }
-    messages.push({
+    await appendMessage({
       role: "assistant",
       error: true,
       content: "Couldn't add to tracker: " + (await edgeErrorMessage(err)),
@@ -792,6 +1028,13 @@ $("input").addEventListener("keydown", (e) => {
     e.preventDefault();
     sendMessage();
   }
+});
+
+// Conversation history controls. The empty option doubles as "new chat".
+$("newConvo").addEventListener("click", startNewConversation);
+$("convSelect").addEventListener("change", (e) => {
+  if (e.target.value) openConversation(e.target.value);
+  else startNewConversation();
 });
 
 // ───────────────────────── add/update application (card handler) ─────────────

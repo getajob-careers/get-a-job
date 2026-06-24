@@ -101,6 +101,46 @@
         display: none;
       }
 
+      /* ── Conversation history bar ── */
+      .conv-bar {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .conv-select {
+        flex: 1;
+        min-width: 0;
+        font: 12px var(--gaj-sans);
+        padding: 6px 8px;
+        border: 1px solid var(--gaj-border);
+        border-radius: 9px;
+        background: var(--gaj-card);
+        color: var(--gaj-ink);
+        cursor: pointer;
+      }
+      .conv-select:focus {
+        outline: none;
+        border-color: var(--gaj-coral);
+      }
+      .conv-select:disabled {
+        opacity: 0.6;
+        cursor: default;
+      }
+      .conv-new {
+        flex: 0 0 auto;
+        padding: 6px 12px;
+        border-radius: 9px;
+        border: 1px solid var(--gaj-border);
+        background: var(--gaj-panel);
+        color: var(--gaj-ink);
+        font: 600 12px var(--gaj-serif);
+        cursor: pointer;
+      }
+      .conv-new:hover {
+        border-color: #e0d6c4;
+      }
+
       /* ── Agent / chat ── */
       #messages {
         display: flex;
@@ -652,6 +692,12 @@
     </div>
 
     <div class="view" id="agentView">
+      <div class="conv-bar" id="convBar">
+        <select id="convSelect" class="conv-select" disabled>
+          <option value="">No saved chats</option>
+        </select>
+        <button id="newConvo" class="conv-new">New chat</button>
+      </div>
       <div id="messages"></div>
       <div class="composer">
         <textarea
