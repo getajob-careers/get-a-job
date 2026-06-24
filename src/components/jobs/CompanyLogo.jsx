@@ -67,6 +67,21 @@ export default function CompanyLogo({ domain, companyName, fallbackStyle, classN
         referrerPolicy="no-referrer"
         className="w-full h-full object-contain p-1"
         onError={() => setTier((t) => t + 1)}
+        onLoad={(e) => {
+          // DuckDuckGo serves a generic 48×48 grey-chevron placeholder
+          // (an HTTP 404 whose image body the browser still renders) for
+          // domains it has no favicon for. Real favicons come back at
+          // other sizes (16/32/64/192/ICO). Treat the 48×48 placeholder as
+          // a miss and advance to the next tier → the letter avatar.
+          const im = e.currentTarget;
+          if (
+            im.src.includes("icons.duckduckgo.com") &&
+            im.naturalWidth === 48 &&
+            im.naturalHeight === 48
+          ) {
+            setTier((t) => t + 1);
+          }
+        }}
       />
     </div>
   );

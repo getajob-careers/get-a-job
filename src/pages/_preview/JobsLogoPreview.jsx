@@ -14,7 +14,8 @@ const FIXTURE_JOBS = [
   { id: "jl-1", title: "Associate Product Manager", company_name: "monday.com", company_slug: "monday", location_city: "Tel Aviv", is_remote: false, seniority: "entry", date_posted: new Date(Date.now() - 2 * 86400000).toISOString(), apply_url: "https://example.com", req_skills_core: [], req_skills_nice: [] },
   { id: "jl-2", title: "Revenue Analyst", company_name: "Wix", company_slug: "wix", location_city: "Tel Aviv", is_remote: true, seniority: "entry", date_posted: new Date(Date.now() - 3 * 86400000).toISOString(), apply_url: "https://example.com", req_skills_core: [], req_skills_nice: [] },
   { id: "jl-3", title: "Business Operations Associate", company_name: "Fiverr", company_slug: "fiverr", location_city: "Tel Aviv", is_remote: false, seniority: "entry", date_posted: new Date(Date.now() - 5 * 86400000).toISOString(), apply_url: "https://example.com", req_skills_core: [], req_skills_nice: [] },
-  { id: "jl-4", title: "Customer Success Specialist", company_name: "Acme Stealth Startup", company_slug: "no-match-xyz", location_city: "Herzliya", is_remote: false, seniority: "entry", date_posted: new Date(Date.now() - 1 * 86400000).toISOString(), apply_url: "https://example.com", req_skills_core: [], req_skills_nice: [] },
+  { id: "jl-4", title: "Risk Analyst", company_name: "Bank Leumi", company_slug: "leumi", location_city: "Tel Aviv", is_remote: false, seniority: "entry", date_posted: new Date(Date.now() - 4 * 86400000).toISOString(), apply_url: "https://example.com", req_skills_core: [], req_skills_nice: [] },
+  { id: "jl-5", title: "Customer Success Specialist", company_name: "Acme Stealth Startup", company_slug: "no-match-xyz", location_city: "Herzliya", is_remote: false, seniority: "entry", date_posted: new Date(Date.now() - 1 * 86400000).toISOString(), apply_url: "https://example.com", req_skills_core: [], req_skills_nice: [] },
 ];
 
 export default function JobsLogoPreview() {
@@ -25,8 +26,8 @@ export default function JobsLogoPreview() {
     // Seed the domain map so JobCard resolves these companies without a
     // network call for the lookup itself (logos still load from the CDN).
     qc.setQueryData(["company_domains"], {
-      bySlug: { monday: "monday.com", wix: "wix.com", fiverr: "fiverr.com" },
-      byName: { mondaycom: "monday.com", wix: "wix.com", fiverr: "fiverr.com" },
+      bySlug: { monday: "monday.com", wix: "wix.com", fiverr: "fiverr.com", leumi: "leumi.co.il" },
+      byName: { mondaycom: "monday.com", wix: "wix.com", fiverr: "fiverr.com", bankleumi: "leumi.co.il" },
     });
     return qc;
   }, []);
@@ -48,7 +49,7 @@ export default function JobsLogoPreview() {
           <div className="max-w-[640px] mx-auto">
             <h1 className="font-display font-extrabold text-[22px] text-rd-text mb-1">Job cards — company logos</h1>
             <p className="text-[12.5px] text-rd-text-secondary mb-5">
-              First three resolve to real domains (logo loads from the CDN); the last has no match and shows the letter placeholder.
+              monday/Wix/Fiverr load real logos; Bank Leumi resolves a domain DuckDuckGo lacks (should show the LETTER, not a grey chevron); Acme has no domain match (letter).
             </p>
             <div className="flex flex-col gap-3">
               {FIXTURE_JOBS.map((job) => (

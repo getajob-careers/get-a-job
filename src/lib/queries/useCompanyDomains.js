@@ -40,21 +40,30 @@ export function useCompanyDomains() {
   return useQuery({
     queryKey: ["company_domains"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("companies")
-        .select("ats_slug, name, domain")
-        .not("domain", "is", null);
-      if (error) throw error;
       const bySlug = {};
       const byName = {};
-      for (const c of data || []) {
-        const domain = (c.domain || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
-        if (!domain) continue;
-        if (c.ats_slug) bySlug[c.ats_slug.toLowerCase()] = domain;
-        const nk = normalizeName(c.name);
-        // First writer wins so a curated row isn't overwritten by a noisier
-        // duplicate; both are domain-equal in practice.
-        if (nk && !byName[nk]) byName[nk] = domain;
+      // PostgREST caps a single response at ~1000 rows; the companies
+      // registry is larger, so page through with .range() until exhausted.
+      // Without this the map silently dropped every company past row 1000.
+      const PAGE = 1000;
+      for (let from = 0; ; from += PAGE) {
+        const { data, error } = await supabase
+          .from("companies")
+          .select("ats_slug, name, domain")
+          .not("domain", "is", null)
+          .range(from, from + PAGE - 1);
+        if (error) throw error;
+        if (!data || data.length === 0) break;
+        for (const c of data) {
+          const domain = (c.domain || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "");
+          if (!domain) continue;
+          if (c.ats_slug) bySlug[c.ats_slug.toLowerCase()] = domain;
+          const nk = normalizeName(c.name);
+          // First writer wins so a curated row isn't overwritten by a
+          // noisier duplicate; both are domain-equal in practice.
+          if (nk && !byName[nk]) byName[nk] = domain;
+        }
+        if (data.length < PAGE) break;
       }
       return { bySlug, byName };
     },
