@@ -232,6 +232,71 @@ describe("finalSeniority — Variant B", () => {
     });
   });
 
+  describe("classifyLocation: IL_CITY_MAP expansion (PR #387)", () => {
+    // SuccessFactors silent drop (53% of SF IL rows had NULL city) + the
+    // Greenhouse/Lever/Ashby city-only tail. Each new city resolves is_il=true
+    // AND a non-null canonical city, including the city-only form (no country
+    // token) that was the SuccessFactors NULL-city case.
+    it("Nes Ziona (English + Hebrew + variants)", () => {
+      expect(classifyLocation("Nes Ziona").city).toBe("Nes Ziona");
+      expect(classifyLocation("Ness Ziona, Israel").city).toBe("Nes Ziona");
+      expect(classifyLocation("נס ציונה").is_il).toBe(true);
+    });
+    it("Rosh HaAyin (apostrophe + dash variants)", () => {
+      expect(classifyLocation("Rosh HaAyin").city).toBe("Rosh HaAyin");
+      expect(classifyLocation("Rosh Ha'Ayin").city).toBe("Rosh HaAyin");
+      expect(classifyLocation("Rosh Ha-Ayin").is_il).toBe(true);
+      expect(classifyLocation("ראש העין").city).toBe("Rosh HaAyin");
+    });
+    it("Kiryat Gat (single + double yod Hebrew)", () => {
+      expect(classifyLocation("Kiryat Gat").city).toBe("Kiryat Gat");
+      expect(classifyLocation("קריית גת").city).toBe("Kiryat Gat");
+      expect(classifyLocation("קרית גת").is_il).toBe(true);
+    });
+    it("Migdal HaEmek (variants)", () => {
+      expect(classifyLocation("Migdal HaEmek").city).toBe("Migdal HaEmek");
+      expect(classifyLocation("Migdal Ha'Emek").city).toBe("Migdal HaEmek");
+      expect(classifyLocation("מגדל העמק").is_il).toBe(true);
+    });
+    it("Airport City (English + Hebrew)", () => {
+      expect(classifyLocation("Airport City").city).toBe("Airport City");
+      expect(classifyLocation("עיר נמל התעופה").is_il).toBe(true);
+    });
+    it("Tel-Hai, and does not shadow Tel Aviv", () => {
+      expect(classifyLocation("Tel-Hai").city).toBe("Tel-Hai");
+      expect(classifyLocation("Tel Hai").city).toBe("Tel-Hai");
+      expect(classifyLocation("תל חי").city).toBe("Tel-Hai");
+      expect(classifyLocation("Tel Aviv").city).toBe("Tel Aviv");
+    });
+    it("Sdom", () => {
+      expect(classifyLocation("Sdom").city).toBe("Sdom");
+      expect(classifyLocation("סדום").is_il).toBe(true);
+    });
+    it("Neot Hovav", () => {
+      expect(classifyLocation("Neot Hovav").city).toBe("Neot Hovav");
+      expect(classifyLocation("נאות חובב").is_il).toBe(true);
+    });
+    it("Karmiel (Karmiel + Carmiel + Hebrew)", () => {
+      expect(classifyLocation("Karmiel").city).toBe("Karmiel");
+      expect(classifyLocation("Carmiel").city).toBe("Karmiel");
+      expect(classifyLocation("כרמיאל").is_il).toBe(true);
+    });
+    it("Petah Tikva single-vav Hebrew variant", () => {
+      expect(classifyLocation("פתח תקוה").city).toBe("Petah Tikva");
+    });
+    it("city-only locations still classify (the SuccessFactors silent-drop case)", () => {
+      expect(classifyLocation("Nes Ziona").is_il).toBe(true);
+      expect(classifyLocation("Kiryat Gat").is_il).toBe(true);
+      expect(classifyLocation("Migdal HaEmek").is_il).toBe(true);
+    });
+    it("already-present cities are unchanged", () => {
+      expect(classifyLocation("Modi'in").city).toBe("Modi'in");
+      expect(classifyLocation("Yokneam Illit").city).toBe("Yokneam");
+      expect(classifyLocation("Caesarea").city).toBe("Caesarea");
+      expect(classifyLocation("Or Yehuda").city).toBe("Or Yehuda");
+    });
+  });
+
   // ─── PR-M1 step (a): US tech-hub city co-mention ─────────────────────
   //
   // Bare "Chicago, IL" used to pass through as IL because no other US

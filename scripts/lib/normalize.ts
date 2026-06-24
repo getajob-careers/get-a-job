@@ -206,6 +206,31 @@ const IL_CITY_MAP: Record<string, string> = {
   givatayim: "Givatayim",
   "or yehuda": "Or Yehuda",
   yavne: "Yavne",
+  // PR #387 additions: SuccessFactors silent-drop (53% of SF IL rows landed
+  // with NULL location_city) plus the Greenhouse/Lever/Ashby city-only tail.
+  "nes ziona": "Nes Ziona",
+  "ness ziona": "Nes Ziona",
+  "nes-ziona": "Nes Ziona",
+  "ness-ziona": "Nes Ziona",
+  "rosh haayin": "Rosh HaAyin",
+  "rosh ha'ayin": "Rosh HaAyin",
+  "rosh ha-ayin": "Rosh HaAyin",
+  "kiryat gat": "Kiryat Gat",
+  "kiryat-gat": "Kiryat Gat",
+  "migdal haemek": "Migdal HaEmek",
+  "migdal ha'emek": "Migdal HaEmek",
+  "migdal ha-emek": "Migdal HaEmek",
+  // NOTE: "Airport City" districts also exist abroad (Manchester, Beijing).
+  // On global ATS feeds this English needle can match a non-IL location. The
+  // Hebrew needle below is unambiguous. Flagged for review.
+  "airport city": "Airport City",
+  "tel hai": "Tel-Hai",
+  "tel-hai": "Tel-Hai",
+  sdom: "Sdom",
+  "neot hovav": "Neot Hovav",
+  "neot-hovav": "Neot Hovav",
+  karmiel: "Karmiel",
+  carmiel: "Karmiel",
   // ─── Hebrew variants — all map to their canonical English form ───
   "תל אביב": "Tel Aviv",
   "תל-אביב": "Tel Aviv",
@@ -238,6 +263,22 @@ const IL_CITY_MAP: Record<string, string> = {
   גבעתיים: "Givatayim",
   "אור יהודה": "Or Yehuda",
   יבנה: "Yavne",
+  // PR #387 additions (Hebrew). "פתח תקווה" (double vav) is already present
+  // above; "פתח תקוה" (single vav) is the missing spelling variant.
+  "נס ציונה": "Nes Ziona",
+  "נס-ציונה": "Nes Ziona",
+  "ראש העין": "Rosh HaAyin",
+  "קריית גת": "Kiryat Gat",
+  "קרית גת": "Kiryat Gat",
+  "מגדל העמק": "Migdal HaEmek",
+  "עיר נמל התעופה": "Airport City",
+  "תל חי": "Tel-Hai",
+  "תל-חי": "Tel-Hai",
+  סדום: "Sdom",
+  "נאות חובב": "Neot Hovav",
+  כרמיאל: "Karmiel",
+  "פתח תקוה": "Petah Tikva",
+  "פתח-תקוה": "Petah Tikva",
 };
 
 // Hebrew (and English-transliterated) region/district tags that appear
