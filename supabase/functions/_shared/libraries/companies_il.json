@@ -2918,6 +2918,18 @@
       "notes": "No ATS hit (search confused with ID.me/IDnow)"
     },
     {
+      "name": "Daisy",
+      "type": "israeli_founded",
+      "industry": "AI / Agentic",
+      "domain": "joindaisy.com",
+      "careers_url": "https://www.comeet.com/jobs/daisy/67.002",
+      "ats": "comeet",
+      "slug": "67.002",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/67.002/positions?token=7622C4C162633AE76224EA76276216261626&details=true",
+      "verified": true,
+      "notes": "Comeet; VC-portfolio probing pass. Live HTTP 200, 11 positions, 2 IL-tagged (Tel Aviv). Agentic-AI."
+    },
+    {
       "name": "Dan Bus Company",
       "type": "israeli_founded",
       "industry": "Transportation / Bus",
@@ -3336,6 +3348,18 @@
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/drata",
       "verified": true,
       "notes": "Probed: ashby slug 'drata' returns 200"
+    },
+    {
+      "name": "Dream",
+      "type": "israeli_founded",
+      "industry": "Cybersecurity / AI",
+      "domain": "dreamgroup.com",
+      "careers_url": "https://www.comeet.com/jobs/dreamgroup/99.002",
+      "ats": "comeet",
+      "slug": "99.002",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/99.002/positions?token=99242FE9921CB6042FE396C42FE132442FE&details=true",
+      "verified": true,
+      "notes": "Comeet; VC-portfolio probing pass. Live HTTP 200, 31 positions, 31 IL-tagged (Tel Aviv). Sovereign-AI / cyber."
     },
     {
       "name": "DriveNets",
@@ -3792,6 +3816,18 @@
       "api_url": "https://ffive.wd5.myworkdayjobs.com/wday/cxs/ffive/f5jobs/jobs",
       "verified": true,
       "notes": "NEW (extra). Workday verified — searchText=Israel returns 3 jobs (Tel Aviv: Sr TPM, Solutions Engineer Defence Sector). F5 IL R&D in Tel Aviv (acquired NGINX + Threat Stack-not-IL + Volterra)."
+    },
+    {
+      "name": "Fabric",
+      "type": "international_il_rd",
+      "industry": "Commerce Infrastructure",
+      "domain": "getfabric.com",
+      "careers_url": "https://www.comeet.com/jobs/fabric/52.009",
+      "ats": "comeet",
+      "slug": "52.009",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/52.009/positions?token=25996412C8106FBBD152170B0E16259&details=true",
+      "verified": true,
+      "notes": "Comeet; VC-portfolio probing pass. Live HTTP 200, 1 position, 1 IL-tagged (Tel Aviv, Israel)."
     },
     {
       "name": "Factify",
@@ -6386,6 +6422,18 @@
       "notes": "UID + token from static HTML; API returned 3 positions, 2 IL-tagged. Sports/entertainment digital media (90min, FanSided, The Players' Tribune)."
     },
     {
+      "name": "Mirakl",
+      "type": "international_il_rd",
+      "industry": "E-commerce / Marketplace SaaS",
+      "domain": "mirakl.com",
+      "careers_url": "https://www.mirakl.com/careers",
+      "ats": "greenhouse",
+      "slug": "mirakl",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/mirakl/jobs",
+      "verified": true,
+      "notes": "Greenhouse; VC-portfolio probing pass. Live HTTP 200, 25 jobs, 0 IL-tagged. Added 0-IL; self-heals on next IL opening."
+    },
+    {
       "name": "Mistral AI",
       "type": "international_il_rd",
       "industry": "AI / LLM",
@@ -7164,6 +7212,18 @@
       "api_url": null,
       "verified": false,
       "notes": "ALREADY IN REGISTRY (unverified). Skip — Oracle uses Oracle Recruiting Cloud (their own product); the eeho.fa.oraclecloud.com/hcmUI portal has no easy public JSON API for external. IL R&D via Ravello + NetSuite + native Oracle Israel."
+    },
+    {
+      "name": "Orbem",
+      "type": "international_il_rd",
+      "industry": "AI / Imaging",
+      "domain": "orbem.ai",
+      "careers_url": "https://jobs.ashbyhq.com/orbem",
+      "ats": "ashby",
+      "slug": "orbem",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/orbem",
+      "verified": true,
+      "notes": "Ashby; VC-portfolio probing pass. Live HTTP 200, 6 jobs, 0 IL-tagged (Munich). Added 0-IL; self-heals on next IL opening."
     },
     {
       "name": "Orbotech",
@@ -9362,6 +9422,18 @@
       "notes": "UID + token from static HTML; API returned 13 positions, 5 IL-tagged. Trade finance fintech with IL R&D and global presence."
     },
     {
+      "name": "Svix",
+      "type": "international_il_rd",
+      "industry": "Developer Tools",
+      "domain": "svix.com",
+      "careers_url": "https://jobs.ashbyhq.com/svix",
+      "ats": "ashby",
+      "slug": "svix",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/svix",
+      "verified": true,
+      "notes": "Ashby; VC-portfolio probing pass. Live HTTP 200, 5 jobs, 0 IL-tagged. Added 0-IL; self-heals on next IL opening."
+    },
+    {
       "name": "Sweep",
       "type": "israeli_founded",
       "industry": "B2B SaaS",
@@ -10380,6 +10452,18 @@
       "api_url": null,
       "verified": false,
       "notes": "IL fund-of-funds + secondary. Tiny team. No public ATS."
+    },
+    {
+      "name": "Visit.org",
+      "type": "international_il_rd",
+      "industry": "Social Impact / Events",
+      "domain": "visit.org",
+      "careers_url": "https://apply.workable.com/visit/",
+      "ats": "workable",
+      "slug": "visit",
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/visit?details=true",
+      "verified": true,
+      "notes": "Workable; VC-portfolio probing pass. Live HTTP 200, 148 jobs, 2 IL-tagged (Tel Aviv)."
     },
     {
       "name": "Vonage",
