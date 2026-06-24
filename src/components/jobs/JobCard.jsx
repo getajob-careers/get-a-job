@@ -5,6 +5,8 @@ import { scoreApplication } from "@/lib/scoreApplication";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
+import { useCompanyDomains, companyDomainFor } from "@/lib/queries/useCompanyDomains";
+import CompanyLogo from "@/components/jobs/CompanyLogo";
 import {
   Loader2,
   ExternalLink,
@@ -338,10 +340,12 @@ export default function JobCard({
     // res.ok and res.duplicate both leave the button in the Tracked state.
   };
 
-  // Avatar — first letter of company name, tinted to the track color.
-  // Mockup signature pattern. Falls back to a neutral gray when no track
-  // (keyword mode without scoreJobFit result).
-  const avatarLetter = (job.company_name || "?").trim().charAt(0).toUpperCase();
+  // Avatar — real company logo when we can resolve the company's domain
+  // from the shared registry, otherwise the letter placeholder tinted to
+  // the track color (neutral gray in keyword mode without a scoreJobFit
+  // result). CompanyLogo owns the load-failure cascade down to the letter.
+  const { data: companyDomains } = useCompanyDomains();
+  const companyDomain = companyDomainFor(companyDomains, job);
   const avatarStyle = styles
     ? { background: styles.tint, color: styles.accent }
     : { background: "var(--rd-bg-soft)", color: "var(--rd-text-secondary)" };
@@ -362,15 +366,11 @@ export default function JobCard({
       style={{ boxShadow: "var(--rd-shadow)" }}
     >
       <div className="flex items-start gap-3">
-        <div
-          aria-hidden="true"
-          className="w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0"
-          style={avatarStyle}
-        >
-          <span className="font-display font-extrabold text-[17px] leading-none">
-            {avatarLetter}
-          </span>
-        </div>
+        <CompanyLogo
+          domain={companyDomain}
+          companyName={job.company_name}
+          fallbackStyle={avatarStyle}
+        />
         <div className="flex-1 min-w-0">
           <h3 className="font-display font-bold text-[15px] leading-[1.2] text-rd-text break-words">
             {job.title}

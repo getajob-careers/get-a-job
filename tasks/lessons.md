@@ -246,3 +246,10 @@ Lesson: Vendor brand identity is unreliable signal — applies not just to ATS v
 Rule for next time: Future shared-infrastructure investigations should require independent evidence of (a) a shared API surface, not just a shared vendor brand, and (b) 4+ Israeli tenants reachable from that shared API — before investing. Same bar as the multi-tenant-ATS rule above, now generalized to any "shared platform / CMS / infra" framing.
 
 ---
+
+---
+2026-06-24 — "Can't query the DB" was actually "didn't check .mcp.json" — the Supabase access path was configured all along
+Trigger: shipping the company-logos feature, I told the user I "couldn't query the real jobs/companies tables" to measure the logo match rate — they pushed back ("you should be connected to supabase though???"). The repo had a Supabase MCP server + PAT configured in .mcp.json the whole time, and lessons.md (2026-05-05) already documented the management-API-with-PAT fallback.
+What I did wrong: when the supabase MCP tools didn't load this session, I jumped straight to "no DB access" + only tried the RLS-blocked anon key from .env.local, without checking .mcp.json (where the project's Supabase token lives) or recalling the existing lesson about the management API fallback. Two strikes: missed the obvious config file, and failed to apply a lesson already in this very file.
+Rule for next time: before claiming no DB/service access, ALWAYS check .mcp.json (and .claude/settings*.json) for configured servers + tokens. If the MCP tools aren't loaded but a token is present, the access path exists — surface it to the user and ask, don't declare a dead end. The anon key in .env.local is RLS-gated (authenticated-only on jobs + companies) and returns [] silently; it is NOT a way to read protected tables. Note: the .mcp.json sbp_ token is scoped to mcp.supabase.com, NOT the api.supabase.com management API (the latter returns Unauthorized) — so the clean path is the loaded MCP execute_sql tool, not raw curl.
+---

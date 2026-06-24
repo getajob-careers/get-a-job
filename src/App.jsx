@@ -32,6 +32,7 @@ import OnboardingPreview from '@/pages/_preview/OnboardingPreview';
 import ShellPreview from '@/pages/_preview/ShellPreview';
 import HomePreview from '@/pages/_preview/HomePreview';
 import CareerPreview from '@/pages/_preview/CareerPreview';
+import JobsLogoPreview from '@/pages/_preview/JobsLogoPreview';
 import RoadmapPreview from '@/pages/_preview/RoadmapPreview';
 import TrackerPreview from '@/pages/_preview/TrackerPreview';
 import ProfilePreview from '@/pages/_preview/ProfilePreview';
@@ -171,6 +172,12 @@ function App() {
               <Route
                 path="/_preview/career"
                 element={<CareerPreview />}
+              />
+            )}
+            {import.meta.env.DEV && (
+              <Route
+                path="/_preview/jobs-logos"
+                element={<JobsLogoPreview />}
               />
             )}
             {import.meta.env.DEV && (
