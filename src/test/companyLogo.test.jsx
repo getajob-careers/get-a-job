@@ -6,7 +6,7 @@
 
 import React from "react";
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, fireEvent } from "@testing-library/react";
 import { companyDomainFor } from "@/lib/queries/useCompanyDomains";
 import CompanyLogo from "@/components/jobs/CompanyLogo";
 
@@ -46,5 +46,18 @@ describe("CompanyLogo", () => {
     render(<CompanyLogo domain={null} companyName="Stealth Co" fallbackStyle={{}} />);
     expect(screen.queryByRole("img")).toBeNull();
     expect(screen.getByText("S")).toBeInTheDocument();
+  });
+
+  it("rejects DuckDuckGo's 48x48 grey-chevron placeholder and falls through to the letter", () => {
+    render(<CompanyLogo domain="unknown-co.co.il" companyName="Unknown Co" fallbackStyle={{}} />);
+    const img = screen.getByRole("img");
+    expect(img.getAttribute("src")).toContain("icons.duckduckgo.com");
+    // Simulate DDG returning its 48x48 placeholder for a domain it lacks.
+    Object.defineProperty(img, "naturalWidth", { value: 48, configurable: true });
+    Object.defineProperty(img, "naturalHeight", { value: 48, configurable: true });
+    fireEvent.load(img);
+    // No more tiers after DDG → the letter avatar replaces the image.
+    expect(screen.queryByRole("img")).toBeNull();
+    expect(screen.getByText("U")).toBeInTheDocument();
   });
 });

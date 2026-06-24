@@ -31,7 +31,15 @@ function logoSources(domain) {
   return out;
 }
 
-export default function CompanyLogo({ domain, companyName, fallbackStyle, className = "" }) {
+export default function CompanyLogo({
+  domain,
+  companyName,
+  fallbackStyle,
+  fallbackClassName = "",
+  className = "",
+  size = 40,
+  radius = 10,
+}) {
   const tiers = logoSources(domain);
   const [tier, setTier] = useState(0);
 
@@ -43,30 +51,52 @@ export default function CompanyLogo({ domain, companyName, fallbackStyle, classN
 
   const letter = (companyName || "?").trim().charAt(0).toUpperCase();
   const usingImage = tiers.length > 0 && tier < tiers.length;
+  // Letter scales with the tile so the same component reads well from the
+  // 40px job card down to the ~22px pipeline chip.
+  const box = { width: size, height: size, borderRadius: radius };
 
   if (!usingImage) {
     return (
       <div
         aria-hidden="true"
-        className={`w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 ${className}`}
-        style={fallbackStyle}
+        className={`flex items-center justify-center flex-shrink-0 ${fallbackClassName} ${className}`}
+        style={{ ...box, ...fallbackStyle }}
       >
-        <span className="font-display font-extrabold text-[17px] leading-none">{letter}</span>
+        <span className="font-display font-extrabold leading-none" style={{ fontSize: Math.round(size * 0.42) }}>
+          {letter}
+        </span>
       </div>
     );
   }
 
   return (
     <div
-      className={`w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 overflow-hidden bg-white border border-rd-border ${className}`}
+      className={`flex items-center justify-center flex-shrink-0 overflow-hidden bg-white border border-rd-border ${className}`}
+      style={box}
     >
       <img
         src={tiers[tier]}
         alt={companyName ? `${companyName} logo` : "Company logo"}
         loading="lazy"
         referrerPolicy="no-referrer"
-        className="w-full h-full object-contain p-1"
+        className="w-full h-full object-contain"
+        style={{ padding: Math.max(1, Math.round(size * 0.1)) }}
         onError={() => setTier((t) => t + 1)}
+        onLoad={(e) => {
+          // DuckDuckGo serves a generic 48×48 grey-chevron placeholder
+          // (an HTTP 404 whose image body the browser still renders) for
+          // domains it has no favicon for. Real favicons come back at
+          // other sizes (16/32/64/192/ICO). Treat the 48×48 placeholder as
+          // a miss and advance to the next tier → the letter avatar.
+          const im = e.currentTarget;
+          if (
+            im.src.includes("icons.duckduckgo.com") &&
+            im.naturalWidth === 48 &&
+            im.naturalHeight === 48
+          ) {
+            setTier((t) => t + 1);
+          }
+        }}
       />
     </div>
   );
