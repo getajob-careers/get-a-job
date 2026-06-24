@@ -1,0 +1,73 @@
+import React, { useState, useEffect } from "react";
+
+// CompanyLogo — real company logo with a graceful fallback cascade:
+//   1. logo.dev (real vector-ish logos) — only when VITE_LOGODEV_TOKEN is
+//      set. logo.dev is the maintained successor to Clearbit's logo API,
+//      which was shut down (logo.clearbit.com no longer resolves). The
+//      token is a publishable key (pk_…), safe in the frontend bundle like
+//      the Turnstile site key already shipped here.
+//   2. DuckDuckGo icon service — tokenless, returns the company's favicon
+//      directly (verified 200 image/* for IL companies). The "real logo if
+//      we can get one" tier that needs no setup.
+//   3. the colored letter avatar (the prior placeholder).
+//
+// Each <img> load error advances one tier. No domain → straight to the
+// letter avatar. The tile geometry (40px rounded square) is identical
+// across all tiers so the card never reflows when an image fails.
+//
+// `fallbackStyle` is the existing track-tinted avatar style the card
+// already computes — reused verbatim for the letter tier so the placeholder
+// looks exactly as it did before.
+
+const LOGODEV_TOKEN = import.meta.env.VITE_LOGODEV_TOKEN;
+
+function logoSources(domain) {
+  if (!domain) return [];
+  const out = [];
+  if (LOGODEV_TOKEN) {
+    out.push(`https://img.logo.dev/${domain}?token=${LOGODEV_TOKEN}&size=80&format=png`);
+  }
+  out.push(`https://icons.duckduckgo.com/ip3/${domain}.ico`);
+  return out;
+}
+
+export default function CompanyLogo({ domain, companyName, fallbackStyle, className = "" }) {
+  const tiers = logoSources(domain);
+  const [tier, setTier] = useState(0);
+
+  // Reset to the first source if the domain changes (card recycled in a
+  // virtualized/re-rendered list).
+  useEffect(() => {
+    setTier(0);
+  }, [domain]);
+
+  const letter = (companyName || "?").trim().charAt(0).toUpperCase();
+  const usingImage = tiers.length > 0 && tier < tiers.length;
+
+  if (!usingImage) {
+    return (
+      <div
+        aria-hidden="true"
+        className={`w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 ${className}`}
+        style={fallbackStyle}
+      >
+        <span className="font-display font-extrabold text-[17px] leading-none">{letter}</span>
+      </div>
+    );
+  }
+
+  return (
+    <div
+      className={`w-10 h-10 rounded-[10px] flex items-center justify-center flex-shrink-0 overflow-hidden bg-white border border-rd-border ${className}`}
+    >
+      <img
+        src={tiers[tier]}
+        alt={companyName ? `${companyName} logo` : "Company logo"}
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        className="w-full h-full object-contain p-1"
+        onError={() => setTier((t) => t + 1)}
+      />
+    </div>
+  );
+}
