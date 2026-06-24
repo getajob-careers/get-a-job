@@ -8390,6 +8390,18 @@
       "notes": "Series B Oct 2025 $22M. Web third-party / supply-chain monitoring. Comeet UID CA.008 + token AC84B7840B035E82058AC8564035E856402058. Verified: 14 jobs, 4 IL."
     },
     {
+      "name": "Regatta",
+      "type": "israeli_founded",
+      "industry": "Deep Tech / Database",
+      "domain": "regatta.dev",
+      "careers_url": "https://apply.workable.com/regatta-3/",
+      "ats": "workable",
+      "slug": "regatta-3",
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/regatta-3?details=true",
+      "verified": true,
+      "notes": "Workable widget. Verified live 2026-06-24: 5 jobs, 5 IL-tagged (Binyamina). RegattaDB unified OLTP / OLAP / vector database for AI agents."
+    },
+    {
       "name": "Remilk",
       "type": "israeli_founded",
       "industry": "FoodTech",
@@ -9120,6 +9132,18 @@
       "api_url": null,
       "verified": false,
       "notes": "Comeet UID 17.002 found; token not extracted"
+    },
+    {
+      "name": "Spines",
+      "type": "israeli_founded",
+      "industry": "Publishing / AI",
+      "domain": "spines.com",
+      "careers_url": "https://apply.workable.com/spines/",
+      "ats": "workable",
+      "slug": "spines",
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/spines?details=true",
+      "verified": true,
+      "notes": "Workable widget. Verified live 2026-06-24: 19 jobs, 1 IL-tagged (Legal Counsel, Herzliya). AI-assisted self-publishing platform."
     },
     {
       "name": "Spot.IM",
