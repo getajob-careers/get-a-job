@@ -1,10 +1,10 @@
 {
   "manifest_version": 3,
   "name": "Get A Job",
-  "version": "0.1.0",
+  "version": "0.1.2",
   "description": "Generate tailored CVs and manage your job-application tracker, using your getajob.careers account.",
   "minimum_chrome_version": "114",
-  "permissions": ["storage", "scripting", "tabs", "sidePanel"],
+  "permissions": ["scripting", "tabs", "sidePanel"],
   "background": {
     "service_worker": "background.js"
   },
