@@ -21,6 +21,12 @@ dist-ssr
 supabase/.temp/
 supabase/.branches/
 
+# Claude Code agent worktrees (duplicate repo checkouts — never commit)
+.claude/worktrees/
+
+# Local design-handoff bundle (kept on disk, not tracked)
+GetAJob Design System/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
