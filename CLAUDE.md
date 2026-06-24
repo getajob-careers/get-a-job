@@ -27,6 +27,15 @@ This is a React + Vite + Supabase career operating system for business students 
 - **Domain libraries** (`supabase/functions/_shared/libraries/*`): **schema/structural** changes (new fields, shape changes, renamed keys, role/skill graph edits) require explicit cross-review by the other dev. **Data-row** changes (registry entries, ATS tokens, tags) may merge on Eli's review alone **when the PR includes live-validation evidence and a clean schema-validator run** (amended 2026-06-12, PR #310). These libraries drive 6 edge functions; the schema-validator skill at `.claude/skills/schema-validator/` catches structural drift + cross-reference breaks before they ship.
 - **`ROADMAP.md`:** keep updated. Move items between Done / In Progress / Up Next as work moves. If it's not in the roadmap, it's not happening.
 
+## Documentation
+
+The project handbook lives in `docs/` (start at `docs/README.md`). It's a plain-language handbook — overview, product, domain, a contained engineering section, team, operations, decisions.
+
+- **Docs are part of "done."** If a change makes a doc wrong, fix the doc in the same PR. Don't leave it for later.
+- Living docs carry frontmatter (`owner`, `last_reviewed`, `code_paths`). When you edit a system, update its doc and bump `last_reviewed` to today.
+- `npm run docs:check` flags docs whose `code_paths` changed after their `last_reviewed` date — run it if you've touched a documented system.
+- Architectural decisions get a short ADR in `docs/decisions/`. See `docs/meta/documentation-guide.md` for the (lightweight) conventions.
+
 ## Lessons (reflection loop)
 
 After any correction from the user that took **multiple attempts to land**, or any bug that surfaced because I missed something an earlier interaction should have taught me, append an entry to `tasks/lessons.md` with this format:

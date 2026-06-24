@@ -1,3 +1,15 @@
+---
+title: Data model
+status: living
+owner: shared
+last_reviewed: 2026-06-24
+code_paths:
+  - supabase/migrations
+  - supabase/functions/_shared/libraries
+---
+
+> Carried over from the previous docs/ layout. Content is broadly accurate; a line-by-line review against current code is still pending (see the freshness note at the bottom).
+
 # Database Documentation
 
 Supabase (PostgreSQL) is the sole data store. All 29 tables have Row Level Security (RLS) enabled — every query is scoped to the authenticated user's `id`.
