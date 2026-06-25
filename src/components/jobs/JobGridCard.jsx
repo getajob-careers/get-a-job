@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
 import CompanyLogo from "@/components/jobs/CompanyLogo";
@@ -31,38 +32,88 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
     ? { background: styles.tint, color: styles.accent }
     : { background: "var(--rd-bg-soft)", color: "var(--rd-text-secondary)" };
 
+  const wrapRef = useRef(null);
+  const peekRef = useRef(null);
+  const dwellRef = useRef(null);
   const [peek, setPeek] = useState(false);
-  const timerRef = useRef(null);
-  useEffect(() => () => clearTimeout(timerRef.current), []);
+  // Viewport rect of the card, captured when the peek opens. The peek is
+  // portaled to <body> and positioned with `fixed` from this rect so it
+  // escapes the jobs column's overflow-y-auto clip (which was cutting the
+  // popover off near the bottom of the scroll area).
+  const [rect, setRect] = useState(null);
+  useEffect(() => () => clearTimeout(dwellRef.current), []);
 
   // Description only needed for the peek snippet — read it once we're peeking
   // (warm from the hover prefetch by then). Seeded if the row carried it.
   const { data: description } = useJobDescription(job.id, { enabled: peek, seed: job.description });
 
-  const open = () => onOpen?.(job, scoreResult);
+  const open = () => {
+    setPeek(false);
+    onOpen?.(job, scoreResult);
+  };
+
+  const openPeek = () => {
+    if (wrapRef.current) setRect(wrapRef.current.getBoundingClientRect());
+    setPeek(true);
+    peekArmed = true;
+  };
   const handleEnter = () => {
     prefetchJobDescription(queryClient, job.id);
     clearTimeout(peekRearmTimer);
-    clearTimeout(timerRef.current);
+    clearTimeout(dwellRef.current);
     // No delay once the user is "armed" from a prior peek; full dwell first time.
-    const delay = peekArmed ? 0 : PEEK_DELAY_MS;
-    timerRef.current = setTimeout(() => {
-      setPeek(true);
-      peekArmed = true;
-    }, delay);
+    dwellRef.current = setTimeout(openPeek, peekArmed ? 0 : PEEK_DELAY_MS);
   };
-  const handleLeave = () => {
-    clearTimeout(timerRef.current);
-    setPeek(false);
-    // Re-arm the dwell after a short idle with no hovering.
-    clearTimeout(peekRearmTimer);
-    peekRearmTimer = setTimeout(() => { peekArmed = false; }, PEEK_REARM_MS);
-  };
+  // Leaving the card only cancels a PENDING open — closing an already-open
+  // peek is owned by the global hit-test below (mouseleave is unreliable for a
+  // body-portaled popover that can appear under a stationary cursor).
+  const handleLeave = () => clearTimeout(dwellRef.current);
+
+  // Close the peek when the pointer is outside BOTH the card and the popover,
+  // or as soon as the user scrolls. Driven by a window-level hit-test rather
+  // than enter/leave so a peek that opens directly under the cursor doesn't
+  // immediately flicker shut.
+  useEffect(() => {
+    if (!peek) return undefined;
+    const close = () => {
+      setPeek(false);
+      clearTimeout(peekRearmTimer);
+      peekRearmTimer = setTimeout(() => { peekArmed = false; }, PEEK_REARM_MS);
+    };
+    const TOL = 6;
+    const inside = (r, x, y) =>
+      r && x >= r.left - TOL && x <= r.right + TOL && y >= r.top - TOL && y <= r.bottom + TOL;
+    const onMove = (e) => {
+      const cardR = wrapRef.current?.getBoundingClientRect();
+      const peekR = peekRef.current?.getBoundingClientRect();
+      if (!inside(cardR, e.clientX, e.clientY) && !inside(peekR, e.clientX, e.clientY)) close();
+    };
+    window.addEventListener("mousemove", onMove);
+    window.addEventListener("scroll", close, true);
+    return () => {
+      window.removeEventListener("mousemove", onMove);
+      window.removeEventListener("scroll", close, true);
+    };
+  }, [peek]);
 
   const snippet = (description || "").trim().slice(0, PEEK_SNIPPET_CHARS);
 
+  // Position the peek over the card, flipping to open upward when there isn't
+  // room below; cap its height to the available space (it scrolls internally
+  // if its content is taller, so it's never cut off by the viewport edge).
+  let peekStyle = null;
+  if (rect) {
+    const GAP = 12;
+    const spaceBelow = window.innerHeight - rect.top;
+    const spaceAbove = rect.bottom;
+    const downward = spaceBelow >= 280 || spaceBelow >= spaceAbove;
+    peekStyle = downward
+      ? { left: rect.left, top: rect.top, width: rect.width, maxHeight: Math.max(160, spaceBelow - GAP) }
+      : { left: rect.left, bottom: window.innerHeight - rect.bottom, width: rect.width, maxHeight: Math.max(160, spaceAbove - GAP) };
+  }
+
   return (
-    <div className="relative h-full" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+    <div ref={wrapRef} className="relative h-full" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
       <div
         role="button"
         tabIndex={0}
@@ -135,12 +186,14 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
       </div>
 
       {/* Delayed-hover peek — an expanded version of the card, overlaid OVER
-          it (top-0), elevated. Clickable: opens the full modal. Lives inside
-          the hover wrapper so moving onto it doesn't dismiss it. */}
-      {peek && (
+          it, portaled to <body> and positioned with `fixed` so the jobs
+          column's overflow scroll can't clip it. Clickable: opens the modal. */}
+      {peek && peekStyle && createPortal(
         <div
+          ref={peekRef}
           onClick={open}
-          className="absolute left-0 right-0 top-0 z-50 cursor-pointer bg-rd-bg-card border border-rd-border-hover rounded-[14px] shadow-[0_18px_40px_rgba(40,25,10,0.20)] p-3"
+          style={{ position: "fixed", zIndex: 60, ...peekStyle }}
+          className="cursor-pointer overflow-y-auto bg-rd-bg-card border border-rd-border-hover rounded-[14px] shadow-[0_18px_40px_rgba(40,25,10,0.20)] p-3"
         >
           <div className="flex items-center justify-between gap-1.5 mb-2">
             <CompanyLogo domain={companyDomain} companyName={job.company_name} fallbackStyle={fallbackStyle} size={34} radius={8} />
@@ -184,7 +237,8 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
             {snippet ? `${snippet}${(description || "").length > PEEK_SNIPPET_CHARS ? "…" : ""}` : "Loading preview…"}
           </p>
           <p className="text-[10px] text-rd-coral-dark font-medium mt-2">Click for full details →</p>
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );
