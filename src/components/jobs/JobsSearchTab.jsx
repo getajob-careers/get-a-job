@@ -358,11 +358,7 @@ export default function JobsSearchTab({
       ) : (
         <>
           <div
-            className={
-              singleColumn
-                ? "grid grid-cols-1 gap-3"
-                : "grid grid-cols-1 sm:grid-cols-2 gap-3"
-            }
+            className="grid grid-cols-1 sm:grid-cols-2 gap-3"
           >
             {visible.map(({ job, score }) => {
               const trackRdColor = score?.track
