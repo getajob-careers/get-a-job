@@ -12,6 +12,13 @@ import { deriveJobDisplay, RD_TRACK_STYLES } from "@/lib/jobCardDisplay";
 // description snippet) so a browsing user can scan without opening the modal.
 const PEEK_DELAY_MS = 450;
 const PEEK_SNIPPET_CHARS = 200;
+// Hover-intent is shared across all cards: the FIRST peek requires a dwell,
+// but once a peek has been shown, subsequent hovers open instantly — until
+// the user idles briefly (PEEK_REARM_MS with no hovering), which re-arms the
+// dwell. Module-level so it's shared between card instances.
+const PEEK_REARM_MS = 1500;
+let peekArmed = false;
+let peekRearmTimer = null;
 
 export default function JobGridCard({ job, scoreResult = null, trackColor = null, unified = false, onOpen }) {
   const queryClient = useQueryClient();
@@ -35,18 +42,27 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
   const open = () => onOpen?.(job, scoreResult);
   const handleEnter = () => {
     prefetchJobDescription(queryClient, job.id);
+    clearTimeout(peekRearmTimer);
     clearTimeout(timerRef.current);
-    timerRef.current = setTimeout(() => setPeek(true), PEEK_DELAY_MS);
+    // No delay once the user is "armed" from a prior peek; full dwell first time.
+    const delay = peekArmed ? 0 : PEEK_DELAY_MS;
+    timerRef.current = setTimeout(() => {
+      setPeek(true);
+      peekArmed = true;
+    }, delay);
   };
   const handleLeave = () => {
     clearTimeout(timerRef.current);
     setPeek(false);
+    // Re-arm the dwell after a short idle with no hovering.
+    clearTimeout(peekRearmTimer);
+    peekRearmTimer = setTimeout(() => { peekArmed = false; }, PEEK_REARM_MS);
   };
 
   const snippet = (description || "").trim().slice(0, PEEK_SNIPPET_CHARS);
 
   return (
-    <div className="relative" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
+    <div className="relative h-full" onMouseEnter={handleEnter} onMouseLeave={handleLeave}>
       <div
         role="button"
         tabIndex={0}
@@ -58,7 +74,7 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
             open();
           }
         }}
-        className="group cursor-pointer bg-rd-bg-card border border-rd-border rounded-[14px] p-3 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+        className="group cursor-pointer h-full flex flex-col bg-rd-bg-card border border-rd-border rounded-[14px] p-3 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
       >
         <div className="flex items-center justify-between gap-1.5 mb-2">
           <CompanyLogo
