@@ -7,6 +7,7 @@ code_paths:
   - scripts/refresh-jobs.ts
   - scripts/lib/ats-fetchers.ts
   - supabase/functions/_shared/metrics.ts
+  - src/lib/internalUsers.js
 ---
 
 # Runbooks
@@ -49,6 +50,10 @@ When something breaks or looks off, start here. Each entry is a known failure mo
 
 **Cause:** Turnstile doesn't have `localhost` in its allowed hostnames.
 **Fix:** add it in the Cloudflare Turnstile dashboard, or use the DEV `/_preview/*` routes which don't require sign-in.
+
+## Excluding internal users from metrics
+
+Product metrics (PostHog, and any Supabase metrics query) must exclude the team's own accounts, or pilot numbers get inflated by internal testing. Two filters together catch them: an email `LIKE '%+%'` filter catches plus-addressed test accounts, and `src/lib/internalUsers.js` (`INTERNAL_USER_IDS`) lists the team accounts that have no `+` and so slip past that filter. Exclude both wherever production metrics are computed: `email LIKE '%+%' OR id IN (INTERNAL_USER_IDS)`. The same `INTERNAL_USER_IDS` set backs the PostHog internal-users cohort. When a new team account is created without a `+`, add it to `INTERNAL_USER_IDS`.
 
 ## The general principle
 

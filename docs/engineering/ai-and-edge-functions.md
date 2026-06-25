@@ -23,9 +23,21 @@ They live in `supabase/functions/<name>/index.ts` and are deployed individually 
 
 Which language model each job uses is decided in one place — a routing layer (`_shared/model-routing.ts`) — rather than hardcoded in every function. This means a model can be swapped for a job (after testing) by changing one entry, and different jobs can use different models tuned to their needs (a fast cheap model for simple extraction, a stronger one where quality matters). Model choices are validated with "bake-offs" — head-to-head comparisons — before a swap ships.
 
+Today the routing mixes providers and tiers: cheap, fast models handle simple extraction and classification, stronger models handle the generation surfaces (career analysis, CV authoring, LinkedIn content), and the chat agent and CV authoring currently use a Claude model reached through a third-party gateway. The provider mix is under active review (we are looking at moving off the current gateway), so treat the specific model-to-job assignments as current state rather than a contract, and read `_shared/model-routing.ts` for the live mapping.
+
 ## Voice rules
 
 When the AI writes prose (CVs, LinkedIn posts, comments, outreach), it follows **voice rules** (`_shared/voice-rules.ts`) — guidelines that say what *to* write so the output sounds human and specific. This replaced an earlier "banned words" approach that didn't work: the model just wrote around the banned words while keeping the same generic voice. Telling it what good looks like works; telling it what to avoid doesn't.
+
+There are five voice-rule constants in `_shared/voice-rules.ts`, one per writing surface:
+
+| Constant | Surface |
+|---|---|
+| `CV_VOICE_RULES` | tailored CV (`generate-tailored-cv`) |
+| `LINKEDIN_VOICE_RULES` | LinkedIn profile content |
+| `POST_VOICE_RULES` | LinkedIn posts (`generate-linkedin-post`) |
+| `COMMENT_VOICE_RULES` | LinkedIn comments (`generate-linkedin-comment`) |
+| `OUTREACH_VOICE_RULES` | outreach messages (`generate-linkedin-outreach-message`) |
 
 ## The anti-fabrication rule
 

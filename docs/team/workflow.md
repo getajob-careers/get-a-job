@@ -49,6 +49,24 @@ Documentation is part of "done." If your change makes a doc wrong, fixing it is 
 
 The team works heavily with Claude Code. [`CLAUDE.md`](../../CLAUDE.md) at the repo root holds the conventions Claude reads every session — it's the machine-facing version of this page. Keep the two consistent.
 
+### How we work with it
+
+A few habits keep the AI productive and safe:
+
+- **Ask, don't tell.** For anything that changes scope, locks in a design, is hard to reverse, or is visible to others (pushing branches, opening PRs, deploying, destructive SQL), surface the options with a recommendation and wait for a decision rather than acting unilaterally. Approval for one step is not approval for the next.
+- **Investigate before building.** For non-trivial work, produce a short numbered investigation first: existing tests, regression risk, shared code that touches this, the rollback path, and a live-data check for anything touching schema, RLS, or counts (verify against the live DB, never transcribe a number). Then build once the direction is confirmed.
+- **Decision checkpoints.** Treat each phase as a gate: report what changed, hold for review, and let the reviewer authorize the next step. This keeps large multi-file work on track.
+
+### Recommended skills to use
+
+A curated recommendation for getting the most out of Claude Code on this repo, not a claim about what is installed in any one environment:
+
+- **schema-validator** (project-local, `.claude/skills/schema-validator/`): structural checker for the role and skill libraries. Run it after any library edit.
+- **role-research** (project-local, `.claude/skills/role-research/`): research-grade enrichment for the role library.
+- A **multi-agent dev workflow** (for example the superpowers toolkit): TDD, code review, planning, and subagent execution.
+- **Document authoring** (docx, pdf, pptx, xlsx) and frontend-design helpers when producing artifacts.
+- **Context7** for current library docs (React, Tailwind, shadcn, Supabase, Deno) instead of relying on training data.
+
 ---
 
 *Related: [the roadmap](../../ROADMAP.md) (what's happening now) · [decisions](../decisions/README.md) (why things are the way they are).*
