@@ -24,7 +24,7 @@
  * allow-list or scores jobs itself.
  */
 
-import React, { useState, useMemo, useEffect, useRef } from "react";
+import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -170,6 +170,13 @@ export default function Career() {
   // nav, no scroll jump). Collapse state persists for the session only —
   // a fresh visit without ?pipeline=open shows the board collapsed.
   const boardOpen = searchParams.get("pipeline") === "open";
+  // The fixed shell (only-the-job-list-scrolls) applies only while the pipeline
+  // board is COLLAPSED. When the board expands it's a tall flex child that would
+  // otherwise crush the flex-1 jobs row to zero height under the root's
+  // overflow-hidden (jobs vanish, nothing scrolls) — so with the board open we
+  // revert to normal page scroll. The wheel-forwarder self-disables to match
+  // (it checks whether the jobs column is actually a scroll container).
+  const fixedShell = !boardOpen;
   // Detail drawer is also URL-driven: &app=<id> opens that application's
   // drawer if it exists in the cache. Closing the drawer drops the param
   // but keeps pipeline=open.
@@ -401,6 +408,49 @@ export default function Career() {
     return () => agentDrawer.setPageContext(null);
   }, [effectiveExpandedId, drawerAppId, visibleRoleIds, agentDrawer]);
 
+  // Fixed shell (md+): the page itself doesn't scroll, so wheeling over the
+  // empty margins beside the centered content, the header/pipeline, or the
+  // matched-roles panel would otherwise do nothing. Attach to <main> (it spans
+  // the full width, margins included) and forward the wheel to the job list —
+  // UNLESS it lands on something that can absorb the scroll itself (the job
+  // list, the matched-roles panel when its list overflows, any inner scroller),
+  // which we let scroll natively. Mobile keeps native page scroll.
+  const jobsColRef = useRef(null);
+  const mainWheelCleanup = useRef(null);
+  const rootRef = useCallback((node) => {
+    if (mainWheelCleanup.current) {
+      mainWheelCleanup.current();
+      mainWheelCleanup.current = null;
+    }
+    if (!node) return;
+    const main = node.closest("main") || node.parentElement;
+    if (!main) return;
+    const absorbs = (target, dy) => {
+      let el = target;
+      while (el && el !== main) {
+        const oy = getComputedStyle(el).overflowY;
+        if (oy === "auto" || oy === "scroll") {
+          if (dy > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1) return true;
+          if (dy < 0 && el.scrollTop > 0) return true;
+        }
+        el = el.parentElement;
+      }
+      return false;
+    };
+    const onWheel = (e) => {
+      if (!window.matchMedia("(min-width: 768px)").matches) return; // mobile: native scroll
+      const jobs = jobsColRef.current;
+      if (!jobs || e.deltaY === 0) return;
+      const joy = getComputedStyle(jobs).overflowY;
+      if (joy !== "auto" && joy !== "scroll") return; // fixed shell off (board open) → native scroll
+      if (absorbs(e.target, e.deltaY)) return; // a real scroller handles it
+      jobs.scrollTop += e.deltaY;
+      e.preventDefault();
+    };
+    main.addEventListener("wheel", onWheel, { passive: false });
+    mainWheelCleanup.current = () => main.removeEventListener("wheel", onWheel);
+  }, []);
+
   if (loadingRoles) {
     return (
       <div className="min-h-full flex items-center justify-center">
@@ -462,7 +512,7 @@ export default function Career() {
     // header, explainer, pipeline and the matched-roles panel stay put while
     // ONLY the job list scrolls (see the two-column row + jobs column below).
     // On mobile the page scrolls normally.
-    <div className="max-w-[1080px] mx-auto px-5 sm:px-8 py-8 sm:py-10 md:h-full md:flex md:flex-col md:overflow-hidden">
+    <div ref={rootRef} className={`max-w-[1080px] mx-auto px-5 sm:px-8 py-8 sm:py-10 ${fixedShell ? "md:h-full md:flex md:flex-col md:overflow-hidden" : ""}`}>
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="font-display font-extrabold text-[26px] leading-[1.1] tracking-tight text-rd-text">
@@ -693,22 +743,23 @@ export default function Career() {
         </section>
       )}
 
-      <div className="flex flex-col md:flex-row gap-4 mt-4 items-start md:flex-1 md:min-h-0">
+      <div className={`flex flex-col md:flex-row gap-4 mt-4 items-start ${fixedShell ? "md:flex-1 md:min-h-0" : ""}`}>
         {/* Left — the shared unified two-tab jobs feed. Career renders the
             SAME <UnifiedJobsFeed> as /jobs (one implementation, no forked
             track-scoped feed). It self-fetches profile / experiences / roles
             via the canonical hooks and owns its own scoring, search + tabs. */}
-        <div className="w-full md:flex-[1.55] min-w-0 md:h-full md:overflow-y-auto md:pr-1">
+        <div ref={jobsColRef} className={`w-full md:flex-[1.55] min-w-0 ${fixedShell ? "md:h-full md:overflow-y-auto md:pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`}>
           <UnifiedJobsFeed singleColumn />
         </div>
 
         {/* Right — matched roles why-panel. Track-agnostic (PR2): one flat
             list across all tracks, ordered by fit-quality tier then
             match_score. Each row carries its own track band styling.
-            Fixed beside the scrolling job list on md+ — natural height,
-            top-aligned, NOT its own scroll area (the job list is the only
-            thing that scrolls). */}
-        <div className="w-full md:flex-1 min-w-0 bg-rd-bg-page border border-rd-border-subtle rounded-[16px] p-3.5 md:self-start">
+            In the fixed shell it fills the row height and scrolls internally
+            (scrollbar hidden) so a long list is fully reachable; with the
+            pipeline board open the page scrolls normally, so it's just
+            natural height, top-aligned. */}
+        <div className={`w-full md:flex-1 min-w-0 bg-rd-bg-page border border-rd-border-subtle rounded-[16px] p-3.5 ${fixedShell ? "md:h-full md:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "md:self-start"}`}>
           <div className="flex items-center justify-between mb-2">
             <span className="font-display font-bold text-[14px] text-rd-text">
               Your matched roles
