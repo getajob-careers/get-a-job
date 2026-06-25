@@ -302,8 +302,9 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
 
   return (
     <>
-      {/* Two-tab switcher */}
-      <div className="flex gap-2 mb-5">
+      {/* Two-tab switcher — sticky to the top of the scrolling jobs column
+          (Career fixed-shell) so the tabs/filters stay while cards scroll. */}
+      <div className="flex gap-2 mb-5 md:sticky md:top-0 md:z-10 md:bg-rd-bg-page md:pt-1 md:pb-3 md:-mt-1">
         <UnifiedTabButton
           label="Top Matches for You"
           active={unifiedTab === "matches"}
