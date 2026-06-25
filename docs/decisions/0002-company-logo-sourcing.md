@@ -2,7 +2,7 @@
 title: ADR 0002 — Company logo sourcing
 status: living
 owner: isaac
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 code_paths:
   - src/components/jobs/CompanyLogo.jsx
   - src/lib/queries/useCompanyDomains.js

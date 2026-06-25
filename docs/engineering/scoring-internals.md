@@ -8,6 +8,8 @@ code_paths:
   - src/lib/scoreApplication.js
   - src/lib/experienceLevel.js
   - supabase/functions/_shared/track-scoring-constants.ts
+  - supabase/functions/_shared/skill-aliases.ts
+  - supabase/functions/generate-career-analysis
 ---
 
 # Scoring internals
@@ -49,6 +51,15 @@ Scores are stored as **0–1 fractions** (e.g. `0.88`), not 0–100. Every place
 ## Why deterministic
 
 The judgments that need to be stable and fair are computed in code, not asked of a language model each time. Same inputs → same score; consistent across the job board and the tracker; debuggable from data, not model logs. The full reasoning is in [ADR 0001](../decisions/0001-deterministic-track-scoring.md). The language model is still used upstream to *extract* structured requirements from messy job descriptions — but the scoring itself is deterministic.
+
+## Skill matching and propagation
+
+Matching a user's stated skills to the canonical skill library used to fail for most skills, because free-text labels rarely matched the library's normalized IDs exactly. Two layers fix this:
+
+1. An alias map (`supabase/functions/_shared/skill-aliases.ts`) resolves common label variants and the onboarding skill chips to canonical skill IDs before scoring, falling through to a normalized match when there is no alias.
+2. A semantic-credit pass in `generate-career-analysis`: the prompt offers the model a candidate-skills list, the model returns `additional_credited_skill_ids` (validated against that offered set, so it cannot invent skills), and the server re-scores the selected roles with the augmented skill set.
+
+The net effect is that a user described in everyday language gets credit for skills the strict matcher would miss, without letting the model fabricate skills the user never claimed.
 
 ## Testing
 

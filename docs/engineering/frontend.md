@@ -105,19 +105,17 @@ Form interface for editing STAR narratives (Situation, Task, Action, Result) wit
 
 ## Onboarding Wizard Components (`src/components/onboarding/`)
 
-The onboarding wizard is a 9-step wizard (0-indexed). It tracks local wizard state and upserts details to `profiles` and child tables (such as `education` and `experiences`) using the `cleanProfilePayload` method to filter client-only variables.
+The onboarding wizard runs 7 steps (0-indexed), driven by `STEP_NAMES` in `src/pages/Onboarding.jsx`. Steps 0 to 5 capture data inside `OnboardingShell`; step 6 is a post-flow tutorial rendered full-screen outside the shell, so it is not counted as a data-capture step. The flow was shortened from an earlier, longer version: the separate education, experience, and skills steps were consolidated into one review step, and the old "Your Roles" reveal page was replaced by the tutorial.
 
 | Component | Step | Focus / Inputs |
 |-----------|------|----------------|
-| `StepResumeUpload` | 0 | Parser for PDF uploads, extracting profile structures using `ai-chat`. |
-| `StepEducation` | 1 | Academic degrees, institution names, GPAs, and modules. |
-| `StepPracticum` | 2 | Provided vs self-sourced placement track choice. |
-| `StepExperience` | 3 | Historical employment, internship, and military positions. |
-| `StepSkills` | 4 | Categorized skills inputs using autocomplete inputs. |
-| `StepCareerDirection`| 5 | Stated five-year roles, preferred environments, and GTM scopes. |
-| `StepConstraints` | 6 | Desired locations, salary ranges, and start dates. |
-| `StepSurvey` | 7 | Qualitative challenges and job search effort contexts. |
-| `OnboardingTutorial` | 8 | Paced 6-slide overview carousels displaying tool walkthroughs (skip gate included). |
+| `StepResumeUpload` | 0 | CV upload. Text extraction is server-side via the `extract-cv-text` edge function. Also captures employment status. |
+| `StepReview` | 1 | Review and edit the profile parsed from the CV: education, experience, skills, projects, and certifications, in one consolidated screen. |
+| `StepInternship` | 2 | Internship path choice (faculty-provided, self-sourced, or none). |
+| `StepCareerDirection` | 3 | Five-year target role, target titles, industries, and work environment. |
+| `StepConstraints` | 4 | Location, start date, and work type. |
+| `StepSurvey` | 5 | Self-assessment questions. Triggers the career analysis. |
+| `OnboardingTutorial` | 6 | Post-flow tutorial carousel (full-screen, with a skip gate). Not a data-capture step. |
 
 ---
 
