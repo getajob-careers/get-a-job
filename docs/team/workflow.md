@@ -2,7 +2,7 @@
 title: How we work
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 code_paths:
   - CLAUDE.md
   - .github/pull_request_template.md
