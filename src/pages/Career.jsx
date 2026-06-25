@@ -705,9 +705,10 @@ export default function Career() {
         {/* Right — matched roles why-panel. Track-agnostic (PR2): one flat
             list across all tracks, ordered by fit-quality tier then
             match_score. Each row carries its own track band styling.
-            Fixed beside the scrolling job list on md+ (fills the row height,
-            scrolls internally if its own list is taller). */}
-        <div className="w-full md:flex-1 min-w-0 bg-rd-bg-page border border-rd-border-subtle rounded-[16px] p-3.5 md:h-full md:overflow-y-auto">
+            Fixed beside the scrolling job list on md+ — natural height,
+            top-aligned, NOT its own scroll area (the job list is the only
+            thing that scrolls). */}
+        <div className="w-full md:flex-1 min-w-0 bg-rd-bg-page border border-rd-border-subtle rounded-[16px] p-3.5 md:self-start">
           <div className="flex items-center justify-between mb-2">
             <span className="font-display font-bold text-[14px] text-rd-text">
               Your matched roles
