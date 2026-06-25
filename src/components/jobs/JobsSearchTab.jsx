@@ -98,32 +98,42 @@ export default function JobsSearchTab({
   singleColumn = false,
   initialKeyword = "",
 }) {
-  // 1. Whole active-IL corpus, fetched ONCE, light projection, cached. Fires
-  //    only when this tab mounts (the user opted into Search), and is reused
-  //    across tab switches via the react-query cache.
-  const {
-    data: corpus = [],
-    isLoading,
-    error,
-  } = useQuery({
+  // 1. Whole active-IL corpus, light projection, cached. Loaded PROGRESSIVELY
+  //    so the user sees results fast instead of waiting for all ~4,200 rows:
+  //    a quick first-page query paints in one round-trip (~350ms), while the
+  //    full-corpus query fills in the rest in the background. We render
+  //    whichever is larger, so the list seamlessly grows as the rest arrive.
+  //    (Both fire only when the Search tab mounts; cached across tab switches.)
+  const fetchPage = async (from) => {
+    const { data, error: qErr } = await supabase
+      .from("jobs")
+      .select(CORPUS_SELECT)
+      .eq("is_il", true)
+      .eq("is_active", true)
+      .order("date_posted", { ascending: false, nullsFirst: false })
+      .range(from, from + CORPUS_FETCH_PAGE - 1);
+    if (qErr) throw qErr;
+    return data || [];
+  };
+
+  const { data: firstPage = [], isLoading: firstLoading, error: firstError } = useQuery({
+    queryKey: ["jobsCorpusFirstPage"],
+    queryFn: () => fetchPage(0),
+    enabled: !!profile,
+    staleTime: 10 * 60 * 1000,
+  });
+
+  const { data: fullCorpus = [], error: fullError } = useQuery({
     queryKey: ["jobsCorpusLight"],
     queryFn: async () => {
       // Paginate in PostgREST-cap-sized pages: a bare unbounded select
-      // silently truncates at db-max-rows (Supabase default 1000), so we'd
-      // miss most of the ~4,200-row corpus. Loop until a short page.
+      // silently truncates at db-max-rows (Supabase default 1000).
       const all = [];
       let from = 0;
       for (;;) {
-        const { data, error: qErr } = await supabase
-          .from("jobs")
-          .select(CORPUS_SELECT)
-          .eq("is_il", true)
-          .eq("is_active", true)
-          .order("date_posted", { ascending: false, nullsFirst: false })
-          .range(from, from + CORPUS_FETCH_PAGE - 1);
-        if (qErr) throw qErr;
-        all.push(...(data || []));
-        if (!data || data.length < CORPUS_FETCH_PAGE) break;
+        const page = await fetchPage(from);
+        all.push(...page);
+        if (page.length < CORPUS_FETCH_PAGE) break;
         from += CORPUS_FETCH_PAGE;
       }
       return all;
@@ -131,6 +141,11 @@ export default function JobsSearchTab({
     enabled: !!profile,
     staleTime: 10 * 60 * 1000,
   });
+
+  // Render the fuller of the two; spinner only blocks until the first page.
+  const corpus = fullCorpus.length > firstPage.length ? fullCorpus : firstPage;
+  const isLoading = firstLoading && corpus.length === 0;
+  const error = firstError || fullError;
 
   // 2. Score every job ONCE. Recomputes only when the corpus or profile
   //    changes — NOT on facet change.
@@ -199,6 +214,9 @@ export default function JobsSearchTab({
 
   return (
     <div>
+      {/* Search + facets stick to the top of the scrolling jobs column, just
+          below the sticky tab bar, so the filters stay while results scroll. */}
+      <div className="md:sticky md:top-[48px] md:z-[9] md:bg-rd-bg-page md:pt-2">
       {/* Keyword — match-as-you-type over the cached corpus (title + company
           only; description is lazy-loaded, out of scope). AND-composes with
           the facets below. */}
@@ -319,6 +337,7 @@ export default function JobsSearchTab({
             Clear filters
           </button>
         )}
+      </div>
       </div>
 
       {/* Count */}

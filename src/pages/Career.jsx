@@ -458,7 +458,11 @@ export default function Career() {
   }
 
   return (
-    <div className="max-w-[1080px] mx-auto px-5 sm:px-8 py-8 sm:py-10">
+    // md+: fill the scroll container (<main>) and become a fixed shell — the
+    // header, explainer, pipeline and the matched-roles panel stay put while
+    // ONLY the job list scrolls (see the two-column row + jobs column below).
+    // On mobile the page scrolls normally.
+    <div className="max-w-[1080px] mx-auto px-5 sm:px-8 py-8 sm:py-10 md:h-full md:flex md:flex-col md:overflow-hidden">
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="font-display font-extrabold text-[26px] leading-[1.1] tracking-tight text-rd-text">
@@ -689,19 +693,21 @@ export default function Career() {
         </section>
       )}
 
-      <div className="flex flex-col md:flex-row gap-4 mt-4 items-start">
+      <div className="flex flex-col md:flex-row gap-4 mt-4 items-start md:flex-1 md:min-h-0">
         {/* Left — the shared unified two-tab jobs feed. Career renders the
             SAME <UnifiedJobsFeed> as /jobs (one implementation, no forked
             track-scoped feed). It self-fetches profile / experiences / roles
             via the canonical hooks and owns its own scoring, search + tabs. */}
-        <div className="w-full md:flex-[1.55] min-w-0">
+        <div className="w-full md:flex-[1.55] min-w-0 md:h-full md:overflow-y-auto md:pr-1">
           <UnifiedJobsFeed singleColumn />
         </div>
 
         {/* Right — matched roles why-panel. Track-agnostic (PR2): one flat
             list across all tracks, ordered by fit-quality tier then
-            match_score. Each row carries its own track band styling. */}
-        <div className="w-full md:flex-1 min-w-0 bg-rd-bg-page border border-rd-border-subtle rounded-[16px] p-3.5">
+            match_score. Each row carries its own track band styling.
+            Fixed beside the scrolling job list on md+ (fills the row height,
+            scrolls internally if its own list is taller). */}
+        <div className="w-full md:flex-1 min-w-0 bg-rd-bg-page border border-rd-border-subtle rounded-[16px] p-3.5 md:h-full md:overflow-y-auto">
           <div className="flex items-center justify-between mb-2">
             <span className="font-display font-bold text-[14px] text-rd-text">
               Your matched roles
