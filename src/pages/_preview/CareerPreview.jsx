@@ -94,6 +94,16 @@ export default function CareerPreview() {
     ? new URLSearchParams(window.location.search).get("state")
     : null;
 
+  // Inject the fixture jobs into <UnifiedJobsFeed> (it self-fetches via RPC,
+  // which is RLS-empty without auth). Set synchronously so the feed's mount
+  // effect reads it before its first fetch. DEV-only on the feed side.
+  // function_family is nulled so each job scores relevance_match="unknown"
+  // and passes the feed's relevance gate without depending on a seeded
+  // primary_domain (the gate drops off-path families).
+  if (typeof window !== "undefined") {
+    window.__GAJ_PREVIEW_JOBS__ = CAREER_JOBS.map((j) => ({ ...j, function_family: null }));
+  }
+
   const queryClient = useMemo(() => {
     const qc = new QueryClient({
       defaultOptions: {

@@ -22,15 +22,22 @@ import { TRACK_CONFIG, TRACK_ORDER } from "@/lib/trackConfig";
 import { scoreJobFit } from "@/lib/scoreJobFit";
 import { dedupeJobsById } from "@/lib/careerJobsQuery";
 import {
-  BROWSE_PAGE_SIZE,
   UNIFIED_MAX_ROLES,
   TRACK_SIMILARITY_THRESHOLD,
-  JOBS_SELECT,
+  JOBS_SELECT_LIGHT,
   stretchAwareSeniorityFor,
   levelLabel,
 } from "@/lib/jobsFeed";
-import JobCard from "./JobCard";
+import JobGridCard from "./JobGridCard";
+import JobDetailModal from "./JobDetailModal";
 import JobsSearchTab from "./JobsSearchTab";
+
+// Matches feed: fetch a healthy buffer from the DB, reveal it 60 at a time
+// from memory so "Load more" is instant, and refill from the DB before the
+// buffer runs low. The fetch is light (no description) so a 120-row page is
+// cheap; descriptions load on demand in the detail modal.
+const MATCHES_FETCH_SIZE = 120;
+const REVEAL_SIZE = 60;
 
 // <UnifiedJobsFeed> — the unified two-tab jobs feed extracted from Jobs.jsx
 // (PR1). Self-contained: it fetches its own profile / experiences /
@@ -98,6 +105,11 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [emptyReason, setEmptyReason] = useState(null);
+  // How many of the gated/sorted jobs are revealed (client-side reveal from
+  // the fetched buffer). Bumps by REVEAL_SIZE on "Load more".
+  const [visibleCount, setVisibleCount] = useState(REVEAL_SIZE);
+  // The job whose detail modal is open (null = closed).
+  const [openJob, setOpenJob] = useState(null);
   // Deep-link prefill (PR3): /Career?role=<title> — and the retired /Jobs route
   // that forwards to it — opens the Search tab with the role seeded into the
   // keyword box. roleParam drives the initial tab here; the seed string is
@@ -147,18 +159,28 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
     return gated;
   }, [jobs, scoredById, profile]);
 
-  // Split the gated + sorted feed into "Our picks for you" (strong + good
-  // bands) and "Worth a stretch" (stretch + reach), preserving order.
+  // Reveal only the first `visibleCount` of the gated/sorted feed (the rest
+  // sit in memory until the user loads more).
+  const shownJobs = useMemo(
+    () => displayedJobs.slice(0, visibleCount),
+    [displayedJobs, visibleCount],
+  );
+
+  // Split the revealed feed into "Our picks for you" (strong + good bands)
+  // and "Worth a stretch" (stretch + reach), preserving order.
   const sectionedJobs = useMemo(() => {
     const picks = [];
     const stretch = [];
-    for (const job of displayedJobs) {
+    for (const job of shownJobs) {
       const b = scoredById[job.id]?.attainability_band;
       if (b === "strong" || b === "good") picks.push(job);
       else stretch.push(job);
     }
     return { picks, stretch };
-  }, [displayedJobs, scoredById]);
+  }, [shownJobs, scoredById]);
+
+  // "Load more" shows while there's buffer left to reveal OR more to fetch.
+  const canShowMore = visibleCount < displayedJobs.length || hasMore;
 
   const buildJobsQuery = useCallback(
     (offsetArg) => {
@@ -184,13 +206,13 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
       return supabase
         .rpc("search_jobs_by_role_titles", {
           p_role_titles: unionedRoles,
-          p_limit: BROWSE_PAGE_SIZE,
+          p_limit: MATCHES_FETCH_SIZE,
           p_offset: offsetArg,
           p_similarity_threshold: TRACK_SIMILARITY_THRESHOLD,
           p_max_seniority: stretchSeniorities,
           p_work_types: workTypes.length > 0 ? workTypes : null,
         })
-        .select(JOBS_SELECT);
+        .select(JOBS_SELECT_LIGHT);
     },
     [rolesByTrack, allowedSeniorities, profile],
   );
@@ -223,7 +245,7 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
 
       const rows = data || [];
       setJobs((prev) => (append ? dedupeJobsById([...prev, ...rows]) : rows));
-      setHasMore(rows.length >= BROWSE_PAGE_SIZE);
+      setHasMore(rows.length >= MATCHES_FETCH_SIZE);
       setEmptyReason(rows.length === 0 && !append ? "no_matches" : null);
       setLoading(false);
     },
@@ -232,6 +254,13 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
 
   // Preview hatch — paint a force-empty state without a real RPC call.
   const previewForceEmpty = searchParams.get("preview-force-empty");
+  // DEV-only injection: a preview harness can set window.__GAJ_PREVIEW_JOBS__
+  // to a fixture job array so the full Career preview renders the populated
+  // grid without auth or the (RLS-empty) RPC. Folds to null in prod builds.
+  const previewInjectedJobs =
+    import.meta.env.DEV && typeof window !== "undefined" && Array.isArray(window.__GAJ_PREVIEW_JOBS__)
+      ? window.__GAJ_PREVIEW_JOBS__
+      : null;
 
   useEffect(() => {
     if (!user?.id) return;
@@ -242,14 +271,30 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
       setEmptyReason(previewForceEmpty);
       return;
     }
+    if (previewInjectedJobs) {
+      setJobs(previewInjectedJobs);
+      setHasMore(false);
+      setLoading(false);
+      setVisibleCount(REVEAL_SIZE);
+      setEmptyReason(previewInjectedJobs.length === 0 ? "no_matches" : null);
+      return;
+    }
     setOffset(0);
+    setVisibleCount(REVEAL_SIZE);
     fetchJobs({ offsetArg: 0, append: false });
-  }, [user?.id, fetchJobs, previewForceEmpty]);
+  }, [user?.id, fetchJobs, previewForceEmpty, previewInjectedJobs]);
 
   const handleLoadMore = () => {
-    const next = offset + BROWSE_PAGE_SIZE;
-    setOffset(next);
-    fetchJobs({ offsetArg: next, append: true });
+    // Reveal the next chunk from the in-memory buffer instantly.
+    const nextVisible = visibleCount + REVEAL_SIZE;
+    setVisibleCount(nextVisible);
+    // Refill from the DB before the buffer runs dry (revealed count is
+    // within one chunk of everything we've fetched + gated), if more exist.
+    if (hasMore && !loading && nextVisible + REVEAL_SIZE >= displayedJobs.length) {
+      const next = offset + MATCHES_FETCH_SIZE;
+      setOffset(next);
+      fetchJobs({ offsetArg: next, append: true });
+    }
   };
 
   const seniorityIndicator = `Filtered to ${levelLabel(experienceLevel)} roles based on your experience`;
@@ -324,6 +369,7 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
                       scoredById={scoredById}
                       unified
                       singleColumn={singleColumn}
+                      onOpen={(j, s, tc) => setOpenJob({ job: j, scoreResult: s, trackColor: tc })}
                     />
                   </section>
                 )}
@@ -345,11 +391,12 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
                       scoredById={scoredById}
                       unified
                       singleColumn={singleColumn}
+                      onOpen={(j, s, tc) => setOpenJob({ job: j, scoreResult: s, trackColor: tc })}
                     />
                   </section>
                 )}
               </div>
-              {hasMore && (
+              {canShowMore && (
                 <div className="text-center mt-7">
                   <button
                     type="button"
@@ -369,6 +416,15 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
                 </div>
               )}
             </>
+          )}
+          {openJob && (
+            <JobDetailModal
+              job={openJob.job}
+              scoreResult={openJob.scoreResult}
+              trackColor={openJob.trackColor}
+              unified
+              onClose={() => setOpenJob(null)}
+            />
           )}
         </>
       )}
@@ -395,13 +451,13 @@ function UnifiedTabButton({ label, active, onClick }) {
   );
 }
 
-function JobGrid({ jobs, scoredById, unified = false, singleColumn = false }) {
+function JobGrid({ jobs, scoredById, unified = false, singleColumn = false, onOpen }) {
   return (
     <div
       className={
         singleColumn
-          ? "grid grid-cols-1 gap-4"
-          : "grid grid-cols-1 md:grid-cols-2 gap-4"
+          ? "grid grid-cols-1 gap-3"
+          : "grid grid-cols-1 sm:grid-cols-2 gap-3"
       }
     >
       {jobs.map((job) => {
@@ -410,12 +466,13 @@ function JobGrid({ jobs, scoredById, unified = false, singleColumn = false }) {
           ? TRACK_CONFIG[perJobTrack]?.rdColor
           : null;
         return (
-          <JobCard
+          <JobGridCard
             key={job.id}
             job={job}
             scoreResult={scoredById[job.id]}
             trackColor={trackRdColor}
-            showAttainabilityBand={unified}
+            unified={unified}
+            onOpen={(j, s) => onOpen?.(j, s, trackRdColor)}
           />
         );
       })}

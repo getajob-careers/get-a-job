@@ -31,7 +31,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import JobCard from "./JobCard";
+import JobGridCard from "./JobGridCard";
+import JobDetailModal from "./JobDetailModal";
 
 // Tab 2 "Search All Jobs" (PR B). Whole-corpus faceted search, PURE
 // client-side per the locked design:
@@ -182,6 +183,7 @@ export default function JobsSearchTab({
     setLocation("");
   };
   const [visibleCount, setVisibleCount] = useState(SEARCH_PAGE);
+  const [openJob, setOpenJob] = useState(null);
   useEffect(() => {
     setVisibleCount(SEARCH_PAGE);
   }, [facetsKey]);
@@ -358,8 +360,8 @@ export default function JobsSearchTab({
           <div
             className={
               singleColumn
-                ? "grid grid-cols-1 gap-4"
-                : "grid grid-cols-1 md:grid-cols-2 gap-4"
+                ? "grid grid-cols-1 gap-3"
+                : "grid grid-cols-1 sm:grid-cols-2 gap-3"
             }
           >
             {visible.map(({ job, score }) => {
@@ -367,13 +369,13 @@ export default function JobsSearchTab({
                 ? TRACK_CONFIG[score.track]?.rdColor
                 : null;
               return (
-                <JobCard
+                <JobGridCard
                   key={job.id}
                   job={job}
                   scoreResult={score}
                   trackColor={trackRdColor}
-                  showAttainabilityBand
-                  lazyDescription
+                  unified
+                  onOpen={(j, s) => setOpenJob({ job: j, scoreResult: s, trackColor: trackRdColor })}
                 />
               );
             })}
@@ -388,6 +390,15 @@ export default function JobsSearchTab({
                 Load more
               </button>
             </div>
+          )}
+          {openJob && (
+            <JobDetailModal
+              job={openJob.job}
+              scoreResult={openJob.scoreResult}
+              trackColor={openJob.trackColor}
+              unified
+              onClose={() => setOpenJob(null)}
+            />
           )}
         </>
       )}
