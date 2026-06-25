@@ -2,7 +2,7 @@
 title: Roles, skills & tracks
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 code_paths:
   - supabase/functions/_shared/libraries/00_role_library.ts
   - supabase/functions/_shared/libraries/01_skill_library.ts
@@ -29,7 +29,7 @@ Why curated and not AI-generated on the fly: stable, reviewed data means stable,
 ## How they fit together
 
 ```
-A student's profile          A job posting
+A job seeker's profile          A job posting
    (their skills)               (required skills)
         \                         /
          \                       /

@@ -2,7 +2,7 @@
 title: Data model
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 code_paths:
   - supabase/migrations
   - supabase/functions/_shared/libraries
@@ -12,7 +12,7 @@ code_paths:
 
 # Database Documentation
 
-Supabase (PostgreSQL) is the sole data store. All 29 tables have Row Level Security (RLS) enabled — every query is scoped to the authenticated user's `id`.
+Supabase (PostgreSQL) is the sole data store. The public schema has 40 tables, all with Row Level Security (RLS) enabled. Most are scoped to the authenticated user's `id`, so each user reads and writes only their own rows. Not all are user-scoped, though: a few are service-only (RLS is on but they have no client policies, so the browser cannot read them at all, for example `account_deletions`, `admin_users`, and `rate_limits`), and a few hold global or shared reference data that is the same for everyone (`companies`, `jobs`, `cv_templates`, `invite_codes`).
 
 ---
 
@@ -28,43 +28,56 @@ Do not edit `database.types.ts` by hand.
 
 ---
 
-## Complete Table Directory (29 Tables)
+## Complete Table Directory (40 Tables)
 
-The active database contains the following 29 tables, all under the `public` schema and protected by Row Level Security (RLS) policies:
+The active database contains the following 40 tables, all under the `public` schema with RLS enabled. RLS is on for every table, but as noted above not all are user-scoped: some are service-only (no client policies) and some hold shared reference data.
 
-1. **`account_deletions`** — Audit log of self-service account deletions (retains tombstone metadata).
-2. **`admin_users`** — Configures administrative roles and control access.
-3. **`applications`** — Tracks job applications, milestones, custom CVs, and checklists.
-4. **`calendar_events`** — Chronological calendar deadlines and scheduling logs.
-5. **`career_roles`** — AI-generated and track-classified role recommendations.
-6. **`certifications`** — Academic or professional user profile certifications.
-7. **`chat_messages`** — History of multi-turn messaging records with AI agents.
-8. **`companies`** — Standard seed and self-added company repository.
-9. **`company_target_status_changes`** — Transitions log for tracking kanban movements.
-10. **`company_targets`** — User-specific target internship list.
-11. **`conversations`** — Thread grouping identifiers for messaging channels.
-12. **`cv_templates`** — Definitions and file styling layouts for CV builders.
-13. **`daily_actions`** — Action items displayed on the Daily Action Card widget.
-14. **`education`** — Separate table storing university coursework, institution, and GPA details.
-15. **`error_logs`** — Audit table tracing backend and Edge Function error metrics.
-16. **`experiences`** — Work, military, and leadership positions.
-17. **`function_metrics`** — Tracks execution latency, tokens, and billing costs for Deno APIs.
-18. **`internship_profiles`** — Alignment strategies for faculty practicum programs.
-19. **`job_suggestions`** — Scored job suggestions cache (refreshed daily).
-20. **`jobs`** — Scrape cache of current tech jobs from supported ATS interfaces.
-21. **`linkedin_optimizations`** — Copywriting prompts and optimizations for profiles.
-22. **`linkedin_outreach_conversations`** — Outreach messaging threads.
-23. **`linkedin_posts`** — Generated posts draft archive.
-24. **`profiles`** — Consolidated user settings, status, onboarding milestones.
-25. **`projects`** — Academic / personal proof portfolio details.
-26. **`rate_limits`** — User-scoped rate controllers for Edge Function endpoints.
-27. **`status_changes`** — Chronological status records for applications.
-28. **`stories`** — Portfolio STAR method narratives.
-29. **`tasks`** — General task management entries.
+1. **`_seniority_derive_rollback_2026_06_09`**: snapshot retained from the 2026-06-09 seniority-derivation migration, kept for rollback.
+2. **`account_deletions`** — Audit log of self-service account deletions (retains tombstone metadata).
+3. **`admin_users`** — Configures administrative roles and control access.
+4. **`application_cvs`**: stored tailored-CV records linked to an application (versions, source JD, generated output).
+5. **`applications`** — Tracks job applications, milestones, custom CVs, and checklists.
+6. **`bakeoff_results`**: results from CV and chat model bake-off experiments.
+7. **`calendar_events`** — Chronological calendar deadlines and scheduling logs.
+8. **`campaign_sends`**: log of lifecycle emails sent (welcome, waitlist, re-engagement).
+9. **`career_roles`** — AI-generated and track-classified role recommendations.
+10. **`certifications`** — Academic or professional user profile certifications.
+11. **`chat_messages`** — History of multi-turn messaging records with AI agents.
+12. **`companies`** — Standard seed and self-added company repository.
+13. **`company_target_status_changes`** — Transitions log for tracking kanban movements.
+14. **`company_targets`** — User-specific target internship list.
+15. **`conversations`** — Thread grouping identifiers for messaging channels.
+16. **`cv_templates`** — Definitions and file styling layouts for CV builders.
+17. **`daily_actions`** — Action items displayed on the Daily Action Card widget.
+18. **`education`** — Separate table storing university coursework, institution, and GPA details.
+19. **`error_logs`** — Audit table tracing backend and Edge Function error metrics.
+20. **`experiences`** — Work, military, and leadership positions.
+21. **`feedback`**: user-submitted product feedback entries.
+22. **`function_cache`**: cached edge-function results, keyed for reuse.
+23. **`function_metrics`** — Tracks execution latency, tokens, and billing costs for Deno APIs.
+24. **`internship_pitches`**: generated internship pitch records for the internship surface.
+25. **`internship_profiles`**: alignment strategies that power the internship pitch surface.
+26. **`invite_codes`**: pilot invite codes that gate sign-up, with usage limits (shared across users).
+27. **`jd_unmapped_skill_counts`**: telemetry of job-description skills that did not map to the skill library.
+28. **`job_suggestions`** — Scored job suggestions cache (refreshed daily).
+29. **`jobs`** — Scrape cache of current tech jobs from supported ATS interfaces.
+30. **`linkedin_optimizations`** — Copywriting prompts and optimizations for profiles.
+31. **`linkedin_outreach_conversations`** — Outreach messaging threads.
+32. **`linkedin_posts`** — Generated posts draft archive.
+33. **`profiles`** — Consolidated user settings, status, onboarding milestones.
+34. **`projects`** — Academic / personal proof portfolio details.
+35. **`rate_limits`** — User-scoped rate controllers for Edge Function endpoints.
+36. **`refine_rebake_results`**: results from refine-cv rebake experiments.
+37. **`status_changes`** — Chronological status records for applications.
+38. **`stories`** — Portfolio STAR method narratives.
+39. **`tasks`** — General task management entries.
+40. **`waitlist_signups`**: waitlist entries captured when the cohort is full.
 
 ---
 
 ## Core Table Schemas
+
+> The column tables below are illustrative, not exhaustive. They list the columns that matter for understanding each table, not every column (`profiles` and `applications` in particular have many more). Treat `src/lib/database.types.ts`, regenerated from Supabase, as the authoritative schema. Status-like columns such as `applications.status` are `text`, not Postgres enums.
 
 ### `profiles`
 One row per user. Created by the onboarding flow. The `id` matches Supabase Auth's `user.id` (UUID).
@@ -98,11 +111,11 @@ Separate table for academic credentials (FK linked to `profiles`).
 | `id` | uuid | Primary key |
 | `user_id` | uuid | FK → profiles.id (CASCADE) |
 | `institution` | text | School name |
-| `degree` | text | e.g. BSc, BA |
+| `degree_type` | text | e.g. BSc, BA |
 | `field_of_study` | text | e.g. Computer Science |
 | `gpa` | text | Stored as text to handle formats like 3.8/4.0 |
 | `relevant_coursework` | text[] | Academic modules list |
-| `skills_developed` | text[] | Core competencies acquired |
+| `skills` | text[] | Core competencies acquired |
 | `start_date` | date | |
 | `end_date` | date | |
 
@@ -117,7 +130,7 @@ One row per job application tracked by a user.
 | `user_id` | uuid | FK → auth.users |
 | `role_title` | text | |
 | `company` | text | |
-| `status` | text | `interested` \| `preparing` \| `applied` \| `interviewing` \| `offer` \| `rejected` |
+| `status` | text | `interested` \| `preparing` \| `applied` \| `interviewing` \| `offer` \| `accepted` \| `rejected` |
 | `track` | text | `track_1` \| `track_2` \| `track_3` (renamed from tier) |
 | `track_scoring_failed_at` | timestamptz| Error timestamp for retry calculations |
 | `job_description` | text | Source JD text |
@@ -125,7 +138,7 @@ One row per job application tracked by a user.
 | `location` | text | |
 | `cv_url` | text | Tailored CV PDF link (Supabase Storage signed URL) |
 | `cv_status` | text | `not_started` \| `draft` \| `ready` |
-| `ats_link` | text | Links to internal company tracking tools |
+| `ats_source` | text | Source ATS the listing came from (see also `external_id`) |
 | `checklist` | jsonb | Complete 7-step tracker tasks |
 | `networking_contacts` | jsonb | Array of linked network contacts |
 | `projects_proof` | jsonb | Linked proof items from `projects` |
@@ -156,14 +169,21 @@ STAR method stories from the Story Bank.
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | uuid | Primary key |
-| `user_id` | uuid | FK → auth.users |
+| `user_id` | uuid | FK to the owning user |
+| `experience_id` | uuid | FK to the source `experiences` row (nullable) |
 | `title` | text | STAR title |
-| `situation` | text | STAR Context |
-| `task` | text | Goal/problem |
-| `action` | text | User activities |
-| `result` | text | Concrete metric outcomes |
+| `situation` | text | STAR context |
+| `task` | text | Goal or problem |
+| `action` | text | What the user did |
+| `result` | text | Concrete outcome |
+| `metrics` | text[] | Captured quantitative outcomes |
 | `skills_demonstrated` | text[] | Linked skills |
-| `is_verified` | boolean | Set when parsed through the AI reviewer |
+| `tools_used` | text[] | Tools and technologies used |
+| `relevance_tags` | text[] | Tags for reuse and matching |
+| `source` | text | How the story was captured |
+| `conversation_id` | uuid | FK to the chat that produced it (nullable) |
+| `created_at` | timestamptz | |
+| `updated_at` | timestamptz | |
 
 ---
 
@@ -176,8 +196,7 @@ Target internship pipeline tracker rows.
 | `user_id` | uuid | FK → auth.users |
 | `company_id` | uuid | FK → companies.id |
 | `status` | text | `wishlist` \| `contacted` \| `interviewing` \| `placed` \| `rejected` |
-| `pitch_strategy` | text | Custom pitch rationale |
-| `track_1_role_alignment`| text | Target track role relationship details |
+| `pitch_rationale` | text | Why this company is a fit and how to pitch |
 
 ---
 
@@ -223,4 +242,4 @@ For `profiles`, the primary key column is named `id` (matching `auth.uid()` dire
 
 ## Supabase Storage
 
-The **`resumes`** bucket is private, storing CV PDFs under `{user_id}/{role_title}_CV_{timestamp}.pdf`. Tailored CV PDFs are written by Deno edge functions using service role credentials to bypass local RLS, returning secure, signed URLs expiring after 1 year.
+There are three private Storage buckets: **`cvs`** (tailored CV PDFs generated by the edge functions), **`resumes`** (the user's uploaded resume, referenced by `profiles.resume_url`), and **`linkedin_post_images`** (images for generated LinkedIn posts). Tailored CV PDFs are written to the **`cvs`** bucket under `{user_id}/{role_title}_CV_{timestamp}.pdf` by Deno edge functions using service-role credentials to bypass RLS, returning signed URLs that expire after 315360000 seconds (about 10 years).

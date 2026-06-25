@@ -2,7 +2,7 @@ export const skillLibrary = {
   "library_name": "get_a_job_skill_library",
   "version": "2.0",
   "last_updated": "2026-05-13",
-  "description": "Unified skill taxonomy (v2.0). Merges historical Schema A (id-keyed) with Schema B (skill_id-keyed). 380 unique skill IDs after merging 17 collisions.",
+  "description": "Unified skill taxonomy (v2.0). Merges historical Schema A (id-keyed) with Schema B (skill_id-keyed). 599 unique skill IDs.",
   "skill_library": [
     {
       "id": "administrative_operations",

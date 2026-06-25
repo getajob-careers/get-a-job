@@ -124,4 +124,4 @@ All Edge Functions share the same security pattern: user-scoped Supabase client 
 
 ## Phase 6: Payments and Monetisation
 
-Stripe is installed (`@stripe/react-stripe-js`, `@stripe/stripe-js`) but not wired up. No payment flows exist. This is reserved for a future phase.
+Stripe packages (`@stripe/react-stripe-js`, `@stripe/stripe-js`) are installed but unused, and no payment flows exist. There is no job-seeker billing planned; any future revenue is expected from a recruiter-facing side of the platform, and possibly a paid browser extension.

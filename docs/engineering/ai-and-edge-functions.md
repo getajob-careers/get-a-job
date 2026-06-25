@@ -2,7 +2,7 @@
 title: AI & edge functions
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 code_paths:
   - supabase/functions
   - supabase/functions/_shared/model-routing.ts
@@ -29,7 +29,7 @@ When the AI writes prose (CVs, LinkedIn posts, comments, outreach), it follows *
 
 ## The anti-fabrication rule
 
-A hard rule across every generation feature: **the AI uses only what the user has actually provided** — their real experience and captured stories — and does not invent metrics or achievements. This matters because the users are students who (rightly) fear lying on a CV. Enforcing it has been genuinely hard; several past bugs came from generated content drifting toward fabrication, and the [lessons log](../../tasks/lessons.md) documents them. When working on any generation feature, treat this as non-negotiable.
+A hard rule across every generation feature: **the AI uses only what the user has actually provided** — their real experience and captured stories — and does not invent metrics or achievements. This matters because the users are job seekers who (rightly) fear lying on a CV. Enforcing it has been genuinely hard; several past bugs came from generated content drifting toward fabrication, and the [lessons log](../../tasks/lessons.md) documents them. When working on any generation feature, treat this as non-negotiable.
 
 ## The LLM ↔ code contract
 

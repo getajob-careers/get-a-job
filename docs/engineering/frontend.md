@@ -2,7 +2,7 @@
 title: Frontend
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 code_paths:
   - src/pages
   - src/components
@@ -25,7 +25,8 @@ Pages in `src/pages/` are registered in `src/pages.config.js` and wrapped by `La
 |------|-------|---------|
 | `Home` | `/Home` | User dashboard — showing qualification levels, Track 1 primary roles, missing skill metrics, and execution cards. |
 | `Landing` | `/` or `/Landing` | High-converting portal landing page for visitors (auth-bypass). |
-| `Jobs` | `/Jobs` | Search listings from direct-ATS scraping, showing match/fit scores computed via local/LLM algorithms. |
+| `Career` | `/Career` | The live jobs page: real open roles filtered to the user's tracks, each with a match score (the Jobs to Career consolidation). |
+| `Jobs` | `/Jobs` | Legacy jobs listing, superseded by Career. |
 | `Roadmap` | `/Roadmap` | Track-classified role list (`track_1` / `track_2` / `track_3` in a 3-track quadrant view) + learning paths. |
 | `Tracker` | `/Tracker` | Collapsible cards for job applications, expanding into 9 detailed workflow tabs. |
 | `Calendar` | `/Calendar` | Interview and application deadlines calendar scheduler. |
@@ -33,7 +34,7 @@ Pages in `src/pages/` are registered in `src/pages.config.js` and wrapped by `La
 | `Profile` | `/Profile` | Interactive, drag-and-drop and inline editor for education, work experience, certifications, and portfolio projects. |
 | `StoryBank` | `/StoryBank` | STAR method portfolio builder for converting experiences into structured metrics narratives. |
 | `Linkedin` | `/Linkedin` | LinkedIn hub featuring post draft generators, outreach draft coaches, and comments optimizers. |
-| `Practicum` | `/Practicum` | Faculty and self-sourced internship placement pipeline using a drag-and-drop Kanban interface. |
+| `Internship` | `/Internship` | Internship outreach pipeline using a drag-and-drop Kanban interface (formerly Practicum). |
 | `Subagents` | `/Subagents` | Roster dashboard for choosing specialized AI subagents (Interview Coach, CV Agent, etc.). |
 | `CareerAgent` | `/CareerAgent` | Direct messaging with the general-purpose Career Coach AI agent. |
 | `CVAgent` | `/CVAgent` | Chat with the dedicated AI CV Tailoring subagent. |
@@ -44,6 +45,10 @@ Pages in `src/pages/` are registered in `src/pages.config.js` and wrapped by `La
 | `ResetPassword` | `/reset-password` | Two-step password recovery workflow. |
 | `Settings` | `/Settings` | User configuration settings, password changes, data resets, and account deletions. |
 | `Admin` | `/Admin` | Administrative portal for checking observability costs, metrics, and chat log audits. |
+| `AdminLaunch` | `/AdminLaunch` | Admin launch and utility console. |
+| `Privacy` | `/privacy` | Public privacy policy (auth-bypass). |
+| `Terms` | `/terms` | Public terms of service (auth-bypass). |
+| `TrackerRedirect` | n/a | Redirect helper for legacy tracker routes. |
 
 ---
 
@@ -79,7 +84,7 @@ Collapsible application details container.
 
 ---
 
-## Practicum / Kanban Components
+## Internship / Kanban Components
 
 ### `CompanyTargetsKanban`
 Renders target internship applications across five workflow columns (`Wishlist`, `Contacted`, `Interviewing`, `Placed`, `Rejected`) using drag-and-drop.
@@ -106,7 +111,7 @@ The onboarding wizard is a 9-step wizard (0-indexed). It tracks local wizard sta
 |-----------|------|----------------|
 | `StepResumeUpload` | 0 | Parser for PDF uploads, extracting profile structures using `ai-chat`. |
 | `StepEducation` | 1 | Academic degrees, institution names, GPAs, and modules. |
-| `StepPracticum` | 2 | Faculty-provided vs self-sourced placement track choice. |
+| `StepPracticum` | 2 | Provided vs self-sourced placement track choice. |
 | `StepExperience` | 3 | Historical employment, internship, and military positions. |
 | `StepSkills` | 4 | Categorized skills inputs using autocomplete inputs. |
 | `StepCareerDirection`| 5 | Stated five-year roles, preferred environments, and GTM scopes. |

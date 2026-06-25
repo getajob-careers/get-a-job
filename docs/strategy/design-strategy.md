@@ -8,7 +8,7 @@
 
 ## 1. The Overwhelm Problem
 
-The platform has 28 features accessible simultaneously in the active job search phase. After onboarding (resume upload → career analysis → track reveal), users see a sidebar with 10+ pages and no priority signal. A 22-year-old Reichman business student looking for their first BD/PM/CSM role doesn't know where to start.
+The platform has 28 features accessible simultaneously in the active job search phase. After onboarding (resume upload → career analysis → track reveal), users see a sidebar with 10+ pages and no priority signal. A first-time job seeker (say, a 22-year-old Reichman student looking for their first BD/PM/CSM role) doesn't know where to start.
 
 **The problem isn't too many features — it's no guided path through them.**
 
@@ -153,7 +153,7 @@ The goal: 28 features that feel like one coherent experience, not 28 separate to
 3. **Anti-fabrication** — 3-layer guards, verbatim metric binding
 4. **LinkedIn networking suite** — comment coach + outreach coach with multi-turn
 5. **Israeli market vertical** — military service, 8200 signals, local ecosystem
-6. **Price** — $12/month vs $24-29/month competitors
+6. **Price** — not monetized for job seekers and no subscription (the earlier $12/month positioning is retired; future revenue is expected from the recruiter side)
 
 ### Key risk:
 The gap between "special product" and "successful product" is execution on onboarding, retention, and making 28 features feel simple.
