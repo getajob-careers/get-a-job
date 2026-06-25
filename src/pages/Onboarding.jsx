@@ -456,7 +456,7 @@ export default function Onboarding() {
       const { data, error } = await supabase.from("profiles").insert({
         id: user.id,
         ...payload,
-        full_name: profileData.full_name || user.user_metadata?.full_name || "User",
+        full_name: profileData.full_name || user.user_metadata?.full_name || user.user_metadata?.name || "User",
         invite_code: user.user_metadata?.invite_code ?? null,
         cohort_label: user.user_metadata?.cohort_label ?? null,
       }).select();
@@ -777,7 +777,7 @@ export default function Onboarding() {
       const { data, error } = await supabase.from("profiles").insert({
         id: user.id,
         ...payload,
-        full_name: profileData.full_name || user.user_metadata?.full_name || "User",
+        full_name: profileData.full_name || user.user_metadata?.full_name || user.user_metadata?.name || "User",
         invite_code: user.user_metadata?.invite_code ?? null,
         cohort_label: user.user_metadata?.cohort_label ?? null,
       }).select();

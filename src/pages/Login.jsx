@@ -11,23 +11,20 @@ import RdCard from "@/components/redesign/RdCard";
 // regardless. Bound to the matching secret in Supabase Auth → CAPTCHA.
 const TURNSTILE_SITE_KEY = "0x4AAAAAADSlsvzNPw5Qejvq";
 
-// Visual redesign — see tasks/redesign.md. All behavior is preserved
-// 1:1 from the prior Direction-3 Login; only the visual layer changes.
-// Inventory items mapped to the new layout:
-//   - Modes: signin / signup / forgot / inline-waitlist (within signup)
+// Auth surface. Open signup (no invite code, no waitlist) plus Google OAuth.
+// Inventory:
+//   - Modes: signin / signup / forgot.
 //   - URL-driven mode (?mode=signup|forgot), browser back/forward sync,
-//     replace-history mode switches, ?deleted=1 toast
-//   - Pilot gate via redeem_invite_code RPC → 100-cap waitlist flip
-//   - signup user_metadata: full_name, invite_code, cohort_label →
-//     PostHog signup_pending flag → Onboarding stamping site
-//   - Cloudflare Turnstile required on all 3 auth endpoints; token
-//     reused across mode switches, reset on auth failure
-//   - PasswordRequirements rendered on signup only
-//   - Forgot password from signin label row
-//   - Inline waitlist insert + send-waitlist-email fire-and-forget
-//   - 23505 / "unique" → friendly "already on the waitlist"
-//   - Banner regions (error + ok) kept available; the future "Resend
-//     confirmation" button slot lands in the error region without re-flow
+//     replace-history mode switches, ?deleted=1 toast, ?oauth_error toast.
+//   - signup user_metadata carries full_name only, read at the Onboarding
+//     profile insert. No invite_code / cohort_label.
+//   - Google OAuth via signInWithOAuth to /auth/callback, on its own
+//     handler (not the captcha-gated email path).
+//   - Cloudflare Turnstile required on the email auth endpoints; token
+//     reused across mode switches, reset on auth failure.
+//   - PasswordRequirements rendered on signup only.
+//   - Forgot password from the signin label row.
+//   - Banner regions (error + ok) kept available.
 
 // Brand mark — 2x2 dot grid in brand colors + Rokkitt wordmark.
 // Per the sign-in mockup: coral / golden / teal / ink.
@@ -47,34 +44,24 @@ function BrandMark() {
   );
 }
 
+// Google "G" mark for the OAuth button.
+function GoogleGlyph() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 18 18" aria-hidden="true">
+      <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92c1.7-1.57 2.68-3.88 2.68-6.62z" />
+      <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.26c-.8.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.7H.96v2.33A9 9 0 0 0 9 18z" />
+      <path fill="#FBBC05" d="M3.97 10.72a5.4 5.4 0 0 1 0-3.44V4.95H.96a9 9 0 0 0 0 8.1l3.01-2.33z" />
+      <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.47.9 11.43 0 9 0A9 9 0 0 0 .96 4.95l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z" />
+    </svg>
+  );
+}
+
 // mode: "signin" | "signup" | "forgot"
 export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
-  // Pilot gate (WhatsApp 100-invite cohort — audience-neutral copy).
-  // Invite code is visible on signup only. On submit, the RPC atomically
-  // validates + increments current_uses. Invalid → flip to waitlistMode
-  // (inline, not a separate route). Valid → proceed with auth.signUp +
-  // pass invite_code + cohort_label through user_metadata for stamping
-  // onto profiles at first-profile-insert in Onboarding.
-  const [inviteCode, setInviteCode] = useState("");
-  // Preview hatch: `?preview=waitlist` initializes the inline waitlist
-  // view directly (used by the redesign preview pipeline so the design
-  // artifact can capture this branch without hitting the live RPC).
-  // Harmless in production — just shows the waitlist form on landing.
-  const previewWaitlist = (() => {
-    try { return new URLSearchParams(window.location.search).get("preview") === "waitlist"; }
-    catch { return false; }
-  })();
-  const [waitlistMode, setWaitlistMode] = useState(previewWaitlist);
-  // Why we flipped to waitlist mode. "exhausted" = the user typed a
-  // valid cohort code that's at its cap → "pilot is full" copy. null /
-  // "invalid_or_exhausted" = the user typed something we couldn't
-  // recognize → existing "invalid code, join waitlist" copy. Used to
-  // swap eyebrow / title / subtitle on the waitlist form so the
-  // experience matches the cause without changing the submit path.
-  const [waitlistReason, setWaitlistReason] = useState(null);
+  // Open signup: no invite code, no waitlist gate. Google OAuth + email/password.
   // Required consent for signup. Submit stays disabled until checked.
   // Layout reserves the row in all modes so the form doesn't reflow on
   // mode switch — checkbox is just visually hidden on signin/forgot.
@@ -105,6 +92,10 @@ export default function Login() {
     if (params.get("deleted") === "1") {
       setMessage("Your account has been deleted.");
     }
+    // The /auth/callback route redirects here with ?oauth_error on a
+    // failed Google exchange so the user sees why, not a blank form.
+    const oauthErr = params.get("oauth_error");
+    if (oauthErr) setError(oauthErr);
   }, [location.search]);
 
   // Keep local mode in sync when the URL changes (e.g. browser back/forward).
@@ -121,18 +112,12 @@ export default function Login() {
   // password checks.
   const canSubmit =
     (mode !== "signup" ||
-      (allChecksPass(passwordChecks) && !!inviteCode.trim() && consent)) &&
+      (allChecksPass(passwordChecks) && consent)) &&
     !!captchaToken;
 
   const switchMode = (next) => {
     setError(null);
     setMessage(null);
-    // Leaving signup → clear waitlistMode so a future visit to signup
-    // starts fresh.
-    if (next !== "signup") {
-      setWaitlistMode(false);
-      setWaitlistReason(null);
-    }
     // Don't clear captchaToken — Turnstile widget stays mounted across
     // mode switches; the user's solved token is still valid for whichever
     // endpoint we hit next.
@@ -150,44 +135,15 @@ export default function Login() {
 
     try {
       if (mode === "signup") {
-        // Pilot gate: redeem the invite code BEFORE auth.signUp.
-        // RPC returns Json; treat as { valid: boolean; cohort_label: string }.
-        const { data: redeemRaw, error: redeemError } = await supabase
-          .rpc("redeem_invite_code", { p_code: inviteCode.trim() });
-        if (redeemError) throw new Error(redeemError.message || "Could not validate invite code");
-        const redeemResult = /** @type {{ valid?: boolean; reason?: string; cohort_label?: string }} */ (redeemRaw || {});
-        if (!redeemResult.valid) {
-          // Flip to inline waitlist mode. captchaToken still valid.
-          // RPC tells us which branch via `reason`:
-          //   - "exhausted": valid code, cohort at cap → "pilot is full" copy
-          //   - "invalid_or_exhausted" (or missing): unknown / inactive
-          //     code → original "invalid invite code" copy
-          // Either way we flip to the same waitlist form, just with
-          // copy that matches what actually happened.
-          setWaitlistMode(true);
-          if (redeemResult.reason === "exhausted") {
-            setWaitlistReason("exhausted");
-            setError(null);
-          } else {
-            setWaitlistReason(null);
-            setError("Invalid invite code. If you don't have one, join the waitlist below — we'll email you when a spot opens.");
-          }
-          setLoading(false);
-          return;
-        }
-
+        // Open signup: no invite code, no redeem step. full_name is the
+        // only metadata; it is read at the first profile insert in
+        // Onboarding. invite_code / cohort_label are intentionally not set.
         const { error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            // user_metadata: invite_code + cohort_label travel through
-            // auth.signUp → email confirmation → /Onboarding session →
-            // first profile insert, where they're stamped onto the
-            // profiles row.
             data: {
               full_name: fullName,
-              invite_code: inviteCode.trim(),
-              cohort_label: redeemResult.cohort_label,
             },
             captchaToken,
             // /Onboarding must be in Supabase Auth → URL Configuration →
@@ -227,58 +183,34 @@ export default function Login() {
     }
   };
 
-  // Waitlist submit handler — fired from the inline waitlist form that
-  // replaces the signup form after a failed invite-code redeem.
-  const handleWaitlistSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
+  // Google OAuth. Its OWN handler — NOT the email handleSubmit/canSubmit
+  // path (those require captchaToken + consent; OAuth needs neither and is
+  // never gated by the invite state). On success the browser redirects to
+  // Google and nothing else here runs; on a start error we surface it.
+  const handleGoogleSignIn = async () => {
     setError(null);
     setMessage(null);
+    setLoading(true);
     try {
-      const normalizedEmail = email.trim().toLowerCase();
-      const { error } = await supabase
-        .from("waitlist_signups")
-        .insert({ email: normalizedEmail });
-      if (error) {
-        // PostgREST surfaces unique-violation as status 409; the JS client
-        // returns code 23505. Both paths land here — same friendly msg.
-        if (error.code === "23505" || error.message?.toLowerCase().includes("unique")) {
-          setMessage("You're already on the waitlist — we'll email you when a spot opens.");
-          setLoading(false);
-          return;
-        }
-        throw error;
-      }
-      // Fire-and-forget waitlist confirmation email. Server-side
-      // idempotency keyed on email (24h) means dupe clicks don't double-send.
-      supabase.functions.invoke("send-waitlist-email", {
-        body: { email: normalizedEmail },
-      }).catch((emailErr) => {
-        console.warn("[waitlist] confirmation email failed (non-fatal):", emailErr);
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
-      setMessage("Thanks — we'll email you when a spot opens.");
+      if (error) throw error;
+      // Redirect in flight; leave loading true so the button stays disabled.
     } catch (err) {
-      setError(err.message);
-    } finally {
+      setError(err.message || "Could not start Google sign-in.");
       setLoading(false);
     }
   };
 
   const eyebrowText =
-    mode === "signup"
-      ? (waitlistMode
-        ? (waitlistReason === "exhausted" ? "Pilot is full" : "Waitlist")
-        : "Get started")
+    mode === "signup" ? "Get started"
     : mode === "forgot" ? "Password reset"
     : "Welcome back";
 
   const titleText =
-    mode === "signup"
-      ? (waitlistMode
-        ? (waitlistReason === "exhausted"
-          ? "This pilot is full right now"
-          : "Join the waitlist")
-        : "Create your account")
+    mode === "signup" ? "Create your account"
     : mode === "forgot" ? "Reset your password"
     : "Sign in";
 
@@ -310,7 +242,7 @@ export default function Login() {
         >
           {/* Top: scarcity eyebrow (signup only) + brand */}
           <div className="flex flex-col gap-4">
-            {mode === "signup" && !waitlistMode && (
+            {mode === "signup" && (
               <span className="inline-flex self-start items-center gap-2 text-[11px] font-medium uppercase tracking-[0.08em] text-rd-coral-dark bg-rd-coral-tint rounded-full px-2.5 py-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-rd-coral" />
                 Pilot phase
@@ -383,46 +315,25 @@ export default function Login() {
 
           {/* ── Inline waitlist form (within signup, after invalid code
                OR after a valid-but-exhausted cohort code) ── */}
-          {mode === "signup" && waitlistMode ? (
-            <form onSubmit={handleWaitlistSubmit} className="flex flex-col gap-3.5 mt-5">
-              {waitlistReason === "exhausted" && (
-                <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] -mt-1">
-                  Can we add you to the waitlist? We&apos;ll email you the moment a spot opens.
-                </p>
-              )}
-              <Field id="waitlist-email" label="Email">
-                <Input
-                  id="waitlist-email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@email.com"
-                  required
-                />
-              </Field>
-              <RdButton
-                type="submit"
-                disabled={loading || !email.trim()}
-                className="w-full mt-1.5"
-              >
-                {loading ? "Loading..." : "Join the waitlist"}
-                <span aria-hidden="true">→</span>
-              </RdButton>
-              <button
-                type="button"
-                onClick={() => {
-                  setWaitlistMode(false);
-                  setWaitlistReason(null);
-                  setError(null);
-                  setMessage(null);
-                }}
-                className="text-[12.5px] text-rd-text-tertiary hover:text-rd-text mt-1"
-              >
-                ← Back — I have an invite code
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={handleSubmit} className="flex flex-col gap-3.5 mt-5">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-3.5 mt-5">
+            {mode !== "forgot" && (
+              <>
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={loading}
+                  className="w-full flex items-center justify-center gap-2.5 px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] font-semibold hover:border-rd-coral transition-[border-color] duration-150 disabled:opacity-60"
+                >
+                  <GoogleGlyph />
+                  Continue with Google
+                </button>
+                <div className="flex items-center gap-3 text-[11.5px] text-rd-text-tertiary">
+                  <span className="h-px flex-1 bg-rd-border-subtle" />
+                  or continue with email
+                  <span className="h-px flex-1 bg-rd-border-subtle" />
+                </div>
+              </>
+            )}
               {mode === "signup" && (
                 <Field id="login-fullname" label="Full name">
                   <Input
@@ -446,25 +357,6 @@ export default function Login() {
                   required
                 />
               </Field>
-
-              {mode === "signup" && (
-                <Field
-                  id="login-invite"
-                  label="Invite code"
-                  hint="From your pilot invite"
-                >
-                  <Input
-                    id="login-invite"
-                    type="text"
-                    value={inviteCode}
-                    onChange={(e) => setInviteCode(e.target.value)}
-                    placeholder="Enter your invite code"
-                    autoCapitalize="characters"
-                    autoComplete="off"
-                    required
-                  />
-                </Field>
-              )}
 
               {mode !== "forgot" && (
                 <div>
@@ -555,8 +447,7 @@ export default function Login() {
                 {submitLabel}
                 <span aria-hidden="true">→</span>
               </RdButton>
-            </form>
-          )}
+          </form>
 
           {/* Mode switch link (bottom). Forgot keeps its own "Back" link. */}
           {mode !== "forgot" ? (

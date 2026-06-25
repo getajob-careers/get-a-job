@@ -115,11 +115,9 @@ describe('Login — signup mode', () => {
     switchToSignup();
     fireEvent.change(screen.getByPlaceholderText(/john doe/i), { target: { value: 'Jane Doe' } });
     fireEvent.change(screen.getByPlaceholderText(/you@email/i), { target: { value: 'u@x.com' } });
-    // Pilot gate added a required invite-code field on signup; the
-    // redesign added a required Terms & Privacy consent checkbox.
-    // Fill / check both so this test continues to isolate the
+    // Signup requires only a Terms & Privacy consent checkbox now (open
+    // signup: no invite code). Check it so this test isolates the
     // password-strength gate.
-    fireEvent.change(screen.getByPlaceholderText(/invite code/i), { target: { value: 'TEST-CODE' } });
     fireEvent.click(screen.getByLabelText(/i agree to the/i));
 
     const submitBtn = screen.getByRole('button', { name: /create account/i });
@@ -139,6 +137,15 @@ describe('Login — signup mode', () => {
     // All 5 + consent: enabled
     fireEvent.change(pwInput, { target: { value: 'StrongPass1!' } });
     expect(submitBtn).not.toBeDisabled();
+  });
+
+  it('open signup: no invite-code field, Google button present', () => {
+    renderLogin();
+    switchToSignup();
+    expect(screen.queryByPlaceholderText(/invite code/i)).not.toBeInTheDocument();
+    expect(
+      screen.getByRole('button', { name: /continue with google/i }),
+    ).toBeInTheDocument();
   });
 
   it('does not call signUp when client-side gate fails', () => {
