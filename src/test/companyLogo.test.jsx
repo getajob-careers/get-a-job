@@ -8,7 +8,7 @@ import React from "react";
 import { describe, it, expect } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { companyDomainFor } from "@/lib/queries/useCompanyDomains";
-import CompanyLogo from "@/components/jobs/CompanyLogo";
+import CompanyLogo, { logoSources } from "@/components/jobs/CompanyLogo";
 
 const DOMAINS = {
   bySlug: { wix: "wix.com", monday: "monday.com" },
@@ -49,6 +49,7 @@ describe("CompanyLogo", () => {
   });
 
   it("rejects DuckDuckGo's 48x48 grey-chevron placeholder and falls through to the letter", () => {
+    // (token-cascade cases below; this DDG case is the tokenless path)
     render(<CompanyLogo domain="unknown-co.co.il" companyName="Unknown Co" fallbackStyle={{}} />);
     const img = screen.getByRole("img");
     expect(img.getAttribute("src")).toContain("icons.duckduckgo.com");
@@ -59,5 +60,36 @@ describe("CompanyLogo", () => {
     // No more tiers after DDG → the letter avatar replaces the image.
     expect(screen.queryByRole("img")).toBeNull();
     expect(screen.getByText("U")).toBeInTheDocument();
+  });
+});
+
+describe("logoSources (the cascade)", () => {
+  const TOKEN = "pk_test";
+
+  it("tokenless: only the DuckDuckGo favicon, and only when there's a domain", () => {
+    expect(logoSources("wix.com", "Wix", null)).toEqual([
+      "https://icons.duckduckgo.com/ip3/wix.com.ico",
+    ]);
+    // No token and no domain → nothing to try → letter avatar.
+    expect(logoSources(null, "Wix", null)).toEqual([]);
+  });
+
+  it("with a token + domain: logo.dev by domain, then by name, then favicon", () => {
+    const out = logoSources("wix.com", "Wix", TOKEN);
+    expect(out[0]).toContain("img.logo.dev/wix.com");
+    expect(out[1]).toContain("img.logo.dev/name/Wix");
+    expect(out[2]).toContain("icons.duckduckgo.com/ip3/wix.com");
+  });
+
+  it("with a token but NO domain: resolves by company name (the coverage win)", () => {
+    const out = logoSources(null, "Riskified", TOKEN);
+    expect(out).toEqual([
+      `https://img.logo.dev/name/Riskified?token=${TOKEN}&size=80&format=png&fallback=404`,
+    ]);
+  });
+
+  it("url-encodes company names with spaces", () => {
+    const out = logoSources(null, "Bank Leumi", TOKEN);
+    expect(out[0]).toContain("img.logo.dev/name/Bank%20Leumi");
   });
 });

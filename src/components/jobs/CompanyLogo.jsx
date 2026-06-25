@@ -21,13 +21,35 @@ import React, { useState, useEffect } from "react";
 
 const LOGODEV_TOKEN = import.meta.env.VITE_LOGODEV_TOKEN;
 
-function logoSources(domain) {
-  if (!domain) return [];
+// Build the ordered list of logo URLs to try, most precise first. Exported
+// (with an injectable token) for testing.
+//
+// With a logo.dev token, this also resolves logos by COMPANY NAME — the
+// name-lookup endpoint takes a human company name and returns that brand's
+// logo from logo.dev's index, no domain required. That's what lets us put a
+// logo on jobs whose company we couldn't resolve to a registry domain
+// (the ~27% that otherwise fall straight to the letter avatar).
+//
+// `&fallback=404` makes logo.dev 404 (rather than return a generic monogram)
+// when it has no logo, so a miss cleanly advances to the next tier instead
+// of showing a non-brand placeholder.
+export function logoSources(domain, companyName, token = LOGODEV_TOKEN) {
   const out = [];
-  if (LOGODEV_TOKEN) {
-    out.push(`https://img.logo.dev/${domain}?token=${LOGODEV_TOKEN}&size=80&format=png`);
+  const name = (companyName || "").trim();
+  if (token) {
+    // Exact domain is the most precise signal — try it first when we have one.
+    if (domain) {
+      out.push(`https://img.logo.dev/${domain}?token=${token}&size=80&format=png&fallback=404`);
+    }
+    // Then resolve by company name — registry-independent; the main coverage win.
+    if (name) {
+      out.push(`https://img.logo.dev/name/${encodeURIComponent(name)}?token=${token}&size=80&format=png&fallback=404`);
+    }
   }
-  out.push(`https://icons.duckduckgo.com/ip3/${domain}.ico`);
+  // Tokenless favicon tier — only possible when we resolved a domain.
+  if (domain) {
+    out.push(`https://icons.duckduckgo.com/ip3/${domain}.ico`);
+  }
   return out;
 }
 
@@ -40,14 +62,14 @@ export default function CompanyLogo({
   size = 40,
   radius = 10,
 }) {
-  const tiers = logoSources(domain);
+  const tiers = logoSources(domain, companyName);
   const [tier, setTier] = useState(0);
 
-  // Reset to the first source if the domain changes (card recycled in a
+  // Reset to the first source if the company changes (card recycled in a
   // virtualized/re-rendered list).
   useEffect(() => {
     setTier(0);
-  }, [domain]);
+  }, [domain, companyName]);
 
   const letter = (companyName || "?").trim().charAt(0).toUpperCase();
   const usingImage = tiers.length > 0 && tier < tiers.length;
