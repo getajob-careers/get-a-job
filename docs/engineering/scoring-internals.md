@@ -2,7 +2,7 @@
 title: Scoring internals
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 code_paths:
   - src/lib/scoreJobFit.js
   - src/lib/scoreApplication.js
@@ -40,7 +40,7 @@ These combine into a weighted 0–1 `fit_score`. There's also a confidence modif
 
 ## From fit to track
 
-A role's **track** comes from two numbers: the fit score (qualified now?) and a goal-alignment score (moves you toward your goal?). The thresholds live in the shared constants. A hard rule: a role above the person's seniority ceiling is capped to Track 3 regardless of fit — a student isn't shown a Senior role as a sweet-spot match.
+A role's **track** comes from two numbers: the fit score (qualified now?) and a goal-alignment score (moves you toward your goal?). The thresholds live in the shared constants. A hard rule: a role above the person's seniority ceiling is capped to Track 3 regardless of fit — a job seeker isn't shown a Senior role as a sweet-spot match.
 
 ## The scale gotcha (read this)
 

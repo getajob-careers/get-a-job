@@ -2,7 +2,7 @@
 title: Runbooks
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 code_paths:
   - scripts/refresh-jobs.ts
   - scripts/lib/ats-fetchers.ts
@@ -30,7 +30,7 @@ When something breaks or looks off, start here. Each entry is a known failure mo
 ## AI features failing or slow under load
 
 **Symptom:** an edge function returns errors or runs much longer than usual.
-**Likely cause:** the upstream language-model API is rate-limiting under concurrent load — common during a spike (e.g. many students onboarding at once).
+**Likely cause:** the upstream language-model API is rate-limiting under concurrent load — common during a spike (e.g. many job seekers onboarding at once).
 **Check:** the function's `function_metrics` — an execution time well above normal followed by a failure means it tried, retried, and gave up; the function isn't broken, the upstream is throttling.
 **Fix / prevention:** functions that make multiple sequential model calls need adequate retry budgets. Any change that increases concurrent model usage should be load-considered first.
 

@@ -2,7 +2,7 @@
 title: Feature tour
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 code_paths:
   - src/pages
   - src/Layout.jsx
@@ -14,18 +14,18 @@ Every major feature, what it does, and why it exists. Plain-language; for how an
 
 ## Onboarding
 
-**What:** The guided first-run where the product learns who a student is — CV upload (read and parsed automatically), experience capture, and a few questions about direction and goals.
+**What:** The guided first-run where the product learns who a job seeker is — CV upload (read and parsed automatically), experience capture, and a few questions about direction and goals.
 **Why:** Everything downstream — scoring, matching, materials — depends on an accurate picture of the person. Onboarding is where that picture is built.
 
 ## Today (the home page)
 
-**What:** The command center a student lands on. A daily focus card (the single most important next action), key stats (live matches, applications in motion, tasks done), a short plan for today, a pipeline snapshot, and quick links.
+**What:** The command center a job seeker lands on. A daily focus card (the single most important next action), key stats (live matches, applications in motion, tasks done), a short plan for today, a pipeline snapshot, and quick links.
 **Why:** The hardest part of a job hunt is momentum. Today answers "what should I do right now?" the moment they open the app.
 
 ## Career (roadmap + jobs)
 
-**What:** The student's tracks, the roles they match (with the *why* — qualification and goal-alignment bars, matched and missing skills), and a live feed of real open jobs filtered to their fit. Tracking a job moves it into their pipeline.
-**Why:** This is the honest core — where a student sees what they're realistic for and finds real openings to act on, in one place.
+**What:** The job seeker's tracks, the roles they match (with the *why* — qualification and goal-alignment bars, matched and missing skills), and a live feed of real open jobs filtered to their fit. Tracking a job moves it into their pipeline.
+**Why:** This is the honest core — where a job seeker sees what they're realistic for and finds real openings to act on, in one place.
 
 ## Tracker
 
@@ -34,33 +34,33 @@ Every major feature, what it does, and why it exists. Plain-language; for how an
 
 ## Tasks & Calendar
 
-**What:** Concrete next steps generated from the student's roadmap and pipeline, with due dates and a calendar view.
+**What:** Concrete next steps generated from the job seeker's roadmap and pipeline, with due dates and a calendar view.
 **Why:** Turns "I should do something" into a specific, finishable list.
 
 ## CV Agent
 
-**What:** Generates a CV tailored to a specific job, drawing on the student's captured stories so the achievements are real and relevant. Produces a polished, downloadable document.
+**What:** Generates a CV tailored to a specific job, drawing on the job seeker's captured stories so the achievements are real and relevant. Produces a polished, downloadable document.
 **Why:** A tailored CV beats a generic one — but only if it's grounded in truth. The anti-fabrication rule is central here.
 
 ## Story Bank
 
 **What:** A place to capture accomplishments once ("led a project that cut churn 23%") and reuse them across CVs, LinkedIn, and interviews.
-**Why:** Students undersell themselves because they forget what they've done. Captured stories become the raw material for every piece of writing the product generates.
+**Why:** Job seekers undersell themselves because they forget what they've done. Captured stories become the raw material for every piece of writing the product generates.
 
 ## LinkedIn tools
 
 **What:** Profile optimization, post drafting (several post types), comment coaching, and networking outreach help — all tuned to research on what actually performs.
-**Why:** LinkedIn presence and networking are how many early-career roles are found; most students do it badly or not at all.
+**Why:** LinkedIn presence and networking are how many roles are found; most job seekers do it badly or not at all.
 
 ## Chat / AI Career Agent
 
-**What:** A conversational career coach that knows the student's pipeline, roadmap, and stories. It answers questions, drafts messages, suggests tasks, and recommends what to focus on. (There are specialized modes — career strategy, CV help, interview prep, skill advice.)
+**What:** A conversational career coach that knows the job seeker's pipeline, roadmap, and stories. It answers questions, drafts messages, suggests tasks, and recommends what to focus on. (There are specialized modes — career strategy, CV help, interview prep, skill advice.)
 **Why:** A coach who has read everything and is always available is the product's promise made personal.
 
 ## Internship / Practicum
 
-**What:** A surface focused on internship outreach for the practicum program — matching students to companies and helping them pitch themselves for an internship rather than a posted job.
-**Why:** The Aug–Nov 2026 pilot is practicum-based; many students will pursue internships, which are won by outreach, not by applying to listings.
+**What:** A surface focused on internship outreach: matching job seekers to companies and helping them pitch themselves for an internship rather than a posted job.
+**Why:** Many job seekers, especially those targeting internships, win them through outreach rather than by applying to listings.
 
 ## Resources
 

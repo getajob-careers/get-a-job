@@ -2,7 +2,7 @@
 title: ADR 0001 — Deterministic track scoring
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 code_paths:
   - src/lib/scoreJobFit.js
   - supabase/functions/_shared/track-scoring-constants.ts
@@ -14,7 +14,7 @@ code_paths:
 
 ## Context
 
-The product's core promise is an honest read on which jobs fit a student. That read is shown in many places — the job board, the roadmap, the tracker — and it has to be **consistent** (the same job scoring the same way everywhere), **fair** (no random variation between students), and **debuggable** (when a score looks wrong, we can find out why).
+The product's core promise is an honest read on which jobs fit a job seeker. That read is shown in many places — the job board, the roadmap, the tracker — and it has to be **consistent** (the same job scoring the same way everywhere), **fair** (no random variation between job seekers), and **debuggable** (when a score looks wrong, we can find out why).
 
 We could compute fit by asking a language model each time ("how good a match is this person for this job?"). That's flexible and easy to build. But it's also non-deterministic, hard to keep consistent across surfaces, expensive at volume, and nearly impossible to debug — a surprising score has no audit trail, just a model's opinion.
 

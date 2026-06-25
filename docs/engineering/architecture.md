@@ -2,7 +2,7 @@
 title: Architecture
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 code_paths:
   - src/App.jsx
   - vite.config.js
@@ -36,7 +36,7 @@ Get-a-Job is a single-page React application. All persistent data is stored in S
 | PDF generation | jsPDF (client-side in browser; also used in Edge Functions via DOCX templates) |
 | Charts | Recharts |
 | Drag and drop | @hello-pangea/dnd |
-| Payments | Stripe (installed, not yet wired) |
+| Payments | None wired; Stripe packages are installed but unused, and no job-seeker billing is planned |
 | Observability | Langfuse Cloud (LLM Tracing) + Supabase `function_metrics` table |
 | Analytics | PostHog Cloud (EU) |
 | Testing | Vitest + Testing Library (unit/integration), Playwright (E2E) |
@@ -75,27 +75,32 @@ src/
 │   └── utils.js                   # cn() utility (clsx + tailwind-merge)
 ├── pages/
 │   ├── Admin.jsx                  # Database and metrics admin console
+│   ├── AdminLaunch.jsx            # Admin launch / utility console
 │   ├── Calendar.jsx               # Applications scheduling calendar
+│   ├── Career.jsx                 # Live jobs page (the Jobs to Career consolidation)
 │   ├── CareerAgent.jsx            # General Career Coach Agent chat
 │   ├── CVAgent.jsx                # Dedicated CV tailoring chat
 │   ├── Home.jsx                   # User dashboard / execution statistics
+│   ├── Internship.jsx             # Internship outreach tracker (formerly Practicum)
 │   ├── InterviewCoach.jsx         # Dedicated Interview Prep coach chat
-│   ├── Jobs.jsx                   # Job search and score listings
+│   ├── Jobs.jsx                   # Legacy jobs listing (superseded by Career.jsx)
 │   ├── Landing.jsx                # High-converting landing page
 │   ├── Linkedin.jsx               # LinkedIn Outreach, post, comment optimizer
 │   ├── Login.jsx                  # Auth login/signup entry
 │   ├── Onboarding.jsx             # Onboarding wizard shell
-│   ├── Practicum.jsx              # Faculty + self-sourced internship tracker
+│   ├── Privacy.jsx                # Public privacy policy (auth-bypass)
 │   ├── Profile.jsx                # Profile, experience, education, resume editor
 │   ├── ResetPassword.jsx          # Auth password reset
-│   ├── Resources.jsx              #accordion job search guides
+│   ├── Resources.jsx              # Accordion job search guides
 │   ├── Roadmap.jsx                # Track-classified role recommendations
 │   ├── Settings.jsx               # Preferences, account deletion, user data reset
 │   ├── SkillDevelopmentAdvisor.jsx# Dedicated skill gaps advisor chat
 │   ├── StoryBank.jsx              # STAR method story generator & reviewer
 │   ├── Subagents.jsx              # AI Subagent roster page
 │   ├── Tasks.jsx                  # AI-generated weekly task planner
-│   └── Tracker.jsx                # Collapsible application tracking cards
+│   ├── Terms.jsx                  # Public terms of service (auth-bypass)
+│   ├── Tracker.jsx                # Collapsible application tracking cards
+│   └── TrackerRedirect.jsx        # Redirect for legacy tracker routes
 ├── test/                          # Vitest unit and integration tests
 │   ├── mockSupabase.js
 │   ├── testUtils.jsx
@@ -103,7 +108,7 @@ src/
 │   └── integration/
 ├── utils/
 │   └── index.js                   # createPageUrl() helper
-├── App.jsx                        # Root — auth routing + trial paywalls
+├── App.jsx                        # Root: auth routing
 ├── Layout.jsx                     # Sidebar navigation + mobile header
 ├── main.jsx                       # Entry point — GlobalErrorBoundary wrapper
 └── pages.config.js                # Page registry (manually maintained)
@@ -116,22 +121,31 @@ supabase/                          # Supabase project folder
 │   │   └── voice-rules.ts         # Multi-surface tone and vocabulary rules
 │   ├── ai-chat/                   # General multi-turn career chat
 │   ├── analyze-job-match/         # JD vs profile match calculator
+│   ├── cron-generate-daily-action/ # Scheduled daily-action generation
 │   ├── delete-account/            # JWT-gated profile and files cascade deletion
+│   ├── extract-bullets/           # Pulls reusable bullets from experience text
+│   ├── extract-cv-text/           # Extracts raw text from an uploaded CV
+│   ├── extract-job-requirements/  # Parses must-have requirements from a JD
 │   ├── extract-proof-signals/     # Extraction of metrics and skill signals from CVs
 │   ├── extract-story-from-text/   # STAR method portfolio builder
 │   ├── generate-career-analysis/  # Core track-based role analysis
 │   ├── generate-daily-action/     # Logic picks for daily tasks cards
-│   ├── generate-internship-profile/ # Pitch generator for practicum students
+│   ├── generate-internship-pitch/ # Internship pitch generator
+│   ├── generate-internship-profile/ # Internship pitch profile generator
 │   ├── generate-learning-paths/   # Skill gap course recommendations
 │   ├── generate-linkedin-comment/ # Substantive comment option builder
 │   ├── generate-linkedin-content/ # Standard profile copy optimization
 │   ├── generate-linkedin-outreach-message/ # Multi-goal message draft coach
 │   ├── generate-linkedin-post/    # Post composer (projects/lessons/observations)
-│   ├── generate-tailored-cv/      # DOCX-rendered CV tailoring
+│   ├── generate-tailored-cv/      # CV tailoring (OpenAI or Claude Sonnet)
 │   ├── generate-tasks/            # Custom weekly task generators
 │   ├── import-linkedin-archive/   # ZIP archive positions and experiences parser
 │   ├── lookup-role-skills/        # Deterministic role-to-skills maps
-│   └── match-internship-companies/# Practicum company compatibility analyzer
+│   ├── match-internship-companies/ # Internship company compatibility analyzer
+│   ├── refine-cv/                 # Iterative CV refinement
+│   ├── send-reengagement/         # Re-engagement email sender
+│   ├── send-waitlist-email/       # Waitlist email sender
+│   └── send-welcome-email/        # Welcome email sender
 └── migrations/                    # SQL Database migrations history
 
 e2e/                               # Playwright E2E tests
@@ -167,7 +181,7 @@ Supabase Edge Function (Deno/TypeScript in supabase/functions/)
     ├── Authenticates user via user-scoped Supabase client (anon key + Authorization header)
     ├── Checks rate limit via service client RPC against rate_limits table
     ├── Reads user data from Supabase (profiles, experiences, etc.) via user-scoped client
-    ├── Calls OpenAI API (gpt-4o / gpt-4o-mini) with custom prompt and voice rules
+    ├── Calls a language model (OpenAI gpt-4o / gpt-4o-mini, plus Claude Sonnet via OpenRouter for some features) with a custom prompt and voice rules. See ai-and-edge-functions.md for the authoritative model routing
     ├── Traces performance and usage tokens via Langfuse
     └── Writes results to Supabase and/or returns JSON to the browser
     ↓
@@ -210,7 +224,7 @@ Pages are registered in `src/pages.config.js`. This file is manually maintained.
 
 - **Data fetching**: Always use `useQuery` from TanStack React Query. Never fetch directly in `useEffect`.
 - **Mutations**: Use `supabase.from(...).insert/update/delete` directly, then call `queryClient.invalidateQueries(...)` to refresh.
-- **Data integrity on replace**: When replacing a full set of rows (career roles, tasks, experiences), always insert new rows first, then delete old rows by ID. Never delete first. See the insert-before-delete pattern documented in `database.md`.
+- **Data integrity on replace**: When replacing a full set of rows (career roles, tasks, experiences), always insert new rows first, then delete old rows by ID. Never delete first. See the insert-before-delete pattern documented in `data-model.md`.
 - **Notifications**: Use `toast` from `sonner` for user feedback.
 - **Styling**: Tailwind utility classes only. Use `cn()` from `@/lib/utils` for conditional classes.
 - **Path aliases**: `@/` maps to `src/` (configured in `vite.config.js` and `jsconfig.json`).

@@ -2,7 +2,7 @@
 title: Auth
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 code_paths:
   - src/lib/AuthContext.jsx
   - src/pages/Login.jsx
@@ -45,7 +45,7 @@ App.jsx checks isAuthenticated (from AuthContext)
 |------|------|
 | `src/lib/AuthContext.jsx` | Provides `user`, `isAuthenticated`, `isLoadingAuth`, `signOut` via `useAuth()` hook |
 | `src/pages/Login.jsx` | Email/password login and sign-up form |
-| `src/pages/Onboarding.jsx` | Multi-step profile setup wizard (8 steps) |
+| `src/pages/Onboarding.jsx` | Multi-step profile setup wizard (9 steps) |
 | `src/App.jsx` | Route guard — redirects unauthenticated users to `/login` |
 
 ---
@@ -136,7 +136,7 @@ Currently only **email + password** is configured. Supabase supports OAuth provi
 
 ## Edge Function Auth Pattern
 
-Every deployed Edge Function authenticates the caller using the same pattern:
+Most user-facing Edge Functions authenticate the caller using the same pattern. Note that this is not universal: service and scheduled functions (for example `cron-generate-daily-action` and the `send-*` email senders) are not user-invoked and do not authenticate a caller, and a few functions run with `verify_jwt = false` in `config.toml` (for example `analyze-job-match` and `extract-jd-basics`) and handle auth themselves. The common pattern:
 
 ```ts
 // User-scoped client — all DB reads/writes go through RLS

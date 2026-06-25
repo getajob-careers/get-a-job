@@ -2,14 +2,14 @@
 title: Get A Job — Handbook
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 ---
 
 # Get A Job — Handbook
 
 Welcome. This is the home for everything about **Get A Job** — what it is, who it's for, how it works, and how we build it. It's written to be read by anyone on the team, not just engineers. If you're new, start at the top and read down; if you're looking for something specific, use the map below.
 
-> **Get A Job** is an AI career operating system for business students entering the Israeli tech market. It turns a person's real experience into a structured, momentum-driven job hunt: it scores roles they can actually land, tailors a CV per job, tracks applications end to end, and coaches them with AI in their corner. A practicum pilot runs Aug–Nov 2026 with the first cohort of students.
+> Get A Job is an AI career operating system for any career seeker, whether you are just starting out, hunting a new role, between jobs, or working to strengthen where you already stand. It adapts to you: it turns your real experience into a structured, momentum-driven job hunt, scores roles you can actually land, tailors a CV per job, keeps everything in one place, and coaches you with AI in your corner. The pilot launched in June 2026 with its first cohorts of real users, the beachhead for a product built to fit anyone.
 
 ---
 
@@ -98,7 +98,7 @@ A few docs live at the root because tools and habits expect them there:
 - **[README.md](../README.md)** — the 60-second project readme (setup, scripts).
 - **[CLAUDE.md](../CLAUDE.md)** — conventions and rules, read by Claude Code every session.
 - **[ROADMAP.md](../ROADMAP.md)** — what's done, in progress, and next.
-- **[PROJECT_INSTRUCTIONS.md](../PROJECT_INSTRUCTIONS.md)** — the long-form living source of truth.
+- **[PROJECT_INSTRUCTIONS.md](../PROJECT_INSTRUCTIONS.md)** — legacy long-form notes, being folded into this handbook and slated for retirement.
 
 ---
 

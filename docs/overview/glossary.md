@@ -2,7 +2,7 @@
 title: Glossary
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 ---
 
 # Glossary
@@ -11,24 +11,24 @@ The vocabulary of Get A Job, in plain terms. When a doc, a screen, or a teammate
 
 ## Core concepts
 
-**Track** — How a role is classified for a given student, based on two things: how qualified they are now, and how well the role moves them toward their goal.
+**Track** — How a role is classified for a given job seeker, based on two things: how qualified they are now, and how well the role moves them toward their goal.
 - **Track 1 (Sweet spot):** qualified *and* on-path. Apply here first.
 - **Track 2 (Detour):** qualified but off-path. A doable fallback.
 - **Track 3 (Stretch / Growth):** on-path but not yet qualified. Grow into these.
 
 **Qualification (qualification level)** — How far along a person is in their career, derived from the depth of their experience (not just how many jobs they've had). Drives what seniority of role is realistic for them.
 
-**Fit / match score** — How well a specific job matches a student, scored from their skills, experience, education, and the role's requirements. Shown as a percentage on job cards.
+**Fit / match score** — How well a specific job matches a job seeker, scored from their skills, experience, education, and the role's requirements. Shown as a percentage on job cards.
 
-**Goal alignment** — How well a role moves a student toward their stated longer-term goal (their "five-year role"). One of the two axes behind track assignment.
+**Goal alignment** — How well a role moves a job seeker toward their stated longer-term goal (their "five-year role"). One of the two axes behind track assignment.
 
-**Roadmap** — The student's personalized, scored set of career roles, sorted into tracks. The output of the career analysis.
+**Roadmap** — The job seeker's personalized, scored set of career roles, sorted into tracks. The output of the career analysis.
 
 **Proof signals** — Concrete evidence of a skill or achievement pulled from a person's history (e.g., "shipped a feature used by 60,000 people"). Used to ground CVs and avoid generic claims.
 
 **Story / Story Bank** — A captured accomplishment, written once and reused across CVs, LinkedIn, and interview prep. The Story Bank is the collection of them. The anti-fabrication rule means materials are built from these real stories, not invented.
 
-**Daily action / daily focus** — The single most important next step the product surfaces each day, chosen by the AI agent from the student's pipeline and roadmap.
+**Daily action / daily focus** — The single most important next step the product surfaces each day, chosen by the AI agent from the job seeker's pipeline and roadmap.
 
 ## The domain
 
@@ -44,9 +44,9 @@ The vocabulary of Get A Job, in plain terms. When a doc, a screen, or a teammate
 
 ## The pilot
 
-**Practicum / internship** — The Aug–Nov 2026 program where the first cohort of students uses the product for academic credit. Also a feature surface in the app focused on internship outreach.
+**Practicum / internship** — A feature surface in the app focused on internship outreach: matching users to companies and helping them pitch for an internship rather than a posted job. ("Practicum" is the name kept for the internship flow.)
 
-**Cohort** — A group of students in the pilot, gated by invite codes.
+**Cohort** — A group of users admitted to the pilot together, gated by invite codes. The June 2026 launch had two: one sourced through Reichman, one a wider invite-based group.
 
 **Pilot gate** — The invite-code system that limits sign-ups to the intended cohort, with a waitlist when the cohort is full.
 
