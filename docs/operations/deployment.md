@@ -2,7 +2,7 @@
 title: Deployment
 status: living
 owner: shared
-last_reviewed: 2026-06-24
+last_reviewed: 2026-06-25
 code_paths:
   - vercel.json
   - supabase/functions
