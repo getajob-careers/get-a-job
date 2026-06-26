@@ -219,7 +219,7 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
           const extractedFieldsCount = Object.values(extracted || {}).filter(
             (v) => v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0)
           ).length;
-          track(EVENTS.CV_UPLOADED, { file_type: fileType, extracted_fields_count: extractedFieldsCount });
+          track(EVENTS.RESUME_UPLOADED, { file_type: fileType, extracted_fields_count: extractedFieldsCount });
           setExtracting(false);
           setDone(true);
           return;

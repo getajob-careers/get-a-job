@@ -17,6 +17,7 @@
 
 import { supabase } from "@/api/supabaseClient";
 import { invokeWithAuthRetry } from "@/api/invokeWithAuthRetry";
+import { track, EVENTS } from "@/lib/analytics";
 import { resolveDueDate } from "@/lib/taskDueDate";
 import { experiencesQueryKey } from "@/lib/queries/useExperiences";
 import { scoreApplication } from "@/lib/scoreApplication";
@@ -578,6 +579,7 @@ export async function applyAddSkillToExperience({ user, queryClient, skill, expe
 // CoachConversationProvider does the same with its provider state.
 export async function generateTailoredCV({ queryClient, proposal, messageId }) {
   if (!proposal?.target_role) return { error: "missing target_role" };
+  const startedAt = performance.now();
   try {
     const { data, error } = await invokeWithAuthRetry("generate-tailored-cv", {
       body: {
@@ -589,6 +591,19 @@ export async function generateTailoredCV({ queryClient, proposal, messageId }) {
     });
     if (error) throw error;
     if (!data?.cv_url) throw new Error(data?.error || "CV generation did not return a download link.");
+
+    // Value moment: a downloadable tailored CV is back.
+    track(EVENTS.CV_GENERATED, {
+      success: true,
+      source: "chat",
+      model: data?.model || "sonnet",
+      application_id: data?.application_id || proposal.application_id || null,
+      role_title: proposal.target_role,
+      duration_ms: Math.round(performance.now() - startedAt),
+      unsourced_bullets_count: Array.isArray(data?.unsourced_bullets)
+        ? data.unsourced_bullets.length
+        : 0,
+    });
 
     const result = {
       status: "done",
@@ -621,6 +636,15 @@ export async function generateTailoredCV({ queryClient, proposal, messageId }) {
 
     return { ok: true, result };
   } catch (err) {
+    track(EVENTS.CV_GENERATED, {
+      success: false,
+      source: "chat",
+      model: "sonnet",
+      application_id: proposal.application_id || null,
+      role_title: proposal.target_role,
+      duration_ms: Math.round(performance.now() - startedAt),
+      failure_reason: err?.message || "unknown",
+    });
     console.error("[coachActions] generateTailoredCV failed:", err);
     return { error: err?.message || "Could not generate CV." };
   }

@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Loader2, FileText, Sparkles, Download, Save, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
+import { track, EVENTS } from "@/lib/analytics";
 import { triggerBlobDownload, filenameFromSignedUrl } from "@/lib/downloadFile";
 
 export default function CVManagement({ app, onUpdate }) {
@@ -72,6 +73,7 @@ export default function CVManagement({ app, onUpdate }) {
       if (!ok) return;
     }
     setGenerating(true);
+    const startedAt = performance.now();
     try {
       const { data, error } = await invokeWithAuthRetry("generate-tailored-cv", {
         body: {
@@ -84,10 +86,35 @@ export default function CVManagement({ app, onUpdate }) {
 
       if (error) throw error;
 
+      // Value moment: the tailored CV is back. One event powers
+      // attempted-vs-succeeded — always carries success.
+      track(EVENTS.CV_GENERATED, {
+        success: true,
+        source: "tracker",
+        model: data?.model || "sonnet",
+        application_id: app.id,
+        role_title: app.role_title,
+        duration_ms: Math.round(performance.now() - startedAt),
+        unsourced_bullets_count: Array.isArray(data?.unsourced_bullets)
+          ? data.unsourced_bullets.length
+          : 0,
+      });
+
       setLastResult(data || null);
       toast.success(data?.message || "CV generated successfully!");
       onUpdate(); // Refresh application data
     } catch (error) {
+      track(EVENTS.CV_GENERATED, {
+        success: false,
+        source: "tracker",
+        model: "sonnet",
+        application_id: app.id,
+        role_title: app.role_title,
+        duration_ms: Math.round(performance.now() - startedAt),
+        failure_reason: error?.isAuthExpired
+          ? "auth_expired"
+          : (error?.message || "unknown"),
+      });
       toast.error(error?.isAuthExpired
         ? "Your session expired. Redirecting to log in again."
         : "Failed to generate CV: " + error.message);
