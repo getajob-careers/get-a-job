@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { TRACK_CONFIG } from "@/lib/trackConfig";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
+import { isLowCoverage } from "@/lib/flags";
 
 // Track-color tint palette for the redesign. Each track's `rdColor` maps
 // to a {tint, badgeBg, badgeText, accent} so the card identity is set in
@@ -42,6 +43,8 @@ export default function RoleCard({ role, onTrack = null }) { // eslint-disable-l
   // readiness_score is stored 0–1; render as percentage. Allow upstream to
   // pass match_percentage directly.
   const rawScore = role.readiness_score ?? role.match_score;
+  // Phase 0 honesty gate (opt-in via ?coverage_gate=1).
+  const lowCoverage = isLowCoverage(role.skill_coverage_ratio);
   const matchPercentage = role.match_percentage ?? (
     rawScore != null ? Math.round(Number(rawScore) * 100) : null
   );
@@ -82,9 +85,13 @@ export default function RoleCard({ role, onTrack = null }) { // eslint-disable-l
               {role.title}
             </p>
             <div className="flex items-center gap-2.5 mt-1 text-[12px] text-rd-text-secondary">
-              {matchPercentage != null && (
+              {lowCoverage ? (
+                <span title="Our skill library does not deeply cover this field yet, so we are not showing a confident match score.">
+                  Limited data for this field yet
+                </span>
+              ) : matchPercentage != null ? (
                 <span>{matchPercentage}% match</span>
-              )}
+              ) : null}
               <span
                 className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-display font-semibold"
                 style={{ background: styles.tint, color: styles.accent }}
@@ -110,7 +117,7 @@ export default function RoleCard({ role, onTrack = null }) { // eslint-disable-l
               Weak-axis fill uses a muted ink tone (not coral) so the
               "this is the bottleneck" cue stays without colliding with
               Track 1's identity color. */}
-          {showBreakdown && (
+          {showBreakdown && !lowCoverage && (
             <div>
               <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono mb-2.5">
                 Track breakdown

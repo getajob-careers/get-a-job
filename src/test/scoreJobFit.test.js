@@ -590,3 +590,28 @@ describe("scoreJobFit — backward-compat guarantee (PR #393)", () => {
     expect(typeof r.attainability_band).toBe("string");
   });
 });
+
+describe("scoreJobFit — skill coverage passthrough (Phase 0 gate)", () => {
+  it("passes job.skill_coverage_ratio through into signals", () => {
+    const r = scoreJobFit(
+      { profile: mkProfile(), experiences: [], educations: [] },
+      mkJob({ skill_coverage_ratio: 0.12 }),
+    );
+    expect(r.signals.skill_coverage_ratio).toBe(0.12);
+  });
+
+  it("exposes null when the job has no coverage ratio", () => {
+    const r = scoreJobFit(
+      { profile: mkProfile(), experiences: [], educations: [] },
+      mkJob(),
+    );
+    expect(r.signals.skill_coverage_ratio).toBeNull();
+  });
+
+  it("coverage does not change the numeric score (the gate is display-only)", () => {
+    const profile = mkProfile({ skills_canonical: ["a", "b"] });
+    const base = scoreJobFit({ profile, experiences: [], educations: [] }, mkJob({ req_skills_core: ["a", "b"] }));
+    const withCov = scoreJobFit({ profile, experiences: [], educations: [] }, mkJob({ req_skills_core: ["a", "b"], skill_coverage_ratio: 0.05 }));
+    expect(withCov.fit_score).toBe(base.fit_score);
+  });
+});

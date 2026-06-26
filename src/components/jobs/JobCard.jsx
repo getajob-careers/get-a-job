@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { toast } from "sonner";
 import { supabase } from "@/api/supabaseClient";
 import { scoreApplication } from "@/lib/scoreApplication";
+import { isLowCoverage } from "@/lib/flags";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
@@ -311,6 +312,8 @@ export default function JobCard({
   const matchedSkills = scoreResult?.signals?.matched_skills || [];
   const missingCoreSkills = scoreResult?.signals?.missing_core_skills || [];
   const reasonText = (scoreResult?.reasoning?.strengths || []).join(" · ");
+  // Phase 0 honesty gate (opt-in via ?coverage_gate=1).
+  const lowCoverage = isLowCoverage(scoreResult?.signals?.skill_coverage_ratio);
 
   const styles = trackColor ? RD_TRACK_STYLES[trackColor] : null;
 
@@ -390,7 +393,18 @@ export default function JobCard({
             )}
           </div>
         </div>
-        {scored && attainBand && BAND_META[attainBand] ? (
+        {scored && lowCoverage ? (
+          // Phase 0: our library does not deeply cover this field, so we
+          // suppress the confident % and say so plainly rather than show a
+          // score built on a handful of generic skills that happened to map.
+          <span
+            className="flex-shrink-0 inline-flex items-center font-display font-semibold text-[11px] rounded-full px-2.5 py-1"
+            style={{ background: "var(--rd-bg-soft)", color: "var(--rd-text-secondary)" }}
+            title="Our skill library does not deeply cover this field yet, so we are not showing a confident match score."
+          >
+            Limited data for this field yet
+          </span>
+        ) : scored && attainBand && BAND_META[attainBand] ? (
           // Band-led badge: the word carries the meaning; the % is
           // de-emphasized so a stretch role doesn't read as a bad number.
           <span

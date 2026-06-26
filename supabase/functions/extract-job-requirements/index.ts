@@ -1229,6 +1229,16 @@ Deno.serve(async (req) => {
     }
   }
 
+  // Phase 0 coverage gate: fraction of the LLM-extracted skill phrases that
+  // resolved to a library ID. Persisted so the scorer can flag jobs whose
+  // domain our library does not cover (the match score would be unreliable).
+  const totalExtractedSkills =
+    extraction.req_skills_core_raw.length + extraction.req_skills_nice_raw.length;
+  const skillCoverageRatio =
+    totalExtractedSkills > 0
+      ? Math.round(((totalExtractedSkills - unmapped.length) / totalExtractedSkills) * 1000) / 1000
+      : null;
+
   // Write the extraction back to the jobs row.
   //
   // Salary fields use "fill if null" semantics so we never overwrite the
@@ -1250,6 +1260,7 @@ Deno.serve(async (req) => {
     function_family: extraction.function_family,
     responsibility_keywords: extraction.responsibility_keywords.length > 0 ? extraction.responsibility_keywords : null,
     extraction_unmapped_skills: uniqueUnmapped.length > 0 ? uniqueUnmapped : null,
+    skill_coverage_ratio: skillCoverageRatio,
 
     // Extended context (v2)
     customer_type: extraction.customer_type.length > 0 ? extraction.customer_type : null,
