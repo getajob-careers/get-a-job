@@ -29,6 +29,7 @@ import FeedbackWidget from '@/components/feedback/FeedbackWidget';
 // rendered nothing → empty body in screenshots). Eager import sidesteps
 // the race. Bundle cost in prod: ~10–15 KB (cold path; never invoked).
 import OnboardingPreview from '@/pages/_preview/OnboardingPreview';
+import AuthCallback from '@/pages/AuthCallback';
 import ShellPreview from '@/pages/_preview/ShellPreview';
 import HomePreview from '@/pages/_preview/HomePreview';
 import CareerPreview from '@/pages/_preview/CareerPreview';
@@ -151,6 +152,9 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/privacy" element={<Privacy />} />
             <Route path="/terms" element={<Terms />} />
+            {/* OAuth (PKCE/implicit) callback — PUBLIC, outside the auth gate;
+                the session does not exist until the exchange completes. */}
+            <Route path="/auth/callback" element={<AuthCallback />} />
             {import.meta.env.DEV && (
               <Route
                 path="/_preview/onboarding/:state"
