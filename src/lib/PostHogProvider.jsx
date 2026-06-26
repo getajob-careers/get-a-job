@@ -1,16 +1,20 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect } from "react";
 import posthog from "posthog-js";
 import { useAuth } from "@/lib/AuthContext";
 import { track, EVENTS } from "@/lib/analytics";
+import { initPostHog, ensureSessionRecording } from "@/lib/posthogClient";
 
-// PostHog initialization + identity sync. Mounted only inside
-// AuthenticatedApp so the landing / login / reset-password pages never
-// load PostHog (matches the pilot requirement to keep unauthenticated
-// traffic untracked).
+// PostHog identity sync. Initialisation itself lives in posthogClient.js so
+// it can also run from src/main.jsx before render (the early-capture path
+// gated by VITE_POSTHOG_EARLY_INIT). When that flag is off, this provider is
+// the single init site and behaviour matches the prior authenticated-only
+// setup (replay enabled at init). The init call below is idempotent, so it
+// is a no-op when main.jsx already initialised early.
 //
 // Lifecycle:
-//   - Mount: init posthog with EU host + the production-only opt-out
-//   - User loads: identify with user.id + email
+//   - Mount: ensure posthog is initialised (no-op if already done early)
+//   - User loads: identify with user.id + email, then enable session replay
+//     if it was deferred for the anonymous early-capture path
 //   - Unmount (logout): reset() so the next signed-in user doesn't
 //     inherit this person's distinct_id
 
@@ -36,47 +40,12 @@ function isFirstSignIn(user) {
 
 export default function PostHogProvider({ children }) {
   const { user } = useAuth();
-  const initialisedRef = useRef(false);
 
-  // One-shot init on first mount.
+  // Ensure PostHog is initialised. No-op when main.jsx already ran early
+  // init; otherwise this is the single init site (authenticated-only path,
+  // replay enabled at init exactly as before).
   useEffect(() => {
-    if (initialisedRef.current) return;
-    const key = import.meta.env.VITE_POSTHOG_KEY;
-    const host = import.meta.env.VITE_POSTHOG_HOST;
-    if (!key || !host) {
-      console.warn("[posthog] missing VITE_POSTHOG_KEY or VITE_POSTHOG_HOST — analytics disabled");
-      return;
-    }
-    posthog.init(key, {
-      api_host: host,
-      // Dev opt-out — keeps test events out of the production funnel.
-      // Run via Vercel preview deploy to verify events actually fire.
-      loaded: (ph) => {
-        if (import.meta.env.MODE !== "production") ph.opt_out_capturing();
-      },
-      // Auto-capture pageviews on React Router history changes
-      // (pushState / replaceState / popstate).
-      capture_pageview: "history_change",
-      capture_pageleave: true,
-      // Built-in unhandled-error + promise-rejection capture.
-      capture_exceptions: true,
-      // Session replay — all inputs masked by default for the pilot.
-      // Specific safe elements can be unmasked later via data-attr-mask="false"
-      // or by marking sensitive ones via data-private.
-      session_recording: {
-        maskAllInputs: true,
-        maskTextSelector: "[data-private]",
-      },
-      // Skip the default click/input autocapture — we'll fire explicit
-      // named events for the actions that represent value. Cleaner data,
-      // easier to query, lower event volume.
-      autocapture: false,
-      // Only create person profiles once we've identify()'d. Anonymous
-      // sessions (the brief window before useEffect runs) don't pollute
-      // the people view.
-      person_profiles: "identified_only",
-    });
-    initialisedRef.current = true;
+    initPostHog();
   }, []);
 
   // Identify whenever the user object is set; reset on unmount or when
@@ -88,6 +57,10 @@ export default function PostHogProvider({ children }) {
       email: user.email,
       signup_date: user.created_at,
     });
+    // If early init deferred session replay (the anonymous early-capture
+    // path), start it now that we have an identified user. No-op when replay
+    // was already enabled at init. Keeps replay scoped to identified sessions.
+    ensureSessionRecording();
     // Fire signup_completed exactly once per genuinely-new user, on the
     // first PostHog-identified session, for BOTH signup methods:
     //   - Email: Login.jsx sets gaj.signup_pending after signUp. Email
@@ -106,12 +79,14 @@ export default function PostHogProvider({ children }) {
       if (!recorded && (pendingEmail || isFirstSignIn(user))) {
         const method = pendingEmail
           ? "email"
-          : (user.app_metadata?.provider || "oauth");
+          : user.app_metadata?.provider || "oauth";
         track(EVENTS.SIGNUP_COMPLETED, { method });
         localStorage.removeItem("gaj.signup_pending");
         localStorage.setItem("gaj.signup_recorded", user.id);
       }
-    } catch { /* localStorage unavailable */ }
+    } catch {
+      /* localStorage unavailable */
+    }
     return () => {
       posthog.reset();
     };

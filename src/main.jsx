@@ -12,6 +12,30 @@ import ReactDOM from 'react-dom/client'
 import App from '@/App.jsx'
 import '@/index.css'
 import GlobalErrorBoundary from '@/components/GlobalErrorBoundary'
+import { initPostHog } from '@/lib/posthogClient'
+import { hasAnalyticsConsent, isAnonymousAnalyticsEnabled } from '@/lib/cookieConsent'
+
+// Early analytics init for ANONYMOUS visitors, gated by BOTH a master env flag
+// and the visitor's stored cookie-consent choice.
+//
+// Why: PostHog previously initialised only inside PostHogProvider, which mounts
+// only for authenticated users, so logged-out visitors who land and bounce
+// before the app boots were never counted. Initialising here, before React
+// renders, fires the initial $pageview for a fast-bouncing logged-out visitor.
+//
+// ACCEPT-FIRST: nothing initialises on load unless a stored 'accepted' choice
+// already exists (set by the cookie banner on a prior visit). No choice yet, or
+// 'rejected', means no init, no analytics cookie, no pageview. The banner calls
+// initPostHog the moment a visitor clicks Accept, so the current session starts
+// tracking from that point without a reload.
+//
+// Master gate: VITE_POSTHOG_EARLY_INIT must be 'true' for any of this to run,
+// so activation stays controlled until the consent flow is approved. Both reads
+// are wrapped and fail to the safe state (no tracking), so this never blocks
+// app boot. Authenticated tracking is unaffected: it runs via PostHogProvider.
+if (isAnonymousAnalyticsEnabled() && hasAnalyticsConsent()) {
+  initPostHog({ enableSessionRecording: false })
+}
 
 // Chunk-load-error auto-reload guard.
 //
