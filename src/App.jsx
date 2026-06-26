@@ -9,6 +9,7 @@ import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-d
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import PostHogProvider from '@/lib/PostHogProvider';
+import CookieConsentBanner from '@/components/consent/CookieConsentBanner';
 import Login from '@/pages/Login';
 import ResetPassword from '@/pages/ResetPassword';
 import Landing from '@/pages/Landing';
@@ -265,6 +266,10 @@ function App() {
             )}
             <Route path="/*" element={<AuthenticatedApp />} />
           </Routes>
+          {/* Cookie-consent banner. Renders on every route; suppresses
+              itself for signed-in users and when a choice is stored. Governs
+              the anonymous early-init analytics path only. */}
+          <CookieConsentBanner />
         </Router>
         <Toaster />
         <SonnerToaster />
