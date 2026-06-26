@@ -2,7 +2,7 @@
 title: Feature tour
 status: living
 owner: shared
-last_reviewed: 2026-06-25
+last_reviewed: 2026-06-26
 code_paths:
   - src/pages
   - src/Layout.jsx
@@ -24,8 +24,8 @@ Every major feature, what it does, and why it exists. Plain-language; for how an
 
 ## Career (roadmap + jobs)
 
-**What:** The job seeker's tracks, the roles they match (with the *why* — qualification and goal-alignment bars, matched and missing skills), and a live feed of real open jobs filtered to their fit. Tracking a job moves it into their pipeline.
-**Why:** This is the honest core — where a job seeker sees what they're realistic for and finds real openings to act on, in one place.
+**What:** Two tabs. **Job search** — the roles they match (with the *why* — qualification and goal-alignment bars, matched and missing skills) beside a live feed of real open jobs filtered to their fit, shown as a 2-up card grid; a card opens a detail view, and tracking a job moves it into their pipeline. **Pipeline** — the full application board (all 7 stages, saved → rejected) on its own full-width tab, fully visible with no horizontal scroll, drag-and-drop between columns. `?pipeline=open` deep links open the Pipeline tab.
+**Why:** This is the honest core — where a job seeker sees what they're realistic for, finds real openings to act on, and manages the hunt, in one place. Splitting browse from pipeline keeps each view uncluttered and the board readable end-to-end.
 
 ## Tracker
 

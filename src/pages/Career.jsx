@@ -177,6 +177,10 @@ export default function Career() {
   // revert to normal page scroll. The wheel-forwarder self-disables to match
   // (it checks whether the jobs column is actually a scroll container).
   const fixedShell = !boardOpen;
+  // Top-level Career tabs. "Pipeline" is the same ?pipeline=open URL state the
+  // deep links use (Home / Calendar / the redirected /Tracker), so they land on
+  // the pipeline tab; everything else defaults to the job-search tab.
+  const activeTab = boardOpen ? "pipeline" : "search";
   // Detail drawer is also URL-driven: &app=<id> opens that application's
   // drawer if it exists in the cache. Closing the drawer drops the param
   // but keeps pipeline=open.
@@ -541,65 +545,48 @@ export default function Career() {
         </div>
       )}
 
-      {/* Pipeline strip — clickable. PR-A2 makes the whole strip a
-          single button that toggles the inline board below. URL syncs
-          to ?pipeline=open via history.replaceState so deep links from
-          Home / Calendar / the redirected /Tracker land on it open. */}
-      <button
-        type="button"
-        onClick={() => setBoardOpen(!boardOpen)}
-        aria-expanded={boardOpen}
-        aria-controls="career-pipeline-board"
-        className="w-full text-left mt-3 group"
-        data-pipeline-strip
-      >
-        <RdCard className="p-3 group-hover:border-rd-border-hover group-hover:shadow-rd transition-[border-color,box-shadow] duration-150">
-          <div className="flex items-center justify-between mb-1.5 px-1">
-            <span className="text-[11px] font-medium text-rd-text-eyebrow uppercase tracking-[0.09em]">
-              Your pipeline
+      {/* Top-level Career tabs: browse jobs vs the application pipeline. The
+          Pipeline tab is the ?pipeline=open URL state (preserved for the deep
+          links from Home / Calendar / the redirected /Tracker). */}
+      <div className="flex items-center gap-1 mt-4 border-b border-rd-border" role="tablist">
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "search"}
+          onClick={() => setBoardOpen(false)}
+          className={`relative px-3.5 py-2.5 font-display font-bold text-[13.5px] transition-colors ${
+            activeTab === "search"
+              ? "text-rd-text"
+              : "text-rd-text-secondary hover:text-rd-text"
+          }`}
+        >
+          Job search
+          {activeTab === "search" && (
+            <span className="absolute left-2 right-2 -bottom-px h-[2px] bg-rd-coral rounded-full" />
+          )}
+        </button>
+        <button
+          type="button"
+          role="tab"
+          aria-selected={activeTab === "pipeline"}
+          onClick={() => setBoardOpen(true)}
+          className={`relative inline-flex items-center gap-1.5 px-3.5 py-2.5 font-display font-bold text-[13.5px] transition-colors ${
+            activeTab === "pipeline"
+              ? "text-rd-text"
+              : "text-rd-text-secondary hover:text-rd-text"
+          }`}
+        >
+          Pipeline
+          {applications.length > 0 && (
+            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rd-bg-soft text-[10.5px] font-semibold text-rd-text-secondary tabular-nums">
+              {applications.length}
             </span>
-            <span className="inline-flex items-center gap-1.5 text-[10.5px] text-rd-text-secondary">
-              {applications.length > 0 && (
-                <>
-                  {applications.length}{" "}
-                  {applications.length === 1 ? "role" : "roles"} tracked ·{" "}
-                </>
-              )}
-              {boardOpen ? (
-                <>
-                  Hide board <ChevronUp className="w-3 h-3" />
-                </>
-              ) : (
-                <>
-                  Open board <ChevronDown className="w-3 h-3" />
-                </>
-              )}
-            </span>
-          </div>
-          <div className="flex gap-1.5">
-            <RdFunnelTile
-              label="saved"
-              value={funnelCounts.saved}
-              tone="neutral"
-            />
-            <RdFunnelTile
-              label="applied"
-              value={funnelCounts.applied}
-              tone="coral"
-            />
-            <RdFunnelTile
-              label="interview"
-              value={funnelCounts.interview}
-              tone="teal"
-            />
-            <RdFunnelTile
-              label="offer"
-              value={funnelCounts.offer}
-              tone="neutral"
-            />
-          </div>
-        </RdCard>
-      </button>
+          )}
+          {activeTab === "pipeline" && (
+            <span className="absolute left-2 right-2 -bottom-px h-[2px] bg-rd-coral rounded-full" />
+          )}
+        </button>
+      </div>
 
       {/* Inline expandable board — final Tracker-absorption surface
           (PR-A2). Reuses ApplicationsKanban + ApplicationDetailDrawer
@@ -616,6 +603,14 @@ export default function Career() {
           aria-label="Pipeline board"
         >
           <style>{TRACKER_CSS}</style>
+
+          {/* Compact funnel overview (saved → applied → interview → offer). */}
+          <div className="flex gap-1.5 mb-4">
+            <RdFunnelTile label="saved" value={funnelCounts.saved} tone="neutral" />
+            <RdFunnelTile label="applied" value={funnelCounts.applied} tone="coral" />
+            <RdFunnelTile label="interview" value={funnelCounts.interview} tone="teal" />
+            <RdFunnelTile label="offer" value={funnelCounts.offer} tone="neutral" />
+          </div>
 
           {!guideDismissed && (
             <RdCard className="p-5" data-pipeline-guide>
@@ -743,6 +738,7 @@ export default function Career() {
         </section>
       )}
 
+      {!boardOpen && (
       <div className={`flex flex-col md:flex-row gap-4 mt-4 items-start ${fixedShell ? "md:flex-1 md:min-h-0" : ""}`}>
         {/* Left — the shared unified two-tab jobs feed. Career renders the
             SAME <UnifiedJobsFeed> as /jobs (one implementation, no forked
@@ -895,6 +891,7 @@ export default function Career() {
           </div>
         </div>
       </div>
+      )}
     </div>
   );
 }
