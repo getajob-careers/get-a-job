@@ -466,6 +466,12 @@ export function scoreJobFit(input, job) {
       seniority_match: seniority.match,
       function_family_match: family.match,
       extraction_confidence: conf,
+      // Phase 0: fraction of the JD's extracted skills that resolved to a
+      // library ID. Low => our library does not cover this role's domain, so
+      // the skill axis (and the composite) are unreliable. Passed through for
+      // the display gate; the scoring math above is unchanged.
+      skill_coverage_ratio:
+        typeof job?.skill_coverage_ratio === "number" ? job.skill_coverage_ratio : null,
       user_level: userLevel,
       user_stage: EXPERIENCE_LEVEL_TO_STAGE[userLevel] || null,
     },

@@ -292,3 +292,14 @@ export function applyYearsCap(
   if (gap >= 2 && track === "track_1") return "track_2";
   return track;
 }
+
+
+// Phase 0 score-coverage gate. A role/job whose LLM-extracted skills resolve
+// to library IDs below this fraction is "low coverage": our hand-curated
+// library does not cover its domain, so the match score is built on a thin
+// generic subset and is unreliable. The UI then shows an honest low-confidence
+// state instead of a confident percentage. Validated against the live jobs
+// corpus: out-of-domain roles (chemist, electrician, lab tech, pharma) sit at
+// ~0.0 coverage while in-domain engineering roles sit at 0.8-1.0, so 0.4
+// cleanly separates fake-high from genuine-high.
+export const SKILL_COVERAGE_LOW_THRESHOLD = 0.4;

@@ -1259,6 +1259,22 @@ Return ONLY valid JSON.`;
       }
     }
 
+    // Phase 0 coverage gate: user-level skill coverage = resolved /
+    // (resolved + unmapped) of the user's OWN stated skills. Low => we did
+    // not understand this user's skills, so every roadmap score is built on a
+    // thin generic subset and should be shown as low-confidence. Same value
+    // on every row (it is a property of the profile, not the candidate role).
+    const _canonCount = Array.isArray((profile as any).skills_canonical)
+      ? (profile as any).skills_canonical.length
+      : 0;
+    const _unmappedCount = Array.isArray((profile as any).skills_unmapped)
+      ? (profile as any).skills_unmapped.length
+      : 0;
+    const userSkillCoverage =
+      _canonCount + _unmappedCount > 0
+        ? Math.round((_canonCount / (_canonCount + _unmappedCount)) * 1000) / 1000
+        : null;
+
     const finalRoles = finalSelected.map(server => {
       const llm = llmRolesByTitle.get(server.title) || {};
       return {
@@ -1274,6 +1290,7 @@ Return ONLY valid JSON.`;
           ? llm.action_items.filter((x: any) => typeof x === "string").slice(0, 5)
           : [],
         alignment_to_goal: typeof llm.alignment_to_goal === "string" ? llm.alignment_to_goal : "",
+        skill_coverage_ratio: userSkillCoverage,
       };
     });
 
