@@ -158,8 +158,11 @@ export default function ApplicationsKanban({
 
   return (
     <DragDropContext onDragEnd={onDragEnd}>
-      <div className="overflow-x-auto -mx-4 px-4 lg:mx-0 lg:px-0">
-        <div className="flex gap-2.5 min-w-[1100px]">
+      <div>
+        {/* All 7 status columns flex to fit the full width — no min-width, so
+            the board is fully visible end-to-end with no horizontal scroll.
+            (Below 768px the mobile accordion below renders instead.) */}
+        <div className="flex gap-2">
           {statuses.map((status) => {
             const column = byStatus[status];
             return (

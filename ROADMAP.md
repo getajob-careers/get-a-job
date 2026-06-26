@@ -32,6 +32,8 @@ This roadmap's source of truth for **scheduling** is the [June 15 launch sprint]
 
 ## In Progress
 
+- **2026-06-26 — Jobs feed redesign + Career two-tab (branch `isaac/jobs-grid-redesign`).** Reworked the Career jobs experience: 2-up equal-height card grid with a click-to-open detail modal and a delayed-hover peek (portaled, flips up, never clipped); lazy job descriptions (`JOBS_SELECT_LIGHT` + hover-prefetch) with a 120/60 buffered reveal on Matches and a progressive first-page render on Search (~350ms vs waiting for the full ~4,200-row corpus). Career split into top-level **Job search** / **Pipeline** tabs: the job feed + matched-roles panel live in a fixed shell where only the job list scrolls (chrome stays put; wheel-anywhere forwards to the list), and the pipeline board moves to its own full-width tab — all 7 stages visible with **no horizontal scroll** (dropped `min-w-[1100px]`). `?pipeline=open` deep links now open the Pipeline tab. Not yet merged.
+
 - **2026-06-11 — Seamless-IA scopes 1+2 (branch `isaac/home-redesign-pipeline-c`).** Career page (Roadmap+Jobs condensed: track band, live-jobs pane, matched-roles why-panel) + Home -> Today (progress ring, completable hero, checkable plan rows, quick-access tiles, 4-stat strip) + nav slim-down (Today / Career / Chat / Internship / Profile). Old pages stay routable. Scope 3 (agent drawer) NOT started. Spec: `GetAJob Design System/design_handoff_seamless_ia/`. Post-June-15 merge.
 
 - **Wk 2 Day 5 / Isaac's queue** — Admin view (`cohort_scout_metrics` + `student_engagement_summary` SQL views + `/admin` page, RLS-gated). Eli picking up.
