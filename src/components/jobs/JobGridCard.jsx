@@ -77,17 +77,24 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
     setPeek(true);
     peekArmed = true;
   };
+  // Open after the dwell — but if the list is mid-scroll, WAIT it out and open
+  // once it settles rather than bailing. That keeps scrolling flicker-free yet
+  // still pops the peek for the card the cursor ends up resting on, without
+  // making the user move off and back onto it.
+  const tryOpenPeek = () => {
+    const sinceScroll = Date.now() - lastScrollAt;
+    if (sinceScroll < SCROLL_QUIET_MS) {
+      dwellRef.current = setTimeout(tryOpenPeek, SCROLL_QUIET_MS - sinceScroll + 20);
+      return;
+    }
+    openPeek();
+  };
   const handleEnter = () => {
     prefetchJobDescription(queryClient, job.id);
     clearTimeout(peekRearmTimer);
     clearTimeout(dwellRef.current);
     // No delay once the user is "armed" from a prior peek; full dwell first time.
-    dwellRef.current = setTimeout(() => {
-      // Don't pop a peek that was triggered by cards sliding under the cursor
-      // mid-scroll — only on a settled hover.
-      if (Date.now() - lastScrollAt < SCROLL_QUIET_MS) return;
-      openPeek();
-    }, peekArmed ? 0 : PEEK_DELAY_MS);
+    dwellRef.current = setTimeout(tryOpenPeek, peekArmed ? 0 : PEEK_DELAY_MS);
   };
   // Leaving the card only cancels a PENDING open — closing an already-open
   // peek is owned by the global hit-test below (mouseleave is unreliable for a
