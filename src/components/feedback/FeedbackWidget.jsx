@@ -103,22 +103,17 @@ export default function FeedbackWidget() {
 
   return (
     <>
-      {/* Floating launcher pill — bottom-right, fixed.
-          Positioned ABOVE the default toast zone (Sonner mounts a
-          bottom-right container at body-level via portal with very high
-          z-index; the shadcn <Toaster /> in App.jsx adds another always-
-          mounted ToastViewport at z-[100] in the same corner). The pill's
-          previous bottom-4 z-40 sat under both, so it was being masked.
-          Lifted to bottom-20 and bumped to z-50 to clear:
-            - Sonner's bottom-right container
-            - the shadcn ToastViewport at z-[100] vertically (we're now
-              above where toasts land, so the z-index race is moot)
-            - the mobile sidebar overlay at z-40 */}
+      {/* Floating launcher pill — pinned to the bottom-right corner. The
+          shadcn toast containers share this corner at z-[100], but they're now
+          pointer-events-none when empty (see ui/toast.jsx; individual toasts
+          keep pointer-events-auto), so the pill no longer needs to sit above
+          them — it lives in the corner at z-50 and a live toast simply renders
+          over it for its short lifetime. */}
       <button
         type="button"
         onClick={() => setOpen(true)}
         aria-label="Send feedback"
-        className="fixed bottom-20 right-4 sm:bottom-24 sm:right-6 z-50 inline-flex items-center gap-2 font-display font-bold text-[12.5px] rounded-full px-4 py-2.5 bg-rd-coral text-white shadow-lg hover:bg-rd-coral-dark transition-colors"
+        className="fixed bottom-5 right-5 sm:bottom-6 sm:right-6 z-50 inline-flex items-center gap-2 font-display font-bold text-[12.5px] rounded-full px-4 py-2.5 bg-rd-coral text-white shadow-lg hover:bg-rd-coral-dark transition-colors"
       >
         <MessageSquare className="w-3.5 h-3.5" />
         Got feedback?
