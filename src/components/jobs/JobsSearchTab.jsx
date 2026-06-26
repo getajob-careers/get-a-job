@@ -86,6 +86,10 @@ const FAMILY_OPTIONS = [
   ["HR_People", "HR & People"],
   ["Admin_GA", "Admin & GA"],
 ];
+// Persisted across remounts (tab switches unmount this component) so a user who
+// collapsed the filters doesn't get them re-expanded when they jump away and back.
+let filtersOpenPref = true;
+
 export default function JobsSearchTab({
   profile,
   experiences,
@@ -162,8 +166,9 @@ export default function JobsSearchTab({
   const [family, setFamily] = useState(""); // "" = all functions
   const [location, setLocation] = useState(""); // "" = anywhere
   const [track, setTrack] = useState(null); // null = all tracks
-  // Filter bar (search + facets) is collapsible to reclaim vertical space.
-  const [filtersOpen, setFiltersOpen] = useState(true);
+  // Filter bar (search + facets) is collapsible to reclaim vertical space;
+  // the open/closed choice persists across remounts (see filtersOpenPref).
+  const [filtersOpen, setFiltersOpen] = useState(filtersOpenPref);
 
   // Location picker options derived from the ALREADY-cached corpus (no extra
   // query): every real city with its live count + the region groups.
@@ -224,7 +229,7 @@ export default function JobsSearchTab({
       <div className="flex items-center justify-between mb-3">
         <button
           type="button"
-          onClick={() => setFiltersOpen((o) => !o)}
+          onClick={() => setFiltersOpen((o) => { filtersOpenPref = !o; return !o; })}
           aria-expanded={filtersOpen}
           className="inline-flex items-center gap-2 font-display font-bold text-[13px] text-rd-text-secondary hover:text-rd-text transition-colors"
         >

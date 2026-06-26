@@ -733,8 +733,10 @@ export default function Career() {
         </section>
       )}
 
-      {!boardOpen && (
-      <div className={`flex flex-col md:flex-row gap-4 mt-4 items-start ${fixedShell ? "md:flex-1 md:min-h-0" : ""}`}>
+      {/* Kept mounted (just hidden) on the Pipeline tab so returning to Job
+          search doesn't remount the feed — preserves its fetched jobs, reveal
+          count, and scroll position instead of re-rendering from scratch. */}
+      <div className={`flex flex-col md:flex-row gap-4 mt-4 items-start ${boardOpen ? "hidden" : ""} ${fixedShell ? "md:flex-1 md:min-h-0" : ""}`}>
         {/* Left — the shared unified two-tab jobs feed. Career renders the
             SAME <UnifiedJobsFeed> as /jobs (one implementation, no forked
             track-scoped feed). It self-fetches profile / experiences / roles
@@ -886,7 +888,6 @@ export default function Career() {
           </div>
         </div>
       </div>
-      )}
     </div>
   );
 }

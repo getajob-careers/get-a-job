@@ -21,6 +21,23 @@ const PEEK_REARM_MS = 1500;
 let peekArmed = false;
 let peekRearmTimer = null;
 
+// While the list is scrolling, cards slide under a stationary cursor and the
+// browser fires spurious mouseenter events — which (when armed) would pop peeks
+// open just to be dismissed on the next wheel tick, a flicker loop. Track the
+// last wheel/scroll time globally and refuse to open a peek until the list has
+// been quiet for SCROLL_QUIET_MS, so scrolling stays smooth and peeks only
+// appear on a deliberate, settled hover.
+const SCROLL_QUIET_MS = 220;
+let lastScrollAt = 0;
+let scrollTrackerInstalled = false;
+function installScrollTracker() {
+  if (scrollTrackerInstalled || typeof window === "undefined") return;
+  scrollTrackerInstalled = true;
+  const mark = () => { lastScrollAt = Date.now(); };
+  window.addEventListener("wheel", mark, { passive: true, capture: true });
+  window.addEventListener("scroll", mark, { passive: true, capture: true });
+}
+
 export default function JobGridCard({ job, scoreResult = null, trackColor = null, unified = false, onOpen }) {
   const queryClient = useQueryClient();
   const { data: companyDomains } = useCompanyDomains();
@@ -41,7 +58,10 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
   // escapes the jobs column's overflow-y-auto clip (which was cutting the
   // popover off near the bottom of the scroll area).
   const [rect, setRect] = useState(null);
-  useEffect(() => () => clearTimeout(dwellRef.current), []);
+  useEffect(() => {
+    installScrollTracker();
+    return () => clearTimeout(dwellRef.current);
+  }, []);
 
   // Description only needed for the peek snippet — read it once we're peeking
   // (warm from the hover prefetch by then). Seeded if the row carried it.
@@ -62,7 +82,12 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
     clearTimeout(peekRearmTimer);
     clearTimeout(dwellRef.current);
     // No delay once the user is "armed" from a prior peek; full dwell first time.
-    dwellRef.current = setTimeout(openPeek, peekArmed ? 0 : PEEK_DELAY_MS);
+    dwellRef.current = setTimeout(() => {
+      // Don't pop a peek that was triggered by cards sliding under the cursor
+      // mid-scroll — only on a settled hover.
+      if (Date.now() - lastScrollAt < SCROLL_QUIET_MS) return;
+      openPeek();
+    }, peekArmed ? 0 : PEEK_DELAY_MS);
   };
   // Leaving the card only cancels a PENDING open — closing an already-open
   // peek is owned by the global hit-test below (mouseleave is unreliable for a
