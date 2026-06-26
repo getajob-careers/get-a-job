@@ -570,18 +570,13 @@ export default function Career() {
           role="tab"
           aria-selected={activeTab === "pipeline"}
           onClick={() => setBoardOpen(true)}
-          className={`relative inline-flex items-center gap-1.5 px-3.5 py-2.5 font-display font-bold text-[13.5px] transition-colors ${
+          className={`relative px-3.5 py-2.5 font-display font-bold text-[13.5px] transition-colors ${
             activeTab === "pipeline"
               ? "text-rd-text"
               : "text-rd-text-secondary hover:text-rd-text"
           }`}
         >
           Pipeline
-          {applications.length > 0 && (
-            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rd-bg-soft text-[10.5px] font-semibold text-rd-text-secondary tabular-nums">
-              {applications.length}
-            </span>
-          )}
           {activeTab === "pipeline" && (
             <span className="absolute left-2 right-2 -bottom-px h-[2px] bg-rd-coral rounded-full" />
           )}

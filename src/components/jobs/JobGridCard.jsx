@@ -90,9 +90,14 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
     };
     window.addEventListener("mousemove", onMove);
     window.addEventListener("scroll", close, true);
+    // The peek is portaled out of the scrolling jobs column, so wheeling over
+    // it scrolls nothing and would trap the user. Dismiss on wheel — the next
+    // wheel tick then scrolls the jobs as normal.
+    window.addEventListener("wheel", close, { passive: true });
     return () => {
       window.removeEventListener("mousemove", onMove);
       window.removeEventListener("scroll", close, true);
+      window.removeEventListener("wheel", close);
     };
   }, [peek]);
 
