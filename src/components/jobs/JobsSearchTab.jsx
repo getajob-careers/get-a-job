@@ -4,10 +4,11 @@ import {
   Loader2,
   Briefcase,
   Check,
+  ChevronDown,
   ChevronsUpDown,
   Search,
+  SlidersHorizontal,
   X,
-  HelpCircle,
 } from "lucide-react";
 import { supabase } from "@/api/supabaseClient";
 import { scoreJobFit } from "@/lib/scoreJobFit";
@@ -85,12 +86,6 @@ const FAMILY_OPTIONS = [
   ["HR_People", "HR & People"],
   ["Admin_GA", "Admin & GA"],
 ];
-const TRACK_CHIPS = [
-  ["track_1", "Track 1"],
-  ["track_2", "Track 2"],
-  ["track_3", "Track 3"],
-];
-
 export default function JobsSearchTab({
   profile,
   experiences,
@@ -167,6 +162,8 @@ export default function JobsSearchTab({
   const [family, setFamily] = useState(""); // "" = all functions
   const [location, setLocation] = useState(""); // "" = anywhere
   const [track, setTrack] = useState(null); // null = all tracks
+  // Filter bar (search + facets) is collapsible to reclaim vertical space.
+  const [filtersOpen, setFiltersOpen] = useState(true);
 
   // Location picker options derived from the ALREADY-cached corpus (no extra
   // query): every real city with its live count + the region groups.
@@ -189,6 +186,12 @@ export default function JobsSearchTab({
     track !== null ||
     family !== "" ||
     location !== "";
+  const activeFilterCount =
+    (keyword.trim() !== "" ? 1 : 0) +
+    (seniorities.length > 0 ? 1 : 0) +
+    (workTypes.length > 0 ? 1 : 0) +
+    (family !== "" ? 1 : 0) +
+    (location !== "" ? 1 : 0);
   const clearFacets = () => {
     setKeyword("");
     setSeniorities([]);
@@ -215,8 +218,39 @@ export default function JobsSearchTab({
   return (
     <div>
       {/* Search + facets stick to the top of the scrolling jobs column, just
-          below the sticky tab bar, so the filters stay while results scroll. */}
+          below the sticky tab bar, so the filters stay while results scroll.
+          Collapsible to reclaim vertical space for the results. */}
       <div className="md:sticky md:top-[48px] md:z-[9] md:bg-rd-bg-page md:pt-2">
+      <div className="flex items-center justify-between mb-3">
+        <button
+          type="button"
+          onClick={() => setFiltersOpen((o) => !o)}
+          aria-expanded={filtersOpen}
+          className="inline-flex items-center gap-2 font-display font-bold text-[13px] text-rd-text-secondary hover:text-rd-text transition-colors"
+        >
+          <SlidersHorizontal className="w-3.5 h-3.5" />
+          Filters
+          {activeFilterCount > 0 && (
+            <span className="inline-flex items-center justify-center min-w-[18px] h-[18px] px-1 rounded-full bg-rd-coral-tint text-[10.5px] font-semibold text-rd-coral-dark tabular-nums">
+              {activeFilterCount}
+            </span>
+          )}
+          <ChevronDown
+            className={`w-3.5 h-3.5 transition-transform ${filtersOpen ? "rotate-180" : ""}`}
+          />
+        </button>
+        {hasActiveFacets && (
+          <button
+            type="button"
+            onClick={clearFacets}
+            className="text-[12px] font-display font-semibold text-rd-coral-dark hover:text-rd-coral underline underline-offset-2"
+          >
+            Clear filters
+          </button>
+        )}
+      </div>
+      {filtersOpen && (
+      <>
       {/* Keyword — match-as-you-type over the cached corpus (title + company
           only; description is lazy-loaded, out of scope). AND-composes with
           the facets below. */}
@@ -293,51 +327,9 @@ export default function JobsSearchTab({
             options={locationOptions}
           />
         </div>
-        <div className="flex items-center gap-1.5">
-          <span className="text-[11px] uppercase tracking-[0.08em] font-mono text-rd-text-secondary mr-0.5">
-            Track
-          </span>
-          <Popover>
-            <PopoverTrigger asChild>
-              <button
-                type="button"
-                aria-label="What are tracks?"
-                className="inline-flex items-center justify-center text-rd-text-secondary hover:text-rd-text transition-colors"
-              >
-                <HelpCircle className="w-3.5 h-3.5" />
-              </button>
-            </PopoverTrigger>
-            <PopoverContent
-              align="start"
-              className="w-[260px] text-[12px] leading-[1.5] text-rd-text-tertiary"
-            >
-              Tracks group roles by how they fit you.{" "}
-              <b className="text-rd-text">Track 1</b> is a strong fit for your
-              background now; <b className="text-rd-text">Track 2</b> is a
-              doable detour; <b className="text-rd-text">Track 3</b> is a
-              stretch you grow into. Filtering by a track narrows the board to
-              roles in that fit band.
-            </PopoverContent>
-          </Popover>
-          {TRACK_CHIPS.map(([value, label]) => (
-            <FacetChip
-              key={value}
-              label={label}
-              active={track === value}
-              onClick={() => setTrack(track === value ? null : value)}
-            />
-          ))}
-        </div>
-        {hasActiveFacets && (
-          <button
-            type="button"
-            onClick={clearFacets}
-            className="text-[12px] font-display font-semibold text-rd-coral-dark hover:text-rd-coral underline underline-offset-2"
-          >
-            Clear filters
-          </button>
-        )}
       </div>
+      </>
+      )}
       </div>
 
       {/* Count */}
