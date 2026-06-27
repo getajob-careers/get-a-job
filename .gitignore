@@ -21,6 +21,9 @@ dist-ssr
 supabase/.temp/
 supabase/.branches/
 
+# Built Chrome extension package (regenerate via extension/PACKAGING.md)
+getajob-extension.zip
+
 # Claude Code agent worktrees (duplicate repo checkouts — never commit)
 .claude/worktrees/
 

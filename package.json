@@ -16,7 +16,8 @@
     "test:e2e": "playwright test",
     "refresh-jobs": "tsx scripts/refresh-jobs.ts",
     "refresh-jobs:dry": "tsx scripts/refresh-jobs.ts --dry-run",
-    "docs:check": "node scripts/check-docs-freshness.mjs"
+    "docs:check": "node scripts/check-docs-freshness.mjs",
+    "package:verify": "node extension/verify-package.mjs"
   },
   "dependencies": {
     "@hello-pangea/dnd": "^17.0.0",
