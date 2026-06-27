@@ -36,6 +36,7 @@ import HomePreview from '@/pages/_preview/HomePreview';
 import CareerPreview from '@/pages/_preview/CareerPreview';
 import JobsLogoPreview from '@/pages/_preview/JobsLogoPreview';
 import JobsGridPreview from '@/pages/_preview/JobsGridPreview';
+import LandingV2Preview from '@/pages/_preview/LandingV2Preview';
 import RoadmapPreview from '@/pages/_preview/RoadmapPreview';
 import TrackerPreview from '@/pages/_preview/TrackerPreview';
 import ProfilePreview from '@/pages/_preview/ProfilePreview';
@@ -190,6 +191,12 @@ function App() {
               <Route
                 path="/_preview/jobs-grid"
                 element={<JobsGridPreview />}
+              />
+            )}
+            {import.meta.env.DEV && (
+              <Route
+                path="/_preview/landing-v2"
+                element={<LandingV2Preview />}
               />
             )}
             {import.meta.env.DEV && (
