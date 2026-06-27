@@ -117,6 +117,7 @@ const LV_CSS = `
 .lv-stat:hover .lv-stat-ic { color: var(--accent); transform: scale(1.12); }
 .lv-stat-n { font-family: var(--font-d); font-size: 38px; font-weight: 800; letter-spacing: -.03em; color: var(--ink); line-height: 1; }
 .lv-stat-l { font-size: 13px; color: var(--ink-soft); margin-top: 9px; line-height: 1.35; }
+.lv-stat-t { font-family: var(--font-d); font-size: 16px; font-weight: 700; color: var(--ink); line-height: 1.25; letter-spacing: -.01em; max-width: 168px; margin: 0 auto; }
 /* odometer reels — each digit clips to 1em and rolls up to its value */
 .lv-odometer { display: inline-flex; align-items: flex-start; justify-content: center; }
 .lv-od-digit { display: inline-block; height: 1em; line-height: 1; overflow: hidden; }
@@ -720,13 +721,17 @@ function DropZone({ onUpload }) {
   );
 }
 
-// Scale stats for the hero. First two are placeholders — swap in real live
-// numbers; the last two come from the repo's data (908 companies, 195 roles).
+// Hero scale stats. Static literals tied to the IL-only job corpus: the
+// "4,000+" / "350+" counts AND the "in Israel" wording must be updated BY HAND
+// when the corpus expands beyond Israel, or when stats 1-2 get wired to live
+// counts (the queued landing_stats RPC follow-up). Stats 1-2 animate a
+// count-up; stats 3-4 are text-only (icon plus a line, no number). Text-only
+// stats omit `to`; the render keys off that.
 const HERO_STATS = [
-  { to: 2000, suffix: "+", label: "live roles in the system", icon: "ti-briefcase" },
-  { to: 150, suffix: "+", label: "new roles every week", icon: "ti-calendar-plus" },
-  { to: 908, suffix: "", label: "Israeli companies tracked", icon: "ti-building-skyscraper" },
-  { to: 195, suffix: "", label: "roles mapped to you", icon: "ti-target-arrow" },
+  { to: 4000, suffix: "+", label: "live roles in Israel", icon: "ti-briefcase" },
+  { to: 350, suffix: "+", label: "companies hiring now", icon: "ti-building-skyscraper" },
+  { text: "Sourced direct from company career pages", icon: "ti-plug-connected" },
+  { text: "Refreshed every night", icon: "ti-moon" },
 ];
 
 // Rolls a stat up from 0 → target when it mounts (the hero is in view on load).
@@ -802,10 +807,16 @@ function Hero({ onCTA }) {
         </div>
         <div className="lv-stats lv-reveal" data-d="3">
           {HERO_STATS.map((s, i) => (
-            <div className="lv-stat" key={s.label}>
+            <div className="lv-stat" key={s.label ?? s.text}>
               <i className={`ti ${s.icon} lv-stat-ic`} aria-hidden="true" />
-              <Odometer value={s.to} suffix={s.suffix} delay={i * 0.12} />
-              <div className="lv-stat-l">{s.label}</div>
+              {s.to != null ? (
+                <>
+                  <Odometer value={s.to} suffix={s.suffix} delay={i * 0.12} />
+                  <div className="lv-stat-l">{s.label}</div>
+                </>
+              ) : (
+                <div className="lv-stat-t">{s.text}</div>
+              )}
             </div>
           ))}
         </div>
