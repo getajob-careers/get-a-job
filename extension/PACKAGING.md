@@ -68,8 +68,18 @@ Run the packaging guard against the zip you just produced. It parses the
 is present at the exact path and casing. If anything is missing it prints the
 missing path and exits non-zero. **Do not upload a zip that fails this check.**
 
+From the repo root (defaults to `../getajob-extension.zip`, the path the zip
+step writes):
+
 ```sh
-node verify-package.mjs ../getajob-extension.zip
+npm run package:verify
+```
+
+Or pass an explicit zip path:
+
+```sh
+npm run package:verify -- /path/to/some.zip
+# equivalently: node extension/verify-package.mjs /path/to/some.zip
 ```
 
 Expected last line on success:
@@ -78,9 +88,10 @@ Expected last line on success:
 [verify-package] PASS: every manifest-referenced file is present in the zip.
 ```
 
-This is the guard that would have caught the v0.1.2 rejection ("Could not load
-background script"), where the zip omitted `background.js`. `verify-package.mjs`
-does not itself go in the zip.
+The guard is pure Node (no dependency on the system `unzip`). It is the check
+that would have caught the v0.1.2 rejection ("Could not load background script"),
+where the zip omitted `background.js`. `verify-package.mjs` does not itself go in
+the zip.
 
 ## Icons & brand
 

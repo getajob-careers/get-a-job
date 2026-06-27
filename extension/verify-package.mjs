@@ -8,39 +8,82 @@
 // drifts from what the manifest declares (e.g. a missing background.js, which
 // the Chrome Web Store rejects with "Could not load background script").
 //
-// Usage: node verify-package.mjs <path-to-zip>
+// Usage: node verify-package.mjs [path-to-zip]
+//   Defaults to ../getajob-extension.zip relative to this file (the path the
+//   documented `zip -r ../getajob-extension.zip ...` step writes), so it also
+//   works as `npm run package:verify` from the repo root.
 //
-// Case matters: we build on macOS (case-insensitive) but the Web Store is not,
-// so we compare against the exact entry names stored in the zip.
+// Pure Node: reads the zip with a minimal central-directory parser and zlib,
+// so the guard has no dependency on the system `unzip` binary being present.
+// Case matters (we build on macOS, the Web Store is case-sensitive), so we
+// compare against the exact entry names stored in the zip.
 
-import { execFileSync } from "node:child_process";
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+import { inflateRawSync } from "node:zlib";
 
-const zipPath = process.argv[2];
-if (!zipPath) {
-  console.error("usage: node verify-package.mjs <path-to-zip>");
-  process.exit(2);
+const here = dirname(fileURLToPath(import.meta.url));
+const zipPath = process.argv[2] || resolve(here, "..", "getajob-extension.zip");
+
+// ── Minimal ZIP reader ───────────────────────────────────────────────────────
+// Enough of the spec to list entries and extract a stored/deflated member.
+// Reads sizes/offsets from the central directory (authoritative even when a
+// local header uses a data descriptor). No ZIP64 (extension zips are tiny).
+const EOCD_SIG = 0x06054b50; // end of central directory
+const CEN_SIG = 0x02014b50; // central directory file header
+const LOC_SIG = 0x04034b50; // local file header
+
+function readZip(path) {
+  const buf = readFileSync(path);
+
+  // EOCD is at the end, before an optional comment; scan backwards for it.
+  let eocd = -1;
+  for (let i = buf.length - 22; i >= 0; i--) {
+    if (buf.readUInt32LE(i) === EOCD_SIG) {
+      eocd = i;
+      break;
+    }
+  }
+  if (eocd < 0)
+    throw new Error("not a zip file (no end-of-central-directory record)");
+
+  const count = buf.readUInt16LE(eocd + 10);
+  const cdOffset = buf.readUInt32LE(eocd + 16);
+
+  const entries = new Map(); // name -> { method, compSize, localOffset }
+  let p = cdOffset;
+  for (let n = 0; n < count; n++) {
+    if (buf.readUInt32LE(p) !== CEN_SIG)
+      throw new Error("corrupt zip (bad central directory header)");
+    const method = buf.readUInt16LE(p + 10);
+    const compSize = buf.readUInt32LE(p + 20);
+    const nameLen = buf.readUInt16LE(p + 28);
+    const extraLen = buf.readUInt16LE(p + 30);
+    const commentLen = buf.readUInt16LE(p + 32);
+    const localOffset = buf.readUInt32LE(p + 42);
+    const name = buf.toString("utf8", p + 46, p + 46 + nameLen);
+    entries.set(name, { method, compSize, localOffset });
+    p += 46 + nameLen + extraLen + commentLen;
+  }
+  return { buf, entries };
 }
 
-// Read raw bytes / text out of the zip without unpacking, via the system unzip.
-function zipEntries(zip) {
-  // -Z1 = zipinfo "names only, one per line". Trailing-slash entries are dirs.
-  const out = execFileSync("unzip", ["-Z1", zip], { encoding: "utf8" });
-  return out
-    .split("\n")
-    .map((s) => s.trim())
-    .filter((s) => s.length > 0 && !s.endsWith("/"));
+function extractFile(buf, entry) {
+  if (buf.readUInt32LE(entry.localOffset) !== LOC_SIG)
+    throw new Error("corrupt zip (bad local file header)");
+  const nameLen = buf.readUInt16LE(entry.localOffset + 26);
+  const extraLen = buf.readUInt16LE(entry.localOffset + 28);
+  const start = entry.localOffset + 30 + nameLen + extraLen;
+  const data = buf.subarray(start, start + entry.compSize);
+  if (entry.method === 0) return data; // stored
+  if (entry.method === 8) return inflateRawSync(data); // deflate
+  throw new Error(`unsupported compression method ${entry.method}`);
 }
 
-function manifestFromZip(zip) {
-  // -p = pipe a single member to stdout. Reads the EXACT manifest that shipped.
-  const raw = execFileSync("unzip", ["-p", zip, "manifest.json"], {
-    encoding: "utf8",
-  });
-  return JSON.parse(raw);
-}
-
-// Collect every file path the manifest references, with the manifest key it came
-// from (for a legible failure message).
+// ── Manifest reference collection ────────────────────────────────────────────
+// Every file path the manifest references, tagged with the key it came from
+// (for a legible failure message).
 function referencedFiles(m) {
   const refs = [];
   const add = (key, value) => {
@@ -87,11 +130,15 @@ function referencedFiles(m) {
   return refs;
 }
 
+// ── Run ──────────────────────────────────────────────────────────────────────
+let buf;
 let entries;
 let manifest;
 try {
-  entries = new Set(zipEntries(zipPath));
-  manifest = manifestFromZip(zipPath);
+  ({ buf, entries } = readZip(zipPath));
+  const manifestEntry = entries.get("manifest.json");
+  if (!manifestEntry) throw new Error("manifest.json is not in the zip");
+  manifest = JSON.parse(extractFile(buf, manifestEntry).toString("utf8"));
 } catch (err) {
   console.error(
     `[verify-package] could not read zip "${zipPath}": ${err.message}`,
@@ -99,15 +146,15 @@ try {
   process.exit(2);
 }
 
+const names = new Set([...entries.keys()].filter((n) => !n.endsWith("/")));
 const refs = referencedFiles(manifest);
 // Wildcard resources (e.g. "assets/*") cannot be checked path-exact; skip with a note.
 const checkable = refs.filter((r) => !r.value.includes("*"));
 const skipped = refs.filter((r) => r.value.includes("*"));
-
-const missing = checkable.filter((r) => !entries.has(r.value));
+const missing = checkable.filter((r) => !names.has(r.value));
 
 console.log(
-  `[verify-package] manifest v${manifest.version} | ${entries.size} files in zip | ${checkable.length} referenced files checked`,
+  `[verify-package] manifest v${manifest.version} | ${names.size} files in zip | ${checkable.length} referenced files checked`,
 );
 for (const s of skipped)
   console.log(`[verify-package] skipped wildcard ref: ${s.key} = ${s.value}`);
