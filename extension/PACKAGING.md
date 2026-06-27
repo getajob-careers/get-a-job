@@ -8,6 +8,7 @@ regenerated before zipping.
 
 ```
 manifest.json
+background.js                   ← MV3 service worker (manifest "background.service_worker")
 popup.html
 popup.js
 config.js                      ← gitignored, regenerate (see below)
@@ -55,9 +56,31 @@ From `extension/`, after both files exist:
 
 ```sh
 zip -r ../getajob-extension.zip \
-  manifest.json popup.html popup.js config.js \
+  manifest.json background.js popup.html popup.js config.js \
   vendor fonts icons
 ```
+
+## Verify the zip (MANDATORY before upload)
+
+Run the packaging guard against the zip you just produced. It parses the
+`manifest.json` inside the zip and asserts every file the manifest references
+(service worker, all icons, action fields, side panel, web-accessible resources)
+is present at the exact path and casing. If anything is missing it prints the
+missing path and exits non-zero. **Do not upload a zip that fails this check.**
+
+```sh
+node verify-package.mjs ../getajob-extension.zip
+```
+
+Expected last line on success:
+
+```
+[verify-package] PASS: every manifest-referenced file is present in the zip.
+```
+
+This is the guard that would have caught the v0.1.2 rejection ("Could not load
+background script"), where the zip omitted `background.js`. `verify-package.mjs`
+does not itself go in the zip.
 
 ## Icons & brand
 
