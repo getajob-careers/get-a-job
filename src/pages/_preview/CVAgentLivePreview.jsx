@@ -34,6 +34,9 @@ function LiveStudio() {
   const { data: cvOptions = [], isLoading: optsLoading } = useApplicationCvs(user?.id);
   const [selectedCvId, setSelectedCvId] = useState(null);
   const [templateId, setTemplateId] = useState("modern");
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatBusy, setChatBusy] = useState(false);
+  const [editVersion, setEditVersion] = useState(0); // bumps on chat-applied edits → remount so contentEditable re-seeds
 
   // Default to the master (or the most recent) once the list loads, and recover
   // if the current selection drops out of the list.
@@ -57,6 +60,9 @@ function LiveStudio() {
       setModel(m);
     }
   }, [cvRow, selectedCvId]);
+
+  // Conversation is per-CV — reset when the user switches CVs.
+  useEffect(() => { setChatMessages([]); }, [selectedCvId]);
 
   // ---- debounced autosave to application_cvs.cv_data (RLS own-row) ----
   const [saveState, setSaveState] = useState("saved");
@@ -132,6 +138,31 @@ function LiveStudio() {
     queryClient.invalidateQueries({ queryKey: applicationCvsQueryKey(user?.id) });
   }, [selectedCvId, queryClient, user?.id]);
 
+  // CV Agent chat → general edits via edit-cv. The returned cv_data replaces the
+  // model (bump editVersion so the document remounts + re-seeds), then autosaves.
+  const onSendMessage = useCallback(async (text) => {
+    if (!modelRef.current || !selectedCvId) return;
+    setChatMessages((ms) => [...ms, { id: uid(), role: "user", content: text }]);
+    setChatBusy(true);
+    const current = cvOptions.find((o) => o.id === selectedCvId);
+    const { data, error } = await supabase.functions.invoke("edit-cv", {
+      body: { cv_data: toCvData(modelRef.current), instruction: text, target_role: current?.role ?? "" },
+    });
+    setChatBusy(false);
+    if (error || !data || data.error) {
+      setChatMessages((ms) => [...ms, { id: uid(), role: "assistant", content: "Sorry — I couldn't reach the editor. (edit-cv may not be deployed yet.)" }]);
+      return;
+    }
+    if (data.cv_data) {
+      const m = fromCvData(data.cv_data);
+      modelRef.current = m;
+      setModel(m);
+      setEditVersion((v) => v + 1);
+      persist(selectedCvId, m);
+    }
+    setChatMessages((ms) => [...ms, { id: uid(), role: "assistant", content: data.message || "Done." }]);
+  }, [cvOptions, selectedCvId, persist]);
+
   if (!user) return <Centered>Sign in to load your CVs.</Centered>;
   if (optsLoading) return <Centered><Loader2 className="w-5 h-5 animate-spin" /></Centered>;
   if (!cvOptions.length) {
@@ -151,7 +182,7 @@ function LiveStudio() {
 
   return (
     <CVStudioView
-      key={selectedCvId}
+      key={`${selectedCvId}:${editVersion}`}
       cv={model}
       onPatchHeader={onPatchHeader}
       onPatchSummary={onPatchSummary}
@@ -172,6 +203,9 @@ function LiveStudio() {
       currentCv={currentCv}
       saveState={saveState}
       onDownload={onDownload}
+      chatMessages={chatMessages}
+      onSendMessage={onSendMessage}
+      chatBusy={chatBusy}
     />
   );
 }

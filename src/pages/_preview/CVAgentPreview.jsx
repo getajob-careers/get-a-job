@@ -31,6 +31,10 @@ const SAMPLE_TAILORS = [
 ];
 
 const b = (text) => ({ id: uid(), text });
+const tighten = (s) => {
+  const first = String(s).split(/[.;]/)[0].trim();
+  return first.length >= 24 ? first : String(s);
+};
 
 const INITIAL_MODEL = {
   header: { name: "Isaac Selig", headline: "", email: "isaacselig@gmail.com", linkedin: "LinkedIn/Portfolio", location: "Herzliya, Israel" },
@@ -101,6 +105,9 @@ function MockStudio() {
   const [saveState, setSaveState] = useState("saved");
   const [cvList, setCvList] = useState(CV_OPTIONS);
   const [selectedCvId, setSelectedCvId] = useState("master");
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatBusy, setChatBusy] = useState(false);
+  const [editVersion, setEditVersion] = useState(0);
   const timer = useRef(null);
 
   const touch = () => {
@@ -149,11 +156,42 @@ function MockStudio() {
     });
   };
 
+  // Mock chat — illustrative. Recognizable chips apply a simple deterministic
+  // edit so the chat→document loop is visible; the live route does real edits
+  // via the edit-cv function.
+  const onSendMessage = (text) => {
+    setChatMessages((ms) => [...ms, { id: uid(), role: "user", content: text }]);
+    setChatBusy(true);
+    setTimeout(() => {
+      const t = text.toLowerCase();
+      let reply = "Got it — in the live version I'd edit the document directly here.";
+      if (t.includes("tighten") || t.includes("bullet")) {
+        setCv((m) => ({ ...m, experiences: m.experiences.map((e) => ({ ...e, bullets: e.bullets.map((x) => ({ ...x, text: tighten(x.text) })) })) }));
+        setEditVersion((v) => v + 1);
+        reply = "Tightened your bullets — led with the action, trimmed the filler.";
+      } else if (t.includes("summary") || t.includes("headline")) {
+        setCv((m) => ({
+          ...m,
+          header: { ...m.header, headline: "Full-Stack Developer & AI Evaluation Specialist" },
+          summary: "Full-stack developer and AI-evaluation specialist who ships production web apps and rigorously tests LLM systems. Bridges technical build and business need, and learns fast with a bias for shipping.",
+        }));
+        setEditVersion((v) => v + 1);
+        reply = "Rewrote your summary and added a headline.";
+      } else if (t.includes("keyword")) {
+        reply = "Surfaced ATS keywords already implied by your experience — no new facts invented.";
+      } else if (t.includes("tailor")) {
+        reply = "In the live version this tailors your CV to a specific job via refine-cv.";
+      }
+      setChatMessages((ms) => [...ms, { id: uid(), role: "assistant", content: reply }]);
+      setChatBusy(false);
+    }, 700);
+  };
+
   const currentCv = cvList.find((o) => o.id === selectedCvId) || null;
 
   return (
     <CVStudioView
-      key={selectedCvId}
+      key={`${selectedCvId}:${editVersion}`}
       cv={cv}
       onPatchHeader={onPatchHeader}
       onPatchSummary={onPatchSummary}
@@ -176,6 +214,9 @@ function MockStudio() {
       saveState={saveState}
       onDownload={() => {}}
       coach={MockCoach}
+      chatMessages={chatMessages}
+      onSendMessage={onSendMessage}
+      chatBusy={chatBusy}
     />
   );
 }

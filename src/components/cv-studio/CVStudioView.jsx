@@ -167,7 +167,7 @@ export default function CVStudioView({
   templates = CV_TEMPLATES, templateId = "modern", onTemplateChange,
   cvOptions = [], selectedCvId, onSelectCv, onTailorNew, onDeleteCv, currentCv,
   saveState = "saved", onDownload,
-  coach,
+  coach, chatMessages = [], onSendMessage, chatBusy = false,
 }) {
   const template = templates.find((t) => t.id === templateId) || templates[0];
   const docStyle = {
@@ -190,6 +190,14 @@ export default function CVStudioView({
       ? "Delete your Master CV? It's the source for your tailored copies — you can regenerate it later."
       : `Delete "${o.label}"? This can't be undone.`;
     if (window.confirm(msg)) onDeleteCv(o.id);
+  };
+
+  const [chatInput, setChatInput] = useState("");
+  const sendChat = (text) => {
+    const t = (text ?? chatInput).trim();
+    if (!t || chatBusy || !onSendMessage) return;
+    onSendMessage(t);
+    setChatInput("");
   };
 
   return (
@@ -331,20 +339,47 @@ export default function CVStudioView({
             </div>
             <ChevronDown className="w-4 h-4 text-rd-text-tertiary" />
           </div>
-          <div className="flex-1 overflow-y-auto cv-scroll px-4 py-4">
-            {coach || (
+          <div className="flex-1 overflow-y-auto cv-scroll px-4 py-4 space-y-3">
+            {chatMessages.length === 0 && (coach || (
               <p className="text-[12.5px] text-rd-text-secondary leading-relaxed">Ask me to rewrite a section, tighten your bullets, or tailor this CV to a specific job — I&apos;ll edit the document directly.</p>
+            ))}
+            {chatMessages.map((m) => (
+              <div key={m.id} className={`flex gap-2.5 ${m.role === "user" ? "justify-end" : ""}`}>
+                {m.role !== "user" && (
+                  <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5"><FileText className="w-3 h-3 text-rd-coral" /></div>
+                )}
+                <div className={`text-[12.5px] leading-relaxed rounded-[12px] px-3 py-2 max-w-[82%] ${m.role === "user" ? "bg-rd-coral text-white" : "bg-rd-bg-soft text-rd-text-secondary"}`}>{m.content}</div>
+              </div>
+            ))}
+            {chatBusy && (
+              <div className="flex gap-2.5">
+                <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5"><FileText className="w-3 h-3 text-rd-coral" /></div>
+                <div className="inline-flex gap-1 items-center px-3 py-2.5 bg-rd-bg-soft rounded-[12px]">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.15s]" />
+                  <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.3s]" />
+                </div>
+              </div>
             )}
           </div>
           <div className="px-4 pt-2 pb-4 border-t border-rd-border">
             <div className="flex flex-wrap gap-1.5 mb-2.5">
               {AGENT_CHIPS.map((c) => (
-                <button key={c} className="px-2.5 py-1 rounded-full border border-rd-border bg-rd-bg-card text-[11.5px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral-dark transition-colors">{c}</button>
+                <button key={c} onClick={() => sendChat(c)} disabled={chatBusy}
+                  className="px-2.5 py-1 rounded-full border border-rd-border bg-rd-bg-card text-[11.5px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors">{c}</button>
               ))}
             </div>
             <div className="flex items-end gap-2">
-              <input placeholder="Ask the CV Agent…" className="flex-1 h-[38px] px-3 rounded-[12px] border border-rd-border bg-rd-bg-card text-[13px] focus:outline-none focus:border-rd-coral" />
-              <button className="w-[38px] h-[38px] rounded-full bg-rd-coral text-white grid place-items-center shrink-0"><Send className="w-4 h-4" /></button>
+              <input
+                value={chatInput}
+                onChange={(e) => setChatInput(e.target.value)}
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
+                placeholder="Ask the CV Agent…"
+                disabled={chatBusy}
+                className="flex-1 h-[38px] px-3 rounded-[12px] border border-rd-border bg-rd-bg-card text-[13px] focus:outline-none focus:border-rd-coral disabled:opacity-60"
+              />
+              <button onClick={() => sendChat()} disabled={chatBusy || !chatInput.trim()} aria-label="Send message"
+                className="w-[38px] h-[38px] rounded-full bg-rd-coral text-white grid place-items-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"><Send className="w-4 h-4" /></button>
             </div>
           </div>
         </aside>
