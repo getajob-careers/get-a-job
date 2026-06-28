@@ -222,7 +222,7 @@ function App() {
                 element={<CVAgentLivePreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/roadmap/:state"
                 element={<RoadmapPreview />}
