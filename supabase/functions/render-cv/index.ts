@@ -24,6 +24,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { buildCvPdf } from "../_shared/cv-templates/build-pdf.ts";
 import { resolveSectorTheme } from "../_shared/cv-templates/sector-mapping.ts";
+import { normalizeTemplate } from "../_shared/cv-templates/template-ids.ts";
 import type {
   TemplateStyle,
   SectionKey,
@@ -117,7 +118,12 @@ Deno.serve(async (req) => {
       application_id = null,
       target_role = "",
       template_style,
+      template,
     } = body ?? {};
+    // STEP A: validate the studio template id to one of the five known ids
+    // (missing/unknown -> "modern") and pass it through to buildCvPdf. The
+    // renderer accepts it but does not yet render per template.
+    const templateId = normalizeTemplate(template);
     if (!cv_data || typeof cv_data !== "object" || Array.isArray(cv_data)) {
       return json({ error: "cv_data (object) is required." }, 400);
     }
@@ -168,6 +174,7 @@ Deno.serve(async (req) => {
       style: safeTemplateStyle,
       theme,
       sectionOrder,
+      template: templateId,
       photo: null,
     });
 

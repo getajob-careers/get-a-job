@@ -230,6 +230,7 @@ export default function CVStudioLive() {
         cv_id: selectedCvId,
         application_id: current?.applicationId ?? null,
         target_role: current?.role ?? "",
+        template: templateId,
       },
     });
     toast.dismiss(t);
@@ -238,7 +239,7 @@ export default function CVStudioLive() {
       return;
     }
     window.open(data.cv_url, "_blank", "noopener");
-  }, [cvOptions, selectedCvId]);
+  }, [cvOptions, selectedCvId, templateId]);
 
   const onDeleteCv = useCallback(
     async (id) => {

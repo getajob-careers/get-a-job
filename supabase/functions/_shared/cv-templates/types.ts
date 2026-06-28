@@ -7,6 +7,8 @@
 // section order. The style flag controls visual chrome (border rules,
 // label case, header-block layout) without changing what data renders.
 
+import type { TemplateId } from "./template-ids.ts";
+
 export type TemplateStyle = "ats-optimized" | "polished";
 
 export interface SectorTheme {
@@ -30,6 +32,11 @@ export interface SectorTheme {
 export interface TemplateConfig {
   style: TemplateStyle;
   theme: SectorTheme;
+  // Studio template id (modern/editorial/sharp/executive/refined). STEP A wires
+  // it through; build-pdf accepts it but does NOT yet render per template.
+  // Optional so the auto-render callers (generate-tailored-cv/refine-cv) that
+  // don't pass it still compile. See template-ids.ts + the rendering spec.
+  template?: TemplateId;
   // Section order. Resolved server-side by the handler based on
   // experience count (2+ professional → experience-first, else
   // education-first). Stored as an explicit array so build.ts is

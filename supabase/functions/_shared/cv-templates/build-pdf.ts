@@ -812,6 +812,12 @@ export async function buildCvPdf(
   userContext: UserContext,
   config: TemplateConfig,
 ): Promise<Uint8Array> {
+  // STEP A (template-id plumbing): the selected template id now arrives here.
+  // It is INERT in this step — logged only, never read by any measure/draw
+  // path — so output is unchanged regardless of value. Later steps map the id
+  // to a font/accent/case/rule design. See cv-template-rendering-spec.md.
+  console.log(`[CV-PDF] template: ${config.template ?? "(none → default)"}`);
+
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
   const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
