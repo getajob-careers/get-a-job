@@ -258,18 +258,25 @@ async function runGates(t, previewPng, pdfPng, pdfPath) {
     pass: topLight > 0.7,
   });
 
-  // (c) RULE — accent rule line to the RIGHT of the section label (the .cv-doc
-  //     space the label doesn't occupy). Present iff the template specifies it.
+  // (c) RULE — accent-tinted rule line to the RIGHT of the section label (the
+  //     .cv-doc space the label doesn't occupy). Present iff the template
+  //     specifies it. The tint is legitimately LIGHT (35% accent over white), so
+  //     detect "not near-white" pixels (deviation from white) rather than the
+  //     text-oriented isBg cutoff, and scan a small Y-band in the label's cap
+  //     region so a 1-2px line at any sub-pixel position is found robustly.
   let ruleSeen = false;
   if (eduHeading) {
-    const ry = (pageH - eduHeading.y) * scale - 5 * scale;
-    let nonBg = 0,
-      tot = 0;
-    for (let x = px.w * 0.55; x < px.w * 0.9; x += 2) {
-      tot++;
-      if (!isBg(px.at(x, ry))) nonBg++;
+    const baseY = (pageH - eduHeading.y) * scale;
+    const tinted = (p) => 255 - Math.min(p[0], p[1], p[2]) > 10;
+    for (let up = 2; up <= 8 && !ruleSeen; up++) {
+      let hit = 0,
+        tot = 0;
+      for (let x = px.w * 0.55; x < px.w * 0.9; x += 2) {
+        tot++;
+        if (tinted(px.at(x, baseY - up * scale))) hit++;
+      }
+      if (hit / tot > 0.5) ruleSeen = true;
     }
-    ruleSeen = nonBg / tot > 0.5;
   }
   gates.push({
     gate: "rule line",

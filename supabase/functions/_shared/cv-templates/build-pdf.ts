@@ -361,11 +361,11 @@ function drawSectionHeading(ctx: Ctx, label: string) {
     tracking: headTrack,
   });
   if (ctx.ruleOn && ctx.draw) {
-    const ruleY = ctx.y + headSize * 0.32;
+    const ruleY = ctx.y + headSize * 0.35;
     ctx.page.drawLine({
       start: { x: endX + s(ctx, 10), y: ruleY },
       end: { x: PAGE_W - MARGIN_SIDE, y: ruleY },
-      thickness: 1,
+      thickness: s(ctx, 1.5),
       color: accentTint(ctx.accent),
     });
   }
