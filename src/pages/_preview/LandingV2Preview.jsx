@@ -1010,14 +1010,24 @@ const FEATURES = [
     url: "careers.tavor.com",
     soon: true,
     screen: (
-      <div style={{ position: "relative", minHeight: 296 }}>
-        {/* the career page — fills the frame, normal opacity, reads as a real posting */}
+      <div style={{ position: "relative", minHeight: 250 }}>
+        {/* the career page — fills the frame, reads as a real posting. Trimmed so the
+            center-scaled composition fits the fixed frame and the panel header never
+            clips at the top. All readable copy stays left of paddingRight. */}
         <div style={{ paddingRight: 150 }}>
-          <div style={{ fontFamily: "var(--font-m)", fontSize: 10, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 11 }}>Tavor · Careers</div>
-          <div style={{ fontFamily: "var(--font-d)", fontWeight: 800, fontSize: 21, letterSpacing: "-.02em", lineHeight: 1.12, marginBottom: 7 }}>Associate Product Manager</div>
-          <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginBottom: 18 }}>Tavor · Tel Aviv</div>
-          {[100, 94, 88, 98, 90, 70].map((w, k) => (
-            <div key={k} style={{ height: 7, width: `${w}%`, background: "var(--bg-warm)", borderRadius: 99, marginBottom: 11 }} />
+          <div style={{ fontFamily: "var(--font-m)", fontSize: 10, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 10 }}>Tavor · Careers</div>
+          <div style={{ fontFamily: "var(--font-d)", fontWeight: 800, fontSize: 21, letterSpacing: "-.02em", lineHeight: 1.12, marginBottom: 6 }}>Associate Product Manager</div>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 15 }}>Tavor · Tel Aviv</div>
+          <div style={{ fontFamily: "var(--font-m)", fontSize: 8.5, letterSpacing: ".07em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 5 }}>About the role</div>
+          <p style={{ fontSize: 11, lineHeight: 1.5, color: "var(--ink-soft)", margin: "0 0 13px" }}>
+            {"Help shape Tavor's product from discovery to launch, with design and engineering."}
+          </p>
+          <div style={{ fontFamily: "var(--font-m)", fontSize: 8.5, letterSpacing: ".07em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 6 }}>{"What you'll do"}</div>
+          {["Talk to users, shape clear priorities", "Write specs, partner with engineering", "Track how features land and iterate"].map((t) => (
+            <div key={t} style={{ display: "flex", gap: 7, fontSize: 11, lineHeight: 1.45, color: "var(--ink-soft)", marginBottom: 6 }}>
+              <span style={{ color: "var(--ink-faint)", flexShrink: 0 }}>•</span>
+              <span>{t}</span>
+            </div>
           ))}
         </div>
         {/* Get A Job extension — side panel docked to the right edge, over the page */}
@@ -1026,7 +1036,10 @@ const FEATURES = [
             <span style={{ width: 8, height: 8, borderRadius: 99, background: "var(--accent)" }} />
             <span style={{ fontFamily: "var(--font-d)", fontWeight: 700, fontSize: 12.5 }}>Get A Job</span>
           </div>
-          <div style={{ fontSize: 10.5, color: "rgba(255,255,255,.6)", lineHeight: 1.5, marginBottom: 13 }}>Job posting detected on this page.</div>
+          {/* real flow: paste the job description, then generate — NOT auto-detected */}
+          <div style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.16)", borderRadius: 8, padding: "10px 11px", minHeight: 54, marginBottom: 11, fontSize: 10.5, lineHeight: 1.5, color: "rgba(255,255,255,.42)" }}>
+            Paste the job description…
+          </div>
           <div style={{ background: "var(--accent)", color: "#fff", fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "10px 8px", textAlign: "center" }}>
             <i className="ti ti-file-text" style={{ marginRight: 5 }} />Generate tailored CV
           </div>
@@ -1043,7 +1056,7 @@ const FEATURE_POINTS = [
   ["Live openings across the Israeli market", "Matched to your fit, refreshed daily", "Filter by track, company and location"],
   ["Saved → Applied → Interview → Offer", "Every application on one board", "Deadlines and next steps in view"],
   ["Suggests your next move from real gaps", "Updates your roadmap, tasks and applications", "Always one tap from confirming"],
-  ["Works on any company career page", "One click from posting to tailored CV", "Coming soon to the Chrome Web Store"],
+  ["Works on any company career page", "Paste a job, get a tailored CV", "Coming soon to the Chrome Web Store"],
 ];
 
 function FeatureExplorer() {
@@ -1144,15 +1157,13 @@ function Differentiator() {
       <div className="lv-deco lv-ring dash" data-parallax="-0.15" style={{ width: 220, height: 220, bottom: -70, right: -60 }} aria-hidden="true" />
       <div className="lv-wrap lv-diff-grid">
         <div className="lv-reveal">
-          <h2>
-            <span className="strike">A chatbot</span> that forgets you. Not here.
-          </h2>
+          <h2>One memory across your entire job search.</h2>
           <p>
             Generic AI starts from zero every session — re-explain yourself, get a different answer, end up back at your
             old draft.
           </p>
           <p>
-            <strong>Get A Job remembers.</strong> Every win, every job, every chat builds on the last. The more you use
+            <strong>Get A Job remembers.</strong> Every win, every job, every chat builds on what it knows about you. The more you use
             it, the sharper it gets.
           </p>
         </div>
@@ -1165,16 +1176,16 @@ function Differentiator() {
             </defs>
             <circle cx="210" cy="160" r="50" fill="var(--card)" stroke="var(--accent)" strokeWidth="1.5" />
             <text x="210" y="156" textAnchor="middle" fontFamily="var(--font-m)" fontSize="11" fill="var(--ink)">
-              Story
+              Your
             </text>
             <text x="210" y="170" textAnchor="middle" fontFamily="var(--font-m)" fontSize="11" fill="var(--ink)">
-              Bank
+              profile
             </text>
             {[
               [70, 60, "CV"],
-              [350, 60, "Posts"],
-              [60, 260, "Interview"],
-              [360, 260, "Roadmap"],
+              [350, 60, "Roadmap"],
+              [60, 260, "Matches"],
+              [360, 260, "Coach"],
             ].map(([x, y, label], i) => (
               <g key={label}>
                 <line className="lv-dflow" style={{ animationDelay: `${i * 0.3}s` }} x1="210" y1="160" x2={x} y2={y} stroke="var(--accent)" strokeOpacity="0.5" strokeWidth="1.5" strokeDasharray="3 5" markerEnd="url(#lvarrow)" />
