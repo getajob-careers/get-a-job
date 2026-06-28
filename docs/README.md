@@ -56,15 +56,16 @@ The above, then [Engineering → Setup](engineering/setup.md) and [Engineering �
 
 ### Engineering — the technical section (contained)
 
-| Doc                                                         | What it covers                            |
-| ----------------------------------------------------------- | ----------------------------------------- |
-| [Setup](engineering/setup.md)                               | Get it running locally                    |
-| [Architecture](engineering/architecture.md)                 | The stack and how the pieces connect      |
-| [Data model](engineering/data-model.md)                     | The database, key tables, RLS             |
-| [Auth](engineering/auth.md)                                 | Sign-in, sessions, the pilot gate         |
-| [Frontend](engineering/frontend.md)                         | Pages, components, data-fetching patterns |
-| [AI & edge functions](engineering/ai-and-edge-functions.md) | The LLM layer, prompts, model routing     |
-| [Scoring internals](engineering/scoring-internals.md)       | How the matching math actually works      |
+| Doc                                                                       | What it covers                                                            |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| [Setup](engineering/setup.md)                                             | Get it running locally                                                    |
+| [Architecture](engineering/architecture.md)                               | The stack and how the pieces connect                                      |
+| [Data model](engineering/data-model.md)                                   | The database, key tables, RLS                                             |
+| [Auth](engineering/auth.md)                                               | Sign-in, sessions, the pilot gate                                         |
+| [Frontend](engineering/frontend.md)                                       | Pages, components, data-fetching patterns                                 |
+| [AI & edge functions](engineering/ai-and-edge-functions.md)               | The LLM layer, prompts, model routing                                     |
+| [Scoring internals](engineering/scoring-internals.md)                     | How the matching math actually works                                      |
+| [CV template rendering (spec)](engineering/cv-template-rendering-spec.md) | Ready-to-execute plan: PDF download matches the studio template thumbnail |
 
 ### Team — how we work
 
