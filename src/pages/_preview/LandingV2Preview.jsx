@@ -16,6 +16,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { savePendingCv } from "@/lib/pendingCv";
 import { useAuth } from "@/lib/AuthContext";
 
 // ────────────────────────────────────────────────────────────────────────
@@ -659,12 +660,14 @@ function DropZone({ onUpload }) {
   const [drag, setDrag] = useState(false);
   const [busy, setBusy] = useState(false);
   const inputRef = useRef(null);
-  // We can't parse the CV here — selecting/dropping a file kicks off a friendly
-  // "reading…" beat, then routes into the real signup/onboarding funnel.
-  const start = () => {
-    if (busy) return;
+  // Real handoff (not a pantomime): stash the dropped CV in IndexedDB
+  // (browser-only, no server call, no parse) so onboarding auto-consumes it
+  // after signup, then route into the real signup funnel.
+  const start = async (file) => {
+    if (busy || !file) return;
     setBusy(true);
-    setTimeout(onUpload, 950);
+    await savePendingCv(file); // false in private mode / quota; we proceed either way
+    onUpload();
   };
   return (
     <div
@@ -687,15 +690,15 @@ function DropZone({ onUpload }) {
       onDrop={(e) => {
         e.preventDefault();
         setDrag(false);
-        start();
+        start(e.dataTransfer.files?.[0]);
       }}
     >
-      <input ref={inputRef} type="file" accept=".pdf,.doc,.docx" style={{ display: "none" }} onChange={start} />
+      <input ref={inputRef} type="file" accept=".pdf,.doc,.docx" style={{ display: "none" }} onChange={(e) => start(e.target.files?.[0])} />
       {busy ? (
         <>
-          <div className="lv-spinner" />
-          <div className="lv-drop-t">Reading your CV…</div>
-          <div className="lv-drop-s">Building your roadmap</div>
+          <div className="lv-drop-ic"><i className="ti ti-circle-check" /></div>
+          <div className="lv-drop-t">Saved to this browser</div>
+          <div className="lv-drop-s">Taking you to sign up. Your CV carries over.</div>
         </>
       ) : drag ? (
         <>
