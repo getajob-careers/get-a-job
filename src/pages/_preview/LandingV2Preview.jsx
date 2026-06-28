@@ -1203,8 +1203,8 @@ function Differentiator() {
 }
 
 const STEPS = [
-  { n: "01", h: "Upload your CV", p: "We read your skills, experience, and education — no forms to fill." },
-  { n: "02", h: "See your roadmap", p: "Every role in the library, ranked against you across three tracks." },
+  { n: "01", h: "Upload your CV", p: "We read your skills, experience, and education. No skills to retype." },
+  { n: "02", h: "See your roadmap", p: "Every role in the library, ranked against you." },
   { n: "03", h: "Tailor and apply", p: "Pick a live job; your CV is rewritten from your real, matching wins." },
   { n: "04", h: "Track and improve", p: "Watch your pipeline, capture wins, and get a fresh move every morning." },
 ];
@@ -1217,7 +1217,7 @@ function HowItWorks() {
       <div className="lv-wrap">
         <div className="lv-head lv-reveal">
           <div className="lv-eyebrow">From upload to first application</div>
-          <h2>Four steps. Roughly a week.</h2>
+          <h2>Four steps.</h2>
         </div>
         <div className="lv-steps">
           {STEPS.map((s, i) => (
