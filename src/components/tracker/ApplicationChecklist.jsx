@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, ArrowRight, ExternalLink, Lock } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/api/supabaseClient";
 import { createPageUrl } from "@/utils";
 import { invokeWithAuthRetry } from "@/api/invokeWithAuthRetry";
 
@@ -140,34 +141,44 @@ export default function ApplicationChecklist({
         // user closing the drawer / navigating away while it generates (~30s);
         // the success toast deep-links into the CV studio at the new copy.
         if (!app?.id) return;
-        if (!app.job_description) {
-          toast.error("Add a job description first (step 2) so the CV can be tailored to it.");
-          return;
-        }
         const tId = toast.loading("Generating your tailored CV…");
-        invokeWithAuthRetry("generate-tailored-cv", {
-          body: {
-            job_description: app.job_description,
-            target_role: app.role_title,
-            application_id: app.id,
-            cv_model: "sonnet",
-          },
-        })
-          .then(({ data, error }) => {
-            if (error || !data?.cv_url) {
-              toast.error("Couldn't generate the CV. Please try again.", { id: tId });
-              return;
-            }
-            toast.success("Your tailored CV is ready.", {
-              id: tId,
-              duration: 15000,
-              action: {
-                label: "Open in CV Agent",
-                onClick: () => navigate(createPageUrl("CVAgent") + `?application_id=${encodeURIComponent(app.id)}`),
-              },
-            });
-          })
-          .catch(() => toast.error("Couldn't generate the CV. Please try again.", { id: tId }));
+        (async () => {
+          // The checklist's `app` prop may be a narrow projection, so pull the
+          // JD fresh rather than trusting app.job_description.
+          let jd = app.job_description;
+          if (!jd) {
+            const { data: row } = await supabase
+              .from("applications")
+              .select("job_description")
+              .eq("id", app.id)
+              .maybeSingle();
+            jd = row?.job_description || "";
+          }
+          if (!jd) {
+            toast.error("Add a job description first (step 2) so the CV can be tailored to it.", { id: tId });
+            return;
+          }
+          const { data, error } = await invokeWithAuthRetry("generate-tailored-cv", {
+            body: {
+              job_description: jd,
+              target_role: app.role_title,
+              application_id: app.id,
+              cv_model: "sonnet",
+            },
+          });
+          if (error || !data?.cv_url) {
+            toast.error("Couldn't generate the CV. Please try again.", { id: tId });
+            return;
+          }
+          toast.success("Your tailored CV is ready.", {
+            id: tId,
+            duration: 15000,
+            action: {
+              label: "Open in CV Agent",
+              onClick: () => navigate(createPageUrl("CVAgent") + `?application_id=${encodeURIComponent(app.id)}`),
+            },
+          });
+        })();
         return;
       }
       case "open_agent": {
