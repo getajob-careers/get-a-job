@@ -386,7 +386,7 @@ const LV_CSS = `
 function useLandingV2Head() {
   useEffect(() => {
     const prev = document.title;
-    document.title = "Get A Job — Your job search, finally connected";
+    document.title = "Get A Job: Your job search, finally connected";
     const robots = document.createElement("meta");
     robots.name = "robots";
     robots.content = "noindex"; // preview only
@@ -912,7 +912,7 @@ function Hero({ onCTA }) {
             <span className="accent">One place that knows you.</span>
           </h1>
           <p className="lv-hero-sub lv-reveal" data-d="1">
-            A ranked roadmap, CVs tailored to each job, and live matches — all
+            A ranked roadmap, CVs tailored to each job, and live matches, all
             built from one profile and <strong>kept in sync</strong>.
           </p>
           <div className="lv-hero-cta lv-reveal" data-d="2">
@@ -948,7 +948,7 @@ function Hero({ onCTA }) {
   );
 }
 
-// The CV upload — its own section, placed after the feature tour so the value is
+// The CV upload, its own section, placed after the feature tour so the value is
 // shown before the ask.
 function DropSection({ onUpload }) {
   return (
@@ -977,7 +977,7 @@ function DropSection({ onUpload }) {
           <div className="lv-eyebrow">Start in minutes</div>
           <h2>Drop your CV. We&apos;ll build the rest.</h2>
           <p>
-            Your roadmap, tailored resumes, and live matches — from a single
+            Your roadmap, tailored resumes, and live matches, from a single
             upload.
           </p>
         </div>
@@ -1059,7 +1059,7 @@ const FEATURES = [
               marginBottom: 13,
             }}
           >
-            Maya Levi — Product
+            Maya Levi, Product
           </div>
           {[100, 90].map((w) => (
             <div
@@ -1595,8 +1595,8 @@ function FeatureExplorer() {
             <div className="lv-eyebrow">Everything in one place</div>
             <h2>One workspace. It all knows you.</h2>
             <p>
-              Six tools, one shared memory of your background — keep scrolling
-              to move through them.
+              Six tools, one shared memory of your background, keep scrolling to
+              move through them.
             </p>
           </div>
         </div>
@@ -1689,7 +1689,7 @@ function Differentiator() {
         <div className="lv-reveal">
           <h2>One memory across your entire job search.</h2>
           <p>
-            Generic AI starts from zero every session — re-explain yourself, get
+            Generic AI starts from zero every session: re-explain yourself, get
             a different answer, end up back at your old draft.
           </p>
           <p>
@@ -1856,19 +1856,19 @@ function HowItWorks() {
 const FAQS = [
   {
     q: "What data do you collect, and where does it go?",
-    a: "Your data powers AI features via OpenAI, which doesn't train on it and deletes it after 30 days. We don't sell data and we don't run ads.",
+    a: "Your profile and CV data power the AI features, so it goes to our AI providers (OpenAI and Anthropic) to generate your roadmap, CVs, and matches. We don't sell your data and we don't run ads. The full detail of what's shared and where is in our privacy policy.",
   },
   {
     q: "Will the AI make things up on my CV?",
-    a: "No. The CV agent can only use what's in your Story Bank — if you didn't capture a metric or accomplishment, it can't invent one. Every output is editable before you send it.",
+    a: "No. The CV agent works only from your real profile: your experience, education, skills, and the accomplishments you've captured. If you didn't provide a metric or achievement, it won't invent one. Every output is editable before you send it.",
   },
   {
     q: "Do I need to be a designer or a writer?",
-    a: "No. Upload your CV and the platform does the heavy lifting — roadmap, tailoring, job matching. You stay in control and edit anything.",
+    a: "No. Upload your CV and the platform does the heavy lifting: roadmap, tailoring, job matching. You stay in control and edit anything.",
   },
   {
     q: "Can I delete my account?",
-    a: "Yes — from Settings, type a confirmation phrase and your account plus every record is permanently deleted. Not a soft-delete.",
+    a: "Yes. From Settings, type a confirmation phrase and your account plus every record is permanently deleted. Not a soft-delete.",
   },
 ];
 
@@ -1946,7 +1946,7 @@ function FinalCTA({ isLoggedIn, onCTA }) {
               onClick={onCTA}
               style={{ fontSize: 16, padding: "15px 30px" }}
             >
-              {isLoggedIn ? "Open your dashboard" : "Upload your CV — free"}
+              {isLoggedIn ? "Open your dashboard" : "Upload your CV, free"}
               <i className="ti ti-arrow-up-right" />
             </button>
           </div>
