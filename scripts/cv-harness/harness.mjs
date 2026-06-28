@@ -184,25 +184,29 @@ async function headingLines(pdfPath) {
   return { lines, pageW: vp.width, pageH: vp.height };
 }
 
-// Sample the actual rendered text colour of a heading: scan a small box around
-// its first glyphs, average the non-background pixels.
+// Sample the actual rendered ink colour of a heading: scan a box around its
+// first glyphs and average the DARKEST ~30% of the non-background pixels — the
+// glyph cores. Averaging all non-bg pixels would blend in the anti-aliased
+// fringe (which fades toward the white page) and lighten the reading; the cores
+// are the true ink colour. Still discriminates (slate cores vs accent cores).
 function sampleTextColor(px, scale, pageH, line) {
   const cx = line.x * scale;
   const cy = (pageH - line.y) * scale;
-  const acc = [0, 0, 0];
-  let n = 0;
-  for (let dx = 0; dx < 80 * scale; dx++) {
-    for (let dy = -14 * scale; dy < 2 * scale; dy++) {
+  const pts = [];
+  for (let dx = 0; dx < 90 * scale; dx++) {
+    for (let dy = -14 * scale; dy < 3 * scale; dy++) {
       const p = px.at(cx + dx, cy + dy);
-      if (!isBg(p)) {
-        acc[0] += p[0];
-        acc[1] += p[1];
-        acc[2] += p[2];
-        n++;
-      }
+      if (!isBg(p)) pts.push(p);
     }
   }
-  return n ? acc.map((v) => v / n) : null;
+  if (!pts.length) return null;
+  pts.sort((a, b) => lightness(a) - lightness(b));
+  const core = pts.slice(0, Math.max(1, Math.floor(pts.length * 0.3)));
+  const acc = core.reduce(
+    (s2, p) => [s2[0] + p[0], s2[1] + p[1], s2[2] + p[2]],
+    [0, 0, 0],
+  );
+  return acc.map((v) => v / core.length);
 }
 
 // ── 3. gates ──
