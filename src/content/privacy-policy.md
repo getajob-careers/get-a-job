@@ -110,15 +110,15 @@ You have the right to understand how automated decisions affecting you are made.
 
 We share your personal data with the following third-party service providers, who process it on our behalf and under our instructions:
 
-| Provider | What they process | Why | Data location |
-|----------|------------------|-----|---------------|
-| **OpenAI** | Profile data, work experience, education, skills, career goals, chat messages, CV content, LinkedIn content, pasted job descriptions — as needed for the specific AI feature being used | Powers AI features: career analysis, chat agents, LinkedIn content, job matching, story extraction, task generation | United States |
-| **Anthropic** | CV content and job description text, as needed for tailored CV generation | Powers tailored CV generation | United States |
-| **Supabase** | All platform data (account information, profile, applications, stories, conversations, generated content) | Database hosting, user authentication, server-side functions | United States (AWS) |
-| **Vercel** | Serves the web application; may process IP addresses and request metadata in the course of delivery | Website hosting and content delivery | Global (edge network) |
-| **PostHog** | Product usage events and session recordings, associated with your account | Product analytics and improving the platform | European Union |
-| **Resend** (via Amazon SES) | Email address, email content | Transactional emails: account verification, password reset, notifications | United States |
-| **Stripe** | Payment information (name, email, payment method details) | Payment processing. Not currently active — Get A Job does not yet charge or process any payments. Stripe will be used only if and when paid subscriptions launch | United States |
+| Provider                    | What they process                                                                                                                                                                       | Why                                                                                                                                                              | Data location         |
+| --------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| **OpenAI**                  | Profile data, work experience, education, skills, career goals, chat messages, CV content, LinkedIn content, pasted job descriptions — as needed for the specific AI feature being used | Powers AI features: career analysis, chat agents, LinkedIn content, job matching, story extraction, task generation                                              | United States         |
+| **Anthropic**               | CV content and job description text, as needed for tailored CV generation                                                                                                               | Powers tailored CV generation                                                                                                                                    | United States         |
+| **Supabase**                | All platform data (account information, profile, applications, stories, conversations, generated content)                                                                               | Database hosting, user authentication, server-side functions                                                                                                     | United States (AWS)   |
+| **Vercel**                  | Serves the web application; may process IP addresses and request metadata in the course of delivery                                                                                     | Website hosting and content delivery                                                                                                                             | Global (edge network) |
+| **PostHog**                 | Product usage events and session recordings, associated with your account                                                                                                               | Product analytics and improving the platform                                                                                                                     | European Union        |
+| **Resend** (via Amazon SES) | Email address, email content                                                                                                                                                            | Transactional emails: account verification, password reset, notifications                                                                                        | United States         |
+| **Stripe**                  | Payment information (name, email, payment method details)                                                                                                                               | Payment processing. Not currently active — Get A Job does not yet charge or process any payments. Stripe will be used only if and when paid subscriptions launch | United States         |
 
 We do **not** sell your data to any third party. These processors are contractually bound to use your data only for the purposes we specify and to maintain appropriate security measures.
 
@@ -151,22 +151,28 @@ No system is perfectly secure. If you become aware of any security issue, please
 Under the Israeli Privacy Protection Law (as amended by Amendment 13), you have the following rights regarding your personal data:
 
 ### Right of access
+
 You may request to see the personal data we hold about you. We will provide this information in an intelligible format in Hebrew or English.
 
 ### Right to correction
+
 If any of your personal data is incorrect, incomplete, or outdated, you may request that we correct it. You can also update most of your data directly through the platform's profile editor at any time.
 
 ### Right to deletion
+
 You may request the deletion of your personal data. You can:
+
 - **Reset your data** within the platform (clears your profile, career analysis, applications, stories, and generated content while keeping your account active)
 - **Delete your account entirely** (removes your account and all associated data from our systems)
 
 Upon receiving a deletion request, we will delete your data within 30 days, except where we are required by law to retain certain records.
 
 ### Right to object
+
 You may object to the processing of your personal data. If you object to processing that is essential to the service, we may not be able to continue providing the service to you.
 
 ### How to exercise your rights
+
 You can exercise these rights by contacting us at privacy@getajob.careers. We will respond to your request within a reasonable time and in accordance with applicable law.
 
 ---
@@ -176,6 +182,7 @@ You can exercise these rights by contacting us at privacy@getajob.careers. We wi
 We retain your personal data for as long as your account is active and you continue to use the platform.
 
 If you delete your account, we will delete your personal data within 30 days, except:
+
 - Aggregated, anonymized data that cannot be linked back to you (retained for product analytics)
 - Data we are required to retain by law (e.g., for tax, legal, or regulatory purposes)
 - Backup copies, which are purged according to our backup retention schedule
@@ -229,9 +236,10 @@ If you have questions about this Privacy Policy, your personal data, or your rig
 **Address:** 31 Sara Imenu Street, Apartment 4, Modi'in, Israel
 
 If you believe your privacy rights have been violated, you also have the right to file a complaint with the Israeli Privacy Protection Authority (PPA):
+
 - **Website:** https://www.gov.il/en/departments/the_privacy_protection_authority
 - **Address:** 66 Kanfei Nesharim Street, Jerusalem, Israel
 
 ---
 
-*This privacy policy was drafted in accordance with the Israeli Protection of Privacy Law, 5741-1981, as amended by Amendment No. 13 (5774-2024), effective August 14, 2025, and the regulations enacted thereunder. This is a draft for legal review.*
+_This privacy policy was drafted in accordance with the Israeli Protection of Privacy Law, 5741-1981, as amended by Amendment No. 13 (5774-2024), effective August 14, 2025, and the regulations enacted thereunder. This is a draft for legal review._
