@@ -26,81 +26,13 @@ import {
   FileText,
   Trash2,
 } from "lucide-react";
+// Template tokens moved to a React-free module so the verification harness can
+// import the same source of truth (see cvTemplates.js). Imported for in-file use
+// (default `templates` prop) AND re-exported so existing
+// `import { CV_TEMPLATES } from ".../CVStudioView"` call sites keep working.
+import { CV_TEMPLATES } from "./cvTemplates";
 
-export const CV_TEMPLATES = [
-  {
-    id: "modern",
-    name: "Modern Sans",
-    font: "'Inter', system-ui, sans-serif",
-    accent: "#C2603F",
-    labelCase: "uppercase",
-    rule: false,
-  },
-  {
-    id: "editorial",
-    name: "Editorial",
-    font: "Georgia, 'Times New Roman', serif",
-    accent: "#1F3A5F",
-    labelCase: "uppercase",
-    rule: true,
-  },
-  {
-    id: "classic",
-    name: "Classic Serif",
-    font: "'Palatino Linotype', Palatino, Georgia, serif",
-    accent: "#7C3A2E",
-    labelCase: "capitalize",
-    rule: true,
-  },
-  {
-    id: "sharp",
-    name: "Sharp",
-    font: "Arial, Helvetica, sans-serif",
-    accent: "#0F766E",
-    labelCase: "uppercase",
-    rule: false,
-  },
-  {
-    id: "minimal",
-    name: "Minimal",
-    font: "'Helvetica Neue', Arial, sans-serif",
-    accent: "#2A2A28",
-    labelCase: "uppercase",
-    rule: false,
-  },
-  {
-    id: "executive",
-    name: "Executive",
-    font: "'Times New Roman', Times, serif",
-    accent: "#6D213C",
-    labelCase: "uppercase",
-    rule: true,
-  },
-  {
-    id: "technical",
-    name: "Technical",
-    font: "'Courier New', ui-monospace, monospace",
-    accent: "#334155",
-    labelCase: "uppercase",
-    rule: false,
-  },
-  {
-    id: "warm",
-    name: "Warm",
-    font: "'Trebuchet MS', system-ui, sans-serif",
-    accent: "#B45309",
-    labelCase: "uppercase",
-    rule: false,
-  },
-  {
-    id: "refined",
-    name: "Refined",
-    font: "Garamond, 'EB Garamond', Georgia, serif",
-    accent: "#14532D",
-    labelCase: "capitalize",
-    rule: true,
-  },
-];
+export { CV_TEMPLATES };
 
 const AGENT_CHIPS = [
   "Rewrite my summary",
