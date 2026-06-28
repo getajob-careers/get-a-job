@@ -647,7 +647,7 @@ function Nav({ isLoggedIn, onCTA }) {
         </div>
         <div className="lv-nav-right">
           <button type="button" className="btn btn-ink btn-sm" onClick={onCTA}>
-            {isLoggedIn ? "Dashboard" : "Start free"}
+            {isLoggedIn ? "Dashboard" : "Start"}
           </button>
         </div>
       </div>
@@ -801,7 +801,7 @@ function Hero({ onCTA }) {
           </p>
           <div className="lv-hero-cta lv-reveal" data-d="2">
             <button type="button" className="btn btn-accent" onClick={onCTA}>
-              See your roadmap <i className="ti ti-arrow-up-right" />
+              Start here <i className="ti ti-arrow-up-right" />
             </button>
             <a className="lv-hero-link" href="#features" onClick={(e) => lvScrollTo(e, "#features")}>
               See how it works <i className="ti ti-arrow-down" />
