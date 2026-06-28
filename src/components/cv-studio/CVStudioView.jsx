@@ -12,30 +12,116 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
-import { GripVertical, Plus, X, Download, ChevronDown, Sparkles, Send, Check, FileText, Trash2 } from "lucide-react";
+import {
+  GripVertical,
+  Plus,
+  X,
+  Download,
+  ChevronDown,
+  Sparkles,
+  Send,
+  Check,
+  FileText,
+  Trash2,
+} from "lucide-react";
 
 export const CV_TEMPLATES = [
-  { id: "modern", name: "Modern Sans", font: "'Inter', system-ui, sans-serif", accent: "#C2603F", labelCase: "uppercase", rule: false },
-  { id: "editorial", name: "Editorial", font: "Georgia, 'Times New Roman', serif", accent: "#1F3A5F", labelCase: "uppercase", rule: true },
-  { id: "classic", name: "Classic Serif", font: "'Palatino Linotype', Palatino, Georgia, serif", accent: "#7C3A2E", labelCase: "capitalize", rule: true },
-  { id: "sharp", name: "Sharp", font: "Arial, Helvetica, sans-serif", accent: "#0F766E", labelCase: "uppercase", rule: false },
-  { id: "minimal", name: "Minimal", font: "'Helvetica Neue', Arial, sans-serif", accent: "#2A2A28", labelCase: "uppercase", rule: false },
-  { id: "executive", name: "Executive", font: "'Times New Roman', Times, serif", accent: "#6D213C", labelCase: "uppercase", rule: true },
-  { id: "technical", name: "Technical", font: "'Courier New', ui-monospace, monospace", accent: "#334155", labelCase: "uppercase", rule: false },
-  { id: "warm", name: "Warm", font: "'Trebuchet MS', system-ui, sans-serif", accent: "#B45309", labelCase: "uppercase", rule: false },
-  { id: "refined", name: "Refined", font: "Garamond, 'EB Garamond', Georgia, serif", accent: "#14532D", labelCase: "capitalize", rule: true },
+  {
+    id: "modern",
+    name: "Modern Sans",
+    font: "'Inter', system-ui, sans-serif",
+    accent: "#C2603F",
+    labelCase: "uppercase",
+    rule: false,
+  },
+  {
+    id: "editorial",
+    name: "Editorial",
+    font: "Georgia, 'Times New Roman', serif",
+    accent: "#1F3A5F",
+    labelCase: "uppercase",
+    rule: true,
+  },
+  {
+    id: "classic",
+    name: "Classic Serif",
+    font: "'Palatino Linotype', Palatino, Georgia, serif",
+    accent: "#7C3A2E",
+    labelCase: "capitalize",
+    rule: true,
+  },
+  {
+    id: "sharp",
+    name: "Sharp",
+    font: "Arial, Helvetica, sans-serif",
+    accent: "#0F766E",
+    labelCase: "uppercase",
+    rule: false,
+  },
+  {
+    id: "minimal",
+    name: "Minimal",
+    font: "'Helvetica Neue', Arial, sans-serif",
+    accent: "#2A2A28",
+    labelCase: "uppercase",
+    rule: false,
+  },
+  {
+    id: "executive",
+    name: "Executive",
+    font: "'Times New Roman', Times, serif",
+    accent: "#6D213C",
+    labelCase: "uppercase",
+    rule: true,
+  },
+  {
+    id: "technical",
+    name: "Technical",
+    font: "'Courier New', ui-monospace, monospace",
+    accent: "#334155",
+    labelCase: "uppercase",
+    rule: false,
+  },
+  {
+    id: "warm",
+    name: "Warm",
+    font: "'Trebuchet MS', system-ui, sans-serif",
+    accent: "#B45309",
+    labelCase: "uppercase",
+    rule: false,
+  },
+  {
+    id: "refined",
+    name: "Refined",
+    font: "Garamond, 'EB Garamond', Georgia, serif",
+    accent: "#14532D",
+    labelCase: "capitalize",
+    rule: true,
+  },
 ];
 
-const AGENT_CHIPS = ["Rewrite my summary", "Tighten bullets", "Add keywords", "Tailor to a job"];
+const AGENT_CHIPS = [
+  "Rewrite my summary",
+  "Tighten bullets",
+  "Add keywords",
+  "Tailor to a job",
+];
 
 // Uncontrolled contentEditable — set once on mount, commit on blur. Keyed by the
 // caller (via React key) when the underlying record changes so a CV switch
 // re-seeds the text.
-function Editable({ value, onCommit, className = "", placeholder = "", block = false }) {
+function Editable({
+  value,
+  onCommit,
+  className = "",
+  placeholder = "",
+  block = false,
+}) {
   const ref = useRef(null);
   const Tag = block ? "div" : "span";
   useEffect(() => {
-    if (ref.current && ref.current.innerText !== (value || "")) ref.current.innerText = value || "";
+    if (ref.current && ref.current.innerText !== (value || ""))
+      ref.current.innerText = value || "";
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
@@ -45,7 +131,9 @@ function Editable({ value, onCommit, className = "", placeholder = "", block = f
       suppressContentEditableWarning
       spellCheck={false}
       data-ph={placeholder}
-      onBlur={() => onCommit?.(ref.current.innerText.replace(/\n+/g, " ").trim())}
+      onBlur={() =>
+        onCommit?.(ref.current.innerText.replace(/\n+/g, " ").trim())
+      }
       className={`cv-edit ${block ? "cv-edit-block" : ""} ${className}`}
     />
   );
@@ -53,38 +141,82 @@ function Editable({ value, onCommit, className = "", placeholder = "", block = f
 
 function SectionLabel({ children }) {
   return (
-    <div className="cv-section-label"><span>{children}</span><span className="cv-section-rule" /></div>
+    <div className="cv-section-label">
+      <span>{children}</span>
+      <span className="cv-section-rule" />
+    </div>
   );
 }
 
-function ExperienceEntry({ exp, dragHandleProps, onPatch, onBullet, onAddBullet, onRemoveBullet }) {
+function ExperienceEntry({
+  exp,
+  dragHandleProps,
+  onPatch,
+  onBullet,
+  onAddBullet,
+  onRemoveBullet,
+}) {
   return (
     <div className="group/entry relative pl-5 mb-3.5">
-      <button {...dragHandleProps} tabIndex={-1} aria-label="Drag to reorder"
-        className="absolute left-[-6px] top-1 opacity-0 group-hover/entry:opacity-100 text-rd-text-tertiary hover:text-rd-text cursor-grab active:cursor-grabbing transition-opacity">
+      <button
+        {...dragHandleProps}
+        tabIndex={-1}
+        aria-label="Drag to reorder"
+        className="absolute left-[-6px] top-1 opacity-0 group-hover/entry:opacity-100 text-rd-text-tertiary hover:text-rd-text cursor-grab active:cursor-grabbing transition-opacity"
+      >
         <GripVertical className="w-4 h-4" />
       </button>
       <div className="flex items-baseline justify-between gap-3">
         <div className="text-[13.5px] min-w-0">
-          <Editable value={exp.title} onCommit={(v) => onPatch({ title: v })} className="font-semibold text-[color:var(--cv-ink)]" placeholder="Role title" />
+          <Editable
+            value={exp.title}
+            onCommit={(v) => onPatch({ title: v })}
+            className="font-semibold text-[color:var(--cv-ink)]"
+            placeholder="Role title"
+          />
           <span className="text-[color:var(--cv-muted)] px-1">·</span>
-          <Editable value={exp.company} onCommit={(v) => onPatch({ company: v })} className="text-[color:var(--cv-ink)]" placeholder="Company" />
+          <Editable
+            value={exp.company}
+            onCommit={(v) => onPatch({ company: v })}
+            className="text-[color:var(--cv-ink)]"
+            placeholder="Company"
+          />
         </div>
-        <Editable value={exp.dates} onCommit={(v) => onPatch({ dates: v })} className="text-[12px] text-[color:var(--cv-muted)] text-right shrink-0 min-w-[120px]" placeholder="Dates" />
+        <Editable
+          value={exp.dates}
+          onCommit={(v) => onPatch({ dates: v })}
+          className="text-[12px] text-[color:var(--cv-muted)] text-right shrink-0 min-w-[120px]"
+          placeholder="Dates"
+        />
       </div>
       <ul className="mt-1.5 space-y-1">
         {exp.bullets.map((b) => (
-          <li key={b.id} className="group/bullet flex items-start gap-2 text-[12.5px] leading-[1.5] text-[color:var(--cv-body)]">
+          <li
+            key={b.id}
+            className="group/bullet flex items-start gap-2 text-[12.5px] leading-[1.5] text-[color:var(--cv-body)]"
+          >
             <span className="cv-bullet-dot" />
-            <Editable value={b.text} onCommit={(v) => onBullet(b.id, v)} className="flex-1" placeholder="Describe an accomplishment…" block />
-            <button onClick={() => onRemoveBullet(b.id)} aria-label="Remove bullet"
-              className="opacity-0 group-hover/bullet:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark mt-0.5 transition-opacity">
+            <Editable
+              value={b.text}
+              onCommit={(v) => onBullet(b.id, v)}
+              className="flex-1"
+              placeholder="Describe an accomplishment…"
+              block
+            />
+            <button
+              onClick={() => onRemoveBullet(b.id)}
+              aria-label="Remove bullet"
+              className="opacity-0 group-hover/bullet:opacity-100 text-rd-text-tertiary hover:text-rd-coral-dark mt-0.5 transition-opacity"
+            >
               <X className="w-3 h-3" />
             </button>
           </li>
         ))}
       </ul>
-      <button onClick={onAddBullet} className="mt-1.5 ml-3.5 inline-flex items-center gap-1 text-[11px] text-rd-text-tertiary hover:text-[color:var(--cv-accent)] transition-colors">
+      <button
+        onClick={onAddBullet}
+        className="mt-1.5 ml-3.5 inline-flex items-center gap-1 text-[11px] text-rd-text-tertiary hover:text-[color:var(--cv-accent)] transition-colors"
+      >
         <Plus className="w-3 h-3" /> bullet
       </button>
     </div>
@@ -96,12 +228,28 @@ function TemplateThumb({ t }) {
     <div className="tpl-thumb" style={{ fontFamily: t.font }}>
       <div className="tpl-name">Isaac Selig</div>
       <div className="tpl-sub" />
-      <div className="tpl-sec" style={{ color: t.accent, textTransform: t.labelCase }}>Experience</div>
-      {t.rule && <div className="tpl-secrule" style={{ background: t.accent }} />}
+      <div
+        className="tpl-sec"
+        style={{ color: t.accent, textTransform: t.labelCase }}
+      >
+        Experience
+      </div>
+      {t.rule && (
+        <div className="tpl-secrule" style={{ background: t.accent }} />
+      )}
       <div className="tpl-line" style={{ width: "100%" }} />
       <div className="tpl-line" style={{ width: "86%" }} />
       <div className="tpl-line" style={{ width: "70%" }} />
-      <div className="tpl-sec" style={{ color: t.accent, textTransform: t.labelCase, marginTop: "7px" }}>Skills</div>
+      <div
+        className="tpl-sec"
+        style={{
+          color: t.accent,
+          textTransform: t.labelCase,
+          marginTop: "7px",
+        }}
+      >
+        Skills
+      </div>
       <div className="tpl-line" style={{ width: "92%" }} />
     </div>
   );
@@ -113,31 +261,63 @@ function CvSelector({ options, value, onChange, onTailorNew, onDelete }) {
   if (!current) return null;
   return (
     <div className="relative">
-      <button onClick={() => setOpen((o) => !o)} onBlur={() => setTimeout(() => setOpen(false), 130)}
-        className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-lg border border-rd-border bg-rd-bg-card hover:bg-rd-bg-soft transition-colors">
-        <span className="w-6 h-6 rounded-md bg-rd-coral-tint grid place-items-center shrink-0"><FileText className="w-3.5 h-3.5 text-rd-coral" /></span>
+      <button
+        onClick={() => setOpen((o) => !o)}
+        onBlur={() => setTimeout(() => setOpen(false), 130)}
+        className="flex items-center gap-2 pl-2 pr-2.5 py-1.5 rounded-lg border border-rd-border bg-rd-bg-card hover:bg-rd-bg-soft transition-colors"
+      >
+        <span className="w-6 h-6 rounded-md bg-rd-coral-tint grid place-items-center shrink-0">
+          <FileText className="w-3.5 h-3.5 text-rd-coral" />
+        </span>
         <span className="text-left leading-tight">
-          <span className="block text-[13px] font-display font-semibold text-rd-text">{current.label}</span>
-          <span className="block text-[10.5px] text-rd-text-tertiary">{current.sub}</span>
+          <span className="block text-[13px] font-display font-semibold text-rd-text">
+            {current.label}
+          </span>
+          <span className="block text-[10.5px] text-rd-text-tertiary">
+            {current.sub}
+          </span>
         </span>
         <ChevronDown className="w-4 h-4 text-rd-text-tertiary ml-1" />
       </button>
       {open && (
         <div className="absolute left-0 top-full mt-1.5 w-[272px] bg-rd-bg-card border border-rd-border rounded-xl shadow-rd p-1 z-50">
           {options.map((o) => (
-            <div key={o.id} className={`group/cvopt w-full flex items-center rounded-lg transition-colors ${o.id === value ? "bg-rd-coral-tint/60" : "hover:bg-rd-bg-soft"}`}>
-              <button onMouseDown={(e) => { e.preventDefault(); onChange(o.id); setOpen(false); }}
-                className="flex-1 min-w-0 flex items-center gap-2.5 px-2.5 py-2 text-left">
+            <div
+              key={o.id}
+              className={`group/cvopt w-full flex items-center rounded-lg transition-colors ${o.id === value ? "bg-rd-coral-tint/60" : "hover:bg-rd-bg-soft"}`}
+            >
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  onChange(o.id);
+                  setOpen(false);
+                }}
+                className="flex-1 min-w-0 flex items-center gap-2.5 px-2.5 py-2 text-left"
+              >
                 <FileText className="w-3.5 h-3.5 text-rd-text-tertiary shrink-0" />
                 <span className="flex-1 min-w-0">
-                  <span className="block text-[12.5px] font-medium text-rd-text truncate">{o.label}</span>
-                  <span className="block text-[10.5px] text-rd-text-tertiary truncate">{o.sub}</span>
+                  <span className="block text-[12.5px] font-medium text-rd-text truncate">
+                    {o.label}
+                  </span>
+                  <span className="block text-[10.5px] text-rd-text-tertiary truncate">
+                    {o.sub}
+                  </span>
                 </span>
               </button>
-              <span className={`text-[9px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded-full shrink-0 mr-1.5 ${onDelete ? "group-hover/cvopt:hidden" : ""} ${o.tag === "Master" ? "bg-rd-golden-tint text-rd-golden-dark" : "bg-rd-teal-tint text-rd-teal-dark"}`}>{o.tag}</span>
+              <span
+                className={`text-[9px] font-medium uppercase tracking-wide px-1.5 py-0.5 rounded-full shrink-0 mr-1.5 ${onDelete ? "group-hover/cvopt:hidden" : ""} ${o.tag === "Master" ? "bg-rd-golden-tint text-rd-golden-dark" : "bg-rd-teal-tint text-rd-teal-dark"}`}
+              >
+                {o.tag}
+              </span>
               {onDelete && (
-                <button onMouseDown={(e) => { e.preventDefault(); onDelete(o); }} aria-label={`Delete ${o.label}`}
-                  className="hidden group-hover/cvopt:inline-flex items-center justify-center w-7 h-7 mr-1 rounded-md text-rd-text-tertiary hover:text-rd-coral-dark hover:bg-rd-coral-tint shrink-0">
+                <button
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    onDelete(o);
+                  }}
+                  aria-label={`Delete ${o.label}`}
+                  className="hidden group-hover/cvopt:inline-flex items-center justify-center w-7 h-7 mr-1 rounded-md text-rd-text-tertiary hover:text-rd-coral-dark hover:bg-rd-coral-tint shrink-0"
+                >
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
               )}
@@ -146,8 +326,14 @@ function CvSelector({ options, value, onChange, onTailorNew, onDelete }) {
           {onTailorNew && (
             <>
               <div className="border-t border-rd-border my-1" />
-              <button onMouseDown={(e) => { e.preventDefault(); onTailorNew(); setOpen(false); }}
-                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left text-rd-text-secondary hover:bg-rd-bg-soft transition-colors">
+              <button
+                onMouseDown={(e) => {
+                  e.preventDefault();
+                  onTailorNew();
+                  setOpen(false);
+                }}
+                className="w-full flex items-center gap-2.5 px-2.5 py-2 rounded-lg text-left text-rd-text-secondary hover:bg-rd-bg-soft transition-colors"
+              >
                 <Plus className="w-3.5 h-3.5 shrink-0" />
                 <span className="text-[12.5px]">Tailor for a new job…</span>
               </button>
@@ -161,13 +347,31 @@ function CvSelector({ options, value, onChange, onTailorNew, onDelete }) {
 
 export default function CVStudioView({
   cv,
-  onPatchHeader, onPatchSummary,
-  onPatchExp, onPatchBullet, onAddBullet, onRemoveBullet, onDragEnd,
-  onPatchEdu, onPatchSkills, onPatchLanguages,
-  templates = CV_TEMPLATES, templateId = "modern", onTemplateChange,
-  cvOptions = [], selectedCvId, onSelectCv, onTailorNew, onDeleteCv, currentCv,
-  saveState = "saved", onDownload,
-  coach, chatMessages = [], onSendMessage, chatBusy = false,
+  onPatchHeader,
+  onPatchSummary,
+  onPatchExp,
+  onPatchBullet,
+  onAddBullet,
+  onRemoveBullet,
+  onDragEnd,
+  onPatchEdu,
+  onPatchSkills,
+  onPatchLanguages,
+  templates = CV_TEMPLATES,
+  templateId = "modern",
+  onTemplateChange,
+  cvOptions = [],
+  selectedCvId,
+  onSelectCv,
+  onTailorNew,
+  onDeleteCv,
+  currentCv,
+  saveState = "saved",
+  onDownload,
+  coach,
+  chatMessages = [],
+  onSendMessage,
+  chatBusy = false,
 }) {
   const template = templates.find((t) => t.id === templateId) || templates[0];
   const docStyle = {
@@ -178,11 +382,24 @@ export default function CVStudioView({
     "--cv-muted": "#8A8782",
     "--cv-label-case": template.labelCase,
   };
-  const savePill = saveState === "error"
-    ? { cls: "bg-rd-coral-tint text-rd-coral-dark", dot: "bg-rd-coral-dark", text: "save failed" }
-    : saveState === "saving"
-      ? { cls: "bg-rd-golden-tint text-rd-golden-dark", dot: "bg-rd-golden-dark animate-pulse", text: "saving…" }
-      : { cls: "bg-rd-teal-tint text-rd-teal-dark", dot: "bg-rd-teal-dark", text: "saved" };
+  const savePill =
+    saveState === "error"
+      ? {
+          cls: "bg-rd-coral-tint text-rd-coral-dark",
+          dot: "bg-rd-coral-dark",
+          text: "save failed",
+        }
+      : saveState === "saving"
+        ? {
+            cls: "bg-rd-golden-tint text-rd-golden-dark",
+            dot: "bg-rd-golden-dark animate-pulse",
+            text: "saving…",
+          }
+        : {
+            cls: "bg-rd-teal-tint text-rd-teal-dark",
+            dot: "bg-rd-teal-dark",
+            text: "saved",
+          };
 
   const handleDelete = (o) => {
     if (!o || !onDeleteCv) return;
@@ -201,22 +418,41 @@ export default function CVStudioView({
   };
 
   return (
-    <div className="h-full flex flex-col bg-rd-bg-page font-body text-rd-text overflow-hidden" style={{ "--cv-accent": template.accent }}>
+    <div
+      className="h-full flex flex-col bg-rd-bg-page font-body text-rd-text overflow-hidden"
+      style={{ "--cv-accent": template.accent }}
+    >
       <CvStudioStyles ruleOn={template.rule} />
 
       <header className="h-[52px] shrink-0 border-b border-rd-border bg-rd-bg-card flex items-center px-4 gap-3">
-        <CvSelector options={cvOptions} value={selectedCvId} onChange={onSelectCv} onTailorNew={onTailorNew} onDelete={onDeleteCv ? handleDelete : null} />
+        <CvSelector
+          options={cvOptions}
+          value={selectedCvId}
+          onChange={onSelectCv}
+          onTailorNew={onTailorNew}
+          onDelete={onDeleteCv ? handleDelete : null}
+        />
         <div className="flex-1" />
-        <span className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium ${savePill.cls}`}>
-          <span className={`w-1.5 h-1.5 rounded-full ${savePill.dot}`} /> {savePill.text}
+        <span
+          className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[11px] font-medium ${savePill.cls}`}
+        >
+          <span className={`w-1.5 h-1.5 rounded-full ${savePill.dot}`} />{" "}
+          {savePill.text}
         </span>
         {onDeleteCv && currentCv && (
-          <button onClick={() => handleDelete(currentCv)} aria-label="Delete this CV" title="Delete this CV"
-            className="w-8 h-8 grid place-items-center rounded-lg text-rd-text-tertiary hover:text-rd-coral-dark hover:bg-rd-coral-tint transition-colors">
+          <button
+            onClick={() => handleDelete(currentCv)}
+            aria-label="Delete this CV"
+            title="Delete this CV"
+            className="w-8 h-8 grid place-items-center rounded-lg text-rd-text-tertiary hover:text-rd-coral-dark hover:bg-rd-coral-tint transition-colors"
+          >
             <Trash2 className="w-4 h-4" />
           </button>
         )}
-        <button onClick={onDownload} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[color:var(--cv-accent)] text-white text-[12.5px] font-medium hover:opacity-90 transition-opacity">
+        <button
+          onClick={onDownload}
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-[color:var(--cv-accent)] text-white text-[12.5px] font-medium hover:opacity-90 transition-opacity"
+        >
           <Download className="w-3.5 h-3.5" /> Download
         </button>
       </header>
@@ -225,17 +461,30 @@ export default function CVStudioView({
         {/* Templates */}
         <aside className="w-[216px] shrink-0 border-r border-rd-border bg-rd-bg-card/50 overflow-y-auto cv-scroll">
           <div className="p-4">
-            <p className="text-[11px] font-display font-bold uppercase tracking-[0.1em] text-rd-text-eyebrow mb-3">Templates</p>
+            <p className="text-[11px] font-display font-bold uppercase tracking-[0.1em] text-rd-text-eyebrow mb-3">
+              Templates
+            </p>
             <div className="space-y-2.5">
               {templates.map((t) => {
                 const active = t.id === templateId;
                 return (
-                  <button key={t.id} onClick={() => onTemplateChange?.(t.id)} style={{ "--cv-accent": t.accent }}
-                    className={`w-full text-left rounded-xl border p-2 transition-all ${active ? "border-[color:var(--cv-accent)] ring-1 ring-[color:var(--cv-accent)] bg-rd-bg-soft" : "border-rd-border bg-rd-bg-soft hover:border-rd-text-tertiary"}`}>
+                  <button
+                    key={t.id}
+                    onClick={() => onTemplateChange?.(t.id)}
+                    style={{ "--cv-accent": t.accent }}
+                    className={`w-full text-left rounded-xl border p-2 transition-all ${active ? "border-[color:var(--cv-accent)] ring-1 ring-[color:var(--cv-accent)] bg-rd-bg-soft" : "border-rd-border bg-rd-bg-soft hover:border-rd-text-tertiary"}`}
+                  >
                     <TemplateThumb t={t} />
                     <div className="flex items-center justify-between mt-2 px-0.5">
-                      <span className="text-[12px] font-display font-semibold text-rd-text">{t.name}</span>
-                      {active && <Check className="w-3.5 h-3.5 text-[color:var(--cv-accent)]" style={{ "--cv-accent": t.accent }} />}
+                      <span className="text-[12px] font-display font-semibold text-rd-text">
+                        {t.name}
+                      </span>
+                      {active && (
+                        <Check
+                          className="w-3.5 h-3.5 text-[color:var(--cv-accent)]"
+                          style={{ "--cv-accent": t.accent }}
+                        />
+                      )}
                     </div>
                   </button>
                 );
@@ -250,31 +499,69 @@ export default function CVStudioView({
             <div className="max-w-[720px] mx-auto flex items-center justify-between gap-3 mb-3 px-1">
               {currentCv?.role ? (
                 <span className="inline-flex items-center gap-1.5 text-[12px] text-rd-teal-dark bg-rd-teal-tint border border-rd-teal/30 rounded-full px-3 py-1">
-                  <Check className="w-3.5 h-3.5" /> Tailored for {currentCv.role}{currentCv.company ? ` · ${currentCv.company}` : ""}
+                  <Check className="w-3.5 h-3.5" /> Tailored for{" "}
+                  {currentCv.role}
+                  {currentCv.company ? ` · ${currentCv.company}` : ""}
                 </span>
               ) : (
                 <span className="inline-flex items-center gap-1.5 text-[12px] text-rd-golden-dark bg-rd-golden-tint border border-rd-golden/40 rounded-full px-3 py-1">
-                  <Sparkles className="w-3.5 h-3.5" /> Master CV — the source for every tailored copy
+                  <Sparkles className="w-3.5 h-3.5" /> Master CV — the source
+                  for every tailored copy
                 </span>
               )}
-              <span className="text-[11.5px] text-rd-text-tertiary shrink-0">Click any text to edit · saves automatically</span>
+              <span className="text-[11.5px] text-rd-text-tertiary shrink-0">
+                Click any text to edit · saves automatically
+              </span>
             </div>
           </div>
 
           <div className="px-5 pb-16">
-            <div className="cv-doc max-w-[720px] mx-auto bg-white rounded-[6px] shadow-rd border border-rd-border px-12 py-11" style={docStyle}>
-              <Editable value={cv.header.name} onCommit={(v) => onPatchHeader({ name: v })} className="cv-name" block placeholder="Your Name" />
-              <Editable value={cv.header.headline} onCommit={(v) => onPatchHeader({ headline: v })} className="cv-headline" block placeholder="Headline (e.g. Senior Backend Engineer)" />
+            <div
+              className="cv-doc max-w-[720px] mx-auto bg-white rounded-[6px] shadow-rd border border-rd-border px-12 py-11"
+              style={docStyle}
+            >
+              <Editable
+                value={cv.header.name}
+                onCommit={(v) => onPatchHeader({ name: v })}
+                className="cv-name"
+                block
+                placeholder="Your Name"
+              />
+              <Editable
+                value={cv.header.headline}
+                onCommit={(v) => onPatchHeader({ headline: v })}
+                className="cv-headline"
+                block
+                placeholder="Headline (e.g. Senior Backend Engineer)"
+              />
               <div className="cv-contact">
-                <Editable value={cv.header.email} onCommit={(v) => onPatchHeader({ email: v })} placeholder="email" />
+                <Editable
+                  value={cv.header.email}
+                  onCommit={(v) => onPatchHeader({ email: v })}
+                  placeholder="email"
+                />
                 <span className="cv-dot">·</span>
-                <Editable value={cv.header.linkedin} onCommit={(v) => onPatchHeader({ linkedin: v })} placeholder="LinkedIn/Portfolio" />
+                <Editable
+                  value={cv.header.linkedin}
+                  onCommit={(v) => onPatchHeader({ linkedin: v })}
+                  placeholder="LinkedIn/Portfolio"
+                />
                 <span className="cv-dot">·</span>
-                <Editable value={cv.header.location} onCommit={(v) => onPatchHeader({ location: v })} placeholder="Location" />
+                <Editable
+                  value={cv.header.location}
+                  onCommit={(v) => onPatchHeader({ location: v })}
+                  placeholder="Location"
+                />
               </div>
 
               <SectionLabel>Summary</SectionLabel>
-              <Editable value={cv.summary} onCommit={onPatchSummary} className="cv-summary" block placeholder="Write a short professional summary…" />
+              <Editable
+                value={cv.summary}
+                onCommit={onPatchSummary}
+                className="cv-summary"
+                block
+                placeholder="Write a short professional summary…"
+              />
 
               <SectionLabel>Experience</SectionLabel>
               <DragDropContext onDragEnd={onDragEnd}>
@@ -284,12 +571,27 @@ export default function CVStudioView({
                       {cv.experiences.map((exp, i) => (
                         <Draggable key={exp.id} draggableId={exp.id} index={i}>
                           {(p, snapshot) => (
-                            <div ref={p.innerRef} {...p.draggableProps} className={snapshot.isDragging ? "rounded-md bg-white shadow-rd" : ""}>
-                              <ExperienceEntry exp={exp} dragHandleProps={p.dragHandleProps}
+                            <div
+                              ref={p.innerRef}
+                              {...p.draggableProps}
+                              className={
+                                snapshot.isDragging
+                                  ? "rounded-md bg-white shadow-rd"
+                                  : ""
+                              }
+                            >
+                              <ExperienceEntry
+                                exp={exp}
+                                dragHandleProps={p.dragHandleProps}
                                 onPatch={(patch) => onPatchExp(exp.id, patch)}
-                                onBullet={(bId, v) => onPatchBullet(exp.id, bId, v)}
+                                onBullet={(bId, v) =>
+                                  onPatchBullet(exp.id, bId, v)
+                                }
                                 onAddBullet={() => onAddBullet(exp.id)}
-                                onRemoveBullet={(bId) => onRemoveBullet(exp.id, bId)} />
+                                onRemoveBullet={(bId) =>
+                                  onRemoveBullet(exp.id, bId)
+                                }
+                              />
                             </div>
                           )}
                         </Draggable>
@@ -303,28 +605,67 @@ export default function CVStudioView({
               <SectionLabel>Education</SectionLabel>
               <div className="space-y-1.5">
                 {cv.education.map((ed) => (
-                  <div key={ed.id} className="flex items-baseline justify-between gap-3">
+                  <div
+                    key={ed.id}
+                    className="flex items-baseline justify-between gap-3"
+                  >
                     <div className="text-[12.5px] min-w-0">
-                      <Editable value={ed.institution} onCommit={(v) => onPatchEdu(ed.id, { institution: v })} className="font-semibold text-[color:var(--cv-ink)]" placeholder="Institution" />
-                      <span className="text-[color:var(--cv-muted)] px-1">·</span>
-                      <Editable value={ed.degree} onCommit={(v) => onPatchEdu(ed.id, { degree: v })} className="text-[color:var(--cv-body)]" placeholder="Degree" />
+                      <Editable
+                        value={ed.institution}
+                        onCommit={(v) => onPatchEdu(ed.id, { institution: v })}
+                        className="font-semibold text-[color:var(--cv-ink)]"
+                        placeholder="Institution"
+                      />
+                      <span className="text-[color:var(--cv-muted)] px-1">
+                        ·
+                      </span>
+                      <Editable
+                        value={ed.degree}
+                        onCommit={(v) => onPatchEdu(ed.id, { degree: v })}
+                        className="text-[color:var(--cv-body)]"
+                        placeholder="Degree"
+                      />
                       {ed.field ? (
                         <>
-                          <span className="text-[color:var(--cv-muted)] px-1">·</span>
-                          <Editable value={ed.field} onCommit={(v) => onPatchEdu(ed.id, { field: v })} className="text-[color:var(--cv-muted)]" placeholder="Field" />
+                          <span className="text-[color:var(--cv-muted)] px-1">
+                            ·
+                          </span>
+                          <Editable
+                            value={ed.field}
+                            onCommit={(v) => onPatchEdu(ed.id, { field: v })}
+                            className="text-[color:var(--cv-muted)]"
+                            placeholder="Field"
+                          />
                         </>
                       ) : null}
                     </div>
-                    <Editable value={ed.dates} onCommit={(v) => onPatchEdu(ed.id, { dates: v })} className="text-[12px] text-[color:var(--cv-muted)] text-right shrink-0 min-w-[80px]" placeholder="Year" />
+                    <Editable
+                      value={ed.dates}
+                      onCommit={(v) => onPatchEdu(ed.id, { dates: v })}
+                      className="text-[12px] text-[color:var(--cv-muted)] text-right shrink-0 min-w-[80px]"
+                      placeholder="Year"
+                    />
                   </div>
                 ))}
               </div>
 
               <SectionLabel>Skills</SectionLabel>
-              <Editable value={cv.skills.join(" · ")} onCommit={onPatchSkills} className="cv-summary" block placeholder="Add skills separated by ·" />
+              <Editable
+                value={cv.skills.join(" · ")}
+                onCommit={onPatchSkills}
+                className="cv-summary"
+                block
+                placeholder="Add skills separated by ·"
+              />
 
               <SectionLabel>Languages</SectionLabel>
-              <Editable value={cv.languages.join(" · ")} onCommit={onPatchLanguages} className="cv-summary" block placeholder="Languages" />
+              <Editable
+                value={cv.languages.join(" · ")}
+                onCommit={onPatchLanguages}
+                className="cv-summary"
+                block
+                placeholder="Languages"
+              />
             </div>
           </div>
         </main>
@@ -332,28 +673,51 @@ export default function CVStudioView({
         {/* CV Agent panel */}
         <aside className="w-[336px] shrink-0 border-l border-rd-border bg-rd-bg-card flex flex-col min-h-0">
           <div className="px-4 py-3 border-b border-rd-border flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded-full bg-rd-coral-tint grid place-items-center"><FileText className="w-3.5 h-3.5 text-rd-coral" /></div>
+            <div className="w-7 h-7 rounded-full bg-rd-coral-tint grid place-items-center">
+              <FileText className="w-3.5 h-3.5 text-rd-coral" />
+            </div>
             <div className="leading-tight flex-1">
-              <p className="text-[13.5px] font-display font-bold text-rd-text">CV Agent</p>
-              <p className="text-[11px] text-rd-text-tertiary flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-rd-teal-dark inline-block" /> Editing this CV with you</p>
+              <p className="text-[13.5px] font-display font-bold text-rd-text">
+                CV Agent
+              </p>
+              <p className="text-[11px] text-rd-text-tertiary flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-rd-teal-dark inline-block" />{" "}
+                Editing this CV with you
+              </p>
             </div>
             <ChevronDown className="w-4 h-4 text-rd-text-tertiary" />
           </div>
           <div className="flex-1 overflow-y-auto cv-scroll px-4 py-4 space-y-3">
-            {chatMessages.length === 0 && (coach || (
-              <p className="text-[12.5px] text-rd-text-secondary leading-relaxed">Ask me to rewrite a section, tighten your bullets, or tailor this CV to a specific job — I&apos;ll edit the document directly.</p>
-            ))}
+            {chatMessages.length === 0 &&
+              (coach || (
+                <p className="text-[12.5px] text-rd-text-secondary leading-relaxed">
+                  Ask me to rewrite a section, tighten your bullets, or tailor
+                  this CV to a specific job — I&apos;ll edit the document
+                  directly.
+                </p>
+              ))}
             {chatMessages.map((m) => (
-              <div key={m.id} className={`flex gap-2.5 ${m.role === "user" ? "justify-end" : ""}`}>
+              <div
+                key={m.id}
+                className={`flex gap-2.5 ${m.role === "user" ? "justify-end" : ""}`}
+              >
                 {m.role !== "user" && (
-                  <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5"><FileText className="w-3 h-3 text-rd-coral" /></div>
+                  <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5">
+                    <FileText className="w-3 h-3 text-rd-coral" />
+                  </div>
                 )}
-                <div className={`text-[12.5px] leading-relaxed rounded-[12px] px-3 py-2 max-w-[82%] ${m.role === "user" ? "bg-rd-coral text-white" : "bg-rd-bg-soft text-rd-text-secondary"}`}>{m.content}</div>
+                <div
+                  className={`text-[12.5px] leading-relaxed rounded-[12px] px-3 py-2 max-w-[82%] ${m.role === "user" ? "bg-rd-coral text-white" : "bg-rd-bg-soft text-rd-text-secondary"}`}
+                >
+                  {m.content}
+                </div>
               </div>
             ))}
             {chatBusy && (
               <div className="flex gap-2.5">
-                <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5"><FileText className="w-3 h-3 text-rd-coral" /></div>
+                <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5">
+                  <FileText className="w-3 h-3 text-rd-coral" />
+                </div>
                 <div className="inline-flex gap-1 items-center px-3 py-2.5 bg-rd-bg-soft rounded-[12px]">
                   <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing" />
                   <span className="w-1.5 h-1.5 rounded-full bg-rd-text-tertiary animate-chat-typing [animation-delay:0.15s]" />
@@ -365,21 +729,38 @@ export default function CVStudioView({
           <div className="px-4 pt-2 pb-4 border-t border-rd-border">
             <div className="flex flex-wrap gap-1.5 mb-2.5">
               {AGENT_CHIPS.map((c) => (
-                <button key={c} onClick={() => sendChat(c)} disabled={chatBusy}
-                  className="px-2.5 py-1 rounded-full border border-rd-border bg-rd-bg-card text-[11.5px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors">{c}</button>
+                <button
+                  key={c}
+                  onClick={() => sendChat(c)}
+                  disabled={chatBusy}
+                  className="px-2.5 py-1 rounded-full border border-rd-border bg-rd-bg-card text-[11.5px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {c}
+                </button>
               ))}
             </div>
             <div className="flex items-end gap-2">
               <input
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendChat(); } }}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    sendChat();
+                  }
+                }}
                 placeholder="Ask the CV Agent…"
                 disabled={chatBusy}
                 className="flex-1 h-[38px] px-3 rounded-[12px] border border-rd-border bg-rd-bg-card text-[13px] focus:outline-none focus:border-rd-coral disabled:opacity-60"
               />
-              <button onClick={() => sendChat()} disabled={chatBusy || !chatInput.trim()} aria-label="Send message"
-                className="w-[38px] h-[38px] rounded-full bg-rd-coral text-white grid place-items-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"><Send className="w-4 h-4" /></button>
+              <button
+                onClick={() => sendChat()}
+                disabled={chatBusy || !chatInput.trim()}
+                aria-label="Send message"
+                className="w-[38px] h-[38px] rounded-full bg-rd-coral text-white grid place-items-center shrink-0 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Send className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </aside>

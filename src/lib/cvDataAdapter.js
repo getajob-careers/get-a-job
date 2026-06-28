@@ -27,7 +27,10 @@ function bulletsIn(entry) {
 }
 
 export function fromCvData(cvData) {
-  const c = cvData && typeof cvData === "object" && !Array.isArray(cvData) ? cvData : {};
+  const c =
+    cvData && typeof cvData === "object" && !Array.isArray(cvData)
+      ? cvData
+      : {};
   const h = c.header || {};
   return {
     header: {
@@ -57,9 +60,13 @@ export function fromCvData(cvData) {
       ...asArray(c.skills?.domain),
       ...asArray(c.skills?.tools),
       ...asArray(c.skills?.technical),
-    ].map(str).filter(Boolean),
+    ]
+      .map(str)
+      .filter(Boolean),
     languages: asArray(c.languages)
-      .map((l) => (typeof l === "string" ? l : str(l?.name || l?.language || l)))
+      .map((l) =>
+        typeof l === "string" ? l : str(l?.name || l?.language || l),
+      )
       .filter(Boolean),
     // Untouched original — toCvData reads it to preserve unrendered sections.
     __source: c,
@@ -69,7 +76,8 @@ export function fromCvData(cvData) {
 export function toCvData(model) {
   const m = model || {};
   const base = m.__source && typeof m.__source === "object" ? m.__source : {};
-  const baseSkills = base.skills && typeof base.skills === "object" ? base.skills : {};
+  const baseSkills =
+    base.skills && typeof base.skills === "object" ? base.skills : {};
   return {
     ...base,
     header: {
@@ -87,7 +95,9 @@ export function toCvData(model) {
       title: str(e.title),
       company: str(e.company),
       dates: str(e.dates),
-      bullets: asArray(e.bullets).map((b) => str(b?.text).trim()).filter(Boolean),
+      bullets: asArray(e.bullets)
+        .map((b) => str(b?.text).trim())
+        .filter(Boolean),
     })),
     education: asArray(m.education).map((e) => ({
       institution: str(e.institution),
@@ -97,11 +107,15 @@ export function toCvData(model) {
     })),
     skills: {
       ...baseSkills,
-      domain: asArray(m.skills).map((s) => str(s).trim()).filter(Boolean),
+      domain: asArray(m.skills)
+        .map((s) => str(s).trim())
+        .filter(Boolean),
       tools: [],
       technical: [],
     },
-    languages: asArray(m.languages).map((s) => str(s).trim()).filter(Boolean),
+    languages: asArray(m.languages)
+      .map((s) => str(s).trim())
+      .filter(Boolean),
   };
 }
 
@@ -114,13 +128,29 @@ export function toCvData(model) {
 // military/volunteer/leadership bucket split, education columns) minus the LLM
 // authoring pass.
 
-const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const MONTHS_SHORT = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 function fmtMonthYear(d) {
   const s = str(d).trim();
   if (!s) return "";
   const iso = s.match(/^(\d{4})-(\d{1,2})/);
-  if (iso) { const mo = parseInt(iso[2], 10); return `${MONTHS_SHORT[mo - 1] || ""} ${iso[1]}`.trim(); }
+  if (iso) {
+    const mo = parseInt(iso[2], 10);
+    return `${MONTHS_SHORT[mo - 1] || ""} ${iso[1]}`.trim();
+  }
   const yr = s.match(/^(\d{4})$/);
   if (yr) return yr[1];
   return s; // already human-readable ("Nov 2024") or unknown — keep verbatim
@@ -138,14 +168,24 @@ function bucketOf(exp) {
   const company = str(exp?.company).toLowerCase();
   const title = str(exp?.title).toLowerCase();
   const type = str(exp?.type).toLowerCase();
-  const military = /\b(idf|israel\s?defense\s?forces|nahal|golani|givati|paratroopers?|sayeret|unit\s?8200|8200|army|navy|air\s?force|brigade|platoon|battalion|regiment|commander|sergeant|corporal|lieutenant|captain|reservist|conscript|military\s?service|military\s?role)\b/;
+  const military =
+    /\b(idf|israel\s?defense\s?forces|nahal|golani|givati|paratroopers?|sayeret|unit\s?8200|8200|army|navy|air\s?force|brigade|platoon|battalion|regiment|commander|sergeant|corporal|lieutenant|captain|reservist|conscript|military\s?service|military\s?role)\b/;
   const volunteer = /\b(volunteer(ed|ing)?|voluntary|pro\s?bono)\b/;
   const ngo = /\b(ngo|non[-\s]?profit|charity|foundation)\b/;
-  const leadership = /\b(president of|editor of|captain of|head of student|club president|society president|student council)\b/;
-  const looksMilitary = military.test(company) || military.test(title) || type === "military";
+  const leadership =
+    /\b(president of|editor of|captain of|head of student|club president|society president|student council)\b/;
+  const looksMilitary =
+    military.test(company) || military.test(title) || type === "military";
   if (looksMilitary && volunteer.test(title)) return "volunteering";
   if (looksMilitary) return "military";
-  if (volunteer.test(title) || volunteer.test(company) || ngo.test(company) || type === "volunteering" || type === "volunteer") return "volunteering";
+  if (
+    volunteer.test(title) ||
+    volunteer.test(company) ||
+    ngo.test(company) ||
+    type === "volunteering" ||
+    type === "volunteer"
+  )
+    return "volunteering";
   if (type === "leadership" || leadership.test(title)) return "leadership";
   return "professional";
 }
@@ -154,11 +194,17 @@ function bucketOf(exp) {
 // split on the user's own line/bullet breaks (no sentence-level re-splitting,
 // to keep wording verbatim).
 function expBullets(exp) {
-  const curated = asArray(exp?.bullets).map(str).map((s) => s.trim()).filter(Boolean);
+  const curated = asArray(exp?.bullets)
+    .map(str)
+    .map((s) => s.trim())
+    .filter(Boolean);
   if (curated.length) return curated;
   const resp = str(exp?.responsibilities);
   if (!resp) return [];
-  return resp.split(/\r?\n|[•·▪‣]/).map((s) => s.trim()).filter((s) => s.length > 1);
+  return resp
+    .split(/\r?\n|[•·▪‣]/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 1);
 }
 
 export function buildMasterCvData(profile, experiences, education, userEmail) {
@@ -172,7 +218,8 @@ export function buildMasterCvData(profile, experiences, education, userEmail) {
       bullets: expBullets(e),
     },
   }));
-  const inBucket = (name) => mapped.filter((m) => m.bucket === name).map((m) => m.entry);
+  const inBucket = (name) =>
+    mapped.filter((m) => m.bucket === name).map((m) => m.entry);
   const languages = asArray(p.languages)
     .map((l) => (typeof l === "string" ? l : str(l?.language || l?.name)))
     .filter(Boolean);
@@ -197,7 +244,12 @@ export function buildMasterCvData(profile, experiences, education, userEmail) {
       field: str(ed?.field_of_study),
       dates: dateRange(ed?.start_date, ed?.end_date, ed?.is_current),
     })),
-    skills: { domain: asArray(p.skills).map(str).filter(Boolean), tools: [], technical: [], languages: [] },
+    skills: {
+      domain: asArray(p.skills).map(str).filter(Boolean),
+      tools: [],
+      technical: [],
+      languages: [],
+    },
     languages,
   };
 }
