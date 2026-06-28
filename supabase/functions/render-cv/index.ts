@@ -24,7 +24,10 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { buildCvPdf } from "../_shared/cv-templates/build-pdf.ts";
 import { resolveSectorTheme } from "../_shared/cv-templates/sector-mapping.ts";
-import type { TemplateStyle, SectionKey } from "../_shared/cv-templates/types.ts";
+import type {
+  TemplateStyle,
+  SectionKey,
+} from "../_shared/cv-templates/types.ts";
 import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
 
 const corsHeaders = {
@@ -49,10 +52,32 @@ function resolveSectionOrder(cvData: Record<string, unknown>): SectionKey[] {
     ? cvData.professional_experiences.length
     : 0;
   return proCount >= 2
-    ? ["about", "professional_experience", "military_service", "volunteering", "leadership",
-       "education", "skills", "languages", "honors", "certifications", "projects"]
-    : ["about", "education", "professional_experience", "military_service", "volunteering", "leadership",
-       "skills", "languages", "honors", "certifications", "projects"];
+    ? [
+        "about",
+        "professional_experience",
+        "military_service",
+        "volunteering",
+        "leadership",
+        "education",
+        "skills",
+        "languages",
+        "honors",
+        "certifications",
+        "projects",
+      ]
+    : [
+        "about",
+        "education",
+        "professional_experience",
+        "military_service",
+        "volunteering",
+        "leadership",
+        "skills",
+        "languages",
+        "honors",
+        "certifications",
+        "projects",
+      ];
 }
 
 Deno.serve(async (req) => {
@@ -70,7 +95,10 @@ Deno.serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } },
     );
 
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    const {
+      data: { user },
+      error: authError,
+    } = await supabase.auth.getUser();
     if (authError || !user) return json({ error: "Unauthorized" }, 401);
 
     const serviceClient = createClient(
@@ -83,12 +111,20 @@ Deno.serve(async (req) => {
       return json({ error: "Request payload too large." }, 413);
     }
 
-    const { cv_data, cv_id = null, application_id = null, target_role = "", template_style } = body ?? {};
+    const {
+      cv_data,
+      cv_id = null,
+      application_id = null,
+      target_role = "",
+      template_style,
+    } = body ?? {};
     if (!cv_data || typeof cv_data !== "object" || Array.isArray(cv_data)) {
       return json({ error: "cv_data (object) is required." }, 400);
     }
-    if (cv_id !== null && typeof cv_id !== "string") return json({ error: "Invalid cv_id." }, 400);
-    if (application_id !== null && typeof application_id !== "string") return json({ error: "Invalid application_id." }, 400);
+    if (cv_id !== null && typeof cv_id !== "string")
+      return json({ error: "Invalid cv_id." }, 400);
+    if (application_id !== null && typeof application_id !== "string")
+      return json({ error: "Invalid application_id." }, 400);
 
     // Cheap call (no LLM) — generous cap, mostly to stop accidental loops.
     const { data: allowed } = await serviceClient.rpc("check_rate_limit", {
@@ -97,7 +133,8 @@ Deno.serve(async (req) => {
       p_max_calls: 120,
       p_window_seconds: 3600,
     });
-    if (!allowed) return json({ error: "Rate limit exceeded. Try again in an hour." }, 429);
+    if (!allowed)
+      return json({ error: "Rate limit exceeded. Try again in an hour." }, 429);
 
     // Profile is only a fallback source for the header (name/contact) — the
     // edited cv_data.header takes precedence inside buildCvPdf. Also feeds the
@@ -118,8 +155,14 @@ Deno.serve(async (req) => {
 
     const safeTemplateStyle: TemplateStyle =
       template_style === "polished" ? "polished" : "ats-optimized";
-    const theme = resolveSectorTheme(String(target_role ?? "").slice(0, 200), roleLibrary as any, profile as any).theme;
-    const sectionOrder = resolveSectionOrder(cv_data as Record<string, unknown>);
+    const theme = resolveSectorTheme(
+      String(target_role ?? "").slice(0, 200),
+      roleLibrary as any,
+      profile as any,
+    ).theme;
+    const sectionOrder = resolveSectionOrder(
+      cv_data as Record<string, unknown>,
+    );
 
     const cvBytes = await buildCvPdf(cv_data as any, userContext as any, {
       style: safeTemplateStyle,
@@ -131,28 +174,42 @@ Deno.serve(async (req) => {
     const fileName = `${user.id}/render_${Date.now()}.pdf`;
     const { error: uploadError } = await serviceClient.storage
       .from("cvs")
-      .upload(fileName, cvBytes, { contentType: "application/pdf", upsert: true });
-    if (uploadError) return json({ error: `CV upload failed: ${uploadError.message}` }, 500);
+      .upload(fileName, cvBytes, {
+        contentType: "application/pdf",
+        upsert: true,
+      });
+    if (uploadError)
+      return json({ error: `CV upload failed: ${uploadError.message}` }, 500);
 
     const { data: signed, error: signedError } = await serviceClient.storage
       .from("cvs")
       .createSignedUrl(fileName, 315360000);
-    if (signedError || !signed) return json({ error: "Failed to sign CV URL." }, 500);
+    if (signedError || !signed)
+      return json({ error: "Failed to sign CV URL." }, 500);
     const cv_url = signed.signedUrl;
 
     // Best-effort pointer writes. RLS scopes both updates to the owning user;
     // a failure here must NOT block returning the freshly rendered URL.
     if (cv_id) {
-      await supabase.from("application_cvs").update({ cv_url }).eq("id", cv_id).eq("user_id", user.id);
+      await supabase
+        .from("application_cvs")
+        .update({ cv_url })
+        .eq("id", cv_id)
+        .eq("user_id", user.id);
     }
     if (application_id) {
-      await supabase.from("applications")
+      await supabase
+        .from("applications")
         .update({ cv_url, cv_status: "ready" })
-        .eq("id", application_id).eq("user_id", user.id);
+        .eq("id", application_id)
+        .eq("user_id", user.id);
     }
 
     return json({ cv_url });
   } catch (e) {
-    return json({ error: e instanceof Error ? e.message : "render-cv failed" }, 500);
+    return json(
+      { error: e instanceof Error ? e.message : "render-cv failed" },
+      500,
+    );
   }
 });
