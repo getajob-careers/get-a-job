@@ -157,6 +157,7 @@ const LV_CSS = `
 .lv-pchip-in .tag { font-family: var(--font-m); font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: var(--r-pill); }
 .tag-t1 { background: var(--teal-tint); color: var(--teal); }
 .tag-t2 { background: var(--accent-tint); color: var(--accent-deep); }
+.tag-t3 { background: var(--golden-tint); color: var(--golden); }
 .lv-float { animation: lvfloat 7s ease-in-out infinite; }
 @keyframes lvfloat { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
 .lv-floaty { animation: lvfloat 11s ease-in-out infinite; }
@@ -257,6 +258,8 @@ const LV_CSS = `
 .lv-sc-sq { width: 30px; height: 30px; border-radius: 8px; display: inline-flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; flex-shrink: 0; }
 .lv-sc-bar { height: 6px; border-radius: 999px; background: var(--bg-warm); overflow: hidden; }
 .lv-sc-bar i { display: block; height: 100%; background: var(--accent); border-radius: 999px; }
+.lv-ws-soon { margin-left: 8px; font-family: var(--font-m); font-size: 9px; letter-spacing: .04em; text-transform: uppercase; background: var(--golden-tint); color: var(--golden); padding: 2px 7px; border-radius: 999px; font-weight: 700; }
+.lv-ws-soon-tag { margin-left: 10px; font-family: var(--font-m); font-size: 10px; letter-spacing: .05em; text-transform: uppercase; background: var(--golden-tint); color: var(--golden); padding: 3px 9px; border-radius: 999px; font-weight: 700; vertical-align: middle; white-space: nowrap; }
 @media (max-width: 900px) { .lv-fx { grid-template-columns: 1fr; } }
 
 /* feature workspace — selectable list · dominant screenshot · live explainer.
@@ -861,21 +864,21 @@ const FEATURES = [
   {
     icon: "ti-route",
     name: "Career roadmap",
-    desc: "Every role ranked against you, across three tracks.",
-    url: "getajob.careers/career",
+    desc: "Every role ranked against your real profile.",
+    url: "getajob.careers/Roadmap",
     screen: (
       <>
         <div className="lv-sc-eye">Career roadmap · ranked by fit</div>
         {[
-          ["Product Manager", "TRACK 1", "tag-t1", "86%"],
-          ["Business Analyst", "TRACK 1", "tag-t1", "81%"],
-          ["Growth Marketing", "TRACK 2", "tag-t2", "67%"],
-          ["Strategy Consultant", "TRACK 2", "tag-t2", "58%"],
+          ["Associate PM", "Sweet spot", "tag-t1", "72%"],
+          ["Business Analyst", "Sweet spot", "tag-t1", "64%"],
+          ["Growth Marketing", "Detour", "tag-t2", "53%"],
+          ["Operations Lead", "Growth", "tag-t3", "39%"],
         ].map(([role, t, c, fit]) => (
           <div className="lv-sc-row" key={role}>
             <span>{role}</span>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontFamily: "var(--font-d)", color: "var(--accent)" }}>{fit}</span>
+              <span style={{ fontFamily: "var(--font-d)", color: "var(--ink-soft)" }}>{fit}</span>
               <span className={`lv-sc-pill ${c}`}>{t}</span>
             </span>
           </div>
@@ -886,17 +889,17 @@ const FEATURES = [
   {
     icon: "ti-file-text",
     name: "Tailored CVs",
-    desc: "Rewritten per job from your real wins — never fabricated.",
-    url: "getajob.careers/build",
+    desc: "Rewritten per job from your real experience, never invented.",
+    url: "getajob.careers/CVAgent",
     screen: (
       <>
-        <div className="lv-sc-eye">Tailored · PM at monday.com</div>
+        <div className="lv-sc-eye">Tailored · Associate PM at Tavor</div>
         <div style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12, padding: 16 }}>
-          <div style={{ fontFamily: "var(--font-d)", fontWeight: 700, fontSize: 15, marginBottom: 13 }}>Isaac Selig — Product</div>
+          <div style={{ fontFamily: "var(--font-d)", fontWeight: 700, fontSize: 15, marginBottom: 13 }}>Maya Levi — Product</div>
           {[100, 90].map((w) => (
             <div key={w} style={{ height: 7, width: `${w}%`, background: "var(--bg-warm)", borderRadius: 99, marginBottom: 10 }} />
           ))}
-          {["Cut response time 40% with a triage system", "Found 3 upsell paths in demo-prep analysis"].map((t) => (
+          {["Partnered with engineering to ship a new customer intake workflow", "Turned recurring support themes into a prioritised product backlog"].map((t) => (
             <div
               key={t}
               style={{ background: "var(--accent-tint)", color: "var(--accent-deep)", fontSize: 12, fontWeight: 600, borderRadius: 7, padding: "8px 11px", marginBottom: 9 }}
@@ -915,16 +918,16 @@ const FEATURES = [
   {
     icon: "ti-briefcase",
     name: "Live job matches",
-    desc: "Thousands of openings, filtered and scored to your fit.",
-    url: "getajob.careers/jobs",
+    desc: "Thousands of openings, matched to your fit.",
+    url: "getajob.careers/Career",
     screen: (
       <>
         <div className="lv-sc-eye">Live matches · today</div>
         {[
-          ["M", "Associate PM", "monday.com · Tel Aviv", "92%"],
-          ["R", "Product Analyst", "Riskified · Tel Aviv", "84%"],
-          ["G", "Business Analyst", "Gong · Ramat Gan", "79%"],
-        ].map(([ini, role, co, fit]) => (
+          ["A", "Associate PM", "Tavor · Tel Aviv", "Strong match", "var(--teal)", "var(--teal-tint)"],
+          ["K", "Product Analyst", "Keshet Labs · Tel Aviv", "Strong match", "var(--teal)", "var(--teal-tint)"],
+          ["N", "Business Analyst", "Nimbus IL · Ramat Gan", "Good match", "var(--golden)", "var(--golden-tint)"],
+        ].map(([ini, role, co, band, fg, bg]) => (
           <div className="lv-sc-row" key={role}>
             <span style={{ display: "inline-flex", alignItems: "center", gap: 11 }}>
               <span className="lv-sc-sq" style={{ background: "var(--accent-tint)", color: "var(--accent-deep)" }}>{ini}</span>
@@ -933,7 +936,7 @@ const FEATURES = [
                 <span style={{ display: "block", fontSize: 11, fontWeight: 400, color: "var(--ink-faint)" }}>{co}</span>
               </span>
             </span>
-            <span className="lv-sc-pill" style={{ background: "var(--teal-tint)", color: "var(--teal)" }}>{fit} fit</span>
+            <span className="lv-sc-pill" style={{ background: bg, color: fg }}>{band}</span>
           </div>
         ))}
       </>
@@ -943,16 +946,16 @@ const FEATURES = [
     icon: "ti-layout-kanban",
     name: "Pipeline",
     desc: "Track every application from saved to offer.",
-    url: "getajob.careers/career",
+    url: "getajob.careers/Career",
     screen: (
       <>
-        <div className="lv-sc-eye">Pipeline · 12 applications</div>
+        <div className="lv-sc-eye">Pipeline · 6 applications</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 7 }}>
           {[
-            ["Saved", "var(--ink-faint)", ["Wix", "Gong"]],
-            ["Applied", "var(--golden)", ["Fiverr", "Monday"]],
-            ["Interview", "var(--teal)", ["Riskified"]],
-            ["Offer", "var(--accent)", ["Taboola"]],
+            ["Saved", "var(--ink-faint)", ["Tavor", "Keshet Labs"]],
+            ["Applied", "var(--golden)", ["Nimbus IL", "Arava Systems"]],
+            ["Interview", "var(--teal)", ["Galil Digital"]],
+            ["Offer", "var(--accent)", ["Shoval"]],
           ].map(([label, dot, cards]) => (
             <div key={label} style={{ background: "var(--bg-warm)", borderRadius: 10, padding: 8, minHeight: 158 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 9 }}>
@@ -970,76 +973,77 @@ const FEATURES = [
     ),
   },
   {
-    icon: "ti-microphone",
-    name: "Interview prep",
-    desc: "Practice real questions, scored on the spot.",
-    url: "getajob.careers/interview",
+    icon: "ti-message-chatbot",
+    name: "Your coach",
+    desc: "An assistant that does the next step, not just talks.",
+    url: "getajob.careers/CareerAgent",
     screen: (
       <>
-        <div className="lv-sc-eye">Interview practice · behavioural</div>
-        <div style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12, padding: "13px 15px", marginBottom: 13, fontSize: 13, fontWeight: 600 }}>
-          &ldquo;Tell me about a time you turned data into a decision.&rdquo;
-        </div>
-        <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 13 }}>
-          <span style={{ fontFamily: "var(--font-d)", fontSize: 26, fontWeight: 700, color: "var(--teal)" }}>8.4</span>
-          <span style={{ fontSize: 12, color: "var(--ink-faint)" }}>/ 10 · strong answer</span>
-        </div>
-        {[
-          ["Structure", 90],
-          ["Specifics", 78],
-          ["Outcome", 86],
-        ].map(([l, v]) => (
-          <div key={l} style={{ marginBottom: 10 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontSize: 11.5, color: "var(--ink-soft)", marginBottom: 4 }}>
-              <span>{l}</span>
-              <span>{v}%</span>
-            </div>
-            <div className="lv-sc-bar">
-              <i style={{ width: `${v}%` }} />
-            </div>
+        <div className="lv-sc-eye">Coach · career agent</div>
+        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 11 }}>
+          <div style={{ background: "var(--accent-tint)", color: "var(--accent-deep)", borderRadius: "12px 12px 4px 12px", padding: "10px 13px", fontSize: 12.5, fontWeight: 600, maxWidth: "82%" }}>
+            What should I do next for the Associate PM role at Tavor?
           </div>
-        ))}
+        </div>
+        <div style={{ display: "flex", gap: 9, marginBottom: 13 }}>
+          <span className="lv-sc-sq" style={{ background: "var(--ink-deep)", color: "#fff", flexShrink: 0 }}>
+            <i className="ti ti-sparkles" style={{ fontSize: 13 }} />
+          </span>
+          <div style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: "12px 12px 12px 4px", padding: "10px 13px", fontSize: 12.5, fontWeight: 500, color: "var(--ink-soft)", maxWidth: "82%" }}>
+            Your CV still reads ops-first. Tailor it to product language before you apply.
+          </div>
+        </div>
+        <div style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+          <span style={{ fontSize: 12.5, fontWeight: 600 }}>
+            <i className="ti ti-plus" style={{ color: "var(--accent)", marginRight: 7 }} />
+            Add &ldquo;Tailor CV for Associate PM&rdquo; to tasks?
+          </span>
+          <span style={{ background: "var(--accent)", color: "#fff", fontSize: 11.5, fontWeight: 700, borderRadius: 8, padding: "7px 13px", whiteSpace: "nowrap" }}>Confirm</span>
+        </div>
       </>
     ),
   },
   {
-    icon: "ti-brand-linkedin",
-    name: "LinkedIn optimiser",
-    desc: "Profile, posts, and outreach — drafted from your wins.",
-    url: "getajob.careers/linkedin",
+    icon: "ti-browser",
+    name: "In your browser",
+    desc: "Tailor a CV on any job posting, without leaving the page.",
+    url: "careers.tavor.com",
+    soon: true,
     screen: (
-      <>
-        <div className="lv-sc-eye">LinkedIn optimiser</div>
-        <div style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12, padding: 15 }}>
-          <div style={{ display: "flex", gap: 12, alignItems: "center", marginBottom: 13 }}>
-            <span className="lv-sc-sq" style={{ width: 42, height: 42, borderRadius: 99, background: "var(--accent-tint)", color: "var(--accent-deep)", fontSize: 15 }}>IS</span>
-            <div>
-              <div style={{ fontFamily: "var(--font-d)", fontWeight: 700, fontSize: 14 }}>Isaac Selig</div>
-              <div style={{ fontSize: 12, color: "var(--ink-soft)" }}>
-                Product · turning{" "}
-                <span style={{ background: "var(--accent-tint)", color: "var(--accent-deep)", borderRadius: 4, padding: "0 4px" }}>data into decisions</span>
-              </div>
-            </div>
-          </div>
-          {["Rewrote your headline for recruiter search", "Drafted a post from your Q3 launch story"].map((t) => (
-            <div key={t} style={{ display: "flex", gap: 8, alignItems: "center", fontSize: 12, color: "var(--ink-soft)", padding: "6px 0" }}>
-              <i className="ti ti-check" style={{ color: "var(--teal)", fontSize: 15 }} /> {t}
-            </div>
+      <div style={{ position: "relative", minHeight: 296 }}>
+        {/* the career page — fills the frame, normal opacity, reads as a real posting */}
+        <div style={{ paddingRight: 150 }}>
+          <div style={{ fontFamily: "var(--font-m)", fontSize: 10, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 11 }}>Tavor · Careers</div>
+          <div style={{ fontFamily: "var(--font-d)", fontWeight: 800, fontSize: 21, letterSpacing: "-.02em", lineHeight: 1.12, marginBottom: 7 }}>Associate Product Manager</div>
+          <div style={{ fontSize: 12.5, color: "var(--ink-soft)", marginBottom: 18 }}>Tavor · Tel Aviv</div>
+          {[100, 94, 88, 98, 90, 70].map((w, k) => (
+            <div key={k} style={{ height: 7, width: `${w}%`, background: "var(--bg-warm)", borderRadius: 99, marginBottom: 11 }} />
           ))}
         </div>
-      </>
+        {/* Get A Job extension — side panel docked to the right edge, over the page */}
+        <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 140, background: "var(--ink-deep)", borderRadius: 12, padding: 14, color: "#fff", boxShadow: "-20px 0 44px -24px rgba(28,24,21,.5)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 15 }}>
+            <span style={{ width: 8, height: 8, borderRadius: 99, background: "var(--accent)" }} />
+            <span style={{ fontFamily: "var(--font-d)", fontWeight: 700, fontSize: 12.5 }}>Get A Job</span>
+          </div>
+          <div style={{ fontSize: 10.5, color: "rgba(255,255,255,.6)", lineHeight: 1.5, marginBottom: 13 }}>Job posting detected on this page.</div>
+          <div style={{ background: "var(--accent)", color: "#fff", fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "10px 8px", textAlign: "center" }}>
+            <i className="ti ti-file-text" style={{ marginRight: 5 }} />Generate tailored CV
+          </div>
+        </div>
+      </div>
     ),
   },
 ];
 
 // Benefit bullets for the right-hand explainer, index-aligned with FEATURES.
 const FEATURE_POINTS = [
-  ["Every role ranked against your profile", "Core, adjacent and stretch tracks", "Re-scores as you log new wins"],
-  ["Rewritten per job from your real wins", "Never fabricates — only what's true", "Fully editable before you send"],
-  ["Live openings across the Israeli market", "Scored to your fit, refreshed daily", "Filter by track, company and location"],
+  ["Ranked against your real profile", "Sweet spot, Detour and Growth tracks", "Re-scores as you log new wins"],
+  ["Reframes your real experience per job", "Never fabricates, only what's true", "Fully editable before you send"],
+  ["Live openings across the Israeli market", "Matched to your fit, refreshed daily", "Filter by track, company and location"],
   ["Saved → Applied → Interview → Offer", "Every application on one board", "Deadlines and next steps in view"],
-  ["Real questions for your target role", "Scored on structure, specifics, outcome", "Run as many practice rounds as you like"],
-  ["Headline tuned for recruiter search", "Posts drafted from your wins", "Outreach that still sounds like you"],
+  ["Suggests your next move from real gaps", "Updates your roadmap, tasks and applications", "Always one tap from confirming"],
+  ["Works on any company career page", "One click from posting to tailored CV", "Coming soon to the Chrome Web Store"],
 ];
 
 function FeatureExplorer() {
@@ -1095,7 +1099,7 @@ function FeatureExplorer() {
                     <span className="fx-ic">
                       <i className={`ti ${feat.icon}`} />
                     </span>
-                    <span className="lv-ws-item-name">{feat.name}</span>
+                    <span className="lv-ws-item-name">{feat.name}{feat.soon ? <span className="lv-ws-soon">Soon</span> : null}</span>
                   </button>
                 ))}
               </div>
@@ -1113,7 +1117,7 @@ function FeatureExplorer() {
               <div className="lv-ws-info">
                 <div className="lv-ws-info-inner" key={active}>
                   <span className="lv-ws-info-eye">Tool {String(active + 1).padStart(2, "0")} / {String(FEATURES.length).padStart(2, "0")}</span>
-                  <h3>{f.name}</h3>
+                  <h3>{f.name}{f.soon ? <span className="lv-ws-soon-tag">Coming soon</span> : null}</h3>
                   <p>{f.desc}</p>
                   <ul>
                     {points.map((pt) => (
