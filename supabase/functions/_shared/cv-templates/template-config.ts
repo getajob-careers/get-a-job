@@ -11,7 +11,8 @@ export interface TemplateRender {
   accentHex: string; // section labels + rule line + bullet dots
   labelCase: "uppercase" | "capitalize";
   rule: boolean; // accent-tinted rule line beside section labels
-  serif: boolean; // font character (embedding lands as its own stage; Arimo sans for now)
+  serif: boolean; // font character (informs the harness serif gate)
+  family: "arimo" | "gelasio" | "tinos" | "cardo"; // embedded font family
 }
 
 const RENDER: Record<string, TemplateRender> = {
@@ -20,30 +21,35 @@ const RENDER: Record<string, TemplateRender> = {
     labelCase: "uppercase",
     rule: false,
     serif: false,
+    family: "arimo",
   },
   editorial: {
     accentHex: "#1F3A5F",
     labelCase: "uppercase",
     rule: true,
     serif: true,
+    family: "gelasio",
   },
   sharp: {
     accentHex: "#0F766E",
     labelCase: "uppercase",
     rule: false,
     serif: false,
+    family: "arimo",
   },
   executive: {
     accentHex: "#6D213C",
     labelCase: "uppercase",
     rule: true,
     serif: true,
+    family: "tinos",
   },
   refined: {
     accentHex: "#14532D",
     labelCase: "capitalize",
     rule: true,
     serif: true,
+    family: "cardo",
   },
 };
 

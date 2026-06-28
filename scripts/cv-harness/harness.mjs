@@ -209,6 +209,57 @@ function sampleTextColor(px, scale, pageH, line) {
   return acc.map((v) => v / core.length);
 }
 
+// Serif-stroke heuristic: the embedded subset font name is opaque in pdfjs, so
+// detect serif-vs-sans from the rendered glyphs. Rasterize at 300 DPI and, over
+// the first heading word, measure the fraction of horizontal ink runs that are
+// "thin" (<=3px). Serif fonts (serifs + thick/thin hairline contrast) score high
+// (~0.30); the monoline sans (Arimo) scores low (~0.02). Clean 12x separation.
+async function serifThinRunFrac(pdfPath, line, pageH) {
+  const out = "/tmp/cv-harness-fontprobe";
+  execFileSync(
+    "pdftoppm",
+    ["-png", "-r", "300", "-f", "1", "-l", "1", pdfPath, out],
+    { stdio: "pipe" },
+  );
+  const img = await loadImage(out + "-1.png");
+  const cv = createCanvas(img.width, img.height);
+  const ctx = cv.getContext("2d");
+  ctx.drawImage(img, 0, 0);
+  const data = ctx.getImageData(0, 0, img.width, img.height).data;
+  const ink = (x, y) => {
+    const i = (Math.round(y) * img.width + Math.round(x)) * 4;
+    return (
+      (0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2]) / 255 < 0.5
+    );
+  };
+  const r = 300 / 72;
+  const baseY = (pageH - line.y) * r;
+  const x0 = line.x * r,
+    x1 = (line.x + 58) * r,
+    capH = 11 * r;
+  let thin = 0,
+    all = 0;
+  for (let yy = 0; yy < capH; yy++) {
+    const y = baseY - yy;
+    let run = 0;
+    for (let x = x0; x <= x1; x++) {
+      if (ink(x, y)) run++;
+      else {
+        if (run > 0) {
+          all++;
+          if (run <= 3) thin++;
+        }
+        run = 0;
+      }
+    }
+    if (run > 0) {
+      all++;
+      if (run <= 3) thin++;
+    }
+  }
+  return all ? thin / all : 0;
+}
+
 // ── 3. gates ──
 async function runGates(t, previewPng, pdfPng, pdfPath) {
   const spec = TEMPLATES[t];
@@ -297,21 +348,22 @@ async function runGates(t, previewPng, pdfPng, pdfPath) {
     pass: caseOk,
   });
 
-  // (e) FONT — serif vs sans. Subset-embedded font names are often opaque in
-  //     pdfjs; best-effort by name, else indeterminate (not a discriminator for
-  //     'modern' anyway — the accent/layout/rule gates carry the proof).
-  const fontName = (eduHeading?.font || "").toLowerCase();
-  let fontVerdict;
-  if (/serif|times|georgia|garamond|tinos|gelasio/.test(fontName))
-    fontVerdict = "serif";
-  else if (/sans|arial|helvetica|arimo|inter/.test(fontName))
-    fontVerdict = "sans";
-  else fontVerdict = "indeterminate";
+  // (e) FONT — serif vs sans, via the high-DPI serif-stroke heuristic (subset
+  //     font name is opaque in pdfjs, so name-matching can't work). Threshold
+  //     0.12 cleanly separates sans (~0.02) from serif (~0.30).
+  let fontActual = "—",
+    fontPass = null;
+  if (eduHeading) {
+    const frac = await serifThinRunFrac(pdfPath, eduHeading, pageH);
+    const detected = frac > 0.06 ? "serif" : "sans";
+    fontActual = `${detected} (thinRun ${frac.toFixed(3)})`;
+    fontPass = detected === spec.font;
+  }
   gates.push({
     gate: "font (serif/sans)",
     expected: spec.font,
-    actual: `${fontVerdict} [${eduHeading?.font ?? "?"}]`,
-    pass: fontVerdict === "indeterminate" ? null : fontVerdict === spec.font,
+    actual: fontActual,
+    pass: fontPass,
   });
 
   return gates;

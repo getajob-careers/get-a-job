@@ -60,6 +60,57 @@ import {
   ARIMO_REGULAR,
 } from "./arimo-fonts.ts";
 import { getTemplateRender } from "./template-config.ts";
+import {
+  GELASIO_REGULAR,
+  GELASIO_BOLD,
+  GELASIO_ITALIC,
+  GELASIO_BOLDITALIC,
+} from "./gelasio-fonts.ts";
+import {
+  TINOS_REGULAR,
+  TINOS_BOLD,
+  TINOS_ITALIC,
+  TINOS_BOLDITALIC,
+} from "./tinos-fonts.ts";
+import { CARDO_REGULAR, CARDO_BOLD, CARDO_ITALIC } from "./cardo-fonts.ts";
+
+// Embedded font bytes per family. serif:true templates pick their family; the
+// rest use Arimo (sans). Cardo has no bold-italic → fall back to Cardo italic
+// (the only place boldItalic is used is the right-aligned dates).
+const FONT_BYTES: Record<
+  string,
+  {
+    regular: Uint8Array;
+    bold: Uint8Array;
+    italic: Uint8Array;
+    boldItalic: Uint8Array;
+  }
+> = {
+  arimo: {
+    regular: ARIMO_REGULAR,
+    bold: ARIMO_BOLD,
+    italic: ARIMO_ITALIC,
+    boldItalic: ARIMO_BOLDITALIC,
+  },
+  gelasio: {
+    regular: GELASIO_REGULAR,
+    bold: GELASIO_BOLD,
+    italic: GELASIO_ITALIC,
+    boldItalic: GELASIO_BOLDITALIC,
+  },
+  tinos: {
+    regular: TINOS_REGULAR,
+    bold: TINOS_BOLD,
+    italic: TINOS_ITALIC,
+    boldItalic: TINOS_BOLDITALIC,
+  },
+  cardo: {
+    regular: CARDO_REGULAR,
+    bold: CARDO_BOLD,
+    italic: CARDO_ITALIC,
+    boldItalic: CARDO_ITALIC,
+  },
+};
 
 // ─── Page geometry (US Letter, points) ─────────────────────────────
 const PAGE_W = 612;
@@ -775,35 +826,29 @@ export async function buildCvPdf(
   pdfDoc.registerFontkit(fontkit);
   const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
 
-  // Arimo (Apache-2.0), metric-compatible with Helvetica so the output is
-  // visually ~identical, but with full Latin coverage — the WinAnsi-only
-  // StandardFonts.Helvetica* embeds threw on any non-WinAnsi glyph (e.g. "ā").
-  // subset: true keeps the embedded font (and thus the output PDF) small.
+  // Resolve the template + its tokens up front: family drives which font bytes
+  // we embed; accent/case/rule drive the rendering.
+  const tpl = getTemplateRender(config.template);
+  const accent = hexToRgb(tpl.accentHex);
+  const fb = FONT_BYTES[tpl.family] ?? FONT_BYTES.arimo;
+
+  // Embed the family's weights (Arimo sans for modern/sharp; Gelasio/Tinos/Cardo
+  // serif for editorial/executive/refined). subset:true keeps the PDF small.
   const fonts: Fonts = {
-    regular: await pdfDoc.embedFont(ARIMO_REGULAR, { subset: true }),
-    bold: await pdfDoc.embedFont(ARIMO_BOLD, { subset: true }),
-    italic: await pdfDoc.embedFont(ARIMO_ITALIC, { subset: true }),
-    boldItalic: await pdfDoc.embedFont(ARIMO_BOLDITALIC, { subset: true }),
+    regular: await pdfDoc.embedFont(fb.regular, { subset: true }),
+    bold: await pdfDoc.embedFont(fb.bold, { subset: true }),
+    italic: await pdfDoc.embedFont(fb.italic, { subset: true }),
+    boldItalic: await pdfDoc.embedFont(fb.boldItalic, { subset: true }),
   };
 
-  // ── Sanitize chokepoint ──────────────────────────────────────────────
-  // After the embed (the sanitizer reads the font's cmap) and BEFORE the
-  // measure pass below (widthOfTextAtSize encodes too, not just drawText):
-  // strip every codepoint Arimo can't render from all string fields in
-  // cvData + userContext — the only sources of drawn user text. Keeps the
-  // renderer structurally unable to throw on any input. See
-  // makeCodepointSanitizer above for the keep/fallback/drop rule.
+  // Sanitize chokepoint: strip codepoints the EMBEDDED font can't render
+  // (cmap-driven) from all drawn strings, so the renderer can't throw on any
+  // input. See makeCodepointSanitizer.
   const sanitize = makeCodepointSanitizer(
-    fontkit.create(ARIMO_REGULAR) as GlyphFont,
+    fontkit.create(fb.regular) as GlyphFont,
   );
   const cv = deepSanitizeStrings(cvData, sanitize) as CvData;
   const uc = deepSanitizeStrings(userContext, sanitize) as UserContext;
-
-  // Resolve the studio template tokens (accent / case / rule) from the id
-  // plumbed through render-cv (Step A). Font character stays Arimo until
-  // per-template embedding lands; see the rendering spec.
-  const tpl = getTemplateRender(config.template);
-  const accent = hexToRgb(tpl.accentHex);
 
   // Clean-white header is fixed-height; sections flow below it.
   const contentTopY = HEADER_CONTENT_TOP;

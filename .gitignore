@@ -42,3 +42,5 @@ GetAJob Design System/
 *.sw?
 
 .env
+# Raw CV-template TTF sources — the bytes live committed in *-fonts.ts (base64).
+supabase/functions/_shared/cv-templates/fonts/
