@@ -18,9 +18,33 @@ const FIXTURE_UID = "cvagent-fixture-user";
 const uid = () => Math.random().toString(36).slice(2, 9);
 
 const CV_OPTIONS = [
-  { id: "master", isMaster: true, tag: "Master", label: "Master CV", sub: "Your full, untailored CV", role: null, company: null },
-  { id: "pm-wix", isMaster: false, tag: "Tailored", label: "Product Manager", sub: "Wix · tailored copy", role: "Product Manager", company: "Wix" },
-  { id: "da-monday", isMaster: false, tag: "Tailored", label: "Data Analyst", sub: "monday.com · tailored copy", role: "Data Analyst", company: "monday.com" },
+  {
+    id: "master",
+    isMaster: true,
+    tag: "Master",
+    label: "Master CV",
+    sub: "Your full, untailored CV",
+    role: null,
+    company: null,
+  },
+  {
+    id: "pm-wix",
+    isMaster: false,
+    tag: "Tailored",
+    label: "Product Manager",
+    sub: "Wix · tailored copy",
+    role: "Product Manager",
+    company: "Wix",
+  },
+  {
+    id: "da-monday",
+    isMaster: false,
+    tag: "Tailored",
+    label: "Data Analyst",
+    sub: "monday.com · tailored copy",
+    role: "Data Analyst",
+    company: "monday.com",
+  },
 ];
 
 const SAMPLE_TAILORS = [
@@ -37,63 +61,153 @@ const tighten = (s) => {
 };
 
 const INITIAL_MODEL = {
-  header: { name: "Isaac Selig", headline: "", email: "isaacselig@gmail.com", linkedin: "LinkedIn/Portfolio", location: "Herzliya, Israel" },
+  header: {
+    name: "Isaac Selig",
+    headline: "",
+    email: "isaacselig@gmail.com",
+    linkedin: "LinkedIn/Portfolio",
+    location: "Herzliya, Israel",
+  },
   summary:
     "Business Administration student specializing in Digital Innovation with hands-on experience in software development, AI evaluation, and technical project management. Strong background in full-stack web development and working with LLMs in real-world production and QA environments. Comfortable bridging technical and business needs, with a proven ability to learn quickly and a strong drive to explore new technologies.",
   experiences: [
     {
-      id: uid(), title: "AI Research & Evaluation Specialist", company: "Outlier", dates: "Nov 2024 – Present",
+      id: uid(),
+      title: "AI Research & Evaluation Specialist",
+      company: "Outlier",
+      dates: "Nov 2024 – Present",
       bullets: [
-        b("Conducted evaluation and training tasks for advanced AI models, ensuring high-quality outputs across reasoning, creativity, and accuracy benchmarks"),
-        b("Designed and refined prompts, test cases, and structured feedback loops to improve model performance"),
-        b("Gained hands-on experience with LLMs, prompt engineering, and quality assurance workflows in cutting-edge AI projects"),
+        b(
+          "Conducted evaluation and training tasks for advanced AI models, ensuring high-quality outputs across reasoning, creativity, and accuracy benchmarks",
+        ),
+        b(
+          "Designed and refined prompts, test cases, and structured feedback loops to improve model performance",
+        ),
+        b(
+          "Gained hands-on experience with LLMs, prompt engineering, and quality assurance workflows in cutting-edge AI projects",
+        ),
       ],
     },
     {
-      id: uid(), title: "Project Manager", company: "Anpr+", dates: "Jul 2022 – Jun 2023",
+      id: uid(),
+      title: "Project Manager",
+      company: "Anpr+",
+      dates: "Jul 2022 – Jun 2023",
       bullets: [
-        b("Contributed to building the software architecture and laying down the initial coding base for the object-tracking project"),
-        b("Transitioned into a leadership role, overseeing a small development team working on a parking lot ticketing and ANPR system"),
-        b("Coordinated task allocation, sprint planning, and delivery milestones, ensuring timely progress and clear communication across stakeholders"),
-        b("Balanced technical oversight with managerial responsibilities, bridging the gap between developers and business needs"),
+        b(
+          "Contributed to building the software architecture and laying down the initial coding base for the object-tracking project",
+        ),
+        b(
+          "Transitioned into a leadership role, overseeing a small development team working on a parking lot ticketing and ANPR system",
+        ),
+        b(
+          "Coordinated task allocation, sprint planning, and delivery milestones, ensuring timely progress and clear communication across stakeholders",
+        ),
+        b(
+          "Balanced technical oversight with managerial responsibilities, bridging the gap between developers and business needs",
+        ),
       ],
     },
     {
-      id: uid(), title: "Junior Developer", company: "Tempus Trade Ltd", dates: "Apr 2021 – Nov 2021",
+      id: uid(),
+      title: "Junior Developer",
+      company: "Tempus Trade Ltd",
+      dates: "Apr 2021 – Nov 2021",
       bullets: [
         b("Built an affiliate website targeting a 60,000 user database"),
-        b("Improved SEO performance and conversion rates, increasing traffic and engagement"),
-        b("Integrated with partner platforms and automated back-office functions"),
+        b(
+          "Improved SEO performance and conversion rates, increasing traffic and engagement",
+        ),
+        b(
+          "Integrated with partner platforms and automated back-office functions",
+        ),
       ],
     },
     {
-      id: uid(), title: "Junior Developer", company: "Code Nation", dates: "Feb 2021 – May 2021",
+      id: uid(),
+      title: "Junior Developer",
+      company: "Code Nation",
+      dates: "Feb 2021 – May 2021",
       bullets: [
         b("Completed a 12-week bootcamp focused on the MERN stack"),
         b("Gained practical experience with GitHub, Docker, SQL, and Git Bash"),
-        b("Worked on collaborative projects, developing teamwork and accountability"),
+        b(
+          "Worked on collaborative projects, developing teamwork and accountability",
+        ),
       ],
     },
   ],
   education: [
-    { id: uid(), institution: "Reichman University", degree: "B.A. Business Administration in Digital Innovation", dates: "2026", field: "" },
-    { id: uid(), institution: "King David High School", degree: "A-levels and GCSEs", dates: "", field: "A in Information Technology" },
-    { id: uid(), institution: "Aleph Beis Coding Bootcamp", degree: "Coding Bootcamp", dates: "2017", field: "" },
+    {
+      id: uid(),
+      institution: "Reichman University",
+      degree: "B.A. Business Administration in Digital Innovation",
+      dates: "2026",
+      field: "",
+    },
+    {
+      id: uid(),
+      institution: "King David High School",
+      degree: "A-levels and GCSEs",
+      dates: "",
+      field: "A in Information Technology",
+    },
+    {
+      id: uid(),
+      institution: "Aleph Beis Coding Bootcamp",
+      degree: "Coding Bootcamp",
+      dates: "2017",
+      field: "",
+    },
   ],
-  skills: ["MERN stack", "HTML", "CSS", "JavaScript", "PHP", "C#", "GitHub", "Docker", "SQL", "Git Bash", "Prompt engineering", "LLMs", "Quality assurance", "Software architecture", "Project management", "Sprint planning", "SEO", "Full-stack web development"],
+  skills: [
+    "MERN stack",
+    "HTML",
+    "CSS",
+    "JavaScript",
+    "PHP",
+    "C#",
+    "GitHub",
+    "Docker",
+    "SQL",
+    "Git Bash",
+    "Prompt engineering",
+    "LLMs",
+    "Quality assurance",
+    "Software architecture",
+    "Project management",
+    "Sprint planning",
+    "SEO",
+    "Full-stack web development",
+  ],
   languages: ["English", "Hebrew"],
 };
 
 const MockCoach = (
   <div className="flex gap-2.5">
-    <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5"><FileText className="w-3 h-3 text-rd-coral" /></div>
+    <div className="w-6 h-6 rounded-full bg-rd-coral-tint grid place-items-center shrink-0 mt-0.5">
+      <FileText className="w-3 h-3 text-rd-coral" />
+    </div>
     <div className="text-[12.5px] text-rd-text-secondary leading-relaxed space-y-2">
-      <p>This CV shows strong, relevant experience — the AI evaluation work and the 60,000-user affiliate project stand out. The biggest wins now are tighter, measurable bullets and a one-line headline.</p>
+      <p>
+        This CV shows strong, relevant experience — the AI evaluation work and
+        the 60,000-user affiliate project stand out. The biggest wins now are
+        tighter, measurable bullets and a one-line headline.
+      </p>
       <p className="font-semibold text-rd-text">A few things I&apos;d fix:</p>
       <ul className="list-disc pl-4 space-y-1.5">
-        <li>Add a headline (e.g. &quot;Full-Stack Developer &amp; AI Evaluation Specialist&quot;).</li>
-        <li>Rewrite the Outlier and Anpr+ bullets with measurable outcomes, not responsibilities.</li>
-        <li>Lead the Tempus bullet with the result (traffic / conversion lift), then the how.</li>
+        <li>
+          Add a headline (e.g. &quot;Full-Stack Developer &amp; AI Evaluation
+          Specialist&quot;).
+        </li>
+        <li>
+          Rewrite the Outlier and Anpr+ bullets with measurable outcomes, not
+          responsibilities.
+        </li>
+        <li>
+          Lead the Tempus bullet with the result (traffic / conversion lift),
+          then the how.
+        </li>
       </ul>
     </div>
   </div>
@@ -116,14 +230,49 @@ function MockStudio() {
     timer.current = setTimeout(() => setSaveState("saved"), 650);
   };
   useEffect(() => () => clearTimeout(timer.current), []);
-  const upd = (fn) => { setCv(fn); touch(); };
+  const upd = (fn) => {
+    setCv(fn);
+    touch();
+  };
 
-  const onPatchHeader = (p) => upd((m) => ({ ...m, header: { ...m.header, ...p } }));
+  const onPatchHeader = (p) =>
+    upd((m) => ({ ...m, header: { ...m.header, ...p } }));
   const onPatchSummary = (v) => upd((m) => ({ ...m, summary: v }));
-  const onPatchExp = (id, p) => upd((m) => ({ ...m, experiences: m.experiences.map((e) => (e.id === id ? { ...e, ...p } : e)) }));
-  const onPatchBullet = (expId, bId, text) => upd((m) => ({ ...m, experiences: m.experiences.map((e) => (e.id === expId ? { ...e, bullets: e.bullets.map((x) => (x.id === bId ? { ...x, text } : x)) } : e)) }));
-  const onAddBullet = (expId) => upd((m) => ({ ...m, experiences: m.experiences.map((e) => (e.id === expId ? { ...e, bullets: [...e.bullets, b("")] } : e)) }));
-  const onRemoveBullet = (expId, bId) => upd((m) => ({ ...m, experiences: m.experiences.map((e) => (e.id === expId ? { ...e, bullets: e.bullets.filter((x) => x.id !== bId) } : e)) }));
+  const onPatchExp = (id, p) =>
+    upd((m) => ({
+      ...m,
+      experiences: m.experiences.map((e) => (e.id === id ? { ...e, ...p } : e)),
+    }));
+  const onPatchBullet = (expId, bId, text) =>
+    upd((m) => ({
+      ...m,
+      experiences: m.experiences.map((e) =>
+        e.id === expId
+          ? {
+              ...e,
+              bullets: e.bullets.map((x) =>
+                x.id === bId ? { ...x, text } : x,
+              ),
+            }
+          : e,
+      ),
+    }));
+  const onAddBullet = (expId) =>
+    upd((m) => ({
+      ...m,
+      experiences: m.experiences.map((e) =>
+        e.id === expId ? { ...e, bullets: [...e.bullets, b("")] } : e,
+      ),
+    }));
+  const onRemoveBullet = (expId, bId) =>
+    upd((m) => ({
+      ...m,
+      experiences: m.experiences.map((e) =>
+        e.id === expId
+          ? { ...e, bullets: e.bullets.filter((x) => x.id !== bId) }
+          : e,
+      ),
+    }));
   const onDragEnd = (result) => {
     if (!result.destination) return;
     upd((m) => {
@@ -133,14 +282,46 @@ function MockStudio() {
       return { ...m, experiences: next };
     });
   };
-  const onPatchEdu = (id, p) => upd((m) => ({ ...m, education: m.education.map((e) => (e.id === id ? { ...e, ...p } : e)) }));
-  const onPatchSkills = (line) => upd((m) => ({ ...m, skills: line.split("·").map((s) => s.trim()).filter(Boolean) }));
-  const onPatchLanguages = (line) => upd((m) => ({ ...m, languages: line.split("·").map((s) => s.trim()).filter(Boolean) }));
+  const onPatchEdu = (id, p) =>
+    upd((m) => ({
+      ...m,
+      education: m.education.map((e) => (e.id === id ? { ...e, ...p } : e)),
+    }));
+  const onPatchSkills = (line) =>
+    upd((m) => ({
+      ...m,
+      skills: line
+        .split("·")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    }));
+  const onPatchLanguages = (line) =>
+    upd((m) => ({
+      ...m,
+      languages: line
+        .split("·")
+        .map((s) => s.trim())
+        .filter(Boolean),
+    }));
 
   const tailorNew = () => {
-    const s = SAMPLE_TAILORS[(cvList.length - CV_OPTIONS.length) % SAMPLE_TAILORS.length];
+    const s =
+      SAMPLE_TAILORS[
+        (cvList.length - CV_OPTIONS.length) % SAMPLE_TAILORS.length
+      ];
     const id = "t-" + uid();
-    setCvList((l) => [...l, { id, isMaster: false, tag: "Tailored", label: s.role, sub: `${s.company} · tailored copy`, role: s.role, company: s.company }]);
+    setCvList((l) => [
+      ...l,
+      {
+        id,
+        isMaster: false,
+        tag: "Tailored",
+        label: s.role,
+        sub: `${s.company} · tailored copy`,
+        role: s.role,
+        company: s.company,
+      },
+    ]);
     setSelectedCvId(id);
     touch();
   };
@@ -160,29 +341,49 @@ function MockStudio() {
   // edit so the chat→document loop is visible; the live route does real edits
   // via the edit-cv function.
   const onSendMessage = (text) => {
-    setChatMessages((ms) => [...ms, { id: uid(), role: "user", content: text }]);
+    setChatMessages((ms) => [
+      ...ms,
+      { id: uid(), role: "user", content: text },
+    ]);
     setChatBusy(true);
     setTimeout(() => {
       const t = text.toLowerCase();
-      let reply = "Got it — in the live version I'd edit the document directly here.";
+      let reply =
+        "Got it — in the live version I'd edit the document directly here.";
       if (t.includes("tighten") || t.includes("bullet")) {
-        setCv((m) => ({ ...m, experiences: m.experiences.map((e) => ({ ...e, bullets: e.bullets.map((x) => ({ ...x, text: tighten(x.text) })) })) }));
+        setCv((m) => ({
+          ...m,
+          experiences: m.experiences.map((e) => ({
+            ...e,
+            bullets: e.bullets.map((x) => ({ ...x, text: tighten(x.text) })),
+          })),
+        }));
         setEditVersion((v) => v + 1);
-        reply = "Tightened your bullets — led with the action, trimmed the filler.";
+        reply =
+          "Tightened your bullets — led with the action, trimmed the filler.";
       } else if (t.includes("summary") || t.includes("headline")) {
         setCv((m) => ({
           ...m,
-          header: { ...m.header, headline: "Full-Stack Developer & AI Evaluation Specialist" },
-          summary: "Full-stack developer and AI-evaluation specialist who ships production web apps and rigorously tests LLM systems. Bridges technical build and business need, and learns fast with a bias for shipping.",
+          header: {
+            ...m.header,
+            headline: "Full-Stack Developer & AI Evaluation Specialist",
+          },
+          summary:
+            "Full-stack developer and AI-evaluation specialist who ships production web apps and rigorously tests LLM systems. Bridges technical build and business need, and learns fast with a bias for shipping.",
         }));
         setEditVersion((v) => v + 1);
         reply = "Rewrote your summary and added a headline.";
       } else if (t.includes("keyword")) {
-        reply = "Surfaced ATS keywords already implied by your experience — no new facts invented.";
+        reply =
+          "Surfaced ATS keywords already implied by your experience — no new facts invented.";
       } else if (t.includes("tailor")) {
-        reply = "In the live version this tailors your CV to a specific job via refine-cv.";
+        reply =
+          "In the live version this tailors your CV to a specific job via refine-cv.";
       }
-      setChatMessages((ms) => [...ms, { id: uid(), role: "assistant", content: reply }]);
+      setChatMessages((ms) => [
+        ...ms,
+        { id: uid(), role: "assistant", content: reply },
+      ]);
       setChatBusy(false);
     }, 700);
   };
@@ -223,7 +424,16 @@ function MockStudio() {
 
 export default function CVAgentPreview() {
   const queryClient = useMemo(
-    () => new QueryClient({ defaultOptions: { queries: { staleTime: Infinity, retry: false, refetchOnWindowFocus: false } } }),
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: Infinity,
+            retry: false,
+            refetchOnWindowFocus: false,
+          },
+        },
+      }),
     [],
   );
   useEffect(() => {
