@@ -8,9 +8,10 @@
 // dates as text.
 //
 // toCvData spreads the ORIGINAL cv_data first (__source), so any section the
-// studio doesn't surface yet — military / volunteering / leadership / honors /
-// certifications / projects — survives a save untouched. Only the sections the
-// editor owns are overwritten.
+// studio doesn't surface yet — honors / certifications / projects — survives a
+// save untouched. Only the sections the editor owns are overwritten. The four
+// experience buckets (professional / military / volunteering / leadership) ARE
+// surfaced and owned by the editor.
 //
 // v1 simplifications (flagged for later refinement):
 //   - dates: edited as free text (matches the stored string; no month/year parse).
@@ -24,6 +25,29 @@ const str = (v) => (typeof v === "string" ? v : v == null ? "" : String(v));
 
 function bulletsIn(entry) {
   return asArray(entry?.bullets).map((b) => ({ id: uid(), text: str(b) }));
+}
+
+// Persisted experience entry -> editor entry (stable ids for React keys + drag).
+function mapExpIn(arr) {
+  return asArray(arr).map((e) => ({
+    id: uid(),
+    title: str(e?.title),
+    company: str(e?.company),
+    dates: str(e?.dates),
+    bullets: bulletsIn(e),
+  }));
+}
+
+// Editor entry -> persisted experience entry (drop ids, bullets back to strings).
+function mapExpOut(arr) {
+  return asArray(arr).map((e) => ({
+    title: str(e.title),
+    company: str(e.company),
+    dates: str(e.dates),
+    bullets: asArray(e.bullets)
+      .map((b) => str(b?.text).trim())
+      .filter(Boolean),
+  }));
 }
 
 export function fromCvData(cvData) {
@@ -42,13 +66,10 @@ export function fromCvData(cvData) {
       phone: str(h.phone),
     },
     summary: str(c.summary || c.about_me),
-    experiences: asArray(c.professional_experiences).map((e) => ({
-      id: uid(),
-      title: str(e?.title),
-      company: str(e?.company),
-      dates: str(e?.dates),
-      bullets: bulletsIn(e),
-    })),
+    experiences: mapExpIn(c.professional_experiences),
+    military: mapExpIn(c.military_experiences),
+    volunteering: mapExpIn(c.volunteering_experiences),
+    leadership: mapExpIn(c.leadership_experiences),
     education: asArray(c.education).map((e) => ({
       id: uid(),
       institution: str(e?.institution),
@@ -91,14 +112,10 @@ export function toCvData(model) {
     },
     summary: str(m.summary),
     about_me: str(m.summary),
-    professional_experiences: asArray(m.experiences).map((e) => ({
-      title: str(e.title),
-      company: str(e.company),
-      dates: str(e.dates),
-      bullets: asArray(e.bullets)
-        .map((b) => str(b?.text).trim())
-        .filter(Boolean),
-    })),
+    professional_experiences: mapExpOut(m.experiences),
+    military_experiences: mapExpOut(m.military),
+    volunteering_experiences: mapExpOut(m.volunteering),
+    leadership_experiences: mapExpOut(m.leadership),
     education: asArray(m.education).map((e) => ({
       institution: str(e.institution),
       degree: str(e.degree),

@@ -150,17 +150,17 @@ export default function CVStudioLive() {
   const onPatchHeader = (patch) =>
     update((m) => ({ ...m, header: { ...m.header, ...patch } }));
   const onPatchSummary = (v) => update((m) => ({ ...m, summary: v }));
-  const onPatchExp = (id, patch) =>
+  // Experience handlers are keyed by section ("experiences" | "military" |
+  // "volunteering" | "leadership") so the four buckets share one set of logic.
+  const onPatchExp = (section, id, patch) =>
     update((m) => ({
       ...m,
-      experiences: m.experiences.map((e) =>
-        e.id === id ? { ...e, ...patch } : e,
-      ),
+      [section]: m[section].map((e) => (e.id === id ? { ...e, ...patch } : e)),
     }));
-  const onPatchBullet = (expId, bId, text) =>
+  const onPatchBullet = (section, expId, bId, text) =>
     update((m) => ({
       ...m,
-      experiences: m.experiences.map((e) =>
+      [section]: m[section].map((e) =>
         e.id === expId
           ? {
               ...e,
@@ -171,31 +171,31 @@ export default function CVStudioLive() {
           : e,
       ),
     }));
-  const onAddBullet = (expId) =>
+  const onAddBullet = (section, expId) =>
     update((m) => ({
       ...m,
-      experiences: m.experiences.map((e) =>
+      [section]: m[section].map((e) =>
         e.id === expId
           ? { ...e, bullets: [...e.bullets, { id: uid(), text: "" }] }
           : e,
       ),
     }));
-  const onRemoveBullet = (expId, bId) =>
+  const onRemoveBullet = (section, expId, bId) =>
     update((m) => ({
       ...m,
-      experiences: m.experiences.map((e) =>
+      [section]: m[section].map((e) =>
         e.id === expId
           ? { ...e, bullets: e.bullets.filter((b) => b.id !== bId) }
           : e,
       ),
     }));
-  const onDragEnd = (result) => {
+  const onDragEnd = (section, result) => {
     if (!result.destination) return;
     update((m) => {
-      const next = [...m.experiences];
+      const next = [...m[section]];
       const [moved] = next.splice(result.source.index, 1);
       next.splice(result.destination.index, 0, moved);
-      return { ...m, experiences: next };
+      return { ...m, [section]: next };
     });
   };
   const onPatchEdu = (id, patch) =>
@@ -291,7 +291,13 @@ export default function CVStudioLive() {
         return;
       }
       if (data.cv_data) {
-        const m = fromCvData(data.cv_data);
+        // edit-cv edits the document we send but may not echo every section
+        // back. Merge its output OVER the pre-edit cv_data so any section it
+        // omits (military / volunteering / leadership, and unsurfaced
+        // passthrough sections like certifications / projects / honors) is
+        // preserved from what we already had — never silently dropped.
+        const merged = { ...toCvData(modelRef.current), ...data.cv_data };
+        const m = fromCvData(merged);
         modelRef.current = m;
         setModel(m);
         setEditVersion((v) => v + 1);

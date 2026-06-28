@@ -5,7 +5,9 @@
 //
 // Editor model it expects (see cvDataAdapter.fromCvData):
 //   { header:{name,headline,email,linkedin,location},
-//     summary, experiences:[{id,title,company,dates,bullets:[{id,text}]}],
+//     summary,
+//     experiences / military / volunteering / leadership:
+//       [{id,title,company,dates,bullets:[{id,text}]}],
 //     education:[{id,institution,degree,dates,field}],
 //     skills:[string], languages:[string] }
 // Dates are edited as free text (matches the persisted string).
@@ -122,7 +124,6 @@ function Editable({
   useEffect(() => {
     if (ref.current && ref.current.innerText !== (value || ""))
       ref.current.innerText = value || "";
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   return (
     <Tag
@@ -220,6 +221,64 @@ function ExperienceEntry({
         <Plus className="w-3 h-3" /> bullet
       </button>
     </div>
+  );
+}
+
+// One draggable experience bucket (professional / military / volunteering /
+// leadership). Handlers are passed the section key so all four share logic.
+function ExperienceSection({
+  label,
+  sectionKey,
+  items,
+  onDragEnd,
+  onPatchExp,
+  onPatchBullet,
+  onAddBullet,
+  onRemoveBullet,
+}) {
+  return (
+    <>
+      <SectionLabel>{label}</SectionLabel>
+      <DragDropContext onDragEnd={(result) => onDragEnd(sectionKey, result)}>
+        <Droppable droppableId={sectionKey}>
+          {(provided) => (
+            <div ref={provided.innerRef} {...provided.droppableProps}>
+              {items.map((exp, i) => (
+                <Draggable key={exp.id} draggableId={exp.id} index={i}>
+                  {(p, snapshot) => (
+                    <div
+                      ref={p.innerRef}
+                      {...p.draggableProps}
+                      className={
+                        snapshot.isDragging
+                          ? "rounded-md bg-white shadow-rd"
+                          : ""
+                      }
+                    >
+                      <ExperienceEntry
+                        exp={exp}
+                        dragHandleProps={p.dragHandleProps}
+                        onPatch={(patch) =>
+                          onPatchExp(sectionKey, exp.id, patch)
+                        }
+                        onBullet={(bId, v) =>
+                          onPatchBullet(sectionKey, exp.id, bId, v)
+                        }
+                        onAddBullet={() => onAddBullet(sectionKey, exp.id)}
+                        onRemoveBullet={(bId) =>
+                          onRemoveBullet(sectionKey, exp.id, bId)
+                        }
+                      />
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+          )}
+        </Droppable>
+      </DragDropContext>
+    </>
   );
 }
 
@@ -563,44 +622,52 @@ export default function CVStudioView({
                 placeholder="Write a short professional summary…"
               />
 
-              <SectionLabel>Experience</SectionLabel>
-              <DragDropContext onDragEnd={onDragEnd}>
-                <Droppable droppableId="prof">
-                  {(provided) => (
-                    <div ref={provided.innerRef} {...provided.droppableProps}>
-                      {cv.experiences.map((exp, i) => (
-                        <Draggable key={exp.id} draggableId={exp.id} index={i}>
-                          {(p, snapshot) => (
-                            <div
-                              ref={p.innerRef}
-                              {...p.draggableProps}
-                              className={
-                                snapshot.isDragging
-                                  ? "rounded-md bg-white shadow-rd"
-                                  : ""
-                              }
-                            >
-                              <ExperienceEntry
-                                exp={exp}
-                                dragHandleProps={p.dragHandleProps}
-                                onPatch={(patch) => onPatchExp(exp.id, patch)}
-                                onBullet={(bId, v) =>
-                                  onPatchBullet(exp.id, bId, v)
-                                }
-                                onAddBullet={() => onAddBullet(exp.id)}
-                                onRemoveBullet={(bId) =>
-                                  onRemoveBullet(exp.id, bId)
-                                }
-                              />
-                            </div>
-                          )}
-                        </Draggable>
-                      ))}
-                      {provided.placeholder}
-                    </div>
-                  )}
-                </Droppable>
-              </DragDropContext>
+              <ExperienceSection
+                label="Experience"
+                sectionKey="experiences"
+                items={cv.experiences}
+                onDragEnd={onDragEnd}
+                onPatchExp={onPatchExp}
+                onPatchBullet={onPatchBullet}
+                onAddBullet={onAddBullet}
+                onRemoveBullet={onRemoveBullet}
+              />
+              {cv.military?.length > 0 && (
+                <ExperienceSection
+                  label="Military Service"
+                  sectionKey="military"
+                  items={cv.military}
+                  onDragEnd={onDragEnd}
+                  onPatchExp={onPatchExp}
+                  onPatchBullet={onPatchBullet}
+                  onAddBullet={onAddBullet}
+                  onRemoveBullet={onRemoveBullet}
+                />
+              )}
+              {cv.volunteering?.length > 0 && (
+                <ExperienceSection
+                  label="Volunteering"
+                  sectionKey="volunteering"
+                  items={cv.volunteering}
+                  onDragEnd={onDragEnd}
+                  onPatchExp={onPatchExp}
+                  onPatchBullet={onPatchBullet}
+                  onAddBullet={onAddBullet}
+                  onRemoveBullet={onRemoveBullet}
+                />
+              )}
+              {cv.leadership?.length > 0 && (
+                <ExperienceSection
+                  label="Leadership"
+                  sectionKey="leadership"
+                  items={cv.leadership}
+                  onDragEnd={onDragEnd}
+                  onPatchExp={onPatchExp}
+                  onPatchBullet={onPatchBullet}
+                  onAddBullet={onAddBullet}
+                  onRemoveBullet={onRemoveBullet}
+                />
+              )}
 
               <SectionLabel>Education</SectionLabel>
               <div className="space-y-1.5">
