@@ -59,6 +59,58 @@ import {
   ARIMO_ITALIC,
   ARIMO_REGULAR,
 } from "./arimo-fonts.ts";
+import { getTemplateRender } from "./template-config.ts";
+import {
+  GELASIO_REGULAR,
+  GELASIO_BOLD,
+  GELASIO_ITALIC,
+  GELASIO_BOLDITALIC,
+} from "./gelasio-fonts.ts";
+import {
+  TINOS_REGULAR,
+  TINOS_BOLD,
+  TINOS_ITALIC,
+  TINOS_BOLDITALIC,
+} from "./tinos-fonts.ts";
+import { CARDO_REGULAR, CARDO_BOLD, CARDO_ITALIC } from "./cardo-fonts.ts";
+
+// Embedded font bytes per family. serif:true templates pick their family; the
+// rest use Arimo (sans). Cardo has no bold-italic → fall back to Cardo italic
+// (the only place boldItalic is used is the right-aligned dates).
+const FONT_BYTES: Record<
+  string,
+  {
+    regular: Uint8Array;
+    bold: Uint8Array;
+    italic: Uint8Array;
+    boldItalic: Uint8Array;
+  }
+> = {
+  arimo: {
+    regular: ARIMO_REGULAR,
+    bold: ARIMO_BOLD,
+    italic: ARIMO_ITALIC,
+    boldItalic: ARIMO_BOLDITALIC,
+  },
+  gelasio: {
+    regular: GELASIO_REGULAR,
+    bold: GELASIO_BOLD,
+    italic: GELASIO_ITALIC,
+    boldItalic: GELASIO_BOLDITALIC,
+  },
+  tinos: {
+    regular: TINOS_REGULAR,
+    bold: TINOS_BOLD,
+    italic: TINOS_ITALIC,
+    boldItalic: TINOS_BOLDITALIC,
+  },
+  cardo: {
+    regular: CARDO_REGULAR,
+    bold: CARDO_BOLD,
+    italic: CARDO_ITALIC,
+    boldItalic: CARDO_ITALIC,
+  },
+};
 
 // ─── Page geometry (US Letter, points) ─────────────────────────────
 const PAGE_W = 612;
@@ -66,15 +118,6 @@ const PAGE_H = 792;
 const MARGIN_SIDE = 50;
 const MARGIN_BOTTOM = 40;
 const CONTENT_W = PAGE_W - 2 * MARGIN_SIDE;
-
-// ─── Banner (fixed-size, does NOT scale) ───────────────────────────
-const BANNER_H = 118;
-const BANNER_TOP_PAD = 28; // top of banner → name baseline reference
-const BANNER_GAP_NAME_CONTACT = 12; // between name baseline and contact line
-const SIZE_NAME = 26; // banner name (fixed)
-const SIZE_CONTACT = 10; // banner contact (fixed)
-const TRACK_NAME = 2; // banner name letter spacing (fixed)
-const SP_AFTER_BANNER = 28; // breathing room before first section
 
 // ─── Default content typography (scaled by ctx.scale) ──────────────
 const SIZE_SECTION = 11; // section heading (UPPERCASE)
@@ -95,11 +138,26 @@ const TRACK_SECTION = 1; // ~9% of 11pt — subtle tracking
 // rendered on the cream page uses COLOR_TEXT. The banner has its own
 // pair of colors (cream name + slightly muted cream contact strip) since
 // they read on the dark banner background.
-const COLOR_BANNER_BG = rgb(44 / 255, 62 / 255, 80 / 255); // #2C3E50
-const COLOR_NAME = rgb(249 / 255, 245 / 255, 236 / 255); // #F9F5EC cream
-const COLOR_CONTACT = rgb(207 / 255, 216 / 255, 224 / 255); // #CFD8E0 muted cream
-const COLOR_PAGE = rgb(249 / 255, 245 / 255, 236 / 255); // #F9F5EC cream
 const COLOR_TEXT = rgb(44 / 255, 62 / 255, 80 / 255); // #2C3E50 — primary text on cream
+
+// ─── Clean-white template palette (matches the studio .cv-doc) ──────
+// Fixed across all five templates; only accent/case/rule/font vary per token.
+const COLOR_WHITE = rgb(1, 1, 1);
+const COLOR_INK = rgb(26 / 255, 26 / 255, 26 / 255); // #1A1A1A name + entry titles
+const COLOR_BODY = rgb(51 / 255, 49 / 255, 46 / 255); // #33312E bullets/body
+const COLOR_MUTED = rgb(138 / 255, 135 / 255, 130 / 255); // #8A8782 headline/dates
+
+// Header block (clean white, left-aligned). Fixed-height like the old banner so
+// the measure/draw fit only flows the SECTIONS below it.
+const HEADER_TOP_MARGIN = 50;
+const SIZE_NAME_HEADER = 28;
+const SIZE_HEADLINE = 14;
+const SIZE_CONTACT_H = 11.5;
+const HEADER_NAME_Y = PAGE_H - HEADER_TOP_MARGIN - SIZE_NAME_HEADER;
+const HEADER_HEADLINE_Y = HEADER_NAME_Y - 8 - SIZE_HEADLINE;
+const HEADER_CONTACT_Y = HEADER_HEADLINE_Y - 7 - SIZE_CONTACT_H;
+const SP_AFTER_HEADER = 26;
+const HEADER_CONTENT_TOP = HEADER_CONTACT_Y - SP_AFTER_HEADER;
 
 // ─── Line metrics (scale with ctx.scale) ───────────────────────────
 const LH_BODY = 12; // 10pt × 1.2
@@ -107,8 +165,6 @@ const LH_BULLET_GAP = 14; // 10pt × 1.4 between bullets
 const SP_SECTION_BEFORE = 28; // above section heading — bumped 20→28 for breathing room
 const SP_AFTER_ACCENT_LINE = 12; // after the accent line — bumped 10→12
 const SP_ENTRY_BEFORE = 14; // between sibling entries — bumped 10→14
-const SECTION_LINE_OFFSET = 6; // gap (pt) between heading baseline and the full-width underline
-const SECTION_LINE_THICKNESS = 1.5; // pt
 
 // ─── Shrink-to-fit bounds ───────────────────────────────────────────
 const SCALE_MIN = 0.55;
@@ -283,7 +339,9 @@ interface Fonts {
 interface Ctx {
   page: PDFPage;
   fonts: Fonts;
-  accent: any;
+  accent: any; // rgb of the template accent (section labels / rule / bullet dots)
+  labelCase: "uppercase" | "capitalize";
+  ruleOn: boolean;
   y: number;
   draw: boolean;
   scale: number;
@@ -323,47 +381,46 @@ function drawTracked(
   }
   return cursor;
 }
-function measureTracked(
-  text: string,
-  font: PDFFont,
-  size: number,
-  tracking: number,
-): number {
-  let w = 0;
-  for (const ch of text) w += font.widthOfTextAtSize(ch, size) + tracking;
-  return Math.max(0, w - tracking);
+
+function titleCase(label: string): string {
+  return label.replace(/\b\w/g, (c) => c.toUpperCase());
+}
+// 35% accent over white — matches the studio .cv-section-rule tint.
+function accentTint(accent: any) {
+  return rgb(
+    0.35 * accent.red + 0.65,
+    0.35 * accent.green + 0.65,
+    0.35 * accent.blue + 0.65,
+  );
 }
 
-// Section heading: 11pt tracked UPPERCASE in slate, with a full-width
-// line underneath. The accent line is the only sector-tinted element on
-// the page (besides the per-CV banner top stripe if added later).
+// Section heading: tracked label cased per the labelCase token, colored in the
+// template accent, with an optional accent-tinted rule line to the RIGHT of the
+// label (studio .cv-section-rule), drawn only when the rule token is on.
 function drawSectionHeading(ctx: Ctx, label: string) {
   ctx.y -= s(ctx, SP_SECTION_BEFORE);
   const headSize = s(ctx, SIZE_SECTION);
   const headTrack = s(ctx, TRACK_SECTION);
-  drawTracked(ctx, label.toUpperCase(), {
+  const text =
+    ctx.labelCase === "uppercase" ? label.toUpperCase() : titleCase(label);
+  const endX = drawTracked(ctx, text, {
     x: MARGIN_SIDE,
     y: ctx.y,
     size: headSize,
     font: ctx.fonts.bold,
-    color: COLOR_TEXT,
+    color: ctx.accent,
     tracking: headTrack,
   });
-  // Full-width hairline underline under the heading, drawn in the same
-  // slate color as the heading text (NOT the per-sector accent) so the
-  // line treatment reads consistently across all sector themes. Spans
-  // the entire content width edge-to-edge. The per-sector accent is
-  // currently unused in the render; reserved for future use.
-  const lineY = ctx.y - s(ctx, SECTION_LINE_OFFSET);
-  if (ctx.draw) {
+  if (ctx.ruleOn && ctx.draw) {
+    const ruleY = ctx.y + headSize * 0.35;
     ctx.page.drawLine({
-      start: { x: MARGIN_SIDE, y: lineY },
-      end: { x: PAGE_W - MARGIN_SIDE, y: lineY },
-      thickness: SECTION_LINE_THICKNESS,
-      color: COLOR_TEXT,
+      start: { x: endX + s(ctx, 10), y: ruleY },
+      end: { x: PAGE_W - MARGIN_SIDE, y: ruleY },
+      thickness: s(ctx, 1.5),
+      color: accentTint(ctx.accent),
     });
   }
-  ctx.y = lineY - s(ctx, SP_AFTER_ACCENT_LINE);
+  ctx.y -= s(ctx, SP_AFTER_ACCENT_LINE);
 }
 
 function drawEntryTitleLine(
@@ -379,7 +436,7 @@ function drawEntryTitleLine(
       y: ctx.y,
       size: s(ctx, SIZE_BODY),
       font: ctx.fonts.bold,
-      color: COLOR_TEXT,
+      color: COLOR_INK,
     });
   }
   const date = trim(dateRight);
@@ -392,7 +449,7 @@ function drawEntryTitleLine(
         y: ctx.y,
         size: dateSize,
         font: ctx.fonts.boldItalic,
-        color: COLOR_TEXT,
+        color: COLOR_MUTED,
       });
     }
   }
@@ -407,7 +464,7 @@ function drawSubLine(ctx: Ctx, text: string) {
       y: ctx.y,
       size: s(ctx, SIZE_SUBLINE),
       font: ctx.fonts.regular,
-      color: COLOR_TEXT,
+      color: COLOR_BODY,
     });
   }
 }
@@ -419,12 +476,11 @@ function drawBullet(ctx: Ctx, text: string) {
   const textWidth = CONTENT_W - bulletIndent;
   const bulletSize = s(ctx, SIZE_BULLET);
   if (ctx.draw) {
-    ctx.page.drawText("\u2022", {
-      x: MARGIN_SIDE + 3,
-      y: ctx.y,
-      size: bulletSize,
-      font: ctx.fonts.regular,
-      color: COLOR_TEXT,
+    ctx.page.drawCircle({
+      x: MARGIN_SIDE + 5,
+      y: ctx.y + bulletSize * 0.28,
+      size: s(ctx, 1.6),
+      color: ctx.accent,
     });
   }
   const lines = wrap(text, ctx.fonts.regular, bulletSize, textWidth);
@@ -436,52 +492,7 @@ function drawBullet(ctx: Ctx, text: string) {
         y: ctx.y,
         size: bulletSize,
         font: ctx.fonts.regular,
-        color: COLOR_TEXT,
-      });
-    }
-  }
-}
-
-// Skills grid row: bold label in left column, comma-joined values in
-// right column. Values wrap to multiple lines if they overflow the
-// right column width.
-const SKILLS_LABEL_COL_W = 70;
-function drawSkillsRow(ctx: Ctx, label: string, items: string[]) {
-  const value = (items || []).map(trim).filter(Boolean).join(", ");
-  if (!value) return;
-  ctx.y -= s(ctx, LH_BULLET_GAP);
-  const bulletSize = s(ctx, SIZE_BULLET);
-  if (ctx.draw) {
-    ctx.page.drawText(label, {
-      x: MARGIN_SIDE,
-      y: ctx.y,
-      size: bulletSize,
-      font: ctx.fonts.bold,
-      color: COLOR_TEXT,
-    });
-  }
-  const valueX = MARGIN_SIDE + s(ctx, SKILLS_LABEL_COL_W);
-  const valueWidth = PAGE_W - MARGIN_SIDE - valueX;
-  const valueLines = wrap(value, ctx.fonts.regular, bulletSize, valueWidth);
-  if (valueLines.length === 0) return;
-  if (ctx.draw) {
-    ctx.page.drawText(valueLines[0], {
-      x: valueX,
-      y: ctx.y,
-      size: bulletSize,
-      font: ctx.fonts.regular,
-      color: COLOR_TEXT,
-    });
-  }
-  for (let i = 1; i < valueLines.length; i++) {
-    ctx.y -= s(ctx, LH_BODY);
-    if (ctx.draw) {
-      ctx.page.drawText(valueLines[i], {
-        x: valueX,
-        y: ctx.y,
-        size: bulletSize,
-        font: ctx.fonts.regular,
-        color: COLOR_TEXT,
+        color: COLOR_BODY,
       });
     }
   }
@@ -519,7 +530,7 @@ function drawBodyParagraph(ctx: Ctx, text: string) {
         y: ctx.y,
         size: bodySize,
         font: ctx.fonts.regular,
-        color: COLOR_TEXT,
+        color: COLOR_BODY,
       });
     }
   }
@@ -528,57 +539,45 @@ function drawBodyParagraph(ctx: Ctx, text: string) {
 // ─── Banner header (fixed-size, no scale) ──────────────────────────
 // Draws only when ctx.draw === true. The measure pass skips it; banner
 // height is accounted for separately in buildCvPdf().
-function renderBanner(ctx: Ctx, cvData: CvData, userContext: UserContext) {
+// Clean-white header (no banner): name 28pt bold ink, headline 14pt muted,
+// mid-dot contact row — all left-aligned at the side margin, matching the
+// studio .cv-doc. Fixed position from the top; sections flow below.
+function renderHeader(ctx: Ctx, cvData: CvData, userContext: UserContext) {
   if (!ctx.draw) return;
-  const headerName = trim(cvData.header?.name || userContext.full_name);
-  const name = headerName.toUpperCase();
+  const name = trim(cvData.header?.name || userContext.full_name);
+  const headline = trim(cvData.header?.subtitle);
   const contactBits = [
-    cvData.header?.phone || userContext.phone_number,
     cvData.header?.email || userContext.email,
-    cvData.header?.location || userContext.location,
     cvData.header?.linkedin || userContext.linkedin_url,
+    cvData.header?.location || userContext.location,
+    cvData.header?.phone || userContext.phone_number,
   ]
     .map((v) => trim(v))
     .filter(Boolean);
 
-  // Full-width dark banner
-  const bannerY = PAGE_H - BANNER_H;
-  ctx.page.drawRectangle({
-    x: 0,
-    y: bannerY,
-    width: PAGE_W,
-    height: BANNER_H,
-    color: COLOR_BANNER_BG,
-  });
-
-  // Name (tracked caps, cream, centered) — baseline at BANNER_TOP_PAD
-  // from top of banner.
-  const nameBaselineY = PAGE_H - BANNER_TOP_PAD - SIZE_NAME;
-  const nameW = measureTracked(name, ctx.fonts.bold, SIZE_NAME, TRACK_NAME);
-  const nameX = MARGIN_SIDE + (CONTENT_W - nameW) / 2;
-  // Pass a temporary "always draw" ctx for the tracked draw helper.
-  // The outer renderBanner is gated already; reuse drawTracked with the
-  // same ctx since draw is true here.
-  drawTracked(ctx, name, {
-    x: nameX,
-    y: nameBaselineY,
-    size: SIZE_NAME,
+  ctx.page.drawText(name, {
+    x: MARGIN_SIDE,
+    y: HEADER_NAME_Y,
+    size: SIZE_NAME_HEADER,
     font: ctx.fonts.bold,
-    color: COLOR_NAME,
-    tracking: TRACK_NAME,
+    color: COLOR_INK,
   });
-
-  // Contact strip — centered, muted cream on dark.
-  if (contactBits.length > 0) {
-    const contactY = nameBaselineY - BANNER_GAP_NAME_CONTACT - SIZE_CONTACT;
-    const contact = contactBits.join("  \u00B7  ");
-    const contactW = ctx.fonts.regular.widthOfTextAtSize(contact, SIZE_CONTACT);
-    ctx.page.drawText(contact, {
-      x: MARGIN_SIDE + (CONTENT_W - contactW) / 2,
-      y: contactY,
-      size: SIZE_CONTACT,
+  if (headline) {
+    ctx.page.drawText(headline, {
+      x: MARGIN_SIDE,
+      y: HEADER_HEADLINE_Y,
+      size: SIZE_HEADLINE,
       font: ctx.fonts.regular,
-      color: COLOR_CONTACT,
+      color: COLOR_MUTED,
+    });
+  }
+  if (contactBits.length > 0) {
+    ctx.page.drawText(contactBits.join("  \u00B7  "), {
+      x: MARGIN_SIDE,
+      y: HEADER_CONTACT_Y,
+      size: SIZE_CONTACT_H,
+      font: ctx.fonts.regular,
+      color: COLOR_BODY,
     });
   }
 }
@@ -696,11 +695,16 @@ function renderEducation(ctx: Ctx, cvData: CvData) {
 // Skills: 2-column grid with bold label column + values column.
 function renderSkills(ctx: Ctx, cvData: CvData) {
   const sk = cvData.skills || {};
-  if (!(sk.domain?.length || sk.tools?.length || sk.technical?.length)) return;
-  drawSectionHeading(ctx, "Skills & Tools");
-  if (sk.domain?.length) drawSkillsRow(ctx, "Domain", sk.domain);
-  if (sk.tools?.length) drawSkillsRow(ctx, "Tools", sk.tools);
-  if (sk.technical?.length) drawSkillsRow(ctx, "Technical", sk.technical);
+  const all = [
+    ...(sk.domain || []),
+    ...(sk.tools || []),
+    ...(sk.technical || []),
+  ]
+    .map(trim)
+    .filter(Boolean);
+  if (all.length === 0) return;
+  drawSectionHeading(ctx, "Skills");
+  drawBodyParagraph(ctx, all.join("  ·  "));
 }
 
 // Languages — defensive normalization (handles the no-separator
@@ -812,39 +816,42 @@ export async function buildCvPdf(
   userContext: UserContext,
   config: TemplateConfig,
 ): Promise<Uint8Array> {
+  // STEP A (template-id plumbing): the selected template id now arrives here.
+  // It is INERT in this step — logged only, never read by any measure/draw
+  // path — so output is unchanged regardless of value. Later steps map the id
+  // to a font/accent/case/rule design. See cv-template-rendering-spec.md.
+  console.log(`[CV-PDF] template: ${config.template ?? "(none → default)"}`);
+
   const pdfDoc = await PDFDocument.create();
   pdfDoc.registerFontkit(fontkit);
   const page = pdfDoc.addPage([PAGE_W, PAGE_H]);
 
-  // Arimo (Apache-2.0), metric-compatible with Helvetica so the output is
-  // visually ~identical, but with full Latin coverage — the WinAnsi-only
-  // StandardFonts.Helvetica* embeds threw on any non-WinAnsi glyph (e.g. "ā").
-  // subset: true keeps the embedded font (and thus the output PDF) small.
+  // Resolve the template + its tokens up front: family drives which font bytes
+  // we embed; accent/case/rule drive the rendering.
+  const tpl = getTemplateRender(config.template);
+  const accent = hexToRgb(tpl.accentHex);
+  const fb = FONT_BYTES[tpl.family] ?? FONT_BYTES.arimo;
+
+  // Embed the family's weights (Arimo sans for modern/sharp; Gelasio/Tinos/Cardo
+  // serif for editorial/executive/refined). subset:true keeps the PDF small.
   const fonts: Fonts = {
-    regular: await pdfDoc.embedFont(ARIMO_REGULAR, { subset: true }),
-    bold: await pdfDoc.embedFont(ARIMO_BOLD, { subset: true }),
-    italic: await pdfDoc.embedFont(ARIMO_ITALIC, { subset: true }),
-    boldItalic: await pdfDoc.embedFont(ARIMO_BOLDITALIC, { subset: true }),
+    regular: await pdfDoc.embedFont(fb.regular, { subset: true }),
+    bold: await pdfDoc.embedFont(fb.bold, { subset: true }),
+    italic: await pdfDoc.embedFont(fb.italic, { subset: true }),
+    boldItalic: await pdfDoc.embedFont(fb.boldItalic, { subset: true }),
   };
 
-  // ── Sanitize chokepoint ──────────────────────────────────────────────
-  // After the embed (the sanitizer reads the font's cmap) and BEFORE the
-  // measure pass below (widthOfTextAtSize encodes too, not just drawText):
-  // strip every codepoint Arimo can't render from all string fields in
-  // cvData + userContext — the only sources of drawn user text. Keeps the
-  // renderer structurally unable to throw on any input. See
-  // makeCodepointSanitizer above for the keep/fallback/drop rule.
+  // Sanitize chokepoint: strip codepoints the EMBEDDED font can't render
+  // (cmap-driven) from all drawn strings, so the renderer can't throw on any
+  // input. See makeCodepointSanitizer.
   const sanitize = makeCodepointSanitizer(
-    fontkit.create(ARIMO_REGULAR) as GlyphFont,
+    fontkit.create(fb.regular) as GlyphFont,
   );
   const cv = deepSanitizeStrings(cvData, sanitize) as CvData;
   const uc = deepSanitizeStrings(userContext, sanitize) as UserContext;
 
-  const accent = hexToRgb(config.theme.accentHex || "4A6B5D");
-
-  // Content area sits BELOW the fixed-size banner. Available vertical
-  // space for sections is calculated from that.
-  const contentTopY = PAGE_H - BANNER_H - SP_AFTER_BANNER;
+  // Clean-white header is fixed-height; sections flow below it.
+  const contentTopY = HEADER_CONTENT_TOP;
   const contentAvailableH = contentTopY - MARGIN_BOTTOM;
 
   // ─── Pass 1: MEASURE (sections only — banner is fixed) ───
@@ -852,6 +859,8 @@ export async function buildCvPdf(
     page,
     fonts,
     accent,
+    labelCase: tpl.labelCase,
+    ruleOn: tpl.rule,
     y: contentTopY,
     draw: false,
     scale: SCALE_MAX,
@@ -870,24 +879,25 @@ export async function buildCvPdf(
   );
 
   // ─── Pass 2: DRAW ───
-  // Cream page background first (covers everything), then dark banner on
-  // top of that (covers only the top BANNER_H strip), then content below.
+  // White page (clean-white templates); header + sections drawn on top.
   page.drawRectangle({
     x: 0,
     y: 0,
     width: PAGE_W,
     height: PAGE_H,
-    color: COLOR_PAGE,
+    color: COLOR_WHITE,
   });
   const drawCtx: Ctx = {
     page,
     fonts,
     accent,
+    labelCase: tpl.labelCase,
+    ruleOn: tpl.rule,
     y: contentTopY,
     draw: true,
     scale,
   };
-  renderBanner(drawCtx, cv, uc);
+  renderHeader(drawCtx, cv, uc);
   renderAllSections(drawCtx, cv, config.sectionOrder);
 
   return await pdfDoc.save();

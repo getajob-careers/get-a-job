@@ -1,0 +1,68 @@
+{
+  "header": {
+    "name": "Dana Cohen",
+    "subtitle": "Data Analyst",
+    "email": "dana@example.com",
+    "phone": "+972-50-000-0000",
+    "location": "Tel Aviv",
+    "linkedin": "linkedin.com/in/dana"
+  },
+  "summary": "Data analyst with three years in fintech, focused on reporting automation and decision support.",
+  "professional_experiences": [
+    {
+      "title": "Data Analyst",
+      "company": "Acme",
+      "dates": "2023 – Present",
+      "bullets": [
+        "Built executive dashboards used across three departments",
+        "Cut monthly reporting time by automating the ETL pipeline"
+      ]
+    }
+  ],
+  "military_experiences": [
+    {
+      "title": "Sergeant",
+      "unit": "IDF Unit 8200",
+      "dates": "2018 – 2021",
+      "bullets": ["Led a team of twelve in signals analysis"]
+    }
+  ],
+  "volunteering_experiences": [
+    {
+      "title": "Mentor",
+      "organization": "Hi-Tech for Good",
+      "dates": "2022",
+      "bullets": ["Mentored five students into their first analytics roles"]
+    }
+  ],
+  "leadership_experiences": [
+    {
+      "title": "President",
+      "organization": "Economics Society",
+      "dates": "2022",
+      "bullets": ["Ran the weekly speaker series and grew membership"]
+    }
+  ],
+  "education": [
+    {
+      "institution": "Tel Aviv University",
+      "degree": "B.A.",
+      "field_of_study": "Economics",
+      "dates": "2021",
+      "gpa": "3.8",
+      "coursework": ["Econometrics", "Statistics"],
+      "academic_projects": ["Inflation forecasting model"],
+      "activities": ["Debate club"]
+    }
+  ],
+  "skills": {
+    "domain": ["Financial modeling", "Forecasting"],
+    "tools": ["Excel", "Tableau"],
+    "technical": ["SQL", "Python"],
+    "languages": ["Hebrew", "English"]
+  },
+  "languages": [
+    { "language": "Hebrew", "proficiency": "Native" },
+    { "language": "English", "proficiency": "Fluent" }
+  ]
+}
