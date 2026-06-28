@@ -400,7 +400,8 @@ function useLandingV2Head() {
     if (!tabler) {
       tabler = document.createElement("link");
       tabler.rel = "stylesheet";
-      tabler.href = "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css";
+      tabler.href =
+        "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css";
       tabler.setAttribute("data-lv-tabler", "");
       document.head.appendChild(tabler);
     }
@@ -437,7 +438,9 @@ function lvScrollTo(e, target) {
     return;
   }
   if (snapInstance && snapInstance.stop) snapInstance.stop();
-  const resume = () => { if (snapInstance && snapInstance.start) snapInstance.start(); };
+  const resume = () => {
+    if (snapInstance && snapInstance.start) snapInstance.start();
+  };
   lenisInstance.scrollTo(target, { duration: 1.1, onComplete: resume });
   setTimeout(resume, 1700);
 }
@@ -461,7 +464,8 @@ function setupSnap(lenis) {
         distanceThreshold: "38%",
         debounce: 200,
         duration: 0.6,
-        easing: (t) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2),
+        easing: (t) =>
+          t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
       });
       ["#features"].forEach((s) => {
         const el = document.querySelector(s);
@@ -471,7 +475,11 @@ function setupSnap(lenis) {
       console.info("[landing-v2] snap addon active");
     })
     .catch((e) => console.warn("[landing-v2] snap addon unavailable", e));
-  return () => { cancelled = true; snapInstance = null; if (snap && snap.destroy) snap.destroy(); };
+  return () => {
+    cancelled = true;
+    snapInstance = null;
+    if (snap && snap.destroy) snap.destroy();
+  };
 }
 
 function useMotion() {
@@ -485,8 +493,14 @@ function useMotion() {
     const featTitle = document.querySelector(".lv-feat-title");
     const clamp01 = (v) => (v < 0 ? 0 : v > 1 ? 1 : v);
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      reveals.forEach((el) => { el.style.opacity = "1"; el.style.transform = "none"; });
-      if (heroWrap) { heroWrap.style.opacity = "1"; heroWrap.style.transform = "none"; }
+      reveals.forEach((el) => {
+        el.style.opacity = "1";
+        el.style.transform = "none";
+      });
+      if (heroWrap) {
+        heroWrap.style.opacity = "1";
+        heroWrap.style.transform = "none";
+      }
       if (featTitle) featTitle.style.opacity = "1";
       return undefined;
     }
@@ -496,7 +510,9 @@ function useMotion() {
       parallax.forEach((el) => {
         el.style.transform = "";
         const r = el.getBoundingClientRect();
-        el.dataset.base = String(Math.round(r.top + window.scrollY + r.height / 2));
+        el.dataset.base = String(
+          Math.round(r.top + window.scrollY + r.height / 2),
+        );
       });
 
     // Reveal each .lv-reveal block ONCE, when its top crosses into view: set
@@ -536,7 +552,10 @@ function useMotion() {
         const ty = Math.min(y, heroH);
         heroWrap.style.opacity = heroOp.toFixed(3);
         heroWrap.style.transform = `translateY(${ty.toFixed(1)}px) scale(${(0.7 + 0.3 * heroOp).toFixed(4)})`;
-        if (featTitle) featTitle.style.opacity = clamp01((y - 0.45 * heroH) / (0.5 * heroH)).toFixed(3);
+        if (featTitle)
+          featTitle.style.opacity = clamp01(
+            (y - 0.45 * heroH) / (0.5 * heroH),
+          ).toFixed(3);
       }
     };
 
@@ -545,7 +564,12 @@ function useMotion() {
     // gets pushed down — showing already-on, un-animated). The hero's entrance
     // fires the moment we arm.
     measure();
-    const arm = () => { if (!armed) { armed = true; measure(); } };
+    const arm = () => {
+      if (!armed) {
+        armed = true;
+        measure();
+      }
+    };
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(arm);
     setTimeout(arm, 600);
     // Build marker so we can confirm in the console which motion build is live.
@@ -583,9 +607,17 @@ function useMotion() {
     // where rAF is paused but scroll events still fire).
     const onScroll = () => update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    const onResize = () => { measure(); update(); };
+    const onResize = () => {
+      measure();
+      update();
+    };
     window.addEventListener("resize", onResize);
-    const onVis = () => { if (!document.hidden) { measure(); update(); } };
+    const onVis = () => {
+      if (!document.hidden) {
+        measure();
+        update();
+      }
+    };
     document.addEventListener("visibilitychange", onVis);
 
     return () => {
@@ -615,7 +647,10 @@ function useStickyProgress(outerRef, steps, setActive) {
       if (outer) {
         const scrollable = outer.offsetHeight - window.innerHeight;
         if (scrollable > 40) {
-          const p = Math.min(1, Math.max(0, -outer.getBoundingClientRect().top / scrollable));
+          const p = Math.min(
+            1,
+            Math.max(0, -outer.getBoundingClientRect().top / scrollable),
+          );
           const idx = Math.max(0, Math.min(steps - 1, Math.floor(p * steps)));
           setActive((prev) => (prev === idx ? prev : idx));
         }
@@ -639,12 +674,19 @@ function Nav({ isLoggedIn, onCTA }) {
     <nav className={`lv-nav${scrolled ? " scrolled" : ""}`}>
       <div className="lv-wrap lv-nav-in">
         <div className="lv-logo">
-          getajob<span className="dot" />
+          getajob
+          <span className="dot" />
         </div>
         <div className="lv-nav-pill">
-          <a href="#features" onClick={(e) => lvScrollTo(e, "#features")}>Features</a>
-          <a href="#how" onClick={(e) => lvScrollTo(e, "#how")}>How it works</a>
-          <a href="#faq" onClick={(e) => lvScrollTo(e, "#faq")}>FAQ</a>
+          <a href="#features" onClick={(e) => lvScrollTo(e, "#features")}>
+            Features
+          </a>
+          <a href="#how" onClick={(e) => lvScrollTo(e, "#how")}>
+            How it works
+          </a>
+          <a href="#faq" onClick={(e) => lvScrollTo(e, "#faq")}>
+            FAQ
+          </a>
         </div>
         <div className="lv-nav-right">
           <button type="button" className="btn btn-ink btn-sm" onClick={onCTA}>
@@ -693,12 +735,22 @@ function DropZone({ onUpload }) {
         start(e.dataTransfer.files?.[0]);
       }}
     >
-      <input ref={inputRef} type="file" accept=".pdf,.doc,.docx" style={{ display: "none" }} onChange={(e) => start(e.target.files?.[0])} />
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".pdf,.doc,.docx"
+        style={{ display: "none" }}
+        onChange={(e) => start(e.target.files?.[0])}
+      />
       {busy ? (
         <>
-          <div className="lv-drop-ic"><i className="ti ti-circle-check" /></div>
+          <div className="lv-drop-ic">
+            <i className="ti ti-circle-check" />
+          </div>
           <div className="lv-drop-t">Saved to this browser</div>
-          <div className="lv-drop-s">Taking you to sign up. Your CV carries over.</div>
+          <div className="lv-drop-s">
+            Taking you to sign up. Your CV carries over.
+          </div>
         </>
       ) : drag ? (
         <>
@@ -718,7 +770,8 @@ function DropZone({ onUpload }) {
           </div>
           <div className="lv-drop-cta">
             <span className="btn btn-accent btn-sm">
-              Upload &amp; see your roadmap <i className="ti ti-arrow-up-right" />
+              Upload &amp; see your roadmap{" "}
+              <i className="ti ti-arrow-up-right" />
             </span>
           </div>
         </>
@@ -734,9 +787,22 @@ function DropZone({ onUpload }) {
 // count-up; stats 3-4 are text-only (icon plus a line, no number). Text-only
 // stats omit `to`; the render keys off that.
 const HERO_STATS = [
-  { to: 4000, suffix: "+", label: "live roles in Israel", icon: "ti-briefcase" },
-  { to: 350, suffix: "+", label: "companies hiring now", icon: "ti-building-skyscraper" },
-  { text: "Sourced direct from company career pages", icon: "ti-plug-connected" },
+  {
+    to: 4000,
+    suffix: "+",
+    label: "live roles in Israel",
+    icon: "ti-briefcase",
+  },
+  {
+    to: 350,
+    suffix: "+",
+    label: "companies hiring now",
+    icon: "ti-building-skyscraper",
+  },
+  {
+    text: "Sourced direct from company career pages",
+    icon: "ti-plug-connected",
+  },
   { text: "Refreshed every night", icon: "ti-moon" },
 ];
 
@@ -751,14 +817,19 @@ function Odometer({ value, suffix = "", delay = 0 }) {
     const root = ref.current;
     if (!root) return undefined;
     const reels = root.querySelectorAll(".lv-od-reel");
-    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const id = setTimeout(() => {
-      reels.forEach((r, i) => {
-        if (reduce) r.style.transition = "none";
-        else r.style.transitionDelay = `${(delay + i * 0.07).toFixed(2)}s`;
-        r.style.transform = `translateY(-${r.dataset.final}em)`;
-      });
-    }, reduce ? 0 : 90);
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const id = setTimeout(
+      () => {
+        reels.forEach((r, i) => {
+          if (reduce) r.style.transition = "none";
+          else r.style.transitionDelay = `${(delay + i * 0.07).toFixed(2)}s`;
+          r.style.transform = `translateY(-${r.dataset.final}em)`;
+        });
+      },
+      reduce ? 0 : 90,
+    );
     return () => clearTimeout(id);
   }, [str, delay]);
   return (
@@ -788,10 +859,44 @@ function Odometer({ value, suffix = "", delay = 0 }) {
 function Hero({ onCTA }) {
   return (
     <header className="lv-hero lv-dots">
-      <div className="lv-deco lv-ring dash" data-parallax="-0.16" style={{ width: 320, height: 320, top: -80, right: -60 }} aria-hidden="true" />
-      <div className="lv-deco lv-griddots" data-parallax="0.13" style={{ width: 132, height: 132, bottom: 30, left: 10 }} aria-hidden="true" />
-      <div className="lv-deco lv-blob" data-parallax="0.2" style={{ width: 260, height: 260, background: "var(--accent)", opacity: 0.16, top: 70, left: -110 }} aria-hidden="true" />
-      <div className="lv-deco lv-blob" data-parallax="-0.1" style={{ width: 220, height: 220, background: "var(--teal)", opacity: 0.13, bottom: -60, right: 60 }} aria-hidden="true" />
+      <div
+        className="lv-deco lv-ring dash"
+        data-parallax="-0.16"
+        style={{ width: 320, height: 320, top: -80, right: -60 }}
+        aria-hidden="true"
+      />
+      <div
+        className="lv-deco lv-griddots"
+        data-parallax="0.13"
+        style={{ width: 132, height: 132, bottom: 30, left: 10 }}
+        aria-hidden="true"
+      />
+      <div
+        className="lv-deco lv-blob"
+        data-parallax="0.2"
+        style={{
+          width: 260,
+          height: 260,
+          background: "var(--accent)",
+          opacity: 0.16,
+          top: 70,
+          left: -110,
+        }}
+        aria-hidden="true"
+      />
+      <div
+        className="lv-deco lv-blob"
+        data-parallax="-0.1"
+        style={{
+          width: 220,
+          height: 220,
+          background: "var(--teal)",
+          opacity: 0.13,
+          bottom: -60,
+          right: 60,
+        }}
+        aria-hidden="true"
+      />
       <div className="lv-wrap">
         <div className="lv-hero-top">
           <h1 className="lv-reveal">
@@ -800,13 +905,18 @@ function Hero({ onCTA }) {
             <span className="accent">One place that knows you.</span>
           </h1>
           <p className="lv-hero-sub lv-reveal" data-d="1">
-            A ranked roadmap, CVs tailored to each job, and live matches — all built from one profile and <strong>kept in sync</strong>.
+            A ranked roadmap, CVs tailored to each job, and live matches — all
+            built from one profile and <strong>kept in sync</strong>.
           </p>
           <div className="lv-hero-cta lv-reveal" data-d="2">
             <button type="button" className="btn btn-accent" onClick={onCTA}>
               Start here <i className="ti ti-arrow-up-right" />
             </button>
-            <a className="lv-hero-link" href="#features" onClick={(e) => lvScrollTo(e, "#features")}>
+            <a
+              className="lv-hero-link"
+              href="#features"
+              onClick={(e) => lvScrollTo(e, "#features")}
+            >
               See how it works <i className="ti ti-arrow-down" />
             </a>
           </div>
@@ -836,13 +946,33 @@ function Hero({ onCTA }) {
 function DropSection({ onUpload }) {
   return (
     <section className="lv-section lv-dropsec lv-clip" id="start">
-      <div className="lv-deco lv-ring dash" data-parallax="-0.12" style={{ width: 240, height: 240, top: -60, left: -50 }} aria-hidden="true" />
-      <div className="lv-deco lv-blob" data-parallax="0.16" style={{ width: 240, height: 240, background: "var(--accent)", opacity: 0.12, bottom: -70, right: -40 }} aria-hidden="true" />
+      <div
+        className="lv-deco lv-ring dash"
+        data-parallax="-0.12"
+        style={{ width: 240, height: 240, top: -60, left: -50 }}
+        aria-hidden="true"
+      />
+      <div
+        className="lv-deco lv-blob"
+        data-parallax="0.16"
+        style={{
+          width: 240,
+          height: 240,
+          background: "var(--accent)",
+          opacity: 0.12,
+          bottom: -70,
+          right: -40,
+        }}
+        aria-hidden="true"
+      />
       <div className="lv-wrap">
         <div className="lv-head center lv-reveal">
           <div className="lv-eyebrow">Start in minutes</div>
           <h2>Drop your CV. We&apos;ll build the rest.</h2>
-          <p>Your roadmap, tailored resumes, and live matches — from a single upload.</p>
+          <p>
+            Your roadmap, tailored resumes, and live matches — from a single
+            upload.
+          </p>
         </div>
         <div className="lv-hero-drop lv-reveal" data-d="1">
           <DropZone onUpload={onUpload} />
@@ -880,8 +1010,17 @@ const FEATURES = [
         ].map(([role, t, c, fit]) => (
           <div className="lv-sc-row" key={role}>
             <span>{role}</span>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 10 }}>
-              <span style={{ fontFamily: "var(--font-d)", color: "var(--ink-soft)" }}>{fit}</span>
+            <span
+              style={{ display: "inline-flex", alignItems: "center", gap: 10 }}
+            >
+              <span
+                style={{
+                  fontFamily: "var(--font-d)",
+                  color: "var(--ink-soft)",
+                }}
+              >
+                {fit}
+              </span>
               <span className={`lv-sc-pill ${c}`}>{t}</span>
             </span>
           </div>
@@ -897,22 +1036,70 @@ const FEATURES = [
     screen: (
       <>
         <div className="lv-sc-eye">Tailored · Associate PM at Tavor</div>
-        <div style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12, padding: 16 }}>
-          <div style={{ fontFamily: "var(--font-d)", fontWeight: 700, fontSize: 15, marginBottom: 13 }}>Maya Levi — Product</div>
+        <div
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--line)",
+            borderRadius: 12,
+            padding: 16,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--font-d)",
+              fontWeight: 700,
+              fontSize: 15,
+              marginBottom: 13,
+            }}
+          >
+            Maya Levi — Product
+          </div>
           {[100, 90].map((w) => (
-            <div key={w} style={{ height: 7, width: `${w}%`, background: "var(--bg-warm)", borderRadius: 99, marginBottom: 10 }} />
+            <div
+              key={w}
+              style={{
+                height: 7,
+                width: `${w}%`,
+                background: "var(--bg-warm)",
+                borderRadius: 99,
+                marginBottom: 10,
+              }}
+            />
           ))}
-          {["Partnered with engineering to ship a new customer intake workflow", "Turned recurring support themes into a prioritised product backlog"].map((t) => (
+          {[
+            "Partnered with engineering to ship a new customer intake workflow",
+            "Turned recurring support themes into a prioritised product backlog",
+          ].map((t) => (
             <div
               key={t}
-              style={{ background: "var(--accent-tint)", color: "var(--accent-deep)", fontSize: 12, fontWeight: 600, borderRadius: 7, padding: "8px 11px", marginBottom: 9 }}
+              style={{
+                background: "var(--accent-tint)",
+                color: "var(--accent-deep)",
+                fontSize: 12,
+                fontWeight: 600,
+                borderRadius: 7,
+                padding: "8px 11px",
+                marginBottom: 9,
+              }}
             >
-              <i className="ti ti-sparkles" style={{ fontSize: 12, marginRight: 6 }} />
+              <i
+                className="ti ti-sparkles"
+                style={{ fontSize: 12, marginRight: 6 }}
+              />
               {t}
             </div>
           ))}
           {[86, 68].map((w) => (
-            <div key={w} style={{ height: 7, width: `${w}%`, background: "var(--bg-warm)", borderRadius: 99, marginBottom: 10 }} />
+            <div
+              key={w}
+              style={{
+                height: 7,
+                width: `${w}%`,
+                background: "var(--bg-warm)",
+                borderRadius: 99,
+                marginBottom: 10,
+              }}
+            />
           ))}
         </div>
       </>
@@ -927,19 +1114,61 @@ const FEATURES = [
       <>
         <div className="lv-sc-eye">Live matches · today</div>
         {[
-          ["A", "Associate PM", "Tavor · Tel Aviv", "Strong match", "var(--teal)", "var(--teal-tint)"],
-          ["K", "Product Analyst", "Keshet Labs · Tel Aviv", "Strong match", "var(--teal)", "var(--teal-tint)"],
-          ["N", "Business Analyst", "Nimbus IL · Ramat Gan", "Good match", "var(--golden)", "var(--golden-tint)"],
+          [
+            "A",
+            "Associate PM",
+            "Tavor · Tel Aviv",
+            "Strong match",
+            "var(--teal)",
+            "var(--teal-tint)",
+          ],
+          [
+            "K",
+            "Product Analyst",
+            "Keshet Labs · Tel Aviv",
+            "Strong match",
+            "var(--teal)",
+            "var(--teal-tint)",
+          ],
+          [
+            "N",
+            "Business Analyst",
+            "Nimbus IL · Ramat Gan",
+            "Good match",
+            "var(--golden)",
+            "var(--golden-tint)",
+          ],
         ].map(([ini, role, co, band, fg, bg]) => (
           <div className="lv-sc-row" key={role}>
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 11 }}>
-              <span className="lv-sc-sq" style={{ background: "var(--accent-tint)", color: "var(--accent-deep)" }}>{ini}</span>
+            <span
+              style={{ display: "inline-flex", alignItems: "center", gap: 11 }}
+            >
+              <span
+                className="lv-sc-sq"
+                style={{
+                  background: "var(--accent-tint)",
+                  color: "var(--accent-deep)",
+                }}
+              >
+                {ini}
+              </span>
               <span>
                 <span style={{ display: "block" }}>{role}</span>
-                <span style={{ display: "block", fontSize: 11, fontWeight: 400, color: "var(--ink-faint)" }}>{co}</span>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 11,
+                    fontWeight: 400,
+                    color: "var(--ink-faint)",
+                  }}
+                >
+                  {co}
+                </span>
               </span>
             </span>
-            <span className="lv-sc-pill" style={{ background: bg, color: fg }}>{band}</span>
+            <span className="lv-sc-pill" style={{ background: bg, color: fg }}>
+              {band}
+            </span>
           </div>
         ))}
       </>
@@ -953,21 +1182,70 @@ const FEATURES = [
     screen: (
       <>
         <div className="lv-sc-eye">Pipeline · 6 applications</div>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 7 }}>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(4, 1fr)",
+            gap: 7,
+          }}
+        >
           {[
             ["Saved", "var(--ink-faint)", ["Tavor", "Keshet Labs"]],
             ["Applied", "var(--golden)", ["Nimbus IL", "Arava Systems"]],
             ["Interview", "var(--teal)", ["Galil Digital"]],
             ["Offer", "var(--accent)", ["Shoval"]],
           ].map(([label, dot, cards]) => (
-            <div key={label} style={{ background: "var(--bg-warm)", borderRadius: 10, padding: 8, minHeight: 158 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 5, marginBottom: 9 }}>
-                <span style={{ width: 6, height: 6, borderRadius: 99, background: dot }} />
+            <div
+              key={label}
+              style={{
+                background: "var(--bg-warm)",
+                borderRadius: 10,
+                padding: 8,
+                minHeight: 158,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  marginBottom: 9,
+                }}
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 99,
+                    background: dot,
+                  }}
+                />
                 <span style={{ fontSize: 10.5, fontWeight: 600 }}>{label}</span>
-                <span style={{ fontSize: 10, color: "var(--ink-faint)", marginLeft: "auto" }}>{cards.length}</span>
+                <span
+                  style={{
+                    fontSize: 10,
+                    color: "var(--ink-faint)",
+                    marginLeft: "auto",
+                  }}
+                >
+                  {cards.length}
+                </span>
               </div>
               {cards.map((c) => (
-                <div key={c} style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 8, padding: "8px 9px", marginBottom: 6, fontSize: 11, fontWeight: 600 }}>{c}</div>
+                <div
+                  key={c}
+                  style={{
+                    background: "var(--card)",
+                    border: "1px solid var(--line)",
+                    borderRadius: 8,
+                    padding: "8px 9px",
+                    marginBottom: 6,
+                    fontSize: 11,
+                    fontWeight: 600,
+                  }}
+                >
+                  {c}
+                </div>
               ))}
             </div>
           ))}
@@ -983,25 +1261,86 @@ const FEATURES = [
     screen: (
       <>
         <div className="lv-sc-eye">Coach · career agent</div>
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 11 }}>
-          <div style={{ background: "var(--accent-tint)", color: "var(--accent-deep)", borderRadius: "12px 12px 4px 12px", padding: "10px 13px", fontSize: 12.5, fontWeight: 600, maxWidth: "82%" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            marginBottom: 11,
+          }}
+        >
+          <div
+            style={{
+              background: "var(--accent-tint)",
+              color: "var(--accent-deep)",
+              borderRadius: "12px 12px 4px 12px",
+              padding: "10px 13px",
+              fontSize: 12.5,
+              fontWeight: 600,
+              maxWidth: "82%",
+            }}
+          >
             What should I do next for the Associate PM role at Tavor?
           </div>
         </div>
         <div style={{ display: "flex", gap: 9, marginBottom: 13 }}>
-          <span className="lv-sc-sq" style={{ background: "var(--ink-deep)", color: "#fff", flexShrink: 0 }}>
+          <span
+            className="lv-sc-sq"
+            style={{
+              background: "var(--ink-deep)",
+              color: "#fff",
+              flexShrink: 0,
+            }}
+          >
             <i className="ti ti-sparkles" style={{ fontSize: 13 }} />
           </span>
-          <div style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: "12px 12px 12px 4px", padding: "10px 13px", fontSize: 12.5, fontWeight: 500, color: "var(--ink-soft)", maxWidth: "82%" }}>
-            Your CV still reads ops-first. Tailor it to product language before you apply.
+          <div
+            style={{
+              background: "var(--card)",
+              border: "1px solid var(--line)",
+              borderRadius: "12px 12px 12px 4px",
+              padding: "10px 13px",
+              fontSize: 12.5,
+              fontWeight: 500,
+              color: "var(--ink-soft)",
+              maxWidth: "82%",
+            }}
+          >
+            Your CV still reads ops-first. Tailor it to product language before
+            you apply.
           </div>
         </div>
-        <div style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 12, padding: "12px 14px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+        <div
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--line)",
+            borderRadius: 12,
+            padding: "12px 14px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 10,
+          }}
+        >
           <span style={{ fontSize: 12.5, fontWeight: 600 }}>
-            <i className="ti ti-plus" style={{ color: "var(--accent)", marginRight: 7 }} />
+            <i
+              className="ti ti-plus"
+              style={{ color: "var(--accent)", marginRight: 7 }}
+            />
             Add &ldquo;Tailor CV for Associate PM&rdquo; to tasks?
           </span>
-          <span style={{ background: "var(--accent)", color: "#fff", fontSize: 11.5, fontWeight: 700, borderRadius: 8, padding: "7px 13px", whiteSpace: "nowrap" }}>Confirm</span>
+          <span
+            style={{
+              background: "var(--accent)",
+              color: "#fff",
+              fontSize: 11.5,
+              fontWeight: 700,
+              borderRadius: 8,
+              padding: "7px 13px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Confirm
+          </span>
         </div>
       </>
     ),
@@ -1018,33 +1357,164 @@ const FEATURES = [
             center-scaled composition fits the fixed frame and the panel header never
             clips at the top. All readable copy stays left of paddingRight. */}
         <div style={{ paddingRight: 150 }}>
-          <div style={{ fontFamily: "var(--font-m)", fontSize: 10, letterSpacing: ".06em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 10 }}>Tavor · Careers</div>
-          <div style={{ fontFamily: "var(--font-d)", fontWeight: 800, fontSize: 21, letterSpacing: "-.02em", lineHeight: 1.12, marginBottom: 6 }}>Associate Product Manager</div>
-          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 15 }}>Tavor · Tel Aviv</div>
-          <div style={{ fontFamily: "var(--font-m)", fontSize: 8.5, letterSpacing: ".07em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 5 }}>About the role</div>
-          <p style={{ fontSize: 11, lineHeight: 1.5, color: "var(--ink-soft)", margin: "0 0 13px" }}>
-            {"Help shape Tavor's product from discovery to launch, with design and engineering."}
+          <div
+            style={{
+              fontFamily: "var(--font-m)",
+              fontSize: 10,
+              letterSpacing: ".06em",
+              textTransform: "uppercase",
+              color: "var(--ink-faint)",
+              marginBottom: 10,
+            }}
+          >
+            Tavor · Careers
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--font-d)",
+              fontWeight: 800,
+              fontSize: 21,
+              letterSpacing: "-.02em",
+              lineHeight: 1.12,
+              marginBottom: 6,
+            }}
+          >
+            Associate Product Manager
+          </div>
+          <div
+            style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 15 }}
+          >
+            Tavor · Tel Aviv
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--font-m)",
+              fontSize: 8.5,
+              letterSpacing: ".07em",
+              textTransform: "uppercase",
+              color: "var(--ink-faint)",
+              marginBottom: 5,
+            }}
+          >
+            About the role
+          </div>
+          <p
+            style={{
+              fontSize: 11,
+              lineHeight: 1.5,
+              color: "var(--ink-soft)",
+              margin: "0 0 13px",
+            }}
+          >
+            {
+              "Help shape Tavor's product from discovery to launch, with design and engineering."
+            }
           </p>
-          <div style={{ fontFamily: "var(--font-m)", fontSize: 8.5, letterSpacing: ".07em", textTransform: "uppercase", color: "var(--ink-faint)", marginBottom: 6 }}>{"What you'll do"}</div>
-          {["Talk to users, shape clear priorities", "Write specs, partner with engineering", "Track how features land and iterate"].map((t) => (
-            <div key={t} style={{ display: "flex", gap: 7, fontSize: 11, lineHeight: 1.45, color: "var(--ink-soft)", marginBottom: 6 }}>
-              <span style={{ color: "var(--ink-faint)", flexShrink: 0 }}>•</span>
+          <div
+            style={{
+              fontFamily: "var(--font-m)",
+              fontSize: 8.5,
+              letterSpacing: ".07em",
+              textTransform: "uppercase",
+              color: "var(--ink-faint)",
+              marginBottom: 6,
+            }}
+          >
+            {"What you'll do"}
+          </div>
+          {[
+            "Talk to users, shape clear priorities",
+            "Write specs, partner with engineering",
+            "Track how features land and iterate",
+          ].map((t) => (
+            <div
+              key={t}
+              style={{
+                display: "flex",
+                gap: 7,
+                fontSize: 11,
+                lineHeight: 1.45,
+                color: "var(--ink-soft)",
+                marginBottom: 6,
+              }}
+            >
+              <span style={{ color: "var(--ink-faint)", flexShrink: 0 }}>
+                •
+              </span>
               <span>{t}</span>
             </div>
           ))}
         </div>
         {/* Get A Job extension — side panel docked to the right edge, over the page */}
-        <div style={{ position: "absolute", top: 0, right: 0, bottom: 0, width: 140, background: "var(--ink-deep)", borderRadius: 12, padding: 14, color: "#fff", boxShadow: "-20px 0 44px -24px rgba(28,24,21,.5)" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 7, marginBottom: 15 }}>
-            <span style={{ width: 8, height: 8, borderRadius: 99, background: "var(--accent)" }} />
-            <span style={{ fontFamily: "var(--font-d)", fontWeight: 700, fontSize: 12.5 }}>Get A Job</span>
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            right: 0,
+            bottom: 0,
+            width: 140,
+            background: "var(--ink-deep)",
+            borderRadius: 12,
+            padding: 14,
+            color: "#fff",
+            boxShadow: "-20px 0 44px -24px rgba(28,24,21,.5)",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 7,
+              marginBottom: 15,
+            }}
+          >
+            <span
+              style={{
+                width: 8,
+                height: 8,
+                borderRadius: 99,
+                background: "var(--accent)",
+              }}
+            />
+            <span
+              style={{
+                fontFamily: "var(--font-d)",
+                fontWeight: 700,
+                fontSize: 12.5,
+              }}
+            >
+              Get A Job
+            </span>
           </div>
           {/* real flow: paste the job description, then generate — NOT auto-detected */}
-          <div style={{ background: "rgba(255,255,255,.06)", border: "1px solid rgba(255,255,255,.16)", borderRadius: 8, padding: "10px 11px", minHeight: 54, marginBottom: 11, fontSize: 10.5, lineHeight: 1.5, color: "rgba(255,255,255,.42)" }}>
+          <div
+            style={{
+              background: "rgba(255,255,255,.06)",
+              border: "1px solid rgba(255,255,255,.16)",
+              borderRadius: 8,
+              padding: "10px 11px",
+              minHeight: 54,
+              marginBottom: 11,
+              fontSize: 10.5,
+              lineHeight: 1.5,
+              color: "rgba(255,255,255,.42)",
+            }}
+          >
             Paste the job description…
           </div>
-          <div style={{ background: "var(--accent)", color: "#fff", fontSize: 11, fontWeight: 700, borderRadius: 8, padding: "10px 8px", textAlign: "center" }}>
-            <i className="ti ti-file-text" style={{ marginRight: 5 }} />Generate tailored CV
+          <div
+            style={{
+              background: "var(--accent)",
+              color: "#fff",
+              fontSize: 11,
+              fontWeight: 700,
+              borderRadius: 8,
+              padding: "10px 8px",
+              textAlign: "center",
+            }}
+          >
+            <i className="ti ti-file-text" style={{ marginRight: 5 }} />
+            Generate tailored CV
           </div>
         </div>
       </div>
@@ -1054,12 +1524,36 @@ const FEATURES = [
 
 // Benefit bullets for the right-hand explainer, index-aligned with FEATURES.
 const FEATURE_POINTS = [
-  ["Ranked against your real profile", "Sweet spot, Detour and Growth tracks", "Re-scores as you log new wins"],
-  ["Reframes your real experience per job", "Never fabricates, only what's true", "Fully editable before you send"],
-  ["Live openings across the Israeli market", "Matched to your fit, refreshed daily", "Filter by track, company and location"],
-  ["Saved → Applied → Interview → Offer", "Every application on one board", "Deadlines and next steps in view"],
-  ["Suggests your next move from real gaps", "Updates your roadmap, tasks and applications", "Always one tap from confirming"],
-  ["Works on any company career page", "Paste a job, get a tailored CV", "Coming soon to the Chrome Web Store"],
+  [
+    "Ranked against your real profile",
+    "Sweet spot, Detour and Growth tracks",
+    "Re-scores as you log new wins",
+  ],
+  [
+    "Reframes your real experience per job",
+    "Never fabricates, only what's true",
+    "Fully editable before you send",
+  ],
+  [
+    "Live openings across the Israeli market",
+    "Matched to your fit, refreshed daily",
+    "Filter by track, company and location",
+  ],
+  [
+    "Saved → Applied → Interview → Offer",
+    "Every application on one board",
+    "Deadlines and next steps in view",
+  ],
+  [
+    "Suggests your next move from real gaps",
+    "Updates your roadmap, tasks and applications",
+    "Always one tap from confirming",
+  ],
+  [
+    "Works on any company career page",
+    "Paste a job, get a tailored CV",
+    "Coming soon to the Chrome Web Store",
+  ],
 ];
 
 function FeatureExplorer() {
@@ -1093,7 +1587,10 @@ function FeatureExplorer() {
           <div className="lv-head center">
             <div className="lv-eyebrow">Everything in one place</div>
             <h2>One workspace. It all knows you.</h2>
-            <p>Six tools, one shared memory of your background — keep scrolling to move through them.</p>
+            <p>
+              Six tools, one shared memory of your background — keep scrolling
+              to move through them.
+            </p>
           </div>
         </div>
       </div>
@@ -1115,7 +1612,12 @@ function FeatureExplorer() {
                     <span className="fx-ic">
                       <i className={`ti ${feat.icon}`} />
                     </span>
-                    <span className="lv-ws-item-name">{feat.name}{feat.soon ? <span className="lv-ws-soon">Soon</span> : null}</span>
+                    <span className="lv-ws-item-name">
+                      {feat.name}
+                      {feat.soon ? (
+                        <span className="lv-ws-soon">Soon</span>
+                      ) : null}
+                    </span>
                   </button>
                 ))}
               </div>
@@ -1132,8 +1634,16 @@ function FeatureExplorer() {
               {/* right: explanation that swaps with the active tool */}
               <div className="lv-ws-info">
                 <div className="lv-ws-info-inner" key={active}>
-                  <span className="lv-ws-info-eye">Tool {String(active + 1).padStart(2, "0")} / {String(FEATURES.length).padStart(2, "0")}</span>
-                  <h3>{f.name}{f.soon ? <span className="lv-ws-soon-tag">Coming soon</span> : null}</h3>
+                  <span className="lv-ws-info-eye">
+                    Tool {String(active + 1).padStart(2, "0")} /{" "}
+                    {String(FEATURES.length).padStart(2, "0")}
+                  </span>
+                  <h3>
+                    {f.name}
+                    {f.soon ? (
+                      <span className="lv-ws-soon-tag">Coming soon</span>
+                    ) : null}
+                  </h3>
                   <p>{f.desc}</p>
                   <ul>
                     {points.map((pt) => (
@@ -1156,32 +1666,75 @@ function FeatureExplorer() {
 function Differentiator() {
   return (
     <section className="lv-section lv-diff lv-clip lv-fade">
-      <div className="lv-deco lv-griddots" data-parallax="0.17" style={{ width: 150, height: 150, top: 36, left: -40 }} aria-hidden="true" />
-      <div className="lv-deco lv-ring dash" data-parallax="-0.15" style={{ width: 220, height: 220, bottom: -70, right: -60 }} aria-hidden="true" />
+      <div
+        className="lv-deco lv-griddots"
+        data-parallax="0.17"
+        style={{ width: 150, height: 150, top: 36, left: -40 }}
+        aria-hidden="true"
+      />
+      <div
+        className="lv-deco lv-ring dash"
+        data-parallax="-0.15"
+        style={{ width: 220, height: 220, bottom: -70, right: -60 }}
+        aria-hidden="true"
+      />
       <div className="lv-wrap lv-diff-grid">
         <div className="lv-reveal">
           <h2>One memory across your entire job search.</h2>
           <p>
-            Generic AI starts from zero every session — re-explain yourself, get a different answer, end up back at your
-            old draft.
+            Generic AI starts from zero every session — re-explain yourself, get
+            a different answer, end up back at your old draft.
           </p>
           <p>
-            <strong>Get A Job remembers.</strong> Every win, every job, every chat builds on what it knows about you. The more you use
-            it, the sharper it gets.
+            <strong>Get A Job remembers.</strong> Every win, every job, every
+            chat builds on what it knows about you. The more you use it, the
+            sharper it gets.
           </p>
         </div>
         <div className="lv-diff-visual lv-reveal" data-d="1" aria-hidden="true">
-          <svg className="lv-floaty" viewBox="0 0 420 320" style={{ width: "100%", height: "100%", overflow: "visible" }}>
+          <svg
+            className="lv-floaty"
+            viewBox="0 0 420 320"
+            style={{ width: "100%", height: "100%", overflow: "visible" }}
+          >
             <defs>
-              <marker id="lvarrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+              <marker
+                id="lvarrow"
+                markerWidth="8"
+                markerHeight="8"
+                refX="6"
+                refY="4"
+                orient="auto"
+              >
                 <path d="M0,0 L8,4 L0,8 Z" fill="var(--accent)" />
               </marker>
             </defs>
-            <circle cx="210" cy="160" r="50" fill="var(--card)" stroke="var(--accent)" strokeWidth="1.5" />
-            <text x="210" y="156" textAnchor="middle" fontFamily="var(--font-m)" fontSize="11" fill="var(--ink)">
+            <circle
+              cx="210"
+              cy="160"
+              r="50"
+              fill="var(--card)"
+              stroke="var(--accent)"
+              strokeWidth="1.5"
+            />
+            <text
+              x="210"
+              y="156"
+              textAnchor="middle"
+              fontFamily="var(--font-m)"
+              fontSize="11"
+              fill="var(--ink)"
+            >
               Your
             </text>
-            <text x="210" y="170" textAnchor="middle" fontFamily="var(--font-m)" fontSize="11" fill="var(--ink)">
+            <text
+              x="210"
+              y="170"
+              textAnchor="middle"
+              fontFamily="var(--font-m)"
+              fontSize="11"
+              fill="var(--ink)"
+            >
               profile
             </text>
             {[
@@ -1191,9 +1744,38 @@ function Differentiator() {
               [360, 260, "Coach"],
             ].map(([x, y, label], i) => (
               <g key={label}>
-                <line className="lv-dflow" style={{ animationDelay: `${i * 0.3}s` }} x1="210" y1="160" x2={x} y2={y} stroke="var(--accent)" strokeOpacity="0.5" strokeWidth="1.5" strokeDasharray="3 5" markerEnd="url(#lvarrow)" />
-                <rect x={x - 42} y={y - 16} width="84" height="32" rx="16" fill="var(--card)" stroke="var(--line)" strokeWidth="1.5" />
-                <text x={x} y={y + 4} textAnchor="middle" fontFamily="var(--font-b)" fontSize="12" fontWeight="600" fill="var(--ink)">
+                <line
+                  className="lv-dflow"
+                  style={{ animationDelay: `${i * 0.3}s` }}
+                  x1="210"
+                  y1="160"
+                  x2={x}
+                  y2={y}
+                  stroke="var(--accent)"
+                  strokeOpacity="0.5"
+                  strokeWidth="1.5"
+                  strokeDasharray="3 5"
+                  markerEnd="url(#lvarrow)"
+                />
+                <rect
+                  x={x - 42}
+                  y={y - 16}
+                  width="84"
+                  height="32"
+                  rx="16"
+                  fill="var(--card)"
+                  stroke="var(--line)"
+                  strokeWidth="1.5"
+                />
+                <text
+                  x={x}
+                  y={y + 4}
+                  textAnchor="middle"
+                  fontFamily="var(--font-b)"
+                  fontSize="12"
+                  fontWeight="600"
+                  fill="var(--ink)"
+                >
                   {label}
                 </text>
               </g>
@@ -1206,17 +1788,43 @@ function Differentiator() {
 }
 
 const STEPS = [
-  { n: "01", h: "Upload your CV", p: "We read your skills, experience, and education. No skills to retype." },
-  { n: "02", h: "See your roadmap", p: "Every role in the library, ranked against you." },
-  { n: "03", h: "Tailor and apply", p: "Pick a live job; your CV is rewritten from your real, matching wins." },
-  { n: "04", h: "Track and improve", p: "Watch your pipeline, capture wins, and get a fresh move every morning." },
+  {
+    n: "01",
+    h: "Upload your CV",
+    p: "We read your skills, experience, and education. No skills to retype.",
+  },
+  {
+    n: "02",
+    h: "See your roadmap",
+    p: "Every role in the library, ranked against you.",
+  },
+  {
+    n: "03",
+    h: "Tailor and apply",
+    p: "Pick a live job; your CV is rewritten from your real, matching wins.",
+  },
+  {
+    n: "04",
+    h: "Track and improve",
+    p: "Watch your pipeline, capture wins, and get a fresh move every morning.",
+  },
 ];
 
 function HowItWorks() {
   return (
     <section className="lv-section lv-clip lv-fade" id="how">
-      <div className="lv-deco lv-ring" data-parallax="0.14" style={{ width: 200, height: 200, top: -50, right: -60 }} aria-hidden="true" />
-      <div className="lv-deco lv-griddots" data-parallax="-0.12" style={{ width: 120, height: 120, bottom: 20, left: -30 }} aria-hidden="true" />
+      <div
+        className="lv-deco lv-ring"
+        data-parallax="0.14"
+        style={{ width: 200, height: 200, top: -50, right: -60 }}
+        aria-hidden="true"
+      />
+      <div
+        className="lv-deco lv-griddots"
+        data-parallax="-0.12"
+        style={{ width: 120, height: 120, bottom: 20, left: -30 }}
+        aria-hidden="true"
+      />
       <div className="lv-wrap">
         <div className="lv-head lv-reveal">
           <div className="lv-eyebrow">From upload to first application</div>
@@ -1268,8 +1876,16 @@ function FAQSection() {
         </div>
         <div className="lv-reveal" data-d="1">
           {FAQS.map((f, i) => (
-            <div className={`lv-faq-item${open === i ? " open" : ""}`} key={f.q}>
-              <button type="button" className="lv-faq-q" onClick={() => setOpen(open === i ? -1 : i)} aria-expanded={open === i}>
+            <div
+              className={`lv-faq-item${open === i ? " open" : ""}`}
+              key={f.q}
+            >
+              <button
+                type="button"
+                className="lv-faq-q"
+                onClick={() => setOpen(open === i ? -1 : i)}
+                aria-expanded={open === i}
+              >
                 {f.q}
                 <i className="ti ti-plus" />
               </button>
@@ -1287,13 +1903,42 @@ function FinalCTA({ isLoggedIn, onCTA }) {
     <section className="lv-final lv-fade">
       <div className="lv-wrap">
         <div className="lv-final-card lv-reveal">
-          <div className="lv-final-blob" style={{ width: 220, height: 220, background: "var(--accent)", top: -80, left: -40 }} data-parallax="0.05" />
-          <div className="lv-final-blob" style={{ width: 180, height: 180, background: "var(--teal)", bottom: -70, right: -30, opacity: 0.4 }} data-parallax="-0.04" />
+          <div
+            className="lv-final-blob"
+            style={{
+              width: 220,
+              height: 220,
+              background: "var(--accent)",
+              top: -80,
+              left: -40,
+            }}
+            data-parallax="0.05"
+          />
+          <div
+            className="lv-final-blob"
+            style={{
+              width: 180,
+              height: 180,
+              background: "var(--teal)",
+              bottom: -70,
+              right: -30,
+              opacity: 0.4,
+            }}
+            data-parallax="-0.04"
+          />
           <div style={{ position: "relative" }}>
             <div className="lv-eyebrow">Start in minutes</div>
             <h2>Your next role is in there. Let&apos;s find it.</h2>
-            <p>Upload your CV and watch your roadmap, matches, and first tailored resume come together.</p>
-            <button type="button" className="btn btn-accent" onClick={onCTA} style={{ fontSize: 16, padding: "15px 30px" }}>
+            <p>
+              Upload your CV and watch your roadmap, matches, and first tailored
+              resume come together.
+            </p>
+            <button
+              type="button"
+              className="btn btn-accent"
+              onClick={onCTA}
+              style={{ fontSize: 16, padding: "15px 30px" }}
+            >
               {isLoggedIn ? "Open your dashboard" : "Upload your CV — free"}
               <i className="ti ti-arrow-up-right" />
             </button>
@@ -1309,12 +1954,17 @@ function Footer() {
     <footer className="lv-foot">
       <div className="lv-wrap lv-foot-in">
         <div className="lv-logo" style={{ fontSize: 17 }}>
-          getajob<span className="dot" />
+          getajob
+          <span className="dot" />
         </div>
         <div>© 2026 Get A Job</div>
         <div className="lv-foot-links">
-          <a href="#features" onClick={(e) => lvScrollTo(e, "#features")}>Features</a>
-          <a href="#faq" onClick={(e) => lvScrollTo(e, "#faq")}>FAQ</a>
+          <a href="#features" onClick={(e) => lvScrollTo(e, "#features")}>
+            Features
+          </a>
+          <a href="#faq" onClick={(e) => lvScrollTo(e, "#faq")}>
+            FAQ
+          </a>
           <a href="/privacy">Privacy</a>
           <a href="/terms">Terms</a>
         </div>
