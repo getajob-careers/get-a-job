@@ -1,7 +1,9 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Check, ArrowRight, ExternalLink, Lock } from "lucide-react";
+import { toast } from "sonner";
 import { createPageUrl } from "@/utils";
+import { invokeWithAuthRetry } from "@/api/invokeWithAuthRetry";
 
 // 7-step application checklist, restyled per
 // docs/design/redesign/getajob_application_steps_checklist.html (2026-06-05).
@@ -48,7 +50,7 @@ const STEPS = [
     title: "Tailor your CV",
     description: "Generate a CV tuned to this role's must-haves.",
     descriptionWhenCurrent: "Generate a CV tuned to this role's must-haves.",
-    cta: { label: "Generate tailored CV", icon: ArrowRight, action: "open_agent", page: "CVAgent" },
+    cta: { label: "Generate tailored CV", icon: ArrowRight, action: "generate_cv" },
     phase: "build",
   },
   {
@@ -130,6 +132,42 @@ export default function ApplicationChecklist({
           `?application_id=${encodeURIComponent(app.id)}` +
           `&seed=${encodeURIComponent(STEP1_SEED)}`;
         navigate(url);
+        return;
+      }
+      case "generate_cv": {
+        // Generate the tailored CV directly (no more routing into chat to
+        // prompt it). Fire-and-forget + global sonner toast so it survives the
+        // user closing the drawer / navigating away while it generates (~30s);
+        // the success toast deep-links into the CV studio at the new copy.
+        if (!app?.id) return;
+        if (!app.job_description) {
+          toast.error("Add a job description first (step 2) so the CV can be tailored to it.");
+          return;
+        }
+        const tId = toast.loading("Generating your tailored CV…");
+        invokeWithAuthRetry("generate-tailored-cv", {
+          body: {
+            job_description: app.job_description,
+            target_role: app.role_title,
+            application_id: app.id,
+            cv_model: "sonnet",
+          },
+        })
+          .then(({ data, error }) => {
+            if (error || !data?.cv_url) {
+              toast.error("Couldn't generate the CV. Please try again.", { id: tId });
+              return;
+            }
+            toast.success("Your tailored CV is ready.", {
+              id: tId,
+              duration: 15000,
+              action: {
+                label: "Open in CV Agent",
+                onClick: () => navigate(createPageUrl("CVAgent") + `?application_id=${encodeURIComponent(app.id)}`),
+              },
+            });
+          })
+          .catch(() => toast.error("Couldn't generate the CV. Please try again.", { id: tId }));
         return;
       }
       case "open_agent": {

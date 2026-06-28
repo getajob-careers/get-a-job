@@ -104,3 +104,100 @@ export function toCvData(model) {
     languages: asArray(m.languages).map((s) => str(s).trim()).filter(Boolean),
   };
 }
+
+// ---------------------------------------------------------------------------
+// buildMasterCvData — a FAITHFUL, deterministic master cv_data built straight
+// from the user's profile + experiences + education (which already hold the
+// onboarding CV's parsed content). No LLM, so the content is 1:1 with what the
+// user gave us; style is whatever template the studio renders it with. Mirrors
+// generate-tailored-cv's field mapping (titles/companies/dates/bullets, the
+// military/volunteer/leadership bucket split, education columns) minus the LLM
+// authoring pass.
+
+const MONTHS_SHORT = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function fmtMonthYear(d) {
+  const s = str(d).trim();
+  if (!s) return "";
+  const iso = s.match(/^(\d{4})-(\d{1,2})/);
+  if (iso) { const mo = parseInt(iso[2], 10); return `${MONTHS_SHORT[mo - 1] || ""} ${iso[1]}`.trim(); }
+  const yr = s.match(/^(\d{4})$/);
+  if (yr) return yr[1];
+  return s; // already human-readable ("Nov 2024") or unknown — keep verbatim
+}
+
+function dateRange(start, end, isCurrent) {
+  const s = fmtMonthYear(start);
+  const e = isCurrent ? "Present" : fmtMonthYear(end);
+  if (s && e) return `${s} – ${e}`;
+  return s || e || "";
+}
+
+// Mirrors generate-tailored-cv's classifyExperience (type tag + keyword fallback).
+function bucketOf(exp) {
+  const company = str(exp?.company).toLowerCase();
+  const title = str(exp?.title).toLowerCase();
+  const type = str(exp?.type).toLowerCase();
+  const military = /\b(idf|israel\s?defense\s?forces|nahal|golani|givati|paratroopers?|sayeret|unit\s?8200|8200|army|navy|air\s?force|brigade|platoon|battalion|regiment|commander|sergeant|corporal|lieutenant|captain|reservist|conscript|military\s?service|military\s?role)\b/;
+  const volunteer = /\b(volunteer(ed|ing)?|voluntary|pro\s?bono)\b/;
+  const ngo = /\b(ngo|non[-\s]?profit|charity|foundation)\b/;
+  const leadership = /\b(president of|editor of|captain of|head of student|club president|society president|student council)\b/;
+  const looksMilitary = military.test(company) || military.test(title) || type === "military";
+  if (looksMilitary && volunteer.test(title)) return "volunteering";
+  if (looksMilitary) return "military";
+  if (volunteer.test(title) || volunteer.test(company) || ngo.test(company) || type === "volunteering" || type === "volunteer") return "volunteering";
+  if (type === "leadership" || leadership.test(title)) return "leadership";
+  return "professional";
+}
+
+// Prefer the curated bullets; else fall back to the responsibilities text,
+// split on the user's own line/bullet breaks (no sentence-level re-splitting,
+// to keep wording verbatim).
+function expBullets(exp) {
+  const curated = asArray(exp?.bullets).map(str).map((s) => s.trim()).filter(Boolean);
+  if (curated.length) return curated;
+  const resp = str(exp?.responsibilities);
+  if (!resp) return [];
+  return resp.split(/\r?\n|[•·▪‣]/).map((s) => s.trim()).filter((s) => s.length > 1);
+}
+
+export function buildMasterCvData(profile, experiences, education, userEmail) {
+  const p = profile || {};
+  const mapped = asArray(experiences).map((e) => ({
+    bucket: bucketOf(e),
+    entry: {
+      title: str(e?.title),
+      company: str(e?.company),
+      dates: dateRange(e?.start_date, e?.end_date, e?.is_current),
+      bullets: expBullets(e),
+    },
+  }));
+  const inBucket = (name) => mapped.filter((m) => m.bucket === name).map((m) => m.entry);
+  const languages = asArray(p.languages)
+    .map((l) => (typeof l === "string" ? l : str(l?.language || l?.name)))
+    .filter(Boolean);
+
+  return {
+    header: {
+      name: str(p.full_name),
+      subtitle: str(p.headline),
+      email: str(p.email || userEmail),
+      phone: str(p.phone_number),
+      location: str(p.location),
+      linkedin: str(p.linkedin_url),
+    },
+    summary: str(p.summary),
+    professional_experiences: inBucket("professional"),
+    military_experiences: inBucket("military"),
+    volunteering_experiences: inBucket("volunteering"),
+    leadership_experiences: inBucket("leadership"),
+    education: asArray(education).map((ed) => ({
+      institution: str(ed?.institution),
+      degree: str(ed?.degree_type),
+      field: str(ed?.field_of_study),
+      dates: dateRange(ed?.start_date, ed?.end_date, ed?.is_current),
+    })),
+    skills: { domain: asArray(p.skills).map(str).filter(Boolean), tools: [], technical: [], languages: [] },
+    languages,
+  };
+}

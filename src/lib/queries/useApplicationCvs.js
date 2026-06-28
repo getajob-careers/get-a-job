@@ -77,6 +77,9 @@ export function useApplicationCvs(userId) {
     queryFn: () => fetchApplicationCvsWithTimeout(userId),
     enabled: !!userId,
     staleTime: 60 * 1000,
+    // A CV generated elsewhere (the tracker's "Generate tailored CV") must show
+    // up the moment the studio opens via the deep-link, so always refetch on mount.
+    refetchOnMount: "always",
   });
 }
 
