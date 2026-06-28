@@ -74,7 +74,7 @@ const INITIAL_MODEL = {
     {
       id: uid(),
       title: "AI Research & Evaluation Specialist",
-      company: "Outlier",
+      org: "Outlier",
       dates: "Nov 2024 – Present",
       bullets: [
         b(
@@ -91,7 +91,7 @@ const INITIAL_MODEL = {
     {
       id: uid(),
       title: "Project Manager",
-      company: "Anpr+",
+      org: "Anpr+",
       dates: "Jul 2022 – Jun 2023",
       bullets: [
         b(
@@ -111,7 +111,7 @@ const INITIAL_MODEL = {
     {
       id: uid(),
       title: "Junior Developer",
-      company: "Tempus Trade Ltd",
+      org: "Tempus Trade Ltd",
       dates: "Apr 2021 – Nov 2021",
       bullets: [
         b("Built an affiliate website targeting a 60,000 user database"),
@@ -126,7 +126,7 @@ const INITIAL_MODEL = {
     {
       id: uid(),
       title: "Junior Developer",
-      company: "Code Nation",
+      org: "Code Nation",
       dates: "Feb 2021 – May 2021",
       bullets: [
         b("Completed a 12-week bootcamp focused on the MERN stack"),
@@ -238,15 +238,16 @@ function MockStudio() {
   const onPatchHeader = (p) =>
     upd((m) => ({ ...m, header: { ...m.header, ...p } }));
   const onPatchSummary = (v) => upd((m) => ({ ...m, summary: v }));
-  const onPatchExp = (id, p) =>
+  // Section-keyed to match CVStudioView's contract (sectionKey first arg).
+  const onPatchExp = (section, id, p) =>
     upd((m) => ({
       ...m,
-      experiences: m.experiences.map((e) => (e.id === id ? { ...e, ...p } : e)),
+      [section]: m[section].map((e) => (e.id === id ? { ...e, ...p } : e)),
     }));
-  const onPatchBullet = (expId, bId, text) =>
+  const onPatchBullet = (section, expId, bId, text) =>
     upd((m) => ({
       ...m,
-      experiences: m.experiences.map((e) =>
+      [section]: m[section].map((e) =>
         e.id === expId
           ? {
               ...e,
@@ -257,29 +258,29 @@ function MockStudio() {
           : e,
       ),
     }));
-  const onAddBullet = (expId) =>
+  const onAddBullet = (section, expId) =>
     upd((m) => ({
       ...m,
-      experiences: m.experiences.map((e) =>
+      [section]: m[section].map((e) =>
         e.id === expId ? { ...e, bullets: [...e.bullets, b("")] } : e,
       ),
     }));
-  const onRemoveBullet = (expId, bId) =>
+  const onRemoveBullet = (section, expId, bId) =>
     upd((m) => ({
       ...m,
-      experiences: m.experiences.map((e) =>
+      [section]: m[section].map((e) =>
         e.id === expId
           ? { ...e, bullets: e.bullets.filter((x) => x.id !== bId) }
           : e,
       ),
     }));
-  const onDragEnd = (result) => {
+  const onDragEnd = (section, result) => {
     if (!result.destination) return;
     upd((m) => {
-      const next = [...m.experiences];
+      const next = [...m[section]];
       const [moved] = next.splice(result.source.index, 1);
       next.splice(result.destination.index, 0, moved);
-      return { ...m, experiences: next };
+      return { ...m, [section]: next };
     });
   };
   const onPatchEdu = (id, p) =>

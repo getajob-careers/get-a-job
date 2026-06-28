@@ -177,8 +177,8 @@ function ExperienceEntry({
           />
           <span className="text-[color:var(--cv-muted)] px-1">·</span>
           <Editable
-            value={exp.company}
-            onCommit={(v) => onPatch({ company: v })}
+            value={exp.org}
+            onCommit={(v) => onPatch({ org: v })}
             className="text-[color:var(--cv-ink)]"
             placeholder="Company"
           />
