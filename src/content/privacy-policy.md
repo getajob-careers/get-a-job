@@ -31,7 +31,7 @@ We collect the following categories of personal data:
 - **Work experience:** Job titles, employers, employment dates, descriptions of responsibilities and achievements, employment type (full-time, part-time, volunteering, military service)
 - **Skills and qualifications:** Technical skills, languages, certifications
 - **Career goals:** Desired roles, target industries, preferred work environments, career direction, five-year goals
-- **CV/resume content:** The full text and data extracted from CVs you upload
+- **CV/resume content:** The full text and data extracted from CVs you upload (see Section 4 for how a CV uploaded before you create an account is handled)
 - **LinkedIn archive data:** If you choose to upload your LinkedIn data export, we parse profile information, positions, education, skills, honors, volunteering, languages, and job seeker preferences. We do **not** store your LinkedIn connections data.
 - **Stories and experiences:** Structured narratives about your professional accomplishments that you create or confirm through the Story Bank feature
 - **Application tracking data:** Jobs you apply to, application statuses, outcomes, and notes
@@ -82,6 +82,10 @@ Under the Israeli Privacy Protection Law (as amended by Amendment 13), we proces
 
 You may withdraw your consent at any time by deleting your account (see Section 8). Withdrawing consent does not affect the lawfulness of processing carried out before the withdrawal.
 
+### Uploads before you create an account
+
+You may upload a CV from our landing page before you create an account. When you do this, the file is stored only locally in your own web browser. It is not transmitted to our servers, is not read or processed by us, and is not seen by our AI providers at this stage. The file is carried into account setup only after you create an account and accept this Privacy Policy, at which point the processing described in this policy begins. If you do not create an account, the file remains on your device and is never sent to us; it is automatically cleared from your browser after a short period, and you can also clear it yourself by clearing your browser data.
+
 ---
 
 ## 5. AI Processing and Automated Decision-Making
@@ -90,7 +94,7 @@ Get A Job uses artificial intelligence extensively. We want to be transparent ab
 
 ### What AI does with your data
 
-When you use features like career analysis, CV generation, LinkedIn content creation, job matching, or chat-based coaching, your relevant personal data is sent to an AI model (provided by OpenAI and Anthropic — see Section 6) to generate personalized outputs. This includes your work experience, education, skills, career goals, and other profile information relevant to the specific feature.
+When you use features like career analysis, CV generation, LinkedIn content creation, job matching, or chat-based coaching, your relevant personal data is sent to an AI model (provided by OpenAI and/or Anthropic — see Section 6) to generate personalized outputs. This includes your work experience, education, skills, career goals, and other profile information relevant to the specific feature.
 
 ### AI-generated career classifications
 
@@ -110,15 +114,15 @@ You have the right to understand how automated decisions affecting you are made.
 
 We share your personal data with the following third-party service providers, who process it on our behalf and under our instructions:
 
-| Provider | What they process | Why | Data location |
-|----------|------------------|-----|---------------|
-| **OpenAI** | Profile data, work experience, education, skills, career goals, chat messages, CV content, LinkedIn content, pasted job descriptions — as needed for the specific AI feature being used | Powers AI features: career analysis, chat agents, LinkedIn content, job matching, story extraction, task generation | United States |
-| **Anthropic** | CV content and job description text, as needed for tailored CV generation | Powers tailored CV generation | United States |
-| **Supabase** | All platform data (account information, profile, applications, stories, conversations, generated content) | Database hosting, user authentication, server-side functions | United States (AWS) |
-| **Vercel** | Serves the web application; may process IP addresses and request metadata in the course of delivery | Website hosting and content delivery | Global (edge network) |
-| **PostHog** | Product usage events and session recordings, associated with your account | Product analytics and improving the platform | European Union |
-| **Resend** (via Amazon SES) | Email address, email content | Transactional emails: account verification, password reset, notifications | United States |
-| **Stripe** | Payment information (name, email, payment method details) | Payment processing. Not currently active — Get A Job does not yet charge or process any payments. Stripe will be used only if and when paid subscriptions launch | United States |
+| Provider                                | What they process                                                                                                                                                                       | Why                                                                                                                                                              | Data location         |
+| --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
+| **OpenAI**                              | Profile data, work experience, education, skills, career goals, chat messages, CV content, LinkedIn content, pasted job descriptions — as needed for the specific AI feature being used | Powers AI features: career analysis, chat agents, LinkedIn content, job matching, story extraction, task generation                                              | United States         |
+| **Anthropic** (accessed via OpenRouter) | CV content and job description text, as needed for tailored CV generation                                                                                                               | Powers tailored CV generation and some agent/coaching responses                                                                                                  | United States         |
+| **Supabase**                            | All platform data (account information, profile, applications, stories, conversations, generated content)                                                                               | Database hosting, user authentication, server-side functions                                                                                                     | United States (AWS)   |
+| **Vercel**                              | Serves the web application; may process IP addresses and request metadata in the course of delivery                                                                                     | Website hosting and content delivery                                                                                                                             | Global (edge network) |
+| **PostHog**                             | Product usage events and session recordings, associated with your account                                                                                                               | Product analytics and improving the platform                                                                                                                     | European Union        |
+| **Resend** (via Amazon SES)             | Email address, email content                                                                                                                                                            | Transactional emails: account verification, password reset, notifications                                                                                        | United States         |
+| **Stripe**                              | Payment information (name, email, payment method details)                                                                                                                               | Payment processing. Not currently active — Get A Job does not yet charge or process any payments. Stripe will be used only if and when paid subscriptions launch | United States         |
 
 We do **not** sell your data to any third party. These processors are contractually bound to use your data only for the purposes we specify and to maintain appropriate security measures.
 
@@ -151,22 +155,28 @@ No system is perfectly secure. If you become aware of any security issue, please
 Under the Israeli Privacy Protection Law (as amended by Amendment 13), you have the following rights regarding your personal data:
 
 ### Right of access
+
 You may request to see the personal data we hold about you. We will provide this information in an intelligible format in Hebrew or English.
 
 ### Right to correction
+
 If any of your personal data is incorrect, incomplete, or outdated, you may request that we correct it. You can also update most of your data directly through the platform's profile editor at any time.
 
 ### Right to deletion
+
 You may request the deletion of your personal data. You can:
+
 - **Reset your data** within the platform (clears your profile, career analysis, applications, stories, and generated content while keeping your account active)
 - **Delete your account entirely** (removes your account and all associated data from our systems)
 
 Upon receiving a deletion request, we will delete your data within 30 days, except where we are required by law to retain certain records.
 
 ### Right to object
+
 You may object to the processing of your personal data. If you object to processing that is essential to the service, we may not be able to continue providing the service to you.
 
 ### How to exercise your rights
+
 You can exercise these rights by contacting us at privacy@getajob.careers. We will respond to your request within a reasonable time and in accordance with applicable law.
 
 ---
@@ -176,6 +186,7 @@ You can exercise these rights by contacting us at privacy@getajob.careers. We wi
 We retain your personal data for as long as your account is active and you continue to use the platform.
 
 If you delete your account, we will delete your personal data within 30 days, except:
+
 - Aggregated, anonymized data that cannot be linked back to you (retained for product analytics)
 - Data we are required to retain by law (e.g., for tax, legal, or regulatory purposes)
 - Backup copies, which are purged according to our backup retention schedule
@@ -229,9 +240,10 @@ If you have questions about this Privacy Policy, your personal data, or your rig
 **Address:** 31 Sara Imenu Street, Apartment 4, Modi'in, Israel
 
 If you believe your privacy rights have been violated, you also have the right to file a complaint with the Israeli Privacy Protection Authority (PPA):
+
 - **Website:** https://www.gov.il/en/departments/the_privacy_protection_authority
 - **Address:** 66 Kanfei Nesharim Street, Jerusalem, Israel
 
 ---
 
-*This privacy policy was drafted in accordance with the Israeli Protection of Privacy Law, 5741-1981, as amended by Amendment No. 13 (5774-2024), effective August 14, 2025, and the regulations enacted thereunder. This is a draft for legal review.*
+_This privacy policy was drafted in accordance with the Israeli Protection of Privacy Law, 5741-1981, as amended by Amendment No. 13 (5774-2024), effective August 14, 2025, and the regulations enacted thereunder. This is a draft for legal review._
