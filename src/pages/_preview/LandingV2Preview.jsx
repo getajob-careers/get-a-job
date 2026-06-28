@@ -95,6 +95,8 @@ const LV_CSS = `
 .lv-nav-pill a { font-size: 14px; color: var(--ink-soft); text-decoration: none; font-weight: 500; padding: 8px 14px; border-radius: var(--r-pill); transition: background .15s, color .15s; }
 .lv-nav-pill a:hover { color: var(--ink); background: var(--bg-warm); }
 .lv-nav-right { display: flex; align-items: center; gap: 12px; }
+.lv-nav-login { background: none; border: none; cursor: pointer; font-family: inherit; font-size: 14px; font-weight: 500; color: var(--ink-soft); padding: 6px 4px; transition: color .15s; }
+.lv-nav-login:hover { color: var(--ink); }
 
 /* hero */
 .lv-hero { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 80px 0; overflow: hidden; }
@@ -663,7 +665,7 @@ function useStickyProgress(outerRef, steps, setActive) {
 }
 
 // ────────────────────────────────────────────────────────────────────────
-function Nav({ isLoggedIn, onCTA }) {
+function Nav({ isLoggedIn, onCTA, onLogin }) {
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -689,6 +691,11 @@ function Nav({ isLoggedIn, onCTA }) {
           </a>
         </div>
         <div className="lv-nav-right">
+          {!isLoggedIn && (
+            <button type="button" className="lv-nav-login" onClick={onLogin}>
+              Log in
+            </button>
+          )}
           <button type="button" className="btn btn-ink btn-sm" onClick={onCTA}>
             {isLoggedIn ? "Dashboard" : "Start"}
           </button>
@@ -1980,13 +1987,20 @@ export default function LandingV2Preview() {
   const navigate = useNavigate();
   const auth = useAuth?.() || {};
   const isLoggedIn = !!(auth.isAuthenticated && auth.user);
-  const onCTA = () => navigate(isLoggedIn ? "/" : "/Login");
+  // Every new-visitor CTA (nav "Start", hero "Start here", the CV dropzone,
+  // the bottom CTA) opens Login in signup / create-account mode — a returning
+  // user uses the "Sign in" link inside that view. The dropzone saves the CV
+  // to IndexedDB before this fires (see DropZone.start).
+  const onCTA = () => navigate(isLoggedIn ? "/" : "/Login?mode=signup");
+  // Quiet nav-only "Log in" link for returning users — routes to the existing
+  // signin mode so they skip the signup view that the primary CTAs open.
+  const onLogin = () => navigate(isLoggedIn ? "/" : "/Login?mode=signin");
 
   const ref = useRef(null);
   return (
     <div className="lv" ref={ref}>
       <style>{LV_CSS}</style>
-      <Nav isLoggedIn={isLoggedIn} onCTA={onCTA} />
+      <Nav isLoggedIn={isLoggedIn} onCTA={onCTA} onLogin={onLogin} />
       <Hero onCTA={onCTA} />
       <FeatureExplorer />
       <Differentiator />
