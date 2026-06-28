@@ -56,6 +56,7 @@ function isDocxFile(file) {
 
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
+import { getPendingCv, clearPendingCv } from "@/lib/pendingCv";
 import { track, EVENTS } from "@/lib/analytics";
 import { buildResumeExtractionPrompt } from "@/lib/resumeExtractionPrompt";
 import { parseExtractedJson } from "@/lib/parseExtractedJson";
@@ -243,6 +244,24 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
       }
     }
   };
+
+  // Auto-consume a CV carried over from the landing-page dropzone (stashed in
+  // IndexedDB pre-signup). Runs once auth is ready; clears the entry on pickup
+  // so it never lingers or re-fires. If none is present (e.g. cross-device
+  // email confirm), the normal manual upload UI renders unchanged.
+  const carriedConsumedRef = useRef(false);
+  useEffect(() => {
+    if (carriedConsumedRef.current || !user?.id) return;
+    let cancelled = false;
+    (async () => {
+      const file = await getPendingCv();
+      if (cancelled || !file) return;
+      carriedConsumedRef.current = true;
+      await clearPendingCv(); // clear on pickup; never leave it lingering
+      handleFile(file); // normal upload -> extract -> done pipeline (post-auth)
+    })();
+    return () => { cancelled = true; };
+  }, [user?.id]);
 
   const resetUploadForRetry = () => {
     setEmptyTextMode(false);

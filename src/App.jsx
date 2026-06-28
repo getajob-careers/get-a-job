@@ -17,12 +17,13 @@ import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
 import FeedbackWidget from '@/components/feedback/FeedbackWidget';
 
-// Redesign preview harness. Statically imported, but the route block
-// below registers it ONLY when `import.meta.env.DEV` is true. In a
-// production build the constant folds to false → the route block
-// becomes dead code → React Router never matches /_preview/* → the
-// path falls through to AuthenticatedApp → unauthenticated visitors
-// land on /login. See tasks/redesign.md + scripts/preview-onboarding.mjs.
+// Redesign preview harness. Statically imported, but the route block below
+// registers it ONLY when SHOW_PREVIEW_ROUTES is true — local dev OR a Vercel
+// PREVIEW build (see the const after the imports). In a PRODUCTION build it
+// folds to false → the route block becomes dead code → React Router never
+// matches /_preview/* → the path falls through to AuthenticatedApp →
+// unauthenticated visitors land on /login. See tasks/redesign.md +
+// scripts/preview-onboarding.mjs.
 //
 // Earlier attempt used React.lazy + Suspense fallback={null}; under
 // Vite dev with the harness routes deeply nested the lazy chunk
@@ -36,6 +37,9 @@ import HomePreview from '@/pages/_preview/HomePreview';
 import CareerPreview from '@/pages/_preview/CareerPreview';
 import JobsLogoPreview from '@/pages/_preview/JobsLogoPreview';
 import JobsGridPreview from '@/pages/_preview/JobsGridPreview';
+import LandingV2Preview from '@/pages/_preview/LandingV2Preview';
+import CVAgentPreview from '@/pages/_preview/CVAgentPreview';
+import CVAgentLivePreview from '@/pages/_preview/CVAgentLivePreview';
 import RoadmapPreview from '@/pages/_preview/RoadmapPreview';
 import TrackerPreview from '@/pages/_preview/TrackerPreview';
 import ProfilePreview from '@/pages/_preview/ProfilePreview';
@@ -49,6 +53,14 @@ import ResourcesPreview from '@/pages/_preview/ResourcesPreview';
 import SettingsPreview from '@/pages/_preview/SettingsPreview';
 import DrawerPreview from '@/pages/_preview/DrawerPreview';
 import RouteFallback, { ChunkErrorBoundary } from '@/components/RouteFallback';
+
+/* global __PREVIEW_ROUTES__ */
+// _preview/* routes render in local dev (import.meta.env.DEV) AND on Vercel
+// PREVIEW builds only. __PREVIEW_ROUTES__ is defined in vite.config.js as
+// (process.env.VERCEL_ENV === "preview"); a PRODUCTION build folds it to false
+// and strips every _preview route as dead code, even if this branch later
+// merges to main.
+const SHOW_PREVIEW_ROUTES = import.meta.env.DEV || __PREVIEW_ROUTES__;
 
 // Use the LAZY map (sibling of pages.config.js) so every authenticated
 // route becomes its own chunk. pages.config.js is read-only (auto-
@@ -156,109 +168,127 @@ function App() {
             {/* OAuth (PKCE/implicit) callback — PUBLIC, outside the auth gate;
                 the session does not exist until the exchange completes. */}
             <Route path="/auth/callback" element={<AuthCallback />} />
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/onboarding/:state"
                 element={<OnboardingPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/shell/:state"
                 element={<ShellPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/home/:state"
                 element={<HomePreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/career"
                 element={<CareerPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/jobs-logos"
                 element={<JobsLogoPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/jobs-grid"
                 element={<JobsGridPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
+              <Route
+                path="/_preview/landing-v2"
+                element={<LandingV2Preview />}
+              />
+            )}
+            {SHOW_PREVIEW_ROUTES && (
+              <Route
+                path="/_preview/cv-agent"
+                element={<CVAgentPreview />}
+              />
+            )}
+            {SHOW_PREVIEW_ROUTES && (
+              <Route
+                path="/_preview/cv-agent-live"
+                element={<CVAgentLivePreview />}
+              />
+            )}
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/roadmap/:state"
                 element={<RoadmapPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/tracker/:state"
                 element={<TrackerPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/profile/:state"
                 element={<ProfilePreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/storybank/:state"
                 element={<StoryBankPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/tasks/:state"
                 element={<TasksPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/calendar/:state"
                 element={<CalendarPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/linkedin/:state"
                 element={<LinkedinPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/chat/:state"
                 element={<ChatPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/internship/:state"
                 element={<InternshipPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/resources/:state"
                 element={<ResourcesPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/settings/:state"
                 element={<SettingsPreview />}
               />
             )}
-            {import.meta.env.DEV && (
+            {SHOW_PREVIEW_ROUTES && (
               <Route
                 path="/_preview/drawer/:state"
                 element={<DrawerPreview />}
