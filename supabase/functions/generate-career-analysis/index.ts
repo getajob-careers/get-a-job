@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
+import { REASONING_MODEL, selectAnalysisModel, buildAnalysisPayload } from '../_shared/career-analysis-model.ts'
 import { sha256Hex } from '../_shared/content-hash.ts'
 import { pickPrimaryEducation, isCurrentlyStudent, formatEducationLine } from '../_shared/education-helpers.ts'
 import { resolveSkillAliases } from '../_shared/skill-aliases.ts'
@@ -1175,31 +1176,60 @@ CRITICAL: Do not change any title, track, readiness_score, goal_alignment_score,
 
 Return ONLY valid JSON.`;
 
-    const openaiResponse = await openaiChatCompletionWithRetry(
-      {
-        model: MODEL,
-        messages: [
-          { role: 'system', content: systemPrompt },
-          { role: 'user', content: userPrompt }
-        ],
-        temperature: 0.4,
-        max_tokens: 4500,
-        response_format: { type: 'json_object' },
-      },
-      openaiKey,
-      {
-        traceName: 'generate-career-analysis',
-        userId: user.id,
-      },
-      // Deadline is the single function-level signal created at t=0 (~80s),
-      // not a fresh per-call timeout, so the abort fires with headroom before
-      // the ~100s platform wall even after pre-LLM work.
-      { signal: deadlineSignal },
-    )
+    // Model selection: opt-in gpt-5.4-mini, default gpt-4o. gpt-5.4-mini won
+    // the 2026-06 bake-off (docs/research/career-analysis-model-eval-2026-06.md)
+    // on quality + ~2x latency. It is a gpt-5.x REASONING model: it CANNOT take
+    // max_tokens, it needs max_completion_tokens + reasoning_effort (16000 +
+    // 'none'), which prevents truncation on 15-role prompts whose visible output
+    // reaches ~4600 tokens, over the old 4500. Selection + payload shape live in
+    // the shared, unit-tested _shared/career-analysis-model.ts. gpt-4o stays the
+    // default AND the automatic fallback.
+    //
+    // Flag, default off (gpt-4o). Two opt-in levers to target test traffic: the
+    // request body field analysis_model='gpt-5.4-mini', or env
+    // CAREER_ANALYSIS_MODEL=gpt-5.4-mini (global). Neither set -> gpt-4o.
+    const useReasoningModel =
+      selectAnalysisModel(body?.analysis_model, Deno.env.get('CAREER_ANALYSIS_MODEL')) === REASONING_MODEL
+
+    // ONE call site for BOTH models, wrapped by the single function-level
+    // deadlineSignal (~80s from t=0). So a gpt-5.4-mini timeout aborts here and
+    // surfaces through the SAME catch as gpt-4o: the clean degraded 503
+    // {error:'analysis_timeout', retryable:true} plus the ok=false /
+    // error_code='analysis_timeout' metric. Payload shape (reasoning
+    // max_completion_tokens vs gpt-4o max_tokens) comes from the shared builder.
+    const callAnalysisModel = (modelName: string) =>
+      openaiChatCompletionWithRetry(
+        buildAnalysisPayload(modelName, systemPrompt, userPrompt),
+        openaiKey,
+        { traceName: 'generate-career-analysis', userId: user.id },
+        { signal: deadlineSignal },
+      )
+
+    const parseLlm = (c: any): Record<string, any> | null => {
+      try { return JSON.parse(c?.choices?.[0]?.message?.content || '{}') }
+      catch { return null }
+    }
+
+    let modelUsed = useReasoningModel ? REASONING_MODEL : MODEL
+    let openaiResponse = await callAnalysisModel(modelUsed)
+    let completion = openaiResponse.ok ? await openaiResponse.json() : null
+    let llmResult: Record<string, any> | null = completion ? parseLlm(completion) : null
+
+    // Automatic fallback to gpt-4o on a NON-timeout failure: a reasoning-model API
+    // error or invalid / truncated JSON retries once on the default so a flagged
+    // user is never worse off. A fired deadline THROWS from the call above and is
+    // handled by the outer catch as the clean 503, not retried here.
+    if (useReasoningModel && (!openaiResponse.ok || !llmResult)) {
+      console.warn(`[generate-career-analysis] ${REASONING_MODEL} -> ${MODEL} fallback (ok=${openaiResponse.ok}, parsed=${!!llmResult})`)
+      modelUsed = MODEL
+      openaiResponse = await callAnalysisModel(MODEL)
+      completion = openaiResponse.ok ? await openaiResponse.json() : null
+      llmResult = completion ? parseLlm(completion) : null
+    }
 
     if (!openaiResponse.ok) {
       const errText = await openaiResponse.text()
-      // D2 — keep upstream detail server-side only (log_error RPC + console.error
+      // Keep upstream detail server-side only (log_error RPC + console.error
       // backup); client gets generic message.
       await serviceClient.rpc('log_error', {
         p_user_id: user.id,
@@ -1209,20 +1239,16 @@ Return ONLY valid JSON.`;
       })
       console.error(`[generate-career-analysis] OpenAI ${openaiResponse.status}: ${errText}`)
       _http = 502; _err = `openai_${openaiResponse.status}`
-      m.modelUsed = MODEL
+      m.modelUsed = modelUsed
       return new Response(JSON.stringify({ error: 'AI service temporarily unavailable. Please try again.' }), {
         status: 502, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
     }
 
-    const completion = await openaiResponse.json()
-    m.modelUsed = MODEL
-    m.tokensIn = completion.usage?.prompt_tokens ?? null
-    m.tokensOut = completion.usage?.completion_tokens ?? null
-    let llmResult: Record<string, any>;
-    try {
-      llmResult = JSON.parse(completion.choices?.[0]?.message?.content || '{}');
-    } catch {
+    m.modelUsed = modelUsed
+    m.tokensIn = completion?.usage?.prompt_tokens ?? null
+    m.tokensOut = completion?.usage?.completion_tokens ?? null
+    if (!llmResult) {
       _http = 500; _err = 'json_parse'
       return new Response(JSON.stringify({ error: 'AI returned an invalid response format. Please try again.' }), {
         status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
