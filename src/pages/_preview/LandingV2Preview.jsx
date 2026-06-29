@@ -1,5 +1,6 @@
 /*
- * LandingV2Preview.jsx — DEV-only alternative landing page (/_preview/landing-v2)
+ * LandingV2Preview.jsx — the LIVE public homepage (the / route in App.jsx).
+ * Also reachable at /_preview/landing-v2 (the dev/preview harness route).
  *
  * A fresh, self-serve marketing page built from a design DNA synthesised from
  * Isaac's inspiration set (Manatee Energy, outcrowd.io, Sparkline, CoreShift):
@@ -9,13 +10,12 @@
  * orbit hero). Palette is anchored to our platform tokens so it matches the app.
  *
  * Self-contained on purpose (mirrors Landing.jsx): own inline-CSS token block,
- * own <head> effect, no shadcn imports. Gated to import.meta.env.DEV via the
- * route in App.jsx, and noindex'd, so it never ships/indexes by accident.
- * Promote to a public unlisted route when signed off.
+ * own <head> effect, no shadcn imports. Auth-aware: logged-in visitors at /
+ * auto-bounce to /Home; the previous Landing stays at /Landing for rollback.
  */
 
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { savePendingCv } from "@/lib/pendingCv";
 import { useAuth } from "@/lib/AuthContext";
 
@@ -387,10 +387,6 @@ function useLandingV2Head() {
   useEffect(() => {
     const prev = document.title;
     document.title = "Get A Job: Your job search, finally connected";
-    const robots = document.createElement("meta");
-    robots.name = "robots";
-    robots.content = "noindex"; // preview only
-    document.head.appendChild(robots);
     // Match the page ground so overscroll / any uncovered sliver never flashes
     // the browser's default white. Restored on unmount.
     const prevBodyBg = document.body.style.background;
@@ -409,7 +405,6 @@ function useLandingV2Head() {
     }
     return () => {
       document.title = prev;
-      robots.remove();
       document.body.style.background = prevBodyBg;
       document.documentElement.style.background = prevHtmlBg;
       if (!existed) tabler.remove();
@@ -1985,16 +1980,30 @@ export default function LandingV2Preview() {
   useLandingV2Head();
   useMotion();
   const navigate = useNavigate();
+  const location = useLocation();
   const auth = useAuth?.() || {};
   const isLoggedIn = !!(auth.isAuthenticated && auth.user);
+
+  // Auto-bounce authenticated users into the app — but ONLY from /, the
+  // implicit "default" entry point (email-confirmation, magic-link return,
+  // fresh tab on a logged-in browser). /Landing stays the explicit "show me
+  // the marketing page" route, so this never fires there. Mirrors the old
+  // Landing's bounce so the live homepage behaves the same for logged-in users.
+  useEffect(() => {
+    if (isLoggedIn && location.pathname === "/") {
+      navigate("/Home", { replace: true });
+    }
+  }, [isLoggedIn, navigate, location.pathname]);
+
   // Every new-visitor CTA (nav "Start", hero "Start here", the CV dropzone,
   // the bottom CTA) opens Login in signup / create-account mode — a returning
   // user uses the "Sign in" link inside that view. The dropzone saves the CV
-  // to IndexedDB before this fires (see DropZone.start).
-  const onCTA = () => navigate(isLoggedIn ? "/" : "/Login?mode=signup");
+  // to IndexedDB before this fires (see DropZone.start). A logged-in user
+  // goes to /Home (the dashboard), never back to / which would loop.
+  const onCTA = () => navigate(isLoggedIn ? "/Home" : "/Login?mode=signup");
   // Quiet nav-only "Log in" link for returning users — routes to the existing
   // signin mode so they skip the signup view that the primary CTAs open.
-  const onLogin = () => navigate(isLoggedIn ? "/" : "/Login?mode=signin");
+  const onLogin = () => navigate(isLoggedIn ? "/Home" : "/Login?mode=signin");
 
   const ref = useRef(null);
   return (

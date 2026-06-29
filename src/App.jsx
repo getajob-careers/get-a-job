@@ -156,10 +156,13 @@ function App() {
         <Router>
           <Routes>
             {/* Public surfaces — rendered OUTSIDE the auth gate and OUTSIDE
-                the dashboard Layout. Landing is auth-aware (CTAs flip based
-                on session) but doesn't redirect on auth state — same URL
-                shows for everyone. */}
-            <Route path="/" element={<Landing />} />
+                the dashboard Layout. The homepage is auth-aware (CTAs flip
+                based on session; logged-in visitors auto-bounce to /Home).
+                LandingV2Preview is the live homepage; the previous Landing
+                stays reachable at /Landing for rollback safety and the in-app
+                "show me the marketing page" links (sidebar, settings,
+                onboarding). */}
+            <Route path="/" element={<LandingV2Preview />} />
             <Route path="/Landing" element={<Landing />} />
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
