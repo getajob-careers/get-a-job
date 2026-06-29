@@ -177,36 +177,83 @@ const SP_ENTRY_BEFORE = 14; // between sibling entries — bumped 10→14
 const P_RULE_THICKNESS = 0.75; // section + header rules
 const COLOR_RULE = COLOR_INK; // monochrome near-black rules
 
-// Header (absolute Y, not scaled — matches the non-premium header).
-const P_SIZE_NAME = 30;
-const P_SIZE_HEADLINE = 12.5;
-const P_SIZE_CONTACT = 9.5;
-const P_HEADER_NAME_Y = PAGE_H - HEADER_TOP_MARGIN - P_SIZE_NAME;
-const P_HEADER_HEADLINE_Y = P_HEADER_NAME_Y - 9 - P_SIZE_HEADLINE;
-const P_HEADER_CONTACT_Y = P_HEADER_HEADLINE_Y - 7 - P_SIZE_CONTACT;
-const P_HEADER_RULE_Y = P_HEADER_CONTACT_Y - 12; // hairline under the contact row
-const P_HEADER_CONTENT_TOP = P_HEADER_RULE_Y - 22; // first section starts here
+// Premium spacing is ONE layout (the airy "comfortable" preset). To fit a
+// longer CV on one page we scale the WHOLE layout — header sizes/gaps AND every
+// section/entry/bullet size+gap — by a single ctx.scale. Because everything
+// shrinks by the same factor, all spacing relationships are preserved and lines
+// or sections can NEVER overlap; the page just gets smaller. There is no second
+// "dense" set of values to collide. See docs/engineering/cv-template-rendering-spec.md.
+interface Density {
+  nameSize: number;
+  headlineSize: number;
+  contactSize: number;
+  headerHeadlineGap: number; // name baseline → headline
+  headerContactGap: number; // headline → contact
+  headerRuleGap: number; // contact → hairline rule
+  headerContentGap: number; // rule → first section
+  roleSize: number;
+  orgSize: number;
+  trackSection: number;
+  spSectionBefore: number;
+  spAfterRule: number;
+  spEntryBefore: number;
+  lhRoleToOrg: number;
+  lhBody: number;
+  lhBulletGap: number;
+  headingRuleDrop: number;
+}
 
-// Section + entry typography (scaled by ctx.scale).
-const P_SIZE_ROLE = 11; // bold role title (own line)
-const P_SIZE_ORG = 10; // company / org (own line, italic muted)
-const P_TRACK_SECTION = 1.5; // ~14% of 11pt — heavier, deliberate
-const P_SP_SECTION_BEFORE = 26; // above each section heading
-const P_SP_AFTER_RULE = 12; // heading rule → first entry
-const P_SP_ENTRY_BEFORE = 16; // between sibling entries
-const P_LH_ROLE_TO_ORG = 13; // role line → company line
-const P_LH_BODY = 13; // ~1.25 at 10.5 — wrapped-line leading
-const P_LH_BULLET_GAP = 15; // gap before each bullet
-const P_HEADING_RULE_DROP = 6; // baseline → rule, below the heading
+const COMFORTABLE: Density = {
+  nameSize: 30,
+  headlineSize: 12.5,
+  contactSize: 9.5,
+  headerHeadlineGap: 9,
+  headerContactGap: 7,
+  headerRuleGap: 12,
+  headerContentGap: 22,
+  roleSize: 11,
+  orgSize: 10,
+  trackSection: 1.5,
+  spSectionBefore: 26,
+  spAfterRule: 12,
+  spEntryBefore: 16,
+  lhRoleToOrg: 13,
+  lhBody: 13, // ~1.24 at 10.5
+  lhBulletGap: 15,
+  headingRuleDrop: 6,
+};
 
-// ─── Shrink-to-fit bounds ───────────────────────────────────────────
-// FLOOR is the readable minimum (body 10.5 × 0.72 ≈ 7.6pt). One page only:
-// a CV that fits at scale ≥ FLOOR renders as-is (unchanged from before); a CV
-// that would need to go below FLOOR is CURATED at clean boundaries to fit at
-// exactly FLOOR (see curateToFit) — the old "shrink to 0.55 then paint below
-// the page edge" silent-clip path is gone.
-const FLOOR = 0.72;
+// Header Y positions for the layout at a given uniform scale, anchored at the
+// fixed top margin and flowing down. Sizes AND gaps are multiplied by `scale`,
+// so the header shrinks in lockstep with the body. Returns the section
+// content-top (where the flow begins, below the header rule) and the header
+// block height consumed (both at this scale).
+function headerYs(d: Density, scale: number) {
+  const sc = (v: number) => v * scale;
+  const top = PAGE_H - HEADER_TOP_MARGIN;
+  const nameY = top - sc(d.nameSize);
+  const headlineY = nameY - sc(d.headerHeadlineGap) - sc(d.headlineSize);
+  const contactY = headlineY - sc(d.headerContactGap) - sc(d.contactSize);
+  const ruleY = contactY - sc(d.headerRuleGap);
+  const contentTop = ruleY - sc(d.headerContentGap);
+  return {
+    nameY,
+    headlineY,
+    contactY,
+    ruleY,
+    contentTop,
+    height: top - contentTop,
+  };
+}
+
+// ─── Uniform scale-to-fit ───────────────────────────────────────────
+// One layout (comfortable), fit by a single uniform scale. We ALWAYS fit the
+// whole CV on one page and NEVER cut content: scale has NO floor — an unusually
+// long CV simply keeps scaling down (a smaller-but-complete CV always beats a
+// cut one). DENSE_HINT is only the point below which the studio MAY show a calm,
+// dismissible "this CV is dense" hint — never an error, never implying a drop.
 const SCALE_MAX = 1.0;
+const DENSE_HINT = 0.72; // scale below this → optional calm density hint
 
 // ─── CV data shape (mirrors build.ts CvData) ───────────────────────
 interface CvData {
@@ -402,6 +449,7 @@ interface Ctx {
   labelCase: "uppercase" | "capitalize";
   ruleOn: boolean;
   premium: boolean; // the "Classic" typography variant (per-template gate)
+  d: Density; // active density tier (comfortable | dense)
   y: number;
   draw: boolean;
   scale: number;
@@ -461,7 +509,7 @@ function drawSectionHeading(ctx: Ctx, label: string) {
   // Premium: monochrome near-black heading + a full-width 0.75pt rule BENEATH
   // the label (margin-to-margin) — the dominant "designed" signal.
   if (ctx.premium) {
-    ctx.y -= s(ctx, P_SP_SECTION_BEFORE);
+    ctx.y -= s(ctx, ctx.d.spSectionBefore);
     const headSize = s(ctx, SIZE_SECTION);
     const text =
       ctx.labelCase === "uppercase" ? label.toUpperCase() : titleCase(label);
@@ -471,9 +519,9 @@ function drawSectionHeading(ctx: Ctx, label: string) {
       size: headSize,
       font: ctx.fonts.bold,
       color: COLOR_INK,
-      tracking: s(ctx, P_TRACK_SECTION),
+      tracking: s(ctx, ctx.d.trackSection),
     });
-    const ruleY = ctx.y - s(ctx, P_HEADING_RULE_DROP);
+    const ruleY = ctx.y - s(ctx, ctx.d.headingRuleDrop);
     if (ctx.draw) {
       ctx.page.drawLine({
         start: { x: MARGIN_SIDE, y: ruleY },
@@ -482,7 +530,7 @@ function drawSectionHeading(ctx: Ctx, label: string) {
         color: COLOR_RULE,
       });
     }
-    ctx.y = ruleY - s(ctx, P_SP_AFTER_RULE);
+    ctx.y = ruleY - s(ctx, ctx.d.spAfterRule);
     return;
   }
 
@@ -518,8 +566,8 @@ function drawEntryTitleLine(
   isFirst: boolean,
 ) {
   if (!isFirst)
-    ctx.y -= s(ctx, ctx.premium ? P_SP_ENTRY_BEFORE : SP_ENTRY_BEFORE);
-  const titleSize = s(ctx, ctx.premium ? P_SIZE_ROLE : SIZE_BODY);
+    ctx.y -= s(ctx, ctx.premium ? ctx.d.spEntryBefore : SP_ENTRY_BEFORE);
+  const titleSize = s(ctx, ctx.premium ? ctx.d.roleSize : SIZE_BODY);
   if (ctx.draw) {
     ctx.page.drawText(titleLeft, {
       x: MARGIN_SIDE,
@@ -557,12 +605,12 @@ function drawRoleEntry(
   dateRight: string | undefined,
   isFirst: boolean,
 ) {
-  if (!isFirst) ctx.y -= s(ctx, P_SP_ENTRY_BEFORE);
+  if (!isFirst) ctx.y -= s(ctx, ctx.d.spEntryBefore);
   if (ctx.draw && title) {
     ctx.page.drawText(title, {
       x: MARGIN_SIDE,
       y: ctx.y,
-      size: s(ctx, P_SIZE_ROLE),
+      size: s(ctx, ctx.d.roleSize),
       font: ctx.fonts.bold,
       color: COLOR_INK,
     });
@@ -582,12 +630,12 @@ function drawRoleEntry(
     }
   }
   if (org) {
-    ctx.y -= s(ctx, P_LH_ROLE_TO_ORG);
+    ctx.y -= s(ctx, ctx.d.lhRoleToOrg);
     if (ctx.draw) {
       ctx.page.drawText(org, {
         x: MARGIN_SIDE,
         y: ctx.y,
-        size: s(ctx, P_SIZE_ORG),
+        size: s(ctx, ctx.d.orgSize),
         font: ctx.fonts.italic,
         color: COLOR_MUTED,
       });
@@ -597,7 +645,7 @@ function drawRoleEntry(
 
 function drawSubLine(ctx: Ctx, text: string) {
   if (!text) return;
-  ctx.y -= s(ctx, ctx.premium ? P_LH_ROLE_TO_ORG : LH_BODY);
+  ctx.y -= s(ctx, ctx.premium ? ctx.d.lhRoleToOrg : LH_BODY);
   if (ctx.draw) {
     ctx.page.drawText(text, {
       x: MARGIN_SIDE,
@@ -611,11 +659,11 @@ function drawSubLine(ctx: Ctx, text: string) {
 
 function drawBullet(ctx: Ctx, text: string) {
   if (!text) return;
-  ctx.y -= s(ctx, ctx.premium ? P_LH_BULLET_GAP : LH_BULLET_GAP);
+  ctx.y -= s(ctx, ctx.premium ? ctx.d.lhBulletGap : LH_BULLET_GAP);
   const bulletIndent = 16;
   const textWidth = CONTENT_W - bulletIndent;
   const bulletSize = s(ctx, ctx.premium ? SIZE_BODY : SIZE_BULLET);
-  const lineLead = ctx.premium ? P_LH_BODY : LH_BODY;
+  const lineLead = ctx.premium ? ctx.d.lhBody : LH_BODY;
   if (ctx.draw) {
     ctx.page.drawCircle({
       x: MARGIN_SIDE + 5,
@@ -641,11 +689,11 @@ function drawBullet(ctx: Ctx, text: string) {
 
 function drawPlainLine(ctx: Ctx, text: string) {
   if (!text) return;
-  ctx.y -= s(ctx, ctx.premium ? P_LH_BULLET_GAP : LH_BULLET_GAP);
+  ctx.y -= s(ctx, ctx.premium ? ctx.d.lhBulletGap : LH_BULLET_GAP);
   const bulletSize = s(ctx, ctx.premium ? SIZE_BODY : SIZE_BULLET);
   const lines = wrap(text, ctx.fonts.regular, bulletSize, CONTENT_W);
   for (let i = 0; i < lines.length; i++) {
-    if (i > 0) ctx.y -= s(ctx, ctx.premium ? P_LH_BODY : LH_BODY);
+    if (i > 0) ctx.y -= s(ctx, ctx.premium ? ctx.d.lhBody : LH_BODY);
     if (ctx.draw) {
       ctx.page.drawText(lines[i], {
         x: MARGIN_SIDE,
@@ -660,11 +708,11 @@ function drawPlainLine(ctx: Ctx, text: string) {
 
 function drawBodyParagraph(ctx: Ctx, text: string) {
   if (!text) return;
-  ctx.y -= s(ctx, ctx.premium ? P_LH_BULLET_GAP : LH_BULLET_GAP);
+  ctx.y -= s(ctx, ctx.premium ? ctx.d.lhBulletGap : LH_BULLET_GAP);
   const bodySize = s(ctx, SIZE_BODY);
   const lines = wrap(text, ctx.fonts.regular, bodySize, CONTENT_W);
   for (let i = 0; i < lines.length; i++) {
-    if (i > 0) ctx.y -= s(ctx, ctx.premium ? P_LH_BODY : LH_BODY);
+    if (i > 0) ctx.y -= s(ctx, ctx.premium ? ctx.d.lhBody : LH_BODY);
     if (ctx.draw) {
       ctx.page.drawText(lines[i], {
         x: MARGIN_SIDE,
@@ -697,13 +745,16 @@ function renderHeader(ctx: Ctx, cvData: CvData, userContext: UserContext) {
     .filter(Boolean);
 
   // Premium: larger name, quieter headline + contact, and a full-width hairline
-  // rule under the contact row separating the header from the body.
-  const nameSize = ctx.premium ? P_SIZE_NAME : SIZE_NAME_HEADER;
-  const headlineSize = ctx.premium ? P_SIZE_HEADLINE : SIZE_HEADLINE;
-  const contactSize = ctx.premium ? P_SIZE_CONTACT : SIZE_CONTACT_H;
-  const nameY = ctx.premium ? P_HEADER_NAME_Y : HEADER_NAME_Y;
-  const headlineY = ctx.premium ? P_HEADER_HEADLINE_Y : HEADER_HEADLINE_Y;
-  const contactY = ctx.premium ? P_HEADER_CONTACT_Y : HEADER_CONTACT_Y;
+  // rule under the contact row separating the header from the body. Header sizes
+  // AND positions scale by ctx.scale so the header shrinks in lockstep with the
+  // body (uniform scale-to-fit) — never disproportionate, never overlapping.
+  const hy = headerYs(ctx.d, ctx.scale);
+  const nameSize = ctx.premium ? s(ctx, ctx.d.nameSize) : SIZE_NAME_HEADER;
+  const headlineSize = ctx.premium ? s(ctx, ctx.d.headlineSize) : SIZE_HEADLINE;
+  const contactSize = ctx.premium ? s(ctx, ctx.d.contactSize) : SIZE_CONTACT_H;
+  const nameY = ctx.premium ? hy.nameY : HEADER_NAME_Y;
+  const headlineY = ctx.premium ? hy.headlineY : HEADER_HEADLINE_Y;
+  const contactY = ctx.premium ? hy.contactY : HEADER_CONTACT_Y;
 
   ctx.page.drawText(name, {
     x: MARGIN_SIDE,
@@ -732,9 +783,9 @@ function renderHeader(ctx: Ctx, cvData: CvData, userContext: UserContext) {
   }
   if (ctx.premium) {
     ctx.page.drawLine({
-      start: { x: MARGIN_SIDE, y: P_HEADER_RULE_Y },
-      end: { x: PAGE_W - MARGIN_SIDE, y: P_HEADER_RULE_Y },
-      thickness: P_RULE_THICKNESS,
+      start: { x: MARGIN_SIDE, y: hy.ruleY },
+      end: { x: PAGE_W - MARGIN_SIDE, y: hy.ruleY },
+      thickness: s(ctx, P_RULE_THICKNESS),
       color: COLOR_RULE,
     });
   }
@@ -804,9 +855,26 @@ function renderLeadership(ctx: Ctx, cvData: CvData) {
   renderExperienceBucket(ctx, "Leadership", list, "organization");
 }
 
+// Most-recent year mentioned in a free-form dates string ("2023 – Present",
+// "2014 – 2018"); "Present"/"Current" ranks highest. Used to order education
+// reverse-chronologically (university above high school).
+function recencyKey(dates: unknown): number {
+  const s = String(dates ?? "");
+  if (/present|current|now/i.test(s)) return Number.MAX_SAFE_INTEGER;
+  const years = (s.match(/\b(19|20)\d{2}\b/g) || []).map(Number);
+  return years.length ? Math.max(...years) : 0;
+}
+
 function renderEducation(ctx: Ctx, cvData: CvData) {
-  const list = Array.isArray(cvData.education) ? cvData.education : [];
-  if (list.length === 0) return;
+  const raw = Array.isArray(cvData.education) ? cvData.education : [];
+  if (raw.length === 0) return;
+  // Reverse-chronological (most recent first). Stable for equal keys.
+  const list = raw
+    .map((e, i) => ({ e, i }))
+    .sort(
+      (a, b) => recencyKey(b.e?.dates) - recencyKey(a.e?.dates) || a.i - b.i,
+    )
+    .map((x) => x.e);
   drawSectionHeading(ctx, "Education");
 
   const honorsSet = new Set(
@@ -855,19 +923,78 @@ function renderEducation(ctx: Ctx, cvData: CvData) {
   });
 }
 
-// Skills: 2-column grid with bold label column + values column.
+// Friendly labels for the stored skill-group keys (the raw keys never show).
+const SKILL_GROUP_LABELS: Record<string, string> = {
+  domain: "Core Competencies",
+  technical: "Technical",
+  tools: "Tools",
+};
+
+// One compact skill group: a bold inline label, then mid-dot-joined values that
+// wrap (continuation lines align under the values, hanging past the label). It's
+// reference info, so it's packed denser than prose — groups stack on the body
+// line-height with only a small gap between them, no per-group section spacing.
+function drawSkillGroup(
+  ctx: Ctx,
+  label: string,
+  valuesText: string,
+  isFirst: boolean,
+) {
+  const size = s(ctx, SIZE_BODY);
+  const lead = s(ctx, ctx.d.lhBody);
+  ctx.y -= s(ctx, isFirst ? ctx.d.lhBulletGap : 5); // tight gap between groups
+  const labelStr = `${label}:  `;
+  const labelW = ctx.fonts.bold.widthOfTextAtSize(labelStr, size);
+  if (ctx.draw) {
+    ctx.page.drawText(labelStr, {
+      x: MARGIN_SIDE,
+      y: ctx.y,
+      size,
+      font: ctx.fonts.bold,
+      color: COLOR_INK,
+    });
+  }
+  // Wrap the values: first line begins after the label; continuation lines hang
+  // at the label's left edge (MARGIN_SIDE + labelW) so the column reads cleanly.
+  const hang = MARGIN_SIDE + labelW;
+  const avail = PAGE_W - MARGIN_SIDE - hang;
+  const lines = wrap(valuesText, ctx.fonts.regular, size, avail);
+  for (let i = 0; i < lines.length; i++) {
+    if (i > 0) ctx.y -= lead;
+    if (ctx.draw) {
+      ctx.page.drawText(lines[i], {
+        x: hang,
+        y: ctx.y,
+        size,
+        font: ctx.fonts.regular,
+        color: COLOR_BODY,
+      });
+    }
+  }
+}
+
+// Skills rendered BY GROUP (the data is already categorized). Each non-empty
+// group gets a labeled, compact line; empty groups are skipped.
 function renderSkills(ctx: Ctx, cvData: CvData) {
   const sk = cvData.skills || {};
-  const all = [
-    ...(sk.domain || []),
-    ...(sk.tools || []),
-    ...(sk.technical || []),
-  ]
-    .map(trim)
-    .filter(Boolean);
-  if (all.length === 0) return;
+  const groups = (["domain", "technical", "tools"] as const)
+    .map((key) => ({
+      label: SKILL_GROUP_LABELS[key],
+      values: safeArray((sk as any)[key])
+        .map(trim)
+        .filter(Boolean),
+    }))
+    .filter((g) => g.values.length > 0);
+  if (groups.length === 0) return;
   drawSectionHeading(ctx, "Skills");
-  drawBodyParagraph(ctx, all.join("  ·  "));
+  // Non-premium templates keep the flat blob (byte-identical fallback).
+  if (!ctx.premium) {
+    drawBodyParagraph(ctx, groups.flatMap((g) => g.values).join("  ·  "));
+    return;
+  }
+  groups.forEach((g, i) =>
+    drawSkillGroup(ctx, g.label, g.values.join("  ·  "), i === 0),
+  );
 }
 
 // Languages — defensive normalization (handles the no-separator
@@ -973,148 +1100,18 @@ function renderAllSections(
   }
 }
 
-// ─── One-page curation (clean-boundary, never clips) ───────────────
-// When a CV can't fit one page at the readable FLOOR scale, we reduce content
-// at clean boundaries instead of clipping it off the page: drop whole trailing
-// entries/sections in render order, and trim trailing bullets of the boundary
-// entry (always keeping ≥1). Everything dropped is reported in CvFit so the UI
-// can tell the user exactly what was hidden — no silent loss.
-
+// ─── One-page fit result ───────────────────────────────────────────
+// The renderer ALWAYS fits the whole CV on one page and NEVER removes content;
+// CvFit just reports HOW it fit so the studio can optionally surface a calm
+// density hint. There is no "trimmed"/"dropped" anything.
 export interface CvFit {
-  trimmed: boolean;
-  scale: number;
-  lowestY: number; // lowest baseline painted; ≥ MARGIN_BOTTOM ⇒ no clip
-  droppedSections: string[];
-  droppedEntries: { section: string; title: string }[];
-  droppedBulletCount: number;
+  scale: number; // uniform scale applied to the whole layout (≤ 1.0)
+  dense: boolean; // scale dipped below the comfortable-readability point
+  lowestY: number; // lowest baseline painted; ≥ MARGIN_BOTTOM by construction
 }
 export interface CvPdfResult {
   bytes: Uint8Array;
   fit: CvFit;
-}
-
-// The entry array a section renders from (mirrors the per-section renderers),
-// or null for non-entry sections. Returns a live reference so popping mutates
-// the data the draw pass will read.
-function entryArrayFor(cv: CvData, key: string): any[] | null {
-  switch (key) {
-    case "professional_experience":
-      if (Array.isArray(cv.professional_experiences))
-        return cv.professional_experiences;
-      if (Array.isArray(cv.experiences)) return cv.experiences;
-      return null;
-    case "military_service":
-      return Array.isArray(cv.military_experiences)
-        ? cv.military_experiences
-        : null;
-    case "volunteering":
-      if (Array.isArray(cv.volunteering_experiences))
-        return cv.volunteering_experiences;
-      if (Array.isArray(cv.volunteering)) return cv.volunteering;
-      return null;
-    case "leadership":
-      return Array.isArray(cv.leadership_experiences)
-        ? cv.leadership_experiences
-        : null;
-    case "education":
-      return Array.isArray(cv.education) ? cv.education : null;
-    case "projects":
-      return Array.isArray(cv.projects) ? cv.projects : null;
-    case "honors":
-      return Array.isArray(cv.honors_and_awards) ? cv.honors_and_awards : null;
-    case "certifications":
-      return Array.isArray(cv.certifications) ? cv.certifications : null;
-    default:
-      return null;
-  }
-}
-
-const SECTION_LABEL: Record<string, string> = {
-  about: "About Me",
-  professional_experience: "Professional Experience",
-  military_service: "Military Service",
-  volunteering: "Volunteering",
-  leadership: "Leadership",
-  education: "Education",
-  skills: "Skills",
-  languages: "Languages",
-  honors: "Honors & Awards",
-  certifications: "Certifications",
-  projects: "Projects",
-};
-
-function entryTitle(entry: any, key: string): string {
-  if (key === "education") {
-    const d = trim(entry?.degree);
-    const f = trim(entry?.field_of_study);
-    return d || f || trim(entry?.institution) || "entry";
-  }
-  if (key === "honors" || key === "certifications") {
-    return typeof entry === "string" ? entry : trim(entry?.name) || "item";
-  }
-  const t = trim(entry?.title) || trim(entry?.name);
-  const org = trim(
-    entry?.company || entry?.unit || entry?.organization || entry?.issuer,
-  );
-  return t && org ? `${t} (${org})` : t || org || "entry";
-}
-
-// Remove the single lowest-priority unit from the tail of the render flow.
-// Returns false when nothing removable remains (header + summary always stay).
-function removeOneTailUnit(
-  cv: CvData,
-  order: SectionKey[],
-  fit: CvFit,
-): boolean {
-  for (let i = order.length - 1; i >= 0; i--) {
-    const key = order[i];
-    const arr = entryArrayFor(cv, key);
-    if (arr && arr.length > 0) {
-      const last = arr[arr.length - 1];
-      const bullets = last && Array.isArray(last.bullets) ? last.bullets : null;
-      if (
-        key !== "honors" &&
-        key !== "certifications" &&
-        bullets &&
-        bullets.length > 1
-      ) {
-        bullets.pop();
-        fit.droppedBulletCount++;
-        return true;
-      }
-      arr.pop();
-      fit.droppedEntries.push({ section: key, title: entryTitle(last, key) });
-      if (arr.length === 0 && !fit.droppedSections.includes(SECTION_LABEL[key]))
-        fit.droppedSections.push(SECTION_LABEL[key]);
-      return true;
-    }
-    // Whole-section units (no per-entry structure): drop the section.
-    if (key === "skills") {
-      const sk = cv.skills;
-      const has =
-        sk &&
-        ((sk.domain && sk.domain.length) ||
-          (sk.tools && sk.tools.length) ||
-          (sk.technical && sk.technical.length));
-      if (has) {
-        cv.skills = {};
-        fit.droppedSections.push(SECTION_LABEL.skills);
-        return true;
-      }
-    }
-    if (key === "languages") {
-      const hasArr = Array.isArray(cv.languages) && cv.languages.length > 0;
-      const hasSk =
-        Array.isArray(cv.skills?.languages) && cv.skills!.languages!.length > 0;
-      if (hasArr || hasSk) {
-        cv.languages = [];
-        if (cv.skills) cv.skills.languages = [];
-        fit.droppedSections.push(SECTION_LABEL.languages);
-        return true;
-      }
-    }
-  }
-  return false;
 }
 
 // ─── Main entry point ───────────────────────────────────────────────
@@ -1158,16 +1155,15 @@ export async function buildCvPdf(
   const uc = deepSanitizeStrings(userContext, sanitize) as UserContext;
 
   const premium = tpl.premium === true;
+  const d = COMFORTABLE; // one layout; the only fit variable is the scale
 
-  // Clean-white header is fixed-height; sections flow below it. The premium
-  // header is taller (30pt name + hairline rule), so it has its own content top.
-  const contentTopY = premium ? P_HEADER_CONTENT_TOP : HEADER_CONTENT_TOP;
-  const contentAvailableH = contentTopY - MARGIN_BOTTOM;
-
-  // ─── Pass 1: MEASURE (sections only — banner is fixed) ───
-  // A reusable measure: walks the section flow with draw off and returns the
-  // content height. Called once up front, then again per curation step.
-  const measure = (data: CvData): number => {
+  // Section-flow height at a given uniform scale (draw off). wrap() uses the
+  // scaled font size, so measuring at the scale we'll draw at makes the fit
+  // tight. For premium the header scales too (headerYs(d, scale).height), so the
+  // whole page is one uniformly-scaled block.
+  const headerHeightAt = (scale: number): number =>
+    premium ? headerYs(d, scale).height : PAGE_H - HEADER_CONTENT_TOP;
+  const sectionsHeightAt = (scale: number): number => {
     const mc: Ctx = {
       page,
       fonts,
@@ -1175,54 +1171,53 @@ export async function buildCvPdf(
       labelCase: tpl.labelCase,
       ruleOn: tpl.rule,
       premium,
-      y: contentTopY,
+      d,
+      y: 0,
       draw: false,
-      scale: SCALE_MAX,
+      scale,
     };
-    renderAllSections(mc, data, config.sectionOrder);
-    return contentTopY - mc.y;
+    renderAllSections(mc, cv, config.sectionOrder);
+    return -mc.y; // started at 0, flowed down
   };
 
-  const fit: CvFit = {
-    trimmed: false,
-    scale: SCALE_MAX,
-    lowestY: contentTopY,
-    droppedSections: [],
-    droppedEntries: [],
-    droppedBulletCount: 0,
-  };
-
-  const usedHeight = measure(cv);
-  const fitScale = usedHeight > 0 ? contentAvailableH / usedHeight : SCALE_MAX;
-  let scale: number;
-
-  if (fitScale >= FLOOR) {
-    // Fits at a readable scale — render as-is (unchanged from before: a CV in
-    // [FLOOR, 1.0] gets exactly the scale it always did; ≥1.0 → no shrink).
-    scale = Math.min(SCALE_MAX, fitScale);
-  } else {
-    // Would be unreadable / clip. Curate at clean boundaries until it fits at
-    // FLOOR, then render at exactly FLOOR. Budget is the content height we can
-    // afford at FLOOR. Guard caps iterations (header + summary never removed).
-    scale = FLOOR;
-    fit.trimmed = true;
-    const budget = contentAvailableH / FLOOR;
-    let guard = 0;
-    while (measure(cv) > budget && guard++ < 1000) {
-      if (!removeOneTailUnit(cv, config.sectionOrder, fit)) break;
+  // ─── Uniform scale-to-fit — ALWAYS fits, NEVER cuts ───
+  // Find the largest scale ≤ 1 where header + sections fit the page content
+  // area. Everything (header + body) scales by this one factor, so spacing
+  // relationships are preserved and nothing can overlap. There is NO floor: an
+  // unusually long CV just renders smaller. Short fixed-point because measured
+  // height depends on scale (wrap); a final guard guarantees it fits.
+  // 1pt bottom safety so content never lands exactly on (or float-rounds below)
+  // the bottom margin.
+  const totalAvail = PAGE_H - HEADER_TOP_MARGIN - MARGIN_BOTTOM - 1;
+  const totalAt = (scale: number): number =>
+    headerHeightAt(scale) + sectionsHeightAt(scale);
+  let scale = SCALE_MAX;
+  for (let i = 0; i < 6; i++) {
+    const total = totalAt(scale);
+    if (total <= 0) break;
+    const next = Math.min(SCALE_MAX, (scale * totalAvail) / total);
+    if (Math.abs(next - scale) < 0.004) {
+      scale = next;
+      break;
     }
+    scale = next;
   }
-  fit.scale = scale;
+  while (scale > 0.05 && totalAt(scale) > totalAvail) scale -= 0.01;
 
-  const tag = fit.trimmed ? "[CV-PDF][CURATED]" : "[CV-PDF]";
+  const contentTopY = premium
+    ? headerYs(d, scale).contentTop
+    : HEADER_CONTENT_TOP;
+  const fit: CvFit = {
+    scale,
+    dense: scale < DENSE_HINT,
+    lowestY: contentTopY,
+  };
+
   console.log(
-    `${tag} measure: used ${usedHeight.toFixed(1)}pt of ${contentAvailableH.toFixed(1)}pt → scale ${scale.toFixed(3)}` +
-      (fit.trimmed
-        ? ` (dropped ${fit.droppedEntries.length} entries / ${fit.droppedBulletCount} bullets / sections: ${fit.droppedSections.join(", ") || "none"})`
-        : ""),
+    `[CV-PDF] fit: total ${totalAt(scale).toFixed(1)}pt of ${totalAvail.toFixed(1)}pt → scale ${scale.toFixed(3)}${fit.dense ? " (dense hint)" : ""}`,
   );
 
-  // ─── Pass 2: DRAW ───
+  // ─── DRAW ───
   // White page (clean-white templates); header + sections drawn on top.
   page.drawRectangle({
     x: 0,
@@ -1238,6 +1233,7 @@ export async function buildCvPdf(
     labelCase: tpl.labelCase,
     ruleOn: tpl.rule,
     premium,
+    d,
     y: contentTopY,
     draw: true,
     scale,

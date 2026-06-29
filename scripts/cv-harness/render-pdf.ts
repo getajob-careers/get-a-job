@@ -28,20 +28,39 @@ const uc = {
   linkedin_url: cv.header?.linkedin ?? "",
 };
 
-// proCount<2 → education-first; matches render-cv's resolveSectionOrder.
-const order = [
-  "about",
-  "education",
-  "professional_experience",
-  "military_service",
-  "volunteering",
-  "leadership",
-  "skills",
-  "languages",
-  "honors",
-  "certifications",
-  "projects",
-];
+// Matches render-cv's resolveSectionOrder: 2+ professional → experience-first;
+// otherwise education-first.
+const proCount = Array.isArray(cv.professional_experiences)
+  ? cv.professional_experiences.length
+  : 0;
+const order =
+  proCount >= 2
+    ? [
+        "about",
+        "professional_experience",
+        "military_service",
+        "volunteering",
+        "leadership",
+        "education",
+        "skills",
+        "languages",
+        "honors",
+        "certifications",
+        "projects",
+      ]
+    : [
+        "about",
+        "education",
+        "professional_experience",
+        "military_service",
+        "volunteering",
+        "leadership",
+        "skills",
+        "languages",
+        "honors",
+        "certifications",
+        "projects",
+      ];
 
 const { bytes, fit } = await buildCvPdf(
   cv,
@@ -62,12 +81,12 @@ const { bytes, fit } = await buildCvPdf(
 );
 
 await Deno.writeFile(outPath, bytes);
-// Sidecar for the harness gates: scale, curation metadata, and the lowest
+// Sidecar for the harness gates: density tier, scale, dense flag, and the lowest
 // painted baseline (MARGIN_BOTTOM is 40 — lowestY ≥ 40 proves no clip).
 await Deno.writeTextFile(
   `${outPath}.fit.json`,
   JSON.stringify({ ...fit, marginBottom: 40 }, null, 2),
 );
 console.log(
-  `rendered ${templateId} → ${outPath} (${bytes.length} bytes) scale=${fit.scale.toFixed(3)} trimmed=${fit.trimmed} lowestY=${fit.lowestY.toFixed(1)}`,
+  `rendered ${templateId} → ${outPath} (${bytes.length} bytes) scale=${fit.scale.toFixed(3)} dense=${fit.dense} lowestY=${fit.lowestY.toFixed(1)}`,
 );
