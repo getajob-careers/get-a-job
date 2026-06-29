@@ -1,6 +1,6 @@
-import react from '@vitejs/plugin-react'
-import { defineConfig } from 'vite'
-import { fileURLToPath, URL } from 'node:url'
+import react from "@vitejs/plugin-react";
+import { defineConfig } from "vite";
+import { fileURLToPath, URL } from "node:url";
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -11,19 +11,22 @@ export default defineConfig({
   define: {
     __PREVIEW_ROUTES__: JSON.stringify(process.env.VERCEL_ENV === "preview"),
   },
-  plugins: [
-    react(),
-  ],
+  plugins: [react()],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('./src', import.meta.url)),
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
+      // Shared modules used by both the client and the Deno edge functions
+      // (cv-master.ts, the deterministic master builder). One source of truth.
+      "@shared": fileURLToPath(
+        new URL("./supabase/functions/_shared", import.meta.url),
+      ),
     },
   },
   test: {
     globals: true,
-    environment: 'jsdom',
-    setupFiles: ['./src/test/setup.js'],
+    environment: "jsdom",
+    setupFiles: ["./src/test/setup.js"],
     css: false,
-    exclude: ['**/node_modules/**', '**/e2e/**', '**/.claude/**'],
+    exclude: ["**/node_modules/**", "**/e2e/**", "**/.claude/**"],
   },
 });
