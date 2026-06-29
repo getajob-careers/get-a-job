@@ -25,6 +25,7 @@ import {
   Check,
   FileText,
   Trash2,
+  Loader2,
 } from "lucide-react";
 // Template tokens moved to a React-free module so the verification harness can
 // import the same source of truth (see cvTemplates.js). Imported for in-file use
@@ -363,6 +364,10 @@ export default function CVStudioView({
   chatMessages = [],
   onSendMessage,
   chatBusy = false,
+  tailorContext = null, // { role, company } when on master with a pending tailor target
+  onTailorContext, // banner CTA → tailor the pending target
+  tailoring = false, // the ~30-60s authoring call is running
+  tailorLabel = "this job",
 }) {
   const template = templates.find((t) => t.id === templateId) || templates[0];
   const docStyle = {
@@ -486,6 +491,18 @@ export default function CVStudioView({
 
         {/* Document */}
         <main className="flex-1 min-w-0 overflow-y-auto cv-scroll bg-rd-bg-page">
+          {/* Tailoring progress — the authoring call can take ~30-60s; this is a
+              labeled bar, distinct from the chat typing dots. */}
+          {tailoring && (
+            <div className="max-w-[720px] mx-auto mt-3 px-1">
+              <div className="flex items-center gap-2.5 text-[12.5px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-lg px-3 py-2.5">
+                <Loader2 className="w-4 h-4 animate-spin shrink-0" />
+                <span>
+                  Tailoring your CV to {tailorLabel}… this can take ~30-60s.
+                </span>
+              </div>
+            </div>
+          )}
           <div className="px-5 pt-3">
             <div className="max-w-[720px] mx-auto flex items-center justify-between gap-3 mb-3 px-1">
               {currentCv?.role ? (
@@ -494,10 +511,33 @@ export default function CVStudioView({
                   {currentCv.role}
                   {currentCv.company ? ` · ${currentCv.company}` : ""}
                 </span>
+              ) : tailorContext ? (
+                // Master shown as the base for a pending tailor target: make it
+                // explicit this is the master and offer the tailor CTA.
+                <span className="inline-flex items-center gap-2 text-[12px] text-rd-golden-dark bg-rd-golden-tint border border-rd-golden/40 rounded-full pl-3 pr-1.5 py-1">
+                  <Sparkles className="w-3.5 h-3.5" /> This is your master CV
+                  <button
+                    onClick={() => onTailorContext?.()}
+                    disabled={tailoring}
+                    className="inline-flex items-center gap-1 rounded-full bg-rd-coral text-white text-[11.5px] font-display font-semibold px-2.5 py-0.5 hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    Tailor it to {tailorContext.role}
+                  </button>
+                </span>
               ) : (
-                <span className="inline-flex items-center gap-1.5 text-[12px] text-rd-golden-dark bg-rd-golden-tint border border-rd-golden/40 rounded-full px-3 py-1">
-                  <Sparkles className="w-3.5 h-3.5" /> Master CV — the source
-                  for every tailored copy
+                // Plain master, no pending target: keep the informational pill but
+                // always offer the soft "Tailor to a job…" CTA (never hidden).
+                <span className="inline-flex items-center gap-2 text-[12px] text-rd-golden-dark bg-rd-golden-tint border border-rd-golden/40 rounded-full pl-3 pr-1.5 py-1">
+                  <Sparkles className="w-3.5 h-3.5" /> Master CV
+                  {onTailorNew && (
+                    <button
+                      onClick={() => onTailorNew()}
+                      disabled={tailoring}
+                      className="inline-flex items-center gap-1 rounded-full bg-rd-bg-card border border-rd-golden/40 text-rd-golden-dark text-[11.5px] font-display font-semibold px-2.5 py-0.5 hover:bg-rd-bg-soft disabled:opacity-50 transition-colors"
+                    >
+                      Tailor to a job…
+                    </button>
+                  )}
                 </span>
               )}
               <span className="text-[11.5px] text-rd-text-tertiary shrink-0">
@@ -689,9 +729,10 @@ export default function CVStudioView({
             {chatMessages.length === 0 &&
               (coach || (
                 <p className="text-[12.5px] text-rd-text-secondary leading-relaxed">
-                  Ask me to rewrite a section, tighten your bullets, or tailor
-                  this CV to a specific job — I&apos;ll edit the document
-                  directly.
+                  Ask me to rewrite a section or tighten your bullets — I edit
+                  this document directly. To build a version aimed at a specific
+                  job, use Tailor to a job and I&apos;ll author a separate
+                  tailored copy from the job description.
                 </p>
               ))}
             {chatMessages.map((m) => (
@@ -729,8 +770,12 @@ export default function CVStudioView({
               {AGENT_CHIPS.map((c) => (
                 <button
                   key={c}
-                  onClick={() => sendChat(c)}
-                  disabled={chatBusy}
+                  // "Tailor to a job" opens the tailoring flow (generate-tailored-cv),
+                  // NOT edit-cv — that engine can't tailor. Other chips stay edit-cv.
+                  onClick={() =>
+                    c === "Tailor to a job" ? onTailorNew?.() : sendChat(c)
+                  }
+                  disabled={chatBusy || (c === "Tailor to a job" && tailoring)}
                   className="px-2.5 py-1 rounded-full border border-rd-border bg-rd-bg-card text-[11.5px] text-rd-text-secondary hover:border-rd-coral hover:text-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {c}
