@@ -39,6 +39,10 @@
 const MODEL_PRICING: Record<string, { input: number; output: number }> = {
   'gpt-4o':           { input: 2.50,  output: 10.00 },
   'gpt-4o-mini':      { input: 0.15,  output: 0.60 },
+  // gpt-5.4-mini standard tier (OpenAI pricing page). Wired into
+  // generate-career-analysis behind the analysis_model flag; reasoning
+  // tokens bill as output. Without this row computeCostUsd records 0.
+  'gpt-5.4-mini':     { input: 0.75,  output: 4.50 },
   // Anthropic models — added speculatively for future Claude usage; safe to
   // leave in even though we don't currently call Anthropic. Remove if not used.
   'claude-haiku-4-5': { input: 1.00,  output: 5.00 },
