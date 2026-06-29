@@ -309,19 +309,13 @@ function masterView(master: any) {
 }
 
 type Ops = {
-  select: { experience_ids: string[]; bullet_ids: string[] };
   rewordings: { bullet_id: string; new_text: string }[];
   summary: string;
   skills_emphasis: string[];
 };
 
 function parseOps(raw: any): Ops {
-  const sel = raw?.select || {};
   return {
-    select: {
-      experience_ids: safeArray(sel.experience_ids).map((x: any) => String(x)),
-      bullet_ids: safeArray(sel.bullet_ids).map((x: any) => String(x)),
-    },
     rewordings: safeArray(raw?.rewordings)
       .filter(
         (r: any) =>
@@ -348,8 +342,6 @@ function assembleJobCv(
   ops: Ops,
   summaryJdHaystack: string,
 ): { cv: any; rejectedRewordings: number } {
-  const selectedExpIds = new Set(ops.select.experience_ids);
-  const selectedBulletIds = new Set(ops.select.bullet_ids);
   // rewordings indexed by bullet_id
   const rewordById = new Map(
     ops.rewordings.map((r) => [r.bullet_id, r.new_text]),
@@ -359,40 +351,40 @@ function assembleJobCv(
   // start from a shallow clone of the master so untouched sections carry over verbatim
   const cv: any = { ...master };
 
+  // EVERY experience carries through — tailoring REFRAMES, it never drops. Each
+  // experience keeps ALL its bullets; a bullet is reworded toward the JD only
+  // where the ops step provided a (gate-passing) rewording, else stays verbatim.
+  // One-page fit is the renderer's job (uniform scale-to-fit) — never cut here.
   for (const { key, org } of EXP_BUCKETS) {
     const out: any[] = [];
     for (const e of safeArray(master?.[key])) {
+      // experience_id may be absent (unstamped master row); the experience still
+      // carries through — it just can't be targeted for rewording (bullets stay
+      // verbatim). Never dropped for lacking a stamp.
       const expId = e?.experience_id ? String(e.experience_id) : null;
-      if (!expId || !selectedExpIds.has(expId)) continue; // not selected → drop (one-page budget)
-      // master bullets are bare strings; address by index within this experience
       const masterBullets = safeArray(e?.bullets).map((b: any) =>
         String(b ?? ""),
       );
       const expHaystack = [e?.title, e?.[org], ...masterBullets]
         .join(" \n ")
         .toLowerCase();
-      const keptBullets: string[] = [];
-      for (let i = 0; i < masterBullets.length; i++) {
-        const bid = `${expId}#${i}`;
-        if (!selectedBulletIds.has(bid)) continue; // not selected → drop
-        let text = masterBullets[i];
-        const reword = rewordById.get(bid);
-        if (reword != null) {
-          // Anti-fab gate: a reword may only re-phrase; every quantified /
-          // proper-noun token must already exist in THIS experience's master
-          // content. On violation, keep the original master bullet.
-          if (tokensTraceToMaster(reword, expHaystack)) text = reword;
-          else rejectedRewordings++;
-        }
-        keptBullets.push(text);
-      }
-      if (keptBullets.length === 0) continue; // selected experience with no kept bullets → drop
+      const bullets: string[] = masterBullets.map((orig, i) => {
+        if (!expId) return orig; // no addressable id → keep verbatim
+        const reword = rewordById.get(`${expId}#${i}`);
+        if (reword == null) return orig;
+        // Anti-fab gate: a reword may only re-phrase; every quantified /
+        // proper-noun token must already exist in THIS experience's master
+        // content. On violation, keep the original master bullet.
+        if (tokensTraceToMaster(reword, expHaystack)) return reword;
+        rejectedRewordings++;
+        return orig;
+      });
       const entry: any = {
         title: e?.title || "",
         dates: e?.dates || "",
-        bullets: keptBullets,
-        experience_id: expId,
+        bullets,
       };
+      if (expId) entry.experience_id = expId;
       entry[org] = e?.[org] || "";
       out.push(entry);
     }
@@ -437,26 +429,22 @@ function assembleJobCv(
   return { cv, rejectedRewordings };
 }
 
-const OPS_SYSTEM_PROMPT = `You are a CV REFINER. You receive a user's MASTER CV — the complete, already-verified reservoir of their real experience — and a target job. You do NOT write a CV. You emit a small JSON ops object that SELECTS from the master and lightly rewords existing bullets to surface the job's keywords, producing a focused one-page CV.
+const OPS_SYSTEM_PROMPT = `You are a CV REFINER. You receive a user's MASTER CV — the complete, already-verified reservoir of their real experience — and a target job. You do NOT write a CV, and you do NOT choose which experiences to include: EVERY experience in the master is always kept. Your only job is to REFRAME the user's real experience toward this job — reword bullets to surface the job's keywords (truthfully), and write a JD-framed summary and skills emphasis.
 
 Emit ONLY this JSON (no prose, no markdown):
 {
-  "select": {
-    "experience_ids": ["<experience_id>", ...],
-    "bullet_ids": ["<experience_id>#<n>", ...]
-  },
   "rewordings": [ { "bullet_id": "<experience_id>#<n>", "new_text": "..." } ],
   "summary": "...",
   "skills_emphasis": ["<skill from master>", ...]
 }
 
-ONE-PAGE BUDGET — this is the PRIMARY one-page mechanism:
-- Select the most JD-relevant experiences and roughly a page's worth of bullets. Aim for about 3-5 experiences and about 12 bullets TOTAL (roughly 10-14; about 2-3 bullets per selected experience). Include the most JD-relevant experiences and bullets; drop the rest. Do not select everything.
-- experience_ids and bullet_ids MUST be ids that exist in the MASTER below. bullet_ids must belong to selected experiences.
+NEVER OMIT AN EXPERIENCE — this is the core rule:
+- Every professional, military, volunteering, and leadership experience in the master is included in the output, regardless of how well it matches the JD. You do NOT select, rank, or drop experiences, and you do NOT cut bullets to fit a length target. A weak keyword match is a REFRAMING task (reword the bullet toward the JD's language), NEVER a reason to drop a job or a bullet. One-page length is handled downstream by the renderer — never trim to fit.
 
-REWORDINGS — minimal, only to ADD a missing keyword (truthfulness is non-negotiable):
-- Reword a SELECTED bullet ONLY when it is MISSING a must_include JD keyword the user genuinely demonstrated in that same experience, AND rewording would surface that keyword. If a selected bullet already conveys its JD-relevant content, SELECT IT VERBATIM by id and emit NO rewording for it — do NOT re-emit its text. Most selected bullets need no rewording.
-- HARD CAP: at most 4 rewordings total. Choose the 4 that add the most missing-keyword coverage.
+REWORDINGS — reframe bullets toward the JD (truthfulness is non-negotiable):
+- Reword a bullet ONLY when it is MISSING a must_include JD keyword the user genuinely demonstrated in that same experience, AND rewording would surface that keyword. If a bullet already conveys its JD-relevant content, leave it as-is and emit NO rewording for it — most bullets need none.
+- bullet_ids MUST be ids that exist in the MASTER below.
+- HARD CAP: at most 4 rewordings total. Choose the 4 that add the most missing-keyword coverage across the most JD-relevant experiences. (Every bullet you do NOT reword is still kept verbatim — the cap limits rewriting, never inclusion.)
 - A rewording may only re-phrase; it must NOT introduce any metric, number, percentage, currency, tool, company, or claim that is not already present in that experience's master bullets. If a keyword can't be surfaced truthfully, leave the bullet as-is.
 
 SUMMARY:
@@ -465,20 +453,14 @@ SUMMARY:
 SKILLS_EMPHASIS:
 - Up to 8 skills, taken from the master's skills, ordered most JD-relevant first. Do NOT invent skills.`;
 
-// Bullet-selection bake-off. The ONLY thing that varies across ops_variant is
-// the single ONE-PAGE-BUDGET selection paragraph below; the rest of
-// OPS_SYSTEM_PROMPT and the entire pipeline stay byte-identical. `current` is
-// the shipped sentence VERBATIM — opsSystemPromptFor("current") returns the
-// untouched OPS_SYSTEM_PROMPT const, so the omitted-variant prompt is
-// byte-identical to today by construction.
+// Ops variant is now INERT. It used to swap a "one-page budget / select 3-5
+// experiences, drop the rest" paragraph (the bullet-selection bake-off); that
+// whole selection step is gone — refine-cv reframes ALL experience and never
+// drops, and one-page fit is the renderer's job. The enum + param are kept only
+// so existing callers (studio, extension) that still send ops_variant don't
+// break; the value no longer changes the prompt.
 type OpsVariant = "current" | "v1" | "v2" | "v3";
 const OPS_VARIANTS: readonly OpsVariant[] = ["current", "v1", "v2", "v3"];
-const SELECTION_VARIANTS: Record<OpsVariant, string> = {
-  current: `Select the most JD-relevant experiences and roughly a page's worth of bullets. Aim for about 3-5 experiences and about 12 bullets TOTAL (roughly 10-14; about 2-3 bullets per selected experience). Include the most JD-relevant experiences and bullets; drop the rest. Do not select everything.`,
-  v1: `Select about 3 to 5 of the most JD-relevant experiences and roughly a page of bullets, about 10 to 14 total. Within that budget, first keep every bullet that carries a metric, number, percentage, named tool, or named outcome; use the remaining slots for the most JD-relevant of the rest. When you must cut to fit, cut generic or duplicative bullets first, and never drop a quantified or proof-bearing bullet in favor of a weaker but more on-topic one.`,
-  v2: `Select about 3 to 5 of the most JD-relevant experiences. Keep every bullet that carries a metric, number, percentage, named tool, or named outcome, even if that takes a strong role to 4 or 5 bullets and the CV slightly past one page, up to about 16 bullets total when the material justifies it. Fill any remaining room with the most JD-relevant of the rest, and drop only generic, weak, or duplicative bullets.`,
-  v3: `You are not selecting a small subset. You are presenting the candidate's strongest, most relevant evidence for this job. From the 3 to 5 most JD-relevant experiences, keep all strong bullets, anything with a metric, number, named tool, or named outcome, reorder bullets within each experience so the most role-relevant come first, and remove only genuinely weak, generic, or redundant lines. Do not cut strong material to hit a length target.`,
-};
 
 // Optional grounding constraint (A/B-testable, OFF by default). When "strict", a
 // constraint block is APPENDED to the ops prompt — governing rewordings, the
@@ -493,22 +475,14 @@ const GROUNDING_CONSTRAINT = `
 GROUNDING — STRICT (applies to rewordings, the summary, and skills_emphasis; NOT to selection):
 - When rephrasing, reordering, or summarizing, use only facts and terminology present in the candidate's source material. Do not introduce any tool, technology, programming language, methodology, framework, certification, military unit, job title, company descriptor, or industry or domain label that is not already in the source. Rephrasing an existing fact is allowed; naming something new is not. If the JD calls for a term the candidate lacks, omit it rather than insert it.`;
 
-// Assemble the ops system prompt for a variant by swapping ONLY the selection
-// paragraph, then optionally appending the strict grounding block. `current` +
-// `default` returns the const unchanged (byte-identical guarantee); the variant
-// swap replaces exactly that one sentence (unique in the prompt). The caller
-// only ever supplies the enums — never a raw prompt string.
+// Assemble the ops system prompt: the reframe-all OPS_SYSTEM_PROMPT, optionally
+// with the strict grounding block appended. opsVariant is inert (no selection
+// step to vary); only `grounding` changes the prompt now.
 function opsSystemPromptFor(
-  opsVariant: OpsVariant,
+  _opsVariant: OpsVariant,
   grounding: Grounding,
 ): string {
-  const base =
-    opsVariant === "current"
-      ? OPS_SYSTEM_PROMPT
-      : OPS_SYSTEM_PROMPT.replace(
-          SELECTION_VARIANTS.current,
-          SELECTION_VARIANTS[opsVariant],
-        );
+  const base = OPS_SYSTEM_PROMPT;
   return grounding === "strict" ? base + GROUNDING_CONSTRAINT : base;
 }
 
