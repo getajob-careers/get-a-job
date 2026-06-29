@@ -217,7 +217,7 @@ function ExperienceSection({
 function TemplateThumb({ t }) {
   return (
     <div className="tpl-thumb" style={{ fontFamily: t.font }}>
-      <div className="tpl-name">Isaac Selig</div>
+      <div className="tpl-name">Your Name</div>
       <div className="tpl-sub" />
       <div
         className="tpl-sec"
