@@ -16,6 +16,7 @@
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { openaiChatCompletionWithRetry } from "../_shared/openai-chat.ts";
 import { parseLlmJsonObject } from "../_shared/json-parse.ts";
+import { applyAntiFabGate } from "../_shared/cv-antifab.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -105,7 +106,7 @@ Deno.serve(async (req) => {
     const data = await response.json();
     const raw = data.choices?.[0]?.message?.content || "{}";
     const parsed = parseLlmJsonObject(raw, "edit-cv", data.choices?.[0]?.finish_reason || "");
-    const edited = parsed?.cv_data;
+    const edited = (parsed as { cv_data?: Record<string, unknown> })?.cv_data;
 
     // Structural guard — never let a bad edit nuke the CV or drop a core section.
     if (!edited || typeof edited !== "object" || Array.isArray(edited)) {
@@ -117,10 +118,24 @@ Deno.serve(async (req) => {
       }
     }
 
-    return json({
-      cv_data: edited,
-      message: typeof parsed?.message === "string" && parsed.message.trim() ? parsed.message.trim() : "Done — applied your change.",
-    });
+    // Anti-fabrication gate: trace the edit against the pre-edit cv_data (the
+    // user's own source — no JD, no master fetch). Per-entry bullet revert +
+    // facts-immutable: apply the safe rephrasing, silently restore anything that
+    // invented a metric/tool/company or rewrote a title/employer/date.
+    const guard = applyAntiFabGate(
+      cv_data as Record<string, unknown>,
+      edited as Record<string, unknown>,
+    );
+    const rawMsg = (parsed as { message?: unknown })?.message;
+    const llmMsg = typeof rawMsg === "string" && rawMsg.trim()
+      ? rawMsg.trim()
+      : "Done — applied your change.";
+    const anyReverted = guard.bulletsReverted > 0 || guard.summaryReverted || guard.factsReverted > 0;
+    const message = anyReverted
+      ? `${llmMsg} (Kept some content exactly as written — I only rephrase what's already in your CV, I don't add facts.)`
+      : llmMsg;
+
+    return json({ cv_data: guard.cv_data, message });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "edit-cv failed" }, 500);
   }

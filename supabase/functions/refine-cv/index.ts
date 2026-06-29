@@ -33,6 +33,10 @@ import type {
   SectionKey,
 } from "../_shared/cv-templates/types.ts";
 import { parseLlmJsonObject } from "../_shared/json-parse.ts";
+import {
+  tokensTraceToMaster,
+  summaryTokensClean,
+} from "../_shared/cv-antifab.ts";
 import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
 
 const corsHeaders = {
@@ -265,73 +269,6 @@ function scoreCoverage(
     matched_phrases: matched,
     missed_phrases: missed,
   };
-}
-
-// ── Anti-fab quantified-token trace (primitives copied from generate-tailored-cv) ──
-const QUANT_TOKEN_RE =
-  /\b(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?[%$€₪]?|[$€₪]\d+[KMB]?|\d+\+|\d+x|[A-Z][a-z]+(?:[A-Z][a-zA-Z]+)+|[A-Z]{3,})\b/g;
-const TOKEN_BLOCKLIST = new Set([
-  "Israel",
-  "Tel",
-  "Aviv",
-  "Hebrew",
-  "English",
-  "USA",
-  "UK",
-  "EU",
-  "API",
-  "CV",
-  "JD",
-  "PM",
-  "HR",
-  "CS",
-  "VIP",
-  "CEO",
-  "CFO",
-  "CTO",
-  "COO",
-  "SQL",
-]);
-// True iff every quantified / proper-noun token in `text` already appears in
-// `haystack` (the master content). Reworded bullets + the summary must pass this
-// — the master is the anti-fab'd source, so the refine only polices that a
-// reword surfaces a keyword without inventing a metric/tool/number.
-function tokensTraceToMaster(text: string, haystackLower: string): boolean {
-  const tokens = String(text || "").match(QUANT_TOKEN_RE) || [];
-  for (const tok of tokens) {
-    if (TOKEN_BLOCKLIST.has(tok)) continue;
-    if (!haystackLower.includes(tok.toLowerCase())) return false;
-  }
-  return true;
-}
-
-// Summary-only gate (Phase 2.1). NUMERIC tokens (percent/dollar/count/number) must
-// still trace to the master — strict, unchanged. PROPER-NOUN tokens (CamelCase /
-// ALLCAPS, e.g. a JD acronym like "GTM") may instead come from the JD keyword set,
-// since extractJDKeywords already provenance-filters those to terms present in the
-// JD — so a legitimately JD-framed summary survives instead of being forced back to
-// the JD-agnostic master summary. Matches the latitude the from-scratch path gives
-// its own summary: no stricter, no looser. NOT used for bullet rewords — those stay
-// on the strict master-only trace (tokensTraceToMaster) above.
-function summaryTokensClean(
-  text: string,
-  masterHaystackLower: string,
-  jdHaystackLower: string,
-): boolean {
-  const tokens = String(text || "").match(QUANT_TOKEN_RE) || [];
-  for (const tok of tokens) {
-    if (TOKEN_BLOCKLIST.has(tok)) continue;
-    const lower = tok.toLowerCase();
-    if (/\d/.test(tok)) {
-      if (!masterHaystackLower.includes(lower)) return false; // numbers: master only (strict)
-    } else if (
-      !masterHaystackLower.includes(lower) &&
-      !jdHaystackLower.includes(lower)
-    ) {
-      return false; // proper-noun: master OR JD keyword set (widened)
-    }
-  }
-  return true;
 }
 
 // ── Master → addressable view + assembly ──────────────────────────────────────

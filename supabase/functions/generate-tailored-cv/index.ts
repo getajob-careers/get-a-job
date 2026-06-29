@@ -263,6 +263,7 @@ function safeArray(val: unknown): unknown[] {
 // at index.ts:1598 and :1680 are untouched; the (raw, finishReason, label)
 // → (raw, label, finishReason) parameter reorder is only intra-helper.
 import { parseLlmJsonObject } from "../_shared/json-parse.ts";
+import { QUANT_TOKEN_RE, TOKEN_BLOCKLIST } from "../_shared/cv-antifab.ts";
 
 function parseLlmJson(rawContent: string, finishReason: string, label: string): any {
   return parseLlmJsonObject(rawContent, label, finishReason);
@@ -2354,8 +2355,6 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       // multipliers like "3x"), and proper-noun-like tool names (CamelCase or
       // ALLCAPS, 3+ chars). Common stopword-like CamelCase ("New York", "Tel
       // Aviv") get excluded by length and a small blocklist.
-      const QUANT_TOKEN_RE = /\b(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?[%$€₪]?|[$€₪]\d+[KMB]?|\d+\+|\d+x|[A-Z][a-z]+(?:[A-Z][a-zA-Z]+)+|[A-Z]{3,})\b/g;
-      const TOKEN_BLOCKLIST = new Set(['Israel','Tel','Aviv','Hebrew','English','USA','UK','EU','API','CV','JD','PM','HR','CS','VIP','CEO','CFO','CTO','COO','SQL']);
       const checkBullet = (bullet: string, bucket: string) => {
         const text = String(bullet || '').trim();
         if (!text) return;
