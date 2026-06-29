@@ -366,8 +366,9 @@ export default function CVStudioView({
   chatBusy = false,
   tailorContext = null, // { role, company } when on master with a pending tailor target
   onTailorContext, // banner CTA → tailor the pending target
-  tailoring = false, // the ~30-60s authoring call is running
+  tailoring = false, // the refine-cv select+reword call is running (~16s)
   tailorLabel = "this job",
+  tailorStage = "", // client-side staged progress label (Reading → Selecting → Rendering)
   tailorResult = null, // { cvId, role, company } — the just-finished tailored CV
   onViewTailored, // outcome card "View it" → load the new CV in the editor
   onDownloadTailored, // outcome card "Download" → re-render the new CV's PDF
@@ -495,14 +496,15 @@ export default function CVStudioView({
 
         {/* Document */}
         <main className="flex-1 min-w-0 overflow-y-auto cv-scroll bg-rd-bg-page">
-          {/* Tailoring progress — the authoring call can take ~30-60s; this is a
-              labeled bar, distinct from the chat typing dots. */}
+          {/* Tailoring progress — refine-cv is a single blocking call (~16s), so
+              the stage label is a client-side timed estimate that shows motion
+              (Reading → Selecting → Rendering), distinct from the chat dots. */}
           {tailoring && (
             <div className="max-w-[720px] mx-auto mt-3 px-1">
               <div className="flex items-center gap-2.5 text-[12.5px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-lg px-3 py-2.5">
                 <Loader2 className="w-4 h-4 animate-spin shrink-0" />
                 <span>
-                  Tailoring your CV to {tailorLabel}… this can take ~30-60s.
+                  {tailorStage || `Tailoring your CV to ${tailorLabel}…`}
                 </span>
               </div>
             </div>
@@ -817,8 +819,8 @@ export default function CVStudioView({
               {AGENT_CHIPS.map((c) => (
                 <button
                   key={c}
-                  // "Tailor to a job" opens the tailoring flow (generate-tailored-cv),
-                  // NOT edit-cv — that engine can't tailor. Other chips stay edit-cv.
+                  // "Tailor to a job" opens the tailoring flow (refine-cv select+
+                  // reword), NOT edit-cv — that engine can't tailor. Others stay edit-cv.
                   onClick={() =>
                     c === "Tailor to a job" ? onTailorNew?.() : sendChat(c)
                   }
