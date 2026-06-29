@@ -2,7 +2,7 @@
 title: CV Template Rendering — Execution Spec
 status: spec
 owner: shared
-last_reviewed: 2026-06-28
+last_reviewed: 2026-06-29
 code_paths:
   - supabase/functions/_shared/cv-templates/build-pdf.ts
   - supabase/functions/_shared/cv-templates/arimo-fonts.ts
@@ -127,3 +127,31 @@ Build as part of 4a (extend `scripts/test-pdf-poc.mjs` / `scripts/validate-cv-de
 - Retire dark-banner, default auto-render to Modern Sans: **approved.**
 - Font substitutions (Georgia→Gelasio, Times→Tinos, Arial→Arimo; Inter + EB Garamond real): **approved.**
 - Verification harness built in infra and gates Modern Sans as done: **required (this spec).**
+
+## Premium typography upgrade (2026-06-29)
+
+The five templates now share a **premium typography variant**, gated per-template via
+`TemplateRender.premium` in `template-config.ts` (every premium branch in `build-pdf.ts`
+falls back to the prior values when `premium` is false, so a non-premium template would
+render byte-identical). All five set `premium: true`. What premium adds:
+
+- **Header:** name 30pt, headline 12.5pt muted, contact 9.5pt muted, plus a full-width
+  0.75pt hairline rule under the contact row.
+- **Section headings:** monochrome near-black (`#1A1A1A`), heavier tracking, each followed
+  by a **full-width 0.75pt rule, margin-to-margin** (the dominant "designed" signal).
+- **Role hierarchy:** bold role title on its own line (date right-aligned on that line),
+  company/org on its own line in italic muted. Date-only (cv_data has no per-entry
+  location).
+- **Rhythm:** ~1.25 body line-height, 16pt between entries.
+- **Accent** is used ONLY as the bullet dot (the quiet per-template signature).
+
+**Distinctness (4 fonts, 5 templates):** Classic (id `modern`, renamed from "Modern Sans")
+= Gelasio + UPPERCASE + coral. Editorial = Gelasio + **Title-Case** + navy (the Title-Case
+is the one trait separating it from Classic). Sharp = Arimo sans + UPPERCASE + teal.
+Executive = Tinos + UPPERCASE + burgundy. Refined = Cardo + Title-Case + green.
+
+**Punctuation fallback:** the Latin font subsets omit some general-punctuation glyphs
+(`U+2013` en dash, smart quotes, ellipsis). The sanitizer now degrades these to ASCII
+(en/em dash → `-`) instead of dropping them, which previously swallowed date-range
+connectors ("2023 – Present" → "2023 Present"). Only a fallback: if a future re-subset
+includes the real glyph it is kept.

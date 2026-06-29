@@ -11,12 +11,17 @@
 
 export const CV_TEMPLATES = [
   {
+    // id kept as "modern" (the system-wide default key); display name is
+    // "Classic" since it's now a serif premium template, not sans. The PDF
+    // renderer (build-pdf.ts, gated on template-config premium) is the source
+    // of truth for the upgraded typography; this token keeps the studio
+    // preview in the serif family. Full preview-CSS parity lands at propagation.
     id: "modern",
-    name: "Modern Sans",
-    font: "'Inter', system-ui, sans-serif",
+    name: "Classic",
+    font: "Georgia, 'Gelasio', 'Times New Roman', serif",
     accent: "#C2603F",
     labelCase: "uppercase",
-    rule: false,
+    rule: true,
   },
   {
     id: "editorial",
