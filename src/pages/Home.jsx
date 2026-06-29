@@ -265,8 +265,8 @@ export default function Home() {
     catch { return false; }
   })();
   const [selfHealing, setSelfHealing] = useState(previewSelfHealFlag);
-  const [, setSelfHealError] = useState(null);
-  const [selfHealRetryNonce] = useState(0);
+  const [selfHealError, setSelfHealError] = useState(null);
+  const [selfHealRetryNonce, setSelfHealRetryNonce] = useState(0);
   const selfHealRanRef = useRef(false);
   useEffect(() => {
     if (!user?.id || !profile) return;
@@ -277,10 +277,13 @@ export default function Home() {
     setSelfHealing(true);
     setSelfHealError(null);
 
+    // 85s, just past the function's ~80s internal deadline, so its clean
+    // retryable 503 surfaces and drives the Try again affordance before the
+    // client abandons the request. Was 45s, which gave up mid-flight.
     const timeoutId = setTimeout(() => {
       setSelfHealing(false);
       setSelfHealError("Analysis is taking longer than expected.");
-    }, 45000);
+    }, 85000);
 
     (async () => {
       try {
@@ -290,7 +293,13 @@ export default function Home() {
         if (error || !data?.qualification_level) {
           clearTimeout(timeoutId);
           setSelfHealing(false);
-          setSelfHealError("Couldn't run your analysis.");
+          // 503 = the function hit its ~80s deadline and returned a retryable
+          // analysis_timeout. Calmer copy for that case; both offer Try again.
+          setSelfHealError(
+            error?.context?.status === 503
+              ? "Analysis is taking longer than usual."
+              : "Couldn't run your analysis.",
+          );
           return;
         }
         const { error: persistErr } = await supabase.from("profiles").update({
@@ -317,6 +326,12 @@ export default function Home() {
 
     return () => clearTimeout(timeoutId);
   }, [user?.id, profile, queryClient, selfHealRetryNonce]);
+
+  const retrySelfHeal = () => {
+    selfHealRanRef.current = false;
+    setSelfHealError(null);
+    setSelfHealRetryNonce((n) => n + 1);
+  };
 
   const willRedirect =
     profileError ||
@@ -547,6 +562,20 @@ export default function Home() {
           >
             Refresh roadmap
           </Link>
+        </div>
+      )}
+
+      {selfHealError && (
+        <div className="mb-5 flex items-center gap-2.5 rounded-[14px] border border-rd-golden bg-rd-golden-tint px-4 py-3 text-[13px] text-rd-golden-dark">
+          <AlertCircle className="w-4 h-4 flex-shrink-0" />
+          <span className="flex-1">{selfHealError}</span>
+          <button
+            type="button"
+            onClick={retrySelfHeal}
+            className="font-display font-semibold underline underline-offset-2 hover:text-rd-text"
+          >
+            Try again
+          </button>
         </div>
       )}
 

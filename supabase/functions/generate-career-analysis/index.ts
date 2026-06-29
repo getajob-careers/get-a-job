@@ -677,6 +677,15 @@ Deno.serve(async (req) => {
   let _err: string | null = null
 
   try {
+    // Single function-level deadline measured from t=0 (start of request
+    // handling). ~80s leaves real headroom under the ~100s platform wall so
+    // pre-LLM work (auth, DB reads, role scoring, prompt assembly) plus the
+    // model attempt plus cleanup all finish before the wall. A model stall
+    // then aborts cleanly here and returns a degraded 503 (see catch) rather
+    // than hitting the platform wall as an unhandled 500. Shared into the
+    // single model call below; never recreated per attempt.
+    const deadlineSignal = AbortSignal.timeout(80_000)
+
     const openaiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openaiKey) {
       _http = 500; _err = 'no_openai_key'
@@ -1182,10 +1191,10 @@ Return ONLY valid JSON.`;
         traceName: 'generate-career-analysis',
         userId: user.id,
       },
-      // Was 45s — observed cold-cache requests landing right at 38–42s with
-      // max_tokens=4500 + 15-role payload, so 45s timed out intermittently
-      // and bubbled "Signal timed out" up to onboarding's track reveal step.
-      { signal: AbortSignal.timeout(90000) },
+      // Deadline is the single function-level signal created at t=0 (~80s),
+      // not a fresh per-call timeout, so the abort fires with headroom before
+      // the ~100s platform wall even after pre-LLM work.
+      { signal: deadlineSignal },
     )
 
     if (!openaiResponse.ok) {
@@ -1363,6 +1372,11 @@ Return ONLY valid JSON.`;
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
   } catch (error) {
+    // A fired deadline (or any abort) surfaces as TimeoutError / AbortError.
+    // Treat it as a clean degraded timeout: a retryable 503 the client can
+    // offer a retry on, not an opaque 500.
+    const errName = (error as Error)?.name
+    const isDeadline = errName === 'TimeoutError' || errName === 'AbortError'
     try {
       const serviceClient = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
@@ -1371,10 +1385,16 @@ Return ONLY valid JSON.`;
       await serviceClient.rpc('log_error', {
         p_user_id: null,
         p_function_name: 'generate-career-analysis',
-        p_error_message: (error as Error).message,
+        p_error_message: isDeadline ? 'analysis_timeout' : (error as Error).message,
         p_error_details: null,
       })
     } catch { /* best-effort logging */ }
+    if (isDeadline) {
+      _http = 503; _err = 'analysis_timeout'
+      return new Response(JSON.stringify({ error: 'analysis_timeout', retryable: true }), {
+        status: 503, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
     _http = 500; _err = 'unhandled'
     return new Response(JSON.stringify({ error: 'An unexpected error occurred.' }), {
       status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' },
