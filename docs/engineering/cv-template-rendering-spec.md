@@ -155,3 +155,37 @@ Executive = Tinos + UPPERCASE + burgundy. Refined = Cardo + Title-Case + green.
 (en/em dash → `-`) instead of dropping them, which previously swallowed date-range
 connectors ("2023 – Present" → "2023 Present"). Only a fallback: if a future re-subset
 includes the real glyph it is kept.
+
+## Uniform scale-to-fit (2026-06-29)
+
+The renderer **always fits the whole CV on one page and never cuts content.** (This
+replaced first a "shrink-to-floor then drop trailing content" approach — which cut a real
+education entry — and then a two-tier comfortable/dense experiment whose hand-tightened
+dense gaps collided with the unscaled fonts and produced overlap. Both discarded.)
+
+There is **ONE layout** (the airy `COMFORTABLE` premium preset) and **one fit variable: a
+single uniform scale.** To fit a longer CV, `buildCvPdf` multiplies the _entire_ layout —
+header sizes/gaps AND every section/entry/bullet size, leading, and gap — by one
+`ctx.scale` (`s(ctx, x) = x * scale`). Because everything shrinks by the same factor, all
+spacing relationships are preserved and lines/sections **can never overlap**; the page just
+gets smaller. There is no second set of spacing values to collide.
+
+The fit finds the largest scale ≤ 1 where `header + sections ≤ page content area`, via a
+short fixed-point (measured wrap depends on scale, so we measure at the scale we'll draw).
+**No floor**: an unusually long CV simply renders at a smaller scale — a smaller-but-complete
+CV always beats a cut one. **No cutting, ever**; no "trimmed"/"dropped" path; no "too long"
+error.
+
+`buildCvPdf` returns `{ bytes, fit }` with `fit = { scale, dense, lowestY }`. `dense`
+(scale < `DENSE_HINT` 0.72) only lets the studio offer an OPTIONAL, calm, dismissible hint
+("This CV is dense — you can trim items if you'd like more breathing room") — never an
+error, never implying anything was dropped; default no notice.
+`scripts/cv-harness/fit-gate.mjs` asserts every fixture (light, heavy, monster) fits one
+page, is complete (probe tokens all present), never clips, and exposes no cut/trim fields.
+
+**Skills by group + education order.** Skills render **by their stored groups** (the data
+is already `{ domain, technical, tools }`) as compact labeled lines — `Core Competencies:`
+(domain), `Technical:`, `Tools:` — skipping empty groups; the raw keys never show. The
+groups pack densely (body line-height, small inter-group gap) since it's reference info.
+Education renders **reverse-chronologically** (most-recent first, "Present" ranks highest)
+so a university sits above earlier schooling regardless of stored order.

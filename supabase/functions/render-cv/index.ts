@@ -216,12 +216,10 @@ Deno.serve(async (req) => {
         .eq("user_id", user.id);
     }
 
-    // `fit` reports one-page curation: when the CV was too long for one
-    // readable page, the renderer dropped trailing content at clean boundaries
-    // (never clipped) — the studio surfaces exactly what was hidden so the user
-    // can shorten it deliberately. Omitted from the response when nothing was
-    // trimmed.
-    return json(fit.trimmed ? { cv_url, fit } : { cv_url });
+    // `fit` reports HOW the CV fit one page (tier + scale + a `dense` flag). The
+    // renderer always fits everything and never cuts; `fit.dense` only lets the
+    // studio offer an optional calm "this CV is dense" hint. No error, ever.
+    return json({ cv_url, fit });
   } catch (e) {
     return json(
       { error: e instanceof Error ? e.message : "render-cv failed" },
