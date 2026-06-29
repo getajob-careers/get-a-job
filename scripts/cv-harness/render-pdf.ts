@@ -9,9 +9,15 @@
 
 import { buildCvPdf } from "../../supabase/functions/_shared/cv-templates/build-pdf.ts";
 
-const [templateId = "modern", outPath = "/tmp/cv-harness.pdf"] = Deno.args;
+const [
+  templateId = "modern",
+  outPath = "/tmp/cv-harness.pdf",
+  fixturePath = "",
+] = Deno.args;
 
-const fixtureUrl = new URL("./fixture.json", import.meta.url);
+const fixtureUrl = fixturePath
+  ? new URL(fixturePath, `file://${Deno.cwd()}/`)
+  : new URL("./fixture.json", import.meta.url);
 const cv = JSON.parse(await Deno.readTextFile(fixtureUrl));
 
 const uc = {
@@ -37,7 +43,7 @@ const order = [
   "projects",
 ];
 
-const bytes = await buildCvPdf(
+const { bytes, fit } = await buildCvPdf(
   cv,
   uc as any,
   {
@@ -56,4 +62,12 @@ const bytes = await buildCvPdf(
 );
 
 await Deno.writeFile(outPath, bytes);
-console.log(`rendered ${templateId} → ${outPath} (${bytes.length} bytes)`);
+// Sidecar for the harness gates: scale, curation metadata, and the lowest
+// painted baseline (MARGIN_BOTTOM is 40 — lowestY ≥ 40 proves no clip).
+await Deno.writeTextFile(
+  `${outPath}.fit.json`,
+  JSON.stringify({ ...fit, marginBottom: 40 }, null, 2),
+);
+console.log(
+  `rendered ${templateId} → ${outPath} (${bytes.length} bytes) scale=${fit.scale.toFixed(3)} trimmed=${fit.trimmed} lowestY=${fit.lowestY.toFixed(1)}`,
+);

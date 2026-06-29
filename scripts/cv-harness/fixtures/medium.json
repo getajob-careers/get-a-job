@@ -1,0 +1,15 @@
+{
+  "header": { "name": "Dana Cohen", "subtitle": "Senior Data Analyst · Fintech & Risk", "email": "dana.cohen@example.com", "phone": "+972-50-000-0000", "location": "Tel Aviv", "linkedin": "linkedin.com/in/danacohen" },
+  "summary": "Data analyst with five years in fintech, focused on reporting automation, risk modeling, and decision support for executive stakeholders.",
+  "professional_experiences": [
+    { "title": "Senior Data Analyst", "company": "Acme Financial", "dates": "2023 – Present", "bullets": ["Built executive dashboards adopted across three departments, becoming the standard weekly reporting surface for the leadership team","Cut monthly reporting time by automating the ETL pipeline end to end","Partnered with risk to ship a credit-exposure model that flagged at-risk accounts earlier"] },
+    { "title": "Data Analyst", "company": "Lemonade", "dates": "2021 – 2023", "bullets": ["Owned the self-serve analytics layer used by product and growth","Designed experiment readouts that shortened decision cycles for the growth team"] },
+    { "title": "Analytics Intern", "company": "Wix", "dates": "Summer 2020", "bullets": ["Prototyped a churn-prediction notebook later folded into the retention dashboard"] }
+  ],
+  "military_experiences": [ { "title": "Sergeant, Signals Analyst", "unit": "IDF Unit 8200", "dates": "2018 – 2021", "bullets": ["Led a team of twelve in signals analysis under operational deadlines","Built an internal triage tool that reduced manual review load"] } ],
+  "volunteering_experiences": [ { "title": "Mentor", "organization": "Hi-Tech for Good", "dates": "2022 – Present", "bullets": ["Mentored five students into their first analytics roles"] } ],
+  "leadership_experiences": [ { "title": "President", "organization": "Economics Society", "dates": "2021 – 2022", "bullets": ["Ran the weekly speaker series and grew membership by 40%"] } ],
+  "education": [ { "institution": "Tel Aviv University", "degree": "B.A.", "field_of_study": "Economics", "dates": "2021", "gpa": "3.8", "coursework": ["Econometrics", "Statistics"] } ],
+  "skills": { "domain": ["Financial modeling", "Forecasting", "Risk analysis"], "tools": ["Excel", "Tableau", "Looker"], "technical": ["SQL", "Python", "dbt"], "languages": ["Hebrew", "English"] },
+  "languages": [ { "language": "Hebrew", "proficiency": "Native" }, { "language": "English", "proficiency": "Fluent" } ]
+}
