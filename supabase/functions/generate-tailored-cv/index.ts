@@ -7,6 +7,7 @@ import { pickPrimaryEducation } from '../_shared/education-helpers.ts'
 import { CV_VOICE_RULES } from '../_shared/voice-rules.ts'
 import { stripHtml } from '../_shared/strip-html.ts'
 import { buildCvPdf } from '../_shared/cv-templates/build-pdf.ts'
+import { buildMasterCvData } from '../_shared/cv-master.ts'
 import { matchRoleToLibrary, resolveSectorTheme } from '../_shared/cv-templates/sector-mapping.ts'
 import type { TemplateStyle, SectionKey } from '../_shared/cv-templates/types.ts'
 import { fillFromSource, type SourceExperience } from './reconcile.ts'
@@ -2542,6 +2543,26 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     // Conditional swap on proCount preserved from PR #21:
     //   2+ pro experiences → experience-first
     //   < 2 pro experiences → education-first (students lead with education)
+    // Master mode: source the structured experience and education fields
+    // DETERMINISTICALLY from the user's rows, so the LLM never re-authors them.
+    // The author step has historically dropped a professional role, dropped
+    // education field_of_study, and re-bucketed experience. Skills, summary, and
+    // header stay as the LLM produced them; one-page fit is the renderer's job.
+    // Education always carries field_of_study here. See _shared/cv-master.ts.
+    if (isMasterMode) {
+      const det = buildMasterCvData(
+        profile,
+        experiences,
+        profile?.education,
+        user?.email,
+      )
+      cvData.professional_experiences = det.professional_experiences
+      cvData.military_experiences = det.military_experiences
+      cvData.volunteering_experiences = det.volunteering_experiences
+      cvData.leadership_experiences = det.leadership_experiences
+      cvData.education = det.education
+    }
+
     const proCount = Array.isArray(cvData.professional_experiences)
       ? cvData.professional_experiences.length
       : 0
