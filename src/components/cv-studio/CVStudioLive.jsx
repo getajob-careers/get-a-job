@@ -65,9 +65,11 @@ export default function CVStudioLive() {
   // stays on the master CV while a target is pending, with a "Tailor it to …"
   // banner over the real master content.
   const [pendingTailor, setPendingTailor] = useState(null); // { applicationId } | null
-  const [tailoring, setTailoring] = useState(false); // the ~30-60s authoring call
+  const [tailoring, setTailoring] = useState(false); // the refine-cv select+reword call (~16s)
+  const [tailorStage, setTailorStage] = useState(""); // client-side staged progress label
   const [tailorResult, setTailorResult] = useState(null); // { cvId, role, company } — outcome card
   const [noJdOpen, setNoJdOpen] = useState(false); // no-JD card overlay
+  const stageTimers = useRef([]); // timers driving tailorStage; cleared on finish/unmount
   const { data: tailorApp } = useApplicationForTailor(
     pendingTailor?.applicationId,
   );
@@ -147,6 +149,7 @@ export default function CVStudioLive() {
   const [saveState, setSaveState] = useState("saved");
   const saveTimer = useRef(null);
   useEffect(() => () => clearTimeout(saveTimer.current), []);
+  useEffect(() => () => stageTimers.current.forEach(clearTimeout), []);
 
   const persist = useCallback(
     (cvId, nextModel) => {
@@ -373,31 +376,68 @@ export default function CVStudioLive() {
     [cvOptions, selectedCvId, persist],
   );
 
-  // Tailor: author a NEW tailored copy via generate-tailored-cv (NOT an in-place
-  // chat edit). The engine ignores the open editor model — it authors from the
-  // profile + JD and persists its own is_master=false row tied to application_id,
-  // returning only cv_url + fit_analysis (no cv_data). So we refetch the list and
-  // select the new row rather than swapping cv_data in like edit-cv does.
+  // Client-side staged progress for the tailoring call. refine-cv is a single
+  // blocking request (no streaming), so these stages are timed estimates that
+  // show motion rather than a blank spinner. When the user has no master yet,
+  // refine-cv lazy-builds it inline (~40s, once) — lead with that stage so the
+  // first tailor never looks hung.
+  const stopStages = useCallback(() => {
+    stageTimers.current.forEach(clearTimeout);
+    stageTimers.current = [];
+    setTailorStage("");
+  }, []);
+  const startStages = useCallback((hasMaster) => {
+    stageTimers.current.forEach(clearTimeout);
+    stageTimers.current = [];
+    const seq = hasMaster
+      ? [
+          [0, "Reading the role…"],
+          [2500, "Selecting your strongest material…"],
+          [9000, "Rendering your PDF…"],
+        ]
+      : [
+          [0, "Preparing your master CV (one-time, this can take ~40s)…"],
+          [40000, "Reading the role…"],
+          [42500, "Selecting your strongest material…"],
+          [49000, "Rendering your PDF…"],
+        ];
+    for (const [ms, label] of seq) {
+      if (ms === 0) setTailorStage(label);
+      else
+        stageTimers.current.push(setTimeout(() => setTailorStage(label), ms));
+    }
+  }, []);
+
+  // Tailor via refine-cv — the extension's proven select-and-reword path
+  // (~16s): it picks + reframes the JD-relevant material from the user's master
+  // reservoir and persists a new is_master=false row tied to application_id.
+  // refine-cv REQUIRES an application_id (no engine-side app creation), returns
+  // cv_url + tailoring (coverage) but NOT cv_id, so we select the new row by
+  // application_id from the refetched list. No cv_data is echoed back.
   const runTailor = useCallback(
     async (target) => {
-      // target: { applicationId?: string|null, role?: string, company?: string, jobDescription: string }
+      // target: { applicationId: string, role?: string, company?: string, jobDescription: string }
       if (tailoring || !user?.id) return;
+      // refine-cv 400s without an application_id; route back to the no-JD card
+      // (pick/create an app) rather than firing a doomed call.
+      if (!target.applicationId) {
+        setNoJdOpen(true);
+        return;
+      }
       setNoJdOpen(false);
       setTailorResult(null); // clear any prior outcome card
       setTailoring(true);
+      startStages(cvOptions.some((o) => o.isMaster));
       try {
-        const { data, error } = await supabase.functions.invoke(
-          "generate-tailored-cv",
-          {
-            body: {
-              target_role: target.role || "",
-              application_id: target.applicationId ?? null,
-              job_description: target.jobDescription,
-              cv_model: "sonnet",
-              // never master:true — that would overwrite the master row.
-            },
+        const { data, error } = await supabase.functions.invoke("refine-cv", {
+          body: {
+            application_id: target.applicationId,
+            job_description: target.jobDescription,
+            cv_model: "sonnet",
+            ops_variant: "v3",
+            grounding: "default",
           },
-        );
+        });
         if (error || !data || data.error) {
           const status = error?.context?.status ?? error?.status;
           toast.error(
@@ -408,21 +448,23 @@ export default function CVStudioLive() {
           return;
         }
         // Tailoring succeeded server-side. The outcome card is the SOLE
-        // completion surface (no chat line — two "ready" surfaces muddy it); the
-        // fit read is folded into the card below.
+        // completion surface; the coverage read is folded into the card below.
         const appId = data.application_id ?? target.applicationId ?? null;
-        const fit = data.fit_analysis;
+        const tail = data.tailoring;
+        const matched = Array.isArray(tail?.matched_phrases)
+          ? tail.matched_phrases.length
+          : null;
+        const missed = Array.isArray(tail?.missed_phrases)
+          ? tail.missed_phrases.length
+          : 0;
         const fitLine =
-          fit && typeof fit === "object"
-            ? fit.summary || fit.verdict || null
-            : typeof fit === "string"
-              ? fit
-              : null;
-        // Bring the new row into the list so the editor can load it when the
-        // user chooses "View it". We do NOT auto-switch — the outcome card
-        // gives an explicit View / Download choice. Select deterministically by
-        // the cv_id the engine now returns (kills the old stuck-on-Master race);
-        // fall back to matching the application only if cv_id is absent.
+          matched != null
+            ? `Matched ${matched} of ${matched + missed} key phrases.`
+            : null;
+        // Bring the new row into the list so the editor can load it on "View it"
+        // (no auto-switch — the outcome card gives an explicit choice). refine-cv
+        // doesn't return cv_id, so select by application_id from the refetched,
+        // deduped list (newest per app); keep the cv_id path for forward-compat.
         try {
           await queryClient.invalidateQueries({
             queryKey: applicationCvsQueryKey(user.id),
@@ -456,10 +498,11 @@ export default function CVStudioLive() {
           );
         }
       } finally {
+        stopStages();
         setTailoring(false);
       }
     },
-    [tailoring, user?.id, queryClient],
+    [tailoring, user?.id, queryClient, cvOptions, startStages, stopStages],
   );
 
   // Outcome card "View it": load the just-tailored CV in the editor like the
@@ -524,9 +567,9 @@ export default function CVStudioLive() {
   }, [tailorApp, runTailor]);
 
   // No-JD card submit. A picked application carries its own JD + id; a pasted JD
-  // attaches to the pending application when there is one, else the engine
-  // creates a tracked application (application_id null) as it does from the
-  // tracker's "Generate tailored CV".
+  // attaches to the PENDING application only (refine-cv requires an application_id
+  // — we never silently create a tracked application). The paste box is gated in
+  // the card on canPaste = a pending app exists, so this never fires without one.
   const submitPickedApp = useCallback(
     (app) =>
       runTailor({
@@ -672,6 +715,7 @@ export default function CVStudioLive() {
         onTailorContext={startTailor}
         tailoring={tailoring}
         tailorLabel={tailorLabel}
+        tailorStage={tailorStage}
         tailorResult={tailorResult}
         onViewTailored={onViewTailored}
         onDownloadTailored={onDownloadTailored}
@@ -680,6 +724,7 @@ export default function CVStudioLive() {
         <NoJdCard
           role={tailorApp?.role || null}
           applications={jdApplications}
+          canPaste={!!pendingTailor?.applicationId}
           onPick={submitPickedApp}
           onPaste={submitPastedJd}
           onClose={() => setNoJdOpen(false)}
@@ -690,9 +735,11 @@ export default function CVStudioLive() {
 }
 
 // No-JD overlay — lives in CVStudioLive (over CVStudioView) so the View stays
-// pure. Shown when tailoring is requested without a usable job description:
-// pick a tracked application that has a JD, or paste one. Never fake-tailors.
-function NoJdCard({ role, applications, onPick, onPaste, onClose }) {
+// pure. Shown when tailoring is requested without a usable job description: pick
+// a tracked application that has a JD, or (only when a specific application is in
+// context) paste one for it. Never fake-tailors and never creates a phantom
+// application — refine-cv requires a real application_id.
+function NoJdCard({ role, applications, canPaste, onPick, onPaste, onClose }) {
   const [jd, setJd] = useState("");
   return (
     <div className="absolute inset-0 z-40 grid place-items-center bg-rd-text/20 px-4">
@@ -710,8 +757,9 @@ function NoJdCard({ role, applications, onPick, onPaste, onClose }) {
           </button>
         </div>
         <p className="text-[12.5px] text-rd-text-secondary leading-relaxed mb-4">
-          Tailoring needs the job description. Pick a tracked application that
-          has one, or paste a JD below.
+          {canPaste
+            ? "Tailoring needs the job description. Paste it for this role below, or pick another tracked application that already has one."
+            : "Pick a tracked application that has a job description. To tailor for a new job, add it as a tracked application first."}
         </p>
 
         {applications.length > 0 && (
@@ -743,31 +791,44 @@ function NoJdCard({ role, applications, onPick, onPaste, onClose }) {
           </div>
         )}
 
-        <p className="text-[11px] font-display font-bold uppercase tracking-[0.08em] text-rd-text-eyebrow mb-2">
-          Or paste a job description
-        </p>
-        <textarea
-          value={jd}
-          onChange={(e) => setJd(e.target.value)}
-          rows={6}
-          placeholder="Paste the job description here…"
-          className="w-full px-3 py-2 rounded-lg border border-rd-border bg-rd-bg-card text-[12.5px] text-rd-text focus:outline-none focus:border-rd-coral resize-y"
-        />
-        <div className="flex justify-end gap-2 mt-3">
-          <button
-            onClick={onClose}
-            className="px-3 py-1.5 rounded-lg text-[12.5px] text-rd-text-secondary hover:bg-rd-bg-soft transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={() => onPaste(jd.trim())}
-            disabled={!jd.trim()}
-            className="px-3 py-1.5 rounded-lg bg-rd-coral text-white text-[12.5px] font-display font-semibold hover:bg-rd-coral-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
-          >
-            Tailor with this JD
-          </button>
-        </div>
+        {canPaste ? (
+          <>
+            <p className="text-[11px] font-display font-bold uppercase tracking-[0.08em] text-rd-text-eyebrow mb-2">
+              Or paste this role&apos;s job description
+            </p>
+            <textarea
+              value={jd}
+              onChange={(e) => setJd(e.target.value)}
+              rows={6}
+              placeholder="Paste the job description here…"
+              className="w-full px-3 py-2 rounded-lg border border-rd-border bg-rd-bg-card text-[12.5px] text-rd-text focus:outline-none focus:border-rd-coral resize-y"
+            />
+            <div className="flex justify-end gap-2 mt-3">
+              <button
+                onClick={onClose}
+                className="px-3 py-1.5 rounded-lg text-[12.5px] text-rd-text-secondary hover:bg-rd-bg-soft transition-colors"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => onPaste(jd.trim())}
+                disabled={!jd.trim()}
+                className="px-3 py-1.5 rounded-lg bg-rd-coral text-white text-[12.5px] font-display font-semibold hover:bg-rd-coral-dark disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              >
+                Tailor with this JD
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="flex justify-end mt-1">
+            <button
+              onClick={onClose}
+              className="px-3 py-1.5 rounded-lg text-[12.5px] text-rd-text-secondary hover:bg-rd-bg-soft transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
