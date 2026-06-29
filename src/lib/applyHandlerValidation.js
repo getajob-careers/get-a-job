@@ -95,6 +95,49 @@ export function sanitizeText(s, maxLen = 500) {
   return s.trim().slice(0, maxLen);
 }
 
+// Detects an obviously-corrupted company name — the kind produced when the
+// chat agent extracts a company from scraped careers-page text whose brand /
+// nav strings arrive run-together with no spaces (e.g. "AnyRMFlowtoXprien",
+// where the site's "About Us · Careers · Contact Us" logo text was jammed
+// into one token). Two signals, both conservative so legitimate single-token
+// camelCase brands (SentinelOne, MazeBolt, MongoDB, DealHub, NetApp, LayerX —
+// all <=11 chars, <=3 capitals in real data) are NEVER flagged:
+//   1. embedded nav / boilerplate phrases that never appear in a real name;
+//   2. a long no-whitespace token (>=16 chars) that looks like several words
+//      concatenated — >=4 capital letters OR >=3 lowercase->uppercase
+//      transitions.
+const COMPANY_BOILERPLATE_RE =
+  /(about\s*us|contact\s*us|careers|back to positions|all rights reserved|apply (for|now)|full[-\s]?time|part[-\s]?time)/i;
+
+export function isSuspiciousCompany(raw) {
+  const s = typeof raw === "string" ? raw.trim() : "";
+  if (!s) return false;
+  if (COMPANY_BOILERPLATE_RE.test(s)) return true;
+  if (!/\s/.test(s) && s.length >= 16) {
+    const caps = (s.match(/[A-Z]/g) || []).length;
+    const transitions = (s.match(/[a-z][A-Z]/g) || []).length;
+    if (caps >= 4 || transitions >= 3) return true;
+  }
+  return false;
+}
+
+// Neutral placeholder stored when a company is missing or flagged corrupted.
+// NOT null on purpose: applications.company is NOT NULL, so returning null
+// would make the whole add_application insert fail — worse than storing a
+// clean placeholder. "Company" renders acceptably in the
+// "Tailored for [role] · [company]" label.
+export const FALLBACK_COMPANY = "Company";
+
+// Cleans an AI-emitted company name for storage. Returns the trimmed string,
+// or FALLBACK_COMPANY when it's empty or flagged corrupted by
+// isSuspiciousCompany — so garbage never persists and the NOT NULL company
+// column always receives a clean, non-null value.
+export function sanitizeCompany(raw) {
+  const s = typeof raw === "string" ? raw.trim() : "";
+  if (!s || isSuspiciousCompany(s)) return FALLBACK_COMPANY;
+  return s;
+}
+
 // Sanitises AI-emitted action_items. Each item is trimmed and capped
 // at maxItemLen; empty items are dropped; the array is capped at
 // maxItems. Mirrors the analysis pipeline's expected shape (string[]).

@@ -31,6 +31,7 @@ import {
   clampScore,
   sanitizeText,
   sanitizeActionItems,
+  sanitizeCompany,
 } from "@/lib/applyHandlerValidation";
 
 // ─── Tasks ─────────────────────────────────────────────────────────────
@@ -170,7 +171,7 @@ export async function applyApplicationActions({ user, queryClient, actions }) {
       const status = validStatus(a.status) || "interested";
       const row = {
         user_id: user.id,
-        company: a.company,
+        company: sanitizeCompany(a.company),
         role_title: a.role_title,
         status,
         source: 'chat_agent',
