@@ -523,7 +523,6 @@ export default function CVStudioView({
                 onCommit={(v) => onPatchHeader({ headline: v })}
                 className="cv-headline"
                 block
-                placeholder="Headline (e.g. Senior Backend Engineer)"
               />
               <div className="cv-contact">
                 <Editable
