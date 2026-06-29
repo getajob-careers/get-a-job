@@ -218,7 +218,14 @@ export default function CareerRoadmap() {
       toast.success("Analysis refreshed.");
     } catch (err) {
       console.error("Roadmap generation error:", err);
-      toast.error(`Failed to generate roadmap: ${err.message || "Please try again."}`);
+      // The function returns a retryable 503 { error: "analysis_timeout" } when
+      // it hits its ~80s deadline. Surface calm copy; the Refresh button the
+      // user already clicked is the retry affordance.
+      if (err?.message === "analysis_timeout") {
+        toast.error("Analysis is taking longer than usual. Tap Refresh to try again.");
+      } else {
+        toast.error(`Failed to generate roadmap: ${err.message || "Please try again."}`);
+      }
     } finally {
       setGenerating(false);
     }

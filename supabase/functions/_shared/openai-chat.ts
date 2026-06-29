@@ -115,7 +115,13 @@ export async function openaiChatCompletionWithRetry(
       lastResponse = res
       console.warn(`[openai-retry] HTTP ${res.status} on attempt ${attempt + 1}/${retries + 1} (trace=${traceCtx.traceName})`)
     } catch (err) {
-      if ((err as Error)?.name === 'AbortError') throw err
+      // AbortSignal.timeout() rejects with name 'TimeoutError'; a plain abort
+      // uses 'AbortError'. Both mean the caller's deadline fired, so re-throw
+      // immediately and never loop back to retry on an already-aborted signal.
+      // A retry would reuse the dead signal, fail instantly, and only burn
+      // backoff against the platform wall.
+      const errName = (err as Error)?.name
+      if (errName === 'AbortError' || errName === 'TimeoutError') throw err
       lastError = err instanceof Error ? err : new Error(String(err))
       lastResponse = null
       console.warn(`[openai-retry] fetch error on attempt ${attempt + 1}/${retries + 1} (trace=${traceCtx.traceName}):`, lastError.message)
