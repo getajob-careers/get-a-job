@@ -36,7 +36,11 @@ export async function fetchApplicationCvs(userId) {
   const seenApp = new Set();
   const out = [];
   for (const r of rows) {
-    if (!r.is_master && r.application_id) {
+    if (!r.is_master) {
+      // Hide orphan/unlinked tailored rows (application_id null): they can't be
+      // labeled (no role/company) or re-tailored, and the engine no longer
+      // produces them. Dedup the rest to the latest copy per application.
+      if (!r.application_id) continue;
       if (seenApp.has(r.application_id)) continue;
       seenApp.add(r.application_id);
     }
@@ -73,8 +77,9 @@ function toCvOption(row) {
     id: row.id,
     isMaster: false,
     tag: "Tailored",
-    label: role || "Tailored CV",
-    sub: company ? `${company} · tailored copy` : "tailored copy",
+    // Clear, single label: "role · company" (role alone if company is missing).
+    label: role && company ? `${role} · ${company}` : role || "Tailored CV",
+    sub: "Tailored copy",
     role,
     company,
     cvUrl: row.cv_url ?? null,

@@ -368,6 +368,9 @@ export default function CVStudioView({
   onTailorContext, // banner CTA → tailor the pending target
   tailoring = false, // the ~30-60s authoring call is running
   tailorLabel = "this job",
+  tailorResult = null, // { cvId, role, company } — the just-finished tailored CV
+  onViewTailored, // outcome card "View it" → load the new CV in the editor
+  onDownloadTailored, // outcome card "Download" → re-render the new CV's PDF
 }) {
   const template = templates.find((t) => t.id === templateId) || templates[0];
   const docStyle = {
@@ -421,11 +424,12 @@ export default function CVStudioView({
       <CvStudioStyles ruleOn={template.rule} />
 
       <header className="h-[52px] shrink-0 border-b border-rd-border bg-rd-bg-card flex items-center px-4 gap-3">
+        {/* Pure switcher — tailoring is initiated by the dedicated CTA, not from
+            inside the CV list. */}
         <CvSelector
           options={cvOptions}
           value={selectedCvId}
           onChange={onSelectCv}
-          onTailorNew={onTailorNew}
           onDelete={onDeleteCv ? handleDelete : null}
         />
         <div className="flex-1" />
@@ -500,6 +504,49 @@ export default function CVStudioView({
                 <span>
                   Tailoring your CV to {tailorLabel}… this can take ~30-60s.
                 </span>
+              </div>
+            </div>
+          )}
+          {/* Outcome state — a deliberate "it's ready" moment with explicit
+              View / Download choices, instead of silently switching the view. */}
+          {!tailoring && tailorResult && (
+            <div className="max-w-[720px] mx-auto mt-3 px-1">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 bg-rd-teal-tint border border-rd-teal/30 rounded-xl px-4 py-3">
+                <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                  <span className="w-7 h-7 rounded-full bg-rd-teal/20 grid place-items-center shrink-0 mt-0.5">
+                    <Check className="w-4 h-4 text-rd-teal-dark" />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-[14px] font-display font-bold text-rd-teal-dark leading-tight">
+                      Your{tailorResult.role ? ` ${tailorResult.role}` : ""} CV
+                      is ready
+                    </p>
+                    {tailorResult.company && (
+                      <p className="text-[12px] text-rd-teal-dark/80 mt-0.5 truncate">
+                        Tailored for {tailorResult.company}
+                      </p>
+                    )}
+                    {tailorResult.fit && (
+                      <p className="text-[12px] text-rd-teal-dark/80 mt-1 leading-snug">
+                        {tailorResult.fit}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <button
+                    onClick={() => onViewTailored?.(tailorResult.cvId)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-rd-teal-dark text-white text-[13px] font-display font-semibold hover:opacity-90 transition-opacity"
+                  >
+                    <FileText className="w-3.5 h-3.5" /> View it
+                  </button>
+                  <button
+                    onClick={() => onDownloadTailored?.(tailorResult.cvId)}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-rd-bg-card border border-rd-teal/40 text-rd-teal-dark text-[13px] font-display font-semibold hover:bg-rd-bg-soft transition-colors"
+                  >
+                    <Download className="w-3.5 h-3.5" /> Download
+                  </button>
+                </div>
               </div>
             </div>
           )}
