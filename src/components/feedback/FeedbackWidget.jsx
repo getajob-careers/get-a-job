@@ -101,6 +101,10 @@ export default function FeedbackWidget() {
   // of <Routes>, so this is the only gate filtering by current path.
   if (/^\/onboarding($|\/)/i.test(location.pathname)) return null;
 
+  // Skip on the CV Agent route — the studio's chat composer has its own
+  // Send button pinned bottom-right, and the fixed pill overlaps it.
+  if (/^\/cvagent($|\/)/i.test(location.pathname)) return null;
+
   return (
     <>
       {/* Floating launcher pill — pinned to the bottom-right corner. The
