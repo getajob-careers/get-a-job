@@ -2596,6 +2596,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     }
 
     let appRecord;
+    let newCvId: string | null = null;
     if (application_id) {
       const { data } = await supabase.from("applications").update({
         cv_url,
@@ -2662,16 +2663,39 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
           console.error("[CV] master cv insert failed (non-fatal):", insErr.message);
         }
       } else {
-        const { error: cvPersistError } = await supabase.from("application_cvs").insert({
-          user_id: user.id,
-          application_id: appRecord?.id ?? null,
-          source_jd: jdInput || null,
-          cv_data: cvData as any,
-          cv_url,
-          version: 1,
-        });
-        if (cvPersistError) {
-          console.error("[CV] application_cvs persist failed (non-fatal):", cvPersistError.message);
+        const { data: insertedCv, error: cvPersistError } = await supabase
+          .from("application_cvs")
+          .insert({
+            user_id: user.id,
+            application_id: appRecord?.id ?? null,
+            source_jd: jdInput || null,
+            cv_data: cvData as any,
+            cv_url,
+            version: 1,
+          })
+          .select("id")
+          .single();
+        if (cvPersistError || !insertedCv) {
+          console.error("[CV] application_cvs persist failed (non-fatal):", cvPersistError?.message);
+        } else {
+          newCvId = insertedCv.id as string;
+          // Dedup: one tailored copy per application. Delete prior non-master
+          // copies for this application ONLY NOW — after the new row is safely
+          // persisted — so a failed insert above can never leave the user with
+          // zero tailored copies. Scoped to is_master=false and never the row we
+          // just wrote. Skipped when there is no application (no prior to dedup).
+          if (appRecord?.id) {
+            const { error: dedupErr } = await supabase
+              .from("application_cvs")
+              .delete()
+              .eq("user_id", user.id)
+              .eq("application_id", appRecord.id)
+              .eq("is_master", false)
+              .neq("id", newCvId);
+            if (dedupErr) {
+              console.error("[CV] dedup prior tailored copies failed (non-fatal):", dedupErr.message);
+            }
+          }
         }
       }
     } catch (e) {
@@ -2690,6 +2714,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     _ok = true; _http = 200
     return json({
       cv_url,
+      cv_id: newCvId,
       application_id: appRecord?.id,
       fit_analysis: cvData.fit_analysis,
       library_match,
