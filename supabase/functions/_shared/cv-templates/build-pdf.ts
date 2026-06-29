@@ -200,9 +200,13 @@ const P_LH_BULLET_GAP = 15; // gap before each bullet
 const P_HEADING_RULE_DROP = 6; // baseline → rule, below the heading
 
 // ─── Shrink-to-fit bounds ───────────────────────────────────────────
-const SCALE_MIN = 0.55;
+// FLOOR is the readable minimum (body 10.5 × 0.72 ≈ 7.6pt). One page only:
+// a CV that fits at scale ≥ FLOOR renders as-is (unchanged from before); a CV
+// that would need to go below FLOOR is CURATED at clean boundaries to fit at
+// exactly FLOOR (see curateToFit) — the old "shrink to 0.55 then paint below
+// the page edge" silent-clip path is gone.
+const FLOOR = 0.72;
 const SCALE_MAX = 1.0;
-const SCALE_WARN = 0.7;
 
 // ─── CV data shape (mirrors build.ts CvData) ───────────────────────
 interface CvData {
@@ -969,12 +973,156 @@ function renderAllSections(
   }
 }
 
+// ─── One-page curation (clean-boundary, never clips) ───────────────
+// When a CV can't fit one page at the readable FLOOR scale, we reduce content
+// at clean boundaries instead of clipping it off the page: drop whole trailing
+// entries/sections in render order, and trim trailing bullets of the boundary
+// entry (always keeping ≥1). Everything dropped is reported in CvFit so the UI
+// can tell the user exactly what was hidden — no silent loss.
+
+export interface CvFit {
+  trimmed: boolean;
+  scale: number;
+  lowestY: number; // lowest baseline painted; ≥ MARGIN_BOTTOM ⇒ no clip
+  droppedSections: string[];
+  droppedEntries: { section: string; title: string }[];
+  droppedBulletCount: number;
+}
+export interface CvPdfResult {
+  bytes: Uint8Array;
+  fit: CvFit;
+}
+
+// The entry array a section renders from (mirrors the per-section renderers),
+// or null for non-entry sections. Returns a live reference so popping mutates
+// the data the draw pass will read.
+function entryArrayFor(cv: CvData, key: string): any[] | null {
+  switch (key) {
+    case "professional_experience":
+      if (Array.isArray(cv.professional_experiences))
+        return cv.professional_experiences;
+      if (Array.isArray(cv.experiences)) return cv.experiences;
+      return null;
+    case "military_service":
+      return Array.isArray(cv.military_experiences)
+        ? cv.military_experiences
+        : null;
+    case "volunteering":
+      if (Array.isArray(cv.volunteering_experiences))
+        return cv.volunteering_experiences;
+      if (Array.isArray(cv.volunteering)) return cv.volunteering;
+      return null;
+    case "leadership":
+      return Array.isArray(cv.leadership_experiences)
+        ? cv.leadership_experiences
+        : null;
+    case "education":
+      return Array.isArray(cv.education) ? cv.education : null;
+    case "projects":
+      return Array.isArray(cv.projects) ? cv.projects : null;
+    case "honors":
+      return Array.isArray(cv.honors_and_awards) ? cv.honors_and_awards : null;
+    case "certifications":
+      return Array.isArray(cv.certifications) ? cv.certifications : null;
+    default:
+      return null;
+  }
+}
+
+const SECTION_LABEL: Record<string, string> = {
+  about: "About Me",
+  professional_experience: "Professional Experience",
+  military_service: "Military Service",
+  volunteering: "Volunteering",
+  leadership: "Leadership",
+  education: "Education",
+  skills: "Skills",
+  languages: "Languages",
+  honors: "Honors & Awards",
+  certifications: "Certifications",
+  projects: "Projects",
+};
+
+function entryTitle(entry: any, key: string): string {
+  if (key === "education") {
+    const d = trim(entry?.degree);
+    const f = trim(entry?.field_of_study);
+    return d || f || trim(entry?.institution) || "entry";
+  }
+  if (key === "honors" || key === "certifications") {
+    return typeof entry === "string" ? entry : trim(entry?.name) || "item";
+  }
+  const t = trim(entry?.title) || trim(entry?.name);
+  const org = trim(
+    entry?.company || entry?.unit || entry?.organization || entry?.issuer,
+  );
+  return t && org ? `${t} (${org})` : t || org || "entry";
+}
+
+// Remove the single lowest-priority unit from the tail of the render flow.
+// Returns false when nothing removable remains (header + summary always stay).
+function removeOneTailUnit(
+  cv: CvData,
+  order: SectionKey[],
+  fit: CvFit,
+): boolean {
+  for (let i = order.length - 1; i >= 0; i--) {
+    const key = order[i];
+    const arr = entryArrayFor(cv, key);
+    if (arr && arr.length > 0) {
+      const last = arr[arr.length - 1];
+      const bullets = last && Array.isArray(last.bullets) ? last.bullets : null;
+      if (
+        key !== "honors" &&
+        key !== "certifications" &&
+        bullets &&
+        bullets.length > 1
+      ) {
+        bullets.pop();
+        fit.droppedBulletCount++;
+        return true;
+      }
+      arr.pop();
+      fit.droppedEntries.push({ section: key, title: entryTitle(last, key) });
+      if (arr.length === 0 && !fit.droppedSections.includes(SECTION_LABEL[key]))
+        fit.droppedSections.push(SECTION_LABEL[key]);
+      return true;
+    }
+    // Whole-section units (no per-entry structure): drop the section.
+    if (key === "skills") {
+      const sk = cv.skills;
+      const has =
+        sk &&
+        ((sk.domain && sk.domain.length) ||
+          (sk.tools && sk.tools.length) ||
+          (sk.technical && sk.technical.length));
+      if (has) {
+        cv.skills = {};
+        fit.droppedSections.push(SECTION_LABEL.skills);
+        return true;
+      }
+    }
+    if (key === "languages") {
+      const hasArr = Array.isArray(cv.languages) && cv.languages.length > 0;
+      const hasSk =
+        Array.isArray(cv.skills?.languages) && cv.skills!.languages!.length > 0;
+      if (hasArr || hasSk) {
+        cv.languages = [];
+        if (cv.skills) cv.skills.languages = [];
+        fit.droppedSections.push(SECTION_LABEL.languages);
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
 // ─── Main entry point ───────────────────────────────────────────────
 export async function buildCvPdf(
   cvData: CvData,
   userContext: UserContext,
   config: TemplateConfig,
-): Promise<Uint8Array> {
+): Promise<CvPdfResult> {
   // STEP A (template-id plumbing): the selected template id now arrives here.
   // It is INERT in this step — logged only, never read by any measure/draw
   // path — so output is unchanged regardless of value. Later steps map the id
@@ -1017,28 +1165,61 @@ export async function buildCvPdf(
   const contentAvailableH = contentTopY - MARGIN_BOTTOM;
 
   // ─── Pass 1: MEASURE (sections only — banner is fixed) ───
-  const measureCtx: Ctx = {
-    page,
-    fonts,
-    accent,
-    labelCase: tpl.labelCase,
-    ruleOn: tpl.rule,
-    premium,
-    y: contentTopY,
-    draw: false,
-    scale: SCALE_MAX,
+  // A reusable measure: walks the section flow with draw off and returns the
+  // content height. Called once up front, then again per curation step.
+  const measure = (data: CvData): number => {
+    const mc: Ctx = {
+      page,
+      fonts,
+      accent,
+      labelCase: tpl.labelCase,
+      ruleOn: tpl.rule,
+      premium,
+      y: contentTopY,
+      draw: false,
+      scale: SCALE_MAX,
+    };
+    renderAllSections(mc, data, config.sectionOrder);
+    return contentTopY - mc.y;
   };
-  renderAllSections(measureCtx, cv, config.sectionOrder);
-  const usedHeight = contentTopY - measureCtx.y;
 
-  let scale = SCALE_MAX;
-  if (usedHeight > contentAvailableH) {
-    scale = Math.max(SCALE_MIN, contentAvailableH / usedHeight);
+  const fit: CvFit = {
+    trimmed: false,
+    scale: SCALE_MAX,
+    lowestY: contentTopY,
+    droppedSections: [],
+    droppedEntries: [],
+    droppedBulletCount: 0,
+  };
+
+  const usedHeight = measure(cv);
+  const fitScale = usedHeight > 0 ? contentAvailableH / usedHeight : SCALE_MAX;
+  let scale: number;
+
+  if (fitScale >= FLOOR) {
+    // Fits at a readable scale — render as-is (unchanged from before: a CV in
+    // [FLOOR, 1.0] gets exactly the scale it always did; ≥1.0 → no shrink).
+    scale = Math.min(SCALE_MAX, fitScale);
+  } else {
+    // Would be unreadable / clip. Curate at clean boundaries until it fits at
+    // FLOOR, then render at exactly FLOOR. Budget is the content height we can
+    // afford at FLOOR. Guard caps iterations (header + summary never removed).
+    scale = FLOOR;
+    fit.trimmed = true;
+    const budget = contentAvailableH / FLOOR;
+    let guard = 0;
+    while (measure(cv) > budget && guard++ < 1000) {
+      if (!removeOneTailUnit(cv, config.sectionOrder, fit)) break;
+    }
   }
-  const fits = usedHeight * scale <= contentAvailableH + 0.5;
-  const tag = scale < SCALE_WARN ? "[CV-PDF][WARN]" : "[CV-PDF]";
+  fit.scale = scale;
+
+  const tag = fit.trimmed ? "[CV-PDF][CURATED]" : "[CV-PDF]";
   console.log(
-    `${tag} measure pass: content used ${usedHeight.toFixed(1)}pt of ${contentAvailableH.toFixed(1)}pt available → scale ${scale.toFixed(3)} (fits: ${fits})`,
+    `${tag} measure: used ${usedHeight.toFixed(1)}pt of ${contentAvailableH.toFixed(1)}pt → scale ${scale.toFixed(3)}` +
+      (fit.trimmed
+        ? ` (dropped ${fit.droppedEntries.length} entries / ${fit.droppedBulletCount} bullets / sections: ${fit.droppedSections.join(", ") || "none"})`
+        : ""),
   );
 
   // ─── Pass 2: DRAW ───
@@ -1063,6 +1244,8 @@ export async function buildCvPdf(
   };
   renderHeader(drawCtx, cv, uc);
   renderAllSections(drawCtx, cv, config.sectionOrder);
+  fit.lowestY = drawCtx.y;
 
-  return await pdfDoc.save();
+  const bytes = await pdfDoc.save();
+  return { bytes, fit };
 }

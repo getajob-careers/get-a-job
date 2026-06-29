@@ -170,13 +170,17 @@ Deno.serve(async (req) => {
       cv_data as Record<string, unknown>,
     );
 
-    const cvBytes = await buildCvPdf(cv_data as any, userContext as any, {
-      style: safeTemplateStyle,
-      theme,
-      sectionOrder,
-      template: templateId,
-      photo: null,
-    });
+    const { bytes: cvBytes, fit } = await buildCvPdf(
+      cv_data as any,
+      userContext as any,
+      {
+        style: safeTemplateStyle,
+        theme,
+        sectionOrder,
+        template: templateId,
+        photo: null,
+      },
+    );
 
     const fileName = `${user.id}/render_${Date.now()}.pdf`;
     const { error: uploadError } = await serviceClient.storage
@@ -212,7 +216,12 @@ Deno.serve(async (req) => {
         .eq("user_id", user.id);
     }
 
-    return json({ cv_url });
+    // `fit` reports one-page curation: when the CV was too long for one
+    // readable page, the renderer dropped trailing content at clean boundaries
+    // (never clipped) — the studio surfaces exactly what was hidden so the user
+    // can shorten it deliberately. Omitted from the response when nothing was
+    // trimmed.
+    return json(fit.trimmed ? { cv_url, fit } : { cv_url });
   } catch (e) {
     return json(
       { error: e instanceof Error ? e.message : "render-cv failed" },

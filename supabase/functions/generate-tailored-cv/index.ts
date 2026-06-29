@@ -2564,7 +2564,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       // CV now renders as PDF via pdf-lib (build-pdf.ts). DOCX renderer
       // (build.ts) remains in the codebase as a fallback but is no longer
       // wired in — see PR / commit message for the rationale.
-      const cvBytes = await buildCvPdf(cvData, userContext as any, {
+      const { bytes: cvBytes } = await buildCvPdf(cvData, userContext as any, {
         style: safeTemplateStyle,
         theme: sectorResolution.theme,
         sectionOrder,

@@ -273,6 +273,30 @@ export default function CVStudioLive() {
       toast.error("Couldn't render the PDF. Please try again.");
       return;
     }
+    // One-page curation notice: when the CV was too long for one readable page,
+    // the renderer dropped trailing content at clean boundaries (never clipped).
+    // Tell the user exactly what was hidden so they can shorten it deliberately.
+    const fit = data.fit;
+    if (fit?.trimmed) {
+      const parts = [];
+      if (fit.droppedSections?.length)
+        parts.push(`sections: ${fit.droppedSections.join(", ")}`);
+      const entries = (fit.droppedEntries || [])
+        .map((e) => e.title)
+        .filter(Boolean);
+      if (entries.length)
+        parts.push(
+          entries.length <= 3
+            ? `entries: ${entries.join(", ")}`
+            : `${entries.length} entries`,
+        );
+      if (fit.droppedBulletCount)
+        parts.push(`${fit.droppedBulletCount} bullet(s)`);
+      toast.warning("Your CV is too long for one page", {
+        description: `To keep it readable, the PDF hides ${parts.join(" · ")}. Shorten or remove items to control exactly what's shown.`,
+        duration: 12000,
+      });
+    }
     window.open(data.cv_url, "_blank", "noopener");
   }, [cvOptions, selectedCvId, templateId]);
 

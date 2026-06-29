@@ -865,7 +865,7 @@ Deno.serve(async (req) => {
       roleLibrary as any,
       profile as any,
     );
-    const cvBytes = await buildCvPdf(cvData, userContext as any, {
+    const { bytes: cvBytes } = await buildCvPdf(cvData, userContext as any, {
       style: safeTemplateStyle,
       theme: sectorResolution.theme,
       sectionOrder,
