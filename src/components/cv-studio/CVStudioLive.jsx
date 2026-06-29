@@ -21,6 +21,7 @@ import {
   cvDataQueryKey,
   applicationCvsQueryKey,
   fetchApplicationCvs,
+  fetchCvData,
   useApplicationForTailor,
   useApplicationsWithJd,
 } from "@/lib/queries/useApplicationCvs";
@@ -65,6 +66,7 @@ export default function CVStudioLive() {
   // banner over the real master content.
   const [pendingTailor, setPendingTailor] = useState(null); // { applicationId } | null
   const [tailoring, setTailoring] = useState(false); // the ~30-60s authoring call
+  const [tailorResult, setTailorResult] = useState(null); // { cvId, role, company } — outcome card
   const [noJdOpen, setNoJdOpen] = useState(false); // no-JD card overlay
   const { data: tailorApp } = useApplicationForTailor(
     pendingTailor?.applicationId,
@@ -381,6 +383,7 @@ export default function CVStudioLive() {
       // target: { applicationId?: string|null, role?: string, company?: string, jobDescription: string }
       if (tailoring || !user?.id) return;
       setNoJdOpen(false);
+      setTailorResult(null); // clear any prior outcome card
       setTailoring(true);
       try {
         const { data, error } = await supabase.functions.invoke(
@@ -404,8 +407,9 @@ export default function CVStudioLive() {
           );
           return;
         }
-        // Tailoring succeeded server-side. Surface the fit read FIRST, so the
-        // success is visible even if the list refetch below fails.
+        // Tailoring succeeded server-side. The outcome card is the SOLE
+        // completion surface (no chat line — two "ready" surfaces muddy it); the
+        // fit read is folded into the card below.
         const appId = data.application_id ?? target.applicationId ?? null;
         const fit = data.fit_analysis;
         const fitLine =
@@ -414,20 +418,11 @@ export default function CVStudioLive() {
             : typeof fit === "string"
               ? fit
               : null;
-        setChatMessages([
-          {
-            id: uid(),
-            role: "assistant",
-            content:
-              (data.message ||
-                `Tailored a new CV${target.role ? ` for ${target.role}` : ""}.`) +
-              (fitLine ? `\n\n${fitLine}` : ""),
-          },
-        ]);
-        // Bring the new row into the list and select it (mirrors the deep-link
-        // "wait for the refetch" pattern). If the refetch throws (network), the
-        // CV still exists server-side — tell the user to refresh rather than
-        // failing silently.
+        // Bring the new row into the list so the editor can load it when the
+        // user chooses "View it". We do NOT auto-switch — the outcome card
+        // gives an explicit View / Download choice. Select deterministically by
+        // the cv_id the engine now returns (kills the old stuck-on-Master race);
+        // fall back to matching the application only if cv_id is absent.
         try {
           await queryClient.invalidateQueries({
             queryKey: applicationCvsQueryKey(user.id),
@@ -436,13 +431,24 @@ export default function CVStudioLive() {
             queryKey: applicationCvsQueryKey(user.id),
             queryFn: () => fetchApplicationCvs(user.id),
           });
-          const opt =
+          const newCvId =
+            data.cv_id ||
             (appId &&
-              fresh.find((o) => !o.isMaster && o.applicationId === appId)) ||
+              fresh.find((o) => !o.isMaster && o.applicationId === appId)
+                ?.id) ||
             null;
-          if (opt) {
-            setSelectedCvId(opt.id);
-            setPendingTailor(null);
+          setPendingTailor(null);
+          if (newCvId) {
+            setTailorResult({
+              cvId: newCvId,
+              role: target.role || null,
+              company: target.company || null,
+              fit: fitLine,
+            });
+          } else {
+            toast.error(
+              "Your tailored CV was created — refresh to see it in your CV list.",
+            );
           }
         } catch {
           toast.error(
@@ -454,6 +460,51 @@ export default function CVStudioLive() {
       }
     },
     [tailoring, user?.id, queryClient],
+  );
+
+  // Outcome card "View it": load the just-tailored CV in the editor like the
+  // master (deterministic — the row id came straight from the engine).
+  const onViewTailored = useCallback((cvId) => {
+    if (!cvId) return;
+    setTailorResult(null);
+    setPendingTailor(null);
+    setSelectedCvId(cvId);
+  }, []);
+
+  // Outcome card "Download": re-render the just-tailored CV via render-cv at the
+  // selected template (template fidelity + one-page floor), not the engine's
+  // raw cv_url. Fetches that row's cv_data (it isn't the loaded editor model).
+  const onDownloadTailored = useCallback(
+    async (cvId) => {
+      if (!cvId) return;
+      const opt = cvOptions.find((o) => o.id === cvId);
+      const t = toast.loading("Rendering PDF…");
+      const cv_data =
+        cvId === selectedCvId && modelRef.current
+          ? toCvData(modelRef.current)
+          : ((await fetchCvData(cvId))?.cv_data ?? null);
+      if (!cv_data) {
+        toast.dismiss(t);
+        toast.error("Couldn't load that CV to download.");
+        return;
+      }
+      const { data, error } = await supabase.functions.invoke("render-cv", {
+        body: {
+          cv_data,
+          cv_id: cvId,
+          application_id: opt?.applicationId ?? null,
+          target_role: opt?.role ?? "",
+          template: templateId,
+        },
+      });
+      toast.dismiss(t);
+      if (error || !data?.cv_url) {
+        toast.error("Couldn't render the PDF. Please try again.");
+        return;
+      }
+      window.open(data.cv_url, "_blank", "noopener");
+    },
+    [cvOptions, selectedCvId, templateId],
   );
 
   // Entry point for the persistent action (chip + selector item) and the banner
@@ -605,7 +656,10 @@ export default function CVStudioLive() {
         onTemplateChange={setTemplateId}
         cvOptions={cvOptions}
         selectedCvId={selectedCvId}
-        onSelectCv={setSelectedCvId}
+        onSelectCv={(id) => {
+          setTailorResult(null); // dismiss the outcome card on a manual switch
+          setSelectedCvId(id);
+        }}
         onDeleteCv={onDeleteCv}
         currentCv={currentCv}
         saveState={saveState}
@@ -618,6 +672,9 @@ export default function CVStudioLive() {
         onTailorContext={startTailor}
         tailoring={tailoring}
         tailorLabel={tailorLabel}
+        tailorResult={tailorResult}
+        onViewTailored={onViewTailored}
+        onDownloadTailored={onDownloadTailored}
       />
       {noJdOpen && (
         <NoJdCard
