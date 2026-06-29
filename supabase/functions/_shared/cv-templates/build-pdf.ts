@@ -166,6 +166,39 @@ const SP_SECTION_BEFORE = 28; // above section heading — bumped 20→28 for br
 const SP_AFTER_ACCENT_LINE = 12; // after the accent line — bumped 10→12
 const SP_ENTRY_BEFORE = 14; // between sibling entries — bumped 10→14
 
+// ─── Premium ("Classic") design variant ─────────────────────────────
+// Gated per-template via tpl.premium (set ONLY on the "modern"/Classic token
+// in template-config). Every branch below falls back to the values above when
+// premium is false, so the other four templates render byte-identical. This is
+// the single-column, ATS-safe typography upgrade: larger name, monochrome
+// near-black headings, a full-width 0.75pt rule beneath each heading, a
+// two-line role/company hierarchy, and an airier ~1.25 rhythm. See
+// docs/engineering/cv-template-rendering-spec.md.
+const P_RULE_THICKNESS = 0.75; // section + header rules
+const COLOR_RULE = COLOR_INK; // monochrome near-black rules
+
+// Header (absolute Y, not scaled — matches the non-premium header).
+const P_SIZE_NAME = 30;
+const P_SIZE_HEADLINE = 12.5;
+const P_SIZE_CONTACT = 9.5;
+const P_HEADER_NAME_Y = PAGE_H - HEADER_TOP_MARGIN - P_SIZE_NAME;
+const P_HEADER_HEADLINE_Y = P_HEADER_NAME_Y - 9 - P_SIZE_HEADLINE;
+const P_HEADER_CONTACT_Y = P_HEADER_HEADLINE_Y - 7 - P_SIZE_CONTACT;
+const P_HEADER_RULE_Y = P_HEADER_CONTACT_Y - 12; // hairline under the contact row
+const P_HEADER_CONTENT_TOP = P_HEADER_RULE_Y - 22; // first section starts here
+
+// Section + entry typography (scaled by ctx.scale).
+const P_SIZE_ROLE = 11; // bold role title (own line)
+const P_SIZE_ORG = 10; // company / org (own line, italic muted)
+const P_TRACK_SECTION = 1.5; // ~14% of 11pt — heavier, deliberate
+const P_SP_SECTION_BEFORE = 26; // above each section heading
+const P_SP_AFTER_RULE = 12; // heading rule → first entry
+const P_SP_ENTRY_BEFORE = 16; // between sibling entries
+const P_LH_ROLE_TO_ORG = 13; // role line → company line
+const P_LH_BODY = 13; // ~1.25 at 10.5 — wrapped-line leading
+const P_LH_BULLET_GAP = 15; // gap before each bullet
+const P_HEADING_RULE_DROP = 6; // baseline → rule, below the heading
+
 // ─── Shrink-to-fit bounds ───────────────────────────────────────────
 const SCALE_MIN = 0.55;
 const SCALE_MAX = 1.0;
@@ -233,6 +266,22 @@ type GlyphFont = {
   characterSet?: number[];
 };
 const COMBINING_MARK = /\p{M}/u;
+
+// Common typographic punctuation the Latin font subsets OMIT. Without this the
+// sanitizer dropped them entirely — e.g. an en-dash date range "2023 – Present"
+// rendered as "2023 Present" (no connector), and the honors em-dash vanished.
+// Degrade to an always-present ASCII equivalent instead of dropping. Only used
+// as a FALLBACK: if a font's subset does include the real glyph, has(cp) is
+// true and the original codepoint is kept (so a future re-subset just works).
+const PUNCT_FALLBACK: Record<number, string> = {
+  0x2013: "-", // en dash
+  0x2014: "-", // em dash
+  0x2018: "'", // ‘
+  0x2019: "'", // ’
+  0x201c: '"', // “
+  0x201d: '"', // ”
+  0x2026: "...", // ellipsis
+};
 function makeCodepointSanitizer(fk: GlyphFont): (s: string) => string {
   let charset: Set<number> | null = null;
   const has = (cp: number): boolean => {
@@ -257,6 +306,12 @@ function makeCodepointSanitizer(fk: GlyphFont): (s: string) => string {
     let out: string;
     if (has(cp)) {
       out = String.fromCodePoint(cp);
+    } else if (PUNCT_FALLBACK[cp] !== undefined) {
+      // Curated ASCII fallback for subset-omitted punctuation (keep only the
+      // fallback chars the font actually has — ASCII basics always present).
+      out = [...PUNCT_FALLBACK[cp]]
+        .filter((c) => has(c.codePointAt(0)!))
+        .join("");
     } else {
       out = "";
       for (const ch of String.fromCodePoint(cp).normalize("NFKD")) {
@@ -342,6 +397,7 @@ interface Ctx {
   accent: any; // rgb of the template accent (section labels / rule / bullet dots)
   labelCase: "uppercase" | "capitalize";
   ruleOn: boolean;
+  premium: boolean; // the "Classic" typography variant (per-template gate)
   y: number;
   draw: boolean;
   scale: number;
@@ -398,6 +454,34 @@ function accentTint(accent: any) {
 // template accent, with an optional accent-tinted rule line to the RIGHT of the
 // label (studio .cv-section-rule), drawn only when the rule token is on.
 function drawSectionHeading(ctx: Ctx, label: string) {
+  // Premium: monochrome near-black heading + a full-width 0.75pt rule BENEATH
+  // the label (margin-to-margin) — the dominant "designed" signal.
+  if (ctx.premium) {
+    ctx.y -= s(ctx, P_SP_SECTION_BEFORE);
+    const headSize = s(ctx, SIZE_SECTION);
+    const text =
+      ctx.labelCase === "uppercase" ? label.toUpperCase() : titleCase(label);
+    drawTracked(ctx, text, {
+      x: MARGIN_SIDE,
+      y: ctx.y,
+      size: headSize,
+      font: ctx.fonts.bold,
+      color: COLOR_INK,
+      tracking: s(ctx, P_TRACK_SECTION),
+    });
+    const ruleY = ctx.y - s(ctx, P_HEADING_RULE_DROP);
+    if (ctx.draw) {
+      ctx.page.drawLine({
+        start: { x: MARGIN_SIDE, y: ruleY },
+        end: { x: PAGE_W - MARGIN_SIDE, y: ruleY },
+        thickness: s(ctx, P_RULE_THICKNESS),
+        color: COLOR_RULE,
+      });
+    }
+    ctx.y = ruleY - s(ctx, P_SP_AFTER_RULE);
+    return;
+  }
+
   ctx.y -= s(ctx, SP_SECTION_BEFORE);
   const headSize = s(ctx, SIZE_SECTION);
   const headTrack = s(ctx, TRACK_SECTION);
@@ -429,12 +513,14 @@ function drawEntryTitleLine(
   dateRight: string | undefined,
   isFirst: boolean,
 ) {
-  if (!isFirst) ctx.y -= s(ctx, SP_ENTRY_BEFORE);
+  if (!isFirst)
+    ctx.y -= s(ctx, ctx.premium ? P_SP_ENTRY_BEFORE : SP_ENTRY_BEFORE);
+  const titleSize = s(ctx, ctx.premium ? P_SIZE_ROLE : SIZE_BODY);
   if (ctx.draw) {
     ctx.page.drawText(titleLeft, {
       x: MARGIN_SIDE,
       y: ctx.y,
-      size: s(ctx, SIZE_BODY),
+      size: titleSize,
       font: ctx.fonts.bold,
       color: COLOR_INK,
     });
@@ -442,13 +528,63 @@ function drawEntryTitleLine(
   const date = trim(dateRight);
   if (date) {
     const dateSize = s(ctx, SIZE_DATE);
-    const dateW = ctx.fonts.boldItalic.widthOfTextAtSize(date, dateSize);
+    // Premium: quiet regular muted date; non-premium: the existing bold-italic.
+    const dateFont = ctx.premium ? ctx.fonts.regular : ctx.fonts.boldItalic;
+    const dateW = dateFont.widthOfTextAtSize(date, dateSize);
     if (ctx.draw) {
       ctx.page.drawText(date, {
         x: PAGE_W - MARGIN_SIDE - dateW,
         y: ctx.y,
         size: dateSize,
-        font: ctx.fonts.boldItalic,
+        font: dateFont,
+        color: COLOR_MUTED,
+      });
+    }
+  }
+}
+
+// Premium experience entry: bold role title on its own line (date right-aligned
+// on that line), company/org on its OWN line in italic muted just beneath.
+// Date-only — our cv_data carries no per-entry location.
+function drawRoleEntry(
+  ctx: Ctx,
+  title: string,
+  org: string,
+  dateRight: string | undefined,
+  isFirst: boolean,
+) {
+  if (!isFirst) ctx.y -= s(ctx, P_SP_ENTRY_BEFORE);
+  if (ctx.draw && title) {
+    ctx.page.drawText(title, {
+      x: MARGIN_SIDE,
+      y: ctx.y,
+      size: s(ctx, P_SIZE_ROLE),
+      font: ctx.fonts.bold,
+      color: COLOR_INK,
+    });
+  }
+  const date = trim(dateRight);
+  if (date) {
+    const dateSize = s(ctx, SIZE_DATE);
+    const dateW = ctx.fonts.regular.widthOfTextAtSize(date, dateSize);
+    if (ctx.draw) {
+      ctx.page.drawText(date, {
+        x: PAGE_W - MARGIN_SIDE - dateW,
+        y: ctx.y,
+        size: dateSize,
+        font: ctx.fonts.regular,
+        color: COLOR_MUTED,
+      });
+    }
+  }
+  if (org) {
+    ctx.y -= s(ctx, P_LH_ROLE_TO_ORG);
+    if (ctx.draw) {
+      ctx.page.drawText(org, {
+        x: MARGIN_SIDE,
+        y: ctx.y,
+        size: s(ctx, P_SIZE_ORG),
+        font: ctx.fonts.italic,
         color: COLOR_MUTED,
       });
     }
@@ -457,24 +593,25 @@ function drawEntryTitleLine(
 
 function drawSubLine(ctx: Ctx, text: string) {
   if (!text) return;
-  ctx.y -= s(ctx, LH_BODY);
+  ctx.y -= s(ctx, ctx.premium ? P_LH_ROLE_TO_ORG : LH_BODY);
   if (ctx.draw) {
     ctx.page.drawText(text, {
       x: MARGIN_SIDE,
       y: ctx.y,
       size: s(ctx, SIZE_SUBLINE),
-      font: ctx.fonts.regular,
-      color: COLOR_BODY,
+      font: ctx.premium ? ctx.fonts.italic : ctx.fonts.regular,
+      color: ctx.premium ? COLOR_MUTED : COLOR_BODY,
     });
   }
 }
 
 function drawBullet(ctx: Ctx, text: string) {
   if (!text) return;
-  ctx.y -= s(ctx, LH_BULLET_GAP);
+  ctx.y -= s(ctx, ctx.premium ? P_LH_BULLET_GAP : LH_BULLET_GAP);
   const bulletIndent = 16;
   const textWidth = CONTENT_W - bulletIndent;
-  const bulletSize = s(ctx, SIZE_BULLET);
+  const bulletSize = s(ctx, ctx.premium ? SIZE_BODY : SIZE_BULLET);
+  const lineLead = ctx.premium ? P_LH_BODY : LH_BODY;
   if (ctx.draw) {
     ctx.page.drawCircle({
       x: MARGIN_SIDE + 5,
@@ -485,7 +622,7 @@ function drawBullet(ctx: Ctx, text: string) {
   }
   const lines = wrap(text, ctx.fonts.regular, bulletSize, textWidth);
   for (let i = 0; i < lines.length; i++) {
-    if (i > 0) ctx.y -= s(ctx, LH_BODY);
+    if (i > 0) ctx.y -= s(ctx, lineLead);
     if (ctx.draw) {
       ctx.page.drawText(lines[i], {
         x: MARGIN_SIDE + bulletIndent,
@@ -500,11 +637,11 @@ function drawBullet(ctx: Ctx, text: string) {
 
 function drawPlainLine(ctx: Ctx, text: string) {
   if (!text) return;
-  ctx.y -= s(ctx, LH_BULLET_GAP);
-  const bulletSize = s(ctx, SIZE_BULLET);
+  ctx.y -= s(ctx, ctx.premium ? P_LH_BULLET_GAP : LH_BULLET_GAP);
+  const bulletSize = s(ctx, ctx.premium ? SIZE_BODY : SIZE_BULLET);
   const lines = wrap(text, ctx.fonts.regular, bulletSize, CONTENT_W);
   for (let i = 0; i < lines.length; i++) {
-    if (i > 0) ctx.y -= s(ctx, LH_BODY);
+    if (i > 0) ctx.y -= s(ctx, ctx.premium ? P_LH_BODY : LH_BODY);
     if (ctx.draw) {
       ctx.page.drawText(lines[i], {
         x: MARGIN_SIDE,
@@ -519,11 +656,11 @@ function drawPlainLine(ctx: Ctx, text: string) {
 
 function drawBodyParagraph(ctx: Ctx, text: string) {
   if (!text) return;
-  ctx.y -= s(ctx, LH_BULLET_GAP);
+  ctx.y -= s(ctx, ctx.premium ? P_LH_BULLET_GAP : LH_BULLET_GAP);
   const bodySize = s(ctx, SIZE_BODY);
   const lines = wrap(text, ctx.fonts.regular, bodySize, CONTENT_W);
   for (let i = 0; i < lines.length; i++) {
-    if (i > 0) ctx.y -= s(ctx, LH_BODY);
+    if (i > 0) ctx.y -= s(ctx, ctx.premium ? P_LH_BODY : LH_BODY);
     if (ctx.draw) {
       ctx.page.drawText(lines[i], {
         x: MARGIN_SIDE,
@@ -555,18 +692,27 @@ function renderHeader(ctx: Ctx, cvData: CvData, userContext: UserContext) {
     .map((v) => trim(v))
     .filter(Boolean);
 
+  // Premium: larger name, quieter headline + contact, and a full-width hairline
+  // rule under the contact row separating the header from the body.
+  const nameSize = ctx.premium ? P_SIZE_NAME : SIZE_NAME_HEADER;
+  const headlineSize = ctx.premium ? P_SIZE_HEADLINE : SIZE_HEADLINE;
+  const contactSize = ctx.premium ? P_SIZE_CONTACT : SIZE_CONTACT_H;
+  const nameY = ctx.premium ? P_HEADER_NAME_Y : HEADER_NAME_Y;
+  const headlineY = ctx.premium ? P_HEADER_HEADLINE_Y : HEADER_HEADLINE_Y;
+  const contactY = ctx.premium ? P_HEADER_CONTACT_Y : HEADER_CONTACT_Y;
+
   ctx.page.drawText(name, {
     x: MARGIN_SIDE,
-    y: HEADER_NAME_Y,
-    size: SIZE_NAME_HEADER,
+    y: nameY,
+    size: nameSize,
     font: ctx.fonts.bold,
     color: COLOR_INK,
   });
   if (headline) {
     ctx.page.drawText(headline, {
       x: MARGIN_SIDE,
-      y: HEADER_HEADLINE_Y,
-      size: SIZE_HEADLINE,
+      y: headlineY,
+      size: headlineSize,
       font: ctx.fonts.regular,
       color: COLOR_MUTED,
     });
@@ -574,10 +720,18 @@ function renderHeader(ctx: Ctx, cvData: CvData, userContext: UserContext) {
   if (contactBits.length > 0) {
     ctx.page.drawText(contactBits.join("  \u00B7  "), {
       x: MARGIN_SIDE,
-      y: HEADER_CONTACT_Y,
-      size: SIZE_CONTACT_H,
+      y: contactY,
+      size: contactSize,
       font: ctx.fonts.regular,
-      color: COLOR_BODY,
+      color: ctx.premium ? COLOR_MUTED : COLOR_BODY,
+    });
+  }
+  if (ctx.premium) {
+    ctx.page.drawLine({
+      start: { x: MARGIN_SIDE, y: P_HEADER_RULE_Y },
+      end: { x: PAGE_W - MARGIN_SIDE, y: P_HEADER_RULE_Y },
+      thickness: P_RULE_THICKNESS,
+      color: COLOR_RULE,
     });
   }
 }
@@ -601,8 +755,13 @@ function renderExperienceBucket(
   entries.forEach((entry, idx) => {
     const title = trim(entry?.title);
     const org = trim(entry?.[orgKey]);
-    const titleLine = org ? (title ? `${title}, ${org}` : org) : title;
-    drawEntryTitleLine(ctx, titleLine, entry?.dates, idx === 0);
+    if (ctx.premium) {
+      // Two-line hierarchy: bold role + right-aligned date, then company line.
+      drawRoleEntry(ctx, title, org, entry?.dates, idx === 0);
+    } else {
+      const titleLine = org ? (title ? `${title}, ${org}` : org) : title;
+      drawEntryTitleLine(ctx, titleLine, entry?.dates, idx === 0);
+    }
     for (const b of entry?.bullets || []) drawBullet(ctx, trim(b));
   });
 }
@@ -850,8 +1009,11 @@ export async function buildCvPdf(
   const cv = deepSanitizeStrings(cvData, sanitize) as CvData;
   const uc = deepSanitizeStrings(userContext, sanitize) as UserContext;
 
-  // Clean-white header is fixed-height; sections flow below it.
-  const contentTopY = HEADER_CONTENT_TOP;
+  const premium = tpl.premium === true;
+
+  // Clean-white header is fixed-height; sections flow below it. The premium
+  // header is taller (30pt name + hairline rule), so it has its own content top.
+  const contentTopY = premium ? P_HEADER_CONTENT_TOP : HEADER_CONTENT_TOP;
   const contentAvailableH = contentTopY - MARGIN_BOTTOM;
 
   // ─── Pass 1: MEASURE (sections only — banner is fixed) ───
@@ -861,6 +1023,7 @@ export async function buildCvPdf(
     accent,
     labelCase: tpl.labelCase,
     ruleOn: tpl.rule,
+    premium,
     y: contentTopY,
     draw: false,
     scale: SCALE_MAX,
@@ -893,6 +1056,7 @@ export async function buildCvPdf(
     accent,
     labelCase: tpl.labelCase,
     ruleOn: tpl.rule,
+    premium,
     y: contentTopY,
     draw: true,
     scale,
