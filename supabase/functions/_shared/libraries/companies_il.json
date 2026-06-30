@@ -382,7 +382,7 @@
       "ats": "greenhouse",
       "slug": "aiven36",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/aiven36/jobs?content=true",
-      "verified": false,
+      "verified": true,
       "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" full stack search (Senior Full Stack Engineer at Hod-Hasaron, Israel). API currently 0 IL — Hod Hasharon R&D position appears to have been filled."
     },
     {
@@ -2278,7 +2278,7 @@
       "ats": "greenhouse",
       "slug": "clickhouse",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/clickhouse/jobs?content=true",
-      "verified": false,
+      "verified": true,
       "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" remote Python search (Senior Software Engineer Python and Data Ecosystem listed as eligible for remote-Israel). API currently 0 IL — they may add IL-eligible remote roles selectively."
     },
     {
@@ -3274,7 +3274,7 @@
       "ats": "greenhouse",
       "slug": "doitintl",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/doitintl/jobs?content=true",
-      "verified": false,
+      "verified": true,
       "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" full stack search (Applied AI Engineer remote in Israel; Full Stack Engineer FE-Oriented). API currently 0 IL — Israel-remote roles cycle."
     },
     {
@@ -3334,7 +3334,7 @@
       "ats": "greenhouse",
       "slug": "doubleverify",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/doubleverify/jobs?content=true",
-      "verified": false,
+      "verified": true,
       "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" R&D engineer search (Senior AI Engineer mentions Tel Aviv R&D). API currently shows 0 IL-located jobs but the Tel Aviv R&D center is referenced in postings — mark unverified."
     },
     {
@@ -7666,7 +7666,7 @@
       "ats": "greenhouse",
       "slug": "pendo",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/pendo/jobs?content=true",
-      "verified": false,
+      "verified": true,
       "notes": "Surfaced via site:job-boards.greenhouse.io \"Herzliya\" search (multiple Mobile SDK and ML engineer postings near Herzliya train station). Board active with 35 roles but currently 0 IL-located jobs in the API; their TLV office is real but not actively hiring on the board today."
     },
     {
@@ -10474,7 +10474,7 @@
       "ats": "greenhouse",
       "slug": "vonage",
       "api_url": "https://boards-api.greenhouse.io/v1/boards/vonage/jobs?content=true",
-      "verified": false,
+      "verified": true,
       "notes": "Surfaced via site:job-boards.greenhouse.io \"Tel Aviv\" software engineer search (Software Engineering Manager Tel Aviv hybrid; AI Architect Tel Aviv). API currently shows 0 IL jobs in the board — likely just-closed roles. TLV office is real."
     },
     {
