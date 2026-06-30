@@ -26,6 +26,7 @@ import {
   NormalizedJob,
   RawJob,
   classifyLocation,
+  dedupByExternalId,
   detectMgmtSignalFromTitle,
   detectSeniorityFromTitle,
   finalSeniority,
@@ -256,12 +257,23 @@ async function processCompany(
     });
   }
 
-  if (dryRun || ilRows.length === 0 || !supabase) {
+  // Dedup by the upsert conflict key before writing: a board that lists the
+  // same external_id twice (observed on JoVE / Workable) makes the batch upsert
+  // fail and lose every IL role for that company. See dedupByExternalId.
+  const dedupedRows = dedupByExternalId(ilRows);
+  const dupDropped = ilRows.length - dedupedRows.length;
+  if (dupDropped > 0) {
+    console.warn(
+      `[refresh-jobs] ${company.name} (${ats}): dropped ${dupDropped} duplicate external_id row(s) before upsert`,
+    );
+  }
+
+  if (dryRun || dedupedRows.length === 0 || !supabase) {
     return {
       company: company.name,
       ats,
       total_fetched: totalFetched,
-      il_jobs: ilRows.length,
+      il_jobs: dedupedRows.length,
       status: "ok",
       elapsed_ms: Date.now() - t0,
     };
@@ -269,8 +281,8 @@ async function processCompany(
 
   // UPSERT in batches to avoid huge single requests
   try {
-    for (let i = 0; i < ilRows.length; i += UPSERT_BATCH_SIZE) {
-      const batch = ilRows.slice(i, i + UPSERT_BATCH_SIZE).map((j) => ({
+    for (let i = 0; i < dedupedRows.length; i += UPSERT_BATCH_SIZE) {
+      const batch = dedupedRows.slice(i, i + UPSERT_BATCH_SIZE).map((j) => ({
         ...j,
         last_seen_at: new Date().toISOString(),
         fetched_at: new Date().toISOString(),
@@ -286,7 +298,7 @@ async function processCompany(
       company: company.name,
       ats,
       total_fetched: totalFetched,
-      il_jobs: ilRows.length,
+      il_jobs: dedupedRows.length,
       status: "upsert_error",
       error: (err as Error).message,
       elapsed_ms: Date.now() - t0,
@@ -297,7 +309,7 @@ async function processCompany(
     company: company.name,
     ats,
     total_fetched: totalFetched,
-    il_jobs: ilRows.length,
+    il_jobs: dedupedRows.length,
     status: "ok",
     elapsed_ms: Date.now() - t0,
   };
