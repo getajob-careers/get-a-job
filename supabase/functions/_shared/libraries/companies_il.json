@@ -2792,9 +2792,9 @@
       "domain": "cyera.com",
       "careers_url": "https://www.cyera.com/careers/",
       "ats": "comeet",
-      "slug": "cyera",
-      "api_url": null,
-      "verified": false,
+      "slug": "17.008",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/17.008/positions?token=7182A90154871823783FD838C031A802378&details=true",
+      "verified": true,
       "notes": "Comeet markers detected in HTML (sweep); slug='cyera'"
     },
     {
@@ -5180,9 +5180,9 @@
       "domain": "ironscales.com",
       "careers_url": "https://ironscales.com/company/careers",
       "ats": "comeet",
-      "slug": "ironscales",
-      "api_url": null,
-      "verified": false,
+      "slug": "1A.007",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/1A.007/positions?token=A1746A11E453C8A285C142E3273327332730&details=true",
+      "verified": true,
       "notes": "Comeet markers detected in HTML (sweep); slug='ironscales'"
     },
     {
@@ -6452,9 +6452,9 @@
       "domain": "mitiga.io",
       "careers_url": "https://www.mitiga.io/careers",
       "ats": "comeet",
-      "slug": "mitiga",
-      "api_url": null,
-      "verified": false,
+      "slug": "26.00B",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/26.00B/positions?token=62B250262B012811ED718AC128112813158&details=true",
+      "verified": true,
       "notes": "Comeet markers detected in HTML (sweep); slug='mitiga'"
     },
     {
@@ -8360,9 +8360,9 @@
       "domain": "reco.ai",
       "careers_url": "https://www.reco.ai/careers",
       "ats": "comeet",
-      "slug": "reco",
-      "api_url": null,
-      "verified": false,
+      "slug": "3A.00D",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/3A.00D/positions?token=A3D47AB28F405C2505C2551E8333151E8&details=true",
+      "verified": true,
       "notes": "Comeet markers detected in HTML (sweep); slug='reco'"
     },
     {
@@ -10520,9 +10520,9 @@
       "domain": "voyantis.ai",
       "careers_url": "https://www.voyantis.ai/careers",
       "ats": "comeet",
-      "slug": "voyantis",
-      "api_url": null,
-      "verified": false,
+      "slug": "86.00B",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/86.00B/positions?token=68B2742D1600D16020B71A2C2742&details=true",
+      "verified": true,
       "notes": "Comeet markers detected in HTML (sweep); slug='voyantis'"
     },
     {
