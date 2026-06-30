@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1035,
+  "total_companies": 1039,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -12444,6 +12444,54 @@
       "api_url": "https://apply.workable.com/api/v1/widget/accounts/mench?details=true",
       "verified": true,
       "notes": "global-ATS triage 2026-07; 7 IL roles; domain-unverified"
+    },
+    {
+      "name": "SanDisk",
+      "type": "international_il_rd",
+      "industry": "Semiconductors",
+      "domain": "sandisk.com",
+      "careers_url": "https://www.sandisk.com/careers",
+      "ats": "smartrecruiters",
+      "slug": "Sandisk",
+      "api_url": "https://api.smartrecruiters.com/v1/companies/Sandisk/postings",
+      "verified": true,
+      "notes": "smartrecruiters triage 2026-07; 15 IL roles (country=il); Kfar Saba R&D; distinct from Western Digital post-2025 split"
+    },
+    {
+      "name": "Kueez",
+      "type": "israeli_founded",
+      "industry": "AdTech",
+      "domain": "kueez.com",
+      "careers_url": "https://kueez.com/careers",
+      "ats": "smartrecruiters",
+      "slug": "Kueez",
+      "api_url": "https://api.smartrecruiters.com/v1/companies/Kueez/postings",
+      "verified": true,
+      "notes": "smartrecruiters triage 2026-07; 3 IL roles (country=il)"
+    },
+    {
+      "name": "Playtech",
+      "type": "international_il_rd",
+      "industry": "Gaming",
+      "domain": "playtech.com",
+      "careers_url": "https://www.playtech.com/careers",
+      "ats": "smartrecruiters",
+      "slug": "Playtech",
+      "api_url": "https://api.smartrecruiters.com/v1/companies/Playtech/postings",
+      "verified": true,
+      "notes": "smartrecruiters triage 2026-07; 1 IL roles (country=il)"
+    },
+    {
+      "name": "SpotLock",
+      "type": "israeli_founded",
+      "industry": "FinTech",
+      "domain": "spotlock.co",
+      "careers_url": "https://www.spotlock.co/careers",
+      "ats": "smartrecruiters",
+      "slug": "Spotlock",
+      "api_url": "https://api.smartrecruiters.com/v1/companies/Spotlock/postings",
+      "verified": true,
+      "notes": "smartrecruiters triage 2026-07; 1 IL roles (country=il)"
     }
   ]
 }
