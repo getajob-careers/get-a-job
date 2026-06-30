@@ -835,3 +835,18 @@ export function stripHtml(input: string | null): string | null {
       .trim()
   );
 }
+
+/**
+ * Dedup normalized rows by external_id, keeping the LAST occurrence (a fresher
+ * copy wins). The jobs upsert uses ON CONFLICT (ats_source, external_id); a
+ * board that lists the same external_id twice (observed on JoVE / Workable)
+ * makes Postgres reject the whole batch ("ON CONFLICT DO UPDATE command cannot
+ * affect row a second time") and lose every IL role for that company.
+ * ats_source is constant within one company's batch, so deduping on
+ * external_id alone is sufficient.
+ */
+export function dedupByExternalId(rows: NormalizedJob[]): NormalizedJob[] {
+  const byId = new Map<string, NormalizedJob>();
+  for (const row of rows) byId.set(row.external_id, row);
+  return Array.from(byId.values());
+}
