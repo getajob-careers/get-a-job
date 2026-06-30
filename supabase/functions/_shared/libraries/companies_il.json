@@ -199,11 +199,11 @@
       "industry": "DevTools",
       "domain": "adaptive6.com",
       "careers_url": null,
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "adaptive6.com/careers static fetch; no ATS detected (different from Adaptive Security on Ashby)"
+      "ats": "comeet",
+      "slug": "AA.000",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/AA.000/positions?token=AA04A6035205FA0154015401FE0003FC0&details=true",
+      "verified": true,
+      "notes": "Re-detected 2026-07: comeet board UID AA.000 (origin adaptive6.com), ~3 IL roles. Distinct from Adaptive Shield/Adaptive Security."
     },
     {
       "name": "Addionics",
@@ -1279,11 +1279,11 @@
       "industry": "FinTech",
       "domain": "getbalance.com",
       "careers_url": null,
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "GH EU board shown in search but boards-api returns 404 — board may have been deleted or set to internal"
+      "ats": "comeet",
+      "slug": "67.008",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/67.008/positions?token=7682C70163833D81DA042A833D876842A8ED0&details=true",
+      "verified": true,
+      "notes": "Re-detected 2026-07: comeet board UID 67.008 (origin getbalance.com), ~3 IL roles. Supersedes deleted-GH-board note."
     },
     {
       "name": "Band",
@@ -2431,11 +2431,11 @@
       "industry": "Crypto/Fintech",
       "domain": "coinbase.com",
       "careers_url": "https://www.coinbase.com/careers",
-      "ats": "custom",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "NEW (extra). Coinbase migrated off Greenhouse (404 on all known slugs); careers.coinbase.com bot-blocks scraping. Likely proprietary now. Coinbase IL R&D in Tel Aviv (acquired BRD + Routefire teams) but couldn't crack ATS in 3 ops."
+      "ats": "greenhouse",
+      "slug": "coinbase",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/coinbase/jobs?content=true",
+      "verified": true,
+      "notes": "Re-detected 2026-07: greenhouse board 'coinbase' (job-url coinbase.com), ~1 IL role. Supersedes migrated-off note."
     },
     {
       "name": "CommBox",
@@ -4387,11 +4387,11 @@
       "industry": "B2B SaaS",
       "domain": "gong.io",
       "careers_url": "https://www.gong.io/careers/",
-      "ats": "custom",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Uses TeamMe (gong.teamme.link); not a covered API"
+      "ats": "greenhouse",
+      "slug": "gongio",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/gongio/jobs?content=true",
+      "verified": true,
+      "notes": "Re-detected 2026-07: greenhouse board 'gongio' (origin gong.io), ~17 IL roles. Supersedes TeamMe note."
     },
     {
       "name": "Google",
@@ -6667,11 +6667,11 @@
       "industry": "Medical Devices / Imaging",
       "domain": "nanox.vision",
       "careers_url": "https://www.nanox.vision/careers",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "IL-founded medical imaging co (NASDAQ:NNOX). Careers page returned 404/timeout in investigation window — likely proprietary or low-volume. Worth re-checking in a future round."
+      "ats": "comeet",
+      "slug": "43.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/43.00F/positions?token=34F108B69E34F108B13DA17299ED13DAD3C&details=true",
+      "verified": true,
+      "notes": "Re-detected 2026-07: comeet board UID 43.00F (origin nanox.vision), ~1 IL role."
     },
     {
       "name": "Nas Company",
@@ -6919,11 +6919,11 @@
       "industry": "Mobility",
       "domain": "notraffic.tech",
       "careers_url": null,
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "No ATS hit"
+      "ats": "comeet",
+      "slug": "1A.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/1A.00F/positions?token=A1F46D91E5D46D9329B287C0287CA1FA1F&details=true",
+      "verified": true,
+      "notes": "Re-detected 2026-07: comeet board UID 1A.00F (origin notraffic.com), ~7 IL roles."
     },
     {
       "name": "Novee",
@@ -8011,11 +8011,11 @@
       "industry": "Gaming",
       "domain": "playtika.com",
       "careers_url": "https://www.playtika.com/careers",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Old Comeet board (UID 01.001) returns 302 redirect; current playtika.com/careers is custom/proprietary; LinkedIn lists ~40 IL jobs"
+      "ats": "greenhouse",
+      "slug": "playtikaltd",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/playtikaltd/jobs?content=true",
+      "verified": true,
+      "notes": "Re-detected 2026-07: greenhouse board 'playtikaltd' (origin playtika.com), ~19 IL roles. Supersedes stale custom note."
     },
     {
       "name": "Pliops",
