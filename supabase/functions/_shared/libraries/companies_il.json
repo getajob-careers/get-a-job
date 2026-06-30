@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1035,
+  "total_companies": 1067,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -62,6 +62,18 @@
       "notes": "Ashby; password manager with global hiring"
     },
     {
+      "name": "365Scores",
+      "type": "israeli_founded",
+      "industry": "Digital Media",
+      "domain": "365scores.com",
+      "careers_url": "https://www.365scores.com/careers",
+      "ats": "comeet",
+      "slug": "B3.006",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/B3.006/positions?token=3B6128EB2219FA019FA19FAB222166B22&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board B3.006, ~9 IL roles, validated live + ownership-confirmed."
+    },
+    {
       "name": "3D Signals",
       "type": "israeli_founded",
       "industry": "Manufacturing",
@@ -110,6 +122,18 @@
       "notes": "Workable. IL/EU VC (formerly Greylock IL). Enabled via the Workable widget fetcher."
     },
     {
+      "name": "8fig",
+      "type": "israeli_founded",
+      "industry": "Fintech",
+      "domain": "8fig.co",
+      "careers_url": "https://www.8fig.co/jobs/",
+      "ats": "comeet",
+      "slug": "08.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/08.004/positions?token=804301820104824281440201008402004020&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 08.004, ~1 IL roles, validated live + ownership-confirmed."
+    },
+    {
       "name": "Abnormal Security",
       "type": "international_il_rd",
       "industry": "Cybersecurity",
@@ -156,6 +180,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/accessibe/jobs?content=false",
       "verified": true,
       "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 12 positions, 4 IL-tagged."
+    },
+    {
+      "name": "ACS Motion Control",
+      "type": "israeli_founded",
+      "industry": "Robotics & Automation",
+      "domain": "acsmotioncontrol.com",
+      "careers_url": "https://acsmotioncontrol.com/careers/",
+      "ats": "comeet",
+      "slug": "14.000",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/14.000/positions?token=410145010401860249014502080208020801450&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 14.000, ~10 IL roles, validated live + ownership-confirmed."
     },
     {
       "name": "ActiveFence",
@@ -374,6 +410,18 @@
       "notes": "Ashby; verified, no confirmed IL R&D but accepts IL applicants"
     },
     {
+      "name": "Aitech",
+      "type": "israeli_founded",
+      "industry": "Aerospace",
+      "domain": "aitechsystems.com",
+      "careers_url": "https://aitechsystems.com/careers/",
+      "ats": "comeet",
+      "slug": "88.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/88.004/positions?token=88433183B9C110844204CA43318033180&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 88.004, ~1 IL roles, validated live + ownership-confirmed."
+    },
+    {
       "name": "Aiven",
       "type": "international_il_rd",
       "industry": "Cloud Data Infrastructure",
@@ -384,6 +432,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/aiven36/jobs?content=true",
       "verified": false,
       "notes": "Surfaced via site:job-boards.greenhouse.io \"Israel\" full stack search (Senior Full Stack Engineer at Hod-Hasaron, Israel). API currently 0 IL — Hod Hasharon R&D position appears to have been filled."
+    },
+    {
+      "name": "AKA FOODS",
+      "type": "israeli_founded",
+      "industry": "AI/ML",
+      "domain": "aka-food.com",
+      "careers_url": "https://www.aka-food.com/careers",
+      "ats": "comeet",
+      "slug": "79.00D",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/79.00D/positions?token=97D426B055654BE897D4BE80556525F4&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 79.00D, ~1 IL roles, validated live + ownership-confirmed."
     },
     {
       "name": "Akamai",
@@ -588,6 +648,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/anaplan/jobs",
       "verified": true,
       "notes": "Acquired Mintigo (2019); Anaplan Israel Ltd. R&D in data science/ML; 224 jobs"
+    },
+    {
+      "name": "Anchor",
+      "type": "israeli_founded",
+      "industry": "Fintech",
+      "domain": "sayanchor.com",
+      "careers_url": "https://www.sayanchor.com/careers",
+      "ats": "comeet",
+      "slug": "87.00D",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/87.00D/positions?token=78D2D4E1E34025C143F578D43F53C681E34&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 87.00D, ~6 IL roles, validated live + ownership-confirmed."
     },
     {
       "name": "Anchor Browser",
@@ -1428,6 +1500,114 @@
       "api_url": "https://d-api.bezeq.co.il/api/Adam/GetActiveJobs",
       "verified": true,
       "notes": "Per-publisher JSON endpoint, NOT a SaaS ATS. Bezeq fronts its own AdamTotal backend through its own gateway at d-api.bezeq.co.il/api/Adam/GetActiveJobs (returns JSON, no auth, single page; ?page=N is ignored). The career.adamtotal.co.il adamtotal fetcher cannot consume this (different host, transport, no token); handled by fetchBezeq under ats=bezeq_native. Hebrew JD body lives in notes/notes_text; structured_country=IL set on every row. Verified live 2026-06-23: 30 active jobs."
+    },
+    {
+      "name": "BIRD Aerosystems",
+      "type": "israeli_founded",
+      "industry": "Aerospace",
+      "domain": "birdaero.com",
+      "careers_url": "https://www.birdaero.com/careers",
+      "ats": "comeet",
+      "slug": "97.006",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/97.006/positions?token=7962D841E5879616C2351A3CB0444625EE0&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 97.006, ~22 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "Cardo Systems",
+      "type": "israeli_founded",
+      "industry": "Telecommunications",
+      "domain": "cardosystems.com",
+      "careers_url": "https://www.cardosystems.com/careers",
+      "ats": "comeet",
+      "slug": "F2.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/F2.003/positions?token=2F3EBF2F32F35E614A58D9BCC11B2EBF&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board F2.003, ~10 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "CEVA",
+      "type": "israeli_founded",
+      "industry": "Productivity",
+      "domain": "ceva-ip.com",
+      "careers_url": "https://www.comeet.com/jobs/ceva/76.005",
+      "ats": "comeet",
+      "slug": "76.005",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/76.005/positions?token=67526BE6752D332D33026BE135F033A8&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 76.005, ~14 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "Directeam",
+      "type": "israeli_founded",
+      "industry": "Productivity",
+      "domain": "directeam.io",
+      "careers_url": "https://www.comeet.com/jobs/directeam/29.008",
+      "ats": "comeet",
+      "slug": "29.008",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/29.008/positions?token=92836F05268401812501250092836F00&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 29.008, ~4 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "Driivz",
+      "type": "israeli_founded",
+      "industry": "Automotive",
+      "domain": "driivz.com",
+      "careers_url": "https://driivz.com/careers-in-driivz/",
+      "ats": "comeet",
+      "slug": "C4.00B",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/C4.00B/positions?token=4CB17F71CC2E6102B23218D02B23996&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board C4.00B, ~3 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "Duve",
+      "type": "israeli_founded",
+      "industry": "E-commerce & Retail",
+      "domain": "duve.com",
+      "careers_url": "https://www.comeet.com/jobs/duve/58.00D",
+      "ats": "comeet",
+      "slug": "58.00D",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/58.00D/positions?token=85D322E322E21743A8B42E8042E819174B45&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 58.00D, ~3 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "EX.CO",
+      "type": "israeli_founded",
+      "industry": "Productivity",
+      "domain": "ex.co",
+      "careers_url": "https://www.ex.co/careers",
+      "ats": "comeet",
+      "slug": "F0.005",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/F0.005/positions?token=F53D41EA5BE5BE89D1EA2DF7A8F5&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board F0.005, ~1 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "Firefly",
+      "type": "israeli_founded",
+      "industry": "Cloud Computing",
+      "domain": "firefly.ai",
+      "careers_url": "https://www.comeet.com/jobs/firefly/39.000",
+      "ats": "comeet",
+      "slug": "39.000",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/39.000/positions?token=930372052B04980126024C024C02DF09304050&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 39.000, ~1 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "Gilat Satellite Networks",
+      "type": "israeli_founded",
+      "industry": "Telecommunications",
+      "domain": "gilat.com",
+      "careers_url": "https://gilat.com/career/",
+      "ats": "comeet",
+      "slug": "39.005",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/39.005/positions?token=935373E52DD52DD126A373E49A8935373E935&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 39.005, ~2 IL roles, validated live + ownership-confirmed."
     },
     {
       "name": "HOT Telecommunications",
@@ -4970,6 +5150,18 @@
       "notes": "No ATS hit (acquired by McKinsey/QuantumBlack)"
     },
     {
+      "name": "Imagen",
+      "type": "israeli_founded",
+      "industry": "Digital Media",
+      "domain": "imagen-ai.com",
+      "careers_url": "https://www.imagen-ai.com/careers",
+      "ats": "comeet",
+      "slug": "78.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/78.00F/positions?token=87F32FA3B7910FE0197D4C77021FC0&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 78.00F, ~4 IL roles, validated live + ownership-confirmed."
+    },
+    {
       "name": "Imagene AI",
       "type": "international_il_rd",
       "industry": "AI Pathology",
@@ -5364,6 +5556,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/jfrog/jobs",
       "verified": true,
       "notes": "Verified via API; careers redirects to join.jfrog.com (Greenhouse-hosted)"
+    },
+    {
+      "name": "Jifiti",
+      "type": "israeli_founded",
+      "industry": "E-commerce & Retail",
+      "domain": "jifiti.com",
+      "careers_url": "https://www.jifiti.com/jobs/",
+      "ats": "comeet",
+      "slug": "47.005",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/47.005/positions?token=7452B9E15CF24592B9E2B9E15CF1D142B9E1D14&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 47.005, ~1 IL roles, validated live + ownership-confirmed."
     },
     {
       "name": "Jit",
@@ -5774,6 +5978,18 @@
       "notes": "Search confused with Legato Security (different co)"
     },
     {
+      "name": "Legit Security",
+      "type": "israeli_founded",
+      "industry": "Cybersecurity",
+      "domain": "legitsecurity.com",
+      "careers_url": "https://www.legitsecurity.com/careers",
+      "ats": "comeet",
+      "slug": "37.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/37.004/positions?token=7342B38159C159C40D41CD0073440D42404&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 37.004, ~2 IL roles, validated live + ownership-confirmed."
+    },
+    {
       "name": "Lema Labs",
       "type": "israeli_founded",
       "industry": "Cyber / Third-Party Risk",
@@ -5990,6 +6206,18 @@
       "notes": "AI English-tutor app. Verified: 6 jobs, all 6 in IL."
     },
     {
+      "name": "LSports",
+      "type": "israeli_founded",
+      "industry": "Digital Media",
+      "domain": "lsports.eu",
+      "careers_url": "https://www.lsports.eu/careers/",
+      "ats": "comeet",
+      "slug": "26.002",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/26.002/positions?token=62224CC031102AEE373237321EAA31103732&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 26.002, ~1 IL roles, validated live + ownership-confirmed."
+    },
+    {
       "name": "Lumana",
       "type": "international_il_rd",
       "industry": "AI Video Intelligence",
@@ -6012,6 +6240,18 @@
       "api_url": "https://api.ashbyhq.com/posting-api/job-board/lumen",
       "verified": true,
       "notes": "Probed: ashby slug 'lumen' returns 200"
+    },
+    {
+      "name": "Lumenis",
+      "type": "israeli_founded",
+      "industry": "Health",
+      "domain": "lumenis.com",
+      "careers_url": "https://www.lumenis.com/careers",
+      "ats": "comeet",
+      "slug": "A1.00C",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/A1.00C/positions?token=1AC6B0A08F0C6B085C85CD60F0C1AC&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board A1.00C, ~6 IL roles, validated live + ownership-confirmed."
     },
     {
       "name": "Lumigo",
@@ -6696,6 +6936,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/71.001/positions?token=1715C47357355C45C4A17CF9CF9735&details=true",
       "verified": true,
       "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 3 positions, 3 IL-tagged."
+    },
+    {
+      "name": "Navan",
+      "type": "international_il_rd",
+      "industry": "E-commerce & Retail",
+      "domain": "navan.com",
+      "careers_url": "https://navan.com/careers",
+      "ats": "greenhouse",
+      "slug": "tripactions",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/tripactions/jobs?content=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: greenhouse board tripactions, ~10 IL roles, validated live + ownership-confirmed."
     },
     {
       "name": "Navina",
@@ -7442,6 +7694,18 @@
       "notes": "NEW (extra). Note: registry has a Cybersixgill row pointing at paloaltonetworks.wd5/PaloAltoNetworks but I confirmed that site path is 404. PAN uses TalentBrew (tbcdn.talentbrew.com/company/47263) — proprietary portal, not Workday. Major IL R&D via Cider + Twistlock + Demisto + LightCyber + native Tel Aviv."
     },
     {
+      "name": "Panaya",
+      "type": "israeli_founded",
+      "industry": "AI/ML",
+      "domain": "panaya.com",
+      "careers_url": "https://www.panaya.com/careers",
+      "ats": "comeet",
+      "slug": "61.00C",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/61.00C/positions?token=16C5B071C444CCC16C5B044416C888&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 61.00C, ~1 IL roles, validated live + ownership-confirmed."
+    },
+    {
       "name": "Pango",
       "type": "israeli_founded",
       "industry": "Mobility / Parking",
@@ -7464,6 +7728,126 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/97.00D/positions?token=79D2DAE1E7479D1E742DAE3CE802DAE1E74&details=true",
       "verified": true,
       "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 1 positions, 1 IL-tagged."
+    },
+    {
+      "name": "Plus500",
+      "type": "israeli_founded",
+      "industry": "Fintech",
+      "domain": "plus500.com",
+      "careers_url": "https://www.plus500.com/careers",
+      "ats": "comeet",
+      "slug": "A1.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/A1.00F/positions?token=1AF6BCA1AF27A1A35E86B6BC50D0&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board A1.00F, ~15 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "Prisma Photonics",
+      "type": "israeli_founded",
+      "industry": "IoT",
+      "domain": "prismaphotonics.com",
+      "careers_url": "https://www.prismaphotonics.com/careers",
+      "ats": "comeet",
+      "slug": "18.00C",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/18.00C/positions?token=81C30A8288C1854103881C40E040E048FC288C&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 18.00C, ~7 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "Retym",
+      "type": "israeli_founded",
+      "industry": "Productivity",
+      "domain": "retym.com",
+      "careers_url": "https://www.retym.com/careers/",
+      "ats": "comeet",
+      "slug": "C6.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/C6.003/positions?token=6C32892D861B0C1B0C28926C336183CDB3618&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board C6.003, ~14 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "Rise",
+      "type": "israeli_founded",
+      "industry": "Productivity",
+      "domain": "risecodes.com",
+      "careers_url": "https://www.risecodes.com/careers",
+      "ats": "comeet",
+      "slug": "A9.000",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/A9.000/positions?token=9A043609A039C02680268030204D00134039C0&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board A9.000, ~3 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "ScyllaDB",
+      "type": "israeli_founded",
+      "industry": "Cloud Computing",
+      "domain": "scylladb.com",
+      "careers_url": "https://www.scylladb.com/company/careers/",
+      "ats": "comeet",
+      "slug": "E4.006",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/E4.006/positions?token=4E6187E1D64224A0013984E60187E&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board E4.006, ~1 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "Shopic",
+      "type": "israeli_founded",
+      "industry": "E-commerce & Retail",
+      "domain": "shopic.co",
+      "careers_url": "https://www.shopic.co/career/",
+      "ats": "comeet",
+      "slug": "E6.002",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/E6.002/positions?token=6E2294CDC4302EDC4DC4226A371014A63DF2&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board E6.002, ~1 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "SodaStream",
+      "type": "israeli_founded",
+      "industry": "E-commerce & Retail",
+      "domain": "sodastream.com",
+      "careers_url": "https://www.sodastream.com/careers",
+      "ats": "comeet",
+      "slug": "40.008",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/40.008/positions?token=48120048048240481B0120&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 40.008, ~2 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "SolarEdge Technologies",
+      "type": "israeli_founded",
+      "industry": "Sustainable Technology",
+      "domain": "solaredge.com",
+      "careers_url": "https://www.solaredge.com/careers",
+      "ats": "comeet",
+      "slug": "71.00A",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/71.00A/positions?token=17A5E8762BD08DC46E46E46E046E&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 71.00A, ~70 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "Start.io",
+      "type": "israeli_founded",
+      "industry": "AdTech",
+      "domain": "start.io",
+      "careers_url": "https://www.start.io/join-us/",
+      "ats": "comeet",
+      "slug": "B2.004",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/B2.004/positions?token=2B4D84056812EC185415A015A015A081C&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board B2.004, ~2 IL roles, validated live + ownership-confirmed."
+    },
+    {
+      "name": "Toka",
+      "type": "israeli_founded",
+      "industry": "Cybersecurity",
+      "domain": "tokagroup.com",
+      "careers_url": "https://www.tokagroup.com/careers",
+      "ats": "comeet",
+      "slug": "46.00D",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/46.00D/positions?token=64D25CE64D12E719343268C9A0C9A38B5&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07 from techmap net-new harvest: comeet board 46.00D, ~3 IL roles, validated live + ownership-confirmed."
     },
     {
       "name": "Windward",
