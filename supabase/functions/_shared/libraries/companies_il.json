@@ -406,7 +406,7 @@
       "ats": "comeet",
       "slug": "akeyless",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/27.006/positions?token=7262AE41572157215721C984056E4C405623BE&details=true",
-      "verified": false,
+      "verified": true,
       "notes": "Comeet markers detected in HTML (sweep); slug='akeyless'"
     },
     {
@@ -1870,7 +1870,7 @@
       "ats": "comeet",
       "slug": "25.000",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/25.000/positions?token=52019A023E0F602E2023E019A01EC0F60A40&details=true",
-      "verified": false,
+      "verified": true,
       "notes": "NASDAQ-listed (CSTE). Probed Workday wd1/wd3 'caesarstone' — HTTP_422 (not valid tenants). Greenhouse/Lever/Ashby — no real listings. Uses proprietary careers (404 curl). No public API on supported ATS."
     },
     {
@@ -3142,7 +3142,7 @@
       "ats": "comeet",
       "slug": "F7.00B",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/F7.00B/positions?token=7FB2FE21FEC3FD847D33FD8FF603FD81FEC&details=true",
-      "verified": false,
+      "verified": true,
       "notes": "Deloitte global is SuccessFactors (sf.rcm.deloitteresources.com), not a unified Workday tenant; Deloitte Israel uses proprietary careers.deloitte.co.il. Tried deloitte.wd1/wd5/wd103 with External_Career_Site, External, careers, Deloitte_Careers paths - all HTTP 422; deloitteie.wd3 is Ireland-only."
     },
     {
@@ -3598,7 +3598,7 @@
       "ats": "comeet",
       "slug": "empathy",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/F8.007/positions?token=8F735CA47B835CA3EC111EE1AE535CA11EE8F7&details=true",
-      "verified": false,
+      "verified": true,
       "notes": "Comeet markers detected in HTML (sweep); slug='empathy'"
     },
     {
@@ -3634,7 +3634,7 @@
       "ats": "comeet",
       "slug": "99.006",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/99.006/positions?token=996431A9961CC2398456465646132C2FEE996&details=true",
-      "verified": false,
+      "verified": true,
       "notes": "Proprietary. No public API."
     },
     {
@@ -5494,7 +5494,7 @@
       "ats": "comeet",
       "slug": "E2.00D",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/E2.00D/positions?token=2EDEA12ED017688C7147B1A555DA2ED&details=true",
-      "verified": false,
+      "verified": true,
       "notes": "Custom careers system on corp.kaltura.com (job listings inline)"
     },
     {
@@ -5554,7 +5554,7 @@
       "ats": "comeet",
       "slug": "26.009",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/26.009/positions?token=62924F603771314818A4127B24F631483771&details=true",
-      "verified": false,
+      "verified": true,
       "notes": "Comeet UID 26.009 + token extracted from HTML but Comeet API returns HTTP 400 — UID/token format atypical (numeric-prefix UID). Needs manual re-discovery. | static Comeet harvest failed 2026-06-12 (JS-rendered / atypical token); deferred to dynamic-harvest (Playwright) — see tasks/r1-discovery-token-harvest-rider.md."
     },
     {
@@ -6766,7 +6766,7 @@
       "ats": "comeet",
       "slug": "B7.002",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/B7.002/positions?token=7B22E2C1EC81716017167B27B22E2C1EC8&details=true",
-      "verified": false,
+      "verified": true,
       "notes": "Comeet widget DETECTED (links to comeet.com/jobs/netafim/B7.002). UID is B7.002 but Comeet API token NOT exposed in public careers page or iframe — server-side rendered. Direct API hit without token returns 'Token is missing' error. Cannot verify API. Manual token extraction (browser DevTools / JS execution) required — Mexichem/Orbia subsidiary."
     },
     {
@@ -8710,7 +8710,7 @@
       "ats": "comeet",
       "slug": "D4.005",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/D4.005/positions?token=4D518291CFE13540135413544D518291CFE&details=true",
-      "verified": false,
+      "verified": true,
       "notes": "NEW. Samsung uses a proprietary Korea-hosted career system; no Workday tenant exists at samsung.wd[1-5] (all 422). Samsung Israel R&D in Tel Aviv (Samsung Next + Samsung Israel R&D Center / SIRC). For IL, jobs may flow via Samsung Israel website + LinkedIn — no programmatic API."
     },
     {
