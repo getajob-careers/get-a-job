@@ -142,6 +142,28 @@ export function normalizeBulletVoice(input: any): string {
   return t.trim() ? t : orig;
 }
 
+// Apply normalizeBulletVoice to every experience bullet in a whole cv_data object
+// (the four *_experiences buckets). IDEMPOTENT: a cv_data already built through
+// buildMasterCvData comes back deep-equal (each bullet maps to itself). Returns a
+// new object; never mutates the input. Used by the render chokepoint (render-cv)
+// as the LAST line of defense for any cv_data that reached render without going
+// through the deterministic builder (e.g. a studio inline edit, or an older
+// persisted CV built before the polish layer existed).
+export function normalizeCvDataBullets(cvData: any): any {
+  if (!cvData || typeof cvData !== "object") return cvData;
+  const out: any = { ...cvData };
+  for (const b of EXPERIENCE_BUCKETS) {
+    const list = (cvData as any)[b.cvKey];
+    if (!Array.isArray(list)) continue;
+    out[b.cvKey] = list.map((entry: any) =>
+      entry && Array.isArray(entry.bullets)
+        ? { ...entry, bullets: entry.bullets.map(normalizeBulletVoice) }
+        : entry,
+    );
+  }
+  return out;
+}
+
 function fmtMonthYear(d: any): string {
   const s = str(d).trim();
   if (!s) return "";
