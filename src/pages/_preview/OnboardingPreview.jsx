@@ -50,12 +50,16 @@ const STEP_INDEX_BY_PREFIX = {
   shared: 0,
 };
 
-const REVIEW_PREFIXES = new Set(["review", "education", "experience", "roleskills", "skills"]);
+const REVIEW_PREFIXES = new Set([
+  "review",
+  "education",
+  "experience",
+  "roleskills",
+  "skills",
+]);
 
 function StepWrap({ stepIndex, children }) {
-  return (
-    <OnboardingShell currentStep={stepIndex}>{children}</OnboardingShell>
-  );
+  return <OnboardingShell currentStep={stepIndex}>{children}</OnboardingShell>;
 }
 
 export default function OnboardingPreview() {
@@ -69,7 +73,9 @@ export default function OnboardingPreview() {
   const [educations, setEducations] = useState(fixture.educations || []);
   const [experiences, setExperiences] = useState(fixture.experiences || []);
   const [projects, setProjects] = useState(fixture.projects || []);
-  const [certifications, setCertifications] = useState(fixture.certifications || []);
+  const [certifications, setCertifications] = useState(
+    fixture.certifications || [],
+  );
 
   useEffect(() => {
     setProfileData(fixture.profileData || {});
@@ -81,11 +87,17 @@ export default function OnboardingPreview() {
 
   const onProfileChange = (patch) =>
     setProfileData((prev) =>
-      typeof patch === "function" ? patch(prev) : { ...prev, ...patch }
+      typeof patch === "function" ? patch(prev) : { ...prev, ...patch },
     );
 
   const prefix = (state || "resume-empty").split("-")[0];
   const stepIndex = STEP_INDEX_BY_PREFIX[prefix] ?? 0;
+
+  // Final onboarding beat — the extension-install prompt, rendered on its own
+  // so the reviewer sees it without clicking through all six tutorial slides.
+  if (prefix === "extension") {
+    return <ExtensionPromptStep onDone={() => {}} />;
+  }
 
   // Tutorial renders full-screen outside OnboardingShell (own FullScreenShell).
   if (prefix === "tutorial") {
@@ -114,10 +126,14 @@ export default function OnboardingPreview() {
               </h1>
               <p className="text-[13px] text-rd-text-secondary mt-2 leading-snug">
                 RdSkillTagInput rendered with{" "}
-                <code className="text-rd-coral-dark">suggestionType=&quot;library_skills&quot;</code>{" "}
+                <code className="text-rd-coral-dark">
+                  suggestionType=&quot;library_skills&quot;
+                </code>{" "}
                 — the 595 canonical library names from{" "}
-                <code className="text-rd-coral-dark">skillIdsGenerated.json</code>.
-                The runner types into this field before screenshotting so the
+                <code className="text-rd-coral-dark">
+                  skillIdsGenerated.json
+                </code>
+                . The runner types into this field before screenshotting so the
                 dropdown is visible in the preview PDF.
               </p>
             </div>
