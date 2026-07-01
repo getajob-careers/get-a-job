@@ -28,6 +28,11 @@
 //   - language proficiency is preserved (matched back by name); the line edits
 //     language names only.
 
+// Canonical org-key mapping (professional->company, military->unit,
+// volunteering/leadership->organization) is shared with the server builder so the
+// round-trip keys can never drift. See supabase/functions/_shared/cv-schema.ts.
+import { MASTER_ORG_KEY } from "@shared/cv-schema";
+
 const uid = () => Math.random().toString(36).slice(2, 9);
 const asArray = (v) => (Array.isArray(v) ? v : []);
 const str = (v) => (typeof v === "string" ? v : v == null ? "" : String(v));
@@ -93,10 +98,16 @@ export function fromCvData(cvData) {
       phone: str(h.phone),
     },
     summary: str(c.summary || c.about_me),
-    experiences: mapExpIn(c.professional_experiences, "company"),
-    military: mapExpIn(c.military_experiences, "unit"),
-    volunteering: mapExpIn(c.volunteering_experiences, "organization"),
-    leadership: mapExpIn(c.leadership_experiences, "organization"),
+    experiences: mapExpIn(
+      c.professional_experiences,
+      MASTER_ORG_KEY.professional,
+    ),
+    military: mapExpIn(c.military_experiences, MASTER_ORG_KEY.military),
+    volunteering: mapExpIn(
+      c.volunteering_experiences,
+      MASTER_ORG_KEY.volunteering,
+    ),
+    leadership: mapExpIn(c.leadership_experiences, MASTER_ORG_KEY.leadership),
     education: asArray(c.education).map((e) => ({
       id: uid(),
       institution: str(e?.institution),
@@ -134,10 +145,16 @@ export function toCvData(model) {
       phone: str(m.header?.phone),
     },
     summary: str(m.summary),
-    professional_experiences: mapExpOut(m.experiences, "company"),
-    military_experiences: mapExpOut(m.military, "unit"),
-    volunteering_experiences: mapExpOut(m.volunteering, "organization"),
-    leadership_experiences: mapExpOut(m.leadership, "organization"),
+    professional_experiences: mapExpOut(
+      m.experiences,
+      MASTER_ORG_KEY.professional,
+    ),
+    military_experiences: mapExpOut(m.military, MASTER_ORG_KEY.military),
+    volunteering_experiences: mapExpOut(
+      m.volunteering,
+      MASTER_ORG_KEY.volunteering,
+    ),
+    leadership_experiences: mapExpOut(m.leadership, MASTER_ORG_KEY.leadership),
     education: asArray(m.education).map((e) => ({
       ...obj(e.__src),
       institution: str(e.institution),

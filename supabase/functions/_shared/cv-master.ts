@@ -14,6 +14,8 @@
 
 // deno-lint-ignore-file no-explicit-any
 
+import { EXPERIENCE_BUCKETS, MASTER_ORG_KEY } from "./cv-schema.ts";
+
 const MONTHS_SHORT = [
   "Jan",
   "Feb",
@@ -33,12 +35,111 @@ const str = (v: any): string =>
   typeof v === "string" ? v : v == null ? "" : String(v);
 const asArray = (v: any): any[] => (Array.isArray(v) ? v : []);
 
-const MASTER_ORG_KEY: Record<string, string> = {
-  professional: "company",
-  military: "unit",
-  volunteering: "organization",
-  leadership: "organization",
-};
+// ── Deterministic, idempotent, content-preserving bullet voice/caps normalizer ──
+// Applied to every bullet at master-build time (in expBullets) so EVERY CV path
+// that goes through buildMasterCvData inherits consistent, capitalized,
+// implied-first-person bullets WITHOUT rewriting content. It does exactly two
+// things and nothing else:
+//   (a) capitalizes the first alphabetic character, and
+//   (b) strips a LEADING first-person subject at position 0 only, so
+//       "I am comparing Claude..." -> "Comparing Claude...",
+//       "I've led..." -> "Led...", "We built..." -> "Built...".
+// It NEVER edits numbers, tools, claims, or any mid-sentence word; NEVER drops a
+// bullet (empty-after-strip falls back to the original); and is IDEMPOTENT
+// (running it a second time is a no-op). Guards the traps: "IT"/"I/O" (needs a
+// whole word "I"), proper nouns ("We Work Labs" - next word must be lowercase),
+// and possessive+noun ("My role", "Our team" - bare subject is stripped only when
+// the following word looks like a verb).
+
+// "I am / I'm / I've / I have" + a lowercase word: after the auxiliary the next
+// word is a verb/participle/adjective, so stripping is safe.
+const LEAD_AUX_RE = /^\s*I(?:['’]m|['’]ve|\s+am|\s+have)\s+(?=[a-z])/;
+// Bare first-person subject + a lowercase word; only stripped when that word
+// looksLikeVerb (guards "My role", "Our team", "IT", "I/O", proper nouns).
+const LEAD_SUBJECT_RE = /^\s*(?:I|We|My|Our)\s+(?=[a-z])/;
+
+const COMMON_VERBS = new Set([
+  // irregular / common past tense
+  "led",
+  "built",
+  "rebuilt",
+  "ran",
+  "made",
+  "took",
+  "set",
+  "won",
+  "drove",
+  "grew",
+  "held",
+  "gave",
+  "brought",
+  "taught",
+  "sold",
+  "spent",
+  "met",
+  "kept",
+  "wrote",
+  "oversaw",
+  "drew",
+  "chose",
+  "began",
+  "found",
+  "sent",
+  // common CV present tense
+  "manage",
+  "lead",
+  "build",
+  "run",
+  "own",
+  "drive",
+  "design",
+  "develop",
+  "support",
+  "coordinate",
+  "analyze",
+  "analyse",
+  "deliver",
+  "launch",
+  "create",
+  "improve",
+  "ship",
+  "oversee",
+  "mentor",
+  "handle",
+  "maintain",
+]);
+
+function looksLikeVerb(word: string): boolean {
+  const w = word.toLowerCase();
+  if (COMMON_VERBS.has(w)) return true;
+  // regular past tense / gerund (analyzed, designed, coordinating, ...)
+  return /^[a-z]{3,}(ed|ing)$/.test(w);
+}
+
+function capitalizeFirst(s: string): string {
+  const i = s.search(/[A-Za-z]/);
+  if (i < 0) return s;
+  return s.slice(0, i) + s[i].toUpperCase() + s.slice(i + 1);
+}
+
+export function normalizeBulletVoice(input: any): string {
+  const orig = str(input);
+  let t = orig;
+  if (LEAD_AUX_RE.test(t)) {
+    t = t.replace(LEAD_AUX_RE, "");
+  } else {
+    const m = t.match(LEAD_SUBJECT_RE);
+    if (m) {
+      const rest = t.slice(m[0].length);
+      const wm = rest.match(/^([A-Za-z'’-]+)/);
+      if (wm && looksLikeVerb(wm[1])) t = rest;
+    }
+  }
+  t = capitalizeFirst(t);
+  // never drop content: an empty result (nothing but the stripped subject) keeps
+  // the original bullet whole.
+  return t.trim() ? t : orig;
+}
 
 function fmtMonthYear(d: any): string {
   const s = str(d).trim();
@@ -95,14 +196,16 @@ function expBullets(exp: any): string[] {
   const curated = asArray(exp?.bullets)
     .map(str)
     .map((s) => s.trim())
-    .filter(Boolean);
+    .filter(Boolean)
+    .map(normalizeBulletVoice);
   if (curated.length) return curated;
   const resp = str(exp?.responsibilities);
   if (!resp) return [];
   return resp
     .split(/\r?\n|[•·▪‣]/)
     .map((s) => s.trim())
-    .filter((s) => s.length > 1);
+    .filter((s) => s.length > 1)
+    .map(normalizeBulletVoice);
 }
 
 // Build the master cv_data deterministically from the user's structured rows.
@@ -116,12 +219,9 @@ export function buildMasterCvData(
   userEmail?: string,
 ): any {
   const p = profile || {};
-  const buckets: Record<string, any[]> = {
-    professional: [],
-    military: [],
-    volunteering: [],
-    leadership: [],
-  };
+  const buckets: Record<string, any[]> = Object.fromEntries(
+    EXPERIENCE_BUCKETS.map((b) => [b.bucket, [] as any[]]),
+  );
   for (const e of asArray(experiences)) {
     const bucket = bucketOf(e);
     buckets[bucket].push({
@@ -146,10 +246,11 @@ export function buildMasterCvData(
       linkedin: str(p.linkedin_url),
     },
     summary: str(p.summary),
-    professional_experiences: buckets.professional,
-    military_experiences: buckets.military,
-    volunteering_experiences: buckets.volunteering,
-    leadership_experiences: buckets.leadership,
+    // Canonical bucket keys (professional_experiences, ...) come from the shared
+    // EXPERIENCE_BUCKETS, in render order, so they cannot drift from the adapter.
+    ...Object.fromEntries(
+      EXPERIENCE_BUCKETS.map((b) => [b.cvKey, buckets[b.bucket]]),
+    ),
     education: asArray(education).map((ed: any) => ({
       institution: str(ed?.institution),
       degree: str(ed?.degree_type),
