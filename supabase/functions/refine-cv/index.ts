@@ -38,10 +38,8 @@ import type {
   SectionKey,
 } from "../_shared/cv-templates/types.ts";
 import { parseLlmJsonObject } from "../_shared/json-parse.ts";
-import {
-  tokensTraceToMaster,
-  summaryTokensClean,
-} from "../_shared/cv-antifab.ts";
+import { summaryTokensClean } from "../_shared/cv-antifab.ts";
+import { resolveBullets } from "./reword.ts";
 import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
 
 const corsHeaders = {
@@ -373,17 +371,17 @@ function assembleJobCv(
       const expHaystack = [e?.title, e?.[org], ...masterBullets]
         .join(" \n ")
         .toLowerCase();
-      const bullets: string[] = masterBullets.map((orig, i) => {
-        if (!expId) return orig; // no addressable id → keep verbatim
-        const reword = rewordById.get(`${expId}#${i}`);
-        if (reword == null) return orig;
-        // Anti-fab gate: a reword may only re-phrase; every quantified /
-        // proper-noun token must already exist in THIS experience's master
-        // content. On violation, keep the original master bullet.
-        if (tokensTraceToMaster(reword, expHaystack)) return reword;
-        rejectedRewordings++;
-        return orig;
-      });
+      // Reword each bullet toward the JD where a real, gate-passing replacement
+      // exists; a missing, degenerate (punctuation-only), or anti-fab-failing
+      // reword keeps the ORIGINAL bullet whole. See reword.ts.
+      const resolved = resolveBullets(
+        masterBullets,
+        expId,
+        rewordById,
+        expHaystack,
+      );
+      const bullets = resolved.bullets;
+      rejectedRewordings += resolved.rejected;
       const entry: any = {
         title: e?.title || "",
         dates: e?.dates || "",
