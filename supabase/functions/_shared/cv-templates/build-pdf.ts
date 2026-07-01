@@ -54,6 +54,7 @@ const fontkit: any =
 
 import type { TemplateConfig, SectionKey } from "./types.ts";
 import { skillGroupTopAdvance } from "./skills-layout.ts";
+import { DAVID_REGULAR, DAVID_BOLD } from "./hebrew-fonts.ts";
 import {
   ARIMO_BOLD,
   ARIMO_BOLDITALIC,
@@ -334,9 +335,15 @@ const PUNCT_FALLBACK: Record<number, string> = {
   0x201d: '"', // ”
   0x2026: "...", // ellipsis
 };
-function makeCodepointSanitizer(fk: GlyphFont): (s: string) => string {
-  let charset: Set<number> | null = null;
-  const has = (cp: number): boolean => {
+function makeCodepointSanitizer(
+  fkArg: GlyphFont | GlyphFont[],
+): (s: string) => string {
+  // A codepoint is renderable if ANY of the embedded fonts has a glyph for it.
+  // The template font is Latin-only; the Hebrew fallback covers Hebrew, so
+  // passing both here stops Hebrew from being stripped.
+  const fks = Array.isArray(fkArg) ? fkArg : [fkArg];
+  const charsets: (Set<number> | null)[] = fks.map(() => null);
+  const oneHas = (fk: GlyphFont, i: number, cp: number): boolean => {
     if (typeof fk.hasGlyphForCodePoint === "function") {
       try {
         return !!fk.hasGlyphForCodePoint(cp);
@@ -344,13 +351,14 @@ function makeCodepointSanitizer(fk: GlyphFont): (s: string) => string {
         /* fall through */
       }
     }
-    if (!charset && Array.isArray(fk.characterSet)) {
-      charset = new Set(fk.characterSet);
+    if (!charsets[i] && Array.isArray(fk.characterSet)) {
+      charsets[i] = new Set(fk.characterSet);
     }
     // Last resort: keep. A custom (fontkit) font maps missing glyphs to
     // .notdef rather than throwing, so keeping is still crash-safe.
-    return charset ? charset.has(cp) : true;
+    return charsets[i] ? charsets[i]!.has(cp) : true;
   };
+  const has = (cp: number): boolean => fks.some((fk, i) => oneHas(fk, i, cp));
   const cache = new Map<number, string>();
   const repr = (cp: number): string => {
     const cached = cache.get(cp);
@@ -424,6 +432,26 @@ function wrap(
   const lines: string[] = [];
   let current = "";
   for (const w of words) {
+    // A single token wider than the column can't wrap on spaces — hard-break it
+    // by character so it can never run off the text column (long URLs, compound
+    // words, concatenated skills). Otherwise it would overflow the page edge.
+    if (font.widthOfTextAtSize(w, size) > maxWidth) {
+      if (current) {
+        lines.push(current);
+        current = "";
+      }
+      let chunk = "";
+      for (const ch of w) {
+        if (chunk && font.widthOfTextAtSize(chunk + ch, size) > maxWidth) {
+          lines.push(chunk);
+          chunk = ch;
+        } else {
+          chunk += ch;
+        }
+      }
+      current = chunk; // remainder stays on the line; following words append
+      continue;
+    }
     const trial = current ? `${current} ${w}` : w;
     if (font.widthOfTextAtSize(trial, size) <= maxWidth) {
       current = trial;
@@ -436,12 +464,55 @@ function wrap(
   return lines;
 }
 
+// ─── Hebrew / RTL + width-fit helpers ───────────────────────────────
+const HEBREW_RE = /[֐-׿יִ-ﭏ]/;
+function hasHebrew(s: string): boolean {
+  return HEBREW_RE.test(s || "");
+}
+// pdf-lib has no BiDi engine and draws left-to-right. For a Hebrew-containing
+// string, reverse to visual order, then re-reverse the LTR runs (Latin letters,
+// digits, and common URL/e-mail punctuation) so numbers and English still read
+// left-to-right inside the otherwise right-to-left line. Makes Hebrew readable.
+function bidi(s: string): string {
+  if (!hasHebrew(s)) return s;
+  const rev = [...(s || "")].reverse().join("");
+  return rev.replace(/[A-Za-z0-9@._/:+()#&%-]+/g, (m) =>
+    [...m].reverse().join(""),
+  );
+}
+// Truncate with a trailing ellipsis so a single line can never exceed maxWidth
+// (long titles that would overprint a right-aligned date; long name/contact).
+function fitToWidth(
+  text: string,
+  font: PDFFont,
+  size: number,
+  maxWidth: number,
+): string {
+  if (!text || maxWidth <= 0) return text;
+  if (font.widthOfTextAtSize(text, size) <= maxWidth) return text;
+  const ell = "...";
+  let lo = 0,
+    hi = text.length;
+  while (lo < hi) {
+    const mid = Math.ceil((lo + hi) / 2);
+    if (font.widthOfTextAtSize(text.slice(0, mid) + ell, size) <= maxWidth)
+      lo = mid;
+    else hi = mid - 1;
+  }
+  return text.slice(0, lo).trimEnd() + ell;
+}
+
 // ─── Rendering context ──────────────────────────────────────────────
 interface Fonts {
   regular: PDFFont;
   bold: PDFFont;
   italic: PDFFont;
   boldItalic: PDFFont;
+  // Hebrew-capable fallback (David Libre). The template fonts are Latin-only, so
+  // any string containing Hebrew is drawn (and measured) with these instead —
+  // otherwise the sanitizer strips Hebrew and the content renders blank.
+  hebRegular: PDFFont;
+  hebBold: PDFFont;
 }
 interface Ctx {
   page: PDFPage;
@@ -458,6 +529,23 @@ interface Ctx {
 
 function s(ctx: Ctx, base: number): number {
   return base * ctx.scale;
+}
+
+// Pick the font for a string: the Hebrew-capable David Libre for any string
+// containing Hebrew (it also has Latin, so mixed strings render whole), else the
+// template font. Bold maps to hebBold; italic/boldItalic map to hebRegular/
+// hebBold (Hebrew has no italic).
+function fontFor(
+  ctx: Ctx,
+  text: string,
+  weight: "regular" | "bold" | "italic" | "boldItalic",
+): PDFFont {
+  if (hasHebrew(text)) {
+    return weight === "bold" || weight === "boldItalic"
+      ? ctx.fonts.hebBold
+      : ctx.fonts.hebRegular;
+  }
+  return ctx.fonts[weight];
 }
 
 // pdf-lib has no native characterSpacing — simulate by drawing each
@@ -569,30 +657,32 @@ function drawEntryTitleLine(
   if (!isFirst)
     ctx.y -= s(ctx, ctx.premium ? ctx.d.spEntryBefore : SP_ENTRY_BEFORE);
   const titleSize = s(ctx, ctx.premium ? ctx.d.roleSize : SIZE_BODY);
+  const date = trim(dateRight);
+  const dateSize = s(ctx, SIZE_DATE);
+  // Premium: quiet regular muted date; non-premium: the existing bold-italic.
+  const dateFont = ctx.premium ? ctx.fonts.regular : ctx.fonts.boldItalic;
+  const dateW = date ? dateFont.widthOfTextAtSize(date, dateSize) : 0;
+  // Cap the title so it cannot reach the right-aligned date (min 8pt gap) — a
+  // long title used to overprint the date and run off the page.
+  const titleMax = PAGE_W - 2 * MARGIN_SIDE - (date ? dateW + s(ctx, 8) : 0);
+  const tFont = fontFor(ctx, titleLeft, "bold");
   if (ctx.draw) {
-    ctx.page.drawText(titleLeft, {
+    ctx.page.drawText(bidi(fitToWidth(titleLeft, tFont, titleSize, titleMax)), {
       x: MARGIN_SIDE,
       y: ctx.y,
       size: titleSize,
-      font: ctx.fonts.bold,
+      font: tFont,
       color: COLOR_INK,
     });
   }
-  const date = trim(dateRight);
-  if (date) {
-    const dateSize = s(ctx, SIZE_DATE);
-    // Premium: quiet regular muted date; non-premium: the existing bold-italic.
-    const dateFont = ctx.premium ? ctx.fonts.regular : ctx.fonts.boldItalic;
-    const dateW = dateFont.widthOfTextAtSize(date, dateSize);
-    if (ctx.draw) {
-      ctx.page.drawText(date, {
-        x: PAGE_W - MARGIN_SIDE - dateW,
-        y: ctx.y,
-        size: dateSize,
-        font: dateFont,
-        color: COLOR_MUTED,
-      });
-    }
+  if (date && ctx.draw) {
+    ctx.page.drawText(bidi(date), {
+      x: PAGE_W - MARGIN_SIDE - dateW,
+      y: ctx.y,
+      size: dateSize,
+      font: dateFont,
+      color: COLOR_MUTED,
+    });
   }
 }
 
@@ -607,39 +697,46 @@ function drawRoleEntry(
   isFirst: boolean,
 ) {
   if (!isFirst) ctx.y -= s(ctx, ctx.d.spEntryBefore);
+  const roleSize = s(ctx, ctx.d.roleSize);
+  const date = trim(dateRight);
+  const dateSize = s(ctx, SIZE_DATE);
+  const dateW = date ? ctx.fonts.regular.widthOfTextAtSize(date, dateSize) : 0;
+  // Cap the title so it cannot reach the right-aligned date (min 8pt gap).
+  const titleMax = PAGE_W - 2 * MARGIN_SIDE - (date ? dateW + s(ctx, 8) : 0);
+  const tFont = fontFor(ctx, title, "bold");
   if (ctx.draw && title) {
-    ctx.page.drawText(title, {
+    ctx.page.drawText(bidi(fitToWidth(title, tFont, roleSize, titleMax)), {
       x: MARGIN_SIDE,
       y: ctx.y,
-      size: s(ctx, ctx.d.roleSize),
-      font: ctx.fonts.bold,
+      size: roleSize,
+      font: tFont,
       color: COLOR_INK,
     });
   }
-  const date = trim(dateRight);
-  if (date) {
-    const dateSize = s(ctx, SIZE_DATE);
-    const dateW = ctx.fonts.regular.widthOfTextAtSize(date, dateSize);
-    if (ctx.draw) {
-      ctx.page.drawText(date, {
-        x: PAGE_W - MARGIN_SIDE - dateW,
-        y: ctx.y,
-        size: dateSize,
-        font: ctx.fonts.regular,
-        color: COLOR_MUTED,
-      });
-    }
+  if (date && ctx.draw) {
+    ctx.page.drawText(bidi(date), {
+      x: PAGE_W - MARGIN_SIDE - dateW,
+      y: ctx.y,
+      size: dateSize,
+      font: ctx.fonts.regular,
+      color: COLOR_MUTED,
+    });
   }
   if (org) {
     ctx.y -= s(ctx, ctx.d.lhRoleToOrg);
+    const orgSize = s(ctx, ctx.d.orgSize);
+    const oFont = fontFor(ctx, org, "italic");
     if (ctx.draw) {
-      ctx.page.drawText(org, {
-        x: MARGIN_SIDE,
-        y: ctx.y,
-        size: s(ctx, ctx.d.orgSize),
-        font: ctx.fonts.italic,
-        color: COLOR_MUTED,
-      });
+      ctx.page.drawText(
+        bidi(fitToWidth(org, oFont, orgSize, PAGE_W - 2 * MARGIN_SIDE)),
+        {
+          x: MARGIN_SIDE,
+          y: ctx.y,
+          size: orgSize,
+          font: oFont,
+          color: COLOR_MUTED,
+        },
+      );
     }
   }
 }
@@ -648,11 +745,13 @@ function drawSubLine(ctx: Ctx, text: string) {
   if (!text) return;
   ctx.y -= s(ctx, ctx.premium ? ctx.d.lhRoleToOrg : LH_BODY);
   if (ctx.draw) {
-    ctx.page.drawText(text, {
+    const subSize = s(ctx, SIZE_SUBLINE);
+    const sf = fontFor(ctx, text, ctx.premium ? "italic" : "regular");
+    ctx.page.drawText(bidi(fitToWidth(text, sf, subSize, CONTENT_W)), {
       x: MARGIN_SIDE,
       y: ctx.y,
-      size: s(ctx, SIZE_SUBLINE),
-      font: ctx.premium ? ctx.fonts.italic : ctx.fonts.regular,
+      size: subSize,
+      font: sf,
       color: ctx.premium ? COLOR_MUTED : COLOR_BODY,
     });
   }
@@ -673,15 +772,16 @@ function drawBullet(ctx: Ctx, text: string) {
       color: ctx.accent,
     });
   }
-  const lines = wrap(text, ctx.fonts.regular, bulletSize, textWidth);
+  const bf = fontFor(ctx, text, "regular");
+  const lines = wrap(text, bf, bulletSize, textWidth);
   for (let i = 0; i < lines.length; i++) {
     if (i > 0) ctx.y -= s(ctx, lineLead);
     if (ctx.draw) {
-      ctx.page.drawText(lines[i], {
+      ctx.page.drawText(bidi(lines[i]), {
         x: MARGIN_SIDE + bulletIndent,
         y: ctx.y,
         size: bulletSize,
-        font: ctx.fonts.regular,
+        font: bf,
         color: COLOR_BODY,
       });
     }
@@ -692,15 +792,16 @@ function drawPlainLine(ctx: Ctx, text: string) {
   if (!text) return;
   ctx.y -= s(ctx, ctx.premium ? ctx.d.lhBulletGap : LH_BULLET_GAP);
   const bulletSize = s(ctx, ctx.premium ? SIZE_BODY : SIZE_BULLET);
-  const lines = wrap(text, ctx.fonts.regular, bulletSize, CONTENT_W);
+  const pf = fontFor(ctx, text, "regular");
+  const lines = wrap(text, pf, bulletSize, CONTENT_W);
   for (let i = 0; i < lines.length; i++) {
     if (i > 0) ctx.y -= s(ctx, ctx.premium ? ctx.d.lhBody : LH_BODY);
     if (ctx.draw) {
-      ctx.page.drawText(lines[i], {
+      ctx.page.drawText(bidi(lines[i]), {
         x: MARGIN_SIDE,
         y: ctx.y,
         size: bulletSize,
-        font: ctx.fonts.regular,
+        font: pf,
         color: COLOR_TEXT,
       });
     }
@@ -711,15 +812,16 @@ function drawBodyParagraph(ctx: Ctx, text: string) {
   if (!text) return;
   ctx.y -= s(ctx, ctx.premium ? ctx.d.lhBulletGap : LH_BULLET_GAP);
   const bodySize = s(ctx, SIZE_BODY);
-  const lines = wrap(text, ctx.fonts.regular, bodySize, CONTENT_W);
+  const bpf = fontFor(ctx, text, "regular");
+  const lines = wrap(text, bpf, bodySize, CONTENT_W);
   for (let i = 0; i < lines.length; i++) {
     if (i > 0) ctx.y -= s(ctx, ctx.premium ? ctx.d.lhBody : LH_BODY);
     if (ctx.draw) {
-      ctx.page.drawText(lines[i], {
+      ctx.page.drawText(bidi(lines[i]), {
         x: MARGIN_SIDE,
         y: ctx.y,
         size: bodySize,
-        font: ctx.fonts.regular,
+        font: bpf,
         color: COLOR_BODY,
       });
     }
@@ -757,28 +859,35 @@ function renderHeader(ctx: Ctx, cvData: CvData, userContext: UserContext) {
   const headlineY = ctx.premium ? hy.headlineY : HEADER_HEADLINE_Y;
   const contactY = ctx.premium ? hy.contactY : HEADER_CONTACT_Y;
 
-  ctx.page.drawText(name, {
+  // Full text column width; fitToWidth truncates so a long name / headline /
+  // contact line can never overflow the page edge (was clipped before).
+  const headW = PAGE_W - 2 * MARGIN_SIDE;
+  const nameFont = fontFor(ctx, name, "bold");
+  ctx.page.drawText(bidi(fitToWidth(name, nameFont, nameSize, headW)), {
     x: MARGIN_SIDE,
     y: nameY,
     size: nameSize,
-    font: ctx.fonts.bold,
+    font: nameFont,
     color: COLOR_INK,
   });
   if (headline) {
-    ctx.page.drawText(headline, {
+    const hlFont = fontFor(ctx, headline, "regular");
+    ctx.page.drawText(bidi(fitToWidth(headline, hlFont, headlineSize, headW)), {
       x: MARGIN_SIDE,
       y: headlineY,
       size: headlineSize,
-      font: ctx.fonts.regular,
+      font: hlFont,
       color: COLOR_MUTED,
     });
   }
   if (contactBits.length > 0) {
-    ctx.page.drawText(contactBits.join("  \u00B7  "), {
+    const contact = contactBits.join("  \u00B7  ");
+    const cFont = fontFor(ctx, contact, "regular");
+    ctx.page.drawText(bidi(fitToWidth(contact, cFont, contactSize, headW)), {
       x: MARGIN_SIDE,
       y: contactY,
       size: contactSize,
-      font: ctx.fonts.regular,
+      font: cFont,
       color: ctx.premium ? COLOR_MUTED : COLOR_BODY,
     });
   }
@@ -962,15 +1071,16 @@ function drawSkillGroup(
   // at the label's left edge (MARGIN_SIDE + labelW) so the column reads cleanly.
   const hang = MARGIN_SIDE + labelW;
   const avail = PAGE_W - MARGIN_SIDE - hang;
-  const lines = wrap(valuesText, ctx.fonts.regular, size, avail);
+  const vf = fontFor(ctx, valuesText, "regular");
+  const lines = wrap(valuesText, vf, size, avail);
   for (let i = 0; i < lines.length; i++) {
     if (i > 0) ctx.y -= lead;
     if (ctx.draw) {
-      ctx.page.drawText(lines[i], {
+      ctx.page.drawText(bidi(lines[i]), {
         x: hang,
         y: ctx.y,
         size,
-        font: ctx.fonts.regular,
+        font: vf,
         color: COLOR_BODY,
       });
     }
@@ -1149,14 +1259,21 @@ export async function buildCvPdf(
     bold: await pdfDoc.embedFont(fb.bold, { subset: true }),
     italic: await pdfDoc.embedFont(fb.italic, { subset: true }),
     boldItalic: await pdfDoc.embedFont(fb.boldItalic, { subset: true }),
+    // Hebrew-capable serif fallback (David Libre). Latin-only template fonts
+    // would otherwise strip Hebrew entirely (see the sanitizer below).
+    hebRegular: await pdfDoc.embedFont(DAVID_REGULAR, { subset: true }),
+    hebBold: await pdfDoc.embedFont(DAVID_BOLD, { subset: true }),
   };
 
-  // Sanitize chokepoint: strip codepoints the EMBEDDED font can't render
-  // (cmap-driven) from all drawn strings, so the renderer can't throw on any
-  // input. See makeCodepointSanitizer.
-  const sanitize = makeCodepointSanitizer(
+  // Sanitize chokepoint: strip codepoints NO embedded font can render (cmap-
+  // driven) from all drawn strings, so the renderer can't throw on any input.
+  // Both the template font AND the Hebrew fallback count as renderable, so
+  // Hebrew survives (it is drawn with the Hebrew font at each site). See
+  // makeCodepointSanitizer.
+  const sanitize = makeCodepointSanitizer([
     fontkit.create(fb.regular) as GlyphFont,
-  );
+    fontkit.create(DAVID_REGULAR) as GlyphFont,
+  ]);
   const cv = deepSanitizeStrings(cvData, sanitize) as CvData;
   const uc = deepSanitizeStrings(userContext, sanitize) as UserContext;
 
