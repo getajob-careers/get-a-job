@@ -3,6 +3,11 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
 import {
+  cvHasHebrew,
+  translateCvToEnglish,
+  type ChatMessage,
+} from '../_shared/cv-translate.ts'
+import {
   buildCompletedHistoryBlock,
   capTasksByPriority,
   dedupeAgainstHistory,
@@ -515,6 +520,36 @@ Return ONLY valid JSON. Generate 5-8 tasks unless overwhelm signals are present,
       if (beforeDedup !== afterDedup || afterDedup !== afterCap) {
         console.log(`[generate-tasks] post-process: llm=${beforeDedup} → dedup=${afterDedup} → cap=${afterCap}`);
       }
+    }
+
+    // English guarantee (same gated pattern as analyze-job-match #469 and
+    // generate-career-analysis): task titles/descriptions are shown to the user,
+    // but a Hebrew profile makes the model write them in Hebrew. Gated on Hebrew
+    // (no-op / zero added latency for an English profile), translate the whole
+    // result via the SHARED faithful, anti-fab translator. Priority/category enums
+    // and any English text pass through unchanged.
+    if (cvHasHebrew(result)) {
+      const translateChat = async (messages: ChatMessage[]): Promise<string> => {
+        const res = await openaiChatCompletionWithRetry(
+          {
+            model: 'gpt-4o',
+            temperature: 0,
+            max_tokens: 4000,
+            response_format: { type: 'json_object' },
+            messages,
+          },
+          openaiKey,
+          { traceName: 'generate-tasks:translate', userId: user.id },
+          { signal: AbortSignal.timeout(30000) },
+        )
+        if (!res.ok) throw new Error('translate http ' + res.status)
+        const data = await res.json()
+        return data.choices?.[0]?.message?.content || '{}'
+      }
+      result = (await translateCvToEnglish(
+        result,
+        translateChat,
+      )) as Record<string, unknown>
     }
 
     _ok = true; _http = 200
