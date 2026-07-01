@@ -619,11 +619,21 @@ export default function CVStudioLive() {
   const buildMaster = async () => {
     if (building || !profile) return;
     setBuilding(true);
+    // Fetch projects + certifications so the studio's empty-state build has the
+    // same section richness as the refine-cv / prewarm masters (extras parity).
+    const [projRes, certRes] = await Promise.all([
+      supabase.from("projects").select("*").eq("user_id", user.id),
+      supabase.from("certifications").select("*").eq("user_id", user.id),
+    ]);
     const cv_data = buildMasterCvData(
       profile,
       experiences,
       education,
       user?.email,
+      {
+        projects: projRes.data || [],
+        certifications: certRes.data || [],
+      },
     );
     const { data, error } = await supabase
       .from("application_cvs")

@@ -142,6 +142,13 @@ export function normalizeBulletVoice(input: any): string {
   return t.trim() ? t : orig;
 }
 
+// Convenience: normalize a plain bullets[] array. Used by the normalize-on-write
+// paths (profile bullet edits) so the STORED experiences.bullets stay clean, with
+// the render chokepoint as the safety net rather than the only defense. Idempotent.
+export function normalizeBullets(bullets: any): string[] {
+  return asArray(bullets).map(normalizeBulletVoice);
+}
+
 // Apply normalizeBulletVoice to every experience bullet in a whole cv_data object
 // (the four *_experiences buckets). IDEMPOTENT: a cv_data already built through
 // buildMasterCvData comes back deep-equal (each bullet maps to itself). Returns a

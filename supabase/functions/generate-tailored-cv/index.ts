@@ -2551,17 +2551,25 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     // header stay as the LLM produced them; one-page fit is the renderer's job.
     // Education always carries field_of_study here. See _shared/cv-master.ts.
     if (isMasterMode) {
+      // Full section-richness parity: pass certs/projects extras and overwrite the
+      // categorized skills + honors/certifications/projects sections too, so the
+      // master this path builds is IDENTICAL to the refine-cv / prewarm master.
       const det = buildMasterCvData(
         profile,
         experiences,
         profile?.education,
         user?.email,
+        { projects, certifications },
       )
       cvData.professional_experiences = det.professional_experiences
       cvData.military_experiences = det.military_experiences
       cvData.volunteering_experiences = det.volunteering_experiences
       cvData.leadership_experiences = det.leadership_experiences
       cvData.education = det.education
+      cvData.skills = det.skills
+      if (det.honors_and_awards) cvData.honors_and_awards = det.honors_and_awards
+      if (det.certifications) cvData.certifications = det.certifications
+      if (det.projects) cvData.projects = det.projects
     }
 
     // English enforcement (product rule: a generated CV is always English).

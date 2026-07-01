@@ -18,6 +18,10 @@
 import { supabase } from "@/api/supabaseClient";
 import { invokeWithAuthRetry } from "@/api/invokeWithAuthRetry";
 import { track, EVENTS } from "@/lib/analytics";
+// Normalize-on-write: bullets are run through the same deterministic voice/caps
+// normalizer the CV builder uses, so the STORED experiences.bullets stay clean at
+// the source (the render chokepoint is then a safety net, not the only defense).
+import { normalizeBullets } from "@shared/cv-master";
 import { resolveDueDate } from "@/lib/taskDueDate";
 import { experiencesQueryKey } from "@/lib/queries/useExperiences";
 import { scoreApplication } from "@/lib/scoreApplication";
@@ -462,7 +466,10 @@ export async function appendBullets({ user, targetType, targetId, bullets, skill
     const { append, flagged } = force
       ? { append: incoming, flagged: [] }
       : classifyBullets(prevBullets, incoming);
-    const mergedBullets = [...prevBullets, ...append];
+    // Normalize the merged set on write (idempotent, so already-clean bullets are
+    // unchanged and any legacy raw bullet is healed). classifyBullets ran on the
+    // originals above, so dedup detection is unaffected.
+    const mergedBullets = normalizeBullets([...prevBullets, ...append]);
     const mergedSkills = dedupeAppend(prevSkills, Array.isArray(skills) ? skills : []);
     // Nothing clean to add and skills unchanged: don't write, just hand the flags
     // back so the UI can prompt (caller re-invokes with force per user choice).
@@ -493,9 +500,12 @@ export async function setBullets({ user, targetType, targetId, bullets, skills }
   if (!targetType || !targetId) return { error: "target required" };
   try {
     const patch = {
-      bullets: (Array.isArray(bullets) ? bullets : [])
-        .map((b) => String(b || "").trim())
-        .filter(Boolean),
+      // Normalize on write so the stored profile bullets are clean at the source.
+      bullets: normalizeBullets(
+        (Array.isArray(bullets) ? bullets : [])
+          .map((b) => String(b || "").trim())
+          .filter(Boolean),
+      ),
     };
     if (Array.isArray(skills)) patch.skills = skills;
     const { error } = await (/** @type {any} */ (supabase))
