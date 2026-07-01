@@ -7,7 +7,7 @@
     "amazon_jobs": 1,
     "ashby": 69,
     "comeet": 229,
-    "custom": 31,
+    "custom": 28,
     "eightfold": 3,
     "greenhouse": 200,
     "iai": 1,
@@ -22,7 +22,7 @@
     "teamtailor": 1,
     "unknown": 254,
     "workable": 10,
-    "workday": 36
+    "workday": 39
   },
   "companies": [
     {
@@ -2035,11 +2035,11 @@
       "industry": "EDA",
       "domain": "cadence.com",
       "careers_url": "https://www.cadence.com/en_US/home/company/careers.html",
-      "ats": "custom",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "NEW (extra). No Workday tenant detected (cadence.wd1 returns 404 site_not_found). Cadence Israel R&D in Petah Tikva (acquired Quickturn + Tensilica-IL)."
+      "ats": "workday",
+      "slug": "cadence.wd1.myworkdayjobs.com/External_Careers",
+      "api_url": "https://cadence.wd1.myworkdayjobs.com/wday/cxs/cadence/External_Careers/jobs",
+      "verified": true,
+      "notes": "Workday verified — cadence.wd1/External_Careers, Location_Country facet returns 6 live IL roles (Petah Tikva). Earlier custom tag used a wrong site path that 404s. Quickturn + Tensilica-IL R&D."
     },
     {
       "name": "Caesarstone",
@@ -6355,11 +6355,11 @@
       "industry": "Semiconductors",
       "domain": "marvell.com",
       "careers_url": "https://www.marvell.com/company/careers.html",
-      "ats": "custom",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "NEW (extra). No Workday tenant detected (marvell.wd1 returns 404 site_not_found). Likely custom or iCIMS. Marvell IL R&D via Aquantia + Cavium-IL (legacy)."
+      "ats": "workday",
+      "slug": "marvell.wd1.myworkdayjobs.com/MarvellCareers",
+      "api_url": "https://marvell.wd1.myworkdayjobs.com/wday/cxs/marvell/MarvellCareers/jobs",
+      "verified": true,
+      "notes": "Workday verified — marvell.wd1/MarvellCareers, Country facet returns 18 live IL roles (Yokneam, Petah Tikva). Earlier custom tag used a wrong site path that 404s. Aquantia + Cavium-IL R&D."
     },
     {
       "name": "Matav",
@@ -7687,11 +7687,11 @@
       "industry": "Cybersecurity",
       "domain": "paloaltonetworks.com",
       "careers_url": "https://jobs.paloaltonetworks.com/",
-      "ats": "custom",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "NEW (extra). Note: registry has a Cybersixgill row pointing at paloaltonetworks.wd5/PaloAltoNetworks but I confirmed that site path is 404. PAN uses TalentBrew (tbcdn.talentbrew.com/company/47263) — proprietary portal, not Workday. Major IL R&D via Cider + Twistlock + Demisto + LightCyber + native Tel Aviv."
+      "ats": "workday",
+      "slug": "paloaltonetworks.wd5.myworkdayjobs.com/panwexternalcareers",
+      "api_url": "https://paloaltonetworks.wd5.myworkdayjobs.com/wday/cxs/paloaltonetworks/panwexternalcareers/jobs",
+      "verified": true,
+      "notes": "Workday verified — facet-first fetchWorkday returns ~156 live IL roles (incl consolidated CyberArk Petach Tikva). Site is panwexternalcareers; the earlier PaloAltoNetworks path 404s, which is why this was mis-tagged custom. Major IL R&D via Cider + Twistlock + Demisto + LightCyber + native Tel Aviv."
     },
     {
       "name": "Panaya",
