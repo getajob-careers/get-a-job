@@ -8,6 +8,7 @@ import { CV_VOICE_RULES } from '../_shared/voice-rules.ts'
 import { stripHtml } from '../_shared/strip-html.ts'
 import { buildCvPdf } from '../_shared/cv-templates/build-pdf.ts'
 import { buildMasterCvData } from '../_shared/cv-master.ts'
+import { cvHasHebrew, translateCvToEnglish, type ChatMessage } from '../_shared/cv-translate.ts'
 import { matchRoleToLibrary, resolveSectorTheme } from '../_shared/cv-templates/sector-mapping.ts'
 import type { TemplateStyle, SectionKey } from '../_shared/cv-templates/types.ts'
 import { fillFromSource, type SourceExperience } from './reconcile.ts'
@@ -2561,6 +2562,26 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       cvData.volunteering_experiences = det.volunteering_experiences
       cvData.leadership_experiences = det.leadership_experiences
       cvData.education = det.education
+    }
+
+    // English enforcement (product rule: a generated CV is always English).
+    // Translate any Hebrew content to English before the master is persisted or
+    // the job CV is rendered, so Hebrew never reaches the renderer. No-op (no
+    // model call) for all-English CVs; translation only converts language and
+    // never changes a claim (see cv-translate.ts).
+    if (openaiKey && cvHasHebrew(cvData)) {
+      const translateChat = async (messages: ChatMessage[]): Promise<string> => {
+        const res = await openaiChatCompletionWithRetry(
+          { model: MODEL, temperature: 0, max_tokens: 4000, response_format: { type: 'json_object' }, messages },
+          openaiKey,
+          { traceName: 'generate-tailored-cv:translate', userId: user.id, sessionId: cvSessionId },
+          { signal: AbortSignal.timeout(30000) },
+        )
+        if (!res.ok) throw new Error('translate http ' + res.status)
+        const data = await res.json()
+        return data.choices?.[0]?.message?.content || '{}'
+      }
+      cvData = await translateCvToEnglish(cvData, translateChat)
     }
 
     const proCount = Array.isArray(cvData.professional_experiences)
