@@ -11,6 +11,8 @@
 
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import {
+  fetchWorkday,
+  isWorkdayIlLocation,
   fetchWorkdayDetail,
   fetchSmartRecruitersDetail,
   fetchAmazonJobs,
@@ -557,5 +559,164 @@ describe("mapHotJobs - HOT per-publisher schema mapping", () => {
       },
     ]);
     expect(j.description_html).toBeNull();
+  });
+});
+
+// ── fetchWorkday: IL locationsText filter, pagination past 20, URL build ──
+describe("isWorkdayIlLocation", () => {
+  it("keeps IL locations", () => {
+    for (const loc of [
+      "Israel",
+      "Tel Aviv, Israel",
+      "Herzliya",
+      "Haifa, Israel",
+      "Ramat Gan",
+      "Ra'anana",
+      "Yokneam",
+      "Netanya",
+      "Petah Tikva",
+      "Jerusalem, Israel",
+    ]) {
+      expect(isWorkdayIlLocation(loc)).toBe(true);
+    }
+  });
+
+  it("drops non-IL locations (including the US 'IL' state abbreviation)", () => {
+    for (const loc of [
+      "London, UK",
+      "New York, NY, United States",
+      "Chicago, IL",
+      "Remote - USA",
+      "Bangalore, India",
+      "",
+      null,
+    ]) {
+      expect(isWorkdayIlLocation(loc)).toBe(false);
+    }
+  });
+});
+
+describe("fetchWorkday", () => {
+  const C: CompanyEntry = {
+    slug: "acme.wd1.myworkdayjobs.com/External",
+  } as any;
+
+  function mockPages(total: number, pages: any[][]) {
+    globalThis.fetch = vi.fn().mockImplementation((_url: any, opts: any) => {
+      const body = JSON.parse(opts.body);
+      const idx = body.offset / 20;
+      // Primary path uses empty searchText; only serve pages for that.
+      const jobPostings = body.searchText === "" ? (pages[idx] ?? []) : [];
+      return Promise.resolve(
+        new Response(JSON.stringify({ total, jobPostings }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+      );
+    });
+  }
+
+  function posting(g: number) {
+    const il = g % 2 === 0;
+    return {
+      title: `Job ${g}`,
+      locationsText: il ? "Israel, Tel Aviv" : "New York, NY, United States",
+      externalPath: `/job/loc/Job-${g}_JR${g}`,
+      postedOn: "Posted Today",
+    };
+  }
+
+  it("paginates past 20 (offset until total) and returns only IL jobs with CXS-derived URLs", async () => {
+    const all = Array.from({ length: 45 }, (_, g) => posting(g));
+    mockPages(45, [all.slice(0, 20), all.slice(20, 40), all.slice(40, 45)]);
+    const jobs = await fetchWorkday(C);
+    // 23 IL of 45 (g even: 0,2,...,44)
+    expect(jobs).toHaveLength(23);
+    expect(jobs.every((j) => /israel/i.test(j.location_raw ?? ""))).toBe(true);
+    // apply_url built from externalPath onto <host>/<site>
+    expect(jobs[0].apply_url).toBe(
+      "https://acme.wd1.myworkdayjobs.com/External/job/loc/Job-0_JR0",
+    );
+    // 3 pages fetched (offset 0, 20, 40) => pagination past the 20-cap
+    expect((globalThis.fetch as any).mock.calls.length).toBe(3);
+    const [firstUrl, firstOpts] = (globalThis.fetch as any).mock.calls[0];
+    expect(String(firstUrl)).toBe(
+      "https://acme.wd1.myworkdayjobs.com/wday/cxs/acme/External/jobs",
+    );
+    expect(JSON.parse(firstOpts.body).searchText).toBe("");
+  });
+
+  it("returns [] when no posting is IL-located", async () => {
+    const nonIl = Array.from({ length: 5 }, (_, g) => ({
+      title: `x${g}`,
+      locationsText: "London, UK",
+      externalPath: `/job/x_${g}`,
+      postedOn: null,
+    }));
+    mockPages(5, [nonIl]);
+    expect(await fetchWorkday(C)).toEqual([]);
+  });
+});
+
+describe("fetchWorkday — facet path (multi-location capture)", () => {
+  const C: CompanyEntry = { slug: "big.wd1.myworkdayjobs.com/Careers" } as any;
+
+  it("uses the Israel country facet and keeps 'N Locations' postings a text filter would drop", async () => {
+    const ilJobs = [
+      {
+        title: "A",
+        locationsText: "Tel Aviv, Israel",
+        externalPath: "/job/a_JR1",
+        postedOn: null,
+      },
+      {
+        title: "B",
+        locationsText: "2 Locations",
+        externalPath: "/job/b_JR2",
+        postedOn: null,
+      },
+      {
+        title: "C",
+        locationsText: "Haifa, Israel",
+        externalPath: "/job/c_JR3",
+        postedOn: null,
+      },
+    ];
+    globalThis.fetch = vi.fn().mockImplementation((_url: any, opts: any) => {
+      const body = JSON.parse(opts.body);
+      const hasFacet =
+        body.appliedFacets && Object.keys(body.appliedFacets).length > 0;
+      const payload = hasFacet
+        ? { total: 3, jobPostings: ilJobs }
+        : {
+            total: 5000, // huge: proves the adapter did NOT fetch-all
+            facets: [
+              {
+                facetParameter: "Country",
+                values: [{ descriptor: "Israel", id: "ISR1", count: 3 }],
+              },
+            ],
+            jobPostings: [
+              {
+                title: "X",
+                locationsText: "London, UK",
+                externalPath: "/job/x",
+                postedOn: null,
+              },
+            ],
+          };
+      return Promise.resolve(
+        new Response(JSON.stringify(payload), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+      );
+    });
+    const jobs = await fetchWorkday(C);
+    expect(jobs.map((j) => j.title).sort()).toEqual(["A", "B", "C"]);
+    // the multi-location placeholder survived even though a text filter drops it
+    expect(isWorkdayIlLocation("2 Locations")).toBe(false);
+    expect(jobs.find((j) => j.location_raw === "2 Locations")).toBeTruthy();
+    expect(jobs.every((j) => j.structured_country === "Israel")).toBe(true);
   });
 });

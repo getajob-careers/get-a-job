@@ -19,6 +19,15 @@ import type { CompanyEntry, RawJob } from "./normalize.js";
 const USER_AGENT = "GetAJob-RefreshJobs/1.0 (https://getajob.example)";
 const DEFAULT_TIMEOUT_MS = 25_000;
 const WORKDAY_MAX_PAGES = 25; // 25 × 20 = 500 IL-matching jobs ceiling per tenant
+// Tenants whose global `total` is at or below this run the PRIMARY path:
+// empty searchText, paginate every page, filter locationsText for IL. The 4
+// validated MNC tenants (Palo Alto 1440, KLA 872, Marvell 669, Cadence 630)
+// all sit under it. Above it (Accenture/Adobe/Atlassian, 10k+ global jobs)
+// fetch-all would be thousands of requests, so we fall back to the bounded
+// searchText pre-narrow (still IL-filtered on locationsText).
+const WORKDAY_FETCH_ALL_CAP = 2000;
+// Runaway guard on the fetch-all path (120 × 20 = 2400 postings).
+const WORKDAY_FETCH_ALL_MAX_PAGES = 120;
 const SR_MAX_PAGES = 10; // 10 × 100 = 1000 IL jobs ceiling per company
 
 // ───── HTTP helpers ──────────────────────────────────────────────────
@@ -446,6 +455,59 @@ export function parseWorkdayDate(raw: unknown): string | null {
   return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
 }
 
+// Client-side IL location filter for Workday. The country facet is
+// INCONSISTENT across tenants (Cadence "Location_Country", Marvell/KLA
+// "Country", Palo Alto exposes only a hierarchical "locationMainGroup" with no
+// flat country facet), so an IL count cannot rely on one facet name. We filter
+// jobPostings[].locationsText directly against the known IL cities.
+export const WORKDAY_IL_PATTERNS: RegExp[] = [
+  /\bisrael\b/i,
+  /tel[ -]?aviv/i,
+  /herzl/i,
+  /\bhaifa\b/i,
+  /ramat[ -]?gan/i,
+  /ra['`’]?anana/i,
+  /y[oq]kneam/i,
+  /netanya/i,
+  /petah|petach/i,
+  /jerusalem/i,
+  /be['`’]?er[ -]?sheva/i,
+  /rehovot/i,
+  /caesarea/i,
+  /kfar[ -]?saba/i,
+  /hod[ -]?hasharon/i,
+  /\byavne\b/i,
+  /or[ -]?yehuda/i,
+  /airport[ -]?city/i,
+  /modi['`’]?in/i,
+  /givatayim/i,
+  /\bholon\b/i,
+  /bnei[ -]?brak/i,
+  /kiryat/i,
+];
+
+export function isWorkdayIlLocation(loc: string | null | undefined): boolean {
+  if (!loc) return false;
+  return WORKDAY_IL_PATTERNS.some((re) => re.test(loc));
+}
+
+// Fetch active IL-located roles from a Workday tenant via the public CXS API.
+// No auth.
+//
+// STRATEGY. Workday's country facet is inconsistent in NAME across tenants
+// (Cadence "Location_Country", Marvell/KLA "Country", Palo Alto exposes only a
+// hierarchical "locationMainGroup" with no flat country facet), so we do NOT
+// hardcode a facet name. We scan the first response's facets for a value whose
+// descriptor is "Israel":
+//   - FACET path (present): fetch only the IL postings via that facet.
+//     Authoritative, cheap even for mega-tenants, and it catches multi-location
+//     postings whose locationsText is a placeholder like "2 Locations" (a pure
+//     locationsText filter drops those — that is why Marvell reads 11 not 18
+//     without this path).
+//   - LOCATIONSTEXT fallback (no country facet, e.g. Palo Alto): paginate with
+//     empty searchText up to the tenant total and keep postings whose
+//     locationsText matches an IL city. Bounded by WORKDAY_FETCH_ALL_CAP; above
+//     it, a searchText pre-narrow keeps request volume sane.
 export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
   if (!c.slug) return [];
   // Slug shape: "<tenant>.wdN.myworkdayjobs.com/<site>"
@@ -455,80 +517,128 @@ export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
   const site = parts.slice(1).join("/");
   const tenant = host.split(".")[0];
   const url = `https://${host}/wday/cxs/${tenant}/${site}/jobs`;
-
-  // De-dup across the 3 search terms by externalPath (or title+location
-  // for jobs missing externalPath).
-  const seen = new Set<string>();
-  const collected: RawJob[] = [];
   const limit = 20;
 
-  for (const searchText of WORKDAY_SEARCH_TERMS) {
-    let reportedTotal: number | null = null;
-    let pagesFetched = 0;
-    for (let page = 0; page < WORKDAY_MAX_PAGES; page++) {
-      const offset = page * limit;
-      let data: any;
-      try {
-        data = await httpPostJson<any>(url, {
-          appliedFacets: {},
-          limit,
-          offset,
-          searchText,
-        });
-      } catch (err) {
-        // Some tenants 4xx specific offsets; treat as end-of-stream
-        // for THIS search term and try the next one.
+  const seen = new Set<string>();
+  const collected: RawJob[] = [];
+
+  // Push a posting. ilKnown=true skips the locationsText check (the facet
+  // already guarantees IL) and stamps structured_country.
+  const take = (p: any, ilKnown: boolean): void => {
+    if (!ilKnown && !isWorkdayIlLocation(p?.locationsText)) return;
+    const externalPath = String(p?.externalPath ?? p?.bulletFields?.[0] ?? "");
+    const dedupKey =
+      externalPath ||
+      `${String(p?.title ?? "")}|${String(p?.locationsText ?? "")}`;
+    if (seen.has(dedupKey)) return;
+    seen.add(dedupKey);
+    const applyUrl = externalPath
+      ? `https://${host}/${site}${externalPath.startsWith("/") ? externalPath : `/${externalPath}`}`
+      : `https://${host}/${site}`;
+    collected.push({
+      external_id: dedupKey,
+      title: p?.title ?? "",
+      // Workday list endpoint has no description; fetched per job by
+      // fetchWorkdayDetail in the enrich pass, not here.
+      description_html: null,
+      location_raw: p?.locationsText ?? null,
+      structured_country: ilKnown ? "Israel" : null,
+      apply_url: applyUrl,
+      date_posted: parseWorkdayDate(p?.postedOn),
+      salary_min: null,
+      salary_max: null,
+      salary_currency: null,
+      is_remote: /remote/i.test(p?.locationsText ?? ""),
+      raw_payload: p,
+    });
+  };
+
+  const page = async (
+    searchText: string,
+    offset: number,
+    appliedFacets: Record<string, string[]> = {},
+  ): Promise<any | null> => {
+    try {
+      return await httpPostJson<any>(url, {
+        appliedFacets,
+        limit,
+        offset,
+        searchText,
+      });
+    } catch {
+      // A 4xx on a specific offset/term is treated as end-of-stream, not fatal.
+      return null;
+    }
+  };
+
+  // First page carries the facet list + the server-side total.
+  const first = await page("", 0);
+  if (!first) return collected;
+  const total: number | null =
+    typeof first.total === "number" ? first.total : null;
+
+  // Name-agnostic scan for an "Israel" country-facet value.
+  let israelFacet: { param: string; id: string } | null = null;
+  for (const f of (first.facets ?? []) as any[]) {
+    for (const v of (f?.values ?? []) as any[]) {
+      if (
+        String(v?.descriptor ?? "")
+          .trim()
+          .toLowerCase() === "israel"
+      ) {
+        israelFacet = { param: String(f.facetParameter), id: String(v.id) };
         break;
       }
-      const postings: any[] = data?.jobPostings ?? [];
-      // Workday returns the server-side total in `total` on every response.
-      // Capture it on the first page — if total > our cap (WORKDAY_MAX_PAGES
-      // × limit = 500), we're silently truncating and need to know.
-      if (page === 0 && typeof data?.total === "number") {
-        reportedTotal = data.total;
-      }
-      pagesFetched++;
-      if (postings.length === 0) break;
-      for (const p of postings) {
-        const externalPath = String(
-          p.externalPath ?? p.bulletFields?.[0] ?? "",
-        );
-        const dedupKey =
-          externalPath ||
-          `${String(p.title ?? "")}|${String(p.locationsText ?? "")}`;
-        if (seen.has(dedupKey)) continue;
-        seen.add(dedupKey);
+    }
+    if (israelFacet) break;
+  }
 
-        const applyUrl = externalPath
-          ? `https://${host}/${site}${externalPath.startsWith("/") ? externalPath : `/${externalPath}`}`
-          : `https://${host}/${site}`;
-        collected.push({
-          external_id: dedupKey,
-          title: p.title ?? "",
-          // Workday list endpoint doesn't include descriptions. Fetching
-          // per job would 20x the request count — skipped in v1.
-          description_html: null,
-          location_raw: p.locationsText ?? null,
-          structured_country: null,
-          apply_url: applyUrl,
-          date_posted: parseWorkdayDate(p.postedOn),
-          salary_min: null,
-          salary_max: null,
-          salary_currency: null,
-          is_remote: /remote/i.test(p.locationsText ?? ""),
-          raw_payload: p,
-        });
-      }
+  if (israelFacet) {
+    // FACET path: fetch ONLY the IL postings (authoritative; catches
+    // "N Locations" multi-location jobs a locationsText filter would miss).
+    const facets = { [israelFacet.param]: [israelFacet.id] };
+    for (
+      let offset = 0;
+      offset < WORKDAY_FETCH_ALL_MAX_PAGES * limit;
+      offset += limit
+    ) {
+      const data = await page("", offset, facets);
+      if (!data) break;
+      const postings: any[] = data.jobPostings ?? [];
+      if (postings.length === 0) break;
+      for (const p of postings) take(p, true);
       if (postings.length < limit) break;
     }
-    // Truncation alert: if Workday reported more jobs than we could fetch
-    // within WORKDAY_MAX_PAGES, log loudly so ops can raise the cap or
-    // narrow the search per tenant. Surface includes tenant + search term
-    // + reported total vs fetched count.
-    const cap = WORKDAY_MAX_PAGES * limit;
-    if (reportedTotal != null && reportedTotal > cap) {
+    return collected;
+  }
+
+  // No country facet (e.g. Palo Alto's locationMainGroup) -> locationsText.
+  for (const p of first.jobPostings ?? []) take(p, false);
+  if (total != null && total <= WORKDAY_FETCH_ALL_CAP) {
+    // Empty searchText, paginate until offset >= total.
+    const maxOffset = Math.min(total, WORKDAY_FETCH_ALL_MAX_PAGES * limit);
+    for (let offset = limit; offset < maxOffset; offset += limit) {
+      const data = await page("", offset);
+      if (!data) break;
+      const postings: any[] = data.jobPostings ?? [];
+      if (postings.length === 0) break;
+      for (const p of postings) take(p, false);
+    }
+  } else {
+    // Mega-tenant with no facet: bounded searchText pre-narrow.
+    for (const term of WORKDAY_SEARCH_TERMS) {
+      for (let pg = 0; pg < WORKDAY_MAX_PAGES; pg++) {
+        const data = await page(term, pg * limit);
+        if (!data) break;
+        const postings: any[] = data.jobPostings ?? [];
+        if (postings.length === 0) break;
+        for (const p of postings) take(p, false);
+        if (postings.length < limit) break;
+      }
+    }
+    if (total != null && total > WORKDAY_FETCH_ALL_CAP) {
       console.warn(
-        `[workday] TRUNCATED — tenant=${tenant} searchText="${searchText}" total=${reportedTotal} fetched_pages=${pagesFetched} cap=${cap}. Raise WORKDAY_MAX_PAGES or add a narrower searchText.`,
+        `[workday] tenant=${tenant} total=${total} > fetch-all cap ${WORKDAY_FETCH_ALL_CAP} and no country facet; used searchText pre-narrow + locationsText filter (IL jobs outside WORKDAY_SEARCH_TERMS may be missed).`,
       );
     }
   }
