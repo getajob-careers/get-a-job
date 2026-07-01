@@ -25,6 +25,11 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { startMetric, finishMetric, type Metric } from "../_shared/metrics.ts";
 import { openaiChatCompletionWithRetry } from "../_shared/openai-chat.ts";
 import { openrouterChatCompletionWithRetry } from "../_shared/openrouter-chat.ts";
+import {
+  cvHasHebrew,
+  translateCvToEnglish,
+  type ChatMessage,
+} from "../_shared/cv-translate.ts";
 import { stripHtml } from "../_shared/strip-html.ts";
 import { buildCvPdf } from "../_shared/cv-templates/build-pdf.ts";
 import { resolveSectorTheme } from "../_shared/cv-templates/sector-mapping.ts";
@@ -720,7 +725,7 @@ Deno.serve(async (req) => {
       }
       masterRow = await readMaster();
     }
-    const master = masterRow?.cv_data as any;
+    let master = masterRow?.cv_data as any;
     if (!master) {
       _http = 500;
       _err = "no_master";
@@ -747,6 +752,39 @@ Deno.serve(async (req) => {
           domain_terms: [],
           soft_skill_keywords: [],
         };
+
+    // ── 2.5 English enforcement: a generated CV is always English. Translate
+    //    any Hebrew profile content to English BEFORE tailoring + render, so the
+    //    JD reword and anti-fab gate operate in English and Hebrew never reaches
+    //    the renderer. No-op (no model call) for all-English masters. Translation
+    //    only converts language; it never changes a claim (see cv-translate.ts).
+    if (openaiKey && cvHasHebrew(master)) {
+      const translateChat = async (
+        messages: ChatMessage[],
+      ): Promise<string> => {
+        const res = await openaiChatCompletionWithRetry(
+          {
+            model: MODEL,
+            temperature: 0,
+            max_tokens: 4000,
+            response_format: { type: "json_object" },
+            messages,
+          },
+          openaiKey,
+          { traceName: "refine-cv:translate", userId: user.id, sessionId },
+          { signal: AbortSignal.timeout(30000) },
+        );
+        if (!res.ok) throw new Error("translate http " + res.status);
+        const data = await res.json();
+        if (m) {
+          m.tokensIn = (m.tokensIn ?? 0) + (data.usage?.prompt_tokens ?? 0);
+          m.tokensOut =
+            (m.tokensOut ?? 0) + (data.usage?.completion_tokens ?? 0);
+        }
+        return data.choices?.[0]?.message?.content || "{}";
+      };
+      master = await translateCvToEnglish(master, translateChat);
+    }
 
     // ── 3 + 4 + 5. Ops → assemble → anti-fab gate, with one coverage retry ──
     const masterV = masterView(master);
