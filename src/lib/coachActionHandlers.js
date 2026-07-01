@@ -22,6 +22,7 @@ import { resolveDueDate } from "@/lib/taskDueDate";
 import { experiencesQueryKey } from "@/lib/queries/useExperiences";
 import { scoreApplication } from "@/lib/scoreApplication";
 import { stripHtml } from "../../scripts/lib/normalize.ts";
+import { classifyBullets } from "@/lib/bulletDedup";
 import {
   validTrack,
   validStatus,
@@ -434,9 +435,13 @@ const dedupeAppend = (existing, incoming) => {
 
 // Append user-confirmed bullets to an experience or education entry. Reads the
 // current arrays so it can (a) snapshot the PRIOR bullets/skills for undo and
-// (b) dedupe-append. A NULL skills column (education.skills is nullable)
-// coalesces to [] before the merge. Returns { ok, snapshot } | { error }.
-export async function appendBullets({ user, targetType, targetId, bullets, skills = [] }) {
+// (b) near-dedupe-append (see bulletDedup): clean bullets are appended, but a
+// bullet that PARAPHRASES an existing one is NOT silently added, it is returned
+// in `flagged` so the UI can ask add-anyway / replace / skip. Exact dupes are a
+// silent no-op. `force: true` bypasses the check (the "add anyway" path). A NULL
+// skills column (education.skills is nullable) coalesces to [] before the merge.
+// Returns { ok, appended, flagged, snapshot } | { error }.
+export async function appendBullets({ user, targetType, targetId, bullets, skills = [], force = false }) {
   if (!user?.id) return { error: "missing user" };
   if (!targetType || !targetId) return { error: "target required" };
   const table = bulletsTable(targetType);
@@ -454,8 +459,17 @@ export async function appendBullets({ user, targetType, targetId, bullets, skill
     if (readErr || !row) return { error: "entry not found" };
     const prevBullets = Array.isArray(row.bullets) ? row.bullets : [];
     const prevSkills = Array.isArray(row.skills) ? row.skills : []; // NULL -> []
-    const mergedBullets = dedupeAppend(prevBullets, incoming);
+    const { append, flagged } = force
+      ? { append: incoming, flagged: [] }
+      : classifyBullets(prevBullets, incoming);
+    const mergedBullets = [...prevBullets, ...append];
     const mergedSkills = dedupeAppend(prevSkills, Array.isArray(skills) ? skills : []);
+    // Nothing clean to add and skills unchanged: don't write, just hand the flags
+    // back so the UI can prompt (caller re-invokes with force per user choice).
+    const skillsUnchanged = mergedSkills.length === prevSkills.length;
+    if (append.length === 0 && skillsUnchanged) {
+      return { ok: true, appended: 0, flagged, snapshot: { bullets: prevBullets, skills: prevSkills } };
+    }
     const { error } = await (/** @type {any} */ (supabase))
       .from(table)
       .update({ bullets: mergedBullets, skills: mergedSkills })
@@ -465,7 +479,7 @@ export async function appendBullets({ user, targetType, targetId, bullets, skill
       console.error("[coachActions] appendBullets failed:", error);
       return { error: error.message || "Could not add bullets." };
     }
-    return { ok: true, snapshot: { bullets: prevBullets, skills: prevSkills } };
+    return { ok: true, appended: append.length, flagged, snapshot: { bullets: prevBullets, skills: prevSkills } };
   } catch (err) {
     console.error("[coachActions] appendBullets exception:", err);
     return { error: err?.message || "Could not add bullets." };
