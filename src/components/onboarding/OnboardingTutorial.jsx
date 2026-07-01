@@ -12,6 +12,7 @@ import {
   RotateCcw,
   CheckCircle2,
   ExternalLink,
+  Puzzle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { track, EVENTS } from "@/lib/analytics";
@@ -81,6 +82,12 @@ const SLIDES = [
 // Setup work takes ~80s worst case (analysis 40s + finalise 40s).
 const EXPECTED_SETUP_MS = 80_000;
 
+// Chrome Web Store listing for the companion extension. Shown as the final
+// onboarding step so a new user is nudged to install while their
+// getajob.careers session is live (the extension bridges auth off an open tab).
+const EXTENSION_STORE_URL =
+  "https://chromewebstore.google.com/detail/get-a-job/cnlgglikhomodkjpidaoigajonnbhlii";
+
 /**
  * Onboarding tutorial — user-paced slide carousel. Background career-analysis
  * + task-generation run in the parent. "Go to platform" enables once (a) the
@@ -108,6 +115,9 @@ export default function OnboardingTutorial({
   // Home doesn't bounce them back. Guarded by a ref so onTutorialEnd's
   // changing identity across renders can't re-fire the navigation.
   const [skipPending, setSkipPending] = useState(false);
+  // True once the user finishes the tour (or the returning-user skip settles):
+  // holds them on the extension-install step until they add it or dismiss it.
+  const [showExtension, setShowExtension] = useState(false);
   const skipFiredRef = useRef(false);
   const startedAtRef = useRef(Date.now());
   const startedEventRef = useRef(false);
@@ -140,8 +150,12 @@ export default function OnboardingTutorial({
     }
   }, [slideIndex, gateAcknowledged]);
 
-  const goPrev = () => { if (slideIndex > 0) setSlideIndex((i) => i - 1); };
-  const goNext = () => { if (slideIndex < SLIDES.length - 1) setSlideIndex((i) => i + 1); };
+  const goPrev = () => {
+    if (slideIndex > 0) setSlideIndex((i) => i - 1);
+  };
+  const goNext = () => {
+    if (slideIndex < SLIDES.length - 1) setSlideIndex((i) => i + 1);
+  };
 
   const handleGoToPlatform = () => {
     const slidesSeen = seenSlidesRef.current.size;
@@ -150,13 +164,17 @@ export default function OnboardingTutorial({
       slides_seen: slidesSeen,
       duration_ms: durationMs,
     });
-    onTutorialEnd({ skipped: false });
+    // Final onboarding beat: nudge the extension install before handing off to
+    // the platform. Navigation happens from the extension step's onDone.
+    setShowExtension(true);
   };
 
   const fireSkip = () => {
     if (skipFiredRef.current) return;
     skipFiredRef.current = true;
-    track(EVENTS.ONBOARDING_TUTORIAL_SKIPPED, { reason: "returning_user_skip_gate" });
+    track(EVENTS.ONBOARDING_TUTORIAL_SKIPPED, {
+      reason: "returning_user_skip_gate",
+    });
     onTutorialEnd({ skipped: true });
   };
 
@@ -186,7 +204,8 @@ export default function OnboardingTutorial({
                 Finishing setup…
               </h2>
               <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-2">
-                We&apos;re wrapping up your career analysis in the background. We&apos;ll let you know as soon as it&apos;s ready.
+                We&apos;re wrapping up your career analysis in the background.
+                We&apos;ll let you know as soon as it&apos;s ready.
               </p>
             </div>
             <ProgressBar percent={setupPercent} />
@@ -219,6 +238,13 @@ export default function OnboardingTutorial({
     );
   }
 
+  // ───── Extension-install step (final onboarding beat) ─────
+  if (showExtension) {
+    return (
+      <ExtensionPromptStep onDone={() => onTutorialEnd({ skipped: false })} />
+    );
+  }
+
   // ───── Returning-user gate ─────
   if (!gateAcknowledged) {
     return (
@@ -232,7 +258,9 @@ export default function OnboardingTutorial({
               Welcome back
             </h2>
             <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-2">
-              You&apos;ve been through the platform tour before. Skip it and head straight in, or watch it again if you&apos;d like a refresher.
+              You&apos;ve been through the platform tour before. Skip it and
+              head straight in, or watch it again if you&apos;d like a
+              refresher.
             </p>
           </div>
           <div className="flex flex-col gap-2.5">
@@ -302,9 +330,13 @@ export default function OnboardingTutorial({
               disabled={!goToPlatformEnabled}
             >
               {goToPlatformEnabled ? (
-                <>Go to platform <ArrowRight className="w-4 h-4" /></>
+                <>
+                  Go to platform <ArrowRight className="w-4 h-4" />
+                </>
               ) : (
-                <><Loader2 className="w-3.5 h-3.5 animate-spin" /> Finalising…</>
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" /> Finalising…
+                </>
               )}
             </PrimaryButton>
           ) : (
@@ -313,6 +345,61 @@ export default function OnboardingTutorial({
             </PrimaryButton>
           )}
         </div>
+      </div>
+    </FullScreenShell>
+  );
+}
+
+// Final onboarding step: prompt to install the companion browser extension.
+// "Add the extension" opens the Chrome Web Store in a new tab and keeps THIS
+// tab alive (the extension bridges auth off an open getajob.careers session),
+// then flips to a "Continue to platform" affordance. "Maybe later" skips it so
+// the step never blocks finishing onboarding. onDone drives navigation either
+// way.
+export function ExtensionPromptStep({ onDone }) {
+  const [added, setAdded] = useState(false);
+
+  const handleAdd = () => {
+    window.open(EXTENSION_STORE_URL, "_blank", "noopener,noreferrer");
+    setAdded(true);
+  };
+
+  return (
+    <FullScreenShell>
+      <div className="max-w-md mx-auto text-center space-y-6">
+        <div className="w-14 h-14 rounded-full bg-rd-coral-tint text-rd-coral flex items-center justify-center mx-auto">
+          <Puzzle className="w-7 h-7" />
+        </div>
+        <div>
+          <h2 className="font-display font-extrabold text-[24px] leading-[1.15] tracking-tight text-rd-text">
+            You&apos;re all set!
+          </h2>
+          <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-2">
+            Add the Get A Job browser extension to take us everywhere you apply,
+            tailor your CV to any job, check your fit, and add roles to your
+            tracker wherever you find them.
+          </p>
+        </div>
+        <div className="flex flex-col gap-2.5">
+          {added ? (
+            <PrimaryButton onClick={() => onDone()}>
+              Continue to platform <ArrowRight className="w-4 h-4" />
+            </PrimaryButton>
+          ) : (
+            <>
+              <PrimaryButton onClick={handleAdd}>
+                Add the extension <ExternalLink className="w-4 h-4" />
+              </PrimaryButton>
+              <SecondaryButton onClick={() => onDone()}>
+                Maybe later
+              </SecondaryButton>
+            </>
+          )}
+        </div>
+        <p className="text-[11.5px] leading-[1.55] text-rd-text-tertiary">
+          Keep this getajob.careers tab open so the extension connects to your
+          account automatically.
+        </p>
       </div>
     </FullScreenShell>
   );
@@ -343,7 +430,9 @@ function Slide({ slide, isFirstSlide }) {
           <div className="mt-5 max-w-md mx-auto bg-rd-bg-card border border-rd-border rounded-[13px] px-3.5 py-3 text-left shadow-[0_10px_28px_rgba(40,25,10,0.07)]">
             <div className="flex items-center gap-2.5">
               <div className="w-9 h-9 rounded-[10px] bg-rd-text flex items-center justify-center flex-shrink-0">
-                <span className="font-display font-bold text-white text-[15px]">m</span>
+                <span className="font-display font-bold text-white text-[15px]">
+                  m
+                </span>
               </div>
               <div className="flex-1 min-w-0">
                 <div className="font-display font-semibold text-[13.5px] text-rd-text truncate">
@@ -502,4 +591,4 @@ function FullScreenShell({ children }) {
 }
 
 // Re-export for testability.
-export { SLIDES, EXPECTED_SETUP_MS };
+export { SLIDES, EXPECTED_SETUP_MS, EXTENSION_STORE_URL };
