@@ -2646,9 +2646,13 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         cv_version_name: `${safeTargetRole} CV`,
         cv_skills_emphasized: (cvData.skills as any)?.domain || [],
       }).eq("id", application_id).eq("user_id", user.id).select().single();
-      if (!data) { _http = 404; _err = 'app_not_found'; return json({ error: "Application not found or not owned by user." }, 404); }
-      appRecord = data;
-    } else if (!isMasterMode) {
+      // BUG 1: a chat fit-assessment can pass an application_id that is NOT a real
+      // owned applications row (LLM-emitted for a non-tracked role, or stale). Do
+      // NOT hard-404 — leave appRecord unset and fall through to create a fresh
+      // application below, so CV generation always succeeds from the chat path.
+      if (data) appRecord = data;
+    }
+    if (!appRecord && !isMasterMode) {
       const { data } = await supabase.from("applications").insert({
         user_id: user.id,
         role_title: safeTargetRole,

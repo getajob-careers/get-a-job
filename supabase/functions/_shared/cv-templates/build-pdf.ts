@@ -364,14 +364,19 @@ function makeCodepointSanitizer(
     const cached = cache.get(cp);
     if (cached !== undefined) return cached;
     let out: string;
-    if (has(cp)) {
-      out = String.fromCodePoint(cp);
-    } else if (PUNCT_FALLBACK[cp] !== undefined) {
-      // Curated ASCII fallback for subset-omitted punctuation (keep only the
-      // fallback chars the font actually has — ASCII basics always present).
+    if (PUNCT_FALLBACK[cp] !== undefined) {
+      // Curated typographic punctuation ALWAYS degrades to ASCII, even when an
+      // embedded font has the glyph. Latin text is drawn with the Latin font
+      // (Arimo), whose subset omits en/em dashes + smart quotes, so keeping the
+      // original renders a tofu box. The Hebrew fallback font added in #456 DOES
+      // carry these glyphs, which made has(cp) true and re-enabled the box on date
+      // ranges + title separators. Keep only fallback chars the font has (ASCII
+      // basics are always present).
       out = [...PUNCT_FALLBACK[cp]]
         .filter((c) => has(c.codePointAt(0)!))
         .join("");
+    } else if (has(cp)) {
+      out = String.fromCodePoint(cp);
     } else {
       out = "";
       for (const ch of String.fromCodePoint(cp).normalize("NFKD")) {
