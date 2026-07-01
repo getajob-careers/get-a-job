@@ -2,6 +2,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletionWithRetry } from '../_shared/openai-chat.ts'
+import {
+  cvHasHebrew,
+  translateCvToEnglish,
+  type ChatMessage,
+} from '../_shared/cv-translate.ts'
 import { REASONING_MODEL, selectAnalysisModel, buildAnalysisPayload } from '../_shared/career-analysis-model.ts'
 import { sha256Hex } from '../_shared/content-hash.ts'
 import { pickPrimaryEducation, isCurrentlyStudent, formatEducationLine } from '../_shared/education-helpers.ts'
@@ -1105,7 +1110,13 @@ You do NOT compute scores, assign tracks, or change matched/missing skill values
 
 USER SENIORITY CONTEXT: This user is ${expLevelLabel}. Appropriate roles: ${capLabel}. The server has already filtered the pre-scored list to respect this cap, so every role in the input is safe to recommend. Do not name, suggest, or mention any role above the user's cap in your reasoning, action_items, or alignment_to_goal text — if a Track 3 aspirational role is shown, it's already within the cap.
 
-Write in a supportive, actionable tone. Reference the user's specific experiences and skills. Do not invent facts about the user. Do not modify the titles, tracks, scores, matched_skills, or missing_skills values — those come from the server.`;
+Write in a supportive, actionable tone. Reference the user's specific experiences and skills. Do not invent facts about the user. Do not modify the titles, tracks, scores, matched_skills, or missing_skills values — those come from the server.
+
+VOICE + LANGUAGE (reasoning, action_items, alignment_to_goal, and overall_assessment are shown DIRECTLY to the user):
+- Write them in SECOND PERSON, addressing the user directly ("You have strong analytical skills", "Your experience in customer success maps to ...", "You'd close this gap by ..."). Never write about "the user" or "they" in these fields.
+- Write ALL of these text fields in ENGLISH, even when the profile is in Hebrew or another language. Translate any non-English profile content to English rather than echoing it.
+- Voice and language must NOT change the substance: do not inflate the fit, invent strengths, soften real gaps, or alter the assessment. Same analysis, addressed to you in English.
+- The scoring fields (title, track, readiness_score, goal_alignment_score, matched_skills, missing_skills) are server-provided; copy them exactly.`;
 
     const userPrompt = `USER PROFILE:
 - Name: ${sanitisedProfile.full_name || 'Not provided'}
@@ -1143,12 +1154,12 @@ CANDIDATE_SKILLS — skill IDs the user MIGHT have based on their text but the d
 ${JSON.stringify(candidateSkillsForLLM, null, 2)}
 
 For each role listed above, write:
-1. reasoning: 2-3 sentences explaining why this user is/isn't a strong fit, referencing their specific experiences and skills. Mention both the fit score and the goal alignment score when relevant.
+1. reasoning: 2-3 sentences explaining why you are/aren't a strong fit, referencing your specific experiences and skills. Mention both the fit score and the goal alignment score when relevant.
 2. action_items: 2-3 concrete, specific next steps to close the skill gaps
 3. alignment_to_goal: 1 sentence explaining the goal alignment score using the alignment_reason as a factual anchor (e.g. "natural transfer path", "same role family", "no clear connection")
 
 Also write at the top level:
-- overall_assessment: 2-3 sentences summarising the user's current position and strongest signals
+- overall_assessment: 2-3 sentences summarising your current position and strongest signals
 - qualification_level: "Junior", "Mid-Level", or "Senior" based on their experience depth
 - additional_credited_skill_ids: array of skill IDs FROM THE CANDIDATE_SKILLS LIST ABOVE that the user demonstrably has based on their text. Empty array if none. NEVER include IDs not in CANDIDATE_SKILLS.
 
@@ -1372,7 +1383,7 @@ Return ONLY valid JSON.`;
       }
     }
 
-    const response = {
+    let response = {
       qualification_level: ["Junior", "Mid-Level", "Senior"].includes(llmResult.qualification_level)
         ? llmResult.qualification_level
         : inferQualificationLevel(sanitisedExperiences),
@@ -1392,6 +1403,38 @@ Return ONLY valid JSON.`;
       // 20260526_function_cache.sql.
       input_hash: inputHash,
     };
+
+    // English guarantee (analysis-surface analogue of the CV render chokepoint;
+    // same pattern as analyze-job-match #469): the reasoning / action_items /
+    // alignment_to_goal / overall_assessment are shown to the user, but a Hebrew
+    // profile makes the model write them in Hebrew. Gated on Hebrew detection
+    // (no-op / zero added latency for an English profile), translate the whole
+    // response via the SHARED faithful, anti-fab translator. Only Hebrew strings
+    // are touched; titles, skill IDs, tracks, and scores are English/numbers and
+    // pass through unchanged.
+    if (cvHasHebrew(response)) {
+      const translateChat = async (messages: ChatMessage[]): Promise<string> => {
+        const res = await openaiChatCompletionWithRetry(
+          {
+            model: 'gpt-4o',
+            temperature: 0,
+            max_tokens: 4000,
+            response_format: { type: 'json_object' },
+            messages,
+          },
+          openaiKey,
+          { traceName: 'generate-career-analysis:translate', userId: user.id },
+          { signal: AbortSignal.timeout(30000) },
+        )
+        if (!res.ok) throw new Error('translate http ' + res.status)
+        const data = await res.json()
+        return data.choices?.[0]?.message?.content || '{}'
+      }
+      response = (await translateCvToEnglish(
+        response,
+        translateChat,
+      )) as typeof response
+    }
 
     _ok = true; _http = 200
     return new Response(JSON.stringify(response), {
