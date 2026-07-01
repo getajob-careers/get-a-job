@@ -19,6 +19,9 @@ import type { CompanyEntry, RawJob } from "./normalize.js";
 const USER_AGENT = "GetAJob-RefreshJobs/1.0 (https://getajob.example)";
 const DEFAULT_TIMEOUT_MS = 25_000;
 const WORKDAY_MAX_PAGES = 25; // 25 × 20 = 500 IL-matching jobs ceiling per tenant
+// Ceiling on the facet path (a single tenant's IL job count; 120 × 20 = 2400
+// is far above any one tenant's IL total).
+const WORKDAY_FACET_MAX_PAGES = 120;
 const SR_MAX_PAGES = 10; // 10 × 100 = 1000 IL jobs ceiling per company
 
 // ───── HTTP helpers ──────────────────────────────────────────────────
@@ -446,6 +449,61 @@ export function parseWorkdayDate(raw: unknown): string | null {
   return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
 }
 
+// Client-side IL location filter for Workday. The country facet is
+// INCONSISTENT across tenants (Cadence "Location_Country", Marvell/KLA
+// "Country", Palo Alto exposes only a hierarchical "locationMainGroup" with no
+// flat country facet), so an IL count cannot rely on one facet name. We filter
+// jobPostings[].locationsText directly against the known IL cities.
+export const WORKDAY_IL_PATTERNS: RegExp[] = [
+  /\bisrael\b/i,
+  /tel[ -]?aviv/i,
+  /herzl/i,
+  /\bhaifa\b/i,
+  /ramat[ -]?gan/i,
+  /ra['`’]?anana/i,
+  /y[oq]kneam/i,
+  /netanya/i,
+  /petah|petach/i,
+  /jerusalem/i,
+  /be['`’]?er[ -]?sheva/i,
+  /rehovot/i,
+  /caesarea/i,
+  /kfar[ -]?saba/i,
+  /hod[ -]?hasharon/i,
+  /\byavne\b/i,
+  /or[ -]?yehuda/i,
+  /airport[ -]?city/i,
+  /modi['`’]?in/i,
+  /givatayim/i,
+  /\bholon\b/i,
+  /bnei[ -]?brak/i,
+  /kiryat/i,
+];
+
+export function isWorkdayIlLocation(loc: string | null | undefined): boolean {
+  if (!loc) return false;
+  return WORKDAY_IL_PATTERNS.some((re) => re.test(loc));
+}
+
+// Fetch active IL-located roles from a Workday tenant via the public CXS API.
+// No auth.
+//
+// HYBRID by facet presence. A pure facet-first / locationsText approach
+// regressed no-facet tenants two ways: it dropped multi-location "N Locations"
+// IL jobs (locationsText has no city to match) and it truncated boards past
+// Workday's ~2000 offset cap. So we branch on whether the tenant exposes an
+// "Israel" country-facet value (scanned name-agnostically, since the facet name
+// varies: Cadence "Location_Country", Marvell/KLA "Country", others none):
+//   - FACET path: fetch ONLY those postings. Authoritative (Workday's own
+//     structured country), catches multi-location, and trims the searchText
+//     false positives. The correctness win on KLA / Salesforce / Marvell /
+//     Cadence.
+//   - SEARCHTEXT path (no country facet, e.g. NVIDIA / Intel / Palo Alto): run
+//     the IL searchText terms and dedup, with NO locationsText filter. Server-
+//     side searchText matches a "2 Locations" Israel job and reaches IL roles
+//     beyond the 2000 offset cap, so it does not drop the multi-location or
+//     large-board IL roles a locationsText filter would. This is the prior
+//     production behavior, kept unchanged so no-facet tenants never regress.
 export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
   if (!c.slug) return [];
   // Slug shape: "<tenant>.wdN.myworkdayjobs.com/<site>"
@@ -455,81 +513,108 @@ export async function fetchWorkday(c: CompanyEntry): Promise<RawJob[]> {
   const site = parts.slice(1).join("/");
   const tenant = host.split(".")[0];
   const url = `https://${host}/wday/cxs/${tenant}/${site}/jobs`;
-
-  // De-dup across the 3 search terms by externalPath (or title+location
-  // for jobs missing externalPath).
-  const seen = new Set<string>();
-  const collected: RawJob[] = [];
   const limit = 20;
 
-  for (const searchText of WORKDAY_SEARCH_TERMS) {
-    let reportedTotal: number | null = null;
-    let pagesFetched = 0;
-    for (let page = 0; page < WORKDAY_MAX_PAGES; page++) {
-      const offset = page * limit;
-      let data: any;
-      try {
-        data = await httpPostJson<any>(url, {
-          appliedFacets: {},
-          limit,
-          offset,
-          searchText,
-        });
-      } catch (err) {
-        // Some tenants 4xx specific offsets; treat as end-of-stream
-        // for THIS search term and try the next one.
+  const seen = new Set<string>();
+  const collected: RawJob[] = [];
+
+  // ilKnown=true stamps structured_country (facet path guarantees IL). Neither
+  // path applies a locationsText filter (that would drop multi-location jobs).
+  const take = (p: any, ilKnown: boolean): void => {
+    const externalPath = String(p?.externalPath ?? p?.bulletFields?.[0] ?? "");
+    const dedupKey =
+      externalPath ||
+      `${String(p?.title ?? "")}|${String(p?.locationsText ?? "")}`;
+    if (seen.has(dedupKey)) return;
+    seen.add(dedupKey);
+    const applyUrl = externalPath
+      ? `https://${host}/${site}${externalPath.startsWith("/") ? externalPath : `/${externalPath}`}`
+      : `https://${host}/${site}`;
+    collected.push({
+      external_id: dedupKey,
+      title: p?.title ?? "",
+      // Workday list endpoint has no description; fetched per job by
+      // fetchWorkdayDetail in the enrich pass, not here.
+      description_html: null,
+      location_raw: p?.locationsText ?? null,
+      structured_country: ilKnown ? "Israel" : null,
+      apply_url: applyUrl,
+      date_posted: parseWorkdayDate(p?.postedOn),
+      salary_min: null,
+      salary_max: null,
+      salary_currency: null,
+      is_remote: /remote/i.test(p?.locationsText ?? ""),
+      raw_payload: p,
+    });
+  };
+
+  const page = async (
+    searchText: string,
+    offset: number,
+    appliedFacets: Record<string, string[]> = {},
+  ): Promise<any | null> => {
+    try {
+      return await httpPostJson<any>(url, {
+        appliedFacets,
+        limit,
+        offset,
+        searchText,
+      });
+    } catch {
+      // A 4xx on a specific offset/term is end-of-stream for it, not fatal.
+      return null;
+    }
+  };
+
+  // First page carries the facet list.
+  const first = await page("", 0);
+  if (!first) return collected;
+
+  // Name-agnostic scan for an "Israel" country-facet value.
+  let israelFacet: { param: string; id: string } | null = null;
+  for (const f of (first.facets ?? []) as any[]) {
+    for (const v of (f?.values ?? []) as any[]) {
+      if (
+        String(v?.descriptor ?? "")
+          .trim()
+          .toLowerCase() === "israel"
+      ) {
+        israelFacet = { param: String(f.facetParameter), id: String(v.id) };
         break;
       }
-      const postings: any[] = data?.jobPostings ?? [];
-      // Workday returns the server-side total in `total` on every response.
-      // Capture it on the first page — if total > our cap (WORKDAY_MAX_PAGES
-      // × limit = 500), we're silently truncating and need to know.
-      if (page === 0 && typeof data?.total === "number") {
-        reportedTotal = data.total;
-      }
-      pagesFetched++;
-      if (postings.length === 0) break;
-      for (const p of postings) {
-        const externalPath = String(
-          p.externalPath ?? p.bulletFields?.[0] ?? "",
-        );
-        const dedupKey =
-          externalPath ||
-          `${String(p.title ?? "")}|${String(p.locationsText ?? "")}`;
-        if (seen.has(dedupKey)) continue;
-        seen.add(dedupKey);
+    }
+    if (israelFacet) break;
+  }
 
-        const applyUrl = externalPath
-          ? `https://${host}/${site}${externalPath.startsWith("/") ? externalPath : `/${externalPath}`}`
-          : `https://${host}/${site}`;
-        collected.push({
-          external_id: dedupKey,
-          title: p.title ?? "",
-          // Workday list endpoint doesn't include descriptions. Fetching
-          // per job would 20x the request count — skipped in v1.
-          description_html: null,
-          location_raw: p.locationsText ?? null,
-          structured_country: null,
-          apply_url: applyUrl,
-          date_posted: parseWorkdayDate(p.postedOn),
-          salary_min: null,
-          salary_max: null,
-          salary_currency: null,
-          is_remote: /remote/i.test(p.locationsText ?? ""),
-          raw_payload: p,
-        });
-      }
+  if (israelFacet) {
+    // FACET path: authoritative IL set (catches multi-location; trims false
+    // positives). Cheap even for mega-tenants (fetches only IL postings).
+    const facets = { [israelFacet.param]: [israelFacet.id] };
+    for (
+      let offset = 0;
+      offset < WORKDAY_FACET_MAX_PAGES * limit;
+      offset += limit
+    ) {
+      const data = await page("", offset, facets);
+      if (!data) break;
+      const postings: any[] = data.jobPostings ?? [];
+      if (postings.length === 0) break;
+      for (const p of postings) take(p, true);
       if (postings.length < limit) break;
     }
-    // Truncation alert: if Workday reported more jobs than we could fetch
-    // within WORKDAY_MAX_PAGES, log loudly so ops can raise the cap or
-    // narrow the search per tenant. Surface includes tenant + search term
-    // + reported total vs fetched count.
-    const cap = WORKDAY_MAX_PAGES * limit;
-    if (reportedTotal != null && reportedTotal > cap) {
-      console.warn(
-        `[workday] TRUNCATED — tenant=${tenant} searchText="${searchText}" total=${reportedTotal} fetched_pages=${pagesFetched} cap=${cap}. Raise WORKDAY_MAX_PAGES or add a narrower searchText.`,
-      );
+    return collected;
+  }
+
+  // SEARCHTEXT path (no country facet): prior production strategy, unchanged.
+  // No locationsText filter by design (it would drop "N Locations" IL jobs).
+  for (const term of WORKDAY_SEARCH_TERMS) {
+    for (let pg = 0; pg < WORKDAY_MAX_PAGES; pg++) {
+      const data = await page(term, pg * limit);
+      if (!data) break;
+      const postings: any[] = data.jobPostings ?? [];
+      if (postings.length === 0) break;
+      for (const p of postings) take(p, false);
+      if (postings.length < limit) break;
     }
   }
   return collected;
