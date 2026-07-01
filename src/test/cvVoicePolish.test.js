@@ -216,10 +216,11 @@ describe("buildMasterCvData applies the polish to bullets and nothing else", () 
       field_of_study: "Business Administration",
       dates: "2023 – Present",
     });
+    // Skills are categorized (Piece 3): SQL -> technical, Figma -> tools.
     expect(master.skills).toEqual({
-      domain: ["Customer Success", "SQL", "Figma"],
-      technical: [],
-      tools: [],
+      domain: ["Customer Success"],
+      technical: ["SQL"],
+      tools: ["Figma"],
     });
     expect(master.languages).toEqual(["English", "Hebrew"]);
   });

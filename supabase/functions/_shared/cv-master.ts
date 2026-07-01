@@ -15,6 +15,7 @@
 // deno-lint-ignore-file no-explicit-any
 
 import { EXPERIENCE_BUCKETS, MASTER_ORG_KEY } from "./cv-schema.ts";
+import { categorizeSkills } from "./cv-skills.ts";
 
 const MONTHS_SHORT = [
   "Jan",
@@ -212,11 +213,17 @@ function expBullets(exp: any): string[] {
 // experience_id is stamped from the experiences row id so the per-job reframe
 // step (refine-cv) can address bullets for rewording; an experience with no id
 // still carries through (refine-cv keeps it verbatim).
+// `extras` carries the separate profile tables the deterministic builder cannot
+// reach through profile/experiences/education alone (projects, certifications).
+// It is OPTIONAL: callers that do not pass it get no projects/certifications keys
+// (byte-identical for those callers). education already carries honors /
+// coursework / academic_projects, so those need no extra source.
 export function buildMasterCvData(
   profile: any,
   experiences: any,
   education: any,
   userEmail?: string,
+  extras?: { projects?: any[]; certifications?: any[] },
 ): any {
   const p = profile || {};
   const buckets: Record<string, any[]> = Object.fromEntries(
@@ -236,6 +243,66 @@ export function buildMasterCvData(
     .map((l: any) => (typeof l === "string" ? l : str(l?.language || l?.name)))
     .filter(Boolean);
 
+  // Skills: categorize the UNION of profile.skills (curated, lead first) and every
+  // experience's skills[] (where SQL / Python / tools actually live) into the
+  // canonical {domain, technical, tools} shape. Deterministic, no LLM.
+  const skillUnion = [
+    ...asArray(p.skills).map(str),
+    ...asArray(experiences).flatMap((e: any) => asArray(e?.skills).map(str)),
+  ].filter(Boolean);
+  const skills = categorizeSkills(skillUnion);
+
+  // Education entries keep the rich fields the builder used to drop (coursework,
+  // academic projects), added only when present so entries stay lean otherwise.
+  const educationEntries = asArray(education).map((ed: any) => {
+    const coursework = asArray(ed?.relevant_coursework)
+      .map(str)
+      .filter(Boolean);
+    const academic = asArray(ed?.academic_projects).map(str).filter(Boolean);
+    return {
+      institution: str(ed?.institution),
+      degree: str(ed?.degree_type),
+      field_of_study: str(ed?.field_of_study),
+      dates: dateRange(ed?.start_date, ed?.end_date, ed?.is_current),
+      ...(coursework.length ? { relevant_coursework: coursework } : {}),
+      ...(academic.length ? { academic_projects: academic } : {}),
+    };
+  });
+
+  // Honors & awards: aggregate every education row's honors[] into the top-level
+  // section the renderer reads, deduped case-insensitively, capped.
+  const honorsSeen = new Set<string>();
+  const honors: string[] = [];
+  for (const ed of asArray(education)) {
+    for (const h of asArray(ed?.honors)) {
+      const hs = str(h).trim();
+      const key = hs.toLowerCase();
+      if (hs && !honorsSeen.has(key)) {
+        honorsSeen.add(key);
+        honors.push(hs);
+      }
+    }
+  }
+
+  // Projects / certifications from the separate tables, when the caller passes
+  // them. Shapes match the renderer (name/url/description; name/issuer/date_earned).
+  const projects = asArray(extras?.projects)
+    .map((pr: any) => ({
+      name: str(pr?.name),
+      ...(str(pr?.url) ? { url: str(pr.url) } : {}),
+      ...(str(pr?.description) ? { description: str(pr.description) } : {}),
+    }))
+    .filter((pr) => pr.name);
+  const certifications = asArray(extras?.certifications)
+    .map((c: any) => ({
+      name: str(c?.name),
+      ...(str(c?.issuer) ? { issuer: str(c.issuer) } : {}),
+      ...(str(c?.date_earned || c?.date)
+        ? { date_earned: str(c?.date_earned || c?.date) }
+        : {}),
+    }))
+    .filter((c) => c.name);
+
   return {
     header: {
       name: str(p.full_name),
@@ -251,20 +318,12 @@ export function buildMasterCvData(
     ...Object.fromEntries(
       EXPERIENCE_BUCKETS.map((b) => [b.cvKey, buckets[b.bucket]]),
     ),
-    education: asArray(education).map((ed: any) => ({
-      institution: str(ed?.institution),
-      degree: str(ed?.degree_type),
-      field_of_study: str(ed?.field_of_study),
-      dates: dateRange(ed?.start_date, ed?.end_date, ed?.is_current),
-    })),
-    // Canonical skills shape {domain, technical, tools}. Source profile.skills
-    // is a flat list, so it all lands in domain (no categorized source to split
-    // on). No inner languages key; languages are a separate top-level array.
-    skills: {
-      domain: asArray(p.skills).map(str).filter(Boolean),
-      technical: [],
-      tools: [],
-    },
+    education: educationEntries,
+    skills,
     languages,
+    // Optional sections, emitted only when present so absent data adds no keys.
+    ...(honors.length ? { honors_and_awards: honors } : {}),
+    ...(certifications.length ? { certifications } : {}),
+    ...(projects.length ? { projects } : {}),
   };
 }
