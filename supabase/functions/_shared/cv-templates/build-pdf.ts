@@ -53,6 +53,7 @@ const fontkit: any =
   (fontkitMod as { default?: unknown }).default ?? fontkitMod;
 
 import type { TemplateConfig, SectionKey } from "./types.ts";
+import { skillGroupTopAdvance } from "./skills-layout.ts";
 import {
   ARIMO_BOLD,
   ARIMO_BOLDITALIC,
@@ -942,7 +943,10 @@ function drawSkillGroup(
 ) {
   const size = s(ctx, SIZE_BODY);
   const lead = s(ctx, ctx.d.lhBody);
-  ctx.y -= s(ctx, isFirst ? ctx.d.lhBulletGap : 5); // tight gap between groups
+  // First group: gap below the Skills heading. Later groups: a full line height
+  // plus a small inter-group gap so this group's first line clears the previous
+  // group's last line (see skills-layout.ts for the fix rationale).
+  ctx.y -= s(ctx, skillGroupTopAdvance(isFirst, ctx.d));
   const labelStr = `${label}:  `;
   const labelW = ctx.fonts.bold.widthOfTextAtSize(labelStr, size);
   if (ctx.draw) {
@@ -975,7 +979,9 @@ function drawSkillGroup(
 
 // Skills rendered BY GROUP (the data is already categorized). Each non-empty
 // group gets a labeled, compact line; empty groups are skipped.
-function renderSkills(ctx: Ctx, cvData: CvData) {
+// Exported for the skills-overlap regression test (drawSkillGroup vertical
+// advance); not part of the public renderer surface.
+export function renderSkills(ctx: Ctx, cvData: CvData) {
   const sk = cvData.skills || {};
   const groups = (["domain", "technical", "tools"] as const)
     .map((key) => ({
