@@ -33,6 +33,7 @@ import StepInternship from "../components/onboarding/StepInternship";
 import StepCareerDirection from "../components/onboarding/StepCareerDirection";
 import StepConstraints from "../components/onboarding/StepConstraints";
 import StepSurvey from "../components/onboarding/StepSurvey";
+import { prewarmMasterCv } from "@/lib/prewarmMasterCv";
 
 // DB chk_experiences_type allows only these values
 // ALLOWED_EXPERIENCE_TYPES + inferExperienceType moved to
@@ -1004,6 +1005,15 @@ export default function Onboarding() {
       setFinalising(false);
       return;
     }
+
+    // Pre-warm the master CV in the background (speed regression fix). Without it,
+    // a new user's FIRST tailor pays refine-cv's cold inline master authoring
+    // (~40-60s, Sonnet); building the master here (deterministic, no LLM, same as
+    // the studio) means refine-cv finds a warm master and goes straight to the
+    // ~16-23s select-and-reword. Fire-and-forget (not awaited): it must never block
+    // or fail onboarding. Idempotent — skips when a master already exists — and the
+    // refine-cv self-heal is the backstop if the tab closes before this runs.
+    prewarmMasterCv({ supabase, user });
 
     // onboarding_completed — compute duration_ms from the localStorage
     // timestamp set in checkExistingProfile when onboarding_started fired.
