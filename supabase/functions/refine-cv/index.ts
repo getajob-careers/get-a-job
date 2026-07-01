@@ -32,6 +32,7 @@ import {
 } from "../_shared/cv-translate.ts";
 import { stripHtml } from "../_shared/strip-html.ts";
 import { buildCvPdf } from "../_shared/cv-templates/build-pdf.ts";
+import { buildMasterCvData } from "../_shared/cv-master.ts";
 import { resolveSectorTheme } from "../_shared/cv-templates/sector-mapping.ts";
 import type {
   TemplateStyle,
@@ -677,14 +678,24 @@ Deno.serve(async (req) => {
     }
     const safeTargetRole = String(app.role_title ?? "").slice(0, 200);
 
-    // profile (resolveSectorTheme + buildCvPdf header fallbacks)
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select(
-        "full_name, phone_number, location, linkedin_url, primary_domain, target_industries",
-      )
-      .eq("id", user.id)
-      .single();
+    // profile + experiences + education — the master's source rows, in parallel.
+    // resolveSectorTheme + buildCvPdf header fallbacks read `profile`.
+    const [profileRes, expRes, eduRes] = await Promise.all([
+      supabase.from("profiles").select("*").eq("id", user.id).single(),
+      supabase.from("experiences").select("*").eq("user_id", user.id),
+      supabase
+        .from("education")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("display_order", { ascending: true, nullsFirst: false })
+        .order("created_at", { ascending: true }),
+    ]);
+    const profile = profileRes.data as any;
+    if (!profile) {
+      _http = 404;
+      _err = "no_profile";
+      return json({ error: "No user profile found" }, 404);
+    }
     const userContext = {
       full_name: profile?.full_name ?? "",
       phone_number: profile?.phone_number ?? "",
@@ -693,42 +704,40 @@ Deno.serve(async (req) => {
       linkedin_url: profile?.linkedin_url ?? "",
     };
 
-    // ── 1. Lazy master load (L1): author it once via the deployed master mode
-    //    if the user has no is_master row yet, then re-select. ───────────────
-    const readMaster = async () =>
-      (
-        await supabase
+    // ── 1. Master (FIX 2 — staleness): rebuild DETERMINISTICALLY from the CURRENT
+    //    profile every tailor, so profile edits always propagate. Profile is the
+    //    single source of truth. buildMasterCvData is deterministic (no LLM, sub-ms),
+    //    so this replaces the old persisted-row read + the cold ~40s LLM self-heal
+    //    and adds no measurable latency. The persisted is_master row is refreshed
+    //    fire-and-forget so the studio shows the same fresh master.
+    let master = buildMasterCvData(
+      profile,
+      expRes.data || [],
+      eduRes.data || [],
+      user.email,
+    ) as any;
+    void (async () => {
+      try {
+        const { error: insErr } = await supabase
           .from("application_cvs")
-          .select("cv_data")
-          .eq("user_id", user.id)
-          .eq("is_master", true)
-          .maybeSingle()
-      ).data;
-    let masterRow = await readMaster();
-    if (!masterRow?.cv_data) {
-      console.log(
-        "[refine] no master — authoring one (master mode, ~40s, once)",
-      );
-      const { error: genErr } = await supabase.functions.invoke(
-        "generate-tailored-cv",
-        { body: { master: true, cv_model: "sonnet" } },
-      );
-      if (genErr) {
-        _http = 500;
-        _err = "master_gen";
-        return json(
-          { error: "Could not prepare your master CV. Try again." },
-          500,
-        );
+          .insert({
+            user_id: user.id,
+            is_master: true,
+            version: 1,
+            application_id: null,
+            cv_data: master,
+          });
+        if (insErr && (insErr as any).code === "23505") {
+          await supabase
+            .from("application_cvs")
+            .update({ cv_data: master })
+            .eq("user_id", user.id)
+            .eq("is_master", true);
+        }
+      } catch (_) {
+        // studio-sync only; never affects the tailor
       }
-      masterRow = await readMaster();
-    }
-    let master = masterRow?.cv_data as any;
-    if (!master) {
-      _http = 500;
-      _err = "no_master";
-      return json({ error: "Master CV unavailable." }, 500);
-    }
+    })();
 
     // ── 2. JD keywords ──────────────────────────────────────────────────────
     const openaiKey = Deno.env.get("OPENAI_API_KEY");
@@ -756,31 +765,32 @@ Deno.serve(async (req) => {
     //    JD reword and anti-fab gate operate in English and Hebrew never reaches
     //    the renderer. No-op (no model call) for all-English masters. Translation
     //    only converts language; it never changes a claim (see cv-translate.ts).
+    const translateChat = async (
+      messages: ChatMessage[],
+    ): Promise<string> => {
+      const res = await openaiChatCompletionWithRetry(
+        {
+          model: MODEL,
+          temperature: 0,
+          max_tokens: 4000,
+          response_format: { type: "json_object" },
+          messages,
+        },
+        openaiKey!,
+        { traceName: "refine-cv:translate", userId: user.id, sessionId },
+        { signal: AbortSignal.timeout(30000) },
+      );
+      if (!res.ok) throw new Error("translate http " + res.status);
+      const data = await res.json();
+      if (m) {
+        m.tokensIn = (m.tokensIn ?? 0) + (data.usage?.prompt_tokens ?? 0);
+        m.tokensOut = (m.tokensOut ?? 0) + (data.usage?.completion_tokens ?? 0);
+      }
+      return data.choices?.[0]?.message?.content || "{}";
+    };
+    // Pre-ops: translate a Hebrew master so the reword + anti-fab gate run in
+    // English. No-op (no model call) for an all-English master.
     if (openaiKey && cvHasHebrew(master)) {
-      const translateChat = async (
-        messages: ChatMessage[],
-      ): Promise<string> => {
-        const res = await openaiChatCompletionWithRetry(
-          {
-            model: MODEL,
-            temperature: 0,
-            max_tokens: 4000,
-            response_format: { type: "json_object" },
-            messages,
-          },
-          openaiKey,
-          { traceName: "refine-cv:translate", userId: user.id, sessionId },
-          { signal: AbortSignal.timeout(30000) },
-        );
-        if (!res.ok) throw new Error("translate http " + res.status);
-        const data = await res.json();
-        if (m) {
-          m.tokensIn = (m.tokensIn ?? 0) + (data.usage?.prompt_tokens ?? 0);
-          m.tokensOut =
-            (m.tokensOut ?? 0) + (data.usage?.completion_tokens ?? 0);
-        }
-        return data.choices?.[0]?.message?.content || "{}";
-      };
       master = await translateCvToEnglish(master, translateChat);
     }
 
@@ -836,7 +846,18 @@ Deno.serve(async (req) => {
       if (retry && retry.cov.tailoring_score > result.cov.tailoring_score)
         result = retry;
     }
-    const { cv: cvData, cov } = result;
+    let cvData = result.cv;
+    const cov = result.cov;
+
+    // ── 5b. Post-ops Hebrew chokepoint (FIX 1). The ops/reword can introduce
+    //    Hebrew from the JD (a JD-framed summary with Hebrew proper nouns) AFTER
+    //    the master translation, or when an English master skipped translation
+    //    entirely. Translate the FINAL assembled cv so Hebrew never reaches the
+    //    render regardless of source. Gated on cvHasHebrew(cvData): an all-English
+    //    tailor fires NO model call and gets ZERO added latency.
+    if (openaiKey && cvHasHebrew(cvData)) {
+      cvData = await translateCvToEnglish(cvData, translateChat);
+    }
 
     // ── 6. Render → upload → sign ───────────────────────────────────────────
     const proCount = Array.isArray(cvData.professional_experiences)
