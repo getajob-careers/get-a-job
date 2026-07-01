@@ -89,19 +89,26 @@ describe("translateCvToEnglish", () => {
     expect(out.professional_experiences[0].bullets[0]).toContain("12%");
   });
 
-  it("model failure: keep the original (non-fatal, font backstop renders it)", async () => {
+  it("model failure: DROP the Hebrew rather than leak it (never ships Hebrew)", async () => {
     const boom: ChatFn = async () => {
       throw new Error("model down");
     };
-    const out = await translateCvToEnglish(HEB_CV, boom);
-    expect(out).toBe(HEB_CV); // unchanged, no throw
+    const out = await translateCvToEnglish(HEB_CV, boom, { retries: 1 });
+    // A generated CV is ALWAYS English: a failed batch strips its Hebrew instead
+    // of returning the source verbatim (which used to leak Hebrew to the render).
+    expect(cvHasHebrew(out)).toBe(false);
+    expect(HEB_CV.header.name).toBe("דנה כהן"); // input not mutated
   });
 
-  it("wrong-length / malformed model output: keep the original", async () => {
+  it("wrong-length / malformed model output: DROP the Hebrew, never leak", async () => {
     const short: ChatFn = async () =>
       JSON.stringify({ translations: ["only one"] });
-    expect(await translateCvToEnglish(HEB_CV, short)).toBe(HEB_CV);
+    expect(
+      cvHasHebrew(await translateCvToEnglish(HEB_CV, short, { retries: 0 })),
+    ).toBe(false);
     const junk: ChatFn = async () => "not json at all";
-    expect(await translateCvToEnglish(HEB_CV, junk)).toBe(HEB_CV);
+    expect(
+      cvHasHebrew(await translateCvToEnglish(HEB_CV, junk, { retries: 0 })),
+    ).toBe(false);
   });
 });
