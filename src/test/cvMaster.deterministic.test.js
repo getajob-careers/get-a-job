@@ -104,8 +104,10 @@ describe("buildMasterCvData (deterministic master)", () => {
       ["domain", "technical", "tools"].sort(),
     );
     expect(master.skills).not.toHaveProperty("languages");
-    expect(master.skills.domain).toEqual(["Customer Success", "SQL", "Figma"]);
-    expect(master.skills.technical).toEqual([]);
-    expect(master.skills.tools).toEqual([]);
+    // Skills are now CATEGORIZED (Piece 3): SQL -> technical, Figma -> tools,
+    // the capability stays in domain.
+    expect(master.skills.domain).toEqual(["Customer Success"]);
+    expect(master.skills.technical).toEqual(["SQL"]);
+    expect(master.skills.tools).toEqual(["Figma"]);
   });
 });

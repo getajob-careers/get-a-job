@@ -29,12 +29,17 @@ function makeSupabase(cfg) {
         inserts.push({ table, row });
         return Promise.resolve(cfg.insert ?? { error: null });
       },
-      // experiences / education are awaited directly off the chain
+      // experiences / education / projects / certifications are awaited directly
+      // off the chain
       then: (resolve) =>
         Promise.resolve(
           table === "experiences"
             ? (cfg.experiences ?? { data: [] })
-            : (cfg.education ?? { data: [] }),
+            : table === "projects"
+              ? (cfg.projects ?? { data: [] })
+              : table === "certifications"
+                ? (cfg.certifications ?? { data: [] })
+                : (cfg.education ?? { data: [] }),
         ).then(resolve),
     };
     return b;
@@ -69,12 +74,14 @@ describe("prewarmMasterCv", () => {
       is_master: true,
       application_id: null,
     });
-    // built from the persisted rows (experience id is what refine-cv needs)
+    // built from the persisted rows (experience id is what refine-cv needs),
+    // now with projects/certifications extras sourced in parallel.
     expect(buildMasterCvData).toHaveBeenCalledWith(
       { id: "u1", full_name: "Test User" },
       [{ id: "e1", title: "Analyst", company: "Acme" }],
       [{ id: "ed1", degree: "BSc" }],
       "u1@example.com",
+      { projects: [], certifications: [] },
     );
   });
 

@@ -83,12 +83,26 @@ export interface CvEducationEntry {
   degree: string;
   field_of_study: string;
   dates: string;
+  relevant_coursework?: string[];
+  academic_projects?: string[];
 }
 
 export interface CvSkills {
   domain: string[];
   technical: string[];
   tools: string[];
+}
+
+export interface CvCertification {
+  name: string;
+  issuer?: string;
+  date_earned?: string;
+}
+
+export interface CvProject {
+  name: string;
+  url?: string;
+  description?: string;
 }
 
 export interface CvData {
@@ -101,4 +115,8 @@ export interface CvData {
   education: CvEducationEntry[];
   skills: CvSkills;
   languages: string[];
+  // Optional sections, present only when the source data has them.
+  honors_and_awards?: string[];
+  certifications?: CvCertification[];
+  projects?: CvProject[];
 }

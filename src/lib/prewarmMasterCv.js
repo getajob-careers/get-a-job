@@ -36,7 +36,7 @@ export async function prewarmMasterCv({ supabase, user }) {
       .maybeSingle();
     if (existingMaster?.id) return { status: "skipped_exists" };
 
-    const [profRes, expRes, eduRes] = await Promise.all([
+    const [profRes, expRes, eduRes, projRes, certRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", user.id).single(),
       supabase.from("experiences").select("*").eq("user_id", user.id),
       supabase
@@ -45,6 +45,9 @@ export async function prewarmMasterCv({ supabase, user }) {
         .eq("user_id", user.id)
         .order("display_order", { ascending: true, nullsLast: true })
         .order("created_at", { ascending: true }),
+      // Parallel, so projects/certifications sourcing adds no serial latency.
+      supabase.from("projects").select("*").eq("user_id", user.id),
+      supabase.from("certifications").select("*").eq("user_id", user.id),
     ]);
     if (!profRes?.data) return { status: "skipped_no_profile" };
 
@@ -53,6 +56,7 @@ export async function prewarmMasterCv({ supabase, user }) {
       expRes?.data || [],
       eduRes?.data || [],
       user.email,
+      { projects: projRes?.data || [], certifications: certRes?.data || [] },
     );
 
     const { error: masterErr } = await supabase.from("application_cvs").insert({

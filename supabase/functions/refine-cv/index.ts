@@ -680,7 +680,7 @@ Deno.serve(async (req) => {
 
     // profile + experiences + education — the master's source rows, in parallel.
     // resolveSectorTheme + buildCvPdf header fallbacks read `profile`.
-    const [profileRes, expRes, eduRes] = await Promise.all([
+    const [profileRes, expRes, eduRes, projRes, certRes] = await Promise.all([
       supabase.from("profiles").select("*").eq("id", user.id).single(),
       supabase.from("experiences").select("*").eq("user_id", user.id),
       supabase
@@ -689,6 +689,10 @@ Deno.serve(async (req) => {
         .eq("user_id", user.id)
         .order("display_order", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: true }),
+      // Parallel with the above, so restoring projects/certifications sections adds
+      // no serial latency to the warm tailor path.
+      supabase.from("projects").select("*").eq("user_id", user.id),
+      supabase.from("certifications").select("*").eq("user_id", user.id),
     ]);
     const profile = profileRes.data as any;
     if (!profile) {
@@ -715,6 +719,7 @@ Deno.serve(async (req) => {
       expRes.data || [],
       eduRes.data || [],
       user.email,
+      { projects: projRes.data || [], certifications: certRes.data || [] },
     ) as any;
     void (async () => {
       try {
@@ -765,9 +770,7 @@ Deno.serve(async (req) => {
     //    JD reword and anti-fab gate operate in English and Hebrew never reaches
     //    the renderer. No-op (no model call) for all-English masters. Translation
     //    only converts language; it never changes a claim (see cv-translate.ts).
-    const translateChat = async (
-      messages: ChatMessage[],
-    ): Promise<string> => {
+    const translateChat = async (messages: ChatMessage[]): Promise<string> => {
       const res = await openaiChatCompletionWithRetry(
         {
           model: MODEL,
