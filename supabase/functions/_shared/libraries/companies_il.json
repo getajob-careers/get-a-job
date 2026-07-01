@@ -7099,11 +7099,11 @@
       "industry": "Enterprise Software",
       "domain": "nice.com",
       "careers_url": "https://www.nice.com/careers/",
-      "ats": "custom",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Custom internal apply system at /careers/apply"
+      "ats": "greenhouse",
+      "slug": "nice",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/nice/jobs?content=true",
+      "verified": true,
+      "notes": "Re-detected 2026-07 (vanity-slug blind-spot pass): greenhouse board 'nice' reached one click in from nice.com/careers, company=\"NICE\", ~34 IL roles all Ra'anana. Supersedes custom-apply note. NICE also has a stale Jobvite board with 0 IL; greenhouse/nice is the live source."
     },
     {
       "name": "Nimbleway",
