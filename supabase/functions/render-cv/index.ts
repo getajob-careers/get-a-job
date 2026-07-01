@@ -1,4 +1,4 @@
-// render-cv — re-render an already-structured cv_data to a PDF. NO LLM.
+// render-cv — re-render an already-structured cv_data to a PDF. Does NOT author.
 //
 // Powers the CV Studio's "Download" / "Update PDF": the studio edits
 // application_cvs.cv_data in the browser (structured, instant), and when the
@@ -10,8 +10,16 @@
 //
 // This is deliberately separate from generate-tailored-cv / refine-cv: those
 // AUTHOR cv_data with an LLM; this only RENDERS a cv_data the caller already
-// owns. No OpenAI/OpenRouter calls, no JD, no anti-fab gates needed — the text
-// is the user's own edited content.
+// owns. No JD, no anti-fab gates, no re-authoring — the text is the user's own
+// content.
+//
+// RENDER CHOKEPOINT (Piece 4): just before render, it runs the deterministic
+// bullet voice/caps normalizer and the Hebrew gate as the LAST line of defense,
+// so no cv_data reaches the PDF raw-voiced or Hebrew regardless of which path
+// produced it. Both are idempotent with the build-time polish (an already-clean
+// CV is unchanged) and the Hebrew gate is no-op / zero-cost for all-English CVs.
+// The only model call is the (gated) Hebrew translation, which a Hebrew CV needs
+// anyway; an English render makes no model call.
 //
 // Direct-invoke shape (authenticated AS the owning user):
 //   POST /functions/v1/render-cv
@@ -23,6 +31,17 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { buildCvPdf } from "../_shared/cv-templates/build-pdf.ts";
+// Render chokepoint (Piece 4): the deterministic voice/caps normalizer + the
+// Hebrew gate, run here as the LAST line of defense so no cv_data can be rendered
+// with raw voice or Hebrew regardless of which path produced it.
+import { normalizeCvDataBullets } from "../_shared/cv-master.ts";
+import {
+  cvHasHebrew,
+  translateCvToEnglish,
+  stripCvHebrew,
+  type ChatMessage,
+} from "../_shared/cv-translate.ts";
+import { openaiChatCompletionWithRetry } from "../_shared/openai-chat.ts";
 import { resolveSectorTheme } from "../_shared/cv-templates/sector-mapping.ts";
 import { normalizeTemplate } from "../_shared/cv-templates/template-ids.ts";
 import type {
@@ -170,8 +189,49 @@ Deno.serve(async (req) => {
       cv_data as Record<string, unknown>,
     );
 
+    // ── RENDER CHOKEPOINT (Piece 4): last line of defense. Whatever produced
+    // this cv_data (a build path, a studio inline edit, an older persisted CV),
+    // guarantee the PDF is never raw-voiced or Hebrew. Both steps are idempotent
+    // with the build-time polish, so an already-clean CV passes through unchanged.
+    let renderData: any = normalizeCvDataBullets(cv_data);
+    if (cvHasHebrew(renderData)) {
+      const openaiKey = Deno.env.get("OPENAI_API_KEY");
+      if (openaiKey) {
+        const translateChat = async (
+          messages: ChatMessage[],
+        ): Promise<string> => {
+          const res = await openaiChatCompletionWithRetry(
+            {
+              model: "gpt-4o",
+              temperature: 0,
+              max_tokens: 4000,
+              response_format: { type: "json_object" },
+              messages,
+            },
+            openaiKey,
+            {
+              traceName: "render-cv:translate",
+              userId: user.id,
+              sessionId: "render",
+            },
+            { signal: AbortSignal.timeout(30000) },
+          );
+          if (!res.ok) throw new Error("translate http " + res.status);
+          const data = await res.json();
+          return data.choices?.[0]?.message?.content || "{}";
+        };
+        // translateCvToEnglish guarantees Hebrew-free output (translates, or drops
+        // per-string on model failure); it never throws on a model error.
+        renderData = await translateCvToEnglish(renderData, translateChat);
+      } else {
+        // No model available: deterministically strip Hebrew so we still never
+        // ship it. Removes content, never invents a claim.
+        renderData = stripCvHebrew(renderData);
+      }
+    }
+
     const { bytes: cvBytes, fit } = await buildCvPdf(
-      cv_data as any,
+      renderData as any,
       userContext as any,
       {
         style: safeTemplateStyle,

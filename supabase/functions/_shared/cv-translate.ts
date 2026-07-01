@@ -141,3 +141,17 @@ export async function translateCvToEnglish(
   }
   return replaceDeep(cvData, map);
 }
+
+// Deterministic, no-LLM Hebrew scrub. Drops every Hebrew string to its non-Hebrew
+// remainder (the same last-resort rule translateCvToEnglish uses on a failed
+// batch). Used by the render chokepoint when no model is available, so a CV is
+// NEVER rendered with Hebrew even without a translate call. No-op (same object)
+// for an all-English cv_data. Removes content, never invents a claim.
+export function stripCvHebrew(cvData: any): any {
+  if (!cvHasHebrew(cvData)) return cvData;
+  const set = new Set<string>();
+  collect(cvData, set);
+  const map = new Map<string, string>();
+  for (const s of set) map.set(s, stripHebrew(s));
+  return replaceDeep(cvData, map);
+}
