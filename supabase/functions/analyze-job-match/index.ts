@@ -2,6 +2,11 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { startMetric, finishMetric } from '../_shared/metrics.ts'
 import { openaiChatCompletion } from '../_shared/openai-chat.ts'
+import {
+  cvHasHebrew,
+  translateCvToEnglish,
+  type ChatMessage,
+} from '../_shared/cv-translate.ts'
 import { pickPrimaryEducation, formatEducationLine } from '../_shared/education-helpers.ts'
 import { stripHtml } from '../_shared/strip-html.ts'
 
@@ -191,7 +196,7 @@ ANALYZE the job posting against the user's profile and return a JSON object with
   "match_score": number (0-100, how well the user matches THIS JOB's requirements — pure fit, ignore career trajectory),
   "required_seniority": "Entry" | "Entry_Mid" | "Mid" | "Senior" | "Lead" (the JD's experience level — see rubric below),
   "req_years_min": number | null (minimum years of relevant experience the JD requires — extract the LOWER bound of any "X-Y years" range, or the explicit min if stated. Null when the JD doesn't quantify),${goalSchemaLine}
-  "verdict": "string (1-2 sentence overall assessment)",
+  "verdict": "string (1-2 sentence overall assessment, written in SECOND PERSON directly to the user, in English)",
   "matched_requirements": [
     { "requirement": "the requirement from the JD", "reason": "specific evidence from the user's profile that they meet it (cite their skill, experience, or education)" }
   ],
@@ -205,6 +210,12 @@ ANALYZE the job posting against the user's profile and return a JSON object with
 Each item in matched_requirements MUST be an object with both "requirement" and "reason" keys.
 Each item in missing_requirements MUST be an object with both "requirement" and "gap" keys.
 Do NOT return arrays of plain strings.
+
+VOICE + LANGUAGE (the verdict, requirements, reasons, gaps, and recommendation are shown DIRECTLY to the user in chat):
+- Write them in SECOND PERSON, speaking TO the user ("You have strong analytical skills", "You're missing hands-on project management experience", "You'd strengthen your case by ..."). Never write about "the user" or "they" in these fields.
+- Write ALL of these text fields in ENGLISH, even when the job description or the user's profile is in Hebrew or another language. Translate the JD's requirements into English; do not copy them verbatim in another language.
+- Speaking in second person and English MUST NOT change the substance: do not inflate the match, invent strengths, soften real gaps, or upgrade the assessment. Same claim, addressed to the user in English.
+- The numeric fields (match_score, goal_alignment_score, required_seniority, req_years_min) are internal scores; produce them exactly as specified above.
 
 Do not invent specific statistics, study citations, or company-specific interview practices. Cite only the user's stated profile data and the job description text.${seniorityRubric}${goalRubric}
 
@@ -313,6 +324,37 @@ Return ONLY valid JSON.`
     // because the LLM's match_score gave them full credit on skill overlap
     // while ignoring the 4+ years experience gap.
     result.user_stage = userStage
+
+    // English guarantee (analysis-surface analogue of the CV render chokepoint):
+    // the verdict / requirements / reasons / gaps are shown DIRECTLY to the user,
+    // but a Hebrew JD makes gpt-4o-mini echo Hebrew into them. Gated on Hebrew
+    // detection (no-op / zero added latency for an English JD), translate the whole
+    // result to English via the SHARED faithful, anti-fab translator, so the fit read
+    // is ALWAYS English regardless of JD language. Numbers/scores are not strings, so
+    // they are untouched.
+    if (cvHasHebrew(result)) {
+      const translateChat = async (messages: ChatMessage[]): Promise<string> => {
+        const res = await openaiChatCompletion(
+          {
+            model: 'gpt-4o',
+            temperature: 0,
+            max_tokens: 4000,
+            response_format: { type: 'json_object' },
+            messages,
+          },
+          openaiKey,
+          { traceName: 'analyze-job-match:translate', userId: user.id },
+          { signal: AbortSignal.timeout(30000) },
+        )
+        if (!res.ok) throw new Error('translate http ' + res.status)
+        const data = await res.json()
+        return data.choices?.[0]?.message?.content || '{}'
+      }
+      result = (await translateCvToEnglish(result, translateChat)) as Record<
+        string,
+        unknown
+      >
+    }
 
     // Diagnostic — captures all four signals that trackFromScores uses, so
     // tier mis-assignments can be attributed to specific cause:
