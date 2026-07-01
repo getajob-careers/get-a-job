@@ -61,14 +61,40 @@ CRITICAL RULES:
 - Keep tone and length close to the source; concise and professional.
 - Output JSON only, no markdown.`;
 
+const HEBREW_GLOBAL = new RegExp(HEBREW.source, "g");
+
+// Last-resort scrub for a string we could not translate (a failed batch, or the
+// model echoed Hebrew back). Product rule: a generated CV is ALWAYS English, so
+// we DROP the Hebrew rather than leak it. Any Latin/number fragments survive;
+// a pure-Hebrew string collapses to "" (an empty bullet the renderer omits).
+// Losing that fragment is strictly better than shipping Hebrew to the PDF.
+function stripHebrew(s: string): string {
+  return s.replace(HEBREW_GLOBAL, " ").replace(/\s+/g, " ").trim();
+}
+
+function chunk<T>(arr: T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
+  return out;
+}
+
 // Translate every Hebrew-containing string in cv_data to English via the injected
-// chat function. Returns a new cv_data. On any failure (model error, malformed
-// or wrong-length output) the ORIGINAL cv_data is returned unchanged: worst case
-// the Hebrew renders via the David Libre safety-net font instead of being lost,
-// never a crash and never a fabricated claim.
+// chat function. Returns a new cv_data.
+//
+// Robustness (why this is chunked, not one call): a large Hebrew CV can carry
+// dozens of long strings; a single translate call can then blow the output-token
+// budget or come back the wrong length, and the OLD behavior was to return the
+// source unchanged, which LEAKED Hebrew into the render. Now:
+//   - the strings are chunked so no single call is oversized;
+//   - each batch retries on model error / malformed / wrong-length output;
+//   - a batch that still fails after retries has its Hebrew DROPPED (stripHebrew),
+//     never leaked. Batches are independent, so one bad batch cannot sink the rest.
+// The guarantee: the returned cv_data contains NO Hebrew. No fabrication either:
+// dropping removes content, it never invents a claim.
 export async function translateCvToEnglish(
   cvData: any,
   chat: ChatFn,
+  opts: { batchSize?: number; retries?: number } = {},
 ): Promise<any> {
   if (!cvHasHebrew(cvData)) return cvData; // no-op for all-English CVs
   const set = new Set<string>();
@@ -76,26 +102,42 @@ export async function translateCvToEnglish(
   const strings = [...set];
   if (strings.length === 0) return cvData;
 
-  let translations: unknown;
-  try {
-    const raw = await chat([
-      { role: "system", content: TRANSLATE_SYSTEM_PROMPT },
-      { role: "user", content: JSON.stringify({ strings }) },
-    ]);
-    const cleaned = String(raw ?? "")
-      .replace(/```json|```/g, "")
-      .trim();
-    translations = JSON.parse(cleaned)?.translations;
-  } catch {
-    return cvData; // model/parse failure -> keep source (non-fatal, no fabrication)
-  }
-  if (!Array.isArray(translations) || translations.length !== strings.length) {
-    return cvData; // shape mismatch -> keep source
-  }
+  const batchSize = Math.max(1, opts.batchSize ?? 40);
+  const retries = Math.max(0, opts.retries ?? 2);
+
+  // One batch -> same-length string[] on success, or null when the model errors
+  // or returns malformed / wrong-length output on every attempt.
+  const translateBatch = async (batch: string[]): Promise<string[] | null> => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const raw = await chat([
+          { role: "system", content: TRANSLATE_SYSTEM_PROMPT },
+          { role: "user", content: JSON.stringify({ strings: batch }) },
+        ]);
+        const cleaned = String(raw ?? "")
+          .replace(/```json|```/g, "")
+          .trim();
+        const arr = JSON.parse(cleaned)?.translations;
+        if (Array.isArray(arr) && arr.length === batch.length) {
+          return arr.map((t) => String(t ?? ""));
+        }
+      } catch {
+        // fall through to the next attempt
+      }
+    }
+    return null;
+  };
+
   const map = new Map<string, string>();
-  strings.forEach((src, i) => {
-    const t = String((translations as unknown[])[i] ?? "").trim();
-    map.set(src, t || src); // empty translation -> keep source
-  });
+  for (const batch of chunk(strings, batchSize)) {
+    const out = await translateBatch(batch);
+    batch.forEach((src, i) => {
+      const t = out ? out[i].trim() : "";
+      // Never ship Hebrew: an empty translation (failed batch) or one that still
+      // contains Hebrew (model echoed the source) is dropped to its non-Hebrew
+      // remainder. A clean English translation is used as-is.
+      map.set(src, t && !cvHasHebrew(t) ? t : stripHebrew(src));
+    });
+  }
   return replaceDeep(cvData, map);
 }
