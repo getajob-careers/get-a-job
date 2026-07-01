@@ -26,7 +26,11 @@ import {
   useApplicationsWithJd,
 } from "@/lib/queries/useApplicationCvs";
 import { useProfileQuery } from "@/lib/queries/useProfile";
-import { useExperiencesQuery } from "@/lib/queries/useExperiences";
+import {
+  useExperiencesQuery,
+  experiencesQueryKey,
+} from "@/lib/queries/useExperiences";
+import { promoteBulletsToProfile } from "@/lib/promoteBulletsToProfile";
 import { useEducationQuery } from "@/lib/queries/useEducation";
 import { fromCvData, toCvData, buildMasterCvData } from "@/lib/cvDataAdapter";
 
@@ -148,6 +152,7 @@ export default function CVStudioLive() {
   // ---- debounced autosave to application_cvs.cv_data (RLS own-row) ----
   const [saveState, setSaveState] = useState("saved");
   const saveTimer = useRef(null);
+  const profilePromptedRef = useRef(false);
   useEffect(() => () => clearTimeout(saveTimer.current), []);
   useEffect(() => () => stageTimers.current.forEach(clearTimeout), []);
 
@@ -171,9 +176,40 @@ export default function CVStudioLive() {
         queryClient.setQueryData(cvDataQueryKey(cvId), (prev) =>
           prev ? { ...prev, cv_data } : prev,
         );
+        // FIX 2b: the master is a pure derivative (rebuilt from the profile on
+        // every tailor), so a direct studio edit to it is ephemeral. Offer to
+        // promote the change to the PROFILE (the source of truth). Deduped via
+        // profilePromptedRef so the debounced autosave prompts once per edit burst.
+        const savedCv = cvOptions.find((o) => o.id === cvId);
+        if (savedCv?.isMaster && !profilePromptedRef.current) {
+          profilePromptedRef.current = true;
+          toast("Saved to this CV.", {
+            description: "Save these bullet edits to your profile too?",
+            action: {
+              label: "Save to profile",
+              onClick: async () => {
+                const res = await promoteBulletsToProfile({
+                  supabase,
+                  user,
+                  cvData: toCvData(nextModel),
+                });
+                if (res.updated > 0) {
+                  queryClient.invalidateQueries({
+                    queryKey: experiencesQueryKey(user.id),
+                  });
+                  toast.success(
+                    `Saved to your profile (${res.updated} experience${res.updated > 1 ? "s" : ""}).`,
+                  );
+                } else {
+                  toast.error("Couldn't save that to your profile.");
+                }
+              },
+            },
+          });
+        }
       }, 800);
     },
-    [queryClient],
+    [queryClient, cvOptions, user],
   );
 
   const update = useCallback(
@@ -182,6 +218,7 @@ export default function CVStudioLive() {
       const next = updater(modelRef.current);
       modelRef.current = next;
       setModel(next);
+      profilePromptedRef.current = false;
       persist(selectedCvId, next);
     },
     [persist, selectedCvId],
