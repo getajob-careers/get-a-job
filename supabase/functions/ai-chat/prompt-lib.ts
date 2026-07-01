@@ -133,6 +133,10 @@ export function extractJsonBlock(
 }
 
 // ─── Prompt constants (VERBATIM copies, index.ts:61-510) ──────────────────────
+export const LANGUAGE_GUARD = `
+LANGUAGE: Always write your reply in English, even when the job description, pasted text, or the user message is in Hebrew or another language. Reference any non-English content by translating it to English. Every assessment, strength, gap, and output you produce is in English.
+`;
+
 export const SCOPE_GUARD = `
 
 SCOPE RULES:
@@ -897,7 +901,8 @@ export function assembleSystemPrompt(
   safeFollowUp: string | null,
 ): string {
   const basePrompt =
-    AGENT_SYSTEM_PROMPTS[agent] || AGENT_SYSTEM_PROMPTS["career-coach"];
+    (AGENT_SYSTEM_PROMPTS[agent] || AGENT_SYSTEM_PROMPTS["career-coach"]) +
+    LANGUAGE_GUARD;
 
   // bullet_capture follow-up (Phase 4, PR #377/#378): after the user confirms a
   // bullet via the BulletSaveCard, the frontend fires a synthetic turn with
