@@ -160,6 +160,25 @@ export default function Home() {
     enabled: !!user?.id,
   });
 
+  // G2 (QA2): does the user have any tailored CV yet? Drives the first-CV
+  // nudge for freshly-onboarded users who have matched roles but no CV. Default
+  // true so the CTA never flashes before the check resolves.
+  const { data: hasAnyCv = true } = useQuery({
+    queryKey: ["hasAnyCv", user?.id],
+    queryFn: async () => {
+      if (!user?.id) return true;
+      const { data, error } = await supabase
+        .from("application_cvs")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("is_master", false)
+        .limit(1);
+      if (error) throw error;
+      return (data || []).length > 0;
+    },
+    enabled: !!user?.id,
+  });
+
   // Stories + last LinkedIn post feed the stat strip and quick tiles.
   // Canonical hook + select option (client-side projection; never writes
   // the shared cache, so StoryBank always reads full rows).
@@ -636,6 +655,37 @@ export default function Home() {
       <div className="mt-6">
         <GoalRefinementNudge profile={profile} userId={user?.id} />
       </div>
+
+      {/* G2 (QA2): first-CV CTA. A freshly onboarded user has matched roles but
+          no CV, and the path to their first CV is otherwise undiscoverable.
+          Shows only when there is >=1 matched role AND no CV; hides after the
+          first CV. Routes to Career (matched roles + live jobs) to pick one. */}
+      {roles.length >= 1 && !hasAnyCv && (
+        <div className="mt-6">
+          <RdCard className="p-5 bg-rd-coral-tint border-rd-coral/30 flex items-center gap-4 flex-wrap">
+            <div className="flex-1 min-w-0">
+              <p className="font-display font-semibold text-[11px] uppercase tracking-[0.04em] text-rd-coral-dark">
+                Your next step
+              </p>
+              <p className="font-display font-bold text-[18px] sm:text-[20px] leading-[1.2] mt-1.5 text-rd-text">
+                Generate your first tailored CV
+              </p>
+              <p className="text-[12.5px] text-rd-text-tertiary leading-[1.55] mt-1.5">
+                You&apos;ve got matched roles ready. Pick one and turn it into an
+                interview-ready CV.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate(createPageUrl("Career"))}
+              className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-5 py-2.5 transition-colors"
+            >
+              Generate my first CV
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          </RdCard>
+        </div>
+      )}
 
       {/* Focus card — coral tint. Two DISTINCT controls kept as sibling buttons
           in a plain container (no nesting): a done checkbox that toggles state
