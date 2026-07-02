@@ -637,56 +637,61 @@ export default function Home() {
         <GoalRefinementNudge profile={profile} userId={user?.id} />
       </div>
 
-      {/* Focus card — coral tint, completable (seamless-ia Today spec).
-          Card body navigates to the action; the circle button toggles
-          done (teal state) without leaving the page. */}
+      {/* Focus card — coral tint. Two DISTINCT controls kept as sibling buttons
+          in a plain container (no nesting): a done checkbox that toggles state
+          without leaving the page, and the body+arrow that NAVIGATES to the
+          action. The arrow used to toggle done, which lied about its "go"
+          affordance; it now navigates like its shape promises. */}
       <div
-        role="button"
-        tabIndex={0}
-        onClick={() => navigate(focusDestination)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            navigate(focusDestination);
-          }
-        }}
         className={[
-          "group cursor-pointer rounded-[18px] mt-6 px-5 py-4 sm:px-6 sm:py-5 flex items-center gap-4",
+          "group rounded-[18px] mt-6 px-5 py-4 sm:px-6 sm:py-5 flex items-center gap-4",
           "transition-colors duration-200",
-          "focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2",
           heroDone ? "bg-rd-teal-tint" : "bg-rd-coral-tint",
         ].join(" ")}
       >
-        <div className="flex-1 min-w-0">
-          <p className={`font-display font-semibold text-[11px] uppercase tracking-[0.04em] ${heroDone ? "text-rd-teal-dark" : "text-rd-coral-dark"}`}>
-            {heroDone ? "done — nice work" : "today's focus · picked by your agent"}
-          </p>
-          <p className={`font-display font-bold text-[18px] sm:text-[20px] leading-[1.2] mt-1.5 ${heroDone ? "line-through text-rd-teal-dark" : "text-rd-text"}`}>
-            {focusCta}
-          </p>
-          {!heroDone && (
-            <p className="text-[12.5px] text-rd-text-tertiary leading-[1.55] mt-1.5">
-              {focusDesc}
-            </p>
-          )}
-        </div>
         <button
+          type="button"
+          role="checkbox"
+          aria-checked={heroDone}
           aria-label={heroDone ? "Mark focus not done" : "Mark focus done"}
-          onClick={(e) => {
-            e.stopPropagation();
-            toggleHeroDone();
-          }}
+          onClick={toggleHeroDone}
           className={[
-            "w-[50px] h-[50px] rounded-full flex items-center justify-center flex-shrink-0",
-            "transition-[background-color,transform] duration-150 active:scale-[.94]",
-            heroDone ? "bg-rd-teal" : "bg-rd-coral group-hover:translate-x-0.5",
+            "w-6 h-6 rounded-full border-2 flex items-center justify-center flex-shrink-0",
+            "transition-colors duration-150",
+            "focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2",
+            heroDone ? "bg-rd-teal border-rd-teal" : "border-rd-coral bg-transparent",
           ].join(" ")}
         >
-          {heroDone ? (
-            <Check className="w-[22px] h-[22px] text-white" />
-          ) : (
+          {heroDone && <Check className="w-4 h-4 text-white" />}
+        </button>
+        <button
+          type="button"
+          onClick={() => navigate(focusDestination)}
+          className="flex-1 flex items-center gap-4 text-left min-w-0 rounded-[12px] focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+        >
+          <div className="flex-1 min-w-0">
+            <p className={`font-display font-semibold text-[11px] uppercase tracking-[0.04em] ${heroDone ? "text-rd-teal-dark" : "text-rd-coral-dark"}`}>
+              {heroDone ? "done, nice work" : "today's focus · picked by your agent"}
+            </p>
+            <p className={`font-display font-bold text-[18px] sm:text-[20px] leading-[1.2] mt-1.5 ${heroDone ? "line-through text-rd-teal-dark" : "text-rd-text"}`}>
+              {focusCta}
+            </p>
+            {!heroDone && (
+              <p className="text-[12.5px] text-rd-text-tertiary leading-[1.55] mt-1.5">
+                {focusDesc}
+              </p>
+            )}
+          </div>
+          <span
+            aria-hidden="true"
+            className={[
+              "w-[50px] h-[50px] rounded-full flex items-center justify-center flex-shrink-0",
+              "transition-transform duration-150",
+              heroDone ? "bg-rd-teal" : "bg-rd-coral group-hover:translate-x-0.5",
+            ].join(" ")}
+          >
             <ArrowRight className="w-[22px] h-[22px] text-white" />
-          )}
+          </span>
         </button>
       </div>
 
