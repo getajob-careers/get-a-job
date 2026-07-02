@@ -10,10 +10,12 @@ import { Loader2, FileText, Sparkles, Download, Save, AlertTriangle } from "luci
 import { toast } from "sonner";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import { track, EVENTS } from "@/lib/analytics";
-import { triggerBlobDownload, filenameFromSignedUrl } from "@/lib/downloadFile";
+import { triggerBlobDownload, cvFilename } from "@/lib/downloadFile";
+import { useProfileQuery } from "@/lib/queries/useProfile";
 
 export default function CVManagement({ app, onUpdate }) {
   const { user } = useAuth();
+  const { data: profile } = useProfileQuery(user?.id);
   const [cvName, setCvName] = useState(app.cv_version_name || "");
   const [cvStatus, setCvStatus] = useState(app.cv_status || "not_started");
   const [generating, setGenerating] = useState(false);
@@ -179,7 +181,7 @@ export default function CVManagement({ app, onUpdate }) {
             type="button"
             onClick={async () => {
               try {
-                await triggerBlobDownload(app.cv_url, filenameFromSignedUrl(app.cv_url));
+                await triggerBlobDownload(app.cv_url, cvFilename(profile?.full_name, app.role_title));
               } catch (err) {
                 toast.error(`Download failed: ${err?.message || "unknown error"}`);
               }
