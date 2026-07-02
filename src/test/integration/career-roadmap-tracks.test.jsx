@@ -19,68 +19,74 @@
  *    the list is empty — not an error message, not nothing.
  */
 
-import React from 'react';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, waitFor } from '@testing-library/react';
-import { createWrapper } from '../testUtils.jsx';
+import React from "react";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, waitFor } from "@testing-library/react";
+import { createWrapper } from "../testUtils.jsx";
 import {
   createSupabaseMock,
   MOCK_USER,
   MOCK_PROFILE_COMPLETE,
   MOCK_ROLES,
-} from '../mockSupabase.js';
+} from "../mockSupabase.js";
 
 // ── Mock dependencies ─────────────────────────────────────────────────────────
 
-vi.mock('react-router-dom', async () => {
-  const actual = await vi.importActual('react-router-dom');
+vi.mock("react-router-dom", async () => {
+  const actual = await vi.importActual("react-router-dom");
   return {
     ...actual,
     useNavigate: () => vi.fn(),
-    Link: ({ children, to, ...props }) => <a href={to} {...props}>{children}</a>,
+    Link: ({ children, to, ...props }) => (
+      <a href={to} {...props}>
+        {children}
+      </a>
+    ),
   };
 });
 
-vi.mock('@/lib/AuthContext', () => ({
+vi.mock("@/lib/AuthContext", () => ({
   useAuth: () => ({ user: MOCK_USER }),
 }));
 
-vi.mock('@/api/supabaseClient', () => ({ supabase: {} }));
+vi.mock("@/api/supabaseClient", () => ({ supabase: {} }));
 
 // Stub child components that render sub-queries
-vi.mock('../../components/roadmap/RoleCard', () => ({
-  default: ({ role }) => <div data-testid={`role-${role.id}`}>{role.title}</div>,
+vi.mock("../../components/roadmap/RoleCard", () => ({
+  default: ({ role }) => (
+    <div data-testid={`role-${role.id}`}>{role.title}</div>
+  ),
 }));
-vi.mock('../../components/roadmap/TrackQuadrantGrid', () => ({
+vi.mock("../../components/roadmap/TrackQuadrantGrid", () => ({
   default: () => <div data-testid="quadrant-grid" />,
 }));
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 async function setSupabaseMock(tableMap) {
-  const { supabase } = await import('@/api/supabaseClient');
+  const { supabase } = await import("@/api/supabaseClient");
   const mock = createSupabaseMock(tableMap);
   Object.assign(supabase, mock);
 }
 
 async function renderCareerRoadmap() {
-  const { default: CareerRoadmap } = await import('../../pages/Roadmap.jsx');
-  const Wrapper = createWrapper('/Roadmap');
+  const { default: CareerRoadmap } = await import("../../pages/Roadmap.jsx");
+  const Wrapper = createWrapper("/Roadmap");
   return render(<CareerRoadmap />, { wrapper: Wrapper });
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
-describe('CareerRoadmap track rendering', () => {
+describe("CareerRoadmap track rendering", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('shows error screen when roles query fails', async () => {
+  it("shows error screen when roles query fails", async () => {
     await setSupabaseMock({
-      career_roles: { data: null, error: { message: 'Network error' } },
-      profiles:     { data: [MOCK_PROFILE_COMPLETE], error: null },
-      experiences:  { data: [], error: null },
+      career_roles: { data: null, error: { message: "Network error" } },
+      profiles: { data: [MOCK_PROFILE_COMPLETE], error: null },
+      experiences: { data: [], error: null },
       certifications: { data: [], error: null },
     });
 
@@ -88,12 +94,12 @@ describe('CareerRoadmap track rendering', () => {
 
     await waitFor(() => {
       expect(
-        screen.getByText(/failed to load your career roadmap/i)
+        screen.getByText(/failed to load your career roadmap/i),
       ).toBeInTheDocument();
     });
   });
 
-  it('renders all three track tabs + the overview content by default', async () => {
+  it("renders all three track tabs + the overview content by default", async () => {
     /**
      * The page now uses a Tabs primitive: Overview | Why these tiers |
      * Track 1 | Track 2 | Track 3. The default tab is Overview. We verify
@@ -103,43 +109,84 @@ describe('CareerRoadmap track rendering', () => {
      * track-mapping logic is covered by mapRoleToDbRow's unit test.
      */
     await setSupabaseMock({
-      career_roles:   { data: MOCK_ROLES, error: null },
-      profiles:       { data: [MOCK_PROFILE_COMPLETE], error: null },
-      experiences:    { data: [], error: null },
+      career_roles: { data: MOCK_ROLES, error: null },
+      profiles: { data: [MOCK_PROFILE_COMPLETE], error: null },
+      experiences: { data: [], error: null },
       certifications: { data: [], error: null },
     });
 
     await renderCareerRoadmap();
 
     await waitFor(() => {
-      expect(screen.getByRole('tab', { name: /Track 1/i })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /Track 2/i })).toBeInTheDocument();
-      expect(screen.getByRole('tab', { name: /Track 3/i })).toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: /Track 1/i })).toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: /Track 2/i })).toBeInTheDocument();
+      expect(screen.getByRole("tab", { name: /Track 3/i })).toBeInTheDocument();
     });
     // Overview-tab content present — there are multiple "qualification
     // level" matches (header subtitle + tab card label), so use getAllByText.
-    expect(screen.getAllByText(/qualification level/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/qualification level/i).length).toBeGreaterThan(
+      0,
+    );
   });
 
-  it('shows generate-roadmap prompt when no roles exist yet', async () => {
+  it("shows generate-roadmap prompt when no roles exist yet", async () => {
     await setSupabaseMock({
-      career_roles:   { data: [], error: null },
-      profiles:       { data: [MOCK_PROFILE_COMPLETE], error: null },
-      experiences:    { data: [], error: null },
+      career_roles: { data: [], error: null },
+      profiles: { data: [MOCK_PROFILE_COMPLETE], error: null },
+      experiences: { data: [], error: null },
       certifications: { data: [], error: null },
     });
 
     await renderCareerRoadmap();
 
     await waitFor(() => {
-      expect(
-        screen.getByText(/No roles generated yet/i)
-      ).toBeInTheDocument();
+      expect(screen.getByText(/No roles generated yet/i)).toBeInTheDocument();
     });
 
     // Error screen must not appear for an empty-but-successful query
     expect(
-      screen.queryByText(/failed to load your career roadmap/i)
+      screen.queryByText(/failed to load your career roadmap/i),
     ).not.toBeInTheDocument();
+  });
+
+  // QA2 silent-refresh: the ~60-80s refresh must show PROMINENT staged progress,
+  // not just the tiny button spinner. The GeneratingBanner is driven by
+  // `generatingState = generating || previewGenerating`; the `?preview-generating=1`
+  // flag exercises the exact same code path a live refresh does. With roles
+  // already present (the refresh case), the banner must appear with the
+  // refresh-aware subtitle AND the stale roadmap below it must be aria-hidden so
+  // it can't be mistaken for the fresh result.
+  it("shows the staged-progress banner (refresh copy) and hides the stale roadmap while regenerating", async () => {
+    const prevUrl = window.location.pathname + window.location.search;
+    window.history.replaceState(null, "", "/Roadmap?preview-generating=1");
+    try {
+      await setSupabaseMock({
+        career_roles: { data: MOCK_ROLES, error: null },
+        profiles: { data: [MOCK_PROFILE_COMPLETE], error: null },
+        experiences: { data: [], error: null },
+        certifications: { data: [], error: null },
+      });
+
+      await renderCareerRoadmap();
+
+      await waitFor(() => {
+        // Prominent staged progress is visible (not just the button spinner)...
+        expect(
+          screen.getByText(/Refreshing your roadmap/i),
+        ).toBeInTheDocument();
+      });
+      // ...with an honest, non-underpromised duration...
+      expect(screen.getByText(/up to about 80 seconds/i)).toBeInTheDocument();
+      // ...a truthful first stage (no fabricated LinkedIn/Glassdoor search)...
+      expect(screen.queryByText(/LinkedIn|Glassdoor/i)).not.toBeInTheDocument();
+      // ...and the stale roadmap tracks are hidden from AT while regenerating.
+      const track1Tab = screen.getByRole("tab", {
+        name: /Track 1/i,
+        hidden: true,
+      });
+      expect(track1Tab.closest('[aria-hidden="true"]')).not.toBeNull();
+    } finally {
+      window.history.replaceState(null, "", prevUrl);
+    }
   });
 });
