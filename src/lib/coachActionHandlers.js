@@ -689,6 +689,30 @@ export async function generateTailoredCV({ queryClient, proposal, messageId }) {
 const APP_ID_UUID_RE =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+// JD-persistence (QA2 follow-up): ensure a coach-LINKED application carries the
+// JD the coach generated from, so a later tracker-side "AI Generate CV" (which
+// requires a job_description) isn't blocked. Guarded — only fills an EMPTY
+// job_description, never overwrites a real one.
+async function ensureApplicationHasJd({ user, queryClient, applicationId, jobDescription }) {
+  if (!applicationId || !jobDescription || !user?.id) return;
+  const { data: row, error: readErr } = await supabase
+    .from("applications")
+    .select("job_description")
+    .eq("id", applicationId)
+    .single();
+  if (readErr) { console.error("[coachActions] JD backfill read failed:", readErr); return; }
+  if ((row?.job_description || "").trim()) return; // already has a JD — don't clobber
+  const cleaned = stripHtml(jobDescription) || jobDescription;
+  const { error: updErr } = await supabase
+    .from("applications")
+    .update({ job_description: cleaned })
+    .eq("id", applicationId);
+  if (updErr) { console.error("[coachActions] JD backfill write failed:", updErr); return; }
+  // Mirror the add_application create-path: score the app now that it has a JD.
+  scoreApplication(supabase, queryClient, applicationId, cleaned, user.id);
+  queryClient.invalidateQueries({ queryKey: ["applications"] });
+}
+
 // F1 / orphan-CV (QA2): chat-initiated generation must produce a LINKED CV, never
 // an orphan. When the same coach turn adds a NEW tracked app AND proposes a CV,
 // the CV proposal has no application_id yet (the app does not exist at emission).
@@ -725,6 +749,19 @@ export async function generateTailoredCVLinked({
       // fallback). Surface it so the UI never SILENTLY files an "Unknown".
       unknownCompany = !!(applicationId && res?.placeholderCompanyIds?.includes(applicationId));
     }
+  }
+  // Pre-existing app (e.g. created earlier in the ask-for-company flow, whose
+  // add_application block carried no job_description): backfill the JD the coach
+  // is generating from. The create-new branch above already injects it, so skip
+  // there. This closes the regression where an ask-flow app had an empty JD and
+  // the tracker refused to generate on it.
+  if (applicationId && !linkedNewApp && user && proposal?.job_description) {
+    await ensureApplicationHasJd({
+      user,
+      queryClient,
+      applicationId,
+      jobDescription: proposal.job_description,
+    });
   }
   const gen = await generateTailoredCV({
     queryClient,

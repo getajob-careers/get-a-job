@@ -6,9 +6,11 @@
 // FIRST (carrying the coach's JD), then the CV is generated against the REAL id.
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const { invokeBodies, insertedRows } = vi.hoisted(() => ({
+const { invokeBodies, insertedRows, updatedRows, cfg } = vi.hoisted(() => ({
   invokeBodies: [],
   insertedRows: [],
+  updatedRows: [],
+  cfg: { appAlreadyHasJd: false },
 }));
 
 vi.mock("@/api/invokeWithAuthRetry", () => ({
@@ -35,14 +37,27 @@ vi.mock("@/api/supabaseClient", () => {
         insertedRows.push({ table, row });
         return chain;
       },
-      update: () => chain,
+      update(patch) {
+        updatedRows.push({ table, patch });
+        return chain;
+      },
       eq: () => chain,
       ilike: () => chain,
       select: () => chain,
       single: () =>
         Promise.resolve(
           table === "applications"
-            ? { data: { id: "new-app-uuid-0001" }, error: null }
+            ? {
+                data: {
+                  id: "new-app-uuid-0001",
+                  // JD-backfill read: empty by default (the ask-flow regression),
+                  // present when cfg.appAlreadyHasJd is set (the don't-clobber case).
+                  job_description: cfg.appAlreadyHasJd
+                    ? "existing JD text"
+                    : null,
+                },
+                error: null,
+              }
             : { data: {}, error: null },
         ),
       then: (r) => Promise.resolve({ data: {}, error: null }).then(r),
@@ -65,6 +80,8 @@ const JD =
 beforeEach(() => {
   invokeBodies.length = 0;
   insertedRows.length = 0;
+  updatedRows.length = 0;
+  cfg.appAlreadyHasJd = false;
 });
 
 describe("generateTailoredCVLinked (F1 / orphan-CV)", () => {
@@ -170,6 +187,56 @@ describe("generateTailoredCVLinked (F1 / orphan-CV)", () => {
     expect(insertedRows).toHaveLength(0); // no double-create
     expect(invokeBodies[0].application_id).toBe(uuid);
     expect(res.linkedNewApp).toBe(false);
+  });
+
+  it("ask-flow path: backfills the JD onto a PRE-EXISTING linked app that has none", async () => {
+    // Regression: the app was created earlier (ask-for-company flow) with no
+    // job_description; the CV is generated later against its valid id. Without a
+    // backfill the tracker's own "AI Generate CV" refuses on that empty-JD row.
+    const uuid = "d8927a4e-0000-4000-8000-000000000000";
+    const res = await generateTailoredCVLinked({
+      user,
+      queryClient,
+      proposal: {
+        target_role: "Customer Support Specialist",
+        application_id: uuid,
+        job_description: JD,
+      },
+      appActions: null,
+      messageId: "m-askflow",
+    });
+    expect(insertedRows).toHaveLength(0); // no new app — links to the existing one
+    expect(res.linkedNewApp).toBe(false);
+    // The empty-JD app row got the coach's JD written to it.
+    const jdWrite = updatedRows.find(
+      (u) => u.table === "applications" && u.patch?.job_description,
+    );
+    expect(jdWrite).toBeTruthy();
+    expect(jdWrite.patch.job_description).toContain(
+      "Customer Support Engineer",
+    );
+    // And the CV still generated against the real id.
+    expect(invokeBodies[0].application_id).toBe(uuid);
+  });
+
+  it("ask-flow path: does NOT clobber a JD that is already present", async () => {
+    cfg.appAlreadyHasJd = true;
+    const uuid = "d8927a4e-0000-4000-8000-000000000000";
+    await generateTailoredCVLinked({
+      user,
+      queryClient,
+      proposal: {
+        target_role: "Support",
+        application_id: uuid,
+        job_description: JD,
+      },
+      appActions: null,
+      messageId: "m-noclobber",
+    });
+    const jdWrite = updatedRows.find(
+      (u) => u.table === "applications" && u.patch?.job_description,
+    );
+    expect(jdWrite).toBeUndefined(); // existing JD left untouched
   });
 
   it("generates unlinked when there is no app id and no add_application action", async () => {
