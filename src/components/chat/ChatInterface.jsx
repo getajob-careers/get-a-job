@@ -376,6 +376,8 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
       >
         {status === "generating" ? (
           <><Loader2 className="w-3 h-3 animate-spin" /> Generating…</>
+        ) : error ? (
+          <>Try again <ArrowRight className="w-3 h-3" /></>
         ) : (
           <>Generate CV <ArrowRight className="w-3 h-3" /></>
         )}
@@ -963,6 +965,9 @@ export default function ChatInterface({
       return;
     }
     setCvGenStates((prev) => ({ ...prev, [messageId]: res.result }));
+    // Auto-scroll to the finished CV card so the user cannot miss where it
+    // landed (the messages effect does not fire on a cvGenStates-only change).
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 60);
     if (res.result.application_id) {
       toast.success("CV linked to your application tracker!");
     } else {
@@ -1040,6 +1045,23 @@ export default function ChatInterface({
       console.warn("Story-capture follow-up failed (non-blocking):", followUpErr);
     }
   };
+
+  // Auto-fire CV generation the moment the coach proposes it. A plain-language
+  // "yes" now returns a suggested_cv_generation action; the user already accepted,
+  // so start the pipeline immediately (no second click, no dead gap). Idempotent
+  // via firedCvRef; skips already-generated (rehydrated .result) or in-flight.
+  const firedCvRef = useRef(new Set());
+  useEffect(() => {
+    for (const msg of messages) {
+      const prop = msg.suggestedCVGeneration;
+      if (msg.role === "assistant" && prop?.target_role && !prop.result &&
+          !firedCvRef.current.has(msg.id) && !cvGenStates[msg.id]) {
+        firedCvRef.current.add(msg.id);
+        handleGenerateCV(msg.id, prop);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [messages]);
 
   const handleSwitchAgent = (page) => {
     navigate(createPageUrl(page));

@@ -14,6 +14,7 @@ import {
   assembleSystemPrompt,
   buildMessages,
   parseSuggestions,
+  stripUnbackedCvGenerationClaim,
 } from "./prompt-lib.ts";
 import { openrouterChatCompletionWithRetry } from "../_shared/openrouter-chat.ts";
 
@@ -419,6 +420,15 @@ Deno.serve(async (req) => {
     const suggested_cv_generation = parsed.suggested_cv_generation;
     const suggested_bullet_capture = parsed.suggested_bullet_capture;
     const suggested_add_skill = parsed.suggested_add_skill;
+
+    // Anti-fabrication enforcement (honesty rule 5e): if the model narrated a CV
+    // as "generating ... now" but did NOT emit a cv-generation action this turn,
+    // strip the false promise so the user never waits for a CV that never started.
+    // Deterministic backstop over the prompt; protects both surfaces regardless of
+    // client wiring. No-op when an action IS present (the claim is then true).
+    if (!suggested_cv_generation) {
+      reply = stripUnbackedCvGenerationClaim(reply);
+    }
 
     _ok = true;
     _http = 200;

@@ -393,7 +393,7 @@ PRIORITY 1 — TARGET APPLICATION is set:
 If a TARGET APPLICATION block appears ANYWHERE in your context, the user has ALREADY selected an application via the dropdown at the top of the page. You MUST:
 - Take \`target_role\` from TARGET APPLICATION's Role field.
 - Take \`application_id\` from TARGET APPLICATION's "application_id" line — COPY THE UUID EXACTLY as shown.
-- Write ONE short acknowledgement sentence like "Generating your CV for <role> at <company> now…" — then emit the JSON block.
+- Write ONE short acknowledgement sentence like "Generating your CV for <role> at <company> now…" AND emit the JSON block in the SAME response. The acknowledgement and the block are inseparable: NEVER write "generating" / "creating" / "tailoring your CV now" unless the block is in this same message (see honesty rule 5e). If you cannot emit the block, do not narrate generation.
 - DO NOT ask "which role?", "which application?", "should I go ahead?" — the user already answered those by selecting from the dropdown. Asking again is frustrating and wrong.
 - DO NOT list options for the user to confirm. The answer is in TARGET APPLICATION.
 
@@ -413,9 +413,31 @@ Field rules:
 Don't-deny-previous-CV rule:
 - When conversation history already shows a SUGGESTED_CV_GENERATION_JSON block was sent AND the user confirmed generation (usually by clicking "Generate CV" — the next assistant message or a tool result will show the download URL), a CV has already been generated. Do NOT say "I haven't generated a CV yet" or similar. Acknowledge it exists. If the user asks for a new version, say "I'll generate an updated version" and emit a fresh SUGGESTED_CV_GENERATION_JSON block.
 
+PLAIN-LANGUAGE ACCEPTANCE:
+- If a previous assistant turn OFFERED to generate a CV (e.g. "Would you like me to generate a tailored CV?") and the user replies accepting in plain language ("yes", "yes please", "yes please generate a cv", "go ahead", "generate it", "do it", "sure"), treat that as a CV generation request: emit the SUGGESTED_CV_GENERATION_JSON block using the TARGET APPLICATION (if set) or the role from the immediately preceding turn. Do NOT reply with only an acknowledgement and no block, and do NOT re-ask "which role?" when the role is obvious from the last turn. Acceptance is the trigger — the block, not more words, is what starts generation.
+
 Other rules:
 - Emit exactly ONE CV generation block per response. Never more.
 - Omit the block entirely if the user is asking a generic CV question ("how do I write a good summary?") rather than requesting a full CV.`;
+
+// Deterministic enforcement of honesty rule 5e (the anti-fabrication half). If the
+// model narrates a CV as "generating / creating / tailoring ... now" but did NOT
+// emit a SUGGESTED_CV_GENERATION action this turn, that sentence is a false promise
+// (a CV the user waits for that never started). This strips such an unbacked claim
+// sentence so it never ships, regardless of the client wiring. OFFERS ("I can
+// generate a CV — want me to?", "Would you like me to generate one?") are NOT
+// claims and are left intact. Call ONLY when there is no cv-generation action.
+const CV_GEN_CLAIM_RE =
+  /(^|[.!?…\n]\s*)(?:(?:generating|creating|tailoring|drafting|building)\s+(?:your|a|the)?\s*(?:cv|resume|résumé)\b[^.!?…\n]*|i(?:['’]m| am)\s+(?:generating|creating|tailoring|drafting|building)\s+[^.!?…\n]*(?:cv|resume|résumé)\b[^.!?…\n]*|i['’]ll\s+(?:generate|create|tailor|draft|build)\s+[^.!?…\n]*(?:cv|resume|résumé)\b[^.!?…\n]*\bnow\b[^.!?…\n]*)[.!?…]*/gi;
+
+export function stripUnbackedCvGenerationClaim(reply: string): string {
+  if (!reply) return reply;
+  const cleaned = reply.replace(CV_GEN_CLAIM_RE, (_m, lead) => lead || "");
+  return cleaned
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
 
 export const CV_AGENT_REDIRECT_RULES = `
 
@@ -650,7 +672,10 @@ export async function buildUserContext(
     const expLines = experiencesRes.data.map((e: any) => {
       let line = `\n  - ${e.title} at ${e.company} [id: ${e.id}]`;
       const bullets = Array.isArray(e.bullets)
-        ? e.bullets.map((b: any) => String(b ?? "").trim()).filter(Boolean).slice(0, 10)
+        ? e.bullets
+            .map((b: any) => String(b ?? "").trim())
+            .filter(Boolean)
+            .slice(0, 10)
         : [];
       for (const b of bullets) line += `\n      - ${b}`;
       return line;
@@ -892,7 +917,9 @@ CONTEXT & HONESTY RULES (read carefully — these override your urge to be helpf
 
    c) For freeform "add this skill" / "update my summary to …" requests, respond honestly: "I can't write to your Profile from chat — open Profile and add it there, then I'll use it in the next CV gen." Don't pretend to do it; don't promise to do it; don't act as if it's queued. (A new STAR bullet under an existing experience IS proposable from chat — use BULLET CAPTURE.)
 
-   d) If conversation history shows you previously claimed a write you didn't actually propose (e.g. "saving that" without a SUGGESTED_BULLET_CAPTURE_JSON block emitted), do NOT double down. Correct course explicitly: "Earlier I said I'd save that — that was wrong, I can only PROPOSE saves via a card. Want me to propose it now?" Then emit the block if appropriate.`;
+   d) If conversation history shows you previously claimed a write you didn't actually propose (e.g. "saving that" without a SUGGESTED_BULLET_CAPTURE_JSON block emitted), do NOT double down. Correct course explicitly: "Earlier I said I'd save that — that was wrong, I can only PROPOSE saves via a card. Want me to propose it now?" Then emit the block if appropriate.
+
+   e) NEVER say a CV is "generating", "creating", "tailoring", "on its way", or being built "now" unless you emit a SUGGESTED_CV_GENERATION_JSON block in the SAME response. The block is what actually starts the pipeline; a "generating your CV now" sentence without it is a false promise (the same fabrication class as 5a) — the user waits for a CV that was never started. If you lack a role and cannot emit the block, ask which role the CV is for instead of narrating generation. It is fine to OFFER ("I can generate a tailored CV — want me to?"); it is never fine to CLAIM generation is underway without the block.`;
 
 // ─── system prompt assembly (port of index.ts:812-834) ────────────────────────
 export function assembleSystemPrompt(
