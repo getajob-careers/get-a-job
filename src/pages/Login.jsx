@@ -115,6 +115,16 @@ export default function Login() {
       (allChecksPass(passwordChecks) && consent)) &&
     !!captchaToken;
 
+  // QA-R1 P1: when the form is otherwise ready and the ONLY thing missing is the
+  // Turnstile token (still verifying), the submit is disabled with no explanation.
+  // Surface it in the button label so the greyed button is not a mystery. Gated on
+  // !error so a captcha failure (which sets error) shows the error, not "verifying".
+  const waitingOnCaptcha =
+    !loading &&
+    !captchaToken &&
+    !error &&
+    (mode !== "signup" || (allChecksPass(passwordChecks) && consent));
+
   const switchMode = (next) => {
     setError(null);
     setMessage(null);
@@ -216,6 +226,7 @@ export default function Login() {
 
   const submitLabel =
     loading ? "Loading..."
+    : waitingOnCaptcha ? "Verifying you're human..."
     : mode === "signup" ? "Create account"
     : mode === "forgot" ? "Send reset email"
     : "Sign in";

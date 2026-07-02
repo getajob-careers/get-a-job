@@ -8,7 +8,7 @@ import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { useEducationQuery } from "@/lib/queries/useEducation";
 import { track, EVENTS } from "@/lib/analytics";
 import { Send, Loader2, Plus, ListTodo, CheckCircle2, ArrowRight, Route, Briefcase, ChevronDown, Trash2, MessageSquare, FileText, Download, RefreshCw } from "lucide-react";
-import { triggerBlobDownload, filenameFromSignedUrl } from "@/lib/downloadFile";
+import { triggerBlobDownload, cvFilename } from "@/lib/downloadFile";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -282,7 +282,7 @@ function looksLikeStory(text) {
 // spinner), and done (download link + fit analysis + tracker confirmation).
 // The parent owns the state object so it survives re-renders and can be
 // persisted to the DB.
-function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
+function CVGenerationCard({ proposal, state, onGenerate, appLabel, userName }) {
   const { status, cv_url, fit_analysis, application_id, unsourced_bullets, error } = state || {};
 
   if (status === "done" && cv_url) {
@@ -338,7 +338,7 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
           type="button"
           onClick={async () => {
             try {
-              await triggerBlobDownload(cv_url, filenameFromSignedUrl(cv_url));
+              await triggerBlobDownload(cv_url, cvFilename(userName, proposal.target_role));
             } catch (err) {
               toast.error(`Download failed: ${err?.message || "unknown error"}`);
             }
@@ -1329,6 +1329,7 @@ export default function ChatInterface({
                   state={cvGenStates[msg.id]}
                   onGenerate={() => handleGenerateCV(msg.id, msg.suggestedCVGeneration)}
                   appLabel={applicationsById[msg.suggestedCVGeneration.application_id] || null}
+                  userName={profile?.full_name}
                 />
               )}
               {msg.suggestedBulletCapture && msg.suggestedBulletCapture.text && (

@@ -39,6 +39,24 @@ export async function triggerBlobDownload(url, suggestedName) {
 // Pull a sensible default filename from a signed-URL path. Storage paths
 // look like `{user.id}/{role}_CV_{timestamp}.pdf?token=...` — we want
 // just the filename portion, stripped of the query string.
+// Build a human-sensible CV download name: {Name}_{Role}_CV.pdf. Sanitizes to
+// word chars + underscores so it is filesystem-safe (spaces/punctuation removed;
+// non-Latin names collapse away and we fall back gracefully). Prefer this over
+// filenameFromSignedUrl for CV downloads, whose storage path is a machine name
+// like render_<timestamp>.pdf that tells the user nothing.
+export function cvFilename(name, role) {
+  const clean = (v) =>
+    String(v || "")
+      .normalize("NFKD")
+      .replace(/[^\w\s-]/g, "")
+      .trim()
+      .replace(/\s+/g, "_")
+      .replace(/_+/g, "_")
+      .replace(/^_|_$/g, "");
+  const parts = [clean(name), clean(role), "CV"].filter(Boolean);
+  return (parts.join("_") || "CV") + ".pdf";
+}
+
 export function filenameFromSignedUrl(url, fallback = "cv.pdf") {
   if (!url) return fallback;
   try {

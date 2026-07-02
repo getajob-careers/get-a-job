@@ -31,6 +31,7 @@ import {
   experiencesQueryKey,
 } from "@/lib/queries/useExperiences";
 import { promoteBulletsToProfile } from "@/lib/promoteBulletsToProfile";
+import { triggerBlobDownload, cvFilename } from "@/lib/downloadFile";
 import { useEducationQuery } from "@/lib/queries/useEducation";
 import { fromCvData, toCvData, buildMasterCvData } from "@/lib/cvDataAdapter";
 
@@ -325,8 +326,15 @@ export default function CVStudioLive() {
         duration: 8000,
       });
     }
-    window.open(data.cv_url, "_blank", "noopener");
-  }, [cvOptions, selectedCvId, templateId]);
+    try {
+      await triggerBlobDownload(
+        data.cv_url,
+        cvFilename(profile?.full_name, current?.isMaster ? "Master" : current?.role),
+      );
+    } catch {
+      toast.error("Couldn't download the PDF. Please try again.");
+    }
+  }, [cvOptions, selectedCvId, templateId, profile]);
 
   const onDeleteCv = useCallback(
     async (id) => {
@@ -568,9 +576,16 @@ export default function CVStudioLive() {
         toast.error("Couldn't render the PDF. Please try again.");
         return;
       }
-      window.open(data.cv_url, "_blank", "noopener");
+      try {
+        await triggerBlobDownload(
+          data.cv_url,
+          cvFilename(profile?.full_name, opt?.role),
+        );
+      } catch {
+        toast.error("Couldn't download the PDF. Please try again.");
+      }
     },
-    [cvOptions, selectedCvId, templateId],
+    [cvOptions, selectedCvId, templateId, profile],
   );
 
   // Entry point for the persistent action (chip + selector item) and the banner
