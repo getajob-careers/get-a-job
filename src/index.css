@@ -30,18 +30,18 @@
 
     /* Redesign — text */
     --rd-text: #211D18;
-    --rd-text-secondary: #928C80;
-    --rd-text-tertiary: #857F74;
-    --rd-text-eyebrow: #A38E6F;
+    --rd-text-secondary: #6E675B;
+    --rd-text-tertiary: #5E584E;
+    --rd-text-eyebrow: #766445;
 
     /* Redesign — coral (sole CTA accent) */
-    --rd-coral: #EF5A41;
-    --rd-coral-dark: #C7461F;
+    --rd-coral: #D6421F;
+    --rd-coral-dark: #B23A17;
     --rd-coral-tint: #FCE6DF;
 
     /* Redesign — teal (success / progress) */
     --rd-teal: #54B5A2;
-    --rd-teal-dark: #2E7C6B;
+    --rd-teal-dark: #2A6E5E;
     --rd-teal-tint: #DBEEE8;
 
     /* Redesign — golden (stats / info) */
