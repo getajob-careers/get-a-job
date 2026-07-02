@@ -398,7 +398,8 @@ function cvProposalCard(proposal) {
       await appendMessage({
         role: "assistant",
         error: true,
-        content: "CV generation error: " + res.error,
+        content:
+          "Couldn\u2019t generate the CV this time. Tap Generate to try again.",
       });
     }
   });
@@ -765,9 +766,7 @@ async function sendMessage() {
             role: "assistant",
             error: true,
             content:
-              "CV generation failed: " +
-              res.error +
-              ". Tap \u201cGenerate CV for this role\u201d to try again.",
+              "Couldn\u2019t generate the CV this time. Tap \u201cGenerate CV for this role\u201d to try again.",
           });
         }
       } else {
@@ -934,9 +933,7 @@ async function generateCvFromJD(jd) {
       role: "assistant",
       error: true,
       content:
-        "CV generation failed: " +
-        (await edgeErrorMessage(err)) +
-        ". Tap \u201cGenerate CV for this role\u201d to try again.",
+        "Couldn\u2019t generate the CV this time. Tap \u201cGenerate CV for this role\u201d to try again.",
     });
   } finally {
     setBusy(false);
