@@ -39,7 +39,7 @@ import { TRACK_CONFIG, TRACK_ORDER } from "@/lib/trackConfig";
 //   - P10–P13 canonical query hooks + invalidation helper untouched.
 
 const ROADMAP_MESSAGES = [
-  "Searching LinkedIn & Glassdoor for real job postings…",
+  "Reading your profile & career goals…",
   "Matching your skills to market requirements…",
   "Calculating skill match scores per role…",
   "Identifying your skill gaps…",
@@ -304,7 +304,11 @@ export default function CareerRoadmap() {
         <div className="mt-7">
           <GeneratingBanner
             messages={ROADMAP_MESSAGES}
-            subtitle="Generating your roadmap — this takes ~30–60 seconds"
+            subtitle={
+              roles.length > 0
+                ? "Refreshing your roadmap — this can take up to about 80 seconds"
+                : "Generating your roadmap — this can take up to about 80 seconds"
+            }
           />
         </div>
       )}
@@ -337,13 +341,20 @@ export default function CareerRoadmap() {
       )}
 
       {roles.length > 0 && (
-        <>
+        <div
+          className={
+            generatingState
+              ? "opacity-40 pointer-events-none transition-opacity duration-300"
+              : "transition-opacity duration-300"
+          }
+          aria-hidden={generatingState || undefined}
+        >
           <TabBar activeTab={activeTab} setTab={setTab} />
           {activeTab === "why" && <WhyTab onTrackClick={setTab} counts={counts} />}
           {TRACK_ORDER.includes(activeTab) && (
             <TrackTab track={activeTab} roles={byTrack[activeTab]} onTabChange={setTab} />
           )}
-        </>
+        </div>
       )}
     </div>
   );
