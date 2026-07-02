@@ -498,7 +498,7 @@ export default function Profile() {
       const resumeUrl = signedData?.signedUrl || filePath;
       await supabase.from("profiles").update({ resume_url: resumeUrl }).eq("id", user.id);
       queryClient.invalidateQueries({ queryKey: ["userProfile"] });
-      toast.success("Resume uploaded successfully!");
+      toast.success("Resume attached. Add your experience below so it powers your matches and CVs.");
       if (fileInputRef.current) fileInputRef.current.value = "";
     } catch (err) {
       console.error("Resume upload error:", err);
@@ -598,7 +598,11 @@ export default function Profile() {
         </div>
 
         {/* Tab pill bar — pattern shared with Tracker/Roadmap/Jobs. */}
-        <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
+        <div
+          role="tablist"
+          aria-label="Profile sections"
+          className="flex gap-2 mb-6 overflow-x-auto pb-1"
+        >
           {TABS.map((t) => {
             const selected = activeTab === t.id;
             return (
@@ -632,7 +636,7 @@ export default function Profile() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className={RD_LABEL}>Full name</label>
-                <input value={profileForm.full_name} onChange={(e) => setField("full_name", e.target.value)} className={RD_INPUT} />
+                <input value={profileForm.full_name} onChange={(e) => setField("full_name", e.target.value)} className={RD_INPUT} aria-label="Full name" />
               </div>
               <div>
                 <label className={RD_LABEL}>Phone number</label>
@@ -745,10 +749,14 @@ export default function Profile() {
                 </label>
                 {profile?.resume_url && (
                   <span className="inline-flex items-center gap-1 text-[12px] text-rd-teal-dark">
-                    <Check className="w-3.5 h-3.5" /> Resume uploaded
+                    <Check className="w-3.5 h-3.5" /> Resume attached
                   </span>
                 )}
               </div>
+              <p className="text-[11.5px] text-rd-text-tertiary mt-2 leading-[1.5]">
+                We keep this on file for CV generation. It does not auto-fill your
+                experience; add that in the Experience tab below.
+              </p>
             </div>
 
             <SaveProfileButton />
