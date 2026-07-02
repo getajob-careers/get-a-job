@@ -724,6 +724,17 @@ async function sendMessage() {
     });
     if (error) throw error;
     if (!data?.reply) throw new Error("The AI returned an empty response.");
+    const cvGen = data.suggested_cv_generation || null;
+    const cvAppId = cvGen && (cvGen.application_id || currentApplicationId);
+    // Auto-fire when the coach proposes generation and we have something to run
+    // on (a linked application, or a pasted JD). The user already accepted in
+    // chat; start the pipeline immediately (Part G / G1) instead of waiting for
+    // a second button click.
+    const cvAutoFire = !!(
+      cvGen &&
+      cvGen.target_role &&
+      (cvAppId || cvGen.job_description)
+    );
     await appendMessage({
       role: "assistant",
       content: data.reply,
@@ -731,8 +742,38 @@ async function sendMessage() {
         data.suggested_application_actions?.length > 0
           ? data.suggested_application_actions
           : null,
-      suggestedCVGeneration: data.suggested_cv_generation || null,
+      // Click card only as a fallback (nothing to auto-fire on); otherwise the
+      // pipeline starts below so "generating" is true the moment it is implied.
+      suggestedCVGeneration: cvAutoFire ? null : cvGen,
     });
+    if (cvAutoFire) {
+      if (cvAppId) {
+        setBusy(true, "Tailoring your CV…");
+        const res = await runRefineAndRenderCV({
+          applicationId: cvAppId,
+          jobDescription: cvGen.job_description || "",
+          roleLabel: cvGen.target_role || "Role",
+          companyLabel: cvGen.company || "",
+        });
+        setBusy(false);
+        if (!res.ok) {
+          if (res.authExpired) {
+            handleAuthExpired();
+            return;
+          }
+          await appendMessage({
+            role: "assistant",
+            error: true,
+            content:
+              "CV generation failed: " +
+              res.error +
+              ". Tap \u201cGenerate CV for this role\u201d to try again.",
+          });
+        }
+      } else {
+        await generateCvFromJD(cvGen.job_description);
+      }
+    }
   } catch (err) {
     console.error("ai-chat error:", err);
     if (isAuthExpired(err)) {
@@ -765,11 +806,10 @@ async function generateCvFromJD(jd) {
     return;
   }
 
-  await appendMessage({
-    role: "user",
-    content:
-      "Generate a tailored CV for this role and give me a quick read on my fit.",
-  });
+  // No canned user-message echo (Part G / G2): the user's request (a chat
+  // acceptance or the composer button) is the intent; re-posting a canned
+  // "Generate a tailored CV..." made it look like the user re-asked. The staged
+  // labels below are the feedback.
   setBusy(true, "Reading the role…");
 
   try {
@@ -893,7 +933,10 @@ async function generateCvFromJD(jd) {
     await appendMessage({
       role: "assistant",
       error: true,
-      content: "CV generation failed: " + (await edgeErrorMessage(err)),
+      content:
+        "CV generation failed: " +
+        (await edgeErrorMessage(err)) +
+        ". Tap \u201cGenerate CV for this role\u201d to try again.",
     });
   } finally {
     setBusy(false);
