@@ -265,7 +265,12 @@ function safeArray(val: unknown): unknown[] {
 // at index.ts:1598 and :1680 are untouched; the (raw, finishReason, label)
 // → (raw, label, finishReason) parameter reorder is only intra-helper.
 import { parseLlmJsonObject } from "../_shared/json-parse.ts";
-import { QUANT_TOKEN_RE, TOKEN_BLOCKLIST } from "../_shared/cv-antifab.ts";
+import {
+  enforceBulletProperNouns,
+  filterToolsToSource,
+  QUANT_TOKEN_RE,
+  TOKEN_BLOCKLIST,
+} from "../_shared/cv-antifab.ts";
 
 function parseLlmJson(rawContent: string, finishReason: string, label: string): any {
   return parseLlmJsonObject(rawContent, label, finishReason);
@@ -2331,8 +2336,10 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     // NOT validated — the LLM rephrases bullets and exact substring matching
     // would over-fire on legitimate rephrases. Only quantified tokens get
     // flagged. Result is a non-blocking warning surfaced to the user in the
-    // response payload so they can review before sending; bullets are not
-    // modified or removed.
+    // response payload so they can review before sending; unsourced NUMBER
+    // tokens stay a review flag; unsourced PROPER-NOUN tool/brand tokens
+    // trigger enforcement (the fabricating bullet is removed, with the
+    // no-empty invariant restoring an experience's master bullets).
     type UnsourcedFlag = { bucket: string; bullet: string; tokens: string[] };
     const unsourcedBullets: UnsourcedFlag[] = [];
     {
@@ -2364,29 +2371,64 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       // multipliers like "3x"), and proper-noun-like tool names (CamelCase or
       // ALLCAPS, 3+ chars). Common stopword-like CamelCase ("New York", "Tel
       // Aviv") get excluded by length and a small blocklist.
-      const checkBullet = (bullet: string, bucket: string) => {
-        const text = String(bullet || '').trim();
-        if (!text) return;
-        const tokens = text.match(QUANT_TOKEN_RE) || [];
-        const unsourced: string[] = [];
-        for (const tok of tokens) {
-          if (TOKEN_BLOCKLIST.has(tok)) continue;
-          // Numeric tokens get a strict substring check; named tokens use a
-          // case-insensitive check. If a number appears in source-data text
-          // verbatim, the bullet's quantified claim is grounded.
-          const lower = tok.toLowerCase();
-          if (!sourceHaystack.includes(lower)) unsourced.push(tok);
-        }
-        if (unsourced.length > 0) unsourcedBullets.push({ bucket, bullet: text, tokens: unsourced });
-      };
-      for (const bucket of ['professional_experiences','military_experiences','volunteering_experiences','leadership_experiences','projects']) {
-        const entries = Array.isArray((cvData as any)[bucket]) ? (cvData as any)[bucket] : [];
-        for (const e of entries) {
-          for (const b of (e?.bullets || [])) checkBullet(b, bucket);
-        }
+      // Enforcement + flag pass (QA2 P1). NUMBER tokens stay a non-blocking flag
+      // for user review; PROPER-NOUN tool/brand tokens absent from the user's
+      // source are enforced (fabricating bullet removed) via the shared
+      // enforceBulletProperNouns, which also honors the no-empty invariant by
+      // restoring an experience's master bullets rather than emptying it.
+      const expKey = (t: unknown, c: unknown) =>
+        `${String(t ?? "").trim().toLowerCase()}@@${
+          String(c ?? "").trim().toLowerCase()
+        }`;
+      const masterBulletsByKey = new Map<string, string[]>();
+      for (const e of allExperiences as any[]) {
+        const mb = safeArray(e.bullets)
+          .map((b: unknown) => String(b ?? "").trim()).filter(Boolean);
+        const fromResp = String(e.responsibilities || "")
+          .split(/\r?\n+/).map((x) => x.trim()).filter(Boolean);
+        masterBulletsByKey.set(
+          expKey(e.title, e.company),
+          mb.length ? mb : fromResp,
+        );
       }
-      if (unsourcedBullets.length > 0) {
-        console.warn(`[CV] Bullet-source validator flagged ${unsourcedBullets.length} bullet(s) with unsourced quantified tokens`);
+      const enforcement = enforceBulletProperNouns(
+        cvData as Record<string, any>,
+        sourceHaystack,
+        masterBulletsByKey,
+        expKey,
+      );
+      for (const flag of enforcement.flags) unsourcedBullets.push(flag);
+      if (enforcement.flags.length > 0 || enforcement.bulletsEnforced > 0) {
+        console.warn(
+          `[CV] Bullet validator: flagged ${unsourcedBullets.length}, removed ${enforcement.bulletsEnforced} bullet(s) with unsourced proper-noun tokens, restored ${enforcement.experiencesRestored} experience(s) to master (no-empty invariant)`,
+        );
+      }
+
+      // Skills.tools enforcement (QA2 Rider 1 promoted): drop JD tool/brand names
+      // absent from the user's source; genuinely-owned tools survive; never empty
+      // when the user has owned tools. Meaningful on the tailored path (master
+      // mode overwrites cvData.skills with the deterministic owned set below).
+      if (cvData?.skills && Array.isArray((cvData.skills as any).tools)) {
+        const ownedTools = [
+          ...safeArray(userContext.skills).map((s: unknown) => String(s ?? "")),
+          ...(allExperiences as any[]).flatMap((e) =>
+            safeArray(e.skills).map((s: unknown) => String(s ?? ""))
+          ),
+          ...safeArray(userContext.projects).flatMap((p: any) =>
+            safeArray(p.skills).map((s: unknown) => String(s ?? ""))
+          ),
+        ].filter(Boolean);
+        const st = filterToolsToSource(
+          (cvData.skills as any).tools,
+          sourceHaystack,
+          ownedTools,
+        );
+        (cvData.skills as any).tools = st.tools;
+        if (st.removed > 0) {
+          console.warn(
+            `[CV] Skills validator: removed ${st.removed} unsourced tool(s) from skills.tools`,
+          );
+        }
       }
     }
 
