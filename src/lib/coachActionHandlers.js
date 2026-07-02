@@ -609,7 +609,12 @@ export async function generateTailoredCV({ queryClient, proposal, messageId }) {
     const { data, error } = await invokeWithAuthRetry("generate-tailored-cv", {
       body: {
         target_role: proposal.target_role,
-        application_id: proposal.application_id || null,
+        // OMIT application_id when there is no linked app. Sending null tripped
+        // generate-tailored-cv's validation with a 400 (P0); the server now also
+        // treats null as "no app", but omitting is the clean contract.
+        ...(proposal.application_id
+          ? { application_id: proposal.application_id }
+          : {}),
         job_description: proposal.job_description ? (stripHtml(proposal.job_description) || proposal.job_description) : null,
         cv_model: "sonnet",
       },

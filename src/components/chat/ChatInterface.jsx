@@ -366,7 +366,7 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel }) {
         )}
       </ul>
       {error && (
-        <p className="text-[11px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-[8px] px-2 py-1 mb-2">{error}</p>
+        <p className="text-[11px] text-rd-coral-dark bg-rd-coral-tint border border-rd-coral/30 rounded-[8px] px-2 py-1 mb-2">Couldn&apos;t generate the CV this time. Tap Try again.</p>
       )}
       <Button
         size="sm"

@@ -369,7 +369,14 @@ Deno.serve(async (req) => {
       _http = 400; _err = 'missing_input'
       return json({ error: "target_role is required" }, 400);
     }
-    if (application_id !== undefined && typeof application_id !== 'string') {
+    // null is a valid "no linked application" signal from the chat path (see the
+    // master-mode note above) - treat it as undefined, not a 400. Only a
+    // non-null non-string is invalid.
+    if (
+      application_id !== undefined &&
+      application_id !== null &&
+      typeof application_id !== 'string'
+    ) {
       _http = 400; _err = 'bad_input'
       return json({ error: 'Invalid application_id.' }, 400);
     }

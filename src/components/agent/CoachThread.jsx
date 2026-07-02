@@ -125,7 +125,8 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
   const applyCvGeneration = () =>
     wrap("cvGeneration", async () => {
       const res = await generateTailoredCV({ queryClient, proposal: message.suggestedCVGeneration, messageId: message.id });
-      if (res.error) return res;
+      if (res.error)
+        return { error: "Couldn't generate the CV this time — tap Try again." };
       const msg = res.result.application_id ? "CV linked to your application tracker!" : "CV generated";
       return { ok: true, toastSuccess: msg };
     });
@@ -254,7 +255,7 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
         busy={busy}
         error={error}
         onApply={applyCvGeneration}
-        onExpand={openPanel}
+        onExpand={error ? undefined : openPanel}
       />
     );
   }
