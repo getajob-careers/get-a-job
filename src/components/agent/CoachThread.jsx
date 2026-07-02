@@ -121,6 +121,28 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
     }
   };
 
+  // Shared CV-gen apply, used by both the auto-fire effect and the button.
+  const applyCvGeneration = () =>
+    wrap("cvGeneration", async () => {
+      const res = await generateTailoredCV({ queryClient, proposal: message.suggestedCVGeneration, messageId: message.id });
+      if (res.error)
+        return { error: "Couldn't generate the CV this time — tap Try again." };
+      const msg = res.result.application_id ? "CV linked to your application tracker!" : "CV generated";
+      return { ok: true, toastSuccess: msg };
+    });
+
+  // Auto-fire CV generation the moment the coach proposes it (plain-language
+  // "yes" now returns the action). The user accepted; start immediately.
+  const cvFiredRef = useRef(false);
+  useEffect(() => {
+    const prop = message.suggestedCVGeneration;
+    if (prop?.target_role && !prop.result?.cv_url && !cvFiredRef.current && !busy) {
+      cvFiredRef.current = true;
+      applyCvGeneration();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [message.id]);
+
   if (message.suggestedTasks) {
     const applied = !!conv.appliedSets.tasks[message.id];
     const n = message.suggestedTasks.length;
@@ -228,17 +250,12 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
         kind="CV generation proposed"
         KindIcon={FileText}
         title={`Tailored CV for ${message.suggestedCVGeneration.target_role}`}
-        action={done ? null : "Generate"}
+        action={done ? null : error ? "Try again" : "Generate"}
         applied={done}
         busy={busy}
         error={error}
-        onApply={() => wrap("cvGeneration", async () => {
-          const res = await generateTailoredCV({ queryClient, proposal: message.suggestedCVGeneration, messageId: message.id });
-          if (res.error) return res;
-          const msg = res.result.application_id ? "CV linked to your application tracker!" : "CV generated";
-          return { ok: true, toastSuccess: msg };
-        })}
-        onExpand={openPanel}
+        onApply={applyCvGeneration}
+        onExpand={error ? undefined : openPanel}
       />
     );
   }
