@@ -6,6 +6,8 @@ import MessageBubble from "@/components/chat/MessageBubble";
 import BulletSaveCard from "@/components/chat/BulletSaveCard";
 import AddSkillCard from "@/components/chat/AddSkillCard";
 import { triggerBlobDownload, cvFilename } from "@/lib/downloadFile";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { useCoachConversation } from "@/lib/CoachConversationContext";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import { useAuth } from "@/lib/AuthContext";
@@ -49,7 +51,8 @@ const DEFAULT_DOCK_PROMPTS = [
   "What's my biggest gap?",
 ];
 
-function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onApply, busy, downloadUrl, downloadName }) {
+function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onApply, busy, downloadUrl, downloadName, studioAppId }) {
+  const navigate = useNavigate();
   return (
     <div className="ml-9 mt-1 bg-rd-bg-card border border-rd-coral-tint rounded-[10px] px-3 py-2">
       <div className="flex items-center gap-1.5">
@@ -68,20 +71,36 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
       <div className="flex items-center justify-end gap-1.5 mt-1.5">
         {applied ? (
           downloadUrl ? (
-            <button
-              type="button"
-              onClick={async () => {
-                try {
-                  await triggerBlobDownload(downloadUrl, downloadName);
-                } catch (err) {
-                  toast.error(`Download failed: ${err?.message || "unknown error"}`);
-                }
-              }}
-              className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-2.5 py-1 transition-colors"
-            >
-              <Download className="w-2.5 h-2.5" />
-              Download CV
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={async () => {
+                  try {
+                    await triggerBlobDownload(downloadUrl, downloadName);
+                  } catch (err) {
+                    toast.error(`Download failed: ${err?.message || "unknown error"}`);
+                  }
+                }}
+                className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-2.5 py-1 transition-colors"
+              >
+                <Download className="w-2.5 h-2.5" />
+                Download CV
+              </button>
+              {studioAppId && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      createPageUrl("CVAgent") +
+                        `?application_id=${encodeURIComponent(studioAppId)}`,
+                    )
+                  }
+                  className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-coral bg-rd-bg-card border border-rd-coral/40 hover:bg-rd-coral-tint rounded-full px-2.5 py-1 transition-colors"
+                >
+                  Open in Studio
+                </button>
+              )}
+            </>
           ) : (
             <span className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-teal-dark bg-rd-teal-tint rounded-full px-2 py-0.5">
               <CheckCircle2 className="w-2.5 h-2.5" />
@@ -250,6 +269,7 @@ function SuggestionRow({ message, conv, user, queryClient, profileSkills }) {
           applied={cvDone}
           downloadUrl={cvDone ? message.suggestedCVGeneration.result?.cv_url : undefined}
           downloadName={cvFilename(user?.user_metadata?.full_name, message.suggestedCVGeneration.target_role)}
+          studioAppId={cvDone ? message.suggestedCVGeneration.result?.application_id : undefined}
           busy={busy}
           error={error}
           onApply={applyCvGeneration}
@@ -317,6 +337,7 @@ function SuggestionRow({ message, conv, user, queryClient, profileSkills }) {
         applied={done}
         downloadUrl={done ? result?.cv_url : undefined}
         downloadName={cvFilename(user?.user_metadata?.full_name, message.suggestedCVGeneration.target_role)}
+        studioAppId={done ? result?.application_id : undefined}
         busy={busy}
         error={error}
         onApply={applyCvGeneration}
