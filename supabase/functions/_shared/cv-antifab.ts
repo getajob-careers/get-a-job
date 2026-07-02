@@ -34,6 +34,219 @@ export const TOKEN_BLOCKLIST = new Set([
   "SQL",
 ]);
 
+// Ordinary capitalized English + place / time / role words that legitimately
+// appear MID-SENTENCE in a CV and are NOT brand names. Kept deliberately free of
+// known tool/brand homonyms (Notion, Slack, Monday, Zoom, Segment, Gong, Linear,
+// Loom, Cursor, Claude, Canva) so those still get traced. This lets us flag
+// single-capitalized proper nouns (Zendesk, Intercom, Salesforce, HubSpot, Jira,
+// Figma, Tableau, Asana, Trello, Airtable, Marketo, Klaviyo, ...) that the
+// CamelCase / ALLCAPS patterns miss, without reverting normal reworded prose.
+// The lookup strips a trailing "s" so plurals (Managers -> Manager) are covered.
+export const PROPER_NOUN_STOPLIST = new Set([
+  // places / nationalities / languages
+  "Israel",
+  "Israeli",
+  "Tel",
+  "Aviv",
+  "Jerusalem",
+  "Haifa",
+  "Herzliya",
+  "America",
+  "American",
+  "Europe",
+  "European",
+  "Asia",
+  "English",
+  "Hebrew",
+  "Arabic",
+  "Spanish",
+  "French",
+  "German",
+  "Russian",
+  "Chinese",
+  "Middle",
+  "East",
+  "West",
+  "North",
+  "South",
+  // months / time
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+  "Monday",
+  "Tuesday",
+  "Wednesday",
+  "Thursday",
+  "Friday",
+  "Saturday",
+  "Sunday",
+  "Present",
+  "Current",
+  "Today",
+  // common role / domain words (capitalized inside titles)
+  "Manager",
+  "Director",
+  "Lead",
+  "Analyst",
+  "Specialist",
+  "Coordinator",
+  "Associate",
+  "Officer",
+  "Engineer",
+  "Developer",
+  "Designer",
+  "Consultant",
+  "Administrator",
+  "Representative",
+  "Executive",
+  "President",
+  "Founder",
+  "Head",
+  "Intern",
+  "Senior",
+  "Junior",
+  "Principal",
+  "Staff",
+  "Trainee",
+  "Advisor",
+  "Success",
+  "Support",
+  "Sales",
+  "Marketing",
+  "Product",
+  "Operations",
+  "Finance",
+  "Business",
+  "Customer",
+  "Client",
+  "Team",
+  "Project",
+  "Program",
+  "Growth",
+  "Strategy",
+  "Data",
+  "Quality",
+  "Service",
+  "Research",
+  "Content",
+  "Development",
+  "Engineering",
+  "Science",
+  "Technology",
+  "Human",
+  "Resource",
+  "Account",
+  "Partner",
+  "Partnership",
+  "Community",
+  "Brand",
+  "Digital",
+  "Social",
+  "Media",
+  "Public",
+  "Relation",
+  "Administration",
+  "Economics",
+  "Management",
+  "Computer",
+  "Information",
+  "System",
+  "Innovation",
+  "Analytics",
+  "University",
+  "College",
+  "Bachelor",
+  "Master",
+  "Degree",
+  // common capitalized connectors / determiners (sentence-internal)
+  "The",
+  "This",
+  "That",
+  "These",
+  "Those",
+  "With",
+  "And",
+  "For",
+  "From",
+  "Into",
+  "Over",
+  "Under",
+  "After",
+  "Before",
+  "When",
+  "While",
+  "During",
+  "Using",
+  "Within",
+  "Across",
+  "Through",
+  "Between",
+  "Their",
+  "They",
+  "Both",
+  "Each",
+  "Also",
+  "Then",
+  "Than",
+  "Such",
+  "More",
+  "Most",
+  "Full",
+  "Part",
+  "New",
+  "Key",
+  "Main",
+  "Core",
+  "First",
+  "Second",
+  "Third",
+  "Best",
+  "Real",
+  "Strong",
+  "High",
+  "Low",
+  "Global",
+  "Local",
+  "National",
+  "International",
+  "Cross",
+  "Multi",
+]);
+
+// Single-capitalized proper-noun tokens that QUANT_TOKEN_RE (CamelCase / ALLCAPS
+// only) misses. Position-aware: we only take tokens that appear MID-SENTENCE
+// (preceded by a lowercase letter / digit / comma / close-bracket + a space),
+// because a capital at the START of a bullet or right after a period is almost
+// always an ordinary word (verb-led bullets: "Handled..."/"Managed..."). Words
+// in the stoplist (plural-stripped) or the blocklist are dropped; the rest fall
+// through to the same source trace as every other token, so a JD tool absent
+// from the user's own content gets reverted instead of authored in.
+const SINGLE_CAP_MIDSENTENCE_RE = /(?<=[a-z0-9,)\]] )([A-Z][a-z]{2,})\b/g;
+export function properNounTokens(text: string): string[] {
+  const out: string[] = [];
+  const re = new RegExp(SINGLE_CAP_MIDSENTENCE_RE.source, "g");
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(String(text || ""))) !== null) {
+    const tok = m[1];
+    const singular = tok.replace(/s$/, "");
+    if (PROPER_NOUN_STOPLIST.has(tok) || PROPER_NOUN_STOPLIST.has(singular)) {
+      continue;
+    }
+    if (TOKEN_BLOCKLIST.has(tok)) continue;
+    out.push(tok);
+  }
+  return out;
+}
+
 // True iff every quantified / proper-noun token in `text` already appears in
 // `haystackLower` (the source content). Reworded bullets + the summary must pass
 // this — the source is the anti-fab'd ground truth, so this only polices that a
@@ -45,6 +258,12 @@ export function tokensTraceToMaster(
   const tokens = String(text || "").match(QUANT_TOKEN_RE) || [];
   for (const tok of tokens) {
     if (TOKEN_BLOCKLIST.has(tok)) continue;
+    if (!haystackLower.includes(tok.toLowerCase())) return false;
+  }
+  // Single-capitalized proper nouns (brand / tool names like Zendesk, Intercom)
+  // must also trace to the source. CamelCase / ALLCAPS are already covered above;
+  // this closes the ordinary-brand-name hole a JD can otherwise author in.
+  for (const tok of properNounTokens(text)) {
     if (!haystackLower.includes(tok.toLowerCase())) return false;
   }
   return true;
@@ -73,6 +292,17 @@ export function summaryTokensClean(
       !jdHaystackLower.includes(lower)
     ) {
       return false; // proper-noun: master OR JD keyword set (widened)
+    }
+  }
+  // Single-capitalized proper nouns follow the same widened rule: they may come
+  // from the master OR the JD keyword set, but a name in neither is fabricated.
+  for (const tok of properNounTokens(text)) {
+    const lower = tok.toLowerCase();
+    if (
+      !masterHaystackLower.includes(lower) &&
+      !jdHaystackLower.includes(lower)
+    ) {
+      return false;
     }
   }
   return true;
@@ -169,4 +399,134 @@ export function applyAntiFabGate(
   }
 
   return { cv_data: out, factsReverted, bulletsReverted, summaryReverted };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// generate-tailored-cv enforcement: the from-scratch authoring path emits fresh
+// bullets, so there is no 1:1 master ancestor to revert a single bullet to.
+// Policy (QA2 P1, Option A): a bullet that invents a PROPER-NOUN tool/brand token
+// absent from the user's source is REMOVED (dropped). NUMBER tokens stay a
+// non-blocking flag (returned so the caller can surface unsourced_bullets).
+// No-empty invariant (#437): if enforcement would leave an EXPERIENCE bucket
+// entry with zero bullets, restore that experience's master bullets instead of
+// ever emptying it. Projects may legitimately end empty and are not restored.
+// This is the seed of the queued "ONE ENFORCEMENT GATE (consolidation)".
+
+const ENFORCE_EXP_BUCKETS = new Set([
+  "professional_experiences",
+  "military_experiences",
+  "volunteering_experiences",
+  "leadership_experiences",
+]);
+
+export interface BulletEnforcementResult {
+  bulletsEnforced: number; // bullets removed for an unsourced proper-noun token
+  experiencesRestored: number; // experiences restored to master (no-empty)
+  flags: { bucket: string; bullet: string; tokens: string[] }[];
+}
+
+// Mutates cvData bucket entries' `bullets` in place. `masterBulletsByKey` maps
+// expKeyOf(title, company) -> that experience's master bullets (used only for
+// the no-empty restore). `sourceHaystackLower` is the lowercased corpus of the
+// user's own content that a token must trace to.
+export function enforceBulletProperNouns(
+  cvData: Record<string, any>,
+  sourceHaystackLower: string,
+  masterBulletsByKey: Map<string, string[]>,
+  expKeyOf: (title: unknown, company: unknown) => string,
+): BulletEnforcementResult {
+  const flags: { bucket: string; bullet: string; tokens: string[] }[] = [];
+  let bulletsEnforced = 0;
+  let experiencesRestored = 0;
+
+  const scan = (bullet: string): { numbers: string[]; proper: string[] } => {
+    const text = String(bullet || "").trim();
+    const numbers: string[] = [];
+    const proper: string[] = [];
+    if (!text) return { numbers, proper };
+    for (const tok of text.match(QUANT_TOKEN_RE) || []) {
+      if (TOKEN_BLOCKLIST.has(tok)) continue;
+      if (sourceHaystackLower.includes(tok.toLowerCase())) continue;
+      if (/\d/.test(tok)) numbers.push(tok);
+      else proper.push(tok);
+    }
+    for (const tok of properNounTokens(text)) {
+      if (!sourceHaystackLower.includes(tok.toLowerCase())) proper.push(tok);
+    }
+    return { numbers, proper };
+  };
+
+  for (const bucket of [
+    "professional_experiences",
+    "military_experiences",
+    "volunteering_experiences",
+    "leadership_experiences",
+    "projects",
+  ]) {
+    const entries = Array.isArray(cvData?.[bucket]) ? cvData[bucket] : [];
+    for (const entry of entries) {
+      const orig = safeArr(entry?.bullets).map((b) => str(b));
+      const kept: string[] = [];
+      for (const b of orig) {
+        const { numbers, proper } = scan(b);
+        if (proper.length > 0) {
+          bulletsEnforced++;
+          // removed, not surfaced as a flag (a warning about a gone bullet
+          // would confuse the user); the count is telemetry only.
+          continue; // drop the fabricating bullet
+        }
+        if (numbers.length > 0)
+          flags.push({ bucket, bullet: b, tokens: numbers });
+        kept.push(b);
+      }
+      if (
+        kept.length === 0 &&
+        orig.length > 0 &&
+        ENFORCE_EXP_BUCKETS.has(bucket)
+      ) {
+        const restored =
+          masterBulletsByKey.get(expKeyOf(entry?.title, entry?.company)) ?? [];
+        if (restored.length > 0) {
+          entry.bullets = restored.slice(0, 8);
+          experiencesRestored++;
+        } else {
+          entry.bullets = orig; // last resort: keep originals, never empty
+        }
+      } else {
+        entry.bullets = kept;
+      }
+    }
+  }
+
+  return { bulletsEnforced, experiencesRestored, flags };
+}
+
+// Filter a tailored CV's skills.tools list to the user's source (QA2 P1, Rider 1
+// promoted): a tool/brand name absent from the user's own content is a JD
+// fabrication and is removed; genuinely-owned tools survive (they trace to the
+// source). NEVER-EMPTY rail: if filtering would empty the section, fall back to
+// the user's owned tools (ownedFallback, already source-derived). A user who
+// genuinely has no tools keeps an empty list (that is honest, not a bug).
+export function filterToolsToSource(
+  tools: unknown,
+  sourceHaystackLower: string,
+  ownedFallback: string[],
+): { tools: string[]; removed: number } {
+  const list = safeArr(tools)
+    .map((t) => str(t).trim())
+    .filter(Boolean);
+  const kept = list.filter((t) =>
+    sourceHaystackLower.includes(t.toLowerCase()),
+  );
+  const removed = list.length - kept.length;
+  if (kept.length > 0) return { tools: kept, removed };
+  // never-empty: restore the user's genuinely-owned tools (deduped, capped).
+  const owned = Array.from(
+    new Set(
+      safeArr(ownedFallback)
+        .map((t) => str(t).trim())
+        .filter(Boolean),
+    ),
+  );
+  return { tools: owned.slice(0, 12), removed };
 }
