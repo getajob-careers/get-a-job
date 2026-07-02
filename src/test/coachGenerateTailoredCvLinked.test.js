@@ -103,6 +103,34 @@ describe("generateTailoredCVLinked (F1 / orphan-CV)", () => {
     expect(res.linkedNewApp).toBe(true);
     expect(res.applicationId).toBe("new-app-uuid-0001");
     expect(res.result.application_id).toBe("new-app-uuid-0001");
+    // Real company supplied → not flagged as an Unknown/placeholder filing.
+    expect(res.unknownCompany).toBe(false);
+  });
+
+  it("flags unknownCompany when the coach files the app without a real company (⑤)", async () => {
+    // No company on the add_application, and a placeholder on a second variant:
+    // both resolve to FALLBACK_COMPANY, so the caller can surface it visibly
+    // instead of silently filing an "Unknown".
+    for (const company of [undefined, "Unknown", "N/A"]) {
+      insertedRows.length = 0;
+      invokeBodies.length = 0;
+      const res = await generateTailoredCVLinked({
+        user,
+        queryClient,
+        proposal: { target_role: "Support", job_description: JD },
+        appActions: [
+          {
+            action: "add_application",
+            role_title: "Support",
+            ...(company != null ? { company } : {}),
+          },
+        ],
+        messageId: "m-unknown",
+      });
+      expect(res.linkedNewApp).toBe(true); // still linked — no orphan
+      expect(res.unknownCompany).toBe(true); // but NOT silent
+      expect(invokeBodies[0].application_id).toBe("new-app-uuid-0001");
+    }
   });
 
   it("treats a garbage (non-UUID) application_id as absent and links via the new app", async () => {

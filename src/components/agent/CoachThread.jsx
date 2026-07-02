@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Loader2, RefreshCw, Maximize2, CheckCircle2, AlertCircle, ListTodo, Route, Briefcase, Building2, FileText } from "lucide-react";
+import { Loader2, RefreshCw, Maximize2, CheckCircle2, AlertCircle, ListTodo, Route, Briefcase, Building2, FileText, Download } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import MessageBubble from "@/components/chat/MessageBubble";
 import BulletSaveCard from "@/components/chat/BulletSaveCard";
 import AddSkillCard from "@/components/chat/AddSkillCard";
+import { triggerBlobDownload, cvFilename } from "@/lib/downloadFile";
 import { useCoachConversation } from "@/lib/CoachConversationContext";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import { useAuth } from "@/lib/AuthContext";
@@ -48,7 +49,7 @@ const DEFAULT_DOCK_PROMPTS = [
   "What's my biggest gap?",
 ];
 
-function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onApply, busy }) {
+function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onApply, busy, downloadUrl, downloadName }) {
   return (
     <div className="ml-9 mt-1 bg-rd-bg-card border border-rd-coral-tint rounded-[10px] px-3 py-2">
       <div className="flex items-center gap-1.5">
@@ -66,10 +67,27 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
       )}
       <div className="flex items-center justify-end gap-1.5 mt-1.5">
         {applied ? (
-          <span className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-teal-dark bg-rd-teal-tint rounded-full px-2 py-0.5">
-            <CheckCircle2 className="w-2.5 h-2.5" />
-            Applied
-          </span>
+          downloadUrl ? (
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  await triggerBlobDownload(downloadUrl, downloadName);
+                } catch (err) {
+                  toast.error(`Download failed: ${err?.message || "unknown error"}`);
+                }
+              }}
+              className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-2.5 py-1 transition-colors"
+            >
+              <Download className="w-2.5 h-2.5" />
+              Download CV
+            </button>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-teal-dark bg-rd-teal-tint rounded-full px-2 py-0.5">
+              <CheckCircle2 className="w-2.5 h-2.5" />
+              Applied
+            </span>
+          )
         ) : (
           <>
             {action && (
@@ -128,7 +146,11 @@ function SuggestionRow({ message, conv, user, queryClient, profileSkills }) {
         conv.markApplied("applications", message.id);
         queryClient.invalidateQueries({ queryKey: ["applications"] });
       }
-      const msg = res.result.application_id ? "CV linked to your application tracker!" : "CV generated";
+      const msg = res.unknownCompany
+        ? "CV generated and added to your tracker — I didn't catch the company name, so tell me anytime and I'll fill it in."
+        : res.result.application_id
+          ? "CV linked to your application tracker!"
+          : "CV generated";
       return { ok: true, toastSuccess: msg };
     });
 
@@ -226,6 +248,8 @@ function SuggestionRow({ message, conv, user, queryClient, profileSkills }) {
           title={`Tailored CV for ${message.suggestedCVGeneration.target_role}`}
           action={cvDone ? null : error ? "Try again" : "Generate"}
           applied={cvDone}
+          downloadUrl={cvDone ? message.suggestedCVGeneration.result?.cv_url : undefined}
+          downloadName={cvFilename(user?.user_metadata?.full_name, message.suggestedCVGeneration.target_role)}
           busy={busy}
           error={error}
           onApply={applyCvGeneration}
@@ -291,6 +315,8 @@ function SuggestionRow({ message, conv, user, queryClient, profileSkills }) {
         title={`Tailored CV for ${message.suggestedCVGeneration.target_role}`}
         action={done ? null : error ? "Try again" : "Generate"}
         applied={done}
+        downloadUrl={done ? result?.cv_url : undefined}
+        downloadName={cvFilename(user?.user_metadata?.full_name, message.suggestedCVGeneration.target_role)}
         busy={busy}
         error={error}
         onApply={applyCvGeneration}
