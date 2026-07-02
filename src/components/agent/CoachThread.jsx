@@ -48,7 +48,7 @@ const DEFAULT_DOCK_PROMPTS = [
   "What's my biggest gap?",
 ];
 
-function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onApply, onExpand, busy }) {
+function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onApply, busy }) {
   return (
     <div className="ml-9 mt-1 bg-rd-bg-card border border-rd-coral-tint rounded-[10px] px-3 py-2">
       <div className="flex items-center gap-1.5">
@@ -72,15 +72,6 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
           </span>
         ) : (
           <>
-            {onExpand && (
-              <button
-                type="button"
-                onClick={onExpand}
-                className="inline-flex items-center gap-1 text-[10.5px] font-display font-semibold text-rd-text-secondary hover:text-rd-text rounded-full px-2 py-0.5 transition-colors"
-              >
-                View
-              </button>
-            )}
             {action && (
               <button
                 type="button"
@@ -99,7 +90,7 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
   );
 }
 
-function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSkills }) {
+function SuggestionRow({ message, conv, user, queryClient, profileSkills }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
 
@@ -173,7 +164,6 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
           }
           return res;
         })}
-        onExpand={openPanel}
       />
     );
   }
@@ -198,7 +188,6 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
           if (res.error) return res;
           return { ok: true, toastSuccess: "Roadmap updated" };
         })}
-        onExpand={openPanel}
       />
     );
   }
@@ -230,7 +219,6 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
             queryClient.invalidateQueries({ queryKey: ["applications"] });
             return { ok: true, toastSuccess: "Applications updated" };
           })}
-          onExpand={openPanel}
         />
         <SuggestionRowShell
           kind="CV generation proposed"
@@ -241,7 +229,6 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
           busy={busy}
           error={error}
           onApply={applyCvGeneration}
-          onExpand={error ? undefined : openPanel}
         />
       </>
     );
@@ -265,7 +252,6 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
           queryClient.invalidateQueries({ queryKey: ["applications"] });
           return { ok: true, toastSuccess: "Applications updated" };
         })}
-        onExpand={openPanel}
       />
     );
   }
@@ -291,7 +277,6 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
             : "Internship updated";
           return { ok: true, toastSuccess: msg };
         })}
-        onExpand={openPanel}
       />
     );
   }
@@ -309,7 +294,6 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
         busy={busy}
         error={error}
         onApply={applyCvGeneration}
-        onExpand={error ? undefined : openPanel}
       />
     );
   }
@@ -474,7 +458,6 @@ export default function CoachThread({ variant = "dock" }) {
             <SuggestionRow
               message={msg}
               conv={conv}
-              openPanel={expandPanel}
               user={user}
               queryClient={queryClient}
               profileSkills={profileSkills}
