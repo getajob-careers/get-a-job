@@ -85,7 +85,7 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
           ) : (
             <span className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-teal-dark bg-rd-teal-tint rounded-full px-2 py-0.5">
               <CheckCircle2 className="w-2.5 h-2.5" />
-              Applied
+              Added
             </span>
           )
         ) : (
@@ -123,7 +123,7 @@ function SuggestionRow({ message, conv, user, queryClient, profileSkills }) {
         toast.error(res.error);
       } else {
         conv.markApplied(kind, message.id);
-        toast.success(res?.toastSuccess || "Applied");
+        toast.success(res?.toastSuccess || "Added");
       }
     } finally {
       setBusy(false);

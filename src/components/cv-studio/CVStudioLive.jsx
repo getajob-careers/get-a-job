@@ -423,13 +423,13 @@ export default function CVStudioLive() {
     const seq = hasMaster
       ? [
           [0, "Reading the role…"],
-          [2500, "Selecting your strongest material…"],
+          [2500, "Reframing your experience for this role…"],
           [9000, "Rendering your PDF…"],
         ]
       : [
           [0, "Preparing your master CV (one-time, this can take ~40s)…"],
           [40000, "Reading the role…"],
-          [42500, "Selecting your strongest material…"],
+          [42500, "Reframing your experience for this role…"],
           [49000, "Rendering your PDF…"],
         ];
     for (const [ms, label] of seq) {
