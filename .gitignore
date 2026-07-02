@@ -45,3 +45,4 @@ GetAJob Design System/
 # Raw CV-template TTF sources — the bytes live committed in *-fonts.ts (base64).
 supabase/functions/_shared/cv-templates/fonts/
 scripts/cv-harness/fixtures/founder.json
+.agents/
