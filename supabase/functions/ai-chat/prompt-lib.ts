@@ -1208,8 +1208,14 @@ export function parseSuggestions(
     ) {
       suggested_cv_generation = {
         target_role: String(parsed.target_role).slice(0, 200).trim(),
+        // F1 (QA2): only accept a well-formed UUID as application_id. The model
+        // sometimes lifts a job requisition number (e.g. "2657") from the JD into
+        // this field; a non-UUID must be treated as ABSENT, never sent downstream
+        // (refine-cv/generate-tailored-cv would app_not_found on it).
         ...(typeof parsed.application_id === "string" &&
-        parsed.application_id.trim()
+        /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+          parsed.application_id.trim(),
+        )
           ? { application_id: parsed.application_id.trim() }
           : {}),
         ...(typeof parsed.job_description === "string" &&

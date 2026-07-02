@@ -170,6 +170,7 @@ export async function applyRoadmapChanges({ user, changes, userSkills = [] }) {
 export async function applyApplicationActions({ user, queryClient, actions }) {
   if (!user?.id || !Array.isArray(actions) || actions.length === 0) return { error: "missing input" };
   let hasError = false;
+  const applicationIds = [];
 
   for (const a of actions) {
     if (a.action === "add_application") {
@@ -188,6 +189,7 @@ export async function applyApplicationActions({ user, queryClient, actions }) {
       };
       const { data: inserted, error } = await supabase.from("applications").insert(row).select("id").single();
       if (error) { console.error("add_application error:", error); hasError = true; continue; }
+      if (inserted?.id) applicationIds.push(inserted.id);
       if (inserted?.id && a.job_description) {
         const cleanedJd = stripHtml(a.job_description) || a.job_description;
         scoreApplication(supabase, queryClient, inserted.id, cleanedJd, user.id);
@@ -225,8 +227,8 @@ export async function applyApplicationActions({ user, queryClient, actions }) {
       if (error) { console.error("update_application error:", error); hasError = true; }
     }
   }
-  if (hasError) return { error: "some applications failed", hasError: true };
-  return { ok: true };
+  if (hasError) return { error: "some applications failed", hasError: true, applicationIds };
+  return { ok: true, applicationIds };
 }
 
 // ─── Company-target actions ────────────────────────────────────────────
@@ -678,4 +680,48 @@ export async function generateTailoredCV({ queryClient, proposal, messageId }) {
     console.error("[coachActions] generateTailoredCV failed:", err);
     return { error: err?.message || "Could not generate CV." };
   }
+}
+
+const APP_ID_UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// F1 / orphan-CV (QA2): chat-initiated generation must produce a LINKED CV, never
+// an orphan. When the same coach turn adds a NEW tracked app AND proposes a CV,
+// the CV proposal has no application_id yet (the app does not exist at emission).
+// Apply the app FIRST (carrying the JD the coach already has, so the app row is
+// born with its job_description), then generate with the real id so the CV links
+// to the tracker entry instead of floating unlinked.
+// Returns { ...generateResult, linkedNewApp, applicationId }.
+export async function generateTailoredCVLinked({
+  user,
+  queryClient,
+  proposal,
+  appActions,
+  messageId,
+}) {
+  let applicationId = APP_ID_UUID_RE.test(String(proposal?.application_id || ""))
+    ? proposal.application_id
+    : null;
+  let linkedNewApp = false;
+  if (!applicationId && user && Array.isArray(appActions)) {
+    const add = appActions.find((x) => x?.action === "add_application");
+    if (add) {
+      const res = await applyApplicationActions({
+        user,
+        queryClient,
+        actions: [{
+          ...add,
+          job_description: add.job_description || proposal?.job_description,
+        }],
+      });
+      applicationId = res?.applicationIds?.[0] || null;
+      linkedNewApp = !!applicationId;
+    }
+  }
+  const gen = await generateTailoredCV({
+    queryClient,
+    proposal: { ...proposal, application_id: applicationId || undefined },
+    messageId,
+  });
+  return { ...gen, linkedNewApp, applicationId };
 }

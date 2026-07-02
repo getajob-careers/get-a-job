@@ -24,7 +24,7 @@ import {
   applyRoadmapChanges as sharedApplyRoadmapChanges,
   applyApplicationActions as sharedApplyApplicationActions,
   applyCompanyTargetActions as sharedApplyCompanyTargetActions,
-  generateTailoredCV as sharedGenerateTailoredCV,
+  generateTailoredCVLinked as sharedGenerateTailoredCVLinked,
   extractBullets as sharedExtractBullets,
   appendBullets as sharedAppendBullets,
   restoreBullets as sharedRestoreBullets,
@@ -953,12 +953,20 @@ export default function ChatInterface({
     }
   };
 
-  const handleGenerateCV = async (messageId, proposal) => {
+  const handleGenerateCV = async (messageId, proposal, appActions) => {
     if (!user?.id || !proposal?.target_role) return;
     if (cvGenStates[messageId]?.status === "generating" || cvGenStates[messageId]?.status === "done") return;
 
     setCvGenStates((prev) => ({ ...prev, [messageId]: { status: "generating" } }));
-    const res = await sharedGenerateTailoredCV({ queryClient, proposal, messageId });
+    // F1/orphan: if this turn also proposes a NEW tracked app, the linked helper
+    // creates it FIRST (with the coach's JD) so the CV is born linked, never an
+    // orphan. On success we mark the app-action card applied to prevent a
+    // double-create if the user also clicks its Apply button.
+    const res = await sharedGenerateTailoredCVLinked({ user, queryClient, proposal, appActions, messageId });
+    if (res.linkedNewApp) {
+      setAppliedAppActionSets((prev) => ({ ...prev, [messageId]: true }));
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+    }
     if (res.error) {
       setCvGenStates((prev) => ({ ...prev, [messageId]: { status: "idle", error: res.error } }));
       toast.error(res.error);
@@ -1057,7 +1065,7 @@ export default function ChatInterface({
       if (msg.role === "assistant" && prop?.target_role && !prop.result &&
           !firedCvRef.current.has(msg.id) && !cvGenStates[msg.id]) {
         firedCvRef.current.add(msg.id);
-        handleGenerateCV(msg.id, prop);
+        handleGenerateCV(msg.id, prop, msg.suggestedApplicationActions);
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1327,7 +1335,7 @@ export default function ChatInterface({
                 <CVGenerationCard
                   proposal={msg.suggestedCVGeneration}
                   state={cvGenStates[msg.id]}
-                  onGenerate={() => handleGenerateCV(msg.id, msg.suggestedCVGeneration)}
+                  onGenerate={() => handleGenerateCV(msg.id, msg.suggestedCVGeneration, msg.suggestedApplicationActions)}
                   appLabel={applicationsById[msg.suggestedCVGeneration.application_id] || null}
                   userName={profile?.full_name}
                 />

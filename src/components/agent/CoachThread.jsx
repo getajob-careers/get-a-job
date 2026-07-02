@@ -16,7 +16,7 @@ import {
   applyRoadmapChanges,
   applyApplicationActions,
   applyCompanyTargetActions,
-  generateTailoredCV,
+  generateTailoredCVLinked,
   extractBullets,
   appendBullets,
   restoreBullets,
@@ -124,9 +124,19 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
   // Shared CV-gen apply, used by both the auto-fire effect and the button.
   const applyCvGeneration = () =>
     wrap("cvGeneration", async () => {
-      const res = await generateTailoredCV({ queryClient, proposal: message.suggestedCVGeneration, messageId: message.id });
+      const res = await generateTailoredCVLinked({
+        user,
+        queryClient,
+        proposal: message.suggestedCVGeneration,
+        appActions: message.suggestedApplicationActions,
+        messageId: message.id,
+      });
       if (res.error)
         return { error: "Couldn't generate the CV this time — tap Try again." };
+      if (res.linkedNewApp) {
+        conv.markApplied("applications", message.id);
+        queryClient.invalidateQueries({ queryKey: ["applications"] });
+      }
       const msg = res.result.application_id ? "CV linked to your application tracker!" : "CV generated";
       return { ok: true, toastSuccess: msg };
     });
@@ -190,6 +200,50 @@ function SuggestionRow({ message, conv, openPanel, user, queryClient, profileSki
         })}
         onExpand={openPanel}
       />
+    );
+  }
+
+  // F1/orphan (QA2): one coach turn can BOTH add a tracked app AND propose its
+  // CV. The single-card early-returns below would render only the app-action
+  // card and swallow the CV card, so the linked CV would generate silently with
+  // no visible result. Render BOTH cards when both are present.
+  if (
+    message.suggestedApplicationActions &&
+    message.suggestedCVGeneration?.target_role
+  ) {
+    const appApplied = !!conv.appliedSets.applications[message.id];
+    const nApp = message.suggestedApplicationActions.length;
+    const cvDone = !!message.suggestedCVGeneration.result?.cv_url;
+    return (
+      <>
+        <SuggestionRowShell
+          kind="Application updates proposed"
+          KindIcon={Briefcase}
+          title={`${nApp} update${nApp === 1 ? "" : "s"} to your tracker`}
+          action="Apply"
+          applied={appApplied}
+          busy={busy}
+          error={error}
+          onApply={() => wrap("applications", async () => {
+            const res = await applyApplicationActions({ user, queryClient, actions: message.suggestedApplicationActions });
+            if (res.error) return res;
+            queryClient.invalidateQueries({ queryKey: ["applications"] });
+            return { ok: true, toastSuccess: "Applications updated" };
+          })}
+          onExpand={openPanel}
+        />
+        <SuggestionRowShell
+          kind="CV generation proposed"
+          KindIcon={FileText}
+          title={`Tailored CV for ${message.suggestedCVGeneration.target_role}`}
+          action={cvDone ? null : error ? "Try again" : "Generate"}
+          applied={cvDone}
+          busy={busy}
+          error={error}
+          onApply={applyCvGeneration}
+          onExpand={error ? undefined : openPanel}
+        />
+      </>
     );
   }
 
