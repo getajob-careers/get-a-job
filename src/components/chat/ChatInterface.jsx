@@ -283,6 +283,7 @@ function looksLikeStory(text) {
 // The parent owns the state object so it survives re-renders and can be
 // persisted to the DB.
 function CVGenerationCard({ proposal, state, onGenerate, appLabel, userName }) {
+  const navigate = useNavigate();
   const { status, cv_url, fit_analysis, application_id, unsourced_bullets, error } = state || {};
 
   if (status === "done" && cv_url) {
@@ -334,20 +335,37 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel, userName }) {
             </p>
           </div>
         )}
-        <button
-          type="button"
-          onClick={async () => {
-            try {
-              await triggerBlobDownload(cv_url, cvFilename(userName, proposal.target_role));
-            } catch (err) {
-              toast.error(`Download failed: ${err?.message || "unknown error"}`);
-            }
-          }}
-          className="inline-flex items-center gap-1.5 text-xs font-display font-bold bg-rd-coral hover:bg-rd-coral-dark text-white rounded-full px-3.5 py-2 transition-colors"
-        >
-          <Download className="w-3.5 h-3.5" />
-          Download CV (.pdf)
-        </button>
+        <div className="flex items-center gap-2 flex-wrap">
+          <button
+            type="button"
+            onClick={async () => {
+              try {
+                await triggerBlobDownload(cv_url, cvFilename(userName, proposal.target_role));
+              } catch (err) {
+                toast.error(`Download failed: ${err?.message || "unknown error"}`);
+              }
+            }}
+            className="inline-flex items-center gap-1.5 text-xs font-display font-bold bg-rd-coral hover:bg-rd-coral-dark text-white rounded-full px-3.5 py-2 transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" />
+            Download CV (.pdf)
+          </button>
+          {application_id && (
+            <button
+              type="button"
+              onClick={() =>
+                navigate(
+                  createPageUrl("CVAgent") +
+                    `?application_id=${encodeURIComponent(application_id)}`,
+                )
+              }
+              className="inline-flex items-center gap-1.5 text-xs font-display font-bold text-rd-coral bg-rd-bg-card border border-rd-coral/40 hover:bg-rd-coral-tint rounded-full px-3.5 py-2 transition-colors"
+            >
+              Open in Studio
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
       </div>
     );
   }
