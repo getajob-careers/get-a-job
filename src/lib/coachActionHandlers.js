@@ -37,6 +37,7 @@ import {
   sanitizeText,
   sanitizeActionItems,
   sanitizeCompany,
+  FALLBACK_COMPANY,
 } from "@/lib/applyHandlerValidation";
 
 // ─── Tasks ─────────────────────────────────────────────────────────────
@@ -171,13 +172,15 @@ export async function applyApplicationActions({ user, queryClient, actions }) {
   if (!user?.id || !Array.isArray(actions) || actions.length === 0) return { error: "missing input" };
   let hasError = false;
   const applicationIds = [];
+  const placeholderCompanyIds = [];
 
   for (const a of actions) {
     if (a.action === "add_application") {
       const status = validStatus(a.status) || "interested";
+      const company = sanitizeCompany(a.company);
       const row = {
         user_id: user.id,
-        company: sanitizeCompany(a.company),
+        company,
         role_title: a.role_title,
         status,
         source: 'chat_agent',
@@ -190,6 +193,7 @@ export async function applyApplicationActions({ user, queryClient, actions }) {
       const { data: inserted, error } = await supabase.from("applications").insert(row).select("id").single();
       if (error) { console.error("add_application error:", error); hasError = true; continue; }
       if (inserted?.id) applicationIds.push(inserted.id);
+      if (inserted?.id && company === FALLBACK_COMPANY) placeholderCompanyIds.push(inserted.id);
       if (inserted?.id && a.job_description) {
         const cleanedJd = stripHtml(a.job_description) || a.job_description;
         scoreApplication(supabase, queryClient, inserted.id, cleanedJd, user.id);
@@ -227,8 +231,8 @@ export async function applyApplicationActions({ user, queryClient, actions }) {
       if (error) { console.error("update_application error:", error); hasError = true; }
     }
   }
-  if (hasError) return { error: "some applications failed", hasError: true, applicationIds };
-  return { ok: true, applicationIds };
+  if (hasError) return { error: "some applications failed", hasError: true, applicationIds, placeholderCompanyIds };
+  return { ok: true, applicationIds, placeholderCompanyIds };
 }
 
 // ─── Company-target actions ────────────────────────────────────────────
@@ -703,6 +707,7 @@ export async function generateTailoredCVLinked({
     ? proposal.application_id
     : null;
   let linkedNewApp = false;
+  let unknownCompany = false;
   if (!applicationId && user && Array.isArray(appActions)) {
     const add = appActions.find((x) => x?.action === "add_application");
     if (add) {
@@ -716,6 +721,9 @@ export async function generateTailoredCVLinked({
       });
       applicationId = res?.applicationIds?.[0] || null;
       linkedNewApp = !!applicationId;
+      // ⑤ (QA2): the coach filed this app with no real company (placeholder
+      // fallback). Surface it so the UI never SILENTLY files an "Unknown".
+      unknownCompany = !!(applicationId && res?.placeholderCompanyIds?.includes(applicationId));
     }
   }
   const gen = await generateTailoredCV({
@@ -723,5 +731,5 @@ export async function generateTailoredCVLinked({
     proposal: { ...proposal, application_id: applicationId || undefined },
     messageId,
   });
-  return { ...gen, linkedNewApp, applicationId };
+  return { ...gen, linkedNewApp, applicationId, unknownCompany };
 }

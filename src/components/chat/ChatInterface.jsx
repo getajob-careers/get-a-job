@@ -976,7 +976,11 @@ export default function ChatInterface({
     // Auto-scroll to the finished CV card so the user cannot miss where it
     // landed (the messages effect does not fire on a cvGenStates-only change).
     setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), 60);
-    if (res.result.application_id) {
+    if (res.unknownCompany) {
+      // ⑤ (QA2): never silently file an app with no company. Say so, and invite
+      // the correction, instead of leaving a mystery "Unknown" in the tracker.
+      toast.success("CV generated and added to your tracker — I didn't catch the company name, so tell me anytime and I'll fill it in.");
+    } else if (res.result.application_id) {
       toast.success("CV linked to your application tracker!");
     } else {
       toast.success("CV generated");

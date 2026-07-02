@@ -24,6 +24,35 @@ describe("sanitizeCompany / isSuspiciousCompany", () => {
     }
   });
 
+  it("flags placeholder company names the model reaches for (⑤ QA2) and falls back", () => {
+    for (const ph of [
+      "Unknown",
+      "unknown",
+      "UNKNOWN",
+      "N/A",
+      "n/a",
+      "None",
+      "TBD",
+      "Not specified",
+      "Company",
+      "the company",
+    ]) {
+      expect(isSuspiciousCompany(ph)).toBe(true);
+      expect(sanitizeCompany(ph)).toBe(FALLBACK_COMPANY);
+    }
+  });
+
+  it("does not flag real brands that merely contain a placeholder word", () => {
+    for (const ok of [
+      "Unknown Worlds Entertainment",
+      "The Company Store",
+      "None The Wiser Labs",
+    ]) {
+      expect(isSuspiciousCompany(ok)).toBe(false);
+      expect(sanitizeCompany(ok)).toBe(ok);
+    }
+  });
+
   it("keeps legitimate single-token camelCase brands", () => {
     for (const ok of [
       "SentinelOne",

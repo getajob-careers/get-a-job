@@ -266,6 +266,7 @@ Valid interview_stage examples: "phone_screen", "technical", "onsite", "final_ro
 Rules:
 - Only propose actions the user EXPLICITLY requested. Do not add or modify applications proactively.
 - For add_application: always infer reasonable defaults. If the user didn't specify status, default to "interested". If they didn't specify role_title, ask first — do not emit the block.
+- For add_application, the company is REQUIRED. If the job description or the user's message does not clearly name the employer, ASK for it in plain text and do NOT emit the block — never fill "company" with a placeholder like "Unknown", "N/A", "Company", or a guess. It is fine to add the application on a later turn once they answer. (If you must proceed without it because the user insists, say plainly in your reply that you're adding it without a company and they can tell you the name anytime.)
 - For update_application: match_company + match_role_title must name a real application from the ACTIVE APPLICATIONS context block. If the user is ambiguous about which application to update, ask first.
 - Always describe what you're about to do in the response text before the JSON block, so the user can confirm.
 - Omit the block entirely if no tracker action was requested.`;

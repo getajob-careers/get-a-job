@@ -113,6 +113,11 @@ export function isSuspiciousCompany(raw) {
   const s = typeof raw === "string" ? raw.trim() : "";
   if (!s) return false;
   if (COMPANY_BOILERPLATE_RE.test(s)) return true;
+  // Placeholder names the model reaches for when the JD never states the
+  // company. Treating them as suspicious routes them to FALLBACK_COMPANY so a
+  // literal "Unknown" never persists, and lets add_application detect that the
+  // coach supplied no real company (see placeholderCompanyIds).
+  if (/^(unknown|n\/?a|none|tbd|not\s+specified|company|the\s+company)$/i.test(s)) return true;
   if (!/\s/.test(s) && s.length >= 16) {
     const caps = (s.match(/[A-Z]/g) || []).length;
     const transitions = (s.match(/[a-z][A-Z]/g) || []).length;
