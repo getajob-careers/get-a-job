@@ -12,6 +12,16 @@ import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import { track, EVENTS } from "@/lib/analytics";
 import { triggerBlobDownload, cvFilename } from "@/lib/downloadFile";
 import { useProfileQuery } from "@/lib/queries/useProfile";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function CVManagement({ app, onUpdate }) {
   const { user } = useAuth();
@@ -28,6 +38,7 @@ export default function CVManagement({ app, onUpdate }) {
   // generator will have something real to write about? Set true when the
   // sum of responsibilities across experiences is below 200 chars.
   const [thinSource, setThinSource] = useState(false);
+  const [thinConfirmOpen, setThinConfirmOpen] = useState(false);
   useEffect(() => {
     let cancelled = false;
     if (!user?.id) return undefined;
@@ -68,12 +79,16 @@ export default function CVManagement({ app, onUpdate }) {
     if (thinSource) {
       // Confirm before burning a generation on a profile that's too thin to
       // produce substantive bullets. The LLM will elaborate plausibly when
-      // source content is sparse; this surfaces the risk before we ship.
-      const ok = window.confirm(
-        "Your profile has limited content in the Experience section. The generated CV may include bullets the AI inferred rather than ones grounded in your actual work. Continue, or add more detail to your experiences first?\n\nClick OK to generate anyway, or Cancel to add detail first."
-      );
-      if (!ok) return;
+      // source content is sparse; this surfaces the risk before we ship. Uses an
+      // in-app modal (not native confirm) so the warning doesn't read as a
+      // browser phishing prompt — same words, trustworthy vessel.
+      setThinConfirmOpen(true);
+      return;
     }
+    await runGenerateCV();
+  };
+
+  const runGenerateCV = async () => {
     setGenerating(true);
     const startedAt = performance.now();
     try {
@@ -245,6 +260,33 @@ export default function CVManagement({ app, onUpdate }) {
           )}
         </Button>
       </div>
+
+      <AlertDialog open={thinConfirmOpen} onOpenChange={setThinConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Generate with limited profile content?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Your profile has limited content in the Experience section. The
+              generated CV may include bullets the AI inferred rather than ones
+              grounded in your actual work. Continue, or add more detail to your
+              experiences first?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Add detail first</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                setThinConfirmOpen(false);
+                runGenerateCV();
+              }}
+              className="bg-rd-coral hover:bg-rd-coral-dark focus:ring-rd-coral text-white"
+            >
+              Generate anyway
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
