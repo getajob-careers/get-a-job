@@ -127,25 +127,28 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
   );
 }
 
-function SuggestionRow({ message, conv, user, queryClient, profileSkills }) {
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
+// Exported for CoachThread-N-cards.test.jsx (the never-silence guard).
+export function SuggestionRow({ message, conv, user, queryClient, profileSkills }) {
+  // Per-kind busy/error so a single turn carrying MANY action cards doesn't let
+  // one card's in-flight/error state bleed onto the others.
+  const [busyKind, setBusyKind] = useState(null);
+  const [errorByKind, setErrorByKind] = useState({});
 
   const wrap = async (kind, fn) => {
-    if (busy) return;
-    setBusy(true);
-    setError(null);
+    if (busyKind) return;
+    setBusyKind(kind);
+    setErrorByKind((p) => ({ ...p, [kind]: null }));
     try {
       const res = await fn();
       if (res?.error) {
-        setError(res.error);
+        setErrorByKind((p) => ({ ...p, [kind]: res.error }));
         toast.error(res.error);
       } else {
         conv.markApplied(kind, message.id);
         toast.success(res?.toastSuccess || "Added");
       }
     } finally {
-      setBusy(false);
+      setBusyKind(null);
     }
   };
 
@@ -178,82 +181,78 @@ function SuggestionRow({ message, conv, user, queryClient, profileSkills }) {
   const cvFiredRef = useRef(false);
   useEffect(() => {
     const prop = message.suggestedCVGeneration;
-    if (prop?.target_role && !prop.result?.cv_url && !cvFiredRef.current && !busy) {
+    if (prop?.target_role && !prop.result?.cv_url && !cvFiredRef.current && !busyKind) {
       cvFiredRef.current = true;
       applyCvGeneration();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [message.id]);
 
-  if (message.suggestedTasks) {
-    const applied = !!conv.appliedSets.tasks[message.id];
-    const n = message.suggestedTasks.length;
-    return (
-      <SuggestionRowShell
-        kind="Tasks proposed"
-        KindIcon={ListTodo}
-        title={`${n} task${n === 1 ? "" : "s"} from your coach`}
-        action="Add all"
-        applied={applied}
-        busy={busy}
-        error={error}
-        onApply={() => wrap("tasks", async () => {
-          const res = await applyAllTaskSuggestions({ user, tasks: message.suggestedTasks });
-          if (res.ok) {
-            queryClient.invalidateQueries({ queryKey: ["tasks"] });
-            return { ok: true, toastSuccess: `Added ${res.added} task${res.added === 1 ? "" : "s"}` };
-          }
-          return res;
-        })}
-      />
-    );
-  }
+  // Render EVERY action block the turn carries. A single coach turn can emit any
+  // combination of tasks + roadmap + application + company-target + CV; the user
+  // MUST see a card for each. The prior early-return chain rendered only the
+  // FIRST matching kind and silently swallowed the rest (the "never silence"
+  // launch-gate). Structural fix: independent conditional blocks, no early
+  // return, so N action types => N cards. Guarded by CoachThread-N-cards test.
+  const hasAnyCard =
+    message.suggestedTasks ||
+    message.suggestedRoadmapChanges ||
+    message.suggestedApplicationActions ||
+    message.suggestedCompanyTargetActions ||
+    message.suggestedCVGeneration?.target_role;
+  if (!hasAnyCard) return null;
 
-  if (message.suggestedRoadmapChanges) {
-    const applied = !!conv.appliedSets.roadmap[message.id];
-    const n = message.suggestedRoadmapChanges.length;
-    return (
-      <SuggestionRowShell
-        kind="Roadmap changes proposed"
-        KindIcon={Route}
-        title={`${n} change${n === 1 ? "" : "s"} to your career roadmap`}
-        action="Apply"
-        applied={applied}
-        busy={busy}
-        error={error}
-        onApply={() => wrap("roadmap", async () => {
-          const res = await applyRoadmapChanges({ user, changes: message.suggestedRoadmapChanges, userSkills: profileSkills });
-          if (res.ok || res.hasError) {
-            queryClient.invalidateQueries({ queryKey: ["careerRoles"] });
-          }
-          if (res.error) return res;
-          return { ok: true, toastSuccess: "Roadmap updated" };
-        })}
-      />
-    );
-  }
+  return (
+    <>
+      {message.suggestedTasks && (
+        <SuggestionRowShell
+          kind="Tasks proposed"
+          KindIcon={ListTodo}
+          title={`${message.suggestedTasks.length} task${message.suggestedTasks.length === 1 ? "" : "s"} from your coach`}
+          action="Add all"
+          applied={!!conv.appliedSets.tasks[message.id]}
+          busy={busyKind === "tasks"}
+          error={errorByKind.tasks}
+          onApply={() => wrap("tasks", async () => {
+            const res = await applyAllTaskSuggestions({ user, tasks: message.suggestedTasks });
+            if (res.ok) {
+              queryClient.invalidateQueries({ queryKey: ["tasks"] });
+              return { ok: true, toastSuccess: `Added ${res.added} task${res.added === 1 ? "" : "s"}` };
+            }
+            return res;
+          })}
+        />
+      )}
 
-  // F1/orphan (QA2): one coach turn can BOTH add a tracked app AND propose its
-  // CV. The single-card early-returns below would render only the app-action
-  // card and swallow the CV card, so the linked CV would generate silently with
-  // no visible result. Render BOTH cards when both are present.
-  if (
-    message.suggestedApplicationActions &&
-    message.suggestedCVGeneration?.target_role
-  ) {
-    const appApplied = !!conv.appliedSets.applications[message.id];
-    const nApp = message.suggestedApplicationActions.length;
-    const cvDone = !!message.suggestedCVGeneration.result?.cv_url;
-    return (
-      <>
+      {message.suggestedRoadmapChanges && (
+        <SuggestionRowShell
+          kind="Roadmap changes proposed"
+          KindIcon={Route}
+          title={`${message.suggestedRoadmapChanges.length} change${message.suggestedRoadmapChanges.length === 1 ? "" : "s"} to your career roadmap`}
+          action="Apply"
+          applied={!!conv.appliedSets.roadmap[message.id]}
+          busy={busyKind === "roadmap"}
+          error={errorByKind.roadmap}
+          onApply={() => wrap("roadmap", async () => {
+            const res = await applyRoadmapChanges({ user, changes: message.suggestedRoadmapChanges, userSkills: profileSkills });
+            if (res.ok || res.hasError) {
+              queryClient.invalidateQueries({ queryKey: ["careerRoles"] });
+            }
+            if (res.error) return res;
+            return { ok: true, toastSuccess: "Roadmap updated" };
+          })}
+        />
+      )}
+
+      {message.suggestedApplicationActions && (
         <SuggestionRowShell
           kind="Application updates proposed"
           KindIcon={Briefcase}
-          title={`${nApp} update${nApp === 1 ? "" : "s"} to your tracker`}
+          title={`${message.suggestedApplicationActions.length} update${message.suggestedApplicationActions.length === 1 ? "" : "s"} to your tracker`}
           action="Apply"
-          applied={appApplied}
-          busy={busy}
-          error={error}
+          applied={!!conv.appliedSets.applications[message.id]}
+          busy={busyKind === "applications"}
+          error={errorByKind.applications}
           onApply={() => wrap("applications", async () => {
             const res = await applyApplicationActions({ user, queryClient, actions: message.suggestedApplicationActions });
             if (res.error) return res;
@@ -261,91 +260,46 @@ function SuggestionRow({ message, conv, user, queryClient, profileSkills }) {
             return { ok: true, toastSuccess: "Applications updated" };
           })}
         />
+      )}
+
+      {message.suggestedCompanyTargetActions && (
+        <SuggestionRowShell
+          kind="Internship updates proposed"
+          KindIcon={Building2}
+          title={`${message.suggestedCompanyTargetActions.length} update${message.suggestedCompanyTargetActions.length === 1 ? "" : "s"} to your internship pipeline`}
+          action="Apply"
+          applied={!!conv.appliedSets.companyTargets[message.id]}
+          busy={busyKind === "companyTargets"}
+          error={errorByKind.companyTargets}
+          onApply={() => wrap("companyTargets", async () => {
+            const res = await applyCompanyTargetActions({ user, actions: message.suggestedCompanyTargetActions });
+            if (res.error) return res;
+            queryClient.invalidateQueries({ queryKey: ["company_targets", user.id] });
+            const msg = res.skippedDuplicate > 0
+              ? `Already in your pipeline — skipped ${res.skippedDuplicate}.`
+              : "Internship updated";
+            return { ok: true, toastSuccess: msg };
+          })}
+        />
+      )}
+
+      {message.suggestedCVGeneration?.target_role && (
         <SuggestionRowShell
           kind="CV generation proposed"
           KindIcon={FileText}
           title={`Tailored CV for ${message.suggestedCVGeneration.target_role}`}
-          action={cvDone ? null : error ? "Try again" : "Generate"}
-          applied={cvDone}
-          downloadUrl={cvDone ? message.suggestedCVGeneration.result?.cv_url : undefined}
+          action={message.suggestedCVGeneration.result?.cv_url ? null : errorByKind.cvGeneration ? "Try again" : "Generate"}
+          applied={!!message.suggestedCVGeneration.result?.cv_url}
+          downloadUrl={message.suggestedCVGeneration.result?.cv_url || undefined}
           downloadName={cvFilename(user?.user_metadata?.full_name, message.suggestedCVGeneration.target_role)}
-          studioAppId={cvDone ? message.suggestedCVGeneration.result?.application_id : undefined}
-          busy={busy}
-          error={error}
+          studioAppId={message.suggestedCVGeneration.result?.cv_url ? message.suggestedCVGeneration.result?.application_id : undefined}
+          busy={busyKind === "cvGeneration"}
+          error={errorByKind.cvGeneration}
           onApply={applyCvGeneration}
         />
-      </>
-    );
-  }
-
-  if (message.suggestedApplicationActions) {
-    const applied = !!conv.appliedSets.applications[message.id];
-    const n = message.suggestedApplicationActions.length;
-    return (
-      <SuggestionRowShell
-        kind="Application updates proposed"
-        KindIcon={Briefcase}
-        title={`${n} update${n === 1 ? "" : "s"} to your tracker`}
-        action="Apply"
-        applied={applied}
-        busy={busy}
-        error={error}
-        onApply={() => wrap("applications", async () => {
-          const res = await applyApplicationActions({ user, queryClient, actions: message.suggestedApplicationActions });
-          if (res.error) return res;
-          queryClient.invalidateQueries({ queryKey: ["applications"] });
-          return { ok: true, toastSuccess: "Applications updated" };
-        })}
-      />
-    );
-  }
-
-  if (message.suggestedCompanyTargetActions) {
-    const applied = !!conv.appliedSets.companyTargets[message.id];
-    const n = message.suggestedCompanyTargetActions.length;
-    return (
-      <SuggestionRowShell
-        kind="Internship updates proposed"
-        KindIcon={Building2}
-        title={`${n} update${n === 1 ? "" : "s"} to your internship pipeline`}
-        action="Apply"
-        applied={applied}
-        busy={busy}
-        error={error}
-        onApply={() => wrap("companyTargets", async () => {
-          const res = await applyCompanyTargetActions({ user, actions: message.suggestedCompanyTargetActions });
-          if (res.error) return res;
-          queryClient.invalidateQueries({ queryKey: ["company_targets", user.id] });
-          const msg = res.skippedDuplicate > 0
-            ? `Already in your pipeline — skipped ${res.skippedDuplicate}.`
-            : "Internship updated";
-          return { ok: true, toastSuccess: msg };
-        })}
-      />
-    );
-  }
-
-  if (message.suggestedCVGeneration && message.suggestedCVGeneration.target_role) {
-    const result = message.suggestedCVGeneration.result;
-    const done = !!result?.cv_url;
-    return (
-      <SuggestionRowShell
-        kind="CV generation proposed"
-        KindIcon={FileText}
-        title={`Tailored CV for ${message.suggestedCVGeneration.target_role}`}
-        action={done ? null : error ? "Try again" : "Generate"}
-        applied={done}
-        downloadUrl={done ? result?.cv_url : undefined}
-        downloadName={cvFilename(user?.user_metadata?.full_name, message.suggestedCVGeneration.target_role)}
-        studioAppId={done ? result?.application_id : undefined}
-        busy={busy}
-        error={error}
-        onApply={applyCvGeneration}
-      />
-    );
-  }
-
-  return null;
+      )}
+    </>
+  );
 }
 
 // The two ADD-ONLY profile-write cards (story-capture + add-skill).
