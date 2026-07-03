@@ -60,6 +60,8 @@ import {
   useCoachConversation,
 } from "@/lib/CoachConversationContext";
 
+const VALID_APP_ID = "b698af3d-0000-4000-8000-000000000000";
+
 function wrapper({ children }) {
   const qc = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return (
@@ -92,7 +94,7 @@ describe("provider-owned CV generation — single-fire + result-merge (P0)", () 
         {
           id: "m1",
           role: "assistant",
-          suggestedCVGeneration: { target_role: "PM" },
+          suggestedCVGeneration: { target_role: "PM", application_id: VALID_APP_ID },
         },
       ]);
     });
@@ -114,7 +116,7 @@ describe("provider-owned CV generation — single-fire + result-merge (P0)", () 
         {
           id: "m2",
           role: "assistant",
-          suggestedCVGeneration: { target_role: "PM" },
+          suggestedCVGeneration: { target_role: "PM", application_id: VALID_APP_ID },
         },
       ]);
     });
@@ -149,5 +151,132 @@ describe("provider-owned CV generation — single-fire + result-merge (P0)", () 
     // Merely having the proposal on a message fires nothing (C: no acceptance → no gen).
     await flush();
     expect(calls.length).toBe(0);
+  });
+});
+
+describe("verbal accept + app-resolution + acceptance-survives-ask-flow (a / fork-2)", () => {
+  it("accepted:true auto-fires generation once (verbal yes, no button click)", async () => {
+    calls.length = 0;
+    const { result } = await renderProvider();
+    act(() => {
+      result.current.setMessages([
+        {
+          id: "acc1",
+          role: "assistant",
+          suggestedCVGeneration: {
+            target_role: "PM",
+            accepted: true,
+            application_id: VALID_APP_ID,
+          },
+        },
+      ]);
+    });
+    await flush();
+    expect(calls.length).toBe(1); // fired from the verbal acceptance, no click
+  });
+
+  it("a proposal WITHOUT accepted fires nothing (offer waits for the click)", async () => {
+    calls.length = 0;
+    const { result } = await renderProvider();
+    act(() => {
+      result.current.setMessages([
+        {
+          id: "off1",
+          role: "assistant",
+          suggestedCVGeneration: {
+            target_role: "PM",
+            application_id: VALID_APP_ID,
+          },
+        },
+      ]);
+    });
+    await flush();
+    expect(calls.length).toBe(0);
+  });
+
+  it("Generate with a known company creates+links (no orphan, no Unknown)", async () => {
+    calls.length = 0;
+    const { result } = await renderProvider();
+    act(() => {
+      result.current.setMessages([
+        {
+          id: "co1",
+          role: "assistant",
+          suggestedCVGeneration: {
+            target_role: "Support",
+            job_description: "JD",
+          },
+          suggestedApplicationActions: [
+            {
+              action: "add_application",
+              company: "Copperfield Coffee",
+              role_title: "Support",
+            },
+          ],
+        },
+      ]);
+    });
+    await act(async () => {
+      await result.current.generateCvForMessage("co1");
+    });
+    expect(calls.length).toBe(1);
+    // the real company's add_application was passed downstream to create+link
+    expect(calls[0].appActions?.[0]?.company).toBe("Copperfield Coffee");
+  });
+
+  it("accepted + needsCompany + company-answer → exactly ONE generation, correctly linked (survives ask-flow)", async () => {
+    calls.length = 0;
+    const { result } = await renderProvider();
+    // Turn 1: verbal yes, but no company and no linked app → parked, no generation.
+    act(() => {
+      result.current.setMessages([
+        {
+          id: "A",
+          role: "assistant",
+          suggestedCVGeneration: {
+            target_role: "Support",
+            accepted: true,
+            job_description: "JD",
+          },
+        },
+      ]);
+    });
+    await flush();
+    expect(calls.length).toBe(0); // parked on the missing company — NOT orphaned
+
+    // Later turn: the ask-flow yields a REAL company → the parked acceptance resumes.
+    act(() => {
+      result.current.setMessages([
+        {
+          id: "A",
+          role: "assistant",
+          suggestedCVGeneration: {
+            target_role: "Support",
+            accepted: true,
+            job_description: "JD",
+          },
+        },
+        {
+          id: "D",
+          role: "assistant",
+          suggestedApplicationActions: [
+            {
+              action: "add_application",
+              company: "Copperfield Coffee",
+              role_title: "Support",
+            },
+          ],
+        },
+      ]);
+    });
+    await flush();
+    expect(calls.length).toBe(1); // resumed from the ORIGINAL acceptance — one gen
+    expect(calls[0].appActions?.[0]?.company).toBe("Copperfield Coffee"); // linked to the real company
+    // result merged onto the original message
+    await waitFor(() =>
+      expect(
+        result.current.messages[0].suggestedCVGeneration.result?.cv_url,
+      ).toBe("https://x/cv.pdf"),
+    );
   });
 });

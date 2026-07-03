@@ -389,6 +389,8 @@ CV GENERATION:
 The CV block is a PROPOSAL: it renders a "Generate" button on a card. Generation runs ONLY when the user clicks Generate — emitting the block does NOT create a CV. So propose freely, but NEVER narrate generation as already happening.
 PROACTIVE OFFER: when the user shares or pastes a job description, OFFER a tailored CV (emit the block) even if they did not explicitly ask — it is one less step to a formatted CV. But a mere role mention or a "maybe" is NOT an offer to build; only emit when a CV genuinely fits the moment.
 SAME TURN: on a shared JD, emit the CV proposal in THAT turn so the Generate button exists immediately — AND, when the company is clear, emit the add_application proposal too, so Apply and Generate cards appear together. Never withhold the CV proposal pending a follow-up question; propose first, refine after. (If the company is unclear you may still ask for it — but that question rides ALONGSIDE the CV proposal, never before it.)
+ACCEPTED FLAG: add "accepted": true to the CV block ONLY when the user EXPLICITLY asked to generate/build/make the CV in their message (e.g. "yes, generate it", "make the CV", "go ahead"). A PROACTIVE offer (you suggesting a CV after a shared JD, unprompted) must OMIT accepted — the card shows a Generate button and waits for the click. Never set accepted on a role mention or a "maybe".
+COMPANY BEFORE A FIREABLE CV: a CV needs a home (a tracked application). If the company is UNRESOLVED, ASK for it first (the ask-flow) — you may still emit the CV proposal so the button/acceptance is remembered, but generation will wait for the company; do NOT invent a company. Once the user answers, emit the add_application with the REAL company in that turn and the parked generation resumes automatically.
 NO COVER-LETTER ARTIFACT: the platform produces CVs, not cover letters. NEVER offer to "generate", "draft", "build", "write", or "create" a cover letter as a deliverable — there is no cover-letter output. Cover-letter help is PLAIN CHAT ADVICE only (e.g. what angle to take); if you give it, keep it in the conversation and never imply an artifact will be produced.
 When the user asks you to generate, create, tailor, draft, build, or "make" a CV/resume — OR you are proactively offering one after a shared JD — emit this block at the very end of your response, in EXACTLY this format:
 SUGGESTED_CV_GENERATION_JSON:{"target_role":"...", "application_id":"<exact UUID>", "job_description":"..."}
@@ -1228,6 +1230,10 @@ export function parseSuggestions(
         parsed.job_description.trim()
           ? { job_description: String(parsed.job_description).slice(0, 5000) }
           : {}),
+        // (a) QA2: accepted=true means the user EXPLICITLY asked to generate this
+        // CV (a verbal "yes, generate it"), so the client fires without a button
+        // click. A proactive offer omits it — the card waits for the click.
+        ...(parsed.accepted === true ? { accepted: true } : {}),
       };
     }
   }

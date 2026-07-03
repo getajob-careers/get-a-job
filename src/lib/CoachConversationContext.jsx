@@ -25,6 +25,24 @@ import { toast } from "sonner";
 import { track, EVENTS } from "@/lib/analytics";
 import { useQueryClient } from "@tanstack/react-query";
 import { generateTailoredCVLinked } from "@/lib/coachActionHandlers";
+import { sanitizeCompany, FALLBACK_COMPANY } from "@/lib/applyHandlerValidation";
+
+const APP_ID_UUID_RE =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+// A CV can generate only when it has a home: a valid linked application_id, OR an
+// add_application proposal carrying a REAL company (not the Unknown/placeholder
+// fallback). Otherwise generation would orphan the CV or file an Unknown junk app
+// (QA2 fork-2 + #481). appActions may be overridden with a later turn\'s actions
+// when a blocked acceptance resumes after the ask-flow supplies the company.
+function resolveApp(proposal, appActions) {
+  const validAppId = APP_ID_UUID_RE.test(String(proposal?.application_id || ""));
+  const add = Array.isArray(appActions)
+    ? appActions.find((a) => a?.action === "add_application")
+    : null;
+  const hasRealCompany = !!add && sanitizeCompany(add.company) !== FALLBACK_COMPANY;
+  return { validAppId, hasRealCompany, resolvable: validAppId || hasRealCompany };
+}
 
 const AGENT_NAME = "career_agent";
 const TURN_HISTORY_SLICE = 20;
@@ -45,6 +63,10 @@ export function CoachConversationProvider({ children }) {
   // (survives view remounts because the provider does).
   const [cvGenStates, setCvGenStates] = useState({});
   const cvFiredRef = useRef(new Set());
+  // A CV acceptance (verbal "yes" or Generate click) that arrived before a
+  // company was known — parked here until the coach's ask-flow yields a real
+  // company, then it resumes from the ORIGINAL acceptance (no second yes).
+  const pendingAcceptanceRef = useRef(null);
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -259,7 +281,7 @@ export function CoachConversationProvider({ children }) {
   // auto-fire double-fired across dock+panel and re-fired on nav). On success it
   // MERGES the result into the in-memory message so every mounted view shows the
   // done state + it survives remount without re-firing.
-  const generateCvForMessage = useCallback(async (messageId) => {
+  const generateCvForMessage = useCallback(async (messageId, opts = {}) => {
     const msg = messages.find((m) => m.id === messageId);
     const proposal = msg?.suggestedCVGeneration;
     if (!proposal?.target_role || !user?.id) return { error: "no proposal" };
@@ -267,13 +289,28 @@ export function CoachConversationProvider({ children }) {
     // already fired this session, or currently in flight → no-op.
     if (proposal.result?.cv_url || cvFiredRef.current.has(messageId)) return { ok: true, already: true };
     if (cvGenStates[messageId]?.status === "generating") return { ok: true, inFlight: true };
+
+    // App-resolution (fork-2 + #481): a CV needs a home. appActions may come from
+    // a LATER turn when a parked acceptance resumes after the ask-flow.
+    const appActions = opts.appActionsOverride || msg.suggestedApplicationActions;
+    const { resolvable } = resolveApp(proposal, appActions);
+    if (!resolvable) {
+      // No linked app and no real company → do NOT orphan the CV or file an
+      // Unknown app. Park the acceptance; it resumes when a real company arrives
+      // (pending-resolution effect). The coach\'s ask-flow owns the question.
+      pendingAcceptanceRef.current = { messageId };
+      setCvGenStates((p) => ({ ...p, [messageId]: { status: "needsCompany" } }));
+      return { needsCompany: true };
+    }
+
     cvFiredRef.current.add(messageId);
+    if (pendingAcceptanceRef.current?.messageId === messageId) pendingAcceptanceRef.current = null;
     setCvGenStates((p) => ({ ...p, [messageId]: { status: "generating" } }));
     const res = await generateTailoredCVLinked({
       user,
       queryClient,
       proposal,
-      appActions: msg.suggestedApplicationActions,
+      appActions,
       messageId,
     });
     if (res.error) {
@@ -302,6 +339,46 @@ export function CoachConversationProvider({ children }) {
     );
     return { ok: true, ...res };
   }, [messages, user, queryClient, cvGenStates, markApplied]);
+
+  // (a) VERBAL ACCEPT: a CV proposal the coach marked accepted:true (the user said
+  // an explicit "yes, generate it") fires generation once — routed through the
+  // SAME app-resolution as the button. A mere proposal (accepted falsy) does not.
+  useEffect(() => {
+    for (const m of messages) {
+      const p = m.suggestedCVGeneration;
+      if (
+        p?.target_role &&
+        p.accepted &&
+        !p.result?.cv_url &&
+        !cvFiredRef.current.has(m.id) &&
+        cvGenStates[m.id]?.status !== "generating" &&
+        cvGenStates[m.id]?.status !== "needsCompany"
+      ) {
+        generateCvForMessage(m.id);
+      }
+    }
+  }, [messages, cvGenStates, generateCvForMessage]);
+
+  // ACCEPTANCE SURVIVES THE ASK-FLOW: an acceptance parked on a missing company
+  // resumes the moment a later coach turn supplies a real company (an
+  // add_application with a non-placeholder company) — firing the ORIGINAL
+  // acceptance, no second yes, no click.
+  useEffect(() => {
+    const pending = pendingAcceptanceRef.current;
+    if (!pending) return;
+    const startIdx = messages.findIndex((m) => m.id === pending.messageId);
+    if (startIdx < 0) return;
+    for (let i = startIdx; i < messages.length; i++) {
+      const acts = messages[i].suggestedApplicationActions;
+      const add = Array.isArray(acts)
+        ? acts.find((a) => a?.action === "add_application")
+        : null;
+      if (add && sanitizeCompany(add.company) !== FALLBACK_COMPANY) {
+        generateCvForMessage(pending.messageId, { appActionsOverride: acts });
+        break;
+      }
+    }
+  }, [messages, generateCvForMessage]);
 
   const value = useMemo(() => ({
     messages,
