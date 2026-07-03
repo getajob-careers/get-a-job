@@ -23,6 +23,8 @@ import { useAuth } from "@/lib/AuthContext";
 import { useAgentDrawer } from "@/lib/AgentDrawerContext";
 import { toast } from "sonner";
 import { track, EVENTS } from "@/lib/analytics";
+import { useQueryClient } from "@tanstack/react-query";
+import { generateTailoredCVLinked } from "@/lib/coachActionHandlers";
 
 const AGENT_NAME = "career_agent";
 const TURN_HISTORY_SLICE = 20;
@@ -34,6 +36,15 @@ function nowMs() { return Date.now(); }
 export function CoachConversationProvider({ children }) {
   const { user } = useAuth();
   const { applicationId, pageContext } = useAgentDrawer();
+  const queryClient = useQueryClient();
+  // CV generation is PROVIDER-OWNED (QA2 P0). The dock and the drawer panel both
+  // render CoachThread over the SAME messages; owning generation + its
+  // idempotency here (not per-SuggestionRow) means a message generates AT MOST
+  // ONCE no matter how many views are mounted or remounted. cvGenStates tracks
+  // in-flight/error per message.id; cvFiredRef is the durable single-fire guard
+  // (survives view remounts because the provider does).
+  const [cvGenStates, setCvGenStates] = useState({});
+  const cvFiredRef = useRef(new Set());
 
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
@@ -243,6 +254,55 @@ export function CoachConversationProvider({ children }) {
     }));
   }, []);
 
+  // Click-gated, idempotent CV generation for a coach message. Fires ONLY when a
+  // surface's Generate button calls this (no fire-on-mount — see QA2 P0: the old
+  // auto-fire double-fired across dock+panel and re-fired on nav). On success it
+  // MERGES the result into the in-memory message so every mounted view shows the
+  // done state + it survives remount without re-firing.
+  const generateCvForMessage = useCallback(async (messageId) => {
+    const msg = messages.find((m) => m.id === messageId);
+    const proposal = msg?.suggestedCVGeneration;
+    if (!proposal?.target_role || !user?.id) return { error: "no proposal" };
+    // Idempotency: already generated (in-memory result OR rehydrated from DB), or
+    // already fired this session, or currently in flight → no-op.
+    if (proposal.result?.cv_url || cvFiredRef.current.has(messageId)) return { ok: true, already: true };
+    if (cvGenStates[messageId]?.status === "generating") return { ok: true, inFlight: true };
+    cvFiredRef.current.add(messageId);
+    setCvGenStates((p) => ({ ...p, [messageId]: { status: "generating" } }));
+    const res = await generateTailoredCVLinked({
+      user,
+      queryClient,
+      proposal,
+      appActions: msg.suggestedApplicationActions,
+      messageId,
+    });
+    if (res.error) {
+      cvFiredRef.current.delete(messageId); // allow a real retry
+      setCvGenStates((p) => ({ ...p, [messageId]: { status: "error", error: res.error } }));
+      toast.error("Couldn't generate the CV this time — tap Try again.");
+      return { error: res.error };
+    }
+    if (res.linkedNewApp) {
+      markApplied("applications", messageId);
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+    }
+    // Merge result into the in-memory message (the durable done-state guard).
+    setMessages((prev) => prev.map((m) =>
+      m.id === messageId
+        ? { ...m, suggestedCVGeneration: { ...(m.suggestedCVGeneration || {}), result: res.result } }
+        : m,
+    ));
+    setCvGenStates((p) => ({ ...p, [messageId]: { status: "done" } }));
+    toast.success(
+      res.unknownCompany
+        ? "CV generated and added to your tracker — I didn't catch the company name, so tell me anytime and I'll fill it in."
+        : res.result?.application_id
+          ? "CV linked to your application tracker!"
+          : "CV generated",
+    );
+    return { ok: true, ...res };
+  }, [messages, user, queryClient, cvGenStates, markApplied]);
+
   const value = useMemo(() => ({
     messages,
     // setMessages exposed so the DEV preview harness can seed a
@@ -263,7 +323,9 @@ export function CoachConversationProvider({ children }) {
     startNewConversation,
     appliedSets,
     markApplied,
-  }), [messages, input, sending, activeConversationId, conversations, loadingMessages, sendMessage, retryLast, startNewConversation, appliedSets, markApplied]);
+    cvGenStates,
+    generateCvForMessage,
+  }), [messages, input, sending, activeConversationId, conversations, loadingMessages, sendMessage, retryLast, startNewConversation, appliedSets, markApplied, cvGenStates, generateCvForMessage]);
 
   return (
     <CoachConversationContext.Provider value={value}>

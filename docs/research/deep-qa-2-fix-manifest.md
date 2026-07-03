@@ -180,7 +180,9 @@ The manifest's "one shared regex fixes all three" was WRONG for generate-tailore
 - generate-tailored-cv has its OWN INLINE validator (`index.ts:2367-2381` pre-fix): it used `QUANT_TOKEN_RE` directly (so `properNounTokens` never reached it) and only FLAGGED (`unsourced_bullets`), never removing. So a fabricated tool still shipped.
   Fix applied: extracted `enforceBulletProperNouns` into the shared `cv-antifab.ts` and called it from generate-tailored-cv (Option A: remove the fabricating bullet; numbers stay flag-only; no-empty invariant restores an experience's master bullets). This diverged-private-copy is exactly the failure mode the consolidation below prevents.
 
-## QUEUE ADDITION - post-launch CV arc, FIRST STEP: ONE ENFORCEMENT GATE (consolidation)
+## QUEUE ADDITION - post-launch CV arc, FIRST STEP: ONE ENFORCEMENT GATE (consolidation) — PULLED FORWARD
+
+**PULLED FORWARD (2026-07-03):** live eyeball on #488 confirmed the render-parity (sections match), BUT an ENFORCEMENT divergence: the downloaded PDF STRIPS a first-person sentence that the Studio HTML preview KEEPS. So the two render paths apply DIFFERENT content enforcement (voice/first-person) over the same cv_data — exactly the class of bug the one-door gate exists to kill. This is the second live confirmation (after the diverged proper-noun copy) that enforcement must run at ONE chokepoint before persist. Not a #488 reopen (that was section parity, which held); this is the enforcement layer. Priority raised.
 
 Consolidate all bullet-level guarantee enforcement into a single shared chokepoint, `enforceCvInvariants(bullets, master, jd)`, called as the LAST step before persist by every authoring path (generate-tailored-cv, refine-cv, edit-cv, and any future engine). It enforces, in one tested place: proper-noun trace-to-master with revert-over-drop, numbers flagged, voice normalization, no-empty-experience invariant, English-only. Then DELETE the duplicated inline logic (gtc's checkBullet and any other private copies).
 Rationale (for the record): this week's incomplete-fix finding was caused by a diverged private copy; one door makes that class of bug structurally impossible, and it is the prerequisite that makes the post-launch select+polish engine bake-off safe to run (candidate engines cannot ship fabrications regardless of how aggressive they are, because they do not control the door). Same architecture pattern as the render-cv Hebrew/voice chokepoint, which has held since it shipped.
@@ -255,3 +257,22 @@ Order:
    the user's function family.
 
 Whole arc gated behind the Hebrew-eval GO/NO-GO.
+
+---
+
+## D1 VERIFY — decision (2026-07-03)
+
+Deterministic proof accepted (senior HR user: 3 junior HR roles → track_2, 5 legit senior HR roles
+stay track_1; edge+frontend deployed + source-confirmed; two-sided test matrix green). NO forced
+live flip — the 4 senior users re-score on natural roadmap refresh. Split-brain ended (#486 frontend
+paths live via Vercel, share the same STAGE_T1_FLOOR as the deployed edge fn).
+
+---
+
+## QUEUED (coach UX, post-launch)
+
+- **(a) New-chat / reset button in the coach.** Let the user start a fresh conversation (the dock/panel
+  currently has no reset), so stale suggestion cards + accumulated context don't linger.
+- **(b) Post-generation CTA on the CV card.** After a CV generates, the card should offer: download in
+  chat + deep-link to the tracker row + deep-link to the role's Studio page (`/CVAgent?application_id=` /
+  `?cv=`). Extends the Open-in-Studio work (#485) into a fuller "what next" hand-off.

@@ -386,7 +386,9 @@ Omit this block entirely when the user has not explicitly claimed a specific ski
 export const CV_GENERATION_RULES = `
 
 CV GENERATION:
-When the user asks you to generate, create, tailor, draft, build, or "make" a CV/resume, you MUST emit this block at the very end of your response, in EXACTLY this format:
+The CV block is a PROPOSAL: it renders a "Generate" button on a card. Generation runs ONLY when the user clicks Generate — emitting the block does NOT create a CV. So propose freely, but NEVER narrate generation as already happening.
+PROACTIVE OFFER: when the user shares or pastes a job description, OFFER a tailored CV (emit the block) even if they did not explicitly ask — it is one less step to a formatted CV. But a mere role mention or a "maybe" is NOT an offer to build; only emit when a CV genuinely fits the moment.
+When the user asks you to generate, create, tailor, draft, build, or "make" a CV/resume — OR you are proactively offering one after a shared JD — emit this block at the very end of your response, in EXACTLY this format:
 SUGGESTED_CV_GENERATION_JSON:{"target_role":"...", "application_id":"<exact UUID>", "job_description":"..."}
 
 CRITICAL: When a TARGET APPLICATION is provided in your context, you MUST include its exact \`application_id\` UUID in the JSON. Never omit it. The application_id is the ONLY way the tracker gets linked to the generated CV — if you forget it, the user's tracker will silently miss the CV.
@@ -395,7 +397,7 @@ PRIORITY 1 — TARGET APPLICATION is set:
 If a TARGET APPLICATION block appears ANYWHERE in your context, the user has ALREADY selected an application via the dropdown at the top of the page. You MUST:
 - Take \`target_role\` from TARGET APPLICATION's Role field.
 - Take \`application_id\` from TARGET APPLICATION's "application_id" line — COPY THE UUID EXACTLY as shown.
-- Write ONE short acknowledgement sentence like "Generating your CV for <role> at <company> now…" AND emit the JSON block in the SAME response. The acknowledgement and the block are inseparable: NEVER write "generating" / "creating" / "tailoring your CV now" unless the block is in this same message (see honesty rule 5e). If you cannot emit the block, do not narrate generation.
+- Write ONE short OFFER sentence like "I can tailor a CV for <role> at <company> — click Generate below and I will build it." AND emit the JSON block in the SAME response. The block renders a Generate button; generation happens on the user's click, NOT on this message. So NEVER write "generating" / "creating" / "tailoring your CV now" — nothing runs until they click, and claiming otherwise is a lie (honesty rule 5e). Offer, do not announce.
 - DO NOT ask "which role?", "which application?", "should I go ahead?" — the user already answered those by selecting from the dropdown. Asking again is frustrating and wrong.
 - DO NOT list options for the user to confirm. The answer is in TARGET APPLICATION.
 

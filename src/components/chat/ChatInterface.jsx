@@ -1076,22 +1076,10 @@ export default function ChatInterface({
     }
   };
 
-  // Auto-fire CV generation the moment the coach proposes it. A plain-language
-  // "yes" now returns a suggested_cv_generation action; the user already accepted,
-  // so start the pipeline immediately (no second click, no dead gap). Idempotent
-  // via firedCvRef; skips already-generated (rehydrated .result) or in-flight.
-  const firedCvRef = useRef(new Set());
-  useEffect(() => {
-    for (const msg of messages) {
-      const prop = msg.suggestedCVGeneration;
-      if (msg.role === "assistant" && prop?.target_role && !prop.result &&
-          !firedCvRef.current.has(msg.id) && !cvGenStates[msg.id]) {
-        firedCvRef.current.add(msg.id);
-        handleGenerateCV(msg.id, prop, msg.suggestedApplicationActions);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [messages]);
+  // QA2 P0: CV generation is CLICK-GATED — no fire-on-mount. The coach card
+  // renders a Generate button (see CVGenerationCard.onGenerate); generation runs
+  // only on the user's click, never on the mere emission of a proposal block.
+  // handleGenerateCV is idempotent (skips already-generated / in-flight).
 
   const handleSwitchAgent = (page) => {
     navigate(createPageUrl(page));
