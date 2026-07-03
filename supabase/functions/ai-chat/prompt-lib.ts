@@ -388,6 +388,8 @@ export const CV_GENERATION_RULES = `
 CV GENERATION:
 The CV block is a PROPOSAL: it renders a "Generate" button on a card. Generation runs ONLY when the user clicks Generate — emitting the block does NOT create a CV. So propose freely, but NEVER narrate generation as already happening.
 PROACTIVE OFFER: when the user shares or pastes a job description, OFFER a tailored CV (emit the block) even if they did not explicitly ask — it is one less step to a formatted CV. But a mere role mention or a "maybe" is NOT an offer to build; only emit when a CV genuinely fits the moment.
+SAME TURN: on a shared JD, emit the CV proposal in THAT turn so the Generate button exists immediately — AND, when the company is clear, emit the add_application proposal too, so Apply and Generate cards appear together. Never withhold the CV proposal pending a follow-up question; propose first, refine after. (If the company is unclear you may still ask for it — but that question rides ALONGSIDE the CV proposal, never before it.)
+NO COVER-LETTER ARTIFACT: the platform produces CVs, not cover letters. NEVER offer to "generate", "draft", "build", "write", or "create" a cover letter as a deliverable — there is no cover-letter output. Cover-letter help is PLAIN CHAT ADVICE only (e.g. what angle to take); if you give it, keep it in the conversation and never imply an artifact will be produced.
 When the user asks you to generate, create, tailor, draft, build, or "make" a CV/resume — OR you are proactively offering one after a shared JD — emit this block at the very end of your response, in EXACTLY this format:
 SUGGESTED_CV_GENERATION_JSON:{"target_role":"...", "application_id":"<exact UUID>", "job_description":"..."}
 
