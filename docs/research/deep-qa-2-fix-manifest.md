@@ -175,15 +175,39 @@ HOLD: Eli reads this manifest before any code is written.
 ## G1 MANIFEST CORRECTION (logged during execution, 2026-07-02)
 
 The manifest's "one shared regex fixes all three" was WRONG for generate-tailored-cv. Live verification (per-branch HOLD) caught it before merge:
+
 - edit-cv and refine-cv DO route bullet checks through the shared `tokensTraceToMaster` and REVERT on failure, so the shared regex widen fixed them.
 - generate-tailored-cv has its OWN INLINE validator (`index.ts:2367-2381` pre-fix): it used `QUANT_TOKEN_RE` directly (so `properNounTokens` never reached it) and only FLAGGED (`unsourced_bullets`), never removing. So a fabricated tool still shipped.
-Fix applied: extracted `enforceBulletProperNouns` into the shared `cv-antifab.ts` and called it from generate-tailored-cv (Option A: remove the fabricating bullet; numbers stay flag-only; no-empty invariant restores an experience's master bullets). This diverged-private-copy is exactly the failure mode the consolidation below prevents.
+  Fix applied: extracted `enforceBulletProperNouns` into the shared `cv-antifab.ts` and called it from generate-tailored-cv (Option A: remove the fabricating bullet; numbers stay flag-only; no-empty invariant restores an experience's master bullets). This diverged-private-copy is exactly the failure mode the consolidation below prevents.
 
 ## QUEUE ADDITION - post-launch CV arc, FIRST STEP: ONE ENFORCEMENT GATE (consolidation)
 
 Consolidate all bullet-level guarantee enforcement into a single shared chokepoint, `enforceCvInvariants(bullets, master, jd)`, called as the LAST step before persist by every authoring path (generate-tailored-cv, refine-cv, edit-cv, and any future engine). It enforces, in one tested place: proper-noun trace-to-master with revert-over-drop, numbers flagged, voice normalization, no-empty-experience invariant, English-only. Then DELETE the duplicated inline logic (gtc's checkBullet and any other private copies).
 Rationale (for the record): this week's incomplete-fix finding was caused by a diverged private copy; one door makes that class of bug structurally impossible, and it is the prerequisite that makes the post-launch select+polish engine bake-off safe to run (candidate engines cannot ship fabrications regardless of how aggressive they are, because they do not control the door). Same architecture pattern as the render-cv Hebrew/voice chokepoint, which has held since it shipped.
 Sizing S-M, own branch, PR #156 rules: speed guard, bake-off-style before/after, never bundled with other work. Sequence: gate consolidation FIRST, then the select+polish engine experiments on top of it. `enforceBulletProperNouns` (shipped this week) is the seed.
+
+### SIBLING (same CV arc) — single CV renderer (divergence fix A)
+
+Sibling of the enforcement-gate item; ship together post-launch. Today the Studio
+preview (`CVStudioView`, React/HTML) and the download (`build-pdf.ts`, pdf-lib) are
+TWO renderers over one `cv_data`. Fix B (content parity — Studio renders every
+section the PDF renders + a walk-the-sections parity test) shipped this wave as the
+launch-safe stopgap, but residual typography/layout differences remain because two
+renderers still exist. **A = true single chokepoint:** the Studio preview renders
+from the same `buildCvPdf` output (embed the rendered PDF/page-image as the preview)
+so display and download are byte-identical. Conflicts with inline `contentEditable`
+editing → larger change, hence queued. Same one-door pattern as the enforcement gate.
+
+### QUEUED (F1 family) — chat CV-gen spawns a fresh app per attempt (dedup)
+
+`generate-tailored-cv/index.ts:2712-2723` INSERTs a fresh `interested` application
+whenever `application_id` is null or unresolved — so a non-tracked CV, or repeated
+generations without a linked app, create duplicate rows (demo: 6 "Hive Support Ltd"
+apps). SIZED: not small — the insert has only `role_title` (no company), so a clean
+dedup needs company + carrying the created app id forward in the conversation.
+QUEUED with the coach-dedup item. Fix candidates: dedup by (user, role, company) at
+the insert, or thread the created app id back into the chat so later generations
+reuse it. (Demo dupes cleaned up 2026-07-03 — see Modifications.)
 
 ---
 
@@ -202,13 +226,32 @@ exp-vs-project. Not this wave.
 
 ---
 
-## QUEUED (ESCO arc, post-launch) — family-aware mid-tier seniority floor
+## QUEUED — SCORING COVERAGE ARC (post-launch)
 
-D1 shipped a SENIOR-ONLY soft floor `{early:0, mid:0, senior:2}` as the stopgap.
-The mid tier (8 junior-in-track_1 roles / 7 users at measurement) is left untouched
-because a rank-only floor can't tell Isaac's legitimate case (mid engineer + strong-fit
-SAME-family Junior SWE → track_1) from the bug (mid user + CROSS-family Marketing Intern).
-Fix candidate: extend `applySeniorityFloor` to take a home-family-match signal — demote a
-too-junior role for a mid user ONLY when it is NOT in the user's function family (keep the
-same-family pivot path). Depends on trustworthy function-family mapping, which the ESCO
-Phase-1 expansion rebuilds. Gate behind the Hebrew-eval GO/NO-GO. Not before then.
+Reordered per the 2026-07-02 Hebrew-eval NO-GO + the coverage-gap doc
+(`role-library-coverage-gap.md`: ~63% of live IL jobs unmapped, ~77% of the gap is
+BAD MAPPING not missing roles, Hebrew titles = 24.4% of corpus the biggest single driver).
+**ESCO is demoted from backbone to ONE candidate source** weighed per-cluster against
+corpus-derived titles — the eval showed ESCO lacks modern tooling concepts. **Full ESCO
+backbone migration is OFF unless new evidence reopens it.** Phase-0's `coverage_ratio`
+honesty gate survives independently of this arc.
+
+Order:
+
+1. **Hebrew extractor fix FIRST.** Catch multi-word descriptive-clause skills (the 87.5%
+   drop the eval found). No taxonomy change — this is the single highest-leverage lever,
+   since the gap is dominated by unresolved Hebrew titles, not missing roles.
+2. **Alias / resolver consolidation.** Kills the triplication in the alias/resolver layer;
+   recovers mapped jobs without new roles.
+3. **Modest role expansion** for the genuinely-missing clusters only (Architect ~117 /
+   Mechanical ~84 / Systems ~58 jobs). ESCO as ONE candidate source per cluster, weighed
+   against corpus-derived titles — not a wholesale import.
+4. **Family-aware mid-tier seniority floor** (after step 2, needs trustworthy family mapping).
+   D1 shipped a SENIOR-ONLY soft floor `{early:0, mid:0, senior:2}` as the stopgap; the mid
+   tier (8 junior-in-track_1 roles / 7 users) is untouched because a rank-only floor can't
+   tell Isaac's legit case (mid engineer + SAME-family Junior SWE → track_1) from the bug
+   (mid user + CROSS-family Marketing Intern). Fix: extend `applySeniorityFloor` with a
+   home-family-match signal — demote a too-junior role for a mid user ONLY when it's NOT in
+   the user's function family.
+
+Whole arc gated behind the Hebrew-eval GO/NO-GO.

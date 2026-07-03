@@ -123,6 +123,33 @@ export function fromCvData(cvData) {
     languages: asArray(c.languages)
       .map((l) => (typeof l === "string" ? l : str(l?.language || l?.name)))
       .filter(Boolean),
+    // READ-ONLY parity fields (QA2 divergence fix B): surfaced so the Studio
+    // preview renders every section the downloaded PDF (build-pdf.ts) renders.
+    // Not edited here — they round-trip verbatim via __source. Kept in sync with
+    // build-pdf.ts by the CV render-parity test.
+    skillsTools: asArray(c.skills?.tools).map(str).filter(Boolean),
+    skillsTechnical: asArray(c.skills?.technical).map(str).filter(Boolean),
+    certifications: asArray(c.certifications)
+      .map((ct) => ({
+        name: str(ct?.name),
+        issuer: str(ct?.issuer),
+        date: str(ct?.date_earned || ct?.date),
+      }))
+      .filter((ct) => ct.name || ct.issuer),
+    projects: asArray(c.projects)
+      .map((p) => ({
+        name: str(p?.name),
+        url: str(p?.url),
+        bullets: asArray(p?.bullets).map(str).filter(Boolean),
+      }))
+      .filter((p) => p.name || p.bullets.length > 0),
+    honors: asArray(c.honors_and_awards)
+      .map((hh) =>
+        typeof hh === "string"
+          ? hh
+          : [str(hh?.name), str(hh?.description)].filter(Boolean).join(" \u2014 "),
+      )
+      .filter(Boolean),
     // Untouched original — toCvData overlays onto this to preserve every
     // unsurfaced section + key verbatim.
     __source: c,

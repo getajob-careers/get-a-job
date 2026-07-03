@@ -745,6 +745,19 @@ export default function CVStudioView({
                 placeholder="Add skills separated by ·"
               />
 
+              {cv.skillsTools?.length > 0 && (
+                <p className="cv-summary">
+                  <span className="font-semibold">Tools:</span>{" "}
+                  {cv.skillsTools.join(" · ")}
+                </p>
+              )}
+              {cv.skillsTechnical?.length > 0 && (
+                <p className="cv-summary">
+                  <span className="font-semibold">Technical:</span>{" "}
+                  {cv.skillsTechnical.join(" · ")}
+                </p>
+              )}
+
               <SectionLabel>Languages</SectionLabel>
               <Editable
                 value={cv.languages.join(" · ")}
@@ -753,6 +766,54 @@ export default function CVStudioView({
                 block
                 placeholder="Languages"
               />
+
+              {cv.honors?.length > 0 && (
+                <>
+                  <SectionLabel>Honors &amp; Awards</SectionLabel>
+                  <ul className="cv-summary list-disc pl-4 space-y-0.5">
+                    {cv.honors.map((h, i) => (
+                      <li key={i}>{h}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {cv.certifications?.length > 0 && (
+                <>
+                  <SectionLabel>Certifications</SectionLabel>
+                  <ul className="cv-summary list-disc pl-4 space-y-0.5">
+                    {cv.certifications.map((ct, i) => (
+                      <li key={i}>
+                        {[ct.name, ct.issuer].filter(Boolean).join(", ")}
+                        {ct.date ? ` (${ct.date})` : ""}
+                      </li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {cv.projects?.length > 0 && (
+                <>
+                  <SectionLabel>Projects</SectionLabel>
+                  <div className="space-y-1.5">
+                    {cv.projects.map((p, i) => (
+                      <div key={i} className="text-[12.5px]">
+                        <span className="font-semibold text-[color:var(--cv-ink)]">
+                          {p.name}
+                        </span>
+                        {p.url ? (
+                          <span className="text-[color:var(--cv-muted)]"> ({p.url})</span>
+                        ) : null}
+                        {p.bullets.length > 0 && (
+                          <ul className="cv-summary list-disc pl-4 space-y-0.5 mt-0.5">
+                            {p.bullets.map((b, j) => (
+                              <li key={j}>{b}</li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </main>
