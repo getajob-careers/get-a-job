@@ -48,6 +48,7 @@ import {
   GOAL_TRACK_THRESHOLDS,
   trackFromScore,
   applyYearsCap,
+  applySeniorityFloor,
 } from "../../supabase/functions/_shared/track-scoring-constants.ts";
 import { totalYearsOfExperience } from "./experienceLevel";
 
@@ -130,6 +131,9 @@ export function trackFromScores(fit, alignment, options = {}) {
     else track = trackFromScore(fit);
   }
 
+  // D1 (QA2): symmetric soft seniority floor — a Track-1 role too junior for the
+  // user's stage demotes to Track 2 (mirrors the canHireNow ceiling above).
+  track = applySeniorityFloor(track, roleRank, userStage);
   return applyYearsCap(track, userYears, reqYearsMin);
 }
 

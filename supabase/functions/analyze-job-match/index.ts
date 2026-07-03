@@ -159,7 +159,9 @@ Deno.serve(async (req) => {
 - "Senior": 5-8 years, "Senior X", "Sr. X", explicit "5+ years" or "6+ years".
 - "Lead": 8+ years, "Lead X", "Principal", "Staff", "Manager", "Head of".
 
-A JD that says "4+ years" → Mid. "5+ years" → Senior. "Senior Product Analyst" → Senior even if no years mentioned.`
+A JD that says "4+ years" → Mid. "5+ years" → Senior. "Senior Product Analyst" → Senior even if no years mentioned.
+
+SENIORITY FLOOR (over-qualification): If required_seniority is clearly BELOW the user's own career stage (an Entry/intern role for a Mid or Senior user), say so plainly — frame it as beneath their level or a fallback, NOT as a strong "hire-now" next step. This keeps your narration consistent with the deterministic track, which soft-demotes too-junior roles out of Track 1 for mid/senior users. EXCEPTION: an early-career / student user is never over-qualified — entry and internship roles are legitimate hire-now targets for them, so never frame a junior role as beneath a student.`
 
     const goalRubric = hasGoal
       ? `\n\nGOAL ALIGNMENT RUBRIC (0-100): Score how much pursuing this role would advance the user toward their 5-year goal of "${fiveYearRole}".

@@ -59,6 +59,8 @@ import {
   STAGE_T1_CEILING,
   GOAL_TRACK_THRESHOLDS as SHARED_GOAL_THRESHOLDS,
   DOMAIN_TO_FAMILIES as SHARED_DOMAIN_TO_FAMILIES,
+  EXPERIENCE_LEVEL_TO_STAGE,
+  applySeniorityFloor,
 } from "../_shared/track-scoring-constants.ts";
 
 // Goal-aware thresholds — local mirror of the shared GOAL_TRACK_THRESHOLDS
@@ -198,7 +200,7 @@ function assignTrackFitOnly(score: number): "track_1" | "track_2" | "track_3" | 
 // Track 1 = could-hire-now + strong fit + strong goal alignment (best next move)
 // Track 2 = could-hire-now + strong fit + weak alignment (viable but off-path)
 // Track 3 = on-path + some baseline fit, regardless of seniority (aspirational)
-function assignTrackWithGoal(
+function assignTrackWithGoalRaw(
   fitScore: number,
   goalAlignment: number,
   roleSeniorityRank: number,
@@ -223,6 +225,25 @@ function assignTrackWithGoal(
   // See GOAL_TRACK_THRESHOLDS comment above.
   if (rawSkillFit >= t.track_3_min_raw_fit && goalAlignment >= t.track_3_min_alignment) return "track_3";
   return null;
+}
+
+// D1 (QA2): symmetric soft seniority floor. assignTrackWithGoalRaw gates only the
+// CEILING (roles too senior); this wrapper adds the FLOOR — a Track-1 role too
+// junior for the user's stage soft-demotes to Track 2 (never removed). Shared
+// definition (STAGE_T1_FLOOR + applySeniorityFloor) so this path and the
+// front-end trackFromScores cannot drift. No-op for early_career (floor 0), so
+// students keep intern/entry roles as legitimate hire-now content.
+function assignTrackWithGoal(
+  fitScore: number,
+  goalAlignment: number,
+  roleSeniorityRank: number,
+  userLevel: "early_career" | "mid_career" | "senior_career",
+  rawSkillFit: number
+): "track_1" | "track_2" | "track_3" | null {
+  const track = assignTrackWithGoalRaw(fitScore, goalAlignment, roleSeniorityRank, userLevel, rawSkillFit);
+  if (track !== "track_1") return track;
+  const stage = EXPERIENCE_LEVEL_TO_STAGE[userLevel] ?? userLevel;
+  return applySeniorityFloor(track, roleSeniorityRank, stage) as "track_1" | "track_2";
 }
 
 // ─── Pre-computed indexes ──────────────────────────────────────────────
