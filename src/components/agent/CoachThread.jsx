@@ -19,7 +19,6 @@ import {
   applyRoadmapChanges,
   applyApplicationActions,
   applyCompanyTargetActions,
-  generateTailoredCVLinked,
   extractBullets,
   appendBullets,
   restoreBullets,
@@ -152,41 +151,11 @@ export function SuggestionRow({ message, conv, user, queryClient, profileSkills 
     }
   };
 
-  // Shared CV-gen apply, used by both the auto-fire effect and the button.
-  const applyCvGeneration = () =>
-    wrap("cvGeneration", async () => {
-      const res = await generateTailoredCVLinked({
-        user,
-        queryClient,
-        proposal: message.suggestedCVGeneration,
-        appActions: message.suggestedApplicationActions,
-        messageId: message.id,
-      });
-      if (res.error)
-        return { error: "Couldn't generate the CV this time — tap Try again." };
-      if (res.linkedNewApp) {
-        conv.markApplied("applications", message.id);
-        queryClient.invalidateQueries({ queryKey: ["applications"] });
-      }
-      const msg = res.unknownCompany
-        ? "CV generated and added to your tracker — I didn't catch the company name, so tell me anytime and I'll fill it in."
-        : res.result.application_id
-          ? "CV linked to your application tracker!"
-          : "CV generated";
-      return { ok: true, toastSuccess: msg };
-    });
-
-  // Auto-fire CV generation the moment the coach proposes it (plain-language
-  // "yes" now returns the action). The user accepted; start immediately.
-  const cvFiredRef = useRef(false);
-  useEffect(() => {
-    const prop = message.suggestedCVGeneration;
-    if (prop?.target_role && !prop.result?.cv_url && !cvFiredRef.current && !busyKind) {
-      cvFiredRef.current = true;
-      applyCvGeneration();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [message.id]);
+  // CV generation is PROVIDER-OWNED + CLICK-GATED (QA2 P0). No fire-on-mount:
+  // the card renders a Generate button; generation runs only when the user
+  // clicks it, exactly once, via conv.generateCvForMessage (single-owner across
+  // dock + panel; result merges back into the message).
+  const cvState = conv.cvGenStates?.[message.id];
 
   // Render EVERY action block the turn carries. A single coach turn can emit any
   // combination of tasks + roadmap + application + company-target + CV; the user
@@ -288,14 +257,14 @@ export function SuggestionRow({ message, conv, user, queryClient, profileSkills 
           kind="CV generation proposed"
           KindIcon={FileText}
           title={`Tailored CV for ${message.suggestedCVGeneration.target_role}`}
-          action={message.suggestedCVGeneration.result?.cv_url ? null : errorByKind.cvGeneration ? "Try again" : "Generate"}
+          action={message.suggestedCVGeneration.result?.cv_url ? null : cvState?.error ? "Try again" : "Generate"}
           applied={!!message.suggestedCVGeneration.result?.cv_url}
           downloadUrl={message.suggestedCVGeneration.result?.cv_url || undefined}
           downloadName={cvFilename(user?.user_metadata?.full_name, message.suggestedCVGeneration.target_role)}
           studioAppId={message.suggestedCVGeneration.result?.cv_url ? message.suggestedCVGeneration.result?.application_id : undefined}
-          busy={busyKind === "cvGeneration"}
-          error={errorByKind.cvGeneration}
-          onApply={applyCvGeneration}
+          busy={cvState?.status === "generating"}
+          error={cvState?.error}
+          onApply={() => conv.generateCvForMessage(message.id)}
         />
       )}
     </>
