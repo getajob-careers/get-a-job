@@ -37,6 +37,7 @@ import { totalYearsOfExperience, inferExperienceLevel } from "./experienceLevel"
 import {
   SENIORITY_RANK,
   STAGE_T1_CEILING,
+  STAGE_T1_FLOOR,
   DOMAIN_TO_FAMILIES,
   FAMILY_ADJACENCY,
   EARLY_CAREER_BUSINESS_FAMILIES,
@@ -114,6 +115,18 @@ function getStageCeilingByLevel() {
     };
   }
   return __stageCeilingCache;
+}
+
+let __stageFloorCache = null;
+function getStageFloorByLevel() {
+  if (!__stageFloorCache) {
+    __stageFloorCache = {
+      early_career: STAGE_T1_FLOOR.early,
+      mid_career: STAGE_T1_FLOOR.mid,
+      senior_career: STAGE_T1_FLOOR.senior,
+    };
+  }
+  return __stageFloorCache;
 }
 
 // ─── Skill axis ────────────────────────────────────────────────────────
@@ -229,10 +242,17 @@ function computeSeniorityAxis(userLevel, job) {
   if (reqRank === null) return { score: 0.5, match: "unknown_value" };
 
   const ceiling = getStageCeilingByLevel()[userLevel] ?? Infinity;
+  const floor = getStageFloorByLevel()[userLevel] ?? -Infinity;
 
   if (reqRank > ceiling) {
     // Above ceiling — not viable today.
     return { score: 0.25, match: "above_ceiling" };
+  }
+  if (reqRank < floor) {
+    // D1 (QA2): below floor — too junior for the user's stage (over-qualified).
+    // Symmetric to above_ceiling. floor=0 for early_career, so this never fires
+    // for students (their entry/intern jobs stay in range).
+    return { score: 0.25, match: "below_floor" };
   }
   if (reqRank === ceiling) {
     // Right at the top of what's plausible — partial credit.

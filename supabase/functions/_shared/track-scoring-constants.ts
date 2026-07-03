@@ -51,6 +51,24 @@ export const STAGE_T1_CEILING: Record<string, number> = {
   senior: 6,  // unbounded
 };
 
+// User-stage seniority FLOOR for Track 1 — the symmetric counterpart to
+// STAGE_T1_CEILING. A role whose seniority rank is BELOW the user's floor is
+// "too junior": for a mid/senior user an entry role is not a hire-now TARGET, so
+// it soft-demotes to Track 2 instead of clearing Track 1 on skill fit alone.
+// early=0 keeps intern/entry roles legitimate for STUDENTS (QA2 D1, Option 1) —
+// the Suspect-E bug was junior roles clearing MID/SENIOR profiles, and the floor
+// targets exactly and only that. Soft: callers DEMOTE, never hard-exclude.
+export const STAGE_T1_FLOOR: Record<string, number> = {
+  early: 0,   // students: entry/intern roles ARE hire-now — no floor
+  mid: 0,     // no floor: a mid-career pivoter deliberately entering a new
+              // field via a junior role is legitimate (Isaac's "Junior SWE for
+              // mid" guard). Cross-family junior demotion for mid needs
+              // function-family awareness → queued for the ESCO arc, not here.
+  senior: 2,  // Entry + Entry_Mid demoted; Mid+ stay (the unambiguous
+              // over-qualification case — a senior's hire-now target is not an
+              // entry role, regardless of skill fit).
+};
+
 // Map between the long-form experience level naming (used by Roadmap +
 // generate-career-analysis) and the compact form used in the front-end
 // trackFromScores helper.
@@ -290,6 +308,32 @@ export function applyYearsCap(
   const gap = reqYearsMin - userYears;
   if (gap >= 3) return "track_3";
   if (gap >= 2 && track === "track_1") return "track_2";
+  return track;
+}
+
+// True when a role is too JUNIOR for the user's stage (rank below the Track-1
+// floor). Symmetric counterpart to the STAGE_T1_CEILING check. `stage` is the
+// compact form (early | mid | senior). Null rank / unknown stage => false, so
+// legacy or unscored callers silently no-op.
+export function isBelowSeniorityFloor(
+  roleRank: number | null | undefined,
+  stage: string | null | undefined,
+): boolean {
+  if (roleRank == null || stage == null) return false;
+  const floor = STAGE_T1_FLOOR[stage];
+  if (floor == null) return false;
+  return roleRank < floor;
+}
+
+// Soft seniority floor: a Track-1 role that is too junior for the user's stage
+// demotes to Track 2 (attainable, not the hire-now target) — never removed.
+// No-op for any other track or when the role sits at/above the floor.
+export function applySeniorityFloor(
+  track: string,
+  roleRank: number | null | undefined,
+  stage: string | null | undefined,
+): string {
+  if (track === "track_1" && isBelowSeniorityFloor(roleRank, stage)) return "track_2";
   return track;
 }
 
