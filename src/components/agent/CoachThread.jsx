@@ -99,6 +99,22 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
                   Open in Studio
                 </button>
               )}
+              {/* studioAppId IS the linked application_id — also deep-links the tracker row. */}
+              {studioAppId && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    navigate(
+                      createPageUrl("Tracker") +
+                        `?app=${encodeURIComponent(studioAppId)}`,
+                    )
+                  }
+                  className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-text-secondary bg-rd-bg-card border border-rd-border hover:bg-rd-bg-page rounded-full px-2.5 py-1 transition-colors"
+                >
+                  <Briefcase className="w-2.5 h-2.5" />
+                  Tracker
+                </button>
+              )}
             </>
           ) : (
             <span className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-teal-dark bg-rd-teal-tint rounded-full px-2 py-0.5">

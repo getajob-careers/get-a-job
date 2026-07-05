@@ -276,3 +276,28 @@ paths live via Vercel, share the same STAGE_T1_FLOOR as the deployed edge fn).
 - **(b) Post-generation CTA on the CV card.** After a CV generates, the card should offer: download in
   chat + deep-link to the tracker row + deep-link to the role's Studio page (`/CVAgent?application_id=` /
   `?cv=`). Extends the Open-in-Studio work (#485) into a fuller "what next" hand-off.
+
+---
+
+## QUEUED (polish) — same-turn Apply card non-adherence (finding-1)
+
+The SAME-TURN prompt rule (emit add_application alongside the CV proposal on a JD share)
+has now MISSED TWICE in prod verifies (2026-07-03 Copperfield, 2026-07-05 Marigold): the
+coach emitted only the CV proposal, and the Apply card appeared only after the "yes".
+NOT a defect — the deterministic Generate-implies-app resolution (#490) absorbs it (parks
+on missing company, resumes on the answer). Polish only. Prompt-tightening alone is now
+0-for-2, so the NEXT attempt should use a STRUCTURAL cue, not more prompt language — e.g.
+have the SAME parser that emits the CV block also emit the add_application (derive it from
+the CV proposal's role + the resolved company) so both cards are guaranteed to co-occur.
+
+---
+
+## BATCH 1 — CLOSURE ADDENDUM (2026-07-05)
+
+Deep QA Pass 2 shipped. Post-#489 tail:
+- **#490** (verbal-accept + Generate-implies-app + acceptance-survives-ask-flow) — merged, prod-verified PASS (Marigold verbal-yes one-fire; Fernwood unknown-company parked→resumed one-fire). ai-chat v101.
+- **#491** (post-gen CTA) — View-in-tracker deep-link added; Download + Open-in-Studio already shipped (#485). The job-to-apply last mile.
+- **finding-1** (same-turn Apply card): 0-for-2 on prompt-tightening → queued for a STRUCTURAL cue (emit add_application from the same parser as the CV block). Absorbed by #490's deterministic resolution; polish only.
+- **Preview boot-hang** — DIAGNOSED (root cause: `VITE_SUPABASE_URL`/`VITE_SUPABASE_ANON_KEY` not scoped to Vercel Preview env → `supabaseClient.js` throws at import → React never mounts). **DASHBOARD FIX** (out-of-repo): add those two vars to Vercel Preview env; also add `https://get-a-job-git-*-getajob-team.vercel.app/**` to Supabase Auth redirect URLs so preview login works. No code change required (optional hardening: soften supabaseClient's hard-throw to a visible error screen).
+
+Everything else from the queue is post-launch (SCORING COVERAGE ARC, CV consolidation arc, D-items).
