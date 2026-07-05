@@ -26,11 +26,11 @@
         "hooks": [
           {
             "type": "command",
-            "command": "file=$(jq -r '.tool_input.file_path // empty') && [ -n \"$file\" ] && [ -f \"$file\" ] && npx prettier --write \"$file\" 2>/dev/null || true"
+            "command": "file=$(jq -r '.tool_input.file_path // empty') && [ -n \"$file\" ] && [ -f \"$file\" ] && case \"$file\" in */supabase/functions/*|*/ChatInterface.jsx|*/Home.jsx|*/Profile.jsx|*/CoachThread.jsx) : ;; *) npx prettier --write \"$file\" 2>/dev/null || true ;; esac"
           },
           {
             "type": "command",
-            "command": "file=$(jq -r '.tool_input.file_path // empty') && [ -n \"$file\" ] && [ -f \"$file\" ] && npx eslint --fix \"$file\" 2>/dev/null || true"
+            "command": "file=$(jq -r '.tool_input.file_path // empty') && [ -n \"$file\" ] && [ -f \"$file\" ] && case \"$file\" in */supabase/functions/*|*/ChatInterface.jsx|*/Home.jsx|*/Profile.jsx|*/CoachThread.jsx) : ;; *) npx eslint --fix \"$file\" 2>/dev/null || true ;; esac"
           }
         ]
       }
