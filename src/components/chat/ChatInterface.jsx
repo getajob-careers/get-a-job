@@ -365,6 +365,21 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel, userName }) {
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
+          {application_id && (
+            <button
+              type="button"
+              onClick={() =>
+                navigate(
+                  createPageUrl("Tracker") +
+                    `?app=${encodeURIComponent(application_id)}`,
+                )
+              }
+              className="inline-flex items-center gap-1.5 text-xs font-display font-bold text-rd-text-secondary bg-rd-bg-card border border-rd-border hover:bg-rd-bg-page rounded-full px-3.5 py-2 transition-colors"
+            >
+              <Briefcase className="w-3.5 h-3.5" />
+              View in tracker
+            </button>
+          )}
         </div>
       </div>
     );
