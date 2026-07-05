@@ -67,7 +67,7 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
           {error}
         </p>
       )}
-      <div className="flex items-center justify-end gap-1.5 mt-1.5">
+      <div className="flex flex-wrap items-center justify-end gap-1.5 mt-1.5">
         {applied ? (
           downloadUrl ? (
             <>
@@ -80,7 +80,7 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
                     toast.error(`Download failed: ${err?.message || "unknown error"}`);
                   }
                 }}
-                className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-2.5 py-1 transition-colors"
+                className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-2.5 py-1 transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-1 active:brightness-95"
               >
                 <Download className="w-2.5 h-2.5" />
                 Download CV
@@ -94,7 +94,7 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
                         `?application_id=${encodeURIComponent(studioAppId)}`,
                     )
                   }
-                  className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-coral bg-rd-bg-card border border-rd-coral/40 hover:bg-rd-coral-tint rounded-full px-2.5 py-1 transition-colors"
+                  className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-coral bg-rd-bg-card border border-rd-coral/40 hover:bg-rd-coral-tint rounded-full px-2.5 py-1 transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-1 active:brightness-95"
                 >
                   Open in Studio
                 </button>
@@ -109,7 +109,7 @@ function SuggestionRowShell({ kind, KindIcon, title, action, error, applied, onA
                         `?app=${encodeURIComponent(studioAppId)}`,
                     )
                   }
-                  className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-text-secondary bg-rd-bg-card border border-rd-border hover:bg-rd-bg-page rounded-full px-2.5 py-1 transition-colors"
+                  className="inline-flex items-center gap-1 text-[10.5px] font-display font-bold text-rd-text-secondary bg-rd-bg-card border border-rd-border hover:bg-rd-bg-page rounded-full px-2.5 py-1 transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-1 active:brightness-95"
                 >
                   <Briefcase className="w-2.5 h-2.5" />
                   Tracker

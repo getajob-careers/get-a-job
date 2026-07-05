@@ -48,9 +48,11 @@ function Centered({ children }) {
 export default function CVStudioLive() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const { data: cvOptions = [], isLoading: optsLoading } = useApplicationCvs(
-    user?.id,
-  );
+  const {
+    data: cvOptions = [],
+    isLoading: optsLoading,
+    isFetching: optsFetching,
+  } = useApplicationCvs(user?.id);
   const { data: profile } = useProfileQuery(user?.id);
   const { data: experiences = [] } = useExperiencesQuery(user?.id);
   const { data: education = [] } = useEducationQuery(user?.id);
@@ -97,7 +99,10 @@ export default function CVStudioLive() {
           (cvParam && cvOptions.find((o) => o.id === cvParam)) ||
           (appParam && cvOptions.find((o) => o.applicationId === appParam)) ||
           null;
-        if (!target && optsLoading) return; // wait for the refetch to bring it in
+        // Wait for a warm-stale refetch too, not only a cold load: refetchOnMount
+        // is "always", so a fresh CV lands moments after mount - do not commit to
+        // master before it arrives (QA2 Studio deep-link).
+        if (!target && (optsLoading || optsFetching)) return;
         paramAppliedRef.current = true;
         const next = new URLSearchParams(searchParams);
         next.delete("cv");
@@ -118,7 +123,7 @@ export default function CVStudioLive() {
     if (selectedCvId && cvOptions.some((o) => o.id === selectedCvId)) return;
     const master = cvOptions.find((o) => o.isMaster);
     setSelectedCvId((master || cvOptions[0]).id);
-  }, [cvOptions, selectedCvId, searchParams, setSearchParams, optsLoading]);
+  }, [cvOptions, selectedCvId, searchParams, setSearchParams, optsLoading, optsFetching]);
 
   // Clear the pending tailor target once a tailored CV for that application
   // exists and is selected (after onTailor's refetch+select, or if one already
