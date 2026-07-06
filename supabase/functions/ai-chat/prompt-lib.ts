@@ -1089,6 +1089,7 @@ export function parseSuggestions(
   replyIn: string,
   message: string,
   conversationHistory: any[],
+  targetApplicationRole: string | null = null,
 ): ParsedSuggestions {
   let reply = replyIn || "Sorry, I could not generate a response.";
 
@@ -1245,6 +1246,15 @@ export function parseSuggestions(
         ...(parsed.accepted === true ? { accepted: true } : {}),
       };
     }
+  }
+  // Belt-and-suspenders for the CV-label bug: when the CV links to the selected
+  // TARGET APPLICATION, that application's role_title is authoritative — reconcile
+  // the model's free-text target_role to it so the authored CV matches the app it
+  // is attached to. (The server also enforces the LABEL from the linked app.)
+  if (suggested_cv_generation?.application_id && targetApplicationRole) {
+    suggested_cv_generation.target_role = String(targetApplicationRole)
+      .slice(0, 200)
+      .trim();
   }
 
   let suggested_bullet_capture: any | null = null;
