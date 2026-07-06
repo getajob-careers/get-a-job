@@ -1,5 +1,13 @@
 # Deep QA Pass 2 - Fix Manifest (Batch 1)
 
+> **⚠️ STATUS — SUPERSEDED IN PART / TRIAGED 2026-07-06.** This was an orphaned HELD plan that was
+> never approved as a batch. Much of it shipped anyway (#472–#493 and since); the rest is either
+> superseded by the now-canonical IA spec (`docs/design/ia-interaction-spec.md`) / the CV-consolidation
+> arc / the platform-first reprioritization, or survives and is re-queued. **See the item-by-item
+> triage: [`deep-qa-2-manifest-triage.md`](./deep-qa-2-manifest-triage.md)** (DONE / SUPERSEDED /
+> SURVIVES). Do not execute from this file directly — it is kept for the record. HELD for Eli's approval
+> of the triage before the SURVIVES items are scheduled.
+
 Plain-English plan for the first fix wave coming out of Deep QA Pass 2. Read top to bottom. Nothing here is coded yet; this is the document Eli approves before execution starts. Isaac and Yishai should be able to read it cold.
 
 Scope of Batch 1: two launch-gating items (G1, G2), the ship-with list (Home arrow, CV Studio copy, Profile messaging, dock coach View, F1 server fix, accessibility batch), and decision D1 (seniority floor). The full queue is listed at the end, unchanged from triage.
@@ -295,6 +303,7 @@ the CV proposal's role + the resolved company) so both cards are guaranteed to c
 ## BATCH 1 — CLOSURE ADDENDUM (2026-07-05)
 
 Deep QA Pass 2 shipped. Post-#489 tail:
+
 - **#490** (verbal-accept + Generate-implies-app + acceptance-survives-ask-flow) — merged, prod-verified PASS (Marigold verbal-yes one-fire; Fernwood unknown-company parked→resumed one-fire). ai-chat v101.
 - **#491** (post-gen CTA) — View-in-tracker deep-link added; Download + Open-in-Studio already shipped (#485). The job-to-apply last mile.
 - **finding-1** (same-turn Apply card): 0-for-2 on prompt-tightening → queued for a STRUCTURAL cue (emit add_application from the same parser as the CV block). Absorbed by #490's deterministic resolution; polish only.
