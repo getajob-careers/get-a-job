@@ -46,3 +46,7 @@ GetAJob Design System/
 supabase/functions/_shared/cv-templates/fonts/
 scripts/cv-harness/fixtures/founder.json
 .agents/
+
+# Local editor / vault + scratch notes (kept on disk, not tracked)
+.obsidian/
+notes/
