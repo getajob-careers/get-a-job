@@ -18,8 +18,10 @@ code_paths:
 
 > **What this is.** The structure and interaction model of _every_ feature, derived from
 > **product logic** — what a job seeker needs at each stage of the loop — not from current
-> usage. Usage (n≈35, deep-qa-3) is a **sanity check only, never the designer**: it tells
-> us what is dead, not what would be alive if it were findable.
+> usage. Usage is a **sanity check only, never the designer** — but the usage picture is now
+> firmer than deep-qa-3's: PR #499's verified PostHog pageviews supersede the report's "we can't
+> tell undiscovered from unwanted" caveat for the discoverability claims below. The satellites
+> were **reached and declined, not hidden.** Small-n still applies to engagement rates.
 >
 > **The bar it answers (Eli's brief).** For a first-time user with zero explanation, every
 > feature must answer four questions: **What is this? What do I do here? What happens when I
@@ -47,8 +49,10 @@ Three layers, in order:
    hides/kills, the coach's cross-cutting role, and the minute-0-to-first-CV screenplay.
 
 **Confidence note.** Every _structural_ recommendation here is derived from product logic and
-is high-confidence. Every place I lean on usage, it's flagged as a sanity check and carries
-deep-qa-3's LOW-CONFIDENCE caveat. Nothing here is a decision — it's a spec for Eli to redline.
+is high-confidence. Usage is a sanity check — and the **pageview-based** discoverability claims
+below are now **verified** (PR #499, live PostHog, ~94% real-user coverage), superseding
+deep-qa-3's LOW-CONFIDENCE caveat _for those specific claims_. Per-feature engagement rates stay
+small-n. Nothing here is a decision — it's a spec for Eli to redline.
 
 ---
 
@@ -56,8 +60,9 @@ deep-qa-3's LOW-CONFIDENCE caveat. Nothing here is a decision — it's a spec fo
 
 The observed loop in the data is short and paid — _onboard → see your fit → generate a CV_
 (deep-qa-3 §5). But the **designed** loop is the full job-seeker journey; the short observed
-loop is what happens when the tail is undiscoverable, not what a job seeker needs. We design
-for the whole loop and make the paid center (CV) the obvious one-click payoff.
+loop is what happens when the tail is reached-but-declined (PR #499) and stage-premature, not
+what a job seeker needs. We design for the whole loop and make the paid center (CV) the obvious
+one-click payoff.
 
 ```
         ┌───────────────────────────────────────────────────────────┐
@@ -219,11 +224,14 @@ Template for every feature:
   (qualification + goal-alignment bars, matched/missing skills); never render 0–1 scores as
   1% (lessons 2026-06-11 — fixture-unit contract).
 
-#### 3.1.2 Fit-of-a-specific-job (analyze-job-match) — **FIX-DISCOVERY**
+#### 3.1.2 Fit-of-a-specific-job (analyze-job-match) — **RESTRUCTURE (inline panel)**
 
 - **One job:** "For _this_ posting, am I a fit — and where are the gaps?" · Stage 1.
 - **Format:** **Panel** inside the Career job-detail view (in-the-moment, shallow-to-medium →
-  never its own page). Today it's undiscoverable (0 real calls, all 127 were team/test).
+  never its own page) — the panel structure is correct by the format rule. Not "fix-discovery":
+  PR #499 shows **17 real users reached /Jobs with ~0 job-match engagement**, so **discovery is
+  not established as the blocker.** The open question is post-redesign _engagement_ (is the read
+  wanted, once it's inline and grounded?) — that's what to measure, not findability.
 - **Entry:** Opening any job card's detail shows fit inline (lazy). The extension is the _other_
   entry — it computes this on a live posting (Arc 1 must make it use the same governed path).
   **Exit:** "Make a CV for this" (Stage 2) or "Track it" (Stage 3).
@@ -246,18 +254,27 @@ Template for every feature:
   CV. **States:** as Career §3.1.1. **Coach mirror:** `suggested_roadmap_changes`.
 - **Never:** never be a second place fit is computed with different thresholds than Career/CV.
 
-#### 3.1.4 Skill Advisor / Learning paths — **PARK → fold into coach**
+#### 3.1.4 Skill Advisor / Learning paths — **PARK → coach mode now; graduates to a Skills workspace**
 
 - **One job:** "I have a skill gap — how do I close it?" · Stage 1→2 bridge.
-- **Format:** **Coach action + a contextual card**, not a nav destination. 0 real usage;
+- **Format:** **Coach action + a contextual card**, not a nav destination _today_. Reached but
+  unwanted (PR #499: ~3 real users opened /SkillDevelopmentAdvisor, 0 learning-path engagement) —
   premature for a pre-application student base. When Career surfaces a _missing skill_ on a role
   the user targets, a "close this gap" card can offer learning paths inline.
+- **Graduation (planned):** it dissolves into a coach mode NOW, but is planned to **graduate to a
+  dedicated on-demand Skills workspace** when its built-out version ships — **concept stage only
+  here; do not encode a specific layout or numbers** (from any mockup). Two **binding constraints**
+  on that future workspace: **(a)** any readiness/fit numbers it displays are **read from the same
+  scorer and thresholds as Career** (§3.1.1) — never computed independently (this is the
+  track-drift class, §4.4); **(b)** learning links come from **validated sources** (the existing
+  Coursera link set + URL validation) — never invented. Grounding for the advice itself: see the
+  retrieval-layer note in §3.5.1.
 - **Entry:** the missing-skill chip on a role/job → "how do I get this?" (coach). **Exit:** back
   to the role with a saved plan or task. **States:** _Empty/Done_ handled as a coach card;
   _Loading/Error_ inherit the coach's. **Coach mirror:** this _is_ a coach capability (skill-
-  advice intent), not a separate agent page.
-- **Never:** never be a standalone page in the nav (it has no independent pull at this stage);
-  never invent courses/URLs that don't resolve (URL-validation already exists).
+  advice intent) until it graduates.
+- **Never:** never **in the primary nav** (it has no independent pull at this stage); never invent
+  courses/URLs that don't resolve (URL-validation already exists).
 
 ---
 
@@ -273,6 +290,13 @@ Template for every feature:
   (deep-qa-3 §3 structural move #1). The spec's structural call: **one workspace, one engine,
   one renderer** — generate, then refine/edit, then the _same_ document you download is the one
   you previewed.
+- **Consolidation arc — required FIRST step (do not skip):** before scoping the one-engine merge,
+  **investigate which of the two engines/renderers is the healthier canonical base** — code
+  health, preview==download fidelity, and where the live title-mislabeling bug actually lives.
+  The merge then ships **behind an opt-in flag** so its blast radius is observable before fan-out
+  (PR #156 lesson). This investigation is **not done yet** and is the first task of the CV
+  consolidation arc — the merge does not begin until it lands. (§3.2.2 is the other half of the
+  same merge.)
 - **Entry (this is the headline IA change):** **one click from fit.** A job/role card's "Make a
   CV for this" opens the workspace with the JD + target role pre-loaded. Also enterable from the
   coach ("make me a CV for this") and directly (nav "CV"). **Exit:** download + "Track this
@@ -307,9 +331,10 @@ Template for every feature:
 #### 3.2.3 Story Bank / bullet capture — **PARK (keep code; surface contextually)**
 
 - **One job:** "Capture something I did once, reuse it everywhere." · Stage 2 raw material.
-- **Format:** **Coach action + contextual save-card**, no nav entry. 0 real usage _because
-  undiscoverable_ (delisted from nav) — but it feeds CV bullets, so the _code_ stays. The right
-  home is in-the-moment capture: while chatting or reviewing a CV, "save this as a story."
+- **Format:** **Coach action + contextual save-card**, no nav entry. **Reached but unwanted**
+  (PR #499: ~5 real users opened /StoryBank, 0 saved a story) — so the remedy is _not_ to surface
+  it harder; it's to make capture happen in-the-moment where the value is. It still feeds CV
+  bullets, so the _code_ stays. The right home: while chatting or reviewing a CV, "save this as a story."
 - **Entry:** coach `suggested_bullet_capture` / story-capture card after CV gen (Path B sequential
   follow-up already built); a "save to my stories" affordance on any achievement the coach
   surfaces. **Exit:** the story is available as CV raw material (STORY BANK PRECEDENCE in
@@ -322,14 +347,18 @@ Template for every feature:
 #### 3.2.4 LinkedIn suite — **PARK (biggest satellite tax; keep code, hide entry)**
 
 - **One job:** "Improve my LinkedIn presence and outreach." · Stage 2 (adjacent).
-- **Format:** **Collapsed / out of primary nav.** 6 deployed edge fns for ~0 reachable usage
-  (4 optimize / 3 content / 0 posts / 0 outreach) — the biggest maintenance tax for a feature
-  nobody can find. Not killed (distinct value, real research behind it); parked behind a "More
+- **Format:** **Collapsed / out of primary nav.** 6 deployed edge fns for near-zero engagement
+  (4 optimize / 3 content / 0 posts / 0 outreach) — **reached but unwanted** (PR #499: ~5 real
+  users opened /Linkedin, ~0 engaged), so it's the biggest maintenance tax for a feature users
+  find and skip. Not killed (distinct value, real research behind it); parked behind a "More
   tools" collapse or removed from nav with deep-links kept.
 - **Entry:** none in primary nav; reachable via a collapsed "More" or a coach suggestion when
   relevant. **Exit:** back to the loop. **States:** unchanged where reached; not a launch-surface.
 - **Coach mirror:** the coach can draft a post/comment/outreach message on request (existing fns),
   which is the _right_ discovery path — pull, not a parked page.
+- **Promote-back criteria (staged, not a permanent demotion):** LinkedIn returns to a first-class
+  surface when **both** hold — **(a)** the outreach-quality bug is diagnosed and fixed, and **(b)**
+  coach-driven LinkedIn requests show real pull post-redesign. Until then it stays parked.
 - **Never:** never sit in the primary nav taking a muscle-memory slot the loop needs; never emit
   the anti-pattern outreach openers ("I hope you're doing well") without the warning chips.
 
@@ -342,8 +371,8 @@ Template for every feature:
 - **One job:** "I'm applying to this — start tracking it." · Stage 3 (the hinge from make→track).
 - **Format:** **Action on a job card + a coach action**, not a page. Applying is a single
   moment; the destination is the pipeline (Stage 4). Today only 4 applications exist across 2
-  users — the tail is undiscoverable _and_ stage-premature (most of the 35 aren't applying yet),
-  so the design goal is: when a user _is_ ready, applying is frictionless and obvious.
+  users — the tail is **stage-premature** (most of the 35 aren't applying yet; not a discovery
+  problem), so the design goal is: when a user _is_ ready, applying is frictionless and obvious.
 - **Entry:** "Track / I applied" on a job card; "Make a CV" implicitly creates the application
   (#490 Generate-implies-application). The extension is the _in-the-wild_ apply entry (on a
   posting anywhere) — must add-application through the same path (Arc 1: today it has no
@@ -443,6 +472,14 @@ Template for every feature:
 - **Coach mirror:** the coach _is_ the mirror layer — every `suggested_*` block maps 1:1 to a UI
   action and resolves targets via the #490 paths. **This is the spec's core invariant: for every
   feature above, the coach-action and the UI-action are the same operation.**
+- **Graduation (planned):** the four "agents" are coach modes now, but **Interview Coach** is
+  planned to **graduate to a dedicated voiced interview-session page** (an on-demand session
+  surface) when its built-out version ships — **concept stage only here; no layout or numbers
+  encoded.** (Skill Advisor's graduation to a Skills workspace is §3.1.4.) **Grounding constraint
+  for both graduated surfaces and for coach advice modes generally:** they are expected to be
+  grounded by a **curated retrieval layer** (a knowledge base + pgvector retrieval in `ai-chat`)
+  rather than the model's general knowledge; scoping that layer is its own future arc and is **out
+  of this spec's scope.**
 - **Never:** never fabricate context it doesn't have (parrot its own prompt examples — lessons
   2026-06-11); never be built twice (one client); never take a nav slot as four separate agents.
 
@@ -486,7 +523,8 @@ Template for every feature:
 - **Admin / AdminLaunch** — _internal, out of the user IA entirely._ RLS-gated ops dashboards;
   they don't appear in the user-facing sitemap and aren't subject to the four-question test.
 - **Feedback widget** — _panel._ Always-available, shallow. 0 rows so far — keep it, make it one
-  obvious tap; it's the cheapest signal channel we have until instrumentation lands (Arc 0 PR#4).
+  obvious tap; a cheap qualitative signal channel alongside the PostHog instrumentation that is
+  already live (PR #412, verified in PR #499).
 
 ---
 
@@ -568,7 +606,7 @@ fit consolidates into Career.
 | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | **MERGE**           | Roadmap + job-match **→** Career; CV Studio **→** CV workspace; the two chat clients **→** one coach                                                                                                        | Fit must be one number in one place; the CV must be one document from one engine; every coach feature currently built twice.                                                                                                                                             |
 | **RISE**            | CV: buried stub **→** first-class workspace, one click from fit                                                                                                                                             | The one paid thing (~80% of real cost) should be the obvious center.                                                                                                                                                                                                     |
-| **COLLAPSE**        | LinkedIn suite, Resources, Skill-advisor **→** "More" / coach pull                                                                                                                                          | Real (or evergreen) value, ~0 findable usage — keep code, stop taking nav slots.                                                                                                                                                                                         |
+| **COLLAPSE**        | LinkedIn suite, Resources, Skill-advisor **→** "More" / coach pull                                                                                                                                          | Real (or evergreen) value, **reached but unwanted** (PR #499: near-zero engagement despite being reached) — keep code, stop taking nav slots, and don't reinvest in discovery.                                                                                           |
 | **HIDE / PARK**     | Story Bank page, Calendar page, Tasks page                                                                                                                                                                  | The _jobs_ survive as coach actions / card rows / on-card dates; the standalone pages don't earn a route.                                                                                                                                                                |
 | **KILL (as built)** | Daily Action + its nightly cron                                                                                                                                                                             | 0 completions / 723 auto rows; degrade to honest empty. (Arc 0 PR#2)                                                                                                                                                                                                     |
 | **KILL (dead)**     | standalone Tracker.jsx, Subagents orphan, 3 legacy edge fns, send-reengagement, send-waitlist, orphan tables (`campaign_sends`, `waitlist_signups`, `job_suggestions`, `cv_templates`, the rollback backup) | Zero callers — verified by the kill-manifest (Arc 0 PR#1). **NB:** `calendar_events` is NOT dropped — it has a live read+write (the Calendar add-event feature); "0 rows" just means no event added yet. `cv_templates` needs an FK/column drop on `applications` first. |
@@ -631,10 +669,10 @@ whole IA is optimized for — if it doesn't read effortlessly here, the structur
 > a spinner with no story.
 >
 > **2:20 — The payoff: her fit, warm.** Onboarding hands her — _not_ a generic Home — a screen
-> that says _"Here's what you're realistic for,"_ with 2–3 matched roles (the _why_: qualification
->
-> - goal-alignment bars, matched/missing skills) and, beside a real matched role, **one primary
->   button: "Make a CV for this."** This is the whole product's hinge: fit → CV in one click.
+> that says _"Here's what you're realistic for,"_ with 2–3 matched roles (the _why_ shown as
+> qualification and goal-alignment bars, plus matched/missing skills), and beside a real matched
+> role, **one primary button: "Make a CV for this."** This is the whole product's hinge: fit → CV
+> in one click.
 >
 > **2:25 — She clicks it.** The **CV workspace** opens with that role's JD + target pre-loaded.
 > One click-gated _Generate_. Honest staged progress. The CV is written from her _real_ captured
