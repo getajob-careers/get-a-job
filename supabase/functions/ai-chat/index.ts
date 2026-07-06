@@ -409,7 +409,24 @@ Deno.serve(async (req) => {
       completion.choices?.[0]?.message?.content ||
       "Sorry, I could not generate a response.";
 
-    const parsed = parseSuggestions(reply, message, conversation_history);
+    // CV-label fix: when a TARGET APPLICATION is selected, its role_title is
+    // authoritative for any CV-gen block parsed below (see prompt-lib reconcile).
+    let targetAppRole: string | null = null;
+    if (effectiveApplicationId) {
+      const { data: appForRole } = await serviceClient
+        .from("applications")
+        .select("role_title")
+        .eq("id", effectiveApplicationId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+      targetAppRole = (appForRole?.role_title as string) ?? null;
+    }
+    const parsed = parseSuggestions(
+      reply,
+      message,
+      conversation_history,
+      targetAppRole,
+    );
     reply = parsed.reply;
     const suggested_tasks = parsed.suggested_tasks;
     const suggested_agent = parsed.suggested_agent;
