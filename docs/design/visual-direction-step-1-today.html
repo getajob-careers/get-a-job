@@ -1,0 +1,897 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Arc 2 Step 1 — Today, navy vs black (HELD proposal)</title>
+    <style>
+      /* ==== Step 1 tokens (inlined so this file is standalone) ==== */
+      :root,
+      [data-rd-base="navy"] {
+        --rd-bg-base: #0e1526;
+        --rd-bg-chrome: #141d33;
+        --rd-bg-elevated: #1b2748;
+        --rd-bg-inset: #0a1020;
+        --rd-card: #f7f3ea;
+        --rd-card-2: #efe8da;
+        --rd-card-ink: #1a1e28;
+        --rd-card-ink-2: #4b505e;
+        --rd-card-ink-3: #6b7180;
+        --rd-card-border: #e3dbcb;
+        --rd-text: #eaeef7;
+        --rd-text-2: #aeb7cc;
+        --rd-text-3: #808aa3;
+        --rd-eyebrow: #c9a24b;
+        --rd-border: #263250;
+        --rd-border-2: #33426a;
+        --rd-ring: #e7b34a;
+        --rd-gold: #e7b34a;
+        --rd-gold-bright: #f3c86b;
+        --rd-gold-deep: #b9862a;
+        --rd-gold-ink: #2a1e06;
+        --rd-gold-tint: rgba(231, 179, 74, 0.14);
+        --rd-gold-glow: rgba(231, 179, 74, 0.28);
+        --rd-elev-1:
+          0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 2px 8px rgba(0, 0, 0, 0.38);
+        --rd-elev-2:
+          0 1px 0 rgba(255, 255, 255, 0.05) inset,
+          0 10px 28px rgba(0, 0, 0, 0.46);
+        --rd-elev-card: 0 8px 24px rgba(6, 10, 22, 0.5);
+        --rd-elev-cta: 0 0 0 1px var(--rd-gold), 0 6px 18px var(--rd-gold-glow);
+      }
+      [data-rd-base="black"] {
+        --rd-bg-base: #0b0b0d;
+        --rd-bg-chrome: #141416;
+        --rd-bg-elevated: #1c1c20;
+        --rd-bg-inset: #070708;
+        --rd-text: #ececee;
+        --rd-text-2: #a8a8ae;
+        --rd-text-3: #78787f;
+        --rd-border: #2a2a2e;
+        --rd-border-2: #3b3b42;
+        --rd-elev-1:
+          0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 2px 8px rgba(0, 0, 0, 0.5);
+        --rd-elev-2:
+          0 1px 0 rgba(255, 255, 255, 0.06) inset,
+          0 10px 28px rgba(0, 0, 0, 0.6);
+        --rd-elev-card: 0 8px 24px rgba(0, 0, 0, 0.6);
+      }
+      :root {
+        --sem-success: #2e9e6b;
+        --sem-success-on-dark: #4fd39c;
+        --sem-success-tint: rgba(46, 158, 107, 0.14);
+        --sem-error: #d6421f;
+        --sem-error-on-dark: #ff6b4e;
+        --sem-error-tint: rgba(214, 66, 31, 0.14);
+        --sem-caution: #c9740e;
+        --sem-caution-on-dark: #ee8a2e;
+        --sem-caution-tint: rgba(238, 138, 46, 0.14);
+        --sem-info: #2d7fa8;
+        --sem-info-on-dark: #5ab0d6;
+        --rd-font-display: "Rokkitt", Georgia, serif;
+        --rd-font-body:
+          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
+          Arial, sans-serif;
+        --rd-radius-sm: 8px;
+        --rd-radius-md: 12px;
+        --rd-radius-lg: 16px;
+        --rd-radius-xl: 20px;
+        --rd-radius-pill: 999px;
+        --rd-motion-fast: 150ms ease-out;
+        --rd-motion: 200ms ease-out;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        background: #05070d;
+        font-family: var(--rd-font-body);
+        color: #c7cede;
+        padding: 28px 20px 60px;
+        -webkit-font-smoothing: antialiased;
+      }
+      .page-title {
+        max-width: 1180px;
+        margin: 0 auto 6px;
+        font: 700 22px/1.2 var(--rd-font-display);
+        color: #eef1f8;
+        letter-spacing: -0.01em;
+      }
+      .page-sub {
+        max-width: 1180px;
+        margin: 0 auto 26px;
+        font-size: 13px;
+        color: #8891a6;
+        line-height: 1.6;
+      }
+      .page-sub b {
+        color: #d9b25a;
+      }
+      .variant-label {
+        max-width: 1180px;
+        margin: 34px auto 12px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font: 700 11px/1 var(--rd-font-body);
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        color: #8891a6;
+      }
+      .variant-label .dot {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+      }
+      .variant-label .rec {
+        margin-left: auto;
+        text-transform: none;
+        letter-spacing: 0;
+        font-weight: 600;
+        font-size: 11px;
+        color: #d9b25a;
+        background: rgba(231, 179, 74, 0.12);
+        padding: 3px 9px;
+        border-radius: 999px;
+      }
+
+      /* ==== app shell ==== */
+      .app {
+        max-width: 1180px;
+        margin: 0 auto;
+        height: 660px;
+        display: flex;
+        border-radius: var(--rd-radius-xl);
+        overflow: hidden;
+        background: var(--rd-bg-base);
+        box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+        border: 1px solid var(--rd-border);
+      }
+      /* sidebar */
+      .side {
+        width: 236px;
+        flex-shrink: 0;
+        background: var(--rd-bg-chrome);
+        border-right: 1px solid var(--rd-border);
+        display: flex;
+        flex-direction: column;
+        padding: 18px 14px;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 4px 6px 18px;
+      }
+      .brand .dots {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 3px;
+      }
+      .brand .dots span {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+      }
+      .brand b {
+        font: 700 16px/1 var(--rd-font-display);
+        color: var(--rd-text);
+        letter-spacing: -0.01em;
+      }
+      .nav {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        margin-top: 4px;
+      }
+      .nav a {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        padding: 9px 11px;
+        border-radius: var(--rd-radius-sm);
+        font: 600 13.5px/1 var(--rd-font-display);
+        color: var(--rd-text-3);
+        text-decoration: none;
+        transition:
+          color var(--rd-motion-fast),
+          background var(--rd-motion-fast);
+      }
+      .nav a .ic {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+        border: 1.6px solid currentColor;
+        opacity: 0.85;
+      }
+      .nav a:hover {
+        color: var(--rd-text-2);
+        background: rgba(255, 255, 255, 0.03);
+      }
+      .nav a.active {
+        color: var(--rd-gold);
+        background: var(--rd-gold-tint);
+      }
+      .nav a.active .ic {
+        border-color: var(--rd-gold);
+        background: var(--rd-gold-tint);
+      }
+      .nav .dotmark {
+        margin-left: auto;
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: var(--rd-gold);
+      }
+      /* coach dock */
+      .dock {
+        margin-top: auto;
+        background: var(--rd-bg-elevated);
+        border: 1px solid var(--rd-border);
+        border-radius: var(--rd-radius-md);
+        padding: 12px;
+        box-shadow: var(--rd-elev-1);
+      }
+      .dock .eyebrow {
+        font: 700 10px/1 var(--rd-font-body);
+        letter-spacing: 0.09em;
+        text-transform: uppercase;
+        color: var(--rd-eyebrow);
+        margin-bottom: 8px;
+      }
+      .dock .msg {
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--rd-text-2);
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--rd-border);
+        border-radius: var(--rd-radius-sm);
+        padding: 8px 10px;
+      }
+      .dock .msg b {
+        color: var(--rd-text);
+      }
+      .dock .field {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 9px;
+      }
+      .dock .field .inp {
+        flex: 1;
+        height: 32px;
+        border-radius: var(--rd-radius-sm);
+        background: var(--rd-bg-inset);
+        border: 1px solid var(--rd-border);
+        color: var(--rd-text-3);
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        padding: 0 10px;
+      }
+      .dock .field .send {
+        width: 32px;
+        height: 32px;
+        border-radius: var(--rd-radius-sm);
+        background: var(--rd-gold);
+        box-shadow: var(--rd-elev-cta);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--rd-gold-ink);
+        font-weight: 800;
+      }
+
+      /* main */
+      .main {
+        flex: 1;
+        background: var(--rd-bg-base);
+        padding: 22px 26px;
+        overflow: auto;
+      }
+      .hello {
+        font: 700 24px/1.15 var(--rd-font-display);
+        color: var(--rd-text);
+        letter-spacing: -0.01em;
+      }
+      .hello .sub {
+        display: block;
+        margin-top: 5px;
+        font: 400 13px/1.5 var(--rd-font-body);
+        color: var(--rd-text-3);
+      }
+      /* honest stat strip */
+      .stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin: 18px 0;
+      }
+      .stat {
+        background: var(--rd-card);
+        border: 1px solid var(--rd-card-border);
+        border-radius: var(--rd-radius-md);
+        padding: 13px 14px;
+        box-shadow: var(--rd-elev-card);
+      }
+      .stat .n {
+        font: 700 24px/1 var(--rd-font-display);
+        color: var(--rd-card-ink);
+        letter-spacing: -0.01em;
+      }
+      .stat .l {
+        margin-top: 5px;
+        font-size: 12px;
+        color: var(--rd-card-ink-2);
+        font-weight: 600;
+      }
+      .stat .src {
+        margin-top: 3px;
+        font-size: 10px;
+        color: var(--rd-card-ink-3);
+        font-style: italic;
+      }
+      /* hero next-action */
+      .hero {
+        background: var(--rd-card);
+        border: 1px solid var(--rd-card-border);
+        border-radius: var(--rd-radius-lg);
+        padding: 18px 20px;
+        box-shadow: var(--rd-elev-card);
+        display: flex;
+        align-items: center;
+        gap: 18px;
+      }
+      .hero .body {
+        flex: 1;
+      }
+      .hero .eyebrow {
+        font: 700 11px/1 var(--rd-font-body);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        color: var(--rd-gold-deep);
+      }
+      .hero h2 {
+        margin-top: 8px;
+        font: 700 20px/1.2 var(--rd-font-display);
+        color: var(--rd-card-ink);
+        letter-spacing: -0.005em;
+      }
+      .hero p {
+        margin-top: 6px;
+        font-size: 13px;
+        line-height: 1.55;
+        color: var(--rd-card-ink-2);
+      }
+      .cta {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        height: 44px;
+        padding: 0 20px;
+        border-radius: var(--rd-radius-md);
+        background: var(--rd-gold);
+        color: var(--rd-gold-ink);
+        font: 700 14px/1 var(--rd-font-body);
+        text-decoration: none;
+        box-shadow: var(--rd-elev-cta);
+        transition:
+          background var(--rd-motion-fast),
+          transform var(--rd-motion-fast);
+      }
+      .cta:hover {
+        background: var(--rd-gold-bright);
+        transform: translateY(-1px);
+      }
+      .cta .arw {
+        font-size: 16px;
+      }
+      /* two-column lower */
+      .cols {
+        display: grid;
+        grid-template-columns: 1.35fr 1fr;
+        gap: 14px;
+        margin-top: 14px;
+      }
+      .card {
+        background: var(--rd-card);
+        border: 1px solid var(--rd-card-border);
+        border-radius: var(--rd-radius-lg);
+        padding: 16px 18px;
+        box-shadow: var(--rd-elev-card);
+      }
+      .card h3 {
+        font: 700 12px/1 var(--rd-font-body);
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--rd-card-ink-3);
+        margin-bottom: 14px;
+      }
+      /* matched roles rows with SEMANTIC fit bars */
+      .role {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 0;
+        border-top: 1px solid var(--rd-card-border);
+      }
+      .role:first-of-type {
+        border-top: 0;
+      }
+      .role .t {
+        flex: 1;
+        min-width: 0;
+      }
+      .role .t .name {
+        font: 600 14px/1.2 var(--rd-font-body);
+        color: var(--rd-card-ink);
+      }
+      .role .t .why {
+        margin-top: 5px;
+        height: 6px;
+        border-radius: 999px;
+        background: #e7decb;
+        overflow: hidden;
+      }
+      .role .t .why i {
+        display: block;
+        height: 100%;
+        border-radius: 999px;
+      }
+      .role .t .whyl {
+        margin-top: 5px;
+        font-size: 11px;
+        color: var(--rd-card-ink-3);
+      }
+      .trk {
+        flex-shrink: 0;
+        font: 700 10px/1 var(--rd-font-body);
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding: 5px 9px;
+        border-radius: 999px;
+      }
+      .trk.t1 {
+        color: var(--rd-gold-deep);
+        background: var(--rd-gold-tint);
+        border: 1px solid rgba(185, 134, 42, 0.3);
+      }
+      .trk.t3 {
+        color: var(--rd-card-ink-3);
+        background: #eae2d2;
+        border: 1px solid var(--rd-card-border);
+      }
+      .makecv {
+        flex-shrink: 0;
+        font: 600 12px/1 var(--rd-font-body);
+        color: var(--rd-gold-deep);
+        text-decoration: none;
+        white-space: nowrap;
+        padding: 7px 10px;
+        border-radius: var(--rd-radius-sm);
+        border: 1px solid rgba(185, 134, 42, 0.35);
+      }
+      /* pipeline snapshot */
+      .pipe {
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+      }
+      .pipe .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 13px;
+        color: var(--rd-card-ink-2);
+      }
+      .pipe .row .cnt {
+        font: 700 14px/1 var(--rd-font-display);
+        color: var(--rd-card-ink);
+      }
+      .pipe .row .cnt.zero {
+        color: var(--rd-card-ink-3);
+        font-weight: 600;
+      }
+      .pipe .dotc {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        margin-right: 9px;
+        vertical-align: middle;
+      }
+      .empty {
+        margin-top: 6px;
+        font-size: 12px;
+        line-height: 1.5;
+        color: var(--rd-card-ink-3);
+        font-style: italic;
+      }
+      /* honesty footnote */
+      .note {
+        max-width: 1180px;
+        margin: 12px auto 0;
+        font-size: 11.5px;
+        line-height: 1.6;
+        color: #7a8296;
+      }
+      .note b {
+        color: #b9c2d6;
+      }
+      .legend {
+        max-width: 1180px;
+        margin: 6px auto 0;
+        display: flex;
+        gap: 16px;
+        flex-wrap: wrap;
+        font-size: 11px;
+        color: #8891a6;
+      }
+      .legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .legend i {
+        width: 10px;
+        height: 10px;
+        border-radius: 3px;
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="page-title">
+      Arc 2 Step 1 — visual direction on the Today surface
+    </div>
+    <div class="page-sub">
+      Structure is settled (IA spec §3.5.2 Today). Step 1 chooses
+      <b>values only</b>: gold brand on a dark base, cream content cards on dark
+      chrome. Both base variants below use the <b>same</b> cream cards, gold
+      ramp, and semantic tokens — only the dark chrome + neutral ramp differ.
+      <b>HELD for review.</b>
+    </div>
+
+    <!-- ============ VARIANT A — NAVY ============ -->
+    <div class="variant-label">
+      <span class="dot" style="background: #1b2748"></span>Variant A — deep dark
+      navy<span class="rec">Eli leans this</span>
+    </div>
+    <div class="app" data-rd-base="navy">
+      <aside class="side">
+        <div class="brand">
+          <div class="dots">
+            <span style="background: var(--rd-gold)"></span
+            ><span style="background: #efe8da"></span
+            ><span style="background: var(--rd-text-3)"></span
+            ><span style="background: var(--rd-gold-deep)"></span>
+          </div>
+          <b>Get A Job</b>
+        </div>
+        <nav class="nav">
+          <a class="active" href="#"
+            ><span class="ic"></span>Today<span class="dotmark"></span
+          ></a>
+          <a href="#"><span class="ic"></span>Career</a>
+          <a href="#"><span class="ic"></span>CV</a>
+          <a href="#"><span class="ic"></span>Profile</a>
+        </nav>
+        <div class="dock">
+          <div class="eyebrow">Coach</div>
+          <div class="msg">
+            Want a CV for <b>Business Operations Manager</b>? I can start it
+            from your fit.
+          </div>
+          <div class="field">
+            <div class="inp">Ask your coach…</div>
+            <div class="send">↑</div>
+          </div>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="hello">
+          Good morning, Noah.<span class="sub"
+            >Here's where you stand — pick the one next move.</span
+          >
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="n">12</div>
+            <div class="l">Live matches</div>
+            <div class="src">count_active_jobs · track-1 titles</div>
+          </div>
+          <div class="stat">
+            <div class="n">1</div>
+            <div class="l">Application in motion</div>
+            <div class="src">applications · not rejected</div>
+          </div>
+          <div class="stat">
+            <div class="n">1</div>
+            <div class="l">CV made</div>
+            <div class="src">application_cvs</div>
+          </div>
+          <div class="stat">
+            <div class="n">Today</div>
+            <div class="l">Fit refreshed</div>
+            <div class="src">career_roles.updated_at</div>
+          </div>
+        </div>
+        <div class="hero">
+          <div class="body">
+            <div class="eyebrow">Your next move</div>
+            <h2>Make a CV for Business Operations Manager</h2>
+            <p>
+              Your strongest match with no CV yet. One click opens the workspace
+              with the role's JD pre-loaded.
+            </p>
+          </div>
+          <a class="cta" href="#">Make this CV <span class="arw">→</span></a>
+        </div>
+        <div class="cols">
+          <div class="card">
+            <h3>Roles you're realistic for</h3>
+            <div class="role">
+              <div class="t">
+                <div class="name">Business Operations Manager</div>
+                <div class="why">
+                  <i style="width: 74%; background: var(--sem-success)"></i>
+                </div>
+                <div class="whyl">
+                  Fit 74% · strong on ops + stakeholder mgmt · gap: SQL
+                </div>
+              </div>
+              <span class="trk t1">Track 1</span
+              ><a class="makecv" href="#">Make CV</a>
+            </div>
+            <div class="role">
+              <div class="t">
+                <div class="name">Product Operations</div>
+                <div class="why">
+                  <i style="width: 58%; background: var(--sem-caution)"></i>
+                </div>
+                <div class="whyl">
+                  Fit 58% · adjacent · gap: analytics tooling
+                </div>
+              </div>
+              <span class="trk t1">Track 1</span
+              ><a class="makecv" href="#">Make CV</a>
+            </div>
+            <div class="role">
+              <div class="t">
+                <div class="name">Data Analyst</div>
+                <div class="why">
+                  <i style="width: 41%; background: var(--sem-error)"></i>
+                </div>
+                <div class="whyl">Fit 41% · work-toward · gap: SQL, Python</div>
+              </div>
+              <span class="trk t3">Track 3</span
+              ><a class="makecv" href="#">Make CV</a>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Your pipeline</h3>
+            <div class="pipe">
+              <div class="row">
+                <span
+                  ><span class="dotc" style="background: var(--sem-info)"></span
+                  >Saved</span
+                ><span class="cnt">1</span>
+              </div>
+              <div class="row">
+                <span
+                  ><span
+                    class="dotc"
+                    style="background: var(--sem-caution)"
+                  ></span
+                  >Applied</span
+                ><span class="cnt zero">0</span>
+              </div>
+              <div class="row">
+                <span
+                  ><span class="dotc" style="background: var(--rd-gold)"></span
+                  >Interviewing</span
+                ><span class="cnt zero">0</span>
+              </div>
+              <div class="row">
+                <span
+                  ><span
+                    class="dotc"
+                    style="background: var(--sem-success)"
+                  ></span
+                  >Offer</span
+                ><span class="cnt zero">0</span>
+              </div>
+            </div>
+            <div class="empty">
+              One application saved. Track a job from Career to fill this in.
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- ============ VARIANT B — BLACK ============ -->
+    <div class="variant-label">
+      <span class="dot" style="background: #1c1c20"></span>Variant B — sharper
+      near-black
+    </div>
+    <div class="app" data-rd-base="black">
+      <aside class="side">
+        <div class="brand">
+          <div class="dots">
+            <span style="background: var(--rd-gold)"></span
+            ><span style="background: #efe8da"></span
+            ><span style="background: var(--rd-text-3)"></span
+            ><span style="background: var(--rd-gold-deep)"></span>
+          </div>
+          <b>Get A Job</b>
+        </div>
+        <nav class="nav">
+          <a class="active" href="#"
+            ><span class="ic"></span>Today<span class="dotmark"></span
+          ></a>
+          <a href="#"><span class="ic"></span>Career</a>
+          <a href="#"><span class="ic"></span>CV</a>
+          <a href="#"><span class="ic"></span>Profile</a>
+        </nav>
+        <div class="dock">
+          <div class="eyebrow">Coach</div>
+          <div class="msg">
+            Want a CV for <b>Business Operations Manager</b>? I can start it
+            from your fit.
+          </div>
+          <div class="field">
+            <div class="inp">Ask your coach…</div>
+            <div class="send">↑</div>
+          </div>
+        </div>
+      </aside>
+      <main class="main">
+        <div class="hello">
+          Good morning, Noah.<span class="sub"
+            >Here's where you stand — pick the one next move.</span
+          >
+        </div>
+        <div class="stats">
+          <div class="stat">
+            <div class="n">12</div>
+            <div class="l">Live matches</div>
+            <div class="src">count_active_jobs · track-1 titles</div>
+          </div>
+          <div class="stat">
+            <div class="n">1</div>
+            <div class="l">Application in motion</div>
+            <div class="src">applications · not rejected</div>
+          </div>
+          <div class="stat">
+            <div class="n">1</div>
+            <div class="l">CV made</div>
+            <div class="src">application_cvs</div>
+          </div>
+          <div class="stat">
+            <div class="n">Today</div>
+            <div class="l">Fit refreshed</div>
+            <div class="src">career_roles.updated_at</div>
+          </div>
+        </div>
+        <div class="hero">
+          <div class="body">
+            <div class="eyebrow">Your next move</div>
+            <h2>Make a CV for Business Operations Manager</h2>
+            <p>
+              Your strongest match with no CV yet. One click opens the workspace
+              with the role's JD pre-loaded.
+            </p>
+          </div>
+          <a class="cta" href="#">Make this CV <span class="arw">→</span></a>
+        </div>
+        <div class="cols">
+          <div class="card">
+            <h3>Roles you're realistic for</h3>
+            <div class="role">
+              <div class="t">
+                <div class="name">Business Operations Manager</div>
+                <div class="why">
+                  <i style="width: 74%; background: var(--sem-success)"></i>
+                </div>
+                <div class="whyl">
+                  Fit 74% · strong on ops + stakeholder mgmt · gap: SQL
+                </div>
+              </div>
+              <span class="trk t1">Track 1</span
+              ><a class="makecv" href="#">Make CV</a>
+            </div>
+            <div class="role">
+              <div class="t">
+                <div class="name">Product Operations</div>
+                <div class="why">
+                  <i style="width: 58%; background: var(--sem-caution)"></i>
+                </div>
+                <div class="whyl">
+                  Fit 58% · adjacent · gap: analytics tooling
+                </div>
+              </div>
+              <span class="trk t1">Track 1</span
+              ><a class="makecv" href="#">Make CV</a>
+            </div>
+            <div class="role">
+              <div class="t">
+                <div class="name">Data Analyst</div>
+                <div class="why">
+                  <i style="width: 41%; background: var(--sem-error)"></i>
+                </div>
+                <div class="whyl">Fit 41% · work-toward · gap: SQL, Python</div>
+              </div>
+              <span class="trk t3">Track 3</span
+              ><a class="makecv" href="#">Make CV</a>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Your pipeline</h3>
+            <div class="pipe">
+              <div class="row">
+                <span
+                  ><span class="dotc" style="background: var(--sem-info)"></span
+                  >Saved</span
+                ><span class="cnt">1</span>
+              </div>
+              <div class="row">
+                <span
+                  ><span
+                    class="dotc"
+                    style="background: var(--sem-caution)"
+                  ></span
+                  >Applied</span
+                ><span class="cnt zero">0</span>
+              </div>
+              <div class="row">
+                <span
+                  ><span class="dotc" style="background: var(--rd-gold)"></span
+                  >Interviewing</span
+                ><span class="cnt zero">0</span>
+              </div>
+              <div class="row">
+                <span
+                  ><span
+                    class="dotc"
+                    style="background: var(--sem-success)"
+                  ></span
+                  >Offer</span
+                ><span class="cnt zero">0</span>
+              </div>
+            </div>
+            <div class="empty">
+              One application saved. Track a job from Career to fill this in.
+            </div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <div class="legend">
+      <span
+        ><i style="background: #e7b34a"></i> brand gold
+        (decorative/primary)</span
+      >
+      <span><i style="background: #2e9e6b"></i> semantic success</span>
+      <span><i style="background: #c9740e"></i> semantic caution</span>
+      <span><i style="background: #d6421f"></i> semantic error</span>
+      <span><i style="background: #2d7fa8"></i> semantic info</span>
+    </div>
+    <div class="note">
+      <b>Honest-UI (design-craft rule 9):</b> every number above is captioned
+      with its real source — Live matches =
+      <b>count_active_jobs_by_role_titles</b> over track-1 titles; Application
+      in motion = <b>applications</b> (not rejected); CV made =
+      <b>application_cvs</b>; Fit refreshed = <b>career_roles.updated_at</b>. No
+      fabricated daily task (the killed Daily Action, IA §3.4.4) — the hero is
+      the one genuine next move derived from real state. Fit % bars use the
+      <b>semantic red→caution→green</b> ramp; brand gold is deliberately absent
+      from that scale so "good fit" never reads as "brand". Track badges are
+      neutral/gold, not green (a track is not a grade).
+    </div>
+  </body>
+</html>
