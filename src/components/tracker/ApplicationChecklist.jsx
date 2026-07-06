@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import { Check, ArrowRight, ExternalLink, Lock } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/api/supabaseClient";
@@ -106,6 +107,7 @@ export default function ApplicationChecklist({
   onNavigateTab,
 }) {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const completedCount = STEPS.filter((s) => checklist[s.key]).length;
   const isReadyToApply =
@@ -170,6 +172,9 @@ export default function ApplicationChecklist({
             toast.error("Couldn't generate the CV. Please try again.", { id: tId });
             return;
           }
+          // Studio deep-link (QA2): make the new tailored CV visible to the
+          // CV-list cache so /CVAgent?application_id= resolves to it, not master.
+          queryClient.invalidateQueries({ queryKey: ["applicationCvs"] });
           toast.success("Your tailored CV is ready.", {
             id: tId,
             duration: 15000,

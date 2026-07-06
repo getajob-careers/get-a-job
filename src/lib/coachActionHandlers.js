@@ -668,7 +668,12 @@ export async function generateTailoredCV({ queryClient, proposal, messageId }) {
         .eq("id", messageId);
     }
 
-    if (queryClient) queryClient.invalidateQueries({ queryKey: ["applications"] });
+    if (queryClient) {
+      queryClient.invalidateQueries({ queryKey: ["applications"] });
+      // Studio deep-link (QA2): the just-generated tailored CV must appear in the
+      // CV-list cache so /CVAgent?application_id= resolves to it, not the master.
+      queryClient.invalidateQueries({ queryKey: ["applicationCvs"] });
+    }
 
     return { ok: true, result };
   } catch (err) {
