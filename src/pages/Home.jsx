@@ -209,20 +209,12 @@ export default function Home() {
     enabled: !!user?.id,
   });
 
-  // Daily action — lazy-fetches via the edge function (UPSERTs today's
-  // row idempotent per (user_id, for_date)). Preserved: staleTime 30m,
-  // retry: false.
-  const { data: dailyAction } = useQuery({
-    queryKey: ["daily_action_home", user?.id, new Date().toDateString()],
-    queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke("generate-daily-action", { body: {} });
-      if (error) return null;
-      return data?.daily_action || null;
-    },
-    enabled: !!user?.id,
-    staleTime: 30 * 60 * 1000,
-    retry: false,
-  });
+  // Daily-action generation retired (Arc 0 PR#2): the nightly cron is off
+  // and the on-demand invoke is gone. 0 completions across 50 users / 723
+  // pending rows were pure paid noise (deep-qa-3). The hero below degrades
+  // to an honest next-action pointer; a redesigned "resume where you left
+  // off" hero is queued (docs/design/ia-interaction-spec.md §3.4.4).
+  const dailyAction = null;
 
   // Uncapped count of active IL jobs trigram-matching the user's Track-1
   // role titles. Inline-titles fetch so this fires in parallel with
@@ -474,8 +466,8 @@ export default function Home() {
   })();
   const focusDesc = (() => {
     if (dailyAction?.rationale) return dailyAction.rationale;
-    if (roles.length === 0) return "Your daily focus generates from your roadmap. Start there.";
-    return "Your daily focus will appear here once it's ready.";
+    if (roles.length === 0) return "Start with your roadmap — it maps out your next moves.";
+    return "Open your roadmap to line up your next move.";
   })();
   const focusDestination = (() => {
     // Pipeline-anchored entry points retarget to /Career?pipeline=open
@@ -721,7 +713,7 @@ export default function Home() {
         >
           <div className="flex-1 min-w-0">
             <p className={`font-display font-semibold text-[11px] uppercase tracking-[0.04em] ${heroDone ? "text-rd-teal-dark" : "text-rd-coral-dark"}`}>
-              {heroDone ? "done, nice work" : "today's focus · picked by your agent"}
+              {heroDone ? "done, nice work" : "today's focus"}
             </p>
             <p className={`font-display font-bold text-[18px] sm:text-[20px] leading-[1.2] mt-1.5 ${heroDone ? "line-through text-rd-teal-dark" : "text-rd-text"}`}>
               {focusCta}
