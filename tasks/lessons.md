@@ -248,8 +248,25 @@ Rule for next time: Future shared-infrastructure investigations should require i
 ---
 
 ---
+
 2026-06-24 — "Can't query the DB" was actually "didn't check .mcp.json" — the Supabase access path was configured all along
 Trigger: shipping the company-logos feature, I told the user I "couldn't query the real jobs/companies tables" to measure the logo match rate — they pushed back ("you should be connected to supabase though???"). The repo had a Supabase MCP server + PAT configured in .mcp.json the whole time, and lessons.md (2026-05-05) already documented the management-API-with-PAT fallback.
 What I did wrong: when the supabase MCP tools didn't load this session, I jumped straight to "no DB access" + only tried the RLS-blocked anon key from .env.local, without checking .mcp.json (where the project's Supabase token lives) or recalling the existing lesson about the management API fallback. Two strikes: missed the obvious config file, and failed to apply a lesson already in this very file.
 Rule for next time: before claiming no DB/service access, ALWAYS check .mcp.json (and .claude/settings*.json) for configured servers + tokens. If the MCP tools aren't loaded but a token is present, the access path exists — surface it to the user and ask, don't declare a dead end. The anon key in .env.local is RLS-gated (authenticated-only on jobs + companies) and returns [] silently; it is NOT a way to read protected tables. Note: the .mcp.json sbp_ token is scoped to mcp.supabase.com, NOT the api.supabase.com management API (the latter returns Unauthorized) — so the clean path is the loaded MCP execute_sql tool, not raw curl.
+---
+
+---
+
+2026-07-06 — Edge deploys bundle from the LOCAL working directory, not GitHub main; a version bump is not confirmation
+Trigger: after #497 (track-drift fix) merged to main, `supabase functions deploy generate-career-analysis` bumped the version 107→108 but shipped STALE code — the local checkout was 5 commits behind main, so the deploy bundled the pre-fix file. The live artifact still had the hardcoded `goalAlignment >= 0.70` relaxed branch; my added mirror keys and the "Arc 0 PR#3" comment were absent.
+What I did wrong: read the version bump as "deploy confirmed." A version increments on every deploy regardless of WHICH code it bundled. `supabase functions deploy <slug>` reads `supabase/functions/<slug>/index.ts` from the local working tree — merging the fix to GitHub main does nothing for a deploy run from a behind checkout.
+Rule for next time: before ANY edge-function deploy, `git checkout main && git pull`, then `grep` the LOCAL file for a fingerprint of the shipped change (a new constant name, a comment tag). AFTER deploy, fetch the live artifact (`get_edge_function`) and grep it for that same fingerprint AND for the ABSENCE of the old pattern. A version bump proves a deploy happened, not that it shipped the intended code. Deploy-side sibling of the "harness must mirror production" contract lessons — verify the deployed bytes, not a proxy.
+---
+
+---
+
+2026-07-06 — `grep -o PATTERN | head -1 && echo "present"` false-confirms on ZERO matches
+Trigger: verifying the deployed artifact above, I ran `grep -o "track_1_min_alignment_relaxed" "$f" | head -1 && echo "✓ present"` — it printed "✓ present" even though the key had 0 occurrences (stale artifact). I nearly reported the fix as live off that false positive.
+What I did wrong: relied on the exit code of a pipe whose LAST stage was `head`. In a pipeline `$?` is the last command's status; `head` exits 0 on empty input, so `&& echo` fires whether or not grep matched. The presence check silently inverted.
+Rule for next time: for occurrence checks use `grep -o PATTERN file | wc -l` (a real count) or `grep -q PATTERN file && echo yes || echo no` (grep's own exit code). Never gate a "found it" echo on a pipeline ending in `head`/`tail`/`sort` — those swallow grep's non-match exit. When a check confirms something surprising (a stale deploy "has" the fix), distrust the check before trusting the result.
 ---
