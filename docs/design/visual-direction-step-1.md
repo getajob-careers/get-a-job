@@ -14,11 +14,20 @@ artifacts:
 > **What this is.** The IA spec settled _structure_ (the AFTER surfaces: Today · Career · CV ·
 > Profile + an omnipresent coach dock). Step 1 chooses **values only** — the `--rd-*` token set
 > (color, type, spacing, elevation, motion) — and applies them to **one reference surface (Today)**
-> in **two base variants** for judgment. **HELD. No per-page rollout until the direction is signed.**
+> for judgment. **HELD. No per-page rollout until the direction is signed.**
 >
 > Deliverables: this doc · the token file [`rd-tokens-step1.css`](./tokens/rd-tokens-step1.css) ·
-> the Today render [`visual-direction-step-1-today.html`](./visual-direction-step-1-today.html)
-> (open it — both variants render stacked).
+> the Today render [`visual-direction-step-1-today.html`](./visual-direction-step-1-today.html).
+
+> **⚠️ ITERATION 2 (2026-07-06) — navy CHOSEN; fuller palette.** Iter-1 read "black-and-white"
+> (dark chrome + cream + gold only at CTAs). **Black is dropped.** This iteration adds: **(1)** a warm
+> **mustard-gray** neutral ramp (desaturated ochre/khaki) for borders, dividers, captions, secondary
+> text/surfaces — "blue with a mustard gray"; **(2)** **surface tiers** so navy reads as a color with
+> depth — base → chrome → lighter-navy panels, with **cream reserved for the one hero card** and stat
+> cards on their own tinted surface; **(3)** **gold beyond CTAs** — KPI numerals, section-label ticks,
+> brand dots, nav-active, a faint header wash (decorative gold is allowed; it's the brand hue).
+> Red/green stay semantic-only. The Today render now shows **two intensities to pick — subtle vs
+> saturated** (navy only). §2 below is updated accordingly; §3 (namespaces) and the rest hold.
 
 ---
 
@@ -38,22 +47,33 @@ consequences, handled deliberately in §3:
   Its hue moves into `--sem-error`; v1 teal (a green) moves into `--sem-success`; the v1 `--rd-golden`
   becomes the brand primary.
 
-## 2. Two base variants (compare in the Today render)
+## 2. Navy base + surface tiers, two intensities to pick
 
-Both variants share the **same cream cards, the same gold ramp, and every semantic token** — only
-the **dark chrome + neutral ramp** differ. So this is a base swap, not two designs; whichever wins,
-everything above it is identical.
+Base is **navy** (chosen). The page is not one flat dark — it's **tiers** so navy reads as a color
+with depth:
 
-|                   | **Variant A — deep dark navy** _(recommended; Eli leans this)_                                                                                                                                                  | **Variant B — sharper near-black**                                                                           |
-| ----------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| base              | `#0E1526`                                                                                                                                                                                                       | `#0B0B0D`                                                                                                    |
-| chrome / dock     | `#141D33` / `#1B2748`                                                                                                                                                                                           | `#141416` / `#1C1C20`                                                                                        |
-| neutral ramp      | navy-tinted (cooler greys)                                                                                                                                                                                      | pure neutral grey                                                                                            |
-| why it's the lean | gold reads **warmer and richer** on navy; **elevation survives** (a navy-tinted shadow + a lifted surface reads as depth, where pure black flattens); the navy-tinted neutral ramp gives text a subtle cohesion | crisper, higher-contrast, more "developer-tool" neutral; gold pops harder but shadows have less to work with |
+| tier                  | token                      | where                                              |
+| --------------------- | -------------------------- | -------------------------------------------------- |
+| base (deepest)        | `--rd-bg-base` `#0E1526`   | page background                                    |
+| chrome                | `--rd-bg-chrome` `#16203A` | sidebar / top                                      |
+| panel (lighter navy)  | `--rd-panel`               | matched-roles, pipeline, coach dock                |
+| **cream (reserved)**  | `--rd-card` `#F7F3EA`      | **only the hero / next-move card** — the focal pop |
+| stat surface (tinted) | `--rd-stat-surface`        | the 4-stat strip, on its own warm-tinted tier      |
 
-**Recommendation: navy (Variant A).** It carries the gold better and keeps the elevation language
-(cards floating over chrome) legible — which matters because the whole layout leans on cream cards
-casting onto the dark frame. Black is kept as a real, one-token-swap fallback.
+The **warm mustard-gray ramp** (`--rd-text-2/3`, `--rd-divider`, `--rd-mustard`) replaces cool greys
+for secondary text, captions, and dividers. **Gold** carries KPI numerals, the section-label ticks,
+brand dots, nav-active, and the CTA. Red/green remain semantic-only (§3).
+
+**Two intensities — Eli + Yishai pick one (both navy, everything structural identical):**
+
+|                    | **SUBTLE** (default)                | **SATURATED**                                                    |
+| ------------------ | ----------------------------------- | ---------------------------------------------------------------- |
+| stat-card surface  | navy-tinted `#1F2842`               | **mustard-khaki** `#2A2B20` (distinct warm tier)                 |
+| dividers / mustard | restrained (`--rd-divider #4A4736`) | stronger (`#57532F`), warmer mustard accents                     |
+| decorative gold    | KPI numerals + CTA + ticks          | + a faint **header wash** behind the greeting, richer gold tints |
+| feel               | quieter, more editorial             | warmer, more branded / richer                                    |
+
+Both are one `data-rd-intensity` swap apart — pick the level, and the tokens follow.
 
 ## 3. The hard rule — two namespaces, never mixed
 
@@ -101,9 +121,13 @@ is to prove the tokens hold up on a real surface:
 
 - **Rule 1 (tokens only)** — every color/space/radius/shadow in the render is a `var(--rd-*)` /
   `var(--sem-*)`; no one-off hex in the layout (the inline copy of the tokens is the same file).
-- **Rule 8 (a11y)** — cream-card ink on cream meets AA; dark text on chrome meets AA; the focus ring
-  is `--rd-ring` (gold); CTA is 44px tall. _This is also where SW6-contrast from the deep-qa-2 triage
-  gets solved for free — the token set is AA by construction._
+- **Rule 8 (a11y)** — verified the mustard-gray ramp clears AA **on the tinted surfaces** (the iter-2
+  ask): on the navy panels, primary text `--rd-text` ~11:1, secondary `--rd-text-2` ~6.9:1,
+  tertiary/caption `--rd-text-3` ~4.5:1; gold KPI numerals (large) ~10:1 on both stat-surface tints.
+  Captions on the stat surface use the lighter secondary tone so they clear AA on the mustard-khaki
+  (saturated) surface too. Cream-card ink on cream meets AA; focus ring is `--rd-ring` (gold); CTA is
+  44px. _This is also where SW6-contrast from the deep-qa-2 triage gets solved for free — the token
+  set is AA by construction._
 - **Rule 9 (honest UI)** — **every stat is captioned with its real source** (Live matches =
   `count_active_jobs_by_role_titles`; Application-in-motion = `applications`; CV made =
   `application_cvs`; Fit refreshed = `career_roles.updated_at`). The hero is the **one genuine next
@@ -133,4 +157,4 @@ direction is signed.**
 ---
 
 _Arc 2 Step 1 deliverable. HELD for Eli's review. Nothing here is a decision — it's a proposal to
-redline, and a base-variant choice (navy vs black) to make._
+redline, and an intensity choice (subtle vs saturated) to make._

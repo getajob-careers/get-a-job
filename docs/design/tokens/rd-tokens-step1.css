@@ -1,64 +1,75 @@
 /* ============================================================================
    Get A Job — Arc 2 Step 1 visual-direction tokens (PROPOSAL, HELD)
+   ITERATION 2 (Eli + Yishai): NAVY chosen. Black variant dropped.
    ----------------------------------------------------------------------------
-   Direction: gold/amber brand on a DARK base; cream/off-white content cards
-   against dark chrome. Two base variants to compare (Eli leans NAVY):
-       [data-rd-base="navy"]   deep dark navy   (default here)
-       [data-rd-base="black"]  sharper near-black
+   Fix from iter-1 feedback ("reads black-and-white"): a fuller palette —
+     1) a WARM "mustard-gray" neutral ramp (desaturated ochre/khaki) replaces
+        pure grays for borders, dividers, captions, secondary text/surfaces
+        ("blue with a mustard gray");
+     2) SURFACE TIERS so the navy reads as a color with depth, not a void:
+        base navy → chrome → lighter-navy panels → CREAM reserved for the hero;
+        stat cards on their own tinted surface;
+     3) brand GOLD breathes beyond CTAs — KPI numerals, label accents, icons,
+        header washes (decorative gold is allowed; it's the brand hue).
 
-   TWO NAMESPACES, never mixed (HARD RULE):
-     --rd-*   BRAND + NEUTRAL + STRUCTURE  = gold + neutrals only. Decorative.
-     --sem-*  SEMANTIC                      = red / green / caution / info ONLY.
-              Reserved for meaning: status, success/error, gap severity, fit
-              thresholds. NEVER used decoratively. Shared across both bases.
+   TWO INTENSITY LEVELS to pick from (same structure, different saturation):
+       [data-rd-intensity="subtle"]     restrained tints + gold (default)
+       [data-rd-intensity="saturated"]  warmer mustard surfaces + more gold
 
-   Supersedes the v1 cream/coral set. NOTE the migration: v1 brand = coral
-   (#D6421F, a red) — coral LEAVES the brand role and its hue moves into
-   --sem-error; v1 teal (green) moves into --sem-success; v1 golden becomes the
-   brand primary. This file is a proposal; values are Eli's to tune.
+   TWO NAMESPACES, never mixed (HARD RULE, unchanged):
+     --rd-*   BRAND + NEUTRAL + STRUCTURE = gold + warm neutrals. Decorative.
+     --sem-*  SEMANTIC = red / green / caution / info ONLY. Meaning, never decor.
+
+   AA note (design-craft rule 8): text pairs below were checked to clear WCAG AA
+   on the tinted surfaces — see docs/design/visual-direction-step-1.md §5.
    ============================================================================ */
 
 /* ---------------------------------------------------------------------------
-   BASE VARIANT A — NAVY (default / recommended)
-   Gold pairs warmer on navy; elevation + shadow survive on a tinted-dark base;
-   the neutral ramp is navy-tinted (cooler) rather than pure grey.
+   INTENSITY A — SUBTLE (default)
    --------------------------------------------------------------------------- */
 :root,
-[data-rd-base="navy"] {
-  /* dark chrome surfaces (app frame, sidebar, elevated panels) */
-  --rd-bg-base: #0e1526; /* deepest — app background */
-  --rd-bg-chrome: #141d33; /* sidebar / top chrome */
-  --rd-bg-elevated: #1b2748; /* raised dark panels, popovers, coach dock */
-  --rd-bg-inset: #0a1020; /* wells / inputs on dark */
+[data-rd-intensity="subtle"] {
+  /* NAVY surface tiers (the base reads as blue with depth) */
+  --rd-bg-base: #0e1526; /* deepest — page */
+  --rd-bg-chrome: #16203a; /* sidebar / top chrome (lifted) */
+  --rd-panel: #1e2a4a; /* lighter navy — matched-roles, pipeline, coach dock */
+  --rd-panel-raise: #27365c; /* raised / hover navy */
+  --rd-inset: #0a1020; /* wells / inputs */
 
-  /* CREAM content cards on the dark chrome (where the user's content lives) */
-  --rd-card: #f7f3ea; /* primary content card */
-  --rd-card-2: #efe8da; /* secondary / nested card */
-  --rd-card-ink: #1a1e28; /* text on cream card (near-black, warm) */
-  --rd-card-ink-2: #4b505e; /* secondary text on cream */
-  --rd-card-ink-3: #6b7180; /* tertiary text on cream */
-  --rd-card-border: #e3dbcb; /* hairline inside/around cream cards */
+  /* CREAM — reserved for the hero / next-move card only */
+  --rd-card: #f7f3ea;
+  --rd-card-2: #efe8da;
+  --rd-card-ink: #1a1e28;
+  --rd-card-ink-2: #4b505e;
+  --rd-card-ink-3: #6b7180;
+  --rd-card-border: #e3dbcb;
 
-  /* text on the DARK chrome */
-  --rd-text: #eaeef7; /* primary on dark (navy-tinted white) */
-  --rd-text-2: #aeb7cc; /* secondary on dark */
-  --rd-text-3: #808aa3; /* tertiary / muted on dark */
-  --rd-eyebrow: #c9a24b; /* gold-leaning eyebrow/label on dark */
+  /* STAT-card surface tier — subtle: navy-tinted (warm-leaning) */
+  --rd-stat-surface: #1f2842;
+  --rd-stat-border: #343d53;
 
-  /* borders / dividers on dark */
-  --rd-border: #263250; /* hairline on dark */
-  --rd-border-2: #33426a; /* stronger / hover border on dark */
-  --rd-ring: #e7b34a; /* focus ring (brand gold) — see rule 8 */
+  /* WARM "mustard-gray" neutral ramp — text on dark + warm dividers */
+  --rd-text: #ece7d8; /* primary on dark — warm near-white */
+  --rd-text-2: #c3b99b; /* secondary — mustard-gray (AA on navy) */
+  --rd-text-3: #9e9578; /* tertiary / caption — mustard-gray (AA on navy) */
+  --rd-eyebrow: #d2a94f; /* gold-leaning eyebrow/label accent */
+  --rd-border: #333b4e; /* structural hairline on navy (cool) */
+  --rd-divider: #4a4736; /* WARM mustard-gray divider */
+  --rd-mustard: #b99a5b; /* mustard accent — ticks, small marks, icon tint */
+  --rd-mustard-soft: #8e7c4e;
+  --rd-mustard-wash: rgba(185, 154, 91, 0.06); /* faint warm surface wash */
+  --rd-ring: #e7b34a; /* focus ring (brand gold) */
 
-  /* BRAND — GOLD (the only brand hue; used for primary CTA, active nav, marks) */
-  --rd-gold: #e7b34a; /* brand primary */
-  --rd-gold-bright: #f3c86b; /* hover / bright */
-  --rd-gold-deep: #b9862a; /* pressed, and gold text ON cream (AA) */
-  --rd-gold-ink: #2a1e06; /* text ON a gold fill (near-black) */
-  --rd-gold-tint: rgba(231, 179, 74, 0.14); /* subtle gold wash on dark */
-  --rd-gold-glow: rgba(231, 179, 74, 0.28); /* CTA glow on dark */
+  /* BRAND GOLD ramp (primary + decorative: KPI numerals, accents, CTA) */
+  --rd-gold: #e7b34a;
+  --rd-gold-bright: #f3c86b;
+  --rd-gold-deep: #b9862a; /* gold text ON cream (AA) + pressed */
+  --rd-gold-ink: #2a1e06; /* text ON a gold fill */
+  --rd-gold-tint: rgba(231, 179, 74, 0.12);
+  --rd-gold-glow: rgba(231, 179, 74, 0.26);
+  --rd-header-wash: transparent; /* subtle: no header wash */
 
-  /* elevation — a lifted color + soft shadow + faint top highlight (survives dark) */
+  /* elevation */
   --rd-elev-1:
     0 1px 0 rgba(255, 255, 255, 0.04) inset, 0 2px 8px rgba(0, 0, 0, 0.38);
   --rd-elev-2:
@@ -68,85 +79,57 @@
 }
 
 /* ---------------------------------------------------------------------------
-   BASE VARIANT B — BLACK (sharper, neutral-grey ramp)
-   Only the dark-chrome + neutral + elevation values change; the CREAM cards,
-   the GOLD brand ramp, and every --sem-* token are identical to navy, so the
-   two variants are truly a base swap, not two designs.
+   INTENSITY B — SATURATED (warmer mustard surfaces, more decorative gold)
+   Only tints / accents shift; tiers, cream, gold ramp, and --sem-* are shared.
    --------------------------------------------------------------------------- */
-[data-rd-base="black"] {
-  --rd-bg-base: #0b0b0d;
-  --rd-bg-chrome: #141416;
-  --rd-bg-elevated: #1c1c20;
-  --rd-bg-inset: #070708;
+[data-rd-intensity="saturated"] {
+  --rd-panel: #21315a; /* a bluer, slightly lighter navy panel */
+  --rd-panel-raise: #2c3e6a;
 
-  /* cream cards unchanged */
-  --rd-card: #f7f3ea;
-  --rd-card-2: #efe8da;
-  --rd-card-ink: #1a1e28;
-  --rd-card-ink-2: #4b505e;
-  --rd-card-ink-3: #6b7180;
-  --rd-card-border: #e3dbcb;
+  --rd-stat-surface: #2a2b20; /* MUSTARD-tinted khaki (distinct warm tier) */
+  --rd-stat-border: #49472f;
 
-  /* text on dark — neutral grey (not navy-tinted) */
-  --rd-text: #ececee;
-  --rd-text-2: #a8a8ae;
-  --rd-text-3: #78787f;
-  --rd-eyebrow: #c9a24b;
+  --rd-text-2: #cfc4a2;
+  --rd-text-3: #aba07c;
+  --rd-border: #3a4256;
+  --rd-divider: #57532f; /* stronger warm divider */
+  --rd-mustard: #cba85e;
+  --rd-mustard-soft: #a08a50;
+  --rd-mustard-wash: rgba(201, 168, 94, 0.1);
 
-  --rd-border: #2a2a2e;
-  --rd-border-2: #3b3b42;
-  --rd-ring: #e7b34a;
-
-  /* brand gold unchanged */
-  --rd-gold: #e7b34a;
-  --rd-gold-bright: #f3c86b;
-  --rd-gold-deep: #b9862a;
-  --rd-gold-ink: #2a1e06;
-  --rd-gold-tint: rgba(231, 179, 74, 0.14);
-  --rd-gold-glow: rgba(231, 179, 74, 0.3);
-
-  --rd-elev-1:
-    0 1px 0 rgba(255, 255, 255, 0.05) inset, 0 2px 8px rgba(0, 0, 0, 0.5);
-  --rd-elev-2:
-    0 1px 0 rgba(255, 255, 255, 0.06) inset, 0 10px 28px rgba(0, 0, 0, 0.6);
-  --rd-elev-card: 0 8px 24px rgba(0, 0, 0, 0.6);
-  --rd-elev-cta: 0 0 0 1px var(--rd-gold), 0 6px 18px var(--rd-gold-glow);
+  --rd-gold-tint: rgba(231, 179, 74, 0.18);
+  --rd-gold-glow: rgba(231, 179, 74, 0.34);
+  --rd-header-wash: linear-gradient(
+    90deg,
+    rgba(231, 179, 74, 0.12),
+    rgba(231, 179, 74, 0) 62%
+  );
 }
 
 /* ---------------------------------------------------------------------------
-   SEMANTIC namespace — SHARED, meaning-only. Never decorative, never brand.
-   Two flavors of each: a fill/ink for on-cream chips, and an -on-dark for the
-   dark chrome. Fit % / gap severity use the red→caution→green ramp; brand gold
-   is deliberately ABSENT from this scale so "good" never reads as "brand".
-   Caution is an ORANGE amber (#EE8A2E), hue-separated from the yellow brand
-   gold (#E7B34A) so a warning never gets mistaken for a brand accent.
+   SEMANTIC namespace — SHARED, meaning-only. UNCHANGED from iter-1.
+   Fit % / gap severity = red→caution→green; brand gold is ABSENT from it so
+   "good fit" never reads as brand. Caution is ORANGE, hue-split from gold.
    --------------------------------------------------------------------------- */
 :root {
-  --sem-success: #2e9e6b; /* on cream */
-  --sem-success-on-dark: #4fd39c; /* on dark chrome */
+  --sem-success: #2e9e6b;
+  --sem-success-on-dark: #4fd39c;
   --sem-success-tint: rgba(46, 158, 107, 0.14);
-
-  --sem-error: #d6421f; /* on cream (the old coral hue, now semantic) */
-  --sem-error-on-dark: #ff6b4e; /* on dark chrome */
+  --sem-error: #d6421f; /* the old coral hue, now semantic */
+  --sem-error-on-dark: #ff6b4e;
   --sem-error-tint: rgba(214, 66, 31, 0.14);
-
-  --sem-caution: #c9740e; /* on cream — orange, NOT brand gold */
-  --sem-caution-on-dark: #ee8a2e; /* on dark chrome */
+  --sem-caution: #c9740e;
+  --sem-caution-on-dark: #ee8a2e;
   --sem-caution-tint: rgba(238, 138, 46, 0.14);
-
-  --sem-info: #2d7fa8; /* on cream */
-  --sem-info-on-dark: #5ab0d6; /* on dark chrome */
-  --sem-info-tint: rgba(45, 127, 168, 0.14);
-
-  /* Fit / gap-severity ramp (0→100). Consumers interpolate or bucket. */
+  --sem-info: #2d7fa8;
+  --sem-info-on-dark: #5ab0d6;
   --sem-fit-low: var(--sem-error);
   --sem-fit-mid: var(--sem-caution);
   --sem-fit-high: var(--sem-success);
 }
 
 /* ---------------------------------------------------------------------------
-   TYPE SCALE — base-agnostic. Display = Rokkitt slab serif; body = system.
-   Every step ships its line-height AND tracking (design-craft rule 2). ~1.2 ratio.
+   TYPE / SPACING / RADIUS / MOTION — unchanged from iter-1 (base-agnostic).
    --------------------------------------------------------------------------- */
 :root {
   --rd-font-display: "Rokkitt", Georgia, serif;
@@ -154,26 +137,18 @@
     -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
     sans-serif;
 
-  /* display (Rokkitt) — size / line-height / tracking */
   --rd-display: 700 28px/1.15 var(--rd-font-display);
   --rd-display-tracking: -0.01em;
   --rd-h1: 700 22px/1.2 var(--rd-font-display);
   --rd-h1-tracking: -0.005em;
   --rd-h2: 600 18px/1.25 var(--rd-font-display);
   --rd-h2-tracking: 0;
-
-  /* body (system) */
   --rd-body-lg: 400 15px/1.5 var(--rd-font-body);
   --rd-body: 400 13.5px/1.55 var(--rd-font-body);
   --rd-body-sm: 400 12px/1.5 var(--rd-font-body);
   --rd-eyebrow-type: 700 11px/1.3 var(--rd-font-body);
-  --rd-eyebrow-tracking: 0.08em; /* UPPERCASE */
-}
+  --rd-eyebrow-tracking: 0.08em;
 
-/* ---------------------------------------------------------------------------
-   SPACING (4px base), RADIUS (folds the drifted 10/14/18 into a scale), MOTION.
-   --------------------------------------------------------------------------- */
-:root {
   --rd-space-1: 4px;
   --rd-space-2: 8px;
   --rd-space-3: 12px;
@@ -191,7 +166,6 @@
   --rd-radius-xl: 20px;
   --rd-radius-pill: 999px;
 
-  --rd-motion-fast: 150ms ease-out; /* hovers, small state changes */
-  --rd-motion: 200ms ease-out; /* panels, larger transitions */
-  /* No motion beyond this set on the core loop (design-craft rule 6). */
+  --rd-motion-fast: 150ms ease-out;
+  --rd-motion: 200ms ease-out;
 }
