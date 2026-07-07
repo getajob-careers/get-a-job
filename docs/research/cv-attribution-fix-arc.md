@@ -54,6 +54,11 @@ attribution-checking, not just index-matched).
 **Posture:** behind a flag (`cv_antifab_attribution`), **bake-off required** — tighter grounding may
 flag legitimate cross-references (e.g. "partnered with <other employer>"); measure false-flag rate
 before default-ON.
+**⚠️ Caveat — revert-to-master is only trustworthy when the master is itself verified clean.** A2's
+fallback reverts a flagged bullet to its master value; but **Eli's own master was corrupted** (the swap
+lived in the master too), so reverting against a dirty master would have _re-injected_ the swap. Sequencing
+dependency: A2's revert-to-master must be gated on a clean master (A1's attribution check at generation +
+A3/A4 keeping the master honest) — never treat revert-to-master as a standalone repair.
 **Tests:** cross-experience swap is flagged; a legitimately shared skill token still grounds; idempotent.
 **Deploy:** `generate-tailored-cv` (+ `edit-cv` if the gate is shared). **Overlap:** `cv-antifab.ts` +
 `index.ts` (haystack build) — rebase on A1.
@@ -95,6 +100,18 @@ promote.
   **Tests:** a Profile edit now reaches the CV; no split-brain divergence; migration is reversible.
   **Deploy:** frontend + a migration (MCP `apply_migration`, append-only). **Overlap:** `Profile.jsx`,
   `cv-master.ts` — parallel to generation; **coordinate with A3** (both touch the write-back semantics).
+
+**⚠️ Also required — a from-nothing master mint (found live 2026-07-07).** After Eli's corrupted master
+`application_cvs` row was deleted, **no trigger re-minted it** — there are zero `is_master` rows for
+`4b243f3a`. The three mint paths are all gated: the Studio empty-state "Build my master CV" button renders
+**only when `cvOptions.length === 0`** (`CVStudioLive.jsx:688`), so it's **suppressed the moment any
+tailored CV exists**; gtc mints only in `isMasterMode` (`gtc:2779`), so a _tailored_ gen never mints;
+`refine-cv` mints on every tailor (insert-first, `refine-cv:723-751`) but only when the user runs a Studio
+"Tailor". → the **"has-tailored-CVs-but-no-master" state has no passive mint.** A4 must add a **robust
+from-nothing mint** — e.g. Studio mints the master on load when `is_master` is absent, **regardless of
+tailored-CV presence** (not just in the empty-state), idempotent against the partial-unique index.
+**Interim code-native re-mint for Eli today:** run a Studio "Tailor" on any application (fires `refine-cv`
+→ mints from the now-corrected profile).
 
 ## A5 — P1 · Close the #505 wrong-role residual gaps
 

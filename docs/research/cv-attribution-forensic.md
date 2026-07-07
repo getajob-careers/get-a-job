@@ -1,9 +1,9 @@
 ---
 title: CV bullet-attribution forensic — the profile↔CV corruption chain
-status: HELD FOR ELI'S REVIEW (evidence CONFIRMED live 2026-07-07)
+status: HELD FOR ELI'S REVIEW (evidence CONFIRMED + repair EXECUTED 2026-07-07)
 owner: eli
 last_reviewed: 2026-07-07
-scope: forensic + repair runbook — read-only findings; the repair SQL is DRAFT, not executed.
+scope: forensic (read-only findings) + repair runbook — repair EXECUTED 2026-07-07 (see §runbook); master re-mint gap open (→ A4).
 code_paths:
   - supabase/functions/generate-tailored-cv/reconcile.ts
   - supabase/functions/generate-tailored-cv/index.ts
@@ -126,10 +126,23 @@ clean.
   "bullet **edits**" but the write-back only writes `bullets` — a **no-op** for header/summary/skills
   edits.
 
-## Evidence queries still to run (hand to the MCP-connected Claude; Eli pastes results)
+## Evidence queries — RESULTS (run 2026-07-07 via the MCP-connected session)
 
-> My Supabase MCP is on the OAuth-scope error; these are for the working session. Replace `:eli` with
-> user `4b243f3a`'s full UUID. All read-only.
+> Ran read-only against live data. **Results:**
+>
+> - **A (wrong-role): NO live instances.** Across ~30 of Eli's apps, `summary`/`about_me` are consistent
+>   with `role_title`; `fit_analysis.target_role` is **null everywhere**. The #505-gap risk is real in
+>   code but **has not fired in his data** → A5 is prevention, not remediation.
+> - **B (duplicates): anatomy confirmed exactly as predicted.** Retry-orphans — **KPMG 2.25s / Sett
+>   2.94s / Tipalti 2.08s** apart (null-orphan + ready twin, all Jul 7 `chat_agent`); cross-surface race
+>   — **Wonderful pair `654ca9d1`/`4e5ad2bf` 109ms apart** (Jul 3). Both mechanisms are live.
+> - **C (population): contamination is Eli-ONLY, on BOTH channels.** 36 real users have `experiences`;
+>   **ZERO** have any `bullets[]` (only `4b243f3a` + `aa8ee22f` carry `bullets` in the entire DB); a scan
+>   of 26 real users / 41 CV rows / 329 generated-CV bullets found **zero** cross-employer flags.
+>   `promoteBulletsToProfile` **has never fired for a real user.** → **A3/A4 are prevention, not
+>   remediation — no population repair needed.**
+>
+> The queries below are retained for reference. Replace `:eli` with `4b243f3a`'s full UUID.
 
 **A. Wrong-role instances (Eli) — pull-and-eyeball (label vs authored role):**
 
@@ -191,7 +204,28 @@ where exists (
 -- treat the count as an UPPER BOUND and eyeball the flagged rows (drop the aggregates for the row list).
 ```
 
-## Repair runbook — Eli's profile (DRAFT — do NOT execute; run after review)
+## Repair runbook — Eli's profile — ✅ EXECUTED 2026-07-07 (evening)
+
+> **DONE (via the MCP-connected session, verified live):**
+>
+> - **Step 1 swap-back committed:** `23bab260` (Get a Job / Creator) now holds the **5 platform bullets**;
+>   `5aed1c1c` (Guardio / CSS-VIP) holds the **7 VIP bullets**. `responsibilities` untouched. ✅
+> - **Step 2 (Option A):** the swapped master `application_cvs` row `f6b0d4bd` (`is_master=true`) was
+>   **deleted**. ✅
+> - **Verification:** a fresh tailored CV `f9329ceb` (Wonderful, app `654ca9d1`, 20:21 UTC) is **clean** —
+>   attribution correct; generation reads the corrected profile. ✅
+>
+> ⚠️ **NEW FINDING — the master was NOT auto-re-minted after the Step 2 delete.** As of 20:25 UTC there are
+> **zero `is_master` rows** for `4b243f3a`. Neither documented trigger fired: the Studio empty-state build
+> is **suppressed because tailored CVs exist** (`CVStudioLive.jsx:688` renders the "Build my master CV"
+> button **only when `cvOptions.length === 0`**), and the gtc master-write is **gated on `isMasterMode`**
+> (`gtc:2779`) so a _tailored_ gen never mints. **The reliable code-native re-mint is to run a Studio
+> "Tailor" on any application** (`runTailor` → `refine-cv`, whose fire-and-forget insert-first at
+> `refine-cv:723-751` mints the master from the current profile). There is **no passive from-nothing mint
+> for the "has-tailored-CVs-but-no-master" state** — scoped as a requirement into **A4** of
+> `cv-attribution-fix-arc.md`.
+
+### Original DRAFT runbook (retained for the record — already executed above)
 
 The corruption lives in `experiences.bullets` (confirmed) and **very likely also in the master
 `application_cvs.cv_data`** (the popup wrote FROM that master, so the master's
@@ -201,7 +235,9 @@ The corruption lives in `experiences.bullets` (confirmed) and **very likely also
 
 ```sql
 select id, title, company, array_length(bullets,1) as n_bullets, bullets
-from experiences where user_id = :eli and title in ('Get a Job','Guardio');   -- note the two ids
+from experiences where user_id = :eli and company in ('Get a Job','Guardio');
+-- filter by COMPANY, not title (titles are 'Creator' / 'Customer Success Specialist - VIP Team').
+-- Confirmed ids: 23bab260 = Get a Job / Creator; 5aed1c1c = Guardio / CSS-VIP.
 
 select id, is_master, updated_at,
        jsonb_path_query_array(cv_data, '$.professional_experiences[*].company') as companies,
