@@ -53,6 +53,50 @@ export type Database = {
         }
         Relationships: []
       }
+      application_cvs: {
+        Row: {
+          application_id: string | null
+          created_at: string
+          cv_data: Json
+          cv_url: string | null
+          id: string
+          is_master: boolean
+          source_jd: string | null
+          user_id: string
+          version: number
+        }
+        Insert: {
+          application_id?: string | null
+          created_at?: string
+          cv_data: Json
+          cv_url?: string | null
+          id?: string
+          is_master?: boolean
+          source_jd?: string | null
+          user_id: string
+          version?: number
+        }
+        Update: {
+          application_id?: string | null
+          created_at?: string
+          cv_data?: Json
+          cv_url?: string | null
+          id?: string
+          is_master?: boolean
+          source_jd?: string | null
+          user_id?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "application_cvs_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       applications: {
         Row: {
           applied_date: string | null
@@ -60,7 +104,6 @@ export type Database = {
           checklist: Json
           company: string
           created_at: string
-          custom_template_id: string | null
           cv_skills_emphasized: string[] | null
           cv_status: string | null
           cv_template_id: string | null
@@ -104,7 +147,6 @@ export type Database = {
           checklist?: Json
           company: string
           created_at?: string
-          custom_template_id?: string | null
           cv_skills_emphasized?: string[] | null
           cv_status?: string | null
           cv_template_id?: string | null
@@ -148,7 +190,6 @@ export type Database = {
           checklist?: Json
           company?: string
           created_at?: string
-          custom_template_id?: string | null
           cv_skills_emphasized?: string[] | null
           cv_status?: string | null
           cv_template_id?: string | null
@@ -186,15 +227,82 @@ export type Database = {
           url?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_custom_template"
-            columns: ["custom_template_id"]
-            isOneToOne: false
-            referencedRelation: "cv_templates"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      bakeoff_results: {
+        Row: {
+          arm: string
+          created_at: string | null
+          cv_json: Json | null
+          dropped_strong: boolean | null
+          fabrication: boolean | null
+          http_status: number | null
+          id: string
+          jd_ref: string | null
+          judge_note: string | null
+          latency_ms: number | null
+          pair_id: string
+          pair_type: string | null
+          phase: string | null
+          profile_user_id: string | null
+          rank: number | null
+          run_id: string
+          score_clarity: number | null
+          score_concreteness: number | null
+          score_relevance: number | null
+          score_retention: number | null
+          score_thin_framing: number | null
+          tokens_out: number | null
+        }
+        Insert: {
+          arm: string
+          created_at?: string | null
+          cv_json?: Json | null
+          dropped_strong?: boolean | null
+          fabrication?: boolean | null
+          http_status?: number | null
+          id?: string
+          jd_ref?: string | null
+          judge_note?: string | null
+          latency_ms?: number | null
+          pair_id: string
+          pair_type?: string | null
+          phase?: string | null
+          profile_user_id?: string | null
+          rank?: number | null
+          run_id: string
+          score_clarity?: number | null
+          score_concreteness?: number | null
+          score_relevance?: number | null
+          score_retention?: number | null
+          score_thin_framing?: number | null
+          tokens_out?: number | null
+        }
+        Update: {
+          arm?: string
+          created_at?: string | null
+          cv_json?: Json | null
+          dropped_strong?: boolean | null
+          fabrication?: boolean | null
+          http_status?: number | null
+          id?: string
+          jd_ref?: string | null
+          judge_note?: string | null
+          latency_ms?: number | null
+          pair_id?: string
+          pair_type?: string | null
+          phase?: string | null
+          profile_user_id?: string | null
+          rank?: number | null
+          run_id?: string
+          score_clarity?: number | null
+          score_concreteness?: number | null
+          score_relevance?: number | null
+          score_retention?: number | null
+          score_thin_framing?: number | null
+          tokens_out?: number | null
+        }
+        Relationships: []
       }
       calendar_events: {
         Row: {
@@ -265,6 +373,7 @@ export type Database = {
           missing_skills: string[] | null
           readiness_score: number | null
           reasoning: string | null
+          skill_coverage_ratio: number | null
           skills_gap: string[] | null
           title: string
           track: string | null
@@ -282,6 +391,7 @@ export type Database = {
           missing_skills?: string[] | null
           readiness_score?: number | null
           reasoning?: string | null
+          skill_coverage_ratio?: number | null
           skills_gap?: string[] | null
           title: string
           track?: string | null
@@ -299,6 +409,7 @@ export type Database = {
           missing_skills?: string[] | null
           readiness_score?: number | null
           reasoning?: string | null
+          skill_coverage_ratio?: number | null
           skills_gap?: string[] | null
           title?: string
           track?: string | null
@@ -310,6 +421,7 @@ export type Database = {
         Row: {
           created_at: string
           date_earned: string | null
+          description: string | null
           id: string
           is_current: boolean | null
           issuer: string | null
@@ -320,6 +432,7 @@ export type Database = {
         Insert: {
           created_at?: string
           date_earned?: string | null
+          description?: string | null
           id?: string
           is_current?: boolean | null
           issuer?: string | null
@@ -330,6 +443,7 @@ export type Database = {
         Update: {
           created_at?: string
           date_earned?: string | null
+          description?: string | null
           id?: string
           is_current?: boolean | null
           issuer?: string | null
@@ -611,45 +725,6 @@ export type Database = {
           },
         ]
       }
-      cv_templates: {
-        Row: {
-          created_at: string
-          extracted_structure: Json | null
-          id: string
-          is_default: boolean | null
-          layout_description: string | null
-          name: string
-          storage_path: string
-          template_type: string
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          extracted_structure?: Json | null
-          id?: string
-          is_default?: boolean | null
-          layout_description?: string | null
-          name?: string
-          storage_path: string
-          template_type?: string
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          extracted_structure?: Json | null
-          id?: string
-          is_default?: boolean | null
-          layout_description?: string | null
-          name?: string
-          storage_path?: string
-          template_type?: string
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       daily_actions: {
         Row: {
           action_type: string
@@ -808,6 +883,7 @@ export type Database = {
       experiences: {
         Row: {
           bullets: string[]
+          commitment: string | null
           company: string
           created_at: string
           cross_functional: boolean
@@ -825,6 +901,7 @@ export type Database = {
         }
         Insert: {
           bullets?: string[]
+          commitment?: string | null
           company: string
           created_at?: string
           cross_functional?: boolean
@@ -842,6 +919,7 @@ export type Database = {
         }
         Update: {
           bullets?: string[]
+          commitment?: string | null
           company?: string
           created_at?: string
           cross_functional?: boolean
@@ -855,6 +933,39 @@ export type Database = {
           start_date?: string | null
           title?: string
           type?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      feedback: {
+        Row: {
+          category: string
+          context: Json | null
+          created_at: string
+          id: string
+          message: string
+          route: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          category: string
+          context?: Json | null
+          created_at?: string
+          id?: string
+          message: string
+          route?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          category?: string
+          context?: Json | null
+          created_at?: string
+          id?: string
+          message?: string
+          route?: string | null
+          user_agent?: string | null
           user_id?: string
         }
         Relationships: []
@@ -1089,66 +1200,6 @@ export type Database = {
         }
         Relationships: []
       }
-      job_suggestions: {
-        Row: {
-          company: string | null
-          created_at: string | null
-          description_snippet: string | null
-          fetched_at: string | null
-          id: string
-          job_url: string | null
-          location: string | null
-          match_reason: string | null
-          match_score: number | null
-          matched_skills: string[] | null
-          missing_skills: string[] | null
-          reed_job_id: number | null
-          salary_max: number | null
-          salary_min: number | null
-          suggestion_type: string
-          title: string
-          user_id: string
-        }
-        Insert: {
-          company?: string | null
-          created_at?: string | null
-          description_snippet?: string | null
-          fetched_at?: string | null
-          id?: string
-          job_url?: string | null
-          location?: string | null
-          match_reason?: string | null
-          match_score?: number | null
-          matched_skills?: string[] | null
-          missing_skills?: string[] | null
-          reed_job_id?: number | null
-          salary_max?: number | null
-          salary_min?: number | null
-          suggestion_type?: string
-          title: string
-          user_id: string
-        }
-        Update: {
-          company?: string | null
-          created_at?: string | null
-          description_snippet?: string | null
-          fetched_at?: string | null
-          id?: string
-          job_url?: string | null
-          location?: string | null
-          match_reason?: string | null
-          match_score?: number | null
-          matched_skills?: string[] | null
-          missing_skills?: string[] | null
-          reed_job_id?: number | null
-          salary_max?: number | null
-          salary_min?: number | null
-          suggestion_type?: string
-          title?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       jobs: {
         Row: {
           application_extras: string[] | null
@@ -1224,6 +1275,7 @@ export type Database = {
           salary_min: number | null
           scale_signals: Json | null
           seniority: string
+          skill_coverage_ratio: number | null
           team_size: number | null
           tech_stack: string[] | null
           title: string
@@ -1307,6 +1359,7 @@ export type Database = {
           salary_min?: number | null
           scale_signals?: Json | null
           seniority: string
+          skill_coverage_ratio?: number | null
           team_size?: number | null
           tech_stack?: string[] | null
           title: string
@@ -1390,6 +1443,7 @@ export type Database = {
           salary_min?: number | null
           scale_signals?: Json | null
           seniority?: string
+          skill_coverage_ratio?: number | null
           team_size?: number | null
           tech_stack?: string[] | null
           title?: string
@@ -1538,6 +1592,7 @@ export type Database = {
           education_level: string | null
           employment_status: string[] | null
           field_of_study: string | null
+          five_year_goal_role_id: string | null
           five_year_role: string | null
           full_name: string | null
           gpa: string | null
@@ -1594,6 +1649,7 @@ export type Database = {
           education_level?: string | null
           employment_status?: string[] | null
           field_of_study?: string | null
+          five_year_goal_role_id?: string | null
           five_year_role?: string | null
           full_name?: string | null
           gpa?: string | null
@@ -1650,6 +1706,7 @@ export type Database = {
           education_level?: string | null
           employment_status?: string[] | null
           field_of_study?: string | null
+          five_year_goal_role_id?: string | null
           five_year_role?: string | null
           full_name?: string | null
           gpa?: string | null
@@ -1751,6 +1808,66 @@ export type Database = {
           function_name?: string
           user_id?: string
           window_start?: string
+        }
+        Relationships: []
+      }
+      refine_rebake_results: {
+        Row: {
+          antifab_refine_count: number | null
+          antifab_scratch_count: number | null
+          created_at: string
+          dropped_strong_bullet: string | null
+          errored: boolean
+          id: string
+          jd_ref: string | null
+          judge_quote: string | null
+          judge_winner: string | null
+          pair_id: string
+          pair_type: string | null
+          profile_user_id: string | null
+          refine_coverage: number | null
+          refine_http_status: number | null
+          run_id: string
+          scratch_coverage: number | null
+          scratch_http_status: number | null
+        }
+        Insert: {
+          antifab_refine_count?: number | null
+          antifab_scratch_count?: number | null
+          created_at?: string
+          dropped_strong_bullet?: string | null
+          errored?: boolean
+          id?: string
+          jd_ref?: string | null
+          judge_quote?: string | null
+          judge_winner?: string | null
+          pair_id: string
+          pair_type?: string | null
+          profile_user_id?: string | null
+          refine_coverage?: number | null
+          refine_http_status?: number | null
+          run_id: string
+          scratch_coverage?: number | null
+          scratch_http_status?: number | null
+        }
+        Update: {
+          antifab_refine_count?: number | null
+          antifab_scratch_count?: number | null
+          created_at?: string
+          dropped_strong_bullet?: string | null
+          errored?: boolean
+          id?: string
+          jd_ref?: string | null
+          judge_quote?: string | null
+          judge_winner?: string | null
+          pair_id?: string
+          pair_type?: string | null
+          profile_user_id?: string | null
+          refine_coverage?: number | null
+          refine_http_status?: number | null
+          run_id?: string
+          scratch_coverage?: number | null
+          scratch_http_status?: number | null
         }
         Relationships: []
       }
@@ -1903,24 +2020,6 @@ export type Database = {
         }
         Relationships: []
       }
-      waitlist_signups: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-        }
-        Relationships: []
-      }
     }
     Views: {
       entity_spine: {
@@ -1939,6 +2038,14 @@ export type Database = {
       }
     }
     Functions: {
+      admin_activation_funnel: {
+        Args: never
+        Returns: {
+          count: number
+          ord: number
+          stage: string
+        }[]
+      }
       admin_chat_messages: {
         Args: { p_limit?: number; p_user_id: string }
         Returns: {
@@ -2031,6 +2138,14 @@ export type Database = {
           user_id: string
         }[]
       }
+      admin_user_counts: {
+        Args: never
+        Returns: {
+          onboarded: number
+          started_onboarding: number
+          visited: number
+        }[]
+      }
       check_rate_limit: {
         Args: {
           p_function_name: string
@@ -2040,7 +2155,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      count_active_jobs_by_role_titles: {
+        Args: {
+          p_max_seniority?: string[]
+          p_role_titles: string[]
+          p_similarity_threshold?: number
+          p_work_types?: string[]
+        }
+        Returns: number
+      }
       is_admin: { Args: never; Returns: boolean }
+      is_internal_user: { Args: { p_user_id: string }; Returns: boolean }
       jd_unmapped_skill_bump: {
         Args: { p_job_id: string; p_phrase: string }
         Returns: undefined
@@ -2144,6 +2269,7 @@ export type Database = {
               salary_min: number | null
               scale_signals: Json | null
               seniority: string
+              skill_coverage_ratio: number | null
               team_size: number | null
               tech_stack: string[] | null
               title: string
@@ -2242,6 +2368,7 @@ export type Database = {
               salary_min: number | null
               scale_signals: Json | null
               seniority: string
+              skill_coverage_ratio: number | null
               team_size: number | null
               tech_stack: string[] | null
               title: string
@@ -2341,6 +2468,7 @@ export type Database = {
               salary_min: number | null
               scale_signals: Json | null
               seniority: string
+              skill_coverage_ratio: number | null
               team_size: number | null
               tech_stack: string[] | null
               title: string
