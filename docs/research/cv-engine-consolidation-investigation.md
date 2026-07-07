@@ -1,6 +1,6 @@
 ---
 title: CV consolidation — engine/renderer investigation (step 1)
-status: DRAFT — HELD FOR ELI'S REVIEW
+status: SIGNED (2026-07-07) — canonical base accepted: engine=generate-tailored-cv, renderer=buildCvPdf (preview rendered from it), chokepoint-first sequence
 owner: eli
 last_reviewed: 2026-07-06
 consumes: docs/design/ia-interaction-spec.md
@@ -97,4 +97,7 @@ A handful of lines, in files unrelated to the render/engine surgery, **no PDF bl
 
 ---
 
-_Investigation only. HELD for Eli's review. No merge scoped, no code changed._
+_Investigation. **SIGNED by Eli 2026-07-07:** canonical engine = `generate-tailored-cv`, canonical
+renderer = `buildCvPdf` with the Studio preview rendered from it, chokepoint-first sequence accepted.
+Consolidation scoping proceeds in a separate held doc (`cv-consolidation-step1-chokepoint-scoping.md`);
+the §6 title-mislabel fix already shipped (#505). No code in this doc._
