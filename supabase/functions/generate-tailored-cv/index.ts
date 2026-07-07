@@ -331,6 +331,12 @@ Deno.serve(async (req) => {
     const cvEnforceV2 =
       String((body as any)?.cv_enforce_v2 ?? Deno.env.get("CV_ENFORCE_V2") ?? "")
         .trim().toLowerCase() === "on";
+    // A1 (attribution verify): when 'on', the professional schema echoes a
+    // company_check stub and reconcile verifies index<->company. Default OFF →
+    // prompt + reconcile byte-identical.
+    const cvReconcileVerify =
+      String((body as any)?.cv_reconcile_verify ?? Deno.env.get("CV_RECONCILE_VERIFY") ?? "")
+        .trim().toLowerCase() === "on";
     const safeTargetRole = String(target_role ?? '').slice(0, 200);
     // Smart truncation: pull Requirements/Qualifications/Responsibilities
     // sections first when the JD has detectable headings; otherwise fall
@@ -1383,7 +1389,7 @@ NO DERIVED OR COMPUTED FIGURES:
 - State only figures present VERBATIM in the source. Do NOT compute, derive, or estimate numbers — including tenure expressed in years/months from start_date and end_date, head-counts inferred from a team description, percentages calculated from raw figures, totals summed across roles, or any other arithmetic over source values. If the source says "Jan 2010 – Dec 2024" you may render the date range exactly — but you may NOT write "14 years of experience" or any computed restatement of that span. The same rule applies to currency totals, percentages, ratios, and head-counts: if a number didn't appear verbatim in source, it cannot appear in output.
 `;
 
-    const systemPrompt =
+    let systemPrompt =
       `You are a CV Generation Engine for the "Get A Job" Career Operating System. Your job is to produce a ${isMasterMode ? 'comprehensive, multi-section' : 'tailored, one-page'}, truthful CV as JSON. The CV WILL be sent to real employers — so every word must be grounded in the user's actual data.\n\n` +
       (isMasterMode ? '' : `You are generating a TAILORED CV. The CV must be specifically customized for the target job description. Generic CVs that don't incorporate JD-specific language will be rejected.\n\n`) +
       (isMasterMode ? MASTER_CONTENT_RULES : ONE_PAGE_RULE) + `\n` +
@@ -1564,6 +1570,15 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     // OpenRouter (anthropic/claude-sonnet-4.6). Both transports return
     // OpenAI-shaped JSON (choices[].message.content + usage.*), so the
     // downstream parse code path is unchanged.
+    // A1 (cv_reconcile_verify): append the professional company_check echo so
+    // reconcile can verify index<->company attribution. OFF (default) → no append
+    // → byte-identical prompt. Append-override (not schema surgery) for mechanical
+    // robustness; if a bake-off shows the model won't emit company_check under the
+    // override, switch to editing the schema/rule directly.
+    if (cvReconcileVerify) {
+      systemPrompt +=
+        '\n\nATTRIBUTION VERIFICATION (this run): for EACH professional_experiences entry, ALSO include a "company_check" field echoing VERBATIM the company from USER DATA.professional_experiences[index].company. This OVERRIDES the "do NOT emit company / any value is discarded" rule above, for the company_check field ONLY. The server verifies company_check names the SAME experience as the index you chose and REJECTS the entry on mismatch — so index and company_check MUST describe the same role. Add no other suppressed field.';
+    }
     const pass2Model = safeCvModel === 'sonnet' ? SONNET_OPENROUTER_SLUG : MODEL;
     const pass2MetricsModel = safeCvModel === 'sonnet' ? SONNET_MODEL_USED : MODEL;
     const pass2Payload = {
@@ -1788,7 +1803,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       professionalExperiences.map(toSource),
       cvData.professional_experiences,
       "company",
-      { warnings: reconcileWarnings, bucket: "professional_experiences", stampSourceId: isMasterMode, sourceIds: sourceIdsFor("professional") },
+      { warnings: reconcileWarnings, bucket: "professional_experiences", stampSourceId: isMasterMode, sourceIds: sourceIdsFor("professional"), verifyAttribution: cvReconcileVerify },
     );
     cvData.military_experiences = fillFromSource(
       militaryExperiences.map(toSource),
