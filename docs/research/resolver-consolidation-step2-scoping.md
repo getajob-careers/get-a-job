@@ -1,6 +1,6 @@
 ---
 title: Skill resolver consolidation — the English coverage fix (arc step 2, scoping)
-status: DRAFT — HELD FOR ELI'S REVIEW
+status: SIGNED (2026-07-07) — as-is; top-50 classified, build order #510→#511
 owner: eli
 last_reviewed: 2026-07-07
 consumes: docs/research/hebrew-extractor-language-routing-scoping.md
@@ -102,58 +102,58 @@ group by 1 order by n desc limit 50;
 
 `(review)` = a class I inferred rather than one Eli named — confirm before build.
 
-| phrase                        | count | class      | disposition                                                      |
-| ----------------------------- | ----- | ---------- | ---------------------------------------------------------------- |
-| technical_support             | 27    | A          | alias → support ID; de-dupes with `technical support`            |
-| verification                  | 27    | G          | generic — drop-list                                              |
-| data science                  | 25    | A          | alias → `data_science`                                           |
-| ai_ml                         | 22    | A          | alias → ai/ml ID                                                 |
-| erp | 21 | A | alias → `erp_systems` |
-| orchestration | 20 | G | generic — drop-list (confirmed; no bare-word ID) |
-| reporting                     | 20    | G          | generic — drop-list                                              |
-| communication protocols       | 19    | M (review) | networking/embedded → step 3                                     |
-| security research             | 19    | A          | alias → `security_research`                                      |
-| technical support             | 19    | A          | alias → support ID (spacing twin of `technical_support`)         |
-| computer architecture         | 18    | M (review) | systems/chip cluster → step 3                                    |
-| optimization                  | 18    | G          | generic — drop-list                                              |
-| object-oriented design        | 18    | A          | alias → OOP ID                                                   |
-| system verilog | 18 | A | alias → `systemverilog` (whitespace) |
-| lookers                       | 18    | A          | alias → Looker (typo/plural)                                     |
-| synthesis                     | 18    | M          | chip-design cluster → step 3                                     |
-| data_science                  | 17    | A          | alias → `data_science` (snake twin)                              |
-| windows internals             | 17    | M          | OS-internals cluster → step 3                                    |
-| simulation                    | 16    | M (review) | EDA/chip cluster → step 3                                        |
-| scaling                       | 16    | G          | generic — drop-list                                              |
-| integration                   | 16    | G          | generic — drop-list                                              |
-| storage | 16 | G | generic — drop-list (confirmed) |
-| security_research             | 16    | A          | alias → `security_research` (snake twin)                         |
-| grpc                          | 15    | M          | new gRPC entry → step 3                                          |
-| manufacturing                 | 15    | M (review) | hardware/manufacturing → step 3                                  |
-| os internals                  | 15    | M          | OS-internals cluster → step 3                                    |
-| robotics                      | 15    | M (review) | new entry → step 3                                               |
-| solidworks                    | 15    | M          | CAD/mechanical → step 3                                          |
-| embedded software development | 15 | A | alias → `embedded_systems` |
-| groovy                        | 14    | M          | new Groovy entry → step 3                                        |
-| interpersonal skills          | 14    | G (review) | soft-skill filler — drop-list                                    |
-| ui_design | 14 | A | alias → `ui_visual_design` |
-| signal processing             | 13    | M (review) | DSP → step 3                                                     |
-| validation                    | 13    | G (review) | generic (twin of `verification`) — drop-list                     |
-| full stack development | 13 | A | alias → [`frontend_development`,`backend_development`] (composite) |
-| dagster                       | 13    | M          | new Dagster entry → step 3                                       |
-| performance                   | 13    | G          | generic — drop-list                                              |
-| azure_devops | 13 | A | alias → `cloud_platforms_devops` |
-| system engineering | 13 | A | alias → `system_design` (broader than `system_architecture`) |
-| routing | 13 | G | generic — drop-list (confirmed; lib has `place_and_route`/`tcp_ip_networking`) |
-| analog circuits               | 13    | M          | chip-design cluster → step 3                                     |
-| writing                       | 13    | G          | generic — drop-list                                              |
-| cad                           | 12    | M (review) | mechanical/CAD (with solidworks) → step 3                        |
-| .net core                     | 12    | M          | new .NET Core entry → step 3                                     |
-| priority_erp | 12 | A | alias → `erp_systems` (Priority = specific IL ERP → generic) |
-| assembly                      | 12    | M (review) | low-level programming → step 3                                   |
-| object_oriented_programming   | 12    | A          | alias → OOP ID (snake twin of `object-oriented design`)          |
-| authentication | 12 | A | alias → `jwt_oauth_auth` |
-| unity                         | 12    | M          | new Unity entry → step 3                                         |
-| timing closure                | 12    | M          | chip-design cluster → step 3                                     |
+| phrase                        | count | class      | disposition                                                                    |
+| ----------------------------- | ----- | ---------- | ------------------------------------------------------------------------------ |
+| technical_support             | 27    | A          | alias → support ID; de-dupes with `technical support`                          |
+| verification                  | 27    | G          | generic — drop-list                                                            |
+| data science                  | 25    | A          | alias → `data_science`                                                         |
+| ai_ml                         | 22    | A          | alias → ai/ml ID                                                               |
+| erp                           | 21    | A          | alias → `erp_systems`                                                          |
+| orchestration                 | 20    | G          | generic — drop-list (confirmed; no bare-word ID)                               |
+| reporting                     | 20    | G          | generic — drop-list                                                            |
+| communication protocols       | 19    | M (review) | networking/embedded → step 3                                                   |
+| security research             | 19    | A          | alias → `security_research`                                                    |
+| technical support             | 19    | A          | alias → support ID (spacing twin of `technical_support`)                       |
+| computer architecture         | 18    | M (review) | systems/chip cluster → step 3                                                  |
+| optimization                  | 18    | G          | generic — drop-list                                                            |
+| object-oriented design        | 18    | A          | alias → OOP ID                                                                 |
+| system verilog                | 18    | A          | alias → `systemverilog` (whitespace)                                           |
+| lookers                       | 18    | A          | alias → Looker (typo/plural)                                                   |
+| synthesis                     | 18    | M          | chip-design cluster → step 3                                                   |
+| data_science                  | 17    | A          | alias → `data_science` (snake twin)                                            |
+| windows internals             | 17    | M          | OS-internals cluster → step 3                                                  |
+| simulation                    | 16    | M (review) | EDA/chip cluster → step 3                                                      |
+| scaling                       | 16    | G          | generic — drop-list                                                            |
+| integration                   | 16    | G          | generic — drop-list                                                            |
+| storage                       | 16    | G          | generic — drop-list (confirmed)                                                |
+| security_research             | 16    | A          | alias → `security_research` (snake twin)                                       |
+| grpc                          | 15    | M          | new gRPC entry → step 3                                                        |
+| manufacturing                 | 15    | M (review) | hardware/manufacturing → step 3                                                |
+| os internals                  | 15    | M          | OS-internals cluster → step 3                                                  |
+| robotics                      | 15    | M (review) | new entry → step 3                                                             |
+| solidworks                    | 15    | M          | CAD/mechanical → step 3                                                        |
+| embedded software development | 15    | A          | alias → `embedded_systems`                                                     |
+| groovy                        | 14    | M          | new Groovy entry → step 3                                                      |
+| interpersonal skills          | 14    | G (review) | soft-skill filler — drop-list                                                  |
+| ui_design                     | 14    | A          | alias → `ui_visual_design`                                                     |
+| signal processing             | 13    | M (review) | DSP → step 3                                                                   |
+| validation                    | 13    | G (review) | generic (twin of `verification`) — drop-list                                   |
+| full stack development        | 13    | A          | alias → [`frontend_development`,`backend_development`] (composite)             |
+| dagster                       | 13    | M          | new Dagster entry → step 3                                                     |
+| performance                   | 13    | G          | generic — drop-list                                                            |
+| azure_devops                  | 13    | A          | alias → `cloud_platforms_devops`                                               |
+| system engineering            | 13    | A          | alias → `system_design` (broader than `system_architecture`)                   |
+| routing                       | 13    | G          | generic — drop-list (confirmed; lib has `place_and_route`/`tcp_ip_networking`) |
+| analog circuits               | 13    | M          | chip-design cluster → step 3                                                   |
+| writing                       | 13    | G          | generic — drop-list                                                            |
+| cad                           | 12    | M (review) | mechanical/CAD (with solidworks) → step 3                                      |
+| .net core                     | 12    | M          | new .NET Core entry → step 3                                                   |
+| priority_erp                  | 12    | A          | alias → `erp_systems` (Priority = specific IL ERP → generic)                   |
+| assembly                      | 12    | M (review) | low-level programming → step 3                                                 |
+| object_oriented_programming   | 12    | A          | alias → OOP ID (snake twin of `object-oriented design`)                        |
+| authentication                | 12    | A          | alias → `jwt_oauth_auth`                                                       |
+| unity                         | 12    | M          | new Unity entry → step 3                                                       |
+| timing closure                | 12    | M          | chip-design cluster → step 3                                                   |
 
 **Tallies (post-corpus check):** **A = 19** (alias-bug → part B, HERE) · **M = 19** (missing → step 3) · **G = 12** (generic drop, excluded from the coverage denominator). Five phrases flipped **M→A** against existing canonical IDs: system verilog→`systemverilog`, erp/priority_erp→`erp_systems`, authentication→`jwt_oauth_auth`, system engineering→`system_design`; and ui_design→`ui_visual_design`, azure_devops→`cloud_platforms_devops`, full stack development→`frontend_development`+`backend_development` were confirmed A. Remaining **M** is a coherent step-3 expansion: the **chip-design cluster** (synthesis, timing closure, analog circuits, simulation, computer architecture, signal processing), **OS-internals** (windows/os internals), **CAD/mechanical** (solidworks, cad), plus grpc/dagster/.net core/unity/groovy/robotics/assembly/manufacturing/communication protocols — **cross-referenced to arc step 3**.
 
@@ -221,5 +221,5 @@ call.**
 
 ---
 
-_Scoping only. HELD for Eli's review. Top-50 real-miss table pulled + classified (§3); coverage target
-on the mappable denominator (§5); build order fixed (#510 → #511). No code changed._
+_**SIGNED by Eli 2026-07-07** as-is. Top-50 pulled + classified (§3, A=19/M=19/G=12); coverage target on
+the mappable denominator (§5); build order #510→#511. Build gated on Eli's separate go. No code changed._
