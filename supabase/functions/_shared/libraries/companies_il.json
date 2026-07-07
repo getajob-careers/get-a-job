@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1078,
+  "total_companies": 1079,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -12960,6 +12960,18 @@
       "api_url": "https://apply.workable.com/api/v1/widget/accounts/codeforce-362?details=true",
       "verified": true,
       "notes": "Workable; IT staffing agency, ATS-direct board carrying real client reqs (not evergreen pools). Current IL role: Chief of Staff at Dataphone (IL AI/VoIP startup, Tel Aviv), posted 2026-06-30. Pipeline IL-filters at fetch so only IL client placements land. Workable-harvest r1, 2026-07-07."
+    },
+    {
+      "name": "Sauce",
+      "type": "international_il_rd",
+      "industry": "Restaurant Technology / FoodTech",
+      "domain": "getsauce.com",
+      "careers_url": "https://jobs.lever.co/Sauce",
+      "ats": "lever",
+      "slug": "Sauce",
+      "api_url": "https://api.lever.co/v0/postings/Sauce?mode=json",
+      "verified": true,
+      "notes": "Lever; restaurant delivery/ordering platform, dual HQ NYC + Tel Aviv. IL R&D role live (Head of GTM Engineering, Tel Aviv District, hybrid, 2026-05-05). Slug is case-sensitive (capital S). Lever-harvest r1, 2026-07-08."
     }
   ]
 }
