@@ -7243,11 +7243,11 @@
       "industry": "FinTech / Payments",
       "domain": "nuvei.com",
       "careers_url": "https://www.nuvei.com/careers/",
-      "ats": "smartrecruiters",
+      "ats": "workable",
       "slug": "nuvei",
-      "api_url": "https://api.smartrecruiters.com/v1/companies/nuvei/postings",
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/nuvei?details=true",
       "verified": true,
-      "notes": "SmartRecruiters; payments scaleup with IL R&D"
+      "notes": "Workable; payments scaleup with IL R&D. Repointed from SmartRecruiters (dead board: 0 total postings) to Workable (5 live IL roles: AI Product Owner, IT Specialist, ML Engineer, Salesforce Developer — all Tel Aviv-Yafo). Workable-harvest r1, 2026-07-07."
     },
     {
       "name": "NVIDIA",
