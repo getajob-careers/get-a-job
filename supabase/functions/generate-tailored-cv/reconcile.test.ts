@@ -298,3 +298,81 @@ describe("fillFromSource curated bullets source preference (PR #321 Phase-4 read
     expect(result[0].bullets).toEqual(["real line"]);
   });
 });
+
+describe("fillFromSource — A1 attribution verification (cv_reconcile_verify)", () => {
+  const getajob = src({ title: "Creator", company: "Get A Job", responsibilities: "Built the platform solo" });
+  const guardio = src({ title: "CSS VIP", company: "Guardio", responsibilities: "Handled VIP users" });
+
+  it("swapped indices: wrong bullets do NOT land under the wrong title + warning emitted", () => {
+    const warnings: ReconcileWarning[] = [];
+    // entry 0 describes Get A Job but points at index 1 (Guardio); entry 1 the reverse.
+    const result = fillFromSource(
+      [getajob, guardio],
+      [
+        { index: 1, company_check: "Get A Job", bullets: ["Built the platform solo, 50+ users"] },
+        { index: 0, company_check: "Guardio", bullets: ["VIP users, cybersecurity startup"] },
+      ],
+      "company",
+      { warnings, verifyAttribution: true },
+    );
+    // slot 0 (Get A Job) must NOT carry the Guardio bullet — falls back to its own responsibilities.
+    expect(result[0].company).toBe("Get A Job");
+    expect(result[0].bullets.join(" ")).not.toContain("VIP users");
+    expect(result[0].bullets).toEqual(["Built the platform solo"]);
+    // slot 1 (Guardio) must NOT carry the Get A Job bullet.
+    expect(result[1].company).toBe("Guardio");
+    expect(result[1].bullets.join(" ")).not.toContain("Built the platform solo, 50+");
+    expect(result[1].bullets).toEqual(["Handled VIP users"]);
+    // exactly the two mismatches flagged, nothing else.
+    expect(warnings.filter((w) => w.kind === "attribution_mismatch")).toHaveLength(2);
+    expect(warnings.every((w) => w.kind === "attribution_mismatch")).toBe(true);
+  });
+
+  it("honest case (stub matches index, paraphrased) unchanged — bullets attach, no warning", () => {
+    const warnings: ReconcileWarning[] = [];
+    const result = fillFromSource(
+      [getajob, guardio],
+      [
+        { index: 0, company_check: "Get a Job", bullets: ["Built the platform solo, 50+ users"] }, // case-paraphrase
+        { index: 1, company_check: "Guardio", bullets: ["VIP users, cybersecurity startup"] },
+      ],
+      "company",
+      { warnings, verifyAttribution: true },
+    );
+    expect(result[0].bullets).toEqual(["Built the platform solo, 50+ users"]);
+    expect(result[1].bullets).toEqual(["VIP users, cybersecurity startup"]);
+    expect(warnings).toHaveLength(0);
+  });
+
+  it("flag OFF: mismatched stubs ignored — byte-identical to today (bullets attach by index)", () => {
+    const warnings: ReconcileWarning[] = [];
+    const result = fillFromSource(
+      [getajob, guardio],
+      [
+        { index: 0, company_check: "Guardio", bullets: ["VIP users"] }, // stub disagrees, but flag OFF
+        { index: 1, company_check: "Get A Job", bullets: ["Built the platform"] },
+      ],
+      "company",
+      { warnings }, // verifyAttribution undefined → OFF
+    );
+    expect(result[0].bullets).toEqual(["VIP users"]);
+    expect(result[1].bullets).toEqual(["Built the platform"]);
+    expect(warnings.filter((w) => w.kind === "attribution_mismatch")).toHaveLength(0);
+  });
+
+  it("no stub echoed: verification is a no-op (fail open) even when ON", () => {
+    const warnings: ReconcileWarning[] = [];
+    const result = fillFromSource(
+      [getajob, guardio],
+      [
+        { index: 0, bullets: ["A"] },
+        { index: 1, bullets: ["B"] },
+      ],
+      "company",
+      { warnings, verifyAttribution: true },
+    );
+    expect(result[0].bullets).toEqual(["A"]);
+    expect(result[1].bullets).toEqual(["B"]);
+    expect(warnings).toHaveLength(0);
+  });
+});

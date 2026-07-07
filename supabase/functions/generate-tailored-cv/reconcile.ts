@@ -71,7 +71,7 @@ export interface FilledEntry {
 // rendering / inspection plumbing applies.
 export interface ReconcileWarning {
   bucket: string;
-  kind: 'unclaimed_entry' | 'positional_fallback';
+  kind: 'unclaimed_entry' | 'positional_fallback' | 'attribution_mismatch';
   entry_position: number;
   llm_index: number | string | null;
   source_index?: number;
@@ -133,11 +133,36 @@ function responsibilitiesToBullets(text: string): string[] {
     .filter(Boolean);
 }
 
+// A1 (cv_reconcile_verify) — per-experience attribution verification. The LLM
+// optionally echoes a `company_check` stub next to `index`; before trusting an
+// in-range index we confirm the stub names the SAME org as the DB source at that
+// index. Normalized comparison: lowercase + strip all non-alphanumeric, then
+// equal-or-substring (min length 4). Chosen over exact match because the model
+// paraphrases the org ("Get A Job" / "Get a Job" / "GetAJob") while still clearly
+// distinguishing different employers (Guardio vs Get A Job). Empty on either side
+// → cannot compare → never reject (fail open, no false rejects).
+function normOrg(s: unknown): string {
+  return String(s ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+function attributionStub(e: LlmEntry): string {
+  const c = (e as any).company_check ?? (e as any).company ?? (e as any).title;
+  return typeof c === "string" ? c : "";
+}
+function stubMatchesSource(stub: string, src: SourceExperience): boolean {
+  const a = normOrg(stub);
+  const b = normOrg(src?.company);
+  if (!a || !b) return true;
+  if (a === b) return true;
+  if (a.length >= 4 && b.includes(a)) return true;
+  if (b.length >= 4 && a.includes(b)) return true;
+  return false;
+}
+
 export function fillFromSource(
   sources: SourceExperience[],
   llmEntries: LlmEntry[] | undefined | null,
   orgFieldName: string,
-  opts?: { logger?: (msg: string) => void; warnings?: ReconcileWarning[]; bucket?: string; stampSourceId?: boolean; sourceIds?: (string | null | undefined)[] },
+  opts?: { logger?: (msg: string) => void; warnings?: ReconcileWarning[]; bucket?: string; stampSourceId?: boolean; sourceIds?: (string | null | undefined)[]; verifyAttribution?: boolean },
 ): FilledEntry[] {
   const log = opts?.logger || ((msg: string) => console.warn(msg));
   const warnings = opts?.warnings;
@@ -162,6 +187,10 @@ export function fillFromSource(
   // surface duplicate-index losses (LLM emitted idx=2 twice; only first
   // claims, second is silently dropped without entering pass 2).
   const claimedByEntry = new Set<number>();
+  // A1: entries whose echoed attribution stub disagrees with the source at their
+  // in-range index. Rejected outright — never claimed AND never positionally
+  // rescued — so wrong bullets can never land under the wrong title.
+  const rejectedByEntry = new Set<number>();
 
   // Normalize an llm-supplied `raw` index into a JSON-safe value for the
   // warning payload. Numbers and strings pass through; anything else
@@ -179,6 +208,18 @@ export function fillFromSource(
     const idx = Number(raw);
     const valid = Number.isInteger(idx) && idx >= 0 && idx < sources.length;
     if (valid && !bulletsBySource.has(idx)) {
+      // A1: verify the LLM's echoed stub names the SAME org as sources[idx]
+      // before trusting this in-range index. Only when a stub was echoed —
+      // an entry with no stub is accepted (cannot verify → fail open).
+      if (opts?.verifyAttribution) {
+        const stub = attributionStub(e);
+        if (stub && !stubMatchesSource(stub, sources[idx])) {
+          rejectedByEntry.add(j);
+          log(`[CV reconcile] bucket=${bucket} attribution_mismatch j=${j} llm_index=${idx} stub=${JSON.stringify(stub)} source_company=${JSON.stringify(sources[idx]?.company)}`);
+          warnings?.push({ bucket, kind: 'attribution_mismatch', entry_position: j, llm_index: safeLlmIndex(raw), source_index: idx });
+          continue;
+        }
+      }
       bulletsBySource.set(idx, cleanBullets(e.bullets));
       claimedByEntry.add(j);
     }
@@ -190,6 +231,7 @@ export function fillFromSource(
     const idx = Number(raw);
     const valid = Number.isInteger(idx) && idx >= 0 && idx < sources.length;
     if (valid) continue;
+    if (rejectedByEntry.has(j)) continue; // A1: attribution-rejected — no positional rescue
     log(`[CV reconcile] LLM entry ${j} has out-of-range index=${raw} (sources.length=${sources.length}); positional fallback to source ${j}`);
     if (j < sources.length && !bulletsBySource.has(j)) {
       bulletsBySource.set(j, cleanBullets(e.bullets));
@@ -214,7 +256,7 @@ export function fillFromSource(
   // (b) duplicate-index entries where pass 1 first-wins skipped them.
   for (let j = 0; j < entries.length; j++) {
     const e = entries[j];
-    if (!e || claimedByEntry.has(j)) continue;
+    if (!e || claimedByEntry.has(j) || rejectedByEntry.has(j)) continue;
     const raw = e.index;
     log(`[CV reconcile] bucket=${bucket} unclaimed_entry j=${j} llm_index=${raw} sources.length=${sources.length}`);
     warnings?.push({
