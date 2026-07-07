@@ -1,6 +1,5 @@
-// send-email.ts — Resend REST API wrapper. Used by the two
-// transactional-email edge functions (send-welcome-email,
-// send-waitlist-email).
+// send-email.ts — Resend REST API wrapper. Used by the
+// transactional-email edge function send-welcome-email.
 //
 // Why raw HTTP, not @resend/sdk: the SDK adds a dependency we don't
 // otherwise need + a small Deno cold-start cost. Resend's REST API

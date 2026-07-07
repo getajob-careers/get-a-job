@@ -41,7 +41,6 @@ import LandingV2Preview from '@/pages/_preview/LandingV2Preview';
 import CVAgentPreview from '@/pages/_preview/CVAgentPreview';
 import CVAgentLivePreview from '@/pages/_preview/CVAgentLivePreview';
 import RoadmapPreview from '@/pages/_preview/RoadmapPreview';
-import TrackerPreview from '@/pages/_preview/TrackerPreview';
 import ProfilePreview from '@/pages/_preview/ProfilePreview';
 import StoryBankPreview from '@/pages/_preview/StoryBankPreview';
 import TasksPreview from '@/pages/_preview/TasksPreview';
@@ -229,12 +228,6 @@ function App() {
               <Route
                 path="/_preview/roadmap/:state"
                 element={<RoadmapPreview />}
-              />
-            )}
-            {SHOW_PREVIEW_ROUTES && (
-              <Route
-                path="/_preview/tracker/:state"
-                element={<TrackerPreview />}
               />
             )}
             {SHOW_PREVIEW_ROUTES && (

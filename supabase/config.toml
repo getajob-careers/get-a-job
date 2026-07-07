@@ -36,9 +36,6 @@ verify_jwt = false
 [functions.generate-learning-paths]
 verify_jwt = false
 
-[functions.generate-application-tasks]
-verify_jwt = false
-
 [functions.ai-chat]
 verify_jwt = false
 
@@ -46,17 +43,4 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.lookup-role-skills]
-verify_jwt = false
-
-# Legacy camelCase duplicates still deployed — keep covered until retired.
-[functions.generateApplicationTasks]
-verify_jwt = false
-
-[functions.generateTailoredCV]
-verify_jwt = false
-
-# Admin-only reengagement campaign send (in-code service-role gate).
-# NOTE: deployed function was torn down post-campaign; this entry documents
-# the intended verify_jwt setting if ever redeployed.
-[functions.send-reengagement]
 verify_jwt = false
