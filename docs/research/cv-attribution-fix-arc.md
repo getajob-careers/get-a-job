@@ -80,38 +80,73 @@ verified rows.
 **Deploy:** frontend (`promoteBulletsToProfile.js`) via Vercel + `edit-cv`. **Overlap:** profile/
 write-back surface — parallel to the generation set.
 
-## A4 — P0/P1 · Split-brain resolution (one field, one editor) ⚠️ needs Eli's decision
+## A4 — P0/P1 · Split-brain resolution — `bullets` is CANONICAL (DECIDED 2026-07-07)
 
-**Problem:** Profile edits `responsibilities`; master reads `bullets` first; only the popup writes
-`bullets`; the Profile bullets editor was never built (`Profile.jsx:540`, `cv-master.ts:225-231`,
-`promoteBulletsToProfile.js:40`, `20260617_experiences_bullets.sql`). Profile edits die after one
-promote.
-**Decision required — which field is canonical:**
+**Problem:** Profile edits `experiences.responsibilities`; the master builder reads `experiences.bullets`
+**first** (`cv-master.ts:225-231`); the only writer of `bullets` is the studio popup
+(`promoteBulletsToProfile.js:40`); and the Profile bullets editor that `20260617_experiences_bullets.sql`
+promised was **never built** (`Profile.jsx:540`). → after one promote, Profile edits stop reaching the CV
+("Profile is a dead-end editor").
 
-- **Option A (recommended): `bullets` is canonical; build the Profile bullets editor.** Profile edits
-  `bullets` directly; `responsibilities` becomes a legacy/import field (or is backfilled from `bullets`).
-  Matches the migration's original intent and the master's read order — one editor, one field.
-- **Option B: `responsibilities` is canonical; master reads it, drop the `bullets` preference.** Simpler
-  code, but discards the structured-bullets model the studio relies on.
-  **Change (Option A):** a Profile bullets editor UI + a migration/backfill reconciling the two columns +
-  `cv-master` reads one field. **This is the structural one-source fix** — it also neutralizes A3's
-  amplifier and the "Profile is a dead-end editor" complaint.
-  **Posture:** migration + UI; behind a feature flag for rollout; rollback = keep both columns until baked.
-  **Tests:** a Profile edit now reaches the CV; no split-brain divergence; migration is reversible.
-  **Deploy:** frontend + a migration (MCP `apply_migration`, append-only). **Overlap:** `Profile.jsx`,
-  `cv-master.ts` — parallel to generation; **coordinate with A3** (both touch the write-back semantics).
+**DECISION (Eli, 2026-07-07): Option A — `bullets[]` is the single canonical source.**
+
+1. **`bullets[]` is canonical** for experience bullets. **`responsibilities` becomes read-only legacy** —
+   retained as a fallback for display + master-build **only when `bullets` is empty**. The current
+   `cv-master.ts:225-231` read order already does exactly this → **keep it as-is (no read-order change).**
+2. **Build the missing Profile bullets editor** (the one the migration promised): per-experience
+   bullet-list editing on the Profile page (`Profile.jsx`), writing `experiences.bullets`. This is the
+   structural one-source fix — Profile edits now land in the canonical field the CV reads, closing the
+   dead-end-editor complaint.
+
+**Migration question — SCOPE, do NOT decide (Eli's call at build time).** 36 real users currently hold
+`responsibilities` only (zero `bullets[]` — the population scan). Two ways to onboard them to the
+canonical field:
+
+- **(i) Seed `bullets` from `responsibilities`** (split on newlines) at the editor's first open.
+  _Trade-off:_ immediate one-field cleanliness, but a bad auto-split **pollutes the canonical field**
+  (responsibilities prose isn't reliably one-bullet-per-line) and is awkward to reverse.
+- **(ii) Keep the empty-`bullets` fallback read; let `bullets` populate organically** as users edit.
+  _Trade-off:_ zero pollution risk, but the **two-field read persists indefinitely** and un-edited users
+  never gain structured bullets.
+
+Flag both for Eli at build time; **do not auto-seed without his sign-off.**
+
+**Folded-in dependencies (resolved by making `bullets` canonical + shipping the editor):**
+
+- **A3 integrity guard (dependency).** Once Profile edits `bullets` directly, the studio→profile promote
+  is no longer the _only_ `bullets` writer — A3 and A4 must share one invariant ("an experience's
+  `bullets` belong to that experience"). **Build A3 first / together with A4.**
+- **Profile-save → master rebuild (finding ④).** Today no profile-write path rebuilds the `is_master`
+  row (only a tailor does, `refine-cv:723`). With `bullets` canonical + a real Profile editor, a Profile
+  save **must refresh the master** (deterministic `buildMasterCvData`, sub-ms) so edits reach the CV
+  **without** waiting for a tailor. Add a profile-save → master-refresh trigger.
+- **Popup copy/mislabel (finding ⑦).** The studio "save these bullet **edits** to your profile" toast is
+  currently misleading (fires on any master-field edit; only `bullets` write back). Once `bullets` is
+  canonical **and** the Profile editor exists, the copy becomes **accurate**, and the toast's role
+  shrinks (Profile now edits bullets directly) — narrow it to genuine studio-side bullet edits + add the
+  session dedup that finding ⑦'s fatigue needs.
 
 **⚠️ Also required — a from-nothing master mint (found live 2026-07-07).** After Eli's corrupted master
-`application_cvs` row was deleted, **no trigger re-minted it** — there are zero `is_master` rows for
-`4b243f3a`. The three mint paths are all gated: the Studio empty-state "Build my master CV" button renders
-**only when `cvOptions.length === 0`** (`CVStudioLive.jsx:688`), so it's **suppressed the moment any
-tailored CV exists**; gtc mints only in `isMasterMode` (`gtc:2779`), so a _tailored_ gen never mints;
-`refine-cv` mints on every tailor (insert-first, `refine-cv:723-751`) but only when the user runs a Studio
-"Tailor". → the **"has-tailored-CVs-but-no-master" state has no passive mint.** A4 must add a **robust
-from-nothing mint** — e.g. Studio mints the master on load when `is_master` is absent, **regardless of
-tailored-CV presence** (not just in the empty-state), idempotent against the partial-unique index.
-**Interim code-native re-mint for Eli today:** run a Studio "Tailor" on any application (fires `refine-cv`
-→ mints from the now-corrected profile).
+`application_cvs` row was deleted, **no trigger re-minted it** — zero `is_master` rows for `4b243f3a`.
+All three mint paths are gated: the Studio empty-state "Build my master CV" button renders **only when
+`cvOptions.length === 0`** (`CVStudioLive.jsx:688`) → suppressed the moment any tailored CV exists; gtc
+mints only in `isMasterMode` (`gtc:2779`) → a _tailored_ gen never mints; `refine-cv` mints on every
+tailor (insert-first, `refine-cv:723-751`) but only when a Studio "Tailor" runs. → the
+**"has-tailored-CVs-but-no-master" state has no passive mint.** A4 must add a **robust from-nothing mint**
+— e.g. Studio mints the master on load when `is_master` is absent, **regardless of tailored-CV presence**,
+idempotent against the partial-unique index. **Interim re-mint for Eli today:** run a Studio "Tailor" on
+any app.
+
+**Posture:** append-only migration + Profile editor UI + the profile-save→master-refresh trigger + the
+mint-on-load, behind a rollout flag. **Rollback = keep the two-column fallback read until baked** (it is
+already the read order, so rollback is low-risk).
+**Tests:** a Profile bullet edit reaches the CV **without** a tailor; the empty-`bullets` fallback still
+serves `responsibilities`; the mint-on-load fires for a has-tailored-no-master account; no split-brain
+divergence; migration reversible.
+**Deploy:** frontend (`Profile.jsx`, `CVStudioLive.jsx`) via Vercel + edge (`refine-cv`/`gtc`/`cv-master`
+as touched) + a migration (MCP `apply_migration`). **Overlap:** `cv-master.ts`, `Profile.jsx`,
+`CVStudioLive.jsx`, `promoteBulletsToProfile.js` — **coordinate with A3**; parallel to the generation set
+(A1/A2/A5).
 
 ## A5 — P1 · Close the #505 wrong-role residual gaps
 
@@ -166,11 +201,12 @@ Own held PR; opt-in flag where noted (default OFF); full gates (`deno check` no-
 merge (pull-main → grep-local → deploy → grep-live-artifact — Eli's manual step); migrations via MCP
 `apply_migration` (append-only); no merges without Eli's review.
 
-## Open decision for Eli
+## Decisions
 
-**A4 (canonical field)** — Option A (`bullets` + build the Profile editor) vs Option B (`responsibilities`
-canonical). This gates the split-brain build and shapes A3's integrity check. Everything else is scoped
-and ready.
+**A4 (canonical field) — DECIDED 2026-07-07: Option A, `bullets` is canonical** (build the Profile
+bullets editor; `responsibilities` = read-only fallback). One open sub-question deferred to build time:
+the responsibilities→bullets **migration strategy** (seed-on-first-open vs organic-populate — see A4).
+All seven items are now scoped and ready to build (order per §Ranking).
 
 ---
 
