@@ -8,6 +8,8 @@
 import { describe, it, expect } from "vitest";
 import { buildMasterCvData, normalizeCvDataBullets } from "@shared/cv-master";
 import { cvHasHebrew, stripCvHebrew } from "@shared/cv-translate";
+import { enforceCvInvariants } from "@shared/cv-enforce-invariants";
+import { fromCvData } from "@/lib/cvDataAdapter";
 
 // The deterministic (no-model) chokepoint, exactly as render-cv runs it when no
 // OpenAI key is present: normalize bullets, then strip Hebrew if any remains.
@@ -192,5 +194,57 @@ describe("render chokepoint composition (the guarantee)", () => {
         /^\s*I(?:['’]m|['’]ve|\s+am|\s+have|\s+led|\s+built)/,
       ); // no leftover first-person opener
     }
+  });
+});
+
+// THE preview == download regression (#504 §3, the "make my summary punchier" →
+// "I led…" case). edit-cv returns first-person cv_data that the client shows
+// (HTML preview, via fromCvData) AND autosaves; render-cv then normalizes voice
+// only on the PDF path — so preview ("I led…") and download ("Led…") diverge.
+// Running the chokepoint before edit-cv returns makes the persisted cv_data
+// already-normalized, so BOTH paths render identical bullet text.
+describe("preview == download regression (edit-cv chokepoint)", () => {
+  const rawFirstPerson = {
+    header: { name: "Dana" },
+    summary: "Analyst.",
+    professional_experiences: [
+      {
+        title: "Analyst",
+        company: "Acme",
+        bullets: ["I led the reporting team", "We built weekly reports"],
+      },
+    ],
+    military_experiences: [],
+    volunteering_experiences: [],
+    leadership_experiences: [],
+    skills: { domain: [], technical: [], tools: [] },
+    languages: ["English"],
+  };
+
+  // The Studio preview renders whatever text fromCvData surfaces per bullet.
+  const previewBulletText = (cv) =>
+    fromCvData(cv).experiences.flatMap((e) => e.bullets.map((b) => b.text));
+  // The PDF path is render-cv's chokepoint (normalizeCvDataBullets) feeding buildCvPdf.
+  const pdfBulletText = (cv) =>
+    (normalizeCvDataBullets(cv).professional_experiences || []).flatMap(
+      (e) => e.bullets,
+    );
+
+  it("WITHOUT the chokepoint, the preview and PDF bullet text diverge (the bug)", () => {
+    expect(previewBulletText(rawFirstPerson)).not.toEqual(
+      pdfBulletText(rawFirstPerson),
+    );
+  });
+
+  it("WITH the chokepoint, preview and PDF render identical bullet text", async () => {
+    const { cv_data: clean } = await enforceCvInvariants(
+      rawFirstPerson,
+      rawFirstPerson, // edit-cv: master = the pre-edit cv_data
+      null,
+    );
+    const preview = previewBulletText(clean);
+    const pdf = pdfBulletText(clean);
+    expect(preview).toEqual(pdf);
+    expect(preview).toEqual(["Led the reporting team", "Built weekly reports"]);
   });
 });

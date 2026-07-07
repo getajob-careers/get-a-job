@@ -33,6 +33,7 @@ import {
 import { stripHtml } from "../_shared/strip-html.ts";
 import { buildCvPdf } from "../_shared/cv-templates/build-pdf.ts";
 import { buildMasterCvData } from "../_shared/cv-master.ts";
+import { enforceCvInvariants } from "../_shared/cv-enforce-invariants.ts";
 import { resolveSectorTheme } from "../_shared/cv-templates/sector-mapping.ts";
 import type {
   TemplateStyle,
@@ -597,6 +598,11 @@ Deno.serve(async (req) => {
       return json({ error: "Payload too large." }, 413);
     }
     const { application_id, job_description, cv_model, disable_retry } = body;
+    // CV chokepoint opt-in flag (cv_enforce_v2): default OFF — anything but "on"
+    // keeps the exact legacy path. Body flag OR the CV_ENFORCE_V2 env fallback.
+    const cvEnforceV2 =
+      String(body?.cv_enforce_v2 ?? Deno.env.get("CV_ENFORCE_V2") ?? "")
+        .trim().toLowerCase() === "on";
     // Bake-off selection variant. ONLY the enum is honored — refine-cv is
     // verify_jwt=false, so a public caller must never be able to inject a
     // prompt. An unknown/free-form value falls back to "current" (never passed
@@ -860,6 +866,25 @@ Deno.serve(async (req) => {
     //    tailor fires NO model call and gets ZERO added latency.
     if (openaiKey && cvHasHebrew(cvData)) {
       cvData = await translateCvToEnglish(cvData, translateChat);
+    }
+
+    // ── 5c. CV chokepoint (cv_enforce_v2): the LAST transform before the CV
+    //    leaves the function. Placed BEFORE the render (buildCvPdf below) so the
+    //    rendered PDF and the persisted cv_data come from the SAME normalized
+    //    object — refine renders from cvData at render time and persists it after,
+    //    so enforcing after the render would recreate a preview != download gap.
+    //    refine is already title-safe and keeps every experience; the chokepoint
+    //    mainly adds the voice normalization refine lacked on its write path. The
+    //    trace/restore source is the (already-English) master. Idempotent no-op
+    //    when the flag is OFF.
+    if (cvEnforceV2) {
+      const enf = await enforceCvInvariants(cvData, master, safeJobDescription, {
+        path: "refine-cv",
+      });
+      cvData = enf.cv_data as typeof cvData;
+      console.log(
+        `[cv-enforce] path=refine-cv applied=true revoiced=${enf.bulletsRevoiced} enforced=${enf.bulletsEnforced} restored=${enf.experiencesRestored} hebrew=${enf.hebrew}`,
+      );
     }
 
     // ── 6. Render → upload → sign ───────────────────────────────────────────
