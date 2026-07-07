@@ -145,7 +145,10 @@ function normOrg(s: unknown): string {
   return String(s ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "");
 }
 function attributionStub(e: LlmEntry): string {
-  const c = (e as any).company_check ?? (e as any).company ?? (e as any).title;
+  // company_check (the A1 stub) or a stray company echo — NEVER title: a title is
+  // not an org, so comparing it to src.company would falsely reject an honest entry
+  // that echoed only a title (degrading it to responsibilities). Company only.
+  const c = (e as any).company_check ?? (e as any).company;
   return typeof c === "string" ? c : "";
 }
 function stubMatchesSource(stub: string, src: SourceExperience): boolean {

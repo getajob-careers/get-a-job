@@ -375,4 +375,20 @@ describe("fillFromSource — A1 attribution verification (cv_reconcile_verify)",
     expect(result[1].bullets).toEqual(["B"]);
     expect(warnings).toHaveLength(0);
   });
+
+  it("title-only echo (no company_check/company) is accepted — a title is not an org", () => {
+    const warnings: ReconcileWarning[] = [];
+    const result = fillFromSource(
+      [getajob, guardio],
+      [
+        { index: 0, title: "Anything At All", bullets: ["kept"] }, // title echoed, NO company stub, correct index
+        { index: 1, bullets: ["also kept"] },
+      ],
+      "company",
+      { warnings, verifyAttribution: true },
+    );
+    expect(result[0].bullets).toEqual(["kept"]);
+    expect(result[1].bullets).toEqual(["also kept"]);
+    expect(warnings).toHaveLength(0);
+  });
 });
