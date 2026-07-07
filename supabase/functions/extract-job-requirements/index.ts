@@ -22,7 +22,7 @@ import {
   EXTRACT_HE_SKILL_CAP,
 } from '../_shared/hebrew-routing.ts';
 import { stripHtml } from '../_shared/strip-html.ts';
-import { SKILL_ALIASES } from '../_shared/skill-aliases.ts';
+import { resolveSkill as resolveSkillShared } from '../_shared/skill-aliases.ts';
 import { skillLibrary } from "../_shared/libraries/01_skill_library.ts";
 import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
 
@@ -147,47 +147,10 @@ async function sha256(text: string): Promise<string> {
   return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
 }
 
-// Resolve a free-text skill phrase to canonical skill_library IDs via the
-// alias map. Returns [] when nothing resolves — caller logs the unmapped
-// phrase to jd_unmapped_skill_counts so we can grow the library from market
-// signal. Lookup order mirrors the shared resolveSkillAliases helper:
-//   1. Direct alias-map match on lowercased+whitespace-collapsed form
-//   2. Strip parenthetical content and retry
-//   3. Snake_case → space normalization (handles JD-extractor outputs like
-//      "product_management" that should resolve via "product management")
-//   4. Snake-case direct ID match
-function resolveSkill(label: string): string[] {
-  if (!label || typeof label !== 'string') return [];
-  const norm = label.toLowerCase().replace(/\s+/g, ' ').trim();
-  if (!norm) return [];
-
-  // 1. Direct alias
-  const direct = SKILL_ALIASES[norm];
-  if (direct) return direct.filter((id) => SKILL_ID_SET.has(id));
-
-  // 2. Strip parentheticals
-  const stripped = norm.replace(/\([^)]*\)/g, '').replace(/\s+/g, ' ').trim();
-  if (stripped !== norm && stripped.length > 0) {
-    const aliased = SKILL_ALIASES[stripped];
-    if (aliased) return aliased.filter((id) => SKILL_ID_SET.has(id));
-  }
-
-  // 3. Snake_case → space normalization. JD extractors sometimes emit
-  //    snake_case ("product_management", "big_data") that won't match the
-  //    space-keyed alias map. Convert underscores back to spaces and retry.
-  if (norm.includes('_')) {
-    const unsnaked = norm.replace(/_+/g, ' ').replace(/\s+/g, ' ').trim();
-    if (unsnaked !== norm && unsnaked.length > 0) {
-      const aliased = SKILL_ALIASES[unsnaked];
-      if (aliased) return aliased.filter((id) => SKILL_ID_SET.has(id));
-    }
-  }
-
-  // 4. Snake-case direct ID match
-  const snake = norm.replace(/[\s-]+/g, '_');
-  if (SKILL_ID_SET.has(snake)) return [snake];
-  return [];
-}
+// Thin wrapper over the ONE shared resolver (_shared/skill-aliases.ts),
+// injecting this function's library-derived SKILL_ID_SET. Consolidated in
+// step 2 (#511) — the 4-step fallback lives in exactly one place now.
+const resolveSkill = (label: string): string[] => resolveSkillShared(label, SKILL_ID_SET);
 
 // Substring-validate a numeric claim ("3-5 years") against the JD. We do this
 // because the LLM occasionally infers a years requirement from seniority words
