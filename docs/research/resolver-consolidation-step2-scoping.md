@@ -74,15 +74,11 @@ _different_ results. One source of truth is part of the fix.
 - **\_shared caveat:** `skill-aliases.ts` drives ≥2 edge functions (extract, career-analysis) + the
   frontend — a structural change here triggers the **cross-review rule** (CLAUDE.md _shared policy).
 
-## 3. What the 4.5 unmapped skills ACTUALLY are — the fix target ⚠️ DATA REQUIRED (blocked)
+## 3. What the 4.5 unmapped skills ACTUALLY are — the top-50, classified
 
-The coverage lift comes from **growing `SKILL_ALIASES` to map the phrases that really miss** — not
-hypotheticals. Source of truth already exists: `jd_unmapped_skill_counts` (global phrase→count table,
-bumped at `extract:1216`) + `extraction_unmapped_skills` (per-job array, `:1262`).
-
-**Run this and paste the top-50 into the table below before the build is scoped** (the Supabase MCP is
-currently returning `OAuth token does not meet scope requirement user:mcp_servers`, so I could not pull
-it — this is the one blocked input):
+**Pulled live 2026-07-07** (Eli's re-authed Supabase MCP; mine still needs its own re-auth). Source of
+truth: `jd_unmapped_skill_counts` (global phrase→count) + `extraction_unmapped_skills` (per-job array,
+`:1262`). Query used:
 
 ```sql
 -- (a) global top-50 real misses
@@ -95,18 +91,80 @@ where j.jd_language = 'en' and j.extraction_unmapped_skills is not null
 group by 1 order by n desc limit 50;
 ```
 
-_(verify column names — `count` on `jd_unmapped_skill_counts`, `jd_language`/`extraction_unmapped_skills` on `jobs`.)_
+**Classified into three lanes** so the fix targets real misses only:
 
-**Fill-in (the build targets these — leave blank until the query runs):**
+- **A — alias bug** (maps to an existing `skill_library` ID under a different spelling/spacing/snake
+  form) → **part B of THIS PR** (add `SKILL_ALIASES` rows). Resolver-side, no library change.
+- **M — genuinely missing library entry** (no canonical ID yet) → **feeds arc step 3** (role/skill
+  library expansion, draft-then-promote — NOT built here; cross-referenced).
+- **G — too generic to map** (not a discrete skill) → **intentional drop**, added to a resolver
+  drop-list and **EXCLUDED from the coverage denominator** (§5). Never counts as a miss.
 
-| rank | unmapped phrase     | count | disposition (alias-to-ID / new skill_library ID / reject as non-skill) |
-| ---- | ------------------- | ----- | ---------------------------------------------------------------------- |
-| …    | _(pending live DB)_ | …     | …                                                                      |
+`(review)` = a class I inferred rather than one Eli named — confirm before build.
 
-**Disposition rule:** each top-50 phrase becomes either (i) a new `SKILL_ALIASES` entry pointing at an
-existing `01_skill_library` ID, (ii) a genuine new skill ID (a **library** change → the stricter
-cross-review path, and note the "never auto-mutate canonical libraries" rule — emit to a draft), or
-(iii) an explicit reject (contentless / non-skill). No blanket additions.
+| phrase                        | count | class      | disposition                                                      |
+| ----------------------------- | ----- | ---------- | ---------------------------------------------------------------- |
+| technical_support             | 27    | A          | alias → support ID; de-dupes with `technical support`            |
+| verification                  | 27    | G          | generic — drop-list                                              |
+| data science                  | 25    | A          | alias → `data_science`                                           |
+| ai_ml                         | 22    | A          | alias → ai/ml ID                                                 |
+| erp                           | 21    | M          | new ERP entry → step 3                                           |
+| orchestration                 | 20    | G (review) | generic (container/data orchestration) — drop-list               |
+| reporting                     | 20    | G          | generic — drop-list                                              |
+| communication protocols       | 19    | M (review) | networking/embedded → step 3                                     |
+| security research             | 19    | A          | alias → `security_research`                                      |
+| technical support             | 19    | A          | alias → support ID (spacing twin of `technical_support`)         |
+| computer architecture         | 18    | M (review) | systems/chip cluster → step 3                                    |
+| optimization                  | 18    | G          | generic — drop-list                                              |
+| object-oriented design        | 18    | A          | alias → OOP ID                                                   |
+| system verilog                | 18    | M          | chip-design cluster → step 3                                     |
+| lookers                       | 18    | A          | alias → Looker (typo/plural)                                     |
+| synthesis                     | 18    | M          | chip-design cluster → step 3                                     |
+| data_science                  | 17    | A          | alias → `data_science` (snake twin)                              |
+| windows internals             | 17    | M          | OS-internals cluster → step 3                                    |
+| simulation                    | 16    | M (review) | EDA/chip cluster → step 3                                        |
+| scaling                       | 16    | G          | generic — drop-list                                              |
+| integration                   | 16    | G          | generic — drop-list                                              |
+| storage                       | 16    | G (review) | generic (bare "storage") — drop-list                             |
+| security_research             | 16    | A          | alias → `security_research` (snake twin)                         |
+| grpc                          | 15    | M          | new gRPC entry → step 3                                          |
+| manufacturing                 | 15    | M (review) | hardware/manufacturing → step 3                                  |
+| os internals                  | 15    | M          | OS-internals cluster → step 3                                    |
+| robotics                      | 15    | M (review) | new entry → step 3                                               |
+| solidworks                    | 15    | M          | CAD/mechanical → step 3                                          |
+| embedded software development | 15    | A (review) | alias → embedded ID if present; else M                           |
+| groovy                        | 14    | M          | new Groovy entry → step 3                                        |
+| interpersonal skills          | 14    | G (review) | soft-skill filler — drop-list                                    |
+| ui_design                     | 14    | A (review) | alias → ui design ID (snake)                                     |
+| signal processing             | 13    | M (review) | DSP → step 3                                                     |
+| validation                    | 13    | G (review) | generic (twin of `verification`) — drop-list                     |
+| full stack development        | 13    | A (review) | alias → `full_stack`                                             |
+| dagster                       | 13    | M          | new Dagster entry → step 3                                       |
+| performance                   | 13    | G          | generic — drop-list                                              |
+| azure_devops                  | 13    | A (review) | alias → azure devops ID (snake)                                  |
+| system engineering            | 13    | M (review) | systems-engineering → step 3 (A if `systems_engineering` exists) |
+| routing                       | 13    | G (review) | generic (bare "routing") — drop-list                             |
+| analog circuits               | 13    | M          | chip-design cluster → step 3                                     |
+| writing                       | 13    | G          | generic — drop-list                                              |
+| cad                           | 12    | M (review) | mechanical/CAD (with solidworks) → step 3                        |
+| .net core                     | 12    | M          | new .NET Core entry → step 3                                     |
+| priority_erp                  | 12    | M          | ERP cluster → step 3                                             |
+| assembly                      | 12    | M (review) | low-level programming → step 3                                   |
+| object_oriented_programming   | 12    | A          | alias → OOP ID (snake twin of `object-oriented design`)          |
+| authentication                | 12    | M (review) | security skill → step 3 (A if an auth ID exists)                 |
+| unity                         | 12    | M          | new Unity entry → step 3                                         |
+| timing closure                | 12    | M          | chip-design cluster → step 3                                     |
+
+**Tallies:** **A ≈ 14** (alias-bug → part B here) · **M ≈ 24** (missing → step 3) · **G ≈ 12** (generic
+drop, excluded from the coverage denominator). The **chip-design cluster** (system verilog, synthesis,
+timing closure, analog circuits, simulation, computer architecture, signal processing), plus
+**OS-internals** and **CAD/mechanical** (solidworks, cad), are the bulk of M — a coherent step-3
+role/skill expansion; **cross-referenced to arc step 3**.
+
+**Disposition rule:** class A → a `SKILL_ALIASES` row to an existing `01_skill_library` ID (built here).
+Class M → a genuine new skill ID = a **library** change on the draft-then-promote path (never
+auto-mutate the canonical library) — **deferred to step 3**. Class G → an explicit drop-list entry. No
+blanket additions.
 
 ## 4. Migration / reprocess — re-resolution is cheap and needs NO re-extraction
 
@@ -130,10 +188,14 @@ call.**
 - **Consolidation correctness (part A):** a single fixture test asserts the shared resolver returns
   **identical** IDs to all three legacy copies across a corpus of phrases (proves no behavior change from
   de-duplication) — then the legacy copies are deleted.
-- **Coverage lift (part B):** English avg `skill_coverage_ratio` rises from **0.535** to a target set
-  from the top-50 data (propose **≥ 0.70**, confirm once §3 is filled), and **avg unmapped/English-job
-  drops from 4.5** to a target (propose **≤ 2.0**). Every top-50 phrase is dispositioned (aliased / new
-  ID / rejected).
+- **Coverage lift (part B) — measured on the MAPPABLE denominator.** Redefine the target
+  `skill_coverage_ratio` over **mappable** skills only: class-G generic phrases (verification,
+  validation, reporting, optimization, integration, performance, scaling, storage, routing,
+  orchestration, writing, interpersonal skills, …) are **excluded from BOTH numerator and denominator**
+  — a G phrase is never counted as a miss. On that denominator, target English avg **≥ 0.70** (from the
+  current all-in **0.535**) and avg unmapped/English-job **≤ 2.0** (from 4.5). Aliasing every class-A
+  phrase (part B, here) is the lever; class-M phrases raise it further only after step 3 lands the
+  library IDs. Every top-50 phrase must be dispositioned (A alias / M deferred-to-step-3 / G drop-list).
 - **No cross-runtime drift:** the frontend and extractor resolve an identical fixture set identically
   (one ID-set source verified).
 
@@ -153,13 +215,15 @@ call.**
 - **vs #510 (Hebrew routing):** ⚠️ **OVERLAP on `extract-job-requirements/index.ts`.** #510 edits the
   model call / routing (`:31` MODEL const, `:504` call); step 2 deletes `resolveSkill` (`:118`) and
   rewires its call sites (`:1114,:1117,:1194,:1199`). Different regions, **same file** → the two build
-  PRs will conflict if built in parallel. **Sequence them:** land one, rebase the other. (Recommend
-  #510 first — it's smaller and its region is far from the resolver block — then step 2 rebases.)
+  PRs will conflict if built in parallel. **BUILD-ORDER RULE: #510 builds FIRST; #511 rebases onto it.**
+  Shared file `extract-job-requirements/index.ts`, different regions (#510 the model call/routing ~`:31`/
+  `:504`; #511 the resolver block ~`:118`/`:1114–1199`), so the rebase is mechanical. Do **not** build
+  the two against this file in parallel.
 - **Shared-lib note:** step 2 restructures `_shared/skill-aliases.ts` (used by extract +
   generate-career-analysis + frontend) → **cross-review required**; any new `01_skill_library` IDs use
   the draft-then-promote path (never auto-mutate the canonical library).
 
 ---
 
-_Scoping only. HELD for Eli's review. The top-50 real-miss table (§3) is the one blocked input — build
-is gated on it. No code changed._
+_Scoping only. HELD for Eli's review. Top-50 real-miss table pulled + classified (§3); coverage target
+on the mappable denominator (§5); build order fixed (#510 → #511). No code changed._
