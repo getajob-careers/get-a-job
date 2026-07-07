@@ -12,7 +12,6 @@ import PostHogProvider from '@/lib/PostHogProvider';
 import CookieConsentBanner from '@/components/consent/CookieConsentBanner';
 import Login from '@/pages/Login';
 import ResetPassword from '@/pages/ResetPassword';
-import Landing from '@/pages/Landing';
 import Privacy from '@/pages/Privacy';
 import Terms from '@/pages/Terms';
 import FeedbackWidget from '@/components/feedback/FeedbackWidget';
@@ -157,12 +156,14 @@ function App() {
             {/* Public surfaces — rendered OUTSIDE the auth gate and OUTSIDE
                 the dashboard Layout. The homepage is auth-aware (CTAs flip
                 based on session; logged-in visitors auto-bounce to /Home).
-                LandingV2Preview is the live homepage; the previous Landing
-                stays reachable at /Landing for rollback safety and the in-app
-                "show me the marketing page" links (sidebar, settings,
-                onboarding). */}
+                LandingV2Preview is the live homepage. /Landing is the explicit
+                NON-BOUNCING marketing-page route for logged-in users (the /
+                auto-bounce is pathname-gated to "/"); it now renders the SAME
+                LandingV2Preview as /. The old Landing component is retired from
+                routing — its file (src/pages/Landing.jsx) stays on disk for the
+                dead-code ritual. Rollback = revert this PR. */}
             <Route path="/" element={<LandingV2Preview />} />
-            <Route path="/Landing" element={<Landing />} />
+            <Route path="/Landing" element={<LandingV2Preview />} />
             <Route path="/login" element={<Login />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/privacy" element={<Privacy />} />
