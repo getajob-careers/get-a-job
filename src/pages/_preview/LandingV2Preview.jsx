@@ -640,6 +640,21 @@ function setupSnap(lenis) {
         const el = document.querySelector(s);
         if (el && snap.addElement) snap.addElement(el, { align: "start" });
       });
+      // The footer isn't a "stop" like the sections above (it stays its
+      // natural short height, no full-viewport treatment) — but with no snap
+      // point of its own, #final-cta (the last registered point) was the
+      // only candidate anywhere near the bottom, and proximity's pull radius
+      // (38% of viewport) covers the entire remaining scrollable distance
+      // below it, so any attempt to scroll past FinalCTA into the footer
+      // just snapped straight back up. Align "end" — the footer's bottom
+      // flush with the viewport bottom — gives proximity a real competing
+      // point once the user is actually trying to reach the footer, instead
+      // of a top-aligned "stop" like every other registered section.
+      const footerEl = /** @type {HTMLElement | null} */ (
+        document.querySelector(".lv-foot")
+      );
+      if (footerEl && snap.addElement)
+        snap.addElement(footerEl, { align: "end" });
       snapInstance = snap;
       console.info("[landing-v2] snap addon active");
     })
@@ -1015,19 +1030,21 @@ function DropZone({ onUpload }) {
 }
 
 // Hero scale stats. Static literals tied to the current job corpus: the
-// "4,000+" / "350+" counts must be updated BY HAND as the corpus grows, or
-// when stats 1-2 get wired to live counts (the queued landing_stats RPC
-// follow-up). Stats 1-2 animate a count-up; stats 3-4 are text-only (icon plus
-// a line, no number). Text-only stats omit `to`; the render keys off that.
+// "5,700+" / "525+" counts are a manual refresh (per Eli, 2026-07-07) — a
+// stopgap ahead of the planned live-stats automation (landing_stats
+// table/cron). Not dead code: must be updated BY HAND again as the corpus
+// grows, until stats 1-2 get wired to that live source. Stats 1-2 animate a
+// count-up; stats 3-4 are text-only (icon plus a line, no number). Text-only
+// stats omit `to`; the render keys off that.
 const HERO_STATS = [
   {
-    to: 4000,
+    to: 5700,
     suffix: "+",
     label: "live roles",
     icon: "ti-briefcase",
   },
   {
-    to: 350,
+    to: 525,
     suffix: "+",
     label: "companies hiring now",
     icon: "ti-building-skyscraper",
