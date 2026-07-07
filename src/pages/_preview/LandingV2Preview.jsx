@@ -102,7 +102,7 @@ const LV_CSS = `
 .lv-hero { position: relative; min-height: 100vh; display: flex; flex-direction: column; justify-content: center; padding: 80px 0; overflow: hidden; }
 .lv-hero-top { text-align: center; max-width: 880px; margin: 0 auto; }
 .lv-hero h1 { font-family: var(--font-d); font-size: 70px; line-height: .98; letter-spacing: -.04em; font-weight: 800; }
-.lv-hero h1 .accent { color: var(--accent); }
+.lv .accent { color: var(--accent); }
 .lv-hero-sub { font-size: 18.5px; line-height: 1.5; color: var(--ink-soft); max-width: 540px; margin: 22px auto 0; }
 .lv-hero-sub strong { color: var(--ink); font-weight: 600; }
 .lv-hero-meta { display: flex; justify-content: center; gap: 16px; margin-top: 6px; font-size: 12.5px; color: var(--ink-faint); flex-wrap: wrap; }
@@ -182,6 +182,13 @@ const LV_CSS = `
 
 /* section heads */
 .lv-section { padding: 96px 0; }
+/* Full-viewport height + vertical centering, for sections registered with the
+   scroll-snap addon whose own content is shorter than the viewport. Snap
+   aligns each section to its own top edge ("start"), so a short section
+   settles with dead space below it and the next section peeking in at the
+   bottom — it only reads as "centered" if the section fills the viewport and
+   centers its content inside, same recipe .lv-hero already uses. */
+.lv-snap-fit { min-height: 100vh; display: flex; flex-direction: column; justify-content: center; }
 .lv-head { max-width: 640px; margin-bottom: 48px; }
 .lv-head.center { margin-left: auto; margin-right: auto; text-align: center; }
 .lv-head h2 { font-family: var(--font-d); font-size: 44px; line-height: 1.06; letter-spacing: -.03em; font-weight: 700; margin: 14px 0 0; }
@@ -322,12 +329,11 @@ const LV_CSS = `
 
 /* differentiator */
 .lv-diff { background: var(--bg-warm); border-top: 1px solid var(--line-soft); border-bottom: 1px solid var(--line-soft); }
-.lv-diff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
+.lv-diff-intro { max-width: 640px; }
 .lv-diff h2 { font-family: var(--font-d); font-size: 40px; line-height: 1.08; letter-spacing: -.03em; font-weight: 700; margin-bottom: 18px; }
 .lv-diff h2 .strike { color: var(--ink-faint); text-decoration: line-through; text-decoration-color: var(--accent); text-decoration-thickness: 3px; }
 .lv-diff p { font-size: 16px; line-height: 1.6; color: var(--ink-soft); margin-bottom: 14px; }
 .lv-diff p strong { color: var(--ink); font-weight: 600; }
-.lv-diff-visual { position: relative; height: 320px; }
 
 /* how it works — numbered */
 .lv-steps { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
@@ -364,7 +370,7 @@ const LV_CSS = `
 @media (max-width: 980px) {
   .lv-wrap { padding: 0 24px; }
   .lv-hero h1 { font-size: 48px; }
-  .lv-hero-grid, .lv-diff-grid { grid-template-columns: 1fr; gap: 36px; }
+  .lv-hero-grid { grid-template-columns: 1fr; gap: 36px; }
   .lv-orbit { height: 380px; }
   .lv-nav-pill { display: none; }
   .lv-head h2 { font-size: 34px; }
@@ -379,6 +385,158 @@ const LV_CSS = `
   .lv-offer-grid { grid-template-columns: 1fr; }
   .lv-offer.wide { grid-column: span 1; flex-direction: column; align-items: flex-start; gap: 14px; }
   .lv-cred-in { justify-content: center; text-align: center; }
+}
+
+/* ─── merged sections: head-start · solve-the-challenge · memory rows · example result ─── */
+
+/* horizontal card carousels (shared by head-start + solve-the-challenge) */
+.lv-caro { position: relative; }
+.lv-caro-ctrls { display: flex; justify-content: flex-end; gap: 10px; margin-bottom: 20px; }
+.lv-caro-btn { width: 44px; height: 44px; border-radius: 50%; border: 1.5px solid var(--line); background: var(--card); color: var(--ink); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; transition: border-color .15s, background .15s, transform .15s; }
+.lv-caro-btn:hover { border-color: var(--ink); background: var(--bg-warm); transform: translateY(-2px); }
+.lv-caro-btn:disabled { opacity: .35; cursor: default; }
+.lv-caro-btn:disabled:hover { border-color: var(--line); background: var(--card); transform: none; }
+.lv-caro-track { display: flex; gap: 16px; overflow-x: auto; scroll-snap-type: x proximity; padding: 6px 4px 20px; scrollbar-width: none; -ms-overflow-style: none; }
+.lv-caro-track::-webkit-scrollbar { display: none; }
+.lv-caro-track > * { scroll-snap-align: start; flex: 0 0 auto; }
+
+/* head-start cards — each tinted so the carousel reads as colorful, not flat.
+   Cycle is orange/gold/black/white (matches the Hero palette); orange is the
+   same vivid var(--accent) as the Hero's CTA button, not the pale tint, so it
+   reads as a real color instead of a wash. White is a plain light card, used
+   deliberately next to black for contrast. Teal is intentionally absent from
+   this cycle — it only survives as a small internal accent (e.g. a pill tag)
+   inside a preview, never as a card's own background. */
+.lv-hs-card { width: 336px; border: 1px solid var(--line); border-radius: var(--r-lg); padding: 22px; display: flex; flex-direction: column; gap: 14px; transition: transform .2s, box-shadow .2s, border-color .2s; }
+.lv-hs-card:hover { transform: translateY(-4px); box-shadow: 0 20px 46px -22px rgba(28,24,21,.2); }
+/* Ambient glow on hover — same diffused, bled-outward technique as the CV
+   DropZone's hover state (large blur, negative spread, translucent color),
+   just recolored per card tint instead of DropZone's fixed accent. Layered
+   alongside the neutral lift-shadow above rather than replacing it. */
+.lv-hs-card.t-orange:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(239,90,65,.4); }
+.lv-hs-card.t-gold:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(184,132,28,.4); }
+.lv-hs-card.t-ink:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(24,20,16,.5); }
+.lv-hs-card.t-white:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(184,132,28,.22); }
+.lv-hs-card.t-orange { background: var(--accent); border-color: transparent; }
+.lv-hs-card.t-orange .lv-hs-name { color: #fff; }
+.lv-hs-card.t-orange .lv-hs-desc { color: rgba(255,255,255,.78); }
+.lv-hs-card.t-orange .lv-hs-tag { background: rgba(255,255,255,.2); color: #fff; }
+.lv-hs-card.t-orange .lv-hs-preview { background: rgba(255,255,255,.18); }
+.lv-hs-card.t-gold { background: var(--golden-tint); border-color: transparent; }
+.lv-hs-card.t-ink { background: var(--ink-deep); border-color: transparent; }
+.lv-hs-card.t-ink .lv-hs-name { color: #fff; }
+.lv-hs-card.t-ink .lv-hs-desc { color: rgba(255,255,255,.62); }
+.lv-hs-card.t-ink .lv-hs-tag { background: rgba(255,255,255,.14); color: #fff; }
+.lv-hs-card.t-white { background: var(--card); }
+.lv-hs-card.t-white .lv-hs-preview { background: var(--bg-warm); }
+.lv-hs-preview { background: rgba(255,255,255,.6); border-radius: var(--r); padding: 14px; min-height: 168px; display: flex; flex-direction: column; justify-content: center; overflow: hidden; }
+.lv-hs-card.t-ink .lv-hs-preview { background: rgba(255,255,255,.07); }
+.lv-hs-name { font-family: var(--font-d); font-size: 17px; font-weight: 600; letter-spacing: -.01em; }
+.lv-hs-desc { font-size: 13.5px; line-height: 1.5; color: var(--ink-soft); flex: 1; }
+.lv-hs-tag { align-self: flex-start; font-family: var(--font-m); font-size: 9.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; }
+
+/* solve-the-challenge cards — background tint matches the top-border color */
+.lv-ch-card { width: 320px; border: 1px solid var(--line); border-top: 4px solid var(--ink-faint); border-radius: var(--r-lg); padding: 24px; display: flex; flex-direction: column; gap: 13px; transition: transform .2s, box-shadow .2s; }
+.lv-ch-card:hover { transform: translateY(-4px); box-shadow: 0 20px 46px -22px rgba(28,24,21,.2); }
+/* Same DropZone-style ambient glow as .lv-hs-card above, recolored per tint. */
+.lv-ch-card.b-orange:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(239,90,65,.4); }
+.lv-ch-card.b-gold:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(184,132,28,.4); }
+.lv-ch-card.b-black:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(24,20,16,.5); }
+.lv-ch-card.b-white:hover { box-shadow: 0 20px 46px -22px rgba(28,24,21,.2), 0 38px 78px -28px rgba(184,132,28,.22); }
+.lv-ch-card.b-orange { border-top-color: var(--accent); background: var(--accent); border-color: transparent; }
+.lv-ch-card.b-orange .lv-ch-name { color: rgba(255,255,255,.65); }
+.lv-ch-card.b-orange .lv-ch-prob { color: #fff; }
+.lv-ch-card.b-orange .lv-ch-sol { color: rgba(255,255,255,.85); }
+.lv-ch-card.b-orange .lv-ch-cta { color: #fff; }
+.lv-ch-card.b-gold { border-top-color: var(--golden); background: var(--golden-tint); border-color: transparent; }
+.lv-ch-card.b-black { border-top-color: var(--ink-deep); background: var(--ink-deep); border-color: transparent; }
+.lv-ch-card.b-black .lv-ch-name { color: rgba(255,255,255,.5); }
+.lv-ch-card.b-black .lv-ch-prob { color: #fff; }
+.lv-ch-card.b-black .lv-ch-sol { color: rgba(255,255,255,.66); }
+.lv-ch-card.b-white { background: var(--card); border-top-color: var(--ink-faint); }
+.lv-ch-name { font-family: var(--font-m); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
+.lv-ch-prob { font-family: var(--font-d); font-size: 18px; font-weight: 600; line-height: 1.32; letter-spacing: -.01em; }
+.lv-ch-sol { font-size: 13.5px; line-height: 1.55; color: var(--ink-soft); flex: 1; }
+.lv-ch-cta { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; font-family: var(--font-b); font-size: 14px; font-weight: 600; color: var(--accent-deep); background: none; border: none; padding: 0; cursor: pointer; transition: gap .15s; }
+.lv-ch-cta:hover { gap: 10px; }
+
+/* one-memory fan cards — a full-width row of portrait cards. Default state
+   shows just the two-tier title in a compact width; hovering (or focusing,
+   for keyboard users) one card widens it via React state (not a CSS :hover
+   trick — see Differentiator's "hovered" state) so the desc + mockup are
+   revealed while its siblings compress, a horizontal accordion "fan". The
+   revealed content itself is wider than the collapsed card so it's simply
+   clipped by the card's own overflow:hidden until expanded — same clip-and-
+   reveal idea the old up/down accordion used, turned sideways. */
+.lv-mem-fan { display: flex; gap: 14px; margin-top: 44px; height: 460px; width: 100vw; position: relative; left: 50%; right: 50%; margin-left: -50vw; margin-right: -50vw; padding: 0 40px; }
+.lv-mem-card { position: relative; overflow: hidden; min-width: 210px; border-radius: var(--r-lg); background: var(--card); padding: 24px 22px; display: flex; flex-direction: column; cursor: pointer; transition: flex .45s cubic-bezier(.22,.61,.36,1); }
+.lv-mem-card:focus-visible { outline: 2px solid var(--ink); outline-offset: -2px; }
+.lv-mem-card-head { flex-shrink: 0; }
+.lv-mem-card-name { font-family: var(--font-d); font-size: 16px; font-weight: 700; line-height: 1.25; transition: font-size .3s ease; }
+/* Two-tier title: a bold headline phrase ("Log every win") plus a small,
+   muted mono label naming the actual tool underneath ("Story Bank") — same
+   label styling (mono, uppercase, faint) used for .lv-ch-name / .lv-exres-h
+   elsewhere, just placed under the headline instead of above it. Long
+   enough to wrap across lines rather than truncate; compressed by a hovered
+   sibling, the card gets narrow enough that smaller sizes keep the wrap from
+   running too tall against the card's own overflow:hidden. */
+.lv-mem-card-tool { font-family: var(--font-m); font-size: 10.5px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-faint); margin-top: 4px; transition: font-size .3s ease; }
+.lv-mem-card.compressed .lv-mem-card-name { font-size: 12.5px; }
+.lv-mem-card.compressed .lv-mem-card-tool { font-size: 9px; }
+.lv-mem-card-body { margin-top: 22px; min-width: 300px; display: flex; flex-direction: column; flex: 1; min-height: 0; opacity: 0; transition: opacity .2s ease; }
+.lv-mem-card.on .lv-mem-card-body { opacity: 1; transition: opacity .3s ease .12s; }
+.lv-mem-desc { font-size: 14px; line-height: 1.5; color: var(--ink-soft); margin-bottom: 16px; }
+.lv-mem-shot { background: rgba(255,255,255,.55); border-radius: 10px; padding: 14px; flex: 1; overflow: hidden; }
+.lv-mem-card.orange { background: var(--accent); }
+.lv-mem-card.orange .lv-mem-card-name { color: #fff; }
+.lv-mem-card.orange .lv-mem-card-tool { color: rgba(255,255,255,.7); }
+.lv-mem-card.orange .lv-mem-desc { color: rgba(255,255,255,.78); }
+.lv-mem-card.orange .lv-mem-shot { background: rgba(255,255,255,.16); }
+.lv-mem-card.gold { background: var(--golden-tint); }
+.lv-mem-card.black { background: var(--ink-deep); }
+.lv-mem-card.black .lv-mem-card-name { color: #fff; }
+.lv-mem-card.black .lv-mem-card-tool { color: rgba(255,255,255,.55); }
+.lv-mem-card.black .lv-mem-desc { color: rgba(255,255,255,.66); }
+.lv-mem-card.black .lv-mem-shot { background: rgba(255,255,255,.08); }
+.lv-mem-card.white { background: var(--card); border: 1px solid var(--line); }
+.lv-mem-card.white .lv-mem-shot { background: var(--bg-warm); }
+@media (max-width: 980px) {
+  /* Fanning four cards sideways needs real horizontal room — below the same
+     breakpoint the nav collapses at, stack them and let each grow to full
+     width instead. The inline flex style from JS is overridden here since it
+     otherwise beats any stylesheet rule regardless of viewport. */
+  .lv-mem-fan { flex-direction: column; height: auto; padding: 0 24px; }
+  .lv-mem-card { flex: 1 1 auto !important; min-width: 0; }
+  .lv-mem-card-body { min-width: 0; }
+}
+
+/* example result — cycles between a few illustrative personas under the CV
+   drop. Its own keyframe (not the shared lvfade the tool showcase uses):
+   slide + fade + a slight scale-in together read as a more deliberate swap
+   than a flat crossfade. Reduced motion is handled the same way the rest of
+   this component already does — the rotation interval never starts, so the
+   slide never replays after its one-time mount animation. */
+.lv-exres { max-width: 720px; margin: 42px auto 0; }
+.lv-exres-label { font-family: var(--font-m); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--ink-faint); text-align: center; margin-bottom: 14px; }
+.lv-exres-card { background: var(--card); border: 1px solid var(--line); border-radius: var(--r-lg); padding: 28px; box-shadow: 0 26px 64px -34px rgba(28,24,21,.26); overflow: hidden; }
+.lv-exres-slide { animation: lvexresin .5s cubic-bezier(.22,.61,.36,1); }
+@keyframes lvexresin { from { opacity: 0; transform: translateX(22px) scale(.97); } to { opacity: 1; transform: none; } }
+.lv-exres-top { display: flex; gap: 24px; align-items: center; }
+.lv-exres-score { font-family: var(--font-d); font-size: 62px; font-weight: 800; line-height: 1; letter-spacing: -.03em; color: var(--teal); text-align: center; }
+.lv-exres-score-l { font-size: 13px; color: var(--ink-soft); margin-top: 7px; text-align: center; }
+.lv-exres-blurb { font-size: 15px; line-height: 1.55; color: var(--ink-soft); flex: 1; }
+.lv-exres-div { height: 1px; background: var(--line); margin: 22px 0; }
+.lv-exres-h { font-family: var(--font-m); font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); margin-bottom: 12px; }
+.lv-exres-role { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); font-size: 14.5px; font-weight: 600; }
+.lv-exres-role:last-child { border-bottom: none; }
+.lv-exres-rr { display: inline-flex; align-items: center; gap: 12px; }
+.lv-exres-pct { font-family: var(--font-d); color: var(--ink-soft); font-weight: 600; }
+.lv-exres-act { display: flex; align-items: center; gap: 11px; padding: 8px 0; font-size: 14.5px; color: var(--ink); }
+.lv-exres-act i { color: var(--accent); font-size: 17px; flex-shrink: 0; }
+
+@media (max-width: 640px) {
+  .lv-hs-card, .lv-ch-card { width: 260px; }
+  .lv-exres-top { flex-direction: column; text-align: center; gap: 16px; }
 }
 `;
 
@@ -444,10 +602,15 @@ function lvScrollTo(e, target) {
 
 // Section snapping via Lenis's own Snap addon (folds the snap into the scroll
 // physics instead of glide-then-snap). type:"proximity" only snaps when you stop
-// near a snap point, so the long features tour — which has no inner points —
-// stays free-scroll, and so do the short content sections below. We register ONLY
-// the features section — NOT the hero, because snapping back to the top reverses
-// the hero's scroll-recede (the content fades back in, which looks wrong).
+// near a snap point, so free-scrolling within a section (e.g. reading the FAQ)
+// is untouched — it only engages near a registered boundary. Deliberately NOT
+// native CSS scroll-snap: Lenis intercepts wheel input and drives the scroll
+// itself via rAF, so a browser-native re-snap on top of that fights it (two
+// competing writers to scrollTop) and reintroduces the glide-then-snap jank
+// this addon exists to avoid — so every boundary below is registered the same
+// way as the original #features point, not via scroll-snap-type/-align.
+// We do NOT register the hero — snapping back to the top would reverse the
+// hero's scroll-recede (the content fades back in, which looks wrong).
 function setupSnap(lenis) {
   let snap = null;
   let cancelled = false;
@@ -464,7 +627,16 @@ function setupSnap(lenis) {
         easing: (t) =>
           t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2,
       });
-      ["#features"].forEach((s) => {
+      [
+        "#features",
+        "#head-start",
+        "#challenge",
+        "#differentiator",
+        "#how",
+        "#start",
+        "#faq",
+        "#final-cta",
+      ].forEach((s) => {
         const el = document.querySelector(s);
         if (el && snap.addElement) snap.addElement(el, { align: "start" });
       });
@@ -659,6 +831,66 @@ function useStickyProgress(outerRef, steps, setActive) {
   }, [outerRef, steps, setActive]);
 }
 
+// Horizontal card carousel — a plain overflow-x track nudged one card-width
+// per arrow click, honestly bounded at the real first/last card (no cloned
+// duplicates, no loop). An earlier version cloned a couple of cards at each
+// end to fake an infinite loop, but the "align this card to the track's left
+// edge" scrollTo strategy is only reachable when a single card fills the
+// viewport — once more than one card is visible at once (the normal desktop
+// case), the browser's native max-scroll clamps before the cloned end cards
+// can ever be scrolled into that leftmost position, so the loop physically
+// can't engage on wide viewports no matter how the re-centering is wired up.
+// A plain bounded carousel that reliably stops at its real ends beats a loop
+// that silently dead-ends. Arrow buttons disable at each end instead.
+function useCarousel(items) {
+  const ref = useRef(null);
+  const [atStart, setAtStart] = useState(true);
+  const [atEnd, setAtEnd] = useState(items.length <= 1);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const update = () => {
+      // Compare against the first card's own offset, not a hardcoded 0-ish
+      // guess — the track's left padding puts its natural resting position a
+      // few px in, and that resting value differs slightly between a
+      // button-triggered scrollBy and a native wheel/drag scroll.
+      const startSlack = (el.firstElementChild?.offsetLeft ?? 0) + 2;
+      setAtStart(el.scrollLeft <= startSlack);
+      setAtEnd(el.scrollLeft >= el.scrollWidth - el.clientWidth - 2);
+    };
+    update();
+    el.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      el.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, [items]);
+
+  const scrollByCards = (dir) => {
+    const el = ref.current;
+    if (!el) return;
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const behavior = reduce ? "auto" : "smooth";
+    const first = el.firstElementChild;
+    const step = first
+      ? first.getBoundingClientRect().width + 16
+      : el.clientWidth * 0.8;
+    el.scrollBy({ left: dir * step, behavior });
+  };
+
+  return {
+    ref,
+    atStart,
+    atEnd,
+    prev: () => scrollByCards(-1),
+    next: () => scrollByCards(1),
+  };
+}
+
 // ────────────────────────────────────────────────────────────────────────
 function Nav({ isLoggedIn, onCTA, onLogin }) {
   const [scrolled, setScrolled] = useState(false);
@@ -782,17 +1014,16 @@ function DropZone({ onUpload }) {
   );
 }
 
-// Hero scale stats. Static literals tied to the IL-only job corpus: the
-// "4,000+" / "350+" counts AND the "in Israel" wording must be updated BY HAND
-// when the corpus expands beyond Israel, or when stats 1-2 get wired to live
-// counts (the queued landing_stats RPC follow-up). Stats 1-2 animate a
-// count-up; stats 3-4 are text-only (icon plus a line, no number). Text-only
-// stats omit `to`; the render keys off that.
+// Hero scale stats. Static literals tied to the current job corpus: the
+// "4,000+" / "350+" counts must be updated BY HAND as the corpus grows, or
+// when stats 1-2 get wired to live counts (the queued landing_stats RPC
+// follow-up). Stats 1-2 animate a count-up; stats 3-4 are text-only (icon plus
+// a line, no number). Text-only stats omit `to`; the render keys off that.
 const HERO_STATS = [
   {
     to: 4000,
     suffix: "+",
-    label: "live roles in Israel",
+    label: "live roles",
     icon: "ti-briefcase",
   },
   {
@@ -902,9 +1133,11 @@ function Hero({ onCTA }) {
       <div className="lv-wrap">
         <div className="lv-hero-top">
           <h1 className="lv-reveal">
-            Your whole job search.
+            Everything you need to
             <br />
-            <span className="accent">One place that knows you.</span>
+            <span className="accent">get a job,</span>
+            <br />
+            all in one place.
           </h1>
           <p className="lv-hero-sub lv-reveal" data-d="1">
             A ranked roadmap, CVs tailored to each job, and live matches, all
@@ -945,6 +1178,209 @@ function Hero({ onCTA }) {
 
 // The CV upload, its own section, placed after the feature tour so the value is
 // shown before the ask.
+// A few illustrative personas the example-result card cycles through — never
+// real user data, just proof-of-concept variety. Every variant keeps the same
+// "illustrative only" label (rendered once, outside the crossfade, so it
+// always applies regardless of which persona is showing).
+const EXAMPLE_RESULTS = [
+  {
+    persona: "Jonathan Charles, Product",
+    score: 78,
+    blurb:
+      "Based on a sample CV: strong overlap with product and analyst roles, a few quick wins away from your top matches.",
+    roles: [
+      { role: "Associate PM", pct: "82%", band: "Sweet spot", cls: "tag-t1" },
+      {
+        role: "Business Analyst",
+        pct: "71%",
+        band: "Sweet spot",
+        cls: "tag-t1",
+      },
+      { role: "Growth Marketing", pct: "58%", band: "Growth", cls: "tag-t3" },
+    ],
+    actions: [
+      "Tailor your CV for Associate PM at Google",
+      "Add 2 more quantified wins to your Story Bank",
+      "Apply to 3 new matches this week",
+    ],
+  },
+  {
+    persona: "Adam Miller, Ops",
+    score: 81,
+    blurb:
+      "Based on a sample CV: a strong operations background that reads even stronger once it's angled toward business analyst and data-facing roles.",
+    roles: [
+      {
+        role: "Business Analyst",
+        pct: "84%",
+        band: "Sweet spot",
+        cls: "tag-t1",
+      },
+      { role: "Data Analyst", pct: "76%", band: "Sweet spot", cls: "tag-t1" },
+      { role: "Operations Lead", pct: "63%", band: "Growth", cls: "tag-t3" },
+    ],
+    actions: [
+      "Tailor your CV for Business Analyst at Microsoft",
+      "Add a quantified win about a dashboard you shipped",
+      "Apply to 2 new matches this week",
+    ],
+  },
+  {
+    persona: "Joseph Green, Growth",
+    score: 79,
+    blurb:
+      "Based on a sample CV: strong growth and ops signal, one step from a clean pivot into product.",
+    roles: [
+      {
+        role: "Growth Marketing",
+        pct: "80%",
+        band: "Sweet spot",
+        cls: "tag-t1",
+      },
+      { role: "Associate PM", pct: "70%", band: "Sweet spot", cls: "tag-t1" },
+      { role: "Business Analyst", pct: "62%", band: "Growth", cls: "tag-t3" },
+    ],
+    actions: [
+      "Tailor your CV for Growth Marketing at Adobe",
+      "Capture a story about a process you improved",
+      "Apply to 4 new matches this week",
+    ],
+  },
+  {
+    persona: "Sarah Bennett, Sales",
+    score: 86,
+    blurb:
+      "Based on a sample CV: a track record that converts cleanly into account management and business development, with room to grow into customer success too.",
+    roles: [
+      {
+        role: "Account Executive",
+        pct: "89%",
+        band: "Sweet spot",
+        cls: "tag-t1",
+      },
+      {
+        role: "Business Development Rep",
+        pct: "81%",
+        band: "Sweet spot",
+        cls: "tag-t1",
+      },
+      {
+        role: "Customer Success Manager",
+        pct: "67%",
+        band: "Growth",
+        cls: "tag-t3",
+      },
+    ],
+    actions: [
+      "Tailor your CV for Account Executive at Salesforce",
+      "Add a quantified win about a quota or deal you closed",
+      "Apply to 3 new matches this week",
+    ],
+  },
+  {
+    persona: "Michael Turner, Data",
+    score: 91,
+    blurb:
+      "Based on a sample CV: excellent overlap with data and BI roles — your analysis and tooling background is exactly what these teams are hiring for.",
+    roles: [
+      { role: "Data Analyst", pct: "93%", band: "Sweet spot", cls: "tag-t1" },
+      { role: "BI Analyst", pct: "85%", band: "Sweet spot", cls: "tag-t1" },
+      {
+        role: "Product Analyst",
+        pct: "72%",
+        band: "Growth",
+        cls: "tag-t3",
+      },
+    ],
+    actions: [
+      "Tailor your CV for Data Analyst at Deloitte",
+      "Add a quantified win about a model or dashboard you built",
+      "Apply to 5 new matches this week",
+    ],
+  },
+  {
+    persona: "Rachel Adams, Design",
+    score: 84,
+    blurb:
+      "Based on a sample CV: a strong design portfolio and process, already reading well for product design roles with UX research close behind.",
+    roles: [
+      {
+        role: "Product Designer",
+        pct: "87%",
+        band: "Sweet spot",
+        cls: "tag-t1",
+      },
+      {
+        role: "UX Researcher",
+        pct: "77%",
+        band: "Sweet spot",
+        cls: "tag-t1",
+      },
+      { role: "Brand Designer", pct: "65%", band: "Growth", cls: "tag-t3" },
+    ],
+    actions: [
+      "Tailor your CV for Product Designer at Spotify",
+      "Add a case study walkthrough to your Story Bank",
+      "Apply to 3 new matches this week",
+    ],
+  },
+];
+
+// Cycles the example-result card through EXAMPLE_RESULTS every 5s, crossfading
+// via the same lvfade keyframe the tool showcase already uses for its
+// per-tool crossfade (key={idx} remounts .lv-exres-slide, retriggering it).
+// Reduced motion: skip the auto-advance entirely (stays on the first persona)
+// rather than keep silently swapping content behind the user's back.
+function ExampleResult() {
+  const [idx, setIdx] = useState(0);
+  useEffect(() => {
+    const reduce = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    if (reduce) return undefined;
+    const id = setInterval(() => {
+      setIdx((i) => (i + 1) % EXAMPLE_RESULTS.length);
+    }, 5000);
+    return () => clearInterval(id);
+  }, []);
+  const r = EXAMPLE_RESULTS[idx];
+  return (
+    <div className="lv-exres lv-reveal" data-d="3">
+      <div className="lv-exres-label">Example result — illustrative only</div>
+      <div className="lv-exres-card">
+        <div className="lv-exres-slide" key={idx}>
+          <div className="lv-exres-top">
+            <div>
+              <div className="lv-exres-score">{r.score}</div>
+              <div className="lv-exres-score-l">Readiness score</div>
+            </div>
+            <p className="lv-exres-blurb">{r.blurb}</p>
+          </div>
+          <div className="lv-exres-div" />
+          <div className="lv-exres-h">Matched roles</div>
+          {r.roles.map((row) => (
+            <div className="lv-exres-role" key={row.role}>
+              <span>{row.role}</span>
+              <span className="lv-exres-rr">
+                <span className="lv-exres-pct">{row.pct}</span>
+                <span className={`lv-sc-pill ${row.cls}`}>{row.band}</span>
+              </span>
+            </div>
+          ))}
+          <div className="lv-exres-div" />
+          <div className="lv-exres-h">Suggested actions</div>
+          {r.actions.map((a) => (
+            <div className="lv-exres-act" key={a}>
+              <i className="ti ti-arrow-right" />
+              {a}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DropSection({ onUpload }) {
   return (
     <section className="lv-section lv-dropsec lv-clip" id="start">
@@ -990,6 +1426,7 @@ function DropSection({ onUpload }) {
             <i className="ti ti-check" /> Delete anytime
           </span>
         </div>
+        <ExampleResult />
       </div>
     </section>
   );
@@ -1037,7 +1474,7 @@ const FEATURES = [
     url: "getajob.careers/CVAgent",
     screen: (
       <>
-        <div className="lv-sc-eye">Tailored · Associate PM at Tavor</div>
+        <div className="lv-sc-eye">Tailored · Associate PM at Cisco</div>
         <div
           style={{
             background: "var(--card)",
@@ -1054,20 +1491,26 @@ const FEATURES = [
               marginBottom: 13,
             }}
           >
-            Maya Levi, Product
+            Jonathan Charles, Product
           </div>
-          {[100, 90].map((w) => (
-            <div
-              key={w}
-              style={{
-                height: 7,
-                width: `${w}%`,
-                background: "var(--bg-warm)",
-                borderRadius: 99,
-                marginBottom: 10,
-              }}
-            />
-          ))}
+          <div
+            style={{
+              fontSize: 12.5,
+              fontWeight: 600,
+              color: "var(--ink)",
+            }}
+          >
+            Product Analyst · Cisco
+          </div>
+          <div
+            style={{
+              fontSize: 11,
+              color: "var(--ink-faint)",
+              marginBottom: 13,
+            }}
+          >
+            2022 – Present
+          </div>
           {[
             "Partnered with engineering to ship a new customer intake workflow",
             "Turned recurring support themes into a prioritised product backlog",
@@ -1091,17 +1534,21 @@ const FEATURES = [
               {t}
             </div>
           ))}
-          {[86, 68].map((w) => (
+          {[
+            "Owned the onboarding metrics dashboard used by 4 teams",
+            "Ran quarterly product reviews with engineering and design",
+          ].map((t) => (
             <div
-              key={w}
+              key={t}
               style={{
-                height: 7,
-                width: `${w}%`,
-                background: "var(--bg-warm)",
-                borderRadius: 99,
-                marginBottom: 10,
+                fontSize: 11.5,
+                color: "var(--ink-soft)",
+                padding: "6px 0",
+                borderBottom: "1px solid var(--line-soft)",
               }}
-            />
+            >
+              {t}
+            </div>
           ))}
         </div>
       </>
@@ -1119,7 +1566,7 @@ const FEATURES = [
           [
             "A",
             "Associate PM",
-            "Tavor · Tel Aviv",
+            "Palo Alto Networks · Remote",
             "Strong match",
             "var(--teal)",
             "var(--teal-tint)",
@@ -1127,7 +1574,7 @@ const FEATURES = [
           [
             "K",
             "Product Analyst",
-            "Keshet Labs · Tel Aviv",
+            "SAP · Hybrid",
             "Strong match",
             "var(--teal)",
             "var(--teal-tint)",
@@ -1135,7 +1582,7 @@ const FEATURES = [
           [
             "N",
             "Business Analyst",
-            "Nimbus IL · Ramat Gan",
+            "Netflix · On-site",
             "Good match",
             "var(--golden)",
             "var(--golden-tint)",
@@ -1192,10 +1639,10 @@ const FEATURES = [
           }}
         >
           {[
-            ["Saved", "var(--ink-faint)", ["Tavor", "Keshet Labs"]],
-            ["Applied", "var(--golden)", ["Nimbus IL", "Arava Systems"]],
-            ["Interview", "var(--teal)", ["Galil Digital"]],
-            ["Offer", "var(--accent)", ["Shoval"]],
+            ["Saved", "var(--ink-faint)", ["Adobe", "Qualcomm"]],
+            ["Applied", "var(--golden)", ["Cisco", "SAP"]],
+            ["Interview", "var(--teal)", ["PayPal"]],
+            ["Offer", "var(--accent)", ["Stripe"]],
           ].map(([label, dot, cards]) => (
             <div
               key={label}
@@ -1281,7 +1728,7 @@ const FEATURES = [
               maxWidth: "82%",
             }}
           >
-            What should I do next for the Associate PM role at Tavor?
+            What should I do next for the Associate PM role at Google?
           </div>
         </div>
         <div style={{ display: "flex", gap: 9, marginBottom: 13 }}>
@@ -1351,7 +1798,7 @@ const FEATURES = [
     icon: "ti-browser",
     name: "In your browser",
     desc: "Tailor a CV on any job posting, without leaving the page.",
-    url: "careers.tavor.com",
+    url: "careers.ibm.com",
     soon: true,
     screen: (
       <div style={{ position: "relative", minHeight: 250 }}>
@@ -1369,7 +1816,7 @@ const FEATURES = [
               marginBottom: 10,
             }}
           >
-            Tavor · Careers
+            IBM · Careers
           </div>
           <div
             style={{
@@ -1386,7 +1833,7 @@ const FEATURES = [
           <div
             style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 15 }}
           >
-            Tavor · Tel Aviv
+            IBM · Remote
           </div>
           <div
             style={{
@@ -1409,7 +1856,7 @@ const FEATURES = [
             }}
           >
             {
-              "Help shape Tavor's product from discovery to launch, with design and engineering."
+              "Help shape IBM's product from discovery to launch, with design and engineering."
             }
           </p>
           <div
@@ -1522,6 +1969,109 @@ const FEATURES = [
       </div>
     ),
   },
+  {
+    icon: "ti-brand-linkedin",
+    name: "LinkedIn tools",
+    desc: "Optimize your profile and get coached before you hit send.",
+    url: "getajob.careers/Linkedin",
+    screen: (
+      <>
+        <div className="lv-sc-eye">LinkedIn · profile &amp; outreach</div>
+        <div style={{ display: "flex", gap: 7, marginBottom: 13 }}>
+          {[
+            { label: "Current", on: false },
+            { label: "Optimized", on: true },
+          ].map(({ label, on }) => (
+            <span
+              key={label}
+              style={{
+                fontFamily: "var(--font-m)",
+                fontSize: 11,
+                fontWeight: 600,
+                padding: "5px 12px",
+                borderRadius: 999,
+                background: on ? "var(--accent)" : "var(--bg-warm)",
+                color: on ? "#fff" : "var(--ink-soft)",
+              }}
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+        <div
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--line)",
+            borderRadius: 12,
+            padding: 16,
+            marginBottom: 11,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--font-d)",
+              fontWeight: 700,
+              fontSize: 14,
+              marginBottom: 6,
+            }}
+          >
+            Product-minded operator | ex-Ops
+          </div>
+          <p
+            style={{ fontSize: 12, lineHeight: 1.5, color: "var(--ink-soft)" }}
+          >
+            Rewritten headline and About section, pulled from the same stories
+            as your CV.
+          </p>
+        </div>
+        <div
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--line)",
+            borderRadius: 12,
+            padding: 14,
+          }}
+        >
+          <div style={{ display: "flex", gap: 9, marginBottom: 10 }}>
+            <span
+              className="lv-sc-sq"
+              style={{
+                background: "var(--bg-warm)",
+                color: "var(--ink)",
+                flexShrink: 0,
+              }}
+            >
+              in
+            </span>
+            <div
+              style={{
+                background: "var(--bg-warm)",
+                borderRadius: 9,
+                padding: "9px 12px",
+                fontSize: 12.5,
+                fontWeight: 600,
+              }}
+            >
+              Congrats on the launch!
+            </div>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              fontSize: 12,
+              fontWeight: 600,
+              color: "var(--teal)",
+            }}
+          >
+            <i className="ti ti-circle-check" style={{ fontSize: 15 }} />
+            Sounds genuine and on-brand — safe to post.
+          </div>
+        </div>
+      </>
+    ),
+  },
 ];
 
 // Benefit bullets for the right-hand explainer, index-aligned with FEATURES.
@@ -1537,7 +2087,7 @@ const FEATURE_POINTS = [
     "Fully editable before you send",
   ],
   [
-    "Live openings across the Israeli market",
+    "Live openings from real company career pages",
     "Matched to your fit, refreshed daily",
     "Filter by track, company and location",
   ],
@@ -1555,6 +2105,11 @@ const FEATURE_POINTS = [
     "Works on any company career page",
     "Paste a job, get a tailored CV",
     "Coming soon to the Chrome Web Store",
+  ],
+  [
+    "Rewrites your headline, About and experience",
+    "Comment coach checks tone before you post",
+    "Built from the same profile as everything else",
   ],
 ];
 
@@ -1588,10 +2143,10 @@ function FeatureExplorer() {
         <div className="lv-wrap">
           <div className="lv-head center">
             <div className="lv-eyebrow">Everything in one place</div>
-            <h2>One workspace. It all knows you.</h2>
+            <h2>One workspace, one memory, always in sync.</h2>
             <p>
-              Six tools, one shared memory of your background, keep scrolling to
-              move through them.
+              Seven tools, one shared memory of your background. Scroll to move
+              through them, or click a tool to jump straight there.
             </p>
           </div>
         </div>
@@ -1665,9 +2220,1131 @@ function FeatureExplorer() {
   );
 }
 
-function Differentiator() {
+// "Get a head start" overview cards. Each card carries a small illustrative
+// preview (built inline, the same way the FEATURES screens are), a description
+// and a tag. Order mirrors the showcase above.
+const HEAD_START = [
+  {
+    name: "Not sure which roles actually fit you?",
+    desc: "Stop guessing from job titles alone. Every open role gets ranked against your real profile — skills, experience, and goals — so you know exactly which ones are a real shot before you spend an hour tailoring a CV.",
+    tag: "Ranked by fit",
+    tagClass: "tag-t1",
+    preview: (
+      <div style={{ textAlign: "center", padding: "10px 0 4px" }}>
+        <div
+          style={{
+            fontFamily: "var(--font-m)",
+            fontSize: 9,
+            letterSpacing: ".05em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,.7)",
+            marginBottom: 12,
+          }}
+        >
+          Your #1 match this week
+        </div>
+        <div
+          style={{
+            fontFamily: "var(--font-d)",
+            fontWeight: 800,
+            fontSize: 36,
+            letterSpacing: "-.02em",
+          }}
+        >
+          72%
+        </div>
+        <div
+          style={{
+            fontFamily: "var(--font-d)",
+            fontWeight: 600,
+            fontSize: 14,
+            marginTop: 2,
+          }}
+        >
+          Associate PM
+        </div>
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 5,
+            marginTop: 12,
+            fontSize: 10.5,
+            color: "var(--teal)",
+            fontWeight: 600,
+          }}
+        >
+          <i className="ti ti-arrow-up" style={{ fontSize: 13 }} />
+          Up from 58% last month
+        </div>
+      </div>
+    ),
+  },
+  {
+    name: "Just graduated, CV still generic?",
+    desc: "A CV that reads like a template gets ignored. Get a fresh version for every application, rewritten from your actual experience and accomplishments — never invented, just reframed to match what that specific job is asking for.",
+    tag: "AI-written",
+    tagClass: "tag-t2",
+    preview: (
+      <div>
+        <div
+          style={{
+            fontFamily: "var(--font-m)",
+            fontSize: 9,
+            letterSpacing: ".05em",
+            textTransform: "uppercase",
+            color: "var(--ink-faint)",
+            marginBottom: 9,
+          }}
+        >
+          Before → after
+        </div>
+        <div
+          style={{
+            fontSize: 11.5,
+            color: "var(--ink-faint)",
+            textDecoration: "line-through",
+            marginBottom: 8,
+            padding: "7px 10px",
+            background: "var(--bg-warm)",
+            borderRadius: 6,
+          }}
+        >
+          Worked on internal support tools
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: 8,
+          }}
+        >
+          <i
+            className="ti ti-arrow-down"
+            style={{ color: "var(--ink-faint)", fontSize: 14 }}
+          />
+        </div>
+        <div
+          style={{
+            background: "var(--accent-tint)",
+            color: "var(--accent-deep)",
+            fontSize: 11.5,
+            fontWeight: 600,
+            borderRadius: 6,
+            padding: "8px 11px",
+          }}
+        >
+          <i
+            className="ti ti-sparkles"
+            style={{ fontSize: 11, marginRight: 5 }}
+          />
+          Shipped a new intake workflow used by 4 teams
+        </div>
+      </div>
+    ),
+  },
+  {
+    name: "Found a role, want in fast?",
+    desc: "The good ones don't stay open long. Thousands of live openings are pulled straight from company career pages, refreshed every night and scored against your profile, so you know which ones are worth acting on right now.",
+    tag: "Live data",
+    tagClass: "tag-t1",
+    preview: (
+      <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            marginBottom: 14,
+          }}
+        >
+          <span
+            className="lv-sc-sq"
+            style={{ background: "var(--teal-tint)", color: "var(--teal)" }}
+          >
+            <i className="ti ti-bell" style={{ fontSize: 16 }} />
+          </span>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: 13, color: "#fff" }}>
+              4 new matches overnight
+            </div>
+            <div style={{ fontSize: 10.5, color: "rgba(255,255,255,.6)" }}>
+              Refreshed at 2:00 AM
+            </div>
+          </div>
+        </div>
+        <div className="lv-sc-row">
+          <span
+            style={{ display: "inline-flex", alignItems: "center", gap: 9 }}
+          >
+            <span
+              className="lv-sc-sq"
+              style={{
+                background: "var(--accent-tint)",
+                color: "var(--accent-deep)",
+              }}
+            >
+              N
+            </span>
+            <span>
+              <span style={{ display: "block" }}>Business Analyst</span>
+              <span
+                style={{
+                  display: "block",
+                  fontSize: 10.5,
+                  fontWeight: 400,
+                  color: "var(--ink-faint)",
+                }}
+              >
+                PayPal
+              </span>
+            </span>
+          </span>
+          <span className="lv-sc-pill tag-t1">92% fit</span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    name: "Applying everywhere, losing track?",
+    desc: "Spreadsheets and browser tabs lose track fast. One board holds every application from saved to interview to offer, with the next step for each one already attached — nothing falls through the cracks.",
+    tag: "Saved → offer",
+    tagClass: "tag-t3",
+    preview: (
+      <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 16,
+          }}
+        >
+          <div style={{ flex: 1, textAlign: "center" }}>
+            <div
+              style={{
+                fontSize: 9,
+                fontWeight: 600,
+                color: "var(--ink-faint)",
+                marginBottom: 5,
+              }}
+            >
+              APPLIED
+            </div>
+            <div
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 99,
+                background: "var(--golden)",
+                margin: "0 auto",
+              }}
+            />
+          </div>
+          <i
+            className="ti ti-arrow-right"
+            style={{ color: "var(--ink-faint)", fontSize: 14 }}
+          />
+          <div style={{ flex: 1, textAlign: "center" }}>
+            <div
+              style={{
+                fontSize: 9,
+                fontWeight: 700,
+                color: "var(--teal)",
+                marginBottom: 5,
+              }}
+            >
+              INTERVIEW
+            </div>
+            <div
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: 99,
+                background: "var(--teal)",
+                margin: "0 auto",
+              }}
+            />
+          </div>
+        </div>
+        <div
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--line)",
+            borderRadius: 8,
+            padding: "11px 13px",
+          }}
+        >
+          <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 3 }}>
+            Snowflake
+          </div>
+          <div style={{ fontSize: 10.5, color: "var(--ink-soft)" }}>
+            Moved to Interview · 2 days ago
+          </div>
+        </div>
+      </div>
+    ),
+  },
+  {
+    name: "Don't know what to do today?",
+    desc: "Some days the next step isn't obvious. An assistant that knows your roadmap, pipeline, and stories tells you the one concrete thing to do next — and helps you actually do it.",
+    tag: "Always on",
+    tagClass: "tag-t1",
+    preview: (
+      <div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: 12,
+          }}
+        >
+          <span
+            className="lv-sc-sq"
+            style={{
+              background: "var(--ink-deep)",
+              color: "#fff",
+              width: 24,
+              height: 24,
+              flexShrink: 0,
+            }}
+          >
+            <i className="ti ti-sparkles" style={{ fontSize: 11 }} />
+          </span>
+          <div
+            style={{
+              fontSize: 11,
+              color: "rgba(255,255,255,.7)",
+              fontWeight: 600,
+            }}
+          >
+            Today's move
+          </div>
+        </div>
+        <div
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--line)",
+            borderRadius: 10,
+            padding: "11px 13px",
+            marginBottom: 10,
+          }}
+        >
+          <div style={{ fontWeight: 600, fontSize: 12.5 }}>
+            Apply to PayPal's Business Analyst role
+          </div>
+          <div
+            style={{ fontSize: 10.5, color: "var(--ink-soft)", marginTop: 4 }}
+          >
+            Posted 6 hours ago — matches your top skills
+          </div>
+        </div>
+        <span className="lv-sc-pill tag-t1" style={{ fontSize: 10 }}>
+          Streak: 12 days
+        </span>
+      </div>
+    ),
+  },
+  {
+    name: "Job hunting across a dozen tabs?",
+    desc: "Switching between the posting and your CV gets old fast. Paste the job description into a side panel right on the posting itself, and get a CV tailored to that exact role back in seconds — without ever leaving the page.",
+    tag: "Coming soon",
+    tagClass: "tag-t3",
+    preview: (
+      <div
+        style={{ background: "var(--ink-deep)", borderRadius: 10, padding: 12 }}
+      >
+        <div style={{ display: "flex", gap: 5, marginBottom: 11 }}>
+          {[0, 1, 2].map((i) => (
+            <div
+              key={i}
+              style={{
+                flex: 1,
+                height: 20,
+                borderRadius: "6px 6px 0 0",
+                background:
+                  i === 1 ? "rgba(255,255,255,.14)" : "rgba(255,255,255,.05)",
+              }}
+            />
+          ))}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            background: "rgba(255,255,255,.06)",
+            border: "1px solid rgba(255,255,255,.14)",
+            borderRadius: 8,
+            padding: "9px 10px",
+          }}
+        >
+          <span
+            style={{
+              width: 8,
+              height: 8,
+              borderRadius: 99,
+              background: "var(--accent)",
+              flexShrink: 0,
+            }}
+          />
+          <span
+            style={{
+              fontSize: 10,
+              color: "rgba(255,255,255,.62)",
+              flex: 1,
+            }}
+          >
+            Job posting detected
+          </span>
+          <span
+            style={{
+              background: "var(--accent)",
+              color: "#fff",
+              fontSize: 9.5,
+              fontWeight: 700,
+              borderRadius: 6,
+              padding: "5px 8px",
+              whiteSpace: "nowrap",
+            }}
+          >
+            Tailor CV
+          </span>
+        </div>
+      </div>
+    ),
+  },
+  {
+    name: "Profile's stale, network's quiet?",
+    desc: "A headline you wrote two jobs ago won't open doors today. Rewrite it and your About section from the same accomplishments as your CV, then get your outreach messages checked for tone before you hit send.",
+    tag: "Networking",
+    tagClass: "tag-t2",
+    preview: (
+      <div
+        style={{
+          background: "var(--card)",
+          border: "1px solid var(--line)",
+          borderRadius: 10,
+          padding: 13,
+        }}
+      >
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 10,
+          }}
+        >
+          <div>
+            <div
+              style={{
+                fontFamily: "var(--font-m)",
+                fontSize: 9,
+                letterSpacing: ".05em",
+                textTransform: "uppercase",
+                color: "var(--ink-faint)",
+              }}
+            >
+              Profile views
+            </div>
+            <div
+              style={{
+                fontFamily: "var(--font-d)",
+                fontWeight: 800,
+                fontSize: 26,
+                letterSpacing: "-.01em",
+              }}
+            >
+              +40%
+            </div>
+          </div>
+          <i
+            className="ti ti-trending-up"
+            style={{ fontSize: 28, color: "var(--teal)" }}
+          />
+        </div>
+        <div
+          style={{
+            fontSize: 10.5,
+            color: "var(--ink-soft)",
+            marginBottom: 10,
+          }}
+        >
+          Since optimizing your headline 2 weeks ago
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            fontSize: 11,
+            fontWeight: 600,
+            color: "var(--teal)",
+          }}
+        >
+          <i className="ti ti-circle-check" style={{ fontSize: 14 }} />3
+          recruiters viewed this week
+        </div>
+      </div>
+    ),
+  },
+];
+
+// Strict repeating 4-color cycle, by card position, reused across every
+// carousel/row set below: coral, gold, teal, black.
+const HS_TINT_CYCLE = ["t-orange", "t-gold", "t-ink", "t-white"];
+
+function HeadStart() {
+  const { ref, atStart, atEnd, prev, next } = useCarousel(HEAD_START);
   return (
-    <section className="lv-section lv-diff lv-clip lv-fade">
+    <section className="lv-section lv-clip" id="head-start">
+      <div
+        className="lv-deco lv-griddots"
+        data-parallax="0.13"
+        style={{ width: 132, height: 132, top: 40, right: -30 }}
+        aria-hidden="true"
+      />
+      <div className="lv-wrap">
+        <div className="lv-head lv-reveal">
+          <div className="lv-eyebrow">Get a head start</div>
+          <h2>Get a head start on your career.</h2>
+          <p>
+            One profile, seven tools — pick whichever one matches where you're
+            stuck right now.
+          </p>
+        </div>
+        <div className="lv-caro lv-reveal" data-d="1">
+          <div className="lv-caro-ctrls">
+            <button
+              type="button"
+              className="lv-caro-btn"
+              aria-label="Previous cards"
+              onClick={prev}
+              disabled={atStart}
+            >
+              <i className="ti ti-arrow-left" />
+            </button>
+            <button
+              type="button"
+              className="lv-caro-btn"
+              aria-label="Next cards"
+              onClick={next}
+              disabled={atEnd}
+            >
+              <i className="ti ti-arrow-right" />
+            </button>
+          </div>
+          <div className="lv-caro-track" ref={ref}>
+            {HEAD_START.map((c, i) => (
+              <div
+                className={`lv-hs-card ${HS_TINT_CYCLE[i % 4]}`}
+                key={c.name}
+              >
+                <div className="lv-hs-preview">{c.preview}</div>
+                <div className="lv-hs-name">{c.name}</div>
+                <div className="lv-hs-desc">{c.desc}</div>
+                <span className={`lv-hs-tag ${c.tagClass}`}>{c.tag}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// "Solve the challenge" problem/solution cards. Each names a pain, answers it,
+// and offers a CTA that opens the same signup funnel as every other CTA.
+const CH_BORDER_CYCLE = ["b-orange", "b-gold", "b-black", "b-white"];
+
+const CHALLENGES = [
+  {
+    name: "Roadmap",
+    prob: "You don't know which roles you're actually qualified for.",
+    sol: "Every open role is ranked against your real profile, so you stop guessing and start applying where you have a real shot.",
+    cta: "See your roadmap",
+  },
+  {
+    name: "CVs",
+    prob: "Rewriting your CV for every job takes hours you don't have.",
+    sol: "Get a version tailored to each posting in minutes, pulled from your real, matching experience — never invented.",
+    cta: "Try tailored CVs",
+  },
+  {
+    name: "LinkedIn",
+    prob: "Your profile and outreach don't reflect what you can actually do.",
+    sol: "Optimize your profile and get coached on networking messages before you hit send, from the same profile as everything else.",
+    cta: "Optimize your profile",
+  },
+  {
+    name: "Application tracking",
+    prob: "Spreadsheets and browser tabs lose track of where you actually stand.",
+    sol: "One pipeline board holds every application from saved to offer, with next steps attached.",
+    cta: "See your pipeline",
+  },
+  {
+    name: "Daily focus",
+    prob: "Some days you have no idea what to do next.",
+    sol: "Your coach suggests the one next move each day, built from real gaps in your roadmap.",
+    cta: "Meet your coach",
+  },
+];
+
+function SolveChallenge({ onCTA }) {
+  const { ref, atStart, atEnd, prev, next } = useCarousel(CHALLENGES);
+  return (
+    <section className="lv-section lv-clip" id="challenge">
+      <div
+        className="lv-deco lv-ring dash"
+        data-parallax="-0.14"
+        style={{ width: 200, height: 200, bottom: -50, left: -50 }}
+        aria-hidden="true"
+      />
+      <div className="lv-wrap">
+        <div className="lv-head lv-reveal">
+          <div className="lv-eyebrow">The honest problem</div>
+          <h2>Solve the challenge of job-searching.</h2>
+          <p>
+            Five things that make job searching miserable — and how one
+            connected profile fixes each.
+          </p>
+        </div>
+        <div className="lv-caro lv-reveal" data-d="1">
+          <div className="lv-caro-ctrls">
+            <button
+              type="button"
+              className="lv-caro-btn"
+              aria-label="Previous cards"
+              onClick={prev}
+              disabled={atStart}
+            >
+              <i className="ti ti-arrow-left" />
+            </button>
+            <button
+              type="button"
+              className="lv-caro-btn"
+              aria-label="Next cards"
+              onClick={next}
+              disabled={atEnd}
+            >
+              <i className="ti ti-arrow-right" />
+            </button>
+          </div>
+          <div className="lv-caro-track" ref={ref}>
+            {CHALLENGES.map((c, i) => (
+              <div
+                className={`lv-ch-card ${CH_BORDER_CYCLE[i % 4]}`}
+                key={c.name}
+              >
+                <div className="lv-ch-name">{c.name}</div>
+                <div className="lv-ch-prob">{c.prob}</div>
+                <div className="lv-ch-sol">{c.sol}</div>
+                <button type="button" className="lv-ch-cta" onClick={onCTA}>
+                  {c.cta}
+                  <i className="ti ti-arrow-right" />
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+// Memory rows for the "One memory" section — hover-highlighted, one per surface.
+// Tinted with the same strict orange/gold/black/white position cycle used
+// by the two carousels above. Each mock mirrors its FeatureExplorer screen
+// (condensed) instead of a generic shape, so it reads as that specific tool.
+const MEM_CLS_CYCLE = ["orange", "gold", "black", "white"];
+
+const MEMORY_ROWS = [
+  {
+    headline: "Log every win",
+    tool: "Story Bank",
+    desc: "Capture an accomplishment once in your Story Bank, and it resurfaces automatically in every future tailored CV where it's relevant — write it once, reuse it everywhere.",
+    mock: (
+      <>
+        <div
+          style={{
+            fontFamily: "var(--font-m)",
+            fontSize: 9,
+            letterSpacing: ".05em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,.7)",
+            marginBottom: 8,
+          }}
+        >
+          Your Story Bank · 12 wins
+        </div>
+        {[
+          "Shipped a new intake workflow",
+          "Mentored 3 new hires through onboarding",
+          "Cut support ticket backlog by 30%",
+        ].map((win) => (
+          <div
+            key={win}
+            style={{
+              background: "rgba(255,255,255,.2)",
+              color: "#fff",
+              fontSize: 10.5,
+              fontWeight: 600,
+              borderRadius: 6,
+              padding: "7px 10px",
+              marginBottom: 7,
+            }}
+          >
+            <i
+              className="ti ti-sparkles"
+              style={{ fontSize: 10, marginRight: 4 }}
+            />
+            {win}
+          </div>
+        ))}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            margin: "6px 0 8px",
+          }}
+        >
+          <i
+            className="ti ti-arrow-down"
+            style={{ color: "rgba(255,255,255,.6)", fontSize: 14 }}
+          />
+        </div>
+        <div
+          style={{
+            background: "var(--card)",
+            borderRadius: 8,
+            padding: "10px 12px",
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--font-d)",
+              fontWeight: 700,
+              fontSize: 11.5,
+              marginBottom: 6,
+            }}
+          >
+            Jonathan Charles, Product
+          </div>
+          <div
+            style={{
+              background: "var(--accent-tint)",
+              color: "var(--accent-deep)",
+              fontSize: 10,
+              fontWeight: 600,
+              borderRadius: 5,
+              padding: "6px 8px",
+              marginBottom: 6,
+            }}
+          >
+            <i
+              className="ti ti-sparkles"
+              style={{ fontSize: 9, marginRight: 3 }}
+            />
+            Shipped a new intake workflow
+          </div>
+          <div style={{ fontSize: 9.5, color: "var(--ink-faint)" }}>
+            Now in your CV for DoorDash
+          </div>
+        </div>
+      </>
+    ),
+  },
+  {
+    headline: "Remembers every conversation",
+    tool: "AI Career Coach",
+    desc: "Tell your coach something once, and it stays part of your context — ask a question next month, and it already knows, without you repeating yourself.",
+    mock: (
+      <>
+        <div
+          style={{
+            fontSize: 9,
+            color: "var(--ink-faint)",
+            marginBottom: 4,
+            textTransform: "uppercase",
+            letterSpacing: ".04em",
+          }}
+        >
+          3 weeks ago
+        </div>
+        <div
+          style={{
+            background: "rgba(255,255,255,.55)",
+            borderRadius: "11px 11px 11px 3px",
+            padding: "8px 11px",
+            marginBottom: 5,
+            fontSize: 11.5,
+            color: "var(--ink-soft)",
+          }}
+        >
+          "I want to pivot into product eventually."
+        </div>
+        <div
+          style={{
+            display: "flex",
+            gap: 7,
+            alignItems: "flex-start",
+            marginBottom: 8,
+          }}
+        >
+          <span
+            className="lv-sc-sq"
+            style={{
+              background: "var(--ink-deep)",
+              color: "#fff",
+              width: 20,
+              height: 20,
+              flexShrink: 0,
+            }}
+          >
+            <i className="ti ti-sparkles" style={{ fontSize: 10 }} />
+          </span>
+          <div
+            style={{
+              background: "var(--card)",
+              border: "1px solid var(--line)",
+              borderRadius: "11px 11px 11px 3px",
+              padding: "8px 11px",
+              fontSize: 11,
+              fontWeight: 500,
+              color: "var(--ink-soft)",
+            }}
+          >
+            Got it — I'll start surfacing product-adjacent roles and
+            highlighting your cross-functional work in future CVs.
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: 8,
+          }}
+        >
+          <i
+            className="ti ti-arrow-down"
+            style={{ color: "var(--ink-faint)", fontSize: 14 }}
+          />
+        </div>
+        <div
+          style={{
+            fontSize: 9,
+            color: "var(--ink-faint)",
+            marginBottom: 4,
+            textTransform: "uppercase",
+            letterSpacing: ".04em",
+          }}
+        >
+          Today
+        </div>
+        <div
+          style={{
+            background: "rgba(255,255,255,.55)",
+            borderRadius: "11px 11px 11px 3px",
+            padding: "8px 11px",
+            marginBottom: 5,
+            fontSize: 11.5,
+            color: "var(--ink-soft)",
+          }}
+        >
+          Saw an opening at Spotify, is it worth applying?
+        </div>
+        <div
+          style={{
+            display: "flex",
+            gap: 7,
+            alignItems: "flex-start",
+          }}
+        >
+          <span
+            className="lv-sc-sq"
+            style={{
+              background: "var(--ink-deep)",
+              color: "#fff",
+              width: 20,
+              height: 20,
+              flexShrink: 0,
+            }}
+          >
+            <i className="ti ti-sparkles" style={{ fontSize: 10 }} />
+          </span>
+          <div
+            style={{
+              background: "var(--card)",
+              border: "1px solid var(--line)",
+              borderRadius: "11px 11px 11px 3px",
+              padding: "8px 11px",
+              fontSize: 11,
+              fontWeight: 500,
+              color: "var(--ink-soft)",
+            }}
+          >
+            Yes — this Associate PM role is a strong match. Your intake-workflow
+            launch and stakeholder work put you in the top tier for it, and
+            it'll get competitive fast. Want me to tailor your CV for it now?
+          </div>
+        </div>
+      </>
+    ),
+  },
+  {
+    headline: "Track every lead",
+    tool: "Job Tracker",
+    desc: "Every application you save, apply to, or move forward stays on one board — company, stage, and next step, all remembered in one place.",
+    mock: (
+      <>
+        <div
+          style={{
+            fontFamily: "var(--font-m)",
+            fontSize: 9,
+            letterSpacing: ".05em",
+            textTransform: "uppercase",
+            color: "rgba(255,255,255,.55)",
+            marginBottom: 8,
+          }}
+        >
+          Your Pipeline · 6 tracked
+        </div>
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(3, 1fr)",
+            gap: 7,
+          }}
+        >
+          {[
+            ["Applied", "var(--golden)", ["Amazon", "Meta"]],
+            ["Interview", "var(--teal)", ["NVIDIA", "Booking.com"]],
+            ["Offer", "var(--accent)", ["Netflix"]],
+          ].map(([label, dot, cos]) => (
+            <div
+              key={label}
+              style={{
+                background: "rgba(255,255,255,.08)",
+                borderRadius: 8,
+                padding: 8,
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  marginBottom: 7,
+                }}
+              >
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: 99,
+                    background: dot,
+                  }}
+                />
+                <span
+                  style={{
+                    fontSize: 9.5,
+                    fontWeight: 700,
+                    color: "rgba(255,255,255,.75)",
+                  }}
+                >
+                  {label}
+                </span>
+              </div>
+              {cos.map((co) => (
+                <div
+                  key={co}
+                  style={{
+                    background: "var(--card)",
+                    borderRadius: 6,
+                    padding: "6px 8px",
+                    marginBottom: 5,
+                    fontSize: 10.5,
+                    fontWeight: 600,
+                    color: "var(--ink)",
+                  }}
+                >
+                  {co}
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: 10.5,
+            color: "rgba(255,255,255,.6)",
+            marginTop: 10,
+          }}
+        >
+          <i
+            className="ti ti-circle-check"
+            style={{ fontSize: 12, color: "var(--teal)" }}
+          />
+          NVIDIA moved to Interview · 2 days ago
+        </div>
+      </>
+    ),
+  },
+  {
+    headline: "Every version of your story",
+    tool: "LinkedIn Optimizer",
+    desc: "Your CV, your coach, and your LinkedIn all draw from the same profile, so your headline, your outreach, and your resume all sound like the same person — not three different rewrites of your story.",
+    mock: (
+      <>
+        <div
+          style={{
+            background: "var(--bg-warm)",
+            borderRadius: 8,
+            padding: "9px 11px",
+            marginBottom: 8,
+          }}
+        >
+          <div
+            style={{
+              fontSize: 9,
+              color: "var(--ink-faint)",
+              marginBottom: 4,
+              textTransform: "uppercase",
+              letterSpacing: ".04em",
+            }}
+          >
+            CV summary
+          </div>
+          <div
+            style={{
+              fontSize: 11.5,
+              fontWeight: 600,
+              color: "var(--ink)",
+            }}
+          >
+            Product-minded operator, ex-Ops
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "center",
+            marginBottom: 8,
+          }}
+        >
+          <i
+            className="ti ti-equal"
+            style={{ color: "var(--ink-faint)", fontSize: 13 }}
+          />
+        </div>
+        <div
+          style={{
+            background: "var(--bg-warm)",
+            borderRadius: 8,
+            padding: "9px 11px",
+          }}
+        >
+          <div
+            style={{
+              fontSize: 9,
+              color: "var(--ink-faint)",
+              marginBottom: 4,
+              textTransform: "uppercase",
+              letterSpacing: ".04em",
+            }}
+          >
+            LinkedIn headline
+          </div>
+          <div
+            style={{
+              fontSize: 11.5,
+              fontWeight: 600,
+              color: "var(--ink)",
+            }}
+          >
+            Product-minded operator | ex-Ops
+          </div>
+        </div>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 7,
+            fontSize: 10.5,
+            fontWeight: 600,
+            color: "var(--teal)",
+            marginTop: 8,
+          }}
+        >
+          <i className="ti ti-circle-check" style={{ fontSize: 13 }} />
+          Written from the same profile — no separate rewrite
+        </div>
+        <div
+          style={{
+            background: "var(--card)",
+            border: "1px solid var(--line)",
+            borderRadius: 8,
+            padding: 10,
+            marginTop: 10,
+          }}
+        >
+          <div style={{ display: "flex", gap: 7, marginBottom: 8 }}>
+            <span
+              className="lv-sc-sq"
+              style={{
+                background: "var(--bg-warm)",
+                color: "var(--ink)",
+                width: 20,
+                height: 20,
+                fontSize: 10,
+                flexShrink: 0,
+              }}
+            >
+              in
+            </span>
+            <div
+              style={{
+                background: "var(--bg-warm)",
+                borderRadius: 7,
+                padding: "7px 10px",
+                fontSize: 11,
+                fontWeight: 600,
+              }}
+            >
+              Congrats on the launch!
+            </div>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 10.5,
+              fontWeight: 600,
+              color: "var(--teal)",
+            }}
+          >
+            <i className="ti ti-circle-check" style={{ fontSize: 13 }} />
+            Sounds genuine and on-brand — safe to post.
+          </div>
+        </div>
+      </>
+    ),
+  },
+];
+
+function Differentiator() {
+  // Which card index is expanded — driven by React state (hover AND focus,
+  // for keyboard users) rather than a CSS :hover rule, so the fan's width
+  // swap is explicit and doesn't depend on the browser's own hover timing.
+  const [hovered, setHovered] = useState(null);
+  return (
+    <section className="lv-section lv-diff lv-clip lv-fade" id="differentiator">
       <div
         className="lv-deco lv-griddots"
         data-parallax="0.17"
@@ -1680,110 +3357,50 @@ function Differentiator() {
         style={{ width: 220, height: 220, bottom: -70, right: -60 }}
         aria-hidden="true"
       />
-      <div className="lv-wrap lv-diff-grid">
-        <div className="lv-reveal">
+      <div className="lv-wrap">
+        <div className="lv-diff-intro lv-reveal">
           <h2>One memory across your entire job search.</h2>
           <p>
-            Generic AI starts from zero every session: re-explain yourself, get
-            a different answer, end up back at your old draft.
+            Other AI platforms start from zero every session: re-explain
+            yourself, get a different answer, end up back at your old draft.
           </p>
           <p>
-            <strong>Get A Job remembers.</strong> Every win, every job, every
-            chat builds on what it knows about you. The more you use it, the
-            sharper it gets.
+            <strong>Get A Job remembers.</strong> Every win, every conversation,
+            every application, every version of your story builds on what it
+            knows about you. Hover a card below to see how.
           </p>
         </div>
-        <div className="lv-diff-visual lv-reveal" data-d="1" aria-hidden="true">
-          <svg
-            className="lv-floaty"
-            viewBox="0 0 420 320"
-            style={{ width: "100%", height: "100%", overflow: "visible" }}
-          >
-            <defs>
-              <marker
-                id="lvarrow"
-                markerWidth="8"
-                markerHeight="8"
-                refX="6"
-                refY="4"
-                orient="auto"
-              >
-                <path d="M0,0 L8,4 L0,8 Z" fill="var(--accent)" />
-              </marker>
-            </defs>
-            <circle
-              cx="210"
-              cy="160"
-              r="50"
-              fill="var(--card)"
-              stroke="var(--accent)"
-              strokeWidth="1.5"
-            />
-            <text
-              x="210"
-              y="156"
-              textAnchor="middle"
-              fontFamily="var(--font-m)"
-              fontSize="11"
-              fill="var(--ink)"
+      </div>
+      {/* Breaks out of .lv-wrap's 1180px cap on purpose — this row reads
+          better spanning the full viewport than boxed to the article width. */}
+      <div className="lv-mem-fan lv-reveal" data-d="1">
+        {MEMORY_ROWS.map((r, i) => {
+          const on = hovered === i;
+          const compressed = hovered !== null && !on;
+          return (
+            <div
+              className={`lv-mem-card ${MEM_CLS_CYCLE[i % 4]}${on ? " on" : ""}${compressed ? " compressed" : ""}`}
+              key={r.headline}
+              style={{ flex: on ? "6 1 0%" : "1 1 0%" }}
+              onMouseEnter={() => setHovered(i)}
+              onMouseLeave={() => setHovered((h) => (h === i ? null : h))}
+              onFocus={() => setHovered(i)}
+              onBlur={() => setHovered((h) => (h === i ? null : h))}
+              tabIndex={0}
+              role="button"
+              aria-expanded={on}
             >
-              Your
-            </text>
-            <text
-              x="210"
-              y="170"
-              textAnchor="middle"
-              fontFamily="var(--font-m)"
-              fontSize="11"
-              fill="var(--ink)"
-            >
-              profile
-            </text>
-            {[
-              [70, 60, "CV"],
-              [350, 60, "Roadmap"],
-              [60, 260, "Matches"],
-              [360, 260, "Coach"],
-            ].map(([x, y, label], i) => (
-              <g key={label}>
-                <line
-                  className="lv-dflow"
-                  style={{ animationDelay: `${i * 0.3}s` }}
-                  x1="210"
-                  y1="160"
-                  x2={x}
-                  y2={y}
-                  stroke="var(--accent)"
-                  strokeOpacity="0.5"
-                  strokeWidth="1.5"
-                  strokeDasharray="3 5"
-                  markerEnd="url(#lvarrow)"
-                />
-                <rect
-                  x={x - 42}
-                  y={y - 16}
-                  width="84"
-                  height="32"
-                  rx="16"
-                  fill="var(--card)"
-                  stroke="var(--line)"
-                  strokeWidth="1.5"
-                />
-                <text
-                  x={x}
-                  y={y + 4}
-                  textAnchor="middle"
-                  fontFamily="var(--font-b)"
-                  fontSize="12"
-                  fontWeight="600"
-                  fill="var(--ink)"
-                >
-                  {label}
-                </text>
-              </g>
-            ))}
-          </svg>
-        </div>
+              <div className="lv-mem-card-head">
+                <div className="lv-mem-card-name">{r.headline}</div>
+                <div className="lv-mem-card-tool">{r.tool}</div>
+              </div>
+              <div className="lv-mem-card-body">
+                <div className="lv-mem-desc">{r.desc}</div>
+                <div className="lv-mem-shot">{r.mock}</div>
+              </div>
+            </div>
+          );
+        })}
       </div>
     </section>
   );
@@ -1812,9 +3429,9 @@ const STEPS = [
   },
 ];
 
-function HowItWorks() {
+function HowItWorks({ onCTA }) {
   return (
-    <section className="lv-section lv-clip lv-fade" id="how">
+    <section className="lv-section lv-clip lv-fade lv-snap-fit" id="how">
       <div
         className="lv-deco lv-ring"
         data-parallax="0.14"
@@ -1843,6 +3460,15 @@ function HowItWorks() {
             </div>
           ))}
         </div>
+        <div
+          className="lv-reveal"
+          data-d="1"
+          style={{ marginTop: 40, textAlign: "center" }}
+        >
+          <button type="button" className="btn btn-accent" onClick={onCTA}>
+            Get started <i className="ti ti-arrow-up-right" />
+          </button>
+        </div>
       </div>
     </section>
   );
@@ -1870,7 +3496,13 @@ const FAQS = [
 function FAQSection() {
   const [open, setOpen] = useState(0);
   return (
-    <section className="lv-section lv-fade" id="faq">
+    <section className="lv-section lv-clip lv-fade lv-snap-fit" id="faq">
+      <div
+        className="lv-deco lv-griddots"
+        data-parallax="0.13"
+        style={{ width: 130, height: 130, top: -30, left: -30 }}
+        aria-hidden="true"
+      />
       <div className="lv-wrap lv-faq-wrap">
         <div className="lv-head lv-reveal">
           <div className="lv-eyebrow">Good questions</div>
@@ -1902,7 +3534,7 @@ function FAQSection() {
 
 function FinalCTA({ isLoggedIn, onCTA }) {
   return (
-    <section className="lv-final lv-fade">
+    <section className="lv-final lv-fade lv-snap-fit" id="final-cta">
       <div className="lv-wrap">
         <div className="lv-final-card lv-reveal">
           <div
@@ -2012,9 +3644,11 @@ export default function LandingV2Preview() {
       <Nav isLoggedIn={isLoggedIn} onCTA={onCTA} onLogin={onLogin} />
       <Hero onCTA={onCTA} />
       <FeatureExplorer />
-      <Differentiator />
-      <HowItWorks />
       <DropSection onUpload={onCTA} />
+      <HeadStart />
+      <HowItWorks onCTA={onCTA} />
+      <SolveChallenge onCTA={onCTA} />
+      <Differentiator />
       <FAQSection />
       <FinalCTA isLoggedIn={isLoggedIn} onCTA={onCTA} />
       <Footer />
