@@ -420,6 +420,7 @@ Field rules:
 
 Don't-deny-previous-CV rule:
 - When conversation history already shows a SUGGESTED_CV_GENERATION_JSON block was sent AND the user confirmed generation (usually by clicking "Generate CV" — the next assistant message or a tool result will show the download URL), a CV has already been generated. Do NOT say "I haven't generated a CV yet" or similar. Acknowledge it exists. If the user asks for a new version, say "I'll generate an updated version" and emit a fresh SUGGESTED_CV_GENERATION_JSON block.
+- ACROSS SESSIONS (application saved state): the TARGET APPLICATION / ACTIVE APPLICATIONS context includes a "CV:" note per application. If it says a CV is "already generated", a tailored CV exists for that application even if THIS conversation shows nothing — do NOT offer to generate one as if none exists and do NOT claim none exists. Acknowledge it, and offer to view/download it or to generate an UPDATED version. Only emit a SUGGESTED_CV_GENERATION_JSON block when the user actually wants a new or updated CV — not to re-create one that already exists.
 
 PLAIN-LANGUAGE ACCEPTANCE:
 - If a previous assistant turn OFFERED to generate a CV (e.g. "Would you like me to generate a tailored CV?") and the user replies accepting in plain language ("yes", "yes please", "yes please generate a cv", "go ahead", "generate it", "do it", "sure"), treat that as a CV generation request: emit the SUGGESTED_CV_GENERATION_JSON block using the TARGET APPLICATION (if set) or the role from the immediately preceding turn. Do NOT reply with only an acknowledgement and no block, and do NOT re-ask "which role?" when the role is obvious from the last turn. Acceptance is the trigger — the block, not more words, is what starts generation.
@@ -772,11 +773,15 @@ export async function buildUserContext(
   if (agentWantsApplications) {
     const { data: apps } = await svc
       .from("applications")
-      .select("id, role_title, company, status, track")
+      .select("id, role_title, company, status, track, cv_url, cv_status, cv_version_name")
       .eq("user_id", userId)
       .limit(20);
     if (apps?.length) {
-      userContext += `\n\nACTIVE APPLICATIONS:\n${apps.map((a: any) => `- ${a.role_title}${a.company ? ` at ${a.company}` : ""} (${a.status}${a.track ? `, ${a.track}` : ""}) [id: ${a.id}]`).join("\n")}`;
+      userContext += `\n\nACTIVE APPLICATIONS (the "CV:" note is the application's saved state across sessions — whether a tailored CV already exists for it):\n${apps.map((a: any) => {
+        const hasCv = !!a.cv_url || a.cv_status === "ready";
+        const cvMark = hasCv ? ` — CV: already generated${a.cv_version_name ? ` ("${a.cv_version_name}")` : ""}` : ` — CV: none yet`;
+        return `- ${a.role_title}${a.company ? ` at ${a.company}` : ""} (${a.status}${a.track ? `, ${a.track}` : ""}) [id: ${a.id}]${cvMark}`;
+      }).join("\n")}`;
     }
   }
 
@@ -851,12 +856,16 @@ export async function buildUserContext(
   if (application_id && typeof application_id === "string") {
     const { data: appData } = await svc
       .from("applications")
-      .select("role_title, company, job_description, skills_required, status")
+      .select("role_title, company, job_description, skills_required, status, cv_url, cv_status, cv_version_name")
       .eq("id", application_id)
       .eq("user_id", userId)
       .single();
     if (appData) {
-      userContext += `\n\nTARGET APPLICATION (use this exact application_id in any CV or application actions — the user has already selected this via the dropdown; do NOT ask which role):\n- application_id: ${application_id}\n- Role: ${appData.role_title}\n- Company: ${appData.company || "(not set)"}\n- Status: ${appData.status}`;
+      const appHasCv = !!appData.cv_url || appData.cv_status === "ready";
+      const appCvLine = appHasCv
+        ? `already generated${appData.cv_version_name ? ` ("${appData.cv_version_name}")` : ""} — reference it; do NOT offer to generate one as if none exists`
+        : "none yet";
+      userContext += `\n\nTARGET APPLICATION (use this exact application_id in any CV or application actions — the user has already selected this via the dropdown; do NOT ask which role):\n- application_id: ${application_id}\n- Role: ${appData.role_title}\n- Company: ${appData.company || "(not set)"}\n- Status: ${appData.status}\n- CV: ${appCvLine}`;
       if (appData.job_description) {
         const cleanedJd = stripHtml(String(appData.job_description)) ?? "";
         if (cleanedJd)
@@ -1080,6 +1089,7 @@ export function parseSuggestions(
   replyIn: string,
   message: string,
   conversationHistory: any[],
+  targetApplicationRole: string | null = null,
 ): ParsedSuggestions {
   let reply = replyIn || "Sorry, I could not generate a response.";
 
@@ -1236,6 +1246,15 @@ export function parseSuggestions(
         ...(parsed.accepted === true ? { accepted: true } : {}),
       };
     }
+  }
+  // Belt-and-suspenders for the CV-label bug: when the CV links to the selected
+  // TARGET APPLICATION, that application's role_title is authoritative — reconcile
+  // the model's free-text target_role to it so the authored CV matches the app it
+  // is attached to. (The server also enforces the LABEL from the linked app.)
+  if (suggested_cv_generation?.application_id && targetApplicationRole) {
+    suggested_cv_generation.target_role = String(targetApplicationRole)
+      .slice(0, 200)
+      .trim();
   }
 
   let suggested_bullet_capture: any | null = null;

@@ -339,6 +339,7 @@ Deno.serve(async (req) => {
     let safeJobDescription = jdTrunc.text;
     let jdTruncMode = jdTrunc.mode;
     let targetCompany = ""; // populated from the linked application when available
+    let appRoleTitle = ""; // the linked application's role_title — authoritative for the CV label
     // Template style: 'ats-optimized' (default — safest parse) or 'polished'
     // (visually richer, still single-column for ATS). Validated against the
     // exhaustive set so a bad client can't trigger a downstream error.
@@ -492,6 +493,7 @@ Deno.serve(async (req) => {
       }
       if (app) {
         targetCompany = String(app.company ?? '').slice(0, 200);
+        appRoleTitle = String(app.role_title ?? '').slice(0, 200);
         if (!safeJobDescription && app.job_description) {
           // Defensive strip on fallback path too — legacy applications.job_description
           // rows can hold raw HTML from pre-fix user pastes.
@@ -2700,7 +2702,10 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       const { data } = await supabase.from("applications").update({
         cv_url,
         cv_status: "ready",
-        cv_version_name: `${safeTargetRole} CV`,
+        // Label from the linked application's role_title (authoritative), not the
+        // caller-supplied target_role — which on the coach path is LLM free text and
+        // could mislabel a "Product Manager" application's CV as "Data Analyst CV".
+        cv_version_name: `${appRoleTitle || safeTargetRole} CV`,
         cv_skills_emphasized: (cvData.skills as any)?.domain || [],
       }).eq("id", application_id).eq("user_id", user.id).select().single();
       // BUG 1: a chat fit-assessment can pass an application_id that is NOT a real

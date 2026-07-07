@@ -76,6 +76,12 @@ import {
 const GOAL_TRACK_THRESHOLDS = {
   track_1_min_fit: SHARED_GOAL_THRESHOLDS.t1_min_fit_high_alignment,
   track_1_min_alignment: SHARED_GOAL_THRESHOLDS.t1_min_alignment_high_fit,
+  // Strong-alignment relaxation branch — sourced from the SAME shared
+  // constants as scoreApplication.js so the relaxed T1 gate can't drift.
+  // (Was hardcoded 0.40/0.70 here while the shared value was 0.40/0.80 —
+  // Arc 0 PR#3: reconciled to the single source of truth.)
+  track_1_min_fit_relaxed: SHARED_GOAL_THRESHOLDS.t1_min_fit_relaxed,
+  track_1_min_alignment_relaxed: SHARED_GOAL_THRESHOLDS.t1_min_alignment_relaxed,
   track_2_min_fit: SHARED_GOAL_THRESHOLDS.t2_min_fit,
   track_3_min_raw_fit: SHARED_GOAL_THRESHOLDS.t3_min_fit,
   track_3_min_alignment: SHARED_GOAL_THRESHOLDS.t3_min_alignment,
@@ -216,7 +222,7 @@ function assignTrackWithGoalRaw(
     // (same family or natural/stretch transfer path) qualify for Track 1 at a
     // lower fit bar, because the career trajectory matters and recruiters weigh
     // "visible path to the role" nearly as much as raw readiness.
-    if (fitScore >= 0.40 && goalAlignment >= 0.70) return "track_1";
+    if (fitScore >= t.track_1_min_fit_relaxed && goalAlignment >= t.track_1_min_alignment_relaxed) return "track_1";
     if (fitScore >= t.track_2_min_fit) return "track_2";
   }
   // T3 uses raw skill overlap (pre-penalty) so goal-aligned aspirational

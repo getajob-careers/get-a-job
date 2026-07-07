@@ -1,17 +1,17 @@
-# Nightly daily-action precompute.
+# Daily-action precompute — SCHEDULE DISABLED, manual-only (Arc 0 PR#2).
 #
-# Runs scripts/generate-daily-actions.ts, which iterates every user with
-# profile.onboarding_complete=true and invokes cron-generate-daily-action
-# once per user. Pre-computes today's daily_actions row before users
-# wake up so the Home Daily Action card loads in ~50ms instead of
-# blocking on an 8–25s LLM call.
+# The nightly cron was turned OFF 2026-07-06: the daily-action surface had
+# 0 completions across 50 users while the cron wrote 723 pending rows and
+# burned LLM spend every night (deep-qa-3 2026-07-05) — pure paid noise.
+# The on-demand invoke on Home was removed in the same PR; the Home hero now
+# degrades to an honest next-action pointer. A redesigned "resume where you
+# left off" hero is queued (docs/design/ia-interaction-spec.md §3.4.4).
 #
-# Schedule: 04:00 UTC daily = 06:00 IL (winter) / 07:00 IL (summer).
-# Right as users start their day. Staggered from the 01:00 UTC jobs
-# refresh so the two cron jobs don't compete for OpenAI / DB capacity.
+# Kept as workflow_dispatch-only (script + edge fns untouched) so the whole
+# thing can be revived if that redesign gives the surface a reason to exist.
 #
-# Idempotency: cron-generate-daily-action short-circuits if today's row
-# exists. Safe to manually re-trigger via workflow_dispatch.
+# Runs scripts/generate-daily-actions.ts → cron-generate-daily-action per
+# onboarding-complete user (idempotent per (user_id, for_date)).
 #
 # Required repo secrets (same as refresh-jobs.yml):
 #   - SUPABASE_URL                = https://ilmqmodklutztuybsvwd.supabase.co
@@ -19,13 +19,10 @@
 #
 # Manually trigger:
 #   gh workflow run generate-daily-actions.yml
-#   OR via the Actions tab → "Generate daily actions" → "Run workflow"
 
 name: Generate daily actions
 
 on:
-  schedule:
-    - cron: "0 4 * * *"
   workflow_dispatch: {}
 
 permissions:
