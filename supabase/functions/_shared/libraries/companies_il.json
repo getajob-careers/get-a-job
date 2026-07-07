@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1067,
+  "total_companies": 1077,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -12828,6 +12828,126 @@
       "api_url": "https://apply.workable.com/api/v1/widget/accounts/mench?details=true",
       "verified": true,
       "notes": "global-ATS triage 2026-07; 7 IL roles; domain-unverified"
+    },
+    {
+      "name": "Wolt",
+      "type": "israeli_subsidiary",
+      "industry": "Food Delivery",
+      "domain": "wolt.com",
+      "careers_url": "https://careers.wolt.com",
+      "ats": "greenhouse",
+      "slug": "wolt",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/wolt/jobs",
+      "verified": true,
+      "notes": "Greenhouse; global board, corporate/tech/sales roles at the Ramat Gan office (16 IL). Distinct board from the existing woltisrael courier/picker gig board (non-overlapping job IDs)."
+    },
+    {
+      "name": "Eon",
+      "type": "israeli_founded",
+      "industry": "Cloud Data Protection",
+      "domain": "eon.io",
+      "careers_url": "https://www.eon.io/careers",
+      "ats": "greenhouse",
+      "slug": "eonio",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/eonio/jobs",
+      "verified": true,
+      "notes": "Greenhouse; Israeli-founded cloud backup/data protection, Tel Aviv (5 IL)."
+    },
+    {
+      "name": "DRW",
+      "type": "international_il_rd",
+      "industry": "Trading / Fintech",
+      "domain": "drw.com",
+      "careers_url": "https://drw.com/work-at-drw",
+      "ats": "greenhouse",
+      "slug": "drweng",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/drweng/jobs",
+      "verified": true,
+      "notes": "Greenhouse; DRW engineering/quant board, Tel Aviv R&D (4 IL: ML, FPGA, SRE)."
+    },
+    {
+      "name": "Axon",
+      "type": "international_il_rd",
+      "industry": "Public Safety Technology",
+      "domain": "axon.com",
+      "careers_url": "https://www.axon.com/careers",
+      "ats": "greenhouse",
+      "slug": "axon",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/axon/jobs",
+      "verified": true,
+      "notes": "Greenhouse; Tel Aviv-Yafo R&D office (3 IL). Distinct company from the existing Axonius."
+    },
+    {
+      "name": "BeyondTrust",
+      "type": "international_il_rd",
+      "industry": "Cybersecurity",
+      "domain": "beyondtrust.com",
+      "careers_url": "https://www.beyondtrust.com/company/careers",
+      "ats": "greenhouse",
+      "slug": "beyondtrust",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/beyondtrust/jobs",
+      "verified": true,
+      "notes": "Greenhouse; identity/PAM security, Tel Aviv (2 IL)."
+    },
+    {
+      "name": "Bottomline Technologies",
+      "type": "international_il_rd",
+      "industry": "Fintech / Payments",
+      "domain": "bottomline.com",
+      "careers_url": "https://www.bottomline.com/us/about/careers",
+      "ats": "greenhouse",
+      "slug": "bottomlinetechnologies",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/bottomlinetechnologies/jobs",
+      "verified": true,
+      "notes": "Greenhouse; payments/fintech, IL office (1 IL)."
+    },
+    {
+      "name": "Commvault",
+      "type": "international_il_rd",
+      "industry": "Data Protection / Cybersecurity",
+      "domain": "commvault.com",
+      "careers_url": "https://careers.commvault.com",
+      "ats": "greenhouse",
+      "slug": "commvault",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/commvault/jobs",
+      "verified": true,
+      "notes": "Greenhouse; data protection/cyber resilience, IL R&D (1 IL)."
+    },
+    {
+      "name": "Couchbase",
+      "type": "international_il_rd",
+      "industry": "Database / Developer Tools",
+      "domain": "couchbase.com",
+      "careers_url": "https://www.couchbase.com/careers",
+      "ats": "greenhouse",
+      "slug": "couchbaseinc",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/couchbaseinc/jobs",
+      "verified": true,
+      "notes": "Greenhouse; NoSQL database, Tel Aviv (1 IL)."
+    },
+    {
+      "name": "Ultima Genomics",
+      "type": "international_il_rd",
+      "industry": "Genomics / Biotech",
+      "domain": "ultimagenomics.com",
+      "careers_url": "https://www.ultimagenomics.com/careers",
+      "ats": "greenhouse",
+      "slug": "ultimagenomics",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/ultimagenomics/jobs",
+      "verified": true,
+      "notes": "Greenhouse; genomics deeptech, Tel Aviv District R&D (1 IL)."
+    },
+    {
+      "name": "Biorasi",
+      "type": "international_il_rd",
+      "industry": "Clinical Research (CRO)",
+      "domain": "biorasi.com",
+      "careers_url": "https://www.biorasi.com/careers",
+      "ats": "greenhouse",
+      "slug": "biorasillc",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/biorasillc/jobs",
+      "verified": true,
+      "notes": "Greenhouse; global CRO, 1 IL role (Senior CRA, contractor). freelance - single contractor role, lowest-value add."
     }
   ]
 }
