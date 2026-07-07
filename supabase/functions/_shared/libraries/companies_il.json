@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1077,
+  "total_companies": 1078,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -12948,6 +12948,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/biorasillc/jobs",
       "verified": true,
       "notes": "Greenhouse; global CRO, 1 IL role (Senior CRA, contractor). freelance - single contractor role, lowest-value add."
+    },
+    {
+      "name": "CodeForce",
+      "type": "international_il_rd",
+      "industry": "Staffing / Recruiting",
+      "domain": "codeforce.com",
+      "careers_url": "https://apply.workable.com/codeforce-362/",
+      "ats": "workable",
+      "slug": "codeforce-362",
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/codeforce-362?details=true",
+      "verified": true,
+      "notes": "Workable; IT staffing agency, ATS-direct board carrying real client reqs (not evergreen pools). Current IL role: Chief of Staff at Dataphone (IL AI/VoIP startup, Tel Aviv), posted 2026-06-30. Pipeline IL-filters at fetch so only IL client placements land. Workable-harvest r1, 2026-07-07."
     }
   ]
 }
