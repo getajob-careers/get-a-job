@@ -271,6 +271,7 @@ import {
   QUANT_TOKEN_RE,
   TOKEN_BLOCKLIST,
 } from "../_shared/cv-antifab.ts";
+import { enforceCvInvariants } from "../_shared/cv-enforce-invariants.ts";
 
 function parseLlmJson(rawContent: string, finishReason: string, label: string): any {
   return parseLlmJsonObject(rawContent, label, finishReason);
@@ -325,6 +326,11 @@ Deno.serve(async (req) => {
       return json({ error: 'Request payload too large.' }, 413);
     }
     const { job_description, target_role, application_id, template_style, cv_model, master } = body;
+    // CV chokepoint opt-in flag (cv_enforce_v2): default OFF — anything but "on"
+    // keeps the exact legacy path. Body flag OR the CV_ENFORCE_V2 env fallback.
+    const cvEnforceV2 =
+      String((body as any)?.cv_enforce_v2 ?? Deno.env.get("CV_ENFORCE_V2") ?? "")
+        .trim().toLowerCase() === "on";
     const safeTargetRole = String(target_role ?? '').slice(0, 200);
     // Smart truncation: pull Requirements/Qualifications/Responsibilities
     // sections first when the JD has detectable headings; otherwise fall
@@ -2344,6 +2350,16 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     // no-empty invariant restoring an experience's master bullets).
     type UnsourcedFlag = { bucket: string; bullet: string; tokens: string[] };
     const unsourcedBullets: UnsourcedFlag[] = [];
+    // Hoisted so the cv_enforce_v2 chokepoint (below, just before render) can
+    // reuse gtc's richer trace corpus + no-empty restore map instead of
+    // rebuilding them from the master cv_data.
+    let enforceCtx:
+      | {
+          sourceHaystackLower: string;
+          masterBulletsByKey: Map<string, string[]>;
+          expKeyOf: (t: unknown, c: unknown) => string;
+        }
+      | null = null;
     {
       // Build the source haystack — everything in USER DATA we'd accept as
       // grounding for a numeric or named-tool claim.
@@ -2393,6 +2409,11 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
           mb.length ? mb : fromResp,
         );
       }
+      enforceCtx = {
+        sourceHaystackLower: sourceHaystack,
+        masterBulletsByKey,
+        expKeyOf: expKey,
+      };
       const enforcement = enforceBulletProperNouns(
         cvData as Record<string, any>,
         sourceHaystack,
@@ -2641,6 +2662,27 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         return data.choices?.[0]?.message?.content || '{}'
       }
       cvData = await translateCvToEnglish(cvData, translateChat)
+    }
+
+    // ── CV chokepoint (cv_enforce_v2): the LAST transform before this CV leaves
+    // the function. Placed BEFORE the render (buildCvPdf below) so the rendered
+    // PDF and the persisted cv_data derive from the SAME normalized object —
+    // enforcing AFTER the render would recreate the preview != download gap this
+    // arc closes. Composes the SAME helpers gtc already runs inline above (reusing
+    // enforceCtx's trace corpus) plus the voice normalization gtc lacked on its
+    // write path; idempotent, so the inline calls above stay as the belt-and-
+    // suspenders net. Default OFF: legacy path unchanged.
+    if (cvEnforceV2 && enforceCtx) {
+      const enf = await enforceCvInvariants(cvData, null, jdInput, {
+        sourceHaystackLower: enforceCtx.sourceHaystackLower,
+        masterBulletsByKey: enforceCtx.masterBulletsByKey,
+        expKeyOf: enforceCtx.expKeyOf,
+        path: "generate-tailored-cv",
+      })
+      cvData = enf.cv_data as typeof cvData
+      console.log(
+        `[cv-enforce] path=generate-tailored-cv applied=true revoiced=${enf.bulletsRevoiced} enforced=${enf.bulletsEnforced} restored=${enf.experiencesRestored} hebrew=${enf.hebrew}`,
+      )
     }
 
     const proCount = Array.isArray(cvData.professional_experiences)

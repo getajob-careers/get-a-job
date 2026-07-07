@@ -17,6 +17,7 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { openaiChatCompletionWithRetry } from "../_shared/openai-chat.ts";
 import { parseLlmJsonObject } from "../_shared/json-parse.ts";
 import { applyAntiFabGate } from "../_shared/cv-antifab.ts";
+import { enforceCvInvariants } from "../_shared/cv-enforce-invariants.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -135,6 +136,28 @@ Deno.serve(async (req) => {
     const message = anyReverted
       ? `${llmMsg} (Kept some content exactly as written — I only rephrase what's already in your CV, I don't add facts.)`
       : llmMsg;
+
+    // CV chokepoint (cv_enforce_v2): the LAST transform before edit-cv RETURNS
+    // cv_data — which the client shows AND autosaves with NO normalization. The
+    // voice normalization it adds ("I led…" -> "Led…") is the fix for the
+    // preview != download divergence. Default OFF: anything but "on" keeps the
+    // legacy path. master = the PRE-EDIT cv_data (the user's own trace corpus);
+    // no JD on this path. The existing applyAntiFabGate above stays as the
+    // belt-and-suspenders net (idempotent under the chokepoint).
+    const cvEnforceV2 =
+      String(body?.cv_enforce_v2 ?? Deno.env.get("CV_ENFORCE_V2") ?? "")
+        .trim().toLowerCase() === "on";
+    if (cvEnforceV2) {
+      const enf = await enforceCvInvariants(
+        guard.cv_data as Record<string, unknown>,
+        cv_data as Record<string, unknown>,
+        null,
+      );
+      console.log(
+        `[cv-enforce] path=edit-cv applied=true revoiced=${enf.bulletsRevoiced} enforced=${enf.bulletsEnforced} restored=${enf.experiencesRestored} hebrew=${enf.hebrew}`,
+      );
+      return json({ cv_data: enf.cv_data, message });
+    }
 
     return json({ cv_data: guard.cv_data, message });
   } catch (e) {
