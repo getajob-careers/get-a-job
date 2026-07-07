@@ -1159,20 +1159,49 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   // — Underwriting
   "חיתום": ["underwriting"],
   "underwriting": ["underwriting"],
+
+  // — Resolver consolidation step 2 (#511): class-A alias rows. Each maps a
+  //   real unmapped JD phrase (top-50 unmapped, live DB 2026-07-07) to an
+  //   EXISTING 01_skill_library.ts ID. Data-row additions only — no library
+  //   change. (data science / security research were reclassified M — no
+  //   canonical ID exists yet — and deferred to step 3; see PR body.)
+  "technical_support": ["helpdesk_support"],
+  "technical support": ["helpdesk_support"],
+  "ai_ml": ["machine_learning_fundamentals"],
+  "object-oriented design": ["programming_fundamentals"],
+  "object_oriented_programming": ["programming_fundamentals"],
+  "lookers": ["dashboarding", "bi_tools"],
+  "system verilog": ["systemverilog"],
+  "erp": ["erp_systems"],
+  "priority_erp": ["erp_systems"],
+  "authentication": ["jwt_oauth_auth"],
+  "system engineering": ["system_design"],
+  "ui_design": ["ui_visual_design"],
+  "azure_devops": ["cloud_platforms_devops"],
+  "embedded software development": ["embedded_systems"],
+  "full stack development": ["frontend_development", "backend_development"],
 };
 
-// Resolve a free-text skill label to library skill IDs.
+// THE one shared skill resolver. extract-job-requirements,
+// generate-career-analysis, and the frontend (src/lib/skillResolver.js) all
+// route through resolveSkill / resolveSkillList — do NOT re-implement the
+// 4-step fallback anywhere else (this consolidates three hand-kept copies).
 //
-// Lookup order:
-//   1. Exact alias-map match on the lowercased, trimmed, whitespace-collapsed
-//      form (e.g. "  Google  Sheets  " → "google sheets")
-//   2. Stripped-parenthetical retry — "Figma (basic)" → "figma"
-//   3. Snake-cased direct ID match — preserves the previous matcher path so
-//      labels like "ab_testing" still work without an alias entry
+// Lookup order (unchanged from the three legacy copies, byte-for-byte):
+//   1. Direct alias-map match on the lowercased, trimmed, whitespace-collapsed
+//      form (e.g. "  Google  Sheets  " -> "google sheets")
+//   2. Stripped-parenthetical retry — "Figma (basic)" -> "figma"
+//   3. Snake_case -> space normalization — "product_management" ->
+//      "product management" (JD extractors emit snake_case)
+//   4. Snake-case direct ID match — "ab_testing" resolves without an alias
 //
-// Returns [] when nothing matches; caller decides whether to fall through to
-// proof-signal extraction (which is the existing backstop).
-export function resolveSkillAliases(
+// The caller injects the canonical ID set: extract + career-analysis derive it
+// from 01_skill_library.ts; the browser derives it from the generated mirror
+// src/lib/skillIdsGenerated.json (a drift-guard test asserts the two are
+// identical). One resolution algorithm over one logical ID source.
+//
+// Returns [] when nothing matches.
+export function resolveSkill(
   label: string,
   skillIdSet: Set<string>,
 ): string[] {
@@ -1192,11 +1221,7 @@ export function resolveSkillAliases(
     if (aliased) return aliased.filter((id) => skillIdSet.has(id));
   }
 
-  // 3. Snake-case → space normalization. JD extractors sometimes emit
-  //    snake_case labels (e.g. "product_management", "big_data") that
-  //    don't match the space-keyed alias map. Convert underscores back to
-  //    spaces and retry. Covers the most common JD-extractor failure mode
-  //    observed in the Phase 1 sample run.
+  // 3. Snake_case -> space normalization
   if (norm.includes("_")) {
     const unsnaked = norm.replace(/_+/g, " ").replace(/\s+/g, " ").trim();
     if (unsnaked !== norm && unsnaked.length > 0) {
@@ -1205,11 +1230,47 @@ export function resolveSkillAliases(
     }
   }
 
-  // 4. Snake-case direct ID match (existing behavior — preserves the
-  //    pre-alias-map matcher path so labels like "ab_testing" still
-  //    resolve without an alias entry)
+  // 4. Snake-case direct ID match
   const snake = norm.replace(/[\s-]+/g, "_");
   if (skillIdSet.has(snake)) return [snake];
 
   return [];
+}
+
+// Back-compat export name. generate-career-analysis imports resolveSkillAliases;
+// it delegates to the one shared resolver so there is a single logic copy.
+export function resolveSkillAliases(
+  label: string,
+  skillIdSet: Set<string>,
+): string[] {
+  return resolveSkill(label, skillIdSet);
+}
+
+// Resolve a list of raw skill labels to canonical IDs + capture unmapped
+// phrases. Returns deduped arrays:
+//   { canonical: ["python", "figma_mastery"], unmapped: ["my custom skill"] }
+export function resolveSkillList(
+  labels: string[],
+  skillIdSet: Set<string>,
+): { canonical: string[]; unmapped: string[] } {
+  if (!Array.isArray(labels) || labels.length === 0) {
+    return { canonical: [], unmapped: [] };
+  }
+  const canonical = new Set<string>();
+  const unmapped: string[] = [];
+  const seenUnmapped = new Set<string>();
+  for (const raw of labels) {
+    if (typeof raw !== "string") continue;
+    const ids = resolveSkill(raw, skillIdSet);
+    if (ids.length > 0) {
+      for (const id of ids) canonical.add(id);
+    } else {
+      const norm = raw.toLowerCase().replace(/\s+/g, " ").trim();
+      if (norm && !seenUnmapped.has(norm)) {
+        seenUnmapped.add(norm);
+        unmapped.push(norm);
+      }
+    }
+  }
+  return { canonical: Array.from(canonical).sort(), unmapped };
 }

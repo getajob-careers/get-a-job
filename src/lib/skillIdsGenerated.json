@@ -1,7 +1,7 @@
 {
   "generated_from": "supabase/functions/_shared/libraries/01_skill_library.ts",
-  "generated_at": "2026-05-25",
-  "count": 595,
+  "generated_at": "2026-07-07",
+  "count": 599,
   "ids": [
     "ab_testing",
     "ab_testing_marketing",
@@ -111,6 +111,7 @@
     "coaching",
     "code_review_practices",
     "cold_calling",
+    "collections_management",
     "commercial_mindset",
     "commercial_negotiation",
     "communication",
@@ -247,6 +248,7 @@
     "facilities_infrastructure",
     "feature_definition",
     "feature_engineering",
+    "field_sales",
     "figma_mastery",
     "finance_business_partnering",
     "financial_crime_practice",
@@ -288,6 +290,7 @@
     "information_architecture",
     "information_security",
     "infrastructure_as_code",
+    "insurance_domain",
     "integration_middleware",
     "interaction_design",
     "inventory_management",
@@ -569,6 +572,7 @@
     "training_facilitation",
     "travel_logistics_coordination",
     "ui_visual_design",
+    "underwriting",
     "unit_testing_practice",
     "upselling_cross_selling",
     "us_gaap_practice",
@@ -1194,6 +1198,10 @@
     "speech_writing": "Speech Writing",
     "strategic_planning": "Strategic Planning",
     "resource_allocation": "Resource Allocation",
-    "talent_development": "Talent Development"
+    "talent_development": "Talent Development",
+    "insurance_domain": "Insurance Domain Knowledge",
+    "collections_management": "Collections & Receivables Management",
+    "field_sales": "Field & Territory Sales",
+    "underwriting": "Underwriting"
   }
 }
