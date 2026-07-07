@@ -14,6 +14,13 @@
 
 import { createClient } from "npm:@supabase/supabase-js@2";
 import { openaiChatCompletion } from '../_shared/openai-chat.ts';
+import {
+  isHebrewJd,
+  hebrewCharRatio,
+  dropHebrewLabels,
+  tokenGroundedSkills,
+  EXTRACT_HE_SKILL_CAP,
+} from '../_shared/hebrew-routing.ts';
 import { stripHtml } from '../_shared/strip-html.ts';
 import { SKILL_ALIASES } from '../_shared/skill-aliases.ts';
 import { skillLibrary } from "../_shared/libraries/01_skill_library.ts";
@@ -29,6 +36,40 @@ const corsHeaders = {
 // decided to start here and only upgrade if spot-checks fail. Cost target:
 // ~$0.005/job (~$16 for 3187-job backfill, ~$0.25-1/day ongoing).
 const MODEL = "gpt-4o-mini";
+
+// EXTRACT_HE_MODEL — opt-in Hebrew-routing flag (spec §7). When the env var is
+// set to exactly the routed model slug, Hebrew/mixed JDs (per the deterministic
+// script detector) route to that reasoning model; English stays on gpt-4o-mini.
+// ANY other value — unset, empty, misspelled — resolves to null => gpt-4o-mini
+// for EVERY language = today's behavior, no data migration. Mirrors the cv_model
+// safe-coerce pattern (generate-tailored-cv).
+const HE_ROUTING_MODEL: string | null =
+  Deno.env.get('EXTRACT_HE_MODEL') === 'gpt-5.4-mini' ? 'gpt-5.4-mini' : null;
+
+// Appended to the system prompt on the routed (Hebrew/mixed) path ONLY (spec §3):
+// sharper anti-fabrication for the reasoning model + English-only skill labels +
+// a concision cap. No backticks-as-characters inside (Deno bundler is strict).
+const HE_PROMPT_ADDENDUM = `
+
+HEBREW/MIXED-JD ROUTED PATH — REASONING-MODEL GUARDRAILS (override base on conflict)
+
+R1. OUTPUT LANGUAGE: emit EVERY skill label in req_skills_core_raw and
+    req_skills_nice_raw in ENGLISH, even when the JD is written in Hebrew.
+    Translate Hebrew skill phrases to their natural English equivalent. NEVER
+    emit a Hebrew-script skill label. This applies to skills ONLY; other fields
+    follow the base rules.
+
+R2. ANTI-FABRICATION (STRICTER): extract a skill ONLY when it is explicitly
+    stated in, or unambiguously required by, the JD body. Do NOT infer skills
+    from the role title, the company, the industry, or general knowledge of what
+    such a role usually needs. A MISSED real skill is far better than a
+    FABRICATED one. When unsure whether a phrase is a genuine requirement, DROP
+    it. Do not pad the list to look thorough.
+
+R3. CONCISION: emit at most ${EXTRACT_HE_SKILL_CAP} core and ${EXTRACT_HE_SKILL_CAP} nice skills — the
+    highest-signal ones actually named in the JD. Prefer fewer, well-grounded
+    skills over a long padded list.
+`;
 
 // Bump to force re-extraction across the whole jobs table. Useful when the
 // extraction prompt or output schema changes in a way that requires reprocessing.
@@ -174,6 +215,7 @@ interface ExtractionResult {
   function_family: string | null;
   responsibility_keywords: string[];
   extraction_confidence: number;
+  extraction_model: string;
 
   // Extended (v2 schema)
   customer_type: string[];
@@ -221,6 +263,17 @@ interface ExtractionResult {
 }
 
 async function extractRequirements(jd: string, jobTitle: string, openaiKey: string): Promise<ExtractionResult | null> {
+  // Language routing (spec §1): a DETERMINISTIC pre-call Hebrew-script check —
+  // never the LLM-emitted jd_language (unknown until after this call). Flag off
+  // OR English body => model stays gpt-4o-mini and every guardrail below no-ops,
+  // so the default path is byte-identical to today.
+  const routeToHebrew = HE_ROUTING_MODEL !== null && isHebrewJd(jd);
+  const model = routeToHebrew ? HE_ROUTING_MODEL! : MODEL;
+  const skillCap = routeToHebrew ? EXTRACT_HE_SKILL_CAP : 25;
+  const heAddendum = routeToHebrew ? HE_PROMPT_ADDENDUM : '';
+  if (HE_ROUTING_MODEL !== null) {
+    console.log(`[extract-he-route] flag=on ratio=${hebrewCharRatio(jd).toFixed(3)} routed=${routeToHebrew} model=${model}`);
+  }
   const systemPrompt = `You are a structured extractor that pulls REQUIREMENTS and CONTEXT signals from job descriptions for downstream profile-vs-job fit scoring + market analysis. Your output is consumed by deterministic math, UI filters, and CV generation — emit ONLY values that match the canonical vocabularies below. When a JD doesn't explicitly state something, leave that field null/empty rather than inferring.
 
 ═══════════════════════════════════════════════════════════════════════════
@@ -503,12 +556,12 @@ Return JSON matching exactly this shape (leave fields null/empty when JD doesn't
   try {
     const res = await openaiChatCompletion(
       {
-        model: MODEL,
+        model,
         temperature: 0,
         max_tokens: 3000,
         response_format: { type: 'json_object' },
         messages: [
-          { role: 'system', content: systemPrompt },
+          { role: 'system', content: systemPrompt + heAddendum },
           { role: 'user', content: userPrompt },
         ],
       },
@@ -572,12 +625,18 @@ Return JSON matching exactly this shape (leave fields null/empty when JD doesn't
       ? parsed.req_education_fields.filter((f: unknown) => typeof f === 'string').map((f: string) => f.toLowerCase().replace(/\s+/g, '_')).slice(0, 8)
       : [];
     const eduStrict = parsed.req_education_strict === true;
-    const skillsCoreRaw = Array.isArray(parsed.req_skills_core_raw)
-      ? parsed.req_skills_core_raw.filter((s: unknown) => typeof s === 'string' && s.trim().length > 0).slice(0, 25)
+    let skillsCoreRaw = Array.isArray(parsed.req_skills_core_raw)
+      ? parsed.req_skills_core_raw.filter((s: unknown) => typeof s === 'string' && s.trim().length > 0).slice(0, skillCap)
       : [];
-    const skillsNiceRaw = Array.isArray(parsed.req_skills_nice_raw)
-      ? parsed.req_skills_nice_raw.filter((s: unknown) => typeof s === 'string' && s.trim().length > 0).slice(0, 25)
+    let skillsNiceRaw = Array.isArray(parsed.req_skills_nice_raw)
+      ? parsed.req_skills_nice_raw.filter((s: unknown) => typeof s === 'string' && s.trim().length > 0).slice(0, skillCap)
       : [];
+    if (routeToHebrew) {
+      // Guardrails (spec §3): English-only labels + drop fabricated (ungrounded)
+      // skills. Routed path ONLY — the English / gpt-4o-mini output is untouched.
+      skillsCoreRaw = tokenGroundedSkills(dropHebrewLabels(skillsCoreRaw), jd);
+      skillsNiceRaw = tokenGroundedSkills(dropHebrewLabels(skillsNiceRaw), jd);
+    }
     const languages = Array.isArray(parsed.req_languages)
       ? parsed.req_languages
           .filter((l: any) => l && typeof l.language === 'string' && PROFICIENCY_LEVELS.includes(l.proficiency))
@@ -971,6 +1030,7 @@ Return JSON matching exactly this shape (leave fields null/empty when JD doesn't
     }
 
     return {
+      extraction_model: model,
       req_years_min: finalYearsMin,
       req_years_max: finalYearsMax,
       req_seniority: seniority,
@@ -1312,7 +1372,7 @@ Deno.serve(async (req) => {
 
     // Bookkeeping
     extraction_confidence: extraction.extraction_confidence,
-    extraction_model: MODEL,
+    extraction_model: extraction.extraction_model,
     extraction_schema_version: EXTRACTION_SCHEMA_VERSION,
     description_hash: newHash,
     extracted_at: new Date().toISOString(),

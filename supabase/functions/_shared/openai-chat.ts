@@ -44,6 +44,34 @@ export const LANGFUSE_BASE_URL: string | null = LANGFUSE_URL ?? null
 
 const OPENAI_ENDPOINT = 'https://api.openai.com/v1/chat/completions'
 
+// gpt-5 reasoning models reject `temperature` and `max_tokens`; they require
+// `max_completion_tokens` and default temperature (spec §2). Shape the payload
+// for those models ONLY. For every non-gpt-5 model the ORIGINAL payload object
+// is returned BY REFERENCE, so the fetch body is byte-identical to before this
+// helper existed — gpt-4o-mini and every other caller are entirely unaffected.
+export const GPT5_MIN_COMPLETION_TOKENS = 8000
+
+function isGpt5Model(model: unknown): boolean {
+  return typeof model === 'string' && /^gpt-5/i.test(model)
+}
+
+export function shapeOpenAIPayload(
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  if (!payload || !isGpt5Model(payload.model)) return payload
+  const shaped: Record<string, unknown> = {}
+  for (const [k, v] of Object.entries(payload)) {
+    if (k === 'temperature' || k === 'max_tokens') continue
+    shaped[k] = v
+  }
+  const requested = Number(payload.max_completion_tokens ?? payload.max_tokens ?? 0)
+  shaped.max_completion_tokens = Math.max(
+    Number.isFinite(requested) ? requested : 0,
+    GPT5_MIN_COMPLETION_TOKENS,
+  )
+  return shaped
+}
+
 export interface TraceContext {
   // Trace name shown in Langfuse — typically the edge function slug.
   traceName: string
@@ -166,6 +194,8 @@ export async function openaiChatCompletion(
   options: OpenAIChatOptions = {},
 ): Promise<Response> {
   const startTime = new Date()
+  // gpt-5* → max_completion_tokens/no-temperature; non-gpt-5 → same object, no-op.
+  const finalPayload = shapeOpenAIPayload(payload)
 
   const response = await fetch(OPENAI_ENDPOINT, {
     method: 'POST',
@@ -174,7 +204,7 @@ export async function openaiChatCompletion(
       'Authorization': `Bearer ${apiKey}`,
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify(payload),
+    body: JSON.stringify(finalPayload),
   })
 
   // SAFETY: Langfuse tracing is wrapped in its own try/catch and runs
@@ -188,7 +218,7 @@ export async function openaiChatCompletion(
       const endTime = new Date()
 
       const tracePromise = sendLangfuseTrace({
-        payload,
+        payload: finalPayload,
         traceCtx,
         startTime,
         endTime,
