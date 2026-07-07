@@ -12,6 +12,7 @@ code_paths:
   - supabase/functions/render-cv/index.ts
   - supabase/functions/_shared/cv-antifab.ts
   - supabase/functions/_shared/cv-master.ts
+  - supabase/functions/_shared/cv-enforce-invariants.ts
   - src/components/cv-studio/CVStudioLive.jsx
 ---
 
