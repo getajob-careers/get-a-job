@@ -1,6 +1,6 @@
 ---
 title: Hebrew extractor — language-routed gpt-5.4-mini (scoping)
-status: DRAFT — HELD FOR ELI'S REVIEW
+status: SIGNED (2026-07-07) — amended: Hebrew reprocess scoped to ACTIVE jobs (is_active=true)
 owner: eli
 last_reviewed: 2026-07-07
 consumes: docs/research/role-library-coverage-gap.md
@@ -85,17 +85,23 @@ room). Nothing routed works until this lands.
 2. A **deterministic post-filter**: any `req_skills_*_raw` entry containing Hebrew Unicode → translate
    (cheap 4o-mini or the existing `cv-translate` path) or drop. **Acceptance: zero Hebrew-script labels.**
 
-## 4. schema_version bump + Hebrew reprocess (~1,350 rows) — with the cost trap flagged
+## 4. schema_version bump + Hebrew reprocess (ACTIVE Hebrew jobs only) — with the cost trap flagged
 
 - Bump **`EXTRACTION_SCHEMA_VERSION` 4 → 5** (`:48`) to signal the contract change.
 - **The trap:** the idempotency gate (`:1166–1169`) skips only when `extraction_schema_version ===
 EXTRACTION_SCHEMA_VERSION`. A naive bump therefore **invalidates ALL rows** → the next pass
   re-extracts every English job too (on 4o-mini — identical output, wasted spend).
-- **So scope the reprocess to Hebrew/mixed ONLY:** a one-off targeted re-extract over the **~1,350**
-  rows where the deterministic detector fires (or stored `jd_language ∈ {he, mixed}`), with `force=true`.
-  English rows re-extract lazily on their next natural touch — no 5.4, negligible cost. **Do not lean on
-  the global bump to drive the Hebrew reprocess**; run a targeted job-id queue (or gate the reprocess by
-  language so English is skipped).
+- **So scope the reprocess to ACTIVE Hebrew/mixed jobs ONLY** (amended 2026-07-07): a one-off targeted
+  re-extract over the rows where `is_active = true` AND (the deterministic detector fires OR stored
+  `jd_language ∈ {he, mixed}`), with `force=true`. **Closed/stale jobs are excluded** — they are never
+  shown or scored, so re-extracting them is pure cost. English rows re-extract lazily on their next
+  natural touch — no 5.4. **Do not lean on the global bump to drive the reprocess**; run a targeted
+  job-id queue filtered by `is_active` + language (English skipped).
+
+  ```sql
+  -- confirm the reprocess count (drives the cost estimate in §5)
+  select count(*) from jobs where is_active = true and jd_language in ('he','mixed');
+  ```
 
 ## 5. Cost
 
@@ -103,7 +109,10 @@ EXTRACTION_SCHEMA_VERSION`. A naive bump therefore **invalidates ALL rows** → 
   tokens + reasoning-heavy output (`max_completion_tokens` up to 8000) → est **~$0.025–0.035/call** vs
   **~$0.002** for 4o-mini ⇒ **~6–13×** (memory cited ~6.4×). **Confirm the exact per-call from the COST
   section of `/tmp/c5-bakeoff.log`** (the run just printed it for gpt-5.4-mini).
-- **One-off Hebrew reprocess:** ~1,350 × ~$0.03 ≈ **~$40** (range ~$30–70).
+- **One-off reprocess (ACTIVE Hebrew only, amended):** `N_active × ~$0.03/call`, where `N_active` is the
+  §4 query — a **subset** of the ~1,350 total Hebrew rows (closed jobs excluded). Bounds: if active ≈
+  40–60% of Hebrew, ≈ **$16–24** (down from the ~$40 all-Hebrew figure); hard ceiling ~$40 only if every
+  Hebrew job is active. **Confirm `N_active` before the run.**
 - **Ongoing delta:** only Hebrew/mixed nightly jobs route to 5.4. If ~20–25% of nightly ingest is
   Hebrew-body, the _extraction line_ for that slice rises ~6–13×; blended extraction cost rises roughly
   `share × (mult−1)` ≈ **+1.3× to +2.6× on the extraction line only** (small in absolute pipeline terms).
@@ -148,4 +157,5 @@ Mirror the Hebrew labeling method (`getajob-eval/scripts/esco-hebrew-eval/esco_l
 
 ---
 
-_Scoping only. HELD for Eli's review. No code changed; every seam is a file:line target for the build._
+_**SIGNED by Eli 2026-07-07** (amended: reprocess scoped to ACTIVE Hebrew jobs). Build gated on Eli's
+separate go. No code changed; every seam is a file:line target for the build._
