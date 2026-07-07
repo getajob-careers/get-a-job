@@ -106,13 +106,13 @@ group by 1 order by n desc limit 50;
 | ----------------------------- | ----- | ---------- | ------------------------------------------------------------------------------ |
 | technical_support             | 27    | A          | alias → support ID; de-dupes with `technical support`                          |
 | verification                  | 27    | G          | generic — drop-list                                                            |
-| data science                  | 25    | A          | alias → `data_science`                                                         |
+| data science | 25 | M | MANDATORY step-3 lib entry — no `data_science` ID exists (orphan, deferred from #517) |
 | ai_ml                         | 22    | A          | alias → ai/ml ID                                                               |
 | erp                           | 21    | A          | alias → `erp_systems`                                                          |
 | orchestration                 | 20    | G          | generic — drop-list (confirmed; no bare-word ID)                               |
 | reporting                     | 20    | G          | generic — drop-list                                                            |
 | communication protocols       | 19    | M (review) | networking/embedded → step 3                                                   |
-| security research             | 19    | A          | alias → `security_research`                                                    |
+| security research | 19 | M | MANDATORY step-3 lib entry — no `security_research` ID exists (orphan, deferred from #517) |
 | technical support             | 19    | A          | alias → support ID (spacing twin of `technical_support`)                       |
 | computer architecture         | 18    | M (review) | systems/chip cluster → step 3                                                  |
 | optimization                  | 18    | G          | generic — drop-list                                                            |
@@ -120,13 +120,13 @@ group by 1 order by n desc limit 50;
 | system verilog                | 18    | A          | alias → `systemverilog` (whitespace)                                           |
 | lookers                       | 18    | A          | alias → Looker (typo/plural)                                                   |
 | synthesis                     | 18    | M          | chip-design cluster → step 3                                                   |
-| data_science                  | 17    | A          | alias → `data_science` (snake twin)                                            |
+| data_science | 17 | M | MANDATORY step-3 lib entry — no `data_science` ID (orphan, deferred from #517) |
 | windows internals             | 17    | M          | OS-internals cluster → step 3                                                  |
 | simulation                    | 16    | M (review) | EDA/chip cluster → step 3                                                      |
 | scaling                       | 16    | G          | generic — drop-list                                                            |
 | integration                   | 16    | G          | generic — drop-list                                                            |
 | storage                       | 16    | G          | generic — drop-list (confirmed)                                                |
-| security_research             | 16    | A          | alias → `security_research` (snake twin)                                       |
+| security_research | 16 | M | MANDATORY step-3 lib entry — no `security_research` ID (orphan, deferred from #517) |
 | grpc                          | 15    | M          | new gRPC entry → step 3                                                        |
 | manufacturing                 | 15    | M (review) | hardware/manufacturing → step 3                                                |
 | os internals                  | 15    | M          | OS-internals cluster → step 3                                                  |
