@@ -1,6 +1,6 @@
 ---
 title: CV consolidation step 1 — the enforceCvInvariants chokepoint (scoping)
-status: DRAFT — HELD FOR ELI'S REVIEW
+status: SIGNED (2026-07-07) — as-is; re-normalize-on-next-save side effect accepted
 owner: eli
 last_reviewed: 2026-07-07
 consumes: docs/research/cv-engine-consolidation-investigation.md
@@ -150,5 +150,5 @@ renderer swap, no engine merge in step 1** — only the shared chokepoint + its 
 
 ---
 
-_Scoping only. HELD for Eli's review. No code changed; every call site is a file:line target for the
-eventual build PR._
+_**SIGNED by Eli 2026-07-07** as-is (the reopened-CV re-normalize-on-next-save side effect is accepted).
+Build gated on Eli's separate go. No code changed; every call site is a file:line target for the build._
