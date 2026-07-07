@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1079,
+  "total_companies": 1080,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -12972,6 +12972,18 @@
       "api_url": "https://api.lever.co/v0/postings/Sauce?mode=json",
       "verified": true,
       "notes": "Lever; restaurant delivery/ordering platform, dual HQ NYC + Tel Aviv. IL R&D role live (Head of GTM Engineering, Tel Aviv District, hybrid, 2026-05-05). Slug is case-sensitive (capital S). Lever-harvest r1, 2026-07-08."
+    },
+    {
+      "name": "Prilenia",
+      "type": "israeli_founded",
+      "industry": "Biotech / Pharmaceuticals",
+      "domain": "prilenia.com",
+      "careers_url": "https://jobs.lever.co/prilenia",
+      "ats": "lever",
+      "slug": "prilenia",
+      "api_url": "https://api.lever.co/v0/postings/prilenia?mode=json",
+      "verified": true,
+      "notes": "Lever; Israeli-founded neurodegeneration biotech (Herzliya). Company-seed (K2view/Firebolt precedent): live board creds, 0 IL-ingesting today because the sole IL-eligible posting is Boston-primary pan-remote (Israel in allLocations only); self-heals when an IL-primary role posts. fetchLever location parsing intentionally untouched. Lever-harvest r1, 2026-07-08."
     }
   ]
 }
