@@ -27,6 +27,10 @@ getajob-extension.zip
 # Claude Code agent worktrees (duplicate repo checkouts — never commit)
 .claude/worktrees/
 
+# Playwright MCP + ad-hoc verification screenshots (working artifacts, never commit)
+.playwright-mcp/
+screenshots/
+
 # Local design-handoff bundle (kept on disk, not tracked)
 GetAJob Design System/
 
