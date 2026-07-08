@@ -329,3 +329,100 @@ describe("filterToolsToSource (skills.tools)", () => {
     expect(r.removed).toBe(1);
   });
 });
+
+// ─── A2: attribution-aware anti-fab ──────────────────────────────────────────
+const kkey = (t: unknown, c: unknown) =>
+  `${String(t ?? "").trim().toLowerCase()}@@${String(c ?? "").trim().toLowerCase()}`;
+
+describe("enforceBulletProperNouns — A2 per-experience grounding (cv_antifab_attribution)", () => {
+  const build = () => ({
+    professional_experiences: [
+      { title: "Creator", company: "Get A Job", bullets: ["Handled premium support for GuardioSecure clients"] },
+      { title: "Specialist", company: "Guardio", bullets: ["Handled premium support for GuardioSecure clients"] },
+    ],
+  });
+  const master = new Map<string, string[]>([
+    [kkey("Creator", "Get A Job"), ["Built the platform solo"]],
+    [kkey("Specialist", "Guardio"), ["Ran GuardioSecure premium support"]],
+  ]);
+  // flat = union of BOTH experiences → contains "guardiosecure" (attribution-blind)
+  const flat = "built the platform solo \n ran guardiosecure premium support";
+
+  it("the flat corpus PASSES a mis-attributed bullet (the bug A2 fixes)", () => {
+    const cv = build();
+    enforceBulletProperNouns(cv, flat, master, kkey); // no perExpHaystack → flat
+    // GuardioSecure appears somewhere in the corpus, so the Guardio bullet under
+    // Get A Job survives — the flat corpus can't see the mis-attribution.
+    expect(cv.professional_experiences[0].bullets.join(" ")).toContain("GuardioSecure");
+  });
+
+  it("per-experience grounding CATCHES the mis-attributed bullet + restores master (no-empty)", () => {
+    const perExp = new Map<string, string>([
+      [kkey("Creator", "Get A Job"), "built the platform solo"], // no GuardioSecure
+      [kkey("Specialist", "Guardio"), "ran guardiosecure premium support"],
+    ]);
+    const cv = build();
+    const res = enforceBulletProperNouns(cv, flat, master, kkey, perExp);
+    // Get A Job: the Guardio bullet fails against its OWN corpus → removed → restored to master.
+    expect(cv.professional_experiences[0].bullets).toEqual(["Built the platform solo"]);
+    expect(res.bulletsEnforced).toBeGreaterThan(0);
+    expect(res.experiencesRestored).toBeGreaterThan(0);
+    // Guardio's own entry keeps its correctly-attributed bullet.
+    expect(cv.professional_experiences[1].bullets.join(" ")).toContain("GuardioSecure");
+  });
+
+  it("honest bullet with a SHARED skill token still grounds (no false reject from the narrower corpus)", () => {
+    const cv = {
+      professional_experiences: [
+        { title: "Creator", company: "Get A Job", bullets: ["Built pipelines with Databricks and Airflow"] },
+      ],
+    };
+    // Databricks/Airflow are shared skills — NOT in Get A Job's own responsibilities,
+    // but present in the shared part of its per-experience corpus.
+    const perExp = new Map<string, string>([
+      [kkey("Creator", "Get A Job"), "built the platform \n databricks \n airflow"],
+    ]);
+    const res = enforceBulletProperNouns(cv, "unused-flat", new Map(), kkey, perExp);
+    expect(cv.professional_experiences[0].bullets).toEqual(["Built pipelines with Databricks and Airflow"]);
+    expect(res.bulletsEnforced).toBe(0);
+  });
+
+  it("flag OFF (no perExpHaystack) → flat-corpus behavior, byte-identical", () => {
+    const cv = { professional_experiences: [{ title: "A", company: "X", bullets: ["Used GuardioSecure daily"] }] };
+    const res = enforceBulletProperNouns(cv, "used guardiosecure daily", new Map(), kkey); // grounds in flat
+    expect(cv.professional_experiences[0].bullets).toEqual(["Used GuardioSecure daily"]);
+    expect(res.bulletsEnforced).toBe(0);
+  });
+});
+
+describe("applyAntiFabGate — A2 attribution matching (cv_antifab_attribution)", () => {
+  const original = {
+    professional_experiences: [
+      { title: "Creator", company: "Get A Job", dates: "2024", bullets: ["Built the platform"] },
+      { title: "Specialist", company: "Guardio", dates: "2023", bullets: ["Handled VIP support"] },
+    ],
+  };
+  // edit-cv returns the two entries REVERSED, each honestly rephrased (no new facts).
+  const edited = {
+    professional_experiences: [
+      { title: "Specialist", company: "Guardio", dates: "2023", bullets: ["Handled premium VIP support"] },
+      { title: "Creator", company: "Get A Job", dates: "2024", bullets: ["Built the whole platform"] },
+    ],
+  };
+
+  it("index-match (OFF) mis-attributes the reordered edit — facts revert to the WRONG experience", () => {
+    const res = applyAntiFabGate(original, edited); // index-match
+    // edited[0] (Guardio) has its facts reverted to original[0] (Get A Job): the edit lands
+    // under the wrong identity. Attribution matching (below) fixes this.
+    expect(res.cv_data.professional_experiences[0].company).toBe("Get A Job");
+    expect(res.factsReverted).toBeGreaterThan(0);
+  });
+
+  it("attributionMatch (ON) traces the reordered edit against the SAME experience → honest rephrase kept", () => {
+    const res = applyAntiFabGate(original, edited, { attributionMatch: true });
+    expect(res.cv_data.professional_experiences[0].company).toBe("Guardio"); // facts stay on the right experience
+    expect(res.cv_data.professional_experiences[0].bullets).toEqual(["Handled premium VIP support"]);
+    expect(res.cv_data.professional_experiences[1].bullets).toEqual(["Built the whole platform"]);
+    expect(res.bulletsReverted).toBe(0);
+  });
+});

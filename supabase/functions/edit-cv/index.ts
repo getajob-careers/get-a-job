@@ -124,9 +124,16 @@ Deno.serve(async (req) => {
     // user's own source — no JD, no master fetch). Per-entry bullet revert +
     // facts-immutable: apply the safe rephrasing, silently restore anything that
     // invented a metric/tool/company or rewrote a title/employer/date.
+    // A2 (cv_antifab_attribution): trace edited bullets against the SAME
+    // experience (title+company) rather than array position. Default OFF →
+    // index-match (byte-identical).
+    const cvAntifabAttribution =
+      String(body?.cv_antifab_attribution ?? Deno.env.get("CV_ANTIFAB_ATTRIBUTION") ?? "")
+        .trim().toLowerCase() === "on";
     const guard = applyAntiFabGate(
       cv_data as Record<string, unknown>,
       edited as Record<string, unknown>,
+      { attributionMatch: cvAntifabAttribution },
     );
     const rawMsg = (parsed as { message?: unknown })?.message;
     const llmMsg = typeof rawMsg === "string" && rawMsg.trim()
