@@ -24,6 +24,7 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { extractText, getDocumentProxy } from "https://esm.sh/unpdf@1.6.2";
 import * as mammoth from "https://esm.sh/mammoth@1.12.0";
+import { Buffer } from "node:buffer";
 import { routeFor } from "../supabase/functions/_shared/model-routing.ts";
 import { openaiChatCompletionWithRetry } from "../supabase/functions/_shared/openai-chat.ts";
 import {
@@ -78,18 +79,34 @@ async function resumeToText(
     .download(path);
   if (dlErr || !blob) return { path, text: "" };
   const ab = await blob.arrayBuffer();
+  const isDocx = /\.docx$/i.test(file.name);
+  const extractor = isDocx ? "mammoth(docx)" : "unpdf(pdf)";
   try {
-    if (/\.docx$/i.test(file.name)) {
-      // DOCX: the same extractor onboarding uses client-side
-      // (StepResumeUpload.jsx -> mammoth.extractRawText).
-      const { value } = await mammoth.extractRawText({ arrayBuffer: ab });
-      return { path, text: (value || "").trim() };
+    let text = "";
+    if (isDocx) {
+      // DOCX: same extraction onboarding uses (client-side mammoth).
+      // esm.sh serves mammoth's NODE build, which needs { buffer: Buffer }
+      // — the browser-only { arrayBuffer } option throws "Could not find
+      // file in options" and would silently yield zero text.
+      const { value } = await mammoth.extractRawText({
+        buffer: Buffer.from(new Uint8Array(ab)),
+      });
+      text = (value || "").trim();
+    } else {
+      const pdf = await getDocumentProxy(new Uint8Array(ab));
+      const r = await extractText(pdf, { mergePages: true });
+      text = (r.text || "").trim();
     }
-    const pdf = await getDocumentProxy(new Uint8Array(ab));
-    const { text } = await extractText(pdf, { mergePages: true });
-    return { path, text: (text || "").trim() };
-  } catch {
-    // unreadable / unsupported (e.g. scanned PDF with no text layer — no OCR)
+    console.log(
+      `    [extract] "${file.name}" via ${extractor} -> ${text.length} chars`,
+    );
+    return { path, text };
+  } catch (e) {
+    // Surface, don't swallow — a scanned PDF (no text layer, no OCR) or a
+    // genuinely corrupt file lands here; the reason is now visible.
+    console.log(
+      `    [extract] "${file.name}" via ${extractor} -> FAILED: ${(e as Error).message}`,
+    );
     return { path, text: "" };
   }
 }
