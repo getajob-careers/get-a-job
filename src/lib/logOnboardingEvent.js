@@ -31,8 +31,9 @@ export function logOnboardingEvent(
     // returned { error } without ever surfacing to the caller.
     if (p && typeof p.then === "function") {
       p.then(
-        ({ error } = {}) => {
-          if (error) console.debug("[onb-event] rpc non-fatal:", error.message);
+        (res) => {
+          if (res?.error)
+            console.debug("[onb-event] rpc non-fatal:", res.error.message);
         },
         () => {},
       );

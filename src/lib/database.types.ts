@@ -1577,6 +1577,36 @@ export type Database = {
           },
         ]
       }
+      onboarding_events: {
+        Row: {
+          created_at: string
+          detail: Json | null
+          error_code: string | null
+          event: string
+          id: string
+          step: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          detail?: Json | null
+          error_code?: string | null
+          event: string
+          id?: string
+          step?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          detail?: Json | null
+          error_code?: string | null
+          event?: string
+          id?: string
+          step?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           adjacent_fields: Json | null
@@ -2176,6 +2206,15 @@ export type Database = {
           p_error_message: string
           p_function_name: string
           p_user_id: string
+        }
+        Returns: undefined
+      }
+      log_onboarding_event: {
+        Args: {
+          p_detail?: Json
+          p_error_code?: string
+          p_event: string
+          p_step: number
         }
         Returns: undefined
       }
