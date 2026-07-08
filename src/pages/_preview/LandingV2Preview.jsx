@@ -542,6 +542,25 @@ const LV_CSS = `
 `;
 
 // ────────────────────────────────────────────────────────────────────────
+// Canonical origin. The apex 308-redirects to www, so www is the authoritative
+// host; both `/` and `/Landing` render this component and canonicalize to `/`.
+const CANONICAL_URL = "https://www.getajob.careers/";
+
+// Structured data ported from the retired Landing.jsx (Organization + FAQPage).
+// Google renders JS so injecting at runtime is fine; social unfurlers ignore it.
+const ORGANIZATION_SCHEMA = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "Get A Job",
+  url: CANONICAL_URL,
+  description:
+    "An AI-powered career operating system — specialist agents and a connected workspace that remembers your full background.",
+};
+
+// FAQPage JSON-LD is built at runtime from the SAME FAQS array the visible
+// FAQSection renders (below) — Google requires structured-data FAQ to match
+// on-page content, so this must never drift from what the user sees.
+
 function useLandingV2Head() {
   useEffect(() => {
     const prev = document.title;
@@ -557,16 +576,51 @@ function useLandingV2Head() {
     if (!tabler) {
       tabler = document.createElement("link");
       tabler.rel = "stylesheet";
+      // Pinned (was @latest) — an unpinned CDN dep on the public homepage is a
+      // supply-chain + cache risk. Bump deliberately.
       tabler.href =
-        "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css";
+        "https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.44.0/dist/tabler-icons.min.css";
       tabler.setAttribute("data-lv-tabler", "");
       document.head.appendChild(tabler);
     }
+    // Canonical: /Landing → / (both render this component). Set only if we
+    // create it, and remove on unmount so /privacy, /terms etc. are never
+    // mis-canonicalized to the homepage.
+    let canonical = document.head.querySelector("link[data-lv-canonical]");
+    const canonicalExisted = !!canonical;
+    if (!canonical) {
+      canonical = document.createElement("link");
+      canonical.rel = "canonical";
+      canonical.href = CANONICAL_URL;
+      canonical.setAttribute("data-lv-canonical", "");
+      document.head.appendChild(canonical);
+    }
+    // Structured data (Organization + FAQPage). FAQ derived from the live
+    // FAQS array so the JSON-LD always mirrors the visible FAQ section.
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      mainEntity: FAQS.map((item) => ({
+        "@type": "Question",
+        name: item.q,
+        acceptedAnswer: { "@type": "Answer", text: item.a },
+      })),
+    };
+    const schemaNodes = [ORGANIZATION_SCHEMA, faqSchema].map((schema) => {
+      const node = document.createElement("script");
+      node.type = "application/ld+json";
+      node.setAttribute("data-lv-schema", "");
+      node.textContent = JSON.stringify(schema);
+      document.head.appendChild(node);
+      return node;
+    });
     return () => {
       document.title = prev;
       document.body.style.background = prevBodyBg;
       document.documentElement.style.background = prevHtmlBg;
       if (!existed) tabler.remove();
+      if (!canonicalExisted) canonical.remove();
+      schemaNodes.forEach((n) => n.remove());
     };
   }, []);
 }

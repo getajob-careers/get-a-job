@@ -43,7 +43,9 @@ function buildBody(fullName: string, cohortLabel: string | null): string {
         ? "You're on the team account."
         : cohortLabel === 'handpicked'
           ? "Glad to have you in early."
-          : "Welcome to the pilot."
+          // Open public signup (no cohort_label) — a generic welcome, NOT
+          // "the pilot" (those users aren't pilot participants).
+          : "Glad to have you here."
 
   return [
     greeting,
