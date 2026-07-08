@@ -301,3 +301,21 @@ export function fillFromSource(
     return out;
   });
 }
+
+
+// A5 (gtc_author_from_app): when a linked application resolves, ITS role is
+// authoritative for BOTH content and label. Return it as the authoring role so
+// content matches the label — closing the "content wrong, label right" mask.
+// `overridden` marks a caller target_role that disagreed (the caller should LOG
+// it — observable, never silent). fromApp=false or no appRole → caller role
+// unchanged (byte-identical).
+export function resolveAuthoringRole(
+  callerRole: string,
+  appRole: string,
+  fromApp: boolean,
+): { role: string; overridden: boolean } {
+  if (!fromApp || !appRole) return { role: callerRole, overridden: false };
+  const overridden =
+    appRole.trim().toLowerCase() !== String(callerRole ?? "").trim().toLowerCase();
+  return { role: appRole, overridden };
+}

@@ -16,6 +16,7 @@ import {
   CONTEXT_HONESTY_RULES,
   BULLET_CAPTURE_RULES,
   BULLET_CAPTURE_REGEN_RULES,
+  reconcileCvGenToApp,
 } from "./prompt-lib.ts";
 
 const MARKER = "SUGGESTED_TASKS_JSON:";
@@ -316,5 +317,39 @@ describe("post-save bullet_capture follow-up (verbal acknowledgement, no card)",
     const sys = assembleSystemPrompt("career_agent", "", "story_capture");
     expect(sys).not.toContain("BULLET JUST SAVED");
     expect(sys).not.toContain("ACKNOWLEDGE ONLY");
+  });
+});
+
+
+describe("reconcileCvGenToApp — A5 (gtc_author_from_app)", () => {
+  const A = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa";
+  const B = "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb";
+
+  it("gap 1 — proposal lacks application_id → adds the pinned app + its role", () => {
+    const r = reconcileCvGenToApp({ target_role: "Data Analyst" }, A, "Product Manager");
+    expect(r.proposal.application_id).toBe(A);
+    expect(r.proposal.target_role).toBe("Product Manager");
+    expect(r.mismatch).toBe(false);
+  });
+
+  it("gap 3 — proposal carries a DIFFERENT app id → aligns to pinned + mismatch=true", () => {
+    const r = reconcileCvGenToApp({ application_id: B, target_role: "Data Analyst" }, A, "Product Manager");
+    expect(r.proposal.application_id).toBe(A);
+    expect(r.proposal.target_role).toBe("Product Manager");
+    expect(r.mismatch).toBe(true);
+  });
+
+  it("no pinned app → proposal untouched (no-op, no mismatch)", () => {
+    const p = { application_id: B, target_role: "Data Analyst" };
+    const r = reconcileCvGenToApp(p, null, "Product Manager");
+    expect(r.proposal).toBe(p);
+    expect(r.mismatch).toBe(false);
+  });
+
+  it("pinned app already matches → aligned (no mismatch), role set", () => {
+    const r = reconcileCvGenToApp({ application_id: A, target_role: "x" }, A, "Product Manager");
+    expect(r.proposal.application_id).toBe(A);
+    expect(r.proposal.target_role).toBe("Product Manager");
+    expect(r.mismatch).toBe(false);
   });
 });

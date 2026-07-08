@@ -1576,3 +1576,24 @@ export function parseSuggestions(
     suggested_add_skill,
   };
 }
+
+
+// A5 (gtc_author_from_app): reconcile a CV-gen proposal to the PINNED application.
+// effectiveApplicationId is the user's explicit dropdown selection (authoritative);
+// the proposal's application_id is a model guess. Adds it when missing (gap 1),
+// aligns it when the model emitted a DIFFERENT one (gap 3 — mismatch=true so the
+// caller logs it), and sets target_role to the pinned app's role so content + label
+// match. Pure: shallow-copies, returns { proposal, mismatch }. No-op with no pinned
+// app (returns the proposal untouched).
+export function reconcileCvGenToApp(
+  proposal: any,
+  effectiveApplicationId: string | null,
+  appRole: string | null,
+): { proposal: any; mismatch: boolean } {
+  if (!proposal || !effectiveApplicationId) return { proposal, mismatch: false };
+  const next: any = { ...proposal };
+  const mismatch = !!next.application_id && next.application_id !== effectiveApplicationId;
+  next.application_id = effectiveApplicationId;
+  if (appRole) next.target_role = String(appRole).slice(0, 200).trim();
+  return { proposal: next, mismatch };
+}

@@ -14,6 +14,7 @@ import {
   assembleSystemPrompt,
   buildMessages,
   parseSuggestions,
+  reconcileCvGenToApp,
   stripUnbackedCvGenerationClaim,
 } from "./prompt-lib.ts";
 import { openrouterChatCompletionWithRetry } from "../_shared/openrouter-chat.ts";
@@ -434,7 +435,20 @@ Deno.serve(async (req) => {
     const suggested_application_actions = parsed.suggested_application_actions;
     const suggested_company_target_actions =
       parsed.suggested_company_target_actions;
-    const suggested_cv_generation = parsed.suggested_cv_generation;
+    let suggested_cv_generation = parsed.suggested_cv_generation;
+    // A5 (gtc_author_from_app, env-armed): reconcile the CV-gen proposal to the
+    // PINNED application — add the application_id when the proposal lacks one (gap
+    // 1), align + warn when the model emitted a different one (gap 3), and set
+    // target_role to the pinned app's role. OFF → proposal untouched (byte-identical).
+    const gtcAuthorFromApp =
+      String(Deno.env.get("GTC_AUTHOR_FROM_APP") ?? "").trim().toLowerCase() === "on";
+    if (gtcAuthorFromApp && suggested_cv_generation) {
+      const r = reconcileCvGenToApp(suggested_cv_generation, effectiveApplicationId, targetAppRole);
+      if (r.mismatch) {
+        console.warn(`[ai-chat] A5 author_from_app: CV-gen application_id aligned to the pinned application ${effectiveApplicationId}`);
+      }
+      suggested_cv_generation = r.proposal;
+    }
     const suggested_bullet_capture = parsed.suggested_bullet_capture;
     const suggested_add_skill = parsed.suggested_add_skill;
 
