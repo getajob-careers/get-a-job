@@ -90,7 +90,7 @@ Deno.serve(async (req) => {
     // hook for sending max_completion_tokens (reasoning) vs max_tokens
     // (non-reasoning). Sending both, or sending max_tokens to a
     // reasoning model, fails with HTTP 400 "Unsupported parameter".
-    const body: Record<string, unknown> = {
+    const payload: Record<string, unknown> = {
       model: MODEL,
       messages: [
         { role: 'system', content: SYSTEM_PROMPT },
@@ -98,20 +98,20 @@ Deno.serve(async (req) => {
       ],
       temperature: ROUTE.temperature ?? 0.2,
     }
-    if (ROUTE.response_format) body.response_format = ROUTE.response_format
+    if (ROUTE.response_format) payload.response_format = ROUTE.response_format
     if (ROUTE.reasoning_effort) {
       // Reasoning branch — hidden thinking tokens count against the cap,
       // so use the route's bake-off-validated max_completion_tokens
       // (currently 16000) and never send max_tokens alongside.
-      body.max_completion_tokens = ROUTE.max_completion_tokens ?? NONREASONING_MAX_TOKENS
-      body.reasoning_effort = ROUTE.reasoning_effort
+      payload.max_completion_tokens = ROUTE.max_completion_tokens ?? NONREASONING_MAX_TOKENS
+      payload.reasoning_effort = ROUTE.reasoning_effort
     } else {
       // Non-reasoning branch — kept for any future route downgrade.
-      body.max_tokens = NONREASONING_MAX_TOKENS
+      payload.max_tokens = NONREASONING_MAX_TOKENS
     }
 
     const openaiResponse = await openaiChatCompletionWithRetry(
-      body,
+      payload,
       openaiKey,
       {
         traceName: 'extract-proof-signals',
