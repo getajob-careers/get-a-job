@@ -329,6 +329,75 @@ async function softDeleteStale(supabase: SupabaseClient): Promise<number> {
   return (data ?? []).length;
 }
 
+// ───── Landing page Hero stats ────────────────────────────────────────
+
+const LANDING_STATS_PAGE_SIZE = 1000;
+
+// Mirrors the EXACT is_il/is_active filter used by search_jobs_by_role_titles
+// and count_active_jobs_by_role_titles (see supabase/migrations/20260708_
+// create_landing_stats.sql for the full cross-reference) — no naive
+// count(*) over the whole table, no role-title trigram filtering (that
+// part of those RPCs is for personalized track matching and doesn't apply
+// to this sitewide anonymous-visitor stat).
+async function computeLandingStats(
+  supabase: SupabaseClient,
+): Promise<{ liveRolesCount: number; companiesHiringCount: number }> {
+  const { count, error: countError } = await supabase
+    .from("jobs")
+    .select("*", { count: "exact", head: true })
+    .eq("is_il", true)
+    .eq("is_active", true);
+  if (countError) {
+    throw new Error(
+      `landing_stats live-roles count failed: ${countError.message}`,
+    );
+  }
+
+  // PostgREST has no COUNT(DISTINCT ...) — page through company_slug only
+  // (cheap: single column, already filtered to active IL rows) and dedupe
+  // in-process instead of standing up a dedicated RPC for one nightly read.
+  const slugs = new Set<string>();
+  for (let from = 0; ; from += LANDING_STATS_PAGE_SIZE) {
+    const { data, error } = await supabase
+      .from("jobs")
+      .select("company_slug")
+      .eq("is_il", true)
+      .eq("is_active", true)
+      .range(from, from + LANDING_STATS_PAGE_SIZE - 1);
+    if (error) {
+      throw new Error(`landing_stats company count failed: ${error.message}`);
+    }
+    for (const row of data ?? []) slugs.add(row.company_slug);
+    if (!data || data.length < LANDING_STATS_PAGE_SIZE) break;
+  }
+
+  return {
+    liveRolesCount: count ?? 0,
+    companiesHiringCount: slugs.size,
+  };
+}
+
+// UPSERTs the single landing_stats row consumed by the marketing Hero
+// (src/pages/_preview/LandingV2Preview.jsx). Must run AFTER softDeleteStale
+// so is_active reflects tonight's sweep, not last night's.
+async function refreshLandingStats(supabase: SupabaseClient): Promise<void> {
+  const { liveRolesCount, companiesHiringCount } =
+    await computeLandingStats(supabase);
+  const { error } = await supabase.from("landing_stats").upsert(
+    {
+      id: 1,
+      live_roles_count: liveRolesCount,
+      companies_hiring_count: companiesHiringCount,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "id" },
+  );
+  if (error) throw new Error(`landing_stats upsert failed: ${error.message}`);
+  console.log(
+    `Landing stats refreshed: ${liveRolesCount} live roles, ${companiesHiringCount} companies hiring.`,
+  );
+}
+
 // ───── Main ───────────────────────────────────────────────────────────
 
 async function main() {
@@ -424,6 +493,20 @@ async function main() {
     } catch (err) {
       console.error(
         `WARN: soft-delete sweep failed: ${(err as Error).message}`,
+      );
+    }
+  }
+
+  // Landing page Hero stats — must run AFTER the soft-delete sweep above so
+  // is_active reflects tonight's run. Non-fatal: the frontend fallback
+  // (HERO_STATS_FALLBACK + staleness check) absorbs a missed night, so this
+  // doesn't need to fail the whole cron run like a jobs-table write would.
+  if (!dryRun && supabase) {
+    try {
+      await refreshLandingStats(supabase);
+    } catch (err) {
+      console.error(
+        `WARN: landing_stats refresh failed: ${(err as Error).message}`,
       );
     }
   }
