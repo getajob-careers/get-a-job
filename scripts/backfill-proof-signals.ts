@@ -7,8 +7,9 @@
 // function's extraction (same shared prompt + route + openai helper as
 // supabase/functions/extract-proof-signals/index.ts) so results match
 // production exactly. Text is re-derived from each user's stored resume
-// PDF via unpdf (the same library extract-cv-text uses) because cv_text
-// is never persisted — the client passes it transiently at parse time.
+// file via unpdf (PDF) or mammoth (.docx) — the same two extractors
+// onboarding uses (extract-cv-text/unpdf server-side; mammoth client-side)
+// — because cv_text is never persisted (the client passes it transiently).
 //
 //   Dry run (default, writes nothing):
 //     SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... OPENAI_API_KEY=... \
@@ -22,6 +23,7 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { extractText, getDocumentProxy } from "https://esm.sh/unpdf@1.6.2";
+import * as mammoth from "https://esm.sh/mammoth@1.12.0";
 import { routeFor } from "../supabase/functions/_shared/model-routing.ts";
 import { openaiChatCompletionWithRetry } from "../supabase/functions/_shared/openai-chat.ts";
 import {
@@ -59,7 +61,7 @@ function isEmptyProof(v: unknown): boolean {
   return v == null || (Array.isArray(v) && v.length === 0);
 }
 
-async function pdfToText(
+async function resumeToText(
   userId: string,
 ): Promise<{ path: string | null; text: string }> {
   const { data: files, error } = await supabase.storage
@@ -75,13 +77,20 @@ async function pdfToText(
     .from("resumes")
     .download(path);
   if (dlErr || !blob) return { path, text: "" };
-  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const ab = await blob.arrayBuffer();
   try {
-    const pdf = await getDocumentProxy(bytes);
+    if (/\.docx$/i.test(file.name)) {
+      // DOCX: the same extractor onboarding uses client-side
+      // (StepResumeUpload.jsx -> mammoth.extractRawText).
+      const { value } = await mammoth.extractRawText({ arrayBuffer: ab });
+      return { path, text: (value || "").trim() };
+    }
+    const pdf = await getDocumentProxy(new Uint8Array(ab));
     const { text } = await extractText(pdf, { mergePages: true });
     return { path, text: (text || "").trim() };
   } catch {
-    return { path, text: "" }; // non-PDF or parse failure
+    // unreadable / unsupported (e.g. scanned PDF with no text layer — no OCR)
+    return { path, text: "" };
   }
 }
 
@@ -185,7 +194,7 @@ for (const p of targets ?? []) {
   }
   processed++;
   const short = String(p.id).slice(0, 8);
-  const { path, text } = await pdfToText(p.id);
+  const { path, text } = await resumeToText(p.id);
   if (!path || !text) {
     noFile++;
     console.log(
