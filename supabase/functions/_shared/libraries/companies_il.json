@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1168,
+  "total_companies": 1162,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -2546,18 +2546,6 @@
       "notes": "UID + token from static HTML; API returned 19 positions, 19 IL-tagged. Israeli software development consultancy."
     },
     {
-      "name": "CodiumAI",
-      "type": "israeli_founded",
-      "industry": "DevTools",
-      "domain": "codium.ai",
-      "careers_url": "https://www.codium.ai/careers",
-      "ats": "comeet",
-      "slug": "B8.00B",
-      "api_url": "https://www.comeet.co/careers-api/2.0/company/B8.00B/positions?token=8BB34623D1D45D8346203D1D08BB8BB&details=true",
-      "verified": true,
-      "notes": "Comeet UID + token extracted from careers page HTML (source: https://www.codium.ai/careers)"
-    },
-    {
       "name": "Cognata",
       "type": "israeli_founded",
       "industry": "Automotive",
@@ -4238,18 +4226,6 @@
       "notes": "Comeet board referenced from foresightauto.com/careers. Nasdaq-listed (FRSX), Ness Ziona HQ, dual-use civilian + defense computer vision. Current snapshot shows board live but no open positions. Add as unverified. | api_url recovered 2026-06-12 (token re-harvest; 2 positions, 2 IL at recovery)."
     },
     {
-      "name": "Foresight Autonomous",
-      "type": "israeli_founded",
-      "industry": "Automotive",
-      "domain": "foresightauto.com",
-      "careers_url": null,
-      "ats": "comeet",
-      "slug": "13.000",
-      "api_url": "https://www.comeet.co/careers-api/2.0/company/13.000/positions?token=310F50310C4062031012606201B90310&details=true",
-      "verified": true,
-      "notes": "Comeet UID 13.000 + token verified (slug foresightauto)"
-    },
-    {
       "name": "Foretellix",
       "type": "israeli_founded",
       "industry": "Automotive",
@@ -5822,18 +5798,6 @@
       "notes": "Comeet UID 96.005 + token verified"
     },
     {
-      "name": "Kornit Digital",
-      "type": "israeli_founded",
-      "industry": "Industrial Digital Printing",
-      "domain": "kornit.com",
-      "careers_url": "https://careers.kornit.com/",
-      "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "careers.kornit.com confirms Comeet (footer privacy notice points to help.comeet.co). UID + token not extractable in 3 ops (likely JS-rendered iframe). Nasdaq:KRNT, Israeli-founded direct-to-garment industrial print, HQ Rosh HaAyin."
-    },
-    {
       "name": "KovrrIns",
       "type": "israeli_founded",
       "industry": "InsurTech",
@@ -5928,18 +5892,6 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/launchdarkly/jobs",
       "verified": true,
       "notes": "Greenhouse 46 jobs; mark_unverified for IL"
-    },
-    {
-      "name": "LawGeex",
-      "type": "israeli_founded",
-      "industry": "LegalTech",
-      "domain": "lawgeex.com",
-      "careers_url": "https://www.lawgeex.com/careers/",
-      "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet markers in HTML; slug not extractable (likely served via comeetapi.com via JS)"
     },
     {
       "name": "LayerX",
@@ -7884,18 +7836,6 @@
       "api_url": "https://api.smartrecruiters.com/v1/companies/NexarInc/postings",
       "verified": true,
       "notes": "Aleph VC portfolio walk. SmartRecruiters slug NexarInc verified live 2026-06-23; API returned 2 postings, both IL-tagged (Tel Aviv-Yafo)."
-    },
-    {
-      "name": "Papaya",
-      "type": "israeli_founded",
-      "industry": "Unknown",
-      "domain": "papaya.com",
-      "careers_url": "https://papaya.com/careers",
-      "ats": "comeet",
-      "slug": "46.00B",
-      "api_url": "https://www.comeet.co/careers-api/2.0/company/46.00B/positions?token=64B25C264B12E112E102C0D2C0D64B25C2&details=true",
-      "verified": true,
-      "notes": "Discovered via techmap seed (mluggy/techmap, ODbL); names+domains only. ATS independently verified 2026-06-04 — API returned 11 positions, 11 IL-tagged."
     },
     {
       "name": "Papaya Gaming",
@@ -10524,18 +10464,6 @@
       "api_url": "https://api.lever.co/v0/postings/twingate?mode=json",
       "verified": true,
       "notes": "Lever (4 jobs); competes with IL-strong cyber market; mark_unverified for IL R&D"
-    },
-    {
-      "name": "TytoCare",
-      "type": "israeli_founded",
-      "industry": "Healthtech / Telehealth",
-      "domain": "tytocare.com",
-      "careers_url": "https://www.tytocare.com/careers/",
-      "ats": "comeet",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Careers page uses Comeet (confirmed by URL patterns /careers/<role>/ and 'Application powered by Comeet' style structure). Could not extract UID+token from static HTML (JS-rendered). HQ Netanya, NYC presence. | static Comeet harvest failed 2026-06-12 (JS-rendered / atypical token); deferred to dynamic-harvest (Playwright) — see tasks/r1-discovery-token-harvest-rider.md. | dup \"Tyto Care\" merged 2026-06-12 (sibling noted Comeet UID E5.003)."
     },
     {
       "name": "Uber",

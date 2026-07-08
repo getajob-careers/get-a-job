@@ -37,3 +37,25 @@ the drops below did not.
   live Comeet board with real IL presence. Will start contributing IL jobs when the board reopens.
 - crossriver / C7.00F and jvp / 35.00E: already present in the registry at the same uid (true HAVEs),
   so not re-added and not drops.
+
+## Registry dedupe cleanup (2026-07-08)
+
+A hygiene pass on pre-existing Comeet rows removed six entries. Two of them were `slug=None` stubs with
+no working board that could not be resolved statically; they are ledgered here as revisit candidates
+(they are NOT dead, just currently un-fetchable). The other four were pure duplicates of a canonical
+row and are listed under "Also removed" for the record.
+
+Revisit candidates (removed from the registry until a UID can be captured):
+
+| tenant   | date       | reason                                                                                                                                                                                  |
+| -------- | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| LawGeex  | 2026-07-08 | Careers page still shows Comeet markers, but the company-uid and token are injected via JS (comeetapi.com) and are not statically extractable. Revisit with a JS-render discovery pass. |
+| TytoCare | 2026-07-08 | Careers page no longer exposes any Comeet markers (likely moved ATS or is fully JS-rendered). Needs fresh ATS discovery, not just a Comeet UID capture.                                 |
+
+Also removed (pure duplicates of a canonical row, not revisit candidates):
+
+- CodiumAI -> merged into Qodo (both Comeet UID B8.00B; Codium rebranded to Qodo).
+- Foresight Autonomous -> merged into Foresight Automotive (both UID 13.000; board self-identifies as
+  Foresight Automotive).
+- Papaya -> merged into Papaya Gaming (both UID 46.00B; one physical board).
+- Kornit Digital (slug=None stub) -> already present and live at UID 11.00F; the stub was redundant.
