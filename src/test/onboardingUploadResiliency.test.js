@@ -46,8 +46,8 @@ describe("resilientUploadEnabled", () => {
     }
   });
 
-  it("defaults OFF (opt-in staging — flag not set)", () => {
-    expect(resilientUploadEnabled()).toBe(false);
+  it("defaults ON (DEFAULT_ON enabled after the 2026-07-08 live smoke test)", () => {
+    expect(resilientUploadEnabled()).toBe(true);
   });
 
   it("enables when the localStorage flag is set", () => {

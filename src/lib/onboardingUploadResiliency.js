@@ -11,7 +11,7 @@
 //
 // Enable (any one): URL `?onbfix=1`, or localStorage `gaj.onb.upload_resiliency=1`.
 
-const DEFAULT_ON = false; // flip to true in the rollout follow-up after opt-in validation
+const DEFAULT_ON = true; // enabled 2026-07-08 after live opt-in smoke test (full 4-event happy path verified in prod)
 
 export function resilientUploadEnabled() {
   if (DEFAULT_ON) return true;
