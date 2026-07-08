@@ -26,7 +26,9 @@ import StepInternship from "@/components/onboarding/StepInternship";
 import StepCareerDirection from "@/components/onboarding/StepCareerDirection";
 import StepConstraints from "@/components/onboarding/StepConstraints";
 import StepSurvey from "@/components/onboarding/StepSurvey";
-import OnboardingTutorial from "@/components/onboarding/OnboardingTutorial";
+import OnboardingTutorial, {
+  OnboardingCompleteStep,
+} from "@/components/onboarding/OnboardingTutorial";
 import RdSkillTagInput from "@/components/redesign/RdSkillTagInput";
 
 // Map each fixture prefix to the OnboardingShell `currentStep` index so
@@ -93,10 +95,10 @@ export default function OnboardingPreview() {
   const prefix = (state || "resume-empty").split("-")[0];
   const stepIndex = STEP_INDEX_BY_PREFIX[prefix] ?? 0;
 
-  // Final onboarding beat — the extension-install prompt, rendered on its own
-  // so the reviewer sees it without clicking through all six tutorial slides.
-  if (prefix === "extension") {
-    return <ExtensionPromptStep onDone={() => {}} />;
+  // Final onboarding beat — the completion step, rendered on its own so the
+  // reviewer sees it without clicking through all six tutorial slides.
+  if (prefix === "complete") {
+    return <OnboardingCompleteStep onDone={() => {}} />;
   }
 
   // Tutorial renders full-screen outside OnboardingShell (own FullScreenShell).

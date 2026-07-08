@@ -12,7 +12,6 @@ import {
   RotateCcw,
   CheckCircle2,
   ExternalLink,
-  Puzzle,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { track, EVENTS } from "@/lib/analytics";
@@ -82,12 +81,6 @@ const SLIDES = [
 // Setup work takes ~80s worst case (analysis 40s + finalise 40s).
 const EXPECTED_SETUP_MS = 80_000;
 
-// Chrome Web Store listing for the companion extension. Shown as the final
-// onboarding step so a new user is nudged to install while their
-// getajob.careers session is live (the extension bridges auth off an open tab).
-const EXTENSION_STORE_URL =
-  "https://chromewebstore.google.com/detail/get-a-job/cnlgglikhomodkjpidaoigajonnbhlii";
-
 /**
  * Onboarding tutorial — user-paced slide carousel. Background career-analysis
  * + task-generation run in the parent. "Go to platform" enables once (a) the
@@ -115,9 +108,9 @@ export default function OnboardingTutorial({
   // Home doesn't bounce them back. Guarded by a ref so onTutorialEnd's
   // changing identity across renders can't re-fire the navigation.
   const [skipPending, setSkipPending] = useState(false);
-  // True once the user finishes the tour (or the returning-user skip settles):
-  // holds them on the extension-install step until they add it or dismiss it.
-  const [showExtension, setShowExtension] = useState(false);
+  // True once the user finishes the tour: holds them on the completion beat
+  // until they click through to the platform.
+  const [showComplete, setShowComplete] = useState(false);
   const skipFiredRef = useRef(false);
   const startedAtRef = useRef(Date.now());
   const startedEventRef = useRef(false);
@@ -164,9 +157,9 @@ export default function OnboardingTutorial({
       slides_seen: slidesSeen,
       duration_ms: durationMs,
     });
-    // Final onboarding beat: nudge the extension install before handing off to
-    // the platform. Navigation happens from the extension step's onDone.
-    setShowExtension(true);
+    // Final onboarding beat: a completion screen before handing off to the
+    // platform. Navigation happens from the completion step's onDone.
+    setShowComplete(true);
   };
 
   const fireSkip = () => {
@@ -238,10 +231,12 @@ export default function OnboardingTutorial({
     );
   }
 
-  // ───── Extension-install step (final onboarding beat) ─────
-  if (showExtension) {
+  // ───── Completion step (final onboarding beat) ─────
+  if (showComplete) {
     return (
-      <ExtensionPromptStep onDone={() => onTutorialEnd({ skipped: false })} />
+      <OnboardingCompleteStep
+        onDone={() => onTutorialEnd({ skipped: false })}
+      />
     );
   }
 
@@ -350,56 +345,31 @@ export default function OnboardingTutorial({
   );
 }
 
-// Final onboarding step: prompt to install the companion browser extension.
-// "Add the extension" opens the Chrome Web Store in a new tab and keeps THIS
-// tab alive (the extension bridges auth off an open getajob.careers session),
-// then flips to a "Continue to platform" affordance. "Maybe later" skips it so
-// the step never blocks finishing onboarding. onDone drives navigation either
-// way.
-export function ExtensionPromptStep({ onDone }) {
-  const [added, setAdded] = useState(false);
-
-  const handleAdd = () => {
-    window.open(EXTENSION_STORE_URL, "_blank", "noopener,noreferrer");
-    setAdded(true);
-  };
-
+// Final onboarding step: a completion beat that hands off to the platform.
+// It's the only "you're all set" moment in the flow — the last tutorial slide
+// is a feature slide, not a celebration — so it stays even though the extension
+// promo it once carried has been removed. onDone drives navigation.
+export function OnboardingCompleteStep({ onDone }) {
   return (
     <FullScreenShell>
       <div className="max-w-md mx-auto text-center space-y-6">
         <div className="w-14 h-14 rounded-full bg-rd-coral-tint text-rd-coral flex items-center justify-center mx-auto">
-          <Puzzle className="w-7 h-7" />
+          <CheckCircle2 className="w-7 h-7" />
         </div>
         <div>
           <h2 className="font-display font-extrabold text-[24px] leading-[1.15] tracking-tight text-rd-text">
             You&apos;re all set!
           </h2>
           <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-2">
-            Add the Get A Job browser extension to take us everywhere you apply,
-            tailor your CV to any job, check your fit, and add roles to your
-            tracker wherever you find them.
+            Your workspace is ready — your career analysis, tailored tracks, and
+            first actions are waiting inside.
           </p>
         </div>
         <div className="flex flex-col gap-2.5">
-          {added ? (
-            <PrimaryButton onClick={() => onDone()}>
-              Continue to platform <ArrowRight className="w-4 h-4" />
-            </PrimaryButton>
-          ) : (
-            <>
-              <PrimaryButton onClick={handleAdd}>
-                Add the extension <ExternalLink className="w-4 h-4" />
-              </PrimaryButton>
-              <SecondaryButton onClick={() => onDone()}>
-                Maybe later
-              </SecondaryButton>
-            </>
-          )}
+          <PrimaryButton onClick={() => onDone()}>
+            Go to platform <ArrowRight className="w-4 h-4" />
+          </PrimaryButton>
         </div>
-        <p className="text-[11.5px] leading-[1.55] text-rd-text-tertiary">
-          Keep this getajob.careers tab open so the extension connects to your
-          account automatically.
-        </p>
       </div>
     </FullScreenShell>
   );
@@ -591,4 +561,4 @@ function FullScreenShell({ children }) {
 }
 
 // Re-export for testability.
-export { SLIDES, EXPECTED_SETUP_MS, EXTENSION_STORE_URL };
+export { SLIDES, EXPECTED_SETUP_MS };
