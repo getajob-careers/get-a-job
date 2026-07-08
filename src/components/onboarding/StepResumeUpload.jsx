@@ -14,9 +14,10 @@ import React, { useState, useRef, useEffect } from "react";
 // catch can branch on it. supabase-js v2 stuffs the raw Response into
 // error.context.response — we clone() because reading the body
 // consumes the stream and other code may want it.
-async function extractTextFromPdfServer(filePath) {
+async function extractTextFromPdfServer(filePath, signal) {
   const { data, error } = await supabase.functions.invoke("extract-cv-text", {
     body: { file_path: filePath },
+    ...(signal ? { signal } : {}),
   });
   if (error) {
     let code = null;
@@ -25,7 +26,9 @@ async function extractTextFromPdfServer(filePath) {
       const body = await error.context?.response?.clone?.().json();
       code = body?.error_code || null;
       serverMessage = body?.error || null;
-    } catch { /* non-JSON body (relay/fetch error) — fall back to error.message */ }
+    } catch {
+      /* non-JSON body (relay/fetch error) — fall back to error.message */
+    }
     const e = new Error(serverMessage || error.message || "PDF parse failed");
     e.code = code;
     throw e;
@@ -50,7 +53,11 @@ async function extractTextFromDocx(file) {
 }
 
 function isDocxFile(file) {
-  if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") return true;
+  if (
+    file.type ===
+    "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+  )
+    return true;
   return /\.docx$/i.test(file.name || "");
 }
 
@@ -60,9 +67,28 @@ import { getPendingCv, clearPendingCv } from "@/lib/pendingCv";
 import { track, EVENTS } from "@/lib/analytics";
 import { buildResumeExtractionPrompt } from "@/lib/resumeExtractionPrompt";
 import { parseExtractedJson } from "@/lib/parseExtractedJson";
+import { logOnboardingEvent } from "@/lib/logOnboardingEvent";
 import {
-  Loader2, Upload, CheckCircle2, ArrowRight, Linkedin, Info, ExternalLink, X,
-  GraduationCap, Briefcase, Search, Pause, Sparkles,
+  resilientUploadEnabled,
+  withTimeout,
+  UPLOAD_TIMEOUT_MS,
+  PARSE_TIMEOUT_MS,
+} from "@/lib/onboardingUploadResiliency";
+
+import {
+  Loader2,
+  Upload,
+  CheckCircle2,
+  ArrowRight,
+  Linkedin,
+  Info,
+  ExternalLink,
+  X,
+  GraduationCap,
+  Briefcase,
+  Search,
+  Pause,
+  Sparkles,
 } from "lucide-react";
 import RdButton from "@/components/redesign/RdButton";
 
@@ -87,7 +113,12 @@ const EMPLOYMENT_OPTIONS = [
 
 const UNEMPLOYED_CONFLICTS = ["employed", "looking_for_job"];
 
-export default function StepResumeUpload({ onNext, onExtracted, profileData, onChange }) {
+export default function StepResumeUpload({
+  onNext,
+  onExtracted,
+  profileData,
+  onChange,
+}) {
   const { user } = useAuth();
   const [uploading, setUploading] = useState(false);
   const [extracting, setExtracting] = useState(false);
@@ -95,8 +126,16 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
   const [done, setDone] = useState(false);
   const [error, setError] = useState(null);
   const [emptyTextMode, setEmptyTextMode] = useState(false);
+  // Resilient-upload failure mode (gated by resilientUploadEnabled()). When
+  // set, renders a prominent honest recovery banner + always-forward CTA
+  // instead of a subtle error line. Values: 'timeout' | 'upload_failed' |
+  // 'extract_none'. Kept separate from `error` so the legacy (flag-off)
+  // path is byte-identical.
+  const [uploadFailMode, setUploadFailMode] = useState(null);
   const [cvTruncated, setCvTruncated] = useState(false);
-  const [linkedinUrl, setLinkedinUrl] = useState(profileData?.linkedin_url || "");
+  const [linkedinUrl, setLinkedinUrl] = useState(
+    profileData?.linkedin_url || "",
+  );
   const [linkedinDone, setLinkedinDone] = useState(false);
   const [showLinkedin, setShowLinkedin] = useState(!!profileData?.linkedin_url);
   const [liExportDismissed, setLiExportDismissed] = useState(false);
@@ -105,13 +144,20 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
 
   useEffect(() => {
     try {
-      if (localStorage.getItem(LI_EXPORT_DISMISS_KEY) === "1") setLiExportDismissed(true);
-    } catch { /* private mode */ }
+      if (localStorage.getItem(LI_EXPORT_DISMISS_KEY) === "1")
+        setLiExportDismissed(true);
+    } catch {
+      /* private mode */
+    }
   }, []);
 
   const dismissLiExport = () => {
     setLiExportDismissed(true);
-    try { localStorage.setItem(LI_EXPORT_DISMISS_KEY, "1"); } catch { /* private mode */ }
+    try {
+      localStorage.setItem(LI_EXPORT_DISMISS_KEY, "1");
+    } catch {
+      /* private mode */
+    }
   };
 
   const toggleEmploymentStatus = (value) => {
@@ -121,7 +167,10 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
     if (isOn) {
       updated = current.filter((s) => s !== value);
     } else if (value === "unemployed") {
-      updated = [...current.filter((s) => !UNEMPLOYED_CONFLICTS.includes(s)), value];
+      updated = [
+        ...current.filter((s) => !UNEMPLOYED_CONFLICTS.includes(s)),
+        value,
+      ];
     } else if (UNEMPLOYED_CONFLICTS.includes(value)) {
       updated = [...current.filter((s) => s !== "unemployed"), value];
     } else {
@@ -135,14 +184,43 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
     setFileName(file.name);
     setError(null);
     setEmptyTextMode(false);
+    setUploadFailMode(null);
     setUploading(true);
+
+    const resilient = resilientUploadEnabled();
+    const fileType =
+      file.type === "application/pdf"
+        ? "pdf"
+        : isDocxFile(file)
+          ? "docx"
+          : file.type === "application/msword" ||
+              /\.doc$/i.test(file.name || "")
+            ? "doc"
+            : "other";
+    // Breadcrumb (unconditional, fire-and-forget) — closes the DB blind spot
+    // on the upload/parse legs. `stage` attributes a thrown error to the leg
+    // that failed (upload vs parse).
+    logOnboardingEvent(0, "upload_attempt", {
+      detail: { file_type: fileType, size: file.size ?? null },
+    });
+    let stage = "upload";
+    const tUpload = Date.now();
 
     try {
       const filePath = `${user.id}/${Date.now()}_${file.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from("resumes")
-        .upload(filePath, file, { upsert: true });
+      const runUpload = (signal) =>
+        supabase.storage.from("resumes").upload(filePath, file, {
+          upsert: true,
+          ...(signal ? { signal } : {}),
+        });
+      const { error: uploadError } = resilient
+        ? await withTimeout(runUpload, UPLOAD_TIMEOUT_MS, "Upload")
+        : await runUpload();
       if (uploadError) throw uploadError;
+
+      logOnboardingEvent(0, "upload_ok", {
+        detail: { file_type: fileType, ms: Date.now() - tUpload },
+      });
 
       const { data: signedData } = await supabase.storage
         .from("resumes")
@@ -153,17 +231,33 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
 
       setUploading(false);
       setExtracting(true);
+      stage = "parse";
+      const tParse = Date.now();
+      logOnboardingEvent(0, "parse_attempt", {
+        detail: { file_type: fileType },
+      });
 
       let fileText = "";
       if (file.type === "application/pdf") {
         // Upload + signed URL above are fully awaited — the server reads
         // the uploaded copy from storage, so the file must be in place
         // before we invoke or the download 404s.
-        fileText = await extractTextFromPdfServer(filePath);
+        fileText = resilient
+          ? await withTimeout(
+              (signal) => extractTextFromPdfServer(filePath, signal),
+              PARSE_TIMEOUT_MS,
+              "PDF text extraction",
+            )
+          : await extractTextFromPdfServer(filePath);
       } else if (isDocxFile(file)) {
         fileText = await extractTextFromDocx(file);
-      } else if (file.type === "application/msword" || /\.doc$/i.test(file.name || "")) {
-        throw new Error("Legacy .doc files aren't supported. Please save your CV as .docx or .pdf and upload again.");
+      } else if (
+        file.type === "application/msword" ||
+        /\.doc$/i.test(file.name || "")
+      ) {
+        throw new Error(
+          "Legacy .doc files aren't supported. Please save your CV as .docx or .pdf and upload again.",
+        );
       } else {
         fileText = await file.text();
       }
@@ -172,11 +266,22 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
 
       const extractionPrompt = buildResumeExtractionPrompt(fileText);
 
-      const extractPromise = supabase.functions.invoke("ai-chat", {
-        body: { message: extractionPrompt, agent: "resume-extractor", conversation_history: [] },
-      });
+      const runExtract = (signal) =>
+        supabase.functions.invoke("ai-chat", {
+          body: {
+            message: extractionPrompt,
+            agent: "resume-extractor",
+            conversation_history: [],
+          },
+          ...(signal ? { signal } : {}),
+        });
+      const extractPromise = resilient
+        ? withTimeout(runExtract, PARSE_TIMEOUT_MS, "Resume extraction")
+        : runExtract();
       const proofSignalsPromise = supabase.functions
-        .invoke("extract-proof-signals", { body: { cv_text: fileText.slice(0, 15000) } })
+        .invoke("extract-proof-signals", {
+          body: { cv_text: fileText.slice(0, 15000) },
+        })
         .catch((err) => {
           console.debug("Proof signal extraction failed (non-fatal):", err);
           return { data: null };
@@ -186,7 +291,8 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
 
       if (fnError) throw new Error(fnError.message || "Edge function error");
 
-      const replyText = extractData?.reply || extractData?.content || extractData?.text || "";
+      const replyText =
+        extractData?.reply || extractData?.content || extractData?.text || "";
 
       if (replyText) {
         // Hardened parse chain — replaces the prior loose greedy regex that
@@ -203,7 +309,10 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
         //      with any older clients still in the wild.
         const extracted = parseExtractedJson(replyText);
         if (extracted == null) {
-          console.warn("[StepResumeUpload] all parse paths failed — falling back to manual entry banner. reply head:", replyText.slice(0, 200));
+          console.warn(
+            "[StepResumeUpload] all parse paths failed — falling back to manual entry banner. reply head:",
+            replyText.slice(0, 200),
+          );
         } else {
           let proofSignals = [];
           let primaryDomain = null;
@@ -215,32 +324,77 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
             adjacentFields = psData.adjacent_fields || [];
           }
 
-          onExtracted({ ...extracted, proof_signals: proofSignals, primary_domain: primaryDomain, adjacent_fields: adjacentFields });
-          const fileType = file.type === "application/pdf" ? "pdf" : isDocxFile(file) ? "docx" : "other";
+          onExtracted({
+            ...extracted,
+            proof_signals: proofSignals,
+            primary_domain: primaryDomain,
+            adjacent_fields: adjacentFields,
+          });
           const extractedFieldsCount = Object.values(extracted || {}).filter(
-            (v) => v !== null && v !== undefined && v !== "" && !(Array.isArray(v) && v.length === 0)
+            (v) =>
+              v !== null &&
+              v !== undefined &&
+              v !== "" &&
+              !(Array.isArray(v) && v.length === 0),
           ).length;
-          track(EVENTS.RESUME_UPLOADED, { file_type: fileType, extracted_fields_count: extractedFieldsCount });
+          track(EVENTS.RESUME_UPLOADED, {
+            file_type: fileType,
+            extracted_fields_count: extractedFieldsCount,
+          });
+          logOnboardingEvent(0, "parse_ok", {
+            detail: {
+              file_type: fileType,
+              ms: Date.now() - tParse,
+              fields: extractedFieldsCount,
+            },
+          });
           setExtracting(false);
           setDone(true);
           return;
         }
       }
 
+      // Reached here = empty reply or unparseable JSON: extraction produced
+      // nothing usable. Do NOT silently hand the user an empty form — record
+      // the miss and (resilient path) explain why + offer an obvious way on.
       console.debug("Extraction fallback. Response was:", extractData);
+      logOnboardingEvent(0, "parse_failed", {
+        errorCode: "extract_none",
+        detail: { file_type: fileType, ms: Date.now() - tParse },
+      });
       setExtracting(false);
       setDone(true);
-      setError(`Resume uploaded successfully! However, automatic extraction wasn't possible. Please fill in your details manually.`);
+      if (resilient) {
+        setUploadFailMode("extract_none");
+      } else {
+        setError(
+          `Resume uploaded successfully! However, automatic extraction wasn't possible. Please fill in your details manually.`,
+        );
+      }
     } catch (err) {
       console.error("Resume upload error:", err);
       setUploading(false);
       setExtracting(false);
+      logOnboardingEvent(0, `${stage}_failed`, {
+        errorCode:
+          err.code || (stage === "upload" ? "upload_error" : "edge_error"),
+        detail: {
+          file_type: fileType,
+          message: String(err?.message || err).slice(0, 300),
+          ms: Date.now() - tUpload,
+        },
+      });
       // empty_text gets the tailored nudge (image-only PDF / Print-to-PDF
-      // export); everything else stays on the generic banner.
+      // export). Otherwise: the resilient path shows a prominent always-
+      // forward recovery banner; the legacy path keeps the subtle error line.
       if (err.code === "empty_text") {
         setEmptyTextMode(true);
+      } else if (resilient) {
+        setUploadFailMode(err.code === "timeout" ? "timeout" : "upload_failed");
       } else {
-        setError(`Upload failed: ${err.message}. Please try again or enter details manually.`);
+        setError(
+          `Upload failed: ${err.message}. Please try again or enter details manually.`,
+        );
       }
     }
   };
@@ -260,11 +414,14 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
       await clearPendingCv(); // clear on pickup; never leave it lingering
       handleFile(file); // normal upload -> extract -> done pipeline (post-auth)
     })();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, [user?.id]);
 
   const resetUploadForRetry = () => {
     setEmptyTextMode(false);
+    setUploadFailMode(null);
     setError(null);
     setFileName(null);
     setDone(false);
@@ -272,6 +429,24 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
     setExtracting(false);
     if (inputRef.current) inputRef.current.value = "";
     inputRef.current?.click();
+  };
+
+  // Honest, always-forward recovery banner copy for the resilient-upload
+  // failure modes. Pre-fills nothing silently: tells the user what happened
+  // and offers both "fill in manually" and "try another file".
+  const UPLOAD_FAIL_COPY = {
+    extract_none: {
+      title: "We couldn't read the details from this CV",
+      body: "The file uploaded, but we couldn't pull structured text from it — it may be a scanned image or an unusual layout. Try a text-based PDF (File → Download → PDF in Google Docs/Word), or just fill your details in manually below.",
+    },
+    timeout: {
+      title: "That took too long",
+      body: "Reading your CV timed out. Your connection may be slow, or the file may be large. You can try uploading again, or fill your details in manually below — nothing is lost.",
+    },
+    upload_failed: {
+      title: "We couldn't upload that file",
+      body: "The upload didn't go through. Check your connection and try again, or fill your details in manually below.",
+    },
   };
 
   const handleLinkedinExtract = () => {
@@ -296,7 +471,9 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
               Get a head start on LinkedIn Hub — request your data export now
             </p>
             <p className="mt-1 text-rd-text-secondary">
-              We use it to optimise your profile, draft posts in your voice, and find warm intros at companies you target. LinkedIn takes a few hours to prepare the export.
+              We use it to optimise your profile, draft posts in your voice, and
+              find warm intros at companies you target. LinkedIn takes a few
+              hours to prepare the export.
             </p>
             <a
               href="https://www.linkedin.com/mypreferences/d/download-my-data"
@@ -326,7 +503,8 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
           Let&apos;s start with your CV.
         </h1>
         <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
-          Drop your CV and we&apos;ll extract everything from it — no manual entry needed.
+          Drop your CV and we&apos;ll extract everything from it — no manual
+          entry needed.
         </p>
       </div>
 
@@ -354,7 +532,9 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
                 <div
                   className={[
                     "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
-                    isSelected ? "bg-rd-coral text-white" : "bg-rd-bg-soft text-rd-text-secondary",
+                    isSelected
+                      ? "bg-rd-coral text-white"
+                      : "bg-rd-bg-soft text-rd-text-secondary",
                   ].join(" ")}
                 >
                   <Icon className="w-4 h-4" />
@@ -377,11 +557,28 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
             : "border-rd-border-hover bg-rd-bg-soft hover:border-rd-coral hover:bg-rd-coral-tint",
         ].join(" ")}
         data-dragover={dragOver}
-        data-state={uploading ? "uploading" : extracting ? "extracting" : emptyTextMode ? "empty_text" : done ? "done" : "idle"}
+        data-state={
+          uploading
+            ? "uploading"
+            : extracting
+              ? "extracting"
+              : emptyTextMode
+                ? "empty_text"
+                : done
+                  ? "done"
+                  : "idle"
+        }
         onClick={() => !uploading && !extracting && inputRef.current?.click()}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+        onDragOver={(e) => {
+          e.preventDefault();
+          setDragOver(true);
+        }}
         onDragLeave={() => setDragOver(false)}
-        onDrop={(e) => { e.preventDefault(); setDragOver(false); handleFile(e.dataTransfer.files[0]); }}
+        onDrop={(e) => {
+          e.preventDefault();
+          setDragOver(false);
+          handleFile(e.dataTransfer.files[0]);
+        }}
       >
         <input
           ref={inputRef}
@@ -416,7 +613,9 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
               <p className="font-display font-semibold text-[15px] text-rd-text">
                 CV uploaded — but no text inside
               </p>
-              <p className="text-[11.5px] text-rd-text-secondary mt-0.5">{fileName}</p>
+              <p className="text-[11.5px] text-rd-text-secondary mt-0.5">
+                {fileName}
+              </p>
             </div>
           </div>
         )}
@@ -427,7 +626,9 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
             <p className="font-display font-semibold text-[14px] text-rd-text">
               {uploading ? "Uploading…" : "Extracting your details…"}
             </p>
-            {fileName && <p className="text-[11.5px] text-rd-text-secondary">{fileName}</p>}
+            {fileName && (
+              <p className="text-[11.5px] text-rd-text-secondary">{fileName}</p>
+            )}
           </div>
         )}
 
@@ -435,8 +636,12 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
           <div className="flex flex-col items-center gap-3">
             <CheckCircle2 className="w-12 h-12 text-rd-teal-dark" />
             <div>
-              <p className="font-display font-semibold text-[15px] text-rd-text">CV extracted</p>
-              <p className="text-[11.5px] text-rd-text-secondary mt-0.5">{fileName}</p>
+              <p className="font-display font-semibold text-[15px] text-rd-text">
+                CV extracted
+              </p>
+              <p className="text-[11.5px] text-rd-text-secondary mt-0.5">
+                {fileName}
+              </p>
             </div>
           </div>
         )}
@@ -447,19 +652,64 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
           <div className="flex items-start gap-3">
             <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-rd-golden-dark" />
             <div className="text-[13px] text-rd-text leading-relaxed">
-              <p className="font-display font-semibold mb-1">We couldn&apos;t find any text in this PDF.</p>
+              <p className="font-display font-semibold mb-1">
+                We couldn&apos;t find any text in this PDF.
+              </p>
               <p className="text-rd-text-secondary">
-                It looks like an image-only PDF or a &ldquo;Print to PDF&rdquo; export — common with Google Docs on Windows, Canva, or scanned files. Two easy fixes:
+                It looks like an image-only PDF or a &ldquo;Print to PDF&rdquo;
+                export — common with Google Docs on Windows, Canva, or scanned
+                files. Two easy fixes:
               </p>
               <ul className="mt-2 ml-4 list-disc text-rd-text-secondary space-y-0.5">
-                <li>Upload your CV as a <strong>Word document (.docx)</strong> instead.</li>
-                <li>In Google Docs, use <strong>File → Download → PDF Document (.pdf)</strong> — not the Print menu.</li>
+                <li>
+                  Upload your CV as a <strong>Word document (.docx)</strong>{" "}
+                  instead.
+                </li>
+                <li>
+                  In Google Docs, use{" "}
+                  <strong>File → Download → PDF Document (.pdf)</strong> — not
+                  the Print menu.
+                </li>
               </ul>
             </div>
           </div>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-1">
             <RdButton onClick={onNext}>
-              Continue and fill in details manually <ArrowRight className="w-4 h-4" />
+              Continue and fill in details manually{" "}
+              <ArrowRight className="w-4 h-4" />
+            </RdButton>
+            <button
+              type="button"
+              onClick={resetUploadForRetry}
+              className="px-4 py-2.5 text-[13px] font-semibold rounded-full border border-rd-border text-rd-text bg-rd-bg-card hover:bg-rd-bg-soft transition-colors"
+            >
+              Upload a different file
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Resilient-upload recovery banner (flag-gated via handleFile). Any
+          non-empty_text failure — timeout, upload error, or empty extraction
+          — lands here with an honest explanation and an obvious way forward,
+          instead of a silent empty form behind a subtle skip link. */}
+      {uploadFailMode && UPLOAD_FAIL_COPY[uploadFailMode] && (
+        <div className="bg-rd-golden-tint border border-rd-golden/40 rounded-[14px] p-4 space-y-3">
+          <div className="flex items-start gap-3">
+            <Info className="w-4 h-4 flex-shrink-0 mt-0.5 text-rd-golden-dark" />
+            <div className="text-[13px] text-rd-text leading-relaxed">
+              <p className="font-display font-semibold mb-1">
+                {UPLOAD_FAIL_COPY[uploadFailMode].title}
+              </p>
+              <p className="text-rd-text-secondary">
+                {UPLOAD_FAIL_COPY[uploadFailMode].body}
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 pt-1">
+            <RdButton onClick={onNext}>
+              Continue and fill in details manually{" "}
+              <ArrowRight className="w-4 h-4" />
             </RdButton>
             <button
               type="button"
@@ -474,7 +724,9 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
 
       {cvTruncated && (
         <div className="bg-rd-golden-tint border border-rd-golden/40 rounded-[14px] px-3.5 py-2.5 text-[12.5px] text-rd-golden-dark leading-snug">
-          Your CV is long — only the first 15,000 characters were sent for extraction. Review the pre-filled details and add anything that wasn&apos;t captured.
+          Your CV is long — only the first 15,000 characters were sent for
+          extraction. Review the pre-filled details and add anything that
+          wasn&apos;t captured.
         </div>
       )}
       {error && (
@@ -496,7 +748,9 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
         <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 space-y-2.5">
           <label className="block text-[12px] font-semibold text-rd-text">
             LinkedIn URL{" "}
-            <span className="text-rd-text-secondary font-normal">(optional)</span>
+            <span className="text-rd-text-secondary font-normal">
+              (optional)
+            </span>
           </label>
           <div className="flex gap-2">
             <input
@@ -515,7 +769,9 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
             </button>
           </div>
           {linkedinDone && (
-            <p className="text-[11.5px] text-rd-teal-dark">✓ LinkedIn URL saved</p>
+            <p className="text-[11.5px] text-rd-teal-dark">
+              ✓ LinkedIn URL saved
+            </p>
           )}
         </div>
       )}
@@ -527,11 +783,24 @@ export default function StepResumeUpload({ onNext, onExtracted, profileData, onC
         >
           Skip — I&apos;ll enter details manually
         </button>
-        <RdButton onClick={onNext} disabled={!done && !error && !linkedinDone && !emptyTextMode}>
+        <RdButton
+          onClick={onNext}
+          disabled={
+            !done &&
+            !error &&
+            !linkedinDone &&
+            !emptyTextMode &&
+            !uploadFailMode
+          }
+        >
           {done ? (
-            <>Continue <ArrowRight className="w-4 h-4" /></>
-          ) : error ? (
-            <>Continue anyway <ArrowRight className="w-4 h-4" /></>
+            <>
+              Continue <ArrowRight className="w-4 h-4" />
+            </>
+          ) : error || uploadFailMode ? (
+            <>
+              Continue anyway <ArrowRight className="w-4 h-4" />
+            </>
           ) : (
             "Upload to continue"
           )}
