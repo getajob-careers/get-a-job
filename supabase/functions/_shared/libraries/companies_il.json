@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1134,
+  "total_companies": 1135,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -6810,12 +6810,12 @@
       "type": "israeli_founded",
       "industry": "Gaming",
       "domain": "moonactive.com",
-      "careers_url": "https://www.moonactive.com/careers/",
-      "ats": "ashby",
-      "slug": "moonactive",
-      "api_url": "https://api.ashbyhq.com/posting-api/job-board/moonactive",
+      "careers_url": "https://www.comeet.com/jobs/moonactive/a2.00c",
+      "ats": "comeet",
+      "slug": "a2.00c",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/a2.00c/positions?token=2ACD5C02AC10081008AB01560180C804&details=true",
       "verified": true,
-      "notes": "Probed: ashby slug 'moonactive' returns 200"
+      "notes": "Comeet; 21 live IL role(s). Repointed from Ashby (slug 'moonactive', dead board: 0 total postings) to the Comeet board (21 IL) per Eli (2026-07-08). Comeet r1 harvest."
     },
     {
       "name": "Moonshot Marketing",
@@ -9174,12 +9174,12 @@
       "type": "israeli_founded",
       "industry": "DevTools",
       "domain": "scaleops.com",
-      "careers_url": null,
-      "ats": "smartrecruiters",
-      "slug": "scaleops",
-      "api_url": "https://api.smartrecruiters.com/v1/companies/scaleops/postings",
+      "careers_url": "https://www.comeet.com/jobs/scaleops/99.003",
+      "ats": "comeet",
+      "slug": "99.003",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/99.003/positions?token=99343059931CB999339721CB9264C1CB9993&details=true",
       "verified": true,
-      "notes": "Probed: smartrecruiters slug 'scaleops' has jobs"
+      "notes": "Comeet; 31 live IL role(s). Repointed from SmartRecruiters (slug 'scaleops', degraded: 4 IL, detail-fetches failing in cron) to the Comeet board (31 IL) per Eli (2026-07-08). Comeet r1 harvest."
     },
     {
       "name": "SciPlay",
@@ -13632,6 +13632,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/E6.007/positions?token=6E7296ADCE3051228322832283373814B5296A&details=true",
       "verified": true,
       "notes": "Comeet; 1 live IL role(s). Comeet r1 harvest 2026-07-08."
+    },
+    {
+      "name": "BioCatch",
+      "type": "israeli_founded",
+      "industry": "Cybersecurity",
+      "domain": "biocatch.com",
+      "careers_url": "https://www.comeet.com/jobs/biocatch/03.00E",
+      "ats": "comeet",
+      "slug": "03.00E",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/03.00E/positions?token=30EF4630E92A1562156292A92A61C92A&details=true",
+      "verified": true,
+      "notes": "Comeet; 8 live IL role(s). DUAL-BOARD with the existing Lever entry (slug 'biocatch', 5 live IL) — both boards healthy, non-overlapping coverage, kept together per Eli (2026-07-08). Comeet r1 harvest 2026-07-08."
     }
   ]
 }
