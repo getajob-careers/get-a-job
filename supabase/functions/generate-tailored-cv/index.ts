@@ -2875,6 +2875,9 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
           is_master: true,
           source_jd: null,
           cv_data: cvData as any,
+          // As-generated snapshot (P0). Master is a living deterministic build,
+          // so this is refreshed alongside cv_data on each master (re)mint.
+          generated_cv_data: cvData as any,
           cv_url,
           version: 1,
         };
@@ -2883,6 +2886,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
           const { error: upErr } = await supabase.from("application_cvs")
             .update({
               cv_data: cvData as any,
+              generated_cv_data: cvData as any,
               cv_url,
               source_jd: null,
               is_master: true,
@@ -2902,6 +2906,9 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
             application_id: appRecord?.id ?? null,
             source_jd: jdInput || null,
             cv_data: cvData as any,
+            // Immutable as-generated snapshot (P0). Same value as cv_data at
+            // insert; the Studio autosave later mutates cv_data only, never this.
+            generated_cv_data: cvData as any,
             cv_url,
             version: 1,
           })

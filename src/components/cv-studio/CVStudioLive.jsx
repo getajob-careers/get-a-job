@@ -32,6 +32,7 @@ import {
 } from "@/lib/queries/useExperiences";
 import { promoteBulletsToProfile } from "@/lib/promoteBulletsToProfile";
 import { triggerBlobDownload, cvFilename } from "@/lib/downloadFile";
+import { trackCvGenerated } from "@/lib/analytics";
 import { useEducationQuery } from "@/lib/queries/useEducation";
 import { fromCvData, toCvData, buildMasterCvData } from "@/lib/cvDataAdapter";
 
@@ -123,7 +124,14 @@ export default function CVStudioLive() {
     if (selectedCvId && cvOptions.some((o) => o.id === selectedCvId)) return;
     const master = cvOptions.find((o) => o.isMaster);
     setSelectedCvId((master || cvOptions[0]).id);
-  }, [cvOptions, selectedCvId, searchParams, setSearchParams, optsLoading, optsFetching]);
+  }, [
+    cvOptions,
+    selectedCvId,
+    searchParams,
+    setSearchParams,
+    optsLoading,
+    optsFetching,
+  ]);
 
   // Clear the pending tailor target once a tailored CV for that application
   // exists and is selected (after onTailor's refetch+select, or if one already
@@ -334,7 +342,10 @@ export default function CVStudioLive() {
     try {
       await triggerBlobDownload(
         data.cv_url,
-        cvFilename(profile?.full_name, current?.isMaster ? "Master" : current?.role),
+        cvFilename(
+          profile?.full_name,
+          current?.isMaster ? "Master" : current?.role,
+        ),
       );
     } catch {
       toast.error("Couldn't download the PDF. Please try again.");
@@ -464,6 +475,7 @@ export default function CVStudioLive() {
       setTailorResult(null); // clear any prior outcome card
       setTailoring(true);
       startStages(cvOptions.some((o) => o.isMaster));
+      const genStartedAt = performance.now();
       try {
         const { data, error } = await supabase.functions.invoke("refine-cv", {
           body: {
@@ -476,6 +488,18 @@ export default function CVStudioLive() {
         });
         if (error || !data || data.error) {
           const status = error?.context?.status ?? error?.status;
+          trackCvGenerated({
+            success: false,
+            source: "studio",
+            model: "sonnet",
+            application_id: target.applicationId,
+            role_title: target.role,
+            duration_ms: Math.round(performance.now() - genStartedAt),
+            failure_reason:
+              data?.error ||
+              error?.message ||
+              (status ? `http_${status}` : "unknown"),
+          });
           toast.error(
             status === 429
               ? "Tailoring limit reached (30/hour). Please try again a little later."
@@ -486,6 +510,17 @@ export default function CVStudioLive() {
         // Tailoring succeeded server-side. The outcome card is the SOLE
         // completion surface; the coverage read is folded into the card below.
         const appId = data.application_id ?? target.applicationId ?? null;
+        trackCvGenerated({
+          success: true,
+          source: "studio",
+          model: data?.model || "sonnet",
+          application_id: appId,
+          role_title: target.role,
+          duration_ms: Math.round(performance.now() - genStartedAt),
+          unsourced_bullets_count: Array.isArray(data?.unsourced_bullets)
+            ? data.unsourced_bullets.length
+            : 0,
+        });
         const tail = data.tailoring;
         const matched = Array.isArray(tail?.matched_phrases)
           ? tail.matched_phrases.length

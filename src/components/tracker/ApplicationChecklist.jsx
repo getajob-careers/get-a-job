@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/api/supabaseClient";
 import { createPageUrl } from "@/utils";
 import { invokeWithAuthRetry } from "@/api/invokeWithAuthRetry";
+import { trackCvGenerated } from "@/lib/analytics";
 
 // 7-step application checklist, restyled per
 // docs/design/redesign/getajob_application_steps_checklist.html (2026-06-05).
@@ -34,17 +35,28 @@ const STEPS = [
   {
     key: "qualification_confirmed",
     title: "Qualify yourself",
-    description: "",                  // current-step gets no body text here
-    descriptionWhenCurrent: "Check your fit for this role before you invest more time.",
-    cta: { label: "Check if you qualify", icon: ArrowRight, action: "career_agent_with_seed" },
+    description: "", // current-step gets no body text here
+    descriptionWhenCurrent:
+      "Check your fit for this role before you invest more time.",
+    cta: {
+      label: "Check if you qualify",
+      icon: ArrowRight,
+      action: "career_agent_with_seed",
+    },
     phase: "know",
   },
   {
     key: "jd_dissected",
     title: "Dissect the job description",
     description: "",
-    descriptionWhenCurrent: "Know the role inside-out — responsibilities, must-have skills, seniority signals.",
-    cta: { label: "Review the job description", icon: ArrowRight, action: "navigate_tab", tab: "target" },
+    descriptionWhenCurrent:
+      "Know the role inside-out — responsibilities, must-have skills, seniority signals.",
+    cta: {
+      label: "Review the job description",
+      icon: ArrowRight,
+      action: "navigate_tab",
+      tab: "target",
+    },
     phase: "know",
   },
   {
@@ -52,7 +64,11 @@ const STEPS = [
     title: "Tailor your CV",
     description: "Generate a CV tuned to this role's must-haves.",
     descriptionWhenCurrent: "Generate a CV tuned to this role's must-haves.",
-    cta: { label: "Generate tailored CV", icon: ArrowRight, action: "generate_cv" },
+    cta: {
+      label: "Generate tailored CV",
+      icon: ArrowRight,
+      action: "generate_cv",
+    },
     phase: "build",
   },
   {
@@ -60,7 +76,12 @@ const STEPS = [
     title: "Map your skill evidence",
     description: "Match your stories to what the role asks for.",
     descriptionWhenCurrent: "Match your stories to what the role asks for.",
-    cta: { label: "See your skill match", icon: ArrowRight, action: "navigate_tab", tab: "skills" },
+    cta: {
+      label: "See your skill match",
+      icon: ArrowRight,
+      action: "navigate_tab",
+      tab: "skills",
+    },
     phase: "build",
   },
   {
@@ -68,7 +89,11 @@ const STEPS = [
     title: "Find a referral contact",
     description: "Find someone at {company} who can refer you in.",
     descriptionWhenCurrent: "Find someone at {company} who can refer you in.",
-    cta: { label: "Find a referral", icon: ArrowRight, action: "outreach_referral" },
+    cta: {
+      label: "Find a referral",
+      icon: ArrowRight,
+      action: "outreach_referral",
+    },
     phase: "build",
   },
   {
@@ -83,22 +108,29 @@ const STEPS = [
     key: "interview_prep_done",
     title: "Prep for the interview",
     description: "Practice STAR-format answers with the Interview Coach.",
-    descriptionWhenCurrent: "Practice STAR-format answers with the Interview Coach.",
-    cta: { label: "Open Interview Coach", icon: ArrowRight, action: "open_agent", page: "InterviewCoach" },
+    descriptionWhenCurrent:
+      "Practice STAR-format answers with the Interview Coach.",
+    cta: {
+      label: "Open Interview Coach",
+      icon: ArrowRight,
+      action: "open_agent",
+      page: "InterviewCoach",
+    },
     phase: "apply",
   },
 ];
 
 const PHASES = {
-  know:  { label: "Know the role",   color: "var(--rd-golden-dark)" },
+  know: { label: "Know the role", color: "var(--rd-golden-dark)" },
   build: { label: "Build your case", color: "var(--rd-teal-dark)" },
-  apply: { label: "Apply & prep",    color: "var(--rd-coral-dark)" },
+  apply: { label: "Apply & prep", color: "var(--rd-coral-dark)" },
 };
 const PHASE_ORDER = ["know", "build", "apply"];
 
 // Seed message for step 1's Career Agent CTA. Kept in sync with the
 // step's intent — qualification check scoped to a single application.
-const STEP1_SEED = "Help me check whether I qualify for this role — walk through my track placement, goal alignment, and gaps.";
+const STEP1_SEED =
+  "Help me check whether I qualify for this role — walk through my track placement, goal alignment, and gaps.";
 
 export default function ApplicationChecklist({
   app,
@@ -131,7 +163,8 @@ export default function ApplicationChecklist({
     switch (cta.action) {
       case "career_agent_with_seed": {
         if (!app?.id) return;
-        const url = createPageUrl("CareerAgent") +
+        const url =
+          createPageUrl("CareerAgent") +
           `?application_id=${encodeURIComponent(app.id)}` +
           `&seed=${encodeURIComponent(STEP1_SEED)}`;
         navigate(url);
@@ -157,21 +190,50 @@ export default function ApplicationChecklist({
             jd = row?.job_description || "";
           }
           if (!jd) {
-            toast.error("Add a job description first (step 2) so the CV can be tailored to it.", { id: tId });
+            toast.error(
+              "Add a job description first (step 2) so the CV can be tailored to it.",
+              { id: tId },
+            );
             return;
           }
-          const { data, error } = await invokeWithAuthRetry("generate-tailored-cv", {
-            body: {
-              job_description: jd,
-              target_role: app.role_title,
-              application_id: app.id,
-              cv_model: "sonnet",
+          const genStartedAt = performance.now();
+          const { data, error } = await invokeWithAuthRetry(
+            "generate-tailored-cv",
+            {
+              body: {
+                job_description: jd,
+                target_role: app.role_title,
+                application_id: app.id,
+                cv_model: "sonnet",
+              },
             },
-          });
+          );
           if (error || !data?.cv_url) {
-            toast.error("Couldn't generate the CV. Please try again.", { id: tId });
+            trackCvGenerated({
+              success: false,
+              source: "tracker",
+              model: "sonnet",
+              application_id: app.id,
+              role_title: app.role_title,
+              duration_ms: Math.round(performance.now() - genStartedAt),
+              failure_reason: data?.error || error?.message || "unknown",
+            });
+            toast.error("Couldn't generate the CV. Please try again.", {
+              id: tId,
+            });
             return;
           }
+          trackCvGenerated({
+            success: true,
+            source: "tracker",
+            model: data?.model || "sonnet",
+            application_id: app.id,
+            role_title: app.role_title,
+            duration_ms: Math.round(performance.now() - genStartedAt),
+            unsourced_bullets_count: Array.isArray(data?.unsourced_bullets)
+              ? data.unsourced_bullets.length
+              : 0,
+          });
           // Studio deep-link (QA2): make the new tailored CV visible to the
           // CV-list cache so /CVAgent?application_id= resolves to it, not master.
           queryClient.invalidateQueries({ queryKey: ["applicationCvs"] });
@@ -180,7 +242,11 @@ export default function ApplicationChecklist({
             duration: 15000,
             action: {
               label: "Open in CV Agent",
-              onClick: () => navigate(createPageUrl("CVAgent") + `?application_id=${encodeURIComponent(app.id)}`),
+              onClick: () =>
+                navigate(
+                  createPageUrl("CVAgent") +
+                    `?application_id=${encodeURIComponent(app.id)}`,
+                ),
             },
           });
         })();
@@ -188,7 +254,8 @@ export default function ApplicationChecklist({
       }
       case "open_agent": {
         if (!app?.id || !cta.page) return;
-        const url = createPageUrl(cta.page) +
+        const url =
+          createPageUrl(cta.page) +
           `?application_id=${encodeURIComponent(app.id)}`;
         navigate(url);
         return;
@@ -248,7 +315,9 @@ export default function ApplicationChecklist({
 
       {/* Phase-grouped step list */}
       {PHASE_ORDER.map((phase) => {
-        const phaseSteps = STEPS.map((s, i) => ({ ...s, step: i + 1 })).filter((s) => s.phase === phase);
+        const phaseSteps = STEPS.map((s, i) => ({ ...s, step: i + 1 })).filter(
+          (s) => s.phase === phase,
+        );
         const phaseConfig = PHASES[phase];
         return (
           <div key={phase} className="mt-4 first:mt-0">
@@ -263,7 +332,9 @@ export default function ApplicationChecklist({
                 const done = !!checklist[step.key];
                 const isCurrent = step.key === currentStepKey;
                 const isLocked =
-                  step.key === "application_submitted" && !isReadyToApply && !done;
+                  step.key === "application_submitted" &&
+                  !isReadyToApply &&
+                  !done;
                 return (
                   <StepRow
                     key={step.key}
@@ -285,7 +356,15 @@ export default function ApplicationChecklist({
   );
 }
 
-function StepRow({ step, done, isCurrent, isLocked, interpolate, onToggle, onCta }) {
+function StepRow({
+  step,
+  done,
+  isCurrent,
+  isLocked,
+  interpolate,
+  onToggle,
+  onCta,
+}) {
   const description = isCurrent
     ? interpolate(step.descriptionWhenCurrent || step.description)
     : interpolate(step.description);
@@ -295,12 +374,21 @@ function StepRow({ step, done, isCurrent, isLocked, interpolate, onToggle, onCta
   // are plain, no card chrome — keeps the eye on the next action.
   const rowInner = (
     <div className="flex items-start gap-3 py-2 px-0.5">
-      <StepMarker done={done} isCurrent={isCurrent} isLocked={isLocked} onToggle={onToggle} />
+      <StepMarker
+        done={done}
+        isCurrent={isCurrent}
+        isLocked={isLocked}
+        onToggle={onToggle}
+      />
       <div className="flex-1 min-w-0">
         <p
           className={[
             "font-display font-bold text-[13.5px] leading-tight",
-            done ? "text-rd-text-tertiary" : isLocked ? "text-rd-text-tertiary" : "text-rd-text",
+            done
+              ? "text-rd-text-tertiary"
+              : isLocked
+                ? "text-rd-text-tertiary"
+                : "text-rd-text",
           ].join(" ")}
         >
           {step.step} · {step.title}
@@ -320,8 +408,9 @@ function StepRow({ step, done, isCurrent, isLocked, interpolate, onToggle, onCta
 
         {/* CTA — hidden when done; muted-tan when pending; solid-coral
             when current. Locked steps show a disabled lock pill. */}
-        {!done && step.cta && (
-          isLocked ? (
+        {!done &&
+          step.cta &&
+          (isLocked ? (
             <span
               className="inline-flex items-center gap-1.5 font-display font-semibold text-[11.5px] rounded-full px-3 py-1.5 mt-2 bg-rd-bg-soft text-rd-text-tertiary cursor-not-allowed"
               aria-disabled="true"
@@ -342,8 +431,7 @@ function StepRow({ step, done, isCurrent, isLocked, interpolate, onToggle, onCta
               {step.cta.label}
               {Icon && <Icon className="w-3 h-3" />}
             </button>
-          )
-        )}
+          ))}
       </div>
     </div>
   );
@@ -363,7 +451,8 @@ function StepMarker({ done, isCurrent, isLocked, onToggle }) {
   // circle. Pending: light-gray outline circle. Click anywhere toggles
   // (the user can still manually mark steps complete without clicking
   // the CTA — preserves the original toggle UX).
-  const base = "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors";
+  const base =
+    "w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5 transition-colors";
   if (isLocked) {
     return (
       <span

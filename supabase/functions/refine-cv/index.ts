@@ -975,6 +975,9 @@ Deno.serve(async (req) => {
           application_id,
           source_jd: safeJobDescription || null,
           cv_data: cvData as any,
+          // Immutable as-generated snapshot (P0); Studio autosave mutates
+          // cv_data only, never this.
+          generated_cv_data: cvData as any,
           cv_url,
           version: 1,
           // is_master omitted → column DEFAULT false (a refined job CV, not a master)
