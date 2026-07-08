@@ -48,6 +48,7 @@ export function withTimeout(run, ms, label = "operation") {
       } catch {
         /* noop */
       }
+      /** @type {Error & { code?: string }} */
       const e = new Error(`${label} timed out after ${Math.round(ms / 1000)}s`);
       e.code = "timeout";
       reject(e);
