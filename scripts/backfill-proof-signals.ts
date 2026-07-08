@@ -7,8 +7,9 @@
 // function's extraction (same shared prompt + route + openai helper as
 // supabase/functions/extract-proof-signals/index.ts) so results match
 // production exactly. Text is re-derived from each user's stored resume
-// PDF via unpdf (the same library extract-cv-text uses) because cv_text
-// is never persisted — the client passes it transiently at parse time.
+// file via unpdf (PDF) or mammoth (.docx) — the same two extractors
+// onboarding uses (extract-cv-text/unpdf server-side; mammoth client-side)
+// — because cv_text is never persisted (the client passes it transiently).
 //
 //   Dry run (default, writes nothing):
 //     SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... OPENAI_API_KEY=... \
@@ -22,6 +23,8 @@
 
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { extractText, getDocumentProxy } from "https://esm.sh/unpdf@1.6.2";
+import * as mammoth from "https://esm.sh/mammoth@1.12.0";
+import { Buffer } from "node:buffer";
 import { routeFor } from "../supabase/functions/_shared/model-routing.ts";
 import { openaiChatCompletionWithRetry } from "../supabase/functions/_shared/openai-chat.ts";
 import {
@@ -59,7 +62,7 @@ function isEmptyProof(v: unknown): boolean {
   return v == null || (Array.isArray(v) && v.length === 0);
 }
 
-async function pdfToText(
+async function resumeToText(
   userId: string,
 ): Promise<{ path: string | null; text: string }> {
   const { data: files, error } = await supabase.storage
@@ -75,13 +78,36 @@ async function pdfToText(
     .from("resumes")
     .download(path);
   if (dlErr || !blob) return { path, text: "" };
-  const bytes = new Uint8Array(await blob.arrayBuffer());
+  const ab = await blob.arrayBuffer();
+  const isDocx = /\.docx$/i.test(file.name);
+  const extractor = isDocx ? "mammoth(docx)" : "unpdf(pdf)";
   try {
-    const pdf = await getDocumentProxy(bytes);
-    const { text } = await extractText(pdf, { mergePages: true });
-    return { path, text: (text || "").trim() };
-  } catch {
-    return { path, text: "" }; // non-PDF or parse failure
+    let text = "";
+    if (isDocx) {
+      // DOCX: same extraction onboarding uses (client-side mammoth).
+      // esm.sh serves mammoth's NODE build, which needs { buffer: Buffer }
+      // — the browser-only { arrayBuffer } option throws "Could not find
+      // file in options" and would silently yield zero text.
+      const { value } = await mammoth.extractRawText({
+        buffer: Buffer.from(new Uint8Array(ab)),
+      });
+      text = (value || "").trim();
+    } else {
+      const pdf = await getDocumentProxy(new Uint8Array(ab));
+      const r = await extractText(pdf, { mergePages: true });
+      text = (r.text || "").trim();
+    }
+    console.log(
+      `    [extract] "${file.name}" via ${extractor} -> ${text.length} chars`,
+    );
+    return { path, text };
+  } catch (e) {
+    // Surface, don't swallow — a scanned PDF (no text layer, no OCR) or a
+    // genuinely corrupt file lands here; the reason is now visible.
+    console.log(
+      `    [extract] "${file.name}" via ${extractor} -> FAILED: ${(e as Error).message}`,
+    );
+    return { path, text: "" };
   }
 }
 
@@ -185,7 +211,7 @@ for (const p of targets ?? []) {
   }
   processed++;
   const short = String(p.id).slice(0, 8);
-  const { path, text } = await pdfToText(p.id);
+  const { path, text } = await resumeToText(p.id);
   if (!path || !text) {
     noFile++;
     console.log(
