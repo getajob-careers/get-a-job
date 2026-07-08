@@ -348,9 +348,27 @@ export interface AntiFabResult {
 // already prevents dropping a section); an edited entry with no pre-edit
 // counterpart is traced against an empty corpus, so any quantified bullet
 // reverts to empty.
+// A2 (cv_antifab_attribution): pair an edited experience entry to its pre-edit
+// original by normalized title+company rather than array position, so a
+// reordered/swapped edit is traced against the SAME experience, not origList[i].
+function normAttr(v: unknown): string {
+  return String(v ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+function matchOriginalByAttribution(origList: any[], ee: any, org: string): any | null {
+  const t = normAttr(ee?.title);
+  const c = normAttr(ee?.[org]);
+  if (!t && !c) return null;
+  for (const oe of origList) {
+    if (normAttr(oe?.title) === t && normAttr(oe?.[org]) === c) return oe;
+  }
+  if (c) for (const oe of origList) if (normAttr(oe?.[org]) === c) return oe; // company-only (title paraphrase)
+  return null;
+}
+
 export function applyAntiFabGate(
   original: Record<string, any>,
   edited: Record<string, any>,
+  opts?: { attributionMatch?: boolean },
 ): AntiFabResult {
   const out: Record<string, any> = { ...edited };
   let factsReverted = 0;
@@ -362,7 +380,11 @@ export function applyAntiFabGate(
     if (editList.length === 0) continue;
     const origList = safeArr(original?.[key]);
     out[key] = editList.map((ee: any, i: number) => {
-      const oe = origList[i] || {};
+      // A2: attribution-match the edited entry to its original (title+company)
+      // when enabled; else index-match (byte-identical).
+      const oe = opts?.attributionMatch
+        ? (matchOriginalByAttribution(origList, ee, org) ?? origList[i] ?? {})
+        : (origList[i] || {});
       const entry: any = { ...ee };
       // facts immutable — restore title / org / dates from pre-edit
       for (const f of ["title", org, "dates"]) {
@@ -434,24 +456,25 @@ export function enforceBulletProperNouns(
   sourceHaystackLower: string,
   masterBulletsByKey: Map<string, string[]>,
   expKeyOf: (title: unknown, company: unknown) => string,
+  perExpHaystack?: Map<string, string>,
 ): BulletEnforcementResult {
   const flags: { bucket: string; bullet: string; tokens: string[] }[] = [];
   let bulletsEnforced = 0;
   let experiencesRestored = 0;
 
-  const scan = (bullet: string): { numbers: string[]; proper: string[] } => {
+  const scan = (bullet: string, haystack: string): { numbers: string[]; proper: string[] } => {
     const text = String(bullet || "").trim();
     const numbers: string[] = [];
     const proper: string[] = [];
     if (!text) return { numbers, proper };
     for (const tok of text.match(QUANT_TOKEN_RE) || []) {
       if (TOKEN_BLOCKLIST.has(tok)) continue;
-      if (sourceHaystackLower.includes(tok.toLowerCase())) continue;
+      if (haystack.includes(tok.toLowerCase())) continue;
       if (/\d/.test(tok)) numbers.push(tok);
       else proper.push(tok);
     }
     for (const tok of properNounTokens(text)) {
-      if (!sourceHaystackLower.includes(tok.toLowerCase())) proper.push(tok);
+      if (!haystack.includes(tok.toLowerCase())) proper.push(tok);
     }
     return { numbers, proper };
   };
@@ -465,10 +488,14 @@ export function enforceBulletProperNouns(
   ]) {
     const entries = Array.isArray(cvData?.[bucket]) ? cvData[bucket] : [];
     for (const entry of entries) {
+      // A2: ground each bullet against THIS experience's own corpus when a
+      // per-experience haystack is supplied; else the flat corpus (byte-identical).
+      const entryHaystack =
+        perExpHaystack?.get(expKeyOf(entry?.title, entry?.company)) ?? sourceHaystackLower;
       const orig = safeArr(entry?.bullets).map((b) => str(b));
       const kept: string[] = [];
       for (const b of orig) {
-        const { numbers, proper } = scan(b);
+        const { numbers, proper } = scan(b, entryHaystack);
         if (proper.length > 0) {
           bulletsEnforced++;
           // removed, not surfaced as a flag (a warning about a gone bullet

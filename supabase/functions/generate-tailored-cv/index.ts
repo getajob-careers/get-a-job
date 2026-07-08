@@ -337,6 +337,12 @@ Deno.serve(async (req) => {
     const cvReconcileVerify =
       String((body as any)?.cv_reconcile_verify ?? Deno.env.get("CV_RECONCILE_VERIFY") ?? "")
         .trim().toLowerCase() === "on";
+    // A2 (attribution-aware anti-fab): ground each bullet against its OWN
+    // experience's corpus instead of the flat all-experiences haystack. Default
+    // OFF → flat corpus (byte-identical).
+    const cvAntifabAttribution =
+      String((body as any)?.cv_antifab_attribution ?? Deno.env.get("CV_ANTIFAB_ATTRIBUTION") ?? "")
+        .trim().toLowerCase() === "on";
     const safeTargetRole = String(target_role ?? '').slice(0, 200);
     // Smart truncation: pull Requirements/Qualifications/Responsibilities
     // sections first when the JD has detectable headings; otherwise fall
@@ -2424,6 +2430,51 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
           mb.length ? mb : fromResp,
         );
       }
+      // A2 (cv_antifab_attribution): per-experience grounding corpus. Each
+      // experience grounds against its OWN responsibilities + bullets + skills +
+      // its own stories (routed by experience_id so a story can't leak across
+      // experiences) + the user-level SHARED corpus (skills / proof / projects). A
+      // bullet mis-attributed to another experience then fails to ground against
+      // that experience's own corpus. OFF → undefined → flat corpus (byte-identical).
+      let perExpHaystack: Map<string, string> | undefined;
+      if (cvAntifabAttribution) {
+        const sharedParts: string[] = [];
+        for (const sk of (userContext.skills || [])) sharedParts.push(String(sk));
+        for (const ps of safeArray(profile.proof_signals) as any[]) {
+          if (!ps) continue;
+          for (const ev of safeArray((ps as any).supporting_evidence)) sharedParts.push(String(ev));
+        }
+        for (const pr of (userContext.projects || []) as any[]) {
+          if (pr.description) sharedParts.push(String(pr.description));
+          for (const sk of (pr.skills || [])) sharedParts.push(String(sk));
+        }
+        const storiesByExpKey = new Map<string, string[]>();
+        for (const ts of topStories as any[]) {
+          const raw = experiencesById.get(ts?.story?.experience_id);
+          if (!raw) continue;
+          const k = expKey(raw.title, raw.company);
+          const parts = storiesByExpKey.get(k) ?? [];
+          const st = ts.story;
+          for (const m of (st.metrics || [])) parts.push(String(m));
+          if (st.result) parts.push(String(st.result));
+          if (st.action) parts.push(String(st.action));
+          if (st.situation) parts.push(String(st.situation));
+          for (const sk of (st.skills_demonstrated || [])) parts.push(String(sk));
+          for (const t of (st.tools_used || [])) parts.push(String(t));
+          storiesByExpKey.set(k, parts);
+        }
+        perExpHaystack = new Map<string, string>();
+        for (const e of allExperiences as any[]) {
+          const k = expKey(e.title, e.company);
+          const parts: string[] = [];
+          if (e.responsibilities) parts.push(String(e.responsibilities));
+          for (const sk of (e.skills || [])) parts.push(String(sk));
+          for (const b of safeArray(e.bullets)) parts.push(String(b));
+          for (const sp of (storiesByExpKey.get(k) ?? [])) parts.push(sp);
+          for (const sp of sharedParts) parts.push(sp);
+          perExpHaystack.set(k, parts.join(' \n ').toLowerCase());
+        }
+      }
       enforceCtx = {
         sourceHaystackLower: sourceHaystack,
         masterBulletsByKey,
@@ -2434,6 +2485,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
         sourceHaystack,
         masterBulletsByKey,
         expKey,
+        perExpHaystack,
       );
       for (const flag of enforcement.flags) unsourcedBullets.push(flag);
       if (enforcement.flags.length > 0 || enforcement.bulletsEnforced > 0) {
