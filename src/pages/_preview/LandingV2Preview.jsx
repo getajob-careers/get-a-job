@@ -1074,24 +1074,24 @@ function useLiveHeroStats() {
   const [stats, setStats] = useState(null);
   useEffect(() => {
     let cancelled = false;
-    // database.types.ts has no `landing_stats` entry yet — it's regenerated
-    // from the live schema only after Eli applies this PR's migration (repo
-    // convention: see the onboarding_events migration + its follow-up
-    // types-regen commit). The `any` cast is scoped to this one call and
-    // drops once types are regenerated; RLS (SELECT-only) is what actually
-    // guards this read, not the TS shape.
-    /** @type {any} */ (supabase)
-      .from("landing_stats")
-      .select("live_roles_count, companies_hiring_count, updated_at")
-      .eq("id", 1)
-      .single()
-      .then(({ data, error }) => {
+    // landing_stats is a public SELECT-only counter (RLS guards the read).
+    // Any failure (network, missing/stale row) is swallowed → the caller
+    // falls back to the hardcoded HERO_STATS literals.
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from("landing_stats")
+          .select("live_roles_count, companies_hiring_count, updated_at")
+          .eq("id", 1)
+          .single();
         if (cancelled || error || !data) return;
         const age = Date.now() - new Date(data.updated_at).getTime();
         if (age > LANDING_STATS_STALE_MS) return;
         setStats(data);
-      })
-      .catch(() => {});
+      } catch {
+        /* ignore — fall back to literals */
+      }
+    })();
     return () => {
       cancelled = true;
     };
