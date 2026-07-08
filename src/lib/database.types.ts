@@ -1455,6 +1455,27 @@ export type Database = {
         }
         Relationships: []
       }
+      landing_stats: {
+        Row: {
+          companies_hiring_count: number
+          id: number
+          live_roles_count: number
+          updated_at: string
+        }
+        Insert: {
+          companies_hiring_count: number
+          id?: number
+          live_roles_count: number
+          updated_at?: string
+        }
+        Update: {
+          companies_hiring_count?: number
+          id?: number
+          live_roles_count?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       linkedin_optimizations: {
         Row: {
           baseline_data: Json | null
