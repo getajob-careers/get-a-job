@@ -855,13 +855,91 @@ export async function fetchSmartRecruiters(c: CompanyEntry): Promise<RawJob[]> {
  *                    concatenate with H3 headings to produce a single
  *                    description_html blob
  *   - url_active_page / url_comeet_hosted_page / url_recruit_hosted_page:
- *                    apply URLs (any one may be populated, often null;
- *                    fall back to the company's careers_url)
+ *                    apply URLs. `url_active_page` is the tenant's own canonical
+ *                    URL and is usually the best per-position deep link — but for
+ *                    custom-site tenants that never wired up per-position URLs it
+ *                    is the bare careers ROOT, identical across every opening
+ *                    (e.g. all of Guardio -> guard.io/careers). In that case we
+ *                    prefer `url_comeet_hosted_page`, which is always
+ *                    position-specific. See `comeetApplyUrl` below. (#comeet-apply-url)
  */
+
+// Comeet boards whose custom careers site exposes NO per-position URLs — every
+// opening's `url_active_page` is the bare careers root (verified against live
+// payloads 2026-07-08, #comeet-apply-url). For these, always prefer the
+// position-specific comeet-hosted page. This is an explicit allowlist, not a
+// heuristic: these boards are single- or few-position, so the shared-root rule
+// in `comeetApplyUrl` can't always observe the reuse. Only PURE-root boards
+// belong here — never one that also emits real per-position deep links, or we
+// would downgrade working URLs.
+const COMEET_ROOT_ONLY_BOARDS = new Set<string>([
+  "A5.000", // Bizzabo          — bizzabo.com/careers
+  "52.009", // Fabric           — getfabric.com/careers/
+  "A9.00F", // Factify          — factify.com/careers
+  "F9.00D", // LayerX           — layerxsecurity.com/careers/
+  "F9.003", // Magenta Medical  — magentamed.com/careers/
+]);
+
+// The comeet-hosted URL is `.../{tenant}/{boardUid}/{positionSlug}/{openingUid}`;
+// the position slug is the second-to-last path segment.
+function comeetPositionSlug(hostedUrl: string): string {
+  if (!hostedUrl) return "";
+  const parts = hostedUrl
+    .replace(/^https?:\/\/[^/]+\//, "")
+    .split("/")
+    .filter(Boolean);
+  return parts.length >= 2 ? parts[parts.length - 2] : "";
+}
+
+/**
+ * Choose the apply URL for one Comeet opening. Prefer the tenant's own
+ * `url_active_page` when it is genuinely position-specific; otherwise fall back
+ * to the always-position-specific comeet-hosted page.
+ *
+ * `url_active_page` is treated as a bare root (→ use hosted) when the board is
+ * on the pure-root allowlist, OR when the same active URL is reused across ≥2
+ * openings on this board AND it carries neither the opening uid nor the position
+ * slug. The uid/slug guard protects tenants (e.g. Vast Data, Fullpath) whose
+ * real deep links are legitimately shared across multiple openings of one
+ * position. (#comeet-apply-url)
+ */
+function comeetApplyUrl(
+  p: any,
+  boardUid: string,
+  activeShare: Map<string, number>,
+  fallbackCareersUrl: string | null | undefined,
+): string {
+  const active: string = p.url_active_page || "";
+  const hosted: string = p.url_comeet_hosted_page || "";
+  const uid = String(p.uid || "");
+  const slug = comeetPositionSlug(hosted);
+  const activeIsPositionSpecific =
+    !COMEET_ROOT_ONLY_BOARDS.has(boardUid) &&
+    !!active &&
+    ((activeShare.get(active) ?? 0) <= 1 ||
+      (!!uid && active.includes(uid)) ||
+      (!!slug && active.toLowerCase().includes(slug.toLowerCase())));
+  return (
+    (activeIsPositionSpecific ? active : "") ||
+    hosted ||
+    active ||
+    p.url_recruit_hosted_page ||
+    fallbackCareersUrl ||
+    ""
+  );
+}
+
 export async function fetchComeet(c: CompanyEntry): Promise<RawJob[]> {
   if (!c.api_url) return [];
   const data = await httpGetJson<any>(c.api_url);
   if (!Array.isArray(data)) return [];
+  // Count how many openings share each `url_active_page` on this board; a value
+  // reused across openings is a careers root, not a per-position deep link.
+  const activeShare = new Map<string, number>();
+  for (const p of data) {
+    const a = p?.url_active_page;
+    if (a) activeShare.set(a, (activeShare.get(a) ?? 0) + 1);
+  }
   return data.map((p) => {
     const loc = p.location || {};
     const country = (loc.country || "").toUpperCase();
@@ -883,12 +961,7 @@ export async function fetchComeet(c: CompanyEntry): Promise<RawJob[]> {
       description_html: descParts || null,
       location_raw: locName,
       structured_country: country || null,
-      apply_url:
-        p.url_active_page ||
-        p.url_comeet_hosted_page ||
-        p.url_recruit_hosted_page ||
-        c.careers_url ||
-        "",
+      apply_url: comeetApplyUrl(p, c.slug || "", activeShare, c.careers_url),
       date_posted: p.time_updated || null,
       salary_min: null,
       salary_max: null,

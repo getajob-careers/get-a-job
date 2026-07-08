@@ -18,6 +18,7 @@ import {
   fetchAmazonJobs,
   mapBezeqJobs,
   mapHotJobs,
+  fetchComeet,
 } from "./ats-fetchers.ts";
 import type { CompanyEntry } from "./normalize.ts";
 
@@ -719,5 +720,113 @@ describe("fetchWorkday — facet path (multi-location capture)", () => {
     expect(isWorkdayIlLocation("2 Locations")).toBe(false);
     expect(jobs.find((j) => j.location_raw === "2 Locations")).toBeTruthy();
     expect(jobs.every((j) => j.structured_country === "Israel")).toBe(true);
+  });
+});
+
+describe("fetchComeet — apply_url selection (#comeet-apply-url)", () => {
+  function comeetBoard(
+    positions: any[],
+    entry: Partial<any> = {},
+  ): Promise<any[]> {
+    mockFetchOnce(
+      () =>
+        new Response(JSON.stringify(positions), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+    );
+    return fetchComeet({
+      api_url: "https://www.comeet.co/careers-api/2.0/company/99.999/positions",
+      slug: "99.999",
+      careers_url: "https://example.com/careers",
+      ...entry,
+    } as CompanyEntry);
+  }
+
+  it("keeps a genuine per-position deep link (unique active URL)", async () => {
+    const jobs = await comeetBoard([
+      {
+        uid: "AA.111",
+        name: "Engineer",
+        url_active_page: "https://acme.com/careers/engineer-aa111",
+        url_comeet_hosted_page:
+          "https://www.comeet.com/jobs/acme/99.999/engineer/AA.111",
+      },
+      {
+        uid: "BB.222",
+        name: "Designer",
+        url_active_page: "https://acme.com/careers/designer-bb222",
+        url_comeet_hosted_page:
+          "https://www.comeet.com/jobs/acme/99.999/designer/BB.222",
+      },
+    ]);
+    expect(jobs.map((j) => j.apply_url)).toEqual([
+      "https://acme.com/careers/engineer-aa111",
+      "https://acme.com/careers/designer-bb222",
+    ]);
+  });
+
+  it("falls back to the hosted page when active is a bare root shared across openings", async () => {
+    const jobs = await comeetBoard([
+      {
+        uid: "F0.F5C",
+        name: "Brand Designer",
+        url_active_page: "https://guard.io/careers",
+        url_comeet_hosted_page:
+          "https://www.comeet.com/jobs/guardio/57.000/brand-designer/F0.F5C",
+      },
+      {
+        uid: "A1.B2C",
+        name: "Backend Engineer",
+        url_active_page: "https://guard.io/careers",
+        url_comeet_hosted_page:
+          "https://www.comeet.com/jobs/guardio/57.000/backend-engineer/A1.B2C",
+      },
+    ]);
+    expect(jobs.map((j) => j.apply_url)).toEqual([
+      "https://www.comeet.com/jobs/guardio/57.000/brand-designer/F0.F5C",
+      "https://www.comeet.com/jobs/guardio/57.000/backend-engineer/A1.B2C",
+    ]);
+  });
+
+  it("keeps a shared deep link that carries the position slug (not a root)", async () => {
+    // Two openings of one position legitimately share the tenant deep link.
+    const shared =
+      "https://vastdata.com/careers/co/tel-aviv/1F.919/sw-team-leader/all/";
+    const jobs = await comeetBoard([
+      {
+        uid: "1F.919",
+        name: "SW Team Leader",
+        url_active_page: shared,
+        url_comeet_hosted_page:
+          "https://www.comeet.com/jobs/vastdata/43.001/sw-team-leader/1F.919",
+      },
+      {
+        uid: "2A.020",
+        name: "SW Team Leader (2)",
+        url_active_page: shared,
+        url_comeet_hosted_page:
+          "https://www.comeet.com/jobs/vastdata/43.001/sw-team-leader/2A.020",
+      },
+    ]);
+    expect(jobs.every((j) => j.apply_url === shared)).toBe(true);
+  });
+
+  it("forces the hosted page for a pure-root allowlist board even with a single opening", async () => {
+    const jobs = await comeetBoard(
+      [
+        {
+          uid: "F1.C67",
+          name: "Assistant Controller",
+          url_active_page: "https://www.bizzabo.com/careers",
+          url_comeet_hosted_page:
+            "https://www.comeet.com/jobs/bizzabo/A5.000/assistant-controller/F1.C67",
+        },
+      ],
+      { slug: "A5.000" },
+    );
+    expect(jobs[0].apply_url).toBe(
+      "https://www.comeet.com/jobs/bizzabo/A5.000/assistant-controller/F1.C67",
+    );
   });
 });
