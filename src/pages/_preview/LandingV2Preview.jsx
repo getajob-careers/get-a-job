@@ -18,6 +18,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { savePendingCv } from "@/lib/pendingCv";
 import { useAuth } from "@/lib/AuthContext";
+import { supabase } from "@/api/supabaseClient";
 
 // ────────────────────────────────────────────────────────────────────────
 const LV_CSS = `
@@ -1029,14 +1030,15 @@ function DropZone({ onUpload }) {
   );
 }
 
-// Hero scale stats. Static literals tied to the current job corpus: the
-// "5,700+" / "525+" counts are a manual refresh (per Eli, 2026-07-07) — a
-// stopgap ahead of the planned live-stats automation (landing_stats
-// table/cron). Not dead code: must be updated BY HAND again as the corpus
-// grows, until stats 1-2 get wired to that live source. Stats 1-2 animate a
-// count-up; stats 3-4 are text-only (icon plus a line, no number). Text-only
-// stats omit `to`; the render keys off that.
-const HERO_STATS = [
+// Hero scale stats. HERO_STATS_FALLBACK is an INTENTIONAL fallback, not
+// dead code: it's what renders on first paint (before the live fetch
+// resolves) and whatever the live landing_stats read fails or comes back
+// stale — see useLiveHeroStats below. Keep "5,700+" / "525+" roughly
+// current by hand regardless; they're the numbers a visitor sees on any
+// read failure. Stats 1-2 animate a count-up; stats 3-4 are text-only
+// (icon plus a line, no number). Text-only stats omit `to`; the render
+// keys off that.
+const HERO_STATS_FALLBACK = [
   {
     to: 5700,
     suffix: "+",
@@ -1055,6 +1057,47 @@ const HERO_STATS = [
   },
   { text: "Refreshed every night", icon: "ti-moon" },
 ];
+
+// landing_stats is populated nightly by scripts/refresh-jobs.ts (service
+// role) right after that night's soft-delete sweep. A read past this
+// window means the cron missed a run or two — trust HERO_STATS_FALLBACK
+// over a live number that could be days stale.
+const LANDING_STATS_STALE_MS = 48 * 60 * 60 * 1000;
+
+// Reads the single landing_stats row and returns { live_roles_count,
+// companies_hiring_count } when it's present AND fresh, else null. null
+// means "use the fallback" — covers the row missing, the query erroring,
+// the fetch still in flight, and staleness, all the same way, since none
+// of those are cases where showing a stale/broken number beats the
+// hand-maintained literal.
+function useLiveHeroStats() {
+  const [stats, setStats] = useState(null);
+  useEffect(() => {
+    let cancelled = false;
+    // database.types.ts has no `landing_stats` entry yet — it's regenerated
+    // from the live schema only after Eli applies this PR's migration (repo
+    // convention: see the onboarding_events migration + its follow-up
+    // types-regen commit). The `any` cast is scoped to this one call and
+    // drops once types are regenerated; RLS (SELECT-only) is what actually
+    // guards this read, not the TS shape.
+    /** @type {any} */ (supabase)
+      .from("landing_stats")
+      .select("live_roles_count, companies_hiring_count, updated_at")
+      .eq("id", 1)
+      .single()
+      .then(({ data, error }) => {
+        if (cancelled || error || !data) return;
+        const age = Date.now() - new Date(data.updated_at).getTime();
+        if (age > LANDING_STATS_STALE_MS) return;
+        setStats(data);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+  return stats;
+}
 
 // Rolls a stat up from 0 → target when it mounts (the hero is in view on load).
 // Pauses harmlessly if the tab is backgrounded — rAF resumes on focus.
@@ -1107,6 +1150,18 @@ function Odometer({ value, suffix = "", delay = 0 }) {
 }
 
 function Hero({ onCTA }) {
+  const liveStats = useLiveHeroStats();
+  // Only stats 0 ("live roles") and 1 ("companies hiring now") have a live
+  // source; splice in their counts when fresh data is available, otherwise
+  // render HERO_STATS_FALLBACK untouched (labels/icons/suffix always come
+  // from the fallback array — only `to` ever changes).
+  const heroStats = liveStats
+    ? HERO_STATS_FALLBACK.map((s, i) => {
+        if (i === 0) return { ...s, to: liveStats.live_roles_count };
+        if (i === 1) return { ...s, to: liveStats.companies_hiring_count };
+        return s;
+      })
+    : HERO_STATS_FALLBACK;
   return (
     <header className="lv-hero lv-dots">
       <div
@@ -1174,7 +1229,7 @@ function Hero({ onCTA }) {
           </div>
         </div>
         <div className="lv-stats lv-reveal" data-d="3">
-          {HERO_STATS.map((s, i) => (
+          {heroStats.map((s, i) => (
             <div className="lv-stat" key={s.label ?? s.text}>
               <i className={`ti ${s.icon} lv-stat-ic`} aria-hidden="true" />
               {s.to != null ? (
