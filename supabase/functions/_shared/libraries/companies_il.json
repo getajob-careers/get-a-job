@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1162,
+  "total_companies": 1164,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -13968,6 +13968,30 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/29.00B/positions?token=92B37025283402D402D12561B81024AC4958&details=true",
       "verified": true,
       "notes": "Ingested 2026-07-08 from Comeet r2 harvest: board ship4wd/29.00B. True seed (Prilenia precedent) - live Comeet board, real IL presence, 0 open roles today; token sourced from public hosted board, validated live (HTTP 200)."
+    },
+    {
+      "name": "Sensi.AI",
+      "type": "israeli_founded",
+      "industry": "AI / Eldercare Tech",
+      "domain": "sensi.ai",
+      "careers_url": "https://www.comeet.com/jobs/sensi/E7.00F",
+      "ats": "comeet",
+      "slug": "E7.00F",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/E7.00F/positions?token=7EF2F9A1FBC3F78017CD7EFFDE1FBC3789&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07-08 from Comeet r2 backlog (passes 1-3): board sensi/E7.00F, 6 live IL role(s); token sourced from public hosted board, validated live (HTTP 200, IL count via classifyLocation + isJunkTitle)."
+    },
+    {
+      "name": "SysAid",
+      "type": "israeli_founded",
+      "industry": "IT Service Management Software",
+      "domain": "sysaid.com",
+      "careers_url": "https://www.sysaid.com/careers",
+      "ats": "comeet",
+      "slug": "43.00A",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/43.00A/positions?token=34A107269434A069401D9A10721A50&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07-08 from Comeet r2 backlog (passes 1-3): board 43.00A, 9 live IL role(s); token sourced from public hosted board, validated live (HTTP 200, IL count via classifyLocation + isJunkTitle)."
     }
   ]
 }
