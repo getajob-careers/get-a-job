@@ -11,7 +11,7 @@ import { buildMasterCvData } from '../_shared/cv-master.ts'
 import { cvHasHebrew, translateCvToEnglish, type ChatMessage } from '../_shared/cv-translate.ts'
 import { matchRoleToLibrary, resolveSectorTheme } from '../_shared/cv-templates/sector-mapping.ts'
 import type { TemplateStyle, SectionKey } from '../_shared/cv-templates/types.ts'
-import { fillFromSource, type SourceExperience } from './reconcile.ts'
+import { fillFromSource, resolveAuthoringRole, type SourceExperience } from './reconcile.ts'
 
 // --- Load JSON Libraries ---
 import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
@@ -343,7 +343,11 @@ Deno.serve(async (req) => {
     const cvAntifabAttribution =
       String((body as any)?.cv_antifab_attribution ?? Deno.env.get("CV_ANTIFAB_ATTRIBUTION") ?? "")
         .trim().toLowerCase() === "on";
-    const safeTargetRole = String(target_role ?? '').slice(0, 200);
+    // A5 (author from the linked app's role, not the caller's target_role).
+    const gtcAuthorFromApp =
+      String((body as any)?.gtc_author_from_app ?? Deno.env.get("GTC_AUTHOR_FROM_APP") ?? "")
+        .trim().toLowerCase() === "on";
+    let safeTargetRole = String(target_role ?? '').slice(0, 200);
     // Smart truncation: pull Requirements/Qualifications/Responsibilities
     // sections first when the JD has detectable headings; otherwise fall
     // back to plain .slice(). 10000 chars is roughly double the old 5000
@@ -512,6 +516,17 @@ Deno.serve(async (req) => {
       if (app) {
         targetCompany = String(app.company ?? '').slice(0, 200);
         appRoleTitle = String(app.role_title ?? '').slice(0, 200);
+        // A5 (gtc_author_from_app): the linked app's role is authoritative for
+        // content too, so a coach proposal's free-text target_role can't produce a
+        // CV authored for the wrong role while labeled right. The disagreement is
+        // LOGGED (observable), never masked. OFF → safeTargetRole unchanged.
+        {
+          const ar = resolveAuthoringRole(safeTargetRole, appRoleTitle, gtcAuthorFromApp);
+          if (ar.overridden) {
+            console.warn(`[CV] A5 author_from_app: authoring from linked app role "${appRoleTitle}" instead of caller target_role "${safeTargetRole}" (observable, not masked)`);
+          }
+          safeTargetRole = ar.role;
+        }
         if (!safeJobDescription && app.job_description) {
           // Defensive strip on fallback path too — legacy applications.job_description
           // rows can hold raw HTML from pre-fix user pastes.

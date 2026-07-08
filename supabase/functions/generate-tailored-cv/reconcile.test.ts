@@ -16,6 +16,7 @@ import {
   formatExperienceDates,
   type ReconcileWarning,
   type SourceExperience,
+  resolveAuthoringRole,
 } from "./reconcile";
 
 const src = (overrides: Partial<SourceExperience> = {}): SourceExperience => ({
@@ -390,5 +391,25 @@ describe("fillFromSource — A1 attribution verification (cv_reconcile_verify)",
     expect(result[0].bullets).toEqual(["kept"]);
     expect(result[1].bullets).toEqual(["also kept"]);
     expect(warnings).toHaveLength(0);
+  });
+});
+
+
+describe("resolveAuthoringRole — A5 (gtc_author_from_app)", () => {
+  it("fromApp + differing app role → authors from the app role, overridden flagged", () => {
+    expect(resolveAuthoringRole("Data Analyst", "Product Manager", true))
+      .toEqual({ role: "Product Manager", overridden: true });
+  });
+  it("fromApp + matching app role (case-insensitive) → app role, NOT flagged", () => {
+    expect(resolveAuthoringRole("product manager", "Product Manager", true))
+      .toEqual({ role: "Product Manager", overridden: false });
+  });
+  it("flag OFF → caller role unchanged (byte-identical)", () => {
+    expect(resolveAuthoringRole("Data Analyst", "Product Manager", false))
+      .toEqual({ role: "Data Analyst", overridden: false });
+  });
+  it("fromApp but no app role → caller role (no app to author from)", () => {
+    expect(resolveAuthoringRole("Data Analyst", "", true))
+      .toEqual({ role: "Data Analyst", overridden: false });
   });
 });
