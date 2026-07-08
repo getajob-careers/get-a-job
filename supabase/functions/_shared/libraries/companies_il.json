@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1167,
+  "total_companies": 1168,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -7915,11 +7915,11 @@
       "industry": "HR Tech",
       "domain": "papayaglobal.com",
       "careers_url": "https://www.papayaglobal.com/careers/",
-      "ats": "greenhouse",
-      "slug": "papaya",
-      "api_url": "https://boards-api.greenhouse.io/v1/boards/papaya/jobs",
+      "ats": "comeet",
+      "slug": "16.005",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/16.005/positions?token=615247E02A931E6930A81E691E691E6936BD&details=true",
       "verified": true,
-      "notes": "Probed: greenhouse slug 'papaya' returns 200"
+      "notes": "Repointed 2026-07-08 greenhouse->comeet: greenhouse board (slug papaya) returned 0 jobs; live Comeet board papayaglobal/16.005 has 14 live IL roles, validated live (HTTP 200)."
     },
     {
       "name": "Paragon",
@@ -10039,11 +10039,11 @@
       "industry": "Pharmaceutical",
       "domain": "taro.com",
       "careers_url": "https://www.taro.com/human-resources",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Proprietary taro.com/human-resources page (returns 403 to bots). Owned by Sun Pharma. No third-party ATS detected. Low IL hiring volume."
+      "ats": "comeet",
+      "slug": "9A.00A",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/9A.00A/positions?token=A9A4A3635024A362A6854D015342A6835022A68&details=true",
+      "verified": true,
+      "notes": "Resolved 2026-07-08 unknown->comeet: live Comeet board taropharmaceuticalindustries/9A.00A has 20 live IL roles, validated live (HTTP 200)."
     },
     {
       "name": "Tastewise",
@@ -14028,6 +14028,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/46.00E/positions?token=64E25D464E12EA25D41F86193838BE38BE12EA&details=true",
       "verified": true,
       "notes": "Ingested 2026-07-08 from Comeet r2 harvest: board webbing/46.00E, 1 live IL role(s); token sourced from public hosted board, validated live (HTTP 200, IL count via classifyLocation)."
+    },
+    {
+      "name": "Ship4wd",
+      "type": "israeli_founded",
+      "industry": "Freight Tech / Logistics",
+      "domain": "ship4wd.com",
+      "careers_url": "https://www.comeet.com/jobs/ship4wd/29.00B",
+      "ats": "comeet",
+      "slug": "29.00B",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/29.00B/positions?token=92B37025283402D402D12561B81024AC4958&details=true",
+      "verified": true,
+      "notes": "Ingested 2026-07-08 from Comeet r2 harvest: board ship4wd/29.00B. True seed (Prilenia precedent) - live Comeet board, real IL presence, 0 open roles today; token sourced from public hosted board, validated live (HTTP 200)."
     }
   ]
 }
