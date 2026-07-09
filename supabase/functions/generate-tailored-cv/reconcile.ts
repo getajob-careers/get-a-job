@@ -161,6 +161,37 @@ function stubMatchesSource(stub: string, src: SourceExperience): boolean {
   return false;
 }
 
+// Retention-floor coverage (P1). A stored bullet is "covered" by the emitted
+// set when some emitted bullet is a reword of it — i.e. a majority of the stored
+// bullet's significant content words reappear in one emitted bullet. This lets
+// the floor restore only GENUINELY DROPPED stored bullets, never double a bullet
+// the model already reworded. Deliberately lexical + threshold-based (no LLM):
+// it must be deterministic and cheap. Errs toward restoring (a false "not
+// covered" appends a near-duplicate — visible and fixable; a false "covered"
+// would silently drop a stored bullet, which Eli's rule forbids).
+const RETENTION_STOPWORDS = new Set([
+  "the", "and", "for", "with", "this", "that", "from", "into", "your", "our",
+  "their", "team", "role", "work", "using", "used", "across", "while", "which",
+]);
+function significantTokens(s: string): Set<string> {
+  const out = new Set<string>();
+  for (const t of String(s || "").toLowerCase().match(/[a-z0-9]{4,}/g) || []) {
+    if (!RETENTION_STOPWORDS.has(t)) out.add(t);
+  }
+  return out;
+}
+export function bulletCoveredBy(stored: string, emitted: string[]): boolean {
+  const s = significantTokens(stored);
+  if (s.size === 0) return true; // no content to protect
+  for (const e of emitted) {
+    const es = significantTokens(e);
+    let shared = 0;
+    for (const t of s) if (es.has(t)) shared++;
+    if (shared / s.size >= 0.5) return true; // majority of content words reworded through
+  }
+  return false;
+}
+
 export function fillFromSource(
   sources: SourceExperience[],
   llmEntries: LlmEntry[] | undefined | null,
@@ -271,17 +302,36 @@ export function fillFromSource(
   }
 
   return sources.map((src, i) => {
+    const curated = Array.isArray(src.bullets)
+      ? src.bullets.map((b) => String(b || "").trim()).filter(Boolean)
+      : [];
     let bullets = bulletsBySource.get(i) || [];
+    // Stored bullets the model dropped and the floor restored — carried as an
+    // advisory signal ("weakest for this role") for the future P6 toggle UI.
+    const deprioritized: string[] = [];
     if (bullets.length === 0) {
       // PR #321 Phase-4 read side: when the LLM emitted no bullets for this
       // slot, prefer the user-curated bullets over splitting responsibilities.
-      const curated = Array.isArray(src.bullets)
-        ? src.bullets.map((b) => String(b || "").trim()).filter(Boolean)
-        : [];
       bullets =
         curated.length > 0
           ? curated
           : responsibilitiesToBullets(src.responsibilities);
+    } else if (curated.length > 0) {
+      // RETENTION FLOOR (P1 — Eli's product rule: AI advises, user decides;
+      // every stored bullet appears by default; the AI never silently drops).
+      // The model may reword/reorder, but a stored bullet it OMITTED is restored
+      // verbatim (appended) rather than lost. `bulletCoveredBy` treats a reword
+      // as coverage (majority token overlap) so we restore only genuinely
+      // dropped bullets, never double a reworded one. Restored bullets are
+      // flagged deprioritized: the model's implicit "drop" becomes an advisory
+      // "weakest for this role" the P6 UI can surface — preserved in the data
+      // shape now, even though the UI ships later.
+      for (const cb of curated) {
+        if (!bulletCoveredBy(cb, bullets)) {
+          bullets = [...bullets, cb];
+          deprioritized.push(cb);
+        }
+      }
     }
     const out: FilledEntry = {
       title: src.title || "",
@@ -289,6 +339,7 @@ export function fillFromSource(
       bullets,
     };
     out[orgFieldName] = src.company || "";
+    if (deprioritized.length > 0) out.deprioritized_bullets = deprioritized;
     // Master addressability (Phase 2.0): stamp the authoritative DB source-row
     // id by the SAME index map used for title/company/dates above. Additive key,
     // gated to master mode via stampSourceId so the from-scratch / job-CV path is

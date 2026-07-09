@@ -14,6 +14,7 @@ import { describe, it, expect, vi } from "vitest";
 import {
   fillFromSource,
   formatExperienceDates,
+  bulletCoveredBy,
   type ReconcileWarning,
   type SourceExperience,
   resolveAuthoringRole,
@@ -411,5 +412,86 @@ describe("resolveAuthoringRole — A5 (gtc_author_from_app)", () => {
   it("fromApp but no app role → caller role (no app to author from)", () => {
     expect(resolveAuthoringRole("Data Analyst", "", true))
       .toEqual({ role: "Data Analyst", overridden: false });
+  });
+});
+
+// ── CV Excellence Arc P1 — retention floor ────────────────────────────────
+// Eval gate encoded from the 2026-07-08 6-CV set: the LLM under-emitted bullets
+// for full-profile experiences (Get a Job 5→2, Guardio 7→5) and reconcile kept
+// the subset. The floor restores every dropped stored bullet and flags it
+// deprioritized, without doubling reworded ones. Eli's rule: all stored bullets
+// appear by default; AI never silently drops.
+describe("fillFromSource — retention floor (P1)", () => {
+  // "Get a Job" analog: 5 stored, model emits 2 (rewords of #1 and #3).
+  const GETAJOB = [
+    "Built the platform solo end to end React Tailwind frontend Supabase Postgres backend",
+    "Took the platform from zero to fifty activated users through a Reichman student cohort",
+    "Built an automated job sourcing pipeline integrating Greenhouse Lever Ashby Workday",
+    "Scoped requirements through discovery sessions and launched two pilot cohorts",
+    "Conducted career coaching sessions that led to building and presenting the MVP",
+  ];
+
+  it("restores the dropped stored bullets to 5/5 (before: 2) and flags 3 deprioritized", () => {
+    const sources = [src({ title: "Creator", company: "Get a Job", bullets: GETAJOB })];
+    // Model emitted rewords of bullets 0 and 2 only — 3 were dropped.
+    const llm = [
+      {
+        index: 0,
+        bullets: [
+          "Built the entire platform end-to-end: React Tailwind frontend, Supabase Postgres backend",
+          "Built an automated job-sourcing pipeline integrating Greenhouse, Lever, Ashby and Workday",
+        ],
+      },
+    ];
+    const result = fillFromSource(sources, llm, "company");
+    expect(result[0].bullets).toHaveLength(5); // 2 reworded + 3 restored
+    expect(result[0].deprioritized_bullets).toHaveLength(3);
+    // the two reworded stored bullets are NOT duplicated (covered)
+    expect(result[0].deprioritized_bullets).not.toContain(GETAJOB[0]);
+    expect(result[0].deprioritized_bullets).not.toContain(GETAJOB[2]);
+    // the three genuinely-dropped stored bullets are restored verbatim
+    expect(result[0].bullets).toContain(GETAJOB[1]);
+    expect(result[0].bullets).toContain(GETAJOB[3]);
+    expect(result[0].bullets).toContain(GETAJOB[4]);
+  });
+
+  it("Guardio analog: 7 stored, model emits 5 rewords → floor restores to 7/7", () => {
+    const stored = [
+      "Managed high touch relationships with VIP cybersecurity users handling technical support",
+      "Analyzed VIP user journeys identifying systemic authorization charge issues driving policy changes",
+      "Designed an AI assistant bot with Cursor and Claude giving agents real time analytics",
+      "Led quality assurance for AI customer service bots with the product growth team",
+      "Enhanced social media response relevance ninety eight percent through smart keyword triggers",
+      "Compared AI models to improve customer response quality across support channels",
+      "Developed a Python fetcher proactively identifying customers likely to face platform issues",
+    ];
+    const sources = [src({ title: "CS Specialist", company: "Guardio", bullets: stored })];
+    // rewords of 0,1,2,3,4 — bullets 5 and 6 dropped
+    const llm = [{ index: 0, bullets: stored.slice(0, 5).map((b) => b + " (reworded for the role)") }];
+    const result = fillFromSource(sources, llm, "company");
+    expect(result[0].bullets).toHaveLength(7);
+    expect(result[0].deprioritized_bullets).toEqual([stored[5], stored[6]]);
+  });
+
+  it("no-op when the model already emitted every stored bullet (no false duplicates, no flag)", () => {
+    const sources = [src({ company: "Acme", bullets: GETAJOB })];
+    const llm = [{ index: 0, bullets: GETAJOB.map((b) => b + " tailored") }];
+    const result = fillFromSource(sources, llm, "company");
+    expect(result[0].bullets).toHaveLength(5);
+    expect(result[0].deprioritized_bullets).toBeUndefined();
+  });
+
+  it("does not touch experiences with no stored bullets (legacy responsibilities path unchanged)", () => {
+    const sources = [src({ company: "Acme", bullets: [], responsibilities: "Did a thing.\nDid another." })];
+    const llm = [{ index: 0, bullets: ["One emitted bullet"] }];
+    const result = fillFromSource(sources, llm, "company");
+    expect(result[0].bullets).toEqual(["One emitted bullet"]);
+    expect(result[0].deprioritized_bullets).toBeUndefined();
+  });
+
+  it("bulletCoveredBy treats a reword as covered but a distinct bullet as not", () => {
+    const stored = "Built an automated job sourcing pipeline integrating Greenhouse Lever Ashby Workday";
+    expect(bulletCoveredBy(stored, ["Built an automated job-sourcing pipeline across Greenhouse, Lever, Ashby, Workday"])).toBe(true);
+    expect(bulletCoveredBy(stored, ["Managed VIP customer relationships and technical support"])).toBe(false);
   });
 });
