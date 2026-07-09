@@ -65,11 +65,7 @@ export default function CVStudioLive() {
   const [chatBusy, setChatBusy] = useState(false);
   const [editVersion, setEditVersion] = useState(0); // bumps on chat-applied edits → remount so contentEditable re-seeds
   const [searchParams, setSearchParams] = useSearchParams();
-  // Tracks which ?cv/?application_id value we've already RESOLVED to a selection.
-  // Not a one-shot boolean: a deep-linked application may have no tailored copy
-  // when the effect first runs, and the copy lands moments later (post-generation
-  // refetch) - keying on the param lets a later cvOptions update re-resolve it.
-  const resolvedParamRef = useRef(null);
+  const paramAppliedRef = useRef(false);
 
   // Tailoring ("Tailor to a job"). pendingTailor is a tracked application the
   // user wants a tailored CV for that has NO tailored row yet — set from the
@@ -97,38 +93,34 @@ export default function CVStudioLive() {
   // the current selection drops out of the list.
   useEffect(() => {
     if (!cvOptions.length) return;
-    const cvParam = searchParams.get("cv");
-    const appParam = searchParams.get("application_id");
-    const paramKey = cvParam
-      ? `cv:${cvParam}`
-      : appParam
-        ? `app:${appParam}`
-        : null;
-    if (paramKey && resolvedParamRef.current !== paramKey) {
-      const target =
-        (cvParam && cvOptions.find((o) => o.id === cvParam)) ||
-        (appParam && cvOptions.find((o) => o.applicationId === appParam)) ||
-        null;
-      if (target) {
-        // Found the deep-linked copy - commit to it, strip the params, and mark
-        // this param resolved so we never re-run for it.
-        resolvedParamRef.current = paramKey;
+    if (!paramAppliedRef.current) {
+      const cvParam = searchParams.get("cv");
+      const appParam = searchParams.get("application_id");
+      if (cvParam || appParam) {
+        const target =
+          (cvParam && cvOptions.find((o) => o.id === cvParam)) ||
+          (appParam && cvOptions.find((o) => o.applicationId === appParam)) ||
+          null;
+        // Wait for a warm-stale refetch too, not only a cold load: refetchOnMount
+        // is "always", so a fresh CV lands moments after mount - do not commit to
+        // master before it arrives (QA2 Studio deep-link).
+        if (!target && (optsLoading || optsFetching)) return;
+        paramAppliedRef.current = true;
         const next = new URLSearchParams(searchParams);
         next.delete("cv");
         next.delete("application_id");
         setSearchParams(next, { replace: true });
-        setSelectedCvId(target.id);
-        return;
+        if (target) {
+          setSelectedCvId(target.id);
+          return;
+        }
+        // Deep-linked application with NO tailored copy yet: keep it as a
+        // pending tailor target (master shows with the "Tailor it to …" banner)
+        // rather than silently dropping the context.
+        if (appParam) setPendingTailor({ applicationId: appParam });
+      } else {
+        paramAppliedRef.current = true;
       }
-      // Not found yet. refetchOnMount is "always", so a freshly generated copy
-      // lands moments after mount - and a background generation can land much
-      // later. Wait while the list is in flight; do NOT commit to master mid-fetch.
-      if (optsLoading || optsFetching) return;
-      // Settled without the target: show master + the "Tailor it to …" banner,
-      // but do NOT mark the param resolved and do NOT strip it - a later refetch
-      // (e.g. the generation completing) re-runs this and selects the tailored
-      // copy the moment it appears, instead of latching to master forever.
-      if (appParam) setPendingTailor({ applicationId: appParam });
     }
     if (selectedCvId && cvOptions.some((o) => o.id === selectedCvId)) return;
     const master = cvOptions.find((o) => o.isMaster);
@@ -170,15 +162,6 @@ export default function CVStudioLive() {
   // Conversation is per-CV — reset when the user switches CVs.
   useEffect(() => {
     setChatMessages([]);
-    // P1.1 Blocker B: clear the editor model on every CV switch so a STALE model
-    // from the previously-selected CV can never render under the new selection.
-    // The document renders `model` keyed by selectedCvId; the seed effect only
-    // UPDATES model once the freshly-loaded row matches selectedCvId, so without
-    // this reset the prior CV's content lingers (the bug that showed the master
-    // CV under a tailored header). Cleared → the loading state shows until the
-    // correct row seeds.
-    setModel(null);
-    modelRef.current = null;
   }, [selectedCvId]);
 
   // ---- debounced autosave to application_cvs.cv_data (RLS own-row) ----
@@ -550,11 +533,10 @@ export default function CVStudioLive() {
           matched != null
             ? `Matched ${matched} of ${matched + missed} key phrases.`
             : null;
-        // Refetch the list and AUTO-SELECT the freshly generated row so the
-        // editor renders it immediately (P1.1 Blocker B: no "View it" click, no
-        // stale copy). The outcome card still shows the fit line + Download.
-        // refine-cv doesn't return cv_id, so select by application_id from the
-        // refetched, deduped list (newest per app); keep cv_id for forward-compat.
+        // Bring the new row into the list so the editor can load it on "View it"
+        // (no auto-switch — the outcome card gives an explicit choice). refine-cv
+        // doesn't return cv_id, so select by application_id from the refetched,
+        // deduped list (newest per app); keep the cv_id path for forward-compat.
         try {
           await queryClient.invalidateQueries({
             queryKey: applicationCvsQueryKey(user.id),
@@ -571,8 +553,6 @@ export default function CVStudioLive() {
             null;
           setPendingTailor(null);
           if (newCvId) {
-            setSelectedCvId(newCvId); // render the new row now; the seed effect
-            // clears the prior model and re-seeds from the fresh row.
             setTailorResult({
               cvId: newCvId,
               role: target.role || null,
