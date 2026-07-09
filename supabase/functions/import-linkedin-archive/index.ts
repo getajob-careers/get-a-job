@@ -362,7 +362,7 @@ export async function parseLinkedinArchive(bytes: Uint8Array): Promise<{
   filesSkipped: Array<{ name: string; reason: string }>
   counts: Record<string, number>
 }> {
-  const zipReader = new ZipReader(new BlobReader(new Blob([bytes])))
+  const zipReader = new ZipReader(new BlobReader(new Blob([bytes as unknown as BlobPart])))
   const entries = await zipReader.getEntries()
 
   // Build a case-insensitive lookup from filename → desired section.

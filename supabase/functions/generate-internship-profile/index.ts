@@ -212,7 +212,7 @@ Deno.serve(async (req) => {
     // last-analysis time. PR12 fix: this previously read r.updated_at
     // which was always undefined, so the reducer always returned null
     // and the banner read NULL → permanently stale.
-    const generatedFromCareerRolesAt = careerRoles.reduce<string | null>((max, r) => {
+    const generatedFromCareerRolesAt = careerRoles.reduce<string | null>((max, r: any) => {
       if (!r.created_at) return max
       if (!max || r.created_at > max) return r.created_at
       return max

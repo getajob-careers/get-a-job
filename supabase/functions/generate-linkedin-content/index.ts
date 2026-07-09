@@ -582,7 +582,7 @@ Deno.serve(async (req) => {
       // Phase B: education + honors moved off profiles flat columns to
       // the education table. Honors are now per-row; flatten across all
       // entries for prompt context.
-      honors: ((profile as any).education ?? []).flatMap((e: any) => safeArr(e?.honors)).slice(0, 20).map((h) => trunc(h, 200)),
+      honors: ((profile as any).education ?? []).flatMap((e: any) => safeArr(e?.honors)).slice(0, 20).map((h: any) => trunc(h, 200)),
       education: (() => {
         const primaryEdu = pickPrimaryEducation((profile as any).education || []);
         return {
