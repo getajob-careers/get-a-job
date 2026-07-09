@@ -276,7 +276,7 @@ export default function ProfilePreview({
         <div className="min-w-0">
           <p className="font-display font-bold text-[16px] text-rd-text">Profile optimizer</p>
           <p className="text-[11.5px] text-rd-text-secondary mt-0.5">
-            How your profile will look on LinkedIn — coral marks what your agent improved.
+            How your profile will look on LinkedIn - coral marks what your agent improved.
           </p>
         </div>
         {hasBaseline && (
@@ -550,7 +550,7 @@ export default function ProfilePreview({
                       </p>
                     ) : (
                       <p className="text-[11.5px] text-rd-text-tertiary italic">
-                        (blank by design — paste the award title alone, or add your own context)
+                        (blank by design - paste the award title alone, or add your own context)
                       </p>
                     )}
                     {refineOpenHere && (
@@ -688,7 +688,7 @@ export function buildOptimizedProfileBlob(content, baseline) {
   if (expEntries.length > 0) {
     lines.push("EXPERIENCE");
     for (const e of expEntries) {
-      const heading = e.company ? `${e.title} — ${e.company}` : e.title;
+      const heading = e.company ? `${e.title} - ${e.company}` : e.title;
       lines.push(heading);
       lines.push(e.description);
       lines.push("");
@@ -699,7 +699,7 @@ export function buildOptimizedProfileBlob(content, baseline) {
   if (volEntries.length > 0) {
     lines.push("VOLUNTEERING");
     for (const v of volEntries) {
-      const heading = v.company ? `${v.title} — ${v.company}` : v.title;
+      const heading = v.company ? `${v.title} - ${v.company}` : v.title;
       lines.push(heading);
       lines.push(v.description);
       lines.push("");
@@ -710,7 +710,7 @@ export function buildOptimizedProfileBlob(content, baseline) {
   if (milEntries.length > 0) {
     lines.push("MILITARY SERVICE");
     for (const m of milEntries) {
-      const heading = m.company ? `${m.title} — ${m.company}` : m.title;
+      const heading = m.company ? `${m.title} - ${m.company}` : m.title;
       lines.push(heading);
       lines.push(m.description);
       lines.push("");

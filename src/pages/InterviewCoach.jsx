@@ -15,7 +15,7 @@ const INTERVIEW_COACH_CAPABILITIES = [
   "🎤 Can do mock interview practice with feedback",
 ];
 const INTERVIEW_COACH_HOW_TO_USE =
-  "Tell it the role and company you're interviewing for. Ask for likely questions, or start a mock interview. Be specific — e.g. 'I have a Product Manager interview at Google next week'.";
+  "Tell it the role and company you're interviewing for. Ask for likely questions, or start a mock interview. Be specific - e.g. 'I have a Product Manager interview at Google next week'.";
 
 const GENERAL_PROMPTS = [
   "Help me prep for a generic Product Manager interview",
@@ -75,7 +75,7 @@ export default function InterviewCoach() {
 
   const selectedApp = applications.find((a) => a.id === selectedAppId);
   const title = selectedApp
-    ? `Interview Coach — ${selectedApp.role_title}${selectedApp.company ? ` at ${selectedApp.company}` : ""}`
+    ? `Interview Coach - ${selectedApp.role_title}${selectedApp.company ? ` at ${selectedApp.company}` : ""}`
     : "Interview Coach";
   const description = selectedApp
     ? "Coaching tailored to this role, your skill gaps, and your experience."

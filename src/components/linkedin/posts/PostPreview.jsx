@@ -275,7 +275,7 @@ export default function PostPreview({
       </div>
 
       <p className="text-[11px] text-rd-text-tertiary text-center -mt-2">
-        Generic feed layout for spatial reference — not affiliated with any social platform.
+        Generic feed layout for spatial reference - not affiliated with any social platform.
       </p>
 
       {/* Action row: image upload + Copy + Refine. Per mockup: footer
@@ -389,7 +389,7 @@ export default function PostPreview({
           <p className="text-[11.5px] text-rd-text-secondary leading-snug">{post.format_reason}</p>
           {post.format_recommendation === "carousel" && (
             <div className="mt-2 rounded-[10px] px-3 py-2 bg-rd-golden-tint border border-rd-golden/40 text-[11.5px] text-rd-golden-dark leading-snug">
-              <strong className="font-display font-bold">Better at 20K+ followers.</strong> For accounts under 5K (most early-career profiles), image + text typically outperforms carousels — the algorithm rewards lower-friction formats that drive quick reactions. Consider switching to image + text unless this carousel really fits the content.
+              <strong className="font-display font-bold">Better at 20K+ followers.</strong> For accounts under 5K (most early-career profiles), image + text typically outperforms carousels - the algorithm rewards lower-friction formats that drive quick reactions. Consider switching to image + text unless this carousel really fits the content.
             </div>
           )}
         </MetaCard>
@@ -405,10 +405,10 @@ export default function PostPreview({
             </span>
             <span className="text-[11.5px] text-rd-text-secondary leading-snug">
               {post.saveable_score >= 8
-                ? "Strong saveable structure — readers likely to bookmark."
+                ? "Strong saveable structure - readers likely to bookmark."
                 : post.saveable_score >= 5
-                ? "Decent — could lift with more concrete takeaways or a numbered framework."
-                : "Liked, not saved — primarily narrative. That's fine for some post types (e.g. milestones)."}
+                ? "Decent - could lift with more concrete takeaways or a numbered framework."
+                : "Liked, not saved - primarily narrative. That's fine for some post types (e.g. milestones)."}
             </span>
           </div>
         </MetaCard>

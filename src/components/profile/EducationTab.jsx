@@ -352,7 +352,7 @@ export default function EducationTab({ user }) {
 
         <SkillTagInput
           label="Skills Developed"
-          description="Programs, methods, fields, or tools you developed during this degree — search the library or type custom."
+          description="Programs, methods, fields, or tools you developed during this degree - search the library or type custom."
           tags={form.skills}
           onChange={(v) => setForm({ ...form, skills: v })}
           placeholder="e.g. financial modeling, market research"
@@ -382,7 +382,7 @@ export default function EducationTab({ user }) {
           <div className={`${RD_CARD} text-center py-8`}>
             <GraduationCap className="w-9 h-9 text-rd-coral mx-auto mb-2.5" />
             <p className="text-[12.5px] text-rd-text-tertiary">
-              No education entries yet — add your first one above.
+              No education entries yet - add your first one above.
             </p>
           </div>
         )}

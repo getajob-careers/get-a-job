@@ -380,7 +380,7 @@ export default function StoryBank() {
           <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] mt-2 max-w-md mx-auto">
             Stories are the raw material every other surface uses: CV bullets,
             LinkedIn posts, interview answers. Capture one moment from a recent
-            experience — it gets reused everywhere.
+            experience - it gets reused everywhere.
           </p>
           {experiences.length > 0 ? (
             <button

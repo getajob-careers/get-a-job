@@ -39,7 +39,7 @@ const CATEGORIES = [
   { id: "bug",             label: "Bug",              hint: "Something is broken or doesn't work as expected" },
   { id: "confusing",       label: "Confusing",        hint: "I'm not sure how to do something / unclear UI" },
   { id: "missing_feature", label: "Missing feature",  hint: "I wanted to do something the app doesn't support" },
-  { id: "other",           label: "Other",            hint: "Anything else — praise, ideas, edge cases" },
+  { id: "other",           label: "Other",            hint: "Anything else - praise, ideas, edge cases" },
 ];
 
 const MAX_MESSAGE = 2000;
@@ -84,7 +84,7 @@ export default function FeedbackWidget() {
       return;
     }
     track(EVENTS.FEEDBACK_SUBMITTED, { category, route: location.pathname });
-    toast.success("Thanks — feedback sent!");
+    toast.success("Thanks - feedback sent!");
     setOpen(false);
     reset();
   };
@@ -131,7 +131,7 @@ export default function FeedbackWidget() {
             </DialogTitle>
             <DialogDescription className="text-[12.5px] text-rd-text-secondary">
               {category
-                ? "Be specific — even one sentence helps."
+                ? "Be specific - even one sentence helps."
                 : "Tell us what got in your way. Pick a category to start."}
             </DialogDescription>
           </DialogHeader>

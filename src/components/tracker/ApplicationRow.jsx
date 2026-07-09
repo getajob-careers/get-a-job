@@ -714,7 +714,7 @@ export default function ApplicationRow({
                   <input
                     value={cvVersionUsed}
                     onChange={(e) => setCvVersionUsed(e.target.value)}
-                    placeholder="e.g. Customer Success CV — Monday"
+                    placeholder="e.g. Customer Success CV - Monday"
                     className="w-full px-3 py-2 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13px] placeholder:text-rd-text-tertiary focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] outline-none transition-[border-color,box-shadow] duration-150"
                   />
                 </div>

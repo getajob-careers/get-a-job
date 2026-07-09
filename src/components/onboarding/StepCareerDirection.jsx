@@ -224,7 +224,7 @@ export default function StepCareerDirection({ data, onChange, onNext, onBack }) 
           Where do you want to go?
         </h1>
         <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
-          Your 5-year goal anchors every recommendation we make — track
+          Your 5-year goal anchors every recommendation we make - track
           placement, role suggestions, and job-fit scores all key off this.
           Pick from the library if you can; you can continue without picking
           if you&apos;re still figuring it out.

@@ -340,7 +340,7 @@ export default function CVStudioLive() {
     if (data.fit?.dense) {
       toast("This CV is dense", {
         description:
-          "It all fits on one page — you can trim items if you'd like more breathing room.",
+          "It all fits on one page - you can trim items if you'd like more breathing room.",
         duration: 8000,
       });
     }
@@ -402,7 +402,7 @@ export default function CVStudioLive() {
           {
             id: uid(),
             role: "assistant",
-            content: "Sorry — I couldn't reach the editor. Please try again.",
+            content: "Sorry - I couldn't reach the editor. Please try again.",
           },
         ]);
         return;
@@ -568,12 +568,12 @@ export default function CVStudioLive() {
             });
           } else {
             toast.error(
-              "Your tailored CV was created — refresh to see it in your CV list.",
+              "Your tailored CV was created - refresh to see it in your CV list.",
             );
           }
         } catch {
           toast.error(
-            "Your tailored CV was created — refresh to see it in your CV list.",
+            "Your tailored CV was created - refresh to see it in your CV list.",
           );
         }
       } finally {
@@ -747,7 +747,7 @@ export default function CVStudioLive() {
             No master CV yet
           </p>
           <p>
-            Build your master CV straight from your profile — it&apos;s your
+            Build your master CV straight from your profile - it&apos;s your
             onboarding CV, 1:1, and fully editable here.
           </p>
           <button

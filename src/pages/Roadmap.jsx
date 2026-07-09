@@ -45,7 +45,7 @@ const ROADMAP_MESSAGES = [
   "Identifying your skill gaps…",
   "Classifying roles into tracks…",
   "Ranking roles by readiness & alignment…",
-  "Almost done — finalising your roadmap…",
+  "Almost done - finalising your roadmap…",
 ];
 
 // PR 3C: Overview tab dropped. Default lands on the "How tracks work"
@@ -210,7 +210,7 @@ export default function CareerRoadmap() {
           .eq("id", user.id);
         if (persistErr) {
           console.error("[career-roadmap] profile persist failed after analysis:", persistErr);
-          toast.error("Roles updated but profile didn't fully save — try Refresh again, or contact support.");
+          toast.error("Roles updated but profile didn't fully save - try Refresh again, or contact support.");
         }
       }
 
@@ -306,8 +306,8 @@ export default function CareerRoadmap() {
             messages={ROADMAP_MESSAGES}
             subtitle={
               roles.length > 0
-                ? "Refreshing your roadmap — this can take up to about 80 seconds"
-                : "Generating your roadmap — this can take up to about 80 seconds"
+                ? "Refreshing your roadmap - this can take up to about 80 seconds"
+                : "Generating your roadmap - this can take up to about 80 seconds"
             }
           />
         </div>
@@ -440,7 +440,7 @@ function WhyTab({ onTrackClick, counts }) {
     <div className="mt-6 flex flex-col gap-5">
       <div className="rounded-[14px] bg-rd-bg-soft px-4 py-3">
         <p className="text-[13px] text-rd-text-secondary leading-[1.55]">
-          Every role is placed by two things — how{" "}
+          Every role is placed by two things - how{" "}
           <span className="font-display font-bold text-rd-text">qualified</span> you
           are now, and how well it{" "}
           <span className="font-display font-bold text-rd-text">moves you toward your goal</span>.

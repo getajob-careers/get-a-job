@@ -98,7 +98,7 @@ export default function StepConstraints({ data, onChange, onSubmit, onBack, subm
           What happens next
         </p>
         <p className="text-[13.5px] text-rd-text-secondary leading-relaxed mt-1.5">
-          One last step — 3 quick self-assessment questions — then we&apos;ll run your career analysis and build your roadmap. Takes about 30 seconds.
+          One last step - 3 quick self-assessment questions - then we&apos;ll run your career analysis and build your roadmap. Takes about 30 seconds.
         </p>
       </div>
 

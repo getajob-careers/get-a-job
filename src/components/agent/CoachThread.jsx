@@ -262,7 +262,7 @@ export function SuggestionRow({ message, conv, user, queryClient, profileSkills 
             if (res.error) return res;
             queryClient.invalidateQueries({ queryKey: ["company_targets", user.id] });
             const msg = res.skippedDuplicate > 0
-              ? `Already in your pipeline — skipped ${res.skippedDuplicate}.`
+              ? `Already in your pipeline - skipped ${res.skippedDuplicate}.`
               : "Internship updated";
             return { ok: true, toastSuccess: msg };
           })}

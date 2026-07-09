@@ -234,7 +234,7 @@ export default function JobMatchChecker() {
         <Sparkles className="w-4 h-4 text-[#0A0A0A]" />
         <p className="text-[11px] uppercase tracking-wider text-[#A3A3A3] font-medium">Job Match Checker</p>
       </div>
-      <p className="text-xs text-[#525252] mb-3">See exactly how well you match a job — and what's holding you back.</p>
+      <p className="text-xs text-[#525252] mb-3">See exactly how well you match a job - and what's holding you back.</p>
 
       {/* Mode toggle */}
       <div className="flex gap-1 mb-3 bg-[#F5F5F5] rounded-lg p-1 w-fit">
@@ -322,7 +322,7 @@ export default function JobMatchChecker() {
               <div>
                 <p className="text-xs text-emerald-600 flex items-center gap-1 mb-1"><CheckCircle2 className="w-3.5 h-3.5" /> Added to Application Tracker</p>
                 {(!result.company || result.company.toLowerCase().includes("confidential")) && (
-                  <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1">⚠️ The company may be listed as "Confidential" — open the Tracker to update it with the real company name.</p>
+                  <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded px-2 py-1">⚠️ The company may be listed as "Confidential" - open the Tracker to update it with the real company name.</p>
                 )}
               </div>
             ) : (
@@ -355,7 +355,7 @@ export default function JobMatchChecker() {
                     {result.matched_requirements.map((m, i) => (
                       <div key={i} className="flex gap-2 text-xs">
                         <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 flex-shrink-0 mt-0.5" />
-                        <span><span className="font-medium text-[#0A0A0A]">{m.requirement}</span> — <span className="text-[#525252]">{m.reason}</span></span>
+                        <span><span className="font-medium text-[#0A0A0A]">{m.requirement}</span> - <span className="text-[#525252]">{m.reason}</span></span>
                       </div>
                     ))}
                   </div>
@@ -368,7 +368,7 @@ export default function JobMatchChecker() {
                     {result.missing_requirements.map((m, i) => (
                       <div key={i} className="flex gap-2 text-xs">
                         <XCircle className="w-3.5 h-3.5 text-red-400 flex-shrink-0 mt-0.5" />
-                        <span><span className="font-medium text-[#0A0A0A]">{m.requirement}</span> — <span className="text-[#525252]">{m.gap}</span></span>
+                        <span><span className="font-medium text-[#0A0A0A]">{m.requirement}</span> - <span className="text-[#525252]">{m.gap}</span></span>
                       </div>
                     ))}
                   </div>

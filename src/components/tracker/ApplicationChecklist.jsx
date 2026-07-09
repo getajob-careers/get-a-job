@@ -50,7 +50,7 @@ const STEPS = [
     title: "Dissect the job description",
     description: "",
     descriptionWhenCurrent:
-      "Know the role inside-out — responsibilities, must-have skills, seniority signals.",
+      "Know the role inside-out - responsibilities, must-have skills, seniority signals.",
     cta: {
       label: "Review the job description",
       icon: ArrowRight,
@@ -130,7 +130,7 @@ const PHASE_ORDER = ["know", "build", "apply"];
 // Seed message for step 1's Career Agent CTA. Kept in sync with the
 // step's intent — qualification check scoped to a single application.
 const STEP1_SEED =
-  "Help me check whether I qualify for this role — walk through my track placement, goal alignment, and gaps.";
+  "Help me check whether I qualify for this role - walk through my track placement, goal alignment, and gaps.";
 
 export default function ApplicationChecklist({
   app,

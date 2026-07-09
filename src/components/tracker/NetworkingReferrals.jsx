@@ -83,10 +83,10 @@ export default function NetworkingReferrals({ app, onUpdate }) {
       <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 space-y-1.5">
         <p className="text-xs font-bold text-amber-800">💡 Why a referral changes everything</p>
         <ul className="text-[11px] text-amber-700 space-y-1 leading-relaxed">
-          <li>• <strong>Your CV gets seen by a human</strong> — not filtered out by an ATS before anyone reads it.</li>
-          <li>• <strong>You get context no one else has</strong> — insider knowledge about the team, culture, and what the hiring manager actually wants.</li>
-          <li>• <strong>Your contact is motivated to help you</strong> — many companies offer referral bonuses to employees when a referred candidate gets hired. They win when you win.</li>
-          <li>• <strong>How to ask:</strong> Find someone on LinkedIn at the company. Send a short, specific message — mention the role, why you're a fit, and ask if they'd be open to a 10-min chat. Don't ask for a referral cold — build a connection first.</li>
+          <li>• <strong>Your CV gets seen by a human</strong> - not filtered out by an ATS before anyone reads it.</li>
+          <li>• <strong>You get context no one else has</strong> - insider knowledge about the team, culture, and what the hiring manager actually wants.</li>
+          <li>• <strong>Your contact is motivated to help you</strong> - many companies offer referral bonuses to employees when a referred candidate gets hired. They win when you win.</li>
+          <li>• <strong>How to ask:</strong> Find someone on LinkedIn at the company. Send a short, specific message - mention the role, why you're a fit, and ask if they'd be open to a 10-min chat. Don't ask for a referral cold - build a connection first.</li>
         </ul>
       </div>
 

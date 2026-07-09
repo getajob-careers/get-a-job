@@ -129,6 +129,57 @@ function countRevoiced(before: CvData, after: CvData): number {
   return n;
 }
 
+// Deterministic voice scrub: banned LLM-tell verbs -> plain verbs, and the em
+// dash (U+2014) -> " - " (surrounding spaces collapsed, so "a — b" and "a—b"
+// both become "a - b"). PRESERVES U+2013 (en dash) — the server-stamped
+// date-range separator (reconcile.ts formatExperienceDates). Walks EVERY string
+// field in cv_data recursively, mutating in place, and returns the same object.
+// Idempotent: outputs contain none of the banned tokens. Extracted from gtc's
+// post-LLM strip so refine-cv and edit-cv share the guarantee — their LLMs emit
+// em dashes that otherwise reach the DB, and the Studio "Tailor" path (the main
+// tailoring surface) runs through refine-cv, which had no scrub.
+const BANNED_VERB_REPLACEMENTS: Array<[RegExp, (m: string) => string]> = [
+  [/\b(U|u)tilized\b/g, (m) => (m[0] === "U" ? "Used" : "used")],
+  [/\b(U|u)tilizes\b/g, (m) => (m[0] === "U" ? "Uses" : "uses")],
+  [/\b(U|u)tilize\b/g, (m) => (m[0] === "U" ? "Use" : "use")],
+  [/\b(U|u)tilizing\b/g, (m) => (m[0] === "U" ? "Using" : "using")],
+  [/\b(L|l)everaged\b/g, (m) => (m[0] === "L" ? "Used" : "used")],
+  [/\b(L|l)everages\b/g, (m) => (m[0] === "L" ? "Uses" : "uses")],
+  [/\b(L|l)everage\b/g, (m) => (m[0] === "L" ? "Use" : "use")],
+  [/\b(L|l)everaging\b/g, (m) => (m[0] === "L" ? "Using" : "using")],
+  [/\b(M|m)ade use of\b/g, (m) => (m[0] === "M" ? "Used" : "used")],
+  [/\b(S|s)pearheaded\b/g, (m) => (m[0] === "S" ? "Led" : "led")],
+  [/\b(S|s)pearheading\b/g, (m) => (m[0] === "S" ? "Leading" : "leading")],
+  [/\b(S|s)pearhead\b/g, (m) => (m[0] === "S" ? "Lead" : "lead")],
+  [/\b(O|o)rchestrated\b/g, (m) => (m[0] === "O" ? "Led" : "led")],
+  [/\b(O|o)rchestrating\b/g, (m) => (m[0] === "O" ? "Leading" : "leading")],
+  [/\b(O|o)rchestrate\b/g, (m) => (m[0] === "O" ? "Lead" : "lead")],
+  // em dash (U+2014) -> " - ". DO NOT touch U+2013 (en dash) — server-stamped.
+  [/\s*—\s*/g, () => " - "],
+];
+function deBanish(text: string): string {
+  let out = text;
+  for (const [re, fn] of BANNED_VERB_REPLACEMENTS) out = out.replace(re, fn);
+  return out;
+}
+export function scrubCvVoice<T>(obj: T): T {
+  if (obj == null) return obj;
+  if (typeof obj === "string") return deBanish(obj) as unknown as T;
+  if (Array.isArray(obj)) {
+    for (let i = 0; i < obj.length; i++) obj[i] = scrubCvVoice(obj[i]);
+    return obj;
+  }
+  if (typeof obj === "object") {
+    for (const k of Object.keys(obj as Record<string, unknown>)) {
+      (obj as Record<string, unknown>)[k] = scrubCvVoice(
+        (obj as Record<string, unknown>)[k],
+      );
+    }
+    return obj;
+  }
+  return obj;
+}
+
 // THE chokepoint. Normalize `cvData` to the project invariants and return a new
 // object (input untouched). `master` is the trace/restore source (the master
 // cv_data for gtc/refine; the PRE-EDIT cv_data for edit-cv). `jd` is the job
@@ -177,6 +228,11 @@ export async function enforceCvInvariants(
       hebrew = "stripped";
     }
   }
+
+  // 4. Deterministic voice scrub (banned verbs + em dash). LAST so it also
+  // catches anything the Hebrew translate reintroduced. Mutates `out` in place;
+  // `out` is always a fresh object here (clone -> normalize/translate output).
+  scrubCvVoice(out);
 
   return {
     cv_data: out,

@@ -53,7 +53,7 @@ export default function LinkedinOptimizer() {
             LinkedIn
           </p>
           <h1 className="font-display font-extrabold text-[27px] sm:text-[32px] leading-[1.08] tracking-tight text-rd-text mt-1">
-            Build your presence — profile, posts, outreach.
+            Build your presence - profile, posts, outreach.
           </h1>
 
           {/* Tab bar — underline pattern per Profile mockup

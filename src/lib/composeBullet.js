@@ -36,7 +36,7 @@ export function composeBulletFromStory(story) {
   // Core narrative = action + result. (situation/task intentionally excluded.)
   // Fall back to the headline title only when both are empty so a story with
   // just a title still produces SOMETHING reviewable rather than vanishing.
-  let core = [action, result].filter(Boolean).join(" — ");
+  let core = [action, result].filter(Boolean).join(" - ");
   if (!core) core = clean(story?.title);
   if (!core) return null;
 

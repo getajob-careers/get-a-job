@@ -58,7 +58,7 @@ export const TRACK_CONFIG = {
     description:
       "Roles you're qualified for that match where you want your career to go. Apply to these first.",
     emptyCopy:
-      "No Track 1 roles surfaced yet — once your roadmap regenerates, roles you're qualified for AND that fit your career path will land here.",
+      "No Track 1 roles surfaced yet - once your roadmap regenerates, roles you're qualified for AND that fit your career path will land here.",
   },
   track_2: {
     id:          "track_2",
@@ -69,7 +69,7 @@ export const TRACK_CONFIG = {
     description:
       "Roles you're qualified for, but they'd take your career in a different direction. Good fallbacks if Track 1 isn't hiring.",
     emptyCopy:
-      "No off-path roles found — your matches are well-aligned with your stated career goals. Track 2 lists roles you're qualified for that would be detours from your path.",
+      "No off-path roles found - your matches are well-aligned with your stated career goals. Track 2 lists roles you're qualified for that would be detours from your path.",
   },
   track_3: {
     id:          "track_3",
@@ -80,7 +80,7 @@ export const TRACK_CONFIG = {
     description:
       "Roles that match your direction, but you need more experience or skills first. Use these to plan what to learn next.",
     emptyCopy:
-      "No growth roles surfaced — either every on-path role is already in your reach, or your goals point at roles too far ahead to score meaningfully right now.",
+      "No growth roles surfaced - either every on-path role is already in your reach, or your goals point at roles too far ahead to score meaningfully right now.",
   },
 };
 

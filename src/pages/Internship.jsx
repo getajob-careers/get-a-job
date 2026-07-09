@@ -120,7 +120,7 @@ export default function Internship() {
       const { data, error } = await supabase.functions.invoke("generate-internship-profile", { body: {} });
       if (error) {
         const status = error?.context?.status;
-        if (status === 429) toast.error("Rate limit reached — try again in an hour.");
+        if (status === 429) toast.error("Rate limit reached - try again in an hour.");
         else if (status === 400) toast.error(error?.context?.error || "Complete your profile first.");
         else toast.error("Couldn't generate the pitch strategy. Please try again.");
         return;
@@ -341,7 +341,7 @@ function KanbanOrEmpty({ targets, loading, onCardClick, practicumPath, onSetTab,
       : "No companies in your pipeline yet.";
     const subhead = isSelfSourced
       ? "Run Find companies above to populate it with strong matches, or browse the catalog to add companies yourself."
-      : "Your faculty will assign you a company — add it here once you have it, or browse the catalog to explore options.";
+      : "Your faculty will assign you a company - add it here once you have it, or browse the catalog to explore options.";
     return (
       <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 text-center py-8">
         <p className="text-sm font-display font-bold text-rd-text mb-1">{headline}</p>

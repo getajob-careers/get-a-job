@@ -128,7 +128,7 @@ function RoleSuggestions({ suggestion, currentSkills, onAccept }) {
         </p>
       </div>
       <p className="text-[11px] text-rd-text-secondary mb-2.5 leading-snug">
-        Tap any that apply to your role — they&apos;ll be added to your tagged skills.
+        Tap any that apply to your role - they&apos;ll be added to your tagged skills.
       </p>
       <div className="flex flex-wrap gap-1.5">
         {remainingIds.map((id) => {
@@ -296,7 +296,7 @@ function ExperienceCard({ exp, onChange, onRemove }) {
       )}
       <RdSkillTagInput
         label="Skills &amp; tools"
-        description="Skills you applied + software / platforms you used in this role — feeds CV bullet generation and skill-graph matching."
+        description="Skills you applied + software / platforms you used in this role - feeds CV bullet generation and skill-graph matching."
         tags={skills}
         onChange={(v) => set("skills", v)}
         placeholder="e.g. customer success, project management, Salesforce"
@@ -568,7 +568,7 @@ export default function StepReview({
             <span className="font-display font-semibold text-rd-text">
               {extractedCount} {extractedCount === 1 ? "item" : "items"}
             </span>{" "}
-            pre-filled from your CV — review, edit, or add more below.
+            pre-filled from your CV - review, edit, or add more below.
           </p>
         </div>
       )}
@@ -783,7 +783,7 @@ export default function StepReview({
           subtitle="Internships, jobs, volunteering, military service, leadership roles."
         />
         {expList.length === 0 ? (
-          <EmptyState message="No experience extracted from your CV. Add one if you have any — otherwise continue and add later." />
+          <EmptyState message="No experience extracted from your CV. Add one if you have any - otherwise continue and add later." />
         ) : (
           <div className="space-y-3">
             {expList.map((exp, i) => (
@@ -806,10 +806,10 @@ export default function StepReview({
         <SectionHeader
           icon={FolderGit2}
           title="Projects"
-          subtitle="Side projects, capstones, hackathons — anything you built end-to-end."
+          subtitle="Side projects, capstones, hackathons - anything you built end-to-end."
         />
         {projList.length === 0 ? (
-          <EmptyState message="No projects extracted. Add one if you have any — this section is optional." />
+          <EmptyState message="No projects extracted. Add one if you have any - this section is optional." />
         ) : (
           <div className="space-y-3">
             {projList.map((proj, i) => (
@@ -832,10 +832,10 @@ export default function StepReview({
         <SectionHeader
           icon={BadgeCheck}
           title="Certifications"
-          subtitle="Licences and credentials — surfaced in CV generation when relevant."
+          subtitle="Licences and credentials - surfaced in CV generation when relevant."
         />
         {certList.length === 0 ? (
-          <EmptyState message="No certifications extracted. Add one if you have any — this section is optional." />
+          <EmptyState message="No certifications extracted. Add one if you have any - this section is optional." />
         ) : (
           <div className="space-y-3">
             {certList.map((cert, i) => (
@@ -859,7 +859,7 @@ export default function StepReview({
         <SectionHeader
           icon={Sparkles}
           title="Other skills"
-          subtitle="Anything not tied to a specific experience — broad capabilities, self-taught, side learning."
+          subtitle="Anything not tied to a specific experience - broad capabilities, self-taught, side learning."
         />
         <div className="space-y-3">
           <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5">

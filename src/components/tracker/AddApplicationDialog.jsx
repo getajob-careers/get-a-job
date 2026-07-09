@@ -108,7 +108,7 @@ export default function AddApplicationDialog({ open, onOpenChange, onAdded }) {
             <label className="block text-[12px] font-display font-semibold text-rd-text mb-1.5">
               Job description{" "}
               <span className="text-rd-text-tertiary font-normal">
-                (optional — AI will use this to set the track)
+                (optional - AI will use this to set the track)
               </span>
             </label>
             <textarea

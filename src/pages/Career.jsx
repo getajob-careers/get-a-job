@@ -524,7 +524,7 @@ export default function Career() {
           </h1>
           <p className="text-[12.5px] text-rd-text-secondary mt-1">
             The roles you match, a live job feed tuned to them, and your
-            application pipeline — one place.
+            application pipeline - one place.
           </p>
         </div>
         <button
@@ -537,7 +537,7 @@ export default function Career() {
 
       {whyOpen && (
         <div className="bg-rd-bg-soft rounded-[14px] mt-3 px-4 py-3 text-[12px] leading-[1.55] text-rd-text-tertiary">
-          Every role is placed by two things — how{" "}
+          Every role is placed by two things - how{" "}
           <b className="text-rd-text">qualified</b> you are now, and whether it
           moves you toward <b className="text-rd-text">{goalName}</b>. Track 1
           is the sweet spot; Track 2 is a doable detour; Track 3 is what you
@@ -623,7 +623,7 @@ export default function Career() {
                     <strong className="text-rd-text font-display font-bold">
                       📋 Steps
                     </strong>{" "}
-                    tab. Work through each step before submitting — candidates
+                    tab. Work through each step before submitting - candidates
                     who skip steps are the ones who get ignored.
                   </p>
                 </div>
@@ -693,7 +693,7 @@ export default function Career() {
               <RdCard className="px-6 py-10 text-center">
                 <Briefcase className="w-10 h-10 text-rd-coral mx-auto mb-3" />
                 <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] max-w-md mx-auto">
-                  No applications yet. Track one from the live-jobs list below —
+                  No applications yet. Track one from the live-jobs list below - 
                   the Track button on any role card prepends it here.
                 </p>
               </RdCard>
@@ -762,7 +762,7 @@ export default function Career() {
             </span>
           </div>
           <p className="text-[10.5px] leading-[1.5] text-rd-text-tertiary mb-2.5">
-            Why you&apos;re matched: every role is scored on two axes — how{" "}
+            Why you&apos;re matched: every role is scored on two axes - how{" "}
             <b className="text-rd-text">qualified</b> you are now, and how well
             it <b className="text-rd-text">moves you toward {goalName}</b>.
           </p>

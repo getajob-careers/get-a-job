@@ -19,7 +19,7 @@ const RD_INPUT_CLS = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text
 
 const POST_TEXT_PLACEHOLDER = `Paste the LinkedIn post here. The AI uses the post text + your real experience to generate 3 substantive comment options you can pick from and edit.
 
-Tip: also paste the author's name and headline below — references like "as Sarah pointed out..." land better than generic "great post!" framing.`;
+Tip: also paste the author's name and headline below - references like "as Sarah pointed out..." land better than generic "great post!" framing.`;
 
 export default function CommentCoach() {
   const [postText, setPostText] = useState("");
@@ -33,7 +33,7 @@ export default function CommentCoach() {
     if (generating) return;
     setError(null);
     if (postText.trim().length < 30) {
-      setError("Paste a longer post — the AI needs at least 30 characters to ground the comments in something specific.");
+      setError("Paste a longer post - the AI needs at least 30 characters to ground the comments in something specific.");
       return;
     }
     if (!authorName.trim()) {
@@ -83,7 +83,7 @@ export default function CommentCoach() {
         <h2 className="font-display font-bold text-[15px] text-rd-text">Comment Coach</h2>
       </div>
       <p className="text-[12.5px] text-rd-text-secondary mb-4 leading-snug">
-        Paste a post you want to comment on. The AI generates 3 substantive comment options grounded in your real experience — no &quot;great post!&quot; filler.
+        Paste a post you want to comment on. The AI generates 3 substantive comment options grounded in your real experience - no &quot;great post!&quot; filler.
       </p>
 
       <div className="space-y-3">
@@ -179,7 +179,7 @@ function CommentOptions({ result }) {
             <p className="font-display font-bold text-[13px] mb-1">No genuine relevance to comment on</p>
             <p className="text-[12px] leading-snug">{result.no_fit_reason}</p>
             <p className="text-[11px] italic mt-2 leading-snug">
-              Better to skip a post than fabricate a comment. Look for posts where your real experience genuinely connects — those are the comments that build your reputation.
+              Better to skip a post than fabricate a comment. Look for posts where your real experience genuinely connects - those are the comments that build your reputation.
             </p>
           </div>
         </div>

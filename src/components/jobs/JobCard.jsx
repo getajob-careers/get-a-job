@@ -501,7 +501,7 @@ export default function JobCard({
 
       {lowFitWarning && (
         <p className="text-[10.5px] text-rd-text-tertiary leading-[1.45] italic">
-          Low fit — shown for completeness, not recommended.
+          Low fit - shown for completeness, not recommended.
         </p>
       )}
 

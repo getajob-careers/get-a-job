@@ -482,6 +482,43 @@ describe("applyRetentionFloor — post-anti-fab retention (P1.1)", () => {
     expect(cvData.professional_experiences[0].deprioritized_bullets).toEqual([stored7[5], stored7[6]]);
   });
 
+  // Nahal (PDF review 2026-07-09): 3 stored, only 2 emitted, nothing flagged.
+  // Two stored bullets are near-duplicates; ONE emitted bullet reworded them
+  // both, so the old any-emitted-covers-this-stored check counted it as covering
+  // BOTH and dropped the third representation. The 1:1 matcher (one emitted
+  // bullet covers at most one stored) restores the uncovered one.
+  it("1:1 matching: one emitted bullet cannot cover two near-duplicate stored bullets (Nahal)", () => {
+    const stored = [
+      "Led weekly infantry training exercises for a squad of new recruits",
+      "Led infantry training drills each week for squads of new recruits", // near-dup of #0
+      "Managed logistics and equipment inventory for a 30-person platoon",
+    ];
+    // Model emitted one reword that covers BOTH #0 and #1, plus #2's reword.
+    const cvData: any = {
+      military_experiences: [
+        {
+          title: "Commander",
+          company: "IDF",
+          bullets: [
+            "Led weekly infantry training exercises and drills for squads of new recruits",
+            "Managed logistics and equipment inventory for a 30 person platoon",
+          ],
+        },
+      ],
+    };
+    const res = applyRetentionFloor(
+      cvData,
+      new Map([[expKey("Commander", "IDF"), stored]]),
+      expKey,
+    );
+    const exp = cvData.military_experiences[0];
+    // The near-duplicate that shares its emitted bullet is restored — every
+    // stored bullet has its OWN representation (3), not 2.
+    expect(res.restored).toBe(1);
+    expect(exp.bullets).toHaveLength(3);
+    expect(exp.deprioritized_bullets).toHaveLength(1);
+  });
+
   it("no-op + no flag when every stored bullet survived as a reword", () => {
     const cvData: any = {
       professional_experiences: [{ title: "X", company: "Acme", bullets: GETAJOB.map((b) => b + " tailored") }],

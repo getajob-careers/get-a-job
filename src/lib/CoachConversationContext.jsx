@@ -247,7 +247,7 @@ export function CoachConversationProvider({ children }) {
       const errorMsg = {
         id: `error-${nowMs()}`,
         role: "assistant",
-        content: "Sorry — I couldn't reach your agent. Tap retry to try again.",
+        content: "Sorry - I couldn't reach your agent. Tap retry to try again.",
         isError: true,
         userMessageText: text,
       };
@@ -316,7 +316,7 @@ export function CoachConversationProvider({ children }) {
     if (res.error) {
       cvFiredRef.current.delete(messageId); // allow a real retry
       setCvGenStates((p) => ({ ...p, [messageId]: { status: "error", error: res.error } }));
-      toast.error("Couldn't generate the CV this time — tap Try again.");
+      toast.error("Couldn't generate the CV this time - tap Try again.");
       return { error: res.error };
     }
     if (res.linkedNewApp) {
@@ -332,7 +332,7 @@ export function CoachConversationProvider({ children }) {
     setCvGenStates((p) => ({ ...p, [messageId]: { status: "done" } }));
     toast.success(
       res.unknownCompany
-        ? "CV generated and added to your tracker — I didn't catch the company name, so tell me anytime and I'll fill it in."
+        ? "CV generated and added to your tracker - I didn't catch the company name, so tell me anytime and I'll fill it in."
         : res.result?.application_id
           ? "CV linked to your application tracker!"
           : "CV generated",

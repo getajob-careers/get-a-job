@@ -83,7 +83,7 @@ export default function PasswordCard() {
     setBusy(false);
 
     if (updateErr) {
-      setError(updateErr.message || "Couldn't update your password. The code may have expired — try again.");
+      setError(updateErr.message || "Couldn't update your password. The code may have expired - try again.");
       return;
     }
 

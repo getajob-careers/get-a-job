@@ -2,14 +2,14 @@ import { describe, it, expect } from "vitest";
 import { composeBulletFromStory, mergeBulletSkills } from "@/lib/composeBullet";
 
 describe("composeBulletFromStory", () => {
-  it("joins action + result with an em dash", () => {
+  it("joins action + result with a hyphen separator (no em dash in CV content)", () => {
     expect(
       composeBulletFromStory({
         action: "Rebuilt the onboarding flow",
         result: "cut time-to-first-value from 9 days to 4",
       }),
     ).toBe(
-      "Rebuilt the onboarding flow — cut time-to-first-value from 9 days to 4",
+      "Rebuilt the onboarding flow - cut time-to-first-value from 9 days to 4",
     );
   });
 
@@ -20,7 +20,7 @@ describe("composeBulletFromStory", () => {
       metrics: ["88% adoption", "12 user interviews"],
     });
     // both metrics already present → no trailing clause appended
-    expect(out).toBe("Ran 12 user interviews — drove 88% adoption in Q1");
+    expect(out).toBe("Ran 12 user interviews - drove 88% adoption in Q1");
   });
 
   it("appends a metric NOT present in the prose, verbatim", () => {
@@ -30,7 +30,7 @@ describe("composeBulletFromStory", () => {
       metrics: ["shipped 2 weeks early"],
     });
     expect(out).toBe(
-      "Shipped the billing migration — with zero downtime. shipped 2 weeks early",
+      "Shipped the billing migration - with zero downtime. shipped 2 weeks early",
     );
   });
 

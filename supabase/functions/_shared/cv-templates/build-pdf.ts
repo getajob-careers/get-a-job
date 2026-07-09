@@ -1160,7 +1160,9 @@ function renderHonors(ctx: Ctx, cvData: CvData) {
       if (typeof h === "string") return h;
       const name = trim(h.name);
       const desc = trim(h.description);
-      return name && desc ? `${name} \u2014 ${desc}` : name;
+      // " - " not an em dash (renderer-injected separator; the em dash reads as
+      // AI-generated and the cv_data scrub can't reach a render-time string).
+      return name && desc ? `${name} - ${desc}` : name;
     })
     .filter(Boolean);
   if (lines.length === 0) return;

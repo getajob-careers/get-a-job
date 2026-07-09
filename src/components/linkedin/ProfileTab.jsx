@@ -305,7 +305,7 @@ export default function ProfileTab() {
           <Sparkles className="w-3.5 h-3.5 text-rd-teal-dark flex-shrink-0" />
           <p>
             <strong className="font-display font-semibold text-rd-text">Compare-and-improve mode</strong>{" "}
-            — generated using your imported LinkedIn baseline as reference.
+ - generated using your imported LinkedIn baseline as reference.
           </p>
         </div>
       )}
@@ -346,7 +346,7 @@ export default function ProfileTab() {
               <strong className="font-display font-semibold text-rd-text">Tip:</strong>{" "}
               Upload your LinkedIn archive above first to unlock{" "}
               <strong className="font-display font-semibold text-rd-text">compare-and-improve mode</strong>{" "}
-              — the AI rewrites your actual current profile rather than writing from scratch.
+ - the AI rewrites your actual current profile rather than writing from scratch.
             </p>
           )}
           <p className="text-[11px] text-rd-text-tertiary mt-3 italic">
@@ -358,7 +358,7 @@ export default function ProfileTab() {
       {generating && (
         <div className="rounded-[18px] border border-rd-border bg-rd-bg-card p-7 sm:p-8 shadow-rd text-center">
           <Loader2 className="w-6 h-6 text-rd-text-secondary mx-auto mb-3 animate-spin" />
-          <p className="text-[13.5px] text-rd-text">Generating 6 sections — this takes 20-30 seconds.</p>
+          <p className="text-[13.5px] text-rd-text">Generating 6 sections - this takes 20-30 seconds.</p>
           <p className="text-[11px] text-rd-text-tertiary mt-2">
             Reading your profile, experiences, and stories…
           </p>

@@ -178,7 +178,7 @@ function OffPathCell() {
 // are richer prose suited to the description list. The quadrant cell only
 // has space for a one-liner that anchors the axes-meaning.
 const QUADRANT_BODY = {
-  track_1: "On your path and qualified now. The sweet spot — apply to these.",
-  track_2: "Qualified now, but off your path. A doable detour — won't take you there.",
-  track_3: "On your path, not yet qualified. Your goal roles — grow into them.",
+  track_1: "On your path and qualified now. The sweet spot - apply to these.",
+  track_2: "Qualified now, but off your path. A doable detour - won't take you there.",
+  track_3: "On your path, not yet qualified. Your goal roles - grow into them.",
 };

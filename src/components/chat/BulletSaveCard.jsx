@@ -98,7 +98,7 @@ export default function BulletSaveCard({
     const res = await onExtract(text, targetType, targetId);
     if (!res || !Array.isArray(res.bullets) || res.bullets.length === 0) {
       setExtractError(
-        "Couldn't draft a bullet from that — add a concrete detail and retry.",
+        "Couldn't draft a bullet from that - add a concrete detail and retry.",
       );
       setPhase(PHASE.REVIEW);
       return;
@@ -147,7 +147,7 @@ export default function BulletSaveCard({
           <CheckCircle2 className="w-4 h-4 text-rd-teal-dark" />
           <p className="text-xs font-display font-bold text-rd-teal-dark">
             {undone
-              ? "Undone — bullets removed"
+              ? "Undone - bullets removed"
               : `Added ${savedCount} bullet${savedCount === 1 ? "" : "s"} to ${labelFor(targetType, targetId) || "your entry"}`}
           </p>
         </div>

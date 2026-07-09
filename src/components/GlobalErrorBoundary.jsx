@@ -65,7 +65,7 @@ class GlobalErrorBoundary extends React.Component {
             Something went wrong
           </h1>
           <p style={{ color: '#94a3b8', maxWidth: 480, lineHeight: 1.6, marginBottom: '2rem' }}>
-            An unexpected error occurred. Don't worry — your data is safe. Try refreshing the page or
+            An unexpected error occurred. Don't worry - your data is safe. Try refreshing the page or
             going back to the home screen.
           </p>
 

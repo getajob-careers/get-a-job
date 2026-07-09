@@ -217,7 +217,7 @@ export default function CVManagement({ app, onUpdate }) {
               Review before sending ({lastResult.unsourced_bullets.length} {lastResult.unsourced_bullets.length === 1 ? "bullet" : "bullets"})
             </p>
             <p className="text-amber-900 mt-0.5 leading-relaxed">
-              Some bullets reference numbers or tools that we couldn&apos;t trace back to your profile data. Open the CV and double-check each one is accurate before sending — the AI sometimes elaborates.
+              Some bullets reference numbers or tools that we couldn&apos;t trace back to your profile data. Open the CV and double-check each one is accurate before sending - the AI sometimes elaborates.
             </p>
           </div>
         </div>
@@ -229,7 +229,7 @@ export default function CVManagement({ app, onUpdate }) {
           <div className="text-xs">
             <p className="font-semibold text-amber-900">Your profile is light on content</p>
             <p className="text-amber-900 mt-0.5 leading-relaxed">
-              Add more detail in your Experience section before generating — without responsibilities text, the AI has to elaborate plausibly, and bullets may not reflect your actual work.
+              Add more detail in your Experience section before generating - without responsibilities text, the AI has to elaborate plausibly, and bullets may not reflect your actual work.
             </p>
           </div>
         </div>

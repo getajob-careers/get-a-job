@@ -111,7 +111,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
           e.code = "missing_profile";
           throw e;
         }
-        if (status === 429) throw new Error("Rate limit reached — try again in a few minutes.");
+        if (status === 429) throw new Error("Rate limit reached - try again in a few minutes.");
         throw new Error("Couldn't generate the pitch. Please try again.");
       }
       return data?.pitch ?? null;
@@ -314,7 +314,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
                 <div className="bg-rd-bg-soft border border-rd-border rounded-[12px] p-4">
                   <p className="text-sm font-display font-semibold text-rd-text mb-1">Generate your pitch profile first</p>
                   <p className="text-xs text-rd-text-secondary leading-relaxed mb-3">
-                    The pitch is built from your internship profile — once it exists, you'll see your role, angle, and gaps for every matched company.
+                    The pitch is built from your internship profile - once it exists, you'll see your role, angle, and gaps for every matched company.
                   </p>
                   <Link
                     to={`${createPageUrl("Internship")}?tab=pipeline`}
@@ -369,7 +369,7 @@ export default function CompanyTargetDrawer({ target, open, onClose }) {
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               onBlur={handleSaveNotes}
-              placeholder="Anything you want to remember about this company — research, contacts, reminders…"
+              placeholder="Anything you want to remember about this company - research, contacts, reminders…"
               rows={4}
               className="w-full px-3 py-2 text-sm bg-rd-bg-card border border-rd-border rounded-[10px] focus:outline-none focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] resize-none text-rd-text"
             />

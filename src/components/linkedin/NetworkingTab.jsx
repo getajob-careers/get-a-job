@@ -90,7 +90,7 @@ export default function NetworkingTab() {
           <p className="text-[12px] text-rd-text-secondary leading-snug">
             New to LinkedIn networking?{" "}
             <span className="font-display font-semibold text-rd-text">Read the strategy guide</span>{" "}
-            — comment + reply windows, connection-request strategy, cold outreach reply rates.
+ - comment + reply windows, connection-request strategy, cold outreach reply rates.
           </p>
           <ArrowRight className="w-4 h-4 text-rd-text-secondary flex-shrink-0" />
         </div>

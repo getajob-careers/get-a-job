@@ -69,7 +69,7 @@ export default function CompanyDetailDrawer({ company, open, onClose }) {
           const message = error?.context?.error || "Pitch profile missing.";
           throw new Error(message);
         }
-        if (status === 429) throw new Error("Rate limit reached — try again in a few minutes.");
+        if (status === 429) throw new Error("Rate limit reached - try again in a few minutes.");
         throw new Error("Couldn't generate the pitch. Please try again.");
       }
       return data?.pitch ?? null;

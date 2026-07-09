@@ -51,10 +51,10 @@ export default function Terms() {
 
         <Section id="service" title="1. The Service">
           <p>
-            Get A Job is an AI-powered career operating system designed primarily for early-career job seekers entering the Israeli tech market. The Service helps you prepare for, apply to, and follow through on job opportunities — including AI-generated career analysis, tailored CVs, LinkedIn content, interview preparation, networking outreach, and application tracking.
+            Get A Job is an AI-powered career operating system designed primarily for early-career job seekers entering the Israeli tech market. The Service helps you prepare for, apply to, and follow through on job opportunities - including AI-generated career analysis, tailored CVs, LinkedIn content, interview preparation, networking outreach, and application tracking.
           </p>
           <p>
-            <strong className="font-display text-rd-text">The Service is a tool, not a guarantee.</strong> Using Get A Job does not guarantee employment, job interviews, recruiter responses, salary outcomes, or any other career result. Job-market outcomes depend on many factors outside our control — the quality of your inputs, the labour market, employer decisions, and your own actions.
+            <strong className="font-display text-rd-text">The Service is a tool, not a guarantee.</strong> Using Get A Job does not guarantee employment, job interviews, recruiter responses, salary outcomes, or any other career result. Job-market outcomes depend on many factors outside our control - the quality of your inputs, the labour market, employer decisions, and your own actions.
           </p>
         </Section>
 
@@ -110,10 +110,10 @@ export default function Terms() {
 
         <Section id="ip" title="6. Intellectual property">
           <p>
-            <strong className="font-display text-rd-text">Our property.</strong> The Service — including the software, the look and feel, the underlying models and prompts, the role and skill libraries, and all other materials we provide — is owned by Get A Job or our licensors and is protected by intellectual-property laws. Except for the limited license we grant you to use the Service in accordance with these Terms, no rights are transferred to you.
+            <strong className="font-display text-rd-text">Our property.</strong> The Service - including the software, the look and feel, the underlying models and prompts, the role and skill libraries, and all other materials we provide - is owned by Get A Job or our licensors and is protected by intellectual-property laws. Except for the limited license we grant you to use the Service in accordance with these Terms, no rights are transferred to you.
           </p>
           <p>
-            <strong className="font-display text-rd-text">Your content.</strong> You retain ownership of the content you submit to the Service — including your profile data, uploaded CVs, and any text you write. You grant Get A Job a worldwide, non-exclusive, royalty-free license to host, store, process, transmit, and display your content for the limited purpose of operating the Service and providing the features you have requested. This license includes the right to transmit your content to the subprocessors listed in our{" "}
+            <strong className="font-display text-rd-text">Your content.</strong> You retain ownership of the content you submit to the Service - including your profile data, uploaded CVs, and any text you write. You grant Get A Job a worldwide, non-exclusive, royalty-free license to host, store, process, transmit, and display your content for the limited purpose of operating the Service and providing the features you have requested. This license includes the right to transmit your content to the subprocessors listed in our{" "}
             <Link to="/privacy" className="text-rd-coral hover:text-rd-coral-dark font-medium">Privacy Policy</Link>
             {" "}(for example, sending your profile and prompt to OpenAI to generate a CV). The license ends when you delete the relevant content or your account, except as required to comply with law or as described in the Privacy Policy.
           </p>
@@ -142,7 +142,7 @@ export default function Terms() {
             TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW:
           </p>
           <p>
-            The Service is provided &ldquo;<strong>as is</strong>&rdquo; and &ldquo;<strong>as available</strong>,&rdquo; without warranties of any kind, whether express, implied, or statutory — including warranties of merchantability, fitness for a particular purpose, non-infringement, and accuracy. We do not warrant that the Service will be uninterrupted, error-free, secure, or that defects will be corrected; that the AI outputs will be accurate, complete, or suitable for any particular purpose; or that using the Service will result in any specific job-search outcome.
+            The Service is provided &ldquo;<strong>as is</strong>&rdquo; and &ldquo;<strong>as available</strong>,&rdquo; without warranties of any kind, whether express, implied, or statutory - including warranties of merchantability, fitness for a particular purpose, non-infringement, and accuracy. We do not warrant that the Service will be uninterrupted, error-free, secure, or that defects will be corrected; that the AI outputs will be accurate, complete, or suitable for any particular purpose; or that using the Service will result in any specific job-search outcome.
           </p>
         </Section>
 
@@ -151,7 +151,7 @@ export default function Terms() {
             TO THE MAXIMUM EXTENT PERMITTED BY APPLICABLE LAW:
           </p>
           <p>
-            In no event will Get A Job, its founders, employees, or service providers be liable to you for any indirect, incidental, special, consequential, exemplary, or punitive damages — including loss of profits, revenue, data, goodwill, or job opportunities — arising out of or relating to your use of the Service, even if we have been advised of the possibility of such damages.
+            In no event will Get A Job, its founders, employees, or service providers be liable to you for any indirect, incidental, special, consequential, exemplary, or punitive damages - including loss of profits, revenue, data, goodwill, or job opportunities - arising out of or relating to your use of the Service, even if we have been advised of the possibility of such damages.
           </p>
           <p>
             Our total cumulative liability to you for all claims arising out of or relating to the Service in any twelve-month period will not exceed the greater of (a) the total amount you paid us in the twelve months preceding the event giving rise to the claim, or (b) one hundred US dollars (US$100).
@@ -166,7 +166,7 @@ export default function Terms() {
             You may stop using the Service at any time and delete your account from <strong className="font-display text-rd-text">Settings → Danger zone</strong>. We may suspend or terminate your access to the Service if you violate these Terms, if we are required to do so by law, if continued operation would create an unreasonable risk to us or other users, or if we discontinue the Service. Where reasonably possible, we will give you notice.
           </p>
           <p>
-            On termination, your right to use the Service ends, and the provisions of these Terms that by their nature should survive termination — including IP ownership, disclaimers, limitations of liability, and governing law — will survive.
+            On termination, your right to use the Service ends, and the provisions of these Terms that by their nature should survive termination - including IP ownership, disclaimers, limitations of liability, and governing law - will survive.
           </p>
         </Section>
 
