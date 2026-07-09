@@ -355,7 +355,7 @@ function resolveGoalRoleId(
 
     const id = r.id || r.role_id;
     const stdTitle = r.standardized_title ? String(r.standardized_title) : null;
-    const altTitles = (r.alternate_titles || []).map(String).filter(a => a.length >= 5);
+    const altTitles = (r.alternate_titles || []).map(String).filter((a: string) => a.length >= 5);
 
     const scoreTitle = (title: string): number => {
       const titleTokens = tokenize(title).filter(t => !STOPWORDS.has(t));

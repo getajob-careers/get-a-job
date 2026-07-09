@@ -402,10 +402,10 @@ Return ONLY valid JSON. Generate 5-8 tasks unless overwhelm signals are present,
           max_tokens: maxTokens,
           response_format: { type: 'json_object' },
         },
-        openaiKey,
+        openaiKey!,
         {
           traceName: 'generate-tasks',
-          userId: user.id,
+          userId: user!.id,
           metadata: {
             has_context: !!context,
             max_tokens: maxTokens,
@@ -473,7 +473,7 @@ Return ONLY valid JSON. Generate 5-8 tasks unless overwhelm signals are present,
     m.tokensIn = completion.usage?.prompt_tokens ?? null
     m.tokensOut = completion.usage?.completion_tokens ?? null
 
-    let result: Record<string, unknown>;
+    let result: any;
     try {
       result = JSON.parse(content);
     } catch (parseErr) {
@@ -565,7 +565,7 @@ Return ONLY valid JSON. Generate 5-8 tasks unless overwhelm signals are present,
       await serviceClient.rpc('log_error', {
         p_user_id: null,
         p_function_name: 'generate-tasks',
-        p_error_message: error.message,
+        p_error_message: (error as Error).message,
         p_error_details: null,
       })
     } catch { /* best-effort logging */ }

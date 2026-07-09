@@ -93,7 +93,11 @@ Deno.serve(async (req) => {
     let userError: unknown = null
     try {
       const res = await supabase.auth.getUser()
-      user = (res.data?.user ?? null) as typeof user
+      user = (res.data?.user ?? null) as {
+        id: string
+        email?: string
+        user_metadata?: Record<string, unknown>
+      } | null
       userError = res.error
     } catch (e) {
       userError = e

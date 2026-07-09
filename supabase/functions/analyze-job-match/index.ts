@@ -240,10 +240,10 @@ Return ONLY valid JSON.`
           max_tokens: maxTokens,
           response_format: { type: 'json_object' },
         },
-        openaiKey,
+        openaiKey!,
         {
           traceName: 'analyze-job-match',
-          userId: user.id,
+          userId: user!.id,
           metadata: {
             mode: mode || 'paste',
             has_url: !!job_url,

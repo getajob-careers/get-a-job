@@ -36,13 +36,11 @@ jobs:
       # bundle means the function will BOOT — it catches duplicate/invalid
       # declarations, bad imports, and syntax errors (the #283 class).
       #
-      # Deliberately NOT `deno check`: the functions tree currently has ~26
-      # pre-existing TYPE errors (unknowns, nullability, two duplicate-KEY
-      # data bugs) that are runtime-inert (the edge runtime strips types via
-      # SWC) and include one in the canonical 00_role_library.ts. Blocking on
-      # those would red-fail main today and require editing a source-of-truth
-      # library. A blocking `deno check` can be added later, once that type
-      # backlog is cleaned up, without weakening this boot gate.
+      # Paired with the blocking `deno check` step below. The type backlog it
+      # was waiting on was cleared (the duplicate-key bug in #545, the 21
+      # remaining type errors in the deno-check-cleanup PR). Bundle = "will it
+      # boot" (SWC); check = "is it type-correct" (tsc, also catches the #283
+      # duplicate-const as TS2451). Both run for defense in depth.
       - name: Bundle-check every edge function
         run: |
           set -uo pipefail
@@ -66,3 +64,14 @@ jobs:
             exit 1
           fi
           echo "All edge functions bundle cleanly — no boot errors."
+
+      # Full type-check (tsc). The functions tree is now at zero deno-check
+      # errors and this keeps it there. --node-modules-dir=none for the same
+      # npm: resolution reason as the bundle step above.
+      - name: Type-check every edge function
+        run: |
+          if ! deno check --node-modules-dir=none supabase/functions/*/index.ts; then
+            echo "::error::Edge functions have type errors — run 'deno check supabase/functions/*/index.ts' and fix before merge."
+            exit 1
+          fi
+          echo "All edge functions type-check cleanly."
