@@ -47,8 +47,13 @@ jobs:
         run: |
           set -uo pipefail
           fail=0
+          # --node-modules-dir=none: resolve npm: specifiers (e.g.
+          # npm:@supabase/supabase-js) from Deno's own cache. The repo's
+          # root package.json otherwise puts Deno in node_modules mode and
+          # it fails without an npm install — this keeps the job dependency-
+          # free (no npm ci), matching how the edge runtime resolves deps.
           for f in supabase/functions/*/index.ts; do
-            if ! deno bundle --no-check "$f" -o /dev/null 2> /tmp/bundle-err; then
+            if ! deno bundle --no-check --node-modules-dir=none "$f" -o /dev/null 2> /tmp/bundle-err; then
               echo "::error file=$f::Edge function fails to bundle — it will 503 on deploy (module-load / boot error)."
               echo "----- $f -----"
               cat /tmp/bundle-err
