@@ -33,6 +33,7 @@ import {
 import { promoteBulletsToProfile } from "@/lib/promoteBulletsToProfile";
 import { triggerBlobDownload, cvFilename } from "@/lib/downloadFile";
 import { trackCvGenerated } from "@/lib/analytics";
+import CvGenerationProgress from "@/components/cv-studio/CvGenerationProgress";
 import { useEducationQuery } from "@/lib/queries/useEducation";
 import { fromCvData, toCvData, buildMasterCvData } from "@/lib/cvDataAdapter";
 
@@ -720,6 +721,17 @@ export default function CVStudioLive() {
       </Centered>
     );
   if (!cvOptions.length) {
+    // Building the first master is a ~40s blank wait — the worst "dead spinner"
+    // surface. Show the honest CV-shaped skeleton + phase labels instead (S1).
+    if (building) {
+      return (
+        <Centered>
+          <div className="max-w-sm w-full">
+            <CvGenerationProgress hasMaster={false} />
+          </div>
+        </Centered>
+      );
+    }
     return (
       <Centered>
         <div className="max-w-sm space-y-3">
@@ -736,13 +748,7 @@ export default function CVStudioLive() {
             disabled={building || !profile}
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-rd-coral text-white text-[13px] font-display font-semibold hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
-            {building ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" /> Building…
-              </>
-            ) : (
-              "Build my master CV"
-            )}
+            {"Build my master CV"}
           </button>
         </div>
       </Centered>

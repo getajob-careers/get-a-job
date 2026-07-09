@@ -14,6 +14,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { useEducationQuery } from "@/lib/queries/useEducation";
+import CvGenerationProgress from "@/components/cv-studio/CvGenerationProgress";
 import {
   applyAllTaskSuggestions,
   applyRoadmapChanges,
@@ -269,19 +270,28 @@ export function SuggestionRow({ message, conv, user, queryClient, profileSkills 
       )}
 
       {message.suggestedCVGeneration?.target_role && (
-        <SuggestionRowShell
-          kind="CV generation proposed"
-          KindIcon={FileText}
-          title={`Tailored CV for ${message.suggestedCVGeneration.target_role}`}
-          action={message.suggestedCVGeneration.result?.cv_url ? null : cvState?.error ? "Try again" : "Generate"}
-          applied={!!message.suggestedCVGeneration.result?.cv_url}
-          downloadUrl={message.suggestedCVGeneration.result?.cv_url || undefined}
-          downloadName={cvFilename(user?.user_metadata?.full_name, message.suggestedCVGeneration.target_role)}
-          studioAppId={message.suggestedCVGeneration.result?.cv_url ? message.suggestedCVGeneration.result?.application_id : undefined}
-          busy={cvState?.status === "generating"}
-          error={cvState?.error}
-          onApply={() => conv.generateCvForMessage(message.id)}
-        />
+        <>
+          <SuggestionRowShell
+            kind="CV generation proposed"
+            KindIcon={FileText}
+            title={`Tailored CV for ${message.suggestedCVGeneration.target_role}`}
+            action={message.suggestedCVGeneration.result?.cv_url ? null : cvState?.error ? "Try again" : "Generate"}
+            applied={!!message.suggestedCVGeneration.result?.cv_url}
+            downloadUrl={message.suggestedCVGeneration.result?.cv_url || undefined}
+            downloadName={cvFilename(user?.user_metadata?.full_name, message.suggestedCVGeneration.target_role)}
+            studioAppId={message.suggestedCVGeneration.result?.cv_url ? message.suggestedCVGeneration.result?.application_id : undefined}
+            busy={cvState?.status === "generating"}
+            error={cvState?.error}
+            onApply={() => conv.generateCvForMessage(message.id)}
+          />
+          {/* S1: honest CV-shaped skeleton + phase labels during the ~30-40s
+              generation, instead of only the button spinner. */}
+          {cvState?.status === "generating" && (
+            <div className="mt-2">
+              <CvGenerationProgress compact />
+            </div>
+          )}
+        </>
       )}
     </>
   );
