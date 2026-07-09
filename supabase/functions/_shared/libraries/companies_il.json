@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1164,
+  "total_companies": 1158,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -1164,18 +1164,6 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/atbayjobs/jobs?content=true",
       "verified": true,
       "notes": "Discovered via site:job-boards.greenhouse.io \"Tel Aviv\" account executive search; board page confirmed 1 IL job (Help Desk Specialist Part Time — Tel Aviv-Yafo, Gush Dan)."
-    },
-    {
-      "name": "Atera",
-      "type": "israeli_founded",
-      "industry": "B2B SaaS",
-      "domain": "atera.com",
-      "careers_url": "https://www.atera.com/careers/",
-      "ats": "smartrecruiters",
-      "slug": "atera",
-      "api_url": "https://api.smartrecruiters.com/v1/companies/atera/postings",
-      "verified": true,
-      "notes": "Probed: smartrecruiters slug 'atera' has jobs"
     },
     {
       "name": "Atidot",
@@ -3314,18 +3302,6 @@
       "notes": "Deloitte global is SuccessFactors (sf.rcm.deloitteresources.com), not a unified Workday tenant; Deloitte Israel uses proprietary careers.deloitte.co.il. Tried deloitte.wd1/wd5/wd103 with External_Career_Site, External, careers, Deloitte_Careers paths - all HTTP 422; deloitteie.wd3 is Ireland-only."
     },
     {
-      "name": "Deloitte Israel",
-      "type": "israeli_subsidiary",
-      "industry": "Consulting / Big 4",
-      "domain": "deloitte.com",
-      "careers_url": "https://www2.deloitte.com/global/en/careers/careers.html",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "RE-INVESTIGATED. Already unverified. Deloitte Israel uses proprietary careers.deloitte.co.il (Hebrew). Global Deloitte runs SuccessFactors (sf.rcm.deloitteresources.com). Not supported."
-    },
-    {
       "name": "Descope",
       "type": "israeli_founded",
       "industry": "DevTools",
@@ -3468,18 +3444,6 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/0A.006/positions?token=A06462A1E122818321EA061E12028181E12&details=true",
       "verified": true,
       "notes": "UID + token from static HTML at comeet.com/jobs/doorloop/0A.006; API returned 5 positions, 2 IL-tagged. PropTech for property managers, TLV R&D."
-    },
-    {
-      "name": "DoorLoop Israel",
-      "type": "israeli_founded",
-      "industry": "Property Management Software",
-      "domain": "doorloop.com",
-      "careers_url": "https://job-boards.greenhouse.io/doorloopisrael",
-      "ats": "greenhouse",
-      "slug": "doorloopisrael",
-      "api_url": "https://boards-api.greenhouse.io/v1/boards/doorloopisrael/jobs?content=true",
-      "verified": false,
-      "notes": "Surfaced via site:boards.greenhouse.io \"Israel\" search (DoorLoop Israel board listed). API returns 404 — board may have been retired or merged into a parent slug."
     },
     {
       "name": "Doral Energy",
@@ -5198,18 +5162,6 @@
       "notes": "Greenhouse board verified: at least 2 jobs, IL office in Modiin-Maccabim-Reut Central District. Israeli-founded industrial AI for petrochemical process optimization."
     },
     {
-      "name": "Incredibuild",
-      "type": "israeli_founded",
-      "industry": "DevTools / Build Acceleration",
-      "domain": "incredibuild.com",
-      "careers_url": "https://apply.workable.com/incredibuild/",
-      "ats": "workable",
-      "slug": "incredibuild",
-      "api_url": "https://apply.workable.com/api/v1/widget/accounts/incredibuild?details=true",
-      "verified": true,
-      "notes": "Workable (apply.workable.com/incredibuild). Enabled via the Workable widget fetcher."
-    },
-    {
       "name": "Inflection AI",
       "type": "international_il_rd",
       "industry": "AI/ML",
@@ -5412,18 +5364,6 @@
       "api_url": "https://jobs.iai.co.il/wp-content/themes/tyco-wp/assets/json/jobs.json",
       "verified": true,
       "notes": "Custom WordPress + Vue theme (tyco-wp). ~470 active Hebrew-prose listings via single JSON endpoint, no pagination, no auth. Unlocks the largest single-source IL job addition since Greenhouse. JD language: Hebrew (extractor's jd_language='he' handles)."
-    },
-    {
-      "name": "Israel Discount Bank",
-      "type": "israeli_founded",
-      "industry": "Banking",
-      "domain": "discountbank.co.il",
-      "careers_url": "https://www.discountbank.co.il/DB/private/discount-careers",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Proprietary careers portal (200 OK). Standard Israeli bank model — Niloog or in-house. No public API endpoint."
     },
     {
       "name": "Israel Electric Corporation (IEC)",
@@ -11244,18 +11184,6 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/06.000/positions?token=600240001E00030003000300024001E00&details=true",
       "verified": true,
       "notes": "Comeet UID + token extracted from careers page HTML (source: https://zesty.co/careers/)"
-    },
-    {
-      "name": "ZIM Integrated Shipping",
-      "type": "israeli_founded",
-      "industry": "Logistics / Shipping",
-      "domain": "zim.com",
-      "careers_url": "https://www.zim.com/about-zim/careers",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "NYSE-listed. Probed Workday tenants 'zim' wd1/wd3 — HTTP_422 (not valid). Greenhouse/Lever/Ashby/SmartRecruiters all returned no real listings. Page Cloudflare-protected (403 curl). Uses proprietary or SAP SuccessFactors (not confirmed). No supported public API found in 3 ops."
     },
     {
       "name": "ZIM Integrated Shipping (Comeet board)",

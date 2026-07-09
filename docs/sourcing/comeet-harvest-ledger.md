@@ -83,3 +83,30 @@ the three below were dropped.
 - Band (joinband.com): the 2026-06-25 "Band / 8A.003 / thenvoi" label was a mislabel. Comeet board 8A.003
   self-identifies as "Thenvoi" (a different company); joinband.com exposes no Comeet markers. The registry
   `unknown` Band row was left untouched (no repoint).
+
+## Dual-ATS resolution (2026-07-10)
+
+Nine registry entries had the same company (same domain) on two different ATS boards - the
+same-domain-across-two-ATS set surfaced by the #530 dedupe scan. Each board was fetched live (the real
+fetcher + classifyLocation + isJunkTitle). Where one board was dead or empty, the duplicate row was
+dropped in favor of the live Comeet board; the live board already had its own row, so no repoint edit
+was needed. `total_companies` 1164 -> 1158.
+
+Dropped (dead / empty / unresolved-stub duplicate; the live Comeet board was kept):
+
+| company              | dropped row (ats / slug)    | reason                                                                        |
+| -------------------- | --------------------------- | ----------------------------------------------------------------------------- |
+| Atera                | smartrecruiters / atera     | SmartRecruiters board 0 positions; live at Comeet 63.00B (17 total / 10 IL).  |
+| Incredibuild         | workable / incredibuild     | Workable board 0 positions; live at Comeet 66.00F (4 / 3 IL).                 |
+| DoorLoop             | greenhouse / doorloopisrael | Greenhouse board HTTP 404 (dead); live at Comeet 0A.006 (5 jobs, 0 IL today). |
+| Deloitte             | unknown / (no board)        | Unresolved stub, no api_url; superseded by live Comeet F7.00B (94 IL).        |
+| Israel Discount Bank | unknown / (no board)        | Unresolved stub; superseded by live Comeet F8.004 (66 IL).                    |
+| ZIM                  | unknown / (no board)        | Unresolved stub; superseded by live Comeet 72.008 (83 / 14 IL).               |
+
+Genuine dual-boards (BOTH boards live; both rows KEPT, flagged for Eli to decide):
+
+- BioCatch: lever (13 / 5 IL) + comeet 03.00E (23 / 8 IL). Both carry live IL roles - a true dual-board,
+  or double-posting (the two sets may overlap and double-count in the jobs cache).
+- Oligo Security: ashby (15 / 0 IL) + comeet 5A.00B (7 / 7 IL). Ashby is live but 0 IL (likely global
+  roles); Comeet carries the IL roles.
+- Sentra: ashby (3 / 0 IL) + comeet 87.00B (7 / 7 IL). Same split as Oligo.
