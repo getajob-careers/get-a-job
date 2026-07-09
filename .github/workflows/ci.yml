@@ -20,8 +20,23 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '22'
-          cache: 'npm'
+          node-version: "22"
+          cache: "npm"
+
+      # The client-side role mirrors (src/lib/roleLookup.js and
+      # roleSkillsGenerated.json) are generated from 00_role_library.ts and
+      # must be regenerated when it changes. They silently drifted for weeks
+      # (roleLookup 159 vs 195 canonical) after the original generator was
+      # lost. Regenerate and fail if the committed mirrors differ. Generators
+      # use only node built-ins, so this runs before npm ci for a fast fail.
+      - name: Role-mirror staleness check
+        run: |
+          node scripts/regen-role-skills.mjs
+          node scripts/regen-role-lookup.mjs
+          if ! git diff --exit-code -- src/lib/roleSkillsGenerated.json src/lib/roleLookup.js; then
+            echo "::error::Role mirrors are stale vs 00_role_library.ts — run 'node scripts/regen-role-skills.mjs && node scripts/regen-role-lookup.mjs' and commit."
+            exit 1
+          fi
 
       - name: Install dependencies
         run: npm ci
@@ -48,5 +63,5 @@ jobs:
           # Vite build does not need real values for VITE_* at build time
           # (they're read at runtime), but the supabase client throws if absent.
           # CI uses placeholder values; production deploys inject real ones.
-          VITE_SUPABASE_URL: 'https://ci-placeholder.supabase.co'
-          VITE_SUPABASE_ANON_KEY: 'ci-placeholder-anon-key'
+          VITE_SUPABASE_URL: "https://ci-placeholder.supabase.co"
+          VITE_SUPABASE_ANON_KEY: "ci-placeholder-anon-key"

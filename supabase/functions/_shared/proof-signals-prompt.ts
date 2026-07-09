@@ -29,12 +29,12 @@ const el = proofSignalExtractionLogic as any
 // The 500 entries themselves stay in the library file untouched —
 // schema-migrating them to the canonical shape is a separate library
 // project.
-const signalRef = (proofSignalLibrary.proof_signal_library as any[])
+const signalRef = (proofSignalLibrary.proof_signal_library as unknown as any[])
   .filter(s => typeof s?.id === 'string' && s.id.trim().length > 0)
   .map(s => `${s.id}: ${s.description}${s.maps_to_skills?.length ? ` [skills: ${s.maps_to_skills.slice(0, 4).join(', ')}]` : ''}`)
   .join('\n')
 
-const skillRef = (skillLibrary.skill_library as any[])
+const skillRef = (skillLibrary.skill_library as unknown as any[])
   .map(s => `${s.id}: ${s.name}`)
   .join('\n')
 
@@ -149,7 +149,7 @@ Return ONLY valid JSON:
 // block offers. Filters to entries with a non-empty `.id` so the string
 // "undefined" never lands in the set as a valid claim target.
 export const VALID_SIGNAL_IDS: Set<string> = new Set(
-  (proofSignalLibrary.proof_signal_library as any[])
+  (proofSignalLibrary.proof_signal_library as unknown as any[])
     .filter((s) => typeof s?.id === 'string' && s.id.trim().length > 0)
     .map((s) => String(s.id).trim()),
 )
@@ -157,7 +157,7 @@ export const VALID_SIGNAL_IDS: Set<string> = new Set(
 // 595 entries — same iteration as the SKILL REFERENCE block's
 // `${s.id}: ${s.name}` map. Defensive filter for shape robustness.
 export const VALID_SKILL_IDS: Set<string> = new Set(
-  (skillLibrary.skill_library as any[])
+  (skillLibrary.skill_library as unknown as any[])
     .filter((s) => typeof s?.id === 'string' && s.id.trim().length > 0)
     .map((s) => String(s.id).trim()),
 )
