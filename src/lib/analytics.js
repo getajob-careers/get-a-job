@@ -18,30 +18,30 @@ import posthog from "posthog-js";
  * If you add a new event, add it here first.
  */
 export const EVENTS = {
-  SIGNUP_COMPLETED:            "signup_completed",
-  ONBOARDING_STARTED:          "onboarding_started",
-  ONBOARDING_STEP_COMPLETED:   "onboarding_step_completed",
-  ONBOARDING_COMPLETED:        "onboarding_completed",
-  ONBOARDING_TUTORIAL_STARTED:      "onboarding_tutorial_started",
+  SIGNUP_COMPLETED: "signup_completed",
+  ONBOARDING_STARTED: "onboarding_started",
+  ONBOARDING_STEP_COMPLETED: "onboarding_step_completed",
+  ONBOARDING_COMPLETED: "onboarding_completed",
+  ONBOARDING_TUTORIAL_STARTED: "onboarding_tutorial_started",
   ONBOARDING_TUTORIAL_SLIDE_VIEWED: "onboarding_tutorial_slide_viewed",
-  ONBOARDING_TUTORIAL_COMPLETED:    "onboarding_tutorial_completed",
-  ONBOARDING_TUTORIAL_SKIPPED:      "onboarding_tutorial_skipped",
-  CV_GENERATED:                "cv_generated",
-  RESUME_UPLOADED:             "resume_uploaded",
-  CAREER_ANALYSIS_REFRESHED:   "career_analysis_refreshed",
-  JOB_MATCH_CHECKED:           "job_match_checked",
-  APPLICATION_TRACKED:         "application_tracked",
-  PRACTICUM_COMPANY_ADDED:     "practicum_company_added",
-  PRACTICUM_STATUS_CHANGED:    "practicum_status_changed",
-  CHAT_MESSAGE_SENT:           "chat_message_sent",
+  ONBOARDING_TUTORIAL_COMPLETED: "onboarding_tutorial_completed",
+  ONBOARDING_TUTORIAL_SKIPPED: "onboarding_tutorial_skipped",
+  CV_GENERATED: "cv_generated",
+  RESUME_UPLOADED: "resume_uploaded",
+  CAREER_ANALYSIS_REFRESHED: "career_analysis_refreshed",
+  JOB_MATCH_CHECKED: "job_match_checked",
+  APPLICATION_TRACKED: "application_tracked",
+  PRACTICUM_COMPANY_ADDED: "practicum_company_added",
+  PRACTICUM_STATUS_CHANGED: "practicum_status_changed",
+  CHAT_MESSAGE_SENT: "chat_message_sent",
   // Floating feedback widget — fires on successful insert into
   // public.feedback with { category, route } so we can cohort users
   // who flagged each pain category in PostHog.
-  FEEDBACK_SUBMITTED:          "feedback_submitted",
+  FEEDBACK_SUBMITTED: "feedback_submitted",
   // Stripe-driven — names reserved here so the convention is fixed.
   // Call sites land once Stripe webhooks / billing UI ship.
-  SUBSCRIPTION_STARTED:        "subscription_started",
-  SUBSCRIPTION_CANCELED:       "subscription_canceled",
+  SUBSCRIPTION_STARTED: "subscription_started",
+  SUBSCRIPTION_CANCELED: "subscription_canceled",
 };
 
 /**
@@ -54,6 +54,50 @@ export function track(event, properties = {}) {
   } catch (err) {
     console.warn("[analytics] capture failed:", err);
   }
+}
+
+/**
+ * Fire a `cv_generated` event with the canonical schema, from ANY generation
+ * entry path (coach, Studio tailor, tracker). Centralised so every surface
+ * emits the same props — and, critically, so FAILURES are captured everywhere.
+ *
+ * The client is the only observer of a platform-level non-2xx (the edge
+ * function never runs, so it cannot write its own function_metrics row — see
+ * the 2026-07-08 21:14 failure that left no server row). This event is
+ * therefore the complete generation-attempt ledger. Always call it in BOTH the
+ * success and the catch branch of a generation.
+ *
+ * @param {object} p
+ * @param {boolean} p.success
+ * @param {string}  p.source  - "chat" | "studio" | "tracker" | "extension"
+ * @param {string}  [p.model]
+ * @param {string|null} [p.application_id]
+ * @param {string}  [p.role_title]
+ * @param {number}  [p.duration_ms]
+ * @param {number}  [p.unsourced_bullets_count]
+ * @param {string}  [p.failure_reason]  - required-ish when success===false
+ */
+export function trackCvGenerated({
+  success,
+  source,
+  model,
+  application_id = null,
+  role_title,
+  duration_ms,
+  unsourced_bullets_count,
+  failure_reason,
+}) {
+  track(EVENTS.CV_GENERATED, {
+    success: !!success,
+    source,
+    ...(model ? { model } : {}),
+    application_id,
+    ...(role_title ? { role_title } : {}),
+    ...(Number.isFinite(duration_ms) ? { duration_ms } : {}),
+    ...(success
+      ? { unsourced_bullets_count: unsourced_bullets_count ?? 0 }
+      : { failure_reason: failure_reason || "unknown" }),
+  });
 }
 
 /**
