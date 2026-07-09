@@ -90,7 +90,7 @@ Nine registry entries had the same company (same domain) on two different ATS bo
 same-domain-across-two-ATS set surfaced by the #530 dedupe scan. Each board was fetched live (the real
 fetcher + classifyLocation + isJunkTitle). Where one board was dead or empty, the duplicate row was
 dropped in favor of the live Comeet board; the live board already had its own row, so no repoint edit
-was needed. `total_companies` 1164 -> 1158.
+was needed. `total_companies` 1164 -> 1156 (6 dead/stub drops here + 2 zero-IL ashby drops below).
 
 Dropped (dead / empty / unresolved-stub duplicate; the live Comeet board was kept):
 
@@ -103,10 +103,16 @@ Dropped (dead / empty / unresolved-stub duplicate; the live Comeet board was kep
 | Israel Discount Bank | unknown / (no board)        | Unresolved stub; superseded by live Comeet F8.004 (66 IL).                    |
 | ZIM                  | unknown / (no board)        | Unresolved stub; superseded by live Comeet 72.008 (83 / 14 IL).               |
 
-Genuine dual-boards (BOTH boards live; both rows KEPT, flagged for Eli to decide):
+Flags resolved (Eli, 2026-07-10):
 
-- BioCatch: lever (13 / 5 IL) + comeet 03.00E (23 / 8 IL). Both carry live IL roles - a true dual-board,
-  or double-posting (the two sets may overlap and double-count in the jobs cache).
-- Oligo Security: ashby (15 / 0 IL) + comeet 5A.00B (7 / 7 IL). Ashby is live but 0 IL (likely global
-  roles); Comeet carries the IL roles.
-- Sentra: ashby (3 / 0 IL) + comeet 87.00B (7 / 7 IL). Same split as Oligo.
+- Oligo Security - DROPPED ashby / oligo. Ashby was live (15 jobs) but 0 IL (global-only board); the
+  Comeet board 5A.00B carries all 7 IL roles. Revisit if IL roles appear on the ashby board.
+- Sentra - DROPPED ashby / sentra. Same posture: ashby live (3 jobs) but 0 IL; Comeet 87.00B carries the
+  7 IL roles. Revisit if IL roles appear.
+- BioCatch - KEPT BOTH (confirmed true dual-board, not double-posting). Title comparison of the live IL
+  roles: only 2 titles overlap (data scientist; senior devops infra engineer); lever carries 3 IL roles
+  NOT on comeet (senior backend engineer, senior data engineer, web solutions engineer), comeet carries
+  6 not on lever. Dropping lever would lose 3 real IL roles, so both rows stay. The 2 overlapping titles
+  double-list in the jobs cache (minor).
+
+Total after the dual-ATS pass: 1164 -> 1156 (6 dead/stub drops + 2 zero-IL ashby drops).

@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1158,
+  "total_companies": 1156,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -7202,18 +7202,6 @@
       "notes": "375 jobs; acquired Atspoke/Auth0 (Israel teams)"
     },
     {
-      "name": "Oligo Security",
-      "type": "israeli_founded",
-      "industry": "Cybersecurity",
-      "domain": "oligo.security",
-      "careers_url": "https://www.oligo.security/careers",
-      "ats": "ashby",
-      "slug": "oligo",
-      "api_url": "https://api.ashbyhq.com/posting-api/job-board/oligo",
-      "verified": true,
-      "notes": "Probed: ashby slug 'oligo' returns 200"
-    },
-    {
       "name": "One Zero Digital Bank",
       "type": "israeli_founded",
       "industry": "Digital Banking",
@@ -9144,18 +9132,6 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/sentinellabs/jobs?content=true",
       "verified": true,
       "notes": "Migrated from Jobvite to Greenhouse (slug 'sentinellabs') ahead of the SentinelOne ↔ Prompt Security acquisition fold-in. Discovered via 2026-06-13 tech-population B-pass: probing Prompt Security's careers page captured XHR to boards-api.greenhouse.io/v1/boards/sentinellabs/jobs. Greenhouse API verified: 156 total / 21 IL jobs (Tel Aviv engineering — Backend, Windows Endpoint, Prompt Security roles). Old Jobvite URL no longer canonical."
-    },
-    {
-      "name": "Sentra",
-      "type": "israeli_founded",
-      "industry": "Cybersecurity",
-      "domain": "sentra.io",
-      "careers_url": "https://www.sentra.io/careers/",
-      "ats": "ashby",
-      "slug": "sentra",
-      "api_url": "https://api.ashbyhq.com/posting-api/job-board/sentra",
-      "verified": true,
-      "notes": "Probed: ashby slug 'sentra' returns 200"
     },
     {
       "name": "Sentry",
