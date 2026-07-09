@@ -25,7 +25,7 @@ export default function FindCompaniesCard({ disabled, disabledReason }) {
       if (error) {
         const status = error?.context?.status;
         if (status === 429) {
-          toast.error("Rate limit reached — try again in an hour.");
+          toast.error("Rate limit reached - try again in an hour.");
         } else if (status === 400) {
           const message = error?.context?.error || "Preconditions not met. Check your profile and pitch strategy.";
           toast.error(message);
@@ -47,7 +47,7 @@ export default function FindCompaniesCard({ disabled, disabledReason }) {
 
       const top = data.top_targets?.[0]?.name;
       const summary = top
-        ? `${data.matched} companies scored — top: ${top}`
+        ? `${data.matched} companies scored - top: ${top}`
         : `${data.matched} companies scored.`;
       toast.success(summary);
 

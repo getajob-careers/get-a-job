@@ -18,7 +18,7 @@ const SKILL_ADVISOR_CAPABILITIES = [
   "➕ Adds courses and projects directly to your profile",
 ];
 const SKILL_ADVISOR_HOW_TO_USE =
-  "Tell it which role you want to get ready for, or ask it to analyze your skill gaps. You can also ask for a full learning plan — e.g. 'I want to become a Data Analyst in 3 months'.";
+  "Tell it which role you want to get ready for, or ask it to analyze your skill gaps. You can also ask for a full learning plan - e.g. 'I want to become a Data Analyst in 3 months'.";
 
 export default function SkillDevelopmentAdvisor() {
   return (

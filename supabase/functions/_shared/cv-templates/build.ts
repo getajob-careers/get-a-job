@@ -603,7 +603,10 @@ function renderHonors(
     if (typeof h === "string") return h
     const name = String(h.name || "").trim()
     const desc = String(h.description || "").trim()
-    return name && desc ? `${name} \u2014 ${desc}` : name
+    // " - " not an em dash: the em dash reads as AI-generated on a resume, and
+    // this separator is renderer-injected so the cv_data voice scrub can't catch
+    // it (matches CV_VOICE_RULES / scrubCvVoice \u2014 U+2014 -> " - ").
+    return name && desc ? `${name} - ${desc}` : name
   }).filter(s => s.length > 0)
   if (lines.length === 0) return
   paragraphs.push(sectionHeading("Honors & Awards"))

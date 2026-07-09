@@ -238,7 +238,7 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
 
       if (qError) {
         console.error("[jobs] query failed:", qError);
-        setError("Couldn't load jobs — try again.");
+        setError("Couldn't load jobs - try again.");
         setLoading(false);
         return;
       }
@@ -362,7 +362,7 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
                   <section>
                     <SectionHeader
                       title="Our picks for you"
-                      subtitle="Your strongest matches — apply with confidence"
+                      subtitle="Your strongest matches - apply with confidence"
                       count={sectionedJobs.picks.length}
                     />
                     <JobGrid
@@ -378,12 +378,12 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
                   <section>
                     <SectionHeader
                       title="Worth a stretch"
-                      subtitle="Adjacent roles you could grow into — a reach today, not a bad match"
+                      subtitle="Adjacent roles you could grow into - a reach today, not a bad match"
                       count={sectionedJobs.stretch.length}
                     />
                     {sectionedJobs.picks.length === 0 && (
                       <p className="text-[12.5px] text-rd-text-secondary leading-[1.55] mb-3 max-w-2xl">
-                        No strong picks in this batch yet — here are relevant
+                        No strong picks in this batch yet - here are relevant
                         roles worth a look as you build toward them.
                       </p>
                     )}

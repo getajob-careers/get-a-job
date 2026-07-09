@@ -310,7 +310,7 @@ export default function StepResumeUpload({
         const extracted = parseExtractedJson(replyText);
         if (extracted == null) {
           console.warn(
-            "[StepResumeUpload] all parse paths failed — falling back to manual entry banner. reply head:",
+            "[StepResumeUpload] all parse paths failed - falling back to manual entry banner. reply head:",
             replyText.slice(0, 200),
           );
         } else {
@@ -437,11 +437,11 @@ export default function StepResumeUpload({
   const UPLOAD_FAIL_COPY = {
     extract_none: {
       title: "We couldn't read the details from this CV",
-      body: "The file uploaded, but we couldn't pull structured text from it — it may be a scanned image or an unusual layout. Try a text-based PDF (File → Download → PDF in Google Docs/Word), or just fill your details in manually below.",
+      body: "The file uploaded, but we couldn't pull structured text from it - it may be a scanned image or an unusual layout. Try a text-based PDF (File → Download → PDF in Google Docs/Word), or just fill your details in manually below.",
     },
     timeout: {
       title: "That took too long",
-      body: "Reading your CV timed out. Your connection may be slow, or the file may be large. You can try uploading again, or fill your details in manually below — nothing is lost.",
+      body: "Reading your CV timed out. Your connection may be slow, or the file may be large. You can try uploading again, or fill your details in manually below - nothing is lost.",
     },
     upload_failed: {
       title: "We couldn't upload that file",
@@ -468,7 +468,7 @@ export default function StepResumeUpload({
           <Info className="w-4 h-4 flex-shrink-0 mt-0.5" />
           <div className="flex-1 leading-relaxed">
             <p className="font-display font-semibold text-rd-text">
-              Get a head start on LinkedIn Hub — request your data export now
+              Get a head start on LinkedIn Hub - request your data export now
             </p>
             <p className="mt-1 text-rd-text-secondary">
               We use it to optimise your profile, draft posts in your voice, and
@@ -503,7 +503,7 @@ export default function StepResumeUpload({
           Let&apos;s start with your CV.
         </h1>
         <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
-          Drop your CV and we&apos;ll extract everything from it — no manual
+          Drop your CV and we&apos;ll extract everything from it - no manual
           entry needed.
         </p>
       </div>
@@ -611,7 +611,7 @@ export default function StepResumeUpload({
             </div>
             <div>
               <p className="font-display font-semibold text-[15px] text-rd-text">
-                CV uploaded — but no text inside
+                CV uploaded - but no text inside
               </p>
               <p className="text-[11.5px] text-rd-text-secondary mt-0.5">
                 {fileName}
@@ -657,7 +657,7 @@ export default function StepResumeUpload({
               </p>
               <p className="text-rd-text-secondary">
                 It looks like an image-only PDF or a &ldquo;Print to PDF&rdquo;
-                export — common with Google Docs on Windows, Canva, or scanned
+                export - common with Google Docs on Windows, Canva, or scanned
                 files. Two easy fixes:
               </p>
               <ul className="mt-2 ml-4 list-disc text-rd-text-secondary space-y-0.5">
@@ -667,7 +667,7 @@ export default function StepResumeUpload({
                 </li>
                 <li>
                   In Google Docs, use{" "}
-                  <strong>File → Download → PDF Document (.pdf)</strong> — not
+                  <strong>File → Download → PDF Document (.pdf)</strong> - not
                   the Print menu.
                 </li>
               </ul>
@@ -724,7 +724,7 @@ export default function StepResumeUpload({
 
       {cvTruncated && (
         <div className="bg-rd-golden-tint border border-rd-golden/40 rounded-[14px] px-3.5 py-2.5 text-[12.5px] text-rd-golden-dark leading-snug">
-          Your CV is long — only the first 15,000 characters were sent for
+          Your CV is long - only the first 15,000 characters were sent for
           extraction. Review the pre-filled details and add anything that
           wasn&apos;t captured.
         </div>
@@ -781,7 +781,7 @@ export default function StepResumeUpload({
           onClick={onNext}
           className="text-[12px] text-rd-text-tertiary hover:text-rd-text underline underline-offset-2"
         >
-          Skip — I&apos;ll enter details manually
+          Skip - I&apos;ll enter details manually
         </button>
         <RdButton
           onClick={onNext}

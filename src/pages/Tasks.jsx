@@ -31,7 +31,7 @@ const TASK_MESSAGES = [
   "Mapping your skill gaps to actionable tasks…",
   "Generating specific course & project recommendations…",
   "Prioritising tasks by impact on Track 1 applications…",
-  "Almost ready — wrapping up your task list…",
+  "Almost ready - wrapping up your task list…",
 ];
 
 // Category enum (DB-canonical). Restyle-only — values are kept as-is so
@@ -307,7 +307,7 @@ export default function Tasks() {
 
       {generating && (
         <div className="mb-6">
-          <GeneratingBanner messages={TASK_MESSAGES} subtitle="Generating your tasks — this takes ~20–40 seconds" />
+          <GeneratingBanner messages={TASK_MESSAGES} subtitle="Generating your tasks - this takes ~20–40 seconds" />
         </div>
       )}
 
@@ -328,7 +328,7 @@ export default function Tasks() {
           flow handles the replacement atomically. See PR C. */}
       {profile?.onboarding_complete && !generating && allTasksAreOnboardingFallback(tasks) && (
         <div className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-golden-tint border border-rd-golden/30 text-rd-text mb-6 flex items-center justify-between gap-3 flex-wrap">
-          <span>Your tasks haven&apos;t been personalised yet — these are placeholders.</span>
+          <span>Your tasks haven&apos;t been personalised yet - these are placeholders.</span>
           <button type="button" onClick={handleGenerate} className={RD_BTN_PRIMARY_SM}>
             <Brain className="w-3.5 h-3.5" />Generate personalised tasks
           </button>
@@ -368,7 +368,7 @@ export default function Tasks() {
             {!profile
               ? "Complete your profile first."
               : roles.length === 0
-              ? "Generate your Career Roadmap first — tasks are derived from your role gaps."
+              ? "Generate your Career Roadmap first - tasks are derived from your role gaps."
               : "Click \"Generate tasks\" to assign work based on your current skill gaps and Track 1 roles."}
           </p>
         </div>

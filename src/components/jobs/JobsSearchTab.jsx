@@ -348,7 +348,7 @@ export default function JobsSearchTab({
 
       {error && (
         <div className="mb-4 rounded-[14px] border border-[#FECACA] bg-[#FEF2F2] px-4 py-3 text-[13px] text-[#991B1B]">
-          Couldn&rsquo;t load the board — try again.
+          Couldn&rsquo;t load the board - try again.
         </div>
       )}
 

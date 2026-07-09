@@ -4,7 +4,7 @@ import NetworkingPrinciples from "@/components/linkedin/networking/NetworkingPri
 
 const GUIDES = [
   {
-    title: "LinkedIn Networking — Strategy & Principles",
+    title: "LinkedIn Networking - Strategy & Principles",
     component: NetworkingPrinciples,
   },
   {
@@ -12,14 +12,14 @@ const GUIDES = [
     content: `Most students read job descriptions and feel immediately disqualified. That's because they're reading them wrong.
 
 **What a Job Description Actually Is:**
-A job description is a wishlist — not a minimum requirement list. Companies write the ideal candidate. They rarely get that person.
+A job description is a wishlist - not a minimum requirement list. Companies write the ideal candidate. They rarely get that person.
 
 **How to Read It Correctly:**
 1. Split requirements into: Must Have vs. Nice to Have
-2. Look for keywords that repeat — those are the actual priorities
+2. Look for keywords that repeat - those are the actual priorities
 3. Ignore inflated requirements (e.g., "5 years experience" for junior roles)
-4. Focus on the 3 core responsibilities — that's 80% of the job
-5. Note every tool and software mentioned — that's your skills gap list
+4. Focus on the 3 core responsibilities - that's 80% of the job
+5. Note every tool and software mentioned - that's your skills gap list
 
 **The 70% Rule:**
 If you meet 70% of the listed requirements, the role is likely within range. Below 50% = Track 3 territory.
@@ -38,7 +38,7 @@ Take any job description. Highlight: core responsibilities in blue, required ski
     content: `Most hiring doesn't happen through job boards. Here's how it actually works:
 
 **1. Internal Referrals**
-Companies prioritize candidates referred by current employees. Referred candidates are 4x more likely to be hired. This is not favoritism — it's risk reduction. A referral signals pre-vetting.
+Companies prioritize candidates referred by current employees. Referred candidates are 4x more likely to be hired. This is not favoritism - it's risk reduction. A referral signals pre-vetting.
 
 **2. Recruiter Sourcing**
 Recruiters actively search LinkedIn, GitHub, and industry networks for candidates with specific skill matches. If your profile doesn't match the keywords, you're invisible.
@@ -52,7 +52,7 @@ An estimated 70-80% of positions are never publicly posted. They're filled throu
 **What This Means For You:**
 - Cold applying alone is the lowest-probability strategy
 - Building relationships with people at target companies is essential
-- Your LinkedIn profile is your public resume — optimize it
+- Your LinkedIn profile is your public resume - optimize it
 - Skills must be demonstrable, not just listed`,
   },
   {
@@ -67,7 +67,7 @@ An estimated 70-80% of positions are never publicly posted. They're filled throu
 **How To Get Referrals Without "Networking":**
 1. Identify people at your target company on LinkedIn
 2. Send a specific, concise message explaining what role you're interested in and why
-3. Ask for a 15-minute informational conversation — not a referral
+3. Ask for a 15-minute informational conversation - not a referral
 4. Demonstrate competence in the conversation
 5. Follow up with a thank you and your resume
 
@@ -125,7 +125,7 @@ If these aren't in your profile, you won't appear in searches.`,
 - Prepared answers for "Why this company?" and "Why this role?"
 
 **The 70% Rule:**
-If you meet less than 70% of the requirements, the role is likely Track 2 or Track 3. Apply strategically — don't waste applications on roles where you have less than 50% match.
+If you meet less than 70% of the requirements, the role is likely Track 2 or Track 3. Apply strategically - don't waste applications on roles where you have less than 50% match.
 
 **Quality Over Quantity:**
 5 well-prepared applications will outperform 50 cold applications. Every time.`,
@@ -140,11 +140,11 @@ If you meet less than 70% of the requirements, the role is likely Track 2 or Tra
 - It often reflects hiring priorities you cannot see (internal candidates, budget freezes, role changes)
 
 **Why Rejection Happens (Usually):**
-1. Skill mismatch — you were under-qualified or over-qualified
-2. CV/application was generic — didn't match the language of the job
-3. No internal champion — you cold applied without a referral
-4. Timing — role was already filled internally when you applied
-5. Interview performance — specific gap in communication or technical depth
+1. Skill mismatch - you were under-qualified or over-qualified
+2. CV/application was generic - didn't match the language of the job
+3. No internal champion - you cold applied without a referral
+4. Timing - role was already filled internally when you applied
+5. Interview performance - specific gap in communication or technical depth
 
 **How to Extract Signal From Rejection:**
 - If rejected before interview: problem is CV, application, or skills on paper
@@ -156,7 +156,7 @@ If you meet less than 70% of the requirements, the role is likely Track 2 or Tra
 2. Identify which stage it happened
 3. Update your gap list accordingly
 4. Do NOT apply to the same company again immediately
-5. Do NOT take it personally — move to next application with improved process
+5. Do NOT take it personally - move to next application with improved process
 
 **Key Principle:**
 5 structured applications with learning loops will outperform 50 emotional applications. Every time.`,

@@ -12,10 +12,10 @@ const CAREER_AGENT_CAPABILITIES = [
   "🔍 Identifies gaps between where you are and where you want to be",
   "📊 Gives honest confidence scores for each role you're targeting",
   "✅ Updates your tracker, tasks, and profile directly",
-  "💡 Suggests next steps based on your actual data — no generic advice",
+  "💡 Suggests next steps based on your actual data - no generic advice",
 ];
 const CAREER_AGENT_HOW_TO_USE =
-  "Start by asking it to evaluate your profile or assess your fit for a specific role. Be direct — e.g. 'Am I ready for a Product Manager role?' or 'What should I focus on this week?'";
+  "Start by asking it to evaluate your profile or assess your fit for a specific role. Be direct - e.g. 'Am I ready for a Product Manager role?' or 'What should I focus on this week?'";
 
 const GENERAL_PROMPTS = [
   "Am I ready to apply for my Track 1 roles?",
@@ -81,7 +81,7 @@ export default function CareerAgent() {
     ? `${selectedApp.role_title}${selectedApp.company ? ` at ${selectedApp.company}` : ""}`
     : null;
   const title = selectedApp
-    ? `AI Career Agent — ${appLabel}`
+    ? `AI Career Agent - ${appLabel}`
     : "AI Career Agent";
   const description = selectedApp
     ? "Career strategy scoped to this specific role and your fit for it."

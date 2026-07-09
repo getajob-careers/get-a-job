@@ -197,13 +197,13 @@ export default function CertificationsSection({ user }) {
             onChange={(e) => setForm({ ...form, description: e.target.value })}
             className="w-full px-3.5 py-2.5 rounded-[10px] border border-rd-border bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary outline-none transition-[border-color,box-shadow] duration-150 focus:border-rd-coral focus:shadow-[0_0_0_3px_var(--rd-coral-tint)] resize-y min-h-[110px]"
             rows={4}
-            placeholder="What you did or what it covered — e.g. core topics, projects completed, hands-on labs."
+            placeholder="What you did or what it covered - e.g. core topics, projects completed, hands-on labs."
           />
         </div>
 
         <SkillTagInput
           label="Skills"
-          description="Programs, methods, or tools this certification covers — search the library or type custom."
+          description="Programs, methods, or tools this certification covers - search the library or type custom."
           tags={form.skills}
           onChange={(v) => setForm({ ...form, skills: v })}
           placeholder="e.g. AWS Lambda, IAM, S3"
@@ -233,7 +233,7 @@ export default function CertificationsSection({ user }) {
           <div className="rounded-[18px] border border-rd-border bg-rd-bg-card text-center py-8 shadow-rd">
             <Award className="w-9 h-9 text-rd-coral mx-auto mb-2.5" />
             <p className="text-[12.5px] text-rd-text-tertiary">
-              No certifications yet — add your first one above.
+              No certifications yet - add your first one above.
             </p>
           </div>
         )}

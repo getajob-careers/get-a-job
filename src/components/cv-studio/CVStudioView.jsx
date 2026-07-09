@@ -404,7 +404,7 @@ export default function CVStudioView({
   const handleDelete = (o) => {
     if (!o || !onDeleteCv) return;
     const msg = o.isMaster
-      ? "Delete your Master CV? It's the source for your tailored copies — you can regenerate it later."
+      ? "Delete your Master CV? It's the source for your tailored copies - you can regenerate it later."
       : `Delete "${o.label}"? This can't be undone.`;
     if (window.confirm(msg)) onDeleteCv(o.id);
   };
@@ -536,11 +536,24 @@ export default function CVStudioView({
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
+                  {/* Generation now auto-selects the new row, so by the time this
+                      card shows the CV is already rendered below. In that case
+                      "View it" was a no-op that just collapsed the card, so label
+                      the button "Done" (it dismisses the card); only offer "View
+                      it" in the defensive case where the row isn't the current one. */}
                   <button
                     onClick={() => onViewTailored?.(tailorResult.cvId)}
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-rd-teal-dark text-white text-[13px] font-display font-semibold hover:opacity-90 transition-opacity"
                   >
-                    <FileText className="w-3.5 h-3.5" /> View it
+                    {currentCv?.id === tailorResult.cvId ? (
+                      <>
+                        <Check className="w-3.5 h-3.5" /> Done
+                      </>
+                    ) : (
+                      <>
+                        <FileText className="w-3.5 h-3.5" /> View it
+                      </>
+                    )}
                   </button>
                   <button
                     onClick={() => onDownloadTailored?.(tailorResult.cvId)}
@@ -839,7 +852,7 @@ export default function CVStudioView({
             {chatMessages.length === 0 &&
               (coach || (
                 <p className="text-[12.5px] text-rd-text-secondary leading-relaxed">
-                  Ask me to rewrite a section or tighten your bullets — I edit
+                  Ask me to rewrite a section or tighten your bullets - I edit
                   this document directly. To build a version aimed at a specific
                   job, use Tailor to a job and I&apos;ll author a separate
                   tailored copy from the job description.

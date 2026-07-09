@@ -169,7 +169,7 @@ export default function AddOwnCompanyModal({ open, onClose }) {
           <DialogTitle>Add a company</DialogTitle>
           <DialogDescription asChild>
             <p className="text-xs text-rd-text-secondary -mt-2 mb-3">
-              Drop in any company you&apos;ve found. It lands in your pipeline as &quot;Exploring&quot; — drag it through the stages as you go.
+              Drop in any company you&apos;ve found. It lands in your pipeline as &quot;Exploring&quot; - drag it through the stages as you go.
             </p>
           </DialogDescription>
         </DialogHeader>

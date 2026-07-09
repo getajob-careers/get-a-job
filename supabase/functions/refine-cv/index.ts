@@ -33,7 +33,8 @@ import {
 import { stripHtml } from "../_shared/strip-html.ts";
 import { buildCvPdf } from "../_shared/cv-templates/build-pdf.ts";
 import { buildMasterCvData } from "../_shared/cv-master.ts";
-import { enforceCvInvariants } from "../_shared/cv-enforce-invariants.ts";
+import { enforceCvInvariants, scrubCvVoice } from "../_shared/cv-enforce-invariants.ts";
+import { CV_VOICE_RULES } from "../_shared/voice-rules.ts";
 import { resolveSectorTheme } from "../_shared/cv-templates/sector-mapping.ts";
 import type {
   TemplateStyle,
@@ -487,7 +488,10 @@ function opsSystemPromptFor(
   _opsVariant: OpsVariant,
   grounding: Grounding,
 ): string {
-  const base = OPS_SYSTEM_PROMPT;
+  // Append the shared CV writing-voice rules (incl. the em-dash ban) so rewordings
+  // and the summary avoid the LLM tells at generation, not only via the downstream
+  // deterministic scrub. This is the main "Tailor" surface, so it matters most here.
+  const base = OPS_SYSTEM_PROMPT + "\n\n" + CV_VOICE_RULES;
   return grounding === "strict" ? base + GROUNDING_CONSTRAINT : base;
 }
 
@@ -886,6 +890,13 @@ Deno.serve(async (req) => {
         `[cv-enforce] path=refine-cv applied=true revoiced=${enf.bulletsRevoiced} enforced=${enf.bulletsEnforced} restored=${enf.experiencesRestored} hebrew=${enf.hebrew}`,
       );
     }
+
+    // Deterministic voice scrub (banned verbs + em dash), ALWAYS-ON regardless of
+    // the cv_enforce_v2 flag: refine's LLM emits em dashes and this is the main
+    // "Tailor" surface, so unscrubbed em dashes were reaching the DB (row
+    // 55008377). Runs BEFORE the render so the PDF and the persisted cv_data match.
+    // Idempotent, so it's a no-op if the flag path above already scrubbed.
+    scrubCvVoice(cvData);
 
     // ── 6. Render → upload → sign ───────────────────────────────────────────
     const proCount = Array.isArray(cvData.professional_experiences)

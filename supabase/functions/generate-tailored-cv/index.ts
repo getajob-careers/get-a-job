@@ -271,7 +271,7 @@ import {
   QUANT_TOKEN_RE,
   TOKEN_BLOCKLIST,
 } from "../_shared/cv-antifab.ts";
-import { enforceCvInvariants } from "../_shared/cv-enforce-invariants.ts";
+import { enforceCvInvariants, scrubCvVoice } from "../_shared/cv-enforce-invariants.ts";
 
 function parseLlmJson(rawContent: string, finishReason: string, label: string): any {
   return parseLlmJsonObject(rawContent, label, finishReason);
@@ -2205,54 +2205,7 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
     // and don't trigger the "LLM-written" tell. Excludes "employed" in the
     // "hired" sense by NOT replacing standalone "employed" — only the
     // transitive-verb usages "employed X" / "made use of X" / "utilized X".
-    const BANNED_VERB_REPLACEMENTS: Array<[RegExp, (m: string) => string]> = [
-      // utilized / utilizes / utilize / utilizing → used / uses / use / using
-      [/\b(U|u)tilized\b/g, (m) => m[0] === "U" ? "Used" : "used"],
-      [/\b(U|u)tilizes\b/g, (m) => m[0] === "U" ? "Uses" : "uses"],
-      [/\b(U|u)tilize\b/g, (m) => m[0] === "U" ? "Use" : "use"],
-      [/\b(U|u)tilizing\b/g, (m) => m[0] === "U" ? "Using" : "using"],
-      // leveraged / leverages / leverage / leveraging → used / uses / use / using
-      [/\b(L|l)everaged\b/g, (m) => m[0] === "L" ? "Used" : "used"],
-      [/\b(L|l)everages\b/g, (m) => m[0] === "L" ? "Uses" : "uses"],
-      [/\b(L|l)everage\b/g, (m) => m[0] === "L" ? "Use" : "use"],
-      [/\b(L|l)everaging\b/g, (m) => m[0] === "L" ? "Using" : "using"],
-      // made use of → used (less common but a known LLM tell)
-      [/\b(M|m)ade use of\b/g, (m) => m[0] === "M" ? "Used" : "used"],
-      // spearheaded → led (preserves the leadership flavor)
-      [/\b(S|s)pearheaded\b/g, (m) => m[0] === "S" ? "Led" : "led"],
-      [/\b(S|s)pearheading\b/g, (m) => m[0] === "S" ? "Leading" : "leading"],
-      [/\b(S|s)pearhead\b/g, (m) => m[0] === "S" ? "Lead" : "lead"],
-      // orchestrated → led (same logic)
-      [/\b(O|o)rchestrated\b/g, (m) => m[0] === "O" ? "Led" : "led"],
-      [/\b(O|o)rchestrating\b/g, (m) => m[0] === "O" ? "Leading" : "leading"],
-      [/\b(O|o)rchestrate\b/g, (m) => m[0] === "O" ? "Lead" : "lead"],
-      // em dash (U+2014) -> " - ": the em dash is a strong LLM tell on a resume.
-      // Collapse surrounding spaces so "a \u2014 b" and "a\u2014b" both become
-      // "a - b". DO NOT touch U+2013 (en dash) \u2014 that is the server-stamped
-      // date-range separator (reconcile.ts formatExperienceDates).
-      [/\s*\u2014\s*/g, () => " - "],
-    ];
-    const deBanish = (text: string): string => {
-      let out = text;
-      for (const [re, fn] of BANNED_VERB_REPLACEMENTS) {
-        out = out.replace(re, fn);
-      }
-      return out;
-    };
-    const walkAndCleanStrings = (obj: any): any => {
-      if (obj == null) return obj;
-      if (typeof obj === "string") return deBanish(obj);
-      if (Array.isArray(obj)) {
-        for (let i = 0; i < obj.length; i++) obj[i] = walkAndCleanStrings(obj[i]);
-        return obj;
-      }
-      if (typeof obj === "object") {
-        for (const k of Object.keys(obj)) obj[k] = walkAndCleanStrings(obj[k]);
-        return obj;
-      }
-      return obj;
-    };
-    walkAndCleanStrings(cvData);
+scrubCvVoice(cvData);
 
     // ─── Step 2 of tailoring: validate how many JD phrases made it through ───
     // Two-step phrase match (fuzzy, recovers paraphrases):

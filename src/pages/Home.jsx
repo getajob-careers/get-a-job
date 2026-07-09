@@ -370,7 +370,7 @@ export default function Home() {
     const idle = [];
     for (const a of applications) {
       if (a.status === "interviewing") {
-        interviews.push({ app: a, kind: "interview", note: "interviewing — keep momentum" });
+        interviews.push({ app: a, kind: "interview", note: "interviewing - keep momentum" });
       } else if (a.status === "applied") {
         const ts = new Date(a.updated_at || a.created_at).getTime();
         const days = Number.isNaN(ts) ? 0 : Math.floor((Date.now() - ts) / DAY_MS);
@@ -466,7 +466,7 @@ export default function Home() {
   })();
   const focusDesc = (() => {
     if (dailyAction?.rationale) return dailyAction.rationale;
-    if (roles.length === 0) return "Start with your roadmap — it maps out your next moves.";
+    if (roles.length === 0) return "Start with your roadmap - it maps out your next moves.";
     return "Open your roadmap to line up your next move.";
   })();
   const focusDestination = (() => {
@@ -504,7 +504,7 @@ export default function Home() {
       const name = interviewApp.company || interviewApp.role_title;
       return {
         headline: `You're interviewing at ${name}.`,
-        sub: "Prep with your career agent — it knows the role and your background.",
+        sub: "Prep with your career agent - it knows the role and your background.",
         cta: "Prep with the agent",
         seed: `Help me prepare for my ${interviewApp.role_title} interview at ${name}`,
         applicationId: interviewApp.id,
@@ -526,7 +526,7 @@ export default function Home() {
     if (roles.length === 0) {
       return {
         headline: "Not sure where to start?",
-        sub: "Your roadmap comes first — your agent can walk you through it.",
+        sub: "Your roadmap comes first - your agent can walk you through it.",
         cta: "Ask how it works",
         seed: "How do I get started with my career roadmap?",
         applicationId: null,
@@ -538,7 +538,7 @@ export default function Home() {
         headline: "All clear for today.",
         sub: "Nice work. Ask your agent what would move you forward next.",
         cta: "What's next?",
-        seed: "I finished today's tasks — what should I focus on next?",
+        seed: "I finished today's tasks - what should I focus on next?",
         applicationId: null,
       };
     }
@@ -796,7 +796,7 @@ export default function Home() {
               <p className="text-[12.5px] text-rd-text-secondary leading-[1.55]">
                 {tasks.length > 0
                   ? "All caught up. New tasks generate as your roadmap moves."
-                  : "No tasks yet — they generate from your roadmap."}
+                  : "No tasks yet - they generate from your roadmap."}
               </p>
             </div>
           )}

@@ -172,7 +172,7 @@ export default function Login() {
           captchaToken,
         });
         if (error) throw error;
-        setMessage("Password reset email sent — check your inbox.");
+        setMessage("Password reset email sent - check your inbox.");
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
@@ -444,7 +444,7 @@ export default function Login() {
                   onExpire={() => setCaptchaToken(null)}
                   onError={() => {
                     setCaptchaToken(null);
-                    setError("Captcha challenge failed — please try again.");
+                    setError("Captcha challenge failed - please try again.");
                   }}
                   options={{ theme: "auto" }}
                 />

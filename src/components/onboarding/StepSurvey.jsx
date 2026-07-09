@@ -28,8 +28,8 @@ const CHALLENGES = [
 const CV_OPTIONS = [
   { value: "always",    label: "Yes, I tailor it for most applications" },
   { value: "sometimes", label: "Sometimes, for roles I really want" },
-  { value: "rarely",    label: "Rarely — I mostly use one version" },
-  { value: "never",     label: "Never — I use the same CV for everything" },
+  { value: "rarely",    label: "Rarely - I mostly use one version" },
+  { value: "never",     label: "Never - I use the same CV for everything" },
 ];
 
 const CLARITY_OPTIONS = [
@@ -92,7 +92,7 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
           Quick reality check.
         </h1>
         <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
-          Your honest answers help us calibrate. Where you actually are — not where you want to be.
+          Your honest answers help us calibrate. Where you actually are - not where you want to be.
         </p>
       </div>
 
@@ -184,7 +184,7 @@ export default function StepSurvey({ data, onChange, onNext, onBack }) {
             onChange={(e) => setCustomChallenge(e.target.value)}
             onBlur={commitCustomChallenge}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); commitCustomChallenge(); } }}
-            placeholder="Or type your own — press Enter to add"
+            placeholder="Or type your own - press Enter to add"
             className={`${INPUT_CLS} mt-2.5`}
           />
         </div>

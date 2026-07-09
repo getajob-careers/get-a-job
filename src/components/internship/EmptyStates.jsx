@@ -23,7 +23,7 @@ export function NoInternshipProfile({ onGenerate, generateDisabled }) {
     <EmptyShell
       icon={FileText}
       title="Generate your internship profile first"
-      body="Your internship profile captures the pitch strategy we use to match companies — realistic targets, role archetypes you can pitch today, and how this internship compounds your long-term career."
+      body="Your internship profile captures the pitch strategy we use to match companies - realistic targets, role archetypes you can pitch today, and how this internship compounds your long-term career."
       cta={
         generateDisabled
           ? { disabled: true, label: "Generator landing Tuesday" }
@@ -50,13 +50,13 @@ export function InternshipStartHere({ practicumPath }) {
   const isSelfSourced = practicumPath === "self_sourced";
   const steps = isSelfSourced
     ? [
-        { Icon: FileText, label: "Generate your internship profile", desc: "Captures your pitch strategy — realistic targets, role archetypes, the internship's long-term compound." },
+        { Icon: FileText, label: "Generate your internship profile", desc: "Captures your pitch strategy - realistic targets, role archetypes, the internship's long-term compound." },
         { Icon: Compass,  label: "Find matching companies",         desc: "We rank companies against your profile and surface the strongest fits." },
         { Icon: Send,     label: "Track your outreach",              desc: "Drag matched companies into your pipeline. Move them through Exploring → Outreach → Interview → Offered." },
       ]
     : [
         { Icon: Building2, label: "Wait for your placement",         desc: "Your faculty mentor will log the company you've been assigned. It'll appear here automatically." },
-        { Icon: Compass,   label: "Self-source backups",              desc: "You can also add companies you've found on your own — they'll sit alongside your faculty placement." },
+        { Icon: Compass,   label: "Self-source backups",              desc: "You can also add companies you've found on your own - they'll sit alongside your faculty placement." },
         { Icon: Send,      label: "Track outreach as you go",         desc: "Move each company through Exploring → Outreach → Interview → Offered as the conversation progresses." },
       ];
 

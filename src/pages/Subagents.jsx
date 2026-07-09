@@ -16,7 +16,7 @@ const SUBAGENTS = [
     page: "CareerAgent",
     title: "AI Career Agent",
     icon: Brain,
-    description: "Your main career advisor — analyzes your full profile, maps qualifications to roles, and creates actionable plans.",
+    description: "Your main career advisor - analyzes your full profile, maps qualifications to roles, and creates actionable plans.",
   },
   {
     id: "application_cv_success_agent",
@@ -49,7 +49,7 @@ export default function Subagents() {
       <div className="mb-8">
         <h1 className="text-2xl font-bold tracking-tight text-[#0A0A0A]">Specialist Agents</h1>
         <p className="text-sm text-[#A3A3A3] mt-1">
-          Specialized tools for specific career tasks. Each agent can update your tracker, tasks, or profile — just ask.
+          Specialized tools for specific career tasks. Each agent can update your tracker, tasks, or profile - just ask.
         </p>
       </div>
 

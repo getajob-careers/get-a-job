@@ -60,7 +60,7 @@ const GOAL_GROUPS = [
   {
     label: "Job search",
     goals: [
-      { value: "message_recruiter", title: "Message a recruiter", hint: "Highest-reply-rate target (~12%) — direct ask in turn 1 is appropriate" },
+      { value: "message_recruiter", title: "Message a recruiter", hint: "Highest-reply-rate target (~12%) - direct ask in turn 1 is appropriate" },
       { value: "message_hiring_manager", title: "Message a hiring manager", hint: "Lower reply rate (~6%); learning-conversation framing beats 'are you hiring?'" },
       { value: "ask_for_referral", title: "Ask for a referral", hint: "Strong relationships → direct ask. Dormant relationships → reconnect first, ask in turn 2-3" },
     ],
@@ -76,8 +76,8 @@ const GOAL_GROUPS = [
   {
     label: "Closing the loop",
     goals: [
-      { value: "thank_you_follow_up", title: "Thank-you / follow-up", hint: "After an interview or call. Specific is the bar — name what stuck with you" },
-      { value: "ask_for_recommendation", title: "Ask for a LinkedIn recommendation", hint: "Offer a draft or 3 specific moments — reduce the lift to make 'yes' easy" },
+      { value: "thank_you_follow_up", title: "Thank-you / follow-up", hint: "After an interview or call. Specific is the bar - name what stuck with you" },
+      { value: "ask_for_recommendation", title: "Ask for a LinkedIn recommendation", hint: "Offer a draft or 3 specific moments - reduce the lift to make 'yes' easy" },
     ],
   },
 ];
@@ -304,7 +304,7 @@ export default function OutreachComposer({
             </button>
           )}
           <h3 className="font-display font-bold text-[14px] text-rd-text">
-            {screen === "pick_goal" ? "Outreach Coach — pick your goal" : (target.name ? `Outreach to ${target.name}` : "New outreach")}
+            {screen === "pick_goal" ? "Outreach Coach - pick your goal" : (target.name ? `Outreach to ${target.name}` : "New outreach")}
           </h3>
         </div>
         {convoId && status === "active" && (
@@ -384,7 +384,7 @@ function GoalPicker({ onPick }) {
   return (
     <div className="space-y-4">
       <p className="text-[12px] text-rd-text-secondary leading-snug">
-        Pick the kind of outreach you&apos;re starting. The AI applies a different framework per goal — recruiters get directness, dormant connections get warm reconnection first, referral asks get warm-up coaching when the relationship isn&apos;t strong enough.
+        Pick the kind of outreach you&apos;re starting. The AI applies a different framework per goal - recruiters get directness, dormant connections get warm reconnection first, referral asks get warm-up coaching when the relationship isn&apos;t strong enough.
       </p>
       {GOAL_GROUPS.map((group) => (
         <div key={group.label}>
@@ -423,7 +423,7 @@ function TargetForm({ goal, target, setTarget, onBack, onSubmit, generating }) {
       </div>
 
       <p className="text-[12px] text-rd-text-secondary leading-snug">
-        Tell the AI about the recipient. The more specific you are about your relationship and any shared context, the better the opener will be — and the less likely the AI is to fabricate.
+        Tell the AI about the recipient. The more specific you are about your relationship and any shared context, the better the opener will be - and the less likely the AI is to fabricate.
       </p>
 
       <div>
@@ -453,7 +453,7 @@ function TargetForm({ goal, target, setTarget, onBack, onSubmit, generating }) {
         <Input
           value={target.relationship || ""}
           onChange={update("relationship")}
-          placeholder='e.g. "alumni from my undergrad program", "former colleague", "cold — found via LinkedIn search"'
+          placeholder='e.g. "alumni from my undergrad program", "former colleague", "cold - found via LinkedIn search"'
           className={RD_INPUT_CLS}
         />
       </div>
@@ -465,7 +465,7 @@ function TargetForm({ goal, target, setTarget, onBack, onSubmit, generating }) {
           value={target.mutual_context || ""}
           onChange={update("mutual_context")}
           rows={3}
-          placeholder='Anything specific that grounds the message — shared event, shared course, mutual person, a post of theirs you engaged with. Be specific: "took Prof Lee&apos;s Customer Discovery course together" — not just "we have a connection." Don&apos;t invent things you don&apos;t actually know.'
+          placeholder='Anything specific that grounds the message - shared event, shared course, mutual person, a post of theirs you engaged with. Be specific: "took Prof Lee&apos;s Customer Discovery course together" - not just "we have a connection." Don&apos;t invent things you don&apos;t actually know.'
           className={RD_TEXTAREA_CLS}
         />
       </div>
@@ -563,7 +563,7 @@ function ThreadView({
 
       {suggestion?.conversation_state === "goal_complete" && status === "active" && (
         <div className="rounded-[14px] px-4 py-3 bg-rd-teal-tint border border-rd-teal/30 text-[12px] text-rd-teal-dark leading-snug">
-          <strong className="font-display font-bold">Good wrap-up point.</strong> The AI thinks the goal of this conversation has been achieved. Click &quot;Done&quot; in the header to mark this conversation completed — keeps your active list clean.
+          <strong className="font-display font-bold">Good wrap-up point.</strong> The AI thinks the goal of this conversation has been achieved. Click &quot;Done&quot; in the header to mark this conversation completed - keeps your active list clean.
         </div>
       )}
     </div>
@@ -699,7 +699,7 @@ export function ThreadBubble({ msg, editing, editingDraft, setEditingDraft, onSt
           </>
         ) : (
           <>
-            <p className="whitespace-pre-wrap">{msg.text || <span className="italic opacity-60">(silence — no reply yet)</span>}</p>
+            <p className="whitespace-pre-wrap">{msg.text || <span className="italic opacity-60">(silence - no reply yet)</span>}</p>
             {isUser && ts && (
               <p className="text-[9.5px] text-white/60 mt-1.5 text-right">Sent · {ts}</p>
             )}
@@ -744,10 +744,10 @@ function ReplyPasteCard({ theirReply, setTheirReply, onSubmit, generating }) {
           onClick={handleNoReply}
           disabled={generating}
           className="text-[11.5px] text-rd-text-secondary hover:text-rd-text inline-flex items-center gap-1 disabled:opacity-60"
-          title="They haven't replied yet — coach a soft follow-up"
+          title="They haven't replied yet - coach a soft follow-up"
         >
           <MessageCircleQuestion className="w-3.5 h-3.5" />
-          They haven&apos;t replied — coach a follow-up
+          They haven&apos;t replied - coach a follow-up
         </button>
         <button
           type="button"
@@ -929,7 +929,7 @@ function CharCount({ text, turnType }) {
   const tooLong = wordCount > 200;
   return (
     <p className={`text-[10px] mt-1 text-right ${tooShort || tooLong ? "text-rd-golden-dark" : "text-rd-text-tertiary"}`}>
-      {wordCount} words {tooShort ? "(short — consider adding 1 more specific signal)" : tooLong ? "(long — consider tightening)" : ""}
+      {wordCount} words {tooShort ? "(short - consider adding 1 more specific signal)" : tooLong ? "(long - consider tightening)" : ""}
     </p>
   );
 }

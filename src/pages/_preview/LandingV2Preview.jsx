@@ -554,7 +554,7 @@ const ORGANIZATION_SCHEMA = {
   name: "Get A Job",
   url: CANONICAL_URL,
   description:
-    "An AI-powered career operating system — specialist agents and a connected workspace that remembers your full background.",
+    "An AI-powered career operating system - specialist agents and a connected workspace that remembers your full background.",
 };
 
 // FAQPage JSON-LD is built at runtime from the SAME FAQS array the visible
@@ -1407,7 +1407,7 @@ const EXAMPLE_RESULTS = [
     persona: "Michael Turner, Data",
     score: 91,
     blurb:
-      "Based on a sample CV: excellent overlap with data and BI roles — your analysis and tooling background is exactly what these teams are hiring for.",
+      "Based on a sample CV: excellent overlap with data and BI roles - your analysis and tooling background is exactly what these teams are hiring for.",
     roles: [
       { role: "Data Analyst", pct: "93%", band: "Sweet spot", cls: "tag-t1" },
       { role: "BI Analyst", pct: "85%", band: "Sweet spot", cls: "tag-t1" },
@@ -1472,7 +1472,7 @@ function ExampleResult() {
   const r = EXAMPLE_RESULTS[idx];
   return (
     <div className="lv-exres lv-reveal" data-d="3">
-      <div className="lv-exres-label">Example result — illustrative only</div>
+      <div className="lv-exres-label">Example result - illustrative only</div>
       <div className="lv-exres-card">
         <div className="lv-exres-slide" key={idx}>
           <div className="lv-exres-top">
@@ -2192,7 +2192,7 @@ const FEATURES = [
             }}
           >
             <i className="ti ti-circle-check" style={{ fontSize: 15 }} />
-            Sounds genuine and on-brand — safe to post.
+            Sounds genuine and on-brand - safe to post.
           </div>
         </div>
       </>
@@ -2352,7 +2352,7 @@ function FeatureExplorer() {
 const HEAD_START = [
   {
     name: "Not sure which roles actually fit you?",
-    desc: "Stop guessing from job titles alone. Every open role gets ranked against your real profile — skills, experience, and goals — so you know exactly which ones are a real shot before you spend an hour tailoring a CV.",
+    desc: "Stop guessing from job titles alone. Every open role gets ranked against your real profile - skills, experience, and goals - so you know exactly which ones are a real shot before you spend an hour tailoring a CV.",
     tag: "Ranked by fit",
     tagClass: "tag-t1",
     preview: (
@@ -2408,7 +2408,7 @@ const HEAD_START = [
   },
   {
     name: "Just graduated, CV still generic?",
-    desc: "A CV that reads like a template gets ignored. Get a fresh version for every application, rewritten from your actual experience and accomplishments — never invented, just reframed to match what that specific job is asking for.",
+    desc: "A CV that reads like a template gets ignored. Get a fresh version for every application, rewritten from your actual experience and accomplishments - never invented, just reframed to match what that specific job is asking for.",
     tag: "AI-written",
     tagClass: "tag-t2",
     preview: (
@@ -2533,7 +2533,7 @@ const HEAD_START = [
   },
   {
     name: "Applying everywhere, losing track?",
-    desc: "Spreadsheets and browser tabs lose track fast. One board holds every application from saved to interview to offer, with the next step for each one already attached — nothing falls through the cracks.",
+    desc: "Spreadsheets and browser tabs lose track fast. One board holds every application from saved to interview to offer, with the next step for each one already attached - nothing falls through the cracks.",
     tag: "Saved → offer",
     tagClass: "tag-t3",
     preview: (
@@ -2613,7 +2613,7 @@ const HEAD_START = [
   },
   {
     name: "Don't know what to do today?",
-    desc: "Some days the next step isn't obvious. An assistant that knows your roadmap, pipeline, and stories tells you the one concrete thing to do next — and helps you actually do it.",
+    desc: "Some days the next step isn't obvious. An assistant that knows your roadmap, pipeline, and stories tells you the one concrete thing to do next - and helps you actually do it.",
     tag: "Always on",
     tagClass: "tag-t1",
     preview: (
@@ -2663,7 +2663,7 @@ const HEAD_START = [
           <div
             style={{ fontSize: 10.5, color: "var(--ink-soft)", marginTop: 4 }}
           >
-            Posted 6 hours ago — matches your top skills
+            Posted 6 hours ago - matches your top skills
           </div>
         </div>
         <span className="lv-sc-pill tag-t1" style={{ fontSize: 10 }}>
@@ -2674,7 +2674,7 @@ const HEAD_START = [
   },
   {
     name: "Job hunting across a dozen tabs?",
-    desc: "Switching between the posting and your CV gets old fast. Paste the job description into a side panel right on the posting itself, and get a CV tailored to that exact role back in seconds — without ever leaving the page.",
+    desc: "Switching between the posting and your CV gets old fast. Paste the job description into a side panel right on the posting itself, and get a CV tailored to that exact role back in seconds - without ever leaving the page.",
     tag: "Coming soon",
     tagClass: "tag-t3",
     preview: (
@@ -2837,7 +2837,7 @@ function HeadStart() {
           <div className="lv-eyebrow">Get a head start</div>
           <h2>Get a head start on your career.</h2>
           <p>
-            One profile, seven tools — pick whichever one matches where you're
+            One profile, seven tools - pick whichever one matches where you're
             stuck right now.
           </p>
         </div>
@@ -2895,7 +2895,7 @@ const CHALLENGES = [
   {
     name: "CVs",
     prob: "Rewriting your CV for every job takes hours you don't have.",
-    sol: "Get a version tailored to each posting in minutes, pulled from your real, matching experience — never invented.",
+    sol: "Get a version tailored to each posting in minutes, pulled from your real, matching experience - never invented.",
     cta: "Try tailored CVs",
   },
   {
@@ -2933,7 +2933,7 @@ function SolveChallenge({ onCTA }) {
           <div className="lv-eyebrow">The honest problem</div>
           <h2>Solve the challenge of job-searching.</h2>
           <p>
-            Five things that make job searching miserable — and how one
+            Five things that make job searching miserable - and how one
             connected profile fixes each.
           </p>
         </div>
@@ -2990,7 +2990,7 @@ const MEMORY_ROWS = [
   {
     headline: "Log every win",
     tool: "Story Bank",
-    desc: "Capture an accomplishment once in your Story Bank, and it resurfaces automatically in every future tailored CV where it's relevant — write it once, reuse it everywhere.",
+    desc: "Capture an accomplishment once in your Story Bank, and it resurfaces automatically in every future tailored CV where it's relevant - write it once, reuse it everywhere.",
     mock: (
       <>
         <div
@@ -3085,7 +3085,7 @@ const MEMORY_ROWS = [
   {
     headline: "Remembers every conversation",
     tool: "AI Career Coach",
-    desc: "Tell your coach something once, and it stays part of your context — ask a question next month, and it already knows, without you repeating yourself.",
+    desc: "Tell your coach something once, and it stays part of your context - ask a question next month, and it already knows, without you repeating yourself.",
     mock: (
       <>
         <div
@@ -3142,7 +3142,7 @@ const MEMORY_ROWS = [
               color: "var(--ink-soft)",
             }}
           >
-            Got it — I'll start surfacing product-adjacent roles and
+            Got it - I'll start surfacing product-adjacent roles and
             highlighting your cross-functional work in future CVs.
           </div>
         </div>
@@ -3211,7 +3211,7 @@ const MEMORY_ROWS = [
               color: "var(--ink-soft)",
             }}
           >
-            Yes — this Associate PM role is a strong match. Your intake-workflow
+            Yes - this Associate PM role is a strong match. Your intake-workflow
             launch and stakeholder work put you in the top tier for it, and
             it'll get competitive fast. Want me to tailor your CV for it now?
           </div>
@@ -3222,7 +3222,7 @@ const MEMORY_ROWS = [
   {
     headline: "Track every lead",
     tool: "Job Tracker",
-    desc: "Every application you save, apply to, or move forward stays on one board — company, stage, and next step, all remembered in one place.",
+    desc: "Every application you save, apply to, or move forward stays on one board - company, stage, and next step, all remembered in one place.",
     mock: (
       <>
         <div
@@ -3324,7 +3324,7 @@ const MEMORY_ROWS = [
   {
     headline: "Every version of your story",
     tool: "LinkedIn Optimizer",
-    desc: "Your CV, your coach, and your LinkedIn all draw from the same profile, so your headline, your outreach, and your resume all sound like the same person — not three different rewrites of your story.",
+    desc: "Your CV, your coach, and your LinkedIn all draw from the same profile, so your headline, your outreach, and your resume all sound like the same person - not three different rewrites of your story.",
     mock: (
       <>
         <div
@@ -3408,7 +3408,7 @@ const MEMORY_ROWS = [
           }}
         >
           <i className="ti ti-circle-check" style={{ fontSize: 13 }} />
-          Written from the same profile — no separate rewrite
+          Written from the same profile - no separate rewrite
         </div>
         <div
           style={{
@@ -3456,7 +3456,7 @@ const MEMORY_ROWS = [
             }}
           >
             <i className="ti ti-circle-check" style={{ fontSize: 13 }} />
-            Sounds genuine and on-brand — safe to post.
+            Sounds genuine and on-brand - safe to post.
           </div>
         </div>
       </>

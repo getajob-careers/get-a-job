@@ -85,23 +85,23 @@ const CHALLENGES = [
 const CV_OPTIONS = [
   { value: "always", label: "Yes, I tailor it for most applications" },
   { value: "sometimes", label: "Sometimes, for roles I really want" },
-  { value: "rarely", label: "Rarely — I mostly use one version" },
-  { value: "never", label: "Never — I use the same CV for everything" },
+  { value: "rarely", label: "Rarely - I mostly use one version" },
+  { value: "never", label: "Never - I use the same CV for everything" },
 ];
 
 const LINKEDIN_OPTIONS = [
-  { value: "often", label: "Yes, often — I message recruiters or employees regularly" },
-  { value: "sometimes", label: "Sometimes — I've tried it a few times" },
-  { value: "rarely", label: "Rarely — I find it awkward" },
-  { value: "never", label: "Never — I haven't tried" },
+  { value: "often", label: "Yes, often - I message recruiters or employees regularly" },
+  { value: "sometimes", label: "Sometimes - I've tried it a few times" },
+  { value: "rarely", label: "Rarely - I find it awkward" },
+  { value: "never", label: "Never - I haven't tried" },
 ];
 
 const CLARITY_OPTIONS = [
-  { value: 1, label: "1 — No idea" },
-  { value: 2, label: "2 — Vague idea" },
-  { value: 3, label: "3 — Some clarity" },
-  { value: 4, label: "4 — Fairly clear" },
-  { value: 5, label: "5 — Very clear" },
+  { value: 1, label: "1 - No idea" },
+  { value: 2, label: "2 - Vague idea" },
+  { value: 3, label: "3 - Some clarity" },
+  { value: 4, label: "4 - Fairly clear" },
+  { value: 5, label: "5 - Very clear" },
 ];
 
 const VALID_TABS = ["profile", "education", "goals", "self-assessment", "projects", "experience"];
@@ -911,7 +911,7 @@ export default function Profile() {
         {!isLoading && activeTab === "self-assessment" && (
           <div className={`${RD_CARD_LG} space-y-6`}>
             <p className="rounded-[14px] px-4 py-3 text-[13px] leading-[1.55] bg-rd-teal-tint border border-rd-teal/30 text-rd-text">
-              The same questions from onboarding. Update any of these as your situation changes — they
+              The same questions from onboarding. Update any of these as your situation changes - they
               feed the weekly task generator and the chat agents&apos; understanding of where you&apos;re stuck.
             </p>
 
@@ -1164,7 +1164,7 @@ export default function Profile() {
               </div>
               <SkillTagInput
                 label="Skills & tools"
-                description="Skills you applied + software / platforms you used in this role — feeds CV bullet generation and skill-graph matching."
+                description="Skills you applied + software / platforms you used in this role - feeds CV bullet generation and skill-graph matching."
                 tags={expForm.skills}
                 onChange={(v) => setExpForm({ ...expForm, skills: v })}
                 placeholder="e.g. customer success, stakeholder management, Salesforce, Python"
@@ -1336,7 +1336,7 @@ function UnmappedSkillsSection({ profile, profileForm, setProfileForm }) {
         Skills we couldn&apos;t match ({fixable.length})
       </p>
       <p className="text-[11.5px] text-rd-text-secondary mb-3 leading-relaxed">
-        These labels are in your skills but don&apos;t match a standard skill — so
+        These labels are in your skills but don&apos;t match a standard skill - so
         they won&apos;t count for job matching or CV tailoring. Pick a suggestion
         to replace, or remove. Changes save when you save the profile.
       </p>
@@ -1371,7 +1371,7 @@ function UnmappedSkillsSection({ profile, profileForm, setProfileForm }) {
                 </div>
               ) : (
                 <p className="mt-1 text-[11px] text-rd-text-tertiary italic">
-                  No close match in the standard library — remove or leave as-is.
+                  No close match in the standard library - remove or leave as-is.
                 </p>
               )}
             </div>

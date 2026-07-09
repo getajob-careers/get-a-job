@@ -98,7 +98,7 @@ export default function BulletsEditor({
     const res = await extractBullets({ text, targetType, targetId: entityId });
     setAiBusy(false);
     if (!res || !Array.isArray(res.bullets) || res.bullets.length === 0) {
-      toast.error("Couldn't draft a bullet from that — try adding a detail.");
+      toast.error("Couldn't draft a bullet from that - try adding a detail.");
       return;
     }
     setProposed(res);

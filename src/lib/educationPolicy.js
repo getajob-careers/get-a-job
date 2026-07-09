@@ -117,15 +117,15 @@ export function normalizeEducationLevel(raw) {
 // "other" is a sentinel — when selected, the form shows a free-text input
 // and writes the user-typed string instead of the literal "other".
 export const DEGREE_TYPE_OPTIONS = [
-  { value: "B.A.",              label: "B.A. — Bachelor of Arts" },
-  { value: "B.Sc.",             label: "B.Sc. — Bachelor of Science" },
-  { value: "M.A.",              label: "M.A. — Master of Arts" },
-  { value: "M.Sc.",             label: "M.Sc. — Master of Science" },
-  { value: "MBA",               label: "MBA — Master of Business Administration" },
+  { value: "B.A.",              label: "B.A. - Bachelor of Arts" },
+  { value: "B.Sc.",             label: "B.Sc. - Bachelor of Science" },
+  { value: "M.A.",              label: "M.A. - Master of Arts" },
+  { value: "M.Sc.",             label: "M.Sc. - Master of Science" },
+  { value: "MBA",               label: "MBA - Master of Business Administration" },
   { value: "Ph.D.",             label: "Ph.D." },
   { value: "J.D.",              label: "J.D." },
   { value: "M.D.",              label: "M.D." },
-  { value: "LL.B.",             label: "LL.B. — Bachelor of Laws" },
+  { value: "LL.B.",             label: "LL.B. - Bachelor of Laws" },
   { value: "Practical Engineer", label: "Practical Engineer" },
   { value: "other",             label: "Other (specify)" },
 ];

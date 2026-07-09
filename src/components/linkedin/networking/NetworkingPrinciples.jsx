@@ -28,16 +28,16 @@ export default function NetworkingPrinciples() {
 
       <PrincipleCard Icon={MessageCircle} title="What makes a comment count">
         <ul className="text-[12px] text-rd-text-secondary leading-snug space-y-1.5 list-none">
-          <li>• <strong className="font-display font-semibold text-rd-text">15+ words minimum.</strong> &quot;Great post!&quot; / &quot;So true!&quot; / &quot;100%&quot; add nothing — research-backed signal of low effort</li>
+          <li>• <strong className="font-display font-semibold text-rd-text">15+ words minimum.</strong> &quot;Great post!&quot; / &quot;So true!&quot; / &quot;100%&quot; add nothing - research-backed signal of low effort</li>
           <li>• <strong className="font-display font-semibold text-rd-text">Reference something specific</strong> the original poster said (a phrase, a number, a claim)</li>
-          <li>• <strong className="font-display font-semibold text-rd-text">Add your own concrete experience</strong> — a real number, a real example, a real counterexample</li>
+          <li>• <strong className="font-display font-semibold text-rd-text">Add your own concrete experience</strong> - a real number, a real example, a real counterexample</li>
           <li>• <strong className="font-display font-semibold text-rd-text">Sweet spot: 50–150 words.</strong> Over 200 words reads as hijacking the post for your own monologue</li>
         </ul>
       </PrincipleCard>
 
       <PrincipleCard Icon={Clock} title="Reply window matters">
         <p className="text-[12px] text-rd-text-secondary leading-snug">
-          When someone comments on your post, replying within <strong className="font-display font-semibold text-rd-text">30 minutes</strong> correlates with 64% more total comments and 2.3× more views. The first 60 minutes determine whether the post breaks out beyond your direct connections — under 500 impressions in hour 1 typically caps further reach.
+          When someone comments on your post, replying within <strong className="font-display font-semibold text-rd-text">30 minutes</strong> correlates with 64% more total comments and 2.3× more views. The first 60 minutes determine whether the post breaks out beyond your direct connections - under 500 impressions in hour 1 typically caps further reach.
         </p>
       </PrincipleCard>
 
@@ -45,22 +45,22 @@ export default function NetworkingPrinciples() {
         <ul className="text-[12px] text-rd-text-secondary leading-snug space-y-1.5 list-none">
           <li>• <strong className="font-display font-semibold text-rd-text">Weekly cap:</strong> ~100 invites/week is the standard limit. Spread across 5–6 days; sending 100 in one morning gets flagged</li>
           <li>• <strong className="font-display font-semibold text-rd-text">Acceptance floor:</strong> stay above 30% acceptance rate or LinkedIn restricts your account</li>
-          <li>• <strong className="font-display font-semibold text-rd-text">With note vs without — contested:</strong> personalized notes don&apos;t always lift acceptance rate, but they DO lift the post-acceptance reply rate (9.4% vs 5.4%). A short note referencing mutual context (alumni, course, shared event) is the safe default</li>
+          <li>• <strong className="font-display font-semibold text-rd-text">With note vs without - contested:</strong> personalized notes don&apos;t always lift acceptance rate, but they DO lift the post-acceptance reply rate (9.4% vs 5.4%). A short note referencing mutual context (alumni, course, shared event) is the safe default</li>
           <li>• <strong className="font-display font-semibold text-rd-text">Free LinkedIn track: </strong> only 5 personalized note invites per month. Premium lifts this</li>
         </ul>
       </PrincipleCard>
 
       <PrincipleCard Icon={Users} title="Cold outreach reply rates by recipient">
         <ul className="text-[12px] text-rd-text-secondary leading-snug space-y-1.5 list-none">
-          <li>• <strong className="font-display font-semibold text-rd-text">HR / talent acquisition: ~12.1% reply rate</strong> — the highest of any recipient type. For students, DMing recruiters is higher-yield than DMing hiring managers</li>
-          <li>• <strong className="font-display font-semibold text-rd-text">First-degree connections: ~16.9% reply rate</strong> — leverage existing network before going cold</li>
-          <li>• <strong className="font-display font-semibold text-rd-text">LinkedIn DMs vs cold email: 10.3% vs 5.1%</strong> — LinkedIn outperforms email for reaching new people</li>
+          <li>• <strong className="font-display font-semibold text-rd-text">HR / talent acquisition: ~12.1% reply rate</strong> - the highest of any recipient type. For students, DMing recruiters is higher-yield than DMing hiring managers</li>
+          <li>• <strong className="font-display font-semibold text-rd-text">First-degree connections: ~16.9% reply rate</strong> - leverage existing network before going cold</li>
+          <li>• <strong className="font-display font-semibold text-rd-text">LinkedIn DMs vs cold email: 10.3% vs 5.1%</strong> - LinkedIn outperforms email for reaching new people</li>
         </ul>
       </PrincipleCard>
 
-      <PrincipleCard Icon={Eye} title="Open To Work — toggle, not the green badge">
+      <PrincipleCard Icon={Eye} title="Open To Work - toggle, not the green badge">
         <ul className="text-[12px] text-rd-text-secondary leading-snug space-y-1.5 list-none">
-          <li>• <strong className="font-display font-semibold text-rd-text">The private &quot;Open to Recruiters&quot; toggle is uncontroversial</strong> — only LinkedIn Recruiter customers see your status. Use it.</li>
+          <li>• <strong className="font-display font-semibold text-rd-text">The private &quot;Open to Recruiters&quot; toggle is uncontroversial</strong> - only LinkedIn Recruiter customers see your status. Use it.</li>
           <li>• <strong className="font-display font-semibold text-rd-text">The public green #OpenToWork badge is contested.</strong> 70% of recruiters in a LinkedIn poll view it positively, but reporting in Fortune (Sept 2024) and trade press argues it can read as desperate or trigger lowball offers in competitive markets</li>
           <li>• <strong className="font-display font-semibold text-rd-text">Trade-off, not a rule.</strong> If you&apos;re applying broadly to many roles → the public badge surfaces you to more recruiters. If you&apos;re targeting a few specific competitive roles → consider the private toggle</li>
         </ul>

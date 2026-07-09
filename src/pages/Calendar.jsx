@@ -533,7 +533,7 @@ function DayCell({ day, inMonth, items, selected, isToday, onClick, compact }) {
             <div
               key={it.id}
               className="text-[10.5px] font-display font-semibold truncate rounded-[6px] px-1.5 py-0.5"
-              title={`${it.title}${it.subtitle ? ` — ${it.subtitle}` : ""}`}
+              title={`${it.title}${it.subtitle ? ` - ${it.subtitle}` : ""}`}
               style={{
                 background: tone.bg,
                 color: tone.fg,

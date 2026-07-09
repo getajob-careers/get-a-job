@@ -180,16 +180,19 @@ function significantTokens(s: string): Set<string> {
   }
   return out;
 }
-export function bulletCoveredBy(stored: string, emitted: string[]): boolean {
+// Pairwise coverage: is `emittedOne` a reword of `stored` (a majority of stored's
+// significant content words reappear in it)? The unit the 1:1 matcher builds on.
+export function bulletCoveredByOne(stored: string, emittedOne: string): boolean {
   const s = significantTokens(stored);
   if (s.size === 0) return true; // no content to protect
-  for (const e of emitted) {
-    const es = significantTokens(e);
-    let shared = 0;
-    for (const t of s) if (es.has(t)) shared++;
-    if (shared / s.size >= 0.5) return true; // majority of content words reworded through
-  }
-  return false;
+  const es = significantTokens(emittedOne);
+  let shared = 0;
+  for (const t of s) if (es.has(t)) shared++;
+  return shared / s.size >= 0.5;
+}
+export function bulletCoveredBy(stored: string, emitted: string[]): boolean {
+  if (significantTokens(stored).size === 0) return true; // no content to protect
+  return emitted.some((e) => bulletCoveredByOne(stored, e));
 }
 
 // Retention floor (P1.1) — the FINAL word on experience bullets, run AFTER the
@@ -222,18 +225,36 @@ export function applyRetentionFloor(
         .map((b) => String(b || "").trim())
         .filter(Boolean);
       if (stored.length === 0) continue;
-      let bullets = Array.isArray(entry.bullets)
+      const emitted = Array.isArray(entry.bullets)
         ? entry.bullets.map((b: unknown) => String(b || "").trim()).filter(Boolean)
         : [];
+      // 1:1 matching — the retention invariant is PER-BULLET representation: each
+      // stored bullet needs its OWN distinct emitted bullet, so an emitted bullet
+      // may cover AT MOST ONE stored bullet. (The old any-emitted-covers-this-
+      // stored check let one reworded bullet "cover" two similar stored bullets,
+      // so the second was silently dropped — Nahal rendered 2 of 3 with nothing
+      // flagged.) Greedy first-match; ties bias toward restoring, which is the
+      // safe direction (a false restore is a visible near-dup, a false cover
+      // silently drops a bullet — Eli's rule forbids that).
+      const claimed = new Array<boolean>(emitted.length).fill(false);
       const deprioritized: string[] = [];
       for (const cb of stored) {
-        if (!bulletCoveredBy(cb, bullets)) {
-          bullets = [...bullets, cb];
+        if (significantTokens(cb).size === 0) continue; // no content to protect
+        let matched = -1;
+        for (let i = 0; i < emitted.length; i++) {
+          if (!claimed[i] && bulletCoveredByOne(cb, emitted[i])) {
+            matched = i;
+            break;
+          }
+        }
+        if (matched >= 0) {
+          claimed[matched] = true;
+        } else {
           deprioritized.push(cb);
           restored++;
         }
       }
-      entry.bullets = bullets;
+      entry.bullets = [...emitted, ...deprioritized];
       if (deprioritized.length > 0) entry.deprioritized_bullets = deprioritized;
       else if ("deprioritized_bullets" in entry) delete entry.deprioritized_bullets;
     }

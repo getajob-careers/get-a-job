@@ -114,7 +114,7 @@ export default function Settings() {
               <p className="text-sm font-display font-semibold text-rd-text">Reset onboarding</p>
               <p className="text-xs text-rd-text-secondary mt-1 leading-relaxed">
                 Clears your profile, career roadmap, applications, tasks, experiences, projects, and certifications,
-                then sends you back through onboarding. Your account stays — only the data you entered is wiped.
+                then sends you back through onboarding. Your account stays - only the data you entered is wiped.
               </p>
               {resetError && (
                 <p className="text-xs text-rd-coral-dark mt-2 flex items-center gap-1.5">

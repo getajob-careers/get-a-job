@@ -22,7 +22,7 @@ export default function RdSkipFooter({
   return (
     <div className="flex flex-col gap-3 pt-4 border-t border-rd-border-subtle">
       <p className="text-[11.5px] text-rd-text-secondary leading-snug text-center">
-        Skip — tagging skills helps generate better CVs and job matches.
+        Skip - tagging skills helps generate better CVs and job matches.
       </p>
       <div className="flex items-center justify-between">
         {onBack ? (

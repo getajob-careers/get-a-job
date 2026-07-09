@@ -34,8 +34,8 @@ const POST_TYPES = [
     id: "milestone",
     label: "Milestone",
     Icon: Flag,
-    description: "Share a career update — internship offer, role start, certification, graduation. Specific gratitude with named people works far better than generic excitement.",
-    saveableHint: "Skip 'Excited to share' / 'Thrilled to announce' — these are algorithmically suppressed.",
+    description: "Share a career update - internship offer, role start, certification, graduation. Specific gratitude with named people works far better than generic excitement.",
+    saveableHint: "Skip 'Excited to share' / 'Thrilled to announce' - these are algorithmically suppressed.",
   },
   {
     id: "recap",
@@ -48,22 +48,22 @@ const POST_TYPES = [
     id: "observation",
     label: "Observation",
     Icon: Eye,
-    description: "Your perspective on a trend in your target industry. Highest-risk format — easy to come off as overreach without a concrete example anchoring authority.",
+    description: "Your perspective on a trend in your target industry. Highest-risk format - easy to come off as overreach without a concrete example anchoring authority.",
     saveableHint: "Hardest format to do well. Anchor on a specific example you directly saw or did, then share the take.",
   },
   {
     id: "question",
     label: "Question",
     Icon: HelpCircle,
-    description: "Genuinely ask for input on a decision. You'll be asked what you've already considered — questions that skip this read as lazy.",
+    description: "Genuinely ask for input on a decision. You'll be asked what you've already considered - questions that skip this read as lazy.",
     saveableHint: "Questions are conversational, not saved. End with a specific invitation, not 'Thoughts?'",
   },
   {
     id: "free_form",
     label: "Free form",
     Icon: Pencil,
-    description: "Escape hatch — anything not covered by the structured types above. You provide a topic + intent; the AI applies all the same voice rules.",
-    saveableHint: "Use the structured types when they fit — they produce sharper output. This is the escape hatch.",
+    description: "Escape hatch - anything not covered by the structured types above. You provide a topic + intent; the AI applies all the same voice rules.",
+    saveableHint: "Use the structured types when they fit - they produce sharper output. This is the escape hatch.",
   },
 ];
 

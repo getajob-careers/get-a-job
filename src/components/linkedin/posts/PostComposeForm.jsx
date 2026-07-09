@@ -96,7 +96,7 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
                     placeholder="e.g. Rewrote our VIP onboarding from a 4-step manual handoff to a self-serve guided tour. Designed with our CS lead, prototyped in Notion, built with engineering."
                     rows={3} className={RD_TEXTAREA_CLS} />
         </Field>
-        <Field label="Specific outcome" required hint="Number, metric, what shipped, what changed. The post leads with this — make it concrete.">
+        <Field label="Specific outcome" required hint="Number, metric, what shipped, what changed. The post leads with this - make it concrete.">
           <textarea value={inputs.outcome || ""} onChange={(e) => set("outcome", e.target.value)}
                     placeholder="e.g. Cut average onboarding from 8 days to 3, and our VIP cohort hit 88% feature adoption in their first quarter."
                     rows={2} className={RD_TEXTAREA_CLS} />
@@ -191,7 +191,7 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
         <div>
           <label className="block text-[11px] font-display font-semibold text-rd-text mb-1">People to thank</label>
           <p className="text-[11px] text-rd-text-secondary mb-2">
-            Encouraged but not required. Real names, real specific reasons — research shows specific gratitude beats generic &quot;thanks to everyone who supported me&quot;.
+            Encouraged but not required. Real names, real specific reasons - research shows specific gratitude beats generic &quot;thanks to everyone who supported me&quot;.
           </p>
           <div className="space-y-2">
             {people.map((p, i) => (
@@ -213,7 +213,7 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
             )}
           </div>
         </div>
-        <Field label="What's next" hint="Optional 1-sentence forward-look. Specific beats 'excited to dive in' — say what you'll actually be doing.">
+        <Field label="What's next" hint="Optional 1-sentence forward-look. Specific beats 'excited to dive in' - say what you'll actually be doing.">
           <Input value={inputs.whats_next || ""} onChange={(e) => set("whats_next", e.target.value)}
                  placeholder="e.g. First two weeks I'm shadowing the renewal cohort" className={RD_INPUT_CLS} />
         </Field>
@@ -238,7 +238,7 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
         </Field>
         <Field label="Specific outcome" required hint="Won prize? Built X? Presented to whom? Concrete result, not 'great experience'.">
           <textarea value={inputs.outcome || ""} onChange={(e) => set("outcome", e.target.value)}
-                    placeholder="e.g. Won 1st place — built a Hebrew-English code-switching translator with two friends in 26 hours."
+                    placeholder="e.g. Won 1st place - built a Hebrew-English code-switching translator with two friends in 26 hours."
                     rows={2} className={RD_TEXTAREA_CLS} />
         </Field>
         <div>
@@ -266,7 +266,7 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
             )}
           </div>
         </div>
-        <Field label="Key lesson" hint="Optional ≤200 chars. One takeaway worth carrying forward — lifts the post's saveability if the lesson is concrete.">
+        <Field label="Key lesson" hint="Optional ≤200 chars. One takeaway worth carrying forward - lifts the post's saveability if the lesson is concrete.">
           <textarea value={inputs.key_lesson || ""} onChange={(e) => set("key_lesson", e.target.value.slice(0, 200))}
                     placeholder="e.g. The team that pre-discussed scope cuts before the demo always finishes; the team that doesn't, ships half-broken features."
                     rows={2} className={RD_TEXTAREA_CLS} />
@@ -311,9 +311,9 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
                     placeholder="e.g. Picking between a Customer Success offer at Guardio and a Product Analyst offer at a Series-B fintech."
                     rows={2} className={RD_TEXTAREA_CLS} />
         </Field>
-        <Field label="What you've already considered" required hint="The factors you've weighed, the people you've talked to, the constraints. This shows you've thought about it — questions that skip this read as lazy and underperform.">
+        <Field label="What you've already considered" required hint="The factors you've weighed, the people you've talked to, the constraints. This shows you've thought about it - questions that skip this read as lazy and underperform.">
           <textarea value={inputs.what_youve_considered || ""} onChange={(e) => set("what_youve_considered", e.target.value)}
-                    placeholder="e.g. CS gives me 1-2 years of customer-facing depth + a clearer path to PM later. Product Analyst gives me data fluency now but I'd be the most junior on the team. Talked to 3 PMs who started in CS — all said it was the right call but slow."
+                    placeholder="e.g. CS gives me 1-2 years of customer-facing depth + a clearer path to PM later. Product Analyst gives me data fluency now but I'd be the most junior on the team. Talked to 3 PMs who started in CS - all said it was the right call but slow."
                     rows={4} className={RD_TEXTAREA_CLS} />
         </Field>
         <Field label="Where you're stuck" required hint="The narrow place where outside input would change your decision.">
@@ -330,7 +330,7 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
     return (
       <FormShell postType={postType} onBack={onBack} onGenerate={onGenerate} generating={generating} canSubmit={canSubmit}>
         <div className="rounded-[14px] px-4 py-3 text-[11.5px] leading-snug bg-rd-bg-soft border border-rd-border text-rd-text-secondary">
-          The escape hatch. The structured types above produce sharper output — try one if your topic fits. Free-form still applies all voice rules (no engagement-bait, no banned openers, anti-fab discipline) and grounds the post in your real profile + experiences.
+          The escape hatch. The structured types above produce sharper output - try one if your topic fits. Free-form still applies all voice rules (no engagement-bait, no banned openers, anti-fab discipline) and grounds the post in your real profile + experiences.
         </div>
         <Field label="Topic" required hint="1-2 sentences on what the post is about.">
           <textarea value={inputs.topic || ""} onChange={(e) => set("topic", e.target.value.slice(0, 600))}
@@ -338,7 +338,7 @@ export default function PostComposeForm({ postType, inputs, onChange, onBack, on
                     rows={3} className={RD_TEXTAREA_CLS} />
           <p className="text-[10px] text-rd-text-tertiary mt-1 text-right">{(inputs.topic || "").length}/600</p>
         </Field>
-        <Field label="Why posting" required hint="The structural intent — drives how the AI shapes the post.">
+        <Field label="Why posting" required hint="The structural intent - drives how the AI shapes the post.">
           <Select value={inputs.intent || "share_experience"} onValueChange={(v) => set("intent", v)}>
             <SelectTrigger className={RD_INPUT_CLS}><SelectValue /></SelectTrigger>
             <SelectContent>

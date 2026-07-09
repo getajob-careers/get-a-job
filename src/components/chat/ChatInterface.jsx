@@ -37,9 +37,9 @@ import { CHAT_MODEL } from "@/lib/chatModel";
 
 
 const TRACK_LABELS = {
-  track_1: "Track 1 — Your Move",
-  track_2: "Track 2 — Plan B",
-  track_3: "Track 3 — Work Toward",
+  track_1: "Track 1 - Your Move",
+  track_2: "Track 2 - Plan B",
+  track_3: "Track 3 - Work Toward",
 };
 
 // PR 3K — semantic-banner mapping retired. All action cards land on a
@@ -112,7 +112,7 @@ function RoadmapChangeCard({ messageId, changes, applied, onApply }) {
               <span>Remove <strong className="font-display font-semibold text-rd-text">{change.role_title}</strong></span>
             )}
             {change.reason && (
-              <span className="text-rd-text-tertiary"> — {change.reason}</span>
+              <span className="text-rd-text-tertiary"> - {change.reason}</span>
             )}
           </li>
         ))}
@@ -149,11 +149,11 @@ function ApplicationActionsCard({ messageId, actions, applied, onApply }) {
         {actions.map((a, i) => (
           <li key={i} className="text-xs text-rd-text-secondary leading-relaxed">
             {a.action === "add_application" && (
-              <span>Add <strong className="font-display font-semibold text-rd-text">{a.company}</strong> — {a.role_title} ({a.status || "interested"}{a.track ? `, ${a.track}` : ""})</span>
+              <span>Add <strong className="font-display font-semibold text-rd-text">{a.company}</strong> - {a.role_title} ({a.status || "interested"}{a.track ? `, ${a.track}` : ""})</span>
             )}
             {a.action === "update_application" && (
               <span>
-                Update <strong className="font-display font-semibold text-rd-text">{a.match_company}</strong> — {a.match_role_title}:
+                Update <strong className="font-display font-semibold text-rd-text">{a.match_company}</strong> - {a.match_role_title}:
                 {a.new_status && <span> status → {a.new_status}</span>}
                 {a.new_interview_stage && <span>, stage → {a.new_interview_stage}</span>}
                 {a.new_track && <span>, track → {a.new_track}</span>}
@@ -331,7 +331,7 @@ function CVGenerationCard({ proposal, state, onGenerate, appLabel, userName }) {
               Review before sending ({unsourced_bullets.length} {unsourced_bullets.length === 1 ? "bullet" : "bullets"})
             </p>
             <p className="text-[11px] text-rd-golden-dark leading-relaxed">
-              Some bullets reference numbers or tools that we couldn&apos;t trace back to your profile data. Open the CV and double-check each one is accurate before sending — the AI sometimes elaborates.
+              Some bullets reference numbers or tools that we couldn&apos;t trace back to your profile data. Open the CV and double-check each one is accurate before sending - the AI sometimes elaborates.
             </p>
           </div>
         )}
@@ -812,7 +812,7 @@ export default function ChatInterface({
         role: "assistant",
         content: sessionExpired
           ? "Your session expired. Please sign out and sign in again to continue."
-          : "I couldn't reach the AI service. This is usually temporary — tap Retry to try again.",
+          : "I couldn't reach the AI service. This is usually temporary - tap Retry to try again.",
         id: crypto.randomUUID(),
         isError: true,
         userMessageText: sessionExpired ? null : text,
@@ -980,7 +980,7 @@ export default function ChatInterface({
     setAppliedCompanyTargetSets((prev) => ({ ...prev, [messageId]: true }));
     queryClient.invalidateQueries({ queryKey: ["company_targets", user.id] });
     if (res.skippedDuplicate > 0) {
-      toast.message(`Already in your pipeline — skipped ${res.skippedDuplicate}.`);
+      toast.message(`Already in your pipeline - skipped ${res.skippedDuplicate}.`);
     } else {
       toast.success("Internship updated");
     }
@@ -1012,7 +1012,7 @@ export default function ChatInterface({
     if (res.unknownCompany) {
       // ⑤ (QA2): never silently file an app with no company. Say so, and invite
       // the correction, instead of leaving a mystery "Unknown" in the tracker.
-      toast.success("CV generated and added to your tracker — I didn't catch the company name, so tell me anytime and I'll fill it in.");
+      toast.success("CV generated and added to your tracker - I didn't catch the company name, so tell me anytime and I'll fill it in.");
     } else if (res.result.application_id) {
       toast.success("CV linked to your application tracker!");
     } else {

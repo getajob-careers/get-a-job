@@ -8,7 +8,7 @@ import GeneratingBanner from "@/components/ui/GeneratingBanner";
 const COURSE_MESSAGES = [
   "Matching your skill gaps to courses…",
   "Selecting free & affordable options…",
-  "Almost ready — finalising recommendations…",
+  "Almost ready - finalising recommendations…",
 ];
 
 export default function SkillGapCourses({ skillGaps }) {
@@ -66,7 +66,7 @@ export default function SkillGapCourses({ skillGaps }) {
       </div>
 
       {loading && (
-        <GeneratingBanner messages={COURSE_MESSAGES} subtitle="Loading recommendations — this takes ~10 seconds" />
+        <GeneratingBanner messages={COURSE_MESSAGES} subtitle="Loading recommendations - this takes ~10 seconds" />
       )}
 
       {error && !loading && (
@@ -90,7 +90,7 @@ export default function SkillGapCourses({ skillGaps }) {
                   </div>
                   <p className="text-[11px] text-[#525252] mb-1.5 leading-relaxed">{course.description}</p>
                   <p className="text-[10px] text-[#A3A3A3] italic">
-                    <span className="font-medium text-amber-600">Gap:</span> {course.skill_gap} — {course.relevance}
+                    <span className="font-medium text-amber-600">Gap:</span> {course.skill_gap} - {course.relevance}
                   </p>
                 </div>
                 <a

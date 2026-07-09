@@ -47,7 +47,7 @@ export default function StoryBankSidebar({ attachedStoryId, onAttach, onDetach }
         <span className="text-[11px] text-rd-text-tertiary ml-auto">(optional)</span>
       </div>
       <p className="text-[11.5px] text-rd-text-secondary leading-snug mb-3">
-        Stories ground the post in real metrics and tools. The AI uses verbatim numbers from attached stories — no fabrication.
+        Stories ground the post in real metrics and tools. The AI uses verbatim numbers from attached stories - no fabrication.
       </p>
 
       {attached && (

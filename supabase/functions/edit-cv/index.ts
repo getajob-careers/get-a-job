@@ -17,7 +17,8 @@ import { createClient } from "npm:@supabase/supabase-js@2";
 import { openaiChatCompletionWithRetry } from "../_shared/openai-chat.ts";
 import { parseLlmJsonObject } from "../_shared/json-parse.ts";
 import { applyAntiFabGate } from "../_shared/cv-antifab.ts";
-import { enforceCvInvariants } from "../_shared/cv-enforce-invariants.ts";
+import { enforceCvInvariants, scrubCvVoice } from "../_shared/cv-enforce-invariants.ts";
+import { CV_VOICE_RULES } from "../_shared/voice-rules.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -44,7 +45,9 @@ Hard rules:
 - Keep it concise and ATS-friendly.
 - SCOPE (be honest, never silently no-op): you can ONLY edit THIS CV document. You do NOT have access to the user's saved Profile or Experiences. If the instruction asks to change their SAVED profile / experiences / bullets everywhere (e.g. "fix the duplicate bullets in my profile", "delete this from my experience", "update my saved CV"), do NOT pretend to. Return the cv_data UNCHANGED and set message to exactly: "I can edit this CV document, but I can't change your saved profile. To fix your experience or bullets everywhere, edit them in your Profile page." If the instruction is about THIS document (rephrase, tighten, reorder, or dedupe the visible bullets), apply it normally.
 
-Return JSON only: { "cv_data": <the full edited CV object>, "message": "<one short sentence describing what you changed>" }.`;
+Return JSON only: { "cv_data": <the full edited CV object>, "message": "<one short sentence describing what you changed>" }.
+
+${CV_VOICE_RULES}`;
 
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -166,6 +169,11 @@ Deno.serve(async (req) => {
       return json({ cv_data: enf.cv_data, message });
     }
 
+    // Deterministic voice scrub (banned verbs + em dash), ALWAYS-ON regardless of
+    // the cv_enforce_v2 flag, so an edit that introduces an em dash can't persist
+    // one. Idempotent; mutates in place. The flag path above already scrubs via
+    // enforceCvInvariants' composed step.
+    scrubCvVoice(guard.cv_data);
     return json({ cv_data: guard.cv_data, message });
   } catch (e) {
     return json({ error: e instanceof Error ? e.message : "edit-cv failed" }, 500);

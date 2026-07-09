@@ -5,7 +5,7 @@
 // (f(f(x)) deep-equals f(x)). No network / no live LLM: the Hebrew gate runs its
 // deterministic strip when no translate fn is passed.
 import { describe, it, expect } from "vitest";
-import { enforceCvInvariants } from "./cv-enforce-invariants.ts";
+import { enforceCvInvariants, scrubCvVoice } from "./cv-enforce-invariants.ts";
 import { cvHasHebrew } from "./cv-translate.ts";
 
 // A minimal master cv_data: the user's own verified content (the trace corpus and
@@ -30,6 +30,37 @@ const MASTER = {
 };
 
 const clone = (o: unknown) => JSON.parse(JSON.stringify(o));
+
+describe("scrubCvVoice — em dash + banned verbs (shared by gtc/refine/edit)", () => {
+  it("replaces the em dash (U+2014) with ' - ', collapsing surrounding spaces", () => {
+    expect(scrubCvVoice({ s: "Built the pipeline — shipped in a week" }).s)
+      .toBe("Built the pipeline - shipped in a week");
+    expect(scrubCvVoice({ s: "a—b" }).s).toBe("a - b");
+  });
+  it("PRESERVES the en dash (U+2013) — the server-stamped date separator", () => {
+    expect(scrubCvVoice({ dates: "2023 – Present" }).dates).toBe("2023 – Present");
+  });
+  it("rewrites banned LLM-tell verbs, preserving capitalization", () => {
+    expect(scrubCvVoice({ s: "Utilized TypeScript" }).s).toBe("Used TypeScript");
+    expect(scrubCvVoice({ s: "spearheaded the migration" }).s).toBe("led the migration");
+  });
+  it("walks nested arrays/objects and is idempotent", () => {
+    const cv = { professional_experiences: [{ bullets: ["Led — grew the team", "Leveraged Figma"] }] };
+    const once = scrubCvVoice(clone(cv));
+    expect(once.professional_experiences[0].bullets).toEqual(["Led - grew the team", "Used Figma"]);
+    expect(scrubCvVoice(clone(once))).toEqual(once); // idempotent
+  });
+});
+
+describe("enforceCvInvariants — deterministic em-dash scrub composed in", () => {
+  it("strips an em dash the model emitted in a bullet", async () => {
+    const edited = clone(MASTER);
+    edited.professional_experiences[0].bullets = ["Built dashboards in Excel — cut reporting time"];
+    const { cv_data } = await enforceCvInvariants(edited, MASTER, null);
+    expect(JSON.stringify(cv_data)).not.toContain("—");
+    expect(cv_data.professional_experiences[0].bullets[0]).toContain(" - ");
+  });
+});
 
 describe("enforceCvInvariants — proper-noun trace-to-master + no-empty restore", () => {
   it("reverts an experience to master when its ONLY bullet invents a company (not dropped/emptied)", async () => {

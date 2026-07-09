@@ -38,28 +38,28 @@ const SLIDES = [
     name: "browse_jobs",
     title: "Browse jobs",
     description:
-      "Score any role for a personalised fit breakdown. Your 5-year goal anchors every match score — sharper goal, sharper signal.",
+      "Score any role for a personalised fit breakdown. Your 5-year goal anchors every match score - sharper goal, sharper signal.",
     Icon: Briefcase,
   },
   {
     name: "application_tracker",
     title: "Application tracker",
     description:
-      "Track every application, follow-up, and interview in one place. Status updates, notes, and reminder dates — nothing falls through the cracks.",
+      "Track every application, follow-up, and interview in one place. Status updates, notes, and reminder dates - nothing falls through the cracks.",
     Icon: ClipboardList,
   },
   {
     name: "story_bank",
     title: "Story bank",
     description:
-      "Capture the stories behind your experiences. Reusable across CVs, interviews, and LinkedIn posts — written once, reused everywhere.",
+      "Capture the stories behind your experiences. Reusable across CVs, interviews, and LinkedIn posts - written once, reused everywhere.",
     Icon: BookText,
   },
   {
     name: "linkedin_hub",
     title: "LinkedIn hub",
     description:
-      "Optimize your profile, draft posts in your voice, and run networking outreach with AI assist. Needs your LinkedIn data export — request it now if you haven't.",
+      "Optimize your profile, draft posts in your voice, and run networking outreach with AI assist. Needs your LinkedIn data export - request it now if you haven't.",
     Icon: Linkedin,
   },
   {
@@ -260,7 +260,7 @@ export default function OnboardingTutorial({
           </div>
           <div className="flex flex-col gap-2.5">
             <PrimaryButton onClick={handleSkipGate}>
-              Skip tutorial — I&apos;ve seen this before
+              Skip tutorial - I&apos;ve seen this before
             </PrimaryButton>
             <SecondaryButton onClick={() => setGateAcknowledged(true)}>
               Show me again
@@ -361,7 +361,7 @@ export function OnboardingCompleteStep({ onDone }) {
             You&apos;re all set!
           </h2>
           <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-2">
-            Your workspace is ready — your career analysis, tailored tracks, and
+            Your workspace is ready - your career analysis, tailored tracks, and
             first actions are waiting inside.
           </p>
         </div>
