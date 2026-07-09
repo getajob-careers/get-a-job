@@ -3,8 +3,7 @@
     "supabase/functions/_shared/libraries/00_role_library.ts",
     "supabase/functions/_shared/libraries/04_role_skill_mapping.ts"
   ],
-  "generated_at": "2026-06-01",
-  "count": 185,
+  "count": 195,
   "with_skill_mapping": 172,
   "roles": [
     {
@@ -1870,6 +1869,14 @@
       "id": "junior_software_engineer",
       "title": "Junior Software Engineer",
       "alternate_titles": [
+        "Junior Developer",
+        "Junior Programmer",
+        "Software Engineer Intern",
+        "Software Engineer Student",
+        "Software Engineer - Technion Fair",
+        "Software Engineering Student",
+        "Verification Student",
+        "Manual QA Tester",
         "Entry-Level Software Engineer",
         "Software Engineer I",
         "Associate Software Engineer",
@@ -3929,7 +3936,9 @@
       "alternate_titles": [
         "In-House Counsel",
         "Corporate Counsel",
-        "Commercial Counsel"
+        "Commercial Counsel",
+        "Senior Commercial Counsel",
+        "VP Legal"
       ],
       "core_skills": [],
       "secondary_skills": []
@@ -3975,7 +3984,10 @@
         "Privacy Counsel",
         "Global Privacy Counsel",
         "Privacy & Compliance Counsel",
-        "Regulatory Counsel"
+        "Regulatory Counsel",
+        "Crypto Product Compliance Lead",
+        "Compliance Communications Team Lead",
+        "Compliance Lead"
       ],
       "core_skills": [],
       "secondary_skills": []
@@ -4121,6 +4133,178 @@
         "crm_management",
         "customer_communication"
       ]
+    },
+    {
+      "id": "compliance_analyst",
+      "title": "Compliance Analyst",
+      "alternate_titles": [
+        "KYC Analyst",
+        "AML Analyst",
+        "Compliance Specialist",
+        "Regulatory Compliance Analyst"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "chief_compliance_officer",
+      "title": "Chief Compliance Officer",
+      "alternate_titles": [
+        "CCO",
+        "Head of Compliance",
+        "VP Compliance",
+        "Chief Compliance Officer, RHD"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "security_researcher",
+      "title": "Security Researcher",
+      "alternate_titles": [
+        "Vulnerability Researcher",
+        "Application Security Researcher",
+        "iOS Vulnerability Researcher",
+        "Android Security Researcher",
+        "Threat Hunting Researcher",
+        "Cyber ML Event",
+        "Security Researcher Team Lead",
+        "Research Team Lead",
+        "Senior Product Security Low-Level Researcher",
+        "Senior Product Security Researcher",
+        "Senior Product Security Architect",
+        "Applied Algorithms & Operational Researcher",
+        "Technical Policy Researcher",
+        "Android Security Research Team Lead"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "research_scientist",
+      "title": "Research Scientist",
+      "alternate_titles": [
+        "Research Engineer",
+        "Applied Research Scientist",
+        "Senior Research Scientist",
+        "Research Scientist - LTX Model Applications",
+        "Research Scientist – LTX Model Evaluation",
+        "Microbiology Research Lead",
+        "Member of Technical Staff",
+        "Head of Research",
+        "Quantum Optics Student",
+        "Photonic Architect Student",
+        "Applied Physics and Electro-Optics Intern",
+        "Physics student"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "medical_science_liaison",
+      "title": "Medical Science Liaison",
+      "alternate_titles": [
+        "MSL",
+        "Clinical Science Liaison",
+        "Scientific Affairs Liaison",
+        "CTA - Intern",
+        "Clinical Trial Associate"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "process_engineer",
+      "title": "Process Engineer",
+      "alternate_titles": [
+        "Manufacturing Process Engineer",
+        "Production Process Engineer",
+        "Industrial Process Engineer",
+        "Industrial Engineer",
+        "מהנדס/ת תהליך",
+        "מהנדס/ת תהליך לאתר המגנזיום",
+        "Communication Algorithms Engineer",
+        "Process Engineer - Magnesium Site"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "manufacturing_quality_engineer",
+      "title": "Manufacturing Quality Engineer",
+      "alternate_titles": [
+        "Quality Engineer",
+        "Design Assurance Engineer",
+        "Class III Quality Engineer",
+        "NPD Quality & Compliance Engineer",
+        "Supplier Quality Engineer",
+        "Production Quality Engineer",
+        "Senior Manufacturing Quality Engineer",
+        "QA Engineer (Manufacturing)",
+        "Supplier quality engineer"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "quality_control_technician",
+      "title": "Quality Control Technician",
+      "alternate_titles": [
+        "QC Technician",
+        "QA Technician",
+        "QC Analyst",
+        "QC Student",
+        "QA LabOps Engineer",
+        "Content QA Analyst",
+        "Manual QA Tester",
+        "Mid-level Manual SW/System tester",
+        "QA Tester"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "production_technician",
+      "title": "Production Technician",
+      "alternate_titles": [
+        "Production Operator",
+        "Manufacturing Technician",
+        "Production Technician – Clean Room",
+        "Aeronautics Structural Builder",
+        "Wiring Technician",
+        "Materials Project Engineer",
+        "Electronic Engineering Technician",
+        "מבנאי.ת",
+        "חווט.ת",
+        "מלחימ.ה",
+        "מפעיל/ה",
+        "מפעיל צמ\"כ חומר גלם",
+        "מפעיל/ה צוות הכנות- ייצור סטרילי"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
+    },
+    {
+      "id": "hardware_engineer",
+      "title": "Hardware Engineer",
+      "alternate_titles": [
+        "Electrical Engineer",
+        "Firmware Engineer",
+        "Embedded Engineer",
+        "FPGA Engineer",
+        "ASIC Engineer",
+        "Verification Engineer",
+        "Silicon Engineer",
+        "PHY System Engineer",
+        "PHY System Team Leader",
+        "Photonic Architect",
+        "WiFi Firmware PHY Engineering Student",
+        "Verification Student for the SoC group",
+        "Software Verification Engineer, DOCA",
+        "Senior Product Quality and Reliability Engineer"
+      ],
+      "core_skills": [],
+      "secondary_skills": []
     }
   ]
 }

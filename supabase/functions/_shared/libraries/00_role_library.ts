@@ -6825,7 +6825,11 @@ export const roleLibrary = {
         "Software Engineer - Technion Fair",
         "Software Engineering Student",
         "Verification Student",
-        "Manual QA Tester"
+        "Manual QA Tester",
+        "Entry-Level Software Engineer",
+        "Software Engineer I",
+        "Associate Software Engineer",
+        "Graduate Software Engineer"
       ],
       "role_family": "Engineering",
       "secondary_family": null,
@@ -6851,12 +6855,6 @@ export const roleLibrary = {
       "market_notes": {
         "israel": "Backgrounds: Unit 8200 / 81 / Mamram graduates, supplemented by CS programs (Technion / TAU / Reichman / IDC / Hebrew University) and increasingly bootcamp grads (ITC, Elevation). Army experience is a soft preference at most companies. Stack patterns: Python or Node.js / TypeScript dominant for backend; AWS-heavy cloud; PostgreSQL + Redis common; Docker baseline. Hiring stage: most common at scale-ups and unicorns that have bandwidth to train (monday.com, JFrog, Wix, Lemonade, AppsFlyer); smaller startups under ~30 engineers usually skip this level. Cyber (Wiz, Check Point, CyberArk, SentinelOne), SaaS, and FinTech form the largest employer segments. Team-fit and learning velocity weigh more than depth at this level."
       },
-      "alternate_titles": [
-        "Entry-Level Software Engineer",
-        "Software Engineer I",
-        "Associate Software Engineer",
-        "Graduate Software Engineer"
-      ],
       "core_responsibilities": [
         "Pick up and ship small-to-medium features under code-review guidance, learning the team's production codebase and conventions",
         "Write tests for new code and run through the standard PR / review / merge / deploy workflow",
