@@ -83,3 +83,36 @@ the three below were dropped.
 - Band (joinband.com): the 2026-06-25 "Band / 8A.003 / thenvoi" label was a mislabel. Comeet board 8A.003
   self-identifies as "Thenvoi" (a different company); joinband.com exposes no Comeet markers. The registry
   `unknown` Band row was left untouched (no repoint).
+
+## Dual-ATS resolution (2026-07-10)
+
+Nine registry entries had the same company (same domain) on two different ATS boards - the
+same-domain-across-two-ATS set surfaced by the #530 dedupe scan. Each board was fetched live (the real
+fetcher + classifyLocation + isJunkTitle). Where one board was dead or empty, the duplicate row was
+dropped in favor of the live Comeet board; the live board already had its own row, so no repoint edit
+was needed. `total_companies` 1164 -> 1156 (6 dead/stub drops here + 2 zero-IL ashby drops below).
+
+Dropped (dead / empty / unresolved-stub duplicate; the live Comeet board was kept):
+
+| company              | dropped row (ats / slug)    | reason                                                                        |
+| -------------------- | --------------------------- | ----------------------------------------------------------------------------- |
+| Atera                | smartrecruiters / atera     | SmartRecruiters board 0 positions; live at Comeet 63.00B (17 total / 10 IL).  |
+| Incredibuild         | workable / incredibuild     | Workable board 0 positions; live at Comeet 66.00F (4 / 3 IL).                 |
+| DoorLoop             | greenhouse / doorloopisrael | Greenhouse board HTTP 404 (dead); live at Comeet 0A.006 (5 jobs, 0 IL today). |
+| Deloitte             | unknown / (no board)        | Unresolved stub, no api_url; superseded by live Comeet F7.00B (94 IL).        |
+| Israel Discount Bank | unknown / (no board)        | Unresolved stub; superseded by live Comeet F8.004 (66 IL).                    |
+| ZIM                  | unknown / (no board)        | Unresolved stub; superseded by live Comeet 72.008 (83 / 14 IL).               |
+
+Flags resolved (Eli, 2026-07-10):
+
+- Oligo Security - DROPPED ashby / oligo. Ashby was live (15 jobs) but 0 IL (global-only board); the
+  Comeet board 5A.00B carries all 7 IL roles. Revisit if IL roles appear on the ashby board.
+- Sentra - DROPPED ashby / sentra. Same posture: ashby live (3 jobs) but 0 IL; Comeet 87.00B carries the
+  7 IL roles. Revisit if IL roles appear.
+- BioCatch - KEPT BOTH (confirmed true dual-board, not double-posting). Title comparison of the live IL
+  roles: only 2 titles overlap (data scientist; senior devops infra engineer); lever carries 3 IL roles
+  NOT on comeet (senior backend engineer, senior data engineer, web solutions engineer), comeet carries
+  6 not on lever. Dropping lever would lose 3 real IL roles, so both rows stay. The 2 overlapping titles
+  double-list in the jobs cache (minor).
+
+Total after the dual-ATS pass: 1164 -> 1156 (6 dead/stub drops + 2 zero-IL ashby drops).
