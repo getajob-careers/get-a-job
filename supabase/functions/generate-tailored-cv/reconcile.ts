@@ -192,6 +192,55 @@ export function bulletCoveredBy(stored: string, emitted: string[]): boolean {
   return false;
 }
 
+// Retention floor (P1.1) — the FINAL word on experience bullets, run AFTER the
+// proper-noun anti-fab enforcement (which strips bullets and would otherwise
+// undo an earlier floor). For every experience, ensures every stored bullet
+// appears: a stored bullet not covered by the surviving (reworded) bullets was
+// dropped somewhere in the pipeline and is restored VERBATIM (appended) and
+// flagged `deprioritized_bullets` (advisory "weakest for this role" for the P6
+// UI). Verbatim-stored bullets are grounded by definition, so they are safe to
+// add after anti-fab. Mutates `cvData` in place. `storedBulletsByKey` maps
+// expKeyOf(title, company) -> that experience's stored bullets.
+const RETENTION_BUCKETS = [
+  "professional_experiences",
+  "military_experiences",
+  "volunteering_experiences",
+  "leadership_experiences",
+];
+export function applyRetentionFloor(
+  cvData: Record<string, any>,
+  storedBulletsByKey: Map<string, string[]>,
+  expKeyOf: (title: unknown, company: unknown) => string,
+): { restored: number } {
+  let restored = 0;
+  for (const bucket of RETENTION_BUCKETS) {
+    const entries = Array.isArray(cvData?.[bucket]) ? cvData[bucket] : [];
+    for (const entry of entries) {
+      const stored = (
+        storedBulletsByKey.get(expKeyOf(entry?.title, entry?.company)) ?? []
+      )
+        .map((b) => String(b || "").trim())
+        .filter(Boolean);
+      if (stored.length === 0) continue;
+      let bullets = Array.isArray(entry.bullets)
+        ? entry.bullets.map((b: unknown) => String(b || "").trim()).filter(Boolean)
+        : [];
+      const deprioritized: string[] = [];
+      for (const cb of stored) {
+        if (!bulletCoveredBy(cb, bullets)) {
+          bullets = [...bullets, cb];
+          deprioritized.push(cb);
+          restored++;
+        }
+      }
+      entry.bullets = bullets;
+      if (deprioritized.length > 0) entry.deprioritized_bullets = deprioritized;
+      else if ("deprioritized_bullets" in entry) delete entry.deprioritized_bullets;
+    }
+  }
+  return { restored };
+}
+
 export function fillFromSource(
   sources: SourceExperience[],
   llmEntries: LlmEntry[] | undefined | null,
@@ -302,44 +351,28 @@ export function fillFromSource(
   }
 
   return sources.map((src, i) => {
-    const curated = Array.isArray(src.bullets)
-      ? src.bullets.map((b) => String(b || "").trim()).filter(Boolean)
-      : [];
     let bullets = bulletsBySource.get(i) || [];
-    // Stored bullets the model dropped and the floor restored — carried as an
-    // advisory signal ("weakest for this role") for the future P6 toggle UI.
-    const deprioritized: string[] = [];
     if (bullets.length === 0) {
       // PR #321 Phase-4 read side: when the LLM emitted no bullets for this
       // slot, prefer the user-curated bullets over splitting responsibilities.
+      const curated = Array.isArray(src.bullets)
+        ? src.bullets.map((b) => String(b || "").trim()).filter(Boolean)
+        : [];
       bullets =
         curated.length > 0
           ? curated
           : responsibilitiesToBullets(src.responsibilities);
-    } else if (curated.length > 0) {
-      // RETENTION FLOOR (P1 — Eli's product rule: AI advises, user decides;
-      // every stored bullet appears by default; the AI never silently drops).
-      // The model may reword/reorder, but a stored bullet it OMITTED is restored
-      // verbatim (appended) rather than lost. `bulletCoveredBy` treats a reword
-      // as coverage (majority token overlap) so we restore only genuinely
-      // dropped bullets, never double a reworded one. Restored bullets are
-      // flagged deprioritized: the model's implicit "drop" becomes an advisory
-      // "weakest for this role" the P6 UI can surface — preserved in the data
-      // shape now, even though the UI ships later.
-      for (const cb of curated) {
-        if (!bulletCoveredBy(cb, bullets)) {
-          bullets = [...bullets, cb];
-          deprioritized.push(cb);
-        }
-      }
     }
+    // NOTE: the retention floor (all stored bullets appear) is NOT applied here.
+    // It runs POST-anti-fab (applyRetentionFloor, called from index.ts) so that
+    // restored verbatim-stored bullets can't be stripped by the proper-noun
+    // enforcement that runs after reconcile — the P1.1 fix.
     const out: FilledEntry = {
       title: src.title || "",
       dates: formatExperienceDates(src.start_date, src.end_date, !!src.is_current),
       bullets,
     };
     out[orgFieldName] = src.company || "";
-    if (deprioritized.length > 0) out.deprioritized_bullets = deprioritized;
     // Master addressability (Phase 2.0): stamp the authoritative DB source-row
     // id by the SAME index map used for title/company/dates above. Additive key,
     // gated to master mode via stampSourceId so the from-scratch / job-CV path is

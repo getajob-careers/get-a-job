@@ -11,7 +11,7 @@ import { buildMasterCvData } from '../_shared/cv-master.ts'
 import { cvHasHebrew, translateCvToEnglish, type ChatMessage } from '../_shared/cv-translate.ts'
 import { matchRoleToLibrary, resolveSectorTheme } from '../_shared/cv-templates/sector-mapping.ts'
 import type { TemplateStyle, SectionKey } from '../_shared/cv-templates/types.ts'
-import { fillFromSource, resolveAuthoringRole, type SourceExperience } from './reconcile.ts'
+import { fillFromSource, resolveAuthoringRole, applyRetentionFloor, type SourceExperience } from './reconcile.ts'
 
 // --- Load JSON Libraries ---
 import { roleLibrary } from "../_shared/libraries/00_role_library.ts";
@@ -1230,6 +1230,8 @@ WHERE TO PRESERVE AUTHENTIC REGISTER (do NOT force JD vocabulary):
 - volunteering_experiences[] bullets — keep the language native to the volunteer context (curriculum, mentorship, community, youth, outreach, recruitment of volunteers, fundraising, etc). Use the user's actual responsibilities text and Story Bank metrics. JD keywords appear here ONLY when the activity genuinely maps (a volunteer running a coding bootcamp legitimately "taught Python"; a youth-education volunteer does NOT "monitor adoption dashboards").
 - military_experiences[] bullets — civilian-readable but militarily authentic. Preserve unit names + ranks. Do NOT inject corporate-tech vocabulary; keep the language of operational leadership, training, missions, teams under pressure.
 - leadership_experiences[] bullets — same authentic-register rule. Student-org leadership stays student-org-shaped, not corporate-shaped.
+
+HARD RULE — PROPER NOUNS IN EXPERIENCE BULLETS (this determines whether your tailoring survives): an experience/military/volunteering/leadership bullet may name ONLY the companies, products, platforms, tools, and brand names that appear in THAT experience's own USER DATA (its responsibilities, bullets, skills, or linked stories). NEVER insert a company name, product, platform, or tool taken from the JOB DESCRIPTION into a past-role bullet — the candidate did not use it there, so it is a fabrication. JD tool/brand keywords belong ONLY in skills.tools and (optionally) the About Me, NEVER inside a past-experience bullet. A post-processing validator DELETES any experience bullet that names a proper noun absent from that experience's source — deleting the entire bullet and all its real content — so a bullet reworded to inject a JD brand name is worse than one that stays in the candidate's own proper nouns. Reword for phrasing and emphasis; keep every proper noun the candidate's own.
 
 EXAMPLES:
 
@@ -2534,6 +2536,24 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
             `[CV] Skills validator: removed ${st.removed} unsourced tool(s) from skills.tools`,
           );
         }
+      }
+
+      // RETENTION FLOOR (P1.1) — the FINAL word on experience bullets, run AFTER
+      // the proper-noun enforcement above (which strips bullets). Every stored
+      // bullet must appear (Eli's rule); a stored bullet the pipeline dropped is
+      // restored VERBATIM and flagged deprioritized (advisory "weakest for this
+      // role" for the P6 UI). masterBulletsByKey already maps expKey -> that
+      // experience's stored bullets. Runs post-anti-fab so verbatim restores
+      // (grounded by definition) survive.
+      const retention = applyRetentionFloor(
+        cvData as Record<string, any>,
+        masterBulletsByKey,
+        expKey,
+      );
+      if (retention.restored > 0) {
+        console.warn(
+          `[CV] Retention floor: restored ${retention.restored} stored bullet(s) the pipeline dropped (flagged deprioritized).`,
+        );
       }
     }
 

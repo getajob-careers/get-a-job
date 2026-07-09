@@ -15,6 +15,7 @@ import {
   fillFromSource,
   formatExperienceDates,
   bulletCoveredBy,
+  applyRetentionFloor,
   type ReconcileWarning,
   type SourceExperience,
   resolveAuthoringRole,
@@ -421,8 +422,9 @@ describe("resolveAuthoringRole — A5 (gtc_author_from_app)", () => {
 // the subset. The floor restores every dropped stored bullet and flags it
 // deprioritized, without doubling reworded ones. Eli's rule: all stored bullets
 // appear by default; AI never silently drops.
-describe("fillFromSource — retention floor (P1)", () => {
-  // "Get a Job" analog: 5 stored, model emits 2 (rewords of #1 and #3).
+describe("applyRetentionFloor — post-anti-fab retention (P1.1)", () => {
+  const expKey = (t: unknown, c: unknown) =>
+    `${String(t ?? "").trim().toLowerCase()}@@${String(c ?? "").trim().toLowerCase()}`;
   const GETAJOB = [
     "Built the platform solo end to end React Tailwind frontend Supabase Postgres backend",
     "Took the platform from zero to fifty activated users through a Reichman student cohort",
@@ -431,32 +433,37 @@ describe("fillFromSource — retention floor (P1)", () => {
     "Conducted career coaching sessions that led to building and presenting the MVP",
   ];
 
-  it("restores the dropped stored bullets to 5/5 (before: 2) and flags 3 deprioritized", () => {
-    const sources = [src({ title: "Creator", company: "Get a Job", bullets: GETAJOB })];
-    // Model emitted rewords of bullets 0 and 2 only — 3 were dropped.
-    const llm = [
-      {
-        index: 0,
-        bullets: [
-          "Built the entire platform end-to-end: React Tailwind frontend, Supabase Postgres backend",
-          "Built an automated job-sourcing pipeline integrating Greenhouse, Lever, Ashby and Workday",
-        ],
-      },
-    ];
-    const result = fillFromSource(sources, llm, "company");
-    expect(result[0].bullets).toHaveLength(5); // 2 reworded + 3 restored
-    expect(result[0].deprioritized_bullets).toHaveLength(3);
-    // the two reworded stored bullets are NOT duplicated (covered)
-    expect(result[0].deprioritized_bullets).not.toContain(GETAJOB[0]);
-    expect(result[0].deprioritized_bullets).not.toContain(GETAJOB[2]);
-    // the three genuinely-dropped stored bullets are restored verbatim
-    expect(result[0].bullets).toContain(GETAJOB[1]);
-    expect(result[0].bullets).toContain(GETAJOB[3]);
-    expect(result[0].bullets).toContain(GETAJOB[4]);
+  // The bf51229e failure shape: anti-fab left only rewords of #1 and #3; #2/#4/#5 gone.
+  it("restores stored bullets the pipeline dropped: Get a Job 2 → 5/5, flags 3 deprioritized", () => {
+    const cvData: any = {
+      professional_experiences: [
+        {
+          title: "Creator",
+          company: "Get a Job",
+          bullets: [
+            "Built the entire platform end-to-end: React Tailwind frontend, Supabase Postgres backend",
+            "Built an automated job-sourcing pipeline integrating Greenhouse, Lever, Ashby and Workday",
+          ],
+        },
+      ],
+    };
+    const stored = new Map([[expKey("Creator", "Get a Job"), GETAJOB]]);
+    const res = applyRetentionFloor(cvData, stored, expKey);
+    const exp = cvData.professional_experiences[0];
+    expect(exp.bullets).toHaveLength(5); // 2 survivors + 3 restored
+    expect(res.restored).toBe(3);
+    expect(exp.deprioritized_bullets).toHaveLength(3);
+    // reworded survivors not duplicated (covered)
+    expect(exp.deprioritized_bullets).not.toContain(GETAJOB[0]);
+    expect(exp.deprioritized_bullets).not.toContain(GETAJOB[2]);
+    // genuinely-dropped bullets restored verbatim
+    expect(exp.bullets).toContain(GETAJOB[1]);
+    expect(exp.bullets).toContain(GETAJOB[3]);
+    expect(exp.bullets).toContain(GETAJOB[4]);
   });
 
-  it("Guardio analog: 7 stored, model emits 5 rewords → floor restores to 7/7", () => {
-    const stored = [
+  it("Guardio: 7 stored, 5 survived → restores to 7/7", () => {
+    const stored7 = [
       "Managed high touch relationships with VIP cybersecurity users handling technical support",
       "Analyzed VIP user journeys identifying systemic authorization charge issues driving policy changes",
       "Designed an AI assistant bot with Cursor and Claude giving agents real time analytics",
@@ -465,28 +472,51 @@ describe("fillFromSource — retention floor (P1)", () => {
       "Compared AI models to improve customer response quality across support channels",
       "Developed a Python fetcher proactively identifying customers likely to face platform issues",
     ];
-    const sources = [src({ title: "CS Specialist", company: "Guardio", bullets: stored })];
-    // rewords of 0,1,2,3,4 — bullets 5 and 6 dropped
-    const llm = [{ index: 0, bullets: stored.slice(0, 5).map((b) => b + " (reworded for the role)") }];
-    const result = fillFromSource(sources, llm, "company");
-    expect(result[0].bullets).toHaveLength(7);
-    expect(result[0].deprioritized_bullets).toEqual([stored[5], stored[6]]);
+    const cvData: any = {
+      professional_experiences: [
+        { title: "CS", company: "Guardio", bullets: stored7.slice(0, 5).map((b) => b + " (reworded)") },
+      ],
+    };
+    applyRetentionFloor(cvData, new Map([[expKey("CS", "Guardio"), stored7]]), expKey);
+    expect(cvData.professional_experiences[0].bullets).toHaveLength(7);
+    expect(cvData.professional_experiences[0].deprioritized_bullets).toEqual([stored7[5], stored7[6]]);
   });
 
-  it("no-op when the model already emitted every stored bullet (no false duplicates, no flag)", () => {
-    const sources = [src({ company: "Acme", bullets: GETAJOB })];
-    const llm = [{ index: 0, bullets: GETAJOB.map((b) => b + " tailored") }];
-    const result = fillFromSource(sources, llm, "company");
-    expect(result[0].bullets).toHaveLength(5);
-    expect(result[0].deprioritized_bullets).toBeUndefined();
+  it("no-op + no flag when every stored bullet survived as a reword", () => {
+    const cvData: any = {
+      professional_experiences: [{ title: "X", company: "Acme", bullets: GETAJOB.map((b) => b + " tailored") }],
+    };
+    applyRetentionFloor(cvData, new Map([[expKey("X", "Acme"), GETAJOB]]), expKey);
+    expect(cvData.professional_experiences[0].bullets).toHaveLength(5);
+    expect(cvData.professional_experiences[0].deprioritized_bullets).toBeUndefined();
   });
 
-  it("does not touch experiences with no stored bullets (legacy responsibilities path unchanged)", () => {
-    const sources = [src({ company: "Acme", bullets: [], responsibilities: "Did a thing.\nDid another." })];
-    const llm = [{ index: 0, bullets: ["One emitted bullet"] }];
-    const result = fillFromSource(sources, llm, "company");
-    expect(result[0].bullets).toEqual(["One emitted bullet"]);
-    expect(result[0].deprioritized_bullets).toBeUndefined();
+  it("clears a stale deprioritized_bullets flag when all stored bullets are now covered", () => {
+    const cvData: any = {
+      professional_experiences: [
+        { title: "X", company: "Acme", bullets: GETAJOB.slice(), deprioritized_bullets: ["stale"] },
+      ],
+    };
+    applyRetentionFloor(cvData, new Map([[expKey("X", "Acme"), GETAJOB]]), expKey);
+    expect(cvData.professional_experiences[0].deprioritized_bullets).toBeUndefined();
+  });
+
+  it("ignores experiences with no stored bullets", () => {
+    const cvData: any = { professional_experiences: [{ title: "X", company: "Acme", bullets: ["only emitted"] }] };
+    applyRetentionFloor(cvData, new Map(), expKey);
+    expect(cvData.professional_experiences[0].bullets).toEqual(["only emitted"]);
+    expect(cvData.professional_experiences[0].deprioritized_bullets).toBeUndefined();
+  });
+
+  it("covers military / volunteering / leadership buckets too", () => {
+    const cvData: any = { volunteering_experiences: [{ title: "Educator", company: "Heseg", bullets: [] }] };
+    applyRetentionFloor(
+      cvData,
+      new Map([[expKey("Educator", "Heseg"), ["Delivered weekly educational sessions for at-risk youth"]]]),
+      expKey,
+    );
+    expect(cvData.volunteering_experiences[0].bullets).toHaveLength(1);
+    expect(cvData.volunteering_experiences[0].deprioritized_bullets).toHaveLength(1);
   });
 
   it("bulletCoveredBy treats a reword as covered but a distinct bullet as not", () => {
