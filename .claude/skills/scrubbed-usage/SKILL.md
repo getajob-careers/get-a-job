@@ -21,7 +21,7 @@ with real_users as (
 select count(*) from real_users;
 ```
 
-This scrub returns 53 (verified 2026-07-05 against the Part 2 investigation). The naive email-only regex overcounts to 57 because it misses the bare Isaac/Yishai accounts and Noms; the isaacselig/yishailieser terms and the Noms UUID are required.
+Run the scrub to get the live count; do not hard-code it (a count in a skill goes stale as users sign up). Any number here is point-in-time: as of 2026-07-05 it returned ~53 real users. The naive email-only regex overcounts (it misses the bare Isaac/Yishai accounts and Noms), so the `isaacselig`/`yishailieser` terms and the Noms UUID in the CTE are required, not optional.
 
 Discipline:
 
