@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1156,
+  "total_companies": 1157,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -13896,6 +13896,18 @@
       "api_url": "https://www.comeet.co/careers-api/2.0/company/43.00A/positions?token=34A107269434A069401D9A10721A50&details=true",
       "verified": true,
       "notes": "Ingested 2026-07-08 from Comeet r2 backlog (passes 1-3): board 43.00A, 9 live IL role(s); token sourced from public hosted board, validated live (HTTP 200, IL count via classifyLocation + isJunkTitle)."
+    },
+    {
+      "name": "CopilotKit",
+      "type": "israeli_founded",
+      "industry": "Developer Tools",
+      "domain": "copilotkit.ai",
+      "careers_url": "https://copilotkit.ai/careers",
+      "ats": "lever",
+      "slug": "copilotkit",
+      "api_url": "https://api.lever.co/v0/postings/copilotkit?mode=json",
+      "verified": true,
+      "notes": "Prilenia-style seed: Israeli-founded (Glilot-backed), live Lever board (2 positions), 0 live IL roles today (2026-07-10). Kept as a seed; will contribute IL jobs when it hires in Israel. From the research-280 batch."
     }
   ]
 }
