@@ -18,6 +18,12 @@ This is a React + Vite + Supabase career operating system for business students 
 - Never auto-mutate canonical source-of-truth files (e.g., `00_role_library.ts`) — emit to drafts, require human promotion.
 - Default to writing no comments. When you do, explain WHY (hidden constraint, subtle invariant), not WHAT.
 
+## Skills
+
+Before starting any task, check whether an installed skill covers it (project skills in `.claude/skills/`, user skills in `~/.claude/skills/`, plus plugin skills). If one applies, follow the skill's procedure rather than improvising — the skills encode our vetted, getajob-specific rituals (e.g. `deploy-edge-fn` for edge-function deploys, `scrubbed-usage` for analytics, `schema-validator` / `role-research` for the role/skill libraries, `design-craft` for frontend work).
+
+Precedence when guidance conflicts: **an explicit prompt from Eli wins, then CLAUDE.md, then the skill.** A skill never overrides a direct instruction or a project convention; it fills in the procedure when neither has spoken.
+
 ## Team workflow (Eli + Isaac)
 
 - **Branches:** work on `eli/<topic>` or `isaac/<topic>` (or `feature/<topic>`). Never push directly to `main`.
