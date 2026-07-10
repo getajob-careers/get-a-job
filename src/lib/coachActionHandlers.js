@@ -173,11 +173,34 @@ export async function applyApplicationActions({ user, queryClient, actions }) {
   let hasError = false;
   const applicationIds = [];
   const placeholderCompanyIds = [];
+  let skippedDuplicate = 0;
 
   for (const a of actions) {
     if (a.action === "add_application") {
       const status = validStatus(a.status) || "interested";
       const company = sanitizeCompany(a.company);
+      // Dedup guard (DriveNets false-negative): an application for this
+      // company+role already exists. Match by company+role REGARDLESS OF STATUS
+      // — an "applied"/"rejected"/"interview" row is still a duplicate, and the
+      // old flow re-proposed and re-filed the same job. Skip the insert and reuse
+      // the existing row so a linked CV attaches there instead of orphaning.
+      // FALLBACK_COMPANY (Unknown) rows never dedupe — they're distinct pending
+      // targets awaiting a real company.
+      if (company && company !== FALLBACK_COMPANY && a.role_title) {
+        const { data: dup } = await supabase
+          .from("applications")
+          .select("id")
+          .eq("user_id", user.id)
+          .ilike("company", company)
+          .ilike("role_title", String(a.role_title))
+          .limit(1)
+          .maybeSingle();
+        if (dup?.id) {
+          skippedDuplicate++;
+          applicationIds.push(dup.id);
+          continue;
+        }
+      }
       const row = {
         user_id: user.id,
         company,
@@ -231,8 +254,8 @@ export async function applyApplicationActions({ user, queryClient, actions }) {
       if (error) { console.error("update_application error:", error); hasError = true; }
     }
   }
-  if (hasError) return { error: "some applications failed", hasError: true, applicationIds, placeholderCompanyIds };
-  return { ok: true, applicationIds, placeholderCompanyIds };
+  if (hasError) return { error: "some applications failed", hasError: true, applicationIds, placeholderCompanyIds, skippedDuplicate };
+  return { ok: true, applicationIds, placeholderCompanyIds, skippedDuplicate };
 }
 
 // ─── Company-target actions ────────────────────────────────────────────
@@ -749,7 +772,11 @@ export async function generateTailoredCVLinked({
         }],
       });
       applicationId = res?.applicationIds?.[0] || null;
-      linkedNewApp = !!applicationId;
+      // The add matched an EXISTING application (dedup guard) rather than filing a
+      // new one: link the CV to it, but don't claim a new app was added, and let
+      // the JD-backfill branch below run against the existing row.
+      const reusedExisting = (res?.skippedDuplicate || 0) > 0;
+      linkedNewApp = !!applicationId && !reusedExisting;
       // ⑤ (QA2): the coach filed this app with no real company (placeholder
       // fallback). Surface it so the UI never SILENTLY files an "Unknown".
       unknownCompany = !!(applicationId && res?.placeholderCompanyIds?.includes(applicationId));

@@ -10,7 +10,8 @@ const { invokeBodies, insertedRows, updatedRows, cfg } = vi.hoisted(() => ({
   invokeBodies: [],
   insertedRows: [],
   updatedRows: [],
-  cfg: { appAlreadyHasJd: false },
+  // existingDup: id returned by the add_application dedup lookup (null = none).
+  cfg: { appAlreadyHasJd: false, existingDup: null },
 }));
 
 vi.mock("@/api/invokeWithAuthRetry", () => ({
@@ -44,6 +45,17 @@ vi.mock("@/api/supabaseClient", () => {
       eq: () => chain,
       ilike: () => chain,
       select: () => chain,
+      limit: () => chain,
+      // add_application dedup lookup terminates on maybeSingle: null = no
+      // duplicate (default, so the insert path is unchanged), or an existing id.
+      maybeSingle: () =>
+        Promise.resolve({
+          data:
+            table === "applications" && cfg.existingDup
+              ? { id: cfg.existingDup }
+              : null,
+          error: null,
+        }),
       single: () =>
         Promise.resolve(
           table === "applications"
@@ -82,6 +94,7 @@ beforeEach(() => {
   insertedRows.length = 0;
   updatedRows.length = 0;
   cfg.appAlreadyHasJd = false;
+  cfg.existingDup = null;
 });
 
 describe("generateTailoredCVLinked (F1 / orphan-CV)", () => {
@@ -237,6 +250,38 @@ describe("generateTailoredCVLinked (F1 / orphan-CV)", () => {
       (u) => u.table === "applications" && u.patch?.job_description,
     );
     expect(jdWrite).toBeUndefined(); // existing JD left untouched
+  });
+
+  it("dedup: an existing app for the same company+role is REUSED, not re-added (DriveNets)", async () => {
+    // The bug: the coach proposed adding DriveNets even though a tracked app
+    // (any status) already existed, and applying it filed a duplicate row. Now
+    // the add_application dedup lookup finds it and the CV links to the existing
+    // application — no second row, no "new app added".
+    cfg.existingDup = "drivenets-existing-uuid";
+    const res = await generateTailoredCVLinked({
+      user,
+      queryClient,
+      proposal: {
+        target_role: "AI Operations Assistant",
+        job_description: JD,
+      },
+      appActions: [
+        {
+          action: "add_application",
+          company: "DriveNets",
+          role_title: "AI Operations Assistant",
+        },
+      ],
+      messageId: "m-dedup",
+    });
+    // No duplicate application row was inserted.
+    expect(insertedRows.filter((r) => r.table === "applications")).toHaveLength(
+      0,
+    );
+    // The CV linked to the EXISTING application, and it's not reported as new.
+    expect(res.applicationId).toBe("drivenets-existing-uuid");
+    expect(res.linkedNewApp).toBe(false);
+    expect(invokeBodies[0].application_id).toBe("drivenets-existing-uuid");
   });
 
   it("generates unlinked when there is no app id and no add_application action", async () => {
