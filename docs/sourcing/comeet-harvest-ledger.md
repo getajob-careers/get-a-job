@@ -130,3 +130,93 @@ boards were live-verified:
 Not dropped: CopilotKit (lever / copilotkit) - 0 live IL of 2 today, but Israeli-founded with a live
 board, so KEPT in the registry as a Prilenia-style seed (will contribute IL jobs when it hires in Israel).
 Registry 1156 -> 1157.
+
+## Manual careers hunt — resolution (2026-07-10)
+
+Eli hand-hunted `docs/sourcing/careers-hunt-list.md`; every capture below was
+re-verified from the terminal against the live board API (production fetchers +
+classifyLocation + isJunkTitle), not trusted from the hunt notes.
+
+### Added to the registry (verified, >=1 live IL role)
+
+| company        | ats / id                             | live total / IL | note                                                                                                       |
+| -------------- | ------------------------------------ | --------------- | ---------------------------------------------------------------------------------------------------------- |
+| Insait         | comeet 0B.00C                        | 13 / 4          | The #1 tracker gap (tracked 3x). Tel Aviv-Jaffa.                                                           |
+| droxi          | comeet 1A.001                        | 5 / 4           | Real domain droxi.com (not .ai); Ramat Gan. The hosted droxiai board 404s; this uid+token is the live one. |
+| Spacial        | ashby / spacial                      | 6 / 1           | P3b net-new; AI Researcher (IL). Domain unconfirmed.                                                       |
+| Orion Security | greenhouse / orioncscybersecurityltd | 4 / 2           | P3a net-new; EU-hosted careers page but served by boards-api.greenhouse.io.                                |
+
+### DROPPED — Browsi (Eli decision 2026-07-10)
+
+- **Browsi** — comeet F3.00B (slug `recruitingteam`), 10 / 6 IL. Recapture worked,
+  but F3.00B is a **shared HR umbrella account** ("recruitingteam") serving multiple
+  companies — wiring Browsi to it mis-attributes other companies' roles. **Skip.
+  Revisit only with company-filtered fetching** (a per-company filter on a shared
+  Comeet board), not before.
+
+### Fetch FAILED from terminal (ledger the attempt)
+
+- **LawGeex** — comeet 73.003, the hunt-captured token returns HTTP 400 ("Account
+  uid or token are not valid"). Confirms the board is still dead (already a revisit
+  candidate). No registry action; recapture again only if a fresh token appears.
+
+### Verified live but 0 IL — ALL DROPPED (Eli decision 2026-07-10)
+
+Eli's call was "seed the Israeli-founded ones, ledger-drop the rest." Location
+spot-checks showed **none of the 19 boards has any Israel presence** — every board
+Eli's hunt surfaced is the company's US/global ATS instance, a same-name _different_
+company, or empty. Under the CopilotKit precedent (seed only a board that will
+_contribute IL jobs_), **none qualify** — so all 19 are ledger-dropped, not seeded.
+
+| company        | board                      | why 0 IL (dropped)                                                                             |
+| -------------- | -------------------------- | ---------------------------------------------------------------------------------------------- |
+| Heven AeroTech | gh/hevenaerotech           | 39 jobs, ALL Virginia/Washington (US entity). classifyLocation correct — NOT a classifier bug. |
+| Sequence       | ashby/sequence             | 20 jobs, all London/NYC — a DIFFERENT (UK/US) "Sequence", not the IL fintech. Wrong company.   |
+| Orbs           | ashby/orb                  | 16 jobs, SF/NYC — this is Worldcoin's "Orb", not IL Orbs. Wrong company.                       |
+| Rylo           | lever/rylo                 | 8 jobs, San Francisco. US board / same-name co.                                                |
+| Cylake         | ashby/cylake-inc           | 10 jobs, Sunnyvale (US).                                                                       |
+| Hud            | ashby/hud                  | 4 jobs, SF/Singapore.                                                                          |
+| Healthee       | workable/healthee          | 2 jobs, New York.                                                                              |
+| Cloudshare     | workable/cloudshare        | 3 jobs, Denver (US).                                                                           |
+| Hi Auto        | workable/hi-auto           | 2 jobs, Atlanta/Miami (US).                                                                    |
+| Vayyar         | workable/vayyar            | 0 jobs (empty board; can't confirm it's the IL company's).                                     |
+| Anzu           | workable/anzu              | 0 jobs (empty).                                                                                |
+| Voom Insurance | workable/voom-insurance    | 0 jobs (empty).                                                                                |
+| Blast Security | ashby/blast-io             | 0 jobs; Eli flagged "don't think this is it".                                                  |
+| Duetti         | lever/duetti               | 13 jobs, US (music royalties).                                                                 |
+| Laminar        | lever/runlaminar           | 8 jobs, US (acquired by Rubrik).                                                               |
+| Legion         | gh/legion                  | 16 jobs, US workforce-mgmt co (not the IL "Legion").                                           |
+| Bessemer VP    | gh/bessemerventurepartners | 2 jobs, US VC.                                                                                 |
+| Run:ai         | sr/RunAI1                  | 0 jobs (acquired by NVIDIA).                                                                   |
+| 257            | workable/257               | 0 jobs; origin unconfirmed.                                                                    |
+
+If any of these (e.g. Vayyar, Anzu, Voom — clearly IL-named but empty boards) later
+posts an IL role, or if a company-specific IL board is found, revisit then.
+
+### Already live — no gap (hunt was redundant)
+
+- **Abra R&D** (comeet 15.007) and **Abra Information Technologies** (comeet 12.003)
+  are both already in the registry, wired, and live (123 and 46 positions). "Abra"
+  was not actually a gap. (Note: Abra R&D's IL count is inflated by "AI Bootcamp
+  Course" listings — a staffing/training board; pre-existing, not from this pass.)
+
+### Unsupported ATS confirmed (no registry change; needs a fetcher adapter)
+
+Dazn (Pinpoint, division_id 11796), Varonis (Jobvite), Wenrix (Rippling), INNOVA
+(cruitie.com), Voltify (Breezy), Wallarm (Recruitee). Plus the 2E set already on
+the hunt list (Eightfold / iCIMS / Oracle HCM / SuccessFactors / Phenom).
+
+### No board / apply-by-other-means (no change)
+
+Kovrr (email apply; KovrrIns is the inert registry row), Findings (dead page),
+Terminal X + Factory 54 (Fox Group; Hebrew job-boards only, no modern ATS), HiO
+(LinkedIn only), origami.ms (no careers page), Sightful (Comeet account
+deactivated — post-layoff, confirmed dead), TytoCare (switched ATS; no board found).
+
+### Still needs a token capture (uid known, not actionable from terminal)
+
+The comeet hosted-board URLs Eli surfaced (Nominal E8.003, CardinalOps 66.005,
+Sunbit 37.001, Dazz D9.009, Tevel/airobotics AA.005, Camtek F4.00D, Nova A5.007,
+Lili A6.009, OneLayer 8A.007, Act Security 8A.009, Daylight 7A.00D, Moonshot 87.005,
+Airis Labs 69.00A, and the 2A UID set) confirm the uid but expose no token — still
+a browser Network capture. No registry change.
