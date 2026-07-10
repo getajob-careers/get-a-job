@@ -4,6 +4,7 @@ import {
   enforceBulletProperNouns,
   filterToolsToSource,
   tokensTraceToMaster,
+  unsourcedSpelledNumbers,
 } from "./cv-antifab.ts";
 
 // The pre-edit cv_data is the trace corpus. Two professional entries so we can
@@ -298,6 +299,46 @@ describe("enforceBulletProperNouns (generate-tailored-cv path)", () => {
 
 // skills.tools enforcement (QA2 Rider 1 promoted, Option A): unsourced JD tools
 // filtered, owned tools kept, section never empty when the user has owned tools.
+describe("unsourcedSpelledNumbers (P2 — spelled-out quantities)", () => {
+  it("flags a spelled number absent from the source ('team of five')", () => {
+    expect(unsourcedSpelledNumbers("Led a team of five volunteers", "led a team of volunteers"))
+      .toEqual(["five"]);
+  });
+  it("grounds a spelled number when the source has the WORD", () => {
+    expect(unsourcedSpelledNumbers("Led five people", "managed five people")).toEqual([]);
+  });
+  it("grounds a spelled number when the source has the DIGIT form", () => {
+    expect(unsourcedSpelledNumbers("Led a team of five", "led a team of 5 people")).toEqual([]);
+  });
+  it("does NOT ground 'five' from an unrelated digit like a year (2025)", () => {
+    expect(unsourcedSpelledNumbers("Managed five accounts", "worked here since 2025")).toEqual(["five"]);
+  });
+  it("ignores the article/pronoun 'one' and ordinals", () => {
+    expect(unsourcedSpelledNumbers("One of the first projects I shipped", "shipped a project")).toEqual([]);
+  });
+  it("handles plurals and hyphenated compounds", () => {
+    expect(unsourcedSpelledNumbers("Ran dozens of sessions", "ran sessions")).toEqual(["dozen"]);
+    expect(unsourcedSpelledNumbers("Mentored twenty-five students", "mentored students")).toEqual(["twenty", "five"]);
+  });
+});
+
+describe("enforceBulletProperNouns — spelled-out numbers flag (P2)", () => {
+  const key = (t: unknown, c: unknown) =>
+    `${String(t ?? "").trim().toLowerCase()}@@${String(c ?? "").trim().toLowerCase()}`;
+  it("flags an unsourced spelled quantity but keeps the bullet (numbers never dropped)", () => {
+    const cv: any = {
+      volunteering_experiences: [
+        { title: "Mentor", company: "NGO", bullets: ["Led a team of five volunteers"] },
+      ],
+    };
+    const hay = "led a team of volunteers on weekends".toLowerCase();
+    const r = enforceBulletProperNouns(cv, hay, new Map([["mentor@@ngo", ["Led volunteers"]]]), key);
+    expect(r.bulletsEnforced).toBe(0); // not dropped
+    expect(cv.volunteering_experiences[0].bullets).toEqual(["Led a team of five volunteers"]);
+    expect(r.flags.some((f) => f.tokens.includes("five"))).toBe(true); // surfaced for review
+  });
+});
+
 describe("filterToolsToSource (skills.tools)", () => {
   it("removes unsourced JD tools, keeps owned tools", () => {
     const hay =
