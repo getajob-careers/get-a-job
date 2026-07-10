@@ -53,6 +53,20 @@ describe("fillFromSource — server-driven CV reconciliation", () => {
     expect(result[1].bullets).toEqual(["led Monday team"]);
   });
 
+  it("P2 — title/company are deterministic source pass-through; a rogue LLM title/company is IGNORED", () => {
+    const sources = [src({ title: "Analyst", company: "Guardio" })];
+    // A malformed LLM entry that tries to smuggle a different title + company.
+    // The reconcile contract takes title/company ONLY from the source, so these
+    // must have zero effect on the output.
+    const llm = [
+      { index: 0, bullets: ["Analyzed VIP journeys"], title: "Senior Director", company: "DriveNets" },
+    ] as any;
+    const result = fillFromSource(sources, llm, "company");
+    expect(result[0].title).toBe("Analyst"); // source, not "Senior Director"
+    expect(result[0].company).toBe("Guardio"); // source, not "DriveNets"
+    expect(result[0].bullets).toEqual(["Analyzed VIP journeys"]);
+  });
+
   it("case 2 — out-of-range LLM index falls back to positional attachment, no experience lost", () => {
     const sources = [
       src({ title: "Soldier", company: "IDF", start_date: "Aug 2018", end_date: "Aug 2021", is_current: false, responsibilities: "Trained recruits." }),

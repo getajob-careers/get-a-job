@@ -247,6 +247,46 @@ export function properNounTokens(text: string): string[] {
   return out;
 }
 
+// Spelled-out cardinal numbers -> digit form. QUANT_TOKEN_RE only matches DIGIT
+// forms, so "team of five volunteers" slipped the number trace entirely (P2). A
+// spelled number is grounded when the source contains EITHER the word ("five") OR
+// the digit as a standalone token (\b5\b, not inside "25"/"2025") — so "5
+// volunteers" in the source grounds "five" in the CV and vice-versa. "one" is
+// EXCLUDED (article/pronoun: "one of", "one place"); ordinals (first/second) are
+// not quantities and are omitted. Plurals ("dozens", "hundreds") are handled.
+const SPELLED_CARDINALS: Record<string, string> = {
+  two: "2", three: "3", four: "4", five: "5", six: "6", seven: "7", eight: "8",
+  nine: "9", ten: "10", eleven: "11", twelve: "12", thirteen: "13",
+  fourteen: "14", fifteen: "15", sixteen: "16", seventeen: "17", eighteen: "18",
+  nineteen: "19", twenty: "20", thirty: "30", forty: "40", fifty: "50",
+  sixty: "60", seventy: "70", eighty: "80", ninety: "90", hundred: "100",
+  thousand: "1000", million: "1000000", dozen: "12",
+};
+export function unsourcedSpelledNumbers(
+  text: string,
+  haystackLower: string,
+): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of String(text || "").toLowerCase().match(/[a-z]+(?:-[a-z]+)?/g) || []) {
+    for (const part of raw.split("-")) {
+      const word = SPELLED_CARDINALS[part]
+        ? part
+        : SPELLED_CARDINALS[part.replace(/s$/, "")]
+          ? part.replace(/s$/, "")
+          : null;
+      if (!word || seen.has(word)) continue;
+      seen.add(word);
+      if (haystackLower.includes(word)) continue; // spelled form present
+      const digit = SPELLED_CARDINALS[word];
+      // digit as a standalone token, so "5" doesn't get grounded by "2025"
+      if (new RegExp(`(?:^|[^0-9])${digit}(?:[^0-9]|$)`).test(haystackLower)) continue;
+      out.push(word);
+    }
+  }
+  return out;
+}
+
 // True iff every quantified / proper-noun token in `text` already appears in
 // `haystackLower` (the source content). Reworded bullets + the summary must pass
 // this — the source is the anti-fab'd ground truth, so this only polices that a
@@ -476,6 +516,10 @@ export function enforceBulletProperNouns(
     for (const tok of properNounTokens(text)) {
       if (!haystack.includes(tok.toLowerCase())) proper.push(tok);
     }
+    // P2: spelled-out quantities ("team of five volunteers") the digit-only
+    // QUANT_TOKEN_RE misses. Joins `numbers` -> a non-blocking review flag, same
+    // as an unsourced digit metric (numbers are surfaced, never auto-dropped).
+    for (const w of unsourcedSpelledNumbers(text, haystack)) numbers.push(w);
     return { numbers, proper };
   };
 
