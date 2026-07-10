@@ -20,10 +20,10 @@ Counts: **13** tracker gaps, **4** credential recaptures, **63** in-registry rev
 Eli hand-hunted this list; captures re-verified from the terminal against the live board API. Full detail in `comeet-harvest-ledger.md` (Manual hunt section).
 
 - **ADDED to registry (verified >=1 IL):** Insait (comeet 0B.00C, 4 IL), droxi (comeet 1A.001, 4 IL), Spacial (ashby, 1 IL), Orion Security (greenhouse, 2 IL).
-- **HELD for Eli's call:** Browsi (comeet F3.00B, 6 IL) — board is a _shared_ "recruitingteam" umbrella; attribution risk.
+- **SKIPPED (Eli decision):** Browsi (comeet F3.00B, 6 IL) - shared "recruitingteam" umbrella board; attribution risk. Revisit only with company-filtered fetching.
 - **FAILED (ledgered):** LawGeex (comeet 73.003 token → HTTP 400, still dead).
 - **Already live, not a gap:** Abra R&D (15.007) + Abra IT (12.003) both already wired.
-- **Verified live but 0 IL (seed/ledger, Eli's call):** Duetti, Rylo, Laminar, Sequence, Hud, Cylake, Orbs, Blast, Heven (39/0 — spot-check), Legion, Bessemer, Healthee, 257, Vayyar, Cloudshare, Anzu, Voom, Hi Auto, Run:ai.
+- **Verified live but 0 IL - all ledgered, none seeded (Eli decision):** spot-checks showed none of the 19 has any Israel presence (US-fronted boards, same-name different companies, or empty), so none qualify as IL-contributing seeds. Heven confirmed a US entity (Virginia/Washington), NOT a classifier miss. Full list in the ledger.
 - **Unsupported ATS (adapter needed):** Dazn (Pinpoint), Varonis (Jobvite), Wenrix (Rippling), INNOVA (cruitie), Voltify (Breezy), Wallarm (Recruitee) + the 2E set.
 - **No board / apply-elsewhere:** Kovrr, Findings, Terminal X, Factory 54, HiO, origami.ms, Sightful (dead), TytoCare (switched ATS).
 - **Still need a token capture (uid known):** the comeet hosted-board URLs (Nominal, CardinalOps, Sunbit, Dazz, Tevel, Camtek, Nova, Lili, OneLayer, Act Security, Daylight, Moonshot, Airis Labs, + the 2A UID set) — browser capture still required.
