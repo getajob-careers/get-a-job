@@ -21,11 +21,11 @@ with real_users as (
 select count(*) from real_users;
 ```
 
-This scrub returns 53 (verified 2026-07-05 against the Part 2 investigation). The naive email-only regex overcounts to 57 because it misses the bare Isaac/Yishai accounts and Noms; the isaacselig/yishailieser terms and the Noms UUID are required.
+The exact count is **point-in-time** — it grows with real signups, so run the query for the live number rather than quoting a remembered figure. Both non-email clauses are REQUIRED: an email-only regex under-scrubs because the bare Isaac/Yishai accounts and Noms have no matchable email pattern, so without the `isaacselig`/`yishailieser` terms and the Noms UUID the internal accounts leak back into the count.
 
 Discipline:
 
 - Join every per-surface count against `real_users` (distinct users ever + last 14 days).
 - Separate CHOSEN engagement from AUTO throughput: career-analysis (onboarding + cron refresh) and daily-action crons are not demand.
-- ~35-53 real users, so most per-feature n is tiny. Mark small-n findings LOW-CONFIDENCE; do not dress them up.
+- The real-user base is small (run the scrub for the current size), so most per-feature n is tiny. Mark small-n findings LOW-CONFIDENCE; do not dress them up.
 - Cost from `function_metrics`, real-user-attributable, not gross.
