@@ -1,6 +1,21 @@
 # Get A Job — project conventions
 
-This is a React + Vite + Supabase career operating system for business students entering the Israeli tech market. A practicum pilot runs Aug–Nov 2026 with 100 students.
+This is a React + Vite + Supabase career operating system for business students entering the Israeli tech market. The product is LIVE with real users (pilots launched June 2026); treat severity accordingly (P0 = hurting live users now).
+
+## Skills
+
+Before starting any task, check whether an installed skill covers it, and prefer the skill's procedure over improvising. Skills live in three places: project (`.claude/skills/`, checked into this repo), user (`~/.claude/skills/`), and plugins. Project skills encode getajob-specific procedure - use them rather than reinventing the steps.
+
+Directly relevant to our work (project skills):
+
+- **`deploy-edge-fn`** - deploying a Supabase edge function and verifying the change shipped in the DEPLOYED source (deployed does not equal merged). Use after any merged PR touching `supabase/functions/*`.
+- **`scrubbed-usage`** - the real-user scrub for ANY analytics / usage / cost query. Never report raw numbers.
+- **`schema-validator`** - validate the `_shared/libraries/*` files after edits.
+- **`design-craft`** - the getajob design bar; applies to any `.jsx` / `.css` / Tailwind edit.
+- **`role-research`** - grounded enrichment when extending a role's library content.
+- `cognitive-walkthrough`, `nielsen-heuristics-audit` - UX task / heuristic evaluation.
+
+**Precedence when they conflict: Eli's explicit prompt > CLAUDE.md > skill.** A skill never overrides a direct instruction or a rule in this file; it fills in the how when neither has spoken.
 
 ## Architecture pointers
 
