@@ -116,3 +116,17 @@ Flags resolved (Eli, 2026-07-10):
   double-list in the jobs cache (minor).
 
 Total after the dual-ATS pass: 1164 -> 1156 (6 dead/stub drops + 2 zero-IL ashby drops).
+
+## Research-280 batch evaluations (2026-07-10)
+
+The June VC-portfolio + CTech-funding research batch (308 candidates). After dedupe, 92 were net-new;
+static ATS detection succeeded on only 2 (the rest are JS-gated -> browser-agent queue). Both detected
+boards were live-verified:
+
+| company  | ats / slug       | live IL  | verdict | reason                                                                                                       |
+| -------- | ---------------- | -------- | ------- | ------------------------------------------------------------------------------------------------------------ |
+| Tapcheck | ashby / tapcheck | 0 (of 9) | DROPPED | US-HQ (on-demand pay); the ashby board carries only US roles. Revisit only if an Israel-based board appears. |
+
+Not dropped: CopilotKit (lever / copilotkit) - 0 live IL of 2 today, but Israeli-founded with a live
+board, so KEPT in the registry as a Prilenia-style seed (will contribute IL jobs when it hires in Israel).
+Registry 1156 -> 1157.
