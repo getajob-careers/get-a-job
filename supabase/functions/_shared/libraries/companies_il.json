@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1157,
+  "total_companies": 1161,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -13908,6 +13908,54 @@
       "api_url": "https://api.lever.co/v0/postings/copilotkit?mode=json",
       "verified": true,
       "notes": "Prilenia-style seed: Israeli-founded (Glilot-backed), live Lever board (2 positions), 0 live IL roles today (2026-07-10). Kept as a seed; will contribute IL jobs when it hires in Israel. From the research-280 batch."
+    },
+    {
+      "name": "Insait",
+      "type": "israeli_founded",
+      "industry": "AI / Banking",
+      "domain": "insait.io",
+      "careers_url": "https://www.insait.io/careers",
+      "ats": "comeet",
+      "slug": "0B.00C",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/0B.00C/positions?token=B0C4D544D5421242124002124373C373C&details=true",
+      "verified": true,
+      "notes": "Manual careers hunt 2026-07-10 (Eli capture, terminal-verified): Comeet uid 0B.00C. 13 positions, 4 IL (Tel Aviv-Jaffa). Was the #1 tracker-gap (tracked 3x by one user)."
+    },
+    {
+      "name": "droxi",
+      "type": "israeli_founded",
+      "industry": "HealthTech",
+      "domain": "droxi.com",
+      "careers_url": "https://droxi.com/careers/",
+      "ats": "comeet",
+      "slug": "1A.001",
+      "api_url": "https://www.comeet.co/careers-api/2.0/company/1A.001/positions?token=A1146771E333C6603C661E335A9902844&details=true",
+      "verified": true,
+      "notes": "Manual hunt 2026-07-10 (terminal-verified): real domain is droxi.com (not .ai). Comeet uid 1A.001. 5 positions, 4 IL (Ramat Gan). The hosted comeet.com/jobs/droxiai board 404s; this uid+token is the live one."
+    },
+    {
+      "name": "Spacial",
+      "type": "israeli_founded",
+      "industry": "Tech",
+      "domain": null,
+      "careers_url": "https://jobs.ashbyhq.com/spacial",
+      "ats": "ashby",
+      "slug": "spacial",
+      "api_url": "https://api.ashbyhq.com/posting-api/job-board/spacial",
+      "verified": true,
+      "notes": "Manual hunt 2026-07-10 (terminal-verified): Ashby board 'spacial'. 6 positions, 1 IL (AI Researcher). P3b net-new (domain not confirmed)."
+    },
+    {
+      "name": "Orion Security",
+      "type": "israeli_founded",
+      "industry": "Cybersecurity",
+      "domain": "orion.security",
+      "careers_url": "https://orion.security/careers",
+      "ats": "greenhouse",
+      "slug": "orioncscybersecurityltd",
+      "api_url": "https://boards-api.greenhouse.io/v1/boards/orioncscybersecurityltd/jobs",
+      "verified": true,
+      "notes": "Manual hunt 2026-07-10 (terminal-verified): Greenhouse slug 'orioncscybersecurityltd' (EU-hosted careers page, served by boards-api.greenhouse.io). 4 positions, 2 IL. P3a net-new."
     }
   ]
 }

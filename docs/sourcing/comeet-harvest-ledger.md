@@ -130,3 +130,70 @@ boards were live-verified:
 Not dropped: CopilotKit (lever / copilotkit) - 0 live IL of 2 today, but Israeli-founded with a live
 board, so KEPT in the registry as a Prilenia-style seed (will contribute IL jobs when it hires in Israel).
 Registry 1156 -> 1157.
+
+## Manual careers hunt — resolution (2026-07-10)
+
+Eli hand-hunted `docs/sourcing/careers-hunt-list.md`; every capture below was
+re-verified from the terminal against the live board API (production fetchers +
+classifyLocation + isJunkTitle), not trusted from the hunt notes.
+
+### Added to the registry (verified, >=1 live IL role)
+
+| company | ats / id | live total / IL | note |
+| --- | --- | --- | --- |
+| Insait | comeet 0B.00C | 13 / 4 | The #1 tracker gap (tracked 3x). Tel Aviv-Jaffa. |
+| droxi | comeet 1A.001 | 5 / 4 | Real domain droxi.com (not .ai); Ramat Gan. The hosted droxiai board 404s; this uid+token is the live one. |
+| Spacial | ashby / spacial | 6 / 1 | P3b net-new; AI Researcher (IL). Domain unconfirmed. |
+| Orion Security | greenhouse / orioncscybersecurityltd | 4 / 2 | P3a net-new; EU-hosted careers page but served by boards-api.greenhouse.io. |
+
+### HELD for Eli's call (verified with IL roles but attribution risk)
+
+- **Browsi** — comeet F3.00B (slug `recruitingteam`), 10 / 6 IL. Recapture worked,
+  BUT F3.00B is a **shared HR umbrella account** ("recruitingteam") that may serve
+  multiple companies — wiring Browsi to it risks mis-attributing other companies'
+  roles to Browsi. Not added pending Eli's decision (add-with-caveat vs skip).
+
+### Fetch FAILED from terminal (ledger the attempt)
+
+- **LawGeex** — comeet 73.003, the hunt-captured token returns HTTP 400 ("Account
+  uid or token are not valid"). Confirms the board is still dead (already a revisit
+  candidate). No registry action; recapture again only if a fresh token appears.
+
+### Verified live but 0 IL (do NOT add; seed/ledger — Eli's call, CopilotKit/Tapcheck precedent)
+
+Israeli-founded with a live board, 0 IL today (seed candidates): Heven AeroTech
+(gh, 39/0 — **spot-check: 39 jobs/0 IL is suspicious for an IL drone co**), Rylo
+(lever 8/0), Hud (ashby 4/0), Sequence (ashby 20/0), Cylake (ashby 10/0), Orbs
+(ashby 16/0), Blast Security (ashby 0/0), Healthee (workable 2/0), Vayyar (workable
+0/0), Cloudshare (workable 3/0), Anzu (workable 0/0), Voom Insurance (workable 0/0),
+Hi Auto (workable 2/0). Non-IL / ambiguous (drop, don't seed): Duetti (lever 13/0,
+US), Laminar (lever 8/0, US/Rubrik), Legion (gh 16/0, likely the US workforce co),
+Bessemer VP (gh 2/0, US VC), Run:ai (SR 0/0, acquired NVIDIA).
+
+### Already live — no gap (hunt was redundant)
+
+- **Abra R&D** (comeet 15.007) and **Abra Information Technologies** (comeet 12.003)
+  are both already in the registry, wired, and live (123 and 46 positions). "Abra"
+  was not actually a gap. (Note: Abra R&D's IL count is inflated by "AI Bootcamp
+  Course" listings — a staffing/training board; pre-existing, not from this pass.)
+
+### Unsupported ATS confirmed (no registry change; needs a fetcher adapter)
+
+Dazn (Pinpoint, division_id 11796), Varonis (Jobvite), Wenrix (Rippling), INNOVA
+(cruitie.com), Voltify (Breezy), Wallarm (Recruitee). Plus the 2E set already on
+the hunt list (Eightfold / iCIMS / Oracle HCM / SuccessFactors / Phenom).
+
+### No board / apply-by-other-means (no change)
+
+Kovrr (email apply; KovrrIns is the inert registry row), Findings (dead page),
+Terminal X + Factory 54 (Fox Group; Hebrew job-boards only, no modern ATS), HiO
+(LinkedIn only), origami.ms (no careers page), Sightful (Comeet account
+deactivated — post-layoff, confirmed dead), TytoCare (switched ATS; no board found).
+
+### Still needs a token capture (uid known, not actionable from terminal)
+
+The comeet hosted-board URLs Eli surfaced (Nominal E8.003, CardinalOps 66.005,
+Sunbit 37.001, Dazz D9.009, Tevel/airobotics AA.005, Camtek F4.00D, Nova A5.007,
+Lili A6.009, OneLayer 8A.007, Act Security 8A.009, Daylight 7A.00D, Moonshot 87.005,
+Airis Labs 69.00A, and the 2A UID set) confirm the uid but expose no token — still
+a browser Network capture. No registry change.
