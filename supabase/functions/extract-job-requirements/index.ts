@@ -32,19 +32,18 @@ const corsHeaders = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-// gpt-4o-mini: this is structured extraction, not creative writing. The audit
-// decided to start here and only upgrade if spot-checks fail. Cost target:
-// ~$0.005/job (~$16 for 3187-job backfill, ~$0.25-1/day ongoing).
-const MODEL = "gpt-4o-mini";
+// gpt-5.4-mini corpus-wide (Scoring-arc bake-off winner, 2026-07-13): the only
+// same-API model clearing the ≥40% must-have bar on BOTH languages, with the
+// best resolved-core. gpt-4o-mini never populates must-have (0%, prompt-bound).
+// EXTRACT_MODEL is a no-redeploy rollback knob — set it to another slug (e.g.
+// gpt-4o-mini) to fall back instantly if 5.4-mini's latency/cost misbehaves.
+const MODEL = Deno.env.get('EXTRACT_MODEL') ?? 'gpt-5.4-mini';
 
-// EXTRACT_HE_MODEL — opt-in Hebrew-routing flag (spec §7). When the env var is
-// set to exactly the routed model slug, Hebrew/mixed JDs (per the deterministic
-// script detector) route to that reasoning model; English stays on gpt-4o-mini.
-// ANY other value — unset, empty, misspelled — resolves to null => gpt-4o-mini
-// for EVERY language = today's behavior, no data migration. Mirrors the cv_model
-// safe-coerce pattern (generate-tailored-cv).
-const HE_ROUTING_MODEL: string | null =
-  Deno.env.get('EXTRACT_HE_MODEL') === 'gpt-5.4-mini' ? 'gpt-5.4-mini' : null;
+// isGpt5 → reasoning model: needs the payload shaping in openai-chat.ts AND a
+// longer per-call timeout (reasoning + 8k completion budget can exceed the
+// 35s that sufficed for gpt-4o-mini). The Batch pass is async so this only
+// governs the sync nightly / on-demand path.
+const isGpt5 = /^gpt-5/i.test(MODEL);
 
 // Appended to the system prompt on the routed (Hebrew/mixed) path ONLY (spec §3):
 // sharper anti-fabrication for the reasoning model + English-only skill labels +
@@ -247,16 +246,15 @@ interface ExtractionResult {
 
 async function extractRequirements(jd: string, jobTitle: string, openaiKey: string): Promise<ExtractionResult | null> {
   // Language routing (spec §1): a DETERMINISTIC pre-call Hebrew-script check —
-  // never the LLM-emitted jd_language (unknown until after this call). Flag off
-  // OR English body => model stays gpt-4o-mini and every guardrail below no-ops,
-  // so the default path is byte-identical to today.
-  const routeToHebrew = HE_ROUTING_MODEL !== null && isHebrewJd(jd);
-  const model = routeToHebrew ? HE_ROUTING_MODEL! : MODEL;
+  // never the LLM-emitted jd_language (unknown until after this call). Model is
+  // gpt-5.4-mini for BOTH languages now; routeToHebrew only toggles the Hebrew
+  // guardrails (English-only labels, token-grounding, cap 15, heAddendum) that
+  // the bake-off's Hebrew arm ran with — English JDs skip them (cap 25).
+  const model = MODEL;
+  const routeToHebrew = isHebrewJd(jd);
   const skillCap = routeToHebrew ? EXTRACT_HE_SKILL_CAP : 25;
   const heAddendum = routeToHebrew ? HE_PROMPT_ADDENDUM : '';
-  if (HE_ROUTING_MODEL !== null) {
-    console.log(`[extract-he-route] flag=on ratio=${hebrewCharRatio(jd).toFixed(3)} routed=${routeToHebrew} model=${model}`);
-  }
+  console.log(`[extract] model=${model} he=${routeToHebrew} ratio=${hebrewCharRatio(jd).toFixed(3)}`);
   const systemPrompt = `You are a structured extractor that pulls REQUIREMENTS and CONTEXT signals from job descriptions for downstream profile-vs-job fit scoring + market analysis. Your output is consumed by deterministic math, UI filters, and CV generation — emit ONLY values that match the canonical vocabularies below. When a JD doesn't explicitly state something, leave that field null/empty rather than inferring.
 
 ═══════════════════════════════════════════════════════════════════════════
@@ -553,7 +551,7 @@ Return JSON matching exactly this shape (leave fields null/empty when JD doesn't
       },
       openaiKey,
       { traceName: 'extract-job-requirements' },
-      { signal: AbortSignal.timeout(35000) },
+      { signal: AbortSignal.timeout(isGpt5 ? 120000 : 35000) },
     );
     if (!res.ok) {
       console.error('OpenAI extraction error:', await res.text());
