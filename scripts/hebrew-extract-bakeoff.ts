@@ -30,12 +30,11 @@ import {
   EXTRACT_HE_SKILL_CAP,
 } from "../supabase/functions/_shared/hebrew-routing.ts";
 
-// ── Pricing (USD per 1M tokens). 4o-mini is authoritative; gpt-5.4-mini is a
-// best-effort assumption — the TOKEN counts below are what actually matters and
-// are measured, so correct this one constant to re-price without re-running. ──
-const RATES: Record<string, { in: number; out: number; assumed?: boolean }> = {
+// ── Pricing (USD per 1M tokens). Both verified against current OpenAI pricing
+// (Eli, 2026-07-13). Token counts are measured, so re-price by editing here. ──
+const RATES: Record<string, { in: number; out: number }> = {
   "gpt-4o-mini": { in: 0.15, out: 0.6 },
-  "gpt-5.4-mini": { in: 0.25, out: 2.0, assumed: true },
+  "gpt-5.4-mini": { in: 0.75, out: 4.5 },
 };
 
 const SUPABASE_URL = "https://ilmqmodklutztuybsvwd.supabase.co";
@@ -72,6 +71,22 @@ const FROZEN_IDS = [
   "1794f873-3bf1-4e3f-a264-d9ed54beb321",
   "550770d8-b0d2-401e-a82e-46bb74c178e4",
   "f1f91c13-5dfd-4bbf-9978-d6d555372751",
+];
+
+// 10 frozen clean-English jobs (he_ratio<0.02, is_active, desc≥200, md5(id)).
+// Used by BAKEOFF_MODE=english-musthave — the must-have sanity check: does the
+// v5 prompt populate req_skills_must_have on English JDs under gpt-4o-mini?
+const ENGLISH_IDS = [
+  "acc70a3c-8c46-4f9e-aaa8-539a28a54581",
+  "cd9517c1-7026-4497-94c1-ba30a5d9f5a0",
+  "a421cc89-f1c2-4d45-a5ad-0d5e5002a17e",
+  "988978d0-09ee-49eb-b5cb-ab7dcab89927",
+  "0cb93f74-9d0d-4231-b4e8-5e938c2836a9",
+  "5c9456aa-6175-4966-916d-537d59b76dd3",
+  "e84ba39c-c842-4781-b248-6c882887c458",
+  "36800105-42ad-4528-9e89-0679a07c2399",
+  "82cacd3e-61b5-4def-bea7-a3cae78d4b7e",
+  "5ea7dba1-db11-47ce-b9f1-2120e048f4e5",
 ];
 
 // ── key loading ──────────────────────────────────────────────────────────
@@ -120,7 +135,12 @@ function buildPrompts(): {
   };
   let systemPrompt = grab("systemPrompt");
   const userTmpl = grab("userPrompt");
-  const heAddendum = grab("HE_PROMPT_ADDENDUM");
+  // heAddendum interpolates ${EXTRACT_HE_SKILL_CAP} at runtime in the edge fn;
+  // resolve it here so the routed prompt matches production byte-for-byte.
+  const heAddendum = grab("HE_PROMPT_ADDENDUM").replaceAll(
+    "${EXTRACT_HE_SKILL_CAP}",
+    String(EXTRACT_HE_SKILL_CAP),
+  );
 
   // Extract the 8 local literal vocab arrays from source. Safe parse: pull the
   // quoted string tokens out of the array literal via regex — no code exec, and
@@ -273,9 +293,29 @@ console.error(
   `systemPrompt reconstructed: ${prompts.systemPrompt.length} chars`,
 );
 
-// fetch the 30 frozen jobs (service-role bypasses RLS)
+// Mode: default "hebrew" (30-job 2-model bake-off) or "english-musthave" (10
+// English jobs, gpt-4o-mini only — does the v5 prompt populate must-have on EN?)
+const MODE = Deno.env.get("BAKEOFF_MODE") ?? Deno.args[0] ?? "hebrew";
+const ENGLISH = MODE === "english-musthave";
+const IDS = ENGLISH ? ENGLISH_IDS : FROZEN_IDS;
+const arms = ENGLISH
+  ? [{ name: "gpt-4o-mini (EN path)", model: "gpt-4o-mini", he: false }]
+  : [
+      {
+        name: "gpt-4o-mini (baseline, EN path)",
+        model: "gpt-4o-mini",
+        he: false,
+      },
+      {
+        name: "gpt-5.4-mini (candidate, HE path)",
+        model: "gpt-5.4-mini",
+        he: true,
+      },
+    ];
+
+// fetch the frozen jobs (service-role bypasses RLS)
 const resp = await fetch(
-  `${SUPABASE_URL}/rest/v1/jobs?id=in.(${FROZEN_IDS.join(",")})&select=id,title,description`,
+  `${SUPABASE_URL}/rest/v1/jobs?id=in.(${IDS.join(",")})&select=id,title,description`,
   {
     headers: {
       apikey: keys.SUPABASE_SERVICE_ROLE_KEY,
@@ -288,25 +328,18 @@ if (!resp.ok) {
   Deno.exit(1);
 }
 const rows: any[] = await resp.json();
-const jobs = FROZEN_IDS.map((id) => {
+const jobs = IDS.map((id) => {
   const r = rows.find((x) => x.id === id);
   return r
     ? { id, title: r.title || "", jd: stripHtml(r.description) ?? "" }
     : null;
 }).filter(Boolean) as { id: string; title: string; jd: string }[];
 console.error(
-  `fetched ${jobs.length}/30 jobs; he-ratio avg ${(jobs.reduce((a, j) => a + hebrewCharRatio(j.jd), 0) / jobs.length).toFixed(2)}`,
+  `mode=${MODE}; fetched ${jobs.length}/${IDS.length} jobs; he-ratio avg ${(jobs.reduce((a, j) => a + hebrewCharRatio(j.jd), 0) / jobs.length).toFixed(2)}`,
 );
 
-const arms = [
-  { name: "gpt-4o-mini (baseline, EN path)", model: "gpt-4o-mini", he: false },
-  {
-    name: "gpt-5.4-mini (candidate, HE path)",
-    model: "gpt-5.4-mini",
-    he: true,
-  },
-];
-const agg: Record<string, any[]> = { "gpt-4o-mini": [], "gpt-5.4-mini": [] };
+const agg: Record<string, any[]> = {};
+for (const arm of arms) agg[arm.model] = [];
 
 for (const job of jobs) {
   for (const arm of arms) {
@@ -356,6 +389,31 @@ function summarize(model: string) {
   };
 }
 
+// English must-have sanity check — focused report, gpt-4o-mini only.
+if (ENGLISH) {
+  const s = summarize("gpt-4o-mini");
+  const em: string[] = [];
+  em.push("## English must-have sanity check (v5 prompt, gpt-4o-mini)\n");
+  em.push(`Frozen set: 10 clean-English jobs (he_ratio<0.02, md5(id)).\n`);
+  em.push("| metric | value |");
+  em.push("|---|---|");
+  em.push(`| jobs ok / errored | ${s.n} / ${s.errors} |`);
+  em.push(
+    `| **must-have populated %** | **${s.mustPopulatedPct.toFixed(0)}%** |`,
+  );
+  em.push(`| avg raw core skills | ${s.avgRawCore.toFixed(1)} |`);
+  em.push(`| avg RESOLVED core skills | ${s.avgResolvedCore.toFixed(1)} |`);
+  em.push(`| languages-in-skills leaks | ${s.langInSkills} |`);
+  em.push("");
+  em.push(
+    s.mustPopulatedPct >= 40
+      ? "→ must-have populates on English. The 0% Hebrew figure is language/model-bound, not a prompt bug — proceed with routing as planned."
+      : "→ must-have ALSO ~empty on English — the field is prompt-bound, not language-bound. Report options before the pass (prompt fix vs 5.4-mini corpus-wide); do NOT run a pass that leaves must-have empty on most jobs.",
+  );
+  console.log("\n" + em.join("\n") + "\n");
+  Deno.exit(0);
+}
+
 const md: string[] = [];
 md.push("## 30-job Hebrew bake-off — results\n");
 md.push(
@@ -384,7 +442,7 @@ row("avg $/job (observed)", (s) => "$" + s.avgCost.toFixed(5));
 md.push("");
 md.push(
   `Rates: gpt-4o-mini $${RATES["gpt-4o-mini"].in}/$${RATES["gpt-4o-mini"].out} per 1M (authoritative); ` +
-    `gpt-5.4-mini $${RATES["gpt-5.4-mini"].in}/$${RATES["gpt-5.4-mini"].out} per 1M (ASSUMED — token counts are measured, re-price by editing RATES).`,
+    `gpt-5.4-mini $${RATES["gpt-5.4-mini"].in}/$${RATES["gpt-5.4-mini"].out} per 1M (both verified against current OpenAI pricing).`,
 );
 md.push("");
 md.push("### Full-pass projection (6,096 jobs; 1,470 Hebrew / 4,626 English)");

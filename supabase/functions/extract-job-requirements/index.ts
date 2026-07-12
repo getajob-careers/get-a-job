@@ -69,6 +69,16 @@ R2. ANTI-FABRICATION (STRICTER): extract a skill ONLY when it is explicitly
 R3. CONCISION: emit at most ${EXTRACT_HE_SKILL_CAP} core and ${EXTRACT_HE_SKILL_CAP} nice skills — the
     highest-signal ones actually named in the JD. Prefer fewer, well-grounded
     skills over a long padded list.
+
+R4. LANGUAGES ARE NOT SKILLS (STRICT — overrides everything): a human/natural
+    language is NEVER a skill. NEVER put English, Hebrew/עברית/אנגלית, Spanish,
+    Arabic, French, Russian — or a proficiency phrase like "fluent English",
+    "native Hebrew", "English proficiency" — into req_skills_core_raw or
+    req_skills_nice_raw, NOT EVEN after translating it to English. Every human
+    language goes ONLY into req_languages. Before emitting each skill, ask: "is
+    this the name of a spoken/written language or a language-proficiency
+    statement?" If yes, DROP it from skills. (Programming languages — Python,
+    SQL, Go, C++ — ARE skills and stay.)
 `;
 
 // Bump to force re-extraction across the whole jobs table. Useful when the
