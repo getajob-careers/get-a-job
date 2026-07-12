@@ -6,7 +6,10 @@ import { isLowCoverage } from "@/lib/flags";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
 import { useAuth } from "@/lib/AuthContext";
 import { useQueryClient } from "@tanstack/react-query";
-import { useCompanyDomains, companyDomainFor } from "@/lib/queries/useCompanyDomains";
+import {
+  useCompanyDomains,
+  companyDomainFor,
+} from "@/lib/queries/useCompanyDomains";
 import CompanyLogo from "@/components/jobs/CompanyLogo";
 import {
   Loader2,
@@ -49,7 +52,10 @@ function experienceChipText(job) {
   if (job.years_experience_min == null) {
     return SENIORITY_LABEL[job.seniority] || "Mid";
   }
-  if (job.years_experience_max != null && job.years_experience_max > job.years_experience_min) {
+  if (
+    job.years_experience_max != null &&
+    job.years_experience_max > job.years_experience_min
+  ) {
     return `${job.years_experience_min}-${job.years_experience_max} yrs`;
   }
   if (job.years_experience_min === 0) return "0+ yrs";
@@ -98,16 +104,36 @@ function formatPostedDate(dateStr) {
 // shape so downstream consumers reading specific columns (created_at,
 // applied_date, qualification_score) see real values.
 export async function addJobToTracker({ user, queryClient, job, scoreResult }) {
-  let dupQuery = supabase.from("applications").select("id").eq("user_id", user.id).limit(1);
+  let dupQuery = supabase
+    .from("applications")
+    .select("id")
+    .eq("user_id", user.id)
+    .limit(1);
   if (job.ats_source && job.external_id) {
-    dupQuery = dupQuery.eq("ats_source", job.ats_source).eq("external_id", job.external_id);
+    dupQuery = dupQuery
+      .eq("ats_source", job.ats_source)
+      .eq("external_id", job.external_id);
   } else {
     dupQuery = dupQuery.ilike("role_title", job.title);
   }
   const { data: existing } = await dupQuery;
   if (existing?.length > 0) return { duplicate: true };
 
-  const jd = job.description || "";
+  // The browse corpus is a LIGHT projection (CORPUS_SELECT omits `description`),
+  // so job.description is usually undefined here even though the JD was shown on
+  // the expanded card via a lazy fetch. Tracking with `job.description || ""`
+  // therefore stored an EMPTY job_description on every card-tracked row, leaving
+  // it un-tailorable in CV Studio (the picker drops blank JDs). Resolve the JD
+  // from the jobs row by id before insert so the tracked application carries it.
+  let jd = job.description || "";
+  if (!jd && job.id) {
+    const { data: jobRow } = await supabase
+      .from("jobs")
+      .select("description")
+      .eq("id", job.id)
+      .maybeSingle();
+    jd = jobRow?.description || "";
+  }
   const hasScore = scoreResult && typeof scoreResult.fit_score === "number";
   const matchedSkills = scoreResult?.signals?.matched_skills || [];
   const matchReason = (scoreResult?.reasoning?.strengths || []).join(" · ");
@@ -167,8 +193,9 @@ export async function addJobToTracker({ user, queryClient, job, scoreResult }) {
   // PRE-AWAIT prepend onto the wide cache. JSDoc cast on prev is the
   // minimal narrowing hint TanStack Query needs (callback param types as
   // unknown). Same pattern as Home.jsx toggleTask + b1ee594.
-  queryClient.setQueryData(["applications", user.id], (/** @type {any[] | undefined} */ prev) =>
-    [syntheticRow, ...(prev || [])]
+  queryClient.setQueryData(
+    ["applications", user.id],
+    (/** @type {any[] | undefined} */ prev) => [syntheticRow, ...(prev || [])],
   );
 
   const { data: inserted, error } = await supabase
@@ -181,8 +208,10 @@ export async function addJobToTracker({ user, queryClient, job, scoreResult }) {
     // Roll back the optimistic prepend by id, not by index — guards
     // against a concurrent write that prepended its own row between our
     // optimistic write and this rollback.
-    queryClient.setQueryData(["applications", user.id], (/** @type {any[] | undefined} */ prev) =>
-      (prev || []).filter((r) => r.id !== tempId)
+    queryClient.setQueryData(
+      ["applications", user.id],
+      (/** @type {any[] | undefined} */ prev) =>
+        (prev || []).filter((r) => r.id !== tempId),
     );
     console.error("Failed to add to tracker:", error);
     return { error };
@@ -192,8 +221,10 @@ export async function addJobToTracker({ user, queryClient, job, scoreResult }) {
   // inserted row shape (real id, real created_at, server-side defaults).
   // Belt-and-suspenders invalidate so other key variations the Settings
   // sweep cares about stay in sync.
-  queryClient.setQueryData(["applications", user.id], (/** @type {any[] | undefined} */ prev) =>
-    (prev || []).map((r) => (r.id === tempId ? inserted : r))
+  queryClient.setQueryData(
+    ["applications", user.id],
+    (/** @type {any[] | undefined} */ prev) =>
+      (prev || []).map((r) => (r.id === tempId ? inserted : r)),
   );
   queryClient.invalidateQueries({ queryKey: ["applications"] });
   // Only re-score from scratch when we couldn't write a deterministic result
@@ -209,14 +240,38 @@ export async function addJobToTracker({ user, queryClient, job, scoreResult }) {
 // (green|gray|amber) map onto the same warm palette as a fallback so a
 // stale-cache path doesn't render a colorless card.
 const RD_TRACK_STYLES = {
-  coral:  { tint: "var(--rd-coral-tint)",  badgeBg: "var(--rd-coral)",  accent: "var(--rd-coral-dark)"  },
-  teal:   { tint: "var(--rd-teal-tint)",   badgeBg: "var(--rd-teal)",   accent: "var(--rd-teal-dark)"   },
-  golden: { tint: "var(--rd-golden-tint)", badgeBg: "var(--rd-golden)", accent: "var(--rd-golden-dark)" },
+  coral: {
+    tint: "var(--rd-coral-tint)",
+    badgeBg: "var(--rd-coral)",
+    accent: "var(--rd-coral-dark)",
+  },
+  teal: {
+    tint: "var(--rd-teal-tint)",
+    badgeBg: "var(--rd-teal)",
+    accent: "var(--rd-teal-dark)",
+  },
+  golden: {
+    tint: "var(--rd-golden-tint)",
+    badgeBg: "var(--rd-golden)",
+    accent: "var(--rd-golden-dark)",
+  },
   // Legacy alias support — fall back to coral if a stale cache surface
   // passes the old names.
-  green:  { tint: "var(--rd-coral-tint)",  badgeBg: "var(--rd-coral)",  accent: "var(--rd-coral-dark)"  },
-  gray:   { tint: "var(--rd-teal-tint)",   badgeBg: "var(--rd-teal)",   accent: "var(--rd-teal-dark)"   },
-  amber:  { tint: "var(--rd-golden-tint)", badgeBg: "var(--rd-golden)", accent: "var(--rd-golden-dark)" },
+  green: {
+    tint: "var(--rd-coral-tint)",
+    badgeBg: "var(--rd-coral)",
+    accent: "var(--rd-coral-dark)",
+  },
+  gray: {
+    tint: "var(--rd-teal-tint)",
+    badgeBg: "var(--rd-teal)",
+    accent: "var(--rd-teal-dark)",
+  },
+  amber: {
+    tint: "var(--rd-golden-tint)",
+    badgeBg: "var(--rd-golden)",
+    accent: "var(--rd-golden-dark)",
+  },
 };
 
 function matchBand(score) {
@@ -232,10 +287,26 @@ function matchBand(score) {
 // show the % de-emphasized, so a legitimate "broaden-toward" role reads as
 // a stretch, not a bad match on a scary-low number.
 const BAND_META = {
-  strong: { label: "Strong match", bg: "var(--rd-teal-tint)", fg: "var(--rd-teal-dark)" },
-  good: { label: "Good match", bg: "var(--rd-coral-tint)", fg: "var(--rd-coral-dark)" },
-  stretch: { label: "Stretch", bg: "var(--rd-golden-tint)", fg: "var(--rd-golden-dark)" },
-  reach: { label: "Reach", bg: "var(--rd-bg-soft)", fg: "var(--rd-text-secondary)" },
+  strong: {
+    label: "Strong match",
+    bg: "var(--rd-teal-tint)",
+    fg: "var(--rd-teal-dark)",
+  },
+  good: {
+    label: "Good match",
+    bg: "var(--rd-coral-tint)",
+    fg: "var(--rd-coral-dark)",
+  },
+  stretch: {
+    label: "Stretch",
+    bg: "var(--rd-golden-tint)",
+    fg: "var(--rd-golden-dark)",
+  },
+  reach: {
+    label: "Reach",
+    bg: "var(--rd-bg-soft)",
+    fg: "var(--rd-text-secondary)",
+  },
 };
 
 // `trackColor` (optional) — when provided ("coral" | "teal" | "golden"),
@@ -273,7 +344,13 @@ export default function JobCard({
   const handleToggleJD = async () => {
     const opening = !showJD;
     setShowJD(opening);
-    if (opening && lazyDescription && !job.description && lazyDesc == null && !loadingDesc) {
+    if (
+      opening &&
+      lazyDescription &&
+      !job.description &&
+      lazyDesc == null &&
+      !loadingDesc
+    ) {
       setLoadingDesc(true);
       const { data } = await supabase
         .from("jobs")
@@ -322,7 +399,10 @@ export default function JobCard({
   const badgeStyle = (() => {
     if (!scored) return null;
     if (band === "soft" || !styles) {
-      return { background: "var(--rd-bg-soft)", color: "var(--rd-text-secondary)" };
+      return {
+        background: "var(--rd-bg-soft)",
+        color: "var(--rd-text-secondary)",
+      };
     }
     return { background: styles.tint, color: styles.accent };
   })();
@@ -399,7 +479,10 @@ export default function JobCard({
           // score built on a handful of generic skills that happened to map.
           <span
             className="flex-shrink-0 inline-flex items-center font-display font-semibold text-[11px] rounded-full px-2.5 py-1"
-            style={{ background: "var(--rd-bg-soft)", color: "var(--rd-text-secondary)" }}
+            style={{
+              background: "var(--rd-bg-soft)",
+              color: "var(--rd-text-secondary)",
+            }}
             title="Our skill library does not deeply cover this field yet, so we are not showing a confident match score."
           >
             Limited data for this field yet
@@ -409,11 +492,18 @@ export default function JobCard({
           // de-emphasized so a stretch role doesn't read as a bad number.
           <span
             className="flex-shrink-0 inline-flex items-baseline gap-1 font-display rounded-full px-2.5 py-1"
-            style={{ background: BAND_META[attainBand].bg, color: BAND_META[attainBand].fg }}
+            style={{
+              background: BAND_META[attainBand].bg,
+              color: BAND_META[attainBand].fg,
+            }}
           >
-            <span className="font-extrabold text-[12.5px]">{BAND_META[attainBand].label}</span>
+            <span className="font-extrabold text-[12.5px]">
+              {BAND_META[attainBand].label}
+            </span>
             {attainPct != null && (
-              <span className="font-semibold text-[10.5px] opacity-70">{attainPct}%</span>
+              <span className="font-semibold text-[10.5px] opacity-70">
+                {attainPct}%
+              </span>
             )}
           </span>
         ) : scored && badgeStyle ? (
@@ -513,8 +603,14 @@ export default function JobCard({
           className="inline-flex items-center gap-1.5 font-display font-semibold text-[12px] rounded-full px-3.5 py-1.5 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           style={
             added
-              ? { background: "var(--rd-teal-tint)", color: "var(--rd-teal-dark)" }
-              : { background: "var(--rd-bg-soft)", color: "var(--rd-text-secondary)" }
+              ? {
+                  background: "var(--rd-teal-tint)",
+                  color: "var(--rd-teal-dark)",
+                }
+              : {
+                  background: "var(--rd-bg-soft)",
+                  color: "var(--rd-text-secondary)",
+                }
           }
         >
           {adding ? (

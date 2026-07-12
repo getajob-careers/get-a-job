@@ -87,10 +87,8 @@ export default function CVStudioLive() {
   const { data: tailorApp } = useApplicationForTailor(
     pendingTailor?.applicationId,
   );
-  const { data: jdApplications = [] } = useApplicationsWithJd(
-    user?.id,
-    noJdOpen,
-  );
+  const { data: jdApplications = [], isError: jdApplicationsError } =
+    useApplicationsWithJd(user?.id, noJdOpen);
 
   // Selection: honor ?cv / ?application_id ONCE (the tracker's "Generate tailored
   // CV → Open in CV Agent" deep-link), waiting for the refetch to land a freshly
@@ -825,6 +823,7 @@ export default function CVStudioLive() {
         <NoJdCard
           role={tailorApp?.role || null}
           applications={jdApplications}
+          applicationsError={jdApplicationsError}
           canPaste={!!pendingTailor?.applicationId}
           onPick={submitPickedApp}
           onPaste={submitPastedJd}
@@ -840,7 +839,15 @@ export default function CVStudioLive() {
 // a tracked application that has a JD, or (only when a specific application is in
 // context) paste one for it. Never fake-tailors and never creates a phantom
 // application — refine-cv requires a real application_id.
-function NoJdCard({ role, applications, canPaste, onPick, onPaste, onClose }) {
+function NoJdCard({
+  role,
+  applications,
+  applicationsError,
+  canPaste,
+  onPick,
+  onPaste,
+  onClose,
+}) {
   const [jd, setJd] = useState("");
   return (
     <div className="absolute inset-0 z-40 grid place-items-center bg-rd-text/20 px-4">
@@ -862,6 +869,13 @@ function NoJdCard({ role, applications, canPaste, onPick, onPaste, onClose }) {
             ? "Tailoring needs the job description. Paste it for this role below, or pick another tracked application that already has one."
             : "Pick a tracked application that has a job description. To tailor for a new job, add it as a tracked application first."}
         </p>
+
+        {applicationsError && (
+          <p className="text-[12px] text-rd-coral-dark leading-relaxed mb-4">
+            We couldn't load your tracked applications - this is a loading
+            problem, not an empty list. Refresh and try again.
+          </p>
+        )}
 
         {applications.length > 0 && (
           <div className="mb-4">

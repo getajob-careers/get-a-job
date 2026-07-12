@@ -24,7 +24,13 @@
  * allow-list or scores jobs itself.
  */
 
-import React, { useState, useMemo, useEffect, useRef, useCallback } from "react";
+import React, {
+  useState,
+  useMemo,
+  useEffect,
+  useRef,
+  useCallback,
+} from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -44,11 +50,13 @@ import {
   Loader2,
   X,
   Star,
+  AlertCircle,
   Briefcase,
 } from "lucide-react";
 import RdCard from "@/components/redesign/RdCard";
 import RdFunnelTile from "@/components/redesign/RdFunnelTile";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
+import { isAuthError, recoverFromAuthError } from "@/lib/authRecovery";
 import UnifiedJobsFeed from "@/components/jobs/UnifiedJobsFeed";
 import { useCareerRolesQuery } from "@/lib/queries/useCareerRoles";
 import { FUNNEL_BUCKETS } from "@/lib/funnelBuckets";
@@ -259,7 +267,12 @@ export default function Career() {
   // narrowing it (PR #178 / lesson 2026-05-28). The funnel strip below
   // reads counts off this cache; JobCard's optimistic Apply path prepends
   // into the same key in the same frame the button toggles to Tracked.
-  const { data: applications = [] } = useQuery({
+  const {
+    data: applications = [],
+    isError: applicationsError,
+    error: applicationsErrorObj,
+    refetch: refetchApplications,
+  } = useQuery({
     queryKey: ["applications", user?.id],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -271,6 +284,18 @@ export default function Career() {
     },
     enabled: !!user?.id,
   });
+
+  // A degraded read (stale/desynced JWT → 401, or session dropped → 200 with 0
+  // rows) must NEVER masquerade as "you have 0 applications". On an auth error,
+  // optionally self-heal the session (flag-gated, one-shot, no loops); the board
+  // renders an explicit error state below rather than the empty state.
+  useEffect(() => {
+    if (applicationsError && isAuthError(applicationsErrorObj)) {
+      recoverFromAuthError(applicationsErrorObj).then((recovered) => {
+        if (recovered) refetchApplications();
+      });
+    }
+  }, [applicationsError, applicationsErrorObj, refetchApplications]);
 
   const funnelCounts = useMemo(() => {
     const counts = {};
@@ -434,7 +459,8 @@ export default function Career() {
       while (el && el !== main) {
         const oy = getComputedStyle(el).overflowY;
         if (oy === "auto" || oy === "scroll") {
-          if (dy > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1) return true;
+          if (dy > 0 && el.scrollTop + el.clientHeight < el.scrollHeight - 1)
+            return true;
           if (dy < 0 && el.scrollTop > 0) return true;
         }
         el = el.parentElement;
@@ -516,7 +542,10 @@ export default function Career() {
     // header, explainer, pipeline and the matched-roles panel stay put while
     // ONLY the job list scrolls (see the two-column row + jobs column below).
     // On mobile the page scrolls normally.
-    <div ref={rootRef} className={`max-w-[1080px] mx-auto px-5 sm:px-8 py-8 sm:py-10 ${fixedShell ? "md:h-full md:flex md:flex-col md:overflow-hidden" : ""}`}>
+    <div
+      ref={rootRef}
+      className={`max-w-[1080px] mx-auto px-5 sm:px-8 py-8 sm:py-10 ${fixedShell ? "md:h-full md:flex md:flex-col md:overflow-hidden" : ""}`}
+    >
       <div className="flex items-start justify-between gap-3 flex-wrap">
         <div>
           <h1 className="font-display font-extrabold text-[26px] leading-[1.1] tracking-tight text-rd-text">
@@ -548,7 +577,10 @@ export default function Career() {
       {/* Top-level Career tabs: browse jobs vs the application pipeline. The
           Pipeline tab is the ?pipeline=open URL state (preserved for the deep
           links from Home / Calendar / the redirected /Tracker). */}
-      <div className="flex items-center gap-1 mt-4 border-b border-rd-border" role="tablist">
+      <div
+        className="flex items-center gap-1 mt-4 border-b border-rd-border"
+        role="tablist"
+      >
         <button
           type="button"
           role="tab"
@@ -601,10 +633,26 @@ export default function Career() {
 
           {/* Compact funnel overview (saved → applied → interview → offer). */}
           <div className="flex gap-1.5 mb-4">
-            <RdFunnelTile label="saved" value={funnelCounts.saved} tone="neutral" />
-            <RdFunnelTile label="applied" value={funnelCounts.applied} tone="coral" />
-            <RdFunnelTile label="interview" value={funnelCounts.interview} tone="teal" />
-            <RdFunnelTile label="offer" value={funnelCounts.offer} tone="neutral" />
+            <RdFunnelTile
+              label="saved"
+              value={funnelCounts.saved}
+              tone="neutral"
+            />
+            <RdFunnelTile
+              label="applied"
+              value={funnelCounts.applied}
+              tone="coral"
+            />
+            <RdFunnelTile
+              label="interview"
+              value={funnelCounts.interview}
+              tone="teal"
+            />
+            <RdFunnelTile
+              label="offer"
+              value={funnelCounts.offer}
+              tone="neutral"
+            />
           </div>
 
           {!guideDismissed && (
@@ -689,11 +737,28 @@ export default function Career() {
           </div>
 
           <div className="mt-3">
-            {applications.length === 0 ? (
+            {applicationsError ? (
+              <RdCard className="px-6 py-10 text-center">
+                <AlertCircle className="w-10 h-10 text-rd-coral mx-auto mb-3" />
+                <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] max-w-md mx-auto">
+                  We couldn't load your applications.{" "}
+                  {isAuthError(applicationsErrorObj)
+                    ? "Your session may have expired - try refreshing the page or signing in again."
+                    : "This is a loading problem, not an empty tracker - your applications are safe."}
+                </p>
+                <button
+                  type="button"
+                  onClick={() => refetchApplications()}
+                  className="mt-4 text-[12.5px] font-medium text-rd-coral-dark underline underline-offset-2"
+                >
+                  Retry
+                </button>
+              </RdCard>
+            ) : applications.length === 0 ? (
               <RdCard className="px-6 py-10 text-center">
                 <Briefcase className="w-10 h-10 text-rd-coral mx-auto mb-3" />
                 <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] max-w-md mx-auto">
-                  No applications yet. Track one from the live-jobs list below - 
+                  No applications yet. Track one from the live-jobs list below -
                   the Track button on any role card prepends it here.
                 </p>
               </RdCard>
@@ -736,12 +801,17 @@ export default function Career() {
       {/* Kept mounted (just hidden) on the Pipeline tab so returning to Job
           search doesn't remount the feed — preserves its fetched jobs, reveal
           count, and scroll position instead of re-rendering from scratch. */}
-      <div className={`flex flex-col md:flex-row gap-4 mt-4 items-start ${boardOpen ? "hidden" : ""} ${fixedShell ? "md:flex-1 md:min-h-0" : ""}`}>
+      <div
+        className={`flex flex-col md:flex-row gap-4 mt-4 items-start ${boardOpen ? "hidden" : ""} ${fixedShell ? "md:flex-1 md:min-h-0" : ""}`}
+      >
         {/* Left — the shared unified two-tab jobs feed. Career renders the
             SAME <UnifiedJobsFeed> as /jobs (one implementation, no forked
             track-scoped feed). It self-fetches profile / experiences / roles
             via the canonical hooks and owns its own scoring, search + tabs. */}
-        <div ref={jobsColRef} className={`w-full md:flex-[1.55] min-w-0 ${fixedShell ? "md:h-full md:overflow-y-auto md:pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`}>
+        <div
+          ref={jobsColRef}
+          className={`w-full md:flex-[1.55] min-w-0 ${fixedShell ? "md:h-full md:overflow-y-auto md:pr-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}`}
+        >
           <UnifiedJobsFeed singleColumn />
         </div>
 
@@ -752,7 +822,9 @@ export default function Career() {
             (scrollbar hidden) so a long list is fully reachable; with the
             pipeline board open the page scrolls normally, so it's just
             natural height, top-aligned. */}
-        <div className={`w-full md:flex-1 min-w-0 bg-rd-bg-page border border-rd-border-subtle rounded-[16px] p-3.5 ${fixedShell ? "md:h-full md:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "md:self-start"}`}>
+        <div
+          className={`w-full md:flex-1 min-w-0 bg-rd-bg-page border border-rd-border-subtle rounded-[16px] p-3.5 ${fixedShell ? "md:h-full md:overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : "md:self-start"}`}
+        >
           <div className="flex items-center justify-between mb-2">
             <span className="font-display font-bold text-[14px] text-rd-text">
               Your matched roles
