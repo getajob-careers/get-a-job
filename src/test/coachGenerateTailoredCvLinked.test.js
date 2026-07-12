@@ -82,7 +82,10 @@ vi.mock("@/api/supabaseClient", () => {
 vi.mock("@/lib/analytics", () => ({ track: vi.fn(), EVENTS: {} }));
 vi.mock("@/lib/scoreApplication", () => ({ scoreApplication: vi.fn() }));
 
-import { generateTailoredCVLinked } from "@/lib/coachActionHandlers";
+import {
+  generateTailoredCVLinked,
+  applyApplicationActions,
+} from "@/lib/coachActionHandlers";
 
 const user = { id: "user-1" };
 const queryClient = { invalidateQueries: vi.fn() };
@@ -95,6 +98,37 @@ beforeEach(() => {
   updatedRows.length = 0;
   cfg.appAlreadyHasJd = false;
   cfg.existingDup = null;
+});
+
+describe("applyApplicationActions — JD-drop safety net end state (stored row carries the JD)", () => {
+  it("persists job_description onto the inserted row when the add_application carries one", async () => {
+    // The ai-chat safety net attaches a pasted JD to the add_application before
+    // it reaches the frontend (2026-07-07 KPMG incident). This asserts the other
+    // half: the created row is stored WITH that JD, so CV Studio can tailor it.
+    const jd =
+      "About the job. We Are KPMG Israel. Low-Code / No-Code Implementer: design, " +
+      "configure and deploy automation solutions and support enterprise clients.";
+    await applyApplicationActions({
+      user,
+      queryClient,
+      actions: [
+        {
+          action: "add_application",
+          company: "KPMG Israel",
+          role_title: "Low-Code / No-Code Implementer",
+          status: "interested",
+          job_description: jd,
+        },
+      ],
+    });
+
+    expect(insertedRows).toHaveLength(1);
+    expect(insertedRows[0].table).toBe("applications");
+    expect(insertedRows[0].row.job_description).toContain("KPMG Israel");
+    expect(insertedRows[0].row.job_description).toContain(
+      "Low-Code / No-Code Implementer",
+    );
+  });
 });
 
 describe("generateTailoredCVLinked (F1 / orphan-CV)", () => {

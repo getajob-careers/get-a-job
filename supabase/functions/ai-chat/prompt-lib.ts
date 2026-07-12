@@ -1087,6 +1087,101 @@ export function buildMessages(
   ];
 }
 
+// ─── JD-drop safety net ───────────────────────────────────────────────────────
+// The model sometimes emits add_application / update_application WITHOUT
+// job_description even though the user pasted the JD a turn or two earlier
+// (the 2026-07-07 KPMG incident: JD pasted, add emitted with no field, the row
+// stored no JD, so CV Studio could not tailor it). Prompt instructions alone did
+// not hold, so this deterministically attaches a recently-pasted JD to a JD-less
+// application action — guarded so it never misattaches the user's own CV.
+
+// A pasted JD is substantial text; short chat turns are not.
+export function looksLikeJd(text: unknown): boolean {
+  return typeof text === "string" && text.trim().length >= 400;
+}
+
+function wordSet(text: string): Set<string> {
+  const s = new Set<string>();
+  for (const w of String(text || "").toLowerCase().match(/[a-z0-9]{4,}/g) || []) {
+    s.add(w);
+  }
+  return s;
+}
+
+// True when the candidate paste is likely the user's OWN CV/profile rather than a
+// job description: a majority of its distinctive words already appear in the
+// user's stored experiences. A real JD shares little with the user's history.
+// Attaching a CV as a JD would corrupt downstream tailoring, so we skip it.
+export function looksLikeOwnCv(candidate: string, experiencesText: string): boolean {
+  const exp = wordSet(experiencesText);
+  if (exp.size < 8) return false; // too little history to judge — do not block
+  const cand = wordSet(candidate);
+  if (cand.size === 0) return false;
+  let overlap = 0;
+  for (const w of cand) if (exp.has(w)) overlap++;
+  return overlap / cand.size > 0.5;
+}
+
+export interface JdEnrichResult {
+  actions: any[];
+  attached: { company: string | null; role_title: string | null }[];
+  askedFor: { company: string | null; role_title: string | null }[];
+}
+
+// Attach a recently-pasted JD to any application action that lacks one. Scans the
+// current message then the recent user turns (proximity guard, capped), picks the
+// first substantial non-CV paste, and leaves actions that already carry a JD
+// untouched. Returns which actions got a JD (attached) and which add_applications
+// still have none (askedFor) so the caller can be transparent about both.
+export function enrichApplicationActionsWithJd(
+  actions: any[],
+  ctx: { message?: string; conversationHistory?: any[]; experiencesText?: string },
+): JdEnrichResult {
+  const attached: JdEnrichResult["attached"] = [];
+  const askedFor: JdEnrichResult["askedFor"] = [];
+  if (!Array.isArray(actions) || actions.length === 0) {
+    return { actions, attached, askedFor };
+  }
+
+  // Candidates, most-recent-first: the current message, then up to the last 5
+  // user turns of history (proximity — do not reach back to an unrelated JD).
+  const MAX_USER_TURNS = 5;
+  const candidates: string[] = [];
+  if (typeof ctx.message === "string") candidates.push(ctx.message);
+  const hist = Array.isArray(ctx.conversationHistory) ? ctx.conversationHistory : [];
+  let seen = 0;
+  for (let i = hist.length - 1; i >= 0 && seen < MAX_USER_TURNS; i--) {
+    const turn = hist[i];
+    if (turn && turn.role === "user" && typeof turn.content === "string") {
+      candidates.push(turn.content);
+      seen++;
+    }
+  }
+  const jd = candidates.find(
+    (c) => looksLikeJd(c) && !looksLikeOwnCv(c, ctx.experiencesText || ""),
+  );
+
+  const out = actions.map((a: any) => {
+    const isAppAction =
+      a && (a.action === "add_application" || a.action === "update_application");
+    if (!isAppAction) return a;
+    const hasJd =
+      typeof a.job_description === "string" && a.job_description.trim().length > 0;
+    if (hasJd) return a; // respect the model when it DID fill it
+    const label = {
+      company: a.company ?? a.match_company ?? null,
+      role_title: a.role_title ?? a.match_role_title ?? null,
+    };
+    if (jd) {
+      attached.push(label);
+      return { ...a, job_description: jd.slice(0, 5000) };
+    }
+    if (a.action === "add_application") askedFor.push(label);
+    return a;
+  });
+  return { actions: out, attached, askedFor };
+}
+
 // ─── parseSuggestions (port of index.ts:988-1318) ─────────────────────────────
 // Returns the stripped reply + the structured fields exactly as the production
 // function returns them. Mirrors the validator order + the belt-and-suspenders

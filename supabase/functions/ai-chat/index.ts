@@ -16,6 +16,7 @@ import {
   parseSuggestions,
   reconcileCvGenToApp,
   stripUnbackedCvGenerationClaim,
+  enrichApplicationActionsWithJd,
 } from "./prompt-lib.ts";
 import { openrouterChatCompletionWithRetry } from "../_shared/openrouter-chat.ts";
 
@@ -432,7 +433,7 @@ Deno.serve(async (req) => {
     const suggested_tasks = parsed.suggested_tasks;
     const suggested_agent = parsed.suggested_agent;
     const suggested_roadmap_changes = parsed.suggested_roadmap_changes;
-    const suggested_application_actions = parsed.suggested_application_actions;
+    let suggested_application_actions = parsed.suggested_application_actions;
     const suggested_company_target_actions =
       parsed.suggested_company_target_actions;
     let suggested_cv_generation = parsed.suggested_cv_generation;
@@ -459,6 +460,48 @@ Deno.serve(async (req) => {
     // client wiring. No-op when an action IS present (the claim is then true).
     if (!suggested_cv_generation) {
       reply = stripUnbackedCvGenerationClaim(reply);
+    }
+
+    // JD-drop safety net (2026-07-07 KPMG incident): the model can emit an
+    // add/update_application WITHOUT job_description even when the user pasted the
+    // JD a turn earlier, leaving the row un-tailorable. Deterministically attach a
+    // recently-pasted JD, guarded against misattaching the user's own CV, and be
+    // transparent: say so when we attach, and ask for it when none is available.
+    if (
+      Array.isArray(suggested_application_actions) &&
+      suggested_application_actions.some(
+        (a: any) =>
+          (a.action === "add_application" || a.action === "update_application") &&
+          !(typeof a.job_description === "string" && a.job_description.trim()),
+      )
+    ) {
+      const { data: exps } = await serviceClient
+        .from("experiences")
+        .select("title, company, bullets")
+        .eq("user_id", user.id);
+      const experiencesText = (exps ?? [])
+        .map(
+          (e: any) =>
+            `${e.title ?? ""} ${e.company ?? ""} ${Array.isArray(e.bullets) ? e.bullets.join(" ") : ""}`,
+        )
+        .join(" ");
+      const enriched = enrichApplicationActionsWithJd(
+        suggested_application_actions,
+        { message, conversationHistory: conversation_history, experiencesText },
+      );
+      suggested_application_actions = enriched.actions;
+      const notes: string[] = [];
+      for (const a of enriched.attached) {
+        notes.push(
+          `Saved the job description you pasted for ${a.role_title ?? "this role"}${a.company ? ` at ${a.company}` : ""}.`,
+        );
+      }
+      for (const a of enriched.askedFor) {
+        notes.push(
+          `I've added ${a.role_title ?? "this role"}${a.company ? ` at ${a.company}` : ""} without a job description — paste the JD and I'll attach it so you can tailor a CV.`,
+        );
+      }
+      if (notes.length) reply = `${reply}\n\n${notes.join("\n")}`;
     }
 
     _ok = true;
