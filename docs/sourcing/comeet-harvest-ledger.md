@@ -2,7 +2,7 @@
 title: Comeet Harvest Ledger (dropped tenants)
 status: living
 owner: eli
-last_reviewed: 2026-07-08
+last_reviewed: 2026-07-12
 code_paths:
   - supabase/functions/_shared/libraries/companies_il.json
   - docs/sourcing/site-search-harvest.md
@@ -220,3 +220,27 @@ Sunbit 37.001, Dazz D9.009, Tevel/airobotics AA.005, Camtek F4.00D, Nova A5.007,
 Lili A6.009, OneLayer 8A.007, Act Security 8A.009, Daylight 7A.00D, Moonshot 87.005,
 Airis Labs 69.00A, and the 2A UID set) confirm the uid but expose no token — still
 a browser Network capture. No registry change.
+
+## Comeet token-capture shortlist — all 30 boards dead (2026-07-12)
+
+Automation test of the 30-company `comeet-token-shortlist.md` (unknown-ATS registry rows with a
+known Comeet UID, generated 2026-06-14). Both capture routes were validated against the known-good
+Insait (uid 0B.00C) and reproduced its token exactly - the method works - but every board on the
+shortlist is dead, so 0 tokens were captured. Funnel: 30 -> 0 captured -> 0 verified -> 0 IL.
+Ledgered here so a future harvest does not re-investigate them.
+
+- **Deactivated (25, VERIFIED - the board serves "This Spark Hire Recruit account has been
+  deactivated"):** AnyClip 91.00D, Autotalks 03.009, Bionic Security F5.008, Centrical C1.00A,
+  Cyabra 29.006, Cyberbit C3.00E, Cynerio 16.00E, CYREBRO A7.003, CyberInt 83.006, Deep Instinct
+  72.00A, env0 B6.005, HiredScore 24.000, Karamba Security D7.00D, Lightico 94.00D, Lumigo 04.001,
+  Noname Security 86.001, Otorio E3.003, Perimeter 81 64.00C, Pliops 05.004, Qwak 99.005, SCADAfence
+  43.00E, SciPlay D5.00A, Sorbet 17.002, Syte 74.002, Vulcan Cyber 94.00E. Many are acquired/shut
+  (Guardicore/Noname -> Akamai, CyberInt/Perimeter 81 -> Check Point, Qwak -> JFrog, SCADAfence ->
+  Honeywell, Vulcan -> Tenable, Future Meat -> Believer Meats).
+- **Unresolved (5, INFERRED dead - no comeet board resolves for the uid on any slug tried):**
+  Bidalgo 22.006, Future Meat B7.00A, Glassbox 53.00C, Namogoo B4.006, Guardicore F2.008.
+
+These stay as inert `unknown`-ATS rows in the registry (no live board to wire). Dropping the 30 inert
+rows is an optional separate registry-cleanup PR, not done here. Reusable finding: token capture from
+a LIVE comeet board is automatable (headless Chromium capturing the `comeet.co` `token=...&company-uid=`
+request), so future harvests of live boards are a scripted loop, not manual DevTools work.
