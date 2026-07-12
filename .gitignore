@@ -54,3 +54,6 @@ scripts/cv-harness/fixtures/founder.json
 # Local editor / vault + scratch notes (kept on disk, not tracked)
 .obsidian/
 notes/
+
+# bake-off harness secrets (never commit)
+scripts/.bakeoff.env
