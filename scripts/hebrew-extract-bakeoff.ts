@@ -35,6 +35,8 @@ import {
 const RATES: Record<string, { in: number; out: number }> = {
   "gpt-4o-mini": { in: 0.15, out: 0.6 },
   "gpt-5.4-mini": { in: 0.75, out: 4.5 },
+  "gpt-5.4-nano": { in: 0.2, out: 1.25 },
+  "gpt-4.1-mini": { in: 0.4, out: 1.6 },
 };
 
 const SUPABASE_URL = "https://ilmqmodklutztuybsvwd.supabase.co";
@@ -263,7 +265,7 @@ async function runArm(
   }
   const totalRaw = core.length + nice.length;
 
-  const rate = RATES[model];
+  const rate = RATES[model] ?? { in: 0, out: 0 };
   const pt = usage.prompt_tokens ?? 0,
     ct = usage.completion_tokens ?? 0;
   const cost = (pt * rate.in + ct * rate.out) / 1e6;
@@ -293,25 +295,53 @@ console.error(
   `systemPrompt reconstructed: ${prompts.systemPrompt.length} chars`,
 );
 
-// Mode: default "hebrew" (30-job 2-model bake-off) or "english-musthave" (10
-// English jobs, gpt-4o-mini only — does the v5 prompt populate must-have on EN?)
+// Modes:
+//  - MODEL=<slug> SET=<english|hebrew10|hebrew30> → single-model run (3-way check).
+//    SET drives the routing path: hebrew* → HE path (guardrails, cap 15); english
+//    → EN path (cap 25). The model gets its production path for that language.
+//  - BAKEOFF_MODE=english-musthave → 10 EN jobs, gpt-4o-mini (must-have check).
+//  - default → 30 HE jobs, gpt-4o-mini vs gpt-5.4-mini.
+const SINGLE_MODEL = Deno.env.get("MODEL");
+const SET = Deno.env.get("SET") ?? "english";
 const MODE = Deno.env.get("BAKEOFF_MODE") ?? Deno.args[0] ?? "hebrew";
 const ENGLISH = MODE === "english-musthave";
-const IDS = ENGLISH ? ENGLISH_IDS : FROZEN_IDS;
-const arms = ENGLISH
-  ? [{ name: "gpt-4o-mini (EN path)", model: "gpt-4o-mini", he: false }]
-  : [
-      {
-        name: "gpt-4o-mini (baseline, EN path)",
-        model: "gpt-4o-mini",
-        he: false,
-      },
-      {
-        name: "gpt-5.4-mini (candidate, HE path)",
-        model: "gpt-5.4-mini",
-        he: true,
-      },
-    ];
+const SINGLE = !!SINGLE_MODEL;
+
+let IDS: string[];
+let arms: { name: string; model: string; he: boolean }[];
+if (SINGLE) {
+  const heSet = SET.startsWith("hebrew");
+  IDS =
+    SET === "hebrew10"
+      ? FROZEN_IDS.slice(0, 10)
+      : SET === "hebrew30"
+        ? FROZEN_IDS
+        : ENGLISH_IDS;
+  arms = [
+    {
+      name: `${SINGLE_MODEL} (${heSet ? "HE" : "EN"} path)`,
+      model: SINGLE_MODEL!,
+      he: heSet,
+    },
+  ];
+} else if (ENGLISH) {
+  IDS = ENGLISH_IDS;
+  arms = [{ name: "gpt-4o-mini (EN path)", model: "gpt-4o-mini", he: false }];
+} else {
+  IDS = FROZEN_IDS;
+  arms = [
+    {
+      name: "gpt-4o-mini (baseline, EN path)",
+      model: "gpt-4o-mini",
+      he: false,
+    },
+    {
+      name: "gpt-5.4-mini (candidate, HE path)",
+      model: "gpt-5.4-mini",
+      he: true,
+    },
+  ];
+}
 
 // fetch the frozen jobs (service-role bypasses RLS)
 const resp = await fetch(
@@ -387,6 +417,38 @@ function summarize(model: string) {
     avgCost: avg((r) => r.cost),
     totalCost: rs.reduce((a, r) => a + r.cost, 0),
   };
+}
+
+// Single-model run (3-way check) — one focused table for MODEL on SET.
+if (SINGLE) {
+  const s = summarize(arms[0].model);
+  const r = RATES[arms[0].model] ?? { in: 0, out: 0 };
+  const sm: string[] = [];
+  sm.push(
+    `## ${arms[0].model} on ${SET} (v5 prompt, ${arms[0].he ? "HE" : "EN"} path)\n`,
+  );
+  sm.push(
+    `Frozen set: ${IDS.length} ${SET} jobs. Rate $${r.in}/$${r.out} per 1M.\n`,
+  );
+  sm.push("| metric | value |");
+  sm.push("|---|---|");
+  sm.push(`| jobs ok / errored | ${s.n} / ${s.errors} |`);
+  sm.push(
+    `| **must-have populated %** | **${s.mustPopulatedPct.toFixed(0)}%** |`,
+  );
+  sm.push(`| avg raw core skills | ${s.avgRawCore.toFixed(1)} |`);
+  sm.push(`| avg RESOLVED core skills | ${s.avgResolvedCore.toFixed(1)} |`);
+  sm.push(`| zero-resolved-core % | ${s.zeroCorePct.toFixed(0)}% |`);
+  sm.push(
+    `| avg coverage ratio | ${s.avgCoverage == null ? "—" : s.avgCoverage.toFixed(2)} |`,
+  );
+  sm.push(`| languages-in-skills leaks | ${s.langInSkills} |`);
+  sm.push(
+    `| avg prompt / completion tok | ${Math.round(s.avgPromptTok)} / ${Math.round(s.avgComplTok)} |`,
+  );
+  sm.push(`| avg $/job (observed) | $${s.avgCost.toFixed(5)} |`);
+  console.log("\n" + sm.join("\n") + "\n");
+  Deno.exit(0);
 }
 
 // English must-have sanity check — focused report, gpt-4o-mini only.
