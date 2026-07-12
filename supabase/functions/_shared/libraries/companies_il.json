@@ -4411,11 +4411,11 @@
       "industry": "Analytics",
       "domain": "glassbox.com",
       "careers_url": "https://www.glassbox.com/careers/",
-      "ats": "unknown",
-      "slug": null,
-      "api_url": null,
-      "verified": false,
-      "notes": "Comeet UID 53.00C found; token not extracted"
+      "ats": "workable",
+      "slug": "glassbox",
+      "api_url": "https://apply.workable.com/api/v1/widget/accounts/glassbox?details=true",
+      "verified": true,
+      "notes": "CopilotKit-style seed: comeet board (UID 53.00C) deactivated; company migrated to Workable (glassbox.workable.com, live). 0 live IL roles today (2026-07-12); flips via the nightly cron when it posts IL roles. Independent + operating (Alicorn-owned since 2024, ~272 employees, acquired Anodot 2025)."
     },
     {
       "name": "Glean",

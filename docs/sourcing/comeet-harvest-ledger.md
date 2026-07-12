@@ -274,3 +274,28 @@ catch-all); greenhouse/lever/ashby/workable 404 on garbage and are reliable. Fun
 
 Verified with `scripts/verify-hunt.ts` (production fetchers + IL classifier). The comeet capture harness
 was promoted to `scripts/comeet-token-capture.mjs`. No registry change (0 boards with >=1 IL).
+
+#### Independence check on the 7 workable boards (2026-07-12) — 1 seeded, 6 ledgered
+
+Web-verified the current status of each of the 7 comeet -> workable migrations before seeding. Only a
+still-independent, operating company is worth a seed (its board hires under its own name); an acquired
+or absorbed company's board winds down.
+
+**Seeded as a `workable` seed (1, independent + operating):**
+
+- **Glassbox** (`glassbox`) — registry row flipped `unknown -> workable`. Alicorn-owned (PE take-private, 2024) but operating under its own brand (~272 employees Apr 2026; acquired Anodot 2025). Live board,
+  0 IL today; flips via the nightly cron when it posts IL roles. CopilotKit-style seed.
+
+**Ledgered, NOT seeded (6, acquired/absorbed or winding down):**
+
+| company         | uid    | reason (web-verified 2026-07-12)                                                                                                                                               |
+| --------------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Bionic Security | F5.008 | Acquired by **CrowdStrike** (Sept 2023, $239M); absorbed into Falcon. Not an independent hirer.                                                                                |
+| Lumigo          | 04.001 | Acquired by **Dash0** (Feb 2026); Tel Aviv team absorbed into Dash0.                                                                                                           |
+| Otorio          | E3.003 | Acquired by **Armis** (Mar 2025, $120M); integrated into Armis Centrix.                                                                                                        |
+| Pliops          | 05.004 | Acquired by **Astera Labs** (Feb 2026, $70M); ~half of staff into a new Astera IL R&D center.                                                                                  |
+| SCADAfence      | 43.00E | Acquired by **Honeywell** (2023); integrated into Honeywell Forge (Eli's earlier finding).                                                                                     |
+| Sorbet          | 17.002 | Not acquired but **winding down** — laid off the majority of staff (Sept 2025, "structural reset"); NY-HQ, marginal IL prospect. Revisit only if it clearly resumes IL hiring. |
+
+Their workable boards exist but are 0-job today; wiring them would carry inert rows that are unlikely
+to flip. Their inert `unknown` comeet rows stay as-is (dropping them is the optional registry-cleanup PR).
