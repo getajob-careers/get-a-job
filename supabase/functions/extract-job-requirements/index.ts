@@ -86,7 +86,16 @@ R3. CONCISION: emit at most ${EXTRACT_HE_SKILL_CAP} core and ${EXTRACT_HE_SKILL_
 //     travel_struct, reports_to_struct, rd_local_headcount + local_office_city).
 //     Captures the 2026 AI-tool fluency signal (45% of JDs), per-skill years
 //     gating (40%), and IL-specific comp perks (Keren Hishtalmut, Cibus).
-const EXTRACTION_SCHEMA_VERSION = 4;
+// v5: Scoring-arc extraction-completeness pass. Adds (a) the must-have/required
+//     flag — req_skills_must_have_raw, the mandatory subset of core, resolved to
+//     req_skills_must_have (scoring-unused for now); (b) raw-persistence of every
+//     emitted skill phrase (req_skills_core_raw / req_skills_nice_raw /
+//     req_skills_must_have_raw) so future library expansions re-resolve at zero
+//     LLM cost; (c) body-anchoring — skills scanned from the WHOLE JD, not only a
+//     "Requirements" block; (d) integrity fixes — natural languages route to
+//     req_languages (never req_skills), leadership/people-management counts as a
+//     skill when required. Language routing (EXTRACT_HE_MODEL) rides this pass.
+const EXTRACTION_SCHEMA_VERSION = 5;
 
 // Canonical vocabularies the extractor must produce. We surface these in the
 // prompt so the LLM only emits values that match our deterministic scorer.
@@ -173,6 +182,7 @@ interface ExtractionResult {
   req_education_strict: boolean;
   req_skills_core_raw: string[];   // free-text phrases the LLM extracted
   req_skills_nice_raw: string[];
+  req_skills_must_have_raw: string[];  // subset of core the JD marks mandatory
   req_languages: Array<{ language: string; proficiency: string }>;
   req_visa_constraint: string | null;
   function_family: string | null;
@@ -269,7 +279,9 @@ EXTRACTION RULES — CORE REQUIREMENTS
 
 5. req_education_strict — TRUE only when JD has NO softening clause. FALSE when "or equivalent experience", "preferred", "nice to have", "bonus".
 
-6. req_skills_core / req_skills_nice: skills the JD requires, across three categories, not only single-word tools. (a) Technical skills and tools ("Python", "SQL", "Databricks"). (b) Process and methodology skills, often multi-word phrases ("project management", "schedule and dependency management", "sprint planning", "cross-team coordination", "status reporting", "risk management"). (c) Business, analytical, and interpersonal skills, often full descriptive clauses ("translating business needs into technical requirements", "defining KPIs", "deriving business insights", "stakeholder communication", "working with business clients"). Hebrew JDs often express (b) and (c) as descriptive clauses rather than single words; extract those as skills. ANTI-FABRICATION: extract ONLY skills genuinely stated in or clearly required by the JD, never invent or pad; a false skill is worse than a missed one. Skip contentless filler ("team player", "hard worker"). Distinguish core (must-have) vs nice (under "advantage" / "bonus" / "nice to have").
+6. req_skills_core / req_skills_nice: skills the JD requires, across three categories, not only single-word tools. (a) Technical skills and tools ("Python", "SQL", "Databricks"). (b) Process and methodology skills, often multi-word phrases ("project management", "schedule and dependency management", "sprint planning", "cross-team coordination", "status reporting", "risk management"). (c) Business, analytical, and interpersonal skills, often full descriptive clauses ("translating business needs into technical requirements", "defining KPIs", "deriving business insights", "stakeholder communication", "working with business clients"). Hebrew JDs often express (b) and (c) as descriptive clauses rather than single words; extract those as skills. ANTI-FABRICATION: extract ONLY skills genuinely stated in or clearly required by the JD, never invent or pad; a false skill is worse than a missed one. Skip contentless filler ("team player", "hard worker"). Distinguish core (must-have) vs nice (under "advantage" / "bonus" / "nice to have"). BODY-ANCHORING: scan the ENTIRE JD for skills — the responsibilities / "what you'll do" / "about the role" prose, not only an explicit "Requirements" or "Qualifications" block. A skill demonstrably required by the day-to-day described in the body counts even if it is never listed under a bullet header. LEADERSHIP: when the role requires managing people, owning a team, or leading a function, extract that as a skill ("people management", "team leadership", "engineering management") — it is a real requirement, not filler. LANGUAGES ARE NOT SKILLS: never put a human/natural language (English, Hebrew, עברית, אנגלית, Spanish, Arabic, ...) in req_skills_core / req_skills_nice — those belong ONLY in req_languages (rule 7). Programming languages (Python, Go, SQL) ARE skills and stay in req_skills.
+
+6a. req_skills_must_have — the subset of req_skills_core the JD marks as genuinely MANDATORY: phrases governed by "must", "required", "essential", "mandatory", "you have", a hard years-gate ("5+ years of X required"), or the Hebrew "חובה". Emit these phrases VERBATIM as they appear in req_skills_core (a strict subset — every must-have phrase must also be in req_skills_core). When the JD does not distinguish mandatory from merely-listed, leave req_skills_must_have empty rather than guessing. This is a signal for future scoring; do not pad it.
 
 7. req_languages — when JD explicitly names a human language as required or preferred ("Full professional proficiency in English is mandatory", "Native English speaker", "Hebrew required", "Spanish a plus", "communicate with global customers"). Israeli tech JDs almost always require English at Fluent or Native level — extract it whenever stated, even briefly. Skip "good communication" alone (not a specific language). For each language, emit { language: "English", proficiency: "Native | Fluent | Professional | Conversational | Basic" }.
 
@@ -469,6 +481,7 @@ Return JSON matching exactly this shape (leave fields null/empty when JD doesn't
   "req_education_strict": false,
   "req_skills_core_raw": [],
   "req_skills_nice_raw": [],
+  "req_skills_must_have_raw": [],
   "req_languages": [],
   "req_visa_constraint": null,
   "function_family": null,
@@ -594,11 +607,23 @@ Return JSON matching exactly this shape (leave fields null/empty when JD doesn't
     let skillsNiceRaw = Array.isArray(parsed.req_skills_nice_raw)
       ? parsed.req_skills_nice_raw.filter((s: unknown) => typeof s === 'string' && s.trim().length > 0).slice(0, skillCap)
       : [];
+    let skillsMustHaveRaw = Array.isArray(parsed.req_skills_must_have_raw)
+      ? parsed.req_skills_must_have_raw.filter((s: unknown) => typeof s === 'string' && s.trim().length > 0).slice(0, skillCap)
+      : [];
     if (routeToHebrew) {
       // Guardrails (spec §3): English-only labels + drop fabricated (ungrounded)
       // skills. Routed path ONLY — the English / gpt-4o-mini output is untouched.
       skillsCoreRaw = tokenGroundedSkills(dropHebrewLabels(skillsCoreRaw), jd);
       skillsNiceRaw = tokenGroundedSkills(dropHebrewLabels(skillsNiceRaw), jd);
+      skillsMustHaveRaw = tokenGroundedSkills(dropHebrewLabels(skillsMustHaveRaw), jd);
+    }
+    // Enforce the schema invariant: must-have is a strict subset of core. The
+    // LLM is told this, but we intersect defensively (case-insensitive) so a
+    // must-have phrase never escapes core — otherwise the resolved must-have
+    // column could reference a skill the core column never claimed.
+    {
+      const coreLower = new Set(skillsCoreRaw.map((s: string) => s.toLowerCase().trim()));
+      skillsMustHaveRaw = skillsMustHaveRaw.filter((s: string) => coreLower.has(s.toLowerCase().trim()));
     }
     const languages = Array.isArray(parsed.req_languages)
       ? parsed.req_languages
@@ -1002,6 +1027,7 @@ Return JSON matching exactly this shape (leave fields null/empty when JD doesn't
       req_education_strict: eduStrict,
       req_skills_core_raw: skillsCoreRaw,
       req_skills_nice_raw: skillsNiceRaw,
+      req_skills_must_have_raw: skillsMustHaveRaw,
       req_languages: languages,
       req_visa_constraint: visa,
       function_family: family,
@@ -1199,6 +1225,27 @@ Deno.serve(async (req) => {
   // otherwise feed `&lt;p&gt;` to the LLM and waste tokens. New nightly
   // cron writes will be clean post-fix; this catches the legacy backlog.
   const cleanDescription = stripHtml(job.description) ?? '';
+  // Null-family fix (v5): the raw >200 check above passes JDs that are mostly
+  // HTML/boilerplate; after stripping, the real text can fall below the LLM's
+  // usable floor. Previously these were fed near-empty prose, the LLM returned
+  // nothing usable, and the row was left ALL-NULL forever (the audit's
+  // "extraction never ran" jobs). Write the same zero-confidence stub the raw
+  // check writes so the deterministic scorer falls back to title-only instead.
+  if (cleanDescription.length < 200) {
+    await supabase.from('jobs').update({
+      extraction_confidence: 0,
+      extraction_model: MODEL,
+      extraction_schema_version: EXTRACTION_SCHEMA_VERSION,
+      description_hash: newHash,
+      extracted_at: new Date().toISOString(),
+    }).eq('id', job_id);
+    return json({
+      job_id,
+      skipped: true,
+      reason: 'description_empty_after_html_strip',
+      clean_length: cleanDescription.length,
+    });
+  }
   const extraction = await extractRequirements(cleanDescription, job.title || '', OPENAI_KEY);
   if (!extraction) {
     // LLM call failed entirely. Don't half-write the row; leave it so the next
@@ -1222,6 +1269,15 @@ Deno.serve(async (req) => {
     const ids = resolveSkill(raw);
     if (ids.length > 0) ids.forEach((id) => resolvedNice.add(id));
     else unmapped.push(raw);
+  }
+  // Resolve the mandatory subset independently — for the req_skills_must_have
+  // column only. Must-have phrases are a subset of core (enforced at parse), so
+  // their resolution/failure is ALREADY reflected in resolvedCore + unmapped +
+  // coverage; we deliberately do NOT push to `unmapped` here to avoid
+  // double-counting. Scoring does not consume this column yet (schema v5).
+  const resolvedMustHave = new Set<string>();
+  for (const raw of extraction.req_skills_must_have_raw) {
+    resolveSkill(raw).forEach((id) => resolvedMustHave.add(id));
   }
 
   // Upsert unmapped skill phrases into the global frequency table. Lowercase
@@ -1278,6 +1334,12 @@ Deno.serve(async (req) => {
     req_education_strict: extraction.req_education_strict,
     req_skills_core: resolvedCore.size > 0 ? Array.from(resolvedCore) : null,
     req_skills_nice: resolvedNice.size > 0 ? Array.from(resolvedNice) : null,
+    req_skills_must_have: resolvedMustHave.size > 0 ? Array.from(resolvedMustHave) : null,
+    // Raw-persistence (v5): store every emitted phrase, resolved or not, so a
+    // future library expansion re-resolves the whole corpus at zero LLM cost.
+    req_skills_core_raw: extraction.req_skills_core_raw.length > 0 ? extraction.req_skills_core_raw : null,
+    req_skills_nice_raw: extraction.req_skills_nice_raw.length > 0 ? extraction.req_skills_nice_raw : null,
+    req_skills_must_have_raw: extraction.req_skills_must_have_raw.length > 0 ? extraction.req_skills_must_have_raw : null,
     req_languages: extraction.req_languages.length > 0 ? extraction.req_languages : null,
     req_visa_constraint: extraction.req_visa_constraint,
     function_family: extraction.function_family,
