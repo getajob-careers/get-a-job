@@ -14,6 +14,7 @@ import {
   parseSuggestions,
   assembleSystemPrompt,
   buildUserContext,
+  enrichApplicationActionsWithJd,
   CONTEXT_HONESTY_RULES,
   BULLET_CAPTURE_RULES,
   BULLET_CAPTURE_REGEN_RULES,
@@ -474,5 +475,83 @@ describe("assembleSystemPrompt — never-assert-nonexistence rule (tracker-visib
     expect(prompt).toContain(
       "NEVER tell the user they have not tracked or not applied",
     );
+  });
+});
+
+describe("enrichApplicationActionsWithJd — JD-drop safety net (2026-07-07 KPMG incident)", () => {
+  // A real JD: substantial, and lexically unlike the user's own experience text.
+  const KPMG_JD =
+    "About the job. We Are KPMG Israel. KPMG Israel partners with leading " +
+    "organizations to drive large-scale business and technology transformation. " +
+    "As a Low-Code / No-Code Implementer you will design, configure and deploy " +
+    "automation solutions on platforms such as Power Platform and UiPath, gather " +
+    "requirements from stakeholders, build workflows, and support enterprise " +
+    "clients through delivery. Requirements: two years of professional " +
+    "implementation experience, familiarity with automation tooling, strong " +
+    "customer-facing communication, and an analytical mindset for process design.";
+  const EXPERIENCES_TEXT =
+    "Founder Get A Job career platform React Supabase. Sales Development " +
+    "Representative Outreach cold email pipeline qualification.";
+
+  it("replays the July 7 shape: JD pasted a turn earlier, add emitted with NO field -> the action now carries the JD", () => {
+    const actions = [
+      {
+        action: "add_application",
+        company: "KPMG Israel",
+        role_title: "Low-Code / No-Code Implementer",
+        status: "interested",
+        track: "track_2",
+        // no job_description — exactly what the model emitted on 2026-07-07
+      },
+    ];
+    const result = enrichApplicationActionsWithJd(actions, {
+      message: "add it", // the confirm turn, no JD in it
+      conversationHistory: [
+        { role: "user", content: KPMG_JD }, // the paste, a turn back
+        { role: "assistant", content: "Want me to add this to your tracker?" },
+      ],
+      experiencesText: EXPERIENCES_TEXT,
+    });
+
+    // The action the frontend will insert now carries the JD (so the stored row
+    // gets it — coachActionHandlers persists action.job_description verbatim).
+    expect(result.actions[0].job_description).toContain("KPMG Israel");
+    expect(result.actions[0].job_description).toContain("Low-Code / No-Code Implementer");
+    expect(result.attached).toHaveLength(1);
+    expect(result.attached[0].company).toBe("KPMG Israel");
+    expect(result.askedFor).toHaveLength(0);
+  });
+
+  it("does NOT misattach the user's own pasted CV as a JD (overlap guard)", () => {
+    // The paste IS the user's experience text (a CV), not a JD.
+    const ownCv = (EXPERIENCES_TEXT + " ").repeat(6);
+    const result = enrichApplicationActionsWithJd(
+      [{ action: "add_application", company: "Acme", role_title: "PM" }],
+      { message: "add it", conversationHistory: [{ role: "user", content: ownCv }], experiencesText: EXPERIENCES_TEXT },
+    );
+    expect(result.actions[0].job_description).toBeUndefined();
+    expect(result.attached).toHaveLength(0);
+    expect(result.askedFor).toHaveLength(1); // surfaced, not silently dropped
+  });
+
+  it("leaves an action that already carries a JD untouched", () => {
+    const result = enrichApplicationActionsWithJd(
+      [{ action: "add_application", company: "Acme", role_title: "PM", job_description: "original JD" }],
+      { message: KPMG_JD, conversationHistory: [], experiencesText: EXPERIENCES_TEXT },
+    );
+    expect(result.actions[0].job_description).toBe("original JD");
+    expect(result.attached).toHaveLength(0);
+    expect(result.askedFor).toHaveLength(0);
+  });
+
+  it("asks for the JD when none is available anywhere (surfaces the absence)", () => {
+    const result = enrichApplicationActionsWithJd(
+      [{ action: "add_application", company: "Acme", role_title: "PM" }],
+      { message: "add Acme PM to my tracker", conversationHistory: [], experiencesText: EXPERIENCES_TEXT },
+    );
+    expect(result.actions[0].job_description).toBeUndefined();
+    expect(result.attached).toHaveLength(0);
+    expect(result.askedFor).toHaveLength(1);
+    expect(result.askedFor[0].role_title).toBe("PM");
   });
 });
