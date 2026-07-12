@@ -244,3 +244,33 @@ These stay as inert `unknown`-ATS rows in the registry (no live board to wire). 
 rows is an optional separate registry-cleanup PR, not done here. Reusable finding: token capture from
 a LIVE comeet board is automatable (headless Chromium capturing the `comeet.co` `token=...&company-uid=`
 request), so future harvests of live boards are a scripted loop, not manual DevTools work.
+
+### Re-detection pass (2026-07-12): same companies, one ATS generation later
+
+The 30 comeet boards are dead, but most companies live on - so a re-detection ran the detectable set
+(greenhouse / lever / ashby / workable / smartrecruiters) against their current slugs. SmartRecruiters
+was dropped as a detector (its `/postings` endpoint returns HTTP 200 `totalFound:0` for ANY slug - a
+catch-all); greenhouse/lever/ashby/workable 404 on garbage and are reliable. Funnel:
+
+**30 -> 6 acquired-skip -> 24 re-detected -> 7 live workable boards -> 0 with >=1 IL -> 0 wired.**
+
+- **Acquired into a parent already in the registry (6, skipped, note as acquired):** Guardicore ->
+  Akamai, Noname Security -> Akamai, CyberInt -> Check Point, Perimeter 81 -> Check Point, Qwak ->
+  JFrog, Vulcan Cyber -> Tenable. (Their roles flow through the parent's registry row.)
+- **Migrated comeet -> workable, live board but 0 open jobs today (7, VERIFIED via verify-hunt, 0/0):**
+  Bionic Security (`bionic`), Glassbox (`glassbox`), Lumigo (`lumigo`), Otorio (`otorio`), Pliops
+  (`pliops`), Sorbet (`sorbet`), SCADAfence (`scadafence`). Board identity confirmed by the workable
+  subdomain title ("<Company> - Current Openings"). **0 IL today, so nothing to wire now.** RECOMMEND
+  (Eli's call, not done here): wire the still-independent ones as `workable` seeds (unknown -> workable
+  - slug) so the nightly refresh picks up IL roles when they post - but check acquisition status first,
+    since several of the 7 are acquired/winding down and an empty board may stay empty.
+- **No detectable ATS board found (17):** AnyClip, Autotalks, Bidalgo, Centrical, Cyabra, Cyberbit,
+  Cynerio, CYREBRO, Deep Instinct, env0, Future Meat, HiredScore, Karamba Security, Lightico, Namogoo,
+  SciPlay, Syte. (Either self-hosted/undetectable ATS or fully dark.)
+- **False positives discarded (per investigation-rules calibration):** all SmartRecruiters 0-job hits
+  (catch-all); greenhouse `future` (5 jobs, Remote/LA - a different "Future", 0 IL); ashby `believer`
+  (1 job, 0 IL); workable `deep` (title "DEEP", a different company, not Deep Instinct - its real slug
+  `deepinstinct` returns an empty generic board).
+
+Verified with `scripts/verify-hunt.ts` (production fetchers + IL classifier). The comeet capture harness
+was promoted to `scripts/comeet-token-capture.mjs`. No registry change (0 boards with >=1 IL).
