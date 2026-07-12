@@ -13,6 +13,7 @@ import {
   extractJsonBlock,
   parseSuggestions,
   assembleSystemPrompt,
+  buildUserContext,
   CONTEXT_HONESTY_RULES,
   BULLET_CAPTURE_RULES,
   BULLET_CAPTURE_REGEN_RULES,
@@ -351,5 +352,127 @@ describe("reconcileCvGenToApp — A5 (gtc_author_from_app)", () => {
     expect(r.proposal.application_id).toBe(A);
     expect(r.proposal.target_role).toBe("Product Manager");
     expect(r.mismatch).toBe(false);
+  });
+});
+
+// buildUserContext ACTIVE APPLICATIONS list — the tracker-visibility fix.
+// Regression: the fetch used `.limit(20)` with no `.order()`, returning the ~20
+// OLDEST rows (heap order), so once a user tracked >20 apps the coach went blind
+// to everything newer and denied real, recently-tracked roles. The fix: order
+// created_at desc, cap 100, and a truncation note carrying the true total.
+//
+// Table-aware mock `svc` that mimics PostgREST: `.order()` sorts, `.limit()`
+// slices, `select(..., {count:'exact'})` returns the full length as `count`.
+function makeSvc(tables: Record<string, any[]>) {
+  return {
+    from(table: string) {
+      let ordered: { col: string; asc: boolean } | null = null;
+      let limited: number | null = null;
+      let wantCount = false;
+      const rowsFor = () => (Array.isArray(tables[table]) ? [...tables[table]] : []);
+      const chain: any = {
+        select: (_cols: string, opts?: any) => {
+          if (opts && opts.count) wantCount = true;
+          return chain;
+        },
+        eq: () => chain,
+        order: (col: string, opts?: any) => {
+          ordered = { col, asc: !!(opts && opts.ascending) };
+          return chain;
+        },
+        limit: (n: number) => {
+          limited = n;
+          return chain;
+        },
+        maybeSingle: () => Promise.resolve({ data: rowsFor()[0] ?? null, error: null }),
+        single: () => Promise.resolve({ data: rowsFor()[0] ?? null, error: null }),
+        then: (resolve: any, reject: any) => {
+          let rows = rowsFor();
+          if (ordered) {
+            const o = ordered;
+            rows.sort((a: any, b: any) => {
+              const av = a[o.col];
+              const bv = b[o.col];
+              if (av === bv) return 0;
+              const cmp = av < bv ? -1 : 1;
+              return o.asc ? cmp : -cmp;
+            });
+          }
+          const total = rows.length;
+          if (limited != null) rows = rows.slice(0, limited);
+          return Promise.resolve({
+            data: rows,
+            count: wantCount ? total : null,
+            error: null,
+          }).then(resolve, reject);
+        },
+      };
+      return chain;
+    },
+  };
+}
+
+const makeApps = (n: number) =>
+  Array.from({ length: n }, (_, i) => ({
+    id: `app-${i}`,
+    role_title: `Role ${i}`,
+    company: `Company ${i}`,
+    status: "interested",
+    track: null,
+    cv_url: null,
+    cv_status: null,
+    cv_version_name: null,
+    // Descending index i -> descending recency: app-0 newest, app-(n-1) oldest.
+    created_at: new Date(Date.UTC(2026, 6, 1) + (n - i) * 86400000).toISOString(),
+  }));
+
+const baseTables = (apps: any[]) => ({
+  profiles: [{ id: "u1", full_name: "Test User", skills: [], education: [] }],
+  experiences: [],
+  career_roles: [],
+  tasks: [],
+  applications: apps,
+  internship_profiles: [],
+  company_targets: [],
+});
+
+describe("buildUserContext — ACTIVE APPLICATIONS visibility (tracker-visibility fix)", () => {
+  it("includes an application tracked beyond the first 20 (cap raised past 20)", async () => {
+    // 25 apps; the 25th-most-recent (app-24, oldest) sits well past position 20.
+    // Under the old `.limit(20)` it would be dropped; under the fix it survives.
+    const apps = makeApps(25);
+    const svc = makeSvc(baseTables(apps));
+    const ctx = await buildUserContext(svc, "u1", { agent: "career_agent" });
+
+    expect(ctx).toContain("ACTIVE APPLICATIONS");
+    expect(ctx).toContain("Role 24 at Company 24"); // the >20th app is present
+    expect(ctx).toContain("added 2026-07"); // created_at date rendered
+    // Recent-first ordering: the newest app leads the list.
+    expect(ctx.indexOf("Company 0 ")).toBeLessThan(ctx.indexOf("Company 24"));
+  });
+
+  it("states the true total and a never-deny instruction when the list is truncated", async () => {
+    const apps = makeApps(105); // over the 100 cap
+    const svc = makeSvc(baseTables(apps));
+    const ctx = await buildUserContext(svc, "u1", { agent: "career_agent" });
+
+    expect(ctx).toContain("showing the 100 most recent of 105");
+    expect(ctx).toContain("NEVER tell the user an application does not exist");
+  });
+
+  it("uses the plain (non-truncated) header when all applications fit", async () => {
+    const svc = makeSvc(baseTables(makeApps(5)));
+    const ctx = await buildUserContext(svc, "u1", { agent: "career_agent" });
+    expect(ctx).toContain("ACTIVE APPLICATIONS (the");
+    expect(ctx).not.toContain("TRUNCATED");
+  });
+});
+
+describe("assembleSystemPrompt — never-assert-nonexistence rule (tracker-visibility fix)", () => {
+  it("career_agent is told not to deny a tracked application", () => {
+    const prompt = assembleSystemPrompt("career_agent", "", null);
+    expect(prompt).toContain(
+      "NEVER tell the user they have not tracked or not applied",
+    );
   });
 });
