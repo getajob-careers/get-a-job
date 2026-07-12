@@ -193,6 +193,20 @@ const resolveSkill = (label: string): string[] =>
   resolveSkillShared(label, SKILL_ID_SET);
 
 // ── one extraction run (one model, one job) ───────────────────────────────
+// D(b): conservative line-level boilerplate stripper (EEO / diversity / apply-
+// -now blocks that carry no requirement signal). Line-level so it can't cut a
+// requirement mid-sentence. TRIM_JD=1 opt-in — measure quality before shipping.
+const BOILERPLATE = [
+  /equal opportunity|regardless of (race|gender|age)|diversity and inclusion|all qualified applicants|we are committed to (diversity|building)|EEO\b/i,
+  /מעודדת העסקה מגוונת|מיועדת ל(כל|נשים|שני)|לנשים וגברים כאחד|ייצוג הולם|גיוון והכלה|שומרת לעצמה הזכות|שלחו (עכשיו|לנו) קורות חיים|מנוסחת בלשון/,
+];
+function trimBoilerplate(jd: string): string {
+  return jd
+    .split("\n")
+    .filter((line) => !BOILERPLATE.some((re) => re.test(line)))
+    .join("\n");
+}
+
 async function runArm(
   job: { id: string; title: string; jd: string },
   model: string,
@@ -200,9 +214,10 @@ async function runArm(
   prompts: { systemPrompt: string; heAddendum: string; userTmpl: string },
   openaiKey: string,
 ) {
+  const jd = Deno.env.get("TRIM_JD") ? trimBoilerplate(job.jd) : job.jd;
   const userPrompt = prompts.userTmpl
     .replaceAll("${jobTitle}", job.title)
-    .replace("${jd.slice(0, 12000)}", job.jd.slice(0, 12000));
+    .replace("${jd.slice(0, 12000)}", jd.slice(0, 12000));
   const res = await openaiChatCompletion(
     {
       model,
