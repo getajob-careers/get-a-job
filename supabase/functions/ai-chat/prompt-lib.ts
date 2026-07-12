@@ -265,6 +265,7 @@ Valid interview_stage examples: "phone_screen", "technical", "onsite", "final_ro
 
 Rules:
 - Only propose actions the user EXPLICITLY requested. Do not add or modify applications proactively.
+- NEVER tell the user they have not tracked or not applied to a company or role. Your ACTIVE APPLICATIONS list may be TRUNCATED (it shows only the most recent), so a role's absence from that list is NOT evidence it does not exist. When the user asks you to add or act on a company + role, proceed with the action — the tracker's dedup guard (matching company + role case-insensitively, regardless of status) reuses an existing row, so acting can never create a duplicate.
 - For add_application: always infer reasonable defaults. If the user didn't specify status, default to "interested". If they didn't specify role_title, ask first — do not emit the block.
 - For add_application, the company is REQUIRED. If the job description or the user's message does not clearly name the employer, ASK for it in plain text and do NOT emit the block — never fill "company" with a placeholder like "Unknown", "N/A", "Company", or a guess. It is fine to add the application on a later turn once they answer. (If you must proceed without it because the user insists, say plainly in your reply that you're adding it without a company and they can tell you the name anytime.)
 - For add_application, ALWAYS include "job_description" with the full JD text whenever the user has pasted or described a job in the conversation — the tracker's own CV generation needs it. This applies on EVERY path, including when you add the application on a later turn after asking for the company: reuse the JD from earlier in the conversation. Only omit "job_description" if no job description exists in the conversation at all.
@@ -771,16 +772,33 @@ export async function buildUserContext(
     agent === "application_cv_success_agent" ||
     agent === "cv-helper";
   if (agentWantsApplications) {
-    const { data: apps } = await svc
+    // Cap raised 20 -> 100 with a deterministic recent-first order. The old
+    // `.limit(20)` with no `.order()` returned the ~20 OLDEST rows (PostgREST
+    // heap order), so once a user tracked more than 20 applications the coach
+    // went blind to everything newer — it denied real, recently-tracked roles
+    // (e.g. DriveNets) and proposed adding duplicates. `count: exact` gives the
+    // true total so the over-cap note can tell the model its list is truncated.
+    const APPLICATIONS_CAP = 100;
+    const { data: apps, count: appsTotal } = await svc
       .from("applications")
-      .select("id, role_title, company, status, track, cv_url, cv_status, cv_version_name")
+      .select(
+        "id, role_title, company, status, track, cv_url, cv_status, cv_version_name, created_at",
+        { count: "exact" },
+      )
       .eq("user_id", userId)
-      .limit(20);
+      .order("created_at", { ascending: false })
+      .limit(APPLICATIONS_CAP);
     if (apps?.length) {
-      userContext += `\n\nACTIVE APPLICATIONS (the "CV:" note is the application's saved state across sessions — whether a tailored CV already exists for it):\n${apps.map((a: any) => {
+      const total = appsTotal ?? apps.length;
+      const truncated = total > apps.length;
+      const header = truncated
+        ? `ACTIVE APPLICATIONS (showing the ${apps.length} most recent of ${total} — this list is TRUNCATED, so NEVER tell the user an application does not exist; if asked to act on a company + role, proceed and let the tracker's dedup guard resolve whether it already exists):`
+        : `ACTIVE APPLICATIONS (the "CV:" note is the application's saved state across sessions — whether a tailored CV already exists for it):`;
+      userContext += `\n\n${header}\n${apps.map((a: any) => {
         const hasCv = !!a.cv_url || a.cv_status === "ready";
         const cvMark = hasCv ? ` — CV: already generated${a.cv_version_name ? ` ("${a.cv_version_name}")` : ""}` : ` — CV: none yet`;
-        return `- ${a.role_title}${a.company ? ` at ${a.company}` : ""} (${a.status}${a.track ? `, ${a.track}` : ""}) [id: ${a.id}]${cvMark}`;
+        const added = a.created_at ? `, added ${String(a.created_at).slice(0, 10)}` : "";
+        return `- ${a.role_title}${a.company ? ` at ${a.company}` : ""} (${a.status}${a.track ? `, ${a.track}` : ""}${added}) [id: ${a.id}]${cvMark}`;
       }).join("\n")}`;
     }
   }
