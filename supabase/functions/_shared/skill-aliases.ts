@@ -1234,6 +1234,58 @@ export function resolveSkill(
   const snake = norm.replace(/[\s-]+/g, "_");
   if (skillIdSet.has(snake)) return [snake];
 
+  // ── PR-A normalization retries (Scoring Coverage Arc, fix #1) ──────────
+  // Each retry ONLY looks up the curated alias map / ID set, so a normalized
+  // form resolves only when it matches a real alias or ID — no new
+  // mis-resolution (class-G) risk is introduced by the normalization itself.
+  // Helper: try a candidate string against alias map, then snake-ID set.
+  const tryResolve = (cand: string): string[] | null => {
+    if (!cand || cand === norm) return null;
+    const a = SKILL_ALIASES[cand];
+    if (a) {
+      const hit = a.filter((id) => skillIdSet.has(id));
+      if (hit.length) return hit;
+    }
+    const s = cand.replace(/[\s-]+/g, "_");
+    if (skillIdSet.has(s)) return [s];
+    return null;
+  };
+
+  // 5. Hyphen -> space (e.g. "problem-solving" -> "problem solving") and
+  //    ampersand -> "and" (e.g. "r&d" -> "r and d").
+  const dehyphen = norm.replace(/-/g, " ").replace(/&/g, " and ").replace(/\s+/g, " ").trim();
+  const r5 = tryResolve(dehyphen);
+  if (r5) return r5;
+
+  // 6. Strip a trailing descriptive noun the LLM commonly appends
+  //    ("interpersonal SKILLS", "crm SYSTEMS", "ci/cd EXPERIENCE"). Strip one
+  //    suffix at a time and retry.
+  const SUFFIXES = [
+    "skills", "skill", "systems", "system", "tools", "tool", "experience",
+    "knowledge", "background", "abilities", "ability", "expertise",
+    "proficiency", "principles", "fundamentals", "methodologies", "practices",
+  ];
+  const words = dehyphen.split(" ");
+  if (words.length > 1 && SUFFIXES.includes(words[words.length - 1])) {
+    const r6 = tryResolve(words.slice(0, -1).join(" "));
+    if (r6) return r6;
+  }
+
+  // 7. Depluralize a single-token label ("lookers" -> "looker",
+  //    "webhooks" -> "webhook"). Only strips when >3 chars, so it can never
+  //    over-shorten; resolves only if the singular is a real alias/ID.
+  if (!dehyphen.includes(" ") && dehyphen.length > 4) {
+    const singular = dehyphen.endsWith("es")
+      ? dehyphen.slice(0, -2)
+      : dehyphen.endsWith("s")
+        ? dehyphen.slice(0, -1)
+        : null;
+    if (singular) {
+      const r7 = tryResolve(singular);
+      if (r7) return r7;
+    }
+  }
+
   return [];
 }
 
