@@ -30,3 +30,9 @@ Metric per job: R/T (resolved core ÷ true required skills, competent-reader jud
 
 ## Targets (audit)
 skill_coverage_ratio median 0.50 -> 0.80; zero-core 18% -> <5%; Hebrew zero-core 42% -> <15%; Manufacturing cov 0.06 -> 0.5+; manual median R/T 0.38 (EN) -> 0.70+.
+
+## Backlog — cross-provider extractor bake-off (post-launch)
+The Phase-1 model bake-off (#571) is **same-API only** (OpenAI: gpt-4o-mini / gpt-5.4-mini / gpt-5.4-nano / gpt-4.1-mini) — the harness reuses the edge fn's OpenAI-shaped `openaiChatCompletion` + `usage` accounting. A cross-provider round is deferred:
+- **Candidate first:** Claude Haiku 4.5 via the existing OpenRouter path (`_shared/openrouter-chat.ts`).
+- **Scope:** run against the FULL frozen **68-job eval + the SQL panel** above (Part 1 & 2) — NOT the 10/30 sample sets used for the same-API tiebreak.
+- **Blocked on harness support:** non-OpenAI JSON-mode handling + provider-specific token/cost accounting (`usage` shape differs) in `scripts/hebrew-extract-bakeoff.ts`.
