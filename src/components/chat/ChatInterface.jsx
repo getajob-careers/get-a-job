@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
+import { isAuthError, recoverFromAuthError } from "@/lib/authRecovery";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import { useExperiencesQuery } from "@/lib/queries/useExperiences";
@@ -493,7 +494,12 @@ export default function ChatInterface({
   // ["applications", uid] query — narrow + same key would poison the
   // wide cache (Lesson 2026-05-28). The agent-page picker queries
   // already share this "picker" key so the lookup is hot.
-  const { data: applications = [] } = useQuery({
+  const {
+    data: applications = [],
+    isError: applicationsError,
+    error: applicationsErrorObj,
+    refetch: refetchApplications,
+  } = useQuery({
     queryKey: ["applications", user?.id, "picker"],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -509,6 +515,18 @@ export default function ChatInterface({
     },
     enabled: !!user?.id,
   });
+
+  // A degraded read here silently starves the coach's context (it proposes
+  // adding applications the user already tracked). We can't render an inline
+  // error over the chat, but we CAN self-heal the desynced session so the next
+  // fetch sees real rows (flag-gated, one-shot). See src/lib/authRecovery.js.
+  useEffect(() => {
+    if (applicationsError && isAuthError(applicationsErrorObj)) {
+      recoverFromAuthError(applicationsErrorObj).then((recovered) => {
+        if (recovered) refetchApplications();
+      });
+    }
+  }, [applicationsError, applicationsErrorObj, refetchApplications]);
 
   // For BulletSaveCard's experience picker when the agent links a captured
   // story to one of the user's experience rows by UUID. Routes through
