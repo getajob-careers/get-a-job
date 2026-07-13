@@ -53,7 +53,8 @@ export const roleSkillMapping = {
         "technical_communication",
         "api_integrations",
         "technical_documentation",
-        "analytical_thinking"
+        "analytical_thinking",
+        "root_cause_analysis"
       ],
       "differentiator_skills": [
         "cloud_tools",
@@ -1066,7 +1067,8 @@ export const roleSkillMapping = {
       "differentiator_skills": [
         "cloud_data_platforms",
         "dashboarding",
-        "ab_testing"
+        "ab_testing",
+        "data_science"
       ]
     },
     {
@@ -1111,7 +1113,8 @@ export const roleSkillMapping = {
       "differentiator_skills": [
         "statistical_analysis",
         "product_analytics_expertise",
-        "systems_thinking"
+        "systems_thinking",
+        "data_science"
       ]
     },
     {
@@ -1151,7 +1154,8 @@ export const roleSkillMapping = {
         "mlops",
         "cloud_data_platforms",
         "experimentation_framework",
-        "cross_functional_collaboration"
+        "cross_functional_collaboration",
+        "embeddings"
       ],
       "differentiator_skills": [
         "llm_genai_data",
@@ -1180,7 +1184,8 @@ export const roleSkillMapping = {
       "differentiator_skills": [
         "data_modeling",
         "machine_learning",
-        "coaching"
+        "coaching",
+        "data_science"
       ]
     },
     {
@@ -1736,7 +1741,8 @@ export const roleSkillMapping = {
         "linux_fundamentals",
         "sql",
         "testing_practices",
-        "communication"
+        "communication",
+        "code_quality"
       ],
       "differentiator_skills": [
         "cloud_fundamentals",
@@ -1758,7 +1764,9 @@ export const roleSkillMapping = {
         "system_design_basics",
         "testing_practices",
         "cloud_fundamentals",
-        "debugging"
+        "debugging",
+        "code_quality",
+        "system_design"
       ],
       "differentiator_skills": [
         "containerization",
@@ -1781,7 +1789,8 @@ export const roleSkillMapping = {
         "mentoring",
         "technical_leadership",
         "cloud_platforms",
-        "databases"
+        "databases",
+        "code_quality"
       ],
       "differentiator_skills": [
         "ai_tool_fluency",
@@ -1804,7 +1813,9 @@ export const roleSkillMapping = {
         "performance_optimization",
         "cross_team_collaboration",
         "cloud_platforms",
-        "ai_tool_fluency"
+        "ai_tool_fluency",
+        "code_quality",
+        "system_design"
       ],
       "differentiator_skills": [
         "ai_strategy",
@@ -1918,7 +1929,9 @@ export const roleSkillMapping = {
         "analytical_thinking",
         "attention_to_detail",
         "communication",
-        "sql"
+        "sql",
+        "code_quality",
+        "root_cause_analysis"
       ],
       "differentiator_skills": [
         "ai_tool_fluency",
@@ -1941,7 +1954,8 @@ export const roleSkillMapping = {
         "monitoring_observability",
         "networking_fundamentals",
         "security_best_practices",
-        "git_version_control"
+        "git_version_control",
+        "root_cause_analysis"
       ],
       "differentiator_skills": [
         "ai_tool_fluency",
@@ -1964,7 +1978,8 @@ export const roleSkillMapping = {
         "cloud_platforms_devops",
         "containerization",
         "networking_fundamentals",
-        "ci_cd"
+        "ci_cd",
+        "root_cause_analysis"
       ],
       "differentiator_skills": [
         "ai_tool_fluency",
@@ -2133,6 +2148,10 @@ export const roleSkillMapping = {
         {
           "skill_id": "ai_product_thinking",
           "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "embeddings",
+          "required_proficiency": "intermediate"
         }
       ],
       "differentiator_skills": [
@@ -2222,6 +2241,10 @@ export const roleSkillMapping = {
         {
           "skill_id": "performance_optimization",
           "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "embeddings",
+          "required_proficiency": "intermediate"
         }
       ],
       "differentiator_skills": [
@@ -2311,6 +2334,10 @@ export const roleSkillMapping = {
         {
           "skill_id": "performance_optimization",
           "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "embeddings",
+          "required_proficiency": "intermediate"
         }
       ],
       "differentiator_skills": [
@@ -2477,6 +2504,14 @@ export const roleSkillMapping = {
         {
           "skill_id": "technical_communication",
           "required_proficiency": "advanced"
+        },
+        {
+          "skill_id": "embeddings",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "data_science",
+          "required_proficiency": "intermediate"
         }
       ],
       "differentiator_skills": [
@@ -2553,6 +2588,10 @@ export const roleSkillMapping = {
         },
         {
           "skill_id": "cross_functional_collaboration",
+          "required_proficiency": "intermediate"
+        },
+        {
+          "skill_id": "embeddings",
           "required_proficiency": "intermediate"
         }
       ],
