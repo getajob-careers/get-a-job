@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1161,
+  "total_companies": 1162,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -13956,6 +13956,18 @@
       "api_url": "https://boards-api.greenhouse.io/v1/boards/orioncscybersecurityltd/jobs",
       "verified": true,
       "notes": "Manual hunt 2026-07-10 (terminal-verified): Greenhouse slug 'orioncscybersecurityltd' (EU-hosted careers page, served by boards-api.greenhouse.io). 4 positions, 2 IL. P3a net-new."
+    },
+    {
+      "name": "Workday",
+      "type": "international_il_rd",
+      "industry": "HR Tech / SaaS",
+      "domain": "workday.com",
+      "careers_url": "https://www.workday.com/en-us/company/careers.html",
+      "ats": "workday",
+      "slug": "workday.wd5.myworkdayjobs.com/Workday",
+      "api_url": "https://workday.wd5.myworkdayjobs.com/wday/cxs/workday/Workday/jobs",
+      "verified": true,
+      "notes": "LinkedIn-finds batch 2026-07-13 (terminal-verified via verify-hunt): Workday Inc's own Workday tenant (wd5). 7 postings, 7 IL (Tel Aviv R&D). NEW."
     }
   ]
 }

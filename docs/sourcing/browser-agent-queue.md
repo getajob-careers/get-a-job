@@ -190,3 +190,65 @@ the real Workday tenant+site for each and repoint (or drop if no IL presence):
 | Philips | `philips` | real Workday host/site |
 | PwC | `pwc` | real Workday host/site |
 | Deci AI | `None` | acquired by NVIDIA — likely superseded by nvidia Workday; confirm/drop |
+
+## LinkedIn-finds batch resolution (2026-07-13)
+
+Detected + verified (verify-hunt) a batch of LinkedIn-sourced companies. Every
+count re-fetched from the terminal, not trusted from notes.
+
+### Wired (verified >=1 IL)
+
+- **Workday** (the company) - workday `workday.wd5.myworkdayjobs.com/Workday`.
+  7 postings, 7 IL (Tel Aviv R&D). New registry row.
+
+### Deferred - staffing / agency listings (pending Eli's product decision)
+
+- **Quality AI** - precisely identified: **SuccessFactors** (a supported ATS),
+  live feed `https://careers.quality-ai.com/sitemal.xml`, 202 jobs / ~57 IL. BUT it
+  is a QA/engineering **services + staffing** firm (jobs are client placements
+  across IL/India/US/Romania, e.g. "QA Engineer | Credit Union + Symitar, Santa
+  Clara"). Same category as Yuval HR / HR Hadarly - not wired pending the agency
+  decision. If agency listings are ever accepted, this one is a 1-line wire
+  (successfactors, slug `careers.quality-ai.com`, api_url the sitemal.xml above).
+- **Yuval HR / HR Hadarly** - staffing agencies. Skipped per Eli.
+
+### needs-fetcher-adapter (unsupported ATS; board captured, no wire)
+
+- **PLAYSTUDIOS** - Dayforce HCM: `jobs.dayforcehcm.com/en-US/playstudios`. Dayforce
+  is not one of our supported adapters.
+- **IntentIQ** - HiBob: `intentiq.careers.hibob.com` (board UUID is JS-injected, not
+  in static HTML; capture in a browser if/when a HiBob adapter is built). HiBob is
+  a known unsupported ATS.
+- **Varonis** - Jobvite: `jobs.jobvite.com/careers/varonis` (confirms the #561 flag).
+  Jobvite unsupported.
+
+### Needs detection - JS-gated / bot-blocked custom sites (browser capture)
+
+Static curl found no ATS markers (or was blocked); a real browser is needed to read
+the ATS request off the Network tab.
+
+- **Plarium** (in registry, `unknown`; ~1000-person IL gaming co, HIGH VALUE) -
+  `company.plarium.com/en/career/`. The old greenhouse-EU slug `plariumgloballtd`
+  now 404s on boards-api; real ATS unknown. Highest-priority detect.
+- **Ubeya** (in registry, `unknown`) - `careers.ubeya.com` (own product; job 7211105
+  visible). No static API markers; identify the feed in a browser.
+- **Tensorleap** - `tensorleap.ai/careers` (job pages under /careers/).
+- **Base.ai** - `base.ai/careers`.
+- **Sidelines Group** - `sidelinesgroup.com/jobs` (curl returns 403; bot-blocked).
+- **GlassesUSA**, **Jurni** - careers pages not yet located; find, then detect.
+
+## No-board companies (LinkedIn / aggregator-only hiring)
+
+A structural blind spot: some companies do not run any public ATS board. They hire
+via LinkedIn posts, personal outreach, or IL aggregators (AllJobs, Drushim,
+dreamjobs.co.il), and post no API our ATS-direct sourcing can read. Record them here
+so they are not re-hunted as "missing an ATS" - there is nothing to wire.
+
+- **Voye Global** - verified no careers page (consumer site only; roles live on
+  aggregators). No board.
+- **Kovrr** - lists roles on its own page, applies by email (`liatl@kovrr.com`).
+- **Findings** - careers page dead/redirects; applies via `career@findings.co`.
+
+Pattern: consumer brands, small teams, and email/LinkedIn-first hirers. If we ever
+want this supply, it needs an aggregator lane (AllJobs / Drushim), not an ATS
+adapter - a separate build, not a hunt.
