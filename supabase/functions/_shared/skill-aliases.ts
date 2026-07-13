@@ -28,8 +28,9 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   // step (exact-snake phrases like "data science"/"os internals"/"teamwork"
   // /"interpersonal skills" already resolve to the new IDs for free), plus
   // section-A phrases mapping to EXISTING IDs (class-G safe — verified maps).
-  "architectural decisions": ["software_architecture"],
-  "technical direction": ["software_architecture"],
+  "software architecture": ["system_design"],
+  "architectural decisions": ["system_design"],
+  "technical direction": ["system_design"],
   "fine-tuning": ["model_training_finetuning"],
   "fine tuning": ["model_training_finetuning"],
   "agents": ["ai_agent_development"],
