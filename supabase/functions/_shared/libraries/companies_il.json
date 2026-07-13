@@ -1,6 +1,6 @@
 {
   "generated_at": "2026-06-14",
-  "total_companies": 1162,
+  "total_companies": 1163,
   "by_ats": {
     "adamtotal": 10,
     "adamtotal_agency": 1,
@@ -18,7 +18,7 @@
     "pwc_heroku": 1,
     "recruitee": 1,
     "smartrecruiters": 10,
-    "successfactors": 8,
+    "successfactors": 9,
     "teamtailor": 1,
     "unknown": 254,
     "workable": 10,
@@ -4331,7 +4331,8 @@
       "slug": "adamtotal_gefen",
       "api_url": "https://career.adamtotal.co.il/Home/Index?token=cedd5c19-d59c-4f80-bca6-768f41edee7e",
       "verified": true,
-      "notes": "AdamTotal ATS (multi-tenant). ~110 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles."
+      "notes": "AdamTotal ATS (multi-tenant). ~110 active as of 2026-06-09. Mostly Hebrew JDs; ~55-60% entry/coordinator/rep titles.",
+      "is_agency": true
     },
     {
       "name": "Gemini",
@@ -7979,7 +7980,8 @@
       "slug": "adamtotal_peres_agency",
       "api_url": "https://career.adamtotal.co.il/Home/Index?token=6675d423-frd00-42a-a776-0fd45Rzqd16b0Peres",
       "verified": true,
-      "notes": "AdamTotal placement-AGENCY board (verified live 2026-06-09, ~403 jobs across 17 pages). Peres reposts roles across multiple IL employer clients (EBA, Flex, Tax Authority, etc.). Tagged ats=adamtotal_agency so dedup vs direct rows is measurable. Real token has UUID prefix."
+      "notes": "AdamTotal placement-AGENCY board (verified live 2026-06-09, ~403 jobs across 17 pages). Peres reposts roles across multiple IL employer clients (EBA, Flex, Tax Authority, etc.). Tagged ats=adamtotal_agency so dedup vs direct rows is measurable. Real token has UUID prefix.",
+      "is_agency": true
     },
     {
       "name": "Perimeter 81",
@@ -11231,7 +11233,8 @@
       "slug": "15.007",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/15.007/positions?token=517197323A1A2E1973A2E145CA2E0A2E&details=true",
       "verified": true,
-      "notes": "comeet api_url recovery 2026-07; 108 IL roles"
+      "notes": "comeet api_url recovery 2026-07; 108 IL roles",
+      "is_agency": true
     },
     {
       "name": "Agora",
@@ -12791,7 +12794,8 @@
       "slug": "codeforce-362",
       "api_url": "https://apply.workable.com/api/v1/widget/accounts/codeforce-362?details=true",
       "verified": true,
-      "notes": "Workable; IT staffing agency, ATS-direct board carrying real client reqs (not evergreen pools). Current IL role: Chief of Staff at Dataphone (IL AI/VoIP startup, Tel Aviv), posted 2026-06-30. Pipeline IL-filters at fetch so only IL client placements land. Workable-harvest r1, 2026-07-07."
+      "notes": "Workable; IT staffing agency, ATS-direct board carrying real client reqs (not evergreen pools). Current IL role: Chief of Staff at Dataphone (IL AI/VoIP startup, Tel Aviv), posted 2026-06-30. Pipeline IL-filters at fetch so only IL client placements land. Workable-harvest r1, 2026-07-07.",
+      "is_agency": true
     },
     {
       "name": "Sauce",
@@ -12839,7 +12843,8 @@
       "slug": "12.003",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/12.003/positions?token=21384C109806394262131098213426&details=true",
       "verified": true,
-      "notes": "Comeet; 44 live IL role(s). IT-services/staffing board (CodeForce standard: real dated client reqs). Sibling of existing 'Abra R&D' (uid 15.007) — distinct division/board. Comeet r1 harvest 2026-07-08."
+      "notes": "Comeet; 44 live IL role(s). IT-services/staffing board (CodeForce standard: real dated client reqs). Sibling of existing 'Abra R&D' (uid 15.007) — distinct division/board. Comeet r1 harvest 2026-07-08.",
+      "is_agency": true
     },
     {
       "name": "The Jewish Agency for Israel",
@@ -13283,7 +13288,8 @@
       "slug": "79.004",
       "api_url": "https://www.comeet.co/careers-api/2.0/company/79.004/positions?token=974422C04BA038B897438B897455145514&details=true",
       "verified": true,
-      "notes": "Comeet; 4 live IL role(s). staffing agency board (CodeForce standard: 4 fresh 2026 real client reqs, Hebrew-language). domain-unverified Comeet r1 harvest 2026-07-08."
+      "notes": "Comeet; 4 live IL role(s). staffing agency board (CodeForce standard: 4 fresh 2026 real client reqs, Hebrew-language). domain-unverified Comeet r1 harvest 2026-07-08.",
+      "is_agency": true
     },
     {
       "name": "Amp",
@@ -13968,6 +13974,19 @@
       "api_url": "https://workday.wd5.myworkdayjobs.com/wday/cxs/workday/Workday/jobs",
       "verified": true,
       "notes": "LinkedIn-finds batch 2026-07-13 (terminal-verified via verify-hunt): Workday Inc's own Workday tenant (wd5). 7 postings, 7 IL (Tel Aviv R&D). NEW."
+    },
+    {
+      "name": "Quality AI",
+      "type": "israeli_founded",
+      "industry": "QA Staffing / Testing Services",
+      "domain": "quality-ai.com",
+      "careers_url": "https://careers.quality-ai.com",
+      "ats": "successfactors",
+      "slug": "careers.quality-ai.com",
+      "api_url": "https://careers.quality-ai.com/sitemal.xml",
+      "verified": true,
+      "notes": "Agency-policy build 2026-07-13 (terminal-verified via verify-hunt): SuccessFactors RSS, 202 total / 56 IL. QA-testing staffing/services firm placing testers at IL/India/US/Romania clients. is_agency=true — postings are client placements, not own headcount.",
+      "is_agency": true
     }
   ]
 }

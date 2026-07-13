@@ -50,7 +50,7 @@ import JobDetailModal from "./JobDetailModal";
 // Light projection — only what scoreJobFit + the card need. NO `description`
 // (11 MB across the corpus); lazy-loaded on card expand. ~1.7 MB total.
 const CORPUS_SELECT =
-  "id, ats_source, external_id, title, company_name, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence";
+  "id, ats_source, external_id, title, company_name, location_city, location_raw, is_remote, is_agency, seniority, years_experience_min, years_experience_max, date_posted, apply_url, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence";
 
 // PostgREST page size for the corpus fetch — must be ≤ the project's
 // db-max-rows (Supabase default 1000) or pages truncate silently.

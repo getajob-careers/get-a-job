@@ -1241,6 +1241,7 @@ export type Database = {
           industry_vertical: string[] | null
           interview_process: Json | null
           is_active: boolean
+          is_agency: boolean
           is_il: boolean
           is_remote: boolean
           jd_language: string | null
@@ -1325,6 +1326,7 @@ export type Database = {
           industry_vertical?: string[] | null
           interview_process?: Json | null
           is_active?: boolean
+          is_agency?: boolean
           is_il?: boolean
           is_remote?: boolean
           jd_language?: string | null
@@ -1409,6 +1411,7 @@ export type Database = {
           industry_vertical?: string[] | null
           interview_process?: Json | null
           is_active?: boolean
+          is_agency?: boolean
           is_il?: boolean
           is_remote?: boolean
           jd_language?: string | null

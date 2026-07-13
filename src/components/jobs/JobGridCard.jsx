@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { Check, X } from "lucide-react";
 import CompanyLogo from "@/components/jobs/CompanyLogo";
+import AgencyBadge from "@/components/jobs/AgencyBadge";
 import { useCompanyDomains, companyDomainFor } from "@/lib/queries/useCompanyDomains";
 import { prefetchJobDescription, useJobDescription } from "@/lib/queries/useJobDescription";
 import { deriveJobDisplay, RD_TRACK_STYLES } from "@/lib/jobCardDisplay";
@@ -197,6 +198,12 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
           {[job.company_name, job.location_city || job.location_raw].filter(Boolean).join(" · ")}
         </p>
 
+        {job.is_agency && (
+          <div className="mt-1">
+            <AgencyBadge isAgency />
+          </div>
+        )}
+
         {d.chips.length > 0 && (
           <div className="flex flex-wrap gap-1 mt-2">
             {d.chips.map((c, i) => (
@@ -244,9 +251,15 @@ export default function JobGridCard({ job, scoreResult = null, trackColor = null
             ) : null}
           </div>
           <h3 className="font-display font-bold text-[13.5px] leading-[1.18] text-rd-text break-words">{job.title}</h3>
-          <p className="text-[10.5px] text-rd-text-secondary mt-0.5 mb-2 truncate">
+          <p className="text-[10.5px] text-rd-text-secondary mt-0.5 truncate">
             {[job.company_name, job.location_city || job.location_raw].filter(Boolean).join(" · ")}
           </p>
+          {job.is_agency && (
+            <div className="mt-1 mb-2">
+              <AgencyBadge isAgency />
+            </div>
+          )}
+          {!job.is_agency && <div className="mb-2" />}
 
           {d.matchedSkills.length > 0 && (
             <>

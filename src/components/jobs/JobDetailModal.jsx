@@ -4,6 +4,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Check, X, ExternalLink, Plus, Loader2 } from "lucide-react";
 import CompanyLogo from "@/components/jobs/CompanyLogo";
+import AgencyBadge from "@/components/jobs/AgencyBadge";
 import { useCompanyDomains, companyDomainFor } from "@/lib/queries/useCompanyDomains";
 import { useJobDescription } from "@/lib/queries/useJobDescription";
 import { addJobToTracker } from "@/components/jobs/JobCard";
@@ -81,6 +82,11 @@ export default function JobDetailModal({ job, scoreResult = null, trackColor = n
               {job.title}
             </h2>
             <p className="text-[12px] text-rd-text-secondary mt-0.5 break-words">{subLine}</p>
+            {job.is_agency && (
+              <div className="mt-1.5">
+                <AgencyBadge isAgency />
+              </div>
+            )}
           </div>
           {d.scored && (d.bandMeta || d.badgeStyle) && (
             <span

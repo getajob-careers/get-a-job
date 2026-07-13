@@ -25,6 +25,7 @@ import {
   fetchSmartRecruiters,
   fetchWorkday,
   fetchSuccessFactors,
+  fetchAdamTotal,
 } from "./lib/ats-fetchers.ts";
 
 const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = {
@@ -36,6 +37,8 @@ const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = {
   smartrecruiters: fetchSmartRecruiters,
   workday: fetchWorkday,
   successfactors: fetchSuccessFactors,
+  adamtotal: fetchAdamTotal,
+  adamtotal_agency: fetchAdamTotal,
 };
 
 const entry = (o: any): CompanyEntry => ({
