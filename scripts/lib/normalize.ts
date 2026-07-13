@@ -18,6 +18,10 @@ export interface CompanyEntry {
   api_url: string | null;
   verified: boolean;
   notes: string | null;
+  // Staffing/recruiting agency: postings are client placements/reposts, not
+  // its own headcount. Propagated to public.jobs.is_agency at ingest so the UI
+  // can mark them and evals can exclude them. Optional; absent === false.
+  is_agency?: boolean;
 }
 
 export interface CompanyRegistry {
@@ -56,6 +60,7 @@ export interface NormalizedJob {
   location_city: string | null;
   is_il: boolean;
   is_remote: boolean;
+  is_agency: boolean; // from the company row; see CompanyEntry.is_agency
   salary_min: number | null;
   salary_max: number | null;
   salary_currency: string | null;

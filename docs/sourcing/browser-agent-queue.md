@@ -201,16 +201,19 @@ count re-fetched from the terminal, not trusted from notes.
 - **Workday** (the company) - workday `workday.wd5.myworkdayjobs.com/Workday`.
   7 postings, 7 IL (Tel Aviv R&D). New registry row.
 
-### Deferred - staffing / agency listings (pending Eli's product decision)
+### Staffing / agency listings (policy RESOLVED 2026-07-13)
 
-- **Quality AI** - precisely identified: **SuccessFactors** (a supported ATS),
-  live feed `https://careers.quality-ai.com/sitemal.xml`, 202 jobs / ~57 IL. BUT it
-  is a QA/engineering **services + staffing** firm (jobs are client placements
-  across IL/India/US/Romania, e.g. "QA Engineer | Credit Union + Symitar, Santa
-  Clara"). Same category as Yuval HR / HR Hadarly - not wired pending the agency
-  decision. If agency listings are ever accepted, this one is a 1-line wire
-  (successfactors, slug `careers.quality-ai.com`, api_url the sitemal.xml above).
-- **Yuval HR / HR Hadarly** - staffing agencies. Skipped per Eli.
+Agencies ARE allowed in the corpus, marked `is_agency=true` (registry field ->
+`public.jobs.is_agency` -> "via staffing agency" badge). Agency-policy build 2026-07-13.
+
+- **Quality AI** - WIRED. **SuccessFactors**, live feed
+  `https://careers.quality-ai.com/sitemal.xml`, 202 jobs / 56 IL (re-verified
+  2026-07-13). QA/engineering services + staffing firm (client placements across
+  IL/India/US/Romania). Registry row `is_agency=true`.
+- **Yuval HR / HR Hadarly** - staffing agencies, **no detectable board** (no
+  greenhouse/lever/ashby/workable/comeet/smartrecruiters/workday/successfactors
+  slug found). Agency-flagged no-board: if a board surfaces later, wire with
+  `is_agency=true`. See "No-board companies" below.
 
 ### needs-fetcher-adapter (unsupported ATS; board captured, no wire)
 
@@ -248,6 +251,10 @@ so they are not re-hunted as "missing an ATS" - there is nothing to wire.
   aggregators). No board.
 - **Kovrr** - lists roles on its own page, applies by email (`liatl@kovrr.com`).
 - **Findings** - careers page dead/redirects; applies via `career@findings.co`.
+- **Yuval HR** _(agency)_ - staffing agency, no detectable ATS board. Flag
+  `is_agency=true` if a board is ever found.
+- **HR Hadarly** _(agency)_ - staffing agency, no detectable ATS board. Flag
+  `is_agency=true` if a board is ever found.
 
 Pattern: consumer brands, small teams, and email/LinkedIn-first hirers. If we ever
 want this supply, it needs an aggregator lane (AllJobs / Drushim), not an ATS

@@ -242,6 +242,7 @@ async function processCompany(
       location_city: loc.city,
       is_il: true,
       is_remote: r.is_remote,
+      is_agency: company.is_agency ?? false,
       salary_min: r.salary_min,
       salary_max: r.salary_max,
       salary_currency: r.salary_currency,

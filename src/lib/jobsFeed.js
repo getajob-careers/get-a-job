@@ -34,7 +34,7 @@ export const JOBS_SELECT =
 // the heavy `description` blob (fetched on demand by the detail modal, warmed
 // by the card's hover-prefetch). Mirrors JOBS_SELECT minus `description`.
 export const JOBS_SELECT_LIGHT =
-  "id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, seniority, years_experience_min, years_experience_max, date_posted, apply_url, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence, skill_coverage_ratio";
+  "id, ats_source, external_id, title, company_name, company_slug, location_city, location_raw, is_remote, is_agency, seniority, years_experience_min, years_experience_max, date_posted, apply_url, industry, req_skills_core, req_skills_nice, req_years_min, req_years_max, req_education_levels, req_education_strict, req_seniority, function_family, extraction_confidence, skill_coverage_ratio";
 
 // Legacy track-mode seniority: track_3 bypasses to ALL (it's the growth
 // track — roles the user isn't qualified for yet).
