@@ -1,10 +1,14 @@
 ---
-title: Library-expansion batch 1 — v5 unmapped-phrase promotion proposal
-status: PROPOSE-ONLY (Eli review; class-G discipline stands)
+title: Library-expansion batch 1 — v5 unmapped-phrase promotion
+status: BUILT (held PR; Eli review). Class-G discipline held.
 generated_from: jobs.extraction_unmapped_skills, active + schema_version=5, non-agency, 2026-07-13
 ---
 
-# Library-expansion batch 1 — propose-only
+# Library-expansion batch 1
+
+**Built per Eli's two calls (2026-07-13):** section C — ADD both `interpersonal_skills` + `teamwork` (plain, to avoid resolver confusion with `cross_functional_collaboration`); `root_cause_analysis` gets its **own** ID (not aliased to `technical_troubleshooting`), with `rca` / `root-cause analysis` aliased to it. **13 new IDs** total (the 10 in section B + those 3). Alias batch per section A, minus the RCA→troubleshooting map. schema-validator: **byte-identical to baseline — zero new errors**. Re-resolve movement runs post-merge (`scripts/reresolve-corpus.ts`).
+
+The triage below is the source-of-record for what shipped and what was excluded.
 
 Top unmapped phrases from the **fresh v5 raw data** (per-job `extraction_unmapped_skills`, corpus-wide, `job_count ≥ 8`). Triaged against the live 599-ID library. Nothing is auto-written — this is for review. Class-G discipline: aliases only map to an **existing** ID when unambiguous; a missed map beats a wrong one.
 
