@@ -168,3 +168,25 @@ Novella, Frame, Copperhelm, Q-Factor, Cyata, Legion, Commcrete.
 - P3: Task 3 research-280 batch, 92 net-new after dedupe; static detection failed on all but 2
   (CopilotKit lever, Tapcheck ashby - both 0 IL, not added). 54 have domains (P3a), 36 need a domain
   (P3b).
+
+## Workday tenant recaptures (registry health, 2026-07-13)
+
+A Workday-lane audit (all 39 registry `workday` rows vs `public.jobs`) found the
+lane healthy — 25 companies fetched today with active jobs — EXCEPT **Unity**
+(fixed this pass: it had migrated off Greenhouse `unity3d` (now HTTP 404) to
+Workday `unitytech.wd1.myworkdayjobs.com/Unity`, 10 live IL; row repointed).
+
+Nine rows fetch fine but return 0 IL today (legit, no action): Accenture, Adobe,
+Analog Devices, Atlassian, Booking.com, Citrix, eBay, Insulet, ServiceNow.
+
+**Five rows have a MALFORMED / placeholder slug** — the fetcher can't parse them
+(needs `<tenant>.wdN.myworkdayjobs.com/<site>`), so they have NEVER fetched. Find
+the real Workday tenant+site for each and repoint (or drop if no IL presence):
+
+| company | current (broken) slug | what's needed |
+| --- | --- | --- |
+| Bloomberg | `bloomberg` | real Workday host/site (or confirm not Workday) |
+| Moelis & Company | `moelis` | real Workday host/site |
+| Philips | `philips` | real Workday host/site |
+| PwC | `pwc` | real Workday host/site |
+| Deci AI | `None` | acquired by NVIDIA — likely superseded by nvidia Workday; confirm/drop |

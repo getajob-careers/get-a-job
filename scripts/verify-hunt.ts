@@ -23,6 +23,7 @@ import {
   fetchAshby,
   fetchWorkable,
   fetchSmartRecruiters,
+  fetchWorkday,
 } from "./lib/ats-fetchers.ts";
 
 const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = {
@@ -32,6 +33,7 @@ const FETCHERS: Record<string, (c: CompanyEntry) => Promise<RawJob[]>> = {
   ashby: fetchAshby,
   workable: fetchWorkable,
   smartrecruiters: fetchSmartRecruiters,
+  workday: fetchWorkday,
 };
 
 const entry = (o: any): CompanyEntry => ({
