@@ -36,3 +36,8 @@ The Phase-1 model bake-off (#571) is **same-API only** (OpenAI: gpt-4o-mini / gp
 - **Candidate first:** Claude Haiku 4.5 via the existing OpenRouter path (`_shared/openrouter-chat.ts`).
 - **Scope:** run against the FULL frozen **68-job eval + the SQL panel** above (Part 1 & 2) — NOT the 10/30 sample sets used for the same-API tiebreak.
 - **Blocked on harness support:** non-OpenAI JSON-mode handling + provider-specific token/cost accounting (`usage` shape differs) in `scripts/hebrew-extract-bakeoff.ts`.
+
+## v5 pass result + metric note (2026-07-13)
+Full corpus re-extracted at schema v5 / gpt-5.4-mini (6,106 jobs, 0 failures). Before→after: avg coverage 0.478→0.223, median 0.50→0.20, zero-core 18.4%→17.2%, Hebrew zero-core 42%→31.5%, Manufacturing 0.062→0.049, must-have 0→32.2%, avg resolved-core/job ~2→3.62.
+
+**`skill_coverage_ratio` is NOT a stable target — its denominator (raw phrases emitted) moves with extractor behavior.** gpt-5.4-mini emits ~3× more raw skills than gpt-4o-mini (avg 4.9→14.9/job), so `resolved/raw` fell even though resolved-core per job rose. The ratio is display-only in the scorer and now honestly reflects the library's coverage gap. **R/T (resolved ÷ true-required, competent-reader judged on the frozen 68-job set) is the primary completeness metric going forward** — it isolates real extraction/resolution quality from raw-emission volume. The banked `req_skills_{core,nice,must_have}_raw` columns are the asset: the library-expansion arc re-resolves them at zero LLM cost.
