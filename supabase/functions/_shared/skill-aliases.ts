@@ -23,6 +23,40 @@
 // EXTEND HERE not in the edge function. Future expansion goes in this file.
 
 export const SKILL_ALIASES: Record<string, string[]> = {
+  // ── Library-expansion batch 1 (2026-07-13) ───────────────────────────────
+  // Variants of the batch-1 additions that DON'T auto-resolve via the snake-ID
+  // step (exact-snake phrases like "data science"/"os internals"/"teamwork"
+  // /"interpersonal skills" already resolve to the new IDs for free), plus
+  // section-A phrases mapping to EXISTING IDs (class-G safe — verified maps).
+  "architectural decisions": ["software_architecture"],
+  "technical direction": ["software_architecture"],
+  "fine-tuning": ["model_fine_tuning"],
+  "fine tuning": ["model_fine_tuning"],
+  "agents": ["llm_agents"],
+  "tool use": ["llm_agents"],
+  "coding standards": ["code_quality"],
+  "clean code": ["code_quality"],
+  "maintainability": ["code_quality"],
+  "rca": ["root_cause_analysis"],
+  "linux environments": ["linux_administration"],
+  "containerized environments": ["containerization"],
+  "python programming": ["python_development"],
+  "excellent communication skills": ["communication"],
+  "strong communication skills": ["communication"],
+  "written communication": ["communication"],
+  "written and verbal communication": ["communication"],
+  "written and verbal communication skills": ["communication"],
+  "communication and collaboration skills": ["communication"],
+  "communication and interpersonal skills": ["communication", "interpersonal_skills"],
+  "strong analytical skills": ["analytical_thinking"],
+  "analytical and problem-solving skills": ["analytical_thinking", "problem_solving"],
+  "analytical mindset": ["analytical_thinking"],
+  "source control management": ["git_version_control"],
+  "cross-functional coordination": ["cross_functional_collaboration"],
+  "cross-functional teams": ["cross_functional_collaboration"],
+  "stakeholder communication": ["stakeholder_management"],
+  "mentoring engineers": ["mentoring"],
+  "mentorship": ["mentoring"],
   // ── Tools & Software (chip bank) ─────────────────────────────────────────
   "excel": ["excel_advanced_finance"],
   "microsoft excel": ["excel_advanced_finance"],
