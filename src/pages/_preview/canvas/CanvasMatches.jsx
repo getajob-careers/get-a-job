@@ -3,9 +3,9 @@
 // canvas clones — fixture-fed, Track → local state.
 import React, { useMemo, useState } from "react";
 import { Check, Plus, Wand2 } from "lucide-react";
-import JobGridCard from "@/components/jobs/JobGridCard";
 import { CANVAS_MATCHES } from "../fixtures/canvasHome";
 import CanvasJobModal from "./CanvasJobModal";
+import CanvasScoredCard from "./CanvasScoredCard";
 
 // Fixture-fed match surfaces for the design canvas: the CV-tab right column
 // (CanvasTopMatches) and the Browse Jobs tab (CanvasJobsFeed). Both reuse the
@@ -59,10 +59,9 @@ export function CanvasTopMatches() {
           const tracked = trackedIds.has(job.id);
           return (
             <div key={job.id} className="flex flex-col gap-1.5">
-              <JobGridCard
+              <CanvasScoredCard
                 job={job}
                 scoreResult={scoreResult}
-                unified
                 onOpen={(j, s) => setOpenJob({ job: j, scoreResult: s })}
               />
               <div className="flex gap-1.5">
@@ -167,11 +166,10 @@ export function CanvasJobsFeed() {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {all.map((job) => (
-          <JobGridCard
+          <CanvasScoredCard
             key={job.id}
             job={job}
             scoreResult={scoredById[job.id]}
-            unified
             onOpen={(j, s) => setOpenJob({ job: j, scoreResult: s })}
           />
         ))}
