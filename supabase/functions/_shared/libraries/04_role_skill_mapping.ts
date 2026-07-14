@@ -5238,6 +5238,27 @@ export const roleSkillMapping = {
         "sales_forecasting",
         "customer_health_management"
       ]
+    },
+    {
+      "role_id": "hardware_engineer",
+      "research_status": "mapped_v1_confident",
+      "core_skills": [
+        "embedded_systems",
+        "os_internals",
+        "board_design",
+        "firmware"
+      ],
+      "secondary_skills": [
+        "robotics",
+        "rf_engineering",
+        "verilog",
+        "python_development"
+      ],
+      "differentiator_skills": [
+        "pcb_design",
+        "signal_processing",
+        "matlab"
+      ]
     }
   ]
 } as const;
