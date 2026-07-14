@@ -137,16 +137,18 @@ export function CanvasJobsFeed() {
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Segmented toggle with a sliding coral pill (idea #11) */}
-      <div className="relative inline-flex self-start bg-rd-bg-soft rounded-full p-1">
+      {/* Segmented toggle with a sliding coral pill (idea #11). Equal-width
+          segments (flex-1) so the pill exactly matches the active one; the pill
+          is 50%−inset wide and slides via translateX(100%) — consistent 4px
+          inset all round, no reflow (both labels stay bold + nowrap). */}
+      <div className="relative flex w-full max-w-[360px] bg-rd-bg-soft rounded-full p-1">
         <span
           aria-hidden="true"
-          className="absolute top-1 bottom-1 rounded-full bg-rd-coral shadow-rd transition-all duration-200 ease-out"
-          style={
-            mode === "matches"
-              ? { left: "0.25rem", right: "50%" }
-              : { left: "50%", right: "0.25rem" }
-          }
+          className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-coral shadow-rd transition-transform duration-200 ease-out"
+          style={{
+            width: "calc(50% - 0.25rem)",
+            transform: mode === "all" ? "translateX(100%)" : "translateX(0)",
+          }}
         />
         {[
           ["matches", "Top Matches for You"],
@@ -157,7 +159,7 @@ export function CanvasJobsFeed() {
             type="button"
             onClick={() => setMode(val)}
             aria-pressed={mode === val}
-            className={`relative z-10 font-display font-bold text-[12.5px] rounded-full px-3.5 py-1.5 transition-colors ${
+            className={`relative z-10 flex-1 whitespace-nowrap text-center font-display font-bold text-[12.5px] rounded-full px-3 py-1.5 transition-colors ${
               mode === val
                 ? "text-white"
                 : "text-rd-text-secondary hover:text-rd-text"
