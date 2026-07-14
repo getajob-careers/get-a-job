@@ -1,0 +1,277 @@
+# Match-quality eval — labeling sheet
+
+**Label each row** in the LABEL column: **GOOD** (right to show in top picks) / **STRETCH** (fair as a growth suggestion) / **BAD** (should not be near the top).
+**Notes** = free-text gripes — your gripes are data. Order below is the LIVE served order (picks section then stretch section, exactly as the page renders).
+
+
+## P01 — Data (jr→mid)
+Card: **Mid-Level** · domain `operations` · targets Data Analyst / Senior Data Analyst / Business Analyst · 53 skills (ai_tool_fluency, analytical_thinking, bi_tools, budget_forecasting, business_analysis, claude_assistant…)
+Candidate set: 120 jobs from 15 roadmap titles; level=mid_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 90% | strong | Business Operations Analyst | NICE Systems | bi_tools, crm_management, cross_functional_collaboration, dashboarding, data_analysis | core: data_analysis, user_behavior_analysis, cross_functional_collaboration · 3+y · Mid · any edu |  |  |
+| 2 | 84% | strong | Senior Operations Manager | Mixtiles | analytical_thinking | core: analytical_thinking · any yrs · Senior · any edu |  |  |
+| 3 | 80% | strong | Business Operations Manager | Kaltura | analytical_thinking, bi_tools, budget_forecasting, customer_communication, dashboarding | core: sales_forecasting, budget_forecasting, microsoft_office_suite, excel_advanced_finance · 3-5y · Mid · bachelors |  |  |
+| 4 | 79% | strong | Senior DevOps Consultant | Elsight | mentoring | core: mentoring · 10+y · Senior · any edu |  |  |
+| 5 | 78% | strong | AI Operations Assistant | DriveNets | excel_advanced_finance, python_data, python_development, sql | core: excel_advanced_finance, python_development, python_data, sql · any yrs · any sen · bachelors |  |  |
+| 6 | 78% | strong | Business Applications Specialist | NoTraffic | business_analysis | core: business_analysis · 3+y · Mid · bachelors |  |  |
+| 7 | 70% | strong | Business Operations Manager | Zafran | stakeholder_management | core: roadmap_prioritization, stakeholder_management · 3+y · Mid · any edu |  |  |
+| 8 | 70% | strong | Business Applications Specialist | Eitan Medical | — | core: — · 3+y · Mid · bachelors |  |  |
+| 9 | 65% | strong | Credit Risk Analyst | Cross River | customer_communication, presentation_skills | core: risk_assessment_management, prototyping, attention_to_detail, customer_communication · 2+y · Mid · any edu |  |  |
+| 10 | 61% | strong | Operations and QA Manager | SuperPlay | crm_management, sql | core: attention_to_detail, organization · 1+y · Entry_Mid · bachelors |  |  |
+
+## P02 — Data (senior)
+Card: **Senior** · domain `data_analytics` · targets Data Analyst / Senior Data Analyst · 54 skills (agile_practices, analytical_thinking, aws_s3, bi_tools, bizops_executive_communication, change_management…)
+Candidate set: 120 jobs from 10 roadmap titles; level=senior_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 95% | strong | Data Analyst | Rapyd | analytical_thinking, bi_tools, customer_communication, dashboarding, data_storytelling | core: sql, python_development, python_data, analytical_thinking · 3+y · Senior · any edu |  |  |
+| 2 | 95% | strong | Senior Data Analyst | One Zero Digital Bank | agile_practices, analytical_thinking, data_analysis, sql, user_behavior_analysis | core: analytical_thinking, sql, agile_practices, data_analysis · 4+y · Mid · any edu |  |  |
+| 3 | 95% | strong | Senior Data Analyst | Holisto | customer_communication, data_modeling, python_data, python_development, sql | core: sql, data_modeling, python_development, python_data · 5+y · Senior · any edu |  |  |
+| 4 | 93% | strong | Senior Data Analyst | Melio | sql | core: sql · 5+y · Senior · bachelors |  |  |
+| 5 | 92% | strong | Senior Data Analyst | Viber | cross_functional_collaboration, customer_communication, data_analysis, data_storytelling, data_visualization_design | core: data_analysis, sql, python_development, python_data · 6+y · Senior · any edu |  |  |
+| 6 | 91% | strong | Senior Data Analyst | 365Scores | bi_tools, claude_assistant, cursor_ai_editor, customer_communication, data_analysis | core: data_analysis, user_behavior_analysis, sql, data_modeling · 3+y · Mid · bachelors |  |  |
+| 7 | 91% | strong | Business Analytics Engineer | Guidde | bi_tools, dashboarding, data_analysis, sql | core: data_analysis · 4+y · Mid · any edu |  |  |
+| 8 | 89% | strong | Data Analyst | Autofleet | analytical_thinking, customer_communication, data_analysis, presentation_skills, python_data | core: data_analysis, python_development, python_data, sql · 4+y · Senior · any edu |  |  |
+| 9 | 88% | strong | Business Analyst | Unity | analytical_thinking, cross_functional_collaboration, customer_communication, data_analysis, presentation_skills | core: data_analysis, analytical_thinking, sql, presentation_skills · 2+y · Entry_Mid · any edu |  |  |
+| 10 | 87% | strong | Business Analyst | Gett | analytical_thinking, data_analysis, data_visualization_design, machine_learning_fundamentals, python_data | core: data_analysis, analytical_thinking, sql, data_visualization_design · 2+y · Entry_Mid · masters |  |  |
+
+## P03 — HR/Talent (mid)
+Card: **Mid-Level** · domain `business_operations` · targets People Operations Manager / Business Operations Specialist · 30 skills (ab_testing, asana_pm, claude_assistant, coaching, customer_communication, data_analysis…)
+Candidate set: 120 jobs from 15 roadmap titles; level=mid_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 95% | strong | Operations PMO | Jeen.ai | jira, scripting_automation, workflow_automation | core: jira, workflow_automation, scripting_automation · 2+y · Entry_Mid · any edu |  |  |
+| 2 | 78% | strong | Store Manager | Wolt | employee_lifecycle_management, talent_acquisition_recruiting | core: talent_acquisition_recruiting, training_facilitation, employee_lifecycle_management · 3+y · Mid · any edu |  |  |
+| 3 | 77% | strong | Strategic Program Manager | Fullpath | scripting_automation, workflow_automation | core: workflow_automation, scripting_automation, program_management · 5+y · Senior · any edu |  |  |
+| 4 | 70% | strong | Business Operations Manager | Zafran | stakeholder_management | core: roadmap_prioritization, stakeholder_management · 3+y · Mid · any edu |  |  |
+| 5 | 70% | strong | Office & Operations Manager | Liquidity Group | customer_communication, presentation_skills, scripting_automation, workflow_automation | core: workflow_automation, scripting_automation, executive_support, organization · 3+y · Mid · any edu |  |  |
+| 6 | 70% | strong | Business Operations Analyst | NICE Systems | data_analysis, excel_advanced_finance, user_behavior_analysis | core: data_analysis, user_behavior_analysis, cross_functional_collaboration · 3+y · Mid · any edu |  |  |
+| 7 | 70% | strong | Business Applications Specialist | Eitan Medical | — | core: — · 3+y · Mid · bachelors |  |  |
+| 8 | 65% | strong | Business Operations | CommIT | scripting_automation, workflow_automation | core: dashboarding, process_improvement, data_quality, workflow_automation · 2+y · Entry_Mid · any edu |  |  |
+| 9 | 64% | strong | Office & Operations Manager | Qodo | machine_learning_fundamentals, scripting_automation, workflow_automation | core: workflow_automation, scripting_automation, slack, microsoft_office_suite · 2-5y · Mid · any edu |  |  |
+| 10 | 63% | strong | Business Operations Manager | Kaltura | customer_communication, excel_advanced_finance, presentation_skills, scripting_automation, workflow_automation | core: sales_forecasting, budget_forecasting, microsoft_office_suite, excel_advanced_finance · 3-5y · Mid · bachelors |  |  |
+
+## P04 — HR (senior)
+Card: **Senior** · domain `finance` · targets Compensation and Benefits / People Analytics / Total Reward · 19 skills (cross_functional_collaboration, dashboarding, data_analysis, employee_lifecycle_management, excel_advanced_finance, financial_modeling…)
+Candidate set: 120 jobs from 13 roadmap titles; level=senior_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 70% | strong | Senior FP&A Analyst | Atera | excel_advanced_finance, financial_modeling | core: financial_modeling, b2b_saas_domain, excel_advanced_finance, sql · 5+y · Senior · any edu |  |  |
+| 2 | 61% | strong | Assistant Controller | OurCrowd | — | core: — · 2+y · Entry_Mid · bachelors |  |  |
+| 3 | 56% | good | Senior FP&A Analyst | Silverfort | excel_advanced_finance, financial_modeling | core: sales_forecasting, budget_forecasting, bva_analysis, financial_modeling · 4+y · Mid · bachelors |  |  |
+| 4 | 54% | good | FP&A Business Partner, Finance | Medison Pharma | financial_modeling, presentation_skills | core: financial_modeling, budget_management, budget_forecasting, sales_forecasting · 5+y · Senior · bachelors |  |  |
+| 5 | 53% | good | Senior FP&A Business Partner | Payoneer | financial_modeling | core: financial_modeling, sales_forecasting, budget_forecasting, analytical_thinking · 5+y · Senior · bachelors |  |  |
+| 6 | 50% | good | Senior FP&A Analyst | Pixellot | dashboarding | core: budget_management, budget_forecasting, sales_forecasting, resource_allocation · 5+y · Senior · bachelors |  |  |
+| 7 | 49% | good | FP&A Business Partner | AppsFlyer | presentation_skills | core: erp_systems, analytical_thinking, customer_communication, presentation_skills · 5+y · Senior · bachelors |  |  |
+| 8 | 70% | strong | QA Specialist | Eitan Medical | excel_advanced_finance, presentation_design, presentation_skills | core: root_cause_analysis, excel_advanced_finance, presentation_design, presentation_skills · 3-5y · Mid · bachelors |  |  |
+| 9 | 64% | strong | Senior Compensation &Benefits Consultant | EY (Ernst & Young) | — | core: — · 5+y · Senior · any edu |  |  |
+| 10 | 62% | strong | Tax Manager | Deloitte | — | core: — · 3+y · Mid · bachelors |  |  |
+
+## P05 — Sales/CS (entry)
+Card: **Junior** · domain `data_analytics` · targets Product Manager / Operations Manager / Financial Analyst · 28 skills (analytical_thinking, asana_pm, bi_tools, budget_forecasting, cross_functional_collaboration, dashboarding…)
+Candidate set: 120 jobs from 15 roadmap titles; level=mid_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 70% | strong | Senior Revenue & Growth Analyst | Nift | analytical_thinking, data_analysis, python_data, python_development, sql | core: data_analysis, sql, ab_testing, analytical_thinking · 5-7y · Senior · any edu |  |  |
+| 2 | 64% | strong | BI Analyst | Insightec | analytical_thinking, bi_tools, dashboarding, data_modeling | core: dashboarding, bi_tools, data_governance, data_quality · 5+y · Senior · bachelors |  |  |
+| 3 | 51% | good | Sales Operations Manager | Surecomp | analytical_thinking, bi_tools, cross_functional_collaboration, dashboarding, data_visualization_design | core: revenue_operations, salesforce, crm_management, dashboarding · any yrs · any sen · any edu |  |  |
+| 4 | 87% | strong | Marketing Manager | KPMG Israel (Somekh Chaikin) | project_management | core: project_management · 3-4y · Mid · bachelors |  |  |
+| 5 | 85% | strong | Product Manager | Skai | excel_advanced_finance | core: excel_advanced_finance · 5-6y · Senior · bachelors |  |  |
+| 6 | 77% | strong | Technical Product Manager | Walkme | analytical_thinking | core: analytical_thinking · any yrs · Senior · any edu |  |  |
+| 7 | 76% | strong | Technical Product Manager | Jeen.ai | product_discovery, product_strategy, python_data, python_development, sql | core: product_strategy, product_discovery, rag_pipelines, machine_learning_fundamentals · 3+y · Mid · any edu |  |  |
+| 8 | 74% | strong | Product Manager | Fetcherr | product_discovery, product_strategy, stakeholder_management | core: product_strategy, product_discovery, agile_practices, stakeholder_management · 5+y · Senior · bachelors |  |  |
+| 9 | 72% | strong | Content Marketing Manager - Temporary position | Kaltura | cross_functional_collaboration | core: cross_functional_collaboration · 3-5y · Mid · any edu |  |  |
+| 10 | 70% | strong | Product Manager | AU10TIX | analytical_thinking, product_discovery, product_strategy | core: product_strategy, product_discovery, analytical_thinking, market_research · 2-3y · Entry_Mid · any edu |  |  |
+
+## P06 — BD/Partnerships (jr)
+Card: **Junior** · domain `business_operations` · targets — · 15 skills (customer_communication, data_analysis, demand_generation, excel_advanced_finance, leadership, market_research…)
+Candidate set: 120 jobs from 15 roadmap titles; level=early_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 80% | strong | Project Manager | TailorMed | customer_communication, presentation_skills | core: customer_communication, presentation_skills · any yrs · any sen · any edu |  |  |
+| 2 | 66% | strong | Project Manager | Enercon Technologies | customer_communication, presentation_skills | core: project_management, interpersonal_skills, customer_communication, presentation_skills · 2+y · Entry_Mid · bachelors |  |  |
+| 3 | 55% | good | Internal Audit Associate (CPA) | Deloitte | problem_solving | core: attention_to_detail, problem_solving · any yrs · any sen · any edu |  |  |
+| 4 | 51% | good | Technical Operations Specialist | Sunflower | problem_solving, scripting_automation, workflow_automation | core: workflow_automation, scripting_automation, crm_management, helpdesk_support · any yrs · any sen · bachelors |  |  |
+| 5 | 49% | good | R&D Project Manager | CYE | — | core: — · any yrs · any sen · any edu |  |  |
+| 6 | 75% | strong | Merchant Finance Associate | Wolt | customer_communication, data_analysis, excel_advanced_finance, presentation_skills, problem_solving | core: cross_functional_collaboration, excel_advanced_finance, data_analysis, user_behavior_analysis · 1-3y · Entry_Mid · any edu |  |  |
+| 7 | 70% | strong | Support & Enablement Specialist | OneStep | — | core: — · 2-3y · Entry_Mid · any edu |  |  |
+| 8 | 62% | strong | Employee Experience Specialist | Tenable | — | core: — · 2+y · Entry_Mid · any edu |  |  |
+| 9 | 62% | strong | Sales Associate | Waterfall Security | — | core: — · 1-2y · Entry_Mid · bachelors |  |  |
+| 10 | 62% | strong | Talent Acquisition Associate | Moon Active | — | core: — · 1-2y · Entry_Mid · bachelors |  |  |
+
+## P07 — Customer Success (jr)
+Card: **Junior** · domain `business_operations` · targets — · 33 skills (account_management, coaching, conflict_de_escalation, cross_functional_collaboration, customer_communication, customer_health_management…)
+Candidate set: 120 jobs from 15 roadmap titles; level=mid_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 95% | strong | CRM Project Manager | Abra R&D | customer_communication, presentation_skills, stakeholder_management | core: stakeholder_management, customer_communication, presentation_skills · 3+y · Mid · bachelors |  |  |
+| 2 | 82% | strong | QA Specialist | Eitan Medical | excel_advanced_finance, presentation_design, presentation_skills | core: root_cause_analysis, excel_advanced_finance, presentation_design, presentation_skills · 3-5y · Mid · bachelors |  |  |
+| 3 | 80% | strong | Import-Export Coordinator | BIRD Aerosystems | cross_functional_collaboration | core: cross_functional_collaboration · any yrs · any sen · any edu |  |  |
+| 4 | 80% | strong | Project Manager | TailorMed | customer_communication, presentation_skills | core: customer_communication, presentation_skills · any yrs · any sen · any edu |  |  |
+| 5 | 81% | strong | Project Manager | Enercon Technologies | customer_communication, presentation_skills, project_management | core: project_management, interpersonal_skills, customer_communication, presentation_skills · 2+y · Entry_Mid · bachelors |  |  |
+| 6 | 75% | strong | Project Manager | Global-e | coaching, leadership, project_management | core: project_management, leadership, coaching, organization · 3-5y · Mid · any edu |  |  |
+| 7 | 70% | strong | RMA Specialist | Elmo Motion Control | — | core: — · 2+y · Entry_Mid · any edu |  |  |
+| 8 | 70% | strong | Data Center Project Manager, Critical Projects Implementation Team | Amazon | leadership, project_management | core: vendor_third_party_risk, project_management, technical_troubleshooting, leadership · 3+y · Mid · bachelors |  |  |
+| 9 | 68% | strong | Project Manager | inManage | emotional_intelligence, project_management, stakeholder_management | core: project_management, stakeholder_management, emotional_intelligence, agile_methodology · 1+y · Entry_Mid · bachelors |  |  |
+| 10 | 68% | strong | Client and Collections Coordinator | Deloitte | excel_advanced_finance | core: excel_advanced_finance · any yrs · Entry_Mid · bachelors |  |  |
+
+## P08 — Product (mid)
+Card: **Mid-Level** · domain `product_management` · targets Product Manager / Senior Software Engineer / Product Owner · 57 skills (api_design, api_integrations, backend_development, bi_tools, bizops_executive_communication, change_management…)
+Candidate set: 120 jobs from 15 roadmap titles; level=senior_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 95% | strong | Technical Product Manager | Rounds | cloud_platforms, cloud_platforms_devops, product_discovery, product_strategy | core: product_strategy, product_discovery, cloud_platforms_devops, cloud_platforms · 5+y · Senior · any edu |  |  |
+| 2 | 89% | strong | Technical Product Manager | Jeen.ai | machine_learning_fundamentals, product_discovery, product_strategy, python_data, python_development | core: product_strategy, product_discovery, rag_pipelines, machine_learning_fundamentals · 3+y · Mid · any edu |  |  |
+| 3 | 88% | strong | Product Operation Manager | Port | cross_functional_collaboration | core: cross_functional_collaboration · 2+y · Entry_Mid · any edu |  |  |
+| 4 | 87% | strong | Product Manager | Skai | excel_advanced_finance | core: excel_advanced_finance · 5-6y · Senior · bachelors |  |  |
+| 5 | 83% | strong | Senior Product Manager | Checkmarx | customer_communication, product_strategy, stakeholder_management | core: product_strategy, roadmap_prioritization, customer_communication, stakeholder_management · 5+y · Senior · any edu |  |  |
+| 6 | 82% | strong | Product Manager | Upwind | cloud_platforms, cloud_platforms_devops, technical_leadership | core: cloud_platforms_devops, cloud_platforms, cybersecurity_general, technical_leadership · 5+y · Senior · bachelors |  |  |
+| 7 | 82% | strong | Product Manager | Fetcherr | product_discovery, product_strategy, stakeholder_management | core: product_strategy, product_discovery, agile_practices, stakeholder_management · 5+y · Senior · bachelors |  |  |
+| 8 | 79% | strong | Senior Product Manager | Aqua Security | api_design, api_integrations, cloud_platforms, cloud_platforms_devops, customer_communication | core: product_strategy, product_discovery, cloud_platforms, api_design · 7+y · Senior · any edu |  |  |
+| 9 | 78% | strong | Senior Product Manager | Riverside.fm | data_analysis, user_behavior_analysis | core: data_analysis, user_behavior_analysis, customer_discovery_interviews · 5+y · Senior · any edu |  |  |
+| 10 | 78% | strong | Senior Product Manager | Rounds | product_discovery, product_strategy, stakeholder_management | core: product_strategy, product_discovery, stakeholder_management · 3+y · Mid · any edu |  |  |
+
+## P09 — Product (senior)
+Card: **Senior** · domain `product` · targets VP Product / Head of Product / Director of Product · 53 skills (agile_practices, analytical_thinking, android_dev, api_design, api_integrations, asana_pm…)
+Candidate set: 120 jobs from 10 roadmap titles; level=senior_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 95% | strong | Product Growth Manager | Guardio | cross_functional_collaboration, data_analysis, user_behavior_analysis | core: data_analysis, user_behavior_analysis, cross_functional_collaboration · 3+y · Mid · any edu |  |  |
+| 2 | 95% | strong | Senior Product Manager | Checkmarx | customer_communication, product_strategy, roadmap_prioritization, stakeholder_management | core: product_strategy, roadmap_prioritization, customer_communication, stakeholder_management · 5+y · Senior · any edu |  |  |
+| 3 | 95% | strong | Product Manager | Fetcherr | agile_practices, product_discovery, product_strategy, stakeholder_management | core: product_strategy, product_discovery, agile_practices, stakeholder_management · 5+y · Senior · bachelors |  |  |
+| 4 | 93% | strong | Monetization Manager | Play Perfect | analytical_thinking | core: analytical_thinking · 2+y · Mid · bachelors |  |  |
+| 5 | 90% | strong | Group Product Manager – Product Growth | Unframe | customer_communication, presentation_skills, product_discovery, product_strategy | core: product_strategy, product_discovery, customer_communication, presentation_skills · 7+y · Lead_Manager · any edu |  |  |
+| 6 | 90% | strong | Product Manager, Product-Led Growth | Kaltura | analytical_thinking, cross_functional_collaboration, customer_communication, presentation_skills, product_analytics_expertise | core: product_strategy, product_discovery, product_led_growth, analytical_thinking · 3+y · Mid · any edu |  |  |
+| 7 | 90% | strong | Data Platform Product Group Lead | Navina | customer_communication, presentation_skills, stakeholder_management | core: customer_communication, presentation_skills, stakeholder_management · 4+y · Lead_Manager · any edu |  |  |
+| 8 | 89% | strong | Product Manager | Teads | analytical_thinking, customer_communication, presentation_skills, product_discovery, product_strategy | core: product_strategy, product_discovery, analytical_thinking, roadmap_prioritization · 3-5y · Mid · any edu |  |  |
+| 9 | 89% | strong | Product Lead | Loora | analytical_thinking, customer_communication, presentation_skills, product_discovery, product_strategy | core: product_strategy, product_discovery, marketing_campaign_design, analytical_thinking · 5+y · Senior · any edu |  |  |
+| 10 | 88% | strong | Product Operation Manager | Port | cross_functional_collaboration | core: cross_functional_collaboration · 2+y · Entry_Mid · any edu |  |  |
+
+## P10 — Finance (mid)
+Card: **Senior** · domain `finance` · targets Senior Accountant / Accounting Manager / Financial Reporting Manager · 30 skills (account_management, bi_tools, budget_forecasting, budget_management, cash_flow_management, coaching…)
+Candidate set: 120 jobs from 15 roadmap titles; level=senior_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 95% | strong | Senior FP&A Analyst | Wonderful | budget_forecasting, budget_management, financial_modeling, resource_allocation, sales_forecasting | core: financial_modeling, budget_management, budget_forecasting, sales_forecasting · 4+y · Mid · bachelors |  |  |
+| 2 | 85% | strong | Senior Finance Manager | 365Scores | budget_forecasting, budget_management, excel_advanced_finance, financial_reporting | core: financial_reporting, budget_management, budget_forecasting, excel_advanced_finance · 8-10y · Senior · any edu |  |  |
+| 3 | 76% | strong | Senior Financial Business Analyst | Cellebrite | bi_tools, data_visualization_design, financial_modeling | core: bi_tools, financial_modeling, data_visualization_design, cross_functional_collaboration · 4-6y · Mid · bachelors |  |  |
+| 4 | 72% | strong | Senior FP&A Analyst | Pixellot | bi_tools, budget_forecasting, budget_management, dashboarding, resource_allocation | core: budget_management, budget_forecasting, sales_forecasting, resource_allocation · 5+y · Senior · bachelors |  |  |
+| 5 | 72% | strong | FP&A Analyst | Kaltura | budget_forecasting, communication, excel_advanced_finance, sales_forecasting | core: excel_advanced_finance, communication, problem_solving, attention_to_detail · 2-6y · Mid · bachelors |  |  |
+| 6 | 71% | strong | FP&A Business Partner | Orca AI | budget_forecasting, budget_management, financial_modeling, financial_reporting, sales_forecasting | core: sales_forecasting, budget_forecasting, financial_modeling, budget_management · 1-2y · Entry_Mid · bachelors |  |  |
+| 7 | 70% | strong | Senior FP&A Analyst | Atera | excel_advanced_finance, financial_modeling | core: financial_modeling, b2b_saas_domain, excel_advanced_finance, sql · 5+y · Senior · any edu |  |  |
+| 8 | 70% | strong | Senior FP&A Analyst | Silverfort | budget_forecasting, excel_advanced_finance, financial_modeling, sales_forecasting | core: sales_forecasting, budget_forecasting, bva_analysis, financial_modeling · 4+y · Mid · bachelors |  |  |
+| 9 | 65% | strong | Financial & Business Analyst | Panaya | bi_tools, budget_forecasting, dashboarding, excel_advanced_finance, financial_modeling | core: financial_modeling, bi_tools, dashboarding, excel_advanced_finance · 3+y · Mid · bachelors |  |  |
+| 10 | 64% | strong | Senior FP&A Analyst | Melio | communication, excel_advanced_finance | core: excel_advanced_finance, communication, interpersonal_skills, organization · 4-5y · Senior · any edu |  |  |
+
+## P11 — Marketing (mid)
+Card: **Mid-Level** · domain `marketing` · targets Social Media Manager / Content Marketing Manager / Content designer · 10 skills (canva_design_tools, copywriting, data_storytelling, figma_mastery, go_to_market_strategy, machine_learning_fundamentals…)
+Candidate set: 120 jobs from 12 roadmap titles; level=mid_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 85% | strong | Product Marketing Manager | KLA | market_research | core: market_research · 5+y · Senior · bachelors |  |  |
+| 2 | 82% | strong | Brand & Marketing Design Team Lead | Connecteam | data_storytelling, presentation_skills | core: data_storytelling, presentation_skills · 5+y · Lead_Manager · any edu |  |  |
+| 3 | 80% | strong | Product Marketing Manager - IL | ScaleOps | go_to_market_strategy, machine_learning_fundamentals | core: go_to_market_strategy · 4-6y · Mid · any edu |  |  |
+| 4 | 74% | strong | Product Marketing Manager | Empathy | go_to_market_strategy, marketing_campaign_design | core: marketing_campaign_design, go_to_market_strategy, cross_functional_collaboration · 4+y · Mid · any edu |  |  |
+| 5 | 72% | strong | Marketing Manager | Teads | copywriting, data_storytelling, go_to_market_strategy, market_research, marketing_campaign_design | core: marketing_campaign_design, b2b_marketing, content_strategy, go_to_market_strategy · 3+y · Mid · any edu |  |  |
+| 6 | 70% | strong | Brand Marketing Manager | Guardio | — | core: — · 2+y · Entry_Mid · any edu |  |  |
+| 7 | 69% | strong | Product Marketing Manager | Appcharge | copywriting, marketing_campaign_design | core: marketing_campaign_design, copywriting, cross_functional_collaboration · 5+y · Senior · any edu |  |  |
+| 8 | 69% | strong | Product Marketing Manager | Sisense | go_to_market_strategy, machine_learning_fundamentals, marketing_campaign_design | core: marketing_campaign_design, go_to_market_strategy, content_strategy · 4-7y · Mid · any edu |  |  |
+| 9 | 65% | strong | Senior Content Marketing Manager | Clover Security | — | core: — · 4-7y · Senior · any edu |  |  |
+| 10 | 62% | strong | Product Marketing Manager | Lema Labs | go_to_market_strategy, marketing_campaign_design | core: marketing_campaign_design, go_to_market_strategy, product_positioning, gtm_strategy · 2-4y · Entry_Mid · any edu |  |  |
+
+## P12 — Marketing (entry)
+Card: **Junior** · domain `marketing` · targets Strategy Consultant / Associate Consultant / Project Manager · 26 skills (ab_testing, bizops_executive_communication, cross_functional_collaboration, customer_communication, data_storytelling, demand_generation…)
+Candidate set: 120 jobs from 11 roadmap titles; level=senior_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 95% | strong | Product Marketing | Cognyte | market_research | core: market_research · 6+y · Senior · any edu |  |  |
+| 2 | 87% | strong | Marketing Manager | KPMG Israel (Somekh Chaikin) | project_management | core: project_management · 3-4y · Mid · bachelors |  |  |
+| 3 | 80% | strong | Content Marketing Director | Global-e | cross_functional_collaboration, data_storytelling, presentation_skills, project_management | core: content_strategy, data_storytelling, presentation_skills, project_management · 7+y · Director_Head · any edu |  |  |
+| 4 | 77% | strong | Marketing Manager | Teads | cross_functional_collaboration, data_storytelling, go_to_market_strategy, market_research, marketing_campaign_design | core: marketing_campaign_design, b2b_marketing, content_strategy, go_to_market_strategy · 3+y · Mid · any edu |  |  |
+| 5 | 74% | strong | VP Marketing | Grain Finance | data_storytelling, demand_generation, go_to_market_strategy, leadership, marketing_campaign_design | core: marketing_campaign_design, go_to_market_strategy, data_storytelling, presentation_skills · any yrs · VP_Executive · any edu |  |  |
+| 6 | 70% | strong | Head of Marketing | Dualbird | — | core: — · 8+y · Senior · any edu |  |  |
+| 7 | 69% | strong | Growth Marketing Lead | Directeam | demand_generation, go_to_market_strategy, marketing_campaign_design | core: demand_generation, marketing_campaign_design, go_to_market_strategy, problem_solving · 5-7y · Senior · bachelors |  |  |
+| 8 | 66% | strong | Field Marketing Manager | Waterfall Security | cross_functional_collaboration, project_management, stakeholder_management | core: event_marketing, project_management, organization, budget_management · 5+y · Senior · any edu |  |  |
+| 9 | 66% | strong | Senior Marketing Analyst | Primis | ab_testing, marketing_campaign_design | core: — · any yrs · Entry_Mid · any edu |  |  |
+| 10 | 65% | strong | Director / Head of Marketing | Regulus | go_to_market_strategy, leadership, marketing_campaign_design | core: marketing_campaign_design, go_to_market_strategy, leadership, vendor_third_party_risk · 7+y · Director_Head · any edu |  |  |
+
+## P13 — Engineering (jr pivot)
+Card: **Junior** · domain `?` · targets Data Analyst / Software Engineer / Tech sales · 20 skills (ab_testing, backend_development, c_cpp, cloud_platforms_devops, excel_advanced_finance, executive_presentation…)
+Candidate set: 120 jobs from 6 roadmap titles; level=early_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 75% | strong | IT Audit Consultant | KPMG Israel (Somekh Chaikin) | excel_advanced_finance | core: — · 1+y · Entry_Mid · any edu |  |  |
+| 2 | 60% | strong | Financial Consultant | Deloitte | excel_advanced_finance, machine_learning_fundamentals | core: financial_reporting, excel_advanced_finance, machine_learning_fundamentals · any yrs · Entry_Mid · bachelors |  |  |
+| 3 | 59% | strong | SAC consultant | Deloitte | excel_advanced_finance, frontend_development, python_data, python_development | core: excel_advanced_finance, analytical_thinking, problem_solving, attention_to_detail · 1-3y · Entry_Mid · bachelors |  |  |
+| 4 | 54% | strong | Junior System Reliability Engineer | Silk | python_data, python_development, scripting_automation, technical_documentation | core: linux_administration, linux_fundamentals, cloud_platforms, helpdesk_support · 1-2y · Entry_Mid · any edu |  |  |
+| 5 | 49% | good | Junior NPI & Product Support Engineer | Audiocodes | technical_documentation | core: root_cause_analysis, networking_fundamentals, technical_documentation, cross_functional_collaboration · 0-5y · Entry_Mid · bachelors |  |  |
+| 6 | 48% | good | SOX Consultant | KPMG Israel (Somekh Chaikin) | — | core: — · any yrs · Lead_Manager · bachelors |  |  |
+| 7 | 79% | strong | Junior QA | Quality AI | jira | core: — · any yrs · Entry_Mid · any edu |  |  |
+| 8 | 60% | strong | QA Engineer | SentryCS | — | core: — · 2+y · Entry_Mid · any edu |  |  |
+| 9 | 45% | good | Junior Software Engineer | Nexar | — | core: — · any yrs · any sen · any edu |  |  |
+| 10 | 68% | stretch | Senior DevOps Consultant | Elsight | mentoring | core: mentoring · 10+y · Senior · any edu |  |  |
+
+## P14 — Engineering (senior)
+Card: **Senior** · domain `software_engineering` · targets Engineering Manager / Staff Engineer / Principal Engineer · 30 skills (api_design, api_integrations, aws_ec2, aws_lambda, aws_rds, aws_sqs…)
+Candidate set: 120 jobs from 11 roadmap titles; level=senior_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 93% | strong | Software Engineer | SolarEdge Technologies | backend_development, python_data, python_development | core: — · 2+y · Mid · bachelors |  |  |
+| 2 | 90% | strong | Software Engineer | Sweet Security | api_design, api_integrations, backend_development, cloud_platforms, cloud_platforms_devops | core: frontend_development, cloud_platforms, databases, api_integrations · 5+y · Senior · any edu |  |  |
+| 3 | 88% | strong | Senior Software Engineer | Sensi.AI | api_design, api_integrations, backend_development, cloud_platforms_devops, python_data | core: backend_development, python_development, python_data, api_design · 5+y · Senior · any edu |  |  |
+| 4 | 83% | strong | Software Engineer | Coralogix | backend_development, cloud_platforms, cloud_platforms_devops, performance_engineering, python_data | core: cloud_platforms_devops, cloud_platforms, performance_engineering, technical_troubleshooting · 4+y · Mid · any edu |  |  |
+| 5 | 82% | strong | DevOps Engineer | Audiocodes | api_design, backend_development, cloud_platforms_devops, databases, observability_engineering | core: cloud_platforms_devops, observability_engineering, grafana, prometheus · 3+y · Mid · bachelors |  |  |
+| 6 | 81% | strong | Software Engineer | Sett | backend_development, machine_learning_fundamentals, programming_fundamentals, python_data, python_development | core: programming_fundamentals, python_development, python_data, backend_development · 8+y · Senior · any edu |  |  |
+| 7 | 81% | strong | Software Engineer | Shopic | backend_development, frontend_development, machine_learning_fundamentals, python_data, python_development | core: python_development, python_data, frontend_development, system_design · 4+y · Mid · any edu |  |  |
+| 8 | 81% | strong | Senior Software Engineer | Unframe | api_design, api_integrations, databases, observability_engineering, sql | core: data_modeling, api_design, api_integrations, observability_engineering · 6+y · Senior · any edu |  |  |
+| 9 | 81% | strong | DevOps Engineer | Natural Intelligence | cloud_platforms, cloud_platforms_devops, python_data, python_development, scripting_automation | core: cloud_platforms, cloud_platforms_devops, analytical_thinking, python_development · 3+y · Mid · any edu |  |  |
+| 10 | 79% | strong | Senior Software Engineer | Dualbird | aws_ec2, backend_development, programming_fundamentals, python_data, python_development | core: hpc_computing, aws_s3, aws_ec2, python_development · 5+y · Senior · bachelors |  |  |
+
+## P15 — Operations (pivot)
+Card: **Junior** · domain `cybersecurity` · targets Product Manager / Full Stack Developer / Frontend Developer · 30 skills (ab_testing, api_design, api_integrations, backend_development, cloud_platforms_devops, cross_functional_collaboration…)
+Candidate set: 120 jobs from 10 roadmap titles; level=senior_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 62% | strong | Systems Analyst | Flex | — | core: — · 2+y · Entry_Mid · bachelors |  |  |
+| 2 | 83% | strong | Ad Operations - CTV | Bulls Media | technical_troubleshooting | core: technical_troubleshooting · 2-4y · Mid · any edu |  |  |
+| 3 | 72% | strong | AI Operations Assistant | DriveNets | excel_advanced_finance, python_data, python_development, sql | core: excel_advanced_finance, python_development, python_data, sql · any yrs · any sen · bachelors |  |  |
+| 4 | 57% | strong | Product Operations | CommIT | cross_functional_collaboration, product_discovery, product_strategy, stakeholder_management | core: product_operations, product_strategy, product_discovery, business_analysis · 3+y · Mid · any edu |  |  |
+| 5 | 55% | strong | Technical Project Manager | Jeen.ai | cross_functional_collaboration, project_management, stakeholder_management | core: project_management, customer_relationship_management, requirements_gathering, cross_functional_collaboration · 2+y · Mid · bachelors |  |  |
+| 6 | 55% | strong | AI Operations Engineer | droxi | api_design, api_integrations, frontend_development, python_data, python_development | core: python_development, python_data, frontend_development, api_design · any yrs · any sen · bachelors |  |  |
+| 7 | 54% | strong | Systems Analyst | ForSight Robotics | data_analysis, excel_advanced_finance, python_data, python_development, sql | core: data_analysis, excel_advanced_finance, dashboarding, bi_tools · 2+y · Entry_Mid · bachelors |  |  |
+| 8 | 53% | strong | Technical Project Manager | Notch | api_design, api_integrations, stakeholder_management | core: implementation_management, api_design, api_integrations, system_architecture · 3+y · Mid · any edu |  |  |
+| 9 | 52% | strong | Product Operations | Ox Security | cross_functional_collaboration, user_behavior_analysis | core: product_operations, workflow_automation, bizops_process_automation, cross_functional_collaboration · 4+y · Mid · any edu |  |  |
+| 10 | 47% | good | Technical Project Manager | AllCloud | project_management | core: program_management, project_management, budget_management, resource_allocation · 5+y · Senior · any edu |  |  |
+
+## ELI — Eli (own account)
+Card: **Junior** · domain `product_management` · targets Product Manager · 66 skills (agentic_systems, ai_product_management, ai_product_thinking, ai_tool_fluency, analytical_thinking, api_design…)
+Candidate set: 120 jobs from 12 roadmap titles; level=early_career.
+
+| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |
+|---|---|---|---|---|---|---|---|---|
+| 1 | 87% | strong | Product Manager | Helfy | analytical_thinking, cross_functional_collaboration, customer_communication, presentation_skills, problem_solving | core: product_strategy, product_discovery, analytical_thinking, problem_solving · 2+y · Entry_Mid · any edu |  |  |
+| 2 | 69% | strong | Product Manager | AU10TIX | analytical_thinking, product_strategy | core: product_strategy, product_discovery, analytical_thinking, market_research · 2-3y · Entry_Mid · any edu |  |  |
+| 3 | 57% | good | Pentest Product Associate | Wiz | api_design, api_integrations, backend_development, python_data, python_development | core: penetration_testing, networking_fundamentals, cloud_platforms_devops, cloud_platforms · 2+y · Entry_Mid · any edu |  |  |
+| 4 | 52% | good | Technical Associate Product Manager | Wiz | communication, python_data, python_development, scripting_automation | core: linux_administration, linux_fundamentals, windows_admin, python_development · any yrs · Entry_Mid · any edu |  |  |
+| 5 | 87% | strong | Sales Development Representative | CommBox | communication, crm_management, linkedin_outreach, outbound_prospecting | core: outbound_prospecting, communication, linkedin_outreach, crm_management · 2-3y · Entry_Mid · any edu |  |  |
+| 6 | 87% | strong | Customer Experience Specialist | Guidde | communication | core: communication · 2+y · Entry_Mid · any edu |  |  |
+| 7 | 87% | strong | Marketing Manager | Ori | communication, customer_support_operations | core: customer_support_operations, communication · 2+y · Entry_Mid · any edu |  |  |
+| 8 | 87% | strong | Marketing Analyst | Sunflower | analytical_thinking, cross_functional_collaboration, customer_communication, presentation_skills, python_data | core: sql, customer_communication, presentation_skills, cross_functional_collaboration · 2+y · Entry_Mid · any edu |  |  |
+| 9 | 87% | strong | Influencer Marketing Manager | ZyG | scripting_automation, workflow_automation | core: workflow_automation, scripting_automation · 2+y · Entry_Mid · any edu |  |  |
+| 10 | 87% | strong | Customer Success Manager | Classiq | customer_health_management, customer_relationship_management, emotional_intelligence, stakeholder_management | core: customer_health_management, customer_relationship_management, emotional_intelligence, stakeholder_management · 2+y · Entry_Mid · bachelors |  |  |

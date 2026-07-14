@@ -1,0 +1,1254 @@
+{
+ "generated": "2026-07-15",
+ "method": "UnifiedJobsFeed reproduction (real RPC + scoreJobFit + gate/sort/section)",
+ "profiles": [
+  {
+   "profile_id": "P01",
+   "seg": "Data (jr→mid)",
+   "user_id": "da2e36ea-a066-416a-85db-ca554a5e5f91",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "7ccda8ca-c719-4955-9ad7-f9bed23abe18",
+     "score": 90,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "48db88ea-0b21-49da-9878-b5e66b1195bc",
+     "score": 84,
+     "band": "strong",
+     "track": "track_3"
+    },
+    {
+     "rank": 3,
+     "job_id": "326c5cf7-4e62-42fb-9e1c-c1532a95d767",
+     "score": 80,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 4,
+     "job_id": "b05bf844-5f29-4abc-b940-7b21796ba369",
+     "score": 79,
+     "band": "strong",
+     "track": "track_3"
+    },
+    {
+     "rank": 5,
+     "job_id": "98c8b1ed-edff-4260-8f51-f62f51d477cd",
+     "score": 78,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 6,
+     "job_id": "61a47a87-5877-4bc3-9cb0-a49d758bd6c4",
+     "score": 78,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 7,
+     "job_id": "01dc85e8-a800-47c0-95ba-a8e42d74e355",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 8,
+     "job_id": "c9f3b8a1-2716-43bf-b64f-b99e5aac4374",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "2a57c8c9-bcf6-40e5-856c-7b1bea769896",
+     "score": 65,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 10,
+     "job_id": "1e82190e-c2a6-4f24-9fda-df00e658d435",
+     "score": 61,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  },
+  {
+   "profile_id": "P02",
+   "seg": "Data (senior)",
+   "user_id": "4ab9973c-862a-477d-970a-1de06e7dfbad",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "bbdb6db7-efb8-47d2-b9e0-655e427c69c4",
+     "score": 95,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "ed40bd79-5814-4e5c-9601-9a0485ccd497",
+     "score": 95,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 3,
+     "job_id": "fd485583-027c-4809-adf8-0ce7376c1d41",
+     "score": 95,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 4,
+     "job_id": "9de3eb87-2887-4916-9020-cfacab710a10",
+     "score": 93,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 5,
+     "job_id": "b34ab40a-91ec-425f-acdf-4c9a2935acb3",
+     "score": 92,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 6,
+     "job_id": "52d85c57-1fce-4f6c-88c7-50b70ab322f2",
+     "score": 91,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 7,
+     "job_id": "b3061bb0-5906-4a56-b023-f72f51213302",
+     "score": 91,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 8,
+     "job_id": "1f439e53-42b0-40f0-85bf-07fd3df0fcff",
+     "score": 89,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "22cb0a0a-e183-41df-9a90-121c8494f281",
+     "score": 88,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 10,
+     "job_id": "350db06f-c123-4a2e-a88a-3bae0116ece4",
+     "score": 87,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  },
+  {
+   "profile_id": "P03",
+   "seg": "HR/Talent (mid)",
+   "user_id": "de7b9a5f-f0c9-4f89-9c81-910d28d4ff30",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "aa98df9b-90cf-434c-b0a2-b5dfa17940c5",
+     "score": 95,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "b7369de3-99bc-456f-a134-6480a1bd0d17",
+     "score": 78,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 3,
+     "job_id": "3f9b7f41-e748-4550-83e8-9e0bc07ccdbe",
+     "score": 77,
+     "band": "strong",
+     "track": "track_3"
+    },
+    {
+     "rank": 4,
+     "job_id": "01dc85e8-a800-47c0-95ba-a8e42d74e355",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 5,
+     "job_id": "6865cb11-214d-4434-9e73-71e7389523c5",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 6,
+     "job_id": "7ccda8ca-c719-4955-9ad7-f9bed23abe18",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 7,
+     "job_id": "c9f3b8a1-2716-43bf-b64f-b99e5aac4374",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 8,
+     "job_id": "c3eeda23-ddab-4bb5-bf09-41bafb7669ca",
+     "score": 65,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "e18600b1-79df-47c0-a95e-4997a9f04142",
+     "score": 64,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 10,
+     "job_id": "326c5cf7-4e62-42fb-9e1c-c1532a95d767",
+     "score": 63,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  },
+  {
+   "profile_id": "P04",
+   "seg": "HR (senior)",
+   "user_id": "47681980-7b08-4d22-81e0-11a7a74a5a8c",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "b8e7360b-0a19-4c4c-8c34-8bfe74fde504",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "421bd2f4-aa98-48a1-ace8-b9b9fdc0a26c",
+     "score": 61,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 3,
+     "job_id": "02d721c1-a638-481d-a099-825d2d06ab27",
+     "score": 56,
+     "band": "good",
+     "track": "track_1"
+    },
+    {
+     "rank": 4,
+     "job_id": "709d9ab8-961c-4c79-b17b-8eb046d916fb",
+     "score": 54,
+     "band": "good",
+     "track": "track_2"
+    },
+    {
+     "rank": 5,
+     "job_id": "ea6b83f9-fd38-419a-9845-da12a08e3fa4",
+     "score": 53,
+     "band": "good",
+     "track": "track_2"
+    },
+    {
+     "rank": 6,
+     "job_id": "f292ebcc-75dc-4cff-bb23-260abb7a728f",
+     "score": 50,
+     "band": "good",
+     "track": "track_2"
+    },
+    {
+     "rank": 7,
+     "job_id": "c7611220-2e5e-4ac3-bb85-a27da0453195",
+     "score": 49,
+     "band": "good",
+     "track": "track_2"
+    },
+    {
+     "rank": 8,
+     "job_id": "162fadae-d22c-4647-acf1-b629090fd393",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "c8109187-fea8-4c9d-be4a-1dc098e8d1f0",
+     "score": 64,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 10,
+     "job_id": "d5714b79-c099-43c7-9f07-6ab980ae03b1",
+     "score": 62,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  },
+  {
+   "profile_id": "P05",
+   "seg": "Sales/CS (entry)",
+   "user_id": "9518637e-2cc5-47ee-b7b8-a2e956554860",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "3da0bbb5-f944-489f-8616-95619d0b7588",
+     "score": 70,
+     "band": "strong",
+     "track": "track_3"
+    },
+    {
+     "rank": 2,
+     "job_id": "42d56d4e-fa9e-49e6-a0be-6c207e61dc5b",
+     "score": 64,
+     "band": "strong",
+     "track": "track_3"
+    },
+    {
+     "rank": 3,
+     "job_id": "7da99187-caff-496b-8ad3-29acd99ca81e",
+     "score": 51,
+     "band": "good",
+     "track": "track_2"
+    },
+    {
+     "rank": 4,
+     "job_id": "c21dc4ce-c4d5-47ba-b826-9096e8cd007c",
+     "score": 87,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 5,
+     "job_id": "f918f39d-954b-4e3b-9620-341084983ba8",
+     "score": 85,
+     "band": "strong",
+     "track": "track_2"
+    },
+    {
+     "rank": 6,
+     "job_id": "7e2d3e38-db1d-4de2-9fcf-bcba671bd806",
+     "score": 77,
+     "band": "strong",
+     "track": "track_2"
+    },
+    {
+     "rank": 7,
+     "job_id": "4ee256ac-7c06-4630-b621-b3724c03712c",
+     "score": 76,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 8,
+     "job_id": "550cf837-986a-4a08-bedc-a71473b72b89",
+     "score": 74,
+     "band": "strong",
+     "track": "track_2"
+    },
+    {
+     "rank": 9,
+     "job_id": "c5d52dc8-c635-49ac-afba-818ace1123dd",
+     "score": 72,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 10,
+     "job_id": "48ccc972-2d2f-468c-a72f-40ae517c76dc",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  },
+  {
+   "profile_id": "P06",
+   "seg": "BD/Partnerships (jr)",
+   "user_id": "24f64abc-ad93-463a-8822-73d37813a5a4",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "def599ef-de37-4c80-9904-6c4e8cf925c6",
+     "score": 80,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "2a9a4d8f-54e0-486f-8c10-7b7383cc3ade",
+     "score": 66,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 3,
+     "job_id": "6eec8843-6daf-40bf-90e6-5776296b3d5b",
+     "score": 55,
+     "band": "good",
+     "track": "track_2"
+    },
+    {
+     "rank": 4,
+     "job_id": "a982719e-4b5a-4842-9d54-a625765fb7a0",
+     "score": 51,
+     "band": "good",
+     "track": "track_2"
+    },
+    {
+     "rank": 5,
+     "job_id": "276ff554-6b7b-4ec9-b5e0-49a2e3116753",
+     "score": 49,
+     "band": "good",
+     "track": "track_2"
+    },
+    {
+     "rank": 6,
+     "job_id": "4895a230-98d4-472c-a470-13d9443a5dde",
+     "score": 75,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 7,
+     "job_id": "b23ddbb6-0839-4eaf-830b-2152bbcd6314",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 8,
+     "job_id": "7727591b-9508-4c59-85ff-067ca5542911",
+     "score": 62,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "e63165a0-1208-413e-99da-3d55fca80a34",
+     "score": 62,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 10,
+     "job_id": "a474ff87-a2c8-4771-9823-1e71c701c8f2",
+     "score": 62,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  },
+  {
+   "profile_id": "P07",
+   "seg": "Customer Success (jr)",
+   "user_id": "85cd78b7-dde1-404b-9098-66bccf9c1a87",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "da4acaa4-2ae1-4c04-b7eb-2d1ed0d88446",
+     "score": 95,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "162fadae-d22c-4647-acf1-b629090fd393",
+     "score": 82,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 3,
+     "job_id": "ab39aad2-a741-49e7-aeb3-7352125534e2",
+     "score": 80,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 4,
+     "job_id": "def599ef-de37-4c80-9904-6c4e8cf925c6",
+     "score": 80,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 5,
+     "job_id": "2a9a4d8f-54e0-486f-8c10-7b7383cc3ade",
+     "score": 81,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 6,
+     "job_id": "7c27e08a-c2a4-47fb-a859-5b489b9f503e",
+     "score": 75,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 7,
+     "job_id": "17f12e78-dd55-4421-a78c-8f72135dad0a",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 8,
+     "job_id": "1ac81ca1-cbfd-4235-96e2-166650411e11",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "847d2da6-8ac2-42db-89c8-259e8c3616a2",
+     "score": 68,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 10,
+     "job_id": "635475ed-c7f8-450d-89b3-5248e3006802",
+     "score": 68,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  },
+  {
+   "profile_id": "P08",
+   "seg": "Product (mid)",
+   "user_id": "1c2e0229-4a7d-488a-98f3-7c232e3d6b63",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "e2d18591-55b8-496f-bc4a-20f32f7fea9a",
+     "score": 95,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "4ee256ac-7c06-4630-b621-b3724c03712c",
+     "score": 89,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 3,
+     "job_id": "59e1d333-83c4-4ce0-aeca-41c7e50ba2df",
+     "score": 88,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 4,
+     "job_id": "f918f39d-954b-4e3b-9620-341084983ba8",
+     "score": 87,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 5,
+     "job_id": "2b1f5603-909f-4ba1-8ae0-916bbde40370",
+     "score": 83,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 6,
+     "job_id": "7f16b8c7-ed79-4d38-af28-d5c1d36d40b9",
+     "score": 82,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 7,
+     "job_id": "550cf837-986a-4a08-bedc-a71473b72b89",
+     "score": 82,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 8,
+     "job_id": "b6d1ed7c-cd92-44bd-bbca-84e19d42af5f",
+     "score": 79,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "99a979bf-c74e-43b1-89b4-a52e53ab4f53",
+     "score": 78,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 10,
+     "job_id": "2ca32a3a-37b9-4a62-9e8e-2c97bdee778f",
+     "score": 78,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  },
+  {
+   "profile_id": "P09",
+   "seg": "Product (senior)",
+   "user_id": "b90e86c3-73c4-46e8-b342-0dbdebbb8478",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "c73fe713-5ba9-4ef7-af4a-16852fed6928",
+     "score": 95,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "2b1f5603-909f-4ba1-8ae0-916bbde40370",
+     "score": 95,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 3,
+     "job_id": "550cf837-986a-4a08-bedc-a71473b72b89",
+     "score": 95,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 4,
+     "job_id": "7f114ccd-a2ed-48e5-85ae-c08ff77743fd",
+     "score": 93,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 5,
+     "job_id": "8ab419a4-1b95-413a-91bc-90b13435da66",
+     "score": 90,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 6,
+     "job_id": "272eb7a7-c0c5-4aa7-8683-8b4aec7472a9",
+     "score": 90,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 7,
+     "job_id": "9a97e511-7395-4f4b-8259-0d680a1279ca",
+     "score": 90,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 8,
+     "job_id": "3990a43e-01bd-454c-bc37-ef6ec14667d0",
+     "score": 89,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "09340383-f36d-47d4-8fcd-30e93f05f416",
+     "score": 89,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 10,
+     "job_id": "59e1d333-83c4-4ce0-aeca-41c7e50ba2df",
+     "score": 88,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  },
+  {
+   "profile_id": "P10",
+   "seg": "Finance (mid)",
+   "user_id": "c9f9ea10-bdd4-4f43-876f-efb438acffa4",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "e08ab369-51ae-4eda-8bb5-08bc40d7434c",
+     "score": 95,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "8c143bbd-cc2f-4909-9a2a-b67e3acf749d",
+     "score": 85,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 3,
+     "job_id": "3803b1ea-c689-42df-b227-ca25ae8ccc5a",
+     "score": 76,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 4,
+     "job_id": "f292ebcc-75dc-4cff-bb23-260abb7a728f",
+     "score": 72,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 5,
+     "job_id": "d3e4c5bc-a176-4090-899c-8238a50da0a9",
+     "score": 72,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 6,
+     "job_id": "26fc5731-b0b4-4890-8d7e-bf1096f3cf83",
+     "score": 71,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 7,
+     "job_id": "b8e7360b-0a19-4c4c-8c34-8bfe74fde504",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 8,
+     "job_id": "02d721c1-a638-481d-a099-825d2d06ab27",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "b9af083a-50c8-49ba-84c9-0a923c877982",
+     "score": 65,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 10,
+     "job_id": "81ac0305-0910-41a4-8676-83b616803310",
+     "score": 64,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  },
+  {
+   "profile_id": "P11",
+   "seg": "Marketing (mid)",
+   "user_id": "2f746d87-fbd2-4ea5-8a61-74348703d384",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "b3846397-8ebd-4085-be5d-ff1099a68301",
+     "score": 85,
+     "band": "strong",
+     "track": "track_3"
+    },
+    {
+     "rank": 2,
+     "job_id": "02c8e22a-e981-44a7-9fd4-fbedb02ce049",
+     "score": 82,
+     "band": "strong",
+     "track": "track_2"
+    },
+    {
+     "rank": 3,
+     "job_id": "1355f809-a8d5-4392-beb6-1ef84d164fc3",
+     "score": 80,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 4,
+     "job_id": "75ad6858-31bc-4682-a69f-93b6ffa697c8",
+     "score": 74,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 5,
+     "job_id": "ce18b6a1-2b71-4be7-8cc5-b8fdb69e5259",
+     "score": 72,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 6,
+     "job_id": "f10c4dd1-600d-4dae-ba2a-7f9aa9031bec",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 7,
+     "job_id": "11e75f7b-fc07-4650-b64e-3764fc40fd35",
+     "score": 69,
+     "band": "strong",
+     "track": "track_3"
+    },
+    {
+     "rank": 8,
+     "job_id": "232bc9bc-196a-4f72-a01e-07ed75baa59d",
+     "score": 69,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "3f9726c1-44cc-43e4-9492-e8d6b1516de2",
+     "score": 65,
+     "band": "strong",
+     "track": "track_3"
+    },
+    {
+     "rank": 10,
+     "job_id": "200adfc3-f44e-4b6d-8076-16369e0968b3",
+     "score": 62,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  },
+  {
+   "profile_id": "P12",
+   "seg": "Marketing (entry)",
+   "user_id": "3ece3598-53f0-4826-b11e-856978530967",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "8462034c-7202-407a-9baf-8736538e58c1",
+     "score": 95,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "c21dc4ce-c4d5-47ba-b826-9096e8cd007c",
+     "score": 87,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 3,
+     "job_id": "84f44b8e-8847-4110-abae-31c2a921082a",
+     "score": 80,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 4,
+     "job_id": "ce18b6a1-2b71-4be7-8cc5-b8fdb69e5259",
+     "score": 77,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 5,
+     "job_id": "5fd36377-2c6a-43b1-b800-3c2290062bec",
+     "score": 74,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 6,
+     "job_id": "dcd9304f-7820-4949-9de3-894ef0d0b1b1",
+     "score": 70,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 7,
+     "job_id": "ddf1176a-0634-48ce-a79c-410d00709a54",
+     "score": 69,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 8,
+     "job_id": "e33955f1-135b-4f42-a7ef-3de6a281a6d7",
+     "score": 66,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "ac8a16c1-967b-4d63-a611-a5866ec754c2",
+     "score": 66,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 10,
+     "job_id": "4b3501fa-6a53-4199-8d45-7b75e3d8b369",
+     "score": 65,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  },
+  {
+   "profile_id": "P13",
+   "seg": "Engineering (jr pivot)",
+   "user_id": "7d6a7d2a-b2c5-41ff-a4fe-7025e875706f",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "daeb73bd-9b00-465e-90fd-a94d59531c59",
+     "score": 75,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "29eb332f-b435-41f1-9b0b-4c9a92ad257a",
+     "score": 60,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 3,
+     "job_id": "9b2899b5-7571-476d-b0db-e98d1e9bd10b",
+     "score": 59,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 4,
+     "job_id": "41935e65-dc87-4588-ac05-bc7533287470",
+     "score": 54,
+     "band": "strong",
+     "track": "track_2"
+    },
+    {
+     "rank": 5,
+     "job_id": "58fbaa19-731f-4a2d-bb9a-027ac5d1ed72",
+     "score": 49,
+     "band": "good",
+     "track": "track_2"
+    },
+    {
+     "rank": 6,
+     "job_id": "5482a3bc-71ca-40cf-9e63-221251de7e04",
+     "score": 48,
+     "band": "good",
+     "track": "track_2"
+    },
+    {
+     "rank": 7,
+     "job_id": "4adbef8b-b016-4ed2-bf0b-f06bfab41082",
+     "score": 79,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 8,
+     "job_id": "0b96263c-a772-4f0e-b9d8-fb61db7a5dbe",
+     "score": 60,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "9204fa69-1cbe-401e-99ef-d519215aa9da",
+     "score": 45,
+     "band": "good",
+     "track": "track_2"
+    },
+    {
+     "rank": 10,
+     "job_id": "b05bf844-5f29-4abc-b940-7b21796ba369",
+     "score": 68,
+     "band": "stretch",
+     "track": "track_3"
+    }
+   ]
+  },
+  {
+   "profile_id": "P14",
+   "seg": "Engineering (senior)",
+   "user_id": "6a347a9f-f7bd-41bc-b784-833db5ca6c65",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "c8b89e39-6204-4f65-a6d4-2812ed760a4c",
+     "score": 93,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "82619057-947e-4fa9-91da-ad050413f6e0",
+     "score": 90,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 3,
+     "job_id": "24498a90-c78c-48bd-9240-b406a75aaf1d",
+     "score": 88,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 4,
+     "job_id": "25f02177-0ddb-4c49-b793-1824e78750dc",
+     "score": 83,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 5,
+     "job_id": "1675f68e-40be-43fb-afc8-a921b3d457e4",
+     "score": 82,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 6,
+     "job_id": "35202025-723c-45a5-bce9-4d60e657c7b0",
+     "score": 81,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 7,
+     "job_id": "2bb02e20-5289-4ded-8f0e-d51f026f0e29",
+     "score": 81,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 8,
+     "job_id": "d9a9272f-fde9-4d0f-a46e-6a24a636138c",
+     "score": 81,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "943d783d-95b9-4f81-9a64-06bc8148becc",
+     "score": 81,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 10,
+     "job_id": "91462d84-c6db-4c93-bc81-139b85aa1fcc",
+     "score": 79,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  },
+  {
+   "profile_id": "P15",
+   "seg": "Operations (pivot)",
+   "user_id": "cb6c2a44-3768-4a11-9d0a-9a608e9e1f37",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "43445c9b-f91f-4c28-a6c6-5768682202b3",
+     "score": 62,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "2b8473dc-abfe-4f55-9a1b-09fcc9a0664e",
+     "score": 83,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 3,
+     "job_id": "98c8b1ed-edff-4260-8f51-f62f51d477cd",
+     "score": 72,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 4,
+     "job_id": "9e4b3d1c-c481-48aa-8daa-0d3d88a14796",
+     "score": 57,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 5,
+     "job_id": "779f87d3-ca90-41c4-9f15-b3d1cfd3bdff",
+     "score": 55,
+     "band": "strong",
+     "track": "track_2"
+    },
+    {
+     "rank": 6,
+     "job_id": "e42aa9fa-90e3-441e-9817-d9dc09c2cb20",
+     "score": 55,
+     "band": "strong",
+     "track": "track_2"
+    },
+    {
+     "rank": 7,
+     "job_id": "00ac3c24-723d-4e63-b230-e584541ad9c1",
+     "score": 54,
+     "band": "strong",
+     "track": "track_2"
+    },
+    {
+     "rank": 8,
+     "job_id": "6da5beee-f632-463f-a450-b569ccd81f35",
+     "score": 53,
+     "band": "strong",
+     "track": "track_2"
+    },
+    {
+     "rank": 9,
+     "job_id": "e571ae7b-6a42-4139-b118-740cc7ebd5ce",
+     "score": 52,
+     "band": "strong",
+     "track": "track_2"
+    },
+    {
+     "rank": 10,
+     "job_id": "304600ce-db2c-4089-bd57-09c227566b9c",
+     "score": 47,
+     "band": "good",
+     "track": "track_2"
+    }
+   ]
+  },
+  {
+   "profile_id": "ELI",
+   "seg": "Eli (own account)",
+   "user_id": "4b243f3a-5035-474e-a89d-aff13fe06cc2",
+   "candidate_count": 120,
+   "tuples": [
+    {
+     "rank": 1,
+     "job_id": "775cd614-63e1-4cde-aed6-c562944d5a6d",
+     "score": 87,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 2,
+     "job_id": "48ccc972-2d2f-468c-a72f-40ae517c76dc",
+     "score": 69,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 3,
+     "job_id": "fa99e167-a187-475b-8570-dda4193c6022",
+     "score": 57,
+     "band": "good",
+     "track": "track_1"
+    },
+    {
+     "rank": 4,
+     "job_id": "b5ff1358-c1e5-4e4c-808e-b3103f880c9e",
+     "score": 52,
+     "band": "good",
+     "track": "track_2"
+    },
+    {
+     "rank": 5,
+     "job_id": "ad892829-5483-4569-bc8c-0fb9f9f681fc",
+     "score": 87,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 6,
+     "job_id": "a9279fd7-1bfe-423b-84fe-d3715ef2e42f",
+     "score": 87,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 7,
+     "job_id": "99bb3056-d1e4-4731-a7b3-9c76cd3473ad",
+     "score": 87,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 8,
+     "job_id": "3d97b324-fe42-4488-9eb7-9521c0e23d92",
+     "score": 87,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 9,
+     "job_id": "a9f2e367-63f7-4d23-89e0-df54581fb6f6",
+     "score": 87,
+     "band": "strong",
+     "track": "track_1"
+    },
+    {
+     "rank": 10,
+     "job_id": "fbb4534b-b47b-4370-846d-e34ec309a819",
+     "score": 87,
+     "band": "strong",
+     "track": "track_1"
+    }
+   ]
+  }
+ ]
+}
