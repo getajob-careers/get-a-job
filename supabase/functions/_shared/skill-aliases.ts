@@ -23,6 +23,20 @@
 // EXTEND HERE not in the edge function. Future expansion goes in this file.
 
 export const SKILL_ALIASES: Record<string, string[]> = {
+  // ── 7-role expansion: HW cluster (2026-07-14) ────────────────────────────
+  // "firmware" / "signal processing" auto-resolve via the snake-ID step; these
+  // are the variants + the circuit_design→board_design borderline alias (Eli:
+  // same hiring competency, software_architecture pattern).
+  "firmware development": ["firmware"],
+  "embedded firmware": ["firmware"],
+  "bare-metal": ["firmware"],
+  "bare metal programming": ["firmware"],
+  "rtos": ["firmware"],
+  "dsp": ["signal_processing"],
+  "digital signal processing": ["signal_processing"],
+  "circuit design": ["board_design"],
+  "analog design": ["board_design"],
+  "schematic design": ["board_design"],
   // ── Library-expansion batch 1 (2026-07-13) ───────────────────────────────
   // Variants of the batch-1 additions that DON'T auto-resolve via the snake-ID
   // step (exact-snake phrases like "data science"/"os internals"/"teamwork"
