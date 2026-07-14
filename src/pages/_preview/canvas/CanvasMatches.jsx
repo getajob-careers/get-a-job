@@ -5,7 +5,7 @@ import React, { useMemo, useState } from "react";
 import { Check, Plus, Wand2 } from "lucide-react";
 import { CANVAS_MATCHES } from "../fixtures/canvasHome";
 import CanvasJobModal from "./CanvasJobModal";
-import CanvasScoredCard from "./CanvasScoredCard";
+import CanvasJobCard from "./CanvasJobCard";
 import { reveal, revealWith } from "./stagger";
 
 // Fixture-fed match surfaces for the design canvas: the CV-tab right column
@@ -60,9 +60,10 @@ export function CanvasTopMatches() {
           const tracked = trackedIds.has(job.id);
           return (
             <div key={job.id} {...revealWith(idx, "flex flex-col gap-1.5")}>
-              <CanvasScoredCard
+              <CanvasJobCard
                 job={job}
                 scoreResult={scoreResult}
+                index={idx}
                 onOpen={(j, s) => setOpenJob({ job: j, scoreResult: s })}
               />
               <div className="flex gap-1.5">
@@ -179,9 +180,10 @@ export function CanvasJobsFeed() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {all.map((job, idx) => (
           <div key={job.id} {...reveal(idx)}>
-            <CanvasScoredCard
+            <CanvasJobCard
               job={job}
               scoreResult={scoredById[job.id]}
+              index={idx}
               onOpen={(j, s) => setOpenJob({ job: j, scoreResult: s })}
             />
           </div>
