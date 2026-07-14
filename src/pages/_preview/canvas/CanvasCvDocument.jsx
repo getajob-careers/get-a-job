@@ -1,0 +1,139 @@
+import React from "react";
+import { Mail, Phone, MapPin, Linkedin } from "lucide-react";
+import {
+  CANVAS_PROFILE,
+  CANVAS_EXPERIENCES,
+  CANVAS_EDUCATION,
+  CANVAS_SKILLS,
+} from "../fixtures/canvasHome";
+
+// Read-only fixture "master CV" for the design canvas — a dense, realistic
+// document to design the CV-tab layout against. Stands in for the live
+// CVStudioLive editor (950 lines, DB-backed, write-heavy), which fixture mode
+// can't render without prod writes. Purely presentational, --rd-* tokens.
+
+function SectionLabel({ children }) {
+  return (
+    <p className="text-[10px] uppercase tracking-[0.11em] font-mono text-rd-text-eyebrow mb-2">
+      {children}
+    </p>
+  );
+}
+
+export default function CanvasCvDocument() {
+  const p = CANVAS_PROFILE;
+  return (
+    <div className="px-6 py-6 md:px-8 md:py-7 max-w-[720px] mx-auto">
+      {/* Header */}
+      <header className="pb-4 border-b border-rd-border">
+        <h1 className="font-display font-extrabold text-[26px] text-rd-text leading-tight">
+          {p.full_name}
+        </h1>
+        <p className="text-[13.5px] text-rd-coral font-display font-semibold mt-0.5">
+          {p.headline}
+        </p>
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5 text-[11.5px] text-rd-text-secondary">
+          <span className="inline-flex items-center gap-1">
+            <MapPin className="w-3 h-3" />
+            {p.location}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Mail className="w-3 h-3" />
+            {p.email}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Phone className="w-3 h-3" />
+            {p.phone}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <Linkedin className="w-3 h-3" />
+            {p.linkedin}
+          </span>
+        </div>
+      </header>
+
+      {/* Summary */}
+      <section className="py-4 border-b border-rd-border">
+        <SectionLabel>Summary</SectionLabel>
+        <p className="text-[13px] text-rd-text-secondary leading-[1.6]">
+          {p.summary}
+        </p>
+      </section>
+
+      {/* Experience */}
+      <section className="py-4 border-b border-rd-border">
+        <SectionLabel>Experience</SectionLabel>
+        <div className="space-y-4">
+          {CANVAS_EXPERIENCES.map((exp) => (
+            <div key={exp.id}>
+              <div className="flex items-baseline justify-between gap-3">
+                <h3 className="font-display font-bold text-[14px] text-rd-text">
+                  {exp.title}
+                </h3>
+                <span className="flex-shrink-0 text-[11px] font-mono text-rd-text-tertiary">
+                  {exp.start} – {exp.end}
+                </span>
+              </div>
+              <p className="text-[12px] text-rd-text-secondary">
+                {exp.company} · {exp.location}
+              </p>
+              <ul className="mt-1.5 space-y-1">
+                {exp.bullets.map((b, i) => (
+                  <li
+                    key={i}
+                    className="flex gap-2 text-[12.5px] text-rd-text-secondary leading-[1.5]"
+                  >
+                    <span className="text-rd-coral mt-[3px] flex-shrink-0">
+                      ▪
+                    </span>
+                    <span>{b}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Education */}
+      <section className="py-4 border-b border-rd-border">
+        <SectionLabel>Education</SectionLabel>
+        <div className="space-y-3">
+          {CANVAS_EDUCATION.map((ed) => (
+            <div key={ed.id}>
+              <div className="flex items-baseline justify-between gap-3">
+                <h3 className="font-display font-bold text-[13.5px] text-rd-text">
+                  {ed.school}
+                </h3>
+                <span className="flex-shrink-0 text-[11px] font-mono text-rd-text-tertiary">
+                  {ed.start} – {ed.end}
+                </span>
+              </div>
+              <p className="text-[12.5px] text-rd-text-secondary">
+                {ed.degree}
+              </p>
+              <p className="text-[11.5px] text-rd-text-tertiary mt-0.5 leading-[1.5]">
+                {ed.detail}
+              </p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Skills */}
+      <section className="pt-4">
+        <SectionLabel>Skills</SectionLabel>
+        <div className="flex flex-wrap gap-1.5">
+          {CANVAS_SKILLS.map((s) => (
+            <span
+              key={s}
+              className="text-[11.5px] rounded-full px-2.5 py-0.5 bg-rd-bg-soft text-rd-text-secondary border border-rd-border"
+            >
+              {s}
+            </span>
+          ))}
+        </div>
+      </section>
+    </div>
+  );
+}

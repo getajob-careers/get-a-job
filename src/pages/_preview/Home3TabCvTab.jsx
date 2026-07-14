@@ -54,6 +54,10 @@ import {
   JOBS_SELECT_LIGHT,
   stretchAwareSeniorityFor,
 } from "@/lib/jobsFeed";
+import { CANVAS_FIXTURES } from "./canvas/canvasConfig";
+import CanvasCoachDock from "./canvas/CanvasCoachDock";
+import CanvasCvDocument from "./canvas/CanvasCvDocument";
+import { CanvasTopMatches } from "./canvas/CanvasMatches";
 
 const TOP_MATCHES_FETCH_SIZE = 30;
 const TOP_MATCHES_SHOWN = 6;
@@ -104,18 +108,18 @@ export default function Home3TabCvTab({ onSwitchTab }) {
       <div className="w-full md:w-[220px] flex-shrink-0 flex flex-col gap-4 md:h-full min-h-0">
         <IconGrid tiles={ICON_TILES(onSwitchTab)} />
         <div className="flex-1 min-h-[280px] md:min-h-0 bg-rd-bg-sidebar rounded-[16px] flex flex-col">
-          <CoachDock />
+          {CANVAS_FIXTURES ? <CanvasCoachDock /> : <CoachDock />}
         </div>
       </div>
 
-      {/* Center - the real CV studio, mounted as-is */}
+      {/* Center - CV studio (live) or fixture master-CV document (canvas) */}
       <div className="w-full md:flex-1 min-w-0 md:h-full md:overflow-y-auto bg-rd-bg-card border border-rd-border-subtle rounded-[16px]">
-        <CVStudioLive />
+        {CANVAS_FIXTURES ? <CanvasCvDocument /> : <CVStudioLive />}
       </div>
 
       {/* Right - compact top-matches list */}
       <div className="w-full md:w-[320px] flex-shrink-0 md:h-full md:overflow-y-auto">
-        <TopMatchesPanel />
+        {CANVAS_FIXTURES ? <CanvasTopMatches /> : <TopMatchesPanel />}
       </div>
     </div>
   );
