@@ -41,3 +41,17 @@ The Phase-1 model bake-off (#571) is **same-API only** (OpenAI: gpt-4o-mini / gp
 Full corpus re-extracted at schema v5 / gpt-5.4-mini (6,106 jobs, 0 failures). Before→after: avg coverage 0.478→0.223, median 0.50→0.20, zero-core 18.4%→17.2%, Hebrew zero-core 42%→31.5%, Manufacturing 0.062→0.049, must-have 0→32.2%, avg resolved-core/job ~2→3.62.
 
 **`skill_coverage_ratio` is NOT a stable target — its denominator (raw phrases emitted) moves with extractor behavior.** gpt-5.4-mini emits ~3× more raw skills than gpt-4o-mini (avg 4.9→14.9/job), so `resolved/raw` fell even though resolved-core per job rose. The ratio is display-only in the scorer and now honestly reflects the library's coverage gap. **R/T (resolved ÷ true-required, competent-reader judged on the frozen 68-job set) is the primary completeness metric going forward** — it isolates real extraction/resolution quality from raw-emission volume. The banked `req_skills_{core,nice,must_have}_raw` columns are the asset: the library-expansion arc re-resolves them at zero LLM cost.
+
+## R/T judging — v4 → v5 + library-expansion (AI-judged, 2026-07-13)
+Frozen set re-derived on the current corpus and **PINNED** at `docs/eval/frozen-68-ids.json` (57 unique jobs; 68 stratum-memberships — Hebrew-Support jobs fall in two strata). The original set was never pinned (a process gap); it is now, so future re-judges are job-identical. Method: 6 parallel competent-reader agents, one strict shared rubric — **R/T = truly-required skills captured by `req_skills_core` ÷ total truly-required (recall)**.
+
+| stratum | n | v4 before | v5 after (median) | mean |
+|---|---|---|---|---|
+| English-tech | 22 | 0.38 | **0.63** | 0.49 |
+| Hebrew | 22 | 0.13 | **0.33** | 0.33 |
+| Non-software | 24 | 0.00 | **0.29** | 0.34 |
+| overall | 57 | — | 0.40 | 0.41 |
+
+The arc materially lifted R/T in every stratum (English-tech approaches the 0.70 target; Hebrew 2.5×; non-software from zero). This is the honest counterweight to the `skill_coverage_ratio` fall (a denominator artifact of higher raw recall) — R/T, the metric that measures resolution quality, confirms real gains.
+
+**Caveat — both measurements are AI-judged** (consistent method both times, so the *delta* is meaningful, but not an independent human panel). Also strata-level, not job-identical, since the v4 IDs weren't pinned and v4 resolved-skills are overwritten. **The human gate remains the match-quality eval** (does a real user see better Jobs-for-you) — R/T is the extraction-side proxy, now trending right.

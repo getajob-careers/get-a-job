@@ -1,0 +1,186 @@
+{
+ "frozen_57_ids": {
+  "00c9f9b6-8f3b-4659-ade1-3cad986a9395": [
+   "english_tech"
+  ],
+  "05ea83d3-c476-44a9-8732-47a2c61a75f2": [
+   "non_software"
+  ],
+  "0b96263c-a772-4f0e-b9d8-fb61db7a5dbe": [
+   "non_software"
+  ],
+  "0cb93f74-9d0d-4231-b4e8-5e938c2836a9": [
+   "english_tech"
+  ],
+  "0d0f6525-781d-4405-bdfd-87cb7dda7783": [
+   "hebrew"
+  ],
+  "0f8da3d4-e841-45d2-8afe-e33b3387b79f": [
+   "hebrew"
+  ],
+  "10624c16-12c0-465b-8bc9-3e070c859607": [
+   "non_software"
+  ],
+  "18922069-cbc5-4c7a-925a-c57e75b4267b": [
+   "hebrew"
+  ],
+  "2060b488-ac1a-425b-a488-66851f4fca66": [
+   "hebrew"
+  ],
+  "21e90aef-fb49-4bc4-84d2-14293957956c": [
+   "english_tech"
+  ],
+  "2357eef9-c000-459a-9ad3-8ab7fb2d6afb": [
+   "hebrew",
+   "non_software"
+  ],
+  "279ea85b-c520-402e-b91d-324e99b7f5eb": [
+   "hebrew",
+   "non_software"
+  ],
+  "2f0f68fa-0be4-4f84-a106-8894fcbab260": [
+   "non_software"
+  ],
+  "36800105-42ad-4528-9e89-0679a07c2399": [
+   "non_software"
+  ],
+  "389c85ca-3d08-4f55-9bdb-35d432929cac": [
+   "non_software"
+  ],
+  "3cc49c94-7e45-4187-8662-bebbdc7d637d": [
+   "hebrew",
+   "non_software"
+  ],
+  "410a629c-38de-4484-850b-ed019afcf6ac": [
+   "hebrew",
+   "non_software"
+  ],
+  "437fded0-a1d9-4ca5-8082-3b7407014701": [
+   "hebrew",
+   "non_software"
+  ],
+  "4d67fb2d-9623-42ba-90c6-a09dc0a125cf": [
+   "english_tech"
+  ],
+  "5c800153-0831-465a-8550-722293255e2f": [
+   "english_tech"
+  ],
+  "5c9456aa-6175-4966-916d-537d59b76dd3": [
+   "english_tech"
+  ],
+  "5d31101e-a12e-4235-a4b0-49082e545073": [
+   "english_tech"
+  ],
+  "69231585-c6b1-4331-af16-4b50b559bdf2": [
+   "hebrew"
+  ],
+  "6fdf364a-be79-43dd-af38-9209b019a8c6": [
+   "non_software"
+  ],
+  "79ef5655-8f78-4757-9939-dccee74eb17a": [
+   "english_tech"
+  ],
+  "7dffc6b6-72fa-4288-8032-3a651bf32fb2": [
+   "english_tech"
+  ],
+  "818b9d6b-89c6-4468-b435-96d2fc5f51e0": [
+   "english_tech"
+  ],
+  "82cacd3e-61b5-4def-bea7-a3cae78d4b7e": [
+   "non_software"
+  ],
+  "895dc8f9-919d-4a93-898c-c95ae2363ba2": [
+   "hebrew"
+  ],
+  "8eafc574-5f41-4aef-afdb-de3ff42d1173": [
+   "hebrew"
+  ],
+  "958a74fd-33c0-4d58-ae8d-4a57c543dee4": [
+   "hebrew"
+  ],
+  "99e09262-1328-4412-99ed-2ba46c7ce329": [
+   "non_software"
+  ],
+  "9ad989d5-db88-413c-9244-cd1e824ce26d": [
+   "hebrew",
+   "non_software"
+  ],
+  "9cf4ca45-f235-455a-a6f9-f615b7675b19": [
+   "english_tech"
+  ],
+  "9eb48b58-3100-4bb7-b79f-ff2f7595453c": [
+   "english_tech"
+  ],
+  "a36d66fb-3439-41f8-b4c8-db6f6150c9c0": [
+   "hebrew"
+  ],
+  "a421cc89-f1c2-4d45-a5ad-0d5e5002a17e": [
+   "english_tech"
+  ],
+  "a7bb5ff3-4219-40f5-ab8a-74042312492c": [
+   "english_tech"
+  ],
+  "a8fec683-a187-4ca2-b64c-c98e68b1a0ac": [
+   "hebrew"
+  ],
+  "acc70a3c-8c46-4f9e-aaa8-539a28a54581": [
+   "english_tech"
+  ],
+  "b39f8103-f61d-475f-b601-8574455ea11e": [
+   "non_software"
+  ],
+  "bf7ad182-69e0-47f2-bc04-4ad733a7f8a9": [
+   "hebrew",
+   "non_software"
+  ],
+  "c9991d6a-ed28-471a-a345-105abff3b554": [
+   "english_tech"
+  ],
+  "ca84a7a5-2cef-4367-9282-e6d2d4d59a76": [
+   "english_tech"
+  ],
+  "cd9517c1-7026-4497-94c1-ba30a5d9f5a0": [
+   "english_tech"
+  ],
+  "d747e1d4-7716-4f20-b9c6-b11712acb434": [
+   "hebrew",
+   "non_software"
+  ],
+  "d92e5038-7e1d-49da-84f6-58ded11aa805": [
+   "hebrew",
+   "non_software"
+  ],
+  "e12e7cb2-ba43-40f7-8056-c2e549fab751": [
+   "hebrew"
+  ],
+  "e1d878a7-b02c-4f93-87ae-05f55084d490": [
+   "english_tech"
+  ],
+  "e6a84845-1270-4b74-9f66-e7d63982944b": [
+   "english_tech"
+  ],
+  "e84ba39c-c842-4781-b248-6c882887c458": [
+   "non_software"
+  ],
+  "e905a74f-ca7b-4f37-b305-65e2c3c3c7ae": [
+   "non_software"
+  ],
+  "e9099a21-5c7e-4f92-9cf9-1bbc07636901": [
+   "hebrew",
+   "non_software"
+  ],
+  "e96c6982-b781-4e15-b515-ab1833987ba1": [
+   "non_software"
+  ],
+  "f36d0074-ecc9-403d-968a-1862d241cd57": [
+   "english_tech"
+  ],
+  "f7644bf1-6120-48c4-9178-66ed27e84556": [
+   "hebrew",
+   "non_software"
+  ],
+  "fc3bdecb-2cdb-4f8b-a019-d1c26ba478d3": [
+   "english_tech"
+  ]
+ }
+}
