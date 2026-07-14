@@ -74,11 +74,12 @@ CV studio, Coach dock, sidebar feature tiles, funnel tiles.
 - WHY US: we're a multi-surface OS; ⌘K signals "serious tool," speeds power users, and demos beautifully
 - COST: L
 
-**9. Track button → spring-scale + checkmark draw-on, then a ghost chip flies to the Tracker tab**
+**9. Tailor-CV button → spring-scale + checkmark draw-on, then a ghost chip flies to the CV tab**
 
 - SEEN AT: Vercel deploy button, Rive micro-interactions
-- WHY US: makes "Track" a real capture and _teaches_ where the pipeline lives — onboarding by motion
+- WHY US: makes "tailor" a real, satisfying capture and _teaches_ where the tailored CV lands — onboarding by motion
 - COST: M
+- AMENDED 2026-07-15: targets **Tailor CV**, not Track — Track is scheduled to die in the two-verb model.
 
 **10. Magnetic primary CTAs (button nudges toward the cursor within a small radius)**
 
@@ -186,7 +187,7 @@ the one bigger bet (⌘K) is called out because its tier-signal is worth the L.
 1. **Match-score count-up (#2, S)** — tiny build, hits the core emotional beat of Browse Jobs every single card. Highest impact-per-hour on the list.
 2. **Staggered list reveal (#3, S)** — one utility, applied to jobs + kanban + matches; instantly makes the whole app feel animated and intentional.
 3. **Grain-textured coach gradient (#13, S)** — one panel restyle that makes our AI surface look crafted and warm, not like a flat chat box.
-4. **Track → spring + chip-fly-to-Tracker (#9, M)** — delights _and_ teaches the pipeline; turns the product's key verb into a moment.
+4. **Tailor CV → spring + chip-fly-to-CV (#9, M)** — delights _and_ teaches where the tailored CV lands; turns a core verb into a moment. (Amended from Track → Tailor CV, 2026-07-15.)
 5. **CV-generated signature moment (#19, M)** — our flagship payoff currently ends in a spinner; a crafted reveal is the single biggest perceived-quality upgrade for one surface.
 
 **Bigger bet worth it:** **Command-K (#8, L)** — the clearest "serious tool" signal we can add; transforms navigation across our multi-surface OS and is the thing that makes demos feel Linear/Raycast-tier.
