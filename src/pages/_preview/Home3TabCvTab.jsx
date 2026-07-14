@@ -55,6 +55,7 @@ import {
   stretchAwareSeniorityFor,
 } from "@/lib/jobsFeed";
 import { CANVAS_FIXTURES } from "./canvas/canvasConfig";
+import { useCursorMagnet } from "./canvas/useCursorMagnet";
 import CanvasCoachDock from "./canvas/CanvasCoachDock";
 import CanvasCvDocument from "./canvas/CanvasCvDocument";
 import { CanvasTopMatches } from "./canvas/CanvasMatches";
@@ -128,9 +129,11 @@ export default function Home3TabCvTab({ onSwitchTab }) {
 // ───── Left: icon grid ─────
 
 function IconGrid({ tiles }) {
+  // Cursor-magnet: tiles lean toward the pointer (Part 3 reconstruction).
+  const { containerRef, registerTile } = useCursorMagnet();
   return (
-    <div className="grid grid-cols-3 gap-2">
-      {tiles.map((tile) => {
+    <div ref={containerRef} className="grid grid-cols-3 gap-2">
+      {tiles.map((tile, i) => {
         const Icon = tile.icon;
         const content = (
           <>
@@ -144,10 +147,23 @@ function IconGrid({ tiles }) {
           </>
         );
         const className =
-          "group flex flex-col items-center justify-center gap-1.5 aspect-square rounded-[12px] bg-rd-bg-card border border-rd-border hover:border-rd-border-hover hover:bg-rd-bg-soft transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-2 p-2";
+          "group flex flex-col items-center justify-center gap-1.5 aspect-square rounded-[12px] bg-rd-bg-card border border-rd-border hover:border-rd-border-hover hover:bg-rd-bg-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-2 p-2";
+        // Yishai's exact transform ease (.35s cubic-bezier) for the lean;
+        // colours keep the quick 150ms. will-change hints the compositor.
+        const style = {
+          transition:
+            "transform .35s cubic-bezier(.22,.61,.36,1), border-color .15s ease, background-color .15s ease",
+          willChange: "transform",
+        };
         if (tile.href) {
           return (
-            <Link key={tile.id} to={tile.href} className={className}>
+            <Link
+              key={tile.id}
+              ref={registerTile(i)}
+              to={tile.href}
+              className={className}
+              style={style}
+            >
               {content}
             </Link>
           );
@@ -155,9 +171,11 @@ function IconGrid({ tiles }) {
         return (
           <button
             key={tile.id}
+            ref={registerTile(i)}
             type="button"
             onClick={tile.onClick}
             className={className}
+            style={style}
           >
             {content}
           </button>
