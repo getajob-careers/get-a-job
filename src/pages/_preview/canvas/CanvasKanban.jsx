@@ -1,6 +1,7 @@
 // PROD ORIGINAL: src/components/tracker/ApplicationsKanban.jsx (canvas clone)
 import React from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { reveal } from "./stagger";
 
 // Fixture-mode Kanban for the design canvas. Presentational + LOCAL-STATE ONLY:
 // dragging a card calls onMove(appId, toStatus) which updates the parent's
@@ -92,15 +93,17 @@ export default function CanvasKanban({
   return (
     <DragDropContext onDragEnd={onDragEnd}>
       <div className="flex gap-3 overflow-x-auto pb-2">
-        {statuses.map((status) => {
+        {statuses.map((status, colIdx) => {
           const cards = byStatus[status] || [];
+          const rv = reveal(colIdx);
           return (
             <Droppable droppableId={status} key={status}>
               {(provided, snapshot) => (
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  className={`flex-shrink-0 w-[220px] rounded-[12px] p-2 transition-colors ${
+                  style={rv.style}
+                  className={`${rv.className} flex-shrink-0 w-[220px] rounded-[12px] p-2 transition-colors ${
                     snapshot.isDraggingOver ? "bg-rd-bg-soft" : "bg-rd-bg-page"
                   }`}
                 >

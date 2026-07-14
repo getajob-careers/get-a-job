@@ -6,6 +6,7 @@ import { Check, Plus, Wand2 } from "lucide-react";
 import { CANVAS_MATCHES } from "../fixtures/canvasHome";
 import CanvasJobModal from "./CanvasJobModal";
 import CanvasScoredCard from "./CanvasScoredCard";
+import { reveal, revealWith } from "./stagger";
 
 // Fixture-fed match surfaces for the design canvas: the CV-tab right column
 // (CanvasTopMatches) and the Browse Jobs tab (CanvasJobsFeed). Both reuse the
@@ -54,11 +55,11 @@ export function CanvasTopMatches() {
         {title}
       </p>
       <div className="flex flex-col gap-2">
-        {jobs.map((job) => {
+        {jobs.map((job, idx) => {
           const scoreResult = scoredById[job.id];
           const tracked = trackedIds.has(job.id);
           return (
-            <div key={job.id} className="flex flex-col gap-1.5">
+            <div key={job.id} {...revealWith(idx, "flex flex-col gap-1.5")}>
               <CanvasScoredCard
                 job={job}
                 scoreResult={scoreResult}
@@ -165,13 +166,14 @@ export function CanvasJobsFeed() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {all.map((job) => (
-          <CanvasScoredCard
-            key={job.id}
-            job={job}
-            scoreResult={scoredById[job.id]}
-            onOpen={(j, s) => setOpenJob({ job: j, scoreResult: s })}
-          />
+        {all.map((job, idx) => (
+          <div key={job.id} {...reveal(idx)}>
+            <CanvasScoredCard
+              job={job}
+              scoreResult={scoredById[job.id]}
+              onOpen={(j, s) => setOpenJob({ job: j, scoreResult: s })}
+            />
+          </div>
         ))}
       </div>
 
