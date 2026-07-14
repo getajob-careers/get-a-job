@@ -1,3 +1,4 @@
+// PROD ORIGINAL: src/components/tracker/ApplicationsKanban.jsx (canvas clone)
 import React from "react";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 

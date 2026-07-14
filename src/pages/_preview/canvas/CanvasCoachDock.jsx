@@ -1,3 +1,5 @@
+// PROD ORIGINAL: src/components/agent/CoachDock.jsx (canvas clone; fixture
+// thread + local send, no CoachConversationProvider / LLM / DB)
 import React, { useEffect, useRef, useState } from "react";
 import { Sparkles, Maximize2, ArrowUp } from "lucide-react";
 import {

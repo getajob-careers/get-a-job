@@ -19,11 +19,11 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   Linkedin,
-  BookMarked,
-  FileText,
-  UserCircle,
-  KanbanSquare,
-  Search,
+  BookOpen,
+  FileStack,
+  IdCard,
+  Columns3,
+  Compass,
   Loader2,
   AlertCircle,
   Check,
@@ -72,31 +72,31 @@ const ICON_TILES = (onSwitchTab) => [
   {
     id: "storybank",
     label: "Story bank",
-    icon: BookMarked,
+    icon: BookOpen,
     href: createPageUrl("StoryBank"),
   },
   {
     id: "cvbank",
     label: "CV bank",
-    icon: FileText,
+    icon: FileStack,
     href: createPageUrl("CVAgent"),
   },
   {
     id: "profile",
     label: "Profile",
-    icon: UserCircle,
+    icon: IdCard,
     href: createPageUrl("Profile"),
   },
   {
     id: "tracker",
     label: "Tracker",
-    icon: KanbanSquare,
+    icon: Columns3,
     onClick: () => onSwitchTab?.("tracker"),
   },
   {
     id: "jobs",
     label: "Browse jobs",
-    icon: Search,
+    icon: Compass,
     onClick: () => onSwitchTab?.("jobs"),
   },
 ];
@@ -135,7 +135,7 @@ function IconGrid({ tiles }) {
         const content = (
           <>
             <Icon
-              className="w-5 h-5 text-rd-text-secondary group-hover:text-rd-text transition-colors"
+              className="w-4 h-4 text-rd-text-secondary group-hover:text-rd-text transition-colors"
               aria-hidden="true"
             />
             <span className="text-[10px] font-display font-semibold text-rd-text-secondary group-hover:text-rd-text leading-tight text-center transition-colors">

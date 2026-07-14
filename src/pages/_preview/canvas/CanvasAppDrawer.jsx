@@ -1,3 +1,5 @@
+// PROD ORIGINAL: src/components/tracker/ApplicationDetailDrawer.jsx →
+// ApplicationRow.jsx (canvas clone; read-only stand-in for the 9-tab detail)
 import React, { useEffect } from "react";
 import { X, MapPin, CircleCheck, Circle } from "lucide-react";
 

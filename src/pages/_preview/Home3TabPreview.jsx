@@ -29,9 +29,9 @@ import {
   Star,
   Briefcase,
   X,
-  KanbanSquare,
-  FileText,
-  Search,
+  Columns3,
+  FileUser,
+  Compass,
 } from "lucide-react";
 import Layout from "@/Layout";
 import RdCard from "@/components/redesign/RdCard";
@@ -70,10 +70,13 @@ const APPLICATION_STATUS_LABELS = {
 
 const GUIDE_DISMISS_KEY = (uid) => `home3tabPipelineGuideDismissed:${uid}`;
 
+// One coherent lucide family. Tracker/Browse icons are shared with their
+// sidebar tiles (same concept → same glyph); CV uses FileUser (a résumé) to
+// stay distinct from the CV-bank tile's FileStack. Coral is the only accent.
 const TABS = [
-  { id: "tracker", label: "Tracker", icon: KanbanSquare },
-  { id: "cv", label: "CV", icon: FileText },
-  { id: "jobs", label: "Browse Jobs", icon: Search },
+  { id: "tracker", label: "Tracker", icon: Columns3 },
+  { id: "cv", label: "CV", icon: FileUser },
+  { id: "jobs", label: "Browse Jobs", icon: Compass },
 ];
 
 export default function Home3TabPreview() {
@@ -113,10 +116,10 @@ export default function Home3TabPreview() {
                     : "text-rd-text-secondary hover:text-rd-text"
                 }`}
               >
-                <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+                <Icon className="w-5 h-5" aria-hidden="true" />
                 {tab.label}
                 {active && (
-                  <span className="absolute left-2 right-2 -bottom-px h-[2px] bg-rd-teal rounded-full" />
+                  <span className="absolute left-2 right-2 -bottom-px h-[2px] bg-rd-coral rounded-full" />
                 )}
               </button>
             );

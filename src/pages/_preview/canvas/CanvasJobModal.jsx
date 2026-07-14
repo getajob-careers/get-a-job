@@ -1,3 +1,5 @@
+// PROD ORIGINAL: src/components/jobs/JobDetailModal.jsx (canvas clone; Track →
+// local state, description from fixture, no useJobDescription / addJobToTracker)
 import React, { useEffect } from "react";
 import { Check, X, ExternalLink, Plus } from "lucide-react";
 import { deriveJobDisplay } from "@/lib/jobCardDisplay";

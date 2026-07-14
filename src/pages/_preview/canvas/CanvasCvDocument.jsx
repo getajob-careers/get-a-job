@@ -1,3 +1,5 @@
+// PROD ORIGINAL: src/components/cv-studio/CVStudioLive.jsx (canvas clone;
+// read-only master-CV render, not the live DB-backed editor)
 import React from "react";
 import { Mail, Phone, MapPin, Linkedin } from "lucide-react";
 import {

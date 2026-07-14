@@ -1,3 +1,6 @@
+// PROD ORIGINALS: TopMatchesPanel in src/pages/_preview/Home3TabCvTab.jsx
+// (CV-tab column) + src/components/jobs/UnifiedJobsFeed.jsx (Browse tab);
+// canvas clones — fixture-fed, Track → local state.
 import React, { useMemo, useState } from "react";
 import { Check, Plus, Wand2 } from "lucide-react";
 import JobGridCard from "@/components/jobs/JobGridCard";
