@@ -7,6 +7,14 @@ import {
   CANVAS_COACH_PROMPTS,
 } from "../fixtures/canvasHome";
 
+// Idea #13: warm grain-texture for the coach panel. A gentle white→peach
+// gradient (the AI surface reads warmer than flat-cream content) with a faint
+// SVG-noise grain laid over the top — texture, not effect (grainient.supply).
+const WARM_GRADIENT =
+  "linear-gradient(155deg, var(--rd-bg-card) 35%, var(--rd-coral-tint) 135%)";
+const GRAIN_URL =
+  "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")";
+
 // Fixture-mode Coach dock. Mirrors the prod CoachDock's inset-card look but is
 // self-contained: the thread is seeded from fixtures and "send" appends to
 // LOCAL state with a canned reply — no CoachConversationProvider, no LLM call,
@@ -38,7 +46,10 @@ export default function CanvasCoachDock() {
 
   return (
     <div className="flex-1 min-h-0 flex flex-col p-3">
-      <div className="flex-1 min-h-0 flex flex-col bg-rd-bg-card border border-rd-border-subtle rounded-lg overflow-hidden">
+      <div
+        className="relative flex-1 min-h-0 flex flex-col border border-rd-border-subtle rounded-lg overflow-hidden"
+        style={{ background: WARM_GRADIENT }}
+      >
         {/* Header */}
         <div className="flex items-center gap-2 px-3 h-8 border-b border-rd-border-subtle">
           <Sparkles
@@ -120,6 +131,17 @@ export default function CanvasCoachDock() {
             <ArrowUp className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </form>
+
+        {/* Grain overlay — faint film grain over the whole panel. */}
+        <div
+          className="pointer-events-none absolute inset-0 rounded-lg"
+          style={{
+            backgroundImage: GRAIN_URL,
+            opacity: 0.05,
+            mixBlendMode: "multiply",
+          }}
+          aria-hidden="true"
+        />
       </div>
     </div>
   );
