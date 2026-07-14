@@ -136,7 +136,17 @@ export function CanvasJobsFeed() {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex items-center gap-2">
+      {/* Segmented toggle with a sliding coral pill (idea #11) */}
+      <div className="relative inline-flex self-start bg-rd-bg-soft rounded-full p-1">
+        <span
+          aria-hidden="true"
+          className="absolute top-1 bottom-1 rounded-full bg-rd-coral shadow-rd transition-all duration-200 ease-out"
+          style={
+            mode === "matches"
+              ? { left: "0.25rem", right: "50%" }
+              : { left: "50%", right: "0.25rem" }
+          }
+        />
         {[
           ["matches", "Top Matches for You"],
           ["all", "Search All Jobs"],
@@ -145,10 +155,11 @@ export function CanvasJobsFeed() {
             key={val}
             type="button"
             onClick={() => setMode(val)}
-            className={`font-display font-bold text-[12.5px] rounded-full px-3.5 py-1.5 transition-colors ${
+            aria-pressed={mode === val}
+            className={`relative z-10 font-display font-bold text-[12.5px] rounded-full px-3.5 py-1.5 transition-colors ${
               mode === val
-                ? "bg-rd-coral text-white"
-                : "bg-rd-bg-soft text-rd-text-secondary hover:text-rd-text"
+                ? "text-white"
+                : "text-rd-text-secondary hover:text-rd-text"
             }`}
           >
             {label}
