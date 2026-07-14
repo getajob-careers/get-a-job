@@ -65,12 +65,14 @@ function IconGrid({ tiles }) {
     <div ref={containerRef} className="grid grid-cols-3 gap-2">
       {tiles.map((tile, i) => {
         const Icon = tile.icon;
+        // Duotone-style icon (idea #17): a coral-tint filled backing + coral
+        // glyph (two tones, coral accent) — closest equivalent to Iconsax's
+        // duotone WITHOUT adding a dependency (see commit note). Hover fills coral.
         const content = (
           <>
-            <Icon
-              className="w-4 h-4 text-rd-text-secondary group-hover:text-rd-text transition-colors"
-              aria-hidden="true"
-            />
+            <span className="inline-flex items-center justify-center w-8 h-8 rounded-[10px] bg-rd-coral-tint text-rd-coral group-hover:bg-rd-coral group-hover:text-white transition-colors">
+              <Icon className="w-[18px] h-[18px]" aria-hidden="true" />
+            </span>
             <span className="text-[10px] font-display font-semibold text-rd-text-secondary group-hover:text-rd-text leading-tight text-center transition-colors">
               {tile.label}
             </span>
