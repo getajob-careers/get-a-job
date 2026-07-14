@@ -1,40 +1,21 @@
 // CV tab content for the 3-tab homepage demo (Home3TabPreview.jsx).
 //
-// Center column reuses the REAL CV studio as-is (CVStudioLive - already
-// "Layout-LESS on purpose" per its own header comment, built to be mounted
-// standalone). Left-bottom reuses the REAL docked coach chat (CoachDock -
-// reads/writes CoachConversationProvider, which Layout.jsx already mounts,
-// so this is live, not a stub). Right column is new: a compact "top
-// matches" list built from the same data hooks + picks/stretch sectioning
-// UnifiedJobsFeed.jsx uses, rendered with the existing JobGridCard, opening
-// the existing JobDetailModal (which already has a real Track action via
-// addJobToTracker). "Tailor CV" has no existing standalone entry point from
-// a bare job row (today it only exists inside CVStudioLive's own "Tailor to
-// a job" flow, which expects a tracked application, not a raw feed job) -
-// per investigation, that's a visual stub here, called out as such.
+// As of iteration 2 Stage A the sidebar (tiles + coach) lives in the shell
+// (CanvasSidebar), persistent across tabs — so this tab is two columns:
+//   Center: the REAL CV studio (CVStudioLive, "Layout-LESS on purpose") in live
+//     mode, or the fixture master-CV document in canvas mode.
+//   Right: a compact "top matches" list built from the same data hooks +
+//     picks/stretch sectioning UnifiedJobsFeed.jsx uses, rendered with the
+//     existing JobGridCard/JobDetailModal (real Track via addJobToTracker in
+//     live mode). "Tailor CV" is a visual stub (no standalone entry point yet).
 
 import React, { useMemo, useState, useCallback } from "react";
-import { Link } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  Linkedin,
-  BookOpen,
-  FileStack,
-  IdCard,
-  Columns3,
-  Compass,
-  Loader2,
-  AlertCircle,
-  Check,
-  Plus,
-  Wand2,
-} from "lucide-react";
+import { Loader2, AlertCircle, Check, Plus, Wand2 } from "lucide-react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
-import { createPageUrl } from "@/utils";
 import CVStudioLive from "@/components/cv-studio/CVStudioLive";
-import CoachDock from "@/components/agent/CoachDock";
 import JobGridCard from "@/components/jobs/JobGridCard";
 import JobDetailModal from "@/components/jobs/JobDetailModal";
 import { addJobToTracker } from "@/components/jobs/JobCard";
@@ -55,64 +36,18 @@ import {
   stretchAwareSeniorityFor,
 } from "@/lib/jobsFeed";
 import { CANVAS_FIXTURES } from "./canvas/canvasConfig";
-import { useCursorMagnet } from "./canvas/useCursorMagnet";
-import CanvasCoachDock from "./canvas/CanvasCoachDock";
 import CanvasCvDocument from "./canvas/CanvasCvDocument";
 import { CanvasTopMatches } from "./canvas/CanvasMatches";
 
 const TOP_MATCHES_FETCH_SIZE = 30;
 const TOP_MATCHES_SHOWN = 6;
 
-const ICON_TILES = (onSwitchTab) => [
-  {
-    id: "linkedin",
-    label: "LinkedIn tools",
-    icon: Linkedin,
-    href: createPageUrl("Linkedin"),
-  },
-  {
-    id: "storybank",
-    label: "Story bank",
-    icon: BookOpen,
-    href: createPageUrl("StoryBank"),
-  },
-  {
-    id: "cvbank",
-    label: "CV bank",
-    icon: FileStack,
-    href: createPageUrl("CVAgent"),
-  },
-  {
-    id: "profile",
-    label: "Profile",
-    icon: IdCard,
-    href: createPageUrl("Profile"),
-  },
-  {
-    id: "tracker",
-    label: "Tracker",
-    icon: Columns3,
-    onClick: () => onSwitchTab?.("tracker"),
-  },
-  {
-    id: "jobs",
-    label: "Browse jobs",
-    icon: Compass,
-    onClick: () => onSwitchTab?.("jobs"),
-  },
-];
-
-export default function Home3TabCvTab({ onSwitchTab }) {
+// Sidebar (tiles + coach) moved to CanvasSidebar in iteration 2 Stage A — it's
+// now persistent across all three tabs, rendered by the shell. This tab is just
+// the CV document (center) + top-matches (right).
+export default function Home3TabCvTab() {
   return (
     <div className="flex flex-col md:flex-row gap-4 h-full min-h-0">
-      {/* Left - icon grid (top) + coach dock (bottom) */}
-      <div className="w-full md:w-[220px] flex-shrink-0 flex flex-col gap-4 md:h-full min-h-0">
-        <IconGrid tiles={ICON_TILES(onSwitchTab)} />
-        <div className="flex-1 min-h-[280px] md:min-h-0 bg-rd-bg-sidebar rounded-[16px] flex flex-col">
-          {CANVAS_FIXTURES ? <CanvasCoachDock /> : <CoachDock />}
-        </div>
-      </div>
-
       {/* Center - CV studio (live) or fixture master-CV document (canvas) */}
       <div className="w-full md:flex-1 min-w-0 md:h-full md:overflow-y-auto bg-rd-bg-card border border-rd-border-subtle rounded-[16px]">
         {CANVAS_FIXTURES ? <CanvasCvDocument /> : <CVStudioLive />}
@@ -122,65 +57,6 @@ export default function Home3TabCvTab({ onSwitchTab }) {
       <div className="w-full md:w-[320px] flex-shrink-0 md:h-full md:overflow-y-auto">
         {CANVAS_FIXTURES ? <CanvasTopMatches /> : <TopMatchesPanel />}
       </div>
-    </div>
-  );
-}
-
-// ───── Left: icon grid ─────
-
-function IconGrid({ tiles }) {
-  // Cursor-magnet: tiles lean toward the pointer (Part 3 reconstruction).
-  const { containerRef, registerTile } = useCursorMagnet();
-  return (
-    <div ref={containerRef} className="grid grid-cols-3 gap-2">
-      {tiles.map((tile, i) => {
-        const Icon = tile.icon;
-        const content = (
-          <>
-            <Icon
-              className="w-4 h-4 text-rd-text-secondary group-hover:text-rd-text transition-colors"
-              aria-hidden="true"
-            />
-            <span className="text-[10px] font-display font-semibold text-rd-text-secondary group-hover:text-rd-text leading-tight text-center transition-colors">
-              {tile.label}
-            </span>
-          </>
-        );
-        const className =
-          "group flex flex-col items-center justify-center gap-1.5 aspect-square rounded-[12px] bg-rd-bg-card border border-rd-border hover:border-rd-border-hover hover:bg-rd-bg-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-2 p-2";
-        // Yishai's exact transform ease (.35s cubic-bezier) for the lean;
-        // colours keep the quick 150ms. will-change hints the compositor.
-        const style = {
-          transition:
-            "transform .35s cubic-bezier(.22,.61,.36,1), border-color .15s ease, background-color .15s ease",
-          willChange: "transform",
-        };
-        if (tile.href) {
-          return (
-            <Link
-              key={tile.id}
-              ref={registerTile(i)}
-              to={tile.href}
-              className={className}
-              style={style}
-            >
-              {content}
-            </Link>
-          );
-        }
-        return (
-          <button
-            key={tile.id}
-            ref={registerTile(i)}
-            type="button"
-            onClick={tile.onClick}
-            className={className}
-            style={style}
-          >
-            {content}
-          </button>
-        );
-      })}
     </div>
   );
 }

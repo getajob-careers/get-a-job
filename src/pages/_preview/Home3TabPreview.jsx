@@ -48,6 +48,7 @@ import { CANVAS_APPLICATIONS } from "./fixtures/canvasHome";
 import CanvasKanban from "./canvas/CanvasKanban";
 import CanvasAppDrawer from "./canvas/CanvasAppDrawer";
 import { CanvasJobsFeed } from "./canvas/CanvasMatches";
+import CanvasSidebar from "./canvas/CanvasSidebar";
 
 const APPLICATION_STATUSES = [
   "interested",
@@ -74,13 +75,13 @@ const GUIDE_DISMISS_KEY = (uid) => `home3tabPipelineGuideDismissed:${uid}`;
 // sidebar tiles (same concept → same glyph); CV uses FileUser (a résumé) to
 // stay distinct from the CV-bank tile's FileStack. Coral is the only accent.
 const TABS = [
-  { id: "tracker", label: "Tracker", icon: Columns3 },
   { id: "cv", label: "CV", icon: FileUser },
+  { id: "tracker", label: "Tracker", icon: Columns3 },
   { id: "jobs", label: "Browse Jobs", icon: Compass },
 ];
 
 export default function Home3TabPreview() {
-  const [activeTab, setActiveTab] = useState("tracker");
+  const [activeTab, setActiveTab] = useState("cv");
 
   return (
     <Layout currentPageName="Career">
@@ -97,7 +98,7 @@ export default function Home3TabPreview() {
         </div>
 
         <div
-          className="flex items-center gap-1 mt-3 border-b border-rd-border"
+          className="flex items-center justify-center gap-1 mt-3 border-b border-rd-border"
           role="tablist"
         >
           {TABS.map((tab) => {
@@ -126,12 +127,18 @@ export default function Home3TabPreview() {
           })}
         </div>
 
-        <div className="mt-4 flex-1 min-h-0">
-          {activeTab === "tracker" &&
-            (CANVAS_FIXTURES ? <CanvasTrackerTab /> : <TrackerTab />)}
-          {activeTab === "cv" && <Home3TabCvTab onSwitchTab={setActiveTab} />}
-          {activeTab === "jobs" &&
-            (CANVAS_FIXTURES ? <CanvasJobsFeed /> : <UnifiedJobsFeed />)}
+        <div className="mt-4 flex-1 min-h-0 flex flex-col md:flex-row gap-4">
+          {/* Persistent sidebar — tiles + coach, mounted across all three tabs */}
+          <CanvasSidebar onSwitchTab={setActiveTab} />
+
+          {/* Active tab content */}
+          <div className="flex-1 min-w-0 min-h-0">
+            {activeTab === "cv" && <Home3TabCvTab />}
+            {activeTab === "tracker" &&
+              (CANVAS_FIXTURES ? <CanvasTrackerTab /> : <TrackerTab />)}
+            {activeTab === "jobs" &&
+              (CANVAS_FIXTURES ? <CanvasJobsFeed /> : <UnifiedJobsFeed />)}
+          </div>
         </div>
       </div>
     </Layout>
