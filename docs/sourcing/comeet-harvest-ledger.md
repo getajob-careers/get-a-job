@@ -304,10 +304,10 @@ to flip. Their inert `unknown` comeet rows stay as-is (dropping them is the opti
 
 Removed the **Ori** row from `companies_il.json` (comeet 229 -> 228, total 1163 -> 1162). It was a **Comeet sandbox/demo board**, not a real hirer, surfaced by a live-page review (a 31-month-old "Marketing Manager" ranked 88% in a user's Jobs-for-you).
 
-| company | uid    | slug/domain             | reason                                                                                                                                  |
-| ------- | ------ | ----------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| company | uid    | slug/domain                   | reason                                                                                                                                                                                                                                                                                                     |
+| ------- | ------ | ----------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Ori     | 97.00E | ori-sandbox / ori-sandbox.com | **Sandbox/test board.** Domain `ori-sandbox.com`, slug `ori-sandbox`; 4 evergreen generic demo postings never removed (Marketing Manager 31mo, CFO, "QA Manger" [demo typo], Supervisor). No real production Ori board exists to re-point to. Added by the domain-unverified Comeet r1 harvest 2026-07-08. |
 
-**Sweep:** grepped all 1,163 registry rows for sandbox/test/demo/staging/example/dummy/playground/qa-pattern slugs, uids, domains, and careers URLs. **Ori was the only hit** — the class is cleared once, not per-discovery.
+**Sweep:** grepped all 1,163 registry rows for sandbox/test/demo/staging/example/dummy/playground/qa-pattern slugs, uids, domains, and careers URLs. **Ori was the only hit**, so the class is cleared once, not per-discovery.
 
 **Jobs:** the 4 job rows it fed (`99bb3056`, `28f10f50`, `f1f0322a`, `a3cb4045`) were deactivated (`is_active=false`) so they leave Jobs-for-you immediately; with the registry row gone, the nightly harvest won't re-surface them.
