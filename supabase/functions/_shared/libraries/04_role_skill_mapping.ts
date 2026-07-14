@@ -5259,6 +5259,64 @@ export const roleSkillMapping = {
         "signal_processing",
         "matlab"
       ]
+    },
+    {
+      "role_id": "security_researcher",
+      "research_status": "mapped_v1_confident",
+      "core_skills": [
+        "security_research",
+        "vulnerability_research",
+        "reverse_engineering",
+        "threat_modeling"
+      ],
+      "secondary_skills": [
+        "os_internals",
+        "exploit_development",
+        "threat_analysis_investigation"
+      ],
+      "differentiator_skills": [
+        "vulnerability_analysis",
+        "malware_analysis"
+      ]
+    },
+    {
+      "role_id": "devsecops_engineer",
+      "research_status": "mapped_v1_confident",
+      "core_skills": [
+        "ci_cd",
+        "cloud_platforms_devops",
+        "containerization",
+        "threat_modeling"
+      ],
+      "secondary_skills": [
+        "os_internals",
+        "code_quality",
+        "git_version_control",
+        "security_monitoring_detection"
+      ],
+      "differentiator_skills": [
+        "security_research",
+        "log_analysis"
+      ]
+    },
+    {
+      "role_id": "incident_response_engineer",
+      "research_status": "mapped_v1_confident",
+      "core_skills": [
+        "incident_response_forensics",
+        "threat_modeling",
+        "security_monitoring_detection",
+        "root_cause_analysis"
+      ],
+      "secondary_skills": [
+        "siem_operations",
+        "log_analysis",
+        "os_internals"
+      ],
+      "differentiator_skills": [
+        "threat_analysis_investigation",
+        "malware_analysis"
+      ]
     }
   ]
 } as const;

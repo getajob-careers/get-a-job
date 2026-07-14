@@ -87,7 +87,7 @@ function reresolve(row: any) {
 async function fetchRows() {
   const rows: any[] = [];
   const cols =
-    "id,req_skills_core,req_skills_core_raw,req_skills_nice_raw,req_skills_must_have_raw,skill_coverage_ratio";
+    "id,req_skills_core,req_skills_nice,req_skills_must_have,req_skills_core_raw,req_skills_nice_raw,req_skills_must_have_raw,skill_coverage_ratio";
   for (let from = 0; ; from += 1000) {
     const res = await fetch(
       `${SUPABASE_URL}/rest/v1/jobs?is_active=eq.true&extraction_schema_version=eq.5&req_skills_core_raw=not.is.null&select=${cols}`,
@@ -131,9 +131,22 @@ for (const row of rows) {
     covN++;
   }
   if (rr.coverage != null) covAfterSum += rr.coverage;
-  if (rr.core.length !== beforeCore) changed++;
+  // Real diff: ANY resolved field's SET differs (core/nice/must — catches
+  // same-count skill swaps like a removed-dup→existing-ID alias re-point that
+  // lands in nice/must, which coverage alone wouldn't flag) or coverage differs.
+  // Only these rows are written, so `written` == real changes.
+  const diffSet = (a: string[], b: string[]) =>
+    a.length !== b.length || new Set([...a, ...b]).size !== a.length;
+  const curCov =
+    row.skill_coverage_ratio == null ? null : Number(row.skill_coverage_ratio);
+  const changedRow =
+    diffSet(row.req_skills_core ?? [], rr.core) ||
+    diffSet(row.req_skills_nice ?? [], rr.nice) ||
+    diffSet(row.req_skills_must_have ?? [], rr.must) ||
+    curCov !== rr.coverage;
+  if (changedRow) changed++;
 
-  if (WRITE) {
+  if (WRITE && changedRow) {
     const res = await fetch(`${SUPABASE_URL}/rest/v1/jobs?id=eq.${row.id}`, {
       method: "PATCH",
       headers: {
