@@ -56,6 +56,16 @@ export const SKILL_ALIASES: Record<string, string[]> = {
   "log management": ["log_analysis"],
   "digital forensics": ["incident_response_forensics"],
   "forensics": ["incident_response_forensics"],
+  // ── 7-role expansion: Quality/Ops cluster (2026-07-14) ────────────────────
+  // "six sigma"/"lean manufacturing"/"spc" auto-resolve via snake-ID; variants:
+  "lean methodology": ["lean_manufacturing"],
+  "kaizen": ["lean_manufacturing"],
+  "value stream mapping": ["lean_manufacturing"],
+  "dmaic": ["six_sigma"],
+  "6 sigma": ["six_sigma"],
+  "statistical process control": ["spc"],
+  "control charts": ["spc"],
+  "process capability": ["spc"],
   "circuit design": ["board_design"],
   "analog design": ["board_design"],
   "schematic design": ["board_design"],

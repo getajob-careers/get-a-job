@@ -5317,6 +5317,60 @@ export const roleSkillMapping = {
         "threat_analysis_investigation",
         "malware_analysis"
       ]
+    },
+    {
+      "role_id": "process_engineer",
+      "research_status": "mapped_v1_confident",
+      "core_skills": [
+        "root_cause_analysis",
+        "process_improvement",
+        "statistical_analysis",
+        "lean_manufacturing"
+      ],
+      "secondary_skills": [
+        "six_sigma",
+        "spc",
+        "data_analysis"
+      ],
+      "differentiator_skills": [
+        "scripting_automation"
+      ]
+    },
+    {
+      "role_id": "manufacturing_quality_engineer",
+      "research_status": "mapped_v1_confident",
+      "core_skills": [
+        "root_cause_analysis",
+        "spc",
+        "six_sigma",
+        "process_improvement"
+      ],
+      "secondary_skills": [
+        "statistical_analysis",
+        "lean_manufacturing",
+        "data_analysis"
+      ],
+      "differentiator_skills": [
+        "technical_documentation"
+      ]
+    },
+    {
+      "role_id": "research_scientist",
+      "research_status": "mapped_v1_confident",
+      "core_skills": [
+        "data_science",
+        "machine_learning",
+        "statistical_analysis",
+        "deep_learning"
+      ],
+      "secondary_skills": [
+        "model_training_finetuning",
+        "python_data",
+        "applied_ai_research"
+      ],
+      "differentiator_skills": [
+        "ab_testing"
+      ]
     }
   ]
 } as const;
