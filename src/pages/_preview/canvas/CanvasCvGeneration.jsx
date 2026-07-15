@@ -24,7 +24,7 @@ export default function CanvasCvGeneration() {
   }, [done]);
 
   return (
-    <div ref={rootRef} className="h-full flex flex-col min-h-0">
+    <div ref={rootRef} className="md:h-full flex flex-col min-h-0">
       <div className="flex items-center justify-between gap-2 px-4 py-2.5 border-b border-rd-border-subtle">
         {done ? (
           <span className="inline-flex items-center gap-1.5 text-[11.5px] font-display font-bold text-rd-teal-dark min-w-0">
@@ -56,7 +56,7 @@ export default function CanvasCvGeneration() {
 
       <div
         ref={scrollRef}
-        className={`flex-1 min-h-0 overflow-y-auto ${done ? "cx-cv-slidein" : ""}`}
+        className={`cx-fade-y flex-1 min-h-0 md:overflow-y-auto ${done ? "cx-cv-slidein" : ""}`}
       >
         <CanvasCvDocument />
       </div>

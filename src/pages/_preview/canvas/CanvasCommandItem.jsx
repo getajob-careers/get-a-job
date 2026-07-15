@@ -13,6 +13,9 @@ export default function CanvasCommandItem({
   onSelect,
   style,
   className = "",
+  // Default to wrapping so a suggestion is never clipped in the narrow coach
+  // dock; a future wide ⌘K palette can opt into truncate={true}.
+  truncate = false,
 }) {
   return (
     <button
@@ -23,7 +26,7 @@ export default function CanvasCommandItem({
         e.preventDefault();
         onSelect?.();
       }}
-      className={`${className} w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-left transition-colors ${
+      className={`${className} w-full flex items-start gap-2 px-2.5 py-1.5 rounded-md text-left transition-colors ${
         active
           ? "bg-rd-coral-tint text-rd-coral-dark"
           : "text-rd-text-secondary hover:bg-rd-bg-soft"
@@ -31,9 +34,13 @@ export default function CanvasCommandItem({
       style={style}
     >
       {Icon && (
-        <Icon className="w-3.5 h-3.5 flex-shrink-0" aria-hidden="true" />
+        <Icon className="w-3.5 h-3.5 flex-shrink-0 mt-px" aria-hidden="true" />
       )}
-      <span className="flex-1 text-[12px] leading-tight truncate">{label}</span>
+      <span
+        className={`flex-1 min-w-0 text-[12px] leading-tight ${truncate ? "truncate" : "break-words"}`}
+      >
+        {label}
+      </span>
       {hint && (
         <span className="text-[9.5px] font-mono text-rd-text-tertiary flex-shrink-0">
           {hint}

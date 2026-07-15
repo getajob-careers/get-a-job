@@ -100,7 +100,7 @@ export function CanvasJobsFeed() {
   const [mode, setMode] = useState("matches"); // matches | all — both show fixtures
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4 md:h-full md:min-h-0">
       {/* Segmented toggle with a sliding coral pill (idea #11). Equal-width
           segments (flex-1) so the pill exactly matches the active one; the pill
           is 50%−inset wide and slides via translateX(100%) — consistent 4px
@@ -143,17 +143,21 @@ export function CanvasJobsFeed() {
         </span>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-        {all.map((job, idx) => (
-          <div key={job.id} {...reveal(idx)}>
-            <CanvasJobCard
-              job={job}
-              scoreResult={scoredById[job.id]}
-              index={idx}
-              onOpen={(j, s) => setOpenJob({ job: j, scoreResult: s })}
-            />
-          </div>
-        ))}
+      {/* Grid scrolls inside its own container on desktop (app-shell); on
+          mobile the page's single scroller owns it. Edge fades signal overflow. */}
+      <div className="cx-fade-y md:flex-1 md:min-h-0 md:overflow-y-auto md:pb-2">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          {all.map((job, idx) => (
+            <div key={job.id} {...reveal(idx)}>
+              <CanvasJobCard
+                job={job}
+                scoreResult={scoredById[job.id]}
+                index={idx}
+                onOpen={(j, s) => setOpenJob({ job: j, scoreResult: s })}
+              />
+            </div>
+          ))}
+        </div>
       </div>
 
       {openJob && (

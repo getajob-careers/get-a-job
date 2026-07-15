@@ -16,6 +16,9 @@ function ensureKeyframes() {
 .cx-reveal { animation: cxReveal .5s cubic-bezier(.22,.61,.36,1) both; }
 @keyframes cxSettle { 0% { transform: scale(1); } 45% { transform: scale(1.05); } 100% { transform: scale(1); } }
 .cx-settle { animation: cxSettle .36s cubic-bezier(.34,1.56,.64,1); }
+/* AnimatedList-style edge fades — signal that a scroll column has more content.
+   Only fade on md+ where columns own their scroll (mobile is one page scroller). */
+@media (min-width: 768px) { .cx-fade-y { -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 16px, #000 calc(100% - 16px), transparent 100%); } }
 @media (prefers-reduced-motion: reduce) { .cx-reveal, .cx-settle { animation: none !important; opacity: 1 !important; transform: none !important; } }`;
   document.head.appendChild(style);
 }

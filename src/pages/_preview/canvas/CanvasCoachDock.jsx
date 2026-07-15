@@ -34,11 +34,10 @@ export default function CanvasCoachDock() {
   const [activeIdx, setActiveIdx] = useState(-1);
   const threadRef = useRef(null);
 
-  // Action-search suggestions (idea #2 sibling of ⌘K). "[tracked company]" is
-  // filled from the fixture pipeline — Lemonade is the interviewing app.
-  // Prompts kept at/under the "Am I ready to apply?" length ceiling so they
-  // never truncate at the dock's narrowest (220px sidebar) width. No hint (it
-  // ate width). "[tracked company]" = Lemonade, the interviewing fixture app.
+  // Action-search suggestions (idea #2 sibling of ⌘K). Prompts wrap rather than
+  // clip now (CanvasCommandItem truncate=false), so length isn't fatal, but they
+  // stay short to read as one line at the 248px dock width. "[tracked company]"
+  // = Lemonade, the interviewing fixture app.
   const ACTIONS = [
     { icon: Target, label: "What's my next move?" },
     { icon: CheckCircle2, label: "Am I ready to apply?" },

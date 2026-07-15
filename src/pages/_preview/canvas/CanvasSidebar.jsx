@@ -121,7 +121,7 @@ export default function CanvasSidebar({ onSwitchTab }) {
   return (
     <>
       {/* Desktop: full left sidebar. Hidden below md — content-first there. */}
-      <div className="hidden md:flex md:w-[220px] flex-shrink-0 flex-col gap-4 md:h-full min-h-0">
+      <div className="hidden md:flex md:w-[248px] flex-shrink-0 flex-col gap-4 md:h-full min-h-0">
         <IconGrid tiles={tiles} />
         <div className="flex-1 min-h-0 bg-rd-bg-sidebar rounded-[16px] flex flex-col">
           {CANVAS_FIXTURES ? <CanvasCoachDock /> : <CoachDock />}

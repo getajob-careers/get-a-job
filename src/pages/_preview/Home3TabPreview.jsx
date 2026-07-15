@@ -88,7 +88,7 @@ export default function Home3TabPreview() {
   return (
     <Layout currentPageName="Career">
       <CvGenProvider onStart={() => setActiveTab("cv")}>
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-full flex flex-col min-h-0">
+        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
           <div className="mb-1">
             <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
               {CANVAS_FIXTURES
@@ -130,12 +130,14 @@ export default function Home3TabPreview() {
             })}
           </div>
 
-          <div className="mt-4 flex-1 min-h-0 flex flex-col md:flex-row gap-4">
+          <div className="mt-4 flex-1 min-h-0 overflow-hidden flex flex-col md:flex-row gap-4">
             {/* Persistent sidebar — tiles + coach, mounted across all three tabs */}
             <CanvasSidebar onSwitchTab={setActiveTab} />
 
-            {/* Active tab content (pb below md clears the fixed mobile rail) */}
-            <div className="flex-1 min-w-0 min-h-0 pb-16 md:pb-0">
+            {/* App-shell: no page scroll. Desktop → each column scrolls
+                internally (overflow-hidden here). Mobile (stacked) → this is the
+                single internal scroller; pb clears the fixed bottom rail. */}
+            <div className="flex-1 min-w-0 min-h-0 overflow-y-auto md:overflow-hidden pb-16 md:pb-0">
               {activeTab === "cv" && <Home3TabCvTab />}
               {activeTab === "tracker" &&
                 (CANVAS_FIXTURES ? <CanvasTrackerTab /> : <TrackerTab />)}
@@ -416,8 +418,11 @@ function CanvasTrackerTab() {
     ]);
 
   return (
-    <section aria-label="Pipeline board">
-      <div className="flex gap-1.5 mb-4">
+    <section
+      aria-label="Pipeline board"
+      className="md:h-full flex flex-col md:min-h-0"
+    >
+      <div className="flex gap-1.5 mb-4 flex-shrink-0">
         <CanvasFunnelTile
           label="saved"
           value={funnelCounts.saved}
@@ -441,92 +446,96 @@ function CanvasTrackerTab() {
         />
       </div>
 
-      {!guideDismissed && (
-        <RdCard className="p-5" data-pipeline-guide>
-          <div className="flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-                How to use this pipeline
-              </p>
-              <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] mt-1.5">
-                Every application has a{" "}
-                <strong className="text-rd-text font-display font-bold">
-                  7-step process
-                </strong>
-                . Open any card and work through each step before submitting -
-                candidates who skip steps are the ones who get ignored.
-              </p>
+      {/* Guide + board scroll inside their own container on desktop; the funnel
+          row above stays pinned. Mobile uses the page's single scroller. */}
+      <div className="cx-fade-y md:flex-1 md:min-h-0 md:overflow-y-auto md:pb-2">
+        {!guideDismissed && (
+          <RdCard className="p-5" data-pipeline-guide>
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+                  How to use this pipeline
+                </p>
+                <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] mt-1.5">
+                  Every application has a{" "}
+                  <strong className="text-rd-text font-display font-bold">
+                    7-step process
+                  </strong>
+                  . Open any card and work through each step before submitting -
+                  candidates who skip steps are the ones who get ignored.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setGuideDismissed(true)}
+                aria-label="Dismiss the pipeline guide"
+                className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setGuideDismissed(true)}
-              aria-label="Dismiss the pipeline guide"
-              className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full text-rd-text-tertiary hover:text-rd-text hover:bg-rd-bg-soft transition-colors"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-4">
-            <PipelineGuideTile
-              tint="var(--rd-golden-tint)"
-              accent="var(--rd-golden-dark)"
-              head="Steps 1–2"
-              body="Qualify yourself. Dissect the job description. Know the role before applying."
-            />
-            <PipelineGuideTile
-              tint="var(--rd-teal-tint)"
-              accent="var(--rd-teal-dark)"
-              head="Steps 3–5"
-              body="Tailor your CV, map skill evidence, and find a referral contact at the company."
-            />
-            <PipelineGuideTile
-              tint="var(--rd-coral-tint)"
-              accent="var(--rd-coral-dark)"
-              head="Steps 6–7"
-              body="Submit your application, then prep for the interview with STAR-format answers."
-            />
-            <PipelineGuideTile
-              tint="var(--rd-golden-tint)"
-              accent="var(--rd-golden-dark)"
-              head="⭐ Referral = your biggest edge"
-              body="Many companies offer referral bonuses. They're incentivised to get you in."
-              highlight
-            />
-          </div>
-        </RdCard>
-      )}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-4">
+              <PipelineGuideTile
+                tint="var(--rd-golden-tint)"
+                accent="var(--rd-golden-dark)"
+                head="Steps 1–2"
+                body="Qualify yourself. Dissect the job description. Know the role before applying."
+              />
+              <PipelineGuideTile
+                tint="var(--rd-teal-tint)"
+                accent="var(--rd-teal-dark)"
+                head="Steps 3–5"
+                body="Tailor your CV, map skill evidence, and find a referral contact at the company."
+              />
+              <PipelineGuideTile
+                tint="var(--rd-coral-tint)"
+                accent="var(--rd-coral-dark)"
+                head="Steps 6–7"
+                body="Submit your application, then prep for the interview with STAR-format answers."
+              />
+              <PipelineGuideTile
+                tint="var(--rd-golden-tint)"
+                accent="var(--rd-golden-dark)"
+                head="⭐ Referral = your biggest edge"
+                body="Many companies offer referral bonuses. They're incentivised to get you in."
+                highlight
+              />
+            </div>
+          </RdCard>
+        )}
 
-      <div
-        className={`flex items-start justify-between gap-3 flex-wrap ${!guideDismissed ? "mt-4" : ""}`}
-      >
-        <div className="min-w-0">
-          <h2 className="font-display font-bold text-[17px] text-rd-text">
-            Pipeline board
-          </h2>
-          <p className="text-[11.5px] text-rd-text-secondary mt-0.5">
-            Drag a card between columns to update its status. Click any card to
-            open the steps checklist.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={addManually}
-          className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-teal hover:bg-rd-teal-dark rounded-full px-3.5 py-2 transition-colors"
+        <div
+          className={`flex items-start justify-between gap-3 flex-wrap ${!guideDismissed ? "mt-4" : ""}`}
         >
-          <Plus className="w-3.5 h-3.5" />
-          Add manually
-        </button>
-      </div>
+          <div className="min-w-0">
+            <h2 className="font-display font-bold text-[17px] text-rd-text">
+              Pipeline board
+            </h2>
+            <p className="text-[11.5px] text-rd-text-secondary mt-0.5">
+              Drag a card between columns to update its status. Click any card
+              to open the steps checklist.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={addManually}
+            className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-teal hover:bg-rd-teal-dark rounded-full px-3.5 py-2 transition-colors"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Add manually
+          </button>
+        </div>
 
-      <div className="mt-3">
-        <CanvasKanban
-          applications={apps}
-          statuses={APPLICATION_STATUSES}
-          statusLabels={APPLICATION_STATUS_LABELS}
-          onMove={move}
-          onCardClick={(app) => setDrawerApp(app)}
-          justMoved={justMoved}
-        />
+        <div className="mt-3">
+          <CanvasKanban
+            applications={apps}
+            statuses={APPLICATION_STATUSES}
+            statusLabels={APPLICATION_STATUS_LABELS}
+            onMove={move}
+            onCardClick={(app) => setDrawerApp(app)}
+            justMoved={justMoved}
+          />
+        </div>
       </div>
 
       <CanvasAppDrawer app={drawerApp} onClose={() => setDrawerApp(null)} />

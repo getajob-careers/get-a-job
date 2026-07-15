@@ -47,14 +47,14 @@ const TOP_MATCHES_SHOWN = 6;
 // the CV document (center) + top-matches (right).
 export default function Home3TabCvTab() {
   return (
-    <div className="flex flex-col md:flex-row gap-4 h-full min-h-0">
+    <div className="flex flex-col md:flex-row gap-4 md:h-full md:min-h-0">
       {/* Center - CV studio (live) or fixture CV-generation flow (canvas) */}
-      <div className="w-full md:flex-1 min-w-0 md:h-full overflow-hidden bg-rd-bg-card border border-rd-border-subtle rounded-[16px]">
+      <div className="w-full md:flex-1 min-w-0 md:h-full md:overflow-hidden bg-rd-bg-card border border-rd-border-subtle rounded-[16px]">
         {CANVAS_FIXTURES ? <CanvasCvGeneration /> : <CVStudioLive />}
       </div>
 
       {/* Right - compact top-matches list */}
-      <div className="w-full md:w-[320px] flex-shrink-0 md:h-full md:overflow-y-auto">
+      <div className="cx-fade-y w-full md:w-[320px] flex-shrink-0 md:h-full md:overflow-y-auto md:pb-2">
         {CANVAS_FIXTURES ? <CanvasTopMatches /> : <TopMatchesPanel />}
       </div>
     </div>
