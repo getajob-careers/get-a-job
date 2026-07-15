@@ -6,9 +6,7 @@ import { deriveJobDisplay } from "@/lib/jobCardDisplay";
 import { useCountUp } from "./useCountUp";
 import AgencyBadge from "@/components/jobs/AgencyBadge";
 import CanvasCardActions from "./CanvasCardActions";
-import { scoreVariant } from "./scoreVariant";
 import CanvasScoreRing from "./CanvasScoreRing";
-import CanvasScoreGauge from "./CanvasScoreGauge";
 
 // Count-up refinement (wave-1 fix): only the top few cards count (one clear beat
 // beats ten invisible ones), the ramp starts AFTER the card's entrance reveal so
@@ -35,11 +33,11 @@ export default function CanvasJobCard({ job, scoreResult, onOpen, index = 0 }) {
   const attainPct = Math.round(attain * 100);
 
   // Wave 2.5: ?score=ring|gauge swaps the badge for a circular visual; reduced
-  // motion always falls back to the plain badge.
+  // motion always falls back to the plain badge; otherwise the ring is default.
   const reduce =
     typeof window !== "undefined" &&
     window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  const variant = reduce ? "badge" : scoreVariant();
+  const variant = reduce ? "badge" : "ring";
 
   const open = () => onOpen?.(job, scoreResult);
 
@@ -65,9 +63,6 @@ export default function CanvasJobCard({ job, scoreResult, onOpen, index = 0 }) {
         </span>
         {d.scored && d.bandMeta && variant === "ring" && (
           <CanvasScoreRing scoreResult={scoreResult} bandMeta={d.bandMeta} />
-        )}
-        {d.scored && d.bandMeta && variant === "gauge" && (
-          <CanvasScoreGauge scoreResult={scoreResult} bandMeta={d.bandMeta} />
         )}
         {d.scored && d.bandMeta && variant === "badge" && (
           <span
