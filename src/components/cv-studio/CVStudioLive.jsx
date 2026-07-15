@@ -30,7 +30,10 @@ import {
   useExperiencesQuery,
   experiencesQueryKey,
 } from "@/lib/queries/useExperiences";
-import { promoteBulletsToProfile } from "@/lib/promoteBulletsToProfile";
+import {
+  promoteBulletsToProfile,
+  promoteSummaryToProfile,
+} from "@/lib/promoteBulletsToProfile";
 import { triggerBlobDownload, cvFilename } from "@/lib/downloadFile";
 import { trackCvGenerated } from "@/lib/analytics";
 import CvGenerationProgress from "@/components/cv-studio/CvGenerationProgress";
@@ -198,6 +201,28 @@ export default function CVStudioLive() {
         // promote the change to the PROFILE (the source of truth). Deduped via
         // profilePromptedRef so the debounced autosave prompts once per edit burst.
         const savedCv = cvOptions.find((o) => o.id === cvId);
+        // FIX (F2): the master CV's summary IS the profile summary - the
+        // deterministic master build sources profiles.summary. Editing it in the
+        // studio used to write ONLY application_cvs.cv_data and NEVER
+        // profiles.summary (no code path), so it silently reverted on the next
+        // tailor and the user re-edited forever. Sync it through + surface the
+        // error (previously a fully silent no-op).
+        if (savedCv?.isMaster) {
+          const summary = String(nextModel?.summary ?? "").trim();
+          if (summary) {
+            const { ok } = await promoteSummaryToProfile({
+              supabase,
+              user,
+              summary,
+            });
+            if (!ok) {
+              setSaveState("error");
+              toast.error(
+                "Saved to your CV, but couldn't sync your summary to your profile.",
+              );
+            }
+          }
+        }
         if (savedCv?.isMaster && !profilePromptedRef.current) {
           profilePromptedRef.current = true;
           toast("Saved to this CV.", {

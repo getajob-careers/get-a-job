@@ -56,15 +56,28 @@ function mapExpIn(arr, orgKey) {
 // Editor entry -> persisted entry: overlay the editor-owned fields (under the
 // canonical org key) onto __src, drop ids, bullets back to strings.
 function mapExpOut(arr, orgKey) {
-  return asArray(arr).map((e) => ({
-    ...obj(e.__src),
-    title: str(e.title),
-    [orgKey]: str(e.org),
-    dates: str(e.dates),
-    bullets: asArray(e.bullets)
-      .map((b) => str(b?.text).trim())
-      .filter(Boolean),
-  }));
+  return (
+    asArray(arr)
+      .map((e) => ({
+        ...obj(e.__src),
+        title: str(e.title),
+        [orgKey]: str(e.org),
+        dates: str(e.dates),
+        bullets: asArray(e.bullets)
+          .map((b) => str(b?.text).trim())
+          .filter(Boolean),
+      }))
+      // Drop a fully-blank entry (an added-but-unfilled row): no title, org,
+      // dates, or bullets. Otherwise it persists into cv_data and renders as a
+      // blank line / floating gap in the PDF (the "weird extra line" bug). (F3)
+      .filter(
+        (e) =>
+          str(e.title).trim() ||
+          str(e[orgKey]).trim() ||
+          str(e.dates).trim() ||
+          (Array.isArray(e.bullets) && e.bullets.length > 0),
+      )
+  );
 }
 
 // Rebuild canonical languages [{language,proficiency}] from the editor's flat
@@ -147,7 +160,9 @@ export function fromCvData(cvData) {
       .map((hh) =>
         typeof hh === "string"
           ? hh
-          : [str(hh?.name), str(hh?.description)].filter(Boolean).join(" \u2014 "),
+          : [str(hh?.name), str(hh?.description)]
+              .filter(Boolean)
+              .join(" \u2014 "),
       )
       .filter(Boolean),
     // Untouched original — toCvData overlays onto this to preserve every

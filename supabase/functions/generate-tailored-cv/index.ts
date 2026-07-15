@@ -1988,6 +1988,30 @@ Return ONLY valid JSON. No markdown, no prose outside the JSON object.`;
       }
     }
 
+    // ─── Honors & Awards: DETERMINISTIC overwrite (provenance guarantee) ───
+    // Replace whatever the LLM composed with an aggregate from STORED sources
+    // ONLY - education[].honors + experiences[].awards. The model must never
+    // author this section: doing so fabricated unearned awards ("Dean's List")
+    // and surfaced items with no stored provenance. Same rule as experience
+    // bullets - every honor traces to a stored field. Deduped case-insensitively.
+    {
+      const seen = new Set<string>();
+      const deterministic: string[] = [];
+      const pushHonor = (raw: unknown) => {
+        const h = String(raw ?? "").trim();
+        const k = h.toLowerCase();
+        if (h && !seen.has(k)) { seen.add(k); deterministic.push(h); }
+      };
+      const eduRows = Array.isArray(profile.education) ? profile.education : [];
+      for (const ed of eduRows) {
+        for (const h of (Array.isArray(ed?.honors) ? ed.honors : [])) pushHonor(h);
+      }
+      for (const ex of experiences) {
+        for (const a of (Array.isArray(ex?.awards) ? ex.awards : [])) pushHonor(a);
+      }
+      cvData.honors_and_awards = deterministic;
+    }
+
     // ─── Honors & Awards dedup ───
     // The LLM occasionally emits the same award twice in honors_and_awards
     // — once as a string (no description) and once as an object with a
