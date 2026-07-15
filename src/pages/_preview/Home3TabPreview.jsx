@@ -52,7 +52,7 @@ import { CanvasJobsFeed } from "./canvas/CanvasMatches";
 import CanvasSidebar from "./canvas/CanvasSidebar";
 import { CvGenProvider } from "./canvas/CvGenContext";
 import CanvasField from "./canvas/CanvasField";
-import { HUES, HUE_KEYS, applyHue } from "./canvas/hues";
+import { applyPalette } from "./canvas/palette";
 
 const APPLICATION_STATUSES = [
   "interested",
@@ -84,87 +84,26 @@ const TABS = [
   { id: "jobs", label: "Browse Jobs", icon: Compass },
 ];
 
-// Live hue exploration (round 3 rev 2). Depth is the always-on structural base;
-// these directions re-tint every --rd-* token on top of it. Reads ?hue=a|b|c on
-// mount, applies the token swap to the document root (portaled overlays inherit)
-// and rewrites the URL param on flip so a pick is shareable. Default applies only
-// the Depth base (current cream+coral) for comparison; torn down on unmount.
-function useHue() {
-  const [hue, setHue] = useState(() => {
-    if (typeof window === "undefined") return "";
-    const h = new URLSearchParams(window.location.search).get("hue");
-    return HUE_KEYS.includes(h) ? h : "";
-  });
-
-  useEffect(() => applyHue(hue), [hue]);
-
-  const choose = (key) => {
-    setHue(key);
-    if (typeof window === "undefined") return;
-    const url = new URL(window.location.href);
-    if (key) url.searchParams.set("hue", key);
-    else url.searchParams.delete("hue");
-    window.history.replaceState({}, "", url);
-  };
-
-  return [hue, choose];
-}
-
-function HueSwitcher({ hue, onChoose }) {
-  const opts = [["", "Default"], ...HUE_KEYS.map((k) => [k, HUES[k].name])];
-  const active = HUES[hue];
-  return (
-    <div className="flex flex-col items-end gap-1">
-      <div className="inline-flex items-center gap-0.5 rounded-full bg-rd-bg-card/70 backdrop-blur-sm border border-rd-border-subtle p-0.5">
-        {opts.map(([key, label]) => {
-          const on = hue === key;
-          return (
-            <button
-              key={key || "default"}
-              type="button"
-              onClick={() => onChoose(key)}
-              aria-pressed={on}
-              className={`font-display font-bold text-[10.5px] rounded-full px-2.5 py-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral ${
-                on
-                  ? "bg-rd-coral text-white shadow-rd"
-                  : "text-rd-text-secondary hover:text-rd-text"
-              }`}
-            >
-              {label}
-            </button>
-          );
-        })}
-      </div>
-      {active && (
-        <span className="text-[9.5px] font-mono text-rd-text-tertiary max-w-[260px] text-right leading-tight">
-          {active.reference}
-        </span>
-      )}
-    </div>
-  );
-}
-
 export default function Home3TabPreview() {
   const [activeTab, setActiveTab] = useState("cv");
-  const [hue, chooseHue] = useHue();
+  // Clay is the adopted palette (hue exploration final). Applied once on mount to
+  // the document root so portaled overlays inherit; restored on unmount.
+  useEffect(() => (CANVAS_FIXTURES ? applyPalette() : undefined), []);
 
   return (
     <Layout currentPageName="Career">
       <CvGenProvider onStart={() => setActiveTab("cv")}>
         <div className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
           {CANVAS_FIXTURES && <CanvasField />}
-          <div className="mb-1 flex items-start justify-between gap-3">
-            <div className="min-w-0">
-              <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-                {CANVAS_FIXTURES
-                  ? "Design canvas · fixture data · safe to click"
-                  : "Prototype - not the live homepage"}
-              </p>
-              <h1 className="font-display font-extrabold text-[20px] text-rd-text mt-0.5">
-                Home
-              </h1>
-            </div>
-            {CANVAS_FIXTURES && <HueSwitcher hue={hue} onChoose={chooseHue} />}
+          <div className="mb-1">
+            <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+              {CANVAS_FIXTURES
+                ? "Design canvas · fixture data · safe to click"
+                : "Prototype - not the live homepage"}
+            </p>
+            <h1 className="font-display font-extrabold text-[20px] text-rd-text mt-0.5">
+              Home
+            </h1>
           </div>
 
           <div

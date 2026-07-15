@@ -1,5 +1,5 @@
 // Depth field (round 3 rev 2). Depth won structurally, so it's now the always-on
-// base for every hue (see hues.js). A distinct deeper field tone with white
+// base for the adopted palette (see palette.js). A deeper field tone with white
 // cards lifted above it by the long shadow token, plus oversized brand arcs
 // bleeding off-canvas behind the columns. Everything is token-driven — the field
 // tone reads --rd-field and the arcs read the accent/band tokens — so it
