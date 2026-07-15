@@ -46,6 +46,7 @@ import Home3TabCvTab from "./Home3TabCvTab";
 import { CANVAS_FIXTURES } from "./canvas/canvasConfig";
 import { CANVAS_APPLICATIONS } from "./fixtures/canvasHome";
 import CanvasKanban from "./canvas/CanvasKanban";
+import CanvasFunnelTile from "./canvas/CanvasFunnelTile";
 import CanvasAppDrawer from "./canvas/CanvasAppDrawer";
 import { CanvasJobsFeed } from "./canvas/CanvasMatches";
 import CanvasSidebar from "./canvas/CanvasSidebar";
@@ -384,16 +385,20 @@ function CanvasTrackerTab() {
   const [apps, setApps] = useState(CANVAS_APPLICATIONS);
   const [drawerApp, setDrawerApp] = useState(null);
   const [guideDismissed, setGuideDismissed] = useState(false);
+  const [justMoved, setJustMoved] = useState(null); // card id → settle beat
 
   const funnelCounts = useMemo(
     () => funnelCountsFromApplications(apps),
     [apps],
   );
 
-  const move = (appId, toStatus) =>
+  const move = (appId, toStatus) => {
     setApps((prev) =>
       prev.map((a) => (a.id === appId ? { ...a, status: toStatus } : a)),
     );
+    setJustMoved(appId);
+    setTimeout(() => setJustMoved((id) => (id === appId ? null : id)), 500);
+  };
 
   const addManually = () =>
     setApps((prev) => [
@@ -413,18 +418,27 @@ function CanvasTrackerTab() {
   return (
     <section aria-label="Pipeline board">
       <div className="flex gap-1.5 mb-4">
-        <RdFunnelTile label="saved" value={funnelCounts.saved} tone="neutral" />
-        <RdFunnelTile
+        <CanvasFunnelTile
+          label="saved"
+          value={funnelCounts.saved}
+          total={apps.length}
+        />
+        <CanvasFunnelTile
           label="applied"
           value={funnelCounts.applied}
-          tone="neutral"
+          total={apps.length}
         />
-        <RdFunnelTile
+        <CanvasFunnelTile
           label="interview"
           value={funnelCounts.interview}
-          tone="teal"
+          total={apps.length}
+          accent="var(--rd-teal)"
         />
-        <RdFunnelTile label="offer" value={funnelCounts.offer} tone="neutral" />
+        <CanvasFunnelTile
+          label="offer"
+          value={funnelCounts.offer}
+          total={apps.length}
+        />
       </div>
 
       {!guideDismissed && (
@@ -511,6 +525,7 @@ function CanvasTrackerTab() {
           statusLabels={APPLICATION_STATUS_LABELS}
           onMove={move}
           onCardClick={(app) => setDrawerApp(app)}
+          justMoved={justMoved}
         />
       </div>
 

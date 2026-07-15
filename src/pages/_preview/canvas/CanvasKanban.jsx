@@ -23,7 +23,7 @@ function pct(v) {
   return v == null ? null : `${Math.round(v * 100)}%`;
 }
 
-function CanvasKanbanCard({ app, onClick }) {
+function CanvasKanbanCard({ app, onClick, settling }) {
   const tone = STATUS_TONE[app.status] || STATUS_TONE.interested;
   const match = pct(app.qualification_score);
   return (
@@ -32,7 +32,7 @@ function CanvasKanbanCard({ app, onClick }) {
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick?.()}
-      className="cursor-pointer bg-rd-bg-card border border-rd-border rounded-[10px] p-2.5 hover:border-rd-border-hover hover:shadow-rd transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-1"
+      className={`${settling ? "cx-settle" : ""} cursor-pointer bg-rd-bg-card border border-rd-border rounded-[10px] p-2.5 hover:border-rd-border-hover hover:shadow-rd transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-1`}
     >
       <div className="flex items-start gap-2">
         <span
@@ -77,6 +77,7 @@ export default function CanvasKanban({
   statusLabels,
   onMove,
   onCardClick,
+  justMoved,
 }) {
   const byStatus = statuses.reduce((acc, s) => {
     acc[s] = applications.filter((a) => a.status === s);
@@ -137,6 +138,7 @@ export default function CanvasKanban({
                             <CanvasKanbanCard
                               app={app}
                               onClick={() => onCardClick?.(app)}
+                              settling={app.id === justMoved}
                             />
                           </div>
                         )}
