@@ -112,23 +112,10 @@ const INDUSTRY_SUGGESTIONS = [
   "Agriculture", "Farming", "Food Production", "AgriTech",
 ];
 
-// Curated honors / awards suggestions — universal academic distinctions
-// + common societies. Earlier versions of this list leaned heavily on
-// Israeli academic + military scholarships (Heseg, IDF Excellence,
-// Reichman Excellence, Lone Soldier, etc.); those were removed when the
-// platform copy was generalized away from a single country/school.
-// Users with cohort-specific honors can still type them in as free text;
-// this list is purely autocomplete acceleration.
-const HONORS_SUGGESTIONS = [
-  // Generic academic distinctions
-  "Dean's List", "Honors Program", "President's Honors", "Academic Excellence Award",
-  "Merit Scholarship", "Honors Thesis", "Distinction in Field",
-  // Latin honors + class-rank distinctions
-  "Summa Cum Laude", "Magna Cum Laude", "Cum Laude", "First Class Honors", "High Distinction",
-  "Valedictorian", "Salutatorian", "Outstanding Student Award",
-  // Common honor societies
-  "Phi Beta Kappa", "Beta Gamma Sigma", "Tau Beta Pi",
-];
+// Intentionally empty: honors must be user-typed (their real, earned awards).
+// Suggesting specific named awards as tap-to-add chips is a fabrication vector
+// (Dean's List was the motivating case for the CV honors-provenance fix).
+const HONORS_SUGGESTIONS = [];
 
 // Phase 0a (Skills Coherence): the prior 240-item curated SKILL_SUGGESTIONS
 // list was REMOVED. 94/240 (39%) of its entries didn't resolve to canonical

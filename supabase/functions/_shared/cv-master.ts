@@ -265,19 +265,27 @@ export function buildMasterCvData(
     };
   });
 
-  // Honors & awards: aggregate every education row's honors[] into the top-level
-  // section the renderer reads, deduped case-insensitively, capped.
+  // Honors & awards: DETERMINISTIC aggregation from stored STRUCTURED sources
+  // ONLY - education[].honors (academic) + experiences[].awards (military /
+  // role awards). NEVER LLM-composed: the generation path used to let the model
+  // author this section, which fabricated unearned awards (e.g. "Dean's List")
+  // and surfaced items with no stored provenance. Every entry here now traces to
+  // a stored field. Deduped case-insensitively.
   const honorsSeen = new Set<string>();
   const honors: string[] = [];
-  for (const ed of asArray(education)) {
-    for (const h of asArray(ed?.honors)) {
-      const hs = str(h).trim();
-      const key = hs.toLowerCase();
-      if (hs && !honorsSeen.has(key)) {
-        honorsSeen.add(key);
-        honors.push(hs);
-      }
+  const pushHonor = (raw: any) => {
+    const hs = str(raw).trim();
+    const key = hs.toLowerCase();
+    if (hs && !honorsSeen.has(key)) {
+      honorsSeen.add(key);
+      honors.push(hs);
     }
+  };
+  for (const ed of asArray(education)) {
+    for (const h of asArray(ed?.honors)) pushHonor(h);
+  }
+  for (const e of asArray(experiences)) {
+    for (const a of asArray(e?.awards)) pushHonor(a);
   }
 
   // Projects / certifications from the separate tables, when the caller passes
