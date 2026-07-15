@@ -11,7 +11,7 @@ The through-line: the Studio autosaves to an **ephemeral `application_cvs.cv_dat
 - **Option A - Master CV is a live VIEW of the profile.** Studio edits write **through** to the profile (summary → `profiles.summary`, bullets → `experiences.bullets`, dates/titles → their rows, honors → `education.honors`/`experiences.awards`). The master is always re-derived; there is no separate editable master state to drift. "Save to profile" disappears (every edit already is).
 - **Option B - Master CV is a DOCUMENT** distinct from the profile, with an explicit, visible sync action.
 
-The forensics + F2 (summary write-through, already shipped) point at **Option A**. The recommendations below assume A unless noted; if B is chosen, each "write through" becomes "stage + one explicit sync."
+**DECISION (Eli, 2026-07-15): Option A.** The Master CV is a live view of the profile; Studio edits write through to the source rows everywhere. This resolves S2, S5, S8, and S1's stale-master half. The build spec is below (**"Option A build spec"**). F2 (summary write-through) already shipped as the first increment.
 
 ---
 
@@ -116,9 +116,44 @@ Everything else (phone, certifications, projects, experience/education entry add
 
 ---
 
+## Option A build spec (S2 decided: Master CV = live view)
+
+The Master CV becomes a live view of the profile: editing it in the Studio, or via the coach, writes through to the source rows (`profiles`, `experiences`, `education`) immediately. The master row (`application_cvs where is_master`) becomes a pure cache/render of that derivation, never an authoritative editable store. The four items below are **blocking requirements** for the write-through PR, not follow-ups.
+
+### Write-through mechanics (the base change)
+
+- Every Studio field commit on the **master** maps to its source field and persists there (summary->`profiles.summary`, a bullet->that experience's `bullets`, a date/title->that row, an award->`experiences.awards`, an honor->`education.honors`). No authoritative `application_cvs.cv_data` for the master; the master row is re-derived after the write.
+- The "Save to profile" toast is deleted (per S8; meaningless when every edit already persists).
+- **Requirement 3 - tailored CVs stay documents. CONFIRMED (this is the assumption; flagged explicitly).** Write-through applies to the **master/profile only**. A tailored CV (`is_master=false`, per-application) is a point-in-time **snapshot** - editing it in the Studio writes to that `application_cvs.cv_data` row only and never touches the profile. Rationale: a CV you already generated/sent for a job must not silently mutate when you later edit your profile. So the Studio has two clearly-signalled modes: **Master = live (writes through)**, **Tailored = document (local to that CV)**. This difference must be visible in the UI so the user knows which they are editing.
+
+### Requirement 1 (BLOCKING): Undo ships in the same PR as write-through
+
+Write-through mutates source-of-truth on every commit, so undo is not optional.
+
+- **Minimum (in this PR): session-scoped undo.** Before each write, capture the prior value; expose "Undo last change" (ideally a short in-memory undo stack) that restores it. No schema, client-only, lost on refresh. Covers the immediate "oops, revert" case.
+- **Edit-history table (cost delta + recommendation):** a durable `profile_edits` table `(id, user_id, entity_type, entity_id, field, prior_value, new_value, source ['studio'|'coach'|...], created_at)`, one append per write. Cost delta vs session-undo: **one migration + one extra INSERT on every field commit (write amplification) + RLS + a history/undo-any-of-last-N UI**. Buys: cross-session undo and - the reason it matters here - an **audit trail of what the coach changed** (S3 gives the coach full write access; a durable log of coach mutations is a real safety feature, not a nicety).
+- **Recommendation:** ship session-scoped undo in this PR (blocking). Do the edit-history table as the **immediate fast-follow**, justified by the S3 write-agent coach (you'll want to see and reverse coach edits across sessions). Worth doing, but it does not need to block the write-through PR - unless you want the coach's write access and its audit log to land together, in which case fold it in. Default recommendation: fast-follow.
+
+### Requirement 2 (BLOCKING): one shared write layer, not per-caller
+
+Anti-fab enforcement and confirm-on-destructive live in a **single shared write-mediation layer** every write path routes through - Studio autosave, coach apply, any future surface. No per-caller reimplementation.
+
+- The layer (`writeProfileEntity`, one chokepoint) does, for every write: (a) run the **anti-fab gate** on content-bearing fields (summary, bullets, awards, honors) - same provenance rules as CV gen (`cv-antifab` / `enforceCvInvariants`); honors stay **deterministic-from-stored** (add an award to a stored field, never compose free text); (b) enforce **confirm-on-destructive** (deletes, full-array replaces) by returning a "needs confirmation" result the caller surfaces; (c) **snapshot the prior value** (feeds Requirement 1); (d) return `{ ok, error, undo_token }` - never a silent no-op.
+- **Placement (flag a decision):** content-bearing writes (summary/bullets/awards/honors) should chokepoint through an **edge function** so anti-fab + the audit row run server-side (current `cv-antifab`/`enforceCvInvariants` are Deno). Purely structural writes (dates, flags, reorder) can go direct through a thin shared **client** wrapper that still does snapshot + confirm. One logical layer, two physical entry points - keeps anti-fab authoritative without a network round-trip on every non-content commit.
+
+### Requirement 4 (BLOCKING): concurrency - Studio and coach on the same field
+
+Both writers target the same source rows, so define what happens when the Studio holds an unsaved local edit on a field the coach (or a tailor) just wrote.
+
+- **Model: single source, last-write-wins, but NEVER a silent clobber** (ties to no-silent-failure). Each writer uses **optimistic concurrency**: it carries the `updated_at`/version of the entity it loaded; the shared write layer rejects a write whose base version is stale and returns a conflict instead of overwriting.
+- **Behavior:** coach writes field X while the Studio shows X -> the Studio gets an invalidation/`updated_at` bump and shows a **non-destructive "changed by coach, reload to see"** signal on that field; it does **not** auto-clobber the coach's write on its next autosave, and does **not** silently discard the user's own in-progress edit (the S1 failure). If the user had an unsaved edit to X, they are prompted keep-mine / take-coach's, not silently resolved. A Studio autosave whose base version is stale gets a conflict ("this changed since you started editing"), not an overwrite.
+- **Net rule:** one source of truth, optimistic-concurrency-guarded writes, conflicts always surfaced, the user's unsaved edit never lost without a prompt.
+
+---
+
 ## Cross-cutting
 
-- **S2 + S5 + S8 + S1(stale-master)** are one contract (the master↔profile write direction). Deciding **Option A vs B** resolves all four. F2 (summary write-through) already shipped as the first Option-A increment.
+- **S2 (DECIDED: Option A) + S5 + S8 + S1(stale-master)** were one contract (the master-to-profile write direction), now resolved by the Option-A build spec above. F2 (summary write-through) already shipped as the first increment.
 - **S1(dedup)** and **S7** are independent build items once the contract is set.
 - **S3** is a separate product decision (coach scope) + an immediate "fail loudly" fix.
 
