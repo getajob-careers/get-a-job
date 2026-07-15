@@ -20,7 +20,7 @@
 // self-fetching and page-agnostic (the same component /Career's "Job
 // search" tab and the retired /Jobs route both render).
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -51,7 +51,11 @@ import CanvasAppDrawer from "./canvas/CanvasAppDrawer";
 import { CanvasJobsFeed } from "./canvas/CanvasMatches";
 import CanvasSidebar from "./canvas/CanvasSidebar";
 import { CvGenProvider } from "./canvas/CvGenContext";
-import { PALETTES, PALETTE_KEYS, applyPalette } from "./canvas/palettes";
+import CanvasField, {
+  FIELDS,
+  FIELD_KEYS,
+  fieldShellStyle,
+} from "./canvas/CanvasField";
 
 const APPLICATION_STATUSES = [
   "interested",
@@ -83,46 +87,38 @@ const TABS = [
   { id: "jobs", label: "Browse Jobs", icon: Compass },
 ];
 
-// Live palette exploration (round 3, item 4). Reads ?palette=a|b|c on mount,
-// keeps it in state, and applies the token swap to the document root (portaled
-// overlays inherit). Flipping the switcher also rewrites the URL param so a
-// direction is shareable and survives reload; the applied sheet is torn down on
-// unmount. Only wired in fixture (canvas) mode.
-function usePalette() {
-  const [palette, setPalette] = useState(() => {
+// Live field exploration (round 3 rev). The palette swap was rejected — the
+// warm identity stays; only the background FIELD changes. Reads ?field=a|b|c on
+// mount, keeps it in state, and rewrites the URL param on flip so a direction is
+// shareable and survives reload. No document-root mutation: the treatment is a
+// layer inside the shell (CanvasField) plus a scoped shadow var. Canvas-only.
+function useField() {
+  const [field, setField] = useState(() => {
     if (typeof window === "undefined") return "";
-    const p = new URLSearchParams(window.location.search).get("palette");
-    return PALETTE_KEYS.includes(p) ? p : "";
+    const f = new URLSearchParams(window.location.search).get("field");
+    return FIELD_KEYS.includes(f) ? f : "";
   });
 
-  useEffect(() => {
-    const restore = applyPalette(palette);
-    return restore;
-  }, [palette]);
-
   const choose = (key) => {
-    setPalette(key);
+    setField(key);
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
-    if (key) url.searchParams.set("palette", key);
-    else url.searchParams.delete("palette");
+    if (key) url.searchParams.set("field", key);
+    else url.searchParams.delete("field");
     window.history.replaceState({}, "", url);
   };
 
-  return [palette, choose];
+  return [field, choose];
 }
 
-function PaletteSwitcher({ palette, onChoose }) {
-  const opts = [
-    ["", "Default"],
-    ...PALETTE_KEYS.map((k) => [k, PALETTES[k].name]),
-  ];
-  const active = PALETTES[palette];
+function FieldSwitcher({ field, onChoose }) {
+  const opts = [["", "Default"], ...FIELD_KEYS.map((k) => [k, FIELDS[k].name])];
+  const active = FIELDS[field];
   return (
     <div className="flex flex-col items-end gap-1">
-      <div className="inline-flex items-center gap-0.5 rounded-full bg-rd-bg-soft border border-rd-border-subtle p-0.5">
+      <div className="inline-flex items-center gap-0.5 rounded-full bg-rd-bg-card/70 backdrop-blur-sm border border-rd-border-subtle p-0.5">
         {opts.map(([key, label]) => {
-          const on = palette === key;
+          const on = field === key;
           return (
             <button
               key={key || "default"}
@@ -141,7 +137,7 @@ function PaletteSwitcher({ palette, onChoose }) {
         })}
       </div>
       {active && (
-        <span className="text-[9.5px] font-mono text-rd-text-tertiary max-w-[240px] text-right leading-tight">
+        <span className="text-[9.5px] font-mono text-rd-text-tertiary max-w-[260px] text-right leading-tight">
           {active.reference}
         </span>
       )}
@@ -151,12 +147,16 @@ function PaletteSwitcher({ palette, onChoose }) {
 
 export default function Home3TabPreview() {
   const [activeTab, setActiveTab] = useState("cv");
-  const [palette, choosePalette] = usePalette();
+  const [field, chooseField] = useField();
 
   return (
     <Layout currentPageName="Career">
       <CvGenProvider onStart={() => setActiveTab("cv")}>
-        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
+        <div
+          className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0"
+          style={fieldShellStyle(field)}
+        >
+          {CANVAS_FIXTURES && <CanvasField field={field} />}
           <div className="mb-1 flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
@@ -169,7 +169,7 @@ export default function Home3TabPreview() {
               </h1>
             </div>
             {CANVAS_FIXTURES && (
-              <PaletteSwitcher palette={palette} onChoose={choosePalette} />
+              <FieldSwitcher field={field} onChoose={chooseField} />
             )}
           </div>
 
