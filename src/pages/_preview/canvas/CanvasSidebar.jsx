@@ -20,6 +20,7 @@ import { useCursorMagnet } from "./useCursorMagnet";
 import CanvasCoachDock from "./CanvasCoachDock";
 import DuotoneIcon from "./DuotoneIcon";
 import CanvasAvatarChip from "./CanvasAvatarChip";
+import CanvasMobileRail from "./CanvasMobileRail";
 
 const ICON_TILES = (onSwitchTab) => [
   {
@@ -116,13 +117,20 @@ function IconGrid({ tiles }) {
 }
 
 export default function CanvasSidebar({ onSwitchTab }) {
+  const tiles = ICON_TILES(onSwitchTab);
   return (
-    <div className="w-full md:w-[220px] flex-shrink-0 flex flex-col gap-4 md:h-full min-h-0">
-      <IconGrid tiles={ICON_TILES(onSwitchTab)} />
-      <div className="flex-1 min-h-[280px] md:min-h-0 bg-rd-bg-sidebar rounded-[16px] flex flex-col">
-        {CANVAS_FIXTURES ? <CanvasCoachDock /> : <CoachDock />}
+    <>
+      {/* Desktop: full left sidebar. Hidden below md — content-first there. */}
+      <div className="hidden md:flex md:w-[220px] flex-shrink-0 flex-col gap-4 md:h-full min-h-0">
+        <IconGrid tiles={tiles} />
+        <div className="flex-1 min-h-0 bg-rd-bg-sidebar rounded-[16px] flex flex-col">
+          {CANVAS_FIXTURES ? <CanvasCoachDock /> : <CoachDock />}
+        </div>
+        <CanvasAvatarChip />
       </div>
-      <CanvasAvatarChip />
-    </div>
+
+      {/* Below md: fixed bottom icon rail (out of flow → work fills first). */}
+      <CanvasMobileRail tiles={tiles} />
+    </>
   );
 }

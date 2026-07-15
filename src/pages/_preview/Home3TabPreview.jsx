@@ -134,8 +134,8 @@ export default function Home3TabPreview() {
             {/* Persistent sidebar — tiles + coach, mounted across all three tabs */}
             <CanvasSidebar onSwitchTab={setActiveTab} />
 
-            {/* Active tab content */}
-            <div className="flex-1 min-w-0 min-h-0">
+            {/* Active tab content (pb below md clears the fixed mobile rail) */}
+            <div className="flex-1 min-w-0 min-h-0 pb-16 md:pb-0">
               {activeTab === "cv" && <Home3TabCvTab />}
               {activeTab === "tracker" &&
                 (CANVAS_FIXTURES ? <CanvasTrackerTab /> : <TrackerTab />)}
