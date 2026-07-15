@@ -31,15 +31,18 @@ function IconAction({ icon: Icon, label, onClick, delay }) {
     <button
       type="button"
       aria-label={label}
-      title={label}
       onClick={(e) => {
         e.stopPropagation();
         onClick();
       }}
-      className="cx-action-item inline-flex items-center justify-center w-7 h-7 rounded-full bg-rd-bg-soft text-rd-text-secondary hover:bg-rd-coral hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral"
+      className="cx-action-item group/act relative inline-flex items-center justify-center w-7 h-7 rounded-full bg-rd-bg-soft text-rd-text-secondary hover:bg-rd-coral hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral"
       style={{ transitionDelay: `${delay}ms` }}
     >
       <Icon className="w-3.5 h-3.5" aria-hidden="true" />
+      {/* Styled hover-intent tooltip (300ms to show, instant to hide). */}
+      <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 z-20 whitespace-nowrap rounded-md bg-rd-text text-white text-[9.5px] font-display font-semibold px-1.5 py-0.5 opacity-0 transition-opacity duration-100 delay-0 group-hover/act:opacity-100 group-hover/act:delay-300">
+        {label}
+      </span>
     </button>
   );
 }
