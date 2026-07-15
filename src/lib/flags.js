@@ -51,3 +51,20 @@ export function isLowCoverage(ratio) {
     ratio < coverageThreshold()
   );
 }
+
+// Scoring redesign, Component 1: confidence-aware ranking. Shrinks a match's
+// fit_score toward a neutral prior when the evidence is thin/generic/low-
+// coverage (see scoreJobFit.matchConfidence). Opt-in via ?scoring_confidence=1
+// so its impact is verified on the pinned label set before it becomes default
+// (PR #156 lesson: flag a scoring change before fan-out). Off by default =>
+// every caller behaves exactly as before.
+export function scoringConfidenceEnabled() {
+  try {
+    return (
+      new URLSearchParams(window.location.search).get("scoring_confidence") ===
+      "1"
+    );
+  } catch {
+    return false;
+  }
+}

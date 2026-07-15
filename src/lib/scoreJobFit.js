@@ -27,7 +27,10 @@
 //     reasoning: { strengths: string[], gaps: string[] },
 //   }
 
-import { totalYearsOfExperience, inferExperienceLevel } from "./experienceLevel";
+import {
+  totalYearsOfExperience,
+  inferExperienceLevel,
+} from "./experienceLevel";
 // IMPORTANT: trackFromScore is imported from the shared .ts constants
 // file, NOT from ./scoreApplication. scoreApplication imports scoreJobFit
 // (PR-D), so the reverse direction created a circular module graph that
@@ -52,12 +55,102 @@ import {
 // Component weights — sum to 1.0. Skill dominates because it's both the
 // strongest signal and the one the extractor is most confident about.
 const WEIGHTS = {
-  skill: 0.50,
-  years: 0.20,
-  education: 0.10,
-  seniority: 0.10,
-  function_family: 0.10,
+  skill: 0.5,
+  years: 0.2,
+  education: 0.1,
+  seniority: 0.1,
+  function_family: 0.1,
 };
+
+// ── Component 1: confidence-aware ranking (flag-gated, default off) ──────────
+// The composite treats a match on ONE generic core skill against a 1-skill JD
+// as a confident 1.0 skill axis = half the score. The 160-label baseline showed
+// this is 49% of BAD top-picks (the "87% on lone analytical_thinking" cluster)
+// and the ELI 87% ties. Confidence-aware ranking shrinks the score toward a
+// neutral prior in proportion to how thin/generic/low-coverage the evidence is,
+// so a thin-evidence high overlap can no longer outrank a match on several
+// distinctive must-haves. Tunable; validated against the pinned labels, not by eye.
+const CONF = {
+  neutral: 0.5, // prior the score shrinks toward when confidence is low
+  // sub-factor weights (sum to 1). Thinness + distinctiveness dominate the
+  // single-generic-skill inflation; coverage is up-weighted because the BAD
+  // cluster's signature (label baseline) is very low coverage (0.04-0.15).
+  w_thinness: 0.35,
+  w_distinctiveness: 0.35,
+  w_coverage: 0.2,
+  w_extraction: 0.1,
+  // requirement-thinness factor by core-skill count (more cores = more signal)
+  thinnessByCoreCount: { 0: 0.5, 1: 0.35, 2: 0.6, 3: 0.8 }, // >=4 -> 1.0
+};
+
+// Generic / transferable competencies. A match resting only on these is weak
+// evidence of role fit vs a match on distinctive hard skills (sql, python,
+// financial_modeling). Curated from the BAD-cluster review of the 160 labels.
+const GENERIC_SKILLS = new Set([
+  "analytical_thinking",
+  "problem_solving",
+  "critical_thinking",
+  "communication",
+  "customer_communication",
+  "presentation_skills",
+  "cross_functional_collaboration",
+  "collaboration",
+  "teamwork",
+  "stakeholder_management",
+  "project_management",
+  "program_management",
+  "organization",
+  "attention_to_detail",
+  "time_management",
+  "leadership",
+  "mentoring",
+  "coaching",
+  "adaptability",
+  "emotional_intelligence",
+  "interpersonal_skills",
+  "work_ethic",
+  "self_motivation",
+  "creativity",
+  "multitasking",
+  "prioritization",
+]);
+
+function clamp01(x) {
+  return Math.max(0, Math.min(1, x));
+}
+
+// Confidence in [0,1] for a (user, job) match: high when the JD has several
+// distinctive core requirements the user genuinely matches at good coverage;
+// low when it rests on a thin/generic/low-coverage signal.
+export function matchConfidence(skill, job, conf) {
+  const coreN = Array.isArray(job?.req_skills_core)
+    ? job.req_skills_core.length
+    : 0;
+  const thinness = coreN >= 4 ? 1 : (CONF.thinnessByCoreCount[coreN] ?? 0.6);
+  const matchedCore = Array.isArray(skill?.matched_core_skills)
+    ? skill.matched_core_skills
+    : [];
+  const distinctiveMatched = matchedCore.filter(
+    (id) => !GENERIC_SKILLS.has(id),
+  ).length;
+  const distinctiveness =
+    matchedCore.length === 0
+      ? 0.55 // no core matched: low-ish (the overlap that drove the score is off-core)
+      : distinctiveMatched >= 1
+        ? 1.0
+        : 0.3; // only-generic core matches are weak evidence
+  const coverage =
+    typeof job?.skill_coverage_ratio === "number"
+      ? clamp01(job.skill_coverage_ratio)
+      : 1;
+  const extraction = typeof conf === "number" ? clamp01(conf) : 1;
+  return clamp01(
+    CONF.w_thinness * thinness +
+      CONF.w_distinctiveness * distinctiveness +
+      CONF.w_coverage * coverage +
+      CONF.w_extraction * extraction,
+  );
+}
 
 // IMPORTANT — historically these derived values lived at module top level:
 //   const DOMAIN_TO_FAMILIES_SET = Object.fromEntries(Object.entries(DOMAIN_TO_FAMILIES)...);
@@ -144,7 +237,7 @@ function computeSkillAxis(userCanonical, job) {
       matched_skills: [],
       missing_core_skills: [],
       missing_nice_skills: [],
-      skill_match_pct: null,  // not applicable
+      skill_match_pct: null, // not applicable
     };
   }
 
@@ -166,42 +259,70 @@ function computeSkillAxis(userCanonical, job) {
   return {
     score: Math.max(0, Math.min(1, score)),
     matched_skills: [...matchedCore, ...matchedNice],
+    matched_core_skills: matchedCore, // for the confidence-aware distinctiveness check
     missing_core_skills: missingCore,
     missing_nice_skills: missingNice,
-    skill_match_pct: core.length > 0 ? Math.round(coreRatio * 100) : Math.round((niceRatio ?? 0) * 100),
+    skill_match_pct:
+      core.length > 0
+        ? Math.round(coreRatio * 100)
+        : Math.round((niceRatio ?? 0) * 100),
   };
 }
 
 // ─── Years axis ────────────────────────────────────────────────────────
 function computeYearsAxis(userYears, job) {
-  const reqMin = typeof job?.req_years_min === "number" ? job.req_years_min : null;
-  const reqMax = typeof job?.req_years_max === "number" ? job.req_years_max : null;
+  const reqMin =
+    typeof job?.req_years_min === "number" ? job.req_years_min : null;
+  const reqMax =
+    typeof job?.req_years_max === "number" ? job.req_years_max : null;
 
   if (reqMin === null) {
-    return { score: 0.5, status: "unspecified", user_years: userYears, required_min: null };
+    return {
+      score: 0.5,
+      status: "unspecified",
+      user_years: userYears,
+      required_min: null,
+    };
   }
 
   if (userYears >= reqMin) {
     // In range or above. Linear bonus for being closer to min (don't
     // over-reward 20-yr veterans for 2-yr-min jobs — they're overqualified).
     if (reqMax !== null && userYears > reqMax + 2) {
-      return { score: 0.7, status: "above_max", user_years: userYears, required_min: reqMin };
+      return {
+        score: 0.7,
+        status: "above_max",
+        user_years: userYears,
+        required_min: reqMin,
+      };
     }
-    return { score: 1.0, status: "in_range", user_years: userYears, required_min: reqMin };
+    return {
+      score: 1.0,
+      status: "in_range",
+      user_years: userYears,
+      required_min: reqMin,
+    };
   }
 
   // Below min — linear penalty, floor at 0.25 (we still score "1y vs 3y
   // required" higher than "0y vs 5y required").
   const gap = reqMin - userYears;
   const penaltyScore = Math.max(0.25, 1 - gap * 0.2);
-  return { score: penaltyScore, status: "below", user_years: userYears, required_min: reqMin };
+  return {
+    score: penaltyScore,
+    status: "below",
+    user_years: userYears,
+    required_min: reqMin,
+  };
 }
 
 // ─── Education axis ────────────────────────────────────────────────────
 // Per-spec: req_education_strict → heavy penalty (not hard exclusion).
 // Equivalent-experience counts via qualification_level when not strict.
 function computeEducationAxis(profile, educations, job) {
-  const reqLevels = Array.isArray(job?.req_education_levels) ? job.req_education_levels : [];
+  const reqLevels = Array.isArray(job?.req_education_levels)
+    ? job.req_education_levels
+    : [];
   const reqStrict = job?.req_education_strict === true;
 
   if (reqLevels.length === 0) {
@@ -209,7 +330,9 @@ function computeEducationAxis(profile, educations, job) {
   }
 
   const userLevels = (Array.isArray(educations) ? educations : [])
-    .map((e) => (e?.degree_level || "").toString().toLowerCase().replace(/\s+/g, "_"))
+    .map((e) =>
+      (e?.degree_level || "").toString().toLowerCase().replace(/\s+/g, "_"),
+    )
     .filter(Boolean);
   const reqRanks = reqLevels.map((l) => EDUCATION_RANK[l] ?? 0);
   const userRanks = userLevels.map((l) => EDUCATION_RANK[l] ?? 0);
@@ -224,7 +347,7 @@ function computeEducationAxis(profile, educations, job) {
   // experience can offset (qualification_level === "equivalent_experience"
   // → soften to 0.65).
   if (reqStrict) {
-    return { score: 0.30, match: "gap_strict" };
+    return { score: 0.3, match: "gap_strict" };
   }
   const qual = String(profile?.qualification_level || "").toLowerCase();
   if (qual.includes("equivalent")) {
@@ -275,7 +398,7 @@ function computeFunctionFamilyAxis(profile, job) {
 }
 
 // ─── Composer ──────────────────────────────────────────────────────────
-export function scoreJobFit(input, job) {
+export function scoreJobFit(input, job, opts = {}) {
   const { profile, experiences = [], educations = [] } = input || {};
   const userCanonical = profile?.skills_canonical || [];
   const userYears = totalYearsOfExperience(experiences);
@@ -295,12 +418,23 @@ export function scoreJobFit(input, job) {
     seniority.score * WEIGHTS.seniority +
     family.score * WEIGHTS.function_family;
 
-  // Extraction confidence modifier: when the JD extraction is sparse
-  // (confidence < 0.4) the JD-derived requirements are unreliable —
-  // soften the score 10% so the user isn't shown a confident "Track 1"
-  // built on shaky data.
-  const conf = typeof job?.extraction_confidence === "number" ? job.extraction_confidence : null;
-  if (conf !== null && conf < 0.4) {
+  const conf =
+    typeof job?.extraction_confidence === "number"
+      ? job.extraction_confidence
+      : null;
+
+  // Component 1: confidence-aware ranking (flag-gated). When ON, shrink the
+  // composite toward a neutral prior in proportion to how thin/generic/low-
+  // coverage the evidence is, a graded successor to the binary <0.4 softener,
+  // which it subsumes (extraction is one of its sub-factors). When OFF, the
+  // legacy binary softener runs and live behavior is byte-identical.
+  let match_confidence = null;
+  if (opts.confidenceAware) {
+    match_confidence = matchConfidence(skill, job, conf);
+    fit_score = CONF.neutral + (fit_score - CONF.neutral) * match_confidence;
+  } else if (conf !== null && conf < 0.4) {
+    // Extraction confidence modifier (legacy): sparse JD extraction is
+    // unreliable, soften 10% so we don't show a confident match on shaky data.
     fit_score = fit_score * 0.9;
   }
 
@@ -400,14 +534,18 @@ export function scoreJobFit(input, job) {
     education.score * ATTAINABILITY_WEIGHTS.education +
     seniority.score * ATTAINABILITY_WEIGHTS.seniority;
   // Mirror the extraction-confidence softener from fit_score for parity.
-  if (conf !== null && conf < 0.4) attainability_score = attainability_score * 0.9;
+  if (conf !== null && conf < 0.4)
+    attainability_score = attainability_score * 0.9;
   attainability_score = Math.max(0, Math.min(1, attainability_score));
   attainability_score = Math.round(attainability_score * 100) / 100;
 
   let attainability_band;
-  if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.strong) attainability_band = "strong";
-  else if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.good) attainability_band = "good";
-  else if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.stretch) attainability_band = "stretch";
+  if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.strong)
+    attainability_band = "strong";
+  else if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.good)
+    attainability_band = "good";
+  else if (attainability_score >= ATTAINABILITY_BAND_THRESHOLDS.stretch)
+    attainability_band = "stretch";
   else attainability_band = "reach";
 
   // Above-ceiling soft gate (PR #393 follow-up). The seniority axis only
@@ -419,8 +557,10 @@ export function scoreJobFit(input, job) {
   // labelled, ranked below in-range alternatives via the band-sort UI.
   // Same failure pattern the family weight fix addressed; same fix
   // approach (gate on the categorical signal, don't lean on the weight).
-  if (seniority.match === "above_ceiling" &&
-      (attainability_band === "strong" || attainability_band === "good")) {
+  if (
+    seniority.match === "above_ceiling" &&
+    (attainability_band === "strong" || attainability_band === "good")
+  ) {
     attainability_band = "stretch";
   }
 
@@ -461,7 +601,10 @@ export function scoreJobFit(input, job) {
   //   unspecified → null  job has no extracted function_family OR user
   //                       has no primary_domain — UI hides the bar
   let goal_alignment_score = null;
-  if (job?.function_family && getDomainFamiliesSet()[String(profile?.primary_domain || "").toLowerCase()]) {
+  if (
+    job?.function_family &&
+    getDomainFamiliesSet()[String(profile?.primary_domain || "").toLowerCase()]
+  ) {
     goal_alignment_score = family.match ? 1.0 : 0.35;
   }
 
@@ -491,7 +634,10 @@ export function scoreJobFit(input, job) {
       // the skill axis (and the composite) are unreliable. Passed through for
       // the display gate; the scoring math above is unchanged.
       skill_coverage_ratio:
-        typeof job?.skill_coverage_ratio === "number" ? job.skill_coverage_ratio : null,
+        typeof job?.skill_coverage_ratio === "number"
+          ? job.skill_coverage_ratio
+          : null,
+      match_confidence, // Component 1: null when flag off, else the [0,1] shrink factor
       user_level: userLevel,
       user_stage: EXPERIENCE_LEVEL_TO_STAGE[userLevel] || null,
     },

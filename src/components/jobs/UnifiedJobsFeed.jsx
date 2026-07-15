@@ -20,6 +20,7 @@ import {
 } from "@/lib/experienceLevel";
 import { TRACK_CONFIG, TRACK_ORDER } from "@/lib/trackConfig";
 import { scoreJobFit } from "@/lib/scoreJobFit";
+import { scoringConfidenceEnabled } from "@/lib/flags";
 import { dedupeJobsById } from "@/lib/careerJobsQuery";
 import {
   UNIFIED_MAX_ROLES,
@@ -132,7 +133,9 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
     if (!profile || jobs.length === 0) return {};
     const out = {};
     for (const job of jobs) {
-      out[job.id] = scoreJobFit({ profile, experiences, educations }, job);
+      out[job.id] = scoreJobFit({ profile, experiences, educations }, job, {
+        confidenceAware: scoringConfidenceEnabled(),
+      });
     }
     return out;
   }, [profile, experiences, educations, jobs]);
