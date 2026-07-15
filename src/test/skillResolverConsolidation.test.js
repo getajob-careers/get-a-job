@@ -175,10 +175,19 @@ describe("step-2 class-A alias rows resolve to existing library IDs", () => {
     },
   );
 
-  it("reclassified phrases stay unmapped (deferred to step 3, no canonical ID)", () => {
-    expect(frontendResolveSkill("data science")).toEqual([]);
-    expect(frontendResolveSkill("data_science")).toEqual([]);
-    expect(frontendResolveSkill("security research")).toEqual([]);
-    expect(frontendResolveSkill("security_research")).toEqual([]);
+  // data_science and security_research were "deferred to step 3, no canonical
+  // ID" phrases until the 7-role expansion (#581 security, #582 quality)
+  // promoted them to real library IDs. They now resolve to themselves via the
+  // snake-case auto-resolve step — the drift-guard regen of skillIdsGenerated.json
+  // is what surfaced this (the stale 599-ID mirror was missing them).
+  it("phrases promoted to canonical IDs in the 7-role expansion now resolve", () => {
+    expect(frontendResolveSkill("data science")).toEqual(["data_science"]);
+    expect(frontendResolveSkill("data_science")).toEqual(["data_science"]);
+    expect(frontendResolveSkill("security research")).toEqual([
+      "security_research",
+    ]);
+    expect(frontendResolveSkill("security_research")).toEqual([
+      "security_research",
+    ]);
   });
 });
