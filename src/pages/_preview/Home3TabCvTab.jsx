@@ -49,7 +49,7 @@ export default function Home3TabCvTab() {
   return (
     <div className="flex flex-col md:flex-row gap-4 md:h-full md:min-h-0">
       {/* Center - CV studio (live) or fixture CV-generation flow (canvas) */}
-      <div className="w-full md:flex-1 min-w-0 md:h-full md:overflow-hidden bg-rd-bg-card border border-rd-border-subtle rounded-[16px]">
+      <div className="w-full md:flex-1 min-w-0 md:h-full md:overflow-hidden bg-rd-bg-card border border-rd-border-subtle rd-r-lg">
         {CANVAS_FIXTURES ? <CanvasCvGeneration /> : <CVStudioLive />}
       </div>
 
@@ -222,32 +222,32 @@ function TopMatchesPanel() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="font-display font-bold text-[14px] text-rd-text px-0.5">
+      <h2 className="font-display font-bold rd-t-body-m text-rd-text px-0.5">
         Top matches for you
       </h2>
 
       {isLoading ? (
-        <div className="rounded-[14px] border border-rd-border bg-rd-bg-card px-4 py-8 text-center">
+        <div className="rd-r-md border border-rd-border bg-rd-bg-card px-4 py-8 text-center">
           <Loader2 className="w-5 h-5 animate-spin text-rd-text-secondary mx-auto mb-2" />
-          <p className="text-[12px] text-rd-text-secondary">
+          <p className="rd-t-body-s text-rd-text-secondary">
             Finding your matches…
           </p>
         </div>
       ) : isError ? (
-        <div className="flex items-center gap-2 rounded-[14px] border border-[#FECACA] bg-[#FEF2F2] px-3.5 py-3 text-[12.5px] text-[#991B1B]">
+        <div className="flex items-center gap-2 rd-r-md border border-[#FECACA] bg-[#FEF2F2] px-3.5 py-3 rd-t-body-s text-[#991B1B]">
           <AlertCircle className="w-4 h-4 flex-shrink-0" />
           <span>Couldn't load matches - try again.</span>
         </div>
       ) : noRoles ? (
-        <div className="rounded-[14px] border border-rd-border bg-rd-bg-card px-4 py-6 text-center">
-          <p className="text-[12.5px] text-rd-text-secondary leading-[1.5]">
+        <div className="rd-r-md border border-rd-border bg-rd-bg-card px-4 py-6 text-center">
+          <p className="rd-t-body-s text-rd-text-secondary leading-[1.5]">
             Run your Career Roadmap to generate matched roles, then top matches
             show up here.
           </p>
         </div>
       ) : picks.length === 0 && stretch.length === 0 ? (
-        <div className="rounded-[14px] border border-rd-border bg-rd-bg-card px-4 py-6 text-center">
-          <p className="text-[12.5px] text-rd-text-secondary leading-[1.5]">
+        <div className="rd-r-md border border-rd-border bg-rd-bg-card px-4 py-6 text-center">
+          <p className="rd-t-body-s text-rd-text-secondary leading-[1.5]">
             No matches right now - check the Browse Jobs tab for the full
             search.
           </p>
@@ -306,7 +306,7 @@ function MatchSection({
 }) {
   return (
     <div>
-      <p className="text-[10px] uppercase tracking-[0.08em] font-medium text-rd-text-eyebrow font-mono mb-1.5 px-0.5">
+      <p className="rd-t-micro uppercase tracking-[0.08em] font-medium text-rd-text-eyebrow font-mono mb-1.5 px-0.5">
         {title}
       </p>
       <div className="flex flex-col gap-2">
@@ -334,7 +334,7 @@ function MatchSection({
                   type="button"
                   onClick={() => onTrack(job, scoreResult)}
                   disabled={tracked || tracking}
-                  className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 transition-colors disabled:cursor-not-allowed"
+                  className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold rd-t-micro rounded-full px-2.5 py-1.5 transition-colors disabled:cursor-not-allowed"
                   style={
                     tracked
                       ? {
@@ -359,7 +359,7 @@ function MatchSection({
                 <button
                   type="button"
                   onClick={onTailorStub}
-                  className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-bg-soft text-rd-text-secondary hover:text-rd-text transition-colors"
+                  className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold rd-t-micro rounded-full px-2.5 py-1.5 bg-rd-bg-soft text-rd-text-secondary hover:text-rd-text transition-colors"
                   title="Not wired up yet in this prototype"
                 >
                   <Wand2 className="w-3 h-3" />

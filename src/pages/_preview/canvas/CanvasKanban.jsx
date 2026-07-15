@@ -33,7 +33,7 @@ function CanvasKanbanCard({ app, onClick, settling, dragging }) {
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick?.()}
-      className={`${settling ? "cx-settle" : ""} cursor-grab active:cursor-grabbing rounded-[10px] p-2.5 transition-[box-shadow,border-color] focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-1 ${
+      className={`${settling ? "cx-settle" : ""} cursor-grab active:cursor-grabbing rd-r-sm p-2.5 transition-[box-shadow,border-color] focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-1 ${
         dragging
           ? "bg-rd-bg-card border border-rd-coral rotate-2 shadow-[0_16px_36px_rgba(40,25,10,0.28)]"
           : "bg-rd-bg-card border border-rd-border hover:border-rd-border-hover hover:shadow-rd"
@@ -41,28 +41,28 @@ function CanvasKanbanCard({ app, onClick, settling, dragging }) {
     >
       <div className="flex items-start gap-2">
         <span
-          className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-[8px] font-display font-bold text-[12px]"
+          className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rd-r-sm font-display font-bold rd-t-body-s"
           style={{ background: tone.tint, color: tone.fg }}
           aria-hidden="true"
         >
           {app.company?.[0] || "?"}
         </span>
         <div className="min-w-0 flex-1">
-          <p className="font-display font-bold text-[12px] text-rd-text leading-[1.2] line-clamp-2">
+          <p className="font-display font-bold rd-t-body-s text-rd-text leading-[1.2] line-clamp-2">
             {app.role_title}
           </p>
-          <p className="text-[10.5px] text-rd-text-secondary mt-0.5 truncate">
+          <p className="rd-t-micro text-rd-text-secondary mt-0.5 truncate">
             {[app.company, app.location].filter(Boolean).join(" · ")}
           </p>
         </div>
       </div>
       {match && (
         <div className="mt-2 flex items-center justify-between">
-          <span className="text-[9.5px] uppercase tracking-[0.08em] font-mono text-rd-text-eyebrow">
+          <span className="rd-t-micro uppercase tracking-[0.08em] font-mono text-rd-text-eyebrow">
             {app.date_applied ? `Applied ${app.date_applied}` : "Saved"}
           </span>
           <span
-            className="inline-flex items-center font-display font-bold text-[10px] rounded-full px-1.5 py-0.5"
+            className="inline-flex items-center font-display font-bold rd-t-micro rounded-full px-1.5 py-0.5"
             style={{
               background: "var(--rd-teal-tint)",
               color: "var(--rd-teal-dark)",
@@ -109,15 +109,15 @@ export default function CanvasKanban({
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   style={rv.style}
-                  className={`${rv.className} flex-shrink-0 w-[220px] rounded-[12px] p-2 transition-colors ${
+                  className={`${rv.className} flex-shrink-0 w-[220px] rd-r-md p-2 transition-colors ${
                     snapshot.isDraggingOver ? "bg-rd-bg-soft" : "bg-rd-bg-page"
                   }`}
                 >
                   <div className="flex items-center justify-between px-1 mb-2">
-                    <span className="font-display font-bold text-[11.5px] text-rd-text">
+                    <span className="font-display font-bold rd-t-body-s text-rd-text">
                       {statusLabels[status] || status}
                     </span>
-                    <span className="text-[10.5px] font-mono text-rd-text-tertiary">
+                    <span className="rd-t-micro font-mono text-rd-text-tertiary">
                       {cards.length}
                     </span>
                   </div>

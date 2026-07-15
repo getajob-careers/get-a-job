@@ -85,7 +85,7 @@ export default function CanvasCoachDock() {
   return (
     <div className="flex-1 min-h-0 flex flex-col p-3">
       <div
-        className="relative flex-1 min-h-0 flex flex-col border border-rd-border-subtle rounded-lg overflow-hidden"
+        className="relative flex-1 min-h-0 flex flex-col border border-rd-border-subtle rd-r-sm overflow-hidden"
         style={{ background: WARM_GRADIENT }}
       >
         {/* Header */}
@@ -95,13 +95,13 @@ export default function CanvasCoachDock() {
             aria-hidden="true"
             strokeWidth={2}
           />
-          <span className="flex-1 font-display font-bold text-[12.5px] tracking-tight text-rd-text leading-none">
+          <span className="flex-1 font-display font-bold rd-t-body-s tracking-tight text-rd-text leading-none">
             Coach
           </span>
           <button
             type="button"
             aria-label="Open coach in full panel"
-            className="inline-flex items-center justify-center w-5 h-5 rounded-md text-rd-text-tertiary hover:bg-rd-bg-soft hover:text-rd-text transition-colors"
+            className="inline-flex items-center justify-center w-5 h-5 rd-r-xs text-rd-text-tertiary hover:bg-rd-bg-soft hover:text-rd-text transition-colors"
           >
             <Maximize2 className="w-3 h-3" aria-hidden="true" />
           </button>
@@ -120,7 +120,7 @@ export default function CanvasCoachDock() {
               }
             >
               <div
-                className={`max-w-[85%] rounded-[12px] px-2.5 py-1.5 text-[12px] leading-[1.5] ${
+                className={`max-w-[85%] rd-r-md px-2.5 py-1.5 rd-t-body-s leading-[1.5] ${
                   m.role === "user"
                     ? "bg-rd-coral text-white"
                     : "bg-rd-bg-soft text-rd-text"
@@ -139,9 +139,9 @@ export default function CanvasCoachDock() {
             <div
               id="cx-coach-actions"
               role="listbox"
-              className="absolute bottom-full left-2 right-2 mb-1.5 z-20 rounded-lg border border-rd-border bg-rd-bg-card shadow-rd p-1"
+              className="absolute bottom-full left-2 right-2 mb-1.5 z-20 rd-r-sm border border-rd-border bg-rd-bg-card shadow-rd p-1"
             >
-              <p className="px-2 pt-1 pb-1 text-[9px] uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow">
+              <p className="px-2 pt-1 pb-1 rd-t-micro uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow">
                 Suggested
               </p>
               {ACTIONS.map((a, i) => (
@@ -182,7 +182,7 @@ export default function CanvasCoachDock() {
               aria-expanded={open}
               aria-controls="cx-coach-actions"
               placeholder="Ask your coach or pick an action…"
-              className="flex-1 bg-transparent text-[12.5px] text-rd-text placeholder:text-rd-text-tertiary focus:outline-none"
+              className="flex-1 bg-transparent rd-t-body-s text-rd-text placeholder:text-rd-text-tertiary focus:outline-none"
             />
             <button
               type="submit"
@@ -197,7 +197,7 @@ export default function CanvasCoachDock() {
 
         {/* Grain overlay — faint film grain over the whole panel. */}
         <div
-          className="pointer-events-none absolute inset-0 rounded-lg"
+          className="pointer-events-none absolute inset-0 rd-r-sm"
           style={{
             backgroundImage: GRAIN_URL,
             // Grain tuning is overridable via CSS vars (a future field/theme can

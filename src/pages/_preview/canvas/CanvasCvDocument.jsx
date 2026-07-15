@@ -16,7 +16,7 @@ import {
 
 function SectionLabel({ children }) {
   return (
-    <p className="text-[10px] uppercase tracking-[0.11em] font-mono text-rd-text-eyebrow mb-2">
+    <p className="rd-t-micro uppercase tracking-[0.11em] font-mono text-rd-text-eyebrow mb-2">
       {children}
     </p>
   );
@@ -28,13 +28,13 @@ export default function CanvasCvDocument() {
     <div className="px-6 py-6 md:px-8 md:py-7 max-w-[720px] mx-auto">
       {/* Header */}
       <header className="pb-4 border-b border-rd-border">
-        <h1 className="font-display font-extrabold text-[26px] text-rd-text leading-tight">
+        <h1 className="font-display font-extrabold rd-t-display-l text-rd-text leading-tight">
           {p.full_name}
         </h1>
-        <p className="text-[13.5px] text-rd-coral font-display font-semibold mt-0.5">
+        <p className="rd-t-body-m text-rd-coral font-display font-semibold mt-0.5">
           {p.headline}
         </p>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5 text-[11.5px] text-rd-text-secondary">
+        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5 rd-t-body-s text-rd-text-secondary">
           <span className="inline-flex items-center gap-1">
             <MapPin className="w-3 h-3" />
             {p.location}
@@ -57,7 +57,7 @@ export default function CanvasCvDocument() {
       {/* Summary */}
       <section className="py-4 border-b border-rd-border">
         <SectionLabel>Summary</SectionLabel>
-        <p className="text-[13px] text-rd-text-secondary leading-[1.6]">
+        <p className="rd-t-body-m text-rd-text-secondary leading-[1.6]">
           {p.summary}
         </p>
       </section>
@@ -69,21 +69,21 @@ export default function CanvasCvDocument() {
           {CANVAS_EXPERIENCES.map((exp) => (
             <div key={exp.id}>
               <div className="flex items-baseline justify-between gap-3">
-                <h3 className="font-display font-bold text-[14px] text-rd-text">
+                <h3 className="font-display font-bold rd-t-body-m text-rd-text">
                   {exp.title}
                 </h3>
-                <span className="flex-shrink-0 text-[11px] font-mono text-rd-text-tertiary">
+                <span className="flex-shrink-0 rd-t-micro font-mono text-rd-text-tertiary">
                   {exp.start} – {exp.end}
                 </span>
               </div>
-              <p className="text-[12px] text-rd-text-secondary">
+              <p className="rd-t-body-s text-rd-text-secondary">
                 {exp.company} · {exp.location}
               </p>
               <ul className="mt-1.5 space-y-1">
                 {exp.bullets.map((b, i) => (
                   <li
                     key={i}
-                    className="flex gap-2 text-[12.5px] text-rd-text-secondary leading-[1.5]"
+                    className="flex gap-2 rd-t-body-s text-rd-text-secondary leading-[1.5]"
                   >
                     <span className="text-rd-coral mt-[3px] flex-shrink-0">
                       ▪
@@ -104,17 +104,17 @@ export default function CanvasCvDocument() {
           {CANVAS_EDUCATION.map((ed) => (
             <div key={ed.id}>
               <div className="flex items-baseline justify-between gap-3">
-                <h3 className="font-display font-bold text-[13.5px] text-rd-text">
+                <h3 className="font-display font-bold rd-t-body-m text-rd-text">
                   {ed.school}
                 </h3>
-                <span className="flex-shrink-0 text-[11px] font-mono text-rd-text-tertiary">
+                <span className="flex-shrink-0 rd-t-micro font-mono text-rd-text-tertiary">
                   {ed.start} – {ed.end}
                 </span>
               </div>
-              <p className="text-[12.5px] text-rd-text-secondary">
+              <p className="rd-t-body-s text-rd-text-secondary">
                 {ed.degree}
               </p>
-              <p className="text-[11.5px] text-rd-text-tertiary mt-0.5 leading-[1.5]">
+              <p className="rd-t-body-s text-rd-text-tertiary mt-0.5 leading-[1.5]">
                 {ed.detail}
               </p>
             </div>
@@ -129,7 +129,7 @@ export default function CanvasCvDocument() {
           {CANVAS_SKILLS.map((s) => (
             <span
               key={s}
-              className="text-[11.5px] rounded-full px-2.5 py-0.5 bg-rd-bg-soft text-rd-text-secondary border border-rd-border"
+              className="rd-t-body-s rounded-full px-2.5 py-0.5 bg-rd-bg-soft text-rd-text-secondary border border-rd-border"
             >
               {s}
             </span>

@@ -107,14 +107,14 @@ export function CvGenProvider({ onStart, onDone, children }) {
       {phase === "generating" &&
         createPortal(
           <div className="fixed inset-0 z-[120] flex items-center justify-center p-6 bg-[rgba(40,25,10,0.45)]">
-            <div className="w-full max-w-[380px] rounded-[20px] bg-rd-bg-card border border-rd-border shadow-[0_24px_60px_rgba(40,25,10,0.28)] px-6 py-7 text-center">
+            <div className="w-full max-w-[380px] rd-r-lg bg-rd-bg-card border border-rd-border shadow-[0_24px_60px_rgba(40,25,10,0.28)] px-6 py-7 text-center">
               <div className="relative inline-flex items-center justify-center">
                 <ProgressRing progress={progress} />
-                <span className="absolute font-display font-extrabold text-[20px] text-rd-text tabular-nums">
+                <span className="absolute font-display font-extrabold rd-t-display-m text-rd-text tabular-nums">
                   {pct}%
                 </span>
               </div>
-              <p className="mt-4 text-[10px] uppercase tracking-[0.1em] font-mono text-rd-text-eyebrow">
+              <p className="mt-4 rd-t-micro uppercase tracking-[0.1em] font-mono text-rd-text-eyebrow">
                 Generating tailored CV
               </p>
               <ul className="mt-3 space-y-1.5 text-left">
@@ -124,7 +124,7 @@ export function CvGenProvider({ onStart, onDone, children }) {
                   return (
                     <li
                       key={s}
-                      className={`flex items-center gap-2 text-[12.5px] ${
+                      className={`flex items-center gap-2 rd-t-body-s ${
                         st === "pending"
                           ? "text-rd-text-tertiary"
                           : "text-rd-text"
@@ -148,7 +148,7 @@ export function CvGenProvider({ onStart, onDone, children }) {
                   );
                 })}
               </ul>
-              <p className="mt-4 text-[10.5px] text-rd-text-tertiary italic leading-[1.5]">
+              <p className="mt-4 rd-t-micro text-rd-text-tertiary italic leading-[1.5]">
                 Prototype theater — but every line is a real stage of the
                 production tailoring pipeline.
               </p>

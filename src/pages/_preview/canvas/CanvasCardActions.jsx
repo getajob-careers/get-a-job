@@ -41,7 +41,7 @@ function IconAction({ icon: Icon, label, onClick, delay }) {
     >
       <Icon className="w-3.5 h-3.5" aria-hidden="true" />
       {/* Styled hover-intent tooltip (300ms to show, instant to hide). */}
-      <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 z-20 whitespace-nowrap rounded-md bg-rd-text text-white text-[9.5px] font-display font-semibold px-1.5 py-0.5 opacity-0 transition-opacity duration-100 delay-0 group-hover/act:opacity-100 group-hover/act:delay-300">
+      <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1 z-20 whitespace-nowrap rd-r-xs bg-rd-text text-white rd-t-micro font-display font-semibold px-1.5 py-0.5 opacity-0 transition-opacity duration-100 delay-0 group-hover/act:opacity-100 group-hover/act:delay-300">
         {label}
       </span>
     </button>
@@ -61,7 +61,7 @@ export default function CanvasCardActions({ job }) {
       <button
         type="button"
         onClick={stop(() => gen?.start(`${job.company_name} · ${job.title}`))}
-        className="inline-flex items-center gap-1 font-display font-semibold text-[11px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-2.5 py-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-1"
+        className="inline-flex items-center gap-1 font-display font-semibold rd-t-micro text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-2.5 py-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-1"
       >
         <Wand2 className="w-3 h-3" aria-hidden="true" />
         Tailor CV

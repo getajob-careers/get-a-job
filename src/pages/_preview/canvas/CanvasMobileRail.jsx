@@ -16,7 +16,7 @@ import CanvasAvatarChip from "./CanvasAvatarChip";
 function RailItem({ tile }) {
   const Icon = tile.icon;
   const cls =
-    "flex-shrink-0 inline-flex items-center justify-center w-11 h-9 rounded-lg text-rd-text-secondary hover:text-rd-coral hover:bg-rd-bg-soft transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral";
+    "flex-shrink-0 inline-flex items-center justify-center w-11 h-9 rd-r-sm text-rd-text-secondary hover:text-rd-coral hover:bg-rd-bg-soft transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral";
   return (
     <Link
       to={tile.href}
@@ -48,7 +48,7 @@ export default function CanvasMobileRail({ tiles }) {
           onClick={() => setCoachOpen(true)}
           aria-label="Open coach"
           title="Coach"
-          className="flex-shrink-0 inline-flex items-center justify-center w-11 h-9 rounded-lg text-rd-coral hover:bg-rd-coral-tint transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral"
+          className="flex-shrink-0 inline-flex items-center justify-center w-11 h-9 rd-r-sm text-rd-coral hover:bg-rd-coral-tint transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral"
         >
           <Sparkles
             className="w-[18px] h-[18px]"
@@ -72,7 +72,7 @@ export default function CanvasMobileRail({ tiles }) {
           />
           <div className="relative h-[72vh] bg-rd-bg-sidebar rounded-t-[20px] flex flex-col overflow-hidden shadow-[0_-16px_40px_rgba(40,25,10,0.25)]">
             <div className="flex items-center justify-between px-4 py-2 flex-shrink-0">
-              <span className="font-display font-bold text-[13px] text-rd-text">
+              <span className="font-display font-bold rd-t-body-m text-rd-text">
                 Coach
               </span>
               <button

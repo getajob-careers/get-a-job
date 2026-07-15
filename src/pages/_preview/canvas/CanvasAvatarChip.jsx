@@ -57,7 +57,7 @@ export default function CanvasAvatarChip({ compact = false }) {
           aria-haspopup="menu"
           aria-expanded={open}
           aria-label="Account menu"
-          className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full bg-rd-coral-tint text-rd-coral font-display font-bold text-[13px] hover:bg-rd-coral hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+          className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rounded-full bg-rd-coral-tint text-rd-coral font-display font-bold rd-t-body-m hover:bg-rd-coral hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
         >
           {CANVAS_PROFILE.full_name?.[0] || "?"}
         </button>
@@ -68,16 +68,16 @@ export default function CanvasAvatarChip({ compact = false }) {
           onClick={toggle}
           aria-haspopup="menu"
           aria-expanded={open}
-          className="flex-shrink-0 flex items-center gap-2 w-full rounded-[12px] bg-rd-bg-card border border-rd-border px-2.5 py-2 hover:border-rd-border-hover hover:bg-rd-bg-soft transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+          className="flex-shrink-0 flex items-center gap-2 w-full rd-r-md bg-rd-bg-card border border-rd-border px-2.5 py-2 hover:border-rd-border-hover hover:bg-rd-bg-soft transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
         >
-          <span className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full bg-rd-coral-tint text-rd-coral font-display font-bold text-[12px]">
+          <span className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full bg-rd-coral-tint text-rd-coral font-display font-bold rd-t-body-s">
             {CANVAS_PROFILE.full_name?.[0] || "?"}
           </span>
           <span className="flex-1 min-w-0 text-left">
-            <span className="block font-display font-bold text-[11.5px] text-rd-text truncate leading-tight">
+            <span className="block font-display font-bold rd-t-body-s text-rd-text truncate leading-tight">
               {CANVAS_PROFILE.full_name}
             </span>
-            <span className="block text-[9.5px] text-rd-text-tertiary truncate">
+            <span className="block rd-t-micro text-rd-text-tertiary truncate">
               {CANVAS_PROFILE.email}
             </span>
           </span>
@@ -101,7 +101,7 @@ export default function CanvasAvatarChip({ compact = false }) {
               width: pos.width,
               zIndex: 60,
             }}
-            className="rounded-lg border border-rd-border bg-rd-bg-card shadow-rd p-1.5"
+            className="rd-r-sm border border-rd-border bg-rd-bg-card shadow-rd p-1.5"
           >
             <CanvasCommandItem
               icon={UserCircle}

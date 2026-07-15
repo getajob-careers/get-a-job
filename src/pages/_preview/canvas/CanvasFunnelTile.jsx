@@ -18,7 +18,7 @@ export default function CanvasFunnelTile({
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   return (
-    <div className="flex-1 flex items-center gap-2 bg-rd-bg-card border border-rd-border rounded-[12px] px-3 py-2">
+    <div className="flex-1 flex items-center gap-2 bg-rd-bg-card border border-rd-border rd-r-md px-3 py-2">
       <svg
         width={size}
         height={size}
@@ -50,10 +50,10 @@ export default function CanvasFunnelTile({
         />
       </svg>
       <div className="min-w-0">
-        <p className="font-display font-extrabold text-[16px] text-rd-text leading-none tabular-nums">
+        <p className="font-display font-extrabold rd-t-body-l text-rd-text leading-none tabular-nums">
           {value}
         </p>
-        <p className="text-[10px] text-rd-text-secondary mt-0.5">{label}</p>
+        <p className="rd-t-micro text-rd-text-secondary mt-0.5">{label}</p>
       </div>
     </div>
   );

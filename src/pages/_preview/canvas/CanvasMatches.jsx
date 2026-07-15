@@ -50,7 +50,7 @@ export function CanvasTopMatches() {
 
   const Section = ({ title, jobs }) => (
     <div>
-      <p className="text-[10px] uppercase tracking-[0.08em] font-mono text-rd-text-eyebrow mb-1.5 px-0.5">
+      <p className="rd-t-micro uppercase tracking-[0.08em] font-mono text-rd-text-eyebrow mb-1.5 px-0.5">
         {title}
       </p>
       <div className="flex flex-col gap-2">
@@ -73,7 +73,7 @@ export function CanvasTopMatches() {
 
   return (
     <div className="flex flex-col gap-3">
-      <h2 className="font-display font-bold text-[14px] text-rd-text px-0.5">
+      <h2 className="font-display font-bold rd-t-body-m text-rd-text px-0.5">
         Top matches for you
       </h2>
       {picks.length > 0 && <Section title="Our picks for you" jobs={picks} />}
@@ -123,7 +123,7 @@ export function CanvasJobsFeed() {
             type="button"
             onClick={() => setMode(val)}
             aria-pressed={mode === val}
-            className={`relative z-10 flex-1 whitespace-nowrap text-center font-display font-bold text-[12.5px] rounded-full px-3 py-1.5 transition-colors ${
+            className={`relative z-10 flex-1 whitespace-nowrap text-center font-display font-bold rd-t-body-s rounded-full px-3 py-1.5 transition-colors ${
               mode === val
                 ? "text-white"
                 : "text-rd-text-secondary hover:text-rd-text"
@@ -135,10 +135,10 @@ export function CanvasJobsFeed() {
       </div>
 
       <div className="flex items-center justify-between">
-        <h2 className="font-display font-bold text-[15px] text-rd-text">
+        <h2 className="font-display font-bold rd-t-body-l text-rd-text">
           {all.length} roles matched to you
         </h2>
-        <span className="text-[10.5px] uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow">
+        <span className="rd-t-micro uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow">
           Filtered to entry / mid roles
         </span>
       </div>

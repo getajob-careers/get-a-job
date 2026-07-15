@@ -53,13 +53,13 @@ export default function CanvasAppDrawer({ app, onClose }) {
       <div className="relative w-full sm:max-w-md h-full bg-rd-bg-soft border-l border-rd-border overflow-y-auto shadow-[0_0_60px_rgba(40,25,10,0.25)]">
         <div className="sticky top-0 flex items-start justify-between gap-3 px-5 pt-5 pb-4 bg-rd-bg-soft border-b border-rd-border">
           <div className="min-w-0">
-            <p className="text-[10px] uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow">
+            <p className="rd-t-micro uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow">
               {app.status}
             </p>
-            <h2 className="font-display font-extrabold text-[18px] text-rd-text leading-[1.15] mt-0.5 break-words">
+            <h2 className="font-display font-extrabold rd-t-display-s text-rd-text leading-[1.15] mt-0.5 break-words">
               {app.role_title}
             </h2>
-            <p className="text-[12.5px] text-rd-text-secondary mt-1 inline-flex items-center gap-1">
+            <p className="rd-t-body-s text-rd-text-secondary mt-1 inline-flex items-center gap-1">
               <MapPin className="w-3 h-3" aria-hidden="true" />
               {[app.company, app.location].filter(Boolean).join(" · ")}
             </p>
@@ -76,25 +76,25 @@ export default function CanvasAppDrawer({ app, onClose }) {
 
         <div className="px-5 py-4 space-y-5">
           {app.note && (
-            <div className="rounded-[12px] bg-rd-bg-card border border-rd-border-subtle p-3.5">
-              <p className="text-[10px] uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow mb-1.5">
+            <div className="rd-r-md bg-rd-bg-card border border-rd-border-subtle p-3.5">
+              <p className="rd-t-micro uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow mb-1.5">
                 Your note
               </p>
-              <p className="text-[13px] text-rd-text-secondary leading-[1.55]">
+              <p className="rd-t-body-m text-rd-text-secondary leading-[1.55]">
                 {app.note}
               </p>
             </div>
           )}
 
           <div>
-            <p className="text-[10px] uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow mb-2">
+            <p className="rd-t-micro uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow mb-2">
               7-step process
             </p>
             <ul className="space-y-1.5">
               {STEPS.map((step, i) => {
                 const complete = i < done;
                 return (
-                  <li key={i} className="flex items-center gap-2 text-[12.5px]">
+                  <li key={i} className="flex items-center gap-2 rd-t-body-s">
                     {complete ? (
                       <CircleCheck
                         className="w-4 h-4 text-rd-teal flex-shrink-0"
@@ -121,7 +121,7 @@ export default function CanvasAppDrawer({ app, onClose }) {
             </ul>
           </div>
 
-          <p className="text-[11px] text-rd-text-tertiary leading-[1.5] italic">
+          <p className="rd-t-micro text-rd-text-tertiary leading-[1.5] italic">
             Prototype: this detail view is read-only fixture data. The live app
             opens the full steps checklist here.
           </p>

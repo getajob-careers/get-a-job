@@ -72,13 +72,13 @@ function IconGrid({ tiles }) {
         const content = (
           <>
             <DuotoneIcon icon={Icon} />
-            <span className="text-[10px] font-display font-semibold text-rd-text-secondary group-hover:text-rd-text leading-tight text-center transition-colors">
+            <span className="rd-t-micro font-display font-semibold text-rd-text-secondary group-hover:text-rd-text leading-tight text-center transition-colors">
               {tile.label}
             </span>
           </>
         );
         const className =
-          "group flex flex-col items-center justify-center gap-1.5 aspect-square rounded-[12px] bg-rd-bg-card border border-rd-border hover:border-rd-border-hover hover:bg-rd-bg-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-2 p-2";
+          "group flex flex-col items-center justify-center gap-1.5 aspect-square rd-r-md bg-rd-bg-card border border-rd-border hover:border-rd-border-hover hover:bg-rd-bg-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-2 p-2";
         // Yishai's exact transform ease (.35s cubic-bezier) for the lean;
         // colours keep the quick 150ms. will-change hints the compositor.
         const style = {
@@ -123,7 +123,7 @@ export default function CanvasSidebar({ onSwitchTab }) {
       {/* Desktop: full left sidebar. Hidden below md — content-first there. */}
       <div className="hidden md:flex md:w-[248px] flex-shrink-0 flex-col gap-4 md:h-full min-h-0">
         <IconGrid tiles={tiles} />
-        <div className="flex-1 min-h-0 bg-rd-bg-sidebar rounded-[16px] flex flex-col">
+        <div className="flex-1 min-h-0 bg-rd-bg-sidebar rd-r-lg flex flex-col">
           {CANVAS_FIXTURES ? <CanvasCoachDock /> : <CoachDock />}
         </div>
         <CanvasAvatarChip />

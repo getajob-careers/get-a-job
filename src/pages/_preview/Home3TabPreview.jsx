@@ -53,6 +53,7 @@ import CanvasSidebar from "./canvas/CanvasSidebar";
 import { CvGenProvider } from "./canvas/CvGenContext";
 import CanvasField from "./canvas/CanvasField";
 import { applyPalette } from "./canvas/palette";
+import "./canvas/scale.css";
 
 const APPLICATION_STATUSES = [
   "interested",
@@ -96,12 +97,12 @@ export default function Home3TabPreview() {
         <div className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
           {CANVAS_FIXTURES && <CanvasField />}
           <div className="mb-1">
-            <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+            <p className="rd-t-micro uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
               {CANVAS_FIXTURES
                 ? "Design canvas · fixture data · safe to click"
                 : "Prototype - not the live homepage"}
             </p>
-            <h1 className="font-display font-extrabold text-[20px] text-rd-text mt-0.5">
+            <h1 className="font-display font-extrabold rd-t-display-m text-rd-text mt-0.5">
               Home
             </h1>
           </div>
@@ -120,7 +121,7 @@ export default function Home3TabPreview() {
                   role="tab"
                   aria-selected={active}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative inline-flex items-center gap-1.5 px-3.5 py-2.5 font-display font-bold text-[13.5px] transition-colors ${
+                  className={`relative inline-flex items-center gap-1.5 px-3.5 py-2.5 font-display font-bold rd-t-body-m transition-colors ${
                     active
                       ? "text-rd-text"
                       : "text-rd-text-secondary hover:text-rd-text"
@@ -273,10 +274,10 @@ function TrackerTab() {
         <RdCard className="p-5" data-pipeline-guide>
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
-              <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+              <p className="rd-t-micro uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
                 How to use this pipeline
               </p>
-              <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] mt-1.5">
+              <p className="rd-t-body-m text-rd-text-secondary leading-[1.55] mt-1.5">
                 Every application has a{" "}
                 <strong className="text-rd-text font-display font-bold">
                   7-step process
@@ -332,10 +333,10 @@ function TrackerTab() {
         className={`flex items-start justify-between gap-3 flex-wrap ${!guideDismissed ? "mt-4" : ""}`}
       >
         <div className="min-w-0">
-          <h2 className="font-display font-bold text-[17px] text-rd-text">
+          <h2 className="font-display font-bold rd-t-display-s text-rd-text">
             Pipeline board
           </h2>
-          <p className="text-[11.5px] text-rd-text-secondary mt-0.5">
+          <p className="rd-t-body-s text-rd-text-secondary mt-0.5">
             Drag a card between columns to update its status. Click any card to
             open the steps checklist.
           </p>
@@ -343,7 +344,7 @@ function TrackerTab() {
         <button
           type="button"
           onClick={() => setShowAdd(true)}
-          className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-teal hover:bg-rd-teal-dark rounded-full px-3.5 py-2 transition-colors"
+          className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold rd-t-body-s text-white bg-rd-teal hover:bg-rd-teal-dark rounded-full px-3.5 py-2 transition-colors"
         >
           <Plus className="w-3.5 h-3.5" />
           Add manually
@@ -354,7 +355,7 @@ function TrackerTab() {
         {applications.length === 0 ? (
           <RdCard className="px-6 py-10 text-center">
             <Briefcase className="w-10 h-10 text-rd-teal mx-auto mb-3" />
-            <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] max-w-md mx-auto">
+            <p className="rd-t-body-m text-rd-text-secondary leading-[1.55] max-w-md mx-auto">
               No applications yet. Track one from the Browse Jobs tab - the
               Track button on any role card prepends it here.
             </p>
@@ -459,10 +460,10 @@ function CanvasTrackerTab() {
           <RdCard className="p-5" data-pipeline-guide>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+                <p className="rd-t-micro uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
                   How to use this pipeline
                 </p>
-                <p className="text-[13.5px] text-rd-text-secondary leading-[1.55] mt-1.5">
+                <p className="rd-t-body-m text-rd-text-secondary leading-[1.55] mt-1.5">
                   Every application has a{" "}
                   <strong className="text-rd-text font-display font-bold">
                     7-step process
@@ -514,10 +515,10 @@ function CanvasTrackerTab() {
           className={`flex items-start justify-between gap-3 flex-wrap ${!guideDismissed ? "mt-4" : ""}`}
         >
           <div className="min-w-0">
-            <h2 className="font-display font-bold text-[17px] text-rd-text">
+            <h2 className="font-display font-bold rd-t-display-s text-rd-text">
               Pipeline board
             </h2>
-            <p className="text-[11.5px] text-rd-text-secondary mt-0.5">
+            <p className="rd-t-body-s text-rd-text-secondary mt-0.5">
               Drag a card between columns to update its status. Click any card
               to open the steps checklist.
             </p>
@@ -525,7 +526,7 @@ function CanvasTrackerTab() {
           <button
             type="button"
             onClick={addManually}
-            className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold text-[12.5px] text-white bg-rd-teal hover:bg-rd-teal-dark rounded-full px-3.5 py-2 transition-colors"
+            className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold rd-t-body-s text-white bg-rd-teal hover:bg-rd-teal-dark rounded-full px-3.5 py-2 transition-colors"
           >
             <Plus className="w-3.5 h-3.5" />
             Add manually
@@ -551,16 +552,16 @@ function CanvasTrackerTab() {
 
 function PipelineGuideTile({ tint, accent, head, body, highlight = false }) {
   return (
-    <div className="rounded-[14px] px-3.5 py-3" style={{ background: tint }}>
+    <div className="rd-r-md px-3.5 py-3" style={{ background: tint }}>
       <p
-        className="font-display font-bold text-[12.5px] leading-tight inline-flex items-center gap-1.5"
+        className="font-display font-bold rd-t-body-s leading-tight inline-flex items-center gap-1.5"
         style={{ color: accent }}
       >
         {highlight && <Star className="w-3 h-3" aria-hidden="true" />}
         {head}
       </p>
       <p
-        className="text-[11.5px] leading-[1.45] mt-1.5"
+        className="rd-t-body-s leading-[1.45] mt-1.5"
         style={{ color: accent }}
       >
         {body}

@@ -114,10 +114,10 @@ export default function CanvasScoreRing({ scoreResult, bandMeta, size = 44 }) {
 
       {legend && (
         <div
-          className="absolute top-full right-0 mt-1 z-30 w-[150px] rounded-lg border border-rd-border bg-rd-bg-card shadow-rd p-2 text-left"
+          className="absolute top-full right-0 mt-1 z-30 w-[150px] rd-r-sm border border-rd-border bg-rd-bg-card shadow-rd p-2 text-left"
           onClick={(e) => e.stopPropagation()}
         >
-          <p className="text-[9px] uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow mb-1.5">
+          <p className="rd-t-micro uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow mb-1.5">
             Match breakdown
           </p>
           {[
@@ -126,7 +126,7 @@ export default function CanvasScoreRing({ scoreResult, bandMeta, size = 44 }) {
             ["Seniority", seniority],
           ].map(([label, v]) => (
             <div key={label} className="mb-1.5 last:mb-0">
-              <div className="flex items-center justify-between text-[10px] mb-0.5">
+              <div className="flex items-center justify-between rd-t-micro mb-0.5">
                 <span className="text-rd-text-secondary">{label}</span>
                 <span className="font-mono text-rd-text-tertiary">
                   {Math.round(v * 100)}

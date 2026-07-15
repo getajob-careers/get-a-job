@@ -52,11 +52,11 @@ export default function CanvasJobCard({ job, scoreResult, onOpen, index = 0 }) {
           open();
         }
       }}
-      className="cx-card group cursor-pointer h-full flex flex-col bg-rd-bg-card border border-rd-border rounded-[14px] p-3 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+      className="cx-card group cursor-pointer h-full flex flex-col bg-rd-bg-card border border-rd-border rd-r-md p-3 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
     >
       <div className="flex items-center justify-between gap-1.5 mb-2">
         <span
-          className="flex-shrink-0 inline-flex items-center justify-center w-[34px] h-[34px] rounded-[8px] font-display font-bold text-[14px] bg-rd-bg-soft text-rd-text-secondary"
+          className="flex-shrink-0 inline-flex items-center justify-center w-[34px] h-[34px] rd-r-sm font-display font-bold rd-t-body-m bg-rd-bg-soft text-rd-text-secondary"
           aria-hidden="true"
         >
           {job.company_name?.[0] || "?"}
@@ -75,20 +75,20 @@ export default function CanvasJobCard({ job, scoreResult, onOpen, index = 0 }) {
               transition: "transform .3s cubic-bezier(.22,.61,.36,1)",
             }}
           >
-            <span className="font-extrabold text-[11px]">
+            <span className="font-extrabold rd-t-micro">
               {d.bandMeta.label}
             </span>
-            <span className="font-semibold text-[10px] opacity-70">
+            <span className="font-semibold rd-t-micro opacity-70">
               {attainPct}%
             </span>
           </span>
         )}
       </div>
 
-      <h3 className="font-display font-bold text-[13.5px] leading-[1.18] text-rd-text line-clamp-2 break-words">
+      <h3 className="font-display font-bold rd-t-body-m leading-[1.18] text-rd-text line-clamp-2 break-words">
         {job.title}
       </h3>
-      <p className="text-[10.5px] text-rd-text-secondary mt-0.5 truncate">
+      <p className="rd-t-micro text-rd-text-secondary mt-0.5 truncate">
         {[job.company_name, job.location_city || job.location_raw]
           .filter(Boolean)
           .join(" · ")}
@@ -105,7 +105,7 @@ export default function CanvasJobCard({ job, scoreResult, onOpen, index = 0 }) {
           {d.chips.map((c, i) => (
             <span
               key={i}
-              className="text-[10px] bg-rd-bg-soft text-rd-text-tertiary rounded-[5px] px-1.5 py-0.5"
+              className="rd-t-micro bg-rd-bg-soft text-rd-text-tertiary rd-r-xs px-1.5 py-0.5"
             >
               {c}
             </span>
