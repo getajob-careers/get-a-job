@@ -2,11 +2,10 @@
 // (CV-tab column) + src/components/jobs/UnifiedJobsFeed.jsx (Browse tab);
 // canvas clones — fixture-fed, Track → local state.
 import React, { useMemo, useState } from "react";
-import { Check, Plus, Wand2 } from "lucide-react";
 import { CANVAS_MATCHES } from "../fixtures/canvasHome";
 import CanvasJobModal from "./CanvasJobModal";
 import CanvasJobCard from "./CanvasJobCard";
-import { reveal, revealWith } from "./stagger";
+import { reveal } from "./stagger";
 
 // Fixture-fed match surfaces for the design canvas: the CV-tab right column
 // (CanvasTopMatches) and the Browse Jobs tab (CanvasJobsFeed). Both reuse the
@@ -57,49 +56,14 @@ export function CanvasTopMatches() {
       <div className="flex flex-col gap-2">
         {jobs.map((job, idx) => {
           const scoreResult = scoredById[job.id];
-          const tracked = trackedIds.has(job.id);
           return (
-            <div key={job.id} {...revealWith(idx, "flex flex-col gap-1.5")}>
+            <div key={job.id} {...reveal(idx)}>
               <CanvasJobCard
                 job={job}
                 scoreResult={scoreResult}
                 index={idx}
                 onOpen={(j, s) => setOpenJob({ job: j, scoreResult: s })}
               />
-              <div className="flex gap-1.5">
-                <button
-                  type="button"
-                  onClick={() => track(job)}
-                  disabled={tracked}
-                  className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 transition-colors disabled:cursor-not-allowed"
-                  style={
-                    tracked
-                      ? {
-                          background: "var(--rd-teal-tint)",
-                          color: "var(--rd-teal-dark)",
-                        }
-                      : {
-                          background: "var(--rd-bg-soft)",
-                          color: "var(--rd-text)",
-                        }
-                  }
-                >
-                  {tracked ? (
-                    <Check className="w-3 h-3" />
-                  ) : (
-                    <Plus className="w-3 h-3" />
-                  )}
-                  {tracked ? "Tracked" : "Track"}
-                </button>
-                <button
-                  type="button"
-                  className="flex-1 inline-flex items-center justify-center gap-1 font-display font-semibold text-[11px] rounded-full px-2.5 py-1.5 bg-rd-bg-soft text-rd-text-secondary hover:text-rd-text transition-colors"
-                  title="Prototype — not wired"
-                >
-                  <Wand2 className="w-3 h-3" />
-                  Tailor CV
-                </button>
-              </div>
             </div>
           );
         })}
