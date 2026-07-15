@@ -1,6 +1,7 @@
 import React from "react";
 import { toast } from "sonner";
 import { Wand2, Plus, ExternalLink, Sparkles } from "lucide-react";
+import { useCvGen } from "./CvGenContext";
 
 // Job-card hover actions — adapted from kokonutUI SocialButton (the primary
 // button expands into a staggered row of actions), fully rethemed to our warm
@@ -49,18 +50,17 @@ function IconAction({ icon: Icon, label, onClick, delay }) {
 
 export default function CanvasCardActions({ job }) {
   ensureCss();
+  const gen = useCvGen();
   const stop = (fn) => (e) => {
     e.stopPropagation();
     fn();
   };
   return (
     <div className="mt-2 flex items-center gap-1.5">
-      {/* Tailor CV — hero, always visible */}
+      {/* Tailor CV — hero, always visible. Fires the shared generation theater. */}
       <button
         type="button"
-        onClick={stop(() =>
-          toast.info(`Prototype: tailoring your CV to ${job.title}…`),
-        )}
+        onClick={stop(() => gen?.start(`${job.company_name} · ${job.title}`))}
         className="inline-flex items-center gap-1 font-display font-semibold text-[11px] text-white bg-rd-coral hover:bg-rd-coral-dark rounded-full px-2.5 py-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-1"
       >
         <Wand2 className="w-3 h-3" aria-hidden="true" />

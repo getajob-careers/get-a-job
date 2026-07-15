@@ -49,6 +49,7 @@ import CanvasKanban from "./canvas/CanvasKanban";
 import CanvasAppDrawer from "./canvas/CanvasAppDrawer";
 import { CanvasJobsFeed } from "./canvas/CanvasMatches";
 import CanvasSidebar from "./canvas/CanvasSidebar";
+import { CvGenProvider } from "./canvas/CvGenContext";
 
 const APPLICATION_STATUSES = [
   "interested",
@@ -85,62 +86,64 @@ export default function Home3TabPreview() {
 
   return (
     <Layout currentPageName="Career">
-      <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-full flex flex-col min-h-0">
-        <div className="mb-1">
-          <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-            {CANVAS_FIXTURES
-              ? "Design canvas · fixture data · safe to click"
-              : "Prototype - not the live homepage"}
-          </p>
-          <h1 className="font-display font-extrabold text-[20px] text-rd-text mt-0.5">
-            Home
-          </h1>
-        </div>
+      <CvGenProvider onStart={() => setActiveTab("cv")}>
+        <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-full flex flex-col min-h-0">
+          <div className="mb-1">
+            <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+              {CANVAS_FIXTURES
+                ? "Design canvas · fixture data · safe to click"
+                : "Prototype - not the live homepage"}
+            </p>
+            <h1 className="font-display font-extrabold text-[20px] text-rd-text mt-0.5">
+              Home
+            </h1>
+          </div>
 
-        <div
-          className="flex items-center justify-center gap-1 mt-3 border-b border-rd-border"
-          role="tablist"
-        >
-          {TABS.map((tab) => {
-            const Icon = tab.icon;
-            const active = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                role="tab"
-                aria-selected={active}
-                onClick={() => setActiveTab(tab.id)}
-                className={`relative inline-flex items-center gap-1.5 px-3.5 py-2.5 font-display font-bold text-[13.5px] transition-colors ${
-                  active
-                    ? "text-rd-text"
-                    : "text-rd-text-secondary hover:text-rd-text"
-                }`}
-              >
-                <Icon className="w-5 h-5" aria-hidden="true" />
-                {tab.label}
-                {active && (
-                  <span className="absolute left-2 right-2 -bottom-px h-[2px] bg-rd-coral rounded-full" />
-                )}
-              </button>
-            );
-          })}
-        </div>
+          <div
+            className="flex items-center justify-center gap-1 mt-3 border-b border-rd-border"
+            role="tablist"
+          >
+            {TABS.map((tab) => {
+              const Icon = tab.icon;
+              const active = activeTab === tab.id;
+              return (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={`relative inline-flex items-center gap-1.5 px-3.5 py-2.5 font-display font-bold text-[13.5px] transition-colors ${
+                    active
+                      ? "text-rd-text"
+                      : "text-rd-text-secondary hover:text-rd-text"
+                  }`}
+                >
+                  <Icon className="w-5 h-5" aria-hidden="true" />
+                  {tab.label}
+                  {active && (
+                    <span className="absolute left-2 right-2 -bottom-px h-[2px] bg-rd-coral rounded-full" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
 
-        <div className="mt-4 flex-1 min-h-0 flex flex-col md:flex-row gap-4">
-          {/* Persistent sidebar — tiles + coach, mounted across all three tabs */}
-          <CanvasSidebar onSwitchTab={setActiveTab} />
+          <div className="mt-4 flex-1 min-h-0 flex flex-col md:flex-row gap-4">
+            {/* Persistent sidebar — tiles + coach, mounted across all three tabs */}
+            <CanvasSidebar onSwitchTab={setActiveTab} />
 
-          {/* Active tab content */}
-          <div className="flex-1 min-w-0 min-h-0">
-            {activeTab === "cv" && <Home3TabCvTab />}
-            {activeTab === "tracker" &&
-              (CANVAS_FIXTURES ? <CanvasTrackerTab /> : <TrackerTab />)}
-            {activeTab === "jobs" &&
-              (CANVAS_FIXTURES ? <CanvasJobsFeed /> : <UnifiedJobsFeed />)}
+            {/* Active tab content */}
+            <div className="flex-1 min-w-0 min-h-0">
+              {activeTab === "cv" && <Home3TabCvTab />}
+              {activeTab === "tracker" &&
+                (CANVAS_FIXTURES ? <CanvasTrackerTab /> : <TrackerTab />)}
+              {activeTab === "jobs" &&
+                (CANVAS_FIXTURES ? <CanvasJobsFeed /> : <UnifiedJobsFeed />)}
+            </div>
           </div>
         </div>
-      </div>
+      </CvGenProvider>
     </Layout>
   );
 }
