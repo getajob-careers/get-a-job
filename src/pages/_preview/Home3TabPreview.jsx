@@ -20,7 +20,7 @@
 // self-fetching and page-agnostic (the same component /Career's "Job
 // search" tab and the retired /Jobs route both render).
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -51,11 +51,8 @@ import CanvasAppDrawer from "./canvas/CanvasAppDrawer";
 import { CanvasJobsFeed } from "./canvas/CanvasMatches";
 import CanvasSidebar from "./canvas/CanvasSidebar";
 import { CvGenProvider } from "./canvas/CvGenContext";
-import CanvasField, {
-  FIELDS,
-  FIELD_KEYS,
-  fieldShellStyle,
-} from "./canvas/CanvasField";
+import CanvasField from "./canvas/CanvasField";
+import { HUES, HUE_KEYS, applyHue } from "./canvas/hues";
 
 const APPLICATION_STATUSES = [
   "interested",
@@ -87,38 +84,40 @@ const TABS = [
   { id: "jobs", label: "Browse Jobs", icon: Compass },
 ];
 
-// Live field exploration (round 3 rev). The palette swap was rejected — the
-// warm identity stays; only the background FIELD changes. Reads ?field=a|b|c on
-// mount, keeps it in state, and rewrites the URL param on flip so a direction is
-// shareable and survives reload. No document-root mutation: the treatment is a
-// layer inside the shell (CanvasField) plus a scoped shadow var. Canvas-only.
-function useField() {
-  const [field, setField] = useState(() => {
+// Live hue exploration (round 3 rev 2). Depth is the always-on structural base;
+// these directions re-tint every --rd-* token on top of it. Reads ?hue=a|b|c on
+// mount, applies the token swap to the document root (portaled overlays inherit)
+// and rewrites the URL param on flip so a pick is shareable. Default applies only
+// the Depth base (current cream+coral) for comparison; torn down on unmount.
+function useHue() {
+  const [hue, setHue] = useState(() => {
     if (typeof window === "undefined") return "";
-    const f = new URLSearchParams(window.location.search).get("field");
-    return FIELD_KEYS.includes(f) ? f : "";
+    const h = new URLSearchParams(window.location.search).get("hue");
+    return HUE_KEYS.includes(h) ? h : "";
   });
 
+  useEffect(() => applyHue(hue), [hue]);
+
   const choose = (key) => {
-    setField(key);
+    setHue(key);
     if (typeof window === "undefined") return;
     const url = new URL(window.location.href);
-    if (key) url.searchParams.set("field", key);
-    else url.searchParams.delete("field");
+    if (key) url.searchParams.set("hue", key);
+    else url.searchParams.delete("hue");
     window.history.replaceState({}, "", url);
   };
 
-  return [field, choose];
+  return [hue, choose];
 }
 
-function FieldSwitcher({ field, onChoose }) {
-  const opts = [["", "Default"], ...FIELD_KEYS.map((k) => [k, FIELDS[k].name])];
-  const active = FIELDS[field];
+function HueSwitcher({ hue, onChoose }) {
+  const opts = [["", "Default"], ...HUE_KEYS.map((k) => [k, HUES[k].name])];
+  const active = HUES[hue];
   return (
     <div className="flex flex-col items-end gap-1">
       <div className="inline-flex items-center gap-0.5 rounded-full bg-rd-bg-card/70 backdrop-blur-sm border border-rd-border-subtle p-0.5">
         {opts.map(([key, label]) => {
-          const on = field === key;
+          const on = hue === key;
           return (
             <button
               key={key || "default"}
@@ -147,16 +146,13 @@ function FieldSwitcher({ field, onChoose }) {
 
 export default function Home3TabPreview() {
   const [activeTab, setActiveTab] = useState("cv");
-  const [field, chooseField] = useField();
+  const [hue, chooseHue] = useHue();
 
   return (
     <Layout currentPageName="Career">
       <CvGenProvider onStart={() => setActiveTab("cv")}>
-        <div
-          className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0"
-          style={fieldShellStyle(field)}
-        >
-          {CANVAS_FIXTURES && <CanvasField field={field} />}
+        <div className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
+          {CANVAS_FIXTURES && <CanvasField />}
           <div className="mb-1 flex items-start justify-between gap-3">
             <div className="min-w-0">
               <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
@@ -168,9 +164,7 @@ export default function Home3TabPreview() {
                 Home
               </h1>
             </div>
-            {CANVAS_FIXTURES && (
-              <FieldSwitcher field={field} onChoose={chooseField} />
-            )}
+            {CANVAS_FIXTURES && <HueSwitcher hue={hue} onChoose={chooseHue} />}
           </div>
 
           <div
