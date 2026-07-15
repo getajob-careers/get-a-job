@@ -20,7 +20,7 @@
 // self-fetching and page-agnostic (the same component /Career's "Job
 // search" tab and the retired /Jobs route both render).
 
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -51,6 +51,7 @@ import CanvasAppDrawer from "./canvas/CanvasAppDrawer";
 import { CanvasJobsFeed } from "./canvas/CanvasMatches";
 import CanvasSidebar from "./canvas/CanvasSidebar";
 import { CvGenProvider } from "./canvas/CvGenContext";
+import { PALETTES, PALETTE_KEYS, applyPalette } from "./canvas/palettes";
 
 const APPLICATION_STATUSES = [
   "interested",
@@ -82,22 +83,94 @@ const TABS = [
   { id: "jobs", label: "Browse Jobs", icon: Compass },
 ];
 
+// Live palette exploration (round 3, item 4). Reads ?palette=a|b|c on mount,
+// keeps it in state, and applies the token swap to the document root (portaled
+// overlays inherit). Flipping the switcher also rewrites the URL param so a
+// direction is shareable and survives reload; the applied sheet is torn down on
+// unmount. Only wired in fixture (canvas) mode.
+function usePalette() {
+  const [palette, setPalette] = useState(() => {
+    if (typeof window === "undefined") return "";
+    const p = new URLSearchParams(window.location.search).get("palette");
+    return PALETTE_KEYS.includes(p) ? p : "";
+  });
+
+  useEffect(() => {
+    const restore = applyPalette(palette);
+    return restore;
+  }, [palette]);
+
+  const choose = (key) => {
+    setPalette(key);
+    if (typeof window === "undefined") return;
+    const url = new URL(window.location.href);
+    if (key) url.searchParams.set("palette", key);
+    else url.searchParams.delete("palette");
+    window.history.replaceState({}, "", url);
+  };
+
+  return [palette, choose];
+}
+
+function PaletteSwitcher({ palette, onChoose }) {
+  const opts = [
+    ["", "Default"],
+    ...PALETTE_KEYS.map((k) => [k, PALETTES[k].name]),
+  ];
+  const active = PALETTES[palette];
+  return (
+    <div className="flex flex-col items-end gap-1">
+      <div className="inline-flex items-center gap-0.5 rounded-full bg-rd-bg-soft border border-rd-border-subtle p-0.5">
+        {opts.map(([key, label]) => {
+          const on = palette === key;
+          return (
+            <button
+              key={key || "default"}
+              type="button"
+              onClick={() => onChoose(key)}
+              aria-pressed={on}
+              className={`font-display font-bold text-[10.5px] rounded-full px-2.5 py-1 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral ${
+                on
+                  ? "bg-rd-coral text-white shadow-rd"
+                  : "text-rd-text-secondary hover:text-rd-text"
+              }`}
+            >
+              {label}
+            </button>
+          );
+        })}
+      </div>
+      {active && (
+        <span className="text-[9.5px] font-mono text-rd-text-tertiary max-w-[240px] text-right leading-tight">
+          {active.reference}
+        </span>
+      )}
+    </div>
+  );
+}
+
 export default function Home3TabPreview() {
   const [activeTab, setActiveTab] = useState("cv");
+  const [palette, choosePalette] = usePalette();
 
   return (
     <Layout currentPageName="Career">
       <CvGenProvider onStart={() => setActiveTab("cv")}>
         <div className="max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
-          <div className="mb-1">
-            <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-              {CANVAS_FIXTURES
-                ? "Design canvas · fixture data · safe to click"
-                : "Prototype - not the live homepage"}
-            </p>
-            <h1 className="font-display font-extrabold text-[20px] text-rd-text mt-0.5">
-              Home
-            </h1>
+          <div className="mb-1 flex items-start justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-[10.5px] uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+                {CANVAS_FIXTURES
+                  ? "Design canvas · fixture data · safe to click"
+                  : "Prototype - not the live homepage"}
+              </p>
+              <h1 className="font-display font-extrabold text-[20px] text-rd-text mt-0.5">
+                Home
+              </h1>
+            </div>
+            {CANVAS_FIXTURES && (
+              <PaletteSwitcher palette={palette} onChoose={choosePalette} />
+            )}
           </div>
 
           <div

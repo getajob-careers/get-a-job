@@ -200,8 +200,10 @@ export default function CanvasCoachDock() {
           className="pointer-events-none absolute inset-0 rounded-lg"
           style={{
             backgroundImage: GRAIN_URL,
-            opacity: 0.05,
-            mixBlendMode: "multiply",
+            // Retuned per palette: multiply darkens (light palettes), screen
+            // lightens (the dark palette) so grain reads as film, not mud.
+            opacity: "var(--rd-grain-opacity, 0.05)",
+            mixBlendMode: "var(--rd-grain-blend, multiply)",
           }}
           aria-hidden="true"
         />
