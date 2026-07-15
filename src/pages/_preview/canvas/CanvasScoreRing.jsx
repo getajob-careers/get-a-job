@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { RING_TRACK_OPACITY, visibleFill } from "./ring";
 
 // Score visual (wave-2 feedback: ring won, now the default). A mini tri-ring:
 // three concentric arcs = Skills / Experience / Seniority axes derived from the
@@ -28,7 +29,9 @@ export default function CanvasScoreRing({ scoreResult, bandMeta, size = 44 }) {
   useEffect(() => () => clearTimeout(enterTimer.current), []);
 
   const { skill, experience, seniority } = scoreAxes(scoreResult);
-  const axes = [skill, experience, seniority];
+  // Low-fill floor (hard constraint a): a non-zero axis always draws a visible
+  // arc so a real score is never mistaken for empty on any palette/field.
+  const axes = [skill, experience, seniority].map((v) => visibleFill(v, v > 0));
   const opac = [1, 0.55, 0.3];
   const color = bandMeta?.fg || "var(--rd-text)";
   const pct = Math.round((scoreResult?.attainability_score ?? 0) * 100);
@@ -69,7 +72,7 @@ export default function CanvasScoreRing({ scoreResult, bandMeta, size = 44 }) {
                   r={r}
                   fill="none"
                   stroke={color}
-                  strokeOpacity={0.12}
+                  strokeOpacity={RING_TRACK_OPACITY}
                   strokeWidth={stroke}
                 />
                 <circle

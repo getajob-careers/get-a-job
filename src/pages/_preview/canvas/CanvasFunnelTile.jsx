@@ -1,4 +1,5 @@
 import React from "react";
+import { RING_TRACK_OPACITY, visibleFill } from "./ring";
 
 // Tracker funnel tile with the shared ring motif (wave-2 feedback #5). A small
 // ring fills to value/total and animates (stroke-dashoffset transition) whenever
@@ -10,7 +11,8 @@ export default function CanvasFunnelTile({
   total,
   accent = "var(--rd-coral)",
 }) {
-  const frac = total > 0 ? Math.min(1, value / total) : 0;
+  // Low-fill floor (hard constraint a): a real count always draws a visible arc.
+  const frac = visibleFill(total > 0 ? value / total : 0, value > 0);
   const size = 30;
   const stroke = 3;
   const r = (size - stroke) / 2;
@@ -29,7 +31,7 @@ export default function CanvasFunnelTile({
           r={r}
           fill="none"
           stroke={accent}
-          strokeOpacity={0.15}
+          strokeOpacity={RING_TRACK_OPACITY}
           strokeWidth={stroke}
         />
         <circle
