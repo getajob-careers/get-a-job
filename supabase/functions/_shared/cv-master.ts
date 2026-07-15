@@ -16,21 +16,7 @@
 
 import { EXPERIENCE_BUCKETS, MASTER_ORG_KEY } from "./cv-schema.ts";
 import { categorizeSkills } from "./cv-skills.ts";
-
-const MONTHS_SHORT = [
-  "Jan",
-  "Feb",
-  "Mar",
-  "Apr",
-  "May",
-  "Jun",
-  "Jul",
-  "Aug",
-  "Sep",
-  "Oct",
-  "Nov",
-  "Dec",
-];
+import { formatDateRange } from "./date-format.ts";
 
 const str = (v: any): string =>
   typeof v === "string" ? v : v == null ? "" : String(v);
@@ -171,25 +157,6 @@ export function normalizeCvDataBullets(cvData: any): any {
   return out;
 }
 
-function fmtMonthYear(d: any): string {
-  const s = str(d).trim();
-  if (!s) return "";
-  const iso = s.match(/^(\d{4})-(\d{1,2})/);
-  if (iso) {
-    const mo = parseInt(iso[2], 10);
-    return `${MONTHS_SHORT[mo - 1] || ""} ${iso[1]}`.trim();
-  }
-  const yr = s.match(/^(\d{4})$/);
-  if (yr) return yr[1];
-  return s; // already human-readable ("Nov 2024") or unknown, keep verbatim
-}
-
-function dateRange(start: any, end: any, isCurrent: any): string {
-  const s = fmtMonthYear(start);
-  const e = isCurrent ? "Present" : fmtMonthYear(end);
-  if (s && e) return `${s} – ${e}`;
-  return s || e || "";
-}
 
 // Bucket an experience row into professional / military / volunteering /
 // leadership from its type tag plus keyword fallback.
@@ -263,7 +230,7 @@ export function buildMasterCvData(
     buckets[bucket].push({
       title: str(e?.title),
       [MASTER_ORG_KEY[bucket]]: str(e?.company),
-      dates: dateRange(e?.start_date, e?.end_date, e?.is_current),
+      dates: formatDateRange(e?.start_date, e?.end_date, e?.is_current),
       bullets: expBullets(e),
       ...(e?.id ? { experience_id: str(e.id) } : {}),
     });
@@ -292,7 +259,7 @@ export function buildMasterCvData(
       institution: str(ed?.institution),
       degree: str(ed?.degree_type),
       field_of_study: str(ed?.field_of_study),
-      dates: dateRange(ed?.start_date, ed?.end_date, ed?.is_current),
+      dates: formatDateRange(ed?.start_date, ed?.end_date, ed?.is_current),
       ...(coursework.length ? { relevant_coursework: coursework } : {}),
       ...(academic.length ? { academic_projects: academic } : {}),
     };
