@@ -31,6 +31,7 @@ getajob's git, PR, and merge discipline. Follow it for any change that lands in 
 - **Three-dot diff scope:** confirm `git diff --stat origin/main...HEAD` contains only the files the task intended (e.g. "json + ledger only"). Stage exactly those; keep pre-existing dirty files (`.claude/settings.local.json`, tool artifacts) out.
 - **No em dashes** in any repo artifact (docs, PR bodies, code comments). Use hyphens. Grep your additions before committing.
 - **Gates green** before holding: whatever the task needs - `npm run build`, `npm test`, `schema-validator`, the edge-function bundle + `deno check` CI, staleness checks.
+- **Gates green means CI green on the PR, not local runs.** Local `npm test`/`npm run build` passing is necessary but not sufficient - CI runs steps a local pass never sees (mirror staleness checks before `npm ci`, edge-fn bundle/`deno check`) and can die before it reaches the tests. Always confirm the PR's actual CI conclusion. Lesson: `main` CI was dead from #582 to #588 (Jul 14-15), failing fast at the mirror staleness gate, while every merge's local gates were green.
 - End commit messages with `Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>`.
 
 ## The #546 lesson (state-lifecycle frontend changes)
