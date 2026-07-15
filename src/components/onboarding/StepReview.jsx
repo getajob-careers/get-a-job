@@ -1,14 +1,36 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
-  GraduationCap, BookOpen, Award, Microscope, Code2, ArrowRight,
-  Plus, Trash2, FileText, Sparkles, Briefcase, FolderGit2, BadgeCheck,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  GraduationCap,
+  BookOpen,
+  Award,
+  Microscope,
+  Code2,
+  ArrowRight,
+  Plus,
+  Trash2,
+  FileText,
+  Sparkles,
+  Briefcase,
+  FolderGit2,
+  BadgeCheck,
+  Pencil,
+  Check,
 } from "lucide-react";
 import RdSkillTagInput from "@/components/redesign/RdSkillTagInput";
 import RdSkillChipBank from "@/components/redesign/RdSkillChipBank";
 import RdButton from "@/components/redesign/RdButton";
-import { DEGREE_TYPE_OPTIONS, dropdownValueForDegreeType } from "@/lib/educationPolicy";
+import {
+  DEGREE_TYPE_OPTIONS,
+  dropdownValueForDegreeType,
+} from "@/lib/educationPolicy";
 import { EMPTY_EDUCATION_ROW } from "@/lib/onboardingPayload";
 import { suggestSkillsForTitle } from "@/lib/roleSkillsLookup";
 import { humanizeSkillId } from "@/lib/humanizeSkillId";
@@ -109,10 +131,15 @@ function SectionHeader({ icon: Icon, title, subtitle, required }) {
 function RoleSuggestions({ suggestion, currentSkills, onAccept }) {
   const remainingIds = useMemo(() => {
     if (!suggestion) return [];
-    const currentSet = new Set((currentSkills || []).map((s) => String(s).toLowerCase().trim()));
+    const currentSet = new Set(
+      (currentSkills || []).map((s) => String(s).toLowerCase().trim()),
+    );
     return suggestion.skillIds.filter((id) => {
       const display = humanizeSkillId(id);
-      return !currentSet.has(String(display).toLowerCase().trim()) && !currentSet.has(id.toLowerCase());
+      return (
+        !currentSet.has(String(display).toLowerCase().trim()) &&
+        !currentSet.has(id.toLowerCase())
+      );
     });
   }, [suggestion, currentSkills]);
 
@@ -128,7 +155,8 @@ function RoleSuggestions({ suggestion, currentSkills, onAccept }) {
         </p>
       </div>
       <p className="text-[11px] text-rd-text-secondary mb-2.5 leading-snug">
-        Tap any that apply to your role - they&apos;ll be added to your tagged skills.
+        Tap any that apply to your role - they&apos;ll be added to your tagged
+        skills.
       </p>
       <div className="flex flex-wrap gap-1.5">
         {remainingIds.map((id) => {
@@ -150,8 +178,36 @@ function RoleSuggestions({ suggestion, currentSkills, onAccept }) {
   );
 }
 
+const EXP_TYPE_LABELS = {
+  internship: "Internship",
+  full_time: "Full-Time",
+  part_time: "Part-Time",
+  freelance: "Freelance",
+  founder: "Founder / Self-employed",
+  volunteer: "Volunteer",
+  leadership: "Leadership / Club",
+  military: "Military service",
+};
+
+// Build the human-readable date range for the collapsed summary. Dates are
+// stored verbatim as the resume wrote them ("2019", "Jan 2022", "2022-Now")
+// — we NEVER fabricate a month, so year-only stays year-only.
+function formatExpDateRange(exp) {
+  const start = (exp.start_date || "").trim();
+  const end = exp.is_current ? "Present" : (exp.end_date || "").trim();
+  if (!start && !end) return "";
+  if (start && end) return `${start} – ${end}`;
+  return start || end;
+}
+
 function ExperienceCard({ exp, onChange, onRemove }) {
   const set = (key, val) => onChange({ ...exp, [key]: val });
+
+  // Confirmation-pass default: cards parsed from the resume (they have a
+  // title) render as a collapsed summary the user just confirms with a
+  // glance — dates visible, edit only on demand. Manually-added cards start
+  // empty (no title) so they open straight into the editable form.
+  const [editing, setEditing] = useState(() => !exp.title?.trim());
 
   // Recompute role suggestions on every title change so users who refine
   // a vague extractor title (e.g. "Intern" → "Marketing Intern") get
@@ -163,10 +219,50 @@ function ExperienceCard({ exp, onChange, onRemove }) {
     set(
       "skills",
       matchesSkill(skills, label)
-        ? skills.filter((s) => String(s).toLowerCase() !== String(label).toLowerCase())
+        ? skills.filter(
+            (s) => String(s).toLowerCase() !== String(label).toLowerCase(),
+          )
         : [...skills, label],
     );
   };
+
+  if (!editing) {
+    const dateRange = formatExpDateRange(exp);
+    const meta = [exp.company?.trim(), EXP_TYPE_LABELS[exp.type], dateRange]
+      .filter(Boolean)
+      .join(" · ");
+    return (
+      <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-4 flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <h3 className="font-display font-semibold text-[14px] text-rd-text truncate">
+            {exp.title?.trim() || "(New experience)"}
+          </h3>
+          {meta && (
+            <p className="text-[12.5px] text-rd-text-secondary mt-0.5 truncate">
+              {meta}
+            </p>
+          )}
+        </div>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            className="inline-flex items-center gap-1 text-[12.5px] font-medium text-rd-text-secondary hover:text-rd-text px-2 py-1 rounded-md hover:bg-rd-bg-soft transition-colors"
+          >
+            <Pencil className="w-3.5 h-3.5" /> Edit
+          </button>
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-rd-coral-dark hover:text-rd-coral p-1.5 rounded-md border border-rd-coral-tint hover:bg-rd-coral-tint transition-colors"
+            aria-label="Remove experience"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5 space-y-4">
@@ -174,14 +270,25 @@ function ExperienceCard({ exp, onChange, onRemove }) {
         <h3 className="font-display font-semibold text-[14px] text-rd-text">
           {exp.title?.trim() || "(New experience)"}
         </h3>
-        <button
-          type="button"
-          onClick={onRemove}
-          className="text-rd-coral-dark hover:text-rd-coral p-1.5 rounded-md border border-rd-coral-tint hover:bg-rd-coral-tint transition-colors flex-shrink-0"
-          aria-label="Remove experience"
-        >
-          <Trash2 className="w-3.5 h-3.5" />
-        </button>
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          {exp.title?.trim() && (
+            <button
+              type="button"
+              onClick={() => setEditing(false)}
+              className="inline-flex items-center gap-1 text-[12.5px] font-medium text-rd-teal-dark hover:text-rd-teal px-2 py-1 rounded-md hover:bg-rd-teal-tint transition-colors"
+            >
+              <Check className="w-3.5 h-3.5" /> Done
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onRemove}
+            className="text-rd-coral-dark hover:text-rd-coral p-1.5 rounded-md border border-rd-coral-tint hover:bg-rd-coral-tint transition-colors"
+            aria-label="Remove experience"
+          >
+            <Trash2 className="w-3.5 h-3.5" />
+          </button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -205,7 +312,10 @@ function ExperienceCard({ exp, onChange, onRemove }) {
         </div>
         <div>
           <Label>Type</Label>
-          <Select value={exp.type || "internship"} onValueChange={(v) => set("type", v)}>
+          <Select
+            value={exp.type || "internship"}
+            onValueChange={(v) => set("type", v)}
+          >
             <SelectTrigger className="text-sm border-rd-border bg-rd-bg-card text-rd-text">
               <SelectValue />
             </SelectTrigger>
@@ -224,20 +334,22 @@ function ExperienceCard({ exp, onChange, onRemove }) {
         <div>
           <Label>Start date</Label>
           <input
-            type="date"
+            type="text"
             className={INPUT_CLS}
             value={exp.start_date || ""}
             onChange={(e) => set("start_date", e.target.value)}
+            placeholder="e.g. June 2022, 2019"
           />
         </div>
         {!exp.is_current && (
           <div>
             <Label>End date</Label>
             <input
-              type="date"
+              type="text"
               className={INPUT_CLS}
               value={exp.end_date || ""}
               onChange={(e) => set("end_date", e.target.value)}
+              placeholder='e.g. May 2024, "Present"'
             />
           </div>
         )}
@@ -443,12 +555,18 @@ function EmptyState({ message }) {
 }
 
 export default function StepReview({
-  data, onChange,
-  educations, setEducations,
-  experiences, setExperiences,
-  projects, setProjects,
-  certifications, setCertifications,
-  onNext, onBack,
+  data,
+  onChange,
+  educations,
+  setEducations,
+  experiences,
+  setExperiences,
+  projects,
+  setProjects,
+  certifications,
+  setCertifications,
+  onNext,
+  onBack,
 }) {
   // Ensure at least one (primary) education row exists in state so the
   // user can fill it even when the extractor returned nothing.
@@ -465,7 +583,10 @@ export default function StepReview({
   // touched by these mutations.
   const setEduField = (key, val) => {
     setEducations((prev) => {
-      const arr = Array.isArray(prev) && prev.length > 0 ? [...prev] : [{ ...EMPTY_EDUCATION_ROW }];
+      const arr =
+        Array.isArray(prev) && prev.length > 0
+          ? [...prev]
+          : [{ ...EMPTY_EDUCATION_ROW }];
       arr[0] = { ...arr[0], [key]: val };
       return arr;
     });
@@ -475,15 +596,25 @@ export default function StepReview({
 
   const setEndDate = (val) => {
     setEducations((prev) => {
-      const arr = Array.isArray(prev) && prev.length > 0 ? [...prev] : [{ ...EMPTY_EDUCATION_ROW }];
-      arr[0] = { ...arr[0], end_date: val, is_current: /present|current/i.test(val) };
+      const arr =
+        Array.isArray(prev) && prev.length > 0
+          ? [...prev]
+          : [{ ...EMPTY_EDUCATION_ROW }];
+      arr[0] = {
+        ...arr[0],
+        end_date: val,
+        is_current: /present|current/i.test(val),
+      };
       return arr;
     });
   };
 
   const setIsCurrent = (val) => {
     setEducations((prev) => {
-      const arr = Array.isArray(prev) && prev.length > 0 ? [...prev] : [{ ...EMPTY_EDUCATION_ROW }];
+      const arr =
+        Array.isArray(prev) && prev.length > 0
+          ? [...prev]
+          : [{ ...EMPTY_EDUCATION_ROW }];
       arr[0] = { ...arr[0], is_current: !!val, ...(val && { end_date: "" }) };
       return arr;
     });
@@ -514,20 +645,30 @@ export default function StepReview({
   };
 
   const currentLevel = primary.education_level;
-  const isOtherLevel = currentLevel && !EDU_LEVELS.some((l) => l.value === currentLevel);
+  const isOtherLevel =
+    currentLevel && !EDU_LEVELS.some((l) => l.value === currentLevel);
 
   // Experience / project / certification list operations
-  const updateExp = (i, next) => setExperiences((prev) => prev.map((e, idx) => (idx === i ? next : e)));
-  const addExp = () => setExperiences((prev) => [...(prev || []), { ...EMPTY_EXP }]);
-  const removeExp = (i) => setExperiences((prev) => prev.filter((_, idx) => idx !== i));
+  const updateExp = (i, next) =>
+    setExperiences((prev) => prev.map((e, idx) => (idx === i ? next : e)));
+  const addExp = () =>
+    setExperiences((prev) => [...(prev || []), { ...EMPTY_EXP }]);
+  const removeExp = (i) =>
+    setExperiences((prev) => prev.filter((_, idx) => idx !== i));
 
-  const updateProj = (i, next) => setProjects((prev) => prev.map((p, idx) => (idx === i ? next : p)));
-  const addProj = () => setProjects((prev) => [...(prev || []), { ...EMPTY_PROJ }]);
-  const removeProj = (i) => setProjects((prev) => prev.filter((_, idx) => idx !== i));
+  const updateProj = (i, next) =>
+    setProjects((prev) => prev.map((p, idx) => (idx === i ? next : p)));
+  const addProj = () =>
+    setProjects((prev) => [...(prev || []), { ...EMPTY_PROJ }]);
+  const removeProj = (i) =>
+    setProjects((prev) => prev.filter((_, idx) => idx !== i));
 
-  const updateCert = (i, next) => setCertifications((prev) => prev.map((c, idx) => (idx === i ? next : c)));
-  const addCert = () => setCertifications((prev) => [...(prev || []), { ...EMPTY_CERT }]);
-  const removeCert = (i) => setCertifications((prev) => prev.filter((_, idx) => idx !== i));
+  const updateCert = (i, next) =>
+    setCertifications((prev) => prev.map((c, idx) => (idx === i ? next : c)));
+  const addCert = () =>
+    setCertifications((prev) => [...(prev || []), { ...EMPTY_CERT }]);
+  const removeCert = (i) =>
+    setCertifications((prev) => prev.filter((_, idx) => idx !== i));
 
   // Catch-all skills (profileData.skills) — the union of these and per-
   // entity skills lands in skills_canonical via aggregateProfileSkills.
@@ -535,7 +676,11 @@ export default function StepReview({
   const setSkills = (next) => onChange({ ...data, skills: next });
   const toggleSkill = (label) => {
     if (matchesSkill(skills, label)) {
-      setSkills(skills.filter((s) => String(s).toLowerCase() !== String(label).toLowerCase()));
+      setSkills(
+        skills.filter(
+          (s) => String(s).toLowerCase() !== String(label).toLowerCase(),
+        ),
+      );
     } else {
       setSkills([...skills, label]);
     }
@@ -556,8 +701,8 @@ export default function StepReview({
           Review and refine.
         </h1>
         <p className="text-[13.5px] leading-[1.6] text-rd-text-secondary mt-3">
-          Here&apos;s what we found in your CV. Edit anything that isn&apos;t right,
-          add what&apos;s missing, then continue.
+          Here&apos;s what we found in your CV. Edit anything that isn&apos;t
+          right, add what&apos;s missing, then continue.
         </p>
       </div>
 
@@ -627,7 +772,9 @@ export default function StepReview({
                     <div
                       className={[
                         "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
-                        isSelected ? "bg-rd-coral text-white" : "bg-rd-bg-soft text-rd-text-secondary",
+                        isSelected
+                          ? "bg-rd-coral text-white"
+                          : "bg-rd-bg-soft text-rd-text-secondary",
                       ].join(" ")}
                     >
                       <Icon className="w-4 h-4" />
@@ -649,7 +796,9 @@ export default function StepReview({
                 </SelectTrigger>
                 <SelectContent>
                   {OTHER_LEVELS.map((l) => (
-                    <SelectItem key={l.value} value={l.value}>{l.label}</SelectItem>
+                    <SelectItem key={l.value} value={l.value}>
+                      {l.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -668,7 +817,9 @@ export default function StepReview({
                 </SelectTrigger>
                 <SelectContent>
                   {DEGREE_TYPE_OPTIONS.map((opt) => (
-                    <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                    <SelectItem key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -713,13 +864,19 @@ export default function StepReview({
                 onChange={(e) => setEndDate(e.target.value)}
                 disabled={!!primary.is_current}
                 placeholder='e.g. May 2025, "Present"'
-                className={INPUT_CLS + " disabled:bg-rd-bg-soft disabled:cursor-not-allowed"}
+                className={
+                  INPUT_CLS +
+                  " disabled:bg-rd-bg-soft disabled:cursor-not-allowed"
+                }
               />
             </div>
 
             <div>
               <Label>
-                GPA <span className="text-rd-text-secondary font-normal">(optional)</span>
+                GPA{" "}
+                <span className="text-rd-text-secondary font-normal">
+                  (optional)
+                </span>
               </Label>
               <input
                 type="text"
@@ -767,15 +924,18 @@ export default function StepReview({
 
           {dateError && (
             <p className="text-[12px] text-rd-coral-dark">
-              Enter an end date or check &ldquo;I&apos;m currently studying&rdquo;
+              Enter an end date or check &ldquo;I&apos;m currently
+              studying&rdquo;
             </p>
           )}
         </div>
       </section>
 
-      {/* SECTION 2 — EXPERIENCE. Always-editable cards; per-card skills
-          via RdSkillTagInput + RoleSuggestions where title matches the
-          library. THIS IS THE LOAD-BEARING PIECE for skills_canonical. */}
+      {/* SECTION 2 — EXPERIENCE. Confirmation-pass cards: parsed rows render
+          collapsed (title + company · type · dates) so the user confirms at a
+          glance and edits only on demand; per-card skills via RdSkillTagInput
+          + RoleSuggestions where title matches the library. THIS IS THE
+          LOAD-BEARING PIECE for skills_canonical. */}
       <section>
         <SectionHeader
           icon={Briefcase}
@@ -786,6 +946,10 @@ export default function StepReview({
           <EmptyState message="No experience extracted from your CV. Add one if you have any - otherwise continue and add later." />
         ) : (
           <div className="space-y-3">
+            <p className="text-[12.5px] text-rd-text-secondary -mt-1 mb-1">
+              We pulled these from your CV. Check they look right - tap Edit to
+              fix anything.
+            </p>
             {expList.map((exp, i) => (
               <ExperienceCard
                 key={i}
@@ -864,7 +1028,9 @@ export default function StepReview({
         <div className="space-y-3">
           <div className="bg-rd-bg-card border border-rd-border rounded-[14px] p-5">
             <RdSkillTagInput
-              label={skills.length > 0 ? `Selected (${skills.length})` : undefined}
+              label={
+                skills.length > 0 ? `Selected (${skills.length})` : undefined
+              }
               description="Search the library or type your own."
               tags={skills}
               onChange={setSkills}
