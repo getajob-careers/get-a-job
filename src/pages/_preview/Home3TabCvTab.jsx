@@ -36,7 +36,7 @@ import {
   stretchAwareSeniorityFor,
 } from "@/lib/jobsFeed";
 import { CANVAS_FIXTURES } from "./canvas/canvasConfig";
-import CanvasCvDocument from "./canvas/CanvasCvDocument";
+import CanvasCvGeneration from "./canvas/CanvasCvGeneration";
 import { CanvasTopMatches } from "./canvas/CanvasMatches";
 
 const TOP_MATCHES_FETCH_SIZE = 30;
@@ -48,9 +48,9 @@ const TOP_MATCHES_SHOWN = 6;
 export default function Home3TabCvTab() {
   return (
     <div className="flex flex-col md:flex-row gap-4 h-full min-h-0">
-      {/* Center - CV studio (live) or fixture master-CV document (canvas) */}
-      <div className="w-full md:flex-1 min-w-0 md:h-full md:overflow-y-auto bg-rd-bg-card border border-rd-border-subtle rounded-[16px]">
-        {CANVAS_FIXTURES ? <CanvasCvDocument /> : <CVStudioLive />}
+      {/* Center - CV studio (live) or fixture CV-generation flow (canvas) */}
+      <div className="w-full md:flex-1 min-w-0 md:h-full overflow-hidden bg-rd-bg-card border border-rd-border-subtle rounded-[16px]">
+        {CANVAS_FIXTURES ? <CanvasCvGeneration /> : <CVStudioLive />}
       </div>
 
       {/* Right - compact top-matches list */}
