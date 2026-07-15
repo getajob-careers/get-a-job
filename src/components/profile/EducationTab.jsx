@@ -5,12 +5,23 @@ import { useEducationQuery } from "@/lib/queries/useEducation";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Plus, Pencil, Trash2, GraduationCap, Loader2 } from "lucide-react";
 import BulletsEditor from "@/components/profile/BulletsEditor";
+import { formatDateRange } from "../../../supabase/functions/_shared/date-format.ts";
 import { toast } from "sonner";
 import SkillTagInput from "@/components/onboarding/SkillTagInput";
-import { DEGREE_TYPE_OPTIONS, dropdownValueForDegreeType, EDUCATION_LEVELS } from "@/lib/educationPolicy";
+import {
+  DEGREE_TYPE_OPTIONS,
+  dropdownValueForDegreeType,
+  EDUCATION_LEVELS,
+} from "@/lib/educationPolicy";
 import { recomputeProfileSkillsCanonical } from "@/lib/recomputeProfileSkillsCanonical";
 import CertificationsSection from "./CertificationsSection";
 
@@ -57,12 +68,18 @@ const LEVEL_LABEL = {
 };
 
 // rd-token class strings — mirror Profile.jsx's vocabulary.
-const RD_CARD       = "rounded-[18px] border border-rd-border bg-rd-bg-card p-5 sm:p-6 shadow-rd";
-const RD_CARD_LG    = "rounded-[18px] border border-rd-border bg-rd-bg-card p-6 sm:p-7 shadow-rd";
-const RD_LABEL      = "block text-[11px] font-display font-semibold text-rd-text mb-1.5";
-const RD_INPUT_CLS  = "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
-const RD_BTN_PRIMARY = "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
-const RD_BTN_GHOST   = "inline-flex items-center gap-1.5 text-[12px] text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rounded-full px-2.5 py-1.5 transition-colors";
+const RD_CARD =
+  "rounded-[18px] border border-rd-border bg-rd-bg-card p-5 sm:p-6 shadow-rd";
+const RD_CARD_LG =
+  "rounded-[18px] border border-rd-border bg-rd-bg-card p-6 sm:p-7 shadow-rd";
+const RD_LABEL =
+  "block text-[11px] font-display font-semibold text-rd-text mb-1.5";
+const RD_INPUT_CLS =
+  "border-rd-border rounded-[10px] bg-rd-bg-card text-rd-text text-[13.5px] placeholder:text-rd-text-tertiary focus-visible:border-rd-coral focus-visible:ring-0 focus-visible:shadow-[0_0_0_3px_var(--rd-coral-tint)]";
+const RD_BTN_PRIMARY =
+  "inline-flex items-center justify-center gap-1.5 font-display font-bold text-[13px] text-white bg-rd-coral hover:bg-rd-coral-dark disabled:opacity-50 disabled:cursor-not-allowed rounded-full px-4 py-2.5 transition-colors";
+const RD_BTN_GHOST =
+  "inline-flex items-center gap-1.5 text-[12px] text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rounded-full px-2.5 py-1.5 transition-colors";
 
 export default function EducationTab({ user }) {
   const queryClient = useQueryClient();
@@ -75,7 +92,7 @@ export default function EducationTab({ user }) {
 
   const degreeDropdownValue = useMemo(
     () => dropdownValueForDegreeType(form.degree_type),
-    [form.degree_type]
+    [form.degree_type],
   );
   const isDegreeOther = degreeDropdownValue === "other";
 
@@ -105,7 +122,7 @@ export default function EducationTab({ user }) {
       return;
     }
     if (!form.is_current && !form.end_date.trim()) {
-      toast.error("Enter an end date or check \"I'm currently studying\"");
+      toast.error('Enter an end date or check "I\'m currently studying"');
       return;
     }
     setSaving(true);
@@ -114,7 +131,10 @@ export default function EducationTab({ user }) {
       // Edits preserve the row's existing order.
       const nextDisplayOrder = form.id
         ? undefined
-        : (educations.reduce((max, e) => Math.max(max, e.display_order ?? 0), -1) + 1);
+        : educations.reduce(
+            (max, e) => Math.max(max, e.display_order ?? 0),
+            -1,
+          ) + 1;
 
       const payload = {
         user_id: user.id,
@@ -131,7 +151,9 @@ export default function EducationTab({ user }) {
         academic_projects: form.academic_projects || [],
         skills: form.skills || [],
         location: form.location || null,
-        ...(nextDisplayOrder !== undefined && { display_order: nextDisplayOrder }),
+        ...(nextDisplayOrder !== undefined && {
+          display_order: nextDisplayOrder,
+        }),
       };
 
       if (form.id) {
@@ -155,9 +177,15 @@ export default function EducationTab({ user }) {
       // skills changes affect profiles.skills_canonical. Recompute
       // from FRESH DB rows (all 4 sources) per the PR #178 incident pattern —
       // don't reuse cached React state.
-      const recompute = await recomputeProfileSkillsCanonical(supabase, user.id);
+      const recompute = await recomputeProfileSkillsCanonical(
+        supabase,
+        user.id,
+      );
       if (!recompute.ok) {
-        console.error("Failed to recompute skills_canonical after education save:", recompute.error);
+        console.error(
+          "Failed to recompute skills_canonical after education save:",
+          recompute.error,
+        );
       }
 
       resetForm();
@@ -189,17 +217,22 @@ export default function EducationTab({ user }) {
       location: e.location || "",
     });
     // Scroll to top of tab so the form is visible
-    if (typeof window !== "undefined") window.scrollTo({ top: 0, behavior: "smooth" });
+    if (typeof window !== "undefined")
+      window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (row) => {
-    if (!confirm(`Remove ${row.institution || "this education entry"}?`)) return;
+    if (!confirm(`Remove ${row.institution || "this education entry"}?`))
+      return;
     const { error } = await supabase
       .from("education")
       .delete()
       .eq("id", row.id)
       .eq("user_id", user.id);
-    if (error) { toast.error("Failed to delete."); return; }
+    if (error) {
+      toast.error("Failed to delete.");
+      return;
+    }
     if (form.id === row.id) resetForm();
     queryClient.invalidateQueries({ queryKey: ["education", user.id] });
     queryClient.invalidateQueries({ queryKey: ["userProfile", user.id] });
@@ -215,7 +248,10 @@ export default function EducationTab({ user }) {
             {form.id ? "Edit Education" : "Add Education"}
           </h3>
           {form.id && (
-            <button onClick={resetForm} className="text-[12px] text-rd-text-tertiary hover:text-rd-text underline">
+            <button
+              onClick={resetForm}
+              className="text-[12px] text-rd-text-tertiary hover:text-rd-text underline"
+            >
               Cancel edit
             </button>
           )}
@@ -226,36 +262,54 @@ export default function EducationTab({ user }) {
             <label className={RD_LABEL}>Institution</label>
             <Input
               value={form.institution}
-              onChange={(e) => setForm({ ...form, institution: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, institution: e.target.value })
+              }
               className={RD_INPUT_CLS}
               placeholder="e.g. Stanford University"
             />
           </div>
           <div>
             <label className={RD_LABEL}>Education Level</label>
-            <Select value={form.education_level || undefined} onValueChange={(v) => setForm({ ...form, education_level: v })}>
-              <SelectTrigger className={RD_INPUT_CLS}><SelectValue placeholder="Select level" /></SelectTrigger>
+            <Select
+              value={form.education_level || undefined}
+              onValueChange={(v) => setForm({ ...form, education_level: v })}
+            >
+              <SelectTrigger className={RD_INPUT_CLS}>
+                <SelectValue placeholder="Select level" />
+              </SelectTrigger>
               <SelectContent>
                 {EDUCATION_LEVELS.map((lvl) => (
-                  <SelectItem key={lvl} value={lvl}>{LEVEL_LABEL[lvl] || lvl}</SelectItem>
+                  <SelectItem key={lvl} value={lvl}>
+                    {LEVEL_LABEL[lvl] || lvl}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
           <div>
             <label className={RD_LABEL}>Degree Type</label>
-            <Select value={degreeDropdownValue || undefined} onValueChange={handleDegreeDropdownChange}>
-              <SelectTrigger className={RD_INPUT_CLS}><SelectValue placeholder="Select degree type" /></SelectTrigger>
+            <Select
+              value={degreeDropdownValue || undefined}
+              onValueChange={handleDegreeDropdownChange}
+            >
+              <SelectTrigger className={RD_INPUT_CLS}>
+                <SelectValue placeholder="Select degree type" />
+              </SelectTrigger>
               <SelectContent>
                 {DEGREE_TYPE_OPTIONS.map((opt) => (
-                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                  <SelectItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
             {isDegreeOther && (
               <Input
                 value={form.degree_type}
-                onChange={(e) => setForm({ ...form, degree_type: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, degree_type: e.target.value })
+                }
                 placeholder="e.g. B.Eng., Pharm.D., specific credential"
                 className={`${RD_INPUT_CLS} mt-2`}
               />
@@ -265,7 +319,9 @@ export default function EducationTab({ user }) {
             <label className={RD_LABEL}>Field of Study</label>
             <Input
               value={form.field_of_study}
-              onChange={(e) => setForm({ ...form, field_of_study: e.target.value })}
+              onChange={(e) =>
+                setForm({ ...form, field_of_study: e.target.value })
+              }
               className={RD_INPUT_CLS}
               placeholder="e.g. Business Administration"
             />
@@ -283,7 +339,13 @@ export default function EducationTab({ user }) {
             <label className={RD_LABEL}>End Date</label>
             <Input
               value={form.end_date}
-              onChange={(e) => setForm({ ...form, end_date: e.target.value, is_current: /present|current/i.test(e.target.value) })}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  end_date: e.target.value,
+                  is_current: /present|current/i.test(e.target.value),
+                })
+              }
               disabled={!!form.is_current}
               className={RD_INPUT_CLS}
               placeholder='e.g. May 2025, "Present"'
@@ -318,7 +380,10 @@ export default function EducationTab({ user }) {
             }
             className="border-rd-border data-[state=checked]:bg-rd-coral data-[state=checked]:border-rd-coral"
           />
-          <Label htmlFor="is_current" className="text-[12px] text-rd-text-secondary cursor-pointer">
+          <Label
+            htmlFor="is_current"
+            className="text-[12px] text-rd-text-secondary cursor-pointer"
+          >
             I&apos;m currently studying for this degree
           </Label>
         </div>
@@ -366,18 +431,26 @@ export default function EducationTab({ user }) {
           className={RD_BTN_PRIMARY}
         >
           {saving ? (
-            <><Loader2 className="w-3.5 h-3.5 animate-spin" />Saving…</>
+            <>
+              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              Saving…
+            </>
           ) : form.id ? (
             "Update Education"
           ) : (
-            <><Plus className="w-3.5 h-3.5" />Add Education</>
+            <>
+              <Plus className="w-3.5 h-3.5" />
+              Add Education
+            </>
           )}
         </button>
       </div>
 
       {/* List of saved entries */}
       <div className="space-y-2">
-        {isLoading && <p className="text-[12px] text-rd-text-tertiary">Loading…</p>}
+        {isLoading && (
+          <p className="text-[12px] text-rd-text-tertiary">Loading…</p>
+        )}
         {!isLoading && educations.length === 0 && (
           <div className={`${RD_CARD} text-center py-8`}>
             <GraduationCap className="w-9 h-9 text-rd-coral mx-auto mb-2.5" />
@@ -399,54 +472,83 @@ export default function EducationTab({ user }) {
             className={`${RD_CARD} hover:border-rd-border-hover transition-colors`}
           >
             <div className="flex items-start gap-3">
-            <div className="w-10 h-10 rounded-[12px] bg-rd-teal-tint flex items-center justify-center flex-shrink-0">
-              <GraduationCap className="w-4 h-4 text-rd-teal-dark" />
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="font-display font-bold text-[13.5px] text-rd-text truncate">
-                {e.degree_type ? `${e.degree_type} · ` : ""}{e.field_of_study || (LEVEL_LABEL[e.education_level] || "Education")}
-              </p>
-              <p className="text-[12px] text-rd-text-secondary truncate">
-                {e.institution || "Institution not set"}
-                {e.start_date || e.end_date ? ` · ${e.start_date || ""}${e.start_date && e.end_date ? " – " : ""}${e.end_date || (e.is_current ? "Present" : "")}` : ""}
-              </p>
-              {(e.honors?.length > 0 || e.relevant_coursework?.length > 0 || e.academic_projects?.length > 0 || e.skills?.length > 0) && (
-                <p className="text-[11px] text-rd-text-tertiary mt-1 truncate">
-                  {e.honors?.length > 0 && <>{e.honors.length} honor{e.honors.length === 1 ? "" : "s"} · </>}
-                  {e.relevant_coursework?.length > 0 && <>{e.relevant_coursework.length} course{e.relevant_coursework.length === 1 ? "" : "s"} · </>}
-                  {e.academic_projects?.length > 0 && <>{e.academic_projects.length} project{e.academic_projects.length === 1 ? "" : "s"} · </>}
-                  {(() => {
-                    const n = e.skills?.length || 0;
-                    return n > 0 ? <>{n} skill{n === 1 ? "" : "s"}</> : null;
-                  })()}
+              <div className="w-10 h-10 rounded-[12px] bg-rd-teal-tint flex items-center justify-center flex-shrink-0">
+                <GraduationCap className="w-4 h-4 text-rd-teal-dark" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="font-display font-bold text-[13.5px] text-rd-text truncate">
+                  {e.degree_type ? `${e.degree_type} · ` : ""}
+                  {e.field_of_study ||
+                    LEVEL_LABEL[e.education_level] ||
+                    "Education"}
                 </p>
-              )}
-            </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
-              <button
-                type="button"
-                onClick={() => handleEdit(e)}
-                className={RD_BTN_GHOST}
-                aria-label="Edit"
-              >
-                <Pencil className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => handleDelete(e)}
-                className={RD_BTN_GHOST}
-                aria-label="Delete"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-              </button>
-            </div>
+                <p className="text-[12px] text-rd-text-secondary truncate">
+                  {e.institution || "Institution not set"}
+                  {e.start_date || e.end_date || e.is_current
+                    ? ` · ${formatDateRange(e.start_date, e.end_date, e.is_current)}`
+                    : ""}
+                </p>
+                {(e.honors?.length > 0 ||
+                  e.relevant_coursework?.length > 0 ||
+                  e.academic_projects?.length > 0 ||
+                  e.skills?.length > 0) && (
+                  <p className="text-[11px] text-rd-text-tertiary mt-1 truncate">
+                    {e.honors?.length > 0 && (
+                      <>
+                        {e.honors.length} honor
+                        {e.honors.length === 1 ? "" : "s"} ·{" "}
+                      </>
+                    )}
+                    {e.relevant_coursework?.length > 0 && (
+                      <>
+                        {e.relevant_coursework.length} course
+                        {e.relevant_coursework.length === 1 ? "" : "s"} ·{" "}
+                      </>
+                    )}
+                    {e.academic_projects?.length > 0 && (
+                      <>
+                        {e.academic_projects.length} project
+                        {e.academic_projects.length === 1 ? "" : "s"} ·{" "}
+                      </>
+                    )}
+                    {(() => {
+                      const n = e.skills?.length || 0;
+                      return n > 0 ? (
+                        <>
+                          {n} skill{n === 1 ? "" : "s"}
+                        </>
+                      ) : null;
+                    })()}
+                  </p>
+                )}
+              </div>
+              <div className="flex items-center gap-1 flex-shrink-0">
+                <button
+                  type="button"
+                  onClick={() => handleEdit(e)}
+                  className={RD_BTN_GHOST}
+                  aria-label="Edit"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleDelete(e)}
+                  className={RD_BTN_GHOST}
+                  aria-label="Delete"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
             <BulletsEditor
               targetType="education"
               entity={e}
               userId={user?.id}
               onChanged={() =>
-                queryClient.invalidateQueries({ queryKey: ["education", user.id] })
+                queryClient.invalidateQueries({
+                  queryKey: ["education", user.id],
+                })
               }
             />
           </div>
@@ -458,9 +560,12 @@ export default function EducationTab({ user }) {
           (its URL redirects here). */}
       <div className="pt-6 border-t border-rd-border-subtle space-y-3">
         <div>
-          <h2 className="font-display font-bold text-[15px] text-rd-text">Certifications</h2>
+          <h2 className="font-display font-bold text-[15px] text-rd-text">
+            Certifications
+          </h2>
           <p className="text-[12px] text-rd-text-tertiary mt-0.5">
-            Industry certs, course completions, in-progress credentials. Skills you tag here count toward your profile.
+            Industry certs, course completions, in-progress credentials. Skills
+            you tag here count toward your profile.
           </p>
         </div>
         <CertificationsSection user={user} />
