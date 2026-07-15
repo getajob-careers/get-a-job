@@ -1,5 +1,6 @@
 // PROD ORIGINAL: src/components/tracker/ApplicationsKanban.jsx (canvas clone)
 import React from "react";
+import { createPortal } from "react-dom";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { reveal } from "./stagger";
 
@@ -23,7 +24,7 @@ function pct(v) {
   return v == null ? null : `${Math.round(v * 100)}%`;
 }
 
-function CanvasKanbanCard({ app, onClick, settling }) {
+function CanvasKanbanCard({ app, onClick, settling, dragging }) {
   const tone = STATUS_TONE[app.status] || STATUS_TONE.interested;
   const match = pct(app.qualification_score);
   return (
@@ -32,7 +33,11 @@ function CanvasKanbanCard({ app, onClick, settling }) {
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick?.()}
-      className={`${settling ? "cx-settle" : ""} cursor-pointer bg-rd-bg-card border border-rd-border rounded-[10px] p-2.5 hover:border-rd-border-hover hover:shadow-rd transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-1`}
+      className={`${settling ? "cx-settle" : ""} cursor-grab active:cursor-grabbing rounded-[10px] p-2.5 transition-[box-shadow,border-color] focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-1 ${
+        dragging
+          ? "bg-rd-bg-card border border-rd-coral rotate-2 shadow-[0_16px_36px_rgba(40,25,10,0.28)]"
+          : "bg-rd-bg-card border border-rd-border hover:border-rd-border-hover hover:shadow-rd"
+      }`}
     >
       <div className="flex items-start gap-2">
         <span
@@ -123,25 +128,28 @@ export default function CanvasKanban({
                         draggableId={app.id}
                         index={index}
                       >
-                        {(dragProvided, dragSnapshot) => (
-                          <div
-                            ref={dragProvided.innerRef}
-                            {...dragProvided.draggableProps}
-                            {...dragProvided.dragHandleProps}
-                            style={{
-                              ...dragProvided.draggableProps.style,
-                              boxShadow: dragSnapshot.isDragging
-                                ? "0 6px 24px rgba(14,16,20,0.18)"
-                                : undefined,
-                            }}
-                          >
-                            <CanvasKanbanCard
-                              app={app}
-                              onClick={() => onCardClick?.(app)}
-                              settling={app.id === justMoved}
-                            />
-                          </div>
-                        )}
+                        {(dragProvided, dragSnapshot) => {
+                          const node = (
+                            <div
+                              ref={dragProvided.innerRef}
+                              {...dragProvided.draggableProps}
+                              {...dragProvided.dragHandleProps}
+                            >
+                              <CanvasKanbanCard
+                                app={app}
+                                onClick={() => onCardClick?.(app)}
+                                settling={app.id === justMoved}
+                                dragging={dragSnapshot.isDragging}
+                              />
+                            </div>
+                          );
+                          // Portal the dragged card to <body> so the board's
+                          // overflow-x-auto can't clip it (the fix for the lost
+                          // visible drag). Placeholder keeps the source slot.
+                          return dragSnapshot.isDragging
+                            ? createPortal(node, document.body)
+                            : node;
+                        }}
                       </Draggable>
                     ))}
                     {provided.placeholder}
