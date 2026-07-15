@@ -19,7 +19,7 @@ import { CANVAS_FIXTURES } from "./canvasConfig";
 import { useCursorMagnet } from "./useCursorMagnet";
 import CanvasCoachDock from "./CanvasCoachDock";
 import DuotoneIcon from "./DuotoneIcon";
-import CanvasProfileMenu from "./CanvasProfileMenu";
+import CanvasAvatarChip from "./CanvasAvatarChip";
 
 const ICON_TILES = (onSwitchTab) => [
   {
@@ -85,18 +85,6 @@ function IconGrid({ tiles }) {
             "transform .35s cubic-bezier(.22,.61,.36,1), border-color .15s ease, background-color .15s ease",
           willChange: "transform",
         };
-        if (tile.id === "profile") {
-          return (
-            <CanvasProfileMenu
-              key={tile.id}
-              innerRef={registerTile(i)}
-              className={className}
-              style={style}
-              icon={Icon}
-              label={tile.label}
-            />
-          );
-        }
         if (tile.href) {
           return (
             <Link
@@ -134,6 +122,7 @@ export default function CanvasSidebar({ onSwitchTab }) {
       <div className="flex-1 min-h-[280px] md:min-h-0 bg-rd-bg-sidebar rounded-[16px] flex flex-col">
         {CANVAS_FIXTURES ? <CanvasCoachDock /> : <CoachDock />}
       </div>
+      <CanvasAvatarChip />
     </div>
   );
 }

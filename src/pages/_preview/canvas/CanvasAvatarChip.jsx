@@ -1,35 +1,28 @@
 import React, { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { UserCircle, Settings, LogOut } from "lucide-react";
+import { UserCircle, Settings, LogOut, ChevronsUpDown } from "lucide-react";
 import { toast } from "sonner";
 import { CANVAS_PROFILE } from "../fixtures/canvasHome";
-import DuotoneIcon from "./DuotoneIcon";
 import CanvasCommandItem from "./CanvasCommandItem";
 
-// Profile tile → dropdown (kokonutUI ProfileDropdown, rethemed warm). The tile
-// itself stays the grid trigger (keeps its magnet ref + styling); the menu is
-// portaled + fixed-positioned so it isn't clipped by the sidebar and doesn't
-// disturb the grid. Real menu items (Profile / Settings / Sign out), all fixture
-// no-ops. Reuses CanvasCommandItem (the ⌘K primitive).
-export default function CanvasProfileMenu({
-  innerRef,
-  className,
-  style,
-  icon: Icon,
-  label,
-}) {
+// Compact user/avatar chip at the sidebar bottom (wave-2 feedback #6). Standard
+// app pattern: the Profile TILE now navigates; the quick menu (Profile /
+// Settings / Sign out) lives here. Same warm portaled menu styling as before —
+// it just moved homes. Opens ABOVE the chip (it sits at the bottom). Fixture
+// no-ops.
+export default function CanvasAvatarChip() {
   const [open, setOpen] = useState(false);
   const [pos, setPos] = useState(null);
   const btnRef = useRef(null);
-  const setRefs = (el) => {
-    btnRef.current = el;
-    if (typeof innerRef === "function") innerRef(el);
-  };
 
   const toggle = () => {
     if (!open && btnRef.current) {
       const r = btnRef.current.getBoundingClientRect();
-      setPos({ top: r.bottom + 6, left: r.left });
+      setPos({
+        left: r.left,
+        bottom: window.innerHeight - r.top + 6,
+        width: r.width,
+      });
     }
     setOpen((o) => !o);
   };
@@ -56,18 +49,28 @@ export default function CanvasProfileMenu({
   return (
     <>
       <button
-        ref={setRefs}
+        ref={btnRef}
         type="button"
         onClick={toggle}
-        className={className}
-        style={style}
         aria-haspopup="menu"
         aria-expanded={open}
+        className="flex-shrink-0 flex items-center gap-2 w-full rounded-[12px] bg-rd-bg-card border border-rd-border px-2.5 py-2 hover:border-rd-border-hover hover:bg-rd-bg-soft transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
       >
-        <DuotoneIcon icon={Icon} />
-        <span className="text-[10px] font-display font-semibold text-rd-text-secondary group-hover:text-rd-text leading-tight text-center transition-colors">
-          {label}
+        <span className="flex-shrink-0 inline-flex items-center justify-center w-7 h-7 rounded-full bg-rd-coral-tint text-rd-coral font-display font-bold text-[12px]">
+          {CANVAS_PROFILE.full_name?.[0] || "?"}
         </span>
+        <span className="flex-1 min-w-0 text-left">
+          <span className="block font-display font-bold text-[11.5px] text-rd-text truncate leading-tight">
+            {CANVAS_PROFILE.full_name}
+          </span>
+          <span className="block text-[9.5px] text-rd-text-tertiary truncate">
+            {CANVAS_PROFILE.email}
+          </span>
+        </span>
+        <ChevronsUpDown
+          className="w-3.5 h-3.5 text-rd-text-tertiary flex-shrink-0"
+          aria-hidden="true"
+        />
       </button>
 
       {open &&
@@ -78,20 +81,13 @@ export default function CanvasProfileMenu({
             onMouseDown={(e) => e.stopPropagation()}
             style={{
               position: "fixed",
-              top: pos.top,
               left: pos.left,
+              bottom: pos.bottom,
+              width: pos.width,
               zIndex: 60,
             }}
-            className="w-52 rounded-lg border border-rd-border bg-rd-bg-card shadow-rd p-1.5"
+            className="rounded-lg border border-rd-border bg-rd-bg-card shadow-rd p-1.5"
           >
-            <div className="px-2 py-1.5 border-b border-rd-border-subtle mb-1">
-              <p className="font-display font-bold text-[12.5px] text-rd-text truncate">
-                {CANVAS_PROFILE.full_name}
-              </p>
-              <p className="text-[10.5px] text-rd-text-tertiary truncate">
-                {CANVAS_PROFILE.email}
-              </p>
-            </div>
             <CanvasCommandItem
               icon={UserCircle}
               label="Profile"
