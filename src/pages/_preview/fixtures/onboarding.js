@@ -18,7 +18,7 @@ const SAMPLE_EXP_3 = [
     title: "Customer Success Specialist – VIP Team",
     company: "Guardio",
     type: "part_time",
-    start_date: "2025-10-19",
+    start_date: "October 2025",
     end_date: "",
     is_current: true,
     responsibilities:
@@ -31,7 +31,7 @@ const SAMPLE_EXP_3 = [
     title: "Program Coordinator & Team Lead",
     company: "Heseg Tzair",
     type: "volunteer",
-    start_date: "2025-08-01",
+    start_date: "2025",
     end_date: "",
     is_current: true,
     responsibilities:
@@ -44,8 +44,8 @@ const SAMPLE_EXP_3 = [
     title: "Combat Soldier",
     company: "Nahal Brigade",
     type: "military",
-    start_date: "2020-03-31",
-    end_date: "2022-11-30",
+    start_date: "2020",
+    end_date: "2022",
     is_current: false,
     responsibilities:
       "Supervised and trained teams of up to 30 soldiers in high-pressure environments.",
@@ -71,9 +71,7 @@ const SAMPLE_EDU_1 = [
       "Financial Accounting",
       "Statistics for Business",
     ],
-    academic_projects: [
-      "Capstone: Israeli D2C market analysis",
-    ],
+    academic_projects: ["Capstone: Israeli D2C market analysis"],
   },
 ];
 
@@ -140,7 +138,10 @@ export const FIXTURES = {
   },
   "internship-faculty": {
     label: "Step 2 · Internship — faculty-assigned",
-    profileData: { practicum_path: "faculty_assigned", practicum_cohort: "Spring 2026" },
+    profileData: {
+      practicum_path: "faculty_assigned",
+      practicum_cohort: "Spring 2026",
+    },
     educations: [{ institution: "Reichman University" }],
   },
   "internship-self": {
@@ -183,7 +184,12 @@ export const FIXTURES = {
   "skills-with-chips": {
     label: "Step 5 · Other skills — chips selected",
     profileData: {
-      skills: ["Python", "Excel", "Customer Communication", "Project Management"],
+      skills: [
+        "Python",
+        "Excel",
+        "Customer Communication",
+        "Project Management",
+      ],
     },
   },
 
