@@ -2,10 +2,10 @@
 // hover-peek portal — wave-2 replaces hover with an action row — and owns the
 // score badge so the count-up (idea #2) can be its own readable beat).
 import React from "react";
-import { Check } from "lucide-react";
 import { deriveJobDisplay } from "@/lib/jobCardDisplay";
 import { useCountUp } from "./useCountUp";
 import AgencyBadge from "@/components/jobs/AgencyBadge";
+import CanvasCardActions from "./CanvasCardActions";
 
 // Count-up refinement (wave-1 fix): only the top few cards count (one clear beat
 // beats ten invisible ones), the ramp starts AFTER the card's entrance reveal so
@@ -44,7 +44,7 @@ export default function CanvasJobCard({ job, scoreResult, onOpen, index = 0 }) {
           open();
         }
       }}
-      className="group cursor-pointer h-full flex flex-col bg-rd-bg-card border border-rd-border rounded-[14px] p-3 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
+      className="cx-card group cursor-pointer h-full flex flex-col bg-rd-bg-card border border-rd-border rounded-[14px] p-3 transition-[transform,border-color,box-shadow] duration-150 hover:-translate-y-0.5 hover:border-rd-border-hover hover:shadow-rd focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2"
     >
       <div className="flex items-center justify-between gap-1.5 mb-2">
         <span
@@ -102,19 +102,11 @@ export default function CanvasJobCard({ job, scoreResult, onOpen, index = 0 }) {
         </div>
       )}
 
-      {d.matchedSkills.length > 0 && (
-        <div className="flex flex-wrap gap-1 mt-1.5">
-          {d.matchedSkills.slice(0, 2).map((s, i) => (
-            <span
-              key={i}
-              className="inline-flex items-center gap-0.5 text-[10px] bg-rd-teal-tint text-rd-teal-dark rounded-full px-1.5 py-0.5 whitespace-nowrap"
-            >
-              <Check className="w-2.5 h-2.5" />
-              {s}
-            </span>
-          ))}
-        </div>
-      )}
+      {/* Actions live on approach now (idea #1) — skills moved to the detail
+          modal to keep the card compact. */}
+      <div className="mt-auto pt-1">
+        <CanvasCardActions job={job} />
+      </div>
     </div>
   );
 }
