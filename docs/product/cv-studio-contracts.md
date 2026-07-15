@@ -68,6 +68,7 @@ Each user-editable entity needs a coach tool. All are RLS-scoped to the acting u
 3. **Human-in-the-loop for destructive + large ops.** Keep the existing `SUGGESTED_*_JSON` → user-taps-Apply confirmation for deletes and bulk rewrites. Deleting an experience/education row is irreversible and (per S4) drops its awards/honors - it must confirm.
 4. **Writes come from explicit user intent, not from ingested content** (prompt-injection guard - see risks).
 5. **Reversibility.** With immediate writes to source-of-truth, undo matters (see S8).
+6. **Every write is recorded (audit).** The edit-history table (author/source, entity, field, old value, new value, timestamp) is a **BLOCKING PREREQUISITE for enabling the coach's write tools** - no LLM-initiated write to profile or master goes live until every write is durably recorded. Human Studio edits may ship earlier on session-scoped undo (Requirement 1); the coach may not. (Eli, spec amendment 2026-07-16.)
 
 ### Risks of giving the coach write access (flagged)
 
@@ -132,7 +133,7 @@ Write-through mutates source-of-truth on every commit, so undo is not optional.
 
 - **Minimum (in this PR): session-scoped undo.** Before each write, capture the prior value; expose "Undo last change" (ideally a short in-memory undo stack) that restores it. No schema, client-only, lost on refresh. Covers the immediate "oops, revert" case.
 - **Edit-history table (cost delta + recommendation):** a durable `profile_edits` table `(id, user_id, entity_type, entity_id, field, prior_value, new_value, source ['studio'|'coach'|...], created_at)`, one append per write. Cost delta vs session-undo: **one migration + one extra INSERT on every field commit (write amplification) + RLS + a history/undo-any-of-last-N UI**. Buys: cross-session undo and - the reason it matters here - an **audit trail of what the coach changed** (S3 gives the coach full write access; a durable log of coach mutations is a real safety feature, not a nicety).
-- **Recommendation:** ship session-scoped undo in this PR (blocking). Do the edit-history table as the **immediate fast-follow**, justified by the S3 write-agent coach (you'll want to see and reverse coach edits across sessions). Worth doing, but it does not need to block the write-through PR - unless you want the coach's write access and its audit log to land together, in which case fold it in. Default recommendation: fast-follow.
+- **Sequencing (DECIDED, Eli 2026-07-16):** session-scoped undo ships in the write-through PR (blocking, Requirement 1). The **edit-history table is NOT a generic fast-follow - it is a BLOCKING PREREQUISITE for turning on the coach's write tools** (cross-cutting rule 6). So: **human Studio write-through may go live on session undo alone; no LLM-initiated write to profile/master ships until the edit-history table exists** and records every write (author, field, old value, new value, timestamp). The coach write-agent (S3) is gated on the audit table; human editing is not.
 
 ### Requirement 2 (BLOCKING): one shared write layer, not per-caller
 
