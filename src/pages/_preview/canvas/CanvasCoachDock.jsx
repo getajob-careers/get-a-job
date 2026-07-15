@@ -1,7 +1,17 @@
 // PROD ORIGINAL: src/components/agent/CoachDock.jsx (canvas clone; fixture
 // thread + local send, no CoachConversationProvider / LLM / DB)
 import React, { useEffect, useRef, useState } from "react";
-import { Sparkles, Maximize2, ArrowUp } from "lucide-react";
+import {
+  Sparkles,
+  Maximize2,
+  ArrowUp,
+  Search,
+  Target,
+  CheckCircle2,
+  Building2,
+} from "lucide-react";
+import CanvasCommandItem from "./CanvasCommandItem";
+import { reveal } from "./stagger";
 import {
   CANVAS_COACH_MESSAGES,
   CANVAS_COACH_PROMPTS,
@@ -23,7 +33,17 @@ const GRAIN_URL =
 export default function CanvasCoachDock() {
   const [messages, setMessages] = useState(CANVAS_COACH_MESSAGES);
   const [draft, setDraft] = useState("");
+  const [open, setOpen] = useState(false); // action-search dropdown
+  const [activeIdx, setActiveIdx] = useState(-1);
   const threadRef = useRef(null);
+
+  // Action-search suggestions (idea #2 sibling of ⌘K). "[tracked company]" is
+  // filled from the fixture pipeline — Lemonade is the interviewing app.
+  const ACTIONS = [
+    { icon: Target, label: "What should I focus on this week?" },
+    { icon: CheckCircle2, label: "Am I ready to apply?" },
+    { icon: Building2, label: "Prep me for Lemonade", hint: "interview" },
+  ];
 
   useEffect(() => {
     threadRef.current?.scrollTo({ top: threadRef.current.scrollHeight });
@@ -42,6 +62,25 @@ export default function CanvasCoachDock() {
       },
     ]);
     setDraft("");
+    setOpen(false);
+    setActiveIdx(-1);
+  };
+
+  const onKeyDown = (e) => {
+    if (!open) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setActiveIdx((i) => (i + 1) % ACTIONS.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setActiveIdx((i) => (i - 1 + ACTIONS.length) % ACTIONS.length);
+    } else if (e.key === "Enter" && activeIdx >= 0) {
+      e.preventDefault();
+      send(ACTIONS[activeIdx].label);
+    } else if (e.key === "Escape") {
+      setOpen(false);
+      setActiveIdx(-1);
+    }
   };
 
   return (
@@ -108,29 +147,68 @@ export default function CanvasCoachDock() {
           )}
         </div>
 
-        {/* Input */}
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            send(draft);
-          }}
-          className="flex items-center gap-1.5 px-2.5 py-2 border-t border-rd-border-subtle"
-        >
-          <input
-            value={draft}
-            onChange={(e) => setDraft(e.target.value)}
-            placeholder="Ask your coach…"
-            className="flex-1 bg-transparent text-[12.5px] text-rd-text placeholder:text-rd-text-tertiary focus:outline-none"
-          />
-          <button
-            type="submit"
-            disabled={!draft.trim()}
-            aria-label="Send"
-            className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rd-coral text-white hover:bg-rd-coral-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+        {/* Action-search input — focus opens a staggered command dropdown
+            (kokonutUI ActionSearchBar; sibling of the future ⌘K palette). */}
+        <div className="relative border-t border-rd-border-subtle">
+          {open && (
+            <div
+              id="cx-coach-actions"
+              role="listbox"
+              className="absolute bottom-full left-2 right-2 mb-1.5 z-20 rounded-lg border border-rd-border bg-rd-bg-card shadow-rd p-1"
+            >
+              <p className="px-2 pt-1 pb-1 text-[9px] uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow">
+                Suggested
+              </p>
+              {ACTIONS.map((a, i) => (
+                <CanvasCommandItem
+                  key={a.label}
+                  icon={a.icon}
+                  label={a.label}
+                  hint={a.hint}
+                  active={i === activeIdx}
+                  onSelect={() => send(a.label)}
+                  className={reveal(i, 35).className}
+                  style={reveal(i, 35).style}
+                />
+              ))}
+            </div>
+          )}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              send(draft);
+            }}
+            className="flex items-center gap-1.5 px-2.5 py-2"
           >
-            <ArrowUp className="w-3.5 h-3.5" aria-hidden="true" />
-          </button>
-        </form>
+            <Search
+              className="w-3.5 h-3.5 text-rd-text-tertiary flex-shrink-0"
+              aria-hidden="true"
+            />
+            <input
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onFocus={() => {
+                setOpen(true);
+                setActiveIdx(-1);
+              }}
+              onBlur={() => setOpen(false)}
+              onKeyDown={onKeyDown}
+              role="combobox"
+              aria-expanded={open}
+              aria-controls="cx-coach-actions"
+              placeholder="Ask your coach or pick an action…"
+              className="flex-1 bg-transparent text-[12.5px] text-rd-text placeholder:text-rd-text-tertiary focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={!draft.trim()}
+              aria-label="Send"
+              className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rd-coral text-white hover:bg-rd-coral-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ArrowUp className="w-3.5 h-3.5" aria-hidden="true" />
+            </button>
+          </form>
+        </div>
 
         {/* Grain overlay — faint film grain over the whole panel. */}
         <div
