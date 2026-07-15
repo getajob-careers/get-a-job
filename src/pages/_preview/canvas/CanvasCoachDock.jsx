@@ -12,10 +12,7 @@ import {
 } from "lucide-react";
 import CanvasCommandItem from "./CanvasCommandItem";
 import { reveal } from "./stagger";
-import {
-  CANVAS_COACH_MESSAGES,
-  CANVAS_COACH_PROMPTS,
-} from "../fixtures/canvasHome";
+import { CANVAS_COACH_MESSAGES } from "../fixtures/canvasHome";
 
 // Idea #13: warm grain-texture for the coach panel. A gentle white→peach
 // gradient (the AI surface reads warmer than flat-cream content) with a faint
@@ -39,10 +36,13 @@ export default function CanvasCoachDock() {
 
   // Action-search suggestions (idea #2 sibling of ⌘K). "[tracked company]" is
   // filled from the fixture pipeline — Lemonade is the interviewing app.
+  // Prompts kept at/under the "Am I ready to apply?" length ceiling so they
+  // never truncate at the dock's narrowest (220px sidebar) width. No hint (it
+  // ate width). "[tracked company]" = Lemonade, the interviewing fixture app.
   const ACTIONS = [
-    { icon: Target, label: "What should I focus on this week?" },
+    { icon: Target, label: "What's my next move?" },
     { icon: CheckCircle2, label: "Am I ready to apply?" },
-    { icon: Building2, label: "Prep me for Lemonade", hint: "interview" },
+    { icon: Building2, label: "Prep me for Lemonade" },
   ];
 
   useEffect(() => {
@@ -131,20 +131,6 @@ export default function CanvasCoachDock() {
               </div>
             </div>
           ))}
-          {messages.length <= CANVAS_COACH_MESSAGES.length && (
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {CANVAS_COACH_PROMPTS.map((p) => (
-                <button
-                  key={p}
-                  type="button"
-                  onClick={() => send(p)}
-                  className="text-[11px] rounded-full px-2.5 py-1 bg-rd-coral-tint text-rd-coral-dark hover:bg-rd-coral hover:text-white transition-colors"
-                >
-                  {p}
-                </button>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Action-search input — focus opens a staggered command dropdown
