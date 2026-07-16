@@ -171,6 +171,21 @@ export function mustHaveCoreScore(core, userSet, params = MUSTHAVE) {
   return clamp01(coverageW * evidence);
 }
 
+// ── Component 2b: direction-aware blend (flag-gated, default off) ─────────────
+// attainability_score answers "can this person do the job mechanically" and by
+// design (#393) EXCLUDES function_family, so the for-you sort is direction-blind:
+// a high-attainability off-direction job outranks an on-direction one (Eli's
+// live top: a Product-target user's Helfy PM sank below six adjacent
+// CSM/SDR/Marketing roles). rank_score reintroduces direction into the SORT ONLY
+// (not the displayed attainability badge - Option B keeps that pure): a soft
+// multiplicative boost for on-direction (primary) roles. NOT hard tier-first
+// (all-primary-above-all-adjacent was the pre-#585 "75% below 21%" failure) - a
+// blend so a primary GOOD generally clears the adjacent block without burying a
+// genuinely stronger adjacent match. w tuned on the 160 labels + the live ELI
+// full-candidate Helfy test (docs/eval): w=0.25 lifts Helfy above the whole
+// wrong-direction block while a weak (~55%) primary stays down.
+const DIRECTION = { w: 0.25 };
+
 // Confidence in [0,1] for a (user, job) match: high when the JD has several
 // distinctive core requirements the user genuinely matches at good coverage;
 // low when it rests on a thin/generic/low-coverage signal.
@@ -653,6 +668,24 @@ export function scoreJobFit(input, job, opts = {}) {
     attainability_band = "stretch";
   }
 
+  // Component 2b: rank_score is the for-you feed SORT key. It equals
+  // attainability_score with the flag off (sort byte-identical to legacy), and
+  // applies the direction boost when on. opts.directionBlend may be `true` (use
+  // DIRECTION.w) or a params object (harness sweeps w). The feed still SECTIONS
+  // by attainability_band and DISPLAYS attainability_score - only the ordering
+  // within/across the gated set consults direction (Option B).
+  const directionW = opts.directionBlend
+    ? opts.directionBlend === true
+      ? DIRECTION.w
+      : (opts.directionBlend.w ?? DIRECTION.w)
+    : 0;
+  const rank_score =
+    Math.round(
+      attainability_score *
+        (1 + directionW * (relevance_match === "primary" ? 1 : 0)) *
+        10000,
+    ) / 10000;
+
   // Reasoning strings — short, actionable phrases the UI surfaces.
   const strengths = [];
   const gaps = [];
@@ -706,6 +739,7 @@ export function scoreJobFit(input, job, opts = {}) {
     relevance_match,
     attainability_score,
     attainability_band,
+    rank_score,
     signals: {
       skill_match_pct: skill.skill_match_pct,
       matched_skills: skill.matched_skills,
