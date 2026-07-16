@@ -1,5 +1,12 @@
-import React, { useEffect, useId, useRef, useState } from "react";
+import React, {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from "react";
 import { RING_TRACK_OPACITY, visibleFill } from "./ring";
+import { RING_VARIANT_KEYS, getRingVariant, subscribeRing } from "./ringStore";
 
 // Score visual (round 3, step 3 refined). The tri-ring stays dead; the flat
 // single arc was too plain. Three enriched directions to pick from, behind
@@ -24,21 +31,20 @@ export function scoreAxes(scoreResult) {
   return { skill, experience: attain, seniority: scoreResult?.fit_score ?? 0 };
 }
 
-const RING_VARIANTS = ["a", "b", "c"];
-function resolveVariant(explicit) {
-  if (RING_VARIANTS.includes(explicit)) return explicit;
-  if (typeof window === "undefined") return "a";
-  const p = new URLSearchParams(window.location.search).get("ring");
-  return RING_VARIANTS.includes(p) ? p : "a";
-}
-
 export default function CanvasScoreRing({
   scoreResult,
   bandMeta,
   size = 46,
   variant,
 }) {
-  const v = resolveVariant(variant);
+  // Live variant from the shared store (pinned switcher / ?ring); an explicit
+  // `variant` prop overrides it — the lab passes one per row.
+  const storeVariant = useSyncExternalStore(
+    subscribeRing,
+    getRingVariant,
+    () => "a",
+  );
+  const v = RING_VARIANT_KEYS.includes(variant) ? variant : storeVariant;
   const gid = "g" + useId().replace(/:/g, "");
   const [drawn, setDrawn] = useState(false);
   const [legend, setLegend] = useState(false);
