@@ -51,11 +51,71 @@ export function MarkSimple({ accent, w = "0.86em", h = "1em" }) {
   );
 }
 
-// Full mark — person hunched over a solid laptop at the A-desk. For ~48px+.
-export function MarkFull({ accent, ink, w = "1.04em", h = "1em" }) {
+// Full mark internals — the A-frame desk, a sharpened hunched worker (head +
+// back + a distinct arm), and a solid laptop (the "working" anchor). `chair`
+// adds a seat + back-post so the figure sits instead of floating.
+function FullInner({ accent, ink, chair }) {
+  return (
+    <>
+      {/* A legs / desk frame */}
+      <path
+        d="M7 50 L23 18"
+        stroke={accent}
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M49 50 L33 18"
+        stroke={accent}
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      {/* desk crossbar */}
+      <path
+        d="M15 36 L41 36"
+        stroke={accent}
+        strokeWidth="5"
+        strokeLinecap="round"
+      />
+      {/* chair (variant): seat + back-post, grounding the sitter */}
+      {chair && (
+        <g
+          stroke={accent}
+          strokeWidth="3.6"
+          strokeLinecap="round"
+          opacity="0.82"
+        >
+          <path d="M13.5 33 L25 33" />
+          <path d="M13.5 33 L13.5 20.5" />
+        </g>
+      )}
+      {/* person: head + hunched back + a distinct arm reaching the laptop */}
+      <circle cx="24" cy="12" r="5.4" fill={accent} />
+      <path
+        d="M24 17 C19 21 19 28 25.5 30"
+        stroke={accent}
+        strokeWidth="5.4"
+        strokeLinecap="round"
+        fill="none"
+      />
+      <path
+        d="M24.6 22 L32.4 27"
+        stroke={accent}
+        strokeWidth="4.3"
+        strokeLinecap="round"
+      />
+      {/* laptop (solid ink): base + angled screen */}
+      <path d="M28.5 29 L40 31.6 L38.4 26 L26.9 23.4 Z" fill={ink} />
+      <path d="M38.4 26 L36.8 18.4 L34.6 18.9 L36.2 26.5 Z" fill={ink} />
+    </>
+  );
+}
+
+// Full desk-person mark (sharpened, no chair). For ~48px+.
+export function MarkFull({ accent, ink, w = "1.06em", h = "1em" }) {
   return (
     <svg
-      viewBox="0 0 54 52"
+      viewBox="0 0 56 54"
       width={w}
       height={h}
       fill="none"
@@ -63,38 +123,24 @@ export function MarkFull({ accent, ink, w = "1.04em", h = "1em" }) {
       aria-label="A"
       style={{ overflow: "visible" }}
     >
-      {/* A legs / desk frame */}
-      <path
-        d="M6 49 L21.5 17"
-        stroke={accent}
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-      <path
-        d="M46 49 L30.5 17"
-        stroke={accent}
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-      {/* desk crossbar */}
-      <path
-        d="M13 35 L39 35"
-        stroke={accent}
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-      {/* person: head + connected hunched back/arm as one bold form */}
-      <circle cx="22" cy="10" r="5.6" fill={accent} />
-      <path
-        d="M22 15.6 C16.5 19 16.5 26.5 24.5 29"
-        stroke={accent}
-        strokeWidth="6"
-        strokeLinecap="round"
-        fill="none"
-      />
-      {/* laptop (solid) — the "working" anchor: base on the desk + screen up */}
-      <path d="M22 31.5 L36 34 L34.5 30 L20.5 27.5 Z" fill={ink} />
-      <path d="M34.5 30 L33 21.5 L30.8 22 L32.3 30.5 Z" fill={ink} />
+      <FullInner accent={accent} ink={ink} chair={false} />
+    </svg>
+  );
+}
+
+// Full mark with a chair — the seat grounds the "working at a desk" pose.
+export function MarkFullChair({ accent, ink, w = "1.06em", h = "1em" }) {
+  return (
+    <svg
+      viewBox="0 0 56 54"
+      width={w}
+      height={h}
+      fill="none"
+      role="img"
+      aria-label="A"
+      style={{ overflow: "visible" }}
+    >
+      <FullInner accent={accent} ink={ink} chair />
     </svg>
   );
 }
