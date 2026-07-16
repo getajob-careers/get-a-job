@@ -8,6 +8,7 @@ import React from "react";
 import { deriveJobDisplay } from "@/lib/jobCardDisplay";
 import AgencyBadge from "@/components/jobs/AgencyBadge";
 import CanvasCardActions from "./CanvasCardActions";
+import CanvasChip from "./CanvasChip";
 import CanvasScoreRing from "./CanvasScoreRing";
 
 // Spotlight glow — injected once, scoped to .cx-card (job cards). A soft warm
@@ -84,12 +85,7 @@ export default function CanvasJobCard({ job, scoreResult, onOpen }) {
       {d.chips.length > 0 && (
         <div className="relative flex flex-wrap gap-1 mt-2.5">
           {d.chips.map((c, i) => (
-            <span
-              key={i}
-              className="rd-t-micro bg-rd-bg-soft text-rd-text-tertiary rd-r-xs px-1.5 py-0.5"
-            >
-              {c}
-            </span>
+            <CanvasChip key={i}>{c}</CanvasChip>
           ))}
         </div>
       )}

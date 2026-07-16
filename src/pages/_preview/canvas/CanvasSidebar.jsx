@@ -65,7 +65,7 @@ function IconGrid({ tiles }) {
   // Cursor-magnet: tiles lean toward the pointer (iteration 1 Part 3).
   const { containerRef, registerTile } = useCursorMagnet();
   return (
-    <div ref={containerRef} className="grid grid-cols-3 gap-2">
+    <div ref={containerRef} className="grid grid-cols-3 gap-2.5">
       {tiles.map((tile, i) => {
         const Icon = tile.icon;
         // Shared duotone treatment (icon family = lucide; see DuotoneIcon).
@@ -77,16 +77,17 @@ function IconGrid({ tiles }) {
             </span>
           </>
         );
-        // Paper-lift (no glow — glow is job-cards-only). No rd-lift-hover here:
-        // the tile's hover interaction is the cursor-magnet lean, whose inline
-        // transform would fight a hover translateY.
+        // Quiet tile (audit #3): sits on the sidebar tone, lifts softly on hover
+        // (rd-tile — bg + shadow only, no transform, so the cursor-magnet lean
+        // wins). No glow — that's job-cards-only.
         const className =
-          "group flex flex-col items-center justify-center gap-1.5 aspect-square rd-r-md rd-lift focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-2 p-2";
-        // Yishai's exact transform ease (.35s cubic-bezier) for the lean;
-        // colours keep the quick 150ms. will-change hints the compositor.
+          "group flex flex-col items-center justify-center gap-1.5 aspect-square rd-r-md rd-tile focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-2 p-2";
+        // Yishai's transform ease (.35s cubic-bezier) for the lean; the hover
+        // bg + shadow animate on their own quick track. will-change hints the
+        // compositor.
         const style = {
           transition:
-            "transform .35s cubic-bezier(.22,.61,.36,1), border-color .15s ease, background-color .15s ease",
+            "transform .35s cubic-bezier(.22,.61,.36,1), background-color .18s ease, box-shadow .18s ease",
           willChange: "transform",
         };
         if (tile.href) {
