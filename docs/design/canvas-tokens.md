@@ -57,6 +57,17 @@ e.g. the coach action-search field. Never a border on a lifted surface.
 If a future wave wants the glow on another surface, that's a new decision to
 raise explicitly — the default answer is no.
 
+## Score ring (locked)
+
+The score visual is the **sheen arc** (`CanvasScoreRing`): one confident arc with
+a soft luminosity gradient + round cap over a faint band-tint backing, the score
+number centered in the band `-dark`. Premium, quiet, legible at ~46px. Chosen
+over the score-coin and beaded-arc explorations (both removed, along with the
+`?ring` lab route and the on-page switcher). Non-negotiables baked in: the ring
+low-fill floor (`ring.js`) and the badge AA floor (number + arc use the band
+`-dark`, AA on the card), plus the reduced-motion path (no draw-in). The 3-axis
+breakdown lives in the hover/tap legend, never the ring face.
+
 ## Guardrail
 
 `node scripts/check-scale.mjs` — flags any raw `text-[Npx]` / `rounded-[Npx]` /

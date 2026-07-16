@@ -1,27 +1,14 @@
-import React, {
-  useEffect,
-  useId,
-  useRef,
-  useState,
-  useSyncExternalStore,
-} from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { RING_TRACK_OPACITY, visibleFill } from "./ring";
-import { RING_VARIANT_KEYS, getRingVariant, subscribeRing } from "./ringStore";
 
-// Score visual (round 3, step 3 refined). The tri-ring stays dead; the flat
-// single arc was too plain. Three enriched directions to pick from, behind
-// ?ring=a|b|c (a lab view at ?ring=lab renders them side by side). Brief: one
-// glance says "this is the score and it matters," premium not gamer-y, legible
-// at ~46px. All keep the ring low-fill floor (ring.js) and badge AA (number/arc
-// use the band -dark, AA on card; the coin's number sits on band-tint, AA), and
-// degrade gracefully under reduced motion (no draw-in, static end-bead).
-//
-//   a Sheen arc — one confident arc with a soft luminosity gradient + round cap
-//                 over a faint tint backing. Rich, quiet, editorial.
-//   b Score coin — the arc frames a filled band-tint disc the number sits on,
-//                  so the number reads as a substantial "score coin."
-//   c Beaded arc — a precise arc with a filled bead at its tip (Oura/dial feel),
-//                  marking the value cleanly.
+// Score visual (round 3, FINAL — "sheen arc" locked). One confident arc with a
+// soft luminosity gradient + round cap over a faint band-tint backing, the score
+// number centered. Rich and quiet, premium not gamer-y, legible at ~46px. The
+// tri-ring, the score-coin / beaded exploration variants, the lab route, and the
+// on-page switcher were all removed once this direction won. Keeps the ring
+// low-fill floor (ring.js) and badge AA (number + arc use the band -dark, AA on
+// the card), and degrades under reduced motion (no draw-in). Hover/tap opens the
+// 3-axis breakdown legend.
 
 export function scoreAxes(scoreResult) {
   const attain = scoreResult?.attainability_score ?? 0;
@@ -31,20 +18,7 @@ export function scoreAxes(scoreResult) {
   return { skill, experience: attain, seniority: scoreResult?.fit_score ?? 0 };
 }
 
-export default function CanvasScoreRing({
-  scoreResult,
-  bandMeta,
-  size = 46,
-  variant,
-}) {
-  // Live variant from the shared store (pinned switcher / ?ring); an explicit
-  // `variant` prop overrides it — the lab passes one per row.
-  const storeVariant = useSyncExternalStore(
-    subscribeRing,
-    getRingVariant,
-    () => "a",
-  );
-  const v = RING_VARIANT_KEYS.includes(variant) ? variant : storeVariant;
+export default function CanvasScoreRing({ scoreResult, bandMeta, size = 46 }) {
   const gid = "g" + useId().replace(/:/g, "");
   const [drawn, setDrawn] = useState(false);
   const [legend, setLegend] = useState(false);
@@ -67,7 +41,7 @@ export default function CanvasScoreRing({
   const tint = bandMeta?.bg || "var(--rd-bg-soft)";
   const pct = Math.round(raw * 100);
 
-  const arcStroke = v === "a" ? 5 : 4;
+  const arcStroke = 5;
   const cx = size / 2;
   const r = cx - arcStroke / 2 - 1;
   const c = 2 * Math.PI * r;
@@ -76,12 +50,6 @@ export default function CanvasScoreRing({
   const arcStyle = reduce
     ? undefined
     : { transition: "stroke-dashoffset .7s cubic-bezier(.22,.61,.36,1)" };
-
-  // Beaded-arc (c): tip position, from top (-90deg) clockwise by `fill`.
-  const ang = -Math.PI / 2 + fill * 2 * Math.PI;
-  const beadX = cx + r * Math.cos(ang);
-  const beadY = cx + r * Math.sin(ang);
-  const coinR = r - arcStroke / 2 - 2.5;
 
   const openLegend = () => {
     clearTimeout(enterTimer.current);
@@ -103,27 +71,21 @@ export default function CanvasScoreRing({
       }}
     >
       <svg width={size} height={size} role="img" aria-label={`Match ${pct}%`}>
-        {v === "a" && (
-          <defs>
-            <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor={color} stopOpacity="1" />
-              <stop offset="100%" stopColor={color} stopOpacity="0.55" />
-            </linearGradient>
-          </defs>
-        )}
+        <defs>
+          <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stopColor={color} stopOpacity="1" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.55" />
+          </linearGradient>
+        </defs>
 
-        {/* b: filled band-tint coin behind the number. */}
-        {v === "b" && <circle cx={cx} cy={cx} r={coinR} fill={tint} />}
-        {/* a: faint tint backing for depth. */}
-        {v === "a" && (
-          <circle
-            cx={cx}
-            cy={cx}
-            r={r - arcStroke / 2}
-            fill={tint}
-            opacity="0.35"
-          />
-        )}
+        {/* Faint band-tint backing — depth behind the arc. */}
+        <circle
+          cx={cx}
+          cy={cx}
+          r={r - arcStroke / 2}
+          fill={tint}
+          opacity="0.35"
+        />
 
         <g transform={`rotate(-90 ${cx} ${cx})`}>
           {/* Ghost track — ring shape reads at 0% fill. */}
@@ -136,13 +98,13 @@ export default function CanvasScoreRing({
             strokeOpacity={RING_TRACK_OPACITY}
             strokeWidth={arcStroke}
           />
-          {/* The arc. */}
+          {/* The arc — luminosity gradient + round cap. */}
           <circle
             cx={cx}
             cy={cx}
             r={r}
             fill="none"
-            stroke={v === "a" ? `url(#${gid})` : color}
+            stroke={`url(#${gid})`}
             strokeWidth={arcStroke}
             strokeLinecap="round"
             strokeDasharray={c}
@@ -150,18 +112,6 @@ export default function CanvasScoreRing({
             style={arcStyle}
           />
         </g>
-
-        {/* c: bead at the arc tip. */}
-        {v === "c" && (
-          <circle
-            cx={beadX}
-            cy={beadY}
-            r={3.25}
-            fill={color}
-            opacity={shown ? 1 : 0}
-            style={reduce ? undefined : { transition: "opacity .3s ease .4s" }}
-          />
-        )}
 
         <text
           x="50%"
