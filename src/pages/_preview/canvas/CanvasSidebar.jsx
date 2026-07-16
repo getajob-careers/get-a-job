@@ -88,7 +88,7 @@ export default function CanvasSidebar() {
           {TOOL_TILES.map((tile) => (
             <CanvasToolTile
               key={tile.id}
-              icon={tile.icon}
+              id={tile.id}
               label={tile.label}
               descriptor={tile.descriptor}
               href={tile.href}

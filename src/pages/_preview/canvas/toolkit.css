@@ -37,3 +37,112 @@
     transform: none !important;
   }
 }
+
+/* Per-tool icon morphs — one beat each, on the tile's hover. Only under
+ * no-preference so reduced motion keeps the static silhouette. transform-box:
+ * fill-box makes SVG sub-element transform-origins behave. */
+@media (prefers-reduced-motion: no-preference) {
+  /* coach — the waveform "speaks" */
+  .ti-wave line {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .rd-tool:hover .ti-wave line {
+    animation: tiWave 0.9s ease-in-out infinite;
+  }
+  .rd-tool:hover .ti-wave line:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .rd-tool:hover .ti-wave line:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  @keyframes tiWave {
+    0%,
+    100% {
+      transform: scaleY(0.55);
+    }
+    50% {
+      transform: scaleY(1);
+    }
+  }
+
+  /* skills — satellites bloom outward, then settle */
+  .ti-sat {
+    transform-box: fill-box;
+    transform-origin: center;
+    opacity: 0;
+    transform: scale(0.35);
+    transition:
+      opacity 0.3s ease,
+      transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .rd-tool:hover .ti-sat {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  /* profile — the ring draws around the portrait */
+  .ti-ring {
+    stroke-dasharray: 41;
+    stroke-dashoffset: 41;
+    transition: stroke-dashoffset 0.5s ease;
+  }
+  .rd-tool:hover .ti-ring {
+    stroke-dashoffset: 0;
+  }
+
+  /* linkedin — the "in" is visible at rest and RE-draws on hover (it's the
+   * primary glyph, so it must never be blank). */
+  .ti-draw {
+    stroke-dasharray: 26;
+    stroke-dashoffset: 0;
+  }
+  .rd-tool:hover .ti-draw {
+    animation: tiInDraw 0.55s ease;
+  }
+  @keyframes tiInDraw {
+    from {
+      stroke-dashoffset: 26;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  /* cv bank — the back page fans out */
+  .ti-fan {
+    transform-box: fill-box;
+    transform-origin: bottom right;
+    transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
+  }
+  .rd-tool:hover .ti-fan {
+    transform: translate(-1px, -1px) rotate(-9deg);
+  }
+
+  /* story bank — cover cracks open, ribbon slides */
+  .ti-cover {
+    transform-box: fill-box;
+    transform-origin: left center;
+    transition: transform 0.35s ease;
+  }
+  .rd-tool:hover .ti-cover {
+    transform: perspective(140px) rotateY(-32deg);
+  }
+  .ti-ribbon {
+    transform-box: fill-box;
+    transition: transform 0.3s ease;
+  }
+  .rd-tool:hover .ti-ribbon {
+    transform: translateY(3px);
+  }
+
+  /* tasks — the checkmark draws */
+  .ti-check {
+    stroke-dasharray: 12;
+    stroke-dashoffset: 12;
+    transition: stroke-dashoffset 0.35s ease 0.05s;
+  }
+  .rd-tool:hover .ti-check {
+    stroke-dashoffset: 0;
+  }
+}

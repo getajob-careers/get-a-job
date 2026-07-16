@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import DuotoneIcon from "./DuotoneIcon";
+import CanvasToolIcon from "./CanvasToolIcon";
 
 // Toolkit tile shell (round 3, step A). A tactile soft-3D object (toolkit.css):
 // a warm domed tile that tilts toward the cursor on hover, holding a per-tool
@@ -13,7 +13,7 @@ const REDUCE =
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 export default function CanvasToolTile({
-  icon,
+  id,
   label,
   descriptor,
   href,
@@ -41,7 +41,7 @@ export default function CanvasToolTile({
   const inner = (
     <>
       <span className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10">
-        <DuotoneIcon icon={icon} />
+        <CanvasToolIcon id={id} />
       </span>
       <span className="min-w-0">
         <span className="block font-display font-bold rd-t-body-m text-rd-text leading-tight">
