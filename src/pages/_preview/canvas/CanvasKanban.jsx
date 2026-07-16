@@ -33,10 +33,10 @@ function CanvasKanbanCard({ app, onClick, settling, dragging }) {
       tabIndex={0}
       onClick={onClick}
       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onClick?.()}
-      className={`${settling ? "cx-settle" : ""} cursor-grab active:cursor-grabbing rd-r-sm p-2.5 transition-[box-shadow,border-color] focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-1 ${
+      className={`${settling ? "cx-settle" : ""} cursor-grab active:cursor-grabbing rd-r-sm p-2.5 focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-1 ${
         dragging
           ? "bg-rd-bg-card border border-rd-coral rotate-2 shadow-[0_16px_36px_rgba(40,25,10,0.28)]"
-          : "bg-rd-bg-card border border-rd-border hover:border-rd-border-hover hover:shadow-rd"
+          : "rd-lift rd-lift-hover"
       }`}
     >
       <div className="flex items-start gap-2">
@@ -109,7 +109,7 @@ export default function CanvasKanban({
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   style={rv.style}
-                  className={`${rv.className} flex-shrink-0 w-[220px] rd-r-md p-2 transition-colors ${
+                  className={`${rv.className} flex-shrink-0 w-[220px] rd-r-lg p-2 transition-colors ${
                     snapshot.isDraggingOver ? "bg-rd-bg-soft" : "bg-rd-bg-page"
                   }`}
                 >

@@ -49,7 +49,7 @@ export default function Home3TabCvTab() {
   return (
     <div className="flex flex-col md:flex-row gap-4 md:h-full md:min-h-0">
       {/* Center - CV studio (live) or fixture CV-generation flow (canvas) */}
-      <div className="w-full md:flex-1 min-w-0 md:h-full md:overflow-hidden bg-rd-bg-card border border-rd-border-subtle rd-r-lg">
+      <div className="w-full md:flex-1 min-w-0 md:h-full md:overflow-hidden rd-lift rd-r-lg">
         {CANVAS_FIXTURES ? <CanvasCvGeneration /> : <CVStudioLive />}
       </div>
 

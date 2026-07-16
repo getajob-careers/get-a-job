@@ -36,9 +36,14 @@ Raw `rounded-[Npx]` and `rounded-{sm,md,lg,xl}` are banned in the canvas.
 
 ## Elevation language + effect scoping (SURVIVES FUTURE WAVES)
 
-The house elevation language is **paper-lift**: floating surfaces read as lifted
-paper — soft shadow + a 1px top highlight, borders reserved for _insets_
-(chips, wells, dividers), not floating cards. (Implemented in step 2.)
+The house elevation language is **paper-lift** (`canvas/elevation.css`, shipped
+step 2): floating surfaces read as lifted paper — a soft, **warm-tinted** shadow
+(layered contact + wide soft, warm brown rgba so it never goes gray/muddy on the
+putty field) + a 1px top highlight, **no border**. Classes: `.rd-lift` (bg +
+shadow), `.rd-lift-shadow` (shadow only — for surfaces that own their bg, e.g.
+the coach gradient), `.rd-lift-hover` (hover intensify + 2px rise). Borders live
+on **insets**: `.rd-well` (recessed bg-soft + inset shadow) for inputs/wells —
+e.g. the coach action-search field. Never a border on a lifted surface.
 
 **Scoping ruling (do not drift):**
 

@@ -77,8 +77,11 @@ function IconGrid({ tiles }) {
             </span>
           </>
         );
+        // Paper-lift (no glow — glow is job-cards-only). No rd-lift-hover here:
+        // the tile's hover interaction is the cursor-magnet lean, whose inline
+        // transform would fight a hover translateY.
         const className =
-          "group flex flex-col items-center justify-center gap-1.5 aspect-square rd-r-md bg-rd-bg-card border border-rd-border hover:border-rd-border-hover hover:bg-rd-bg-soft focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-2 p-2";
+          "group flex flex-col items-center justify-center gap-1.5 aspect-square rd-r-md rd-lift focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-2 p-2";
         // Yishai's exact transform ease (.35s cubic-bezier) for the lean;
         // colours keep the quick 150ms. will-change hints the compositor.
         const style = {

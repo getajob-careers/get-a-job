@@ -85,7 +85,7 @@ export default function CanvasCoachDock() {
   return (
     <div className="flex-1 min-h-0 flex flex-col p-3">
       <div
-        className="relative flex-1 min-h-0 flex flex-col border border-rd-border-subtle rd-r-sm overflow-hidden"
+        className="relative flex-1 min-h-0 flex flex-col rd-lift-shadow rd-r-lg overflow-hidden"
         style={{ background: WARM_GRADIENT }}
       >
         {/* Header */}
@@ -134,12 +134,12 @@ export default function CanvasCoachDock() {
 
         {/* Action-search input — focus opens a staggered command dropdown
             (kokonutUI ActionSearchBar; sibling of the future ⌘K palette). */}
-        <div className="relative border-t border-rd-border-subtle">
+        <div className="relative p-2">
           {open && (
             <div
               id="cx-coach-actions"
               role="listbox"
-              className="absolute bottom-full left-2 right-2 mb-1.5 z-20 rd-r-sm border border-rd-border bg-rd-bg-card shadow-rd p-1"
+              className="absolute bottom-full left-2 right-2 mb-1.5 z-20 rd-r-md rd-lift p-1"
             >
               <p className="px-2 pt-1 pb-1 rd-t-micro uppercase tracking-[0.09em] font-mono text-rd-text-eyebrow">
                 Suggested
@@ -163,7 +163,7 @@ export default function CanvasCoachDock() {
               e.preventDefault();
               send(draft);
             }}
-            className="flex items-center gap-1.5 px-2.5 py-2"
+            className="rd-well rd-r-sm flex items-center gap-1.5 px-2.5 py-1.5 transition-shadow focus-within:ring-2 focus-within:ring-rd-coral/35"
           >
             <Search
               className="w-3.5 h-3.5 text-rd-text-tertiary flex-shrink-0"

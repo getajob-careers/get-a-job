@@ -54,6 +54,7 @@ import { CvGenProvider } from "./canvas/CvGenContext";
 import CanvasField from "./canvas/CanvasField";
 import { applyPalette } from "./canvas/palette";
 import "./canvas/scale.css";
+import "./canvas/elevation.css";
 
 const APPLICATION_STATUSES = [
   "interested",
@@ -457,7 +458,7 @@ function CanvasTrackerTab() {
           row above stays pinned. Mobile uses the page's single scroller. */}
       <div className="cx-fade-y md:flex-1 md:min-h-0 md:overflow-y-auto md:pb-2">
         {!guideDismissed && (
-          <RdCard className="p-5" data-pipeline-guide>
+          <div className="rd-lift rd-r-lg p-5" data-pipeline-guide>
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
                 <p className="rd-t-micro uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
@@ -508,7 +509,7 @@ function CanvasTrackerTab() {
                 highlight
               />
             </div>
-          </RdCard>
+          </div>
         )}
 
         <div
