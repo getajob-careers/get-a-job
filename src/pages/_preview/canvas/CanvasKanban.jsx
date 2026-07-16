@@ -10,12 +10,16 @@ import { reveal } from "./stagger";
 // status changes straight to the DB via supabase.update). Same @hello-pangea/dnd
 // mechanics as prod so the drag feel matches; styling stays on --rd-* tokens.
 
+// Clay-coherent status tones: warm/restrained, no gold rainbow. Neutral putty
+// for passive stages (saved / applied / rejected), Clay's terracotta primary for
+// the "active work" stages (preparing / interviewing), and the one cool accent
+// teal reserved for the wins (offer / accepted). Nothing predates the palette.
 const STATUS_TONE = {
   interested: { tint: "var(--rd-bg-soft)", fg: "var(--rd-text-secondary)" },
-  preparing: { tint: "var(--rd-golden-tint)", fg: "var(--rd-golden-dark)" },
+  preparing: { tint: "var(--rd-coral-tint)", fg: "var(--rd-coral-dark)" },
   applied: { tint: "var(--rd-bg-soft)", fg: "var(--rd-text-secondary)" },
-  interviewing: { tint: "var(--rd-teal-tint)", fg: "var(--rd-teal-dark)" },
-  offer: { tint: "var(--rd-coral-tint)", fg: "var(--rd-coral-dark)" },
+  interviewing: { tint: "var(--rd-coral-tint)", fg: "var(--rd-coral-dark)" },
+  offer: { tint: "var(--rd-teal-tint)", fg: "var(--rd-teal-dark)" },
   accepted: { tint: "var(--rd-teal-tint)", fg: "var(--rd-teal-dark)" },
   rejected: { tint: "var(--rd-bg-soft)", fg: "var(--rd-text-tertiary)" },
 };

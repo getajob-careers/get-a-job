@@ -335,8 +335,8 @@ function TrackerTab() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-4">
             <PipelineGuideTile
-              tint="var(--rd-golden-tint)"
-              accent="var(--rd-golden-dark)"
+              tint="var(--rd-coral-tint)"
+              accent="var(--rd-coral-dark)"
               head="Steps 1–2"
               body="Qualify yourself. Dissect the job description. Know the role before applying."
             />
@@ -353,8 +353,8 @@ function TrackerTab() {
               body="Submit your application, then prep for the interview with STAR-format answers."
             />
             <PipelineGuideTile
-              tint="var(--rd-golden-tint)"
-              accent="var(--rd-golden-dark)"
+              tint="var(--rd-coral-tint)"
+              accent="var(--rd-coral-dark)"
               head="⭐ Referral = your biggest edge"
               body="Many companies offer referral bonuses to employees when a referred candidate gets hired. They're incentivised to get you in."
               highlight
@@ -478,12 +478,12 @@ function CanvasTrackerTab() {
           label="interview"
           value={funnelCounts.interview}
           total={apps.length}
-          accent="var(--rd-teal)"
         />
         <CanvasFunnelTile
           label="offer"
           value={funnelCounts.offer}
           total={apps.length}
+          accent="var(--rd-teal)"
         />
       </div>
 
@@ -517,8 +517,8 @@ function CanvasTrackerTab() {
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 mt-4">
               <PipelineGuideTile
-                tint="var(--rd-golden-tint)"
-                accent="var(--rd-golden-dark)"
+                tint="var(--rd-coral-tint)"
+                accent="var(--rd-coral-dark)"
                 head="Steps 1–2"
                 body="Qualify yourself. Dissect the job description. Know the role before applying."
               />
@@ -535,8 +535,8 @@ function CanvasTrackerTab() {
                 body="Submit your application, then prep for the interview with STAR-format answers."
               />
               <PipelineGuideTile
-                tint="var(--rd-golden-tint)"
-                accent="var(--rd-golden-dark)"
+                tint="var(--rd-coral-tint)"
+                accent="var(--rd-coral-dark)"
                 head="⭐ Referral = your biggest edge"
                 body="Many companies offer referral bonuses. They're incentivised to get you in."
                 highlight
