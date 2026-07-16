@@ -114,4 +114,23 @@ These are predictions to be _validated_, not claims.
 - **Risk - role-tier signal availability:** IC-vs-manager tier is not cleanly in the corpus today; #4's underleveled signal may need a small extraction/derivation addition. Flag as a dependency, not a blocker for #1-#3.
 - **Risk - overfitting to 160 labels:** the labels are one frozen snapshot (16 profiles). Tune thresholds coarsely, prefer principled defaults, and treat a second labeling round as the real generalization check before calling any component done.
 
+## 7. Canonical-score rule (amended 2026-07-16, after Component 1's live check)
+
+**All five components act on `attainability_score`, NOT `fit_score`.** The `/Career`
+for-you feed is single-score on attainability: the card badge shows it, the
+picks/stretch bands are built on it, and (as of the C1 re-target) the feed sorts
+on it. `fit_score` is the Search-tab number only.
+
+Why this is a rule and not an aside: Component 1 (#595) originally shrank
+`fit_score`, which the feed **sorted** on but never **displayed** (the unified
+badge renders `attainability_score`). The live check showed identical badges with
+only the order changed - the flag moved a number users never see. Re-targeted onto
+`attainability_score` in #597 (sort == display == bands), which de-ties the visible
+badges and fixes the baseline BAD>STRETCH inversion (attain: 72>70 off -> 62<64 on).
+
+**Measurement corollary:** harness metrics must be computed on the quantity the
+product actually renders. The harness now sorts by and reports `attainability_score`
+(fit% is kept alongside only for the fit-vs-attain divergence check, which is
+small: mean 2.8, max 6 pts across the pinned 160, so the labels are unaffected).
+
 _Design only. Formula, predicted label movement, and before/after measurement plan for review. No code changes in this document._
