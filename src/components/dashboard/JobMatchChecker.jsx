@@ -7,7 +7,7 @@ import { useExperiencesQuery } from "@/lib/queries/useExperiences";
 import { useEducationQuery } from "@/lib/queries/useEducation";
 import { trackFromScores } from "@/lib/scoreApplication";
 import { scoreJobFit } from "@/lib/scoreJobFit";
-import { scoringConfidenceEnabled } from "@/lib/flags";
+import { scoringOpts } from "@/lib/flags";
 import { stripHtml } from "../../../scripts/lib/normalize.ts";
 import { totalYearsOfExperience } from "@/lib/experienceLevel";
 import { track, EVENTS } from "@/lib/analytics";
@@ -124,7 +124,11 @@ export default function JobMatchChecker() {
           title: "Pasted JD",
           ...ex,
         };
-        const r = scoreJobFit({ profile, experiences, educations }, syntheticJob, { confidenceAware: scoringConfidenceEnabled() });
+        const r = scoreJobFit(
+          { profile, experiences, educations },
+          syntheticJob,
+          scoringOpts(),
+        );
         data = {
           job_title: "Job Match Analysis",
           company: "",

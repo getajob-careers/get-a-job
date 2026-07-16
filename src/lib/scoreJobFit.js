@@ -119,6 +119,58 @@ function clamp01(x) {
   return Math.max(0, Math.min(1, x));
 }
 
+// ── Component 2a: must-have weighting (flag-gated, default off) ───────────────
+// The legacy skill axis is a plain hit ratio (matchedCore / core.length), so a
+// match on ONE core skill against a 1-core JD maxes the axis (=1.0) - even when
+// that core is a generic competency (analytical_thinking). The 160-label
+// baseline shows this is the single largest BAD driver: matched_core≤1 is ~59%
+// BAD, a lone-generic core signature is 64% BAD (53% of all BADs), while a
+// distinctive multi-core match is 30-41% GOOD. 2a reshapes the CORE portion of
+// the skill axis so (a) missing must-haves costs more than the ratio implies,
+// (b) a distinctive core counts more than a generic one, and (c) the axis does
+// NOT saturate on a single thin match (absolute distinctive-evidence ramp).
+// Acts ONLY on attainability_score (the for-you feed's canonical number) via a
+// separate `score_musthave`; fit_score keeps the legacy hit ratio. Constants
+// tuned against the pinned labels (harness), not by eye. See docs/eval.
+const MUSTHAVE = {
+  // A generic core counts this fraction of a distinctive core in the coverage
+  // ratio (both numerator when matched and denominator as a requirement).
+  genericWeight: 0.35,
+  // Distinctive-evidence multiplier by count of DISTINCTIVE cores matched.
+  // 0 distinctive matched -> hard floor (lone-generic / no-distinctive match,
+  // the 64%-BAD signature); 1 -> mild guard; 2+ -> full credit so a match that
+  // covers every core (incl. distinctive ones) is NOT penalized (coverageW
+  // alone carries the missing-must-have penalty). Tuned on the 160 labels: a
+  // steeper ramp sank a full-coverage GOOD (P09) with no BAD-in-top-5 payoff,
+  // because the residual top-5 BADs are coreless (C1's shrink) or off-direction
+  // (2b), not thin-distinctive - which 2a's core reshape cannot reach.
+  evidenceByDistinctive: { 0: 0.15, 1: 0.85, 2: 1 },
+};
+
+// Distinctive-weighted core coverage × absolute distinctive-evidence.
+// Returns [0,1]. coverageW = 1 only when every required core is matched (so a
+// full match is never penalized - the asymmetry is that MISSES cost); the
+// evidence ramp caps thin/generic matches so a lone generic core can't max it.
+export function mustHaveCoreScore(core, userSet, params = MUSTHAVE) {
+  let totalW = 0;
+  let matchedW = 0;
+  let distinctiveMatched = 0;
+  for (const id of core) {
+    const w = GENERIC_SKILLS.has(id) ? params.genericWeight : 1;
+    totalW += w;
+    if (userSet.has(id)) {
+      matchedW += w;
+      if (!GENERIC_SKILLS.has(id)) distinctiveMatched++;
+    }
+  }
+  const coverageW = totalW > 0 ? matchedW / totalW : 0;
+  const evidence =
+    distinctiveMatched >= 3
+      ? 1
+      : (params.evidenceByDistinctive[distinctiveMatched] ?? 1);
+  return clamp01(coverageW * evidence);
+}
+
 // Confidence in [0,1] for a (user, job) match: high when the JD has several
 // distinctive core requirements the user genuinely matches at good coverage;
 // low when it rests on a thin/generic/low-coverage signal.
@@ -223,7 +275,10 @@ function getStageFloorByLevel() {
 }
 
 // ─── Skill axis ────────────────────────────────────────────────────────
-function computeSkillAxis(userCanonical, job) {
+// mhParams: when non-null (Component 2a flag on), also computes a reshaped
+// `score_musthave` used by attainability_score. The legacy `score` is always
+// returned unchanged so fit_score (the Search-tab number) stays flag-independent.
+function computeSkillAxis(userCanonical, job, mhParams = null) {
   const core = Array.isArray(job?.req_skills_core) ? job.req_skills_core : [];
   const nice = Array.isArray(job?.req_skills_nice) ? job.req_skills_nice : [];
   const userSet = new Set(Array.isArray(userCanonical) ? userCanonical : []);
@@ -234,6 +289,7 @@ function computeSkillAxis(userCanonical, job) {
   if (core.length === 0 && nice.length === 0) {
     return {
       score: 0.5,
+      score_musthave: null, // no requirements to reshape; leans on other axes
       matched_skills: [],
       missing_core_skills: [],
       missing_nice_skills: [],
@@ -256,8 +312,21 @@ function computeSkillAxis(userCanonical, job) {
     score = (coreRatio * 2 + niceRatio) / 3;
   }
 
+  // Component 2a: reshape the CORE portion (distinctive-weighted coverage that
+  // does not saturate on a lone thin match), keep the same 2:1 core:nice blend.
+  // Only cores are must-haves, so a coreless JD leaves score_musthave null and
+  // attainability falls back to the legacy score.
+  let score_musthave = null;
+  if (mhParams && core.length > 0) {
+    const coreScore = mustHaveCoreScore(core, userSet, mhParams);
+    score_musthave = clamp01(
+      niceRatio === null ? coreScore : (coreScore * 2 + niceRatio) / 3,
+    );
+  }
+
   return {
     score: Math.max(0, Math.min(1, score)),
+    score_musthave,
     matched_skills: [...matchedCore, ...matchedNice],
     matched_core_skills: matchedCore, // for the confidence-aware distinctiveness check
     missing_core_skills: missingCore,
@@ -404,7 +473,17 @@ export function scoreJobFit(input, job, opts = {}) {
   const userYears = totalYearsOfExperience(experiences);
   const userLevel = inferExperienceLevel(experiences, educations);
 
-  const skill = computeSkillAxis(userCanonical, job);
+  // Component 2a (must-have weighting) flag. opts.mustHave may be `true` (use
+  // the tuned MUSTHAVE defaults) or a params object (harness sweeps the curve).
+  // Off => computeSkillAxis leaves score_musthave null and attainability is
+  // byte-identical to the legacy path.
+  const mhParams = opts.mustHave
+    ? opts.mustHave === true
+      ? MUSTHAVE
+      : opts.mustHave
+    : null;
+
+  const skill = computeSkillAxis(userCanonical, job, mhParams);
   const years = computeYearsAxis(userYears, job);
   const education = computeEducationAxis(profile, educations, job);
   const seniority = computeSeniorityAxis(userLevel, job);
@@ -525,8 +604,12 @@ export function scoreJobFit(input, job, opts = {}) {
     relevance_match = "adjacent";
   }
 
+  // Component 2a acts INSIDE attainability_score (the canonical for-you number):
+  // when the flag is on, the reshaped must-have skill axis replaces the legacy
+  // hit ratio here only. fit_score above keeps skill.score untouched.
+  const attainSkill = skill.score_musthave ?? skill.score;
   let attainability_score =
-    skill.score * ATTAINABILITY_WEIGHTS.skill +
+    attainSkill * ATTAINABILITY_WEIGHTS.skill +
     years.score * ATTAINABILITY_WEIGHTS.years +
     education.score * ATTAINABILITY_WEIGHTS.education +
     seniority.score * ATTAINABILITY_WEIGHTS.seniority;

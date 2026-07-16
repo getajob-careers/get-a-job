@@ -68,3 +68,30 @@ export function scoringConfidenceEnabled() {
     return false;
   }
 }
+
+// Scoring redesign, combined flag. `?scoring_v2=1` ships the validated re-rank
+// as ONE bundle: Component 1 (confidence-aware shrink) + Component 2a (must-have
+// weighting). Opt-in, default OFF, verified on the pinned labels before it
+// becomes default (PR #156 lesson). The old `?scoring_confidence=1` still works
+// and enables C1 alone (transition alias); scoring_v2 additionally turns on 2a.
+export function scoringV2Enabled() {
+  try {
+    return (
+      new URLSearchParams(window.location.search).get("scoring_v2") === "1"
+    );
+  } catch {
+    return false;
+  }
+}
+
+// The scoreJobFit opts the Jobs surfaces pass. Centralizes how the two flags
+// compose so every call site stays in lockstep: C1 turns on under EITHER flag
+// (scoring_confidence is the C1-only alias); 2a turns on under scoring_v2 only.
+// Both off => opts are empty and scoreJobFit is byte-identical to legacy.
+export function scoringOpts() {
+  const v2 = scoringV2Enabled();
+  return {
+    confidenceAware: v2 || scoringConfidenceEnabled(),
+    mustHave: v2,
+  };
+}

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/api/supabaseClient";
 import { scoreJobFit } from "@/lib/scoreJobFit";
-import { scoringConfidenceEnabled } from "@/lib/flags";
+import { scoringOpts } from "@/lib/flags";
 import { TRACK_CONFIG } from "@/lib/trackConfig";
 import {
   applyFacetsAndRank,
@@ -151,9 +151,10 @@ export default function JobsSearchTab({
   //    changes — NOT on facet change.
   const scored = useMemo(() => {
     if (!profile || corpus.length === 0) return [];
+    const opts = scoringOpts();
     return corpus.map((job) => ({
       job,
-      score: scoreJobFit({ profile, experiences, educations }, job, { confidenceAware: scoringConfidenceEnabled() }),
+      score: scoreJobFit({ profile, experiences, educations }, job, opts),
     }));
   }, [corpus, profile, experiences, educations]);
 
