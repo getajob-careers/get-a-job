@@ -5,7 +5,7 @@
 // (CanvasToolTile), the one surface that earns extra dimensionality beyond the
 // paper-lift house language (see canvas-tokens.md). Step B swaps the placeholder
 // icons for bespoke per-tool silhouettes that morph on hover.
-import React from "react";
+import React, { useEffect, useRef, useSyncExternalStore } from "react";
 import { toast } from "sonner";
 import {
   Mic,
@@ -23,6 +23,7 @@ import CanvasCoachDock from "./CanvasCoachDock";
 import CanvasToolTile from "./CanvasToolTile";
 import CanvasAvatarChip from "./CanvasAvatarChip";
 import CanvasMobileRail from "./CanvasMobileRail";
+import { getLayout, subscribeLayout } from "./layoutStore";
 
 // The toolkit. Descriptors are short + action-flavoured, no data (per ruling).
 // Interview coach + Skill hub + Tasks are fixture no-ops (interview coach = a
@@ -79,27 +80,74 @@ const TOOL_TILES = [
   },
 ];
 
+// The rail renders one of two layouts (behind the pinned LAYOUT switcher):
+//  GRID — 2-across bento of objects (Tasks takes the wide slot).
+//  CAROUSEL — a compact horizontal band; wheel/trackpad scrolls it (deltaY →
+//  scrollLeft), the right edge fades to peek the next object. Both stay short so
+//  the coach dock keeps presence.
+function ToolkitRail() {
+  const layout = useSyncExternalStore(subscribeLayout, getLayout, () => "grid");
+  const railRef = useRef(null);
+
+  useEffect(() => {
+    if (layout !== "carousel") return;
+    const el = railRef.current;
+    if (!el) return;
+    const onWheel = (e) => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
+        el.scrollLeft += e.deltaY;
+        e.preventDefault();
+      }
+    };
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, [layout]);
+
+  if (layout === "carousel") {
+    return (
+      <div
+        ref={railRef}
+        className="cx-carousel flex gap-2 overflow-x-auto flex-shrink-0 pb-1 -mx-1 px-1"
+      >
+        {TOOL_TILES.map((tile) => (
+          <CanvasToolTile
+            key={tile.id}
+            id={tile.id}
+            label={tile.label}
+            descriptor={tile.descriptor}
+            href={tile.href}
+            onClick={tile.onClick}
+            size={50}
+            className="w-[76px] flex-shrink-0"
+          />
+        ))}
+      </div>
+    );
+  }
+
+  return (
+    <div className="grid grid-cols-2 gap-1.5 flex-shrink-0">
+      {TOOL_TILES.map((tile) => (
+        <CanvasToolTile
+          key={tile.id}
+          id={tile.id}
+          label={tile.label}
+          descriptor={tile.descriptor}
+          href={tile.href}
+          onClick={tile.onClick}
+          className={tile.id === "tasks" ? "col-span-2" : ""}
+        />
+      ))}
+    </div>
+  );
+}
+
 export default function CanvasSidebar() {
   return (
     <>
       {/* Desktop: full left sidebar. Hidden below md — content-first there. */}
       <div className="hidden md:flex md:w-[248px] flex-shrink-0 flex-col gap-4 md:h-full min-h-0">
-        {/* GRID variant: distinct colored objects in a 2-across space (Tasks
-            takes a wide slot so 7 objects fill the bento cleanly). Compact, so
-            the coach dock below keeps its presence. */}
-        <div className="grid grid-cols-2 gap-1.5 flex-shrink-0">
-          {TOOL_TILES.map((tile) => (
-            <CanvasToolTile
-              key={tile.id}
-              id={tile.id}
-              label={tile.label}
-              descriptor={tile.descriptor}
-              href={tile.href}
-              onClick={tile.onClick}
-              className={tile.id === "tasks" ? "col-span-2" : ""}
-            />
-          ))}
-        </div>
+        <ToolkitRail />
         <div className="flex-1 min-h-0 bg-rd-bg-sidebar rd-r-lg flex flex-col">
           {CANVAS_FIXTURES ? <CanvasCoachDock /> : <CoachDock />}
         </div>

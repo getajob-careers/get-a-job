@@ -12,6 +12,17 @@
   cursor: pointer;
 }
 
+/* Carousel variant: a compact horizontal band. Right-edge fade = "there's more"
+ * (peek affordance); scrollbar hidden (wheel/trackpad scroll is wired in JS). */
+.cx-carousel {
+  scrollbar-width: none;
+  -webkit-mask-image: linear-gradient(to right, #000 86%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 86%, transparent 100%);
+}
+.cx-carousel::-webkit-scrollbar {
+  display: none;
+}
+
 /* The object: a floating dimensional shape. Ground shadow = "sitting in a
  * space." Tilt/lift transform is set inline by the tile; CSS animates it. */
 .cx-tool-obj,

@@ -58,6 +58,7 @@ import { CanvasJobsFeed } from "./canvas/CanvasMatches";
 import CanvasSidebar from "./canvas/CanvasSidebar";
 import { CvGenProvider } from "./canvas/CvGenContext";
 import CanvasField from "./canvas/CanvasField";
+import CanvasLayoutSwitcher from "./canvas/CanvasLayoutSwitcher";
 import { applyPalette } from "./canvas/palette";
 import "./canvas/scale.css";
 import "./canvas/elevation.css";
@@ -123,6 +124,7 @@ export default function Home3TabPreview() {
       <CvGenProvider onStart={() => setActiveTab("cv")}>
         <div className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
           {CANVAS_FIXTURES && <CanvasField />}
+          {CANVAS_FIXTURES && <CanvasLayoutSwitcher />}
           <div className="mb-1">
             <p className="rd-t-micro uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
               {CANVAS_FIXTURES
