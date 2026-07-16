@@ -13,7 +13,7 @@ export default function CanvasFunnelTile({
 }) {
   // Low-fill floor (hard constraint a): a real count always draws a visible arc.
   const frac = visibleFill(total > 0 ? value / total : 0, value > 0);
-  const size = 30;
+  const size = 34;
   const stroke = 3;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;

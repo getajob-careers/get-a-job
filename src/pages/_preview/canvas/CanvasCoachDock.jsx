@@ -122,8 +122,8 @@ export default function CanvasCoachDock() {
               <div
                 className={`max-w-[85%] rd-r-md px-2.5 py-1.5 rd-t-body-s leading-[1.5] ${
                   m.role === "user"
-                    ? "bg-rd-coral text-white"
-                    : "bg-rd-bg-soft text-rd-text"
+                    ? "bg-rd-coral text-white rd-btn-sheen"
+                    : "rd-lift text-rd-text"
                 }`}
               >
                 {m.text}
@@ -188,7 +188,7 @@ export default function CanvasCoachDock() {
               type="submit"
               disabled={!draft.trim()}
               aria-label="Send"
-              className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rd-coral text-white hover:bg-rd-coral-dark transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-rd-coral text-white hover:bg-rd-coral-dark rd-press disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <ArrowUp className="w-3.5 h-3.5" aria-hidden="true" />
             </button>

@@ -20,7 +20,13 @@
 // self-fetching and page-agnostic (the same component /Career's "Job
 // search" tab and the retired /Jobs route both render).
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, {
+  useMemo,
+  useState,
+  useEffect,
+  useRef,
+  useLayoutEffect,
+} from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -92,6 +98,25 @@ export default function Home3TabPreview() {
   // the document root so portaled overlays inherit; restored on unmount.
   useEffect(() => (CANVAS_FIXTURES ? applyPalette() : undefined), []);
 
+  // Animated tab indicator: one underline that slides under the active tab
+  // (measured, hand-rolled — no framer). Recomputed on tab change + resize.
+  const tabRefs = useRef({});
+  const [ind, setInd] = useState({ left: 0, width: 0, ready: false });
+  const measureTab = () => {
+    const el = tabRefs.current[activeTab];
+    if (el)
+      setInd({
+        left: el.offsetLeft + 8,
+        width: el.offsetWidth - 16,
+        ready: true,
+      });
+  };
+  useLayoutEffect(measureTab, [activeTab]);
+  useEffect(() => {
+    window.addEventListener("resize", measureTab);
+    return () => window.removeEventListener("resize", measureTab);
+  }, [activeTab]);
+
   return (
     <Layout currentPageName="Career">
       <CvGenProvider onStart={() => setActiveTab("cv")}>
@@ -109,7 +134,7 @@ export default function Home3TabPreview() {
           </div>
 
           <div
-            className="flex items-center justify-center gap-1 mt-3 border-b border-rd-border"
+            className="relative flex items-center justify-center gap-1 mt-3 border-b border-rd-border"
             role="tablist"
           >
             {TABS.map((tab) => {
@@ -118,11 +143,12 @@ export default function Home3TabPreview() {
               return (
                 <button
                   key={tab.id}
+                  ref={(el) => (tabRefs.current[tab.id] = el)}
                   type="button"
                   role="tab"
                   aria-selected={active}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`relative inline-flex items-center gap-1.5 px-3.5 py-2.5 font-display font-bold rd-t-body-m transition-colors ${
+                  className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 font-display font-bold rd-t-body-m transition-colors ${
                     active
                       ? "text-rd-text"
                       : "text-rd-text-secondary hover:text-rd-text"
@@ -130,12 +156,19 @@ export default function Home3TabPreview() {
                 >
                   <Icon className="w-5 h-5" aria-hidden="true" />
                   {tab.label}
-                  {active && (
-                    <span className="absolute left-2 right-2 -bottom-px h-[2px] bg-rd-coral rounded-full" />
-                  )}
                 </button>
               );
             })}
+            {/* One sliding underline (animated tab indicator). */}
+            <span
+              aria-hidden="true"
+              className="absolute left-0 -bottom-px h-[2px] bg-rd-coral rounded-full transition-[transform,width] duration-300 ease-out motion-reduce:transition-none"
+              style={{
+                transform: `translateX(${ind.left}px)`,
+                width: ind.width,
+                opacity: ind.ready ? 1 : 0,
+              }}
+            />
           </div>
 
           <div className="mt-4 flex-1 min-h-0 overflow-hidden flex flex-col md:flex-row gap-4">
@@ -345,7 +378,7 @@ function TrackerTab() {
         <button
           type="button"
           onClick={() => setShowAdd(true)}
-          className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold rd-t-body-s text-white bg-rd-teal hover:bg-rd-teal-dark rounded-full px-3.5 py-2 transition-colors"
+          className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold rd-t-body-s text-white bg-rd-teal hover:bg-rd-teal-dark rounded-full px-3.5 py-2 rd-press rd-btn-sheen"
         >
           <Plus className="w-3.5 h-3.5" />
           Add manually
@@ -527,7 +560,7 @@ function CanvasTrackerTab() {
           <button
             type="button"
             onClick={addManually}
-            className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold rd-t-body-s text-white bg-rd-teal hover:bg-rd-teal-dark rounded-full px-3.5 py-2 transition-colors"
+            className="flex-shrink-0 inline-flex items-center gap-1.5 font-display font-bold rd-t-body-s text-white bg-rd-teal hover:bg-rd-teal-dark rounded-full px-3.5 py-2 rd-press rd-btn-sheen"
           >
             <Plus className="w-3.5 h-3.5" />
             Add manually
