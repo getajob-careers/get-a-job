@@ -1,132 +1,101 @@
-// Persistent left sidebar for the 3-tab home canvas: feature tiles (top) + the
-// coach dock (fills the rest). Lifted out of the CV tab in iteration 2 Stage A
-// so it stays mounted across CV / Tracker / Browse Jobs. The tiles carry the
-// cursor-magnet (useCursorMagnet); Tracker/Browse tiles switch tabs via
-// onSwitchTab, the rest are nav links.
+// Persistent left sidebar for the 3-tab home canvas. Two surfaces: the TOOLKIT
+// rail (top) + the coach dock (fills the rest), mounted across CV / Tracker /
+// Browse Jobs. The rail is the toolkit — NOT the tabs: Browse / Tracker / CV are
+// dropped (the tabs own those). The remaining tools are tactile soft-3D objects
+// (CanvasToolTile), the one surface that earns extra dimensionality beyond the
+// paper-lift house language (see canvas-tokens.md). Step B swaps the placeholder
+// icons for bespoke per-tool silhouettes that morph on hover.
 import React from "react";
-import { Link } from "react-router-dom";
+import { toast } from "sonner";
 import {
-  Linkedin,
-  BookOpen,
-  FileStack,
+  Mic,
+  Target,
   IdCard,
-  Columns3,
-  Compass,
+  Linkedin,
+  FileStack,
+  BookOpen,
+  ListChecks,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import CoachDock from "@/components/agent/CoachDock";
 import { CANVAS_FIXTURES } from "./canvasConfig";
-import { useCursorMagnet } from "./useCursorMagnet";
 import CanvasCoachDock from "./CanvasCoachDock";
-import DuotoneIcon from "./DuotoneIcon";
+import CanvasToolTile from "./CanvasToolTile";
 import CanvasAvatarChip from "./CanvasAvatarChip";
 import CanvasMobileRail from "./CanvasMobileRail";
 
-const ICON_TILES = (onSwitchTab) => [
+// The toolkit. Descriptors are short + action-flavoured, no data (per ruling).
+// Interview coach + Skill hub + Tasks are fixture no-ops (interview coach = a
+// separate interview-prep tool, distinct from the persistent coach dock).
+const TOOL_TILES = [
   {
-    id: "linkedin",
-    label: "LinkedIn tools",
-    icon: Linkedin,
-    href: createPageUrl("Linkedin"),
+    id: "coach",
+    label: "Interview coach",
+    descriptor: "rehearse, get feedback",
+    icon: Mic,
+    onClick: () => toast.info("Prototype: opens the interview coach."),
   },
   {
-    id: "storybank",
-    label: "Story bank",
-    icon: BookOpen,
-    href: createPageUrl("StoryBank"),
-  },
-  {
-    id: "cvbank",
-    label: "CV bank",
-    icon: FileStack,
-    href: createPageUrl("CVAgent"),
+    id: "skills",
+    label: "Skill hub",
+    descriptor: "find gaps, close them",
+    icon: Target,
+    onClick: () => toast.info("Prototype: opens your skills gap workspace."),
   },
   {
     id: "profile",
     label: "Profile",
+    descriptor: "keep it sharp",
     icon: IdCard,
     href: createPageUrl("Profile"),
   },
   {
-    id: "tracker",
-    label: "Tracker",
-    icon: Columns3,
-    onClick: () => onSwitchTab?.("tracker"),
+    id: "linkedin",
+    label: "LinkedIn",
+    descriptor: "grow your presence",
+    icon: Linkedin,
+    href: createPageUrl("Linkedin"),
   },
   {
-    id: "jobs",
-    label: "Browse jobs",
-    icon: Compass,
-    onClick: () => onSwitchTab?.("jobs"),
+    id: "cvbank",
+    label: "CV bank",
+    descriptor: "build & tailor",
+    icon: FileStack,
+    href: createPageUrl("CVAgent"),
+  },
+  {
+    id: "storybank",
+    label: "Story bank",
+    descriptor: "bank your wins",
+    icon: BookOpen,
+    href: createPageUrl("StoryBank"),
+  },
+  {
+    id: "tasks",
+    label: "Tasks",
+    descriptor: "your next moves",
+    icon: ListChecks,
+    onClick: () => toast.info("Prototype: opens your task list."),
   },
 ];
 
-function IconGrid({ tiles }) {
-  // Cursor-magnet: tiles lean toward the pointer (iteration 1 Part 3).
-  const { containerRef, registerTile } = useCursorMagnet();
-  return (
-    <div ref={containerRef} className="grid grid-cols-3 gap-2.5">
-      {tiles.map((tile, i) => {
-        const Icon = tile.icon;
-        // Shared duotone treatment (icon family = lucide; see DuotoneIcon).
-        const content = (
-          <>
-            <DuotoneIcon icon={Icon} />
-            <span className="rd-t-micro font-display font-semibold text-rd-text-secondary group-hover:text-rd-text leading-tight text-center transition-colors">
-              {tile.label}
-            </span>
-          </>
-        );
-        // Quiet tile (audit #3): sits on the sidebar tone, lifts softly on hover
-        // (rd-tile — bg + shadow only, no transform, so the cursor-magnet lean
-        // wins). No glow — that's job-cards-only.
-        const className =
-          "group flex flex-col items-center justify-center gap-1.5 aspect-square rd-r-md rd-tile focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-teal focus-visible:ring-offset-2 p-2";
-        // Yishai's transform ease (.35s cubic-bezier) for the lean; the hover
-        // bg + shadow animate on their own quick track. will-change hints the
-        // compositor.
-        const style = {
-          transition:
-            "transform .35s cubic-bezier(.22,.61,.36,1), background-color .18s ease, box-shadow .18s ease",
-          willChange: "transform",
-        };
-        if (tile.href) {
-          return (
-            <Link
-              key={tile.id}
-              ref={registerTile(i)}
-              to={tile.href}
-              className={className}
-              style={style}
-            >
-              {content}
-            </Link>
-          );
-        }
-        return (
-          <button
-            key={tile.id}
-            ref={registerTile(i)}
-            type="button"
-            onClick={tile.onClick}
-            className={className}
-            style={style}
-          >
-            {content}
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-export default function CanvasSidebar({ onSwitchTab }) {
-  const tiles = ICON_TILES(onSwitchTab);
+export default function CanvasSidebar() {
   return (
     <>
       {/* Desktop: full left sidebar. Hidden below md — content-first there. */}
       <div className="hidden md:flex md:w-[248px] flex-shrink-0 flex-col gap-4 md:h-full min-h-0">
-        <IconGrid tiles={tiles} />
+        <div className="flex flex-col gap-2 flex-shrink-0">
+          {TOOL_TILES.map((tile) => (
+            <CanvasToolTile
+              key={tile.id}
+              icon={tile.icon}
+              label={tile.label}
+              descriptor={tile.descriptor}
+              href={tile.href}
+              onClick={tile.onClick}
+            />
+          ))}
+        </div>
         <div className="flex-1 min-h-0 bg-rd-bg-sidebar rd-r-lg flex flex-col">
           {CANVAS_FIXTURES ? <CanvasCoachDock /> : <CoachDock />}
         </div>
@@ -134,7 +103,7 @@ export default function CanvasSidebar({ onSwitchTab }) {
       </div>
 
       {/* Below md: fixed bottom icon rail (out of flow → work fills first). */}
-      <CanvasMobileRail tiles={tiles} />
+      <CanvasMobileRail tiles={TOOL_TILES} />
     </>
   );
 }

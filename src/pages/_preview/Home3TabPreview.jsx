@@ -61,6 +61,7 @@ import CanvasField from "./canvas/CanvasField";
 import { applyPalette } from "./canvas/palette";
 import "./canvas/scale.css";
 import "./canvas/elevation.css";
+import "./canvas/toolkit.css";
 
 const APPLICATION_STATUSES = [
   "interested",
@@ -172,8 +173,8 @@ export default function Home3TabPreview() {
           </div>
 
           <div className="mt-4 flex-1 min-h-0 overflow-hidden flex flex-col md:flex-row gap-4">
-            {/* Persistent sidebar — tiles + coach, mounted across all three tabs */}
-            <CanvasSidebar onSwitchTab={setActiveTab} />
+            {/* Persistent sidebar — toolkit rail + coach, mounted across tabs */}
+            <CanvasSidebar />
 
             {/* App-shell: no page scroll. Desktop → each column scrolls
                 internally (overflow-hidden here). Mobile (stacked) → this is the

@@ -1,0 +1,39 @@
+/* Toolkit rail dimensionality (round 3). The tool tiles are the ONE surface that
+ * earns soft-3D beyond the flat paper-lift house language (scoped ruling in
+ * canvas-tokens.md — like the job-card glow). Tactile "objects": a warm domed
+ * tile with a bevel highlight + a weight shadow, a small cursor parallax-tilt on
+ * hover (set inline by the tile), and a per-tool icon that comes alive with one
+ * motion beat (step B). Stays in Clay: warm, premium, not toy-like. Reduced
+ * motion → flat + static.
+ */
+.rd-tool {
+  background: linear-gradient(
+    177deg,
+    #fffdf9 0%,
+    var(--rd-bg-card) 42%,
+    var(--rd-bg-soft) 100%
+  );
+  box-shadow:
+    inset 0 1px 0 rgba(255, 251, 245, 0.9),
+    inset 0 -1.5px 1px rgba(74, 44, 22, 0.05),
+    0 1px 2px rgba(74, 44, 22, 0.05),
+    0 10px 22px -12px rgba(74, 44, 22, 0.18);
+  transition:
+    transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
+    box-shadow 0.2s ease;
+  transform-style: preserve-3d;
+  will-change: transform;
+}
+.rd-tool:hover {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 251, 245, 0.95),
+    inset 0 -1.5px 1px rgba(74, 44, 22, 0.06),
+    0 2px 6px rgba(74, 44, 22, 0.07),
+    0 18px 34px -12px rgba(74, 44, 22, 0.24);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rd-tool {
+    transition: none;
+    transform: none !important;
+  }
+}

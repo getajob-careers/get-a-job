@@ -57,6 +57,15 @@ e.g. the coach action-search field. Never a border on a lifted surface.
 If a future wave wants the glow on another surface, that's a new decision to
 raise explicitly — the default answer is no.
 
+- **Extra dimensionality (soft-3D) is the TOOLKIT RAIL ONLY.** The sidebar tool
+  tiles (`toolkit.css` `.rd-tool` + `CanvasToolTile`) are tactile objects — a
+  warm domed bevel, a weight shadow, a cursor parallax-tilt on hover, and
+  per-tool icons that come alive with one motion beat. This is the single
+  surface that earns depth beyond the flat paper-lift house language. Everywhere
+  else stays paper-lift. Stays in Clay (warm, premium, not toy-like); reduced
+  motion flattens it. Adding soft-3D elsewhere is a new explicit decision — the
+  default is no.
+
 ## Score ring (locked)
 
 The score visual is the **sheen arc** (`CanvasScoreRing`): one confident arc with
