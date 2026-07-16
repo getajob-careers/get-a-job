@@ -1,13 +1,20 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useId, useRef, useState } from "react";
 import { RING_TRACK_OPACITY, visibleFill } from "./ring";
 
-// Score visual (round 3, step 3): a SINGLE bold arc + ghost track + the score
-// number. The old tri-ring and the plain badge fallback are both dead — three
-// faint concentric arcs read as noise at this size and the axis meaning wasn't
-// legible without the legend anyway. So the ring shows one confident arc (the
-// attainability score) and the 3-axis breakdown (Skills / Experience /
-// Seniority) lives in the hover/tap legend. Honors the low-fill floor (ring.js)
-// and badge AA (the number + arc use the band's -dark, AA on the card).
+// Score visual (round 3, step 3 refined). The tri-ring stays dead; the flat
+// single arc was too plain. Three enriched directions to pick from, behind
+// ?ring=a|b|c (a lab view at ?ring=lab renders them side by side). Brief: one
+// glance says "this is the score and it matters," premium not gamer-y, legible
+// at ~46px. All keep the ring low-fill floor (ring.js) and badge AA (number/arc
+// use the band -dark, AA on card; the coin's number sits on band-tint, AA), and
+// degrade gracefully under reduced motion (no draw-in, static end-bead).
+//
+//   a Sheen arc — one confident arc with a soft luminosity gradient + round cap
+//                 over a faint tint backing. Rich, quiet, editorial.
+//   b Score coin — the arc frames a filled band-tint disc the number sits on,
+//                  so the number reads as a substantial "score coin."
+//   c Beaded arc — a precise arc with a filled bead at its tip (Oura/dial feel),
+//                  marking the value cleanly.
 
 export function scoreAxes(scoreResult) {
   const attain = scoreResult?.attainability_score ?? 0;
@@ -17,7 +24,22 @@ export function scoreAxes(scoreResult) {
   return { skill, experience: attain, seniority: scoreResult?.fit_score ?? 0 };
 }
 
-export default function CanvasScoreRing({ scoreResult, bandMeta, size = 46 }) {
+const RING_VARIANTS = ["a", "b", "c"];
+function resolveVariant(explicit) {
+  if (RING_VARIANTS.includes(explicit)) return explicit;
+  if (typeof window === "undefined") return "a";
+  const p = new URLSearchParams(window.location.search).get("ring");
+  return RING_VARIANTS.includes(p) ? p : "a";
+}
+
+export default function CanvasScoreRing({
+  scoreResult,
+  bandMeta,
+  size = 46,
+  variant,
+}) {
+  const v = resolveVariant(variant);
+  const gid = "g" + useId().replace(/:/g, "");
   const [drawn, setDrawn] = useState(false);
   const [legend, setLegend] = useState(false);
   const enterTimer = useRef(null);
@@ -36,12 +58,24 @@ export default function CanvasScoreRing({ scoreResult, bandMeta, size = 46 }) {
   // Low-fill floor (hard constraint a): a real score always draws a visible arc.
   const fill = visibleFill(raw, raw > 0);
   const color = bandMeta?.fg || "var(--rd-text)";
+  const tint = bandMeta?.bg || "var(--rd-bg-soft)";
   const pct = Math.round(raw * 100);
 
-  const stroke = 4;
+  const arcStroke = v === "a" ? 5 : 4;
   const cx = size / 2;
-  const r = cx - stroke / 2 - 1;
+  const r = cx - arcStroke / 2 - 1;
   const c = 2 * Math.PI * r;
+  const shown = reduce || drawn;
+  const offset = shown ? c * (1 - fill) : c;
+  const arcStyle = reduce
+    ? undefined
+    : { transition: "stroke-dashoffset .7s cubic-bezier(.22,.61,.36,1)" };
+
+  // Beaded-arc (c): tip position, from top (-90deg) clockwise by `fill`.
+  const ang = -Math.PI / 2 + fill * 2 * Math.PI;
+  const beadX = cx + r * Math.cos(ang);
+  const beadY = cx + r * Math.sin(ang);
+  const coinR = r - arcStroke / 2 - 2.5;
 
   const openLegend = () => {
     clearTimeout(enterTimer.current);
@@ -59,12 +93,34 @@ export default function CanvasScoreRing({ scoreResult, bandMeta, size = 46 }) {
       onMouseLeave={closeLegend}
       onClick={(e) => {
         e.stopPropagation();
-        setLegend((v) => !v);
+        setLegend((x) => !x);
       }}
     >
       <svg width={size} height={size} role="img" aria-label={`Match ${pct}%`}>
+        {v === "a" && (
+          <defs>
+            <linearGradient id={gid} x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor={color} stopOpacity="1" />
+              <stop offset="100%" stopColor={color} stopOpacity="0.55" />
+            </linearGradient>
+          </defs>
+        )}
+
+        {/* b: filled band-tint coin behind the number. */}
+        {v === "b" && <circle cx={cx} cy={cx} r={coinR} fill={tint} />}
+        {/* a: faint tint backing for depth. */}
+        {v === "a" && (
+          <circle
+            cx={cx}
+            cy={cx}
+            r={r - arcStroke / 2}
+            fill={tint}
+            opacity="0.35"
+          />
+        )}
+
         <g transform={`rotate(-90 ${cx} ${cx})`}>
-          {/* Ghost track — always visible so the ring shape reads at 0% fill. */}
+          {/* Ghost track — ring shape reads at 0% fill. */}
           <circle
             cx={cx}
             cy={cx}
@@ -72,29 +128,35 @@ export default function CanvasScoreRing({ scoreResult, bandMeta, size = 46 }) {
             fill="none"
             stroke={color}
             strokeOpacity={RING_TRACK_OPACITY}
-            strokeWidth={stroke}
+            strokeWidth={arcStroke}
           />
-          {/* One confident arc. */}
+          {/* The arc. */}
           <circle
             cx={cx}
             cy={cx}
             r={r}
             fill="none"
-            stroke={color}
-            strokeWidth={stroke}
+            stroke={v === "a" ? `url(#${gid})` : color}
+            strokeWidth={arcStroke}
             strokeLinecap="round"
             strokeDasharray={c}
-            strokeDashoffset={reduce || drawn ? c * (1 - fill) : c}
-            style={
-              reduce
-                ? undefined
-                : {
-                    transition:
-                      "stroke-dashoffset .7s cubic-bezier(.22,.61,.36,1)",
-                  }
-            }
+            strokeDashoffset={offset}
+            style={arcStyle}
           />
         </g>
+
+        {/* c: bead at the arc tip. */}
+        {v === "c" && (
+          <circle
+            cx={beadX}
+            cy={beadY}
+            r={3.25}
+            fill={color}
+            opacity={shown ? 1 : 0}
+            style={reduce ? undefined : { transition: "opacity .3s ease .4s" }}
+          />
+        )}
+
         <text
           x="50%"
           y="50%"
@@ -123,19 +185,19 @@ export default function CanvasScoreRing({ scoreResult, bandMeta, size = 46 }) {
             ["Skills", skill],
             ["Experience", experience],
             ["Seniority", seniority],
-          ].map(([label, v]) => (
+          ].map(([label, val]) => (
             <div key={label} className="mb-1.5 last:mb-0">
               <div className="flex items-center justify-between rd-t-micro mb-0.5">
                 <span className="text-rd-text-secondary">{label}</span>
                 <span className="font-mono text-rd-text-tertiary">
-                  {Math.round(v * 100)}
+                  {Math.round(val * 100)}
                 </span>
               </div>
               <div className="h-1 rounded-full bg-rd-bg-soft overflow-hidden">
                 <div
                   className="h-full rounded-full"
                   style={{
-                    width: `${Math.round(v * 100)}%`,
+                    width: `${Math.round(val * 100)}%`,
                     background: color,
                   }}
                 />
