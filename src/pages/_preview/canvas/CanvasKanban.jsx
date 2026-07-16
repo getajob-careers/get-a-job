@@ -102,6 +102,7 @@ export default function CanvasKanban({
         {statuses.map((status, colIdx) => {
           const cards = byStatus[status] || [];
           const rv = reveal(colIdx);
+          const tone = STATUS_TONE[status] || STATUS_TONE.interested;
           return (
             <Droppable droppableId={status} key={status}>
               {(provided, snapshot) => (
@@ -113,11 +114,22 @@ export default function CanvasKanban({
                     snapshot.isDraggingOver ? "bg-rd-bg-soft" : "bg-rd-bg-page"
                   }`}
                 >
-                  <div className="flex items-center justify-between px-1 mb-2">
-                    <span className="font-display font-bold rd-t-body-s text-rd-text">
+                  {/* Header carries the status tint (not just the card avatar)
+                      + a filled count chip — reads designed, not a board clone. */}
+                  <div
+                    className="flex items-center justify-between gap-2 px-2 py-1.5 mb-2 rd-r-sm"
+                    style={{ background: tone.tint }}
+                  >
+                    <span
+                      className="font-display font-bold rd-t-body-s truncate"
+                      style={{ color: tone.fg }}
+                    >
                       {statusLabels[status] || status}
                     </span>
-                    <span className="rd-t-micro font-mono text-rd-text-tertiary">
+                    <span
+                      className="flex-shrink-0 inline-flex items-center justify-center min-w-[20px] h-5 px-1.5 rd-r-xs rd-t-micro font-mono font-bold bg-rd-bg-card"
+                      style={{ color: tone.fg }}
+                    >
                       {cards.length}
                     </span>
                   </div>
