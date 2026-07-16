@@ -69,18 +69,22 @@ export function scoringConfidenceEnabled() {
   }
 }
 
-// Scoring redesign, combined flag. `?scoring_v2=1` ships the validated re-rank
-// as ONE bundle: Component 1 (confidence-aware shrink) + Component 2a (must-have
-// weighting). Opt-in, default OFF, verified on the pinned labels before it
-// becomes default (PR #156 lesson). The old `?scoring_confidence=1` still works
-// and enables C1 alone (transition alias); scoring_v2 additionally turns on 2a.
+// Scoring redesign, combined flag. Bundles the fully-validated re-rank:
+// Component 1 (confidence-aware shrink) + 2a (must-have weighting) + 2b
+// (direction-aware rank_score) + the direction card tag. **Default ON** as of
+// the v2 default-on flip - every user gets the validated stack. The card tag
+// and the re-rank both read this one function, so they flip together by
+// construction (the tag can never show without the re-rank, or vice versa).
+// **Kill switch:** `?scoring_v2=0` forces the legacy path (byte-identical to
+// pre-v2). The old `?scoring_confidence=1` still enables C1 alone when paired
+// with the kill switch (`?scoring_v2=0&scoring_confidence=1`), a diagnostic path.
 export function scoringV2Enabled() {
   try {
     return (
-      new URLSearchParams(window.location.search).get("scoring_v2") === "1"
+      new URLSearchParams(window.location.search).get("scoring_v2") !== "0"
     );
   } catch {
-    return false;
+    return true;
   }
 }
 

@@ -46,21 +46,26 @@ describe("JobGridCard direction tag (2b)", () => {
     window.history.replaceState({}, "", "/");
   });
 
-  it("renders the quiet direction tag in the unified feed with ?scoring_v2=1", () => {
+  it("renders the direction tag by DEFAULT in the unified feed (v2 default-on)", () => {
+    mount("/Career");
+    expect(screen.queryByText("On your goal path")).toBeTruthy();
+  });
+
+  it("still renders with the explicit ?scoring_v2=1", () => {
     mount("/Career?scoring_v2=1");
     expect(screen.queryByText("On your goal path")).toBeTruthy();
   });
 
-  it("hides the tag with the flag off (live unchanged)", () => {
-    mount("/Career");
+  it("hides the tag with the kill switch ?scoring_v2=0 (legacy path)", () => {
+    mount("/Career?scoring_v2=0");
     expect(screen.queryByText("On your goal path")).toBeNull();
   });
 
-  it("hides the tag outside the unified feed even with the flag on", () => {
-    window.history.replaceState({}, "", "/Career?scoring_v2=1");
+  it("hides the tag outside the unified feed even when v2 is on", () => {
+    window.history.replaceState({}, "", "/Career");
     render(
       <JobGridCard job={JOB} scoreResult={PRIMARY_SCORE} onOpen={() => {}} />,
-      { wrapper: createWrapper("/Career?scoring_v2=1") },
+      { wrapper: createWrapper("/Career") },
     );
     expect(screen.queryByText("On your goal path")).toBeNull();
   });
