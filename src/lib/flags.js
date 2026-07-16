@@ -93,5 +93,6 @@ export function scoringOpts() {
   return {
     confidenceAware: v2 || scoringConfidenceEnabled(),
     mustHave: v2,
+    directionBlend: v2,
   };
 }
