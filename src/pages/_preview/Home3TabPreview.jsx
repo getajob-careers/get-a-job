@@ -20,13 +20,7 @@
 // self-fetching and page-agnostic (the same component /Career's "Job
 // search" tab and the retired /Jobs route both render).
 
-import React, {
-  useMemo,
-  useState,
-  useEffect,
-  useRef,
-  useLayoutEffect,
-} from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { supabase } from "@/api/supabaseClient";
 import { useAuth } from "@/lib/AuthContext";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -38,6 +32,8 @@ import {
   Columns3,
   FileUser,
   Compass,
+  Search,
+  Settings,
 } from "lucide-react";
 import Layout from "@/Layout";
 import RdCard from "@/components/redesign/RdCard";
@@ -59,6 +55,7 @@ import CanvasSidebar from "./canvas/CanvasSidebar";
 import { CvGenProvider } from "./canvas/CvGenContext";
 import CanvasField from "./canvas/CanvasField";
 import CanvasLogo from "./canvas/CanvasLogo";
+import CanvasAvatarChip from "./canvas/CanvasAvatarChip";
 import { applyPalette } from "./canvas/palette";
 import "./canvas/scale.css";
 import "./canvas/elevation.css";
@@ -106,77 +103,92 @@ export default function Home3TabPreview() {
       ? "blue"
       : "clay";
 
-  // Animated tab indicator: one underline that slides under the active tab
-  // (measured, hand-rolled — no framer). Recomputed on tab change + resize.
-  const tabRefs = useRef({});
-  const [ind, setInd] = useState({ left: 0, width: 0, ready: false });
-  const measureTab = () => {
-    const el = tabRefs.current[activeTab];
-    if (el)
-      setInd({
-        left: el.offsetLeft + 8,
-        width: el.offsetWidth - 16,
-        ready: true,
-      });
-  };
-  useLayoutEffect(measureTab, [activeTab]);
-  useEffect(() => {
-    window.addEventListener("resize", measureTab);
-    return () => window.removeEventListener("resize", measureTab);
-  }, [activeTab]);
+  // Top-third composition A/B (comp round): A = utility bar + segmented tabs;
+  // B = A + one warm greeting line. ?top=b shows B (else A) for the pick.
+  const topVariant =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("top") === "b"
+      ? "b"
+      : "a";
+  const activeIndex = TABS.findIndex((t) => t.id === activeTab);
 
   return (
     <Layout currentPageName="Career">
       <CvGenProvider onStart={() => setActiveTab("cv")}>
         <div className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
           {CANVAS_FIXTURES && <CanvasField />}
-          <div className="mb-1">
-            <p className="rd-t-micro uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
-              {CANVAS_FIXTURES
-                ? "Design canvas · fixture data · safe to click"
-                : "Prototype - not the live homepage"}
-            </p>
-            <div className="mt-1">
-              <CanvasLogo variant={logoVariant} size={30} />
+          {/* Utility top bar (comp A): brand left, actions right. */}
+          <div className="flex items-end justify-between gap-3">
+            <div className="min-w-0">
+              <p className="rd-t-micro uppercase tracking-[0.09em] font-medium text-rd-text-eyebrow font-mono">
+                {CANVAS_FIXTURES
+                  ? "Design canvas · fixture data · safe to click"
+                  : "Prototype - not the live homepage"}
+              </p>
+              <div className="mt-1">
+                <CanvasLogo variant={logoVariant} size={28} />
+              </div>
+            </div>
+            <div className="flex items-center gap-1 flex-shrink-0">
+              <button
+                type="button"
+                aria-label="Search"
+                className="inline-flex items-center justify-center w-8 h-8 rounded-full text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rd-press"
+              >
+                <Search className="w-4 h-4" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                aria-label="Settings"
+                className="inline-flex items-center justify-center w-8 h-8 rounded-full text-rd-text-secondary hover:text-rd-text hover:bg-rd-bg-soft rd-press"
+              >
+                <Settings className="w-4 h-4" aria-hidden="true" />
+              </button>
+              <CanvasAvatarChip compact />
             </div>
           </div>
 
+          {/* Greeting line — comp B only: one warm line, no numbers/stats. */}
+          {topVariant === "b" && (
+            <p className="font-display font-bold rd-t-display-s text-rd-text mt-3">
+              Afternoon, Noa — let's move something forward today.
+            </p>
+          )}
+
+          {/* Segmented-pill tabs (comp A): one confident control. */}
           <div
-            className="relative flex items-center justify-center gap-1 mt-3 border-b border-rd-border"
+            className="relative flex w-full max-w-[440px] mx-auto bg-rd-bg-soft rounded-full p-1 mt-3"
             role="tablist"
           >
+            <span
+              aria-hidden="true"
+              className="absolute top-1 bottom-1 left-1 rounded-full bg-rd-coral shadow-rd transition-transform duration-200 ease-out motion-reduce:transition-none"
+              style={{
+                width: "calc((100% - 0.5rem) / 3)",
+                transform: `translateX(${activeIndex * 100}%)`,
+              }}
+            />
             {TABS.map((tab) => {
               const Icon = tab.icon;
               const active = activeTab === tab.id;
               return (
                 <button
                   key={tab.id}
-                  ref={(el) => (tabRefs.current[tab.id] = el)}
                   type="button"
                   role="tab"
                   aria-selected={active}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`inline-flex items-center gap-1.5 px-3.5 py-2.5 font-display font-bold rd-t-body-m transition-colors ${
+                  className={`relative z-10 flex-1 inline-flex items-center justify-center gap-1.5 py-2 rounded-full font-display font-bold rd-t-body-s transition-colors ${
                     active
-                      ? "text-rd-text"
+                      ? "text-white"
                       : "text-rd-text-secondary hover:text-rd-text"
                   }`}
                 >
-                  <Icon className="w-5 h-5" aria-hidden="true" />
+                  <Icon className="w-4 h-4" aria-hidden="true" />
                   {tab.label}
                 </button>
               );
             })}
-            {/* One sliding underline (animated tab indicator). */}
-            <span
-              aria-hidden="true"
-              className="absolute left-0 -bottom-px h-[2px] bg-rd-coral rounded-full transition-[transform,width] duration-300 ease-out motion-reduce:transition-none"
-              style={{
-                transform: `translateX(${ind.left}px)`,
-                width: ind.width,
-                opacity: ind.ready ? 1 : 0,
-              }}
-            />
           </div>
 
           <div className="mt-4 flex-1 min-h-0 overflow-hidden flex flex-col md:flex-row gap-4">
