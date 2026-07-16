@@ -77,19 +77,18 @@ describe("scoreJobFit confidence-aware flag", () => {
     function_family: "Data",
   };
 
-  it("flag OFF is unchanged (legacy behavior); flag ON de-confidences a thin/generic match", () => {
-    const off = scoreJobFit(input, thinGenericJob).fit_score;
-    const on = scoreJobFit(input, thinGenericJob, {
-      confidenceAware: true,
-    }).fit_score;
-    // OFF exposes no match_confidence; ON does and shrinks the score toward neutral.
-    expect(
-      scoreJobFit(input, thinGenericJob).signals.match_confidence,
-    ).toBeNull();
-    expect(
-      scoreJobFit(input, thinGenericJob, { confidenceAware: true }).signals
-        .match_confidence,
-    ).toBeGreaterThan(0);
-    expect(on).toBeLessThan(off);
+  it("de-confidences the for-you-feed score (attainability), not fit_score", () => {
+    // Option A: the flag acts on attainability_score (the number the /Career
+    // card shows and the bands are built on). fit_score is the Search-tab
+    // number and stays flag-independent.
+    const off = scoreJobFit(input, thinGenericJob);
+    const on = scoreJobFit(input, thinGenericJob, { confidenceAware: true });
+    // fit_score is byte-identical with the flag on vs off.
+    expect(on.fit_score).toBe(off.fit_score);
+    // attainability_score shrinks toward neutral for a thin/generic match.
+    expect(on.attainability_score).toBeLessThan(off.attainability_score);
+    // OFF exposes no match_confidence; ON does.
+    expect(off.signals.match_confidence).toBeNull();
+    expect(on.signals.match_confidence).toBeGreaterThan(0);
   });
 });

@@ -172,13 +172,24 @@ for (const [label, seg, uid] of PROFILES) {
           arr(job.req_skills_core).includes(x) ||
           arr(job.req_skills_nice).includes(x),
       );
-      return { job, s, matched, pct: Math.round((s.fit_score ?? 0) * 100) };
+      return {
+        job,
+        s,
+        matched,
+        // Canonical for-you-feed score is attainability (Option A). fitPct is
+        // the Search-tab number, kept only for the fit-vs-attain divergence report.
+        pct: Math.round((s.attainability_score ?? 0) * 100),
+        fitPct: Math.round((s.fit_score ?? 0) * 100),
+      };
     })
     .filter((r) => r.s.relevance_match !== "off");
+  // Mirror live /Career sort (UnifiedJobsFeed.jsx): attainability DESC, then
+  // relevance_tier, then fit_score as the final tiebreak.
   scored.sort(
     (a, b) =>
+      (b.s.attainability_score ?? 0) - (a.s.attainability_score ?? 0) ||
       (TIER[a.s.relevance_match] ?? 2) - (TIER[b.s.relevance_match] ?? 2) ||
-      (b.s.attainability_score ?? 0) - (a.s.attainability_score ?? 0),
+      (b.s.fit_score ?? 0) - (a.s.fit_score ?? 0),
   );
 
   // section: picks (strong|good) then stretch (rest) — preserve order (UnifiedJobsFeed.jsx:171-180)
@@ -200,18 +211,19 @@ for (const [label, seg, uid] of PROFILES) {
     `Candidate set: ${candidates.length} jobs from ${unioned.length} roadmap titles; level=${level}.\n`,
   );
   md.push(
-    "| rank | fit% | band | title | company | matched skills | requirements | LABEL | notes |",
+    "| rank | attain% | fit% | band | title | company | matched skills | requirements | LABEL | notes |",
   );
-  md.push("|---|---|---|---|---|---|---|---|---|");
+  md.push("|---|---|---|---|---|---|---|---|---|---|");
   const tuples: any[] = [];
   served.forEach((r, i) => {
     md.push(
-      `| ${i + 1} | ${r.pct}% | ${r.s.attainability_band} | ${(r.job.title || "").replace(/\|/g, "/")} | ${(r.job.company_name || "").replace(/\|/g, "/")} | ${r.matched.slice(0, 5).join(", ") || "—"} | ${reqSummary(r.job)} |  |  |`,
+      `| ${i + 1} | ${r.pct}% | ${r.fitPct}% | ${r.s.attainability_band} | ${(r.job.title || "").replace(/\|/g, "/")} | ${(r.job.company_name || "").replace(/\|/g, "/")} | ${r.matched.slice(0, 5).join(", ") || "—"} | ${reqSummary(r.job)} |  |  |`,
     );
     tuples.push({
       rank: i + 1,
       job_id: r.job.id,
       score: r.pct,
+      fit_score: r.fitPct,
       band: r.s.attainability_band,
       track: r.s.track,
     });

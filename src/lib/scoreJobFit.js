@@ -423,16 +423,13 @@ export function scoreJobFit(input, job, opts = {}) {
       ? job.extraction_confidence
       : null;
 
-  // Component 1: confidence-aware ranking (flag-gated). When ON, shrink the
-  // composite toward a neutral prior in proportion to how thin/generic/low-
-  // coverage the evidence is, a graded successor to the binary <0.4 softener,
-  // which it subsumes (extraction is one of its sub-factors). When OFF, the
-  // legacy binary softener runs and live behavior is byte-identical.
+  // Component 1 (confidence-aware ranking) lives on attainability_score — the
+  // for-you-feed's canonical sort+display+band number (Option A) — NOT here.
+  // fit_score is the Search-tab number and keeps only the legacy binary
+  // softener. match_confidence is populated in the attainability block below
+  // (stays null when the flag is off).
   let match_confidence = null;
-  if (opts.confidenceAware) {
-    match_confidence = matchConfidence(skill, job, conf);
-    fit_score = CONF.neutral + (fit_score - CONF.neutral) * match_confidence;
-  } else if (conf !== null && conf < 0.4) {
+  if (conf !== null && conf < 0.4) {
     // Extraction confidence modifier (legacy): sparse JD extraction is
     // unreliable, soften 10% so we don't show a confident match on shaky data.
     fit_score = fit_score * 0.9;
@@ -533,9 +530,18 @@ export function scoreJobFit(input, job, opts = {}) {
     years.score * ATTAINABILITY_WEIGHTS.years +
     education.score * ATTAINABILITY_WEIGHTS.education +
     seniority.score * ATTAINABILITY_WEIGHTS.seniority;
-  // Mirror the extraction-confidence softener from fit_score for parity.
-  if (conf !== null && conf < 0.4)
+  // Component 1: confidence-aware ranking (flag-gated), on the for-you-feed's
+  // canonical score. When ON, shrink toward a neutral prior in proportion to
+  // how thin/generic/low-coverage the evidence is — a graded successor to the
+  // binary <0.4 softener, which it subsumes (extraction is one of its factors).
+  // When OFF, the legacy binary softener runs and live behavior is byte-identical.
+  if (opts.confidenceAware) {
+    match_confidence = matchConfidence(skill, job, conf);
+    attainability_score =
+      CONF.neutral + (attainability_score - CONF.neutral) * match_confidence;
+  } else if (conf !== null && conf < 0.4) {
     attainability_score = attainability_score * 0.9;
+  }
   attainability_score = Math.max(0, Math.min(1, attainability_score));
   attainability_score = Math.round(attainability_score * 100) / 100;
 
