@@ -103,13 +103,6 @@ export default function Home3TabPreview() {
       ? "blue"
       : "clay";
 
-  // Top-third composition A/B (comp round): A = utility bar + segmented tabs;
-  // B = A + one warm greeting line. ?top=b shows B (else A) for the pick.
-  const topVariant =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("top") === "b"
-      ? "b"
-      : "a";
   const activeIndex = TABS.findIndex((t) => t.id === activeTab);
 
   return (
@@ -147,13 +140,6 @@ export default function Home3TabPreview() {
               <CanvasAvatarChip compact />
             </div>
           </div>
-
-          {/* Greeting line — comp B only: one warm line, no numbers/stats. */}
-          {topVariant === "b" && (
-            <p className="font-display font-bold rd-t-display-s text-rd-text mt-3">
-              Afternoon, Noa — let's move something forward today.
-            </p>
-          )}
 
           {/* Segmented-pill tabs (comp A): one confident control. */}
           <div
