@@ -169,21 +169,24 @@
     transform: translate(-1px, -1px) rotate(-9deg);
   }
 
-  /* story bank — cover cracks open, ribbon slides */
-  .ti-cover {
+  /* story bank (rosette) — the star pops ("achievement highlighted") */
+  .ti-star {
     transform-box: fill-box;
-    transform-origin: left center;
-    transition: transform 0.35s ease;
+    transform-origin: center;
   }
-  .cx-tool:hover .ti-cover {
-    transform: perspective(140px) rotateY(-32deg);
+  .cx-tool:hover .ti-star {
+    animation: tiStarPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-  .ti-ribbon {
-    transform-box: fill-box;
-    transition: transform 0.3s ease;
-  }
-  .cx-tool:hover .ti-ribbon {
-    transform: translateY(3px);
+  @keyframes tiStarPop {
+    0% {
+      transform: scale(1);
+    }
+    40% {
+      transform: scale(1.22);
+    }
+    100% {
+      transform: scale(1);
+    }
   }
 
   /* tasks — the checkmark draws (accent, hidden at rest) */

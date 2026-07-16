@@ -5,7 +5,6 @@ import React, { useMemo, useState } from "react";
 import { CANVAS_MATCHES } from "../fixtures/canvasHome";
 import CanvasJobModal from "./CanvasJobModal";
 import CanvasJobCard from "./CanvasJobCard";
-import StoryBankOptions from "./StoryBankOptions";
 import { reveal } from "./stagger";
 
 // Fixture-fed match surfaces for the design canvas: the CV-tab right column
@@ -99,13 +98,9 @@ export function CanvasJobsFeed() {
   const { trackedIds, track } = useLocalTrack();
   const [openJob, setOpenJob] = useState(null);
   const [mode, setMode] = useState("matches"); // matches | all — both show fixtures
-  const showStoryLab =
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).get("story") === "lab";
 
   return (
     <div className="flex flex-col gap-4 md:h-full md:min-h-0">
-      {showStoryLab && <StoryBankOptions />}
       {/* Segmented toggle with a sliding coral pill (idea #11). Equal-width
           segments (flex-1) so the pill exactly matches the active one; the pill
           is 50%−inset wide and slides via translateX(100%) — consistent 4px

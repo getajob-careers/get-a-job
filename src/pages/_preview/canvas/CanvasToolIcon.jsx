@@ -227,37 +227,28 @@ function CvBank({ g }) {
   );
 }
 
+// Story bank = a rosette / award (your collected wins). Ribbon tails + a medal
+// with a star; the star pops on hover ("achievement highlighted").
 function StoryBank({ g }) {
   return (
     <>
       <path
-        d="M6 5 h13 a3 3 0 0 1 3 3 v14 a2 2 0 0 1 -2 2 h-14 a2 2 0 0 1 -2 -2 v-15 a2 2 0 0 1 2 -2 z"
+        d="M9.5 14 L7.5 24 L11 21.5 L14 24 L17 21.5 L20.5 24 L18.5 14 Z"
+        fill="var(--to-ink)"
+        opacity="0.9"
+      />
+      <circle
+        cx="14"
+        cy="10.5"
+        r="7"
         fill={`url(#${g})`}
         stroke="var(--to-ink)"
         strokeWidth="1.6"
-        strokeLinejoin="round"
-      />
-      <line
-        x1="6"
-        y1="21.5"
-        x2="19"
-        y2="21.5"
-        stroke="var(--to-ink)"
-        strokeWidth="1.4"
-      />
-      <rect
-        className="ti-ribbon"
-        x="15.5"
-        y="5"
-        width="3"
-        height="7.5"
-        fill="var(--to-ink)"
       />
       <path
-        className="ti-cover"
-        d="M6 5 h5.5 v18 h-3.5 a2 2 0 0 1 -2 -2 z"
+        className="ti-star"
+        d="M14 6.2 L15.2 9 L18.2 9.2 L15.9 11.2 L16.7 14.1 L14 12.5 L11.3 14.1 L12.1 11.2 L9.8 9.2 L12.8 9 Z"
         fill="var(--to-ink)"
-        opacity="0.85"
       />
     </>
   );
