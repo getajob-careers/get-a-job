@@ -92,6 +92,23 @@ low-fill floor (`ring.js`) and the badge AA floor (number + arc use the band
 `-dark`, AA on the card), plus the reduced-motion path (no draw-in). The 3-axis
 breakdown lives in the hover/tap legend, never the ring face.
 
+## Brand mark / logo (locked)
+
+**One official mark, every size - no size split.** The logo (`CanvasLogo` ->
+`MarkFullChair`) is the full desk-person figure at an A-frame desk with a chair
+(the "B" mark), rendered in the **toolkit-object material**: a top-lit glaze
+(highlight -> `--rd-coral` -> `--rd-coral-dark`, `userSpaceOnUse` so the whole
+mark reads from one light source) plus a warm weight-shadow (in-SVG
+`feDropShadow` in viewBox units, so it scales with the mark). It reads as a warm
+dimensional object that pops off the page, not a flat vector. Blue (`?logo=blue`)
+is a flat reference only. The earlier simplified-A + size-split and the
+no-chair / detailed-chair explorations were rejected; the `?logo=lab` route is
+removed. At header scale it reads as a warm dimensional mark rather than a
+legible scene - that is the intent (one logo, everywhere). This is a second
+scoped instance of the object material beyond the toolkit rail; both are
+recorded here, and applying the material anywhere else is a new explicit
+decision - default no.
+
 ## Guardrail
 
 `node scripts/check-scale.mjs` — flags any raw `text-[Npx]` / `rounded-[Npx]` /

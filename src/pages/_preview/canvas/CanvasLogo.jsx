@@ -52,59 +52,6 @@ function LogoDefs({ id, top, bottom }) {
   );
 }
 
-// Simplified A - a bold A crowned by a head + shoulders (hint of a person at the
-// desk). Reads clean down to ~24px. `material` applies the object glaze + lift.
-export function MarkSimple({
-  accent,
-  material = false,
-  w = "0.86em",
-  h = "1em",
-}) {
-  const uid = useId().replace(/:/g, "");
-  const paint = material ? `url(#${uid}-a)` : accent;
-  return (
-    <svg
-      viewBox="0 0 44 50"
-      width={w}
-      height={h}
-      fill="none"
-      role="img"
-      aria-label="A"
-      style={{ overflow: "visible" }}
-    >
-      {material && <LogoDefs id={uid} top={4} bottom={47} />}
-      <g filter={material ? `url(#${uid}-lift)` : undefined}>
-        <path
-          d="M5 47 L20 16"
-          stroke={paint}
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
-        <path
-          d="M39 47 L24 16"
-          stroke={paint}
-          strokeWidth="5"
-          strokeLinecap="round"
-        />
-        <path
-          d="M12 34 L32 34"
-          stroke={paint}
-          strokeWidth="4.6"
-          strokeLinecap="round"
-        />
-        <path
-          d="M17 15 Q22 12.4 27 15"
-          stroke={paint}
-          strokeWidth="3.6"
-          strokeLinecap="round"
-          fill="none"
-        />
-        <circle cx="22" cy="8.5" r="5.4" fill={paint} />
-      </g>
-    </svg>
-  );
-}
-
 // Full mark internals - the A-frame desk, a sharpened hunched worker (head +
 // back + a distinct arm), and a solid laptop (the "working" anchor). `chair`
 // adds a seat + back-post so the figure sits instead of floating.
@@ -165,25 +112,10 @@ function FullInner({ accent, ink, chair }) {
   );
 }
 
-// Full desk-person mark (sharpened, no chair). Kept for the blue reference.
-export function MarkFull({ accent, ink, w = "1.06em", h = "1em" }) {
-  return (
-    <svg
-      viewBox="0 0 56 54"
-      width={w}
-      height={h}
-      fill="none"
-      role="img"
-      aria-label="A"
-      style={{ overflow: "visible" }}
-    >
-      <FullInner accent={accent} ink={ink} chair={false} />
-    </svg>
-  );
-}
-
 // THE OFFICIAL MARK - full figure + chair, in the object material when
-// `material` is set (the default for the Clay brand logo).
+// `material` is set (the default for the Clay brand logo). ONE mark at every
+// size (no size split): at header scale it reads as a warm dimensional mark
+// rather than a legible scene, which is the intent.
 export function MarkFullChair({
   accent,
   ink,
@@ -216,15 +148,10 @@ export default function CanvasLogo({ variant = "clay", size = 30 }) {
   const blue = variant === "blue";
   const ink = blue ? "#16245c" : "var(--rd-text)";
   const accent = blue ? "#2563eb" : "var(--rd-coral)";
-  // Clay = the official brand mark, rendered in the object material. Blue stays
-  // a flat reference. Size split: header scale → simplified A; large → full B.
+  // ONE mark, every size (no size split). Clay = the official brand mark in the
+  // object material; blue stays a flat reference.
   const material = !blue;
-  const Mark =
-    size <= 40 ? (
-      <MarkSimple accent={accent} material={material} />
-    ) : (
-      <MarkFullChair accent={accent} ink={ink} material={material} />
-    );
+  const Mark = <MarkFullChair accent={accent} ink={ink} material={material} />;
   return (
     <span
       className="inline-flex items-end font-display font-extrabold select-none"

@@ -24,20 +24,22 @@ Snapshot for reopening the design lane fresh. Companion docs:
 - **Story bank icon:** **rosette** (award/medal + ribbon + star; star pops on hover). Book/starred-stack/quote/brain/jar explorations dropped.
 - **Top third:** **A** — utility bar (logo left, search/settings/avatar right) + segmented-pill tabs, no greeting. B/`?top` removed.
 - **Coach ergonomics:** shipped + approved — stream-aware scroll (pin-while-streaming, stop on scroll-up, "↓ latest"), auto-grow textarea, `body-m` bubbles, expand-to-wide overlay.
-- **Logo colorway:** **Clay** confirmed (terracotta/ink). Blue is reference only (`?logo=blue`).
+- **Logo:** **LOCKED.** One official mark at every size (no size split): the full desk-person + chair ("B") in the **toolkit-object material** (top-lit glaze + warm weight-shadow), header included. Clay colorway (terracotta/ink); blue is reference only (`?logo=blue`). Recorded in `canvas-tokens.md`; `?logo=lab` ripped. Simplified-A / no-chair / detailed-chair explorations rejected.
+- **Chat tool:** **LOCKED.** 8th toolkit tile (2nd slot): two-bubble dialogue object in heather violet (`toolColors.js`), typing-dots beat. Opens the SAME coach conversation expanded (the dock is the general coach; Interview coach is the separate prep tool). Mobile coach surface deferred to the port round.
 - **Polish tier:** done — animated tab indicator (superseded by the segmented pill), button press states, lifted coach bubbles, funnel ring bump.
 
 ## PENDING Eli decisions (open)
 
-1. **Logo mark A/B** — full desk-person: **A (no chair, sharpened)** vs **B (chair)**, at `?logo=lab` (Browse tab). My lean: A (cleaner; chair back-post competes with the A-legs). Header already uses the simplified A (size split: simple ≤40px, full mark for large). Once picked, set the default full mark + rip `CanvasLogoLab` + `?logo=lab`.
-2. **Roadmap placement** — mock at `?roadmap=lab`. Three options in the report: (1) Tracker right rail [my rec], (2) CV tab headlining Top Matches, (3) owned by Skill hub. **Also needs a clarification:** does "Your matched roles" mean the Top-Matches (jobs) panel on the CV tab, or a distinct career-roles panel? That decides beside-vs-absorb. Once decided → build as a held step; rip `CanvasRoadmapMock` + `?roadmap=lab`.
+1. **Roadmap = the real "Your matched roles" panel** (`Career.jsx` / TopMatchesPanel): roles list, per-role tier badge, two-axis bars, skill chips, expand. LOCKED that this IS the roadmap surface, on the Browse right rail. Elevated (craft-pass) restyle is built at `?roadmap=lab` and shown; **pending Eli's eye**, then integrate into the Browse right rail (two-column) + rip `CanvasRoadmapMock` + `?roadmap=lab`.
 
 ## PARKED: page-port round (do not start until rounds above are approved)
 
 Move the remaining pages onto the new system (Clay tokens, scales, elevation, buttons, chips, card language): **Profile, Story bank, CV bank, LinkedIn tools, Settings, …**. Approach: propose the **page order + per-page approach first**, then **one held step per page**, same discipline. See `port-plan-input.md` for the canvas↔prod map + suggested global port order (tokens in `index.css` first → constraints → components → toolkit/IA).
 
+**Sidebar IA orphans (decided, for this round):** **Internship = trash**, **Today = trash**, **Chat = a toolkit tool** (built + locked). **Mobile coach surface** is in scope here: the Chat tile expands the coach dock on desktop, but the mobile bottom-rail Chat has no dock to open - design the mobile coach surface as part of the port.
+
 ## Active exploration labs still mounted (rip when their decision lands)
 
-- `?logo=lab` (logo A/B + size split) · `?logo=blue` (colorway ref)
-- `?roadmap=lab` (roadmap placement mock)
+- `?logo=blue` (colorway ref only; the `?logo=lab` A/B lab is removed - logo locked)
+- `?roadmap=lab` (elevated matched-roles panel; rip on integration)
   All other `?param` labs/switchers (ring, hue, field, palette, story, top, layout) are already removed.

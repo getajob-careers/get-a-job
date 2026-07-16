@@ -5,7 +5,6 @@ import React, { useMemo, useState } from "react";
 import { CANVAS_MATCHES } from "../fixtures/canvasHome";
 import CanvasJobModal from "./CanvasJobModal";
 import CanvasJobCard from "./CanvasJobCard";
-import CanvasLogoLab from "./CanvasLogoLab";
 import CanvasRoadmapMock from "./CanvasRoadmapMock";
 import { reveal } from "./stagger";
 
@@ -104,12 +103,10 @@ export function CanvasJobsFeed() {
     typeof window !== "undefined"
       ? new URLSearchParams(window.location.search)
       : new URLSearchParams();
-  const showLogoLab = params.get("logo") === "lab";
   const showRoadmapMock = params.get("roadmap") === "lab";
 
   return (
     <div className="flex flex-col gap-4 md:h-full md:min-h-0">
-      {showLogoLab && <CanvasLogoLab />}
       {showRoadmapMock && <CanvasRoadmapMock />}
       {/* Segmented toggle with a sliding coral pill (idea #11). Equal-width
           segments (flex-1) so the pill exactly matches the active one; the pill
