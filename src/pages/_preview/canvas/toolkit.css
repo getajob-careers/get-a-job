@@ -41,20 +41,38 @@
   filter: drop-shadow(0 9px 11px rgba(74, 44, 22, 0.26));
 }
 
-/* Descriptor: hidden until hover/focus (the icon is the hero; the label sits
- * under it; the descriptor is a reveal). */
-.cx-tool-desc {
-  max-height: 0;
-  opacity: 0;
-  overflow: hidden;
+/* Carousel nav chevrons — quiet, at the band edges, centered on the object row.
+ * Right one sits a touch brighter as the persistent "there's more" hint; both
+ * brighten on rail hover and are click-to-advance (non-trackpad users). */
+.cx-rail-nav {
+  position: absolute;
+  top: 33px;
+  transform: translateY(-50%);
+  z-index: 5;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 9999px;
+  background: var(--rd-bg-card);
+  color: var(--rd-coral);
+  box-shadow:
+    0 1px 2px rgba(74, 44, 22, 0.12),
+    0 4px 10px -2px rgba(74, 44, 22, 0.22);
+  opacity: 0.55;
   transition:
-    opacity 0.2s ease,
-    max-height 0.2s ease;
+    opacity 0.18s ease,
+    transform 0.18s ease;
 }
-.cx-tool:hover .cx-tool-desc,
-.cx-tool:focus-within .cx-tool-desc {
-  max-height: 22px;
+.cx-rail-nav-r {
+  opacity: 0.85;
+}
+.group\/rail:hover .cx-rail-nav {
   opacity: 1;
+}
+.cx-rail-nav:hover {
+  transform: translateY(-50%) scale(1.09);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -62,7 +80,7 @@
     transition: none;
     transform: none !important;
   }
-  .cx-tool-desc {
+  .cx-rail-nav {
     transition: none;
   }
 }

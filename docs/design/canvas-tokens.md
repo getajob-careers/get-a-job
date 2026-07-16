@@ -74,6 +74,12 @@ raise explicitly — the default answer is no.
      Everywhere else stays flat paper-lift, single palette, no brand colours. Stays
      in Clay (warm, premium, not toy-like); reduced motion flattens it. Extending
      any of these beyond the toolkit rail is a new explicit decision — default no.
+  4. **Layout: CAROUSEL (locked)** — a compact horizontal band (the grid variant
+     - switcher were removed once picked). Native wheel/trackpad scroll (deltaY →
+       scrollLeft) + quiet edge chevrons (click-to-advance + the "there's more"
+       hint) + a right-edge peek fade. The descriptor is a tooltip portaled to
+       `body` so it escapes the band's scroll-clip; the single row keeps the coach
+       dock at max presence — the coach is the priority the rail yields to.
 
 ## Score ring (locked)
 

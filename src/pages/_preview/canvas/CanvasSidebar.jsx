@@ -5,7 +5,7 @@
 // (CanvasToolTile), the one surface that earns extra dimensionality beyond the
 // paper-lift house language (see canvas-tokens.md). Step B swaps the placeholder
 // icons for bespoke per-tool silhouettes that morph on hover.
-import React, { useEffect, useRef, useSyncExternalStore } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Mic,
@@ -15,6 +15,8 @@ import {
   FileStack,
   BookOpen,
   ListChecks,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 import { createPageUrl } from "@/utils";
 import CoachDock from "@/components/agent/CoachDock";
@@ -23,7 +25,10 @@ import CanvasCoachDock from "./CanvasCoachDock";
 import CanvasToolTile from "./CanvasToolTile";
 import CanvasAvatarChip from "./CanvasAvatarChip";
 import CanvasMobileRail from "./CanvasMobileRail";
-import { getLayout, subscribeLayout } from "./layoutStore";
+
+const REDUCE =
+  typeof window !== "undefined" &&
+  window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 // The toolkit. Descriptors are short + action-flavoured, no data (per ruling).
 // Interview coach + Skill hub + Tasks are fixture no-ops (interview coach = a
@@ -80,19 +85,24 @@ const TOOL_TILES = [
   },
 ];
 
-// The rail renders one of two layouts (behind the pinned LAYOUT switcher):
-//  GRID — 2-across bento of objects (Tasks takes the wide slot).
-//  CAROUSEL — a compact horizontal band; wheel/trackpad scrolls it (deltaY →
-//  scrollLeft), the right edge fades to peek the next object. Both stay short so
-//  the coach dock keeps presence.
+// The toolkit rail — a compact horizontal carousel of the colored objects (the
+// picked layout). Native wheel/trackpad scrolls it (deltaY → scrollLeft); the
+// right edge fades to peek the next object; quiet chevron buttons make "there's
+// more" unmistakable and give non-trackpad users click-to-advance. Single row →
+// the coach dock below keeps its maximum presence.
 function ToolkitRail() {
-  const layout = useSyncExternalStore(subscribeLayout, getLayout, () => "grid");
   const railRef = useRef(null);
+  const [canLeft, setCanLeft] = useState(false);
+  const [canRight, setCanRight] = useState(true);
 
   useEffect(() => {
-    if (layout !== "carousel") return;
     const el = railRef.current;
     if (!el) return;
+    const update = () => {
+      setCanLeft(el.scrollLeft > 4);
+      setCanRight(el.scrollLeft < el.scrollWidth - el.clientWidth - 4);
+    };
+    update();
     const onWheel = (e) => {
       if (Math.abs(e.deltaY) > Math.abs(e.deltaX)) {
         el.scrollLeft += e.deltaY;
@@ -100,14 +110,26 @@ function ToolkitRail() {
       }
     };
     el.addEventListener("wheel", onWheel, { passive: false });
-    return () => el.removeEventListener("wheel", onWheel);
-  }, [layout]);
+    el.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    return () => {
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("scroll", update);
+      window.removeEventListener("resize", update);
+    };
+  }, []);
 
-  if (layout === "carousel") {
-    return (
+  const advance = (dir) => {
+    const el = railRef.current;
+    if (el)
+      el.scrollBy({ left: dir * 158, behavior: REDUCE ? "auto" : "smooth" });
+  };
+
+  return (
+    <div className="relative group/rail flex-shrink-0">
       <div
         ref={railRef}
-        className="cx-carousel flex gap-2 overflow-x-auto flex-shrink-0 pb-1 -mx-1 px-1"
+        className="cx-carousel flex gap-2 overflow-x-auto pb-1 -mx-1 px-1"
       >
         {TOOL_TILES.map((tile) => (
           <CanvasToolTile
@@ -122,22 +144,26 @@ function ToolkitRail() {
           />
         ))}
       </div>
-    );
-  }
-
-  return (
-    <div className="grid grid-cols-2 gap-1.5 flex-shrink-0">
-      {TOOL_TILES.map((tile) => (
-        <CanvasToolTile
-          key={tile.id}
-          id={tile.id}
-          label={tile.label}
-          descriptor={tile.descriptor}
-          href={tile.href}
-          onClick={tile.onClick}
-          className={tile.id === "tasks" ? "col-span-2" : ""}
-        />
-      ))}
+      {canLeft && (
+        <button
+          type="button"
+          aria-label="Previous tools"
+          onClick={() => advance(-1)}
+          className="cx-rail-nav left-0"
+        >
+          <ChevronLeft className="w-3.5 h-3.5" aria-hidden="true" />
+        </button>
+      )}
+      {canRight && (
+        <button
+          type="button"
+          aria-label="More tools"
+          onClick={() => advance(1)}
+          className="cx-rail-nav cx-rail-nav-r right-0"
+        >
+          <ChevronRight className="w-3.5 h-3.5" aria-hidden="true" />
+        </button>
+      )}
     </div>
   );
 }
