@@ -59,4 +59,29 @@ describe("deriveJobDisplay", () => {
     expect(d.matchedSkills).toEqual([]);
     expect(d.chips.length).toBeGreaterThan(0);
   });
+
+  // Component 2b direction axis (shared seam the live card + canvas port read).
+  it("derives the direction axis from relevance_match, band-independently", () => {
+    const primary = deriveJobDisplay(JOB, { ...SCORE, relevance_match: "primary" });
+    expect(primary.direction.label).toBe("On your goal path");
+    expect(primary.direction.tone).toBe("primary");
+    const adjacent = deriveJobDisplay(JOB, { ...SCORE, relevance_match: "adjacent" });
+    expect(adjacent.direction.label).toBe("Adjacent field");
+    expect(adjacent.direction.tone).toBe("adjacent");
+    // a primary role in the Stretch band still reads on-direction (the TPM case)
+    const s = deriveJobDisplay(
+      JOB,
+      { ...SCORE, attainability_band: "stretch", relevance_match: "primary" },
+      { showAttainabilityBand: true },
+    );
+    expect(s.attainBand).toBe("stretch");
+    expect(s.direction.tone).toBe("primary");
+  });
+
+  it("has no direction for unknown/off relevance or an unscored job", () => {
+    expect(deriveJobDisplay(JOB, { ...SCORE, relevance_match: "unknown" }).direction).toBeNull();
+    expect(deriveJobDisplay(JOB, { ...SCORE, relevance_match: "off" }).direction).toBeNull();
+    expect(deriveJobDisplay(JOB, SCORE).direction).toBeNull();
+    expect(deriveJobDisplay(JOB, null).direction).toBeNull();
+  });
 });
