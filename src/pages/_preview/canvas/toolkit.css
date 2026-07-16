@@ -13,9 +13,13 @@
 }
 
 /* Carousel variant: a compact horizontal band. Right-edge fade = "there's more"
- * (peek affordance); scrollbar hidden (wheel/trackpad scroll is wired in JS). */
+ * (peek affordance); scrollbar hidden (wheel/trackpad scroll is wired in JS).
+ * overscroll-behavior-x: contain keeps the horizontal gesture from CHAINING to
+ * the document at the band's edge — so a Mac trackpad swipe can never trigger
+ * the browser back-navigation. */
 .cx-carousel {
   scrollbar-width: none;
+  overscroll-behavior-x: contain;
   -webkit-mask-image: linear-gradient(to right, #000 86%, transparent 100%);
   mask-image: linear-gradient(to right, #000 86%, transparent 100%);
 }
