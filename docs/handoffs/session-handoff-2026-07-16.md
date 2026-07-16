@@ -9,7 +9,29 @@ in the approved order from the design doc (`docs/eval/scoring-formula-design.md`
 1. **confidence-aware ranking** — DONE. #595 (fit-based) merged, then its live check
    FAILED (identical badges, only order changed); re-targeted onto attainability in
    #597 (held). See the incident + canonical-score rule below.
-2. must-have weighting — NEXT (acts on attainability_score, per the canonical rule)
+2. must-have weighting — NEXT (acts on attainability_score, per the canonical rule).
+   **ELEVATED design question (Eli, from the C1 live check) — C2's design doc MUST resolve
+   it before any build:** pure attainability_score EXCLUDES function_family by design, and
+   #597 made attainability the _sort_ key unconditionally (flag or not) — so it dropped the
+   direction signal the old fit_score sort carried (family at 10%). relevance_match only
+   GATES membership (off-direction dropped; primary/adjacent/unknown kept) and is a
+   _tiebreaker_ only, so within the kept set an off-direction attainable job outranks an
+   on-direction GOOD. Eli's live flag-on top-5 showed this: Marketing Analyst 84 > SDR 82 >
+   CSM 80 > Helfy PM 77 (PM = the GOOD, on-direction, sunk). The UI promises TWO axes
+   ("qualified now" = attainability + "moves you toward" = direction), but the sort now
+   honors only one.
+   - Must-have weighting alone will NOT fix this (it sharpens the skill axis magnitude, not
+     direction). C2's doc must decide whether the for-you ranking needs a DIRECTION-AWARE
+     BLEND, grounded in the 160 labels.
+   - Options to evaluate against the labels (do GOODs skew more on-direction than BADs? that
+     is the signal): (a) tier-first sort [primary>adjacent>unknown] then attainability — but
+     that is the pre-#585 order that caused "75% after 21%", so too strong alone;
+     (b) fold a direction bonus back into the blended score (attainability + w*goal_alignment,
+     or *(1+w*on_direction)), tune w on the labels; (c) surface both numbers in the UI and
+     sort by the blend (matches the two-axis promise). Harness first, held PR, flag-gated.
+   - **Flag-default decision (deferred):** keep ?scoring_confidence opt-in for now; flip
+     default-on as part of C2 so the confidence + direction fix ship as ONE validated re-rank
+     (Claude's rec; Eli may flip earlier since flag-on can't worsen the already-live direction gap).
 3. hard gates
 4. negative signals ("underleveled matches" band+role-tier both directions; also
    single-generic-skill inflation + flat-tie, both confirmed named signals)
@@ -87,6 +109,7 @@ should de-tie this time.
 ## Held PRs awaiting Eli
 
 - **#594** — scoring-formula design doc (the plan for all 5 components)
+- **#598** — Component 2 design doc — **APPROVED 2026-07-16** (rulings below); now the build spec
 - **#592** — CV Studio contracts spec (S1–S8 + Option-A write-through build spec; edit-history
   table is a blocking prerequisite for coach write tools)
 
@@ -95,9 +118,59 @@ should de-tie this time.
 - CV Studio Option-A build (write-through + undo + shared write layer + coach writes) — spec'd in #592, not built.
 - CV generation speed plan (streaming flag-gated, then prompt caching) — approved, build after CV fix PRs land.
 
-## Next action when the Component-2 lane opens
+## Component 2 — KICKOFF STATE (2026-07-16, #598 approved, ready to build)
 
-must-have weighting: separate `req_skills_core` (must-have) from `req_skills_nice` in the
-skill axis so matching a nice-to-have counts less than matching a must-have. Same pattern:
-`eli/scoring-c2-musthave-weighting`, flag-gated default off (reuse the `flags.js` pattern,
-or a new `?scoring_musthave=1`), harness re-run + GOOD-recall guardrail, held PR.
+Design = **PR #598** (`docs/eval/scoring-c2-musthave-direction-design.md`, branch
+`eli/scoring-c2-musthave-direction`). Read it first — it carries the measured label evidence.
+C2 solves TWO things (elevated from the original must-have-only line): **2a must-have weighting**
+
+- **2b direction-aware sort** (attainability alone is direction-blind; that's the live gap).
+
+**Eli's rulings (2026-07-16):**
+
+1. **UI = Option B (two-number card).** `attainability_score` stays PURE "qualified now";
+   direction is its own visible axis on the card; sort by the transparent blend. Honors the
+   two-axis promise the role card already makes. Reversible — **math ships first**, UI second, so
+   if the rendered card disappoints we retune without unwinding the ranking.
+2. **Flag = combined `?scoring_v2`.** Fold C1's confidence-aware shrink in as **component one**,
+   so users eventually get ONE validated re-rank (C1 + 2a + 2b behind a single flag). Keep the
+   old `?scoring_confidence` working or alias it to `?scoring_v2` during transition — mechanics
+   my call. Default OFF until Eli's live check passes.
+3. **2a formula approved as designed.** Build order stands.
+
+**Build order (each its own held PR; harness re-run + GOOD-recall guardrail between each):**
+
+- **2a — must-have weighting (do first).** Reshape `computeSkillAxis` in `src/lib/scoreJobFit.js`:
+  asymmetric core penalty (a 1-of-1 core match must be ≪ 1.0; missing a core hurts more than a
+  matched nice helps) + distinctive>generic (reuse C1's `GENERIC_SKILLS`). Acts INSIDE
+  `attainability_score` → sort==display==bands invariant preserved for free. Branch
+  `eli/scoring-c2a-musthave` off main.
+- **2b — direction-aware blend (second).** `rank_score = attainability_score × (1 + w·on_direction)`
+  (`on_direction = relevance_match==="primary"`), `w` tuned on the labels. NOT pure tier-first
+  (that was the pre-#585 "75% shown below 21%" failure). Ranking-math + harness land BEFORE the
+  Option-B UI bytes so `w` is validated first. Then the two-number card.
+- Wire the `?scoring_v2` flag across the 3 call sites (`UnifiedJobsFeed.jsx`, `JobsSearchTab.jsx`,
+  `JobMatchChecker.jsx`); keep flag-off byte-identical (test it, like C1's byte-identity test).
+
+**MANDATORY harness check (§5 of #598):** run 2a alone / C1 alone / 2a+C1 together — confirm 2a is
+**not double-counting** C1's thinness+distinctiveness shrink. Decide the split from the numbers.
+
+**Harness = `scripts/match-eval-harness.ts`** (exists) over the pinned set
+(`docs/eval/match-eval-pinned.json`) vs the 160 labels (`docs/eval/match-eval-labels.md`). Sort by +
+report the **rendered** number (`attainability_score` for 2a; `rank_score` for 2b) — the
+2026-07-16 lesson. Metrics: BAD-in-top-5 (in-snapshot targets: 7 off-direction BADs in a top-5;
+42 single-generic-signature rows), GOOD/BAD + STRETCH/BAD separation, BAD-above-GOOD inversions
+(baseline **21**, of which 7 involve an off-direction BAD → 2b's direct target), GOOD-recall
+guardrail (3 non-primary GOODs are at risk from 2b; a strong single-distinctive-core GOOD from 2a).
+
+**Reusable direction-analysis method (this session):** the pinned (user, job) tuples were joined to
+LIVE `jobs.function_family` / `profiles.primary_domain` / `req_skills_core` via one MCP SQL query
+(a VALUES tuple list joined to `jobs`+`profiles`, with `relevance_match` computed in-DB from the
+`DOMAIN_TO_FAMILIES`/`FAMILY_ADJACENCY`/business-widening maps). That reconstruction reproduced the
+21-inversion baseline exactly → trustworthy. Formalize it into the harness for 2a/2b. Measured
+findings that justify both levers: 91% of GOODs on-direction; adjacent = 5% GOOD / 57% BAD;
+must-have additive within primary (matched_core 0→62% BAD / 3+→12% BAD/41% GOOD).
+
+**Eli's post-merge ritual:** same two-URL live check after each merge — baseline (no flag) vs
+`https://getajob.careers/Career?scoring_v2=1`, diff the top ~10. Nothing ships default-on until it
+passes. See [[scoring-c2-musthave-direction]] in memory.
