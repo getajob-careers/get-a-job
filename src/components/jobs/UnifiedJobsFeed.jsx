@@ -141,12 +141,13 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
   }, [profile, experiences, educations, jobs]);
 
   // relevance_match GATES feed membership (primary + adjacent + unknown pass;
-  // "off" drops). Within the gated set, sort by fit_score DESC, the number
-  // the card actually shows, so the visible % is monotonic within each
-  // rendered section. relevance_tier is only a tiebreaker for equal fit: it
-  // must never reorder a higher-fit job below a lower-fit one (that produced
-  // the "75% listed after 21%" ordering bug). attainability_score breaks
-  // remaining ties.
+  // "off" drops). Within the gated set, sort by attainability_score DESC — the
+  // number the card actually shows and the picks/stretch bands are built on
+  // (Option A: the for-you feed is single-score on attainability). The visible
+  // % is monotonic within each section. relevance_tier is only a tiebreaker for
+  // equal attainability: it must never reorder a higher-score job below a
+  // lower-score one (that produced the "75% listed after 21%" ordering bug).
+  // fit_score (the Search-tab number) breaks remaining ties.
   const displayedJobs = useMemo(() => {
     if (jobs.length === 0 || !profile) return jobs;
     const rankRel = { primary: 0, adjacent: 1, unknown: 2 };
@@ -156,15 +157,15 @@ export default function UnifiedJobsFeed({ onTabChange, singleColumn = false }) {
       return r.relevance_match && r.relevance_match !== "off";
     });
     gated.sort((a, b) => {
-      const fa = scoredById[a.id].fit_score ?? 0;
-      const fb = scoredById[b.id].fit_score ?? 0;
-      if (fb !== fa) return fb - fa;
+      const aa = scoredById[a.id].attainability_score ?? 0;
+      const ab = scoredById[b.id].attainability_score ?? 0;
+      if (ab !== aa) return ab - aa;
       const ra = rankRel[scoredById[a.id].relevance_match];
       const rb = rankRel[scoredById[b.id].relevance_match];
       if (ra !== rb) return ra - rb;
-      const aa = scoredById[a.id].attainability_score ?? 0;
-      const ab = scoredById[b.id].attainability_score ?? 0;
-      return ab - aa;
+      const fa = scoredById[a.id].fit_score ?? 0;
+      const fb = scoredById[b.id].fit_score ?? 0;
+      return fb - fa;
     });
     return gated;
   }, [jobs, scoredById, profile]);
