@@ -84,7 +84,10 @@ export default function CanvasSidebar() {
     <>
       {/* Desktop: full left sidebar. Hidden below md — content-first there. */}
       <div className="hidden md:flex md:w-[248px] flex-shrink-0 flex-col gap-4 md:h-full min-h-0">
-        <div className="flex flex-col gap-2 flex-shrink-0">
+        {/* GRID variant: distinct colored objects in a 2-across space (Tasks
+            takes a wide slot so 7 objects fill the bento cleanly). Compact, so
+            the coach dock below keeps its presence. */}
+        <div className="grid grid-cols-2 gap-1.5 flex-shrink-0">
           {TOOL_TILES.map((tile) => (
             <CanvasToolTile
               key={tile.id}
@@ -93,6 +96,7 @@ export default function CanvasSidebar() {
               descriptor={tile.descriptor}
               href={tile.href}
               onClick={tile.onClick}
+              className={tile.id === "tasks" ? "col-span-2" : ""}
             />
           ))}
         </div>

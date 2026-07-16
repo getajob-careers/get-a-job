@@ -1,40 +1,58 @@
-/* Toolkit rail dimensionality (round 3). The tool tiles are the ONE surface that
- * earns soft-3D beyond the flat paper-lift house language (scoped ruling in
- * canvas-tokens.md — like the job-card glow). Tactile "objects": a warm domed
- * tile with a bevel highlight + a weight shadow, a small cursor parallax-tilt on
- * hover (set inline by the tile), and a per-tool icon that comes alive with one
- * motion beat (step B). Stays in Clay: warm, premium, not toy-like. Reduced
- * motion → flat + static.
+/* Toolkit rail (round 3). The tools are distinct colored OBJECTS sitting in the
+ * rail space — the silhouette IS the tile, NOT an icon inside a uniform card
+ * frame (the Spline reference). Each object is its own shape + own glaze
+ * (toolColors) over one shared material: a top-lit gradient body + a soft warm
+ * ground shadow, a cursor parallax-tilt on hover, and one icon morph beat. This
+ * is the ONE surface that earns soft-3D beyond flat paper-lift (scoped ruling in
+ * canvas-tokens.md). Stays in Clay (warm, premium, not toy). Reduced motion →
+ * flat + static.
  */
-.rd-tool {
-  background: linear-gradient(
-    177deg,
-    #fffdf9 0%,
-    var(--rd-bg-card) 42%,
-    var(--rd-bg-soft) 100%
-  );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 251, 245, 0.9),
-    inset 0 -1.5px 1px rgba(74, 44, 22, 0.05),
-    0 1px 2px rgba(74, 44, 22, 0.05),
-    0 10px 22px -12px rgba(74, 44, 22, 0.18);
-  transition:
-    transform 0.25s cubic-bezier(0.22, 0.61, 0.36, 1),
-    box-shadow 0.2s ease;
+
+.cx-tool {
+  cursor: pointer;
+}
+
+/* The object: a floating dimensional shape. Ground shadow = "sitting in a
+ * space." Tilt/lift transform is set inline by the tile; CSS animates it. */
+.cx-tool-obj,
+.cx-tool-ico {
   transform-style: preserve-3d;
+}
+.cx-tool-ico {
+  display: inline-flex;
+  filter: drop-shadow(0 3px 4px rgba(74, 44, 22, 0.18));
+  transition:
+    transform 0.24s cubic-bezier(0.22, 0.61, 0.36, 1),
+    filter 0.24s ease;
   will-change: transform;
 }
-.rd-tool:hover {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 251, 245, 0.95),
-    inset 0 -1.5px 1px rgba(74, 44, 22, 0.06),
-    0 2px 6px rgba(74, 44, 22, 0.07),
-    0 18px 34px -12px rgba(74, 44, 22, 0.24);
+.cx-tool:hover .cx-tool-ico {
+  filter: drop-shadow(0 9px 11px rgba(74, 44, 22, 0.26));
 }
+
+/* Descriptor: hidden until hover/focus (the icon is the hero; the label sits
+ * under it; the descriptor is a reveal). */
+.cx-tool-desc {
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition:
+    opacity 0.2s ease,
+    max-height 0.2s ease;
+}
+.cx-tool:hover .cx-tool-desc,
+.cx-tool:focus-within .cx-tool-desc {
+  max-height: 22px;
+  opacity: 1;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .rd-tool {
+  .cx-tool-ico {
     transition: none;
     transform: none !important;
+  }
+  .cx-tool-desc {
+    transition: none;
   }
 }
 
@@ -47,13 +65,13 @@
     transform-box: fill-box;
     transform-origin: center;
   }
-  .rd-tool:hover .ti-wave line {
+  .cx-tool:hover .ti-wave line {
     animation: tiWave 0.9s ease-in-out infinite;
   }
-  .rd-tool:hover .ti-wave line:nth-child(2) {
+  .cx-tool:hover .ti-wave line:nth-child(2) {
     animation-delay: 0.15s;
   }
-  .rd-tool:hover .ti-wave line:nth-child(3) {
+  .cx-tool:hover .ti-wave line:nth-child(3) {
     animation-delay: 0.3s;
   }
   @keyframes tiWave {
@@ -76,28 +94,27 @@
       opacity 0.3s ease,
       transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
-  .rd-tool:hover .ti-sat {
+  .cx-tool:hover .ti-sat {
     opacity: 1;
     transform: scale(1);
   }
 
-  /* profile — the ring draws around the portrait */
+  /* profile — the ring draws around the portrait (accent, hidden at rest) */
   .ti-ring {
     stroke-dasharray: 41;
     stroke-dashoffset: 41;
     transition: stroke-dashoffset 0.5s ease;
   }
-  .rd-tool:hover .ti-ring {
+  .cx-tool:hover .ti-ring {
     stroke-dashoffset: 0;
   }
 
-  /* linkedin — the "in" is visible at rest and RE-draws on hover (it's the
-   * primary glyph, so it must never be blank). */
+  /* linkedin — the "in" is visible at rest and RE-draws on hover */
   .ti-draw {
     stroke-dasharray: 26;
     stroke-dashoffset: 0;
   }
-  .rd-tool:hover .ti-draw {
+  .cx-tool:hover .ti-draw {
     animation: tiInDraw 0.55s ease;
   }
   @keyframes tiInDraw {
@@ -115,7 +132,7 @@
     transform-origin: bottom right;
     transition: transform 0.3s cubic-bezier(0.22, 0.61, 0.36, 1);
   }
-  .rd-tool:hover .ti-fan {
+  .cx-tool:hover .ti-fan {
     transform: translate(-1px, -1px) rotate(-9deg);
   }
 
@@ -125,24 +142,24 @@
     transform-origin: left center;
     transition: transform 0.35s ease;
   }
-  .rd-tool:hover .ti-cover {
+  .cx-tool:hover .ti-cover {
     transform: perspective(140px) rotateY(-32deg);
   }
   .ti-ribbon {
     transform-box: fill-box;
     transition: transform 0.3s ease;
   }
-  .rd-tool:hover .ti-ribbon {
+  .cx-tool:hover .ti-ribbon {
     transform: translateY(3px);
   }
 
-  /* tasks — the checkmark draws */
+  /* tasks — the checkmark draws (accent, hidden at rest) */
   .ti-check {
     stroke-dasharray: 12;
     stroke-dashoffset: 12;
     transition: stroke-dashoffset 0.35s ease 0.05s;
   }
-  .rd-tool:hover .ti-check {
+  .cx-tool:hover .ti-check {
     stroke-dashoffset: 0;
   }
 }

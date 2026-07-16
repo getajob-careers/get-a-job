@@ -57,14 +57,23 @@ e.g. the coach action-search field. Never a border on a lifted surface.
 If a future wave wants the glow on another surface, that's a new decision to
 raise explicitly — the default answer is no.
 
-- **Extra dimensionality (soft-3D) is the TOOLKIT RAIL ONLY.** The sidebar tool
-  tiles (`toolkit.css` `.rd-tool` + `CanvasToolTile`) are tactile objects — a
-  warm domed bevel, a weight shadow, a cursor parallax-tilt on hover, and
-  per-tool icons that come alive with one motion beat. This is the single
-  surface that earns depth beyond the flat paper-lift house language. Everywhere
-  else stays paper-lift. Stays in Clay (warm, premium, not toy-like); reduced
-  motion flattens it. Adding soft-3D elsewhere is a new explicit decision — the
-  default is no.
+- **The TOOLKIT RAIL is a scoped exception — this rail ONLY.** The sidebar tools
+  (`CanvasToolTile` + `CanvasToolIcon` + `toolkit.css` + `toolColors.js`) are
+  distinct colored OBJECTS in a space, not icons in cards. Three things live here
+  and nowhere else:
+  1. **Extra dimensionality (soft-3D):** each tool is its own silhouette with a
+     top-lit gradient glaze + a soft warm ground shadow + a cursor parallax-tilt
+     and one icon morph on hover. The only surface that earns depth beyond the
+     flat paper-lift house language.
+  2. **Varied per-tool tints:** every tool has its OWN colour (`toolColors.js`) —
+     muted earthy siblings over one shared material, NOT a uniform tone and NOT a
+     candy-box rainbow. Sage (Story bank) is kept warm/olive so it separates from
+     Skill hub's teal.
+  3. **LinkedIn brand blue** `#0A66C2` — the one true-brand colour on the canvas,
+     the intentional pop against the earthy set.
+     Everywhere else stays flat paper-lift, single palette, no brand colours. Stays
+     in Clay (warm, premium, not toy-like); reduced motion flattens it. Extending
+     any of these beyond the toolkit rail is a new explicit decision — default no.
 
 ## Score ring (locked)
 

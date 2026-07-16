@@ -1,13 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import CanvasToolIcon from "./CanvasToolIcon";
+import { TOOL_COLORS } from "./toolColors";
 
-// Toolkit tile shell (round 3, step A). A tactile soft-3D object (toolkit.css):
-// a warm domed tile that tilts toward the cursor on hover, holding a per-tool
-// icon, a label, and a short static descriptor (no data — per the ruling), and
-// clickable to its tool. Step B swaps the placeholder DuotoneIcon for a bespoke
-// per-tool silhouette that morphs on hover (the tile is `group` so those can key
-// off group-hover). Reduced motion → no tilt.
+// Toolkit tile (round 3). NOT a card: the tool's colored OBJECT is the tile —
+// its silhouette + glaze, floating with a ground shadow, the icon as the hero,
+// the label under it, and the descriptor revealed on hover (no data, per the
+// ruling). Per-tool colors come in as CSS vars the object's gradient reads. The
+// object tilts toward the cursor on hover (parallax) and runs its one morph
+// beat. Reduced motion → no tilt.
 const REDUCE =
   typeof window !== "undefined" &&
   window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
@@ -18,44 +19,54 @@ export default function CanvasToolTile({
   descriptor,
   href,
   onClick,
+  size = 44,
+  className = "",
 }) {
+  const c = TOOL_COLORS[id] || {};
+  const colorVars = { "--to-hi": c.hi, "--to-tint": c.tint, "--to-ink": c.ink };
+
   const onMove = REDUCE
     ? undefined
     : (e) => {
-        const el = e.currentTarget;
-        const r = el.getBoundingClientRect();
+        const ico = e.currentTarget.querySelector(".cx-tool-ico");
+        if (!ico) return;
+        const r = e.currentTarget.getBoundingClientRect();
         const px = (e.clientX - r.left) / r.width - 0.5;
         const py = (e.clientY - r.top) / r.height - 0.5;
-        el.style.transform = `perspective(640px) rotateX(${(-py * 5).toFixed(
-          2,
-        )}deg) rotateY(${(px * 5).toFixed(2)}deg) translateY(-2px)`;
+        ico.style.transform = `perspective(520px) rotateX(${(-py * 12).toFixed(
+          1,
+        )}deg) rotateY(${(px * 12).toFixed(1)}deg) translateY(-3px)`;
       };
   const onLeave = REDUCE
     ? undefined
     : (e) => {
-        e.currentTarget.style.transform = "";
+        const ico = e.currentTarget.querySelector(".cx-tool-ico");
+        if (ico) ico.style.transform = "";
       };
 
-  const cls =
-    "rd-tool group rd-r-md flex items-center gap-3 px-3 py-2.5 w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2";
+  const cls = `cx-tool group flex flex-col items-center justify-start gap-1 px-1 py-2 rd-r-md focus:outline-none focus-visible:ring-2 focus-visible:ring-rd-coral focus-visible:ring-offset-2 ${className}`;
   const inner = (
     <>
-      <span className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10">
-        <CanvasToolIcon id={id} />
+      <span className="cx-tool-ico">
+        <CanvasToolIcon id={id} size={size} />
       </span>
-      <span className="min-w-0">
-        <span className="block font-display font-bold rd-t-body-m text-rd-text leading-tight">
-          {label}
-        </span>
-        <span className="block rd-t-micro text-rd-text-tertiary leading-tight mt-0.5">
-          {descriptor}
-        </span>
+      <span className="block font-display font-bold rd-t-micro text-rd-text leading-tight text-center">
+        {label}
+      </span>
+      <span className="cx-tool-desc block rd-t-micro text-rd-text-tertiary leading-tight text-center">
+        {descriptor}
       </span>
     </>
   );
 
   return href ? (
-    <Link to={href} className={cls} onMouseMove={onMove} onMouseLeave={onLeave}>
+    <Link
+      to={href}
+      className={cls}
+      style={colorVars}
+      onMouseMove={onMove}
+      onMouseLeave={onLeave}
+    >
       {inner}
     </Link>
   ) : (
@@ -63,6 +74,7 @@ export default function CanvasToolTile({
       type="button"
       onClick={onClick}
       className={cls}
+      style={colorVars}
       onMouseMove={onMove}
       onMouseLeave={onLeave}
     >
