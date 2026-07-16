@@ -189,6 +189,32 @@
     }
   }
 
+  /* chat - the typing dots ripple */
+  .ti-chat circle {
+    transform-box: fill-box;
+    transform-origin: center;
+  }
+  .cx-tool:hover .ti-chat circle {
+    animation: tiChat 0.9s ease-in-out infinite;
+  }
+  .cx-tool:hover .ti-chat circle:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .cx-tool:hover .ti-chat circle:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  @keyframes tiChat {
+    0%,
+    100% {
+      transform: translateY(0.8px);
+      opacity: 0.5;
+    }
+    45% {
+      transform: translateY(-1.4px);
+      opacity: 1;
+    }
+  }
+
   /* tasks — the checkmark draws (accent, hidden at rest) */
   .ti-check {
     stroke-dasharray: 12;

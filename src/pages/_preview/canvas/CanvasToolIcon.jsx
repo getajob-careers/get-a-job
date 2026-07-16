@@ -317,8 +317,41 @@ function Tasks({ g }) {
   );
 }
 
+// Chat = a DIALOGUE: two overlapping bubbles + typing dots. Deliberately not the
+// coach's single-bubble-plus-waveform - two bubbles reads "conversation", one
+// reads "voice/prompt". Back bubble sits lighter (hi) so the front glazed bubble
+// pops forward; the three dots ripple on hover ("typing").
+function Chat({ g }) {
+  return (
+    <>
+      {/* back bubble (the reply, upper-right) */}
+      <path
+        d="M12 3.5 h9 a3.5 3.5 0 0 1 3.5 3.5 v4 a3.5 3.5 0 0 1 -3.5 3.5 h-3 l-3 3 v-3 h0 a3.5 3.5 0 0 1 -3.5 -3.5 v-4 a3.5 3.5 0 0 1 3.5 -3.5 Z"
+        fill="var(--to-hi)"
+        stroke="var(--to-ink)"
+        strokeWidth="1.5"
+        strokeLinejoin="round"
+      />
+      {/* front bubble (yours, lower-left) with a tail */}
+      <path
+        d="M6 10.5 h9 a3.6 3.6 0 0 1 3.6 3.6 v3.4 a3.6 3.6 0 0 1 -3.6 3.6 h-5.5 l-3.5 3.2 v-3.2 a3.6 3.6 0 0 1 -3.6 -3.6 v-3.4 a3.6 3.6 0 0 1 3.6 -3.6 Z"
+        fill={`url(#${g})`}
+        stroke="var(--to-ink)"
+        strokeWidth="1.6"
+        strokeLinejoin="round"
+      />
+      <g className="ti-chat" fill="var(--to-ink)">
+        <circle cx="8.6" cy="15.8" r="1.15" />
+        <circle cx="12" cy="15.8" r="1.15" />
+        <circle cx="15.4" cy="15.8" r="1.15" />
+      </g>
+    </>
+  );
+}
+
 const SHAPES = {
   coach: Coach,
+  chat: Chat,
   skills: Skills,
   profile: Profile,
   linkedin: LinkedInMark,

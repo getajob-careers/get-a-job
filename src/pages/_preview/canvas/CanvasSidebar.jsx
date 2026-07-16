@@ -9,6 +9,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import {
   Mic,
+  MessagesSquare,
   Target,
   IdCard,
   Linkedin,
@@ -40,6 +41,13 @@ const TOOL_TILES = [
     descriptor: "rehearse, get feedback",
     icon: Mic,
     onClick: () => toast.info("Prototype: opens the interview coach."),
+  },
+  {
+    id: "chat",
+    label: "Chat",
+    descriptor: "ask anything",
+    icon: MessagesSquare,
+    onClick: () => toast.info("Prototype: opens chat."),
   },
   {
     id: "skills",
@@ -90,7 +98,7 @@ const TOOL_TILES = [
 // right edge fades to peek the next object; quiet chevron buttons make "there's
 // more" unmistakable and give non-trackpad users click-to-advance. Single row →
 // the coach dock below keeps its maximum presence.
-function ToolkitRail() {
+function ToolkitRail({ onOpenChat }) {
   const railRef = useRef(null);
   const [canLeft, setCanLeft] = useState(false);
   const [canRight, setCanRight] = useState(true);
@@ -138,7 +146,9 @@ function ToolkitRail() {
             label={tile.label}
             descriptor={tile.descriptor}
             href={tile.href}
-            onClick={tile.onClick}
+            onClick={
+              tile.id === "chat" && onOpenChat ? onOpenChat : tile.onClick
+            }
             size={50}
             className="w-[76px] flex-shrink-0"
           />
@@ -169,13 +179,23 @@ function ToolkitRail() {
 }
 
 export default function CanvasSidebar() {
+  // The Chat tile opens the SAME coach conversation, expanded (one assistant,
+  // two sizes). Lift the dock's expand state here so the tile can trigger it.
+  const [coachExpanded, setCoachExpanded] = useState(false);
   return (
     <>
       {/* Desktop: full left sidebar. Hidden below md — content-first there. */}
       <div className="hidden md:flex md:w-[248px] flex-shrink-0 flex-col gap-4 md:h-full min-h-0">
-        <ToolkitRail />
+        <ToolkitRail onOpenChat={() => setCoachExpanded(true)} />
         <div className="flex-1 min-h-0 bg-rd-bg-sidebar rd-r-lg flex flex-col">
-          {CANVAS_FIXTURES ? <CanvasCoachDock /> : <CoachDock />}
+          {CANVAS_FIXTURES ? (
+            <CanvasCoachDock
+              expanded={coachExpanded}
+              onExpandedChange={setCoachExpanded}
+            />
+          ) : (
+            <CoachDock />
+          )}
         </div>
         <CanvasAvatarChip />
       </div>

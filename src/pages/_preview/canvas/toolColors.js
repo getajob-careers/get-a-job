@@ -16,4 +16,5 @@ export const TOOL_COLORS = {
   cvbank: { hi: "#F7ECF2", tint: "#E9D6E2", ink: "#7E3A63" }, // plum / aubergine
   storybank: { hi: "#F1F4E4", tint: "#E2E8CE", ink: "#5F7233" }, // sage → warm olive
   tasks: { hi: "#EEF1F5", tint: "#DBE0E9", ink: "#4C5A72" }, // slate
+  chat: { hi: "#F2EEF9", tint: "#DFD7EE", ink: "#6C5691" }, // heather violet - the one open hue, ~60 deg off plum, far from terracotta so it never reads as the coach twin
 };

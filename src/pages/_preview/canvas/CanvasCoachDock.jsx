@@ -231,10 +231,18 @@ function CoachBody({ messages, streaming, onSend, expanded, onToggleExpand }) {
   );
 }
 
-export default function CanvasCoachDock() {
+// `expanded`/`onExpandedChange` are optional: pass them to control the expand
+// state from outside (the Chat tile opens the SAME conversation, expanded).
+// Omitted → the dock owns its own expand state as before.
+export default function CanvasCoachDock({
+  expanded: expandedProp,
+  onExpandedChange,
+} = {}) {
   const [messages, setMessages] = useState(CANVAS_COACH_MESSAGES);
   const [streaming, setStreaming] = useState(false);
-  const [expanded, setExpanded] = useState(false);
+  const [expandedInternal, setExpandedInternal] = useState(false);
+  const expanded = expandedProp ?? expandedInternal;
+  const setExpanded = onExpandedChange ?? setExpandedInternal;
   const streamRef = useRef(null);
 
   useEffect(() => () => clearInterval(streamRef.current), []);
