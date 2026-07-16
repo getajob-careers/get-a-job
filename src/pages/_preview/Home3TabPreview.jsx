@@ -58,6 +58,7 @@ import { CanvasJobsFeed } from "./canvas/CanvasMatches";
 import CanvasSidebar from "./canvas/CanvasSidebar";
 import { CvGenProvider } from "./canvas/CvGenContext";
 import CanvasField from "./canvas/CanvasField";
+import CanvasLogo from "./canvas/CanvasLogo";
 import { applyPalette } from "./canvas/palette";
 import "./canvas/scale.css";
 import "./canvas/elevation.css";
@@ -98,6 +99,12 @@ export default function Home3TabPreview() {
   // Clay is the adopted palette (hue exploration final). Applied once on mount to
   // the document root so portaled overlays inherit; restored on unmount.
   useEffect(() => (CANVAS_FIXTURES ? applyPalette() : undefined), []);
+  // Logo colorway: Clay (default) vs the mockup blue (?logo=blue), for the pick.
+  const logoVariant =
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("logo") === "blue"
+      ? "blue"
+      : "clay";
 
   // Animated tab indicator: one underline that slides under the active tab
   // (measured, hand-rolled — no framer). Recomputed on tab change + resize.
@@ -129,9 +136,9 @@ export default function Home3TabPreview() {
                 ? "Design canvas · fixture data · safe to click"
                 : "Prototype - not the live homepage"}
             </p>
-            <h1 className="font-display font-extrabold rd-t-display-m text-rd-text mt-0.5">
-              Home
-            </h1>
+            <div className="mt-1">
+              <CanvasLogo variant={logoVariant} size={30} />
+            </div>
           </div>
 
           <div
