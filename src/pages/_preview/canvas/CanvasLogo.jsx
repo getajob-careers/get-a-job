@@ -1,16 +1,67 @@
-import React from "react";
+import React, { useId } from "react";
 
-// Get A Job wordmark — the "A" is a person working at an A-frame desk/laptop.
-// Two colorways (clay default / blue reference) and, per Eli's desktop pass, a
-// SIZE SPLIT: the full desk-person story can't survive header size, so small
-// uses a simplified A (clean letterform + a hint of a seated figure) and large
-// surfaces use the full mark (stronger silhouette + a solid, legible laptop —
-// the "working" anchor). CanvasLogo auto-picks by size; both are exported for the
-// side-by-side lab (?logo=lab).
+// Get A Job wordmark - the "A" is a person working at an A-frame desk/laptop.
+// THE OFFICIAL MARK is the full chair figure (B). Per Eli's brand pass it is
+// rendered in the toolkit-OBJECT material: a top-lit glaze (highlight → coral →
+// coral-dark), a bevelled dimensional read, and a warm weight-shadow so the mark
+// pops off the page as its own entity instead of a flat vector on the surface.
+// The material scales with the mark (in-SVG gradient + feDropShadow in viewBox
+// units), so header and hero share one treatment. SIZE SPLIT still holds: header
+// scale uses the simplified A (the full figure can't survive ~30px), large
+// surfaces use the official full mark. Blue (`?logo=blue`) is a flat reference.
 
-// Simplified A — a bold A crowned by a head + shoulders (hint of a person at the
-// desk). Reads clean down to ~24px.
-export function MarkSimple({ accent, w = "0.86em", h = "1em" }) {
+// Shared material - a vertical top-lit glaze spanning the whole mark
+// (userSpaceOnUse so every stroke reads from one light source, not per-shape) +
+// a warm ground shadow. `top`/`bottom` frame the glaze to the mark's viewBox.
+function LogoDefs({ id, top, bottom }) {
+  return (
+    <defs>
+      <linearGradient
+        id={`${id}-a`}
+        gradientUnits="userSpaceOnUse"
+        x1="0"
+        y1={top}
+        x2="0"
+        y2={bottom}
+      >
+        <stop offset="0%" stopColor="#EC6A47" />
+        <stop offset="42%" stopColor="var(--rd-coral)" />
+        <stop offset="100%" stopColor="var(--rd-coral-dark)" />
+      </linearGradient>
+      <linearGradient
+        id={`${id}-ink`}
+        gradientUnits="userSpaceOnUse"
+        x1="0"
+        y1={top}
+        x2="0"
+        y2={bottom}
+      >
+        <stop offset="0%" stopColor="#3A342B" />
+        <stop offset="100%" stopColor="var(--rd-text)" />
+      </linearGradient>
+      <filter id={`${id}-lift`} x="-25%" y="-25%" width="150%" height="150%">
+        <feDropShadow
+          dx="0"
+          dy="1.1"
+          stdDeviation="1"
+          floodColor="#4A2C16"
+          floodOpacity="0.3"
+        />
+      </filter>
+    </defs>
+  );
+}
+
+// Simplified A - a bold A crowned by a head + shoulders (hint of a person at the
+// desk). Reads clean down to ~24px. `material` applies the object glaze + lift.
+export function MarkSimple({
+  accent,
+  material = false,
+  w = "0.86em",
+  h = "1em",
+}) {
+  const uid = useId().replace(/:/g, "");
+  const paint = material ? `url(#${uid}-a)` : accent;
   return (
     <svg
       viewBox="0 0 44 50"
@@ -21,37 +72,40 @@ export function MarkSimple({ accent, w = "0.86em", h = "1em" }) {
       aria-label="A"
       style={{ overflow: "visible" }}
     >
-      <path
-        d="M5 47 L20 16"
-        stroke={accent}
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-      <path
-        d="M39 47 L24 16"
-        stroke={accent}
-        strokeWidth="5"
-        strokeLinecap="round"
-      />
-      <path
-        d="M12 34 L32 34"
-        stroke={accent}
-        strokeWidth="4.6"
-        strokeLinecap="round"
-      />
-      <path
-        d="M17 15 Q22 12.4 27 15"
-        stroke={accent}
-        strokeWidth="3.6"
-        strokeLinecap="round"
-        fill="none"
-      />
-      <circle cx="22" cy="8.5" r="5.4" fill={accent} />
+      {material && <LogoDefs id={uid} top={4} bottom={47} />}
+      <g filter={material ? `url(#${uid}-lift)` : undefined}>
+        <path
+          d="M5 47 L20 16"
+          stroke={paint}
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M39 47 L24 16"
+          stroke={paint}
+          strokeWidth="5"
+          strokeLinecap="round"
+        />
+        <path
+          d="M12 34 L32 34"
+          stroke={paint}
+          strokeWidth="4.6"
+          strokeLinecap="round"
+        />
+        <path
+          d="M17 15 Q22 12.4 27 15"
+          stroke={paint}
+          strokeWidth="3.6"
+          strokeLinecap="round"
+          fill="none"
+        />
+        <circle cx="22" cy="8.5" r="5.4" fill={paint} />
+      </g>
     </svg>
   );
 }
 
-// Full mark internals — the A-frame desk, a sharpened hunched worker (head +
+// Full mark internals - the A-frame desk, a sharpened hunched worker (head +
 // back + a distinct arm), and a solid laptop (the "working" anchor). `chair`
 // adds a seat + back-post so the figure sits instead of floating.
 function FullInner({ accent, ink, chair }) {
@@ -111,7 +165,7 @@ function FullInner({ accent, ink, chair }) {
   );
 }
 
-// Full desk-person mark (sharpened, no chair). For ~48px+.
+// Full desk-person mark (sharpened, no chair). Kept for the blue reference.
 export function MarkFull({ accent, ink, w = "1.06em", h = "1em" }) {
   return (
     <svg
@@ -128,8 +182,18 @@ export function MarkFull({ accent, ink, w = "1.06em", h = "1em" }) {
   );
 }
 
-// Full mark with a chair — the seat grounds the "working at a desk" pose.
-export function MarkFullChair({ accent, ink, w = "1.06em", h = "1em" }) {
+// THE OFFICIAL MARK - full figure + chair, in the object material when
+// `material` is set (the default for the Clay brand logo).
+export function MarkFullChair({
+  accent,
+  ink,
+  material = false,
+  w = "1.06em",
+  h = "1em",
+}) {
+  const uid = useId().replace(/:/g, "");
+  const stroke = material ? `url(#${uid}-a)` : accent;
+  const solid = material ? `url(#${uid}-ink)` : ink;
   return (
     <svg
       viewBox="0 0 56 54"
@@ -140,7 +204,10 @@ export function MarkFullChair({ accent, ink, w = "1.06em", h = "1em" }) {
       aria-label="A"
       style={{ overflow: "visible" }}
     >
-      <FullInner accent={accent} ink={ink} chair />
+      {material && <LogoDefs id={uid} top={6} bottom={50} />}
+      <g filter={material ? `url(#${uid}-lift)` : undefined}>
+        <FullInner accent={stroke} ink={solid} chair />
+      </g>
     </svg>
   );
 }
@@ -149,12 +216,14 @@ export default function CanvasLogo({ variant = "clay", size = 30 }) {
   const blue = variant === "blue";
   const ink = blue ? "#16245c" : "var(--rd-text)";
   const accent = blue ? "#2563eb" : "var(--rd-coral)";
-  // Split: header-scale gets the simplified A; larger surfaces get the full mark.
+  // Clay = the official brand mark, rendered in the object material. Blue stays
+  // a flat reference. Size split: header scale → simplified A; large → full B.
+  const material = !blue;
   const Mark =
     size <= 40 ? (
-      <MarkSimple accent={accent} />
+      <MarkSimple accent={accent} material={material} />
     ) : (
-      <MarkFull accent={accent} ink={ink} />
+      <MarkFullChair accent={accent} ink={ink} material={material} />
     );
   return (
     <span
