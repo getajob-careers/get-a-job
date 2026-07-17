@@ -4,6 +4,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { useProfileQuery } from "@/lib/queries/useProfile";
 import TopLoadingBar from "./components/ui/TopLoadingBar";
 import SidebarFooter from "./components/layout/SidebarFooter";
+import GrainGround from "@/components/redesign/GrainGround";
 import { createPageUrl } from "@/utils";
 import {
   LayoutDashboard,
@@ -78,7 +79,11 @@ const BASE_SECTIONS = [
       { name: "Career Agent", page: "CareerAgent", icon: Brain },
       { name: "CV Agent", page: "CVAgent", icon: FileText },
       { name: "Interview Coach", page: "InterviewCoach", icon: Mic },
-      { name: "Skill Advisor", page: "SkillDevelopmentAdvisor", icon: GraduationCap },
+      {
+        name: "Skill Advisor",
+        page: "SkillDevelopmentAdvisor",
+        icon: GraduationCap,
+      },
     ],
   },
   {
@@ -102,7 +107,8 @@ const ONBOARDING_PAGE = "Onboarding";
 function findActiveSectionId(sections, currentPageName) {
   for (const section of sections) {
     if (section.page === currentPageName) return section.id;
-    if (section.items?.some((it) => it.page === currentPageName)) return section.id;
+    if (section.items?.some((it) => it.page === currentPageName))
+      return section.id;
   }
   return null;
 }
@@ -255,10 +261,15 @@ function LayoutBody({ children, currentPageName }) {
   const closeMobileSidebar = () => setSidebarOpen(false);
 
   return (
+    // `relative isolate` makes this shell a STACKING CONTEXT - REQUIRED for the
+    // -z-10 GrainGround to paint (see canvas-tokens.md ground spec + GrainGround).
+    // The greige ground comes from bg-rd-bg-page; the grain multiplies over it,
+    // behind all content. (Phase-2 shell restructure keeps this ground.)
     <div
       data-private
-      className="flex h-screen bg-rd-bg-page font-body text-rd-text"
+      className="relative isolate flex h-screen bg-rd-bg-page font-body text-rd-text"
     >
+      <GrainGround />
       <TopLoadingBar loading={navLoading} />
       {/* Mobile overlay */}
       {sidebarOpen && (

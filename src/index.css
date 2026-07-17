@@ -3,58 +3,84 @@
 @tailwind utilities;
 
 /*
- * Redesign tokens — additive --rd-* :root block. See tasks/redesign.md.
+ * Redesign tokens - additive --rd-* :root block. See tasks/redesign.md.
  *
  * NOTE: tokens are inlined here (rather than @import'd from a sibling
  * file) because CSS spec requires @import to precede every other rule,
  * and the @tailwind directives above invalidate any @import placed
- * after them — PostCSS silently drops the rule and every --rd-* would
+ * after them - PostCSS silently drops the rule and every --rd-* would
  * resolve to its fallback. Inlining inside @layer base is the safest
  * pattern and guarantees the tokens ship with the production bundle.
  *
  * If you edit this block, mirror the change into tasks/redesign.md's
  * "Token reference" table so the doc stays the source of truth.
  */
+/*
+ * YISHAI - THE crowned design system (page-port Phase 0, 2026-07-17). These
+ * values are the locked look from the canvas: the Yishai palette on the GREIGE
+ * ground with the always-on MEDIUM treatment MERGED IN (the canvas applied MEDIUM
+ * as a separate layer; production just bakes the final values here - no runtime
+ * amplitude layer). Source of truth + rationale: docs/design/canvas-tokens.md.
+ * The --rd-amp-* tokens below feed the mauve-forward surfaces (kanban headers,
+ * washes, coach tint) that the component ports (Phase 3) consume; harmless until
+ * then. Grain ground + the `isolate` requirement live on the authenticated shell
+ * (Layout), per the ground spec.
+ */
 @layer base {
   :root {
-    /* Redesign — surfaces */
-    --rd-bg-page: #FAF6F0;
-    --rd-bg-card: #FFFFFF;
-    --rd-bg-sidebar: #EFE7DB;
-    --rd-bg-soft: #F3ECE0;
+    /* Surfaces - greige ground + the MEDIUM cool-tinted card */
+    --rd-bg-page: #ebe8e1;
+    --rd-bg-card: #ecedf7;
+    --rd-bg-sidebar: #e3e0d8;
+    --rd-bg-soft: #e6e3db;
 
-    /* Redesign — lines */
-    --rd-border: #F0E7D8;
-    --rd-border-subtle: #EDE7DD;
-    --rd-border-hover: #E0D6C4;
+    /* Lines */
+    --rd-border: #dad6cd;
+    --rd-border-subtle: #e4e1d9;
+    --rd-border-hover: #c8c4ba;
 
-    /* Redesign — text */
-    --rd-text: #211D18;
-    --rd-text-secondary: #6E675B;
-    --rd-text-tertiary: #5E584E;
-    --rd-text-eyebrow: #766445;
+    /* Text - brown ink (AA on greige + on the tinted card) */
+    --rd-text: #60483e;
+    --rd-text-secondary: #6b5346;
+    --rd-text-tertiary: #755c4e;
+    --rd-text-eyebrow: #60617d;
 
-    /* Redesign — coral (sole CTA accent) */
-    --rd-coral: #D6421F;
-    --rd-coral-dark: #B23A17;
-    --rd-coral-tint: #FCE6DF;
+    /* Primary (the `coral` slot = Yishai blue) */
+    --rd-coral: #60617d;
+    --rd-coral-dark: #4b4c63;
+    --rd-coral-tint: #e4e4ec;
 
-    /* Redesign — teal (success / progress) */
-    --rd-teal: #54B5A2;
-    --rd-teal-dark: #2A6E5E;
-    --rd-teal-tint: #DBEEE8;
+    /* Strong band (the `teal` slot = Yishai mauve secondary) */
+    --rd-teal: #9b7d8a;
+    --rd-teal-dark: #6e5460;
+    --rd-teal-tint: #eee4e8;
 
-    /* Redesign — golden (stats / info) */
-    --rd-golden: #EFB23E;
-    --rd-golden-dark: #7A5408;
-    --rd-golden-tint: #FBEBC9;
+    /* Stretch band (the `golden` slot = derived ochre) */
+    --rd-golden: #9c7a46;
+    --rd-golden-dark: #6b4f24;
+    --rd-golden-tint: #f1e7d2;
 
-    /* Redesign — decorative */
-    --rd-peach: #E79B7D;
+    /* Decorative */
+    --rd-peach: #d8a98c;
 
-    /* Redesign — elevation + type */
-    --rd-shadow: 0 10px 28px rgba(40, 25, 10, 0.07);
-    --rd-font-display: 'Rokkitt', Georgia, serif;
+    /* Elevation + type + depth-field tone + logotype glaze highlight */
+    --rd-shadow:
+      0 22px 46px -14px rgba(52, 50, 74, 0.3), 0 6px 16px rgba(52, 50, 74, 0.16);
+    --rd-field: #dcd9d0;
+    --rd-logo-hi: #8a8ba8;
+    --rd-font-display: "Rokkitt", Georgia, serif;
+
+    /* MEDIUM amplitude (always-on) - mauve-forward + coach tint. Consumed by the
+       ported components in Phase 3; defined now so they're ready. */
+    --rd-amp-section-fg: #60617d;
+    --rd-amp-bandstrip: 0.5;
+    --rd-amp-coach-bg: #ecedf5;
+    --rd-amp-mauve: #9b7d8a;
+    --rd-amp-mauve-wash: #e9dae0;
+    --rd-amp-kanban-header: #9b7d8a;
+    --rd-amp-kanban-label: #ffffff;
+    --rd-amp-kanban-body: #efe4e8;
+    --rd-amp-deco: #9b7d8a;
   }
 }
 
@@ -131,8 +157,6 @@
   }
 }
 
-
-
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -141,4 +165,130 @@
   body {
     @apply bg-background text-foreground;
   }
+}
+
+/*
+ * TYPE + RADIUS SCALE + ELEVATION - the locked design-system classes, promoted
+ * from the canvas (was src/pages/_preview/canvas/{scale,elevation}.css) to global
+ * production CSS in page-port Phase 0. Plain classes (not @layer) so they carry
+ * the same specificity as Tailwind utilities and, coming after @tailwind
+ * utilities in the cascade, win on ties - `rd-t-*` overrides a stray `text-*`.
+ * These are THE only legal type sizes / radii (canvas-tokens.md); the component
+ * ports snap every ad-hoc `text-[Npx]` / `rounded-[Npx]` onto them.
+ */
+
+/* Type scale - 7 steps. Rokkitt slab for display, system stack for body;
+   these own size + line-height (+ tracking on display steps). */
+.rd-t-display-l {
+  font-size: 26px;
+  line-height: 1.08;
+  letter-spacing: -0.015em;
+}
+.rd-t-display-m {
+  font-size: 20px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+}
+.rd-t-display-s {
+  font-size: 17px;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+}
+.rd-t-body-l {
+  font-size: 15px;
+  line-height: 1.5;
+}
+.rd-t-body-m {
+  font-size: 13px;
+  line-height: 1.4;
+}
+.rd-t-body-s {
+  font-size: 12px;
+  line-height: 1.35;
+}
+.rd-t-micro {
+  font-size: 10.5px;
+  line-height: 1.3;
+}
+
+/* Radius scale - 4 steps + Tailwind's rounded-full for pills/round. */
+.rd-r-xs {
+  border-radius: 6px;
+}
+.rd-r-sm {
+  border-radius: 10px;
+}
+.rd-r-md {
+  border-radius: 14px;
+}
+.rd-r-lg {
+  border-radius: 18px;
+}
+
+/* Elevation - paper-lift. Floating surfaces = soft warm-tinted shadow + a 1px
+   top highlight, no border; borders are reserved for INSETS (.rd-well). */
+.rd-lift {
+  background: var(--rd-bg-card);
+  box-shadow:
+    0 1px 2px rgba(74, 44, 22, 0.06),
+    0 10px 24px -10px rgba(74, 44, 22, 0.16),
+    inset 0 1px 0 rgba(255, 251, 245, 0.7);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+}
+.rd-lift-shadow {
+  box-shadow:
+    0 1px 2px rgba(74, 44, 22, 0.06),
+    0 10px 24px -10px rgba(74, 44, 22, 0.16),
+    inset 0 1px 0 rgba(255, 251, 245, 0.55);
+}
+.rd-lift-hover:hover {
+  box-shadow:
+    0 2px 6px rgba(74, 44, 22, 0.08),
+    0 20px 40px -12px rgba(74, 44, 22, 0.22),
+    inset 0 1px 0 rgba(255, 251, 245, 0.85);
+  transform: translateY(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rd-lift-hover:hover {
+    transform: none;
+  }
+}
+.rd-well {
+  background: var(--rd-bg-soft);
+  box-shadow: inset 0 1px 2px rgba(74, 44, 22, 0.05);
+}
+.rd-press {
+  transition:
+    transform 0.12s ease,
+    background-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease,
+    border-color 0.15s ease;
+}
+.rd-press:active {
+  transform: translateY(0.5px) scale(0.985);
+}
+.rd-btn-sheen {
+  box-shadow: inset 0 1px 0 rgba(255, 251, 245, 0.22);
+}
+@media (prefers-reduced-motion: reduce) {
+  .rd-press,
+  .rd-press:active {
+    transition: none;
+    transform: none;
+  }
+}
+.rd-tile {
+  background: transparent;
+  transition:
+    background-color 0.18s ease,
+    box-shadow 0.18s ease;
+}
+.rd-tile:hover {
+  background: var(--rd-bg-card);
+  box-shadow:
+    0 1px 2px rgba(74, 44, 22, 0.06),
+    0 8px 18px -8px rgba(74, 44, 22, 0.14);
 }
