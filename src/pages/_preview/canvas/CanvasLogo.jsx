@@ -24,7 +24,11 @@ function LogoDefs({ id, top, bottom }) {
         x2="0"
         y2={bottom}
       >
-        <stop offset="0%" stopColor="#EC6A47" />
+        {/* Highlight is a TOKEN (--rd-logo-hi), not a hardcoded coral: the mark's
+            glaze has to follow the palette, or a cool-primary candidate renders a
+            coral logo on a blue product. Clay's value is the old #EC6A47
+            verbatim, so Clay is pixel-identical. */}
+        <stop offset="0%" stopColor="var(--rd-logo-hi)" />
         <stop offset="42%" stopColor="var(--rd-coral)" />
         <stop offset="100%" stopColor="var(--rd-coral-dark)" />
       </linearGradient>

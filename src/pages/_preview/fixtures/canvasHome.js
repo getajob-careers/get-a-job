@@ -529,6 +529,48 @@ export const CANVAS_COACH_MESSAGES = [
   },
 ];
 
+// Coach threads — mirrors REAL `public.conversations` rows exactly as the dock
+// selects them (CoachConversationContext: id, title, updated_at, application_id).
+// Not an invented shape.
+//
+// The titles are the honest contract, and they are deliberately unflattering:
+// production sets `title = text.slice(0, 60)` of the user's FIRST message — a
+// hard mid-word cut, no ellipsis, no LLM titling, and no rename anywhere in the
+// product. So the list must survive a one-word "hi", a mid-word truncation, and
+// Hebrew (users type Hebrew even though the coach answers in English). Real
+// titles average ~32 chars. If these fixtures looked like tidy summaries, the
+// design would be tuned for data that does not exist.
+//
+// `application_id: null` on every row is also load-bearing: the dock lists ONLY
+// unanchored threads, which is what prevents the AG2 context bleed guarded at
+// ChatInterface.jsx:570. App-anchored threads are a separate list.
+export const CANVAS_COACH_THREADS = [
+  {
+    id: "cx-thread-1",
+    title: "Let's prep the Lemonade case study.",
+    updated_at: "2026-07-17T09:12:00Z",
+    application_id: null,
+  },
+  {
+    id: "cx-thread-2",
+    title: "how do I explain the gap between my two internships withou",
+    updated_at: "2026-07-15T18:40:00Z",
+    application_id: null,
+  },
+  {
+    id: "cx-thread-3",
+    title: "עזרה עם קורות החיים שלי",
+    updated_at: "2026-07-11T08:05:00Z",
+    application_id: null,
+  },
+  {
+    id: "cx-thread-4",
+    title: "hi",
+    updated_at: "2026-06-29T20:31:00Z",
+    application_id: null,
+  },
+];
+
 export const CANVAS_COACH_PROMPTS = [
   "What should I focus on this week?",
   "Compare my Similarweb offer vs Lemonade",

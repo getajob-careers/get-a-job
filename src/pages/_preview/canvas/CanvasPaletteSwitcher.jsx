@@ -21,7 +21,7 @@ export default function CanvasPaletteSwitcher({ value, onChange }) {
       role="group"
       aria-label="Palette switcher"
     >
-      <span className="px-2 text-[10px] font-bold uppercase tracking-[0.14em] text-neutral-500 select-none">
+      <span className="px-2 rd-t-micro font-bold uppercase tracking-[0.14em] text-neutral-500 select-none">
         Palette
       </span>
       {ids.map((id) => {
@@ -33,7 +33,7 @@ export default function CanvasPaletteSwitcher({ value, onChange }) {
             onClick={() => onChange(id)}
             aria-pressed={active}
             className={[
-              "rounded-full px-3 py-1.5 text-[12px] font-semibold transition-colors duration-150 ease-out",
+              "rounded-full px-3 py-1.5 rd-t-body-s font-semibold transition-colors duration-150 ease-out",
               "focus:outline-none focus-visible:ring-2 focus-visible:ring-neutral-900 focus-visible:ring-offset-1",
               "active:translate-y-px",
               active
