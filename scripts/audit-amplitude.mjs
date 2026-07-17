@@ -13,6 +13,10 @@ import {
   amplitudeVars,
   AMP_LEVELS,
 } from "../src/pages/_preview/canvas/amplitude.js";
+import {
+  groundVars,
+  GROUND_LEVELS,
+} from "../src/pages/_preview/canvas/grounds.js";
 
 const AA = 4.5;
 
@@ -149,9 +153,43 @@ for (const level of AMP_LEVELS) {
   }
 }
 
+// ── GROUNDS (Yishai @ medium): each replacement page must keep text AA on the
+// new page / soft / sidebar, and the medium card must stay LIGHTER than the page
+// so paper-lift survives. `cream` = {} is the current ground (skipped).
+const mediumCard = amplitudeVars("yishai", "medium")["--rd-bg-card"];
+for (const g of GROUND_LEVELS) {
+  const vars = groundVars("yishai", g);
+  if (Object.keys(vars).length === 0) continue; // cream (reference)
+  console.log(`\n=== Ground · ${g} ===`);
+  const page = vars["--rd-bg-page"];
+  const soft = vars["--rd-bg-soft"];
+  const sidebar = vars["--rd-bg-sidebar"];
+  const T = {
+    ink: base["--rd-text"],
+    sec: base["--rd-text-secondary"],
+    ter: base["--rd-text-tertiary"],
+    eyebrow: base["--rd-text-eyebrow"],
+  };
+  for (const [name, surf] of [
+    ["page", page],
+    ["soft", soft],
+    ["sidebar", sidebar],
+  ]) {
+    for (const [tn, tv] of Object.entries(T)) {
+      line(
+        ratio(tv, surf) >= AA,
+        `${tn} on ${name}`,
+        ratio(tv, surf).toFixed(2) + ":1",
+      );
+    }
+  }
+  const lift = lum(mediumCard) - lum(page);
+  line(lift > 0, "medium card lifted above page", `Δ${lift.toFixed(3)}`);
+}
+
 console.log(
   failures === 0
-    ? "\nAll amplitude checks pass AA + elevation.\n"
-    : `\n${failures} amplitude check(s) failed.\n`,
+    ? "\nAll amplitude + ground checks pass AA + elevation.\n"
+    : `\n${failures} check(s) failed.\n`,
 );
 process.exit(failures === 0 ? 0 : 1);

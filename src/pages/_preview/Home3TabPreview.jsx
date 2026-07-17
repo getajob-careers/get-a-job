@@ -58,6 +58,7 @@ import CanvasLogo from "./canvas/CanvasLogo";
 import CanvasAvatarChip from "./canvas/CanvasAvatarChip";
 import { applyPalette, PALETTES, DEFAULT_PALETTE } from "./canvas/palette";
 import { applyAmplitude, AMP_LEVELS, DEFAULT_AMP } from "./canvas/amplitude";
+import { applyGround, GROUND_LEVELS, DEFAULT_GROUND } from "./canvas/grounds";
 import CanvasPaletteSwitcher from "./canvas/CanvasPaletteSwitcher";
 import "./canvas/scale.css";
 import "./canvas/elevation.css";
@@ -119,17 +120,29 @@ export default function Home3TabPreview() {
     const id = a ? a.trim().toLowerCase() : null;
     return id && AMP_LEVELS.includes(id) ? id : DEFAULT_AMP;
   });
-  // Apply the palette FIRST, then amplitude over it; tear down in reverse. Both
-  // re-run on any change so a switch installs the full stack over the last one.
+  // Ground — the page-background family. Scoped to Yishai @ MEDIUM (the chosen
+  // rung, and the only place the ground question is being judged); leaving it out
+  // of bold avoids clashing with bold's page-darkening retune.
+  const [ground, setGround] = useState(() => {
+    if (typeof window === "undefined") return DEFAULT_GROUND;
+    const g = new URLSearchParams(window.location.search).get("ground");
+    const id = g ? g.trim().toLowerCase() : null;
+    return id && GROUND_LEVELS.includes(id) ? id : DEFAULT_GROUND;
+  });
+  const groundActive = palette === "yishai" && amp === "medium";
+  // Apply the palette FIRST, then amplitude, then ground; tear down in reverse.
+  // All re-run on any change so a switch installs the full stack over the last.
   useEffect(() => {
     if (!CANVAS_FIXTURES) return undefined;
     const restorePalette = applyPalette(palette);
     const restoreAmp = applyAmplitude(palette, amp);
+    const restoreGround = applyGround(palette, groundActive ? ground : "cream");
     return () => {
+      restoreGround();
       restoreAmp();
       restorePalette();
     };
-  }, [palette, amp]);
+  }, [palette, amp, ground, groundActive]);
   const pickPalette = (id) => {
     setPalette(id);
     if (typeof window !== "undefined") {
@@ -143,6 +156,14 @@ export default function Home3TabPreview() {
     if (typeof window !== "undefined") {
       const u = new URL(window.location.href);
       u.searchParams.set("amp", id);
+      window.history.replaceState({}, "", u);
+    }
+  };
+  const pickGround = (id) => {
+    setGround(id);
+    if (typeof window !== "undefined") {
+      const u = new URL(window.location.href);
+      u.searchParams.set("ground", id);
       window.history.replaceState({}, "", u);
     }
   };
@@ -169,6 +190,9 @@ export default function Home3TabPreview() {
               onChange={pickPalette}
               amp={amp}
               onAmpChange={pickAmp}
+              ground={ground}
+              onGroundChange={pickGround}
+              showGround={groundActive}
             />
           )}
           {/* Utility top bar (comp A): brand left, actions right. */}

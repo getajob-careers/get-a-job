@@ -113,8 +113,17 @@ Full per-surface audit: `docs/design/feasibility-audit.md`.
      (3) **Real company logos** on job cards (ported `CompanyLogo`: logo.dev →
      DuckDuckGo favicon → letter fallback; fixtures carry real domains). Chip
      containment = white tile + border, palette-independent (`canvas-tokens.md`).
-   - **Then:** pick a rung → re-derive it for the whole palette field → **re-flip
-     the field at that amplitude** (PENDING #1 resumes at the chosen rung).
+   - **RUNG PICKED: MEDIUM** (2026-07-17). But the ground failed: Yishai's cream
+     `#F4EBDA` reads yellow at full-page scale (chroma 26), eye-straining and
+     clashing with the cool cards. **Ground toggle built** (`?ground=`, the
+     switcher's Ground row, shown only at Yishai+medium; on CV+Tracker):
+     **Cream (now)** / **Neutral** `#EEEAE2` (de-yellowed warm) / **Greige**
+     `#EBE8E1` (warm gray, most restful) / **Mauve** `#ECE8EB` (barely-mauve,
+     joins the cool family). All three keep AA on page/soft/sidebar + card-lift
+     (`audit-amplitude.mjs` grounds section). **PENDING Eli's ground pick.**
+   - **Then:** pick a ground → re-derive the chosen (medium) amplitude + ground for
+     the whole palette field → **re-flip the field** (PENDING #1 resumes at medium
+     - the chosen ground).
    - **Gates:** `scripts/audit-amplitude.mjs` (AA on tinted cards + coach + the new
      light-on-ink CV-header check + the elevation invariant `L(card)>L(page)`),
      `scripts/profile-amplitude.py` (chroma coverage per rung). Elevation retune is
