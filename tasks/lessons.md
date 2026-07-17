@@ -307,3 +307,10 @@ Trigger: squash-merged the v2-default-on flip (#603, sha 5486266) to main with g
 What I did wrong: treated "PR merged + CI green" as "shipped," and leaned on the deploy list + a flaky status poll instead of the authoritative signal. A merge does NOT guarantee Vercel built it — the GitHub→Vercel webhook / build can be skipped or stuck with no error surfaced anywhere obvious.
 Rule for next time: after any merge that must ship, confirm the SERVING sha, not the merge. get_deployment on the production alias (get-a-job-git-main-getajob-team.vercel.app / getajob.careers) and assert meta.githubCommitSha == the merge sha AND state READY. If it lags more than a few minutes, the build was skipped — re-trigger with a no-op follow-up commit to main (the Vercel MCP has no git-commit "redeploy"; deploy_to_vercel is new-project only). Deploy-side sibling of "version bump ≠ shipped code" (2026-07-06): verify the live artifact, not the merge event.
 ---
+
+---
+2026-07-17 — A handoff doc is a snapshot, not state: verify PR/issue status against `gh` before reporting it
+Trigger: opened the session reporting #597 as "held awaiting Eli" from the 07-16 handoff's held-PR list. It had merged 2026-07-16 (2fa563f) and was already serving. Eli had to correct the ledger. Second instance of the same class: the Jul-15 handoff claimed #584 was merged when it was still OPEN.
+What I did wrong: treated a prose handoff as current state. A handoff is written at a moment and goes stale the instant anything merges — including from other terminals on this shared checkout. I re-reported its list verbatim without a single `gh pr view`, in a session whose own recorded lesson was "verify the live artifact, not the event."
+Rule for next time: any claim about a PR's state (held / merged / open / serving) gets a `gh pr view <n> --json state,mergeCommit` before it leaves my mouth — handoffs and memory files are POINTERS to check, never sources of truth. Drift runs both ways (held→merged and merged→still-open). Sibling of "merged != serving" (same day) and "version bump != shipped code": the artifact is truth, the narrative about it is not.
+---
