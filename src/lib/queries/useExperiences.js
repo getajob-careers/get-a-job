@@ -37,12 +37,19 @@ export const experiencesQueryKey = (userId) => ["experiences", userId];
 // Fetch the full experiences row set for a user. Returns an array.
 // Consumers needing a narrow subset should use the `select` option on
 // useExperiencesQuery rather than calling supabase themselves.
+// Ordered by display_order (the CV Studio reorder write-through target),
+// NULLS LAST so rows the user has never reordered keep their created_at order -
+// the implicit order before display_order existed. Mirrors fetchEducation. The
+// deterministic master builder iterates this array in order, so the persisted
+// display_order is what reproduces a user's experience ordering on rebuild.
 export async function fetchExperiences(userId) {
   if (!userId) return [];
   const { data, error } = await supabase
     .from("experiences")
     .select("*")
-    .eq("user_id", userId);
+    .eq("user_id", userId)
+    .order("display_order", { ascending: true, nullsLast: true })
+    .order("created_at", { ascending: true });
   if (error) throw error;
   return data ?? [];
 }

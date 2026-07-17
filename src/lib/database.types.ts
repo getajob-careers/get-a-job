@@ -894,6 +894,7 @@ export type Database = {
           company: string
           created_at: string
           cross_functional: boolean
+          display_order: number | null
           end_date: string | null
           id: string
           is_current: boolean | null
@@ -914,6 +915,7 @@ export type Database = {
           company: string
           created_at?: string
           cross_functional?: boolean
+          display_order?: number | null
           end_date?: string | null
           id?: string
           is_current?: boolean | null
@@ -934,6 +936,7 @@ export type Database = {
           company?: string
           created_at?: string
           cross_functional?: boolean
+          display_order?: number | null
           end_date?: string | null
           id?: string
           is_current?: boolean | null
