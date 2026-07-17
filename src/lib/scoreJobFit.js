@@ -51,6 +51,7 @@ import {
   trackFromScore,
   applyYearsCap,
 } from "../../supabase/functions/_shared/track-scoring-constants.ts";
+import { roleTierFromTitle, targetTierFromTitles, TIER_RANK } from "./roleTier";
 
 // Component weights — sum to 1.0. Skill dominates because it's both the
 // strongest signal and the one the extractor is most confident about.
@@ -469,6 +470,42 @@ function computeSeniorityAxis(userLevel, job) {
   return { score: 1.0, match: "in_range" };
 }
 
+// ── Component 4: role-tier underleveled signal (flag-gated, default off) ─────
+// Penalizes a tier MISMATCH between the job and the user's target, in BOTH
+// directions (an IC job for a manager target, or a manager job for an IC
+// target). Complements — does not replace — the seniority BAND axis: the band
+// (above_ceiling / below_floor) catches over/under-leveling by req_seniority
+// rank; this catches the IC-vs-manager axis the band is blind to. The spike
+// (#602) measured the two as complementary: of P10's overrides, the band is
+// in-range while the tier differs, so this is the signal that reproduces them.
+//
+// penaltyPerStep is tuned on the pinned 160 (harness sweeps it). tier_gap is
+// 1 or 2; the penalty is symmetric per step until the labels say otherwise.
+// Abstains (null tier on either side) => factor 1.0 => no penalty, because the
+// signal is a demotion and a wrong demotion costs more than a missed one.
+export const ROLETIER = { penaltyPerStep: 0.15 };
+
+function computeRoleTierPenalty(profile, job, params) {
+  const targetTier = targetTierFromTitles(profile?.target_job_titles);
+  const roleTier = roleTierFromTitle(job?.title, job);
+  if (!targetTier || !roleTier) {
+    return {
+      factor: 1,
+      role_tier: roleTier,
+      target_tier: targetTier,
+      tier_gap: null,
+    };
+  }
+  const gap = TIER_RANK[roleTier] - TIER_RANK[targetTier];
+  const factor = Math.max(0, 1 - params.penaltyPerStep * Math.abs(gap));
+  return {
+    factor,
+    role_tier: roleTier,
+    target_tier: targetTier,
+    tier_gap: gap, // signed: <0 job below target (underleveled), >0 above
+  };
+}
+
 // ─── Function family axis ─────────────────────────────────────────────
 function computeFunctionFamilyAxis(profile, job) {
   const fam = job?.function_family || null;
@@ -640,6 +677,24 @@ export function scoreJobFit(input, job, opts = {}) {
   } else if (conf !== null && conf < 0.4) {
     attainability_score = attainability_score * 0.9;
   }
+
+  // Component 4: role-tier underleveled penalty (flag-gated). Multiplicative on
+  // the canonical for-you number, applied AFTER the confidence/2a math and the
+  // legacy softener so it composes with them cleanly. opts.roleTier may be `true`
+  // (tuned ROLETIER defaults) or a params object (harness sweeps penaltyPerStep).
+  // When OFF, role_tier stays null and attainability is byte-identical to v2.
+  let role_tier = null;
+  let target_tier = null;
+  let tier_gap = null;
+  if (opts.roleTier) {
+    const rtParams = opts.roleTier === true ? ROLETIER : opts.roleTier;
+    const rt = computeRoleTierPenalty(profile, job, rtParams);
+    attainability_score = attainability_score * rt.factor;
+    role_tier = rt.role_tier;
+    target_tier = rt.target_tier;
+    tier_gap = rt.tier_gap;
+  }
+
   attainability_score = Math.max(0, Math.min(1, attainability_score));
   attainability_score = Math.round(attainability_score * 100) / 100;
 
@@ -761,6 +816,9 @@ export function scoreJobFit(input, job, opts = {}) {
           ? job.skill_coverage_ratio
           : null,
       match_confidence, // Component 1: null when flag off, else the [0,1] shrink factor
+      role_tier, // Component 4: job tier ic/lead/manager, null when flag off or abstained
+      target_tier, // Component 4: user's MAX target tier, null when flag off or abstained
+      tier_gap, // Component 4: signed job-minus-target rank; <0 underleveled, >0 over
       user_level: userLevel,
       user_stage: EXPERIENCE_LEVEL_TO_STAGE[userLevel] || null,
     },

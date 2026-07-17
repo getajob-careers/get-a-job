@@ -88,15 +88,34 @@ export function scoringV2Enabled() {
   }
 }
 
-// The scoreJobFit opts the Jobs surfaces pass. Centralizes how the two flags
-// compose so every call site stays in lockstep: C1 turns on under EITHER flag
-// (scoring_confidence is the C1-only alias); 2a turns on under scoring_v2 only.
-// Both off => opts are empty and scoreJobFit is byte-identical to legacy.
+// Scoring redesign, Component 4: role-tier underleveled signal. Penalizes a job
+// whose IC/lead/manager tier differs from the user's target tier, in BOTH
+// directions (an IC job for a manager target, or a manager job for an IC
+// target). Its OWN opt-in `?scoring_c4=1`, default OFF, DELIBERATELY separate
+// from the now-default-on scoring_v2: a component ships dark until its harness +
+// Eli's live check validate it, so no user ever sees an unvalidated signal
+// (Eli's standing rule once v2 went default-on). Off => byte-identical to v2.
+export function scoringC4Enabled() {
+  try {
+    return (
+      new URLSearchParams(window.location.search).get("scoring_c4") === "1"
+    );
+  } catch {
+    return false;
+  }
+}
+
+// The scoreJobFit opts the Jobs surfaces pass. Centralizes how the flags compose
+// so every call site stays in lockstep: C1 turns on under EITHER flag
+// (scoring_confidence is the C1-only alias); 2a/2b turn on under scoring_v2; C4
+// turns on ONLY under its own scoring_c4 (never folded into v2 until validated).
+// All off => opts are empty and scoreJobFit is byte-identical to legacy.
 export function scoringOpts() {
   const v2 = scoringV2Enabled();
   return {
     confidenceAware: v2 || scoringConfidenceEnabled(),
     mustHave: v2,
     directionBlend: v2,
+    roleTier: scoringC4Enabled(),
   };
 }
