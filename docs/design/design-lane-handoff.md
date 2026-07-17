@@ -2,7 +2,18 @@
 
 Snapshot for reopening the design lane fresh. Companion docs:
 `docs/design/canvas-tokens.md` (the enforced token layer + scoped exceptions),
-`docs/design/port-plan-input.md` (canvas↔production map), `docs/design/component-audit.md`.
+`docs/design/port-plan-input.md` (canvas↔production map), `docs/design/component-audit.md`,
+`docs/design/feasibility-audit.md` (per-surface backend reality + port work-list).
+
+## STANDING RULE - feasibility-first
+
+Before designing ANY surface or capability, **read the real implementation**
+(component, data shape, backend endpoint/table) and state in one line what exists
+vs what the design assumes. Every proposal to Eli carries a **backend reality**
+line: **SUPPORTED AS-IS** / **NEEDS BACKEND WORK** (named) / **FICTION** (flagged).
+**Fixtures mirror real data shapes, never invented ones.** Restyle the real thing;
+never reinterpret a surface from its name (the roadmap-round lesson, generalized).
+Full per-surface audit: `docs/design/feasibility-audit.md`.
 
 ## Working context
 

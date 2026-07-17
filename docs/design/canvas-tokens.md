@@ -4,6 +4,19 @@ The token layer for the fixture-Home redesign. These are **enforced**, not
 suggestions: `scripts/check-scale.mjs` fails on any off-scale size/radius in the
 canvas tree. Palette = Clay (`src/pages/_preview/canvas/palette.js`).
 
+## Feasibility-first (STANDING RULE)
+
+Before designing ANY surface or capability, **read the real implementation** -
+the component, the data shape, the backend endpoint/table - and state in one line
+what exists vs what the design assumes. Every proposal to Eli carries a
+**backend reality** line, one of: **SUPPORTED AS-IS** / **NEEDS BACKEND WORK**
+(name the endpoint/table/work) / **FICTION** (flag it plainly). **Fixtures mirror
+real data shapes, never invented ones.** Restyle the real thing; never
+reinterpret a surface from its name - that is the roadmap-round lesson
+(reinterpreted "matched roles" from the name, threw away the real bars / chips /
+expand) generalized to everything. The honest per-surface work-list lives in
+`docs/design/feasibility-audit.md`.
+
 ## Type scale — the only legal text sizes
 
 Defined in `canvas/scale.css`. Font family/weight stay on `font-display` /
