@@ -2,7 +2,28 @@
 
 The token layer for the fixture-Home redesign. These are **enforced**, not
 suggestions: `scripts/check-scale.mjs` fails on any off-scale size/radius in the
-canvas tree. Palette = Clay (`src/pages/_preview/canvas/palette.js`).
+canvas tree.
+
+## THE PALETTE (crowned — Eli, 2026-07-17)
+
+**YISHAI is the system.** After a five-finalist flip (Clay / Yishai / Heather /
+Moss / Pewter, each dressed identically at medium), Yishai won. The losers'
+tokens/tool-sets are retired to `_graveyard.js`; the switcher is deleted; there is
+no palette/amplitude param — the canvas renders the crowned look by default.
+
+- **Palette** (`palette.js` `YISHAI`): brown ink `#60483E`, **greige ground**
+  `#EBE8E1` (the mock's cream `#F4EBDA` read yellow at full-page scale and was
+  replaced), blue primary `#60617D`, mauve secondary `#9B7D8A`, derived ochre
+  stretch `#9C7A46`. Logotype mark is blue (the crowned re-open).
+- **The always-on MEDIUM treatment** (`amplitude.js` `MEDIUM`): a cool blue-tinted
+  card `#ECEDF7` lifted above the greige ground (shadow deepened to carry the
+  lift), the coach panel owning a soft blue tint, section headers on the primary,
+  and the **mauve-forward** pass — vivid `#9B7D8A` filled kanban headers (white
+  20px large-bold labels, legal on the 3:1 floor), mauve washes + deco. AA +
+  elevation gated by `scripts/audit-amplitude.mjs`.
+- **Ground texture:** a refinement toggle is live (`?texture=grain|gradient|dots`)
+  pending Eli's pick; the greige ground reads a touch flat and wants subtle,
+  port-safe (CSS-only) texture. Rip the toggle on the pick.
 
 ## Feasibility-first (STANDING RULE)
 

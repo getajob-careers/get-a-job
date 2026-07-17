@@ -1,39 +1,15 @@
-/* Colour amplitude — the STRUCTURAL half of the amplitude layer. Colour values
- * come from the --rd-amp-* tokens that amplitude.js installs on :root; this file
- * carries only the shape changes that a token can't express (padding, border
- * removal, the CV header becoming a bled-to-edge dark block at BOLD). Keyed on
- * [data-amp] set on the canvas root, so subtle/medium leave the DOM exactly as it
- * was and only BOLD restructures the header. Fixture-gated with the rest of the
- * canvas. See docs/design/color-amplitude-proposal.md. */
+/* Colour amplitude — the STRUCTURAL half of the locked MEDIUM treatment. Colour
+ * values come from the --rd-amp-* tokens amplitude.js installs on :root; this file
+ * carries only the one shape change a token can't express: the kanban header
+ * label's size. Medium is always on now (Yishai crowned), so this is unconditional
+ * — the [data-amp] gate and the retired BOLD dark-block / CV-band rules are gone.
+ * Fixture-gated with the rest of the canvas. See docs/design/canvas-tokens.md. */
 
-/* The CV header at BOLD: a bled-to-edge MAUVE TINT BAND (the earlier dark ink
- * slab was killed — Eli). Light band, ink text, mauve-dark headline: reads as a
- * branded masthead, not a black slab over the CV. Negative insets cancel the CV
- * document's px-6/px-8 gutter so the band spans full width. Contrast AA-verified
- * in scripts/audit-amplitude.mjs. */
-[data-amp="bold"] .cx-cv-header {
-  background: var(--rd-amp-cvheader-bg);
-  margin: -1.5rem -1.5rem 0.5rem;
-  padding: 1.5rem 1.5rem 1.25rem;
-  border-bottom: 0;
-  border-radius: 0;
-}
-@media (min-width: 768px) {
-  [data-amp="bold"] .cx-cv-header {
-    margin: -1.75rem -2rem 0.5rem;
-    padding: 1.75rem 2rem 1.5rem;
-  }
-}
-[data-amp="bold"] .cx-cv-headline {
-  color: var(--rd-amp-cvheader-headline);
-}
-
-/* Mauve-forward kanban headers (medium+): the vivid mauve fill carries a white
- * label, so the label jumps to large-bold (20px = rd-t-display-m) — at that size
- * bold, white-on-mauve (3.69:1) clears the 3:1 large-bold AA floor. At the base
- * 12px it would fail 4.5, so the size bump is what keeps this STEP-1 legal. */
-[data-amp="medium"] .cx-kanban-label,
-[data-amp="bold"] .cx-kanban-label {
+/* Mauve-forward kanban headers: the vivid mauve fill carries a WHITE label, so the
+ * label is large-bold (20px = rd-t-display-m) — at that size bold, white-on-mauve
+ * (3.69:1) clears the 3:1 large-bold AA floor. At the base 12px it would fail 4.5,
+ * so this size bump is what keeps the white-on-mauve label legal. */
+.cx-kanban-label {
   font-size: 20px;
   line-height: 1.15;
   letter-spacing: -0.01em;

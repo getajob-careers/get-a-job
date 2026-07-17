@@ -54,11 +54,11 @@ import { CanvasJobsFeed } from "./canvas/CanvasMatches";
 import CanvasSidebar from "./canvas/CanvasSidebar";
 import { CvGenProvider } from "./canvas/CvGenContext";
 import CanvasField from "./canvas/CanvasField";
+import CanvasTexture, { TEXTURE_OPTIONS } from "./canvas/CanvasTexture";
 import CanvasLogo from "./canvas/CanvasLogo";
 import CanvasAvatarChip from "./canvas/CanvasAvatarChip";
-import { applyPalette, PALETTES, DEFAULT_PALETTE } from "./canvas/palette";
-import { applyAmplitude, AMP_LEVELS, DEFAULT_AMP } from "./canvas/amplitude";
-import CanvasPaletteSwitcher from "./canvas/CanvasPaletteSwitcher";
+import { applyPalette } from "./canvas/palette";
+import { applyAmplitude } from "./canvas/amplitude";
 import "./canvas/scale.css";
 import "./canvas/elevation.css";
 import "./canvas/toolkit.css";
@@ -96,80 +96,76 @@ const TABS = [
 
 export default function Home3TabPreview() {
   const [activeTab, setActiveTab] = useState("cv");
-  // Round 4: Clay stays the incumbent + default; challengers are flipped through
-  // the pinned switcher. Applied to the document root so portaled overlays
-  // inherit; restored on unmount. Re-runs on switch so every candidate installs
-  // its full 23-token set (+ its re-derived toolkit vars) over the last one.
-  const [palette, setPalette] = useState(() => {
-    if (typeof window === "undefined") return DEFAULT_PALETTE;
-    // Case-insensitive: ?palette=YISHAI used to fall back to Clay silently, which
-    // in a flip session means judging the incumbent while believing you're
-    // judging the challenger. The switcher's pressed state would have shown the
-    // truth, but a footgun that only a careful reader catches is still a footgun.
-    const p = new URLSearchParams(window.location.search).get("palette");
-    const id = p ? p.trim().toLowerCase() : null;
-    return id && PALETTES[id] ? id : DEFAULT_PALETTE;
-  });
-  // Colour amplitude — how much of the product colour covers (subtle/medium/bold).
-  // Yishai-only for now; the toggle is only meaningful under Yishai (amplitudeVars
-  // returns {} for other palettes). Same case-insensitive guard as ?palette=.
-  const [amp, setAmp] = useState(() => {
-    if (typeof window === "undefined") return DEFAULT_AMP;
-    const a = new URLSearchParams(window.location.search).get("amp");
-    const id = a ? a.trim().toLowerCase() : null;
-    return id && AMP_LEVELS.includes(id) ? id : DEFAULT_AMP;
-  });
-  // Apply the palette FIRST, then amplitude over it; tear down in reverse. Both
-  // re-run on any change so a switch installs the full stack over the last one.
+  // THE SYSTEM (locked 2026-07-17): Yishai palette (greige ground) + the MEDIUM
+  // colour treatment, applied on mount to the document root so portaled overlays
+  // inherit; restored on unmount. No palette/amplitude params or switcher — the
+  // exploration is over, this is the crowned look.
   useEffect(() => {
     if (!CANVAS_FIXTURES) return undefined;
-    const restorePalette = applyPalette(palette);
-    const restoreAmp = applyAmplitude(palette, amp);
+    const restorePalette = applyPalette();
+    const restoreAmp = applyAmplitude();
     return () => {
       restoreAmp();
       restorePalette();
     };
-  }, [palette, amp]);
-  const pickPalette = (id) => {
-    setPalette(id);
-    if (typeof window !== "undefined") {
-      const u = new URL(window.location.href);
-      u.searchParams.set("palette", id);
-      window.history.replaceState({}, "", u);
-    }
-  };
-  const pickAmp = (id) => {
-    setAmp(id);
-    if (typeof window !== "undefined") {
-      const u = new URL(window.location.href);
-      u.searchParams.set("amp", id);
-      window.history.replaceState({}, "", u);
-    }
-  };
-  // Logo colorway: Clay (default) vs the mockup blue (?logo=blue), for the pick.
+  }, []);
+  // Logo colorway: Clay ink (default) vs the mockup blue (?logo=blue) reference.
   const logoVariant =
     typeof window !== "undefined" &&
     new URLSearchParams(window.location.search).get("logo") === "blue"
       ? "blue"
       : "clay";
 
+  // Ground texture — a REFINEMENT toggle (rip on Eli's pick). ?texture=grain|
+  // gradient|dots; default none.
+  const [texture, setTexture] = useState(() => {
+    if (typeof window === "undefined") return "none";
+    const t = new URLSearchParams(window.location.search).get("texture");
+    const id = t ? t.trim().toLowerCase() : null;
+    return id && TEXTURE_OPTIONS.includes(id) ? id : "none";
+  });
+  const pickTexture = (id) => {
+    setTexture(id);
+    if (typeof window !== "undefined") {
+      const u = new URL(window.location.href);
+      u.searchParams.set("texture", id);
+      window.history.replaceState({}, "", u);
+    }
+  };
+
   const activeIndex = TABS.findIndex((t) => t.id === activeTab);
 
   return (
     <Layout currentPageName="Career">
       <CvGenProvider onStart={() => setActiveTab("cv")}>
-        <div
-          className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0"
-          data-amp={CANVAS_FIXTURES ? amp : undefined}
-        >
+        <div className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
           {CANVAS_FIXTURES && <CanvasField />}
+          {CANVAS_FIXTURES && <CanvasTexture texture={texture} />}
           {CANVAS_FIXTURES && (
-            <CanvasPaletteSwitcher
-              value={palette}
-              onChange={pickPalette}
-              amp={amp}
-              onAmpChange={pickAmp}
-            />
+            <div
+              className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[70] flex items-center gap-1 rounded-full bg-white/95 backdrop-blur px-1.5 py-1.5 shadow-[0_8px_28px_rgba(20,20,25,0.18)] ring-1 ring-black/10"
+              role="group"
+              aria-label="Ground texture"
+            >
+              <span className="px-2 rd-t-micro font-bold uppercase tracking-[0.14em] text-neutral-500 select-none">
+                Texture
+              </span>
+              {TEXTURE_OPTIONS.map((id) => (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => pickTexture(id)}
+                  aria-pressed={texture === id}
+                  className={`rounded-full px-3 py-1.5 rd-t-body-s font-semibold capitalize transition-colors ${
+                    texture === id
+                      ? "bg-neutral-900 text-white"
+                      : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                  }`}
+                >
+                  {id}
+                </button>
+              ))}
+            </div>
           )}
           {/* Utility top bar (comp A): brand left, actions right. */}
           <div className="flex items-end justify-between gap-3">

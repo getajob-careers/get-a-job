@@ -25,7 +25,7 @@ Full per-surface audit: `docs/design/feasibility-audit.md`.
 
 ## LOCKED decisions ledger
 
-- **Palette:** **Clay** — warm putty surface + terracotta primary + teal accent (`palette.js`, applied to documentElement). **RE-OPENED (round 5, 2026-07-17)** — Clay remains the incumbent + default and is still adopted, but a challenger field is live behind `?palette=` (Yishai / Heather / Moss / Pewter) pending Eli's flip session; see PENDING #1. **"Single palette" still holds** — the round crowns exactly one winner, it does not licence a second. Dusk tokens kept in `_graveyard.js`.
+- **Palette:** **YISHAI — CROWNED (2026-07-17), THE system.** Brown ink + **greige ground** `#EBE8E1` + blue primary + mauve secondary, with the always-on **MEDIUM** treatment (tinted card, mauve-forward kanban, coach tint). Clay/Heather/Moss/Pewter retired to `_graveyard.js`; the switcher is deleted; no palette/amp param — the canvas is the crowned look by default. Full record in `canvas-tokens.md`. Open refinement: the **ground texture** toggle (`?texture=grain|gradient|dots`) awaits Eli's pick.
   - **AA is enforced, not asserted:** `scripts/audit-palettes.mjs` gates every candidate (24 tokens; band `-dark` ≥4.5:1 on card AND own tint; text ≥4.5:1 on card AND page). It caught a real bug in the ADOPTED palette — Clay's eyebrow was 4.45:1 on page, now #7A6845.
 - **Constraints (token layer, non-negotiable):** ring low-fill floor (`ring.js`); fit-badge AA floor (every band `-dark` ≥4.5:1 on card AND its tint).
 - **Type + radius scales:** `scale.css` (`rd-t-*` 7 steps, `rd-r-*` 4 steps + full) — the ONLY legal sizes/radii; `check-scale.mjs` enforces.
@@ -62,80 +62,18 @@ Full per-surface audit: `docs/design/feasibility-audit.md`.
 
 ## PENDING Eli decisions (open)
 
-1. **PALETTE FLIP SESSION — the whole field, one switcher** (`?palette=`, pinned
-   bottom-centre). Field: **Clay** (incumbent) / **Yishai** / Heather / Moss /
-   Pewter. Clay stays adopted until a challenger is crowned. Nothing ships from
-   this round, and **`LandingV2Preview` (LIVE at `/`) is untouched** — the lab only
-   sets CSS vars on `documentElement` from the fixture-gated preview route.
-
-   **How to run it:** flip on the **Browse** tab (job cards + rings + bands are the
-   densest read), then **CV** (long-form ink on page), then the **toolkit rail**
-   (wide viewport — the tool objects are where a family either coheres or falls
-   apart). Judge in that order; the header logo re-tints live with each flip.
-
-   **What crowning Yishai costs (the deliberate price, not a surprise):**
-   - **The logotype re-opens.** Blue primary ⇒ the just-locked coral mark goes
-     blue. Now visible: `--rd-logo-hi` makes the mark follow the palette.
-   - **Tasks' tile loses its slate** — it collides with the blue primary, so Tasks
-     is displaced to the mock's brown (same price Pewter pays).
-   - **Chat's LOCKED heather violet is a watchpoint** — it sits near the blue
-     primary. Deliberately NOT moved: surrendering a locked decision is Eli's call,
-     not a silent absorption. **This needs your eye at the rail.**
-   - **The stretch band is invented** (`#9C7A46`). It is not in Yishai's mock and
-     never appeared in it, because a landing page never shows three bands at once.
-     If Yishai wins, that ochre is a real brand decision you have not yet made.
-   - The mock is a **landing** artifact being judged as a **product** palette: it
-     was composed for one hero screen, not for a dense kanban, 9 job cards, and 8
-     tool objects. That is exactly what the flip session is for.
-
-   **Guardrail:** `node scripts/audit-palettes.mjs` — 24 tokens per candidate,
-   every band `-dark` ≥4.5:1 on card AND own tint, every text token ≥4.5:1 on card
-   AND page. All five pass. It self-checks against Clay's recorded 5.48:1 worst
-   band, so a broken contrast function fails loudly instead of silently passing.
-
-2. **COLOUR AMPLITUDE — pick the rung** (`?amp=subtle|medium|bold`, Yishai-only,
-   the switcher's Colour row). The round-5 flip failed because a palette swap moved
-   only ~3% of pixels (`--rd-bg-card` was white in every candidate, no dark
-   surface). Amplitude fixes WHERE colour lives. **SUBTLE is the floor** (a bare
-   `?palette=yishai` loads at subtle). Built + measured; full write-up
-   `docs/design/color-amplitude-proposal.md`.
-   - **How to judge:** Browse first as always — but **medium vs subtle only shows
-     on Tracker + the coach** (medium's distinct levers are the kanban column
-     washes + the coach owning a tint; on CV/Browse they're off-surface). Bold is a
-     different register (the dark CV-header block), visible everywhere.
-   - **Rung feedback landed (2026-07-17), Yishai iterated:** (1) the BOLD dark CV
-     header slab was killed — replaced by a bled-to-edge **mauve tint band** (light
-     masthead, ink text). (2) **Mauve-forward pass (STEP 1, no AA relaxation):**
-     vivid `#9B7D8A` now appears AS ITSELF — filled mauve kanban headers (white
-     large-bold labels riding the 3:1 floor via a 20px bump), mauve column-body
-     washes, mauve deco. All non-text/large-bold; the 4.5 text floor is untouched
-     (`audit-amplitude.mjs` gates it). STEP 2 (scoped relaxation) was NOT needed.
-     (3) **Real company logos** on job cards (ported `CompanyLogo`: logo.dev →
-     DuckDuckGo favicon → letter fallback; fixtures carry real domains). Chip
-     containment = white tile + border, palette-independent (`canvas-tokens.md`).
-   - **RUNG PICKED: MEDIUM. GROUND PICKED: GREIGE** `#EBE8E1` — LOCKED into the
-     Yishai palette (the whole surface family moved with it); the Ground toggle +
-     cream are ripped.
-   - **THE FINAL FIELD IS BUILT.** All five finalists are dressed at MEDIUM with the
-     same fair treatment, derived per palette: a restful ground (page pulled toward
-     its field tone — the cream-was-a-hero-colour lesson applied to every family),
-     a tinted card toward its colour source (primary; Pewter toward its secondary,
-     since its primary is deliberately grey), a secondary-accent-forward kanban
-     (filled headers in the palette's own secondary + white large-bold labels +
-     secondary washes/deco — Yishai's mauve generalised: Clay teal, Heather sage,
-     Moss cyan-teal, Pewter green-teal), a coach tint, and logos (global). Every
-     case AA-gated (`audit-amplitude.mjs` iterates all five + Yishai's ladder) and
-     card-lift verified. `amplitudeVars` returns per-palette medium; subtle/bold
-     stay Yishai-only.
-   - **FLIP URL (final): `/_preview/home-3tab?palette=yishai&amp=medium`** — flip
-     the Palette pills, amp stays medium. One switcher, five finalists. **PENDING
-     Eli crowns THE palette**, then the losers' tokens/labs are ripped and the
-     winner becomes the system.
-   - **Gates:** `scripts/audit-amplitude.mjs` (AA on tinted cards + coach + the new
-     light-on-ink CV-header check + the elevation invariant `L(card)>L(page)`),
-     `scripts/profile-amplitude.py` (chroma coverage per rung). Elevation retune is
-     recorded in `canvas-tokens.md`.
-3. **Roadmap = the real "Your matched roles" panel** (`Career.jsx` / TopMatchesPanel): roles list, per-role tier badge, two-axis bars, skill chips, expand. LOCKED that this IS the roadmap surface, on the Browse right rail. Elevated (craft-pass) restyle is built at `?roadmap=lab` and shown; **pending Eli's eye**, then integrate into the Browse right rail (two-column) + rip `CanvasRoadmapMock` + `?roadmap=lab`.
+1. **GROUND TEXTURE — pick one** (`?texture=grain|gradient|dots`, the pinned
+   Texture toggle). The crowned greige ground reads a touch flat at full-page
+   scale; the toggle adds subtle, port-safe (CSS-only, no image asset) texture:
+   **grain** (SVG feTurbulence paper noise, low opacity), **gradient** (a
+   barely-there tonal wash, brighter high-centre), **dots** (a micro ink-dot grid).
+   All are static, painted BEHIND cards on the `-z-10` field layer (so they can't
+   touch text AA or card-vs-ground elevation). **PENDING Eli's pick**, then rip the
+   toggle + keep the winner as the default ground treatment.
+   - The palette/amplitude arc that led here is DONE and recorded in
+     `canvas-tokens.md` (YISHAI crowned; medium + greige locked; losers +
+     switcher ripped). History: `color-amplitude-proposal.md`.
+2. **Roadmap = the real "Your matched roles" panel** (`Career.jsx` / TopMatchesPanel): roles list, per-role tier badge, two-axis bars, skill chips, expand. LOCKED that this IS the roadmap surface, on the Browse right rail. Elevated (craft-pass) restyle is built at `?roadmap=lab` and shown; **pending Eli's eye**, then integrate into the Browse right rail (two-column) + rip `CanvasRoadmapMock` + `?roadmap=lab`.
 
 ## PARKED: page-port round (do not start until rounds above are approved)
 
@@ -145,8 +83,8 @@ Move the remaining pages onto the new system (Clay tokens, scales, elevation, bu
 
 ## Active exploration labs still mounted (rip when their decision lands)
 
-- `?palette=` (**round-5 challenger field** + pinned switcher: clay / yishai / heather / moss / pewter; rip the losers when a winner is crowned)
-- `?amp=subtle|medium|bold` (**colour-amplitude ladder**, Yishai-only; the switcher's Colour row. Rip the losing rungs when Eli picks one, then re-derive the chosen rung for the whole palette field)
+- `?texture=grain|gradient|dots` (**ground-texture toggle**, pinned; rip on Eli's pick, keep the winner as the default ground)
 - `?logo=blue` (colorway ref only; the `?logo=lab` A/B lab is removed - logo locked)
+- (RIPPED: `?palette=` + the switcher, and `?amp=` — Yishai crowned, medium + greige locked as the default)
 - `?roadmap=lab` (elevated matched-roles panel; rip on integration)
   All other `?param` labs/switchers (ring, hue, field, palette, story, top, layout) are already removed.

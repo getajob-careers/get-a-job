@@ -10,9 +10,9 @@
 // on card + page, which is how Clay's marginal text-eyebrow-on-page (4.45:1) was
 // found — that one predates this round and is reported, not silently fixed.
 //
-// Self-check: Clay's worst BAND ratio must reproduce the 5.48:1 recorded in
-// palette.js from the original in-browser audit. If that assertion ever fails,
-// distrust this script before you distrust the palette.
+// Self-check: Yishai's worst BAND ratio must reproduce 5.45:1 (strong-dark on its
+// own tint). If that assertion ever fails, distrust this script before you
+// distrust the palette. (Was anchored on Clay's 5.48 before Yishai was crowned.)
 import { PALETTES } from "../src/pages/_preview/canvas/palette.js";
 
 const chan = (c) => {
@@ -43,7 +43,7 @@ const TEXTS = [
 const AA = 4.5;
 
 let failures = 0;
-let clayWorstBand = Infinity;
+let anchorWorstBand = Infinity;
 
 for (const [id, { label, tokens }] of Object.entries(PALETTES)) {
   const card = tokens["--rd-bg-card"];
@@ -70,8 +70,8 @@ for (const [id, { label, tokens }] of Object.entries(PALETTES)) {
 
   const bad = rows.filter(([, v]) => v < AA);
   const worst = rows.reduce((a, r) => (r[1] < a[1] ? r : a));
-  if (id === "clay")
-    clayWorstBand = Math.min(...rows.filter((r) => r[2]).map((r) => r[1]));
+  if (id === "yishai")
+    anchorWorstBand = Math.min(...rows.filter((r) => r[2]).map((r) => r[1]));
 
   console.log(`\n=== ${label} (${id}) ===`);
   for (const [lbl, v] of rows)
@@ -85,9 +85,9 @@ for (const [id, { label, tokens }] of Object.entries(PALETTES)) {
   }
 }
 
-const drift = Math.abs(clayWorstBand - 5.48);
+const drift = Math.abs(anchorWorstBand - 5.45);
 console.log(
-  `\nself-check: Clay worst band ${clayWorstBand.toFixed(2)}:1 vs 5.48 recorded ` +
+  `\nself-check: Yishai worst band ${anchorWorstBand.toFixed(2)}:1 vs 5.45 recorded ` +
     `=> ${drift < 0.01 ? "MATCH (contrast math trusted)" : "DRIFT - distrust this script"}`,
 );
 console.log(

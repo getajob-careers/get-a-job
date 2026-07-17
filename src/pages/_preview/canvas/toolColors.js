@@ -35,53 +35,8 @@ const TOOL_IDS = [
 
 const LINKEDIN = { hi: "#EAF2FC", tint: "#D2E4F6", ink: "#0A66C2" };
 
-// Clay — the adopted round-3 set, unchanged (the incumbent shows as-is).
-const CLAY_TOOLS = {
-  coach: { hi: "#FCEFE7", tint: "#F1DDD0", ink: "#A6552E" }, // terracotta (= primary)
-  skills: { hi: "#EAF5F1", tint: "#D2E7E1", ink: "#2E7062" }, // teal (blue-green)
-  profile: { hi: "#FCF3DC", tint: "#F4E4BE", ink: "#8A5E12" }, // honey / amber
-  linkedin: LINKEDIN,
-  cvbank: { hi: "#F7ECF2", tint: "#E9D6E2", ink: "#7E3A63" }, // plum / aubergine
-  storybank: { hi: "#F1F4E4", tint: "#E2E8CE", ink: "#5F7233" }, // sage → warm olive
-  tasks: { hi: "#EEF1F5", tint: "#DBE0E9", ink: "#4C5A72" }, // slate
-  chat: { hi: "#F2EEF9", tint: "#DFD7EE", ink: "#6C5691" }, // heather violet
-};
-
-// Heather — every hue drawn from the "73 PURPLE" swatch card.
-const HEATHER_TOOLS = {
-  coach: { hi: "#F5F0F3", tint: "#E6DCE2", ink: "#705B64" }, // heather (= primary)
-  skills: { hi: "#EDF3F0", tint: "#DCE8E3", ink: "#4A665B" }, // sage
-  profile: { hi: "#FBF1E4", tint: "#F2E2CC", ink: "#815A32" }, // peach → ochre
-  linkedin: LINKEDIN,
-  cvbank: { hi: "#F8ECEA", tint: "#EFD9D6", ink: "#7E453F" }, // rust
-  storybank: { hi: "#F2F2E6", tint: "#E4E3CE", ink: "#5F6236" }, // sage-olive
-  tasks: { hi: "#EEEFF2", tint: "#DDDFE4", ink: "#444751" }, // charcoal-navy
-  chat: { hi: "#EFEFF4", tint: "#DEDEE8", ink: "#51516B" }, // denim (displaced)
-};
-
-// Moss — earthen siblings around the olive primary; Chat KEEPS its heather.
-const MOSS_TOOLS = {
-  coach: { hi: "#F0F3E5", tint: "#E1E6CE", ink: "#566631" }, // moss (= primary)
-  skills: { hi: "#ECF5F5", tint: "#D6E8E9", ink: "#2E686C" }, // deep cyan-teal
-  profile: { hi: "#FAF2E2", tint: "#F0E2C4", ink: "#7C5B20" }, // ochre
-  linkedin: LINKEDIN,
-  cvbank: { hi: "#F5EFF3", tint: "#E7DBE4", ink: "#6E4A63" }, // plum
-  storybank: { hi: "#F4EEE9", tint: "#E4DAD3", ink: "#5E4B41" }, // warm brown
-  tasks: { hi: "#EEF1F5", tint: "#DBE0E9", ink: "#4C5A72" }, // slate
-  chat: { hi: "#F2EEF9", tint: "#DFD7EE", ink: "#6C5691" }, // heather violet
-};
-
-// Pewter — chrome recedes, so the tiles carry nearly all the hue in the product.
-const PEWTER_TOOLS = {
-  coach: { hi: "#F0F1F3", tint: "#E0E1E5", ink: "#444751" }, // charcoal-navy (= primary)
-  skills: { hi: "#EDF4F1", tint: "#DBE8E3", ink: "#3C6859" }, // deep green-teal
-  profile: { hi: "#FAF3E8", tint: "#F0E3CE", ink: "#7D582D" }, // ochre
-  linkedin: LINKEDIN,
-  cvbank: { hi: "#F5EFF3", tint: "#E7DBE4", ink: "#6E4A63" }, // plum
-  storybank: { hi: "#F1F4E4", tint: "#E2E8CE", ink: "#5F7233" }, // olive
-  tasks: { hi: "#F4EEEB", tint: "#E4D9D4", ink: "#6B4A3E" }, // brown (displaced)
-  chat: { hi: "#F2EEF9", tint: "#DFD7EE", ink: "#6C5691" }, // heather violet
-};
+// Clay / Heather / Moss / Pewter tool sets retired when YISHAI was crowned
+// (2026-07-17); see git history if ever wanted back.
 
 // Yishai — the set re-derived inside the mock's brown / cream / blue / mauve
 // family. Cool primary means the warm tools (profile ochre, storybank olive) do
@@ -109,11 +64,7 @@ const YISHAI_TOOLS = {
 };
 
 const TOOL_SETS = {
-  clay: CLAY_TOOLS,
   yishai: YISHAI_TOOLS,
-  heather: HEATHER_TOOLS,
-  moss: MOSS_TOOLS,
-  pewter: PEWTER_TOOLS,
 };
 
 // The :root vars a palette installs. Identical key set for every palette, so a
