@@ -291,3 +291,10 @@ Trigger: added `import CompanyLogo` to CanvasJobCard, gates were green, but the 
 What I did wrong: after I added the import, the PostToolUse formatter hook rewrote the file and dropped the new import line (happened twice this session — CanvasPaletteSwitcher too). `npm run build` does NOT catch it (an undefined JSX component is a runtime ReferenceError, not a build error), and I'd linted a stale copy. So I trusted green build+lint and navigated straight to a crash.
 Rule for next time: after adding an import in a file the formatter touches, re-grep for the import line (`grep -c "import X"`) AND re-run eslint on THAT file immediately before the browser pass. Green build ≠ import present; only lint/grep proves it. When the browser shows the error boundary, read the console exception first (it names the file:line) instead of re-screenshotting.
 ---
+
+---
+2026-07-17 — "Verify it renders" means diff pixels, not eyeball a screenshot
+Trigger: shipped a ground-texture toggle as done + "verified all three render (computed styles confirmed)"; Eli reported all three identical, toggle does nothing.
+What I did wrong: I confirmed the texture ELEMENT existed with the right computed style and called it verified — but never confirmed it PAINTED. It was fully occluded: the -z-10 layer escaped the shell (position:relative is NOT a stacking context; overflow-hidden doesn't create one either) and painted behind the opaque Layout <main> bg. A visual "looks subtle" screenshot hid a 0%-effect bug.
+Rule for next time: for any subtle/low-opacity/behind-content visual change, verify by PIXEL DIFF (screenshot with vs without, ImageChops), not by reading computed styles or eyeballing. Computed-style-present != painted. If a change should be visible and a diff shows ~0% change outside the control itself, it's broken, not subtle. Fast disambiguator: force the layer bright red at full opacity — if it doesn't show, it's occluded (stacking-context / z-index / an opaque ancestor), not too faint.
+---
