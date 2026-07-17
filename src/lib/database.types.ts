@@ -59,9 +59,11 @@ export type Database = {
           created_at: string
           cv_data: Json
           cv_url: string | null
+          generated_cv_data: Json | null
           id: string
           is_master: boolean
           source_jd: string | null
+          updated_at: string
           user_id: string
           version: number
         }
@@ -70,9 +72,11 @@ export type Database = {
           created_at?: string
           cv_data: Json
           cv_url?: string | null
+          generated_cv_data?: Json | null
           id?: string
           is_master?: boolean
           source_jd?: string | null
+          updated_at?: string
           user_id: string
           version?: number
         }
@@ -81,9 +85,11 @@ export type Database = {
           created_at?: string
           cv_data?: Json
           cv_url?: string | null
+          generated_cv_data?: Json | null
           id?: string
           is_master?: boolean
           source_jd?: string | null
+          updated_at?: string
           user_id?: string
           version?: number
         }
@@ -882,6 +888,7 @@ export type Database = {
       }
       experiences: {
         Row: {
+          awards: string[]
           bullets: string[]
           commitment: string | null
           company: string
@@ -897,9 +904,11 @@ export type Database = {
           start_date: string | null
           title: string
           type: string | null
+          updated_at: string
           user_id: string
         }
         Insert: {
+          awards?: string[]
           bullets?: string[]
           commitment?: string | null
           company: string
@@ -915,9 +924,11 @@ export type Database = {
           start_date?: string | null
           title: string
           type?: string | null
+          updated_at?: string
           user_id: string
         }
         Update: {
+          awards?: string[]
           bullets?: string[]
           commitment?: string | null
           company?: string
@@ -933,6 +944,7 @@ export type Database = {
           start_date?: string | null
           title?: string
           type?: string | null
+          updated_at?: string
           user_id?: string
         }
         Relationships: []
@@ -1265,7 +1277,11 @@ export type Database = {
           req_seniority: string | null
           req_skill_years: Json | null
           req_skills_core: string[] | null
+          req_skills_core_raw: string[] | null
+          req_skills_must_have: string[] | null
+          req_skills_must_have_raw: string[] | null
           req_skills_nice: string[] | null
+          req_skills_nice_raw: string[] | null
           req_visa_constraint: string | null
           req_years_max: number | null
           req_years_min: number | null
@@ -1350,7 +1366,11 @@ export type Database = {
           req_seniority?: string | null
           req_skill_years?: Json | null
           req_skills_core?: string[] | null
+          req_skills_core_raw?: string[] | null
+          req_skills_must_have?: string[] | null
+          req_skills_must_have_raw?: string[] | null
           req_skills_nice?: string[] | null
+          req_skills_nice_raw?: string[] | null
           req_visa_constraint?: string | null
           req_years_max?: number | null
           req_years_min?: number | null
@@ -1435,7 +1455,11 @@ export type Database = {
           req_seniority?: string | null
           req_skill_years?: Json | null
           req_skills_core?: string[] | null
+          req_skills_core_raw?: string[] | null
+          req_skills_must_have?: string[] | null
+          req_skills_must_have_raw?: string[] | null
           req_skills_nice?: string[] | null
+          req_skills_nice_raw?: string[] | null
           req_visa_constraint?: string | null
           req_years_max?: number | null
           req_years_min?: number | null
@@ -1631,6 +1655,42 @@ export type Database = {
         }
         Relationships: []
       }
+      profile_edits: {
+        Row: {
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          field: string
+          id: string
+          new_value: Json | null
+          prior_value: Json | null
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          field: string
+          id?: string
+          new_value?: Json | null
+          prior_value?: Json | null
+          source: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          field?: string
+          id?: string
+          new_value?: Json | null
+          prior_value?: Json | null
+          source?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           adjacent_fields: Json | null
@@ -1651,6 +1711,7 @@ export type Database = {
           full_name: string | null
           gpa: string | null
           has_seen_onboarding_tutorial: boolean
+          headline: string | null
           honors: string[] | null
           id: string
           invite_code: string | null
@@ -1708,6 +1769,7 @@ export type Database = {
           full_name?: string | null
           gpa?: string | null
           has_seen_onboarding_tutorial?: boolean
+          headline?: string | null
           honors?: string[] | null
           id: string
           invite_code?: string | null
@@ -1765,6 +1827,7 @@ export type Database = {
           full_name?: string | null
           gpa?: string | null
           has_seen_onboarding_tutorial?: boolean
+          headline?: string | null
           honors?: string[] | null
           id?: string
           invite_code?: string | null
@@ -2298,6 +2361,7 @@ export type Database = {
               industry_vertical: string[] | null
               interview_process: Json | null
               is_active: boolean
+              is_agency: boolean
               is_il: boolean
               is_remote: boolean
               jd_language: string | null
@@ -2321,7 +2385,11 @@ export type Database = {
               req_seniority: string | null
               req_skill_years: Json | null
               req_skills_core: string[] | null
+              req_skills_core_raw: string[] | null
+              req_skills_must_have: string[] | null
+              req_skills_must_have_raw: string[] | null
               req_skills_nice: string[] | null
+              req_skills_nice_raw: string[] | null
               req_visa_constraint: string | null
               req_years_max: number | null
               req_years_min: number | null
@@ -2397,6 +2465,7 @@ export type Database = {
               industry_vertical: string[] | null
               interview_process: Json | null
               is_active: boolean
+              is_agency: boolean
               is_il: boolean
               is_remote: boolean
               jd_language: string | null
@@ -2420,7 +2489,11 @@ export type Database = {
               req_seniority: string | null
               req_skill_years: Json | null
               req_skills_core: string[] | null
+              req_skills_core_raw: string[] | null
+              req_skills_must_have: string[] | null
+              req_skills_must_have_raw: string[] | null
               req_skills_nice: string[] | null
+              req_skills_nice_raw: string[] | null
               req_visa_constraint: string | null
               req_years_max: number | null
               req_years_min: number | null
@@ -2497,6 +2570,7 @@ export type Database = {
               industry_vertical: string[] | null
               interview_process: Json | null
               is_active: boolean
+              is_agency: boolean
               is_il: boolean
               is_remote: boolean
               jd_language: string | null
@@ -2520,7 +2594,11 @@ export type Database = {
               req_seniority: string | null
               req_skill_years: Json | null
               req_skills_core: string[] | null
+              req_skills_core_raw: string[] | null
+              req_skills_must_have: string[] | null
+              req_skills_must_have_raw: string[] | null
               req_skills_nice: string[] | null
+              req_skills_nice_raw: string[] | null
               req_visa_constraint: string | null
               req_years_max: number | null
               req_years_min: number | null
