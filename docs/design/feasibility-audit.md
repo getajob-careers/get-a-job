@@ -93,6 +93,13 @@ company_target_actions jsonb, is_error, original_user_message, created_at`; RLS
   (create conversation -> insert messages -> reload on switch). `ai-chat` is
   **stateless** - it only receives `conversation_history` in the request to build
   the prompt (rolling 20-turn window).
+- **UPDATE 2026-07-17 - the port deletes the picker's home.** A thread picker
+  already ships (`ChatInterface.jsx:1263-1300`) but is deliberately hidden in the
+  dock because "switching belongs on the full-page CareerAgent surface" - and the
+  locked canvas IA folds the sidebar Chat section into the Chat toolkit tile with
+  **no CareerAgent tile**. Porting as locked therefore makes past threads
+  unreachable. Scrubbed reality: max **2** threads for any real user (n=10). Full
+  proposal + Eli's open call: `docs/design/chat-history-proposal.md`.
 - **Port caveats:** (1) swap fixture/local state for `CoachConversationProvider`
   to get real persistence; (2) the coach dock is scoped to `agent='career_agent'`
   (full-page agents use a separate `ChatInterface`); (3) two live-session card

@@ -41,7 +41,24 @@ Full per-surface audit: `docs/design/feasibility-audit.md`.
 
 ## PENDING Eli decisions (open)
 
-1. **Roadmap = the real "Your matched roles" panel** (`Career.jsx` / TopMatchesPanel): roles list, per-role tier badge, two-axis bars, skill chips, expand. LOCKED that this IS the roadmap surface, on the Browse right rail. Elevated (craft-pass) restyle is built at `?roadmap=lab` and shown; **pending Eli's eye**, then integrate into the Browse right rail (two-column) + rip `CanvasRoadmapMock` + `?roadmap=lab`.
+1. **Wordmark typeface** (`?wordmark=lab`): three treatments against the LOCKED
+   mark, each in real header context at 28px - **A** Rokkitt 800 (incumbent),
+   **B** Rokkitt 500 tracked open (mark becomes the hero), **C** Archivo 700
+   (grotesque counterpoint). A/B cost nothing; **C is a real +1 font load**. Both
+   header and lab render through `WORDMARK_TREATMENTS` in `CanvasLogo.jsx`. On
+   pick: keep the winner, rip the lab + the other two, and if C wins move the
+   Archivo `<link>` into `index.html` and nudge the mark's baseline (Archivo's
+   cap-height differs from Rokkitt's).
+2. **Chat history in the coach** - see `docs/design/chat-history-proposal.md`.
+   Backend is **SUPPORTED AS-IS** (tables live, cascade safe, provider 90% built,
+   only `deleteConversation` missing). The finding: a picker already ships in
+   `ChatInterface`, deliberately hidden in the dock because "switching belongs on
+   the full-page CareerAgent" - **and the canvas IA deletes CareerAgent**, so
+   porting as locked loses thread history. Scrubbed data: max **2** threads for any
+   real user (n=10, LOW CONFIDENCE). Recommendation **B**: history in the EXPANDED
+   coach only, restyling the real dropdown; dock stays as locked. Open: Eli may
+   instead **drop threading entirely**.
+3. **Roadmap = the real "Your matched roles" panel** (`Career.jsx` / TopMatchesPanel): roles list, per-role tier badge, two-axis bars, skill chips, expand. LOCKED that this IS the roadmap surface, on the Browse right rail. Elevated (craft-pass) restyle is built at `?roadmap=lab` and shown; **pending Eli's eye**, then integrate into the Browse right rail (two-column) + rip `CanvasRoadmapMock` + `?roadmap=lab`.
 
 ## PARKED: page-port round (do not start until rounds above are approved)
 
@@ -53,4 +70,5 @@ Move the remaining pages onto the new system (Clay tokens, scales, elevation, bu
 
 - `?logo=blue` (colorway ref only; the `?logo=lab` A/B lab is removed - logo locked)
 - `?roadmap=lab` (elevated matched-roles panel; rip on integration)
+- `?wordmark=lab` (three wordmark treatments; rip on the typeface pick)
   All other `?param` labs/switchers (ring, hue, field, palette, story, top, layout) are already removed.
