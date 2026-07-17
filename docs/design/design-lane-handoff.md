@@ -113,17 +113,24 @@ Full per-surface audit: `docs/design/feasibility-audit.md`.
      (3) **Real company logos** on job cards (ported `CompanyLogo`: logo.dev →
      DuckDuckGo favicon → letter fallback; fixtures carry real domains). Chip
      containment = white tile + border, palette-independent (`canvas-tokens.md`).
-   - **RUNG PICKED: MEDIUM** (2026-07-17). But the ground failed: Yishai's cream
-     `#F4EBDA` reads yellow at full-page scale (chroma 26), eye-straining and
-     clashing with the cool cards. **Ground toggle built** (`?ground=`, the
-     switcher's Ground row, shown only at Yishai+medium; on CV+Tracker):
-     **Cream (now)** / **Neutral** `#EEEAE2` (de-yellowed warm) / **Greige**
-     `#EBE8E1` (warm gray, most restful) / **Mauve** `#ECE8EB` (barely-mauve,
-     joins the cool family). All three keep AA on page/soft/sidebar + card-lift
-     (`audit-amplitude.mjs` grounds section). **PENDING Eli's ground pick.**
-   - **Then:** pick a ground → re-derive the chosen (medium) amplitude + ground for
-     the whole palette field → **re-flip the field** (PENDING #1 resumes at medium
-     - the chosen ground).
+   - **RUNG PICKED: MEDIUM. GROUND PICKED: GREIGE** `#EBE8E1` — LOCKED into the
+     Yishai palette (the whole surface family moved with it); the Ground toggle +
+     cream are ripped.
+   - **THE FINAL FIELD IS BUILT.** All five finalists are dressed at MEDIUM with the
+     same fair treatment, derived per palette: a restful ground (page pulled toward
+     its field tone — the cream-was-a-hero-colour lesson applied to every family),
+     a tinted card toward its colour source (primary; Pewter toward its secondary,
+     since its primary is deliberately grey), a secondary-accent-forward kanban
+     (filled headers in the palette's own secondary + white large-bold labels +
+     secondary washes/deco — Yishai's mauve generalised: Clay teal, Heather sage,
+     Moss cyan-teal, Pewter green-teal), a coach tint, and logos (global). Every
+     case AA-gated (`audit-amplitude.mjs` iterates all five + Yishai's ladder) and
+     card-lift verified. `amplitudeVars` returns per-palette medium; subtle/bold
+     stay Yishai-only.
+   - **FLIP URL (final): `/_preview/home-3tab?palette=yishai&amp=medium`** — flip
+     the Palette pills, amp stays medium. One switcher, five finalists. **PENDING
+     Eli crowns THE palette**, then the losers' tokens/labs are ripped and the
+     winner becomes the system.
    - **Gates:** `scripts/audit-amplitude.mjs` (AA on tinted cards + coach + the new
      light-on-ink CV-header check + the elevation invariant `L(card)>L(page)`),
      `scripts/profile-amplitude.py` (chroma coverage per rung). Elevation retune is

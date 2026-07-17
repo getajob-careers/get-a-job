@@ -1,22 +1,15 @@
-// Amplitude AA + elevation audit. Runs BEFORE bold is judged (Eli's rule: add the
-// light-text-on-ink check before bold exists). Verifies, for every Yishai
-// amplitude level, that (a) body text still clears AA on the tinted card, (b) the
-// coach tint holds AA for body text, (c) the BOLD CV header's light-on-ink text
-// clears AA (the inverse direction the palette audit never checked), and (d) the
-// elevation invariant holds: the tinted card stays LIGHTER than the page, so
-// paper-lift survives the tint (the retune's whole point).
+// Amplitude AA + elevation audit for THE FIELD FLIP: every finalist at MEDIUM,
+// plus Yishai's subtle/bold ladder. For each case it checks text AA on the
+// (possibly darkened) ground — page/soft/sidebar/eyebrow — and on the tinted card
+// and coach tint; the secondary-accent-forward surfaces (filled kanban header
+// with large-bold white label ≥3:1, secondary wash with ink/secondary-dark text
+// ≥4.5); the Yishai bold CV band; and the elevation invariant (card lighter than
+// its page, so paper-lift survives the tint + the restful ground).
 //
 // Exit non-zero on any failure so it can gate like audit-palettes.mjs.
 
 import { PALETTES } from "../src/pages/_preview/canvas/palette.js";
-import {
-  amplitudeVars,
-  AMP_LEVELS,
-} from "../src/pages/_preview/canvas/amplitude.js";
-import {
-  groundVars,
-  GROUND_LEVELS,
-} from "../src/pages/_preview/canvas/grounds.js";
+import { amplitudeVars } from "../src/pages/_preview/canvas/amplitude.js";
 
 const AA = 4.5;
 
@@ -44,23 +37,61 @@ function ratio(a, b) {
   return (hi + 0.05) / (lo + 0.05);
 }
 
-const base = PALETTES.yishai.tokens;
 let failures = 0;
 const line = (ok, label, val) => {
   if (!ok) failures++;
   console.log(`  ${ok ? "OK  " : "FAIL"} ${label.padEnd(34)} ${val}`);
 };
 
-for (const level of AMP_LEVELS) {
-  console.log(`\n=== Yishai · ${level} ===`);
-  const amp = amplitudeVars("yishai", level);
+// The field flip: every finalist at MEDIUM, plus Yishai's subtle/bold ladder.
+const CASES = [
+  ["clay", "medium"],
+  ["yishai", "subtle"],
+  ["yishai", "medium"],
+  ["yishai", "bold"],
+  ["heather", "medium"],
+  ["moss", "medium"],
+  ["pewter", "medium"],
+];
+
+for (const [pid, level] of CASES) {
+  console.log(`\n=== ${pid} · ${level} ===`);
+  const base = PALETTES[pid].tokens;
+  const amp = amplitudeVars(pid, level);
   const merged = { ...base, ...amp };
 
   const card = merged["--rd-bg-card"];
   const page = merged["--rd-bg-page"];
+  const soft = merged["--rd-bg-soft"];
+  const sidebar = merged["--rd-bg-sidebar"];
   const ink = merged["--rd-text"];
   const sec = merged["--rd-text-secondary"];
   const ter = merged["--rd-text-tertiary"];
+  const eyebrow = merged["--rd-text-eyebrow"];
+  const secDark = base["--rd-teal-dark"];
+
+  // (0) medium can darken the ground → re-check text on page/soft/sidebar/eyebrow.
+  for (const [n, surf] of [
+    ["page", page],
+    ["soft", soft],
+    ["sidebar", sidebar],
+  ]) {
+    line(
+      ratio(ink, surf) >= AA,
+      `ink on ${n}`,
+      ratio(ink, surf).toFixed(2) + ":1",
+    );
+    line(
+      ratio(ter, surf) >= AA,
+      `tertiary on ${n}`,
+      ratio(ter, surf).toFixed(2) + ":1",
+    );
+  }
+  line(
+    ratio(eyebrow, page) >= AA,
+    "eyebrow on page",
+    ratio(eyebrow, page).toFixed(2) + ":1",
+  );
 
   // (a) body text on the tinted card
   line(
@@ -139,57 +170,22 @@ for (const level of AMP_LEVELS) {
   }
   if (amp["--rd-amp-mauve-wash"]) {
     const wash = amp["--rd-amp-mauve-wash"];
-    const mauveDark = base["--rd-teal-dark"]; // Yishai strong-dark = mauve-dark
     line(
       ratio(ink, wash) >= AA,
-      "ink on mauve wash",
+      "ink on secondary wash",
       ratio(ink, wash).toFixed(2) + ":1",
     );
     line(
-      ratio(mauveDark, wash) >= AA,
-      "mauve-dark on mauve wash",
-      ratio(mauveDark, wash).toFixed(2) + ":1",
+      ratio(secDark, wash) >= AA,
+      "secondary-dark on wash",
+      ratio(secDark, wash).toFixed(2) + ":1",
     );
   }
-}
-
-// ── GROUNDS (Yishai @ medium): each replacement page must keep text AA on the
-// new page / soft / sidebar, and the medium card must stay LIGHTER than the page
-// so paper-lift survives. `cream` = {} is the current ground (skipped).
-const mediumCard = amplitudeVars("yishai", "medium")["--rd-bg-card"];
-for (const g of GROUND_LEVELS) {
-  const vars = groundVars("yishai", g);
-  if (Object.keys(vars).length === 0) continue; // cream (reference)
-  console.log(`\n=== Ground · ${g} ===`);
-  const page = vars["--rd-bg-page"];
-  const soft = vars["--rd-bg-soft"];
-  const sidebar = vars["--rd-bg-sidebar"];
-  const T = {
-    ink: base["--rd-text"],
-    sec: base["--rd-text-secondary"],
-    ter: base["--rd-text-tertiary"],
-    eyebrow: base["--rd-text-eyebrow"],
-  };
-  for (const [name, surf] of [
-    ["page", page],
-    ["soft", soft],
-    ["sidebar", sidebar],
-  ]) {
-    for (const [tn, tv] of Object.entries(T)) {
-      line(
-        ratio(tv, surf) >= AA,
-        `${tn} on ${name}`,
-        ratio(tv, surf).toFixed(2) + ":1",
-      );
-    }
-  }
-  const lift = lum(mediumCard) - lum(page);
-  line(lift > 0, "medium card lifted above page", `Δ${lift.toFixed(3)}`);
 }
 
 console.log(
   failures === 0
-    ? "\nAll amplitude + ground checks pass AA + elevation.\n"
+    ? "\nAll amplitude checks pass AA + elevation.\n"
     : `\n${failures} check(s) failed.\n`,
 );
 process.exit(failures === 0 ? 0 : 1);

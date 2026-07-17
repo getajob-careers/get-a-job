@@ -199,16 +199,20 @@ export const PEWTER = {
 // (see toolColors.js). And the LOGOTYPE material re-opens: a blue primary means
 // the locked coral mark goes blue. That is the deliberate price if this wins.
 export const YISHAI = {
-  "--rd-field": "#E7DCC3",
+  // GROUND LOCKED = GREIGE (Eli, 2026-07-17). The mock's cream #F4EBDA read yellow
+  // at full-page scale (chroma 26) and clashed with the cool cards; greige is a
+  // restful warm-gray work-surface that sits peacefully under the mauve/blue
+  // family. The whole surface family moved with it (field/sidebar/soft/borders).
+  "--rd-field": "#DCD9D0",
   "--rd-shadow":
-    "0 22px 46px -14px rgba(96,72,62,0.22), 0 6px 16px rgba(96,72,62,0.10)",
-  "--rd-bg-page": "#F4EBDA",
+    "0 22px 46px -14px rgba(72,70,62,0.22), 0 6px 16px rgba(72,70,62,0.10)",
+  "--rd-bg-page": "#EBE8E1",
   "--rd-bg-card": "#FFFFFF",
-  "--rd-bg-sidebar": "#EBE0C8",
-  "--rd-bg-soft": "#EFE6D2",
-  "--rd-border": "#E3D8BF",
-  "--rd-border-subtle": "#EBE2CD",
-  "--rd-border-hover": "#CFC09F",
+  "--rd-bg-sidebar": "#E3E0D8",
+  "--rd-bg-soft": "#E6E3DB",
+  "--rd-border": "#DAD6CD",
+  "--rd-border-subtle": "#E4E1D9",
+  "--rd-border-hover": "#C8C4BA",
   "--rd-text": "#60483E",
   "--rd-text-secondary": "#6B5346",
   "--rd-text-tertiary": "#755C4E",

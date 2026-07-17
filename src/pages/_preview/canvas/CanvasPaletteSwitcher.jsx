@@ -1,7 +1,6 @@
 import React from "react";
 import { PALETTES } from "./palette";
 import { AMP_LEVELS, AMP_LABELS } from "./amplitude";
-import { GROUND_LEVELS, GROUND_LABELS } from "./grounds";
 
 // Pinned palette switcher (round 4 challenger round, fixture-only). Flip between
 // the incumbent Clay and the challengers on the real fixture Home, full page.
@@ -64,9 +63,6 @@ export default function CanvasPaletteSwitcher({
   onChange,
   amp,
   onAmpChange,
-  ground,
-  onGroundChange,
-  showGround,
 }) {
   const ids = Object.keys(PALETTES);
   const showAmp = value === "yishai" && amp && onAmpChange;
@@ -93,18 +89,6 @@ export default function CanvasPaletteSwitcher({
             value={amp}
             onChange={onAmpChange}
             labelFor={(id) => AMP_LABELS[id]}
-          />
-        </>
-      )}
-      {showGround && ground && onGroundChange && (
-        <>
-          <span aria-hidden="true" className="h-5 w-px bg-neutral-200" />
-          <PillRow
-            label="Ground"
-            ids={GROUND_LEVELS}
-            value={ground}
-            onChange={onGroundChange}
-            labelFor={(id) => GROUND_LABELS[id]}
           />
         </>
       )}
