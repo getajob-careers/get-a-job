@@ -56,8 +56,20 @@ const YISHAI_AMP = {
     // The coach panel OWNS a tint (Eli: a tint at medium, never a dark reading
     // surface). Soft blue reading panel, AA for body text.
     "--rd-amp-coach-bg": "#ECEDF5",
-    // Kanban column bodies carry a faint band wash instead of the flat page.
-    "--rd-amp-kanban-body": "#EEEDF4",
+    // ── MAUVE-FORWARD (Eli: mauve as ITSELF, not a lavender-gray dilution) ──
+    // Full-vividness mauve on NON-TEXT surfaces (STEP 1, no 4.5 relaxation): the
+    // 3:1 UI floor is all that applies to fills/deco/glow/borders (mauve clears
+    // it, 3.05–3.17 on the surfaces). Mauve as a fill takes only WHITE LARGE-BOLD
+    // text (3.69:1 ≥ the 3:1 large-bold AA floor) — never small or body text.
+    "--rd-amp-mauve": "#9B7D8A", // full vividness, fills/deco/glow/borders
+    "--rd-amp-mauve-wash": "#E9DAE0", // light wash (chroma 15), ink text ≥ 4.5
+    // The TRACKER carries the mauve: filled mauve column headers with white bold
+    // labels; column bodies a mauve wash (was a blue-gray wash).
+    "--rd-amp-kanban-header": "#9B7D8A",
+    "--rd-amp-kanban-label": "#FFFFFF", // large-bold on mauve = 3.69:1, legal
+    "--rd-amp-kanban-body": "#EFE4E8", // faint mauve wash, ink text ≥ 4.5
+    // Background deco (CanvasField) picks up mauve instead of ochre/teal.
+    "--rd-amp-deco": "#9B7D8A",
   },
   bold: {
     "--rd-bg-card": "#E7E9F5", // deepest tint (chroma ~14)
@@ -70,13 +82,17 @@ const YISHAI_AMP = {
     "--rd-amp-section-fg": "var(--rd-coral)",
     "--rd-amp-bandstrip": "0.85",
     "--rd-amp-coach-bg": "#E7E9F3",
-    "--rd-amp-kanban-body": "#E9E8F2",
-    // THE dark block — the CV header becomes a deep ink surface with light text.
-    // Contrast verified ≥ AA (light-on-ink audit): cream-on-ink 12.36:1.
-    "--rd-amp-cvheader-bg": "#2F2723",
-    "--rd-amp-cvheader-fg": "#F4EBDA",
-    "--rd-amp-cvheader-muted": "#C9BBA6",
-    "--rd-amp-cvheader-accent": "#B9A2AC", // mauve, readable on ink
+    "--rd-amp-mauve": "#9B7D8A",
+    "--rd-amp-mauve-wash": "#E3CFD7", // deeper wash at bold (chroma 20), ink 5.68
+    "--rd-amp-kanban-header": "#9B7D8A",
+    "--rd-amp-kanban-label": "#FFFFFF",
+    "--rd-amp-kanban-body": "#E9DAE0", // stronger mauve wash, ink ≥ 4.5
+    "--rd-amp-deco": "#9B7D8A",
+    // THE CV header (bold): NOT the dead black slab (Eli killed it). A bled-to-edge
+    // MAUVE TINT BAND — light, purple, reads as brand, keeps ink text. Headline in
+    // mauve-dark. Contrast AA-verified (audit-amplitude: ink 6.24, headline 5.02).
+    "--rd-amp-cvheader-bg": "#E9DAE0",
+    "--rd-amp-cvheader-headline": "#6E5460",
   },
 };
 

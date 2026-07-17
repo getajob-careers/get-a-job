@@ -172,6 +172,19 @@ Tuned by eye at **28px in the real header**, which is the only place it may be
 judged. If the mark, the face, or the size changes, **re-tune by eye** - do not
 carry these numbers over and do not "fix" them back to symmetry.
 
+## Company logo chip (containment for uncontrollable colour)
+
+Job cards show the REAL company logo (ported from production `CompanyLogo.jsx`:
+logo.dev → DuckDuckGo favicon → letter-avatar fallback). Real logos are arbitrary
+brand colours we don't control, so the containment is a **quiet neutral frame**,
+not a themed one: a **white tile + hairline `--rd-border` + `object-contain` with
+~10% padding**, radius from the scale (`rd-r-sm` = 10px at the 36px card size).
+The white tile is deliberate and does NOT track the palette or amplitude — it
+isolates any logo (pink, orange, purple) from the surface so it never fights the
+Clay/Yishai/etc. palette. The letter-avatar fallback keeps the same geometry so a
+failed image never reflows the card. This treatment is palette-independent by
+design; it is the one place a white surface is correct under a tinted card.
+
 ## Guardrail
 
 `node scripts/check-scale.mjs` — flags any raw `text-[Npx]` / `rounded-[Npx]` /

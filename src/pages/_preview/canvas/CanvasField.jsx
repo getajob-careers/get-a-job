@@ -34,7 +34,7 @@ export default function CanvasField() {
           cx="200"
           cy="200"
           r="116"
-          stroke="var(--rd-golden)"
+          stroke="var(--rd-amp-deco, var(--rd-golden))"
           strokeWidth="30"
           opacity="0.06"
         />

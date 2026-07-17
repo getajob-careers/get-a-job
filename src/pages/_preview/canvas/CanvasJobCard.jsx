@@ -7,6 +7,7 @@
 import React from "react";
 import { deriveJobDisplay } from "@/lib/jobCardDisplay";
 import AgencyBadge from "@/components/jobs/AgencyBadge";
+import CompanyLogo from "@/components/jobs/CompanyLogo";
 import CanvasCardActions from "./CanvasCardActions";
 import CanvasChip from "./CanvasChip";
 import CanvasScoreRing from "./CanvasScoreRing";
@@ -56,12 +57,19 @@ export default function CanvasJobCard({ job, scoreResult, onOpen }) {
       <span className="cx-spot rd-r-md" aria-hidden="true" />
 
       <div className="relative flex items-start justify-between gap-2 mb-3">
-        <span
-          className="flex-shrink-0 inline-flex items-center justify-center w-9 h-9 rd-r-sm font-display font-bold rd-t-display-s bg-rd-bg-soft text-rd-text-secondary"
-          aria-hidden="true"
-        >
-          {job.company_name?.[0] || "?"}
-        </span>
+        {/* Real company logo (the platform's strongest card element), ported
+            from the production card verbatim: logo.dev / DuckDuckGo favicon with
+            a letter-avatar fallback. Containment for uncontrollable brand colours
+            = a WHITE tile + hairline border + object-contain padding, so any
+            arbitrary logo sits in one neutral frame instead of fighting the
+            palette. Radius from the scale (rd-r-sm = 10px). */}
+        <CompanyLogo
+          domain={job.company_domain}
+          companyName={job.company_name}
+          size={36}
+          radius={10}
+          fallbackClassName="rd-r-sm font-display font-bold bg-rd-bg-soft text-rd-text-secondary"
+        />
         {d.scored && d.bandMeta && (
           <CanvasScoreRing scoreResult={scoreResult} bandMeta={d.bandMeta} />
         )}

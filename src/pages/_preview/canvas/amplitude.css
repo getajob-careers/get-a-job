@@ -6,29 +6,35 @@
  * was and only BOLD restructures the header. Fixture-gated with the rest of the
  * canvas. See docs/design/color-amplitude-proposal.md. */
 
-/* The CV header at BOLD: a deep ink block that bleeds to the document's edges
- * (the DropSection analogue). Negative insets cancel the CV document's px-6/px-8
- * gutter so the block spans full width; text recolours to the light-on-ink set
- * (contrast AA-verified in scripts/audit-amplitude.mjs). */
+/* The CV header at BOLD: a bled-to-edge MAUVE TINT BAND (the earlier dark ink
+ * slab was killed — Eli). Light band, ink text, mauve-dark headline: reads as a
+ * branded masthead, not a black slab over the CV. Negative insets cancel the CV
+ * document's px-6/px-8 gutter so the band spans full width. Contrast AA-verified
+ * in scripts/audit-amplitude.mjs. */
 [data-amp="bold"] .cx-cv-header {
   background: var(--rd-amp-cvheader-bg);
-  margin: -1.5rem -1.5rem 0.25rem;
+  margin: -1.5rem -1.5rem 0.5rem;
   padding: 1.5rem 1.5rem 1.25rem;
   border-bottom: 0;
   border-radius: 0;
 }
 @media (min-width: 768px) {
   [data-amp="bold"] .cx-cv-header {
-    margin: -1.75rem -2rem 0.25rem;
+    margin: -1.75rem -2rem 0.5rem;
     padding: 1.75rem 2rem 1.5rem;
   }
 }
-[data-amp="bold"] .cx-cv-name {
-  color: var(--rd-amp-cvheader-fg);
-}
 [data-amp="bold"] .cx-cv-headline {
-  color: var(--rd-amp-cvheader-accent);
+  color: var(--rd-amp-cvheader-headline);
 }
-[data-amp="bold"] .cx-cv-contact {
-  color: var(--rd-amp-cvheader-muted);
+
+/* Mauve-forward kanban headers (medium+): the vivid mauve fill carries a white
+ * label, so the label jumps to large-bold (20px = rd-t-display-m) — at that size
+ * bold, white-on-mauve (3.69:1) clears the 3:1 large-bold AA floor. At the base
+ * 12px it would fail 4.5, so the size bump is what keeps this STEP-1 legal. */
+[data-amp="medium"] .cx-kanban-label,
+[data-amp="bold"] .cx-kanban-label {
+  font-size: 20px;
+  line-height: 1.15;
+  letter-spacing: -0.01em;
 }

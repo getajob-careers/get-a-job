@@ -103,6 +103,16 @@ Full per-surface audit: `docs/design/feasibility-audit.md`.
      on Tracker + the coach** (medium's distinct levers are the kanban column
      washes + the coach owning a tint; on CV/Browse they're off-surface). Bold is a
      different register (the dark CV-header block), visible everywhere.
+   - **Rung feedback landed (2026-07-17), Yishai iterated:** (1) the BOLD dark CV
+     header slab was killed — replaced by a bled-to-edge **mauve tint band** (light
+     masthead, ink text). (2) **Mauve-forward pass (STEP 1, no AA relaxation):**
+     vivid `#9B7D8A` now appears AS ITSELF — filled mauve kanban headers (white
+     large-bold labels riding the 3:1 floor via a 20px bump), mauve column-body
+     washes, mauve deco. All non-text/large-bold; the 4.5 text floor is untouched
+     (`audit-amplitude.mjs` gates it). STEP 2 (scoped relaxation) was NOT needed.
+     (3) **Real company logos** on job cards (ported `CompanyLogo`: logo.dev →
+     DuckDuckGo favicon → letter fallback; fixtures carry real domains). Chip
+     containment = white tile + border, palette-independent (`canvas-tokens.md`).
    - **Then:** pick a rung → re-derive it for the whole palette field → **re-flip
      the field at that amplitude** (PENDING #1 resumes at the chosen rung).
    - **Gates:** `scripts/audit-amplitude.mjs` (AA on tinted cards + coach + the new

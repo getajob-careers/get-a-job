@@ -129,14 +129,21 @@ export default function CanvasKanban({
                   }`}
                 >
                   {/* Header carries the status tint (not just the card avatar)
-                      + a filled count chip — reads designed, not a board clone. */}
+                      + a filled count chip — reads designed, not a board clone.
+                      Mauve-forward amplitude fills it with vivid mauve; the label
+                      then jumps to large-bold white (cx-kanban-label, amplitude.css)
+                      so white-on-mauve rides the 3:1 large-bold floor, not 4.5. */}
                   <div
                     className="flex items-center justify-between gap-2 px-2 py-1.5 mb-2 rd-r-sm"
-                    style={{ background: tone.tint }}
+                    style={{
+                      background: `var(--rd-amp-kanban-header, ${tone.tint})`,
+                    }}
                   >
                     <span
-                      className="font-display font-bold rd-t-body-s truncate"
-                      style={{ color: tone.fg }}
+                      className="cx-kanban-label font-display font-bold rd-t-body-s truncate"
+                      style={{
+                        color: `var(--rd-amp-kanban-label, ${tone.fg})`,
+                      }}
                     >
                       {statusLabels[status] || status}
                     </span>

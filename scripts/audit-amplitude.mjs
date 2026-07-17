@@ -98,26 +98,53 @@ for (const level of AMP_LEVELS) {
     );
   }
 
-  // (c) BOLD dark block — light-on-ink (the inverse direction)
+  // (c) CV header band — text on the mauve tint band (ink name, dark headline).
+  // (Was a dark ink slab with light-on-ink text; Eli killed the slab.)
   if (amp["--rd-amp-cvheader-bg"]) {
     const bg = amp["--rd-amp-cvheader-bg"];
-    const fg = hexOf(amp["--rd-amp-cvheader-fg"], "#FFFFFF");
-    const muted = hexOf(amp["--rd-amp-cvheader-muted"], fg);
-    const accent = hexOf(amp["--rd-amp-cvheader-accent"], fg);
+    const headline = hexOf(amp["--rd-amp-cvheader-headline"], ink);
     line(
-      ratio(fg, bg) >= AA,
-      "cv-header fg on ink",
-      ratio(fg, bg).toFixed(2) + ":1",
+      ratio(ink, bg) >= AA,
+      "cv-header name (ink) on band",
+      ratio(ink, bg).toFixed(2) + ":1",
     );
     line(
-      ratio(muted, bg) >= AA,
-      "cv-header muted on ink",
-      ratio(muted, bg).toFixed(2) + ":1",
+      ratio(sec, bg) >= AA,
+      "cv-header contact (sec) on band",
+      ratio(sec, bg).toFixed(2) + ":1",
     );
     line(
-      ratio(accent, bg) >= AA,
-      "cv-header accent on ink",
-      ratio(accent, bg).toFixed(2) + ":1",
+      ratio(headline, bg) >= AA,
+      "cv-header headline on band",
+      ratio(headline, bg).toFixed(2) + ":1",
+    );
+  }
+
+  // (e) MAUVE-FORWARD (STEP 1, no relaxation). Mauve as a FILL takes only white
+  // LARGE-BOLD text → the 3:1 floor (the kanban label is bumped to 20px bold to
+  // qualify). The mauve wash is a light surface → ink / mauve-dark text ≥ 4.5.
+  const LARGE = 3.0;
+  if (amp["--rd-amp-kanban-header"]) {
+    const hdr = amp["--rd-amp-kanban-header"];
+    const label = hexOf(amp["--rd-amp-kanban-label"], "#FFFFFF");
+    line(
+      ratio(label, hdr) >= LARGE,
+      "kanban label on mauve (large-bold >=3)",
+      ratio(label, hdr).toFixed(2) + ":1",
+    );
+  }
+  if (amp["--rd-amp-mauve-wash"]) {
+    const wash = amp["--rd-amp-mauve-wash"];
+    const mauveDark = base["--rd-teal-dark"]; // Yishai strong-dark = mauve-dark
+    line(
+      ratio(ink, wash) >= AA,
+      "ink on mauve wash",
+      ratio(ink, wash).toFixed(2) + ":1",
+    );
+    line(
+      ratio(mauveDark, wash) >= AA,
+      "mauve-dark on mauve wash",
+      ratio(mauveDark, wash).toFixed(2) + ":1",
     );
   }
 }
