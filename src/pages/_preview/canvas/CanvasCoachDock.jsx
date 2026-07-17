@@ -276,7 +276,9 @@ export default function CanvasCoachDock({
     }, 55);
   };
 
-  const panelBg = { background: WARM_GRADIENT };
+  // At medium+ amplitude the coach panel OWNS a tint (Eli: a tint, never a dark
+  // reading surface); elsewhere it keeps the warm coral-tint gradient.
+  const panelBg = { background: `var(--rd-amp-coach-bg, ${WARM_GRADIENT})` };
   const grain = (
     <div
       className="pointer-events-none absolute inset-0"

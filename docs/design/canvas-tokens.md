@@ -58,6 +58,18 @@ the coach gradient), `.rd-lift-hover` (hover intensify + 2px rise). Borders live
 on **insets**: `.rd-well` (recessed bg-soft + inset shadow) for inputs/wells —
 e.g. the coach action-search field. Never a border on a lifted surface.
 
+**Elevation ↔ amplitude retune (2026-07-17).** Paper-lift leans on TWO cues: the
+card being brighter than the page (a luminance lift) AND the shadow. The colour-
+amplitude layer (`amplitude.js`) tints the card, which lowers its luminance and
+shrinks the luminance-lift. This is retuned rather than left to weaken silently
+(Eli's instruction): at **medium** the card still clears the page and the shadow
+is deepened to carry more of the lift; at **bold** the page is darkened a step
+(`--rd-bg-page`) AND the shadow deepened, so the card stays lifted even at the
+deepest tint. `scripts/audit-amplitude.mjs` gates the invariant `L(card) >
+L(page)` per level (it holds: subtle Δ0.054, medium Δ0.014, bold Δ0.056). Medium's
+thin Δ is deliberate — there the deepened shadow, not luminance, carries the lift.
+This retune is amplitude-scoped: the flat palettes (no amplitude) are unchanged.
+
 **Scoping ruling (do not drift):**
 
 - **Spotlight cursor-glow is JOB CARDS ONLY.** A restrained warm radial that

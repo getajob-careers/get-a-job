@@ -113,9 +113,19 @@ export default function CanvasKanban({
                 <div
                   ref={provided.innerRef}
                   {...provided.droppableProps}
-                  style={rv.style}
+                  style={{
+                    ...rv.style,
+                    // Medium+ amplitude washes the column body with a faint band
+                    // tint instead of the flat page; unset elsewhere → page.
+                    ...(snapshot.isDraggingOver
+                      ? null
+                      : {
+                          background:
+                            "var(--rd-amp-kanban-body, var(--rd-bg-page))",
+                        }),
+                  }}
                   className={`${rv.className} flex-shrink-0 w-[220px] rd-r-lg p-2 transition-colors ${
-                    snapshot.isDraggingOver ? "bg-rd-bg-soft" : "bg-rd-bg-page"
+                    snapshot.isDraggingOver ? "bg-rd-bg-soft" : ""
                   }`}
                 >
                   {/* Header carries the status tint (not just the card avatar)

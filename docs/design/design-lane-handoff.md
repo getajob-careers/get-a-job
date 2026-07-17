@@ -93,7 +93,23 @@ Full per-surface audit: `docs/design/feasibility-audit.md`.
    AND page. All five pass. It self-checks against Clay's recorded 5.48:1 worst
    band, so a broken contrast function fails loudly instead of silently passing.
 
-2. **Roadmap = the real "Your matched roles" panel** (`Career.jsx` / TopMatchesPanel): roles list, per-role tier badge, two-axis bars, skill chips, expand. LOCKED that this IS the roadmap surface, on the Browse right rail. Elevated (craft-pass) restyle is built at `?roadmap=lab` and shown; **pending Eli's eye**, then integrate into the Browse right rail (two-column) + rip `CanvasRoadmapMock` + `?roadmap=lab`.
+2. **COLOUR AMPLITUDE — pick the rung** (`?amp=subtle|medium|bold`, Yishai-only,
+   the switcher's Colour row). The round-5 flip failed because a palette swap moved
+   only ~3% of pixels (`--rd-bg-card` was white in every candidate, no dark
+   surface). Amplitude fixes WHERE colour lives. **SUBTLE is the floor** (a bare
+   `?palette=yishai` loads at subtle). Built + measured; full write-up
+   `docs/design/color-amplitude-proposal.md`.
+   - **How to judge:** Browse first as always — but **medium vs subtle only shows
+     on Tracker + the coach** (medium's distinct levers are the kanban column
+     washes + the coach owning a tint; on CV/Browse they're off-surface). Bold is a
+     different register (the dark CV-header block), visible everywhere.
+   - **Then:** pick a rung → re-derive it for the whole palette field → **re-flip
+     the field at that amplitude** (PENDING #1 resumes at the chosen rung).
+   - **Gates:** `scripts/audit-amplitude.mjs` (AA on tinted cards + coach + the new
+     light-on-ink CV-header check + the elevation invariant `L(card)>L(page)`),
+     `scripts/profile-amplitude.py` (chroma coverage per rung). Elevation retune is
+     recorded in `canvas-tokens.md`.
+3. **Roadmap = the real "Your matched roles" panel** (`Career.jsx` / TopMatchesPanel): roles list, per-role tier badge, two-axis bars, skill chips, expand. LOCKED that this IS the roadmap surface, on the Browse right rail. Elevated (craft-pass) restyle is built at `?roadmap=lab` and shown; **pending Eli's eye**, then integrate into the Browse right rail (two-column) + rip `CanvasRoadmapMock` + `?roadmap=lab`.
 
 ## PARKED: page-port round (do not start until rounds above are approved)
 
@@ -104,6 +120,7 @@ Move the remaining pages onto the new system (Clay tokens, scales, elevation, bu
 ## Active exploration labs still mounted (rip when their decision lands)
 
 - `?palette=` (**round-5 challenger field** + pinned switcher: clay / yishai / heather / moss / pewter; rip the losers when a winner is crowned)
+- `?amp=subtle|medium|bold` (**colour-amplitude ladder**, Yishai-only; the switcher's Colour row. Rip the losing rungs when Eli picks one, then re-derive the chosen rung for the whole palette field)
 - `?logo=blue` (colorway ref only; the `?logo=lab` A/B lab is removed - logo locked)
 - `?roadmap=lab` (elevated matched-roles panel; rip on integration)
   All other `?param` labs/switchers (ring, hue, field, palette, story, top, layout) are already removed.

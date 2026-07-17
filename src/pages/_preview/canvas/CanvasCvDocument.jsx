@@ -15,8 +15,13 @@ import {
 // can't render without prod writes. Purely presentational, --rd-* tokens.
 
 function SectionLabel({ children }) {
+  // Amplitude promotes section labels from quiet eyebrow-brown to the family
+  // accent; unset (subtle-off / other palettes) → the eyebrow token.
   return (
-    <p className="rd-t-micro uppercase tracking-[0.11em] font-mono text-rd-text-eyebrow mb-2">
+    <p
+      className="rd-t-micro uppercase tracking-[0.11em] font-mono mb-2"
+      style={{ color: "var(--rd-amp-section-fg, var(--rd-text-eyebrow))" }}
+    >
       {children}
     </p>
   );
@@ -26,15 +31,16 @@ export default function CanvasCvDocument() {
   const p = CANVAS_PROFILE;
   return (
     <div className="px-6 py-6 md:px-8 md:py-7 max-w-[720px] mx-auto">
-      {/* Header */}
-      <header className="pb-4 border-b border-rd-border">
-        <h1 className="font-display font-extrabold rd-t-display-l text-rd-text leading-tight">
+      {/* Header. `cx-cv-*` hooks let BOLD amplitude turn this into a bled-to-edge
+          dark ink block (amplitude.css); at subtle/medium the hooks are inert. */}
+      <header className="cx-cv-header pb-4 border-b border-rd-border">
+        <h1 className="cx-cv-name font-display font-extrabold rd-t-display-l text-rd-text leading-tight">
           {p.full_name}
         </h1>
-        <p className="rd-t-body-m text-rd-coral font-display font-semibold mt-0.5">
+        <p className="cx-cv-headline rd-t-body-m text-rd-coral font-display font-semibold mt-0.5">
           {p.headline}
         </p>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2.5 rd-t-body-s text-rd-text-secondary">
+        <div className="cx-cv-contact flex flex-wrap gap-x-4 gap-y-1 mt-2.5 rd-t-body-s text-rd-text-secondary">
           <span className="inline-flex items-center gap-1">
             <MapPin className="w-3 h-3" />
             {p.location}
@@ -111,9 +117,7 @@ export default function CanvasCvDocument() {
                   {ed.start} – {ed.end}
                 </span>
               </div>
-              <p className="rd-t-body-s text-rd-text-secondary">
-                {ed.degree}
-              </p>
+              <p className="rd-t-body-s text-rd-text-secondary">{ed.degree}</p>
               <p className="rd-t-body-s text-rd-text-tertiary mt-0.5 leading-[1.5]">
                 {ed.detail}
               </p>

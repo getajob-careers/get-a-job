@@ -57,10 +57,12 @@ import CanvasField from "./canvas/CanvasField";
 import CanvasLogo from "./canvas/CanvasLogo";
 import CanvasAvatarChip from "./canvas/CanvasAvatarChip";
 import { applyPalette, PALETTES, DEFAULT_PALETTE } from "./canvas/palette";
+import { applyAmplitude, AMP_LEVELS, DEFAULT_AMP } from "./canvas/amplitude";
 import CanvasPaletteSwitcher from "./canvas/CanvasPaletteSwitcher";
 import "./canvas/scale.css";
 import "./canvas/elevation.css";
 import "./canvas/toolkit.css";
+import "./canvas/amplitude.css";
 
 const APPLICATION_STATUSES = [
   "interested",
@@ -108,15 +110,39 @@ export default function Home3TabPreview() {
     const id = p ? p.trim().toLowerCase() : null;
     return id && PALETTES[id] ? id : DEFAULT_PALETTE;
   });
-  useEffect(
-    () => (CANVAS_FIXTURES ? applyPalette(palette) : undefined),
-    [palette],
-  );
+  // Colour amplitude — how much of the product colour covers (subtle/medium/bold).
+  // Yishai-only for now; the toggle is only meaningful under Yishai (amplitudeVars
+  // returns {} for other palettes). Same case-insensitive guard as ?palette=.
+  const [amp, setAmp] = useState(() => {
+    if (typeof window === "undefined") return DEFAULT_AMP;
+    const a = new URLSearchParams(window.location.search).get("amp");
+    const id = a ? a.trim().toLowerCase() : null;
+    return id && AMP_LEVELS.includes(id) ? id : DEFAULT_AMP;
+  });
+  // Apply the palette FIRST, then amplitude over it; tear down in reverse. Both
+  // re-run on any change so a switch installs the full stack over the last one.
+  useEffect(() => {
+    if (!CANVAS_FIXTURES) return undefined;
+    const restorePalette = applyPalette(palette);
+    const restoreAmp = applyAmplitude(palette, amp);
+    return () => {
+      restoreAmp();
+      restorePalette();
+    };
+  }, [palette, amp]);
   const pickPalette = (id) => {
     setPalette(id);
     if (typeof window !== "undefined") {
       const u = new URL(window.location.href);
       u.searchParams.set("palette", id);
+      window.history.replaceState({}, "", u);
+    }
+  };
+  const pickAmp = (id) => {
+    setAmp(id);
+    if (typeof window !== "undefined") {
+      const u = new URL(window.location.href);
+      u.searchParams.set("amp", id);
       window.history.replaceState({}, "", u);
     }
   };
@@ -132,10 +158,18 @@ export default function Home3TabPreview() {
   return (
     <Layout currentPageName="Career">
       <CvGenProvider onStart={() => setActiveTab("cv")}>
-        <div className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
+        <div
+          className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0"
+          data-amp={CANVAS_FIXTURES && palette === "yishai" ? amp : undefined}
+        >
           {CANVAS_FIXTURES && <CanvasField />}
           {CANVAS_FIXTURES && (
-            <CanvasPaletteSwitcher value={palette} onChange={pickPalette} />
+            <CanvasPaletteSwitcher
+              value={palette}
+              onChange={pickPalette}
+              amp={amp}
+              onAmpChange={pickAmp}
+            />
           )}
           {/* Utility top bar (comp A): brand left, actions right. */}
           <div className="flex items-end justify-between gap-3">

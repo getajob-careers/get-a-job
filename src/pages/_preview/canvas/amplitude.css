@@ -1,0 +1,34 @@
+/* Colour amplitude — the STRUCTURAL half of the amplitude layer. Colour values
+ * come from the --rd-amp-* tokens that amplitude.js installs on :root; this file
+ * carries only the shape changes that a token can't express (padding, border
+ * removal, the CV header becoming a bled-to-edge dark block at BOLD). Keyed on
+ * [data-amp] set on the canvas root, so subtle/medium leave the DOM exactly as it
+ * was and only BOLD restructures the header. Fixture-gated with the rest of the
+ * canvas. See docs/design/color-amplitude-proposal.md. */
+
+/* The CV header at BOLD: a deep ink block that bleeds to the document's edges
+ * (the DropSection analogue). Negative insets cancel the CV document's px-6/px-8
+ * gutter so the block spans full width; text recolours to the light-on-ink set
+ * (contrast AA-verified in scripts/audit-amplitude.mjs). */
+[data-amp="bold"] .cx-cv-header {
+  background: var(--rd-amp-cvheader-bg);
+  margin: -1.5rem -1.5rem 0.25rem;
+  padding: 1.5rem 1.5rem 1.25rem;
+  border-bottom: 0;
+  border-radius: 0;
+}
+@media (min-width: 768px) {
+  [data-amp="bold"] .cx-cv-header {
+    margin: -1.75rem -2rem 0.25rem;
+    padding: 1.75rem 2rem 1.5rem;
+  }
+}
+[data-amp="bold"] .cx-cv-name {
+  color: var(--rd-amp-cvheader-fg);
+}
+[data-amp="bold"] .cx-cv-headline {
+  color: var(--rd-amp-cvheader-accent);
+}
+[data-amp="bold"] .cx-cv-contact {
+  color: var(--rd-amp-cvheader-muted);
+}

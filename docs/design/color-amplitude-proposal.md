@@ -1,5 +1,39 @@
 # Colour amplitude — proposal (2026-07-17)
 
+**Status: APPROVED + BUILT (2026-07-17).** All three rungs live at
+`?palette=yishai&amp=subtle|medium|bold` behind the switcher's Colour row (shown
+under Yishai only). AA + elevation gated by `scripts/audit-amplitude.mjs`;
+chroma measured by `scripts/profile-amplitude.py`. Cold-load pass clean.
+
+## Built result — measured (CV tab, chroma coverage)
+
+| Level      | neutral | carries colour (faint+) | real+sat  |
+| ---------- | ------- | ----------------------- | --------- |
+| flat (old) | 71.6%   | 28.4%                   | 4.8%      |
+| **subtle** | 22.5%   | **77.5%**               | 4.6%      |
+| **medium** | 15.8%   | **84.2%**               | 4.5%      |
+| **bold**   | 12.0%   | **88.0%**               | **20.3%** |
+
+**Honest reading (do not gloss):**
+
+- The card tint is the giant lever: it moves the screen from 72% neutral to ~22%
+  neutral at subtle alone. The product stops looking plain at the FLOOR. That is
+  the win, and it is large.
+- **Subtle and medium are close on the CV tab** (4.6 vs 4.5 real+sat) because
+  medium's _distinct_ levers — the coach owning a tint, kanban column washes —
+  live on OTHER tabs (Tracker, and the coach dock). **Judge medium vs subtle on
+  Tracker + the coach, not on CV**, or the rung difference won't show.
+- The jump in _saturated_ colour is **bold-only** (4.5% → 20.3%), driven by the
+  dark CV-header block. Bold is a genuinely different register, not more-of-medium.
+- Targets restated: the original "real-chroma 8–12/15–20/25–30%" conflated faint
+  and real. The card tint is _faint by design_ (high luminance to preserve
+  elevation → low chroma). The honest metric for the tint is **"carries colour"**;
+  "real+sat" only moves meaningfully at bold.
+
+---
+
+**Original proposal (approved as written) follows.**
+
 **Status: PROPOSAL. Nothing built yet; awaiting Eli's scope pick.**
 Trigger: the round-5 flip session **failed** — all five candidates read nearly
 identical and the product felt plain. Eli's diagnosis: the palettes only differ on
