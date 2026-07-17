@@ -54,10 +54,7 @@ import { CanvasJobsFeed } from "./canvas/CanvasMatches";
 import CanvasSidebar from "./canvas/CanvasSidebar";
 import { CvGenProvider } from "./canvas/CvGenContext";
 import CanvasField from "./canvas/CanvasField";
-import CanvasTexture, {
-  TEXTURE_OPTIONS,
-  TEXTURE_INTENSITIES,
-} from "./canvas/CanvasTexture";
+import CanvasTexture from "./canvas/CanvasTexture";
 import CanvasLogo from "./canvas/CanvasLogo";
 import CanvasAvatarChip from "./canvas/CanvasAvatarChip";
 import { applyPalette } from "./canvas/palette";
@@ -119,99 +116,19 @@ export default function Home3TabPreview() {
       ? "blue"
       : "clay";
 
-  // Ground texture — a REFINEMENT toggle (rip on Eli's pick). ?texture=grain|
-  // gradient|dots; default none.
-  const [texture, setTexture] = useState(() => {
-    if (typeof window === "undefined") return "none";
-    const t = new URLSearchParams(window.location.search).get("texture");
-    const id = t ? t.trim().toLowerCase() : null;
-    return id && TEXTURE_OPTIONS.includes(id) ? id : "none";
-  });
-  const pickTexture = (id) => {
-    setTexture(id);
-    if (typeof window !== "undefined") {
-      const u = new URL(window.location.href);
-      u.searchParams.set("texture", id);
-      window.history.replaceState({}, "", u);
-    }
-  };
-  const [textureIntensity, setTextureIntensity] = useState(() => {
-    if (typeof window === "undefined") return 1;
-    const n = Number(new URLSearchParams(window.location.search).get("tex_x"));
-    return TEXTURE_INTENSITIES.includes(n) ? n : 1;
-  });
-  const pickIntensity = (n) => {
-    setTextureIntensity(n);
-    if (typeof window !== "undefined") {
-      const u = new URL(window.location.href);
-      u.searchParams.set("tex_x", String(n));
-      window.history.replaceState({}, "", u);
-    }
-  };
-
   const activeIndex = TABS.findIndex((t) => t.id === activeTab);
 
   return (
     <Layout currentPageName="Career">
       <CvGenProvider onStart={() => setActiveTab("cv")}>
-        {/* `isolate` makes this shell a stacking context. Without it, the -z-10
-            CanvasField + CanvasTexture layers escape upward and paint BEHIND the
-            opaque Layout <main> background — invisible. (overflow-hidden does NOT
-            create a stacking context, contrary to CanvasField's original note.) */}
+        {/* `isolate` makes this shell a stacking context — REQUIRED. Without it the
+            -z-10 CanvasField + CanvasTexture ground layers escape upward and paint
+            BEHIND the opaque Layout <main> background and silently vanish.
+            (overflow-hidden does NOT create a stacking context.) See the ground
+            spec in canvas-tokens.md; the port must carry this. */}
         <div className="relative isolate max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
           {CANVAS_FIXTURES && <CanvasField />}
-          {CANVAS_FIXTURES && (
-            <CanvasTexture texture={texture} intensity={textureIntensity} />
-          )}
-          {CANVAS_FIXTURES && (
-            <div
-              className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[70] flex items-center gap-1 rounded-full bg-white/95 backdrop-blur px-1.5 py-1.5 shadow-[0_8px_28px_rgba(20,20,25,0.18)] ring-1 ring-black/10"
-              role="group"
-              aria-label="Ground texture"
-            >
-              <span className="px-2 rd-t-micro font-bold uppercase tracking-[0.14em] text-neutral-500 select-none">
-                Texture
-              </span>
-              {TEXTURE_OPTIONS.map((id) => (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => pickTexture(id)}
-                  aria-pressed={texture === id}
-                  className={`rounded-full px-3 py-1.5 rd-t-body-s font-semibold capitalize transition-colors ${
-                    texture === id
-                      ? "bg-neutral-900 text-white"
-                      : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
-                  }`}
-                >
-                  {id}
-                </button>
-              ))}
-              {texture !== "none" && (
-                <>
-                  <span
-                    aria-hidden="true"
-                    className="h-5 w-px bg-neutral-200 mx-1"
-                  />
-                  {TEXTURE_INTENSITIES.map((n) => (
-                    <button
-                      key={n}
-                      type="button"
-                      onClick={() => pickIntensity(n)}
-                      aria-pressed={textureIntensity === n}
-                      className={`rounded-full px-3 py-1.5 rd-t-body-s font-semibold transition-colors ${
-                        textureIntensity === n
-                          ? "bg-neutral-900 text-white"
-                          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
-                      }`}
-                    >
-                      {n}×
-                    </button>
-                  ))}
-                </>
-              )}
-            </div>
-          )}
+          {CANVAS_FIXTURES && <CanvasTexture />}
           {/* Utility top bar (comp A): brand left, actions right. */}
           <div className="flex items-end justify-between gap-3">
             <div className="min-w-0">

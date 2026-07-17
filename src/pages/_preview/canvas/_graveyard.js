@@ -184,3 +184,15 @@ export const PEWTER = {
   // Logotype glaze highlight — lifted charcoal-navy.
   "--rd-logo-hi": "#6E7280",
 };
+
+// ── Ground-texture explorations, retired when GRAIN@6x was crowned the permanent
+// ground (2026-07-17). CanvasTexture pattern styles, kept for reference; NOT
+// imported. Each was a `-z-10` field-layer overlay behind cards.
+//
+// gradient — a barely-there radial tonal wash (base opacity 0.5):
+//   { background:
+//       "radial-gradient(135% 95% at 50% -12%, rgba(255,255,255,1), rgba(255,255,255,0) 55%)" }
+//
+// dots — a micro ink-dot grid (base opacity 0.06):
+//   { backgroundImage: "radial-gradient(rgba(96,72,62,1) 0.5px, transparent 0.6px)",
+//     backgroundSize: "20px 20px" }

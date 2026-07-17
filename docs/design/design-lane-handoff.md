@@ -25,7 +25,7 @@ Full per-surface audit: `docs/design/feasibility-audit.md`.
 
 ## LOCKED decisions ledger
 
-- **Palette:** **YISHAI — CROWNED (2026-07-17), THE system.** Brown ink + **greige ground** `#EBE8E1` + blue primary + mauve secondary, with the always-on **MEDIUM** treatment (tinted card, mauve-forward kanban, coach tint). Clay/Heather/Moss/Pewter retired to `_graveyard.js`; the switcher is deleted; no palette/amp param — the canvas is the crowned look by default. Full record in `canvas-tokens.md`. Open refinement: the **ground texture** toggle (`?texture=grain|gradient|dots`) awaits Eli's pick.
+- **Palette:** **YISHAI — CROWNED (2026-07-17), THE system.** Brown ink + **greige ground** `#EBE8E1` + blue primary + mauve secondary, with the always-on **MEDIUM** treatment (tinted card, mauve-forward kanban, coach tint). Clay/Heather/Moss/Pewter retired to `_graveyard.js`; the switcher is deleted; no palette/amp param — the canvas is the crowned look by default. **Ground = greige `#EBE8E1` + grain LOCKED** (SVG feTurbulence, multiply, final opacity 0.36, `-z-10` field layer; requires `isolate` on the shell — see the ground spec in `canvas-tokens.md`). Full record in `canvas-tokens.md`. **The palette/amplitude/ground arc is fully LOCKED.**
   - **AA is enforced, not asserted:** `scripts/audit-palettes.mjs` gates every candidate (24 tokens; band `-dark` ≥4.5:1 on card AND own tint; text ≥4.5:1 on card AND page). It caught a real bug in the ADOPTED palette — Clay's eyebrow was 4.45:1 on page, now #7A6845.
 - **Constraints (token layer, non-negotiable):** ring low-fill floor (`ring.js`); fit-badge AA floor (every band `-dark` ≥4.5:1 on card AND its tint).
 - **Type + radius scales:** `scale.css` (`rd-t-*` 7 steps, `rd-r-*` 4 steps + full) — the ONLY legal sizes/radii; `check-scale.mjs` enforces.
@@ -62,25 +62,7 @@ Full per-surface audit: `docs/design/feasibility-audit.md`.
 
 ## PENDING Eli decisions (open)
 
-1. **GROUND TEXTURE — pick one** (`?texture=grain|gradient|dots`, the pinned
-   Texture toggle). The crowned greige ground reads a touch flat at full-page
-   scale; the toggle adds subtle, port-safe (CSS-only, no image asset) texture:
-   **grain** (SVG feTurbulence paper noise, low opacity), **gradient** (a
-   barely-there tonal wash, brighter high-centre), **dots** (a micro ink-dot grid).
-   All are static, painted BEHIND cards on the `-z-10` field layer (so they can't
-   touch text AA or card-vs-ground elevation). Each has an **intensity control**
-   (1× / 3× / 6×, `?tex_x=`) to find the "felt not seen" ceiling. **PENDING Eli's
-   pick**, then rip the toggle + keep the winner as the default ground treatment.
-   - **BUG FIXED (2026-07-17):** the texture (and the whole CanvasField depth
-     field) were INVISIBLE — the shell was `position:relative` but not a stacking
-     context, so the `-z-10` layers escaped upward and painted behind the opaque
-     Layout `<main>` bg. `overflow-hidden` does NOT create a stacking context
-     (contrary to CanvasField's original note). Fix: `isolate` on the shell. This
-     also restored the depth field, which is part of why the ground read flat.
-   - The palette/amplitude arc that led here is DONE and recorded in
-     `canvas-tokens.md` (YISHAI crowned; medium + greige locked; losers +
-     switcher ripped). History: `color-amplitude-proposal.md`.
-2. **Roadmap = the real "Your matched roles" panel** (`Career.jsx` / TopMatchesPanel): roles list, per-role tier badge, two-axis bars, skill chips, expand. LOCKED that this IS the roadmap surface, on the Browse right rail. Elevated (craft-pass) restyle is built at `?roadmap=lab` and shown; **pending Eli's eye**, then integrate into the Browse right rail (two-column) + rip `CanvasRoadmapMock` + `?roadmap=lab`.
+1. **Roadmap = the real "Your matched roles" panel** (`Career.jsx` / TopMatchesPanel): roles list, per-role tier badge, two-axis bars, skill chips, expand. LOCKED that this IS the roadmap surface, on the Browse right rail. Elevated (craft-pass) restyle is built at `?roadmap=lab` and shown; **pending Eli's eye**, then integrate into the Browse right rail (two-column) + rip `CanvasRoadmapMock` + `?roadmap=lab`.
 
 ## PARKED: page-port round (do not start until rounds above are approved)
 
@@ -90,7 +72,7 @@ Move the remaining pages onto the new system (Clay tokens, scales, elevation, bu
 
 ## Active exploration labs still mounted (rip when their decision lands)
 
-- `?texture=grain|gradient|dots` (**ground-texture toggle**, pinned; rip on Eli's pick, keep the winner as the default ground)
+- (RIPPED: `?texture=` / `?tex_x=` + the Texture toggle — grain@0.36 crowned as the default ground; gradient/dots retired to `_graveyard.js`)
 - `?logo=blue` (colorway ref only; the `?logo=lab` A/B lab is removed - logo locked)
 - (RIPPED: `?palette=` + the switcher, and `?amp=` — Yishai crowned, medium + greige locked as the default)
 - `?roadmap=lab` (elevated matched-roles panel; rip on integration)

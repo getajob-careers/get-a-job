@@ -21,9 +21,36 @@ no palette/amplitude param — the canvas renders the crowned look by default.
   and the **mauve-forward** pass — vivid `#9B7D8A` filled kanban headers (white
   20px large-bold labels, legal on the 3:1 floor), mauve washes + deco. AA +
   elevation gated by `scripts/audit-amplitude.mjs`.
-- **Ground texture:** a refinement toggle is live (`?texture=grain|gradient|dots`)
-  pending Eli's pick; the greige ground reads a touch flat and wants subtle,
-  port-safe (CSS-only) texture. Rip the toggle on the pick.
+
+## THE GROUND (official spec — locked, Eli 2026-07-17)
+
+The ground is **greige `#EBE8E1` + grain**, and the grain only survives if the
+shell is a stacking context. Both halves are load-bearing; the port must carry
+both or the ground silently reverts to flat greige (and the depth field vanishes
+with it).
+
+- **Grain** (`CanvasTexture.jsx`): an inline **SVG feTurbulence** fractal-noise
+  (`baseFrequency 0.85`, 2 octaves), **`mix-blend-mode: multiply`**, **final
+  opacity `0.36`** (the baked value = grain base 0.06 × the 6× intensity Eli
+  picked — one number, no runtime math). Pure CSS data-URI, no image asset, so it
+  ports as a page-background treatment. Rendered on the **`-z-10` field layer**
+  (with `CanvasField`'s depth arcs), behind cards — so it never touches text AA or
+  card-vs-ground elevation. Gradient + dots explorations retired to `_graveyard.js`.
+- **`isolate` on the shell is REQUIRED (part of this spec, not incidental).** The
+  ground layers are `position:absolute; z-index:-10`. If their nearest positioned
+  ancestor is not a **stacking context**, the negative z-index escapes upward and
+  the layers paint BEHIND the opaque page/`<main>` background — **silently
+  invisible** (exactly the bug that shipped here: the grain AND the whole depth
+  field were occluded, and the ground read flat). `position:relative` alone does
+  NOT create a stacking context, and neither does `overflow-hidden`. The shell
+  carries `isolate` (Tailwind `isolation: isolate`); **the port must reproduce a
+  stacking context on whatever element owns these ground layers.**
+- **Verify by pixel-diff, never by computed style.** A `-z-10` layer can exist in
+  the DOM with the correct computed style and still paint nothing. To confirm the
+  ground renders: screenshot with vs without and diff the pixels (a real change is
+  ~15–20% of the ground area; ~0% outside the control = broken, not subtle). Fast
+  disambiguator: force the layer **bright red at full opacity** — if it doesn't
+  show, it's occluded (stacking context / z-index / an opaque ancestor), not faint.
 
 ## Feasibility-first (STANDING RULE)
 
