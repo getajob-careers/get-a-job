@@ -54,7 +54,10 @@ import { CanvasJobsFeed } from "./canvas/CanvasMatches";
 import CanvasSidebar from "./canvas/CanvasSidebar";
 import { CvGenProvider } from "./canvas/CvGenContext";
 import CanvasField from "./canvas/CanvasField";
-import CanvasTexture, { TEXTURE_OPTIONS } from "./canvas/CanvasTexture";
+import CanvasTexture, {
+  TEXTURE_OPTIONS,
+  TEXTURE_INTENSITIES,
+} from "./canvas/CanvasTexture";
 import CanvasLogo from "./canvas/CanvasLogo";
 import CanvasAvatarChip from "./canvas/CanvasAvatarChip";
 import { applyPalette } from "./canvas/palette";
@@ -132,15 +135,34 @@ export default function Home3TabPreview() {
       window.history.replaceState({}, "", u);
     }
   };
+  const [textureIntensity, setTextureIntensity] = useState(() => {
+    if (typeof window === "undefined") return 1;
+    const n = Number(new URLSearchParams(window.location.search).get("tex_x"));
+    return TEXTURE_INTENSITIES.includes(n) ? n : 1;
+  });
+  const pickIntensity = (n) => {
+    setTextureIntensity(n);
+    if (typeof window !== "undefined") {
+      const u = new URL(window.location.href);
+      u.searchParams.set("tex_x", String(n));
+      window.history.replaceState({}, "", u);
+    }
+  };
 
   const activeIndex = TABS.findIndex((t) => t.id === activeTab);
 
   return (
     <Layout currentPageName="Career">
       <CvGenProvider onStart={() => setActiveTab("cv")}>
-        <div className="relative max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
+        {/* `isolate` makes this shell a stacking context. Without it, the -z-10
+            CanvasField + CanvasTexture layers escape upward and paint BEHIND the
+            opaque Layout <main> background — invisible. (overflow-hidden does NOT
+            create a stacking context, contrary to CanvasField's original note.) */}
+        <div className="relative isolate max-w-[1400px] mx-auto px-4 md:px-6 py-5 h-[100dvh] overflow-hidden flex flex-col min-h-0">
           {CANVAS_FIXTURES && <CanvasField />}
-          {CANVAS_FIXTURES && <CanvasTexture texture={texture} />}
+          {CANVAS_FIXTURES && (
+            <CanvasTexture texture={texture} intensity={textureIntensity} />
+          )}
           {CANVAS_FIXTURES && (
             <div
               className="fixed bottom-4 left-1/2 -translate-x-1/2 z-[70] flex items-center gap-1 rounded-full bg-white/95 backdrop-blur px-1.5 py-1.5 shadow-[0_8px_28px_rgba(20,20,25,0.18)] ring-1 ring-black/10"
@@ -165,6 +187,29 @@ export default function Home3TabPreview() {
                   {id}
                 </button>
               ))}
+              {texture !== "none" && (
+                <>
+                  <span
+                    aria-hidden="true"
+                    className="h-5 w-px bg-neutral-200 mx-1"
+                  />
+                  {TEXTURE_INTENSITIES.map((n) => (
+                    <button
+                      key={n}
+                      type="button"
+                      onClick={() => pickIntensity(n)}
+                      aria-pressed={textureIntensity === n}
+                      className={`rounded-full px-3 py-1.5 rd-t-body-s font-semibold transition-colors ${
+                        textureIntensity === n
+                          ? "bg-neutral-900 text-white"
+                          : "text-neutral-600 hover:bg-neutral-100 hover:text-neutral-900"
+                      }`}
+                    >
+                      {n}×
+                    </button>
+                  ))}
+                </>
+              )}
             </div>
           )}
           {/* Utility top bar (comp A): brand left, actions right. */}

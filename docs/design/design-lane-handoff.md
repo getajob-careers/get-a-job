@@ -68,8 +68,15 @@ Full per-surface audit: `docs/design/feasibility-audit.md`.
    **grain** (SVG feTurbulence paper noise, low opacity), **gradient** (a
    barely-there tonal wash, brighter high-centre), **dots** (a micro ink-dot grid).
    All are static, painted BEHIND cards on the `-z-10` field layer (so they can't
-   touch text AA or card-vs-ground elevation). **PENDING Eli's pick**, then rip the
-   toggle + keep the winner as the default ground treatment.
+   touch text AA or card-vs-ground elevation). Each has an **intensity control**
+   (1× / 3× / 6×, `?tex_x=`) to find the "felt not seen" ceiling. **PENDING Eli's
+   pick**, then rip the toggle + keep the winner as the default ground treatment.
+   - **BUG FIXED (2026-07-17):** the texture (and the whole CanvasField depth
+     field) were INVISIBLE — the shell was `position:relative` but not a stacking
+     context, so the `-z-10` layers escaped upward and painted behind the opaque
+     Layout `<main>` bg. `overflow-hidden` does NOT create a stacking context
+     (contrary to CanvasField's original note). Fix: `isolate` on the shell. This
+     also restored the depth field, which is part of why the ground read flat.
    - The palette/amplitude arc that led here is DONE and recorded in
      `canvas-tokens.md` (YISHAI crowned; medium + greige locked; losers +
      switcher ripped). History: `color-amplitude-proposal.md`.
