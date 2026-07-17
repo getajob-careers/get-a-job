@@ -45,6 +45,20 @@ with it).
   NOT create a stacking context, and neither does `overflow-hidden`. The shell
   carries `isolate` (Tailwind `isolation: isolate`); **the port must reproduce a
   stacking context on whatever element owns these ground layers.**
+- **`isolate` is necessary but NOT sufficient in the real app (added 2026-07-17,
+  the bug recurred on its first port).** The `-z-10` grain paints on the isolate
+  shell's own background, BEHIND the shell's in-flow children. So **no in-flow
+  descendant between the shell and the content may carry an opaque background**, or
+  it paints over the grain and re-occludes it. In production the culprit was
+  `Layout`'s `<main class="legacy-body">`, which forced `bg-rd-bg-page` (opaque
+  greige) and covered the grain. The preview never hit this because its content sat
+  directly on the isolate shell with no full-bleed `<main>`. **The rule for the
+  port: the scroll container / content wrapper under the shell must be TRANSPARENT**
+  (the shell already provides the greige ground). A page body that sets its own
+  `bg-*` root will occlude the grain in its own area until that page is ported -
+  expected, not a bug. Keeping the grain on the h-screen shell (not inside the
+  scroll container) is also what makes it a FIXED ground that content scrolls over,
+  rather than a texture that scrolls away.
 - **Verify by pixel-diff, never by computed style.** A `-z-10` layer can exist in
   the DOM with the correct computed style and still paint nothing. To confirm the
   ground renders: screenshot with vs without and diff the pixels (a real change is

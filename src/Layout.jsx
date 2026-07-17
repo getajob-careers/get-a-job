@@ -330,13 +330,15 @@ function LayoutBody({ children, currentPageName }) {
         />
       </aside>
 
-      {/* Main content. The `legacy-body` wrapper forces the warm page
-          background underneath any unrestyled page that still ships a
-          legacy white/grey background — keeps the cream sidebar from
-          clashing while the per-page restyles roll out. Pages restyled
-          on rd tokens can leave their own backgrounds alone; pages that
-          set `bg-white` etc. as their root will paint over this with the
-          rd page color via the CSS reset below. */}
+      {/* Main content. `<main>` is TRANSPARENT (not bg-rd-bg-page) so the shell's
+          greige ground + the fixed -z-10 GrainGround show through it. An opaque
+          bg here would paint OVER the grain and occlude it (the Phase-0 ground bug
+          - the grain is on the h-screen shell so it stays fixed while main scrolls
+          content over it; a bg on main covers it). The shell already provides the
+          greige, so an unrestyled page with a transparent body still sits on the
+          right ground; a page that sets its own bg-white paints over the grain in
+          its own area (acceptable until that page is ported). See the ground spec
+          in docs/design/canvas-tokens.md (real-app port requirement). */}
       <div className="flex-1 flex flex-col min-w-0">
         {/* Mobile header — hamburger + persistent Coach trigger chip on
             the left, brand mark center. The right edge stays clear so
@@ -357,9 +359,7 @@ function LayoutBody({ children, currentPageName }) {
           <div className="w-9" />
         </header>
 
-        <main className="legacy-body flex-1 overflow-y-auto bg-rd-bg-page">
-          {children}
-        </main>
+        <main className="legacy-body flex-1 overflow-y-auto">{children}</main>
       </div>
 
       {/* Agent drawer — panel/sheet only. The original right-edge tab
